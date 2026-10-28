@@ -70,6 +70,48 @@ def test_reproducible_with_same_seed():
         assert abs(a - b) < 1e-9
 
 
+def _synthetic_psms(n=600):
+    import random
+    rng = random.Random(7)
+    ids = oms.PeptideIdentificationList()
+    aas = "ACDEFGHILMNPQRSTVWY"
+    for i in range(n):
+        decoy = (i % 2 == 1)
+        seq = "".join(aas[(i * 7 + j * 3) % len(aas)] for j in range(8)) + "K"
+        hit = oms.PeptideHit()
+        hit.setSequence(oms.AASequence.fromString(seq))
+        hit.setCharge(2)
+        hit.setScore((0.0 if decoy else 2.0) + rng.gauss(0.0, 1.0))
+        hit.setMetaValue("target_decoy", "decoy" if decoy else "target")
+        ev = oms.PeptideEvidence()
+        ev.setProteinAccession(("DECOY_P" if decoy else "P") + str(i))
+        hit.setPeptideEvidences([ev])
+        pid = oms.PeptideIdentification()
+        pid.setScoreType("hyperscore")
+        pid.setHigherScoreBetter(True)
+        pid.setMZ(hit.getSequence().getMZ(2))
+        pid.setRT(10.0 * i)
+        pid.setMetaValue("spectrum_reference", "scan=" + str(i + 1))
+        pid.setHits([hit])
+        ids.append(pid)
+    return ids
+
+
+def test_rescore_psms():
+    ids = _synthetic_psms()
+    p = oms.Percolator()
+    features = list(oms.PercolatorInfile.getStandardFeatureSet(2, 2)) + ["score", "Peptide", "Proteins"]
+    n = p.rescorePSMs(ids, features, "trypsin", 2, 2)
+    assert n == ids.size()
+    pid = ids[0]
+    assert pid.getScoreType() == "q-value"
+    assert not pid.isHigherScoreBetter()
+    hit = pid.getHits()[0]
+    assert hit.metaValueExists("MS:1001491")
+    assert hit.metaValueExists("MS:1001493")
+    assert hit.metaValueExists("hyperscore")
+
+
 if __name__ == "__main__":
     test_import_percolator()
     print("test_import_percolator: passed")
@@ -77,4 +119,6 @@ if __name__ == "__main__":
     print("test_low_level_rescore_on_separable_data: passed")
     test_reproducible_with_same_seed()
     print("test_reproducible_with_same_seed: passed")
+    test_rescore_psms()
+    print("test_rescore_psms: passed")
     print("\nAll Percolator pyOpenMS tests passed.")

@@ -324,8 +324,8 @@ protected:
     {
       features.setPrimaryMSRunPath({in});
     }
+    // the feature ids were assigned by FeatureFinderAlgorithmPicked
     features.ensureUniqueId();
-    features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // DEBUG
     if (debug_level_ > 10)

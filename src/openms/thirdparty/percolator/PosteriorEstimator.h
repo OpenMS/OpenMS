@@ -18,6 +18,7 @@
 #ifndef POSTERIORESTIMATOR_H_
 #define POSTERIORESTIMATOR_H_
 
+#include <atomic>
 #include <vector>
 #include <string>
 #include <utility>
@@ -76,7 +77,9 @@ class PosteriorEstimator {
 
   // used for standalone execution
   std::string targetFile, decoyFile;
-  static bool reversed, pvalInput, includeNegativesInResult, competition, usePi0_;
+  static bool reversed, pvalInput, competition, usePi0_;
+  // OpenMS: atomic, because Scores::calcQvals sets it from the parallel cross-validation loops.
+  static std::atomic<bool> includeNegativesInResult;
   std::string resultFileName;
 };
 

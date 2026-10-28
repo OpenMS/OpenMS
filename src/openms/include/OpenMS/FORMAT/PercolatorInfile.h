@@ -30,6 +30,15 @@ namespace OpenMS
       /// PIN meta values added to each hit, keyed by (peptide ID index, hit index).
       using PinFeatureMetaValueMap = std::map<std::pair<size_t, size_t>, std::set<std::string>>;
 
+      /**
+       * @brief Writes the PSMs of @p peptide_ids as a Percolator input file.
+       *
+       * @p enz names the enzyme of the enzN, enzC and enzInt features: a name of PercolatorAdapter's 'enzyme' option
+       * (no_enzyme, elastase, pepsin, proteinasek, thermolysin, chymotrypsin, lys-n, lys-c, arg-c, asp-n, glu-c,
+       * trypsin, trypsinp) or of ProteaseDB (e.g. 'Trypsin/P', 'Lys-C', 'PepsinA'), which is mapped to it; another
+       * enzyme of ProteaseDB (e.g. 'Lys-C/P', 'V8-E') gives the features by its own cleavage rule. Any other enzyme
+       * counts every site as enzymatic.
+       */
       static void store(const std::string& pin_file, 
         const PeptideIdentificationList& peptide_ids, 
         const StringList& feature_set, 
@@ -78,6 +87,17 @@ namespace OpenMS
       static std::string getScanIdentifier(const PeptideIdentification& pid, size_t index);
 
       /**
+       * @brief The spectrum file of a PSM: its 'file_origin' (empty if not set), followed by '|' and its
+       * 'id_merge_index' if that is set.
+       *
+       * The SpecId of a PSM in the .pin file starts with it. When the PSMs of a .pin file come from more than
+       * one spectrum file, @ref store also writes it to a 'FileName' column. Percolator numbers the spectrum
+       * files from that column and identifies a spectrum by file, ScanNr and ExpMass (e.g. for target-decoy
+       * competition), so spectra of different files with the same scan number stay apart.
+       */
+      static std::string getFileIdentifier(const PeptideIdentification& pid);
+
+      /**
        * @brief Returns the standard Percolator feature columns every .pin file should declare.
        *
        * The list contains the three mandatory header columns (SpecId, Label, ScanNr)
@@ -100,6 +120,19 @@ namespace OpenMS
        *   SpecId, ScanNr, Label, CalcMass, ExpMass, deltamass, retentiontime,
        *   mass, score, peplen, charge1..chargeN, enzN, enzC, enzInt, dm,
        *   absdm, Peptide, Proteins.
+       *
+       * ExpMass and mass are the observed precursor m/z, the same for all hits of
+       * a spectrum (Percolator identifies a spectrum by ScanNr and ExpMass). A
+       * precursor isotope error ('isotope_error', observed minus theoretical in
+       * 13C spacings; or the legacy MS-GF+ 'IsotopeError') is removed from the
+       * mass difference only: dm, absdm and deltamass.
+       *
+       * ScanNr tells the spectra of a spectrum file apart: the scan number of
+       * the native ID (e.g. Thermo); for Bruker TDF DDA ("frame=F scan=S
+       * precursor=P") the precursor P; for native IDs that number spectra only
+       * within a part of the run (Bruker TDF "frame=F ... scan=S" without a
+       * precursor, Waters, SCIEX) a running number per spectrum file, in the
+       * order of the PSMs.
        *
        * Useful for in-process Percolator training (see OpenMS::Percolator):
        * callers can then train on the exact same feature vectors the

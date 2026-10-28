@@ -11,22 +11,568 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/FORMAT/RationalScan2ImConverter.h>
+#include <OpenMS/FORMAT/MzCalibrationTof2MzConverter.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
+#include <OpenMS/FORMAT/ZstdCompression.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataStoringConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 
+#include <algorithm>
+#include <filesystem>
 #include <fstream>
+#include <functional>
+#include <map>
+#include <set>
+#include <sstream>
+#include <tuple>
 
 using namespace OpenMS;
 using namespace std;
+
+namespace
+{
+  // What the MS1 aggregation sections compare between loads: the number of MS1 spectra, their peaks and their summed
+  // intensity. The experiment is dropped before returning, so a section that compares several configurations holds only
+  // one loaded run at a time (each load of the DDA/DIA fixtures takes several GB).
+  struct MS1Summary
+  {
+    Size spectra = 0;
+    Size peaks = 0;
+    double intensity = 0.0;
+  };
+
+  [[maybe_unused]] MS1Summary loadMS1Summary(const std::string& path, const BrukerTimsFile::Config& cfg = BrukerTimsFile::Config())
+  {
+    MSExperiment exp;
+    BrukerTimsFile().load(path, exp, cfg);
+    MS1Summary summary;
+    for (const MSSpectrum& spec : exp)
+    {
+      if (spec.getMSLevel() != 1) continue;
+      ++summary.spectra;
+      summary.peaks += spec.size();
+      for (const Peak1D& p : spec) summary.intensity += p.getIntensity();
+    }
+    return summary;
+  }
+
+  // ---------------------------------------------------------------------------------------------
+  // Helpers of the parity sections, which compare what the read paths of BrukerTimsFile deliver:
+  // load(), transform() and loadDIAStreaming().
+  // ---------------------------------------------------------------------------------------------
+
+  // Whether two spectra are the same in every member but the ranges (m/z, intensity, ion mobility),
+  // which only MSSpectrum::updateRanges() or MSExperiment::updateRanges() fill. MSSpectrum::operator==
+  // leaves out the name, the ion mobility format and the ion mobility peak type; they are compared here.
+  [[maybe_unused]] bool sameSpectrum(const MSSpectrum& expected, const MSSpectrum& actual)
+  {
+    return expected == actual &&
+           expected.getName() == actual.getName() &&
+           expected.getIMFormat() == actual.getIMFormat() &&
+           expected.getIMPeakType() == actual.getIMPeakType();
+  }
+
+  // What differs between two spectra ("" if sameSpectrum())
+  [[maybe_unused]] std::string spectrumDifference(const MSSpectrum& expected, const MSSpectrum& actual)
+  {
+    if (sameSpectrum(expected, actual)) return "";
+
+    std::ostringstream d;
+    d.precision(17);
+    const auto compare = [&d](const char* what, const auto& e, const auto& a)
+    {
+      if (!(e == a)) d << what << ": expected '" << e << "', got '" << a << "'; ";
+    };
+
+    compare("native ID", expected.getNativeID(), actual.getNativeID());
+    compare("MS level", expected.getMSLevel(), actual.getMSLevel());
+    compare("RT", expected.getRT(), actual.getRT());
+    compare("drift time", expected.getDriftTime(), actual.getDriftTime());
+    compare("drift time unit", static_cast<int>(expected.getDriftTimeUnit()), static_cast<int>(actual.getDriftTimeUnit()));
+    compare("spectrum type", static_cast<int>(expected.getType()), static_cast<int>(actual.getType()));
+    compare("IM format", static_cast<int>(expected.getIMFormat()), static_cast<int>(actual.getIMFormat()));
+    compare("IM peak type", static_cast<int>(expected.getIMPeakType()), static_cast<int>(actual.getIMPeakType()));
+    compare("name", expected.getName(), actual.getName());
+    compare("comment", expected.getComment(), actual.getComment());
+
+    // peaks
+    compare("number of peaks", expected.size(), actual.size());
+    for (Size i = 0; i < std::min(expected.size(), actual.size()); ++i)
+    {
+      if (expected[i] == actual[i]) continue;
+      d << "peak " << i << ": expected (m/z " << expected[i].getMZ() << ", intensity " << expected[i].getIntensity()
+        << "), got (m/z " << actual[i].getMZ() << ", intensity " << actual[i].getIntensity() << "); ";
+      break;
+    }
+
+    // data arrays
+    const auto& e_float = expected.getFloatDataArrays();
+    const auto& a_float = actual.getFloatDataArrays();
+    compare("number of float data arrays", e_float.size(), a_float.size());
+    for (Size k = 0; k < std::min(e_float.size(), a_float.size()); ++k)
+    {
+      if (e_float[k] == a_float[k]) continue;
+      d << "float data array " << k << " ('" << e_float[k].getName() << "'): ";
+      const Size before = d.str().size();
+      compare("name", e_float[k].getName(), a_float[k].getName());
+      compare("size", e_float[k].size(), a_float[k].size());
+      for (Size i = 0; i < std::min(e_float[k].size(), a_float[k].size()); ++i)
+      {
+        if (e_float[k][i] == a_float[k][i]) continue;
+        d << "value " << i << ": expected " << e_float[k][i] << ", got " << a_float[k][i] << "; ";
+        break;
+      }
+      if (d.str().size() == before) d << "the description (unit or other meta data) differs; ";
+    }
+    if (!(expected.getIntegerDataArrays() == actual.getIntegerDataArrays())) d << "the integer data arrays differ; ";
+    if (!(expected.getStringDataArrays() == actual.getStringDataArrays())) d << "the string data arrays differ; ";
+
+    // precursors and the rest of the spectrum settings
+    const auto& e_prec = expected.getPrecursors();
+    const auto& a_prec = actual.getPrecursors();
+    compare("number of precursors", e_prec.size(), a_prec.size());
+    for (Size k = 0; k < std::min(e_prec.size(), a_prec.size()); ++k)
+    {
+      if (e_prec[k] == a_prec[k]) continue;
+      d << "precursor " << k << ": ";
+      const Size before = d.str().size();
+      compare("m/z", e_prec[k].getMZ(), a_prec[k].getMZ());
+      compare("intensity", e_prec[k].getIntensity(), a_prec[k].getIntensity());
+      compare("charge", e_prec[k].getCharge(), a_prec[k].getCharge());
+      compare("isolation window lower offset", e_prec[k].getIsolationWindowLowerOffset(), a_prec[k].getIsolationWindowLowerOffset());
+      compare("isolation window upper offset", e_prec[k].getIsolationWindowUpperOffset(), a_prec[k].getIsolationWindowUpperOffset());
+      compare("drift time", e_prec[k].getDriftTime(), a_prec[k].getDriftTime());
+      if (d.str().size() == before) d << "another member differs; ";
+    }
+    if (!(expected.getProducts() == actual.getProducts())) d << "the products differ; ";
+    if (!(expected.getInstrumentSettings() == actual.getInstrumentSettings())) d << "the instrument settings differ; ";
+    if (!(expected.getAcquisitionInfo() == actual.getAcquisitionInfo())) d << "the acquisition info differs; ";
+    if (!(expected.getSourceFile() == actual.getSourceFile())) d << "the source file differs; ";
+    compare("number of data processing entries", expected.getDataProcessing().size(), actual.getDataProcessing().size());
+
+    // meta values
+    std::vector<std::string> e_keys, a_keys;
+    expected.getKeys(e_keys);
+    actual.getKeys(a_keys);
+    if (e_keys != a_keys)
+    {
+      d << "meta value keys: expected";
+      for (const auto& key : e_keys) d << " '" << key << "'";
+      d << ", got";
+      for (const auto& key : a_keys) d << " '" << key << "'";
+      d << "; ";
+    }
+    for (const auto& key : e_keys)
+    {
+      if (actual.metaValueExists(key) && !(expected.getMetaValue(key) == actual.getMetaValue(key)))
+      {
+        d << "meta value '" << key << "': expected '" << expected.getMetaValue(key).toString(true) << "', got '"
+          << actual.getMetaValue(key).toString(true) << "'; ";
+      }
+    }
+
+    if (d.str().empty()) d << "a member that is not itemised here differs (MSSpectrum::operator== is false); ";
+    return d.str();
+  }
+
+  // Compares two series of spectra position by position. The series are the same if they have the same
+  // length and sameSpectrum() holds at every position.
+  class SpectraComparison
+  {
+  public:
+    // the next spectrum of both series
+    void add(const MSSpectrum& expected, const MSSpectrum& actual)
+    {
+      if (!sameSpectrum(expected, actual))
+      {
+        ++n_different_;
+        if (n_different_ <= MAX_REPORTED)
+        {
+          report_ += "spectrum " + std::to_string(n_compared_) + " (expected native ID '" + expected.getNativeID() + "'): "
+                     + spectrumDifference(expected, actual);
+        }
+      }
+      ++n_compared_;
+    }
+
+    // "" if two series of @p n_expected and @p n_actual spectra are the same. Otherwise the two lengths
+    // if they differ and, for the first differing positions, the index, the native ID and what differs.
+    std::string difference(Size n_expected, Size n_actual) const
+    {
+      std::string result;
+      if (n_expected != n_actual)
+      {
+        result += "number of spectra: expected " + std::to_string(n_expected) + ", got " + std::to_string(n_actual) + "; ";
+      }
+      result += report_;
+      if (n_different_ > 0)
+      {
+        result += std::to_string(n_different_) + " of " + std::to_string(n_compared_) + " compared spectra differ";
+      }
+      return result;
+    }
+
+  private:
+    static constexpr Size MAX_REPORTED = 3;
+    Size n_compared_ = 0;
+    Size n_different_ = 0;
+    std::string report_;
+  };
+
+  [[maybe_unused]] std::string spectraDifference(const std::vector<const MSSpectrum*>& expected,
+                                                 const std::vector<const MSSpectrum*>& actual)
+  {
+    SpectraComparison comparison;
+    for (Size i = 0; i < std::min(expected.size(), actual.size()); ++i)
+    {
+      comparison.add(*expected[i], *actual[i]);
+    }
+    return comparison.difference(expected.size(), actual.size());
+  }
+
+  // The spectra of an experiment, or those of one MS level (@p ms_level 0: all)
+  [[maybe_unused]] std::vector<const MSSpectrum*> spectrumPointers(const MSExperiment& exp, UInt ms_level = 0)
+  {
+    std::vector<const MSSpectrum*> result;
+    for (const MSSpectrum& s : exp)
+    {
+      if (ms_level == 0 || s.getMSLevel() == ms_level) result.push_back(&s);
+    }
+    return result;
+  }
+
+  // Whether the ranges of a spectrum were computed. A spectrum without peaks has none in any case.
+  [[maybe_unused]] bool hasRanges(const MSSpectrum& s)
+  {
+    return s.getRange().hasRange() != HasRangeType::NONE;
+  }
+
+  // What the parity sections count in a series of spectra
+  struct SpectraCounts
+  {
+    Size spectra = 0;
+    Size ms1 = 0;
+    Size ms2 = 0;
+    Size peaks = 0;
+    Size without_peaks = 0;  // spectra without peaks
+    Size with_ranges = 0;    // spectra whose ranges were computed
+    Size unsorted = 0;       // spectra whose peaks are not in ascending m/z order
+
+    void add(const MSSpectrum& s)
+    {
+      ++spectra;
+      if (s.getMSLevel() == 1) ++ms1;
+      if (s.getMSLevel() == 2) ++ms2;
+      peaks += s.size();
+      if (s.empty()) ++without_peaks;
+      if (hasRanges(s)) ++with_ranges;
+      if (!s.isSorted()) ++unsorted;
+    }
+  };
+
+  [[maybe_unused]] SpectraCounts countSpectra(const std::vector<const MSSpectrum*>& spectra)
+  {
+    SpectraCounts counts;
+    for (const MSSpectrum* s : spectra) counts.add(*s);
+    return counts;
+  }
+
+  // Consumer for transform(): compares every spectrum on arrival with the spectrum at the same position
+  // of @p expected (the result of load()) and records what else the reader tells a consumer. It keeps no
+  // spectra, so that a whole run can be compared without another copy of it in memory.
+  class ComparingConsumer : public Interfaces::IMSDataConsumer
+  {
+  public:
+    explicit ComparingConsumer(const MSExperiment& expected) :
+      expected_(expected)
+    {
+    }
+
+    void consumeSpectrum(MSSpectrum& s) override
+    {
+      if (received.spectra == 0)
+      {
+        size_known_at_first_spectrum = expected_size_calls > 0;
+        settings_known_at_first_spectrum = settings_calls > 0;
+      }
+      if (received.spectra < expected_.size()) comparison_.add(expected_[received.spectra], s);
+      received.add(s);
+    }
+
+    void consumeChromatogram(MSChromatogram& /*c*/) override
+    {
+      ++chromatograms;
+    }
+
+    void setExpectedSize(Size n_spectra, Size n_chromatograms) override
+    {
+      ++expected_size_calls;
+      expected_spectra = n_spectra;
+      expected_chromatograms = n_chromatograms;
+    }
+
+    void setExperimentalSettings(const ExperimentalSettings& s) override
+    {
+      ++settings_calls;
+      settings = s;
+    }
+
+    // "" if the spectra received so far are those of the expected experiment, in its order
+    std::string difference() const
+    {
+      return comparison_.difference(expected_.size(), received.spectra);
+    }
+
+    SpectraCounts received;        // the spectra consumed so far
+    Size chromatograms = 0;        // the chromatograms consumed so far
+    Size expected_size_calls = 0;  // calls of setExpectedSize(), and the values of the last one
+    Size expected_spectra = 0;
+    Size expected_chromatograms = 0;
+    Size settings_calls = 0;       // calls of setExperimentalSettings(), and the settings of the last one
+    ExperimentalSettings settings;
+    bool size_known_at_first_spectrum = false;
+    bool settings_known_at_first_spectrum = false;
+
+  private:
+    const MSExperiment& expected_;
+    SpectraComparison comparison_;
+  };
+
+  // The numbers of one comparison of transform() with load()
+  struct TransformParity
+  {
+    SpectraCounts loaded;    // the spectra load() returned
+    Size expected_size = 0;  // the number of spectra transform() announced with setExpectedSize()
+  };
+
+  // Calls load() and transform() for @p path with the same @p config and tests that the consumer of
+  // transform() receives what load() returns. The caller checks that the comparison covered what it
+  // was meant to cover.
+  [[maybe_unused]] TransformParity testTransformAgainstLoad(const std::string& path, const BrukerTimsFile::Config& config)
+  {
+    BrukerTimsFile f;
+    MSExperiment exp;
+    f.load(path, exp, config);
+
+    ComparingConsumer consumer(exp);
+    f.transform(path, &consumer, config);
+
+    // The same number of spectra in the same order, each one the same in every member ...
+    TEST_STRING_EQUAL(consumer.difference(), "")
+    TEST_EQUAL(consumer.received.spectra, exp.size())
+    TEST_EQUAL(consumer.received.unsorted, 0)
+
+    // ... except for the ranges of the spectra (m/z, intensity, ion mobility): load() ends with
+    // MSExperiment::updateRanges(), which computes those of every spectrum with peaks, while the spectra
+    // transform() hands to the consumer never had their ranges computed.
+    const SpectraCounts loaded = countSpectra(spectrumPointers(exp));
+    TEST_EQUAL(loaded.with_ranges, loaded.spectra - loaded.without_peaks)
+    TEST_EQUAL(consumer.received.with_ranges, 0)
+
+    // The experimental settings arrive once, before the first spectrum, and are those of load().
+    TEST_EQUAL(consumer.settings_calls, 1)
+    TEST_EQUAL(consumer.settings_known_at_first_spectrum, true)
+    TEST_TRUE(consumer.settings == exp.getExperimentalSettings())
+    TEST_EQUAL(consumer.settings.getSourceFiles().size(), 1)
+
+    // The expected size arrives once, before the first spectrum. A .d directory has no chromatograms.
+    TEST_EQUAL(consumer.expected_size_calls, 1)
+    TEST_EQUAL(consumer.size_known_at_first_spectrum, true)
+    TEST_EQUAL(consumer.expected_chromatograms, 0)
+    TEST_EQUAL(consumer.chromatograms, 0)
+    TEST_EQUAL(exp.getNrChromatograms(), 0)
+
+    // The expected number of spectra is counted from the tables of analysis.tdf (frames, precursors,
+    // frames x windows of their window group) before any peak is read, and the readers leave out a DDA
+    // precursor or a DIA window of a frame that ends up without peaks. It is therefore an upper bound
+    // for the number of consumeSpectrum() calls. The sections state where it is reached.
+    TEST_EQUAL(consumer.expected_spectra >= consumer.received.spectra, true)
+
+    return {loaded, consumer.expected_spectra};
+  }
+
+  // RegularSwathFileConsumer whose maps can be read as MSExperiment. retrieveSwathMaps() hands them out
+  // behind OpenSwath::ISpectrumAccess, which shows the arrays of a spectrum but not all of its metadata.
+  class InspectableSwathConsumer : public RegularSwathFileConsumer
+  {
+  public:
+    explicit InspectableSwathConsumer(const std::vector<OpenSwath::SwathMap>& boundaries) :
+      RegularSwathFileConsumer(boundaries)
+    {
+    }
+
+    // nullptr if no MS1 spectrum was consumed
+    const PeakMap* ms1Map() const
+    {
+      return ms1_map_.get();
+    }
+
+    // The map of the window with index @p window in the boundaries, nullptr if the consumer made none.
+    // (It makes the maps up to the last window that received a spectrum.)
+    const PeakMap* swathMap(Size window) const
+    {
+      return window < swath_maps_.size() ? swath_maps_[window].get() : nullptr;
+    }
+  };
+
+  // The numbers of one comparison of loadDIAStreaming() with load()
+  struct StreamingParity
+  {
+    SpectraCounts ms1;             // the spectra of the MS1 map
+    SpectraCounts ms2;             // the spectra of all SWATH maps
+    Size windows = 0;              // SWATH windows of the run
+    Size metadata_ms1 = 0;         // readDIAMetadata(): nr_ms1_spectra
+    Size metadata_ms2 = 0;         // readDIAMetadata(): sum of nr_ms2_spectra
+  };
+
+  // Streams @p path with @p config into a RegularSwathFileConsumer, the way SwathFile::loadBrukerTdf() does
+  // it for OpenSWATH (readDIAMetadata(), then loadDIAStreaming()), and tests that the maps of the consumer
+  // hold the spectra of @p reference, an experiment that load() returned: the MS1 map its MS1 spectra, the
+  // map of each SWATH window the MS2 spectra of that window, in the order of @p reference.
+  [[maybe_unused]] StreamingParity testStreamingAgainstLoad(const std::string& path, const BrukerTimsFile::Config& config,
+                                                            const MSExperiment& reference)
+  {
+    BrukerTimsFile f;
+    ExperimentalSettings settings;
+    const auto meta = f.readDIAMetadata(path, settings, config);
+    InspectableSwathConsumer consumer(meta.boundaries);
+    consumer.setExperimentalSettings(settings);
+    f.loadDIAStreaming(path, consumer, config);
+
+    StreamingParity result;
+    result.windows = meta.boundaries.size();
+    result.metadata_ms1 = meta.nr_ms1_spectra;
+    TEST_EQUAL(meta.nr_ms2_spectra.size(), meta.boundaries.size())
+
+    // --- MS1: the MS1 map holds the MS1 spectra of load() in the same order, each one the same in every
+    //     member but the ranges. Without MS1 spectra the consumer has no MS1 map. ---
+    const std::vector<const MSSpectrum*> reference_ms1 = spectrumPointers(reference, 1);
+    TEST_EQUAL(consumer.ms1Map() != nullptr, !reference_ms1.empty())
+    if (consumer.ms1Map() != nullptr)
+    {
+      const std::vector<const MSSpectrum*> streamed = spectrumPointers(*consumer.ms1Map());
+      TEST_STRING_EQUAL(spectraDifference(reference_ms1, streamed), "")
+      result.ms1 = countSpectra(streamed);
+      // the maps carry the settings the caller got from readDIAMetadata(), which are those of load()
+      TEST_TRUE(consumer.ms1Map()->getExperimentalSettings() == reference.getExperimentalSettings())
+    }
+    // readDIAMetadata() counts the MS1 frames, and every MS1 frame gives a spectrum (also one without peaks)
+    TEST_EQUAL(result.metadata_ms1, reference_ms1.size())
+
+    // --- MS2: the spectra of load(), grouped by SWATH window, keeping their order. A window is told by the
+    //     precursor m/z (the centre of the isolation window) and the ion mobility limits of the spectrum,
+    //     which is what FullSwathFileConsumer matches against the boundaries (there with a tolerance of
+    //     1e-6; here the values have to be the same doubles). ---
+    std::map<std::tuple<double, double, double>, std::vector<const MSSpectrum*>> reference_windows;
+    Size without_window = 0; // MS2 spectra of load() that do not name their window
+    for (const MSSpectrum* s : spectrumPointers(reference, 2))
+    {
+      if (s->getPrecursors().size() != 1 || !s->metaValueExists("ion mobility lower limit") || !s->metaValueExists("ion mobility upper limit"))
+      {
+        ++without_window;
+        continue;
+      }
+      reference_windows[{s->getPrecursors()[0].getMZ(),
+                         static_cast<double>(s->getMetaValue("ion mobility lower limit")),
+                         static_cast<double>(s->getMetaValue("ion mobility upper limit"))}].push_back(s);
+    }
+    TEST_EQUAL(without_window, 0)
+    // every window of the run has spectra, and no two windows are told by the same values
+    TEST_EQUAL(reference_windows.size(), meta.boundaries.size())
+
+    for (Size w = 0; w < meta.boundaries.size(); ++w)
+    {
+      const OpenSwath::SwathMap& boundary = meta.boundaries[w];
+      result.metadata_ms2 += meta.nr_ms2_spectra[w];
+      const auto window = reference_windows.find({boundary.center, boundary.imLower, boundary.imUpper});
+      const PeakMap* map = consumer.swathMap(w);
+      TEST_EQUAL(window != reference_windows.end(), true)
+      TEST_EQUAL(map != nullptr, true)
+      if (window == reference_windows.end() || map == nullptr) continue;
+
+      // The map of the window holds the MS2 spectra load() returns for it, in the same order, each one the
+      // same in every member but the ranges: peaks (m/z, intensity), the ion mobility array, native ID,
+      // RT, precursor, spectrum type, ion mobility peak type, meta values.
+      const std::vector<const MSSpectrum*> streamed = spectrumPointers(*map);
+      TEST_STRING_EQUAL(spectraDifference(window->second, streamed), "")
+      TEST_TRUE(map->getExperimentalSettings() == reference.getExperimentalSettings())
+
+      // The isolation window of the map is the one of its spectra
+      const Precursor& precursor = window->second.front()->getPrecursors()[0];
+      TEST_EQUAL(boundary.lower, precursor.getMZ() - precursor.getIsolationWindowLowerOffset())
+      TEST_EQUAL(boundary.upper, precursor.getMZ() + precursor.getIsolationWindowUpperOffset())
+      TEST_EQUAL(boundary.ms1, false)
+
+      // Inside a map the retention time increases from spectrum to spectrum, as OpenSWATH requires
+      Size rt_not_increasing = 0;
+      for (Size i = 1; i < streamed.size(); ++i)
+      {
+        if (!(streamed[i - 1]->getRT() < streamed[i]->getRT())) ++rt_not_increasing;
+      }
+      TEST_EQUAL(rt_not_increasing, 0)
+
+      // readDIAMetadata() counts the frames of the window group of the window. A frame without a peak in
+      // the window gives no spectrum, so the count is an upper bound for the spectra of the map.
+      TEST_EQUAL(static_cast<Size>(meta.nr_ms2_spectra[w]) >= streamed.size(), true)
+
+      for (const MSSpectrum* s : streamed) result.ms2.add(*s);
+    }
+
+    // Every spectrum arrives with its peaks in ascending m/z order (loadDIAStreaming() sorts each one,
+    // load() sorts all at the end), and an MS2 spectrum without peaks is never delivered.
+    TEST_EQUAL(result.ms1.unsorted, 0)
+    TEST_EQUAL(result.ms2.unsorted, 0)
+    TEST_EQUAL(result.ms2.without_peaks, 0)
+
+    // The difference to load(): the ranges of the streamed spectra (m/z, intensity, ion mobility) were never
+    // computed, while load() ends with MSExperiment::updateRanges(), which computes those of every spectrum
+    // with peaks.
+    const SpectraCounts loaded = countSpectra(spectrumPointers(reference));
+    TEST_EQUAL(loaded.with_ranges, loaded.spectra - loaded.without_peaks)
+    TEST_EQUAL(result.ms1.with_ranges, 0)
+    TEST_EQUAL(result.ms2.with_ranges, 0)
+
+    // What retrieveSwathMaps() hands to OpenSWATH are these maps: the MS1 map first (if there is one),
+    // then one map per window in the order of the boundaries.
+    std::vector<OpenSwath::SwathMap> swath_maps;
+    consumer.retrieveSwathMaps(swath_maps);
+    const Size n_ms1_maps = consumer.ms1Map() != nullptr ? 1 : 0;
+    TEST_EQUAL(swath_maps.size(), n_ms1_maps + meta.boundaries.size())
+    if (swath_maps.size() == n_ms1_maps + meta.boundaries.size())
+    {
+      if (n_ms1_maps == 1)
+      {
+        TEST_EQUAL(swath_maps[0].ms1, true)
+        TEST_EQUAL(swath_maps[0].sptr->getNrSpectra(), consumer.ms1Map()->size())
+      }
+      for (Size w = 0; w < meta.boundaries.size(); ++w)
+      {
+        const OpenSwath::SwathMap& swath_map = swath_maps[n_ms1_maps + w];
+        TEST_EQUAL(swath_map.ms1, false)
+        TEST_EQUAL(swath_map.center, meta.boundaries[w].center)
+        TEST_EQUAL(swath_map.lower, meta.boundaries[w].lower)
+        TEST_EQUAL(swath_map.upper, meta.boundaries[w].upper)
+        TEST_EQUAL(swath_map.imLower, meta.boundaries[w].imLower)
+        TEST_EQUAL(swath_map.imUpper, meta.boundaries[w].imUpper)
+        TEST_EQUAL(swath_map.sptr->getNrSpectra(), consumer.swathMap(w) != nullptr ? consumer.swathMap(w)->size() : 0)
+      }
+    }
+
+    return result;
+  }
+} // anon
 
 namespace
 {
@@ -110,6 +656,221 @@ namespace
   }
 } // anon
 
+namespace
+{
+  using MzCal = MzCalibrationTof2MzConverter::Calibration;
+
+  // MzCalibration row (ModelType 1) and frame temperatures of a timsTOF Pro run (otofControl 6.0, 2019)
+  MzCal mzCalModelType1()
+  {
+    MzCal c;
+    c.model_type = 1;
+    c.digitizer_timebase = 0.2;
+    c.digitizer_delay = 24833.0;
+    c.t1 = 25.727448;
+    c.t2 = 28.353124;
+    c.dc1 = 27.0;
+    c.dc2 = 0.0;
+    c.c0 = 320.480481;
+    c.c1 = 157992.031315;
+    c.c2 = 0.002115;
+    c.c3 = 0.0;
+    c.c4 = -0.068565;
+    return c;
+  }
+  const double MT1_FRAME_T1 = 25.783137561298357;
+  const double MT1_FRAME_T2 = 28.876605339990224;
+
+  // MzCalibration row (ModelType 2) and frame temperatures of a timsTOF Pro run (timsControl 2.0, 2021).
+  // C3/C4 repeat C0/C2, as in all ModelType 2 files.
+  MzCal mzCalModelType2()
+  {
+    MzCal c;
+    c.model_type = 2;
+    c.digitizer_timebase = 0.19999999999999998;
+    c.digitizer_delay = 25726.199999999997;
+    c.t1 = 25.66893460672872;
+    c.t2 = 25.10638483329421;
+    c.dc1 = 20.0;
+    c.dc2 = 0.0;
+    c.c0 = 313.51167546836524;
+    c.c1 = 154833.4542880268;
+    c.c2 = -7.3593189552069465e-06;
+    c.c3 = 313.51167546836524;
+    c.c4 = -7.3593189552069465e-06;
+    // C5..C14: calibrant range and correction polynomial
+    c.correction.low = 225.951491;
+    c.correction.high = 1519.712539;
+    c.correction.n = 7;
+    c.correction.coefficients = {0.058519441907584555, -0.0005411344569873044, 1.8634987450927556e-06,
+                                 -3.1297916646308927e-09, 2.7471965457754794e-12, -1.207997933655641e-15,
+                                 2.095848318930801e-19};
+    return c;
+  }
+  const double MT2_FRAME_T1 = 25.67976562246388;
+  const double MT2_FRAME_T2 = 25.350275695575547;
+
+  // One frame of makeSyntheticTdf()
+  struct SyntheticFrame
+  {
+    uint32_t id = 1;
+    int msms_type = 0;      // 0: MS1, 8: DDA-PASEF, 9: DIA-PASEF
+    char polarity = '+';
+    uint32_t num_peaks = 0; // the reader decodes only frames with peaks
+  };
+
+  // A peak of a frame of makeSyntheticTdf() that has valid frame data
+  struct SyntheticPeak
+  {
+    uint32_t scan;
+    uint32_t tof;
+    uint32_t intensity;
+  };
+
+  // The frame data of TimsCompressionType 2 for @p peaks (ordered by scan and TOF index), as opentims decodes it:
+  // num_scans + 2 * peaks little-endian uint32 values, byte-shuffled and compressed with zstd. Value s + 1 is twice
+  // the number of peaks of scan s (the last scan has the rest), then the peaks follow scan by scan as (TOF index
+  // increment, intensity), the first increment of a scan counted from -1.
+  std::string syntheticFrameData(uint32_t num_scans, const std::vector<SyntheticPeak>& peaks)
+  {
+    std::vector<uint32_t> values(num_scans, 0);
+    for (const SyntheticPeak& peak : peaks)
+    {
+      if (peak.scan + 1 < num_scans) values[peak.scan + 1] += 2;
+    }
+    for (size_t i = 0; i < peaks.size(); ++i)
+    {
+      const bool first_of_scan = i == 0 || peaks[i].scan != peaks[i - 1].scan;
+      values.push_back(first_of_scan ? peaks[i].tof + 1 : peaks[i].tof - peaks[i - 1].tof);
+      values.push_back(peaks[i].intensity);
+    }
+    std::string bytes;
+    for (const uint32_t value : values)
+    {
+      for (int shift = 0; shift < 32; shift += 8) bytes += char((value >> shift) & 0xFF);
+    }
+    std::string shuffled, compressed;
+    ZstdCompression::byteShuffle(bytes.data(), bytes.size(), 4, shuffled);
+    ZstdCompression::compressData(shuffled.data(), shuffled.size(), compressed);
+    return compressed;
+  }
+
+  // A .d directory @p d with the tables and keys opentims and the reader need (no calibration tables: m/z and 1/K0
+  // come from the linear models). In analysis.tdf_bin the frames follow each other as the acquisition software writes
+  // them: a header of two little-endian uint32 (the size of the frame in bytes, header included, and the number of
+  // scans), for a frame with peaks followed by its data. A frame with @p peaks gets valid data (and their number as
+  // its number of peaks); the data of any other frame with peaks is 16 bytes that are not zstd data, so it can only
+  // give a spectrum without peaks.
+  std::string makeSyntheticTdf(const std::string& d, const std::vector<SyntheticFrame>& frames,
+                               const std::map<uint32_t, std::vector<SyntheticPeak>>& peaks = {})
+  {
+    const uint32_t num_scans = 1000; // as real frames (about 900 to 1000)
+    File::makeDir(d);
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
+    conn.executeStatement("CREATE TABLE GlobalMetadata (Key TEXT PRIMARY KEY, Value TEXT);");
+    conn.executeStatement("INSERT INTO GlobalMetadata VALUES ('TimsCompressionType', '2'), ('MzAcqRangeLower', '100'), "
+                          "('MzAcqRangeUpper', '1700'), ('DigitizerNumSamples', '400000'), "
+                          "('OneOverK0AcqRangeLower', '0.6'), ('OneOverK0AcqRangeUpper', '1.6');");
+    conn.executeStatement("CREATE TABLE Frames (Id INTEGER PRIMARY KEY, Time REAL, Polarity CHAR(1), MsMsType INTEGER, "
+                          "TimsId INTEGER, NumScans INTEGER, NumPeaks INTEGER, AccumulationTime REAL);");
+    std::ofstream bin((d + "/analysis.tdf_bin").c_str(), std::ios::binary);
+    uint32_t offset = 0;
+    for (const SyntheticFrame& frame : frames)
+    {
+      const auto frame_peaks = peaks.find(frame.id);
+      const uint32_t num_peaks = frame_peaks != peaks.end() ? static_cast<uint32_t>(frame_peaks->second.size()) : frame.num_peaks;
+      std::string data;
+      if (frame_peaks != peaks.end()) data = syntheticFrameData(num_scans, frame_peaks->second);
+      else if (num_peaks > 0) data = "not zstd data...";
+      const uint32_t size = 8 + static_cast<uint32_t>(data.size());
+      for (const uint32_t value : {size, num_scans})
+      {
+        const char bytes[4] = {char(value & 0xFF), char((value >> 8) & 0xFF), char((value >> 16) & 0xFF), char(value >> 24)};
+        bin.write(bytes, 4);
+      }
+      bin << data;
+      conn.executeStatement("INSERT INTO Frames VALUES (" + std::to_string(frame.id) + ", " + std::to_string(frame.id) + ".0, '"
+                            + std::string(1, frame.polarity) + "', " + std::to_string(frame.msms_type) + ", "
+                            + std::to_string(offset) + ", " + std::to_string(num_scans) + ", " + std::to_string(num_peaks)
+                            + ", 100.0);");
+      offset += size;
+    }
+    return d;
+  }
+
+  // Adds DIA-PASEF tables to a run of makeSyntheticTdf(): one window group, assigned to the frames @p dia_frames (which
+  // may name frames the run does not have), with an isolation window per scan range of @p windows (by default two
+  // diaPASEF windows of 500 scans)
+  void addSyntheticDIAWindows(const std::string& d, const std::vector<uint32_t>& dia_frames,
+                              const std::vector<std::pair<uint32_t, uint32_t>>& windows = {{0, 500}, {500, 1000}})
+  {
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE);
+    conn.executeStatement("CREATE TABLE DiaFrameMsMsWindowGroups (Id INTEGER PRIMARY KEY);");
+    conn.executeStatement("INSERT INTO DiaFrameMsMsWindowGroups VALUES (1);");
+    conn.executeStatement("CREATE TABLE DiaFrameMsMsWindows (WindowGroup INTEGER, ScanNumBegin INTEGER, ScanNumEnd INTEGER, "
+                          "IsolationMz REAL, IsolationWidth REAL, CollisionEnergy REAL);");
+    for (Size i = 0; i < windows.size(); ++i)
+    {
+      conn.executeStatement("INSERT INTO DiaFrameMsMsWindows VALUES (1, " + std::to_string(windows[i].first) + ", "
+                            + std::to_string(windows[i].second) + ", " + std::to_string(500 + 10 * i) + ".0, 25.0, 30.0);");
+    }
+    conn.executeStatement("CREATE TABLE DiaFrameMsMsInfo (Frame INTEGER PRIMARY KEY, WindowGroup INTEGER);");
+    for (const uint32_t frame : dia_frames)
+    {
+      conn.executeStatement("INSERT INTO DiaFrameMsMsInfo VALUES (" + std::to_string(frame) + ", 1);");
+    }
+  }
+
+  // The message of the ParseError @p call throws
+  std::string parseErrorOf(const std::function<void()>& call)
+  {
+    try
+    {
+      call();
+    }
+    catch (const Exception::ParseError& e)
+    {
+      return e.what();
+    }
+    catch (const Exception::BaseException& e)
+    {
+      return std::string("not a ParseError: ") + e.getName() + ": " + e.what();
+    }
+    catch (const std::exception& e)
+    {
+      return std::string("not an OpenMS exception: ") + e.what();
+    }
+    return "no exception";
+  }
+
+  bool hasText(const std::string& text, const std::string& part)
+  {
+    return text.find(part) != std::string::npos;
+  }
+
+  // The warnings that @p call logs
+  std::string warningsOf(const std::function<void()>& call)
+  {
+    // Flush what earlier calls left in the buffer, and forget the lines already logged: a line repeating one of them
+    // would not be passed on
+    OPENMS_LOG_WARN.flush();
+    OPENMS_LOG_WARN.rdbuf()->clearCache();
+    std::ostringstream captured;
+    OPENMS_LOG_WARN.insert(captured);
+    try
+    {
+      call();
+    }
+    catch (...)
+    {
+      OPENMS_LOG_WARN.remove(captured);
+      throw;
+    }
+    OPENMS_LOG_WARN.remove(captured);
+    return captured.str();
+  }
+}
+
 START_TEST(BrukerTimsFile, "$Id$")
 
 START_SECTION(void load(const std::string& path, MSExperiment& exp, const Config& config))
@@ -137,6 +898,8 @@ START_SECTION([EXTRA] load() of a zipped .d directory (.d.zip))
   const std::string no_d_zip = tmp.getPath() + "/no_d.d.zip";
   ZipArchiveFile::zipDirectory(no_d, no_d_zip);
   TEST_EXCEPTION(Exception::ParseError, f.load(no_d_zip, exp));
+  // FileHandler looks at the list of entries as well, and does not take the archive for Bruker data
+  TEST_EQUAL(FileHandler::getType(no_d_zip), FileTypes::UNKNOWN)
 
   // A nested .d directory is what reaches opentims (which rejects it: no TDF data).
   const std::string nested = tmp.getPath() + "/nested";
@@ -144,6 +907,7 @@ START_SECTION([EXTRA] load() of a zipped .d directory (.d.zip))
   { std::ofstream os((nested + "/outer/run.d/analysis.tdf").c_str()); os << "no TDF data"; }
   const std::string nested_zip = tmp.getPath() + "/run.d.zip";
   ZipArchiveFile::zipDirectory(nested, nested_zip);
+  TEST_EQUAL(FileHandler::getType(nested_zip), FileTypes::BRUKER_TDF)
   std::string message;
   try
   {
@@ -221,6 +985,719 @@ START_SECTION([EXTRA] readDIAMetadata() keeps its .d.zip extraction for the next
   TEST_EXCEPTION(Exception::FileNotReadable, f.loadDIAStreaming(archive, consumer)) // the kept files
   MSExperiment exp;
   TEST_EXCEPTION(Exception::FileNotFound, f.load(archive, exp)) // nothing kept any more
+}
+END_SECTION
+
+START_SECTION([EXTRA] MALDI imaging runs are read in export mode FRAME only)
+{
+  // Read as DDA or DIA data, an imaging run would lose the pixel positions that BrukerTimsImagingFile keeps (#10596).
+  // GlobalMetadata is checked before any frame is read, so the runs need no frame data. SDK-free.
+  using Config = BrukerTimsFile::Config;
+  TempDir tmp;
+  auto fake_d = [&tmp](const std::string& dir, const std::string& application_type)
+  {
+    const std::string d = tmp.getPath() + "/" + dir + "/run.d";
+    File::makeDir(d);
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
+    conn.executeStatement("CREATE TABLE GlobalMetadata (Key TEXT PRIMARY KEY, Value TEXT);");
+    conn.executeStatement("INSERT INTO GlobalMetadata VALUES ('MaldiApplicationType', '" + application_type + "');");
+    return d;
+  };
+  const std::string imaging = fake_d("imaging", "Imaging");
+  const std::string imaging_zip = tmp.getPath() + "/imaging.d.zip"; // checked once unpacked
+  ZipArchiveFile::zipDirectory(tmp.getPath() + "/imaging", imaging_zip);
+
+  BrukerTimsFile f;
+  for (const std::string& path : {imaging, imaging_zip})
+  {
+    for (const Config::ExportMode mode : {Config::AUTO, Config::SPECTRUM})
+    {
+      Config cfg;
+      cfg.export_mode = mode;
+      MSExperiment exp;
+      TEST_EXCEPTION(Exception::InvalidFileType, f.load(path, exp, cfg))
+      MSDataStoringConsumer consumer;
+      TEST_EXCEPTION(Exception::InvalidFileType, f.transform(path, &consumer, cfg))
+      TEST_EQUAL(consumer.getData().size(), 0)
+    }
+    ExperimentalSettings settings;
+    TEST_EXCEPTION(Exception::InvalidFileType, f.readDIAMetadata(path, settings))
+    RegularSwathFileConsumer swath_consumer;
+    TEST_EXCEPTION(Exception::InvalidFileType, f.loadDIAStreaming(path, swath_consumer))
+    // FRAME (as BrukerTimsImagingFile reads) passes the check and reaches opentims, which finds no frame data
+    Config frame;
+    frame.export_mode = Config::FRAME;
+    MSExperiment exp;
+    TEST_EXCEPTION(Exception::FileNotReadable, f.load(path, exp, frame))
+  }
+
+  // Other MALDI runs (dried droplet) are no imaging runs: they reach opentims as well
+  MSExperiment exp;
+  TEST_EXCEPTION(Exception::FileNotReadable, f.load(fake_d("droplet", "SingleSpectra"), exp))
+}
+END_SECTION
+
+START_SECTION(static DataFormat detectFormat(const std::string& path))
+{
+  // Told by file names only, so the files need no content. SDK-free.
+  using DF = BrukerTimsFile::DataFormat;
+  const auto format = [](const std::string& path) -> std::string
+  {
+    switch (BrukerTimsFile::detectFormat(path))
+    {
+      case DF::NONE: return "NONE";
+      case DF::TDF: return "TDF";
+      case DF::TSF: return "TSF";
+      case DF::BAF: return "BAF";
+      case DF::UNREADABLE_ARCHIVE: return "UNREADABLE_ARCHIVE";
+    }
+    return "?";
+  };
+  TempDir tmp;
+  Size n_made = 0;
+  // a directory with the given files (paths relative to it); returns its path
+  const auto make = [&tmp, &n_made](const std::string& name, const std::vector<std::string>& files)
+  {
+    const std::string dir = tmp.getPath() + "/" + std::to_string(n_made++) + "/" + name;
+    File::makeDir(dir);
+    for (const std::string& file : files)
+    {
+      File::makeDir(File::path(dir + "/" + file));
+      std::ofstream os((dir + "/" + file).c_str());
+      os << "no data";
+    }
+    return dir;
+  };
+  // the directory made by make(), as a ZIP archive; returns its path
+  const auto zip = [](const std::string& dir)
+  {
+    ZipArchiveFile::zipDirectory(dir, dir + ".d.zip");
+    return dir + ".d.zip";
+  };
+
+  // --- .d directories ---
+  TEST_STRING_EQUAL(format(make("run.d", {"analysis.tdf", "analysis.tdf_bin"})), "TDF")
+  TEST_STRING_EQUAL(format(make("run.d", {"analysis.tdf"})), "TDF")
+  TEST_STRING_EQUAL(format(make("run.d", {"analysis.tdf_bin"})), "TDF")
+  TEST_STRING_EQUAL(format(make("run.d", {"analysis.tsf", "analysis.tsf_bin"})), "TSF")
+  TEST_STRING_EQUAL(format(make("run.d", {"analysis.tsf"})), "TSF")
+  TEST_STRING_EQUAL(format(make("run.d", {"analysis.baf"})), "BAF")
+  TEST_STRING_EQUAL(format(make("run.d", {"analysis.tdf", "analysis.tsf", "analysis.baf"})), "TDF") // precedence
+  TEST_STRING_EQUAL(format(make("run.d", {"analysis.tsf", "analysis.baf"})), "TSF")
+  TEST_STRING_EQUAL(format(make("run.d", {})), "NONE")
+  TEST_STRING_EQUAL(format(make("run.d", {"readme.txt", "sub/analysis.tdf"})), "NONE") // not in the .d itself
+  TEST_STRING_EQUAL(format(tmp.getPath() + "/missing.d"), "NONE")
+  TEST_STRING_EQUAL(format(make("dir", {"file.d"}) + "/file.d"), "NONE") // a file, not a directory
+#ifndef OPENMS_WINDOWSPLATFORM
+  // a directory that cannot be searched does not throw (FileHandler::getType() relies on that)
+  {
+    const std::string locked = make("locked.d", {"analysis.tdf"});
+    std::filesystem::permissions(to_path(locked), std::filesystem::perms::none);
+    std::error_code ec;
+    const bool searchable = std::filesystem::exists(to_path(locked + "/analysis.tdf"), ec); // e.g. as root
+    TEST_STRING_EQUAL(format(locked), searchable ? "TDF" : "NONE")
+    std::filesystem::permissions(to_path(locked), std::filesystem::perms::owner_all);
+  }
+#endif
+
+  // --- ZIP archives: the files have to be in a directory '*.d' ---
+  TEST_STRING_EQUAL(format(zip(make("archive", {"run.d/analysis.tdf", "run.d/analysis.tdf_bin"}))), "TDF")
+  TEST_STRING_EQUAL(format(zip(make("archive", {"outer/inner/run.d/analysis.tdf"}))), "TDF")
+  TEST_STRING_EQUAL(format(zip(make("archive", {"run.d/analysis.tsf", "run.d/analysis.tsf_bin"}))), "TSF")
+  TEST_STRING_EQUAL(format(zip(make("archive", {"run.d/analysis.baf"}))), "BAF")
+  TEST_STRING_EQUAL(format(zip(make("archive", {"old.d/analysis.tsf", "new.d/analysis.tdf"}))), "TDF")
+  TEST_STRING_EQUAL(format(zip(make("archive", {"readme.txt"}))), "NONE")
+  TEST_STRING_EQUAL(format(zip(make("archive", {"analysis.tdf", "data/analysis.tdf"}))), "NONE") // no .d directory
+  // what macOS adds to an archive is not data
+  TEST_STRING_EQUAL(format(zip(make("archive", {"__MACOSX/run.d/analysis.tdf", "notes.d/readme.txt"}))), "NONE")
+  TEST_STRING_EQUAL(format(zip(make("archive", {"__MACOSX/run.d/analysis.tdf", "run.d/analysis.tsf"}))), "TSF")
+  // not a ZIP archive, whatever its name says
+  const std::string not_a_zip = make("dir", {"broken.d.zip"}) + "/broken.d.zip";
+  TEST_STRING_EQUAL(format(not_a_zip), "UNREADABLE_ARCHIVE")
+  // a ZIP archive without entries (just the end of central directory record) can be read, and holds nothing
+  const std::string empty_zip = tmp.getPath() + "/empty.d.zip";
+  {
+    std::ofstream os(empty_zip.c_str(), std::ios::binary);
+    os << std::string("PK\x05\x06", 4) << std::string(18, '\0');
+  }
+  TEST_STRING_EQUAL(format(empty_zip), "NONE")
+}
+END_SECTION
+
+START_SECTION([EXTRA] Bruker data that cannot be read is reported as such)
+{
+  // TSF data (timsTOF without ion mobility), BAF data (QTOF) and TDF data that is not zstd-compressed
+  // cannot be read. The read functions say so, instead of "could not determine the file type" or
+  // opentims' "... is not readable for the current user". SDK-free.
+  TempDir tmp;
+  BrukerTimsFile f;
+  MSExperiment exp;
+  ExperimentalSettings settings;
+  // the message of the ParseError a call throws
+  const auto parse_error = [](const std::function<void()>& call) -> std::string
+  {
+    try
+    {
+      call();
+    }
+    catch (const Exception::ParseError& e)
+    {
+      return e.what();
+    }
+    catch (const Exception::BaseException& e)
+    {
+      return std::string("not a ParseError: ") + e.getName();
+    }
+    return "no exception";
+  };
+  const auto contains = [](const std::string& text, const std::string& part) { return text.find(part) != std::string::npos; };
+
+  for (const std::string name : {"TSF", "BAF"})
+  {
+    const std::string file = name == "TSF" ? "analysis.tsf" : "analysis.baf";
+    const std::string d = tmp.getPath() + "/" + name + "/run.d";
+    File::makeDir(d);
+    { std::ofstream os((d + "/" + file).c_str()); os << "no data"; }
+
+    // every read function
+    const std::string expected = "Bruker " + name + " data (" + file + ") is not supported";
+    TEST_EQUAL(contains(parse_error([&]() { f.load(d, exp); }), expected), true)
+    TEST_EQUAL(contains(parse_error([&]() { f.readDIAMetadata(d, settings); }), expected), true)
+    TEST_EQUAL(contains(parse_error([&]() { RegularSwathFileConsumer consumer; f.loadDIAStreaming(d, consumer); }), expected), true)
+    TEST_EQUAL(contains(parse_error([&]() { MSExperiment none; ComparingConsumer consumer(none); f.transform(d, &consumer); }), expected), true)
+    TEST_EQUAL(contains(parse_error([&]() { BrukerTimsFile::checkDataFormat(d); }), expected), true)
+    // the message names the path
+    TEST_EQUAL(contains(parse_error([&]() { f.load(d, exp); }), d), true)
+
+    // FileHandler takes the directory as Bruker data, so that its users get the same message
+    TEST_EQUAL(FileHandler::getType(d), FileTypes::BRUKER_TDF)
+    TEST_EQUAL(FileHandler::getType(d + "/"), FileTypes::BRUKER_TDF)
+    TEST_EQUAL(contains(parse_error([&]() { FileHandler().loadExperiment(d, exp, {FileTypes::MZML, FileTypes::BRUKER_TDF}); }), expected), true)
+
+    // the same for a zipped directory; nothing is extracted for it
+    const std::string archive = tmp.getPath() + "/" + name + ".d.zip";
+    ZipArchiveFile::zipDirectory(tmp.getPath() + "/" + name, archive);
+    TEST_EQUAL(contains(parse_error([&]() { f.load(archive, exp); }), expected), true)
+    TEST_EQUAL(FileHandler::getType(archive), FileTypes::BRUKER_TDF)
+  }
+  // TDF data passes the check, as does a path without Bruker data
+  const std::string tdf = tmp.getPath() + "/tdf/run.d";
+  File::makeDir(tdf);
+  { std::ofstream os((tdf + "/analysis.tdf").c_str()); os << "no data"; }
+  BrukerTimsFile::checkDataFormat(tdf);
+  BrukerTimsFile::checkDataFormat(tmp.getPath() + "/missing.d");
+  TEST_EQUAL(FileHandler::getType(tdf), FileTypes::BRUKER_TDF)
+
+  // --- TDF data whose frames are not zstd-compressed (TimsCompressionType other than 2) ---
+  const auto make_tdf = [&tmp](const std::string& name, const std::string& metadata_rows)
+  {
+    const std::string d = tmp.getPath() + "/" + name + ".d";
+    File::makeDir(d);
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
+    conn.executeStatement("CREATE TABLE GlobalMetadata (Key TEXT PRIMARY KEY, Value TEXT);");
+    if (!metadata_rows.empty()) conn.executeStatement("INSERT INTO GlobalMetadata VALUES " + metadata_rows + ";");
+    return d;
+  };
+  const std::string lzf = make_tdf("lzf", "('TimsCompressionType', '1')");
+  const std::string message = parse_error([&]() { f.load(lzf, exp); });
+  TEST_EQUAL(contains(message, "TimsCompressionType 1 is not supported"), true)
+  TEST_EQUAL(contains(message, lzf), true)
+  TEST_EQUAL(contains(parse_error([&]() { f.readDIAMetadata(lzf, settings); }), "TimsCompressionType 1 is not supported"), true)
+  // zstd-compressed, or no entry at all (as opentims has it): the directory reaches opentims, which finds
+  // no frame data in these
+  TEST_EXCEPTION(Exception::FileNotReadable, f.load(make_tdf("zstd", "('TimsCompressionType', '2')"), exp))
+  TEST_EXCEPTION(Exception::FileNotReadable, f.load(make_tdf("no_entry", ""), exp))
+}
+END_SECTION
+
+START_SECTION([EXTRA] an incomplete or corrupt analysis.tdf_bin is reported instead of read past its end)
+{
+  // opentims reads every frame at its offset (Frames.TimsId) without comparing it with the size of analysis.tdf_bin,
+  // so a file that was not completely copied, or that the acquisition was still writing, made the reader read past
+  // the end of the file (segmentation fault or bus error). The read functions report such data as ParseError before
+  // opentims gets it. SDK-free, no test data needed.
+  TempDir tmp;
+  BrukerTimsFile f;
+  MSExperiment exp;
+  BrukerTimsFile::Config frame_mode;
+  frame_mode.export_mode = BrukerTimsFile::Config::FRAME;
+  const std::vector<SyntheticFrame> run = {{1, 0, '+', 0}, {2, 0, '+', 0}, {3, 0, '+', 0}}; // 3 frames of 8 bytes
+
+  // the complete run is read: a spectrum (without peaks) per frame
+  f.load(makeSyntheticTdf(tmp.getPath() + "/complete.d", run), exp, frame_mode);
+  TEST_EQUAL(exp.size(), 3)
+
+  // every read function reports the data, naming the run
+  const auto reported = [&](const std::string& d, const std::string& expected)
+  {
+    ExperimentalSettings settings;
+    TEST_EQUAL(hasText(parseErrorOf([&] { f.load(d, exp, frame_mode); }), expected), true)
+    TEST_EQUAL(hasText(parseErrorOf([&] { f.load(d, exp); }), expected), true)
+    TEST_EQUAL(hasText(parseErrorOf([&] { MSDataStoringConsumer consumer; f.transform(d, &consumer); }), expected), true)
+    TEST_EQUAL(hasText(parseErrorOf([&] { f.readDIAMetadata(d, settings); }), expected), true)
+    TEST_EQUAL(hasText(parseErrorOf([&] { RegularSwathFileConsumer consumer; f.loadDIAStreaming(d, consumer); }), expected), true)
+    TEST_EQUAL(hasText(parseErrorOf([&] { f.load(d, exp); }), d), true)
+  };
+
+  // analysis.tdf_bin cut within the header of the last frame, and before the last frame
+  for (const int size : {20, 8})
+  {
+    const std::string d = makeSyntheticTdf(tmp.getPath() + "/cut_" + std::to_string(size) + ".d", run);
+    std::filesystem::resize_file(to_path(d + "/analysis.tdf_bin"), size);
+    reported(d, "analysis.tdf_bin is incomplete: it has " + std::to_string(size) + " bytes, but frame 3 takes bytes 16 to 24");
+  }
+  // cut within the data of the last frame: its header is there, but the size it gives runs past the end
+  {
+    const std::string d = makeSyntheticTdf(tmp.getPath() + "/cut_data.d", {{1, 0, '+', 0}, {2, 0, '+', 5}}); // 8 + 24 bytes
+    std::filesystem::resize_file(to_path(d + "/analysis.tdf_bin"), 28);
+    reported(d, "analysis.tdf_bin is incomplete: it has 28 bytes, but frame 2 takes bytes 8 to 32");
+  }
+  // a negative offset into analysis.tdf_bin
+  {
+    const std::string d = makeSyntheticTdf(tmp.getPath() + "/negative.d", run);
+    SqliteConnector(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE).executeStatement("UPDATE Frames SET TimsId = -8 WHERE Id = 2;");
+    reported(d, "analysis.tdf is corrupt: frame 2 has a negative offset (-8)");
+  }
+  // a frame whose header gives a size smaller than the header itself
+  {
+    const std::string d = makeSyntheticTdf(tmp.getPath() + "/zero_size.d", run);
+    {
+      std::fstream bin((d + "/analysis.tdf_bin").c_str(), std::ios::in | std::ios::out | std::ios::binary);
+      bin.seekp(16);
+      bin.write("\0\0\0\0", 4);
+    }
+    reported(d, "analysis.tdf_bin is corrupt: frame 3 at byte 16 has a size of 0 bytes");
+  }
+  // a .d.zip archive of an incomplete run
+  {
+    const std::string d = makeSyntheticTdf(tmp.getPath() + "/archive/run.d", run);
+    std::filesystem::resize_file(to_path(d + "/analysis.tdf_bin"), 8);
+    const std::string archive = tmp.getPath() + "/incomplete.d.zip";
+    ZipArchiveFile::zipDirectory(tmp.getPath() + "/archive", archive);
+    TEST_EQUAL(hasText(parseErrorOf([&] { f.load(archive, exp); }), "analysis.tdf_bin is incomplete"), true)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] frames that cannot be decoded are reported as ParseError)
+{
+  // opentims throws std::runtime_error for frame data it cannot decompress (a corrupt analysis.tdf_bin). The exception
+  // left the reader as it was, so a TOPP tool, which catches OpenMS exceptions only, ended in std::terminate.
+  TempDir tmp;
+  BrukerTimsFile f;
+  MSExperiment exp;
+  BrukerTimsFile::Config frame_mode;
+  frame_mode.export_mode = BrukerTimsFile::Config::FRAME;
+  const std::string d = makeSyntheticTdf(tmp.getPath() + "/corrupt.d", {{1, 0, '+', 0}, {2, 0, '+', 5}, {3, 0, '+', 0}});
+
+  const std::string expected = "Cannot read the Bruker TDF data: Error uncompressing frame";
+  TEST_EQUAL(hasText(parseErrorOf([&] { f.load(d, exp, frame_mode); }), expected), true)
+  TEST_EQUAL(hasText(parseErrorOf([&] { f.load(d, exp); }), expected), true)
+  TEST_EQUAL(hasText(parseErrorOf([&] { MSDataStoringConsumer consumer; f.transform(d, &consumer, frame_mode); }), expected), true)
+  TEST_EQUAL(hasText(parseErrorOf([&] { f.load(d, exp); }), d), true)
+
+  // a frame range without the corrupt frame is read
+  BrukerTimsFile::Config first_frame = frame_mode;
+  first_frame.frame_id_max = 1;
+  f.load(d, exp, first_frame);
+  TEST_EQUAL(exp.size(), 1)
+}
+END_SECTION
+
+START_SECTION([EXTRA] exceptions of the consumer and running out of memory are not reported as errors in the data)
+{
+  // Only errors in the data become ParseError. An exception that the consumer of transform() or loadDIAStreaming() throws
+  // (e.g. the one pyOpenMS throws when a Python callback raises) leaves the reader as it is, and so does std::bad_alloc.
+  TempDir tmp;
+  BrukerTimsFile f;
+  const std::string d = makeSyntheticTdf(tmp.getPath() + "/dia.d", {{1, 0, '+', 0}, {2, 9, '+', 0}, {3, 0, '+', 0}});
+  addSyntheticDIAWindows(d, {2});
+
+  // what a call throws
+  const auto thrown = [](const std::function<void()>& call) -> std::string
+  {
+    try
+    {
+      call();
+    }
+    catch (const Exception::BaseException& e)
+    {
+      return std::string("OpenMS ") + e.getName() + ": " + e.what();
+    }
+    catch (const std::bad_alloc&)
+    {
+      return "std::bad_alloc";
+    }
+    catch (const std::runtime_error& e)
+    {
+      return std::string("std::runtime_error: ") + e.what();
+    }
+    catch (...)
+    {
+      return "another exception";
+    }
+    return "nothing";
+  };
+  const std::function<void()> runtime_error = [] { throw std::runtime_error("Python callback consumeSpectrum raised an exception"); };
+  const std::function<void()> bad_alloc = [] { throw std::bad_alloc(); };
+
+  class ThrowingConsumer : public MSDataStoringConsumer
+  {
+  public:
+    explicit ThrowingConsumer(std::function<void()> raise) : raise_(std::move(raise)) {}
+    void consumeSpectrum(SpectrumType&) override { raise_(); }
+
+  private:
+    std::function<void()> raise_;
+  };
+  class ThrowingSwathConsumer : public RegularSwathFileConsumer
+  {
+  public:
+    ThrowingSwathConsumer(const std::vector<OpenSwath::SwathMap>& boundaries, std::function<void()> raise) :
+      RegularSwathFileConsumer(boundaries), raise_(std::move(raise))
+    {
+    }
+    void consumeSpectrum(MapType::SpectrumType&) override { raise_(); }
+
+  private:
+    std::function<void()> raise_;
+  };
+
+  TEST_STRING_EQUAL(thrown([&] { ThrowingConsumer consumer(runtime_error); f.transform(d, &consumer); }),
+                    "std::runtime_error: Python callback consumeSpectrum raised an exception")
+  TEST_STRING_EQUAL(thrown([&] { ThrowingConsumer consumer(bad_alloc); f.transform(d, &consumer); }), "std::bad_alloc")
+  ExperimentalSettings settings;
+  const std::vector<OpenSwath::SwathMap> boundaries = f.readDIAMetadata(d, settings).boundaries;
+  TEST_STRING_EQUAL(thrown([&] { ThrowingSwathConsumer consumer(boundaries, runtime_error); f.loadDIAStreaming(d, consumer); }),
+                    "std::runtime_error: Python callback consumeSpectrum raised an exception")
+  // an OpenMS exception of the consumer leaves as it is as well
+  TEST_EQUAL(hasText(thrown([&] { ThrowingConsumer consumer([] { throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "out.mzML"); });
+                                 f.transform(d, &consumer); }), "OpenMS UnableToCreateFile"), true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] DIA-PASEF frames that the Frames table lacks are skipped)
+{
+  // DiaFrameMsMsInfo may name frames that the Frames table of an incomplete or edited analysis.tdf lacks. The DIA
+  // loaders looked them up regardless and threw std::out_of_range, which ended TOPP tools in std::terminate. They skip
+  // them now, as the DDA loader skips the missing frames of a precursor, and readDIAMetadata() does not count them.
+  TempDir tmp;
+  BrukerTimsFile f;
+  const std::string d = makeSyntheticTdf(tmp.getPath() + "/dia.d", {{1, 0, '+', 0}, {2, 9, '+', 0}, {3, 0, '+', 0}, {4, 9, '+', 0}});
+  addSyntheticDIAWindows(d, {2, 4, 6}); // frame 6 is not in the Frames table
+
+  // the MS1 frames give spectra (without peaks); the MS2 frames have no peaks in either window
+  MSExperiment exp;
+  f.load(d, exp);
+  TEST_EQUAL(exp.size(), 2)
+  TEST_EQUAL(spectrumPointers(exp, 1).size(), 2)
+  MSDataStoringConsumer streamed;
+  f.transform(d, &streamed);
+  TEST_EQUAL(streamed.getData().size(), 2)
+
+  ExperimentalSettings settings;
+  const BrukerTimsFile::DIAStreamingMetadata meta = f.readDIAMetadata(d, settings);
+  TEST_EQUAL(meta.boundaries.size(), 2)
+  TEST_EQUAL(meta.nr_ms1_spectra, 2)
+  TEST_EQUAL(meta.nr_ms2_spectra.size(), 2)
+  for (const int count : meta.nr_ms2_spectra)
+  {
+    TEST_EQUAL(count, 2) // frames 2 and 4 of the window group, not 6
+  }
+  InspectableSwathConsumer consumer(meta.boundaries);
+  consumer.setExperimentalSettings(settings);
+  f.loadDIAStreaming(d, consumer);
+  TEST_EQUAL(consumer.ms1Map() != nullptr, true)
+  ABORT_IF(consumer.ms1Map() == nullptr)
+  TEST_EQUAL(consumer.ms1Map()->size(), 2)
+}
+END_SECTION
+
+START_SECTION([EXTRA] synchro-PASEF runs are read with a warning that they are not supported)
+{
+  // Synchro-PASEF moves the quadrupole along with the ion mobility scan, and analysis.tdf lists an isolation window for
+  // every scan step (927 windows of one scan per frame in PXD037766). The DIA loaders make every window a spectrum of
+  // its own (635,631 MS2 spectra of about 8 peaks for a 3 min run of that dataset); they did so without a word.
+  TempDir tmp;
+  BrukerTimsFile f;
+  const std::vector<SyntheticFrame> run = {{1, 0, '+', 0}, {2, 9, '+', 0}, {3, 0, '+', 0}};
+  std::vector<std::pair<uint32_t, uint32_t>> steps;
+  for (uint32_t scan = 400; scan < 420; ++scan) { steps.emplace_back(scan, scan + 1); }
+  const std::string synchro = makeSyntheticTdf(tmp.getPath() + "/synchro.d", run);
+  addSyntheticDIAWindows(synchro, {2}, steps);
+  const std::string warning = "20 of the 20 DIA isolation windows span fewer than 10 scans";
+
+  MSExperiment exp;
+  const std::string load_warnings = warningsOf([&] { f.load(synchro, exp); });
+  TEST_TRUE(hasText(load_warnings, warning))
+  TEST_TRUE(hasText(load_warnings, "synchro-PASEF"))
+  TEST_EQUAL(load_warnings.find(warning, load_warnings.find(warning) + 1), std::string::npos) // once
+  TEST_EQUAL(exp.size(), 2) // still read
+  MSDataStoringConsumer streamed;
+  TEST_TRUE(hasText(warningsOf([&] { f.transform(synchro, &streamed); }), warning))
+  TEST_EQUAL(streamed.getData().size(), 2)
+  ExperimentalSettings settings;
+  BrukerTimsFile::DIAStreamingMetadata meta;
+  TEST_FALSE(hasText(warningsOf([&] { meta = f.readDIAMetadata(synchro, settings); }), warning)) // the streaming warns
+  TEST_EQUAL(meta.boundaries.size(), 20)
+  InspectableSwathConsumer consumer(meta.boundaries);
+  consumer.setExperimentalSettings(settings);
+  TEST_TRUE(hasText(warningsOf([&] { f.loadDIAStreaming(synchro, consumer); }), warning))
+
+  // export mode FRAME does not split frames by window
+  BrukerTimsFile::Config frame_mode;
+  frame_mode.export_mode = BrukerTimsFile::Config::FRAME;
+  TEST_FALSE(hasText(warningsOf([&] { f.load(synchro, exp, frame_mode); }), warning))
+
+  // diaPASEF windows span dozens to hundreds of scans (the 2 windows of 500 scans of addSyntheticDIAWindows())
+  const std::string dia = makeSyntheticTdf(tmp.getPath() + "/dia.d", run);
+  addSyntheticDIAWindows(dia, {2});
+  TEST_FALSE(hasText(warningsOf([&] { f.load(dia, exp); }), "DIA isolation windows span"))
+}
+END_SECTION
+
+START_SECTION([EXTRA] PASEF windows without a precursor are read as one MS2 spectrum each)
+{
+  // Acquisitions of a fixed target list (SIMSEF, iprm-PASEF) never fill the Precursors table: the Precursor of their
+  // PasefFrameMsMsInfo rows is NULL. The reader joined the two tables, so it returned no MS2 spectrum for them, and
+  // did not warn either (#10682). This run is like a SIMSEF spot: one PASEF frame with two target windows (scans
+  // [100, 201) and [400, 501)), and a peak outside of both.
+  TempDir tmp;
+  const std::string d = makeSyntheticTdf(tmp.getPath() + "/simsef.d", {{1, 8, '+', 0}},
+    {{1, {{120, 10000, 50}, {150, 20000, 100}, {180, 30000, 70}, {450, 40000, 80}, {700, 50000, 60}}}});
+  const auto addTables = [](const std::string& run, const std::string& rows)
+  {
+    SqliteConnector conn(run + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE);
+    conn.executeStatement("CREATE TABLE Precursors (Id INTEGER PRIMARY KEY, LargestPeakMz REAL, AverageMz REAL, "
+                          "MonoisotopicMz REAL, Charge INTEGER, ScanNumber REAL, Intensity REAL, Parent INTEGER);");
+    conn.executeStatement("CREATE TABLE PasefFrameMsMsInfo (Frame INTEGER NOT NULL, ScanNumBegin INTEGER NOT NULL, "
+                          "ScanNumEnd INTEGER NOT NULL, IsolationMz REAL NOT NULL, IsolationWidth REAL NOT NULL, "
+                          "CollisionEnergy REAL NOT NULL, Precursor INTEGER, PRIMARY KEY(Frame, ScanNumBegin)) WITHOUT ROWID;");
+    if (!rows.empty()) conn.executeStatement("INSERT INTO PasefFrameMsMsInfo VALUES " + rows + ";");
+  };
+  addTables(d, "(1, 400, 501, 600.5, 3.0, 35.0, NULL), (1, 100, 201, 500.25, 2.0, 30.0, NULL)");
+
+  // the peaks of the frame (by TOF index, so by m/z): m/z and 1/K0 of each
+  BrukerTimsFile f;
+  BrukerTimsFile::Config frame_mode;
+  frame_mode.export_mode = BrukerTimsFile::Config::FRAME;
+  MSExperiment frames;
+  f.load(d, frames, frame_mode);
+  TEST_EQUAL(frames.size(), 1)
+  ABORT_IF(frames.size() != 1)
+  const MSSpectrum& frame = frames[0];
+  TEST_EQUAL(frame.size(), 5)
+  ABORT_IF(frame.size() != 5 || !frame.containsIMData())
+  const auto& frame_im = frame.getFloatDataArrays()[frame.getIMData().first];
+
+  MSExperiment exp;
+  const std::string warnings = warningsOf([&] { f.load(d, exp); });
+  TEST_EQUAL(hasText(warnings, "no DDA-PASEF precursors"), false)
+  TEST_EQUAL(exp.size(), 2)
+  ABORT_IF(exp.size() != 2)
+  std::map<std::string, const MSSpectrum*> by_id;
+  for (const MSSpectrum& spec : exp) by_id[spec.getNativeID()] = &spec;
+  TEST_EQUAL(by_id.count("frame=1 scan=100"), 1)
+  TEST_EQUAL(by_id.count("frame=1 scan=400"), 1)
+  ABORT_IF(by_id.count("frame=1 scan=100") != 1 || by_id.count("frame=1 scan=400") != 1)
+
+  // the precursor is the target: its isolation window, charge 0, its collision energy, the 1/K0 of the middle scan of
+  // the window (150 and 450, where the second and the fourth peak are); the peaks are those of the scans of the window
+  const auto check = [&](const MSSpectrum& spec, double mz, double half_width, double collision_energy, size_t middle_peak,
+                          const std::vector<size_t>& peaks)
+  {
+    TEST_EQUAL(spec.getMSLevel(), 2)
+    TEST_EQUAL(spec.metaValueExists("bruker_precursor_id"), false)
+    TEST_EQUAL(spec.getPrecursors().size(), 1)
+    if (spec.getPrecursors().size() != 1) return;
+    const Precursor& precursor = spec.getPrecursors()[0];
+    TEST_REAL_SIMILAR(precursor.getMZ(), mz)
+    TEST_REAL_SIMILAR(precursor.getIsolationWindowLowerOffset(), half_width)
+    TEST_REAL_SIMILAR(precursor.getIsolationWindowUpperOffset(), half_width)
+    TEST_EQUAL(precursor.getCharge(), 0)
+    TEST_REAL_SIMILAR(double(precursor.getMetaValue("collision energy")), collision_energy)
+    TEST_REAL_SIMILAR(spec.getDriftTime(), frame_im[middle_peak])
+    TEST_REAL_SIMILAR(precursor.getDriftTime(), frame_im[middle_peak])
+    TEST_EQUAL(spec.size(), peaks.size())
+    if (spec.size() != peaks.size()) return;
+    for (size_t i = 0; i < peaks.size(); ++i)
+    {
+      TEST_REAL_SIMILAR(spec[i].getMZ(), frame[peaks[i]].getMZ())
+      TEST_REAL_SIMILAR(spec[i].getIntensity(), frame[peaks[i]].getIntensity())
+    }
+  };
+  check(*by_id["frame=1 scan=100"], 500.25, 1.0, 30.0, 1, {0, 1, 2});
+  check(*by_id["frame=1 scan=400"], 600.5, 1.5, 35.0, 3, {3});
+
+  // written as it is read: the same spectra
+  MSDataStoringConsumer streamed;
+  f.transform(d, &streamed);
+  TEST_EQUAL(streamed.getData().size(), 2)
+
+  // the ion mobility range selects the windows by the ion mobility of their spectra (here that of the second window,
+  // 300 scans of 0.001 1/K0 away from that of the first)
+  BrukerTimsFile::Config im_range;
+  im_range.im_min = frame_im[3] - 0.001;
+  im_range.im_max = frame_im[3] + 0.001;
+  f.load(d, exp, im_range);
+  TEST_EQUAL(exp.size(), 1)
+  ABORT_IF(exp.size() != 1)
+  TEST_STRING_EQUAL(exp[0].getNativeID(), "frame=1 scan=400")
+
+  // a run with PASEF frames but without any window gives no MS2 spectrum, and says so
+  const std::string empty = makeSyntheticTdf(tmp.getPath() + "/empty.d", {{1, 8, '+', 0}}, {{1, {{150, 20000, 100}}}});
+  addTables(empty, "");
+  TEST_EQUAL(hasText(warningsOf([&] { f.load(empty, exp); }), "no DDA-PASEF precursors or isolation windows"), true)
+  TEST_EQUAL(exp.size(), 0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] DDA-PASEF precursors have the collision energy and fragmentation mode of their frames)
+{
+  // two PASEF frames that both fragment precursor 1 at 30 eV and precursor 2 at 35 and 37 eV
+  TempDir tmp;
+  const std::string d = makeSyntheticTdf(tmp.getPath() + "/activation.d", {{1, 8, '+', 0}, {2, 8, '+', 0}},
+    {{1, {{150, 20000, 100}, {450, 40000, 80}}}, {2, {{150, 20000, 100}, {450, 40000, 80}}}});
+  const auto execute = [&d](const std::vector<std::string>& statements)
+  {
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE);
+    for (const std::string& statement : statements) conn.executeStatement(statement);
+  };
+  execute({"CREATE TABLE Precursors (Id INTEGER PRIMARY KEY, LargestPeakMz REAL, AverageMz REAL, MonoisotopicMz REAL, "
+           "Charge INTEGER, ScanNumber REAL, Intensity REAL, Parent INTEGER);",
+           "INSERT INTO Precursors VALUES (1, 500.25, 500.3, 500.25, 2, 150.0, 1000.0, NULL), "
+           "(2, 600.5, 600.6, 600.5, 2, 450.0, 1000.0, NULL);",
+           "CREATE TABLE PasefFrameMsMsInfo (Frame INTEGER NOT NULL, ScanNumBegin INTEGER NOT NULL, ScanNumEnd INTEGER NOT NULL, "
+           "IsolationMz REAL NOT NULL, IsolationWidth REAL NOT NULL, CollisionEnergy REAL NOT NULL, Precursor INTEGER, "
+           "PRIMARY KEY(Frame, ScanNumBegin)) WITHOUT ROWID;",
+           "INSERT INTO PasefFrameMsMsInfo VALUES (1, 100, 201, 500.25, 2.0, 30.0, 1), (2, 100, 201, 500.25, 2.0, 30.0, 1), "
+           "(1, 400, 501, 600.5, 3.0, 35.0, 2), (2, 400, 501, 600.5, 3.0, 37.0, 2);"});
+
+  BrukerTimsFile f;
+  // the precursor of the spectrum of each precursor id
+  const auto precursors = [&]
+  {
+    MSExperiment exp;
+    f.load(d, exp);
+    std::map<int, Precursor> result;
+    for (const MSSpectrum& spec : exp)
+    {
+      if (spec.metaValueExists("bruker_precursor_id") && spec.getPrecursors().size() == 1)
+        result[int(spec.getMetaValue("bruker_precursor_id"))] = spec.getPrecursors()[0];
+    }
+    return result;
+  };
+  std::map<int, Precursor> prec = precursors();
+  TEST_EQUAL(prec.size(), 2)
+  ABORT_IF(prec.size() != 2)
+  // the collision energy is that of the rows of the precursor, and none if they differ
+  TEST_REAL_SIMILAR(double(prec.at(1).getMetaValue("collision energy")), 30.0)
+  TEST_EQUAL(prec.at(2).metaValueExists("collision energy"), false)
+  // no fragmentation mode without the property
+  TEST_EQUAL(prec.at(1).getActivationMethods().empty(), true)
+
+  const std::set<Precursor::ActivationMethod> etd{Precursor::ActivationMethod::ETD};
+  const std::set<Precursor::ActivationMethod> cid{Precursor::ActivationMethod::CID};
+  // MSMSAuto_FragmentationMode (1: ETD) of the property group of the frames; group 2, which no frame has, does not count
+  execute({"ALTER TABLE Frames ADD COLUMN PropertyGroup INTEGER;", "UPDATE Frames SET PropertyGroup = 1;",
+           "CREATE TABLE PropertyDefinitions (Id INTEGER PRIMARY KEY, PermanentName TEXT);",
+           "INSERT INTO PropertyDefinitions VALUES (7, 'MSMSAuto_FragmentationMode');",
+           "CREATE TABLE GroupProperties (PropertyGroup INTEGER, Property INTEGER, Value);",
+           "INSERT INTO GroupProperties VALUES (1, 7, 1), (2, 7, 0);"});
+  prec = precursors();
+  TEST_EQUAL(prec.size(), 2)
+  TEST_EQUAL(prec.at(1).getActivationMethods() == etd, true)
+  TEST_EQUAL(prec.at(2).getActivationMethods() == etd, true)
+
+  // a value of the frame itself (0: CID) comes first
+  execute({"CREATE TABLE FrameProperties (Frame INTEGER, Property INTEGER, Value);",
+           "INSERT INTO FrameProperties VALUES (1, 7, 0), (2, 7, 0);"});
+  prec = precursors();
+  TEST_EQUAL(prec.size(), 2)
+  TEST_EQUAL(prec.at(1).getActivationMethods() == cid, true)
+  TEST_EQUAL(prec.at(2).getActivationMethods() == cid, true)
+
+  // none if the frames differ: frame 1 has CID, frame 2 the ETD of its group
+  execute({"DELETE FROM FrameProperties WHERE Frame = 2;"});
+  prec = precursors();
+  TEST_EQUAL(prec.size(), 2)
+  TEST_EQUAL(prec.at(1).getActivationMethods().empty(), true)
+  TEST_EQUAL(prec.at(2).getActivationMethods().empty(), true)
+
+  // none if a frame has no value: frame 1 has the ETD of group 1, frame 2 is in group 3, which has no value
+  execute({"DELETE FROM FrameProperties;", "UPDATE Frames SET PropertyGroup = 3 WHERE Id = 2;"});
+  prec = precursors();
+  TEST_EQUAL(prec.size(), 2)
+  TEST_EQUAL(prec.at(1).getActivationMethods().empty(), true)
+  TEST_EQUAL(prec.at(2).getActivationMethods().empty(), true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] spectra have the polarity of their frames)
+{
+  // Frames.Polarity ('+' or '-') was not read, so the polarity of every spectrum was unknown (also in mzML).
+  TempDir tmp;
+  BrukerTimsFile f;
+  BrukerTimsFile::Config frame_mode;
+  frame_mode.export_mode = BrukerTimsFile::Config::FRAME;
+  // the polarities of the spectra: '+' positive, '-' negative, '?' unknown
+  const auto polarities = [](const MSExperiment& exp)
+  {
+    std::string result;
+    for (const MSSpectrum& s : exp)
+    {
+      const IonSource::Polarity polarity = s.getInstrumentSettings().getPolarity();
+      result += polarity == IonSource::Polarity::POSITIVE ? '+' : polarity == IonSource::Polarity::NEGATIVE ? '-' : '?';
+    }
+    return result;
+  };
+
+  // a run of one polarity, as nearly all are; mzML has it as "negative scan"
+  const std::string negative = makeSyntheticTdf(tmp.getPath() + "/negative.d", {{1, 0, '-', 0}, {2, 0, '-', 0}});
+  MSExperiment exp;
+  f.load(negative, exp, frame_mode);
+  TEST_STRING_EQUAL(polarities(exp), "--")
+  std::string mzml;
+  MzMLFile().storeBuffer(mzml, exp);
+  TEST_EQUAL(hasText(mzml, "accession=\"MS:1000129\" name=\"negative scan\""), true)
+
+  // a run of both polarities: every spectrum has that of its frame, in every export mode and read function
+  const std::string mixed = makeSyntheticTdf(tmp.getPath() + "/mixed.d", {{1, 0, '+', 0}, {2, 0, '-', 0}, {3, 0, '+', 0}});
+  f.load(mixed, exp, frame_mode);
+  TEST_STRING_EQUAL(polarities(exp), "+-+")
+  f.load(mixed, exp); // AUTO: the MS1 frames of a run without DDA-PASEF precursors
+  TEST_STRING_EQUAL(polarities(exp), "+-+")
+  MSDataStoringConsumer streamed;
+  f.transform(mixed, &streamed);
+  TEST_STRING_EQUAL(polarities(streamed.getData()), "+-+")
+
+  // DIA-PASEF data streamed into SWATH maps
+  const std::string dia = makeSyntheticTdf(tmp.getPath() + "/dia.d", {{1, 0, '-', 0}, {2, 9, '-', 0}, {3, 0, '-', 0}});
+  addSyntheticDIAWindows(dia, {2});
+  ExperimentalSettings settings;
+  InspectableSwathConsumer consumer(f.readDIAMetadata(dia, settings).boundaries);
+  consumer.setExperimentalSettings(settings);
+  f.loadDIAStreaming(dia, consumer);
+  TEST_EQUAL(consumer.ms1Map() != nullptr, true)
+  ABORT_IF(consumer.ms1Map() == nullptr)
+  TEST_STRING_EQUAL(polarities(*consumer.ms1Map()), "--")
+}
+END_SECTION
+
+START_SECTION([EXTRA] the source file has the file format term of Bruker TDF data)
+{
+  // The file type was "Bruker TDF", which is not the name of the PSI-MS term (MS:1002817 "Bruker TDF format"), so the
+  // mzML writer did not find the term and wrote "PSI mzData format" instead.
+  TempDir tmp;
+  MSExperiment exp;
+  BrukerTimsFile().load(makeSyntheticTdf(tmp.getPath() + "/run.d", {{1, 0, '+', 0}}), exp);
+  TEST_EQUAL(exp.getSourceFiles().size(), 1)
+  ABORT_IF(exp.getSourceFiles().size() != 1)
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getFileType(), "Bruker TDF format")
+  std::string mzml;
+  MzMLFile().storeBuffer(mzml, exp);
+  TEST_EQUAL(hasText(mzml, "accession=\"MS:1002817\" name=\"Bruker TDF format\""), true)
+  TEST_EQUAL(hasText(mzml, "PSI mzData format"), false)
 }
 END_SECTION
 
@@ -398,6 +1875,431 @@ START_SECTION(RationalScan2ImConverter singularity edge cases)
 }
 END_SECTION
 
+START_SECTION(MzCalibrationTof2MzConverter ModelType 1 matches the Bruker SDK)
+{
+  // Reference: tims_index_to_mz of the Bruker TDF-SDK (libtimsdata) for the same calibration and frame
+  MzCalibrationTof2MzConverter conv({MzCalibrationTof2MzConverter::makeFrameModel(mzCalModelType1(), MT1_FRAME_T1, MT1_FRAME_T2)});
+  const std::vector<uint32_t> tofs = {1, 50000, 150000, 250000, 350000};
+  const std::vector<double> sdk = {95.00007900187677, 188.25046260982114, 469.54221185610277, 877.2135834525166, 1411.2595103197655};
+  std::vector<double> mzs(tofs.size());
+  conv.convert(0, mzs.data(), tofs.data(), static_cast<uint32_t>(tofs.size()));
+  TOLERANCE_ABSOLUTE(1e-9)
+  TOLERANCE_RELATIVE(1.0 + 1e-12)
+  for (size_t i = 0; i < tofs.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(mzs[i], sdk[i])
+  }
+
+  // Temperature correction, including the T2 term: dC2 = 25 and both frame temperatures shifted
+  MzCal cal = mzCalModelType1();
+  cal.dc2 = 25.0;
+  MzCalibrationTof2MzConverter conv_t({MzCalibrationTof2MzConverter::makeFrameModel(cal, 26.583137561298358, 25.876605339990224)});
+  const std::vector<double> sdk_t = {95.0039059785749, 188.25804879176218, 469.56113775995885, 877.2489438234296, 1411.31639969861};
+  conv_t.convert(0, mzs.data(), tofs.data(), static_cast<uint32_t>(tofs.size()));
+  for (size_t i = 0; i < tofs.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(mzs[i], sdk_t[i])
+  }
+  TOLERANCE_ABSOLUTE(1e-5)
+  TOLERANCE_RELATIVE(1.0 + 1e-5)
+}
+END_SECTION
+
+START_SECTION(MzCalibrationTof2MzConverter ModelType 2 matches the Bruker SDK inside the calibrant range)
+{
+  MzCalibrationTof2MzConverter::FrameModel m = MzCalibrationTof2MzConverter::makeFrameModel(mzCalModelType2(), MT2_FRAME_T1, MT2_FRAME_T2);
+  // C3/C4 repeat C0/C2 in ModelType 2: no cubic term, no mass offset
+  TEST_EQUAL(m.c3, 0.0)
+  TEST_EQUAL(m.c4, 0.0)
+  TEST_EQUAL(m.correction.n, 7)
+  MzCalibrationTof2MzConverter conv({m});
+
+  // Below, inside (150000, 250000) and above the calibrant range [225.95, 1519.71]
+  const std::vector<uint32_t> tofs_exact = {1, 20000, 50000, 150000, 250000, 385000, 396000};
+  const std::vector<double> sdk_exact = {99.9937348434843, 133.94736657275706, 194.17018217157815, 475.42674239965703,
+                                         880.5493429108868, 1623.9488391924265, 1694.4686480927487};
+  std::vector<double> mzs(tofs_exact.size());
+  conv.convert(1, mzs.data(), tofs_exact.data(), static_cast<uint32_t>(tofs_exact.size()));
+  TOLERANCE_ABSOLUTE(1e-9)
+  TOLERANCE_RELATIVE(1.0 + 1e-12)
+  for (size_t i = 0; i < tofs_exact.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(mzs[i], sdk_exact[i])
+  }
+  TOLERANCE_ABSOLUTE(1e-5)
+  TOLERANCE_RELATIVE(1.0 + 1e-5)
+
+  // Just below the calibrant range (m/z 225.90) the SDK still applies part of the correction
+  const uint32_t tof_edge = 63921;
+  double mz_edge = 0.0;
+  conv.convert(1, &mz_edge, &tof_edge, 1);
+  TEST_EQUAL(std::abs(mz_edge - 225.90057634972197) / 225.90057634972197 * 1e6 < 8.0, true)
+
+  // Without correction terms only the base curve is used: a few ppm off inside the range
+  MzCal no_corr = mzCalModelType2();
+  no_corr.correction = MzCalibrationTof2MzConverter::Correction();
+  const auto m_base = MzCalibrationTof2MzConverter::makeFrameModel(no_corr, MT2_FRAME_T1, MT2_FRAME_T2);
+  const double ppm_base = (MzCalibrationTof2MzConverter::tofToMz(m_base, 150000) - 475.42674239965703) / 475.42674239965703 * 1e6;
+  TEST_EQUAL(std::abs(ppm_base) > 0.1 && std::abs(ppm_base) < 8.0, true)
+}
+END_SECTION
+
+START_SECTION(MzCalibrationTof2MzConverter round-trip via inverse_convert)
+{
+  for (const MzCal& cal : {mzCalModelType1(), mzCalModelType2()})
+  {
+    MzCalibrationTof2MzConverter conv({MzCalibrationTof2MzConverter::makeFrameModel(cal, cal.t1 + 0.5, cal.t2)});
+    for (uint32_t tof = 1; tof < 400000; tof += 9973)
+    {
+      double mz = 0.0;
+      conv.convert(0, &mz, &tof, 1);
+      uint32_t back = 0;
+      conv.inverse_convert(0, &back, &mz, 1);
+      TEST_EQUAL(back, tof)
+    }
+  }
+
+  // ModelType 2 at the lower limit of the calibrant range: a base m/z just inside the range moves
+  // below the limit after a positive correction; the inverse must still find the original TOF
+  {
+    MzCal cal = mzCalModelType2();
+    cal.correction.n = 1;
+    cal.correction.coefficients = {0.05, 0, 0, 0, 0, 0, 0}; // constant 50 mDa correction
+    auto m_edge = MzCalibrationTof2MzConverter::makeFrameModel(cal, MT2_FRAME_T1, MT2_FRAME_T2);
+    const uint32_t tof_edge = 64000;
+    m_edge.correction.n = 0;
+    const double base_edge = MzCalibrationTof2MzConverter::tofToMz(m_edge, tof_edge);
+    m_edge.correction.n = 1;
+    m_edge.correction.low = base_edge - 0.01; // base just inside the range
+    const double mz_edge = MzCalibrationTof2MzConverter::tofToMz(m_edge, tof_edge); // base - 0.05
+    TEST_EQUAL(mz_edge < m_edge.correction.low, true)
+    TEST_EQUAL(MzCalibrationTof2MzConverter::mzToTof(m_edge, mz_edge), tof_edge)
+  }
+
+  // Cubic term (ModelType 1 with C3 != 0) is solved iteratively
+  MzCal cubic = mzCalModelType1();
+  cubic.c3 = 1e-4;
+  MzCalibrationTof2MzConverter::FrameModel m = MzCalibrationTof2MzConverter::makeFrameModel(cubic, cubic.t1, cubic.t2);
+  for (uint32_t tof = 1; tof < 400000; tof += 9973)
+  {
+    const double mz = MzCalibrationTof2MzConverter::tofToMz(m, tof);
+    TEST_EQUAL(MzCalibrationTof2MzConverter::mzToTof(m, mz), tof)
+  }
+}
+END_SECTION
+
+START_SECTION(MzCalibrationTof2MzConverter per-frame models)
+{
+  const MzCal cal = mzCalModelType1();
+  // index 0 = model for frame_id 0 (copy of frame 1); frame 2 is 1 degree warmer
+  const auto f1 = MzCalibrationTof2MzConverter::makeFrameModel(cal, cal.t1, cal.t2);
+  const auto f2 = MzCalibrationTof2MzConverter::makeFrameModel(cal, cal.t1 + 1.0, cal.t2);
+  MzCalibrationTof2MzConverter conv({f1, f1, f2}, "test converter");
+
+  const double tof = 200000.0;
+  double mz0 = 0.0, mz1 = 0.0, mz2 = 0.0, mz_out = 0.0;
+  conv.convert(0, &mz0, &tof, 1);
+  conv.convert(1, &mz1, &tof, 1);
+  conv.convert(2, &mz2, &tof, 1);
+  conv.convert(99, &mz_out, &tof, 1); // unknown frame: first frame
+  TEST_EQUAL(mz0, mz1)
+  TEST_EQUAL(mz_out, mz1)
+  // dC1 = 27 ppm per degree: 1 degree warmer scales (m/z + C4) down by 27 ppm
+  TEST_REAL_SIMILAR((mz2 - mz1) / (mz1 + cal.c4) * 1e6, -27.0)
+  TEST_EQUAL(conv.description(), "test converter")
+}
+END_SECTION
+
+START_SECTION(std::unique_ptr<Tof2MzConverter> tryCreateMzCalibrationConverter(const std::string& tims_dir_path))
+{
+  TempDir tmp_dir;
+  // .d folder with only the MzCalibration and Frames tables
+  auto make_d = [&tmp_dir](const std::string& name, int model_type_used, bool with_temperatures)
+  {
+    const std::string d = tmp_dir.getPath() + "/" + name + ".d";
+    std::filesystem::create_directories(d);
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
+    conn.executeStatement("CREATE TABLE MzCalibration (Id INTEGER PRIMARY KEY, ModelType INTEGER, DigitizerTimebase REAL, "
+                          "DigitizerDelay REAL, T1 REAL, T2 REAL, dC1 REAL, dC2 REAL, C0 REAL, C1 REAL, C2 REAL, C3 REAL, C4 REAL);");
+    conn.executeStatement("INSERT INTO MzCalibration VALUES (1, " + std::to_string(model_type_used) + ", 0.2, 24833.0, 25.727448, "
+                          "28.353124, 27.0, 0.0, 320.480481, 157992.031315, 0.002115, 0.0, -0.068565);");
+    // unused row as found in older otofControl files: must be ignored
+    conn.executeStatement("INSERT INTO MzCalibration VALUES (2, 9, 0.2, 24833.0, 25.2, 178.2, 27.0, 0.0, 318.4, 156075.0, 0.0, 0.0, 0.0);");
+    conn.executeStatement("CREATE TABLE Frames (Id INTEGER PRIMARY KEY, MzCalibration INTEGER, T1 REAL, T2 REAL);");
+    if (with_temperatures)
+    {
+      conn.executeStatement("INSERT INTO Frames VALUES (1, 1, 25.783137561298357, 28.876605339990224);");
+      conn.executeStatement("INSERT INTO Frames VALUES (2, 1, 26.783137561298357, 28.876605339990224);");
+    }
+    else
+    {
+      conn.executeStatement("INSERT INTO Frames VALUES (1, 1, NULL, NULL);");
+      conn.executeStatement("INSERT INTO Frames VALUES (2, 1, NULL, NULL);");
+    }
+    return d;
+  };
+
+  auto conv = tryCreateMzCalibrationConverter(make_d("model1", 1, true));
+  TEST_NOT_EQUAL(conv.get(), nullptr)
+  if (conv)
+  {
+    TEST_EQUAL(conv->description().find("ModelType 1") != std::string::npos, true)
+    const uint32_t tof = 150000;
+    double mz1 = 0.0, mz2 = 0.0, mz0 = 0.0;
+    conv->convert(1, &mz1, &tof, 1);
+    conv->convert(2, &mz2, &tof, 1);
+    conv->convert(0, &mz0, &tof, 1);
+    TEST_REAL_SIMILAR(mz1, 469.54221185610277) // Bruker SDK, see above
+    TEST_REAL_SIMILAR((mz2 - mz1) / (mz1 + mzCalModelType1().c4) * 1e6, -27.0) // frame 2 is 1 degree warmer
+    TEST_EQUAL(mz0, mz1)
+  }
+
+  // frames without temperatures use the reference temperatures (no correction)
+  auto conv_no_t = tryCreateMzCalibrationConverter(make_d("no_temperatures", 1, false));
+  TEST_NOT_EQUAL(conv_no_t.get(), nullptr)
+  if (conv_no_t)
+  {
+    const MzCal cal = mzCalModelType1();
+    const auto ref = MzCalibrationTof2MzConverter::makeFrameModel(cal, cal.t1, cal.t2);
+    double mz = 0.0;
+    const uint32_t tof = 150000;
+    conv_no_t->convert(2, &mz, &tof, 1);
+    TEST_REAL_SIMILAR(mz, MzCalibrationTof2MzConverter::tofToMz(ref, tof))
+  }
+
+  // ModelType 2 with the correction columns C5..C14, and without them (base curve only)
+  auto make_d_mt2 = [&tmp_dir](const std::string& name, bool with_correction_columns)
+  {
+    const std::string d = tmp_dir.getPath() + "/" + name + ".d";
+    std::filesystem::create_directories(d);
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
+    const std::string base_cols = "Id INTEGER PRIMARY KEY, ModelType INTEGER, DigitizerTimebase REAL, DigitizerDelay REAL, "
+                                  "T1 REAL, T2 REAL, dC1 REAL, dC2 REAL, C0 REAL, C1 REAL, C2 REAL, C3 REAL, C4 REAL";
+    const std::string base_vals = "1, 2, 0.19999999999999998, 25726.199999999997, 25.66893460672872, 25.10638483329421, 20.0, 0.0, "
+                                  "313.51167546836524, 154833.4542880268, -7.3593189552069465e-06, 313.51167546836524, -7.3593189552069465e-06";
+    if (with_correction_columns)
+    {
+      conn.executeStatement("CREATE TABLE MzCalibration (" + base_cols + ", C5 REAL, C6 REAL, C7 INTEGER, C8 REAL, C9 REAL, "
+                            "C10 REAL, C11 REAL, C12 REAL, C13 REAL, C14 REAL);");
+      conn.executeStatement("INSERT INTO MzCalibration VALUES (" + base_vals + ", 225.951491, 1519.712539, 7, "
+                            "0.058519441907584555, -0.0005411344569873044, 1.8634987450927556e-06, -3.1297916646308927e-09, "
+                            "2.7471965457754794e-12, -1.207997933655641e-15, 2.095848318930801e-19);");
+    }
+    else
+    {
+      conn.executeStatement("CREATE TABLE MzCalibration (" + base_cols + ");");
+      conn.executeStatement("INSERT INTO MzCalibration VALUES (" + base_vals + ");");
+    }
+    conn.executeStatement("CREATE TABLE Frames (Id INTEGER PRIMARY KEY, MzCalibration INTEGER, T1 REAL, T2 REAL);");
+    conn.executeStatement("INSERT INTO Frames VALUES (1, 1, 25.67976562246388, 25.350275695575547);");
+    return d;
+  };
+  {
+    const uint32_t tof = 150000; // inside the calibrant range
+    auto conv_mt2 = tryCreateMzCalibrationConverter(make_d_mt2("model2", true));
+    TEST_NOT_EQUAL(conv_mt2.get(), nullptr)
+    if (conv_mt2)
+    {
+      double mz = 0.0;
+      conv_mt2->convert(1, &mz, &tof, 1);
+      TEST_REAL_SIMILAR(mz, 475.42674239965703) // Bruker SDK, see above
+    }
+    auto conv_mt2_base = tryCreateMzCalibrationConverter(make_d_mt2("model2_no_correction", false));
+    TEST_NOT_EQUAL(conv_mt2_base.get(), nullptr)
+    if (conv_mt2_base)
+    {
+      MzCal no_corr = mzCalModelType2();
+      no_corr.correction = MzCalibrationTof2MzConverter::Correction();
+      const auto m_base = MzCalibrationTof2MzConverter::makeFrameModel(no_corr, MT2_FRAME_T1, MT2_FRAME_T2);
+      double mz = 0.0;
+      conv_mt2_base->convert(1, &mz, &tof, 1);
+      TEST_REAL_SIMILAR(mz, MzCalibrationTof2MzConverter::tofToMz(m_base, tof))
+    }
+  }
+
+  // a frame using an unsupported ModelType, a missing table or a missing file: no converter
+  TEST_EQUAL(tryCreateMzCalibrationConverter(make_d("model9", 9, true)).get(), nullptr)
+  const std::string empty_d = tmp_dir.getPath() + "/empty.d";
+  std::filesystem::create_directories(empty_d);
+  {
+    SqliteConnector conn(empty_d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
+    conn.executeStatement("CREATE TABLE Frames (Id INTEGER PRIMARY KEY, MzCalibration INTEGER, T1 REAL, T2 REAL);");
+  }
+  TEST_EQUAL(tryCreateMzCalibrationConverter(empty_d).get(), nullptr)
+  TEST_EQUAL(tryCreateMzCalibrationConverter(tmp_dir.getPath() + "/does_not_exist.d").get(), nullptr)
+}
+END_SECTION
+
+START_SECTION([EXTRA] the helpers of the parity sections report every kind of difference between spectra)
+{
+  // The sections that compare load(), transform() and loadDIAStreaming() rely on sameSpectrum(),
+  // spectrumDifference() and spectraDifference(). A comparison that overlooks a member would let a reader
+  // change pass, so every kind of change is tried here on a spectrum shaped like a DIA-PASEF MS2 spectrum.
+  MSSpectrum ref;
+  ref.setNativeID("frame=7 windowGroup=1 scan=34");
+  ref.setMSLevel(2);
+  ref.setRT(12.5);
+  ref.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  ref.setType(SpectrumSettings::SpectrumType::CENTROID);
+  ref.setIMPeakType(IMPeakType::IM_PROFILE);
+  ref.emplace_back(500.25, 10.0f);
+  ref.emplace_back(500.25, 20.0f); // the same m/z as the peak before, from another ion mobility scan
+  ref.emplace_back(600.5, 30.0f);
+  DataArrays::FloatDataArray im;
+  im.push_back(0.9f);
+  im.push_back(1.1f);
+  im.push_back(1.0f);
+  IMDataConverter::setIMUnit(im, DriftTimeUnit::VSSC);
+  ref.getFloatDataArrays().push_back(im);
+  Precursor precursor;
+  precursor.setMZ(812.5);
+  precursor.setIsolationWindowLowerOffset(12.5);
+  precursor.setIsolationWindowUpperOffset(12.5);
+  ref.setPrecursors({precursor});
+  ref.setMetaValue("ion mobility lower limit", 0.8);
+  ref.setMetaValue("ion mobility upper limit", 1.2);
+
+  const MSSpectrum copy = ref;
+  TEST_EQUAL(sameSpectrum(ref, copy), true)
+  TEST_STRING_EQUAL(spectrumDifference(ref, copy), "")
+
+  // what spectrumDifference() says about a copy of the reference spectrum after one change
+  const auto difference_after = [&ref](const auto& change)
+  {
+    MSSpectrum changed = ref;
+    change(changed);
+    return spectrumDifference(ref, changed);
+  };
+  const auto names = [](const std::string& difference, const std::string& member)
+  {
+    return StringUtils::hasSubstring(difference, member);
+  };
+
+  // peaks
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s[2].setMZ(600.5000001); }), "peak 2: expected (m/z 600.5"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s[1].setIntensity(21.0f); }), "peak 1: expected (m/z 500.25, intensity 20)"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.pop_back(); }), "number of peaks: expected '3', got '2'"), true)
+  // the two peaks of equal m/z in the other order
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { std::swap(s[0], s[1]); }), "peak 0: expected (m/z 500.25, intensity 10)"), true)
+
+  // ion mobility array: two values exchanged (all that shows if two peaks of equal m/z and intensity come
+  // in another order), its length, its unit, and the number of arrays
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { std::swap(s.getFloatDataArrays()[0][0], s.getFloatDataArrays()[0][1]); }),
+                   "float data array 0 ('raw inverse reduced ion mobility array'): value 0: expected"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.getFloatDataArrays()[0].pop_back(); }), "size: expected '3', got '2'"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { IMDataConverter::setIMUnit(s.getFloatDataArrays()[0], DriftTimeUnit::MILLISECOND); }),
+                   "float data array 0"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.getFloatDataArrays().clear(); }), "number of float data arrays: expected '1', got '0'"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.getFloatDataArrays().push_back(s.getFloatDataArrays()[0]); }),
+                   "number of float data arrays: expected '1', got '2'"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.getIntegerDataArrays().resize(1); }), "integer data arrays"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.getStringDataArrays().resize(1); }), "string data arrays"), true)
+
+  // members of the spectrum
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.setNativeID("frame=7 windowGroup=1 scan=560"); }), "native ID"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.setMSLevel(1); }), "MS level"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.setRT(12.500001); }), "RT"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.setDriftTime(1.0); }), "drift time"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.setDriftTimeUnit(DriftTimeUnit::MILLISECOND); }), "drift time unit"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.setType(SpectrumSettings::SpectrumType::PROFILE); }), "spectrum type"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.setComment("changed"); }), "comment"), true)
+  // ... of which MSSpectrum::operator== does not compare these three
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.setIMPeakType(IMPeakType::IM_CENTROIDED); }), "IM peak type"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.setIMFormat(IMFormat::IM_PEAK); }), "IM format"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.setName("changed"); }), "name"), true)
+
+  // precursor and meta values
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.getPrecursors()[0].setMZ(837.5); }), "precursor 0: m/z"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.getPrecursors()[0].setIsolationWindowUpperOffset(12.0); }),
+                   "precursor 0: isolation window upper offset"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.getPrecursors()[0].setCharge(2); }), "precursor 0: charge"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.getPrecursors().clear(); }), "number of precursors"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.setMetaValue("ion mobility upper limit", 1.25); }),
+                   "meta value 'ion mobility upper limit'"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.removeMetaValue("ion mobility lower limit"); }), "meta value keys"), true)
+  TEST_EQUAL(names(difference_after([](MSSpectrum& s) { s.setMetaValue("another value", 1); }), "meta value keys"), true)
+
+  // The ranges are the one member left out on purpose: load() computes them, the consumers of transform()
+  // and loadDIAStreaming() get spectra without. The sections count them instead.
+  MSSpectrum with_ranges = ref;
+  with_ranges.updateRanges();
+  TEST_EQUAL(sameSpectrum(ref, with_ranges), true)
+  TEST_EQUAL(hasRanges(ref), false)
+  TEST_EQUAL(hasRanges(with_ranges), true)
+  MSSpectrum no_peaks;
+  no_peaks.updateRanges();
+  TEST_EQUAL(hasRanges(no_peaks), false)
+
+  // a series of spectra: the same spectra in another order, a spectrum too few or too many, a changed one
+  MSSpectrum next = ref;
+  next.setNativeID("frame=16 windowGroup=1 scan=34");
+  next.setRT(13.5);
+  MSSpectrum changed = next;
+  changed.setIMPeakType(IMPeakType::IM_CENTROIDED);
+  TEST_STRING_EQUAL(spectraDifference({&ref, &next}, {&copy, &next}), "")
+  TEST_STRING_EQUAL(spectraDifference({}, {}), "")
+  TEST_EQUAL(names(spectraDifference({&ref, &next}, {&next, &ref}), "2 of 2 compared spectra differ"), true)
+  TEST_EQUAL(names(spectraDifference({&ref, &next}, {&next, &ref}), "spectrum 0 (expected native ID 'frame=7 windowGroup=1 scan=34'): native ID"), true)
+  TEST_STRING_EQUAL(spectraDifference({&ref, &next}, {&ref}), "number of spectra: expected 2, got 1; ")
+  TEST_STRING_EQUAL(spectraDifference({&ref}, {&ref, &next}), "number of spectra: expected 1, got 2; ")
+  TEST_EQUAL(names(spectraDifference({&ref, &next}, {&ref, &changed}),
+                   "spectrum 1 (expected native ID 'frame=16 windowGroup=1 scan=34'): IM peak type"), true)
+  TEST_EQUAL(names(spectraDifference({&ref, &next}, {&ref, &changed}), "1 of 2 compared spectra differ"), true)
+
+  // the counts the sections take from a series
+  MSSpectrum unsorted = ref;
+  std::swap(unsorted[0], unsorted[2]);
+  MSSpectrum ms1;
+  ms1.setMSLevel(1);
+  const SpectraCounts counts = countSpectra({&ref, &with_ranges, &unsorted, &ms1});
+  TEST_EQUAL(counts.spectra, 4)
+  TEST_EQUAL(counts.ms1, 1)
+  TEST_EQUAL(counts.ms2, 3)
+  TEST_EQUAL(counts.peaks, 9)
+  TEST_EQUAL(counts.without_peaks, 1)
+  TEST_EQUAL(counts.with_ranges, 1)
+  TEST_EQUAL(counts.unsorted, 1)
+
+  // ComparingConsumer: what a reader has to do to pass, and what it reports otherwise
+  MSExperiment expected;
+  expected.addSpectrum(ref);
+  expected.addSpectrum(next);
+  {
+    ComparingConsumer consumer(expected);
+    TEST_EQUAL(names(consumer.difference(), "number of spectra: expected 2, got 0"), true)
+    consumer.setExpectedSize(5, 0);
+    consumer.setExperimentalSettings(ExperimentalSettings());
+    MSSpectrum s = ref;
+    consumer.consumeSpectrum(s);
+    s = next;
+    consumer.consumeSpectrum(s);
+    TEST_STRING_EQUAL(consumer.difference(), "")
+    TEST_EQUAL(consumer.received.spectra, 2)
+    TEST_EQUAL(consumer.expected_size_calls, 1)
+    TEST_EQUAL(consumer.expected_spectra, 5)
+    TEST_EQUAL(consumer.settings_calls, 1)
+    TEST_EQUAL(consumer.size_known_at_first_spectrum, true)
+    TEST_EQUAL(consumer.settings_known_at_first_spectrum, true)
+    // a spectrum more than expected
+    consumer.consumeSpectrum(s);
+    TEST_STRING_EQUAL(consumer.difference(), "number of spectra: expected 2, got 3; ")
+  }
+  {
+    // spectra in the wrong order, and the settings and the size only after the first spectrum
+    ComparingConsumer consumer(expected);
+    MSSpectrum s = next;
+    consumer.consumeSpectrum(s);
+    consumer.setExpectedSize(2, 0);
+    consumer.setExperimentalSettings(ExperimentalSettings());
+    s = ref;
+    consumer.consumeSpectrum(s);
+    TEST_EQUAL(names(consumer.difference(), "2 of 2 compared spectra differ"), true)
+    TEST_EQUAL(consumer.size_known_at_first_spectrum, false)
+    TEST_EQUAL(consumer.settings_known_at_first_spectrum, false)
+  }
+}
+END_SECTION
+
 // Integration tests (only run when ENABLE_OPENTIMS_TESTS is ON and data is available)
 #ifdef OPENTIMS_DDA_TEST_DATA
 
@@ -445,6 +2347,30 @@ START_SECTION(DDA loading integration test)
     }
   }
 
+  // Activation: no precursor of this run has PasefFrameMsMsInfo rows with different collision energies, so every MS2
+  // precursor has one (the run's energies are 20.6 to 54.7 eV). The run does not record MSMSAuto_FragmentationMode
+  // (only MSMSManual_ListFragmentationMode), so there is no activation method.
+  Size ms2_count = 0, with_ce = 0, ce_in_range = 0, with_activation = 0;
+  for (const auto& spec : exp)
+  {
+    if (spec.getMSLevel() != 2 || spec.getPrecursors().size() != 1) continue;
+    const Precursor& p = spec.getPrecursors()[0];
+    ++ms2_count;
+    if (p.metaValueExists("collision energy"))
+    {
+      ++with_ce;
+      const double ce = p.getMetaValue("collision energy");
+      if (ce >= 20.0 && ce <= 55.0) ++ce_in_range;
+    }
+    if (!p.getActivationMethods().empty()) ++with_activation;
+  }
+  TEST_NOT_EQUAL(ms2_count, 0)
+  TEST_EQUAL(with_ce, ms2_count)
+  TEST_EQUAL(ce_in_range, ms2_count)
+  TEST_EQUAL(with_activation, 0)
+  STATUS(with_ce << " / " << with_activation << " of " << ms2_count
+         << " MS2 precursors have a collision energy / an activation method")
+
   // Verify source file metadata was populated (I4)
   TEST_NOT_EQUAL(exp.getSourceFiles().size(), 0);
 
@@ -456,6 +2382,27 @@ START_SECTION(DDA loading integration test)
   TEST_EQUAL(exp.getInstrument().getModel(), "impacTEM-pt")
   TEST_EQUAL(exp.getInstrument().getVendor(), "Bruker")
   TEST_EQUAL(exp.getInstrument().getMetaValue("instrument serial number").toString(), "1854399.00095")
+}
+END_SECTION
+
+START_SECTION([EXTRA] Bruker SDK is optional in AUTO and required only by BRUKER_SDK)
+{
+  BrukerTimsFile f;
+  BrukerTimsFile::Config cfg;
+  cfg.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg.frame_id_min = 1;
+  cfg.frame_id_max = 2;
+  cfg.bruker_sdk_path = "/nonexistent/libtimsdata.so";
+
+  // AUTO: an unusable SDK only produces a warning; m/z and 1/K0 come from analysis.tdf
+  MSExperiment exp_auto;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_auto, cfg);
+  TEST_EQUAL(exp_auto.size(), 2);
+
+  // BRUKER_SDK explicitly requests the SDK
+  cfg.tims_calibration_strategy = BrukerTimsFile::Config::TimsCalibrationStrategy::BRUKER_SDK;
+  MSExperiment exp_sdk;
+  TEST_EXCEPTION(Exception::FileNotReadable, f.load(OPENTIMS_DDA_TEST_DATA, exp_sdk, cfg));
 }
 END_SECTION
 
@@ -508,6 +2455,59 @@ START_SECTION(DDA native ID format test)
 
   STATUS("DDA MS2 native ID sample: " << id
          << " bruker_precursor_id=" << ms2->getMetaValue("bruker_precursor_id").toString());
+}
+END_SECTION
+
+START_SECTION([EXTRA] DDA precursors: m/z without a monoisotopic peak and ion mobility from the Precursors table)
+{
+  // A copy of the run in which one precursor has no monoisotopic m/z and no charge (NULL), as the acquisition software
+  // writes them for precursors whose charge it could not determine. Its spectrum gets the m/z of the most intense peak
+  // (LargestPeakMz) instead of 0, and charge 0.
+  TempDir tmp;
+  const std::string path = OPENTIMS_DDA_TEST_DATA;
+  const std::string copy = tmp.getPath() + "/null_mono.d";
+  File::makeDir(copy);
+  std::filesystem::copy_file(to_path(path + "/analysis.tdf"), to_path(copy + "/analysis.tdf"));
+  std::filesystem::permissions(to_path(copy + "/analysis.tdf"), std::filesystem::perms::owner_write, std::filesystem::perm_options::add);
+  std::error_code ec;
+  std::filesystem::create_hard_link(to_path(path + "/analysis.tdf_bin"), to_path(copy + "/analysis.tdf_bin"), ec);
+  if (ec) std::filesystem::copy_file(to_path(path + "/analysis.tdf_bin"), to_path(copy + "/analysis.tdf_bin"));
+
+  // The precursor with MS/MS spectra with the smallest Id loses its monoisotopic m/z and charge; its largest peak gets a
+  // marker m/z that no other precursor has, by which its spectrum is found below.
+  const double largest_peak_mz = 777.123456;
+  {
+    SqliteConnector conn(copy + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE);
+    conn.executeStatement("UPDATE Precursors SET MonoisotopicMz = NULL, Charge = NULL, LargestPeakMz = 777.123456 "
+                          "WHERE Id = (SELECT MIN(Precursor) FROM PasefFrameMsMsInfo)");
+  }
+
+  BrukerTimsFile f;
+  BrukerTimsFile::Config cfg;
+  cfg.load_ms1 = false;
+  MSExperiment exp;
+  f.load(copy, exp, cfg);
+  const MSSpectrum* found = nullptr;
+  Size zero_mz = 0;
+  for (const MSSpectrum& spec : exp)
+  {
+    if (spec.getMSLevel() != 2 || spec.getPrecursors().empty()) continue;
+    if (spec.getPrecursors()[0].getMZ() <= 0.0) ++zero_mz;
+    if (std::fabs(spec.getPrecursors()[0].getMZ() - largest_peak_mz) < 1e-6) found = &spec;
+  }
+  TEST_EQUAL(zero_mz, 0)
+  TEST_NOT_EQUAL(found, nullptr)
+  ABORT_IF(found == nullptr)
+  const Precursor& prec = found->getPrecursors()[0];
+  TEST_REAL_SIMILAR(prec.getMZ(), largest_peak_mz)
+  TEST_EQUAL(prec.getCharge(), 0)
+
+  // The precursor's ion mobility (its ScanNumber converted to 1/K0) is the same on the spectrum and on the precursor,
+  // and a plausible timsTOF 1/K0
+  TEST_EQUAL(prec.getDriftTimeUnit() == DriftTimeUnit::VSSC, true)
+  TEST_REAL_SIMILAR(found->getDriftTime(), prec.getDriftTime())
+  TEST_TRUE(prec.getDriftTime() > 0.4 && prec.getDriftTime() < 2.0)
+  STATUS("precursor without monoisotopic m/z: 1/K0 " << prec.getDriftTime());
 }
 END_SECTION
 
@@ -581,6 +2581,402 @@ START_SECTION(Bruker load_ms1=false test)
   }
   TEST_EQUAL(frame_ms1, 0);
 #endif
+}
+END_SECTION
+
+START_SECTION(Bruker load_ms2=false test)
+{
+  // MS1 only: the MS1 spectra are those of a load of both levels, and the MS2 frames are not read (for DDA
+  // the precursor table neither). On the first frames of the runs, to keep the section short.
+  using Config = BrukerTimsFile::Config;
+  BrukerTimsFile f;
+  std::vector<std::pair<std::string, Config::ExportMode>> runs = {{OPENTIMS_DDA_TEST_DATA, Config::AUTO},
+                                                                   {OPENTIMS_DDA_TEST_DATA, Config::FRAME}};
+#ifdef OPENTIMS_DIA_TEST_DATA
+  runs.emplace_back(OPENTIMS_DIA_TEST_DATA, Config::AUTO);
+  runs.emplace_back(OPENTIMS_DIA_TEST_DATA, Config::FRAME);
+#endif
+  for (const auto& [path, mode] : runs)
+  {
+    Config cfg;
+    cfg.export_mode = mode;
+    cfg.frame_id_min = 1;
+    cfg.frame_id_max = 60;
+    MSExperiment both;
+    f.load(path, both, cfg);
+    const SpectraCounts all = countSpectra(spectrumPointers(both));
+    TEST_EQUAL(all.ms1 > 0 && all.ms2 > 0, true)
+
+    cfg.load_ms2 = false;
+    MSExperiment ms1_only;
+    f.load(path, ms1_only, cfg);
+    TEST_EQUAL(ms1_only.size(), all.ms1)
+    TEST_STRING_EQUAL(spectraDifference(spectrumPointers(both, 1), spectrumPointers(ms1_only)), "")
+
+    // transform() delivers the same spectra and announces their number
+    const TransformParity r = testTransformAgainstLoad(path, cfg);
+    TEST_EQUAL(r.loaded.spectra, all.ms1)
+    TEST_EQUAL(r.loaded.ms2, 0)
+    TEST_EQUAL(r.expected_size, all.ms1)
+
+    // neither level: no spectra, but the run is still described
+    cfg.load_ms1 = false;
+    MSExperiment none;
+    f.load(path, none, cfg);
+    TEST_EQUAL(none.size(), 0)
+    TEST_EQUAL(none.getSourceFiles().size(), 1)
+  }
+
+#ifdef OPENTIMS_DIA_TEST_DATA
+  // DIA streaming: readDIAMetadata() announces no MS2 spectra and loadDIAStreaming() delivers none
+  {
+    Config cfg;
+    cfg.frame_id_min = 1;
+    cfg.frame_id_max = 60;
+    cfg.load_ms2 = false;
+    ExperimentalSettings settings;
+    const auto meta = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings, cfg);
+    TEST_EQUAL(meta.nr_ms1_spectra > 0, true)
+    TEST_EQUAL(meta.boundaries.empty(), false)
+    Size announced_ms2 = 0;
+    for (const int n : meta.nr_ms2_spectra) announced_ms2 += n;
+    TEST_EQUAL(announced_ms2, 0)
+
+    InspectableSwathConsumer consumer(meta.boundaries);
+    f.loadDIAStreaming(OPENTIMS_DIA_TEST_DATA, consumer, cfg);
+    TEST_EQUAL(consumer.ms1Map() != nullptr, true)
+    if (consumer.ms1Map() != nullptr) TEST_EQUAL(consumer.ms1Map()->size(), static_cast<Size>(meta.nr_ms1_spectra))
+    Size streamed_ms2 = 0;
+    for (Size w = 0; w < meta.boundaries.size(); ++w)
+    {
+      if (consumer.swathMap(w) != nullptr) streamed_ms2 += consumer.swathMap(w)->size();
+    }
+    TEST_EQUAL(streamed_ms2, 0)
+  }
+#endif
+}
+END_SECTION
+
+START_SECTION([FileHandler] the reader skips what the PeakFileOptions exclude)
+{
+  // FileHandler::loadExperiment() passes the MS levels and the retention time range of its PeakFileOptions on to
+  // the reader (which then selects spectra by their retention time, Config::rt_selects_spectra), so that the
+  // excluded frames are not decoded. The result has to be that of loading everything and filtering afterwards: in
+  // particular a DDA MS2 spectrum at the end of a retention time range is built from all of its frames. FileHandler
+  // takes Bruker data by the '.d' suffix of the path, which the fixture directories do not have.
+  TempDir tmp;
+  std::vector<std::pair<std::string, std::string>> runs = {{OPENTIMS_DDA_TEST_DATA, tmp.getPath() + "/dda.d"}};
+#ifdef OPENTIMS_DIA_TEST_DATA
+  runs.emplace_back(OPENTIMS_DIA_TEST_DATA, tmp.getPath() + "/dia.d");
+#endif
+  for (const auto& [fixture, d_path] : runs)
+  {
+    std::error_code link_error;
+    std::filesystem::create_directory_symlink(fixture, d_path, link_error);
+    if (link_error)
+    {
+      STATUS("no symbolic link to " << fixture << " (" << link_error.message() << "): not tested")
+      continue;
+    }
+    TEST_EQUAL(FileHandler::getType(d_path), FileTypes::BRUKER_TDF)
+
+    MSExperiment full; // what the reader returns without any options
+    BrukerTimsFile().load(d_path, full);
+    const std::vector<const MSSpectrum*> full_ms1 = spectrumPointers(full, 1);
+    const std::vector<const MSSpectrum*> full_ms2 = spectrumPointers(full, 2);
+    TEST_EQUAL(full_ms1.size() > 20 && full_ms2.size() > 20, true)
+    // a retention time range that begins and ends at MS1 spectra: PeakFileOptions excludes the upper limit
+    const double rt_lo = full_ms1[full_ms1.size() / 2]->getRT();
+    const double rt_hi = full_ms1[full_ms1.size() / 2 + 10]->getRT();
+
+    struct Filter
+    {
+      std::vector<Int> ms_levels;
+      bool rt_range;
+    };
+    for (const Filter& filter : {Filter{{2}, false}, Filter{{1}, true}, Filter{{2}, true}, Filter{{1, 2}, true}, Filter{{3}, false}})
+    {
+      FileHandler handler;
+      handler.getOptions().setMSLevels(filter.ms_levels);
+      if (filter.rt_range) handler.getOptions().setRTRange(DRange<1>(rt_lo, rt_hi));
+      MSExperiment filtered;
+      handler.loadExperiment(d_path, filtered, {FileTypes::BRUKER_TDF});
+
+      std::vector<const MSSpectrum*> expected;
+      for (const MSSpectrum& s : full)
+      {
+        if (std::find(filter.ms_levels.begin(), filter.ms_levels.end(), static_cast<Int>(s.getMSLevel())) == filter.ms_levels.end()) continue;
+        if (filter.rt_range && (s.getRT() < rt_lo || s.getRT() >= rt_hi)) continue;
+        expected.push_back(&s);
+      }
+      TEST_EQUAL(expected.empty(), filter.ms_levels == std::vector<Int>{3})
+      TEST_EQUAL(expected.size() < full.size(), true)
+      TEST_STRING_EQUAL(spectraDifference(expected, spectrumPointers(filtered)), "")
+      TEST_TRUE(filtered.getExperimentalSettings() == full.getExperimentalSettings())
+    }
+  }
+}
+END_SECTION
+
+START_SECTION([FileHandler] transformExperiment() gives what loadExperiment() returns)
+{
+  // FileHandler::transformExperiment() has the reader skip what the PeakFileOptions exclude, as loadExperiment() does,
+  // and applies the options to every spectrum on its way to the consumer. With the same options the consumer has to
+  // receive the spectra of loadExperiment(): in particular all peaks of a DDA MS2 spectrum at the end of a retention
+  // time range, and per-peak ion mobility arrays that stay aligned with the peaks the m/z and intensity ranges keep.
+  TempDir tmp;
+  std::vector<std::pair<std::string, std::string>> runs = {{OPENTIMS_DDA_TEST_DATA, tmp.getPath() + "/dda.d"}};
+#ifdef OPENTIMS_DIA_TEST_DATA
+  runs.emplace_back(OPENTIMS_DIA_TEST_DATA, tmp.getPath() + "/dia.d");
+#endif
+  for (const auto& [fixture, d_path] : runs)
+  {
+    std::error_code link_error;
+    std::filesystem::create_directory_symlink(fixture, d_path, link_error);
+    if (link_error)
+    {
+      STATUS("no symbolic link to " << fixture << " (" << link_error.message() << "): not tested")
+      continue;
+    }
+
+    // a retention time range that begins and ends at MS1 spectra, and an intensity range that drops the weaker
+    // half of the peaks of a spectrum in it
+    FileHandler ms1_loader;
+    ms1_loader.getOptions().setMSLevels({1});
+    MSExperiment ms1;
+    ms1_loader.loadExperiment(d_path, ms1, {FileTypes::BRUKER_TDF});
+    TEST_EQUAL(ms1.size() > 20, true)
+    ABORT_IF(ms1.size() <= 20)
+    const MSSpectrum& middle = ms1[ms1.size() / 2];
+    const DRange<1> rt_range(middle.getRT(), ms1[ms1.size() / 2 + 10].getRT());
+    std::vector<double> intensities;
+    for (const Peak1D& p : middle) intensities.push_back(p.getIntensity());
+    TEST_EQUAL(intensities.size() > 10, true)
+    ABORT_IF(intensities.size() <= 10)
+    const double max_intensity = *std::max_element(intensities.begin(), intensities.end());
+    std::nth_element(intensities.begin(), intensities.begin() + intensities.size() / 2, intensities.end());
+    const DRange<1> intensity_range(intensities[intensities.size() / 2], max_intensity * 2.0);
+    const DRange<1> mz_range(400.0, 800.0);
+
+    std::vector<PeakFileOptions> option_sets(8);
+    option_sets[0].setMSLevels({2}); // DDA: the MS2 spectra at the ends of the range are built from frames outside it
+    option_sets[0].setRTRange(rt_range);
+    option_sets[1].setMSLevels({1}); // the reader selects the frames by retention time
+    option_sets[1].setRTRange(rt_range);
+    option_sets[1].setMZRange(mz_range);
+    option_sets[1].setIntensityRange(intensity_range);
+    option_sets[2].setMSLevels({2}); // DIA MS2 spectra have per-peak ion mobility as well
+    option_sets[2].setPrecursorMZRange(DRange<1>(500.0, 700.0));
+    option_sets[2].setMZRange(mz_range);
+    option_sets[3].setMSLevels({1});
+    option_sets[3].setRTRange(rt_range);
+    option_sets[3].setMetadataOnly(true);
+    option_sets[4].setMSLevels({2});
+    option_sets[4].setRTRange(rt_range);
+    option_sets[4].setFillData(false); // spectra without peaks, as with metadata-only
+    option_sets[5].setMSLevels({3});   // nothing the reader gives
+    const DRange<1> im_range(0.9, 1.1);
+    option_sets[6].setMSLevels({2});   // DDA: MS2 spectra by their ion mobility, DIA: peaks by theirs
+    option_sets[6].setRTRange(rt_range);
+    option_sets[6].setIMRange(im_range);
+    option_sets[7].setMSLevels({1});   // peaks by their ion mobility
+    option_sets[7].setRTRange(rt_range);
+    option_sets[7].setIMRange(im_range);
+
+    for (Size i = 0; i < option_sets.size(); ++i)
+    {
+      STATUS(d_path << ", options " << i)
+      FileHandler handler;
+      handler.setOptions(option_sets[i]);
+      MSExperiment loaded;
+      handler.loadExperiment(d_path, loaded, {FileTypes::BRUKER_TDF});
+      ComparingConsumer consumer(loaded);
+      handler.transformExperiment(d_path, &consumer, {FileTypes::BRUKER_TDF});
+
+      TEST_STRING_EQUAL(consumer.difference(), "")
+      TEST_EQUAL(consumer.received.spectra, loaded.size())
+      TEST_EQUAL(loaded.empty(), i == 5)
+      TEST_EQUAL(consumer.received.without_peaks == consumer.received.spectra, i >= 3 && i <= 5)
+      // the settings and the (upper bound of the) number of spectra arrive once, before the first spectrum
+      TEST_EQUAL(consumer.settings_calls, 1)
+      TEST_TRUE(consumer.settings == loaded.getExperimentalSettings())
+      TEST_EQUAL(consumer.expected_size_calls, 1)
+      TEST_EQUAL(consumer.size_known_at_first_spectrum || loaded.empty(), true)
+      TEST_EQUAL(consumer.expected_spectra >= consumer.received.spectra, true)
+      // the per-peak arrays are as long as the peaks the filters keep
+      Size misaligned = 0;
+      for (const MSSpectrum& s : loaded)
+      {
+        for (const auto& array : s.getFloatDataArrays())
+        {
+          if (array.size() != s.size()) ++misaligned;
+        }
+      }
+      TEST_EQUAL(misaligned, 0)
+      if (option_sets[i].hasIMRange())
+      {
+        // what is left lies in the ion mobility range
+        Size outside = 0;
+        for (const MSSpectrum& s : loaded)
+        {
+          if (s.containsIMData())
+          {
+            for (const float im : s.getFloatDataArrays()[s.getIMData().first])
+            {
+              if (! im_range.encloses(DPosition<1>(im))) ++outside;
+            }
+          }
+          else if (! im_range.encloses(DPosition<1>(s.getDriftTime()))) ++outside;
+        }
+        TEST_EQUAL(outside, 0)
+      }
+    }
+
+    // the source file rewritten, as by loadExperiment()
+    FileHandler nothing;
+    nothing.getOptions().setMSLevels({3});
+    MSExperiment loaded_rewritten;
+    nothing.loadExperiment(d_path, loaded_rewritten, {FileTypes::BRUKER_TDF}, ProgressLogger::NONE, true);
+    ComparingConsumer rewritten(loaded_rewritten);
+    nothing.transformExperiment(d_path, &rewritten, {FileTypes::BRUKER_TDF}, ProgressLogger::NONE, true);
+    TEST_EQUAL(rewritten.settings.getSourceFiles().size(), 1)
+    ABORT_IF(rewritten.settings.getSourceFiles().size() != 1)
+    TEST_STRING_EQUAL(rewritten.settings.getSourceFiles()[0].getNameOfFile(), File::basename(d_path))
+    TEST_TRUE(rewritten.settings == loaded_rewritten.getExperimentalSettings())
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] rt_selects_spectra and im_min/im_max give the spectra of a load filtered afterwards)
+{
+  // With rt_selects_spectra, load() returns the spectra of a load without the RT range whose RT lies in it, unchanged: a
+  // DDA MS2 spectrum at an end of the range is built from all of its frames, an aggregated spectrum from all of its
+  // neighbors. im_min/im_max remove the peaks outside the IM range from the spectra with an IM per peak and leave out the
+  // DDA MS2 spectra whose IM lies outside. Both are compared with a load without them, filtered here. The loads are
+  // limited to 400 frames; the RT range lies well inside them, so that the aggregation neighbors of its spectra are
+  // among them.
+  std::vector<std::string> runs = {OPENTIMS_DDA_TEST_DATA};
+#ifdef OPENTIMS_DIA_TEST_DATA
+  runs.emplace_back(OPENTIMS_DIA_TEST_DATA);
+#endif
+  for (Size run = 0; run < runs.size(); ++run)
+  {
+    const std::string& path = runs[run];
+    BrukerTimsFile::Config window;
+    window.frame_id_min = 1500;
+    window.frame_id_max = 1900;
+
+    MSExperiment ms1;
+    {
+      BrukerTimsFile::Config cfg = window;
+      cfg.load_ms2 = false;
+      BrukerTimsFile().load(path, ms1, cfg);
+    }
+    TEST_EQUAL(ms1.size() > 30, true)
+    ABORT_IF(ms1.size() <= 30)
+    const double rt_min = ms1[10].getRT();
+    const double rt_max = ms1[ms1.size() - 11].getRT();
+    const double im_min = 0.9;
+    const double im_max = 1.1;
+
+    // what the ranges leave of the spectra of a load without them
+    const auto filtered = [&](const MSExperiment& exp, bool by_rt, bool by_im, double im_lo, double im_hi)
+    {
+      MSExperiment result;
+      for (MSSpectrum s : exp)
+      {
+        if (by_rt && (s.getRT() < rt_min || s.getRT() > rt_max)) continue;
+        if (by_im && s.containsIMData())
+        {
+          const auto& im = s.getFloatDataArrays()[s.getIMData().first];
+          std::vector<Size> kept;
+          for (Size i = 0; i < s.size(); ++i)
+          {
+            if (im[i] >= im_lo && im[i] <= im_hi) kept.push_back(i);
+          }
+          s.select(kept);
+        }
+        else if (by_im && s.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET && (s.getDriftTime() < im_lo || s.getDriftTime() > im_hi))
+        {
+          continue;
+        }
+        result.addSpectrum(s);
+      }
+      return result;
+    };
+    const auto peaks = [](const MSExperiment& exp)
+    {
+      Size n = 0;
+      for (const MSSpectrum& s : exp) n += s.size();
+      return n;
+    };
+
+    struct Case
+    {
+      std::string name;
+      BrukerTimsFile::Config config;
+      bool by_rt;
+      bool by_im;
+      double im_lo;
+      double im_hi;
+    };
+    BrukerTimsFile::Config aggregated = window; // MS1 over 2 neighbors on each side, DIA MS2 over 1
+    aggregated.ms1_n_neighbors = 2;
+    aggregated.dia_ms2_n_neighbors = 1;
+    BrukerTimsFile::Config frames = window;
+    frames.export_mode = BrukerTimsFile::Config::FRAME;
+    const double inf = std::numeric_limits<double>::infinity();
+    const std::vector<Case> cases = {{"RT", window, true, false, im_min, im_max},
+                                     {"RT, aggregated", aggregated, true, false, im_min, im_max},
+                                     {"RT, frames", frames, true, false, im_min, im_max},
+                                     {"IM", window, false, true, im_min, im_max},
+                                     {"IM, lower bound only", window, false, true, im_min, inf},
+                                     {"RT and IM", window, true, true, im_min, im_max}};
+    for (const Case& c : cases)
+    {
+      STATUS(path << ": " << c.name)
+      MSExperiment all;
+      BrukerTimsFile().load(path, all, c.config);
+      const MSExperiment expected = filtered(all, c.by_rt, c.by_im, c.im_lo, c.im_hi);
+      TEST_EQUAL(expected.size() > 0, true)
+      TEST_EQUAL(peaks(expected) < peaks(all), true)
+
+      BrukerTimsFile::Config selecting = c.config;
+      if (c.by_rt)
+      {
+        selecting.rt_min_sec = rt_min;
+        selecting.rt_max_sec = rt_max;
+        selecting.rt_selects_spectra = true;
+      }
+      if (c.by_im)
+      {
+        selecting.im_min = c.im_lo;
+        selecting.im_max = c.im_hi;
+      }
+      MSExperiment selected;
+      BrukerTimsFile().load(path, selected, selecting);
+      TEST_STRING_EQUAL(spectraDifference(spectrumPointers(expected), spectrumPointers(selected)), "")
+      // transform() delivers the same, and announces an upper bound of the number of spectra
+      testTransformAgainstLoad(path, selecting);
+
+      if (run == 0 && c.name == "RT")
+      {
+        // the frames in the range (rt_selects_spectra = false) give other DDA MS2 spectra: partial ones at the ends of
+        // the range, and ones whose mean time lies outside it
+        selecting.rt_selects_spectra = false;
+        MSExperiment by_frames;
+        BrukerTimsFile().load(path, by_frames, selecting);
+        TEST_NOT_EQUAL(spectraDifference(spectrumPointers(expected), spectrumPointers(by_frames)), "")
+      }
+    }
+
+    // a NaN bound leaves no peaks, as an empty range does (it does not switch the filter off)
+    BrukerTimsFile::Config nan_range = window;
+    nan_range.im_max = std::numeric_limits<double>::quiet_NaN();
+    MSExperiment none;
+    BrukerTimsFile().load(path, none, nan_range);
+    TEST_EQUAL(peaks(none), 0)
+  }
 }
 END_SECTION
 
@@ -1045,42 +3441,23 @@ END_SECTION
 
 START_SECTION(DDA MS1 aggregation with RT cap test)
 {
-  BrukerTimsFile f;
-
   // Baseline: raw DDA MS1
-  MSExperiment exp_raw;
-  f.load(OPENTIMS_DDA_TEST_DATA, exp_raw);
+  const MS1Summary raw = loadMS1Summary(OPENTIMS_DDA_TEST_DATA);
 
   // Aggregated: ms1_n_neighbors=1 uncapped
   BrukerTimsFile::Config cfg_uncapped;
   cfg_uncapped.ms1_n_neighbors = 1;
   cfg_uncapped.ms1_max_rt_distance_sec = 0.0;
-  MSExperiment exp_uncapped;
-  f.load(OPENTIMS_DDA_TEST_DATA, exp_uncapped, cfg_uncapped);
+  const MS1Summary uncapped = loadMS1Summary(OPENTIMS_DDA_TEST_DATA, cfg_uncapped);
 
   // Aggregated: tight 1.0s RT cap (may be inert if fixture MS1 cadence is tight)
   BrukerTimsFile::Config cfg_capped;
   cfg_capped.ms1_n_neighbors = 1;
   cfg_capped.ms1_max_rt_distance_sec = 1.0;
-  MSExperiment exp_capped;
-  f.load(OPENTIMS_DDA_TEST_DATA, exp_capped, cfg_capped);
+  const MS1Summary capped = loadMS1Summary(OPENTIMS_DDA_TEST_DATA, cfg_capped);
 
-  auto count_ms1 = [](const MSExperiment& e, Size& n_spectra, double& total_intensity)
-  {
-    n_spectra = 0; total_intensity = 0.0;
-    for (const auto& s : e)
-      if (s.getMSLevel() == 1)
-      {
-        ++n_spectra;
-        for (const auto& p : s) total_intensity += p.getIntensity();
-      }
-  };
-
-  Size raw_n, uncapped_n, capped_n;
-  double raw_i, uncapped_i, capped_i;
-  count_ms1(exp_raw, raw_n, raw_i);
-  count_ms1(exp_uncapped, uncapped_n, uncapped_i);
-  count_ms1(exp_capped, capped_n, capped_i);
+  const Size raw_n = raw.spectra, uncapped_n = uncapped.spectra, capped_n = capped.spectra;
+  const double raw_i = raw.intensity, uncapped_i = uncapped.intensity, capped_i = capped.intensity;
 
   TEST_NOT_EQUAL(raw_n, 0);
   TEST_NOT_EQUAL(uncapped_n, 0);
@@ -1288,6 +3665,187 @@ START_SECTION(DDA MS1 hill-vs-greedy centroiding comparison)
 
   assertFirstMS1Centroided(exp_greedy);
   assertFirstMS1Centroided(exp_hill);
+}
+END_SECTION
+
+START_SECTION([EXTRA] transform() delivers the spectra of load() (DDA fixture))
+{
+  // transform() is the only way to feed an IMSDataConsumer from a .d directory. With the same Config it has
+  // to deliver what load() returns: the same number of spectra, in the same order, each one the same in
+  // every member. testTransformAgainstLoad() holds the assertions and names the one member that differs
+  // (the ranges of a spectrum); here are the configurations and what each of them covers.
+  using Config = BrukerTimsFile::Config;
+  using CA = Config::CentroidAlgo;
+  const std::string path = OPENTIMS_DDA_TEST_DATA;
+
+  // The sections read a part of the run, as every comparison loads it twice. The first two configurations
+  // read the frames 1 to 300.
+  Config many_frames;
+  many_frames.frame_id_min = 1;
+  many_frames.frame_id_max = 300;
+
+  // --- The default configuration: the MS1 frames and one MS2 spectrum per precursor ---
+  {
+    const TransformParity r = testTransformAgainstLoad(path, many_frames);
+    TEST_EQUAL(r.loaded.ms1 > 0, true)
+    TEST_EQUAL(r.loaded.ms2 > 0, true)
+    STATUS("DDA frames 1 to 300: " << r.loaded.spectra << " spectra (" << r.loaded.ms1 << " MS1, " << r.loaded.ms2
+           << " MS2), " << r.loaded.peaks << " peaks, expected size " << r.expected_size)
+  }
+
+  // --- FRAME mode, MS2 frames only ---
+  {
+    Config cfg = many_frames;
+    cfg.export_mode = Config::FRAME;
+    cfg.load_ms1 = false;
+    const TransformParity r = testTransformAgainstLoad(path, cfg);
+    TEST_EQUAL(r.loaded.ms1, 0)
+    TEST_EQUAL(r.loaded.ms2 > 0, true)
+    // FRAME mode gives one spectrum per frame, also for a frame without peaks, so here the expected size
+    // is exact whatever the data.
+    TEST_EQUAL(r.expected_size, r.loaded.spectra)
+    STATUS("DDA frames 1 to 300, MS2 frames: " << r.loaded.spectra << " spectra, " << r.loaded.without_peaks << " without peaks")
+  }
+
+  // The remaining configurations read the frames 1 to 30 (9 MS1 frames, 21 MS2 frames).
+  Config first_frames;
+  first_frames.frame_id_min = 1;
+  first_frames.frame_id_max = 30;
+
+  // --- FRAME mode, MS1 and MS2 frames ---
+  {
+    Config cfg = first_frames;
+    cfg.export_mode = Config::FRAME;
+    const TransformParity r = testTransformAgainstLoad(path, cfg);
+    TEST_EQUAL(r.loaded.spectra, 30)
+    TEST_EQUAL(r.loaded.ms1 > 0, true)
+    TEST_EQUAL(r.loaded.ms2 > 0, true)
+    TEST_EQUAL(r.expected_size, 30)
+  }
+
+  // --- DDA with a frame range: precursors with frames on both sides of its end give partial MS2 spectra ---
+  const TransformParity raw = testTransformAgainstLoad(path, first_frames);
+  TEST_EQUAL(raw.loaded.ms1 > 0, true)
+  TEST_EQUAL(raw.loaded.ms2 > 0, true)
+  TEST_EQUAL(raw.expected_size, raw.loaded.spectra)
+
+  // --- Hill centroiding of MS1 and MS2 ---
+  {
+    Config cfg = first_frames;
+    cfg.ms1_centroid_algo = CA::HILL_BASED;
+    cfg.ms2_centroid_algo = CA::HILL_BASED;
+    cfg.ms2_centroid_min_hill_length = 1;
+    const TransformParity r = testTransformAgainstLoad(path, cfg);
+    TEST_EQUAL(r.loaded.spectra, raw.loaded.spectra)
+    TEST_EQUAL(r.loaded.peaks < raw.loaded.peaks, true) // centroiding took place
+  }
+
+  // --- Hill centroiding of MS2 with the default minimum hill length of 2 scans, which is tuned for DIA: many
+  //     precursors keep no centroid and give no spectrum. The expected size, still the number of MS1 frames
+  //     and precursors, is then larger than the number of spectra. ---
+  {
+    Config cfg = first_frames;
+    cfg.ms2_centroid_algo = CA::HILL_BASED;
+    const TransformParity r = testTransformAgainstLoad(path, cfg);
+    TEST_EQUAL(r.loaded.ms1, raw.loaded.ms1)
+    TEST_EQUAL(r.loaded.ms2 > 0, true)
+    TEST_EQUAL(r.loaded.ms2 < raw.loaded.ms2, true)
+    TEST_EQUAL(r.expected_size, raw.expected_size)
+    TEST_EQUAL(r.expected_size > r.loaded.spectra, true)
+  }
+
+  // --- MS1 aggregation over neighbouring frames, followed by Greedy2D centroiding ---
+  {
+    Config cfg = first_frames;
+    cfg.ms1_n_neighbors = 1;
+    cfg.ms1_centroid_algo = CA::GREEDY2D;
+    cfg.ms1_centroid_mz_ppm = 5.0f;
+    cfg.ms1_centroid_im_pct = 3.0f;
+    const TransformParity r = testTransformAgainstLoad(path, cfg);
+    TEST_EQUAL(r.loaded.spectra, raw.loaded.spectra)
+    TEST_EQUAL(r.loaded.peaks != raw.loaded.peaks, true) // aggregation and centroiding took place
+  }
+
+  // --- OLS recalibration of the linear m/z model. The MS1 frames are read with the calibration of the
+  //     file and the MS2 spectra with the fitted one, so this is not read in order of retention time:
+  //     transform() loads the frames completely before it hands the first spectrum over. ---
+  {
+    Config cfg = many_frames;
+    cfg.calibrate = true;
+    cfg.tims_calibration_strategy = Config::TimsCalibrationStrategy::LINEAR;
+    const TransformParity r = testTransformAgainstLoad(path, cfg);
+    TEST_EQUAL(r.loaded.ms1 > 0, true)
+    TEST_EQUAL(r.loaded.ms2 > 0, true)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] DDA run: polarity and source file format; an incomplete or corrupt analysis.tdf_bin)
+{
+  using Config = BrukerTimsFile::Config;
+  const std::string path = OPENTIMS_DDA_TEST_DATA;
+  BrukerTimsFile f;
+  Config first_frames;
+  first_frames.frame_id_max = 60;
+
+  // the run was acquired in positive mode (Frames.Polarity '+'): every spectrum says so, also in mzML
+  MSExperiment exp;
+  f.load(path, exp, first_frames);
+  TEST_EQUAL(exp.size() > 0, true)
+  Size positive = 0;
+  for (const MSSpectrum& s : exp)
+  {
+    if (s.getInstrumentSettings().getPolarity() == IonSource::Polarity::POSITIVE) ++positive;
+  }
+  TEST_EQUAL(positive, exp.size())
+  TEST_EQUAL(spectrumPointers(exp, 2).empty(), false) // the DDA MS2 spectra as well
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getFileType(), "Bruker TDF format")
+
+  // copies of the run in which analysis.tdf_bin is linked where the file system allows
+  TempDir tmp;
+  const auto copy_run = [&](const std::string& name)
+  {
+    const std::string copy = tmp.getPath() + "/" + name;
+    File::makeDir(copy);
+    std::filesystem::copy_file(to_path(path + "/analysis.tdf"), to_path(copy + "/analysis.tdf"));
+    std::filesystem::permissions(to_path(copy + "/analysis.tdf"), std::filesystem::perms::owner_write, std::filesystem::perm_options::add);
+    return copy;
+  };
+  const auto link_bin = [&](const std::string& copy)
+  {
+    std::error_code ec;
+    std::filesystem::create_hard_link(to_path(path + "/analysis.tdf_bin"), to_path(copy + "/analysis.tdf_bin"), ec);
+    if (ec) std::filesystem::copy_file(to_path(path + "/analysis.tdf_bin"), to_path(copy + "/analysis.tdf_bin"));
+  };
+
+  // only the first MiB of analysis.tdf_bin, as after an interrupted copy: reported, not read past the end of the file
+  // (which crashed the reader)
+  {
+    const std::string copy = copy_run("incomplete.d");
+    {
+      std::ifstream in((path + "/analysis.tdf_bin").c_str(), std::ios::binary);
+      std::ofstream out((copy + "/analysis.tdf_bin").c_str(), std::ios::binary);
+      std::vector<char> buffer(1 << 20);
+      in.read(buffer.data(), buffer.size());
+      out.write(buffer.data(), in.gcount());
+    }
+    const std::string expected = "analysis.tdf_bin is incomplete: it has 1048576 bytes";
+    TEST_EQUAL(hasText(parseErrorOf([&] { f.load(copy, exp, first_frames); }), expected), true)
+    TEST_EQUAL(hasText(parseErrorOf([&] { MSDataStoringConsumer consumer; f.transform(copy, &consumer, first_frames); }), expected), true)
+  }
+
+  // frames whose data opentims cannot decompress (here: NumScans too small for the data of the frame): a ParseError,
+  // not the std::runtime_error of opentims
+  {
+    const std::string copy = copy_run("corrupt.d");
+    link_bin(copy);
+    SqliteConnector(copy + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE)
+      .executeStatement("UPDATE Frames SET NumScans = 0 WHERE Id = 1;");
+    TEST_EQUAL(hasText(parseErrorOf([&] { f.load(copy, exp, first_frames); }), "Cannot read the Bruker TDF data"), true)
+    Config frame_mode = first_frames;
+    frame_mode.export_mode = Config::FRAME;
+    TEST_EQUAL(hasText(parseErrorOf([&] { f.load(copy, exp, frame_mode); }), "Cannot read the Bruker TDF data"), true)
+  }
 }
 END_SECTION
 
@@ -1824,36 +4382,20 @@ END_SECTION
 
 START_SECTION(DIA MS1 aggregation min_support test)
 {
-  BrukerTimsFile f;
-
   // No denoise (baseline from DIA MS1 aggregation test: intensity ratio ≈ 3.0)
   BrukerTimsFile::Config cfg_no_denoise;
   cfg_no_denoise.ms1_n_neighbors = 1;
   cfg_no_denoise.ms1_min_support = 0;
-  MSExperiment exp_no_denoise;
-  f.load(OPENTIMS_DIA_TEST_DATA, exp_no_denoise, cfg_no_denoise);
+  const MS1Summary no_denoise = loadMS1Summary(OPENTIMS_DIA_TEST_DATA, cfg_no_denoise);
 
   // With denoise
   BrukerTimsFile::Config cfg_denoise;
   cfg_denoise.ms1_n_neighbors = 1;
   cfg_denoise.ms1_min_support = 1;
-  MSExperiment exp_denoise;
-  f.load(OPENTIMS_DIA_TEST_DATA, exp_denoise, cfg_denoise);
+  const MS1Summary denoise = loadMS1Summary(OPENTIMS_DIA_TEST_DATA, cfg_denoise);
 
-  Size no_denoise_peaks = 0, denoise_peaks = 0;
-  double no_denoise_intensity = 0.0, denoise_intensity = 0.0;
-  for (const auto& s : exp_no_denoise)
-    if (s.getMSLevel() == 1)
-    {
-      no_denoise_peaks += s.size();
-      for (const auto& p : s) no_denoise_intensity += p.getIntensity();
-    }
-  for (const auto& s : exp_denoise)
-    if (s.getMSLevel() == 1)
-    {
-      denoise_peaks += s.size();
-      for (const auto& p : s) denoise_intensity += p.getIntensity();
-    }
+  const Size no_denoise_peaks = no_denoise.peaks, denoise_peaks = denoise.peaks;
+  const double denoise_intensity = denoise.intensity;
 
   TEST_NOT_EQUAL(no_denoise_peaks, 0);
   TEST_NOT_EQUAL(denoise_peaks, 0);
@@ -1865,12 +4407,7 @@ START_SECTION(DIA MS1 aggregation min_support test)
   TEST_EQUAL(drop_frac >= 0.10, true);
 
   // Intensity boost still present after denoise (signal peaks survive).
-  MSExperiment exp_raw;
-  f.load(OPENTIMS_DIA_TEST_DATA, exp_raw);
-  double raw_intensity = 0.0;
-  for (const auto& s : exp_raw)
-    if (s.getMSLevel() == 1)
-      for (const auto& p : s) raw_intensity += p.getIntensity();
+  const double raw_intensity = loadMS1Summary(OPENTIMS_DIA_TEST_DATA).intensity;
   TEST_EQUAL(denoise_intensity > raw_intensity, true);
 
   STATUS("DIA MS1 min_support: no_denoise_peaks=" << no_denoise_peaks
@@ -1882,35 +4419,22 @@ END_SECTION
 
 START_SECTION(DIA MS1 RT cap test)
 {
-  BrukerTimsFile f;
-
   // Uncapped reference: ms1_n_neighbors=2 gives a wider window for the cap
   // to bite into.
   BrukerTimsFile::Config cfg_uncapped;
   cfg_uncapped.ms1_n_neighbors = 2;
   cfg_uncapped.ms1_max_rt_distance_sec = 0.0;
-  MSExperiment exp_uncapped;
-  f.load(OPENTIMS_DIA_TEST_DATA, exp_uncapped, cfg_uncapped);
+  const MS1Summary uncapped = loadMS1Summary(OPENTIMS_DIA_TEST_DATA, cfg_uncapped);
 
   // Tight cap: 0.5s (DIA MS1 cadence ~1.5s, so N=2 reaches ~3s total span;
   // the 0.5s cap should truncate aggressively).
   BrukerTimsFile::Config cfg_capped;
   cfg_capped.ms1_n_neighbors = 2;
   cfg_capped.ms1_max_rt_distance_sec = 0.5;
-  MSExperiment exp_capped;
-  f.load(OPENTIMS_DIA_TEST_DATA, exp_capped, cfg_capped);
+  const MS1Summary capped = loadMS1Summary(OPENTIMS_DIA_TEST_DATA, cfg_capped);
 
-  auto total_ms1_intensity = [](const MSExperiment& e)
-  {
-    double s = 0.0;
-    for (const auto& spec : e)
-      if (spec.getMSLevel() == 1)
-        for (const auto& p : spec) s += p.getIntensity();
-    return s;
-  };
-
-  double uncapped_i = total_ms1_intensity(exp_uncapped);
-  double capped_i = total_ms1_intensity(exp_capped);
+  const double uncapped_i = uncapped.intensity;
+  const double capped_i = capped.intensity;
 
   TEST_EQUAL(uncapped_i > 0.0, true);
   TEST_EQUAL(capped_i > 0.0, true);
@@ -1918,17 +4442,9 @@ START_SECTION(DIA MS1 RT cap test)
 
   // Cadence invariant: RT cap must never drop a center frame. Both runs emit
   // exactly one MS1 spectrum per raw MS1 frame regardless of the cap.
-  auto count_ms1_spectra = [](const MSExperiment& e)
-  {
-    Size n = 0;
-    for (const auto& s : e) if (s.getMSLevel() == 1) ++n;
-    return n;
-  };
-  MSExperiment exp_raw;
-  f.load(OPENTIMS_DIA_TEST_DATA, exp_raw);
-  const Size raw_ms1 = count_ms1_spectra(exp_raw);
-  TEST_EQUAL(count_ms1_spectra(exp_uncapped), raw_ms1);
-  TEST_EQUAL(count_ms1_spectra(exp_capped), raw_ms1);
+  const Size raw_ms1 = loadMS1Summary(OPENTIMS_DIA_TEST_DATA).spectra;
+  TEST_EQUAL(uncapped.spectra, raw_ms1);
+  TEST_EQUAL(capped.spectra, raw_ms1);
 
   STATUS("DIA MS1 RT cap: uncapped=" << uncapped_i
          << " capped(0.5s, N=2)=" << capped_i
@@ -2226,6 +4742,333 @@ START_SECTION(DIA MS1+MS2 hill-vs-greedy centroiding comparison)
 
   assertFirstMS1Centroided(exp_hill);
   assertFirstDIAMS2Centroided(exp_hill);
+}
+END_SECTION
+
+START_SECTION([EXTRA] transform() delivers the spectra of load() (DIA fixture))
+{
+  // See the section of the same name for the DDA fixture. For DIA-PASEF load() and transform() return the
+  // MS1 frames and, for every MS2 frame, one spectrum per SWATH window of its window group.
+  using Config = BrukerTimsFile::Config;
+  using CA = Config::CentroidAlgo;
+  const std::string path = OPENTIMS_DIA_TEST_DATA;
+
+  // --- The default configuration on the frames 1 to 300, which run through all window groups many times.
+  //     (A part of the run, as every comparison loads it twice.) ---
+  {
+    Config many_frames;
+    many_frames.frame_id_min = 1;
+    many_frames.frame_id_max = 300;
+    const TransformParity r = testTransformAgainstLoad(path, many_frames);
+    TEST_EQUAL(r.loaded.ms1 > 0, true)
+    TEST_EQUAL(r.loaded.ms2 > 0, true)
+    STATUS("DIA frames 1 to 300: " << r.loaded.spectra << " spectra (" << r.loaded.ms1 << " MS1, " << r.loaded.ms2
+           << " MS2), " << r.loaded.peaks << " peaks, expected size " << r.expected_size)
+  }
+
+  // The remaining configurations read the frames 1 to 30 (4 MS1 frames, 26 MS2 frames with 3 windows each).
+  Config first_frames;
+  first_frames.frame_id_min = 1;
+  first_frames.frame_id_max = 30;
+
+  // --- FRAME mode: one spectrum per frame, MS2 frames not split into windows ---
+  {
+    Config cfg = first_frames;
+    cfg.export_mode = Config::FRAME;
+    const TransformParity r = testTransformAgainstLoad(path, cfg);
+    TEST_EQUAL(r.loaded.spectra, 30)
+    TEST_EQUAL(r.loaded.ms1 > 0, true)
+    TEST_EQUAL(r.loaded.ms2 > 0, true)
+    TEST_EQUAL(r.expected_size, 30)
+  }
+
+  // --- DIA with a frame range ---
+  const TransformParity raw = testTransformAgainstLoad(path, first_frames);
+  TEST_EQUAL(raw.loaded.ms1 > 0, true)
+  TEST_EQUAL(raw.loaded.ms2 > 0, true)
+  TEST_EQUAL(raw.expected_size, raw.loaded.spectra)
+
+  // --- MS2 only ---
+  {
+    Config cfg = first_frames;
+    cfg.load_ms1 = false;
+    const TransformParity r = testTransformAgainstLoad(path, cfg);
+    TEST_EQUAL(r.loaded.ms1, 0)
+    TEST_EQUAL(r.loaded.ms2, raw.loaded.ms2)
+    TEST_EQUAL(r.expected_size, r.loaded.spectra)
+  }
+
+  // --- Hill centroiding of MS1 and MS2. With the default minimum hill length of 2 scans some windows of a
+  //     frame keep no centroid and give no spectrum: the expected size, still the number of spectra without
+  //     centroiding, is larger than the number of spectra. ---
+  {
+    Config cfg = first_frames;
+    cfg.ms1_centroid_algo = CA::HILL_BASED;
+    cfg.ms2_centroid_algo = CA::HILL_BASED;
+    const TransformParity r = testTransformAgainstLoad(path, cfg);
+    TEST_EQUAL(r.loaded.ms1, raw.loaded.ms1)
+    TEST_EQUAL(r.loaded.ms2 > 0, true)
+    TEST_EQUAL(r.loaded.ms2 < raw.loaded.ms2, true)
+    TEST_EQUAL(r.loaded.peaks < raw.loaded.peaks, true)
+    TEST_EQUAL(r.expected_size, raw.expected_size)
+    TEST_EQUAL(r.expected_size > r.loaded.spectra, true)
+  }
+
+  // --- MS1 and MS2 aggregation over neighbouring frames, no centroiding. Peaks of equal m/z leave the
+  //     aggregation in an order that depends on what the aggregator held before, so this also shows that
+  //     both paths take the same steps in the same order. ---
+  {
+    Config cfg = first_frames;
+    cfg.ms1_n_neighbors = 1;
+    cfg.dia_ms2_n_neighbors = 1;
+    const TransformParity r = testTransformAgainstLoad(path, cfg);
+    TEST_EQUAL(r.loaded.ms1, raw.loaded.ms1)
+    TEST_EQUAL(r.loaded.ms2 > 0, true)
+    TEST_EQUAL(r.loaded.peaks != raw.loaded.peaks, true) // aggregation took place
+  }
+
+  // --- MS2 aggregation with Greedy2D centroiding (the legacy dia_ms2_centroid) ---
+  {
+    Config cfg = first_frames;
+    cfg.dia_ms2_n_neighbors = 1;
+    cfg.dia_ms2_centroid = true;
+    const TransformParity r = testTransformAgainstLoad(path, cfg);
+    TEST_EQUAL(r.loaded.ms2 > 0, true)
+    TEST_EQUAL(r.loaded.peaks < raw.loaded.peaks, true) // centroiding took place
+  }
+
+  // --- Isotopic prefilter on the MS2 spectra as read ---
+  {
+    Config cfg = first_frames;
+    cfg.isotopic_prefilter = true;
+    const TransformParity r = testTransformAgainstLoad(path, cfg);
+    TEST_EQUAL(r.loaded.ms2 > 0, true)
+    TEST_EQUAL(r.loaded.peaks < raw.loaded.peaks, true) // peaks were filtered out
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] loadDIAStreaming() fills the SWATH maps with the spectra of load())
+{
+  // OpenSWATH reads a .d directory with readDIAMetadata() and loadDIAStreaming() into a
+  // FullSwathFileConsumer (SwathFile::loadBrukerTdf()); the other tools use load(). The streamed MS2 spectra
+  // are always the spectra as read, so the two paths have to agree when load() neither aggregates nor
+  // centroids MS2, which is the default configuration. testStreamingAgainstLoad() holds the assertions:
+  // the content of every map is the content of load() for that map, spectrum by spectrum, in the same order.
+  //
+  // What differs between the two paths:
+  //  - the ranges of the spectra, which only load() computes (asserted in testStreamingAgainstLoad());
+  //  - the order in which the spectra reach the consumer (not asserted, as it does not show in the maps):
+  //    load() returns them in the order of retention time, MS1 and MS2 interleaved and the windows of a
+  //    frame in the order of their first scan, while loadDIAStreaming() delivers all MS1 spectra and then
+  //    the MS2 spectra window by window. The order inside a map is the one of load(), which is asserted.
+  using Config = BrukerTimsFile::Config;
+  using CA = Config::CentroidAlgo;
+  const std::string path = OPENTIMS_DIA_TEST_DATA;
+  BrukerTimsFile f;
+
+  // --- The default configuration on the frames 1 to 300, which run through all window groups many times.
+  //     (A part of the run, as the comparison holds it twice.) ---
+  {
+    Config many_frames;
+    many_frames.frame_id_min = 1;
+    many_frames.frame_id_max = 300;
+    MSExperiment exp;
+    f.load(path, exp, many_frames);
+    const StreamingParity r = testStreamingAgainstLoad(path, many_frames, exp);
+    const SpectraCounts loaded = countSpectra(spectrumPointers(exp));
+    TEST_EQUAL(r.windows > 0, true)
+    TEST_EQUAL(r.ms1.spectra > 0, true)
+    TEST_EQUAL(r.ms1.spectra, loaded.ms1)
+    TEST_EQUAL(r.ms2.spectra, loaded.ms2)
+    TEST_EQUAL(r.ms1.peaks + r.ms2.peaks, loaded.peaks)
+    STATUS("DIA frames 1 to 300: MS1 map " << r.ms1.spectra << " spectra, " << r.ms1.peaks << " peaks; " << r.windows
+           << " SWATH maps " << r.ms2.spectra << " spectra, " << r.ms2.peaks << " peaks; readDIAMetadata() counts "
+           << r.metadata_ms2 << " MS2 spectra")
+  }
+
+  // The remaining configurations read the frames 1 to 30 (4 MS1 frames, 26 MS2 frames with 3 windows each).
+  Config first_frames;
+  first_frames.frame_id_min = 1;
+  first_frames.frame_id_max = 30;
+  MSExperiment raw;
+  f.load(path, raw, first_frames);
+  const SpectraCounts raw_counts = countSpectra(spectrumPointers(raw));
+  TEST_EQUAL(raw_counts.ms1 > 0, true)
+  TEST_EQUAL(raw_counts.ms2 > 0, true)
+
+  // --- A frame range restricts both paths in the same way ---
+  {
+    const StreamingParity r = testStreamingAgainstLoad(path, first_frames, raw);
+    TEST_EQUAL(r.ms1.spectra, raw_counts.ms1)
+    TEST_EQUAL(r.ms2.spectra, raw_counts.ms2)
+  }
+
+  // --- The MS1 options apply to the streamed MS1 spectra as they do in load(): aggregation over
+  //     neighbouring frames and hill centroiding ---
+  {
+    Config cfg = first_frames;
+    cfg.ms1_n_neighbors = 1;
+    cfg.ms1_centroid_algo = CA::HILL_BASED;
+    MSExperiment exp;
+    f.load(path, exp, cfg);
+    const StreamingParity r = testStreamingAgainstLoad(path, cfg, exp);
+    TEST_EQUAL(r.ms1.spectra, raw_counts.ms1)
+    TEST_EQUAL(r.ms2.spectra, raw_counts.ms2)
+    TEST_EQUAL(r.ms1.peaks + r.ms2.peaks != raw_counts.peaks, true) // the MS1 spectra were processed
+  }
+
+  // --- The MS2 options do not apply to the streamed MS2 spectra: with aggregation, denoising and
+  //     centroiding of MS2 requested, the maps still hold the spectra load() returns without them, while
+  //     load() itself returns other MS2 spectra with these options. ---
+  {
+    Config cfg = first_frames;
+    cfg.dia_ms2_n_neighbors = 1;
+    cfg.dia_ms2_min_support = 2;
+    cfg.dia_ms2_centroid = true;
+    cfg.ms2_centroid_algo = CA::HILL_BASED;
+    cfg.ms2_centroid_mz_ppm = 10.0f;
+    cfg.ms2_centroid_min_hill_length = 3;
+    const StreamingParity r = testStreamingAgainstLoad(path, cfg, raw);
+    TEST_EQUAL(r.ms2.spectra, raw_counts.ms2)
+
+    MSExperiment processed;
+    f.load(path, processed, cfg);
+    TEST_EQUAL(countSpectra(spectrumPointers(processed, 2)).peaks < countSpectra(spectrumPointers(raw, 2)).peaks, true)
+  }
+
+  // --- Without MS1 the consumer gets no MS1 map, and the SWATH maps are the same ---
+  {
+    Config cfg = first_frames;
+    cfg.load_ms1 = false;
+    MSExperiment exp;
+    f.load(path, exp, cfg);
+    const StreamingParity r = testStreamingAgainstLoad(path, cfg, exp);
+    TEST_EQUAL(r.ms1.spectra, 0)
+    TEST_EQUAL(r.metadata_ms1, 0)
+    TEST_EQUAL(r.ms2.spectra, raw_counts.ms2)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] TDF data without DDA-PASEF precursors is read as its MS1 frames by the DDA loader (#10597))
+{
+  // Runs without PASEF precursors, such as MS1-only MALDI runs, have no Precursors and PasefFrameMsMsInfo tables.
+  // Neither has this diaPASEF run, which export mode SPECTRUM reads with the DDA loader, as AUTO does for a run
+  // without isolation windows. That gave SQLite::Exception "no such table: Precursors", which ended the TOPP tools.
+  using Config = BrukerTimsFile::Config;
+  const std::string path = OPENTIMS_DIA_TEST_DATA;
+  Config cfg;
+  cfg.export_mode = Config::SPECTRUM;
+  cfg.frame_id_min = 1;
+  cfg.frame_id_max = 60;
+  BrukerTimsFile f;
+  MSExperiment as_dda;
+  f.load(path, as_dda, cfg);
+  const SpectraCounts counts = countSpectra(spectrumPointers(as_dda));
+  TEST_EQUAL(counts.ms1 > 0, true)
+  TEST_EQUAL(counts.ms2, 0)
+
+  // the MS1 spectra are those of an MS1-only load
+  Config ms1_only = cfg;
+  ms1_only.load_ms2 = false;
+  MSExperiment ms1;
+  f.load(path, ms1, ms1_only);
+  TEST_EQUAL(ms1.size(), counts.ms1)
+  TEST_STRING_EQUAL(spectraDifference(spectrumPointers(ms1), spectrumPointers(as_dda)), "")
+
+  // transform() delivers the same spectra and announces their number
+  const TransformParity r = testTransformAgainstLoad(path, cfg);
+  TEST_EQUAL(r.loaded.spectra, counts.ms1)
+  TEST_EQUAL(r.expected_size, counts.ms1)
+
+  // A copy of the run whose precursor tables lack the columns the reader needs: a ParseError that names the run.
+  // (No SQLite::Exception leaves the reader.) analysis.tdf_bin is linked into the copy where the file system allows.
+  TempDir tmp;
+  const std::string copy = tmp.getPath() + "/broken_precursors.d";
+  File::makeDir(copy);
+  std::filesystem::copy_file(to_path(path + "/analysis.tdf"), to_path(copy + "/analysis.tdf"));
+  std::filesystem::permissions(to_path(copy + "/analysis.tdf"), std::filesystem::perms::owner_write, std::filesystem::perm_options::add);
+  std::error_code ec;
+  std::filesystem::create_hard_link(to_path(path + "/analysis.tdf_bin"), to_path(copy + "/analysis.tdf_bin"), ec);
+  if (ec) std::filesystem::copy_file(to_path(path + "/analysis.tdf_bin"), to_path(copy + "/analysis.tdf_bin"));
+  {
+    SqliteConnector conn(copy + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE);
+    conn.executeStatement("CREATE TABLE Precursors (Id INTEGER PRIMARY KEY);");
+    conn.executeStatement("CREATE TABLE PasefFrameMsMsInfo (Frame INTEGER, Precursor INTEGER);");
+  }
+  const auto parse_error = [&copy](const std::function<void()>& read) -> std::string
+  {
+    try
+    {
+      read();
+    }
+    catch (const Exception::ParseError& e)
+    {
+      return e.what();
+    }
+    return "no ParseError";
+  };
+  MSExperiment exp;
+  const std::string load_error = parse_error([&] { f.load(copy, exp, cfg); });
+  TEST_EQUAL(load_error.find("no such column") != std::string::npos, true)
+  TEST_EQUAL(load_error.find("broken_precursors.d") != std::string::npos, true)
+  MSDataStoringConsumer streamed;
+  const std::string transform_error = parse_error([&] { f.transform(copy, &streamed, cfg); });
+  TEST_EQUAL(transform_error.find("no such column") != std::string::npos, true)
+  TEST_EQUAL(streamed.getData().size(), 0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] DIA run whose DiaFrameMsMsInfo names frames that the Frames table lacks)
+{
+  // A copy of the run without three of its MS2 frames in the Frames table, as an incomplete or edited analysis.tdf has
+  // it. The DIA loaders threw std::out_of_range for them; now they return the spectra of the run without those of the
+  // missing frames, and loadDIAStreaming() and readDIAMetadata() agree with load().
+  using Config = BrukerTimsFile::Config;
+  const std::string path = OPENTIMS_DIA_TEST_DATA;
+  BrukerTimsFile f;
+  Config many_frames;
+  many_frames.frame_id_min = 1;
+  many_frames.frame_id_max = 300;
+
+  TempDir tmp;
+  const std::string copy = tmp.getPath() + "/missing_frames.d";
+  File::makeDir(copy);
+  std::filesystem::copy_file(to_path(path + "/analysis.tdf"), to_path(copy + "/analysis.tdf"));
+  std::filesystem::permissions(to_path(copy + "/analysis.tdf"), std::filesystem::perms::owner_write, std::filesystem::perm_options::add);
+  std::error_code ec;
+  std::filesystem::create_hard_link(to_path(path + "/analysis.tdf_bin"), to_path(copy + "/analysis.tdf_bin"), ec);
+  if (ec) std::filesystem::copy_file(to_path(path + "/analysis.tdf_bin"), to_path(copy + "/analysis.tdf_bin"));
+  // the run without the spectra of the first three MS2 frames from frame 100 on, which are removed from the copy (the
+  // spectra of load() are in order of retention time, so of frames)
+  MSExperiment exp;
+  {
+    const auto frame_of = [](const MSSpectrum& s) { return static_cast<uint32_t>(std::stoul(s.getNativeID().substr(6))); }; // "frame=<Id> ..."
+    MSExperiment run;
+    f.load(path, run, many_frames);
+    std::set<uint32_t> removed;
+    for (const MSSpectrum* s : spectrumPointers(run, 2))
+    {
+      if (frame_of(*s) >= 100 && removed.size() < 3) removed.insert(frame_of(*s));
+    }
+    TEST_EQUAL(removed.size(), 3)
+    std::string ids;
+    for (const uint32_t frame : removed) ids += (ids.empty() ? "" : ", ") + std::to_string(frame);
+    SqliteConnector(copy + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE).executeStatement("DELETE FROM Frames WHERE Id IN (" + ids + ");");
+
+    std::vector<const MSSpectrum*> expected;
+    for (const MSSpectrum* s : spectrumPointers(run))
+    {
+      if (removed.count(frame_of(*s)) == 0) expected.push_back(s);
+    }
+    TEST_EQUAL(expected.size() < run.size(), true)
+    f.load(copy, exp, many_frames);
+    TEST_STRING_EQUAL(spectraDifference(expected, spectrumPointers(exp)), "")
+  }
+  testTransformAgainstLoad(copy, many_frames);
+  const StreamingParity r = testStreamingAgainstLoad(copy, many_frames, exp);
+  TEST_EQUAL(r.ms2.spectra, countSpectra(spectrumPointers(exp)).ms2)
 }
 END_SECTION
 

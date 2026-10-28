@@ -20,6 +20,9 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/CommonEnums.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 
 #include <cmath>
 #include <utility>
@@ -375,6 +378,204 @@ START_SECTION((std::vector<FAIMSSwathMapGroup> loadFromMSExperimentByFAIMSCV(Pea
   // between CV buckets during SWATH conversion.
   TEST_REAL_SIMILAR(groups[0].swath_maps[1].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 6600.0)
   TEST_REAL_SIMILAR(groups[1].swath_maps[1].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 5600.0)
+}
+END_SECTION
+
+START_SECTION((std::vector<FAIMSSwathMapGroup> loadOnDiscByFAIMSCV(const std::shared_ptr<IMSExperimentRandomAccess>& experiment, std::shared_ptr<ExperimentalSettings>& exp_meta, Interfaces::IMSDataConsumer* plugin_consumer)))
+{
+  // Two CVs, MS1 and MS2 at each; the first MS2 of each cycle has no CV and goes to the CV before it
+  PeakMap minus55 = makeTwoWindowDIAExperiment(true, -55.0, 5500.0, true, 0.0);
+  PeakMap minus45 = makeTwoWindowDIAExperiment(true, -45.0, 4500.0, true, 3.0);
+  PeakMap exp;
+  for (auto& spectrum : minus55.getSpectra()) exp.addSpectrum(spectrum);
+  for (auto& spectrum : minus45.getSpectra()) exp.addSpectrum(spectrum);
+  for (auto& spectrum : minus55.getSpectra()) // a third cycle back at -55 V
+  {
+    MSSpectrum s = spectrum;
+    s.setRT(s.getRT() + 6.0);
+    exp.addSpectrum(s);
+  }
+  // mzML stores the drift time only with a scan (acquisition) entry
+  for (auto& spectrum : exp)
+  {
+    spectrum.getAcquisitionInfo().push_back(Acquisition());
+  }
+  std::string file;
+  NEW_TMP_FILE(file)
+  MzMLFile().store(file, exp);
+
+  auto on_disc = std::make_shared<OnDiscMSExperiment>();
+  TEST_TRUE(on_disc->openFile(file))
+  std::shared_ptr<ExperimentalSettings> meta;
+  auto groups = SwathFile().loadOnDiscByFAIMSCV(on_disc, meta);
+
+  TEST_EQUAL(groups.size(), 2)
+  ABORT_IF(groups.size() != 2)
+  TEST_REAL_SIMILAR(groups[0].faims_cv, -55.0)
+  TEST_REAL_SIMILAR(groups[1].faims_cv, -45.0)
+  const std::vector<Size> nr_spectra_per_cv = {2, 1};
+  for (Size g = 0; g < groups.size(); ++g)
+  {
+    const auto& maps = groups[g].swath_maps;
+    TEST_EQUAL(maps.size(), 3)
+    ABORT_IF(maps.size() != 3)
+    TEST_EQUAL(maps[0].ms1, true)
+    TEST_EQUAL(maps[1].ms1, false)
+    TEST_REAL_SIMILAR(maps[1].lower, 400.0)
+    TEST_REAL_SIMILAR(maps[1].upper, 425.0)
+    TEST_REAL_SIMILAR(maps[2].lower, 425.0)
+    TEST_REAL_SIMILAR(maps[2].upper, 450.0)
+    for (const auto& map : maps)
+    {
+      TEST_EQUAL(map.sptr->getNrSpectra(), nr_spectra_per_cv[g])
+    }
+  }
+  // Intensities encode the CV of the cycle: no spectra are mixed between the CVs
+  for (Size i = 0; i < 2; ++i)
+  {
+    TEST_REAL_SIMILAR(groups[0].swath_maps[0].sptr->getSpectrumById(int(i))->getIntensityArray()->data[0], 6500.0)
+    TEST_REAL_SIMILAR(groups[0].swath_maps[1].sptr->getSpectrumById(int(i))->getIntensityArray()->data[0], 6600.0)
+    TEST_REAL_SIMILAR(groups[0].swath_maps[2].sptr->getSpectrumById(int(i))->getIntensityArray()->data[0], 6700.0)
+  }
+  TEST_REAL_SIMILAR(groups[1].swath_maps[0].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 5500.0)
+  TEST_REAL_SIMILAR(groups[1].swath_maps[1].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 5600.0)
+  TEST_REAL_SIMILAR(groups[1].swath_maps[2].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 5700.0)
+
+  // Same groups as the in-memory FAIMS adapter
+  std::shared_ptr<ExperimentalSettings> meta_in_memory;
+  auto in_memory = SwathFile().loadFromMSExperimentByFAIMSCV(PeakMap(exp), SystemSettings::getTempDirectory() + "/", meta_in_memory, "normal");
+  TEST_EQUAL(in_memory.size(), groups.size())
+  for (Size g = 0; g < std::min(in_memory.size(), groups.size()); ++g)
+  {
+    TEST_REAL_SIMILAR(in_memory[g].faims_cv, groups[g].faims_cv)
+    TEST_EQUAL(in_memory[g].swath_maps.size(), groups[g].swath_maps.size())
+    for (Size m = 0; m < std::min(in_memory[g].swath_maps.size(), groups[g].swath_maps.size()); ++m)
+    {
+      TEST_EQUAL(in_memory[g].swath_maps[m].sptr->getNrSpectra(), groups[g].swath_maps[m].sptr->getNrSpectra())
+    }
+  }
+
+  // The flat map list has no CV: multi-CV input is rejected instead of merging the CVs
+  std::shared_ptr<ExperimentalSettings> meta_flat;
+  TEST_EXCEPTION(Exception::IllegalArgument, SwathFile().loadOnDisc(on_disc, meta_flat))
+
+  // Non-FAIMS input: one group with CV NaN, same maps as loadOnDisc()
+  std::string file_no_faims;
+  NEW_TMP_FILE(file_no_faims)
+  MzMLFile().store(file_no_faims, makeTwoWindowDIAExperiment(false, 0.0));
+  auto on_disc_no_faims = std::make_shared<OnDiscMSExperiment>();
+  TEST_TRUE(on_disc_no_faims->openFile(file_no_faims))
+  auto groups_no_faims = SwathFile().loadOnDiscByFAIMSCV(on_disc_no_faims, meta);
+  TEST_EQUAL(groups_no_faims.size(), 1)
+  TEST_TRUE(std::isnan(groups_no_faims[0].faims_cv))
+  TEST_EQUAL(groups_no_faims[0].swath_maps.size(), 3)
+  TEST_EQUAL(SwathFile().loadOnDisc(on_disc_no_faims, meta).size(), 3)
+
+  // Without meta data (no experimental settings, no spectrum metadata) both loaders reject the experiment
+  auto on_disc_no_meta = std::make_shared<OnDiscMSExperiment>();
+  TEST_TRUE(on_disc_no_meta->openFile(file_no_faims, true))
+  TEST_EXCEPTION(Exception::IllegalArgument, SwathFile().loadOnDisc(on_disc_no_meta, meta))
+  TEST_EXCEPTION(Exception::IllegalArgument, SwathFile().loadOnDiscByFAIMSCV(on_disc_no_meta, meta))
+  std::shared_ptr<IMSExperimentRandomAccess> null_experiment;
+  TEST_EXCEPTION(Exception::NullPointer, SwathFile().loadOnDisc(null_experiment, meta))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] plugin consumers with readoptions normal, cache and onDisc))
+{
+  Size nr_swathes = 2;
+  std::string file;
+  NEW_TMP_FILE(file)
+  storeSwathFile(file, nr_swathes);
+  const std::string tmp = SystemSettings::getTempDirectory() + "/";
+
+  MSDataTransformingConsumer scaling;
+  scaling.setSpectraProcessingFunc([](MSSpectrum& s) { for (auto& p : s) { p.setIntensity(p.getIntensity() * 2); } });
+
+  // normal and cache keep the changes of a transforming plugin (MS2 intensity 201 -> 402)
+  for (const std::string readoptions : {"normal", "cache"})
+  {
+    std::shared_ptr<ExperimentalSettings> meta;
+    auto maps = SwathFile().loadMzML(file, tmp, meta, readoptions, &scaling);
+    TEST_EQUAL(maps.size(), nr_swathes + 1)
+    TEST_REAL_SIMILAR(maps[1].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 402.0)
+  }
+
+  // onDisc reads the spectra from the file again: a transforming plugin is rejected, not ignored
+  auto on_disc = std::make_shared<OnDiscMSExperiment>();
+  TEST_TRUE(on_disc->openFile(file))
+  std::shared_ptr<ExperimentalSettings> meta;
+  TEST_EXCEPTION(Exception::IllegalArgument, SwathFile().loadOnDisc(on_disc, meta, &scaling))
+  TEST_EXCEPTION(Exception::IllegalArgument, SwathFile().loadOnDiscByFAIMSCV(on_disc, meta, &scaling))
+
+  // An observing plugin (like SwathQC) sees every spectrum once and the maps equal those of normal
+  Size nr_seen = 0;
+  MSDataTransformingConsumer observer;
+  observer.setSpectraProcessingFunc([&nr_seen](MSSpectrum&) { ++nr_seen; });
+  auto maps_on_disc = SwathFile().loadOnDisc(on_disc, meta, &observer);
+  TEST_EQUAL(nr_seen, on_disc->getNrSpectra())
+  auto maps_normal = SwathFile().loadMzML(file, tmp, meta, "normal");
+  TEST_EQUAL(maps_on_disc.size(), maps_normal.size())
+  for (Size m = 0; m < std::min(maps_on_disc.size(), maps_normal.size()); ++m)
+  {
+    TEST_EQUAL(maps_on_disc[m].ms1, maps_normal[m].ms1)
+    TEST_REAL_SIMILAR(maps_on_disc[m].lower, maps_normal[m].lower)
+    TEST_REAL_SIMILAR(maps_on_disc[m].upper, maps_normal[m].upper)
+    TEST_EQUAL(maps_on_disc[m].sptr->getNrSpectra(), maps_normal[m].sptr->getNrSpectra())
+    TEST_EQUAL(maps_on_disc[m].sptr->getSpectrumById(0)->getIntensityArray()->data == maps_normal[m].sptr->getSpectrumById(0)->getIntensityArray()->data, true)
+    TEST_EQUAL(maps_on_disc[m].sptr->getSpectrumById(0)->getMZArray()->data == maps_normal[m].sptr->getSpectrumById(0)->getMZArray()->data, true)
+  }
+}
+END_SECTION
+
+START_SECTION((std::vector<OpenSwath::SwathMap> loadOnDisc(const std::string& file, std::shared_ptr<ExperimentalSettings>& exp_meta, Interfaces::IMSDataConsumer* plugin_consumer)))
+{
+  Size nr_swathes = 3;
+  std::string file;
+  NEW_TMP_FILE(file)
+  storeSwathFile(file, nr_swathes);
+  const std::string tmp = SystemSettings::getTempDirectory() + "/";
+
+  // Indexed mzML: same maps and spectra as readoptions "normal"
+  std::shared_ptr<ExperimentalSettings> meta;
+  auto maps_on_disc = SwathFile().loadOnDisc(file, meta);
+  TEST_NOT_EQUAL(meta.get(), nullptr)
+  auto maps_normal = SwathFile().loadMzML(file, tmp, meta, "normal");
+  TEST_EQUAL(maps_on_disc.size(), nr_swathes + 1)
+  TEST_EQUAL(maps_on_disc.size(), maps_normal.size())
+  for (Size m = 0; m < std::min(maps_on_disc.size(), maps_normal.size()); ++m)
+  {
+    TEST_EQUAL(maps_on_disc[m].ms1, maps_normal[m].ms1)
+    TEST_REAL_SIMILAR(maps_on_disc[m].lower, maps_normal[m].lower)
+    TEST_REAL_SIMILAR(maps_on_disc[m].upper, maps_normal[m].upper)
+    TEST_EQUAL(maps_on_disc[m].sptr->getNrSpectra(), maps_normal[m].sptr->getNrSpectra())
+    for (Size i = 0; i < std::min(maps_on_disc[m].sptr->getNrSpectra(), maps_normal[m].sptr->getNrSpectra()); ++i)
+    {
+      TEST_TRUE(maps_on_disc[m].sptr->getSpectrumById(int(i))->getIntensityArray()->data == maps_normal[m].sptr->getSpectrumById(int(i))->getIntensityArray()->data)
+      TEST_TRUE(maps_on_disc[m].sptr->getSpectrumById(int(i))->getMZArray()->data == maps_normal[m].sptr->getSpectrumById(int(i))->getMZArray()->data)
+    }
+  }
+
+  // The FAIMS variant on a file without CVs: one group with CV NaN and the same maps
+  auto groups = SwathFile().loadOnDiscByFAIMSCV(file, meta);
+  TEST_EQUAL(groups.size(), 1)
+  ABORT_IF(groups.size() != 1)
+  TEST_TRUE(std::isnan(groups[0].faims_cv))
+  TEST_EQUAL(groups[0].swath_maps.size(), maps_on_disc.size())
+
+  // mzML without an index cannot be read on access
+  std::string file_unindexed;
+  NEW_TMP_FILE(file_unindexed)
+  PeakMap exp;
+  MzMLFile().load(file, exp);
+  MzMLFile mzml;
+  mzml.getOptions().setWriteIndex(false);
+  mzml.store(file_unindexed, exp);
+  TEST_EXCEPTION(Exception::ParseError, SwathFile().loadOnDisc(file_unindexed, meta))
+
+  // File types without a random-access backend
+  TEST_EXCEPTION(Exception::InvalidValue, SwathFile().loadOnDisc(tmp + "SwathFile_test_unsupported.mzXML", meta))
+  TEST_EXCEPTION(Exception::InvalidValue, SwathFile().loadOnDiscByFAIMSCV(tmp + "SwathFile_test_unsupported.sqMass", meta))
 }
 END_SECTION
 

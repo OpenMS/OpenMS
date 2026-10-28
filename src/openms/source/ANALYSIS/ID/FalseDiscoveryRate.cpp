@@ -1053,6 +1053,14 @@ namespace OpenMS
       calculateFDRBasic_(scores_to_fdr, scores_labels, q_value, higher_score_better);
       IDScoreGetterSetter::setPeptideScoresForMap_(scores_to_fdr, cmap, include_unassigned_peptides, score_type, higher_score_better, add_decoy_peptides);
     }
+
+    // FDRs and q-values are lower-is-better, whatever the search score was. Set this only after all
+    // scores are converted: the setters above need the search score's orientation (the charge-split
+    // path looks the scores up with it, once per charge).
+    cmap.applyFunctionOnPeptideIDs([&score_type](PeptideIdentification& id)
+    {
+      if (id.getScoreType() == score_type) { id.setHigherScoreBetter(false); }
+    }, include_unassigned_peptides);
   }
 
   //TODO Add another overload that iterates over a vector. to be consistent with old interface
@@ -1073,8 +1081,10 @@ namespace OpenMS
     // TODO this could be a separate function.. And it could actually be sped up.
     //  We could store the number of decoys/targets in the group, or we only update the
     //  scores of proteins that are actually in groups (rest stays the same)
-    // do groups first, if keep_decoy is false, we would otherwise miss those proteins
-    if (groups_too)
+    // do groups first, if keep_decoy is false, we would otherwise miss those proteins.
+    // Without groups (e.g. inference run without group annotation) there is nothing to score, and
+    // calculateFDRBasic_ would only warn about missing target-decoy annotation.
+    if (groups_too && !id.getIndistinguishableProteins().empty())
     {
       // Prepare lookup map for decoy proteins (since there is no direct way back from group to protein)
       // TODO we could also require the decoy affix to be specified
@@ -1090,7 +1100,7 @@ namespace OpenMS
       IDScoreGetterSetter::getScores_(scores_labels, id.getIndistinguishableProteins(), decoy_accs);
       calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
       if (!scores_labels.empty())
-        IDScoreGetterSetter::setScores_(scores_to_FDR, id.getIndistinguishableProteins(), score_type, false);
+        IDScoreGetterSetter::setScores_(scores_to_FDR, id.getIndistinguishableProteins(), score_type, false, higher_score_better, q_value);
     }
 
     scores_to_FDR.clear();
@@ -1193,6 +1203,8 @@ namespace OpenMS
       }
     }
 
+    // The best hit of each identification is the one that is scored (and kept).
+    map.applyFunctionOnPeptideIDs([](PeptideIdentification& id) { id.sort(); }, include_unassigned);
     unordered_map<std::string, ScoreToTgtDecLabelPair> seq_to_score_labels;
     IDScoreGetterSetter::fillPeptideScoreMap_(seq_to_score_labels, map, include_unassigned);
 
@@ -1232,6 +1244,8 @@ namespace OpenMS
     // since we do not support multiple runs here yet, we take the orientation of the first ID
     bool higher_better = ids[0].isHigherScoreBetter();
 
+    // The best hit of each identification is the one that is scored (and kept).
+    for (auto& id : ids) { id.sort(); }
     unordered_map<std::string, ScoreToTgtDecLabelPair> seq_to_score_labels;
     IDScoreGetterSetter::fillPeptideScoreMap_(seq_to_score_labels, ids);
 
@@ -1452,11 +1466,11 @@ namespace OpenMS
     IDScoreGetterSetter::getPickedProteinScores_(picked_scores, id, decoy_string, prefix);
     scores_labels.reserve(picked_scores.size());
 
-    if (groups_too)
+    if (groups_too && !id.getIndistinguishableProteins().empty()) // nothing to score without groups
     {
       IDScoreGetterSetter::getPickedProteinGroupScores_(picked_scores, scores_labels, id.getIndistinguishableProteins(), decoy_string, prefix);
       calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
-      IDScoreGetterSetter::setScores_(scores_to_FDR, id.getIndistinguishableProteins(), score_type, false);
+      IDScoreGetterSetter::setScores_(scores_to_FDR, id.getIndistinguishableProteins(), score_type, false, higher_score_better, q_value);
       scores_to_FDR.clear();
       scores_labels.clear();
     }

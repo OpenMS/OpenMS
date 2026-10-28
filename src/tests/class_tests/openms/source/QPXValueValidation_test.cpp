@@ -207,6 +207,32 @@ START_SECTION((Result validate(const std::shared_ptr<arrow::Table>& table)))
   // A 0-row table is legal: the streaming writers emit one for empty input.
   QPXValueValidation empty_validator(QPXValueValidation::View::PSM);
   TEST_TRUE(empty_validator.validate(makePSMTable(0)).valid)
+
+  // Columns the view does not define, after its own ones, are allowed: QPX readers ignore unknown columns.
+  arrow::StringBuilder extra_builder;
+  TEST_TRUE(extra_builder.AppendValues(std::vector<std::string>{"spectrum=1", "spectrum=2"}).ok())
+  std::shared_ptr<arrow::Array> extra;
+  TEST_TRUE(extra_builder.Finish(&extra).ok())
+  auto extended = table->AddColumn(table->num_columns(), arrow::field("spectrum_reference", arrow::utf8()),
+                                   std::make_shared<arrow::ChunkedArray>(extra)).ValueOrDie();
+  QPXValueValidation extended_validator(QPXValueValidation::View::PSM);
+  // only if the writer allows them (setExtraColumnsAllowed); by default the view's columns exactly
+  TEST_FALSE(extended_validator.validate(extended).valid)
+  extended_validator.setExtraColumnsAllowed(true);
+  TEST_TRUE(extended_validator.validate(extended).valid)
+  // under a name of their own
+  auto twice = extended->AddColumn(extended->num_columns(), arrow::field("spectrum_reference", arrow::utf8()),
+                                   std::make_shared<arrow::ChunkedArray>(extra)).ValueOrDie();
+  QPXValueValidation twice_validator(QPXValueValidation::View::PSM);
+  twice_validator.setExtraColumnsAllowed(true);
+  TEST_FALSE(twice_validator.validate(twice).valid)
+  // but not instead of one of them
+  auto replaced = table->RemoveColumn(table->num_columns() - 1).ValueOrDie()
+                    ->AddColumn(table->num_columns() - 1, arrow::field("spectrum_reference", arrow::utf8()),
+                                std::make_shared<arrow::ChunkedArray>(extra)).ValueOrDie();
+  QPXValueValidation replaced_validator(QPXValueValidation::View::PSM);
+  replaced_validator.setExtraColumnsAllowed(true);
+  TEST_FALSE(replaced_validator.validate(replaced).valid)
 }
 END_SECTION
 
@@ -256,6 +282,36 @@ START_SECTION(([EXTRA] psm view: the primary key must be unique))
   const auto result = validator.validate(duplicate);
   TEST_FALSE(result.valid)
   TEST_TRUE(result.toString().find("primary key") != std::string::npos)
+
+  // The row index is into the Parquet table, so on its own it does not say which spectrum and
+  // which peptide to look at: the message names the values, and what removes the duplicate
+  // upstream (#9895).
+  const std::string message = result.toString();
+  TEST_TRUE(message.find("PEPTIDER") != std::string::npos)
+  TEST_TRUE(message.find("charge 2") != std::string::npos)
+  TEST_TRUE(message.find("scan [1000]") != std::string::npos)
+  TEST_TRUE(message.find("IDConflictResolver") != std::string::npos)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] psm view: a table that collides wholesale names the key, not the identifications))
+{
+  // Vendor native IDs that carry no scan number (Bruker timsTOF, Sciex - see #9893) give every
+  // spectrum of a run the same 'scan', so every repeated peptidoform collapses onto one key. That
+  // is a different problem from two identifications of one spectrum, and the message has to say so
+  // instead of pointing at IDConflictResolver (#9895).
+  const std::string ref = "controllerType=0 controllerNumber=1 scan=0";
+  auto collapsed = makePSMTableFrom({{"PEPTIDER", 2, ref}, {"PEPTIDER", 2, ref}, {"PEPTIDER", 2, ref},
+                                     {"DFPIANGER", 2, ref}, {"DFPIANGER", 2, ref}});
+  TEST_EQUAL(collapsed->num_rows(), 5)
+
+  QPXValueValidation validator(QPXValueValidation::View::PSM);
+  const auto result = validator.validate(collapsed);
+  TEST_FALSE(result.valid)
+  const std::string message = result.toString();
+  TEST_TRUE(message.find("most rows") != std::string::npos)
+  TEST_TRUE(message.find("do not identify a spectrum") != std::string::npos)
+  TEST_TRUE(message.find("IDConflictResolver") == std::string::npos)
 }
 END_SECTION
 

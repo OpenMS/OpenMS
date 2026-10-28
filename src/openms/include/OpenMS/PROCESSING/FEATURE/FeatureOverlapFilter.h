@@ -181,6 +181,33 @@ namespace OpenMS
     static void mergeFAIMSFeatures(FeatureMap& feature_map,
                                    double max_rt_diff = 5.0,
                                    double max_mz_diff = 0.05);
+
+    /**
+        @brief Merge features that report the very same signal: same charge, RT and m/z.
+
+        Targeted feature detection (FeatureFinderIdentification) builds one target per peptidoform.
+        Peptidoforms that differ only in the position of a modification (e.g. phosphosite or
+        deamidation isomers) have the same m/z and, when identified from spectra of one precursor
+        (e.g. its HCD and EThcD scans), the same RT region. Their targets are extracted from the same
+        data, so the same signal is reported once per peptidoform, at the same position.
+        Each copy would be quantified, linked and exported as its own feature: the signal is counted
+        several times, and copies that lose their identifications downstream (e.g. by FDR filtering)
+        become indistinguishable from each other.
+
+        Features with equal charge whose RT and m/z agree within a relative tolerance of 1e-8
+        (0.01 ppm; only floating-point noise, e.g. from rounded modification mass deltas, and far below
+        any instrument resolution) are therefore collapsed into one. Tolerances are measured from the
+        feature with the lowest RT (then m/z) of a group, so they do not chain. The one with
+        the highest intensity is kept (the first one on ties); the peptide identifications of all
+        others are appended to it, so no identification is lost and the ambiguity can be resolved
+        afterwards, e.g. by IDConflictResolverAlgorithm. All other properties of the removed features
+        are discarded. Features with a non-finite RT or m/z are never merged. The relative order of
+        the remaining features is preserved.
+
+        @param[in,out] feature_map The feature map to process (modified in place)
+        @return The number of features removed by merging
+    */
+    static Size mergeCoincidentFeatures(FeatureMap& feature_map);
   };
 
 }

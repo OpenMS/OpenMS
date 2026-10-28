@@ -506,7 +506,8 @@ namespace OpenMS
     //
     // normalization is needed to get true conditional probabilities if desired.
     //
-    for (Size i = 0; i < fragment_isotope_dist.size(); ++i)
+    // result holds r_max entries: max_isotope_ may have truncated it below the length of the input
+    for (IsotopeDistribution::ContainerType::size_type i = 0; i < r_max; ++i)
     {
       for (std::set<UInt>::const_iterator precursor_itr = precursor_isotopes.begin(); precursor_itr != precursor_isotopes.end(); ++precursor_itr)
       {

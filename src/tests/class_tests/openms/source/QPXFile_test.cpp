@@ -35,6 +35,9 @@
 #include <parquet/arrow/reader.h>
 
 #include <sstream>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -330,6 +333,56 @@ START_SECTION(([EXTRA] QPX value validation rejects empty and duplicate PSM keys
   NEW_TMP_FILE(output);
   TEST_FALSE(QPXFile::exportToParquet(empty_run, output))
   TEST_FALSE(File::exists(output))
+}
+END_SECTION
+
+START_SECTION([EXTRA] exportPSMsToQPXArrow(): the table built in parallel parts is that of one serial pass)
+{
+  // more than 2048 PSMs per thread: built in parts, concatenated in order; scores and meta values as a search has them
+  vector<ProteinIdentification> protein_ids(1);
+  protein_ids[0].setIdentifier("run");
+  protein_ids[0].setPrimaryMSRunPath({"file:///data/run.mzML"});
+  PeptideIdentificationList peptide_ids;
+  const std::vector<std::string> sequences = {"PEPTIDER", "PEM(Oxidation)TIDER", "DFPIANGER", "ELVISLIVESK"};
+  for (Size i = 0; i < 10000; ++i)
+  {
+    PeptideIdentification id;
+    id.setIdentifier("run");
+    id.setRT(100.0 + i);
+    id.setMZ(500.0 + 0.01 * i);
+    id.setScoreType("q-value");
+    id.setHigherScoreBetter(false);
+    id.setSpectrumReference("scan=" + StringUtils::toStr(i));
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(sequences[i % sequences.size()]));
+    hit.setScore(0.001 * (i % 10));
+    hit.setCharge(2 + static_cast<Int>(i % 3));
+    hit.setMetaValue("target_decoy", i % 7 == 0 ? "decoy" : "target");
+    hit.setMetaValue("MS:1001493", 0.0001 * (i % 50)); // a known score (PEP)
+    hit.setMetaValue("ln(hyperscore)", 1.0 + 0.001 * i);
+    hit.setMetaValue("isotope_error", static_cast<Int>(i % 2));
+    PeptideEvidence evidence;
+    evidence.setProteinAccession("P" + StringUtils::toStr(i % 100));
+    hit.setPeptideEvidences({evidence});
+    id.setHits({hit});
+    peptide_ids.push_back(id);
+  }
+#ifdef _OPENMP
+  const int threads = omp_get_max_threads();
+  omp_set_num_threads(1);
+#endif
+  const auto serial = QPXFile::exportPSMsToQPXArrow(protein_ids, peptide_ids);
+#ifdef _OPENMP
+  omp_set_num_threads(4);
+#endif
+  const auto parallel = QPXFile::exportPSMsToQPXArrow(protein_ids, peptide_ids);
+#ifdef _OPENMP
+  omp_set_num_threads(threads);
+#endif
+  TEST_TRUE(serial != nullptr)
+  TEST_TRUE(parallel != nullptr)
+  TEST_EQUAL(parallel->num_rows(), 10000)
+  TEST_TRUE(serial->Equals(*parallel))
 }
 END_SECTION
 
@@ -695,11 +748,18 @@ START_SECTION(ProteinGroupArrowExport::exportToArrow(vector<ProteinIdentificatio
     table->GetColumnByName("is_decoy")->chunk(0));
   TEST_EQUAL(is_decoy_col->Value(0), false)
 
-  // global_qvalue carries group.probability
+  // global_qvalue carries group.probability only if it is a q-value: here the proteins carry Mascot scores
   auto qv_col = std::static_pointer_cast<arrow::DoubleArray>(
     table->GetColumnByName("global_qvalue")->chunk(0));
-  TEST_EQUAL(qv_col->IsNull(0), false)
-  TEST_REAL_SIMILAR(qv_col->Value(0), 0.01)
+  TEST_EQUAL(qv_col->IsNull(0), true)
+  {
+    ProteinIdentification after_fdr = prot_id;
+    after_fdr.setScoreType("q-value");
+    auto with_q = ProteinGroupArrowExport::exportToArrow({after_fdr}, pep_ids);
+    auto q = std::static_pointer_cast<arrow::DoubleArray>(with_q->GetColumnByName("global_qvalue")->chunk(0));
+    TEST_EQUAL(q->IsNull(0), false)
+    TEST_REAL_SIMILAR(q->Value(0), 0.01)
+  }
 
   // peptides list: one entry per group accession (2 here: PROT_A and PROT_B)
   auto peptides_list = std::static_pointer_cast<arrow::ListArray>(
@@ -1230,8 +1290,8 @@ END_SECTION
 
 START_SECTION(([EXTRA] importFromArrow_appends_shell_for_unknown_run_identifier))
 {
-  // Build one PeptideIdentification with a run_identifier that has NO matching
-  // ProteinIdentification — importFromArrow must append a shell entry.
+  // Build one PeptideIdentification and import its PSM table without the protein identification
+  // runs (which are stored in their own table) — importFromArrow must append a shell entry.
   PeptideIdentification pid;
   pid.setIdentifier("run_unknown");
   pid.setScoreType("hyperscore");
@@ -1249,10 +1309,15 @@ START_SECTION(([EXTRA] importFromArrow_appends_shell_for_unknown_run_identifier)
   PeptideIdentificationList pep_ids;
   pep_ids.push_back(pid);
 
-  // Export: no matching ProteinIdentification provided.
-  std::vector<ProteinIdentification> prot_ids_empty;
-  auto table = QPXFile::exportToArrow(prot_ids_empty, pep_ids, /*export_all_psms=*/true);
+  // Export with its run (every peptide identification needs one) ...
+  std::vector<ProteinIdentification> prot_ids(1);
+  prot_ids[0].setIdentifier("run_unknown");
+  auto table = QPXFile::exportToArrow(prot_ids, pep_ids, /*export_all_psms=*/true);
   TEST_NOT_EQUAL(table.get(), nullptr);
+
+  // ... but no run is known to the import, and none of the exporters accepts a peptide identification without one
+  std::vector<ProteinIdentification> prot_ids_empty;
+  TEST_EXCEPTION(Exception::InvalidParameter, QPXFile::exportToArrow(prot_ids_empty, pep_ids, /*export_all_psms=*/true))
 
   // Import against an *empty* prot_ids_out vector — shell must be appended.
   std::vector<ProteinIdentification> prot_ids_out;
@@ -1583,7 +1648,8 @@ START_SECTION(([EXTRA] exportToParquetStreaming parallel build (n_threads)))
 
   // --- Non-empty input that yields zero PSM rows (all hits empty) + 8 threads ---
   {
-    PeptideIdentificationList empty_hits(50); // 50 default-constructed PeptideIdentifications, no hits
+    PeptideIdentificationList empty_hits(50); // 50 PeptideIdentifications of the run, no hits
+    for (auto& p : empty_hits) { p.setIdentifier(protein_ids[0].getIdentifier()); }
     std::vector<const PeptideIdentification*> eh_ptrs;
     for (const auto& p : empty_hits) { eh_ptrs.push_back(&p); }
     std::string f; NEW_TMP_FILE(f)

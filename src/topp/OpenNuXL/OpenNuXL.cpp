@@ -3245,6 +3245,27 @@ static void scoreXLIons_(
     if (debug_level_ > 10) MzMLFile().store("debug_filtering.mzML", exp); 
   }
 
+  // sort by score and keep the n best hits, at most one per peptide, peptide modification, sum formula and isotope error
+  // (copies that differ only in the precursor adduct of the same sum formula or in the cross-linked nucleotide count once)
+  static void keepTopUniqueHits_(vector<NuXLAnnotatedHit>& hits, const Size n)
+  {
+    std::sort(hits.begin(), hits.end(), NuXLAnnotatedHit::hasBetterScore);
+    Size n_kept = 0;
+    for (Size i = 0; i < hits.size() && n_kept < n; ++i)
+    {
+      const NuXLAnnotatedHit& h = hits[i];
+      const bool is_copy = std::any_of(hits.begin(), hits.begin() + n_kept, [&h](const NuXLAnnotatedHit& k)
+        {
+          return k.sequence == h.sequence && k.peptide_mod_index == h.peptide_mod_index
+            && k.NA_mod_index == h.NA_mod_index && k.isotope_error == h.isotope_error;
+        });
+      if (is_copy) continue;
+      if (i != n_kept) hits[n_kept] = std::move(hits[i]);
+      ++n_kept;
+    }
+    hits.resize(n_kept);
+  }
+
   void filterTopNAnnotations_(vector<vector<NuXLAnnotatedHit>>& ahs, const Size top_hits)
   {
 #ifdef _OPENMP
@@ -3252,10 +3273,8 @@ static void scoreXLIons_(
 #endif
     for (SignedSize scan_index = 0; scan_index < (SignedSize)ahs.size(); ++scan_index)
     {
-      // sort and keeps n best elements according to score
-      const Size topn = top_hits > ahs[scan_index].size() ? ahs[scan_index].size() : top_hits;
-      std::partial_sort(ahs[scan_index].begin(), ahs[scan_index].begin() + topn, ahs[scan_index].end(), NuXLAnnotatedHit::hasBetterScore);
-      ahs[scan_index].resize(topn);
+      // sort and keep the n best (non-duplicate) elements according to score
+      keepTopUniqueHits_(ahs[scan_index], top_hits);
       ahs[scan_index].shrink_to_fit();
     }
   }
@@ -3301,7 +3320,7 @@ static void scoreXLIons_(
 
         const auto& NA_adducts = mod_combinations_it->second; // set of all NA adducts for current sum formula (e.g, U-H2O and C-NH3 have same elemental composition)
         auto NA_adduct_it = mod_combinations_it->second.begin();
-        for (size_t NA_adduct_amb_index = 0; NA_adduct_amb_index != NA_adducts.size(); ++NA_adduct_amb_index)
+        for (size_t NA_adduct_amb_index = 0; NA_adduct_amb_index != NA_adducts.size(); ++NA_adduct_amb_index, ++NA_adduct_it)
         { // for all NA adducts with current sum formula (e.g, U-H2O and C-NH3)
           const std::string& precursor_na_adduct = *NA_adduct_it;
           const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_na_adduct).feasible_adducts;
@@ -3328,7 +3347,10 @@ static void scoreXLIons_(
     }
 
     // fill in values of slow scoring so they can be used in percolator
-    for (Size scan_index = 0; scan_index != annotated_hits.size(); ++scan_index)
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       // for each PSM of this spectrum
       for (Size i = 0; i != annotated_hits[scan_index].size(); ++i)
@@ -3344,18 +3366,19 @@ static void scoreXLIons_(
         AASequence fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index]; 
         double current_peptide_mass_without_NA = fixed_and_variable_modified_peptide.getMonoWeight();
 
-        // determine NA on precursor from index in map
-        auto mod_combinations_it = mm.mod_combinations.begin();
-        std::advance(mod_combinations_it, ah.NA_mod_index);
+        // determine NA on precursor from the indices stored in the hit
+        const auto precursor = mm.findPrecursorAdduct(ah.NA_mod_index, ah.NA_adduct_amb_index);
+        if (precursor.adduct == nullptr)
+        {
+          OPENMS_LOG_WARN << "Precursor adduct indices " << ah.NA_mod_index << "/" << ah.NA_adduct_amb_index << " out of range for " << unmodified_sequence << ". Hit not rescored." << endl;
+          continue;
+        }
 
-        const auto& NA_adducts = mod_combinations_it->second; // set of all NA adducts for current sum formula (e.g, U-H2O and C-NH3 have same elemental composition)
-        auto NA_adduct_it = mod_combinations_it->second.begin();
-        for (size_t NA_adduct_amb_index = 0; NA_adduct_amb_index != NA_adducts.size(); ++NA_adduct_amb_index, ++NA_adduct_it)
-        { // for all NA adducts with current sum formula (e.g, U-H2O and C-NH3)
-          const std::string& precursor_na_adduct = *NA_adduct_it;
+        { // rescore with the precursor adduct of this hit (e.g, U-H2O or C-NH3 for the same sum formula)
+          const std::string& precursor_na_adduct = *precursor.adduct;
           const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_na_adduct).feasible_adducts;
           const vector<NuXLFragmentAdductDefinition>& marker_ions = all_feasible_adducts.at(precursor_na_adduct).marker_ions;
-          const double precursor_na_mass = EmpiricalFormula(mod_combinations_it->first).getMonoWeight();
+          const double precursor_na_mass = EmpiricalFormula(*precursor.sum_formula).getMonoWeight();
 
           if (precursor_na_adduct == "none") 
           {
@@ -3578,13 +3601,13 @@ static void scoreXLIons_(
       ph.setMetaValue(std::string("variable_modifications"), n_var_mods);
       ph.setMetaValue(std::string("n_theoretical_peaks"), ah.n_theoretical_peaks);
 
-      // determine empirical formula of NA modification from index in map
-      auto mod_combinations_it = mm.mod_combinations.cbegin();
-      std::advance(mod_combinations_it, ah.NA_mod_index);
-
-      // determine precursor
-      auto NA_adduct_it = mod_combinations_it->second.cbegin(); // set of all NA adducts for current sum formula (e.g, U-H2O and C-NH3 have same elemental composition)
-      std::advance(NA_adduct_it, ah.NA_adduct_amb_index);
+      // determine empirical formula of NA modification and precursor adduct from the indices stored in the hit
+      const auto precursor = mm.findPrecursorAdduct(ah.NA_mod_index, ah.NA_adduct_amb_index);
+      if (precursor.adduct == nullptr)
+      {
+        OPENMS_LOG_WARN << "Precursor adduct indices " << ah.NA_mod_index << "/" << ah.NA_adduct_amb_index << " out of range for " << s << ". Hit not reported." << endl;
+        continue;
+      }
 
       ph.setMetaValue(std::string("NuXL:mass_error_p"), ah.mass_error_p);
       ph.setMetaValue(std::string("NuXL:total_loss_score"), ah.total_loss_score);
@@ -3613,10 +3636,10 @@ static void scoreXLIons_(
       
       ph.setMetaValue(std::string("NuXL:total_MIC"), ah.total_MIC);  // fraction of matched ion current from total + partial losses
 
-      const std::string NA = *NA_adduct_it;
+      const std::string NA = *precursor.adduct;
       ph.setMetaValue(std::string("NuXL:NA"), NA); // the nucleotide formula e.g., U-H2O
 
-      double na_mass_z0 = EmpiricalFormula(mod_combinations_it->first).getMonoWeight(); // NA uncharged mass via empirical formula
+      double na_mass_z0 = EmpiricalFormula(*precursor.sum_formula).getMonoWeight(); // NA uncharged mass via empirical formula
       // length of oligo
       size_t NA_length = NA.find_first_of("+-");
       if (NA_length == std::string::npos)
@@ -3710,7 +3733,7 @@ static void scoreXLIons_(
       {
         const Size localization_position = static_cast<Size>(ah.best_localization_position);
         const ResidueModification* adduct = NuXLModificationsGenerator::registerPrecursorAdduct(
-          NA, EmpiricalFormula(mod_combinations_it->first), fixed_and_variable_modified_peptide[localization_position]);
+          NA, EmpiricalFormula(*precursor.sum_formula), fixed_and_variable_modified_peptide[localization_position]);
         if (adduct != nullptr)
         {
           fixed_and_variable_modified_peptide.setModification(localization_position, adduct);
@@ -4727,6 +4750,7 @@ static void scoreXLIons_(
     Int max_precursor_charge = getIntOption_("precursor:max_charge");
     double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
     double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
+    bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
     bool generate_decoys = getStringOption_("NuXL:decoys") == "true";
     Size decoy_factor = static_cast<Size>(getIntOption_("NuXL:decoy_factor"));
 
@@ -4806,7 +4830,7 @@ static void scoreXLIons_(
 
         // add RT prediction as extra feature for percolator      
         auto search_parameters = prot_ids[0].getSearchParameters();
-        std::string new_features = StringUtils::toStr(search_parameters.getMetaValue("extra_features")) + std::string(", RT_error,RT_predict");
+        std::string new_features = StringUtils::toStr(search_parameters.getMetaValue("extra_features")) + std::string(",RT_error,RT_predict");
         search_parameters.setMetaValue("extra_features", new_features);
         prot_ids[0].setSearchParameters(search_parameters);
       }
@@ -5005,6 +5029,7 @@ static void scoreXLIons_(
         if (autotune)
         {
           fragment_mass_tolerance = new_fragment_mass_tolerance; // set new fragment mass tolerance
+          fragment_mass_tolerance_unit_ppm = true; // new tolerance is in ppm
         }
         OPENMS_LOG_INFO << "New fragment mass tolerance (ppm): " << new_fragment_mass_tolerance << endl;
         OPENMS_LOG_INFO << "Global fragment mass shift (ppm): " << global_fragment_error << endl;
@@ -5050,8 +5075,6 @@ static void scoreXLIons_(
 
     bool precursor_mass_tolerance_unit_ppm = (getStringOption_("precursor:mass_tolerance_unit") == "ppm");
     IntList precursor_isotopes = getIntList_("precursor:isotopes");
-
-    bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
 
     double marker_ions_tolerance = getDoubleOption_("NuXL:marker_ions_tolerance");
 
@@ -5354,6 +5377,23 @@ static void scoreXLIons_(
       {
         FASTAFile::FASTAEntry e = fasta_db[i];
 
+        // 'unspecific cleavage': its digest is every subsequence of the protein, not a partition of it, so the
+        // whole protein is shuffled as one sequence. Each of the decoy_factor shuffles is its own entry: concatenated,
+        // they would be longer than the target and give peptides across the junctions.
+        if (enzyme == EnzymaticDigestion::UnspecificCleavage)
+        {
+          DecoyGenerator dg;
+          const auto decoys = dg.shuffle(AASequence::fromString(e.sequence), enzyme, static_cast<int>(decoy_factor));
+          const std::string identifier = e.identifier;
+          for (Size d = 0; d < decoys.size(); ++d)
+          {
+            e.sequence = decoys[d].toUnmodifiedString();
+            e.identifier = "DECOY_" + identifier + (d == 0 ? std::string() : "_" + std::to_string(d + 1));
+            fasta_db.push_back(e);
+          }
+          continue;
+        }
+
         std::vector<AASequence> output;
         digestor.digest(AASequence::fromString(e.sequence), output);
 
@@ -5540,6 +5580,24 @@ static void scoreXLIons_(
             {
               const auto& NA_adducts = mod_combinations_it->second; // set of all NA adducts for current sum formula (e.g, U-H2O and C-NH3 have same elemental composition)
 
+              // count candidate once per spectrum for this peptide and sum formula (as in fast scoring), not once per adduct and nucleotide scored below
+              const bool is_unmodified = *NA_adducts.begin() == "none";
+              for (auto l = low_it; l != up_it; ++l)
+              {
+                const Size & scan_index = l->second.first;
+                if (!is_unmodified && skip_peptide_spectrum.contains(spectra[scan_index].getNativeID())) { continue; }
+#pragma omp atomic
+                ++nr_candidates[scan_index];
+              }
+
+              // adducts with the current sum formula that are scored as cross-links (all but "none")
+              struct XLAdduct
+              {
+                size_t NA_adduct_amb_index = 0; // index of the adduct in the set of ambiguous precursor adducts
+                const vector<NucleotideToFeasibleFragmentAdducts>* feasible_MS2_adducts = nullptr;
+                PeakSpectrum marker_ions_sub_score_spectrum_z1;
+              };
+              vector<XLAdduct> xl_adducts;
               auto NA_adduct_it = mod_combinations_it->second.begin();
               for (size_t NA_adduct_amb_index = 0; NA_adduct_amb_index != NA_adducts.size(); ++NA_adduct_amb_index, ++NA_adduct_it)
               { // for all NA adducts with current sum formula (e.g, U-H2O and C-NH3)
@@ -5548,14 +5606,11 @@ static void scoreXLIons_(
                 if (precursor_na_adduct == "none")
                 {
                   // score peptide without NA (same method as fast scoring)
-                  for (auto & l = low_it; l != up_it; ++l)
+                  for (auto l = low_it; l != up_it; ++l)
                   {
                     const Size & scan_index = l->second.first;
                     const PeakSpectrum & exp_spectrum = spectra[scan_index];
 
-                    // count candidate for spectrum
-  #pragma omp atomic
-                    ++nr_candidates[scan_index];
                     //const double exp_pc_mass = l->first;
                     const int & isotope_error = l->second.second;
                     const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
@@ -5683,36 +5738,98 @@ static void scoreXLIons_(
   #endif
                   }
                 }
-                else  // score peptide with NA MS1 adduct
+                else  // score peptide with NA MS1 adduct: collect the adduct here, score it below together with all other adducts of this sum formula
                 {
-                  // generate all partial loss spectra (excluding the complete loss spectrum) merged into one spectrum
                   // get NA fragment shifts in the MS2 (based on the precursor RNA/DNA)
                   auto const & all_NA_adducts = all_feasible_fragment_adducts.at(precursor_na_adduct);
-                  const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_NA_adducts.feasible_adducts;
 
-                  // get marker ions
-                  const vector<NuXLFragmentAdductDefinition>& marker_ions = all_NA_adducts.marker_ions;
-                  PeakSpectrum marker_ions_sub_score_spectrum_z1;                  
+                  XLAdduct& xl_adduct = xl_adducts.emplace_back();
+                  xl_adduct.NA_adduct_amb_index = NA_adduct_amb_index;
+                  xl_adduct.feasible_MS2_adducts = &all_NA_adducts.feasible_adducts;
+
                   // add shifted marker ions of charge 1
+                  PeakSpectrum& marker_ions_sub_score_spectrum_z1 = xl_adduct.marker_ions_sub_score_spectrum_z1;
                   marker_ions_sub_score_spectrum_z1.getStringDataArrays().resize(1); // annotation
                   marker_ions_sub_score_spectrum_z1.getIntegerDataArrays().resize(1); // annotation                   
                   NuXLFragmentIonGenerator::addMS2MarkerIons(
-                    marker_ions,
+                    all_NA_adducts.marker_ions,
                     marker_ions_sub_score_spectrum_z1,
                     marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
                     marker_ions_sub_score_spectrum_z1.getStringDataArrays()[0]);
+                }
+              }
 
-                  //cout << "'" << precursor_na_adduct << "'" << endl;
-                  //OPENMS_POSTCONDITION(!feasible_MS2_adducts.empty(),
-                  //                StringUtils::toStr("FATAL: No feasible adducts for " + precursor_na_adduct).c_str());
+              // score cross-links: the total loss part only depends on peptide and spectrum and is scored once per spectrum,
+              // the partial loss part is scored for every adduct with this sum formula and every cross-linkable nucleotide
+              for (auto l = low_it; !xl_adducts.empty() && l != up_it; ++l)
+              {
+                const Size & scan_index = l->second.first;
+                const PeakSpectrum & exp_spectrum = spectra[scan_index];
+                //////////////////////////////////////////
+                //               ID-Filter
+                if (skip_peptide_spectrum.contains(exp_spectrum.getNativeID())) { continue; }
 
+                const int & isotope_error = l->second.second;
+                float tlss_MIC(0), 
+                  tlss_err(1.0), 
+                  tlss_Morph(0),
+                  tlss_modds(0),
+                  total_loss_score(0),
+                  pc_MIC(0),
+                  im_MIC(0);
+                size_t n_theoretical_peaks(0);
 
-                  // Do we have (nucleotide) specific fragmentation adducts? for the current NA adduct on the precursor?
-                  // If so, generate spectra for shifted ion series
+                const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
 
+                vector<double> intensity_linear(total_loss_template_z1_b_ions.size(), 0.0);                    
+                vector<bool> peak_matched(exp_spectrum.size(), false);
+                vector<double> b_ions(total_loss_template_z1_b_ions.size(), 0.0);  // b & a ions
+                vector<double> y_ions(total_loss_template_z1_b_ions.size(), 0.0); 
 
+                scorePeptideIons_(
+                  exp_spectrum, 
+                  exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
+                  total_loss_template_z1_b_ions,
+                  total_loss_template_z1_y_ions,
+                  current_peptide_mass_without_NA,
+                  exp_pc_charge,
+                  iip, 
+                  fragment_mass_tolerance, 
+                  fragment_mass_tolerance_unit_ppm,
+                  intensity_linear,
+                  b_ions,
+                  y_ions,
+                  peak_matched,
+                  total_loss_score,
+                  tlss_MIC,
+                  tlss_Morph,
+                  tlss_modds,
+                  tlss_err,
+                  pc_MIC,
+                  im_MIC,
+                  n_theoretical_peaks
+                );
+
+                const double tlss_total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC));
+
+                if (badTotalLossScore(total_loss_score, tlss_Morph, tlss_total_MIC)) { continue; }
+
+                const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
+                const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / pdf(gaussian_mass_error, 0.0);
+
+                float ladder_score(0), sequence_score(0);
+                auto range = make_pair(intensity_linear.begin(), intensity_linear.end());
+                ladder_score = ladderScore_(range) / (double)intensity_linear.size(); 
+                range = longestCompleteLadder_(intensity_linear.begin(), intensity_linear.end());
+                if (range.second != range.first)
+                {
+                  sequence_score = ladderScore_(range) / (double)intensity_linear.size();
+                }
+
+                for (const XLAdduct& xl_adduct : xl_adducts)
+                {
                   // score individually for every nucleotide
-                  for (auto const & nuc_2_adducts : feasible_MS2_adducts)
+                  for (auto const & nuc_2_adducts : *xl_adduct.feasible_MS2_adducts)
                   {
                     // determine current nucleotide and associated partial losses
                     const char& cross_linked_nucleotide = nuc_2_adducts.first;
@@ -5725,223 +5842,135 @@ static void scoreXLIons_(
 
                     if (partial_loss_modification.empty()) OPENMS_LOG_ERROR << "Empty partial loss modification" << endl;
 
-                    // nucleotide is associated with certain NA-related fragment losses?
-                    vector<double> partial_loss_template_z1_bions, partial_loss_template_z1_yions;
-                    if (!partial_loss_modification.empty())
-                    {
-                      generateTheoreticalMZsZ1_(fixed_and_variable_modified_peptide, Residue::BIon, partial_loss_template_z1_bions);
-                      generateTheoreticalMZsZ1_(fixed_and_variable_modified_peptide, Residue::YIon, partial_loss_template_z1_yions);
-                    } 
+                    // partial loss scoring adds to the peaks matched by the total loss ions
+                    vector<bool> peak_matched_xl = peak_matched;
+                    size_t n_theoretical_peaks_xl = n_theoretical_peaks;
 
-                    for (auto & l = low_it; l != up_it; ++l)
-                    {
-                      const Size & scan_index = l->second.first;
-                      const PeakSpectrum & exp_spectrum = spectra[scan_index];
-                      //////////////////////////////////////////
-                      //               ID-Filter
-                      if (skip_peptide_spectrum.contains(exp_spectrum.getNativeID())) { continue; }
+                    vector<double> intensity_xls(total_loss_template_z1_b_ions.size(), 0.0);
 
-#pragma omp atomic
-                      ++nr_candidates[scan_index]; // count candidate for spectrum
+                    vector<double> b_xl_ions(b_ions.size(), 0.0);
+                    vector<double> y_xl_ions(b_ions.size(), 0.0);
 
-                      const int & isotope_error = l->second.second;
-                      float tlss_MIC(0), 
-                        tlss_err(1.0), 
-                        tlss_Morph(0),
-                        tlss_modds(0),
-                        partial_loss_sub_score(0), 
-                        marker_ions_sub_score(0),
-                        total_loss_score(0),
-                        pc_MIC(0),
-                        im_MIC(0);
-                      size_t n_theoretical_peaks(0);
+                    float partial_loss_sub_score(0), 
+                      marker_ions_sub_score(0),
+                      plss_MIC(0), 
+                      plss_err(fragment_mass_tolerance), 
+                      plss_Morph(0), 
+                      plss_modds(0),
+                      plss_pc_MIC(0),
+                      plss_im_MIC(0);
 
-                      const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
+                    // the partial loss ions are shifted from the same b- and y-ion ladders as the total loss ions
+                    scoreXLIons_(partial_loss_modification,
+                                iip,
+                                exp_spectrum,
+                                current_peptide_mass_without_NA,
+                                fragment_mass_tolerance, 
+                                fragment_mass_tolerance_unit_ppm,
+                                total_loss_template_z1_b_ions, 
+                                total_loss_template_z1_y_ions,
+                                xl_adduct.marker_ions_sub_score_spectrum_z1,
+                                intensity_xls,
+                                b_xl_ions,
+                                y_xl_ions,
+                                peak_matched_xl,
+                                partial_loss_sub_score,
+                                marker_ions_sub_score,
+                                plss_MIC, 
+                                plss_err, 
+                                plss_Morph,
+                                plss_modds,
+                                plss_pc_MIC,
+                                plss_im_MIC,
+                                n_theoretical_peaks_xl,
+                                all_possible_marker_ion_sub_score_spectrum_z1 // for better MIC calculation
+                                );
 
-                      vector<double> intensity_linear(total_loss_template_z1_b_ions.size(), 0.0);                    
-                      vector<bool> peak_matched(exp_spectrum.size(), false);
-                      vector<double> b_ions(total_loss_template_z1_b_ions.size(), 0.0);  // b & a ions
-                      vector<double> y_ions(total_loss_template_z1_b_ions.size(), 0.0); 
+                    const double total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC)) + plss_MIC + (plss_pc_MIC - floor(plss_pc_MIC)) + plss_im_MIC + marker_ions_sub_score;
 
-                      scorePeptideIons_(
-                        exp_spectrum, 
-                        exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
-                        total_loss_template_z1_b_ions,
-                        total_loss_template_z1_y_ions,
-                        current_peptide_mass_without_NA,
-                        exp_pc_charge,
-                        iip, 
-                        fragment_mass_tolerance, 
-                        fragment_mass_tolerance_unit_ppm,
-                        intensity_linear,
-                        b_ions,
-                        y_ions,
-                        peak_matched,
-                        total_loss_score,
-                        tlss_MIC,
-                        tlss_Morph,
-                        tlss_modds,
-                        tlss_err,
-                        pc_MIC,
-                        im_MIC,
-                        n_theoretical_peaks
-                      );
+                    // decreases number of hits (especially difficult cases - but also number of false discoveries)
+                    if (filter_bad_partial_loss_scores && badPartialLossScore(tlss_Morph, plss_Morph, plss_MIC, plss_im_MIC, (plss_pc_MIC - floor(plss_pc_MIC)), marker_ions_sub_score))  
+                    { 
+                      continue; 
+                    }
 
-                      const double tlss_total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC));
+                    // add peptide hit
+                    NuXLAnnotatedHit ah;
+                    ah.NA_adduct_amb_index = xl_adduct.NA_adduct_amb_index; // store index the entry in the set of ambiguous precursor adducts
+                    ah.mass_error_p = mass_error_score;
 
-                      if (badTotalLossScore(total_loss_score, tlss_Morph, tlss_total_MIC)) { continue; }
+                    ah.sequence = *cit; // copy view
+                    ah.peptide_mod_index = mod_pep_idx;
+                    ah.total_loss_score = total_loss_score;
+                    ah.MIC = tlss_MIC;
+                    ah.immonium_score = im_MIC;
+                    ah.precursor_score = pc_MIC;
+                    ah.err = tlss_err;
+                    ah.Morph = tlss_Morph;
+                    ah.modds = tlss_modds;
+                    ah.pl_MIC = plss_MIC;
+                    ah.pl_err = plss_err;
+                    ah.pl_Morph = plss_Morph;
+                    ah.pl_modds = plss_modds;
+                    ah.pl_pc_MIC = plss_pc_MIC;
+                    ah.pl_im_MIC = plss_im_MIC;
+                    ah.cross_linked_nucleotide = cross_linked_nucleotide;
+                    ah.total_MIC = total_MIC; 
+                    // scores from shifted peaks
+                    ah.marker_ions_score = marker_ions_sub_score;
+                    ah.partial_loss_score = partial_loss_sub_score;
 
-                      vector<double> intensity_xls(total_loss_template_z1_b_ions.size(), 0.0);
+                    ah.NA_mod_index = NA_mod_index;
+                    ah.isotope_error = isotope_error;
 
-                      vector<double> b_xl_ions(b_ions.size(), 0.0);
-                      vector<double> y_xl_ions(b_ions.size(), 0.0);
+                    ah.ladder_score = ladder_score;
+                    ah.sequence_score = sequence_score;
 
-                      float plss_MIC(0), 
-                        plss_err(fragment_mass_tolerance), 
-                        plss_Morph(0), 
-                        plss_modds(0),
-                        plss_pc_MIC(0),
-                        plss_im_MIC(0);
+                    RankScores rankscores = rankScores_(exp_spectrum, peak_matched_xl);
+                    ah.explained_peak_fraction = rankscores.explained_peak_fraction;
+                    if (rankscores.explained_peaks > 0) ah.matched_theo_fraction = rankscores.explained_peaks / (float)n_theoretical_peaks_xl;
+                    ah.wTop50 = rankscores.wTop50;
 
-                      scoreXLIons_(partial_loss_modification,
-                                  iip,
-                                  exp_spectrum,
-                                  current_peptide_mass_without_NA,
-                                  fragment_mass_tolerance, 
-                                  fragment_mass_tolerance_unit_ppm,
-                                  partial_loss_template_z1_bions, 
-                                  partial_loss_template_z1_yions,
-                                  marker_ions_sub_score_spectrum_z1,
-                                  intensity_xls,
-                                  b_xl_ions,
-                                  y_xl_ions,
-                                  peak_matched,
-                                  partial_loss_sub_score,
-                                  marker_ions_sub_score,
-                                  plss_MIC, 
-                                  plss_err, 
-                                  plss_Morph,
-                                  plss_modds,
-                                  plss_pc_MIC,
-                                  plss_im_MIC,
-                                  n_theoretical_peaks,
-                                  all_possible_marker_ion_sub_score_spectrum_z1 // for better MIC calculation
-                                  );
-
-                      const double total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC)) + plss_MIC + (plss_pc_MIC - floor(plss_pc_MIC)) + plss_im_MIC + marker_ions_sub_score;
-
-                      // decreases number of hits (especially difficult cases - but also number of false discoveries)
-                      if (filter_bad_partial_loss_scores && badPartialLossScore(tlss_Morph, plss_Morph, plss_MIC, plss_im_MIC, (plss_pc_MIC - floor(plss_pc_MIC)), marker_ions_sub_score))  
-                      { 
-                        continue; 
-                      }
-
-                      const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
-                      const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / pdf(gaussian_mass_error, 0.0);
-                      
-                      // add peptide hit
-                      NuXLAnnotatedHit ah;
-                      ah.NA_adduct_amb_index = NA_adduct_amb_index; // store index the entry in the set of ambiguous precursor adducts
-                      ah.mass_error_p = mass_error_score;
-
-                      ah.sequence = *cit; // copy view
-                      ah.peptide_mod_index = mod_pep_idx;
-  /*
-  /////////////////////////////////////////////////////////////////////////////// test recalculate hyperscore on merged XL/non-XL ladders
-                      size_t y_ion_count = std::count_if(y_ions.begin(), y_ions.end(), [](double d) { return d > 1e-6; });
-                      size_t b_ion_count = std::count_if(b_ions.begin(), b_ions.end(), [](double d) { return d > 1e-6; });
-                      size_t dot_product = std::accumulate(intensity_xls.begin(), intensity_xls.end(), 0.0);
-                      dot_product = std::accumulate(intensity_linear.begin(), intensity_linear.end(), dot_product);
-                      const double yFact = logfactorial_(y_ion_count);
-                      const double bFact = logfactorial_(b_ion_count);
-                      partial_loss_sub_score = log1p(dot_product) + yFact + bFact;
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  */
-                      ah.total_loss_score = total_loss_score;
-                      ah.MIC = tlss_MIC;
-                      ah.immonium_score = im_MIC;
-                      ah.precursor_score = pc_MIC;
-                      ah.err = tlss_err;
-                      ah.Morph = tlss_Morph;
-                      ah.modds = tlss_modds;
-                      ah.pl_MIC = plss_MIC;
-                      ah.pl_err = plss_err;
-                      ah.pl_Morph = plss_Morph;
-                      ah.pl_modds = plss_modds;
-                      ah.pl_pc_MIC = plss_pc_MIC;
-                      ah.pl_im_MIC = plss_im_MIC;
-                      ah.cross_linked_nucleotide = cross_linked_nucleotide;
-                      ah.total_MIC = total_MIC; 
-                      // scores from shifted peaks
-                      ah.marker_ions_score = marker_ions_sub_score;
-                      ah.partial_loss_score = partial_loss_sub_score;
-
-                      ah.NA_mod_index = NA_mod_index;
-                      ah.isotope_error = isotope_error;
-
-                      auto range = make_pair(intensity_linear.begin(), intensity_linear.end());
-                      ah.ladder_score = ladderScore_(range) / (double)intensity_linear.size(); 
-                      range = longestCompleteLadder_(intensity_linear.begin(), intensity_linear.end());
-                      if (range.second != range.first)
-                      {
-                        ah.sequence_score = ladderScore_(range) / (double)intensity_linear.size();
-                      }
-
-                      RankScores rankscores = rankScores_(exp_spectrum, peak_matched);
-                      ah.explained_peak_fraction = rankscores.explained_peak_fraction;
-                      if (rankscores.explained_peaks > 0) ah.matched_theo_fraction = rankscores.explained_peaks / (float)n_theoretical_peaks;
-                      ah.wTop50 = rankscores.wTop50;
-
-
-                      // does it have at least one shift from non-cross-linked AA to the neighboring cross-linked one
-  //                    const XLTags longest_tags = getLongestLadderWithShift(intensity_linear, intensity_xls);
-                      const XLTags longest_tags = getLongestABYLadderWithShift(b_ions, y_ions, b_xl_ions, y_xl_ions);
+                    // does it have at least one shift from non-cross-linked AA to the neighboring cross-linked one
+                    const XLTags longest_tags = getLongestABYLadderWithShift(b_ions, y_ions, b_xl_ions, y_xl_ions);
 
   #ifdef FILTER_BAD_SCORES_ID_TAGS
-                      if (longest_tags.tag_XLed == 0) { continue; }
+                    if (longest_tags.tag_XLed == 0) { continue; }
   #endif
-                      ah.tag_XLed = longest_tags.tag_XLed;
-                      ah.tag_unshifted = longest_tags.tag_unshifted;
-                      ah.tag_shifted = longest_tags.tag_shifted;
+                    ah.tag_XLed = longest_tags.tag_XLed;
+                    ah.tag_unshifted = longest_tags.tag_unshifted;
+                    ah.tag_shifted = longest_tags.tag_shifted;
 
-                      // combined score
-                      //const double tags = exp_spectrum.getFloatDataArrays()[2][0];
-                      ah.n_theoretical_peaks = n_theoretical_peaks;
+                    ah.n_theoretical_peaks = n_theoretical_peaks_xl;
 
 #pragma omp atomic
-                      matched_peaks[scan_index] += (size_t)ah.Morph + (size_t)ah.pl_Morph ;
-                    
-                      ah.score = OpenNuXL::calculateCombinedScore(ah/*, true,tags*/ );
-
-  #ifdef DEBUG_OpenNuXL
-                      OPENMS_LOG_DEBUG << "best score in pre-score: " << score << endl;
-  #endif
+                    matched_peaks[scan_index] += (size_t)ah.Morph + (size_t)ah.pl_Morph ;
+                  
+                    ah.score = OpenNuXL::calculateCombinedScore(ah);
 
   #ifdef _OPENMP
-                      omp_set_lock(&(annotated_XLs_lock[scan_index]));
+                    omp_set_lock(&(annotated_XLs_lock[scan_index]));
   #endif
+                    {
+                      annotated_XLs[scan_index].emplace_back(move(ah));
+
+                      // prevent vector from growing indefinitely (memory) but don't shrink the vector every time
+                      if (annotated_XLs[scan_index].size() >= 2 * report_top_hits)
                       {
-                        annotated_XLs[scan_index].emplace_back(move(ah));
-
-                        // prevent vector from growing indefinitely (memory) but don't shrink the vector every time
-                        if (annotated_XLs[scan_index].size() >= 2 * report_top_hits)
-                        {
-                          std::partial_sort(annotated_XLs[scan_index].begin(), annotated_XLs[scan_index].begin() + report_top_hits, annotated_XLs[scan_index].end(), NuXLAnnotatedHit::hasBetterScore);
-                          annotated_XLs[scan_index].resize(report_top_hits); 
-                        }
+                        keepTopUniqueHits_(annotated_XLs[scan_index], report_top_hits);
                       }
-  #ifdef _OPENMP
-                      omp_unset_lock(&(annotated_XLs_lock[scan_index]));
-  #endif
                     }
-                  } // for every nucleotide in the precursor
-                }
+  #ifdef _OPENMP
+                    omp_unset_lock(&(annotated_XLs_lock[scan_index]));
+  #endif
+                  } // for every nucleotide in the precursor adduct
+                } // for every adduct with this sum formula
               }
 
             }
             else // fast scoring
             {
-              for (auto & l = low_it; l != up_it; ++l)
+              for (auto l = low_it; l != up_it; ++l)
               {
                 const Size & scan_index = l->second.first;
                 const std::string& precursor_na_adduct = *mod_combinations_it->second.begin(); // For fast scoring it should be sufficient to only consider any of the adducts for this mass and formula (e.g., C-H3N vs U-H2O)
@@ -6375,7 +6404,7 @@ static void scoreXLIons_(
 
         // add RT prediction as extra feature for percolator      
         auto search_parameters = protein_ids[0].getSearchParameters();
-        std::string new_features = StringUtils::toStr(search_parameters.getMetaValue("extra_features")) + std::string(", RT_error,RT_predict");
+        std::string new_features = StringUtils::toStr(search_parameters.getMetaValue("extra_features")) + std::string(",RT_error,RT_predict");
         search_parameters.setMetaValue("extra_features", new_features);
         protein_ids[0].setSearchParameters(search_parameters);
       }

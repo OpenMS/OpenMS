@@ -221,7 +221,7 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
     :type intensity: float
 
     :param annotation: The annotation that will be plotted.
-    :type annotation: str, optional
+    :type annotation: str
 
     :param color_ions: Flag whether to color the peak annotation or not.
     :type color_ions: bool
@@ -233,7 +233,7 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
     :type annotation_kws: Dict[str, object]
 
     :param ax: Axes instance on which to plot the annotation.
-    :type ax: plt.Axes
+    :type ax: matplotlib.axes.Axes
 
 
     :return: A tuple of the annotation's color as a hex string and the annotation's zorder.
@@ -291,41 +291,41 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
     :type spectrum: MSSpectrum
 
     :param color_ions: Flag indicating whether to color annotated fragment ions. The default is True.
-    :type color_ions: bool, optional
+    :type color_ions: bool
 
     :param annotate_ions: Flag indicating whether to annotate fragment ions. The default is True.
-    :type annotate_ions: bool, optional
+    :type annotate_ions: bool
 
     :param matched_peaks: Indices of matched peaks in a spectrum alignment.
-    :type matched_peaks: Optional[Set], optional
+    :type matched_peaks: Optional[Set]
 
     :param annot_kws: Keyword arguments for `ax.text` to customize peak annotations.
-    :type annot_kws: Optional[Dict], optional
+    :type annot_kws: Optional[Dict]
 
     :param mirror_intensity: Flag indicating whether to flip the intensity axis or not.
-    :type mirror_intensity : bool, optional
+    :type mirror_intensity: bool
 
     :param grid: Draw grid lines or not. Either a boolean to enable/disable both major
         and minor grid lines or 'major'/'minor' to enable major or minor grid lines respectively.
-    :type grid: Union[bool, str], optional
+    :type grid: Union[bool, str]
 
     :param colormap: A dictionary mapping ion types to colors. Accepted keys are the ion types: 'a', 'b', 'c', 'x', 'y',
-    'z', 'p', 'f'. None for unannotated peaks. 'matched' and 'unmatched' for peaks in matched_peaks and not in
-    matched_peaks, respectively, if provided.
-    :type colormap: Optional[Dict], optional
+        'z', 'p', 'f'. None for unannotated peaks. 'matched' and 'unmatched' for peaks in matched_peaks and not in
+        matched_peaks, respectively, if provided.
+    :type colormap: Optional[Dict]
 
     :param spine: Flag indicating whether to show the right and top spines.
-    :type spine: bool, optional
+    :type spine: bool
 
     :param show_unmatched_peaks: Flag indicating whether to show unmatched peaks.
-    :type show_unmatched_peaks: bool, optional
+    :type show_unmatched_peaks: bool
 
     :param ax: Axes instance on which to plot the spectrum. If None the current Axes instance is used.
-    :type ax : Optional[plt.Axes], optional
+    :type ax: Optional[matplotlib.axes.Axes]
 
 
-    :return The matplotlib Axes instance on which the spectrum is plotted.
-    :rtype: plt.Axes
+    :return: The matplotlib Axes instance on which the spectrum is plotted.
+    :rtype: matplotlib.axes.Axes
     """
 
     import matplotlib.pyplot as plt
@@ -408,17 +408,17 @@ def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", spec
     :type spec_bottom: MSSpectrum
 
     :param spectrum_top_kws: Keyword arguments for `Plotting.plot_spectrum` of top spectrum.
-    :type spectrum_top_kws: Optional[Dict], optional
+    :type spectrum_top_kws: Optional[Dict]
 
     :param spectrum_bottom_kws: Keyword arguments for `Plotting.plot_spectrum` of bottom spectrum.
-    :type spectrum_bottom_kws: Optional[Dict], optional
+    :type spectrum_bottom_kws: Optional[Dict]
 
     :param ax: Axes instance on which to plot the spectrum. If None the current Axes instance is used.
-    :type ax: Optional[plt.Axes], optional
+    :type ax: Optional[matplotlib.axes.Axes]
 
 
     :return: The matplotlib Axes instance on which the spectra are plotted.
-    :rtype: plt.Axes
+    :rtype: matplotlib.axes.Axes
     """
 
     import matplotlib.pyplot as plt

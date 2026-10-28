@@ -122,7 +122,7 @@ Proteolytic Digestion with Lys-C
 
 In the previous examples we used Trypsin as our enzyme of choice.
 We can of course also use different enzymes, these are defined in the ``Enzymes.xml``
-file and can be accessed using the :py:class:`~.EnzymesDB` object
+file and can be accessed using the :py:class:`~.ProteaseDB` object
 
 .. code-block:: python
 

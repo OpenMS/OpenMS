@@ -60,7 +60,7 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="6.72064257219527" sequence="PEPTIDEA" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -165,7 +165,7 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="1.94927516880241" sequence="PEPTIDEB" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -270,7 +270,7 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="1.6841609823948" sequence="PEPTIDEB" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -375,7 +375,7 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="1.04890339504923" sequence="PEPTIDEB" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>

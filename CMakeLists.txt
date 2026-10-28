@@ -115,6 +115,7 @@ enable_testing()
 # OPENMS_COVERAGE
 #------------------------------------------------------------------------------
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
+option(MT_REQUIRE_OPENMP "With MT_ENABLE_OPENMP, fail the configuration if no OpenMP runtime is found, instead of falling back to -fopenmp-simd (no parallel regions). The CI presets set it." OFF)
 option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will disable certain tests and the doc target." ON)
 option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
 option(BUILD_TOPP_TOOLS "Build the TOPP command-line applications." ON)
@@ -123,12 +124,14 @@ option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." 
 option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
+option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
 option(ENABLE_OPENTIMS_TESTS "Download Bruker test data for opentims integration tests" OFF)
 # Every platform we build for reads RAW files: the Thermo CommonCore assemblies are
 # architecture-neutral IL, and only the bridge around them is compiled per target.
 option(WITH_THERMO_RAW "Build with Thermo RAW file reading support via openms-thermo-bridge" ON)
 option(ENABLE_THERMO_RAW_TESTS "Download Thermo RAW test data for integration tests" OFF)
 option(ENABLE_THERMO_FAIMS_DIA_TESTS "Download Thermo FAIMS-DIA test data for integration tests" OFF)
+option(ENABLE_FAIMS_DDA_TESTS "Download FAIMS-DDA test data (mzML) for integration tests" OFF)
 option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." OFF)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
 
@@ -236,6 +239,32 @@ endif()
 if ((ENABLE_THERMO_FAIMS_DIA_TESTS OR THERMO_FAIMS_DIA_TEST_DATA) AND NOT WITH_THERMO_RAW)
   message(WARNING
     "Thermo FAIMS-DIA integration testing was requested but WITH_THERMO_RAW=OFF; the test will not run.")
+endif()
+
+# Optional end-to-end FAIMS-DDA integration fixture: a 2 h LC-MS/MS DDA run of E. coli lysate on an
+# Orbitrap Exploris 480 with FAIMS, stepping through three compensation voltages (-45, -55 and -65 V),
+# as mzML (converted from AWulf_060919_Ecoli_UV_S30_FAIMS_45_55_65.raw). A developer can either set
+# FAIMS_DDA_TEST_DATA explicitly to a local copy, or enable ENABLE_FAIMS_DDA_TESTS to fetch the pinned
+# file. The ~1.1 GB download is opt-in and not part of normal OpenMS builds/tests.
+set(FAIMS_DDA_TEST_DATA "${FAIMS_DDA_TEST_DATA}" CACHE FILEPATH
+    "Path to a FAIMS-DDA mzML file (LC run with several compensation voltages) for integration testing")
+if (ENABLE_FAIMS_DDA_TESTS AND NOT FAIMS_DDA_TEST_DATA)
+  include(FetchContent)
+  FetchContent_Declare(
+    faims_dda_testdata
+    URL "https://archive.openms.de/openms/testfiles/FAIMS/ExplorisFAIMS-DDA-LFQ.mzML"
+    URL_HASH SHA256=595cf179534200828bd379066690eb45cd6ca8b59c1e147eecfbcc422ce43d29
+    DOWNLOAD_NO_EXTRACT TRUE
+  )
+  FetchContent_MakeAvailable(faims_dda_testdata)
+  set(FAIMS_DDA_TEST_DATA
+      "${faims_dda_testdata_SOURCE_DIR}/ExplorisFAIMS-DDA-LFQ.mzML"
+      CACHE FILEPATH "Path to a FAIMS-DDA mzML file (LC run with several compensation voltages) for integration testing" FORCE)
+endif()
+
+if (FAIMS_DDA_TEST_DATA AND NOT EXISTS "${FAIMS_DDA_TEST_DATA}")
+  message(FATAL_ERROR
+    "FAIMS_DDA_TEST_DATA does not exist: ${FAIMS_DDA_TEST_DATA}")
 endif()
 
 #------------------------------------------------------------------------------

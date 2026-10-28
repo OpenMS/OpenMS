@@ -20,6 +20,7 @@
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -59,7 +60,7 @@ namespace // anonymous
       const DataValue& val = mii.getMetaValue(key);
       (void)struct_b->Append();
       (void)name_b->Append(key);
-      (void)value_b->Append(val.toString());
+      (void)value_b->Append(ArrowIOHelpers::metaValueString(val));
       switch (val.valueType())
       {
         case DataValue::INT_VALUE: (void)type_b->Append("int"); break;
@@ -214,7 +215,7 @@ namespace // anonymous
           default: type_str = "string"; break;
         }
         json += "{\"name\":\"" + escapeJsonString_(std::string(key))
-              + "\",\"value\":\"" + escapeJsonString_(val.toString())
+              + "\",\"value\":\"" + escapeJsonString_(ArrowIOHelpers::metaValueString(val))
               + "\",\"type\":\"" + type_str + "\"}";
         first_mv = false;
       }
@@ -465,7 +466,7 @@ namespace // anonymous
         default: type_str = "string"; break;
       }
       json += "{\"name\":\"" + escapeJsonString_(std::string(key))
-            + "\",\"value\":\"" + escapeJsonString_(val.toString())
+            + "\",\"value\":\"" + escapeJsonString_(ArrowIOHelpers::metaValueString(val))
             + "\",\"type\":\"" + type_str + "\"}";
       first = false;
     }
@@ -1110,6 +1111,8 @@ bool ConsensusMapArrowIO::exportToParquet(
   // Mirror XMLHandler::checkUniqueIdentifiers_ — fail before any file is opened
   // so we never leave a partial .consensusparquet behind. Throws Exception::InvalidValue.
   ProteinIdentificationArrowIO::checkUniqueIdentifiers(cmap.getProteinIdentifications());
+  // every peptide identification needs its protein identification run
+  ProteinRunReferences::check(cmap);
 
   // 1. Create output directory
   try
@@ -1442,10 +1445,19 @@ bool ConsensusMapArrowIO::importFromParquet(
   // 3. Import PSMs (links to consensus features already in the map)
   auto psms_table = readParquetTable_(directory + "/psms.parquet");
   if (!psms_table) { return false; }
+  const Size stored_runs = cmap.getProteinIdentifications().size();
   if (!importPSMsFromArrow(psms_table, cmap))
   {
     return false;
   }
+  // every peptide identification needs its protein identification run: the PSM table import appends a shell run
+  // for each run identifier the stored runs lack, which is a dangling reference in this file
+  if (cmap.getProteinIdentifications().size() > stored_runs)
+  {
+    throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      ProteinRunReferences::missingRunMessage(cmap.getProteinIdentifications()[stored_runs].getIdentifier()));
+  }
+  ProteinRunReferences::check(cmap);
 
   // 4. Synthesize fresh ProtID identifiers + apply rename to every pep_id collection
   //    we own (per-consensus-feature + unassigned). Mirrors IdXMLFile.cpp:530 — the

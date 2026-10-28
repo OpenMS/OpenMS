@@ -40,6 +40,7 @@
 #include "MQMsmsExporter.h"
 #include "MQExporterHelper.h"
 
+#include <algorithm>
 #include <map>
 
 using namespace OpenMS;
@@ -519,13 +520,23 @@ private:
     {
       pep_id.sort(); // sort the PeptideHits of PeptideIdentifications by Score (Best PeptideHit at index 0)
     }
-    std::sort(pep_ids.begin(), pep_ids.end(), [](const PeptideIdentification& a,const PeptideIdentification& b)
+    // the score direction is taken from the first PeptideIdentification with hits
+    // (one without hits may not carry a score type/direction)
+    const auto scored = std::find_if(pep_ids.begin(), pep_ids.end(), [](const PeptideIdentification& pep_id) { return !pep_id.getHits().empty(); });
+    if (scored == pep_ids.end())
     {
-      if (a.empty() || b.empty())
+      return;
+    }
+    // sort the PeptideIdentifications by their best PeptideHit (best first, respecting the score direction);
+    // PeptideIdentifications without hits go last
+    const auto better_hit = PeptideIdentification::getScoreComparator(scored->isHigherScoreBetter());
+    std::stable_sort(pep_ids.begin(), pep_ids.end(), [&better_hit](const PeptideIdentification& a, const PeptideIdentification& b)
+    {
+      if (a.getHits().empty() || b.getHits().empty())
       {
-        return a.empty() > b.empty();
+        return !a.getHits().empty() && b.getHits().empty();
       }
-      return a.getHits()[0].getScore() > b.getHits()[0].getScore(); // sort the PeptideIdentifications by their PeptideHit with the highest Score
+      return better_hit(a.getHits()[0], b.getHits()[0]);
     });
   }
 

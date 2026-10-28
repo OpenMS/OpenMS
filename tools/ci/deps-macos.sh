@@ -62,9 +62,14 @@ brew install \
   dotnet \
   flex \
   icu4c \
+  libomp \
   libtool \
   pkg-config \
   ninja
+
+# libomp is the OpenMP runtime, which Apple's Clang does not ship. The formula is
+# keg-only: the macOS presets find it in /opt/homebrew/opt/libomp, other builds need
+# -DOpenMP_ROOT=$(brew --prefix libomp). Without it OpenMS runs single-threaded.
 
 # GUI dependencies (can be skipped for non-GUI builds):
 if [ "$SKIP_GUI_DEPS" = false ]; then

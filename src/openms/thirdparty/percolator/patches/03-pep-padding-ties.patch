@@ -1,0 +1,88 @@
+diff --git a/src/openms/thirdparty/percolator/LogisticRegression.cpp b/src/openms/thirdparty/percolator/LogisticRegression.cpp
+index 00c5399..ad96980 100644
+--- a/src/openms/thirdparty/percolator/LogisticRegression.cpp
++++ b/src/openms/thirdparty/percolator/LogisticRegression.cpp
+@@ -14,6 +14,7 @@
+  limitations under the License.
+ 
+  *******************************************************************************/
++#include<cmath>
+ #include<iterator>
+ #include<vector>
+ #include<algorithm>
+@@ -102,4 +103,37 @@ void LogisticRegression::initg() {
+ }
+ 
+ 
++// OpenMS: the spline needs at least 4 strictly increasing x (initiateQR), and
++// keeps their distances in sparse vectors that treat |dx| <= 1e-15 as 0. Merge
++// the points it cannot tell apart and pad to 4 points spaced like the data.
++// Both happen in the transformed coordinates the spline fits in, which
++// setData chose from the real data, so the padding cannot change the
++// transform. Expects x in ascending order.
++void LogisticRegression::mergeTiesAndPad() {
++  std::size_t n = 0;
++  for (std::size_t ix = 0; ix < x.size(); ++ix) {
++    if (n > 0 && x[ix] - x[n - 1] <= 1e-12 * max(1.0, fabs(x[ix]))) {
++      y[n - 1] += y[ix];
++      m[n - 1] += m[ix];
++    } else {
++      x[n] = x[ix];
++      y[n] = y[ix];
++      m[n] = m[ix];
++      ++n;
++    }
++  }
++  x.resize(n);
++  y.resize(n);
++  m.resize(n);
++  if (n == 0) {
++    return;
++  }
++  double offset = n > 1 ? x.back() - x.front() : max(1.0, fabs(x.back()));
++  for (std::size_t ix = n; ix < 4; ++ix) {
++    x.push_back(x.back() + static_cast<double>(ix) * offset);
++    y.push_back(y.back());
++    m.push_back(m.back());
++  }
++}
++
+ }}}  // namespace OpenMS::Internal::Percolator
+diff --git a/src/openms/thirdparty/percolator/LogisticRegression.h b/src/openms/thirdparty/percolator/LogisticRegression.h
+index a1da6cd..d849f49 100644
+--- a/src/openms/thirdparty/percolator/LogisticRegression.h
++++ b/src/openms/thirdparty/percolator/LogisticRegression.h
+@@ -38,8 +38,10 @@ class LogisticRegression : public BaseSpline {
+       BaseSpline::setData(xx);
+       y = yy;
+       m = mm;
++      mergeTiesAndPad();  // OpenMS
+     }
+   protected:
++    void mergeTiesAndPad();
+     virtual void calcPZW();
+     virtual void initg();
+     virtual void limitg();
+diff --git a/src/openms/thirdparty/percolator/PosteriorEstimator.cpp b/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
+index 575d23e..fca38a0 100644
+--- a/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
++++ b/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
+@@ -168,12 +168,12 @@ void PosteriorEstimator::estimate(vector<pair<double, bool> >& combined,
+         return;
+       }
+ 
+-      double random_offset = PseudoRandom::lcg_uniform_rand() * 1e-20;
+-      for (int i = medians.size(); i < 4; ++i) {
+-        medians.push_back(medians.back() + i*random_offset);
+-        negatives.push_back(negatives.back());
+-        sizes.push_back(sizes.back());
+-      }
++      // OpenMS: LogisticRegression::setData pads to 4 bins, in the spline's
++      // transformed coordinates. Upstream added i * lcg_uniform_rand() * 1e-20
++      // here, which is lost to rounding unless the median is ~0, and the padding
++      // could change the transform chosen from the medians. The random draw is
++      // kept, so the random stream stays the same.
++      PseudoRandom::lcg_uniform_rand();
+     } else {
+       throw MyException(oss.str());
+     }

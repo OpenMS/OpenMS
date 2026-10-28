@@ -230,6 +230,19 @@ START_SECTION((void MRMIonSeries::annotateTransitionCV(ReactionMonitoringTransit
 
 END_SECTION
 
+START_SECTION([EXTRA] annotateTransitionCV with different formula losses)
+{
+  // each formula loss must get its own mass, not the one of the first loss seen in the process
+  MRMIonSeries mrmis;
+  ReactionMonitoringTransition tr_nh3, tr_h2o;
+  mrmis.annotateTransitionCV(tr_nh3, "y7-H3N1^1");
+  mrmis.annotateTransitionCV(tr_h2o, "y7-H2O1^2");
+  // NH3: 14.0030740052 + 3 * 1.0078250319; H2O: 2 * 1.0078250319 + 15.9949146221
+  TEST_REAL_SIMILAR(tr_nh3.getProduct().getInterpretationList()[0].getCVTerms().at("MS:1001524")[0].getValue(), -17.0265491)
+  TEST_REAL_SIMILAR(tr_h2o.getProduct().getInterpretationList()[0].getCVTerms().at("MS:1001524")[0].getValue(), -18.0105647)
+}
+END_SECTION
+
 START_SECTION((void MRMIonSeries::annotateTransition(ReactionMonitoringTransition & tr, const TargetedExperiment::Peptide peptide, const double precursor_mz_threshold, const double product_mz_threshold, bool enable_reannotation, std::vector<std::string> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses)))
 {
   MRMIonSeries mrmis;

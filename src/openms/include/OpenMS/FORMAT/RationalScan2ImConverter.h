@@ -26,13 +26,14 @@ namespace OpenMS
    * approximation from GlobalMetadata that is frame-independent.
    *
    * Physical model (ModelType=2):
-   *   Inner term maps scan index to TIMS elution voltage:
+   *   Inner term maps scan index to TIMS elution voltage (signed: c2, c3 and V
+   *   are negative in negative mode):
    *     V = c2 + ((c3 - c2) / c1) * (scan - c4 - c0)
-   *   Outer term maps voltage to inverse reduced ion mobility:
-   *     1/K0 = 1 / (c6 + c7 / V)
+   *   Outer term maps the voltage magnitude to inverse reduced ion mobility:
+   *     1/K0 = 1 / (c6 + c7 / |V|)
    *
    * Combined:
-   *   1/K0 = 1 / (c6 + c7 / (c2 + ((c3 - c2) / c1) * (scan - c4 - c0)))
+   *   1/K0 = 1 / (c6 + c7 / |c2 + ((c3 - c2) / c1) * (scan - c4 - c0)|)
    *
    * Limitations vs Bruker SDK:
    *   - No pressure compensation (ambient gas pressure drift correction)
@@ -78,10 +79,11 @@ namespace OpenMS
     const Coefficients& getCalibration(uint32_t frame_id) const;
 
     /// V = c2 + ((c3 - c2) / c1) * (scan - c4 - c0)
-    /// 1/K0 = 1.0 / (c6 + c7 / V)
+    /// 1/K0 = 1.0 / (c6 + c7 / |V|)
     static double applyFormula(const Coefficients& c, double scan);
 
-    /// scan = c0 + c4 + (c1 / (c3 - c2)) * (c7 / (1.0/inv_k0 - c6) - c2)
+    /// V = sign(c2) * c7 / (1.0/inv_k0 - c6)
+    /// scan = c0 + c4 + (c1 / (c3 - c2)) * (V - c2)
     static double invertFormula(const Coefficients& c, double inv_k0);
   };
 

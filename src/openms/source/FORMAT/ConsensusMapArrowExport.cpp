@@ -24,6 +24,7 @@
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -32,6 +33,7 @@
 #include <parquet/properties.h>
 
 #include <algorithm>
+#include <cmath>
 #include <exception>
 #include <functional>
 #include <limits>
@@ -212,8 +214,12 @@ FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
       }
     }
 
+    // the group probabilities are q-values only after a protein FDR (it sets the run's score type), otherwise they are
+    // the proteins' scores (e.g. posterior probabilities), which pg_global_qvalue must not report; NaN: no q-value
+    if (!Scores::isScoreType(prot_id.getScoreType(), Scores::IDType::QVAL)) { continue; }
     for (const auto& pg : prot_id.getProteinGroups())
     {
+      if (!std::isfinite(pg.probability)) { continue; }
       for (const auto& acc : pg.accessions)
       {
         lut.pg_qvalue[acc] = pg.probability;
@@ -221,6 +227,7 @@ FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
     }
     for (const auto& ig : prot_id.getIndistinguishableProteins())
     {
+      if (!std::isfinite(ig.probability)) { continue; }
       for (const auto& acc : ig.accessions)
       {
         if (!lut.pg_qvalue.contains(acc))
@@ -1463,8 +1470,8 @@ void ConsensusMapArrowExport::requireUnambiguousIdentities(const ConsensusMap& c
     std::to_string(divergent) + " consensus feature(s), the first at index "
     + std::to_string(first_index) + ", carry peptide identifications that disagree on the top "
     "peptide. The QPX feature and protein-group views record one peptide per feature and cannot "
-    "represent this. Resolve the conflicts first (IDConflictResolver, ConsensusID with "
-    "algorithm 'best', or FileFilter with id:keep_best_score_id), or export the unresolved data "
+    "represent this. Resolve the conflicts first (IDConflictResolver or FileFilter with "
+    "id:keep_best_score_id), or export the unresolved data "
     "as consensusparquet, which preserves every identification.");
 }
 
@@ -1493,6 +1500,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
                                                                      QPXIdentity::FeatureLinks* out_links)
 {
   requireUnambiguousIdentities(cmap);   // preflight: single-threaded, before any OpenMP region
+  ProteinRunReferences::check(cmap);    // every peptide identification needs its protein identification run
   const auto id_lut = buildFeatureIdLookups(cmap);
   requireResolvableIdRunsWith(cmap, id_lut.run_mapper);
   // A channel QPX cannot name would be written into intensities[].label, a documented join
@@ -1601,6 +1609,7 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
   // Preflight before the writer is opened and before the OpenMP batch build: a throw from
   // inside that region would be captured by the worker's catch-all and flattened to a bool.
   requireUnambiguousIdentities(cmap);
+  ProteinRunReferences::check(cmap); // every peptide identification needs its protein identification run
 
   const auto id_lut = buildFeatureIdLookups(cmap);
   requireResolvableIdRunsWith(cmap, id_lut.run_mapper); // preflight, before the OpenMP region below

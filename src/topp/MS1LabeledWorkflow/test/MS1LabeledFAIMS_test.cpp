@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 using namespace OpenMS;
 
@@ -146,23 +147,57 @@ START_SECTION((static void annotateCompensationVoltages(const MSExperiment&, Pep
 }
 END_SECTION
 
-START_SECTION((static void annotate(IDMapper&, ConsensusMap&, const PeptideIdentificationList&, const std::vector<ProteinIdentification>&)))
+START_SECTION((static void annotate(IDMapper&, ConsensusMap&, const FeatureMap&, const PeptideIdentificationList&, const std::vector<ProteinIdentification>&)))
 {
   auto map = makeMap(0);
   const auto proteins = map.getProteinIdentifications();
   map.getProteinIdentifications().clear();
+  // One channel feature per handle, as the workflow builds them: the handle's unique id and a convex hull
+  // around its elution region, at the CV of its multiplet.
+  FeatureMap channels;
+  for (const auto& multiplet : map)
+  {
+    for (const auto& handle : multiplet.getFeatures())
+    {
+      Feature channel;
+      channel.setUniqueId(handle.getUniqueId());
+      channel.setRT(handle.getRT());
+      channel.setMZ(handle.getMZ());
+      channel.setCharge(handle.getCharge());
+      channel.setIntensity(handle.getIntensity());
+      channel.setMetaValue(Constants::UserParam::FAIMS_CV, multiplet.getMetaValue(Constants::UserParam::FAIMS_CV));
+      ConvexHull2D hull;
+      hull.addPoint(DPosition<2>(handle.getRT() - 2.0, handle.getMZ() - 0.005));
+      hull.addPoint(DPosition<2>(handle.getRT() + 2.0, handle.getMZ() + 0.005));
+      channel.getConvexHulls().push_back(hull);
+      channels.push_back(channel);
+    }
+  }
   IDMapper mapper;
   // The wrong CV is an exact m/z match. It must never receive the identification.
-  PeptideIdentificationList ids {makeId("scan=4", -65.0), makeId("scan=9", -85.0)};
-  MS1LabeledFAIMS::annotate(mapper, map, ids, proteins);
+  PeptideIdentificationList ids {makeId("scan=4", -65.0), makeId("scan=9", -85.0), makeId("scan=3", -45.0)};
+  // The last ID is on the heavy channel of the -45 multiplet.
+  ids[2].setMZ(504.0071);
+  MS1LabeledFAIMS::annotate(mapper, map, channels, ids, proteins);
   TEST_EQUAL(map.size(), 2)
-  TEST_EQUAL(map[0].getPeptideIdentifications().size(), 0)
+  TEST_EQUAL(map[0].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(map[0].getPeptideIdentifications()[0].getSpectrumReference(), "scan=3")
+  TEST_EQUAL((int)map[0].getPeptideIdentifications()[0].getMetaValue("map_index"), 1)
   TEST_EQUAL(map[1].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(map[1].getPeptideIdentifications()[0].getSpectrumReference(), "scan=4")
   TEST_EQUAL((int)map[1].getPeptideIdentifications()[0].getMetaValue("map_index"), 0)
+  // The bookkeeping of the copies on several channels does not leak into the output.
+  TEST_FALSE(map[1].getPeptideIdentifications()[0].metaValueExists("MS1Label:id_index"))
   TEST_EQUAL(map.getUnassignedPeptideIdentifications().size(), 1)
   TEST_EQUAL(map.getUnassignedPeptideIdentifications()[0].getSpectrumReference(), "scan=9")
   TEST_EQUAL(map.getProteinIdentifications().size(), 1)
   TEST_EQUAL(map.getColumnHeaders().at(0).filename, "run0.mzML")
+
+  // A matched channel feature that belongs to no multiplet is a caller error (new map, new handle ids).
+  auto other = makeMap(0);
+  other.getProteinIdentifications().clear();
+  PeptideIdentificationList heavy {ids[2]};
+  TEST_EXCEPTION(Exception::InvalidValue, MS1LabeledFAIMS::annotate(mapper, other, channels, heavy, proteins))
 }
 END_SECTION
 

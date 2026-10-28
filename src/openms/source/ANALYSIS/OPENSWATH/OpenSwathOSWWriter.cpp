@@ -509,10 +509,11 @@ namespace OpenMS
     template <typename RowT>
     UInt64 estimateRowVectorMemory(const std::vector<RowT>& rows)
     {
-      constexpr UInt64 string_headroom_per_value = 16;
+      // Cells hold their value in place; text cells (rare) own a string in addition, which the
+      // per-row headroom accounts for.
+      constexpr UInt64 text_headroom_per_row = 64;
       return static_cast<UInt64>(rows.capacity()) *
-             (static_cast<UInt64>(sizeof(RowT)) +
-              static_cast<UInt64>(std::tuple_size<RowT>::value) * string_headroom_per_value);
+             (static_cast<UInt64>(sizeof(RowT)) + text_headroom_per_row);
     }
 
     template <typename RowT>
@@ -650,7 +651,7 @@ namespace OpenMS
   OpenSwathOSWWriter::OSWValue OpenSwathOSWWriter::OSWValue::text(const std::string& value)
   {
     OSWValue result;
-    new (&result.storage.text_value) std::string(value);
+    result.storage.text_value = new std::string(value);
     result.type = Type::Text;
     return result;
   }
@@ -672,14 +673,14 @@ namespace OpenMS
 
   const std::string& OpenSwathOSWWriter::OSWValue::asText() const
   {
-    return storage.text_value;
+    return *storage.text_value;
   }
 
   void OpenSwathOSWWriter::OSWValue::destroyText_()
   {
     if (type == Type::Text)
     {
-      storage.text_value.~basic_string();
+      delete storage.text_value;
     }
     type = Type::Null;
     storage.int_value = 0;
@@ -699,7 +700,7 @@ namespace OpenMS
     }
     else if (rhs.type == Type::Text)
     {
-      new (&storage.text_value) std::string(rhs.storage.text_value);
+      storage.text_value = new std::string(*rhs.storage.text_value);
       type = Type::Text;
     }
     else
@@ -727,9 +728,8 @@ namespace OpenMS
     }
     else if (rhs.type == Type::Text)
     {
-      new (&storage.text_value) std::string(std::move(rhs.storage.text_value));
+      storage.text_value = rhs.storage.text_value; // take over the string
       type = Type::Text;
-      rhs.storage.text_value.~basic_string();
       rhs.type = Type::Null;
       rhs.storage.int_value = 0;
     }

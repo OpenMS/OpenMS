@@ -350,6 +350,10 @@ namespace OpenMS
     registerFlag_("-help", "Shows options");
     registerFlag_("-helphelp", "Shows all options (including advanced)", false);
 
+    // The parser logs debug messages; keep them out of the console until '-debug' is known,
+    // even if an earlier tool in this process enabled debug output.
+    setConsoleDebugLogging(false);
+
     // parse command line parameters:
     try
     {
@@ -371,6 +375,7 @@ namespace OpenMS
 
     // set debug level
     debug_level_ = getParamAsInt_("debug", 0);
+    setConsoleDebugLogging(debug_level_ > 0);
     writeDebug_("Debug level: " + StringUtils::toStr(debug_level_), 1);
 
     // print command line to console
@@ -566,8 +571,8 @@ namespace OpenMS
       // debug level
       //-------------------------------------------------------------
       debug_level_ = getParamAsInt_("debug", 0);
+      setConsoleDebugLogging(debug_level_ > 0);
       writeDebug_("Debug level (after ini file): " + StringUtils::toStr(debug_level_), 1);
-      if (debug_level_ > 0) getGlobalLogDebug().insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
 
       //-------------------------------------------------------------
       //progress logging
@@ -671,6 +676,12 @@ namespace OpenMS
     {
       writeLogError_(std::string("Error: Unexpected internal error (") + e.what() + ")");
       writeDebug_(std::string("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
+      return UNKNOWN_ERROR;
+    }
+    // Standard library and third-party exceptions: report them instead of letting them reach std::terminate
+    catch (std::exception& e)
+    {
+      writeLogError_(std::string("Error: Unexpected internal error (") + e.what() + ")");
       return UNKNOWN_ERROR;
     }
     log_->close();
@@ -2882,7 +2893,14 @@ namespace OpenMS
         return EXECUTION_OK;
       }
 
-      // '-write_cwl' given
+      // CWL needs TDL, which is not part of a default build: report it instead of writing anything
+      if ((param_cmdline_.exists("write_nested_cwl") || param_cmdline_.exists("write_cwl")) && !ParamCWLFile::isSupported())
+      {
+        writeLogError_("Error: Writing CWL files is not supported by this build of OpenMS. Rebuild OpenMS with -DENABLE_TDL=ON to enable '-write_cwl' and '-write_nested_cwl'.");
+        return ILLEGAL_PARAMETERS;
+      }
+
+      // '-write_nested_cwl' given
       if (param_cmdline_.exists("write_nested_cwl"))
       {
         ParamCWLFile paramFile{};
@@ -2890,7 +2908,7 @@ namespace OpenMS
         return EXECUTION_OK;
       }
 
-      // '-write_flat_cwl' given
+      // '-write_cwl' (flat) given
       if (param_cmdline_.exists("write_cwl"))
       {
         ParamCWLFile paramFile{};

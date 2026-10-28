@@ -177,6 +177,15 @@ target_link_libraries(TestExternalCodeCLI OpenMS::OpenMS_CLI)
 add_test(TestExternalCodeCLI TestExternalCodeCLI -greeting "hello from OpenMS_CLI")
 set_tests_properties(TestExternalCodeCLI PROPERTIES PASS_REGULAR_EXPRESSION "hello from OpenMS_CLI")
 
+## OSWPQ storage and the real OpenDIA source must build against installed public
+## headers, with no Arrow target or source-tree include directory.
+add_executable(TestExternalCodeOSWParquet TestExternalCodeOSWParquet.cpp)
+target_link_libraries(TestExternalCodeOSWParquet OpenMS::OpenMS)
+add_test(TestExternalCodeOSWParquet TestExternalCodeOSWParquet)
+add_executable(TestExternalOpenDIA ../../topp/OpenDIA.cpp)
+target_link_libraries(TestExternalOpenDIA OpenMS::OpenMS_CLI)
+add_test(TestExternalOpenDIA TestExternalOpenDIA -test -write_ini "${CMAKE_CURRENT_BINARY_DIR}/external_opendia.ini")
+
 ## Enable testing - for Nightly Build log
 add_test(TestExternalCode TestExternalCode)
 
@@ -201,7 +210,7 @@ endif()
 ## dependencies OpenMS was built against) through PATH. OpenMSConfig.cmake
 ## tells us where the OpenMS libraries were installed.
 if(WIN32)
-  foreach(_test IN ITEMS TestExternalCode TestExternalCodeCLI TestExternalCodeQt TestExternalCodeGUI TestExternalCodePeptDeep)
+  foreach(_test IN ITEMS TestExternalCode TestExternalCodeCLI TestExternalCodeQt TestExternalCodeGUI TestExternalCodePeptDeep TestExternalCodeOSWParquet TestExternalOpenDIA)
     if(TEST ${_test})
       set_property(TEST ${_test} APPEND PROPERTY
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${OPENMS_LIB_DIR}")

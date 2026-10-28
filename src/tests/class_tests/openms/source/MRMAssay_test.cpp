@@ -624,6 +624,18 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<s
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
+  // Default UIS shuffling must be identical to explicit seed 1, not clock-dependent.
+  TargetedExperiment default_seed_exp = targeted_exp;
+  TargetedExperiment explicit_seed_exp = targeted_exp;
+  mrma.uisTransitions(default_seed_exp, fragment_types1, fragment_charges1, enable_specific_losses1, enable_unspecific_losses1, enable_ms2_precursors1, product_mz_threshold1, swathes);
+  mrma.uisTransitions(explicit_seed_exp, fragment_types1, fragment_charges1, enable_specific_losses1, enable_unspecific_losses1, enable_ms2_precursors1, product_mz_threshold1, swathes, -4, 20, 1);
+  TEST_TRUE(default_seed_exp == explicit_seed_exp)
+  TEST_TRUE(default_seed_exp.getTransitions().size() > targeted_exp.getTransitions().size())
+  // Time-based generation is an explicit opt-in and must remain callable.
+  TargetedExperiment time_seed_exp = targeted_exp;
+  mrma.uisTransitions(time_seed_exp, fragment_types1, fragment_charges1, enable_specific_losses1, enable_unspecific_losses1, enable_ms2_precursors1, product_mz_threshold1, swathes, -4, 20, -1);
+  TEST_TRUE(time_seed_exp.getTransitions().size() > targeted_exp.getTransitions().size())
+
   mrma.uisTransitions(targeted_exp1, fragment_types1, fragment_charges1, enable_specific_losses1, enable_unspecific_losses1, enable_ms2_precursors1, product_mz_threshold1, swathes, -4, 20, 42);
 
   std::string test1;
@@ -840,6 +852,23 @@ START_SECTION(void uisTransitionsLight(OpenSwath::LightTargetedExperiment& exp, 
   bool enable_unspecific_losses = false;
   bool enable_ms2_precursors = false;
   double product_mz_threshold = 0.05;
+
+  // Default and explicit seed 1 must agree for the light path as well.
+  auto default_seed_exp = light_exp;
+  auto explicit_seed_exp = light_exp;
+  mrma.uisTransitionsLight(default_seed_exp, fragment_types, fragment_charges,
+      enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors,
+      product_mz_threshold, swathes);
+  mrma.uisTransitionsLight(explicit_seed_exp, fragment_types, fragment_charges,
+      enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors,
+      product_mz_threshold, swathes, -4, 20, 1);
+  TEST_TRUE(default_seed_exp.transitions == explicit_seed_exp.transitions)
+  TEST_TRUE(default_seed_exp.transitions.size() > initial_transitions)
+  auto time_seed_exp = light_exp;
+  mrma.uisTransitionsLight(time_seed_exp, fragment_types, fragment_charges,
+      enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors,
+      product_mz_threshold, swathes, -4, 20, -1);
+  TEST_TRUE(time_seed_exp.transitions.size() > initial_transitions)
 
   // Run uisTransitionsLight with fixed seed for reproducibility
   mrma.uisTransitionsLight(light_exp, fragment_types, fragment_charges,

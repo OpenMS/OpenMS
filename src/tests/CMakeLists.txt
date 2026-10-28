@@ -71,12 +71,14 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
   # Only the toolchain of this build is forwarded to the consumers, as a consumer
   # building with the same compiler and dependency provider would pass it;
   # everything about OpenMS comes from the installed OpenMSConfig.cmake.
+  # OpenMP_ROOT is part of the toolchain on macOS, where the OpenMP runtime
+  # (Homebrew's keg-only libomp) is not where the compiler looks.
   set(_configure_args)
   foreach(_var IN ITEMS
       CMAKE_TOOLCHAIN_FILE VCPKG_INSTALLED_DIR VCPKG_TARGET_TRIPLET VCPKG_HOST_TRIPLET
       CMAKE_PREFIX_PATH CMAKE_C_COMPILER CMAKE_CXX_COMPILER CMAKE_MAKE_PROGRAM
       CMAKE_MSVC_RUNTIME_LIBRARY CMAKE_OSX_ARCHITECTURES CMAKE_OSX_DEPLOYMENT_TARGET
-      CMAKE_OSX_SYSROOT)
+      CMAKE_OSX_SYSROOT OpenMP_ROOT)
     if(DEFINED ${_var} AND NOT "${${_var}}" STREQUAL "")
       # keep list-valued settings such as CMAKE_PREFIX_PATH as one argument
       string(REPLACE ";" "$<SEMICOLON>" _value "${${_var}}")

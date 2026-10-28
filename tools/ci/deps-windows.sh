@@ -24,13 +24,12 @@ choco install -y --no-progress \
 
 # Use a custom NSIS, which provides 8-k string support and has
 # UltraModernUI integrated already:
-curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
+curl --no-progress-meter --fail --retry 3 --retry-all-errors -L -o NSIS.tar.gz https://raw.githubusercontent.com/OpenMS/NSIS/main/NSIS.tar.gz
 7z x -so NSIS.tar.gz | 7z x -si -ttar -aoa -o"C:/Program Files (x86)/NSIS/"
 
-# These are only needed in CI:
-choco install -y --no-progress \
-  ccache \
-  rclone
-
-# Use an older version of rsync to match the server:
-choco install -y --no-progress --version 6.2.7 rsync
+# These are only needed in CI. Like doxygen, they come from the packages built
+# above (SHA256-checked) rather than from the Chocolatey community feed, which
+# fails too often. The rsync package is cwRsync 6.2.7, an older version that
+# matches the server:
+(cd chocolatey-packages/build &&
+  choco install -y --no-progress -s . ccache rclone rsync)

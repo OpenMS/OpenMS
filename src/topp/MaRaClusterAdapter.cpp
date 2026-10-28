@@ -294,6 +294,14 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
+    // the n-th idXML belongs to the n-th mzML
+    if (getStringList_("id_in").size() > in_list.size())
+    {
+      writeLogError_("Error:  more idXML files (parameter 'id_in') than mzML files (parameter 'in') given");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
+
     //-------------------------------------------------------------
     // read input
     //-------------------------------------------------------------
@@ -420,8 +428,8 @@ protected:
           }
           all_peptide_ids.insert(all_peptide_ids.end(), peptide_ids.begin(), peptide_ids.end());
           all_protein_ids.insert(all_protein_ids.end(), protein_ids.begin(), protein_ids.end());
+          ++file_idx; // the next idXML belongs to the next mzML
         }
-        ++file_idx;
       }
       else
       {

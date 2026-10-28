@@ -7,9 +7,11 @@
 
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/PASEFHillCentroider.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -25,12 +27,21 @@
 #include <opentims++/opentims.h>
 #include <opentims++/tof2mz_converter.h>
 #include <opentims++/scan2inv_ion_mobility_converter.h>
+#include <OpenMS/FORMAT/MzCalibrationTof2MzConverter.h>
 #include <OpenMS/FORMAT/RationalScan2ImConverter.h>
 #include <SQLiteCpp/SQLiteCpp.h>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+#include <exception>
 #include <memory>
+#include <new>
 #include <algorithm>
+#include <array>
 #include <filesystem>
+#include <fstream>
 #include <numeric>
 #include <vector>
 #include <cmath>
@@ -53,49 +64,9 @@ namespace OpenMS
   // --------------------------------------------------------------------------
   // TOF-domain spectrum processing (ported from timsrust)
   //
-  // Pipeline: raw peaks → group_and_sum → smooth → centroid
+  // Pipeline: raw peaks → sum per TOF bin → smooth → centroid
   // All processing in sparse TOF-index space (integers), before m/z conversion.
   // --------------------------------------------------------------------------
-
-  /// Sort TOF indices and sum intensities at identical TOF bins.
-  /// Merges duplicate detections across scans/frames into single entries.
-  /// Input arrays are modified in-place; returns the new size.
-  static size_t groupAndSum(std::vector<uint32_t>& tofs, std::vector<uint64_t>& intensities)
-  {
-    if (tofs.empty()) return 0;
-    // Sort by TOF index (co-sort intensities)
-    std::vector<size_t> order(tofs.size());
-    std::iota(order.begin(), order.end(), size_t(0));
-    std::sort(order.begin(), order.end(),
-              [&tofs](size_t a, size_t b) { return tofs[a] < tofs[b]; });
-
-    std::vector<uint32_t> sorted_tofs(tofs.size());
-    std::vector<uint64_t> sorted_int(intensities.size());
-    for (size_t i = 0; i < order.size(); ++i)
-    {
-      sorted_tofs[i] = tofs[order[i]];
-      sorted_int[i] = intensities[order[i]];
-    }
-
-    // Merge consecutive entries with same TOF index
-    size_t write = 0;
-    for (size_t read = 0; read < sorted_tofs.size(); ++read)
-    {
-      if (write > 0 && sorted_tofs[read] == tofs[write - 1])
-      {
-        intensities[write - 1] += sorted_int[read];
-      }
-      else
-      {
-        tofs[write] = sorted_tofs[read];
-        intensities[write] = sorted_int[read];
-        ++write;
-      }
-    }
-    tofs.resize(write);
-    intensities.resize(write);
-    return write;
-  }
 
   /// Sparse symmetric neighbor intensity sharing.
   /// For each pair within `window` TOF units, add each other's original intensity.
@@ -329,38 +300,9 @@ namespace OpenMS
       agg_buff.clear();
     }
 
-    // Load already-converted frame data into the buffer.
-    // mz_values: converted m/z (double, from save_to_buffs)
-    // intensities: corrected uint32_t from save_to_buffs (cast to float internally)
-    // im_values: converted per-peak inv_ion_mobility (double, from save_to_buffs)
-    void loadFrame(const double* mz_values, const uint32_t* intensities,
-                   const double* im_values, uint32_t count)
-    {
-      clear();
-      peaks.reserve(count);
-      for (uint32_t i = 0; i < count; ++i)
-      {
-        peaks.push_back({static_cast<float>(mz_values[i]),
-                         static_cast<float>(intensities[i]),
-                         static_cast<float>(im_values[i])});
-      }
-
-      // Sort by m/z for binary-search neighbor finding
-      std::sort(peaks.begin(), peaks.end(),
-                [](const ImsPeak& a, const ImsPeak& b) { return a.mz < b.mz; });
-
-      // Build intensity-descending index
-      order.resize(count);
-      std::iota(order.begin(), order.end(), size_t(0));
-      std::sort(order.begin(), order.end(),
-                [this](size_t a, size_t b)
-                {
-                  return peaks[b].intensity < peaks[a].intensity; // descending
-                });
-    }
-
-    // Overload: accepts double* intensities (from FrameAggregator::finalize() output,
-    // where summed intensities across aggregated frames can exceed uint32_t range).
+    // Load already-converted frame data into the buffer: m/z, intensity and inverse ion
+    // mobility per peak. Intensities are doubles, as sums across aggregated frames
+    // (FrameAggregator::finalize()) can exceed the uint32_t range.
     void loadFrame(const double* mz_values, const double* intensities,
                    const double* im_values, uint32_t count)
     {
@@ -525,14 +467,14 @@ namespace OpenMS
       return config.ms1_centroid_algo;
     }
     // Back-compat: legacy auto-enable when both mz/im fields are set > 0.
+    // ms1_centroid_mz_ppm alone (its default is > 0, as HillBased uses it) selects nothing.
     const bool has_mz = config.ms1_centroid_mz_ppm > 0.0f;
     const bool has_im = config.ms1_centroid_im_pct > 0.0f;
-    if (has_mz != has_im)
+    if (has_im && !has_mz)
     {
       if (emit_warnings)
-        OPENMS_LOG_WARN << "Warning: ms1_centroid_mz_ppm and "
-                        << "ms1_centroid_im_pct must both be > 0 to enable "
-                        << "MS1 centroiding. Centroiding disabled."
+        OPENMS_LOG_WARN << "Warning: ms1_centroid_im_pct > 0 but "
+                        << "ms1_centroid_mz_ppm <= 0; MS1 centroiding disabled."
                         << std::endl;
       return CA::OFF;
     }
@@ -716,6 +658,153 @@ namespace OpenMS
   {
     return fid >= config.frame_id_min && fid <= config.frame_id_max;
   }
+
+  // Config::rt_selects_spectra with a retention time range: the loaders select the spectra by their retention time
+  // (see trimToRTRange() and the precursor selection of loadDDA_()), and load() and transform() leave out the ones
+  // outside the range that are read for aggregation only.
+  static bool selectsSpectraByRT(const BrukerTimsFile::Config& config)
+  {
+    return config.rt_selects_spectra && (config.rt_min_sec > 0.0 || std::isfinite(config.rt_max_sec));
+  }
+
+  static inline bool rtInRange(double rt, const BrukerTimsFile::Config& config)
+  {
+    return rt >= config.rt_min_sec && rt <= config.rt_max_sec;
+  }
+
+  // Config::rt_selects_spectra: trims @p frame_ids (in order of frame id) to the frames in the retention time range
+  // and the @p n_neighbors frames on either side of them, which aggregation over n_neighbors frames of the list needs
+  // for the spectra in the range. Without a retention time range, or for another mode, nothing is trimmed.
+  static void trimToRTRange(std::vector<uint32_t>& frame_ids, TimsDataHandle& handle, const BrukerTimsFile::Config& config,
+                            int n_neighbors)
+  {
+    if (!selectsSpectraByRT(config)) return;
+    size_t first = frame_ids.size(), last = 0;
+    for (size_t i = 0; i < frame_ids.size(); ++i)
+    {
+      if (!handle.has_frame(frame_ids[i]) || !rtInRange(handle.get_frame(frame_ids[i]).time, config)) continue;
+      first = std::min(first, i);
+      last = i;
+    }
+    if (first == frame_ids.size())
+    {
+      frame_ids.clear();
+      return;
+    }
+    const size_t n = static_cast<size_t>(std::max(n_neighbors, 0));
+    const size_t lo = first >= n ? first - n : 0;
+    const size_t hi = std::min(last + n, frame_ids.size() - 1);
+    frame_ids = std::vector<uint32_t>(frame_ids.begin() + lo, frame_ids.begin() + hi + 1);
+  }
+
+  // A NaN bound counts as set: no ion mobility lies in such a range, as in one with im_min > im_max.
+  static bool imRangeSet(const BrukerTimsFile::Config& config)
+  {
+    return !(config.im_min <= 0.0) || !(config.im_max == std::numeric_limits<double>::infinity());
+  }
+
+  // Config::im_min/im_max applied to a spectrum the loaders emit: removes the peaks outside the range from a spectrum
+  // with an ion mobility per peak. Returns false for a spectrum with a single ion mobility outside it (DDA MS2).
+  static bool applyIMRange(MSSpectrum& spec, const BrukerTimsFile::Config& config)
+  {
+    const auto in_range = [&config](double im) { return im >= config.im_min && im <= config.im_max; };
+    if (spec.containsIMData())
+    {
+      const auto& im = spec.getFloatDataArrays()[spec.getIMData().first];
+      std::vector<Size> kept;
+      kept.reserve(spec.size());
+      for (Size i = 0; i < spec.size() && i < im.size(); ++i)
+      {
+        if (in_range(im[i])) kept.push_back(i);
+      }
+      if (kept.size() != spec.size()) spec.select(kept); // keeps the data arrays aligned with the peaks
+      return true;
+    }
+    if (spec.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET) return in_range(spec.getDriftTime());
+    return true;
+  }
+
+  // load() and transform(): passes the spectra of the loaders on to @p sink, without those that Config::rt_selects_spectra
+  // (spectra read for the aggregation of the ones in the range) and Config::im_min/im_max leave out
+  static std::function<void(MSSpectrum&)> selectingSink(const BrukerTimsFile::Config& eff, std::function<void(MSSpectrum&)> sink)
+  {
+    const bool select_rt = selectsSpectraByRT(eff);
+    const bool select_im = imRangeSet(eff);
+    if (select_im && !(eff.im_min <= eff.im_max))
+    {
+      OPENMS_LOG_WARN << "Warning: BrukerTimsFile::Config ion mobility range [" << eff.im_min << ", " << eff.im_max
+                      << "] is empty. No peaks will be loaded." << std::endl;
+    }
+    if (!select_rt && !select_im) return sink;
+    return [&eff, select_rt, select_im, sink = std::move(sink)](MSSpectrum& spec)
+    {
+      if (select_rt && !rtInRange(spec.getRT(), eff)) return;
+      if (select_im && !applyIMRange(spec, eff)) return;
+      sink(spec);
+    };
+  }
+
+  // Config::rt_selects_spectra: the loaders select by the retention time range themselves (trimToRTRange(), loadDDA_()),
+  // so they get the frame_id range of the user, not the one narrowed to the retention time range by resolveEffectiveConfig()
+  static void keepFrameRangeOfUser(BrukerTimsFile::Config& eff, const BrukerTimsFile::Config& config)
+  {
+    if (!selectsSpectraByRT(config)) return;
+    eff.frame_id_min = config.frame_id_min;
+    eff.frame_id_max = config.frame_id_max;
+  }
+
+  // The polarity of the frames (Frames.Polarity, '+' or '-'), which every spectrum gets: that of the frame its native ID
+  // names ("frame=<Id> ...", as all loaders write it). A run of one polarity, as nearly all are, needs no lookup.
+  class FramePolarity
+  {
+  public:
+    explicit FramePolarity(const std::string& tdf_path)
+    {
+      try
+      {
+        SQLite::Database db(tdf_path, SQLite::OPEN_READONLY);
+        SQLite::Statement query(db, "SELECT Id, Polarity FROM Frames");
+        bool first = true;
+        while (query.executeStep())
+        {
+          const std::string text = query.getColumn(1).getString();
+          const IonSource::Polarity polarity = text == "+" ? IonSource::Polarity::POSITIVE
+                                               : text == "-" ? IonSource::Polarity::NEGATIVE
+                                                             : IonSource::Polarity::POLNULL;
+          by_frame_[static_cast<uint32_t>(query.getColumn(0).getInt64())] = polarity;
+          if (first) run_ = polarity;
+          else if (polarity != run_) mixed_ = true;
+          first = false;
+        }
+      }
+      catch (const SQLite::Exception&)
+      {
+        // no Polarity column: the polarity stays unknown
+      }
+      if (!mixed_) by_frame_.clear();
+    }
+
+    void apply(MSSpectrum& spec) const
+    {
+      IonSource::Polarity polarity = run_;
+      if (mixed_)
+      {
+        polarity = IonSource::Polarity::POLNULL;
+        const std::string& id = spec.getNativeID();
+        if (id.compare(0, 6, "frame=") == 0)
+        {
+          const auto it = by_frame_.find(static_cast<uint32_t>(std::strtoul(id.c_str() + 6, nullptr, 10)));
+          if (it != by_frame_.end()) polarity = it->second;
+        }
+      }
+      spec.getInstrumentSettings().setPolarity(polarity);
+    }
+
+  private:
+    IonSource::Polarity run_ = IonSource::Polarity::POLNULL;
+    bool mixed_ = false;
+    std::unordered_map<uint32_t, IonSource::Polarity> by_frame_;
+  };
 
   // One-shot validation of the frame_id and RT ranges against the file's
   // actual frame bounds + RT resolution. Called from each top-level public
@@ -1243,13 +1332,33 @@ namespace OpenMS
       return windows;
     }
 
+    // Synchro-PASEF (diagonal-PASEF) moves the quadrupole along with the ion mobility scan, so analysis.tdf lists an
+    // isolation window for every scan step (927 windows of one scan per frame in PXD037766). The DIA loaders make
+    // every window an MS2 spectrum of its own, which is right for diaPASEF, whose windows span dozens to hundreds of
+    // scans, but gives a flood of spectra with a few peaks each here.
+    void warnIfSynchroPASEF(const std::vector<DIAWindow>& windows)
+    {
+      constexpr uint32_t min_scans = 10;
+      const Size narrow = std::count_if(windows.begin(), windows.end(), [](const DIAWindow& w)
+        { return w.scan_end < w.scan_begin + min_scans; });
+      if (narrow * 2 <= windows.size()) return;
+      OPENMS_LOG_WARN << "Warning: " << narrow << " of the " << windows.size() << " DIA isolation windows span fewer than "
+                      << min_scans << " scans: the quadrupole moves along with the ion mobility scan, as in synchro-PASEF "
+                      << "(diagonal-PASEF). This acquisition type is not supported. Every window becomes an MS2 spectrum "
+                      << "of its own, so the MS2 data is split into very many spectra of a few peaks each." << std::endl;
+    }
+
     // Build frame_id -> WindowGroup mapping from SQL.
     // Returns map<window_group, vector<frame_id>> sorted by frame_id within each group.
+    // Frames that DiaFrameMsMsInfo lists but the Frames table lacks (an incomplete or edited analysis.tdf) are left
+    // out with a warning, as the DDA loader skips the PASEF entries of missing frames.
     std::map<int, std::vector<uint32_t>> readFrameToWindowGroupMapping(
       SQLite::Database& db,
-      const std::vector<DIAWindow>& windows)
+      const std::vector<DIAWindow>& windows,
+      const TimsDataHandle& handle)
     {
       std::map<int, std::vector<uint32_t>> mapping;
+      std::set<uint32_t> missing_frames;
 
       // Try DiaFrameMsMsInfo with WindowGroup column first (newer format)
       bool has_window_group_column = false;
@@ -1269,6 +1378,11 @@ namespace OpenMS
         {
           uint32_t frame_id = static_cast<uint32_t>(q.getColumn(0).getInt());
           int group = q.getColumn(1).getInt();
+          if (!handle.has_frame(frame_id))
+          {
+            missing_frames.insert(frame_id);
+            continue;
+          }
           mapping[group].push_back(frame_id);
         }
       }
@@ -1300,6 +1414,11 @@ namespace OpenMS
         while (q.executeStep())
         {
           uint32_t frame_id = static_cast<uint32_t>(q.getColumn(0).getInt());
+          if (!handle.has_frame(frame_id))
+          {
+            missing_frames.insert(frame_id);
+            continue;
+          }
           WindowKey key{
             q.getColumn(1).getDouble(),
             q.getColumn(2).getDouble(),
@@ -1318,14 +1437,23 @@ namespace OpenMS
         }
       }
 
+      if (!missing_frames.empty())
+      {
+        OPENMS_LOG_WARN << "Warning: DiaFrameMsMsInfo lists " << missing_frames.size() << " frame(s) that the Frames table of "
+                        << "analysis.tdf lacks (e.g. frame " << *missing_frames.begin() << "); they are skipped" << std::endl;
+      }
       return mapping;
     }
 
-    // DDA precursor info (joined from Precursors + PasefFrameMsMsInfo)
+    // DDA precursor info (joined from Precursors + PasefFrameMsMsInfo), or a PASEF window without a precursor
     struct DDAPrecursorInfo
     {
-      int precursor_id;
-      double monoisotopic_mz;
+      int precursor_id;       // Precursors.Id, or for a window without a precursor a negative id of its own
+      bool has_precursor = true; // false: a PasefFrameMsMsInfo row whose Precursor is NULL (see readDDAPrecursors())
+      double monoisotopic_mz; // NaN if the acquisition software determined none (NULL), see selectedMZ()
+      double largest_peak_mz; // m/z of the most intense peak of the precursor's isotope pattern (NaN if NULL)
+      double scan_number;     // precursor position on the mobility axis, a fractional scan number (NaN if NULL)
+      int parent_frame;       // the MS1 frame the precursor was selected in (-1 if NULL)
       int charge;
       double intensity;      // precursor intensity (may be NaN/NULL)
       uint32_t frame_id;
@@ -1333,34 +1461,129 @@ namespace OpenMS
       uint32_t scan_end;
       double isolation_mz;
       double isolation_width;
+      double collision_energy; // eV, as stored (negative in negative mode)
+
+      /// The selected ion m/z: the monoisotopic m/z, or for a precursor without one (its charge state could not be
+      /// determined, so Charge is NULL as well) the m/z of its most intense peak, as Bruker's own and other readers
+      /// (timsrust, alphatims) report it. 0 if neither is known. A window without a precursor has only its
+      /// isolation m/z, the target of the acquisition list. (For a precursor, the isolation m/z is the centre of
+      /// the quadrupole window, up to a few isotopes above the monoisotopic m/z, and is not used.)
+      double selectedMZ() const
+      {
+        if (!has_precursor) return isolation_mz;
+        if (std::isfinite(monoisotopic_mz) && monoisotopic_mz > 0.0) return monoisotopic_mz;
+        if (std::isfinite(largest_peak_mz) && largest_peak_mz > 0.0) return largest_peak_mz;
+        return 0.0;
+      }
     };
 
-    // Read DDA precursors from SQL
+    // The fragmentation mode of the run's PASEF MS/MS frames, if they record it: the property
+    // MSMSAuto_FragmentationMode, whose values are "0:CID;1:ETD" (PropertyDefinitions.DisplayValueText). A frame has
+    // the value of its FrameProperties, else that of its property group.
+    // None if a frame has no value or the frames have more than one value.
+    std::optional<Precursor::ActivationMethod> readFragmentationMode(SQLite::Database& db)
+    {
+      if (!db.tableExists("PasefFrameMsMsInfo") || !db.tableExists("PropertyDefinitions") || !db.tableExists("GroupProperties"))
+      {
+        return std::nullopt;
+      }
+      const std::string property = "(SELECT Id FROM PropertyDefinitions WHERE PermanentName = 'MSMSAuto_FragmentationMode')";
+      const bool frame_properties = db.tableExists("FrameProperties");
+      std::string sql = std::string("SELECT DISTINCT ") + (frame_properties ? "COALESCE(fp.Value, gp.Value)" : "gp.Value")
+                        + " FROM (SELECT DISTINCT Frame FROM PasefFrameMsMsInfo) pasef"
+                        " JOIN Frames f ON f.Id = pasef.Frame"
+                        " LEFT JOIN GroupProperties gp ON gp.PropertyGroup = f.PropertyGroup AND gp.Property = " + property;
+      if (frame_properties) sql += " LEFT JOIN FrameProperties fp ON fp.Frame = f.Id AND fp.Property = " + property;
+      SQLite::Statement q(db, sql);
+      std::optional<Precursor::ActivationMethod> mode;
+      while (q.executeStep())
+      {
+        if (mode || !q.getColumn(0).isInteger()) return std::nullopt;
+        switch (q.getColumn(0).getInt())
+        {
+          case 0: mode = Precursor::ActivationMethod::CID; break;
+          case 1: mode = Precursor::ActivationMethod::ETD; break;
+          default: return std::nullopt;
+        }
+      }
+      return mode;
+    }
+
+    // Read the DDA precursors and the PASEF windows without a precursor from SQL. TDF data without PASEF MS/MS
+    // frames, such as MS1-only MALDI runs, has no PasefFrameMsMsInfo table and gives none.
+    //
+    // Acquisitions of a fixed target list (SIMSEF, iprm-PASEF) leave the Precursors table empty: the Precursor of
+    // their PasefFrameMsMsInfo rows is NULL. Each such row is a window of its own and becomes one MS2 spectrum: it
+    // gets a negative precursor_id (-n, ..., -1 in the order of frame and scan), which no precursor has.
     std::vector<DDAPrecursorInfo> readDDAPrecursors(SQLite::Database& db)
     {
       std::vector<DDAPrecursorInfo> precursors;
+      if (!db.tableExists("PasefFrameMsMsInfo")) return precursors;
 
-      SQLite::Statement q(db,
-        "SELECT p.Id, p.MonoisotopicMz, p.Charge, p.Intensity, "
-        "       pfm.Frame, pfm.ScanNumBegin, pfm.ScanNumEnd, "
-        "       pfm.IsolationMz, pfm.IsolationWidth "
-        "FROM Precursors p "
-        "JOIN PasefFrameMsMsInfo pfm ON p.Id = pfm.Precursor "
-        "ORDER BY p.Id, pfm.Frame, pfm.ScanNumBegin");
+      if (db.tableExists("Precursors"))
+      {
+        SQLite::Statement q(db,
+          "SELECT p.Id, p.MonoisotopicMz, p.Charge, p.Intensity, "
+          "       pfm.Frame, pfm.ScanNumBegin, pfm.ScanNumEnd, "
+          "       pfm.IsolationMz, pfm.IsolationWidth, "
+          "       p.LargestPeakMz, p.ScanNumber, p.Parent, pfm.CollisionEnergy "
+          "FROM Precursors p "
+          "JOIN PasefFrameMsMsInfo pfm ON p.Id = pfm.Precursor "
+          "ORDER BY p.Id, pfm.Frame, pfm.ScanNumBegin");
 
-      while (q.executeStep())
+        while (q.executeStep())
+        {
+          DDAPrecursorInfo info;
+          info.precursor_id   = q.getColumn(0).getInt();
+          // NULL columns read as 0 with getDouble(), which would become a precursor m/z of 0
+          const auto nullable = [&q](int column) {
+            return q.getColumn(column).isNull() ? std::numeric_limits<double>::quiet_NaN() : q.getColumn(column).getDouble();
+          };
+          info.monoisotopic_mz = nullable(1);
+          info.charge          = q.getColumn(2).isNull() ? 0 : q.getColumn(2).getInt();
+          info.intensity       = q.getColumn(3).isNull() ? std::numeric_limits<double>::quiet_NaN() : q.getColumn(3).getDouble();
+          info.frame_id        = static_cast<uint32_t>(q.getColumn(4).getInt());
+          info.scan_begin      = static_cast<uint32_t>(q.getColumn(5).getInt());
+          info.scan_end        = static_cast<uint32_t>(q.getColumn(6).getInt());
+          info.isolation_mz    = q.getColumn(7).getDouble();
+          info.isolation_width = q.getColumn(8).getDouble();
+          info.largest_peak_mz = nullable(9);
+          info.scan_number     = nullable(10);
+          info.parent_frame    = q.getColumn(11).isNull() ? -1 : q.getColumn(11).getInt();
+          info.collision_energy = q.getColumn(12).getDouble();
+          precursors.push_back(info);
+        }
+      }
+
+      // The windows without a precursor: the precursor m/z is the isolation m/z (see selectedMZ()), the ion
+      // mobility that of the isolated scans (see loadDDA_()). Nothing else is known about the precursor.
+      SQLite::Statement targets(db,
+        "SELECT Frame, ScanNumBegin, ScanNumEnd, IsolationMz, IsolationWidth, CollisionEnergy "
+        "FROM PasefFrameMsMsInfo WHERE Precursor IS NULL "
+        "ORDER BY Frame, ScanNumBegin");
+      const size_t first_target = precursors.size();
+      while (targets.executeStep())
       {
         DDAPrecursorInfo info;
-        info.precursor_id   = q.getColumn(0).getInt();
-        info.monoisotopic_mz = q.getColumn(1).getDouble();
-        info.charge          = q.getColumn(2).isNull() ? 0 : q.getColumn(2).getInt();
-        info.intensity       = q.getColumn(3).isNull() ? std::numeric_limits<double>::quiet_NaN() : q.getColumn(3).getDouble();
-        info.frame_id        = static_cast<uint32_t>(q.getColumn(4).getInt());
-        info.scan_begin      = static_cast<uint32_t>(q.getColumn(5).getInt());
-        info.scan_end        = static_cast<uint32_t>(q.getColumn(6).getInt());
-        info.isolation_mz    = q.getColumn(7).getDouble();
-        info.isolation_width = q.getColumn(8).getDouble();
+        info.has_precursor   = false;
+        info.monoisotopic_mz = std::numeric_limits<double>::quiet_NaN();
+        info.largest_peak_mz = std::numeric_limits<double>::quiet_NaN();
+        info.scan_number     = std::numeric_limits<double>::quiet_NaN();
+        info.parent_frame    = -1;
+        info.charge          = 0;
+        info.intensity       = std::numeric_limits<double>::quiet_NaN();
+        info.frame_id        = static_cast<uint32_t>(targets.getColumn(0).getInt());
+        info.scan_begin      = static_cast<uint32_t>(targets.getColumn(1).getInt());
+        info.scan_end        = static_cast<uint32_t>(targets.getColumn(2).getInt());
+        info.isolation_mz    = targets.getColumn(3).getDouble();
+        info.isolation_width = targets.getColumn(4).getDouble();
+        info.collision_energy = targets.getColumn(5).getDouble();
         precursors.push_back(info);
+      }
+      const int num_targets = static_cast<int>(precursors.size() - first_target);
+      for (int i = 0; i < num_targets; ++i)
+      {
+        precursors[first_target + i].precursor_id = i - num_targets;
       }
 
       return precursors;
@@ -1412,7 +1635,8 @@ namespace OpenMS
       try
       {
         SQLite::Statement q(db,
-          "SELECT COUNT(DISTINCT Precursor) FROM PasefFrameMsMsInfo"
+          // each window without a precursor (Precursor NULL) is a spectrum of its own, see readDDAPrecursors()
+          "SELECT COUNT(DISTINCT Precursor) + COUNT(*) - COUNT(Precursor) FROM PasefFrameMsMsInfo"
           " WHERE Frame >= " + std::to_string(config.frame_id_min) +
           " AND Frame <= " + std::to_string(config.frame_id_max));
         if (q.executeStep())
@@ -1420,6 +1644,33 @@ namespace OpenMS
       }
       catch (const SQLite::Exception&) {}
       return 0;
+    }
+
+    // Config::rt_selects_spectra: the precursors in the frame_id range of @p config whose spectra lie in its retention
+    // time range (the mean time of their frames, as loadDDA_() computes it), counted with a margin for rounding
+    uint32_t countDDAPrecursorsInRTRange(SQLite::Database& db,
+                                         const BrukerTimsFile::Config& config)
+    {
+      try
+      {
+        const double margin = 1e-6;
+        SQLite::Statement q(db,
+          "SELECT COUNT(*) FROM (SELECT SUM(f.Time) / COUNT(*) AS rt FROM PasefFrameMsMsInfo pfm"
+          " LEFT JOIN Frames f ON f.Id = pfm.Frame"
+          " WHERE pfm.Frame >= ? AND pfm.Frame <= ?"
+          // each window without a precursor (Precursor NULL) is a spectrum of its own, see readDDAPrecursors()
+          " GROUP BY pfm.Precursor, CASE WHEN pfm.Precursor IS NULL THEN pfm.Frame END,"
+          " CASE WHEN pfm.Precursor IS NULL THEN pfm.ScanNumBegin END)"
+          " WHERE rt >= ? AND rt <= ?");
+        q.bind(1, static_cast<int64_t>(config.frame_id_min));
+        q.bind(2, static_cast<int64_t>(config.frame_id_max));
+        q.bind(3, config.rt_min_sec - margin);
+        q.bind(4, std::isfinite(config.rt_max_sec) ? config.rt_max_sec + margin : std::numeric_limits<double>::max());
+        if (q.executeStep())
+          return static_cast<uint32_t>(q.getColumn(0).getInt());
+      }
+      catch (const SQLite::Exception&) {}
+      return countDDAPrecursors(db, config);
     }
 
   } // anonymous namespace
@@ -1444,6 +1695,228 @@ namespace OpenMS
   // =====================================================================
   // opentims only opens directories, so a '.d.zip' archive is unpacked into a temporary
   // directory that exists as long as this struct.
+  BrukerTimsFile::DataFormat BrukerTimsFile::detectFormat(const std::string& path)
+  {
+    bool tdf = false, tsf = false, baf = false;
+    const auto note = [&](const std::string& file_name)
+    {
+      if (file_name == "analysis.tdf" || file_name == "analysis.tdf_bin") tdf = true;
+      else if (file_name == "analysis.tsf" || file_name == "analysis.tsf_bin") tsf = true;
+      else if (file_name == "analysis.baf") baf = true;
+    };
+
+    // The error_code overloads: a directory that cannot be searched, or a stale network mount, is no Bruker
+    // data that can be read, and FileHandler::getType() relies on this not throwing
+    std::error_code ec;
+    const std::filesystem::path fs_path = to_path(path);
+    if (std::filesystem::is_directory(fs_path, ec))
+    {
+      for (const char* file_name : {"analysis.tdf", "analysis.tdf_bin", "analysis.tsf", "analysis.tsf_bin", "analysis.baf"})
+      {
+        if (std::filesystem::exists(fs_path / file_name, ec)) note(file_name);
+      }
+    }
+    else if (std::filesystem::exists(fs_path, ec) && StringUtils::hasSuffix(StringUtils::toLowered(path), ".zip"))
+    {
+      std::vector<std::string> entries;
+      if (!ZipArchiveFile::listEntries(path, entries)) return DataFormat::UNREADABLE_ARCHIVE;
+      // As unpack_() finds the data after extraction: files of a directory '*.d', nothing below '__MACOSX'
+      for (const std::string& entry : entries)
+      {
+        const std::filesystem::path entry_path = to_path(entry);
+        if (entry_path.parent_path().extension() != ".d") continue;
+        if (std::find(entry_path.begin(), entry_path.end(), std::filesystem::path("__MACOSX")) != entry_path.end()) continue;
+        note(entry_path.filename().string());
+      }
+    }
+    return tdf ? DataFormat::TDF : tsf ? DataFormat::TSF : baf ? DataFormat::BAF : DataFormat::NONE;
+  }
+
+  // Throws for the formats that are recognized but cannot be read
+  static void checkDataFormat(BrukerTimsFile::DataFormat format, const std::string& path)
+  {
+    using DataFormat = BrukerTimsFile::DataFormat;
+    if (format != DataFormat::TSF && format != DataFormat::BAF) return;
+    const std::string name = format == DataFormat::TSF ? "TSF" : "BAF";
+    const std::string file = format == DataFormat::TSF ? "analysis.tsf" : "analysis.baf";
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
+      "Bruker " + name + " data (" + file + ") is not supported. Only Bruker TDF data can be read: a .d directory "
+      "with analysis.tdf and analysis.tdf_bin, as timsTOF instruments write with ion mobility separation. "
+      "Convert the run to mzML with another tool first");
+  }
+
+  void BrukerTimsFile::checkDataFormat(const std::string& path)
+  {
+    OpenMS::checkDataFormat(detectFormat(path), path);
+  }
+
+  // opentims decodes zstd-compressed frames only. Its own error for other data ends up as "the file ... is not
+  // readable for the current user", so this is checked before it gets the directory.
+  static void checkCompression(const std::string& d_path)
+  {
+    std::string compression;
+    try
+    {
+      SQLite::Database db(d_path + "/analysis.tdf", SQLite::OPEN_READONLY);
+      SQLite::Statement query(db, "SELECT Value FROM GlobalMetadata WHERE Key = 'TimsCompressionType'");
+      if (query.executeStep()) compression = query.getColumn(0).getString();
+    }
+    catch (const std::exception&)
+    {
+      return; // no analysis.tdf that can be queried: opentims reports that
+    }
+    if (compression.empty() || std::atoi(compression.c_str()) == 2) return;
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path,
+      "Bruker TDF data with TimsCompressionType " + compression + " is not supported. Only zstd-compressed frames "
+      "(TimsCompressionType 2) can be read, which timsTOF acquisition software has written since 2018");
+  }
+
+  // opentims reads every frame at its offset into analysis.tdf_bin (Frames.TimsId) without comparing it with the size of
+  // the file, so a frame that lies (partly) beyond the end of the file crashes the program. That happens with a file that
+  // was not completely copied or uploaded, or that the acquisition is still writing. The frames are stored one after the
+  // other, so the file is complete if the frame with the largest offset ends in it; the first number of the header of a
+  // frame is its size in bytes (header included). Checked before opentims gets the directory.
+  static void checkFrameOffsets(const std::string& d_path)
+  {
+    const std::string bin_path = d_path + "/analysis.tdf_bin";
+    std::error_code ec;
+    const std::uintmax_t bin_size = std::filesystem::file_size(to_path(bin_path), ec);
+    if (ec) return; // no analysis.tdf_bin: opentims reports that
+
+    int64_t first_frame = 0, first_offset = 0, last_frame = 0, last_offset = 0;
+    try
+    {
+      SQLite::Database db(d_path + "/analysis.tdf", SQLite::OPEN_READONLY);
+      SQLite::Statement first(db, "SELECT Id, TimsId FROM Frames WHERE TimsId IS NOT NULL ORDER BY TimsId LIMIT 1");
+      if (!first.executeStep()) return; // no frames
+      first_frame = first.getColumn(0).getInt64();
+      first_offset = first.getColumn(1).getInt64();
+      SQLite::Statement last(db, "SELECT Id, TimsId FROM Frames WHERE TimsId IS NOT NULL ORDER BY TimsId DESC LIMIT 1");
+      last.executeStep();
+      last_frame = last.getColumn(0).getInt64();
+      last_offset = last.getColumn(1).getInt64();
+    }
+    catch (const std::exception&)
+    {
+      return; // no analysis.tdf or Frames table that can be queried: opentims reports that
+    }
+
+    if (first_offset < 0)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path,
+        "analysis.tdf is corrupt: frame " + std::to_string(first_frame) + " has a negative offset ("
+        + std::to_string(first_offset) + ") into analysis.tdf_bin");
+    }
+
+    const uint64_t header_size = 8; // frame size and number of scans, two little-endian uint32
+    uint64_t last_end = static_cast<uint64_t>(last_offset) + header_size;
+    if (last_end <= bin_size)
+    {
+      std::ifstream bin(to_path(bin_path), std::ios::binary);
+      unsigned char size_bytes[4] = {0, 0, 0, 0};
+      bin.seekg(static_cast<std::streamoff>(last_offset));
+      bin.read(reinterpret_cast<char*>(size_bytes), sizeof(size_bytes));
+      if (!bin) return; // could not be read here: opentims reports that
+      const uint32_t frame_size = static_cast<uint32_t>(size_bytes[0]) | (static_cast<uint32_t>(size_bytes[1]) << 8)
+                                  | (static_cast<uint32_t>(size_bytes[2]) << 16) | (static_cast<uint32_t>(size_bytes[3]) << 24);
+      if (frame_size < header_size)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path,
+          "analysis.tdf_bin is corrupt: frame " + std::to_string(last_frame) + " at byte " + std::to_string(last_offset)
+          + " has a size of " + std::to_string(frame_size) + " bytes, less than its header");
+      }
+      last_end = static_cast<uint64_t>(last_offset) + frame_size;
+    }
+    if (last_end <= bin_size) return;
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path,
+      "analysis.tdf_bin is incomplete: it has " + std::to_string(bin_size) + " bytes, but frame " + std::to_string(last_frame)
+      + " takes bytes " + std::to_string(last_offset) + " to " + std::to_string(last_end) + ". The file was not completely "
+      "copied or uploaded, or the acquisition was still writing it");
+  }
+
+  // MALDI imaging runs (GlobalMetadata MaldiApplicationType "Imaging") are read by BrukerTimsImagingFile, which keeps
+  // the pixel position of every frame. Read as DDA or DIA data here, they would lose them (and an MS1-only run would
+  // pass for an LC run without precursors), so they are rejected; export mode FRAME, which BrukerTimsImagingFile uses,
+  // reads them as frames. @p path is the path the caller gave, @p d_path the .d directory (unpacked from a .d.zip).
+  static void rejectMaldiImaging(const std::string& path, const std::string& d_path)
+  {
+    std::string application_type;
+    try
+    {
+      SQLite::Database db(d_path + "/analysis.tdf", SQLite::OPEN_READONLY);
+      if (!db.tableExists("GlobalMetadata")) return;
+      SQLite::Statement query(db, "SELECT Value FROM GlobalMetadata WHERE Key = 'MaldiApplicationType'");
+      if (query.executeStep()) application_type = query.getColumn(0).getString();
+    }
+    catch (const std::exception&)
+    {
+      return; // no analysis.tdf that can be queried: opentims reports that
+    }
+    if (application_type != "Imaging") return;
+    throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
+      "Bruker MALDI imaging .d is a mass spectrometry imaging format: read as DDA or DIA data, its spectra would lose "
+      "their pixel positions. Load it with BrukerTimsImagingFile (FileHandler::loadImagingExperiment) into an "
+      "MSImagingExperiment, or read its frames with export mode FRAME");
+  }
+
+  // An exception that the consumer of transform() or loadDIAStreaming() threw, on its way through the reader to the
+  // public read function, which rethrows it as it was (see rethrowAsParseError())
+  struct ConsumerError
+  {
+    std::exception_ptr error;
+  };
+
+  // Runs a call of the consumer of transform() or loadDIAStreaming(). Its exceptions leave the reader as they are: they
+  // tell what went wrong in the consumer (e.g. a Python callback that raised), not in the data.
+  template <typename Call>
+  static void callConsumer(Call&& call)
+  {
+    try
+    {
+      call();
+    }
+    catch (...)
+    {
+      throw ConsumerError{std::current_exception()};
+    }
+  }
+
+  // Runs one of the public read functions on @p path. Errors in the data leave the reader as OpenMS exceptions (the
+  // TOPP tools catch those only, so any other exception would end the program): an analysis.tdf that lacks a table or
+  // column a query needs, and frames that opentims cannot decode (e.g. corrupt zstd data in analysis.tdf_bin), are
+  // reported as ParseError of @p path. Exceptions of the consumer (callConsumer()) and running out of memory say
+  // nothing about the data and leave as they are.
+  template <typename Function>
+  static auto rethrowAsParseError(const std::string& path, Function&& function)
+  {
+    try
+    {
+      return function();
+    }
+    catch (const Exception::BaseException&)
+    {
+      throw;
+    }
+    catch (const ConsumerError& e)
+    {
+      std::rethrow_exception(e.error);
+    }
+    catch (const std::bad_alloc&)
+    {
+      throw;
+    }
+    catch (const SQLite::Exception& e)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
+        std::string("Cannot read analysis.tdf (SQLite: ") + e.what() + ")");
+    }
+    catch (const std::exception& e)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
+        std::string("Cannot read the Bruker TDF data: ") + e.what());
+    }
+  }
+
   struct BrukerTimsFile::UnpackedArchive
   {
     std::string archive;          ///< the archive path as the caller gave it
@@ -1456,6 +1929,15 @@ namespace OpenMS
     if (File::isDirectory(path) || !StringUtils::hasSuffix(StringUtils::toLowered(path), ".zip"))
     {
       return nullptr;
+    }
+    // Nothing is extracted if the list of entries shows that there is nothing to read. (An archive whose
+    // entries cannot be listed goes on to unzipDirectory(), which says what is wrong with it.)
+    const DataFormat format = detectFormat(path);
+    OpenMS::checkDataFormat(format, path);
+    if (format == DataFormat::NONE && File::exists(path))
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        path, "ZIP archive does not contain a .d directory with analysis.tdf");
     }
     auto unpacked = std::make_shared<UnpackedArchive>();
     unpacked->archive = path;
@@ -1517,9 +1999,17 @@ namespace OpenMS
   // =====================================================================
   using Config = BrukerTimsFile::Config;
 
+  /// Bruker attribution required by the TDF-SDK licence (section 4.4) wherever the SDK is used.
+  static const char* const BRUKER_SDK_ATTRIBUTION =
+    "This software uses Software software. Copyright \xC2\xA9 2019 by Bruker Daltonik GmbH. All rights reserved.";
+
   static std::unique_ptr<TimsDataHandle> openTimsDataHandle(
     const std::string& path, const Config& config = Config())
   {
+    BrukerTimsFile::checkDataFormat(path);
+    checkCompression(path);
+    checkFrameOffsets(path);
+
     std::string path_string = path;
 
     // 1. Always create handle with linear converters (safe baseline)
@@ -1555,6 +2045,22 @@ namespace OpenMS
                       << std::endl;
     }
 
+    // m/z: use the MzCalibration table with per-frame temperature correction unless the
+    // linear GlobalMetadata model was requested. An optional Bruker SDK (below) replaces it.
+    if (strategy != Strategy::LINEAR)
+    {
+      if (auto mz_converter = tryCreateMzCalibrationConverter(path_string))
+      {
+        handle->tof2mz_converter = std::move(mz_converter);
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "TIMS m/z calibration: MzCalibration table not usable, using the linear "
+                           "approximation from GlobalMetadata (errors of tens of ppm are possible)"
+                        << std::endl;
+      }
+    }
+
     // 2. Try Bruker SDK (AUTO or BRUKER_SDK)
     if (strategy == Strategy::AUTO || strategy == Strategy::BRUKER_SDK)
     {
@@ -1570,12 +2076,15 @@ namespace OpenMS
         try
         {
           auto pcs = mapPressureCompensation(config.pressure_compensation);
-          handle->scan2inv_ion_mobility_converter =
-            BrukerScan2InvIonMobilityConverterFactory::instance(sdk_path)
-              .produce(*handle, pcs);
-          OPENMS_LOG_INFO << "TIMS calibration: Bruker SDK"
+          // the SDK is the vendor reference for both m/z and 1/K0; only switch once both work
+          auto tof2mz = BrukerTof2MzConverterFactory::instance(sdk_path).produce(*handle, pcs);
+          auto scan2im = BrukerScan2InvIonMobilityConverterFactory::instance(sdk_path).produce(*handle, pcs);
+          handle->tof2mz_converter = std::move(tof2mz);
+          handle->scan2inv_ion_mobility_converter = std::move(scan2im);
+          OPENMS_LOG_INFO << "TIMS calibration: Bruker SDK (m/z + 1/K0)"
                           << (pcs != NoPressureCompensation ? " (pressure_comp=on)" : "")
-                          << std::endl;
+                          << " [" << sdk_path << "]" << std::endl;
+          OPENMS_LOG_INFO << BRUKER_SDK_ATTRIBUTION << std::endl;
           return handle;
         }
         catch (const std::exception& e)
@@ -1585,8 +2094,10 @@ namespace OpenMS
             throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               std::string("Bruker SDK failed: ") + e.what());
           }
-          OPENMS_LOG_DEBUG << "Bruker SDK not available (" << e.what()
-                          << "), trying rational" << std::endl;
+          // the SDK is optional: say so visibly, then continue without it
+          OPENMS_LOG_WARN << "Bruker SDK '" << sdk_path << "' could not be used (" << e.what()
+                          << "); continuing without it (m/z and 1/K0 from the analysis.tdf calibration tables)"
+                          << std::endl;
         }
       }
       else if (strategy == Strategy::BRUKER_SDK)
@@ -1620,7 +2131,95 @@ namespace OpenMS
   // =====================================================================
   // Helper: convert a single opentims frame to MSSpectrum
   // =====================================================================
-  static void frameToSpectrum(TimsFrame& frame, MSSpectrum& spec, int ms_level)
+  // Fills @p order with the indices 0..n-1 sorted by @p keys, equal keys in index order (LSD radix sort)
+  static void stableOrderByKey(const uint32_t* keys, uint32_t n, std::vector<uint32_t>& order, std::vector<uint32_t>& scratch)
+  {
+    constexpr unsigned BITS = 11;
+    constexpr uint32_t BUCKETS = 1u << BITS;
+    order.resize(n);
+    scratch.resize(n);
+    std::iota(order.begin(), order.end(), 0u);
+    uint32_t max_key = 0;
+    for (uint32_t i = 0; i < n; ++i) max_key = std::max(max_key, keys[i]);
+    std::array<uint32_t, BUCKETS + 1> first; // first[b]: position of the first index whose digit is b
+    for (unsigned shift = 0; shift < 32 && (max_key >> shift) != 0; shift += BITS)
+    {
+      first.fill(0);
+      for (uint32_t i = 0; i < n; ++i) ++first[((keys[i] >> shift) & (BUCKETS - 1)) + 1];
+      for (uint32_t b = 0; b < BUCKETS; ++b) first[b + 1] += first[b];
+      for (uint32_t i = 0; i < n; ++i)
+      {
+        const uint32_t index = order[i];
+        scratch[first[(keys[index] >> shift) & (BUCKETS - 1)]++] = index;
+      }
+      order.swap(scratch);
+    }
+  }
+
+  // The peaks of one frame. A loader keeps one object and decodes frame after frame into it, so that
+  // the buffers are not allocated for every frame.
+  struct DecodedFrame
+  {
+    // per peak, in the order of the frame (scan by scan, ascending TOF index within a scan)
+    std::vector<uint32_t> scan_ids;
+    std::vector<uint32_t> tofs;
+    std::vector<uint32_t> intensities;
+    std::vector<double> mzs;
+    /// Inverse ion mobility of each scan: it is the same for all peaks of a scan
+    std::vector<double> scan_im;
+    /// The peak indices in the order to emit them: ascending m/z, peaks of equal m/z in scan order. That
+    /// is the order a stable sort of the spectrum by m/z gives, which every spectrum needs in the end.
+    std::vector<uint32_t> mz_order;
+
+    /// Decodes @p frame (which must have peaks). @p order_by_mz: also fill mz_order.
+    /// With a decompression context and a buffer of handle.get_decomp_buffer_size() bytes that only the
+    /// calling thread uses, frames of one handle can be decoded by several threads at the same time (not
+    /// the same frame, and not with the converters of the Bruker SDK); without them the ones of the
+    /// handle are used.
+    void decode(TimsDataHandle& handle, TimsFrame& frame, bool order_by_mz, ZSTD_DCtx* context = nullptr, char* buffer = nullptr)
+    {
+      const uint32_t n = frame.num_peaks;
+      scan_ids.resize(n);
+      tofs.resize(n);
+      intensities.resize(n);
+      mzs.resize(n);
+      if (context != nullptr && buffer != nullptr)
+      {
+        frame.decompress(buffer, context);
+        frame.save_to_buffs(nullptr, scan_ids.data(), tofs.data(), intensities.data(), mzs.data(), nullptr, nullptr, context);
+        frame.close();
+      }
+      else
+      {
+        frame.save_to_buffs(nullptr, scan_ids.data(), tofs.data(), intensities.data(), mzs.data(), nullptr, nullptr);
+      }
+
+      const uint32_t n_scans = std::max(frame.num_scans, *std::max_element(scan_ids.begin(), scan_ids.end()) + 1);
+      for (uint32_t scan = static_cast<uint32_t>(scan_numbers_.size()); scan < n_scans; ++scan) scan_numbers_.push_back(scan);
+      scan_im.resize(n_scans);
+      handle.scan2inv_ion_mobility_converter->convert(frame.id, scan_im.data(), scan_numbers_.data(), n_scans);
+
+      if (!order_by_mz) return;
+      // m/z grows with the TOF index, so the order by m/z is the order by (TOF index, scan)
+      stableOrderByKey(tofs.data(), n, mz_order, scratch_);
+      for (uint32_t i = 1; i < n; ++i)
+      {
+        const uint32_t before = mz_order[i - 1], peak = mz_order[i];
+        if (mzs[before] < mzs[peak] || tofs[before] == tofs[peak]) continue;
+        // m/z does not grow strictly with the TOF index here (a calibration with a step): keep the order of
+        // the frame. The spectrum is then sorted with all others at the end of the load.
+        std::iota(mz_order.begin(), mz_order.end(), 0u);
+        break;
+      }
+    }
+
+  private:
+    std::vector<uint32_t> scan_numbers_; // 0, 1, 2, ...
+    std::vector<uint32_t> scratch_;
+  };
+
+  static void frameToSpectrum(TimsDataHandle& handle, TimsFrame& frame, MSSpectrum& spec, int ms_level,
+                              DecodedFrame& decoded, ZSTD_DCtx* context = nullptr, char* buffer = nullptr)
   {
     spec.clear(true);
     spec.setRT(frame.time);
@@ -1633,32 +2232,20 @@ namespace OpenMS
 
     if (frame.num_peaks == 0) return;
 
-    // Allocate output buffers
-    std::vector<uint32_t> scan_ids(frame.num_peaks);
-    std::vector<uint32_t> intensities(frame.num_peaks);
-    std::vector<double> mzs(frame.num_peaks);
-    std::vector<double> inv_ion_mobilities(frame.num_peaks);
+    decoded.decode(handle, frame, /*order_by_mz=*/true, context, buffer);
 
-    frame.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
-                        mzs.data(), inv_ion_mobilities.data(), nullptr);
-
-    // Fill spectrum peaks
-    spec.reserve(frame.num_peaks);
-    for (uint32_t i = 0; i < frame.num_peaks; ++i)
-    {
-      Peak1D peak;
-      peak.setMZ(mzs[i]);
-      peak.setIntensity(static_cast<double>(intensities[i]));
-      spec.push_back(peak);
-    }
-
-    // Set IM float data array with correct CV term
+    // Fill spectrum peaks and the IM float data array, in m/z order
+    spec.resize(frame.num_peaks);
     DataArrays::FloatDataArray im_array;
     im_array.resize(frame.num_peaks);
     for (uint32_t i = 0; i < frame.num_peaks; ++i)
     {
-      im_array[i] = static_cast<float>(inv_ion_mobilities[i]);
+      const uint32_t peak = decoded.mz_order[i];
+      spec[i].setMZ(decoded.mzs[peak]);
+      spec[i].setIntensity(static_cast<double>(decoded.intensities[peak]));
+      im_array[i] = static_cast<float>(decoded.scan_im[decoded.scan_ids[peak]]);
     }
+    // Set IM float data array with correct CV term
     IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
     spec.getFloatDataArrays().push_back(std::move(im_array));
     spec.setIMPeakType(IMPeakType::IM_PROFILE);
@@ -1743,15 +2330,142 @@ namespace OpenMS
   // =====================================================================
   // Helper: build one MS1 spectrum from a frame, with optional IM centroiding
   // =====================================================================
-  static void loadMS1Spectrum(TimsFrame& frame, MSSpectrum& spec,
+  static void loadMS1Spectrum(TimsDataHandle& handle, TimsFrame& frame, MSSpectrum& spec,
                               const BrukerTimsFile::Config& config,
-                              FrameCentroider& centroider)
+                              FrameCentroider& centroider, DecodedFrame& decoded)
   {
     if (isCentroidingEnabled(config))
       centroidMS1Frame(frame, spec, config, centroider);
     else
-      frameToSpectrum(frame, spec, 1);
+      frameToSpectrum(handle, frame, spec, 1, decoded);
   }
+
+  // Turns raw frames into spectra (frameToSpectrum()), several at a time: the frames are given up front in
+  // the order in which their spectra are asked for, and the next ones are decoded in parallel, each by a
+  // thread with its own decompression context and buffers. The spectra are those frameToSpectrum() gives
+  // one by one. A batch holds one large frame (an MS1 frame) per thread and the small frames between
+  // them, so the spectra held at a time stay few.
+  class RawFrameReader
+  {
+  public:
+    /// @param frames frame id and MS level of the frames, in the order of the next() calls
+    RawFrameReader(TimsDataHandle& handle, std::vector<std::pair<uint32_t, int>> frames) :
+      handle_(handle),
+      frames_(std::move(frames))
+    {
+      // The converters of OpenMS and the linear ones of opentims only read their tables; those of the
+      // Bruker SDK are called by one thread at a time
+      const bool sdk = dynamic_cast< ::BrukerTof2MzConverter*>(handle.tof2mz_converter.get()) != nullptr
+                    || dynamic_cast< ::BrukerScan2InvIonMobilityConverter*>(handle.scan2inv_ion_mobility_converter.get()) != nullptr;
+      // More than a few threads do not help: what is left of a load is serial (handing the spectra on, the
+      // passes over the loaded experiment), and waiting threads get in its way. Measured on two 5.6 min
+      // runs with 1 / 2 / 4 / 8 / 20 threads: 9.0 / 5.5 / 4.0 / 3.5 / 3.3 s (DDA), 8.5 / 6.1 / 4.9 / 6.5 / 5.7 s (DIA).
+      constexpr int MAX_THREADS = 4;
+      int n_threads = 1;
+#ifdef _OPENMP
+      if (!sdk) n_threads = std::min(MAX_THREADS, std::max(1, omp_get_max_threads()));
+#endif
+      n_threads = static_cast<int>(std::min<size_t>(static_cast<size_t>(n_threads), std::max<size_t>(1, frames_.size())));
+      workers_.resize(static_cast<size_t>(n_threads));
+      if (n_threads > 1)
+      {
+        for (Worker& worker : workers_)
+        {
+          worker.context.reset(ZSTD_createDCtx());
+          worker.buffer.resize(handle.get_decomp_buffer_size());
+        }
+      }
+    }
+
+    /// The spectrum of the next frame, which has to be @p frame_id
+    void next(uint32_t frame_id, MSSpectrum& spec)
+    {
+      if (next_in_batch_ == batch_.size()) decodeBatch_();
+      const size_t index = n_decoded_ - batch_.size() + next_in_batch_;
+      if (frames_[index].first != frame_id)
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RawFrameReader: frames are asked for in the order given");
+      }
+      spec = std::move(batch_[next_in_batch_++]);
+    }
+
+  private:
+    struct Worker
+    {
+      struct FreeContext
+      {
+        void operator()(ZSTD_DCtx* context) const { ZSTD_freeDCtx(context); }
+      };
+      std::unique_ptr<ZSTD_DCtx, FreeContext> context;
+      std::vector<char> buffer;
+      DecodedFrame decoded;
+    };
+
+    void decodeBatch_()
+    {
+      if (n_decoded_ == frames_.size())
+      {
+        throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, n_decoded_, frames_.size());
+      }
+      // The next frames, up to one large frame per thread. Small frames (MS2 frames of a few thousand
+      // peaks) are not worth a thread of their own; a batch without two large frames is decoded serially.
+      constexpr uint32_t LARGE_FRAME = 20000; // peaks
+      const size_t max_frames = 64 * workers_.size();
+      size_t n = 0, n_large = 0;
+      while (n_decoded_ + n < frames_.size() && n < max_frames && n_large < workers_.size())
+      {
+        if (handle_.get_frame(frames_[n_decoded_ + n].first).num_peaks >= LARGE_FRAME) ++n_large;
+        ++n;
+      }
+      batch_.clear();
+      batch_.resize(n);
+      next_in_batch_ = 0;
+      if (workers_.size() == 1 || n_large < 2)
+      {
+        for (size_t i = 0; i < n; ++i) decodeFrame_(n_decoded_ + i, batch_[i], workers_[0]);
+      }
+      else
+      {
+        // every thread has its own worker; exceptions must not leave the parallel region
+        std::exception_ptr error = nullptr;
+#pragma omp parallel for schedule(dynamic, 1) num_threads(static_cast<int>(workers_.size()))
+        for (SignedSize i = 0; i < static_cast<SignedSize>(n); ++i)
+        {
+          try
+          {
+            int thread = 0;
+#ifdef _OPENMP
+            thread = omp_get_thread_num();
+#endif
+            decodeFrame_(n_decoded_ + static_cast<size_t>(i), batch_[static_cast<size_t>(i)], workers_[static_cast<size_t>(thread)]);
+          }
+          catch (...)
+          {
+#pragma omp critical (BrukerTimsFile_RawFrameReader)
+            {
+              if (!error) error = std::current_exception();
+            }
+          }
+        }
+        if (error) std::rethrow_exception(error);
+      }
+      n_decoded_ += n;
+    }
+
+    void decodeFrame_(size_t index, MSSpectrum& spec, Worker& worker)
+    {
+      TimsFrame& frame = handle_.get_frame(frames_[index].first);
+      frameToSpectrum(handle_, frame, spec, frames_[index].second, worker.decoded, worker.context.get(),
+                      worker.buffer.empty() ? nullptr : worker.buffer.data());
+    }
+
+    TimsDataHandle& handle_;
+    std::vector<std::pair<uint32_t, int>> frames_;
+    std::vector<Worker> workers_;
+    std::vector<MSSpectrum> batch_; ///< the spectra of the frames decoded last
+    size_t next_in_batch_ = 0;
+    size_t n_decoded_ = 0;
+  };
 
   // =====================================================================
   // Helper: build one aggregated MS1 spectrum from a sliding window of
@@ -1859,23 +2573,6 @@ namespace OpenMS
     const auto algo = effectiveMS1Algo(config, /*emit_warnings=*/false);
     if (algo != BrukerTimsFile::Config::CentroidAlgo::OFF)
     {
-      // Unpack aggregator output into parallel arrays for the centroider,
-      // including per-peak scan_id so HillBased can do gap detection.
-      std::vector<double> cent_mzs(peaks.size());
-      std::vector<double> cent_intensities(peaks.size());
-      std::vector<double> cent_ims(peaks.size());
-      std::vector<uint32_t> cent_scan_ids(peaks.size());
-      for (size_t i = 0; i < peaks.size(); ++i)
-      {
-        cent_mzs[i] = peaks[i].mz;
-        cent_intensities[i] = peaks[i].intensity;
-        double im_val = 0.0;
-        handle.scan2inv_ion_mobility_converter->convert(
-          center_frame.id, &im_val, &peaks[i].scan_id, 1);
-        cent_ims[i] = im_val;
-        cent_scan_ids[i] = peaks[i].scan_id;
-      }
-
       std::vector<double> out_mz, out_intensity;
       std::vector<float> out_im;
       std::vector<float> b_im_lo, b_im_hi, b_mz_lo, b_mz_hi;
@@ -1920,24 +2617,6 @@ namespace OpenMS
   }
 
   // =====================================================================
-  // isDIA_: detect DDA vs DIA by querying for SWATH window tables
-  // =====================================================================
-  bool BrukerTimsFile::isDIA_(const std::string& tdf_path) const
-  {
-    try
-    {
-      SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
-      return isDIA(db);
-    }
-    catch (const SQLite::Exception& e)
-    {
-      OPENMS_LOG_WARN << "Warning: could not query DIA status from " << tdf_path
-                      << ": " << e.what() << std::endl;
-      return false;
-    }
-  }
-
-  // =====================================================================
   // loadExperimentalSettings_: populate SourceFile, run and instrument metadata
   // =====================================================================
   void BrukerTimsFile::loadExperimentalSettings_(const std::string& path, const std::string& d_path, ExperimentalSettings& settings)
@@ -1945,7 +2624,7 @@ namespace OpenMS
     SourceFile sf;
     sf.setNameOfFile(File::basename(path));
     sf.setPathToFile(File::path(path));
-    sf.setFileType("Bruker TDF");
+    sf.setFileType(FileTypes::typeToMZML(FileTypes::BRUKER_TDF)); // the CV term name, "Bruker TDF format"
     sf.setNativeIDType("Bruker TDF nativeID format");
     sf.setNativeIDTypeAccession("MS:1002818");
     settings.getSourceFiles().push_back(sf);
@@ -2033,10 +2712,17 @@ namespace OpenMS
   BrukerTimsFile::DIAStreamingMetadata BrukerTimsFile::readDIAMetadata(
       const std::string& path, ExperimentalSettings& exp_settings, const Config& config)
   {
+    return rethrowAsParseError(path, [&] { return readDIAMetadata_(path, exp_settings, config); });
+  }
+
+  BrukerTimsFile::DIAStreamingMetadata BrukerTimsFile::readDIAMetadata_(
+      const std::string& path, ExperimentalSettings& exp_settings, const Config& config)
+  {
     // Keep the extraction for the call that follows, typically loadDIAStreaming(): the consumer
     // is sized from this metadata, so its spectra must come from the same files.
     unpacked_ = takeUnpacked_(path);
     const std::string d_path = unpacked_ ? unpacked_->d_path : path;
+    rejectMaldiImaging(path, d_path);
     auto handle = openTimsDataHandle(d_path, config);
     std::string tdf_path = d_path + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
@@ -2087,7 +2773,7 @@ namespace OpenMS
     // Count MS2 spectra per window (= frames per WindowGroup).
     // Apply the frame range filter so counts match what loadDIAStreaming
     // will actually emit (CachedSwathFileConsumer sizing depends on it).
-    auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+    auto group_to_frames = readFrameToWindowGroupMapping(db, windows, *handle);
     for (auto& [group, frame_ids] : group_to_frames)
     {
       frame_ids.erase(
@@ -2100,10 +2786,129 @@ namespace OpenMS
     {
       auto it = group_to_frames.find(w.window_group);
       meta.nr_ms2_spectra.push_back(
-        it != group_to_frames.end() ? static_cast<int>(it->second.size()) : 0);
+        (eff.load_ms2 && it != group_to_frames.end()) ? static_cast<int>(it->second.size()) : 0);
     }
 
     return meta;
+  }
+
+  // =====================================================================
+  // The MS1 spectra of the DDA and DIA loaders
+  // =====================================================================
+  // Turns the MS1 frames ms1_frame_ids[i] into spectra: aggregated with neighbouring frames, centroided, or as
+  // they are. Frames that become spectra as they are are decoded ahead, in parallel (RawFrameReader), in the
+  // order announced with readInOrder(); without it they are decoded one by one.
+  class MS1SpectrumReader
+  {
+  public:
+    MS1SpectrumReader(TimsDataHandle& handle, const std::vector<uint32_t>& ms1_frame_ids, const BrukerTimsFile::Config& config) :
+      handle_(handle),
+      ms1_frame_ids_(ms1_frame_ids),
+      config_(config),
+      as_is_(config.ms1_n_neighbors <= 0 && !isCentroidingEnabled(config))
+    {
+      if (config.load_ms1 && config.ms1_n_neighbors > 0) aggregator_.reserve(300'000);
+    }
+
+    /// The frames (indices into ms1_frame_ids) in the order in which read() will be called for them
+    void readInOrder(const std::vector<size_t>& indices)
+    {
+      if (!as_is_) return;
+      std::vector<std::pair<uint32_t, int>> frames;
+      frames.reserve(indices.size());
+      for (const size_t i : indices) frames.emplace_back(ms1_frame_ids_[i], 1);
+      raw_ = std::make_unique<RawFrameReader>(handle_, std::move(frames));
+    }
+
+    /// readInOrder() for the first @p n frames, in the order of ms1_frame_ids
+    void readFirst(size_t n)
+    {
+      std::vector<size_t> indices(n);
+      std::iota(indices.begin(), indices.end(), size_t{0});
+      readInOrder(indices);
+    }
+
+    /// The spectrum of frame ms1_frame_ids[@p i]
+    void read(size_t i, MSSpectrum& spec)
+    {
+      if (raw_)
+      {
+        raw_->next(ms1_frame_ids_[i], spec);
+      }
+      else if (config_.ms1_n_neighbors > 0)
+      {
+        loadAggregatedMS1Spectrum(handle_, ms1_frame_ids_, i, config_, aggregator_, centroider_, spec);
+      }
+      else
+      {
+        loadMS1Spectrum(handle_, handle_.get_frame(ms1_frame_ids_[i]), spec, config_, centroider_, decoded_);
+      }
+    }
+
+    /// Frees the frames decoded ahead
+    void finish() { raw_.reset(); }
+
+    /// Logs once if centroiding cut spectra at ms1_centroid_max_peaks
+    void reportCapSummary() { centroider_.reportCapSummary(static_cast<size_t>(config_.ms1_centroid_max_peaks)); }
+
+  private:
+    TimsDataHandle& handle_;
+    const std::vector<uint32_t>& ms1_frame_ids_;
+    const BrukerTimsFile::Config& config_;
+    const bool as_is_; ///< no aggregation, no centroiding
+    FrameCentroider centroider_;
+    FrameAggregator aggregator_{0.01}; // finer bin for MS1
+    DecodedFrame decoded_;
+    std::unique_ptr<RawFrameReader> raw_;
+  };
+
+  // =====================================================================
+  // The spectra of the SWATH windows of a diaPASEF MS2 frame
+  // =====================================================================
+  // The spectrum of window @p win in @p frame, without peaks: retention time, MS level, native ID, precursor
+  // (the isolation window) and the ion mobility limits of the window. load(), transform() and
+  // loadDIAStreaming() give the same, with and without aggregation over retention time.
+  static void initDIAWindowSpectrum(const TimsFrame& frame, const DIAWindow& win, MSSpectrum& spec)
+  {
+    spec.setRT(frame.time);
+    spec.setMSLevel(2);
+    spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+    spec.setNativeID("frame=" + StringUtils::toStr(frame.id) + " windowGroup=" + StringUtils::toStr(win.window_group) + " scan=" + StringUtils::toStr(win.scan_begin));
+
+    Precursor prec;
+    prec.setMZ(win.mz_center);
+    prec.setIsolationWindowLowerOffset(win.mz_width / 2.0);
+    prec.setIsolationWindowUpperOffset(win.mz_width / 2.0);
+    spec.setPrecursors({prec});
+
+    spec.setMetaValue("ion mobility lower limit", win.im_lower);
+    spec.setMetaValue("ion mobility upper limit", win.im_upper);
+  }
+
+  // Per scan of a decoded frame: whether it lies within the ion mobility limits of @p win. The limits are
+  // inclusive, so a scan on the boundary of two windows belongs to both.
+  static void markScansInWindow(const DecodedFrame& decoded, const DIAWindow& win, std::vector<char>& in_window)
+  {
+    in_window.resize(decoded.scan_im.size());
+    for (size_t scan = 0; scan < decoded.scan_im.size(); ++scan)
+    {
+      in_window[scan] = decoded.scan_im[scan] >= win.im_lower && decoded.scan_im[scan] <= win.im_upper;
+    }
+  }
+
+  // Appends the peaks of a frame decoded with order_by_mz that lie in the scans marked by markScansInWindow(),
+  // in m/z order, to @p spec, and their ion mobilities to @p im_array
+  static void addWindowPeaksByMZ(const DecodedFrame& decoded, const std::vector<char>& in_window,
+                                 MSSpectrum& spec, DataArrays::FloatDataArray& im_array)
+  {
+    for (const uint32_t p : decoded.mz_order)
+    {
+      const uint32_t scan = decoded.scan_ids[p];
+      if (!in_window[scan]) continue;
+      spec.emplace_back(decoded.mzs[p], static_cast<float>(decoded.intensities[p]));
+      im_array.push_back(static_cast<float>(decoded.scan_im[scan]));
+    }
   }
 
   // =====================================================================
@@ -2117,19 +2922,25 @@ namespace OpenMS
   void BrukerTimsFile::loadDIAStreaming(
       const std::string& path, FullSwathFileConsumer& consumer, const Config& config)
   {
+    rethrowAsParseError(path, [&] { loadDIAStreaming_(path, consumer, config); });
+  }
+
+  void BrukerTimsFile::loadDIAStreaming_(
+      const std::string& path, FullSwathFileConsumer& consumer, const Config& config)
+  {
     const auto unpacked = takeUnpacked_(path); // the files readDIAMetadata() read, if it read path
-    auto handle = openTimsDataHandle(unpacked ? unpacked->d_path : path, config);
+    const std::string d_path = unpacked ? unpacked->d_path : path;
+    rejectMaldiImaging(path, d_path);
+    auto handle = openTimsDataHandle(d_path, config);
     std::string tdf_path = handle->get_tims_dir_path() + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
     const auto eff = resolveEffectiveConfig(db, config,
                                              handle->min_frame_id(),
                                              handle->max_frame_id());
+    const FramePolarity polarity(tdf_path);
 
     // --- MS1 frames ---
-    FrameCentroider centroider;
-    FrameAggregator ms1_aggregator(0.01);
-
     std::vector<uint32_t> ms1_frame_ids;
     for (uint32_t fid = handle->min_frame_id(); fid <= handle->max_frame_id(); ++fid)
     {
@@ -2138,23 +2949,15 @@ namespace OpenMS
         ms1_frame_ids.push_back(fid);
     }
     warnPartialMS1AggregationConfig(eff, ms1_frame_ids.size());
-    if (eff.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
 
     const size_t ms1_to_emit = eff.load_ms1 ? ms1_frame_ids.size() : 0;
+    MS1SpectrumReader ms1_reader(*handle, ms1_frame_ids, eff);
+    ms1_reader.readFirst(ms1_to_emit);
     startProgress(0, ms1_to_emit, "Streaming DIA-PASEF MS1 frames");
     for (size_t i = 0; i < ms1_to_emit; ++i)
     {
       MSSpectrum spec;
-      if (eff.ms1_n_neighbors > 0)
-      {
-        loadAggregatedMS1Spectrum(*handle, ms1_frame_ids, i, eff,
-                                  ms1_aggregator, centroider, spec);
-      }
-      else
-      {
-        TimsFrame& frame = handle->get_frame(ms1_frame_ids[i]);
-        loadMS1Spectrum(frame, spec, eff, centroider);
-      }
+      ms1_reader.read(i, spec);
       // Sort peaks by m/z (and the associated IM float data array alongside).
       // TIMS save_to_buffs returns peaks in (scan_id, m/z-within-scan) order,
       // which is NOT globally m/z-sorted. Downstream consumers
@@ -2163,11 +2966,15 @@ namespace OpenMS
       // peaks, producing empty chromatograms and breaking iRT calibration.
       // The non-streaming load() path gets this sort for free via exp.sortSpectra(true).
       spec.sortByPosition();
-      consumer.consumeSpectrum(spec);
+      polarity.apply(spec);
+      callConsumer([&] { consumer.consumeSpectrum(spec); });
       setProgress(i);
     }
     endProgress();
-    centroider.reportCapSummary(static_cast<size_t>(eff.ms1_centroid_max_peaks));
+    ms1_reader.finish();
+    ms1_reader.reportCapSummary();
+
+    if (!eff.load_ms2) return; // MS1 only: no MS2 frame is decoded
 
     // --- MS2 frames: raw per-WindowGroup iteration (no aggregation) ---
     auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
@@ -2176,8 +2983,9 @@ namespace OpenMS
       OPENMS_LOG_WARN << "Warning: DIA dataset detected but no SWATH windows found" << std::endl;
       return;
     }
+    warnIfSynchroPASEF(windows);
 
-    auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+    auto group_to_frames = readFrameToWindowGroupMapping(db, windows, *handle);
     for (auto& [group, frame_ids] : group_to_frames)
     {
       frame_ids.erase(
@@ -2200,6 +3008,8 @@ namespace OpenMS
 
     startProgress(0, total_work, "Streaming DIA-PASEF MS2 frames");
     Size progress_count = 0;
+    DecodedFrame decoded;
+    std::vector<char> in_window; // per scan of the frame: within the ion mobility limits of the window?
 
     for (const auto& [group, frame_ids] : group_to_frames)
     {
@@ -2207,63 +3017,35 @@ namespace OpenMS
       if (wit == group_to_windows.end()) continue;
       const auto& dia_windows = wit->second;
 
-      for (const DIAWindow* win : dia_windows)
+      // Every frame is decoded once and split into the windows of its group. Each window still gets
+      // its spectra in the order of the frames.
+      for (size_t i = 0; i < frame_ids.size(); ++i)
       {
-        for (size_t i = 0; i < frame_ids.size(); ++i)
+        TimsFrame& frame = handle->get_frame(frame_ids[i]);
+        if (frame.num_peaks > 0) decoded.decode(*handle, frame, /*order_by_mz=*/true);
+
+        for (const DIAWindow* win : dia_windows)
         {
           setProgress(progress_count++);
-          TimsFrame& frame = handle->get_frame(frame_ids[i]);
           if (frame.num_peaks == 0) continue;
 
-          std::vector<uint32_t> scan_ids(frame.num_peaks);
-          std::vector<uint32_t> intensities(frame.num_peaks);
-          std::vector<double> mzs(frame.num_peaks);
-          std::vector<double> inv_ion_mobilities(frame.num_peaks);
-
-          frame.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
-                              mzs.data(), inv_ion_mobilities.data(), nullptr);
-
           MSSpectrum spec;
-          spec.setRT(frame.time);
-          spec.setMSLevel(2);
-          spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-          spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-          spec.setNativeID("frame=" + StringUtils::toStr(frame.id) + " windowGroup=" + StringUtils::toStr(win->window_group) + " scan=" + StringUtils::toStr(win->scan_begin));
-
-          Precursor prec;
-          prec.setMZ(win->mz_center);
-          prec.setIsolationWindowLowerOffset(win->mz_width / 2.0);
-          prec.setIsolationWindowUpperOffset(win->mz_width / 2.0);
-          spec.setPrecursors({prec});
-
-          spec.setMetaValue("ion mobility lower limit", win->im_lower);
-          spec.setMetaValue("ion mobility upper limit", win->im_upper);
-
+          initDIAWindowSpectrum(frame, *win, spec);
           DataArrays::FloatDataArray im_array;
           IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
-
-          for (uint32_t p = 0; p < frame.num_peaks; ++p)
-          {
-            if (inv_ion_mobilities[p] >= win->im_lower && inv_ion_mobilities[p] <= win->im_upper)
-            {
-              Peak1D peak;
-              peak.setMZ(mzs[p]);
-              peak.setIntensity(static_cast<double>(intensities[p]));
-              spec.push_back(peak);
-              im_array.push_back(static_cast<float>(inv_ion_mobilities[p]));
-            }
-          }
+          markScansInWindow(decoded, *win, in_window);
+          addWindowPeaksByMZ(decoded, in_window, spec, im_array);
 
           if (!spec.empty())
           {
             spec.getFloatDataArrays().push_back(std::move(im_array));
             spec.setIMPeakType(IMPeakType::IM_PROFILE);
-            // Sort peaks by m/z (and the IM float data array alongside).
-            // See the matching comment in the MS1 loop above — TIMS save_to_buffs
-            // returns peaks in (scan_id, m/z-within-scan) order; OpenSwath's
-            // chromatogram extraction assumes globally m/z-sorted input.
+            // OpenSwath's chromatogram extraction assumes m/z-sorted input (see the matching comment
+            // in the MS1 loop above). The peaks were added in m/z order; this only sorts if the frame
+            // could not be ordered when it was decoded.
             spec.sortByPosition();
-            consumer.consumeSpectrum(spec);
+            polarity.apply(spec);
+            callConsumer([&] { consumer.consumeSpectrum(spec); });
           }
         }
       }
@@ -2271,86 +3053,24 @@ namespace OpenMS
     endProgress();
   }
 
-  // =====================================================================
-  // load() overloads
-  // =====================================================================
-  void BrukerTimsFile::load(const std::string& path, MSExperiment& exp)
+  // The number of spectra the loaders emit for a configuration (frames, precursors and frames x windows of
+  // analysis.tdf, under the active frame_id range and the load_ms1/load_ms2 knobs). An upper bound: a DDA
+  // precursor or a DIA window of a frame that ends up without peaks gives no spectrum.
+  // @p eff: the effective configuration, with the frame_id range narrowed to the retention time range. With
+  // Config::rt_selects_spectra, @p config (that of the user) counts the DDA precursors by their retention time.
+  static size_t expectedSpectra(SQLite::Database& db, TimsDataHandle& handle, const BrukerTimsFile::Config& eff, bool is_dia,
+                                const BrukerTimsFile::Config* config = nullptr)
   {
-    load(path, exp, Config());
-  }
-
-  void BrukerTimsFile::load(const std::string& path, MSExperiment& exp, const Config& config)
-  {
-    exp.clear(true);
-    const auto unpacked = takeUnpacked_(path); // holds an unpacked .d.zip for this call
-    const std::string d_path = unpacked ? unpacked->d_path : path;
-    auto handle = openTimsDataHandle(d_path, config);
-
-    std::string tdf_path = d_path + "/analysis.tdf";
-
-    // Resolve RT range (if any) to an effective frame_id range; also
-    // validates the user-supplied frame_id/rt ranges and emits warnings.
-    Config eff;
-    {
-      SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
-      eff = resolveEffectiveConfig(db, config,
-                                    handle->min_frame_id(),
-                                    handle->max_frame_id());
-    }
-
-    bool is_dia = isDIA_(tdf_path);
-    Config::ExportMode mode = eff.export_mode;
-
-    if (mode == Config::FRAME)
-    {
-      loadFrames_(*handle, exp, eff);
-    }
-    else if (mode == Config::SPECTRUM || (mode == Config::AUTO && !is_dia))
-    {
-      loadDDA_(*handle, exp, eff);
-    }
-    else // AUTO + DIA
-    {
-      loadDIA_(*handle, exp, eff);
-    }
-
-    loadExperimentalSettings_(path, d_path, exp);
-
-    // Sort by RT, interleaved across MS levels
-    exp.sortSpectra(true);
-    exp.updateRanges();
-  }
-
-  // =====================================================================
-  // transform() overloads
-  // =====================================================================
-  void BrukerTimsFile::transform(const std::string& path, Interfaces::IMSDataConsumer* consumer)
-  {
-    transform(path, consumer, Config());
-  }
-
-  void BrukerTimsFile::transform(const std::string& path, Interfaces::IMSDataConsumer* consumer, const Config& config)
-  {
-    const auto unpacked = takeUnpacked_(path); // holds an unpacked .d.zip for this call
-    const std::string d_path = unpacked ? unpacked->d_path : path;
-    auto handle = openTimsDataHandle(d_path, config);
-
-    std::string tdf_path = d_path + "/analysis.tdf";
-    SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
-
-    const auto eff = resolveEffectiveConfig(db, config,
-                                             handle->min_frame_id(),
-                                             handle->max_frame_id());
-
-    bool is_dia = isDIA(db);
-    Config::ExportMode mode = eff.export_mode;
-
-    // Compute expected size for consumer. Must mirror what loadFrames_/loadDIA_/
-    // loadDDA_ actually emit under the active frame_id range and load_ms1 knob.
+    using Config = BrukerTimsFile::Config;
+    const Config::ExportMode mode = eff.export_mode;
     FrameCounts counts = readFrameCounts(db, eff);
     const size_t ms1_emitted = eff.load_ms1 ? counts.ms1 : 0;
     size_t expected = 0;
-    if (mode == Config::FRAME)
+    if (!eff.load_ms2)
+    {
+      expected = ms1_emitted;
+    }
+    else if (mode == Config::FRAME)
     {
       expected = ms1_emitted + counts.ms2;
     }
@@ -2361,8 +3081,8 @@ namespace OpenMS
       //   Σ_group (frames_in_group × windows_in_group)
       // — NOT frames × all_windows. Mirrors the total_work computation in
       // loadDIA_.
-      auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
-      auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+      auto windows = readDIAWindows(db, *handle.scan2inv_ion_mobility_converter);
+      auto group_to_frames = readFrameToWindowGroupMapping(db, windows, handle);
       for (auto& [group, frame_ids] : group_to_frames)
       {
         frame_ids.erase(
@@ -2384,47 +3104,209 @@ namespace OpenMS
     else
     {
       // DDA: MS1 frames + per-precursor MS2 spectra
-      uint32_t num_precursors = countDDAPrecursors(db, eff);
+      uint32_t num_precursors = (config != nullptr && selectsSpectraByRT(*config)) ? countDDAPrecursorsInRTRange(db, *config)
+                                                                                    : countDDAPrecursors(db, eff);
       expected = ms1_emitted + num_precursors;
     }
 
-    consumer->setExpectedSize(expected, 0);
+    return expected;
+  }
+
+  // Whether the loader of a configuration emits its spectra in order of retention time (see transform())
+  static bool emitsInRTOrder(TimsDataHandle& handle, const BrukerTimsFile::Config& eff, bool is_dia)
+  {
+    using Config = BrukerTimsFile::Config;
+    if (eff.export_mode == Config::FRAME) return true;
+    if (is_dia && eff.export_mode != Config::SPECTRUM)
+    {
+      // MS2 frames aggregated over retention time are read window by window
+      return !(eff.load_ms2 && eff.dia_ms2_n_neighbors > 0);
+    }
+    // DDA with OLS recalibration: the MS1 frames are read with the calibration of the file, then the model
+    // is fitted to the precursors, then the MS2 spectra are read with it
+    return !(eff.load_ms2 && eff.calibrate && dynamic_cast< ::OpenSourceTof2MzConverter*>(handle.tof2mz_converter.get()) != nullptr);
+  }
+
+  // Whether the retention times of the frames in the active range do not decrease with their ids. Some loaders
+  // emit in order of frame ids (MS1 only, DIA without SWATH windows, FRAME), which is the order of retention
+  // time only then. Acquisitions write frames in order of time, so this holds for all real data.
+  static bool frameTimesAscending(TimsDataHandle& handle, const BrukerTimsFile::Config& eff)
+  {
+    double last_time = -std::numeric_limits<double>::infinity();
+    for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
+    {
+      if (!frameInRange(fid, eff) || !handle.has_frame(fid)) continue;
+      const double time = handle.get_frame(fid).time;
+      if (time < last_time) return false;
+      last_time = time;
+    }
+    return true;
+  }
+
+  // =====================================================================
+  // load() overloads
+  // =====================================================================
+  void BrukerTimsFile::load(const std::string& path, MSExperiment& exp)
+  {
+    load(path, exp, Config());
+  }
+
+  void BrukerTimsFile::load(const std::string& path, MSExperiment& exp, const Config& config)
+  {
+    rethrowAsParseError(path, [&] { load_(path, exp, config); });
+  }
+
+  void BrukerTimsFile::load_(const std::string& path, MSExperiment& exp, const Config& config)
+  {
+    exp.clear(true);
+    const auto unpacked = takeUnpacked_(path); // holds an unpacked .d.zip for this call
+    const std::string d_path = unpacked ? unpacked->d_path : path;
+    if (config.export_mode != Config::FRAME) rejectMaldiImaging(path, d_path);
+    auto handle = openTimsDataHandle(d_path, config);
+
+    std::string tdf_path = d_path + "/analysis.tdf";
+
+    // Resolve RT range (if any) to an effective frame_id range; also
+    // validates the user-supplied frame_id/rt ranges and emits warnings.
+    Config eff;
+    bool is_dia = false;
+    {
+      SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
+      eff = resolveEffectiveConfig(db, config,
+                                    handle->min_frame_id(),
+                                    handle->max_frame_id());
+      is_dia = isDIA(db);
+      exp.reserveSpaceSpectra(static_cast<unsigned int>(expectedSpectra(db, *handle, eff, is_dia, &config)));
+    }
+    keepFrameRangeOfUser(eff, config);
+
+    const FramePolarity polarity(tdf_path);
+    const SpectrumSink to_experiment = selectingSink(eff, [&exp, &polarity](MSSpectrum& spec)
+    {
+      polarity.apply(spec);
+      exp.addSpectrum(std::move(spec));
+    });
+    Config::ExportMode mode = eff.export_mode;
+
+    if (mode == Config::FRAME)
+    {
+      loadFrames_(*handle, to_experiment, eff);
+    }
+    else if (mode == Config::SPECTRUM || (mode == Config::AUTO && !is_dia))
+    {
+      loadDDA_(*handle, to_experiment, eff);
+    }
+    else // AUTO + DIA
+    {
+      loadDIA_(*handle, to_experiment, eff);
+    }
+
+    loadExperimentalSettings_(path, d_path, exp);
+
+    // Sort by RT, interleaved across MS levels, and the peaks of every spectrum by m/z. The loaders emit
+    // in that order where they can (see transform()), so there is little left to do here.
+    exp.sortSpectra(true);
+    exp.updateRanges();
+  }
+
+  // =====================================================================
+  // transform() overloads
+  // =====================================================================
+  void BrukerTimsFile::transform(const std::string& path, Interfaces::IMSDataConsumer* consumer)
+  {
+    transform(path, consumer, Config());
+  }
+
+  void BrukerTimsFile::transform(const std::string& path, Interfaces::IMSDataConsumer* consumer, const Config& config)
+  {
+    rethrowAsParseError(path, [&] { transform_(path, consumer, config); });
+  }
+
+  void BrukerTimsFile::transform_(const std::string& path, Interfaces::IMSDataConsumer* consumer, const Config& config)
+  {
+    const auto unpacked = takeUnpacked_(path); // holds an unpacked .d.zip for this call
+    const std::string d_path = unpacked ? unpacked->d_path : path;
+    if (config.export_mode != Config::FRAME) rejectMaldiImaging(path, d_path);
+    auto handle = openTimsDataHandle(d_path, config);
+
+    std::string tdf_path = d_path + "/analysis.tdf";
+    SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
+
+    Config eff = resolveEffectiveConfig(db, config,
+                                        handle->min_frame_id(),
+                                        handle->max_frame_id());
+
+    bool is_dia = isDIA(db);
+    Config::ExportMode mode = eff.export_mode;
+
+    const size_t expected = expectedSpectra(db, *handle, eff, is_dia, &config);
+    callConsumer([&] { consumer->setExpectedSize(expected, 0); });
+    keepFrameRangeOfUser(eff, config);
 
     // Populate source file metadata (same as load())
     ExperimentalSettings settings;
     loadExperimentalSettings_(path, d_path, settings);
-    consumer->setExperimentalSettings(settings);
+    callConsumer([&] { consumer->setExperimentalSettings(settings); });
 
-    // NOTE: This loads into a temporary experiment then feeds to consumer.
-    // Not truly constant-memory -- a future optimization should iterate
-    // frame-by-frame and call consumer->consumeSpectrum() inline.
-    OPENMS_LOG_INFO << "BrukerTimsFile::transform(): loading full dataset (streaming optimization pending)" << std::endl;
-    MSExperiment exp;
-    if (mode == Config::FRAME)
-      loadFrames_(*handle, exp, eff);
-    else if (is_dia && mode != Config::SPECTRUM)
-      loadDIA_(*handle, exp, eff);
-    else
-      loadDDA_(*handle, exp, eff);
-
-    exp.sortSpectra(true);
-    for (auto& spec : exp)
+    const FramePolarity polarity(tdf_path);
+    const auto run_loader = [&](const SpectrumSink& emit)
     {
-      consumer->consumeSpectrum(spec);
+      const SpectrumSink sink = selectingSink(eff, [&emit, &polarity](MSSpectrum& spec)
+      {
+        polarity.apply(spec);
+        emit(spec);
+      });
+      if (mode == Config::FRAME)
+        loadFrames_(*handle, sink, eff);
+      else if (is_dia && mode != Config::SPECTRUM)
+        loadDIA_(*handle, sink, eff);
+      else
+        loadDDA_(*handle, sink, eff);
+    };
+
+    // Checked before the first spectrum goes to the consumer: a writer that has started cannot take it back
+    if (emitsInRTOrder(*handle, eff, is_dia) && frameTimesAscending(*handle, eff))
+    {
+      // The spectra go to the consumer as they are read, in the order and form load() returns them
+      double last_rt = -std::numeric_limits<double>::infinity();
+      run_loader([&](MSSpectrum& spec)
+      {
+        if (spec.getRT() < last_rt)
+        {
+          // cannot happen after the checks above, unless a loader and emitsInRTOrder() disagree
+          throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "BrukerTimsFile::transform(): spectra are read in order of retention time");
+        }
+        last_rt = spec.getRT();
+        spec.sortByPosition(); // by m/z; all but a few arrive sorted
+        callConsumer([&] { consumer->consumeSpectrum(spec); });
+      });
+    }
+    else
+    {
+      // Not read in order of retention time: the whole run is loaded and put in order first
+      OPENMS_LOG_INFO << "BrukerTimsFile::transform(): this configuration needs the whole run in memory" << std::endl;
+      MSExperiment exp;
+      run_loader([&exp](MSSpectrum& spec) { exp.addSpectrum(std::move(spec)); });
+      exp.sortSpectra(true);
+      for (auto& spec : exp)
+      {
+        callConsumer([&] { consumer->consumeSpectrum(spec); });
+      }
     }
   }
 
   // =====================================================================
   // loadDDA_: MS1 frames (IM_PEAK) + MS2 spectra (scalar IM)
   // =====================================================================
-  void BrukerTimsFile::loadDDA_(TimsDataHandle& handle, MSExperiment& exp, const Config& config)
+  void BrukerTimsFile::loadDDA_(TimsDataHandle& handle, const SpectrumSink& sink, const Config& config)
   {
     std::string tdf_path = handle.get_tims_dir_path() + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
-    // Collect frame IDs by MS level
+    // Collect the MS1 frame IDs (the MS2 frames are referenced by the precursors below)
     std::vector<uint32_t> ms1_frame_ids;
-    std::vector<uint32_t> ms2_frame_ids;
+    size_t ms2_frame_count = 0;
 
     for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
     {
@@ -2434,16 +3316,30 @@ namespace OpenMS
       if (frame.msms_type == 0)
         ms1_frame_ids.push_back(fid);
       else
-        ms2_frame_ids.push_back(fid);
+        ++ms2_frame_count;
     }
+    trimToRTRange(ms1_frame_ids, handle, config, config.ms1_n_neighbors);
     warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
 
     // Read DDA precursors from SQL. Drop entries whose MS2 frame is outside
-    // the active range so the per-precursor MS2 spectra match what the
-    // ms2_frame_ids filter selected above; the existing has_frame() safety
-    // checks in the loops downstream silently skip any orphans, but stripping
-    // them here keeps progress counts and the precursor_groups loop honest.
-    std::vector<DDAPrecursorInfo> precursor_entries = readDDAPrecursors(db);
+    // the active range; the existing has_frame() safety checks in the loops
+    // downstream silently skip any orphans, but stripping them here keeps
+    // progress counts and the precursor_groups loop honest.
+    std::vector<DDAPrecursorInfo> precursor_entries;
+    std::optional<Precursor::ActivationMethod> fragmentation_mode;
+    if (config.load_ms2)
+    {
+      precursor_entries = readDDAPrecursors(db);
+      fragmentation_mode = readFragmentationMode(db);
+      // Without PASEF precursors or windows, the MS1 frames are all there is to read as DDA data
+      if (ms2_frame_count > 0 && precursor_entries.empty())
+      {
+        OPENMS_LOG_WARN << "Warning: the run has " << ms2_frame_count << " MS2 frame(s) but analysis.tdf lists no "
+                        << "DDA-PASEF precursors or isolation windows for them (table PasefFrameMsMsInfo), so only its "
+                        << "MS1 frames are read as DDA data. "
+                        << "Export mode FRAME reads every frame." << std::endl;
+      }
+    }
     const bool range_active =
       (config.frame_id_min != 0) ||
       (config.frame_id_max != std::numeric_limits<uint32_t>::max());
@@ -2490,6 +3386,88 @@ namespace OpenMS
                      }),
       precursor_entries.end());
 
+    // The ion mobility of a precursor: its position in the Precursors table (ScanNumber, a fractional scan number,
+    // converted with the mobility calibration of its parent MS1 frame), as Bruker's software and other readers
+    // (timsrust, alphatims) report it. A precursor without a position gets @p fragment_im, the intensity-weighted
+    // mean ion mobility of its fragment peaks (which this reader reported for every precursor before).
+    // A window without a precursor gets the ion mobility of the middle of its isolated scans [scan_begin, scan_end):
+    // the mean of its few fragment peaks would scatter.
+    const auto hasOwnIonMobility = [](const DDAPrecursorInfo& e)
+    {
+      return !e.has_precursor || (std::isfinite(e.scan_number) && e.scan_number >= 0.0);
+    };
+    const auto precursorIonMobility = [&handle, &hasOwnIonMobility](const DDAPrecursorInfo& e, double fragment_im)
+    {
+      if (!hasOwnIonMobility(e)) return fragment_im;
+      if (!e.has_precursor)
+      {
+        const double middle = e.scan_end > e.scan_begin ? (e.scan_begin + e.scan_end - 1) / 2.0 : e.scan_begin;
+        double im = 0.0;
+        handle.scan2inv_ion_mobility_converter->convert(e.frame_id, &im, &middle, 1);
+        return im;
+      }
+      const uint32_t frame = (e.parent_frame > 0 && handle.has_frame(static_cast<uint32_t>(e.parent_frame)))
+                               ? static_cast<uint32_t>(e.parent_frame) : e.frame_id;
+      // the converter takes the fractional scan number directly (no interpolation between integer scans)
+      double im = 0.0;
+      handle.scan2inv_ion_mobility_converter->convert(frame, &im, &e.scan_number, 1);
+      return im;
+    };
+
+    // Config::rt_selects_spectra: keep the precursors whose spectra lie in the retention time range, with all of their
+    // frames. A precursor spectrum gets the mean time of its frames, summed in the same order as emit_precursor does.
+    // Config::im_min/im_max: leave out the precursors whose ion mobility (precursorIonMobility()) lies outside the ion
+    // mobility range. A precursor without a position in the Precursors table gets the mean ion mobility of its fragment
+    // peaks, which lies in its isolated scans: it is left out if they all lie outside the range.
+    const bool select_rt = selectsSpectraByRT(config);
+    const bool select_im = config.load_ms2 && imRangeSet(config);
+    if (select_rt || select_im)
+    {
+      struct Selection
+      {
+        double rt_sum = 0.0;
+        size_t entries = 0;
+        double im_lo = std::numeric_limits<double>::infinity();
+        double im_hi = -std::numeric_limits<double>::infinity();
+      };
+      std::map<int, Selection> per_precursor;
+      for (const auto& e : precursor_entries)
+      {
+        Selection& sel = per_precursor[e.precursor_id];
+        ++sel.entries;
+        if (!handle.has_frame(e.frame_id)) continue;
+        sel.rt_sum += handle.get_frame(e.frame_id).time;
+        if (select_im && hasOwnIonMobility(e))
+        {
+          // the ion mobility the spectrum gets (the same for all entries of the precursor)
+          const double im = precursorIonMobility(e, 0.0);
+          sel.im_lo = std::min(sel.im_lo, im);
+          sel.im_hi = std::max(sel.im_hi, im);
+        }
+        else if (select_im && e.scan_end > e.scan_begin)
+        {
+          // the peaks are taken from the scans [scan_begin, scan_end)
+          const uint32_t scans[2] = {e.scan_begin, e.scan_end - 1};
+          double ims[2] = {0.0, 0.0};
+          handle.scan2inv_ion_mobility_converter->convert(e.frame_id, ims, scans, 2);
+          sel.im_lo = std::min({sel.im_lo, ims[0], ims[1]});
+          sel.im_hi = std::max({sel.im_hi, ims[0], ims[1]});
+        }
+      }
+      // a margin for the rounding of the mean ion mobility of a spectrum, relative to the finite bounds
+      const double im_scale = std::max(std::isfinite(config.im_max) ? std::abs(config.im_max) : 0.0, std::abs(config.im_min));
+      const double im_margin = 1e-9 * std::max(1.0, im_scale);
+      precursor_entries.erase(
+        std::remove_if(precursor_entries.begin(), precursor_entries.end(),
+                       [&](const DDAPrecursorInfo& e) {
+                         const Selection& sel = per_precursor[e.precursor_id];
+                         if (select_rt && !rtInRange(sel.rt_sum / static_cast<double>(sel.entries), config)) return true;
+                         return select_im && sel.im_lo <= sel.im_hi &&
+                                (sel.im_hi < config.im_min - im_margin || sel.im_lo > config.im_max + im_margin);
+                       }),
+        precursor_entries.end());
+    }
+
     // Group by precursor ID
     std::map<int, std::vector<const DDAPrecursorInfo*>> precursor_groups;
     for (const auto& entry : precursor_entries)
@@ -2499,29 +3477,38 @@ namespace OpenMS
 
     uint32_t num_ms2 = static_cast<uint32_t>(precursor_groups.size());
     const size_t ms1_to_emit = config.load_ms1 ? ms1_frame_ids.size() : 0;
-    exp.reserveSpaceSpectra(static_cast<unsigned int>(ms1_to_emit) + num_ms2);
 
     startProgress(0, ms1_to_emit + num_ms2, "Loading DDA-PASEF data");
+    Size progress_count = 0;
 
     // --- MS1 frames ---
-    FrameCentroider centroider;
-    FrameAggregator ms1_aggregator(0.01);
-    if (config.load_ms1 && config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
-    for (size_t i = 0; i < ms1_to_emit; ++i)
+    MS1SpectrumReader ms1_reader(handle, ms1_frame_ids, config);
+    const auto emit_ms1 = [&](size_t i)
     {
       MSSpectrum spec;
-      if (config.ms1_n_neighbors > 0)
-      {
-        loadAggregatedMS1Spectrum(handle, ms1_frame_ids, i, config,
-                                  ms1_aggregator, centroider, spec);
-      }
-      else
-      {
-        TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
-        loadMS1Spectrum(frame, spec, config, centroider);
-      }
-      exp.addSpectrum(std::move(spec));
-      setProgress(i);
+      ms1_reader.read(i, spec);
+      sink(spec);
+      setProgress(++progress_count);
+    };
+
+    // The spectra are emitted in order of retention time, MS1 frames and precursors interleaved. With OLS
+    // recalibration all MS1 frames come first instead: they are read with the calibration of the file,
+    // the MS2 spectra with the one fitted below.
+    const bool in_rt_order = emitsInRTOrder(handle, config, /*is_dia=*/false);
+    if (!config.load_ms2 || !in_rt_order)
+    {
+      ms1_reader.readFirst(ms1_to_emit);
+      for (size_t i = 0; i < ms1_to_emit; ++i) emit_ms1(i);
+      ms1_reader.finish();
+    }
+
+    if (!config.load_ms2)
+    {
+      // MS1 only: no MS2 frame is decoded. The OLS recalibration below is fitted on MS2
+      // frames and applied after the MS1 frames were read, so it would not change the result.
+      endProgress();
+      ms1_reader.reportCapSummary();
+      return;
     }
 
     // --- MS2 spectra (one per precursor, reconstructed from frames) ---
@@ -2546,17 +3533,16 @@ namespace OpenMS
       }
     };
 
-    // Determine which frames are needed
-    std::set<uint32_t> needed_frames;
-    for (const auto& entry : precursor_entries)
-    {
-      needed_frames.insert(entry.frame_id);
-    }
-
     // Extract data for needed frames (lazy, on demand per precursor group)
     // We cache extracted frame data to avoid re-extraction when multiple
-    // precursors share the same frame.
+    // precursors share the same frame. A frame leaves the cache with the last
+    // precursor entry that needs it, so the cache holds a few frames, not the run.
     std::unordered_map<uint32_t, FrameData> frame_cache;
+    std::unordered_map<uint32_t, uint32_t> frame_uses; // precursor entries that still need the frame
+    for (const auto& entry : precursor_entries)
+    {
+      if (handle.has_frame(entry.frame_id)) ++frame_uses[entry.frame_id];
+    }
 
     auto getFrameData = [&](uint32_t frame_id) -> const FrameData&
     {
@@ -2605,42 +3591,52 @@ namespace OpenMS
 
     // OLS recalibration for DDA (when config.calibrate == true)
     const double cal_tol = (config.calibration_tolerance > 0.0) ? config.calibration_tolerance : 0.1;
-    if (config.calibrate)
+    const bool open_source_mz = dynamic_cast< ::OpenSourceTof2MzConverter*>(handle.tof2mz_converter.get()) != nullptr;
+    if (config.calibrate && !open_source_mz)
+    {
+      // The OLS fit is linear in sqrt(m/z); it would replace a more accurate stored calibration
+      OPENMS_LOG_INFO << "OLS m/z recalibration skipped: m/z comes from "
+                      << handle.tof2mz_converter->description() << "." << std::endl;
+    }
+    if (config.calibrate && open_source_mz)
     {
       // Collect (tof_index, sqrt(monoisotopic_mz)) pairs for regression
       std::vector<double> tof_vals;
       std::vector<double> sqrt_mz_vals;
 
+      auto fit_uses = frame_uses; // this pass goes through all entries once, as the one below does
       for (const auto& entry : precursor_entries)
       {
         if (!handle.has_frame(entry.frame_id)) continue;
-        if (std::isnan(entry.monoisotopic_mz) || entry.monoisotopic_mz <= 0.0) continue;
-
-        const FrameData& fd = getFrameData(entry.frame_id);
-        if (fd.mzs.empty()) continue;
-
-        // Find the highest-intensity peak in the scan range [scan_begin, scan_end)
-        auto [p_begin, p_end] = fd.peakRangeForScans(entry.scan_begin, entry.scan_end);
-        double best_intensity = -1.0;
-        uint32_t best_tof = 0;
-        double best_mz = 0.0;
-
-        for (uint32_t p = p_begin; p < p_end; ++p)
+        const bool last_use = (--fit_uses[entry.frame_id] == 0);
+        if (!(std::isnan(entry.monoisotopic_mz) || entry.monoisotopic_mz <= 0.0))
         {
-          if (static_cast<double>(fd.intensities[p]) > best_intensity)
+          const FrameData& fd = getFrameData(entry.frame_id);
+
+          // Find the highest-intensity peak in the scan range [scan_begin, scan_end)
+          auto [p_begin, p_end] = fd.peakRangeForScans(entry.scan_begin, entry.scan_end);
+          double best_intensity = -1.0;
+          uint32_t best_tof = 0;
+          double best_mz = 0.0;
+
+          for (uint32_t p = p_begin; p < p_end; ++p)
           {
-            best_intensity = static_cast<double>(fd.intensities[p]);
-            best_tof = fd.tofs[p];
-            best_mz = fd.mzs[p];
+            if (static_cast<double>(fd.intensities[p]) > best_intensity)
+            {
+              best_intensity = static_cast<double>(fd.intensities[p]);
+              best_tof = fd.tofs[p];
+              best_mz = fd.mzs[p];
+            }
+          }
+
+          if (best_intensity > 0.0 &&
+              std::abs(best_mz - entry.monoisotopic_mz) < cal_tol)
+          {
+            tof_vals.push_back(static_cast<double>(best_tof));
+            sqrt_mz_vals.push_back(std::sqrt(entry.monoisotopic_mz));
           }
         }
-
-        if (best_intensity > 0.0 &&
-            std::abs(best_mz - entry.monoisotopic_mz) < cal_tol)
-        {
-          tof_vals.push_back(static_cast<double>(best_tof));
-          sqrt_mz_vals.push_back(std::sqrt(entry.monoisotopic_mz));
-        }
+        if (last_use) frame_cache.erase(entry.frame_id);
       }
 
       if (tof_vals.size() >= 2)
@@ -2690,18 +3686,55 @@ namespace OpenMS
     constexpr uint32_t SMOOTH_WINDOW = 1;
     constexpr uint32_t CENTROID_WINDOW = 1;
 
-    uint32_t precursor_idx = 0;
-    for (const auto& [prec_id, entries] : precursor_groups)
+    // The native ID of the spectrum of precursor @p prec_id, whose first entry is @p first_entry (see the comment in
+    // emit_precursor)
+    const auto setSpectrumID = [](MSSpectrum& spec, const DDAPrecursorInfo& first_entry, const int prec_id)
+    {
+      const std::string frame_scan = "frame=" + StringUtils::toStr(first_entry.frame_id)
+                                     + " scan=" + StringUtils::toStr(first_entry.scan_begin);
+      if (!first_entry.has_precursor)
+      {
+        spec.setNativeID(frame_scan);
+        return;
+      }
+      spec.setNativeID(frame_scan + " precursor=" + StringUtils::toStr(prec_id));
+      spec.setMetaValue("bruker_precursor_id", prec_id);
+    };
+
+    // The activation of the precursor with the PasefFrameMsMsInfo rows @p entries: their collision energy as the meta
+    // value "collision energy" in eV (MS:1000045 in mzML), as the Thermo reader sets it (left out if the rows have
+    // different ones), and the fragmentation mode of the run, if it records one (see readFragmentationMode())
+    const auto setActivation = [&fragmentation_mode](Precursor& prec, const std::vector<const DDAPrecursorInfo*>& entries)
+    {
+      const double energy = entries.front()->collision_energy;
+      if (std::all_of(entries.begin(), entries.end(), [energy](const DDAPrecursorInfo* e) { return e->collision_energy == energy; }))
+      {
+        DataValue collision_energy(energy);
+        collision_energy.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+        collision_energy.setUnit(266); // UO:0000266 electronvolt
+        prec.setMetaValue("collision energy", collision_energy);
+      }
+      if (fragmentation_mode) prec.setActivationMethods({*fragmentation_mode});
+    };
+
+    // Builds the MS2 spectrum of one precursor and emits it; nothing is emitted if no peak is left
+    const auto emit_precursor = [&](const int prec_id, const std::vector<const DDAPrecursorInfo*>& entries)
     {
       // Collect raw peaks (TOF space) from all frames for this precursor
       std::vector<uint32_t> all_tofs;
       std::vector<uint64_t> all_intensities;
       std::vector<double> all_im;
+      // m/z of each raw peak as converted for its own frame (exact per-frame calibration)
+      std::vector<double> all_frame_mz;
       double rt_sum = 0.0;
+      // Valid frame used to convert merged TOF centroids back to m/z. The Bruker SDK
+      // calibrates per frame and rejects frame id 0, so it must be a real frame.
+      uint32_t ref_frame_id = 0;
 
       for (const DDAPrecursorInfo* entry : entries)
       {
         if (!handle.has_frame(entry->frame_id)) continue;
+        if (ref_frame_id == 0) ref_frame_id = entry->frame_id;
 
         const FrameData& fd = getFrameData(entry->frame_id);
         rt_sum += fd.rt;
@@ -2713,14 +3746,14 @@ namespace OpenMS
           all_tofs.push_back(fd.tofs[p]);
           all_intensities.push_back(static_cast<uint64_t>(fd.intensities[p]));
           all_im.push_back(fd.inv_ion_mobilities[p]);
+          all_frame_mz.push_back(fd.mzs[p]);
         }
+        if (--frame_uses[entry->frame_id] == 0) frame_cache.erase(entry->frame_id); // fd is gone
       }
 
       if (all_tofs.empty())
       {
-        ++precursor_idx;
-        setProgress(ms1_to_emit + precursor_idx);
-        continue;
+        return;
       }
 
       // Branch: HillBased DDA-MS2 centroiding bypasses the TOF-domain pipeline
@@ -2735,11 +3768,10 @@ namespace OpenMS
       const auto dda_ms2_algo = effectiveMS2Algo(config, /*emit_warnings=*/false);
       if (dda_ms2_algo == BrukerTimsFile::Config::CentroidAlgo::HILL_BASED)
       {
-        std::vector<double> hb_mz(all_tofs.size());
+        std::vector<double> hb_mz = std::move(all_frame_mz);
         std::vector<double> hb_int(all_tofs.size());
         for (std::size_t i = 0; i < all_tofs.size(); ++i)
         {
-          handle.tof2mz_converter->convert(0, &hb_mz[i], &all_tofs[i], 1);
           hb_int[i] = static_cast<double>(all_intensities[i]);
         }
         Internal::PASEFHillCentroider::Params p;
@@ -2752,9 +3784,7 @@ namespace OpenMS
 
         if (centroids.empty())
         {
-          ++precursor_idx;
-          setProgress(ms1_to_emit + precursor_idx);
-          continue;
+          return;
         }
 
         std::vector<double> all_mz, all_intensity_d;
@@ -2785,17 +3815,16 @@ namespace OpenMS
 
         const DDAPrecursorInfo* first_entry = entries.front();
         double avg_rt = rt_sum / static_cast<double>(entries.size());
+        const double precursor_im = precursorIonMobility(*first_entry, scalar_im);
+        const double precursor_mz = first_entry->selectedMZ();
 
         MSSpectrum spec;
         spec.setRT(avg_rt);
         spec.setMSLevel(2);
-        spec.setDriftTime(scalar_im);
+        spec.setDriftTime(precursor_im);
         spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
         spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-        spec.setNativeID("frame=" + StringUtils::toStr(first_entry->frame_id)
-                         + " scan=" + StringUtils::toStr(first_entry->scan_begin)
-                         + " precursor=" + StringUtils::toStr(prec_id));
-        spec.setMetaValue("bruker_precursor_id", static_cast<int>(prec_id));
+        setSpectrumID(spec, *first_entry, prec_id);
 
         spec.reserve(all_mz.size());
         for (size_t idx : sort_idx)
@@ -2807,26 +3836,25 @@ namespace OpenMS
         }
 
         Precursor prec;
-        prec.setMZ(first_entry->monoisotopic_mz);
+        prec.setMZ(precursor_mz);
         prec.setCharge(first_entry->charge);
         if (!std::isnan(first_entry->intensity))
           prec.setIntensity(static_cast<float>(first_entry->intensity));
-        prec.setDriftTime(scalar_im);
+        prec.setDriftTime(precursor_im);
         prec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+        setActivation(prec, entries);
         double iso_offset_lower = first_entry->isolation_width / 2.0 +
-                                  (first_entry->monoisotopic_mz - first_entry->isolation_mz);
+                                  (precursor_mz - first_entry->isolation_mz);
         double iso_offset_upper = first_entry->isolation_width / 2.0 -
-                                  (first_entry->monoisotopic_mz - first_entry->isolation_mz);
+                                  (precursor_mz - first_entry->isolation_mz);
         prec.setIsolationWindowLowerOffset(std::max(0.0, iso_offset_lower));
         prec.setIsolationWindowUpperOffset(std::max(0.0, iso_offset_upper));
         std::vector<Precursor> precursors;
         precursors.push_back(std::move(prec));
         spec.setPrecursors(std::move(precursors));
 
-        exp.addSpectrum(std::move(spec));
-        ++precursor_idx;
-        setProgress(ms1_to_emit + precursor_idx);
-        continue;
+        sink(spec);
+        return;
       }
 
       // --- TOF-domain processing pipeline (ported from timsrust) ---
@@ -2889,24 +3917,28 @@ namespace OpenMS
       all_intensity_d.reserve(all_tofs.size());
       kept_im.reserve(all_tofs.size());
 
+      std::vector<uint32_t> kept_tofs;
+      kept_tofs.reserve(all_tofs.size());
       for (size_t i = 0; i < all_tofs.size(); ++i)
       {
         if (keep[i])
         {
-          // Convert TOF to m/z using the registered converter
-          double mz = 0;
-          handle.tof2mz_converter->convert(0, &mz, &all_tofs[i], 1);
-          all_mz.push_back(mz);
+          kept_tofs.push_back(all_tofs[i]);
           all_intensity_d.push_back(static_cast<double>(all_intensities[i]));
           kept_im.push_back(all_im[i]);
         }
       }
+      // Convert TOF to m/z with the registered converter, in one batch
+      all_mz.resize(kept_tofs.size());
+      if (!kept_tofs.empty())
+      {
+        handle.tof2mz_converter->convert(ref_frame_id, all_mz.data(), kept_tofs.data(),
+                                         static_cast<uint32_t>(kept_tofs.size()));
+      }
 
       if (all_mz.empty())
       {
-        ++precursor_idx;
-        setProgress(ms1_to_emit + precursor_idx);
-        continue;
+        return;
       }
 
       // Sort by m/z
@@ -2928,11 +3960,13 @@ namespace OpenMS
       // Use the first entry's metadata for the precursor info
       const DDAPrecursorInfo* first_entry = entries.front();
       double avg_rt = rt_sum / static_cast<double>(entries.size());
+      const double precursor_im = precursorIonMobility(*first_entry, scalar_im);
+      const double precursor_mz = first_entry->selectedMZ();
 
       MSSpectrum spec;
       spec.setRT(avg_rt);
       spec.setMSLevel(2);
-      spec.setDriftTime(scalar_im);
+      spec.setDriftTime(precursor_im);
       spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
       spec.setType(SpectrumSettings::SpectrumType::CENTROID);
       // Native ID: "frame=<F> scan=<S> precursor=<P>".
@@ -2967,10 +4001,11 @@ namespace OpenMS
       //   - Bruker Precursors.Id is also duplicated as a typed MetaValue
       //     "bruker_precursor_id" for direct programmatic lookup without
       //     parsing the nativeID string.
-      spec.setNativeID("frame=" + StringUtils::toStr(first_entry->frame_id)
-                       + " scan=" + StringUtils::toStr(first_entry->scan_begin)
-                       + " precursor=" + StringUtils::toStr(prec_id));
-      spec.setMetaValue("bruker_precursor_id", static_cast<int>(prec_id));
+      //
+      //   - A window without a precursor is one PasefFrameMsMsInfo row, so it
+      //     gets the plain "frame=<F> scan=<S>" of MS:1002818, and no
+      //     "bruker_precursor_id".
+      setSpectrumID(spec, *first_entry, prec_id);
 
       // Copy sorted peak data
       spec.reserve(all_mz.size());
@@ -2984,18 +4019,19 @@ namespace OpenMS
 
       // Precursor metadata
       Precursor prec;
-      prec.setMZ(first_entry->monoisotopic_mz);  // selected ion m/z (monoisotopic)
+      prec.setMZ(precursor_mz);  // selected ion m/z (monoisotopic, see selectedMZ())
       prec.setCharge(first_entry->charge);
       if (!std::isnan(first_entry->intensity))
         prec.setIntensity(static_cast<float>(first_entry->intensity));
-      prec.setDriftTime(scalar_im);
+      prec.setDriftTime(precursor_im);
       prec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+      setActivation(prec, entries);
 
       // Isolation window offsets relative to the selected ion m/z
       double iso_offset_lower = first_entry->isolation_width / 2.0 +
-                                (first_entry->monoisotopic_mz - first_entry->isolation_mz);
+                                (precursor_mz - first_entry->isolation_mz);
       double iso_offset_upper = first_entry->isolation_width / 2.0 -
-                                (first_entry->monoisotopic_mz - first_entry->isolation_mz);
+                                (precursor_mz - first_entry->isolation_mz);
       prec.setIsolationWindowLowerOffset(std::max(0.0, iso_offset_lower));
       prec.setIsolationWindowUpperOffset(std::max(0.0, iso_offset_upper));
 
@@ -3003,18 +4039,75 @@ namespace OpenMS
       precursors.push_back(std::move(prec));
       spec.setPrecursors(std::move(precursors));
 
-      exp.addSpectrum(std::move(spec));
-      ++precursor_idx;
-      setProgress(ms1_to_emit + precursor_idx);
+      sink(spec);
+    };
+
+    if (!in_rt_order)
+    {
+      for (const auto& [prec_id, entries] : precursor_groups)
+      {
+        emit_precursor(prec_id, entries);
+        setProgress(++progress_count);
+      }
+    }
+    else
+    {
+      // MS1 frames and precursors by retention time. A precursor spectrum gets the mean time of its frames
+      // (avg_rt above, computed here the same way). Equal times keep MS1 frames first and precursors in
+      // the order of their ids, as a stable sort of all spectra by retention time would.
+      struct Event
+      {
+        double rt;
+        size_t ms1_index;                                    // of an MS1 frame
+        const std::vector<const DDAPrecursorInfo*>* entries; // of a precursor, else nullptr
+        int prec_id;
+      };
+      std::vector<Event> events;
+      events.reserve(ms1_to_emit + precursor_groups.size());
+      for (size_t i = 0; i < ms1_to_emit; ++i)
+      {
+        events.push_back({handle.get_frame(ms1_frame_ids[i]).time, i, nullptr, 0});
+      }
+      for (const auto& [prec_id, entries] : precursor_groups)
+      {
+        double rt_sum = 0.0;
+        for (const DDAPrecursorInfo* entry : entries)
+        {
+          if (!handle.has_frame(entry->frame_id)) continue;
+          rt_sum += handle.get_frame(entry->frame_id).time;
+        }
+        events.push_back({rt_sum / static_cast<double>(entries.size()), 0, &entries, prec_id});
+      }
+      std::stable_sort(events.begin(), events.end(), [](const Event& a, const Event& b) { return a.rt < b.rt; });
+      std::vector<size_t> ms1_order;
+      for (const Event& event : events)
+      {
+        if (event.entries == nullptr) ms1_order.push_back(event.ms1_index);
+      }
+      ms1_reader.readInOrder(ms1_order);
+      for (const Event& event : events)
+      {
+        if (event.entries == nullptr)
+        {
+          emit_ms1(event.ms1_index); // counts progress itself
+        }
+        else
+        {
+          emit_precursor(event.prec_id, *event.entries);
+          setProgress(++progress_count);
+        }
+      }
     }
     endProgress();
-    centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
+    ms1_reader.finish();
+    ms1_reader.reportCapSummary();
   }
+
 
   // =====================================================================
   // loadDIA_: MS1 frames + MS2 frames split by SWATH window
   // =====================================================================
-  void BrukerTimsFile::loadDIA_(TimsDataHandle& handle, MSExperiment& exp, const Config& config)
+  void BrukerTimsFile::loadDIA_(TimsDataHandle& handle, const SpectrumSink& sink, const Config& config)
   {
     std::string tdf_path = handle.get_tims_dir_path() + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
@@ -3030,54 +4123,63 @@ namespace OpenMS
       if (frame.msms_type == 0)
         ms1_frame_ids.push_back(fid);
     }
+    trimToRTRange(ms1_frame_ids, handle, config, config.ms1_n_neighbors);
     warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
 
     // --- MS1 frames ---
-    FrameCentroider centroider;
-    FrameAggregator ms1_aggregator(0.01);  // finer bin for MS1 (see design spec)
     const size_t ms1_to_emit = config.load_ms1 ? ms1_frame_ids.size() : 0;
-    if (config.load_ms1 && config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
-    startProgress(0, ms1_to_emit, "Loading DIA-PASEF MS1 frames");
-    for (size_t i = 0; i < ms1_to_emit; ++i)
+    MS1SpectrumReader ms1_reader(handle, ms1_frame_ids, config);
+    const auto emit_ms1 = [&](size_t i)
     {
       MSSpectrum spec;
-      if (config.ms1_n_neighbors > 0)
+      ms1_reader.read(i, spec);
+      sink(spec);
+    };
+    // All MS1 frames in a row, for the cases in which they are not interleaved with MS2 spectra
+    const auto emit_all_ms1 = [&]()
+    {
+      ms1_reader.readFirst(ms1_to_emit);
+      startProgress(0, ms1_to_emit, "Loading DIA-PASEF MS1 frames");
+      for (size_t i = 0; i < ms1_to_emit; ++i)
       {
-        loadAggregatedMS1Spectrum(handle, ms1_frame_ids, i, config,
-                                  ms1_aggregator, centroider, spec);
+        emit_ms1(i);
+        setProgress(i);
       }
-      else
-      {
-        TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
-        loadMS1Spectrum(frame, spec, config, centroider);
-      }
-      exp.addSpectrum(std::move(spec));
-      setProgress(i);
+      endProgress();
+      ms1_reader.finish();
+      if (config.load_ms1) ms1_reader.reportCapSummary();
+    };
+
+    if (!config.load_ms2)
+    {
+      emit_all_ms1(); // MS1 only: no MS2 frame is decoded
+      return;
     }
-    endProgress();
-    if (config.load_ms1)
-      centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
 
     // --- SWATH windows ---
     std::vector<DIAWindow> windows = readDIAWindows(db, *handle.scan2inv_ion_mobility_converter);
 
     if (windows.empty())
     {
+      emit_all_ms1();
       OPENMS_LOG_WARN << "Warning: DIA dataset detected but no SWATH windows found" << std::endl;
       return;
     }
+    warnIfSynchroPASEF(windows);
 
     // --- MS2 frames (split by SWATH window) ---
     // Use per-WindowGroup iteration for both paths: each diaPASEF frame belongs
     // to exactly one WindowGroup, so we only produce spectra for valid
     // frame/window combinations (not the brute-force frames × all_windows).
-    auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+    auto group_to_frames = readFrameToWindowGroupMapping(db, windows, handle);
     for (auto& [group, frame_ids] : group_to_frames)
     {
       frame_ids.erase(
         std::remove_if(frame_ids.begin(), frame_ids.end(),
                        [&config](uint32_t fid) { return !frameInRange(fid, config); }),
         frame_ids.end());
+      // aggregation over retention time takes the neighbors among the frames of the window group
+      trimToRTRange(frame_ids, handle, config, config.dia_ms2_n_neighbors);
     }
 
     // Group DIAWindows by window_group
@@ -3101,6 +4203,8 @@ namespace OpenMS
     if (do_aggregate)
     {
       // === Aggregated path: per-WindowGroup iteration with RT-neighbor summing ===
+      // (window by window, so not in order of retention time: all MS1 frames come first)
+      emit_all_ms1();
       startProgress(0, total_work, "Loading DIA-PASEF MS2 frames (aggregated)");
       Size progress_count = 0;
 
@@ -3170,20 +4274,7 @@ namespace OpenMS
             // Build spectrum from center frame metadata
             TimsFrame& center_frame = handle.get_frame(frame_ids[i]);
             MSSpectrum spec;
-            spec.setRT(center_frame.time);
-            spec.setMSLevel(2);
-            spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-            spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-            spec.setNativeID("frame=" + StringUtils::toStr(center_frame.id) + " windowGroup=" + StringUtils::toStr(win->window_group) + " scan=" + StringUtils::toStr(win->scan_begin));
-
-            Precursor prec;
-            prec.setMZ(win->mz_center);
-            prec.setIsolationWindowLowerOffset(win->mz_width / 2.0);
-            prec.setIsolationWindowUpperOffset(win->mz_width / 2.0);
-            spec.setPrecursors({prec});
-
-            spec.setMetaValue("ion mobility lower limit", win->im_lower);
-            spec.setMetaValue("ion mobility upper limit", win->im_upper);
+            initDIAWindowSpectrum(center_frame, *win, spec);
 
             DataArrays::FloatDataArray im_array;
             IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
@@ -3246,7 +4337,7 @@ namespace OpenMS
             spec.getFloatDataArrays().push_back(std::move(im_array));
             if (wrote_hill_bounds)
               attachHillBoundsArrays(spec, b_im_lo, b_im_hi, b_mz_lo, b_mz_hi);
-            exp.addSpectrum(std::move(spec));
+            sink(spec);
           }
         }
       }
@@ -3260,67 +4351,97 @@ namespace OpenMS
       using CA = BrukerTimsFile::Config::CentroidAlgo;
       const auto ms2_algo_raw = effectiveMS2Algo(config, /*emit_warnings=*/false);
       const bool do_hill_raw = (ms2_algo_raw == CA::HILL_BASED);
-      startProgress(0, total_work, do_hill_raw
-                    ? "Loading DIA-PASEF MS2 frames (hill, no RT aggregation)"
-                    : "Loading DIA-PASEF MS2 frames");
+      startProgress(0, ms1_to_emit + total_work, do_hill_raw
+                    ? "Loading DIA-PASEF frames (hill, no RT aggregation)"
+                    : "Loading DIA-PASEF frames");
       Size progress_count = 0;
 
+      // Without centroiding and prefilter the peaks of a window are emitted as they are, in m/z order.
+      // The prefilter and the centroider get them in the order of the frame.
+      const bool emit_as_is = !do_hill_raw && !config.isotopic_prefilter;
+      std::vector<char> in_window; // per scan of the frame: within the ion mobility limits of the window?
+
+      // All frames by retention time: an MS1 frame gives one spectrum, an MS2 frame one per window of its
+      // group, in the order of the windows. Frames of equal time keep MS1 first, then the order of the
+      // groups, as a stable sort of all spectra by retention time would.
+      struct Event
+      {
+        double time;
+        size_t ms1_index;                            // of an MS1 frame
+        uint32_t frame_id;                           // of an MS2 frame
+        const std::vector<const DIAWindow*>* windows; // of an MS2 frame, else nullptr
+      };
+      std::vector<Event> events;
+      for (size_t i = 0; i < ms1_to_emit; ++i)
+      {
+        events.push_back({handle.get_frame(ms1_frame_ids[i]).time, i, 0, nullptr});
+      }
       for (const auto& [group, frame_ids] : group_to_frames)
       {
         auto wit = group_to_windows.find(group);
         if (wit == group_to_windows.end()) continue;
-        const auto& dia_windows = wit->second;
-
-        for (const DIAWindow* win : dia_windows)
+        for (const uint32_t frame_id : frame_ids)
         {
-          for (size_t i = 0; i < frame_ids.size(); ++i)
+          events.push_back({handle.get_frame(frame_id).time, 0, frame_id, &wit->second});
+        }
+      }
+      std::stable_sort(events.begin(), events.end(), [](const Event& a, const Event& b) { return a.time < b.time; });
+      std::vector<size_t> ms1_order;
+      for (const Event& event : events)
+      {
+        if (event.windows == nullptr) ms1_order.push_back(event.ms1_index);
+      }
+      ms1_reader.readInOrder(ms1_order);
+      DecodedFrame decoded;
+
+      for (const Event& event : events)
+      {
+        if (event.windows == nullptr)
+        {
+          emit_ms1(event.ms1_index);
+          setProgress(progress_count++);
+          continue;
+        }
+        const auto& dia_windows = *event.windows;
+
+        // Every frame is decoded once and split into the windows of its group
+        {
+          TimsFrame& frame = handle.get_frame(event.frame_id);
+          if (frame.num_peaks > 0) decoded.decode(handle, frame, /*order_by_mz=*/emit_as_is);
+
+          for (const DIAWindow* win : dia_windows)
           {
             setProgress(progress_count++);
-            TimsFrame& frame = handle.get_frame(frame_ids[i]);
             if (frame.num_peaks == 0) continue;
 
-            std::vector<uint32_t> raw_scan_ids(frame.num_peaks);
-            std::vector<uint32_t> raw_intensities(frame.num_peaks);
-            std::vector<double> raw_mzs(frame.num_peaks);
-            std::vector<double> raw_ims(frame.num_peaks);
-
-            frame.save_to_buffs(nullptr, raw_scan_ids.data(), nullptr,
-                                raw_intensities.data(),
-                                raw_mzs.data(), raw_ims.data(), nullptr);
-
             MSSpectrum spec;
-            spec.setRT(frame.time);
-            spec.setMSLevel(2);
-            spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-            spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-            spec.setNativeID("frame=" + StringUtils::toStr(frame.id) + " windowGroup=" + StringUtils::toStr(win->window_group) + " scan=" + StringUtils::toStr(win->scan_begin));
-
-            Precursor prec;
-            prec.setMZ(win->mz_center);
-            prec.setIsolationWindowLowerOffset(win->mz_width / 2.0);
-            prec.setIsolationWindowUpperOffset(win->mz_width / 2.0);
-            spec.setPrecursors({prec});
-
-            spec.setMetaValue("ion mobility lower limit", win->im_lower);
-            spec.setMetaValue("ion mobility upper limit", win->im_upper);
-
+            initDIAWindowSpectrum(frame, *win, spec);
             DataArrays::FloatDataArray im_array;
             IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+            markScansInWindow(decoded, *win, in_window);
 
-            // Window-filter into FrameBuffers once for all algos. IM is
-            // already in 1/K0 from save_to_buffs — no scan_id→IM conversion
-            // needed here (unlike the aggregated path). scan_ids carried
+            if (emit_as_is)
+            {
+              addWindowPeaksByMZ(decoded, in_window, spec, im_array);
+              if (spec.empty()) continue;
+              spec.setIMPeakType(IMPeakType::IM_PROFILE);
+              spec.getFloatDataArrays().push_back(std::move(im_array));
+              sink(spec);
+              continue;
+            }
+
+            // Window-filter into FrameBuffers for the prefilter and HillBased. scan_ids carried
             // through for HillBased max_scan_gap and the isotopic prefilter.
             FrameBuffers buf;
-            buf.reserve(frame.num_peaks);
             for (uint32_t p = 0; p < frame.num_peaks; ++p)
             {
-              if (raw_ims[p] >= win->im_lower && raw_ims[p] <= win->im_upper)
+              const uint32_t scan = decoded.scan_ids[p];
+              if (in_window[scan])
               {
-                buf.mz.push_back(raw_mzs[p]);
-                buf.intensity.push_back(static_cast<double>(raw_intensities[p]));
-                buf.im.push_back(raw_ims[p]);
-                buf.scan_ids.push_back(raw_scan_ids[p]);
+                buf.mz.push_back(decoded.mzs[p]);
+                buf.intensity.push_back(static_cast<double>(decoded.intensities[p]));
+                buf.im.push_back(decoded.scan_im[scan]);
+                buf.scan_ids.push_back(scan);
               }
             }
             if (buf.empty()) continue;
@@ -3378,19 +4499,21 @@ namespace OpenMS
               spec.getFloatDataArrays().push_back(std::move(im_array));
               if (wrote_hill_bounds)
                 attachHillBoundsArrays(spec, b_im_lo, b_im_hi, b_mz_lo, b_mz_hi);
-              exp.addSpectrum(std::move(spec));
+              sink(spec);
             }
           }
         }
       }
       endProgress();
+      ms1_reader.finish();
+      if (config.load_ms1) ms1_reader.reportCapSummary();
     }
   }
 
   // =====================================================================
   // loadFrames_: raw frames without precursor grouping or SWATH splitting
   // =====================================================================
-  void BrukerTimsFile::loadFrames_(TimsDataHandle& handle, MSExperiment& exp, const Config& config)
+  void BrukerTimsFile::loadFrames_(TimsDataHandle& handle, const SpectrumSink& sink, const Config& config)
   {
     // FRAME mode returns raw per-frame spectra; MS1 aggregation would break that
     // contract, so warn and ignore the knob.
@@ -3402,50 +4525,62 @@ namespace OpenMS
                       << "frame aggregation." << std::endl;
     }
 
-    // Iterate all frames at each MS level
+    // The frames of the MS levels that are loaded (load_ms1 / load_ms2), by retention time. Frames of
+    // equal time keep MS1 first, as a stable sort of all spectra by retention time would.
+    struct FrameRef
+    {
+      double time;
+      int level;
+      uint32_t id;
+    };
+    std::vector<FrameRef> frames;
+    Size n_ms2 = 0;
     for (int level = 1; level <= 2; ++level)
     {
-      // Honor load_ms1: skip level==1 entirely when the user opts out of MS1.
       if (level == 1 && !config.load_ms1) continue;
-
-      // Collect frame IDs at this level
-      std::vector<uint32_t> frame_ids;
+      if (level == 2 && !config.load_ms2) continue;
       for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
       {
         if (!frameInRange(fid, config)) continue;
         if (!handle.has_frame(fid)) continue;
         TimsFrame& frame = handle.get_frame(fid);
-        if ((level == 1 && frame.msms_type == 0) ||
-            (level == 2 && frame.msms_type != 0))
-        {
-          frame_ids.push_back(fid);
-        }
+        if ((level == 1) != (frame.msms_type == 0)) continue;
+        if (selectsSpectraByRT(config) && !rtInRange(frame.time, config)) continue; // a spectrum per frame
+        frames.push_back({frame.time, level, fid});
+        if (level == 2) ++n_ms2;
       }
-
-      if (frame_ids.empty())
-      {
-        if (level == 2)
-          OPENMS_LOG_WARN << "Warning: no MS2 frames found (skipping)" << std::endl;
-        continue;
-      }
-
-      FrameCentroider centroider;
-      startProgress(0, frame_ids.size(),"Loading MS" + StringUtils::toStr(level) + " frames");
-      for (size_t i = 0; i < frame_ids.size(); ++i)
-      {
-        TimsFrame& frame = handle.get_frame(frame_ids[i]);
-        MSSpectrum spec;
-        if (level == 1)
-          loadMS1Spectrum(frame, spec, config, centroider);
-        else
-          frameToSpectrum(frame, spec, level);
-        exp.addSpectrum(std::move(spec));
-        setProgress(i);
-      }
-      endProgress();
-      if (level == 1)
-        centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
     }
+    if (config.load_ms2 && n_ms2 == 0)
+    {
+      OPENMS_LOG_WARN << "Warning: no MS2 frames found (skipping)" << std::endl;
+    }
+    std::stable_sort(frames.begin(), frames.end(), [](const FrameRef& a, const FrameRef& b) { return a.time < b.time; });
+
+    FrameCentroider centroider;
+    DecodedFrame decoded;
+    // the frames that become spectra as they are (all but MS1 frames that are centroided) are decoded in parallel
+    const bool centroid_ms1 = isCentroidingEnabled(config);
+    std::vector<std::pair<uint32_t, int>> raw_frames;
+    for (const FrameRef& frame : frames)
+    {
+      if (frame.level != 1 || !centroid_ms1) raw_frames.emplace_back(frame.id, frame.level);
+    }
+    RawFrameReader raw_reader(handle, std::move(raw_frames));
+
+    startProgress(0, frames.size(), "Loading frames");
+    for (size_t i = 0; i < frames.size(); ++i)
+    {
+      MSSpectrum spec;
+      if (frames[i].level == 1 && centroid_ms1)
+        loadMS1Spectrum(handle, handle.get_frame(frames[i].id), spec, config, centroider, decoded);
+      else
+        raw_reader.next(frames[i].id, spec);
+      sink(spec);
+      setProgress(i);
+    }
+    endProgress();
+    if (config.load_ms1 && frames.size() > n_ms2)
+      centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
   }
 
 } // namespace OpenMS

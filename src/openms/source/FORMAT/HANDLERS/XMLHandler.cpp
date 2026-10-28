@@ -43,16 +43,20 @@ namespace OpenMS::Internal
       std::string error_message;
       if (mode == LOAD)
       {
-        error_message =std::string("While loading '") + file_ + "': " + msg;
-	      // test if file has the wrong extension and is therefore passed to the wrong parser
-        // only makes sense if we are loading/parsing a file
-	      FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
-        FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
-        if (ft_name != ft_content)
+        error_message = std::string("While loading '") + file_ + "': " + msg;
+        // test if file has the wrong extension and is therefore passed to the wrong parser
+        // only makes sense if we are loading/parsing a local file (not remote URIs)
+        if (!StringUtils::hasPrefix(file_, "http://") && !StringUtils::hasPrefix(file_, "https://")
+            && !StringUtils::hasPrefix(file_, "ftp://") && !StringUtils::hasPrefix(file_, "s3://"))
         {
-          error_message +=std::string("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
-                          + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
-                          + "Rename the file to fix this.";
+          FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
+          FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
+          if (ft_name != ft_content)
+          {
+            error_message += std::string("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
+                            + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
+                            + "Rename the file to fix this.";
+          }
         }
       }
       else if (mode == STORE)
@@ -326,58 +330,62 @@ namespace OpenMS::Internal
       std::vector<std::string> keys;
       meta.getKeys(keys);
 
-      std::string val;
       std::string p_prefix = std::string(indent, '\t') + "<" + writeXMLEscape(tag_name) + " type=\"";
       for (Size i = 0; i != keys.size(); ++i)
       {
-        os << p_prefix;
-
-        const DataValue& d = meta.getMetaValue(keys[i]);
-        // determine type
-        if (d.valueType() == DataValue::STRING_VALUE || d.valueType() == DataValue::EMPTY_VALUE)
-        {
-          os << "string";
-          val = writeXMLEscape(d);
-        }
-        else if (d.valueType() == DataValue::INT_VALUE)
-        {
-          os << "int";
-          val = StringUtils::toStr(d);
-        }
-        else if (d.valueType() == DataValue::DOUBLE_VALUE)
-        {
-          os << "float";
-          val = StringUtils::toStr(d);
-        }
-        else if (d.valueType() == DataValue::INT_LIST)
-        {
-          os << "intList";
-          val = d.toString();
-        }
-        else if (d.valueType() == DataValue::DOUBLE_LIST)
-        {
-          os << "floatList";
-          val = d.toString();
-        }
-        else if (d.valueType() == DataValue::STRING_LIST)
-        {
-          os << "stringList";
-          // List elements are separated by comma. In the rare case of comma inside individual strings
-          // we replace them by an escape symbol '\\|'. 
-          // This allows distinguishing commas as element separator and normal string character and reconstruct the list.
-          StringList sl = d.toStringList();
-          for (std::string& s : sl)
-          {
-            if (StringUtils::has(s, ',')) StringUtils::substitute(s, ",", "\\|");
-          }
-          val = "[" + writeXMLEscape(ListUtils::concatenate(sl, ",")) + "]";
-        }
-        else
-        {
-          throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-        }
-        os << "\" name=\"" << keys[i] << "\" value=\"" << val << "\"/>\n";
+        writeUserParamValue_(os, p_prefix, keys[i], meta.getMetaValue(keys[i]));
       }
+    }
+
+    void XMLHandler::writeUserParamValue_(std::ostream& os, const std::string& tag_start, const std::string& name, const DataValue& d)
+    {
+      os << tag_start;
+
+      std::string val;
+      // determine type
+      if (d.valueType() == DataValue::STRING_VALUE || d.valueType() == DataValue::EMPTY_VALUE)
+      {
+        os << "string";
+        val = writeXMLEscape(d);
+      }
+      else if (d.valueType() == DataValue::INT_VALUE)
+      {
+        os << "int";
+        val = StringUtils::toStr(d);
+      }
+      else if (d.valueType() == DataValue::DOUBLE_VALUE)
+      {
+        os << "float";
+        val = StringUtils::toStr(d);
+      }
+      else if (d.valueType() == DataValue::INT_LIST)
+      {
+        os << "intList";
+        val = d.toString();
+      }
+      else if (d.valueType() == DataValue::DOUBLE_LIST)
+      {
+        os << "floatList";
+        val = d.toString();
+      }
+      else if (d.valueType() == DataValue::STRING_LIST)
+      {
+        os << "stringList";
+        // List elements are separated by comma. In the rare case of comma inside individual strings
+        // we replace them by an escape symbol '\\|'.
+        // This allows distinguishing commas as element separator and normal string character and reconstruct the list.
+        StringList sl = d.toStringList();
+        for (std::string& s : sl)
+        {
+          if (StringUtils::has(s, ',')) StringUtils::substitute(s, ",", "\\|");
+        }
+        val = "[" + writeXMLEscape(ListUtils::concatenate(sl, ",")) + "]";
+      }
+      else
+      {
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
+      os << "\" name=\"" << name << "\" value=\"" << val << "\"/>\n";
     }
 
 

@@ -54,23 +54,34 @@ endif()
 
 #------------------------------------------------------------------------------
 # LP Solver selection
-# LP_SOLVER option: COIN, GLPK, HIGHS, or AUTO (default)
-# AUTO tries COIN-OR first, then GLPK, then HiGHS via FetchContent
-set(LP_SOLVER "AUTO" CACHE STRING "LP solver to use: AUTO, COIN, GLPK, or HIGHS")
-set_property(CACHE LP_SOLVER PROPERTY STRINGS AUTO COIN GLPK HIGHS)
+# LP_SOLVER option: HIGHS (default), COIN or GLPK.
+# HiGHS is taken from the system/vcpkg if found, otherwise fetched via FetchContent.
+# COIN and GLPK are deprecated and will be removed in the next release (see #10551).
+# AUTO (the former default) is kept as an alias for HIGHS, so existing build trees switch over.
+set(LP_SOLVER "HIGHS" CACHE STRING "LP solver to use: HIGHS (default), COIN (deprecated) or GLPK (deprecated)")
+set_property(CACHE LP_SOLVER PROPERTY STRINGS HIGHS COIN GLPK)
+if (LP_SOLVER STREQUAL "AUTO")
+  message(STATUS "LP_SOLVER=AUTO now selects HiGHS")
+  set(LP_SOLVER "HIGHS")
+endif()
+if (LP_SOLVER STREQUAL "COIN" OR LP_SOLVER STREQUAL "GLPK")
+  message(DEPRECATION "LP_SOLVER=${LP_SOLVER} is deprecated and will be removed in the next OpenMS release. Use the default, HIGHS.")
+elseif (NOT LP_SOLVER STREQUAL "HIGHS")
+  message(FATAL_ERROR "Invalid LP_SOLVER '${LP_SOLVER}'. Use HIGHS (default), COIN or GLPK.")
+endif()
 
-if (LP_SOLVER STREQUAL "COIN" OR LP_SOLVER STREQUAL "AUTO")
+if (LP_SOLVER STREQUAL "COIN")
   find_package(COIN QUIET)
   if (COIN_FOUND)
     set(OPENMS_HAS_COINOR 1)
     set(LPTARGET "CoinOR::CoinOR")
     message(STATUS "LP solver: COIN-OR")
-  elseif(LP_SOLVER STREQUAL "COIN")
+  else()
     message(FATAL_ERROR "LP_SOLVER set to COIN but COIN-OR was not found.")
   endif()
 endif()
 
-if (NOT LPTARGET AND (LP_SOLVER STREQUAL "GLPK" OR LP_SOLVER STREQUAL "AUTO"))
+if (LP_SOLVER STREQUAL "GLPK")
   find_package(GLPK QUIET)
   if (GLPK_FOUND)
     set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
@@ -78,18 +89,20 @@ if (NOT LPTARGET AND (LP_SOLVER STREQUAL "GLPK" OR LP_SOLVER STREQUAL "AUTO"))
     set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
     set(LPTARGET "GLPK::GLPK")
     message(STATUS "LP solver: GLPK ${GLPK_VERSION_STRING}")
-  elseif(LP_SOLVER STREQUAL "GLPK")
+  else()
     message(FATAL_ERROR "LP_SOLVER set to GLPK but GLPK was not found.")
   endif()
 endif()
 
-if (NOT LPTARGET AND (LP_SOLVER STREQUAL "HIGHS" OR LP_SOLVER STREQUAL "AUTO"))
-  # Try to find a system-installed HiGHS first
-  find_package(highs QUIET CONFIG)
+if (LP_SOLVER STREQUAL "HIGHS")
+  # Try to find a system-installed (or vcpkg) HiGHS first.
+  # 1.11 is the first release with the probing presolve rule LPWrapper switches off (LPWrapper.cpp guards the
+  # enumeration rule, added in 1.13, by version).
+  find_package(highs 1.11 QUIET CONFIG)
   if (highs_FOUND)
     set(OPENMS_HAS_HIGHS 1)
     set(LPTARGET "highs::highs")
-    message(STATUS "LP solver: HiGHS (system)")
+    message(STATUS "LP solver: HiGHS ${highs_VERSION} (system)")
   else()
     # Fetch HiGHS via FetchContent
     include(FetchContent)
@@ -99,32 +112,41 @@ if (NOT LPTARGET AND (LP_SOLVER STREQUAL "HIGHS" OR LP_SOLVER STREQUAL "AUTO"))
       GIT_TAG        v1.14.0
       GIT_SHALLOW    TRUE
     )
-    set(HIGHS_BUILD_TESTING OFF CACHE BOOL "" FORCE)
-    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-    set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    # Settings for the HiGHS subproject only (normal variables, restored afterwards; HiGHS' option()s honor them):
+    # - static + PIC: HiGHS is linked into libOpenMS, so no extra shared library has to be installed or shipped
+    #   alongside it (OpenMS sets BUILD_SHARED_LIBS=ON for libOpenMS itself)
+    # - no LTO: OpenMS is a CXX-only project, so the C compiler HiGHS enables may differ from the C++ compiler
+    #   (e.g. clang vs. gcc), and their LTO objects cannot be linked together
+    # - only the library: no tests, examples or the highs executable
+    set(_openms_highs_saved_vars BUILD_SHARED_LIBS CMAKE_POSITION_INDEPENDENT_CODE CMAKE_INTERPROCEDURAL_OPTIMIZATION
+                                 BUILD_TESTING BUILD_EXAMPLES BUILD_CXX_EXE HIGHS_BUILD_TESTING)
+    foreach(_var IN LISTS _openms_highs_saved_vars)
+      if (DEFINED ${_var})
+        set(_openms_highs_saved_${_var} "${${_var}}")
+      endif()
+    endforeach()
+    set(BUILD_SHARED_LIBS OFF)
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
+    set(BUILD_TESTING OFF)
+    set(BUILD_EXAMPLES OFF)
+    set(BUILD_CXX_EXE OFF)
+    set(HIGHS_BUILD_TESTING OFF)
     FetchContent_MakeAvailable(highs)
-    # OpenMS defaults to hidden C++ symbol visibility globally. HiGHS does not
-    # annotate its C++ API for export, so a shared HiGHS build must opt out of
-    # hidden visibility or libOpenMS cannot link against those symbols.
-    if (TARGET highs)
-      set_target_properties(highs PROPERTIES
-        CXX_VISIBILITY_PRESET default
-        VISIBILITY_INLINES_HIDDEN OFF)
-    endif()
-    if (TARGET libhighs)
-      set_target_properties(libhighs PROPERTIES
-        CXX_VISIBILITY_PRESET default
-        VISIBILITY_INLINES_HIDDEN OFF)
-    endif()
+    foreach(_var IN LISTS _openms_highs_saved_vars)
+      if (DEFINED _openms_highs_saved_${_var})
+        set(${_var} "${_openms_highs_saved_${_var}}")
+        unset(_openms_highs_saved_${_var})
+      else()
+        unset(${_var})
+      endif()
+    endforeach()
     set(OPENMS_HAS_HIGHS 1)
     set(LPTARGET "highs")
     message(STATUS "LP solver: HiGHS (FetchContent)")
   endif()
 endif()
 
-if (NOT LPTARGET)
-  message(FATAL_ERROR "No LP solver found. Set LP_SOLVER to COIN, GLPK, or HIGHS, or ensure one is available.")
-endif()
 
 # Set default GLPK version variables if GLPK was not found (needed for config.h.in substitution)
 if (NOT DEFINED CF_OPENMS_GLPK_VERSION_MAJOR)
@@ -244,18 +266,19 @@ find_package(CURL REQUIRED)
 
 #------------------------------------------------------------------------------
 # Apache Arrow and Parquet (required dependency).
-# Arrow 23+ required for parquet file format compatibility. We don't pin the
+# Arrow 24+ required: the version that every build we ship uses (vcpkg, the
+# Docker image and Bioconda), so the only one tested. We don't pin the
 # version in find_package because Arrow's ConfigVersion uses SameMajorVersion
-# compatibility, so `find_package(Arrow 23 ...)` rejects 24.x even though
-# 24.x remains API-compatible for our usage. Enforce the minimum with an
+# compatibility, so `find_package(Arrow 24 ...)` rejects 25.x even though
+# 25.x remains API-compatible for our usage. Enforce the minimum with an
 # explicit VERSION_LESS check after the package is located.
 find_package(Arrow CONFIG REQUIRED)
-if(Arrow_VERSION VERSION_LESS 23)
-  message(FATAL_ERROR "Apache Arrow >= 23 required (found ${Arrow_VERSION}).")
+if(Arrow_VERSION VERSION_LESS 24)
+  message(FATAL_ERROR "Apache Arrow >= 24 required (found ${Arrow_VERSION}).")
 endif()
 find_package(Parquet CONFIG REQUIRED)
-if(Parquet_VERSION VERSION_LESS 23)
-  message(FATAL_ERROR "Apache Parquet >= 23 required (found ${Parquet_VERSION}).")
+if(Parquet_VERSION VERSION_LESS 24)
+  message(FATAL_ERROR "Apache Parquet >= 24 required (found ${Parquet_VERSION}).")
 endif()
 
 # Arrow's CMake config may import nlohmann_json as a transitive dependency.
@@ -396,6 +419,33 @@ if(OPENMS_ARROW_TARGET STREQUAL "Arrow::arrow_static"
                    "development files if linking fails with undefined xml* symbols.")
   endif()
 endif()
+
+#------------------------------------------------------------------------------
+# S3 (s3:// URIs, S3InputSource): Arrow's S3 filesystem, if Arrow was built with it (ARROW_S3, e.g. vcpkg's
+# arrow[s3]). It is part of libarrow in older releases and its own library, ArrowS3, in newer ones. Linking a call
+# checks that it is usable (the headers are installed without it, too); without it, s3:// URIs are an error.
+set(OPENMS_ARROW_S3_TARGET "")
+set(WITH_ARROW_S3 OFF)
+if(NOT DEFINED ARROW_S3 OR ARROW_S3)
+  find_package(ArrowS3 CONFIG QUIET)
+  if(OPENMS_ARROW_TARGET STREQUAL "Arrow::arrow_static" AND TARGET ArrowS3::arrow_s3_static)
+    set(OPENMS_ARROW_S3_TARGET ArrowS3::arrow_s3_static)
+  elseif(TARGET ArrowS3::arrow_s3_shared)
+    set(OPENMS_ARROW_S3_TARGET ArrowS3::arrow_s3_shared)
+  elseif(TARGET ArrowS3::arrow_s3_static)
+    set(OPENMS_ARROW_S3_TARGET ArrowS3::arrow_s3_static)
+  endif()
+  include(CheckCXXSourceCompiles)
+  set(CMAKE_REQUIRED_LIBRARIES ${OPENMS_ARROW_TARGET} ${OPENMS_ARROW_S3_TARGET})
+  check_cxx_source_compiles("
+    #include <arrow/filesystem/s3fs.h>
+    int main() { return arrow::fs::IsS3Initialized() ? 1 : 0; }" OPENMS_ARROW_S3_LINKS)
+  unset(CMAKE_REQUIRED_LIBRARIES)
+  if(OPENMS_ARROW_S3_LINKS)
+    set(WITH_ARROW_S3 ON)
+  endif()
+endif()
+message(STATUS "S3 support (s3:// URIs, via Arrow): ${WITH_ARROW_S3} ${OPENMS_ARROW_S3_TARGET}")
 
 #------------------------------------------------------------------------------
 # wnetalign (Wasserstein network spectral alignment)
@@ -632,9 +682,8 @@ endif()
 #------------------------------------------------------------------------------
 # openms-thermo-bridge (Thermo RAW file reading)
 if (WITH_THERMO_RAW)
-  # 0.3.1 is the first release that publishes THIRD-PARTY-NOTICES.txt with its managed
-  # assemblies; the install below takes it from there.
-  find_package(OpenMSThermoBridge 0.3.1 QUIET)
+  # ThermoRawFile uses the typed single-pass scan API of the 1.x series.
+  find_package(OpenMSThermoBridge 1.0.0 QUIET)
 
   if(OpenMSThermoBridge_FOUND)
     message(STATUS "openms-thermo-bridge: using system installation")
@@ -662,9 +711,9 @@ if (WITH_THERMO_RAW)
       OpenMSThermoBridge
       GIT_REPOSITORY https://github.com/OpenMS/openms-thermo-bridge.git
       # Pin to a specific reviewed upstream revision to keep builds reproducible.
-      # This is the commit the v0.3.1 release tag points at; tools/ci/fetch_thermo_assets.sh
-      # checks that its own pin matches and downloads the v0.3.1 release assets.
-      GIT_TAG        d809f8ac6264d00c81da4b7abe456a08f124f804  # v0.3.1
+      # This is the commit of the v1.0.0 release tag. tools/ci/fetch_thermo_assets.sh checks
+      # that its own pin matches and downloads the matching release assets.
+      GIT_TAG        75849ecf6f600a3e52479823043842e571a774ae  # v1.0.0
     )
 
     # Configure the thermo bridge build options

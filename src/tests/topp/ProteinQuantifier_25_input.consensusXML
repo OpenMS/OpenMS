@@ -40,7 +40,7 @@
 		<groupedElementList>
 			<element map="0" id="0" rt="100" mz="100" it="100" charge="2"/>
 		</groupedElementList>
-		<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="100" RT="100">
+		<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="100" RT="100">
 			<PeptideHit score="1" sequence="PEPTIDEK" charge="2" protein_refs="PH_0"/>
 		</PeptideIdentification>
 	</consensusElement>
@@ -49,7 +49,7 @@
 		<groupedElementList>
 			<element map="1" id="1" rt="110" mz="110" it="10" charge="2"/>
 		</groupedElementList>
-		<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="110" RT="110">
+		<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="110" RT="110">
 			<PeptideHit score="1" sequence="PEPTIDEK" charge="2" protein_refs="PH_0"/>
 		</PeptideIdentification>
 	</consensusElement>
@@ -58,7 +58,7 @@
 		<groupedElementList>
 			<element map="0" id="2" rt="120" mz="120" it="200" charge="2"/>
 		</groupedElementList>
-		<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="120" RT="120">
+		<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="120" RT="120">
 			<PeptideHit score="1" sequence="AAAAAK" charge="2" protein_refs="PH_0"/>
 		</PeptideIdentification>
 	</consensusElement>
@@ -67,7 +67,7 @@
 		<groupedElementList>
 			<element map="1" id="3" rt="130" mz="130" it="20" charge="2"/>
 		</groupedElementList>
-		<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="130" RT="130">
+		<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="130" RT="130">
 			<PeptideHit score="1" sequence="AAAAAK" charge="2" protein_refs="PH_0"/>
 		</PeptideIdentification>
 	</consensusElement>
@@ -76,7 +76,7 @@
 		<groupedElementList>
 			<element map="2" id="4" rt="140" mz="140" it="300" charge="2"/>
 		</groupedElementList>
-		<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="140" RT="140">
+		<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="140" RT="140">
 			<PeptideHit score="1" sequence="CCCCCK" charge="2" protein_refs="PH_0"/>
 		</PeptideIdentification>
 	</consensusElement>
@@ -85,7 +85,7 @@
 		<groupedElementList>
 			<element map="3" id="5" rt="150" mz="150" it="30" charge="2"/>
 		</groupedElementList>
-		<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="150" RT="150">
+		<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="150" RT="150">
 			<PeptideHit score="1" sequence="CCCCCK" charge="2" protein_refs="PH_0"/>
 		</PeptideIdentification>
 	</consensusElement>
@@ -94,7 +94,7 @@
 		<groupedElementList>
 			<element map="2" id="6" rt="160" mz="160" it="50" charge="2"/>
 		</groupedElementList>
-		<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="160" RT="160">
+		<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="160" RT="160">
 			<PeptideHit score="1" sequence="PEPTIDEK" charge="2" protein_refs="PH_0"/>
 		</PeptideIdentification>
 	</consensusElement>
@@ -103,7 +103,7 @@
 		<groupedElementList>
 			<element map="3" id="7" rt="170" mz="170" it="5" charge="2"/>
 		</groupedElementList>
-		<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="170" RT="170">
+		<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="170" RT="170">
 			<PeptideHit score="1" sequence="PEPTIDEK" charge="2" protein_refs="PH_0"/>
 		</PeptideIdentification>
 	</consensusElement>

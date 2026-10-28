@@ -1,7 +1,7 @@
 ---
-description: Nightly workflow to identify noteworthy recent code changes that should be reflected in the changelog and open a pull request with the necessary updates.
+description: Weekly workflow to identify noteworthy recent code changes that should be reflected in the changelog and open a pull request with the necessary updates.
 on:
-  schedule: daily
+  schedule: weekly
 permissions:
   contents: read
   pull-requests: read
@@ -30,16 +30,16 @@ You are a changelog maintenance agent for the OpenMS project — a C++ library f
 
 ## Your Task
 
-Your goal is to identify noteworthy recent code changes (from the last 7 days) that are not yet reflected in the top-level `CHANGELOG` file and open a pull request with the necessary updates.
+Your goal is to identify noteworthy recent code changes (from the last 8 days, so consecutive weekly runs overlap by a day) that are not yet reflected in the top-level `CHANGELOG` file and open a pull request with the necessary updates.
 
 ## Steps to Follow
 
 ### 1. Find Recent Code Changes
 
-Run the following bash command to find non-documentation files that changed in the last 7 days:
+Run the following bash command to find non-documentation files that changed in the last 8 days:
 
 ```bash
-git log --since="7 days ago" --name-only --pretty=format: \
+git log --since="8 days ago" --name-only --pretty=format: \
   | sort -u \
   | grep -v '^$' \
   | grep -vE '^(doc/|\.github/|src/tests/|tools/)' \

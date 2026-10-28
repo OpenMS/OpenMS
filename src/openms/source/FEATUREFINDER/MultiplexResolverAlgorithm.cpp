@@ -17,6 +17,7 @@
 
 #include <cmath>
 #include <limits>
+#include <map>
 
 using namespace std;
 
@@ -91,21 +92,12 @@ namespace OpenMS
   }
 
   bool MultiplexResolverAlgorithm::matchDeltaMasses_(const ConsensusFeature& consensus,
+                                                     double detected_delta_mass_at_label_set,
                                                      const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern,
                                                      double theoretical_delta_mass_at_label_set,
                                                      std::vector<bool>& delta_mass_matched) const
   {
     const double first_mass = consensus.getFeatures().begin()->getMZ() * consensus.getFeatures().begin()->getCharge();
-    const PeptideIdentification& id = consensus.getPeptideIdentifications()[0];
-    if (!id.metaValueExists("map_index"))
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The meta value 'map_index' is missing in the input data. In the IDMapper tool, please set the advanced parameter consensus:annotate_ids_with_subelements = true.");
-    }
-    const double detected_delta_mass_at_label_set = deltaMassFromMapIndex_(consensus.getFeatures(), id.getMetaValue("map_index"));
-    if (std::isnan(detected_delta_mass_at_label_set))
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No delta mass with this map_index could be found.", "");
-    }
 
     // every detected feature needs a theoretical counterpart, relative to the identified feature
     for (const FeatureHandle& handle : consensus.getFeatures())
@@ -134,7 +126,41 @@ namespace OpenMS
     return true;
   }
 
+  bool MultiplexResolverAlgorithm::matchesResidues_(const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, const AASequence& sequence)
+  {
+    // the residue a metabolic label sits on ('\0' for labels that are not counted)
+    auto residue_of = [](const std::string& label) -> char
+    {
+      if (label.rfind("Lys", 0) == 0) { return 'K'; }
+      if (label.rfind("Arg", 0) == 0) { return 'R'; }
+      if (label.rfind("Leu", 0) == 0) { return 'L'; }
+      return '\0';
+    };
+
+    std::map<char, Size> residues;
+    for (Size i = 0; i < sequence.size(); ++i)
+    {
+      ++residues[sequence[i].getOneLetterCode()[0]];
+    }
+
+    for (const MultiplexDeltaMasses::DeltaMass& delta_mass : pattern)
+    {
+      std::map<char, Size> labels;
+      for (const std::string& label : delta_mass.label_set)
+      {
+        if (const char residue = residue_of(label); residue != '\0') { ++labels[residue]; }
+      }
+      for (const auto& [residue, count] : labels)
+      {
+        if (residues[residue] != count) { return false; }
+      }
+    }
+    return true;
+  }
+
   int MultiplexResolverAlgorithm::findMatchingPattern_(const ConsensusFeature& consensus,
+                                                       double detected_delta_mass_at_label_set,
+                                                       const AASequence& sequence,
                                                        const MultiplexDeltaMasses::LabelSet& label_set,
                                                        const std::vector<MultiplexDeltaMasses>& theoretical_patterns,
                                                        std::vector<bool>& delta_mass_matched, int& index_label_set) const
@@ -144,12 +170,12 @@ namespace OpenMS
       const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern = it_pattern->getDeltaMasses();
 
       const double shift = matchLabelSet_(pattern, label_set, index_label_set);
-      if (!std::isnan(shift))
+      if (!std::isnan(shift) && matchesResidues_(pattern, sequence))
       {
         // the label set occurs in this pattern; now all detected mass shifts have to fit as well
         delta_mass_matched.assign(delta_mass_matched.size(), false);
 
-        if (matchDeltaMasses_(consensus, pattern, shift, delta_mass_matched))
+        if (matchDeltaMasses_(consensus, detected_delta_mass_at_label_set, pattern, shift, delta_mass_matched))
         {
           return static_cast<int>(it_pattern - theoretical_patterns.begin());
         }
@@ -312,8 +338,7 @@ namespace OpenMS
     return consensus_complete;
   }
 
-  void MultiplexResolverAlgorithm::resolve(const ConsensusMap& map_in, ConsensusMap& map_out, ConsensusMap& map_conflicts,
-                                           const MSExperiment& blacklist) const
+  MultiplexDeltaMassesGenerator MultiplexResolverAlgorithm::createGenerator_() const
   {
     // mass shift of every label, as configured in section 'labels'
     std::map<std::string, double> label_mass_shift;
@@ -323,8 +348,64 @@ namespace OpenMS
       label_mass_shift.insert(make_pair(it->name, static_cast<double>(it->value)));
     }
 
-    MultiplexDeltaMassesGenerator generator(param_.getValue("algorithm:labels").toString(),
-                                            param_.getValue("algorithm:max_nr_labelled_aas"), label_mass_shift);
+    return MultiplexDeltaMassesGenerator(param_.getValue("algorithm:labels").toString(),
+                                         param_.getValue("algorithm:max_nr_labelled_aas"), label_mass_shift);
+  }
+
+  std::vector<bool> MultiplexResolverAlgorithm::checkIdentifications(const ConsensusFeature& consensus) const
+  {
+    const PeptideIdentificationList& ids = consensus.getPeptideIdentifications();
+    std::vector<bool> consistent(ids.size(), false);
+    if (consensus.getFeatures().empty()) { return consistent; }
+
+    MultiplexDeltaMassesGenerator generator = createGenerator_();
+    const std::vector<MultiplexDeltaMasses> theoretical_masses = generator.getDeltaMassesList();
+    const size_t multiplicity = theoretical_masses[0].getDeltaMasses().size();
+
+    for (Size i = 0; i < ids.size(); ++i)
+    {
+      const PeptideIdentification& id = ids[i];
+      if (id.getHits().empty() || !id.metaValueExists("map_index")) { continue; }
+      const double detected_delta_mass = deltaMassFromMapIndex_(consensus.getFeatures(), id.getMetaValue("map_index"));
+      if (std::isnan(detected_delta_mass)) { continue; }
+
+      const AASequence& sequence = id.getHits()[0].getSequence();
+      const MultiplexDeltaMasses::LabelSet label_set = generator.extractLabelSet(sequence);
+      std::vector<bool> delta_mass_matched(multiplicity, false);
+      int index_label_set = -1;
+      consistent[i] = findMatchingPattern_(consensus, detected_delta_mass, sequence, label_set, theoretical_masses, delta_mass_matched, index_label_set) >= 0;
+    }
+    return consistent;
+  }
+
+  std::vector<double> MultiplexResolverAlgorithm::expectedChannelMZs(const AASequence& sequence, int charge, Size& position) const
+  {
+    if (charge == 0) { return {}; }
+    MultiplexDeltaMassesGenerator generator = createGenerator_();
+    const MultiplexDeltaMasses::LabelSet label_set = generator.extractLabelSet(sequence);
+    for (const MultiplexDeltaMasses& theoretical : generator.getDeltaMassesList())
+    {
+      const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern = theoretical.getDeltaMasses();
+      int index_label_set = -1;
+      const double shift = matchLabelSet_(pattern, label_set, index_label_set);
+      if (std::isnan(shift) || !matchesResidues_(pattern, sequence)) { continue; }
+
+      const double mz = sequence.getMZ(charge);
+      std::vector<double> mzs;
+      for (const MultiplexDeltaMasses::DeltaMass& delta_mass : pattern)
+      {
+        mzs.push_back(mz + (delta_mass.delta_mass - shift) / std::abs(charge));
+      }
+      position = static_cast<Size>(index_label_set);
+      return mzs;
+    }
+    return {};
+  }
+
+  void MultiplexResolverAlgorithm::resolve(const ConsensusMap& map_in, ConsensusMap& map_out, ConsensusMap& map_conflicts,
+                                           const MSExperiment& blacklist) const
+  {
+    MultiplexDeltaMassesGenerator generator = createGenerator_();
 
     // both outputs start as empty copies of the input, i.e. with its meta data
     map_out = map_in;
@@ -345,12 +426,22 @@ namespace OpenMS
       }
 
       // extract the label set from the attached peptide sequence (only the first one is considered)
-      const AASequence& sequence = cf.getPeptideIdentifications()[0].getHits()[0].getSequence();
+      const PeptideIdentification& id = cf.getPeptideIdentifications()[0];
+      const AASequence& sequence = id.getHits()[0].getSequence();
       const MultiplexDeltaMasses::LabelSet label_set = generator.extractLabelSet(sequence);
+      if (!id.metaValueExists("map_index"))
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The meta value 'map_index' is missing in the input data. In the IDMapper tool, please set the advanced parameter consensus:annotate_ids_with_subelements = true.");
+      }
+      const double detected_delta_mass = deltaMassFromMapIndex_(cf.getFeatures(), id.getMetaValue("map_index"));
+      if (std::isnan(detected_delta_mass))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No delta mass with this map_index could be found.", "");
+      }
       std::vector<bool> delta_mass_matched(multiplicity, false);
       int index_label_set = -1;
 
-      const int index = findMatchingPattern_(cf, label_set, theoretical_masses, delta_mass_matched, index_label_set);
+      const int index = findMatchingPattern_(cf, detected_delta_mass, sequence, label_set, theoretical_masses, delta_mass_matched, index_label_set);
 
       if (index >= 0)
       {

@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <cstdlib>  // for getenv in terminate()
+#include <exception>
 //#include <sys/types.h>
 #include <csignal> // for SIGSEGV and kill
 #include <iostream>
@@ -50,7 +51,27 @@ namespace OpenMS::Exception
       std::cout << "---------------------------------------------------" << std::endl;
       std::cout << "FATAL: uncaught exception!" << std::endl;
       std::cout << "---------------------------------------------------" << std::endl;
-      if ((line_() != -1) && (name_() != "unknown"))
+      // The exception that was not caught reports itself: it may have been constructed on another thread (and carried
+      // here by std::exception_ptr, e.g. from a parallel loop), so the last entry of this thread need not be about it.
+      bool reported = false;
+      if (const std::exception_ptr uncaught = std::current_exception())
+      {
+        try
+        {
+          std::rethrow_exception(uncaught);
+        }
+        catch (const BaseException& e)
+        {
+          std::cout << "exception of type " << e.getName() << " occurred in line " << e.getLine() << ", function "
+                    << e.getFunction() << " of " << e.getFile() << std::endl;
+          std::cout << "error message: " << e.what() << std::endl;
+          reported = true;
+        }
+        catch (...)
+        {
+        }
+      }
+      if (!reported && (line_() != -1) && (name_() != "unknown"))
       {
         std::cout << "last entry in the exception handler: " << std::endl;
         std::cout << "exception of type " << name_().c_str() << " occurred in line "
@@ -113,68 +134,44 @@ namespace OpenMS::Exception
 
     GlobalExceptionHandler & GlobalExceptionHandler::getInstance()
     {
-      static GlobalExceptionHandler * globalExceptionHandler_;
-
-      if (globalExceptionHandler_ == nullptr)
-      {
-        globalExceptionHandler_ = new GlobalExceptionHandler;
-      }
-      return *globalExceptionHandler_;
+      // A function-local static is initialised once, also when several threads construct their first
+      // exception at the same time (the former check-then-new on a static pointer was a data race).
+      static GlobalExceptionHandler globalExceptionHandler_;
+      return globalExceptionHandler_;
     }
 
+    // The last exception is recorded per thread: every exception constructor writes these fields,
+    // and threads that throw at the same time (e.g. the chunks of a parallel file read that fail to
+    // parse) would otherwise write the same strings at once. terminate() runs on the thread whose
+    // exception was not caught, so it reads that thread's entry.
     std::string & GlobalExceptionHandler::file_()
     {
-      static std::string * file_ = nullptr;
-      if (file_ == nullptr)
-      {
-        file_  = new std::string;
-        *file_ = "unknown";
-      }
-      return *file_;
+      static thread_local std::string file = "unknown";
+      return file;
     }
 
     int & GlobalExceptionHandler::line_()
     {
-      static int * line_ = nullptr;
-      if (line_ == nullptr)
-      {
-        line_  = new int;
-        *line_ = -1;
-      }
-      return *line_;
+      static thread_local int line = -1;
+      return line;
     }
 
     std::string & GlobalExceptionHandler::function_()
     {
-      static std::string * function_ = nullptr;
-      if (function_ == nullptr)
-      {
-        function_  = new std::string;
-        *function_ = "unknown";
-      }
-      return *function_;
+      static thread_local std::string function = "unknown";
+      return function;
     }
 
     std::string & GlobalExceptionHandler::name_()
     {
-      static std::string * name_ = nullptr;
-      if (name_ == nullptr)
-      {
-        name_  = new std::string;
-        *name_ = "unknown exception";
-      }
-      return *name_;
+      static thread_local std::string name = "unknown exception";
+      return name;
     }
 
     std::string & GlobalExceptionHandler::what_()
     {
-      static std::string * what_ = nullptr;
-      if (what_ == nullptr)
-      {
-        what_  = new std::string;
-        *what_ = " - ";
-      }
-      return *what_;
+      static thread_local std::string what = " - ";
+      return what;
     }
 
 

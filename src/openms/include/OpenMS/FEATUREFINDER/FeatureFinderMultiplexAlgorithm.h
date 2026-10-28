@@ -93,12 +93,18 @@ public:
   */
   void run(MSExperiment& exp, bool progress);
 
-  /// Return the FeatureMap populated by the most recent @ref run call (empty before @ref run).
+  /// Return the FeatureMap populated by the most recent @ref run call (empty before @ref run): one feature per
+  /// channel of every multiplet, with one convex hull per mass trace (the monoisotopic trace first).
   FeatureMap& getFeatureMap();
   /// Return the ConsensusMap of detected multiplets populated by the most recent @ref run call (empty before @ref run).
+  /// Every FeatureHandle carries the unique id of its feature in @ref getFeatureMap, so that the elution region of each
+  /// channel can be looked up there.
   ConsensusMap& getConsensusMap();
   /// Return the per-pattern blacklist MSExperiment produced during @ref run (peak regions consumed by detected multiplets).
   MSExperiment& getBlacklist();
+  /// Return the centroided MS1 spectra the detection worked on (peaks above @c algorithm:intensity_cutoff only; for profile
+  /// input the picked peaks), as left by the most recent @ref run call. Spectra carry their RT, but no further meta data.
+  MSExperiment& getCentroidedExperiment();
 
 protected:
 

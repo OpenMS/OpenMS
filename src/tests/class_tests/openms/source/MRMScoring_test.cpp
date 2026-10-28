@@ -96,6 +96,32 @@ void fill_mock_objects2(MockMRMFeature * imrmfeature, std::vector<std::string>& 
 
 ///////////////////////////
 
+bool sameXCorrMatrix(const MRMScoring::XCorrMatrixType& a, const MRMScoring::XCorrMatrixType& b)
+{
+  if (a.rows() != b.rows() || a.cols() != b.cols()) return false;
+  for (Size r = 0; r < a.rows(); ++r)
+  {
+    for (Size c = 0; c < a.cols(); ++c)
+    {
+      if (a(r, c).data != b(r, c).data) return false;
+    }
+  }
+  return true;
+}
+
+bool sameMatrix(const OpenMS::Matrix<double>& a, const OpenMS::Matrix<double>& b)
+{
+  if (a.rows() != b.rows() || a.cols() != b.cols()) return false;
+  for (Size r = 0; r < a.rows(); ++r)
+  {
+    for (Size c = 0; c < a.cols(); ++c)
+    {
+      if (a(r, c) != b(r, c)) return false;
+    }
+  }
+  return true;
+}
+
 START_TEST(MRMScoring, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -876,6 +902,74 @@ mean(m4)
           delete imrmfeature;
 
           TEST_REAL_SIMILAR(mrmscore.calcMIPrecursorCombinedScore(), 1.959490 )
+        }
+    END_SECTION
+
+
+    START_SECTION(void initializeXCorrPrecursorMatrices(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids, const std::vector<std::string>& native_ids))
+        {
+          // the same matrices and scores as the separate initializers
+          MockMRMFeature * imrmfeature = new MockMRMFeature();
+          std::vector<std::string> precursor_ids;
+          std::vector<std::string> native_ids;
+          fill_mock_objects2(imrmfeature, precursor_ids, native_ids);
+
+          MRMScoring separate;
+          separate.initializeXCorrMatrix(imrmfeature, native_ids);
+          separate.initializeXCorrPrecursorMatrix(imrmfeature, precursor_ids);
+          separate.initializeXCorrPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
+          separate.initializeXCorrPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
+          MRMScoring combined;
+          combined.initializeXCorrPrecursorMatrices(imrmfeature, precursor_ids, native_ids);
+          delete imrmfeature;
+
+          TEST_EQUAL(sameXCorrMatrix(combined.getXCorrMatrix(), separate.getXCorrMatrix()), true)
+          TEST_EQUAL(sameXCorrMatrix(combined.getXCorrPrecursorContrastMatrix(), separate.getXCorrPrecursorContrastMatrix()), true)
+          TEST_EQUAL(sameXCorrMatrix(combined.getXCorrPrecursorCombinedMatrix(), separate.getXCorrPrecursorCombinedMatrix()), true)
+
+          const std::vector<double> library_intensity {0.3, 0.7};
+          TEST_EQUAL(combined.calcXcorrCoelutionScore(), separate.calcXcorrCoelutionScore())
+          TEST_EQUAL(combined.calcXcorrCoelutionWeightedScore(library_intensity), separate.calcXcorrCoelutionWeightedScore(library_intensity))
+          TEST_EQUAL(combined.calcXcorrShapeScore(), separate.calcXcorrShapeScore())
+          TEST_EQUAL(combined.calcXcorrShapeWeightedScore(library_intensity), separate.calcXcorrShapeWeightedScore(library_intensity))
+          TEST_EQUAL(combined.calcXcorrPrecursorCoelutionScore(), separate.calcXcorrPrecursorCoelutionScore())
+          TEST_EQUAL(combined.calcXcorrPrecursorShapeScore(), separate.calcXcorrPrecursorShapeScore())
+          TEST_EQUAL(combined.calcXcorrPrecursorContrastCoelutionScore(), separate.calcXcorrPrecursorContrastCoelutionScore())
+          TEST_EQUAL(combined.calcXcorrPrecursorContrastShapeScore(), separate.calcXcorrPrecursorContrastShapeScore())
+          TEST_EQUAL(combined.calcXcorrPrecursorContrastSumFragCoelutionScore(), separate.calcXcorrPrecursorContrastSumFragCoelutionScore())
+          TEST_EQUAL(combined.calcXcorrPrecursorContrastSumFragShapeScore(), separate.calcXcorrPrecursorContrastSumFragShapeScore())
+          TEST_EQUAL(combined.calcXcorrPrecursorCombinedCoelutionScore(), separate.calcXcorrPrecursorCombinedCoelutionScore())
+          TEST_EQUAL(combined.calcXcorrPrecursorCombinedShapeScore(), separate.calcXcorrPrecursorCombinedShapeScore())
+        }
+    END_SECTION
+
+    START_SECTION(void initializeMIPrecursorMatrices(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids, const std::vector<std::string>& native_ids))
+        {
+          // the same matrices and scores as the separate initializers
+          MockMRMFeature * imrmfeature = new MockMRMFeature();
+          std::vector<std::string> precursor_ids;
+          std::vector<std::string> native_ids;
+          fill_mock_objects2(imrmfeature, precursor_ids, native_ids);
+
+          MRMScoring separate;
+          separate.initializeMIMatrix(imrmfeature, native_ids);
+          separate.initializeMIPrecursorMatrix(imrmfeature, precursor_ids);
+          separate.initializeMIPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
+          separate.initializeMIPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
+          MRMScoring combined;
+          combined.initializeMIPrecursorMatrices(imrmfeature, precursor_ids, native_ids);
+          delete imrmfeature;
+
+          TEST_EQUAL(sameMatrix(combined.getMIMatrix(), separate.getMIMatrix()), true)
+          TEST_EQUAL(sameMatrix(combined.getMIPrecursorContrastMatrix(), separate.getMIPrecursorContrastMatrix()), true)
+          TEST_EQUAL(sameMatrix(combined.getMIPrecursorCombinedMatrix(), separate.getMIPrecursorCombinedMatrix()), true)
+
+          const std::vector<double> library_intensity {0.3, 0.7};
+          TEST_EQUAL(combined.calcMIScore(), separate.calcMIScore())
+          TEST_EQUAL(combined.calcMIWeightedScore(library_intensity), separate.calcMIWeightedScore(library_intensity))
+          TEST_EQUAL(combined.calcMIPrecursorScore(), separate.calcMIPrecursorScore())
+          TEST_EQUAL(combined.calcMIPrecursorContrastScore(), separate.calcMIPrecursorContrastScore())
+          TEST_EQUAL(combined.calcMIPrecursorCombinedScore(), separate.calcMIPrecursorCombinedScore())
         }
     END_SECTION
 

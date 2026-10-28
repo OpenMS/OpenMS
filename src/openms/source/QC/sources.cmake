@@ -5,6 +5,7 @@ set(directory source/QC)
 set(sources_list
   FeatureSummary.cpp
   IdentificationSummary.cpp
+  IDFreeMassErrorEstimator.cpp
   MissedCleavages.cpp
   Ms2IdentificationRate.cpp
   PSMExplainedIonCurrent.cpp

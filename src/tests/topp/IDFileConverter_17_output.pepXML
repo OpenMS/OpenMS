@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd" summary_xml=".xml">
-<msms_run_summary base_name="IDFileConverter_17_output_tmp" raw_data_type="raw" raw_data=".mzML" search_engine="X! Tandem">
+<msms_run_summary base_name="IDFileConverter_17_output_tmp" raw_data_type="raw" raw_data=".mzML">
 	<sample_enzyme name="unknown_enzyme">
-		<specificity cut="" sense="C"/>
 	</sample_enzyme>
 	<search_summary base_name="IDFileConverter_17_output_tmp" search_engine="X! Tandem" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
 		<search_database local_path="/share/usr/bertsch/sequences/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta.pro" type="AA"/>

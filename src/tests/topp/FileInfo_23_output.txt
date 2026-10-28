@@ -1,0 +1,39 @@
+
+-- General information --
+
+File name: C:/dev/openms/src/tests/topp/FileInfo_23_input.fasta
+File type: fasta
+
+Number of sequences   : 3
+Sequence length distribution:
+  Minimum : 5
+  25%ile  : 5
+  Median  : 5
+  75%ile  : 5
+  Maximum : 5
+Number of sequences with ambiguous amino acids: 0 (0%)
+# duplicated headers  : 1 (33.33%)
+# duplicated sequences: 0 (0%) [by exact string matching]
+Total amino acids     : 15
+
+Amino acid counts:
+  A:	1
+  C:	1
+  D:	1
+  E:	1
+  F:	1
+  G:	1
+  H:	1
+  I:	1
+  K:	1
+  L:	1
+  M:	1
+  N:	1
+  P:	1
+  Q:	1
+  R:	1
+Ambiguous amino acids (B/Z/X)  : 0 (0%)
+                      (B/Z/X/J): 0 (0%)
+
+
+

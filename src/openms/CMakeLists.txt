@@ -90,6 +90,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   Quadtree
   SIMDe
   SQLiteCpp
+  Threads::Threads
   ${OPENMS_SQLITECPP_EXTRA_LIBS}
   ZLIB::ZLIB
   ${OPENMS_ZSTD_TARGET}
@@ -99,8 +100,6 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   eol-bspline
   OpenMS_Percolator
   )
-
-option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
 
 if(WITH_ONNX)
   if(OPENMS_USE_VCPKG)
@@ -157,7 +156,21 @@ if(WITH_ONNX)
       if(WIN32)
           install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_BIN_DIR}" COMPONENT Dependencies)
       else()
-          install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_LIB_DIR}" COMPONENT Dependencies)
+          # ORT_LIB_PATH is usually the unversioned symlink (libonnxruntime.so/.dylib), which
+          # install() copies as a symlink, i.e. dangling without its target; and libOpenMS records
+          # the SONAME/install name (libonnxruntime.so.1, libonnxruntime.1.dylib) anyway. Install
+          # the real library together with all its (relative) version symlinks from its directory.
+          file(REAL_PATH "${ORT_LIB_PATH}" _ort_real_lib)
+          get_filename_component(_ort_lib_dir "${_ort_real_lib}" DIRECTORY)
+          if(APPLE)
+            file(GLOB _ort_libs "${_ort_lib_dir}/libonnxruntime.*dylib")
+          else()
+            file(GLOB _ort_libs "${_ort_lib_dir}/libonnxruntime.so*")
+          endif()
+          install(FILES ${_ort_libs}
+                  DESTINATION "${INSTALL_LIB_DIR}"
+                  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+                  COMPONENT Dependencies)
       endif()
   endif()
 
@@ -261,6 +274,11 @@ endif()
 
 if (WITH_OPENTIMS)
   list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES opentims::opentims_cpp)
+endif()
+
+if (WITH_ARROW_S3 AND OPENMS_ARROW_S3_TARGET)
+  # S3 (S3InputSource): Arrow's S3 filesystem, a library of its own in newer Arrow releases
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ${OPENMS_ARROW_S3_TARGET})
 endif()
 
 if (WITH_THERMO_RAW)
@@ -466,6 +484,12 @@ if (WITH_OPENTIMS)
     target_compile_definitions(OpenMS PUBLIC WITH_OPENTIMS=1)
 endif()
 
+if (WITH_ARROW_S3)
+    # only S3InputSource.cpp uses Arrow's S3 filesystem
+    set_property(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/source/FORMAT/DATAACCESS/S3InputSource.cpp
+                 APPEND PROPERTY COMPILE_DEFINITIONS OPENMS_WITH_ARROW_S3)
+endif()
+
 if (WITH_THERMO_RAW)
     target_compile_definitions(OpenMS PUBLIC WITH_THERMO_RAW=1)
     # Copy the thermo bridge managed runtime files (.dll + .runtimeconfig.json)
@@ -523,5 +547,9 @@ if(WITH_ONNX)
     source/ML/PEPTDEEP/PeptDeepInput.cpp
     source/ML/PEPTDEEP/PeptDeepRTInference.cpp
     source/ML/PEPTDEEP/PeptDeepMS2Inference.cpp
+    source/ANALYSIS/ID/PeptDeepRescoring.cpp
   )
+  # Lets dependent code (e.g. ProSEAlgorithm) compile out the PeptDeep calls when the
+  # runtime is absent, the same way WITH_OPENTIMS / WITH_THERMO_RAW are handled.
+  target_compile_definitions(OpenMS PUBLIC WITH_ONNX=1)
 endif()

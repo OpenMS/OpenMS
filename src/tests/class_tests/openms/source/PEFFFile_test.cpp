@@ -414,6 +414,25 @@ START_SECTION([PEFFEntry] getVariantSequences)
     TEST_EQUAL(sequences[1].toString(), "PXXXIDE")
     TEST_EQUAL(descriptions[1].find("2-4>XXX") != std::string::npos, true)
   }
+
+  // An unparsable variant ('a' is no amino acid code) is skipped as a pair: every
+  // description stays paired with its own sequence.
+  PEFFEntry bad;
+  bad.sequence = "PEPTIDE";
+  bad.simple_variants.push_back(PEFFVariantSimple(3, 'a', "lower"));
+  bad.simple_variants.push_back(PEFFVariantSimple(5, 'L', ""));
+  bad.complex_variants.push_back(PEFFVariantComplex(2, 3, "aa", ""));
+  bad.complex_variants.push_back(PEFFVariantComplex(6, 7, "KR", ""));
+  bad.getVariantSequences(descriptions, sequences, true);
+  TEST_EQUAL(descriptions.size(), 2)
+  TEST_EQUAL(sequences.size(), 2)
+  if (descriptions.size() == 2 && sequences.size() == 2)
+  {
+    TEST_EQUAL(descriptions[0], "I5L")
+    TEST_EQUAL(sequences[0].toString(), "PEPTLDE")
+    TEST_EQUAL(descriptions[1], "6-7>KR")
+    TEST_EQUAL(sequences[1].toString(), "PEPTIKR")
+  }
 }
 END_SECTION
 

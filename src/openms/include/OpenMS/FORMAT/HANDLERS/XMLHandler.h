@@ -243,6 +243,22 @@ protected:
       /// Writes the content of MetaInfoInterface to the file
       void writeUserParam_(const std::string & tag_name, std::ostream & os, const MetaInfoInterface & meta, UInt indent) const;
 
+      /**
+        @brief Writes one meta value as a user parameter tag, as writeUserParam_() does for each meta value
+
+        @param[out] os The output stream
+        @param[in] tag_start Indentation and start of the tag up to the type, e.g. "\t\t<UserParam type=\""
+        @param[in] name Name of the meta value
+        @param[in] value The meta value
+
+        Does not access the MetaInfoRegistry, so several threads can call it at the same time.
+
+        @exception Exception::ConversionError is thrown for an empty value (DataValue::EMPTY_VALUE): it is written as type
+                   string, but only a string value converts to std::string
+        @exception Exception::NotImplemented is thrown for a value type that cannot be written
+      */
+      static void writeUserParamValue_(std::ostream & os, const std::string & tag_start, const std::string & name, const DataValue & value);
+
       //@}
 
       ///@name controlled vocabulary handling methods

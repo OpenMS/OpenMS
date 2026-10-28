@@ -4,10 +4,11 @@
 
 ## Checklist
 - [ ] Make sure that you are listed in the AUTHORS file
-- [ ] Add relevant changes and new features to the CHANGELOG file
 - [ ] I have commented my code, particularly in hard-to-understand areas
 - [ ] New and existing unit tests pass locally with my changes
 - [ ] Updated or added python bindings for changed or new classes (Tick if no updates were necessary.)
+
+No need to edit the CHANGELOG file: entries are generated automatically once per week from merged changes.
 
 ### How can I get additional information on failed tests during CI
 <details>

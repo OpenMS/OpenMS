@@ -8,6 +8,8 @@
 
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -15,9 +17,12 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <functional>
 #include <limits>
+#include <optional>
 #include <regex>
 #include <unordered_set>
 
@@ -72,6 +77,14 @@ namespace OpenMS
       }
     }
     return StringUtils::removeWhitespaces(scan_identifier);
+  }
+
+  std::string PercolatorInfile::getFileIdentifier(const PeptideIdentification& pid)
+  {
+    std::string identifier = pid.getMetaValue("file_origin", std::string()).toString();
+    // the index is a number: after the last '|', it cannot run into the file origin ("run1" vs. "run" + 1)
+    if (pid.metaValueExists("id_merge_index")) identifier += "|" + pid.getMetaValue("id_merge_index").toString();
+    return identifier;
   }
 
   PeptideIdentificationList PercolatorInfile::load(
@@ -272,7 +285,10 @@ namespace OpenMS
         pids.resize(pids.size() + 1);
         pids.back().setHigherScoreBetter(higher_score_better);
         pids.back().setScoreType(score_name);
-        pids.back().setMetaValue(Constants::UserParam::ID_MERGE_INDEX, map_filename_to_idx.at(raw_file_name));
+        if (file_name_column_index >= 0) // FileName is optional; map_filename_to_idx is only populated when it is present
+        {
+          pids.back().setMetaValue(Constants::UserParam::ID_MERGE_INDEX, map_filename_to_idx.at(raw_file_name));
+        }
         pids.back().setRT(StringUtils::toDouble(row[to_idx.at("retentiontime")]) * 60.0); // search engines typically write minutes (e.g., sage)
         pids.back().setMetaValue("PinSpecId", sSpecId);
         if (IM > 0.0) // Sage might annotate 0.0 if no IM is present
@@ -407,20 +423,117 @@ namespace OpenMS
     return stampPinFeaturesOnHits(peptide_ids, enz, min_charge, max_charge, added_meta_values);
   }
 
+  namespace
+  {
+    // The name of the enzyme @p enzyme (of the .pin features, or of ProteaseDB: 'Trypsin/P' etc.) that isEnz_() knows:
+    // lowercase without spaces, 'trypsin/p' as 'trypsinp', 'pepsina' as 'pepsin'; "no_enzyme" if it knows none (then
+    // stampPinFeaturesOnHits() uses the rule of ProteaseDB, if it knows the enzyme)
+    std::string pinEnzymeName(const std::string& enzyme)
+    {
+      std::string name = StringUtils::toLowered(enzyme);
+      StringUtils::remove(name, ' ');
+      if (name == "trypsin/p") return "trypsinp";
+      if (name == "pepsina") return "pepsin";
+      static const std::set<std::string> pin_enzymes = {"elastase", "pepsin", "proteinasek", "thermolysin", "chymotrypsin",
+                                                        "lys-n", "lys-c", "arg-c", "asp-n", "glu-c", "trypsin", "trypsinp"};
+      return pin_enzymes.contains(name) ? name : "no_enzyme";
+    }
+
+    // The ScanNr of the spectra. Percolator takes the PSMs of a spectrum file with the same ScanNr for one spectrum
+    // (and with the same ExpMass in target-decoy competition): train_best_positive keeps one positive per ScanNr, and
+    // the cross-validation splits by it. So ScanNr has to tell the spectra of a file apart:
+    // - Bruker TDF DDA spectra, one per precursor ("frame=F scan=S precursor=P", as BrukerTimsFile writes them), get
+    //   the precursor P: S, the first ion mobility scan of the precursor, recurs in other frames.
+    // - Native IDs that number their spectra only within a part of the run get a running number per spectrum file,
+    //   in the order of the PSMs: Bruker TDF "frame=F ... scan=S" without a precursor (a scan within a frame, e.g.
+    //   diaPASEF), Waters "function=F process=P scan=S" (a scan within a function) and SCIEX "sample=1 period=1
+    //   cycle=C experiment=E" (whose last number, the experiment, recurs in every cycle).
+    // - The others keep the number SpectrumLookup extracts (e.g. the scan number of Thermo native IDs, the frame
+    //   number of "frame=F").
+    // Each spectrum file takes the scheme of its first spectrum: the spectra of a file have the same native ID format,
+    // but the files of one call may come from different instruments.
+    // The scan identifiers are those of PercolatorInfile::getScanIdentifier(), without whitespace.
+    class PinScanNumbers
+    {
+    public:
+      Int operator()(const std::string& file_identifier, const std::string& scan_identifier)
+      {
+        auto file = files_.find(file_identifier);
+        if (file == files_.end()) file = files_.emplace(file_identifier, FileNumbering(scan_identifier)).first;
+        return file->second(scan_identifier);
+      }
+
+    private:
+      // the ScanNr of the spectra of one file
+      class FileNumbering
+      {
+      public:
+        explicit FileNumbering(const std::string& first_scan_identifier) :
+          regex_(SpectrumLookup::getRegExFromNativeID(first_scan_identifier))
+        {
+          if (StringUtils::hasPrefix(first_scan_identifier, "frame="))
+          {
+            if (first_scan_identifier.find("precursor=") != std::string::npos)
+            {
+              scheme_ = Scheme::PRECURSOR;
+              regex_.assign(R"(precursor=(?<GROUP>\d+))");
+            }
+            else if (first_scan_identifier.find("scan=") != std::string::npos)
+            {
+              scheme_ = Scheme::RUNNING;
+            }
+          }
+          else if (StringUtils::hasPrefix(first_scan_identifier, "function=")
+                   || StringUtils::hasPrefix(first_scan_identifier, "sample="))
+          {
+            scheme_ = Scheme::RUNNING;
+          }
+        }
+
+        Int operator()(const std::string& scan_identifier)
+        {
+          if (scheme_ == Scheme::RUNNING)
+          {
+            return running_.emplace(scan_identifier, static_cast<Int>(running_.size()) + 1).first->second;
+          }
+          return SpectrumLookup::extractScanNumber(scan_identifier, regex_, /*no_error=*/true);
+        }
+
+      private:
+        enum class Scheme { NATIVE_ID, PRECURSOR, RUNNING };
+        Scheme scheme_ = Scheme::NATIVE_ID;
+        RegularExpression regex_;
+        std::map<std::string, Int> running_; // the running number of each scan identifier
+      };
+
+      std::map<std::string, FileNumbering> files_; // by file identifier
+    };
+  }
+
   std::set<std::pair<size_t, size_t>> PercolatorInfile::stampPinFeaturesOnHits(
     PeptideIdentificationList& peptide_ids,
-    const std::string& enz,
+    const std::string& enzyme,
     int min_charge,
     int max_charge,
     PinFeatureMetaValueMap& added_meta_values)
   {
+    const std::string enz = pinEnzymeName(enzyme); // store() and the in-process rescoring pass ProteaseDB names as well
+    // an enzyme of ProteaseDB without a Percolator name (e.g. 'Lys-C/P', 'V8-E'): its own cleavage rule
+    std::optional<ProteaseDigestion> digestion;
+    if (enz == "no_enzyme" && ProteaseDB::getInstance()->hasEnzyme(enzyme))
+    {
+      digestion.emplace();
+      digestion->setEnzyme(enzyme);
+    }
     std::set<std::pair<size_t, size_t>> skipped;
     added_meta_values.clear();
     if (peptide_ids.empty()) return skipped;
 
-    // Scan-number regex is derived from the first pid's scan identifier.
-    const std::string sid = getScanIdentifier(peptide_ids[0], 0);
-    RegularExpression scan_regex = RegularExpression(SpectrumLookup::getRegExFromNativeID(sid));
+    PinScanNumbers scan_numbers; // ScanNr of the spectra
+
+    size_t spectra = 0;              // spectra (PeptideIdentifications) with stamped PSMs
+    size_t spectra_without_scan = 0; // ... of which no scan number could be read
+    std::string example_without_scan;
 
     size_t pid_index_1based = 0;
     size_t pid_index_0based = 0;
@@ -431,11 +544,10 @@ namespace OpenMS
       ++pid_index_1based;
 
       const std::string scan_identifier = getScanIdentifier(pep_id, pid_index_1based);
-      std::string file_identifier = pep_id.getMetaValue("file_origin", std::string());
-      file_identifier += StringUtils::toStr(pep_id.getMetaValue("id_merge_index", std::string()));
+      const std::string file_identifier = getFileIdentifier(pep_id);
 
-      const Int scan_number = SpectrumLookup::extractScanNumber(
-        scan_identifier, scan_regex, /*no_error=*/true);
+      const Int scan_number = scan_numbers(file_identifier, scan_identifier);
+      bool stamped_hit = false; // a hit of this spectrum got ScanNr (skipped hits get none)
 
       double exp_mass = pep_id.getMZ();
       const double retention_time = pep_id.getRT();
@@ -474,6 +586,7 @@ namespace OpenMS
           continue;
         }
 
+        stamped_hit = true;
         stamp_meta_value("SpecId", file_identifier + scan_identifier);
         stamp_meta_value("ScanNr", scan_number);
         stamp_meta_value("Label", hit.isDecoy() ? -1 : 1);
@@ -492,24 +605,28 @@ namespace OpenMS
           calc_mass = getFeatureValue(hit.getMetaValue("CalcMass"), "CalcMass");
         }
 
-        double row_exp_mass = exp_mass;
+        // The precursor isotope error (observed minus theoretical, in 13C spacings) is removed from the mass
+        // difference only. ExpMass and mass stay the observed precursor m/z, the same for every PSM of the spectrum:
+        // Percolator takes PSMs with the same ScanNr but different ExpMass for different spectra, so PSMs at
+        // different isotope errors would not compete with each other.
+        double isotope_corrected_mass = exp_mass;
         if (hit.metaValueExists("IsotopeError"))  // legacy MSGF+ adapter meta (<2.6)
         {
           const float isoErr = StringUtils::toFloat(hit.getMetaValue("IsotopeError").toString());
-          row_exp_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+          isotope_corrected_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
         }
         else if (hit.metaValueExists(Constants::UserParam::ISOTOPE_ERROR))
         {
           const float isoErr = StringUtils::toFloat(hit.getMetaValue(Constants::UserParam::ISOTOPE_ERROR).toString());
-          row_exp_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+          isotope_corrected_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
         }
 
-        stamp_meta_value("ExpMass", row_exp_mass);
+        stamp_meta_value("ExpMass", exp_mass);
 
-        const double delta_mass = row_exp_mass - calc_mass;
+        const double delta_mass = isotope_corrected_mass - calc_mass;
         stamp_meta_value("deltamass", delta_mass);
         stamp_meta_value("retentiontime", retention_time);
-        stamp_meta_value("mass", row_exp_mass);
+        stamp_meta_value("mass", exp_mass);
 
         stamp_meta_value("score", hit.getScore());
         stamp_meta_value("peplen", static_cast<int>(unmodified_sequence.size()));
@@ -519,22 +636,46 @@ namespace OpenMS
           stamp_meta_value("charge" + StringUtils::toStr(i), charge == i);
         }
 
-        // use first peptide evidence for flanking AAs
-        char aa_before = hit.getPeptideEvidences().front().getAABefore();
-        char aa_after  = hit.getPeptideEvidences().front().getAAAfter();
+        // use first peptide evidence for flanking AAs; a protein terminus ('[', ']' in OpenMS) is '-', as Percolator
+        // writes it: the enzyme features count it as a cleavage site, and the Peptide column shows it
+        const PeptideEvidence& first_evidence = hit.getPeptideEvidences().front();
+        char aa_before = first_evidence.getAABefore();
+        char aa_after  = first_evidence.getAAAfter();
+        aa_before = aa_before == PeptideEvidence::N_TERMINAL_AA ? '-' : aa_before;
+        aa_after  = aa_after  == PeptideEvidence::C_TERMINAL_AA ? '-' : aa_after;
+        // the peptide after the initial Met (initial-Met clipping, as FragmentIndex and PeptideIndexer allow it) is
+        // protein N-terminal for the enzyme features as well; the Peptide column keeps the M. Reversed decoy proteins
+        // rarely start with M: if only '[' counted, enzN = 0 would mark Met-clipped targets, and Percolator would learn
+        // it as a target label (#10726).
+        const char n_site = (aa_before == 'M' && first_evidence.getStart() == 1) ? '-' : aa_before;
 
-        const bool enzN = isEnz_(aa_before, StringUtils::prefix(unmodified_sequence, 1)[0], enz);
+        bool enzN, enzC;
+        Size enzInt;
+        if (digestion)
+        { // the peptide is a product of the enzyme at its N- (C-)terminus, when preceded (followed) by the flanking AA
+          // ('-' is a terminus, as for isEnz_()). An unknown residue (X) before the flanking AA serves the rules that
+          // look at two residues (proline endopeptidase cuts after HP, KP, RP): the evidence holds one.
+          const int length = static_cast<int>(unmodified_sequence.size());
+          const std::string with_before = std::string("X") + n_site + unmodified_sequence;
+          enzN = n_site == '-' || digestion->isValidProduct(with_before, 2, length);
+          enzC = aa_after == '-' || digestion->isValidProduct(unmodified_sequence + aa_after, 0, length);
+          // the sites inside the peptide, in the same context: all sites but those before its first residue
+          enzInt = digestion->countInternalCleavageSites(with_before) - digestion->countInternalCleavageSites(with_before.substr(0, 3));
+        }
+        else
+        {
+          enzN = isEnz_(n_site, StringUtils::prefix(unmodified_sequence, 1)[0], enz);
+          enzC = isEnz_(StringUtils::suffix(unmodified_sequence, 1)[0], aa_after, enz);
+          enzInt = countEnzymatic_(unmodified_sequence, enz);
+        }
         stamp_meta_value("enzN", enzN);
-        const bool enzC = isEnz_(StringUtils::suffix(unmodified_sequence, 1)[0], aa_after, enz);
         stamp_meta_value("enzC", enzC);
-        stamp_meta_value("enzInt", static_cast<int>(countEnzymatic_(unmodified_sequence, enz)));
+        stamp_meta_value("enzInt", static_cast<int>(enzInt));
 
         stamp_meta_value("dm", delta_mass);
         stamp_meta_value("absdm", std::abs(delta_mass));
 
         // Percolator-formatted peptide string with PTM brackets
-        aa_before = aa_before == '[' ? '-' : aa_before;
-        aa_after  = aa_after  == ']' ? '-' : aa_after;
         std::string sequence;
         sequence += aa_before;
         sequence += ".";
@@ -550,6 +691,25 @@ namespace OpenMS
         }
         stamp_meta_value("Proteins", ListUtils::concatenate(proteins, "\t"));
       }
+
+      if (stamped_hit)
+      {
+        ++spectra;
+        if (scan_number < 0)
+        {
+          if (spectra_without_scan == 0) example_without_scan = scan_identifier;
+          ++spectra_without_scan;
+        }
+      }
+    }
+    // Percolator keeps the PSMs of one scan number in one cross-validation fold. The spectra without a scan number all
+    // get -1 and so share one fold, which can leave too few PSMs to train on (#10719: a native ID format that the scan
+    // number pattern of the first spectrum did not match).
+    if (spectra_without_scan > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: no scan number found in " << spectra_without_scan << " of " << spectra
+                      << " spectrum references (e.g. '" << example_without_scan << "'). Their PSMs get ScanNr -1"
+                      << " and share one Percolator cross-validation fold." << endl;
     }
     return skipped;
   }
@@ -591,9 +751,9 @@ namespace OpenMS
     int max_charge)
   {
     TextFile txt;
-    txt.addLine(ListUtils::concatenate(feature_set, "\t"));
     if (peptide_ids.empty())
     {
+      txt.addLine(ListUtils::concatenate(feature_set, "\t"));
       OPENMS_LOG_WARN << "No identifications provided. Creating empty percolator input." << endl;
       return txt;
     }
@@ -602,9 +762,11 @@ namespace OpenMS
     PeptideIdentificationList stamped(peptide_ids);
     const auto skipped = stampPinFeaturesOnHits(stamped, enz, min_charge, max_charge);
 
+    // Rows: the kept hits that carry every column of the feature set.
+    std::vector<std::pair<size_t, size_t>> rows;
+    std::set<std::string> files;
     size_t missing_meta_value_count = 0;
     set<std::string> missing_meta_values;
-
     for (size_t pid_idx = 0; pid_idx < stamped.size(); ++pid_idx)
     {
       const auto& hits = stamped[pid_idx].getHits();
@@ -612,29 +774,60 @@ namespace OpenMS
       {
         if (skipped.contains({pid_idx, hit_idx})) continue;
         const PeptideHit& hit = hits[hit_idx];
-
-        StringList feats;
+        bool complete = true;
         for (const std::string& feat : feature_set)
         {
-          if (hit.metaValueExists(feat))
+          if (!hit.metaValueExists(feat))
           {
-            feats.push_back(hit.getMetaValue(feat).toString());
+            complete = false;
+            missing_meta_values.insert(feat);
           }
         }
-        if (feats.size() == feature_set.size())
+        if (!complete)
         {
-          txt.addLine(ListUtils::concatenate(feats, "\t"));
+          ++missing_meta_value_count;
+          continue;
         }
-        else
-        {
-          missing_meta_value_count++;
-          for (const auto& f : feature_set)
-          {
-            if (std::find(feats.begin(), feats.end(), f) == feats.end())
-              missing_meta_values.insert(f);
-          }
-        }
+        rows.emplace_back(pid_idx, hit_idx);
+        files.insert(getFileIdentifier(stamped[pid_idx]));
       }
+    }
+
+    // Percolator numbers the spectrum files from an optional 'FileName' column, without which all PSMs count as
+    // one file: spectra of different files with the same ScanNr and ExpMass would be one spectrum. Optional columns
+    // precede the features, so it follows the leading optional columns of the feature set.
+    StringList columns = feature_set;
+    std::optional<size_t> file_column;
+    if (files.size() > 1)
+    {
+      auto lower = [](std::string name)
+      {
+        std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+        return name;
+      };
+      const std::set<std::string> optional_columns {"scannr", "expmass", "calcmass", "rt", "retentiontime", "filename", "spectrafile"};
+      const bool named = std::any_of(columns.begin(), columns.end(), [&](const std::string& c) { const auto l = lower(c); return l == "filename" || l == "spectrafile"; });
+      if (!named)
+      {
+        size_t position = std::min<size_t>(2, columns.size()); // after SpecId and Label
+        while (position < columns.size() && optional_columns.contains(lower(columns[position]))) ++position;
+        columns.insert(columns.begin() + position, "FileName");
+        file_column = position;
+      }
+    }
+    txt.addLine(ListUtils::concatenate(columns, "\t"));
+
+    for (const auto& [pid_idx, hit_idx] : rows)
+    {
+      const PeptideHit& hit = stamped[pid_idx].getHits()[hit_idx];
+      StringList feats;
+      feats.reserve(columns.size());
+      for (const std::string& feat : feature_set)
+      {
+        feats.push_back(hit.getMetaValue(feat).toString());
+      }
+      if (file_column) feats.insert(feats.begin() + *file_column, getFileIdentifier(stamped[pid_idx]));
+      txt.addLine(ListUtils::concatenate(feats, "\t"));
     }
 
     if (missing_meta_value_count != 0)

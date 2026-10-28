@@ -355,9 +355,9 @@ remaining missing values imputed with KNN algorithm (cm_df)
     cm_df = imputer.fit_transform(cm_df)
     cm_df
 
-Annotate :term:Features<features>` with Identified Compounds
-************************************************************
-``in``: :py:class:`~.ConsensusMap` DataFrame without identifications (cm_df) and :py:class:`~.AccurateMassSearch` DataFrame (ams_df)
+Annotate :term:`Features<features>` with Identified Compounds
+*************************************************************
+``in``: :py:class:`~.ConsensusMap` DataFrame without identifications (cm_df) and :py:class:`~.AccurateMassSearchEngine` DataFrame (ams_df)
 
 ``out``: :py:class:`~.ConsensusMap` DataFrame with new identifications column (id_df)
 

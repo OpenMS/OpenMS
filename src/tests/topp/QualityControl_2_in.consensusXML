@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:///C:/Program Files/OpenMS-2.4.0/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.7" id="cm_81993539041665547" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<IdentificationRun id="PI_0" date="2019-09-11T15:48:11" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="C:\Users\bielow\AppData\Local\Temp\20190911_152818_14688_1\QualityControl\006_DecoyDatabase\out\crap_to_database_minimal_mrgd.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="XTandem" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="ES-0001a_PROKKA_00009" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="ES-0001a_PROKKA_00014" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="ES-0001a_PROKKA_00038" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="ES-0001a_PROKKA_00065" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="ES-0001a_PROKKA_00090" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="ES-0001a_PROKKA_00113" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="ES-0001a_PROKKA_00153" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="ES-0001a_PROKKA_00233" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="ES-0001a_PROKKA_00281" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="ES-0001a_PROKKA_00457" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="ES-0001a_PROKKA_00615" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="ES-0001a_PROKKA_00640" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_12" accession="ES-0001a_PROKKA_00962" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_13" accession="ES-0001a_PROKKA_01329" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_14" accession="ES-0001a_PROKKA_01511" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_15" accession="ES-0001a_PROKKA_01597" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_16" accession="ES-0001a_PROKKA_01599" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_17" accession="ES-0001a_PROKKA_01604" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_18" accession="ES-0001a_PROKKA_01616" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_19" accession="ES-0001a_PROKKA_01670" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_20" accession="ES-0001a_PROKKA_01833" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_21" accession="ES-0001a_PROKKA_01939" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_22" accession="ES-0001a_PROKKA_01941" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_23" accession="ES-0001a_PROKKA_02064" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_24" accession="ES-0001a_PROKKA_02310" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_25" accession="ES-0001a_PROKKA_02337" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_26" accession="ES-0001a_PROKKA_02364" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_27" accession="ES-0001a_PROKKA_02449" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_28" accession="ES-0001a_PROKKA_02567" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_29" accession="ES-0001a_PROKKA_02568" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_30" accession="ES-0001a_PROKKA_03080" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_31" accession="ES-0001a_PROKKA_03139" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_32" accession="ES-0002a_PROKKA_00060" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_33" accession="ES-0002a_PROKKA_00085" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML]"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<mapList count="1">
+		<map id="0" name="file://C:\Users\bielow\AppData\Local\Temp\20190911_152818_14688_1\QualityControl\010_InternalCalibration\out\QualityControl_1_in1.mzML" unique_id="15835687919951109158" label="" size="1">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_6079338524867909733" quality="0.968698" charge="3">
+			<centroid rt="1344.663908527821604" mz="460.205376301870956" it="3.668693e08"/>
+			<groupedElementList>
+				<element map="0" id="11686747818621372046" rt="1351.913479559237203" mz="460.205376301870956" it="7.662995e08" charge="3"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="460.20484945008" RT="1339.88320030223" spectrum_reference="spectrum=217" >
+				<PeptideHit score="0.02" sequence="ARAEDAMDEASGR" charge="3" aa_before="K" aa_after="L" start="39" end="51" protein_refs="PH_3">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="nextscore" value="22.199999999999999"/>
+					<UserParam type="float" name="delta" value="-0.0016"/>
+					<UserParam type="float" name="mass" value="1378.601599999999962"/>
+					<UserParam type="float" name="E-Value" value="3.4e-06"/>
+					<UserParam type="float" name="hyperscore" value="35.899999999999999"/>
+					<UserParam type="float" name="b_score" value="17.5"/>
+					<UserParam type="int" name="b_ions" value="5"/>
+					<UserParam type="float" name="y_score" value="17.899999999999999"/>
+					<UserParam type="int" name="y_ions" value="7"/>
+					<UserParam type="string" name="protein_references" value="unique"/>
+					<UserParam type="float" name="XTandem_score" value="35.899999999999999"/>
+				</PeptideHit>
+				<UserParam type="string" name="FFId_category" value="internal"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="460.205294786631" RT="1371.56938288548" spectrum_reference="spectrum=334" >
+				<PeptideHit score="0.001" sequence="ARAEDAMDEASGR" charge="3" aa_before="K" aa_after="L" start="39" end="51" protein_refs="PH_3">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="nextscore" value="25.899999999999999"/>
+					<UserParam type="float" name="delta" value="-2.0e-04"/>
+					<UserParam type="float" name="mass" value="1378.601599999999962"/>
+					<UserParam type="float" name="E-Value" value="3.6e-10"/>
+					<UserParam type="float" name="hyperscore" value="51.799999999999997"/>
+					<UserParam type="float" name="b_score" value="20.899999999999999"/>
+					<UserParam type="int" name="b_ions" value="7"/>
+					<UserParam type="float" name="y_score" value="21.0"/>
+					<UserParam type="int" name="y_ions" value="7"/>
+					<UserParam type="string" name="protein_references" value="unique"/>
+					<UserParam type="float" name="XTandem_score" value="51.799999999999997"/>
+				</PeptideHit>
+				<UserParam type="string" name="FFId_category" value="internal"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

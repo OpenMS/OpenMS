@@ -7,11 +7,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 // TODO move getVersion to Handler
 #include <OpenMS/FORMAT/MzMLFile.h>
 
+#include <string>
 #include <utility>
 
 namespace OpenMS
@@ -53,6 +55,7 @@ namespace OpenMS
    void MSDataWritingConsumer::setExperimentalSettings(const ExperimentalSettings& exp)
   {
     settings_ = exp;
+    settings_set_ = true;
   }
 
    void MSDataWritingConsumer::setExpectedSize(Size expectedSpectra, Size expectedChromatograms)
@@ -97,7 +100,10 @@ namespace OpenMS
     if (!writing_spectra_)
     {
       // This is the first spectrum, thus write the spectrumList header
-      ofs_ << "\t\t<spectrumList count=\"" << spectra_expected_ << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
+      ofs_ << "\t\t<spectrumList count=\"";
+      spectra_count_pos_ = ofs_.tellp();
+      spectra_count_written_ = spectra_expected_;
+      writeSpectrumCount_(spectra_count_written_, 0);
       writing_spectra_ = true;
     }
     bool renew_native_ids = false;
@@ -155,6 +161,11 @@ namespace OpenMS
     add_dataprocessing_ = true;
   }
 
+   void MSDataWritingConsumer::writeSpectrumCount_(Size count, Size padding)
+  {
+    ofs_ << count << "\" defaultDataProcessingRef=\"dp_sp_0\"" << std::string(padding, ' ') << ">\n";
+  }
+
    Size MSDataWritingConsumer::getNrSpectraWritten() {return spectra_written_;}
 
    Size MSDataWritingConsumer::getNrChromatogramsWritten() {return chromatograms_written_;}
@@ -174,10 +185,43 @@ namespace OpenMS
       ofs_ << "\t\t</chromatogramList>\n";
     }
 
+    // Nothing was consumed, but there is a run to describe (a reader that gave the settings of its input
+    // found no spectra to emit): write the document that MzMLFile::store() writes for a run without
+    // spectra and chromatograms, not an empty file
+    if (!started_writing_ && settings_set_ && ofs_.is_open())
+    {
+      MapType dummy;
+      dummy = settings_;
+      Internal::MzMLHandler::writeHeader_(ofs_, dummy, dps_, *validator_);
+      started_writing_ = true;
+    }
+
     // Only write the footer if we actually did start writing ... 
     if (started_writing_) 
     {
       Internal::MzMLHandlerHelper::writeFooter_(ofs_, options_, spectra_offsets_, chromatograms_offsets_);
+    }
+
+    // The count of the spectrumList was written with the first spectrum, as it was expected then. Correct it
+    // in place if another number of spectra was written: blanks before the '>' of the tag make up for fewer
+    // digits, so nothing behind the tag moves and the offsets of the index stay valid. (setExpectedSize() may
+    // have been called again since; what counts is the number in the tag.)
+    // (The count of the chromatogramList stays as it was expected.)
+    if (spectra_count_pos_ >= 0 && spectra_written_ != spectra_count_written_ && ofs_.good())
+    {
+      const Size tag_digits = std::to_string(spectra_count_written_).size();
+      const Size written_digits = std::to_string(spectra_written_).size();
+      if (written_digits <= tag_digits)
+      {
+        ofs_.seekp(spectra_count_pos_);
+        writeSpectrumCount_(spectra_written_, tag_digits - written_digits);
+      }
+      else
+      {
+        // does not fit into the tag: the count stays as it was written, as it always did
+        OPENMS_LOG_DEBUG << spectra_written_ << " spectra were written to the mzML file, but the count of its spectrumList says "
+                         << spectra_count_written_ << ", the number that was expected." << std::endl;
+      }
     }
     delete validator_;
     ofs_.close();

@@ -8,11 +8,13 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/config.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryPreparation.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
@@ -203,6 +205,45 @@ START_SECTION([EXTRA] prepareAssays remains deterministic for IPF test-mode outp
   testSortedFilesEqual_(output_tsv_1, output_tsv_2);
 }
 END_SECTION
+
+START_SECTION([EXTRA] prepareAssays rejects fallback UIS windows that cannot be constructed)
+{
+  OpenSwathLibraryPreparation prep;
+  prep.setLogType(ProgressLogger::NONE);
+
+  std::string output_pqp;
+  NEW_TMP_FILE_EXT(output_pqp, ".pqp");
+
+  auto params = makeIPFTestParameters_();
+  params.enable_swath_specifity = false;
+  params.precursor_mz_threshold = 0.0;
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter,
+    prep.prepareAssays(toppDataPath_("OpenSwathAssayGenerator_input_4.pqp"), FileTypes::PQP, output_pqp, FileTypes::PQP, params),
+    "AssayGeneratorParameters::precursor_mz_threshold must be greater than zero when constructing fallback UIS SWATH windows.")
+
+  params = makeIPFTestParameters_();
+  params.enable_swath_specifity = false;
+  params.precursor_lower_mz_limit = 1200.0;
+  params.precursor_upper_mz_limit = 400.0;
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter,
+    prep.prepareAssays(toppDataPath_("OpenSwathAssayGenerator_input_4.pqp"), FileTypes::PQP, output_pqp, FileTypes::PQP, params),
+    "AssayGeneratorParameters::precursor_upper_mz_limit must not be below precursor_lower_mz_limit when constructing fallback UIS SWATH windows.")
+}
+END_SECTION
+
+#ifndef WITH_ONNX
+START_SECTION([EXTRA] preparePredictedLibraryToPQP requires an ONNX-enabled build)
+{
+  OpenSwathLibraryPreparation prep;
+  prep.setLogType(ProgressLogger::NONE);
+  TEST_EXCEPTION(Exception::Precondition,
+    prep.preparePredictedLibraryToPQP("unused.fasta", "unused.pqp",
+                                      OpenSwathLibraryPreparation::AssayGeneratorParameters(),
+                                      OpenSwathLibraryPreparation::DecoyGeneratorParameters(),
+                                      OpenSwathLibraryPreparation::PredictedLibraryParameters()))
+}
+END_SECTION
+#endif
 
 START_SECTION([EXTRA] prepareEmpiricalLibraryToPQP runs assay preparation plus decoy generation and remains deterministic with deterministic decoys)
 {
@@ -432,6 +473,42 @@ START_SECTION([EXTRA] generateDecoys preserves decoy flags when heavy TraML is n
 
   TEST_TRUE(decoy_count > 0)
   TEST_EQUAL(decoy_count, stats.decoy_transition_count)
+}
+END_SECTION
+
+START_SECTION([EXTRA] shuffle_seed_is_forwarded_for_heavy_and_light_libraries)
+{
+  OpenSwathLibraryPreparation prep;
+  TargetedExperiment targets;
+  const std::string traml_input = classTestDataPath_("MRMDecoyGenerator_input.TraML");
+  TraMLFile().load(traml_input, targets);
+  std::string tsv_input;
+  NEW_TMP_FILE_EXT(tsv_input, ".tsv");
+  TransitionTSVFile().convertTargetedExperimentToTSV(tsv_input.c_str(), targets);
+
+  // TraML uses the heavy generator. TSV uses the light generator.
+  for (const auto input_type : {FileTypes::TRAML, FileTypes::TSV})
+  {
+    const auto& input = input_type == FileTypes::TRAML ? traml_input : tsv_input;
+    OpenSwathLibraryPreparation::DecoyGeneratorParameters parameters;
+    parameters.min_decoy_fraction = 0.0;
+    parameters.switch_kr = false;
+    parameters.separate = true;
+    parameters.product_mz_threshold = 0.8;
+    std::string default_output, seeded_output, different_output;
+    NEW_TMP_FILE_EXT(default_output, ".tsv");
+    NEW_TMP_FILE_EXT(seeded_output, ".tsv");
+    NEW_TMP_FILE_EXT(different_output, ".tsv");
+    const auto stats = prep.generateDecoys(input, input_type, default_output, FileTypes::TSV, parameters);
+    TEST_TRUE(stats.decoy_transition_count > 0)
+    parameters.shuffle_seed = 1;
+    prep.generateDecoys(input, input_type, seeded_output, FileTypes::TSV, parameters);
+    testSortedFilesEqual_(default_output, seeded_output);
+    parameters.shuffle_seed = 42;
+    prep.generateDecoys(input, input_type, different_output, FileTypes::TSV, parameters);
+    // This fails if preparation drops the selected seed, even within one clock tick.
+    TEST_TRUE(sortedLines_(seeded_output) != sortedLines_(different_output))
+  }
 }
 END_SECTION
 

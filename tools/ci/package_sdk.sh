@@ -238,8 +238,10 @@ if [[ -z "$package_version" ]]; then
   echo >&2 "ERROR: OpenMSConfigVersion.cmake records no package version"
   exit 1
 fi
-awk -v requirement="$boost_requirement" -v major_minor="${package_version%.*}" -v macos_minimum="$macos_minimum" '
-  index($0, "@BOOST_REQUIREMENT@") { sub(/@BOOST_REQUIREMENT@/, requirement) }
+# The requirement spans two lines, which BSD awk (macOS) rejects in a -v assignment, so it
+# travels through the environment.
+BOOST_REQUIREMENT="$boost_requirement" awk -v major_minor="${package_version%.*}" -v macos_minimum="$macos_minimum" '
+  index($0, "@BOOST_REQUIREMENT@") { sub(/@BOOST_REQUIREMENT@/, ENVIRON["BOOST_REQUIREMENT"]) }
   { gsub(/@OPENMS_VERSION_MAJOR_MINOR@/, major_minor); gsub(/@MACOS_MINIMUM@/, macos_minimum); print }
 ' "$source_dir/cmake/OpenMSSDKReadme.txt" > "$stage/README.txt"
 cp "$source_dir/License.txt" "$stage/License.txt"
@@ -296,6 +298,25 @@ case "$found_dir" in
   "$(cmake_path "$sdk_prefix")"/*) ;;
   *) echo >&2 "ERROR: the consumer found OpenMS at '$found_dir', not in the SDK"; exit 1 ;;
 esac
+
+# macOS: the SDK bundles the OpenMP runtime libOpenMS loads, with its omp.h, and the
+# consumer has to use that one (OpenMSConfig.cmake points FindOpenMP at it): a second
+# libomp in the same process aborts with "OMP: Error #15". (grep reads all of otool's
+# output: grep -q would exit early and fail the pipeline.)
+if [[ "$(uname -s)" == Darwin ]] &&
+   otool -L "$sdk_prefix/$lib_dir/libOpenMS.dylib" | grep '/libomp\.dylib ' >/dev/null; then
+  for required in "$lib_dir/libomp.dylib" "$include_dir/omp.h"; do
+    if [[ ! -e "$sdk_prefix/$required" ]]; then
+      echo >&2 "ERROR: libOpenMS uses OpenMP, but the SDK misses $required"
+      exit 1
+    fi
+  done
+  omp_library=$(sed -n 's/^OpenMP_libomp_LIBRARY:FILEPATH=//p' "$consumer_build/CMakeCache.txt")
+  if [[ "$omp_library" != "$sdk_prefix/$lib_dir/libomp.dylib" ]]; then
+    echo >&2 "ERROR: the consumer uses the OpenMP runtime '$omp_library', not the one in the SDK"
+    exit 1
+  fi
+fi
 
 cmake --build "$(cmake_path "$consumer_build")" --config "${build_type:-Release}"
 # as the README tells users to run their programs

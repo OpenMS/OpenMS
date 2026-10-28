@@ -783,20 +783,28 @@ namespace OpenMS{
 
       if (!path_checked) // - now we're in big trouble as './share' is not were its supposed to be...
       { // - do NOT use OPENMS_LOG_ERROR or similar for the messages below! (it might not even usable at this point)
-        std::cerr << "OpenMS FATAL ERROR!\n  Cannot find shared data! OpenMS cannot function without it!\n";
+        std::string message = "Cannot find the OpenMS shared data directory. OpenMS cannot function without it!";
         if (from_env)
         {
           std::string p = getenv("OPENMS_DATA_PATH");
-          std::cerr << "  The environment variable 'OPENMS_DATA_PATH' currently points to '" << p << "', which is incorrect!\n";
+          message += " The environment variable 'OPENMS_DATA_PATH' currently points to '" + p + "', which is incorrect!";
         }
   #ifdef OPENMS_WINDOWSPLATFORM
         std::string share_dir = R"(c:\Program Files\OpenMS\share\OpenMS)";
   #else
         std::string share_dir = "/usr/share/OpenMS";
   #endif
-        std::cerr << "  To resolve this, set the environment variable 'OPENMS_DATA_PATH' to the OpenMS share directory (e.g., '" + share_dir + "').\n";
-        std::cerr << "Exiting now.\n";
-        exit(1);
+        message += " To resolve this, set the environment variable 'OPENMS_DATA_PATH' to the OpenMS share directory (e.g., '" + share_dir + "').";
+        // Also print it (once): callers that take a FileNotFound from File::find() for a missing optional
+        // file (e.g. the enzyme database) would otherwise swallow it without a trace.
+        static std::atomic<bool> reported{false};
+        if (!reported.exchange(true))
+        {
+          std::cerr << "OpenMS FATAL ERROR! " << message << '\n';
+        }
+        // A library must not end the host process (a Python interpreter, a GUI, ...): report it to the caller.
+        // A throwing initializer leaves the static uninitialized, so the next call probes again.
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "share/OpenMS", message);
       }
       return OpenMSDataPath_{path, found_path_from};
     }();

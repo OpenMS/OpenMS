@@ -184,6 +184,18 @@ public:
       chromatograms_.push_back(chromatogram);
     }
 
+    /// Add a chromatogram (see above) by moving it into the transition group
+    inline void addChromatogram(ChromatogramType&& chromatogram, const std::string& key)
+    {
+      // store the index where to find the chromatogram, using the key for lookup
+      auto result = chromatogram_map_.emplace(key, int(chromatograms_.size()));
+      if (!result.second) // ouch: key was already used
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error: Chromatogram with nativeID was already present!", key);
+      }
+      chromatograms_.push_back(std::move(chromatogram));
+    }
+
     inline bool hasChromatogram(const std::string& key) const
     {
       return chromatogram_map_.contains(key);

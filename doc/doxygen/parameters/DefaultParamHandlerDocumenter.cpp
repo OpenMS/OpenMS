@@ -14,13 +14,6 @@
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPIons.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h>
 #include <OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
@@ -352,12 +345,6 @@ int main(int argc, char** argv)
   DOCME(BinnedSpectralContrastAngle);
   DOCME(BinnedSumAgreeingIntensities);
 
-  DOCME(ConsensusIDAlgorithmAverage);
-  DOCME(ConsensusIDAlgorithmBest);
-  DOCME(ConsensusIDAlgorithmPEPIons);
-  DOCME(ConsensusIDAlgorithmPEPMatrix);
-  DOCME(ConsensusIDAlgorithmRanks);
-  DOCME(ConsensusIDAlgorithmWorst);
   DOCME(DBSuitability);
   DOCME(DiaPrescore);
   DOCME(DIAScoring);
@@ -459,10 +446,6 @@ int main(int argc, char** argv)
   // More complicated cases
   //////////////////////////////////
 
-  // ConsensusIDAlgorithm...: abstract base classes, get param. from subclass:
-  DOCME2(ConsensusIDAlgorithm, (ConsensusIDAlgorithmBest()));
-  DOCME2(ConsensusIDAlgorithmIdentity, (ConsensusIDAlgorithmBest()));
-  DOCME2(ConsensusIDAlgorithmSimilarity, (ConsensusIDAlgorithmBest()));
   DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked()));
   DOCME2(SignalToNoiseEstimatorMeanIterative, SignalToNoiseEstimatorMeanIterative<>());
   DOCME2(SignalToNoiseEstimatorMedian, SignalToNoiseEstimatorMedian<>());

@@ -1940,8 +1940,6 @@ def testSeedListGenerator():
     assert pyopenms.SeedListGenerator().generateSeedLists is not None
     assert pyopenms.SeedListGenerator().convertSeedList is not None
 
-#     assert pyopenms.ConsensusID().apply is not None
-
 @report
 def testFalseDiscoveryRate():
     """
@@ -2031,6 +2029,27 @@ def testConsensusMapNormalizerAlgorithmQuantile():
     ff = pyopenms.ConsensusMapNormalizerAlgorithmQuantile()
 
     assert pyopenms.ConsensusMapNormalizerAlgorithmQuantile().normalizeMaps is not None
+
+@report
+def testConsensusMapNormalizerAlgorithmRTLocal():
+    """
+    @tests: ConsensusMapNormalizerAlgorithmRTLocal
+     ConsensusMapNormalizerAlgorithmRTLocal.__init__
+     ConsensusMapNormalizerAlgorithmRTLocal.Settings
+    """
+    ff = pyopenms.ConsensusMapNormalizerAlgorithmRTLocal()
+    settings = pyopenms.ConsensusMapNormalizerAlgorithmRTLocal.Settings()
+    assert settings.neighbors == 50
+    assert settings.rounds == 5
+    assert settings.min_maps == 3
+    assert settings.min_reference == 20
+    settings.neighbors = 10
+    assert copy.copy(settings).neighbors == 10
+
+    cmap = pyopenms.ConsensusMap()
+    assert pyopenms.ConsensusMapNormalizerAlgorithmRTLocal.computeOffsets(cmap, settings, "", "") == []
+    pyopenms.ConsensusMapNormalizerAlgorithmRTLocal.normalizeMaps(cmap, settings, "", "")
+    assert cmap.size() == 0
 
 @report
 def testConsensusMapNormalizerAlgorithmThreshold():
@@ -4325,6 +4344,40 @@ def testMRMDecoy():
     assert pyopenms.MRMDecoy().generateDecoys is not None
 
 @report
+def testMRMDecoyShuffleSeed():
+    """Library shuffling uses the selected seed and a reproducible default."""
+    targets = pyopenms.TargetedExperiment()
+    fixture = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test.TraML")
+    pyopenms.TraMLFile().load(fixture, targets)
+    peptides = targets.getPeptides()
+    # Use valid, varied residues so different seeds produce different decoys.
+    for peptide, sequence in zip(peptides, ("ACDEFGHILMNVWYK", "ACDEFGHILMNVWYR")):
+        peptide.sequence = sequence
+        peptide.setChargeState(2)
+    targets.setPeptides(peptides)
+    generator = pyopenms.MRMDecoy()
+    arguments = dict(
+        exp=targets, method="shuffle", aim_decoy_fraction=1.0,
+        switchKR=False, decoy_tag="DECOY_", max_attempts=30,
+        identity_threshold=0.7, precursor_mz_shift=0.0,
+        product_mz_shift=20.0, product_mz_threshold=500.0,
+        fragment_types=["b", "y"], fragment_charges=[1, 2],
+        enable_specific_losses=False, enable_unspecific_losses=False,
+    )
+    default_decoys = generator.generateDecoys(**arguments)
+    seeded_decoys = generator.generateDecoys(**arguments, shuffle_seed=1)
+    other_decoys = generator.generateDecoys(**arguments, shuffle_seed=42)
+    # Explicit -1 remains accepted for callers requesting time-based shuffling.
+    time_seeded_decoys = generator.generateDecoys(**arguments, shuffle_seed=-1)
+    assert time_seeded_decoys.getPeptides()
+    assert default_decoys.getPeptides()
+    assert default_decoys == seeded_decoys
+    assert [p.sequence for p in seeded_decoys.getPeptides()] != [
+        p.sequence for p in other_decoys.getPeptides()
+    ]
+
+
+@report
 def testMRMTransitionGroup():
     """
     @tests: MRMTransitionGroup
@@ -5181,6 +5234,11 @@ def testPeakFileOptions():
     assert not pfo.getZstdCompression()
     pfo.setZstdCompression(True)
     assert pfo.getZstdCompression()
+    assert not pfo.hasIMRange()
+    pfo.setIMRange(pyopenms.DRange1(0.8, 1.2))
+    assert pfo.hasIMRange()
+    assert pfo.getIMRange().minX() == 0.8
+    assert pfo.getIMRange().maxX() == 1.2
 
 @report
 def testMRMMapping():
@@ -6433,12 +6491,13 @@ def test_MapConversion():
     exp.addSpectrum(sp)
     exp.addSpectrum(sp)
 
+    # peaks cannot be converted to a ConsensusMap: the handles would refer to peak indices, not to elements with ids
     cmap = pyopenms.ConsensusMap()
-    pyopenms.MapConversion().convert(0, exp, cmap, 2)
-
-    assert(cmap.size() == 2)
-    assert(cmap[0].getIntensity() == 10.0)
-    assert(cmap[0].getMZ() == 20.0)
+    try:
+        pyopenms.MapConversion().convert(0, exp, cmap, 2)
+        assert False, "converting an MSExperiment must fail"
+    except TypeError:
+        pass
 
 def test_BSpline2d():
 
@@ -6458,36 +6517,6 @@ def test_BSpline2d():
 
 
 @report
-def testConsensusIDAlgorithmAverage():
-    algo = pyopenms.ConsensusIDAlgorithmAverage()
-    assert algo.apply
-
-@report
-def testConsensusIDAlgorithmBest():
-    algo = pyopenms.ConsensusIDAlgorithmBest()
-    assert algo.apply
-
-@report
-def testConsensusIDAlgorithmPEPIons():
-    algo = pyopenms.ConsensusIDAlgorithmPEPIons()
-    assert algo.apply
-
-@report
-def testConsensusIDAlgorithmPEPMatrix():
-    algo = pyopenms.ConsensusIDAlgorithmPEPMatrix()
-    assert algo.apply
-
-@report
-def testConsensusIDAlgorithmRanks():
-    algo = pyopenms.ConsensusIDAlgorithmRanks()
-    assert algo.apply
-
-@report
-def testConsensusIDAlgorithmWorst():
-    algo = pyopenms.ConsensusIDAlgorithmWorst()
-    assert algo.apply
-
-@report
 def testDigestionEnzymeProtein():
     f = pyopenms.EmpiricalFormula()
 
@@ -6504,6 +6533,8 @@ def testDigestionEnzymeProtein():
 def testMRMAssay():
     e = pyopenms.MRMAssay()
     assert e
+    assert "default 1 for reproducible results" in e.uisTransitions.__doc__
+    assert "-1 selects a time-based seed" in e.uisTransitions.__doc__
 
 @report
 def testMRMIonSeries():
@@ -6776,6 +6807,18 @@ def testNASequence():
     charge = 2
     oligo_mod.getMonoWeight(pyopenms.NASequence.NASFragmentType.WIon, charge)
     oligo_mod.getFormula(pyopenms.NASequence.NASFragmentType.WIon, charge)
+
+    # Regression for #6718: retain the modified terminal sugar after base loss;
+    # only phosphorothioate bonds inside the fragment contribute sulfur.
+    for sequence, expected in (
+        ("[dA][dA*]", "C15H18N5O7P1"),
+        ("[dA][Am]", "C16H20N5O8P1"),
+        ("[dA*][Am]", "C16H20N5O7P1S1"),
+    ):
+        fragment = pyopenms.NASequence.fromString(sequence)
+        formula = fragment.getFormula(pyopenms.NASequence.NASFragmentType.AminusB, 0)
+        assert formula.toString() == expected
+        assert fragment.getMonoWeight(pyopenms.NASequence.NASFragmentType.AminusB, 0) == formula.getMonoWeight()
 
     # Test __repr__ and __str__ methods
     # Test __repr__ method

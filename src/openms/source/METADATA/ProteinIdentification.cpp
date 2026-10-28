@@ -467,16 +467,9 @@ namespace OpenMS
 
   void ProteinIdentification::setPrimaryMSRunPath(const StringList& s, bool raw)
   {
-    std::string meta_name = raw ? "spectra_data_raw" : "spectra_data";
-    setMetaValue(meta_name, DataValue(StringList()));
-    if (s.empty())
-    {
-      OPENMS_LOG_WARN << "Setting an empty value for primary MS runs paths." << std::endl;
-    }
-    else
-    {
-      addPrimaryMSRunPath(s, raw);
-    }
+    // an empty list names no files and is not stored
+    removeMetaValue(raw ? "spectra_data_raw" : "spectra_data");
+    addPrimaryMSRunPath(s, raw);
   }
 
   void ProteinIdentification::setPrimaryMSRunPath(const StringList& s, MSExperiment& e)
@@ -511,6 +504,10 @@ namespace OpenMS
 
   void ProteinIdentification::addPrimaryMSRunPath(const StringList& s, bool raw)
   {
+    if (s.empty())
+    {
+      return;
+    }
     std::string meta_name = raw ? "spectra_data_raw" : "spectra_data";
     if (!raw) // mzML files expected
     {
@@ -527,6 +524,21 @@ namespace OpenMS
     StringList spectra_data = getMetaValue(meta_name, DataValue(StringList()));
     spectra_data.insert(spectra_data.end(), s.begin(), s.end());
     setMetaValue(meta_name, spectra_data);
+  }
+
+  void ProteinIdentification::removeEmptyPrimaryMSRunPaths()
+  {
+    for (const char* meta_name : {"spectra_data", "spectra_data_raw"})
+    {
+      if (metaValueExists(meta_name))
+      {
+        const DataValue& value = getMetaValue(meta_name);
+        if (value.valueType() == DataValue::STRING_LIST && value.toStringList().empty())
+        {
+          removeMetaValue(meta_name);
+        }
+      }
+    }
   }
 
   void ProteinIdentification::addPrimaryMSRunPath(const std::string& s, bool raw)
@@ -561,8 +573,8 @@ namespace OpenMS
   bool ProteinIdentification::peptideIDsMergeable(const ProteinIdentification& id_run, const std::string& experiment_type) const
   {
     const std::string& warn = " You probably do not want to merge the results with this tool."
-                         " For merging searches with different engines/settings please use ConsensusID or PercolatorAdapter"
-                         " to create a comparable score.";
+                         " Scores of different search engines are not comparable; searches of one engine with different"
+                         " settings can be rescored together with PercolatorAdapter to create a comparable score.";
     const std::string& engine = this->getSearchEngine();
     const std::string& version = this->getSearchEngineVersion();
 
@@ -591,7 +603,7 @@ namespace OpenMS
     const auto& params = this->getSearchParameters();
     if (se.empty() || (this->getSearchEngine() == se
                         && this->getSearchEngine() != "Percolator" //meaningless settings
-                        && !StringUtils::hasPrefix(this->getSearchEngine(), "ConsensusID"))) //meaningless settings
+                        && !StringUtils::hasSubstring(this->getSearchEngine(), "ConsensusID"))) //meaningless settings (e.g. "OpenMS/ConsensusID_best")
     {
       //TODO add spectra_data?
       result.emplace_back("db", params.db);
