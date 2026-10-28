@@ -76,7 +76,9 @@ PointColumns flatten(const std::vector<SpectrumData>& spectra, bool want_centroi
 
     std::vector<std::size_t> order(s.mz.size());
     std::iota(order.begin(), order.end(), std::size_t{0});
-    std::ranges::sort(
+    // stable: points of equal m/z keep the order the caller gave (OpenMS change; an unstable sort permuted them,
+    // which changed what a consumer that merges or deisotopes neighbouring peaks made of the spectrum)
+    std::ranges::stable_sort(
         order, [&](std::size_t a, std::size_t b) { return s.mz[a] < s.mz[b]; });
 
     for (std::size_t k : order) {
@@ -361,8 +363,8 @@ std::vector<std::size_t> ascending_order(const std::vector<Axis>& axis)
 {
   std::vector<std::size_t> order(axis.size());
   std::iota(order.begin(), order.end(), std::size_t{0});
-  std::ranges::sort(order,
-                    [&](std::size_t a, std::size_t b) { return axis[a] < axis[b]; });
+  std::ranges::stable_sort(order, // stable: equal coordinates keep their order (OpenMS change)
+                           [&](std::size_t a, std::size_t b) { return axis[a] < axis[b]; });
   return order;
 }
 
@@ -1064,7 +1066,8 @@ void RunArchiveWriter::add(SpectrumData s)
   Impl::Stream& stream = s.centroid ? impl_->peaks : impl_->data;
   std::vector<std::size_t> order(s.mz.size());
   std::iota(order.begin(), order.end(), std::size_t{0});
-  std::ranges::sort(order, [&](std::size_t a, std::size_t b) { return s.mz[a] < s.mz[b]; });
+  // stable: points of equal m/z keep the caller's order (OpenMS change, see flatten())
+  std::ranges::stable_sort(order, [&](std::size_t a, std::size_t b) { return s.mz[a] < s.mz[b]; });
   PointColumns& p = stream.pending;
   for (std::size_t k : order) {
     p.spectrum_index.push_back(static_cast<uint64_t>(index));

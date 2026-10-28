@@ -33,6 +33,9 @@ the OpenMS interface.
 - Writer: `Util::minutes_from_seconds()` picks the stored minutes so that the reader's
   `* 60.0` returns the seconds exactly (`src/util/parquet_writer.cpp`, used for spectra,
   chromatograms and wavelength spectra).
+- Writer: the points of a spectrum (and of a chromatogram / wavelength spectrum) are sorted along
+  their axis with a stable sort, so that peaks of equal m/z keep the caller's order (`src/writer.cpp`,
+  three places); the unstable sort permuted them and changed a consumer's deisotoping.
 - `src/boost_json_src.cpp` (new): Boost.JSON compiled header-only, so libOpenMS links no
   compiled Boost library.
 - `sources.cmake`, `CMakeLists.txt`, this file.
