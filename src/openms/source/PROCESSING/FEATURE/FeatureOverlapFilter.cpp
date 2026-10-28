@@ -500,8 +500,9 @@ namespace OpenMS
         {
           const bool known = std::any_of(best_ids.begin(), best_ids.end(), [&pep_id](const PeptideIdentification& other)
           {
+            const auto same = [](double a, double b) { return a == b || (std::isnan(a) && std::isnan(b)); }; // RT and m/z may be unset (NaN)
             return other.getSpectrumReference() == pep_id.getSpectrumReference() && other.getIdentifier() == pep_id.getIdentifier()
-                   && other.getRT() == pep_id.getRT() && other.getMZ() == pep_id.getMZ();
+                   && same(other.getRT(), pep_id.getRT()) && same(other.getMZ(), pep_id.getMZ());
           });
           if (!known) best_ids.push_back(pep_id);
         }

@@ -657,10 +657,10 @@ START_SECTION(mergeFAIMSFeatures - identifications)
   TEST_REAL_SIMILAR(different[0].getIntensity() + different[1].getIntensity(), 1500.0)
 
   // an identification without a CV is given to the features of every CV: the merged feature keeps it once
+  // (here also without m/z, i.e. NaN, as from an idXML that has none)
   PeptideIdentification without_cv;
   without_cv.setSpectrumReference("scan=100");
   without_cv.setRT(100.0);
-  without_cv.setMZ(500.0);
   without_cv.insertHit(PeptideHit(1.0, 1, 2, AASequence::fromString("PEPTIDEK")));
   FeatureMap shared;
   for (double cv : {-45.0, -55.0, -65.0})
