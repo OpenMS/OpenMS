@@ -100,13 +100,6 @@ START_SECTION((Size readBytes(unsigned char* const to_fill, const Size max_to_re
 }
 END_SECTION
 
-START_SECTION((const char16_t* getContentType() const))
-{
-  ZipInputStream zis(zip_file);
-  TEST_EQUAL(zis.getContentType() == nullptr, true)
-}
-END_SECTION
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 START_SECTION(Zero byte reads preserve stream position)

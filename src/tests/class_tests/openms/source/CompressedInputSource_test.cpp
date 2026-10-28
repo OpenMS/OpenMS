@@ -41,18 +41,6 @@ START_SECTION((~CompressedInputSource()))
   delete ptr;
 END_SECTION
 
-START_SECTION(CompressedInputSource(const char16_t* file_path, const std::string& header))
-  char header[3];
-  header[0] = 'B';
-  header[1] = 'Z';
-  header[2] = '\0';
-  std::string bz =std::string(header);
-  std::string filename(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
-  ptr = new CompressedInputSource(Internal::StringManager().convert(filename.c_str()).c_str(), bz);
-  TEST_NOT_EQUAL(ptr, nullPointer)
-  delete ptr;
-END_SECTION
-
 
 START_SECTION(InputStream* makeStream() const)
   char header[3];

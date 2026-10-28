@@ -505,8 +505,8 @@ private:
       parser->userData = parser.get();
       // Keep diagnostics local to this parser, including namespace errors.
       xmlCtxtSetErrorHandler(parser.get(), LibxmlState::error, parser.get());
-      // Like Xerces, accept large attribute values and deep nesting (HUGE), but
-      // keep an explicit entity expansion budget, as the DOM-based readers do.
+      // Accept large attribute values and deep nesting (HUGE), as real-world files need,
+      // but keep an explicit entity expansion budget, as the DOM-based readers do.
       xmlCtxtSetMaxAmplification(parser.get(), 5);
       xmlCtxtUseOptions(parser.get(), XML_PARSE_NONET | XML_PARSE_NO_XXE | XML_PARSE_NOENT | XML_PARSE_HUGE);
 

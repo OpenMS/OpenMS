@@ -66,7 +66,7 @@ namespace OpenMS::Internal
       }
     }
 
-    /// Convert XMLCh* (UTF-16) to std::string in UTF-8 encoding.
+    /// Convert char16_t* (UTF-16) to std::string in UTF-8 encoding.
     /// Avoid locale-dependent conversion here because it goes through
     /// the local C-runtime encoding (often Latin-1), which silently maps non-Latin
     /// codepoints to '?' before the consumer has a chance to choose a different
@@ -338,7 +338,7 @@ namespace OpenMS::Internal
   {
     if (capture_ == CaptureTarget::None) return;
     // Use the length-aware UTF-16 → UTF-8 helper so we don't depend on a
-    // NUL-terminated XMLCh* (The callback guarantees the buffer length, not termination).
+    // NUL-terminated char16_t* (The callback guarantees the buffer length, not termination).
     appendXmlchUtf8(char_buf_, chars, length);
   }
 

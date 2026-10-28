@@ -18,6 +18,5 @@ namespace OpenMS
     virtual ~InputStream() = default;
     virtual UInt64 curPos() const = 0;
     virtual Size readBytes(unsigned char* to_fill, Size max_to_read) = 0;
-    virtual const char16_t* getContentType() const { return nullptr; }
   };
 }

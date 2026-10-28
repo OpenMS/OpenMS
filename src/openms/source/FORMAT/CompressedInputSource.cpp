@@ -4,7 +4,6 @@
 #include <OpenMS/FORMAT/GzipInputStream.h>
 #include <OpenMS/FORMAT/Bzip2InputStream.h>
 #include <OpenMS/FORMAT/ZipInputStream.h>
-#include <OpenMS/FORMAT/HANDLERS/StringManager.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <memory>
 
@@ -12,11 +11,6 @@ namespace OpenMS
 {
   CompressedInputSource::CompressedInputSource(const std::string& file_path, const std::string& header) :
     file_path_(File::absolutePath(file_path)), head_(header)
-  {
-  }
-
-  CompressedInputSource::CompressedInputSource(const char16_t* file_path, const std::string& header) :
-    CompressedInputSource(Internal::StringManager::convert(file_path), header)
   {
   }
 
