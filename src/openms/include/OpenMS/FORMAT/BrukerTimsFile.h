@@ -60,9 +60,10 @@ namespace OpenMS
    *   per-frame MS2 spectra split by SWATH isolation window with per-peak IM.
    *   The precursor of a DDA MS2 spectrum has the CollisionEnergy of its
    *   PasefFrameMsMsInfo rows as the meta value "collision energy" (eV, with
-   *   the sign stored in the file: negative in negative mode) and, if the
-   *   run records it (property MSMSAuto_FragmentationMode), the activation
-   *   method (CID or ETD). PASEF runs
+   *   the sign stored in the file: negative in negative mode; none if the
+   *   rows differ) and, if the PASEF frames record it (property
+   *   MSMSAuto_FragmentationMode), the activation method (CID or ETD). PASEF
+   *   runs
    *   that isolate a fixed list of targets (such as SIMSEF) have isolation
    *   windows without a precursor (PasefFrameMsMsInfo rows whose
    *   Precursor is NULL). Each such window becomes one MS2 spectrum, with the

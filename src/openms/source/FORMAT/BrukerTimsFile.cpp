@@ -1477,15 +1477,23 @@ namespace OpenMS
       }
     };
 
-    // The fragmentation mode of the run's PASEF MS/MS, if the run records it: the property MSMSAuto_FragmentationMode,
-    // whose values are "0:CID;1:ETD" (PropertyDefinitions.DisplayValueText). None if the run does not have the
-    // property (such as DDA-PASEF runs that only have MSMSManual_ListFragmentationMode) or has more than one value.
+    // The fragmentation mode of the run's PASEF MS/MS frames, if they record it: the property
+    // MSMSAuto_FragmentationMode, whose values are "0:CID;1:ETD" (PropertyDefinitions.DisplayValueText). A frame has
+    // the value of its FrameProperties, else that of its property group.
+    // None if a frame has no value or the frames have more than one value.
     std::optional<Precursor::ActivationMethod> readFragmentationMode(SQLite::Database& db)
     {
-      if (!db.tableExists("PropertyDefinitions") || !db.tableExists("GroupProperties")) return std::nullopt;
+      if (!db.tableExists("PasefFrameMsMsInfo") || !db.tableExists("PropertyDefinitions") || !db.tableExists("GroupProperties"))
+      {
+        return std::nullopt;
+      }
       const std::string property = "(SELECT Id FROM PropertyDefinitions WHERE PermanentName = 'MSMSAuto_FragmentationMode')";
-      std::string sql = "SELECT Value FROM GroupProperties WHERE Property = " + property;
-      if (db.tableExists("FrameProperties")) sql += " UNION SELECT Value FROM FrameProperties WHERE Property = " + property;
+      const bool frame_properties = db.tableExists("FrameProperties");
+      std::string sql = std::string("SELECT DISTINCT ") + (frame_properties ? "COALESCE(fp.Value, gp.Value)" : "gp.Value")
+                        + " FROM (SELECT DISTINCT Frame FROM PasefFrameMsMsInfo) pasef"
+                        " JOIN Frames f ON f.Id = pasef.Frame"
+                        " LEFT JOIN GroupProperties gp ON gp.PropertyGroup = f.PropertyGroup AND gp.Property = " + property;
+      if (frame_properties) sql += " LEFT JOIN FrameProperties fp ON fp.Frame = f.Id AND fp.Property = " + property;
       SQLite::Statement q(db, sql);
       std::optional<Precursor::ActivationMethod> mode;
       while (q.executeStep())
@@ -3693,15 +3701,19 @@ namespace OpenMS
       spec.setMetaValue("bruker_precursor_id", prec_id);
     };
 
-    // The activation of the precursor: the collision energy of its PasefFrameMsMsInfo rows (the same for all of them),
-    // as the meta value "collision energy" in eV (MS:1000045 in mzML), as the Thermo reader sets it, and the
-    // fragmentation mode of the run, if it records one (see readFragmentationMode())
-    const auto setActivation = [&fragmentation_mode](Precursor& prec, const DDAPrecursorInfo& first_entry)
+    // The activation of the precursor with the PasefFrameMsMsInfo rows @p entries: their collision energy as the meta
+    // value "collision energy" in eV (MS:1000045 in mzML), as the Thermo reader sets it (left out if the rows have
+    // different ones), and the fragmentation mode of the run, if it records one (see readFragmentationMode())
+    const auto setActivation = [&fragmentation_mode](Precursor& prec, const std::vector<const DDAPrecursorInfo*>& entries)
     {
-      DataValue collision_energy(first_entry.collision_energy);
-      collision_energy.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
-      collision_energy.setUnit(266); // UO:0000266 electronvolt
-      prec.setMetaValue("collision energy", collision_energy);
+      const double energy = entries.front()->collision_energy;
+      if (std::all_of(entries.begin(), entries.end(), [energy](const DDAPrecursorInfo* e) { return e->collision_energy == energy; }))
+      {
+        DataValue collision_energy(energy);
+        collision_energy.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+        collision_energy.setUnit(266); // UO:0000266 electronvolt
+        prec.setMetaValue("collision energy", collision_energy);
+      }
       if (fragmentation_mode) prec.setActivationMethods({*fragmentation_mode});
     };
 
@@ -3830,7 +3842,7 @@ namespace OpenMS
           prec.setIntensity(static_cast<float>(first_entry->intensity));
         prec.setDriftTime(precursor_im);
         prec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-        setActivation(prec, *first_entry);
+        setActivation(prec, entries);
         double iso_offset_lower = first_entry->isolation_width / 2.0 +
                                   (precursor_mz - first_entry->isolation_mz);
         double iso_offset_upper = first_entry->isolation_width / 2.0 -
@@ -4013,7 +4025,7 @@ namespace OpenMS
         prec.setIntensity(static_cast<float>(first_entry->intensity));
       prec.setDriftTime(precursor_im);
       prec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-      setActivation(prec, *first_entry);
+      setActivation(prec, entries);
 
       // Isolation window offsets relative to the selected ion m/z
       double iso_offset_lower = first_entry->isolation_width / 2.0 +
