@@ -58,6 +58,17 @@ namespace OpenMS
    * - **AUTO** (default): detects DDA vs DIA by querying for SWATH windows.
    *   DDA uses per-precursor MS2 spectra with scalar drift times; DIA uses
    *   per-frame MS2 spectra split by SWATH isolation window with per-peak IM.
+   *   The precursor of a DDA MS2 spectrum has the CollisionEnergy of its
+   *   PasefFrameMsMsInfo rows as the meta value "collision energy" (eV, with
+   *   the sign stored in the file: negative in negative mode; none if the
+   *   rows differ) and, if the PASEF frames record it (property
+   *   MSMSAuto_FragmentationMode), the activation method (CID or ETD). PASEF
+   *   runs
+   *   that isolate a fixed list of targets (such as SIMSEF) have isolation
+   *   windows without a precursor (PasefFrameMsMsInfo rows whose
+   *   Precursor is NULL). Each such window becomes one MS2 spectrum, with the
+   *   isolation m/z as precursor m/z (charge 0), the 1/K0 of the middle of its
+   *   scans as drift time, and the native ID "frame=<F> scan=<S>".
    * - **SPECTRUM**: forces the DDA (per-precursor) path regardless of
    *   acquisition type.
    * - **FRAME**: returns raw 4D frames as IM_PEAK spectra (per-peak IM
