@@ -208,12 +208,15 @@ namespace ArrowIOHelpers
     @param[in] table The table (must not be null)
     @param[in] filename The file it is for (in the log)
     @param[in] config @c qpx_extra_columns and @c threads
+    @param[in] metadata The footer the table is written with (concatenateAndWriteToParquet()): it names the view
+               (@c file_type); a table built by an exporter carries none itself, so without it nothing is checked
     @return true if the table may be written
   */
   OPENMS_DLLAPI bool validateQPXTable(
     const std::shared_ptr<arrow::Table>& table,
     const std::string& filename,
-    const ParquetWriteConfig& config = ParquetWriteConfig{});
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    const std::shared_ptr<const arrow::KeyValueMetadata>& metadata = nullptr);
 
   /**
     @brief A Parquet file written table by table: the merged QPX psm file of a multi-file search, appended run by run
@@ -242,11 +245,12 @@ namespace ArrowIOHelpers
     ParquetTableStream& operator=(const ParquetTableStream&) = delete;
 
     /// Appends the rows of @p table (validated, encoded with @p threads; 0: the threads of the configuration).
-    /// False (logged) if refused or the write failed: the file is removed, the stream failed.
+    /// False (logged) if refused, null, or the write failed (also by an exception, caught here): the file is removed,
+    /// the stream has failed.
     bool append(const std::shared_ptr<arrow::Table>& table, int threads = 0);
-    /// Ends the file with @p keys added to its footer. False (logged) if that failed (file removed).
+    /// Ends the file with @p keys added to its footer. False (logged) if that failed (file removed, stream failed).
     bool close(const std::map<std::string, std::string>& keys = {});
-    /// Removes the file of an unfinished stream (nothing after close())
+    /// Ends an unfinished stream as failed and removes its file (nothing after close())
     void abandon();
     /// The rows appended so far
     Size rows() const;

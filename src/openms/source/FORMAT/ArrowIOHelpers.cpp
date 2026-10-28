@@ -1094,7 +1094,7 @@ namespace
     {
       if (keys.empty()) { return arrow::Status::OK(); }
       auto metadata = schema->metadata() ? schema->metadata()->Copy() : std::make_shared<arrow::KeyValueMetadata>();
-      for (const auto& [k, v] : keys) { metadata->Append(k, v); }
+      for (const auto& [k, v] : keys) { if (metadata->Contains(k)) { ARROW_RETURN_NOT_OK(metadata->Set(k, v)); } else { metadata->Append(k, v); } }
       ARROW_ASSIGN_OR_RAISE(std::shared_ptr<arrow::Buffer> serialized,
                             arrow::ipc::SerializeSchema(*schema->WithMetadata(metadata), arrow::default_memory_pool()));
       auto added = std::make_shared<arrow::KeyValueMetadata>();
@@ -1132,14 +1132,16 @@ namespace
 bool validateQPXTable(
   const std::shared_ptr<arrow::Table>& table,
   const std::string& filename,
-  const ParquetWriteConfig& config)
+  const ParquetWriteConfig& config,
+  const std::shared_ptr<const arrow::KeyValueMetadata>& metadata)
 {
   if (!table)
   {
     OPENMS_LOG_ERROR << "ArrowIOHelpers: null table passed to validateQPXTable (" << filename << ")" << std::endl;
     return false;
   }
-  return validateQPXValuesForWrite(table, filename, config.qpx_extra_columns, config.threads);
+  return validateQPXValuesForWrite(metadata ? table->ReplaceSchemaMetadata(metadata) : table, filename,
+                                   config.qpx_extra_columns, config.threads);
 }
 
 bool writeTableToParquet(
@@ -1164,23 +1166,31 @@ bool writeTableToParquet(
   const auto& outfile = file_result.ValueOrDie();
 
   arrow::Status status;
-  if (config.threads <= 1 || table->num_rows() == 0 || config.row_group_size <= 0) // (WriteTable rejects the size)
+  try
   {
-    auto arrow_properties = parquet::ArrowWriterProperties::Builder().store_schema()->build();
-    status = parquet::arrow::WriteTable(
-      *table,
-      arrow::default_memory_pool(),
-      outfile,
-      config.row_group_size,
-      writerProperties(*table->schema(), config),
-      arrow_properties);
+    if (config.threads <= 1 || table->num_rows() == 0 || config.row_group_size <= 0) // (WriteTable rejects the size)
+    {
+      auto arrow_properties = parquet::ArrowWriterProperties::Builder().store_schema()->build();
+      status = parquet::arrow::WriteTable(
+        *table,
+        arrow::default_memory_pool(),
+        outfile,
+        config.row_group_size,
+        writerProperties(*table->schema(), config),
+        arrow_properties);
+    }
+    else
+    {
+      BufferedGroupWriter writer;
+      status = writer.open(table->schema(), outfile, config);
+      if (status.ok()) { status = writer.write(*table); }
+      if (status.ok()) { status = writer.close(); }
+    }
   }
-  else
+  catch (...) // (e.g. std::bad_alloc: no partial file is left behind, which a staged write would publish)
   {
-    BufferedGroupWriter writer;
-    status = writer.open(table->schema(), outfile, config);
-    if (status.ok()) { status = writer.write(*table); }
-    if (status.ok()) { status = writer.close(); }
+    abandonFile(outfile, filename, "Failed to write " + filename + " (exception)");
+    throw;
   }
 
   if (!status.ok())
@@ -1241,7 +1251,7 @@ struct ParquetTableStream::Impl
   std::unique_ptr<BufferedGroupWriter> writer;
   std::optional<QPXValueValidation> validator; // for a QPX view (the metadata's file_type)
   Size rows = 0;
-  bool failed = false, closed = false;
+  bool failed = false, closed = false, opened = false; // (opened: the file exists, created by append())
 
   /// The validator of the QPX view the metadata names, if any: as validateQPXValuesForWrite() decides it
   bool makeValidator()
@@ -1264,11 +1274,13 @@ struct ParquetTableStream::Impl
     return true;
   }
 
+  /// The stream has failed (terminal): the writer is destroyed before the file is closed and removed (logged)
   bool fail(const std::string& what)
   {
     failed = true;
     writer.reset();
-    abandonFile(outfile, filename, what);
+    if (opened) { abandonFile(outfile, filename, what); }
+    else { OPENMS_LOG_ERROR << "ArrowIOHelpers: " << what << std::endl; }
     outfile.reset();
     return false;
   }
@@ -1297,46 +1309,48 @@ bool ParquetTableStream::append(const std::shared_ptr<arrow::Table>& table, int 
     OPENMS_LOG_ERROR << "ArrowIOHelpers: no table can be appended to " << s.filename << (s.closed ? " (closed)" : " (failed)") << std::endl;
     return false;
   }
-  if (!table)
-  {
-    OPENMS_LOG_ERROR << "ArrowIOHelpers: null table passed to ParquetTableStream (" << s.filename << ")" << std::endl;
-    return false;
-  }
+  if (!table) { return s.fail("null table passed to ParquetTableStream (" + s.filename + ")"); }
   if (threads > 0) { s.config.threads = threads; }
-  if (!s.writer)
+  try // (every failure ends the stream: an exception too, e.g. std::bad_alloc, so that no later table opens the file anew)
   {
-    s.schema = s.metadata ? table->schema()->WithMetadata(s.metadata) : table->schema();
-    if (!s.makeValidator()) { s.failed = true; return false; }
-    auto file_result = arrow::io::FileOutputStream::Open(s.filename);
-    if (!file_result.ok())
+    if (!s.writer)
     {
-      OPENMS_LOG_ERROR << "ArrowIOHelpers: Failed to open " << s.filename << " for writing: " << file_result.status().ToString() << std::endl;
-      s.failed = true;
-      return false;
+      s.schema = s.metadata ? table->schema()->WithMetadata(s.metadata) : table->schema();
+      if (!s.makeValidator()) { return s.fail("Failed to write " + s.filename + ": no QPX view"); }
+      auto file_result = arrow::io::FileOutputStream::Open(s.filename);
+      if (!file_result.ok())
+      {
+        return s.fail("Failed to open " + s.filename + " for writing: " + file_result.status().ToString());
+      }
+      s.outfile = file_result.ValueOrDie();
+      s.opened = true;
+      s.writer = std::make_unique<BufferedGroupWriter>();
+      const arrow::Status status = s.writer->open(s.schema, s.outfile, s.config);
+      if (!status.ok()) { return s.fail("Failed to write " + s.filename + ": " + status.ToString()); }
     }
-    s.outfile = file_result.ValueOrDie();
-    s.writer = std::make_unique<BufferedGroupWriter>();
-    const arrow::Status status = s.writer->open(s.schema, s.outfile, s.config);
+    else if (!table->schema()->Equals(*s.schema, /*check_metadata=*/false))
+    {
+      return s.fail("Failed to write " + s.filename + ": the schema of a table differs from the first table's");
+    }
+    if (s.validator)
+    {
+      s.validator->setThreads(s.config.threads);
+      const auto validation = s.validator->validate(table);
+      if (!validation.valid)
+      {
+        return s.fail("refusing invalid QPX " + s.schema->metadata()->Get("file_type").ValueOr("") + " table for " + s.filename + ": " + validation.toString());
+      }
+    }
+    arrow::Status status = s.writer->setThreads(s.config.threads);
+    if (status.ok()) { status = s.writer->write(*table); }
     if (!status.ok()) { return s.fail("Failed to write " + s.filename + ": " + status.ToString()); }
+    s.rows += static_cast<Size>(table->num_rows());
+    return true;
   }
-  else if (!table->schema()->Equals(*s.schema, /*check_metadata=*/false))
+  catch (const std::exception& e)
   {
-    return s.fail("Failed to write " + s.filename + ": the schema of a table differs from the first table's");
+    return s.fail("Failed to write " + s.filename + " (exception): " + e.what());
   }
-  if (s.validator)
-  {
-    s.validator->setThreads(s.config.threads);
-    const auto validation = s.validator->validate(table);
-    if (!validation.valid)
-    {
-      return s.fail("refusing invalid QPX " + s.schema->metadata()->Get("file_type").ValueOr("") + " table for " + s.filename + ": " + validation.toString());
-    }
-  }
-  arrow::Status status = s.writer->setThreads(s.config.threads);
-  if (status.ok()) { status = s.writer->write(*table); }
-  if (!status.ok()) { return s.fail("Failed to write " + s.filename + ": " + status.ToString()); }
-  s.rows += static_cast<Size>(table->num_rows());
-  return true;
 }
 
 bool ParquetTableStream::close(const std::map<std::string, std::string>& keys)
@@ -1344,12 +1358,19 @@ bool ParquetTableStream::close(const std::map<std::string, std::string>& keys)
   Impl& s = *impl_;
   if (s.failed || s.closed) { return !s.failed; }
   if (!s.writer) { s.closed = true; return true; } // (nothing appended: no file)
-  arrow::Status status = s.writer->addKeyValueMetadata(s.schema, keys);
-  if (status.ok()) { status = s.writer->close(); }
-  if (!status.ok()) { return s.fail("Failed to write " + s.filename + ": " + status.ToString()); }
-  s.writer.reset();
-  status = s.outfile->Close();
-  if (!status.ok()) { return s.fail("Failed to close " + s.filename + ": " + status.ToString()); }
+  try
+  {
+    arrow::Status status = s.writer->addKeyValueMetadata(s.schema, keys);
+    if (status.ok()) { status = s.writer->close(); }
+    if (!status.ok()) { return s.fail("Failed to write " + s.filename + ": " + status.ToString()); }
+    s.writer.reset();
+    status = s.outfile->Close();
+    if (!status.ok()) { return s.fail("Failed to close " + s.filename + ": " + status.ToString()); }
+  }
+  catch (const std::exception& e)
+  {
+    return s.fail("Failed to write " + s.filename + " (exception): " + e.what());
+  }
   s.outfile.reset();
   s.closed = true;
   return true;
@@ -1358,12 +1379,12 @@ bool ParquetTableStream::close(const std::map<std::string, std::string>& keys)
 void ParquetTableStream::abandon()
 {
   Impl& s = *impl_;
-  if (s.closed || s.failed || !s.writer) { return; }
+  if (s.closed || s.failed) { return; }
   s.failed = true;
   s.writer.reset();
   if (s.outfile) { (void)s.outfile->Close(); }
   s.outfile.reset();
-  if (File::exists(s.filename) && !File::remove(s.filename))
+  if (s.opened && File::exists(s.filename) && !File::remove(s.filename))
   {
     OPENMS_LOG_ERROR << "ArrowIOHelpers: Failed to remove incomplete output " << s.filename << std::endl;
   }

@@ -2357,7 +2357,11 @@ class ProSE :
                 // refused table is refused by the writes again, which log it as before)
                 ParquetWriteConfig check;
                 check.threads = qpx_threads;
-                files.psm_validated = ArrowIOHelpers::validateQPXTable(files.psm, files.psm_file, check);
+                try
+                {
+                  files.psm_validated = ArrowIOHelpers::validateQPXTable(files.psm, files.psm_file, check, files.psm_meta);
+                }
+                catch (const std::exception&) { files.psm_validated = false; } // (the writes check it, and fail as before)
               }
               if (early_qpx_files) { qpx_stream_append(i, files, qpx_write_threads); } // (the consumer did not get this run)
             }
@@ -2699,11 +2703,6 @@ class ProSE :
       }
       if (!out_qpx_dir.empty() && !qpx_extended)
       {
-        // Concatenation inherits the first input's schema metadata, i.e. that per-run file's
-        // uuid/creation_date. Stamp a fresh identity so the merged file is its own QPX file.
-        auto psm_meta = ArrowIOHelpers::qpxFileMetadata("psm_file", ParquetWriteConfig{}, qpx_psm_keys);
-        auto pg_meta  = ArrowIOHelpers::qpxFileMetadata("pg_file");
-        merged_ok = psm_meta && pg_meta && merged_ok;
         // (in parallel; next to the per-input writes still running, the last input's at least)
         ParquetWriteConfig merged_config;
         merged_config.threads = qpx_write_threads;
@@ -2718,17 +2717,30 @@ class ProSE :
             {
               OPENMS_LOG_ERROR << "Failed to write " << qpx_stream_file << " (cannot rename " << qpx_stream_file << ".part)" << endl;
               merged_ok = false;
+              if (!File::remove(qpx_stream_file + ".part"))
+              {
+                OPENMS_LOG_ERROR << "Cannot remove the staged file " << qpx_stream_file << ".part" << endl;
+              }
             }
           }
         }
-        else if (psm_meta)
+        else
         {
           if (qpx_stream) { qpx_stream->abandon(); } // (a run is missing from it: see qpx_stream_gap)
-          merged_config.validated = in_list.size() == 1 && qpx_psm_tables.size() == 1 && early_qpx[0].psm_validated; // (the same table)
-          merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
-            qpx_psm_tables, qpx_stream_file, merged_config, psm_meta) && merged_ok;
-          merged_config.validated = false;
+          // Concatenation inherits the first input's schema metadata, i.e. that per-run file's
+          // uuid/creation_date. Stamp a fresh identity so the merged file is its own QPX file.
+          auto psm_meta = ArrowIOHelpers::qpxFileMetadata("psm_file", ParquetWriteConfig{}, qpx_psm_keys);
+          merged_ok = psm_meta && merged_ok;
+          if (psm_meta)
+          {
+            merged_config.validated = in_list.size() == 1 && qpx_psm_tables.size() == 1 && early_qpx[0].psm_validated; // (the same table)
+            merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
+              qpx_psm_tables, qpx_stream_file, merged_config, psm_meta) && merged_ok;
+            merged_config.validated = false;
+          }
         }
+        auto pg_meta = ArrowIOHelpers::qpxFileMetadata("pg_file");
+        merged_ok = pg_meta && merged_ok;
         // Same rule as the per-file pg above: with no group anywhere there is nothing to merge, and
         // an empty merged table would be indistinguishable from an inference that found nothing.
         if (pg_meta && !qpx_pg_tables.empty())
