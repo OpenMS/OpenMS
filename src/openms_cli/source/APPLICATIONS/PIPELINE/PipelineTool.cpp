@@ -308,7 +308,7 @@ PipelineTool::Descriptor PipelineTool::discover(const PipelineGraph::Node& node,
   if (! descriptor.parameters.update(node.parameters, false, false, true, true, OPENMS_LOG_WARN))
   {
     throw Failure(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, TOPPBase::ILLEGAL_PARAMETERS,
-                  "Saved parameters for '" + node.tool_name + "' are incompatible with its current schema.");
+                  "Saved parameters for '" + node.tool_name + "' are incompatible with its current schema. INIUpdater can update the workflow file.");
   }
   descriptor.inputs = ports(descriptor.parameters, true);
   descriptor.outputs = ports(descriptor.parameters, false);

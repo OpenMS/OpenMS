@@ -226,10 +226,15 @@ namespace OpenMS
     TOPPASToolConfigDialog dialog(parent_widget, edit_param, default_dir, name_, type_, fromQString(toolTip()), hidden_entries);
     if (dialog.exec())
     {
-      // take new values
-      getScene_()->abortPipeline();
-      param_.update(edit_param);
-      emit parameterChanged(true);
+      Param updated(param_);
+      updated.update(edit_param);
+      // Only a change cancels a running workflow and invalidates results; looking does not.
+      if (! (updated == param_))
+      {
+        getScene_()->abortPipeline();
+        param_ = std::move(updated);
+        emit parameterChanged(true);
+      }
     }
 
     getScene_()->updateEdgeColors();
@@ -448,13 +453,22 @@ namespace OpenMS
 
   void TOPPASToolVertex::setParam(const Param& param)
   {
+    // If the tool could not report its parameters (e.g. -write_ini failed), there is
+    // no schema to check against. Keep the saved settings, as before, so the workflow
+    // still opens; running it reports the tool's problem.
+    if (! tool_ready_)
+    {
+      param_ = param;
+      return;
+    }
     // Saved workflows may contain only overrides. Keep the current executable's
     // port metadata and defaults, with the same strict checks as PipelineTool.
     Param updated(param_);
     if (! updated.update(param, false, false, true, true, OPENMS_LOG_WARN))
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Saved parameters for '" + name_ + "' are incompatible with its current schema.");
+                                        "Saved parameters for '" + name_
+                                          + "' are incompatible with its current schema. INIUpdater can update the workflow file.");
     }
     param_ = std::move(updated);
   }
@@ -478,6 +492,12 @@ namespace OpenMS
   void TOPPASToolVertex::toolScheduledSlot()
   {
     status_ = TOOL_SCHEDULED;
+    update(boundingRect());
+  }
+
+  void TOPPASToolVertex::toolReadySlot()
+  {
+    status_ = TOOL_READY;
     update(boundingRect());
   }
 

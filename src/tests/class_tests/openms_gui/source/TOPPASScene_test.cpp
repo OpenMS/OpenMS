@@ -200,6 +200,8 @@ END_SECTION
 START_SECTION((incompatible saved tool settings fail without replacing the existing scene))
 {
   TOPPASScene scene(nullptr, directory.path(), false);
+  // Load diagnostics go to TOPPAS.log in the output directory, not the user's home.
+  scene.setOutDir(directory.path());
   scene.load(workflow);
   scene.setChanged(true);
   auto* original_input = *scene.verticesBegin();

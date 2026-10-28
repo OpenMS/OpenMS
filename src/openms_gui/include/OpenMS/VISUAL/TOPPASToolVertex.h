@@ -178,6 +178,8 @@ public slots:
     void toolCrashedSlot();
     /// Called when the tool has failed
     void toolFailedSlot();
+    /// Called when the tool did not run, e.g. after cancellation or an upstream failure
+    void toolReadySlot();
     /// Called when the tool was scheduled for running
     virtual void toolScheduledSlot();
     /// Called by an incoming edge when it has changed

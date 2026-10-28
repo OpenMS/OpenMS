@@ -122,7 +122,17 @@ namespace
         }
         for (const auto& file : files)
         {
-          outputs[round][index].filenames.push_back(toQString(file));
+          try
+          {
+            outputs[round][index].filenames.push_back(toQString(file));
+          }
+          catch (const Exception::BaseException& error)
+          {
+            // The engine created this file already. The display list keeps the old
+            // TOPPAS length limit (whole path on Windows), which must not escape into
+            // a queued Qt call or a destructor.
+            OPENMS_LOG_WARN << "Cannot list workflow output '" << file << "': " << error.what() << std::endl;
+          }
         }
       }
     }
@@ -146,11 +156,13 @@ namespace
           tool->toolFinishedSlot();
           break;
         case PipelineExecutor::State::FAILED:
-        case PipelineExecutor::State::CANCELLED:
           tool->toolFailedSlot();
           break;
+        // Not a failure of this tool: the user aborted, or another node failed first.
+        case PipelineExecutor::State::CANCELLED:
         case PipelineExecutor::State::PENDING:
         case PipelineExecutor::State::BLOCKED:
+          tool->toolReadySlot();
           break;
       }
     }
@@ -830,10 +842,15 @@ TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, bool gui):
             {
               emit messageReady(toQString(event.text));
             }
+            // Workflow-level failures (e.g. an unwritable output directory) carry no node
+            // result; the completion handler reports them instead of blaming a node.
+            const bool cancelled = event.result.state == PipelineExecutor::State::CANCELLED;
+            const bool node_event = event.type != PipelineExecutor::Event::Type::NODE_FAILED || cancelled
+                                    || event.result.state == PipelineExecutor::State::FAILED;
             QString node_label;
             for (const auto& [vertex, id] : execution_->ids)
             {
-              if (id != event.node_id) { continue; }
+              if (! node_event || id != event.node_id) { continue; }
               node_label = toQString(vertex->getName()) + " (#" + QString::number(vertex->getTopoNr()) + ")";
               if (event.type == PipelineExecutor::Event::Type::NODE_SCHEDULED || event.type == PipelineExecutor::Event::Type::NODE_STARTED
                   || event.type == PipelineExecutor::Event::Type::ROUND_COMPLETED || event.type == PipelineExecutor::Event::Type::NODE_FINISHED
@@ -847,11 +864,13 @@ TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, bool gui):
               }
               break;
             }
-            if (event.type == PipelineExecutor::Event::Type::NODE_STARTED || event.type == PipelineExecutor::Event::Type::NODE_FINISHED
-                || event.type == PipelineExecutor::Event::Type::NODE_FAILED)
+            if (node_event
+                && (event.type == PipelineExecutor::Event::Type::NODE_STARTED || event.type == PipelineExecutor::Event::Type::NODE_FINISHED
+                    || event.type == PipelineExecutor::Event::Type::NODE_FAILED))
             {
               const QString state = event.type == PipelineExecutor::Event::Type::NODE_STARTED    ? " started."
                                     : event.type == PipelineExecutor::Event::Type::NODE_FINISHED ? " finished."
+                                    : cancelled                                                  ? " was cancelled."
                                                                                                  : " failed.";
               emit messageReady(node_label + state);
             }
@@ -880,12 +899,13 @@ TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, bool gui):
           execution_->worker.join();
           execution_->acceptResult();
           execution_->executor.reset();
+          // Leave the running state first: presentation must never keep Run disabled.
+          setPipelineRunning(false);
           for (const auto& [vertex, id] : execution_->ids)
           {
             auto result = execution_->previous_result.nodes.find(id);
             if (result != execution_->previous_result.nodes.end()) { presentNodeResult(vertex, result->second); }
           }
-          setPipelineRunning(false);
           const auto& result = execution_->previous_result;
           if (result.exit_code != 0)
           {
@@ -2206,8 +2226,6 @@ TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, bool gui):
   TOPPASScene::RefreshStatus TOPPASScene::refreshParameters()
   {
     abortPipeline();
-    execution_->previous_result = {};
-    execution_->discardUnusedTemporaryRuns();
     bool sane_before = sanityCheck_(false);
     bool change = false;
     for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
@@ -2216,6 +2234,8 @@ TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, bool gui):
       if (ttv && ttv->refreshParameters())
       {
         change = true;
+        // Discard only results which the new parameters invalidate, and their display.
+        resetDownstream(ttv);
       }
     }
 
