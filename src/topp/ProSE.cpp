@@ -2170,7 +2170,7 @@ class ProSE :
       // Per-run QPX scan_format tokens, reconciled for the merged file below. A built table
       // no longer carries the native IDs, so this has to be collected as we go.
       std::vector<std::string> qpx_psm_scan_formats;
-      // (reserved: a table and its scan_format are recorded together, and nothing can throw between the two)
+      // (reserved, and a table whose scan_format cannot be recorded is taken out again: the two stay in step)
       qpx_psm_tables.reserve(in_list.size());
       qpx_psm_scan_formats.reserve(in_list.size());
       qpx_pg_tables.reserve(in_list.size());
@@ -2388,7 +2388,8 @@ class ProSE :
               if (files.psm)
               {
                 qpx_psm_tables.push_back(files.psm);
-                qpx_psm_scan_formats.push_back(files.scan_format);
+                // (the two stay in step: a throw of the second takes the table out again)
+                try { qpx_psm_scan_formats.push_back(files.scan_format); } catch (...) { qpx_psm_tables.pop_back(); throw; }
               }
               else if (built && !input_failed)
               {
@@ -2602,7 +2603,7 @@ class ProSE :
           {
             // (unless its psm file fails, see input_writes)
             qpx_psm_tables.push_back(psm_rows_table);
-            qpx_psm_scan_formats.push_back(psm_scan_format);
+            try { qpx_psm_scan_formats.push_back(psm_scan_format); } catch (...) { qpx_psm_tables.pop_back(); throw; }
             qpx_psm_rows[i] = ArrowIOHelpers::tableRowCount(psm_rows_table);
             psm_file_written = true;
           }
