@@ -20,6 +20,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
+#include <atomic>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -255,7 +256,11 @@ namespace OpenMS
           }
         }
         if (ion.charge_state) { out.setCharge(*ion.charge_state); }
-        if (ion.intensity) { out.setIntensity(*ion.intensity); }
+        if (ion.intensity)
+        {
+          out.setIntensity(*ion.intensity);
+          out.setMetaValue("peak intensity unit accession", "MS:1000131"); // number of detector counts (the format's unit), as MzMLHandler records it
+        }
         if (ion.ion_mobility_value)
         {
           out.setDriftTime(*ion.ion_mobility_value);
@@ -547,8 +552,19 @@ namespace OpenMS
         out.clear();
         out.resize(last - first);
         excluded.assign(last - first, 0);
-        std::exception_ptr error;
+        std::exception_ptr error;      // the first error (written under the critical section below)
+        std::atomic<bool> failed{false}; // whether one happened (read by every thread without a lock)
         const bool metadata_only = options_.getMetadataOnly() || !options_.getFillData();
+        const auto fail = [&error, &failed]()
+        {
+#ifdef _OPENMP
+#pragma omp critical(MzPeakFile_error)
+#endif
+          {
+            if (!error) { error = std::current_exception(); }
+          }
+          failed.store(true, std::memory_order_release);
+        };
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -565,36 +581,29 @@ namespace OpenMS
             }
             catch (...)
             {
-              if (!error) { error = std::current_exception(); }
+              fail();
             }
           }
-          if (local)
-          {
+          // every thread takes part in the worksharing loop (a thread without a reader skips its iterations)
 #ifdef _OPENMP
 #pragma omp for schedule(dynamic, 64)
 #endif
-            for (SignedSize k = 0; k < static_cast<SignedSize>(last - first); ++k)
+          for (SignedSize k = 0; k < static_cast<SignedSize>(last - first); ++k)
+          {
+            if (!local || failed.load(std::memory_order_acquire)) { continue; }
+            try
             {
-              try
+              MSSpectrum& s = out[k];
+              toSpectrum((*local)[kept_[first + k]], s, options_, metadata_only);
+              if (!filterPeaks(options_, s))
               {
-                if (error) { continue; }
-                MSSpectrum& s = out[k];
-                toSpectrum((*local)[kept_[first + k]], s, options_, metadata_only);
-                if (!filterPeaks(options_, s))
-                {
-                  s = MSSpectrum();
-                  excluded[k] = 1;
-                }
+                s = MSSpectrum();
+                excluded[k] = 1;
               }
-              catch (...)
-              {
-#ifdef _OPENMP
-#pragma omp critical(MzPeakFile_error)
-#endif
-                {
-                  if (!error) { error = std::current_exception(); }
-                }
-              }
+            }
+            catch (...)
+            {
+              fail();
             }
           }
         }
