@@ -867,14 +867,21 @@ class ProSE :
       return written;
     }
 
-    /// Renames the staged files of writeQPXRunFiles_() (those that exist) to their names; false (logged) if one cannot be
-    static bool publishQPXRunFiles_(const QPXRunFiles_& files, const std::string& in_file)
+    /// Renames the staged files of writeQPXRunFiles_() that it wrote (@p written, its result: {psm, pg}) to their
+    /// names, and removes a staged file it did not complete (left by an exception, or by an earlier invocation);
+    /// false (logged) if one cannot be renamed
+    static bool publishQPXRunFiles_(const QPXRunFiles_& files, const std::string& in_file, const std::pair<bool, bool>& written)
     {
       bool ok = true;
-      for (const std::string& file : {files.psm_file, files.pg_file})
+      for (const auto& [file, done] : {std::make_pair(files.psm_file, written.first && files.psm),
+                                       std::make_pair(files.pg_file, written.second && files.has_groups)})
       {
         if (!File::exists(file + ".part")) { continue; }
-        if (!File::rename(file + ".part", file, true, false))
+        if (!done)
+        {
+          if (!File::remove(file + ".part")) { OPENMS_LOG_WARN << "Cannot remove the staged file '" << file << ".part'." << endl; }
+        }
+        else if (!File::rename(file + ".part", file, true, false))
         {
           OPENMS_LOG_ERROR << "Failed to write QPX parquet for " << in_file << " -> " << file << " (cannot rename " << file << ".part)" << endl;
           ok = false;
@@ -1787,6 +1794,7 @@ class ProSE :
       std::vector<QPXRunFiles_> early_qpx(in_list.size());
       std::vector<char> early_qpx_state(in_list.size(), 0);
       std::vector<std::string> early_qpx_error(in_list.size());
+      std::vector<std::pair<bool, bool>> early_qpx_written(in_list.size(), {false, false}); // (the files written: published)
       // (not with -qpx_extended: it stores the NCE of its predictions on the runs before their idXML is written)
       const bool early_idxml_files = in_list.size() > 1 && !out_idxml_list.empty() && out_merged.empty() && !qpx_extended;
       const bool early_qpx_files = in_list.size() > 1 && !out_qpx_dir.empty() && out_merged.empty() && !qpx_extended;
@@ -1801,6 +1809,7 @@ class ProSE :
       std::unique_ptr<ArrowIOHelpers::ParquetTableStream> qpx_stream;
       const std::string qpx_stream_file = out_qpx_dir.empty() ? std::string() : out_qpx_dir + "/" + QPX_AGGREGATE_STEM + ".psm.parquet";
       Size qpx_stream_next = 0;    // the input whose rows come next
+      Size qpx_stream_tables = 0;  // the tables appended
       bool qpx_stream_gap = false; // the stream stopped: see above
       // Appends the psm table of input @p i (built: @p files; none: nothing) with @p threads if it is the next; a failure
       // is logged (the stream has failed then: merged_ok below)
@@ -1819,7 +1828,7 @@ class ProSE :
             if (!psm_meta) { qpx_stream_gap = true; return; } // (logged; written after the loop, failing the same way)
             qpx_stream = std::make_unique<ArrowIOHelpers::ParquetTableStream>(qpx_stream_file + ".part", ParquetWriteConfig{}, psm_meta);
           }
-          qpx_stream->append(files.psm, threads);
+          if (qpx_stream->append(files.psm, threads)) { ++qpx_stream_tables; }
         }
         catch (const std::exception& e)
         {
@@ -1910,6 +1919,7 @@ class ProSE :
               try
               {
                 const auto outcome = writeQPXRunFiles_(early_qpx[i], in_list[i], threads, /*staged=*/true);
+                early_qpx_written[i] = outcome;
                 written = outcome.first && outcome.second;
               }
               catch (const std::exception& e) // (the tables stay for quantms.*)
@@ -2361,7 +2371,8 @@ class ProSE :
                 check.threads = qpx_threads;
                 try
                 {
-                  files.psm_validated = ArrowIOHelpers::validateQPXTable(files.psm, files.psm_file, check, files.psm_meta);
+                  // (with its footer: the exporter's table has no QPX metadata, so without a footer nothing is checked)
+                  files.psm_validated = files.psm_meta && ArrowIOHelpers::validateQPXTable(files.psm, files.psm_file, check, files.psm_meta);
                 }
                 catch (const std::exception&) { files.psm_validated = false; } // (the writes check it, and fail as before)
               }
@@ -2422,7 +2433,7 @@ class ProSE :
                 input_failed = true;
               }
             }
-            else if (early_qpx_state[i] != 0 && !publishQPXRunFiles_(files, in_file)) // (written during the search)
+            else if (early_qpx_state[i] != 0 && !publishQPXRunFiles_(files, in_file, early_qpx_written[i])) // (written during the search)
             {
               input_failed = true;
             }
@@ -2712,10 +2723,15 @@ class ProSE :
         // (in parallel; next to the per-input writes still running, the last input's at least)
         ParquetWriteConfig merged_config;
         merged_config.threads = qpx_write_threads;
-        if (early_qpx_files && !qpx_stream_gap && (qpx_stream || qpx_psm_tables.empty()))
+        // the stream has the rows of every run: every input seen, as many tables appended as the loop collected (a
+        // table of the stream missing from the loop's bookkeeping, e.g. by an exception after the append, would give
+        // the footer a scan_format of the other runs: then written again from the tables, as without the stream)
+        const bool qpx_streamed = early_qpx_files && !qpx_stream_gap && qpx_stream_next == in_list.size()
+                                  && qpx_stream_tables == qpx_psm_tables.size() && (qpx_stream || qpx_psm_tables.empty());
+        if (qpx_streamed)
         {
-          // the stream has the rows of every run (none: no file, as the concatenation of no table): its footer
-          // completed, the staged file published (the earlier run's files are removed above)
+          // (none: no file, as the concatenation of no table): its footer completed, the staged file published (the
+          // earlier run's files are removed above)
           if (qpx_stream)
           {
             merged_ok = qpx_stream->close(qpx_psm_keys) && merged_ok;
