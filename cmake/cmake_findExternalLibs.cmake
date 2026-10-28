@@ -19,8 +19,11 @@
 #   * never mix Release/Debug versions of libraries. Leads to strange segfaults,
 #     stack corruption etc, due to different runtime libs ...
 # compiler-wise: build the dependencies with the same compiler as OpenMS!
-# The upstream config carries private dependencies and LIBXML_STATIC for static
-# builds. Older/autotools installations may only support CMake's Find module.
+# libxml2's CMake build (vcpkg, dockerfiles/Dockerfile) installs a package config with a version file
+# and exported targets, which carry the private dependencies and LIBXML_STATIC of a static libxml2.
+# Its autotools and meson builds (Linux distribution packages) install only an unversioned
+# libxml2-config.cmake, which a find_package() with a minimum version rejects; CMake's FindLibXml2
+# module finds those installations.
 find_package(LibXml2 2.13 CONFIG QUIET NAMES LibXml2 libxml2)
 if(NOT LibXml2_FOUND)
   if(LibXml2_NOT_FOUND_MESSAGE)
