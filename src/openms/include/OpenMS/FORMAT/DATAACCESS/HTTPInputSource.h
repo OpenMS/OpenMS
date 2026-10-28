@@ -21,7 +21,8 @@ namespace OpenMS
     @brief Source for reading XML files from HTTP, HTTPS and FTP URLs, with libcurl.
 
     The resource is streamed to the parser; gzip and bzip2 compressed resources (recognized by their magic bytes) are
-    decompressed on the fly. HTTP transfer compression (Content-Encoding) is decoded by libcurl.
+    decompressed on the fly. HTTP transfer compression is requested as gzip (Content-Encoding) and decompressed the
+    same way, as the stream is read, so a highly compressed response is never held in memory at once.
 
     Redirects to HTTP, HTTPS and FTP URLs are followed. Proxies come from the usual environment variables
     (http_proxy, https_proxy, no_proxy). file:// URLs are accepted too, but XMLFile reads local files directly.
@@ -53,6 +54,8 @@ public:
     /**
       @brief The size of the resource at @p url, in bytes, as reported by the server.
 
+      @param[in] url An HTTP, HTTPS, FTP or file URL
+
       @throws Exception::IllegalArgument, Exception::FileNotFound, Exception::IOException as the constructor and
       makeStream(); also Exception::IOException if the server does not report the size
     */
@@ -63,11 +66,19 @@ public:
 
       From an HTTP server that ignores the range, the bytes before @p offset are received and discarded.
 
+      @param[in] url An HTTP, HTTPS, FTP or file URL
+      @param[in] offset The first byte to read
+      @param[in] length The number of bytes to read
+
       @throws Exception::IllegalArgument, Exception::FileNotFound, Exception::IOException as the constructor and makeStream()
     */
     static std::string readRange(const std::string& url, Int64 offset, Int64 length);
 
-    /// Whether @p url is an HTTP, HTTPS or FTP URL (starts with "http://", "https://" or "ftp://")
+    /**
+      @brief Whether @p url is an HTTP, HTTPS or FTP URL (starts with "http://", "https://" or "ftp://")
+
+      @param[in] url A URL or local file name
+    */
     static bool isURL(const std::string& url);
 
     /**
@@ -76,6 +87,8 @@ public:
       These parts can hold credentials, e.g. ftp://user:password@host/run.mzML or the signature of a presigned URL.
       Applies to any "scheme://" URL (e.g. s3:// too). Local file names are returned unchanged, also when they
       contain '?', '#' or '@'.
+
+      @param[in] url A URL or local file name
     */
     static std::string redactURL(const std::string& url);
 
@@ -84,6 +97,8 @@ public:
 
       Arrow's or libcurl's messages can repeat the URL they were given, credentials included. A URL ends at
       whitespace, a quote or an angle bracket.
+
+      @param[in] text A message that may contain URLs
     */
     static std::string redactURLs(const std::string& text);
 

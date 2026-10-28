@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/Bzip2InputStream.h>
+#include <OpenMS/FORMAT/DecompressingInputStream.h>
 #include <OpenMS/FORMAT/GzipInputStream.h>
 
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
@@ -93,7 +94,8 @@ namespace
   /**
     A minimal HTTP/1.0 server on 127.0.0.1 for the tests: GET and HEAD of the given files, byte ranges (206), 404 for
     other paths. Paths under /norange/ serve the same files but ignore range requests (200 with the whole file), as
-    some servers do.
+    some servers do. Paths under /encoded/ serve the gzip file of the path (path + ".gz") with gzip transfer
+    compression (Content-Encoding), if the client accepts it (otherwise 406).
   */
   class TestServer
   {
@@ -174,16 +176,29 @@ private:
       std::string method, path;
       lines >> method >> path;
       path = path.substr(0, path.find('?')); // the query does not select the file
+      std::string lowered = request;
+      std::transform(lowered.begin(), lowered.end(), lowered.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
       bool ranges = true;
       if (path.rfind("/norange/", 0) == 0)
       {
         path = path.substr(8);
         ranges = false;
       }
+      std::string headers;
+      if (path.rfind("/encoded/", 0) == 0)
+      {
+        const auto accept = lowered.find("\r\naccept-encoding:");
+        if (accept == std::string::npos || lowered.substr(accept + 2, lowered.find("\r\n", accept + 2) - accept - 2).find("gzip") == std::string::npos)
+        {
+          send_(connection, "HTTP/1.0 406 Not Acceptable\r\nContent-Length: 0\r\n\r\n");
+          return;
+        }
+        path = path.substr(8) + ".gz";
+        headers = "Content-Encoding: gzip\r\n";
+        ranges = false;
+      }
       // the requested byte range, if any ("Range: bytes=first-last")
       long long first = -1, last = -1;
-      std::string lowered = request;
-      std::transform(lowered.begin(), lowered.end(), lowered.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
       const auto range = lowered.find("\r\nrange: bytes=");
       if (ranges && range != std::string::npos)
       {
@@ -199,7 +214,7 @@ private:
       }
       const std::string& content = file->second;
       const long long size = static_cast<long long>(content.size());
-      std::string status = "200 OK", body = content, headers;
+      std::string status = "200 OK", body = content;
       if (first >= 0)
       {
         if (first >= size)
@@ -210,7 +225,7 @@ private:
         last = std::min(last, size - 1);
         status = "206 Partial Content";
         body = content.substr(static_cast<size_t>(first), static_cast<size_t>(last - first + 1));
-        headers = "Content-Range: bytes " + std::to_string(first) + "-" + std::to_string(last) + "/" + std::to_string(size) + "\r\n";
+        headers += "Content-Range: bytes " + std::to_string(first) + "-" + std::to_string(last) + "/" + std::to_string(size) + "\r\n";
       }
       std::string response = "HTTP/1.0 " + status + "\r\nContent-Length: " + std::to_string(body.size()) + "\r\n" + headers + "\r\n";
       if (method != "HEAD") { response += body; }
@@ -335,7 +350,7 @@ START_SECTION((std::unique_ptr<InputStream> makeStream() const))
   auto plain = HTTPInputSource(fileURL(plain_path)).makeStream();
   TEST_EQUAL(plain->curPos(), 0)
   const std::string plain_content = readAll(*plain);
-  TEST_EQUAL(plain_content.empty(), false)
+  TEST_FALSE(plain_content.empty())
   TEST_TRUE(plain_content == readFile(plain_path))
   TEST_EQUAL(plain->curPos(), plain_content.size())
 
@@ -369,6 +384,12 @@ START_SECTION(([EXTRA] makeStream from an HTTP server))
   Bzip2InputStream bzip2(local_paths.at("/run.mzML.bz2"));
   auto bz2 = HTTPInputSource(server.url("/run.mzML.bz2")).makeStream();
   TEST_TRUE(readAll(*bz2) == readAll(bzip2))
+  // gzip transfer compression is requested, and decompressed as the stream is read: a highly compressed response is
+  // not decoded at once into memory
+  GzipInputStream encoded_gzip(local_paths.at("/run.mzML.gz"));
+  auto encoded = HTTPInputSource(server.url("/encoded/run.mzML")).makeStream();
+  TEST_TRUE(dynamic_cast<DecompressingInputStream*>(encoded.get()) != nullptr)
+  TEST_TRUE(readAll(*encoded) == readAll(encoded_gzip))
   // HTTP 404
   TEST_EXCEPTION(Exception::FileNotFound, HTTPInputSource(server.url("/missing.mzML")).makeStream())
 }
@@ -376,10 +397,11 @@ END_SECTION
 
 START_SECTION(([EXTRA] MzMLFile::load from an HTTP server))
 {
-  for (const std::string path : {"/run.mzML", "/run.mzML.gz", "/run.mzML.bz2", "/indexed.mzML"})
+  for (const std::string path : {"/run.mzML", "/run.mzML.gz", "/run.mzML.bz2", "/indexed.mzML", "/encoded/run.mzML"})
   {
     PeakMap local, remote;
-    MzMLFile().load(local_paths.at(path), local);
+    // gzip transfer compression of /encoded/run.mzML: the content of /run.mzML.gz
+    MzMLFile().load(local_paths.at(path == "/encoded/run.mzML" ? "/run.mzML.gz" : path), local);
     MzMLFile().load(server.url(path), remote);
     TEST_EQUAL(remote.size(), local.size())
     TEST_TRUE(remote.getSpectra() == local.getSpectra())

@@ -113,7 +113,12 @@ public:
         bool ok = setUpTransfer(easy_, url_, error_);
         curl_easy_setopt(easy_, CURLOPT_WRITEFUNCTION, write_);
         curl_easy_setopt(easy_, CURLOPT_WRITEDATA, this);
-        curl_easy_setopt(easy_, CURLOPT_ACCEPT_ENCODING, ""); // any transfer compression libcurl can decode
+        // gzip transfer compression arrives undecoded and is decompressed as the stream is read (makeStream()), like a
+        // .gz resource. libcurl would decode everything that one curl_multi_perform() receives at once, which for
+        // highly compressed content is far more than one transfer step.
+        headers_ = curl_slist_append(nullptr, "Accept-Encoding: gzip");
+        ok = ok && headers_ != nullptr && curl_easy_setopt(easy_, CURLOPT_HTTPHEADER, headers_) == CURLE_OK;
+        curl_easy_setopt(easy_, CURLOPT_HTTP_CONTENT_DECODING, 0L);
         if (!ok || curl_multi_add_handle(multi_, easy_) != CURLM_OK)
         {
           OPENMS_LOG_ERROR << "Cannot set up the transfer of " << name_ << std::endl;
@@ -241,15 +246,18 @@ private:
         if (added_) { curl_multi_remove_handle(multi_, easy_); }
         if (multi_ != nullptr) { curl_multi_cleanup(multi_); }
         if (easy_ != nullptr) { curl_easy_cleanup(easy_); }
+        curl_slist_free_all(headers_);
         added_ = false;
         multi_ = nullptr;
         easy_ = nullptr;
+        headers_ = nullptr;
       }
 
       std::string url_;
       std::string name_;        ///< url_ for messages, without credentials (HTTPInputSource::redactURL())
       CURL* easy_ = nullptr;
       CURLM* multi_ = nullptr;
+      curl_slist* headers_ = nullptr;
       bool added_ = false;
       char error_[CURL_ERROR_SIZE] = {};
       std::string buffer_;      ///< received, not yet read bytes from offset_ on
@@ -356,7 +364,7 @@ private:
   std::unique_ptr<InputStream> HTTPInputSource::makeStream() const
   {
     auto stream = std::make_unique<CurlInputStream>(url_);
-    // gzip or bzip2 compressed: by the magic bytes
+    // gzip or bzip2 compressed (a compressed resource, or gzip transfer compression): by the magic bytes
     const std::string_view head = stream->peek(3);
     const auto format = DecompressingInputStream::detect(reinterpret_cast<const unsigned char*>(head.data()), head.size());
     if (format)
