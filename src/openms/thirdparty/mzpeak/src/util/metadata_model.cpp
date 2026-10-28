@@ -1730,9 +1730,11 @@ read_spectra_metadata_(const SpectraMetadataFiles& files, MetadataDetail detail)
             // the specification only prefers double, it does not require it.
             if (sst) {
               const double from_scan = *sst * 60.0;
-              const double previous = it->second.retention_time.value_or(from_scan);
               const double scale = std::max(std::abs(from_scan), 1.0);
-              if (std::abs(previous - from_scan) > 1e-6 * scale) {
+              // OpenMS change: a spectrum with no `time` takes the scan's (value_or(from_scan) made the
+              // comparison a no-op, and the retention time stayed unset)
+              if (!it->second.retention_time ||
+                  std::abs(*it->second.retention_time - from_scan) > 1e-6 * scale) {
                 it->second.retention_time = from_scan;
               }
             }
@@ -2039,9 +2041,9 @@ read_wavelength_spectrum_metadata(const WavelengthMetadataFiles& files)
       // because either column may still be stored float32.
       if (sst) {
         const double from_scan = *sst * 60.0;
-        const double previous = it->second.time.value_or(from_scan);
         const double scale = std::max(std::abs(from_scan), 1.0);
-        if (std::abs(previous - from_scan) > 1e-6 * scale) {
+        // OpenMS change: as for spectra, a wavelength spectrum with no `time` takes the scan's
+        if (!it->second.time || std::abs(*it->second.time - from_scan) > 1e-6 * scale) {
           it->second.time = from_scan;
         }
       }

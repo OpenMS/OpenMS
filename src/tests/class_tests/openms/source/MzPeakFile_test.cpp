@@ -85,6 +85,8 @@ START_SECTION((static bool isMzPeak(const std::string& path)))
   TEST_EQUAL(MzPeakFile::isMzPeak(OPENMS_GET_TEST_DATA_PATH("does_not_exist.mzpeak")), false)
   TEST_EQUAL(MzPeakFile::isMzPeak(OPENMS_GET_TEST_DATA_PATH("")), false) // a directory without the index
   TEST_EQUAL(MzPeakFile::isMzPeak(OPENMS_GET_TEST_DATA_PATH("MzPeakFile_1.mzpeak")), true)
+  TEST_EQUAL(MzPeakFile::isMzPeak(OPENMS_GET_TEST_DATA_PATH("MzPeakFile_small.mzpeak")), true)
+  TEST_EQUAL(MzPeakFile::isMzPeak(OPENMS_GET_TEST_DATA_PATH("MultiEntry.mzML.zip")), false) // a ZIP archive, but no mzPeak run
 }
 END_SECTION
 
@@ -213,6 +215,26 @@ START_SECTION((void store(const std::string& filename, const PeakMap& exp) const
   TEST_EQUAL(exp[1].size(), 0)
   TEST_STRING_EQUAL(exp[1].getNativeID(), "scan=2")
   TEST_EQUAL(exp[1].getPrecursors().size(), 1)
+  // an isolation target that differs from the selected ion m/z survives (as the mzML writer keeps them apart)
+  PeakMap distinct = reference;
+  Size with_precursor = 0;
+  for (MSSpectrum& s : distinct)
+  {
+    if (s.getPrecursors().empty()) { continue; }
+    s.getPrecursors()[0].setMZ(500.123456789);
+    s.getPrecursors()[0].setMetaValue("isolation window target m/z", 500.0);
+    ++with_precursor;
+  }
+  TEST_EQUAL(with_precursor > 0, true)
+  file.store(tmp, distinct);
+  file.load(tmp, exp);
+  for (Size i = 0; i < exp.getNrSpectra(); ++i)
+  {
+    if (exp[i].getPrecursors().empty()) { continue; }
+    TEST_EQUAL(exp[i].getPrecursors()[0].getMZ(), 500.123456789)
+    TEST_EQUAL(exp[i].getPrecursors()[0].metaValueExists("isolation window target m/z"), true)
+    TEST_REAL_SIMILAR(double(exp[i].getPrecursors()[0].getMetaValue("isolation window target m/z")), 500.0)
+  }
   // a failed write leaves the archive that was there (the new one is written beside it and moved when finished)
   file.store(tmp, reference);
   PeakMap bad = reference;

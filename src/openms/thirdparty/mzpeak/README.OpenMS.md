@@ -38,6 +38,9 @@ the OpenMS interface.
   three places); the unstable sort permuted them and changed a consumer's deisotoping.
 - Writer: a run whose spectra all have no points gets an empty peaks table, so that the reader
   reports the spectra (`RunArchiveWriter::finish()` in `src/writer.cpp`).
+- Reader: a spectrum (or wavelength spectrum) whose metadata row has no `time` takes the
+  retention time of its scan (`src/util/metadata_model.cpp`: `value_or(from_scan)` made the
+  comparison a no-op, so a scan-only retention time was never assigned; found by the review).
 - `src/boost_json_src.cpp` (new): Boost.JSON compiled header-only, so libOpenMS links no
   compiled Boost library.
 - `sources.cmake`, `CMakeLists.txt`, this file.

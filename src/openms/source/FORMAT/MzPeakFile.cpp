@@ -16,11 +16,13 @@
 #include <OpenMS/IONMOBILITY/IMDataArrayUtils.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/InstrumentSettings.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <atomic>
+#include <cstdint>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -45,6 +47,63 @@
 
 namespace OpenMS
 {
+  namespace
+  {
+    /// Whether the ZIP archive open in @p in (of @p size bytes) has a member named @p name: the end-of-central-directory
+    /// record (and the ZIP64 one, if any) locates the central directory, whose entries carry the names. False for
+    /// anything that cannot be read as such.
+    bool zipHasMember(std::ifstream& in, std::uintmax_t size, const std::string& name)
+    {
+      const auto u16 = [](const std::string& b, size_t i) { return static_cast<std::uint32_t>(static_cast<unsigned char>(b[i])) | (static_cast<std::uint32_t>(static_cast<unsigned char>(b[i + 1])) << 8); };
+      const auto u32 = [&u16](const std::string& b, size_t i) { return u16(b, i) | (u16(b, i + 2) << 16); };
+      const auto u64 = [&u32](const std::string& b, size_t i) { return static_cast<std::uint64_t>(u32(b, i)) | (static_cast<std::uint64_t>(u32(b, i + 4)) << 32); };
+      const auto readAt = [&in](std::uint64_t offset, std::uint64_t length, std::string& buffer)
+      {
+        buffer.assign(static_cast<size_t>(length), '\0');
+        in.clear();
+        in.seekg(static_cast<std::streamoff>(offset));
+        in.read(buffer.data(), static_cast<std::streamsize>(length));
+        return in.gcount() == static_cast<std::streamsize>(length);
+      };
+      // the end-of-central-directory record: in the last 64 KiB + 22 bytes (it ends with a comment of up to 64 KiB)
+      const std::uint64_t tail = std::min<std::uint64_t>(size, 65536 + 22);
+      std::string buffer;
+      if (!readAt(size - tail, tail, buffer)) { return false; }
+      size_t eocd = std::string::npos;
+      for (size_t i = buffer.size() - 22 + 1; i-- > 0;)
+      {
+        if (buffer[i] == 'P' && buffer[i + 1] == 'K' && buffer[i + 2] == 5 && buffer[i + 3] == 6) { eocd = i; break; }
+      }
+      if (eocd == std::string::npos) { return false; }
+      std::uint64_t cd_offset = u32(buffer, eocd + 16);
+      std::uint64_t cd_size = u32(buffer, eocd + 12);
+      if (cd_offset == 0xFFFFFFFFu || cd_size == 0xFFFFFFFFu || u16(buffer, eocd + 10) == 0xFFFFu)
+      {
+        // ZIP64: the locator before the record points to the ZIP64 end-of-central-directory record
+        if (eocd < 20 || !(buffer[eocd - 20] == 'P' && buffer[eocd - 19] == 'K' && buffer[eocd - 18] == 6 && buffer[eocd - 17] == 7)) { return false; }
+        const std::uint64_t z64 = u64(buffer, eocd - 20 + 8);
+        std::string record;
+        if (z64 + 56 > size || !readAt(z64, 56, record)) { return false; }
+        if (!(record[0] == 'P' && record[1] == 'K' && record[2] == 6 && record[3] == 6)) { return false; }
+        cd_size = u64(record, 40);
+        cd_offset = u64(record, 48);
+      }
+      if (cd_size > (std::uint64_t(1) << 26) || cd_offset + cd_size > size) { return false; } // (an mzPeak run has a few members)
+      std::string cd;
+      if (!readAt(cd_offset, cd_size, cd)) { return false; }
+      for (size_t i = 0; i + 46 <= cd.size();)
+      {
+        if (!(cd[i] == 'P' && cd[i + 1] == 'K' && cd[i + 2] == 1 && cd[i + 3] == 2)) { return false; }
+        const size_t name_length = u16(cd, i + 28);
+        const size_t entry_length = 46 + name_length + u16(cd, i + 30) + u16(cd, i + 32);
+        if (i + 46 + name_length > cd.size()) { return false; }
+        if (cd.compare(i + 46, name_length, name) == 0) { return true; }
+        i += entry_length;
+      }
+      return false;
+    }
+  } // namespace
+
   MzPeakFile::MzPeakFile() = default;
 
   MzPeakFile::~MzPeakFile() = default;
@@ -73,19 +132,15 @@ namespace OpenMS
       return std::filesystem::is_regular_file(p / "mzpeak_index.json", ec);
     }
     if (!std::filesystem::is_regular_file(p, ec)) { return false; }
+    const std::uintmax_t size = std::filesystem::file_size(p, ec);
+    if (ec || size < 22) { return false; }
     std::ifstream in(path, std::ios::binary);
     char magic[4] = {0, 0, 0, 0};
     in.read(magic, 4);
-    // a ZIP archive: local file header (an empty archive, PK\5\6 only, holds no index)
+    // a ZIP archive: local file header (an empty archive, PK\5\6 only, holds no index) ...
     if (!(in.gcount() == 4 && magic[0] == 'P' && magic[1] == 'K' && magic[2] == 3 && magic[3] == 4)) { return false; }
-    // ... whose central directory (at the end of the file) names the index member
-    const auto size = std::filesystem::file_size(p, ec);
-    if (ec) { return false; }
-    const std::streamoff tail = static_cast<std::streamoff>(std::min<std::uintmax_t>(size, 1u << 20));
-    std::string buffer(static_cast<size_t>(tail), '\0');
-    in.seekg(static_cast<std::streamoff>(size) - tail);
-    in.read(buffer.data(), tail);
-    return in.gcount() == tail && buffer.find("mzpeak_index.json") != std::string::npos;
+    // ... whose central directory names the index member
+    return zipHasMember(in, size, "mzpeak_index.json");
   }
 
   bool MzPeakFile::isSupported()
@@ -150,6 +205,23 @@ namespace OpenMS
       return true;
     }
 
+    /// The scan mode of a spectrum type CV accession (as MzMLHandler maps them); false if unknown
+    bool scanMode(const std::string& accession, InstrumentSettings::ScanMode& mode)
+    {
+      using SM = InstrumentSettings::ScanMode;
+      static const std::map<std::string, SM> modes = {
+        {"MS:1000294", SM::MASSSPECTRUM}, {"MS:1000579", SM::MS1SPECTRUM}, {"MS:1000580", SM::MSNSPECTRUM},
+        {"MS:1000581", SM::CRM},          {"MS:1000582", SM::SIM},         {"MS:1000583", SM::SRM},
+        {"MS:1000804", SM::EMR},          {"MS:1000805", SM::EMISSION},    {"MS:1000806", SM::ABSORPTION},
+        {"MS:1000325", SM::CNG},          {"MS:1000326", SM::CNL},         {"MS:1000341", SM::PRECURSOR},
+        {"MS:1000789", SM::EMC},          {"MS:1000790", SM::TDF},
+      };
+      const auto it = modes.find(accession);
+      if (it == modes.end()) { return false; }
+      mode = it->second;
+      return true;
+    }
+
     /// The OpenMS unit of an ion mobility CV accession (ion_mobility_type); NONE if unknown
     DriftTimeUnit driftTimeUnit(const std::optional<std::string>& accession)
     {
@@ -180,7 +252,7 @@ namespace OpenMS
       if (v.empty()) { return false; }
       char* end = nullptr;
       d = std::strtod(v.c_str(), &end);
-      return end != nullptr && *end == '\0' && end != v.c_str();
+      return end == v.c_str() + v.size() && end != v.c_str();
     }
 
     /// A CV parameter's value as a DataValue: a number if it parses as one, else the string
@@ -210,7 +282,7 @@ namespace OpenMS
     {
       if (options.hasMSLevels())
       {
-        if (!md.ms_level || !options.containsMSLevel(*md.ms_level)) { return false; }
+        if (!options.containsMSLevel(md.ms_level.value_or(1))) { return false; } // (a spectrum without a level is MS1, as an MSSpectrum)
       }
       if (options.hasRTRange())
       {
@@ -359,7 +431,12 @@ namespace OpenMS
       if (md.total_ion_current) { out.setMetaValue("total ion current", static_cast<double>(*md.total_ion_current)); }
       if (md.lowest_observed_mz) { out.setMetaValue("lowest observed m/z", *md.lowest_observed_mz); }
       if (md.highest_observed_mz) { out.setMetaValue("highest observed m/z", *md.highest_observed_mz); }
-      if (!md.spectrum_type.empty()) { out.setMetaValue("spectrum type", md.spectrum_type); }
+      if (!md.spectrum_type.empty())
+      {
+        InstrumentSettings::ScanMode mode;
+        if (scanMode(md.spectrum_type, mode)) { out.getInstrumentSettings().setScanMode(mode); }
+        else { out.setMetaValue("spectrum type", md.spectrum_type); }
+      }
       // The spectrum's ion mobility: a CV term of the spectrum or the scan, or the scans facet's ion_mobility_value
       // (which wins), or (as MzMLHandler does) that of the selected ion. The unit is taken from the first encoding
       // that names one.
@@ -400,12 +477,19 @@ namespace OpenMS
         out.getInstrumentSettings().getScanWindows().push_back(sw);
       }
       for (const MzPeak::PrecursorInfo& p : md.precursors) { out.getPrecursors().push_back(toPrecursor(p, options)); }
-      if (out.getDriftTime() == IMTypes::DRIFTTIME_NOT_SET && !out.getPrecursors().empty()
-          && out.getPrecursors().front().getDriftTime() != IMTypes::DRIFTTIME_NOT_SET)
+      if (!out.getPrecursors().empty() && out.getPrecursors().front().getDriftTime() != IMTypes::DRIFTTIME_NOT_SET)
       {
-        // the selected ion's ion mobility is the spectrum's too (as MzMLHandler stores it in both)
-        out.setDriftTime(out.getPrecursors().front().getDriftTime());
-        out.setDriftTimeUnit(out.getPrecursors().front().getDriftTimeUnit());
+        const Precursor& first = out.getPrecursors().front();
+        if (out.getDriftTime() == IMTypes::DRIFTTIME_NOT_SET)
+        {
+          // the selected ion's ion mobility is the spectrum's too (as MzMLHandler stores it in both)
+          out.setDriftTime(first.getDriftTime());
+          out.setDriftTimeUnit(first.getDriftTimeUnit());
+        }
+        else if (out.getDriftTimeUnit() == DriftTimeUnit::NONE)
+        {
+          out.setDriftTimeUnit(first.getDriftTimeUnit()); // (a scan-level value without a type: the selected ion's)
+        }
       }
       if (metadata_only) { return; }
 
@@ -433,6 +517,7 @@ namespace OpenMS
         // selected ion's ion mobility named, else 1/K0 (timsTOF data, which is what carries per-peak mobilities)
         DriftTimeUnit unit = driftTimeUnit(md.ion_mobility_type);
         if (unit == DriftTimeUnit::NONE) { unit = out.getDriftTimeUnit(); }
+        if (unit == DriftTimeUnit::NONE && !out.getPrecursors().empty()) { unit = out.getPrecursors().front().getDriftTimeUnit(); }
         if (unit == DriftTimeUnit::NONE) { unit = DriftTimeUnit::VSSC; }
         IMDataArrayUtils::setIMUnit(im_array, unit);
         out.getFloatDataArrays().push_back(std::move(im_array));
@@ -475,6 +560,11 @@ namespace OpenMS
       else if (!md.chromatogram_type.empty()) { out.setMetaValue("chromatogram type accession", md.chromatogram_type); }
       for (const MzPeak::CvParam& p : md.parameters) { setCvMeta(out, p); }
       if (!md.precursors.empty()) { out.setPrecursor(toPrecursor(md.precursors.front(), options)); }
+      if (md.has_unreadable_product)
+      {
+        out.setMetaValue("product unreadable", "true"); // (the library could not read the product of an SRM chromatogram)
+        OPENMS_LOG_WARN << "MzPeakFile: the product of chromatogram '" << md.id << "' could not be read; the chromatogram has no product" << std::endl;
+      }
       const std::vector<double>& time = in.time(); // seconds
       const std::vector<float>& intensity = in.intensity();
       const Size n = std::min(time.size(), intensity.size());
@@ -721,13 +811,19 @@ namespace OpenMS
       for (const Precursor& p : in.getPrecursors())
       {
         MzPeak::PrecursorData pd;
-        pd.isolation_target_mz = static_cast<float>(p.getMZ());
+        // As MzMLHandler keeps them: getMZ() is the selected ion m/z, and the isolation target the meta value
+        // "isolation window target m/z" where it differed; or getMZ() is the target and the selected ion the meta value
+        // "selected ion m/z" (PeakFileOptions::setPrecursorMZSelectedIon(false))
+        double target = p.getMZ(), selected = p.getMZ();
+        if (p.metaValueExists("isolation window target m/z")) { target = static_cast<double>(p.getMetaValue("isolation window target m/z")); }
+        else if (p.metaValueExists("selected ion m/z")) { selected = static_cast<double>(p.getMetaValue("selected ion m/z")); }
+        pd.isolation_target_mz = static_cast<float>(target);
         pd.isolation_lower_offset = static_cast<float>(p.getIsolationWindowLowerOffset());
         pd.isolation_upper_offset = static_cast<float>(p.getIsolationWindowUpperOffset());
         MzPeak::SelectedIonData ion;
-        ion.mz = p.getMZ();
+        ion.mz = selected;
         if (p.getCharge() != 0) { ion.charge = p.getCharge(); }
-        if (p.getIntensity() > 0) { ion.intensity = p.getIntensity(); }
+        if (p.getIntensity() != 0) { ion.intensity = p.getIntensity(); }
         pd.selected_ions.push_back(ion);
         out.precursors.push_back(std::move(pd));
       }
@@ -852,7 +948,10 @@ namespace OpenMS
         writer.finish();
         endProgress();
       }
-      std::filesystem::rename(tmp, filename); // (replaces a file; throws for a directory)
+      if (!File::rename(tmp, filename, true, false)) // (std::filesystem::rename does not replace an existing file on Windows)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename + " (cannot replace it with the finished archive)");
+      }
     }
     catch (Exception::BaseException&)
     {
