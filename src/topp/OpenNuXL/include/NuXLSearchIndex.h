@@ -28,8 +28,8 @@ namespace OpenMS
   /**
     @brief Search-time lookup structures for the OpenNuXL database search.
 
-    Everything in here only changes how values are looked up, never what is computed:
-    the scoring functions that use them produce bit-identical results to the ones working on MSSpectrum.
+    Everything in here only changes how values are looked up, never what is computed: the lookups return the
+    same results as MSSpectrum::findNearest or std::lower_bound / std::upper_bound on the full containers.
   */
 
   /// Per-spectrum data that is computed once after preprocessing and reused for every candidate peptide.

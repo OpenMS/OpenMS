@@ -1183,962 +1183,6 @@ protected:
     } 
   } 
 
-  static double logfactorial_(UInt x)
-  {
-    const double dx = static_cast<double>(x);
-    if (x < 2) { return 0; }
-    double z(0);
-    for (double y = 2; y <= dx; ++y) { z += std::log(y); }
-    return z;
-  }
-
-  // score ions without nucleotide shift
-  static void scorePeptideIons_(
-      const PeakSpectrum& exp_spectrum,
-      const DataArrays::IntegerDataArray& exp_charges,
-      const vector<double>& total_loss_template_z1_b_ions,
-      const vector<double>& total_loss_template_z1_y_ions,
-      const double peptide_mass_without_NA,
-      const unsigned int pc_charge,
-      const ImmoniumIonsInPeptide& iip, 
-      const double fragment_mass_tolerance, 
-      const bool fragment_mass_tolerance_unit_ppm,
-      std::vector<double>& intensity_sum,
-      std::vector<double>& b_ions,
-      std::vector<double>& y_ions,
-      vector<bool>& peak_matched, 
-      float& hyperScore,
-      float& MIC,
-      float& Morph,
-      float& modds,
-      float& err,
-      float& pc_MIC,
-      float& im_MIC,
-      size_t& n_theoretical_peaks)
-  {
-    OPENMS_PRECONDITION(exp_spectrum.size() >= 1, "Experimental spectrum empty.");
-    OPENMS_PRECONDITION(exp_charges.size() == exp_spectrum.size(), "Error: HyperScore: #charges != #peaks in experimental spectrum.");
-    OPENMS_PRECONDITION(total_loss_template_z1_b_ions.size() == total_loss_template_z1_y_ions.size(), "b- and y-ion arrays must have same size.");
-    OPENMS_PRECONDITION(total_loss_template_z1_b_ions.size() > 0, "b- and y-ion arrays must not be empty.");
-    OPENMS_PRECONDITION(intensity_sum.size() == total_loss_template_z1_b_ions.size(), "Sum array needs to be of same size as b-ion array");
-    OPENMS_PRECONDITION(intensity_sum.size() == b_ions.size(), "Sum array needs to be of same size as b-ion array");
-    OPENMS_PRECONDITION(intensity_sum.size() == y_ions.size(), "Sum array needs to be of same size as y-ion array");
-    OPENMS_PRECONDITION(peak_matched.size() == exp_spectrum.size(), "Peak matched needs to be of same size as experimental spectrum");
-    OPENMS_PRECONDITION(std::count_if(peak_matched.begin(), peak_matched.end(), [](bool b){return b == true;}) == 0, "Peak matched must be initialized to false");
-
-    double dot_product(0.0), b_mean_err(0.0), y_mean_err(0.0);
-    const Size N = intensity_sum.size();
-
-    size_t matches(0);
-
-    // maximum charge considered
-    const unsigned int max_z = std::min(2U, static_cast<unsigned int>(pc_charge - 1));
-
-    // match b-ions
-    for (Size z = 1; z <= max_z; ++z)
-    {
-      n_theoretical_peaks += total_loss_template_z1_b_ions.size();
-
-      for (Size i = 0; i < total_loss_template_z1_b_ions.size(); ++i)
-      {
-        const double theo_mz = (total_loss_template_z1_b_ions[i] 
-          + (z-1) * Constants::PROTON_MASS_U) / z;
-        const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-
-        // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-        Size index = exp_spectrum.findNearest(theo_mz);
-
-        const double exp_mz = exp_spectrum[index].getMZ();
-        const Size exp_z = exp_charges[index];
-
-        // found peak match
-        const double abs_err_Da = std::abs(theo_mz - exp_mz);
-        if (exp_z == z && abs_err_Da < max_dist_dalton)
-        {
-          if (!peak_matched[index])
-          {
-            double intensity = exp_spectrum[index].getIntensity();
-            dot_product += intensity;
-            b_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
-            b_ions[i] += intensity;
-            ++matches;
-            peak_matched[index] = true;
-          }
-        }
-      }
-    }
-
-    // match a-ions
-    vector<double> a_ions(b_ions.size(), 0.0);
-
-    const double diff2b = -27.994915; // b-ion and a-ion ('CO' mass diff from b- to a-ion)
-    for (Size z = 1; z <= max_z; ++z)
-    {
-      n_theoretical_peaks += total_loss_template_z1_b_ions.size();
-
-      for (Size i = 0; i < total_loss_template_z1_b_ions.size(); ++i)
-      {
-        const double theo_mz = (total_loss_template_z1_b_ions[i] + diff2b 
-          + (z-1) * Constants::PROTON_MASS_U) / z;
-        const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-
-        // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-        Size index = exp_spectrum.findNearest(theo_mz);
-
-        const double exp_mz = exp_spectrum[index].getMZ();
-        const Size exp_z = exp_charges[index];
-
-        // found peak match
-        const double abs_err_Da = std::abs(theo_mz - exp_mz);
-        if (exp_z == z && abs_err_Da < max_dist_dalton)
-        {
-          if (!peak_matched[index])
-          {
-            double intensity = exp_spectrum[index].getIntensity();
-            dot_product += intensity;
-            a_ions[i] += intensity;
-            ++matches;
-            peak_matched[index] = true;
-          }
-        }
-      }
-    }
-
-    // match y-ions
-    for (Size z = 1; z <= max_z; ++z)
-    {
-      n_theoretical_peaks += total_loss_template_z1_y_ions.size();
-
-      for (Size i = 0; i < total_loss_template_z1_y_ions.size(); ++i)
-      {
-        const double theo_mz = (total_loss_template_z1_y_ions[i] + (z-1) * Constants::PROTON_MASS_U) / z;
-        const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-
-        // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-        Size index = exp_spectrum.findNearest(theo_mz);
-
-        const double exp_mz = exp_spectrum[index].getMZ();
-        const Size exp_z = exp_charges[index];
-
-        // found peak match
-        const double abs_err_Da = std::abs(theo_mz - exp_mz);
-        if (exp_z == z && abs_err_Da < max_dist_dalton)
-        {
-          if (!peak_matched[index])
-          {
-            double intensity = exp_spectrum[index].getIntensity();
-            y_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
-            dot_product += intensity;                  
-            y_ions[N-1 - i] += intensity;      
-            ++matches;
-            peak_matched[index] = true;
-          }
-        }
-      }
-    }
-
-
-#ifdef CONSIDER_AA_LOSSES
-    // block peaks matching to AA related neutral losses so they get counted for explained peak fraction calculation
-    // b-H2O
-    for (double diff2b : { -18.010565 } ) 
-    { 
-      for (Size z = 1; z <= max_z; ++z)
-      {
-        for (Size i = 0; i < total_loss_template_z1_b_ions.size(); ++i)
-        {
-          const double theo_mz = (total_loss_template_z1_b_ions[i] + diff2b 
-            + (z-1) * Constants::PROTON_MASS_U) / z;
-          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-          Size index = exp_spectrum.findNearest(theo_mz);
-          const double exp_mz = exp_spectrum[index].getMZ();
-          const Size exp_z = exp_charges[index];
-          const double abs_err_DA = std::abs(theo_mz - exp_mz);
-          if (exp_z == z && abs_err_DA < max_dist_dalton)
-          {
-            peak_matched[index] = true;
-          }
-        }
-      }
-    }
-
-    // y-H2O and y-NH3
-    for (double diff2b : { -18.010565, -17.026549 } ) 
-    { 
-      for (Size z = 1; z <= max_z; ++z)
-      {
-        for (Size i = 0; i < total_loss_template_z1_y_ions.size(); ++i)
-        {
-          const double theo_mz = (total_loss_template_z1_y_ions[i] + diff2b
-             + (z-1) * Constants::PROTON_MASS_U) / z;
-          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-          Size index = exp_spectrum.findNearest(theo_mz);
-          const double exp_mz = exp_spectrum[index].getMZ();
-          const Size exp_z = exp_charges[index];
-          const double abs_err_DA = std::abs(theo_mz - exp_mz);
-          if (exp_z == z && abs_err_DA < max_dist_dalton)
-          {
-            peak_matched[index] = true;
-          }
-        }
-      }
-    }
-#endif
-
-    // determine b+a and y-ion count 
-    UInt y_ion_count(0), b_ion_count(0), a_ion_count(0);
-
-    for (Size i = 0; i != b_ions.size(); ++i) 
-    {
-      if (b_ions[i] > 0) 
-      {
-        intensity_sum[i] += b_ions[i];
-        ++b_ion_count;
-      }       
-    } 
-
-    for (Size i = 0; i != y_ions.size(); ++i) 
-    {
-      if (y_ions[i] > 0) 
-      {
-        intensity_sum[i] += y_ions[i];
-        ++y_ion_count;
-      }       
-    }
-
-    for (Size i = 0; i != a_ions.size(); ++i) 
-    {
-      if (a_ions[i] > 0) 
-      {
-        intensity_sum[i] += a_ions[i];
-        ++a_ion_count;
-      }       
-    }
-
-    OPENMS_PRECONDITION(exp_spectrum.getFloatDataArrays()[0].getName() == "TIC", "No TIC stored in spectrum meta data.");
-    OPENMS_PRECONDITION(exp_spectrum.getFloatDataArrays()[0].size() == 1, "Exactly one TIC expected.");
-
-    const double& TIC = exp_spectrum.getFloatDataArrays()[0][0];
-
-    if (y_ion_count == 0 && b_ion_count == 0) // Note: don't check for a_ion_count here as this leads to division by zero at err calculation below
-    {
-      hyperScore = 0;
-      MIC = 0;
-      Morph = 0;
-      err = fragment_mass_tolerance;
-    }
-    else
-    {
-      const double bFact = logfactorial_(b_ion_count);
-      const double aFact = logfactorial_(a_ion_count);
-      const double yFact = logfactorial_(y_ion_count);
-      hyperScore = std::log1p(dot_product) + yFact + bFact + aFact;
-      MIC = std::accumulate(intensity_sum.begin(), intensity_sum.end(), 0.0);
-      for (auto& i : intensity_sum) { i /= TIC; } // scale intensity sum
-      MIC /= TIC;
-      Morph = b_ion_count + y_ion_count + MIC;
-      err = (y_mean_err + b_mean_err)/(b_ion_count + y_ion_count);
-    }
-
-
-    static const double M_star_pc_loss = EmpiricalFormula("CH4S").getMonoWeight(); // methionine related loss on precursor (see NuXLAnnotateAndLocate for annotation related code)
-    vector<double> precursor_losses = {0.0, -18.010565, -17.026548}; // normal, loss of water, loss of ammonia
-    if (iip.M) 
-    {
-      precursor_losses.push_back(M_star_pc_loss);
-    }
-
-    // match precusor ions z = 1..pc_charge
-    double pc_match_count(0);
-    for (double pc_loss : precursor_losses ) // normal, loss of water, loss of ammonia
-    { 
-      for (Size z = 1; z <= pc_charge; ++z)
-      {
-        const double theo_mz = (peptide_mass_without_NA + pc_loss + z * Constants::PROTON_MASS_U) / z;
-        const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-        Size index = exp_spectrum.findNearest(theo_mz);
-        const double exp_mz = exp_spectrum[index].getMZ();
-        const Size exp_z = exp_charges[index];
-
-        // found peak match
-        if (exp_z == z && std::abs(theo_mz - exp_mz) < max_dist_dalton)
-        {
-          if (!peak_matched[index])
-          {
-            const double intensity = exp_spectrum[index].getIntensity();
-            pc_MIC += intensity;
-            pc_match_count += 1.0;
-            ++matches;
-            peak_matched[index] = true;
-          }
-        }
-        ++n_theoretical_peaks;
-      }      
-    }
-    pc_MIC /= TIC;
-    pc_MIC += pc_match_count;  // Morpheus score 
-
-    // shifted immonium ions
-
-    // lambda to match one peak and sum up in score
-    auto match_one_peak_z1 = [&](const double& theo_mz, float& score)
-      {
-        const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;      
-        auto index = exp_spectrum.findNearest(theo_mz);
-        if (exp_charges[index] == 1 && 
-          std::abs(theo_mz - exp_spectrum[index].getMZ()) < max_dist_dalton) // found peak match
-        {
-          if (!peak_matched[index])
-          {
-            score += exp_spectrum[index].getIntensity();      
-            ++matches;
-            peak_matched[index] = true;
-          }
-        } 
-        ++n_theoretical_peaks;
-      };
-
-    // see DOI: 10.1021/pr3007045 A Systematic Investigation into the Nature of Tryptic HCD Spectra
-    static const double imY = EmpiricalFormula("C8H10NO").getMonoWeight(); // 85%
-    static const double imW = EmpiricalFormula("C10H11N2").getMonoWeight(); // 84%
-    static const double imF = EmpiricalFormula("C8H10N").getMonoWeight(); // 84%
-    static const double imL = EmpiricalFormula("C5H12N").getMonoWeight(); // I/L 76%
-    static const double imH = EmpiricalFormula("C5H8N3").getMonoWeight(); // 70%
-    static const double imC = EmpiricalFormula("C2H6NS").getMonoWeight(); // CaC 61%
-    static const double imK1 = EmpiricalFormula("C5H13N2").getMonoWeight(); // 2%
-    static const double imP = EmpiricalFormula("C4H8N").getMonoWeight(); //?    
-    static const double imQ = 101.0715; // 52%
-    static const double imE = 102.0555; // 37%
-    static const double imM = 104.0534; // 3%
-//  static const double imN = 87.05584; // 11%
-//  static const double imD = 88.03986; // 4%
-
-    if (iip.Y) 
-    {
-      match_one_peak_z1(imY, im_MIC);
-    }
-    if (iip.W) 
-    {
-      match_one_peak_z1(imW, im_MIC);
-    }
-    if (iip.F) 
-    {
-      match_one_peak_z1(imF, im_MIC);
-    }
-    if (iip.H) 
-    {
-      match_one_peak_z1(imH, im_MIC);
-    }
-    if (iip.C) 
-    {
-      match_one_peak_z1(imC, im_MIC);
-    }
-    if (iip.P) 
-    {
-      match_one_peak_z1(imP, im_MIC);
-    }
-    if (iip.L) 
-    {
-      match_one_peak_z1(imL, im_MIC);
-    }
-    if (iip.K) 
-    {
-      match_one_peak_z1(imK1, im_MIC);
-    }
-    if (iip.M) 
-    {
-      match_one_peak_z1(imM, im_MIC);
-    }
-    if (iip.Q) 
-    {
-      match_one_peak_z1(imQ, im_MIC);
-    }
-    if (iip.E) 
-    {
-      match_one_peak_z1(imE, im_MIC);
-    }
-    im_MIC /= TIC;
-
-    // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
-    err = Morph > 2 ? err : 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
-
-    //const double p_random_match = exp_spectrum.getFloatDataArrays()[1][0];
-    const double p_random_match = 1e-3;
-    OPENMS_PRECONDITION(n_theoretical_peaks > 0, "Error: no theoretical peaks are generated");
-    modds = matchOddsScore_(n_theoretical_peaks, matches, p_random_match);
-  }
-
-  static void scoreShiftedLadderIons_(
-                        const vector<NuXLFragmentAdductDefinition>& partial_loss_modification,
-                        const vector<double>& partial_loss_template_z1_b_ions,
-                        const vector<double>& partial_loss_template_z1_y_ions,
-                        const double peptide_mass_without_NA,
-                        const unsigned int pc_charge,
-                        const ImmoniumIonsInPeptide& iip,
-                        const double fragment_mass_tolerance, 
-                        const bool fragment_mass_tolerance_unit_ppm, 
-                        const PeakSpectrum& exp_spectrum, 
-                        const DataArrays::IntegerDataArray& exp_charges,
-                        std::vector<double>& intensity_sum,
-                        std::vector<double>& b_ions,
-                        std::vector<double>& y_ions,
-                        std::vector<bool>& peak_matched,
-                        float& plss_hyperScore,
-                        float& plss_MIC,
-                        float& plss_Morph,
-                        float& plss_err,
-                        float& plss_modds,
-                        float& plss_pc_MIC,
-                        float& plss_im_MIC,
-                        size_t& n_theoretical_peaks/*,
-                        bool is_decoy*/)
-  {
-    OPENMS_PRECONDITION(exp_spectrum.size() >= 1, "Experimental spectrum empty.");
-    OPENMS_PRECONDITION(exp_charges.size() == exp_spectrum.size(), "Error: HyperScore: #charges != #peaks in experimental spectrum.");
-    OPENMS_PRECONDITION(intensity_sum.size() == partial_loss_template_z1_b_ions.size(), "Sum array needs to be of same size as b-ion array");
-    OPENMS_PRECONDITION(intensity_sum.size() == partial_loss_template_z1_y_ions.size(), "Sum array needs to be of same size as y-ion array");
-    OPENMS_PRECONDITION(intensity_sum.size() == b_ions.size(), "Sum array needs to be of same size as b-ion array");
-    OPENMS_PRECONDITION(intensity_sum.size() == y_ions.size(), "Sum array needs to be of same size as y-ion array");
-    OPENMS_PRECONDITION(partial_loss_template_z1_b_ions.size() == partial_loss_template_z1_y_ions.size(), "b- and y-ion arrays must have same size.");
-    OPENMS_PRECONDITION(partial_loss_template_z1_b_ions.size() > 0, "b- and y-ion arrays must not be empty.");
-
-    auto ambiguous_match = [&](const double& mz, const double z, const std::string& name)->bool
-    {
-      auto it = fragment_adduct2block_if_masses_present.find(name); // get vector of blocked mass lists
-      if (it != fragment_adduct2block_if_masses_present.end())
-      {
-        const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-        for (auto ml : it->second)
-        { // for all blocked mass lists
-          bool mass_list_matches{true};
-          for (const double m : ml)
-          { // for all masses in current mass list            
-            Size index = exp_spectrum.findNearest(mz - m * z);
-            const double exp_mz = exp_spectrum[index].getMZ();
-
-            const double abs_err_Da = std::fabs(mz - m * z - exp_mz);
-            if (abs_err_Da >= max_dist_dalton) // no match? then this mass list is not ambigous (break and continue with next one)
-            {
-              mass_list_matches = false;
-              break;
-            }
-          } 
-          if (mass_list_matches) { return true; } // mass list matched every peak -> ambiguous explanation
-        }
-      }
-      return false;
-    };
-
-
-    double dot_product(0.0), b_mean_err(0.0), y_mean_err(0.0);
-    const Size N = intensity_sum.size(); // number of bonds = length of peptide - 1
-
-    size_t n_theoretical_XL_peaks(0);
-    size_t matches(0);
-
-    // maximum charge considered
-    const unsigned int max_z = std::min(2U, static_cast<unsigned int>(pc_charge - 1));
-    const double diff2b = -27.994915; // b-ion and a-ion ('CO' mass diff from b- to a-ion)
-
-
-    // find best matching adducts and charge b-ions
-    vector<std::tuple<size_t, size_t, NuXLFragmentAdductDefinition>> matches_z_fa;
-    for (Size z = 1; z <= max_z; ++z)
-    {
-      for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
-      {
-        size_t z_fa(0);
-        for (Size i = 0; i < partial_loss_template_z1_b_ions.size(); ++i)
-        {
-          const double theo_mz = (partial_loss_template_z1_b_ions[i] + fa.mass 
-            + (z-1) * Constants::PROTON_MASS_U) / z;
-
-          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-
-          // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-          Size index = exp_spectrum.findNearest(theo_mz);
-
-          const double exp_mz = exp_spectrum[index].getMZ();
-          const Size exp_z = exp_charges[index];
-
-          // found peak match
-          const double abs_err_Da = std::abs(theo_mz - exp_mz);
-          if (exp_z == z && abs_err_Da < max_dist_dalton)
-          {
-            if (!peak_matched[index]) // not already matched (e.g., by unshifted peak)
-            {
-              z_fa++;
-            }
-          }
-        }
-        if (z_fa != 0)
-          matches_z_fa.emplace_back(z_fa, z, fa);
-      } 
-    }
-    for (Size z = 1; z <= max_z; ++z)
-    {
-      for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
-      {
-        size_t z_fa(0);
-        for (Size i = 0; i < partial_loss_template_z1_b_ions.size(); ++i)
-        {
-          const double theo_mz = (partial_loss_template_z1_b_ions[i] + fa.mass + diff2b 
-            + (z-1) * Constants::PROTON_MASS_U) / z;
-
-          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-
-          // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-          Size index = exp_spectrum.findNearest(theo_mz);
-
-          const double exp_mz = exp_spectrum[index].getMZ();
-          const Size exp_z = exp_charges[index];
-
-          // found peak match
-          const double abs_err_Da = std::abs(theo_mz - exp_mz);
-          if (exp_z == z && abs_err_Da < max_dist_dalton)
-          {
-            if (!peak_matched[index]) // not already matched (e.g., by unshifted peak)
-            {
-              z_fa++;
-            }
-          }
-        }
-        if (z_fa != 0)
-          matches_z_fa.emplace_back(z_fa, z, fa);
-      } 
-    }
-    for (Size z = 1; z <= max_z; ++z)
-    {
-     for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
-      {
-        size_t z_fa(0);
-        for (Size i = 1; i < partial_loss_template_z1_y_ions.size(); ++i)  // Note that we start at (i=1 -> y2) as trypsin would otherwise not cut at cross-linking site
-        {
-          const double theo_mz = (partial_loss_template_z1_y_ions[i] + fa.mass 
-            + (z-1) * Constants::PROTON_MASS_U) / z;
-
-          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-
-          // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-          Size index = exp_spectrum.findNearest(theo_mz);
-
-          const double exp_mz = exp_spectrum[index].getMZ();
-          const Size exp_z = exp_charges[index];
-
-          // found peak match
-          const double abs_err_Da = std::abs(theo_mz - exp_mz);
-          if (exp_z == z && abs_err_Da < max_dist_dalton)
-          {
-            if (!peak_matched[index]) // not already matched (e.g., by unshifted peak)
-            {
-              z_fa++;
-            }
-          }
-        }
-        if (z_fa != 0)
-          matches_z_fa.emplace_back(z_fa, z, fa);
-      }  
-    }
-
-    std::sort(matches_z_fa.begin(), matches_z_fa.end(), [](const auto& a, const auto& b)
-        {
-          return std::tie(get<0>(a), get<1>(a), get<2>(a)) > std::tie(get<0>(b), get<1>(b), get<2>(b));
-        }
-      ); // sorts by first element descending
-    if (matches_z_fa.size() > 3) matches_z_fa.resize(3); // keep top 3 adducts (most peaks matched)
-
-  // match b-ions
-    for (const auto& t : matches_z_fa) // for best 3 adducts
-//    for (Size z = 1; z <= max_z; ++z)
-    {
-     const Size z = get<1>(t);
-     const NuXLFragmentAdductDefinition & fa = get<2>(t);
-//     for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
-     {
-       n_theoretical_XL_peaks += partial_loss_template_z1_b_ions.size();
-
-        for (Size i = 0; i < partial_loss_template_z1_b_ions.size(); ++i)
-        {
-          const double theo_mz = (partial_loss_template_z1_b_ions[i] + fa.mass 
-            + (z-1) * Constants::PROTON_MASS_U) / z;
-
-          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-
-          // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-          Size index = exp_spectrum.findNearest(theo_mz);
-
-          const double exp_mz = exp_spectrum[index].getMZ();
-          const Size exp_z = exp_charges[index];
-
-          // found peak match
-          const double abs_err_Da = std::abs(theo_mz - exp_mz);
-          if (exp_z == z && abs_err_Da < max_dist_dalton)
-          {
-            if (!peak_matched[index])
-            {
-              double intensity = exp_spectrum[index].getIntensity();
-              b_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
-              dot_product += intensity;
-              b_ions[i] += intensity;            
-              peak_matched[index] = true;
-              matches++;
-            }
-          }
-        }
-      } 
-    }
-
-    // match a-ions
-    vector<double> a_ions(b_ions.size(), 0.0);
-
-    for (const auto& t : matches_z_fa) // for best 3 adducts
-//    for (Size z = 1; z <= max_z; ++z)
-    {
-     const Size z = get<1>(t);
-     const NuXLFragmentAdductDefinition & fa = get<2>(t);
-//     for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
-      {
-        n_theoretical_XL_peaks += partial_loss_template_z1_b_ions.size();
-
-        for (Size i = 0; i < partial_loss_template_z1_b_ions.size(); ++i)
-        {
-          const double theo_mz = (partial_loss_template_z1_b_ions[i] + fa.mass + diff2b 
-            + (z-1) * Constants::PROTON_MASS_U) / z;
-
-          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-
-          // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-          Size index = exp_spectrum.findNearest(theo_mz);
-
-          const double exp_mz = exp_spectrum[index].getMZ();
-          const Size exp_z = exp_charges[index];
-
-          // found peak match
-          const double abs_err_Da = std::abs(theo_mz - exp_mz);
-          if (exp_z == z && abs_err_Da < max_dist_dalton)
-          {
-            if (!peak_matched[index])
-            {
-              double intensity = exp_spectrum[index].getIntensity();
-              dot_product += intensity;
-              a_ions[i] += intensity;            
-              peak_matched[index] = true;
-              matches++;
-            }
-          }
-        }
-      } 
-    }
-    
-
- 
-    // match y-ions
-    for (const auto& t : matches_z_fa) // for best 3 adducts
-//    for (Size z = 1; z <= max_z; ++z)
-    {
-     const Size z = get<1>(t);
-     const NuXLFragmentAdductDefinition & fa = get<2>(t);
-//     for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
-      {
-        n_theoretical_XL_peaks += partial_loss_template_z1_y_ions.size() - 1;
-
-        for (Size i = 1; i < partial_loss_template_z1_y_ions.size(); ++i)  // Note that we start at (i=1 -> y2) as trypsin would does not cut at cross-linking site
-        {
-          const double theo_mz = (partial_loss_template_z1_y_ions[i] + fa.mass 
-            + (z-1) * Constants::PROTON_MASS_U) / z;
-
-          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-
-          // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-          Size index = exp_spectrum.findNearest(theo_mz);
-
-          const double exp_mz = exp_spectrum[index].getMZ();
-          const Size exp_z = exp_charges[index];
-
-          // found peak match
-          const double abs_err_Da = std::abs(theo_mz - exp_mz);
-          if (exp_z == z && abs_err_Da < max_dist_dalton)
-          {
-            if (!peak_matched[index])
-            {
-              double intensity = exp_spectrum[index].getIntensity();
-              y_mean_err += Math::getPPMAbs(exp_mz, theo_mz);
-              dot_product += intensity;                  
-              y_ions[N-1 - i] += intensity;      
-              peak_matched[index] = true;
-              matches++;
-            }
-          }
-        }
-      }  
-    }
-
-
-#ifdef CONSIDER_AA_LOSSES
-    // block peaks matching to AA related neutral losses so they don't get matched to NA shifts
-    // b-H2O
-    for (double diff2b : { -18.010565 } ) 
-    { 
-      for (Size z = 1; z <= max_z; ++z)
-      {
-        for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
-        {
-          for (Size i = 0; i < partial_loss_template_z1_b_ions.size(); ++i)
-          {
-            const double theo_mz = (partial_loss_template_z1_b_ions[i] + fa.mass + diff2b 
-              + (z-1) * Constants::PROTON_MASS_U) / z;
-
-            const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-            Size index = exp_spectrum.findNearest(theo_mz);
-            const double exp_mz = exp_spectrum[index].getMZ();
-            const Size exp_z = exp_charges[index];
-            const double abs_err_Da = std::abs(theo_mz - exp_mz);
-            if (exp_z == z && abs_err_Da < max_dist_dalton)
-            {
-              if (!peak_matched[index])
-              {
-                peak_matched[index] = true;
-              }
-            }
-          }
-        } 
-      }
-    } 
-
-  // match y-ions
-  // y-H2O and y-NH3
-  for (double diff2b : { -18.010565, -17.026549 } ) 
-    for (Size z = 1; z <= max_z; ++z)
-    {
-      for (const NuXLFragmentAdductDefinition  & fa : partial_loss_modification)
-      {
-        for (Size i = 1; i < partial_loss_template_z1_y_ions.size(); ++i)  // Note that we start at (i=1 -> y2) as trypsin does not cut at cross-linking site
-        {
-          const double theo_mz = (partial_loss_template_z1_y_ions[i] + fa.mass + diff2b
-            + (z-1) * Constants::PROTON_MASS_U) / z;
-
-          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-          Size index = exp_spectrum.findNearest(theo_mz);
-          const double exp_mz = exp_spectrum[index].getMZ();
-          const Size exp_z = exp_charges[index];
-          const double abs_err_Da = std::abs(theo_mz - exp_mz);
-          if (exp_z == z && abs_err_Da < max_dist_dalton)
-          {
-            if (!peak_matched[index])
-            {
-              peak_matched[index] = true;
-            }
-          }
-        }
-      }  
-    }
-#endif
-
-    UInt y_ion_count(0), b_ion_count(0), a_ion_count(0);
-
-    double b_sum(0.0);
-    for (Size i = 0; i != b_ions.size(); ++i) 
-    {
-      if (b_ions[i] > 0) 
-      {
-        intensity_sum[i] += b_ions[i];
-        b_sum += b_ions[i];
-        ++b_ion_count;
-      }       
-    } 
-
-    double y_sum(0.0);
-    for (Size i = 0; i != y_ions.size(); ++i) 
-    {
-      if (y_ions[i] > 0) 
-      {
-        intensity_sum[i] += y_ions[i];
-        y_sum += y_ions[i];
-        ++y_ion_count;
-      }       
-    }
-
-    double a_sum(0.0);
-    for (Size i = 0; i != a_ions.size(); ++i) 
-    {
-      if (a_ions[i] > 0) 
-      {
-        intensity_sum[i] += a_ions[i];
-        a_sum += a_ions[i];
-        ++a_ion_count;
-      }       
-    }
-
-    OPENMS_PRECONDITION(exp_spectrum.getFloatDataArrays()[0].getName() == "TIC", "No TIC stored in spectrum meta data.");
-    OPENMS_PRECONDITION(exp_spectrum.getFloatDataArrays()[0].size() == 1, "Exactly one TIC expected.");
-
-    const double& TIC = exp_spectrum.getFloatDataArrays()[0][0];
-
-    if (y_ion_count == 0 && b_ion_count == 0) //Note: don't check for a_ion_count here as this might lead to division by zero when plss_err is calculated
-    {
-      plss_hyperScore = 0;
-      plss_MIC = 0;
-      plss_Morph = 0;
-      plss_err = fragment_mass_tolerance;
-    }
-    else
-    {
-      const double bFact = logfactorial_(b_ion_count);
-      const double aFact = logfactorial_(a_ion_count);
-      const double yFact = logfactorial_(y_ion_count);
-      plss_hyperScore = std::log1p(dot_product) + yFact + bFact + aFact;
-      plss_MIC = std::accumulate(intensity_sum.begin(), intensity_sum.end(), 0.0);
-      for (auto& i : intensity_sum) { i /= TIC; } // scale intensity sum
-      plss_MIC /= TIC;
-      plss_Morph = b_ion_count + y_ion_count + plss_MIC;
-      plss_err = (y_mean_err + b_mean_err)/(b_ion_count + y_ion_count);
-   }
-    
-    // match (partially) shifted precusor ions z = 1..pc_charge
-    double pc_match_count(0);
-    
-    for (double pc_loss : {0.0, -18.010565, -17.026548} ) // normal, loss of water, loss of ammonia
-    { 
-      const double peptide_mass = peptide_mass_without_NA + pc_loss;
-      for (Size z = 1; z <= pc_charge; ++z)
-      {
-        for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
-        {
-          const double theo_mz = (peptide_mass + fa.mass + z * Constants::PROTON_MASS_U) / z;
-
-          // TODO move out?
-          auto it = std::find(exp_spectrum.getStringDataArrays()[0].begin(), exp_spectrum.getStringDataArrays()[0].end(), fa.name);
-          bool has_tag_that_matches_fragmentadduct = (it != exp_spectrum.getStringDataArrays()[0].end());
-          if (has_tag_that_matches_fragmentadduct && ambiguous_match(theo_mz, z, fa.name)) continue;
-
-          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-          Size index = exp_spectrum.findNearest(theo_mz);
-          const double exp_mz = exp_spectrum[index].getMZ();
-          const Size exp_z = exp_charges[index];
-
-          // found peak match
-          const double abs_err_Da = std::abs(theo_mz - exp_mz);
-          if (exp_z == z && abs_err_Da < max_dist_dalton)
-          {
-            if (!peak_matched[index])
-            {
-              const double intensity = exp_spectrum[index].getIntensity();
-              plss_pc_MIC += intensity;
-              pc_match_count += 1.0;
-              peak_matched[index] = true;
-              matches++;
-            }
-          }
-          ++n_theoretical_XL_peaks;
-        }      
-      }
-    }
-    plss_pc_MIC /= TIC;
-    plss_pc_MIC += pc_match_count; // Morpheus score
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // match shifted immonium ions
-
-    // lambda to match one peak and sum up in score
-    auto match_one_peak_z1 = [&](const double& theo_mz, float& score)
-      {
-        const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;      
-        auto index = exp_spectrum.findNearest(theo_mz);
-        if (exp_charges[index] == 1 && 
-          std::abs(theo_mz - exp_spectrum[index].getMZ()) < max_dist_dalton) // found peak match
-        {
-          if (!peak_matched[index])
-          {
-            score += exp_spectrum[index].getIntensity();      
-            peak_matched[index] = true;
-//            matches++;
-          }
-        } 
-//        ++n_theoretical_XL_peaks;
-      };
-
-    static const double imY = EmpiricalFormula("C8H10NO").getMonoWeight();
-    static const double imW = EmpiricalFormula("C10H11N2").getMonoWeight();
-    static const double imF = EmpiricalFormula("C8H10N").getMonoWeight();
-    static const double imH = EmpiricalFormula("C5H8N3").getMonoWeight();
-    static const double imC = EmpiricalFormula("C2H6NS").getMonoWeight();
-    static const double imP = EmpiricalFormula("C4H8N").getMonoWeight();
-    static const double imL = EmpiricalFormula("C5H12N").getMonoWeight();
-    static const double imK1 = EmpiricalFormula("C5H13N2").getMonoWeight();
-    static const double imK2 = EmpiricalFormula("C5H10N1").getMonoWeight();
-//    static const double imK3 = EmpiricalFormula("C6H13N2O").getMonoWeight();
-    static const double imQ = 101.0715;
-    static const double imE = 102.0555;
-    static const double imM = 104.0534;
-    static const double imM_star = EmpiricalFormula("CH5S").getMonoWeight();
-
-    for (const NuXLFragmentAdductDefinition & fa : partial_loss_modification)
-    {
-      if (iip.Y) 
-      {
-        match_one_peak_z1(imY + fa.mass, plss_im_MIC);
-      }
-      if (iip.W) 
-      {
-        match_one_peak_z1(imW + fa.mass, plss_im_MIC);
-      }
-      if (iip.F) 
-      {
-        match_one_peak_z1(imF + fa.mass, plss_im_MIC);
-      }
-      if (iip.H) 
-      {
-        match_one_peak_z1(imH + fa.mass, plss_im_MIC);
-      }
-      if (iip.C) 
-      {
-        match_one_peak_z1(imC + fa.mass, plss_im_MIC);
-      }
-      if (iip.P) 
-      {
-        match_one_peak_z1(imP + fa.mass, plss_im_MIC);
-      }
-      if (iip.L) 
-      {
-        match_one_peak_z1(imL + fa.mass, plss_im_MIC);
-      }
-      if (iip.K) 
-      {
-        match_one_peak_z1(imK1 + fa.mass, plss_im_MIC);
-        // according to A. Stuetzer mainly observed with C‘-NH3 (94.0167 Da)
-        match_one_peak_z1(imK2 + fa.mass, plss_im_MIC);
-        // usually only observed without shift (A. Stuetzer)
-        // TODO: only enable for DNA? get's sometimes matched by chance  
-        // match_one_peak_z1(imK3 + fa.mass, plss_im_MIC); 
-      }
-      if (iip.M) 
-      {
-        match_one_peak_z1(imM + fa.mass, plss_im_MIC);
-        match_one_peak_z1(imM_star + fa.mass, plss_im_MIC); // methionine related immonium ion often seen in DEB and NM
-      }
-      if (iip.Q) 
-      {
-        match_one_peak_z1(imQ + fa.mass, plss_im_MIC);
-      }
-      if (iip.E) 
-      {
-        match_one_peak_z1(imE + fa.mass, plss_im_MIC);
-      }
-    }
-
-    plss_im_MIC /= TIC;
-
-    // if we only have 1 peak assume some kind of average error to not underestimate the real error to much
-//    plss_err = plss_Morph > 2 ? plss_err : fragment_mass_tolerance;
-
-    assert(n_theoretical_XL_peaks != 0);
-
-    //const double p_random_match = exp_spectrum.getFloatDataArrays()[1][0];
-    const double p_random_match = 1e-3;
-    plss_modds = matchOddsScore_(n_theoretical_XL_peaks, matches, p_random_match);
-    n_theoretical_peaks += n_theoretical_XL_peaks;
-  } 
-
 /*
 *  Combine subscores of all-ion scoring.
 */
@@ -2159,94 +1203,15 @@ protected:
     return ah.modds;
   }
  
-/*
-*  Score fragments carrying NA adducts 
-*/
-static void scoreXLIons_(
-                         const vector<NuXLFragmentAdductDefinition> &partial_loss_modification,
-                         const ImmoniumIonsInPeptide& iip,
-                         const PeakSpectrum &exp_spectrum,
-                         const double peptide_mass_without_NA,
-                         double fragment_mass_tolerance,
-                         bool fragment_mass_tolerance_unit_ppm,
-                         const vector<double> &partial_loss_template_z1_b_ions,
-                         const vector<double> &partial_loss_template_z1_y_ions,
-                         const PeakSpectrum &marker_ions_sub_score_spectrum_z1,
-                         vector<double>& intensity_sum,
-                         vector<double>& b_ions,
-                         vector<double>& y_ions,
-                         vector<bool>& matched_peaks,
-                         float &partial_loss_sub_score,
-                         float &marker_ions_sub_score,
-                         float &plss_MIC, 
-                         float &plss_err, 
-                         float &plss_Morph,
-                         float &plss_modds,
-                         float &plss_pc_MIC,
-                         float &plss_im_MIC,
-                         size_t &n_theoretical_peaks,
-                         const PeakSpectrum &all_possible_marker_ion_sub_score_spectrum_z1)
-  {
-    (void)marker_ions_sub_score_spectrum_z1;  // unused parameter
-    OPENMS_PRECONDITION(!partial_loss_template_z1_b_ions.empty(), "Empty partial loss spectrum provided.");
-    OPENMS_PRECONDITION(intensity_sum.size() == partial_loss_template_z1_b_ions.size(), "Sum array needs to be of same size as b-ion array");
-    OPENMS_PRECONDITION(intensity_sum.size() == partial_loss_template_z1_y_ions.size(), "Sum array needs to be of same size as y-ion array");
-
-    const SignedSize& exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
-    //const double exp_pc_mz = exp_spectrum.getPrecursors()[0].getMZ();
-
-    if (!all_possible_marker_ion_sub_score_spectrum_z1.empty())
-    {
-      auto const & r = MorpheusScore::compute(fragment_mass_tolerance * 2.0,
-                                             fragment_mass_tolerance_unit_ppm,
-                                             exp_spectrum,
-                                             exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
-                                             all_possible_marker_ion_sub_score_spectrum_z1,
-                                             all_possible_marker_ion_sub_score_spectrum_z1.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX]);
-      marker_ions_sub_score = r.TIC != 0 ? r.MIC / r.TIC : 0;
-
-      // count marker ions
-//      n_theoretical_peaks += marker_ions_sub_score_spectrum_z1.size();
-    }
-
-    scoreShiftedLadderIons_(
-                      partial_loss_modification,                        
-                      partial_loss_template_z1_b_ions,
-                      partial_loss_template_z1_y_ions,
-                      peptide_mass_without_NA,
-                      exp_pc_charge,
-                      iip,
-                      fragment_mass_tolerance, 
-                      fragment_mass_tolerance_unit_ppm, 
-                      exp_spectrum, 
-                      exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
-                      intensity_sum,
-                      b_ions,
-                      y_ions,
-                      matched_peaks,
-                      partial_loss_sub_score,
-                      plss_MIC,
-                      plss_Morph,
-                      plss_err,
-                      plss_modds,
-                      plss_pc_MIC,
-                      plss_im_MIC,
-                      n_theoretical_peaks/*,
-                      is_decoy*/);
-#ifdef DEBUG_OpenNuXL
-    LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
-#endif
-  }
-
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // Indexed variants of scorePeptideIons_ / scoreShiftedLadderIons_ / rankScores_ used by the database search.
-  // They compute exactly the same values (same expressions, same evaluation order) but use the per-spectrum
-  // NuXLSpectrumIndex for nearest-peak lookups, reuse per-thread buffers, memoize the match odds, and share the
-  // shifted-ion pre-selection between all precursor adducts and nucleotides scored against the same spectrum.
+  // Scoring of a peptide (total loss ions) and of its nucleotide-shifted ions against one spectrum.
+  // Nearest-peak lookups use the per-spectrum NuXLSpectrumIndex, buffers are reused per thread (NuXLScoringScratch),
+  // match odds are memoized, and the shifted-ion pre-selection is shared between all precursor adducts and nucleotides
+  // scored against the same spectrum (see NuXLSearchIndex.h).
   static inline const NuXLLogFactorialTable logfactorial_table_{};
 
   // Note: returns early (with incomplete sub scores) if hyperScore or Morph already fail badTotalLossScore.
-  static void scorePeptideIonsIndexed_(
+  static void scorePeptideIons_(
       const NuXLSpectrumIndex& si,
       const vector<double>& total_loss_template_z1_b_ions,
       const vector<double>& total_loss_template_z1_y_ions,
@@ -2543,7 +1508,7 @@ static void scoreXLIons_(
     return sc.fa_entries.size() - 1;
   }
 
-  static void scoreShiftedLadderIonsIndexed_(
+  static void scoreShiftedLadderIons_(
                         const NuXLFragmentAdductRegistry& registry,
                         const NuXLIndexedAdductList& adducts,
                         const vector<double>& partial_loss_template_z1_b_ions,
@@ -3034,45 +1999,8 @@ static void scoreXLIons_(
   };
 */
 
-  RankScores rankScores_(const MSSpectrum& spectrum, vector<bool> peak_matched)
-  {
-    if (spectrum.empty()) return {0.0, 0, 1e10};
-
-    const double matched = std::accumulate(peak_matched.begin(), peak_matched.end(), 0);
-    if (matched == 0) return {0.0, 0, 1e10};
-
-    RankScores r;
-    vector<double> matched_ranks;
-    for (size_t i = 0; i != peak_matched.size(); ++i)
-    {
-      if (!peak_matched[i]) { continue; }
-      matched_ranks.push_back(spectrum.getIntegerDataArrays()[NuXLConstants::IA_RANK_INDEX][i]);
-    }
-    std::sort(matched_ranks.begin(), matched_ranks.end());
-
-    double avg_int{};
-    size_t n_unexplained_greater_avg{};
-    for (size_t i = 0; i != spectrum.size(); ++i)
-    {
-      if (peak_matched[i]) avg_int += spectrum[i].getIntensity() / matched;
-    }
-//    cout << "Matched.: " << matched << endl;
-//    cout << "Avg.: " << avg_int << endl;
-
-    for (size_t i = 0; i != spectrum.size(); ++i)
-    {
-      if (peak_matched[i] == false && spectrum[i].getIntensity() > avg_int) ++n_unexplained_greater_avg;
-    }
-    // number of unexplained peaks with intensity higher than the mean intensity of matche peaks
-    r.wTop50 = n_unexplained_greater_avg;
-
-    r.explained_peaks = matched;
-    r.explained_peak_fraction = matched / (double)spectrum.size();
-    return r;
-  }
-
-  // same values as rankScores_, without copying peak_matched and without the (unused) sorted list of matched ranks
-  static RankScores rankScoresIndexed_(const NuXLSpectrumIndex& si, const vector<uint8_t>& peak_matched)
+  // fraction of explained peaks and number of unexplained peaks more intense than the average explained peak
+  static RankScores rankScores_(const NuXLSpectrumIndex& si, const vector<uint8_t>& peak_matched)
   {
     const size_t n = si.mz.size();
     if (n == 0) return {0.0, 0, 1e10};
@@ -4636,7 +3564,8 @@ static void scoreXLIons_(
 
   // calculate PSMs using total loss scoring (no NA-shifted fragments) - used in fast scoring
   static void addPSMsTotalLossScoring_(
-    const PeakSpectrum& exp_spectrum,
+    const NuXLSpectrumIndex& si,
+    NuXLScoringScratch& scratch,
     const std::string_view sequence,
     const Size & mod_pep_idx,
     const Size & na_mod_idx,
@@ -4656,7 +3585,7 @@ static void scoreXLIons_(
 #endif
     const Size& report_top_hits)
   {  
-    const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
+    const int & exp_pc_charge = si.spec->getPrecursors()[0].getCharge();
 
     float total_loss_score(0),
       tlss_MIC(0),
@@ -4668,25 +3597,25 @@ static void scoreXLIons_(
 
     size_t n_theoretical_peaks(0);
 
-    vector<double> intensity_sum(total_loss_template_z1_b_ions.size(), 0.0); 
-    vector<double> b_ions(total_loss_template_z1_b_ions.size(), 0.0); 
-    vector<double> y_ions(total_loss_template_z1_b_ions.size(), 0.0); 
-    vector<bool> peak_matched(exp_spectrum.size(), false);
+    const Size L = total_loss_template_z1_b_ions.size();
+    scratch.resetCandidate();
+    scratch.intensity_sum.assign(L, 0.0);
+    scratch.b.assign(L, 0.0);
+    scratch.y.assign(L, 0.0);
+    scratch.a.assign(L, 0.0);
+    scratch.peak_matched.assign(si.mz.size(), 0);
+    const vector<double>& intensity_sum = scratch.intensity_sum;
 
     scorePeptideIons_(
-      exp_spectrum, 
-      exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
+      si,
       total_loss_template_z1_b_ions,
       total_loss_template_z1_y_ions,
       current_peptide_mass_without_NA,
       exp_pc_charge,
-      iip, 
-      fragment_mass_tolerance, 
+      iip,
+      fragment_mass_tolerance,
       fragment_mass_tolerance_unit_ppm,
-      intensity_sum,
-      b_ions,
-      y_ions,
-      peak_matched,
+      scratch,
       total_loss_score,
       tlss_MIC,
       tlss_Morph,
@@ -6325,7 +5254,7 @@ static void scoreXLIons_(
                   scratch.y.assign(L, 0.0);
                   scratch.a.assign(L, 0.0);
                   scratch.peak_matched.assign(exp_spectrum.size(), 0);
-                  scorePeptideIonsIndexed_(si,
+                  scorePeptideIons_(si,
                     total_loss_template_z1_b_ions,
                     total_loss_template_z1_y_ions,
                     current_peptide_mass_without_NA,
@@ -6378,7 +5307,7 @@ static void scoreXLIons_(
                     ah.sequence_score = ladderScore_(range) / (double)intensity_linear.size();
                   }
 
-                  RankScores rankscores = rankScoresIndexed_(si, scratch.peak_matched);
+                  RankScores rankscores = rankScores_(si, scratch.peak_matched);
                   ah.explained_peak_fraction = rankscores.explained_peak_fraction;
                   if (rankscores.explained_peaks > 0) ah.matched_theo_fraction = rankscores.explained_peaks / (float)n_theoretical_peaks;
                   ah.wTop50 = rankscores.wTop50;
@@ -6445,7 +5374,7 @@ static void scoreXLIons_(
                 scratch.y.assign(L, 0.0);
                 scratch.a.assign(L, 0.0);
                 scratch.peak_matched.assign(exp_spectrum.size(), 0);
-                scorePeptideIonsIndexed_(si,
+                scorePeptideIons_(si,
                   total_loss_template_z1_b_ions,
                   total_loss_template_z1_y_ions,
                   current_peptide_mass_without_NA,
@@ -6511,11 +5440,11 @@ static void scoreXLIons_(
                       plss_pc_MIC(0),
                       plss_im_MIC(0);
 
-                    // marker ion score of the spectrum (precomputed, see scoreXLIons_)
+                    // marker ion score of the spectrum (does not depend on the candidate; precomputed per spectrum)
                     if (!all_possible_marker_ion_sub_score_spectrum_z1.empty()) { marker_ions_sub_score = si.marker_ions_sub_score; }
 
                     // the partial loss ions are shifted from the same b- and y-ion ladders as the total loss ions
-                    scoreShiftedLadderIonsIndexed_(fa_registry,
+                    scoreShiftedLadderIons_(fa_registry,
                                 nuc_2_adducts,
                                 total_loss_template_z1_b_ions,
                                 total_loss_template_z1_y_ions,
@@ -6575,7 +5504,7 @@ static void scoreXLIons_(
                     ah.ladder_score = ladder_score;
                     ah.sequence_score = sequence_score;
 
-                    RankScores rankscores = rankScoresIndexed_(si, scratch.peak_matched_xl);
+                    RankScores rankscores = rankScores_(si, scratch.peak_matched_xl);
                     ah.explained_peak_fraction = rankscores.explained_peak_fraction;
                     if (rankscores.explained_peaks > 0) ah.matched_theo_fraction = rankscores.explained_peaks / (float)n_theoretical_peaks_xl;
                     ah.wTop50 = rankscores.wTop50;
@@ -6633,7 +5562,8 @@ static void scoreXLIons_(
 
                 // generate PSMs for spectrum[scan_index] and add them to annotated hits
                 addPSMsTotalLossScoring_(
-                  spectra[scan_index],
+                  spectrum_index[scan_index],
+                  scratch,
                   *cit, // string view on unmodified sequence
                   mod_pep_idx, // index of peptide mod
                   NA_mod_index_current, // index of NA mod
