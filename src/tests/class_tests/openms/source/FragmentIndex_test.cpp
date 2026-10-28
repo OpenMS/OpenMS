@@ -26,6 +26,7 @@
 #include <bit>
 #include <chrono>
 #include <cmath>
+#include <functional>
 #include <limits>
 #include <map>
 #include <numeric>
@@ -5029,8 +5030,21 @@ START_SECTION(([EXTRA] residue-specific terminal modifications occupy the termin
 }
 END_SECTION
 
-START_SECTION((static void checkSearchParameters(const Param& param)))
+START_SECTION((static void checkSearchParameters(const Param& param, const std::string& name_prefix = "")))
 {
+  // the message of the InvalidParameter that f throws ("" if it throws none)
+  const auto message_of = [](const std::function<void()>& f) -> std::string
+  {
+    try
+    {
+      f();
+    }
+    catch (const Exception::InvalidParameter& e)
+    {
+      return e.what();
+    }
+    return "";
+  };
   // valid: the defaults, a single charge, an unlimited peptide length (max_size 0)
   FragmentIndex fi;
   const Param defaults = fi.getParameters();
@@ -5044,29 +5058,36 @@ START_SECTION((static void checkSearchParameters(const Param& param)))
   fi.setParameters(p);
   TEST_EQUAL(fi.getParameters().getValue("peptide:motif").toString(), "N[^P][ST]")
 
-  // inverted ranges and an invalid motif: InvalidParameter naming the parameters, also from setParameters()
-  const std::vector<std::tuple<std::string, ParamValue, std::string>> invalid{
-    {"precursor:min_charge", 6, "precursor:min_charge (6) is larger than precursor:max_charge (5)"},
-    {"precursor:isotope_error_min", 1, "precursor:isotope_error_min (1) is larger than precursor:isotope_error_max (0)"},
-    {"peptide:min_size", 41, "peptide:min_size (41) is larger than peptide:max_size (40)"},
-    {"peptide:min_mass", 9001, "peptide:min_mass (9001) is larger than peptide:max_mass (9000)"},
-    {"fragment:min_mz", 2001, "fragment:min_mz (2001) is larger than fragment:max_mz (2000)"},
-    {"peptide:motif", "[A-", "peptide:motif '[A-' is not a valid regular expression"}};
-  for (const auto& [name, value, message] : invalid)
+  // inverted ranges, an invalid motif and an empty or infinite precursor window: InvalidParameter naming the parameters,
+  // also from setParameters(), and with a prefix as the user sets them (e.g. a tool's 'Search:')
+  const std::vector<std::tuple<std::string, ParamValue, std::string, std::string>> invalid{
+    {"precursor:min_charge", 6, "precursor:min_charge (6) is larger than precursor:max_charge (5)",
+     "Search:precursor:min_charge (6) is larger than Search:precursor:max_charge (5)"},
+    {"precursor:isotope_error_min", 1, "precursor:isotope_error_min (1) is larger than precursor:isotope_error_max (0)",
+     "Search:precursor:isotope_error_min (1) is larger than Search:precursor:isotope_error_max (0)"},
+    {"peptide:min_size", 41, "peptide:min_size (41) is larger than peptide:max_size (40)",
+     "Search:peptide:min_size (41) is larger than Search:peptide:max_size (40)"},
+    {"peptide:min_mass", 9001, "peptide:min_mass (9001) is larger than peptide:max_mass (9000)",
+     "Search:peptide:min_mass (9001) is larger than Search:peptide:max_mass (9000)"},
+    {"fragment:min_mz", 2001, "fragment:min_mz (2001) is larger than fragment:max_mz (2000)",
+     "Search:fragment:min_mz (2001) is larger than Search:fragment:max_mz (2000)"},
+    {"peptide:motif", "[A-", "peptide:motif '[A-' is not a valid regular expression",
+     "Search:peptide:motif '[A-' is not a valid regular expression"},
+    {"precursor:mass_tolerance_lower", 0.0,
+     "The precursor window has zero width: precursor:mass_tolerance_lower + precursor:mass_tolerance_upper must be > 0.",
+     "The precursor window has zero width: Search:precursor:mass_tolerance_lower + Search:precursor:mass_tolerance_upper must be > 0."},
+    {"precursor:mass_tolerance_upper", std::numeric_limits<double>::infinity(),
+     "precursor:mass_tolerance_lower and precursor:mass_tolerance_upper must be finite",
+     "Search:precursor:mass_tolerance_lower and Search:precursor:mass_tolerance_upper must be finite"}};
+  for (const auto& [name, value, message, prefixed] : invalid)
   {
     Param q = defaults;
+    if (name == "precursor:mass_tolerance_lower") { q.setValue("precursor:mass_tolerance_upper", 0.0); }
     q.setValue(name, value);
-    TEST_EXCEPTION(Exception::InvalidParameter, FragmentIndex::checkSearchParameters(q))
-    try
-    {
-      FragmentIndex::checkSearchParameters(q);
-    }
-    catch (const Exception::InvalidParameter& e)
-    {
-      TEST_TRUE(std::string(e.what()).find(message) != std::string::npos)
-    }
+    TEST_TRUE(message_of([&q]() { FragmentIndex::checkSearchParameters(q); }).find(message) != std::string::npos)
+    TEST_TRUE(message_of([&q]() { FragmentIndex::checkSearchParameters(q, "Search:"); }).find(prefixed) != std::string::npos)
     FragmentIndex other;
-    TEST_EXCEPTION(Exception::InvalidParameter, other.setParameters(q))
+    TEST_TRUE(message_of([&]() { other.setParameters(q); }).find(message) != std::string::npos)
   }
 
   // values outside of the restrictions (they used to wrap around in 16-bit members or never end a loop)
@@ -5081,7 +5102,8 @@ START_SECTION((static void checkSearchParameters(const Param& param)))
     Param q = defaults;
     q.setValue(name, value);
     FragmentIndex other;
-    TEST_EXCEPTION(Exception::InvalidParameter, other.setParameters(q))
+    // the message names the parameter by its full name (e.g. 'precursor:max_charge', not 'max_charge')
+    TEST_TRUE(message_of([&]() { other.setParameters(q); }).find("parameter '" + name + "'") != std::string::npos)
   }
   // the bounds themselves are accepted
   Param bounds = defaults;

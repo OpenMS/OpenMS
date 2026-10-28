@@ -313,9 +313,6 @@ OpenMS Library:
     isotope peaks using 13C/12C mass spacing and a bounded nearest-peak search on both sides of
     each expected isotope position. Clean envelopes no longer receive artificially low purity
     or get discarded by precursor-purity filtering (#10467).
-  - QcMLFile's QualityParameter and Attachment writers stored unit information under unitRef/
-    unitAcc attributes, but the reader (and the qcML schema) use unitCvRef/unitAccession, so every
-    unit was lost on a store/load round trip. Fixed the writers to emit the schema names.
   - Every PeptideIdentification needs the ProteinIdentification run (search run) whose identifier
     it names; the run may have no protein hits or database (e.g. peptidomics, de novo). The new
     ProteinRunReferences checks this (also in pyOpenMS) and throws Exception::InvalidParameter

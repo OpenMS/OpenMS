@@ -1827,6 +1827,39 @@ START_SECTION((void checkDefaults(const std::string &name, const Param &defaults
     p.clear();
     p.setValue("stringv",4.5);
     TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
+
+    // an invalid value is named by its full name, not by its leaf name, which other sections may share
+    Param sections;
+    sections.setValue("precursor:max_charge", 5);
+    sections.setMinInt("precursor:max_charge", 1);
+    sections.setMaxInt("precursor:max_charge", 20);
+    sections.setValue("fragment:max_charge", 2);
+    Param values = sections;
+    values.setValue("precursor:max_charge", 65536);
+    std::string message;
+    try
+    {
+      values.checkDefaults("Param_test", sections);
+    }
+    catch (const Exception::InvalidParameter& e)
+    {
+      message = e.what();
+    }
+    TEST_TRUE(message.find("parameter 'precursor:max_charge'") != std::string::npos)
+    // with a prefix (of the defaults too), the name below it
+    Param nested, nested_defaults;
+    nested.insert("algorithm:", values);
+    nested_defaults.insert("algorithm:", sections);
+    message.clear();
+    try
+    {
+      nested.checkDefaults("Param_test", nested_defaults, "algorithm");
+    }
+    catch (const Exception::InvalidParameter& e)
+    {
+      message = e.what();
+    }
+    TEST_TRUE(message.find("parameter 'precursor:max_charge'") != std::string::npos)
 END_SECTION
 
 START_SECTION((void update(const Param& old_version, const bool add_unknown = false)))

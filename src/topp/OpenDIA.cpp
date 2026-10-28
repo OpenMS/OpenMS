@@ -1748,10 +1748,25 @@ protected:
       oswwriter.writeHeader();
     }
 
+    // The calibration corrects the library ion mobilities in 'transition_exp' in place for the run at
+    // hand. Keep the library values, so that each run is corrected starting from them instead of from
+    // the previous run's correction (which made the corrections compound and depend on the run order).
+    std::vector<double> library_drift_times;
+    library_drift_times.reserve(transition_exp.getCompounds().size());
+    for (const auto& compound : transition_exp.getCompounds())
+    {
+      library_drift_times.push_back(compound.drift_time);
+    }
+
     Size run_index = 0;
     for (const auto& current_run_files : run_groups)
     {
       pasef = user_pasef;
+      // start from the library ion mobilities, not from the previous run's corrected ones
+      for (Size i = 0; i < library_drift_times.size(); ++i)
+      {
+        transition_exp.getCompounds()[i].drift_time = library_drift_times[i];
+      }
       ChromExtractParams cp_current = cp;
       ChromExtractParams cp_ms1_current = cp_ms1;
       ChromExtractParams cp_irt_current = cp_irt;

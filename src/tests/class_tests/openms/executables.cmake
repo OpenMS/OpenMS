@@ -284,6 +284,7 @@ set(format_executables_list
   PercolatorInfile_test
   PercolatorOutfile_test
   PercolatorPosteriorEstimator_test
+  PercolatorScores_test
   ProtXMLFile_test
   S3InputSource_test
   SVOutStream_test
