@@ -33,6 +33,12 @@ loaded too, and ``getMSExperiment()`` returns them, but pixel access, regions an
 
     3 3 9
 
+The geometry also records the pixel size. If the file does not give one, ``getPixelSizeX()`` and ``getPixelSizeY()``
+return ``-1`` and ``getPixelSizeUnit()`` returns ``"unknown"``. ``-1`` is not a size, so check for it before using
+the values. If a file gives only the x size, it is used for y as well. When x and y are stored in different units,
+the values are converted to the unit read first. :py:class:`~.ImzMLFile` writes the pixel size only if the unit
+is micrometer.
+
 Pixel coordinates start at 0. The spectrum of the top-left pixel is:
 
 .. code-block:: python
