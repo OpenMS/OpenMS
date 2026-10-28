@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 
+#include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -270,7 +271,7 @@ namespace OpenMS::Internal
         {
           std::cerr << "  Parsing error: '" << error_message  << "'" << std::endl;
           std::cerr << "  You could try to disable sorting spectra while loading." << std::endl;
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data: '" + error_message + "'");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, HTTPInputSource::redactURL(file_), "Error during parsing of binary data: '" + error_message + "'");
         }
       }
 
@@ -350,7 +351,7 @@ namespace OpenMS::Internal
           // throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
           std::cerr << "  Parsing error: '" << error_message  << "'" << std::endl;
           std::cerr << "  You could try to disable sorting spectra while loading." << std::endl;
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data: '" + error_message + "'");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, HTTPInputSource::redactURL(file_), "Error during parsing of binary data: '" + error_message + "'");
         }
 
       }

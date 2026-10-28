@@ -41,6 +41,25 @@ START_SECTION((explicit S3InputSource(const std::string& uri)))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] errors do not show the credentials of the URI))
+{
+  // an invalid port: Arrow's diagnostic repeats the whole URI (without S3 support: OpenMS' own message)
+  std::string message;
+  try
+  {
+    S3InputSource source("s3://MY_ACCESS_KEY:MY_SECRET@bucket:999999/run.mzML?region=us-east-1&token=MY_TOKEN");
+  }
+  catch (const Exception::BaseException& e)
+  {
+    message = e.what();
+  }
+  TEST_EQUAL(message.empty(), false)
+  TEST_EQUAL(message.find("MY_ACCESS_KEY"), std::string::npos)
+  TEST_EQUAL(message.find("MY_SECRET"), std::string::npos)
+  TEST_EQUAL(message.find("MY_TOKEN"), std::string::npos)
+}
+END_SECTION
+
 START_SECTION((static bool isAvailable()))
 {
   NOT_TESTABLE // depends on the Arrow library OpenMS was built with

@@ -52,8 +52,8 @@ namespace OpenMS
       std::call_once(once, [] { status = arrow::fs::EnsureS3Initialized(); });
       if (!status.ok())
       {
-        OPENMS_LOG_ERROR << "Cannot initialize S3: " << status.ToString() << std::endl;
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot initialize S3: " + status.ToString());
+        OPENMS_LOG_ERROR << "Cannot initialize S3: " << HTTPInputSource::redactURLs(status.ToString()) << std::endl;
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot initialize S3: " + HTTPInputSource::redactURLs(status.ToString()));
       }
     }
 
@@ -76,22 +76,22 @@ namespace OpenMS
       // the errors are logged, as callers may rethrow them as other exceptions (e.g. MzMLFile::load(): a ParseError)
       if (!options.ok())
       {
-        OPENMS_LOG_ERROR << "Invalid S3 URI " << name << ": " << options.status().ToString() << std::endl;
+        OPENMS_LOG_ERROR << "Invalid S3 URI " << name << ": " << HTTPInputSource::redactURLs(options.status().ToString()) << std::endl;
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Invalid S3 URI '" + name + "': " + options.status().ToString());
+                                         "Invalid S3 URI '" + name + "': " + HTTPInputSource::redactURLs(options.status().ToString()));
       }
       auto filesystem = arrow::fs::S3FileSystem::Make(*options);
       if (!filesystem.ok())
       {
-        OPENMS_LOG_ERROR << "Cannot open " << name << ": " << filesystem.status().ToString() << std::endl;
-        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name, filesystem.status().ToString());
+        OPENMS_LOG_ERROR << "Cannot open " << name << ": " << HTTPInputSource::redactURLs(filesystem.status().ToString()) << std::endl;
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name, HTTPInputSource::redactURLs(filesystem.status().ToString()));
       }
       finalizeS3AtExit();
       auto object = (*filesystem)->OpenInputFile(path);
       if (!object.ok())
       {
-        OPENMS_LOG_ERROR << "Cannot open " << name << ": " << object.status().ToString() << std::endl;
-        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name, object.status().ToString());
+        OPENMS_LOG_ERROR << "Cannot open " << name << ": " << HTTPInputSource::redactURLs(object.status().ToString()) << std::endl;
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name, HTTPInputSource::redactURLs(object.status().ToString()));
       }
       return *object;
     }
@@ -117,7 +117,7 @@ public:
         auto bytes_read = stream_->Read(static_cast<int64_t>(max_to_read), to_fill);
         if (!bytes_read.ok())
         {
-          OPENMS_LOG_ERROR << "Error reading " << name_ << ": " << bytes_read.status().ToString() << std::endl;
+          OPENMS_LOG_ERROR << "Error reading " << name_ << ": " << HTTPInputSource::redactURLs(bytes_read.status().ToString()) << std::endl;
           throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name_);
         }
         position_ += static_cast<UInt64>(*bytes_read);
@@ -160,7 +160,7 @@ private:
 #ifdef OPENMS_WITH_ARROW_S3
     auto fail = [this](const arrow::Status& status) -> std::unique_ptr<InputStream>
     {
-      OPENMS_LOG_ERROR << "Error reading " << impl_->name << ": " << status.ToString() << std::endl;
+      OPENMS_LOG_ERROR << "Error reading " << impl_->name << ": " << HTTPInputSource::redactURLs(status.ToString()) << std::endl;
       throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, impl_->name);
     };
     // a stream of its own for each call, read in large blocks
@@ -206,7 +206,7 @@ private:
     auto size = source.impl_->object->GetSize();
     if (!size.ok())
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, source.impl_->name, size.status().ToString());
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, source.impl_->name, HTTPInputSource::redactURLs(size.status().ToString()));
     }
     return *size;
 #else
@@ -221,7 +221,7 @@ private:
     auto bytes = source.impl_->object->ReadAt(offset, length);
     if (!bytes.ok())
     {
-      OPENMS_LOG_ERROR << "Error reading " << source.impl_->name << ": " << bytes.status().ToString() << std::endl;
+      OPENMS_LOG_ERROR << "Error reading " << source.impl_->name << ": " << HTTPInputSource::redactURLs(bytes.status().ToString()) << std::endl;
       throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, source.impl_->name);
     }
     return (*bytes)->ToString();

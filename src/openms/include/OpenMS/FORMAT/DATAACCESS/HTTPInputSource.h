@@ -79,6 +79,14 @@ public:
     */
     static std::string redactURL(const std::string& url);
 
+    /**
+      @brief @p text with every "scheme://" URL in it redacted as by redactURL(), for diagnostics of other libraries.
+
+      Arrow's or libcurl's messages can repeat the URL they were given, credentials included. A URL ends at
+      whitespace, a quote or an angle bracket.
+    */
+    static std::string redactURLs(const std::string& text);
+
 private:
     std::string url_;
   };

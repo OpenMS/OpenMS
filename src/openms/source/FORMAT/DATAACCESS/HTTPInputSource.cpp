@@ -82,7 +82,7 @@ namespace OpenMS
     {
       long response = 0;
       curl_easy_getinfo(easy, CURLINFO_RESPONSE_CODE, &response);
-      const std::string message = error[0] != '\0' ? std::string(error) : std::string(curl_easy_strerror(result));
+      const std::string message = HTTPInputSource::redactURLs(error[0] != '\0' ? std::string(error) : std::string(curl_easy_strerror(result)));
       if (response == 404 || response == 410 || result == CURLE_REMOTE_FILE_NOT_FOUND || result == CURLE_FILE_COULDNT_READ_FILE)
       {
         throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name, message);
@@ -423,6 +423,26 @@ private:
     const Size path_end = std::min(url.find_first_of("?#", authority_end), url.size());
     return url.substr(0, authority_begin) + (at == std::string::npos ? authority : authority.substr(at + 1))
            + url.substr(authority_end, path_end - authority_end);
+  }
+
+  std::string HTTPInputSource::redactURLs(const std::string& text)
+  {
+    const auto scheme_char = [](unsigned char c) { return std::isalnum(c) || c == '+' || c == '-' || c == '.'; };
+    const auto url_end = [](unsigned char c) { return std::isspace(c) || c == '\'' || c == '"' || c == '`' || c == '<' || c == '>'; };
+    std::string result;
+    Size copied = 0; // text before this is in result
+    for (Size separator = text.find("://"); separator != std::string::npos; separator = text.find("://", separator + 3))
+    {
+      Size begin = separator;
+      while (begin > copied && scheme_char(static_cast<unsigned char>(text[begin - 1]))) { --begin; }
+      if (begin == separator) { continue; } // no scheme
+      Size end = separator + 3;
+      while (end < text.size() && !url_end(static_cast<unsigned char>(text[end]))) { ++end; }
+      result += text.substr(copied, begin - copied) + redactURL(text.substr(begin, end - begin));
+      copied = end;
+      separator = end - 3; // the next search starts after this URL
+    }
+    return result + text.substr(copied);
   }
 
 } // namespace OpenMS

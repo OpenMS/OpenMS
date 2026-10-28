@@ -173,6 +173,7 @@ private:
       std::istringstream lines(request);
       std::string method, path;
       lines >> method >> path;
+      path = path.substr(0, path.find('?')); // the query does not select the file
       bool ranges = true;
       if (path.rfind("/norange/", 0) == 0)
       {
@@ -265,6 +266,11 @@ const std::map<std::string, std::string> local_paths{{"/run.mzML", served_plain_
                                                      {"/indexed.mzML", served_indexed_path}};
 std::map<std::string, std::string> served;
 for (const auto& [path, local] : local_paths) { served[path] = readFile(local); }
+// a binary array declared zlib-compressed that is not: the handler throws while decoding it
+std::string corrupt = served["/run.mzML"];
+const std::string no_compression = "accession=\"MS:1000576\" name=\"no compression\"";
+corrupt.replace(corrupt.find(no_compression), no_compression.size(), "accession=\"MS:1000574\" name=\"zlib compression\"");
+served["/corrupt.mzML"] = corrupt;
 TestServer server(served);
 
 START_SECTION((static bool isURL(const std::string& url)))
@@ -296,6 +302,20 @@ START_SECTION((static std::string redactURL(const std::string& url)))
   TEST_STRING_EQUAL(HTTPInputSource::redactURL("C://data/run?1.mzML"), "C://data/run?1.mzML")
   TEST_STRING_EQUAL(HTTPInputSource::redactURL("data/http://run?1.mzML"), "data/http://run?1.mzML")
   TEST_STRING_EQUAL(HTTPInputSource::redactURL(""), "")
+}
+END_SECTION
+
+START_SECTION((static std::string redactURLs(const std::string& text)))
+{
+  // e.g. Arrow's diagnostic for an invalid port, which repeats the whole URI
+  TEST_STRING_EQUAL(HTTPInputSource::redactURLs("Invalid: Cannot parse URI: 's3://KEY:SECRET@bucket:999999/run.mzML?region=us-east-1&token=TOKEN'"),
+                    "Invalid: Cannot parse URI: 's3://bucket:999999/run.mzML'")
+  TEST_STRING_EQUAL(HTTPInputSource::redactURLs("from ftp://user:pw@host/a.mzML to https://example.org/b?sig=1 failed"),
+                    "from ftp://host/a.mzML to https://example.org/b failed")
+  TEST_STRING_EQUAL(HTTPInputSource::redactURLs("no URL here"), "no URL here")
+  TEST_STRING_EQUAL(HTTPInputSource::redactURLs(""), "")
+  TEST_STRING_EQUAL(HTTPInputSource::redactURLs("://nothing before"), "://nothing before")
+  TEST_STRING_EQUAL(HTTPInputSource::redactURLs("file C://data/run?1.mzML"), "file C://data/run?1.mzML")
 }
 END_SECTION
 
@@ -407,6 +427,25 @@ START_SECTION(([EXTRA] IndexedMzMLDecoder reads the index over HTTP))
   TEST_EQUAL(decoder.parseOffsets(server.url("/indexed.mzML"), remote_offset, remote_spectra, remote_chromatograms), 0)
   TEST_TRUE(remote_spectra == local_spectra)
   TEST_TRUE(remote_chromatograms == local_chromatograms)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] errors while decoding remote binary data do not show credentials))
+{
+  const std::string url = "http://user:secret@127.0.0.1:" + std::to_string(server.port()) + "/corrupt.mzML?token=TOKEN";
+  PeakMap map;
+  std::string message;
+  try
+  {
+    MzMLFile().load(url, map);
+  }
+  catch (const Exception::ParseError& e)
+  {
+    message = e.what();
+  }
+  TEST_EQUAL(message.empty(), false)
+  TEST_EQUAL(message.find("secret"), std::string::npos)
+  TEST_EQUAL(message.find("TOKEN"), std::string::npos)
 }
 END_SECTION
 

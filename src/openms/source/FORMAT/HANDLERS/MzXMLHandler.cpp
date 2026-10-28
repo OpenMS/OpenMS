@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzXMLHandler.h>
 
+#include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/FORMAT/Base64.h>
@@ -1242,7 +1243,7 @@ namespace OpenMS::Internal
         } // end parallel for
         if (err_count != 0)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, HTTPInputSource::redactURL(file_), "Error during parsing of binary data.");
         }
       }
 
