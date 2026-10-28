@@ -190,7 +190,36 @@ START_SECTION((void store(const std::string& filename, const PeakMap& exp) const
     within_ulp += std::abs(exp[i].getRT() - rts[i].getRT()) <= 2.0 * std::numeric_limits<double>::epsilon() * rts[i].getRT();
   }
   TEST_EQUAL(exact >= 950, true) // 962 with this series; 750 or so with a plain division
-  TEST_EQUAL(within_ulp, 1000)
+  TEST_EQUAL(within_ulp, 1000)   // (the rest within 2 ulps)
+  // a run whose spectra have no peaks keeps its spectra (the writer emits an empty peaks table for it)
+  PeakMap empty_spectra;
+  {
+    MSSpectrum s;
+    s.setRT(10.0);
+    s.setNativeID("scan=1");
+    s.setMSLevel(2);
+    Precursor prec;
+    prec.setMZ(500.25);
+    prec.setCharge(2);
+    s.getPrecursors().push_back(prec);
+    empty_spectra.addSpectrum(s);
+    empty_spectra.addSpectrum(s);
+    empty_spectra.getSpectra().back().setNativeID("scan=2");
+  }
+  file.store(tmp, empty_spectra);
+  file.load(tmp, exp);
+  TEST_EQUAL(exp.getNrSpectra(), 2)
+  ABORT_IF(exp.getNrSpectra() != 2)
+  TEST_EQUAL(exp[1].size(), 0)
+  TEST_STRING_EQUAL(exp[1].getNativeID(), "scan=2")
+  TEST_EQUAL(exp[1].getPrecursors().size(), 1)
+  // a failed write leaves the archive that was there (the new one is written beside it and moved when finished)
+  file.store(tmp, reference);
+  PeakMap bad = reference;
+  bad[0][0].setMZ(std::numeric_limits<double>::quiet_NaN());
+  TEST_EXCEPTION(Exception::UnableToCreateFile, file.store(tmp, bad))
+  file.load(tmp, exp);
+  compareSpectra(reference, exp);
   // via FileHandler
   FileHandler().storeExperiment(tmp, reference, {FileTypes::MZPEAK});
   FileHandler().loadExperiment(tmp, exp, {FileTypes::MZPEAK});
@@ -269,7 +298,10 @@ START_SECTION([EXTRA] a file of the reference implementation)
   TEST_REAL_SIMILAR(exp[2].getPrecursors()[0].getIsolationWindowLowerOffset(), 1.0)
   TEST_REAL_SIMILAR(exp[2].getPrecursors()[0].getIsolationWindowUpperOffset(), 1.0)
   TEST_EQUAL(exp[2].getPrecursors()[0].getActivationMethods().count(Precursor::ActivationMethod::CID), 1)
-  TEST_REAL_SIMILAR(exp[2].getPrecursors()[0].getActivationEnergy(), 35.0)
+  // MS:1000045 collision energy is the meta value "collision energy", as MzMLHandler keeps it (the member is MS:1000509)
+  TEST_EQUAL(exp[2].getPrecursors()[0].metaValueExists("collision energy"), true)
+  TEST_REAL_SIMILAR(double(exp[2].getPrecursors()[0].getMetaValue("collision energy")), 35.0)
+  TEST_REAL_SIMILAR(exp[2].getPrecursors()[0].getActivationEnergy(), 0.0)
   TEST_EQUAL(exp.getChromatograms().size(), 1)
   ABORT_IF(exp.getChromatograms().empty())
   TEST_STRING_EQUAL(exp.getChromatograms()[0].getNativeID(), "TIC")

@@ -36,6 +36,8 @@ the OpenMS interface.
 - Writer: the points of a spectrum (and of a chromatogram / wavelength spectrum) are sorted along
   their axis with a stable sort, so that peaks of equal m/z keep the caller's order (`src/writer.cpp`,
   three places); the unstable sort permuted them and changed a consumer's deisotoping.
+- Writer: a run whose spectra all have no points gets an empty peaks table, so that the reader
+  reports the spectra (`RunArchiveWriter::finish()` in `src/writer.cpp`).
 - `src/boost_json_src.cpp` (new): Boost.JSON compiled header-only, so libOpenMS links no
   compiled Boost library.
 - `sources.cmake`, `CMakeLists.txt`, this file.

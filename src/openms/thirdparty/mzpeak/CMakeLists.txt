@@ -23,8 +23,11 @@ add_library(OpenMS_mzpeak STATIC ${OpenMS_mzpeak_sources})
 # The library is C++23 (std::unreachable, std::format, std::ranges, std::move_only_function); OpenMS itself
 # compiles with cxx_std_23.
 target_compile_features(OpenMS_mzpeak PRIVATE cxx_std_23)
-# Linked into the shared libOpenMS
-set_target_properties(OpenMS_mzpeak PROPERTIES POSITION_INDEPENDENT_CODE ON)
+# Linked into the shared libOpenMS, with its symbol visibility: nothing of the library or of the Boost.JSON compiled
+# into it is exported from libOpenMS (a consumer with its own Boost.JSON or mzPeak must not bind to these)
+set_target_properties(OpenMS_mzpeak PROPERTIES POSITION_INDEPENDENT_CODE ON
+                                               CXX_VISIBILITY_PRESET hidden
+                                               VISIBILITY_INLINES_HIDDEN ON)
 
 # The library's headers (#include "mzpeak/..."), PUBLIC so that the one OpenMS translation unit that includes
 # them (MzPeakFile.cpp) finds them through the link. BUILD_INTERFACE only: never installed.

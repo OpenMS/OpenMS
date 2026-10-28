@@ -1096,6 +1096,11 @@ void RunArchiveWriter::finish()
   im.flush(im.peaks);
 
   const std::size_t total = im.rows.size();
+  // A run with spectra but no points at all gets an empty peaks table: the reader locates the spectra through a
+  // signal table and would report none without one (OpenMS change).
+  if (!im.rows.empty() && !im.data.table && !im.peaks.table) {
+    im.peaks.table = std::make_unique<Util::PointTableStream>(im.peaks.path.string());
+  }
   const bool with_data = im.data.table != nullptr;
   const bool with_peaks = im.peaks.table != nullptr;
   if (with_data) im.data.table->close(point_file_kv(total, im.data.points));
