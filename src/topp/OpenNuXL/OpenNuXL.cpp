@@ -2307,8 +2307,10 @@ protected:
   {
     // precalculate AA tags of length 1-2nt and store potential conflicting adducts in the spectrum meta data
     OpenNuXLTagger tagger(0.03,1,2); // calculate tags of length 1-2nt
-    for (auto & spec : exp)
+#pragma omp parallel for schedule(dynamic, 16)
+    for (SignedSize spec_index = 0; spec_index < (SignedSize)exp.size(); ++spec_index)
     {
+      MSSpectrum& spec = exp[spec_index];
       if (spec.getMSLevel() != 2) continue;
       std::set<std::string> tags;
       tagger.getTag(spec, tags);
@@ -2344,8 +2346,38 @@ protected:
 
     map<double, map<const Residue*, double> > aa_plus_adduct_mass = getMapAAPlusAdductMass(adduct_mass, debug_file);
 
-    for (auto & spec : exp)
+    // sorted masses as flat arrays (same lower_bound / upper_bound results as on the set / map)
+    const vector<double> adduct_masses(adduct_mass.begin(), adduct_mass.end());
+    vector<double> aa_plus_adduct_masses;
+    aa_plus_adduct_masses.reserve(aa_plus_adduct_mass.size());
+    for (const auto& m : aa_plus_adduct_mass) { aa_plus_adduct_masses.push_back(m.first); }
+    const double max_aa_plus_adduct_mass = aa_plus_adduct_masses.empty() ? 0.0 : aa_plus_adduct_masses.back();
+
+    // std::lower_bound / std::upper_bound, resumed from the result of the previous query. The queried shifts grow
+    // with the second peak of a pair, so this only moves a few positions per query (exact for any query order).
+    auto lowerBoundFrom = [](const vector<double>& v, size_t p, const double x)
     {
+      while (p < v.size() && v[p] < x) { ++p; }
+      while (p > 0 && v[p - 1] >= x) { --p; }
+      return p;
+    };
+    auto upperBoundFrom = [](const vector<double>& v, size_t p, const double x)
+    {
+      while (p < v.size() && v[p] <= x) { ++p; }
+      while (p > 0 && v[p - 1] > x) { --p; }
+      return p;
+    };
+
+#pragma omp parallel
+    {
+    // counts of this thread, by position in adduct_masses / aa_plus_adduct_masses (merged below)
+    vector<size_t> thread_adduct_mass_count(adduct_masses.size(), 0);
+    vector<size_t> thread_aa_plus_adduct_mass_count(aa_plus_adduct_masses.size(), 0);
+
+#pragma omp for schedule(dynamic, 16)
+    for (SignedSize spec_index = 0; spec_index < (SignedSize)exp.size(); ++spec_index)
+    {
+      MSSpectrum& spec = exp[spec_index];
       if (spec.getMSLevel() != 2 || spec.empty()) continue;
       // faster
       vector<double> mzs;
@@ -2359,6 +2391,7 @@ protected:
       // for all fragment peak pairs of matching charge
       for (Size i = 0; i != mzs.size(); ++i)
       {
+        size_t left = 0;
         for (Size j = i+1; j < mzs.size(); ++j)
         {
           if (charges[i] != charges[j]) continue;
@@ -2371,19 +2404,19 @@ protected:
           double mass_delta = dm * charges[i];
 
           // dm already so large that I can't match to largest adduct_mass anymore? done
-          if (mass_delta > *adduct_mass.rbegin() + tolerance) break;
+          if (adduct_masses.empty() || mass_delta > adduct_masses.back() + tolerance) break;
 
-          auto left = adduct_mass.lower_bound(mass_delta - tolerance);
+          left = lowerBoundFrom(adduct_masses, left, mass_delta - tolerance);
 
-          if (left == adduct_mass.end()) continue; // not found
+          if (left == adduct_masses.size()) continue; // not found
 
           ++in_mass_range; // mass range of all adduct masses TODO: improve?
 
           // count if distance matches to adduct mass
-          if (fabs(*left - mass_delta) < tolerance )
+          if (fabs(adduct_masses[left] - mass_delta) < tolerance )
           {
             ++match;
-            ++adduct_mass_count[*left]; // note: potentially dangerous because of floating point precision
+            ++thread_adduct_mass_count[left]; // note: potentially dangerous because of floating point precision
           }
         } 
       } 
@@ -2393,24 +2426,30 @@ protected:
       
       for (Size i = 0; i != mzs.size(); ++i)
       {
+        size_t left = 0, right = 0;
         for (Size j = i+1; j < mzs.size(); ++j)
         {
           double m =  mzs[j];
           double dm = m - mzs[i];
 
-          if (charges[i] != charges[j]) continue;
-
           const float tolerance = fragment_mass_tolerance_unit_ppm ? Math::ppmToMass(fragment_mass_tolerance, m) : fragment_mass_tolerance;
 
+          // peaks are sorted, so the shift (dm * charge of peak i) minus the tolerance only grows with j:
+          // once it exceeds the largest residue + adduct mass, no later peak can match either
+          // (the margin covers the float rounding of the tolerance)
+          if ((dm * charges[i]) - tolerance > max_aa_plus_adduct_mass + 1e-3) break;
+
+          if (charges[i] != charges[j]) continue;
+
           // find all (shifted/normal) residues that match to an observed shift
-          auto left = aa_plus_adduct_mass.lower_bound((dm * charges[i]) - tolerance);
-          auto right = aa_plus_adduct_mass.upper_bound((dm * charges[i]) + tolerance);
-          for (; left != right; ++left)
+          left = lowerBoundFrom(aa_plus_adduct_masses, left, (dm * charges[i]) - tolerance);
+          right = upperBoundFrom(aa_plus_adduct_masses, right, (dm * charges[i]) + tolerance);
+          for (size_t k = left; k < right; ++k)
           {
             ++aa_plus_adduct_in_mass_range;
-            if (fabs(left->first - (dm * charges[i])) < tolerance )
+            if (fabs(aa_plus_adduct_masses[k] - (dm * charges[i])) < tolerance )
             {
-              ++aa_plus_adduct_mass_count[left->first];
+              ++thread_aa_plus_adduct_mass_count[k];
             }
           }
         } 
@@ -2422,6 +2461,19 @@ protected:
       spec.getFloatDataArrays()[2][0] = matchOddsScore_((double)in_mass_range, (double)match, 1e-3);  // count all in mass range as trial, match as success, p=0.001
       spec.getFloatDataArrays()[2].setName("nucleotide_mass_tags");
     }
+
+#pragma omp critical (nuxl_mass_count_merge)
+    {
+      for (size_t k = 0; k != adduct_masses.size(); ++k)
+      {
+        if (thread_adduct_mass_count[k] != 0) { adduct_mass_count[adduct_masses[k]] += thread_adduct_mass_count[k]; }
+      }
+      for (size_t k = 0; k != aa_plus_adduct_masses.size(); ++k)
+      {
+        if (thread_aa_plus_adduct_mass_count[k] != 0) { aa_plus_adduct_mass_count[aa_plus_adduct_masses[k]] += thread_aa_plus_adduct_mass_count[k]; }
+      }
+    }
+    } // end of parallel region
 
     // reformat to get: amino acid, mass, count statistics for spectra
     map<const Residue*, map<double, size_t>> aa2mass2count;
@@ -2504,8 +2556,10 @@ protected:
   {
     OPENMS_LOG_INFO << "Calculating longest mass tags..." << endl;
     OpenNuXLTagger tagger(0.03, 3);
-    for (auto & spec : exp)
+#pragma omp parallel for schedule(dynamic, 16)
+    for (SignedSize spec_index = 0; spec_index < (SignedSize)exp.size(); ++spec_index)
     {
+      MSSpectrum& spec = exp[spec_index];
       if (spec.getMSLevel() != 2) continue;
       spec.getIntegerDataArrays().resize(NuXLConstants::IA_DENOVO_TAG_INDEX + 1);
       spec.getIntegerDataArrays()[NuXLConstants::IA_DENOVO_TAG_INDEX].resize(1);
