@@ -2211,11 +2211,13 @@ class ProSE :
         qpx_extended ? predictionMetadata_(search_params) : std::map<std::string, std::string>{};
       ParquetWriteConfig qpx_extended_config;
       qpx_extended_config.qpx_extra_columns = true;
+      qpx_extended_config.threads = qpx_write_threads; // (validated and encoded in parallel, as the files without -qpx_extended)
       ParquetWriteConfig qpx_spectra_config = qpx_extended_config;
       qpx_spectra_config.row_group_size = QPX_SPECTRA_ROW_GROUP;
       // m/z and intensities are mostly distinct: a dictionary per row group would make the files 40 % larger
       qpx_spectra_config.plain_columns = {"predicted_mz_array", "predicted_intensity_array"};
       ParquetWriteConfig qpx_mz_config;
+      qpx_mz_config.threads = qpx_write_threads;
       qpx_mz_config.row_group_size = QPX_SPECTRA_ROW_GROUP;
       qpx_mz_config.plain_columns = {"mz", "intensity"};
       for (Size i = 0; i < in_list.size(); ++i)
