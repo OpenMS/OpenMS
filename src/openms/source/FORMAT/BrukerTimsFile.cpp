@@ -3283,7 +3283,7 @@ namespace OpenMS
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path,
         "analysis.tsf has no usable m/z calibration: neither an MzCalibration table nor MzAcqRangeLower, MzAcqRangeUpper "
-        "and DigitizerNumSamples in GlobalMetadata, and no Bruker SDK");
+        "and DigitizerNumSamples in GlobalMetadata, and no usable Bruker SDK");
     }
     return converter;
   }
