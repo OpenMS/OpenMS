@@ -654,6 +654,37 @@ namespace OpenMS
       (void)filename;
     }
 
+    /// Moves the finished archive @p tmp over @p filename. On POSIX std::filesystem::rename replaces a file atomically.
+    /// Windows does not replace an existing file that way: there the existing archive is set aside under a backup name
+    /// first and put back if the move fails, so that a failed store() never loses it. (Compiled on every platform so
+    /// that the code is checked; chosen by the platform at run time.)
+    void replaceFile(const std::string& tmp, const std::string& filename)
+    {
+#ifdef _WIN32
+      constexpr bool atomic_rename_replaces = false;
+#else
+      constexpr bool atomic_rename_replaces = true;
+#endif
+      std::error_code ec;
+      if (atomic_rename_replaces || !std::filesystem::exists(filename, ec))
+      {
+        std::filesystem::rename(tmp, filename); // (throws, e.g. for a directory in the way)
+        return;
+      }
+      const std::string backup = filename + ".bak-" + File::getUniqueName(false);
+      std::filesystem::rename(filename, backup); // the archive that was there, set aside
+      std::filesystem::rename(tmp, filename, ec);
+      if (ec)
+      {
+        std::error_code restore;
+        std::filesystem::rename(backup, filename, restore); // put it back
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            filename + " (cannot replace it with the finished archive " + tmp + ": " + ec.message()
+                                            + (restore ? "; the previous archive is " + backup : std::string()) + ")");
+      }
+      std::filesystem::remove(backup, ec);
+    }
+
     /// Opens the archive, with the library's errors as OpenMS exceptions
     MzPeak::Index openIndex(const std::string& filename)
     {
@@ -955,7 +986,7 @@ namespace OpenMS
   {
     // Written as a sibling first and moved over the destination when finished: an existing archive survives a failed
     // write (libzip would also add to an existing archive rather than replace it). A finished archive that could not
-    // be moved stays beside the destination (named in the error), it is not removed.
+    // be moved stays beside the destination (named in the error), it is not removed; see replaceFile().
     const std::string tmp = filename + ".tmp-" + File::getUniqueName(false);
     bool finished = false;
     try
@@ -973,15 +1004,7 @@ namespace OpenMS
         endProgress();
       }
       finished = true;
-#ifdef _WIN32
-      // std::filesystem::rename does not replace an existing file on Windows; File::rename removes it first
-      if (!File::rename(tmp, filename, true, false))
-      {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename + " (cannot replace it with the finished archive " + tmp + ")");
-      }
-#else
-      std::filesystem::rename(tmp, filename); // atomic replacement of a file; throws for a directory
-#endif
+      replaceFile(tmp, filename);
     }
     catch (Exception::BaseException&)
     {
