@@ -792,6 +792,9 @@ class ProSE :
       std::shared_ptr<const arrow::KeyValueMetadata> psm_meta, pg_meta;
       bool has_groups = false; // pg has rows (else no pg file: see the output)
       std::string pg_error;    // the protein groups could not be built (the input fails; the psm file is still written)
+      // psm passed ArrowIOHelpers::validateQPXTable() already (a single input: the table is written twice, as the run's
+      // file and as quantms.psm.parquet, checked once by the output): the writes skip the check
+      bool psm_validated = false;
     };
 
     /// Builds the tables of the QPX files of one input into @p files (see QPXRunFiles_) from @p runs and @p ids, with
@@ -845,7 +848,9 @@ class ProSE :
       const std::string part = staged ? ".part" : "";
       if (files.psm)
       {
-        written.first = files.psm_meta && ArrowIOHelpers::concatenateAndWriteToParquet({files.psm}, files.psm_file + part, config, files.psm_meta);
+        ParquetWriteConfig psm_config = config;
+        psm_config.validated = files.psm_validated;
+        written.first = files.psm_meta && ArrowIOHelpers::concatenateAndWriteToParquet({files.psm}, files.psm_file + part, psm_config, files.psm_meta);
         if (!written.first)
         {
           OPENMS_LOG_ERROR << "Failed to write QPX PSM parquet for " << in_file << " -> " << files.psm_file << endl;
@@ -2301,6 +2306,14 @@ class ProSE :
                                  << " (Arrow/Parquet): " << files.pg_error << endl;
                 input_failed = true;
               }
+              if (in_list.size() == 1 && files.psm && qpx_threads > 1)
+              {
+                // quantms.psm.parquet is this table again: checked once here, with the team, for both writes (a
+                // refused table is refused by the writes again, which log it as before)
+                ParquetWriteConfig check;
+                check.threads = qpx_threads;
+                files.psm_validated = ArrowIOHelpers::validateQPXTable(files.psm, files.psm_file, check);
+              }
             }
             { // the tables, for quantms.* (whatever the outcome of the writes, as before): before the writes start
               if (files.psm)
@@ -2650,8 +2663,10 @@ class ProSE :
         merged_config.threads = qpx_write_threads;
         if (psm_meta)
         {
+          merged_config.validated = in_list.size() == 1 && qpx_psm_tables.size() == 1 && early_qpx[0].psm_validated; // (the same table)
           merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
             qpx_psm_tables, out_qpx_dir + "/" + QPX_AGGREGATE_STEM + ".psm.parquet", merged_config, psm_meta) && merged_ok;
+          merged_config.validated = false;
         }
         // Same rule as the per-file pg above: with no group anywhere there is nothing to merge, and
         // an empty merged table would be indistinguishable from an inference that found nothing.

@@ -197,6 +197,24 @@ namespace ArrowIOHelpers
     const ParquetWriteConfig& config = ParquetWriteConfig{},
     const std::shared_ptr<const arrow::KeyValueMetadata>& metadata = nullptr);
 
+  /**
+    @brief The QPX value validation of writeTableToParquet() alone (QPXValueValidation of the view the table's
+    @c file_type metadata names; a table without QPX metadata passes)
+
+    For a table that is written more than once (a run's own file and the merged file of a single run): validated
+    here once, with @c config.threads, then written with @c config.validated set. A refused table is logged as by
+    the write.
+
+    @param[in] table The table (must not be null)
+    @param[in] filename The file it is for (in the log)
+    @param[in] config @c qpx_extra_columns and @c threads
+    @return true if the table may be written
+  */
+  OPENMS_DLLAPI bool validateQPXTable(
+    const std::shared_ptr<arrow::Table>& table,
+    const std::string& filename,
+    const ParquetWriteConfig& config = ParquetWriteConfig{});
+
   // ---------------------------------------------------------------------------
   // QPX file metadata
   // ---------------------------------------------------------------------------

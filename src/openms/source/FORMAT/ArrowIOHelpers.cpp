@@ -984,6 +984,19 @@ std::shared_ptr<arrow::Table> tableOfColumns(
   return arrow::Table::Make(arrow::schema(fields), arrays, static_cast<int64_t>(rows));
 }
 
+bool validateQPXTable(
+  const std::shared_ptr<arrow::Table>& table,
+  const std::string& filename,
+  const ParquetWriteConfig& config)
+{
+  if (!table)
+  {
+    OPENMS_LOG_ERROR << "ArrowIOHelpers: null table passed to validateQPXTable (" << filename << ")" << std::endl;
+    return false;
+  }
+  return validateQPXValuesForWrite(table, filename, config.qpx_extra_columns, config.threads);
+}
+
 bool writeTableToParquet(
   const std::shared_ptr<arrow::Table>& table,
   const std::string& filename,
@@ -994,7 +1007,7 @@ bool writeTableToParquet(
     OPENMS_LOG_ERROR << "ArrowIOHelpers: null table passed to writeTableToParquet (" << filename << ")" << std::endl;
     return false;
   }
-  if (!validateQPXValuesForWrite(table, filename, config.qpx_extra_columns, config.threads)) { return false; }
+  if (!config.validated && !validateQPXValuesForWrite(table, filename, config.qpx_extra_columns, config.threads)) { return false; }
 
   auto file_result = arrow::io::FileOutputStream::Open(filename);
   if (!file_result.ok())
@@ -1135,15 +1148,22 @@ bool concatenateAndWriteToParquet(
 {
   if (tables.empty()) { return true; }
 
-  auto concat_result = arrow::ConcatenateTables(tables);
-  if (!concat_result.ok())
+  std::shared_ptr<arrow::Table> table;
+  if (tables.size() == 1 && tables.front()) // (one table: as it is)
   {
-    OPENMS_LOG_ERROR << "ArrowIOHelpers: Failed to concatenate tables for " << filename
-                     << ": " << concat_result.status().ToString() << std::endl;
-    return false;
+    table = tables.front();
   }
-
-  auto table = concat_result.ValueOrDie();
+  else
+  {
+    auto concat_result = arrow::ConcatenateTables(tables);
+    if (!concat_result.ok())
+    {
+      OPENMS_LOG_ERROR << "ArrowIOHelpers: Failed to concatenate tables for " << filename
+                       << ": " << concat_result.status().ToString() << std::endl;
+      return false;
+    }
+    table = concat_result.ValueOrDie();
+  }
   // The concatenated table inherits the first input's schema metadata, which carries that
   // input's uuid/creation_date. Stamp one identity for the merged file instead.
   if (metadata) { table = table->ReplaceSchemaMetadata(metadata); }

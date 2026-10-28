@@ -180,6 +180,10 @@ struct OPENMS_DLLAPI ParquetWriteConfig
   /// owned by the write (not Arrow's global CPU pool). The file is the same: one row group per @p row_group_size
   /// rows, the same encodings and compression; only its uuid and creation_date differ between two writes.
   int threads = 1;
+
+  /// The table passed the QPX value validation already (ArrowIOHelpers::validateQPXTable() of the same table): the
+  /// write does not check it again. For a table written twice, e.g. as a run's file and as the merged file of one run.
+  bool validated = false;
 };
 
 
