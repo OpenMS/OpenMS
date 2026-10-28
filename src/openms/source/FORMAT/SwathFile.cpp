@@ -884,9 +884,9 @@ namespace OpenMS
     for (Size i = 0; i < exp.size(); i++)
     {
       const MSSpectrum& s = exp[i];
-      if (s.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+      if (s.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE && s.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET)
       {
-        faims_cvs.insert(s.getDriftTime());
+        faims_cvs.insert(s.getDriftTime()); // as FAIMSHelper::getCompensationVoltages(), without the "not set" value
       }
       {
         if (s.getMSLevel() == 1)

@@ -450,6 +450,17 @@ set_tests_properties("TOPP_FeatureFinderMetabo_5_out" PROPERTIES DEPENDS "TOPP_F
 add_test("TOPP_FeatureFinderMetabo_6" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo_6.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_6_input.mzML -out ${TESTS_TEMP_DIR}/FeatureFinderMetabo_6.tmp.featureXML)
 add_test("TOPP_FeatureFinderMetabo_6_out" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/FeatureFinderMetabo_6.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_6_output.featureXML)
 set_tests_properties("TOPP_FeatureFinderMetabo_6_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_6")
+# FAIMS (synthetic): the features of the three CVs are merged into one, and -out_chrom holds the chromatograms of
+# exactly the remaining features (a chromatogram's native ID starts with the unique id of its feature)
+add_test("TOPP_FeatureFinderMetabo_7" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -in ${DATA_DIR_TOPP}/FAIMS_3CV_synthetic.mzML -out ${TESTS_TEMP_DIR}/FeatureFinderMetabo_7.tmp.featureXML -out_chrom ${TESTS_TEMP_DIR}/FeatureFinderMetabo_7_chrom.tmp.mzML)
+add_test("TOPP_FeatureFinderMetabo_7_merged" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetabo_7.tmp.featureXML
+  "-DEXPECTED=name=\"FAIMS_merge_count\" value=\"3\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetabo_7_merged" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_7")
+add_test("TOPP_FeatureFinderMetabo_7_chrom"
+  bash -c "diff <(grep -o '<feature id=\"f_[0-9]*' ${TESTS_TEMP_DIR}/FeatureFinderMetabo_7.tmp.featureXML | grep -o '[0-9]*$' | sort -u) <(grep -o '<chromatogram id=\"[0-9]*_' ${TESTS_TEMP_DIR}/FeatureFinderMetabo_7_chrom.tmp.mzML | grep -o '[0-9][0-9]*' | sort -u)")
+set_tests_properties("TOPP_FeatureFinderMetabo_7_chrom" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_7")
 
 
 #------------------------------------------------------------------------------
@@ -1106,6 +1117,20 @@ set_tests_properties("TOPP_FileInfo_18_out1" PROPERTIES DEPENDS "TOPP_FileInfo_1
 add_test("TOPP_FileInfo_19" ${TOPP_BIN_PATH}/FileInfo -test -d -in ${DATA_DIR_TOPP}/FAIMS_test_data.mzML -out ${TESTS_TEMP_DIR}/FileInfo_19_output.tmp.txt)
 add_test("TOPP_FileInfo_19_out1" ${DIFF} -whitelist "File name" -in1 ${TESTS_TEMP_DIR}/FileInfo_19_output.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_19_output.txt )
 set_tests_properties("TOPP_FileInfo_19_out1" PROPERTIES DEPENDS "TOPP_FileInfo_19")
+# IonMobilityBinning on FAIMS data (two CVs): one file per compensation voltage
+add_test("TOPP_IonMobilityBinning_FAIMS" ${TOPP_BIN_PATH}/IonMobilityBinning -test -in ${DATA_DIR_TOPP}/FAIMS_CV-60C_V-45_Interleaved.mzML -out ${TESTS_TEMP_DIR}/IonMobilityBinning_FAIMS)
+add_test("TOPP_IonMobilityBinning_FAIMS_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/IonMobilityBinning_FAIMS_part1of2_-60--60.mzML
+  "-DEXPECTED=name=\"FAIMS compensation voltage\" value=\"-60\""
+  "-DFORBIDDEN=name=\"FAIMS compensation voltage\" value=\"-45\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_IonMobilityBinning_FAIMS_out1" PROPERTIES DEPENDS "TOPP_IonMobilityBinning_FAIMS")
+add_test("TOPP_IonMobilityBinning_FAIMS_out2" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/IonMobilityBinning_FAIMS_part2of2_-45--45.mzML
+  "-DEXPECTED=name=\"FAIMS compensation voltage\" value=\"-45\""
+  "-DFORBIDDEN=name=\"FAIMS compensation voltage\" value=\"-60\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_IonMobilityBinning_FAIMS_out2" PROPERTIES DEPENDS "TOPP_IonMobilityBinning_FAIMS")
 add_test("TOPP_FileInfo_20" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_20_input.fasta -out ${TESTS_TEMP_DIR}/FileInfo_20_output.tmp.txt)
 add_test("TOPP_FileInfo_20_out1" ${DIFF} -whitelist "File name" -in1 ${TESTS_TEMP_DIR}/FileInfo_20_output.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_20_output.txt )
 set_tests_properties("TOPP_FileInfo_20_out1" PROPERTIES DEPENDS "TOPP_FileInfo_20")

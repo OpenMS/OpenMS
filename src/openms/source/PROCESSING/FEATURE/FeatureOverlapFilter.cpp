@@ -493,9 +493,18 @@ namespace OpenMS
         double best_intensity = best_in_cluster.getIntensity();
         double f_intensity = f.getIntensity();
 
-        // keep the identifications of the merged feature
-        best_in_cluster.getPeptideIdentifications().insert(best_in_cluster.getPeptideIdentifications().end(),
-                                                           f.getPeptideIdentifications().begin(), f.getPeptideIdentifications().end());
+        // keep the identifications of the merged feature, once: an identification without a FAIMS CV is given to the
+        // features of every CV (FAIMSHelper::filterPeptidesByFAIMSCV), so the features of a cluster can share copies
+        auto& best_ids = best_in_cluster.getPeptideIdentifications();
+        for (const PeptideIdentification& pep_id : f.getPeptideIdentifications())
+        {
+          const bool known = std::any_of(best_ids.begin(), best_ids.end(), [&pep_id](const PeptideIdentification& other)
+          {
+            return other.getSpectrumReference() == pep_id.getSpectrumReference() && other.getIdentifier() == pep_id.getIdentifier()
+                   && other.getRT() == pep_id.getRT() && other.getMZ() == pep_id.getMZ();
+          });
+          if (!known) best_ids.push_back(pep_id);
+        }
 
         // Collect centroid RT positions
         std::vector<double> merged_rts;

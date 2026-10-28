@@ -632,6 +632,7 @@ START_SECTION(mergeFAIMSFeatures - identifications)
     Feature f = createTestFeature(100.0, 500.0, intensity, 2);
     f.setMetaValue(Constants::UserParam::FAIMS_CV, cv);
     PeptideIdentification pep_id;
+    pep_id.setSpectrumReference("scan=" + StringUtils::toStr(int(-cv))); // an MS2 spectrum at this CV
     pep_id.insertHit(PeptideHit(1.0, 1, 2, AASequence::fromString(sequence)));
     f.getPeptideIdentifications().push_back(pep_id);
     f.ensureUniqueId();
@@ -654,6 +655,23 @@ START_SECTION(mergeFAIMSFeatures - identifications)
   FeatureOverlapFilter::mergeFAIMSFeatures(different, 5.0, 0.05);
   TEST_EQUAL(different.size(), 2)
   TEST_REAL_SIMILAR(different[0].getIntensity() + different[1].getIntensity(), 1500.0)
+
+  // an identification without a CV is given to the features of every CV: the merged feature keeps it once
+  PeptideIdentification without_cv;
+  without_cv.setSpectrumReference("scan=100");
+  without_cv.setRT(100.0);
+  without_cv.setMZ(500.0);
+  without_cv.insertHit(PeptideHit(1.0, 1, 2, AASequence::fromString("PEPTIDEK")));
+  FeatureMap shared;
+  for (double cv : {-45.0, -55.0, -65.0})
+  {
+    Feature f = identified(1100.0 + 10.0 * cv, cv, "PEPTIDEK");
+    f.getPeptideIdentifications().push_back(without_cv);
+    shared.push_back(f);
+  }
+  FeatureOverlapFilter::mergeFAIMSFeatures(shared, 5.0, 0.05);
+  TEST_EQUAL(shared.size(), 1)
+  TEST_EQUAL(shared[0].getPeptideIdentifications().size(), 4) // the one of each CV, and the shared one once
 }
 END_SECTION
 

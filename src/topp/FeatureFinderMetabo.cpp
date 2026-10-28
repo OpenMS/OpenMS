@@ -23,8 +23,8 @@
 #include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
 #include <limits>
-#include <map>
 #include <set>
+#include <unordered_set>
 
 
 using namespace OpenMS;
@@ -388,17 +388,6 @@ protected:
       }
     }
 
-    // chromatograms of each feature by its unique id (FeatureFindingMetabo reports them in feature order)
-    std::map<UInt64, std::vector<MSChromatogram>> chromatograms_by_feature;
-    if (feat_chromatograms.size() == feat_map.size())
-    {
-      for (Size i = 0; i < feat_map.size(); ++i)
-      {
-        chromatograms_by_feature[feat_map[i].getUniqueId()] = std::move(feat_chromatograms[i]);
-      }
-      feat_chromatograms.clear();
-    }
-
     if (has_faims)
     {
       OPENMS_LOG_INFO << "Combined " << feat_map.size() << " features from all FAIMS CV groups." << endl;
@@ -417,13 +406,19 @@ protected:
     auto intensity_zero = [&](Feature& f) { return f.getIntensity() == 0; };
     feat_map.erase(remove_if(feat_map.begin(),feat_map.end(),intensity_zero),feat_map.end());
 
-    // the merge and the filter remove and reorder features: give each remaining feature its chromatograms again
-    if (!chromatograms_by_feature.empty())
+    // keep the chromatograms of the remaining features (the FAIMS merge and the filter removed some). Each
+    // chromatogram carries the unique id of its feature in its native ID ("<id>_<trace>", see
+    // FeatureHypothesis::getChromatograms); the order does not pair them, FeatureFindingMetabo sorts features by m/z
+    if (!out_chrom.empty())
     {
-      for (const Feature& f : feat_map)
+      std::unordered_set<UInt64> kept_ids;
+      for (const Feature& f : feat_map) kept_ids.insert(f.getUniqueId());
+      std::erase_if(feat_chromatograms, [&kept_ids](const std::vector<MSChromatogram>& chroms)
       {
-        feat_chromatograms.push_back(std::move(chromatograms_by_feature[f.getUniqueId()]));
-      }
+        if (chroms.empty()) return true;
+        const std::string& id = chroms.front().getNativeID();
+        return !kept_ids.contains(std::stoull(id.substr(0, id.find('_'))));
+      });
     }
 
     // store chromatograms
