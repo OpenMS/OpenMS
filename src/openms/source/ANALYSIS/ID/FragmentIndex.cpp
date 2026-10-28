@@ -129,10 +129,10 @@ namespace OpenMS
     constexpr int MAX_MIN_MATCHED_IONS = 1000;
     constexpr int MAX_REPORTED_HITS = 100;
 
-    // checkSearchParameters() without peptide:motif
-    void checkSearchRanges(const Param& param)
+    // checkSearchParameters() without peptide:motif (the messages name the parameters with name_prefix)
+    void checkSearchRanges(const Param& param, const std::string& name_prefix = "")
     {
-      const auto check_range = [&param](const std::string& min_name, const std::string& max_name, bool zero_max_unlimited)
+      const auto check_range = [&](const std::string& min_name, const std::string& max_name, bool zero_max_unlimited)
       {
         if (!param.exists(min_name) || !param.exists(max_name)) return;
         const double min_value = param.getValue(min_name);
@@ -141,8 +141,9 @@ namespace OpenMS
         if (min_value > max_value)
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            min_name + " (" + param.getValue(min_name).toString() + ") is larger than " + max_name + " ("
-            + param.getValue(max_name).toString() + "): nothing would be searched. Swap the values or adjust the range.");
+            name_prefix + min_name + " (" + param.getValue(min_name).toString() + ") is larger than " + name_prefix
+            + max_name + " (" + param.getValue(max_name).toString() + "): nothing would be searched. Swap the values or "
+            "adjust the range.");
         }
       };
       check_range("precursor:min_charge", "precursor:max_charge", false);
@@ -150,10 +151,27 @@ namespace OpenMS
       check_range("peptide:min_size", "peptide:max_size", true);
       check_range("peptide:min_mass", "peptide:max_mass", false);
       check_range("fragment:min_mz", "fragment:max_mz", false);
+
+      // The precursor window: restrictions reject negative tolerances, but NaN and infinity pass them (NaN < 0 is false;
+      // NaN would break the strict weak ordering of lower_bound).
+      const std::string lower = "precursor:mass_tolerance_lower", upper = "precursor:mass_tolerance_upper";
+      if (!param.exists(lower) || !param.exists(upper)) return;
+      const double lower_value = param.getValue(lower);
+      const double upper_value = param.getValue(upper);
+      if (!std::isfinite(lower_value) || !std::isfinite(upper_value))
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          name_prefix + lower + " and " + name_prefix + upper + " must be finite");
+      }
+      if (lower_value + upper_value <= 0.0)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The precursor window has zero width: " + name_prefix + lower + " + " + name_prefix + upper + " must be > 0.");
+      }
     }
 
     // The compiled peptide:motif (none if empty), or InvalidParameter
-    RegularExpression compileMotif(const std::string& motif)
+    RegularExpression compileMotif(const std::string& motif, const std::string& name_prefix = "")
     {
       if (motif.empty()) return RegularExpression();
       try
@@ -163,7 +181,7 @@ namespace OpenMS
       catch (const std::exception& e)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "peptide:motif '" + motif + "' is not a valid regular expression (" + e.what() + ").");
+          name_prefix + "peptide:motif '" + motif + "' is not a valid regular expression (" + e.what() + ").");
       }
     }
   } // namespace
@@ -200,10 +218,10 @@ namespace OpenMS
     }
   }
 
-  void FragmentIndex::checkSearchParameters(const Param& param)
+  void FragmentIndex::checkSearchParameters(const Param& param, const std::string& name_prefix)
   {
-    checkSearchRanges(param);
-    if (param.exists("peptide:motif")) { compileMotif(param.getValue("peptide:motif").toString()); }
+    checkSearchRanges(param, name_prefix);
+    if (param.exists("peptide:motif")) { compileMotif(param.getValue("peptide:motif").toString(), name_prefix); }
   }
 
   void FragmentIndex::precursorCharges(const Precursor& precursor, int min_charge, int max_charge, std::vector<uint16_t>& charges)
@@ -225,7 +243,7 @@ namespace OpenMS
            || boost::regex_search(sequence, sequence + length, Internal::RegularExpressionAccess::get(peptide_motif_));
   }
 
-  void FragmentIndex::checkFixedModifications(const StringList& fixed_modifications)
+  void FragmentIndex::checkFixedModifications(const StringList& fixed_modifications, const std::string& name_prefix)
   {
     if (fixed_modifications.empty()) return;
     // The index has one N- and one C-terminal fixed mass for all peptides (fixed_nterm_delta_ / fixed_cterm_delta_,
@@ -238,7 +256,7 @@ namespace OpenMS
       const bool n_term = term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::PROTEIN_N_TERM;
       const std::string terminus = n_term ? "N-terminus" : "C-terminus";
       const std::string use_variable = ", but a fixed terminal modification is applied to every peptide. "
-                                       "Specify it as a variable modification (modifications:variable) instead.";
+                                       "Specify it as a variable modification (" + name_prefix + "modifications:variable) instead.";
       if (term_spec == ResidueModification::PROTEIN_N_TERM || term_spec == ResidueModification::PROTEIN_C_TERM)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -3902,20 +3920,6 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     precursor_mass_tolerance_unit_ppm_ = param_.getValue("precursor:mass_tolerance_unit").toString() == "ppm";
     fragment_mz_tolerance_ = param_.getValue("fragment:mass_tolerance");
     fragment_mz_tolerance_unit_ppm_ = param_.getValue("fragment:mass_tolerance_unit").toString() == "ppm";
-
-    // Validation — setMinFloat(0.0) rejects negatives via checkDefaults_, but NaN/+inf slip past
-    // (NaN < 0 is false). NaN would break lower_bound's strict-weak-ordering.
-    if (!std::isfinite(precursor_mass_tolerance_lower_) ||
-        !std::isfinite(precursor_mass_tolerance_upper_))
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "precursor:mass_tolerance_lower and mass_tolerance_upper must be finite");
-    }
-    if (precursor_mass_tolerance_lower_ + precursor_mass_tolerance_upper_ <= 0.0)
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "precursor window has zero width (lower + upper must be > 0)");
-    }
 
     modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:fixed"));
     modifications_variable_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:variable"));
