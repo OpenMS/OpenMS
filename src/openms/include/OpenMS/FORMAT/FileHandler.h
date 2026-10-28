@@ -178,6 +178,7 @@ public:
       @param[out] compute_hash If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile.
 
       @note Thermo .raw files (OpenMS built with WITH_THERMO_RAW) are read with Thermo's peak picking, like FileConverter does by default, so profile scans are returned centroided. Use ThermoRawFile directly to keep the scans as they were acquired.
+      As for mzML, SRM scans (triple quadrupoles) are converted to chromatograms.
       The MS level, RT range, precursor m/z range, metadata-only, fill-data and skip-chromatograms options are passed to the reader, so skipped scans are not decoded
       (fill-data off loads spectra without peaks, like metadata-only). The SourceFile carries no SHA-1 checksum unless @p rewrite_source_file and @p compute_hash are set.
       Bruker .d directories and .d.zip archives (OpenMS built with WITH_OPENTIMS): the MS levels and the RT and ion mobility ranges are passed to the reader,
@@ -202,8 +203,8 @@ public:
       The PeakFileOptions are applied as by loadExperiment(); .raw files are read centroided and with the
       scan-level options passed to the reader, as by loadExperiment(). For .d data the reader skips the frames
       the options exclude, as for loadExperiment(), and every spectrum is then filtered on its way to the
-      consumer. Bruker MALDI imaging data is rejected, as by loadExperiment(). Unlike loadExperiment(), mzML spectra
-      that hold chromatogram data (SRM) are not converted to chromatograms. For mzML and mzXML the sizes passed
+      consumer. Bruker MALDI imaging data is rejected, as by loadExperiment(). Unlike loadExperiment(), mzML and .raw
+      spectra that hold chromatogram data (SRM) are not converted to chromatograms. For mzML and mzXML the sizes passed
       to IMSDataConsumer::setExpectedSize() come from the file and ignore the selection; for .raw they are the
       numbers of selected spectra and chromatograms. For .d data the number of spectra is an upper bound: it is
       counted before any peak is read (see BrukerTimsFile::transform()), and the spectra the options exclude

@@ -134,6 +134,8 @@ public:
               SpectrumType dummy = *it;
               dummy.clear(false);
               dummy.push_back((*it)[peak_idx]);
+              // the chromatograms of one spectrum would share its native ID otherwise (mzML requires unique ids)
+              dummy.setNativeID(it->getNativeID() + " product=" + StringUtils::toStr((*it)[peak_idx].getMZ()));
               chroms[it->getPrecursors().begin()->getMZ()][(*it)[peak_idx].getMZ()].push_back(dummy);
             }
           }
