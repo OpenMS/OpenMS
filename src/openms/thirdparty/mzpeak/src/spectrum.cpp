@@ -64,6 +64,7 @@ void Spectrum::decode_() const
     peaks_->mz.clear();
     peaks_->intensity.clear();
     peaks_->mobility.clear();
+    peaks_->mobility_type.reset();
 
     // The signal-file read for this spectrum happens here (not at
     // construction) so a metadata-only pass never touches the peak data.
@@ -130,6 +131,7 @@ void Spectrum::decode_() const
         if (mobility_dim == nullptr) {
           decoder.decimal(dim, peaks_->mobility);
           mobility_dim = &dim;
+          peaks_->mobility_type = dim.array_type;
         } else if (dim.array_type == mobility_dim->array_type) {
           // The SAME mobility array in a second physical type: its rows are
           // split between the two, so keeping one would drop the other's.
@@ -239,6 +241,12 @@ const std::vector<double>& Spectrum::ion_mobility_array() const
 {
   decode_();
   return peaks_->mobility;
+}
+
+std::optional<Schema::PSI::ArrayType> Spectrum::ion_mobility_array_type() const
+{
+  decode_();
+  return peaks_->mobility_type;
 }
 
 /******************************************************************************/

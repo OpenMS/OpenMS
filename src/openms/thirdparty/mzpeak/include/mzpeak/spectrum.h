@@ -85,6 +85,9 @@ public:
    * one-scalar-per-spectrum layout.
    */
   const std::vector<double>& ion_mobility_array() const;
+  /// The array type of ion_mobility_array() (MS:1002893 ion mobility array, MS:1003006 mean inverse reduced
+  /// ion mobility array, MS:1002816 mean ion mobility drift time array, ...); nullopt without one. (OpenMS addition.)
+  std::optional<Schema::PSI::ArrayType> ion_mobility_array_type() const;
 
   /**
    * Stage number achieved in a multi stage mass spectrometry
@@ -146,6 +149,9 @@ private:
     std::vector<double> mz;
     std::vector<float> intensity;
     std::vector<double> mobility;
+    /// The array type of `mobility` (OpenMS addition: a consumer must know whether the values are drift
+    /// times, inverse reduced mobilities, ...); nullopt without a mobility array.
+    std::optional<Schema::PSI::ArrayType> mobility_type;
   };
 
   /// Read + decode the peak arrays into peaks_ on first access.  Runs at most

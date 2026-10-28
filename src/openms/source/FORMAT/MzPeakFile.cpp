@@ -34,6 +34,7 @@
 #include <mzpeak/exception.h>
 #include <mzpeak/index.h>
 #include <mzpeak/open.h>
+#include <mzpeak/schema/psi/array_type.h>
 #include <mzpeak/spectra.h>
 #include <mzpeak/spectrum.h>
 #include <mzpeak/writer.h>
@@ -231,6 +232,21 @@ namespace OpenMS
       if (*accession == "MS:1001581") { return DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE; } // FAIMS compensation voltage
       if (*accession == "MS:1002954") { return DriftTimeUnit::CCS; }                        // collisional cross sectional area
       return DriftTimeUnit::NONE;
+    }
+
+    /// The OpenMS unit of a per-peak ion mobility array's type; NONE if the type does not tell (plain "ion mobility array")
+    DriftTimeUnit arrayUnit(const std::optional<MzPeak::Schema::PSI::ArrayType>& type)
+    {
+      using AT = MzPeak::Schema::PSI::ArrayType;
+      if (!type) { return DriftTimeUnit::NONE; }
+      switch (*type)
+      {
+        case AT::MeanInverseReducedIonMobility:
+        case AT::RawInverseReducedIonMobility: return DriftTimeUnit::VSSC;
+        case AT::MeanIonMobilityDriftTime:
+        case AT::RawIonMobilityDriftTime: return DriftTimeUnit::MILLISECOND;
+        default: return DriftTimeUnit::NONE;
+      }
     }
 
     /// The CV accession of an OpenMS drift time unit (for writing); empty if none
@@ -513,11 +529,17 @@ namespace OpenMS
         DataArrays::FloatDataArray im_array;
         im_array.resize(n);
         for (Size i = 0; i < n; ++i) { im_array[i] = static_cast<float>(mobility[i]); }
-        // the unit of the array: that of the scans facet's ion_mobility_type, else the one the spectrum's or the
-        // selected ion's ion mobility named, else 1/K0 (timsTOF data, which is what carries per-peak mobilities)
-        DriftTimeUnit unit = driftTimeUnit(md.ion_mobility_type);
+        // the unit of the array: what its array type says (a drift time or an inverse reduced mobility array), else
+        // the scans facet's ion_mobility_type, else the unit the spectrum's or the selected ion's ion mobility named,
+        // else 1/K0 (timsTOF data, which is what carries per-peak mobilities)
+        DriftTimeUnit unit = arrayUnit(in.ion_mobility_array_type());
+        if (unit == DriftTimeUnit::NONE) { unit = driftTimeUnit(md.ion_mobility_type); }
         if (unit == DriftTimeUnit::NONE) { unit = out.getDriftTimeUnit(); }
         if (unit == DriftTimeUnit::NONE && !out.getPrecursors().empty()) { unit = out.getPrecursors().front().getDriftTimeUnit(); }
+        if (unit == DriftTimeUnit::NONE && !md.precursors.empty() && !md.precursors.front().selected_ions.empty())
+        {
+          unit = driftTimeUnit(md.precursors.front().selected_ions.front().ion_mobility_type); // (a type without a value)
+        }
         if (unit == DriftTimeUnit::NONE) { unit = DriftTimeUnit::VSSC; }
         IMDataArrayUtils::setIMUnit(im_array, unit);
         out.getFloatDataArrays().push_back(std::move(im_array));
@@ -932,8 +954,10 @@ namespace OpenMS
   void MzPeakFile::store(const std::string& filename, const PeakMap& exp) const
   {
     // Written as a sibling first and moved over the destination when finished: an existing archive survives a failed
-    // write (libzip would also add to an existing archive rather than replace it)
+    // write (libzip would also add to an existing archive rather than replace it). A finished archive that could not
+    // be moved stays beside the destination (named in the error), it is not removed.
     const std::string tmp = filename + ".tmp-" + File::getUniqueName(false);
+    bool finished = false;
     try
     {
       {
@@ -948,22 +972,26 @@ namespace OpenMS
         writer.finish();
         endProgress();
       }
-      if (!File::rename(tmp, filename, true, false)) // (std::filesystem::rename does not replace an existing file on Windows)
+      finished = true;
+#ifdef _WIN32
+      // std::filesystem::rename does not replace an existing file on Windows; File::rename removes it first
+      if (!File::rename(tmp, filename, true, false))
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename + " (cannot replace it with the finished archive)");
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename + " (cannot replace it with the finished archive " + tmp + ")");
       }
+#else
+      std::filesystem::rename(tmp, filename); // atomic replacement of a file; throws for a directory
+#endif
     }
     catch (Exception::BaseException&)
     {
-      std::error_code ec;
-      std::filesystem::remove(tmp, ec);
+      if (!finished) { std::error_code ec; std::filesystem::remove(tmp, ec); }
       throw;
     }
     catch (const std::exception& e)
     {
-      std::error_code ec;
-      std::filesystem::remove(tmp, ec);
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename + " (" + e.what() + ")");
+      if (!finished) { std::error_code ec; std::filesystem::remove(tmp, ec); }
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename + " (" + e.what() + (finished ? "; the finished archive is " + tmp : std::string()) + ")");
     }
     if (!exp.getChromatograms().empty())
     {

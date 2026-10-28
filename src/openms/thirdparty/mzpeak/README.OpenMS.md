@@ -41,6 +41,9 @@ the OpenMS interface.
 - Reader: a spectrum (or wavelength spectrum) whose metadata row has no `time` takes the
   retention time of its scan (`src/util/metadata_model.cpp`: `value_or(from_scan)` made the
   comparison a no-op, so a scan-only retention time was never assigned; found by the review).
+- Reader: `Spectrum::ion_mobility_array_type()` tells the array type of the per-peak ion mobility
+  array (`include/mzpeak/spectrum.h`, `src/spectrum.cpp`); a timed scan replaces an untimed
+  representative scan (`src/util/metadata_model.cpp`).
 - `src/boost_json_src.cpp` (new): Boost.JSON compiled header-only, so libOpenMS links no
   compiled Boost library.
 - `sources.cmake`, `CMakeLists.txt`, this file.

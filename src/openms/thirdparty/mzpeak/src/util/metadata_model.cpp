@@ -1707,7 +1707,8 @@ read_spectra_metadata_(const SpectraMetadataFiles& files, MetadataDetail detail)
             // Already have a scan for this spectrum: only replace when this one
             // is genuinely earlier.  A scan with no time never displaces one
             // that has a time.
-            representative = sst.has_value() && seen->has_value() && *sst < **seen;
+            // (OpenMS change: a timed scan also replaces an untimed one)
+            representative = sst.has_value() && (!seen->has_value() || *sst < **seen);
           }
 
           if (representative) {
@@ -2028,8 +2029,8 @@ read_wavelength_spectrum_metadata(const WavelengthMetadataFiles& files)
 
       bool representative = true;
       if (auto seen = earliest_scan.find(*src_idx); seen != earliest_scan.end()) {
-        representative =
-            sst.has_value() && seen->second.has_value() && *sst < *seen->second;
+        representative = // (OpenMS change: a timed scan also replaces an untimed one)
+            sst.has_value() && (!seen->second.has_value() || *sst < *seen->second);
       }
       if (!representative) continue;
       earliest_scan[*src_idx] = sst;
