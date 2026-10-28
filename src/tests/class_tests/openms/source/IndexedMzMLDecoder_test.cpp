@@ -12,6 +12,8 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <fstream>
+#include <iostream>
+#include <sstream>
 ///////////////////////////
 
 #define MULTI_LINE_STRING(...) #__VA_ARGS__ 
@@ -87,8 +89,13 @@ START_SECTION((std::streampos findIndexListOffset(std::string filename, int buff
   TEST_NOT_EQUAL(res, -1)
 
   // A std::streamoff value of -1 is also used to represent error conditions by some of the I/O library functions. 
+  // Not an error to print: MzMLFile probes ordinary mzML this way before a parallel load
+  std::stringstream captured;
+  std::streambuf* original = std::cerr.rdbuf(captured.rdbuf());
   std::streampos nonindex = IndexedMzMLDecoder().findIndexListOffset(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
+  std::cerr.rdbuf(original);
   TEST_EQUAL(nonindex, -1)
+  TEST_STRING_EQUAL(captured.str(), "")
 
 END_SECTION
 
