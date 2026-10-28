@@ -23,6 +23,13 @@ inputs:
   ssh_user:
     description: "SSH user for the rsync cache archive"
     required: false
+  arrow_version:
+    description: >-
+      Build against this Apache Arrow version from vcpkg instead of the one the
+      vcpkg baseline picks (a vcpkg.json override for this job only). Empty
+      keeps the baseline version.
+    required: false
+    default: ""
 outputs:
   version:
     description: "The discovered compiler version number"
@@ -40,6 +47,34 @@ runs:
       if: ${{ runner.os == 'Windows' }}
       uses: egor-tensin/vs-shell@v2
       with: { arch: x64 }
+
+    ############################################################################
+    # vcpkg installs the manifest's dependencies during the CMake configure in
+    # "Build", so the override only has to be in vcpkg.json by then.  It is
+    # added before "Install Dependencies" on purpose: that step restores and,
+    # at the end of the job, saves the vcpkg binary cache under a key hashed
+    # from vcpkg.json, and the save evaluates the key again.  Patched first,
+    # restore and save agree on one cache for this job's Arrow.
+    - name: Pin the Arrow Version
+      if: ${{ inputs.arrow_version != '' }}
+      shell: bash
+      env:
+        ARROW_VERSION: ${{ inputs.arrow_version }}
+      run: |
+        python3 - <<'PY'
+        import json
+        import os
+
+        with open("vcpkg.json") as f:
+            manifest = json.load(f)
+        overrides = [o for o in manifest.get("overrides", []) if o["name"] != "arrow"]
+        overrides.append({"name": "arrow", "version": os.environ["ARROW_VERSION"]})
+        manifest["overrides"] = overrides
+        with open("vcpkg.json", "w") as f:
+            json.dump(manifest, f, indent=2)
+            f.write("\n")
+        print("vcpkg.json overrides:", json.dumps(overrides))
+        PY
 
     ############################################################################
     - name: Install Dependencies

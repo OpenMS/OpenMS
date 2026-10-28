@@ -39,6 +39,9 @@ jobs:
             -P src/tests/header_sets/run.cmake
 
   build-and-test:
+    # Spelled out so the check names stay "build-and-test (<os>, <compiler>)" and do not grow the
+    # arrow value of the one leg that sets it.
+    name: build-and-test (${{ matrix.os }}, ${{ matrix.compiler }})
     strategy:
       fail-fast: false
       matrix:
@@ -49,8 +52,13 @@ jobs:
             compiler: xcode
           - os: ubuntu-24.04
             compiler: g++
+          # The oldest Arrow that OpenMS supports (cmake/cmake_findExternalLibs.cmake), which the
+          # Docker image and the Bioconda recipe build with. The other legs use the vcpkg baseline's
+          # newer Arrow, so without this leg a newer Arrow API breaks only the nightly container
+          # build (#10731).
           - os: ubuntu-24.04-arm
             compiler: g++
+            arrow: "23.0.1"
           - os: ubuntu-24.04
             compiler: clang++
     runs-on: ${{ matrix.os }}
@@ -64,6 +72,7 @@ jobs:
         uses: ./.github/actions/build
         with:
           compiler: ${{ matrix.compiler }}
+          arrow_version: ${{ matrix.arrow }}
           ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
           ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
