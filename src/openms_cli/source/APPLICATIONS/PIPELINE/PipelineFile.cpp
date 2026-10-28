@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <charconv>
 #include <filesystem>
 #include <map>
@@ -29,8 +30,6 @@ namespace
     return {value.begin(), value.end()};
   }
 
-  std::filesystem::path utf8Path(const std::string& value)
-  { return std::filesystem::path(std::u8string(value.begin(), value.end())); }
 
   const ParamValue& requiredValue(const Param& parameters, const std::string& key)
   {
@@ -180,7 +179,7 @@ void PipelineFile::loadParam(const Param& parameters, PipelineGraph& graph, cons
   const Param vertices = parameters.copy("vertices:", true);
   const auto vertex_ids = sectionNames(vertices);
   if (vertex_ids.size() != vertex_count) { invalidFile("TOPPAS vertex count does not match its vertex records."); }
-  const auto base = filename.empty() ? std::filesystem::path() : std::filesystem::absolute(utf8Path(filename)).parent_path();
+  const auto base = filename.empty() ? std::filesystem::path() : std::filesystem::absolute(to_path(filename)).parent_path();
   for (const auto& key : vertex_ids)
   {
     PipelineGraph::Node vertex;
@@ -196,9 +195,18 @@ void PipelineFile::loadParam(const Param& parameters, PipelineGraph& graph, cons
       vertex.files = requiredValue(vertices, prefix + "file_names").toStringVector();
       for (auto& file : vertex.files)
       {
-        auto path = utf8Path(file);
-        if (path.is_relative() && ! base.empty()) { path = base / path; }
-        // A lexical cleanup of symlink/../file can silently select a different input.
+        auto path = to_path(file);
+        if (path.is_relative() && ! base.empty())
+        {
+          path = base / path;
+          // A lexical cleanup of symlink/../file can silently select a different input,
+          // and current versions only save relative paths that resolve physically. Older
+          // TOPPAS versions created and resolved them lexically, though; use that meaning
+          // only if the physical one does not exist.
+          std::error_code physical_error, lexical_error;
+          const auto lexical = path.lexically_normal();
+          if (! std::filesystem::exists(path, physical_error) && std::filesystem::exists(lexical, lexical_error)) { path = lexical; }
+        }
         file = pathString(path);
       }
       if (vertices.exists(prefix + "resource_key")) { vertex.resource_key = vertices.getValue(prefix + "resource_key").toString(); }
@@ -251,7 +259,7 @@ Param PipelineFile::storeParam(const PipelineGraph& graph, const std::string& fi
   parameters.setValue("info:num_vertices", static_cast<int>(numbered.nodes.size()));
   parameters.setValue("info:num_edges", static_cast<int>(numbered.edges.size()));
   parameters.setValue("info:description", "<![CDATA[" + numbered.description + "]]>");
-  const auto base = filename.empty() ? std::filesystem::path() : std::filesystem::absolute(utf8Path(filename)).parent_path();
+  const auto base = filename.empty() ? std::filesystem::path() : std::filesystem::absolute(to_path(filename)).parent_path();
   for (Size i = 0; i < order.size(); ++i)
   {
     const auto& vertex = numbered.node(order[i]);
@@ -269,7 +277,8 @@ Param PipelineFile::storeParam(const PipelineGraph& graph, const std::string& fi
         {
           for (auto& file : files)
           {
-            const auto path = std::filesystem::absolute(utf8Path(file));
+            if (file.empty()) { continue; } // std::filesystem::absolute rejects an empty path
+            const auto path = std::filesystem::absolute(to_path(file));
             const auto relative = path.lexically_relative(base);
             file = pathString(path);
             if (! relative.empty())

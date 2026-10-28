@@ -23,8 +23,12 @@ using namespace OpenMS;
 namespace
 {
 std::atomic_flag interrupted = ATOMIC_FLAG_INIT;
-void requestInterrupt(int)
-{ interrupted.test_and_set(std::memory_order_relaxed); }
+void requestInterrupt(int signal)
+{
+  interrupted.test_and_set(std::memory_order_relaxed);
+  // Cancellation stops the children; a second signal terminates at once if it hangs.
+  std::signal(signal, SIG_DFL);
+}
 
 struct SignalGuard
 {
@@ -34,8 +38,15 @@ struct SignalGuard
   SignalGuard()
   {
     interrupted.clear(std::memory_order_relaxed);
-    interrupt_handler = std::signal(SIGINT, requestInterrupt);
-    terminate_handler = std::signal(SIGTERM, requestInterrupt);
+    interrupt_handler = install(SIGINT);
+    terminate_handler = install(SIGTERM);
+  }
+  static Handler install(int signal)
+  {
+    const Handler previous = std::signal(signal, requestInterrupt);
+    // Keep signals ignored that the caller ignores (nohup, background jobs of scripts).
+    if (previous == SIG_IGN) { std::signal(signal, SIG_IGN); }
+    return previous;
   }
   ~SignalGuard()
   {
@@ -74,6 +85,7 @@ struct InterruptMonitor
 };
 } // namespace
 
+// clang-format off
 /**
 @page TOPP_ExecutePipeline ExecutePipeline
 
@@ -92,8 +104,9 @@ one - sorry). It can be exported from TOPPAS (<TT>File -> Save TOPPAS resource f
 
 \code
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<PARAMETERS version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_3.xsd"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"> <NODE name="1" description=""> <ITEMLIST name="url_list" type="string" description="">
+<PARAMETERS version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="1" description="">
+    <ITEMLIST name="url_list" type="string" description="">
       <LISTITEM value="file:///Users/jeff/dataA.mzML"/>
       <LISTITEM value="file:///Users/jeff/dataB.mzML"/>
     </ITEMLIST>
@@ -111,6 +124,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"> <NODE name="1" descriptio
 <B>INI file documentation of this tool:</B>
 @htmlinclude TOPP_ExecutePipeline.html
 */
+// clang-format on
 
 /// @cond TOPPCLASSES
 class TOPPExecutePipeline : public TOPPBase
@@ -134,6 +148,28 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
+    try
+    {
+      return execute_();
+    }
+    catch (const Exception::BaseException&)
+    {
+      throw; // reported by TOPPBase
+    }
+    catch (const std::filesystem::filesystem_error& error)
+    {
+      OPENMS_LOG_ERROR << "Error: " << error.what() << '\n';
+      return CANNOT_WRITE_OUTPUT_FILE;
+    }
+    catch (const std::exception& error)
+    {
+      OPENMS_LOG_ERROR << "Error: " << error.what() << '\n';
+      return UNKNOWN_ERROR;
+    }
+  }
+
+  ExitCodes execute_()
+  {
     namespace fs = std::filesystem;
     const auto filename = getStringOption_("in");
     PipelineGraph graph;
@@ -145,10 +181,13 @@ protected:
     if (output.empty())
     {
       const auto basename = File::basename(filename);
-      output = SystemSettings::getUserDirectory() + "/" + basename.substr(0, basename.find('.'));
+      // Join natively: the home directory may be in the Windows ANSI code page and already ends in '/'.
+      const auto directory = to_path(SystemSettings::getUserDirectory()) / to_path(basename.substr(0, basename.find('.')));
+      const auto utf8 = directory.generic_u8string();
+      output.assign(utf8.begin(), utf8.end());
       std::cout << "No output directory specified. Using " << output << '\n';
     }
-    else if (! fs::is_directory(to_path(output)))
+    else if (std::error_code error; ! fs::is_directory(to_path(output), error))
     {
       OPENMS_LOG_ERROR << "The specified output directory does not exist: " << output << '\n';
       return CANNOT_WRITE_OUTPUT_FILE;
@@ -171,6 +210,8 @@ protected:
         if (event.text.back() != '\n') stream << '\n';
       }
     });
+    // Child exit codes are passed on; ExitCodes cannot represent other values.
+    if (result.exit_code < EXECUTION_OK || result.exit_code > EXTERNAL_PROGRAM_NOTFOUND) { return EXTERNAL_PROGRAM_ERROR; }
     return static_cast<ExitCodes>(result.exit_code);
   }
 };
