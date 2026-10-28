@@ -4830,7 +4830,7 @@ static void scoreXLIons_(
 
         // add RT prediction as extra feature for percolator      
         auto search_parameters = prot_ids[0].getSearchParameters();
-        std::string new_features = StringUtils::toStr(search_parameters.getMetaValue("extra_features")) + std::string(", RT_error,RT_predict");
+        std::string new_features = StringUtils::toStr(search_parameters.getMetaValue("extra_features")) + std::string(",RT_error,RT_predict");
         search_parameters.setMetaValue("extra_features", new_features);
         prot_ids[0].setSearchParameters(search_parameters);
       }
@@ -6404,7 +6404,7 @@ static void scoreXLIons_(
 
         // add RT prediction as extra feature for percolator      
         auto search_parameters = protein_ids[0].getSearchParameters();
-        std::string new_features = StringUtils::toStr(search_parameters.getMetaValue("extra_features")) + std::string(", RT_error,RT_predict");
+        std::string new_features = StringUtils::toStr(search_parameters.getMetaValue("extra_features")) + std::string(",RT_error,RT_predict");
         search_parameters.setMetaValue("extra_features", new_features);
         protein_ids[0].setSearchParameters(search_parameters);
       }
