@@ -2211,13 +2211,15 @@ class ProSE :
         qpx_extended ? predictionMetadata_(search_params) : std::map<std::string, std::string>{};
       ParquetWriteConfig qpx_extended_config;
       qpx_extended_config.qpx_extra_columns = true;
-      qpx_extended_config.threads = qpx_write_threads; // (validated and encoded in parallel, as the files without -qpx_extended)
+      qpx_extended_config.threads = qpx_write_threads; // (quantms.psm.parquet: validated and encoded in parallel)
       ParquetWriteConfig qpx_spectra_config = qpx_extended_config;
       qpx_spectra_config.row_group_size = QPX_SPECTRA_ROW_GROUP;
+      // the per-input files are written serially: the parallel encoding is over the columns of a row group, and with
+      // 256-row groups its tasks cost more than they gain (the largest HeLa run: +4 s with 16 threads)
+      qpx_spectra_config.threads = 1;
       // m/z and intensities are mostly distinct: a dictionary per row group would make the files 40 % larger
       qpx_spectra_config.plain_columns = {"predicted_mz_array", "predicted_intensity_array"};
       ParquetWriteConfig qpx_mz_config;
-      qpx_mz_config.threads = qpx_write_threads;
       qpx_mz_config.row_group_size = QPX_SPECTRA_ROW_GROUP;
       qpx_mz_config.plain_columns = {"mz", "intensity"};
       for (Size i = 0; i < in_list.size(); ++i)
@@ -2363,7 +2365,6 @@ class ProSE :
                 }
                 catch (const std::exception&) { files.psm_validated = false; } // (the writes check it, and fail as before)
               }
-              if (early_qpx_files) { qpx_stream_append(i, files, qpx_write_threads); } // (the consumer did not get this run)
             }
             { // the tables, for quantms.* (whatever the outcome of the writes, as before): before the writes start
               if (files.psm)
@@ -2424,6 +2425,11 @@ class ProSE :
             else if (early_qpx_state[i] != 0 && !publishQPXRunFiles_(files, in_file)) // (written during the search)
             {
               input_failed = true;
+            }
+            if (early_qpx_state[i] == 0 && early_qpx_files)
+            {
+              // the rows of a run the consumer did not get (the last one), while its own files are written
+              qpx_stream_append(i, files, qpx_write_threads);
             }
           }
           catch (const Exception::BaseException& e)
