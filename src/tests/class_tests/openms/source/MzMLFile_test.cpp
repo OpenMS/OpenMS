@@ -1467,6 +1467,58 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
 }
 END_SECTION
 
+START_SECTION(([EXTRA] FAIMS compensation voltages survive a store and load))
+{
+  MzMLFile file;
+  PeakMap exp;
+  // spectra built in code carry no acquisition info: the CV goes into the <scan> written in its place
+  MSSpectrum ms1;
+  ms1.setMSLevel(1);
+  ms1.setRT(10.0);
+  ms1.setNativeID("scan=1");
+  ms1.setDriftTime(-45.0);
+  ms1.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  exp.addSpectrum(ms1);
+  // a CV given for the precursor (MS:1001581 in <selectedIon>, as read from such files) stays a CV
+  MSSpectrum ms2;
+  ms2.setMSLevel(2);
+  ms2.setRT(11.0);
+  ms2.setNativeID("scan=2");
+  ms2.setDriftTime(-55.0);
+  ms2.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  ms2.getAcquisitionInfo().push_back(Acquisition());
+  Precursor precursor;
+  precursor.setMZ(500.0);
+  precursor.setDriftTime(-55.0);
+  precursor.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  ms2.getPrecursors().push_back(precursor);
+  exp.addSpectrum(ms2);
+
+  std::string out;
+  file.storeBuffer(out, exp);
+  TEST_EQUAL(StringUtils::hasSubstring(out, "name=\"ion mobility drift time\""), false)
+  PeakMap reloaded;
+  file.loadBuffer(out, reloaded);
+  ABORT_IF(reloaded.size() != 2)
+  TEST_EQUAL(reloaded[0].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE, true)
+  TEST_REAL_SIMILAR(reloaded[0].getDriftTime(), -45.0)
+  TEST_EQUAL(reloaded[1].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE, true)
+  TEST_REAL_SIMILAR(reloaded[1].getDriftTime(), -55.0)
+  ABORT_IF(reloaded[1].getPrecursors().size() != 1)
+  TEST_EQUAL(reloaded[1].getPrecursors()[0].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE, true)
+  TEST_REAL_SIMILAR(reloaded[1].getPrecursors()[0].getDriftTime(), -55.0)
+
+  // and again: a second round trip changes nothing
+  std::string out2;
+  file.storeBuffer(out2, reloaded);
+  PeakMap reloaded2;
+  file.loadBuffer(out2, reloaded2);
+  ABORT_IF(reloaded2.size() != 2)
+  TEST_EQUAL(reloaded2[1].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE, true)
+  TEST_REAL_SIMILAR(reloaded2[1].getDriftTime(), -55.0)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] chromatograms are stored with a precursor or product only if they have one))
 {
   // a TIC has neither, an MS1 chromatogram has no product; they used to be written with an empty precursor and a

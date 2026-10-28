@@ -877,9 +877,14 @@ namespace OpenMS
                                      double TOLERANCE)
   {
     int ms1_counter = 0;
+    std::set<double> faims_cvs;
     for (Size i = 0; i < exp.size(); i++)
     {
       const MSSpectrum& s = exp[i];
+      if (s.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+      {
+        faims_cvs.insert(s.getDriftTime());
+      }
       {
         if (s.getMSLevel() == 1)
         {
@@ -938,6 +943,15 @@ namespace OpenMS
       }
     }
     nr_ms1_spectra = ms1_counter;
+
+    // The SWATH maps carry no compensation voltage: windows (and MS1 spectra) of different CVs end up in the
+    // same maps. Not an error, as a run may hold e.g. a single spectrum at another CV.
+    if (faims_cvs.size() > 1)
+    {
+      OPENMS_LOG_WARN << "Warning: the input contains spectra at " << faims_cvs.size() << " FAIMS compensation voltages. "
+                      << "Spectra of all CVs are combined into one set of SWATH maps. To analyze each CV separately, "
+                      << "split the input by CV first (e.g. with IonMobilityBinning)." << std::endl;
+    }
 
     std::cout << "Determined there to be " << swath_counter.size() <<
       " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra\n";

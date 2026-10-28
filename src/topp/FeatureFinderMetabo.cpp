@@ -23,6 +23,7 @@
 #include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
 #include <limits>
+#include <map>
 #include <set>
 
 
@@ -387,6 +388,17 @@ protected:
       }
     }
 
+    // chromatograms of each feature by its unique id (FeatureFindingMetabo reports them in feature order)
+    std::map<UInt64, std::vector<MSChromatogram>> chromatograms_by_feature;
+    if (feat_chromatograms.size() == feat_map.size())
+    {
+      for (Size i = 0; i < feat_map.size(); ++i)
+      {
+        chromatograms_by_feature[feat_map[i].getUniqueId()] = std::move(feat_chromatograms[i]);
+      }
+      feat_chromatograms.clear();
+    }
+
     if (has_faims)
     {
       OPENMS_LOG_INFO << "Combined " << feat_map.size() << " features from all FAIMS CV groups." << endl;
@@ -404,6 +416,15 @@ protected:
     // filter features with zero intensity (this can happen if the FWHM is zero (bc of overly skewed shape) and no peaks end up being summed up)
     auto intensity_zero = [&](Feature& f) { return f.getIntensity() == 0; };
     feat_map.erase(remove_if(feat_map.begin(),feat_map.end(),intensity_zero),feat_map.end());
+
+    // the merge and the filter remove and reorder features: give each remaining feature its chromatograms again
+    if (!chromatograms_by_feature.empty())
+    {
+      for (const Feature& f : feat_map)
+      {
+        feat_chromatograms.push_back(std::move(chromatograms_by_feature[f.getUniqueId()]));
+      }
+    }
 
     // store chromatograms
     if (!out_chrom.empty())
