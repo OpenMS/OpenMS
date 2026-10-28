@@ -18,6 +18,24 @@ using namespace OpenMS;
 
 const std::string MSstatsFile::na_string_ = "NA";
 
+std::string MSstatsFile::csvQuoteIfNeeded_(const std::string& field)
+{
+  if (field.find_first_of(std::string(1, delim_) + quote_ + "\n\r") == std::string::npos)
+  {
+    return field;
+  }
+  std::string escaped;
+  escaped.reserve(field.size() + 2);
+  escaped += quote_;
+  for (const char c : field)
+  {
+    if (c == quote_) escaped += quote_; // double an embedded quote
+    escaped += c;
+  }
+  escaped += quote_;
+  return escaped;
+}
+
 void MSstatsFile::checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection,
                                              const std::string& bioreplicate,
                                              const std::string& condition)
