@@ -348,10 +348,10 @@ jobs:
   # job builds the libraries once more in Debug, with the vcpkg dependencies in
   # their debug form, and packages only the SDK: no installer, no tests (the
   # Release job covers them, and the Debug test suite would take many hours).
-  # The deployment waits for it but does not need it: no PR check builds the
-  # Debug halves of the vcpkg ports, so a port that breaks only in Debug would
-  # otherwise hold back the installers and the documentation. When this job or
-  # the one before it fails, the deployment goes ahead without the Debug SDK.
+  # The installer upload and the release wait for it but do not need it: no PR
+  # check builds the Debug halves of the vcpkg ports, so a port that breaks only
+  # in Debug would otherwise hold them back. When this job or the one before it
+  # fails, they go ahead without the Debug SDK.
   build-windows-debug-sdk:
     name: "Build the Windows Debug SDK"
     runs-on: windows-2025
@@ -454,11 +454,10 @@ jobs:
 
   deploy-docs:
     name: "Deploy Documentation"
-    if: ${{ !cancelled() && needs.build-and-test.result == 'success' && (github.event_name != 'workflow_dispatch' || inputs.deploy) }}
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.deploy }}
     runs-on: ubuntu-latest
     needs:
       - build-and-test
-      - build-windows-debug-sdk
     steps:
       - uses: actions/checkout@v6
         with:

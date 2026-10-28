@@ -69,9 +69,16 @@ case "$(uname -s)" in
 esac
 
 build_type=$(cache_var CMAKE_BUILD_TYPE)
+# the configuration the export files are written for: a tree configured without a
+# build type writes them as NOCONFIG, and installs as Release
+export_config=${build_type:-noconfig}
 build_type=${build_type:-Release}
+config_lower=$(printf '%s' "$export_config" | tr '[:upper:]' '[:lower:]')
+config_upper=$(printf '%s' "$export_config" | tr '[:lower:]' '[:upper:]')
 config_suffix=""
-if [[ "$build_type" != Release ]]; then
+if [[ "$config_lower" == debug ]]; then
+  config_suffix="-Debug"
+elif [[ "$config_lower" != release && "$config_lower" != noconfig ]]; then
   config_suffix="-$build_type"
 fi
 
@@ -100,7 +107,7 @@ components+=(Dependencies)
 
 # a Debug SDK keeps its symbols; that is what it is for
 strip_args=(--strip)
-if [[ "$build_type" == Debug ]]; then
+if [[ "$config_lower" == debug ]]; then
   strip_args=()
 fi
 for component in "${components[@]}"; do
@@ -168,8 +175,6 @@ fi
 # else (a Debug build on Windows installs OpenMSd.dll, the CMAKE_DEBUG_POSTFIX of
 # CMakeLists.txt, which is no cache entry). Per-configuration export file names
 # are lowercase, the property suffix uppercase.
-config_lower=$(printf '%s' "$build_type" | tr '[:upper:]' '[:lower:]')
-config_upper=$(printf '%s' "$build_type" | tr '[:lower:]' '[:upper:]')
 installed_library() { # <target name> <export set: OpenMSTargets or OpenMSCLITargets>
   awk -v target="OpenMS::$1" -v property="IMPORTED_LOCATION_${config_upper} " '
     index($0, "set_target_properties(" target " PROPERTIES") == 1 { inside = 1; next }
@@ -262,8 +267,8 @@ boost_requirement="No Boost: the OpenMS headers do not include it, and find_pack
 # MSVC's debug and release C++ runtimes are not compatible, so the Windows SDK of
 # one configuration cannot be linked by a consumer built in the other; the README
 # names the configuration this archive is for and the archive of the other one.
-case "$build_type" in
-  Debug)
+case "$config_lower" in
+  debug)
     msvc_requirement="Windows: MSVC (Visual Studio 2022 17.14 or newer), x64, Debug configuration
         with the dynamic debug runtime (/MDd). A Release build of your code (/MD)
         cannot link this SDK: find_package(OpenMS) refuses a single-configuration
