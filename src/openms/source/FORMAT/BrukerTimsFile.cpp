@@ -1658,6 +1658,7 @@ namespace OpenMS
         note(entry_path.filename().string());
       }
     }
+    // TDF takes precedence over TSF, as in tryCreateMzCalibrationConverter() (keep the two in sync)
     return tdf ? DataFormat::TDF : tsf ? DataFormat::TSF : baf ? DataFormat::BAF : DataFormat::NONE;
   }
 
@@ -1847,8 +1848,9 @@ namespace OpenMS
     }
     catch (const std::exception& e)
     {
+      const bool tsf = BrukerTimsFile::detectFormat(path) == BrukerTimsFile::DataFormat::TSF;
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
-        std::string("Cannot read the Bruker TDF data: ") + e.what());
+        std::string(tsf ? "Cannot read the Bruker TSF data: " : "Cannot read the Bruker TDF data: ") + e.what());
     }
   }
 
@@ -3098,7 +3100,8 @@ namespace OpenMS
   // spectrum, which is not read. Checked against the Bruker SDK (TIMSCONVERT 2.0.0) on a MALDI spot, a MALDI imaging and
   // an LC-MS run (MassIVE MSV000088438, MSV000095813): the same peaks, and m/z within 1e-9 ppm.
 
-  // Throws for the options of Config that concern ion mobility or DDA-PASEF precursors, which TSF data does not have
+  // Throws for the options of Config that concern ion mobility or DDA-PASEF precursors, which TSF data does not have.
+  // Every such option of Config is listed here (a new one has to be added).
   static void rejectIonMobilityOptions(const std::string& path, const Config& config)
   {
     using Strategy = Config::TimsCalibrationStrategy;
@@ -3211,7 +3214,7 @@ namespace OpenMS
 
   // The m/z converter for the TSF data in @p d_path, by the rules of openTimsDataHandle() for TDF data: the MzCalibration
   // table (unless LINEAR), else the linear model of GlobalMetadata; replaced by the Bruker SDK if one is given (AUTO,
-  // BRUKER_SDK). @p global: the GlobalMetadata table.
+  // BRUKER_SDK). @p global: the GlobalMetadata table. Data without either calibration is read with the SDK only.
   static std::unique_ptr<Tof2MzConverter> openTSFMzConverter(const std::string& d_path, const Config& config,
                                                              const std::map<std::string, std::string>& global)
   {
@@ -3229,20 +3232,17 @@ namespace OpenMS
       };
       const double mz_min = value("MzAcqRangeLower"), mz_max = value("MzAcqRangeUpper");
       const double num_samples = value("DigitizerNumSamples");
-      if (!(mz_min > 0.0) || !(mz_max > mz_min) || !(num_samples >= 1.0))
+      if (mz_min > 0.0 && mz_max > mz_min && num_samples >= 1.0)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path,
-          "analysis.tsf has no usable m/z calibration: neither an MzCalibration table nor MzAcqRangeLower, MzAcqRangeUpper "
-          "and DigitizerNumSamples in GlobalMetadata");
+        if (strategy != Strategy::LINEAR)
+        {
+          OPENMS_LOG_WARN << "TSF m/z calibration: MzCalibration table not usable, using the linear "
+                             "approximation from GlobalMetadata (errors of tens of ppm are possible)" << std::endl;
+        }
+        const auto software = global.find("AcquisitionSoftware");
+        const bool otof_control = software != global.end() && software->second == "Bruker otofControl";
+        converter = std::make_unique<OpenSourceTof2MzConverter>(mz_min, mz_max, static_cast<uint32_t>(num_samples), otof_control);
       }
-      if (strategy != Strategy::LINEAR)
-      {
-        OPENMS_LOG_WARN << "TSF m/z calibration: MzCalibration table not usable, using the linear "
-                           "approximation from GlobalMetadata (errors of tens of ppm are possible)" << std::endl;
-      }
-      const auto software = global.find("AcquisitionSoftware");
-      const bool otof_control = software != global.end() && software->second == "Bruker otofControl";
-      converter = std::make_unique<OpenSourceTof2MzConverter>(mz_min, mz_max, static_cast<uint32_t>(num_samples), otof_control);
     }
 
     if (strategy == Strategy::AUTO || strategy == Strategy::BRUKER_SDK)
@@ -3278,6 +3278,12 @@ namespace OpenMS
         throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Bruker SDK path not set (use OPENMS_BRUKER_SDK_PATH or Config::bruker_sdk_path)");
       }
+    }
+    if (!converter)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path,
+        "analysis.tsf has no usable m/z calibration: neither an MzCalibration table nor MzAcqRangeLower, MzAcqRangeUpper "
+        "and DigitizerNumSamples in GlobalMetadata, and no Bruker SDK");
     }
     return converter;
   }
@@ -3335,6 +3341,13 @@ namespace OpenMS
         frame.time = query.getColumn(1).getDouble();
         frame.ms_level = query.getColumn(2).getInt() == 0 ? 1 : 2;
         frame.num_peaks = static_cast<uint32_t>(query.getColumn(3).getInt64());
+        // a frame without a block (TimsId NULL) can have no peaks: 0 would be the offset of the first frame's block
+        if (query.getColumn(4).isNull() && frame.num_peaks > 0)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
+            "analysis.tsf is corrupt: frame " + std::to_string(frame.id) + " has " + std::to_string(frame.num_peaks)
+            + " peaks, but no offset into analysis.tsf_bin (TimsId NULL)");
+        }
         frame.offset = static_cast<uint64_t>(query.getColumn(4).getInt64());
         all.push_back(frame);
       }
@@ -3397,6 +3410,12 @@ namespace OpenMS
     {
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, bin_path);
     }
+    std::error_code ec;
+    const std::uintmax_t bin_size = std::filesystem::file_size(to_path(bin_path), ec);
+    if (ec)
+    {
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, bin_path);
+    }
     const auto corrupt = [&bin_path](uint32_t frame_id, const std::string& what)
     {
       return Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, bin_path,
@@ -3434,6 +3453,12 @@ namespace OpenMS
         if (!bin || header[1] == 0 || header[0] < sizeof(header) || header[1] > header[0] - sizeof(header))
         {
           throw corrupt(frame.id, "no line spectrum block at offset " + std::to_string(frame.offset));
+        }
+        // the block lies in the file: a corrupt size cannot take more memory than the file has
+        if (header[0] > bin_size - frame.offset)
+        {
+          throw corrupt(frame.id, "a block of " + std::to_string(header[0]) + " bytes at offset " + std::to_string(frame.offset)
+                                  + " ends behind the end of the file (" + std::to_string(bin_size) + " bytes)");
         }
         compressed.resize(header[1]);
         bin.read(compressed.data(), header[1]);

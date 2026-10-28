@@ -367,7 +367,7 @@ namespace
     std::vector<int> peaks;         ///< indices into TSF_INDEX
     std::vector<float> intensities; ///< one per peak
     double trigger_mass = 0.0;      ///< MS/MS frames
-    std::string spot;               ///< MaldiFrameInfo.SpotName, if @p application_type is given to writeFakeTsf()
+    std::string spot{};             ///< MaldiFrameInfo.SpotName, if @p application_type is given to writeFakeTsf()
   };
 
   // Writes the .d directory @p d with analysis.tsf (the tables of a real run that the reader uses, with the calibration and
@@ -1484,6 +1484,19 @@ START_SECTION([EXTRA] TSF data: options and MALDI spots and what cannot be read)
     BrukerTimsFile().load(d, exp, cfg);
     TEST_EQUAL(exp.size(), 4)
     if (!exp.empty() && exp[0].size() == 2) TEST_TRUE(tsfPpm(exp[0][1], 1) < 1e-4)
+
+    // without either calibration only the SDK can give m/z: it is tried (BRUKER_SDK fails on the SDK, not on the
+    // missing tables), and without a usable SDK the data cannot be read
+    const std::string uncalibrated = writeFakeTsf(tmp.getPath() + "/uncalibrated.d", lc);
+    {
+      SqliteConnector conn(uncalibrated + "/analysis.tsf", SqliteConnector::SqlOpenMode::READWRITE);
+      conn.executeStatement("DROP TABLE MzCalibration;");
+      conn.executeStatement("DELETE FROM GlobalMetadata WHERE Key IN ('MzAcqRangeLower', 'MzAcqRangeUpper');");
+    }
+    cfg.tims_calibration_strategy = BrukerTimsFile::Config::TimsCalibrationStrategy::BRUKER_SDK;
+    TEST_EXCEPTION(Exception::FileNotReadable, BrukerTimsFile().load(uncalibrated, exp, cfg))
+    cfg.tims_calibration_strategy = BrukerTimsFile::Config::TimsCalibrationStrategy::AUTO;
+    TEST_TRUE(hasText(parseErrorOf([&] { BrukerTimsFile().load(uncalibrated, exp, cfg); }), "no usable m/z calibration"))
   }
 
   // MALDI spots: the spot name as the MetaValue maldi_spot_id, as the mzML reader stores the spotID of a spectrum
@@ -1528,6 +1541,24 @@ START_SECTION([EXTRA] TSF data: options and MALDI spots and what cannot be read)
     SqliteConnector(larger + "/analysis.tsf", SqliteConnector::SqlOpenMode::READWRITE).executeStatement(
       "UPDATE Frames SET NumPeaks = 1 WHERE Id = 1;");
     TEST_TRUE(hasText(parseErrorOf([&] { BrukerTimsFile().load(larger, exp); }), "larger than 12 bytes"))
+    // a block size beyond the end of the file is reported before any memory is taken for it
+    const std::string huge = writeFakeTsf(tmp.getPath() + "/huge.d", lc);
+    {
+      std::fstream bin((huge + "/analysis.tsf_bin").c_str(), std::ios::binary | std::ios::in | std::ios::out);
+      const uint32_t block_size = 0xFFFFFFF0u; // the size of frame 1's block
+      bin.write(reinterpret_cast<const char*>(&block_size), sizeof(block_size));
+    }
+    TEST_TRUE(hasText(parseErrorOf([&] { BrukerTimsFile().load(huge, exp); }), "ends behind the end of the file"))
+
+    // a frame without a block (TimsId NULL) is read only if it has no peaks, instead of reading the first frame's block
+    const std::string no_block = writeFakeTsf(tmp.getPath() + "/no_block.d", lc);
+    SqliteConnector(no_block + "/analysis.tsf", SqliteConnector::SqlOpenMode::READWRITE).executeStatement(
+      "UPDATE Frames SET TimsId = NULL WHERE Id = 4;"); // no peaks
+    BrukerTimsFile().load(no_block, exp);
+    TEST_EQUAL(exp.size(), 4)
+    SqliteConnector(no_block + "/analysis.tsf", SqliteConnector::SqlOpenMode::READWRITE).executeStatement(
+      "UPDATE Frames SET TimsId = NULL WHERE Id = 2;"); // one peak
+    TEST_TRUE(hasText(parseErrorOf([&] { BrukerTimsFile().load(no_block, exp); }), "frame 2 has 1 peaks, but no offset"))
   }
 }
 END_SECTION
@@ -1621,7 +1652,10 @@ START_SECTION([EXTRA] TSF data: an LC-MS run with TIMS off as the Bruker SDK rea
   TEST_EQUAL(ms2, 11506)
   TEST_EQUAL(peaks, 10312288)
   TEST_NOT_EQUAL(frame2, nullptr)
-  if (frame2 != nullptr && frame2->getPrecursors().size() == 1 && frame2->size() == 33)
+  ABORT_IF(frame2 == nullptr)
+  TEST_EQUAL(frame2->getPrecursors().size(), 1)
+  TEST_EQUAL(frame2->size(), 33)
+  if (frame2->getPrecursors().size() == 1 && !frame2->empty()) // the checks above fail otherwise
   {
     const Precursor& p = frame2->getPrecursors()[0];
     TEST_REAL_SIMILAR(p.getMZ(), 516.4264787230516)

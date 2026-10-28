@@ -5941,9 +5941,9 @@ if (WITH_OPENTIMS AND OPENTIMS_TSF_SYMLINK)
   add_test("TOPP_FileConverter_TSF_d_lowmemory" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_TSF_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_TSF_d_lowmemory.tmp.mzML -process_lowmemory)
   add_test("TOPP_FileConverter_TSF_d_lowmemory_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/FileConverter_TSF_d_lowmemory.tmp.mzML -in2 ${TESTS_TEMP_DIR}/FileConverter_TSF_d.tmp.mzML)
   set_tests_properties("TOPP_FileConverter_TSF_d_lowmemory_out1" PROPERTIES DEPENDS "TOPP_FileConverter_TSF_d;TOPP_FileConverter_TSF_d_lowmemory")
-  # an option for ion mobility does not apply to TSF data: FileConverter fails
+  # an option for ion mobility does not apply to TSF data: FileConverter fails with that message (not with a crash)
   add_test("TOPP_FileConverter_TSF_d_im_option" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_TSF_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_TSF_d_im_option.tmp.mzML -bruker:ms1_n_neighbors 1)
-  set_tests_properties("TOPP_FileConverter_TSF_d_im_option" PROPERTIES WILL_FAIL 1)
+  set_tests_properties("TOPP_FileConverter_TSF_d_im_option" PROPERTIES PASS_REGULAR_EXPRESSION "do not apply")
 endif()
 
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)

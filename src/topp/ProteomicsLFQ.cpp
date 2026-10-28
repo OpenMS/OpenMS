@@ -482,7 +482,9 @@ protected:
   ExitCodes loadAndPreprocess_(const std::string& mz_file, MSExperiment& ms_out, bool& is_im_peak_data)
   {
 #ifdef WITH_OPENTIMS
-    if (FileHandler::getType(mz_file) == FileTypes::BRUKER_TDF)
+    // TSF data (timsTOF without ion mobility) takes the mzML path below: its spectra are centroided, without IM
+    if (FileHandler::getType(mz_file) == FileTypes::BRUKER_TDF
+        && BrukerTimsFile::detectFormat(mz_file) != BrukerTimsFile::DataFormat::TSF)
     {
       // .d path: load with built-in IM centroiding (Sage algorithm, Lazear 2023)
       // This collapses raw IM profiles into single centroided peaks with summed intensity,

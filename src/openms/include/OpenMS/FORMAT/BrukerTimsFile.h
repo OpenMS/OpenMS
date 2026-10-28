@@ -85,7 +85,8 @@ namespace OpenMS
   class OPENMS_DLLAPI BrukerTimsFile : public ProgressLogger
   {
   public:
-    /// Processing and export configuration
+    /// Processing and export configuration. An option for ion mobility or DDA-PASEF precursors has to be added to
+    /// rejectIonMobilityOptions() (BrukerTimsFile.cpp) as well, which rejects such options for TSF data.
     struct Config
     {
       double calibration_tolerance = 0.0;  ///< m/z recalibration tolerance in Da (0 = default 0.1 Da)

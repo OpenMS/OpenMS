@@ -182,7 +182,7 @@ namespace OpenMS
     const std::string& tims_dir_path)
   {
     // TDF and TSF data have the same MzCalibration table and Frames columns. TDF takes precedence, as in
-    // BrukerTimsFile::detectFormat()
+    // BrukerTimsFile::detectFormat() (keep the two in sync; this library function does not depend on BrukerTimsFile)
     const bool tsf = !File::exists(tims_dir_path + "/analysis.tdf") && !File::exists(tims_dir_path + "/analysis.tdf_bin")
                      && File::exists(tims_dir_path + "/analysis.tsf");
     const std::string db_path = tims_dir_path + (tsf ? "/analysis.tsf" : "/analysis.tdf");
@@ -355,11 +355,12 @@ namespace OpenMS
       }
       std::string description = "MzCalibrationTof2MzConverter (MzCalibration ModelType " + types
                                 + ", per-frame temperature correction)";
-      OPENMS_LOG_INFO << "TIMS m/z calibration: MzCalibration table (ModelType " << types << ", "
+      const char* label = tsf ? "TSF m/z calibration: " : "TIMS m/z calibration: ";
+      OPENMS_LOG_INFO << label << "MzCalibration table (ModelType " << types << ", "
                       << n_frames << " frames, per-frame temperature correction)" << std::endl;
       if (n_without_correction > 0 && model_types.count(2))
       {
-        OPENMS_LOG_WARN << "TIMS m/z calibration: " << n_without_correction << " ModelType 2 calibration(s) "
+        OPENMS_LOG_WARN << label << n_without_correction << " ModelType 2 calibration(s) "
                         << "without usable correction terms (C5..C14); m/z uses the base curve only, which "
                         << "can deviate from the Bruker SDK by a few ppm" << std::endl;
       }
