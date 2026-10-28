@@ -43,27 +43,26 @@ namespace OpenMS
     // Each read of an S3 object is a request: the streams read the object in blocks of this size
     constexpr int64_t READ_BLOCK_SIZE = 8 * 1024 * 1024;
 
-    // Arrow's S3 APIs are initialized before their first use, and must be finalized before the process exits (it
-    // crashes at shutdown otherwise, see finalizeS3AtExit())
+    // Arrow's S3 APIs are initialized before their first use and finalized at exit. Without the finalization, the
+    // process can crash at exit (e.g. on macOS), also when S3 was initialized but no object was opened (an invalid URI).
+    // The finalization uses statics that Arrow creates with its first S3 client, and exit handlers and static
+    // destructors run in the reverse order of their registration. So a first client is made right away (it does not
+    // connect), and the exit handler is registered after it, to run before those statics are destroyed.
     void ensureS3Initialized()
     {
       static std::once_flag once;
       static arrow::Status status;
-      std::call_once(once, [] { status = arrow::fs::EnsureS3Initialized(); });
+      std::call_once(once, [] {
+        status = arrow::fs::EnsureS3Initialized();
+        if (!status.ok()) { return; }
+        status = arrow::fs::S3FileSystem::Make(arrow::fs::S3Options::Anonymous()).status();
+        std::atexit([] { (void)arrow::fs::EnsureS3Finalized(); });
+      });
       if (!status.ok())
       {
         OPENMS_LOG_ERROR << "Cannot initialize S3: " << HTTPInputSource::redactURLs(status.ToString()) << std::endl;
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot initialize S3: " + HTTPInputSource::redactURLs(status.ToString()));
       }
-    }
-
-    // Finalizes S3 at exit. Called once an S3 filesystem (with its client) exists: the finalization uses statics that the
-    // first client creates, and exit handlers and static destructors run in the reverse order of their registration,
-    // so the handler is registered after them to run before they are destroyed.
-    void finalizeS3AtExit()
-    {
-      static std::once_flag once;
-      std::call_once(once, [] { std::atexit([] { (void)arrow::fs::EnsureS3Finalized(); }); });
     }
 
     // Opens the S3 object @p uri
@@ -86,7 +85,6 @@ namespace OpenMS
         OPENMS_LOG_ERROR << "Cannot open " << name << ": " << HTTPInputSource::redactURLs(filesystem.status().ToString()) << std::endl;
         throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name, HTTPInputSource::redactURLs(filesystem.status().ToString()));
       }
-      finalizeS3AtExit();
       auto object = (*filesystem)->OpenInputFile(path);
       if (!object.ok())
       {
