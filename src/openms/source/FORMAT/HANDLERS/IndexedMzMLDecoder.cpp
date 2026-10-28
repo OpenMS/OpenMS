@@ -208,9 +208,7 @@ namespace OpenMS
     boost::smatch matches;
     if (!boost::regex_search(buffer, matches, listoffset_rx) || matches[1].length() == 0)
     {
-      std::cerr << "IndexedMzMLDecoder::findIndexListOffset Error: Could not find element indexListOffset in the last "
-                << buffer.size() << " bytes. Maybe this is not an indexedMzML.\n";
-      return -1;
+      return -1; // no index, which callers may expect (e.g. MzMLFile probing for a parallel load)
     }
     return OpenMS::IndexedMzMLUtils::stringToStreampos(matches[1].str());
   }
