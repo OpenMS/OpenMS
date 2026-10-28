@@ -14,9 +14,47 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <sstream>
 
 namespace OpenMS
 {
+  namespace
+  {
+    /// Is @p text well-formed UTF-8 (no overlong forms, surrogates or values above U+10FFFF)?
+    bool isValidUTF8(const std::string& text)
+    {
+      const Size n = text.size();
+      for (Size i = 0; i < n;)
+      {
+        const unsigned char c = text[i];
+        if (c < 0x80)
+        {
+          ++i;
+          continue;
+        }
+        Size length = 0;
+        unsigned int code = 0;
+        if ((c & 0xE0) == 0xC0) { length = 2; code = c & 0x1F; }
+        else if ((c & 0xF0) == 0xE0) { length = 3; code = c & 0x0F; }
+        else if ((c & 0xF8) == 0xF0) { length = 4; code = c & 0x07; }
+        else { return false; }
+        if (i + length > n) { return false; }
+        for (Size k = 1; k < length; ++k)
+        {
+          const unsigned char next = text[i + k];
+          if ((next & 0xC0) != 0x80) { return false; }
+          code = (code << 6) | (next & 0x3F);
+        }
+        if ((length == 2 && code < 0x80) || (length == 3 && code < 0x800) || (length == 4 && code < 0x10000) || code > 0x10FFFF
+            || (code >= 0xD800 && code <= 0xDFFF))
+        {
+          return false;
+        }
+        i += length;
+      }
+      return true;
+    }
+  } // namespace
 
   std::string writeXMLEscape(const std::string& to_escape)
   {
@@ -60,12 +98,14 @@ namespace OpenMS
     //       This never mattered here, as removeAll() was fixed to prune the tree.
     // TODO: Nowadays this should be fixed and removeAll() might not be necessary.
 
-    std::ostream& os = *os_ptr;
+    // Write the body first to choose the declaration. OpenMS strings contain UTF-8,
+    // including workflow paths bound through INI files, but some legacy values are in
+    // a native code page (e.g. Windows ANSI paths). A UTF-8 declaration would make
+    // such a file unreadable, so keep the historical ISO-8859-1 declaration for them.
+    std::ostringstream os;
 
     os.precision(writtenDigits<double>(0.0));
 
-    // OpenMS strings contain UTF-8, including workflow paths bound through INI files.
-    os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     os << "<PARAMETERS version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
     std::string indentation = "  ";
     Param::ParamIterator it = param.begin();
@@ -353,7 +393,10 @@ namespace OpenMS
       }
     }
 
-    os << "</PARAMETERS>" << std::endl; // forces a flush
+    os << "</PARAMETERS>\n";
+
+    const std::string body = os.str();
+    *os_ptr << "<?xml version=\"1.0\" encoding=\"" << (isValidUTF8(body) ? "UTF-8" : "ISO-8859-1") << "\"?>\n" << body << std::flush;
   }
 
   void ParamXMLFile::load(const std::string& filename, Param& param)

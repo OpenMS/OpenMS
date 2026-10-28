@@ -147,9 +147,30 @@ private:
       }
 
       unique_ptr<xercesc::InputSource> source;
-      // Xerces expects UTF-16; its native-codepage transcoder corrupts UTF-8 paths on Windows.
-      const auto native_filename = to_path(filename).u16string();
-      const std::basic_string<XMLCh> xml_filename(native_filename.begin(), native_filename.end());
+      // Xerces takes UTF-16 file names. CompressedInputSource converts them back as
+      // UTF-8, as does Xerces' Windows file manager (whose native-codepage transcoder
+      // would corrupt UTF-8 paths). Xerces' POSIX file manager converts back with its
+      // local code page instead, which need not be UTF-8 (e.g. the iconv transcoder in
+      // the C locale), so use that same transcoder there for exact byte round trips.
+      const auto local_codepage_filename = [&filename]() {
+        const auto name = StringManager().convert(filename);
+        return std::basic_string<XMLCh>(name.begin(), name.end());
+      };
+      std::basic_string<XMLCh> utf16_filename;
+      try
+      {
+        const auto name = to_path(filename).u16string();
+        utf16_filename.assign(name.begin(), name.end());
+      }
+      catch (const std::exception&) // POSIX byte names that are not valid UTF-8
+      {
+        utf16_filename = local_codepage_filename();
+      }
+#ifdef _WIN32
+      const std::basic_string<XMLCh>& local_filename = utf16_filename;
+#else
+      const std::basic_string<XMLCh> local_filename = local_codepage_filename();
+#endif
 
       char g1 = 0x1f;
       char g2 = 0;
@@ -160,11 +181,11 @@ private:
       //g2 = static_cast<char>(0x8b); // can make troubles if it is casted to 0x7F which is the biggest number signed char can save
       if ((bz[0] == 'B' && bz[1] == 'Z') || (bz[0] == g1 && bz[1] == g2) || (bz[0] == 'P' && bz[1] == 'K'))
       {
-        source.reset(new CompressedInputSource(xml_filename.c_str(), bz));
+        source.reset(new CompressedInputSource(utf16_filename.c_str(), bz));
       }
       else
       {
-        source.reset(new xercesc::LocalFileInputSource(xml_filename.c_str()));
+        source.reset(new xercesc::LocalFileInputSource(local_filename.c_str()));
       }
       // what if no encoding given http://xerces.apache.org/xerces-c/apiDocs-3/classInputSource.html
       if (!enforced_encoding_.empty())

@@ -79,6 +79,26 @@ START_SECTION([EXTRA] Unicode parameter paths and values survive store and load)
 }
 END_SECTION
 
+START_SECTION([EXTRA] Values in a legacy code page keep the file readable)
+{
+  // E.g. a Windows ANSI temp path: such bytes are not UTF-8 and must not be declared as such.
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  Param original;
+  original.setValue("path", "C:/Users/J\xF6rg/spectra.mzML");
+  ParamXMLFile file;
+  file.store(filename, original);
+  Param loaded;
+  file.load(filename, loaded);
+  TEST_EQUAL(loaded.getValue("path").toString(), "C:/Users/J\xC3\xB6rg/spectra.mzML")
+  // Valid UTF-8 is declared as UTF-8.
+  original.setValue("path", "C:/Users/J\xC3\xB6rg/spectra.mzML");
+  file.store(filename, original);
+  TextFile written(filename);
+  TEST_EQUAL(*written.begin(), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+}
+END_SECTION
+
 START_SECTION([EXTRA] Legacy Latin1 parameter files remain readable)
 {
   std::string filename;
