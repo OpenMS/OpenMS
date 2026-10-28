@@ -289,8 +289,10 @@ set(format_executables_list
   PercolatorInfile_test
   PercolatorOutfile_test
   PercolatorPosteriorEstimator_test
+  PercolatorScores_test
   ProtXMLFile_test
   QcMLFile_test
+  S3InputSource_test
   SVOutStream_test
   SemanticValidator_test
   SequestInfile_test
@@ -549,6 +551,7 @@ set(analysis_executables_list
   ConsensusMapNormalizerAlgorithmMedian_test
   ConsensusMapNormalizerAlgorithmQuantile_test
   ConsensusMapNormalizerAlgorithmRTLocal_test
+  ConsensusElutionWidth_test
   ConsensusMapMergerAlgorithm_test
   #DataAccessHelper_test
   # DeconvolvedSpectrum_test

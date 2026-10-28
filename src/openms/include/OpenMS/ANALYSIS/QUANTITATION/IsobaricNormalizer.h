@@ -86,7 +86,7 @@ private:
     std::map<Size, Size> map_to_vec_index_;
 
     /// The index of the reference channel in the peptide ratio/intensity vectors.
-    Size ref_map_id_;
+    Size ref_vec_idx_;
 
     /// Collection containing the collected peptide ratios for the individual channels.
     std::vector<std::vector<Peak2D::IntensityType> > peptide_ratios_;

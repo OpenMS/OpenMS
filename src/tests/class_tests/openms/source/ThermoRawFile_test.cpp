@@ -332,7 +332,9 @@ START_SECTION(FileHandler::loadExperiment applies the vendor peak picking)
   MSExperiment acquired, centroided;
   ThermoRawFile().load(THERMO_RAW_TEST_DATA, acquired);
   FileHandler().loadExperiment(THERMO_RAW_TEST_DATA, centroided, {FileTypes::RAW});
+  // Only SRM scans become chromatograms; this file has none
   TEST_EQUAL(centroided.size(), acquired.size())
+  TEST_EQUAL(centroided.getNrChromatograms(), acquired.getNrChromatograms())
 
   Size same_id = 0, centroid_type = 0, ms1_profile = 0, profile_peaks = 0, picked_peaks = 0;
   for (Size i = 0; i < acquired.size() && i < centroided.size(); ++i)

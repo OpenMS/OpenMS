@@ -484,6 +484,23 @@ START_SECTION([EXTRA] consensus-map export names the ID run that has no primary 
 }
 END_SECTION
 
+START_SECTION([EXTRA] MzTabParameter round-trips a name with a comma not followed by a space)
+{
+  // fromCellString splits on every unquoted comma, so toCellString must quote
+  // any comma, not only one followed by a space.
+  MzTabParameter param;
+  param.setCVLabel("MS");
+  param.setAccession("MS:1001460");
+  param.setName("N,N-dimethyl");
+  param.setValue("");
+  std::string cell = param.toCellString();
+
+  MzTabParameter round_tripped;
+  round_tripped.fromCellString(cell);
+  TEST_EQUAL(round_tripped.getName(), "N,N-dimethyl")
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -11,9 +11,16 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/QcMLFile.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 ///////////////////////////
 
 #include <algorithm>
+#include <fstream>
+#include <sstream>
 #include <vector>
 
 using namespace OpenMS;
@@ -175,7 +182,41 @@ END_SECTION
 
 START_SECTION((void store(const std::string &filename) const ))
 {
-	NOT_TESTABLE
+  // store() must tag a set member's quality parameter with the same CV
+  // accession load() looks for inside a setQuality element ("MS:1000577",
+  // the same one already used, consistently, for a run's own name) -- not
+  // "QC:0000005", which load() never recognizes as a member at all. [EXTRA]
+  QcMLFile qcml;
+  qcml.registerRun("run1_id", "run1_name");
+
+  QcMLFile::QualityParameter run_name_qp;
+  run_name_qp.name = "mzML file";
+  run_name_qp.id = "run1_run_name";
+  run_name_qp.cvRef = "MS";
+  run_name_qp.cvAcc = "MS:1000577";
+  run_name_qp.value = "run1_name";
+  qcml.addRunQualityParameter("run1_id", run_name_qp);
+
+  std::set<std::string> members;
+  members.insert("run1_id");
+  qcml.registerSet("set1_id", "set1_name", members);
+
+  std::string filename;
+  NEW_TMP_FILE(filename);
+  qcml.store(filename);
+
+  ifstream is(filename.c_str());
+  std::stringstream contents;
+  contents << is.rdbuf();
+  std::string written = contents.str();
+
+  // The embedded qcML report stylesheet carries its own unrelated
+  // "MS:1000577" occurrences, so check the member entry's exact
+  // serialized form rather than a whole-file accession count.
+  bool member_tagged_correctly =
+      written.find("ID=\"run1_id\" cvRef=\"MS\" accession=\"MS:1000577\"") != std::string::npos;
+  TEST_EQUAL(member_tagged_correctly, true)
+  TEST_EQUAL(written.find("QC:0000005") == std::string::npos, true)
 }
 END_SECTION
 
@@ -253,7 +294,33 @@ END_SECTION
 
 START_SECTION(([QcMLFile::Attachment] std::string toXMLString(UInt indentation_level) const ))
 {
-	NOT_TESTABLE
+  // CPP-155: same unitRef/unitAcc vs unitCvRef/unitAccession mismatch as QualityParameter::toXMLString.
+  QcMLFile::Attachment at;
+  at.unitRef = "UO";
+  at.unitAcc = "UO:0000169";
+  at.binary = "somebinarydata"; // toXMLString returns "" for an attachment with neither binary nor a table
+
+  std::string xml = at.toXMLString(0);
+  TEST_EQUAL(xml.find("unitCvRef=\"UO\"") != std::string::npos, true)
+  TEST_EQUAL(xml.find("unitAccession=\"UO:0000169\"") != std::string::npos, true)
+  TEST_EQUAL(xml.find("unitRef=\"") != std::string::npos, false)
+  TEST_EQUAL(xml.find("unitAcc=\"") != std::string::npos, false)
+
+  // CPP-156: the table-row writer computed a space-substituted copy_row but then concatenated
+  // the original, unmodified row (*it) instead, so a cell containing a space (e.g. "hello world")
+  // is written with the space intact and becomes two tokens when the row is split on whitespace
+  // while reloading.
+  QcMLFile::Attachment table_at;
+  table_at.colTypes.push_back("col1");
+  table_at.colTypes.push_back("col2");
+  std::vector<std::string> row;
+  row.push_back("hello world");
+  row.push_back("x");
+  table_at.tableRows.push_back(row);
+
+  std::string table_xml = table_at.toXMLString(0);
+  TEST_EQUAL(table_xml.find("hello_world") != std::string::npos, true)
+  TEST_EQUAL(table_xml.find("hello world") != std::string::npos, false)
 }
 END_SECTION
 
@@ -343,7 +410,58 @@ END_SECTION
 
 START_SECTION(([QcMLFile::QualityParameter] std::string toXMLString(UInt indentation_level) const ))
 {
-	NOT_TESTABLE
+  // CPP-155: the writer emitted unit information under unitRef/unitAcc, but the reader (and the
+  // qcML schema) look for unitCvRef/unitAccession, so every unit was lost on a store/load round
+  // trip.
+  QcMLFile::QualityParameter qp;
+  qp.unitRef = "UO";
+  qp.unitAcc = "UO:0000169";
+
+  std::string xml = qp.toXMLString(0);
+  TEST_EQUAL(xml.find("unitCvRef=\"UO\"") != std::string::npos, true)
+  TEST_EQUAL(xml.find("unitAccession=\"UO:0000169\"") != std::string::npos, true)
+  TEST_EQUAL(xml.find("unitRef=\"") != std::string::npos, false)
+  TEST_EQUAL(xml.find("unitAcc=\"") != std::string::npos, false)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] collectQCData reports TIC and RIC slumps as percentages))
+{
+  // 4 MS1 spectra (1 with a summed intensity below 10k) and 4 MS2 spectra, plus a TIC with 5 points (2 below 10k)
+  MSExperiment exp;
+  for (Size i = 0; i < 8; ++i)
+  {
+    MSSpectrum spec;
+    spec.setRT(10.0 * i);
+    spec.setMSLevel(i % 2 == 0 ? 1 : 2);
+    if (spec.getMSLevel() == 2)
+    {
+      Precursor prec;
+      prec.setMZ(500.0);
+      prec.setCharge(2);
+      spec.setPrecursors({prec});
+    }
+    const double intensity = (i == 0) ? 1000.0 : 50000.0;
+    spec.push_back(Peak1D(400.0, intensity));
+    spec.push_back(Peak1D(600.0, intensity));
+    exp.addSpectrum(spec);
+  }
+  MSChromatogram tic;
+  tic.setChromatogramType(ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM);
+  for (Size i = 0; i < 5; ++i)
+  {
+    tic.push_back(ChromatogramPeak(10.0 * i, i < 2 ? 5000.0 : 50000.0));
+  }
+  exp.addChromatogram(tic);
+  exp.updateRanges();
+
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  QcMLFile qcml;
+  qcml.collectQCData(prot_ids, pep_ids, FeatureMap(), ConsensusMap(), "slumps.mzML", false, exp);
+
+  TEST_REAL_SIMILAR(std::stod(qcml.exportQP("slumps", "QC:0000057")), 25.0) // 1 of 4 MS1 spectra
+  TEST_REAL_SIMILAR(std::stod(qcml.exportQP("slumps", "QC:0000023")), 40.0) // 2 of 5 TIC points
 }
 END_SECTION
 

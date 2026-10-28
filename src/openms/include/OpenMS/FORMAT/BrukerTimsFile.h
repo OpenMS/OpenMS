@@ -30,6 +30,11 @@ namespace OpenMS
    * Ion mobility data is stored in VSSC (1/K0) units using IM_PEAK format
    * for MS1 and DIA MS2, and scalar drift times for DDA MS2.
    *
+   * Synchro-PASEF (diagonal-PASEF), where the quadrupole moves along with the ion mobility scan,
+   * is not supported: its isolation windows are one scan step wide, so the DIA loaders split its
+   * MS2 frames into very many spectra of a few peaks each. They warn when most windows span fewer
+   * than 10 scans. Export mode FRAME reads such runs frame by frame.
+   *
    * Every method taking a path also accepts a zipped .d directory ('.d.zip'), which is
    * unpacked into a temporary directory for the duration of the call. The .d directory may be
    * nested in the archive: the shallowest one holding analysis.tdf is read, and __MACOSX
@@ -317,8 +322,9 @@ namespace OpenMS
     /// Load entire .d directory into MSExperiment
     /// @throws Exception::ParseError for Bruker data that cannot be read: TSF or BAF data (see detectFormat()), TDF
     ///         data that is not zstd-compressed (TimsCompressionType other than 2), a '.d.zip' archive without a
-    ///         .d directory, or an analysis.tdf that lacks a table or column the reader needs. The other read
-    ///         functions throw the same.
+    ///         .d directory, an analysis.tdf that lacks a table or column the reader needs, an analysis.tdf_bin
+    ///         that ends before the last of its frames (e.g. not completely copied), or frames that cannot be
+    ///         decoded. The other read functions throw the same.
     /// @throws Exception::InvalidFileType for a MALDI imaging run, unless the export mode is FRAME (see above), as
     ///         do transform() and, in every export mode, readDIAMetadata() and loadDIAStreaming()
     /// @throws Exception::FileNotReadable if opentims cannot open the directory
@@ -348,7 +354,7 @@ namespace OpenMS
     /// Receives the spectra a loader emits, one after the other. It may move from the spectrum.
     using SpectrumSink = std::function<void(MSSpectrum&)>;
 
-    // The public read functions of the same names run these and report SQLite errors as Exception::ParseError
+    // The public read functions of the same names run these and report SQLite and decoding errors as Exception::ParseError
     DIAStreamingMetadata readDIAMetadata_(const std::string& path, ExperimentalSettings& exp_settings, const Config& config);
     void loadDIAStreaming_(const std::string& path, FullSwathFileConsumer& consumer, const Config& config);
     void load_(const std::string& path, MSExperiment& exp, const Config& config);
