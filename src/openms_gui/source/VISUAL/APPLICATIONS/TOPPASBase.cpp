@@ -1037,7 +1037,8 @@ namespace OpenMS
         return;
       }
       TOPPASScene* ts = tw->getScene();
-      ts->runPipeline();
+      // Like the disabled Run action: restarting would cancel the active run first.
+      if (! ts->isPipelineRunning()) { ts->runPipeline(); }
       e->accept();
     }
   }

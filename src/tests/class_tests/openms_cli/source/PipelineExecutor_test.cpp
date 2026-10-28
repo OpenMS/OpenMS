@@ -236,6 +236,23 @@ START_SECTION([EXTRA] Multiformat writers receive a valid default suffix and hon
 }
 END_SECTION
 
+START_SECTION([EXTRA] Stale saved values of edge-bound ports do not fail a run)
+{
+  // Saved when 'in' was a single file; the tool now takes a list. The edge binds 'in'.
+  Fixture fixture;
+  auto graph = singleToolGraph({fixture.input("sample")});
+  graph.node(20).parameters.setValue("in", "stale.fasta");
+  PipelineExecutor executor;
+  const auto result = executor.run(graph, fixture.options);
+  TEST_EQUAL(result.exit_code, 0)
+  TEST_EQUAL(result.error_message, "")
+  // An unbound parameter of the wrong type still fails before any job starts.
+  graph.node(20).parameters.setValue("delay_ms", "not a number");
+  PipelineExecutor strict;
+  TEST_EQUAL(strict.run(graph, fixture.options).exit_code, TOPPBase::ILLEGAL_PARAMETERS)
+}
+END_SECTION
+
 START_SECTION([EXTRA] Multiformat writers keep their input format when the port allows it)
 {
   // FileFilter, IDMapper or MapAligner* write their input's format and reject a

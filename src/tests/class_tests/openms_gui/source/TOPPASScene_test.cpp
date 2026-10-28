@@ -192,7 +192,10 @@ START_SECTION((hovering and testing edges preserve a run until an edge is accept
 
   scene.runPipeline();
   TEST_TRUE(scene.isPipelineRunning())
+  // Adding a node (tool list, paste, include) must not cancel a long run.
   scene.addVertex(new TOPPASMergerVertex());
+  TEST_TRUE(scene.isPipelineRunning())
+  scene.abortPipeline();
   TEST_FALSE(scene.isPipelineRunning())
 }
 END_SECTION

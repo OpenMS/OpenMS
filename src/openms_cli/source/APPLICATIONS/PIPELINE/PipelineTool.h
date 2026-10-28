@@ -87,7 +87,10 @@ struct PipelineTool
   /// (a crash reports a signal number or NTSTATUS).
   static int exitCode(const ExternalProcess::Result& result);
 
-  static Descriptor discover(const PipelineGraph::Node& node,
+  /// Query the tool's parameter schema and apply the node's saved values to it.
+  /// Saved values of ports bound by edges in @p graph are ignored: invocations replace them.
+  static Descriptor discover(const PipelineGraph& graph,
+                             const PipelineGraph::Node& node,
                              const std::string& temp_directory,
                              const std::atomic_bool& cancelled,
                              std::function<void(const std::string&)> log);

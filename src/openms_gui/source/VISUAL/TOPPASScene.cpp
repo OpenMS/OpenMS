@@ -256,9 +256,11 @@ TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, bool gui):
     return edges_.end();
   }
 
+  // Adding items does not cancel a run: the worker executes a snapshot, new vertices
+  // get fresh ids, and added edges only connect added vertices (load(), include(),
+  // paste()). Connecting existing vertices commits through finishHoveringEdge().
   void TOPPASScene::addVertex(TOPPASVertex* tv)
   {
-    abortPipeline();
     execution_->ids.emplace(tv, execution_->next_id++);
     vertices_.push_back(tv);
     addItem(tv);
@@ -266,7 +268,6 @@ TOPPASScene::TOPPASScene(QObject* parent, const QString& tmp_path, bool gui):
 
   void TOPPASScene::addEdge(TOPPASEdge* te)
   {
-    abortPipeline();
     edges_.push_back(te);
     addItem(te);
   }

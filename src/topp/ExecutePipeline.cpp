@@ -16,6 +16,7 @@
 #include <csignal>
 #include <filesystem>
 #include <iostream>
+#include <iterator>
 #include <thread>
 
 using namespace OpenMS;
@@ -33,25 +34,34 @@ void requestInterrupt(int signal)
 struct SignalGuard
 {
   using Handler = void (*)(int);
-  Handler interrupt_handler;
-  Handler terminate_handler;
+  // Workflow tools run in process groups of their own, so signals sent to this
+  // process group (Ctrl+C, an ssh hangup, Ctrl+\) must become a cancellation
+  // that stops them, rather than end this process and leave them running.
+  static constexpr int signals[] = {SIGINT,
+                                    SIGTERM
+#ifndef _WIN32
+                                    ,
+                                    SIGHUP,
+                                    SIGQUIT
+#endif
+  };
+  Handler previous[std::size(signals)];
   SignalGuard()
   {
     interrupted.clear(std::memory_order_relaxed);
-    interrupt_handler = install(SIGINT);
-    terminate_handler = install(SIGTERM);
-  }
-  static Handler install(int signal)
-  {
-    const Handler previous = std::signal(signal, requestInterrupt);
-    // Keep signals ignored that the caller ignores (nohup, background jobs of scripts).
-    if (previous == SIG_IGN) { std::signal(signal, SIG_IGN); }
-    return previous;
+    for (std::size_t i = 0; i < std::size(signals); ++i)
+    {
+      previous[i] = std::signal(signals[i], requestInterrupt);
+      // Keep signals ignored that the caller ignores (nohup, background jobs of scripts).
+      if (previous[i] == SIG_IGN) { std::signal(signals[i], SIG_IGN); }
+    }
   }
   ~SignalGuard()
   {
-    std::signal(SIGINT, interrupt_handler);
-    std::signal(SIGTERM, terminate_handler);
+    for (std::size_t i = 0; i < std::size(signals); ++i)
+    {
+      std::signal(signals[i], previous[i]);
+    }
   }
 };
 

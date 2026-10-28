@@ -27,6 +27,8 @@
 #include <mutex>
 #include <set>
 #include <utility>
+#include <vector>
+#include <cerrno>
 
 #ifdef _WIN32
   #include <Windows.h>
@@ -323,14 +325,34 @@ namespace
     return contained(base / to_path(number + "-" + displayName(graph.node(edge->source)) + "-" + name));
   }
 
-  void copyOutput(const fs::path& source, const fs::path& target)
+  /// Copy in chunks, so that cancellation (Ctrl+C, a TOPPAS abort) does not wait for large outputs.
+  void copyFile(const fs::path& source, const fs::path& target, const std::atomic_bool& cancelled)
+  {
+    const auto failed = [&]() {
+      return fs::filesystem_error("Could not copy workflow output", source, target, std::error_code(errno, std::generic_category()));
+    };
+    std::ifstream in(source, std::ios::binary);
+    if (! in) throw failed();
+    std::ofstream out(target, std::ios::binary | std::ios::trunc);
+    if (! out) throw failed();
+    std::vector<char> buffer(std::size_t(4) << 20);
+    while (in)
+    {
+      if (cancelled.load()) throw Cancelled();
+      in.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
+      if (! out.write(buffer.data(), in.gcount())) throw failed();
+    }
+    if (in.bad() || ! out.flush()) throw failed();
+  }
+
+  void copyOutput(const fs::path& source, const fs::path& target, const std::atomic_bool& cancelled)
   {
     fs::create_directories(target.parent_path());
     if (fs::exists(target) && fs::equivalent(source, target)) return;
     const fs::path staged = target.parent_path() / (Tool::temporaryName(".cp-") + ".part");
     try
     {
-      fs::copy_file(source, staged);
+      copyFile(source, staged, cancelled);
       // Complete the copy before replacing an existing destination.
 #ifdef _WIN32
       if (! MoveFileExW(staged.c_str(), target.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
@@ -449,7 +471,7 @@ namespace
       for (const auto& copy : copies)
       {
         if (cancelled.load()) { throw Cancelled(); }
-        copyOutput(copy.source, copy.target);
+        copyOutput(copy.source, copy.target, cancelled);
         emit({Engine::Event::Type::OUTPUT_WRITTEN, node.id, copy.round, inputs.size(), pathString(copy.target)});
       }
     }
@@ -604,7 +626,7 @@ PipelineExecutor::Result PipelineExecutor::run(const PipelineGraph& definition,
       {
         try
         {
-          descriptors.emplace(node.id, Tool::discover(node, pathString(temporary.path), cancelled_,
+          descriptors.emplace(node.id, Tool::discover(graph, node, pathString(temporary.path), cancelled_,
                                                       [&](const auto& text) { emit({Event::Type::LOG, node.id, 0, 0, text}); }));
         }
         catch (const Failure& error)

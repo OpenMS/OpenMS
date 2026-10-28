@@ -266,7 +266,8 @@ bool PipelinePathClaims::claim(const fs::path& path)
   return fs::create_directory(marker);
 }
 
-PipelineTool::Descriptor PipelineTool::discover(const PipelineGraph::Node& node,
+PipelineTool::Descriptor PipelineTool::discover(const PipelineGraph& graph,
+                                                const PipelineGraph::Node& node,
                                                 const std::string& temp_directory,
                                                 const std::atomic_bool& cancelled,
                                                 std::function<void(const std::string&)> log)
@@ -318,7 +319,25 @@ PipelineTool::Descriptor PipelineTool::discover(const PipelineGraph::Node& node,
                                    descriptor.parameters.getTags("no_progress"));
   }
   // Refresh metadata from the executable while preserving saved values, including the user's no_progress choice.
-  if (! descriptor.parameters.update(node.parameters, false, false, true, true, OPENMS_LOG_WARN))
+  // Invocations replace the values of edge-bound ports, so a stale saved value (e.g.
+  // a single file from when '-in' was not yet a list) must not fail the strict update,
+  // just as the tool's own command line overrides it.
+  Param saved = node.parameters;
+  const auto bound_name = [&](const std::string& name, bool input) {
+    if (! graph.legacy_port_indices) { return name; }
+    const auto candidates = ports(descriptor.parameters, input); // the schema's ports, as indexed by legacy files
+    Size index = 0;
+    const auto parsed = std::from_chars(name.data(), name.data() + name.size(), index);
+    return parsed.ec == std::errc() && parsed.ptr == name.data() + name.size() && index < candidates.size() ? candidates[index].name : std::string();
+  };
+  for (const auto& edge : graph.edges)
+  {
+    const auto name = edge.target == node.id ? bound_name(edge.target_port, true)
+                      : edge.source == node.id ? bound_name(edge.source_port, false)
+                                               : std::string();
+    if (! name.empty()) { saved.remove(name); }
+  }
+  if (! descriptor.parameters.update(saved, false, false, true, true, OPENMS_LOG_WARN))
   {
     throw Failure(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, TOPPBase::ILLEGAL_PARAMETERS,
                   "Saved parameters for '" + node.tool_name + "' are incompatible with its current schema. INIUpdater can update the workflow file.");
