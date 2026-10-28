@@ -1591,11 +1591,13 @@ START_SECTION([EXTRA] DDA-PASEF precursors have the collision energy and fragmen
   TEST_EQUAL(prec.size(), 2)
   ABORT_IF(prec.size() != 2)
   // the collision energy is that of the rows of the precursor, and none if they differ
-  TEST_REAL_SIMILAR(double(prec[1].getMetaValue("collision energy")), 30.0)
-  TEST_EQUAL(prec[2].metaValueExists("collision energy"), false)
+  TEST_REAL_SIMILAR(double(prec.at(1).getMetaValue("collision energy")), 30.0)
+  TEST_EQUAL(prec.at(2).metaValueExists("collision energy"), false)
   // no fragmentation mode without the property
-  TEST_EQUAL(prec[1].getActivationMethods().empty(), true)
+  TEST_EQUAL(prec.at(1).getActivationMethods().empty(), true)
 
+  const std::set<Precursor::ActivationMethod> etd{Precursor::ActivationMethod::ETD};
+  const std::set<Precursor::ActivationMethod> cid{Precursor::ActivationMethod::CID};
   // MSMSAuto_FragmentationMode (1: ETD) of the property group of the frames; group 2, which no frame has, does not count
   execute({"ALTER TABLE Frames ADD COLUMN PropertyGroup INTEGER;", "UPDATE Frames SET PropertyGroup = 1;",
            "CREATE TABLE PropertyDefinitions (Id INTEGER PRIMARY KEY, PermanentName TEXT);",
@@ -1603,17 +1605,31 @@ START_SECTION([EXTRA] DDA-PASEF precursors have the collision energy and fragmen
            "CREATE TABLE GroupProperties (PropertyGroup INTEGER, Property INTEGER, Value);",
            "INSERT INTO GroupProperties VALUES (1, 7, 1), (2, 7, 0);"});
   prec = precursors();
-  TEST_EQUAL(prec[1].getActivationMethods() == std::set<Precursor::ActivationMethod>{Precursor::ActivationMethod::ETD}, true)
-  TEST_EQUAL(prec[2].getActivationMethods() == std::set<Precursor::ActivationMethod>{Precursor::ActivationMethod::ETD}, true)
+  TEST_EQUAL(prec.size(), 2)
+  TEST_EQUAL(prec.at(1).getActivationMethods() == etd, true)
+  TEST_EQUAL(prec.at(2).getActivationMethods() == etd, true)
 
-  // a value of the frame itself (0: CID) comes first; if the frames differ, there is none
+  // a value of the frame itself (0: CID) comes first
   execute({"CREATE TABLE FrameProperties (Frame INTEGER, Property INTEGER, Value);",
            "INSERT INTO FrameProperties VALUES (1, 7, 0), (2, 7, 0);"});
   prec = precursors();
-  TEST_EQUAL(prec[1].getActivationMethods() == std::set<Precursor::ActivationMethod>{Precursor::ActivationMethod::CID}, true)
+  TEST_EQUAL(prec.size(), 2)
+  TEST_EQUAL(prec.at(1).getActivationMethods() == cid, true)
+  TEST_EQUAL(prec.at(2).getActivationMethods() == cid, true)
+
+  // none if the frames differ: frame 1 has CID, frame 2 the ETD of its group
   execute({"DELETE FROM FrameProperties WHERE Frame = 2;"});
   prec = precursors();
-  TEST_EQUAL(prec[1].getActivationMethods().empty(), true)
+  TEST_EQUAL(prec.size(), 2)
+  TEST_EQUAL(prec.at(1).getActivationMethods().empty(), true)
+  TEST_EQUAL(prec.at(2).getActivationMethods().empty(), true)
+
+  // none if a frame has no value: frame 1 has the ETD of group 1, frame 2 is in group 3, which has no value
+  execute({"DELETE FROM FrameProperties;", "UPDATE Frames SET PropertyGroup = 3 WHERE Id = 2;"});
+  prec = precursors();
+  TEST_EQUAL(prec.size(), 2)
+  TEST_EQUAL(prec.at(1).getActivationMethods().empty(), true)
+  TEST_EQUAL(prec.at(2).getActivationMethods().empty(), true)
 }
 END_SECTION
 
@@ -2330,6 +2346,30 @@ START_SECTION(DDA loading integration test)
       break;
     }
   }
+
+  // Activation: no precursor of this run has PasefFrameMsMsInfo rows with different collision energies, so every MS2
+  // precursor has one (the run's energies are 20.6 to 54.7 eV). The run does not record MSMSAuto_FragmentationMode
+  // (only MSMSManual_ListFragmentationMode), so there is no activation method.
+  Size ms2_count = 0, with_ce = 0, ce_in_range = 0, with_activation = 0;
+  for (const auto& spec : exp)
+  {
+    if (spec.getMSLevel() != 2 || spec.getPrecursors().size() != 1) continue;
+    const Precursor& p = spec.getPrecursors()[0];
+    ++ms2_count;
+    if (p.metaValueExists("collision energy"))
+    {
+      ++with_ce;
+      const double ce = p.getMetaValue("collision energy");
+      if (ce >= 20.0 && ce <= 55.0) ++ce_in_range;
+    }
+    if (!p.getActivationMethods().empty()) ++with_activation;
+  }
+  TEST_NOT_EQUAL(ms2_count, 0)
+  TEST_EQUAL(with_ce, ms2_count)
+  TEST_EQUAL(ce_in_range, ms2_count)
+  TEST_EQUAL(with_activation, 0)
+  STATUS(with_ce << " / " << with_activation << " of " << ms2_count
+         << " MS2 precursors have a collision energy / an activation method")
 
   // Verify source file metadata was populated (I4)
   TEST_NOT_EQUAL(exp.getSourceFiles().size(), 0);
