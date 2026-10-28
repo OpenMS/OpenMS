@@ -296,11 +296,10 @@ namespace OpenMS
                        "charge of the range; spectra whose recorded charge lies outside of it are searched at that charge, or "
                        "not at all with precursor:recorded_charge_outside_range 'skip'.");
     defaults_.setValue("precursor:max_charge", 5, "Maximum precursor charge to be considered (see precursor:min_charge).");
-    defaults_.setValue("precursor:recorded_charge_outside_range", "search",
-                       "A spectrum whose recorded precursor charge lies outside of precursor:min_charge..max_charge: 'search' "
-                       "(ProSEAlgorithm's default, as ProSE int15) searches it at its recorded charge; 'skip' (the ProSE tool's "
-                       "default; OpenMS develop since #10713) "
-                       "does not search it. Spectra without a recorded charge are searched with every charge of the range.",
+    defaults_.setValue("precursor:recorded_charge_outside_range", "skip",
+                       "A spectrum whose recorded precursor charge lies outside of precursor:min_charge..max_charge: 'skip' "
+                       "(the default, as OpenMS develop since #10713) does not search it; 'search' (the behaviour before #10713) "
+                       "searches it at its recorded charge. Spectra without a recorded charge are searched with every charge of the range.",
                        {"advanced"});
     defaults_.setValidStrings("precursor:recorded_charge_outside_range", {"search", "skip"});
 
@@ -674,10 +673,10 @@ namespace OpenMS
                        "develop's in-process default since #10721): with ProSE's target-decoy competition that is 'false'.",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:use_pi0", {"true", "false", "auto"});
-    defaults_.setValue("rescoring:calc_mass_feature", "true",
-                       "Percolator's training uses the CalcMass column (the theoretical m/z) as a feature. 'true' (ProSEAlgorithm's "
-                       "default, as ProSE int15); 'false' (the ProSE tool's default): as the percolator executable, which reads it as metadata (OpenMS develop since "
-                       "#10717). The results differ.",
+    defaults_.setValue("rescoring:calc_mass_feature", "false",
+                       "Percolator's training uses the CalcMass column (the theoretical m/z) as a feature. 'false' (the default): "
+                       "as the percolator executable, which reads it as metadata (OpenMS develop since #10717); 'true': the "
+                       "behaviour before #10717. The results differ.",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:calc_mass_feature", {"true", "false"});
     defaults_.setValue("rescoring:fixed_enzyme_termini", "false",
@@ -697,7 +696,8 @@ namespace OpenMS
                        "peptide:clip_nterm_methionine). They let the rescoring learn the different rate of correct "
                        "matches of these small peptide classes. Use them only with decoys that populate both classes like "
                        "the targets (decoy_method 'keep_termini'): with decoys that rarely start with M (reversed "
-                       "proteins) they tell targets from decoys. The results differ.",
+                       "proteins, reused with decoys 'auto') they would tell targets from decoys, so they are switched off "
+                       "with a warning. The results differ.",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:terminal_features", {"true", "false"});
     defaults_.setValue("rescoring:stratum_q_values", "false",
@@ -705,7 +705,8 @@ namespace OpenMS
                        "protein N-terminal peptides (incl. Met-clipped ones) and the others each get target-decoy "
                        "competition of their own ((decoys + 1) / targets, as mokapot's grouped confidence). For a list of "
                        "N-terminal peptides at an FDR, use the stratum q-value; the main score stays the pooled q-value. "
-                       "Needs decoys that populate the N-terminal classes like the targets (decoy_method 'keep_termini'). With "
+                       "Needs decoys that populate the N-terminal classes like the targets (decoy_method 'keep_termini'; with reused "
+                       "decoys that rarely start with M it is switched off with a warning). With "
                        "rescore_method 'reset' the values are computed on RESET's scores (both decoy sets count as decoys "
                        "with reset:decoys 'two'), not as RESET's estimate.",
                        {"advanced"});
@@ -2643,6 +2644,12 @@ namespace OpenMS
     search_parameters.setMetaValue("peptide:deduplicate", param_.getValue("peptide:deduplicate"));
     // recorded only when not the default (the default output stays as before)
     if (decoy_keep_termini_) search_parameters.setMetaValue("decoy_method", "keep_termini");
+    if (nterm_options_disabled_) // the effective values differ from the requested ones (buildDecoyAugmentedDB_)
+    {
+      search_parameters.setMetaValue("rescoring:terminal_features", "false");
+      search_parameters.setMetaValue("rescoring:stratum_q_values", "false");
+      search_parameters.setMetaValue("rescoring:nterm_options_disabled", "the database's decoys rarely start with M");
+    }
     search_parameters.setMetaValue("fragment:query_spectrum", param_.getValue("fragment:query_spectrum"));
     search_parameters.setMetaValue("fragment:query_spectrum_resolved", query_raw_spectrum_ ? "raw" : "processed");
     search_parameters.setMetaValue("annotate:local_fragment_evidence", param_.getValue("annotate:local_fragment_evidence"));
@@ -3218,13 +3225,27 @@ namespace OpenMS
       OPENMS_LOG_WARN << "[ProSE] decoy_method keep_termini has no effect: the decoys of the database are used "
                       << "(decoys 'auto'). Use '-Search:decoys generate' to replace them." << std::endl;
     }
+    // The effective N-terminal rescoring options of the search whose database this builds: those requested, unless
+    // the decoys cannot support them (below). Re-derived at every database build, so a later search of the same object
+    // starts from the requested values again. (One search at a time per object, as for the other search state.)
+    terminal_features_ = param_.getValue("rescoring:terminal_features").toString() == "true";
+    stratum_q_values_ = param_.getValue("rescoring:stratum_q_values").toString() == "true";
+    nterm_options_disabled_ = false;
     if (check_met_symmetry && (terminal_features_ || stratum_q_values_)
         && targets_with_met > 0 && 2 * decoys_with_met * targets < targets_with_met * decoys)
     {
+      // With these decoys the features would tell targets from decoys (the mechanism of OpenMS issue #10726), so the
+      // requested options are switched off for this search rather than only warned about. The check is the share of
+      // decoys that start with M against the targets' (the asymmetry of whole-protein reversal); it does not prove
+      // that other decoys populate every N-terminal class like the targets.
       OPENMS_LOG_WARN << "[ProSE] rescoring:terminal_features / rescoring:stratum_q_values with these decoys: the "
-                      << "Met-clipped (and protein N-terminal) peptides have (almost) no decoys, so the features tell "
-                      << "targets from decoys and the stratum q-values are too low; the FDR is not controlled. Use '-Search:decoys generate "
-                      << "-Search:decoy_method keep_termini'." << std::endl;
+                      << "Met-clipped (and protein N-terminal) peptides have (almost) no decoys, so the features would tell "
+                      << "targets from decoys and the stratum q-values would be too low. The requested option(s) are switched "
+                      << "off for this search (recorded in the output's search parameters); use '-Search:decoys generate "
+                      << "-Search:decoy_method keep_termini' for decoys that support them." << std::endl;
+      terminal_features_ = false;
+      stratum_q_values_ = false;
+      nterm_options_disabled_ = true;
     }
 
     // 2. Generate decoys by reversing the (remaining) target proteins.

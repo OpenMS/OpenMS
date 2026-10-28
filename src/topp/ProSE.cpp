@@ -701,9 +701,10 @@ class ProSE :
 
     /// ProSEAlgorithm's defaults with the tool's own configuration (int16, quality gate v2 of 26 Oct 2026): symmetric
     /// protein N-terminal decoys (decoys generate, decoy_method keep_termini), 'Acetyl (Protein N-term)' among the variable
-    /// modifications, the terminal rescoring features and stratum q-values; and OpenMS develop's CalcMass handling
-    /// (not a training feature) and charge range (recorded charges outside of it are not searched). The library keeps its
-    /// defaults (those of int15), so that its users and tests are unchanged.
+    /// modifications, the terminal rescoring features and stratum q-values. The library keeps its defaults for these
+    /// five (decoys auto, decoy_method reverse, Oxidation (M) only, no terminal features or stratum q-values); its
+    /// CalcMass handling (not a training feature, #10717) and charge range (recorded charges outside of it are not
+    /// searched, #10713) are those of OpenMS develop.
     static Param toolSearchDefaults_()
     {
       Param p = ProSEAlgorithm().getDefaults();
@@ -720,8 +721,6 @@ class ProSE :
       set("modifications:variable", std::vector<std::string>{"Oxidation (M)", "Acetyl (Protein N-term)"});
       set("rescoring:terminal_features", "true");
       set("rescoring:stratum_q_values", "true");
-      set("rescoring:calc_mass_feature", "false");
-      set("precursor:recorded_charge_outside_range", "skip");
       return p;
     }
 

@@ -1528,8 +1528,12 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::string decoy_prefix_;
     bool decoy_keep_termini_ = false;   ///< decoy_method 'keep_termini'
     bool decoy_parity_report_ = false;  ///< decoy_parity_report
-    bool terminal_features_ = false;    ///< rescoring:terminal_features
-    bool stratum_q_values_ = false;     ///< rescoring:stratum_q_values
+    // The effective values of the current search: buildDecoyAugmentedDB_() (a const step) re-derives them from the
+    // parameters at every database build and switches both off when the reused decoys rarely start with M (the
+    // Met-share check of that function); nterm_options_disabled_ records that for the output's search parameters.
+    mutable bool terminal_features_ = false;    ///< rescoring:terminal_features (effective)
+    mutable bool stratum_q_values_ = false;     ///< rescoring:stratum_q_values (effective)
+    mutable bool nterm_options_disabled_ = false; ///< both switched off by buildDecoyAugmentedDB_()
 
     bool rescore_{true}; ///< rescore: Percolator rescoring of every run before its PSM-level FDR
     PercolatorTraining percolator_training_; ///< rescoring:...: options of Percolator's training

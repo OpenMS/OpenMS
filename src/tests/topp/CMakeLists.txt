@@ -4866,9 +4866,10 @@ set_tests_properties("TOPP_SimpleSearchEngine_2_out" PROPERTIES DEPENDS
 # Percolator rescoring (Search:rescore) is on by default. The tests of the search itself switch it off
 # ('-Search:rescore false') so they keep testing ProSE's own scores and FDR; Test 11 tests the rescoring.
 # The tool's configuration (int16: symmetric N-terminal decoys, 'Acetyl (Protein N-term)', terminal features, stratum
-# q-values, CalcMass not trained, recorded charges outside the range not searched) differs from ProSEAlgorithm's
-# defaults. The tests whose references were made with the library defaults set these back (_prose_library_defaults; their
-# INIs fix 'decoys' and the variable modifications themselves); TOPP_ProSE_tool_defaults runs the tool's configuration.
+# q-values) differs from ProSEAlgorithm's defaults, and the references of the tests below were made before #10717 (CalcMass
+# a training feature) and #10713 (recorded charges outside the range searched). The tests set all of these back
+# (_prose_library_defaults; their INIs fix 'decoys' and the variable modifications themselves); TOPP_ProSE_tool_defaults
+# runs the tool's configuration.
 set(_prose_library_defaults -Search:decoy_method reverse -Search:rescoring:terminal_features false
   -Search:rescoring:stratum_q_values false -Search:rescoring:calc_mass_feature true
   -Search:precursor:recorded_charge_outside_range search)
@@ -4881,6 +4882,23 @@ add_test("TOPP_ProSE_tool_defaults_ini_check" ${CMAKE_COMMAND} -DINPUT_FILE=${TE
   "-DEXPECTED=name=\"decoys\" value=\"generate\";name=\"decoy_method\" value=\"keep_termini\";LISTITEM value=\"Acetyl (Protein N-term)\";name=\"terminal_features\" value=\"true\";name=\"stratum_q_values\" value=\"true\";name=\"calc_mass_feature\" value=\"false\";name=\"recorded_charge_outside_range\" value=\"skip\""
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_ProSE_tool_defaults_ini_check" PROPERTIES DEPENDS "TOPP_ProSE_tool_defaults_ini")
+# Reused decoys that rarely start with M (whole-protein reversal, decoys 'auto'): the requested terminal features and
+# stratum q-values are switched off for the search, with a warning, and the output's search parameters record it.
+add_test(NAME "TOPP_ProSE_nterm_options_off" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML;-database;${DATA_DIR_TOPP}/ProSE_reversed_decoys.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_nterm_options_off.tmp.idXML;-Search:decoys;auto;-Search:rescore;false;-Search:rescoring:terminal_features;true;-Search:rescoring:stratum_q_values;true"
+  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=switched off for this search" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+add_test("TOPP_ProSE_nterm_options_off_recorded" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_nterm_options_off.tmp.idXML
+  "-DEXPECTED=name=\"rescoring:terminal_features\" value=\"false\";name=\"rescoring:stratum_q_values\" value=\"false\";name=\"rescoring:nterm_options_disabled\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_ProSE_nterm_options_off_recorded" PROPERTIES DEPENDS "TOPP_ProSE_nterm_options_off")
+# Generated decoys (the tool's default) keep the options on: nothing is recorded as switched off.
+add_test(NAME "TOPP_ProSE_nterm_options_on" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML;-database;${DATA_DIR_TOPP}/ProSE_reversed_decoys.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_nterm_options_on.tmp.idXML;-Search:rescore;false"
+  -DEXPECTED_CODE=0 -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+add_test("TOPP_ProSE_nterm_options_on_recorded" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_nterm_options_on.tmp.idXML
+  -DFORBIDDEN=nterm_options_disabled -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_ProSE_nterm_options_on_recorded" PROPERTIES DEPENDS "TOPP_ProSE_nterm_options_on")
+
 add_test("TOPP_ProSE_1" ${TOPP_BIN_PATH}/ProSE -test ${_prose_library_defaults} -Search:rescore false
 -ini ${DATA_DIR_TOPP}/ProSE_1.ini -in
 ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML
