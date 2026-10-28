@@ -6350,6 +6350,20 @@ endif()
 add_test("TOPP_FeatureFinderMetaboIdent_1" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_1_output.tmp.featureXML -extract:mz_window 5 -extract:rt_window 20 -detect:peak_width 3)
 add_test("TOPP_FeatureFinderMetaboIdent_1_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_1_output.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_output.featureXML)
 set_tests_properties("TOPP_FeatureFinderMetaboIdent_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_1")
+# FAIMS (synthetic): a target seen at three CVs is merged into one feature, a target found at no CV is reported once
+# (not once per CV), and the chromatograms of the CVs get distinct native ids
+add_test("TOPP_FeatureFinderMetaboIdent_2" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FAIMS_3CV_synthetic.mzML -id ${DATA_DIR_TOPP}/FAIMS_3CV_synthetic_targets.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_2_output.tmp.featureXML -chrom_out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_2_chrom.tmp.mzML -extract:rt_window 20)
+add_test("TOPP_FeatureFinderMetaboIdent_2_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_2_output.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"1\">;name=\"FAIMS_merge_count\" value=\"3\";name=\"label\" value=\"absent\""
+  "-DFORBIDDEN=name=\"FAIMS_CV\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_2_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_2")
+add_test("TOPP_FeatureFinderMetaboIdent_2_out2" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_2_chrom.tmp.mzML
+  "-DEXPECTED=_i0_CV-45.0\";_i0_CV-55.0\";_i0_CV-65.0\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_2_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_2")
 
 # MzMLSplitter test:
 # specify number of parts directly:
