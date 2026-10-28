@@ -381,6 +381,28 @@ START_SECTION((std::vector<FAIMSSwathMapGroup> loadFromMSExperimentByFAIMSCV(Pea
 }
 END_SECTION
 
+START_SECTION((std::vector<FAIMSSwathMapGroup> loadFromMSExperimentByFAIMSCV(PeakMap&& exp, const std::string& tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, const std::string& readoptions) - multiple CVs, cache with a file name prefix))
+{
+  PeakMap minus55 = makeTwoWindowDIAExperiment(true, -55.0, 5500.0, true, 0.0);
+  PeakMap minus45 = makeTwoWindowDIAExperiment(true, -45.0, 4500.0, true, 3.0);
+  PeakMap exp;
+  for (auto& spectrum : minus55.getSpectra()) exp.addSpectrum(std::move(spectrum));
+  for (auto& spectrum : minus45.getSpectra()) exp.addSpectrum(std::move(spectrum));
+
+  // a prefix for the cached files rather than a directory: each CV group must still get its own files
+  std::shared_ptr<ExperimentalSettings> meta;
+  auto groups = SwathFile().loadFromMSExperimentByFAIMSCV(
+    std::move(exp), SystemSettings::getTempDirectory() + "/" + File::getUniqueName(), meta, "cache");
+
+  TEST_EQUAL(groups.size(), 2)
+  ABORT_IF(groups.size() != 2)
+  TEST_REAL_SIMILAR(groups[0].swath_maps[0].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 6500.0)
+  TEST_REAL_SIMILAR(groups[0].swath_maps[1].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 6600.0)
+  TEST_REAL_SIMILAR(groups[1].swath_maps[0].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 5500.0)
+  TEST_REAL_SIMILAR(groups[1].swath_maps[1].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 5600.0)
+}
+END_SECTION
+
 START_SECTION((std::vector<FAIMSSwathMapGroup> loadOnDiscByFAIMSCV(const std::shared_ptr<IMSExperimentRandomAccess>& experiment, std::shared_ptr<ExperimentalSettings>& exp_meta, Interfaces::IMSDataConsumer* plugin_consumer)))
 {
   // Two CVs, MS1 and MS2 at each; the first MS2 of each cycle has no CV and goes to the CV before it
