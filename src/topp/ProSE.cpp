@@ -1790,11 +1790,50 @@ class ProSE :
       // (not with -qpx_extended: it stores the NCE of its predictions on the runs before their idXML is written)
       const bool early_idxml_files = in_list.size() > 1 && !out_idxml_list.empty() && out_merged.empty() && !qpx_extended;
       const bool early_qpx_files = in_list.size() > 1 && !out_qpx_dir.empty() && out_merged.empty() && !qpx_extended;
+      // Group mode (early_qpx_files): quantms.psm.parquet is written run by run (ArrowIOHelpers::ParquetTableStream;
+      // staged as quantms.psm.parquet.part and published with the merged files below, after the files of an earlier
+      // run are removed): the rows of each run appended in input order, on the consumer thread right after the run's
+      // own files, or in the output loop for a run the consumer did not get (the last one). A run the consumer skipped
+      // (its search failed, or its rescoring was deferred: the consumer cannot tell them apart) stops the stream
+      // (qpx_stream_gap): the merged file is then written from all tables after the loop, as before. One thread uses
+      // the stream at a time (the search waits for the consumer before it returns). Its footer has the scan_format
+      // added at the close, once every run is seen.
+      std::unique_ptr<ArrowIOHelpers::ParquetTableStream> qpx_stream;
+      const std::string qpx_stream_file = out_qpx_dir.empty() ? std::string() : out_qpx_dir + "/" + QPX_AGGREGATE_STEM + ".psm.parquet";
+      Size qpx_stream_next = 0;    // the input whose rows come next
+      bool qpx_stream_gap = false; // the stream stopped: see above
+      // Appends the psm table of input @p i (built: @p files; none: nothing) with @p threads if it is the next; a failure
+      // is logged (the stream has failed then: merged_ok below)
+      auto qpx_stream_append = [&](Size i, const QPXRunFiles_& files, int threads)
+      {
+        if (qpx_stream_gap || (qpx_stream && qpx_stream->failed())) { return; }
+        if (i != qpx_stream_next) { qpx_stream_gap = true; return; }
+        qpx_stream_next = i + 1;
+        if (!files.psm) { return; }
+        try
+        {
+          if (!qpx_stream)
+          {
+            // (its footer; a concatenation would inherit the first run's uuid and creation_date)
+            auto psm_meta = ArrowIOHelpers::qpxFileMetadata("psm_file");
+            if (!psm_meta) { qpx_stream_gap = true; return; } // (logged; written after the loop, failing the same way)
+            qpx_stream = std::make_unique<ArrowIOHelpers::ParquetTableStream>(qpx_stream_file + ".part", ParquetWriteConfig{}, psm_meta);
+          }
+          qpx_stream->append(files.psm, threads);
+        }
+        catch (const std::exception& e)
+        {
+          OPENMS_LOG_ERROR << "Failed to write " << qpx_stream_file << " (Arrow/Parquet): " << e.what() << endl;
+          if (qpx_stream) { qpx_stream->abandon(); } else { qpx_stream_gap = true; }
+        }
+      };
       if (early_qpx_files)
       {
-        // the staged files of an aborted earlier run (see writeQPXRunFiles_()): never part of a result
-        StringList staged;
+        // the staged files of an aborted earlier run (see writeQPXRunFiles_() and qpx_stream): never part of a result
+        StringList staged, staged_aggregate;
         File::fileList(qpx_runs_dir, "*.parquet.part", staged, true);
+        File::fileList(out_qpx_dir, QPX_AGGREGATE_STEM + ".*.parquet.part", staged_aggregate, true);
+        staged.insert(staged.end(), staged_aggregate.begin(), staged_aggregate.end());
         for (const std::string& file : staged)
         {
           if (!File::remove(file)) { OPENMS_LOG_WARN << "Cannot remove the staged file '" << file << "' of an earlier run." << endl; }
@@ -1890,11 +1929,14 @@ class ProSE :
                                  << " (Arrow/Parquet): " << early_qpx[i].pg_error << endl;
               }
             }
+            // its rows of quantms.psm.parquet (those the build gave, whatever the outcome of the writes, as below)
+            qpx_stream_append(i, early_qpx[i], threads);
           }
           else if (early_qpx_files)
           {
             early_qpx_error[i] = "the runs could not be copied: " + copy_error;
             early_qpx_state[i] = 3;
+            qpx_stream_append(i, early_qpx[i], 1); // (no table: the input is not in the merged file)
           }
         });
       }
@@ -2186,6 +2228,7 @@ class ProSE :
           OPENMS_LOG_ERROR << "Search failed for " << in_file
                            << " (algorithm exit code " << static_cast<int>(result.exit_code) << "). Skipping output." << endl;
           ++failed_count;
+          if (qpx_stream_next == i) { ++qpx_stream_next; } // (not in the merged file: the stream goes on with the next)
           continue;
         }
 
@@ -2314,6 +2357,7 @@ class ProSE :
                 check.threads = qpx_threads;
                 files.psm_validated = ArrowIOHelpers::validateQPXTable(files.psm, files.psm_file, check);
               }
+              if (early_qpx_files) { qpx_stream_append(i, files, qpx_write_threads); } // (the consumer did not get this run)
             }
             { // the tables, for quantms.* (whatever the outcome of the writes, as before): before the writes start
               if (files.psm)
@@ -2661,11 +2705,26 @@ class ProSE :
         // (in parallel; next to the per-input writes still running, the last input's at least)
         ParquetWriteConfig merged_config;
         merged_config.threads = qpx_write_threads;
-        if (psm_meta)
+        if (early_qpx_files && !qpx_stream_gap && (qpx_stream || qpx_psm_tables.empty()))
         {
+          // the stream has the rows of every run (none: no file, as the concatenation of no table): its footer
+          // completed, the staged file published (the earlier run's files are removed above)
+          if (qpx_stream)
+          {
+            merged_ok = qpx_stream->close(qpx_psm_keys) && merged_ok;
+            if (qpx_stream->closed() && !File::rename(qpx_stream_file + ".part", qpx_stream_file, true, false))
+            {
+              OPENMS_LOG_ERROR << "Failed to write " << qpx_stream_file << " (cannot rename " << qpx_stream_file << ".part)" << endl;
+              merged_ok = false;
+            }
+          }
+        }
+        else if (psm_meta)
+        {
+          if (qpx_stream) { qpx_stream->abandon(); } // (a run is missing from it: see qpx_stream_gap)
           merged_config.validated = in_list.size() == 1 && qpx_psm_tables.size() == 1 && early_qpx[0].psm_validated; // (the same table)
           merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
-            qpx_psm_tables, out_qpx_dir + "/" + QPX_AGGREGATE_STEM + ".psm.parquet", merged_config, psm_meta) && merged_ok;
+            qpx_psm_tables, qpx_stream_file, merged_config, psm_meta) && merged_ok;
           merged_config.validated = false;
         }
         // Same rule as the per-file pg above: with no group anywhere there is nothing to merge, and

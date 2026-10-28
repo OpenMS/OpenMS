@@ -215,6 +215,53 @@ namespace ArrowIOHelpers
     const std::string& filename,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
 
+  /**
+    @brief A Parquet file written table by table: the merged QPX psm file of a multi-file search, appended run by run
+    while the next run is searched
+
+    append() opens the file at the first table, with that table's schema and @p metadata as its footer (built once,
+    e.g. by qpxFileMetadata()), and writes the rows of every table into the row groups writeTableToParquet() would cut
+    for the concatenation of the tables (@c row_group_size rows per group, a group continued across tables), the
+    columns of a group encoded in parallel (as writeTableToParquet() with threads > 1, on a pool of the stream whose
+    size follows the threads of each append()). The later tables must have the schema of the first (metadata aside).
+    A QPX table (the @p metadata names the view) is validated per table by one QPXValueValidation, which keeps the
+    primary keys of the tables before: a key twice across tables is refused as it is in the concatenated table.
+    close() adds @p keys to the footer (keys known only after the last table, e.g. @c scan_format) and ends the
+    file. A failed append() or close() removes the file, logged; the stream is then done (failed()). Without an
+    append(), close() writes nothing. The destructor removes an unfinished file. One thread at a time.
+  */
+  class OPENMS_DLLAPI ParquetTableStream
+  {
+  public:
+    /// The file, the writer configuration (@c threads: of the validation and encoding until an append() says otherwise)
+    /// and the footer (the schema metadata of the first table is replaced by it; null: the first table's own)
+    ParquetTableStream(std::string filename, const ParquetWriteConfig& config,
+                       std::shared_ptr<const arrow::KeyValueMetadata> metadata);
+    ~ParquetTableStream();
+    ParquetTableStream(const ParquetTableStream&) = delete;
+    ParquetTableStream& operator=(const ParquetTableStream&) = delete;
+
+    /// Appends the rows of @p table (validated, encoded with @p threads; 0: the threads of the configuration).
+    /// False (logged) if refused or the write failed: the file is removed, the stream failed.
+    bool append(const std::shared_ptr<arrow::Table>& table, int threads = 0);
+    /// Ends the file with @p keys added to its footer. False (logged) if that failed (file removed).
+    bool close(const std::map<std::string, std::string>& keys = {});
+    /// Removes the file of an unfinished stream (nothing after close())
+    void abandon();
+    /// The rows appended so far
+    Size rows() const;
+    /// A write was refused or failed (the file is gone)
+    bool failed() const;
+    /// The file is written (close() succeeded)
+    bool closed() const;
+    /// The file
+    const std::string& filename() const;
+
+  private:
+    struct Impl;
+    std::unique_ptr<Impl> impl_;
+  };
+
   // ---------------------------------------------------------------------------
   // QPX file metadata
   // ---------------------------------------------------------------------------
