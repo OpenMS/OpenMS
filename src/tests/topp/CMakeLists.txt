@@ -493,6 +493,26 @@ set_tests_properties("TOPP_FeatureFinderIdentification_7_rescore" PROPERTIES DEP
 add_test("TOPP_FeatureFinderIdentification_7_no_pseudo_ids"
   bash -c "grep -q 'XXX' ${TESTS_TEMP_DIR}/FeatureFinderIdentification_7_candidates.tmp.featureXML && ! grep -q 'XXX' ${TESTS_TEMP_DIR}/FeatureFinderIdentification_7.tmp.featureXML && ! grep -q 'XXX' ${TESTS_TEMP_DIR}/FeatureFinderIdentification_7_rescored.tmp.featureXML")
 set_tests_properties("TOPP_FeatureFinderIdentification_7_no_pseudo_ids" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_7_rescore")
+# FAIMS (synthetic): one peptide at three compensation voltages, identified at each. The features of
+# the three CVs are merged into one; the candidates keep each CV, and re-scoring them merges them again.
+add_test("TOPP_FeatureFinderIdentification_8" ${TOPP_BIN_PATH}/FeatureFinderIdentification -test -in ${DATA_DIR_TOPP}/FAIMS_3CV_synthetic.mzML -id ${DATA_DIR_TOPP}/FAIMS_3CV_synthetic.idXML -out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_8.tmp.featureXML -candidates_out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_8_candidates.tmp.featureXML)
+add_test("TOPP_FeatureFinderIdentification_8_merged" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderIdentification_8.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"1\">;name=\"FAIMS_merge_count\" value=\"3\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderIdentification_8_merged" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_8")
+add_test("TOPP_FeatureFinderIdentification_8_candidates" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderIdentification_8_candidates.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"3\">;name=\"FAIMS_CV\" value=\"-45.0\";name=\"FAIMS_CV\" value=\"-55.0\";name=\"FAIMS_CV\" value=\"-65.0\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderIdentification_8_candidates" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_8")
+add_test("TOPP_FeatureFinderIdentification_8_rescore" ${TOPP_BIN_PATH}/FeatureFinderIdentification -test -in ${DATA_DIR_TOPP}/FAIMS_3CV_synthetic.mzML -id ${DATA_DIR_TOPP}/FAIMS_3CV_synthetic.idXML -candidates_in ${TESTS_TEMP_DIR}/FeatureFinderIdentification_8_candidates.tmp.featureXML -out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_8_rescored.tmp.featureXML)
+set_tests_properties("TOPP_FeatureFinderIdentification_8_rescore" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_8")
+add_test("TOPP_FeatureFinderIdentification_8_rescore_merged" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderIdentification_8_rescored.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"1\">;name=\"FAIMS_merge_count\" value=\"3\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderIdentification_8_rescore_merged" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_8_rescore")
 
 
 #------------------------------------------------------------------------------
