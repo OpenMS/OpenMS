@@ -83,6 +83,17 @@ static MSSpectrum isotopeSpectrum(Int charge)
 
 namespace
 {
+  /// All matches of all runs of @p data
+  std::vector<const IdentificationData::Match*> matchesOf(const IdentificationData& data)
+  {
+    std::vector<const IdentificationData::Match*> matches;
+    for (const auto& run : data.getRuns())
+      for (const auto& source : run.getSources())
+        for (const auto& query : source.identifications)
+          for (const auto& match : query.getMatches()) matches.push_back(&match);
+    return matches;
+  }
+
   MSSpectrum rnaFragmentPattern(int charge, bool positive = false)
   {
     MSSpectrum s;
@@ -179,12 +190,13 @@ START_SECTION(([EXTRA] variable-only ambiguity setup preserves terminal hypothes
   tool.getModifications_({});
   TEST_TRUE(tool.ambiguitiesEnabled())
   TEST_EQUAL(tool.getModifications_({"mA?"}).size(), 2)
-  IdentificationData data;
   TestNASE::HitsByScore hits;
   TestNASE::AnnotatedHit five, three;
   five.sequence = NASequence::fromString("pACGU");
   three.sequence = NASequence::fromString("ACGUp");
-  five.oligo_ref = data.registerIdentifiedOligo(IdentificationData::IdentifiedOligo(five.sequence));
+  RNaseDigestion::DigestedOligo oligo;
+  oligo.sequence = five.sequence;
+  five.oligo_ref = &oligo;
   three.oligo_ref = five.oligo_ref;
   hits.emplace(10.0, five);
   hits.emplace(10.0, three);
@@ -203,7 +215,7 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
   mzml += ".mzML";
   fasta += ".fasta";
   output += ".idXML";
-  digest += ".oms";
+  digest += ".idparquet";
   NucleicAcidSpectrumGenerator generator;
   Param parameters = generator.getParameters();
   parameters.setValue("add_first_prefix_ion", "true");
@@ -242,7 +254,7 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
   // Reuse the digest with different search tolerances while preserving its database.
   args = {"-in", mzml, "-digest", digest, "-id_out", output, "-out", output + ".mzTab",
     "-precursor:mass_tolerance", "20", "-fragment:mass_tolerance", "25", "-threads", "1",
-    "-db_out", output + ".oms"};
+    "-db_out", output + ".db.idparquet"};
   TEST_EQUAL(runSearch(args), 0)
   std::vector<ProteinIdentification> proteins;
   PeptideIdentificationList peptides;
@@ -252,24 +264,19 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
   TEST_REAL_SIMILAR(proteins[0].getSearchParameters().precursor_mass_tolerance, 20)
   TEST_REAL_SIMILAR(proteins[0].getSearchParameters().fragment_mass_tolerance, 25)
   TEST_TRUE(proteins[0].getSearchParameters().db == fasta)
+  // The search run records the tolerances of this search, and the database and digestion of the digest
+  // (it was made with -oligo:min_size 1; this search uses the default).
   IdentificationData result;
-  OMSFile().load(output + ".oms", result);
-  bool current_identification = false;
-  for (const auto& match : result.getObservationMatches())
-  {
-    for (const auto& applied : match.steps_and_scores)
-    {
-      if (!applied.processing_step_opt ||
-          !(*applied.processing_step_opt)->actions.count(DataProcessing::IDENTIFICATION)) continue;
-      const auto mapping = result.getDBSearchSteps().find(*applied.processing_step_opt);
-      TEST_TRUE(mapping != result.getDBSearchSteps().end())
-      if (mapping == result.getDBSearchSteps().end()) continue;
-      current_identification = true;
-      TEST_REAL_SIMILAR(mapping->second->precursor_mass_tolerance, 20)
-      TEST_REAL_SIMILAR(mapping->second->fragment_mass_tolerance, 25)
-    }
-  }
-  TEST_TRUE(current_identification)
+  FileHandler().loadIdentifications(output + ".db.idparquet", result, {FileTypes::IDPARQUET});
+  TEST_EQUAL(result.getRuns().size(), 1)
+  ABORT_IF(result.getRuns().size() != 1)
+  const auto& search_run = result.getRuns().front();
+  TEST_REAL_SIMILAR(search_run.getSettings().search.precursor_mass_tolerance, 20)
+  TEST_REAL_SIMILAR(search_run.getSettings().search.fragment_mass_tolerance, 25)
+  TEST_EQUAL(static_cast<Int>(search_run.getSettings().search.getMetaValue("rna_min_length")), 1)
+  TEST_EQUAL(search_run.getDatabases().size(), 1)
+  ABORT_IF(search_run.getDatabases().empty())
+  TEST_EQUAL(search_run.getDatabases()[0].path, fasta)
 
   for (const std::string credit : {"true", "false"})
   {
@@ -306,11 +313,11 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
   for (auto& array : raw[0].getFloatDataArrays()) array.push_back(0.0f);
   raw[0].sortByPosition();
   MzMLFile().store(mzml, raw);
-  std::string oms_output;
-  NEW_TMP_FILE(oms_output)
-  oms_output += ".oms";
+  std::string db_output;
+  NEW_TMP_FILE(db_output)
+  db_output += ".idparquet";
   auto report_args = arguments();
-  report_args.insert(report_args.end(), {"-report:precursor_percentage", "-preprocessing:remove_precursor_peak", "-db_out", oms_output});
+  report_args.insert(report_args.end(), {"-report:precursor_percentage", "-preprocessing:remove_precursor_peak", "-db_out", db_output});
   TEST_EQUAL(runSearch(report_args), 0)
   vector<ProteinIdentification> report_proteins;
   PeptideIdentificationList report_peptides;
@@ -322,11 +329,12 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
   TEST_REAL_SIMILAR(double(report_peptides[0].getMetaValue("precursor_percentage")), 100.0)
   TEST_FALSE(report_peptides[0].getHits()[0].metaValueExists("precursor_percentage"))
   IdentificationData report_data;
-  OMSFile().load(oms_output, report_data);
-  TEST_FALSE(report_data.getObservationMatches().empty())
-  ABORT_IF(report_data.getObservationMatches().empty())
-  TEST_REAL_SIMILAR(double(report_data.getObservations().begin()->getMetaValue("precursor_percentage")), 100.0)
-  TEST_FALSE(report_data.getObservationMatches().begin()->metaValueExists("precursor_percentage"))
+  FileHandler().loadIdentifications(db_output, report_data, {FileTypes::IDPARQUET});
+  TEST_FALSE(matchesOf(report_data).empty())
+  ABORT_IF(matchesOf(report_data).empty())
+  // the percentage belongs to the spectrum (the query), not to its matches
+  TEST_REAL_SIMILAR(double(report_data.getRuns().front().getSources()[0].identifications[0].getMetaValue("precursor_percentage")), 100.0)
+  TEST_FALSE(matchesOf(report_data)[0]->metaValueExists("precursor_percentage"))
   TextFile mztab_output(output + ".mzTab");
   TEST_TRUE(std::any_of(mztab_output.begin(), mztab_output.end(), [](const std::string& line)
     { return line.find("opt_global_precursor_percentage") != std::string::npos; }))
@@ -378,14 +386,14 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
   correction_input[1].setMetaValue("flash_precursor_old_counter", 999);
   correction_input[1].setMetaValue("sample_note", "retain");
   MzMLFile().store(mzml, correction_input);
-  std::string stale_preprocessed, stale_oms;
+  std::string stale_preprocessed, stale_db;
   NEW_TMP_FILE(stale_preprocessed)
-  NEW_TMP_FILE(stale_oms)
+  NEW_TMP_FILE(stale_db)
   stale_preprocessed += ".mzML";
-  stale_oms += ".oms";
+  stale_db += ".idparquet";
   auto stale_args = arguments();
   stale_args.insert(stale_args.end(), {"-precursor:isotopes", "1", "-precursor:max_charge", "-5",
-    "-out_preprocessed", stale_preprocessed, "-db_out", stale_oms});
+    "-out_preprocessed", stale_preprocessed, "-db_out", stale_db});
   TEST_EQUAL(runSearch(stale_args), 0)
   TEST_EQUAL(hitCount(output), 1)
   MSExperiment processed;
@@ -398,14 +406,14 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
   processed[0].getKeys(metadata_keys);
   for (const auto& key : metadata_keys) TEST_FALSE(key.starts_with("flash_precursor_"))
   IdentificationData stale_data;
-  OMSFile().load(stale_oms, stale_data);
-  TEST_FALSE(stale_data.getObservationMatches().empty())
-  ABORT_IF(stale_data.getObservationMatches().empty())
-  for (const auto& match : stale_data.getObservationMatches())
+  FileHandler().loadIdentifications(stale_db, stale_data, {FileTypes::IDPARQUET});
+  TEST_FALSE(matchesOf(stale_data).empty())
+  ABORT_IF(matchesOf(stale_data).empty())
+  for (const auto* match : matchesOf(stale_data))
   {
-    TEST_EQUAL(Int(match.getMetaValue("isotope_offset")), 1)
+    TEST_EQUAL(Int(match->getMetaValue("isotope_offset")), 1)
     metadata_keys.clear();
-    match.getKeys(metadata_keys);
+    match->getKeys(metadata_keys);
     for (const auto& key : metadata_keys) TEST_FALSE(key.starts_with("flash_precursor_"))
   }
 
@@ -438,17 +446,17 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
     TEST_FALSE(processed[0].metaValueExists(key))
   }
   stale_data.clear();
-  OMSFile().load(stale_oms, stale_data);
-  TEST_FALSE(stale_data.getObservationMatches().empty())
-  ABORT_IF(stale_data.getObservationMatches().empty())
-  for (const auto& match : stale_data.getObservationMatches())
+  FileHandler().loadIdentifications(stale_db, stale_data, {FileTypes::IDPARQUET});
+  TEST_FALSE(matchesOf(stale_data).empty())
+  ABORT_IF(matchesOf(stale_data).empty())
+  for (const auto* match : matchesOf(stale_data))
   {
-    TEST_EQUAL(Int(match.getMetaValue("isotope_offset")), 1)
-    TEST_EQUAL(match.getMetaValue("flash_precursor_status").toString(), "no_ms1")
+    TEST_EQUAL(Int(match->getMetaValue("isotope_offset")), 1)
+    TEST_EQUAL(match->getMetaValue("flash_precursor_status").toString(), "no_ms1")
     for (const auto& key : {"flash_precursor_mz", "flash_precursor_mono_mass", "flash_precursor_isotope",
          "flash_precursor_cosine", "flash_precursor_snr", "flash_precursor_mono_observed"})
     {
-      TEST_FALSE(match.metaValueExists(key))
+      TEST_FALSE(match->metaValueExists(key))
     }
   }
 
@@ -479,7 +487,7 @@ START_SECTION(([EXTRA] imported digests use only their recorded enzyme for modif
   NEW_TMP_FILE(digest)
   NEW_TMP_FILE(output)
   mzml += ".mzML";
-  digest += ".oms";
+  digest += ".idparquet";
   output += ".idXML";
   NucleicAcidSpectrumGenerator generator;
   Param parameters = generator.getParameters();
@@ -490,32 +498,42 @@ START_SECTION(([EXTRA] imported digests use only their recorded enzyme for modif
   const auto fixture = [&](const std::string& oligo_sequence, const std::string& hit,
                            const DigestionEnzyme* enzyme)
   {
+    // a digest as NucleicAcidSearchEngine -digest_out stores it: a catalog run with the candidate in its database sequence
     IdentificationData data;
-    data.registerScoreType(IdentificationData::ScoreType("hyperscore", true));
-    IdentificationData::DBSearchParam search_param;
-    search_param.molecule_type = IdentificationData::MoleculeType::RNA;
-    search_param.digestion_enzyme = enzyme;
-    const auto search_ref = data.registerDBSearchParam(search_param);
-    const auto software_ref = data.registerProcessingSoftware(
-      IdentificationData::ProcessingSoftware("RNADigestor", "test"));
-    const auto step_ref = data.registerProcessingStep(
-      IdentificationData::ProcessingStep(software_ref), search_ref);
-    data.setCurrentProcessingStep(step_ref);
-    const auto parent_ref = data.registerParentSequence(
-      IdentificationData::ParentSequence("TARGET", IdentificationData::MoleculeType::RNA, "ACGUAC"));
-    IdentificationData::IdentifiedOligo oligo(NASequence::fromString(oligo_sequence));
-    oligo.parent_matches[parent_ref].insert(IdentificationData::ParentMatch(0, oligo.sequence.size() - 1));
-    data.registerIdentifiedOligo(oligo);
-    OMSFile().store(digest, data);
+    auto& run = data.addRun("digestion", IdentificationData::MoleculeKind::OLIGONUCLEOTIDE);
+    IdentificationData::RunSettings settings;
+    settings.software = "RNADigestor";
+    settings.software_version = "test";
+    settings.setMetaValue("identification:catalog", "true");
+    if (enzyme) settings.search.setMetaValue("rna_enzyme", enzyme->getName());
+    run.setSettings(settings);
+    IdentificationData::Database database;
+    database.path = "test.fasta";
+    const auto database_id = run.addDatabase(database);
+    IdentificationData::DatabaseSequence parent {database_id, "TARGET", IdentificationData::TargetDecoy::TARGET};
+    parent.sequence = "ACGUAC";
+    run.setDatabaseSequences(std::vector {parent});
+    IdentificationData::SourceFile source;
+    source.path = database.path;
+    IdentificationData::Observation observation;
+    observation.data_id = "digest=1";
+    const auto query = run.addIdentification(run.addSource(source), observation);
+    IdentificationData::MatchData oligo;
+    oligo.encoding = IdentificationData::Encoding::NA_SEQUENCE;
+    oligo.representation = oligo_sequence;
+    oligo.target_decoy = IdentificationData::TargetDecoy::TARGET;
+    oligo.sequence_evidence.push_back({database_id, "TARGET", 0, static_cast<UInt32>(NASequence::fromString(oligo_sequence).size() - 1), '[', ']'});
+    run.addMatch(query, oligo);
+    FileHandler().storeIdentifications(digest, data, {FileTypes::IDPARQUET});
 
     // Exercise the serialized metadata, including a genuinely absent enzyme.
     IdentificationData imported;
-    OMSFile().load(digest, imported);
-    const auto imported_enzyme = imported.getDBSearchParams().begin()->digestion_enzyme;
-    TEST_TRUE((imported_enzyme == nullptr) == (enzyme == nullptr))
-    if (enzyme && imported_enzyme)
+    FileHandler().loadIdentifications(digest, imported, {FileTypes::IDPARQUET});
+    const auto& search = imported.getRuns().front().getSettings().search;
+    TEST_EQUAL(search.metaValueExists("rna_enzyme"), enzyme != nullptr)
+    if (enzyme && search.metaValueExists("rna_enzyme"))
     {
-      TEST_EQUAL(imported_enzyme->getName(), enzyme->getName())
+      TEST_EQUAL(search.getMetaValue("rna_enzyme").toString(), enzyme->getName())
     }
 
     const auto sequence = NASequence::fromString(hit);
@@ -580,8 +598,9 @@ END_SECTION
 START_SECTION(([EXTRA] complete cutoff ties are retained for every arrival order))
 {
   TestNASE tool;
-  IdentificationData data;
-  auto oligo = data.registerIdentifiedOligo(IdentificationData::IdentifiedOligo(NASequence::fromString("ACGU")));
+  RNaseDigestion::DigestedOligo digested;
+  digested.sequence = NASequence::fromString("ACGU");
+  const auto* oligo = &digested;
   TestNASE::PrecursorInfo precursor{0, -2, 0, nullopt};
   std::vector<std::string> sequences{"AAA", "AAC", "AAG", "AAU"};
   std::vector<double> scores{12.0, 10.0, 10.0, 9.0};
@@ -616,9 +635,10 @@ START_SECTION(([EXTRA] ambiguity variants merge within each precursor across tie
   TestNASE tool;
   tool.enableAmbiguities();
   TEST_EQUAL(tool.getModifications_({"mA?"}).size(), 2)
-  IdentificationData data;
-  const auto oligo = data.registerIdentifiedOligo(IdentificationData::IdentifiedOligo(NASequence::fromString("AUCAGp")));
-  const auto sodium = data.registerAdduct(AdductInfo("Na+", EmpiricalFormula("Na"), 1));
+  RNaseDigestion::DigestedOligo digested;
+  digested.sequence = NASequence::fromString("AUCAGp");
+  const auto* oligo = &digested;
+  const AdductInfo sodium("Na+", EmpiricalFormula("Na"), 1);
   TestNASE::PrecursorInfo first{0, -2, 0, nullopt};
   TestNASE::PrecursorInfo second{0, -3, 1, sodium};
   const std::vector<std::string> sequences{"AUC[Am]Gp", "AUC[Am]Gp", "AUC[mA]Gp", "AUC[mA]Gp", "AUC[m6A]Gp"};
@@ -674,10 +694,12 @@ START_SECTION(([EXTRA] ambiguity resolution preserves score source terminal and 
   TestNASE tool;
   tool.enableAmbiguities();
   tool.getModifications_({"mA?"});
-  IdentificationData data;
-  const auto oligo = data.registerIdentifiedOligo(IdentificationData::IdentifiedOligo(NASequence::fromString("AUCAGp")));
-  const auto other_oligo = data.registerIdentifiedOligo(IdentificationData::IdentifiedOligo(NASequence::fromString("AAUAGp")));
-  const auto sodium = data.registerAdduct(AdductInfo("Na+", EmpiricalFormula("Na"), 1));
+  RNaseDigestion::DigestedOligo digested, other_digested;
+  digested.sequence = NASequence::fromString("AUCAGp");
+  other_digested.sequence = NASequence::fromString("AAUAGp");
+  const auto* oligo = &digested;
+  const auto* other_oligo = &other_digested;
+  const AdductInfo sodium("Na+", EmpiricalFormula("Na"), 1);
   TestNASE::PrecursorInfo precursor{0, -2, 0, nullopt};
   TestNASE::PrecursorInfo equal_values{0, -2, 0, nullopt};
   TestNASE::PrecursorInfo other_charge{0, -3, 0, nullopt};
@@ -725,15 +747,27 @@ START_SECTION(([EXTRA] LFQ uses finite weights or the median of finite observati
 {
   TestNASE tool;
   IdentificationData data;
-  auto input = data.registerInputFile(IdentificationData::InputFile("lfq.mzML"));
+  auto& run = data.addRun("lfq", IdentificationData::MoleculeKind::OLIGONUCLEOTIDE);
+  IdentificationData::ScoreDefinition score;
+  score.name = "hyperscore";
+  run.setPrimaryScore(run.addScore(score));
+  IdentificationData::SourceFile input;
+  input.path = "lfq.mzML";
+  const auto source = run.addSource(input);
   Size index = 0;
   const auto add = [&](const std::string& sequence, double rt, double weight, Int charge = -2)
   {
-    auto oligo = data.registerIdentifiedOligo(IdentificationData::IdentifiedOligo(NASequence::fromString(sequence)));
-    IdentificationData::Observation obs("scan=" + std::to_string(++index), input, rt);
-    obs.setMetaValue("precursor_intensity", weight);
-    auto observation = data.registerObservation(obs);
-    data.registerObservationMatch(IdentificationData::ObservationMatch(oligo, observation, charge));
+    IdentificationData::Observation observation;
+    observation.data_id = "scan=" + std::to_string(++index);
+    // observation coordinates are finite: a retention time that is not known is missing
+    if (std::isfinite(rt)) observation.rt = rt;
+    observation.setMetaValue("precursor_intensity", weight);
+    const auto query = run.addIdentification(source, observation);
+    IdentificationData::MatchData match;
+    match.encoding = IdentificationData::Encoding::NA_SEQUENCE;
+    match.representation = sequence;
+    match.charge = charge;
+    run.addMatch(query, match, {1.0});
   };
   const double nan = std::numeric_limits<double>::quiet_NaN();
   add("ACGU", 10, 0);

@@ -558,18 +558,26 @@ START_SECTION(([EXTRA] setReference() tells adducts apart according to 'use_addu
   const std::vector<std::string> sequences = {"ACGU", "AACCGGUU", "GGGAAA", "UUUCCC", "ACACAC"};
   const auto id_data = [&](double shift) {
     IdentificationData data;
-    const auto file = data.registerInputFile(IdentificationData::InputFile("test.mzML"));
-    const auto score = data.registerScoreType(IdentificationData::ScoreType("hyperscore", true));
-    const auto adduct = data.registerAdduct(AdductInfo("Na:+", EmpiricalFormula("Na"), 1));
+    auto& run = data.addRun("NASE", IdentificationData::MoleculeKind::OLIGONUCLEOTIDE);
+    IdentificationData::ScoreDefinition hyperscore;
+    hyperscore.name = "hyperscore";
+    run.setPrimaryScore(run.addScore(hyperscore));
+    IdentificationData::SourceFile file;
+    file.path = "test.mzML";
+    const auto source = run.addSource(file);
     for (Size i = 0; i < sequences.size(); ++i)
     {
-      const auto observation = data.registerObservation(
-        IdentificationData::Observation("scan=" + StringUtils::toStr(i + 1), file, 100.0 * double(i + 1) + shift, 500.0 + double(i)));
-      const auto oligo = data.registerIdentifiedOligo(IdentificationData::IdentifiedOligo(NASequence::fromString(sequences[i])));
-      IdentificationData::ObservationMatch match(oligo, observation, -2);
-      match.adduct_opt = adduct;
-      match.addScore(score, 10);
-      data.registerObservationMatch(match);
+      IdentificationData::Observation observation;
+      observation.data_id = "scan=" + StringUtils::toStr(i + 1);
+      observation.rt = 100.0 * double(i + 1) + shift;
+      observation.mz = 500.0 + double(i);
+      IdentificationData::MatchData match;
+      match.encoding = IdentificationData::Encoding::NA_SEQUENCE;
+      match.representation = sequences[i];
+      match.charge = -2;
+      // the adduct of the ion, as NucleicAcidSearchEngine stores "Na:+" for charge -2: [M+Na-3H]2-
+      match.details.emplace().adduct = AdductInfo("Na:+", EmpiricalFormula("Na") + EmpiricalFormula("H") * -3, -2);
+      run.addMatch(run.addIdentification(source, observation), match, {10.0});
     }
     return data;
   };

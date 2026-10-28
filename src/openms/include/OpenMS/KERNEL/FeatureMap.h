@@ -8,23 +8,20 @@
 
 #pragma once
 
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/UniqueIdIndexer.h>
+#include <OpenMS/CONCEPT/UniqueIdInterface.h>
+#include <OpenMS/DATASTRUCTURES/ExposedVector.h>
+#include <OpenMS/DATASTRUCTURES/Utils/MapUtilities.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/RangeManager.h>
-
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
-
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/UniqueIdInterface.h>
-#include <OpenMS/CONCEPT/UniqueIdIndexer.h>
-#include <OpenMS/DATASTRUCTURES/ExposedVector.h>
-#include <OpenMS/DATASTRUCTURES/Utils/MapUtilities.h>
-
-#include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/OpenMSConfig.h>
 
 namespace OpenMS
@@ -267,11 +264,18 @@ namespace OpenMS
     /*!
       @brief Return observation matches (e.g. PSMs) from the identification data that are not assigned to any feature in the map
 
-      Only top-level features are considered, i.e. no subordinates.
+      A match linked by a subordinate counts as assigned.
 
       @see BaseFeature::getIDMatches()
     */
-    std::set<IdentificationData::ObservationMatchRef> getUnassignedIDMatches() const;
+    std::set<IdentificationData::MatchReference> getUnassignedIDMatches() const;
+
+    /*!
+      @brief The identifications and matches that no feature (or a subordinate) links (the counterpart of getUnassignedPeptideIdentifications())
+
+      @see IdentificationData::getUnlinked()
+    */
+    std::vector<IdentificationData::QueryMatches> getUnassignedIdentifications() const;
 
     /// Immutable access to the contained identification data
     const IdentificationData& getIdentificationData() const;

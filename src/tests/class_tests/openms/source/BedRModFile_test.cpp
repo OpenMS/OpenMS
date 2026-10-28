@@ -22,10 +22,86 @@
 #include <algorithm>
 #include <fstream>
 #include <iterator>
+#include <optional>
+#include <tuple>
 
 using namespace OpenMS;
 using namespace std;
-namespace ID = IdentificationDataInternal;
+using ID = IdentificationData;
+
+namespace
+{
+  /// An oligonucleotide run as NucleicAcidSearchEngine creates it: one input file, one database and its sequences,
+  /// a hyperscore and (unless left out) a PSM-level q-value
+  struct RnaRun
+  {
+    explicit RnaRun(bool with_qvalue = true) :
+      run(data.addRun("NASE", ID::MoleculeKind::OLIGONUCLEOTIDE))
+    {
+      ID::ScoreDefinition hyperscore;
+      hyperscore.name = "hyperscore";
+      run.setPrimaryScore(run.addScore(hyperscore));
+      if (with_qvalue)
+      {
+        ID::ScoreDefinition qvalue;
+        qvalue.name = "PSM-level q-value";
+        qvalue.higher_better = false;
+        run.addScore(qvalue);
+      }
+      ID::Database fasta;
+      fasta.path = "test.fasta";
+      database = run.addDatabase(fasta);
+      ID::SourceFile file;
+      file.path = "test.mzML";
+      source = run.addSource(file);
+    }
+    RnaRun(const RnaRun&) = delete;
+
+    /// Add an entry of the database (a parent sequence)
+    void addSequence(const std::string& accession, const std::string& sequence, bool decoy = false)
+    {
+      ID::DatabaseSequence entry(database, accession, decoy ? ID::TargetDecoy::DECOY : ID::TargetDecoy::TARGET);
+      entry.sequence = sequence;
+      sequences.push_back(entry);
+      run.setDatabaseSequences(sequences);
+    }
+
+    /// Add a spectrum of the input file
+    ID::QueryId addObservation(const std::string& data_id, double rt = 100.0, double mz = 500.0)
+    {
+      ID::Observation observation;
+      observation.data_id = data_id;
+      observation.rt = rt;
+      observation.mz = mz;
+      return run.addIdentification(source, observation);
+    }
+
+    /// Add a match of @p sequence to @p query that occurs at @p evidence (accession, start, end), with a hyperscore of
+    /// 100 and the PSM-level q-value @p qvalue (if the run has one)
+    void addMatch(ID::QueryId query, const std::string& sequence,
+                  const std::vector<std::tuple<std::string, UInt32, UInt32>>& evidence,
+                  std::optional<double> qvalue = 0.01, Int charge = 2)
+    {
+      ID::MatchData match;
+      match.encoding = ID::Encoding::NA_SEQUENCE;
+      match.representation = sequence;
+      match.charge = charge;
+      for (const auto& [accession, start, end] : evidence)
+      {
+        match.sequence_evidence.push_back({database, accession, start, end});
+      }
+      std::vector<std::optional<double>> scores {100.0};
+      if (run.getScoreDefinitions().size() > 1) scores.push_back(qvalue);
+      run.addMatch(query, match, scores);
+    }
+
+    ID data;
+    ID::Run& run;
+    ID::DatabaseId database;
+    ID::SourceId source;
+    std::vector<ID::DatabaseSequence> sequences;
+  };
+}
 
 ///////////////////////////
 
@@ -52,35 +128,14 @@ END_SECTION
 
 START_SECTION((void store(const std::string& out_file, const IdentificationData& id_data, const std::string& chebi_mapping_file, const std::map<std::string, std::string>& reference_metadata)))
 {
-  // Create test identification data
-  IdentificationData id_data;
+  // Create test identification data with a parent sequence (RNA transcript)
+  RnaRun rna;
+  rna.addSequence("test_rna", "AUG[m5C]AUGC");
 
-  // Add a parent sequence (RNA transcript)
-  ID::ParentSequence parent("test_rna", ID::MoleculeType::RNA, "AUG[m5C]AUGC");
-  auto parent_ref = id_data.registerParentSequence(parent);
-
-  // Create a sequence with both unmodified and modified bases: AUG[m5C]
-  NASequence na_seq = NASequence::fromString("AUG[m5C]");
-
-  // Create identified oligo with parent match at positions 0-3
-  ID::IdentifiedOligo oligo(na_seq);
-  oligo.parent_matches[parent_ref].insert(ID::ParentMatch(0, 3));
-  auto oligo_ref = id_data.registerIdentifiedOligo(oligo);
-
-  // Create observation (spectrum)
-  auto input_ref = id_data.registerInputFile(ID::InputFile("test.mzML"));
-  ID::Observation obs("spectrum_1", input_ref, 100.0, 500.0);
-  auto obs_ref = id_data.registerObservation(obs);
-
-  // Create observation match with a hyperscore and a PSM-level q-value
-  ID::ScoreType score_type("hyperscore", true);
-  auto score_ref = id_data.registerScoreType(score_type);
-  ID::ScoreType qvalue_type("PSM-level q-value", false);
-  auto qvalue_ref = id_data.registerScoreType(qvalue_type);
-  ID::ObservationMatch match(oligo_ref, obs_ref, 2);
-  match.addScore(score_ref, 100.0);
-  match.addScore(qvalue_ref, 0.01);
-  id_data.registerObservationMatch(match);
+  // A sequence with both unmodified and modified bases (AUG[m5C]) at positions 0-3 of the parent, in one spectrum,
+  // with a hyperscore and a PSM-level q-value
+  rna.addMatch(rna.addObservation("spectrum_1"), "AUG[m5C]", {{"test_rna", 0, 3}});
+  const IdentificationData& id_data = rna.data;
 
   // Store to file
   std::string test_file;
@@ -122,22 +177,18 @@ END_SECTION
 
 START_SECTION(([EXTRA] distinct observations determine modification frequency and identity))
 {
-  IdentificationData data;
-  const auto parent = data.registerParentSequence(ID::ParentSequence("rna", ID::MoleculeType::RNA, "ACGA"));
-  const auto input = data.registerInputFile(ID::InputFile("test.mzML"));
-  const auto qvalue = data.registerScoreType(ID::ScoreType("PSM-level q-value", false));
-  const auto modified = data.registerObservation(ID::Observation("modified", input));
-  const auto unmodified = data.registerObservation(ID::Observation("unmodified", input));
-  data.setMetaValue(modified, "precursor_intensity", 1e12);
-  const auto add_match = [&](const std::string& sequence, ID::ObservationRef observation, Size start, double score = 0.01)
+  RnaRun rna;
+  rna.addSequence("rna", "ACGA");
+  ID::Observation intense;
+  intense.data_id = "modified";
+  intense.setMetaValue("precursor_intensity", 1e12);
+  const auto modified = rna.run.addIdentification(rna.source, intense);
+  const auto unmodified = rna.addObservation("unmodified");
+  const auto add_match = [&](const std::string& sequence, ID::QueryId observation, UInt32 start, double score = 0.01)
   {
-    ID::IdentifiedOligo oligo(NASequence::fromString(sequence));
-    oligo.parent_matches[parent].insert(ID::ParentMatch(start, start + 2));
-    const auto oligo_ref = data.registerIdentifiedOligo(oligo);
-    ID::ObservationMatch match(oligo_ref, observation, 2);
-    match.addScore(qvalue, score);
-    data.registerObservationMatch(match);
+    rna.addMatch(observation, sequence, {{"rna", start, start + 2}}, score);
   };
+  const IdentificationData& data = rna.data;
   // Both hypotheses from one spectrum put m5C at the same parent position.
   add_match("A[m5C]G", modified, 0, 0.02);
   add_match("[m5C]GA", modified, 1);
@@ -197,34 +248,12 @@ END_SECTION
 START_SECTION(([EXTRA] terminal modifications excluded))
 {
   // Test that terminal modifications (5' and 3') are excluded
-  IdentificationData id_data;
-
-  // Add a parent sequence
-  ID::ParentSequence parent("test_rna_terminal", ID::MoleculeType::RNA, "AUGCAUGC");
-  auto parent_ref = id_data.registerParentSequence(parent);
+  RnaRun rna;
+  rna.addSequence("test_rna_terminal", "AUGCAUGC");
 
   // Only the internal modification produces a row, not either terminal group.
-  NASequence na_seq = NASequence::fromString("pA[Um]p");
-
-  // Create identified oligo with parent match
-  ID::IdentifiedOligo oligo(na_seq);
-  oligo.parent_matches[parent_ref].insert(ID::ParentMatch(0, 1));
-  auto oligo_ref = id_data.registerIdentifiedOligo(oligo);
-
-  // Create observation
-  auto input_ref = id_data.registerInputFile(ID::InputFile("test.mzML"));
-  ID::Observation obs("spectrum_1", input_ref, 100.0, 500.0);
-  auto obs_ref = id_data.registerObservation(obs);
-
-  // Create observation match with a hyperscore and a PSM-level q-value
-  ID::ScoreType score_type("hyperscore", true);
-  auto score_ref = id_data.registerScoreType(score_type);
-  ID::ScoreType qvalue_type("PSM-level q-value", false);
-  auto qvalue_ref = id_data.registerScoreType(qvalue_type);
-  ID::ObservationMatch match(oligo_ref, obs_ref, 2);
-  match.addScore(score_ref, 100.0);
-  match.addScore(qvalue_ref, 0.01);
-  id_data.registerObservationMatch(match);
+  rna.addMatch(rna.addObservation("spectrum_1"), "pA[Um]p", {{"test_rna_terminal", 0, 1}});
+  const IdentificationData& id_data = rna.data;
 
   // Store to file
   std::string test_file;
@@ -255,32 +284,11 @@ END_SECTION
 START_SECTION(([EXTRA] matches without q-value are skipped))
 {
   // Test that matches without a valid q-value score are excluded from output
-  IdentificationData id_data;
-
-  // Add a parent sequence
-  ID::ParentSequence parent("test_rna_no_fdr", ID::MoleculeType::RNA, "AUGC");
-  auto parent_ref = id_data.registerParentSequence(parent);
-
-  // Create sequence
-  NASequence na_seq = NASequence::fromString("AU[Gm]");
-
-  // Create identified oligo
-  ID::IdentifiedOligo oligo(na_seq);
-  oligo.parent_matches[parent_ref].insert(ID::ParentMatch(0, 2));
-  auto oligo_ref = id_data.registerIdentifiedOligo(oligo);
-
-  // Create observation
-  auto input_ref = id_data.registerInputFile(ID::InputFile("test.mzML"));
-  ID::Observation obs("spectrum_1", input_ref, 100.0, 500.0);
-  auto obs_ref = id_data.registerObservation(obs);
-
-  // Create observation match with only a hyperscore (no q-value)
-  ID::ScoreType score_type("hyperscore", true);
-  auto score_ref = id_data.registerScoreType(score_type);
-  ID::ObservationMatch match(oligo_ref, obs_ref, 2);
-  match.addScore(score_ref, 100.0);
-  // Deliberately NOT adding q-value score to simulate "FDR not run"
-  id_data.registerObservationMatch(match);
+  // A run with only a hyperscore: deliberately no q-value score, to simulate "FDR not run"
+  RnaRun rna(false);
+  rna.addSequence("test_rna_no_fdr", "AUGC");
+  rna.addMatch(rna.addObservation("spectrum_1"), "AU[Gm]", {{"test_rna_no_fdr", 0, 2}});
+  const IdentificationData& id_data = rna.data;
 
   // Store to file
   std::string test_file;
@@ -311,33 +319,11 @@ END_SECTION
 
 START_SECTION(([EXTRA] sentinel q-values do not produce rows or affect frequency))
 {
-  IdentificationData id_data;
-  auto parent_ref = id_data.registerParentSequence(
-    ID::ParentSequence("test_rna_sentinel", ID::MoleculeType::RNA, "ACG"));
-
-  ID::IdentifiedOligo valid_oligo(NASequence::fromString("A[m5C]G"));
-  valid_oligo.parent_matches[parent_ref].insert(ID::ParentMatch(0, 2));
-  auto valid_ref = id_data.registerIdentifiedOligo(valid_oligo);
-
-  ID::IdentifiedOligo sentinel_oligo(NASequence::fromString("ACG"));
-  sentinel_oligo.parent_matches[parent_ref].insert(ID::ParentMatch(0, 2));
-  auto sentinel_ref = id_data.registerIdentifiedOligo(sentinel_oligo);
-
-  auto input_ref = id_data.registerInputFile(ID::InputFile("test.mzML"));
-  auto valid_obs = id_data.registerObservation(ID::Observation("valid", input_ref, 100.0, 500.0));
-  auto sentinel_obs = id_data.registerObservation(ID::Observation("sentinel", input_ref, 101.0, 500.0));
-  auto score_ref = id_data.registerScoreType(ID::ScoreType("hyperscore", true));
-  auto qvalue_ref = id_data.registerScoreType(ID::ScoreType("PSM-level q-value", false));
-
-  ID::ObservationMatch valid_match(valid_ref, valid_obs, 2);
-  valid_match.addScore(score_ref, 100.0);
-  valid_match.addScore(qvalue_ref, 0.01);
-  id_data.registerObservationMatch(valid_match);
-
-  ID::ObservationMatch sentinel_match(sentinel_ref, sentinel_obs, 2);
-  sentinel_match.addScore(score_ref, 100.0);
-  sentinel_match.addScore(qvalue_ref, -1.0);
-  id_data.registerObservationMatch(sentinel_match);
+  RnaRun rna;
+  rna.addSequence("test_rna_sentinel", "ACG");
+  rna.addMatch(rna.addObservation("valid", 100.0), "A[m5C]G", {{"test_rna_sentinel", 0, 2}}, 0.01);
+  rna.addMatch(rna.addObservation("sentinel", 101.0), "ACG", {{"test_rna_sentinel", 0, 2}}, -1.0);
+  const IdentificationData& id_data = rna.data;
 
   std::string test_file;
   NEW_TMP_FILE(test_file);
@@ -369,43 +355,20 @@ END_SECTION
 START_SECTION(([EXTRA] target_mapping_count reflects target occurrences))
 {
   // Test that target_mapping_count column shows count of target sequence occurrences
-  IdentificationData id_data;
+  RnaRun rna;
 
   // Add three parent sequences - 2 targets and 1 decoy
-  ID::ParentSequence parent1("target_rna_1", ID::MoleculeType::RNA, "AUGCAUGC", "", 0.0, false);
-  auto parent1_ref = id_data.registerParentSequence(parent1);
+  rna.addSequence("target_rna_1", "AUGCAUGC");
+  rna.addSequence("target_rna_2", "CAUGCAUG");
+  rna.addSequence("DECOY_rna", "GCAUGCAU", true);
 
-  ID::ParentSequence parent2("target_rna_2", ID::MoleculeType::RNA, "CAUGCAUG", "", 0.0, false);
-  auto parent2_ref = id_data.registerParentSequence(parent2);
-
-  ID::ParentSequence parent_decoy("DECOY_rna", ID::MoleculeType::RNA, "GCAUGCAU", "", 0.0, true);
-  auto parent_decoy_ref = id_data.registerParentSequence(parent_decoy);
-
-  // Create sequence that maps to multiple locations
-  NASequence na_seq = NASequence::fromString("AU[Gm]");
-
-  // Create identified oligo with matches to all three parents
-  ID::IdentifiedOligo oligo(na_seq);
-  oligo.parent_matches[parent1_ref].insert(ID::ParentMatch(0, 2));  // target 1
-  oligo.parent_matches[parent1_ref].insert(ID::ParentMatch(4, 6));  // target 1 (second occurrence)
-  oligo.parent_matches[parent2_ref].insert(ID::ParentMatch(1, 3));  // target 2
-  oligo.parent_matches[parent_decoy_ref].insert(ID::ParentMatch(2, 4));  // decoy (should not count)
-  auto oligo_ref = id_data.registerIdentifiedOligo(oligo);
-
-  // Create observation
-  auto input_ref = id_data.registerInputFile(ID::InputFile("test.mzML"));
-  ID::Observation obs("spectrum_1", input_ref, 100.0, 500.0);
-  auto obs_ref = id_data.registerObservation(obs);
-
-  // Create observation match with scores
-  ID::ScoreType score_type("hyperscore", true);
-  auto score_ref = id_data.registerScoreType(score_type);
-  ID::ScoreType qvalue_type("PSM-level q-value", false);
-  auto qvalue_ref = id_data.registerScoreType(qvalue_type);
-  ID::ObservationMatch match(oligo_ref, obs_ref, 2);
-  match.addScore(score_ref, 100.0);
-  match.addScore(qvalue_ref, 0.01);
-  id_data.registerObservationMatch(match);
+  // A sequence that maps to multiple locations of all three parents
+  rna.addMatch(rna.addObservation("spectrum_1"), "AU[Gm]",
+               {{"target_rna_1", 0, 2},  // target 1
+                {"target_rna_1", 4, 6},  // target 1 (second occurrence)
+                {"target_rna_2", 1, 3},  // target 2
+                {"DECOY_rna", 2, 4}});   // decoy (should not count)
+  const IdentificationData& id_data = rna.data;
 
   // Store to file
   std::string test_file;
@@ -456,34 +419,11 @@ END_SECTION
 START_SECTION(([EXTRA] target_mapping_count equals 1 for unique mapping))
 {
   // Test that target_mapping_count is 1 for a sequence with single target occurrence
-  IdentificationData id_data;
-
-  // Add one target parent sequence
-  ID::ParentSequence parent("unique_target", ID::MoleculeType::RNA, "AUGC", "", 0.0, false);
-  auto parent_ref = id_data.registerParentSequence(parent);
-
-  // Create sequence
-  NASequence na_seq = NASequence::fromString("AU[Gm]");
-
-  // Create identified oligo with single match to one parent
-  ID::IdentifiedOligo oligo(na_seq);
-  oligo.parent_matches[parent_ref].insert(ID::ParentMatch(0, 2));
-  auto oligo_ref = id_data.registerIdentifiedOligo(oligo);
-
-  // Create observation
-  auto input_ref = id_data.registerInputFile(ID::InputFile("test.mzML"));
-  ID::Observation obs("spectrum_1", input_ref, 100.0, 500.0);
-  auto obs_ref = id_data.registerObservation(obs);
-
-  // Create observation match with scores
-  ID::ScoreType score_type("hyperscore", true);
-  auto score_ref = id_data.registerScoreType(score_type);
-  ID::ScoreType qvalue_type("PSM-level q-value", false);
-  auto qvalue_ref = id_data.registerScoreType(qvalue_type);
-  ID::ObservationMatch match(oligo_ref, obs_ref, 2);
-  match.addScore(score_ref, 100.0);
-  match.addScore(qvalue_ref, 0.01);
-  id_data.registerObservationMatch(match);
+  // One target parent sequence and a single match to it
+  RnaRun rna;
+  rna.addSequence("unique_target", "AUGC");
+  rna.addMatch(rna.addObservation("spectrum_1"), "AU[Gm]", {{"unique_target", 0, 2}});
+  const IdentificationData& id_data = rna.data;
 
   // Store to file
   std::string test_file;
@@ -525,38 +465,12 @@ END_SECTION
 START_SECTION(([EXTRA] decoy-only mappings do not produce modification rows))
 {
   // Test that sequences mapping only to decoys have target_mapping_count = 0
-  IdentificationData id_data;
-
-  // Add only decoy parent sequences
-  ID::ParentSequence parent_decoy1("DECOY_rna_1", ID::MoleculeType::RNA, "AUGC", "", 0.0, true);
-  auto parent_decoy1_ref = id_data.registerParentSequence(parent_decoy1);
-
-  ID::ParentSequence parent_decoy2("DECOY_rna_2", ID::MoleculeType::RNA, "CAUGC", "", 0.0, true);
-  auto parent_decoy2_ref = id_data.registerParentSequence(parent_decoy2);
-
-  // Create sequence
-  NASequence na_seq = NASequence::fromString("AU[Gm]");
-
-  // Create identified oligo with matches only to decoys
-  ID::IdentifiedOligo oligo(na_seq);
-  oligo.parent_matches[parent_decoy1_ref].insert(ID::ParentMatch(0, 2));
-  oligo.parent_matches[parent_decoy2_ref].insert(ID::ParentMatch(1, 3));
-  auto oligo_ref = id_data.registerIdentifiedOligo(oligo);
-
-  // Create observation
-  auto input_ref = id_data.registerInputFile(ID::InputFile("test.mzML"));
-  ID::Observation obs("spectrum_1", input_ref, 100.0, 500.0);
-  auto obs_ref = id_data.registerObservation(obs);
-
-  // Create observation match with scores
-  ID::ScoreType score_type("hyperscore", true);
-  auto score_ref = id_data.registerScoreType(score_type);
-  ID::ScoreType qvalue_type("PSM-level q-value", false);
-  auto qvalue_ref = id_data.registerScoreType(qvalue_type);
-  ID::ObservationMatch match(oligo_ref, obs_ref, 2);
-  match.addScore(score_ref, 100.0);
-  match.addScore(qvalue_ref, 0.01);
-  id_data.registerObservationMatch(match);
+  // Only decoy parent sequences, and a match to both
+  RnaRun rna;
+  rna.addSequence("DECOY_rna_1", "AUGC", true);
+  rna.addSequence("DECOY_rna_2", "CAUGC", true);
+  rna.addMatch(rna.addObservation("spectrum_1"), "AU[Gm]", {{"DECOY_rna_1", 0, 2}, {"DECOY_rna_2", 1, 3}});
+  const IdentificationData& id_data = rna.data;
 
   // Store to file
   std::string test_file;
@@ -635,16 +549,10 @@ END_SECTION
 
 START_SECTION(([EXTRA] custom modification names require an honest mapping without truncating output))
 {
-  IdentificationData data;
-  const auto parent = data.registerParentSequence(ID::ParentSequence("rna", ID::MoleculeType::RNA, "AG"));
-  const auto input = data.registerInputFile(ID::InputFile("test.mzML"));
-  const auto observation = data.registerObservation(ID::Observation("scan", input));
-  const auto qvalue = data.registerScoreType(ID::ScoreType("PSM-level q-value", false));
-  ID::IdentifiedOligo oligo(NASequence::fromString("[mA?]G"));
-  oligo.parent_matches[parent].insert(ID::ParentMatch(0, 1));
-  ID::ObservationMatch match(data.registerIdentifiedOligo(oligo), observation, 2);
-  match.addScore(qvalue, 0.01);
-  data.registerObservationMatch(match);
+  RnaRun rna;
+  rna.addSequence("rna", "AG");
+  rna.addMatch(rna.addObservation("scan"), "[mA?]G", {{"rna", 0, 1}});
+  const IdentificationData& data = rna.data;
   std::string output_file, mapping_file;
   NEW_TMP_FILE(output_file)
   NEW_TMP_FILE(mapping_file)

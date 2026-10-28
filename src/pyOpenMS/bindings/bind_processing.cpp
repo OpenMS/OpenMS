@@ -296,6 +296,12 @@ The filter functions for MS/MS experiments do include clean-up steps, because th
         .def(nb::init<const OpenMS::IDFilter &>())
         .def("__copy__", [](const OpenMS::IDFilter& self) { return OpenMS::IDFilter(self); })
         .def("__deepcopy__", [](const OpenMS::IDFilter& self, nb::dict) { return OpenMS::IDFilter(self); }, "memo"_a)
+        .def_static("keepBestMatchPerObservation", &OpenMS::IDFilter::keepBestMatchPerObservation, "data"_a, "score"_a,
+            "Keeps only the best match of each identification (by the given score) in identification data")
+        .def_static("filterObservationMatchesByScore", &OpenMS::IDFilter::filterObservationMatchesByScore, "data"_a, "score"_a, "cutoff"_a,
+            "Removes the matches whose value of the given score is worse than the cutoff from identification data")
+        .def_static("removeDecoys", [](OpenMS::IdentificationData& data) { OpenMS::IDFilter::removeDecoys(data); }, "data"_a,
+            "Removes the decoy matches from identification data")
         .def_static("filterHitsByRank", [](OpenMS::PeptideIdentificationList& ids, size_t min_rank, size_t max_rank) { return OpenMS::IDFilter::filterHitsByRank(ids, min_rank, max_rank); }, "ids"_a, "min_rank"_a, "max_rank"_a, 
             R"doc(
 Filters peptide or protein identifications according to the ranking of the hits
@@ -418,20 +424,52 @@ Filters the peptide hits by the probability (p-value) of a correct peptide ident
             R"doc(
 Filter identifications by "N best" PeptideIdentification objects (better PeptideIdentification means better [best] PeptideHit than other)
 )doc")
-        .def_static("keepBestPerPeptide", [](OpenMS::PeptideIdentificationList& pep_ids, bool ignore_mods, bool ignore_charges, size_t nr_best_spectrum) { return OpenMS::IDFilter::keepBestPerPeptide(pep_ids, ignore_mods, ignore_charges, nr_best_spectrum); }, "pep_ids"_a, "ignore_mods"_a, "ignore_charges"_a, "nr_best_spectrum"_a, "Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence")
-        .def_static("keepBestPerPeptidePerRun", [](std::vector<OpenMS::ProteinIdentification> prot_ids, OpenMS::PeptideIdentificationList& pep_ids, bool ignore_mods, bool ignore_charges, size_t nr_best_spectrum) { OpenMS::IDFilter::keepBestPerPeptidePerRun(prot_ids, pep_ids, ignore_mods, ignore_charges, nr_best_spectrum); return prot_ids; }, "prot_ids"_a, "pep_ids"_a, "ignore_mods"_a, "ignore_charges"_a, "nr_best_spectrum"_a, "Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence on a per run basis")
-        .def_static("removeDecoyHits", [](OpenMS::PeptideIdentificationList& ids) { return OpenMS::IDFilter::removeDecoyHits(ids); }, "ids"_a, 
-            R"doc(
+      .def_static(
+        "keepBestPerPeptide",
+        [](OpenMS::PeptideIdentificationList& pep_ids, bool ignore_mods, bool ignore_charges, size_t nr_best_spectrum) {
+          return OpenMS::IDFilter::keepBestPerPeptide(pep_ids, ignore_mods, ignore_charges, nr_best_spectrum);
+        },
+        "pep_ids"_a, "ignore_mods"_a, "ignore_charges"_a, "nr_best_spectrum"_a,
+        "Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence")
+      .def_static(
+        "keepBestPerPeptidePerRun",
+        [](std::vector<OpenMS::ProteinIdentification> prot_ids, OpenMS::PeptideIdentificationList& pep_ids, bool ignore_mods, bool ignore_charges,
+           size_t nr_best_spectrum) {
+          OpenMS::IDFilter::keepBestPerPeptidePerRun(prot_ids, pep_ids, ignore_mods, ignore_charges, nr_best_spectrum);
+          return prot_ids;
+        },
+        "prot_ids"_a, "pep_ids"_a, "ignore_mods"_a, "ignore_charges"_a, "nr_best_spectrum"_a,
+        "Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence on a per run basis")
+      .def_static(
+        "removeDecoyHits", [](OpenMS::PeptideIdentificationList& ids) { return OpenMS::IDFilter::removeDecoyHits(ids); }, "ids"_a,
+        R"doc(
 Removes hits annotated as decoys from peptide or protein identifications. Checks for meta values named "target_decoy" and "isDecoy", and removes protein/peptide hits if the values are "decoy" and "true", respectively
 )doc")
-        .def_static("filterHitsByScore", [](OpenMS::PeptideIdentificationList& ids, double threshold_score) { return OpenMS::IDFilter::filterHitsByScore(ids, threshold_score); }, "ids"_a, "threshold_score"_a, "Filters peptide or protein identifications according to the score of the hits. The score orientation has to be set to higherscorebetter in each PeptideIdentification. Only peptide/protein hits with a score at least as good as 'threshold_score' are kept")
-        .def_static("filterHitsByScore", [](std::vector<OpenMS::ProteinIdentification> ids, double threshold_score) {
-            OpenMS::IDFilter::filterHitsByScore(ids, threshold_score);
-            return ids;
-        }, "ids"_a, "threshold_score"_a, "Filters protein hits by score, keeping hits at least as good as the threshold, and returns the filtered list")
-        .def_static("removeUnreferencedProteins", [](std::vector<OpenMS::ProteinIdentification> proteins, OpenMS::PeptideIdentificationList& ids) { OpenMS::IDFilter::removeUnreferencedProteins(proteins, ids); return proteins; }, "proteins"_a, "ids"_a, "Removes protein hits from the protein IDs in a 'cmap' that are not referenced by a peptide in the features or if requested in the unassigned peptide list")
-        .def_static("countHits", [](const OpenMS::PeptideIdentificationList& ids) { return OpenMS::IDFilter::countHits(ids); }, "ids"_a, "Counts the number of peptide hits in the given identifications")
-        ;
+      .def_static(
+        "filterHitsByScore",
+        [](OpenMS::PeptideIdentificationList& ids, double threshold_score) { return OpenMS::IDFilter::filterHitsByScore(ids, threshold_score); },
+        "ids"_a, "threshold_score"_a,
+        "Filters peptide or protein identifications according to the score of the hits. The score orientation has to be set to higherscorebetter in "
+        "each PeptideIdentification. Only peptide/protein hits with a score at least as good as 'threshold_score' are kept")
+      .def_static(
+        "filterHitsByScore",
+        [](std::vector<OpenMS::ProteinIdentification> ids, double threshold_score) {
+          OpenMS::IDFilter::filterHitsByScore(ids, threshold_score);
+          return ids;
+        },
+        "ids"_a, "threshold_score"_a, "Filters protein hits by score, keeping hits at least as good as the threshold, and returns the filtered list")
+      .def_static(
+        "removeUnreferencedProteins",
+        [](std::vector<OpenMS::ProteinIdentification> proteins, OpenMS::PeptideIdentificationList& ids) {
+          OpenMS::IDFilter::removeUnreferencedProteins(proteins, ids);
+          return proteins;
+        },
+        "proteins"_a, "ids"_a,
+        "Removes protein hits from the protein IDs in a 'cmap' that are not referenced by a peptide in the features or if requested in the "
+        "unassigned peptide list")
+      .def_static(
+        "countHits", [](const OpenMS::PeptideIdentificationList& ids) { return OpenMS::IDFilter::countHits(ids); }, "ids"_a,
+        "Counts the number of peptide hits in the given identifications");
 
     // -----------------------------------------------------------------------
     // InternalCalibration_LockMass

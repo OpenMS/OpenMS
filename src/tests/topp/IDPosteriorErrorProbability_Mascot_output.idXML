@@ -4,6 +4,8 @@
 	<SearchParameters id="SP_0" db="18mix_SoCe_tar_dec" db_version="18Protein_SoCe_Tr_detergents_trace_target_decoy_20090803.fasta" taxonomy="All entries" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.5" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Oxidation (M)" />
+				<UserParam type="string" name="ScoreSoftware:Posterior Error Probability" value="IDPosteriorErrorProbability"/>
+				<UserParam type="string" name="ScoreSoftwareVersion:Posterior Error Probability" value="version_string"/>
 	</SearchParameters>
 	<IdentificationRun date="2009-10-06T16:17:27" search_engine="Mascot" search_engine_version="2.2.04" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >

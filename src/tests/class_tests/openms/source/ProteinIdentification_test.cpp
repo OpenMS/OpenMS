@@ -336,6 +336,49 @@ START_SECTION((void setSearchEngineVersion(const std::string &search_engine_vers
 	TEST_EQUAL(hits.getSearchEngineVersion(), "bla")
 END_SECTION
 
+START_SECTION((void setScoreSoftware(const std::string& score_type, const std::string& software, const std::string& version)))
+{
+  ProteinIdentification run;
+  run.setSearchEngine("Comet");
+  run.setSearchEngineVersion("2024.01");
+  // Without a recorded producer, every score type belongs to the search engine.
+  TEST_EQUAL(run.getScoreSoftware("expect").first, "Comet")
+  TEST_EQUAL(run.getScoreSoftware("Posterior Error Probability").second, "2024.01")
+  run.setScoreSoftware("Posterior Error Probability", "IDPosteriorErrorProbability", "3.7.0");
+  TEST_EQUAL(run.getScoreSoftware("Posterior Error Probability").first, "IDPosteriorErrorProbability")
+  TEST_EQUAL(run.getScoreSoftware("Posterior Error Probability").second, "3.7.0")
+  // Other score types and the search engine itself are unaffected.
+  TEST_EQUAL(run.getScoreSoftware("expect").first, "Comet")
+  TEST_EQUAL(run.getSearchEngine(), "Comet")
+  TEST_EXCEPTION(Exception::InvalidValue, run.setScoreSoftware("", "IDPosteriorErrorProbability", "3.7.0"))
+  TEST_EXCEPTION(Exception::InvalidValue, run.setScoreSoftware("q-value", "", "3.7.0"))
+  // The record lives in the search parameters, so it is serialized with them.
+  TEST_EQUAL(run.getSearchParameters().getMetaValue("ScoreSoftware:Posterior Error Probability").toString(), "IDPosteriorErrorProbability")
+}
+END_SECTION
+
+START_SECTION((std::pair<std::string, std::string> getScoreSoftware(const std::string& score_type) const))
+{
+  NOT_TESTABLE // tested above
+}
+END_SECTION
+
+START_SECTION((void clearScoreSoftware()))
+{
+  ProteinIdentification run;
+  run.setSearchEngine("Percolator");
+  auto parameters = run.getSearchParameters();
+  parameters.setMetaValue("unrelated", "kept");
+  run.setSearchParameters(parameters);
+  run.setScoreSoftware("q-value", "FalseDiscoveryRate", "3.7.0");
+  run.setScoreSoftware("Posterior Error Probability", "IDPosteriorErrorProbability", "3.7.0");
+  run.clearScoreSoftware();
+  TEST_EQUAL(run.getScoreSoftware("q-value").first, "Percolator")
+  TEST_EQUAL(run.getScoreSoftware("Posterior Error Probability").first, "Percolator")
+  TEST_EQUAL(run.getSearchParameters().getMetaValue("unrelated").toString(), "kept")
+}
+END_SECTION
+
 
 START_SECTION((const SearchParameters& getSearchParameters() const))
 	ProteinIdentification hits;

@@ -544,6 +544,16 @@ START_SECTION(([EXTRA] storeIdentifications_loadIdentifications_idparquet_round_
   TEST_REAL_SIMILAR(h.getScore(), 0.5);
 
   File::removeDirRecursively(dir);
+
+  // every peptide identification needs its protein identification run: refused before anything is written
+  PeptideIdentificationList orphan = pep_ids;
+  orphan[0].setIdentifier("run_unknown");
+  std::string orphan_dir;
+  NEW_TMP_FILE(orphan_dir)
+  orphan_dir += ".idparquet";
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, FileHandler().storeIdentifications(orphan_dir, prot_ids, orphan, {FileTypes::IDPARQUET}),
+    "Peptide identification has no matching protein run: 'run_unknown'. Every peptide identification needs the protein identification run (search run) with its identifier, which may have no protein hits.")
+  TEST_FALSE(File::exists(orphan_dir))
 }
 END_SECTION
 

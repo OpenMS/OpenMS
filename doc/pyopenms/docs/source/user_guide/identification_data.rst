@@ -223,3 +223,116 @@ discussed :ref:`anchor-other-id-data`) which we would do as follows:
 
 You can inspect the ``out.idXML`` XML file produced here, and you will find a :py:class:`~.ProteinHit` entry for
 the protein that we stored and two :py:class:`~.PeptideHit` entries for the two peptides stored on disk.
+
+
+Owning identification datasets (experimental)
+*********************************************
+
+``IdentificationData`` groups owned candidates into analysis runs with one shared
+score contract. The sources of a run are its files, in order (``run.addSource()``,
+``run.getSources()``), and each identification belongs to the source of its file, so the legacy ``spectra_data`` list and
+``id_merge_index`` meta value have no counterpart: the legacy conversion derives them from the
+sources. A source without a path stands for an unknown file. In the same way, a run lists the
+databases it searched (``run.addDatabase()``); its database sequences (proteins, nucleic acids) and
+the sequence evidence of its matches refer to them by ``DatabaseId``. The run settings (software,
+version, date and search parameters) therefore name neither files nor databases. Peptides,
+oligonucleotides and compounds have a string representation and explicit encoding. The existing
+peptide/protein classes above remain available for legacy workflows.
+
+Records are plain values whose constructors take the field names as keywords::
+
+    ID = oms.IdentificationData
+    data = ID()
+    run = data.addRun("comet_1")  # MoleculeKind.PEPTIDE
+    run.setSettings(ID.RunSettings(software="Comet", software_version="2024.01"))
+    score = run.addScore(ID.ScoreDefinition(name="expect", higher_better=False, software="Comet"))
+    run.setPrimaryScore(score)
+    source = run.addSource(ID.SourceFile(path="BSA1.mzML"))
+    uniprot = run.addDatabase(ID.Database(path="uniprot.fasta"))
+    run.setDatabaseSequences([ID.DatabaseSequence(database=uniprot, accession="P02769", target_decoy=ID.TargetDecoy.TARGET)])
+    query = run.addIdentification(source, ID.Observation(data_id="scan=1234", rt=1234.5, mz=582.32))
+    evidence = ID.SequenceEvidence(database=uniprot, accession="P02769", start=65, end=74, before="K", after="T")
+    run.addMatch(query, ID.MatchData(representation="LVNELTEFAK", charge=2, sequence_evidence=[evidence]), [0.003])
+
+Oligonucleotide and compound runs (``ID.MoleculeKind.OLIGONUCLEOTIDE``, ``ID.MoleculeKind.COMPOUND``)
+use other encodings. Every run of a dataset declares the same score definitions::
+
+    oligo = ID.MatchData(encoding=ID.Encoding.NA_SEQUENCE, representation="AUCGAUCG", charge=-3)
+    compound = ID.MatchData(
+        encoding=ID.Encoding.SMILES, representation="CC(=O)OC1=CC=CC=C1C(=O)O", formula="C9H8O4",
+        charge=1, adduct=oms.AdductInfo.parseAdductString("M+H;1+"),
+        identifiers=[ID.QualifiedAccession(database="HMDB", accession="HMDB0001879")])
+
+Records with metadata also take ``metadata={name: value}``, and so does the ``parameters``
+field of a score definition. Records compare by value (``==``) and print their fields. Mutable
+records are unhashable; IDs (``QueryId``, ``MatchId``, ``ScoreId``, ``SourceId``, ``DatabaseId``),
+references (``QueryReference``, ``MatchReference``), ``MoleculeIdentity`` and ``QualifiedAccession``
+(an accession with the path of its database, comparable across runs: ``run.qualify(database, accession)``)
+hash by value and serve as dict keys and set members. A ``Match`` read from a run also compares its ID and
+scores, not just its payload::
+
+    observation = ID.Observation(data_id="scan=1", rt=12.5, metadata={"FWHM": 3.5})
+    observation          # IdentificationData.Observation(data_id='scan=1', rt=12.5, mz=None, metadata={'FWHM': 3.5})
+    albumin = run.qualify(uniprot, "P02769")
+    accessions = {albumin, ID.QualifiedAccession(database="uniprot.fasta", accession="P02769")}  # one entry
+
+Method names follow the C++ API (``getRun``, ``addMatch``, ``retainBest``). Getters such as
+``getRun`` and ``getRuns`` return independent copies (snapshots). To edit a run of a dataset,
+use ``run_view``: its methods act on the run inside the dataset, so there is nothing to write
+back. ``addRun`` returns such a view as well::
+
+    data = oms.FileHandler().loadIdentificationData("search.idXML")
+    run = data.run_view(data.getRuns()[0].getIdentifier())
+    run.retainBest(run.getPrimaryScore())
+    oms.IdentificationDataFile.store("reduced.idparquet", data)
+
+A view looks the run up by its UUID on every call. It keeps the dataset alive and raises
+``KeyError`` if the run is no longer part of it. New query and match IDs are only ever
+allocated by the run inside the dataset, which keeps feature links (run UUID plus match ID)
+unambiguous. The identification data of a feature or consensus map is edited the same way
+through ``identification_data_view()``::
+
+    features.identification_data_view().run_view("search").setScore(match_id, score_id, 0.01)
+
+The native output is a fresh directory containing a manifest and typed Parquet
+tables. Existing destinations are rejected. Filtering does not renumber retained
+records or automatically rerun protein inference. Choose preservation or removal
+of inference explicitly when filtering a dataset or exporting a streaming subset::
+
+    oms.IdentificationDataFile.filter(
+        "search.idparquet", "subset.idparquet",
+        lambda run_uuid, match: match.scores[0] is not None and match.scores[0] < 0.01,
+        oms.IdentificationData.InferencePolicy.DISCARD)
+
+FDR, filters, alignment and mzTab export work on the dataset directly. FDR adds a q-value column
+and keeps all candidates and scores; each filter changes the whole dataset or nothing::
+
+    hyperscore = data.getPrimaryScoreDefinition()
+    qvalue = oms.FalseDiscoveryRate().applyToObservationMatches(data, hyperscore)
+    oms.IDFilter.keepBestMatchPerObservation(data, hyperscore)
+    oms.IDFilter.filterObservationMatchesByScore(data, qvalue, 0.01)
+    oms.IDFilter.removeDecoys(data)
+    oms.MzTabFile().store("search.mzTab", oms.IdentificationDataConverter.exportMzTab(data))
+
+``MapAlignmentAlgorithmIdentification.align`` takes a list of datasets (one per run), and
+``MapAlignmentTransformer.transformRetentionTimes`` applies the result to a dataset.
+
+The ``IdentificationDataFile.filter`` example assumes column zero is a smaller-is-better probability
+score in every selected run. Inspect each run's definitions before applying a cross-run threshold.
+``IdentificationDataFile.scan`` supports selecting runs and score columns while
+skipping molecular payloads, metadata, evidence and annotations. Streaming avoids
+loading every match into Python. Full loading and inference still require memory
+proportional to their working data.
+
+The tables of a bundle are plain Parquet files, so pyarrow, Polars or DuckDB can read
+them directly. Each row carries its ``run_uuid``, and score columns are named after
+their definitions (``score_pep``, ``score_q_value``); ``inspect`` lists them per run::
+
+    print(oms.IdentificationDataFile.inspect("search.idparquet")[0].score_columns)
+    # DuckDB: SELECT run_uuid, match_id, representation, score_q_value
+    #         FROM 'search.idparquet/matches.parquet' WHERE score_q_value < 0.01
+
+``IdentificationDataAdapter`` provides explicit legacy, feature and consensus
+conversion. Strict export rejects information the target cannot express. The
+permissive policy reports losses. Removing a match does not remove its measured
+feature; live associations must be pruned or rejected.

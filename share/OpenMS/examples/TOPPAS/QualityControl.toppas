@@ -467,9 +467,9 @@
       <ITEM name="tool_name" value="MapAlignerIdentification" type="string" description="" required="false" advanced="false" />
       <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
       <NODE name="parameters" description="">
-        <ITEMLIST name="in" type="input-file" description="Input files to align (all must have the same file type)" required="true" advanced="false" supported_formats="*.featureXML,*.consensusXML,*.idXML,*.oms">
+        <ITEMLIST name="in" type="input-file" description="Input files to align (all must have the same file type)" required="true" advanced="false" supported_formats="*.featureXML,*.consensusXML,*.idXML">
         </ITEMLIST>
-        <ITEMLIST name="out" type="output-file" description="Output files (same file type as &apos;in&apos;). This option or &apos;trafo_out&apos; has to be provided; they can be used together." required="false" advanced="false" supported_formats="*.featureXML,*.consensusXML,*.idXML,*.oms">
+        <ITEMLIST name="out" type="output-file" description="Output files (same file type as &apos;in&apos;). This option or &apos;trafo_out&apos; has to be provided; they can be used together." required="false" advanced="false" supported_formats="*.featureXML,*.consensusXML,*.idXML">
         </ITEMLIST>
         <ITEMLIST name="trafo_out" type="output-file" description="Transformation output files. This option or &apos;out&apos; has to be provided; they can be used together." required="false" advanced="false" supported_formats="*.trafoXML">
         </ITEMLIST>
@@ -482,11 +482,11 @@
         <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
         <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
         <NODE name="reference" description="Options to define a reference file (use either &apos;file&apos; or &apos;index&apos;, not both)">
-          <ITEM name="file" value="" type="input-file" description="File to use as reference" required="false" advanced="false" supported_formats="*.featureXML,*.consensusXML,*.idXML,*.oms" />
+          <ITEM name="file" value="" type="input-file" description="File to use as reference" required="false" advanced="false" supported_formats="*.featureXML,*.consensusXML,*.idXML" />
           <ITEM name="index" value="0" type="int" description="Use one of the input files as reference (&apos;1&apos; for the first file, etc.).#br#If &apos;0&apos;, no explicit reference is set - the algorithm will select a reference." required="false" advanced="false" restrictions="0:" />
         </NODE>
         <NODE name="algorithm" description="Algorithm parameters section">
-          <ITEM name="score_type" value="" type="string" description="Name of the score type to use for ranking and filtering (.oms input only). If left empty, a score type is picked automatically." required="false" advanced="false" />
+          <ITEM name="score_type" value="" type="string" description="Name of the score type to use for ranking and filtering (native identification input only). If left empty, a score type is picked automatically." required="false" advanced="false" />
           <ITEM name="score_cutoff" value="false" type="bool" description="Use only IDs above a score cut-off (parameter &apos;min_score&apos;) for alignment?" required="false" advanced="false" />
           <ITEM name="min_score" value="0.05" type="double" description="If &apos;score_cutoff&apos; is &apos;true&apos;: Minimum score for an ID to be considered.#br#Unless you have very few runs or identifications, increase this value to focus on more informative peptides." required="false" advanced="false" />
           <ITEM name="min_run_occur" value="2" type="int" description="Minimum number of runs (incl. reference, if any) in which a peptide must occur to be used for the alignment.#br#Unless you have very few runs or identifications, increase this value to focus on more informative peptides." required="false" advanced="false" restrictions="2:" />

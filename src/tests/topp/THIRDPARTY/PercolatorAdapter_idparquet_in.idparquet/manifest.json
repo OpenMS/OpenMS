@@ -1,0 +1,512 @@
+{
+  "format": "OpenMS.IdentificationData",
+  "schema_version": 1,
+  "score_columns": [
+    "score_expect"
+  ],
+  "runs": [
+    {
+      "identifier": "Comet_2017-09-11T11:20:57_11281468886368783085",
+      "uuid": "616c2533-fcbd-40c4-8efd-173bbe39894b",
+      "molecule_kind": 0,
+      "settings": {
+        "software": "Comet",
+        "software_version": "",
+        "date": "2017-09-11T11:20:57.000",
+        "metadata": [],
+        "search_parameters": {
+          "db": "",
+          "db_version": "",
+          "taxonomy": "",
+          "charges": "",
+          "mass_type": 0,
+          "fixed_modifications": [
+            "Carbamidomethyl (C)"
+          ],
+          "variable_modifications": [
+            "Oxidation (M)"
+          ],
+          "missed_cleavages": 1,
+          "fragment_tolerance_bits": 4576918229304087675,
+          "fragment_tolerance_ppm": false,
+          "precursor_tolerance_bits": 4617315517961601024,
+          "precursor_tolerance_ppm": true,
+          "specificity": 3,
+          "metadata": [
+            {
+              "name": "SE:Comet",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": ""
+            },
+            {
+              "name": "Comet:db",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": "decoy.fasta"
+            },
+            {
+              "name": "Comet:db_version",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": ""
+            },
+            {
+              "name": "Comet:taxonomy",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": ""
+            },
+            {
+              "name": "Comet:charges",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": ""
+            },
+            {
+              "name": "Comet:fixed_modifications",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": "Carbamidomethyl (C)"
+            },
+            {
+              "name": "Comet:variable_modifications",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": "Oxidation (M)"
+            },
+            {
+              "name": "Comet:missed_cleavages",
+              "type": 1,
+              "unit_type": 2,
+              "unit": -1,
+              "value": 1
+            },
+            {
+              "name": "Comet:fragment_mass_tolerance",
+              "type": 2,
+              "unit_type": 2,
+              "unit": -1,
+              "value": 4576918229304087675
+            },
+            {
+              "name": "Comet:fragment_mass_tolerance_unit",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": "Da"
+            },
+            {
+              "name": "Comet:precursor_mass_tolerance",
+              "type": 2,
+              "unit_type": 2,
+              "unit": -1,
+              "value": 4617315517961601024
+            },
+            {
+              "name": "Comet:precursor_mass_tolerance_unit",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": "ppm"
+            },
+            {
+              "name": "Comet:digestion_enzyme",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": "unspecific cleavage"
+            },
+            {
+              "name": "feature_extractor",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": "TOPP_PSMFeatureExtractor"
+            },
+            {
+              "name": "extra_features",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": "COMET:deltCn,COMET:deltLCn,COMET:lnExpect,MS:1002252,MS:1002255,COMET:lnNumSP,COMET:lnRankSP,COMET:IonFrac"
+            }
+          ],
+          "enzyme": {
+            "name": "unspecific cleavage",
+            "regex": "(?<=[A-Z])",
+            "synonyms": [
+              "no_enzyme",
+              "nonspecific"
+            ],
+            "description": "unspecific cleavage cuts at every site.",
+            "n_term_gain": {
+              "composition": "H1",
+              "charge": 0
+            },
+            "c_term_gain": {
+              "composition": "H1O1",
+              "charge": 0
+            },
+            "psi_id": "MS:1001956",
+            "xtandem_id": "[X]|[X]",
+            "comet_id": 0,
+            "msgf_id": 0,
+            "omssa_id": 17
+          }
+        }
+      },
+      "scores": [
+        {
+          "name": "expect",
+          "accession": "",
+          "higher_better": false,
+          "scope": 0,
+          "software": "Comet",
+          "software_version": "",
+          "parameters": [],
+          "calibration": "",
+          "aggregation": ""
+        }
+      ],
+      "sources": [
+        {
+          "identifier": "",
+          "path": "",
+          "metadata": []
+        }
+      ],
+      "databases": [
+        {
+          "path": "decoy.fasta",
+          "version": "",
+          "taxonomy": "",
+          "metadata": []
+        }
+      ],
+      "primary_score": 0,
+      "next_query_id": 39,
+      "next_match_id": 41,
+      "query_count": 38,
+      "match_count": 40,
+      "metadata_descriptors": [
+        {
+          "name": "MS:1002258",
+          "type": 0,
+          "unit_type": 2,
+          "unit": -1
+        },
+        {
+          "name": "MS:1002259",
+          "type": 0,
+          "unit_type": 2,
+          "unit": -1
+        },
+        {
+          "name": "num_matched_peptides",
+          "type": 0,
+          "unit_type": 2,
+          "unit": -1
+        },
+        {
+          "name": "MS:1002252",
+          "type": 2,
+          "unit_type": 2,
+          "unit": -1
+        },
+        {
+          "name": "MS:1002253",
+          "type": 2,
+          "unit_type": 2,
+          "unit": -1
+        },
+        {
+          "name": "MS:1002255",
+          "type": 2,
+          "unit_type": 2,
+          "unit": -1
+        },
+        {
+          "name": "MS:1002256",
+          "type": 2,
+          "unit_type": 2,
+          "unit": -1
+        },
+        {
+          "name": "MS:1002257",
+          "type": 2,
+          "unit_type": 2,
+          "unit": -1
+        },
+        {
+          "name": "protein_references",
+          "type": 0,
+          "unit_type": 2,
+          "unit": -1
+        },
+        {
+          "name": "COMET:deltCn",
+          "type": 2,
+          "unit_type": 2,
+          "unit": -1
+        },
+        {
+          "name": "COMET:deltLCn",
+          "type": 2,
+          "unit_type": 2,
+          "unit": -1
+        },
+        {
+          "name": "COMET:lnExpect",
+          "type": 2,
+          "unit_type": 2,
+          "unit": -1
+        },
+        {
+          "name": "COMET:lnNumSP",
+          "type": 2,
+          "unit_type": 2,
+          "unit": -1
+        },
+        {
+          "name": "COMET:lnRankSP",
+          "type": 2,
+          "unit_type": 2,
+          "unit": -1
+        },
+        {
+          "name": "COMET:IonFrac",
+          "type": 2,
+          "unit_type": 2,
+          "unit": -1
+        }
+      ],
+      "tables": {
+        "queries": {
+          "path": "queries.parquet",
+          "start": 0,
+          "count": 38,
+          "partition": "616c2533-fcbd-40c4-8efd-173bbe39894b"
+        },
+        "matches": {
+          "path": "matches.parquet",
+          "start": 0,
+          "count": 40,
+          "partition": "616c2533-fcbd-40c4-8efd-173bbe39894b"
+        },
+        "database_sequences": {
+          "path": "database_sequences.parquet",
+          "start": 0,
+          "count": 2,
+          "partition": "616c2533-fcbd-40c4-8efd-173bbe39894b"
+        }
+      }
+    }
+  ],
+  "inference": [
+    {
+      "identifier": "legacy:Comet_2017-09-11T11:20:57_11281468886368783085",
+      "processing": {
+        "identifier": "Comet_2017-09-11T11:20:57_11281468886368783085",
+        "search_engine": "Comet",
+        "search_engine_version": "",
+        "date": "2017-09-11T11:20:57.000",
+        "score_type": "",
+        "higher_better": true,
+        "significance_threshold_bits": 0,
+        "metadata": [],
+        "search_parameters": {
+          "db": "decoy.fasta",
+          "db_version": "",
+          "taxonomy": "",
+          "charges": "",
+          "mass_type": 0,
+          "fixed_modifications": [
+            "Carbamidomethyl (C)"
+          ],
+          "variable_modifications": [
+            "Oxidation (M)"
+          ],
+          "missed_cleavages": 1,
+          "fragment_tolerance_bits": 4576918229304087675,
+          "fragment_tolerance_ppm": false,
+          "precursor_tolerance_bits": 4617315517961601024,
+          "precursor_tolerance_ppm": true,
+          "specificity": 3,
+          "metadata": [
+            {
+              "name": "SE:Comet",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": ""
+            },
+            {
+              "name": "Comet:db",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": "decoy.fasta"
+            },
+            {
+              "name": "Comet:db_version",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": ""
+            },
+            {
+              "name": "Comet:taxonomy",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": ""
+            },
+            {
+              "name": "Comet:charges",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": ""
+            },
+            {
+              "name": "Comet:fixed_modifications",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": "Carbamidomethyl (C)"
+            },
+            {
+              "name": "Comet:variable_modifications",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": "Oxidation (M)"
+            },
+            {
+              "name": "Comet:missed_cleavages",
+              "type": 1,
+              "unit_type": 2,
+              "unit": -1,
+              "value": 1
+            },
+            {
+              "name": "Comet:fragment_mass_tolerance",
+              "type": 2,
+              "unit_type": 2,
+              "unit": -1,
+              "value": 4576918229304087675
+            },
+            {
+              "name": "Comet:fragment_mass_tolerance_unit",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": "Da"
+            },
+            {
+              "name": "Comet:precursor_mass_tolerance",
+              "type": 2,
+              "unit_type": 2,
+              "unit": -1,
+              "value": 4617315517961601024
+            },
+            {
+              "name": "Comet:precursor_mass_tolerance_unit",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": "ppm"
+            },
+            {
+              "name": "Comet:digestion_enzyme",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": "unspecific cleavage"
+            },
+            {
+              "name": "feature_extractor",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": "TOPP_PSMFeatureExtractor"
+            },
+            {
+              "name": "extra_features",
+              "type": 0,
+              "unit_type": 2,
+              "unit": -1,
+              "value": "COMET:deltCn,COMET:deltLCn,COMET:lnExpect,MS:1002252,MS:1002255,COMET:lnNumSP,COMET:lnRankSP,COMET:IonFrac"
+            }
+          ],
+          "enzyme": {
+            "name": "unspecific cleavage",
+            "regex": "(?<=[A-Z])",
+            "synonyms": [
+              "no_enzyme",
+              "nonspecific"
+            ],
+            "description": "unspecific cleavage cuts at every site.",
+            "n_term_gain": {
+              "composition": "H1",
+              "charge": 0
+            },
+            "c_term_gain": {
+              "composition": "H1O1",
+              "charge": 0
+            },
+            "psi_id": "MS:1001956",
+            "xtandem_id": "[X]|[X]",
+            "comet_id": 0,
+            "msgf_id": 0,
+            "omssa_id": 17
+          }
+        }
+      },
+      "metadata_fields": [
+        {
+          "name": "target_decoy",
+          "type": 0,
+          "unit_type": 2,
+          "unit": -1
+        }
+      ],
+      "protein_score": null,
+      "group_score": null,
+      "input_scores": [],
+      "tables": {
+        "inputs": {
+          "path": "inputs.parquet",
+          "start": 0,
+          "count": 1,
+          "partition": "legacy:Comet_2017-09-11T11:20:57_11281468886368783085"
+        },
+        "proteins": {
+          "path": "proteins.parquet",
+          "start": 0,
+          "count": 2,
+          "partition": "legacy:Comet_2017-09-11T11:20:57_11281468886368783085"
+        },
+        "groups": {
+          "path": "groups.parquet",
+          "start": 0,
+          "count": 0,
+          "partition": "legacy:Comet_2017-09-11T11:20:57_11281468886368783085"
+        }
+      },
+      "counts": {
+        "inputs": 1,
+        "proteins": 2,
+        "groups": 0
+      }
+    }
+  ]
+}

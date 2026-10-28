@@ -206,13 +206,5 @@ namespace OpenMS
     subordinates_ = rhs;
   }
 
-  void Feature::updateAllIDReferences(const IdentificationData::RefTranslator& trans)
-  {
-    updateIDReferences(trans); // update the feature itself (via BaseFeature method)
-    for (Feature& sub : subordinates_) // recursively update subordinate features
-    {
-      sub.updateAllIDReferences(trans);
-    }
-  }
 
 }

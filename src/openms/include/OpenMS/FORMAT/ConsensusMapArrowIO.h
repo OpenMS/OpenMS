@@ -76,6 +76,18 @@ public:
     (column headers, experiment type, DocumentIdentifier, DataProcessing)
     is stored as file-level key-value metadata in consensus_features.parquet.
 
+    If the map owns identification data (ConsensusMap::getIdentificationData()) or
+    consensus features carry native identification links, the bundle also contains the
+    native identification bundle identifications/ (see IdentificationDataFile) and
+    identification_links.parquet, which links consensus features by unique ID.
+
+    The bundle is written to a temporary sibling directory and published only when
+    complete. An existing consensus bundle or empty directory is replaced; any other
+    existing file or directory is left untouched and the export fails.
+
+    @throw Exception::InvalidValue for duplicate protein run identifiers or unresolved
+           identification links
+
     @param[in] cmap The ConsensusMap to export
     @param[in] directory Output directory path
     @param[in] config Parquet writing options

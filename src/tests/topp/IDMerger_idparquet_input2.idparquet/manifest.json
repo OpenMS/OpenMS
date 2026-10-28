@@ -1,0 +1,188 @@
+{
+  "format": "OpenMS.IdentificationData",
+  "schema_version": 1,
+  "score_columns": [
+    "score_mascot"
+  ],
+  "runs": [
+    {
+      "identifier": "_2006-10-07T06:31:08_8883470883361103201",
+      "uuid": "bab8626d-5bc1-407b-826c-7228566af60a",
+      "molecule_kind": 0,
+      "settings": {
+        "software": "",
+        "software_version": "",
+        "date": "2006-10-07T06:31:08.000",
+        "metadata": [],
+        "search_parameters": {
+          "db": "",
+          "db_version": "",
+          "taxonomy": "",
+          "charges": "",
+          "mass_type": 0,
+          "fixed_modifications": [],
+          "variable_modifications": [],
+          "missed_cleavages": 0,
+          "fragment_tolerance_bits": 0,
+          "fragment_tolerance_ppm": false,
+          "precursor_tolerance_bits": 0,
+          "precursor_tolerance_ppm": false,
+          "specificity": 3,
+          "metadata": [],
+          "enzyme": {
+            "name": "unknown_enzyme",
+            "regex": "",
+            "synonyms": [],
+            "description": "",
+            "n_term_gain": {
+              "composition": "H1",
+              "charge": 0
+            },
+            "c_term_gain": {
+              "composition": "H1O1",
+              "charge": 0
+            },
+            "psi_id": "",
+            "xtandem_id": "",
+            "comet_id": -1,
+            "msgf_id": -1,
+            "omssa_id": -1
+          }
+        }
+      },
+      "scores": [
+        {
+          "name": "Mascot",
+          "accession": "",
+          "higher_better": true,
+          "scope": 0,
+          "software": "",
+          "software_version": "",
+          "parameters": [],
+          "calibration": "",
+          "aggregation": ""
+        }
+      ],
+      "sources": [
+        {
+          "identifier": "",
+          "path": "",
+          "metadata": []
+        }
+      ],
+      "databases": [
+        {
+          "path": "",
+          "version": "",
+          "taxonomy": "",
+          "metadata": []
+        }
+      ],
+      "primary_score": 0,
+      "next_query_id": 2,
+      "next_match_id": 5,
+      "query_count": 1,
+      "match_count": 4,
+      "metadata_descriptors": [],
+      "tables": {
+        "queries": {
+          "path": "queries.parquet",
+          "start": 0,
+          "count": 1,
+          "partition": "bab8626d-5bc1-407b-826c-7228566af60a"
+        },
+        "matches": {
+          "path": "matches.parquet",
+          "start": 0,
+          "count": 4,
+          "partition": "bab8626d-5bc1-407b-826c-7228566af60a"
+        },
+        "database_sequences": {
+          "path": "database_sequences.parquet",
+          "start": 0,
+          "count": 2,
+          "partition": "bab8626d-5bc1-407b-826c-7228566af60a"
+        }
+      }
+    }
+  ],
+  "inference": [
+    {
+      "identifier": "legacy:_2006-10-07T06:31:08_8883470883361103201",
+      "processing": {
+        "identifier": "_2006-10-07T06:31:08_8883470883361103201",
+        "search_engine": "",
+        "search_engine_version": "",
+        "date": "2006-10-07T06:31:08.000",
+        "score_type": "Mascot",
+        "higher_better": true,
+        "significance_threshold_bits": 0,
+        "metadata": [],
+        "search_parameters": {
+          "db": "",
+          "db_version": "",
+          "taxonomy": "",
+          "charges": "",
+          "mass_type": 0,
+          "fixed_modifications": [],
+          "variable_modifications": [],
+          "missed_cleavages": 0,
+          "fragment_tolerance_bits": 0,
+          "fragment_tolerance_ppm": false,
+          "precursor_tolerance_bits": 0,
+          "precursor_tolerance_ppm": false,
+          "specificity": 3,
+          "metadata": [],
+          "enzyme": {
+            "name": "unknown_enzyme",
+            "regex": "",
+            "synonyms": [],
+            "description": "",
+            "n_term_gain": {
+              "composition": "H1",
+              "charge": 0
+            },
+            "c_term_gain": {
+              "composition": "H1O1",
+              "charge": 0
+            },
+            "psi_id": "",
+            "xtandem_id": "",
+            "comet_id": -1,
+            "msgf_id": -1,
+            "omssa_id": -1
+          }
+        }
+      },
+      "metadata_fields": [],
+      "protein_score": null,
+      "group_score": null,
+      "input_scores": [],
+      "tables": {
+        "inputs": {
+          "path": "inputs.parquet",
+          "start": 0,
+          "count": 1,
+          "partition": "legacy:_2006-10-07T06:31:08_8883470883361103201"
+        },
+        "proteins": {
+          "path": "proteins.parquet",
+          "start": 0,
+          "count": 2,
+          "partition": "legacy:_2006-10-07T06:31:08_8883470883361103201"
+        },
+        "groups": {
+          "path": "groups.parquet",
+          "start": 0,
+          "count": 0,
+          "partition": "legacy:_2006-10-07T06:31:08_8883470883361103201"
+        }
+      },
+      "counts": {
+        "inputs": 1,
+        "proteins": 2,
+        "groups": 0
+      }
+    }
+  ]
+}

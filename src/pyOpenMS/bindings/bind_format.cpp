@@ -5,7 +5,6 @@
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/FORMAT/BedRModFile.h>
-#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/AbsoluteQuantitationStandardsFile.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
@@ -28,6 +27,7 @@
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/FORMAT/FileInfo.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
@@ -105,13 +105,6 @@ using namespace nb::literals;
 
 NB_MODULE(_pyopenms_format, m) {
     m.doc() = "pyOpenMS format bindings";
-    nb::class_<OpenMS::OMSFile>(m, "OMSFile", "Load and store identification data in OMS format")
-        .def(nb::init<>())
-        .def("load", nb::overload_cast<const std::string&, OpenMS::IdentificationData&>(&OpenMS::OMSFile::load),
-             "filename"_a, "id_data"_a, nb::call_guard<nb::gil_scoped_release>())
-        .def("store", nb::overload_cast<const std::string&, const OpenMS::IdentificationData&>(&OpenMS::OMSFile::store),
-             "filename"_a, "id_data"_a, nb::call_guard<nb::gil_scoped_release>());
-
     nb::class_<OpenMS::BedRModFile>(m, "BedRModFile", "Export RNA modifications with explicit bedRMod reference metadata")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::BedRModFile&>())
@@ -817,6 +810,28 @@ Computes a SHA-1 hash of the file content
              const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
             self.storeIdentifications(filename, proteins, peptides, allowed_types, log);
         }, "filename"_a, "proteins"_a, "peptides"_a, "allowed_types"_a, "log"_a, "Store identifications to file with options")
+
+        // ProgressLogger is registered by _pyopenms_misc, after this module.
+        // Resolve its default at call time so importing _pyopenms_format is independent.
+        .def("loadIdentificationData", [](OpenMS::FileHandler& self, const std::string& filename,
+             const std::vector<OpenMS::FileTypes::Type>& allowed_types, std::optional<OpenMS::ProgressLogger::LogType> log) {
+            OpenMS::IdentificationData data;
+            const auto log_type = log.value_or(OpenMS::ProgressLogger::NONE);
+            {
+              nb::gil_scoped_release release;
+              self.loadIdentifications(filename, data, allowed_types, log_type);
+            }
+            return data;
+        }, "filename"_a, "allowed_types"_a = std::vector<OpenMS::FileTypes::Type>{}, "log"_a = nb::none(),
+             "Load owning identification values from native Parquet or a supported legacy format.")
+        .def("storeIdentificationData", [](OpenMS::FileHandler& self, const std::string& filename,
+             const OpenMS::IdentificationData& data, const std::vector<OpenMS::FileTypes::Type>& allowed_types,
+             std::optional<OpenMS::ProgressLogger::LogType> log) {
+            const auto log_type = log.value_or(OpenMS::ProgressLogger::NONE);
+            nb::gil_scoped_release release;
+            self.storeIdentifications(filename, data, allowed_types, log_type);
+        }, "filename"_a, "data"_a, "allowed_types"_a = std::vector<OpenMS::FileTypes::Type>{}, "log"_a = nb::none(),
+             "Store owning identification values; legacy formats enforce strict representability.")
 
         .def("loadTransitions", [](OpenMS::FileHandler& self, const std::string& filename) {
             OpenMS::TargetedExperiment library;

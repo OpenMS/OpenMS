@@ -231,7 +231,7 @@ public:
     The function mutates @p protein_identifications in place and returns the map
     { stored_id -> synthesized_id } so the caller can apply the same rename to
     each PeptideIdentification collection it owns (FeatureMap has 2: per-feature
-    and unassigned; ConsensusMap has 2; PSMArrowIO has 1).
+    and unassigned; ConsensusMap has 2; the legacy view of a native .idparquet bundle has 1).
 
     Edge cases:
       - empty getSearchEngine() falls back to literal "unknown"

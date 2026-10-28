@@ -257,18 +257,18 @@ protected:
     // Unfortunately this cannot go into the algorithm since
     // you would overwrite some score types before they are extracted when you
     // do split_charge
+    const std::string score_type = prob_correct ? "Posterior Probability" : "Posterior Error Probability";
     for (auto& pep : peptide_ids)
     {
-      if (prob_correct)
-      {
-        pep.setScoreType("Posterior Probability");
-        pep.setHigherScoreBetter(true);
-      }
-      else
-      {
-        pep.setScoreType("Posterior Error Probability");
-        pep.setHigherScoreBetter(false);
-      }
+      pep.setScoreType(score_type);
+      pep.setHigherScoreBetter(prob_correct);
+    }
+    // The search engine stays the original engine (ConsensusID and the PEP model rely on it);
+    // the derived score records its own producer so runs from different engines share one definition.
+    const std::string version = getProcessingInfo_(std::set<DataProcessing::ProcessingAction>{}).getSoftware().getVersion();
+    for (auto& run : protein_ids)
+    {
+      run.setScoreSoftware(score_type, toolName_(), version);
     }
     //-------------------------------------------------------------
     // writing output
