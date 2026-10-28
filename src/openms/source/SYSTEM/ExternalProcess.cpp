@@ -56,6 +56,7 @@
 #include <array>
 #include <chrono>
 #include <cstdlib>
+#include <cstring>
 #include <limits>
 #include <memory>
 #include <optional>
@@ -71,6 +72,11 @@
   #include <unistd.h>
   #ifdef __linux__
     #include <sys/syscall.h>
+    // Sysroots with old kernel headers (e.g. conda-forge, manylinux) lack the
+    // number, but it is 436 on every Linux architecture except alpha.
+    #if ! defined(SYS_close_range) && ! defined(__alpha__)
+      #define SYS_close_range 436
+    #endif
   #endif
 #endif
 
@@ -221,8 +227,7 @@ ExternalProcess::ExternalProcess(): ExternalProcess([](const std::string& /*out*
     // as Ctrl+C still reach it, and an enclosing cancellable call (e.g. a workflow
     // running an adapter which runs a search engine) can still stop the whole tree.
     const bool own_group = cancel != nullptr;
-    std::optional<bp::group> group;
-    if (own_group) { group.emplace(); }
+    std::optional<bp::group> group; // created in the try block: on Windows, creating a job can throw
     bp::child child;
     auto stop_and_wait = [&]() {
       std::error_code ignored;
@@ -244,6 +249,7 @@ ExternalProcess::ExternalProcess(): ExternalProcess([](const std::string& /*out*
 
     try
     {
+      if (own_group) { group.emplace(); }
       // Boost.Process does not search PATH when passed a plain executable name.
 #ifdef _WIN32
       std::wstring executable = wideString(exe);
@@ -319,15 +325,7 @@ ExternalProcess::ExternalProcess(): ExternalProcess([](const std::string& /*out*
         // Mark after fork: parallel launches may create more pipes at any time.
         // CLOEXEC retains Boost's launch-error pipe until a successful exec, and
         // leaves the child's redirected standard streams and parent untouched.
-#if defined(__linux__) && defined(SYS_close_range)
-        constexpr unsigned close_range_cloexec = 1U << 2; // Linux CLOSE_RANGE_CLOEXEC ABI
-        if (::syscall(SYS_close_range, 3U, std::numeric_limits<unsigned>::max(), close_range_cloexec) == 0) return;
-#endif
-        // Portable fallback (including older Linux kernels): scan the configured
-        // fd limit. This can cost more with large limits, but performs no allocation
-        // or locking in the forked child of a multithreaded caller.
-        for (int descriptor = 3; descriptor < descriptor_limit; ++descriptor)
-        {
+        auto mark = [&executor](int descriptor) {
           int status;
           do
           {
@@ -338,6 +336,59 @@ ExternalProcess::ExternalProcess(): ExternalProcess([](const std::string& /*out*
             executor.set_error(std::error_code(errno, std::system_category()), "Cannot restrict inherited descriptors");
             ::_exit(EXIT_FAILURE);
           }
+        };
+#if defined(__linux__) && defined(SYS_close_range)
+        constexpr unsigned close_range_cloexec = 1U << 2; // Linux CLOSE_RANGE_CLOEXEC ABI (5.11+)
+        if (::syscall(SYS_close_range, 3U, std::numeric_limits<unsigned>::max(), close_range_cloexec) == 0) return;
+#endif
+#ifdef __linux__
+        // Older kernels: mark only the open descriptors. Containers can have a
+        // descriptor limit of 2^30, which would make the scan below take minutes.
+        // open, getdents64, fcntl and close are async-signal-safe and allocate nothing.
+        const int listing = ::open("/proc/self/fd", O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+        if (listing >= 0)
+        {
+          alignas(8) char buffer[4096];
+          bool complete = true;
+          for (;;)
+          {
+            const long count = ::syscall(SYS_getdents64, listing, buffer, sizeof(buffer));
+            if (count == 0) break;
+            if (count < 0)
+            {
+              if (errno == EINTR) continue;
+              complete = false;
+              break;
+            }
+            for (long offset = 0; offset < count;)
+            {
+              // struct linux_dirent64: d_ino (8), d_off (8), d_reclen (2), d_type (1), d_name
+              unsigned short length = 0;
+              std::memcpy(&length, buffer + offset + 16, sizeof(length));
+              const char* name = buffer + offset + 19;
+              int descriptor = 0;
+              bool numeric = *name != '\0';
+              for (const char* c = name; *c != '\0'; ++c)
+              {
+                if (*c < '0' || *c > '9' || descriptor > (std::numeric_limits<int>::max() - 9) / 10)
+                {
+                  numeric = false;
+                  break;
+                }
+                descriptor = descriptor * 10 + (*c - '0');
+              }
+              if (numeric && descriptor >= 3 && descriptor != listing) { mark(descriptor); }
+              offset += length;
+            }
+          }
+          ::close(listing);
+          if (complete) return;
+        }
+#endif
+        // Portable fallback: scan the configured fd limit.
+        for (int descriptor = 3; descriptor < descriptor_limit; ++descriptor)
+        {
+          mark(descriptor);
         }
       });
 #endif

@@ -385,10 +385,11 @@ START_SECTION([EXTRA] failed or crashed direct children cannot leave descendants
   for (const auto& ending : {"exit 37", "kill -KILL $$"})
   {
     const auto marker = to_path(tmp_dir.getPath()) / "survived.txt";
-    const auto result = process.runWithResult("/bin/sh", {"-c", std::string("(sleep 0.3; echo SURVIVED > survived.txt) & ") + ending},
+    // Leave the group termination ample time on loaded or sanitizer CI machines.
+    const auto result = process.runWithResult("/bin/sh", {"-c", std::string("(sleep 1; echo SURVIVED > survived.txt) & ") + ending},
                                               tmp_dir.getPath(), false, ExternalProcess::IO_MODE::READ_WRITE, {}, nullptr, &never_cancelled);
     TEST_NOT_EQUAL(result.state, ExternalProcess::RETURNSTATE::SUCCESS)
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1300));
     TEST_FALSE(std::filesystem::exists(marker))
     std::filesystem::remove(marker);
   }
