@@ -44,6 +44,9 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+#if defined(__unix__) || defined(__APPLE__)
+#include <sys/resource.h>
+#endif
 #endif
 
 namespace OpenMS
@@ -699,8 +702,30 @@ namespace OpenMS
       }
     }
 
-    /// The spectra of an archive, read with the OpenMP threads of the calling thread: one Spectra (the library's
-    /// reader) per thread, the metadata shared through the archive
+    /// The number of threads that decode spectra in parallel: the OpenMP threads of the calling thread, but no more
+    /// than the limit on open files allows. Every reader keeps the archive and its Parquet members open (about five
+    /// descriptors each), so on a machine with hundreds of cores a reader per thread exceeds the usual soft limit of
+    /// 1,024 descriptors; the readers are bounded by that limit, with room for the files the process has open already.
+    int readerThreads()
+    {
+      int n = 1;
+#ifdef _OPENMP
+      n = omp_get_max_threads();
+#endif
+#if defined(__unix__) || defined(__APPLE__)
+      struct rlimit limit;
+      if (getrlimit(RLIMIT_NOFILE, &limit) == 0 && limit.rlim_cur != RLIM_INFINITY)
+      {
+        const rlim_t per_reader = 8, reserved = 128;
+        const rlim_t budget = limit.rlim_cur > reserved + per_reader ? (limit.rlim_cur - reserved) / per_reader : 1;
+        if (budget < static_cast<rlim_t>(n)) { n = static_cast<int>(budget); }
+      }
+#endif
+      return n;
+    }
+
+    /// The spectra of an archive, read with the OpenMP threads of the calling thread (bounded by readerThreads()):
+    /// one Spectra (the library's reader) per thread, the metadata shared through the archive
     class SpectraReader
     {
     public:
@@ -743,7 +768,7 @@ namespace OpenMS
           failed.store(true, std::memory_order_release);
         };
 #ifdef _OPENMP
-#pragma omp parallel
+#pragma omp parallel num_threads(readerThreads())
 #endif
         {
           // one reader per thread (the library's concurrency model); the archive's metadata map is shared
