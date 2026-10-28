@@ -19,10 +19,8 @@ namespace OpenMS
   public:
     /// Relative UTF-8 paths are resolved against the current working directory.
     CompressedInputSource(const std::string& file_path, const std::string& header);
-    CompressedInputSource(const char16_t* file_path, const std::string& header);
     /// Create a stream owned by the caller. BZ selects bzip2, PK ZIP, otherwise gzip.
     InputStream* makeStream() const;
-    const std::string& getSystemId() const { return file_path_; }
 
     CompressedInputSource() = delete;
     CompressedInputSource(const CompressedInputSource&) = delete;

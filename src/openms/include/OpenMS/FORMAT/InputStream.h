@@ -21,6 +21,5 @@ namespace OpenMS
     /// Asks a readBytes() that blocks on another thread (e.g. on the network) to return soon; the stream is not read
     /// afterwards. Thread-safe. Streams that never block for long need not implement it.
     virtual void cancel() {}
-    virtual const char16_t* getContentType() const { return nullptr; }
   };
 }

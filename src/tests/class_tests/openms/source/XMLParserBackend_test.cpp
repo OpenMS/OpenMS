@@ -374,7 +374,7 @@ START_SECTION(Native ASCII attribute lookup and UTF8 fallback)
   TEST_TRUE(attributes.value("naïve") == attributes.value(u"naïve"))
   TEST_TRUE(attributes.value("βmissing") == nullptr)
 END_SECTION
-START_SECTION(Large attributes and deep nesting remain readable as with Xerces)
+START_SECTION(Large attributes and deep nesting remain readable)
   Reader reader;
   Handler handler;
   const std::string large(10000001, 'x');

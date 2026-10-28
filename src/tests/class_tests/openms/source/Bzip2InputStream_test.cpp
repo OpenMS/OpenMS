@@ -74,12 +74,6 @@ START_SECTION(bool getIsOpen() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(virtual const char16_t* getContentType() const)
-	Bzip2InputStream bzip2(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
-  char16_t* xmlch_nullPointer = nullptr;
-  TEST_EQUAL(bzip2.getContentType(),xmlch_nullPointer)
-END_SECTION
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 START_SECTION(Zero byte reads preserve stream position)

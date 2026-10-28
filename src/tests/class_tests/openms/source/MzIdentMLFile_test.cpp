@@ -1052,7 +1052,7 @@ START_SECTION(([EXTRA] native DOM namespace Unicode entity and malformed-input r
     }
   }
 
-  // Large ordinary text and attributes remain readable, as with Xerces. HUGE
+  // Large ordinary text and attributes remain readable. HUGE
   // relaxes the 10 MB node limit but must retain the explicit entity budget.
   {
     const std::string large_sequence(10000001, 'A');

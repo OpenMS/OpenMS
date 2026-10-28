@@ -76,12 +76,6 @@ START_SECTION(bool getIsOpen() const )
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(virtual const char16_t* getContentType() const )
-	GzipInputStream gzip2(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1.gz"));
-  char16_t* xmlch_nullPointer = nullptr;
-  TEST_EQUAL(gzip2.getContentType(),xmlch_nullPointer)
-END_SECTION
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 START_SECTION(Zero byte reads preserve stream position)
