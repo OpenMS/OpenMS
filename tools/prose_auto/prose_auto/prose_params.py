@@ -30,10 +30,23 @@ ENZYME_NAMES = {"Trypsin": "Trypsin", "Trypsin/P": "Trypsin/P", "Lys-C": "Lys-C"
 
 
 TOLERANCE_FACTOR = 2.0  # search window / measured error (ppm tolerances)
-PRECURSOR_FLOOR_PPM, FRAGMENT_FLOOR_PPM = 10.0, 20.0
+PRECURSOR_FLOOR_PPM = 10.0
+# fragment floor per analyzer, from the benchmark sweep: Orbitrap HCD 20 ppm, Astral 10 ppm (frag 10 ppm was the
+# Astral optimum, +9%), TOF / timsTOF 15 ppm (10 ppm lost, 40 ppm gained on tims)
+FRAGMENT_FLOOR_PPM = {"orbitrap": 20.0, "astral": 10.0, "tof": 15.0}
 ION_TRAP_FRAGMENT_DA = 0.35
 CALIBRATION_OFFSET_PPM = 3.0  # calibrate when the measured precursor offset is larger (or unknown)
 
+
+
+def _analyzer_class(v):
+    """orbitrap | astral | tof, for the fragment-window floor"""
+    ins, ms2 = str(v("instrument") or "").lower(), str(v("ms2_analyzer") or "").upper()
+    if "astral" in ins:
+        return "astral"
+    if "TOF" in ms2 or any(k in ins for k in ("tims", "tof", "zenotof", "synapt")):
+        return "tof"
+    return "orbitrap"
 
 
 def _per_residue(mods):
@@ -70,10 +83,12 @@ def to_prose(decisions: dict) -> dict:
     if lowres2:
         P["Search:fragment:mass_tolerance"], P["Search:fragment:mass_tolerance_unit"] = ION_TRAP_FRAGMENT_DA, "Da"
     elif ft:
-        P["Search:fragment:mass_tolerance"] = round(max(TOLERANCE_FACTOR * float(ft["value"]), FRAGMENT_FLOOR_PPM), 3)
+        P["Search:fragment:mass_tolerance"] = round(max(TOLERANCE_FACTOR * float(ft["value"]),
+                                                       FRAGMENT_FLOOR_PPM[_analyzer_class(v)]), 3)
         P["Search:fragment:mass_tolerance_unit"] = ft["unit"]
     notes.append(f"search windows: {TOLERANCE_FACTOR:g}x the measured error, at least {PRECURSOR_FLOOR_PPM:g} ppm "
-                 f"precursor and {FRAGMENT_FLOOR_PPM:g} ppm fragment ({ION_TRAP_FRAGMENT_DA} Da on ion-trap MS2)")
+                 f"precursor and {FRAGMENT_FLOOR_PPM[_analyzer_class(v)]:g} ppm fragment on this analyzer "
+                 f"({ION_TRAP_FRAGMENT_DA} Da on ion-trap MS2)")
     cr = v("charge_range")
     if cr:
         P["Search:precursor:min_charge"], P["Search:precursor:max_charge"] = int(cr[0]), int(cr[1])

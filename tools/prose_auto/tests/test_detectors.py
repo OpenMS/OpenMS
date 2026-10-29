@@ -160,3 +160,10 @@ def test_search_windows_enzyme_and_calibration():
     P = pp.to_prose(reconcile(ev))["params"]
     assert (P["Search:fragment:mass_tolerance"], P["Search:fragment:mass_tolerance_unit"]) == (0.35, "Da")
     assert P["Search:calibration:enabled"] == "true" and P["Search:enzyme"] == "Trypsin/P"
+
+
+def test_fragment_floor_per_analyzer():
+    for ins, floor in (("Orbitrap Astral", 10.0), ("timsTOF Pro", 15.0), ("Q Exactive HF", 20.0)):
+        ev = [Evidence("instrument", ins, 0.9, "metadata", "mzML"),
+              Evidence("fragment_tolerance", {"value": 3, "unit": "ppm"}, 0.9, "search", "mini-search PSMs")]
+        assert pp.to_prose(reconcile(ev))["params"]["Search:fragment:mass_tolerance"] == floor, ins
