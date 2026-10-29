@@ -899,7 +899,6 @@ Converts a file type name into a Type
         .value("PEPXML", OpenMS::FileTypes::Type::PEPXML)
         .value("PROTXML", OpenMS::FileTypes::Type::PROTXML)
         .value("MZIDENTML", OpenMS::FileTypes::Type::MZIDENTML)
-        .value("QCML", OpenMS::FileTypes::Type::QCML)
         .value("MZQC", OpenMS::FileTypes::Type::MZQC)
         .value("GELML", OpenMS::FileTypes::Type::GELML)
         .value("TRAML", OpenMS::FileTypes::Type::TRAML)
@@ -1517,7 +1516,7 @@ Loads a MsInspect file into the given FeatureMap
         R"doc(
 A class to decode input strings that contain an mzML chromatogram or spectrum tag
 
-It uses xercesc to parse a string containing either a exactly one mzML
+It uses libxml2 to parse a string containing either a exactly one mzML
 spectrum or chromatogram (from <chromatogram> to </chromatogram> or
 <spectrum> to </spectrum> tag). It returns the data contained in the
 binaryDataArray for Intensity / mass-to-charge or Intensity / time

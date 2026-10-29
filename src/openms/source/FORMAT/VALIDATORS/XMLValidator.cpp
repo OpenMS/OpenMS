@@ -11,104 +11,70 @@
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <xercesc/sax2/SAX2XMLReader.hpp>
-#include <xercesc/framework/LocalFileInputSource.hpp>
-#include <xercesc/sax2/XMLReaderFactory.hpp>
-#include <xercesc/sax/ErrorHandler.hpp>
-#include <xercesc/sax/SAXParseException.hpp>
-#include <xercesc/util/XMLString.hpp>
+#include <libxml/xmlschemas.h>
+#include <memory>
+#include <exception>
 
-using namespace xercesc;
 using namespace std;
 
 namespace OpenMS
 {
-  // Internal bridge: adapts the Xerces ErrorHandler interface to XMLValidator so
-  // that Xerces types stay out of the public XMLValidator header.
-  class XMLValidatorErrorHandler_ : public xercesc::ErrorHandler
+  class XMLValidatorErrorHandler_
   {
   public:
-    explicit XMLValidatorErrorHandler_(XMLValidator& v) : v_(v) {}
-    void warning(const SAXParseException& e) override { report_("warning", e); }
-    void error(const SAXParseException& e) override { report_("error", e); }
-    void fatalError(const SAXParseException& e) override { report_("error", e); }
-    void resetErrors() override { v_.valid_ = true; }
-  private:
-    void report_(const std::string& kind, const SAXParseException& e)
+    struct Context
     {
-      v_.logError_(kind, Internal::StringManager::convert(reinterpret_cast<const char16_t*>(e.getMessage())),
-                   (unsigned long)e.getLineNumber(), (unsigned long)e.getColumnNumber());
+      XMLValidator* validator;
+      std::exception_ptr exception;
+    };
+    static void error(void* ctx, const xmlError* error) noexcept
+    {
+      auto& state = *static_cast<Context*>(ctx);
+      if (state.exception) { return; }
+      try
+      {
+        std::string message = error->message ? error->message : "libxml2 validation error";
+        // libxml2 diagnostics end with a line break; logError_ adds its own.
+        while (!message.empty() && (message.back() == '\n' || message.back() == '\r')) { message.pop_back(); }
+        state.validator->logError_(error->level == XML_ERR_WARNING ? "warning" : "error", message, error->line, error->int2);
+      }
+      catch (...) { state.exception = std::current_exception(); }
     }
-    XMLValidator& v_;
   };
 
-  XMLValidator::XMLValidator() :
-    valid_(true),
-    os_(nullptr)
-  {
-  }
+  XMLValidator::XMLValidator() : valid_(true), os_(nullptr) {}
 
-  bool XMLValidator::isValid(const std::string & filename, const std::string & schema, std::ostream & os)
+  bool XMLValidator::isValid(const std::string& filename, const std::string& schema, std::ostream& os)
   {
     filename_ = filename;
     os_ = &os;
-
-    //try to open file
+    valid_ = true;
     if (!File::exists(filename))
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
-
-    // initialize parser (serialised with the other users of Xerces, which may parse on other threads)
-    try
-    {
-      Internal::xercesInitialize();
-    }
-    catch (const XMLException & toCatch)
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-        "", 
-        std::string("Error during initialization: ") + Internal::StringManager().convert(toCatch.getMessage()));
-    }
-
-    SAX2XMLReader * parser = XMLReaderFactory::createXMLReader();
-    parser->setFeature(XMLUni::fgSAX2CoreNameSpaces, true);
-    parser->setFeature(XMLUni::fgSAX2CoreValidation, true);
-    parser->setFeature(XMLUni::fgXercesDynamic, false);
-    parser->setFeature(XMLUni::fgXercesSchema, true);
-    parser->setFeature(XMLUni::fgXercesSchemaFullChecking, true);
-
-    //set the internal Xerces error-handler bridge
-    XMLValidatorErrorHandler_ error_handler(*this);
-    parser->setErrorHandler(&error_handler);
-    parser->setContentHandler(nullptr);
-    parser->setEntityResolver(nullptr);
-
-    //load schema
-    LocalFileInputSource schema_file(Internal::StringManager().convert(schema).c_str());
-    parser->loadGrammar(schema_file, Grammar::SchemaGrammarType, true);
-    parser->setFeature(XMLUni::fgXercesUseCachedGrammarInParse, true);
-
-    // try to parse file
-    LocalFileInputSource source(Internal::StringManager().convert(filename.c_str()).c_str());
-
-    try
-    {
-      parser->parse(source);
-      delete(parser);
-    }
-    catch (...)
-    {
-      /// nothing to do here
-    }
-
-    return valid_;
+    unique_ptr<xmlSchemaParserCtxt, decltype(&xmlSchemaFreeParserCtxt)> parser(
+      xmlSchemaNewParserCtxt(schema.c_str()), xmlSchemaFreeParserCtxt);
+    if (!parser) { throw std::bad_alloc(); }
+    XMLValidatorErrorHandler_::Context errors{this, {}};
+    xmlSchemaSetParserStructuredErrors(parser.get(), XMLValidatorErrorHandler_::error, &errors);
+    unique_ptr<xmlSchema, decltype(&xmlSchemaFree)> grammar(xmlSchemaParse(parser.get()), xmlSchemaFree);
+    if (errors.exception) { std::rethrow_exception(errors.exception); }
+    if (!grammar) { return false; }
+    unique_ptr<xmlSchemaValidCtxt, decltype(&xmlSchemaFreeValidCtxt)> validator(
+      xmlSchemaNewValidCtxt(grammar.get()), xmlSchemaFreeValidCtxt);
+    if (!validator) { throw std::bad_alloc(); }
+    xmlSchemaSetValidStructuredErrors(validator.get(), XMLValidatorErrorHandler_::error, &errors);
+    // Streaming validation preserves bounded memory for large mzML inputs.
+    const int result = xmlSchemaValidateFile(validator.get(), filename.c_str(), XML_PARSE_NONET | XML_PARSE_NO_XXE);
+    if (errors.exception) { std::rethrow_exception(errors.exception); }
+    return valid_ && result == 0;
   }
 
   void XMLValidator::logError_(const std::string& kind, const std::string& message, unsigned long line, unsigned long column)
   {
-    std::string error_message = std::string("Validation ") + kind + " in file '" + filename_ + "' line " + (UInt)line + " column " + (UInt)column + ": " + message;
-    (*os_) << error_message << endl;
+    (*os_) << "Validation " << kind << " in file '" << filename_ << "' line " << line
+           << " column " << column << ": " << message << '\n';
     valid_ = false;
   }
 

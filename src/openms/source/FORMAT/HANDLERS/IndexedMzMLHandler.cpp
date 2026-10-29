@@ -11,6 +11,8 @@
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
 
+#include <iostream>
+
 
 // #define DEBUG_READER
 
@@ -26,6 +28,8 @@ namespace OpenMS::Internal
     index_offset_ = IndexedMzMLDecoder().findIndexListOffset(filename_);
     if (index_offset_ == (std::streampos)-1)
     {
+      std::cerr << "IndexedMzMLHandler: Could not find element indexListOffset at the end of " << filename_
+                << ". Maybe this is not an indexedMzML.\n";
       parsing_success_ = false;
       return;
     }

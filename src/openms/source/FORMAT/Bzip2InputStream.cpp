@@ -9,9 +9,9 @@
 
 #include <OpenMS/FORMAT/Bzip2InputStream.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <xercesc/util/XMLString.hpp>
+#include <algorithm>
+#include <limits>
 
-using namespace xercesc;
 
 namespace OpenMS
 {
@@ -36,23 +36,20 @@ namespace OpenMS
     delete bzip2_;
   }
 
-  XMLSize_t Bzip2InputStream::readBytes(XMLByte * const to_fill, const XMLSize_t max_to_read)
+  Size Bzip2InputStream::readBytes(unsigned char * const to_fill, const Size max_to_read)
   {
+    if (max_to_read == 0) { return 0; }
     //  Figure out whether we can really read.
     if (bzip2_->streamEnd())
     {
       return 0;
     }
 
-    unsigned char * fill_it = static_cast<unsigned char *>(to_fill);
-    XMLSize_t actual_read = (XMLSize_t) bzip2_->read((char *)fill_it, static_cast<size_t>(max_to_read));
+    const Size limit = std::min(max_to_read, static_cast<Size>(std::numeric_limits<int>::max()));
+    const Size actual_read = bzip2_->read(reinterpret_cast<char*>(to_fill), limit);
     file_current_index_ += actual_read;
     return actual_read;
   }
 
-  const XMLCh * Bzip2InputStream::getContentType() const
-  {
-    return nullptr;
-  }
 
 } // namespace OpenMS

@@ -21,11 +21,11 @@ namespace OpenMS
     class XMLHandler;
 
     /**
-      @brief Base class for loading and storing XML files via Xerces, with optional schema validation and transparent gzip / bzip2 / zip decompression on load.
+      @brief Base class for loading and storing XML files via libxml2, with optional schema validation and transparent gzip / bzip2 / zip decompression on load.
 
       Concrete file-format classes derive from @c XMLFile and provide an
       @ref XMLHandler subclass that drives the SAX parser. The base class hides the
-      Xerces setup, the compression-magic detection on the input side, the suffix-based
+      libxml2 setup, the compression-magic detection on the input side, the suffix-based
       compression selection on the output side, and the optional encoding override used
       for non-conforming XML producers (e.g. X!Tandem).
 
@@ -81,7 +81,7 @@ protected:
         Reads the first two bytes of @p filename to detect bzip2 (@c "BZ"),
         gzip (@c 0x1F8B), or zip (@c "PK") and wraps the file in a
         @ref CompressedInputSource accordingly; any other magic falls through to a
-        plain @c LocalFileInputSource. If @ref enforceEncoding_ has set
+        plain binary file stream. If @ref enforceEncoding_ has set
         @c enforced_encoding_, the override is applied to the source before parsing.
 
         On exit (success or exception), @c handler->reset() is called via an RAII guard
@@ -89,17 +89,17 @@ protected:
 
         @param[in]     filename Path to the XML file.
         @param[in,out] handler  SAX handler driven by the parser.
+        @param[in] namespace_aware Validate namespace bindings; false preserves legacy qualified-name parsing.
 
         @throws OpenMS::Exception::FileNotFound if @p filename does not exist.
-        @throws OpenMS::Exception::ParseError   if Xerces initialisation fails or a parse error occurs.
+        @throws OpenMS::Exception::ParseError   if a parse error occurs.
       */
-      void parse_(const std::string& filename, XMLHandler* handler);
+      void parse_(const std::string& filename, XMLHandler* handler, bool namespace_aware = false);
 
       /**
         @brief Parse an in-memory XML buffer through @p handler.
 
-        Wraps @p buffer in a @c xercesc::MemBufInputSource (with the literal id
-        @c "inMemory"). If @ref enforceEncoding_ has set @c enforced_encoding_, the
+        Parses @p buffer incrementally (with the literal id @c "inMemory"). If @ref enforceEncoding_ has set @c enforced_encoding_, the
         override is applied to the source before parsing. The RAII handler reset described
         for @ref parse_ also applies here.
 
@@ -107,10 +107,11 @@ protected:
 
         @param[in]     buffer   In-memory XML text.
         @param[in,out] handler  SAX handler driven by the parser.
+        @param[in] namespace_aware Validate namespace bindings; false preserves legacy qualified-name parsing.
 
-        @throws OpenMS::Exception::ParseError if Xerces initialisation fails or a parse error occurs.
+        @throws OpenMS::Exception::ParseError if a parse error occurs.
       */
-      void parseBuffer_(const std::string & buffer, XMLHandler * handler);
+      void parseBuffer_(const std::string& buffer, XMLHandler* handler, bool namespace_aware = false);
 
       /**
         @brief Stores the contents of the XML handler given by @p handler in the file given by @p filename.
@@ -135,9 +136,9 @@ protected:
         @brief Set or clear the XML-encoding override applied to subsequent @ref parse_ / @ref parseBuffer_ calls.
 
         Stores @p encoding in @ref enforced_encoding_. Pass an empty string to disable the
-        override and let Xerces use the encoding declared inside the XML.
+        override and let libxml2 use the encoding declared inside the XML.
 
-        @param[in] encoding Encoding name (e.g. @c "ISO-8859-1") to apply to the @c InputSource before parsing; empty string disables the override so Xerces consults the XML declaration instead.
+        @param[in] encoding Encoding name (e.g. @c "ISO-8859-1") to apply to the @c InputSource before parsing; empty string disables the override so libxml2 consults the XML declaration instead.
       */
       void enforceEncoding_(const std::string& encoding);
     };

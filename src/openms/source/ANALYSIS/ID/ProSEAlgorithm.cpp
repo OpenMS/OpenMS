@@ -589,7 +589,9 @@ namespace OpenMS
                        "if that fails too, the files keep their search engine scores, and the pooled evaluation of the "
                        "files (the ProSE tool's -out_merged) scores the proteins by ProSE's score 'ln(hyperscore)' of all "
                        "PSMs instead of Percolator's PEP. See percolator:max_train_psms for the training PSMs. Set to "
-                       "'false' to report the search engine scores.");
+                       "'false' to report the search engine scores. Keep it on for intermediates (FDR:protein 0) that "
+                       "ProteomicsLFQ finishes: it takes the PEP (meta value MS:1001493) as main score and stops for an input "
+                       "without PEPs.");
     defaults_.setValidStrings("rescore", {"true", "false"});
     defaults_.setValue("percolator:max_train_psms", 500000,
                        "With 'rescore': the most PSMs Percolator trains a model on (0: all). Every PSM is scored, also "
@@ -831,7 +833,8 @@ namespace OpenMS
                        "so a lower threshold reports no PSM instead of lifting the filter. Needs decoys ('decoys' auto or "
                        "generate); with 'ignore', a threshold above 0 is skipped with a warning (the QPX run view of the ProSE tool's "
                        "-qpx_extended records per input whether the filter was applied: 'psm_fdr_applied'). Afterwards, the "
-                       "proteins that no remaining PSM references are removed.");
+                       "proteins that no remaining PSM references are removed. The final PSM FDR with FDR:protein > 0 (e.g. "
+                       "0.01), a loose evidence threshold of the intermediates with FDR:protein 0 (e.g. 0.1; see there).");
     defaults_.setMinFloat("FDR:PSM", 0.0);
     defaults_.setMaxFloat("FDR:PSM", 1.0);
     defaults_.setValue("FDR:PSM_groups", "scored_charges",
@@ -845,12 +848,12 @@ namespace OpenMS
                        "A group without decoy or without target PSMs falls back to 'pooled'.",
                        {"advanced"});
     defaults_.setValidStrings("FDR:PSM_groups", {"scored_charges", "pooled"});
-    defaults_.setValue("FDR:protein", 0.0, "Filter proteins based on picked-protein FDR q-value (e.g., 0.01 = 1% protein FDR, set to 0 to disable). Applied after PSM-level FDR on a complete protein set (single file, or the -out_merged aggregate). Setting this > 0 finalizes the result: identified decoys are removed. With 0, decoys are retained for downstream/merged FDR. Uses the picked-protein approach (Savitski et al. 2015) which pairs target and decoy proteins by accession. The protein inference and the picked-protein FDR use the PSMs up to FDR:protein_inference_PSM, and a protein scores with the best posterior error probability of its PSMs (Percolator's, with 'rescore'; without it the best search engine score). The proteins and the protein groups (which have q-values of their own) are filtered at the threshold, and only the proteins of the groups that pass are kept. Proteins without a reported PSM (one that passes FDR:PSM) are removed afterwards, and so are the PSMs all of whose proteins failed the protein FDR. Needs decoys ('decoys' auto or generate).");
+    defaults_.setValue("FDR:protein", 0.0, "Picked-protein FDR threshold (e.g. 0.01 = 1 %), and the switch between the two modes of a search. Above 0, the search is the whole experiment: its proteins are inferred on the pooled PSMs of all its inputs, filtered at this protein FDR, and the PSMs filtered finally, so every output is the final result (the decoys removed, see the ProSE tool's -keep_decoys). With 0 (the default), the search is one part of a larger experiment, e.g. one shard of files searched on one compute node: every output is a per-run intermediate (PSM q-values and PEPs per run, FDR:PSM as a loose evidence threshold, decoys and all referenced proteins kept), to be finished downstream on all parts together (e.g. ProteomicsLFQ, or IDMerger, ProteinInference or Epifany, FalseDiscoveryRate and IDFilter). Uses the picked-protein approach (Savitski et al. 2015) which pairs target and decoy proteins by accession. The protein inference and the picked-protein FDR use the PSMs up to FDR:protein_inference_PSM, and a protein scores with the best posterior error probability of its PSMs (Percolator's, with 'rescore'; without it the best search engine score). The proteins and the protein groups (which have q-values of their own) are filtered at the threshold, and only the proteins of the groups that pass are kept. Proteins without a reported PSM (one that passes FDR:PSM) are removed afterwards, and so are the PSMs all of whose proteins failed the protein FDR. Needs decoys ('decoys' auto or generate).");
     defaults_.setMinFloat("FDR:protein", 0.0);
     defaults_.setMaxFloat("FDR:protein", 1.0);
     defaults_.setValue("FDR:protein_inference_PSM", 0.1,
-                       "q-value cutoff of the PSMs that protein inference and the protein FDR (FDR:protein) use; FDR:PSM still "
-                       "filters the reported PSMs. The q-values are those FDR:PSM filters on (Percolator's with 'rescore', else "
+                       "q-value cutoff of the PSMs that protein inference and the protein FDR (FDR:protein > 0) use; FDR:PSM "
+                       "still filters the reported PSMs. Without the protein FDR it has no effect. The q-values are those FDR:PSM filters on (Percolator's with 'rescore', else "
                        "see FDR:PSM_groups). A looser cutoff than FDR:PSM leaves more decoy proteins for the picked-protein FDR, "
                        "as ProteomicsLFQ infers proteins on PSMs at a looser q-value than its PSM FDR. Values at or below FDR:PSM "
                        "use the PSMs of FDR:PSM; with FDR:PSM 0 (no PSM filter) all PSMs are used.",
@@ -992,7 +995,7 @@ namespace OpenMS
   void ProSEAlgorithm::updateMembers_()
   {
     // inverted ranges and an invalid peptide:motif, before anything is read (the FragmentIndex checks them again)
-    FragmentIndex::checkSearchParameters(param_);
+    FragmentIndex::checkSearchParameters(param_, parameter_name_prefix_);
 
     precursor_mass_tolerance_lower_ = param_.getValue("precursor:mass_tolerance_lower");
     precursor_mass_tolerance_upper_ = param_.getValue("precursor:mass_tolerance_upper");
@@ -1020,7 +1023,7 @@ namespace OpenMS
     if (! std::isfinite(fragment_mass_tolerance_) || fragment_mass_tolerance_ <= 0.0)
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "fragment:mass_tolerance must be finite and positive (got " + std::to_string(fragment_mass_tolerance_) + ").");
+        paramName_("fragment:mass_tolerance") + " must be finite and positive (got " + std::to_string(fragment_mass_tolerance_) + ").");
     }
 
     fragment_mass_tolerance_unit_ = param_.getValue("fragment:mass_tolerance_unit").toString();
@@ -1042,7 +1045,7 @@ namespace OpenMS
     if (deisotope_mode == "true" && !deisotope_supported)
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "fragment:deisotope=true requires a high-resolution fragment tolerance (<= 0.1 Da or <= 100 ppm). "
+        paramName_("fragment:deisotope") + "=true requires a high-resolution fragment tolerance (<= 0.1 Da or <= 100 ppm). "
         "Use 'auto' (deisotopes only for high-resolution data) or 'false' for low-resolution data.");
     }
     if (deisotope_mode == "auto" && !deisotope_supported)
@@ -1070,7 +1073,7 @@ namespace OpenMS
     mass_error_sd_ppm_ = param_.getValue("scoring:mass_error_sd");
     if (mass_accuracy_score_ && (! std::isfinite(mass_error_sd_ppm_) || mass_error_sd_ppm_ <= 0.0))
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "scoring:mass_error_sd must be finite and positive.");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, paramName_("scoring:mass_error_sd") + " must be finite and positive.");
     }
     if (scoring_method == "mass_accuracy" && ! high_resolution_ppm)
     {
@@ -1088,7 +1091,7 @@ namespace OpenMS
       modifications_fixed_.assign(fixed_unique.begin(), fixed_unique.end());
     }
     // fixed terminal modifications the fragment index cannot restrict: fail here, not after reading the database
-    FragmentIndex::checkFixedModifications(modifications_fixed_);
+    FragmentIndex::checkFixedModifications(modifications_fixed_, parameter_name_prefix_);
 
     modifications_variable_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:variable"));
     set<std::string> var_unique(modifications_variable_.begin(), modifications_variable_.end());
@@ -1160,7 +1163,7 @@ namespace OpenMS
     {
       // PeptDeepRescoring compares the predicted with the annotated fragment peaks of each PSM
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "peptdeep:enable needs the fragment annotation of the PSMs: annotate:PSM must contain 'ALL' or '"
+        paramName_("peptdeep:enable") + " needs the fragment annotation of the PSMs: " + paramName_("annotate:PSM") + " must contain 'ALL' or '"
         + std::string(Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM) + "'.");
     }
     self_trained_ion_priors_ = param_.getValue("annotate:self_trained_ion_priors").toBool();
@@ -1416,6 +1419,21 @@ namespace OpenMS
 
   namespace
   {
+    // The lowest and highest precursor charge of the hits of ids (max and min int without a hit)
+    std::pair<int, int> chargeRange(const PeptideIdentificationList& ids)
+    {
+      std::pair<int, int> range{std::numeric_limits<int>::max(), std::numeric_limits<int>::min()};
+      for (const PeptideIdentification& id : ids)
+      {
+        for (const PeptideHit& hit : id.getHits())
+        {
+          range.first = std::min(range.first, hit.getCharge());
+          range.second = std::max(range.second, hit.getCharge());
+        }
+      }
+      return range;
+    }
+
     // Calls f when the scope ends, also when an exception leaves it (f must not throw then).
     template <typename F>
     class OnScopeExit
@@ -1794,9 +1812,9 @@ namespace OpenMS
 #else
     (void)spectra; (void)protein_ids; (void)peptide_ids;
     throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      "[ProSE] 'peptdeep:enable' is set, but this OpenMS was built without ONNX support "
+      "[ProSE] '" + paramName_("peptdeep:enable") + "' is set, but this OpenMS was built without ONNX support "
       "(WITH_ONNX=OFF), so the PeptDeep prediction-based rescoring features cannot be computed. "
-      "Use an OpenMS build with -DWITH_ONNX=ON or set 'peptdeep:enable' to 'false'.");
+      "Use an OpenMS build with -DWITH_ONNX=ON or set '" + paramName_("peptdeep:enable") + "' to 'false'.");
 #endif
   }
 
@@ -2944,11 +2962,11 @@ namespace OpenMS
               || static_cast<double>(n_decoys) > MAX_DECOYS_PER_TARGET * static_cast<double>(n_targets))
           {
             throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              "decoys=auto: the protein database has " + StringUtils::toStr(n_decoys) + " decoy protein(s) (marker '"
+              paramName_("decoys") + "=auto: the protein database has " + StringUtils::toStr(n_decoys) + " decoy protein(s) (marker '"
               + ext_string + "', " + (ext_is_prefix ? "prefix" : "suffix") + ") for " + StringUtils::toStr(n_targets)
               + " target protein(s). Target-decoy FDR needs about one decoy per target (ProSE reuses decoys at "
               + StringUtils::toStr(MIN_DECOYS_PER_TARGET) + " to " + StringUtils::toStr(MAX_DECOYS_PER_TARGET)
-              + " per target); with these its q-values would be wrong. Set 'decoys' to 'generate' to replace them "
+              + " per target); with these its q-values would be wrong. Set '" + paramName_("decoys") + "' to 'generate' to replace them "
               "with decoys generated from the targets, or use a database with one decoy per target.");
           }
           s.generate = false; s.strip_existing = false; s.have_decoys = true;
@@ -3256,8 +3274,8 @@ namespace OpenMS
       if (strategy.decoy_string.empty())
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "decoy_prefix must be non-empty to generate decoys (decoys=auto without existing decoys, "
-          "or decoys=generate).");
+          paramName_("decoy_prefix") + " must be non-empty to generate decoys (" + paramName_("decoys") + "=auto without existing "
+          "decoys, or " + paramName_("decoys") + "=generate).");
       }
       DecoyGenerator decoy_generator;
       const size_t old_size = db.size();
@@ -6599,18 +6617,13 @@ namespace OpenMS
       return outcome;
     }
 
-    bool has_decoys = false;
-    int min_charge = 10;
-    int max_charge = 0;
-    for (const PeptideIdentification& pid : peptide_ids)
+    const bool has_decoys = std::any_of(peptide_ids.begin(), peptide_ids.end(), [](const PeptideIdentification& pid)
     {
-      for (const PeptideHit& hit : pid.getHits())
-      {
-        has_decoys = has_decoys || hit.isDecoy();
-        min_charge = std::min(min_charge, hit.getCharge());
-        max_charge = std::max(max_charge, hit.getCharge());
-      }
-    }
+      return std::any_of(pid.getHits().begin(), pid.getHits().end(), [](const PeptideHit& hit) { return hit.isDecoy(); });
+    });
+    const std::pair<int, int> charges = chargeRange(peptide_ids);
+    const int min_charge = std::min(10, charges.first);
+    const int max_charge = std::max(0, charges.second);
     if (!has_decoys)
     {
       // The search's decoy mode is not known here: name both causes.
@@ -9355,10 +9368,7 @@ namespace OpenMS
     // Patch database file path into each per-file and aggregate ProteinIdentification.
     for (auto& pf : mfres.per_file)
     {
-      if (pf.exit_code == ExitCodes::EXECUTION_OK && !pf.protein_ids.empty())
-      {
-        pf.protein_ids[0].getSearchParameters().db = in_db;
-      }
+      if (searched_(pf)) { pf.protein_ids[0].getSearchParameters().db = in_db; }
     }
     if (mfres.aggregate.exit_code == ExitCodes::EXECUTION_OK && !mfres.aggregate.protein_ids.empty())
     {
@@ -9390,8 +9400,7 @@ namespace OpenMS
     {
       for (const SearchResult& pf : per_file)
       {
-        if (pf.exit_code != ExitCodes::EXECUTION_OK || pf.protein_ids.empty()) { continue; }
-        if (require_psms && !hasPSMs_(pf.peptide_ids)) { continue; }
+        if (!searched_(pf) || (require_psms && !hasPSMs_(pf.peptide_ids))) { continue; }
         if (engine_of == nullptr || (engine_of->percolator.applied && !pf.percolator.applied)) { engine_of = &pf; }
       }
       if (engine_of != nullptr) { break; }
@@ -9403,13 +9412,17 @@ namespace OpenMS
       engine_version = engine_of->protein_ids[0].getSearchEngineVersion();
     }
 
+    // 'id_merge_index' of a PSM is the input position of its file, per occurrence of the input: IDMergerAlgorithm numbers
+    // the primary MS run paths of the runs, so it would give two inputs of one path (the same file given twice) one
+    // index, and after a failed file the index k of the k-th pooled file. It appends the PSMs of each insertRuns() call
+    // in their order (those of the runs given, i.e. all of a searched file), so the input of each pooled PSM follows from
+    // the number each file contributes.
     IDMergerAlgorithm merger;
-    std::vector<Size> pooled_files; // input positions of the pooled files, in insertion order
+    std::vector<std::pair<Size, Size>> contributed; // (input position, PSMs) per insertRuns() call
     for (Size i = 0; i < per_file.size(); ++i)
     {
       SearchResult& pf = per_file[i];
       if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
-      if (!pf.protein_ids.empty()) { pooled_files.push_back(i); } // insertRuns() skips a file without a run
       // Moving: the merger takes (and clears) the PSMs and a copy of the runs, which stay with the files -- their search
       // parameters, meta values (e.g. PeptDeepRescoring's NCE) and run paths are still the caller's.
       std::vector<ProteinIdentification> runs = pf.protein_ids;
@@ -9421,28 +9434,29 @@ namespace OpenMS
           run.setSearchEngineVersion(engine_version);
         }
       }
-      if (move_psms) { merger.insertRuns(std::move(runs), std::move(pf.peptide_ids)); }
-      else { merger.insertRuns(std::move(runs), PeptideIdentificationList(pf.peptide_ids)); }
+      PeptideIdentificationList psms = move_psms ? std::move(pf.peptide_ids) : PeptideIdentificationList(pf.peptide_ids);
+      if (move_psms) { pf.peptide_ids = PeptideIdentificationList(); }
+      // (the merger skips the PSMs of no given run, and all PSMs of a file without runs)
+      std::unordered_set<std::string> run_ids;
+      for (const ProteinIdentification& run : runs) { run_ids.insert(run.getIdentifier()); }
+      contributed.emplace_back(i, static_cast<Size>(std::count_if(psms.begin(), psms.end(),
+        [&run_ids](const PeptideIdentification& id) { return run_ids.contains(id.getIdentifier()); })));
+      merger.insertRuns(std::move(runs), std::move(psms));
     }
     ProteinIdentification merged_proteins;
     merger.returnResultsAndClear(merged_proteins, peptide_ids);
     protein_ids.clear();
     protein_ids.emplace_back(std::move(merged_proteins));
     protein_ids[0].setPrimaryMSRunPath(in_spectra_files);
-
-    // IDMergerAlgorithm numbers the primary MS run paths of the runs ('id_merge_index') in the order it meets them --
-    // one per pooled file, as the search gives each run the path of its input file -- so it counts only the pooled
-    // files, while the run lists all input files: after a failed file, index k would name the wrong file. Map k to the
-    // input position of the k-th pooled file (nothing to do if no file failed).
-    if (!pooled_files.empty() && pooled_files.back() + 1 != pooled_files.size())
+    Size k = 0;
+    for (const auto& [i, n] : contributed)
     {
-      for (PeptideIdentification& id : peptide_ids)
+      for (const Size end = std::min(k + n, peptide_ids.size()); k < end; ++k)
       {
-        if (!id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX)) { continue; }
-        const Size k = static_cast<Size>(static_cast<int>(id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)));
-        if (k < pooled_files.size()) { id.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, pooled_files[k]); }
+        peptide_ids[k].setMetaValue(Constants::UserParam::ID_MERGE_INDEX, static_cast<int>(i));
       }
     }
+    OPENMS_POSTCONDITION(k == peptide_ids.size(), "IDMergerAlgorithm pooled other PSMs than those of the files")
   }
 
   // =====================================================================
@@ -9789,8 +9803,8 @@ namespace OpenMS
     // target-decoy q-values of ProSE's score, which are valid per file and stay. Only the protein inference compares
     // PSMs across files, by the best PEP of a protein's PSMs: the PSMs that Percolator did not rescore have none. A
     // mixed set is therefore pooled on ProSE's own score, which every PSM has: the inference scores proteins by the
-    // best 'ln(hyperscore)' (as without rescoring, see inferProteins()), and with FDR:PSM 0, where the main score is
-    // not a q-value, every pooled PSM gets 'ln(hyperscore)' as main score (Percolator's scores stay meta values).
+    // best 'ln(hyperscore)' (as without rescoring, see inferProteins(), which switches the scores of its copies of the
+    // PSMs only); the PSMs themselves keep their scores.
     Size n_searched = 0, n_rescored = 0;
     std::vector<std::string> not_rescored;
     for (Size i = 0; i < result.per_file.size(); ++i)
@@ -9821,7 +9835,8 @@ namespace OpenMS
     // The multi-file search already produced exactly this merge: it pools the per-file results with
     // poolSearchedFiles_(), as below -- so re-merging here would only build a third copy of every PSM. Consume the
     // aggregate by move instead. Without an aggregate (build_pooled_aggregate false), pool the runs of the files here.
-    if (!result.aggregate.protein_ids.empty())
+    const bool pooled_from_files = result.aggregate.protein_ids.empty();
+    if (!pooled_from_files)
     {
       merged.protein_ids.emplace_back(std::move(result.aggregate.protein_ids[0]));
       merged.peptide_ids = std::move(result.aggregate.peptide_ids);
@@ -9842,38 +9857,219 @@ namespace OpenMS
     // merged idXML is schema-valid (matches the single-file path).
     merged_protein_ids[0].setDateTime(DateTime::now());
 
-    // Without FDR:PSM the main scores of a mixed set differ: Percolator's q-values and ProSE's scores. One score for all.
-    if (rescoring_mixed && fdr_psm_ <= 0.0) { useSearchEngineScore_(merged_peptides); }
-
-    // Cross-file protein inference (inferProteins(): the best PEP, or search engine score, per peptide per protein) and
-    // the optional picked-protein FDR. Picked-protein FDR needs identified decoy proteins: gate on DB-level decoys here,
-    // applyCompleteSetProteinFDR() checks the result of the inference (it could be target-only even with a decoy
-    // database if no decoy survived in any file). It infers the proteins on the pooled PSMs together with the PSMs of
-    // the files between FDR:PSM and FDR:protein_inference_PSM, and finalizes the result: with remove_decoys it strips
-    // the decoys, and in any case the proteins without a pooled PSM and the references to removed proteins (peptide
-    // evidences, indistinguishable proteins and protein groups), so that the result can still be stored as idXML.
-    // Without the protein FDR the merged output is a pooled intermediate that retains the target+decoy evidence for
-    // a downstream FDR.
-    if (fdr_protein_ > 0.0 && result.have_decoys && !decoy_string.empty())
+    // If the evaluation fails, the files get the PSMs moved out of them back (as far as it changed them: at most the
+    // best hit of each kept, or q-values as below), so that their own outputs can still be written.
+    try
     {
-      PeptideIdentificationList inference_only;
-      for (SearchResult& pf : result.per_file)
+      // One main score type for all PSMs of the pooled run: with rescoring_mixed and FDR:PSM 0, the files that Percolator
+      // did not rescore still have ProSE's score as main score, the others Percolator's q-values; a reader of the run
+      // (which takes the score type of its first PSM) would misread one of them. These files get target-decoy q-values
+      // of ProSE's score per file instead, as with FDR:PSM > 0 (unfiltered).
+      if (rescoring_mixed)
       {
-        if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
-        inference_only.insert(inference_only.end(), std::make_move_iterator(pf.inference_only_peptide_ids.begin()),
-                              std::make_move_iterator(pf.inference_only_peptide_ids.end()));
-        pf.inference_only_peptide_ids = PeptideIdentificationList();
+        std::map<Size, std::vector<Size>> rows_of; // per file not rescored whose PSMs have no q-values: its pooled PSMs
+        for (Size k = 0; k < merged_peptides.size(); ++k)
+        {
+          const PeptideIdentification& id = merged_peptides[k];
+          if (!id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX)) { continue; }
+          const Size i = static_cast<Size>(static_cast<int>(id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)));
+          if (i >= result.per_file.size() || result.per_file[i].percolator.applied || id.getScoreType() == "q-value") { continue; }
+          rows_of[i].push_back(k);
+        }
+        for (const auto& [i, rows] : rows_of)
+        {
+          PeptideIdentificationList ids;
+          for (Size k : rows) { ids.push_back(std::move(merged_peptides[k])); }
+          annotatePsmQValues(ids);
+          for (Size j = 0; j < rows.size(); ++j) { merged_peptides[rows[j]] = std::move(ids[j]); }
+        }
       }
-      merged.protein_fdr_applied = applyCompleteSetProteinFDR(merged_protein_ids, merged_peptides, decoy_string,
-                                                              decoy_is_prefix, fdr_protein_, remove_decoys, inference_only);
+
+      // Cross-file protein inference (inferProteins(): the best PEP, or search engine score, per peptide per protein) and
+      // the optional picked-protein FDR. Picked-protein FDR needs identified decoy proteins: gate on DB-level decoys here,
+      // applyCompleteSetProteinFDR() checks the result of the inference (it could be target-only even with a decoy
+      // database if no decoy survived in any file). It infers the proteins on the pooled PSMs together with the PSMs of
+      // the files between FDR:PSM and FDR:protein_inference_PSM, and finalizes the result: with remove_decoys it strips
+      // the decoys, and in any case the proteins without a pooled PSM and the references to removed proteins (peptide
+      // evidences, indistinguishable proteins and protein groups), so that the result can still be stored as idXML.
+      // Without the protein FDR the merged output is a pooled intermediate that retains the target+decoy evidence for
+      // a downstream FDR.
+      const bool protein_fdr = fdr_protein_ > 0.0 && result.have_decoys && !decoy_string.empty();
+      startProgress(0, 1, protein_fdr ? "Pooled protein inference and protein FDR" : "Pooled protein inference");
+      const OnScopeExit end_progress([this]() { endProgress(); }); // also when it fails
+      if (protein_fdr)
+      {
+        PeptideIdentificationList inference_only;
+        for (SearchResult& pf : result.per_file)
+        {
+          if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
+          inference_only.insert(inference_only.end(), std::make_move_iterator(pf.inference_only_peptide_ids.begin()),
+                                std::make_move_iterator(pf.inference_only_peptide_ids.end()));
+          pf.inference_only_peptide_ids = PeptideIdentificationList();
+        }
+        merged.protein_fdr_applied = applyCompleteSetProteinFDR(merged_protein_ids, merged_peptides, decoy_string,
+                                                                decoy_is_prefix, fdr_protein_, remove_decoys, inference_only);
+      }
+      else
+      {
+        IDFilter::keepNBestHits(merged_peptides, 1); // as the protein FDR keeps them
+        inferProteins(merged_protein_ids, merged_peptides);
+      }
     }
-    else
+    catch (...)
     {
-      IDFilter::keepNBestHits(merged_peptides, 1); // as the protein FDR keeps them
-      inferProteins(merged_protein_ids, merged_peptides);
+      if (pooled_from_files) { returnPooledPsms_(merged.peptide_ids, result.per_file); }
+      throw;
     }
 
     return merged;
+  }
+
+  // static
+  bool ProSEAlgorithm::searched_(const SearchResult& pf)
+  {
+    return pf.exit_code == ExitCodes::EXECUTION_OK && !pf.protein_ids.empty();
+  }
+
+  // static
+  int ProSEAlgorithm::searchedFileOf_(const PeptideIdentification& id, const std::vector<SearchResult>& per_file)
+  {
+    if (!id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX)) { return -1; }
+    const int i = static_cast<int>(id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX));
+    return i >= 0 && static_cast<Size>(i) < per_file.size() && searched_(per_file[i]) ? i : -1;
+  }
+
+  // static
+  void ProSEAlgorithm::returnPooledPsms_(PeptideIdentificationList& pooled, std::vector<SearchResult>& per_file)
+  {
+    for (PeptideIdentification& id : pooled)
+    {
+      const int i = searchedFileOf_(id, per_file);
+      if (i < 0) { continue; }
+      id.removeMetaValue(Constants::UserParam::ID_MERGE_INDEX);
+      id.setIdentifier(per_file[i].protein_ids[0].getIdentifier());
+      per_file[i].peptide_ids.push_back(std::move(id));
+    }
+    pooled = PeptideIdentificationList();
+  }
+
+  // static
+  void ProSEAlgorithm::splitMergedPsms(MergedResult& merged, MultiFileSearchResult& result)
+  {
+    for (const PeptideIdentification& id : merged.peptide_ids)
+    {
+      if (searchedFileOf_(id, result.per_file) < 0)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "splitMergedPsms(): a pooled PSM has no 'id_merge_index' of a file of the search that was searched.");
+      }
+    }
+    for (SearchResult& pf : result.per_file)
+    {
+      if (searched_(pf)) { pf.peptide_ids = PeptideIdentificationList(); }
+    }
+    returnPooledPsms_(merged.peptide_ids, result.per_file);
+    if (merged.protein_ids.empty())
+    {
+      for (SearchResult& pf : result.per_file)
+      {
+        if (searched_(pf)) { removeUnreportedProteins(pf.protein_ids, pf.peptide_ids); }
+      }
+      return;
+    }
+    // The pooled run's scores (e.g. the protein q-values), and of its proteins and groups those that the file's PSMs
+    // reference, the groups reduced to these proteins: indices of the pooled run, built once
+    const ProteinIdentification& pooled = merged.protein_ids[0];
+    std::unordered_map<std::string, Size> hit_index;
+    for (Size h = 0; h < pooled.getHits().size(); ++h) { hit_index.emplace(pooled.getHits()[h].getAccession(), h); }
+    const auto group_index = [](const std::vector<ProteinIdentification::ProteinGroup>& groups)
+    {
+      std::unordered_map<std::string, std::vector<Size>> index;
+      for (Size g = 0; g < groups.size(); ++g)
+      {
+        for (const std::string& accession : groups[g].accessions) { index[accession].push_back(g); }
+      }
+      return index;
+    };
+    const std::vector<ProteinIdentification::ProteinGroup>& pooled_indistinguishable = pooled.getIndistinguishableProteins();
+    const std::vector<ProteinIdentification::ProteinGroup>& pooled_groups = pooled.getProteinGroups();
+    const auto indistinguishable_index = group_index(pooled_indistinguishable);
+    const auto groups_index = group_index(pooled_groups);
+    for (SearchResult& pf : result.per_file)
+    {
+      if (!searched_(pf)) { continue; }
+      // the pooled proteins that the file's PSMs reference, in the pooled order
+      std::unordered_set<std::string> referenced;
+      for (const PeptideIdentification& id : pf.peptide_ids)
+      {
+        for (const PeptideHit& hit : id.getHits())
+        {
+          for (const PeptideEvidence& evidence : hit.getPeptideEvidences()) { referenced.insert(evidence.getProteinAccession()); }
+        }
+      }
+      std::vector<Size> hit_rows;
+      for (const std::string& accession : referenced)
+      {
+        const auto it = hit_index.find(accession);
+        if (it != hit_index.end()) { hit_rows.push_back(it->second); }
+      }
+      std::sort(hit_rows.begin(), hit_rows.end());
+      std::vector<ProteinHit> hits;
+      hits.reserve(hit_rows.size());
+      std::unordered_set<std::string> kept;
+      for (Size h : hit_rows)
+      {
+        hits.push_back(pooled.getHits()[h]);
+        kept.insert(hits.back().getAccession());
+      }
+      // the pooled groups with one of these proteins, reduced to them (as IDFilter::updateProteinGroups()), in order
+      const auto select = [&kept](const std::vector<ProteinIdentification::ProteinGroup>& groups,
+                                  const std::unordered_map<std::string, std::vector<Size>>& index)
+      {
+        std::vector<Size> rows;
+        for (const std::string& accession : kept)
+        {
+          const auto it = index.find(accession);
+          if (it != index.end()) { rows.insert(rows.end(), it->second.begin(), it->second.end()); }
+        }
+        std::sort(rows.begin(), rows.end());
+        rows.erase(std::unique(rows.begin(), rows.end()), rows.end());
+        std::vector<ProteinIdentification::ProteinGroup> out;
+        out.reserve(rows.size());
+        for (Size g : rows)
+        {
+          const ProteinIdentification::ProteinGroup& group = groups[g];
+          ProteinIdentification::ProteinGroup& reduced = out.emplace_back();
+          for (const std::string& accession : group.accessions)
+          {
+            if (kept.contains(accession)) { reduced.accessions.push_back(accession); }
+          }
+          reduced.probability = group.probability;
+          reduced.setFloatDataArrays(group.getFloatDataArrays());
+          reduced.setStringDataArrays(group.getStringDataArrays());
+          reduced.setIntegerDataArrays(group.getIntegerDataArrays());
+        }
+        return out;
+      };
+      std::vector<ProteinIdentification::ProteinGroup> indistinguishable = select(pooled_indistinguishable, indistinguishable_index);
+      std::vector<ProteinIdentification::ProteinGroup> groups = select(pooled_groups, groups_index);
+      for (ProteinIdentification& run : pf.protein_ids)
+      {
+        run.setScoreType(pooled.getScoreType());
+        run.setHigherScoreBetter(pooled.isHigherScoreBetter());
+        run.setInferenceEngine(pooled.getInferenceEngine());
+        run.setInferenceEngineVersion(pooled.getInferenceEngineVersion());
+        // (the file's PSMs are those of its first run; another run keeps no protein)
+        run.getHits().clear();
+        run.getIndistinguishableProteins().clear();
+        run.getProteinGroups().clear();
+      }
+      pf.protein_ids[0].getHits() = std::move(hits);
+      pf.protein_ids[0].getIndistinguishableProteins() = std::move(indistinguishable);
+      pf.protein_ids[0].getProteinGroups() = std::move(groups);
+      // (a PSM referencing a protein that the pooled run does not have: as for any run)
+      if (kept.size() < referenced.size()) { IDFilter::removeDanglingProteinReferences(pf.peptide_ids, pf.protein_ids); }
+    }
   }
 
   // =====================================================================

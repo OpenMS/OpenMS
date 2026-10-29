@@ -42,7 +42,6 @@ RUN apt-get update \
     zlib1g \
     # ICU is needed by the .NET SDK/runtime for the openms-thermo-bridge build
     libicu74 \
-    libxerces-c-dev \
     libbz2-dev \
     libcurl4-openssl-dev \
     libomp-dev \
@@ -65,8 +64,10 @@ RUN apt-get update \
   # to the keyring the .deb pins via Signed-By (see issue #9729). wget already
   # fails the RUN on a bad download, so no extra guard is needed here.
   && wget -qO- https://downloads.apache.org/arrow/KEYS >> /usr/share/keyrings/apache-arrow-apt-source.asc \
-  # Pin Arrow/Parquet to v23 so build-time dev libs match the runtime SONAME (libarrow2300/libparquet2300)
-  && printf 'Package: libarrow* libparquet*\nPin: version 23.*\nPin-Priority: 999\n' > /etc/apt/preferences.d/arrow \
+  # Pin Arrow/Parquet to v24 so build-time dev libs match the runtime SONAME (libarrow2400/libparquet2400).
+  # Keep it at the Arrow version that the vcpkg baseline (vcpkg-configuration.json) gives PR CI: code that
+  # builds there then builds here (#10731 fixed a newer Arrow API that only this image could not build).
+  && printf 'Package: libarrow* libparquet*\nPin: version 24.*\nPin-Priority: 999\n' > /etc/apt/preferences.d/arrow \
   && apt-get update && apt-get install -y --no-install-recommends --no-install-suggests libparquet-dev \
   && rm apache-arrow-apt-source-latest-noble.deb
 
@@ -86,6 +87,29 @@ RUN <<-EOF
     ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
     ln -s /opt/cmake/bin/ctest /usr/local/bin/ctest
     rm -rf /tmp/*
+EOF
+
+# Ubuntu 24.04's libxml2 is older than the 2.13 context-local API OpenMS needs.
+# Build the same pinned version for both image architectures and runtime stages.
+ARG LIBXML2_VERSION=2.15.4
+ARG LIBXML2_SHA256=98087fd181d9070724f3fbc65c7377db03038eb92bd882374daff44940138821
+RUN <<-EOF
+    set -eux
+    wget "https://download.gnome.org/sources/libxml2/2.15/libxml2-${LIBXML2_VERSION}.tar.xz" -O libxml2.tar.xz
+    echo "${LIBXML2_SHA256}  libxml2.tar.xz" | sha256sum -c -
+    mkdir libxml2-src
+    tar xf libxml2.tar.xz --strip-components=1 -C libxml2-src
+    cmake -S libxml2-src -B libxml2-build -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/opt/libxml2 -DBUILD_SHARED_LIBS=ON \
+      -DLIBXML2_WITH_PYTHON=OFF -DLIBXML2_WITH_PROGRAMS=OFF -DLIBXML2_WITH_TESTS=OFF \
+      -DLIBXML2_WITH_LEGACY=OFF -DLIBXML2_WITH_ZLIB=ON \
+      -DLIBXML2_WITH_SAX1=ON -DLIBXML2_WITH_PUSH=ON -DLIBXML2_WITH_SCHEMAS=ON \
+      -DLIBXML2_WITH_THREADS=ON -DLIBXML2_WITH_ICONV=ON
+    cmake --build libxml2-build --parallel 8
+    cmake --install libxml2-build
+    mkdir -p /opt/libxml2/share/licenses/libxml2
+    cp libxml2-src/Copyright /opt/libxml2/share/licenses/libxml2/
+    rm -rf libxml2-src libxml2-build libxml2.tar.xz
 EOF
 
 # installing ONNX Runtime (headers + shared library) for WITH_ONNX=ON
@@ -199,7 +223,9 @@ RUN <<-EOF
         -DOPENMS_USE_VCPKG=OFF \
         -DQt6_DIR="/usr/lib/${DEB_ARCH}/cmake/Qt6" \
         -DCMAKE_BUILD_TYPE='Release' \
-        -DCMAKE_PREFIX_PATH="/usr/;/usr/local;${ONNXRUNTIME_DIR}" \
+        -DCMAKE_PREFIX_PATH="/opt/libxml2;/usr/;/usr/local;${ONNXRUNTIME_DIR}" \
+        -DLIBXML2_INCLUDE_DIR=/opt/libxml2/include/libxml2 \
+        -DLIBXML2_LIBRARY=/opt/libxml2/lib/libxml2.so \
         -DWITH_ONNX=ON \
         -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
         -S ${SOURCE_DIR} \
@@ -257,7 +283,6 @@ RUN apt-get update \
     libcurl4 \
     libgomp1 \
     libqt6svg6 \
-    libxerces-c3.2 \
     coinor-libcoinmp1v5 \
     # ICU is required by the .NET runtime that hosts the openms-thermo-bridge
     libicu74 \
@@ -267,12 +292,12 @@ RUN apt-get update \
   # to the keyring the .deb pins via Signed-By (see issue #9729). wget already
   # fails the RUN on a bad download, so no extra guard is needed here.
   && wget -qO- https://downloads.apache.org/arrow/KEYS >> /usr/share/keyrings/apache-arrow-apt-source.asc \
-  # Pin Arrow/Parquet to v23 so these runtime libs match the build-time dev libs
+  # Pin Arrow/Parquet to v24 so these runtime libs match the build-time dev libs
   # installed by the same pin in the base stage (see #9890)
-  && printf 'Package: libarrow* libparquet*\nPin: version 23.*\nPin-Priority: 999\n' > /etc/apt/preferences.d/arrow \
+  && printf 'Package: libarrow* libparquet*\nPin: version 24.*\nPin-Priority: 999\n' > /etc/apt/preferences.d/arrow \
   && apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
-    libarrow2300 \
-    libparquet2300 \
+    libarrow2400 \
+    libparquet2400 \
   && rm apache-arrow-apt-source-latest-noble.deb \
   # Install the .NET 8 runtime so the openms-thermo-bridge native library can host
   # the managed Thermo RawFileReader at runtime (managed assemblies are shipped
@@ -292,6 +317,10 @@ RUN apt-get update \
 # Propagates to the tools, tools-thirdparty and test stages (all derived from library).
 ENV DOTNET_ROOT=/usr/share/dotnet
 ENV PATH="${DOTNET_ROOT}:${PATH}"
+
+# Carry the exact build-time XML library and its license into the runtime image.
+COPY --from=base /opt/libxml2 /opt/libxml2
+RUN printf '%s\n' /opt/libxml2/lib > /etc/ld.so.conf.d/openms-libxml2.conf && ldconfig
 
 COPY --from=build ${INSTALL_DIR}/lib ${INSTALL_DIR}/lib
 COPY --from=build ${INSTALL_DIR}/include ${INSTALL_DIR}/include

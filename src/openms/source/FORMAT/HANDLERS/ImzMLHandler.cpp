@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandler.h>
+#include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -15,7 +16,6 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
-#include <xercesc/util/XMLString.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -441,7 +441,7 @@ void ImzMLHandler::openIBD(const std::string& ibd_path)
 }
 
 // ===========================================================================
-// SAX2 overrides
+// XML event callbacks
 // ===========================================================================
 
 void ImzMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attrs)
@@ -541,7 +541,7 @@ void ImzMLHandler::onEndElement(const char16_t* qname)
   {
     if (!cur_x_seen_ || !cur_y_seen_)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_,
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, HTTPInputSource::redactURL(file_),
                                   "imzML spectrum missing required IMS pixel coordinate (x and/or y)");
     }
     // Snapshot per-spectrum IMS state NOW — before cur_* are reset.
