@@ -254,7 +254,7 @@ def _norm_pred(head, v):
     if v in (None, "", S.NOT_STATED, "unknown"):
         return None
     if head == "organism":
-        return "other" if v in ("other species", "mixed species") else org_norm(v)
+        return "other" if v == "other species" else "mixed species" if v == "mixed species" else org_norm(v)
     if head == "instrument":
         return "other" if v == "other instrument" else canon_instrument(v)
     if head == "instrument_family":
@@ -355,12 +355,13 @@ def pride_predict(pride):
     return P
 
 
-def select(sdrf_repo, n, seed):
+def select(sdrf_repo, n, seed, only=None):
     files = sorted(glob.glob(os.path.join(sdrf_repo, "datasets", "PXD*", "*.sdrf.tsv")))
     by_acc = {}
     for f in files:
         acc = os.path.basename(os.path.dirname(f))
-        by_acc.setdefault(acc, f)
+        if only is None or acc in only:
+            by_acc.setdefault(acc, f)
     accs = sorted(by_acc)
     random.Random(seed).shuffle(accs)
     return [(a, by_acc[a]) for a in accs[:n]]
@@ -373,7 +374,9 @@ def run(a):
     jev = J.Jev() if not a.no_jev else None
     backend = L.make_backend(a.llm) if a.llm else None
     rows, done = [], 0
-    for acc, sdrf in select(a.sdrf_repo, a.n * 3, a.seed):
+    accs = getattr(a, "accs", None)
+    only = {l.split()[0] for l in open(accs) if l.startswith("PXD")} if accs else None
+    for acc, sdrf in select(a.sdrf_repo, a.n * 3, a.seed, only):
         if done >= a.n:
             break
         T = sdrf_truth(sdrf)
@@ -491,6 +494,7 @@ def main(argv=None):
     ap.add_argument("--paper", action="store_true", help="add the paper's methods from Europe PMC")
     ap.add_argument("--llm", help="also run the generative LLM reader (e.g. codex, claude)")
     ap.add_argument("--no-jev", action="store_true")
+    ap.add_argument("--accs", help="file with the accessions to score (one per line); default: a random draw")
     ap.add_argument("-o", "--out", default="bench_text")
     run(ap.parse_args(argv))
 
