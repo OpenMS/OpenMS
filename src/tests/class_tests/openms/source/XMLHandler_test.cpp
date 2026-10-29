@@ -8,6 +8,7 @@
 #include <OpenMS/CONCEPT/Init.h>
 #include <random>
 #include <cstdint>
+#include <xercesc/util/PlatformUtils.hpp>
 #include <xercesc/util/XMLString.hpp>
 
 class StringManager_test : public OpenMS::Internal::StringManager
@@ -173,6 +174,9 @@ START_SECTION(static Int parseInt(const char16_t * str))
     try { return {true, StringManager::parseInt(text.c_str())}; }
     catch (...) { return {false, 0}; }
   };
+  // The oracle is the Xerces this test links. With static Xerces (Windows) that is a copy of its own, besides the one in
+  // libOpenMS that xercesInitialize() set up, and it has to be initialized itself (as in ZipInputStream_test).
+  xercesc::XMLPlatformUtils::Initialize();
   const auto oracle = [](const std::u16string& text) -> std::pair<bool, long long>
   {
     try { return {true, xercesc::XMLString::parseInt(reinterpret_cast<const XMLCh*>(text.c_str()))}; }
