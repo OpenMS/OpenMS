@@ -125,6 +125,31 @@ def fastag_alkylation(fastag, mzml, fasta, frag_tol=20.0, frag_unit="ppm", threa
                      f"(next candidate {second}); searched without fixed modifications", stats)]
 
 
+# DIAspeXtract on a constant-mobility copy: mobility tracing, weighting, charge veto and twin folding off
+NO_MOBILITY_OPTIONS = ["-trace:detector", "openms", "-gate:delta_im", "1.0", "-assembly:im_weight_sigma", "0",
+                       "-charge:im_charge_veto", "false", "-assembly:twin_im_tolerance", "-1",
+                       "-trace:im_slice_merge", "-1"]
+
+
+def with_constant_mobility(src, dst, k0=1.0):
+    """Copy of a DIA mzML without ion mobility in which every peak carries 1/K0 = k0, so DIAspeXtract accepts it."""
+    import numpy as np
+    import pyopenms as oms
+    exp = oms.MSExperiment()
+    oms.MzMLFile().load(str(src), exp)
+    spectra = exp.getSpectra()  # iterating an MSExperiment yields copies
+    for s in spectra:
+        fda = oms.FloatDataArray()
+        fda.setName("Ion Mobility")
+        fda.set_data(np.full(s.size(), k0, dtype=np.float32))
+        s.setFloatDataArrays([f for f in s.getFloatDataArrays() if f.getName() != "Ion Mobility"] + [fda])
+        s.setDriftTimeUnit(oms.DriftTimeUnit.VSSC)
+    exp.setSpectra(spectra)
+    exp.updateRanges()
+    oms.MzMLFile().store(str(dst), exp)
+    return dst
+
+
 def diaspextract(exe, inp, out_mzml, threads=0, extra=(), log=print):
     """diaPASEF .d (or DIA mzML) -> pseudo-MS/MS mzML."""
     cmd = [exe, "-in", inp, "-out", out_mzml] + (["-threads", threads] if threads else []) + list(extra)

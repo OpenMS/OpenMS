@@ -107,7 +107,18 @@ def analyze(a, log=print):
         except RuntimeError as e:
             log(f"  DIAspeXtract failed, continuing without pseudo-spectra: {str(e).strip()[-300:]}")
     elif str(acq).startswith("DIA") and a.diaspextract and spectra_file == a.mzml:
-        log("  DIA mzML without ion mobility: DIAspeXtract skipped (it needs diaPASEF)")
+        # Orbitrap DIA: DIAspeXtract refuses data without ion mobility, so give it a constant 1/K0 and switch its
+        # mobility steps off; it then traces precursors and fragments by retention time alone (PXD026600: 44k
+        # pseudo-spectra, 7.2k PSMs at 1% entrapment FDP)
+        log("  DIA mzML without ion mobility: DIAspeXtract on a constant-mobility copy (retention time only)")
+        try:
+            im_copy = ext.with_constant_mobility(a.mzml, base + ".im.mzML")
+            spectra_file = ext.diaspextract(a.diaspextract, im_copy, base + ".pseudo.mzML", a.threads,
+                                            extra=ext.NO_MOBILITY_OPTIONS, log=log)
+            os.remove(im_copy)
+            run = load_mzml(spectra_file, max_ms2=a.max_ms2)
+        except RuntimeError as e:
+            log(f"  DIAspeXtract failed, continuing without pseudo-spectra: {str(e).strip()[-300:]}")
     pseudo = spectra_file != a.mzml
     search_acq = "DDA" if pseudo else acq      # pseudo-spectra have one precursor each
     ms1a = (_first(ev, "ms1_analyzer").value if _first(ev, "ms1_analyzer") else "ORBITRAP")

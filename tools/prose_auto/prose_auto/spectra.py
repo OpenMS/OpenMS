@@ -182,10 +182,9 @@ def write_subset_mzml(src: str, dst: str, n_top_tic: int = 3000) -> int:
     ms2 = [(s.calculateTIC(), i) for i, s in enumerate(exp) if s.getMSLevel() == 2]
     ms2.sort(reverse=True)
     chosen = {i for _, i in ms2[:n_top_tic]}
-    out = oms.MSExperiment()
-    out.setExperimentalSettings(exp.getExperimentalSettings())
-    for i, s in enumerate(exp):
-        if s.getMSLevel() == 1 or i in chosen:
-            out.addSpectrum(s)
-    oms.MzMLFile().store(str(dst), out)
+    # pyopenms has no MSExperiment.setExperimentalSettings: keep the run metadata by replacing the spectra
+    keep = [s for i, s in enumerate(exp.getSpectra()) if s.getMSLevel() == 1 or i in chosen]
+    exp.setSpectra(keep)
+    exp.updateRanges()
+    oms.MzMLFile().store(str(dst), exp)
     return len(chosen)

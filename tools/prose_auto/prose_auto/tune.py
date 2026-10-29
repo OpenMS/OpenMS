@@ -77,7 +77,7 @@ class ProSE:
                                "Search:precursor:mass_tolerance_upper": 500.0,
                                "Search:precursor:mass_tolerance_unit": "Da",
                                "Search:calibration:enabled": "false"})
-            cmd = [self.exe, "-in", mzml, "-database", self.db, "-out", out, "-summary_out", summ,
+            cmd = [self.exe, "-in", mzml, "-database", self.db, "-out_idxml", out, "-summary_out", summ,
                    "-threads", str(self.threads), "-no_summary"] + to_cli(params) + self.extra
             mods = None
             if open_search:
@@ -90,7 +90,9 @@ class ProSE:
                 raise RuntimeError((r.stderr or r.stdout)[-1500:])
             with open(summ) as fh:
                 pf = ((yaml.safe_load(fh) or {}).get("per_file") or [{}])[0]
-            res = {"psms": pf.get("target_psms") or 0, "peptides": pf.get("unique_peptides"),
+            # the summary's target_psms is unfiltered unless -Search:FDR:PSM is set, and filtering would cut the
+            # q-value curve the entrapment estimate needs: count rank-1 targets at q <= 0.01 in the idXML instead
+            res = {"psms": _psms_at(out, 0.01), "peptides": pf.get("unique_peptides"),
                    "ms2": pf.get("ms2_spectra"), "precursor_error": pf.get("precursor_error") or {},
                    "fragment_error": pf.get("fragment_error") or {}, "seconds": round(time.time() - t, 1)}
             if self.entrap and not open_search:
@@ -105,20 +107,32 @@ class ProSE:
             return res
 
 
+def _psms_at(idxml, q_max):
+    """rank-1 target PSMs with q-value <= q_max (ProSE's main score is the q-value)"""
+    import re
+    n = 0
+    txt = open(idxml).read()
+    for m in re.finditer(r"<PeptideIdentification\b(.*?)</PeptideIdentification>", txt, re.S):
+        h = re.search(r'<PeptideHit score="([^"]+)"(.*?)</PeptideHit>', m.group(1), re.S)
+        if h and 'value="decoy"' not in h.group(2) and float(h.group(1)) <= q_max:
+            n += 1
+    return n
+
+
 def _read_shifts(d, top=15):
+    """(delta mass, target PSMs) from ProSE's <run>_ModificationAnalysis_DeltaMassStats.tsv: '#' comment lines,
+    then columns DeltaMass, Count, UniquePeptides, ..."""
     import csv
     import glob
     rows = []
-    for f in sorted(glob.glob(os.path.join(d, "*"))):
+    for f in sorted(glob.glob(os.path.join(d, "*DeltaMassStats.tsv"))):
         with open(f) as fh:
-            for r in csv.DictReader(fh, delimiter="\t"):
+            for r in csv.DictReader((l for l in fh if not l.startswith("#")), delimiter="\t"):
                 try:
-                    m = float(r.get("delta_mass") or r.get("mass_shift") or r.get("delta") or "nan")
-                    n = float(r.get("psms") or r.get("count") or r.get("n") or 0)
-                except ValueError:
+                    m, n = float(r["DeltaMass"]), float(r["Count"])
+                except (KeyError, TypeError, ValueError):
                     continue
-                if m == m:
-                    rows.append((m, n))
+                rows.append((m, n))
     rows.sort(key=lambda x: -x[1])
     return rows[:top]
 
