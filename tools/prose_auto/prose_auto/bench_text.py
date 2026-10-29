@@ -289,7 +289,7 @@ def correct(head, pred, truth):
     if pred is None or truth is None:
         return None
     if pred == "other":
-        known = {org_norm(o) for o in tx.ORGANISMS} if head == "organism" else {canon_instrument(i) for i in tx.INSTRUMENTS}
+        known = {org_norm(o) for o in list(tx.ORGANISMS) + S.PRIDE_SPECIES} if head == "organism" else {canon_instrument(i) for i in tx.INSTRUMENTS}
         return int(not (truth & known))
     return int(pred in truth)
 
