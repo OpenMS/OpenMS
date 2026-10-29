@@ -6626,8 +6626,8 @@ namespace OpenMS
       return std::any_of(pid.getHits().begin(), pid.getHits().end(), [](const PeptideHit& hit) { return hit.isDecoy(); });
     });
     const std::pair<int, int> charges = chargeRange(peptide_ids);
-    const int min_charge = std::min(10, charges.first);
-    const int max_charge = std::max(0, charges.second);
+    int min_charge = std::min(10, charges.first);
+    int max_charge = std::max(0, charges.second);
     if (!has_decoys)
     {
       // The search's decoy mode is not known here: name both causes.
