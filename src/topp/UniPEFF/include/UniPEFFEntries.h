@@ -113,8 +113,8 @@ namespace OpenMS::UniPEFFEntries
     std::string accession;  ///< isoform accession, e.g. "P02768-2"
     std::string name;       ///< isoform &lt;name&gt;, e.g. "2" or "VEGF121"
     std::string sequence;   ///< canonical sequence with the referenced splice variants applied
-    /// features UniProt annotates on this isoform (&lt;location sequence="..."&gt;), plus, with
-    /// -map_canonical_features, the canonical ones mapped onto it
+    /// features UniProt annotates on this isoform (&lt;location sequence="..."&gt;), plus, unless
+    /// -omit_canonical_features is set, the canonical ones mapped onto it
     EntryAnnotations annotations;
   };
 
@@ -124,9 +124,9 @@ namespace OpenMS::UniPEFFEntries
     EntryAnnotations annotations;
     size_t isoform_scoped_applied{0};  ///< isoform-scoped features written to their isoform's entry
     size_t isoform_scoped_skipped{0};  ///< isoform-scoped features left out (isoform not written) that would otherwise have become annotations
-    /// -map_canonical_features: canonical annotations written to an isoform entry (counted once per isoform)
+    /// canonical mapping: canonical annotations written to an isoform entry (counted once per isoform)
     size_t canonical_mapped{0};
-    /// -map_canonical_features: canonical annotations not written to an isoform entry because they lie in or
+    /// canonical mapping: canonical annotations not written to an isoform entry because they lie in or
     /// cross one of its splice variants, have an unknown position, or contradict an annotation UniProt makes
     /// on that isoform itself (counted once per isoform)
     size_t canonical_unmapped{0};
@@ -137,8 +137,8 @@ namespace OpenMS::UniPEFFEntries
   /// Counts, over all entries, features that would become annotations of isoform entries: those
   /// written (applied) and those left out (skipped). Used for the isoform-scoped features (skipped:
   /// the isoform is not written: external, not described, not reconstructable, or -omit_isoforms)
-  /// and for the canonical features mapped with -map_canonical_features (skipped: in or across a
-  /// splice variant, unknown position, or contradicted by the isoform's own annotation).
+  /// and for the canonical features mapped onto isoform entries (unless -omit_canonical_features; skipped:
+  /// in or across a splice variant, unknown position, or contradicted by the isoform's own annotation).
   struct IsoformScopedTracker
   {
     size_t applied{0};
@@ -164,7 +164,8 @@ namespace OpenMS::UniPEFFEntries
   /// Prepare one entry: reconstruct the emittable isoform sequences ("external" / "not
   /// described" isoforms are counted in @p skipped_isoforms), classify each feature into the
   /// canonical entry or, if its &lt;location sequence="..."&gt; names an emitted isoform, into
-  /// that isoform's entry. With @p map_canonical_features, the canonical entry's annotations
+  /// that isoform's entry. With @p map_canonical_features (the tool's default, unset by
+  /// -omit_canonical_features), the canonical entry's annotations
   /// are also mapped onto each isoform through its splice variants: features in a deleted or
   /// replaced region, or regions overlapping one, are not mapped (processed regions are clipped
   /// to the residues they keep), and a copy of a feature UniProt annotates on that isoform itself

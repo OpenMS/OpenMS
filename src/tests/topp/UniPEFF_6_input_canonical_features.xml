@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- UniPEFF fixture: with -map_canonical_features, the canonical features are also written to
-     the isoform entry, moved to isoform coordinates through its splice variants.
+<!-- UniPEFF fixture: by default the canonical features are also written to the isoform entry,
+     moved to isoform coordinates through its splice variants (not with -omit_canonical_features).
      Canonical P66666 is 30 aa:
         1-10  MSEQCKTLDA
        11-20  PGRSTWEVQL
