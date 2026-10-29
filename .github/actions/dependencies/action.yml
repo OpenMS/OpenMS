@@ -20,6 +20,12 @@ outputs:
   cmake_prefix:
     description: "Path to add to CMAKE_PREFIX"
     value: ${{ steps.combine.outputs.cmake_prefix }}
+  vcpkg_cache_key:
+    description: "Key of the GitHub Actions vcpkg cache (empty when the rsync archive is used)"
+    value: ${{ steps.vcpkg-gha-cache.outputs.cache-primary-key }}
+  vcpkg_cache_hit:
+    description: "Whether the GitHub Actions vcpkg cache was an exact hit"
+    value: ${{ steps.vcpkg-gha-cache.outputs.cache-hit }}
 runs:
   using: "composite"
   steps:
@@ -131,6 +137,7 @@ runs:
         echo "cmake_prefix=${cmake_prefix_s}" >> "$GITHUB_OUTPUT"
 
     - uses: OpenMS/ci-tools/actions/rsync-cache@b0622a9a8ecfe12fa6e896795f45fddad12faa6c
+      if: ${{ inputs.ssh_key != '' }}
       with:
         name: vcpkg-cache
         path: ${{ github.workspace }}/.vcpkg-cache
@@ -139,6 +146,17 @@ runs:
         ssh_host: ${{ inputs.ssh_host }}
         ssh_port: ${{ inputs.ssh_port }}
         ssh_user: ${{ inputs.ssh_user }}
+
+    # Forks have no rsync archive secrets.  There the vcpkg binary cache lives
+    # in the GitHub Actions cache instead; the build action saves it right
+    # after configure, when vcpkg has built the manifest dependencies.
+    - name: Restore vcpkg Binary Cache (no rsync archive)
+      id: vcpkg-gha-cache
+      if: ${{ inputs.ssh_key == '' }}
+      uses: actions/cache/restore@v5
+      with:
+        path: ${{ github.workspace }}/.vcpkg-cache
+        key: ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
 
     - name: Init vcpkg submodule
       shell: bash

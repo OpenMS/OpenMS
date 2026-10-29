@@ -218,8 +218,8 @@ runs:
 
     ############################################################################
     # The actual commands to build OpenMS.
-    - name: Build
-      id: build
+    - name: Configure
+      id: configure
       shell: bash
       env:
         # Official variables that need to be set to build OpenMS:
@@ -236,6 +236,22 @@ runs:
         cmake --preset "${{ steps.preset.outputs.name }}" \
           -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
           -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install" \
+
+    # Configure ran vcpkg, so its binary cache is complete now.  Saved before
+    # the long compile, so a build that fails or times out still leaves the
+    # dependencies cached for the next run.  Only without the rsync archive.
+    - name: Save vcpkg Binary Cache (no rsync archive)
+      if: ${{ !cancelled() && steps.configure.outcome == 'success' && steps.deps.outputs.vcpkg_cache_key != '' && steps.deps.outputs.vcpkg_cache_hit != 'true' }}
+      uses: actions/cache/save@v5
+      with:
+        path: ${{ github.workspace }}/.vcpkg-cache
+        key: ${{ steps.deps.outputs.vcpkg_cache_key }}
+
+    - name: Build
+      id: build
+      shell: bash
+      run: |
+        set -ex
 
         cmake --build --preset "${{ steps.preset.outputs.name }}" --verbose
 
