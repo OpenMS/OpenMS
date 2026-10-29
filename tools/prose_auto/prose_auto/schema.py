@@ -52,9 +52,22 @@ METABOLIC = {"15N metabolic labelling", "heavy water (2H2O) labelling"}
 TIMS = ("timsTOF",)
 NO_ETD = ("Q Exactive", "Exploris", "Astral", "TripleTOF", "ZenoTOF", "timsTOF", "LTQ Orbitrap XL", "Synapt", "Xevo")
 
+def _pride_species():
+    """Species list covering 95% of PRIDE raw files (data/organisms_pride.tsv)."""
+    import os
+    f = os.path.join(os.path.dirname(__file__), "data", "organisms_pride.tsv")
+    try:
+        rows = [l.split("\t") for l in open(f) if l.strip() and not l.startswith(("#", "rank"))]
+        return [r[1] for r in rows]
+    except OSError:
+        return []
+
+
+PRIDE_SPECIES = _pride_species()
+
 HEADS = [
     Head("organism", "Which species do the analysed proteins come from (the database to search)?",
-         _opts([(o, o) for o in tx.ORGANISMS] + [
+         _opts([(o, o) for o in dict.fromkeys(list(tx.ORGANISMS) + PRIDE_SPECIES)] + [
              ("other species", "a species not in this list"),
              ("mixed species", "several species on purpose: spike-in standards, xenograft, host-pathogen, microbiome")]),
          "organism", hint="Cell lines imply their species (HeLa, HEK293 = human). Ignore reagent proteins "
