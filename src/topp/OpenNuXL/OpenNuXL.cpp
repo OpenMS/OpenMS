@@ -912,12 +912,13 @@ protected:
       std::string subsection_name = "presets:" + p;
       registerTOPPSubsection_(subsection_name, "Presets for " + p + " cross-link protocol (Note: changes will be ignored).");
       StringList target_nucleotides, mappings, modifications, fragment_adducts;
-      std::string can_cross_link;
-      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link);
+      std::string can_cross_link, standalone;
+      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone);
 
       registerStringList_(subsection_name + ":target_nucleotides", "", target_nucleotides, "", false, true);
       registerStringList_(subsection_name + ":mapping", "", mappings, "", false, true);
       registerStringOption_(subsection_name + ":can_cross_link", "", can_cross_link, "", false, true);
+      if (!standalone.empty()) { registerStringOption_(subsection_name + ":standalone", "", standalone, "", false, true); }
       registerStringList_(subsection_name + ":modifications", "", modifications, "", false, true);
       registerStringList_(subsection_name + ":fragment_adducts", "", fragment_adducts, "", false, true);
     }
@@ -949,6 +950,14 @@ protected:
                         "format: 'U' if only U forms cross-links. 'CATG' if C, A, G, and T form cross-links.", 
                         false, 
                         false);
+
+    // standalone nucleotides model adducts without nucleotide (e.g., a cross-linker bound only to the peptide)
+    registerStringOption_("NuXL:standalone",
+                        "<option>",
+                        "",
+                        "Target nucleotides that only form precursor adducts on their own (e.g. 's' for a cross-linker without nucleotide). They are never combined with other nucleotides and are not restricted by NuXL:sequence. They need a NuXL:target_nucleotides entry and NuXL:modifications, and must be listed in NuXL:can_cross_link.",
+                        false,
+                        true);
 
     StringList modifications;
     modifications.emplace_back("U:");
@@ -4744,6 +4753,7 @@ protected:
     StringList modifications;
     StringList fragment_adducts;
     std::string can_cross_link;
+    std::string standalone; // nucleotides that only form adducts on their own (e.g., a cross-linker without nucleotide)
     // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
     StringList target_nucleotides;
     // string format:  source->target e.g. "A->A", ..., "U->U", "U->X"
@@ -4759,6 +4769,7 @@ protected:
       modifications = getStringList_("NuXL:modifications");
       fragment_adducts = getStringList_("NuXL:fragment_adducts");
       can_cross_link = getStringOption_("NuXL:can_cross_link");
+      standalone = getStringOption_("NuXL:standalone");
 
       for (const auto& t : target_nucleotides) // TODO: improve: checking also formula is safe
       {
@@ -4776,7 +4787,7 @@ protected:
     { // set from presets
       std::string p = getStringOption_("NuXL:presets");
       std::string custom_presets_file = getStringOption_("NuXL:presets_file");
-      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link);
+      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone);
       
       // set if DNA or RNA preset
       if (StringUtils::hasSubstring(p, "RNA"))
@@ -4812,7 +4823,8 @@ protected:
             modifications, 
             sequence_restriction, 
             cysteine_adduct, 
-            max_nucleotide_length);
+            max_nucleotide_length,
+            std::set<char>(standalone.begin(), standalone.end()));
     }
 
     if (!getFlag_("NuXL:only_xl"))

@@ -1730,9 +1730,10 @@
     ]
   },
   "RNA-SDA": {
-    "target_nucleotides": ["A=C10H14N5O7P", "C=C9H14N3O8P", "G=C10H14N5O8P", "U=C9H13N2O9P", "s=H2O"],
-    "mapping": ["A->A", "C->C", "G->G", "U->U", "s->s"],
+    "target_nucleotides": ["A=C10H14N5O7P", "C=C9H14N3O8P", "G=C10H14N5O8P", "U=C9H13N2O9P", "s=C5H6O1"],
+    "mapping": ["A->A", "C->C", "G->G", "U->U"],
     "can_cross_link": "UCGAs",
+    "standalone": "s",
     "modifications": [
       "U:+C5H6O1",
       "U:+C5H6O1-H2O",
@@ -1746,9 +1747,9 @@
       "A:+C5H6O1",
       "A:+C5H6O1-H2O",
       "A:+C5H6O1-NH3",
-      "s:+C5H6O1-H2O",
-      "s:+C5H6O1",
-      "s:+C5H6O1+HPO3"
+      "s:",
+      "s:+H2O",
+      "s:+H3PO4"
     ],
     "fragment_adducts": [
       "U:C5H6O1;SDA",
