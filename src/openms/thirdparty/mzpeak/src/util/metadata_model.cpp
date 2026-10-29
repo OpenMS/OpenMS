@@ -1189,7 +1189,8 @@ std::map<uint64_t, std::vector<double>> read_mz_delta_models(Parquet& metadata)
     auto list(std::dynamic_pointer_cast<arrow::ListArray>(model_field));
     if (!large_list && !list) continue;
 
-    auto values(std::static_pointer_cast<arrow::DoubleArray>(
+    // (float64 only: another value type would be read past its buffer)
+    auto values(std::dynamic_pointer_cast<arrow::DoubleArray>(
         large_list ? large_list->values() : list->values()));
     if (!values) continue;
 
@@ -1413,6 +1414,12 @@ read_spectra_metadata_(const SpectraMetadataFiles& files, MetadataDetail detail)
     const arrow::Array* delta_model = column("mz_delta_model");
     const auto* dm_large = dynamic_cast<const arrow::LargeListArray*>(delta_model);
     const auto* dm_list = dynamic_cast<const arrow::ListArray*>(delta_model);
+    // (float64 values only: another value type would be read past its buffer)
+    if ((dm_large && dm_large->values()->type_id() != arrow::Type::DOUBLE)
+        || (dm_list && dm_list->values()->type_id() != arrow::Type::DOUBLE)) {
+      dm_large = nullptr;
+      dm_list = nullptr;
+    }
 
     for (int64_t r = 0; r < spectrum->length(); ++r) {
       // F7: outer struct null => children are unreliable, skip the row.

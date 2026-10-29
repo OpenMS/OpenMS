@@ -51,6 +51,10 @@ if (WIN32)
   # <windows.h> reaches in through Arrow; keep its min/max macros out (as the library's meson.build does)
   target_compile_definitions(OpenMS_mzpeak PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
 endif()
+if (MSVC)
+  # Boost.JSON is compiled as one translation unit (src/boost_json_src.cpp), as OpenMS' own targets get it
+  target_compile_options(OpenMS_mzpeak PRIVATE /bigobj)
+endif()
 
 # The library's own warning settings (meson.build): warnings are not errors here.
 if (NOT MSVC)

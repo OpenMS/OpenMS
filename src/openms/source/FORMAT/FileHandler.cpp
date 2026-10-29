@@ -312,7 +312,9 @@ namespace OpenMS
       // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
       src_file.setFileType(FileTypes::typeToMZML(type));
 
-      if (compute_hash && type != FileTypes::BRUKER_TDF)
+      // (a directory, e.g. an mzPeak run as a directory, has no content to hash: computeFileHash() would give the
+      // SHA-1 of no bytes)
+      if (compute_hash && type != FileTypes::BRUKER_TDF && !File::isDirectory(filename))
       {
         src_file.setChecksum(FileHandler::computeFileHash(filename), SourceFile::ChecksumType::SHA1);
       }

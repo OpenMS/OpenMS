@@ -51,6 +51,11 @@ the OpenMS interface.
   Boost.Compat.
 - `src/writer.cpp`: `ZIP_LENGTH_TO_END` is defined as -1 where libzip does not define it (before 1.10.1, e.g.
   1.7.3 of Ubuntu 24.04), which reads the file to its end there as well.
+- Reader robustness (review of OpenMS#10771): `src/chromatograms.cpp`, `src/wavelength_spectra.cpp` derive the
+  count from the row-group statistics only when the declared count is missing or zero (a file without statistics
+  failed to open otherwise); `Index::spectra()` (`src/index.cpp`) takes the first `metadata` member, as the
+  chromatogram and wavelength readers do; `src/util/metadata_model.cpp` reads `mz_delta_model` only as float64
+  (another value type was cast unchecked and read past its buffer).
 - `src/boost_json_src.cpp` (new): Boost.JSON compiled header-only, so libOpenMS links no
   compiled Boost library.
 - `sources.cmake`, `CMakeLists.txt`, this file.
