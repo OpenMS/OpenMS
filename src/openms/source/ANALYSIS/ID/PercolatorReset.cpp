@@ -98,7 +98,10 @@ namespace
   // ---------------------------------------------------------------------------------------------
   // MLP learner (experimental): ensemble of networks d -> h -> h -> 1 (tanh, tanh, linear) in float32, trained by
   // mini-batch Adam with the batch's forward and backward passes as small matrix products (Eigen). Every network is
-  // trained by one thread from its own random stream, so results do not depend on the number of threads.
+  // trained by one thread from its own random stream, so results do not depend on the number of threads. The matrix
+  // products are coefficient-based (lazyProduct()): Eigen parallelizes a GEMM itself in a team of one thread and splits
+  // its rows by the number of threads, and on ARM its vectorized (fused multiply-add) and scalar remainder paths round
+  // differently, so the scores depended on the number of threads there.
   // ---------------------------------------------------------------------------------------------
   using MatF = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
   using VecF = Eigen::Matrix<float, Eigen::Dynamic, 1>;
@@ -142,13 +145,13 @@ namespace
     auto A1 = work.a1.topRows(n);
     auto A2 = work.a2.topRows(n);
     auto o = work.o.head(n);
-    A1.noalias() = X * W1;
+    A1.noalias() = X.lazyProduct(W1);
     A1.rowwise() += b1;
     A1 = A1.array().tanh();
-    A2.noalias() = A1 * W2;
+    A2.noalias() = A1.lazyProduct(W2);
     A2.rowwise() += b2;
     A2 = A2.array().tanh();
-    o.noalias() = A2 * w3;
+    o.noalias() = A2.lazyProduct(w3);
     o.array() += net.p[static_cast<Size>(net.oB3())];
   }
 
@@ -284,13 +287,13 @@ namespace
         auto O = o.head(nb);
         auto G = g.head(nb);
         // forward
-        A1.noalias() = Xb * W1;
+        A1.noalias() = Xb.lazyProduct(W1);
         A1.rowwise() += b1;
         A1 = A1.array().tanh();
-        A2.noalias() = A1 * W2;
+        A2.noalias() = A1.lazyProduct(W2);
         A2.rowwise() += b2;
         A2 = A2.array().tanh();
-        O.noalias() = A2 * w3;
+        O.noalias() = A2.lazyProduct(w3);
         O.array() += net.p[static_cast<Size>(net.oB3())];
         // d loss / d output (0 for rows beyond the margin)
         for (Eigen::Index b = 0; b < nb; ++b)
@@ -300,14 +303,14 @@ namespace
           G(b) = margin > 0.0f ? -2.0f * (yi > 0 ? cw_pos : cw_neg) * margin * static_cast<float>(yi) : 0.0f;
         }
         // backward
-        gw3.noalias() = A2.transpose() * G;
+        gw3.noalias() = A2.transpose().lazyProduct(G);
         grad[static_cast<Size>(net.oB3())] = G.sum();
         D2 = (G * w3.transpose()).array() * (1.0f - A2.array().square());
-        gW2.noalias() = A1.transpose() * D2;
+        gW2.noalias() = A1.transpose().lazyProduct(D2);
         gb2 = D2.colwise().sum();
-        D1.noalias() = D2 * W2.transpose();
+        D1.noalias() = D2.lazyProduct(W2.transpose());
         D1.array() *= (1.0f - A1.array().square());
-        gW1.noalias() = Xb.transpose() * D1;
+        gW1.noalias() = Xb.transpose().lazyProduct(D1);
         gb1 = D1.colwise().sum();
         // Adam
         ++net.step;

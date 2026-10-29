@@ -216,7 +216,7 @@ namespace OpenMS
        * @brief The feature matrix of in-process rescoring: the PIN columns of the PSMs as Percolator reads them from
        * a .pin file, computed straight into dense rows, without meta values on the hits.
        *
-       * Row for row and value for value what in-process rescoring formerly read back after @ref stampPinFeaturesOnHits:
+       * Row for row and value for value what in-process rescoring formerly read back after stampPinFeaturesOnHits():
        * the PIN columns are computed by the same functions as there (same arithmetic, so the same doubles), the other
        * features are read from the hits' meta values with @ref getFeatureValue. The rows are the hits that
        * stampPinFeaturesOnHits() does not skip (they have peptide evidences and a known target/decoy type) and that
@@ -287,6 +287,14 @@ namespace OpenMS
       /// Meta values of a hit that pinHitColumns_ reads
       enum PinLookup_ : int { LOOKUP_CALC_MASS, LOOKUP_ISOTOPE_ERROR_LEGACY, LOOKUP_ISOTOPE_ERROR };
 
+      /// Warns once about the spectra of @p without_scan (their reference; empty: none) whose scan number could not be read,
+      /// of the @p stamped spectra (1: with stamped PSMs)
+      static void warnWithoutScanNumber_(const std::vector<std::string>& without_scan, const std::vector<char>& stamped);
+
+      /// The enzyme of the enzN/enzC/enzInt features as @ref store() describes it (name, modifiers), parsed once per call
+      /// (defined in PercolatorInfile.cpp)
+      struct PinEnzyme_;
+
       /**
        * @brief The PIN columns of one hit: the formulas of the .pin file, shared by stamping and buildFeatureMatrix.
        *
@@ -297,14 +305,6 @@ namespace OpenMS
        *
        * @return The calculated mass of the hit (CalcMass)
        */
-      /// Warns once about the spectra of @p without_scan (their reference; empty: none) whose scan number could not be read,
-      /// of the @p stamped spectra (1: with stamped PSMs)
-      static void warnWithoutScanNumber_(const std::vector<std::string>& without_scan, const std::vector<char>& stamped);
-
-      /// The enzyme of the enzN/enzC/enzInt features as @ref store() describes it (name, modifiers), parsed once per call
-      /// (defined in PercolatorInfile.cpp)
-      struct PinEnzyme_;
-
       template <bool with_strings, typename Exists, typename Get, typename Put>
       static double pinHitColumns_(const PeptideHit& hit, bool decoy, const std::string& spec_id, Int scan_number,
         double exp_mass, double retention_time, const PinEnzyme_& enz, int min_charge, int max_charge,

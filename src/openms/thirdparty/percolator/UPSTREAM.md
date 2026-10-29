@@ -56,7 +56,7 @@ nor patches these files):
   `PercolatorTron_test`: whole solves for both kernels, n = 1..60, and fun /
   grad / Hv with infinite, NaN and huge values). Builds with AVX/FMA
   (`-march=...`), other architectures, problems with one row and problems with
-  more than INT_MAX - 64 rows keep `TronFunction`. MSVC builds use the SSE2
+  more than INT_MAX / 2 rows keep `TronFunction`. MSVC builds use the SSE2
   kernels only (no `/arch:AVX2`: its contraction is not verified). Checked with
   GCC 14.4 -O3 (conda-forge, Linux); MSVC and Apple Clang are covered only by
   the self-check. (With infinite or huge feature values, TRON's conjugate
@@ -72,7 +72,7 @@ nor patches these files):
 
 OpenMS-local, not in `whitelist.txt`, used only when the cross-validation's solver is
 not TRON (`CrossValidation::setSolver`, OpenMS `Percolator` parameter `solver`; patch
-16). `newtonSvm` minimizes the same objective as `tron()` with the modified finite
+15). `newtonSvm` minimizes the same objective as `tron()` with the modified finite
 Newton method of Keerthi & DeCoste (2005, JMLR 6:341-361; L2-SVM-MFN), written from
 the paper (not from SVMlin, see the licensing note above): per step one pass over the
 active rows forms the explicit Hessian `I + 2 sum_I C_i x_i x_i^T` and the right-hand
@@ -382,7 +382,7 @@ hand-editing sources and committing them, to keep sync self-healing.
   positive; Newton: too many columns, a failed factorization, a non-finite gradient norm
   or no convergence within `mfnitermax` steps), Newton or TRON (from 0) solves the SVM. With
   `kSolverTron`, TRON starts from the weights `trainCpCnPair` gives it (0, or the pair's previous weights with patch
-  15's warm start). In
+  14's warm start). In
   `trainFoldChains`, Newton stops at a tolerance of 1e-4 in the steps before the last one
   (which solves to `EPSILON` as TRON); with LDA the first pair of a fold is trained first
   and, if LDA gave its weights (whose ranking, and so the count, does not depend on the
