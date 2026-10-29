@@ -273,3 +273,30 @@ def test_tune_loop_with_fake_prose(tmp_path):
     c = T.candidates({**P0, "Search:fragment:mass_tolerance": 0.5, "Search:fragment:mass_tolerance_unit": "Da"},
                      {"fragment_error": {}}, [], {"ms2_analyzer": "IT"})
     assert not any(k.endswith("fragment") for k, _, _ in c)
+
+
+def test_bench_text_end_to_end(tmp_path, monkeypatch):
+    from prose_auto import bench_text as B
+    from prose_auto import jev as J
+
+    d = tmp_path / "repo" / "datasets" / "PXD000123"
+    d.mkdir(parents=True)
+    (d / "PXD000123.sdrf.tsv").write_text(
+        "source name\tcharacteristics[organism]\tcomment[instrument]\tcomment[label]\tcomment[cleavage agent details]\t"
+        "comment[modification parameters]\tcomment[modification parameters]\tcomment[fragment mass tolerance]\n"
+        "s1\tHomo sapiens\tNT=Orbitrap Fusion Lumos;AC=MS:1002732\tTMTpro 126\tNT=Trypsin\t"
+        "NT=Carbamidomethyl;TA=C;MT=Fixed\tNT=Acetyl;PP=Protein N-term;MT=Variable\t20 ppm\n")
+    monkeypatch.setattr(B, "texts_for", lambda acc, paper=False: (
+        {"PRIDE title": "x", "PRIDE description": "HeLa TMTpro study " * 20}, {"instruments": [{"name": "Q Exactive"}]}))
+    real = J.Jev
+    monkeypatch.setattr(J, "Jev", lambda: real(key="x", transport=_fake_jev_answers))
+    a = type("A", (), {"sdrf_repo": str(tmp_path / "repo"), "n": 1, "seed": 1, "paper": False, "llm": None,
+                       "no_jev": False, "out": str(tmp_path / "out")})()
+    B.run(a)
+    rows = (tmp_path / "out" / "rows.tsv").read_text().splitlines()
+    got = {(r.split("\t")[1], r.split("\t")[2]): r.split("\t")[5] for r in rows[1:]}
+    assert got[("organism", "jev")] == "1" and got[("label", "jev")] == "1"
+    assert got[("instrument", "pride")] == "0" and got[("fragment_tolerance", "jev")] == "1"
+    assert "var:acetyl" in (tmp_path / "out" / "rows.tsv").read_text()
+    assert "Jev calibration" in (tmp_path / "out" / "summary.md").read_text()
+
