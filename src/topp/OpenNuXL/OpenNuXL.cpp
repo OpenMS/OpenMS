@@ -955,7 +955,7 @@ protected:
     registerStringOption_("NuXL:standalone",
                         "<option>",
                         "",
-                        "Target nucleotides that only form precursor adducts on their own (e.g. 's' for a cross-linker without nucleotide). They are never combined with other nucleotides and are not restricted by NuXL:sequence. They need a NuXL:target_nucleotides entry and NuXL:modifications, and must be listed in NuXL:can_cross_link.",
+                        "Target nucleotides that only form precursor adducts on their own (e.g. 's' for a cross-linker without nucleotide). They are never combined with other nucleotides and are not restricted by NuXL:sequence. They need a NuXL:target_nucleotides entry, NuXL:modifications and NuXL:fragment_adducts, and must be listed in NuXL:can_cross_link.",
                         false,
                         true);
 
@@ -4837,6 +4837,17 @@ protected:
 
     // first, we determine which fragments adducts can be generated from a single nucleotide (that has no losses)
     NuXLParameterParsing::NucleotideToFragmentAdductMap nucleotide_to_fragment_adducts = NuXLParameterParsing::getTargetNucleotideToFragmentAdducts(fragment_adducts);
+
+    // adducts of a standalone nucleotide are only scored with its own fragment adducts: reject configurations that would silently never score them
+    for (const char c : standalone)
+    {
+      const bool has_formula = std::any_of(target_nucleotides.begin(), target_nucleotides.end(), [c](const std::string& t) { return !t.empty() && t[0] == c; });
+      if (!has_formula || !can_xl_.contains(c) || !nucleotide_to_fragment_adducts.contains(c))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Standalone nucleotides need a NuXL:target_nucleotides entry, must be listed in NuXL:can_cross_link and need NuXL:fragment_adducts.", std::string(1, c));
+      }
+    }
 
     // calculate all feasible fragment adducts from all possible precursor adducts
     NuXLParameterParsing::PrecursorsToMS2Adducts all_feasible_fragment_adducts = NuXLParameterParsing::getAllFeasibleFragmentAdducts(mm, nucleotide_to_fragment_adducts, can_xl_, true, isRNA);

@@ -156,7 +156,8 @@ namespace OpenMS
                                          combined with other nucleotides into oligos and are
                                          exempt from @p sequence_restriction. They still need
                                          a @p target_nucleotides entry, @p modifications and,
-                                         to be kept, must be in @p can_xl. Default empty.
+                                         to be kept, must be in @p can_xl (to be scored, they
+                                         also need fragment adducts). Default empty.
 
         @return Populated @ref NuXLModificationMassesResult.
 
