@@ -190,13 +190,19 @@ def proxi_evidence(acc, log=print):
     src = f"PROXI {acc}"
     for sp in p.get("species", []):
         # [{"terms": [{"name": "taxonomy: scientific name", "value": "Homo sapiens"}, ...]}]
-        for term in (sp.get("terms") or [sp]):
+        # or, from some PROXI servers, a bare list of terms per species
+        terms = sp if isinstance(sp, list) else (sp.get("terms") or [sp])
+        for term in terms:
+            if not isinstance(term, dict):
+                continue
             if "scientific name" in str(term.get("name", "")).lower() and term.get("value"):
                 ev.append(Evidence("organism", term["value"], 0.6, "repository", "proxi", f"{src}: species"))
                 break
     for ins in p.get("instruments", []):
+        if not isinstance(ins, dict):
+            continue
         ev.append(Evidence("instrument", ins.get("name"), 0.6, "repository", "proxi", f"{src}: instrument"))
-    mods = [m.get("name") for m in p.get("modifications", []) if m.get("name")]
+    mods = [m.get("name") for m in p.get("modifications", []) if isinstance(m, dict) and m.get("name")]
     if mods:
         ev.append(Evidence("variable_mods", mods, 0.3, "repository", "proxi", f"{src}: modifications {mods}"))
     return ev, {"title": p.get("title", ""), "description": p.get("summary", ""),

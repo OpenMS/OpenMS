@@ -29,6 +29,20 @@ ENZYME_NAMES = {"Trypsin": "Trypsin", "Trypsin/P": "Trypsin/P", "Lys-C": "Lys-C"
                 "unspecific cleavage": "unspecific cleavage"}
 
 
+def _per_residue(mods):
+    """'Phospho (STY)' / 'Phospho (S,T,Y)' -> 'Phospho (S)', 'Phospho (T)', 'Phospho (Y)': ProSE takes one
+    UniMod site per entry. Terminal sites ('N-term', 'Protein N-term') pass unchanged."""
+    out = []
+    for m in mods:
+        name, _, site = m.rpartition(" (")
+        res = site.rstrip(")").replace(",", "").replace("/", "").replace(" ", "")
+        if name and res.isalpha() and res.isupper() and len(res) > 1:
+            out += [f"{name} ({r})" for r in res if f"{name} ({r})" not in out]
+        elif m not in out:
+            out.append(m)
+    return out
+
+
 def to_prose(decisions: dict) -> dict:
     """Returns {'params': {name: value}, 'notes': [...]} with 'Search:'-prefixed
     ProSE parameter names."""
@@ -36,11 +50,11 @@ def to_prose(decisions: dict) -> dict:
     P, notes = {}, []
     pt, ft = v("precursor_tolerance"), v("fragment_tolerance")
     if pt:
-        P["Search:precursor:mass_tolerance_lower"] = pt["value"]
-        P["Search:precursor:mass_tolerance_upper"] = pt["value"]
+        P["Search:precursor:mass_tolerance_lower"] = float(pt["value"])  # ProSE declares tolerances as double
+        P["Search:precursor:mass_tolerance_upper"] = float(pt["value"])  # ProSE declares tolerances as double
         P["Search:precursor:mass_tolerance_unit"] = pt["unit"]
     if ft:
-        P["Search:fragment:mass_tolerance"] = ft["value"]
+        P["Search:fragment:mass_tolerance"] = float(ft["value"])
         P["Search:fragment:mass_tolerance_unit"] = ft["unit"]
     cr = v("charge_range")
     if cr:
@@ -63,14 +77,17 @@ def to_prose(decisions: dict) -> dict:
     for m in v("variable_mods") or []:
         if isinstance(m, str) and m not in var and m not in fixed and "(" in m and decisions["variable_mods"].confidence >= 0.5:
             var.append(m)
-    P["Search:modifications:fixed"] = fixed
-    P["Search:modifications:variable"] = var
+    P["Search:modifications:fixed"] = _per_residue(fixed)
+    P["Search:modifications:variable"] = _per_residue(var)
     enz = v("enzyme")
     if enz:
         P["Search:enzyme"] = ENZYME_NAMES.get(enz, enz)
     ic = v("instrument_class")
     if ic and v("ms2_analyzer") not in ("IT", "LIT"):   # PeptDeep models high-res HCD-type spectra
-        P["Search:peptdeep:instrument"] = ic
+        # ProSE accepts only these PeptDeep classes; free text from records ('TIMS quadrupole time-of-flight') is mapped
+        ic = "timsTOF" if "tims" in str(ic).lower() else ic
+        if ic in ("QE", "Lumos", "timsTOF", "SciexTOF", "ThermoTOF"):
+            P["Search:peptdeep:instrument"] = ic
     ce = v("collision_energy")
     if ce and v("fragmentation") in ("HCD", "CID"):
         P["Search:peptdeep:nce"] = -1.0   # ProSE picks it from the spectra and refines it

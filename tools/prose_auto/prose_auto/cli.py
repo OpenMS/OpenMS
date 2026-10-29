@@ -314,9 +314,25 @@ def fetch_panel(out, reviewed=True, log=print):
         q = f"(proteome:{up})" + ("+AND+(reviewed:true)" if reviewed else "")
         url = f"https://rest.uniprot.org/uniprotkb/stream?format=fasta&query={q}"
         dst = os.path.join(out, f"{name}.fasta")
+        if os.path.getsize(dst) if os.path.exists(dst) else 0:
+            log(f"  {name}: present, skipped")
+            continue
         log(f"  {name} ({up}) -> {dst}")
-        with urllib.request.urlopen(url, timeout=600) as r, open(dst, "wb") as fh:
-            fh.write(r.read())
+        # UniProt's stream endpoint returns sporadic HTTP 500s: retry, and never leave a partial file
+        for attempt in range(5):
+            try:
+                with urllib.request.urlopen(url, timeout=600) as r:
+                    data = r.read()
+                break
+            except OSError as e:  # URLError and HTTPError are OSErrors
+                log(f"    attempt {attempt + 1} failed: {e}")
+                time.sleep(10 * 2 ** attempt)
+        else:
+            log(f"  {name}: giving up; the panel lacks this organism")
+            continue
+        with open(dst + ".part", "wb") as fh:
+            fh.write(data)
+        os.replace(dst + ".part", dst)
 
 
 def main(argv=None):

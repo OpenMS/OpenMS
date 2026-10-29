@@ -131,6 +131,10 @@ def detect_acquisition(run) -> list:
         mode, conf, why = ("DDA" if uniq_ratio > 0.5 else "DIA"), 0.5, "no isolation windows recorded"
     elif med_w >= 4.0 and uniq_ratio < 0.2:
         mode, conf, why = "DIA", 0.97, f"wide windows (median {med_w:.1f} Th) on {n_unique} repeating centres"
+    elif med_w >= 4.0 and uniq_ratio > 0.5:
+        # older ion traps (LTQ, LTQ FT) isolate DDA precursors with 3-4 Th windows
+        mode, conf, why = "DDA", 0.7, \
+            f"wide windows (median {med_w:.1f} Th) on {n_unique} mostly distinct precursors"
     elif med_w >= 4.0:
         mode, conf, why = "DIA", 0.75, f"wide windows (median {med_w:.1f} Th), but many distinct centres"
     elif uniq_ratio < 0.05 and rep_med >= 5:
