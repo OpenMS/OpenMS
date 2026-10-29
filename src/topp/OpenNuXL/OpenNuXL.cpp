@@ -4838,14 +4838,15 @@ protected:
     // first, we determine which fragments adducts can be generated from a single nucleotide (that has no losses)
     NuXLParameterParsing::NucleotideToFragmentAdductMap nucleotide_to_fragment_adducts = NuXLParameterParsing::getTargetNucleotideToFragmentAdducts(fragment_adducts);
 
-    // adducts of a standalone nucleotide are only scored with its own fragment adducts: reject configurations that would silently never score them
+    // standalone nucleotides only form adducts from their own modifications and are only scored with their own fragment adducts: reject configurations that would silently never search them
     for (const char c : standalone)
     {
       const bool has_formula = std::any_of(target_nucleotides.begin(), target_nucleotides.end(), [c](const std::string& t) { return !t.empty() && t[0] == c; });
-      if (!has_formula || !can_xl_.contains(c) || !nucleotide_to_fragment_adducts.contains(c))
+      const bool has_modification = std::any_of(modifications.begin(), modifications.end(), [c](const std::string& m) { return m.size() >= 2 && m[0] == c && m[1] == ':'; });
+      if (!has_formula || !has_modification || !can_xl_.contains(c) || !nucleotide_to_fragment_adducts.contains(c))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Standalone nucleotides need a NuXL:target_nucleotides entry, must be listed in NuXL:can_cross_link and need NuXL:fragment_adducts.", std::string(1, c));
+          "Standalone nucleotides need a NuXL:target_nucleotides entry, NuXL:modifications and NuXL:fragment_adducts, and must be listed in NuXL:can_cross_link.", std::string(1, c));
       }
     }
 
