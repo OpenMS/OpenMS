@@ -12,7 +12,6 @@
 #include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/Bzip2InputStream.h>
-#include <OpenMS/FORMAT/DecompressingInputStream.h>
 #include <OpenMS/FORMAT/GzipInputStream.h>
 
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
@@ -298,6 +297,9 @@ const std::string served_plain = readFile(served_plain_path);
 const std::map<std::string, std::string> local_paths{{"/run.mzML", served_plain_path},
                                                      {"/run.mzML.gz", OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.gz")},
                                                      {"/run.mzML.bz2", OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.bz2")},
+                                                     // gzip of the compressed files, for /encoded/run.mzML.gz and /encoded/run.mzML.bz2
+                                                     {"/run.mzML.gz.gz", OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.gz.gz")},
+                                                     {"/run.mzML.bz2.gz", OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.bz2.gz")},
                                                      {"/indexed.mzML", served_indexed_path}};
 std::map<std::string, std::string> served;
 for (const auto& [path, local] : local_paths) { served[path] = readFile(local); }
@@ -307,6 +309,8 @@ const std::string no_compression = "accession=\"MS:1000576\" name=\"no compressi
 corrupt.replace(corrupt.find(no_compression), no_compression.size(), "accession=\"MS:1000574\" name=\"zlib compression\"");
 served["/corrupt.mzML"] = corrupt;
 served["/empty.mzML"] = "";
+// a gzip header, then no valid deflate data (for /encoded/broken.mzML)
+served["/broken.mzML.gz"] = std::string("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\x03", 10) + std::string(100, '\xff');
 TestServer server(served);
 
 START_SECTION((static bool isURL(const std::string& url)))
@@ -352,6 +356,22 @@ START_SECTION((static std::string redactURLs(const std::string& text)))
   TEST_STRING_EQUAL(HTTPInputSource::redactURLs(""), "")
   TEST_STRING_EQUAL(HTTPInputSource::redactURLs("://nothing before"), "://nothing before")
   TEST_STRING_EQUAL(HTTPInputSource::redactURLs("file C://data/run?1.mzML"), "file C://data/run?1.mzML")
+}
+END_SECTION
+
+START_SECTION((static std::string redactURLs(const std::string& text, const std::string& url)))
+{
+  const std::string url = "s3://KEY:SE%2FCRET@bucket/run.mzML?region=eu-1&scheme=MY_SCHEME#part";
+  // Arrow repeats a query value on its own
+  TEST_STRING_EQUAL(HTTPInputSource::redactURLs("Invalid S3 connection scheme 'MY_SCHEME'", url), "Invalid S3 connection scheme '***'")
+  // user name and password (as given and decoded), query values, fragment; URLs as by redactURLs(text)
+  TEST_STRING_EQUAL(HTTPInputSource::redactURLs("KEY, SE/CRET, SE%2FCRET, eu-1, part: s3://KEY:SE%2FCRET@bucket/run.mzML?scheme=MY_SCHEME", url),
+                    "***, ***, ***, ***, ***: s3://bucket/run.mzML")
+  // only whole words
+  TEST_STRING_EQUAL(HTTPInputSource::redactURLs("port 1234, value 1, KEYS", "http://KEY@example.org/x?a=1"), "port 1234, value ***, KEYS")
+  // nothing to remove: no such parts, a local file name
+  TEST_STRING_EQUAL(HTTPInputSource::redactURLs("region eu-1 of s3://bucket/run.mzML", "s3://bucket/run.mzML"), "region eu-1 of s3://bucket/run.mzML")
+  TEST_STRING_EQUAL(HTTPInputSource::redactURLs("cannot read /data/run?1#2.mzML", "/data/run?1#2.mzML"), "cannot read /data/run?1#2.mzML")
 }
 END_SECTION
 
@@ -405,12 +425,20 @@ START_SECTION(([EXTRA] makeStream from an HTTP server))
   Bzip2InputStream bzip2(local_paths.at("/run.mzML.bz2"));
   auto bz2 = HTTPInputSource(server.url("/run.mzML.bz2")).makeStream();
   TEST_TRUE(readAll(*bz2) == readAll(bzip2))
-  // gzip transfer compression is requested, and decompressed as the stream is read: a highly compressed response is
-  // not decoded at once into memory
+  // gzip transfer compression is requested
   GzipInputStream encoded_gzip(local_paths.at("/run.mzML.gz"));
   auto encoded = HTTPInputSource(server.url("/encoded/run.mzML")).makeStream();
-  TEST_TRUE(dynamic_cast<DecompressingInputStream*>(encoded.get()) != nullptr)
   TEST_TRUE(readAll(*encoded) == readAll(encoded_gzip))
+  // ... and decompressed by OpenMS as the stream is read, not by libcurl (which decodes all it receives at once, too
+  // much for a highly compressed response): corrupt data is a ParseError, as for a compressed resource
+  TEST_EXCEPTION(Exception::ParseError, readAll(*HTTPInputSource(server.url("/encoded/broken.mzML")).makeStream()))
+  // ... around a compressed resource: both are decompressed
+  GzipInputStream encoded_gz_content(local_paths.at("/run.mzML.gz"));
+  auto encoded_gz = HTTPInputSource(server.url("/encoded/run.mzML.gz")).makeStream();
+  TEST_TRUE(readAll(*encoded_gz) == readAll(encoded_gz_content))
+  Bzip2InputStream encoded_bz2_content(local_paths.at("/run.mzML.bz2"));
+  auto encoded_bz2 = HTTPInputSource(server.url("/encoded/run.mzML.bz2")).makeStream();
+  TEST_TRUE(readAll(*encoded_bz2) == readAll(encoded_bz2_content))
   // a redirect is followed (its body is not the content)
   auto moved = HTTPInputSource(server.url("/moved/run.mzML")).makeStream();
   TEST_TRUE(readAll(*moved) == served_plain)
@@ -421,11 +449,12 @@ END_SECTION
 
 START_SECTION(([EXTRA] MzMLFile::load from an HTTP server))
 {
-  for (const std::string path : {"/run.mzML", "/run.mzML.gz", "/run.mzML.bz2", "/indexed.mzML", "/encoded/run.mzML"})
+  for (const std::string path : {"/run.mzML", "/run.mzML.gz", "/run.mzML.bz2", "/indexed.mzML", "/encoded/run.mzML", "/encoded/run.mzML.gz", "/encoded/run.mzML.bz2"})
   {
     PeakMap local, remote;
-    // gzip transfer compression of /encoded/run.mzML: the content of /run.mzML.gz
-    MzMLFile().load(local_paths.at(path == "/encoded/run.mzML" ? "/run.mzML.gz" : path), local);
+    // gzip transfer compression of /encoded/...: of /run.mzML.gz for /encoded/run.mzML, of the compressed file otherwise
+    const bool encoded = path.rfind("/encoded/", 0) == 0;
+    MzMLFile().load(local_paths.at(path == "/encoded/run.mzML" ? "/run.mzML.gz" : (encoded ? path.substr(8) : path)), local);
     MzMLFile().load(server.url(path), remote);
     TEST_EQUAL(remote.size(), local.size())
     TEST_TRUE(remote.getSpectra() == local.getSpectra())

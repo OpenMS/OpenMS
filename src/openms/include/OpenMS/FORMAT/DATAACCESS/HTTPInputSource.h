@@ -22,7 +22,8 @@ namespace OpenMS
 
     The resource is streamed to the parser; gzip and bzip2 compressed resources (recognized by their magic bytes) are
     decompressed on the fly. HTTP transfer compression is requested as gzip (Content-Encoding) and decompressed the
-    same way, as the stream is read, so a highly compressed response is never held in memory at once.
+    same way, as the stream is read, so a highly compressed response is never held in memory at once. A compressed
+    resource (e.g. .mzML.gz) sent with transfer compression is decompressed in both layers.
 
     Redirects to HTTP, HTTPS and FTP URLs are followed. Proxies come from the usual environment variables
     (http_proxy, https_proxy, no_proxy). file:// URLs are accepted too, but XMLFile reads local files directly.
@@ -104,6 +105,19 @@ public:
       @param[in] text A message that may contain URLs
     */
     static std::string redactURLs(const std::string& text);
+
+    /**
+      @brief @p text redacted as by redactURLs(text), and also without the parts of @p url that redactURL() removes.
+
+      A library can also repeat a part of the URL it was given on its own, e.g. Arrow's "Invalid S3 connection scheme
+      '...'" for the value of the query parameter "scheme". The user name, the password, each query value and the
+      fragment of @p url (as given and percent-decoded) are replaced by "***" wherever they are a whole word of @p text,
+      i.e. not part of a longer word.
+
+      @param[in] text A message about @p url
+      @param[in] url The URL the message is about (local file names have no such parts)
+    */
+    static std::string redactURLs(const std::string& text, const std::string& url);
 
 private:
     std::string url_;

@@ -57,6 +57,20 @@ START_SECTION(([EXTRA] errors do not show the credentials of the URI))
   TEST_EQUAL(message.find("MY_ACCESS_KEY"), std::string::npos)
   TEST_EQUAL(message.find("MY_SECRET"), std::string::npos)
   TEST_EQUAL(message.find("MY_TOKEN"), std::string::npos)
+
+  // an invalid scheme: Arrow's diagnostic repeats the query value on its own
+  message.clear();
+  try
+  {
+    S3InputSource source("s3://MY_ACCESS_KEY:MY_SECRET@bucket/run.mzML?region=us-east-1&scheme=MY_SECRET_SCHEME");
+  }
+  catch (const Exception::BaseException& e)
+  {
+    message = e.what();
+  }
+  TEST_EQUAL(message.empty(), false)
+  TEST_EQUAL(message.find("MY_ACCESS_KEY"), std::string::npos)
+  TEST_EQUAL(message.find("MY_SECRET"), std::string::npos)
 }
 END_SECTION
 

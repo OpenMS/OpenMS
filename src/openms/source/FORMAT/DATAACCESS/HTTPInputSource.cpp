@@ -23,7 +23,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <initializer_list>
+#include <optional>
 #include <string_view>
+#include <vector>
 
 namespace OpenMS
 {
@@ -49,6 +51,25 @@ namespace OpenMS
       return list;
     }
 #endif
+
+    // @p text with its %XX escapes decoded
+    std::string percentDecoded(std::string_view text)
+    {
+      std::string result;
+      for (Size i = 0; i < text.size(); ++i)
+      {
+        if (text[i] == '%' && i + 2 < text.size() && std::isxdigit(static_cast<unsigned char>(text[i + 1])) && std::isxdigit(static_cast<unsigned char>(text[i + 2])))
+        {
+          result += static_cast<char>(std::stoi(std::string(text.substr(i + 1, 2)), nullptr, 16));
+          i += 2;
+        }
+        else
+        {
+          result += text[i];
+        }
+      }
+      return result;
+    }
 
     // The options all transfers share; false if the URL or the protocol restriction cannot be set (the transfer must not
     // start then). @p error receives libcurl's error messages.
@@ -78,12 +99,14 @@ namespace OpenMS
       return ok;
     }
 
-    // Throws the exception for the failed transfer @p result of @p easy; @p name is the URL without credentials
-    [[noreturn]] void throwTransferError(CURL* easy, CURLcode result, const char* error, const std::string& name)
+    // Throws the exception for the failed transfer @p result of @p easy from @p url (messages show neither its credentials
+    // nor its query)
+    [[noreturn]] void throwTransferError(CURL* easy, CURLcode result, const char* error, const std::string& url)
     {
       long response = 0;
       curl_easy_getinfo(easy, CURLINFO_RESPONSE_CODE, &response);
-      const std::string message = HTTPInputSource::redactURLs(error[0] != '\0' ? std::string(error) : std::string(curl_easy_strerror(result)));
+      const std::string name = HTTPInputSource::redactURL(url);
+      const std::string message = HTTPInputSource::redactURLs(error[0] != '\0' ? std::string(error) : std::string(curl_easy_strerror(result)), url);
       if (response == 404 || response == 410 || result == CURLE_REMOTE_FILE_NOT_FOUND || result == CURLE_FILE_COULDNT_READ_FILE)
       {
         throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name, message);
@@ -92,6 +115,44 @@ namespace OpenMS
       OPENMS_LOG_ERROR << "Error reading " << name << ": " << message << std::endl;
       throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
+
+    // The value of one header of the last response of a transfer (a redirect that libcurl follows is a response too)
+    struct ResponseHeader
+    {
+      std::string_view name; ///< in lower case, with the colon, e.g. "content-range:"
+      std::string value;     ///< as sent: after the colon, with the line break
+
+      // Collects the header from the responses to @p easy
+      void collectFrom(CURL* easy)
+      {
+        curl_easy_setopt(easy, CURLOPT_HEADERFUNCTION, &ResponseHeader::header);
+        curl_easy_setopt(easy, CURLOPT_HEADERDATA, this);
+      }
+
+      // The value without whitespace, in lower case (e.g. of Content-Encoding)
+      std::string token() const
+      {
+        std::string result;
+        for (const char c : value)
+        {
+          if (!std::isspace(static_cast<unsigned char>(c))) { result += static_cast<char>(std::tolower(static_cast<unsigned char>(c))); }
+        }
+        return result;
+      }
+
+      static size_t header(char* data, size_t size, size_t count, void* user)
+      {
+        auto& self = *static_cast<ResponseHeader*>(user);
+        const std::string_view line(data, size * count);
+        if (line.substr(0, 5) == "HTTP/") { self.value.clear(); } // the status line of a response
+        else if (line.size() > self.name.size()
+                 && std::equal(self.name.begin(), self.name.end(), line.begin(), [](char a, char b) { return a == std::tolower(static_cast<unsigned char>(b)); }))
+        {
+          self.value = line.substr(self.name.size());
+        }
+        return size * count;
+      }
+    };
 
     // A transfer whose received bytes are handed out on demand: readBytes() drives libcurl (multi interface) until data
     // arrives, so at most what one call of curl_multi_perform() receives is buffered
@@ -114,12 +175,13 @@ public:
         bool ok = setUpTransfer(easy_, url_, error_);
         curl_easy_setopt(easy_, CURLOPT_WRITEFUNCTION, write_);
         curl_easy_setopt(easy_, CURLOPT_WRITEDATA, this);
-        // gzip transfer compression arrives undecoded and is decompressed as the stream is read (makeStream()), like a
-        // .gz resource. libcurl would decode everything that one curl_multi_perform() receives at once, which for
-        // highly compressed content is far more than one transfer step.
+        // gzip transfer compression arrives undecoded and is decompressed as the stream is read (makeStream()).
+        // libcurl would decode everything that one curl_multi_perform() receives at once, which for highly compressed
+        // content is far more than one transfer step.
         headers_ = curl_slist_append(nullptr, "Accept-Encoding: gzip");
         ok = ok && headers_ != nullptr && curl_easy_setopt(easy_, CURLOPT_HTTPHEADER, headers_) == CURLE_OK;
         curl_easy_setopt(easy_, CURLOPT_HTTP_CONTENT_DECODING, 0L);
+        content_encoding_.collectFrom(easy_);
         if (!ok || curl_multi_add_handle(multi_, easy_) != CURLM_OK)
         {
           OPENMS_LOG_ERROR << "Cannot set up the transfer of " << name_ << std::endl;
@@ -174,6 +236,13 @@ public:
         while (pending_() < count && !done_) { pump_(); }
         if (pending_() == 0) { checkResult_(); }
         return std::string_view(buffer_.data() + offset_, std::min(count, pending_()));
+      }
+
+      /// Whether the response has gzip transfer compression (Content-Encoding); known after peek()
+      bool transferCompressed() const
+      {
+        const std::string coding = content_encoding_.token();
+        return coding == "gzip" || coding == "x-gzip";
       }
 
       CurlInputStream(const CurlInputStream&) = delete;
@@ -239,7 +308,7 @@ private:
       // Throws if the (finished) transfer failed
       void checkResult_() const
       {
-        if (result_ != CURLE_OK) { throwTransferError(easy_, result_, error_, name_); }
+        if (result_ != CURLE_OK) { throwTransferError(easy_, result_, error_, url_); }
       }
 
       void cleanup_()
@@ -259,6 +328,7 @@ private:
       CURL* easy_ = nullptr;
       CURLM* multi_ = nullptr;
       curl_slist* headers_ = nullptr;
+      ResponseHeader content_encoding_{"content-encoding:", {}};
       bool added_ = false;
       char error_[CURL_ERROR_SIZE] = {};
       std::string buffer_;      ///< received, not yet read bytes from offset_ on
@@ -269,6 +339,78 @@ private:
       UInt64 received_ = 0;     ///< bytes received in total
       std::atomic<bool> cancelled_{false};
     };
+
+    // A stream whose first bytes can be looked at (peek()) before they are read, for their magic bytes
+    class PeekingInputStream :
+      public InputStream
+    {
+public:
+      explicit PeekingInputStream(std::unique_ptr<InputStream> source) :
+        source_(std::move(source))
+      {
+      }
+
+      UInt64 curPos() const override
+      {
+        return position_;
+      }
+
+      Size readBytes(unsigned char* to_fill, Size max_to_read) override
+      {
+        Size count = 0;
+        if (offset_ < head_.size())
+        {
+          count = std::min(max_to_read, head_.size() - offset_);
+          std::memcpy(to_fill, head_.data() + offset_, count);
+          offset_ += count;
+        }
+        else
+        {
+          count = source_->readBytes(to_fill, max_to_read);
+        }
+        position_ += count;
+        return count;
+      }
+
+      void cancel() override
+      {
+        source_->cancel();
+      }
+
+      /// The first (at most) @p count bytes, without consuming them; before the first readBytes()
+      std::string_view peek(Size count)
+      {
+        unsigned char buffer[16];
+        while (head_.size() < count)
+        {
+          const Size read = source_->readBytes(buffer, std::min<Size>(sizeof(buffer), count - head_.size()));
+          if (read == 0) { break; }
+          head_.append(reinterpret_cast<const char*>(buffer), read);
+        }
+        return std::string_view(head_).substr(0, count);
+      }
+
+private:
+      std::unique_ptr<InputStream> source_;
+      std::string head_; ///< bytes of source_ read by peek()
+      Size offset_ = 0;  ///< of the next byte of head_ to read
+      UInt64 position_ = 0;
+    };
+
+    // The compression format whose magic bytes start @p head, if any
+    std::optional<DecompressingInputStream::Format> compression(std::string_view head)
+    {
+      return DecompressingInputStream::detect(reinterpret_cast<const unsigned char*>(head.data()), head.size());
+    }
+
+    // @p stream (which has peek()), decompressed if its content is gzip or bzip2 compressed (by the magic bytes)
+    template <typename Stream>
+    std::unique_ptr<InputStream> decompressed(std::unique_ptr<Stream> stream, const std::string& name)
+    {
+      const auto format = compression(stream->peek(3));
+      if (format) { return std::make_unique<DecompressingInputStream>(std::move(stream), *format, name); }
+      return stream;
+    }
 
     // Collects @p limit bytes of a response body, from @p offset of the resource
     struct RangeCollector
@@ -308,6 +450,7 @@ private:
     {
 public:
       explicit Request(const std::string& url) :
+        url_(url),
         name_(HTTPInputSource::redactURL(url))
       {
         CurlInit::ensure();
@@ -338,15 +481,16 @@ public:
       void perform(Accept accept)
       {
         const CURLcode result = curl_easy_perform(easy_);
-        if (result != CURLE_OK && !accept(result)) { throwTransferError(easy_, result, error_, name_); }
+        if (result != CURLE_OK && !accept(result)) { throwTransferError(easy_, result, error_, url_); }
       }
 
-      const std::string& name() const
+      const std::string& url() const
       {
-        return name_;
+        return url_;
       }
 
 private:
+      std::string url_;
       std::string name_;
       CURL* easy_ = nullptr;
       char error_[CURL_ERROR_SIZE] = {};
@@ -355,21 +499,7 @@ private:
     // Receives the response to a request of the first byte of a resource (objectSize()): its Content-Range, not its body
     struct SizeProbe
     {
-      std::string content_range; ///< of the last response (a redirect is a response too)
-
-      static size_t header(char* data, size_t size, size_t count, void* user)
-      {
-        auto& self = *static_cast<SizeProbe*>(user);
-        const std::string_view line(data, size * count);
-        constexpr std::string_view name = "content-range:";
-        if (line.substr(0, 5) == "HTTP/") { self.content_range.clear(); } // the status line of a response
-        else if (line.size() > name.size()
-                 && std::equal(name.begin(), name.end(), line.begin(), [](char a, char b) { return a == std::tolower(static_cast<unsigned char>(b)); }))
-        {
-          self.content_range = line.substr(name.size());
-        }
-        return size * count;
-      }
+      ResponseHeader content_range{"content-range:", {}};
 
       // The body is not needed: the transfer stops at its first byte (CURLE_WRITE_ERROR). libcurl does not hand out the
       // body of a redirect it follows.
@@ -382,9 +512,10 @@ private:
       // -1 if there is none, or it is unknown ("*")
       Int64 total() const
       {
-        const auto slash = content_range.rfind('/');
+        const std::string& range = content_range.value;
+        const auto slash = range.rfind('/');
         if (slash == std::string::npos) { return -1; }
-        const char* begin = content_range.c_str() + slash + 1;
+        const char* begin = range.c_str() + slash + 1;
         char* end = nullptr;
         const long long size = std::strtoll(begin, &end, 10);
         return end != begin && size >= 0 ? static_cast<Int64>(size) : -1;
@@ -410,8 +541,7 @@ private:
       SizeProbe probe;
       curl_easy_setopt(request.easy(), CURLOPT_RANGE, "0-0");
       curl_easy_setopt(request.easy(), CURLOPT_FAILONERROR, 0L); // the status is checked below: a 416 has the size too
-      curl_easy_setopt(request.easy(), CURLOPT_HEADERFUNCTION, &SizeProbe::header);
-      curl_easy_setopt(request.easy(), CURLOPT_HEADERDATA, &probe);
+      probe.content_range.collectFrom(request.easy());
       curl_easy_setopt(request.easy(), CURLOPT_WRITEFUNCTION, &SizeProbe::write);
       request.perform([](CURLcode result) { return result == CURLE_WRITE_ERROR; }); // stopped at the first byte
       const char* effective_url = nullptr;
@@ -425,7 +555,7 @@ private:
       if (response >= 400 && response != 416)
       {
         const std::string error = "The requested URL returned error: " + std::to_string(response);
-        throwTransferError(request.easy(), CURLE_HTTP_RETURNED_ERROR, error.c_str(), request.name());
+        throwTransferError(request.easy(), CURLE_HTTP_RETURNED_ERROR, error.c_str(), request.url());
       }
       curl_off_t size = -1;
       if (response == 206 || response == 416) // 416: the resource is empty
@@ -451,15 +581,17 @@ private:
 
   std::unique_ptr<InputStream> HTTPInputSource::makeStream() const
   {
+    const std::string name = redactURL(url_);
     auto stream = std::make_unique<CurlInputStream>(url_);
-    // gzip or bzip2 compressed (a compressed resource, or gzip transfer compression): by the magic bytes
-    const std::string_view head = stream->peek(3);
-    const auto format = DecompressingInputStream::detect(reinterpret_cast<const unsigned char*>(head.data()), head.size());
-    if (format)
+    const auto format = compression(stream->peek(3)); // the response headers are in with its first bytes
+    if (stream->transferCompressed() && format == DecompressingInputStream::Format::GZIP)
     {
-      return std::make_unique<DecompressingInputStream>(std::move(stream), *format, redactURL(url_));
+      // gzip transfer compression, around the resource, which may be compressed itself (e.g. .mzML.gz)
+      auto transfer = std::make_unique<DecompressingInputStream>(std::move(stream), DecompressingInputStream::Format::GZIP, name);
+      return decompressed(std::make_unique<PeekingInputStream>(std::move(transfer)), name);
     }
-    return stream;
+    // a gzip or bzip2 compressed resource (e.g. .mzML.gz), as for a local file
+    return decompressed(std::move(stream), name);
   }
 
   Int64 HTTPInputSource::objectSize(const std::string& url)
@@ -536,6 +668,69 @@ private:
       separator = end - 3; // the next search starts after this URL
     }
     return result + text.substr(copied);
+  }
+
+  std::string HTTPInputSource::redactURLs(const std::string& text, const std::string& url)
+  {
+    std::string result = redactURLs(text);
+    if (redactURL(url) == url) { return result; } // a local file name, or nothing to remove
+    // the parts that redactURL() removes: the user name and password, each query value, the fragment; as given and decoded
+    const Size authority_begin = url.find("://") + 3;
+    const Size authority_end = std::min(url.find_first_of("/?#", authority_begin), url.size());
+    const std::string_view authority = std::string_view(url).substr(authority_begin, authority_end - authority_begin);
+    std::vector<std::string_view> parts;
+    const auto at = authority.rfind('@');
+    if (at != std::string_view::npos)
+    {
+      const std::string_view user_info = authority.substr(0, at);
+      const auto colon = user_info.find(':');
+      parts.push_back(user_info.substr(0, colon));
+      if (colon != std::string_view::npos) { parts.push_back(user_info.substr(colon + 1)); }
+    }
+    const Size query_begin = std::min(url.find_first_of("?#", authority_end), url.size());
+    const Size fragment_begin = std::min(url.find('#', query_begin), url.size());
+    std::string_view query = std::string_view(url).substr(query_begin, fragment_begin - query_begin);
+    while (!query.empty())
+    {
+      query.remove_prefix(1); // '?' or '&'
+      const std::string_view item = query.substr(0, query.find('&'));
+      const auto equals = item.find('=');
+      if (equals != std::string_view::npos) { parts.push_back(item.substr(equals + 1)); }
+      query.remove_prefix(item.size());
+    }
+    if (fragment_begin + 1 < url.size()) { parts.push_back(std::string_view(url).substr(fragment_begin + 1)); }
+    std::vector<std::string> secrets;
+    for (const std::string_view part : parts)
+    {
+      std::string plus_as_space(part);
+      std::replace(plus_as_space.begin(), plus_as_space.end(), '+', ' ');
+      for (std::string secret : {std::string(part), percentDecoded(part), percentDecoded(plus_as_space)})
+      {
+        if (!secret.empty() && std::find(secrets.begin(), secrets.end(), secret) == secrets.end()) { secrets.push_back(std::move(secret)); }
+      }
+    }
+    // longer ones first, so that a part of one does not break up another
+    std::sort(secrets.begin(), secrets.end(), [](const std::string& a, const std::string& b) { return a.size() > b.size(); });
+    const auto word_char = [](unsigned char c) { return std::isalnum(c) != 0; };
+    for (const std::string& secret : secrets)
+    {
+      Size found = result.find(secret);
+      while (found != std::string::npos)
+      {
+        const Size end = found + secret.size();
+        // only a whole word, not a part of a longer one (e.g. a value "1" in "port 1234")
+        const bool part_of_word = (found > 0 && word_char(result[found - 1]) && word_char(secret.front()))
+                                  || (end < result.size() && word_char(result[end]) && word_char(secret.back()));
+        if (part_of_word)
+        {
+          found = result.find(secret, found + 1);
+          continue;
+        }
+        result.replace(found, secret.size(), "***");
+        found = result.find(secret, found + 3);
+      }
+    }
+    return result;
   }
 
 } // namespace OpenMS
