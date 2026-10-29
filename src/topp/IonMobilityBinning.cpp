@@ -93,13 +93,13 @@ protected:
     mzML_bins.reserve(n_bins);
 
     Math::BinContainer im_ranges;
+    im_ranges.reserve(n_bins);
     for (Size i = 0; i < n_bins; ++i)
     {
       const double faims_cv = bins_by_cv[i].first;
       PeakMap& pm = bins_by_cv[i].second;
 
-      im_ranges[i].setMax(faims_cv);
-      im_ranges[i].setMin(faims_cv);
+      im_ranges.emplace_back(faims_cv, faims_cv);
 
       mzML_bins.push_back(std::move(pm));
     }
