@@ -70,7 +70,6 @@ def test_reproducible_with_same_seed():
         assert abs(a - b) < 1e-9
 
 
-
 def test_dense_feature_matrix_and_peptide_level():
     """The dense row-major feature_matrix gives the scores of the same rows as features; with peptide_level and
     peptide_keys the peptide-level q-values and PEPs are filled, one per row."""
@@ -110,6 +109,7 @@ def test_dense_feature_matrix_and_peptide_level():
     assert len(o_peptide.peptide_q_values) == len(rows)
     assert len(o_peptide.peptide_peps) == len(rows)
     assert all(0.0 <= q <= 1.0 for q in o_peptide.peptide_q_values)
+
 
 def _synthetic_psms(n=600):
     import random
@@ -160,6 +160,8 @@ if __name__ == "__main__":
     print("test_low_level_rescore_on_separable_data: passed")
     test_reproducible_with_same_seed()
     print("test_reproducible_with_same_seed: passed")
+    test_dense_feature_matrix_and_peptide_level()
+    print("test_dense_feature_matrix_and_peptide_level: passed")
     test_rescore_psms()
     print("test_rescore_psms: passed")
     print("\nAll Percolator pyOpenMS tests passed.")
