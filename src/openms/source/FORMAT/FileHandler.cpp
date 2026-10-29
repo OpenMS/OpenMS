@@ -1241,6 +1241,10 @@ namespace OpenMS
 
         // Only the peak-level filters (m/z, intensity, ion mobility) are left to apply post-load.
         if (options_.hasMZRange() || options_.hasIntensityRange() || options_.hasIMRange()) { applyPostLoadOptions_(exp); }
+        // SRM scans (triple quadrupoles) become chromatograms, as for mzML
+        const Size chromatograms = exp.getNrChromatograms();
+        ChromatogramTools().convertSpectraToChromatograms<PeakMap>(exp, true);
+        if (exp.getNrChromatograms() != chromatograms) { exp.updateRanges(); }
       }
       break;
 #endif

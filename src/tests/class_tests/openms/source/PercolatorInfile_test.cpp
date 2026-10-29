@@ -865,6 +865,51 @@ START_SECTION((static void refreshPinMetaValues(PeptideIdentificationList& pepti
 }
 END_SECTION
 
+START_SECTION(([EXTRA] load: a single-file PIN with no FileName column loads without crashing))
+{
+  // CPP-161: load() unconditionally read map_filename_to_idx.at(raw_file_name) to set id_merge_index,
+  // but that map is only populated when a FileName column exists in the header. A single-file PIN,
+  // the exact shape PercolatorInfile::store() itself writes (see the "one file: no FileName column"
+  // section above), has no such column, so raw_file_name stays "UNKNOWN" and .at() threw
+  // std::out_of_range on the very first PSM -- OpenMS could not read back its own PIN output.
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("SAMPLER"));
+  hit.setCharge(2);
+  hit.setScore(1.0);
+  hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
+  PeptideEvidence ev;
+  ev.setProteinAccession("PROT1");
+  ev.setAABefore('K');
+  ev.setAAAfter('S');
+  hit.setPeptideEvidences(std::vector<PeptideEvidence>{ev});
+  PeptideIdentification pid;
+  pid.setMZ(500.25);
+  pid.setRT(123.4);
+  pid.setSpectrumReference("scan=529");
+  pid.setHits(std::vector<PeptideHit>{hit});
+  pid.setMetaValue("file_origin", "a.mzML");
+
+  PeptideIdentificationList one_file;
+  one_file.push_back(pid);
+
+  StringList feature_set = PercolatorInfile::getStandardFeatureSet(2, 3);
+  feature_set.push_back("retentiontime"); // required by load(), not by store()'s own internal checks
+  feature_set.push_back("Peptide");
+  feature_set.push_back("Proteins");
+
+  std::string pin_file;
+  NEW_TMP_FILE(pin_file);
+  PercolatorInfile::store(pin_file, one_file, feature_set, "trypsin", 2, 3);
+
+  StringList filenames;
+  StringList extra_scores;
+  PeptideIdentificationList loaded = PercolatorInfile::load(pin_file, true, "dm", extra_scores, filenames, "DECOY_");
+  TEST_EQUAL(loaded.size(), 1)
+  TEST_EQUAL(filenames.empty(), true)
+  TEST_EQUAL(loaded[0].metaValueExists("id_merge_index"), false)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 START_SECTION(([EXTRA] enzyme name "+keep_termini": a protein terminus counts as an enzymatic site for enzN/enzC only without it))

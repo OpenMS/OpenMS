@@ -19,6 +19,8 @@
 ///////////////////////////
 
 #include <algorithm>
+#include <fstream>
+#include <sstream>
 #include <vector>
 
 using namespace OpenMS;
@@ -180,7 +182,41 @@ END_SECTION
 
 START_SECTION((void store(const std::string &filename) const ))
 {
-	NOT_TESTABLE
+  // store() must tag a set member's quality parameter with the same CV
+  // accession load() looks for inside a setQuality element ("MS:1000577",
+  // the same one already used, consistently, for a run's own name) -- not
+  // "QC:0000005", which load() never recognizes as a member at all. [EXTRA]
+  QcMLFile qcml;
+  qcml.registerRun("run1_id", "run1_name");
+
+  QcMLFile::QualityParameter run_name_qp;
+  run_name_qp.name = "mzML file";
+  run_name_qp.id = "run1_run_name";
+  run_name_qp.cvRef = "MS";
+  run_name_qp.cvAcc = "MS:1000577";
+  run_name_qp.value = "run1_name";
+  qcml.addRunQualityParameter("run1_id", run_name_qp);
+
+  std::set<std::string> members;
+  members.insert("run1_id");
+  qcml.registerSet("set1_id", "set1_name", members);
+
+  std::string filename;
+  NEW_TMP_FILE(filename);
+  qcml.store(filename);
+
+  ifstream is(filename.c_str());
+  std::stringstream contents;
+  contents << is.rdbuf();
+  std::string written = contents.str();
+
+  // The embedded qcML report stylesheet carries its own unrelated
+  // "MS:1000577" occurrences, so check the member entry's exact
+  // serialized form rather than a whole-file accession count.
+  bool member_tagged_correctly =
+      written.find("ID=\"run1_id\" cvRef=\"MS\" accession=\"MS:1000577\"") != std::string::npos;
+  TEST_EQUAL(member_tagged_correctly, true)
+  TEST_EQUAL(written.find("QC:0000005") == std::string::npos, true)
 }
 END_SECTION
 
@@ -269,6 +305,22 @@ START_SECTION(([QcMLFile::Attachment] std::string toXMLString(UInt indentation_l
   TEST_EQUAL(xml.find("unitAccession=\"UO:0000169\"") != std::string::npos, true)
   TEST_EQUAL(xml.find("unitRef=\"") != std::string::npos, false)
   TEST_EQUAL(xml.find("unitAcc=\"") != std::string::npos, false)
+
+  // CPP-156: the table-row writer computed a space-substituted copy_row but then concatenated
+  // the original, unmodified row (*it) instead, so a cell containing a space (e.g. "hello world")
+  // is written with the space intact and becomes two tokens when the row is split on whitespace
+  // while reloading.
+  QcMLFile::Attachment table_at;
+  table_at.colTypes.push_back("col1");
+  table_at.colTypes.push_back("col2");
+  std::vector<std::string> row;
+  row.push_back("hello world");
+  row.push_back("x");
+  table_at.tableRows.push_back(row);
+
+  std::string table_xml = table_at.toXMLString(0);
+  TEST_EQUAL(table_xml.find("hello_world") != std::string::npos, true)
+  TEST_EQUAL(table_xml.find("hello world") != std::string::npos, false)
 }
 END_SECTION
 

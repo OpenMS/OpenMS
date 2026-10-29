@@ -7,6 +7,7 @@
 
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/PASEFHillCentroider.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
@@ -36,15 +37,18 @@
 
 #include <exception>
 #include <memory>
+#include <new>
 #include <algorithm>
 #include <array>
 #include <filesystem>
+#include <fstream>
 #include <numeric>
 #include <vector>
 #include <cmath>
 #include <cstdlib>
 #include <limits>
 #include <map>
+#include <set>
 #include <unordered_map>
 #include <optional>
 #include <stdexcept>
@@ -749,6 +753,59 @@ namespace OpenMS
     eff.frame_id_max = config.frame_id_max;
   }
 
+  // The polarity of the frames (Frames.Polarity, '+' or '-'), which every spectrum gets: that of the frame its native ID
+  // names ("frame=<Id> ...", as all loaders write it). A run of one polarity, as nearly all are, needs no lookup.
+  class FramePolarity
+  {
+  public:
+    explicit FramePolarity(const std::string& tdf_path)
+    {
+      try
+      {
+        SQLite::Database db(tdf_path, SQLite::OPEN_READONLY);
+        SQLite::Statement query(db, "SELECT Id, Polarity FROM Frames");
+        bool first = true;
+        while (query.executeStep())
+        {
+          const std::string text = query.getColumn(1).getString();
+          const IonSource::Polarity polarity = text == "+" ? IonSource::Polarity::POSITIVE
+                                               : text == "-" ? IonSource::Polarity::NEGATIVE
+                                                             : IonSource::Polarity::POLNULL;
+          by_frame_[static_cast<uint32_t>(query.getColumn(0).getInt64())] = polarity;
+          if (first) run_ = polarity;
+          else if (polarity != run_) mixed_ = true;
+          first = false;
+        }
+      }
+      catch (const SQLite::Exception&)
+      {
+        // no Polarity column: the polarity stays unknown
+      }
+      if (!mixed_) by_frame_.clear();
+    }
+
+    void apply(MSSpectrum& spec) const
+    {
+      IonSource::Polarity polarity = run_;
+      if (mixed_)
+      {
+        polarity = IonSource::Polarity::POLNULL;
+        const std::string& id = spec.getNativeID();
+        if (id.compare(0, 6, "frame=") == 0)
+        {
+          const auto it = by_frame_.find(static_cast<uint32_t>(std::strtoul(id.c_str() + 6, nullptr, 10)));
+          if (it != by_frame_.end()) polarity = it->second;
+        }
+      }
+      spec.getInstrumentSettings().setPolarity(polarity);
+    }
+
+  private:
+    IonSource::Polarity run_ = IonSource::Polarity::POLNULL;
+    bool mixed_ = false;
+    std::unordered_map<uint32_t, IonSource::Polarity> by_frame_;
+  };
+
   // One-shot validation of the frame_id and RT ranges against the file's
   // actual frame bounds + RT resolution. Called from each top-level public
   // entry point. Returns an effective Config in which frame_id_min/max have
@@ -1275,13 +1332,33 @@ namespace OpenMS
       return windows;
     }
 
+    // Synchro-PASEF (diagonal-PASEF) moves the quadrupole along with the ion mobility scan, so analysis.tdf lists an
+    // isolation window for every scan step (927 windows of one scan per frame in PXD037766). The DIA loaders make
+    // every window an MS2 spectrum of its own, which is right for diaPASEF, whose windows span dozens to hundreds of
+    // scans, but gives a flood of spectra with a few peaks each here.
+    void warnIfSynchroPASEF(const std::vector<DIAWindow>& windows)
+    {
+      constexpr uint32_t min_scans = 10;
+      const Size narrow = std::count_if(windows.begin(), windows.end(), [](const DIAWindow& w)
+        { return w.scan_end < w.scan_begin + min_scans; });
+      if (narrow * 2 <= windows.size()) return;
+      OPENMS_LOG_WARN << "Warning: " << narrow << " of the " << windows.size() << " DIA isolation windows span fewer than "
+                      << min_scans << " scans: the quadrupole moves along with the ion mobility scan, as in synchro-PASEF "
+                      << "(diagonal-PASEF). This acquisition type is not supported. Every window becomes an MS2 spectrum "
+                      << "of its own, so the MS2 data is split into very many spectra of a few peaks each." << std::endl;
+    }
+
     // Build frame_id -> WindowGroup mapping from SQL.
     // Returns map<window_group, vector<frame_id>> sorted by frame_id within each group.
+    // Frames that DiaFrameMsMsInfo lists but the Frames table lacks (an incomplete or edited analysis.tdf) are left
+    // out with a warning, as the DDA loader skips the PASEF entries of missing frames.
     std::map<int, std::vector<uint32_t>> readFrameToWindowGroupMapping(
       SQLite::Database& db,
-      const std::vector<DIAWindow>& windows)
+      const std::vector<DIAWindow>& windows,
+      const TimsDataHandle& handle)
     {
       std::map<int, std::vector<uint32_t>> mapping;
+      std::set<uint32_t> missing_frames;
 
       // Try DiaFrameMsMsInfo with WindowGroup column first (newer format)
       bool has_window_group_column = false;
@@ -1301,6 +1378,11 @@ namespace OpenMS
         {
           uint32_t frame_id = static_cast<uint32_t>(q.getColumn(0).getInt());
           int group = q.getColumn(1).getInt();
+          if (!handle.has_frame(frame_id))
+          {
+            missing_frames.insert(frame_id);
+            continue;
+          }
           mapping[group].push_back(frame_id);
         }
       }
@@ -1332,6 +1414,11 @@ namespace OpenMS
         while (q.executeStep())
         {
           uint32_t frame_id = static_cast<uint32_t>(q.getColumn(0).getInt());
+          if (!handle.has_frame(frame_id))
+          {
+            missing_frames.insert(frame_id);
+            continue;
+          }
           WindowKey key{
             q.getColumn(1).getDouble(),
             q.getColumn(2).getDouble(),
@@ -1350,13 +1437,19 @@ namespace OpenMS
         }
       }
 
+      if (!missing_frames.empty())
+      {
+        OPENMS_LOG_WARN << "Warning: DiaFrameMsMsInfo lists " << missing_frames.size() << " frame(s) that the Frames table of "
+                        << "analysis.tdf lacks (e.g. frame " << *missing_frames.begin() << "); they are skipped" << std::endl;
+      }
       return mapping;
     }
 
-    // DDA precursor info (joined from Precursors + PasefFrameMsMsInfo)
+    // DDA precursor info (joined from Precursors + PasefFrameMsMsInfo), or a PASEF window without a precursor
     struct DDAPrecursorInfo
     {
-      int precursor_id;
+      int precursor_id;       // Precursors.Id, or for a window without a precursor a negative id of its own
+      bool has_precursor = true; // false: a PasefFrameMsMsInfo row whose Precursor is NULL (see readDDAPrecursors())
       double monoisotopic_mz; // NaN if the acquisition software determined none (NULL), see selectedMZ()
       double largest_peak_mz; // m/z of the most intense peak of the precursor's isotope pattern (NaN if NULL)
       double scan_number;     // precursor position on the mobility axis, a fractional scan number (NaN if NULL)
@@ -1368,60 +1461,129 @@ namespace OpenMS
       uint32_t scan_end;
       double isolation_mz;
       double isolation_width;
+      double collision_energy; // eV, as stored (negative in negative mode)
 
       /// The selected ion m/z: the monoisotopic m/z, or for a precursor without one (its charge state could not be
       /// determined, so Charge is NULL as well) the m/z of its most intense peak, as Bruker's own and other readers
-      /// (timsrust, alphatims) report it. 0 if neither is known.
+      /// (timsrust, alphatims) report it. 0 if neither is known. A window without a precursor has only its
+      /// isolation m/z, the target of the acquisition list. (For a precursor, the isolation m/z is the centre of
+      /// the quadrupole window, up to a few isotopes above the monoisotopic m/z, and is not used.)
       double selectedMZ() const
       {
+        if (!has_precursor) return isolation_mz;
         if (std::isfinite(monoisotopic_mz) && monoisotopic_mz > 0.0) return monoisotopic_mz;
         if (std::isfinite(largest_peak_mz) && largest_peak_mz > 0.0) return largest_peak_mz;
         return 0.0;
       }
     };
 
-    // Whether analysis.tdf has the DDA-PASEF precursor tables. TDF data without PASEF precursors, such as
-    // MS1-only MALDI runs, has neither of them.
-    bool hasDDAPrecursorTables(SQLite::Database& db)
+    // The fragmentation mode of the run's PASEF MS/MS frames, if they record it: the property
+    // MSMSAuto_FragmentationMode, whose values are "0:CID;1:ETD" (PropertyDefinitions.DisplayValueText). A frame has
+    // the value of its FrameProperties, else that of its property group.
+    // None if a frame has no value or the frames have more than one value.
+    std::optional<Precursor::ActivationMethod> readFragmentationMode(SQLite::Database& db)
     {
-      return db.tableExists("Precursors") && db.tableExists("PasefFrameMsMsInfo");
+      if (!db.tableExists("PasefFrameMsMsInfo") || !db.tableExists("PropertyDefinitions") || !db.tableExists("GroupProperties"))
+      {
+        return std::nullopt;
+      }
+      const std::string property = "(SELECT Id FROM PropertyDefinitions WHERE PermanentName = 'MSMSAuto_FragmentationMode')";
+      const bool frame_properties = db.tableExists("FrameProperties");
+      std::string sql = std::string("SELECT DISTINCT ") + (frame_properties ? "COALESCE(fp.Value, gp.Value)" : "gp.Value")
+                        + " FROM (SELECT DISTINCT Frame FROM PasefFrameMsMsInfo) pasef"
+                        " JOIN Frames f ON f.Id = pasef.Frame"
+                        " LEFT JOIN GroupProperties gp ON gp.PropertyGroup = f.PropertyGroup AND gp.Property = " + property;
+      if (frame_properties) sql += " LEFT JOIN FrameProperties fp ON fp.Frame = f.Id AND fp.Property = " + property;
+      SQLite::Statement q(db, sql);
+      std::optional<Precursor::ActivationMethod> mode;
+      while (q.executeStep())
+      {
+        if (mode || !q.getColumn(0).isInteger()) return std::nullopt;
+        switch (q.getColumn(0).getInt())
+        {
+          case 0: mode = Precursor::ActivationMethod::CID; break;
+          case 1: mode = Precursor::ActivationMethod::ETD; break;
+          default: return std::nullopt;
+        }
+      }
+      return mode;
     }
 
-    // Read DDA precursors from SQL (none if there are no precursor tables)
+    // Read the DDA precursors and the PASEF windows without a precursor from SQL. TDF data without PASEF MS/MS
+    // frames, such as MS1-only MALDI runs, has no PasefFrameMsMsInfo table and gives none.
+    //
+    // Acquisitions of a fixed target list (SIMSEF, iprm-PASEF) leave the Precursors table empty: the Precursor of
+    // their PasefFrameMsMsInfo rows is NULL. Each such row is a window of its own and becomes one MS2 spectrum: it
+    // gets a negative precursor_id (-n, ..., -1 in the order of frame and scan), which no precursor has.
     std::vector<DDAPrecursorInfo> readDDAPrecursors(SQLite::Database& db)
     {
       std::vector<DDAPrecursorInfo> precursors;
-      if (!hasDDAPrecursorTables(db)) return precursors;
+      if (!db.tableExists("PasefFrameMsMsInfo")) return precursors;
 
-      SQLite::Statement q(db,
-        "SELECT p.Id, p.MonoisotopicMz, p.Charge, p.Intensity, "
-        "       pfm.Frame, pfm.ScanNumBegin, pfm.ScanNumEnd, "
-        "       pfm.IsolationMz, pfm.IsolationWidth, "
-        "       p.LargestPeakMz, p.ScanNumber, p.Parent "
-        "FROM Precursors p "
-        "JOIN PasefFrameMsMsInfo pfm ON p.Id = pfm.Precursor "
-        "ORDER BY p.Id, pfm.Frame, pfm.ScanNumBegin");
+      if (db.tableExists("Precursors"))
+      {
+        SQLite::Statement q(db,
+          "SELECT p.Id, p.MonoisotopicMz, p.Charge, p.Intensity, "
+          "       pfm.Frame, pfm.ScanNumBegin, pfm.ScanNumEnd, "
+          "       pfm.IsolationMz, pfm.IsolationWidth, "
+          "       p.LargestPeakMz, p.ScanNumber, p.Parent, pfm.CollisionEnergy "
+          "FROM Precursors p "
+          "JOIN PasefFrameMsMsInfo pfm ON p.Id = pfm.Precursor "
+          "ORDER BY p.Id, pfm.Frame, pfm.ScanNumBegin");
 
-      while (q.executeStep())
+        while (q.executeStep())
+        {
+          DDAPrecursorInfo info;
+          info.precursor_id   = q.getColumn(0).getInt();
+          // NULL columns read as 0 with getDouble(), which would become a precursor m/z of 0
+          const auto nullable = [&q](int column) {
+            return q.getColumn(column).isNull() ? std::numeric_limits<double>::quiet_NaN() : q.getColumn(column).getDouble();
+          };
+          info.monoisotopic_mz = nullable(1);
+          info.charge          = q.getColumn(2).isNull() ? 0 : q.getColumn(2).getInt();
+          info.intensity       = q.getColumn(3).isNull() ? std::numeric_limits<double>::quiet_NaN() : q.getColumn(3).getDouble();
+          info.frame_id        = static_cast<uint32_t>(q.getColumn(4).getInt());
+          info.scan_begin      = static_cast<uint32_t>(q.getColumn(5).getInt());
+          info.scan_end        = static_cast<uint32_t>(q.getColumn(6).getInt());
+          info.isolation_mz    = q.getColumn(7).getDouble();
+          info.isolation_width = q.getColumn(8).getDouble();
+          info.largest_peak_mz = nullable(9);
+          info.scan_number     = nullable(10);
+          info.parent_frame    = q.getColumn(11).isNull() ? -1 : q.getColumn(11).getInt();
+          info.collision_energy = q.getColumn(12).getDouble();
+          precursors.push_back(info);
+        }
+      }
+
+      // The windows without a precursor: the precursor m/z is the isolation m/z (see selectedMZ()), the ion
+      // mobility that of the isolated scans (see loadDDA_()). Nothing else is known about the precursor.
+      SQLite::Statement targets(db,
+        "SELECT Frame, ScanNumBegin, ScanNumEnd, IsolationMz, IsolationWidth, CollisionEnergy "
+        "FROM PasefFrameMsMsInfo WHERE Precursor IS NULL "
+        "ORDER BY Frame, ScanNumBegin");
+      const size_t first_target = precursors.size();
+      while (targets.executeStep())
       {
         DDAPrecursorInfo info;
-        info.precursor_id   = q.getColumn(0).getInt();
-        // NULL columns read as 0 with getDouble(), which would become a precursor m/z of 0
-        const auto nullable = [&q](int column) {
-          return q.getColumn(column).isNull() ? std::numeric_limits<double>::quiet_NaN() : q.getColumn(column).getDouble();
-        };
-        info.monoisotopic_mz = nullable(1);
-        info.charge          = q.getColumn(2).isNull() ? 0 : q.getColumn(2).getInt();
-        info.intensity       = q.getColumn(3).isNull() ? std::numeric_limits<double>::quiet_NaN() : q.getColumn(3).getDouble();
-        info.frame_id        = static_cast<uint32_t>(q.getColumn(4).getInt());
-        info.scan_begin      = static_cast<uint32_t>(q.getColumn(5).getInt());
-        info.scan_end        = static_cast<uint32_t>(q.getColumn(6).getInt());
-        info.isolation_mz    = q.getColumn(7).getDouble();
-        info.isolation_width = q.getColumn(8).getDouble();
-        info.largest_peak_mz = nullable(9);
-        info.scan_number     = nullable(10);
-        info.parent_frame    = q.getColumn(11).isNull() ? -1 : q.getColumn(11).getInt();
+        info.has_precursor   = false;
+        info.monoisotopic_mz = std::numeric_limits<double>::quiet_NaN();
+        info.largest_peak_mz = std::numeric_limits<double>::quiet_NaN();
+        info.scan_number     = std::numeric_limits<double>::quiet_NaN();
+        info.parent_frame    = -1;
+        info.charge          = 0;
+        info.intensity       = std::numeric_limits<double>::quiet_NaN();
+        info.frame_id        = static_cast<uint32_t>(targets.getColumn(0).getInt());
+        info.scan_begin      = static_cast<uint32_t>(targets.getColumn(1).getInt());
+        info.scan_end        = static_cast<uint32_t>(targets.getColumn(2).getInt());
+        info.isolation_mz    = targets.getColumn(3).getDouble();
+        info.isolation_width = targets.getColumn(4).getDouble();
+        info.collision_energy = targets.getColumn(5).getDouble();
         precursors.push_back(info);
+      }
+      const int num_targets = static_cast<int>(precursors.size() - first_target);
+      for (int i = 0; i < num_targets; ++i)
+      {
+        precursors[first_target + i].precursor_id = i - num_targets;
       }
 
       return precursors;
@@ -1473,7 +1635,8 @@ namespace OpenMS
       try
       {
         SQLite::Statement q(db,
-          "SELECT COUNT(DISTINCT Precursor) FROM PasefFrameMsMsInfo"
+          // each window without a precursor (Precursor NULL) is a spectrum of its own, see readDDAPrecursors()
+          "SELECT COUNT(DISTINCT Precursor) + COUNT(*) - COUNT(Precursor) FROM PasefFrameMsMsInfo"
           " WHERE Frame >= " + std::to_string(config.frame_id_min) +
           " AND Frame <= " + std::to_string(config.frame_id_max));
         if (q.executeStep())
@@ -1494,7 +1657,10 @@ namespace OpenMS
         SQLite::Statement q(db,
           "SELECT COUNT(*) FROM (SELECT SUM(f.Time) / COUNT(*) AS rt FROM PasefFrameMsMsInfo pfm"
           " LEFT JOIN Frames f ON f.Id = pfm.Frame"
-          " WHERE pfm.Frame >= ? AND pfm.Frame <= ? GROUP BY pfm.Precursor)"
+          " WHERE pfm.Frame >= ? AND pfm.Frame <= ?"
+          // each window without a precursor (Precursor NULL) is a spectrum of its own, see readDDAPrecursors()
+          " GROUP BY pfm.Precursor, CASE WHEN pfm.Precursor IS NULL THEN pfm.Frame END,"
+          " CASE WHEN pfm.Precursor IS NULL THEN pfm.ScanNumBegin END)"
           " WHERE rt >= ? AND rt <= ?");
         q.bind(1, static_cast<int64_t>(config.frame_id_min));
         q.bind(2, static_cast<int64_t>(config.frame_id_max));
@@ -1605,6 +1771,69 @@ namespace OpenMS
       "(TimsCompressionType 2) can be read, which timsTOF acquisition software has written since 2018");
   }
 
+  // opentims reads every frame at its offset into analysis.tdf_bin (Frames.TimsId) without comparing it with the size of
+  // the file, so a frame that lies (partly) beyond the end of the file crashes the program. That happens with a file that
+  // was not completely copied or uploaded, or that the acquisition is still writing. The frames are stored one after the
+  // other, so the file is complete if the frame with the largest offset ends in it; the first number of the header of a
+  // frame is its size in bytes (header included). Checked before opentims gets the directory.
+  static void checkFrameOffsets(const std::string& d_path)
+  {
+    const std::string bin_path = d_path + "/analysis.tdf_bin";
+    std::error_code ec;
+    const std::uintmax_t bin_size = std::filesystem::file_size(to_path(bin_path), ec);
+    if (ec) return; // no analysis.tdf_bin: opentims reports that
+
+    int64_t first_frame = 0, first_offset = 0, last_frame = 0, last_offset = 0;
+    try
+    {
+      SQLite::Database db(d_path + "/analysis.tdf", SQLite::OPEN_READONLY);
+      SQLite::Statement first(db, "SELECT Id, TimsId FROM Frames WHERE TimsId IS NOT NULL ORDER BY TimsId LIMIT 1");
+      if (!first.executeStep()) return; // no frames
+      first_frame = first.getColumn(0).getInt64();
+      first_offset = first.getColumn(1).getInt64();
+      SQLite::Statement last(db, "SELECT Id, TimsId FROM Frames WHERE TimsId IS NOT NULL ORDER BY TimsId DESC LIMIT 1");
+      last.executeStep();
+      last_frame = last.getColumn(0).getInt64();
+      last_offset = last.getColumn(1).getInt64();
+    }
+    catch (const std::exception&)
+    {
+      return; // no analysis.tdf or Frames table that can be queried: opentims reports that
+    }
+
+    if (first_offset < 0)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path,
+        "analysis.tdf is corrupt: frame " + std::to_string(first_frame) + " has a negative offset ("
+        + std::to_string(first_offset) + ") into analysis.tdf_bin");
+    }
+
+    const uint64_t header_size = 8; // frame size and number of scans, two little-endian uint32
+    uint64_t last_end = static_cast<uint64_t>(last_offset) + header_size;
+    if (last_end <= bin_size)
+    {
+      std::ifstream bin(to_path(bin_path), std::ios::binary);
+      unsigned char size_bytes[4] = {0, 0, 0, 0};
+      bin.seekg(static_cast<std::streamoff>(last_offset));
+      bin.read(reinterpret_cast<char*>(size_bytes), sizeof(size_bytes));
+      if (!bin) return; // could not be read here: opentims reports that
+      const uint32_t frame_size = static_cast<uint32_t>(size_bytes[0]) | (static_cast<uint32_t>(size_bytes[1]) << 8)
+                                  | (static_cast<uint32_t>(size_bytes[2]) << 16) | (static_cast<uint32_t>(size_bytes[3]) << 24);
+      if (frame_size < header_size)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path,
+          "analysis.tdf_bin is corrupt: frame " + std::to_string(last_frame) + " at byte " + std::to_string(last_offset)
+          + " has a size of " + std::to_string(frame_size) + " bytes, less than its header");
+      }
+      last_end = static_cast<uint64_t>(last_offset) + frame_size;
+    }
+    if (last_end <= bin_size) return;
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path,
+      "analysis.tdf_bin is incomplete: it has " + std::to_string(bin_size) + " bytes, but frame " + std::to_string(last_frame)
+      + " takes bytes " + std::to_string(last_offset) + " to " + std::to_string(last_end) + ". The file was not completely "
+      "copied or uploaded, or the acquisition was still writing it");
+  }
+
   // MALDI imaging runs (GlobalMetadata MaldiApplicationType "Imaging") are read by BrukerTimsImagingFile, which keeps
   // the pixel position of every frame. Read as DDA or DIA data here, they would lose them (and an MS1-only run would
   // pass for an LC run without precursors), so they are rejected; export mode FRAME, which BrukerTimsImagingFile uses,
@@ -1630,20 +1859,61 @@ namespace OpenMS
       "MSImagingExperiment, or read its frames with export mode FRAME");
   }
 
-  // Runs one of the public read functions on @p path. No SQLite exception leaves the reader: an analysis.tdf that
-  // lacks a table or column a query needs is reported as ParseError of @p path (the TOPP tools catch OpenMS
-  // exceptions only, so an SQLite::Exception would end the program).
+  // An exception that the consumer of transform() or loadDIAStreaming() threw, on its way through the reader to the
+  // public read function, which rethrows it as it was (see rethrowAsParseError())
+  struct ConsumerError
+  {
+    std::exception_ptr error;
+  };
+
+  // Runs a call of the consumer of transform() or loadDIAStreaming(). Its exceptions leave the reader as they are: they
+  // tell what went wrong in the consumer (e.g. a Python callback that raised), not in the data.
+  template <typename Call>
+  static void callConsumer(Call&& call)
+  {
+    try
+    {
+      call();
+    }
+    catch (...)
+    {
+      throw ConsumerError{std::current_exception()};
+    }
+  }
+
+  // Runs one of the public read functions on @p path. Errors in the data leave the reader as OpenMS exceptions (the
+  // TOPP tools catch those only, so any other exception would end the program): an analysis.tdf that lacks a table or
+  // column a query needs, and frames that opentims cannot decode (e.g. corrupt zstd data in analysis.tdf_bin), are
+  // reported as ParseError of @p path. Exceptions of the consumer (callConsumer()) and running out of memory say
+  // nothing about the data and leave as they are.
   template <typename Function>
-  static auto rethrowSQLiteErrors(const std::string& path, Function&& function)
+  static auto rethrowAsParseError(const std::string& path, Function&& function)
   {
     try
     {
       return function();
     }
+    catch (const Exception::BaseException&)
+    {
+      throw;
+    }
+    catch (const ConsumerError& e)
+    {
+      std::rethrow_exception(e.error);
+    }
+    catch (const std::bad_alloc&)
+    {
+      throw;
+    }
     catch (const SQLite::Exception& e)
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
         std::string("Cannot read analysis.tdf (SQLite: ") + e.what() + ")");
+    }
+    catch (const std::exception& e)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
+        std::string("Cannot read the Bruker TDF data: ") + e.what());
     }
   }
 
@@ -1738,6 +2008,7 @@ namespace OpenMS
   {
     BrukerTimsFile::checkDataFormat(path);
     checkCompression(path);
+    checkFrameOffsets(path);
 
     std::string path_string = path;
 
@@ -2353,7 +2624,7 @@ namespace OpenMS
     SourceFile sf;
     sf.setNameOfFile(File::basename(path));
     sf.setPathToFile(File::path(path));
-    sf.setFileType("Bruker TDF");
+    sf.setFileType(FileTypes::typeToMZML(FileTypes::BRUKER_TDF)); // the CV term name, "Bruker TDF format"
     sf.setNativeIDType("Bruker TDF nativeID format");
     sf.setNativeIDTypeAccession("MS:1002818");
     settings.getSourceFiles().push_back(sf);
@@ -2441,7 +2712,7 @@ namespace OpenMS
   BrukerTimsFile::DIAStreamingMetadata BrukerTimsFile::readDIAMetadata(
       const std::string& path, ExperimentalSettings& exp_settings, const Config& config)
   {
-    return rethrowSQLiteErrors(path, [&] { return readDIAMetadata_(path, exp_settings, config); });
+    return rethrowAsParseError(path, [&] { return readDIAMetadata_(path, exp_settings, config); });
   }
 
   BrukerTimsFile::DIAStreamingMetadata BrukerTimsFile::readDIAMetadata_(
@@ -2502,7 +2773,7 @@ namespace OpenMS
     // Count MS2 spectra per window (= frames per WindowGroup).
     // Apply the frame range filter so counts match what loadDIAStreaming
     // will actually emit (CachedSwathFileConsumer sizing depends on it).
-    auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+    auto group_to_frames = readFrameToWindowGroupMapping(db, windows, *handle);
     for (auto& [group, frame_ids] : group_to_frames)
     {
       frame_ids.erase(
@@ -2651,7 +2922,7 @@ namespace OpenMS
   void BrukerTimsFile::loadDIAStreaming(
       const std::string& path, FullSwathFileConsumer& consumer, const Config& config)
   {
-    rethrowSQLiteErrors(path, [&] { loadDIAStreaming_(path, consumer, config); });
+    rethrowAsParseError(path, [&] { loadDIAStreaming_(path, consumer, config); });
   }
 
   void BrukerTimsFile::loadDIAStreaming_(
@@ -2667,6 +2938,7 @@ namespace OpenMS
     const auto eff = resolveEffectiveConfig(db, config,
                                              handle->min_frame_id(),
                                              handle->max_frame_id());
+    const FramePolarity polarity(tdf_path);
 
     // --- MS1 frames ---
     std::vector<uint32_t> ms1_frame_ids;
@@ -2694,7 +2966,8 @@ namespace OpenMS
       // peaks, producing empty chromatograms and breaking iRT calibration.
       // The non-streaming load() path gets this sort for free via exp.sortSpectra(true).
       spec.sortByPosition();
-      consumer.consumeSpectrum(spec);
+      polarity.apply(spec);
+      callConsumer([&] { consumer.consumeSpectrum(spec); });
       setProgress(i);
     }
     endProgress();
@@ -2710,8 +2983,9 @@ namespace OpenMS
       OPENMS_LOG_WARN << "Warning: DIA dataset detected but no SWATH windows found" << std::endl;
       return;
     }
+    warnIfSynchroPASEF(windows);
 
-    auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+    auto group_to_frames = readFrameToWindowGroupMapping(db, windows, *handle);
     for (auto& [group, frame_ids] : group_to_frames)
     {
       frame_ids.erase(
@@ -2770,7 +3044,8 @@ namespace OpenMS
             // in the MS1 loop above). The peaks were added in m/z order; this only sorts if the frame
             // could not be ordered when it was decoded.
             spec.sortByPosition();
-            consumer.consumeSpectrum(spec);
+            polarity.apply(spec);
+            callConsumer([&] { consumer.consumeSpectrum(spec); });
           }
         }
       }
@@ -2807,7 +3082,7 @@ namespace OpenMS
       // — NOT frames × all_windows. Mirrors the total_work computation in
       // loadDIA_.
       auto windows = readDIAWindows(db, *handle.scan2inv_ion_mobility_converter);
-      auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+      auto group_to_frames = readFrameToWindowGroupMapping(db, windows, handle);
       for (auto& [group, frame_ids] : group_to_frames)
       {
         frame_ids.erase(
@@ -2878,7 +3153,7 @@ namespace OpenMS
 
   void BrukerTimsFile::load(const std::string& path, MSExperiment& exp, const Config& config)
   {
-    rethrowSQLiteErrors(path, [&] { load_(path, exp, config); });
+    rethrowAsParseError(path, [&] { load_(path, exp, config); });
   }
 
   void BrukerTimsFile::load_(const std::string& path, MSExperiment& exp, const Config& config)
@@ -2905,7 +3180,12 @@ namespace OpenMS
     }
     keepFrameRangeOfUser(eff, config);
 
-    const SpectrumSink to_experiment = selectingSink(eff, [&exp](MSSpectrum& spec) { exp.addSpectrum(std::move(spec)); });
+    const FramePolarity polarity(tdf_path);
+    const SpectrumSink to_experiment = selectingSink(eff, [&exp, &polarity](MSSpectrum& spec)
+    {
+      polarity.apply(spec);
+      exp.addSpectrum(std::move(spec));
+    });
     Config::ExportMode mode = eff.export_mode;
 
     if (mode == Config::FRAME)
@@ -2939,7 +3219,7 @@ namespace OpenMS
 
   void BrukerTimsFile::transform(const std::string& path, Interfaces::IMSDataConsumer* consumer, const Config& config)
   {
-    rethrowSQLiteErrors(path, [&] { transform_(path, consumer, config); });
+    rethrowAsParseError(path, [&] { transform_(path, consumer, config); });
   }
 
   void BrukerTimsFile::transform_(const std::string& path, Interfaces::IMSDataConsumer* consumer, const Config& config)
@@ -2960,17 +3240,22 @@ namespace OpenMS
     Config::ExportMode mode = eff.export_mode;
 
     const size_t expected = expectedSpectra(db, *handle, eff, is_dia, &config);
-    consumer->setExpectedSize(expected, 0);
+    callConsumer([&] { consumer->setExpectedSize(expected, 0); });
     keepFrameRangeOfUser(eff, config);
 
     // Populate source file metadata (same as load())
     ExperimentalSettings settings;
     loadExperimentalSettings_(path, d_path, settings);
-    consumer->setExperimentalSettings(settings);
+    callConsumer([&] { consumer->setExperimentalSettings(settings); });
 
+    const FramePolarity polarity(tdf_path);
     const auto run_loader = [&](const SpectrumSink& emit)
     {
-      const SpectrumSink sink = selectingSink(eff, emit);
+      const SpectrumSink sink = selectingSink(eff, [&emit, &polarity](MSSpectrum& spec)
+      {
+        polarity.apply(spec);
+        emit(spec);
+      });
       if (mode == Config::FRAME)
         loadFrames_(*handle, sink, eff);
       else if (is_dia && mode != Config::SPECTRUM)
@@ -2994,7 +3279,7 @@ namespace OpenMS
         }
         last_rt = spec.getRT();
         spec.sortByPosition(); // by m/z; all but a few arrive sorted
-        consumer->consumeSpectrum(spec);
+        callConsumer([&] { consumer->consumeSpectrum(spec); });
       });
     }
     else
@@ -3006,7 +3291,7 @@ namespace OpenMS
       exp.sortSpectra(true);
       for (auto& spec : exp)
       {
-        consumer->consumeSpectrum(spec);
+        callConsumer([&] { consumer->consumeSpectrum(spec); });
       }
     }
   }
@@ -3041,14 +3326,17 @@ namespace OpenMS
     // downstream silently skip any orphans, but stripping them here keeps
     // progress counts and the precursor_groups loop honest.
     std::vector<DDAPrecursorInfo> precursor_entries;
+    std::optional<Precursor::ActivationMethod> fragmentation_mode;
     if (config.load_ms2)
     {
       precursor_entries = readDDAPrecursors(db);
-      // Without PASEF precursors, the MS1 frames are all there is to read as DDA data
-      if (ms2_frame_count > 0 && !hasDDAPrecursorTables(db))
+      fragmentation_mode = readFragmentationMode(db);
+      // Without PASEF precursors or windows, the MS1 frames are all there is to read as DDA data
+      if (ms2_frame_count > 0 && precursor_entries.empty())
       {
-        OPENMS_LOG_WARN << "Warning: the run has " << ms2_frame_count << " MS2 frame(s) but no DDA-PASEF precursors "
-                        << "(no Precursors / PasefFrameMsMsInfo table), so only its MS1 frames are read as DDA data. "
+        OPENMS_LOG_WARN << "Warning: the run has " << ms2_frame_count << " MS2 frame(s) but analysis.tdf lists no "
+                        << "DDA-PASEF precursors or isolation windows for them (table PasefFrameMsMsInfo), so only its "
+                        << "MS1 frames are read as DDA data. "
                         << "Export mode FRAME reads every frame." << std::endl;
       }
     }
@@ -3102,9 +3390,22 @@ namespace OpenMS
     // converted with the mobility calibration of its parent MS1 frame), as Bruker's software and other readers
     // (timsrust, alphatims) report it. A precursor without a position gets @p fragment_im, the intensity-weighted
     // mean ion mobility of its fragment peaks (which this reader reported for every precursor before).
-    const auto precursorIonMobility = [&handle](const DDAPrecursorInfo& e, double fragment_im)
+    // A window without a precursor gets the ion mobility of the middle of its isolated scans [scan_begin, scan_end):
+    // the mean of its few fragment peaks would scatter.
+    const auto hasOwnIonMobility = [](const DDAPrecursorInfo& e)
     {
-      if (!std::isfinite(e.scan_number) || e.scan_number < 0.0) return fragment_im;
+      return !e.has_precursor || (std::isfinite(e.scan_number) && e.scan_number >= 0.0);
+    };
+    const auto precursorIonMobility = [&handle, &hasOwnIonMobility](const DDAPrecursorInfo& e, double fragment_im)
+    {
+      if (!hasOwnIonMobility(e)) return fragment_im;
+      if (!e.has_precursor)
+      {
+        const double middle = e.scan_end > e.scan_begin ? (e.scan_begin + e.scan_end - 1) / 2.0 : e.scan_begin;
+        double im = 0.0;
+        handle.scan2inv_ion_mobility_converter->convert(e.frame_id, &im, &middle, 1);
+        return im;
+      }
       const uint32_t frame = (e.parent_frame > 0 && handle.has_frame(static_cast<uint32_t>(e.parent_frame)))
                                ? static_cast<uint32_t>(e.parent_frame) : e.frame_id;
       // the converter takes the fractional scan number directly (no interpolation between integer scans)
@@ -3136,7 +3437,7 @@ namespace OpenMS
         ++sel.entries;
         if (!handle.has_frame(e.frame_id)) continue;
         sel.rt_sum += handle.get_frame(e.frame_id).time;
-        if (select_im && std::isfinite(e.scan_number) && e.scan_number >= 0.0)
+        if (select_im && hasOwnIonMobility(e))
         {
           // the ion mobility the spectrum gets (the same for all entries of the precursor)
           const double im = precursorIonMobility(e, 0.0);
@@ -3385,6 +3686,37 @@ namespace OpenMS
     constexpr uint32_t SMOOTH_WINDOW = 1;
     constexpr uint32_t CENTROID_WINDOW = 1;
 
+    // The native ID of the spectrum of precursor @p prec_id, whose first entry is @p first_entry (see the comment in
+    // emit_precursor)
+    const auto setSpectrumID = [](MSSpectrum& spec, const DDAPrecursorInfo& first_entry, const int prec_id)
+    {
+      const std::string frame_scan = "frame=" + StringUtils::toStr(first_entry.frame_id)
+                                     + " scan=" + StringUtils::toStr(first_entry.scan_begin);
+      if (!first_entry.has_precursor)
+      {
+        spec.setNativeID(frame_scan);
+        return;
+      }
+      spec.setNativeID(frame_scan + " precursor=" + StringUtils::toStr(prec_id));
+      spec.setMetaValue("bruker_precursor_id", prec_id);
+    };
+
+    // The activation of the precursor with the PasefFrameMsMsInfo rows @p entries: their collision energy as the meta
+    // value "collision energy" in eV (MS:1000045 in mzML), as the Thermo reader sets it (left out if the rows have
+    // different ones), and the fragmentation mode of the run, if it records one (see readFragmentationMode())
+    const auto setActivation = [&fragmentation_mode](Precursor& prec, const std::vector<const DDAPrecursorInfo*>& entries)
+    {
+      const double energy = entries.front()->collision_energy;
+      if (std::all_of(entries.begin(), entries.end(), [energy](const DDAPrecursorInfo* e) { return e->collision_energy == energy; }))
+      {
+        DataValue collision_energy(energy);
+        collision_energy.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+        collision_energy.setUnit(266); // UO:0000266 electronvolt
+        prec.setMetaValue("collision energy", collision_energy);
+      }
+      if (fragmentation_mode) prec.setActivationMethods({*fragmentation_mode});
+    };
+
     // Builds the MS2 spectrum of one precursor and emits it; nothing is emitted if no peak is left
     const auto emit_precursor = [&](const int prec_id, const std::vector<const DDAPrecursorInfo*>& entries)
     {
@@ -3492,10 +3824,7 @@ namespace OpenMS
         spec.setDriftTime(precursor_im);
         spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
         spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-        spec.setNativeID("frame=" + StringUtils::toStr(first_entry->frame_id)
-                         + " scan=" + StringUtils::toStr(first_entry->scan_begin)
-                         + " precursor=" + StringUtils::toStr(prec_id));
-        spec.setMetaValue("bruker_precursor_id", static_cast<int>(prec_id));
+        setSpectrumID(spec, *first_entry, prec_id);
 
         spec.reserve(all_mz.size());
         for (size_t idx : sort_idx)
@@ -3513,6 +3842,7 @@ namespace OpenMS
           prec.setIntensity(static_cast<float>(first_entry->intensity));
         prec.setDriftTime(precursor_im);
         prec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+        setActivation(prec, entries);
         double iso_offset_lower = first_entry->isolation_width / 2.0 +
                                   (precursor_mz - first_entry->isolation_mz);
         double iso_offset_upper = first_entry->isolation_width / 2.0 -
@@ -3671,10 +4001,11 @@ namespace OpenMS
       //   - Bruker Precursors.Id is also duplicated as a typed MetaValue
       //     "bruker_precursor_id" for direct programmatic lookup without
       //     parsing the nativeID string.
-      spec.setNativeID("frame=" + StringUtils::toStr(first_entry->frame_id)
-                       + " scan=" + StringUtils::toStr(first_entry->scan_begin)
-                       + " precursor=" + StringUtils::toStr(prec_id));
-      spec.setMetaValue("bruker_precursor_id", static_cast<int>(prec_id));
+      //
+      //   - A window without a precursor is one PasefFrameMsMsInfo row, so it
+      //     gets the plain "frame=<F> scan=<S>" of MS:1002818, and no
+      //     "bruker_precursor_id".
+      setSpectrumID(spec, *first_entry, prec_id);
 
       // Copy sorted peak data
       spec.reserve(all_mz.size());
@@ -3694,6 +4025,7 @@ namespace OpenMS
         prec.setIntensity(static_cast<float>(first_entry->intensity));
       prec.setDriftTime(precursor_im);
       prec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+      setActivation(prec, entries);
 
       // Isolation window offsets relative to the selected ion m/z
       double iso_offset_lower = first_entry->isolation_width / 2.0 +
@@ -3833,12 +4165,13 @@ namespace OpenMS
       OPENMS_LOG_WARN << "Warning: DIA dataset detected but no SWATH windows found" << std::endl;
       return;
     }
+    warnIfSynchroPASEF(windows);
 
     // --- MS2 frames (split by SWATH window) ---
     // Use per-WindowGroup iteration for both paths: each diaPASEF frame belongs
     // to exactly one WindowGroup, so we only produce spectra for valid
     // frame/window combinations (not the brute-force frames × all_windows).
-    auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+    auto group_to_frames = readFrameToWindowGroupMapping(db, windows, handle);
     for (auto& [group, frame_ids] : group_to_frames)
     {
       frame_ids.erase(
