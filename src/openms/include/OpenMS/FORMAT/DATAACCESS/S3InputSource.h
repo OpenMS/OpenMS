@@ -9,9 +9,8 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/FORMAT/InputStream.h>
 #include <OpenMS/config.h>
-
-#include <xercesc/sax/InputSource.hpp>
 
 #include <memory>
 #include <string>
@@ -19,7 +18,7 @@
 namespace OpenMS
 {
   /**
-    @brief Xerces InputSource for reading XML files from Amazon S3 (s3://bucket/key), with Arrow's S3 filesystem.
+    @brief Source for reading XML files from Amazon S3 (s3://bucket/key), with Arrow's S3 filesystem.
 
     The object is streamed to the parser; gzip and bzip2 compressed objects (recognized by their magic bytes) are
     decompressed on the fly.
@@ -33,8 +32,7 @@ namespace OpenMS
 
     @ingroup Format
   */
-  class OPENMS_DLLAPI S3InputSource :
-    public xercesc::InputSource
+  class OPENMS_DLLAPI S3InputSource
   {
 public:
     /**
@@ -47,14 +45,16 @@ public:
     */
     explicit S3InputSource(const std::string& uri);
 
-    ~S3InputSource() override;
+    ~S3InputSource();
 
     /**
       @brief A stream of the (decompressed) content of the object, for the parser.
 
-      @return A new BinInputStream (the caller takes ownership), or nullptr if the object cannot be read
+      Read errors of the stream throw Exception::IOException; corrupt compressed data throws Exception::ParseError.
+
+      @throws Exception::IOException if the object cannot be read
     */
-    xercesc::BinInputStream* makeStream() const override;
+    std::unique_ptr<InputStream> makeStream() const;
 
     /// Whether @p uri is an S3 URI (starts with "s3://")
     static bool isS3URI(const std::string& uri);
@@ -76,6 +76,9 @@ public:
       @throws Exception::IOException if the bytes cannot be read
     */
     static std::string readRange(const std::string& uri, Int64 offset, Int64 length);
+
+    S3InputSource(const S3InputSource&) = delete;
+    S3InputSource& operator=(const S3InputSource&) = delete;
 
 private:
     struct Impl;

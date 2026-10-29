@@ -1072,7 +1072,7 @@ add_test("TOPP_FileInfo_14" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}
 add_test("TOPP_FileInfo_14_out1" ${DIFF} -whitelist "File name" -in1 ${TESTS_TEMP_DIR}/FileInfo_14.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_14_output.txt )
 set_tests_properties("TOPP_FileInfo_14_out1" PROPERTIES DEPENDS "TOPP_FileInfo_14")
 add_test("TOPP_FileInfo_15" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_15_input.mzid -v -no_progress -out ${TESTS_TEMP_DIR}/FileInfo_15.tmp.txt)
-add_test("TOPP_FileInfo_15_out1" ${DIFF} -whitelist "File name" "line 327 column 183" -in1 ${TESTS_TEMP_DIR}/FileInfo_15.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_15_output.txt )
+add_test("TOPP_FileInfo_15_out1" ${DIFF} -whitelist "File name" "line 327 column 0" -in1 ${TESTS_TEMP_DIR}/FileInfo_15.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_15_output.txt )
 set_tests_properties("TOPP_FileInfo_15_out1" PROPERTIES DEPENDS "TOPP_FileInfo_15")
 add_test("TOPP_FileInfo_16" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_16_input.trafoXML -out ${TESTS_TEMP_DIR}/FileInfo_16_output.tmp.txt)
 add_test("TOPP_FileInfo_16_out1" ${DIFF} -whitelist "File name" -in1 ${TESTS_TEMP_DIR}/FileInfo_16_output.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_16_output.txt )
@@ -7834,11 +7834,6 @@ set_tests_properties("TOPP_Epifany_5_out" PROPERTIES DEPENDS "TOPP_Epifany_5")
 
 #------------------------------------------------------------------------------
 # QCCalculator:
-# test for qcML file export
-add_test("TOPP_QCCalculator_1" ${TOPP_BIN_PATH}/QCCalculator -test -in ${DATA_DIR_TOPP}/QCCalculator_input.mzML -out ${TESTS_TEMP_DIR}/QCCalculator_1.qcML)
-add_test("TOPP_QCCalculator_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/QCCalculator_1.qcML -in2 ${DATA_DIR_TOPP}/QCCalculator_1_output.qcML)
-set_tests_properties("TOPP_QCCalculator_1_out" PROPERTIES DEPENDS "TOPP_QCCalculator_1")
-
 # test for mzQC file export
 add_test("TOPP_QCCalculator_2" ${TOPP_BIN_PATH}/QCCalculator -test -in ${DATA_DIR_TOPP}/QCCalculator_input.mzML -label label -name name -address address -description description -out ${TESTS_TEMP_DIR}/QCCalculator_2.mzQC -feature ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_output.featureXML -id ${DATA_DIR_TOPP}/OpenPepXL_output.idXML)
 add_test("TOPP_QCCalculator_2_out" ${DIFF} -whitelist "creationDate" "location" "version" -in1 ${TESTS_TEMP_DIR}/QCCalculator_2.mzQC -in2 ${DATA_DIR_TOPP}/QCCalculator_2_output.mzQC)

@@ -11,9 +11,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/FORMAT/HANDLERS/StringManager.h>
-
-#include <xercesc/util/BinInputStream.hpp>
+#include <OpenMS/FORMAT/DecompressingInputStream.h>
 
 #ifdef OPENMS_WITH_ARROW_S3
 #include <arrow/buffer.h>
@@ -22,9 +20,6 @@
 #include <arrow/io/interfaces.h>
 #include <arrow/memory_pool.h>
 #endif
-
-#include <bzlib.h>
-#include <zlib.h>
 
 #include <cstdlib>
 #include <mutex>
@@ -99,155 +94,38 @@ namespace OpenMS
       return *object;
     }
 
-    // The bytes of an Arrow stream, for Xerces
-    class ArrowBinInputStream :
-      public xercesc::BinInputStream
+    // The bytes of an Arrow stream, for the parser
+    class ArrowInputStream :
+      public InputStream
     {
 public:
-      explicit ArrowBinInputStream(std::shared_ptr<arrow::io::InputStream> stream) :
-        stream_(std::move(stream))
+      ArrowInputStream(std::shared_ptr<arrow::io::InputStream> stream, const std::string& uri) :
+        stream_(std::move(stream)),
+        uri_(uri)
       {
       }
 
-      XMLFilePos curPos() const override
+      UInt64 curPos() const override
       {
         return position_;
       }
 
-      XMLSize_t readBytes(XMLByte* const to_fill, const XMLSize_t max_to_read) override
+      Size readBytes(unsigned char* to_fill, Size max_to_read) override
       {
         auto bytes_read = stream_->Read(static_cast<int64_t>(max_to_read), to_fill);
         if (!bytes_read.ok())
         {
-          OPENMS_LOG_ERROR << "Error reading from S3: " << bytes_read.status().ToString() << std::endl;
-          return 0;
+          OPENMS_LOG_ERROR << "Error reading " << uri_ << ": " << bytes_read.status().ToString() << std::endl;
+          throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, uri_);
         }
-        position_ += *bytes_read;
-        return static_cast<XMLSize_t>(*bytes_read);
-      }
-
-      const XMLCh* getContentType() const override
-      {
-        return nullptr;
+        position_ += static_cast<UInt64>(*bytes_read);
+        return static_cast<Size>(*bytes_read);
       }
 
 private:
       std::shared_ptr<arrow::io::InputStream> stream_;
-      XMLFilePos position_ = 0;
-    };
-
-    // The decompressed bytes of a gzip (@p GZIP true) or bzip2 compressed Arrow stream, for Xerces
-    class DecompressingBinInputStream :
-      public xercesc::BinInputStream
-    {
-public:
-      DecompressingBinInputStream(std::shared_ptr<arrow::io::InputStream> stream, bool gzip) :
-        stream_(std::move(stream)),
-        gzip_(gzip)
-      {
-        // windowBits 15 + 16: gzip format
-        if (gzip_ ? inflateInit2(&z_stream_, 15 + 16) != Z_OK : BZ2_bzDecompressInit(&bz_stream_, 0, 0) != BZ_OK)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                           std::string("Cannot initialize the ") + (gzip_ ? "gzip" : "bzip2") + " decompression");
-        }
-      }
-
-      ~DecompressingBinInputStream() override
-      {
-        if (gzip_)
-        {
-          inflateEnd(&z_stream_);
-        }
-        else
-        {
-          BZ2_bzDecompressEnd(&bz_stream_);
-        }
-      }
-
-      XMLFilePos curPos() const override
-      {
-        return position_;
-      }
-
-      XMLSize_t readBytes(XMLByte* const to_fill, const XMLSize_t max_to_read) override
-      {
-        XMLSize_t written = 0;
-        while (written < max_to_read && !finished_)
-        {
-          if (available_ == 0)
-          {
-            auto bytes_read = stream_->Read(sizeof(buffer_), buffer_);
-            if (!bytes_read.ok())
-            {
-              OPENMS_LOG_ERROR << "Error reading from S3: " << bytes_read.status().ToString() << std::endl;
-              finished_ = true;
-              break;
-            }
-            if (*bytes_read == 0) // truncated stream
-            {
-              finished_ = true;
-              break;
-            }
-            next_ = buffer_;
-            available_ = static_cast<size_t>(*bytes_read);
-          }
-          const size_t space = max_to_read - written;
-          size_t consumed = 0;
-          size_t produced = 0;
-          bool ok = true;
-          if (gzip_)
-          {
-            z_stream_.next_in = reinterpret_cast<Bytef*>(next_);
-            z_stream_.avail_in = static_cast<uInt>(available_);
-            z_stream_.next_out = reinterpret_cast<Bytef*>(to_fill + written);
-            z_stream_.avail_out = static_cast<uInt>(space);
-            const int ret = inflate(&z_stream_, Z_NO_FLUSH);
-            consumed = available_ - z_stream_.avail_in;
-            produced = space - z_stream_.avail_out;
-            finished_ = ret == Z_STREAM_END;
-            ok = ret == Z_OK || ret == Z_STREAM_END || ret == Z_BUF_ERROR;
-          }
-          else
-          {
-            bz_stream_.next_in = next_;
-            bz_stream_.avail_in = static_cast<unsigned int>(available_);
-            bz_stream_.next_out = reinterpret_cast<char*>(to_fill + written);
-            bz_stream_.avail_out = static_cast<unsigned int>(space);
-            const int ret = BZ2_bzDecompress(&bz_stream_);
-            consumed = available_ - bz_stream_.avail_in;
-            produced = space - bz_stream_.avail_out;
-            finished_ = ret == BZ_STREAM_END;
-            ok = ret == BZ_OK || ret == BZ_STREAM_END;
-          }
-          if (!ok || (consumed == 0 && produced == 0 && !finished_)) // an error, or no progress
-          {
-            OPENMS_LOG_ERROR << "Error decompressing the " << (gzip_ ? "gzip" : "bzip2") << " data read from S3" << std::endl;
-            finished_ = true;
-          }
-          next_ += consumed;
-          available_ -= consumed;
-          written += produced;
-        }
-        position_ += written;
-        return written;
-      }
-
-      const XMLCh* getContentType() const override
-      {
-        return nullptr;
-      }
-
-private:
-      std::shared_ptr<arrow::io::InputStream> stream_;
-      bool gzip_;
-      z_stream z_stream_{};
-      bz_stream bz_stream_{};
-      char buffer_[64 * 1024];
-      char* next_ = buffer_;   ///< the next compressed byte in buffer_
-      size_t available_ = 0;   ///< the number of compressed bytes from next_ on
-      bool finished_ = false;
-      XMLFilePos position_ = 0;
+      std::string uri_;
+      UInt64 position_ = 0;
     };
 #endif
   } // namespace
@@ -270,45 +148,35 @@ private:
 #ifdef OPENMS_WITH_ARROW_S3
     impl_->object = openObject(uri);
 #endif
-    setSystemId(Internal::StringManager::convert(uri).c_str());
   }
 
   S3InputSource::~S3InputSource() = default;
 
-  xercesc::BinInputStream* S3InputSource::makeStream() const
+  std::unique_ptr<InputStream> S3InputSource::makeStream() const
   {
 #ifdef OPENMS_WITH_ARROW_S3
+    auto fail = [this](const arrow::Status& status) -> std::unique_ptr<InputStream>
+    {
+      OPENMS_LOG_ERROR << "Error reading " << impl_->uri << ": " << status.ToString() << std::endl;
+      throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, impl_->uri);
+    };
     // a stream of its own for each call, read in large blocks
     auto size = impl_->object->GetSize();
-    if (!size.ok())
-    {
-      OPENMS_LOG_ERROR << "Error reading " << impl_->uri << ": " << size.status().ToString() << std::endl;
-      return nullptr;
-    }
+    if (!size.ok()) { return fail(size.status()); }
     auto raw = arrow::io::RandomAccessFile::GetStream(impl_->object, 0, *size);
-    if (!raw.ok())
-    {
-      OPENMS_LOG_ERROR << "Error reading " << impl_->uri << ": " << raw.status().ToString() << std::endl;
-      return nullptr;
-    }
+    if (!raw.ok()) { return fail(raw.status()); }
     auto stream = arrow::io::BufferedInputStream::Create(READ_BLOCK_SIZE, arrow::default_memory_pool(), *raw);
-    if (!stream.ok())
-    {
-      OPENMS_LOG_ERROR << "Error reading " << impl_->uri << ": " << stream.status().ToString() << std::endl;
-      return nullptr;
-    }
+    if (!stream.ok()) { return fail(stream.status()); }
     // gzip or bzip2 compressed: by the magic bytes
     auto head = (*stream)->Peek(3);
     const std::string_view magic = head.ok() ? *head : std::string_view();
-    if (magic.size() >= 2 && static_cast<unsigned char>(magic[0]) == 0x1F && static_cast<unsigned char>(magic[1]) == 0x8B)
+    const auto format = DecompressingInputStream::detect(reinterpret_cast<const unsigned char*>(magic.data()), magic.size());
+    auto plain = std::make_unique<ArrowInputStream>(*stream, impl_->uri);
+    if (format)
     {
-      return new DecompressingBinInputStream(*stream, true);
+      return std::make_unique<DecompressingInputStream>(std::move(plain), *format, impl_->uri);
     }
-    if (magic == "BZh")
-    {
-      return new DecompressingBinInputStream(*stream, false);
-    }
-    return new ArrowBinInputStream(*stream);
+    return plain;
 #else
     return nullptr; // not constructible without S3 support
 #endif

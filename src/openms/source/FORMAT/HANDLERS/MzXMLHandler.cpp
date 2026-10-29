@@ -14,7 +14,6 @@
 
 #include <atomic>
 #include <stack>
-#include <xercesc/util/XMLString.hpp>
 
 namespace OpenMS::Internal
 {
@@ -81,41 +80,41 @@ namespace OpenMS::Internal
 
     void MzXMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
-      constexpr XMLCh s_value_[] = {'v', 'a', 'l', 'u', 'e', 0};
-      constexpr XMLCh s_count_[] = {'s', 'c', 'a', 'n', 'C', 'o', 'u', 'n', 't', 0};
-      constexpr XMLCh s_type_[] = {'t', 'y', 'p', 'e', 0};
-      constexpr XMLCh s_name_[] = {'n', 'a', 'm', 'e', 0};
-      constexpr XMLCh s_version_[] = {'v', 'e', 'r', 's', 'i', 'o', 'n', 0};
-      constexpr XMLCh s_filename_[] = {'f', 'i', 'l', 'e', 'N', 'a', 'm', 'e', 0};
-      constexpr XMLCh s_filetype_[] = {'f', 'i', 'l', 'e', 'T', 'y', 'p', 'e', 0};
-      constexpr XMLCh s_filesha1_[] = {'f', 'i', 'l', 'e', 'S', 'h', 'a', '1', 0};
-      constexpr XMLCh s_completiontime_[] = {'c', 'o', 'm', 'p', 'l', 'e', 't', 'i', 'o', 'n', 'T', 'i', 'm', 'e', 0};
-      constexpr XMLCh s_precision_[] = {'p', 'r', 'e', 'c', 'i', 's', 'i', 'o', 'n', 0};
-      constexpr XMLCh s_byteorder_[] = {'b', 'y', 't', 'e', 'O', 'r', 'd', 'e', 'r', 0};
-      constexpr XMLCh s_contentType_[] = {'c', 'o', 'n', 't', 'e', 'n', 't', 'T', 'y', 'p', 'e', 0};
-      constexpr XMLCh s_compressionType_[] = {'c', 'o', 'm', 'p', 'r', 'e', 's', 's', 'i', 'o', 'n', 'T', 'y', 'p', 'e', 0};
-      constexpr XMLCh s_precursorintensity_[] = {'p', 'r', 'e', 'c', 'u', 'r', 's', 'o', 'r', 'I', 'n', 't', 'e', 'n', 's', 'i', 't', 'y', 0};
-      constexpr XMLCh s_precursorcharge_[] = {'p', 'r', 'e', 'c', 'u', 'r', 's', 'o', 'r', 'C', 'h', 'a', 'r', 'g', 'e', 0};
-      constexpr XMLCh s_windowwideness_[] = {'w', 'i', 'n', 'd', 'o', 'w', 'W', 'i', 'd', 'e', 'n', 'e', 's', 's', 0};
-      constexpr XMLCh s_activationMethod_[] = {'a', 'c', 't', 'i', 'v', 'a', 't', 'i', 'o', 'n', 'M', 'e', 't', 'h', 'o', 'd', 0};
-      constexpr XMLCh s_mslevel_[] = {'m', 's', 'L', 'e', 'v', 'e', 'l', 0};
-      constexpr XMLCh s_peakscount_[] = {'p', 'e', 'a', 'k', 's', 'C', 'o', 'u', 'n', 't', 0};
-      constexpr XMLCh s_polarity_[] = {'p', 'o', 'l', 'a', 'r', 'i', 't', 'y', 0};
-      constexpr XMLCh s_scantype_[] = {'s', 'c', 'a', 'n', 'T', 'y', 'p', 'e', 0};
-      constexpr XMLCh s_filterline_[] = {'f', 'i', 'l', 't', 'e', 'r', 'L', 'i', 'n', 'e', 0};
-      constexpr XMLCh s_retentiontime_[] = {'r', 'e', 't', 'e', 'n', 't', 'i', 'o', 'n', 'T', 'i', 'm', 'e', 0};
-      constexpr XMLCh s_startmz_[] = {'s', 't', 'a', 'r', 't', 'M', 'z', 0};
-      constexpr XMLCh s_endmz_[] = {'e', 'n', 'd', 'M', 'z', 0};
-      constexpr XMLCh s_first_[] = {'f', 'i', 'r', 's', 't', 0};
-      constexpr XMLCh s_last_[] = {'l', 'a', 's', 't', 0};
-      constexpr XMLCh s_phone_[] = {'p', 'h', 'o', 'n', 'e', 0};
-      constexpr XMLCh s_email_[] = {'e', 'm', 'a', 'i', 'l', 0};
-      constexpr XMLCh s_uri_[] = {'U', 'R', 'I', 0};
-      constexpr XMLCh s_num_[] = {'n', 'u', 'm', 0};
-      constexpr XMLCh s_intensitycutoff_[] = {'i', 'n', 't', 'e', 'n', 's', 'i', 't', 'y', 'C', 'u', 't', 'o', 'f', 'f', 0};
-      constexpr XMLCh s_centroided_[] = {'c', 'e', 'n', 't', 'r', 'o', 'i', 'd', 'e', 'd', 0};
-      constexpr XMLCh s_deisotoped_[] = {'d', 'e', 'i', 's', 'o', 't', 'o', 'p', 'e', 'd', 0};
-      constexpr XMLCh s_chargedeconvoluted_[] = {'c', 'h', 'a', 'r', 'g', 'e', 'D', 'e', 'c', 'o', 'n', 'v', 'o', 'l', 'u', 't', 'e', 'd', 0};
+      constexpr char16_t s_value_[] = {'v', 'a', 'l', 'u', 'e', 0};
+      constexpr char16_t s_count_[] = {'s', 'c', 'a', 'n', 'C', 'o', 'u', 'n', 't', 0};
+      constexpr char16_t s_type_[] = {'t', 'y', 'p', 'e', 0};
+      constexpr char16_t s_name_[] = {'n', 'a', 'm', 'e', 0};
+      constexpr char16_t s_version_[] = {'v', 'e', 'r', 's', 'i', 'o', 'n', 0};
+      constexpr char16_t s_filename_[] = {'f', 'i', 'l', 'e', 'N', 'a', 'm', 'e', 0};
+      constexpr char16_t s_filetype_[] = {'f', 'i', 'l', 'e', 'T', 'y', 'p', 'e', 0};
+      constexpr char16_t s_filesha1_[] = {'f', 'i', 'l', 'e', 'S', 'h', 'a', '1', 0};
+      constexpr char16_t s_completiontime_[] = {'c', 'o', 'm', 'p', 'l', 'e', 't', 'i', 'o', 'n', 'T', 'i', 'm', 'e', 0};
+      constexpr char16_t s_precision_[] = {'p', 'r', 'e', 'c', 'i', 's', 'i', 'o', 'n', 0};
+      constexpr char16_t s_byteorder_[] = {'b', 'y', 't', 'e', 'O', 'r', 'd', 'e', 'r', 0};
+      constexpr char16_t s_contentType_[] = {'c', 'o', 'n', 't', 'e', 'n', 't', 'T', 'y', 'p', 'e', 0};
+      constexpr char16_t s_compressionType_[] = {'c', 'o', 'm', 'p', 'r', 'e', 's', 's', 'i', 'o', 'n', 'T', 'y', 'p', 'e', 0};
+      constexpr char16_t s_precursorintensity_[] = {'p', 'r', 'e', 'c', 'u', 'r', 's', 'o', 'r', 'I', 'n', 't', 'e', 'n', 's', 'i', 't', 'y', 0};
+      constexpr char16_t s_precursorcharge_[] = {'p', 'r', 'e', 'c', 'u', 'r', 's', 'o', 'r', 'C', 'h', 'a', 'r', 'g', 'e', 0};
+      constexpr char16_t s_windowwideness_[] = {'w', 'i', 'n', 'd', 'o', 'w', 'W', 'i', 'd', 'e', 'n', 'e', 's', 's', 0};
+      constexpr char16_t s_activationMethod_[] = {'a', 'c', 't', 'i', 'v', 'a', 't', 'i', 'o', 'n', 'M', 'e', 't', 'h', 'o', 'd', 0};
+      constexpr char16_t s_mslevel_[] = {'m', 's', 'L', 'e', 'v', 'e', 'l', 0};
+      constexpr char16_t s_peakscount_[] = {'p', 'e', 'a', 'k', 's', 'C', 'o', 'u', 'n', 't', 0};
+      constexpr char16_t s_polarity_[] = {'p', 'o', 'l', 'a', 'r', 'i', 't', 'y', 0};
+      constexpr char16_t s_scantype_[] = {'s', 'c', 'a', 'n', 'T', 'y', 'p', 'e', 0};
+      constexpr char16_t s_filterline_[] = {'f', 'i', 'l', 't', 'e', 'r', 'L', 'i', 'n', 'e', 0};
+      constexpr char16_t s_retentiontime_[] = {'r', 'e', 't', 'e', 'n', 't', 'i', 'o', 'n', 'T', 'i', 'm', 'e', 0};
+      constexpr char16_t s_startmz_[] = {'s', 't', 'a', 'r', 't', 'M', 'z', 0};
+      constexpr char16_t s_endmz_[] = {'e', 'n', 'd', 'M', 'z', 0};
+      constexpr char16_t s_first_[] = {'f', 'i', 'r', 's', 't', 0};
+      constexpr char16_t s_last_[] = {'l', 'a', 's', 't', 0};
+      constexpr char16_t s_phone_[] = {'p', 'h', 'o', 'n', 'e', 0};
+      constexpr char16_t s_email_[] = {'e', 'm', 'a', 'i', 'l', 0};
+      constexpr char16_t s_uri_[] = {'U', 'R', 'I', 0};
+      constexpr char16_t s_num_[] = {'n', 'u', 'm', 0};
+      constexpr char16_t s_intensitycutoff_[] = {'i', 'n', 't', 'e', 'n', 's', 'i', 't', 'y', 'C', 'u', 't', 'o', 'f', 'f', 0};
+      constexpr char16_t s_centroided_[] = {'c', 'e', 'n', 't', 'r', 'o', 'i', 'd', 'e', 'd', 0};
+      constexpr char16_t s_deisotoped_[] = {'d', 'e', 'i', 's', 'o', 't', 'o', 'p', 'e', 'd', 0};
+      constexpr char16_t s_chargedeconvoluted_[] = {'c', 'h', 'a', 'r', 'g', 'e', 'D', 'e', 'c', 'o', 'n', 'v', 'o', 'l', 'u', 't', 'e', 'd', 0};
       OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
 
       std::string tag = sm_.convert(qname);

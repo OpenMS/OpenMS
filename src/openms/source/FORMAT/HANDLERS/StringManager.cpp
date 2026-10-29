@@ -11,178 +11,131 @@
 #include <cmath> // MSVC: SIMDe's simde-math.h needs std::isnormal/isnan/... in scope
 #include <OpenMS/SYSTEM/SIMDe.h>
 
-#include <xercesc/util/XMLString.hpp>
-#include <xercesc/util/TransService.hpp>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <algorithm>
 #include <bit>
-#include <cerrno>
 #include <cstdint>
-#include <cstdlib>
-
-using namespace xercesc;
+#include <cstring>
 
 namespace OpenMS::Internal
 {
-  // XMLCh is the Xerces UTF-16 code unit; it is guaranteed to match char16_t in
-  // size and, on the supported toolchains, is char16_t. The StringManager public
-  // API is expressed in char16_t so its header stays Xerces-free.
-  static_assert(sizeof(::XMLCh) == sizeof(char16_t), "XMLCh is not sized correctly for UTF-16.");
-
-  // Specializations for character types, released by XMLString::release
-  template<> void shared_xerces_ptr<char>::doRelease_(char* item)
-  {
-    xercesc::XMLString::release(&item);
-  }
-
-  template<> void shared_xerces_ptr<char16_t>::doRelease_(char16_t* item)
-  {
-    xercesc::XMLString::release(reinterpret_cast<XMLCh**>(&item));
-  }
-
-  // Specializations for character types, which needs to be released by XMLString::release
-  template <>
-  void unique_xerces_ptr<char>::doRelease_(char*& item)
-  {
-    xercesc::XMLString::release(&item);
-  }
-
-  template <>
-  void unique_xerces_ptr<char16_t>::doRelease_(char16_t*& item)
-  {
-    xercesc::XMLString::release(reinterpret_cast<XMLCh**>(&item));
-  }
-
-  unique_xerces_ptr<char16_t> StringManager::fromNative_(const char* str)
-  {
-    return unique_xerces_ptr<char16_t>(reinterpret_cast<char16_t*>(xercesc::XMLString::transcode(str)));
-  }
-
-  unique_xerces_ptr<char16_t> StringManager::fromNative_(const std::string& str)
-  {
-    return fromNative_(str.c_str());
-  }
-
-  std::string StringManager::toNative_(const char16_t* str)
-  {
-    std::string r;
-    Size l = strLength(str);
-    if (isASCII(str, l))
-    {
-      appendASCII(str, l, r);
-    }
-    else
-    {
-      const xercesc::TranscodeToStr utf8(reinterpret_cast<const XMLCh*>(str), "UTF-8");
-      r.assign(reinterpret_cast<const char*>(utf8.str()), utf8.length());
-    }
-    return r;
-  }
-
-  std::string StringManager::toNative_(const unique_xerces_ptr<char16_t>& str)
-  {
-    return toNative_(str.get());
-  }
-
   namespace
   {
-    // Text in ASCII has the same UTF-16 code units under an ASCII-compatible local code page, which
-    // XMLString::transcode() (fromNative_()) converts with: such text is then widened directly (see widensASCII()).
-    bool isASCIINative(const char* str, Size& length)
+    [[noreturn]] void invalidUnicode()
     {
-      for (length = 0; str[length] != '\0'; ++length)
-      {
-        if (static_cast<unsigned char>(str[length]) >= 0x80) { return false; }
-      }
-      return true;
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid UTF-8 or UTF-16 sequence");
     }
   }
 
-  bool StringManager::widensASCII()
+  std::u16string StringManager::convert(const char* str)
   {
-    // checked once, on all ASCII characters in a row (in a code page like UTF-7 or ISO-2022-JP, some of them start a
-    // sequence that is decoded differently)
-    static const bool widens = []()
+    std::u16string result;
+    if (str) convert(str, std::strlen(str), result);
+    return result;
+  }
+
+  void StringManager::convert(const char* str, Size length, std::u16string& result)
+  {
+    const auto* input = reinterpret_cast<const unsigned char*>(str);
+    const auto* end = input + length;
+    // ASCII is by far the most common case: widen without decoding.
+    const auto* ascii_end = std::find_if(input, end, [](unsigned char c) { return c >= 0x80; });
+    result.assign(input, ascii_end);
+    input = ascii_end;
+    while (input != end)
     {
-      char ascii[128];
-      for (int c = 1; c < 128; ++c) { ascii[c - 1] = static_cast<char>(c); }
-      ascii[127] = '\0';
-      const unique_xerces_ptr<char16_t> transcoded = fromNative_(ascii);
-      if (transcoded.get() == nullptr) { return false; }
-      for (int c = 1; c < 128; ++c)
+      const unsigned lead = *input++;
+      unsigned code = lead;
+      unsigned continuation = 0;
+      unsigned minimum = 0;
+      if (lead < 0x80) {}
+      else if (lead >= 0xc2 && lead <= 0xdf) { code &= 0x1f; continuation = 1; minimum = 0x80; }
+      else if (lead >= 0xe0 && lead <= 0xef) { code &= 0x0f; continuation = 2; minimum = 0x800; }
+      else if (lead >= 0xf0 && lead <= 0xf4) { code &= 0x07; continuation = 3; minimum = 0x10000; }
+      else invalidUnicode();
+      if (static_cast<Size>(end - input) < continuation) invalidUnicode();
+      for (unsigned j = 0; j < continuation; ++j)
       {
-        if (transcoded.get()[c - 1] != static_cast<char16_t>(c)) { return false; } // also stops at a shorter result
+        if ((*input & 0xc0) != 0x80) invalidUnicode();
+        code = (code << 6) | (*input++ & 0x3f);
       }
-      return transcoded.get()[127] == 0;
-    }();
-    return widens;
+      if (code < minimum || code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) invalidUnicode();
+      if (code <= 0xffff) result.push_back(static_cast<char16_t>(code));
+      else
+      {
+        code -= 0x10000;
+        result.push_back(static_cast<char16_t>(0xd800 + (code >> 10)));
+        result.push_back(static_cast<char16_t>(0xdc00 + (code & 0x3ff)));
+      }
+    }
   }
 
-  StringManager::XercesString StringManager::convert(const char* str)
-  {
-    Size length;
-    if (str != nullptr && isASCIINative(str, length) && widensASCII()) { return XercesString(str, str + length); }
-    return fromNative_(str).get();
-  }
-
-  StringManager::XercesString StringManager::convert(const std::string& str)
+  std::u16string StringManager::convert(const std::string& str)
   {
     return convert(str.c_str());
   }
 
-  unique_xerces_ptr<char16_t> StringManager::convertPtr(const char* str)
+  std::unique_ptr<char16_t[]> StringManager::convertPtr(const char* str)
   {
-    return fromNative_(str);
+    const auto converted = convert(str);
+    auto result = std::make_unique<char16_t[]>(converted.size() + 1);
+    std::copy(converted.begin(), converted.end(), result.get());
+    result[converted.size()] = 0;
+    return result;
   }
 
-  unique_xerces_ptr<char16_t> StringManager::convertPtr(const std::string& str)
+  std::unique_ptr<char16_t[]> StringManager::convertPtr(const std::string& str)
   {
-    return fromNative_(str.c_str());
+    return convertPtr(str.c_str());
   }
 
   std::string StringManager::convert(const char16_t* str)
   {
-    return toNative_(str);
+    std::string result;
+    if (!str) return result;
+    const Size length = std::char_traits<char16_t>::length(str);
+    if (isASCII(str, length))
+    {
+      appendASCII(str, length, result);
+      return result;
+    }
+    for (Size i = 0; i < length; ++i)
+    {
+      unsigned code = str[i];
+      if (code >= 0xd800 && code <= 0xdbff)
+      {
+        if (i + 1 == length || str[i + 1] < 0xdc00 || str[i + 1] > 0xdfff) invalidUnicode();
+        code = 0x10000 + ((code - 0xd800) << 10) + (str[++i] - 0xdc00);
+      }
+      else if (code >= 0xdc00 && code <= 0xdfff) invalidUnicode();
+      if (code < 0x80) result.push_back(static_cast<char>(code));
+      else if (code < 0x800)
+      {
+        result.push_back(static_cast<char>(0xc0 | (code >> 6)));
+        result.push_back(static_cast<char>(0x80 | (code & 0x3f)));
+      }
+      else if (code < 0x10000)
+      {
+        result.push_back(static_cast<char>(0xe0 | (code >> 12)));
+        result.push_back(static_cast<char>(0x80 | ((code >> 6) & 0x3f)));
+        result.push_back(static_cast<char>(0x80 | (code & 0x3f)));
+      }
+      else
+      {
+        result.push_back(static_cast<char>(0xf0 | (code >> 18)));
+        result.push_back(static_cast<char>(0x80 | ((code >> 12) & 0x3f)));
+        result.push_back(static_cast<char>(0x80 | ((code >> 6) & 0x3f)));
+        result.push_back(static_cast<char>(0x80 | (code & 0x3f)));
+      }
+    }
+    return result;
   }
 
   Int StringManager::parseInt(const char16_t* str)
   {
-    // XMLString::parseInt() trims the XML white space, transcodes the rest to the local code page and takes it if strtol()
-    // reads all of it without overflow (as an int: cut to its 32 bits); else it throws. The transcoder takes a process-wide mutex
-    // for every call, which serialised the threads that parse parts of one mzML file at the same time (with 64 threads
-    // half of them waited there; e.g. the arrayLength of every binary data array). An ASCII string is taken the same
-    // way here, without the transcoder; anything else, and every string it would not take, goes to XMLString::parseInt().
-    if (str != nullptr)
-    {
-      const auto is_space = [](char16_t c) { return c == u' ' || c == u'\t' || c == u'\n' || c == u'\r'; };
-      const char16_t* begin = str;
-      while (is_space(*begin)) { ++begin; }
-      const char16_t* end = begin;
-      while (*end != 0) { ++end; }
-      while (end > begin && is_space(end[-1])) { --end; }
-      const std::size_t length = static_cast<std::size_t>(end - begin);
-      char text[32];
-      if (length > 0 && length < sizeof(text))
-      {
-        bool ascii = true;
-        for (std::size_t i = 0; i < length; ++i)
-        {
-          ascii = ascii && begin[i] < 0x80;
-          text[i] = static_cast<char>(begin[i]);
-        }
-        text[length] = 0;
-        if (ascii)
-        {
-          errno = 0; // (as XMLString::parseInt())
-          char* text_end = nullptr;
-          const long value = std::strtol(text, &text_end, 10);
-          if (text_end == text + length && errno != ERANGE)
-          {
-            return static_cast<Int>(value); // (as XMLString::parseInt(): a long outside of int's range is cut to it)
-          }
-        }
-      }
-    }
-    return xercesc::XMLString::parseInt(reinterpret_cast<const XMLCh*>(str));
+    return StringUtils::toInt32(convert(str));
   }
 
   // https://github.com/OpenMS/OpenMS/issues/8122

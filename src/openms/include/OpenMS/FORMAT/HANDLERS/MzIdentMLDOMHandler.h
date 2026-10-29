@@ -19,37 +19,16 @@
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
-#include <xercesc/dom/DOM.hpp>
-#include <xercesc/dom/DOMDocument.hpp>
-#include <xercesc/dom/DOMDocumentType.hpp>
-#include <xercesc/dom/DOMElement.hpp>
-#include <xercesc/dom/DOMImplementation.hpp>
-#include <xercesc/dom/DOMImplementationLS.hpp>
-#include <xercesc/dom/DOMNodeIterator.hpp>
-#include <xercesc/dom/DOMNodeList.hpp>
-#include <xercesc/dom/DOMText.hpp>
-#include <xercesc/framework/LocalFileFormatTarget.hpp>
-#include <xercesc/framework/psvi/XSValue.hpp>
-#include <xercesc/parsers/XercesDOMParser.hpp>
-#include <xercesc/util/OutOfMemoryException.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
-#include <xercesc/util/XMLString.hpp>
-#include <xercesc/util/XMLUni.hpp>
 
 #include <list>
+
+struct _xmlNode;
+typedef struct _xmlNode xmlNode;
 #include <map>
 #include <set>
 #include <stdexcept>
 #include <string>
 #include <vector>
-
-// Error codes
-//enum {
-//   ERROR_ARGS = 1,
-//   ERROR_XERCES_INIT,
-//   ERROR_PARSE,
-//   ERROR_EMPTY_DOCUMENT
-//};
 
 namespace OpenMS
 {
@@ -120,45 +99,45 @@ protected:
       //@{
 
       /// First: CVparams, Second: userParams (independent of each other)
-      std::pair<CVTermList, std::map<std::string, DataValue> > parseParamGroup_(xercesc::DOMNodeList* paramGroup);
-      CVTerm parseCvParam_(xercesc::DOMElement* param);
-      std::pair<std::string, DataValue> parseUserParam_(xercesc::DOMElement* param);
-      void parseAnalysisSoftwareList_(xercesc::DOMNodeList* analysisSoftwareElements);
-      void parseDBSequenceElements_(xercesc::DOMNodeList* dbSequenceElements);
-      void parsePeptideElements_(xercesc::DOMNodeList* peptideElements);
-      //AASequence parsePeptideSiblings_(xercesc::DOMNodeList* peptideSiblings);
-      AASequence parsePeptideSiblings_(xercesc::DOMElement* peptide);
+      std::pair<CVTermList, std::map<std::string, DataValue> > parseParamGroup_(const std::vector<xmlNode*>& paramGroup);
+      CVTerm parseCvParam_(xmlNode* param);
+      std::pair<std::string, DataValue> parseUserParam_(xmlNode* param);
+      void parseAnalysisSoftwareList_(const std::vector<xmlNode*>& analysisSoftwareElements);
+      void parseDBSequenceElements_(const std::vector<xmlNode*>& dbSequenceElements);
+      void parsePeptideElements_(const std::vector<xmlNode*>& peptideElements);
+      //AASequence parsePeptideSiblings_(const std::vector<xmlNode*>& peptideSiblings);
+      AASequence parsePeptideSiblings_(xmlNode* peptide);
       /// Best-effort inference of a modification's mzIdentML @c location (0 = N-terminus, @p peptide_length + 1 = C-terminus)
       /// for the case where the optional @c location attribute is absent. The position is derived from the terminal
       /// specificity of the referenced modification(s) in the ModificationsDB. Returns -1 if no unique terminal
       /// position can be inferred, i.e. when the modification may also occur internally, or when the @c Modification
       /// names a concrete @c residues amino acid (a residue-specific/internal modification whose exact position is
       /// unknown without @c location).
-      SignedSize inferModificationLocation_(xercesc::DOMElement* modification_element, Size peptide_length) const;
-      void parsePeptideEvidenceElements_(xercesc::DOMNodeList* peptideEvidenceElements);
-      void parseSpectrumIdentificationElements_(xercesc::DOMNodeList* spectrumIdentificationElements);
-      void parseSpectrumIdentificationProtocolElements_(xercesc::DOMNodeList* spectrumIdentificationProtocolElements);
-      void parseInputElements_(xercesc::DOMNodeList* inputElements);
-      void parseSpectrumIdentificationListElements_(xercesc::DOMNodeList* spectrumIdentificationListElements);
+      SignedSize inferModificationLocation_(xmlNode* modification_element, Size peptide_length) const;
+      void parsePeptideEvidenceElements_(const std::vector<xmlNode*>& peptideEvidenceElements);
+      void parseSpectrumIdentificationElements_(const std::vector<xmlNode*>& spectrumIdentificationElements);
+      void parseSpectrumIdentificationProtocolElements_(const std::vector<xmlNode*>& spectrumIdentificationProtocolElements);
+      void parseInputElements_(const std::vector<xmlNode*>& inputElements);
+      void parseSpectrumIdentificationListElements_(const std::vector<xmlNode*>& spectrumIdentificationListElements);
       /// The protein identification run of a SpectrumIdentificationList; throws Exception::InvalidParameter if no SpectrumIdentification references the list
       ProteinIdentification& runOfList_(const std::string& spectrum_identification_list_ref);
-      void parseSpectrumIdentificationItemSetXLMS(std::set<std::string>::const_iterator set_it, std::multimap<std::string, int> xl_val_map, xercesc::DOMElement* element_res, const std::string& spectrumID);
-      void parseSpectrumIdentificationItemElement_(xercesc::DOMElement* spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, std::string& spectrumIdentificationList_ref);
-      void parseProteinDetectionHypothesisElement_(xercesc::DOMElement* proteinDetectionHypothesisElement, ProteinIdentification& protein_identification);
-      void parseProteinAmbiguityGroupElement_(xercesc::DOMElement* proteinAmbiguityGroupElement, ProteinIdentification& protein_identification);
-      void parseProteinDetectionListElements_(xercesc::DOMNodeList* proteinDetectionListElements);
+      void parseSpectrumIdentificationItemSetXLMS(std::set<std::string>::const_iterator set_it, std::multimap<std::string, int> xl_val_map, xmlNode* element_res, const std::string& spectrumID);
+      void parseSpectrumIdentificationItemElement_(xmlNode* spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, std::string& spectrumIdentificationList_ref);
+      void parseProteinDetectionHypothesisElement_(xmlNode* proteinDetectionHypothesisElement, ProteinIdentification& protein_identification);
+      void parseProteinAmbiguityGroupElement_(xmlNode* proteinAmbiguityGroupElement, ProteinIdentification& protein_identification);
+      void parseProteinDetectionListElements_(const std::vector<xmlNode*>& proteinDetectionListElements);
       static ProteinIdentification::SearchParameters findSearchParameters_(std::pair<CVTermList, std::map<std::string, DataValue> > as_params);
       //@}
 
       /**@name Helper functions to build a DOM tree from the internal id structures*/
-      void buildCvList_(xercesc::DOMElement* cvElements);
-      void buildAnalysisSoftwareList_(xercesc::DOMElement* analysisSoftwareElements);
-      void buildSequenceCollection_(xercesc::DOMElement* sequenceCollectionElements);
-      void buildAnalysisCollection_(xercesc::DOMElement* analysisCollectionElements);
-      void buildAnalysisProtocolCollection_(xercesc::DOMElement* protocolElements);
-      void buildInputDataCollection_(xercesc::DOMElement* inputElements);
-      void buildEnclosedCV_(xercesc::DOMElement* parentElement, const std::string& encel, const std::string& acc, const std::string& name, const std::string& cvref);
-      void buildAnalysisDataCollection_(xercesc::DOMElement* analysisElements);
+      void buildCvList_(xmlNode* cvElements);
+      void buildAnalysisSoftwareList_(xmlNode* analysisSoftwareElements);
+      void buildSequenceCollection_(xmlNode* sequenceCollectionElements);
+      void buildAnalysisCollection_(xmlNode* analysisCollectionElements);
+      void buildAnalysisProtocolCollection_(xmlNode* protocolElements);
+      void buildInputDataCollection_(xmlNode* inputElements);
+      void buildEnclosedCV_(xmlNode* parentElement, const std::string& encel, const std::string& acc, const std::string& name, const std::string& cvref);
+      void buildAnalysisDataCollection_(xmlNode* analysisElements);
       //@}
 
 
@@ -230,11 +209,6 @@ private:
         DateTime date;
       };
 
-      XMLCh* xml_root_tag_ptr_;
-      XMLCh* xml_cvparam_tag_ptr_;
-      XMLCh* xml_name_attr_ptr_;
-
-      xercesc::XercesDOMParser mzid_parser_;
 
       std::unique_ptr<XMLHandler> xml_handler_ = nullptr;
 
@@ -265,7 +239,7 @@ private:
 
       std::list<std::list<std::string> > hit_pev_; ///< writing help only
 
-      bool xl_ms_search_; ///< is true when reading a file containing Cross-Linking MS search results
+      bool xl_ms_search_ = false; ///< is true when reading a file containing Cross-Linking MS search results
       std::map<std::string, std::string> xl_id_donor_map_; ///< mapping Peptide id -> crosslink donor value
       //std::map<std::string, std::string> xl_id_acceptor_map_; ///< mapping Peptide id -> crosslink acceptor value
       std::map<std::string, std::string> xl_id_acceptor_map_; ///< mapping  peptide id of acceptor peptide -> crosslink acceptor value

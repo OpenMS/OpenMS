@@ -449,12 +449,10 @@ public:
       @param[in] feature_map FeatureMap from feature file (featureXML)
       @param[in] prot_ids protein identifications from ID file (idXML)
       @param[in] pep_ids protein identifications from ID file (idXML)
-      @param[out] consensus_map an optional consensus map to store.
       @param[in] contact_name name of the person creating the mzQC file
       @param[in] contact_address contact address (mail/e-mail or phone) of the person creating the mzQC file
       @param[in] description description and comments about the mzQC file contents
       @param[in] label unique and informative label for the run
-      @param[in] remove_duplicate_features whether to remove duplicate features only for QCML for now
       @param[in] allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
@@ -465,12 +463,10 @@ public:
                const FeatureMap& feature_map,
                std::vector<ProteinIdentification>& prot_ids,
                PeptideIdentificationList& pep_ids,
-               const ConsensusMap& consensus_map,
                const std::string& contact_name = "",
                const std::string& contact_address = "",
                const std::string& description = "",
                const std::string& label = "label",
-               const bool remove_duplicate_features = false,
                const std::vector<FileTypes::Type> allowed_types = {});
 
     /**

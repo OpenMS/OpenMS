@@ -395,7 +395,7 @@ jobs:
             libsvm \
             libzip \
             sqlite \
-            xerces-c \
+            libxml2 \
             zstd
 
       # OpenMSThermoBridge needs the nethost headers/library from the .NET host
@@ -435,7 +435,7 @@ jobs:
             -DOPENMS_USE_VCPKG=OFF \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install \
-            -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix libomp)" \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix libomp);$(brew --prefix libxml2)" \
             -DCMAKE_INSTALL_NAME_DIR=${{ github.workspace }}/install/lib \
             -DOpenMP_ROOT=$(brew --prefix libomp) \
             -DARROW_USE_STATIC=OFF \
