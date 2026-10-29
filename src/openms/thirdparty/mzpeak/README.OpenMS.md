@@ -49,6 +49,8 @@ the OpenMS interface.
   then builds with the Boost of Ubuntu 24.04 (1.83). With libc++ without `std::move_only_function`, compat.h
   still needs Boost 1.89 (`boost::compat::move_only_function`); `src/openms/CMakeLists.txt` builds OpenMS
   without mzPeak there otherwise.
+- `src/writer.cpp`: `ZIP_LENGTH_TO_END` is defined as -1 where libzip does not define it (before 1.10.1, e.g.
+  1.7.3 of Ubuntu 24.04), which reads the file to its end there as well.
 - `src/boost_json_src.cpp` (new): Boost.JSON compiled header-only, so libOpenMS links no
   compiled Boost library.
 - `sources.cmake`, `CMakeLists.txt`, this file.
