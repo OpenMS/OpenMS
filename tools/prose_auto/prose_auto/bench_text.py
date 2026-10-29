@@ -114,7 +114,8 @@ def label_from_sdrf(values):
 def label_class(v):
     v = str(v or "")
     return ("TMT" if v.startswith("TMT") else "iTRAQ" if v.startswith("iTRAQ") else
-            "SILAC" if v.startswith("SILAC") and "dimethyl" not in v else "dimethyl" if "dimethyl" in v else
+            "SILAC/dimethyl" if v.startswith("SILAC") and "dimethyl" in v else   # Lys4 and dimethyl-d4: same mass
+            "SILAC" if v.startswith("SILAC") else "dimethyl" if "dimethyl" in v else
             "label free" if v == "label free" else v or None)
 
 
@@ -171,6 +172,10 @@ def tol_bucket(t, kind):
     if kind == "precursor":
         return "<=5 ppm" if ppm <= 5.5 else "10 ppm" if ppm <= 15 else "20 ppm" if ppm <= 30 else \
             "50 ppm" if ppm <= 100 else ">=0.5 Da"
+    if t["unit"] != "ppm":  # Da: the option cut-offs are in Da (0.03 Da is "0.05 Da", not "20 ppm")
+        da = float(t["value"])
+        return "<=10 ppm" if da <= 0.0105 else "20 ppm" if da <= 0.025 else "0.05 Da" if da <= 0.1 else \
+            "0.5 Da" if da <= 0.65 else ">=0.8 Da"
     return "<=10 ppm" if ppm <= 10.5 else "20 ppm" if ppm <= 30 else "0.05 Da" if ppm <= 100 else \
         "0.5 Da" if ppm <= 650 else ">=0.8 Da"
 
@@ -296,6 +301,10 @@ def correct(head, pred, truth):
     if pred == "other":
         known = {org_norm(o) for o in list(tx.ORGANISMS) + S.PRIDE_SPECIES} if head == "organism" else {canon_instrument(i) for i in tx.INSTRUMENTS}
         return int(not (truth & known))
+    if head == "organism" and pred == "mixed species":    # several species in the (dataset-level) truth
+        return int(len(truth) >= 2)
+    if head == "label_class" and pred == "SILAC/dimethyl":
+        return int(bool(truth & {"SILAC", "dimethyl"}))
     if head == "instrument" and pred not in truth:
         # an SDRF that names no model ("ltq orbitrap", "timstof series", "synapt ms") is right for any model
         # of that family
