@@ -18,6 +18,7 @@
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
@@ -264,6 +265,60 @@ START_SECTION(([EXTRA] stampPinFeaturesOnHits: the isotope error corrects dm/abs
   // SAMPLEK: no isotope error, the plain difference
   TEST_REAL_SIMILAR(static_cast<double>(hits[1].getMetaValue("dm")), observed_mz - samplek.getMZ(2))
   TEST_REAL_SIMILAR(static_cast<double>(hits[1].getMetaValue("absdm")), std::abs(observed_mz - samplek.getMZ(2)))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] stampPinFeaturesOnHits: a warning names the spectra without a scan number))
+{
+  // The scan number pattern comes from the first spectrum reference ("scan=5"). The second one ("index=3", e.g. from
+  // another input) does not match it, so its PSM gets ScanNr -1, and Percolator puts all such PSMs into one
+  // cross-validation fold. That is reported, not silent (#10719).
+  auto make_pid = [](const std::string& reference, const std::string& sequence)
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(sequence));
+    hit.setCharge(2);
+    hit.setScore(1.0);
+    hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
+    PeptideEvidence ev;
+    ev.setProteinAccession("PROT1");
+    ev.setAABefore('K');
+    ev.setAAAfter('S');
+    hit.setPeptideEvidences(std::vector<PeptideEvidence>{ev});
+    PeptideIdentification pid;
+    pid.setMZ(AASequence::fromString(sequence).getMZ(2));
+    pid.setRT(10.0);
+    pid.setSpectrumReference(reference);
+    pid.setHits(std::vector<PeptideHit>{hit});
+    return pid;
+  };
+  PeptideIdentificationList pids;
+  pids.push_back(make_pid("scan=5", "SAMPLER"));
+  pids.push_back(make_pid("index=3", "SAMPLEK"));
+  // a spectrum whose only PSM is skipped (no target/decoy information) gets no ScanNr, so the warning leaves it out
+  pids.push_back(make_pid("index=4", "SAMPLEG"));
+  std::vector<PeptideHit> unknown_type = pids[2].getHits();
+  unknown_type[0].setTargetDecoyType(PeptideHit::TargetDecoyType::UNKNOWN);
+  pids[2].setHits(unknown_type);
+
+  ostringstream warnings;
+  getGlobalLogWarn().insert(warnings);
+  TEST_EQUAL(PercolatorInfile::stampPinFeaturesOnHits(pids, "trypsin", 2, 3).size(), 1)
+  getGlobalLogWarn().remove(warnings);
+  TEST_EQUAL(static_cast<int>(pids[0].getHits()[0].getMetaValue("ScanNr")), 5)
+  TEST_EQUAL(static_cast<int>(pids[1].getHits()[0].getMetaValue("ScanNr")), -1)
+  TEST_EQUAL(pids[2].getHits()[0].metaValueExists("ScanNr"), false)
+  TEST_TRUE(warnings.str().find("no scan number found in 1 of 2 spectrum references (e.g. 'index=3')") != std::string::npos)
+
+  // all scan numbers found: no warning
+  PeptideIdentificationList scans;
+  scans.push_back(make_pid("scan=5", "SAMPLER"));
+  scans.push_back(make_pid("scan=6", "SAMPLEK"));
+  ostringstream none;
+  getGlobalLogWarn().insert(none);
+  PercolatorInfile::stampPinFeaturesOnHits(scans, "trypsin", 2, 3);
+  getGlobalLogWarn().remove(none);
+  TEST_EQUAL(none.str().find("no scan number") == std::string::npos, true)
 }
 END_SECTION
 
@@ -517,6 +572,76 @@ START_SECTION(([EXTRA] store: PSMs of several spectrum files get a FileName colu
 }
 END_SECTION
 
+START_SECTION(([EXTRA] stampPinFeaturesOnHits: ScanNr tells the spectra of a file apart))
+{
+  // Percolator takes the PSMs of a file with the same ScanNr for one spectrum: train_best_positive keeps one positive
+  // per ScanNr, and the cross-validation splits by it. Thermo keeps its scan numbers. Bruker TDF DDA spectra get their
+  // precursor; Waters, SCIEX and other Bruker TDF native IDs, which number spectra only within a part of the run, a
+  // running number per file.
+  auto scan_numbers = [](const std::vector<std::pair<std::string, std::string>>& spectra) // (file, native ID)
+  {
+    PeptideIdentificationList pids;
+    for (const auto& [file, native_id] : spectra)
+    {
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString("PEPTIDEK"));
+      hit.setCharge(2);
+      hit.setScore(1.0);
+      hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
+      PeptideEvidence ev;
+      ev.setProteinAccession("PROT1");
+      ev.setAABefore('K');
+      ev.setAAAfter('A');
+      hit.setPeptideEvidences(std::vector<PeptideEvidence>{ev});
+      PeptideIdentification pid;
+      pid.setMZ(465.7);
+      pid.setRT(10.0);
+      pid.setSpectrumReference(native_id);
+      pid.setMetaValue("file_origin", file);
+      pid.setHits(std::vector<PeptideHit>{hit});
+      pids.push_back(pid);
+    }
+    PercolatorInfile::stampPinFeaturesOnHits(pids, "trypsin", 2, 3);
+    std::string numbers;
+    for (const PeptideIdentification& pid : pids)
+    {
+      if (!numbers.empty()) numbers += " ";
+      numbers += pid.getHits()[0].getMetaValue("ScanNr").toString();
+    }
+    return numbers;
+  };
+
+  // Thermo: the scan numbers
+  TEST_STRING_EQUAL(scan_numbers({{"a", "controllerType=0 controllerNumber=1 scan=1001"},
+                                  {"a", "controllerType=0 controllerNumber=1 scan=1002"}}), "1001 1002")
+  // Bruker TDF DDA: the precursors, not the first ion mobility scan of the precursor (475 in all three frames)
+  TEST_STRING_EQUAL(scan_numbers({{"a", "frame=120 scan=475 precursor=2"},
+                                  {"a", "frame=388 scan=475 precursor=61"},
+                                  {"a", "frame=1203 scan=475 precursor=230"}}), "2 61 230")
+  // SCIEX: the experiment (the last number) recurs in every cycle. A running number per file, the same for the
+  // PSMs of one spectrum.
+  TEST_STRING_EQUAL(scan_numbers({{"a", "sample=1 period=1 cycle=100 experiment=4"},
+                                  {"a", "sample=1 period=1 cycle=101 experiment=4"},
+                                  {"a", "sample=1 period=1 cycle=100 experiment=4"},
+                                  {"b", "sample=1 period=1 cycle=100 experiment=4"}}), "1 2 1 1")
+  // Waters: scans are numbered within a function
+  TEST_STRING_EQUAL(scan_numbers({{"a", "function=2 process=0 scan=345"},
+                                  {"a", "function=3 process=0 scan=345"}}), "1 2")
+  // Bruker TDF without a precursor (diaPASEF): scans are numbered within a frame
+  TEST_STRING_EQUAL(scan_numbers({{"a", "frame=120 windowGroup=3 scan=475"},
+                                  {"a", "frame=121 windowGroup=3 scan=475"}}), "1 2")
+  // "frame=F" alone (Bruker TDF MS1, diaTracer pseudo-DDA): the frame
+  TEST_STRING_EQUAL(scan_numbers({{"a", "frame=10"}, {"a", "frame=11"}}), "10 11")
+  // files from different instruments: each file numbers its spectra after the native ID format of its first one
+  TEST_STRING_EQUAL(scan_numbers({{"a", "frame=120 scan=475 precursor=2"},
+                                  {"b", "controllerType=0 controllerNumber=1 scan=1001"},
+                                  {"c", "sample=1 period=1 cycle=100 experiment=4"},
+                                  {"a", "frame=388 scan=475 precursor=61"}}), "2 1001 1 61")
+  TEST_STRING_EQUAL(scan_numbers({{"b", "controllerType=0 controllerNumber=1 scan=1001"},
+                                  {"a", "frame=120 scan=475 precursor=2"}}), "1001 2")
+}
+END_SECTION
+
 START_SECTION((static double getFeatureValue(const DataValue& value, const std::string& feature)))
 {
   // numeric meta values count as they are
@@ -549,6 +674,51 @@ START_SECTION((static double getFeatureValue(const DataValue& value, const std::
   TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(std::numeric_limits<double>::quiet_NaN()), "f"))
   TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(std::numeric_limits<double>::infinity()), "f"))
   TEST_EXCEPTION(Exception::InvalidValue, PercolatorInfile::getFeatureValue(DataValue(-std::numeric_limits<double>::infinity()), "f"))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] load: a single-file PIN with no FileName column loads without crashing))
+{
+  // CPP-161: load() unconditionally read map_filename_to_idx.at(raw_file_name) to set id_merge_index,
+  // but that map is only populated when a FileName column exists in the header. A single-file PIN,
+  // the exact shape PercolatorInfile::store() itself writes (see the "one file: no FileName column"
+  // section above), has no such column, so raw_file_name stays "UNKNOWN" and .at() threw
+  // std::out_of_range on the very first PSM -- OpenMS could not read back its own PIN output.
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("SAMPLER"));
+  hit.setCharge(2);
+  hit.setScore(1.0);
+  hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
+  PeptideEvidence ev;
+  ev.setProteinAccession("PROT1");
+  ev.setAABefore('K');
+  ev.setAAAfter('S');
+  hit.setPeptideEvidences(std::vector<PeptideEvidence>{ev});
+  PeptideIdentification pid;
+  pid.setMZ(500.25);
+  pid.setRT(123.4);
+  pid.setSpectrumReference("scan=529");
+  pid.setHits(std::vector<PeptideHit>{hit});
+  pid.setMetaValue("file_origin", "a.mzML");
+
+  PeptideIdentificationList one_file;
+  one_file.push_back(pid);
+
+  StringList feature_set = PercolatorInfile::getStandardFeatureSet(2, 3);
+  feature_set.push_back("retentiontime"); // required by load(), not by store()'s own internal checks
+  feature_set.push_back("Peptide");
+  feature_set.push_back("Proteins");
+
+  std::string pin_file;
+  NEW_TMP_FILE(pin_file);
+  PercolatorInfile::store(pin_file, one_file, feature_set, "trypsin", 2, 3);
+
+  StringList filenames;
+  StringList extra_scores;
+  PeptideIdentificationList loaded = PercolatorInfile::load(pin_file, true, "dm", extra_scores, filenames, "DECOY_");
+  TEST_EQUAL(loaded.size(), 1)
+  TEST_EQUAL(filenames.empty(), true)
+  TEST_EQUAL(loaded[0].metaValueExists("id_merge_index"), false)
 }
 END_SECTION
 

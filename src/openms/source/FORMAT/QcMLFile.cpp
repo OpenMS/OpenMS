@@ -239,7 +239,7 @@ namespace OpenMS
           StringUtils::substitute(sit, std::string(" "), std::string("_"));
         }
 
-        s += StringUtils::trimmed(ListUtils::concatenate(*it, " "));
+        s += StringUtils::trimmed(ListUtils::concatenate(copy_row, " "));
         s += "</tableRowValues>\n";
       }
       s += "</table>";
@@ -2086,8 +2086,12 @@ namespace OpenMS
                 QcMLFile::QualityParameter qp;
                 qp.id = *kt; ///< Identifier
                 qp.name = "set name"; ///< Name
-                qp.cvRef = "QC"; ///< cv reference
-                qp.cvAcc = "QC:0000005";
+                // Must match what the loader looks for inside a setQuality
+                // element (see the "MS:1000577" check a few hundred lines up
+                // in startElement_) -- "QC:0000005" here meant load() never
+                // found any member and reconstructed every set with none.
+                qp.cvRef = "MS"; ///< cv reference
+                qp.cvAcc = "MS:1000577";
                 for (const QualityParameter& qit : rq->second)
                 {
                   if (qit.cvAcc == "MS:1000577")

@@ -64,8 +64,10 @@ RUN apt-get update \
   # to the keyring the .deb pins via Signed-By (see issue #9729). wget already
   # fails the RUN on a bad download, so no extra guard is needed here.
   && wget -qO- https://downloads.apache.org/arrow/KEYS >> /usr/share/keyrings/apache-arrow-apt-source.asc \
-  # Pin Arrow/Parquet to v23 so build-time dev libs match the runtime SONAME (libarrow2300/libparquet2300)
-  && printf 'Package: libarrow* libparquet*\nPin: version 23.*\nPin-Priority: 999\n' > /etc/apt/preferences.d/arrow \
+  # Pin Arrow/Parquet to v24 so build-time dev libs match the runtime SONAME (libarrow2400/libparquet2400).
+  # Keep it at the Arrow version that the vcpkg baseline (vcpkg-configuration.json) gives PR CI: code that
+  # builds there then builds here (#10731 fixed a newer Arrow API that only this image could not build).
+  && printf 'Package: libarrow* libparquet*\nPin: version 24.*\nPin-Priority: 999\n' > /etc/apt/preferences.d/arrow \
   && apt-get update && apt-get install -y --no-install-recommends --no-install-suggests libparquet-dev \
   && rm apache-arrow-apt-source-latest-noble.deb
 
@@ -290,12 +292,12 @@ RUN apt-get update \
   # to the keyring the .deb pins via Signed-By (see issue #9729). wget already
   # fails the RUN on a bad download, so no extra guard is needed here.
   && wget -qO- https://downloads.apache.org/arrow/KEYS >> /usr/share/keyrings/apache-arrow-apt-source.asc \
-  # Pin Arrow/Parquet to v23 so these runtime libs match the build-time dev libs
+  # Pin Arrow/Parquet to v24 so these runtime libs match the build-time dev libs
   # installed by the same pin in the base stage (see #9890)
-  && printf 'Package: libarrow* libparquet*\nPin: version 23.*\nPin-Priority: 999\n' > /etc/apt/preferences.d/arrow \
+  && printf 'Package: libarrow* libparquet*\nPin: version 24.*\nPin-Priority: 999\n' > /etc/apt/preferences.d/arrow \
   && apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
-    libarrow2300 \
-    libparquet2300 \
+    libarrow2400 \
+    libparquet2400 \
   && rm apache-arrow-apt-source-latest-noble.deb \
   # Install the .NET 8 runtime so the openms-thermo-bridge native library can host
   # the managed Thermo RawFileReader at runtime (managed assemblies are shipped

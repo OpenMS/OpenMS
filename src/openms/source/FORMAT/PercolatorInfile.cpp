@@ -285,7 +285,10 @@ namespace OpenMS
         pids.resize(pids.size() + 1);
         pids.back().setHigherScoreBetter(higher_score_better);
         pids.back().setScoreType(score_name);
-        pids.back().setMetaValue(Constants::UserParam::ID_MERGE_INDEX, map_filename_to_idx.at(raw_file_name));
+        if (file_name_column_index >= 0) // FileName is optional; map_filename_to_idx is only populated when it is present
+        {
+          pids.back().setMetaValue(Constants::UserParam::ID_MERGE_INDEX, map_filename_to_idx.at(raw_file_name));
+        }
         pids.back().setRT(StringUtils::toDouble(row[to_idx.at("retentiontime")]) * 60.0); // search engines typically write minutes (e.g., sage)
         pids.back().setMetaValue("PinSpecId", sSpecId);
         if (IM > 0.0) // Sage might annotate 0.0 if no IM is present
@@ -435,6 +438,76 @@ namespace OpenMS
                                                         "lys-n", "lys-c", "arg-c", "asp-n", "glu-c", "trypsin", "trypsinp"};
       return pin_enzymes.contains(name) ? name : "no_enzyme";
     }
+
+    // The ScanNr of the spectra. Percolator takes the PSMs of a spectrum file with the same ScanNr for one spectrum
+    // (and with the same ExpMass in target-decoy competition): train_best_positive keeps one positive per ScanNr, and
+    // the cross-validation splits by it. So ScanNr has to tell the spectra of a file apart:
+    // - Bruker TDF DDA spectra, one per precursor ("frame=F scan=S precursor=P", as BrukerTimsFile writes them), get
+    //   the precursor P: S, the first ion mobility scan of the precursor, recurs in other frames.
+    // - Native IDs that number their spectra only within a part of the run get a running number per spectrum file,
+    //   in the order of the PSMs: Bruker TDF "frame=F ... scan=S" without a precursor (a scan within a frame, e.g.
+    //   diaPASEF), Waters "function=F process=P scan=S" (a scan within a function) and SCIEX "sample=1 period=1
+    //   cycle=C experiment=E" (whose last number, the experiment, recurs in every cycle).
+    // - The others keep the number SpectrumLookup extracts (e.g. the scan number of Thermo native IDs, the frame
+    //   number of "frame=F").
+    // Each spectrum file takes the scheme of its first spectrum: the spectra of a file have the same native ID format,
+    // but the files of one call may come from different instruments.
+    // The scan identifiers are those of PercolatorInfile::getScanIdentifier(), without whitespace.
+    class PinScanNumbers
+    {
+    public:
+      Int operator()(const std::string& file_identifier, const std::string& scan_identifier)
+      {
+        auto file = files_.find(file_identifier);
+        if (file == files_.end()) file = files_.emplace(file_identifier, FileNumbering(scan_identifier)).first;
+        return file->second(scan_identifier);
+      }
+
+    private:
+      // the ScanNr of the spectra of one file
+      class FileNumbering
+      {
+      public:
+        explicit FileNumbering(const std::string& first_scan_identifier) :
+          regex_(SpectrumLookup::getRegExFromNativeID(first_scan_identifier))
+        {
+          if (StringUtils::hasPrefix(first_scan_identifier, "frame="))
+          {
+            if (first_scan_identifier.find("precursor=") != std::string::npos)
+            {
+              scheme_ = Scheme::PRECURSOR;
+              regex_.assign(R"(precursor=(?<GROUP>\d+))");
+            }
+            else if (first_scan_identifier.find("scan=") != std::string::npos)
+            {
+              scheme_ = Scheme::RUNNING;
+            }
+          }
+          else if (StringUtils::hasPrefix(first_scan_identifier, "function=")
+                   || StringUtils::hasPrefix(first_scan_identifier, "sample="))
+          {
+            scheme_ = Scheme::RUNNING;
+          }
+        }
+
+        Int operator()(const std::string& scan_identifier)
+        {
+          if (scheme_ == Scheme::RUNNING)
+          {
+            return running_.emplace(scan_identifier, static_cast<Int>(running_.size()) + 1).first->second;
+          }
+          return SpectrumLookup::extractScanNumber(scan_identifier, regex_, /*no_error=*/true);
+        }
+
+      private:
+        enum class Scheme { NATIVE_ID, PRECURSOR, RUNNING };
+        Scheme scheme_ = Scheme::NATIVE_ID;
+        RegularExpression regex_;
+        std::map<std::string, Int> running_; // the running number of each scan identifier
+      };
+
+      std::map<std::string, FileNumbering> files_; // by file identifier
+    };
   }
 
   std::set<std::pair<size_t, size_t>> PercolatorInfile::stampPinFeaturesOnHits(
@@ -456,9 +529,11 @@ namespace OpenMS
     added_meta_values.clear();
     if (peptide_ids.empty()) return skipped;
 
-    // Scan-number regex is derived from the first pid's scan identifier.
-    const std::string sid = getScanIdentifier(peptide_ids[0], 0);
-    RegularExpression scan_regex = RegularExpression(SpectrumLookup::getRegExFromNativeID(sid));
+    PinScanNumbers scan_numbers; // ScanNr of the spectra
+
+    size_t spectra = 0;              // spectra (PeptideIdentifications) with stamped PSMs
+    size_t spectra_without_scan = 0; // ... of which no scan number could be read
+    std::string example_without_scan;
 
     size_t pid_index_1based = 0;
     size_t pid_index_0based = 0;
@@ -471,8 +546,8 @@ namespace OpenMS
       const std::string scan_identifier = getScanIdentifier(pep_id, pid_index_1based);
       const std::string file_identifier = getFileIdentifier(pep_id);
 
-      const Int scan_number = SpectrumLookup::extractScanNumber(
-        scan_identifier, scan_regex, /*no_error=*/true);
+      const Int scan_number = scan_numbers(file_identifier, scan_identifier);
+      bool stamped_hit = false; // a hit of this spectrum got ScanNr (skipped hits get none)
 
       double exp_mass = pep_id.getMZ();
       const double retention_time = pep_id.getRT();
@@ -511,6 +586,7 @@ namespace OpenMS
           continue;
         }
 
+        stamped_hit = true;
         stamp_meta_value("SpecId", file_identifier + scan_identifier);
         stamp_meta_value("ScanNr", scan_number);
         stamp_meta_value("Label", hit.isDecoy() ? -1 : 1);
@@ -615,6 +691,25 @@ namespace OpenMS
         }
         stamp_meta_value("Proteins", ListUtils::concatenate(proteins, "\t"));
       }
+
+      if (stamped_hit)
+      {
+        ++spectra;
+        if (scan_number < 0)
+        {
+          if (spectra_without_scan == 0) example_without_scan = scan_identifier;
+          ++spectra_without_scan;
+        }
+      }
+    }
+    // Percolator keeps the PSMs of one scan number in one cross-validation fold. The spectra without a scan number all
+    // get -1 and so share one fold, which can leave too few PSMs to train on (#10719: a native ID format that the scan
+    // number pattern of the first spectrum did not match).
+    if (spectra_without_scan > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: no scan number found in " << spectra_without_scan << " of " << spectra
+                      << " spectrum references (e.g. '" << example_without_scan << "'). Their PSMs get ScanNr -1"
+                      << " and share one Percolator cross-validation fold." << endl;
     }
     return skipped;
   }

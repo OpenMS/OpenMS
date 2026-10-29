@@ -160,8 +160,9 @@ target_link_libraries(BilinearInterpolation_test Eigen3::Eigen)
 target_link_libraries(MatrixEigen_test Eigen3::Eigen)
 target_link_libraries(MRMScoring_test Eigen3::Eigen)
 # The vendored Percolator is linked PRIVATE into libOpenMS with hidden symbols.
-# This test calls its PosteriorEstimator directly, so it links the static library.
+# These tests call its classes directly, so they link the static library.
 target_link_libraries(PercolatorPosteriorEstimator_test OpenMS_Percolator)
+target_link_libraries(PercolatorScores_test OpenMS_Percolator)
 
 
 if (WITH_HDF5)

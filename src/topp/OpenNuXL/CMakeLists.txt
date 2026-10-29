@@ -44,6 +44,7 @@ set(tool_headers
   include/NuXLParameterParsing.h
   include/NuXLPresets.h
   include/NuXLReport.h
+  include/NuXLSearchIndex.h
 )
 set(tool_sources
   source/NuXLAnnotateAndLocate.cpp

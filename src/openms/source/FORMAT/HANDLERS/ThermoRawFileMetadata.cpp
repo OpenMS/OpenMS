@@ -11,9 +11,11 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <algorithm>
 #include <cmath>
 #include <set>
 #include <stdexcept>
+#include <string_view>
 #include <utility>
 
 namespace OpenMS::Internal
@@ -109,6 +111,18 @@ std::string ThermoRawFileMetadata::filterKey(const std::string& filter)
     return filter.substr(start, stop - start);
   }
   return "";
+}
+
+bool ThermoRawFileMetadata::isSRM(const std::string& filter)
+{
+  const std::string_view head = std::string_view(filter).substr(0, filter.find('['));
+  for (std::size_t begin = 0; begin < head.size();)
+  {
+    const std::size_t end = std::min(head.find(' ', begin), head.size());
+    if (head.substr(begin, end - begin) == "SRM") { return true; }
+    begin = end + 1;
+  }
+  return false;
 }
 
 double ThermoRawFileMetadata::selectedIon(double target, std::optional<double> mono, double width)
