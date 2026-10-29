@@ -166,6 +166,11 @@ namespace OpenMS
     return impl_->position;
   }
 
+  void DecompressingInputStream::cancel()
+  {
+    impl_->source->cancel();
+  }
+
   Size DecompressingInputStream::readBytes(unsigned char* to_fill, Size max_to_read)
   {
     Size written = 0;

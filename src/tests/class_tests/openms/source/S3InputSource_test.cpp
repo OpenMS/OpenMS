@@ -41,6 +41,58 @@ START_SECTION((explicit S3InputSource(const std::string& uri)))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] errors do not show the credentials of the URI))
+{
+  // an invalid port: Arrow's diagnostic repeats the whole URI (without S3 support: OpenMS' own message)
+  std::string message;
+  try
+  {
+    S3InputSource source("s3://MY_ACCESS_KEY:MY_SECRET@bucket:999999/run.mzML?region=us-east-1&token=MY_TOKEN");
+  }
+  catch (const Exception::BaseException& e)
+  {
+    message = e.what();
+  }
+  TEST_EQUAL(message.empty(), false)
+  TEST_EQUAL(message.find("MY_ACCESS_KEY"), std::string::npos)
+  TEST_EQUAL(message.find("MY_SECRET"), std::string::npos)
+  TEST_EQUAL(message.find("MY_TOKEN"), std::string::npos)
+
+  // an invalid scheme: Arrow's diagnostic repeats the query value on its own
+  message.clear();
+  try
+  {
+    S3InputSource source("s3://MY_ACCESS_KEY:MY_SECRET@bucket/run.mzML?region=us-east-1&scheme=MY_SECRET_SCHEME");
+  }
+  catch (const Exception::BaseException& e)
+  {
+    message = e.what();
+  }
+  TEST_EQUAL(message.empty(), false)
+  TEST_EQUAL(message.find("MY_ACCESS_KEY"), std::string::npos)
+  TEST_EQUAL(message.find("MY_SECRET"), std::string::npos)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] an S3 server that cannot be reached))
+{
+  // an S3 client is made, but cannot connect (port 1 on the local host): an error without the credentials, and the
+  // process still exits cleanly (S3 is finalized at exit)
+  std::string message;
+  try
+  {
+    S3InputSource source("s3://MY_ACCESS_KEY:MY_SECRET@bucket/run.mzML?region=us-east-1&endpoint_override=127.0.0.1:1&scheme=http");
+  }
+  catch (const Exception::BaseException& e)
+  {
+    message = e.what();
+  }
+  TEST_EQUAL(message.empty(), false)
+  TEST_EQUAL(message.find("MY_ACCESS_KEY"), std::string::npos)
+  TEST_EQUAL(message.find("MY_SECRET"), std::string::npos)
+}
+END_SECTION
+
 START_SECTION((static bool isAvailable()))
 {
   NOT_TESTABLE // depends on the Arrow library OpenMS was built with
