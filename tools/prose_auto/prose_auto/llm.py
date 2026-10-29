@@ -26,6 +26,7 @@ import shlex
 import subprocess
 import urllib.request
 
+from . import schema as S
 from . import text_extract as tx
 from .evidence import Evidence, PARAMETERS
 
@@ -147,6 +148,95 @@ def extract_settings(backend: Backend, text: str, source_label: str, user=False)
         ev.append(Evidence(p, v, min(conf, 0.75 if user else 0.6), "llm", backend.name,
                            f"LLM read the {source_label}", quote=q))
     return ev, rejected
+
+
+STUDY_PROMPT = """You set up a proteomics database search (search engine ProSE) from what the authors and
+the user wrote about a study. The texts are given below by source; the user's own description and the
+SDRF are the most specific, the paper's methods the most detailed.
+
+Answer every head of the schema that the texts state or clearly imply (HeLa implies Homo sapiens,
+iodoacetamide implies Carbamidomethyl (C), "TMT 16plex" implies TMTpro (16/18plex)). Leave a head out
+when the texts do not say. Use exactly the listed values, except for tolerances, which are numbers.
+Every answer needs a verbatim quote (at most 30 words) copied from the texts and the source it is from.
+Then check the answers against the consistency rules and against each other: list every place where
+the texts contradict each other or a rule (e.g. the abstract says TMT but the protocol says label free;
+a TMT study measured with ion-trap CID), quoting both sides.
+
+{schema}
+
+Answer ONLY with JSON:
+{{"settings": [{{"head": name, "value": value or {{"value": number, "unit": "ppm"|"Da"}},
+                 "quote": "...", "source": "...", "confidence": 0..1}}],
+  "variable_mods": [{{"value": modification, "quote": "..."}}],
+  "scope": {{flag: true}},
+  "contradictions": [{{"heads": [names], "issue": one sentence, "quotes": ["...", "..."]}}]}}
+
+TEXTS:
+{texts}
+"""
+
+
+def extract_study(backend: Backend, texts: dict, user=False) -> tuple:
+    """One multi-head request over all texts of a study.
+
+    Returns (evidence, rejected, conflicts): conflicts are the contradictions
+    the LLM found between texts, plus the consistency rules that fire on its
+    answers. Quotes are verified against the texts as in extract_settings."""
+    state = S.study_state(texts)
+    if not backend or not state:
+        return [], [], []
+    body = "\n\n".join(f"[{k}]\n{v}" for k, v in state.items())
+    try:
+        out = _json_block(backend.complete(STUDY_PROMPT.format(schema=S.prompt_schema(), texts=body)))
+    except Exception as e:
+        return [], [{"error": str(e)}], []
+    if not isinstance(out, dict):
+        return [], [{"error": "answer is not a JSON object"}], []
+    ntext = _norm(body)
+    ok = lambda q: bool(q) and _norm(q) in ntext
+    ev, rejected, facts = [], [], {}
+    cap = 0.75 if user else 0.6
+    for it in out.get("settings") or []:
+        h = S.HEAD_BY_NAME.get(it.get("head"))
+        v, q = it.get("value"), str(it.get("quote", ""))
+        if h is None or v in (None, ""):
+            rejected.append({**it, "why": "unknown head"})
+            continue
+        if not ok(q):
+            rejected.append({**it, "why": "quote not found in the texts"})
+            continue
+        if h.name.endswith("_tolerance"):
+            if not (isinstance(v, dict) and "value" in v):
+                v = S.TOL_VALUE.get(str(v))
+            if not v:
+                rejected.append({**it, "why": "tolerance without a number"})
+                continue
+            v = {"value": float(v["value"]), "unit": "Da" if str(v.get("unit", "ppm")).lower() == "da" else "ppm"}
+        else:
+            allowed = {str(val).lower(): val for val, _ in h.options.values()}
+            if str(v).lower() not in allowed:
+                rejected.append({**it, "why": f"value not in the {h.name} vocabulary"})
+                continue
+            v = allowed[str(v).lower()]
+        facts[h.name] = v
+        if not h.parameter or v in ("other species", "mixed species", "other instrument") or \
+                (h.name == "enrichment" and v == "none"):
+            continue
+        if h.name == "acquisition":
+            v = {"DDA SPS-MS3": "DDA", "ddaPASEF": "DDA"}.get(v, v)
+        conf = min(float(it.get("confidence", 0.5)), cap, h.cap if h.name.endswith("_tolerance") else cap)
+        ev.append(Evidence(h.parameter, v, conf, "llm", backend.name,
+                           f"LLM read the {it.get('source') or 'texts'}", quote=q))
+    mods = [m.get("value") for m in out.get("variable_mods") or [] if isinstance(m, dict) and ok(str(m.get("quote", "")))]
+    mods = [m for m in mods if m in S.VARIABLE_MOD_FLAGS]
+    if mods:
+        ev.append(Evidence("variable_mods", mods, 0.5, "llm", backend.name, "LLM: searched as variable modifications"))
+    facts.update({k: bool(v) for k, v in (out.get("scope") or {}).items() if k in S.SCOPE_FLAGS})
+    conflicts = [{"kind": "text", "heads": c.get("heads", []), "message": c.get("issue", "")}
+                 for c in out.get("contradictions") or [] if isinstance(c, dict)
+                 and any(ok(str(q)) for q in c.get("quotes") or [])]
+    conflicts += S.check(facts)
+    return ev, rejected, conflicts
 
 
 PRIOR_PROMPT = """You are a proteomics methods expert. For a {acq} run on a {instrument} with {frag}

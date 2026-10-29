@@ -165,36 +165,30 @@ def analyze(a, log=print):
     for k in ("sample_protocol", "data_protocol", "description", "methods"):
         if texts.get(k):
             ev += tx.extract(texts[k], source="text", base_conf=0.5)
+    study = {"user's description": desc, "methods section": methods,
+             "PRIDE title": texts.get("title", ""), "PRIDE description": texts.get("description", ""),
+             "PRIDE sample protocol": texts.get("sample_protocol", ""),
+             "PRIDE data protocol": texts.get("data_protocol", ""),
+             "paper methods": texts.get("methods", ""), "SDRF": texts.get("sdrf", "")[:8000]}
+    study = {k: v for k, v in study.items() if v}
     backend = L.make_backend(a.llm)
-    llm_rejected = []
-    if backend:
-        log(f"  LLM: {backend.name}")
-        for label, text, user in (("user's description", desc, True), ("methods section", methods, False),
-                                  ("PRIDE sample protocol", texts.get("sample_protocol", ""), False),
-                                  ("PRIDE data protocol", texts.get("data_protocol", ""), False),
-                                  ("paper methods", texts.get("methods", ""), False)):
-            if text:
-                e, rej = L.extract_settings(backend, text, label, user=user)
-                ev += e
-                llm_rejected += [{**r, "source": label} for r in rej]
+    llm_rejected, llm_text_conflicts = [], []
+    if backend and study:
+        log(f"  LLM: {backend.name} (one multi-head request over {len(study)} texts)")
+        e, rej, llm_text_conflicts = L.extract_study(backend, study, user=bool(desc))
+        ev += e
+        llm_rejected += rej
         if a.llm_priors:
             ins = _first(ev, "instrument")
             frg = _first(ev, "fragmentation")
             ev += L.literature_priors(backend, ins.value if ins else "", acq, frg.value if frg else "", ms2a)
 
     jev = J.Jev() if a.jev else None
-    jev_raw, jev_issues = {}, []
-    texts_all = [("user's description", desc, True), ("methods section", methods, False),
-                 ("PRIDE sample protocol", texts.get("sample_protocol", ""), False),
-                 ("PRIDE data protocol", texts.get("data_protocol", ""), False),
-                 ("paper methods", texts.get("methods", ""), False)]
-    if jev:
-        log(f"  Jev classifier: {jev.name}")
-        for label, text, user in texts_all:
-            if text:
-                e, raw = J.classify(jev, text, label, user=user)
-                ev += e
-                jev_raw[label] = raw
+    jev_report, jev_issues = {}, []
+    if jev and study:
+        log(f"  Jev: {jev.name} (one multi-head request over {len(study)} texts)")
+        e, jev_report = J.read_study(jev, study, user=bool(desc))
+        ev += e
 
     log("[7/7] reconciling")
     decisions = reconcile(ev)
@@ -213,10 +207,9 @@ def analyze(a, log=print):
             except Exception as e:  # keep the data-only result
                 log(f"  ProSE confirmation failed: {e}")
     review = L.review(backend, decisions) if backend and a.llm_review else []
-    if jev:
-        for label, text, _ in texts_all:
-            if text:
-                jev_issues += J.cross_check(jev, text, decisions, label)
+    if jev and study:
+        jev_issues = J.cross_check(jev, study, decisions)
+    consistency = J.consistency(decisions)
     timings["total"] = round(time.time() - t0, 1)
     return {
         "tool": "prose-auto 0.1 (prototype)",
@@ -226,7 +219,10 @@ def analyze(a, log=print):
         "prose_cli": pp.to_cli(prose["params"]),
         "sdrf": pp.to_sdrf_technical(decisions),
         "llm": {"backend": backend.name if backend else None, "rejected": llm_rejected, "review": review},
-        "jev": {"model": jev.name if jev else None, "cross_check": jev_issues, "answers": jev_raw},
+        "jev": {"model": jev.name if jev else None, "cross_check": jev_issues, "study": jev_report,
+                "calls": jev.calls if jev else 0, "cost_usd": round(jev.cost_usd, 5) if jev else 0},
+        "consistency": consistency,
+        "text_conflicts": llm_text_conflicts + (jev_report.get("text_rules", []) if jev_report else []),
         "timings_s": timings,
     }
 
@@ -267,6 +263,12 @@ def markdown(rep):
             any_c = True
     for n in rep["prose"]["notes"]:
         L_.append(f"- {n}")
+        any_c = True
+    for r in rep.get("consistency", []):
+        L_.append(f"- Consistency ({r.get('severity')}): **{r.get('parameter')}** {r.get('issue')}")
+        any_c = True
+    for r in rep.get("text_conflicts", []):
+        L_.append(f"- Texts disagree with each other ({r.get('kind', '')}): {r.get('message') or r.get('issue')}")
         any_c = True
     for r in rep.get("jev", {}).get("cross_check", []):
         L_.append(f"- Jev cross-check ({r.get('severity')}): **{r.get('parameter')}** {r.get('issue')}")

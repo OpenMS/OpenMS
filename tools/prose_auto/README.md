@@ -71,24 +71,57 @@ answers three prompts: extract settings from text, typical tolerances for an
 instrument/acquisition (`--llm-priors`), and a review of the final settings
 (`--llm-review`).
 
-## Jev (typed classifier)
+## Reading the texts: one schema, many heads
 
-`--jev` sends the same texts to [Jev](https://jevtypesafeai.com/jev/classifier)
-(`POST /api/v1/decide`, key in `JEV_API_KEY`, optional `JEV_URL` and
-`JEV_MODEL`). Jev picks one label from a closed set and returns a probability
-for each, so its answers stay inside the prose-auto vocabularies and need no
-quote guard. `jev.py` asks, in one request per text, for the organism,
-protease, Cys alkylation, label, enrichment, acquisition, fragmentation and
-instrument, each with a `not_stated` option; answers with p ≥ 0.5 become
-`llm` evidence with confidence 0.7·p (≤ 0.6 for methods text, ≤ 0.7 for the
-user's description). After reconciling, it asks per setting whether each text
-supports, contradicts or does not mention it, and lists contradictions under
-"Conflicts and notes". Tolerances are numbers, not labels, so they stay with
-the regex extractor and `--llm`. Cost is about $0.001 per request.
+`schema.py` defines the ProSE settings that texts can state as *heads*
+(organism, sample type, protease, missed cleavages, Cys alkylation, label,
+enrichment, acquisition, fragmentation, MS2 analyzer, instrument, precursor
+and fragment tolerance), each with a closed list of values, plus yes/no flags
+for variable modifications and for search types ProSE does not cover
+(open, cross-link, glycan, top-down). All texts of a study (the user's
+description, SDRF, PRIDE title/description/protocols, methods) go into one
+labelled state and are read in **one request**:
 
-The LLM never overrides a measurement. Its findings are evidence of source
-`llm` with confidence ≤ 0.75. Any extracted setting whose quote does not
-occur verbatim in the input is rejected and listed in the report.
+* `--llm`: the generative LLM gets the heads, values and consistency rules in
+  one prompt, answers every head with a verbatim quote (checked), and lists
+  where the texts contradict each other or a rule.
+* `--jev`: [Jev](https://docs.typesafe.ai) answers every head as a typed
+  `choice` question (with "not stated") and every flag as a `noul` question.
+  The head answers are decoded jointly: the most probable combination that
+  breaks no hard rule wins, so a near-tie in one head is settled by the
+  others. After reconciling, Jev checks each final setting against the texts
+  (supports / contradicts / not mentioned). A TypeSafe console key
+  (`TYPESAFE_API_KEY` or `JEV_API_KEY`) uses `api.typesafe.ai/v1/systemone`; a
+  `jv_live_` key uses the jevtypesafeai.com proxy. About $0.001 per request.
+
+**Consistency rules** (`schema.RULES`) say which values exclude each other
+(*hard*: TMT/iTRAQ with ion-trap CID MS2, PASEF on a non-timsTOF, ETD on an
+instrument without ETD, trypsin on an immunopeptidome, ppm fragment windows
+on ion-trap MS2, Orbitrap vs TOF analyzer), which are unusual (*soft*: TMT
+with DIA, unspecific search of a digest, K-GG without trypsin, 0.3 Da fragment
+windows on high-res MS2, metabolic 15N/heavy-water labels, mixed species,
+out-of-scope search types) and which imply others (*imply*: phospho
+enrichment adds Phospho (STY), PASEF implies TOF and ion mobility). They are
+applied to the text answers, to the final settings (`consistency` in the
+report) and to the tuning loop's proposals.
+
+## Tuning loop (`python -m prose_auto.tune`)
+
+Starts from a report's ProSE settings and improves them with ProSE on a
+top-TIC subset: each round reads ProSE's diagnostics (PSMs, calibration error
+of precursor and fragment, open-search mass shifts), builds a shortlist of
+changes (widen/narrow tolerances, add a modification seen as a mass shift,
+drop surplus modifications, Trypsin/P, more missed cleavages, calibration),
+drops any that break a hard rule, lets Jev order them (`--jev`; rule order
+otherwise), searches the top few and keeps a change that gains at least 1%.
+`--entrap entrap.py` scores by PSMs at 1% entrapment FDP instead of raw PSMs.
+Every step goes to `<run>.tune.trace.jsonl` for later calibration of the
+chooser.
+
+```bash
+python -m prose_auto.tune out/run.auto.json --prose ProSE --database td_entrap.fasta \
+    --entrap entrap.py --jev --threads 16
+```
 
 ## Tests
 
