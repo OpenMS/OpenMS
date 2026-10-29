@@ -158,8 +158,11 @@ struct StatsIndex::Impl {
     std::uint64_t previous_max = 0;
     for (int32_t g = 0; all && g < metadata_->num_row_groups(); ++g) {
       const auto chunk = metadata_->RowGroup(g)->ColumnChunk(column);
-      const auto stats = chunk->is_stats_set() ? std::dynamic_pointer_cast<parquet::Int64Statistics>(chunk->statistics())
-                                               : nullptr;
+      // (by the physical type, not dynamic_pointer_cast: Int64Statistics is a template instance, see ColMinMax)
+      const std::shared_ptr<parquet::Statistics> any = chunk->is_stats_set() ? chunk->statistics() : nullptr;
+      const auto stats = any && any->physical_type() == parquet::Type::INT64
+                             ? std::static_pointer_cast<parquet::Int64Statistics>(any)
+                             : nullptr;
       if (!stats || !stats->HasMinMax()) {
         all = false;
         break;

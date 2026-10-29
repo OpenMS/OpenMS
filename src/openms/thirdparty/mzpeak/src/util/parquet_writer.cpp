@@ -173,8 +173,10 @@ bool entity_index_is_ascending(const arrow::Table& table)
     values = std::static_pointer_cast<arrow::StructArray>(values)->field(0);
   }
 
-  auto index = std::dynamic_pointer_cast<arrow::UInt64Array>(values);
-  if (!index) return false;
+  // (by the type id: UInt64Array is a template instance, whose type_info can differ between the images of a process;
+  // OpenMS change, see README.OpenMS.md)
+  if (values->type_id() != arrow::Type::UINT64) return false;
+  auto index = std::static_pointer_cast<arrow::UInt64Array>(values);
   if (index->null_count() != 0) return false; // nulls_first=false would be a lie
 
   for (int64_t i = 1; i < index->length(); ++i) {

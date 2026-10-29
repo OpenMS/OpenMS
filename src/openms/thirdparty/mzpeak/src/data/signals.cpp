@@ -116,8 +116,10 @@ std::size_t Signals::record_count() const
     if (!chunk->is_stats_set()) continue;
     auto stats = chunk->statistics();
     if (!stats || !stats->HasMinMax()) continue;
-    auto typed = std::dynamic_pointer_cast<parquet::Int64Statistics>(stats);
-    if (!typed) continue;
+    // (by the physical type, not dynamic_pointer_cast: Int64Statistics is a template instance, whose type_info can
+    // differ between the images of a process; OpenMS change, see README.OpenMS.md)
+    if (stats->physical_type() != parquet::Type::INT64) continue;
+    auto typed = std::static_pointer_cast<parquet::Int64Statistics>(stats);
     max_signed = std::max(max_signed, typed->max());
   }
 

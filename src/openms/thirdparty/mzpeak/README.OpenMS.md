@@ -59,6 +59,13 @@ the OpenMS interface.
   only if it is the first Parquet sorting column (a later one is ordered only within runs of the first), and its
   contiguous-group fast path also needs the row groups in ascending order of the column by their statistics, compared
   as signed or unsigned by the column's type (the sorting columns describe each row group only).
+- Typed Arrow arrays and Parquet statistics are taken by their type id (`type_id()`, `physical_type()`) and
+  `static_pointer_cast`, not by `dynamic_pointer_cast`: `DoubleArray`, `Int64Array`, `UInt8Array`, `UInt64Array`,
+  `Int64Statistics` and the like are template instances, whose `type_info` can differ between the images of a process
+  (macOS), and then the cast fails silently. On macOS the numeric values of CV parameters were lost that way (e.g.
+  the collision energy). In `src/util/metadata_model.cpp` (CV parameter values, the promoted activation columns,
+  `mz_delta_model`, auxiliary array data), `src/util/parquet_writer.cpp`, `src/util/planner.cpp` and
+  `src/data/signals.cpp`; the library's own typed readers already did it this way.
 - `src/boost_json_src.cpp` (new): Boost.JSON compiled header-only, so libOpenMS links no
   compiled Boost library.
 - `sources.cmake`, `CMakeLists.txt`, this file.

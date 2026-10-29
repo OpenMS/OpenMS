@@ -591,20 +591,23 @@ CvParam extract_one_cv_param(const Facet& items, int64_t k)
         p.value = *str;
         return p;
       }
+      // The numeric arms by their type id, not by dynamic_pointer_cast: Int64Array and DoubleArray are template
+      // instances, whose type_info can differ between the images of a process (macOS), and then the cast fails
+      // silently (OpenMS change, see README.OpenMS.md).
       // "integer" arm — Int64.
-      if (auto f = std::dynamic_pointer_cast<arrow::Int64Array>(
-              val_struct->GetFieldByName("integer"))) {
+      if (auto f = val_struct->GetFieldByName("integer");
+          f && f->type_id() == arrow::Type::INT64) {
         if (!f->IsNull(k)) {
-          p.value = std::to_string(f->Value(k));
+          p.value = std::to_string(std::static_pointer_cast<arrow::Int64Array>(f)->Value(k));
           return p;
         }
       }
       // "float" arm — Double (stored as float64 in Arrow; use canonical
       // format per M2 to avoid trailing zeros, e.g. 35.0 -> "35").
-      if (auto f = std::dynamic_pointer_cast<arrow::DoubleArray>(
-              val_struct->GetFieldByName("float"))) {
+      if (auto f = val_struct->GetFieldByName("float");
+          f && f->type_id() == arrow::Type::DOUBLE) {
         if (!f->IsNull(k)) {
-          p.value = format_double_canonical(f->Value(k));
+          p.value = format_double_canonical(std::static_pointer_cast<arrow::DoubleArray>(f)->Value(k));
           return p;
         }
       }
@@ -777,16 +780,17 @@ void append_activation_columns(const Facet& facet,
       param.value = large->GetString(row);
     } else if (auto str = std::dynamic_pointer_cast<arrow::StringArray>(field)) {
       param.value = str->GetString(row);
-    } else if (auto dbl = std::dynamic_pointer_cast<arrow::DoubleArray>(field)) {
+    } else if (field->type_id() == arrow::Type::DOUBLE) {
+      // (numeric arrays by their type id, see extract_one_cv_param)
       // std::format, not std::to_string: the latter is %f with six decimals,
       // which silently truncates anything with more resolution than that.
-      param.value = std::format("{}", dbl->Value(row));
-    } else if (auto flt = std::dynamic_pointer_cast<arrow::FloatArray>(field)) {
-      param.value = std::format("{}", flt->Value(row));
-    } else if (auto i64 = std::dynamic_pointer_cast<arrow::Int64Array>(field)) {
-      param.value = std::format("{}", i64->Value(row));
-    } else if (auto i32 = std::dynamic_pointer_cast<arrow::Int32Array>(field)) {
-      param.value = std::format("{}", i32->Value(row));
+      param.value = std::format("{}", std::static_pointer_cast<arrow::DoubleArray>(field)->Value(row));
+    } else if (field->type_id() == arrow::Type::FLOAT) {
+      param.value = std::format("{}", std::static_pointer_cast<arrow::FloatArray>(field)->Value(row));
+    } else if (field->type_id() == arrow::Type::INT64) {
+      param.value = std::format("{}", std::static_pointer_cast<arrow::Int64Array>(field)->Value(row));
+    } else if (field->type_id() == arrow::Type::INT32) {
+      param.value = std::format("{}", std::static_pointer_cast<arrow::Int32Array>(field)->Value(row));
     } else {
       continue; // a shape this reader has no honest representation for
     }
@@ -1189,10 +1193,10 @@ std::map<uint64_t, std::vector<double>> read_mz_delta_models(Parquet& metadata)
     auto list(std::dynamic_pointer_cast<arrow::ListArray>(model_field));
     if (!large_list && !list) continue;
 
-    // (float64 only: another value type would be read past its buffer)
-    auto values(std::dynamic_pointer_cast<arrow::DoubleArray>(
-        large_list ? large_list->values() : list->values()));
-    if (!values) continue;
+    // (float64 only: another value type would be read past its buffer; by the type id, see extract_one_cv_param)
+    const std::shared_ptr<arrow::Array> model_values = large_list ? large_list->values() : list->values();
+    if (!model_values || model_values->type_id() != arrow::Type::DOUBLE) continue;
+    auto values(std::static_pointer_cast<arrow::DoubleArray>(model_values));
 
     for (int64_t r = 0; r < spectrum->length(); ++r) {
       if (index.IsNull(r)) continue;
@@ -1550,8 +1554,10 @@ read_spectra_metadata_(const SpectraMetadataFiles& files, MetadataDetail detail)
                 auto data_slice = list_slice(resolve_field(aux, "data"), begin + k);
                 if (data_slice) {
                   {
-                    auto data_values = std::dynamic_pointer_cast<arrow::UInt8Array>(
-                        data_slice->values);
+                    // (by the type id, see extract_one_cv_param)
+                    auto data_values = data_slice->values && data_slice->values->type_id() == arrow::Type::UINT8
+                                           ? std::static_pointer_cast<arrow::UInt8Array>(data_slice->values)
+                                           : nullptr;
                     if (data_values) {
                       int64_t d_begin = data_slice->begin;
                       int64_t d_length = data_slice->length;
