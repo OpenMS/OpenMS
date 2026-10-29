@@ -29,6 +29,9 @@ ENZYME_NAMES = {"Trypsin": "Trypsin", "Trypsin/P": "Trypsin/P", "Lys-C": "Lys-C"
                 "unspecific cleavage": "unspecific cleavage"}
 
 
+TOLERANCE_FACTOR = 2.0  # search window / measured error (ppm tolerances)
+
+
 def _per_residue(mods):
     """'Phospho (STY)' / 'Phospho (S,T,Y)' -> 'Phospho (S)', 'Phospho (T)', 'Phospho (Y)': ProSE takes one
     UniMod site per entry. Terminal sites ('N-term', 'Protein N-term') pass unchanged."""
@@ -49,13 +52,19 @@ def to_prose(decisions: dict) -> dict:
     v = lambda p: decisions[p].value if p in decisions else None
     P, notes = {}, []
     pt, ft = v("precursor_tolerance"), v("fragment_tolerance")
+    # The decisions hold the measured error (|offset| + 4 SD, or precision + offset). As a search window that is
+    # too tight: on 13 PRIDE runs, 2x the measured ppm value plus ProSE's calibration pass found up to 10% more
+    # PSMs at the same entrapment FDP. Da windows (ion-trap MS2) are wide already and stay as measured.
+    win = lambda t: round(float(t["value"]) * (TOLERANCE_FACTOR if t["unit"] == "ppm" else 1.0), 3)
     if pt:
-        P["Search:precursor:mass_tolerance_lower"] = float(pt["value"])  # ProSE declares tolerances as double
-        P["Search:precursor:mass_tolerance_upper"] = float(pt["value"])  # ProSE declares tolerances as double
+        P["Search:precursor:mass_tolerance_lower"] = win(pt)  # ProSE declares tolerances as double
+        P["Search:precursor:mass_tolerance_upper"] = win(pt)
         P["Search:precursor:mass_tolerance_unit"] = pt["unit"]
     if ft:
-        P["Search:fragment:mass_tolerance"] = float(ft["value"])
+        P["Search:fragment:mass_tolerance"] = win(ft)
         P["Search:fragment:mass_tolerance_unit"] = ft["unit"]
+    if (pt and pt["unit"] == "ppm") or (ft and ft["unit"] == "ppm"):
+        notes.append(f"ppm tolerances are {TOLERANCE_FACTOR:g}x the measured error, with ProSE's calibration pass on")
     cr = v("charge_range")
     if cr:
         P["Search:precursor:min_charge"], P["Search:precursor:max_charge"] = int(cr[0]), int(cr[1])
@@ -93,9 +102,9 @@ def to_prose(decisions: dict) -> dict:
         P["Search:peptdeep:nce"] = -1.0   # ProSE picks it from the spectra and refines it
     if v("fragmentation") and any(x in str(v("fragmentation")) for x in ("ETD", "ECD", "EThcD")):
         P["Search:ions:by_activation"] = "true"
-    # calibration pass whenever the offset was not measured by a search
-    po = decisions.get("precursor_offset")
-    P["Search:calibration:enabled"] = "false" if (po and po.source == "search" and po.confidence >= 0.7) else "true"
+    # calibration pass always: it re-centres and narrows the window on ProSE's own PSMs, which the mini-search's
+    # offset (2,000 spectra, no variable mods) cannot replace
+    P["Search:calibration:enabled"] = "true"
     acq = str(v("acquisition") or "")
     if acq.startswith("DIA"):
         notes.append("DIA data: search pseudo-spectra (DIA-Umpire style deconvolution; OpenMS has "

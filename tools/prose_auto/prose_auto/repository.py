@@ -116,9 +116,14 @@ def sdrf_evidence(text, source_name="SDRF") -> list:
     dis = most(col("comment[dissociation method]"))
     if dis:
         ev.append(Evidence("fragmentation", _kv(dis).get("NT", dis).upper(), conf, "repository", "sdrf", f"{src}: {dis}"))
-    enz = most(col("comment[cleavage agent details]"))
-    if enz:
-        ev.append(Evidence("enzyme", _kv(enz).get("NT", enz), conf, "repository", "sdrf", f"{src}: {enz}"))
+    agents = {_kv(e).get("NT", e) for e in col("comment[cleavage agent details]")}
+    if agents:
+        # Lys-C + trypsin (one digest, or two agent columns) cleaves like trypsin; searching Lys-C alone lost 80%
+        # of the PSMs of PXD008012
+        top = most(col("comment[cleavage agent details]"))
+        name = "Trypsin" if any(a.lower().startswith("trypsin") for a in agents) and len(agents) > 1 else \
+            _kv(top).get("NT", top)
+        ev.append(Evidence("enzyme", name, conf, "repository", "sdrf", f"{src}: {' + '.join(sorted(agents))}"))
     for name, param in (("comment[precursor mass tolerance]", "precursor_tolerance"),
                         ("comment[fragment mass tolerance]", "fragment_tolerance")):
         t = _tol(most(col(name)) or "")
@@ -139,10 +144,16 @@ def sdrf_evidence(text, source_name="SDRF") -> list:
         ev.append(Evidence("cys_alkylation", cys[0], conf, "repository", "sdrf", f"{src}: fixed {cys[0]}"))
     if var:
         ev.append(Evidence("variable_mods", var, 0.5, "repository", "sdrf", f"{src}: variable {var}"))
-    enr = [v for v in var if v.lower().startswith(("phospho", "glygly", "gg", "acetyl (k)"))]
+    # a variable modification in the search settings is not an enrichment (SDRFs list Phospho or Acetyl (K) for
+    # unenriched runs); only the SDRF's own enrichment column states one
+    enr = most([v for k in head if "enrichment" in k for v in col(k)])
     if enr:
-        ev.append(Evidence("enrichment", enr[0], 0.4, "repository", "sdrf",
-                           f"{src}: {enr[0]} among the variable modifications"))
+        low = enr.lower()
+        val = ("Phospho (STY)" if "phospho" in low else "Glyco" if "glyco" in low else "GlyGly (K)" if
+               ("ubiquit" in low or "glygly" in low) else "Acetyl (K)" if "acetyl" in low else
+               "none" if low in ("none", "no enrichment", "not applicable") else None)
+        if val:
+            ev.append(Evidence("enrichment", val, conf, "repository", "sdrf", f"{src}: enrichment process {enr}"))
     return ev
 
 

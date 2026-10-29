@@ -53,6 +53,23 @@ def _organism_key(v):
     return " ".join(str(v).replace("_", " ").split()[:2]).lower()
 
 
+def _stated_untested(d, evs):
+    """A search can only pick among the databases it searched. When the user or a repository states an organism of
+    another genus that no search tested (outside the panel, proteome fetch failed or DIA without a search), the
+    nearest panel organism winning says nothing against it: the stated organism wins, flagged for review."""
+    if d.source != "search":
+        return d
+    g = lambda v: str(v).replace("_", " ").split(" ")[0].lower()
+    searched = {g(k) for e in evs if e.source == "search" for k in (e.stats or {})}
+    stated = [e for e in evs if e.source in ("user", "repository") and e.confidence >= 0.5
+              and g(e.value) != g(d.value) and g(e.value) not in searched]
+    if not stated:
+        return d
+    s = max(stated, key=lambda e: e.confidence)
+    note = f"the mini-search prefers {d.value}, but {s.source} states {s.value}, which no searched database covers"
+    return Decision("organism", s.value, round(s.confidence * 0.9, 3), s.source, evs, d.conflicts + [note], "review")
+
+
 def _combine(winner: Evidence, evs: list):
     agree = [e for e in evs if e is not winner and _same(e.value, winner.value) and e.source != winner.source]
     p = 1 - winner.confidence
@@ -74,9 +91,10 @@ def _pick(evs, order, strong_first=None):
     return None
 
 
-def _decide(param, evs):
-    order = ORDER_MEASURED if param in MEASURED else ORDER_SAMPLE
-    w = _pick(evs, order, strong_first=None if param in MEASURED else "search")
+def _decide(param, evs, order=None):
+    measured = order is ORDER_MEASURED or param in MEASURED
+    order = order or (ORDER_MEASURED if measured else ORDER_SAMPLE)
+    w = _pick(evs, order, strong_first=None if measured else "search")
     if w is None:
         return None
     conf, agree = _combine(w, evs)
@@ -175,7 +193,10 @@ def reconcile(evidence: list) -> dict:
               "precursor_offset", "fragment_offset", "enzyme", "cys_alkylation", "enrichment",
               "variable_mods"):
         if p in by:
-            d = _decide(p, by[p])
+            # enrichment: when the spectra could test it (>= 100 charged DDA spectra, confidence >= 0.6) the
+            # measurement wins; project texts mention phospho for atlases whose other runs were enriched
+            tested = p == "enrichment" and any(e.source == "data" and e.confidence >= 0.6 for e in by[p])
+            d = _decide(p, by[p], ORDER_MEASURED if tested else None)
             if d:
                 out[p] = d
     if "label" in by:
@@ -186,7 +207,7 @@ def reconcile(evidence: list) -> dict:
     if "organism" in by:
         d = _decide("organism", by["organism"])
         if d:
-            out["organism"] = d
+            out["organism"] = _stated_untested(d, by["organism"])
     instrument = get("instrument") or ""
     for kind in ("precursor", "fragment"):
         param = f"{kind}_tolerance"

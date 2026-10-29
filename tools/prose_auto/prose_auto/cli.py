@@ -49,6 +49,25 @@ def _first(evs, param):
     return max(c, key=lambda e: e.confidence) if c else None
 
 
+def _genus(v):
+    return str(v).replace("_", " ").split(" ")[0].lower()
+
+
+def _outside_panel(ev, panel, max_n=2):
+    """Organisms worth fetching: stated by the user, a repository record or the text (confidence >= 0.5), or called
+    by FASTag with confidence >= 0.75, whose genus no panel database covers. Stated organisms first."""
+    have = {_genus(k) for k in panel}
+    stated = [e for e in ev if e.parameter == "organism" and e.source in ("user", "repository", "text", "llm")
+              and e.confidence >= 0.5]
+    tagged = [e for e in ev if e.parameter == "organism" and e.method == "FASTag species" and e.confidence >= 0.75]
+    out = []
+    for e in sorted(stated, key=lambda e: -e.confidence) + sorted(tagged, key=lambda e: -e.confidence):
+        g = _genus(e.value)
+        if g and g not in have and g not in {_genus(o) for o in out} and g not in ("unknown", "not"):
+            out.append(str(e.value))
+    return out[:max_n]
+
+
 def analyze(a, log=print):
     t0 = time.time()
     timings = {}
@@ -102,7 +121,8 @@ def analyze(a, log=print):
 
     log("[4/7] labels, enrichment, Cys alkylation (diagnostic ions)")
     t = time.time()
-    ev += chem.detect_labels(run, hr2) + chem.detect_enrichment(run, hr2) + chem.detect_cys_alkylation(run, hr2)
+    ev += chem.detect_labels(run, hr2) + chem.detect_enrichment(run, hr2, dia=str(search_acq).startswith("DIA")) \
+          + chem.detect_cys_alkylation(run, hr2)
     timings["chemistry"] = round(time.time() - t, 1)
 
     # mini-search hypotheses (DDA only: DIA spectra have no single precursor)
@@ -189,6 +209,25 @@ def analyze(a, log=print):
         log(f"  Jev: {jev.name} (one multi-head request over {len(study)} texts)")
         e, jev_report = J.read_study(jev, study, user=bool(desc))
         ev += e
+
+    outside = _outside_panel(ev, panel)
+    if outside and h is not None and a.panel:
+        # a stated organism or a confident FASTag genus the panel lacks: fetch its proteome and let the
+        # mini-search compare it with the panel winner, instead of the nearest panel organism winning by default
+        extra = dict(p for p in (fetch_proteome(o, os.path.join(a.panel, "extra"), log) for o in outside) if p)
+        if extra:
+            log(f"  organism outside the panel: re-testing {', '.join(extra)} against the panel winner")
+            t = time.time()
+            rival = {h.best_db[0]: h.best_db[1]} if h.best_db else {}
+            redo = ("organism", "precursor_offset", "precursor_tolerance", "fragment_offset", "fragment_tolerance",
+                    "cys_alkylation", "enzyme")
+            new = h.organism({**rival, **extra})
+            if h.best_db and h.best_db[0] in extra:  # the new proteome wins: redo the stages that used the winner
+                ev = [e for e in ev if not (e.source == "search" and e.parameter in redo)] + new
+                ev += h.accuracy() + h.alkylation() + ([] if a.skip_enzyme else h.enzyme())
+            else:  # the panel winner holds; the new search evidence records that the stated organism was tested
+                ev = [e for e in ev if not (e.source == "search" and e.parameter == "organism")] + new
+            timings["outside_panel"] = round(time.time() - t, 1)
 
     log("[7/7] reconciling")
     decisions = reconcile(ev)
@@ -306,33 +345,73 @@ MODEL_PROTEOMES = {
 }
 
 
+def _download(url, dst, log=print, attempts=5):
+    """UniProt's REST endpoints return sporadic HTTP 500s: retry, and never leave a partial file."""
+    import urllib.request
+    for attempt in range(attempts):
+        try:
+            with urllib.request.urlopen(url, timeout=600) as r:
+                data = r.read()
+            break
+        except OSError as e:  # URLError and HTTPError are OSErrors
+            log(f"    attempt {attempt + 1} failed: {e}")
+            time.sleep(10 * 2 ** attempt)
+    else:
+        return False
+    part = f"{dst}.{os.getpid()}.part"  # parallel analyses may fetch the same proteome
+    with open(part, "wb") as fh:
+        fh.write(data)
+    os.replace(part, dst)
+    return True
+
+
 def fetch_panel(out, reviewed=True, log=print):
     """Download the model-organism panel (UniProt reference proteomes)."""
-    import urllib.request
     os.makedirs(out, exist_ok=True)
     for name, up in MODEL_PROTEOMES.items():
         q = f"(proteome:{up})" + ("+AND+(reviewed:true)" if reviewed else "")
-        url = f"https://rest.uniprot.org/uniprotkb/stream?format=fasta&query={q}"
         dst = os.path.join(out, f"{name}.fasta")
         if os.path.getsize(dst) if os.path.exists(dst) else 0:
             log(f"  {name}: present, skipped")
             continue
         log(f"  {name} ({up}) -> {dst}")
-        # UniProt's stream endpoint returns sporadic HTTP 500s: retry, and never leave a partial file
-        for attempt in range(5):
-            try:
-                with urllib.request.urlopen(url, timeout=600) as r:
-                    data = r.read()
-                break
-            except OSError as e:  # URLError and HTTPError are OSErrors
-                log(f"    attempt {attempt + 1} failed: {e}")
-                time.sleep(10 * 2 ** attempt)
-        else:
+        if not _download(f"https://rest.uniprot.org/uniprotkb/stream?format=fasta&query={q}", dst, log):
             log(f"  {name}: giving up; the panel lacks this organism")
-            continue
-        with open(dst + ".part", "wb") as fh:
-            fh.write(data)
-        os.replace(dst + ".part", dst)
+
+
+def fetch_proteome(organism, cache, log=print):
+    """UniProt reference proteome of an organism outside the panel (species name, or a genus: then the first
+    reference proteome UniProt lists for it), all entries (non-model organisms have few reviewed ones), cached as
+    <cache>/<Genus_species>.fasta. Returns (name, path) or None."""
+    import json
+    import urllib.parse
+    import urllib.request
+    words = str(organism).replace("_", " ").split()
+    if not words or not words[0][:1].isupper():
+        return None
+    query = " ".join(words[:2]) if len(words) > 1 and words[1].islower() and words[1].isalpha() else words[0]
+    os.makedirs(cache, exist_ok=True)
+    # taxonomy_name matches a genus or a species with all its strains; the proteome_type query field returns nothing,
+    # so reference proteomes are picked from the results
+    q = urllib.parse.quote(f'taxonomy_name:"{query}"')
+    url = f"https://rest.uniprot.org/proteomes/search?query={q}&fields=upid,organism&format=json&size=25"
+    try:
+        with urllib.request.urlopen(url, timeout=120) as r:
+            hits = [h for h in json.load(r).get("results", []) if h.get("proteomeType", "").startswith("Reference")]
+    except (OSError, ValueError) as e:
+        log(f"  proteome lookup for {query} failed: {e}")
+        return None
+    if not hits:
+        log(f"  no UniProt reference proteome for {query}")
+        return None
+    up, sci = hits[0]["id"], hits[0]["taxonomy"]["scientificName"]
+    name = "_".join(sci.split()[:2])
+    dst = os.path.join(cache, f"{name}.fasta")
+    if not (os.path.exists(dst) and os.path.getsize(dst)):
+        log(f"  fetching {sci} reference proteome {up} for {organism}")
+        if not _download(f"https://rest.uniprot.org/uniprotkb/stream?format=fasta&query=(proteome:{up})", dst, log):
+            return None
+    return name, dst
 
 
 def main(argv=None):

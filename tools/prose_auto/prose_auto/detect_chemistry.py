@@ -8,7 +8,9 @@ called when the diagnostic ions are frequent and strongly enriched.
 * Isobaric labels: TMT (0/2/6/10/11), TMTpro (16/18), iTRAQ 4/8 reporter ions.
   TMT 10/11 vs 6 needs the 6 mDa N/C isotopologue split (high-res MS2 only).
 * SILAC: MS1 peak pairs spaced by Lys8 (8.0142 Da), Arg10 (10.0083 Da),
-  Arg6 (6.0201 Da), Lys4 (4.0251 Da, same as dimethyl d4) at charge 2 and 3.
+  Arg6 (6.0201 Da), Lys4 (4.0251 Da, same as dimethyl d4) at charge 2 and 3,
+  against the same spacing shifted by whole 13C steps, on many distinct
+  precursors, with the heavy peak separate from the light isotope envelope.
 * Phospho enrichment: neutral loss of H3PO4 (97.9769 Da) from the precursor,
   phosphotyrosine immonium 216.0420.
 * Glyco: HexNAc oxonium ions 204.0867, 138.0545, 366.1395.
@@ -134,8 +136,13 @@ def detect_labels(run, ms2_high_res=True) -> list:
                       and covered[k]["fraction"] >= 0.2)
             call = "TMT10/11plex" if (hr and n10 >= 3) else ("TMT6plex" if hr else "TMT6/10/11plex")
         else:
+            # 127C and 129C are also the 13C isotopes of 126 and 128C, so 126 + 127C alone is not TMT2plex
+            # when channels only TMT6 and up carry (128C, 130C, 131N) are there (PXD000001: 6plex, 127N/129N
+            # unused, called TMT2plex and searched with the wrong reagent mass, 0 PSMs)
+            n6 = sum(present([k])[0] for k in ("TMT128C", "TMT130C", "TMT131N"))
             ok_2, _ = present(["TMT126", "TMT127C"])
-            call = "TMT2plex" if ok_2 else "TMT0 / TMT (126 only)"
+            call = (("TMT6plex" if hr else "TMT6/10/11plex") if n6 >= 2 else
+                    "TMT2plex" if ok_2 else "TMT0 / TMT (126 only)")
         top = covered["TMT126"]
         conf = min(0.97, 0.6 + 0.4 * top["fraction"])
         why = f"TMT 126 reporter in {top['fraction']:.0%} of {level} spectra ({top['enrichment']}x background)"
@@ -159,52 +166,76 @@ def detect_labels(run, ms2_high_res=True) -> list:
     return ev
 
 
+C13 = 1.0033548
+
+
+def _silac_controls(d):
+    """Control spacings for a SILAC delta: the same delta shifted by whole 13C spacings, so the control has the
+    mass defect of the delta. Peptide masses cluster near integer spacings, so fractional controls (7.3, 9.27 Da)
+    make every near-integer delta look enriched; on label-free runs Arg6 came out 5-22x 'enriched' that way.
+    Shifts that land on another SILAC delta are left out."""
+    out = []
+    for k in (-3, -2, -1, 1, 2, 3):
+        c = d + k * C13
+        if c > 1.5 and all(abs(c - s) > 0.03 for s in SILAC_DELTAS.values()):
+            out.append(c)
+    return out
+
+
+def _pairs(mz, it, dm, z):
+    """Indices of light peaks with a heavy partner dm Th above: comparable intensity (0.15-7x; Arg6 spaces like the
+    light peptide's M+6 isotope, which is far weaker), a light M+1 isotope (a peptide, not noise), and a gap below
+    the heavy peak (the heavy is not just the next peak of the light isotope envelope)."""
+    def find(target):
+        j = np.clip(np.searchsorted(mz, target), 1, mz.size - 1)
+        j = np.where(np.abs(mz[j - 1] - target) < np.abs(mz[j] - target), j - 1, j)
+        return j, np.abs(mz[j] - target) <= target * 5e-6
+    j, ok = find(mz + dm)
+    ratio = it[j] / it
+    k1, ok1 = find(mz + C13 / z)
+    g, okg = find(mz + dm - C13 / z)
+    gap = ~okg | (it[g] < 0.3 * it[j]) | (np.abs(dm - C13 / z) < 1e-3)
+    return np.nonzero(ok & (ratio >= 0.15) & (ratio <= 7) & ok1 & gap)[0]
+
+
 def detect_silac(run) -> list:
     if len(run.ms1) < 20:
         return []
-    deltas = dict(SILAC_DELTAS)
-    counts = {k: 0 for k in deltas}
-    ctrl = {d: 0 for d in (7.3, 9.27, 5.41, 11.38)}
-    n_peaks = 0
+    counts = {k: 0 for k in SILAC_DELTAS}
+    ctrl = {k: [0] * len(_silac_controls(d)) for k, d in SILAC_DELTAS.items()}
+    light = {k: set() for k in SILAC_DELTAS}   # distinct light precursors (m/z, z) carrying a pair
     for s in run.ms1:
-        if s.mz.size == 0:
+        if s.mz.size < 10:
             continue
         idx = np.argsort(s.intensity)[::-1][:150]
         order = np.argsort(s.mz[idx])
-        mz = s.mz[idx][order]
-        it = s.intensity[idx][order]
-        n_peaks += mz.size
+        mz, it = s.mz[idx][order], s.intensity[idx][order]
         for z in (2, 3):
-            for table in (deltas, ctrl):
-                for k in table:
-                    dm = (table[k] if table is ctrl else deltas[k]) / z
-                    target = mz + dm
-                    j = np.searchsorted(mz, target)
-                    j = np.clip(j, 0, mz.size - 1)
-                    # The heavy partner must be comparable in intensity: a 13C6
-                    # label (Arg6) spaces like the 6th isotope of the light
-                    # peptide, which is always far weaker.
-                    ratio = it[j] / it
-                    hit = (np.abs(mz[j] - target) <= target * 5e-6) & (ratio >= 0.15) & (ratio <= 7)
-                    if table is ctrl:
-                        ctrl[k] += int(hit.sum())
-                    else:
-                        counts[k] += int(hit.sum())
-    bg = max(1.0, np.mean(list(ctrl.values())))
-    enr = {k: round(v / bg, 2) for k, v in counts.items()}
+            for k, d in SILAC_DELTAS.items():
+                hit = _pairs(mz, it, d / z, z)
+                counts[k] += hit.size
+                light[k].update((round(float(m), 2), z) for m in mz[hit])
+                for i, c in enumerate(_silac_controls(d)):
+                    ctrl[k][i] += _pairs(mz, it, c / z, z).size
+    bg = {k: max(1.0, float(np.mean(v))) for k, v in ctrl.items()}
+    enr = {k: round(counts[k] / bg[k], 2) for k in counts}
+    distinct = {k: len(v) for k, v in light.items()}
     best = max(enr, key=enr.get)
-    stats = {"pair_counts": counts, "control_mean": bg, "enrichment": enr}
-    if enr[best] >= 4 and counts[best] >= 50:
+    stats = {"pair_counts": counts, "control_mean": bg, "enrichment": enr, "distinct_light": distinct}
+    # a real SILAC sample: the delta beats its own isotope-shifted neighbours, on many distinct peptides
+    if enr[best] >= 3 and counts[best] >= 50 and distinct[best] >= 30:
         name = {"Lys8": "SILAC (Lys8/Arg10)", "Arg10": "SILAC (Lys8/Arg10)",
                 "Arg6": "SILAC (Arg6)", "Lys4/dimethyl-d4": "SILAC Lys4 or dimethyl (d4)"}[best]
         return [Evidence("label", name, min(0.9, 0.5 + enr[best] / 40), "data", "MS1 heavy/light pairs",
-                         f"MS1 peak pairs {SILAC_DELTAS[best]:.4f} Da apart are {enr[best]}x more "
-                         "frequent than control spacings", stats)]
+                         f"MS1 peak pairs {SILAC_DELTAS[best]:.4f} Da apart on {distinct[best]} precursors are "
+                         f"{enr[best]}x more frequent than the same spacing shifted by whole 13C steps", stats)]
     return [Evidence("label", "no SILAC", 0.6, "data", "MS1 heavy/light pairs",
                      f"no SILAC spacing enriched (best {best}: {enr[best]}x)", stats)]
 
 
-def detect_enrichment(run, ms2_high_res=True) -> list:
+def detect_enrichment(run, ms2_high_res=True, dia=False) -> list:
+    """dia: wide isolation windows co-fragment many precursors, so oxonium ions are everywhere (HexNAc 204 in
+    34-43% of the spectra of two phospho DIA runs); no glyco call is made from DIA spectra."""
     tol, ppm = (15.0, True) if ms2_high_res else (0.4, False)
     ev = []
     # Phospho neutral loss from the precursor: needs the charge (DDA)
@@ -224,13 +255,16 @@ def detect_enrichment(run, ms2_high_res=True) -> list:
     calls = []
     if n >= 100:
         f, b = nl / n, np.mean(ctrl) / n
-        if f >= 0.12 and f >= 4 * max(b, 0.005):
-            calls.append(("Phospho (STY)", min(0.9, 0.5 + f), f"{f:.0%} of MS2 spectra show a strong "
-                          f"-98 Da neutral loss from the precursor (control {b:.1%})"))
+        # HCD loses H3PO4 less often than CID (5% of the spectra of an enriched Orbitrap Elite run), but the
+        # control losses stay near zero on high-res MS2; unenriched runs reach the same fraction only with an
+        # equally high control (ion-trap MS2, 0.4 Da windows)
+        if f >= 0.03 and f >= 8 * max(b, 0.003):
+            calls.append(("Phospho (STY)", min(0.9, 0.6 + 2 * f), f"{f:.1%} of MS2 spectra show a strong "
+                          f"-98 Da neutral loss from the precursor (control {b:.2%})"))
     py = diag.get("pY_immonium")
     if py and py["fraction"] >= 0.1 and py["enrichment"] >= 5:
         calls.append(("Phospho (Y)", 0.6, f"pY immonium ion in {py['fraction']:.0%} of spectra"))
-    g = diag.get("HexNAc_204")
+    g = diag.get("HexNAc_204") if not dia else None
     if g and g["fraction"] >= 0.15 and g["enrichment"] >= 5:
         calls.append(("Glyco (HexNAc oxonium)", min(0.9, 0.5 + g["fraction"]),
                       f"HexNAc oxonium 204.087 in {g['fraction']:.0%} of spectra ({g['enrichment']}x)"))
@@ -241,8 +275,11 @@ def detect_enrichment(run, ms2_high_res=True) -> list:
         for name, conf, why in calls:
             ev.append(Evidence("enrichment", name, conf, "data", "diagnostic ions", why, stats))
     else:
+        # with >= 100 charged DDA spectra the neutral-loss test could have seen an enrichment; DIA spectra
+        # (no precursor charge) leave the question to the records and the text
         ev.append(Evidence("enrichment", "none", 0.6 if n >= 100 else 0.3, "data", "diagnostic ions",
-                           "no phospho, glyco or acetyl signature above background", stats))
+                           "no phospho, glyco or acetyl signature above background"
+                           + ("" if n >= 100 else " (DIA or too few charged spectra: weak)"), stats))
     return ev
 
 
