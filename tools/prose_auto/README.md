@@ -1,5 +1,8 @@
 # prose-auto: an Auto Mode prototype for ProSE
 
+[![prose_auto](https://github.com/okohlbacher/OpenMS/actions/workflows/prose_auto.yml/badge.svg?branch=prose-auto)](https://github.com/okohlbacher/OpenMS/actions/workflows/prose_auto.yml)
+
+
 `prose-auto` proposes ProSE search settings from an mzML file. It uses the
 spectra and the file metadata, and optionally a FASTA or a model-organism
 panel, a free-text description, a methods section, and the PRIDE/MassIVE/SDRF
