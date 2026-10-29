@@ -956,7 +956,7 @@ protected:
     registerStringOption_("NuXL:standalone",
                         "<option>",
                         "",
-                        "Target nucleotides that only form precursor adducts on their own (e.g. 's' for a cross-linker without nucleotide). They are never combined with other nucleotides and are not restricted by NuXL:sequence. They need a NuXL:target_nucleotides entry, NuXL:modifications and NuXL:fragment_adducts, and must be listed in NuXL:can_cross_link. Hits with only standalone nucleotides count as peptides, not cross-links (FDR and reports).",
+                        "Target nucleotides that only form precursor adducts on their own (e.g. 's' for a cross-linker without nucleotide). They are never combined with other nucleotides and are not restricted by NuXL:sequence. They need a NuXL:target_nucleotides entry, NuXL:modifications and NuXL:fragment_adducts, and must be listed in NuXL:can_cross_link. Hits with only standalone nucleotides count as peptides, not cross-links (FDR and reports), and are not searched with NuXL:only_xl.",
                         false,
                         true);
 
@@ -4818,6 +4818,12 @@ protected:
 
     // generate mapping from empirical formula to mass and empirical formula to (one or more) precursor adducts
     NuXLModificationMassesResult mm;
+    StringList precursor_modifications = modifications;
+    if (getFlag_("NuXL:only_xl")) // adducts of only standalone nucleotides are no cross-links: don't search them
+    {
+      precursor_modifications.erase(std::remove_if(precursor_modifications.begin(), precursor_modifications.end(),
+        [this](const std::string& m) { return !m.empty() && standalone_.contains(m[0]); }), precursor_modifications.end());
+    }
     if (max_nucleotide_length != 0)
     {
       mm = NuXLModificationsGenerator::initModificationMassesNA(
@@ -4825,7 +4831,7 @@ protected:
             nt_groups, 
             can_xl_,
             mappings,
-            modifications, 
+            precursor_modifications, 
             sequence_restriction, 
             cysteine_adduct, 
             max_nucleotide_length,
@@ -5908,8 +5914,8 @@ protected:
           {
             for (const auto & ph : pi.getHits())
             {
-              const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
-              if (!is_XL) continue; // skip linear peptides as these don't have the XL values set
+              const bool has_adduct = static_cast<double>(ph.getMetaValue("NuXL:NA_MASS_z0", 0.0)) > 0; // cross-links and standalone adducts
+              if (!has_adduct) continue; // skip linear peptides as these don't have the XL values set
               if (!ph.isDecoy()) continue;
               double score = ph.getMetaValue(name);
               decoy_XL_scores.push_back(score); 
