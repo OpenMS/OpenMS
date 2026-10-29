@@ -214,6 +214,11 @@ namespace OpenMS
     return chrom_data_;
   }
 
+  void FeatureFinderIdentificationAlgorithm::setKeepChromatograms(bool keep)
+  {
+    keep_chromatograms_ = keep;
+  }
+
   ProgressLogger& FeatureFinderIdentificationAlgorithm::getProgressLogger()
   {
     return prog_log_;
@@ -583,6 +588,7 @@ namespace OpenMS
       FeatureFinderIdentificationAlgorithm ffid_group;
       ffid_group.getProgressLogger().setLogType(prog_log_.getLogType());
       ffid_group.setParameters(this->getParameters());
+      ffid_group.setKeepChromatograms(keep_chromatograms_);
       ffid_group.setMSData(std::move(faims_group));
 
       // Seeds found at this CV (DDAWorkflowCommons::calculateSeeds and Biosaur2 label them with FAIMS_CV); seeds
@@ -656,6 +662,7 @@ namespace OpenMS
   {
     // Clear output library from any previous run
     output_library_.clear(true);
+    chrom_data_.clear(true);
 
     // annotate mzML file
     features.setPrimaryMSRunPath({spectra_file}, ms_data_);
@@ -794,6 +801,7 @@ namespace OpenMS
 
       ChromatogramExtractor extractor;
       // extractor.setLogType(ProgressLogger::NONE);
+      PeakMap chrom_batch;
       {
         vector<OpenSwath::ChromatogramPtr> chrom_temp;
         vector<ChromatogramExtractor::ExtractionCoordinates> coords;
@@ -819,10 +827,10 @@ namespace OpenMS
         }
 
         extractor.return_chromatogram(chrom_temp, coords, light_library, (*shared)[0],
-                                      chrom_data_.getChromatograms(), false);
+                                      chrom_batch.getChromatograms(), false);
       }
 
-      OPENMS_LOG_DEBUG << "Extracted " << chrom_data_.getNrChromatograms()
+      OPENMS_LOG_DEBUG << "Extracted " << chrom_batch.getNrChromatograms()
                        << " chromatogram(s)." << endl;
 
       OPENMS_LOG_DEBUG << "Detecting chromatographic peaks..." << endl;
@@ -832,9 +840,15 @@ namespace OpenMS
       {
         log_guard.emplace(getThreadLocalLogInfo(), cout);
       }
-      feat_finder_.pickExperiment(chrom_data_, features, library_,
+      feat_finder_.pickExperiment(chrom_batch, features, library_,
                                   TransformationDescription(), ms_data_);
-      chrom_data_.clear(true);
+      if (keep_chromatograms_)
+      {
+        for (auto& chrom : chrom_batch.getChromatograms())
+        {
+          chrom_data_.addChromatogram(std::move(chrom));
+        }
+      }
       // Accumulate library entries for output before clearing
       for (const auto& pep : library_.getPeptides())
       {

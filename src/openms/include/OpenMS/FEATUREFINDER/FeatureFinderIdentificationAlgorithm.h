@@ -131,6 +131,8 @@ public:
   */
   const PeakMap& getChromatograms() const;
 
+  void setKeepChromatograms(bool keep);
+
   /**
     @brief Mutable access to the progress logger used by the algorithm.
     @return Reference to the @ref ProgressLogger (configure log type, etc.).
@@ -277,6 +279,7 @@ protected:
 
   PeakMap ms_data_; ///< input LC-MS data
   PeakMap chrom_data_; ///< accumulated chromatograms (XICs)
+  bool keep_chromatograms_ = false;
   TargetedExperiment library_; ///< assays for peptides (cleared per chunk during processing)
   TargetedExperiment output_library_; ///< accumulated assays for output (populated from library_ before clearing)
 

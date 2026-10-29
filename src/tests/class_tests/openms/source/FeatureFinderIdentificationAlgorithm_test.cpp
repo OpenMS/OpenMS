@@ -177,6 +177,70 @@ START_SECTION([EXTRA] run() counts the distinct identified peptides for the summ
 }
 END_SECTION
 
+START_SECTION([EXTRA] getChromatograms() returns the chromatograms of every extraction batch)
+{
+  const std::vector<std::pair<std::string, double>> peptides_rt = {{"PEPTIDEK", 100.0}, {"SAMPLER", 130.0}, {"ELVISLIVESK", 160.0}};
+  PeakMap ms1;
+  for (int scan = 0; scan < 111; ++scan)
+  {
+    MSSpectrum spectrum;
+    spectrum.setMSLevel(1);
+    spectrum.setRT(80.0 + scan);
+    spectrum.setNativeID("scan=" + std::to_string(scan + 1));
+    for (const auto& [sequence, apex] : peptides_rt)
+    {
+      const double mz = AASequence::fromString(sequence).getMZ(2);
+      const double height = 1e6 * std::exp(-0.5 * std::pow((spectrum.getRT() - apex) / 3.0, 2));
+      for (int isotope = 0; isotope < 3; ++isotope)
+      {
+        spectrum.push_back(Peak1D(mz + isotope * Constants::C13C12_MASSDIFF_U / 2, height / (isotope + 1)));
+      }
+    }
+    spectrum.sortByPosition();
+    ms1.addSpectrum(spectrum);
+  }
+
+  ProteinIdentification protein;
+  protein.setIdentifier("run0");
+  vector<ProteinIdentification> proteins{protein};
+  PeptideIdentificationList peptides;
+  for (const auto& [sequence, rt] : peptides_rt)
+  {
+    PeptideIdentification peptide;
+    peptide.setIdentifier("run0");
+    peptide.setRT(rt);
+    peptide.setMZ(AASequence::fromString(sequence).getMZ(2));
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(sequence));
+    hit.setCharge(2);
+    peptide.setHits({hit});
+    peptides.push_back(peptide);
+  }
+
+  FeatureFinderIdentificationAlgorithm algo;
+  Param param = algo.getParameters();
+  param.setValue("model:type", "none");
+  param.setValue("extract:batch_size", 1);
+  algo.setParameters(param);
+  algo.setKeepChromatograms(true);
+  algo.setMSData(PeakMap(ms1));
+  FeatureMap features;
+  algo.run(peptides, proteins, features, FeatureMap(), "");
+
+  const Size n_transitions = algo.getLibrary().getTransitions().size();
+  TEST_NOT_EQUAL(n_transitions, 0)
+  TEST_EQUAL(algo.getChromatograms().getNrChromatograms(), n_transitions)
+
+  FeatureFinderIdentificationAlgorithm algo_default;
+  algo_default.setParameters(param);
+  algo_default.setMSData(std::move(ms1));
+  FeatureMap features_default;
+  algo_default.run(peptides, proteins, features_default, FeatureMap(), "");
+  TEST_EQUAL(algo_default.getChromatograms().getNrChromatograms(), 0)
+  TEST_EQUAL(features_default.size(), features.size())
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

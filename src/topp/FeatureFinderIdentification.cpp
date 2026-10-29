@@ -230,6 +230,7 @@ protected:
       FeatureFinderIdentificationAlgorithm ffid_algo_run;
       ffid_algo_run.getProgressLogger().setLogType(log_type_);
       ffid_algo_run.setParameters(getParam_().copySubset(FeatureFinderIdentificationAlgorithm().getDefaults()));
+      ffid_algo_run.setKeepChromatograms(!chrom_out.empty());
       ffid_algo_run.setMSData(std::move(ms_data_full));
 
       ffid_algo_run.run(peptides, proteins, features, FeatureMap(), in);
