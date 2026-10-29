@@ -273,6 +273,39 @@ public:
   static std::shared_ptr<arrow::Table> sampleView(const std::vector<Sample>& samples);
 
   /**
+    @brief Annotate @p runs and @p samples from an SDRF-Proteomics file (the sample metadata of the run and sample views)
+
+    The SDRF (tab-separated, one row per data file and label; column names matched case-insensitively, the first of
+    repeated columns used) must have the columns @c "source name" and @c "comment[data file]". A run takes the rows
+    whose data file has its @c run_file_name (ArrowIOHelpers::qpxRunFileName(), so @c "a.raw" annotates the run of
+    @c "a.mzML"):
+    - its @c samples: one per row (repeated source name and label once), @c sample_accession the @c "source name",
+      @c label from @c "comment[label]" (@c "label free sample" or none: @c "LFQ"; else the canonical QPX label,
+      ArrowIOHelpers::qpxIsCanonicalIntensityLabel(), also of the upper-case value, e.g. @c "tmt126"; a label outside
+      that vocabulary is kept as written, with a warning), @c biological_replicate from
+      @c "characteristics[biological replicate]" and @c technical_replicate from @c "comment[technical replicate]"
+      (null unless an integer);
+    - its @c fraction from @c "comment[fraction identifier]", @c instrument from @c "comment[instrument]",
+      @c dissociation_method from @c "comment[dissociation method]" and @c acquisition_method from
+      @c "comment[proteomics data acquisition method]", of its first row: the @c NT= name of a key-value cell
+      (e.g. @c "NT=Q Exactive;AC=MS:1001911"), else the cell; @c "not available", @c "not applicable" or empty: unchanged.
+    The enzymes and modifications of a run (those of the search) are kept. A run without a row keeps its samples and
+    metadata (a warning is logged); rows of other data files are ignored.
+
+    @p samples becomes one sample per sample accession of the runs, in the order of the runs: of the SDRF, with
+    @c organism from @c "characteristics[organism]" and @c organism_part from @c "characteristics[organism part]" of the
+    source's first row (empty: "not available"); else the sample of that accession in @p samples (or a new one).
+
+    @param[in] sdrf_file The SDRF file
+    @param[in,out] runs The runs (e.g. one per input, sample accession and run_file_name the input's stem)
+    @param[in,out] samples The samples of @p runs
+    @return the number of runs annotated
+    @exception Exception::FileNotFound if @p sdrf_file does not exist
+    @exception Exception::ParseError if it has no header line, or no "source name" or "comment[data file]" column
+  */
+  static Size annotateFromSDRF(const std::string& sdrf_file, std::vector<Run>& runs, std::vector<Sample>& samples);
+
+  /**
     @brief The QPX provenance view: one row per step, in the order of @p steps
 
     The columns, in this order: @c step_order (1, 2, ...), @c step_category, @c step_name, @c tool_name,

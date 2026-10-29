@@ -39,6 +39,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <fstream>
 #include <map>
 #include <optional>
 #include <sstream>
@@ -725,6 +726,88 @@ START_SECTION((static std::shared_ptr<arrow::Table> sampleView(const std::vector
   TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(ArrowIOHelpers::getColumn(table, "sample_accession"), 1), "b")
   TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(ArrowIOHelpers::getColumn(table, "organism"), 1), "Homo sapiens")
   TEST_STRING_EQUAL(ArrowIOHelpers::getStringValue(ArrowIOHelpers::getColumn(table, "organism_part"), 1), "liver")
+}
+END_SECTION
+
+START_SECTION((static Size annotateFromSDRF(const std::string& sdrf_file, std::vector<Run>& runs, std::vector<Sample>& samples)))
+{
+  TempDir temp;
+  const std::string sdrf = temp.getPath() + "/design.sdrf.tsv";
+  {
+    // a byte order mark, CRLF line ends, upper-case column names, a repeated column (the first counts) and a row of
+    // another data file; a.raw annotates the run of a.mzML; c has two TMT channels and a non-integer replicate
+    std::ofstream out(sdrf, std::ios::binary);
+    out << "\xEF\xBB\xBF" "Source Name\tcharacteristics[organism]\tcharacteristics[organism part]\tcharacteristics[biological replicate]"
+           "\tassay name\tcomment[label]\tcomment[instrument]\tcomment[fraction identifier]\tcomment[technical replicate]"
+           "\tcomment[data file]\tcomment[data file]\tfactor value[condition]\r\n"
+        << "s1\tHomo sapiens\tliver\t1\trun 1\tlabel free sample\tNT=Q Exactive;AC=MS:1001911\t1\t1\ta.raw\tx.raw\tA\r\n"
+        << "\r\n"
+        << "s2\tHomo sapiens\tnot available\t2\trun 3\ttmt126\tnot available\t2\t1\tc.mzML\tx.raw\tB\r\n"
+        << "s3\tMus musculus\tbrain\tpooled\trun 3\tTMT127N\tnot available\t2\t1\tc.mzML\tx.raw\tB\r\n"
+        << "s2\tHomo sapiens\tnot available\t2\trun 3\tTMT126\tnot available\t2\t1\tc.mzML\tx.raw\tB\r\n"
+        << "s9\tHomo sapiens\tliver\t9\trun 9\tlabel free sample\tnot available\t1\t1\tz.mzML\tx.raw\tC\r\n";
+  }
+  vector<QPXDatasetExport::Run> runs;
+  vector<QPXDatasetExport::Sample> samples;
+  for (const char* name : {"a", "b", "c"})
+  {
+    QPXDatasetExport::Run run = runA();
+    run.accession = name;
+    run.run_file_name = name;
+    run.samples[0].accession = name;
+    runs.push_back(run);
+    samples.push_back(QPXDatasetExport::Sample{name, "not available", "not available"});
+  }
+  samples[1].organism = "Escherichia coli";
+  TEST_EQUAL(QPXDatasetExport::annotateFromSDRF(sdrf, runs, samples), 2)
+
+  // a: one label-free sample, the instrument's NT name, the fraction; enzymes and modifications of the search kept
+  TEST_EQUAL(runs[0].samples.size(), 1)
+  TEST_STRING_EQUAL(runs[0].samples[0].accession, "s1")
+  TEST_STRING_EQUAL(runs[0].samples[0].label, "LFQ")
+  TEST_EQUAL(runs[0].samples[0].biological_replicate == std::optional<Int32>(1), true)
+  TEST_EQUAL(runs[0].samples[0].technical_replicate == std::optional<Int32>(1), true)
+  TEST_EQUAL(runs[0].instrument == std::optional<std::string>("Q Exactive"), true)
+  TEST_EQUAL(runs[0].fraction == std::optional<std::string>("1"), true)
+  TEST_EQUAL(runs[0].dissociation_method.has_value(), false)
+  TEST_EQUAL(runs[0].enzymes == vector<string>{"Trypsin"}, true)
+  // b: no row, unchanged
+  TEST_EQUAL(runs[1].samples.size(), 1)
+  TEST_STRING_EQUAL(runs[1].samples[0].accession, "b")
+  TEST_EQUAL(runs[1].instrument.has_value(), false)
+  // c: two channels (the repeated s2/TMT126 row once), canonical labels; "not available" instrument stays unset
+  TEST_EQUAL(runs[2].samples.size(), 2)
+  TEST_STRING_EQUAL(runs[2].samples[0].accession, "s2")
+  TEST_STRING_EQUAL(runs[2].samples[0].label, "TMT126")
+  TEST_STRING_EQUAL(runs[2].samples[1].accession, "s3")
+  TEST_STRING_EQUAL(runs[2].samples[1].label, "TMT127N")
+  TEST_EQUAL(runs[2].samples[1].biological_replicate.has_value(), false)
+  TEST_EQUAL(runs[2].instrument.has_value(), false)
+  TEST_EQUAL(runs[2].fraction == std::optional<std::string>("2"), true)
+
+  // the samples in the order of the runs; b's own sample kept; s9 (no run) left out
+  TEST_EQUAL(samples.size(), 4)
+  TEST_STRING_EQUAL(samples[0].accession, "s1")
+  TEST_STRING_EQUAL(samples[0].organism, "Homo sapiens")
+  TEST_STRING_EQUAL(samples[0].organism_part, "liver")
+  TEST_STRING_EQUAL(samples[1].accession, "b")
+  TEST_STRING_EQUAL(samples[1].organism, "Escherichia coli")
+  TEST_STRING_EQUAL(samples[2].accession, "s2")
+  TEST_STRING_EQUAL(samples[2].organism_part, "not available")
+  TEST_STRING_EQUAL(samples[3].accession, "s3")
+  TEST_STRING_EQUAL(samples[3].organism, "Mus musculus")
+  // the views take them
+  TEST_EQUAL(QPXDatasetExport::runView(runs) != nullptr, true)
+  TEST_EQUAL(QPXDatasetExport::sampleView(samples) != nullptr, true)
+
+  // errors: no file, no header, a missing required column
+  TEST_EXCEPTION(Exception::FileNotFound, QPXDatasetExport::annotateFromSDRF(temp.getPath() + "/missing.tsv", runs, samples))
+  const std::string empty = temp.getPath() + "/empty.tsv";
+  { std::ofstream out(empty); out << "\n"; }
+  TEST_EXCEPTION(Exception::ParseError, QPXDatasetExport::annotateFromSDRF(empty, runs, samples))
+  const std::string no_file_column = temp.getPath() + "/no_file_column.tsv";
+  { std::ofstream out(no_file_column); out << "source name\tassay name\ns1\trun 1\n"; }
+  TEST_EXCEPTION(Exception::ParseError, QPXDatasetExport::annotateFromSDRF(no_file_column, runs, samples))
 }
 END_SECTION
 

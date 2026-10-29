@@ -546,7 +546,7 @@ directory is one QPX dataset (prefix 'quantms'): the quantms.* files of the whol
 basename are still refused, as they would share runs/BASENAME.*.
 At the end of the run three QPX metadata views describe it:
 quantms.run.parquet (one row per input, in input order): 'run_accession' and 'run_file_name' (the input's stem),
-'file_name', 'samples' (one sample per run: the stem, label 'LFQ'; ProSE knows no design), 'fraction', 'instrument',
+'file_name', 'samples' (one sample per run: the stem, label 'LFQ'; with -sdrf those of its SDRF rows), 'fraction', 'instrument',
 'dissociation_method', 'acquisition_method', 'additional_terms' (null: unknown to ProSE), 'enzymes',
 'modification_parameters' (the search's fixed and variable modifications: UNIMOD accession, name, fixed, position,
 target residue); and the optional columns 'search_status' (EXECUTION_OK, INPUT_FILE_EMPTY, UNEXPECTED_RESULT,
@@ -568,7 +568,10 @@ matched peaks, so within the searched fragment tolerance: a recommended fragment
 searched one may be too narrow rather than right (the report's "Tolerance estimate" is the same); 'search_seconds'
 (double).
 quantms.sample.parquet: the sample of each run ('sample_accession' the stem; 'organism' and 'organism_part' "not
-available", as SDRF has an unknown value).
+available", as SDRF has an unknown value). With '-sdrf', the samples of the SDRF rows of each input (by 'comment[data
+file]' without extension): 'sample_accession' the 'source name', with its organism and organism part; the run view
+then also has their labels, biological and technical replicates and the fraction, instrument, dissociation and
+acquisition method of the rows (QPXDatasetExport::annotateFromSDRF()).
 quantms.provenance.parquet: one row per step, in order: 'database_search' 'peptide_search' (tool ProSE; parameters
 database_file, enzyme, enzyme_specificity, missed_cleavages, peptide_min_length, peptide_max_length,
 precursor_mass_tolerance_lower, precursor_mass_tolerance_upper, precursor_mass_tolerance_unit,
@@ -690,6 +693,8 @@ class ProSE :
       setMinFloat_("qpx_peak_window", 1.0);
       registerIntOption_("qpx_peak_top", "<n>", 100, "-qpx_extended: the most intense peaks kept per -qpx_peak_window (with every annotated peak); 0 keeps all peaks.", false, true);
       setMinInt_("qpx_peak_top", 0);
+      registerInputFile_("sdrf", "<file>", "", "-qpx_extended: an SDRF-Proteomics file of the inputs. The QPX run and sample views take the samples (source name, label, biological and technical replicate), fraction, instrument, dissociation and acquisition method of each input, and the organism and organism part of its samples, from the rows whose 'comment[data file]' has the input's name without extension (e.g. 'a.raw' for 'a.mzML'). An input without a row keeps one sample of its name. The search itself does not use the file.", false, true);
+      setValidFormats_("sdrf", {"tsv", "txt"});
       registerFlag_("keep_decoys", "Keep the decoy PSMs and proteins that pass the FDR thresholds in the outputs; the protein FDR (one input, or -out_merged) otherwise removes them.", true);
 
 
@@ -1579,6 +1584,7 @@ class ProSE :
       const std::string out_mod_analysis_dir = getOutputDirOption("out_mod_analysis_dir");
       const bool keep_decoys = getFlag_("keep_decoys");
       const bool qpx_extended = getFlag_("qpx_extended");
+      const std::string sdrf_file = getStringOption_("sdrf");
       QPXDatasetExport::PeakFilter peak_filter;
       peak_filter.window = getDoubleOption_("qpx_peak_window");
       peak_filter.top = static_cast<Size>(getIntOption_("qpx_peak_top"));
@@ -1604,6 +1610,26 @@ class ProSE :
       {
         OPENMS_LOG_ERROR << "-qpx_extended extends the QPX output: it needs -out_qpx." << endl;
         return ILLEGAL_PARAMETERS;
+      }
+      if (!sdrf_file.empty())
+      {
+        if (!qpx_extended)
+        {
+          OPENMS_LOG_ERROR << "-sdrf annotates the QPX run and sample views: it needs -qpx_extended." << endl;
+          return ILLEGAL_PARAMETERS;
+        }
+        // read it now, so that a broken file fails before the search
+        try
+        {
+          std::vector<QPXDatasetExport::Run> no_runs;
+          std::vector<QPXDatasetExport::Sample> no_samples;
+          QPXDatasetExport::annotateFromSDRF(sdrf_file, no_runs, no_samples);
+        }
+        catch (const Exception::BaseException& e)
+        {
+          OPENMS_LOG_ERROR << "-sdrf: " << e.what() << endl;
+          return ILLEGAL_PARAMETERS;
+        }
       }
 
       // -out_idxml count must match -in count
@@ -2876,10 +2902,16 @@ class ProSE :
           if (pooled_pg_table && ArrowIOHelpers::tableRowCount(pooled_pg_table) > 0) { pg_tables.push_back(pooled_pg_table); }
         }
         // the run, sample and provenance views: the inputs and the steps of the run
-        auto run_view = QPXDatasetExport::runView(runs_(mfres.shared, in_list));
-        if (run_view) { run_view = ArrowIOHelpers::withColumns(run_view, runExtraColumns_(mfres, in_list, qpx_psm_rows, rescore, test_mode_)); }
+        std::vector<QPXDatasetExport::Run> runs = runs_(mfres.shared, in_list);
         std::vector<QPXDatasetExport::Sample> samples(in_list.size());
         for (Size i = 0; i < in_list.size(); ++i) { samples[i].accession = File::stemName(in_list[i]); }
+        if (!sdrf_file.empty())
+        {
+          const Size annotated = QPXDatasetExport::annotateFromSDRF(sdrf_file, runs, samples);
+          OPENMS_LOG_INFO << "SDRF: sample metadata of " << annotated << " of " << runs.size() << " input(s) from '" << sdrf_file << "'." << std::endl;
+        }
+        auto run_view = QPXDatasetExport::runView(runs);
+        if (run_view) { run_view = ArrowIOHelpers::withColumns(run_view, runExtraColumns_(mfres, in_list, qpx_psm_rows, rescore, test_mode_)); }
         const std::map<std::string, QPXDatasetExport::View> views = {
           {"psm", {qpx_psm_tables, qpx_extended_config, qpx_psm_keys}},
           {"pg", {pg_tables, ParquetWriteConfig{}, {}}},

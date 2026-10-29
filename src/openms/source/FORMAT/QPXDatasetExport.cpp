@@ -36,6 +36,7 @@
 #include <cmath>
 #include <deque>
 #include <exception>
+#include <fstream>
 #include <future>
 #include <iomanip>
 #include <locale>
@@ -662,6 +663,189 @@ namespace OpenMS
       organism_part.utf8_values.push_back(sample.organism_part);
     }
     return ArrowIOHelpers::tableOfColumns({accession, organism, organism_part}, samples.size());
+  }
+
+  namespace
+  {
+    /// The rows of an SDRF file, by their lower-case column names (the first of repeated columns)
+    struct SDRFTable
+    {
+      std::map<std::string, Size> columns;
+      std::vector<std::vector<std::string>> rows;
+
+      /// The trimmed cell of @p row in @p column ("" if there is no such column or cell)
+      std::string cell(const std::vector<std::string>& row, const std::string& column) const
+      {
+        const auto it = columns.find(column);
+        if (it == columns.end() || it->second >= row.size()) { return ""; }
+        return StringUtils::trimmed(row[it->second]);
+      }
+    };
+
+    SDRFTable readSDRF(const std::string& sdrf_file)
+    {
+      if (!File::exists(sdrf_file)) { throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sdrf_file); }
+      std::ifstream in(sdrf_file, std::ios::binary);
+      SDRFTable table;
+      std::string line;
+      bool header = true;
+      std::vector<std::string> cells;
+      while (std::getline(in, line))
+      {
+        if (!line.empty() && line.back() == '\r') { line.pop_back(); }
+        if (header && line.compare(0, 3, "\xEF\xBB\xBF") == 0) { line.erase(0, 3); } // UTF-8 byte order mark
+        if (StringUtils::trimmed(line).empty()) { continue; }
+        StringUtils::split(line, '\t', cells);
+        if (header)
+        {
+          for (Size i = 0; i < cells.size(); ++i) { table.columns.emplace(StringUtils::toLowered(StringUtils::trimmed(cells[i])), i); }
+          header = false;
+        }
+        else
+        {
+          table.rows.push_back(cells);
+        }
+      }
+      if (header)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sdrf_file, "Error: The SDRF file has no header line.");
+      }
+      for (const char* required : {"source name", "comment[data file]"})
+      {
+        if (table.columns.count(required) == 0)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sdrf_file,
+                                      std::string("Error: The SDRF file has no '") + required + "' column.");
+        }
+      }
+      return table;
+    }
+
+    /// Whether an SDRF cell says nothing ("", "not available", "not applicable")
+    bool sdrfUnknown(const std::string& value)
+    {
+      const std::string lower = StringUtils::toLowered(value);
+      return lower.empty() || lower == "not available" || lower == "not applicable";
+    }
+
+    /// The name of an SDRF term: the NT= value of a key-value cell (e.g. "NT=Q Exactive;AC=MS:1001911"), else the cell
+    std::string sdrfTermName(const std::string& value)
+    {
+      std::vector<std::string> parts;
+      StringUtils::split(value, ';', parts);
+      for (const std::string& part : parts)
+      {
+        const std::string key_value = StringUtils::trimmed(part);
+        if (StringUtils::toLowered(key_value.substr(0, 3)) == "nt=") { return StringUtils::trimmed(key_value.substr(3)); }
+      }
+      return value;
+    }
+
+    /// The QPX label of an SDRF comment[label] (see QPXDatasetExport::annotateFromSDRF())
+    std::string sdrfLabel(const std::string& value, const std::string& sdrf_file)
+    {
+      const std::string name = sdrfTermName(value);
+      if (sdrfUnknown(name) || StringUtils::toLowered(name) == "label free sample") { return "LFQ"; }
+      if (ArrowIOHelpers::qpxIsCanonicalIntensityLabel(name)) { return name; }
+      const std::string upper = StringUtils::toUppered(name);
+      if (ArrowIOHelpers::qpxIsCanonicalIntensityLabel(upper)) { return upper; }
+      OPENMS_LOG_WARN << "SDRF '" << sdrf_file << "': the label '" << value
+                      << "' is not in the QPX label vocabulary; it is kept as written." << std::endl;
+      return name;
+    }
+
+    /// An SDRF cell as an integer (none unless it is one)
+    std::optional<Int32> sdrfInteger(const std::string& value)
+    {
+      if (value.empty() || !std::all_of(value.begin(), value.end(), [](unsigned char c) { return std::isdigit(c) != 0; }))
+      {
+        return std::nullopt;
+      }
+      try { return static_cast<Int32>(std::stoi(value)); }
+      catch (const std::exception&) { return std::nullopt; }
+    }
+  }
+
+  Size QPXDatasetExport::annotateFromSDRF(const std::string& sdrf_file, std::vector<Run>& runs, std::vector<Sample>& samples)
+  {
+    const SDRFTable sdrf = readSDRF(sdrf_file);
+    // the rows of each run_file_name, in file order
+    std::map<std::string, std::vector<const std::vector<std::string>*>> rows_of_run;
+    // the first row of each source name
+    std::map<std::string, const std::vector<std::string>*> row_of_source;
+    for (const std::vector<std::string>& row : sdrf.rows)
+    {
+      const std::string data_file = sdrf.cell(row, "comment[data file]");
+      const std::string source = sdrf.cell(row, "source name");
+      if (data_file.empty() || source.empty()) { continue; }
+      rows_of_run[ArrowIOHelpers::qpxRunFileName(data_file)].push_back(&row);
+      row_of_source.emplace(source, &row);
+    }
+
+    Size annotated = 0;
+    for (Run& run : runs)
+    {
+      const auto rows = rows_of_run.find(run.run_file_name);
+      if (rows == rows_of_run.end())
+      {
+        OPENMS_LOG_WARN << "SDRF '" << sdrf_file << "' has no row of the data file of run '" << run.run_file_name
+                        << "'; its sample metadata stay unknown." << std::endl;
+        continue;
+      }
+      ++annotated;
+      run.samples.clear();
+      std::set<std::pair<std::string, std::string>> seen; // (source name, label)
+      for (const std::vector<std::string>* row : rows->second)
+      {
+        RunSample sample;
+        sample.accession = sdrf.cell(*row, "source name");
+        sample.label = sdrfLabel(sdrf.cell(*row, "comment[label]"), sdrf_file);
+        if (!seen.emplace(sample.accession, sample.label).second) { continue; }
+        sample.biological_replicate = sdrfInteger(sdrf.cell(*row, "characteristics[biological replicate]"));
+        sample.technical_replicate = sdrfInteger(sdrf.cell(*row, "comment[technical replicate]"));
+        run.samples.push_back(std::move(sample));
+      }
+      const std::vector<std::string>& first = *rows->second.front();
+      auto take = [&](std::optional<std::string>& field, const std::string& column)
+      {
+        const std::string value = sdrfTermName(sdrf.cell(first, column));
+        if (!sdrfUnknown(value)) { field = value; }
+      };
+      take(run.fraction, "comment[fraction identifier]");
+      take(run.instrument, "comment[instrument]");
+      take(run.dissociation_method, "comment[dissociation method]");
+      take(run.acquisition_method, "comment[proteomics data acquisition method]");
+    }
+
+    // the samples of the runs, in the order of the runs
+    std::vector<Sample> annotated_samples;
+    std::set<std::string> listed;
+    for (const Run& run : runs)
+    {
+      for (const RunSample& run_sample : run.samples)
+      {
+        if (!listed.insert(run_sample.accession).second) { continue; }
+        Sample sample;
+        sample.accession = run_sample.accession;
+        const auto source = row_of_source.find(run_sample.accession);
+        if (source != row_of_source.end() && rows_of_run.count(run.run_file_name))
+        {
+          const std::string organism = sdrf.cell(*source->second, "characteristics[organism]");
+          const std::string organism_part = sdrf.cell(*source->second, "characteristics[organism part]");
+          if (!organism.empty()) { sample.organism = organism; }
+          if (!organism_part.empty()) { sample.organism_part = organism_part; }
+        }
+        else
+        {
+          const auto existing = std::find_if(samples.begin(), samples.end(),
+                                             [&](const Sample& s) { return s.accession == run_sample.accession; });
+          if (existing != samples.end()) { sample = *existing; }
+        }
+        annotated_samples.push_back(std::move(sample));
+      }
+    }
+    samples = std::move(annotated_samples);
+    return annotated;
   }
 
   std::shared_ptr<arrow::Table> QPXDatasetExport::provenanceView(const std::vector<ProvenanceStep>& steps)
