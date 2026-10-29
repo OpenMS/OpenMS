@@ -1,6 +1,6 @@
 """LLM layer: read descriptions and methods, look up literature priors, and
-review the final settings. Every backend is a placeholder for a dedicated
-literature service (e.g. Djev) that can be swapped in later.
+review the final settings. Typed classification of the same texts with Jev
+lives in jev.py.
 
 The LLM never measures anything. Its output is evidence of source 'llm' with
 modest confidence, and every extracted setting must quote the text it came
@@ -14,10 +14,6 @@ cli:<command>      run a CLI that reads the prompt on stdin and answers on
                    'cli:llm -m gpt-4o', 'cli:ollama run llama3.1'
 openai:<model>     an OpenAI-compatible /chat/completions endpoint
                    (OPENAI_BASE_URL, OPENAI_API_KEY)
-djev               placeholder for the Djev literature service: reads
-                   DJEV_URL and DJEV_TOKEN; until its API is wired up it
-                   delegates to the LLM given by PROSE_AUTO_DJEV_FALLBACK
-                   (default 'cli:claude -p') and says so in the evidence
 none               no LLM (the rule-based extractor still runs)
 """
 
@@ -76,23 +72,6 @@ class OpenAIBackend(Backend):
             return json.loads(r.read())["choices"][0]["message"]["content"]
 
 
-class DjevBackend(Backend):
-    """Placeholder. The literature questions (methods sections, typical
-    settings for an instrument, cross-checks) are routed here; once the Djev
-    API is known, implement ask() against DJEV_URL with DJEV_TOKEN."""
-
-    def __init__(self):
-        self.url = os.environ.get("DJEV_URL", "")
-        self.token = os.environ.get("DJEV_TOKEN", "")
-        self.fallback = make_backend(os.environ.get("PROSE_AUTO_DJEV_FALLBACK", "cli:claude -p"))
-        self.name = f"djev (placeholder, via {self.fallback.name})"
-
-    def complete(self, prompt):
-        # TODO: call Djev when its API is available; the prompt format below
-        # (question + JSON answer schema) is meant to carry over unchanged.
-        return self.fallback.complete(prompt)
-
-
 def make_backend(spec: str | None) -> Backend | None:
     if not spec or spec == "none":
         return None
@@ -101,8 +80,6 @@ def make_backend(spec: str | None) -> Backend | None:
         return CommandBackend(spec[4:])
     if spec.startswith("openai:"):
         return OpenAIBackend(spec[7:])
-    if spec == "djev":
-        return DjevBackend()
     raise ValueError(f"unknown LLM backend {spec!r}")
 
 

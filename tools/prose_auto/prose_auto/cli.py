@@ -4,7 +4,7 @@
     prose-auto analyze run.mzML [--panel proteomes/ | --fasta db.fasta]
                                 [--description "HeLa, TMTpro, IAA" | --description @notes.txt]
                                 [--methods methods.txt] [--accession PXD012345]
-                                [--llm none|claude|codex|cli:<cmd>|openai:<model>|djev]
+                                [--llm none|claude|codex|cli:<cmd>|openai:<model>] [--jev]
                                 [--prose /path/to/ProSE] [--open-search] [-o outdir]
 """
 
@@ -20,6 +20,7 @@ from . import detect_chemistry as chem
 from . import detect_instrument as inst
 from . import detect_tolerance as tol
 from . import external as ext
+from . import jev as J
 from . import llm as L
 from . import prose_params as pp
 from . import repository as repo
@@ -170,6 +171,20 @@ def analyze(a, log=print):
             frg = _first(ev, "fragmentation")
             ev += L.literature_priors(backend, ins.value if ins else "", acq, frg.value if frg else "", ms2a)
 
+    jev = J.Jev() if a.jev else None
+    jev_raw, jev_issues = {}, []
+    texts_all = [("user's description", desc, True), ("methods section", methods, False),
+                 ("PRIDE sample protocol", texts.get("sample_protocol", ""), False),
+                 ("PRIDE data protocol", texts.get("data_protocol", ""), False),
+                 ("paper methods", texts.get("methods", ""), False)]
+    if jev:
+        log(f"  Jev classifier: {jev.name}")
+        for label, text, user in texts_all:
+            if text:
+                e, raw = J.classify(jev, text, label, user=user)
+                ev += e
+                jev_raw[label] = raw
+
     log("[7/7] reconciling")
     decisions = reconcile(ev)
     prose = pp.to_prose(decisions)
@@ -187,6 +202,10 @@ def analyze(a, log=print):
             except Exception as e:  # keep the data-only result
                 log(f"  ProSE confirmation failed: {e}")
     review = L.review(backend, decisions) if backend and a.llm_review else []
+    if jev:
+        for label, text, _ in texts_all:
+            if text:
+                jev_issues += J.cross_check(jev, text, decisions, label)
     timings["total"] = round(time.time() - t0, 1)
     return {
         "tool": "prose-auto 0.1 (prototype)",
@@ -196,6 +215,7 @@ def analyze(a, log=print):
         "prose_cli": pp.to_cli(prose["params"]),
         "sdrf": pp.to_sdrf_technical(decisions),
         "llm": {"backend": backend.name if backend else None, "rejected": llm_rejected, "review": review},
+        "jev": {"model": jev.name if jev else None, "cross_check": jev_issues, "answers": jev_raw},
         "timings_s": timings,
     }
 
@@ -236,6 +256,9 @@ def markdown(rep):
             any_c = True
     for n in rep["prose"]["notes"]:
         L_.append(f"- {n}")
+        any_c = True
+    for r in rep.get("jev", {}).get("cross_check", []):
+        L_.append(f"- Jev cross-check ({r.get('severity')}): **{r.get('parameter')}** {r.get('issue')}")
         any_c = True
     for r in rep["llm"]["review"]:
         L_.append(f"- LLM review ({r.get('severity')}): **{r.get('parameter')}** {r.get('issue')}")
@@ -295,7 +318,9 @@ def main(argv=None):
     an.add_argument("--methods", help="methods section (file or text)")
     an.add_argument("--accession", help="PXD/MSV accession: PRIDE, MassIVE and curated SDRF records")
     an.add_argument("--no-paper", action="store_true", help="do not fetch the paper from Europe PMC")
-    an.add_argument("--llm", default="none", help="none | claude | codex | cli:<cmd> | openai:<model> | djev")
+    an.add_argument("--llm", default="none", help="none | claude | codex | cli:<cmd> | openai:<model>")
+    an.add_argument("--jev", action="store_true",
+                    help="classify the texts with Jev and cross-check the settings (JEV_API_KEY)")
     an.add_argument("--llm-priors", action="store_true", help="ask the LLM for literature tolerance priors")
     an.add_argument("--llm-review", action="store_true", help="let the LLM review the final settings")
     an.add_argument("--prose", nargs="?", const="", help="confirm with a ProSE subset search (path or PATH)")

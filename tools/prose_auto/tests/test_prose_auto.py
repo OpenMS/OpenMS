@@ -153,3 +153,26 @@ def test_reconcile_conflict_and_params():
     assert "TMT6plex (K)" in P["Search:modifications:fixed"]
     assert P["Search:precursor:mass_tolerance_lower"] == 4
     assert "<ITEMLIST" in pp.to_ini_snippet(P)
+
+
+def test_jev_classify_and_cross_check():
+    from prose_auto import jev as J
+
+    def fake(body):
+        qs = body["questions"]
+        if "organism" in qs and "criteria" in qs["organism"] and "supports" not in qs["organism"]["criteria"]:
+            return {"answers": {
+                "organism": {"choice": "homo_sapiens", "probabilities": {"homo_sapiens": 0.9}},
+                "label": {"choice": "tmtpro_16_18plex", "probabilities": {"tmtpro_16_18plex": 0.8}},
+                "enzyme": {"choice": "not_stated", "probabilities": {"not_stated": 0.7}},
+                "instrument": {"choice": "made_up", "probabilities": {"made_up": 0.9}}}}
+        return {"answers": {"organism": {"choice": "contradicts", "probabilities": {"contradicts": 0.85}}}}
+
+    jev = J.Jev(key="x", transport=fake)
+    ev, _ = J.classify(jev, "HeLa, TMTpro 16plex", "user's description", user=True)
+    got = {e.parameter: e.value for e in ev}
+    assert got == {"organism": "Homo sapiens", "label": "TMTpro (16/18plex)"}
+    assert all(e.source == "llm" and e.confidence <= 0.7 for e in ev)
+    dec = reconcile([Evidence("organism", "Mus musculus", 0.9, "search", "t", "t")])
+    issues = J.cross_check(jev, "HeLa", dec)
+    assert issues and issues[0]["parameter"] == "organism" and issues[0]["severity"] == "high"

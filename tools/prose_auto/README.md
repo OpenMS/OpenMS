@@ -66,14 +66,25 @@ places only a handful of tags, and its evidence stays below the mini-search.
 
 `--llm` takes `none` (the default; the rule-based extractor still runs),
 `claude` (`claude -p`), `codex` (`codex exec -`), `cli:<any command reading
-stdin>`, `openai:<model>` (`OPENAI_BASE_URL`, `OPENAI_API_KEY`), or `djev`.
+stdin>`, or `openai:<model>` (`OPENAI_BASE_URL`, `OPENAI_API_KEY`). It
+answers three prompts: extract settings from text, typical tolerances for an
+instrument/acquisition (`--llm-priors`), and a review of the final settings
+(`--llm-review`).
 
-`djev` is a placeholder for a dedicated literature service: it reads
-`DJEV_URL`/`DJEV_TOKEN` and, until its API is wired in, passes the same
-prompts to `PROSE_AUTO_DJEV_FALLBACK` (default `claude -p`). The three
-prompts (extract settings from text, typical tolerances for an
-instrument/acquisition, review the final settings) are the questions such a
-service would answer, so only `DjevBackend.complete()` needs to change.
+## Jev (typed classifier)
+
+`--jev` sends the same texts to [Jev](https://jevtypesafeai.com/jev/classifier)
+(`POST /api/v1/decide`, key in `JEV_API_KEY`, optional `JEV_URL` and
+`JEV_MODEL`). Jev picks one label from a closed set and returns a probability
+for each, so its answers stay inside the prose-auto vocabularies and need no
+quote guard. `jev.py` asks, in one request per text, for the organism,
+protease, Cys alkylation, label, enrichment, acquisition, fragmentation and
+instrument, each with a `not_stated` option; answers with p ≥ 0.5 become
+`llm` evidence with confidence 0.7·p (≤ 0.6 for methods text, ≤ 0.7 for the
+user's description). After reconciling, it asks per setting whether each text
+supports, contradicts or does not mention it, and lists contradictions under
+"Conflicts and notes". Tolerances are numbers, not labels, so they stay with
+the regex extractor and `--llm`. Cost is about $0.001 per request.
 
 The LLM never overrides a measurement. Its findings are evidence of source
 `llm` with confidence ≤ 0.75. Any extracted setting whose quote does not
