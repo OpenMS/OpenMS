@@ -126,6 +126,8 @@ def enzyme_norm(v):
         return "Chymotrypsin"
     if "trypsin" in c:
         return "Trypsin"            # Trypsin/P and Lys-C + trypsin count as trypsin
+    if "glutamyl" in c:              # glutamyl endopeptidase = Glu-C
+        return "Glu-C"
     for k in ("lys c", "lysc"):
         if k in c:
             return "Lys-C"
@@ -192,7 +194,8 @@ def sdrf_truth(path):
         vals = []
         for i, h in enumerate(hdr):
             if any(h == n or h.startswith(n) for n in names):
-                vals += [r[i] for r in rows[1:] if i < len(r) and r[i].strip()]
+                vals += [r[i] for r in rows[1:] if i < len(r) and r[i].strip()
+                         and _nt(r[i]).lower() not in ("not available", "not applicable", "na", "n/a")]
         return vals
 
     T = {}
@@ -293,6 +296,12 @@ def correct(head, pred, truth):
     if pred == "other":
         known = {org_norm(o) for o in list(tx.ORGANISMS) + S.PRIDE_SPECIES} if head == "organism" else {canon_instrument(i) for i in tx.INSTRUMENTS}
         return int(not (truth & known))
+    if head == "instrument" and pred not in truth:
+        # an SDRF that names no model ("ltq orbitrap", "timstof series", "synapt ms") is right for any model
+        # of that family
+        models = {canon_instrument(i) for i in tx.INSTRUMENTS}
+        generic = [x for x in truth if x not in models]
+        return int(any(instrument_family(x) == instrument_family(pred) for x in generic))
     return int(pred in truth)
 
 
