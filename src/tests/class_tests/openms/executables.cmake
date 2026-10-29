@@ -71,6 +71,7 @@ set(datastructures_executables_list
   QTCluster_test
   RangeManager_test
   StringListUtils_test
+  StringManager_test
   StringUtils_test
   String_test
   #ToolDescription_test
@@ -199,6 +200,7 @@ set(format_executables_list
   ChromeleonFile_test
   CVMappingFile_test
   CompressedInputSource_test
+  DecompressingInputStream_test
   ConsensusXMLFile_test
   ControlledVocabulary_test
   CsvFile_test
@@ -220,6 +222,7 @@ set(format_executables_list
   GNPSQuantificationFile_test
   GzipIfstream_test
   GzipInputStream_test
+  HTTPInputSource_test
   IBSpectraFile_test
   IdXMLFile_test
   IndentedStream_test
@@ -284,8 +287,9 @@ set(format_executables_list
   PercolatorInfile_test
   PercolatorOutfile_test
   PercolatorPosteriorEstimator_test
+  PercolatorScores_test
   ProtXMLFile_test
-  QcMLFile_test
+  S3InputSource_test
   SVOutStream_test
   SemanticValidator_test
   SequestInfile_test
@@ -339,7 +343,7 @@ if(WITH_HDF5)
 endif()
 
 list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test
-  ProteinGroupArrowExport_test QPXFile_test QPXCollectionExport_test QPXValueValidation_test
+  ProteinGroupArrowExport_test QPXFile_test QPXCollectionExport_test QPXValueValidation_test QPXDatasetExport_test
   QPXIdentity_test
   MSChromatogramParquetConsumer_test
   MobilogramParquetConsumer_test
@@ -539,20 +543,18 @@ set(analysis_executables_list
   BasicProteinInferenceAlgorithm_test
   BayesianProteinInferenceAlgorithm_test
   ClusterProxyKD_test
+  CoIsolationDetector_test
   ConfidenceScoring_test
-  ConsensusIDAlgorithmAverage_test
-  ConsensusIDAlgorithmBest_test
-  ConsensusIDAlgorithmPEPIons_test
-  ConsensusIDAlgorithmPEPMatrix_test
-  ConsensusIDAlgorithmRanks_test
-  ConsensusIDAlgorithmWorst_test
   ConsensusMapNormalizerAlgorithmThreshold_test
   ConsensusMapNormalizerAlgorithmMedian_test
   ConsensusMapNormalizerAlgorithmQuantile_test
   ConsensusMapNormalizerAlgorithmRTLocal_test
+  ConsensusElutionWidth_test
   ConsensusMapMergerAlgorithm_test
   #DataAccessHelper_test
   # DeconvolvedSpectrum_test
+  ClassFDR_test
+  EntrapmentEvaluation_test
   FalseDiscoveryRate_test
   Scores_test
   FeatureDeconvolution_test
@@ -799,6 +801,7 @@ set(TEST_executables
     ${kernel_executables_list}
     ${metadata_executables_list}
     ${format_executables_list}
+    XMLParserBackend_test
     ${math_executables_list}
     ${filtering_executables_list}
     ${comparison_executables_list}

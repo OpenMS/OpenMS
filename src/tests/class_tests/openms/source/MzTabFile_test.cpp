@@ -223,6 +223,39 @@ START_SECTION([EXTRA] colunit metadata is written and read as specified by mzTab
 }
 END_SECTION
 
+START_SECTION([EXTRA] optional PSM columns are read back)
+{
+  MzTab mz_tab;
+  MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC2.mzTab"), mz_tab);
+  MzTabPSMSectionRows psms = mz_tab.getPSMSectionRows();
+  TEST_EQUAL(psms.empty(), false)
+  for (Size i = 0; i < psms.size(); ++i)
+  {
+    MzTabString q;
+    q.set(StringUtils::toStr(0.001 * (i + 1)));
+    psms[i].opt_.emplace_back("opt_global_q-value", q);
+  }
+  mz_tab.setPSMSectionRows(psms);
+
+  std::string stored;
+  NEW_TMP_FILE(stored)
+  MzTabFile().store(stored, mz_tab);
+
+  MzTab reloaded;
+  MzTabFile().load(stored, reloaded);
+  const MzTabPSMSectionRows& reloaded_psms = reloaded.getPSMSectionRows();
+  TEST_EQUAL(reloaded_psms.size(), psms.size())
+  ABORT_IF(reloaded_psms.size() != psms.size())
+  for (Size i = 0; i < reloaded_psms.size(); ++i)
+  {
+    TEST_EQUAL(reloaded_psms[i].opt_.size(), 1)
+    ABORT_IF(reloaded_psms[i].opt_.size() != 1)
+    TEST_STRING_EQUAL(reloaded_psms[i].opt_[0].first, "opt_global_q-value")
+    TEST_STRING_EQUAL(reloaded_psms[i].opt_[0].second.toCellString(), StringUtils::toStr(0.001 * (i + 1)))
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

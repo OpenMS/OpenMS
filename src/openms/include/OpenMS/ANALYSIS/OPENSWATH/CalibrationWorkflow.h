@@ -481,13 +481,16 @@ namespace OpenMS
       @param[in,out] cp_ms1 MS1 extraction parameters to update
       @param[in] pasef Whether this is PASEF data (for IM applicability)
       @param[in] use_ms1_im Whether MS1 uses ion mobility
+      @param[in] ms1_traces_picked Whether the MS1 traces are peak-picked as well
+                 (TransitionGroupPicker:use_precursors); their RT window is then left unchanged
     */
     void applyEstimatedWindows_(
       const CalibrationResult& result,
       ChromExtractParams& cp,
       ChromExtractParams& cp_ms1,
       bool pasef,
-      bool use_ms1_im) const;
+      bool use_ms1_im,
+      bool ms1_traces_picked) const;
 
     /**
       @brief Validate and log an auto-estimated extraction window.

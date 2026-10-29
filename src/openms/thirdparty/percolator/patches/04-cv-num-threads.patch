@@ -1,0 +1,49 @@
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
+index 111178b..0f6639b 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.cpp
++++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
+@@ -27,6 +27,17 @@ namespace OpenMS { namespace Internal { namespace Percolator {
+ // checks cross validation convergence in case of quickValidation_
+ const double CrossValidation::requiredIncreaseOver2Iterations_ = 0.01;
+ 
++#ifdef _OPENMP
++// OpenMS: the cross-validation loops run on at most numThreads threads, and never on
++// more than OpenMP allows here (a TOPP tool's -threads). Upstream calls
++// omp_set_num_threads() instead, which would change the count for the whole process.
++static int numLoopThreads(unsigned int numThreads) {
++  return static_cast<int>(
++      std::min(std::max(numThreads, 1u),
++               static_cast<unsigned int>(omp_get_max_threads())));
++}
++#endif
++
+ CrossValidation::CrossValidation(bool quickValidation,
+                                  bool reportPerformanceEachIteration,
+                                  double testFdr,
+@@ -343,7 +354,7 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+     }
+   }
+ 
+-#pragma omp parallel for schedule(dynamic, 1) ordered
++#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_))
+   for (int pairIdx = 0; pairIdx < classWeightsPerFold_.size(); pairIdx++) {
+     CandidateCposCfrac* cpCnFold = &classWeightsPerFold_[pairIdx];
+     AlgIn* svmInput =
+@@ -426,7 +437,7 @@ int CrossValidation::mergeCpCnPairs(
+   //       scoring calculation in calcScores.
+   unsigned int numCpCnPairsPerSet =
+       static_cast<unsigned int>(classWeightsPerFold_.size() / numFolds_);
+-#pragma omp parallel for schedule(dynamic, 1) ordered
++#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_))
+   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+     unsigned int a = set * numCpCnPairsPerSet;
+     unsigned int b = (set + 1) * numCpCnPairsPerSet;
+@@ -471,7 +482,7 @@ int CrossValidation::mergeCpCnPairs(
+   }
+ 
+   if (nestedXvalBins_ > 1) {
+-#pragma omp parallel for schedule(dynamic, 1) ordered
++#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(numThreads_))
+     for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+       vector_double pWeights;
+       pWeights.d = static_cast<int>(FeatureNames::getNumFeatures()) + 1;

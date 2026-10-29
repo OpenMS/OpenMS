@@ -18,6 +18,7 @@
 - Before implementing non-trivial changes, first explore the codebase for existing patterns and utilities, then explain the planned approach before writing code.
 - Keep PR descriptions up to date with the current state of the PR: when pushing further changes, update the description and remove outdated statements, numbers or TODOs instead of only appending.
 - For multi-file changes or unfamiliar areas, use plan mode or explore the relevant code first. Do not dive into implementation without understanding the existing architecture.
+- Do not add `CHANGELOG` entries in PRs. They are generated automatically once per week by a GitHub Action (`.github/workflows/changelog-sync.md`) that opens a `[changelog-sync]` PR from the merged changes.
 
 ## pyOpenMS
 

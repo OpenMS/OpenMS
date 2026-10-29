@@ -66,7 +66,6 @@ namespace OpenMS
     TypeNameBinding(FileTypes::PEPXML, "pepXML", "pepXML file", {PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE}, {"pep.xml"}), //Supported for loading and storing identifications but TODO integrate this into fileHandler
     TypeNameBinding(FileTypes::PROTXML, "protXML", "protXML file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::COMPRESSED_READABLE}, {"prot.xml"}),
     TypeNameBinding(FileTypes::MZIDENTML, "mzid", "mzIdentML file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE, PROP::COMPRESSED_WRITEABLE}),
-    TypeNameBinding(FileTypes::QCML, "qcml", "quality control file", {PROP::PROVIDES_QC, PROP::WRITEABLE, PROP::COMPRESSED_READABLE}), //TODO add load functions for QC
     TypeNameBinding(FileTypes::MZQC, "mzqc", "quality control file in json format", {PROP::PROVIDES_QC, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::GELML, "gelML", "gelML file", {}),
     TypeNameBinding(FileTypes::TRAML, "traML", "transition file", {PROP::PROVIDES_TRANSITIONS, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE, PROP::COMPRESSED_WRITEABLE}),
@@ -108,7 +107,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::XQUESTXML, "xquest.xml", "xquest.xml file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE, PROP::COMPRESSED_WRITEABLE}),
     TypeNameBinding(FileTypes::SPECXML, "spec.xml", "spec.xml file", {}),
     TypeNameBinding(FileTypes::JSON, "json", "JavaScript Object Notation file", {PROP::READABLE, PROP::WRITEABLE}),
-    TypeNameBinding(FileTypes::RAW, "raw", "(Thermo) Raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE}),
+    TypeNameBinding(FileTypes::RAW, "raw", "(Thermo) Raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::COMPRESSED_READABLE}), // .raw.zip via ZipArchiveFile
     TypeNameBinding(FileTypes::OMS, "oms", "OpenMS SQLite file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::PROVIDES_FEATURES, PROP::PROVIDES_CONSENSUSFEATURES}),
     TypeNameBinding(FileTypes::EXE, "exe", "Windows executable", {}),
     TypeNameBinding(FileTypes::BZ2, "bz2", "bzip2 compressed file", {PROP::READABLE}),
@@ -291,8 +290,9 @@ namespace OpenMS
     {
       return false;
     }
-    // Bruker's '.d.zip' is unpacked by BrukerTimsFile, not by XMLFile, and only for ZIP
-    if (type == FileTypes::BRUKER_TDF)
+    // Bruker's '.d.zip' and Thermo's '.raw.zip' are unpacked by their readers (BrukerTimsFile, ThermoRawFile), not by
+    // XMLFile, and only for ZIP
+    if (type == FileTypes::BRUKER_TDF || type == FileTypes::RAW)
     {
       return compression == FileTypes::ZIP;
     }

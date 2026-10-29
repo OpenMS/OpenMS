@@ -282,10 +282,13 @@ START_SECTION((static bool supportsCompressedReading(Type type, Type compression
     TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::UNKNOWN, comp))
   }
 
-  // Bruker is the exception: FileHandler unpacks '.d.zip' but has no gzip/bzip2 path
-  TEST_TRUE(FileTypes::supportsCompressedReading(FileTypes::BRUKER_TDF, FileTypes::ZIP))
-  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::BRUKER_TDF, FileTypes::GZ))
-  TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::BRUKER_TDF, FileTypes::BZ2))
+  // Bruker and Thermo are the exceptions: their readers unpack '.d.zip' and '.raw.zip' but have no gzip/bzip2 path
+  for (auto type : {FileTypes::BRUKER_TDF, FileTypes::RAW})
+  {
+    TEST_TRUE(FileTypes::supportsCompressedReading(type, FileTypes::ZIP))
+    TEST_FALSE(FileTypes::supportsCompressedReading(type, FileTypes::GZ))
+    TEST_FALSE(FileTypes::supportsCompressedReading(type, FileTypes::BZ2))
+  }
 
   // a non-compression type is never a container
   TEST_FALSE(FileTypes::supportsCompressedReading(FileTypes::MZML, FileTypes::MZML))
@@ -310,7 +313,6 @@ START_SECTION((static bool supportsCompressedWriting(Type type, Type compression
     TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::IDXML, comp))
     TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::TRANSFORMATIONXML, comp))
     TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::PEPXML, comp))
-    TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::QCML, comp))
     TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::INI, comp))
     TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::MGF, comp))
     TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::TSV, comp))

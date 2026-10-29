@@ -16,8 +16,10 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
+#include <variant>
 #include <unordered_set>
 #include <vector>
 
@@ -32,6 +34,7 @@ namespace arrow
 namespace OpenMS
 {
 class ConsensusMap;
+class DataValue;
 class MetaInfoInterface;
 namespace MS1LabelState { struct Keys; }
 
@@ -81,6 +84,97 @@ namespace ArrowIOHelpers
     const std::shared_ptr<arrow::Table>& table,
     const std::string& filename,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
+
+  /**
+    @brief One column for withColumns(), built without Arrow types
+
+    Only the vector of the column's @c type is used; it holds one entry per row. Any column can have null rows.
+  */
+  struct OPENMS_DLLAPI ParquetColumn
+  {
+    /// An entry of a SCORE_LIST row: the struct of the QPX @c additional_scores (QPXPSMSchema::additionalScoresType())
+    struct Score
+    {
+      std::string name;
+      double value = 0.0;
+      std::optional<bool> higher_better; ///< none: unknown (null)
+    };
+    /// int16, int32, int64, bool, float32, float64, utf8, list<float32>, list<int32>, list<utf8>, the list of QPX
+    /// @c additional_scores structs, or a list of structs of the fields @c struct_fields
+    enum class Type { INT16, INT64, UTF8, FLOAT_LIST, UTF8_LIST, SCORE_LIST, INT32, BOOL, DOUBLE, STRUCT_LIST, FLOAT, INT32_LIST };
+    /// A field of the struct of a STRUCT_LIST column: of type UTF8, INT32, BOOL, FLOAT (float32, from a double
+    /// value), DOUBLE, or STRUCT_LIST (a list of structs of its own @c fields)
+    struct StructField
+    {
+      StructField() = default;
+      StructField(std::string field_name, Type field_type, bool field_nullable = true, std::vector<StructField> struct_fields = {}) :
+        name(std::move(field_name)), type(field_type), nullable(field_nullable), fields(std::move(struct_fields)) {}
+      std::string name;
+      Type type = Type::UTF8;
+      bool nullable = true;
+      std::vector<StructField> fields; ///< STRUCT_LIST: the fields of its struct
+    };
+    struct StructValue;
+    /// An entry of a STRUCT_LIST: one value per field
+    using StructEntry = std::vector<StructValue>;
+    /// The value of a field of a STRUCT_LIST entry, of the field's type: none (null), a string (UTF8), an integer
+    /// (INT32), a bool (BOOL), a double (DOUBLE, FLOAT), or the entries of a nested list (STRUCT_LIST)
+    struct OPENMS_DLLAPI StructValue
+    {
+      std::variant<std::monostate, std::string, Int32, bool, double, std::vector<StructEntry>> value;
+      StructValue() = default; ///< null
+      StructValue(std::string v) : value(std::move(v)) {}
+      StructValue(const char* v) : value(std::string(v)) {} ///< (not a bool)
+      StructValue(Int32 v) : value(v) {}
+      StructValue(bool v) : value(v) {}
+      StructValue(double v) : value(v) {}
+      StructValue(std::vector<StructEntry> v) : value(std::move(v)) {}
+      template <typename T> StructValue(const std::optional<T>& v) { if (v) { *this = StructValue(*v); } }
+    };
+    std::string name;
+    Type type = Type::INT64;
+    /// false: the field is non-null (a null row is then an error)
+    bool nullable = true;
+    std::vector<Int64> int64_values;                              ///< INT16 and INT32 (narrowed, range-checked), INT64, BOOL (0: false)
+    std::vector<double> double_values;                            ///< DOUBLE, FLOAT (narrowed)
+    std::vector<std::string> utf8_values;                         ///< UTF8
+    std::vector<std::vector<float>> float_lists;                  ///< FLOAT_LIST
+    std::vector<std::vector<Int32>> int32_lists;                  ///< INT32_LIST
+    std::vector<std::vector<std::string>> utf8_lists;             ///< UTF8_LIST
+    std::vector<std::vector<Score>> score_lists;                  ///< SCORE_LIST
+    std::vector<StructField> struct_fields;                       ///< STRUCT_LIST: the fields of its struct
+    std::vector<std::vector<StructEntry>> struct_lists;           ///< STRUCT_LIST: per row its entries
+    std::vector<bool> null_rows;                                  ///< true marks a null row (empty: no null row)
+  };
+
+  /**
+    @brief The table with @p columns added: a column of the name of an existing one replaces it (in its place), any
+    other is appended. The schema metadata of @p table is kept.
+
+    For callers outside libOpenMS that cannot use Arrow themselves (TOPP tools), e.g. to add optional columns to a QPX
+    view before writing it.
+
+    @param[in] table The table (must not be null)
+    @param[in] columns The columns, each with one entry per row of @p table
+    @return the new table, or null on an Arrow error (logged)
+    @throws Exception::IllegalArgument if a column has another number of rows than @p table
+  */
+  OPENMS_DLLAPI std::shared_ptr<arrow::Table> withColumns(
+    const std::shared_ptr<arrow::Table>& table,
+    const std::vector<ParquetColumn>& columns);
+
+  /**
+    @brief A table of @p columns (in their order, without schema metadata), for callers outside libOpenMS that cannot
+    use Arrow themselves (TOPP tools), e.g. a QPX metadata view (run, provenance)
+
+    @param[in] columns The columns, each with @p rows entries
+    @param[in] rows The number of rows
+    @return the table, or null on an Arrow error (logged)
+    @throws Exception::IllegalArgument if a column has another number of rows
+  */
+  OPENMS_DLLAPI std::shared_ptr<arrow::Table> tableOfColumns(
+    const std::vector<ParquetColumn>& columns,
+    Size rows);
 
   /**
     @brief Concatenate a vector of Arrow tables and write the result to a Parquet file
@@ -373,6 +467,15 @@ namespace ArrowIOHelpers
   OPENMS_DLLAPI bool isNull(
     const std::shared_ptr<arrow::Array>& array,
     int64_t row);
+
+  /**
+    @brief The text a metavalue is written as in a list<struct{name,value,value_type}> column
+
+    The same as DataValue::toString(), except for doubles (also in lists): they are written in their shortest
+    form that reads back as the same double, so that readMetaValues() restores them exactly. DataValue::toString()
+    rounds values between 0.01 and 10000 to 15 decimals, which loses the last digits of e.g. 1.2345678901234567.
+  */
+  OPENMS_DLLAPI std::string metaValueString(const DataValue& value);
 
   /**
     @brief Read metavalues from a list<struct{name,value,value_type}> column

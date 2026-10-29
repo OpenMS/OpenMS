@@ -149,7 +149,6 @@ function(openms_add_compiler_flags target_name)
       _SCL_SECURE_NO_WARNINGS
       _CRT_SECURE_NO_WARNINGS
       _CRT_SECURE_NO_DEPRECATE
-      OPENMS_XERCESDLL  # xerces bug workaround
     )
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(${target_name} PRIVATE

@@ -899,7 +899,6 @@ Converts a file type name into a Type
         .value("PEPXML", OpenMS::FileTypes::Type::PEPXML)
         .value("PROTXML", OpenMS::FileTypes::Type::PROTXML)
         .value("MZIDENTML", OpenMS::FileTypes::Type::MZIDENTML)
-        .value("QCML", OpenMS::FileTypes::Type::QCML)
         .value("MZQC", OpenMS::FileTypes::Type::MZQC)
         .value("GELML", OpenMS::FileTypes::Type::GELML)
         .value("TRAML", OpenMS::FileTypes::Type::TRAML)
@@ -1040,6 +1039,7 @@ Writes the contents of the ConsensusMap cm into the file named by filename
         .def_ro("max_count_z", &OpenMS::ImzMLMeta::max_count_z)
         .def_ro("pixel_size_x", &OpenMS::ImzMLMeta::pixel_size_x)
         .def_ro("pixel_size_y", &OpenMS::ImzMLMeta::pixel_size_y)
+        .def_ro("pixel_size_unit", &OpenMS::ImzMLMeta::pixel_size_unit)
         .def_ro("max_dim_x", &OpenMS::ImzMLMeta::max_dim_x)
         .def_ro("max_dim_y", &OpenMS::ImzMLMeta::max_dim_y)
         .def_ro("imaging_mode", &OpenMS::ImzMLMeta::imaging_mode)
@@ -1126,17 +1126,18 @@ Use store() to export imzML + UUID-linked companion .ibd (binary precision via P
         .def("loadSpectraIndex", [](OpenMS::ImzMLFile& self, const std::string& filename) {
             OpenMS::ImzMLMeta meta;
             std::vector<OpenMS::ImzMLSpectrumIndex> index;
+            OpenMS::MSExperiment spectra;
             {
               nb::gil_scoped_release release;
-              self.loadSpectraIndex(filename, meta, index);
+              self.loadSpectraIndex(filename, meta, index, spectra);
             }
             nb::list py_index;
             for (const auto& entry : index)
             {
               py_index.append(entry);
             }
-            return nb::make_tuple(meta, py_index);
-        }, "filename"_a, "Parse imzML XML and return (ImzMLMeta, list[ImzMLSpectrumIndex]) without loading peaks")
+            return nb::make_tuple(std::move(meta), py_index, std::move(spectra));
+        }, "filename"_a, "Parse imzML XML and return (ImzMLMeta, list[ImzMLSpectrumIndex], MSExperiment) without loading peaks; the MSExperiment holds every spectrum's metadata (no peaks; data arrays empty, with their metadata) in index order plus the dataset settings")
         .def("isValid", [](OpenMS::ImzMLFile& self, const std::string& filename) {
             std::ostringstream os;
             bool ok = false;
@@ -1515,7 +1516,7 @@ Loads a MsInspect file into the given FeatureMap
         R"doc(
 A class to decode input strings that contain an mzML chromatogram or spectrum tag
 
-It uses xercesc to parse a string containing either a exactly one mzML
+It uses libxml2 to parse a string containing either a exactly one mzML
 spectrum or chromatogram (from <chromatogram> to </chromatogram> or
 <spectrum> to </spectrum> tag). It returns the data contained in the
 binaryDataArray for Intensity / mass-to-charge or Intensity / time

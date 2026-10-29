@@ -23,6 +23,7 @@
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <cstdlib>
 #include <fstream>
 
 using namespace OpenMS;
@@ -975,6 +976,30 @@ START_SECTION([EXTRA] load xsd:integer types)
 }
 END_SECTION
 
+// Loading from an HTTP server needs network access: set OPENMS_TEST_HTTP_URL to the URL of a copy of MzMLFile_1.mzML
+// (or of a gzip/bzip2 compressed copy), e.g. https://raw.githubusercontent.com/OpenMS/OpenMS/develop/src/tests/class_tests/openms/data/MzMLFile_1.mzML
+START_SECTION([EXTRA] load from HTTP URL)
+{
+  MzMLFile file;
+  PeakMap exp;
+  // a server that cannot be reached is a load error (port 1 on the local host: no network access needed)
+  TEST_EXCEPTION(Exception::ParseError, file.load("http://127.0.0.1:1/run.mzML", exp))
+  // the error does not name the credentials of the URL
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load("http://user:secret@127.0.0.1:1/run.mzML?token=1", exp),
+                              "IOException: IO error for file 'http://127.0.0.1:1/run.mzML' in: http://127.0.0.1:1/run.mzML")
+  const char* url = std::getenv("OPENMS_TEST_HTTP_URL");
+  if (url != nullptr)
+  {
+    PeakMap local, remote;
+    file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), local);
+    file.load(url, remote);
+    TEST_EQUAL(remote.size(), local.size())
+    TEST_EQUAL(remote.getChromatograms().size(), local.getChromatograms().size())
+    TEST_TRUE(remote.getSpectra() == local.getSpectra())
+    TEST_EQUAL(remote.getLoadedFilePath(), url)
+  }
+}
+END_SECTION
 
 START_SECTION((template <typename MapType> void store(const std::string& filename, const MapType& map) const))
 {
@@ -1910,17 +1935,41 @@ END_SECTION
 START_SECTION((void testSkipChromatograms()))
 {
   MzMLFile file;
+  const std::string filename = OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML");
+  PeakMap expected;
+  file.load(filename, expected);
+
   PeakFileOptions opts;
   opts.setSkipChromatograms(true);
   file.setOptions(opts);
 
   PeakMap pm;
-  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), pm);
+  file.load(filename, pm);
   TEST_EQUAL(pm.getChromatograms().size(), 0)
+  TEST_EQUAL(pm.size(), expected.size())
+  for (Size i = 0; i < expected.size(); ++i)
+  {
+    TEST_EQUAL(pm[i] == expected[i], true)
+  }
+  TEST_EQUAL(pm.getSourceFiles() == expected.getSourceFiles(), true)
+  TEST_EQUAL(pm.getInstrument() == expected.getInstrument(), true)
+
+  std::vector<Size> transformed_spectrum_sizes;
+  Size transformed_chromatogram_count = 0;
+  MSDataTransformingConsumer consumer;
+  consumer.setSpectraProcessingFunc([&](MSSpectrum& spectrum) { transformed_spectrum_sizes.push_back(spectrum.size()); });
+  consumer.setChromatogramProcessingFunc([&](MSChromatogram&) { ++transformed_chromatogram_count; });
+  file.transform(filename, &consumer);
+  TEST_EQUAL(transformed_chromatogram_count, 0)
+  TEST_EQUAL(transformed_spectrum_sizes.size(), expected.size())
+  for (Size i = 0; i < expected.size(); ++i)
+  {
+    TEST_EQUAL(transformed_spectrum_sizes[i], expected[i].size())
+  }
 
   opts.setSkipChromatograms(false);
   file.setOptions(opts);
-  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), pm);
+  file.load(filename, pm);
   TEST_NOT_EQUAL(pm.getChromatograms().size(), 0)
 }
 END_SECTION

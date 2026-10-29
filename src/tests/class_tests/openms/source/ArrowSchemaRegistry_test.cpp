@@ -103,6 +103,48 @@ START_SECTION(validate - Strict mode - extra field)
 }
 END_SECTION
 
+START_SECTION(validate - Extensible mode - further fields after the expected ones)
+{
+  auto expected = arrow::schema({
+    arrow::field("a", arrow::utf8(), false),
+  });
+  auto extended = arrow::schema({
+    arrow::field("a", arrow::utf8(), false),
+    arrow::field("b", arrow::float64(), true),
+  });
+  auto table = arrow::Table::Make(extended, {makeUtf8Array({"x"}), makeFloat64Array({1.0})});
+  TEST_EQUAL(ArrowSchemaValidation::validate(table, expected, ArrowSchemaValidation::Mode::Extensible).valid, true)
+
+  // an expected field still has to be there, in its place, with its type
+  auto before = arrow::schema({
+    arrow::field("b", arrow::float64(), true),
+    arrow::field("a", arrow::utf8(), false),
+  });
+  auto misplaced = arrow::Table::Make(before, {makeFloat64Array({1.0}), makeUtf8Array({"x"})});
+  TEST_EQUAL(ArrowSchemaValidation::validate(misplaced, expected, ArrowSchemaValidation::Mode::Extensible).valid, false)
+  auto two = arrow::schema({
+    arrow::field("a", arrow::utf8(), false),
+    arrow::field("c", arrow::utf8(), false),
+  });
+  auto missing = arrow::Table::Make(expected, {makeUtf8Array({"x"})});
+  TEST_EQUAL(ArrowSchemaValidation::validate(missing, two, ArrowSchemaValidation::Mode::Extensible).valid, false)
+  // a further field under the name of an expected one, or of another further field
+  auto again = arrow::schema({
+    arrow::field("a", arrow::utf8(), false),
+    arrow::field("a", arrow::utf8(), false),
+  });
+  auto duplicate = arrow::Table::Make(again, {makeUtf8Array({"x"}), makeUtf8Array({"y"})});
+  TEST_EQUAL(ArrowSchemaValidation::validate(duplicate, expected, ArrowSchemaValidation::Mode::Extensible).valid, false)
+  auto twice = arrow::schema({
+    arrow::field("a", arrow::utf8(), false),
+    arrow::field("b", arrow::float64(), true),
+    arrow::field("b", arrow::float64(), true),
+  });
+  auto duplicate_extra = arrow::Table::Make(twice, {makeUtf8Array({"x"}), makeFloat64Array({1.0}), makeFloat64Array({2.0})});
+  TEST_EQUAL(ArrowSchemaValidation::validate(duplicate_extra, expected, ArrowSchemaValidation::Mode::Extensible).valid, false)
+}
+END_SECTION
+
 START_SECTION(validate - Strict mode - type mismatch)
 {
   auto expected = arrow::schema({

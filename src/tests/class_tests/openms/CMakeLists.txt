@@ -56,6 +56,16 @@ endforeach(_class_test)
 #------------------------------------------------------------------------------
 # some tests need special treatment
 
+# These tests spell UTF-8 text as narrow string literals. MSVC would encode them in
+# the build machine's code page instead (and read the source as such).
+if (MSVC)
+  foreach(_utf8_test StringManager_test XMLHandler_test XMLParserBackend_test)
+    if (TARGET ${_utf8_test})
+      target_compile_options(${_utf8_test} PRIVATE /utf-8)
+    endif()
+  endforeach()
+endif()
+
 # Class tests of classes that live with a TOPP tool rather than in the library. A tool that
 # has a test/CMakeLists.txt gets it added here, and declares its tests with
 # openms_add_tool_class_test(), which cmake/class_test_macros.cmake defines. Adding a test/
@@ -77,6 +87,14 @@ foreach(_topp_tool ${TOPP_TOOLS})
                      "topp_${_topp_tool}_tests")
   endif()
 endforeach()
+
+# FragmentIndex_test: its main() holds about a hundred FragmentIndex objects of 7 KB each, one or more per section.
+# MSVC does not share the stack slots of the sections, so the frame alone comes close to the 1 MB default stack of
+# Windows (938 KB without slot reuse at the time of writing), and the singletons initialised in the first section
+# overflowed it. Give the test the 8 MB of a Linux main thread.
+if (MSVC)
+  target_link_options(FragmentIndex_test PRIVATE "/STACK:8388608")
+endif()
 
 # StopWatch_test needs to be run alone to avoid timing errors
 set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
@@ -133,13 +151,6 @@ endif()
 # 2 - add link dependencies
 target_link_libraries(Base64_test ZLIB::ZLIB)
 target_link_libraries(Libzip_test libzip::zip)
-# Xerces is a PRIVATE dependency of libOpenMS. These tests exercise the internal
-# Xerces InputSource / BinInputStream adapters directly, so they must link Xerces
-# themselves.
-target_link_libraries(ZipInputStream_test XercesC::XercesC)
-target_link_libraries(GzipInputStream_test XercesC::XercesC)
-target_link_libraries(Bzip2InputStream_test XercesC::XercesC)
-target_link_libraries(CompressedInputSource_test XercesC::XercesC)
 target_link_libraries(ZipRandomAccessFile_test libzip::zip)
 target_link_libraries(UniqueIdGenerator_test Threads::Threads)
 target_link_libraries(SpectraSTSimilarityScore_test Eigen3::Eigen)
@@ -148,8 +159,9 @@ target_link_libraries(BilinearInterpolation_test Eigen3::Eigen)
 target_link_libraries(MatrixEigen_test Eigen3::Eigen)
 target_link_libraries(MRMScoring_test Eigen3::Eigen)
 # The vendored Percolator is linked PRIVATE into libOpenMS with hidden symbols.
-# This test calls its PosteriorEstimator directly, so it links the static library.
+# These tests call its classes directly, so they link the static library.
 target_link_libraries(PercolatorPosteriorEstimator_test OpenMS_Percolator)
+target_link_libraries(PercolatorScores_test OpenMS_Percolator)
 
 
 if (WITH_HDF5)
@@ -175,6 +187,11 @@ target_link_libraries(ProteinGroupArrowExport_test
   ${OPENMS_PARQUET_TARGET}
 )
 target_link_libraries(QPXFile_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+)
+# Reads the mz view's schema and list columns with Arrow itself
+target_link_libraries(QPXDatasetExport_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
 )

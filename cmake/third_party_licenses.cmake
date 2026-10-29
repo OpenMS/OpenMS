@@ -481,8 +481,9 @@ function(openms_install_system_library_licenses)
 endfunction()
 
 ## Installs the licenses of the libraries under src/openms/extern and src/openms/thirdparty,
-## and of the third-party code in other OpenMS source files (libkdtree++ in KDTree.h,
-## MSNumpress), under share/OpenMS/LICENSES/vendored. A library of src/openms/extern that the
+## of the third-party code in other OpenMS source files (libkdtree++ in KDTree.h,
+## MSNumpress), and of HiGHS when the build fetches it and links it into libOpenMS
+## (cmake_findExternalLibs.cmake), under share/OpenMS/LICENSES/vendored. A library of src/openms/extern that the
 ## build takes from vcpkg or the system instead (USE_EXTERNAL_<name>) is left out; for a vcpkg
 ## port, openms_install_vcpkg_licenses() installs its license.
 ## Installs <files> to share/OpenMS/LICENSES/vendored/<library> and records them for
@@ -511,6 +512,13 @@ function(openms_install_vendored_licenses)
                                    "${_texts}/libkdtree/README.txt"
                                    "${_texts}/libkdtree/Artistic-2.0.txt")
   _openms_install_vendored_license(MSNumpress "${_texts}/MSNumpress/LICENSE.txt")
+  ## HiGHS fetched by FetchContent is linked statically, so no other step installs its
+  ## license: openms_install_vcpkg_licenses() covers vcpkg ports, and the wheel's license
+  ## collection covers shared libraries. A HiGHS from vcpkg or the system is found by
+  ## find_package() instead, which leaves highs_SOURCE_DIR undefined.
+  if(DEFINED highs_SOURCE_DIR)
+    _openms_install_vendored_license(HiGHS "${highs_SOURCE_DIR}/LICENSE.txt")
+  endif()
 
   ## <directory in src/openms/extern>/<its license file>
   set(_extern_licenses evergreen/LICENSE GTE/LICENSE Quadtree/LICENSE)

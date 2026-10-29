@@ -101,8 +101,8 @@ namespace OpenMS
         * @param[out] seeds The FeatureMap object where the identified seeding features will be stored.
         * @param[in] median_fwhm The median FWHM of the peaks, used to adjust the FeatureFinderMultiplex parameters for
         *                        seed detection.
-        * @param[in] charge_min Minimum charge state to consider for feature seeds (default: 2).
-        * @param[in] charge_max Maximum charge state to consider for feature seeds (default: 5).
+        * @param[in] charge_range Charge range "<min>:<max>" to consider for feature seeds (default: "2:5").
+        * @param[in] rt_band Maximum RT shift (in seconds) between the isotopic traces of a seed (default: 3.0).
         *
         * @note The function employs a ThresholdMower filter with hardcoded parameters (m/z tolerance: 20 ppm, intensity cutoff: intensity_threshold, below cutoff: remove)
         *       and the FeatureFinderMultiplex algorithm with parameters optimized for seed feature detection in DDA workflows.
@@ -113,8 +113,8 @@ namespace OpenMS
             const double intensity_threshold,
             FeatureMap & seeds, 
             double median_fwhm,
-            Size charge_min = 2,
-            Size charge_max = 5
+            const std::string& charge_range = "2:5",
+            double rt_band = 3.0
         );
 
     };

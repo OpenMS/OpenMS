@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- UniPEFF fixture: with -map_canonical_features, the canonical features are also written to
+     the isoform entry, moved to isoform coordinates through its splice variants.
+     Canonical P66666 is 30 aa:
+        1-10  MSEQCKTLDA
+       11-20  PGRSTWEVQL
+       21-30  KDNACYLRGE
+     P66666-2 (VSP_A: 3-6 EQCK deleted; VSP_B: L20 -> LIV) is 28 aa:
+        1-10  MSTLDAPGRS
+       11-20  TWEVQLIVKD
+       21-28  NACYLRGE
+     Canonical 1-2 keep their positions, 7-19 move by -4, 21-30 by -2.
+     Features (canonical -> isoform):
+       initiator methionine 1                  -> 1
+       chain 9-30 (to the C-terminus)          -> 5-28
+       propeptide 2-8 (crosses VSP_A)          -> clipped to 2-4
+       Phosphoserine 2                         -> 2
+       Phosphoserine 14                        -> 10
+       Phosphothreonine 15                     -> 11
+       Test palmitoyl cysteine 5 (deleted)     -> not mapped
+       disulfide bond 5-25 (C5 deleted)        -> not mapped (neither half-cystine)
+       variant A24V                            -> 22
+       variant 18-21 VQLK -> Q (overlaps VSP_B) -> not mapped
+       variant R13K                            -> 9, which UniProt also annotates on
+                                                  P66666-2: written once
+     Summary: 7 canonical annotations mapped, 3 not mapped. -->
+<uniprot>
+  <entry dataset="Swiss-Prot" version="2">
+    <accession>P66666</accession>
+    <name>CMAP_HUMAN</name>
+    <protein>
+      <recommendedName>
+        <fullName>Canonical feature mapping test protein</fullName>
+      </recommendedName>
+    </protein>
+    <gene>
+      <name type="primary">CMAP</name>
+    </gene>
+    <organism>
+      <name type="scientific">Homo sapiens</name>
+      <dbReference type="NCBI Taxonomy" id="9606"/>
+    </organism>
+    <comment type="alternative products">
+      <event type="alternative splicing"/>
+      <isoform>
+        <id>P66666-1</id>
+        <name>1</name>
+        <sequence type="displayed"/>
+      </isoform>
+      <isoform>
+        <id>P66666-2</id>
+        <name>2</name>
+        <sequence type="described" ref="VSP_A VSP_B"/>
+      </isoform>
+    </comment>
+    <proteinExistence type="evidence at protein level"/>
+    <feature type="initiator methionine" description="Removed">
+      <location>
+        <position position="1"/>
+      </location>
+    </feature>
+    <feature type="propeptide" description="Activation peptide">
+      <location>
+        <begin position="2"/>
+        <end position="8"/>
+      </location>
+    </feature>
+    <feature type="chain" description="Canonical feature mapping test protein">
+      <location>
+        <begin position="9"/>
+        <end position="30"/>
+      </location>
+    </feature>
+    <feature type="modified residue" description="Phosphoserine">
+      <location>
+        <position position="2"/>
+      </location>
+    </feature>
+    <feature type="modified residue" description="Phosphoserine">
+      <location>
+        <position position="14"/>
+      </location>
+    </feature>
+    <feature type="modified residue" description="Phosphothreonine">
+      <location>
+        <position position="15"/>
+      </location>
+    </feature>
+    <feature type="lipid moiety-binding region" description="Test palmitoyl cysteine">
+      <location>
+        <position position="5"/>
+      </location>
+    </feature>
+    <feature type="disulfide bond">
+      <location>
+        <begin position="5"/>
+        <end position="25"/>
+      </location>
+    </feature>
+    <feature type="sequence variant" description="In dbSNP.">
+      <original>R</original>
+      <variation>K</variation>
+      <location>
+        <position position="13"/>
+      </location>
+    </feature>
+    <feature type="sequence variant" description="In dbSNP.">
+      <original>VQLK</original>
+      <variation>Q</variation>
+      <location>
+        <begin position="18"/>
+        <end position="21"/>
+      </location>
+    </feature>
+    <feature type="sequence variant" description="In dbSNP.">
+      <original>A</original>
+      <variation>V</variation>
+      <location>
+        <position position="24"/>
+      </location>
+    </feature>
+    <feature type="sequence variant" description="In dbSNP.">
+      <original>R</original>
+      <variation>K</variation>
+      <location sequence="P66666-2">
+        <position position="9"/>
+      </location>
+    </feature>
+    <feature type="splice variant" id="VSP_A" description="In isoform 2.">
+      <location>
+        <begin position="3"/>
+        <end position="6"/>
+      </location>
+    </feature>
+    <feature type="splice variant" id="VSP_B" description="In isoform 2.">
+      <original>L</original>
+      <variation>LIV</variation>
+      <location>
+        <position position="20"/>
+      </location>
+    </feature>
+    <sequence length="30" mass="3400" version="1">MSEQCKTLDAPGRSTWEVQLKDNACYLRGE</sequence>
+  </entry>
+</uniprot>

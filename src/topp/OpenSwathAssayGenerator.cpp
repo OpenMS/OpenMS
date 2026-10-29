@@ -130,7 +130,8 @@ protected:
     registerFlag_("enable_identification_unspecific_losses", "IPF: set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for identification fragment ions should be allowed", true);
     registerFlag_("enable_swath_specifity", "IPF: set this flag if identification transitions without precursor specificity (i.e. across whole precursor isolation window instead of precursor MZ) should be generated.", true);
     registerFlag_("disable_decoy_transitions", "IPF: set this flag to disable generation of decoy UIS transitions (use for faster testing or when decoys are not needed)", true);
-    registerIntOption_("ipf_decoy_seed", "<int>", -1, "IPF: random seed for decoy shuffle (-1 = use time-based seed)", false, true);
+    registerIntOption_("ipf_decoy_seed", "<int>", 1, "IPF: random seed for decoy shuffle (default 1 for reproducibility, -1 = time-based)", false, true);
+    setMinInt_("ipf_decoy_seed", -1);
 
   }
 

@@ -12,6 +12,7 @@ Bzip2InputStream.cpp
 CachedMzML.cpp
 ChromeleonFile.cpp
 CompressedInputSource.cpp
+DecompressingInputStream.cpp
 CVMappingFile.cpp
 ConsensusXMLFile.cpp
 ControlledVocabulary.cpp
@@ -85,7 +86,6 @@ PepXMLFileMascot.cpp
 PercolatorInfile.cpp
 PercolatorOutfile.cpp
 ProtXMLFile.cpp
-QcMLFile.cpp
 SequestInfile.cpp
 SequestOutfile.cpp
 SpecArrayFile.cpp
@@ -126,6 +126,7 @@ list(APPEND sources_list XIPMParquetFile.cpp)
 list(APPEND sources_list ProteinGroupArrowExport.cpp)
 list(APPEND sources_list QPXCollectionExport.cpp)
 list(APPEND sources_list QPXValueValidation.cpp)
+list(APPEND sources_list QPXDatasetExport.cpp)
 list(APPEND sources_list ProteinIdentificationArrowIO.cpp)
 list(APPEND sources_list FeatureMapArrowIO.cpp)
 list(APPEND sources_list ConsensusMapArrowIO.cpp)

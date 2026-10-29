@@ -41,14 +41,13 @@ using namespace OpenMS;
 using namespace std;
 
 // Helper: build a moderately-separable dataset with @p n_per_class targets
-// and decoys, 2 features (signal + noise). Target signal ~N(+1.0, 0.6^2);
-// decoy signal ~N(0.0, 0.6^2). Not trivially separable — Percolator's
-// checkSeparationAndSetPi0 will not fire on this.
-static OpenMS::RescoreInput makeModeratelySeparableInput_(
-  std::size_t n_per_class, unsigned seed)
+// and decoys, 2 features (signal + noise), from the uniform [0, 1] numbers of
+// @p rand01. Target signal ~N(+1.0, 0.6^2); decoy signal ~N(0.0, 0.6^2). Not
+// trivially separable — Percolator's checkSeparationAndSetPi0 will not fire on
+// this.
+template<typename Rand01>
+static OpenMS::RescoreInput makeModeratelySeparableRows_(std::size_t n_per_class, Rand01 rand01)
 {
-  std::srand(seed);
-  auto rand01 = []() { return static_cast<double>(std::rand()) / RAND_MAX; };
   auto randn = [&]() {
     double u1 = std::max(1e-9, rand01());
     return std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * rand01());
@@ -68,6 +67,22 @@ static OpenMS::RescoreInput makeModeratelySeparableInput_(
     input.is_decoy.push_back(true);
   }
   return input;
+}
+
+// makeModeratelySeparableRows_() from std::rand()
+static OpenMS::RescoreInput makeModeratelySeparableInput_(
+  std::size_t n_per_class, unsigned seed)
+{
+  std::srand(seed);
+  return makeModeratelySeparableRows_(n_per_class, []() { return static_cast<double>(std::rand()) / RAND_MAX; });
+}
+
+// makeModeratelySeparableRows_() from std::mt19937, whose output (unlike std::rand()'s) is the same on every platform,
+// so that every platform scores the same rows.
+static OpenMS::RescoreInput makePortableModeratelySeparableInput_(std::size_t n_per_class, unsigned seed)
+{
+  std::mt19937 gen(seed);
+  return makeModeratelySeparableRows_(n_per_class, [&gen]() { return static_cast<double>(gen()) / 4294967296.0; });
 }
 
 static bool medianTargetBeatsDecoy_(const OpenMS::RescoreOutput& out,
@@ -174,6 +189,30 @@ START_SECTION([EXTRA] reproducibility with fixed seed is bit-identical)
     if (out1.peps[i]     != out2.peps[i])     bit_identical = false;
   }
   TEST_EQUAL(bit_identical, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] num_threads does not change the results)
+{
+  // num_threads limits the threads of the cross-validation loops; each fold and
+  // (Cpos, Cneg) pair is trained on its own, so the result does not depend on it
+  const RescoreInput input = makeModeratelySeparableInput_(500, 7);
+  std::vector<RescoreOutput> outs;
+  for (const int threads : {1, 3, 8})
+  {
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", 17);
+    par.setValue("num_threads", threads);
+    p.setParameters(par);
+    outs.push_back(p.rescore(input));
+  }
+  for (Size i = 1; i < outs.size(); ++i)
+  {
+    TEST_EQUAL(outs[0].scores == outs[i].scores, true)
+    TEST_EQUAL(outs[0].q_values == outs[i].q_values, true)
+    TEST_EQUAL(outs[0].peps == outs[i].peps, true)
+  }
 }
 END_SECTION
 
@@ -599,10 +638,10 @@ START_SECTION([EXTRA] report_as_main_score promotes a Percolator output to hit.g
 }
 END_SECTION
 
-START_SECTION([EXTRA] use_pi0=false disables pi0 correction)
+START_SECTION([EXTRA] use_pi0: true or false forces pi0 and auto decides as the executable)
 {
   // Build a dataset where pi0 correction clearly matters: plenty of well-
-  // separated targets mixed with decoys. With usePi0=true (default) q-values
+  // separated targets mixed with decoys. With usePi0=true q-values
   // get multiplied by a pi0 < 1 estimate, so turning pi0 off raises every
   // q-value at a given rank. Asserting strict "all q_off >= q_on" is too
   // brittle (Percolator's merge step can reshuffle ties), so instead check
@@ -639,7 +678,10 @@ START_SECTION([EXTRA] use_pi0=false disables pi0 correction)
     p->setParameters(par);
   }
   {
-    Param par = p_off.getParameters();
+    Param par = p_on.getParameters();
+    par.setValue("use_pi0", "true");
+    p_on.setParameters(par);
+    par = p_off.getParameters();
     par.setValue("use_pi0", "false");
     p_off.setParameters(par);
   }
@@ -651,9 +693,30 @@ START_SECTION([EXTRA] use_pi0=false disables pi0 correction)
   // pi0 estimation is bypassed and pi0 stays at the Scores constructor's
   // default 1.0 — matches the header doc claim.
   TEST_REAL_SIMILAR(p_off.getPi0(), 1.0)
-  // And with use_pi0=true (default), pi0 is estimated from the data, so it
+  // And with use_pi0=true, pi0 is estimated from the data, so it
   // must be strictly < 1.0 on a fixture with any null fraction at all.
   TEST_TRUE(p_on.getPi0() < 1.0)
+
+  // use_pi0=auto (default) decides as the percolator executable: pi0 only for its mix-max procedure, i.e. without
+  // post_processing_tdc on input from separate target and decoy searches (a spectrum with target and decoy PSMs).
+  {
+    Percolator p_auto;
+    Param par = p_auto.getDefaults();
+    par.setValue("seed", 17);
+    par.setValue("test_fdr",  0.05);
+    par.setValue("train_fdr", 0.05);
+    p_auto.setParameters(par);
+    p_auto.rescore(input);
+    TEST_REAL_SIMILAR(p_auto.getPi0(), 1.0) // post_processing_tdc (default)
+    par.setValue("post_processing_tdc", "false");
+    p_auto.setParameters(par);
+    p_auto.rescore(input);
+    TEST_REAL_SIMILAR(p_auto.getPi0(), 1.0) // each row its own spectrum: concatenated search
+    RescoreInput separate = input;
+    for (size_t i = 0; i < input.features.size(); ++i) separate.scan_numbers.push_back(static_cast<int>(i % 600));
+    p_auto.rescore(separate);
+    TEST_TRUE(p_auto.getPi0() < 1.0) // target i and decoy i share a spectrum: separate searches
+  }
 
   // Mean target q over top-100 ranked targets should be strictly lower when
   // pi0 is on (because q is scaled by pi0 < 1).
@@ -672,6 +735,52 @@ START_SECTION([EXTRA] use_pi0=false disables pi0 correction)
   }
   TEST_EQUAL(counted, 100)
   TEST_TRUE(mean_on < mean_off)
+}
+END_SECTION
+
+START_SECTION((bool usedDefaultDirection() const))
+{
+  Percolator p;
+  Param param = p.getDefaults();
+  param.setValue("seed", 42);
+  p.setParameters(param);
+  TEST_FALSE(p.usedDefaultDirection())
+
+  // Separable targets: the learned model identifies at least as many targets as the best single feature
+  // and passes the sanity check. With fewer targets it would not: q-values count the decoys + 1, so a
+  // held-out fold needs about 1 / test_fdr targets above its first decoy for any q < test_fdr.
+  RescoreInput separable;
+  separable.feature_names = StringList{"separator", "noise"};
+  for (size_t i = 0; i < 600; ++i)
+  {
+    separable.features.push_back({+1.0 + 0.003 * static_cast<double>(i), static_cast<double>(i % 7)});
+    separable.is_decoy.push_back(false);
+  }
+  for (size_t i = 0; i < 600; ++i)
+  {
+    separable.features.push_back({-1.0 + 0.003 * static_cast<double>(i), static_cast<double>(i % 11)});
+    separable.is_decoy.push_back(true);
+  }
+  p.rescore(separable);
+  TEST_FALSE(p.usedDefaultDirection())
+
+  // Targets and decoys with the same feature values (like a blank run; low-discrepancy sequences, so targets
+  // and decoys interleave): no target at q < test_fdr, so the sanity check replaces the learned model by the
+  // default direction.
+  RescoreInput noise;
+  noise.feature_names = StringList{"f0", "f1"};
+  for (size_t i = 0; i < 600; ++i)
+  {
+    noise.features.push_back({std::fmod(0.6180339887 * static_cast<double>(i), 1.0),
+                              std::fmod(0.7548776662 * static_cast<double>(i), 1.0)});
+    noise.is_decoy.push_back(i % 2 == 1);
+  }
+  p.rescore(noise);
+  TEST_TRUE(p.usedDefaultDirection())
+
+  // Each call reports its own outcome.
+  p.train(separable);
+  TEST_FALSE(p.usedDefaultDirection())
 }
 END_SECTION
 
@@ -856,6 +965,79 @@ START_SECTION([EXTRA] train then score on same overlapping input)
   TEST_TRUE(rate_re > 0.70)
   // And they should agree closely — within 10 percentage points.
   TEST_TRUE(std::abs(rate_ts - rate_re) < 0.10)
+}
+END_SECTION
+
+START_SECTION((RescoreOutput score(const RescoreInput& input, const PercolatorModel& model, const RescoreInput& reference)))
+{
+  // A model scores rows on the scale of a reference (its training set): a row of the reference gets the score and PEP
+  // that the reference's own scoring gives it, whatever other rows are scored with it, and the PEPs of other rows come
+  // from the reference's score -> PEP function (non-increasing in the score), not from their own few rows.
+  RescoreInput reference = makeModeratelySeparableInput_(300, 42);
+  Percolator p;
+  Param par = p.getDefaults();
+  par.setValue("seed", 17);
+  p.setParameters(par);
+  const PercolatorModel model = p.train(reference);
+  const RescoreOutput ref = p.score(reference, model);
+
+  RescoreInput some;
+  some.feature_names = reference.feature_names;
+  std::vector<size_t> rows;
+  for (size_t i = 0; i < reference.features.size(); i += 37) { rows.push_back(i); }
+  for (size_t i : rows)
+  {
+    some.features.push_back(reference.features[i]);
+    some.is_decoy.push_back(reference.is_decoy[i]);
+  }
+  const RescoreOutput out = p.score(some, model, reference);
+  ABORT_IF(out.scores.size() != rows.size())
+  for (size_t k = 0; k < rows.size(); ++k)
+  {
+    TEST_REAL_SIMILAR(out.scores[k], ref.scores[rows[k]])
+    TEST_REAL_SIMILAR(out.peps[k], ref.peps[rows[k]])
+  }
+  // other rows, e.g. of a second, small set: a PEP that does not increase with the score
+  const RescoreInput small = makeModeratelySeparableInput_(20, 99);
+  const RescoreOutput small_out = p.score(small, model, reference);
+  ABORT_IF(small_out.scores.size() != small.features.size())
+  std::vector<std::pair<double, double>> by_score;
+  for (size_t i = 0; i < small_out.scores.size(); ++i) { by_score.emplace_back(small_out.scores[i], small_out.peps[i]); }
+  std::sort(by_score.begin(), by_score.end());
+  bool non_increasing = true;
+  for (size_t i = 1; i < by_score.size(); ++i) { non_increasing = non_increasing && by_score[i].second <= by_score[i - 1].second + 1e-12; }
+  TEST_TRUE(non_increasing)
+}
+END_SECTION
+
+START_SECTION([EXTRA] score() is reproducible: the same rows and model give the same q-values and PEPs)
+{
+  // pi0 is estimated by bootstrap, with Percolator's random number generator; the q-values and PEPs of score() must
+  // not depend on what drew from it before (e.g. a previous score()). Several inputs, as only some are sensitive.
+  // Without post_processing_tdc and with use_pi0 'true', so that pi0 is estimated (mix-max): 'auto' (default) would
+  // take these rows, each its own spectrum, for a concatenated search and not estimate pi0.
+  PercolatorModel model;
+  model.feature_names = StringList{"signal", "noise"};
+  model.weights = {2.0, 0.1, -0.5};
+  model.normalizer_type = "none";
+  Percolator p;
+  Param par = p.getDefaults();
+  par.setValue("post_processing_tdc", "false");
+  par.setValue("use_pi0", "true");
+  p.setParameters(par);
+  Size differing_rows = 0;
+  for (unsigned seed = 1; seed <= 20; ++seed)
+  {
+    const RescoreInput input = makePortableModeratelySeparableInput_(300, seed);
+    const RescoreOutput first = p.score(input, model);
+    const RescoreOutput second = p.score(input, model);
+    ABORT_IF(first.peps.size() != second.peps.size() || first.q_values.size() != second.q_values.size())
+    for (size_t i = 0; i < first.peps.size(); ++i)
+    {
+      if (first.peps[i] != second.peps[i] || first.q_values[i] != second.q_values[i]) { ++differing_rows; }
+    }
+  }
+  TEST_EQUAL(differing_rows, 0)
 }
 END_SECTION
 
@@ -1129,7 +1311,8 @@ START_SECTION([EXTRA] input-order invariance Jaccard characterization)
 {
   // Documents the input-order dependence the docstring calls out. Asserts
   // Pearson r >= 0.99 on scores (after un-permuting) and Jaccard >= 0.95
-  // on accepted-target sets at q <= 0.01.
+  // on accepted-target sets at q <= 0.05 (without pi0, no target of this
+  // fixture reaches q <= 0.01).
   //
   // Prerequisite: populate stable scan_numbers on `base` BEFORE shuffling.
   // The CV fold hash incorporates scan_numbers (defaults to row_index when
@@ -1198,14 +1381,15 @@ START_SECTION([EXTRA] input-order invariance Jaccard characterization)
   const double r = (den > 1e-15) ? num / den : 0.0;
   TEST_TRUE(r >= 0.99)
 
-  // Jaccard on accepted-target set at q <= 0.01.
+  // Jaccard on accepted-target set at q <= 0.05.
   std::set<size_t> a, b;
   for (size_t i = 0; i < n; ++i)
   {
     if (base.is_decoy[i]) continue;
-    if (out1.q_values[i]  <= 0.01) a.insert(i);
-    if (qvals2_aligned[i] <= 0.01) b.insert(i);
+    if (out1.q_values[i]  <= 0.05) a.insert(i);
+    if (qvals2_aligned[i] <= 0.05) b.insert(i);
   }
+  TEST_EQUAL(a.empty(), false)
   std::set<size_t> inter, uni;
   std::set_intersection(a.begin(), a.end(), b.begin(), b.end(),
                         std::inserter(inter, inter.begin()));
@@ -1221,18 +1405,16 @@ START_SECTION([EXTRA] seed change produces different but statistically equivalen
 {
   // Negative control: two different seeds must produce different scores
   // (catches seed-not-wired-through bugs) but Pearson r >= 0.9 and
-  // |cA - cB| / max(cA, cB) <= 0.20 at q <= 0.05 (statistical equivalence).
+  // |cA - cB| / max(cA, cB) <= 0.20 at q <= 0.10 (statistical equivalence).
   //
-  // Why q <= 0.05 instead of 0.01: the q-value "cliff" at 0.01 is inherently
-  // unstable across seeds — small score shifts move many targets across the
-  // threshold even when Pearson r is ~0.985. Observed counts on this fixture:
-  //   q <= 0.01: c17=123, c42=171, ratio=0.28 (unstable, cliff-sensitive)
-  //   q <= 0.05: c17=394, c42=356, ratio=0.10 (stable, larger target mass)
-  //   q <= 0.10: c17=657, c42=652, ratio=0.01
-  // q <= 0.05 measures the same downstream "seed-induced classification drift"
-  // property at a threshold where there's enough accepted targets for the
-  // estimate to be stable.
-  RescoreInput input = makeModeratelySeparableInput_(800, 789);
+  // Why q <= 0.10: lower thresholds sit on the q-value "cliff" of this
+  // moderately separable fixture, where small score shifts move many targets
+  // across the threshold even when Pearson r is ~0.985. Over 20 inputs of this
+  // generator (seeds 780-799), the ratio exceeds 0.20 at q <= 0.05 for 8 of them
+  // (one seed may even reach no target), at q <= 0.10 for none (max 0.20); with
+  // use_pi0 'true' 7 resp. 1. This input: q <= 0.05 189 vs 201, q <= 0.10 313
+  // vs 308. Portable input (std::mt19937), so every platform tests the same rows.
+  RescoreInput input = makePortableModeratelySeparableInput_(800, 789);
 
   Percolator p17, p42;
   {
@@ -1272,13 +1454,13 @@ START_SECTION([EXTRA] seed change produces different but statistically equivalen
   const double r = (den > 1e-15) ? num / den : 0.0;
   TEST_TRUE(r >= 0.9)
 
-  // Count ratio at q <= 0.05 (targets only).
+  // Count ratio at q <= 0.10 (targets only).
   int c17 = 0, c42 = 0;
   for (size_t i = 0; i < n; ++i)
   {
     if (input.is_decoy[i]) continue;
-    if (out17.q_values[i] <= 0.05) ++c17;
-    if (out42.q_values[i] <= 0.05) ++c42;
+    if (out17.q_values[i] <= 0.10) ++c17;
+    if (out42.q_values[i] <= 0.10) ++c42;
   }
   const int maxc = std::max(c17, c42);
   const double ratio = (maxc > 0)
@@ -1693,13 +1875,15 @@ START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const St
     no_pin_left = no_pin_left && !hit.metaValueExists("ScanNr") && !hit.metaValueExists("ExpMass")
                   && !hit.metaValueExists("enzN") && !hit.metaValueExists("peplen") && !hit.metaValueExists("score")
                   && (i == 0 || !hit.metaValueExists("CalcMass"));
+    // the score feature separates targets from decoys: as with the percolator executable (210 targets, 1 decoy at
+    // q <= 0.01 with -Y on the .pin of these PSMs), most targets and few decoys reach q <= 0.01
     if (hit.getScore() <= 0.01) ++(hit.isDecoy() ? confident_decoys : confident_targets);
   }
   TEST_EQUAL(all_annotated, true)
   TEST_EQUAL(no_pin_left, true)
   TEST_REAL_SIMILAR(double(ids[0].getHits()[0].getMetaValue("CalcMass")), 1234.5)
-  TEST_EQUAL(confident_targets > 100, true)
-  TEST_EQUAL(confident_decoys < confident_targets / 10, true)
+  TEST_EQUAL(confident_targets > 200, true)
+  TEST_EQUAL(confident_decoys < 5, true)
 
   // svm and pep as main score
   PeptideIdentificationList ids_pep = makeIds();
@@ -1750,6 +1934,67 @@ START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const St
   TEST_EXCEPTION(Exception::MissingInformation, perc.rescorePSMs(untouched, StringList{"SpecId", "Label", "Peptide"}, "trypsin", 2, 2))
   TEST_EQUAL(untouched[0].getScoreType(), "hyperscore")
   TEST_EQUAL(untouched[0].getHits()[0].metaValueExists("ScanNr"), false)
+}
+END_SECTION
+
+START_SECTION((PercolatorModel trainPSMs(PeptideIdentificationList& peptide_ids, const StringList& feature_set, const std::string& enzyme, int min_charge, int max_charge)))
+{
+  // see scorePSMs()
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((Size scorePSMs(PeptideIdentificationList& peptide_ids, const PercolatorModel& model, PeptideIdentificationList& reference_ids, const StringList& feature_set, const std::string& enzyme, int min_charge, int max_charge, const std::string& score_type)))
+{
+  // 300 target and 300 decoy PSMs; a model trained on them scores a few of them again: the scores and PEPs that the
+  // whole set gives them, the PSMs of the reference unchanged, no PIN meta values left
+  const std::string aas = "ACDEFGHILMNPQSTVWY";
+  PeptideIdentificationList ids;
+  for (int i = 0; i < 600; ++i)
+  {
+    const bool decoy = i % 2 == 1;
+    std::string seq;
+    for (int k = 0; k < 8 + i % 5; ++k) seq += aas[(i * 7 + k * 13) % aas.size()];
+    seq += 'K';
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(seq));
+    hit.setCharge(2);
+    hit.setScore((decoy ? 0.0 : 2.0) + 2.0 * std::fmod(i * 0.6180339887498949, 1.0) - 1.0);
+    hit.setMetaValue("target_decoy", decoy ? "decoy" : "target");
+    hit.setPeptideEvidences({PeptideEvidence(decoy ? "DECOY_P" + std::to_string(i) : "P" + std::to_string(i), 0, 0, 'K', 'A')});
+    PeptideIdentification pid;
+    pid.setScoreType("hyperscore");
+    pid.setHigherScoreBetter(true);
+    pid.setMZ(hit.getSequence().getMZ(2));
+    pid.setRT(10.0 * i);
+    pid.setMetaValue("spectrum_reference", "scan=" + std::to_string(i + 1));
+    pid.setHits({hit});
+    ids.push_back(pid);
+  }
+  StringList feature_set = PercolatorInfile::getStandardFeatureSet(2, 2);
+  feature_set.push_back("score");
+  feature_set.push_back("Peptide");
+  feature_set.push_back("Proteins");
+
+  Percolator perc;
+  PeptideIdentificationList training = ids;
+  const PercolatorModel model = perc.trainPSMs(training, feature_set, "trypsin", 2, 2);
+  TEST_TRUE(training == ids) // not changed
+  PeptideIdentificationList all = ids, some;
+  for (Size i = 0; i < ids.size(); i += 50) { some.push_back(ids[i]); }
+  TEST_EQUAL(perc.scorePSMs(all, model, training, feature_set, "trypsin", 2, 2, "q-value"), 600)
+  TEST_EQUAL(perc.scorePSMs(some, model, training, feature_set, "trypsin", 2, 2, "pep"), some.size())
+  TEST_TRUE(training == ids)
+  for (Size k = 0; k < some.size(); ++k)
+  {
+    const PeptideHit& hit = some[k].getHits()[0];
+    const PeptideHit& among_all = all[k * 50].getHits()[0];
+    TEST_REAL_SIMILAR(double(hit.getMetaValue("MS:1001492")), double(among_all.getMetaValue("MS:1001492")))
+    TEST_REAL_SIMILAR(double(hit.getMetaValue("MS:1001493")), double(among_all.getMetaValue("MS:1001493")))
+    TEST_STRING_EQUAL(some[k].getScoreType(), "Posterior Error Probability")
+    TEST_REAL_SIMILAR(hit.getScore(), double(hit.getMetaValue("MS:1001493")))
+    TEST_FALSE(hit.metaValueExists("ScanNr") || hit.metaValueExists("enzN") || hit.metaValueExists("peplen"))
+  }
 }
 END_SECTION
 

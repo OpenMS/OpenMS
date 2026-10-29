@@ -10,15 +10,6 @@
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmIdentity.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPIons.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmSimilarity.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h>
 #include <OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
@@ -142,7 +133,6 @@
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFileMascot.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
-#include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
@@ -438,112 +428,6 @@ C++ implementation of the Biosaur2 feature detection workflow.
         .def("getMSData", [](OpenMS::Biosaur2Algorithm& self) -> OpenMS::MSExperiment { return self.getMSData(); }, "Returns a copy of MS data")
         .def("run", [](OpenMS::Biosaur2Algorithm& self, OpenMS::FeatureMap& feature_map) { nb::gil_scoped_release release; return self.run(feature_map); }, "feature_map"_a, "Run the algorithm storing only the resulting features")
         .def("run", [](OpenMS::Biosaur2Algorithm& self, OpenMS::FeatureMap& feature_map, bool /*return_details*/) { std::vector<OpenMS::Biosaur2Algorithm::Hill> hills; std::vector<OpenMS::Biosaur2Algorithm::PeptideFeature> peptide_features; { nb::gil_scoped_release release; self.run(feature_map, hills, peptide_features); } return nb::make_tuple(hills, peptide_features); }, "feature_map"_a, "return_details"_a, "Run the algorithm returning (hills, peptide_features) in addition to modifying feature_map in-place")
-        ;
-
-    // -----------------------------------------------------------------------
-    // ConsensusIDAlgorithm
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusIDAlgorithm, OpenMS::DefaultParamHandler>(m, "ConsensusIDAlgorithm", 
-        R"doc(
-Abstract base class for all ConsensusID algorithms (that calculate a
-consensus from multiple ID runs)
-)doc")
-        .def("apply", [](OpenMS::ConsensusIDAlgorithm& self, OpenMS::PeptideIdentificationList& ids, const std::map<std::string, std::string>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a = 0, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        .def("apply", [](OpenMS::ConsensusIDAlgorithm& self, OpenMS::PeptideIdentificationList& ids, size_t number_of_runs) { return self.apply(ids, number_of_runs); }, "ids"_a, "number_of_runs"_a = 0, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        ;
-
-    // -----------------------------------------------------------------------
-    // ConsensusIDAlgorithmIdentity
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusIDAlgorithmIdentity, OpenMS::ConsensusIDAlgorithm>(m, "ConsensusIDAlgorithmIdentity", 
-        R"doc(
-Abstract base class for ConsensusID algorithms that compare only
-identical sequences
-)doc")
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmIdentity& self, OpenMS::PeptideIdentificationList& ids, const std::map<std::string, std::string>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        ;
-
-    // -----------------------------------------------------------------------
-    // ConsensusIDAlgorithmAverage
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusIDAlgorithmAverage, OpenMS::ConsensusIDAlgorithmIdentity>(m, "ConsensusIDAlgorithmAverage", 
-        R"doc(
-Calculates a consensus from multiple ID runs by averaging the search
-scores
-)doc")
-        .def(nb::init<>())
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmAverage& self, OpenMS::PeptideIdentificationList& ids, const std::map<std::string, std::string>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        ;
-
-    // -----------------------------------------------------------------------
-    // ConsensusIDAlgorithmBest
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusIDAlgorithmBest, OpenMS::ConsensusIDAlgorithmIdentity>(m, "ConsensusIDAlgorithmBest", 
-        R"doc(
-Calculates a consensus from multiple ID runs by taking the best
-search score
-)doc")
-        .def(nb::init<>())
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmBest& self, OpenMS::PeptideIdentificationList& ids, const std::map<std::string, std::string>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        ;
-
-    // -----------------------------------------------------------------------
-    // ConsensusIDAlgorithmRanks
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusIDAlgorithmRanks, OpenMS::ConsensusIDAlgorithmIdentity>(m, "ConsensusIDAlgorithmRanks", 
-        R"doc(
-Calculates a consensus from multiple ID runs based on the ranks of
-the search hits
-)doc")
-        .def(nb::init<>())
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmRanks& self, OpenMS::PeptideIdentificationList& ids, const std::map<std::string, std::string>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        ;
-
-    // -----------------------------------------------------------------------
-    // ConsensusIDAlgorithmSimilarity
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusIDAlgorithmSimilarity, OpenMS::ConsensusIDAlgorithm>(m, "ConsensusIDAlgorithmSimilarity", 
-        R"doc(
-Abstract base class for ConsensusID algorithms that take peptide
-similarity into account
-)doc")
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmSimilarity& self, OpenMS::PeptideIdentificationList& ids, const std::map<std::string, std::string>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        ;
-
-    // -----------------------------------------------------------------------
-    // ConsensusIDAlgorithmPEPIons
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusIDAlgorithmPEPIons, OpenMS::ConsensusIDAlgorithmSimilarity>(m, "ConsensusIDAlgorithmPEPIons", 
-        R"doc(
-Calculates a consensus from multiple ID runs based on PEPs and shared
-ions
-)doc")
-        .def(nb::init<>())
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmPEPIons& self, OpenMS::PeptideIdentificationList& ids, const std::map<std::string, std::string>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        ;
-
-    // -----------------------------------------------------------------------
-    // ConsensusIDAlgorithmPEPMatrix
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusIDAlgorithmPEPMatrix, OpenMS::ConsensusIDAlgorithmSimilarity>(m, "ConsensusIDAlgorithmPEPMatrix", 
-        R"doc(
-Calculates a consensus from multiple ID runs based on PEPs and
-sequence similarities
-)doc")
-        .def(nb::init<>())
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmPEPMatrix& self, OpenMS::PeptideIdentificationList& ids, const std::map<std::string, std::string>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
-        ;
-
-    // -----------------------------------------------------------------------
-    // ConsensusIDAlgorithmWorst
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusIDAlgorithmWorst, OpenMS::ConsensusIDAlgorithmIdentity>(m, "ConsensusIDAlgorithmWorst", 
-        R"doc(
-Calculates a consensus from multiple ID runs by taking the worst
-search score (conservative approach)
-)doc")
-        .def(nb::init<>())
-        .def("apply", [](OpenMS::ConsensusIDAlgorithmWorst& self, OpenMS::PeptideIdentificationList& ids, const std::map<std::string, std::string>& se_info, size_t number_of_runs) { return self.apply(ids, se_info, number_of_runs); }, "ids"_a, "se_info"_a, "number_of_runs"_a, "Calculates the consensus ID for a set of peptide identifications of one spectrum or (consensus) feature")
         ;
 
     // -----------------------------------------------------------------------
@@ -3328,7 +3212,7 @@ Annotates and filters transitions in a TargetedExperiment
 :param enable_unspecific_losses: Whether unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) should be considered
 :param round_decPow: Round product m/z values to decimal power (default: -4)
 )doc")
-        .def("uisTransitions", [](OpenMS::MRMAssay& self, OpenMS::TargetedExperiment& exp, const std::vector<std::string>& fragment_types, const std::vector<size_t>& fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, bool enable_ms2_precursors, double mz_threshold, const std::vector<std::pair<double, double>>& swathes, int round_decPow, size_t max_num_alternative_localizations, int shuffle_seed, bool disable_decoy_transitions) { self.uisTransitions(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors, mz_threshold, swathes, round_decPow, max_num_alternative_localizations, shuffle_seed, disable_decoy_transitions); }, "exp"_a, "fragment_types"_a, "fragment_charges"_a, "enable_specific_losses"_a, "enable_unspecific_losses"_a, "enable_ms2_precursors"_a, "mz_threshold"_a, "swathes"_a, "round_decPow"_a = -4, "max_num_alternative_localizations"_a = 20, "shuffle_seed"_a = -1, "disable_decoy_transitions"_a = false, 
+        .def("uisTransitions", [](OpenMS::MRMAssay& self, OpenMS::TargetedExperiment& exp, const std::vector<std::string>& fragment_types, const std::vector<size_t>& fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, bool enable_ms2_precursors, double mz_threshold, const std::vector<std::pair<double, double>>& swathes, int round_decPow, size_t max_num_alternative_localizations, int shuffle_seed, bool disable_decoy_transitions) { self.uisTransitions(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors, mz_threshold, swathes, round_decPow, max_num_alternative_localizations, shuffle_seed, disable_decoy_transitions); }, "exp"_a, "fragment_types"_a, "fragment_charges"_a, "enable_specific_losses"_a, "enable_unspecific_losses"_a, "enable_ms2_precursors"_a, "mz_threshold"_a, "swathes"_a, "round_decPow"_a = -4, "max_num_alternative_localizations"_a = 20, "shuffle_seed"_a = 1, "disable_decoy_transitions"_a = false,
             R"doc(
 Annotate UIS / site-specific transitions
 
@@ -3359,7 +3243,7 @@ peptidoforms to which they map.
 :param swathes: The swath window settings (to exclude fragment ions falling
 :param round_decPow: Round product m/z values to decimal power (default: -4)
 :param max_num_alternative_localizations: Maximum number of allowed peptide sequence permutations
-:param shuffle_seed: Set seed for shuffle (-1: select seed based on time)
+:param shuffle_seed: Shuffle seed (default 1 for reproducible results; -1 selects a time-based seed)
 :param disable_decoy_transitions: Whether to disable generation of decoy UIS transitions
 )doc")
         ;
@@ -3400,19 +3284,21 @@ Find all residues in a sequence that should not be reversed / shuffled
                                   const std::vector<size_t>& fragment_charges,
                                   bool enable_specific_losses,
                                   bool enable_unspecific_losses,
-                                  int round_decPow) {
+                                  int round_decPow,
+                                  OpenMS::Int shuffle_seed) {
             OpenMS::TargetedExperiment dec;
             self.generateDecoys(exp, dec, method, aim_decoy_fraction, switchKR, decoy_tag,
                                 max_attempts, identity_threshold, precursor_mz_shift,
                                 product_mz_shift, product_mz_threshold, fragment_types,
                                 fragment_charges, enable_specific_losses, enable_unspecific_losses,
-                                round_decPow);
+                                round_decPow, shuffle_seed);
             return dec;
         }, "exp"_a, "method"_a, "aim_decoy_fraction"_a, "switchKR"_a, "decoy_tag"_a,
            "max_attempts"_a, "identity_threshold"_a, "precursor_mz_shift"_a,
            "product_mz_shift"_a, "product_mz_threshold"_a, "fragment_types"_a,
            "fragment_charges"_a, "enable_specific_losses"_a, "enable_unspecific_losses"_a,
-           "round_decPow"_a = -4, "Generate decoys from a TargetedExperiment")
+           "round_decPow"_a = -4, "shuffle_seed"_a = 1,
+           "Generate decoys from a TargetedExperiment (shuffle_seed=-1 uses time-based seeding)")
         ;
     def_ProgressLogger<OpenMS::MRMDecoy>(mrmdecoy_class);
 
@@ -4040,6 +3926,18 @@ only in decoy proteins, or in both. The target/decoy information is crucial for 
     // -----------------------------------------------------------------------
     // ProSEAlgorithm
     // -----------------------------------------------------------------------
+    // PercolatorRescoring struct (nested in ProSEAlgorithm)
+    nb::class_<OpenMS::ProSEAlgorithm::PercolatorRescoring>(m, "PercolatorRescoring",
+        "Outcome of the Percolator rescoring of one search run (parameter 'rescore'): whether the PSMs were rescored and, if not, why")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::ProSEAlgorithm::PercolatorRescoring&>())
+        .def("__copy__", [](const OpenMS::ProSEAlgorithm::PercolatorRescoring& self) { return OpenMS::ProSEAlgorithm::PercolatorRescoring(self); })
+        .def("__deepcopy__", [](const OpenMS::ProSEAlgorithm::PercolatorRescoring& self, nb::dict) { return OpenMS::ProSEAlgorithm::PercolatorRescoring(self); }, "memo"_a)
+        .def_rw("applied", &OpenMS::ProSEAlgorithm::PercolatorRescoring::applied)
+        .def_rw("skipped_reason", &OpenMS::ProSEAlgorithm::PercolatorRescoring::skipped_reason)
+        .def_rw("warning", &OpenMS::ProSEAlgorithm::PercolatorRescoring::warning)
+        ;
+
     // SearchResult struct (nested in ProSEAlgorithm)
     nb::class_<OpenMS::ProSEAlgorithm::SearchResult>(m, "SearchResult",
         "Comprehensive search result including modification analysis")
@@ -4052,6 +3950,7 @@ only in decoy proteins, or in both. The target/decoy information is crucial for 
         .def_rw("peptide_ids", &OpenMS::ProSEAlgorithm::SearchResult::peptide_ids)
         .def_rw("modification_analysis", &OpenMS::ProSEAlgorithm::SearchResult::modification_analysis)
         .def_rw("is_open_search", &OpenMS::ProSEAlgorithm::SearchResult::is_open_search)
+        .def_rw("percolator", &OpenMS::ProSEAlgorithm::SearchResult::percolator)
         ;
 
     auto prosealgorithm_class = nb::class_<OpenMS::ProSEAlgorithm, OpenMS::DefaultParamHandler>(m, "ProSEAlgorithm",
@@ -5625,17 +5524,21 @@ Usage:
             // parses into a function-local dummy PeakMap that is discarded, so the value is
             // never read back and need not be restored after each callback
             NanobindMSDataConsumer wrapper(consumer, /*caller_reads_back=*/false);
+            nb::gil_scoped_release release; // the wrapper takes the GIL for each callback
             self.transform(filename, &wrapper, skip_full_count, skip_first_pass);
         }, "filename"_a, "consumer"_a, "skip_full_count"_a = false, "skip_first_pass"_a = false,
-        "Transform an mzML file using a consumer object (streaming processing)")
+        "Transform an mzML file using a consumer object (streaming processing)."
+        " The GIL is released while parsing and taken for each consumer call, so other Python threads run meanwhile; they must not use this object until it returns.")
 
         .def("transform", [](OpenMS::MzMLFile& self, const std::string& filename, nb::object consumer,
                              OpenMS::MSExperiment& exp, bool skip_full_count, bool skip_first_pass) {
             NanobindMSDataConsumer wrapper(consumer);
+            nb::gil_scoped_release release; // the wrapper takes the GIL for each callback
             self.transform(filename, &wrapper, exp, skip_full_count, skip_first_pass);
         }, "filename"_a, "consumer"_a, "exp"_a, "skip_full_count"_a = false, "skip_first_pass"_a = false,
         "Transform an mzML file using a consumer object, also collecting the spectra into `exp`. "
-        "The consumer sees each spectrum before it is appended, so modifications it makes are kept")
+        "The consumer sees each spectrum before it is appended, so modifications it makes are kept."
+        " The GIL is released while parsing and taken for each consumer call, so other Python threads run meanwhile; they must not use this object or `exp` until it returns.")
         .def("isSemanticallyValid", [](OpenMS::MzMLFile& self, const std::string& filename) { OpenMS::StringList errors; OpenMS::StringList warnings; bool result = self.isSemanticallyValid(filename, errors, warnings); return nb::make_tuple(result, errors, warnings); }, "filename"_a, "Check semantic validity and return (is_valid, errors, warnings)")
         ;
     def_ProgressLogger<OpenMS::MzMLFile>(mzmlfile_class);
@@ -5679,17 +5582,21 @@ Usage:
             // parses into a function-local dummy map that is discarded, so the value is
             // never read back and need not be restored after each callback
             NanobindMSDataConsumer wrapper(consumer, /*caller_reads_back=*/false);
+            nb::gil_scoped_release release; // the wrapper takes the GIL for each callback
             self.transform(filename, &wrapper, skip_full_count);
         }, "filename"_a, "consumer"_a, "skip_full_count"_a = false,
-        "Transform an mzXML file using a consumer object (streaming processing)")
+        "Transform an mzXML file using a consumer object (streaming processing)."
+        " The GIL is released while parsing and taken for each consumer call, so other Python threads run meanwhile; they must not use this object until it returns.")
 
         .def("transform", [](OpenMS::MzXMLFile& self, const std::string& filename, nb::object consumer,
                              OpenMS::MSExperiment& exp, bool skip_full_count) {
             NanobindMSDataConsumer wrapper(consumer);
+            nb::gil_scoped_release release; // the wrapper takes the GIL for each callback
             self.transform(filename, &wrapper, exp, skip_full_count);
         }, "filename"_a, "consumer"_a, "exp"_a, "skip_full_count"_a = false,
         "Transform an mzXML file using a consumer object, also collecting the spectra into `exp`. "
-        "The consumer sees each spectrum before it is appended, so modifications it makes are kept")
+        "The consumer sees each spectrum before it is appended, so modifications it makes are kept."
+        " The GIL is released while parsing and taken for each consumer call, so other Python threads run meanwhile; they must not use this object or `exp` until it returns.")
         ;
     def_ProgressLogger<OpenMS::MzXMLFile>(mzxmlfile_class);
 
@@ -5836,101 +5743,6 @@ Stores the data in a ProtXML file (not implemented yet)
   Exception: NotImplemented is always thrown; storing ProtXML is not supported
 )doc")
         ;
-
-    // -----------------------------------------------------------------------
-    // QualityParameter (QcMLFile::QualityParameter)
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::QcMLFile::QualityParameter>(m, "QualityParameter",
-        "Representation of a quality parameter in QcMLFile")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::QcMLFile::QualityParameter &>())
-        .def("__copy__", [](const OpenMS::QcMLFile::QualityParameter& self) { return OpenMS::QcMLFile::QualityParameter(self); })
-        .def("__deepcopy__", [](const OpenMS::QcMLFile::QualityParameter& self, nb::dict) { return OpenMS::QcMLFile::QualityParameter(self); }, "memo"_a)
-        .def_rw("name", &OpenMS::QcMLFile::QualityParameter::name)
-        .def_rw("id", &OpenMS::QcMLFile::QualityParameter::id)
-        .def_rw("value", &OpenMS::QcMLFile::QualityParameter::value)
-        .def_rw("cvRef", &OpenMS::QcMLFile::QualityParameter::cvRef)
-        .def_rw("cvAcc", &OpenMS::QcMLFile::QualityParameter::cvAcc)
-        .def_rw("unitRef", &OpenMS::QcMLFile::QualityParameter::unitRef)
-        .def_rw("unitAcc", &OpenMS::QcMLFile::QualityParameter::unitAcc)
-        .def_rw("flag", &OpenMS::QcMLFile::QualityParameter::flag)
-        .def("toXMLString", [](const OpenMS::QcMLFile::QualityParameter& self, OpenMS::UInt indentation_level) { return self.toXMLString(indentation_level); }, "indentation_level"_a)
-        .def(nb::self == nb::self)
-        .def(nb::self < nb::self)
-        ;
-
-    // -----------------------------------------------------------------------
-    // Attachment (QcMLFile::Attachment)
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::QcMLFile::Attachment>(m, "Attachment",
-        "Attachment for QcMLFile quality parameters")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::QcMLFile::Attachment &>())
-        .def("__copy__", [](const OpenMS::QcMLFile::Attachment& self) { return OpenMS::QcMLFile::Attachment(self); })
-        .def("__deepcopy__", [](const OpenMS::QcMLFile::Attachment& self, nb::dict) { return OpenMS::QcMLFile::Attachment(self); }, "memo"_a)
-        .def_rw("name", &OpenMS::QcMLFile::Attachment::name)
-        .def_rw("id", &OpenMS::QcMLFile::Attachment::id)
-        .def_rw("value", &OpenMS::QcMLFile::Attachment::value)
-        .def_rw("cvRef", &OpenMS::QcMLFile::Attachment::cvRef)
-        .def_rw("cvAcc", &OpenMS::QcMLFile::Attachment::cvAcc)
-        .def_rw("unitRef", &OpenMS::QcMLFile::Attachment::unitRef)
-        .def_rw("unitAcc", &OpenMS::QcMLFile::Attachment::unitAcc)
-        .def_rw("binary", &OpenMS::QcMLFile::Attachment::binary)
-        .def_rw("qualityRef", &OpenMS::QcMLFile::Attachment::qualityRef)
-        .def_rw("colTypes", &OpenMS::QcMLFile::Attachment::colTypes)
-        .def_rw("tableRows", &OpenMS::QcMLFile::Attachment::tableRows)
-        .def("toXMLString", [](const OpenMS::QcMLFile::Attachment& self, OpenMS::UInt indentation_level) { return self.toXMLString(indentation_level); }, "indentation_level"_a)
-        .def("toCSVString", [](const OpenMS::QcMLFile::Attachment& self, const std::string& separator) { return self.toCSVString(separator); }, "separator"_a)
-        .def(nb::self == nb::self)
-        .def(nb::self < nb::self)
-        ;
-
-    // -----------------------------------------------------------------------
-    // QcMLFile
-    // -----------------------------------------------------------------------
-    auto qcmlfile_class = nb::class_<OpenMS::QcMLFile, OpenMS::Internal::XMLFile>(m, "QcMLFile",
-        R"doc(
-File adapter for QcML files used to load and store QcML files
-
-This Class is supposed to internally collect the data for the qcML File
-)doc")
-        .def(nb::init<>())
-        .def("map2csv", [](const OpenMS::QcMLFile& self, const std::map<std::string, std::map<std::string, std::string>>& cvs_table, const std::string& separator) { return self.map2csv(cvs_table, separator); }, "cvs_table"_a, "separator"_a, "Converts a map of maps to a CSV string")
-        .def("exportIDstats", [](const OpenMS::QcMLFile& self, const std::string& filename) { return self.exportIDstats(filename); }, "filename"_a)
-        .def("registerRun", [](OpenMS::QcMLFile& self, const std::string& id, const std::string& name) { return self.registerRun(id, name); }, "id"_a, "name"_a, "Registers a run in the qcml file with the respective mappings")
-        .def("registerSet", [](OpenMS::QcMLFile& self, const std::string& id, const std::string& name, const std::set<std::string>& names) { return self.registerSet(id, name, names); }, "id"_a, "name"_a, "names"_a, "Registers a set in the qcml file with the respective mappings")
-        .def("addRunQualityParameter", [](OpenMS::QcMLFile& self, const std::string& r, const OpenMS::QcMLFile::QualityParameter& qp) { return self.addRunQualityParameter(r, qp); }, "r"_a, "qp"_a, "Adds a QualityParameter to run by the name r")
-        .def("addRunAttachment", [](OpenMS::QcMLFile& self, const std::string& r, const OpenMS::QcMLFile::Attachment& at) { return self.addRunAttachment(r, at); }, "r"_a, "at"_a, "Adds a attachment to run by the name r")
-        .def("addSetQualityParameter", [](OpenMS::QcMLFile& self, const std::string& r, const OpenMS::QcMLFile::QualityParameter& qp) { return self.addSetQualityParameter(r, qp); }, "r"_a, "qp"_a, "Adds a QualityParameter to set by the name r")
-        .def("addSetAttachment", [](OpenMS::QcMLFile& self, const std::string& r, const OpenMS::QcMLFile::Attachment& at) { return self.addSetAttachment(r, at); }, "r"_a, "at"_a, "Adds a attachment to set by the name r")
-        .def("removeAttachment", [](OpenMS::QcMLFile& self, const std::string& r, std::vector<std::string> ids, const std::string& at) { return self.removeAttachment(r, ids, at); }, "r"_a, "ids"_a, "at"_a = "", "Removes attachments referencing an id given in ids, from run/set r. All attachments if no attachment name is given with at")
-        .def("removeAttachment", [](OpenMS::QcMLFile& self, const std::string& r, const std::string& at) { return self.removeAttachment(r, at); }, "r"_a, "at"_a, "Removes attachment with cv accession at from run/set r")
-        .def("removeAllAttachments", [](OpenMS::QcMLFile& self, const std::string& at) { return self.removeAllAttachments(at); }, "at"_a, "Removes attachment with cv accession at from  all runs/sets")
-        .def("removeQualityParameter", [](OpenMS::QcMLFile& self, const std::string& r, std::vector<std::string> ids) { return self.removeQualityParameter(r, ids); }, "r"_a, "ids"_a, "Removes QualityParameter going by one of the ID attributes given in ids")
-        .def("merge", [](OpenMS::QcMLFile& self, const OpenMS::QcMLFile& addendum, const std::string& setname) { return self.merge(addendum, setname); }, "addendum"_a, "setname"_a = "", "Merges the given QCFile into this one")
-        .def("collectSetParameter", [](OpenMS::QcMLFile& self, const std::string& setname, const std::string& qp) { std::vector<std::string> ret; self.collectSetParameter(setname, qp, ret); return ret; }, "setname"_a, "qp"_a, "Collects the values of given QPs (as CVid) of the given set")
-        .def("exportAttachment", [](const OpenMS::QcMLFile& self, const std::string& filename, const std::string& qpname) { return self.exportAttachment(filename, qpname); }, "filename"_a, "qpname"_a, "Returns a std::string of a tab separated rows if found empty string else from run/set by the name filename of the qualityparameter by the name qpname")
-        .def("exportQP", [](const OpenMS::QcMLFile& self, const std::string& filename, const std::string& qpname) { return self.exportQP(filename, qpname); }, "filename"_a, "qpname"_a, "Returns a std::string value in quotation of a QualityParameter by the name qpname in run/set by the name filename")
-        .def("exportQPs", [](const OpenMS::QcMLFile& self, const std::string& filename, const std::vector<std::string>& qpnames) { return self.exportQPs(filename, qpnames); }, "filename"_a, "qpnames"_a, "Returns a std::string of a tab separated QualityParameter by the name qpname in run/set by the name filename")
-        .def("getRunIDs", [](const OpenMS::QcMLFile& self) { std::vector<std::string> ids; self.getRunIDs(ids); return ids; }, "Gives the ids of the registered runs in the vector ids")
-        .def("getRunNames", [](const OpenMS::QcMLFile& self) { std::vector<std::string> ids; self.getRunNames(ids); return ids; }, "Gives the names of the registered runs in the vector ids")
-        .def("existsRun", [](const OpenMS::QcMLFile& self, const std::string& filename, bool checkname) { return self.existsRun(filename, checkname); }, "filename"_a, "checkname"_a = false, "Returns true if the given run id is present in this file, if checkname is true it also checks the names")
-        .def("existsSet", [](const OpenMS::QcMLFile& self, const std::string& filename, bool checkname) { return self.existsSet(filename, checkname); }, "filename"_a, "checkname"_a = false, "Returns true if the given set id is present in this file, if checkname is true it also checks the names")
-        .def("existsRunQualityParameter", [](const OpenMS::QcMLFile& self, const std::string& filename, const std::string& qpname) {
-            std::vector<std::string> ids;
-            self.existsRunQualityParameter(filename, qpname, ids);
-            return ids;
-        }, "filename"_a, "qpname"_a, "Returns the ids of the parameter name given if found in given run empty else")
-        .def("existsSetQualityParameter", [](const OpenMS::QcMLFile& self, const std::string& filename, const std::string& qpname) {
-            std::vector<std::string> ids;
-            self.existsSetQualityParameter(filename, qpname, ids);
-            return ids;
-        }, "filename"_a, "qpname"_a, "Returns the ids of the parameter name given if found in given set, empty else")
-        .def("store", [](const OpenMS::QcMLFile& self, const std::string& filename) { return self.store(filename); }, "filename"_a, "Store the qcML file")
-        .def("load", [](OpenMS::QcMLFile& self, const std::string& filename) { return self.load(filename); }, "filename"_a, "Load a QCFile")
-        .def("reset", [](OpenMS::QcMLFile& self) { return self.reset(); })
-        ;
-    def_ProgressLogger<OpenMS::QcMLFile>(qcmlfile_class);
 
     // -----------------------------------------------------------------------
     // TraMLFile

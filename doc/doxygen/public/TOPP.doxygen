@@ -114,10 +114,10 @@
 
 
   <b>Identification Processing</b>
-  - @subpage TOPP_ConsensusID - Computes a consensus identification from peptide identifications of several identification engines.
   - @subpage TOPP_Digestor - Digests a protein database in-silico.
   - @subpage TOPP_DigestorMotif - Digests a protein database in-silico (optionally allowing only peptides with a specific motif) and produces statistical data for all peptides.
   - @subpage TOPP_Epifany - Bayesian protein inference based on PSM probabilities.
+  - @subpage TOPP_EntrapmentEvaluator - Measures the false discovery proportion of identifications with an entrapment database.
   - @subpage TOPP_FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
   - @subpage TOPP_IDConflictResolver - Resolves ambiguous annotations of features with peptide identifications.
   - @subpage TOPP_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy. WARNING: This utility is deprecated.
@@ -186,13 +186,7 @@
   - @subpage TOPP_QualityControl - A one-in-all QC tool to generate an augmented mzTab
   - @subpage TOPP_DatabaseSuitability - Calculates the suitability of a database for peptide identification search using a de novo approach.
   - @subpage TOPP_DIAuditor - Computes quality metrics of data-independent acquisition (DIA) runs, per run and per isolation window.
-  - @subpage TOPP_QCCalculator - Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into a qcML file.
-  - @subpage TOPP_QCEmbedder - Embeds tables or plots generated externally as attachments to existing quality parameters in qcML files.
-  - @subpage TOPP_QCExporter - Extracts several quality parameter from several runs/sets from a qcML file into a tabular (text) format - counterpart to QCImporter.
-  - @subpage TOPP_QCExtractor - Extracts a table attachment of a given quality parameter from a qcML file as tabular (text) format.
-  - @subpage TOPP_QCImporter - Imports several quality parameters from a tabular (text) format into a qcML file - counterpart to QCExporter.
-  - @subpage TOPP_QCMerger - Merges two qcML files together.
-  - @subpage TOPP_QCShrinker - Removes extra verbose table attachments from a qcML file that are not needed anymore, e.g. for a final report.
+  - @subpage TOPP_QCCalculator - Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into an mzQC file.
 
   <b>Metabolite Identification</b>
   - @subpage TOPP_AccurateMassSearch - Finds potential HMDB IDs within the given mass error window.

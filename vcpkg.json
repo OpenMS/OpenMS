@@ -47,9 +47,8 @@
     "eigen3",
     "highs",
     "libsvm",
-    "libxml2",
+    { "name": "libxml2", "version>=": "2.13.5" },
     "libzip",
-    "xerces-c",
     "zlib",
     "zstd"
   ],

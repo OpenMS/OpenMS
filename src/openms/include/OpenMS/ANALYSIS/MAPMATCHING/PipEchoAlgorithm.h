@@ -26,6 +26,11 @@ namespace OpenMS
     (match-between-runs); candidate transfers are scored and filtered at a
     controlled false-discovery rate using a target/decoy model.
 
+    A consensus feature that received transfers lists the map indices of the runs they went to in
+    the meta value Constants::UserParam::MBR_TRANSFER_MAP_INDICES ("mbr_transfer_map_indices") and
+    their q-values, in the same order, in Constants::UserParam::MBR_TRANSFER_QVALUES
+    ("mbr_transfer_qvalues").
+
     @htmlinclude OpenMS_PipEchoAlgorithm.parameters
 
     @ingroup FeatureGrouping

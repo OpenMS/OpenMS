@@ -1940,8 +1940,6 @@ def testSeedListGenerator():
     assert pyopenms.SeedListGenerator().generateSeedLists is not None
     assert pyopenms.SeedListGenerator().convertSeedList is not None
 
-#     assert pyopenms.ConsensusID().apply is not None
-
 @report
 def testFalseDiscoveryRate():
     """
@@ -4346,6 +4344,40 @@ def testMRMDecoy():
     assert pyopenms.MRMDecoy().generateDecoys is not None
 
 @report
+def testMRMDecoyShuffleSeed():
+    """Library shuffling uses the selected seed and a reproducible default."""
+    targets = pyopenms.TargetedExperiment()
+    fixture = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test.TraML")
+    pyopenms.TraMLFile().load(fixture, targets)
+    peptides = targets.getPeptides()
+    # Use valid, varied residues so different seeds produce different decoys.
+    for peptide, sequence in zip(peptides, ("ACDEFGHILMNVWYK", "ACDEFGHILMNVWYR")):
+        peptide.sequence = sequence
+        peptide.setChargeState(2)
+    targets.setPeptides(peptides)
+    generator = pyopenms.MRMDecoy()
+    arguments = dict(
+        exp=targets, method="shuffle", aim_decoy_fraction=1.0,
+        switchKR=False, decoy_tag="DECOY_", max_attempts=30,
+        identity_threshold=0.7, precursor_mz_shift=0.0,
+        product_mz_shift=20.0, product_mz_threshold=500.0,
+        fragment_types=["b", "y"], fragment_charges=[1, 2],
+        enable_specific_losses=False, enable_unspecific_losses=False,
+    )
+    default_decoys = generator.generateDecoys(**arguments)
+    seeded_decoys = generator.generateDecoys(**arguments, shuffle_seed=1)
+    other_decoys = generator.generateDecoys(**arguments, shuffle_seed=42)
+    # Explicit -1 remains accepted for callers requesting time-based shuffling.
+    time_seeded_decoys = generator.generateDecoys(**arguments, shuffle_seed=-1)
+    assert time_seeded_decoys.getPeptides()
+    assert default_decoys.getPeptides()
+    assert default_decoys == seeded_decoys
+    assert [p.sequence for p in seeded_decoys.getPeptides()] != [
+        p.sequence for p in other_decoys.getPeptides()
+    ]
+
+
+@report
 def testMRMTransitionGroup():
     """
     @tests: MRMTransitionGroup
@@ -6329,41 +6361,6 @@ def testInspectInfile():
     assert len(mods) == 0
 
 @report
-def testAttachment():
-    """
-    @tests: Attachment
-     Attachment.__init__
-    """
-    inst = pyopenms.Attachment()
-
-    assert inst.name is not None
-    assert inst.value is not None
-    assert inst.cvRef is not None
-    assert inst.cvAcc is not None
-    assert inst.unitRef is not None
-    assert inst.unitAcc is not None
-    assert inst.binary is not None
-    assert inst.qualityRef is not None
-    assert inst.colTypes is not None
-    assert inst.tableRows  is not None
-
-    assert inst.toXMLString is not None
-    assert inst.toCSVString is not None
-
-    inst.name = "test"
-    inst.value = "test"
-    inst.cvRef = "test"
-    inst.cvAcc = "test"
-    inst.unitRef = "test"
-    inst.unitAcc = "test"
-    inst.binary = "test"
-    inst.qualityRef = "test"
-    inst.colTypes = [ "test", "test2"]
-    inst.tableRows = [ ["test", "test2"], ["otherTest"] ]
-
-    assert inst.tableRows[1][0] == "otherTest"
-
-@report
 def testKernelMassTrace():
     trace = pyopenms.MassTrace()
 
@@ -6485,36 +6482,6 @@ def test_BSpline2d():
 
 
 @report
-def testConsensusIDAlgorithmAverage():
-    algo = pyopenms.ConsensusIDAlgorithmAverage()
-    assert algo.apply
-
-@report
-def testConsensusIDAlgorithmBest():
-    algo = pyopenms.ConsensusIDAlgorithmBest()
-    assert algo.apply
-
-@report
-def testConsensusIDAlgorithmPEPIons():
-    algo = pyopenms.ConsensusIDAlgorithmPEPIons()
-    assert algo.apply
-
-@report
-def testConsensusIDAlgorithmPEPMatrix():
-    algo = pyopenms.ConsensusIDAlgorithmPEPMatrix()
-    assert algo.apply
-
-@report
-def testConsensusIDAlgorithmRanks():
-    algo = pyopenms.ConsensusIDAlgorithmRanks()
-    assert algo.apply
-
-@report
-def testConsensusIDAlgorithmWorst():
-    algo = pyopenms.ConsensusIDAlgorithmWorst()
-    assert algo.apply
-
-@report
 def testDigestionEnzymeProtein():
     f = pyopenms.EmpiricalFormula()
 
@@ -6531,6 +6498,8 @@ def testDigestionEnzymeProtein():
 def testMRMAssay():
     e = pyopenms.MRMAssay()
     assert e
+    assert "default 1 for reproducible results" in e.uisTransitions.__doc__
+    assert "-1 selects a time-based seed" in e.uisTransitions.__doc__
 
 @report
 def testMRMIonSeries():
@@ -6803,6 +6772,18 @@ def testNASequence():
     charge = 2
     oligo_mod.getMonoWeight(pyopenms.NASequence.NASFragmentType.WIon, charge)
     oligo_mod.getFormula(pyopenms.NASequence.NASFragmentType.WIon, charge)
+
+    # Regression for #6718: retain the modified terminal sugar after base loss;
+    # only phosphorothioate bonds inside the fragment contribute sulfur.
+    for sequence, expected in (
+        ("[dA][dA*]", "C15H18N5O7P1"),
+        ("[dA][Am]", "C16H20N5O8P1"),
+        ("[dA*][Am]", "C16H20N5O7P1S1"),
+    ):
+        fragment = pyopenms.NASequence.fromString(sequence)
+        formula = fragment.getFormula(pyopenms.NASequence.NASFragmentType.AminusB, 0)
+        assert formula.toString() == expected
+        assert fragment.getMonoWeight(pyopenms.NASequence.NASFragmentType.AminusB, 0) == formula.getMonoWeight()
 
     # Test __repr__ and __str__ methods
     # Test __repr__ method

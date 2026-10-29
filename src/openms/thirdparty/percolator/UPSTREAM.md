@@ -67,6 +67,24 @@ hand-editing sources and committing them, to keep sync self-healing.
   scores in [0, 1] past 1 switched the spline from the logit to the log
   transform. Seen with ProSE `-rescore`. Still present in upstream master as of
   2026-10-12.
+- `patches/04-cv-num-threads.patch` — gives the three OpenMP loops of
+  `CrossValidation` a `num_threads` clause, so they run on at most `numThreads_`
+  threads (OpenMS: `Percolator`'s `num_threads`) and never on more than OpenMP
+  allows (a TOPP tool's `-threads`). Upstream sets the count with
+  `omp_set_num_threads()` in its caller, which this tree does not include, so
+  `numThreads_` was stored but unused.
+- `patches/05-train-best-positive.patch` — with `trainBestPositive`
+  (OpenMS: `Percolator`'s `train_best_positive`, upstream `--train-best-positive`),
+  `Scores::generatePositiveTrainingSet` trains on the best-scoring target PSM of
+  each spectrum (file, scan). Upstream sorted `scores_` with `OrderScanLabel`
+  (file, scan, label) and `std::sort`, which is not stable, then kept the first
+  PSM of each spectrum: an arbitrary one, different between standard libraries,
+  and often one above the training FDR, which drops the spectrum from the
+  positives (OpenMS issue #10720). `OrderScanLabel` now also orders by score and
+  PSM id. The selection runs on a copy of the targets that pass the FDR:
+  `std::unique` on `scores_` overwrote the PSMs it dropped, and
+  `CrossValidation::mergeCpCnPairs` trains on that set again when
+  nested-xval-bins > 1. Still present in upstream master (3.09) as of 2026-10-26.
 
 ### Regenerating the patch
 

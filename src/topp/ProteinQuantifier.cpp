@@ -73,7 +73,7 @@ Quantification is based on the intensity values of the features in the input fil
 The peptide-to-protein step uses the (e.g. 3) most abundant proteotypic peptides per protein to compute the protein abundances. This is a general version of the "top 3 approach" (but only for relative quantification) described in:\n
 Silva <em>et al.</em>: Absolute quantification of proteins by LCMS<sup>E</sup>: a virtue of parallel MS acquisition (Mol. Cell. Proteomics, 2006, PMID: 16219938).
 
-Only features/feature groups with unambiguous peptide annotation are used for peptide quantification. It is possible to resolve ambiguities before applying ProteinQuantifier using one of several equivalent mechanisms in OpenMS: @ref TOPP_IDConflictResolver, @ref TOPP_ConsensusID (algorithm @p best), or @ref TOPP_FileFilter (option @p id:keep_best_score_id).
+Only features/feature groups with unambiguous peptide annotation are used for peptide quantification. It is possible to resolve ambiguities before applying ProteinQuantifier using one of two equivalent mechanisms in OpenMS: @ref TOPP_IDConflictResolver or @ref TOPP_FileFilter (option @p id:keep_best_score_id).
 
 Similarly, only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification <em>by default</em>. Peptide/protein IDs from multiple identification runs can be handled, but will not be differentiated (i.e. protein accessions for a peptide will be accumulated over all identification runs). See section "Optional input: Protein inference/grouping results" below for exceptions to this.
 
@@ -984,8 +984,8 @@ protected:
                         << " consensus feature(s) whose peptide identifications disagree on the "
                            "top sequence; they cannot be attributed to one peptide and are "
                            "excluded from quantification. Resolve the conflicts first "
-                           "(IDConflictResolver, ConsensusID with algorithm 'best', or FileFilter "
-                           "with id:keep_best_score_id)." << std::endl;
+                           "(IDConflictResolver or FileFilter with id:keep_best_score_id)."
+                        << std::endl;
       }
     }
 

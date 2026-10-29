@@ -336,7 +336,7 @@ namespace OpenMS
                                     parameters.shift_precursor_mz_shift, parameters.shift_product_mz_shift,
                                     parameters.product_mz_threshold, parameters.allowed_fragment_types,
                                     parameters.allowed_fragment_charges, parameters.enable_detection_specific_losses,
-                                    parameters.enable_detection_unspecific_losses);
+                                    parameters.enable_detection_unspecific_losses, -4, parameters.shuffle_seed);
     }
 
     /// Target+decoy library, or only the decoys when @p separate is set.
@@ -752,7 +752,7 @@ namespace OpenMS
                           parameters.shift_precursor_mz_shift, parameters.shift_product_mz_shift,
                           parameters.product_mz_threshold, parameters.allowed_fragment_types,
                           parameters.allowed_fragment_charges, parameters.enable_detection_specific_losses,
-                          parameters.enable_detection_unspecific_losses);
+                          parameters.enable_detection_unspecific_losses, -4, parameters.shuffle_seed);
 
     // MRMDecoy generates peptide/protein decoys, not small-molecule compound
     // decoys. Do not count TargetedExperiment::Compound entries in this ratio.
