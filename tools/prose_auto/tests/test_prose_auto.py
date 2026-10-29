@@ -155,24 +155,121 @@ def test_reconcile_conflict_and_params():
     assert "<ITEMLIST" in pp.to_ini_snippet(P)
 
 
-def test_jev_classify_and_cross_check():
+def test_schema_rules_and_decode():
+    from prose_auto import schema as S
+    hard = S.check({"label": "TMT6plex", "ms2_analyzer": "IT", "fragmentation": "CID", "acquisition": "DDA"})
+    assert [r["rule"] for r in hard] == ["isobaric_it_cid"]
+    assert not S.check({"label": "TMT6plex", "ms2_analyzer": "IT", "fragmentation": "CID", "acquisition": "DDA SPS-MS3"},
+                       kinds=("hard",))
+    assert S.check({"acquisition": "DIA (diaPASEF)", "instrument": "Orbitrap Exploris 480"})[0]["rule"] == "pasef_needs_tims"
+    assert S.check({"sample_type": "immunopeptidome", "enzyme": "Trypsin"})[0]["kind"] == "hard"
+    # a near-tie in one head is settled by the others: diaPASEF beats DIA on a timsTOF
+    a, changed = S.decode({
+        "acquisition": {"probabilities": {"DIA (diaPASEF)": 0.48, "DDA": 0.52}},
+        "instrument": {"probabilities": {"Orbitrap Exploris 480": 0.9, "timsTOF Pro": 0.1}},
+        "label": {"probabilities": {"TMT6plex": 0.55, "label free": 0.45}},
+        "ms2_analyzer": {"probabilities": {"IT": 0.9, "ORBITRAP": 0.1}},
+        "fragmentation": {"probabilities": {"CID": 0.9, "HCD": 0.1}}})
+    assert a["label"] == "label free" and "label" in changed      # TMT is impossible with ion-trap CID
+    assert a["acquisition"] == "DDA"
+    assert "CONSISTENCY RULES" in S.prompt_schema()
+
+
+def _fake_jev_answers(body):
+    qs = body["questions"]
+    if "organism" in qs and "supports" in qs["organism"]["criteria"]:
+        return {"answers": {"organism": {"choice": "contradicts", "probabilities": {"contradicts": 0.85}}},
+                "usage": {"cost_usd": 0.0004}}
+    ans = {k: {"noul": 0.1} for k in qs if ":" in k}
+    ans["var:Acetyl (Protein N-term)"] = {"noul": 0.9}
+    ans.update({
+        "organism": {"choice": "homo_sapiens", "probabilities": {"homo_sapiens": 0.9}},
+        "label": {"choice": "tmtpro_16_18plex", "probabilities": {"tmtpro_16_18plex": 0.8, "label_free": 0.2}},
+        "ms2_analyzer": {"choice": "orbitrap", "probabilities": {"orbitrap": 0.9}},
+        "fragmentation": {"choice": "hcd", "probabilities": {"hcd": 0.9}},
+        "enzyme": {"choice": "not_stated", "probabilities": {"not_stated": 0.7}},
+        "enrichment": {"choice": "phospho_sty", "probabilities": {"phospho_sty": 0.8}},
+        "fragment_tolerance": {"choice": "20_ppm", "probabilities": {"20_ppm": 0.9}}})
+    return {"answers": ans, "usage": {"cost_usd": 0.0012}}
+
+
+def test_jev_read_study_and_cross_check():
     from prose_auto import jev as J
 
-    def fake(body):
-        qs = body["questions"]
-        if "organism" in qs and "criteria" in qs["organism"] and "supports" not in qs["organism"]["criteria"]:
-            return {"answers": {
-                "organism": {"choice": "homo_sapiens", "probabilities": {"homo_sapiens": 0.9}},
-                "label": {"choice": "tmtpro_16_18plex", "probabilities": {"tmtpro_16_18plex": 0.8}},
-                "enzyme": {"choice": "not_stated", "probabilities": {"not_stated": 0.7}},
-                "instrument": {"choice": "made_up", "probabilities": {"made_up": 0.9}}}}
-        return {"answers": {"organism": {"choice": "contradicts", "probabilities": {"contradicts": 0.85}}}}
-
-    jev = J.Jev(key="x", transport=fake)
-    ev, _ = J.classify(jev, "HeLa, TMTpro 16plex", "user's description", user=True)
+    jev = J.Jev(key="x", transport=_fake_jev_answers)
+    ev, rep = J.read_study(jev, {"user's description": "HeLa, TMTpro 16plex, TiO2", "PRIDE data protocol": "20 ppm"},
+                           user=True)
     got = {e.parameter: e.value for e in ev}
-    assert got == {"organism": "Homo sapiens", "label": "TMTpro (16/18plex)"}
+    assert got["organism"] == "Homo sapiens" and got["label"] == "TMTpro (16/18plex)"
+    assert got["enrichment"] == "Phospho (STY)" and got["fragment_tolerance"] == {"value": 20.0, "unit": "ppm"}
+    assert "enzyme" not in got
+    assert any(e.parameter == "variable_mods" and "Acetyl (Protein N-term)" in e.value for e in ev)
+    assert any(e.parameter == "variable_mods" and "Phospho (S)" in e.value for e in ev)   # implied by the enrichment
     assert all(e.source == "llm" and e.confidence <= 0.7 for e in ev)
+    assert rep["sources"] == ["user's description", "PRIDE data protocol"]
     dec = reconcile([Evidence("organism", "Mus musculus", 0.9, "search", "t", "t")])
-    issues = J.cross_check(jev, "HeLa", dec)
+    issues = J.cross_check(jev, {"user's description": "HeLa"}, dec)
     assert issues and issues[0]["parameter"] == "organism" and issues[0]["severity"] == "high"
+    assert jev.calls == 2 and abs(jev.cost_usd - 0.0016) < 1e-9
+
+
+def test_llm_study_extraction_with_rules():
+    class Fake(L.Backend):
+        name = "fake"
+
+        def complete(self, prompt):
+            assert "CONSISTENCY RULES" in prompt and "[PRIDE sample protocol]" in prompt
+            return json.dumps({
+                "settings": [
+                    {"head": "label", "value": "TMT10/11plex", "quote": "TMT10plex", "source": "x", "confidence": 0.9},
+                    {"head": "ms2_analyzer", "value": "IT", "quote": "ion trap", "confidence": 0.8},
+                    {"head": "fragmentation", "value": "CID", "quote": "CID", "confidence": 0.8},
+                    {"head": "organism", "value": "Homo sapiens", "quote": "invented words", "confidence": 0.9},
+                    {"head": "precursor_tolerance", "value": {"value": 10, "unit": "ppm"}, "quote": "10 ppm"}],
+                "contradictions": [{"heads": ["label"], "issue": "abstract says label free",
+                                    "quotes": ["label-free"]}]})
+
+    texts = {"PRIDE description": "A label-free study.", "PRIDE sample protocol":
+             "Peptides were TMT10plex labelled, CID in the ion trap, 10 ppm precursor tolerance."}
+    ev, rejected, conflicts = L.extract_study(Fake(), texts)
+    got = {e.parameter: e.value for e in ev}
+    assert got["label"] == "TMT10/11plex" and got["precursor_tolerance"] == {"value": 10.0, "unit": "ppm"}
+    assert "organism" not in got and rejected[0]["why"] == "quote not found in the texts"
+    kinds = {c.get("rule") or c["kind"] for c in conflicts}
+    assert "isobaric_it_cid" in kinds and "text" in kinds
+
+
+def test_tune_loop_with_fake_prose(tmp_path):
+    from prose_auto import tune as T
+
+    calls = []
+
+    def fake(mzml, P, open_search=False):
+        calls.append(open_search)
+        if open_search:
+            return {"shifts": [(79.966, 400), (0.984, 50)]}
+        score = 1000
+        if "Phospho (S)" in (P.get("Search:modifications:variable") or []):
+            score += 300
+        if P.get("Search:enzyme") == "Trypsin/P":
+            score -= 5
+        return {"score": score, "psms": score, "ms2": 5000,
+                "precursor_error": {"valid": True, "recommended_ppm": 4.0},
+                "fragment_error": {"valid": True, "recommended_ppm": 12.0}}
+
+    fake.n = 0
+    P0 = {"Search:precursor:mass_tolerance_lower": 10.0, "Search:precursor:mass_tolerance_upper": 10.0,
+          "Search:precursor:mass_tolerance_unit": "ppm", "Search:fragment:mass_tolerance": 20.0,
+          "Search:fragment:mass_tolerance_unit": "ppm", "Search:modifications:variable": ["Oxidation (M)"],
+          "Search:enzyme": "Trypsin", "Search:calibration:enabled": "true"}
+    import prose_auto.tune as tm
+    tm.write_subset_mzml = lambda src, dst, n: 5000
+    res = T.tune("x.mzML", P0, fake, facts={"ms2_analyzer": "ORBITRAP"}, rounds=3, per_round=10,
+                 trace=str(tmp_path / "t.jsonl"), log=lambda *a: None)
+    assert res["final_score"] == 1300 and "Phospho (S)" in res["params"]["Search:modifications:variable"]
+    assert any(h["action"] == "add_phospho" and h["kept"] for h in res["history"])
+    assert (tmp_path / "t.jsonl").read_text().count("\n") == len(res["history"])
+    # ion-trap MS2: a ppm fragment window is never proposed (hard rule)
+    c = T.candidates({**P0, "Search:fragment:mass_tolerance": 0.5, "Search:fragment:mass_tolerance_unit": "Da"},
+                     {"fragment_error": {}}, [], {"ms2_analyzer": "IT"})
+    assert not any(k.endswith("fragment") for k, _, _ in c)
