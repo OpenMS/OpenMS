@@ -792,6 +792,7 @@ class OpenNuXL :
 {
   bool fast_scoring_ = true; // fast or all fragment adduct scoring mode
   set<char> can_xl_; ///< nucleotides that can form cross-links
+  set<char> standalone_; ///< nucleotides that only form adducts on their own (e.g., a cross-linker without nucleotide)
   Size named_adduct_count_ = 0; ///< localized cross-links written as a named modification
   Size mass_delta_adduct_count_ = 0; ///< localized cross-links written as an anonymous mass delta
 
@@ -955,7 +956,7 @@ protected:
     registerStringOption_("NuXL:standalone",
                         "<option>",
                         "",
-                        "Target nucleotides that only form precursor adducts on their own (e.g. 's' for a cross-linker without nucleotide). They are never combined with other nucleotides and are not restricted by NuXL:sequence. They need a NuXL:target_nucleotides entry, NuXL:modifications and NuXL:fragment_adducts, and must be listed in NuXL:can_cross_link.",
+                        "Target nucleotides that only form precursor adducts on their own (e.g. 's' for a cross-linker without nucleotide). They are never combined with other nucleotides and are not restricted by NuXL:sequence. They need a NuXL:target_nucleotides entry, NuXL:modifications and NuXL:fragment_adducts, and must be listed in NuXL:can_cross_link. Hits with only standalone nucleotides count as peptides, not cross-links (FDR and reports).",
                         false,
                         true);
 
@@ -3280,7 +3281,10 @@ protected:
 
       ph.setMetaValue("NuXL:NT",StringUtils::toStr(ah.cross_linked_nucleotide));  // the cross-linked nucleotide
       ph.setMetaValue("NuXL:NA_MASS_z0", na_mass_z0); // NA uncharged mass via empirical formula
-      ph.setMetaValue("NuXL:isXL", na_mass_z0 > 0); 
+      // an adduct of only standalone nucleotides (e.g., a cross-linker without nucleotide) modifies the peptide but is no nucleic acid cross-link
+      const std::string NA_nucleotides = NA.substr(0, NA.find_first_of("+-"));
+      const bool contains_NA = std::any_of(NA_nucleotides.begin(), NA_nucleotides.end(), [this](char c) { return !standalone_.contains(c); });
+      ph.setMetaValue("NuXL:isXL", na_mass_z0 > 0 && contains_NA); 
       ph.setMetaValue("NuXL:isPhospho", is_phospho); 
 
       ph.setMetaValue("NuXL:best_localization_score", ah.best_localization_score);
@@ -4801,6 +4805,7 @@ protected:
     }
     // convert string to set
     for (const auto& c : can_cross_link) { can_xl_.insert(c); } // sort and make unique
+    standalone_ = std::set<char>(standalone.begin(), standalone.end());
 
     std::string sequence_restriction = getStringOption_("NuXL:sequence");
 
@@ -4824,7 +4829,7 @@ protected:
             sequence_restriction, 
             cysteine_adduct, 
             max_nucleotide_length,
-            std::set<char>(standalone.begin(), standalone.end()));
+            standalone_);
     }
 
     if (!getFlag_("NuXL:only_xl"))
@@ -5948,7 +5953,8 @@ protected:
           for (auto & ph : pi.getHits())
           {
              const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
-             if (!is_XL) 
+             const bool has_adduct = static_cast<double>(ph.getMetaValue("NuXL:NA_MASS_z0", 0.0)) > 0; // e.g. standalone adducts: not cross-links, but scored with fragment adducts
+             if (!is_XL && !has_adduct) 
              { 
                for (const std::string mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
                {
