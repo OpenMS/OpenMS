@@ -122,6 +122,8 @@ def enzyme_norm(v):
     c = _clean(_nt(v))
     if not c:
         return None
+    if "chymotrypsin" in c:         # contains "trypsin": test it first
+        return "Chymotrypsin"
     if "trypsin" in c:
         return "Trypsin"            # Trypsin/P and Lys-C + trypsin count as trypsin
     for k in ("lys c", "lysc"):
