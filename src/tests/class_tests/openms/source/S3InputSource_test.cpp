@@ -50,7 +50,7 @@ END_SECTION
 // Reading from S3 needs a server. Set OPENMS_TEST_S3_URI to the S3 URI of a copy of MzMLFile_1.mzML, e.g.
 // s3://bucket/MzMLFile_1.mzML?endpoint_override=localhost:9000&scheme=http for a local S3-compatible server (with its
 // credentials in AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY), to compare what is read from S3 with the local file.
-START_SECTION((xercesc::BinInputStream* makeStream() const))
+START_SECTION((std::unique_ptr<InputStream> makeStream() const))
 {
   const char* uri = std::getenv("OPENMS_TEST_S3_URI");
   if (uri == nullptr || !S3InputSource::isAvailable())

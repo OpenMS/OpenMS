@@ -975,17 +975,14 @@ START_SECTION([EXTRA] load xsd:integer types)
 }
 END_SECTION
 
-// Test loading from HTTP URL (uses raw GitHub URL for a minimal mzML file)
-// Disabled by default: requires network access and Xerces compiled with network support
-// To enable, uncomment the test body.
+// HTTP, HTTPS and FTP URLs are not read by the libxml2 reader yet: a clear error, without network access
 START_SECTION([EXTRA] load from HTTP URL)
 {
-  // Uncomment to test HTTP loading (requires network access):
-  // MzMLFile file;
-  // PeakMap exp;
-  // file.load("https://raw.githubusercontent.com/OpenMS/OpenMS/develop/src/tests/class_tests/openms/data/MzMLFile_2_minimal.mzML", exp);
-  // TEST_EQUAL(exp.size(), 0)  // minimal file has no spectra/chromatograms, just metadata
-  NOT_TESTABLE
+  MzMLFile file;
+  PeakMap exp;
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load("https://example.org/run.mzML", exp),
+    "IllegalArgument: Cannot read 'https://example.org/run.mzML': XML input from HTTP, HTTPS or FTP URLs is not supported."
+    " in: https://example.org/run.mzML")
 }
 END_SECTION
 

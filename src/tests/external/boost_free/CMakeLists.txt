@@ -22,7 +22,7 @@ endforeach()
 
 # Nothing but OpenMS' own usage requirements reaches these translation units, so
 # an installed header that pulls in any private dependency (Boost, but equally
-# Arrow, Xerces or SQLite) fails to compile here.
+# Arrow, libxml2 or SQLite) fails to compile here.
 add_library(public_headers OBJECT)
 target_link_libraries(public_headers PRIVATE OpenMS::OpenMS)
 target_include_directories(public_headers BEFORE PRIVATE "${_poison}")
