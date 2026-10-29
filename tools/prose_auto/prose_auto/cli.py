@@ -19,12 +19,14 @@ import time
 from . import detect_chemistry as chem
 from . import detect_instrument as inst
 from . import detect_tolerance as tol
+from . import external as ext
 from . import llm as L
 from . import prose_params as pp
 from . import repository as repo
 from . import tagsearch as ts
 from . import text_extract as tx
 from .hypotheses import HypothesisTester
+from .evidence import Evidence
 from .reconcile import reconcile
 from .spectra import load_mzml
 
@@ -50,20 +52,40 @@ def analyze(a, log=print):
     t0 = time.time()
     timings = {}
     ev = []
-    log(f"[1/7] reading {a.mzml}")
-    run = load_mzml(a.mzml, max_ms2=a.max_ms2)
+    os.makedirs(a.out, exist_ok=True)
+    base = os.path.join(a.out, os.path.splitext(os.path.basename(a.mzml.rstrip("/")))[0])
+    spectra_file = a.mzml          # the MS2 spectra the detectors and searches see
+    if a.mzml.rstrip("/").lower().endswith(".d"):
+        # Bruker diaPASEF: pseudo-MS/MS spectra first (pyopenms cannot read .d)
+        if not a.diaspextract:
+            raise SystemExit("a Bruker .d input needs --diaspextract")
+        log(f"[0/7] DIAspeXtract: {a.mzml} -> pseudo-MS/MS spectra")
+        spectra_file = ext.diaspextract(a.diaspextract, a.mzml, base + ".pseudo.mzML", a.threads, log=log)
+        ev.append(Evidence("acquisition", "DIA (diaPASEF)", 0.9, "metadata", "Bruker .d input",
+                           "a Bruker .d run converted to pseudo-spectra by DIAspeXtract"))
+        ev.append(Evidence("ion_mobility", True, 0.95, "metadata", "Bruker .d input", "timsTOF data"))
+    log(f"[1/7] reading {spectra_file}")
+    run = load_mzml(spectra_file, max_ms2=a.max_ms2)
     timings["read"] = round(time.time() - t0, 1)
 
     log("[2/7] instrument, fragmentation, acquisition mode")
-    ev += inst.detect_instrument(run) + inst.detect_acquisition(run)
+    ev += inst.detect_instrument(run)
+    if spectra_file == a.mzml:
+        ev += inst.detect_acquisition(run)
     acq = _first(ev, "acquisition").value
+    if str(acq).startswith("DIA") and a.diaspextract and spectra_file == a.mzml:
+        log("  DIA mzML: DIAspeXtract pseudo-MS/MS spectra for the DDA-style stages")
+        spectra_file = ext.diaspextract(a.diaspextract, a.mzml, base + ".pseudo.mzML", a.threads, log=log)
+        run = load_mzml(spectra_file, max_ms2=a.max_ms2)
+    pseudo = spectra_file != a.mzml
+    search_acq = "DDA" if pseudo else acq      # pseudo-spectra have one precursor each
     ms1a = (_first(ev, "ms1_analyzer").value if _first(ev, "ms1_analyzer") else "ORBITRAP")
     ms2a = (_first(ev, "ms2_analyzer").value if _first(ev, "ms2_analyzer") else "ORBITRAP")
     hr1, hr2 = ms1a not in LOW_RES, ms2a not in LOW_RES
 
     log("[3/7] mass accuracy from repeated ions and known ions")
     t = time.time()
-    ev += tol.detect_tolerances(run, acq, ms2_high_res=hr2, ms1_high_res=hr1)
+    ev += tol.detect_tolerances(run, search_acq, ms2_high_res=hr2, ms1_high_res=hr1)
     timings["tolerance"] = round(time.time() - t, 1)
 
     log("[4/7] labels, enrichment, Cys alkylation (diagnostic ions)")
@@ -75,7 +97,8 @@ def analyze(a, log=print):
     panel = ts.load_panel(a.panel) if a.panel else {}
     if a.fasta:
         panel = {**panel, os.path.splitext(os.path.basename(a.fasta))[0]: a.fasta}
-    if panel and not str(acq).startswith("DIA") and not a.no_search:
+    h = None
+    if panel and not str(search_acq).startswith("DIA") and not a.no_search:
         log(f"[5/7] mini-search on {min(a.spectra, len(run.ms2))} spectra against {len(panel)} database(s)")
         t = time.time()
         lab = _first([e for e in ev if e.parameter == "label" and e.source == "data"
@@ -99,8 +122,22 @@ def analyze(a, log=print):
                 ev += h.enzyme()
         timings["mini_search"] = round(time.time() - t, 1)
     else:
-        log("[5/7] mini-search skipped" + (" (DIA)" if str(acq).startswith("DIA") else
+        log("[5/7] mini-search skipped" + (" (DIA without --diaspextract)" if str(search_acq).startswith("DIA") else
                                            " (no --panel/--fasta)" if not panel else ""))
+    if a.fastag:
+        t = time.time()
+        ftol, funit = (20.0, "ppm") if hr2 else (0.3, "Da")
+        log("  FASTag: genus call from sequence tags")
+        try:
+            ev += ext.fastag_species(a.fastag, spectra_file, ftol, funit, threads=a.threads,
+                                     subsample=a.fastag_subsample, log=log)
+            db = (h.best_db[1] if h is not None and h.best_db else None) or a.fasta
+            if db:
+                log(f"  FASTag: mass-gap histogram against {os.path.basename(db)} without fixed modifications")
+                ev += ext.fastag_alkylation(a.fastag, spectra_file, db, ftol, funit, threads=a.threads, log=log)
+        except Exception as e:
+            log(f"  FASTag failed: {e}")
+        timings["fastag"] = round(time.time() - t, 1)
 
     log("[6/7] repository records and text")
     texts = {}
@@ -153,7 +190,7 @@ def analyze(a, log=print):
     timings["total"] = round(time.time() - t0, 1)
     return {
         "tool": "prose-auto 0.1 (prototype)",
-        "input": run.summary(),
+        "input": {**run.summary(), "given": a.mzml, "pseudo_spectra": spectra_file if pseudo else None},
         "decisions": {k: d.to_dict() for k, d in decisions.items()},
         "prose": prose,
         "prose_cli": pp.to_cli(prose["params"]),
@@ -263,6 +300,10 @@ def main(argv=None):
     an.add_argument("--llm-review", action="store_true", help="let the LLM review the final settings")
     an.add_argument("--prose", nargs="?", const="", help="confirm with a ProSE subset search (path or PATH)")
     an.add_argument("--open-search", action="store_true", help="with --prose: also run an open search")
+    an.add_argument("--fastag", help="FASTag executable: genus call and Cys alkylation from sequence tags")
+    an.add_argument("--fastag-subsample", type=float, default=0.0, help="fraction of spectra FASTag tags (0 = all)")
+    an.add_argument("--diaspextract", help="DIAspeXtract executable: pseudo-MS/MS spectra for DIA / .d input")
+    an.add_argument("--threads", type=int, default=0, help="threads for external tools (0 = their default)")
     an.add_argument("--spectra", type=int, default=2000, help="MS2 spectra for the mini-search")
     an.add_argument("--max-ms2", type=int, default=20000, help="MS2 spectra read for the detectors")
     an.add_argument("--no-search", action="store_true", help="skip the mini-search")

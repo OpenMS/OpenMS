@@ -35,6 +35,18 @@ The outputs, written per input to `out/`:
 `--json` prints the report JSON to stdout and the log to stderr, so prose-gui
 can run it as a sidecar.
 
+## External tools (optional)
+
+| Flag | Tool | What it adds |
+|---|---|---|
+| `--fastag <exe>` | [FASTag](https://github.com/okohlbacher/FASTag) | a database-free genus call (`-species`, reagent genera such as Bos/Sus are skipped when a real genus is close) and, with a FASTA, the Cys alkylation from the tag mass-gap histogram searched without fixed modifications (`-recon_fasta`, `-delta_out`) |
+| `--fastag-subsample <f>` | FASTag | analyse only a fraction of the MS2 spectra |
+| `--diaspextract <exe>` | [DIAspeXtract](https://github.com/okohlbacher/diaspextract) | converts a diaPASEF `.d` folder (required for `.d` input) or a DIA mzML into pseudo-MS/MS spectra, so the mini-search and FASTag also run on DIA data |
+| `--threads <n>` | both | threads for the external tools |
+
+FASTag needs high-resolution MS2 to be useful: on the ion-trap BSA example it
+places only a handful of tags, and its evidence stays below the mini-search.
+
 ## Pipeline
 
 | Step | Module | What it decides | Basis |
@@ -83,8 +95,9 @@ fake LLM covers the quote guard.
   databases with 6.6k to 870k peptides) the whole analysis takes about 20 s;
   a full human proteome panel needs ProSE's fragment index instead.
 * The mini-search has no variable modifications and covers DDA only (DIA
-  spectra have no single precursor). DIA tolerances come from window repeats
-  and MS1 precision only.
+  spectra have no single precursor) unless `--diaspextract` converts the DIA
+  run to pseudo-spectra first. Without it, DIA tolerances come from window
+  repeats and MS1 precision only.
 * The diagnostic-ion Cys test is weak by design; the alkylation competition
   in the mini-search is the real test.
 * Real-data validation so far covers only the small OpenMS test files: this
