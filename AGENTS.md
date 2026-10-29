@@ -81,7 +81,7 @@ OpenMS/
 - Style checks: formatting is `.clang-format`. Static analysis runs in CI (the `cppcheck-test` workflow), not from the build system.
 
 **Required dependencies:**
-- XercesC, Boost 1.81+ (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), HiGHS (LP solver; default `-DLP_SOLVER=HIGHS`, fetched automatically if not found; COIN-OR/GLPK via `-DLP_SOLVER=COIN/GLPK` are deprecated), ZLIB, BZip2, zstd, libcurl
+- libxml2 2.13+, Boost 1.81+ (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), HiGHS (LP solver; default `-DLP_SOLVER=HIGHS`, fetched automatically if not found; COIN-OR/GLPK via `-DLP_SOLVER=COIN/GLPK` are deprecated), ZLIB, BZip2, zstd, libcurl
 - Qt6 (6.1.0+) — required for GUI (`openms_gui`); optional for TOPP tools, core library (`libOpenMS`), and pyOpenMS builds
 
 **Optional:** HDF5 (`-DWITH_HDF5=ON`); Bruker TimsTOF `.d` directory support via opentims (`-DWITH_OPENTIMS=ON`, default on; set `-DENABLE_OPENTIMS_TESTS=ON` to also fetch and run integration tests); Thermo RAW file reading via openms-thermo-bridge (`-DWITH_THERMO_RAW=ON`, default on except on Linux/aarch64; requires .NET 8+ runtime at run time; set `-DENABLE_THERMO_RAW_TESTS=ON` to download test data and run integration tests)

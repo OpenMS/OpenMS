@@ -824,17 +824,55 @@ namespace
   struct SyntheticFrame
   {
     uint32_t id = 1;
-    int msms_type = 0;      // 0: MS1, 9: DIA-PASEF
+    int msms_type = 0;      // 0: MS1, 8: DDA-PASEF, 9: DIA-PASEF
     char polarity = '+';
     uint32_t num_peaks = 0; // the reader decodes only frames with peaks
   };
 
+  // A peak of a frame of makeSyntheticTdf() that has valid frame data
+  struct SyntheticPeak
+  {
+    uint32_t scan;
+    uint32_t tof;
+    uint32_t intensity;
+  };
+
+  // The frame data of TimsCompressionType 2 for @p peaks (ordered by scan and TOF index), as opentims decodes it:
+  // num_scans + 2 * peaks little-endian uint32 values, byte-shuffled and compressed with zstd. Value s + 1 is twice
+  // the number of peaks of scan s (the last scan has the rest), then the peaks follow scan by scan as (TOF index
+  // increment, intensity), the first increment of a scan counted from -1.
+  std::string syntheticFrameData(uint32_t num_scans, const std::vector<SyntheticPeak>& peaks)
+  {
+    std::vector<uint32_t> values(num_scans, 0);
+    for (const SyntheticPeak& peak : peaks)
+    {
+      if (peak.scan + 1 < num_scans) values[peak.scan + 1] += 2;
+    }
+    for (size_t i = 0; i < peaks.size(); ++i)
+    {
+      const bool first_of_scan = i == 0 || peaks[i].scan != peaks[i - 1].scan;
+      values.push_back(first_of_scan ? peaks[i].tof + 1 : peaks[i].tof - peaks[i - 1].tof);
+      values.push_back(peaks[i].intensity);
+    }
+    std::string bytes;
+    for (const uint32_t value : values)
+    {
+      for (int shift = 0; shift < 32; shift += 8) bytes += char((value >> shift) & 0xFF);
+    }
+    std::string shuffled, compressed;
+    ZstdCompression::byteShuffle(bytes.data(), bytes.size(), 4, shuffled);
+    ZstdCompression::compressData(shuffled.data(), shuffled.size(), compressed);
+    return compressed;
+  }
+
   // A .d directory @p d with the tables and keys opentims and the reader need (no calibration tables: m/z and 1/K0
   // come from the linear models). In analysis.tdf_bin the frames follow each other as the acquisition software writes
   // them: a header of two little-endian uint32 (the size of the frame in bytes, header included, and the number of
-  // scans), for a frame with peaks followed by 16 bytes that are not zstd data. No frame data is valid, so these runs
-  // only give spectra without peaks.
-  std::string makeSyntheticTdf(const std::string& d, const std::vector<SyntheticFrame>& frames)
+  // scans), for a frame with peaks followed by its data. A frame with @p peaks gets valid data (and their number as
+  // its number of peaks); the data of any other frame with peaks is 16 bytes that are not zstd data, so it can only
+  // give a spectrum without peaks.
+  std::string makeSyntheticTdf(const std::string& d, const std::vector<SyntheticFrame>& frames,
+                               const std::map<uint32_t, std::vector<SyntheticPeak>>& peaks = {})
   {
     const uint32_t num_scans = 1000; // as real frames (about 900 to 1000)
     File::makeDir(d);
@@ -849,16 +887,21 @@ namespace
     uint32_t offset = 0;
     for (const SyntheticFrame& frame : frames)
     {
-      const uint32_t size = frame.num_peaks > 0 ? 24 : 8;
+      const auto frame_peaks = peaks.find(frame.id);
+      const uint32_t num_peaks = frame_peaks != peaks.end() ? static_cast<uint32_t>(frame_peaks->second.size()) : frame.num_peaks;
+      std::string data;
+      if (frame_peaks != peaks.end()) data = syntheticFrameData(num_scans, frame_peaks->second);
+      else if (num_peaks > 0) data = "not zstd data...";
+      const uint32_t size = 8 + static_cast<uint32_t>(data.size());
       for (const uint32_t value : {size, num_scans})
       {
         const char bytes[4] = {char(value & 0xFF), char((value >> 8) & 0xFF), char((value >> 16) & 0xFF), char(value >> 24)};
         bin.write(bytes, 4);
       }
-      if (frame.num_peaks > 0) bin << "not zstd data...";
+      bin << data;
       conn.executeStatement("INSERT INTO Frames VALUES (" + std::to_string(frame.id) + ", " + std::to_string(frame.id) + ".0, '"
                             + std::string(1, frame.polarity) + "', " + std::to_string(frame.msms_type) + ", "
-                            + std::to_string(offset) + ", " + std::to_string(num_scans) + ", " + std::to_string(frame.num_peaks)
+                            + std::to_string(offset) + ", " + std::to_string(num_scans) + ", " + std::to_string(num_peaks)
                             + ", 100.0);");
       offset += size;
     }
@@ -1855,6 +1898,183 @@ START_SECTION([EXTRA] synchro-PASEF runs are read with a warning that they are n
 }
 END_SECTION
 
+START_SECTION([EXTRA] PASEF windows without a precursor are read as one MS2 spectrum each)
+{
+  // Acquisitions of a fixed target list (SIMSEF, iprm-PASEF) never fill the Precursors table: the Precursor of their
+  // PasefFrameMsMsInfo rows is NULL. The reader joined the two tables, so it returned no MS2 spectrum for them, and
+  // did not warn either (#10682). This run is like a SIMSEF spot: one PASEF frame with two target windows (scans
+  // [100, 201) and [400, 501)), and a peak outside of both.
+  TempDir tmp;
+  const std::string d = makeSyntheticTdf(tmp.getPath() + "/simsef.d", {{1, 8, '+', 0}},
+    {{1, {{120, 10000, 50}, {150, 20000, 100}, {180, 30000, 70}, {450, 40000, 80}, {700, 50000, 60}}}});
+  const auto addTables = [](const std::string& run, const std::string& rows)
+  {
+    SqliteConnector conn(run + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE);
+    conn.executeStatement("CREATE TABLE Precursors (Id INTEGER PRIMARY KEY, LargestPeakMz REAL, AverageMz REAL, "
+                          "MonoisotopicMz REAL, Charge INTEGER, ScanNumber REAL, Intensity REAL, Parent INTEGER);");
+    conn.executeStatement("CREATE TABLE PasefFrameMsMsInfo (Frame INTEGER NOT NULL, ScanNumBegin INTEGER NOT NULL, "
+                          "ScanNumEnd INTEGER NOT NULL, IsolationMz REAL NOT NULL, IsolationWidth REAL NOT NULL, "
+                          "CollisionEnergy REAL NOT NULL, Precursor INTEGER, PRIMARY KEY(Frame, ScanNumBegin)) WITHOUT ROWID;");
+    if (!rows.empty()) conn.executeStatement("INSERT INTO PasefFrameMsMsInfo VALUES " + rows + ";");
+  };
+  addTables(d, "(1, 400, 501, 600.5, 3.0, 35.0, NULL), (1, 100, 201, 500.25, 2.0, 30.0, NULL)");
+
+  // the peaks of the frame (by TOF index, so by m/z): m/z and 1/K0 of each
+  BrukerTimsFile f;
+  BrukerTimsFile::Config frame_mode;
+  frame_mode.export_mode = BrukerTimsFile::Config::FRAME;
+  MSExperiment frames;
+  f.load(d, frames, frame_mode);
+  TEST_EQUAL(frames.size(), 1)
+  ABORT_IF(frames.size() != 1)
+  const MSSpectrum& frame = frames[0];
+  TEST_EQUAL(frame.size(), 5)
+  ABORT_IF(frame.size() != 5 || !frame.containsIMData())
+  const auto& frame_im = frame.getFloatDataArrays()[frame.getIMData().first];
+
+  MSExperiment exp;
+  const std::string warnings = warningsOf([&] { f.load(d, exp); });
+  TEST_EQUAL(hasText(warnings, "no DDA-PASEF precursors"), false)
+  TEST_EQUAL(exp.size(), 2)
+  ABORT_IF(exp.size() != 2)
+  std::map<std::string, const MSSpectrum*> by_id;
+  for (const MSSpectrum& spec : exp) by_id[spec.getNativeID()] = &spec;
+  TEST_EQUAL(by_id.count("frame=1 scan=100"), 1)
+  TEST_EQUAL(by_id.count("frame=1 scan=400"), 1)
+  ABORT_IF(by_id.count("frame=1 scan=100") != 1 || by_id.count("frame=1 scan=400") != 1)
+
+  // the precursor is the target: its isolation window, charge 0, its collision energy, the 1/K0 of the middle scan of
+  // the window (150 and 450, where the second and the fourth peak are); the peaks are those of the scans of the window
+  const auto check = [&](const MSSpectrum& spec, double mz, double half_width, double collision_energy, size_t middle_peak,
+                          const std::vector<size_t>& peaks)
+  {
+    TEST_EQUAL(spec.getMSLevel(), 2)
+    TEST_EQUAL(spec.metaValueExists("bruker_precursor_id"), false)
+    TEST_EQUAL(spec.getPrecursors().size(), 1)
+    if (spec.getPrecursors().size() != 1) return;
+    const Precursor& precursor = spec.getPrecursors()[0];
+    TEST_REAL_SIMILAR(precursor.getMZ(), mz)
+    TEST_REAL_SIMILAR(precursor.getIsolationWindowLowerOffset(), half_width)
+    TEST_REAL_SIMILAR(precursor.getIsolationWindowUpperOffset(), half_width)
+    TEST_EQUAL(precursor.getCharge(), 0)
+    TEST_REAL_SIMILAR(double(precursor.getMetaValue("collision energy")), collision_energy)
+    TEST_REAL_SIMILAR(spec.getDriftTime(), frame_im[middle_peak])
+    TEST_REAL_SIMILAR(precursor.getDriftTime(), frame_im[middle_peak])
+    TEST_EQUAL(spec.size(), peaks.size())
+    if (spec.size() != peaks.size()) return;
+    for (size_t i = 0; i < peaks.size(); ++i)
+    {
+      TEST_REAL_SIMILAR(spec[i].getMZ(), frame[peaks[i]].getMZ())
+      TEST_REAL_SIMILAR(spec[i].getIntensity(), frame[peaks[i]].getIntensity())
+    }
+  };
+  check(*by_id["frame=1 scan=100"], 500.25, 1.0, 30.0, 1, {0, 1, 2});
+  check(*by_id["frame=1 scan=400"], 600.5, 1.5, 35.0, 3, {3});
+
+  // written as it is read: the same spectra
+  MSDataStoringConsumer streamed;
+  f.transform(d, &streamed);
+  TEST_EQUAL(streamed.getData().size(), 2)
+
+  // the ion mobility range selects the windows by the ion mobility of their spectra (here that of the second window,
+  // 300 scans of 0.001 1/K0 away from that of the first)
+  BrukerTimsFile::Config im_range;
+  im_range.im_min = frame_im[3] - 0.001;
+  im_range.im_max = frame_im[3] + 0.001;
+  f.load(d, exp, im_range);
+  TEST_EQUAL(exp.size(), 1)
+  ABORT_IF(exp.size() != 1)
+  TEST_STRING_EQUAL(exp[0].getNativeID(), "frame=1 scan=400")
+
+  // a run with PASEF frames but without any window gives no MS2 spectrum, and says so
+  const std::string empty = makeSyntheticTdf(tmp.getPath() + "/empty.d", {{1, 8, '+', 0}}, {{1, {{150, 20000, 100}}}});
+  addTables(empty, "");
+  TEST_EQUAL(hasText(warningsOf([&] { f.load(empty, exp); }), "no DDA-PASEF precursors or isolation windows"), true)
+  TEST_EQUAL(exp.size(), 0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] DDA-PASEF precursors have the collision energy and fragmentation mode of their frames)
+{
+  // two PASEF frames that both fragment precursor 1 at 30 eV and precursor 2 at 35 and 37 eV
+  TempDir tmp;
+  const std::string d = makeSyntheticTdf(tmp.getPath() + "/activation.d", {{1, 8, '+', 0}, {2, 8, '+', 0}},
+    {{1, {{150, 20000, 100}, {450, 40000, 80}}}, {2, {{150, 20000, 100}, {450, 40000, 80}}}});
+  const auto execute = [&d](const std::vector<std::string>& statements)
+  {
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE);
+    for (const std::string& statement : statements) conn.executeStatement(statement);
+  };
+  execute({"CREATE TABLE Precursors (Id INTEGER PRIMARY KEY, LargestPeakMz REAL, AverageMz REAL, MonoisotopicMz REAL, "
+           "Charge INTEGER, ScanNumber REAL, Intensity REAL, Parent INTEGER);",
+           "INSERT INTO Precursors VALUES (1, 500.25, 500.3, 500.25, 2, 150.0, 1000.0, NULL), "
+           "(2, 600.5, 600.6, 600.5, 2, 450.0, 1000.0, NULL);",
+           "CREATE TABLE PasefFrameMsMsInfo (Frame INTEGER NOT NULL, ScanNumBegin INTEGER NOT NULL, ScanNumEnd INTEGER NOT NULL, "
+           "IsolationMz REAL NOT NULL, IsolationWidth REAL NOT NULL, CollisionEnergy REAL NOT NULL, Precursor INTEGER, "
+           "PRIMARY KEY(Frame, ScanNumBegin)) WITHOUT ROWID;",
+           "INSERT INTO PasefFrameMsMsInfo VALUES (1, 100, 201, 500.25, 2.0, 30.0, 1), (2, 100, 201, 500.25, 2.0, 30.0, 1), "
+           "(1, 400, 501, 600.5, 3.0, 35.0, 2), (2, 400, 501, 600.5, 3.0, 37.0, 2);"});
+
+  BrukerTimsFile f;
+  // the precursor of the spectrum of each precursor id
+  const auto precursors = [&]
+  {
+    MSExperiment exp;
+    f.load(d, exp);
+    std::map<int, Precursor> result;
+    for (const MSSpectrum& spec : exp)
+    {
+      if (spec.metaValueExists("bruker_precursor_id") && spec.getPrecursors().size() == 1)
+        result[int(spec.getMetaValue("bruker_precursor_id"))] = spec.getPrecursors()[0];
+    }
+    return result;
+  };
+  std::map<int, Precursor> prec = precursors();
+  TEST_EQUAL(prec.size(), 2)
+  ABORT_IF(prec.size() != 2)
+  // the collision energy is that of the rows of the precursor, and none if they differ
+  TEST_REAL_SIMILAR(double(prec.at(1).getMetaValue("collision energy")), 30.0)
+  TEST_EQUAL(prec.at(2).metaValueExists("collision energy"), false)
+  // no fragmentation mode without the property
+  TEST_EQUAL(prec.at(1).getActivationMethods().empty(), true)
+
+  const std::set<Precursor::ActivationMethod> etd{Precursor::ActivationMethod::ETD};
+  const std::set<Precursor::ActivationMethod> cid{Precursor::ActivationMethod::CID};
+  // MSMSAuto_FragmentationMode (1: ETD) of the property group of the frames; group 2, which no frame has, does not count
+  execute({"ALTER TABLE Frames ADD COLUMN PropertyGroup INTEGER;", "UPDATE Frames SET PropertyGroup = 1;",
+           "CREATE TABLE PropertyDefinitions (Id INTEGER PRIMARY KEY, PermanentName TEXT);",
+           "INSERT INTO PropertyDefinitions VALUES (7, 'MSMSAuto_FragmentationMode');",
+           "CREATE TABLE GroupProperties (PropertyGroup INTEGER, Property INTEGER, Value);",
+           "INSERT INTO GroupProperties VALUES (1, 7, 1), (2, 7, 0);"});
+  prec = precursors();
+  TEST_EQUAL(prec.size(), 2)
+  TEST_EQUAL(prec.at(1).getActivationMethods() == etd, true)
+  TEST_EQUAL(prec.at(2).getActivationMethods() == etd, true)
+
+  // a value of the frame itself (0: CID) comes first
+  execute({"CREATE TABLE FrameProperties (Frame INTEGER, Property INTEGER, Value);",
+           "INSERT INTO FrameProperties VALUES (1, 7, 0), (2, 7, 0);"});
+  prec = precursors();
+  TEST_EQUAL(prec.size(), 2)
+  TEST_EQUAL(prec.at(1).getActivationMethods() == cid, true)
+  TEST_EQUAL(prec.at(2).getActivationMethods() == cid, true)
+
+  // none if the frames differ: frame 1 has CID, frame 2 the ETD of its group
+  execute({"DELETE FROM FrameProperties WHERE Frame = 2;"});
+  prec = precursors();
+  TEST_EQUAL(prec.size(), 2)
+  TEST_EQUAL(prec.at(1).getActivationMethods().empty(), true)
+  TEST_EQUAL(prec.at(2).getActivationMethods().empty(), true)
+
+  // none if a frame has no value: frame 1 has the ETD of group 1, frame 2 is in group 3, which has no value
+  execute({"DELETE FROM FrameProperties;", "UPDATE Frames SET PropertyGroup = 3 WHERE Id = 2;"});
+  prec = precursors();
+  TEST_EQUAL(prec.size(), 2)
+  TEST_EQUAL(prec.at(1).getActivationMethods().empty(), true)
+  TEST_EQUAL(prec.at(2).getActivationMethods().empty(), true)
+}
+END_SECTION
+
 START_SECTION([EXTRA] spectra have the polarity of their frames)
 {
   // Frames.Polarity ('+' or '-') was not read, so the polarity of every spectrum was unknown (also in mzML).
@@ -2610,6 +2830,30 @@ START_SECTION(DDA loading integration test)
       break;
     }
   }
+
+  // Activation: no precursor of this run has PasefFrameMsMsInfo rows with different collision energies, so every MS2
+  // precursor has one (the run's energies are 20.6 to 54.7 eV). The run does not record MSMSAuto_FragmentationMode
+  // (only MSMSManual_ListFragmentationMode), so there is no activation method.
+  Size ms2_count = 0, with_ce = 0, ce_in_range = 0, with_activation = 0;
+  for (const auto& spec : exp)
+  {
+    if (spec.getMSLevel() != 2 || spec.getPrecursors().size() != 1) continue;
+    const Precursor& p = spec.getPrecursors()[0];
+    ++ms2_count;
+    if (p.metaValueExists("collision energy"))
+    {
+      ++with_ce;
+      const double ce = p.getMetaValue("collision energy");
+      if (ce >= 20.0 && ce <= 55.0) ++ce_in_range;
+    }
+    if (!p.getActivationMethods().empty()) ++with_activation;
+  }
+  TEST_NOT_EQUAL(ms2_count, 0)
+  TEST_EQUAL(with_ce, ms2_count)
+  TEST_EQUAL(ce_in_range, ms2_count)
+  TEST_EQUAL(with_activation, 0)
+  STATUS(with_ce << " / " << with_activation << " of " << ms2_count
+         << " MS2 precursors have a collision energy / an activation method")
 
   // Verify source file metadata was populated (I4)
   TEST_NOT_EQUAL(exp.getSourceFiles().size(), 0);

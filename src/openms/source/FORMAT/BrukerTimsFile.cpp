@@ -1448,10 +1448,11 @@ namespace OpenMS
       return mapping;
     }
 
-    // DDA precursor info (joined from Precursors + PasefFrameMsMsInfo)
+    // DDA precursor info (joined from Precursors + PasefFrameMsMsInfo), or a PASEF window without a precursor
     struct DDAPrecursorInfo
     {
-      int precursor_id;
+      int precursor_id;       // Precursors.Id, or for a window without a precursor a negative id of its own
+      bool has_precursor = true; // false: a PasefFrameMsMsInfo row whose Precursor is NULL (see readDDAPrecursors())
       double monoisotopic_mz; // NaN if the acquisition software determined none (NULL), see selectedMZ()
       double largest_peak_mz; // m/z of the most intense peak of the precursor's isotope pattern (NaN if NULL)
       double scan_number;     // precursor position on the mobility axis, a fractional scan number (NaN if NULL)
@@ -1463,60 +1464,129 @@ namespace OpenMS
       uint32_t scan_end;
       double isolation_mz;
       double isolation_width;
+      double collision_energy; // eV, as stored (negative in negative mode)
 
       /// The selected ion m/z: the monoisotopic m/z, or for a precursor without one (its charge state could not be
       /// determined, so Charge is NULL as well) the m/z of its most intense peak, as Bruker's own and other readers
-      /// (timsrust, alphatims) report it. 0 if neither is known.
+      /// (timsrust, alphatims) report it. 0 if neither is known. A window without a precursor has only its
+      /// isolation m/z, the target of the acquisition list. (For a precursor, the isolation m/z is the centre of
+      /// the quadrupole window, up to a few isotopes above the monoisotopic m/z, and is not used.)
       double selectedMZ() const
       {
+        if (!has_precursor) return isolation_mz;
         if (std::isfinite(monoisotopic_mz) && monoisotopic_mz > 0.0) return monoisotopic_mz;
         if (std::isfinite(largest_peak_mz) && largest_peak_mz > 0.0) return largest_peak_mz;
         return 0.0;
       }
     };
 
-    // Whether analysis.tdf has the DDA-PASEF precursor tables. TDF data without PASEF precursors, such as
-    // MS1-only MALDI runs, has neither of them.
-    bool hasDDAPrecursorTables(SQLite::Database& db)
+    // The fragmentation mode of the run's PASEF MS/MS frames, if they record it: the property
+    // MSMSAuto_FragmentationMode, whose values are "0:CID;1:ETD" (PropertyDefinitions.DisplayValueText). A frame has
+    // the value of its FrameProperties, else that of its property group.
+    // None if a frame has no value or the frames have more than one value.
+    std::optional<Precursor::ActivationMethod> readFragmentationMode(SQLite::Database& db)
     {
-      return db.tableExists("Precursors") && db.tableExists("PasefFrameMsMsInfo");
+      if (!db.tableExists("PasefFrameMsMsInfo") || !db.tableExists("PropertyDefinitions") || !db.tableExists("GroupProperties"))
+      {
+        return std::nullopt;
+      }
+      const std::string property = "(SELECT Id FROM PropertyDefinitions WHERE PermanentName = 'MSMSAuto_FragmentationMode')";
+      const bool frame_properties = db.tableExists("FrameProperties");
+      std::string sql = std::string("SELECT DISTINCT ") + (frame_properties ? "COALESCE(fp.Value, gp.Value)" : "gp.Value")
+                        + " FROM (SELECT DISTINCT Frame FROM PasefFrameMsMsInfo) pasef"
+                        " JOIN Frames f ON f.Id = pasef.Frame"
+                        " LEFT JOIN GroupProperties gp ON gp.PropertyGroup = f.PropertyGroup AND gp.Property = " + property;
+      if (frame_properties) sql += " LEFT JOIN FrameProperties fp ON fp.Frame = f.Id AND fp.Property = " + property;
+      SQLite::Statement q(db, sql);
+      std::optional<Precursor::ActivationMethod> mode;
+      while (q.executeStep())
+      {
+        if (mode || !q.getColumn(0).isInteger()) return std::nullopt;
+        switch (q.getColumn(0).getInt())
+        {
+          case 0: mode = Precursor::ActivationMethod::CID; break;
+          case 1: mode = Precursor::ActivationMethod::ETD; break;
+          default: return std::nullopt;
+        }
+      }
+      return mode;
     }
 
-    // Read DDA precursors from SQL (none if there are no precursor tables)
+    // Read the DDA precursors and the PASEF windows without a precursor from SQL. TDF data without PASEF MS/MS
+    // frames, such as MS1-only MALDI runs, has no PasefFrameMsMsInfo table and gives none.
+    //
+    // Acquisitions of a fixed target list (SIMSEF, iprm-PASEF) leave the Precursors table empty: the Precursor of
+    // their PasefFrameMsMsInfo rows is NULL. Each such row is a window of its own and becomes one MS2 spectrum: it
+    // gets a negative precursor_id (-n, ..., -1 in the order of frame and scan), which no precursor has.
     std::vector<DDAPrecursorInfo> readDDAPrecursors(SQLite::Database& db)
     {
       std::vector<DDAPrecursorInfo> precursors;
-      if (!hasDDAPrecursorTables(db)) return precursors;
+      if (!db.tableExists("PasefFrameMsMsInfo")) return precursors;
 
-      SQLite::Statement q(db,
-        "SELECT p.Id, p.MonoisotopicMz, p.Charge, p.Intensity, "
-        "       pfm.Frame, pfm.ScanNumBegin, pfm.ScanNumEnd, "
-        "       pfm.IsolationMz, pfm.IsolationWidth, "
-        "       p.LargestPeakMz, p.ScanNumber, p.Parent "
-        "FROM Precursors p "
-        "JOIN PasefFrameMsMsInfo pfm ON p.Id = pfm.Precursor "
-        "ORDER BY p.Id, pfm.Frame, pfm.ScanNumBegin");
+      if (db.tableExists("Precursors"))
+      {
+        SQLite::Statement q(db,
+          "SELECT p.Id, p.MonoisotopicMz, p.Charge, p.Intensity, "
+          "       pfm.Frame, pfm.ScanNumBegin, pfm.ScanNumEnd, "
+          "       pfm.IsolationMz, pfm.IsolationWidth, "
+          "       p.LargestPeakMz, p.ScanNumber, p.Parent, pfm.CollisionEnergy "
+          "FROM Precursors p "
+          "JOIN PasefFrameMsMsInfo pfm ON p.Id = pfm.Precursor "
+          "ORDER BY p.Id, pfm.Frame, pfm.ScanNumBegin");
 
-      while (q.executeStep())
+        while (q.executeStep())
+        {
+          DDAPrecursorInfo info;
+          info.precursor_id   = q.getColumn(0).getInt();
+          // NULL columns read as 0 with getDouble(), which would become a precursor m/z of 0
+          const auto nullable = [&q](int column) {
+            return q.getColumn(column).isNull() ? std::numeric_limits<double>::quiet_NaN() : q.getColumn(column).getDouble();
+          };
+          info.monoisotopic_mz = nullable(1);
+          info.charge          = q.getColumn(2).isNull() ? 0 : q.getColumn(2).getInt();
+          info.intensity       = q.getColumn(3).isNull() ? std::numeric_limits<double>::quiet_NaN() : q.getColumn(3).getDouble();
+          info.frame_id        = static_cast<uint32_t>(q.getColumn(4).getInt());
+          info.scan_begin      = static_cast<uint32_t>(q.getColumn(5).getInt());
+          info.scan_end        = static_cast<uint32_t>(q.getColumn(6).getInt());
+          info.isolation_mz    = q.getColumn(7).getDouble();
+          info.isolation_width = q.getColumn(8).getDouble();
+          info.largest_peak_mz = nullable(9);
+          info.scan_number     = nullable(10);
+          info.parent_frame    = q.getColumn(11).isNull() ? -1 : q.getColumn(11).getInt();
+          info.collision_energy = q.getColumn(12).getDouble();
+          precursors.push_back(info);
+        }
+      }
+
+      // The windows without a precursor: the precursor m/z is the isolation m/z (see selectedMZ()), the ion
+      // mobility that of the isolated scans (see loadDDA_()). Nothing else is known about the precursor.
+      SQLite::Statement targets(db,
+        "SELECT Frame, ScanNumBegin, ScanNumEnd, IsolationMz, IsolationWidth, CollisionEnergy "
+        "FROM PasefFrameMsMsInfo WHERE Precursor IS NULL "
+        "ORDER BY Frame, ScanNumBegin");
+      const size_t first_target = precursors.size();
+      while (targets.executeStep())
       {
         DDAPrecursorInfo info;
-        info.precursor_id   = q.getColumn(0).getInt();
-        // NULL columns read as 0 with getDouble(), which would become a precursor m/z of 0
-        const auto nullable = [&q](int column) {
-          return q.getColumn(column).isNull() ? std::numeric_limits<double>::quiet_NaN() : q.getColumn(column).getDouble();
-        };
-        info.monoisotopic_mz = nullable(1);
-        info.charge          = q.getColumn(2).isNull() ? 0 : q.getColumn(2).getInt();
-        info.intensity       = q.getColumn(3).isNull() ? std::numeric_limits<double>::quiet_NaN() : q.getColumn(3).getDouble();
-        info.frame_id        = static_cast<uint32_t>(q.getColumn(4).getInt());
-        info.scan_begin      = static_cast<uint32_t>(q.getColumn(5).getInt());
-        info.scan_end        = static_cast<uint32_t>(q.getColumn(6).getInt());
-        info.isolation_mz    = q.getColumn(7).getDouble();
-        info.isolation_width = q.getColumn(8).getDouble();
-        info.largest_peak_mz = nullable(9);
-        info.scan_number     = nullable(10);
-        info.parent_frame    = q.getColumn(11).isNull() ? -1 : q.getColumn(11).getInt();
+        info.has_precursor   = false;
+        info.monoisotopic_mz = std::numeric_limits<double>::quiet_NaN();
+        info.largest_peak_mz = std::numeric_limits<double>::quiet_NaN();
+        info.scan_number     = std::numeric_limits<double>::quiet_NaN();
+        info.parent_frame    = -1;
+        info.charge          = 0;
+        info.intensity       = std::numeric_limits<double>::quiet_NaN();
+        info.frame_id        = static_cast<uint32_t>(targets.getColumn(0).getInt());
+        info.scan_begin      = static_cast<uint32_t>(targets.getColumn(1).getInt());
+        info.scan_end        = static_cast<uint32_t>(targets.getColumn(2).getInt());
+        info.isolation_mz    = targets.getColumn(3).getDouble();
+        info.isolation_width = targets.getColumn(4).getDouble();
+        info.collision_energy = targets.getColumn(5).getDouble();
         precursors.push_back(info);
+      }
+      const int num_targets = static_cast<int>(precursors.size() - first_target);
+      for (int i = 0; i < num_targets; ++i)
+      {
+        precursors[first_target + i].precursor_id = i - num_targets;
       }
 
       return precursors;
@@ -1568,7 +1638,8 @@ namespace OpenMS
       try
       {
         SQLite::Statement q(db,
-          "SELECT COUNT(DISTINCT Precursor) FROM PasefFrameMsMsInfo"
+          // each window without a precursor (Precursor NULL) is a spectrum of its own, see readDDAPrecursors()
+          "SELECT COUNT(DISTINCT Precursor) + COUNT(*) - COUNT(Precursor) FROM PasefFrameMsMsInfo"
           " WHERE Frame >= " + std::to_string(config.frame_id_min) +
           " AND Frame <= " + std::to_string(config.frame_id_max));
         if (q.executeStep())
@@ -1589,7 +1660,10 @@ namespace OpenMS
         SQLite::Statement q(db,
           "SELECT COUNT(*) FROM (SELECT SUM(f.Time) / COUNT(*) AS rt FROM PasefFrameMsMsInfo pfm"
           " LEFT JOIN Frames f ON f.Id = pfm.Frame"
-          " WHERE pfm.Frame >= ? AND pfm.Frame <= ? GROUP BY pfm.Precursor)"
+          " WHERE pfm.Frame >= ? AND pfm.Frame <= ?"
+          // each window without a precursor (Precursor NULL) is a spectrum of its own, see readDDAPrecursors()
+          " GROUP BY pfm.Precursor, CASE WHEN pfm.Precursor IS NULL THEN pfm.Frame END,"
+          " CASE WHEN pfm.Precursor IS NULL THEN pfm.ScanNumBegin END)"
           " WHERE rt >= ? AND rt <= ?");
         q.bind(1, static_cast<int64_t>(config.frame_id_min));
         q.bind(2, static_cast<int64_t>(config.frame_id_max));
@@ -3704,14 +3778,17 @@ namespace OpenMS
     // downstream silently skip any orphans, but stripping them here keeps
     // progress counts and the precursor_groups loop honest.
     std::vector<DDAPrecursorInfo> precursor_entries;
+    std::optional<Precursor::ActivationMethod> fragmentation_mode;
     if (config.load_ms2)
     {
       precursor_entries = readDDAPrecursors(db);
-      // Without PASEF precursors, the MS1 frames are all there is to read as DDA data
-      if (ms2_frame_count > 0 && !hasDDAPrecursorTables(db))
+      fragmentation_mode = readFragmentationMode(db);
+      // Without PASEF precursors or windows, the MS1 frames are all there is to read as DDA data
+      if (ms2_frame_count > 0 && precursor_entries.empty())
       {
-        OPENMS_LOG_WARN << "Warning: the run has " << ms2_frame_count << " MS2 frame(s) but no DDA-PASEF precursors "
-                        << "(no Precursors / PasefFrameMsMsInfo table), so only its MS1 frames are read as DDA data. "
+        OPENMS_LOG_WARN << "Warning: the run has " << ms2_frame_count << " MS2 frame(s) but analysis.tdf lists no "
+                        << "DDA-PASEF precursors or isolation windows for them (table PasefFrameMsMsInfo), so only its "
+                        << "MS1 frames are read as DDA data. "
                         << "Export mode FRAME reads every frame." << std::endl;
       }
     }
@@ -3765,9 +3842,22 @@ namespace OpenMS
     // converted with the mobility calibration of its parent MS1 frame), as Bruker's software and other readers
     // (timsrust, alphatims) report it. A precursor without a position gets @p fragment_im, the intensity-weighted
     // mean ion mobility of its fragment peaks (which this reader reported for every precursor before).
-    const auto precursorIonMobility = [&handle](const DDAPrecursorInfo& e, double fragment_im)
+    // A window without a precursor gets the ion mobility of the middle of its isolated scans [scan_begin, scan_end):
+    // the mean of its few fragment peaks would scatter.
+    const auto hasOwnIonMobility = [](const DDAPrecursorInfo& e)
     {
-      if (!std::isfinite(e.scan_number) || e.scan_number < 0.0) return fragment_im;
+      return !e.has_precursor || (std::isfinite(e.scan_number) && e.scan_number >= 0.0);
+    };
+    const auto precursorIonMobility = [&handle, &hasOwnIonMobility](const DDAPrecursorInfo& e, double fragment_im)
+    {
+      if (!hasOwnIonMobility(e)) return fragment_im;
+      if (!e.has_precursor)
+      {
+        const double middle = e.scan_end > e.scan_begin ? (e.scan_begin + e.scan_end - 1) / 2.0 : e.scan_begin;
+        double im = 0.0;
+        handle.scan2inv_ion_mobility_converter->convert(e.frame_id, &im, &middle, 1);
+        return im;
+      }
       const uint32_t frame = (e.parent_frame > 0 && handle.has_frame(static_cast<uint32_t>(e.parent_frame)))
                                ? static_cast<uint32_t>(e.parent_frame) : e.frame_id;
       // the converter takes the fractional scan number directly (no interpolation between integer scans)
@@ -3799,7 +3889,7 @@ namespace OpenMS
         ++sel.entries;
         if (!handle.has_frame(e.frame_id)) continue;
         sel.rt_sum += handle.get_frame(e.frame_id).time;
-        if (select_im && std::isfinite(e.scan_number) && e.scan_number >= 0.0)
+        if (select_im && hasOwnIonMobility(e))
         {
           // the ion mobility the spectrum gets (the same for all entries of the precursor)
           const double im = precursorIonMobility(e, 0.0);
@@ -4048,6 +4138,37 @@ namespace OpenMS
     constexpr uint32_t SMOOTH_WINDOW = 1;
     constexpr uint32_t CENTROID_WINDOW = 1;
 
+    // The native ID of the spectrum of precursor @p prec_id, whose first entry is @p first_entry (see the comment in
+    // emit_precursor)
+    const auto setSpectrumID = [](MSSpectrum& spec, const DDAPrecursorInfo& first_entry, const int prec_id)
+    {
+      const std::string frame_scan = "frame=" + StringUtils::toStr(first_entry.frame_id)
+                                     + " scan=" + StringUtils::toStr(first_entry.scan_begin);
+      if (!first_entry.has_precursor)
+      {
+        spec.setNativeID(frame_scan);
+        return;
+      }
+      spec.setNativeID(frame_scan + " precursor=" + StringUtils::toStr(prec_id));
+      spec.setMetaValue("bruker_precursor_id", prec_id);
+    };
+
+    // The activation of the precursor with the PasefFrameMsMsInfo rows @p entries: their collision energy as the meta
+    // value "collision energy" in eV (MS:1000045 in mzML), as the Thermo reader sets it (left out if the rows have
+    // different ones), and the fragmentation mode of the run, if it records one (see readFragmentationMode())
+    const auto setActivation = [&fragmentation_mode](Precursor& prec, const std::vector<const DDAPrecursorInfo*>& entries)
+    {
+      const double energy = entries.front()->collision_energy;
+      if (std::all_of(entries.begin(), entries.end(), [energy](const DDAPrecursorInfo* e) { return e->collision_energy == energy; }))
+      {
+        DataValue collision_energy(energy);
+        collision_energy.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+        collision_energy.setUnit(266); // UO:0000266 electronvolt
+        prec.setMetaValue("collision energy", collision_energy);
+      }
+      if (fragmentation_mode) prec.setActivationMethods({*fragmentation_mode});
+    };
+
     // Builds the MS2 spectrum of one precursor and emits it; nothing is emitted if no peak is left
     const auto emit_precursor = [&](const int prec_id, const std::vector<const DDAPrecursorInfo*>& entries)
     {
@@ -4155,10 +4276,7 @@ namespace OpenMS
         spec.setDriftTime(precursor_im);
         spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
         spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-        spec.setNativeID("frame=" + StringUtils::toStr(first_entry->frame_id)
-                         + " scan=" + StringUtils::toStr(first_entry->scan_begin)
-                         + " precursor=" + StringUtils::toStr(prec_id));
-        spec.setMetaValue("bruker_precursor_id", static_cast<int>(prec_id));
+        setSpectrumID(spec, *first_entry, prec_id);
 
         spec.reserve(all_mz.size());
         for (size_t idx : sort_idx)
@@ -4176,6 +4294,7 @@ namespace OpenMS
           prec.setIntensity(static_cast<float>(first_entry->intensity));
         prec.setDriftTime(precursor_im);
         prec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+        setActivation(prec, entries);
         double iso_offset_lower = first_entry->isolation_width / 2.0 +
                                   (precursor_mz - first_entry->isolation_mz);
         double iso_offset_upper = first_entry->isolation_width / 2.0 -
@@ -4334,10 +4453,11 @@ namespace OpenMS
       //   - Bruker Precursors.Id is also duplicated as a typed MetaValue
       //     "bruker_precursor_id" for direct programmatic lookup without
       //     parsing the nativeID string.
-      spec.setNativeID("frame=" + StringUtils::toStr(first_entry->frame_id)
-                       + " scan=" + StringUtils::toStr(first_entry->scan_begin)
-                       + " precursor=" + StringUtils::toStr(prec_id));
-      spec.setMetaValue("bruker_precursor_id", static_cast<int>(prec_id));
+      //
+      //   - A window without a precursor is one PasefFrameMsMsInfo row, so it
+      //     gets the plain "frame=<F> scan=<S>" of MS:1002818, and no
+      //     "bruker_precursor_id".
+      setSpectrumID(spec, *first_entry, prec_id);
 
       // Copy sorted peak data
       spec.reserve(all_mz.size());
@@ -4357,6 +4477,7 @@ namespace OpenMS
         prec.setIntensity(static_cast<float>(first_entry->intensity));
       prec.setDriftTime(precursor_im);
       prec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+      setActivation(prec, entries);
 
       // Isolation window offsets relative to the selected ion m/z
       double iso_offset_lower = first_entry->isolation_width / 2.0 +

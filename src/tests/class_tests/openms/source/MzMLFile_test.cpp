@@ -23,6 +23,7 @@
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <cstdlib>
 #include <fstream>
 
 using namespace OpenMS;
@@ -975,17 +976,28 @@ START_SECTION([EXTRA] load xsd:integer types)
 }
 END_SECTION
 
-// Test loading from HTTP URL (uses raw GitHub URL for a minimal mzML file)
-// Disabled by default: requires network access and Xerces compiled with network support
-// To enable, uncomment the test body.
+// Loading from an HTTP server needs network access: set OPENMS_TEST_HTTP_URL to the URL of a copy of MzMLFile_1.mzML
+// (or of a gzip/bzip2 compressed copy), e.g. https://raw.githubusercontent.com/OpenMS/OpenMS/develop/src/tests/class_tests/openms/data/MzMLFile_1.mzML
 START_SECTION([EXTRA] load from HTTP URL)
 {
-  // Uncomment to test HTTP loading (requires network access):
-  // MzMLFile file;
-  // PeakMap exp;
-  // file.load("https://raw.githubusercontent.com/OpenMS/OpenMS/develop/src/tests/class_tests/openms/data/MzMLFile_2_minimal.mzML", exp);
-  // TEST_EQUAL(exp.size(), 0)  // minimal file has no spectra/chromatograms, just metadata
-  NOT_TESTABLE
+  MzMLFile file;
+  PeakMap exp;
+  // a server that cannot be reached is a load error (port 1 on the local host: no network access needed)
+  TEST_EXCEPTION(Exception::ParseError, file.load("http://127.0.0.1:1/run.mzML", exp))
+  // the error does not name the credentials of the URL
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load("http://user:secret@127.0.0.1:1/run.mzML?token=1", exp),
+                              "IOException: IO error for file 'http://127.0.0.1:1/run.mzML' in: http://127.0.0.1:1/run.mzML")
+  const char* url = std::getenv("OPENMS_TEST_HTTP_URL");
+  if (url != nullptr)
+  {
+    PeakMap local, remote;
+    file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), local);
+    file.load(url, remote);
+    TEST_EQUAL(remote.size(), local.size())
+    TEST_EQUAL(remote.getChromatograms().size(), local.getChromatograms().size())
+    TEST_TRUE(remote.getSpectra() == local.getSpectra())
+    TEST_EQUAL(remote.getLoadedFilePath(), url)
+  }
 }
 END_SECTION
 
