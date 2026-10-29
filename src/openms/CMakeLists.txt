@@ -66,24 +66,6 @@ add_subdirectory(thirdparty/percolator)
 # Vendored mzPeak library (thirdparty/mzpeak/README.OpenMS.md): the same pattern, a static library with its own
 # flags, linked PRIVATE below; only MzPeakFile.cpp includes its headers.
 if (OPENMS_ENABLE_MZPEAK)
-  # The library uses std::move_only_function, and boost::compat::move_only_function (Boost >= 1.89) in its place
-  # where libc++ does not have it yet (util/compat.h). Without either, OpenMS is built without mzPeak.
-  include(CheckCXXSourceCompiles)
-  set(CMAKE_REQUIRED_FLAGS ${CMAKE_CXX23_STANDARD_COMPILE_OPTION})
-  check_cxx_source_compiles("#include <functional>
-    #if defined(_LIBCPP_VERSION) && !defined(__cpp_lib_move_only_function)
-    #error no std::move_only_function
-    #endif
-    int main() { return 0; }" OPENMS_HAS_STD_MOVE_ONLY_FUNCTION)
-  unset(CMAKE_REQUIRED_FLAGS)
-  if (NOT OPENMS_HAS_STD_MOVE_ONLY_FUNCTION AND "${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}" VERSION_LESS 1.89)
-    message(WARNING "OPENMS_ENABLE_MZPEAK: the standard library has no std::move_only_function and Boost "
-                    "${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION} is older than 1.89 (boost::compat::move_only_function): "
-                    "building without mzPeak support.")
-    set(OPENMS_ENABLE_MZPEAK OFF) # (for this directory, which is the only one that reads it)
-  endif()
-endif()
-if (OPENMS_ENABLE_MZPEAK)
   add_subdirectory(thirdparty/mzpeak)
 endif()
 

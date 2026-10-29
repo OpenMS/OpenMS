@@ -20,7 +20,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/sources.cmake)
 
 add_library(OpenMS_mzpeak STATIC ${OpenMS_mzpeak_sources})
 
-# The library is C++23 (std::unreachable, std::format, std::ranges, std::move_only_function); OpenMS itself
+# The library is C++23 (std::unreachable, std::format, std::ranges); OpenMS itself
 # compiles with cxx_std_23.
 target_compile_features(OpenMS_mzpeak PRIVATE cxx_std_23)
 # Linked into the shared libOpenMS, with its symbol visibility: nothing of the library or of the Boost.JSON compiled
@@ -39,8 +39,8 @@ target_include_directories(OpenMS_mzpeak PRIVATE
                            "${OPENMS_HOST_DIRECTORY}/src/openms/include")
 
 # Dependencies: Arrow + Parquet (as libOpenMS links them), libzip, Boost (header-only here: Boost.JSON is
-# compiled into this library from boost/json/src.hpp, see sources.cmake; Boost.Compat, Boost.Range,
-# Boost.Iostreams templates, Boost.Math).
+# compiled into this library from boost/json/src.hpp, see sources.cmake; Boost.TypeIndex, Boost.Range,
+# Boost.Iostreams templates, Boost.Math); no newer Boost than OpenMS requires (1.81).
 target_link_libraries(OpenMS_mzpeak PRIVATE
                       ${OPENMS_ARROW_TARGET}
                       ${OPENMS_PARQUET_TARGET}

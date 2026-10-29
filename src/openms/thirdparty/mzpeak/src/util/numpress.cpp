@@ -17,8 +17,9 @@ directory of this repository.
 namespace MzPeak::Util::Numpress {
 
 /******************************************************************************/
+// (a non-owning reference: called within from_arrow() only)
 using decoder =
-    std::move_only_function<void(const std::vector<uint8_t>&, std::vector<double>&)>;
+    function_ref<void(const std::vector<uint8_t>&, std::vector<double>&)>;
 
 /******************************************************************************/
 std::optional<Type> type_from_column_name(const std::string& name)

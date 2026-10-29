@@ -14,7 +14,6 @@
     "boost-assign",
     "boost-bimap",
     "boost-bind",
-    "boost-compat",
     "boost-config",
     "boost-container",
     "boost-container-hash",

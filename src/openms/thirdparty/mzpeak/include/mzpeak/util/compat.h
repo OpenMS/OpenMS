@@ -10,18 +10,11 @@ top-level directory of this repository.
 
 // Compatibility with compilers that don't fully support C++23.
 
-/// std::move_only_function
-#if defined(_LIBCPP_VERSION) && !defined(__cpp_lib_move_only_function)
-#include <boost/compat/move_only_function.hpp>
-namespace std {
-template <class S> using move_only_function = boost::compat::move_only_function<S>;
-} // namespace std
-#endif
-
 /******************************************************************************/
-/// A non-owning reference to a callable, as boost::compat::function_ref (Boost >= 1.86) and C++26's
-/// std::function_ref: query.h's evaluation callbacks, so that the library builds with older Boost releases
-/// (e.g. 1.83 of Ubuntu 24.04). The callable must outlive the reference (as a temporary argument does).
+/// A non-owning reference to a callable, as C++26's std::function_ref: the query evaluation callbacks (query.h)
+/// and the numpress decoders (numpress.cpp), in place of boost::compat::function_ref (Boost >= 1.86) and
+/// std::move_only_function (with Boost.Compat's, Boost >= 1.89, where libc++ lacks it), so that the library
+/// needs no newer Boost than OpenMS (1.81). The callable must outlive the reference (as a temporary argument does).
 #include <functional>
 #include <memory>
 #include <type_traits>

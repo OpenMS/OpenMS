@@ -44,11 +44,11 @@ the OpenMS interface.
 - Reader: `Spectrum::ion_mobility_array_type()` tells the array type of the per-peak ion mobility
   array (`include/mzpeak/spectrum.h`, `src/spectrum.cpp`); a timed scan replaces an untimed
   representative scan (`src/util/metadata_model.cpp`).
-- `include/mzpeak/util/compat.h`, `include/mzpeak/util/query.h`: `MzPeak::Util::function_ref` (in compat.h)
-  replaces `boost::compat::function_ref` in the query evaluation callbacks, which needs Boost 1.86; the library
-  then builds with the Boost of Ubuntu 24.04 (1.83). With libc++ without `std::move_only_function`, compat.h
-  still needs Boost 1.89 (`boost::compat::move_only_function`); `src/openms/CMakeLists.txt` builds OpenMS
-  without mzPeak there otherwise.
+- `include/mzpeak/util/compat.h`, `include/mzpeak/util/query.h`, `src/util/numpress.cpp`: `MzPeak::Util::function_ref`
+  (in compat.h) replaces `boost::compat::function_ref` (Boost 1.86) in the query evaluation callbacks and
+  `std::move_only_function` in the numpress decoders, whose fallback for libc++ without it was
+  `boost::compat::move_only_function` (Boost 1.89). The library then needs no newer Boost than OpenMS (1.81) and no
+  Boost.Compat.
 - `src/writer.cpp`: `ZIP_LENGTH_TO_END` is defined as -1 where libzip does not define it (before 1.10.1, e.g.
   1.7.3 of Ubuntu 24.04), which reads the file to its end there as well.
 - `src/boost_json_src.cpp` (new): Boost.JSON compiled header-only, so libOpenMS links no
