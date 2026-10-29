@@ -154,9 +154,9 @@ def test_search_windows_enzyme_and_calibration():
     assert P["Search:fragment:mass_tolerance"] == 20.0             # 2x 6 = 12, floor 20 ppm
     assert P["Search:enzyme"] == "Trypsin/P"                       # the protease test cannot see the P rule
     assert P["Search:calibration:enabled"] == "false"              # small measured offset, high-res MS2
-    # ion-trap MS2: 0.35 Da, calibration on; a text excluding cleavage before proline keeps plain Trypsin
+    # ion-trap MS2: 0.35 Da and calibration on; every trypsin source (here an SDRF-style "Trypsin") -> Trypsin/P
     ev[1] = Evidence("fragment_tolerance", {"value": 0.5, "unit": "Da"}, 0.9, "search", "mini-search PSMs")
-    ev.append(Evidence("enzyme", "Trypsin", 0.7, "user", "keywords", "trypsin, not cleaving before proline"))
+    ev.append(Evidence("enzyme", "Trypsin", 0.7, "repository", "sdrf", "trypsin, not cleaving before proline"))
     P = pp.to_prose(reconcile(ev))["params"]
     assert (P["Search:fragment:mass_tolerance"], P["Search:fragment:mass_tolerance_unit"]) == (0.35, "Da")
-    assert P["Search:calibration:enabled"] == "true" and P["Search:enzyme"] == "Trypsin"
+    assert P["Search:calibration:enabled"] == "true" and P["Search:enzyme"] == "Trypsin/P"

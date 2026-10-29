@@ -193,6 +193,8 @@ def candidates(P, res, history, facts, alt_dbs=()):
     enz = _get(P, "enzyme")
     if enz == "Trypsin":
         add("trypsin_p", "allow cleavage before proline", enzyme="Trypsin/P")
+    elif enz == "Trypsin/P":
+        add("trypsin_no_p", "no cleavage before proline (classic trypsin rule)", enzyme="Trypsin")
     if (_get(P, "peptide:missed_cleavages", 2) or 2) < 3:
         add("missed_cleavages_3", "allow one more missed cleavage", peptide__missed_cleavages=3)
     # hard rules: never propose a combination that cannot be right

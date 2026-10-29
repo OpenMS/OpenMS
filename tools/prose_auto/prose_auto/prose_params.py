@@ -35,16 +35,6 @@ ION_TRAP_FRAGMENT_DA = 0.35
 CALIBRATION_OFFSET_PPM = 3.0  # calibrate when the measured precursor offset is larger (or unknown)
 
 
-def _says_no_proline_cleavage(d):
-    """An enzyme decision whose evidence says trypsin was not allowed to cut before proline."""
-    import re
-    for e in getattr(d, "evidence", []) or []:
-        txt = " ".join(str(x) for x in (getattr(e, "detail", ""), getattr(e, "quote", "")) if x).lower()
-        # "not before proline", "except before proline", "no cleavage before proline"
-        if re.search(r"\b(?:not|no|except)\b[^.]{0,40}\bbefore prolin", txt):
-            return True
-    return False
-
 
 def _per_residue(mods):
     """'Phospho (STY)' / 'Phospho (S,T,Y)' -> 'Phospho (S)', 'Phospho (T)', 'Phospho (Y)': ProSE takes one
@@ -110,9 +100,9 @@ def to_prose(decisions: dict) -> dict:
     enz = v("enzyme")
     if enz:
         enz = ENZYME_NAMES.get(enz, enz)
-        # the protease test cannot tell Trypsin from Trypsin/P; Trypsin/P found 2-6% more PSMs on 6 of 7 benchmark
-        # groups. Plain Trypsin only when a text says cleavage before proline was excluded.
-        if enz == "Trypsin" and not _says_no_proline_cleavage(decisions["enzyme"]):
+        # a tryptic digest means Trypsin/P (no proline rule); it also found 2-6% more PSMs than Trypsin on 6 of 7
+        # benchmark groups. Plain Trypsin is left to tune.py as a candidate.
+        if enz == "Trypsin":
             enz = "Trypsin/P"
         P["Search:enzyme"] = enz
     ic = v("instrument_class")
