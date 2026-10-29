@@ -56,7 +56,9 @@ the OpenMS interface.
   failed to open otherwise); `Index::spectra()` (`src/index.cpp`) takes the first `metadata` member, as the
   chromatogram and wavelength readers do; `src/util/metadata_model.cpp` reads `mz_delta_model` only as float64
   (another value type was cast unchecked and read past its buffer); `src/util/planner.cpp` takes a column as sorted
-  only if it is the first Parquet sorting column (a later one is ordered only within runs of the first).
+  only if it is the first Parquet sorting column (a later one is ordered only within runs of the first), and its
+  contiguous-group fast path also needs the row groups in ascending order of the column by their statistics (the
+  sorting columns describe each row group only).
 - `src/boost_json_src.cpp` (new): Boost.JSON compiled header-only, so libOpenMS links no
   compiled Boost library.
 - `sources.cmake`, `CMakeLists.txt`, this file.

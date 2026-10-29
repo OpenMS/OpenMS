@@ -145,6 +145,24 @@ struct StatsIndex::Impl {
     for (int32_t g = 0; all && g < metadata_->num_row_groups(); ++g) {
       all = sorted_first(*metadata_->RowGroup(g), column);
     }
+    // ...and the row groups in ascending order of it, which the sorting columns of each group do not say (OpenMS
+    // change, see README.OpenMS.md): every group's min not below the max of the group before, by their statistics
+    // (none: not ordered). An entity at a group boundary is in both groups (equal values).
+    std::uint64_t previous_max = 0;
+    for (int32_t g = 0; all && g < metadata_->num_row_groups(); ++g) {
+      const auto chunk = metadata_->RowGroup(g)->ColumnChunk(column);
+      const auto stats = chunk->is_stats_set() ? std::dynamic_pointer_cast<parquet::Int64Statistics>(chunk->statistics())
+                                               : nullptr;
+      if (!stats || !stats->HasMinMax()) {
+        all = false;
+        break;
+      }
+      // (the index columns are unsigned, stored with a signed physical type)
+      const std::uint64_t min = std::bit_cast<std::uint64_t>(stats->min());
+      const std::uint64_t max = std::bit_cast<std::uint64_t>(stats->max());
+      if (g > 0 && min < previous_max) all = false;
+      previous_max = max;
+    }
     all_sorted_.emplace(column, all);
     return all;
   }

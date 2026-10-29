@@ -318,6 +318,11 @@ namespace OpenMS
       {
         src_file.setChecksum(FileHandler::computeFileHash(filename), SourceFile::ChecksumType::SHA1);
       }
+      else if (File::isDirectory(filename))
+      {
+        // nor does it keep a checksum the reader took from its contents (e.g. mzPeak's recorded source file)
+        src_file.setChecksum("", SourceFile::ChecksumType::UNKNOWN_CHECKSUM);
+      }
 
       settings.getSourceFiles().clear();
       settings.getSourceFiles().push_back(src_file);
