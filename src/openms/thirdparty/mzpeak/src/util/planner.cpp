@@ -110,6 +110,15 @@ struct StatsIndex::Impl {
     return slot.stats;
   }
 
+  /// Whether @p column is the FIRST sorting column of @p group, ascending: a later sorting column is ordered only
+  /// within runs of the ones before it, not across the row group (OpenMS change, see README.OpenMS.md)
+  static bool sorted_first(const parquet::RowGroupMetaData& group, int32_t column)
+  {
+    const auto columns = group.sorting_columns();
+    return !columns.empty() && columns.front().column_idx == column && !columns.front().descending
+           && !columns.front().nulls_first;
+  }
+
   bool sorted_ascending(int32_t row_group, int32_t column)
   {
     std::lock_guard<std::mutex> guard(mutex_);
@@ -119,11 +128,7 @@ struct StatsIndex::Impl {
 
     bool sorted = false;
     if (row_group >= 0 && row_group < metadata_->num_row_groups()) {
-      for (const auto& cs : metadata_->RowGroup(row_group)->sorting_columns()) {
-        if (cs.column_idx != column) continue;
-        sorted = !cs.descending && !cs.nulls_first;
-        break;
-      }
+      sorted = sorted_first(*metadata_->RowGroup(row_group), column);
     }
     sorted_.emplace(key, sorted);
     return sorted;
@@ -138,13 +143,7 @@ struct StatsIndex::Impl {
     if (auto it = all_sorted_.find(column); it != all_sorted_.end()) return it->second;
     bool all = metadata_->num_row_groups() > 0;
     for (int32_t g = 0; all && g < metadata_->num_row_groups(); ++g) {
-      bool one = false;
-      for (const auto& cs : metadata_->RowGroup(g)->sorting_columns()) {
-        if (cs.column_idx != column) continue;
-        one = !cs.descending && !cs.nulls_first;
-        break;
-      }
-      all = one;
+      all = sorted_first(*metadata_->RowGroup(g), column);
     }
     all_sorted_.emplace(column, all);
     return all;
