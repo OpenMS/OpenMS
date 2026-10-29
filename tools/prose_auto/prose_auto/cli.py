@@ -137,6 +137,10 @@ def analyze(a, log=print):
         except RuntimeError as e:
             log(f"  DIAspeXtract failed, continuing without pseudo-spectra: {str(e).strip()[-300:]}")
     pseudo = spectra_file != a.mzml
+    if pseudo:  # pseudo-spectra carry DIAspeXtract's charge calls: measure the range on them
+        cr = inst.charge_range(run.ms2)
+        if cr:
+            ev = [e for e in ev if e.parameter != "charge_range"] + cr
     search_acq = "DDA" if pseudo else acq      # pseudo-spectra have one precursor each
     ms1a = (_first(ev, "ms1_analyzer").value if _first(ev, "ms1_analyzer") else "ORBITRAP")
     ms2a = (_first(ev, "ms2_analyzer").value if _first(ev, "ms2_analyzer") else "ORBITRAP")

@@ -157,14 +157,23 @@ def detect_acquisition(run) -> list:
                            0.95, "metadata", "isolation windows",
                            f"{len(win)} windows from {win[0][0]} to {win[-1][1]} Th"
                            + (" (overlapping/staggered)" if overlap else "")))
-    # Charge range from DDA precursors
-    charges = np.array([s.charge for s in ms2 if s.charge > 0])
-    if charges.size >= 20:
-        lo, hi = int(np.percentile(charges, 0.5)), int(np.percentile(charges, 99.5))
-        ev.append(Evidence("charge_range", [max(1, lo), max(lo, hi)], 0.85, "data",
-                           "precursor charges", f"99% of assigned precursor charges lie in {lo}..{hi}",
-                           {"histogram": {int(k): int(v) for k, v in Counter(charges.tolist()).items()}}))
-    elif mode.startswith("DIA"):
+    # Charge range from DDA precursors. DIA windows carry no real charge (converters write a placeholder 2+, which
+    # made every Orbitrap DIA run 2..2 and halved the PSMs on its pseudo-spectra); cli re-measures the charges on
+    # DIAspeXtract pseudo-spectra with charge_range()
+    if mode.startswith("DIA"):
         ev.append(Evidence("charge_range", [2, 4], 0.5, "default", "DIA default",
                            "DIA spectra carry no charge; 2..4 is the usual range"))
+    else:
+        ev += charge_range(ms2)
     return ev
+
+
+def charge_range(ms2) -> list:
+    """precursor charge range covering 99% of the assigned charges (DDA or pseudo-MS/MS spectra)"""
+    charges = np.array([s.charge for s in ms2 if s.charge > 0])
+    if charges.size < 20:
+        return []
+    lo, hi = int(np.percentile(charges, 0.5)), int(np.percentile(charges, 99.5))
+    return [Evidence("charge_range", [max(1, lo), max(lo, hi)], 0.85, "data",
+                     "precursor charges", f"99% of assigned precursor charges lie in {lo}..{hi}",
+                     {"histogram": {int(k): int(v) for k, v in Counter(charges.tolist()).items()}})]

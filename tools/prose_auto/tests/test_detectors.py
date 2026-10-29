@@ -179,3 +179,14 @@ def test_two_tier_shortlist():
     assert top == ["Macaca mulatta", "Homo sapiens", "Pan troglodytes"]   # the reagent genus Bos is skipped
     got = _organism_shortlist(ev, {"Homo_sapiens": "h.fasta"}, top)
     assert got == ["Macaca fascicularis", "Macaca mulatta", "Homo sapiens", "Pan troglodytes"]
+
+
+def test_dia_placeholder_charges_are_no_charge_range():
+    from prose_auto import detect_instrument as inst
+    run = Run(path="synthetic")
+    for i in range(400):   # 20 repeating 25 Th windows, every spectrum with the converter's placeholder 2+
+        c = 400 + 25 * (i % 20)
+        run.ms2.append(Scan(f"w{i}", 2, float(i), np.array([200.0, 300.0]), np.array([1.0, 1.0]), precursor_mz=c,
+                            charge=2, iso_lower=12.5, iso_upper=12.5, scan_low=100, scan_high=2000))
+    cr = [e for e in inst.detect_acquisition(run) if e.parameter == "charge_range"]
+    assert cr and cr[0].value == [2, 4] and cr[0].source == "default"
