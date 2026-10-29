@@ -31,7 +31,7 @@ from . import text_extract as tx
 from .evidence import Evidence, PARAMETERS
 
 PRESETS = {
-    "codex": "cli:codex exec -",
+    "codex": "cli:codex exec --skip-git-repo-check -",  # outside a git repo codex refuses without it
     "claude": "cli:claude -p",
     "llm": "cli:llm",
 }

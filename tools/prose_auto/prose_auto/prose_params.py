@@ -30,6 +30,20 @@ ENZYME_NAMES = {"Trypsin": "Trypsin", "Trypsin/P": "Trypsin/P", "Lys-C": "Lys-C"
 
 
 TOLERANCE_FACTOR = 2.0  # search window / measured error (ppm tolerances)
+PRECURSOR_FLOOR_PPM, FRAGMENT_FLOOR_PPM = 10.0, 20.0
+ION_TRAP_FRAGMENT_DA = 0.35
+CALIBRATION_OFFSET_PPM = 3.0  # calibrate when the measured precursor offset is larger (or unknown)
+
+
+def _says_no_proline_cleavage(d):
+    """An enzyme decision whose evidence says trypsin was not allowed to cut before proline."""
+    import re
+    for e in getattr(d, "evidence", []) or []:
+        txt = " ".join(str(x) for x in (getattr(e, "detail", ""), getattr(e, "quote", "")) if x).lower()
+        # "not before proline", "except before proline", "no cleavage before proline"
+        if re.search(r"\b(?:not|no|except)\b[^.]{0,40}\bbefore prolin", txt):
+            return True
+    return False
 
 
 def _per_residue(mods):
@@ -52,19 +66,24 @@ def to_prose(decisions: dict) -> dict:
     v = lambda p: decisions[p].value if p in decisions else None
     P, notes = {}, []
     pt, ft = v("precursor_tolerance"), v("fragment_tolerance")
-    # The decisions hold the measured error (|offset| + 4 SD, or precision + offset). As a search window that is
-    # too tight: on 13 PRIDE runs, 2x the measured ppm value plus ProSE's calibration pass found up to 10% more
-    # PSMs at the same entrapment FDP. Da windows (ion-trap MS2) are wide already and stay as measured.
-    win = lambda t: round(float(t["value"]) * (TOLERANCE_FACTOR if t["unit"] == "ppm" else 1.0), 3)
+    # The decisions hold the measured error (|offset| + 4 SD, or precision + offset); as a search window it is too
+    # tight. On the benchmark groups (PR build, entrapment FDP) the 2x window lost 1-4% against 20 ppm on Orbitrap
+    # HCD and gained 10% on ion-trap MS2 at 0.35 Da: windows are 2x the measured error with floors of 10 ppm
+    # (precursor) and 20 ppm (fragment); ion-trap fragments 0.35 Da.
+    lowres2 = v("ms2_analyzer") in ("IT", "LIT") or (ft and ft["unit"] == "Da")
     if pt:
-        P["Search:precursor:mass_tolerance_lower"] = win(pt)  # ProSE declares tolerances as double
-        P["Search:precursor:mass_tolerance_upper"] = win(pt)
+        p = round(max(TOLERANCE_FACTOR * float(pt["value"]), PRECURSOR_FLOOR_PPM), 3) if pt["unit"] == "ppm" \
+            else float(pt["value"])
+        P["Search:precursor:mass_tolerance_lower"] = p  # ProSE declares tolerances as double
+        P["Search:precursor:mass_tolerance_upper"] = p
         P["Search:precursor:mass_tolerance_unit"] = pt["unit"]
-    if ft:
-        P["Search:fragment:mass_tolerance"] = win(ft)
+    if lowres2:
+        P["Search:fragment:mass_tolerance"], P["Search:fragment:mass_tolerance_unit"] = ION_TRAP_FRAGMENT_DA, "Da"
+    elif ft:
+        P["Search:fragment:mass_tolerance"] = round(max(TOLERANCE_FACTOR * float(ft["value"]), FRAGMENT_FLOOR_PPM), 3)
         P["Search:fragment:mass_tolerance_unit"] = ft["unit"]
-    if (pt and pt["unit"] == "ppm") or (ft and ft["unit"] == "ppm"):
-        notes.append(f"ppm tolerances are {TOLERANCE_FACTOR:g}x the measured error, with ProSE's calibration pass on")
+    notes.append(f"search windows: {TOLERANCE_FACTOR:g}x the measured error, at least {PRECURSOR_FLOOR_PPM:g} ppm "
+                 f"precursor and {FRAGMENT_FLOOR_PPM:g} ppm fragment ({ION_TRAP_FRAGMENT_DA} Da on ion-trap MS2)")
     cr = v("charge_range")
     if cr:
         P["Search:precursor:min_charge"], P["Search:precursor:max_charge"] = int(cr[0]), int(cr[1])
@@ -90,7 +109,12 @@ def to_prose(decisions: dict) -> dict:
     P["Search:modifications:variable"] = _per_residue(var)
     enz = v("enzyme")
     if enz:
-        P["Search:enzyme"] = ENZYME_NAMES.get(enz, enz)
+        enz = ENZYME_NAMES.get(enz, enz)
+        # the protease test cannot tell Trypsin from Trypsin/P; Trypsin/P found 2-6% more PSMs on 6 of 7 benchmark
+        # groups. Plain Trypsin only when a text says cleavage before proline was excluded.
+        if enz == "Trypsin" and not _says_no_proline_cleavage(decisions["enzyme"]):
+            enz = "Trypsin/P"
+        P["Search:enzyme"] = enz
     ic = v("instrument_class")
     if ic and v("ms2_analyzer") not in ("IT", "LIT"):   # PeptDeep models high-res HCD-type spectra
         # ProSE accepts only these PeptDeep classes; free text from records ('TIMS quadrupole time-of-flight') is mapped
@@ -102,9 +126,11 @@ def to_prose(decisions: dict) -> dict:
         P["Search:peptdeep:nce"] = -1.0   # ProSE picks it from the spectra and refines it
     if v("fragmentation") and any(x in str(v("fragmentation")) for x in ("ETD", "ECD", "EThcD")):
         P["Search:ions:by_activation"] = "true"
-    # calibration pass always: it re-centres and narrows the window on ProSE's own PSMs, which the mini-search's
-    # offset (2,000 spectra, no variable mods) cannot replace
-    P["Search:calibration:enabled"] = "true"
+    # calibration pass when the offset is unknown or large, or the MS2 is low-res (velos: +7%); with a small measured
+    # offset it cost 1-3% (hfx, lumos_lfq)
+    po = decisions.get("precursor_offset")
+    off = abs(float(po.value["value"])) if po and isinstance(po.value, dict) and po.value.get("unit") == "ppm" else None
+    P["Search:calibration:enabled"] = "true" if (off is None or off > CALIBRATION_OFFSET_PPM or lowres2) else "false"
     acq = str(v("acquisition") or "")
     if acq.startswith("DIA"):
         notes.append("DIA data: search pseudo-spectra (DIA-Umpire style deconvolution; OpenMS has "

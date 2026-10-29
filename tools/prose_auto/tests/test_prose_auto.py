@@ -151,7 +151,7 @@ def test_reconcile_conflict_and_params():
     assert d["cys_alkylation"].value == "Carbamidomethyl (C)" and d["cys_alkylation"].status == "review"
     P = pp.to_prose(d)["params"]
     assert "TMT6plex (K)" in P["Search:modifications:fixed"]
-    assert P["Search:precursor:mass_tolerance_lower"] == 8  # 2x the measured 4 ppm
+    assert P["Search:precursor:mass_tolerance_lower"] == 10  # 2x the measured 4 ppm, floor 10 ppm
     assert P["Search:calibration:enabled"] == "true"
     assert "<ITEMLIST" in pp.to_ini_snippet(P)
 
