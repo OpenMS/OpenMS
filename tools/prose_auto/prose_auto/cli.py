@@ -246,7 +246,9 @@ def analyze(a, log=print):
     # Organism, tier 2: the FASTag species ranking (extended index) gives a top-3 shortlist; with the stated
     # organisms and confident FASTag calls the panel lacks, their reference proteomes are fetched (cached in
     # <panel>/extra) and searched against the panel winner, so the nearest panel organism does not win by default
-    shortlist = _organism_shortlist(ev, panel, ext.fastag_shortlist(ev) if a.fastag_taxonomy else [])
+    # ion-trap MS2: short tags match large (polyploid) proteomes by chance (wheat and salmon ranked first on mouse
+    # and Arabidopsis LTQ runs), so the FASTag shortlist is used only with high-resolution MS2
+    shortlist = _organism_shortlist(ev, panel, ext.fastag_shortlist(ev) if a.fastag_taxonomy and hr2 else [])
     if shortlist and h is not None and a.panel:
         t = time.time()
         dbs = {}
