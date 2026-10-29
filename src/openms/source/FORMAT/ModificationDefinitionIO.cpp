@@ -18,6 +18,11 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <algorithm>
+#include <exception>
+
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 
 namespace OpenMS
 {
@@ -54,28 +59,30 @@ namespace OpenMS
       }
     }
 
-    // definitions sitting on the peptidoforms of one identification
+    // definitions sitting on the peptidoforms of one identification. The set of its run is looked up once per
+    // identification, and only if a hit carries a definition (the lookup by run name for every modified residue took
+    // most of the 0.13 s that the 250,000 identifications of a timsTOF run took); a modification inserted just before is
+    // not inserted again.
     void addHits_(DefsByRun& out, const PeptideIdentification& pep)
     {
-      const std::string& run = pep.getIdentifier();
+      std::set<const ResidueModification*>* run_defs = nullptr;
+      const ResidueModification* last = nullptr;
+      const auto add = [&](const ResidueModification* mod)
+      {
+        if (mod == last || !ModificationDefinitionIO::isDefinition(mod)) return;
+        if (run_defs == nullptr) run_defs = &out[pep.getIdentifier()];
+        run_defs->insert(mod);
+        last = mod;
+      };
       for (const PeptideHit& hit : pep.getHits())
       {
         const AASequence& seq = hit.getSequence();
-        if (seq.hasNTerminalModification() && ModificationDefinitionIO::isDefinition(seq.getNTerminalModification()))
-        {
-          out[run].insert(seq.getNTerminalModification());
-        }
+        if (seq.hasNTerminalModification()) add(seq.getNTerminalModification());
         for (Size i = 0; i < seq.size(); ++i)
         {
-          if (seq[i].isModified() && ModificationDefinitionIO::isDefinition(seq[i].getModification()))
-          {
-            out[run].insert(seq[i].getModification());
-          }
+          if (seq[i].isModified()) add(seq[i].getModification());
         }
-        if (seq.hasCTerminalModification() && ModificationDefinitionIO::isDefinition(seq.getCTerminalModification()))
-        {
-          out[run].insert(seq.getCTerminalModification());
-        }
+        if (seq.hasCTerminalModification()) add(seq.getCTerminalModification());
       }
     }
 
@@ -92,7 +99,41 @@ namespace OpenMS
   {
     DefsByRun out;
     addSearchSpace_(out, protein_ids);
-    for (const PeptideIdentification& pep : peptide_ids) addHits_(out, pep);
+    // The identifications in parallel, each thread a contiguous range of them, and the definitions of each run joined:
+    // a union of sets, the same whatever the ranges. Walking the hits is bound by the memory latency (0.13 s on one
+    // thread for the 250,000 identifications of a timsTOF run).
+    const SignedSize n = static_cast<SignedSize>(peptide_ids.size());
+    int num_parts = 1;
+#ifdef _OPENMP
+    num_parts = static_cast<int>(std::clamp<SignedSize>(n / 4096, 1, omp_get_max_threads()));
+#endif
+    if (num_parts == 1)
+    {
+      for (const PeptideIdentification& pep : peptide_ids) addHits_(out, pep);
+      return out;
+    }
+    std::vector<DefsByRun> part_out(num_parts);
+    std::vector<std::exception_ptr> errors(num_parts); // an exception must not leave the parallel region
+#pragma omp parallel for schedule(static, 1) num_threads(num_parts)
+    for (int part = 0; part < num_parts; ++part)
+    {
+      try
+      {
+        for (SignedSize i = n * part / num_parts; i < n * (part + 1) / num_parts; ++i) addHits_(part_out[part], peptide_ids[i]);
+      }
+      catch (...)
+      {
+        errors[part] = std::current_exception();
+      }
+    }
+    for (const std::exception_ptr& error : errors)
+    {
+      if (error) std::rethrow_exception(error);
+    }
+    for (const DefsByRun& part : part_out)
+    {
+      for (const auto& [run, defs] : part) out[run].insert(defs.begin(), defs.end());
+    }
     return out;
   }
 
