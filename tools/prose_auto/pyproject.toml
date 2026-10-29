@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prose-auto"
+version = "0.1.0"
+description = "Prototype: propose ProSE search settings from the MS data (Auto Mode exploration)"
+requires-python = ">=3.9"
+dependencies = ["pyopenms>=3.0", "numpy", "pyyaml"]
+
+[project.scripts]
+prose-auto = "prose_auto.cli:main"
+
+[tool.setuptools]
+packages = ["prose_auto"]
