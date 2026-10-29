@@ -1,0 +1,172 @@
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
+index a8c41125ff..8066898d31 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.cpp
++++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
+@@ -443,6 +443,9 @@ void CrossValidation::trainFoldChains() {
+     // the feature rows of the training set (its PSMs and labels do not change during the training;
+     // its test sets of the pairs hold the same PSMs), for counting the positives of the pairs
+     std::vector<std::pair<const double*, bool> > rows;
++    // OpenMS (CV-A2): the scores of each pair's weights on the rows (from its validation), so that the
++    // step's rescoring with the chosen pair's weights does not score the PSMs again
++    std::vector<std::vector<double> > pairRowScores(numCpCnPairsPerSet);
+     try {
+       for (; step < niter_; ++step) {
+         const double selectionFdr = step == 0u ? initialSelectionFdr_ : selectionFdr_;
+@@ -482,7 +485,8 @@ void CrossValidation::trainFoldChains() {
+                     trainCpCnPair(cpCnFold, stepOptions, svmInputs_[cpCnFold.set], &tronGroup);
+                 pairTruePoses[pairIdx] =
+                     useRows ? testSet->countPositives(cpCnFold.ww, testFdr_,
+-                                                      skipDecoysPlusOneValidation, rows)
++                                                      skipDecoysPlusOneValidation, rows,
++                                                      testSet == &trainScores_[set] ? &pairRowScores[k] : nullptr)
+                             : testSet->countPositives(cpCnFold.ww, testFdr_,
+                                                       skipDecoysPlusOneValidation);
+               } catch (...) {
+@@ -504,6 +508,7 @@ void CrossValidation::trainFoldChains() {
+         stage = 3;
+         // mergeCpCnPairs without nested cross-validation, for this fold
+         int bestTruePoses = 0;
++        std::size_t bestPair = numCpCnPairsPerSet;
+         for (std::size_t k = 0; k < numCpCnPairsPerSet; ++k) {
+           const std::size_t pairIdx = set * numCpCnPairsPerSet + k;
+           CandidateCposCfrac& cpCnFold = classWeightsPerFold_[pairIdx];
+@@ -512,11 +517,18 @@ void CrossValidation::trainFoldChains() {
+           if (tp >= bestTruePoses) {
+             bestTruePoses = tp;
+             weights_[set] = cpCnFold.ww;
++            bestPair = k;
+           }
+         }
++        // the pairs that were not trained have the weights of the first (LDA)
++        if (bestPair >= numPairsTrained) bestPair = 0;
+         stage = 4;
+         stepPositives[step][set] =
+-            trainScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
++            bestPair < numCpCnPairsPerSet && useRows && !pairRowScores[bestPair].empty() &&
++                    testSet == &trainScores_[set]
++                ? trainScores_[set].calcScoresOfRowsAndQvals(weights_[set], rows,
++                                                             pairRowScores[bestPair], testFdr_)
++                : trainScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
+       }
+       stage = 0;
+       testPositives[set] = testScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
+diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
+index 3e7ffeb077..c3e153fcc7 100644
+--- a/src/openms/thirdparty/percolator/Scores.cpp
++++ b/src/openms/thirdparty/percolator/Scores.cpp
+@@ -677,28 +677,89 @@ void Scores::getFeatureRows(std::vector<pair<const double*, bool> >& rows) const
+  * (the count does not depend on the order of the scores, see countPositives).
+  */
+ int Scores::countPositives(const std::vector<double>& w, double fdr, bool skipDecoysPlusOne,
+-                           const std::vector<pair<const double*, bool> >& rows) const {
++                           const std::vector<pair<const double*, bool> >& rows,
++                           std::vector<double>* rowScores) const {
+   std::vector<pair<double, bool> > combined;
+   const std::ptrdiff_t numRows = static_cast<std::ptrdiff_t>(rows.size());
++  if (rowScores != nullptr) rowScores->resize(rows.size());
++  double* const rs = rowScores != nullptr ? rowScores->data() : nullptr;
+ #ifdef _OPENMP
+   if (numRows >= kLargeSet && omp_in_parallel()) {
+     combined.resize(rows.size());
+ #pragma omp taskloop grainsize(numRows / 64) shared(combined, rows, w)
+     for (std::ptrdiff_t i = 0; i < numRows; ++i) {
+       const pair<const double*, bool>& row = rows[static_cast<std::size_t>(i)];
+-      combined[static_cast<std::size_t>(i)] = {calcScore(row.first, w), row.second};
++      const double score = calcScore(row.first, w);
++      combined[static_cast<std::size_t>(i)] = {score, row.second};
++      if (rs != nullptr) rs[i] = score;
+     }
+   } else
+ #endif
+   {
+     combined.reserve(rows.size());
+-    for (const pair<const double*, bool>& row : rows) {
+-      combined.emplace_back(calcScore(row.first, w), row.second);
++    for (std::ptrdiff_t i = 0; i < numRows; ++i) {
++      const pair<const double*, bool>& row = rows[static_cast<std::size_t>(i)];
++      const double score = calcScore(row.first, w);
++      combined.emplace_back(score, row.second);
++      if (rs != nullptr) rs[i] = score;
+     }
+   }
+   return countPositivesOfScores(combined, w, fdr, skipDecoysPlusOne);
+ }
+ 
++/**
++ * OpenMS (CV-A2): calcScoresAndQvals(w, fdr, skipDecoysPlusOne) where the scores of w were computed
++ * already, by countPositives(w, ..., rows, &rowScores) on the rows of getFeatureRows of this set:
++ * each PSM gets the score of its row (calcScore of the same row and weights, the same bits), found by
++ * its address; then the sort and the q-values as calcScoresAndQvals. A PSM whose row is not in rows
++ * (the set changed) makes it score all PSMs with w instead.
++ */
++int Scores::calcScoresOfRowsAndQvals(std::vector<double>& w,
++                                     const std::vector<pair<const double*, bool> >& rows,
++                                     const std::vector<double>& rowScores, double fdr,
++                                     bool skipDecoysPlusOne) {
++  if (rowScores.size() != rows.size() || rows.size() != scores_.size()) {
++    return calcScoresAndQvals(w, fdr, skipDecoysPlusOne);
++  }
++  const auto byAddress = [](const pair<const double*, bool>& a, const double* b) {
++    return std::less<const double*>()(a.first, b);
++  };
++  const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(scores_.size());
++  std::vector<char> found;
++  const auto assign = [&](std::ptrdiff_t b, std::ptrdiff_t e) {
++    bool ok = true;
++    for (std::ptrdiff_t i = b; i < e; ++i) {
++      ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
++      const auto it = std::lower_bound(rows.begin(), rows.end(), sh.pPSM->features, byAddress);
++      if (it == rows.end() || it->first != sh.pPSM->features) {
++        ok = false;
++        continue;
++      }
++      sh.score = rowScores[static_cast<std::size_t>(it - rows.begin())];
++    }
++    return ok;
++  };
++#ifdef _OPENMP
++  if (n >= 2 * kMinPairTaskSize && omp_in_parallel()) {
++    const std::ptrdiff_t blockSize = loopGrain(n, kMinPairTaskSize);
++    const std::ptrdiff_t numBlocks = (n + blockSize - 1) / blockSize;
++    found.assign(static_cast<std::size_t>(numBlocks), 1);
++#pragma omp taskloop grainsize(1) shared(found, assign)
++    for (std::ptrdiff_t block = 0; block < numBlocks; ++block) {
++      found[static_cast<std::size_t>(block)] = assign(block * blockSize, std::min(n, (block + 1) * blockSize));
++    }
++  } else
++#endif
++  {
++    found.assign(1, assign(0, n));
++  }
++  if (!std::all_of(found.begin(), found.end(), [](char x) { return x != 0; })) {
++    return calcScoresAndQvals(w, fdr, skipDecoysPlusOne);
++  }
++  sortScores();
++  return calcQvals(fdr, skipDecoysPlusOne);
++}
++
+ // OpenMS: countPositives from the (score, isTarget) pairs of the PSMs, in any order
+ int Scores::countPositivesOfScores(std::vector<pair<double, bool> >& combined,
+                                    const std::vector<double>& w, double fdr,
+diff --git a/src/openms/thirdparty/percolator/Scores.h b/src/openms/thirdparty/percolator/Scores.h
+index 9cbf6d3a25..c5018a78bd 100644
+--- a/src/openms/thirdparty/percolator/Scores.h
++++ b/src/openms/thirdparty/percolator/Scores.h
+@@ -96,8 +96,16 @@ class Scores {
+   // OpenMS: the feature rows of the PSMs with their isTarget(), in the order of the rows in
+   // memory, and countPositives from these (see Scores.cpp)
+   void getFeatureRows(std::vector<std::pair<const double*, bool> >& rows) const;
++  // (rowScores != nullptr: also receives the score of each row, in the order of rows)
+   int countPositives(const std::vector<double>& w, double fdr, bool skipDecoysPlusOne,
+-                     const std::vector<std::pair<const double*, bool> >& rows) const;
++                     const std::vector<std::pair<const double*, bool> >& rows,
++                     std::vector<double>* rowScores = nullptr) const;
++  // OpenMS: calcScoresAndQvals(w, fdr, skipDecoysPlusOne) with the scores of w already computed for
++  // the rows of getFeatureRows (rowScores, from countPositives); see Scores.cpp
++  int calcScoresOfRowsAndQvals(std::vector<double>& w,
++                               const std::vector<std::pair<const double*, bool> >& rows,
++                               const std::vector<double>& rowScores, double fdr,
++                               bool skipDecoysPlusOne = false);
+   int calcQvals(double fdr, bool skipDecoysPlusOne = false);
+   void calcPep(const bool spline = false, const bool interpol = false, const bool from_q = false);
+  

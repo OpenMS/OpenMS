@@ -284,6 +284,11 @@ set(format_executables_list
   PercolatorInfile_test
   PercolatorOutfile_test
   PercolatorPosteriorEstimator_test
+  PercolatorReset_test
+  PercolatorTron_test
+  PercolatorNewton_test
+  PercolatorSampler_test
+  PercolatorBestPositive_test
   PercolatorScores_test
   ProtXMLFile_test
   QcMLFile_test

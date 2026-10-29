@@ -14,6 +14,8 @@
 #ifndef _svmlin_H
 #define _svmlin_H
 
+#include <cstddef>
+#include <memory>
 #include <vector>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
@@ -67,6 +69,9 @@ struct options {
   double epsilon;
   int cgitermax;
   int mfnitermax;
+  // OpenMS: the caller needs the weights only (tron(): the Outputs are not computed, the convergence check after
+  // the solve is skipped and tron() returns 1); the weights are the same
+  bool weightsOnly = false;
 };
 
 // TRON solver — the real implementation. Returns 1 if the post-solve
@@ -79,9 +84,74 @@ struct options {
 // weights. opts.cgitermax is silently ignored — vendored liblinear TRON
 // has no cgitermax analogue (inner CG is an uncapped while-loop until
 // cg-tolerance or trust-region exit).
+//
+// OpenMS: on x86-64 builds for the baseline instruction set (no AVX, no FMA), the
+// function object runs on kernels for SSE2 or AVX2 (chosen at run time), with the
+// same results bit for bit (tron_kernels.h). gradRatio (optional) receives the
+// gradient-norm ratio (0 if ||g(w_0)|| = 0).
+class TronPairGroup;
 int tron(const AlgIn& set, options& opts,
          vector_double& Weights, vector_double& Outputs,
-         double cpos, double cneg);
+         double cpos, double cneg, double* gradRatio = nullptr,
+         TronPairGroup* group = nullptr);
+
+// OpenMS: solves of tron() on the same set (e.g. the (Cpos, Cneg) pairs of a cross-validation fold, which run at
+// the same time) that pass the same group share one copy of the set's features in the solver's layout: it is
+// built once, by the solves that start while it is built, instead of once per solve. Results are bit-identical to
+// solves alone. A solve waits only while the copy is being built by running solves; solves with another set or
+// size, or on the reference solver, build their own. The group must outlive its solves, and the set (its rows, their
+// contents and the labels) must not change during the group's lifetime: a solve checks only the set's address, size,
+// row array, first and last row and class counts (int14 review r3), so one group per set and step, as CrossValidation
+// makes them.
+class TronPairGroup {
+ public:
+  explicit TronPairGroup(const AlgIn& set);
+  ~TronPairGroup();
+  TronPairGroup(const TronPairGroup&) = delete;
+  TronPairGroup& operator=(const TronPairGroup&) = delete;
+  struct State;
+  State* state() { return state_.get(); }  // (ssl.cpp)
+
+ private:
+  std::unique_ptr<State> state_;
+};
+
+// OpenMS: asks Linux to back the 2 MiB pages that lie inside [p, p + bytes) with transparent huge pages (a hint, which
+// the kernel follows in its "always" and "madvise" THP modes; nothing elsewhere, and nothing for blocks under 4 MiB).
+// For large buffers that are written once and read many times (the training matrices of a large data set): 512
+// times fewer page faults to fill them, far fewer TLB misses to read them. Call it before the first write. Values are
+// not affected.
+void adviseHugePages(const void* p, std::size_t bytes);
+
+// OpenMS: whether a TronWorkspaceHold exists (the Newton solver keeps its buffers then as well)
+bool tronWorkspacesHeld();
+
+// OpenMS: while an object of this class exists, tron() keeps the buffers of its finished solves
+// of any size for the next solves (otherwise those above 64 MB are freed after the solve); the
+// last one to end frees them. CrossValidation holds one during its training.
+class TronWorkspaceHold {
+ public:
+  TronWorkspaceHold();
+  ~TronWorkspaceHold();
+  TronWorkspaceHold(const TronWorkspaceHold&) = delete;
+  TronWorkspaceHold& operator=(const TronWorkspaceHold&) = delete;
+};
+
+// OpenMS, for tests: selects the function object of tron() for all threads: "ref"
+// (the reference TronFunction), "sse2" or "avx2" (the kernels); nullptr = the
+// default (environment variable OPENMS_TRON_ISA = ref|sse2|avx2, else AVX2 if the
+// CPU has it). Returns false, and changes nothing, if the path is not available
+// in this build or on this CPU.
+bool tronSelectKernels(const char* isa);
+
+// OpenMS, for tests: the function object of tron() ("ref", "sse2" or "avx2") on the
+// problem of tron(set, opts, ..., cpos, cneg) with opts.lambda = lambda, called as
+// TRON calls it: f[0] = fun(0), g[0..n) = grad(0), Hs[0..n) = Hv(s), then f[1] =
+// fun(w), g[n..2n) = grad(w), Hs[n..2n) = Hv(s) (n = set.n). Returns false if the
+// kernels are not available.
+bool tronEvaluateForTest(const char* isa, const AlgIn& set, double cpos, double cneg,
+                         double lambda, const double* w, const double* s,
+                         double* f, double* g, double* Hs);
 
 // Drop-in replacement for the legacy SVMlin-based L2_SVM_MFN. The
 // original implementation in this file was the modified-finite-Newton
@@ -98,8 +168,8 @@ int tron(const AlgIn& set, options& opts,
 // compile unchanged.
 inline int L2_SVM_MFN(const AlgIn& set, options& opts,
                       vector_double& Weights, vector_double& Outputs,
-                      double cpos, double cneg) {
-  return tron(set, opts, Weights, Outputs, cpos, cneg);
+                      double cpos, double cneg, TronPairGroup* group = nullptr) {
+  return tron(set, opts, Weights, Outputs, cpos, cneg, nullptr, group);
 }
 
 }}}  // namespace OpenMS::Internal::Percolator

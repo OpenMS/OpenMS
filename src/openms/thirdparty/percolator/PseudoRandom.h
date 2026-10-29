@@ -36,6 +36,18 @@ class PseudoRandom {
   static unsigned long lcg_rand();
   static double lcg_uniform_rand();
   const static uint64_t kRandMax = 4294967291u;
+  // OpenMS: the numbers of lcg_rand and lcg_uniform_rand from a state of the caller's (to draw
+  // parts of the sequence in parallel), the generator's state, and the state after a number of
+  // draws (jumps ahead without drawing)
+  inline static unsigned long lcg_rand(uint64_t& state) {
+    state = (state * 279470273u) % 4294967291u;
+    return state;
+  }
+  inline static double lcg_uniform_rand(uint64_t& state) {
+    return (double)PseudoRandom::lcg_rand(state) / ((double)PseudoRandom::kRandMax + (double)1);
+  }
+  inline static uint64_t getSeed() { return seed_; }
+  static uint64_t advance(uint64_t state, uint64_t draws);
  protected:
   static uint64_t seed_;
 };

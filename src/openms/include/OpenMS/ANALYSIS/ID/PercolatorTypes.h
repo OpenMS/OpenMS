@@ -12,6 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <string>
 #include <vector>
 
 namespace OpenMS
@@ -26,7 +27,7 @@ namespace OpenMS
   struct OPENMS_DLLAPI RescoreInput
   {
     /// [n_rows][n_features] scalar features per row. Rows must all have
-    /// the same length.
+    /// the same length. Empty if the rows are in the dense @ref feature_matrix.
     std::vector<std::vector<double>> features;
     /// Target (false) or decoy (true) label per row.
     std::vector<bool> is_decoy;
@@ -63,14 +64,57 @@ namespace OpenMS
     std::vector<int>    spec_file_numbers;
     std::vector<double> exp_masses;
     std::vector<double> calc_masses;
+
+    /**
+      @brief The feature matrix in one dense block, in place of @ref features.
+
+      Row-major: row i holds the values of the feature_names.size() features at
+      [i * feature_names.size(), (i + 1) * feature_names.size()). Used when
+      @ref features is empty (at most one of the two may hold rows); the number
+      of rows is then is_decoy.size(). rowCount(), featureCount() and row()
+      read the rows of either layout.
+
+      Percolator::buildPSMRescoreInput() builds the feature matrix of PSM
+      rescoring this way, straight from the PSMs.
+    */
+    std::vector<double> feature_matrix;
+
+    /// Optional per-row peptide key for peptide-level q-values (Percolator parameter 'peptide_level'): rows with the
+    /// same key and label are one peptide, as the percolator executable groups PSMs by the PIN 'Peptide' string
+    /// between the flanks (incl. modifications). Empty, or one entry per row.
+    std::vector<std::string> peptide_keys;
+
+    /// Number of rows: of @ref features, or else of the dense @ref feature_matrix
+    size_t rowCount() const
+    {
+      return features.empty() && !feature_matrix.empty() ? is_decoy.size() : features.size();
+    }
+
+    /// Number of features per row: of the first row of @ref features, or else feature_names.size() (0 without rows)
+    size_t featureCount() const
+    {
+      if (!features.empty()) return features.front().size();
+      return feature_matrix.empty() ? 0 : feature_names.size();
+    }
+
+    /// The featureCount() values of row @p i: of @ref features, or else of the dense @ref feature_matrix
+    const double* row(size_t i) const
+    {
+      return !features.empty() ? features[i].data() : feature_matrix.data() + i * feature_names.size();
+    }
   };
 
-  /// Output from Percolator::rescore. Aligned 1:1 with RescoreInput::features.
+  /// Output from Percolator::rescore. Aligned 1:1 with the rows of the RescoreInput (RescoreInput::rowCount()).
   struct OPENMS_DLLAPI RescoreOutput
   {
     std::vector<double> scores;     ///< SVM discriminant score per row
     std::vector<double> q_values;   ///< q-value per row
     std::vector<double> peps;       ///< posterior error probability per row
+    /// With Percolator parameter 'peptide_level' (and RescoreInput::peptide_keys): per row, the q-value and PEP of its
+    /// peptide (key and label) at the peptide level; 1 for a row whose peptide has no PSM left after the target-decoy
+    /// competition. Empty otherwise.
+    std::vector<double> peptide_q_values;
+    std::vector<double> peptide_peps;
   };
 
   /**

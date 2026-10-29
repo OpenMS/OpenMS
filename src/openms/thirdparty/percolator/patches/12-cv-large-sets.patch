@@ -1,0 +1,103 @@
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
+index 005531d6b0..8e22bd47ed 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.cpp
++++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
+@@ -59,6 +59,16 @@ constexpr unsigned int kMaxTeamThreads = 12;
+ [[maybe_unused]] static int numTeamThreads(unsigned int numThreads) {
+   return numLoopThreads(std::min(numThreads, kMaxTeamThreads));
+ }
++// OpenMS: from training sets of kLargeTrainingSet PSMs on, the tasks of a fold chain's own passes
++// (the scoring, sorting and q-values of its sets, the scoring of its validations) are large enough
++// for more threads: the fold chains then get all threads.
++constexpr std::size_t kLargeTrainingSet = std::size_t(1) << 18;
++[[maybe_unused]] static int numChainTeamThreads(unsigned int numThreads,
++                                                const std::vector<Scores>& trainScores) {
++  std::size_t largest = 0;
++  for (const Scores& set : trainScores) largest = std::max<std::size_t>(largest, set.size());
++  return largest >= kLargeTrainingSet ? numLoopThreads(numThreads) : numTeamThreads(numThreads);
++}
+ // OpenMS: the set-up of the folds (preIterationSetup: the folds' sets and initial directions,
+ // whose 31 sorts per fold run one after the other) gains from a few more threads for the tasks
+ // of its sorts: at most kMaxSetupTeamThreads.
+@@ -385,7 +395,7 @@ void CrossValidation::trainFoldChains() {
+   vector<FoldError> foldErrors(numFolds_);
+   const bool scored = trainScoresOfWeights_;
+   trainScoresOfWeights_ = false;
+-#pragma omp parallel num_threads(numTeamThreads(numThreads_))
++#pragma omp parallel num_threads(numChainTeamThreads(numThreads_, trainScores_))
+ #pragma omp single
+ #pragma omp taskloop grainsize(1)
+   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
+index ada09cf6b7..20e0af7570 100644
+--- a/src/openms/thirdparty/percolator/Scores.cpp
++++ b/src/openms/thirdparty/percolator/Scores.cpp
+@@ -50,6 +50,10 @@ namespace OpenMS { namespace Internal { namespace Percolator {
+ 
+ // OpenMS: the smallest block of PSMs a task scores (Scores::calcScores)
+ [[maybe_unused]] constexpr std::ptrdiff_t kMinScoreTaskSize = 2048;
++// OpenMS: from this many PSMs on, the validations of the (Cpos, Cneg) pairs (countPositives) score
++// the PSMs and sort as tasks of the enclosing OpenMP parallel region (in which the cross-validation
++// runs them), and so does getFeatureRows
++[[maybe_unused]] constexpr std::ptrdiff_t kLargeSet = std::ptrdiff_t(1) << 17;
+ 
+ // OpenMS: whether ScoreHolder's operator< and operator> (score, scan, expMass, label) are a
+ // strict weak ordering on [first, last): no score or mass is NaN.
+@@ -594,10 +598,14 @@ void Scores::getFeatureRows(std::vector<pair<const double*, bool> >& rows) const
+   for (const ScoreHolder& sh : scores_) {
+     rows.emplace_back(sh.pPSM->features, sh.isTarget());
+   }
+-  std::sort(rows.begin(), rows.end(),
+-            [](const pair<const double*, bool>& a, const pair<const double*, bool>& b) {
+-              return std::less<const double*>()(a.first, b.first);
+-            });
++  const auto byAddress = [](const pair<const double*, bool>& a, const pair<const double*, bool>& b) {
++    return std::less<const double*>()(a.first, b.first);
++  };
++  if (static_cast<std::ptrdiff_t>(rows.size()) >= kLargeSet) {
++    sortLikeStdSort(rows, byAddress);
++  } else {
++    std::sort(rows.begin(), rows.end(), byAddress);
++  }
+ }
+ 
+ /**
+@@ -607,9 +615,22 @@ void Scores::getFeatureRows(std::vector<pair<const double*, bool> >& rows) const
+ int Scores::countPositives(const std::vector<double>& w, double fdr, bool skipDecoysPlusOne,
+                            const std::vector<pair<const double*, bool> >& rows) const {
+   std::vector<pair<double, bool> > combined;
+-  combined.reserve(rows.size());
+-  for (const pair<const double*, bool>& row : rows) {
+-    combined.emplace_back(calcScore(row.first, w), row.second);
++  const std::ptrdiff_t numRows = static_cast<std::ptrdiff_t>(rows.size());
++#ifdef _OPENMP
++  if (numRows >= kLargeSet && omp_in_parallel()) {
++    combined.resize(rows.size());
++#pragma omp taskloop grainsize(numRows / 64) shared(combined, rows, w)
++    for (std::ptrdiff_t i = 0; i < numRows; ++i) {
++      const pair<const double*, bool>& row = rows[static_cast<std::size_t>(i)];
++      combined[static_cast<std::size_t>(i)] = {calcScore(row.first, w), row.second};
++    }
++  } else
++#endif
++  {
++    combined.reserve(rows.size());
++    for (const pair<const double*, bool>& row : rows) {
++      combined.emplace_back(calcScore(row.first, w), row.second);
++    }
+   }
+   return countPositivesOfScores(combined, w, fdr, skipDecoysPlusOne);
+ }
+@@ -685,7 +706,11 @@ bool Scores::countPositivesOfTop(std::vector<pair<double, bool> >& combined, dou
+     const double tailFdr =
+         (topDecoys * pi0 + 0.0) / (double)((std::max)(1, numTargets)) * decoyFactor;
+     if (!((std::min)(tailFdr, 1.0) >= fdr)) continue;
+-    std::sort(combined.begin(), topEnd, greater);
++    if (topEnd - combined.begin() >= kLargeSet) {
++      sortLikeStdSort(combined.data(), combined.data() + (topEnd - combined.begin()), greater);
++    } else {
++      std::sort(combined.begin(), topEnd, greater);
++    }
+     // the loop of getQValues on the top part
+     PosteriorEstimator::setNegative(true);  // as countPositivesOfPairs
+     int n_z_ge_w = skipDecoysPlusOne ? 0 : 1, n_w_ge_w = 0;

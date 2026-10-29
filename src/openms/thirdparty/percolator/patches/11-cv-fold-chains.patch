@@ -1,0 +1,506 @@
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
+index 1b2a576f6b..005531d6b0 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.cpp
++++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
+@@ -59,6 +59,13 @@ constexpr unsigned int kMaxTeamThreads = 12;
+ [[maybe_unused]] static int numTeamThreads(unsigned int numThreads) {
+   return numLoopThreads(std::min(numThreads, kMaxTeamThreads));
+ }
++// OpenMS: the set-up of the folds (preIterationSetup: the folds' sets and initial directions,
++// whose 31 sorts per fold run one after the other) gains from a few more threads for the tasks
++// of its sorts: at most kMaxSetupTeamThreads.
++constexpr unsigned int kMaxSetupTeamThreads = 16;
++[[maybe_unused]] static int numSetupTeamThreads(unsigned int numThreads) {
++  return numLoopThreads(std::min(numThreads, kMaxSetupTeamThreads));
++}
+ 
+ // OpenMS: rethrows the first error, in iteration order, caught in the iterations of a
+ // parallel loop (an exception must not leave an OpenMP region).
+@@ -149,7 +156,7 @@ int CrossValidation::preIterationSetup(Scores& fullset,
+   unsigned int decoysPerTarget = 1u;  // TODO: make this a command line argument
+   // OpenMS: in a parallel region, whose threads run the tasks of the sort (see SortLikeStd.h)
+   std::exception_ptr xvalError;
+-#pragma omp parallel num_threads(numTeamThreads(numThreads_))
++#pragma omp parallel num_threads(numSetupTeamThreads(numThreads_))
+ #pragma omp single
+   try {
+     fullset.createXvalSetsBySpectrum(trainScores_, testScores_, numFolds_,
+@@ -163,7 +170,7 @@ int CrossValidation::preIterationSetup(Scores& fullset,
+   // initialize weights vector for all folds
+   weights_ = vector<vector<double> >(
+       numFolds_, vector<double>(FeatureNames::getNumFeatures() + 1));
+-  pCheck->setNumThreads(static_cast<unsigned int>(numTeamThreads(numThreads_)));
++  pCheck->setNumThreads(static_cast<unsigned int>(numSetupTeamThreads(numThreads_)));
+   int numPositive =
+       pCheck->getInitDirection(testScores_, trainScores_, pNorm, weights_,
+                                testFdr_, initialSelectionFdr_);
+@@ -253,6 +260,11 @@ void CrossValidation::train(const Normalizer* pNorm) {
+     cerr << ", initial_fdr=" << initialSelectionFdr_;
+     cerr << ", fdr=" << selectionFdr_ << endl;
+   }
++  if (!quickValidation_ && !reportPerformanceEachIteration_ && nestedXvalBins_ == 1 &&
++      VERB <= 2) {
++    trainFoldChains();
++    return;
++  }
+ 
+   // iterate
+   int foundPositivesOldOld = 0, foundPositivesOld = 0, foundPositives = 0;
+@@ -333,6 +345,160 @@ void CrossValidation::train(const Normalizer* pNorm) {
+   }
+ }
+ 
++/**
++ * OpenMS: train() without quick validation (it stops when the sum over the folds of a step has
++ * not grown enough), nested cross-validation (it draws the nested sets at random) and the reports
++ * of each step's training sets and weights (VERB > 2, reportPerformanceEachIteration_). Then a
++ * fold depends on no other fold until the end of the training, and each fold runs its steps
++ * (scoring its training set, its SVM inputs, its (cpos, cneg) pairs as tasks, the choice of its
++ * best pair, scoring its training set with the chosen weights: what doStep and mergeCpCnPairs do
++ * for it, in the same order) and then the scoring of its test set as one task, instead of waiting
++ * for the other folds at each stage. The counts are added up in fold order afterwards, and the
++ * reports printed as train() prints them. An error ends its fold's task; the error train() would
++ * have thrown (the first by step, then by stage, then by fold) is rethrown after the reports of
++ * the steps before it.
++ */
++void CrossValidation::trainFoldChains() {
++  options pOptions;
++  pOptions.lambda = 1.0;
++  pOptions.lambda_u = 1.0;
++  pOptions.epsilon = EPSILON;
++  pOptions.cgitermax = CGITERMAX;
++  pOptions.mfnitermax = MFNITERMAX;
++  // the decoys+1 of doStep's training sets and validations, see there
++  const bool skipDecoysPlusOne = true;
++  const bool skipDecoysPlusOneValidation = true;
++  const std::size_t numCpCnPairsPerSet = classWeightsPerFold_.size() / numFolds_;
++  // the rows are collected (and sorted) once per fold: worth it when a fold validates a few pairs
++  const bool useRows = static_cast<std::size_t>(niter_) * numCpCnPairsPerSet >= 3u;
++  // positives of each step and fold (as in mergeCpCnPairs), and of each fold's test set
++  vector<vector<int> > stepPositives(niter_, vector<int>(numFolds_, 0));
++  vector<int> testPositives(numFolds_);
++  vector<int> pairTruePoses(classWeightsPerFold_.size());
++  // the step and stage of each fold's error (stages of a step: 0 scoring, 1 SVM inputs, 2 pairs,
++  // 3 choice, 4 scoring with the chosen weights; the test sets: step niter_, stage 0)
++  struct FoldError {
++    unsigned int step = 0;
++    int stage = 0;
++    std::exception_ptr error;
++  };
++  vector<FoldError> foldErrors(numFolds_);
++  const bool scored = trainScoresOfWeights_;
++  trainScoresOfWeights_ = false;
++#pragma omp parallel num_threads(numTeamThreads(numThreads_))
++#pragma omp single
++#pragma omp taskloop grainsize(1)
++  for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
++    unsigned int step = 0;
++    int stage = 0;
++    // the feature rows of the training set (its PSMs and labels do not change during the training;
++    // its test sets of the pairs hold the same PSMs), for counting the positives of the pairs
++    std::vector<std::pair<const double*, bool> > rows;
++    try {
++      for (; step < niter_; ++step) {
++        const double selectionFdr = step == 0u ? initialSelectionFdr_ : selectionFdr_;
++        stage = 0;
++        // the scores of the training set are those of its weights after the first step (doStep)
++        if (scored || step > 0u) {
++          trainScores_[set].sortScoresAndCalcQvals(selectionFdr, skipDecoysPlusOne);
++        } else {
++          trainScores_[set].calcScoresAndQvals(weights_[set], selectionFdr, skipDecoysPlusOne);
++        }
++        stage = 1;
++        std::vector<Scores> nestedTestScores;
++        const Scores* testSet = nullptr;
++        setupFoldInputs(set, selectionFdr, nestedTestScores, &testSet);
++        stage = 2;
++        if (step == 0u && useRows) trainScores_[set].getFeatureRows(rows);
++        vector<std::exception_ptr> pairErrors(numCpCnPairsPerSet);
++        for (std::size_t k = 0; k < numCpCnPairsPerSet; ++k) {
++#pragma omp task default(shared) firstprivate(k)
++          {
++            try {
++              const std::size_t pairIdx = set * numCpCnPairsPerSet + k;
++              CandidateCposCfrac& cpCnFold = classWeightsPerFold_[pairIdx];
++              trainCpCnPair(cpCnFold, pOptions, svmInputs_[cpCnFold.set]);
++              pairTruePoses[pairIdx] =
++                  useRows ? testSet->countPositives(cpCnFold.ww, testFdr_,
++                                                    skipDecoysPlusOneValidation, rows)
++                          : testSet->countPositives(cpCnFold.ww, testFdr_,
++                                                    skipDecoysPlusOneValidation);
++            } catch (...) {
++              pairErrors[k] = std::current_exception();
++            }
++          }
++        }
++#pragma omp taskwait
++        rethrowFirstError(pairErrors);
++        stage = 3;
++        // mergeCpCnPairs without nested cross-validation, for this fold
++        int bestTruePoses = 0;
++        for (std::size_t k = 0; k < numCpCnPairsPerSet; ++k) {
++          const std::size_t pairIdx = set * numCpCnPairsPerSet + k;
++          CandidateCposCfrac& cpCnFold = classWeightsPerFold_[pairIdx];
++          const int tp = pairTruePoses[pairIdx];
++          cpCnFold.tp = tp;
++          if (tp >= bestTruePoses) {
++            bestTruePoses = tp;
++            weights_[set] = cpCnFold.ww;
++          }
++        }
++        stage = 4;
++        stepPositives[step][set] =
++            trainScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
++      }
++      stage = 0;
++      testPositives[set] = testScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
++    } catch (...) {
++      foldErrors[set].step = step;
++      foldErrors[set].stage = stage;
++      foldErrors[set].error = std::current_exception();
++    }
++  }
++  const FoldError* firstError = nullptr;
++  for (const FoldError& foldError : foldErrors) {
++    if (foldError.error &&
++        (!firstError || foldError.step < firstError->step ||
++         (foldError.step == firstError->step && foldError.stage < firstError->stage))) {
++      firstError = &foldError;
++    }
++  }
++  const unsigned int stepsDone = firstError ? firstError->step : niter_;
++  // as after the last mergeCpCnPairs (unchanged without steps); false after an error in a step
++  trainScoresOfWeights_ = stepsDone == niter_ && (niter_ > 0u || scored);
++  for (unsigned int i = 0; i < niter_; i++) {
++    if (VERB > 1) {
++      cerr << "Iteration " << i + 1 << ":\t";
++    }
++    if (i == stepsDone) {
++      std::rethrow_exception(firstError->error);
++    }
++    double bestTruePos = 0;
++    for (std::size_t set = 0; set < numFolds_; ++set) {
++      bestTruePos += stepPositives[i][set];
++    }
++    const int foundPositives = static_cast<int>(bestTruePos / (numFolds_ - 1));
++    if (VERB > 1) {
++      cerr << "Estimated " << foundPositives << " PSMs with q<" << testFdr_
++           << endl;
++    }
++  }
++  if (VERB == 2) {
++    printAllWeightsColumns(cerr);
++  }
++  if (firstError) {
++    std::rethrow_exception(firstError->error);
++  }
++  int foundPositives = 0;
++  for (size_t set = 0; set < numFolds_; ++set) {
++    foundPositives += testPositives[set];
++  }
++  if (VERB > 0) {
++    std::cerr << "Found " << foundPositives << " test set PSMs with q<"
++              << testFdr_ << "." << std::endl;
++  }
++}
++
+ /**
+  * Executes a cross validation step
+  * @param w_ list of the bins' normal vectors (in linear algebra sense) of the
+@@ -404,46 +570,11 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+   vector<std::exception_ptr> setupErrors(numFolds_);
+   const auto setupFold = [&](int set) {
+     try {
+-      if (VERB > 2) {
+-        const AlgIn* svmInput = svmInputs_[set * nestedXvalBins_];
+-        cerr << "Split " << set + 1 << ": Training with " << svmInput->positives
+-             << " positives and " << svmInput->negatives << " negatives"
+-             << std::endl;
+-      }
+-      if (nestedXvalBins_ == 1 &&
+-          trainScores_[set].generateTrainingSetsOfSortedSet(*svmInputs_[set], selectionFdr,
+-                                                            trainBestPositive_)) {
+-        svmInputsVec[set] = svmInputs_[set];
+-        pairTestScores[set] = &trainScores_[set];
+-        return;
+-      }
+-      std::vector<Scores> nestedTrainScores(nestedXvalBins_, usePi0_),
+-          nestedTestScores(nestedXvalBins_, usePi0_);
+-      if (nestedXvalBins_ > 1) {
+-        FeatureMemoryPool featurePool;
+-        trainScores_[set].createXvalSetsBySpectrum(
+-            nestedTrainScores, nestedTestScores, nestedXvalBins_, featurePool);
+-      } else {
+-        // sub-optimal cross validation
+-        nestedTrainScores[0] = trainScores_[set];
+-        nestedTestScores[0] = trainScores_[set];
+-      }
+-      nestedTestScoresVec[set] = nestedTestScores;
+-      // Set SVM input data for L2-SVM-MFN
+-      for (std::size_t nestedFold = 0; nestedFold < nestedXvalBins_;
+-           ++nestedFold) {
+-        AlgIn* svmInput = svmInputs_[set * nestedXvalBins_ + nestedFold];
+-        nestedTrainScores[nestedFold].generateNegativeTrainingSet(*svmInput, 1.0);
+-        nestedTrainScores[nestedFold].generatePositiveTrainingSet(
+-            *svmInput, selectionFdr, 1.0, trainBestPositive_);
+-        if ((VERB > 2) && (nestedXvalBins_ > 1u)) {
+-          cerr << "Split " << set + 1 << " nested fold " << nestedFold
+-               << ": Training with " << svmInput->positives << " positives and "
+-               << svmInput->negatives << " negatives" << std::endl;
+-        }
+-        svmInputsVec[set * nestedXvalBins_ + nestedFold] = svmInput;
+-        pairTestScores[set * nestedXvalBins_ + nestedFold] =
+-            &nestedTestScoresVec[set][nestedFold];
++      setupFoldInputs(set, selectionFdr, nestedTestScoresVec[set],
++                      &pairTestScores[set * nestedXvalBins_]);
++      for (std::size_t nestedFold = 0; nestedFold < nestedXvalBins_; ++nestedFold) {
++        svmInputsVec[set * nestedXvalBins_ + nestedFold] =
++            svmInputs_[set * nestedXvalBins_ + nestedFold];
+       }
+     } catch (...) {
+       setupErrors[set] = std::current_exception();
+@@ -497,6 +628,53 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+   return estTruePos;
+ }
+ 
++/**
++ * OpenMS: sets up the SVM inputs of fold set (svmInputs_[set * nestedXvalBins_ + nestedFold])
++ * from its training set, as doStep did: testSets[nestedFold] is the set the (cpos, cneg) pairs of
++ * the nested fold are validated on, the training set itself or one of nestedTestScores.
++ */
++void CrossValidation::setupFoldInputs(int set, double selectionFdr,
++                                      std::vector<Scores>& nestedTestScores,
++                                      const Scores** testSets) {
++  if (VERB > 2) {
++    const AlgIn* svmInput = svmInputs_[set * nestedXvalBins_];
++    cerr << "Split " << set + 1 << ": Training with " << svmInput->positives
++         << " positives and " << svmInput->negatives << " negatives"
++         << std::endl;
++  }
++  if (nestedXvalBins_ == 1 &&
++      trainScores_[set].generateTrainingSetsOfSortedSet(*svmInputs_[set], selectionFdr,
++                                                        trainBestPositive_)) {
++    testSets[0] = &trainScores_[set];
++    return;
++  }
++  std::vector<Scores> nestedTrainScores(nestedXvalBins_, usePi0_);
++  nestedTestScores.assign(nestedXvalBins_, Scores(usePi0_));
++  if (nestedXvalBins_ > 1) {
++    FeatureMemoryPool featurePool;
++    trainScores_[set].createXvalSetsBySpectrum(
++        nestedTrainScores, nestedTestScores, nestedXvalBins_, featurePool);
++  } else {
++    // sub-optimal cross validation
++    nestedTrainScores[0] = trainScores_[set];
++    nestedTestScores[0] = trainScores_[set];
++  }
++  // Set SVM input data for L2-SVM-MFN
++  for (std::size_t nestedFold = 0; nestedFold < nestedXvalBins_;
++       ++nestedFold) {
++    AlgIn* svmInput = svmInputs_[set * nestedXvalBins_ + nestedFold];
++    nestedTrainScores[nestedFold].generateNegativeTrainingSet(*svmInput, 1.0);
++    nestedTrainScores[nestedFold].generatePositiveTrainingSet(
++        *svmInput, selectionFdr, 1.0, trainBestPositive_);
++    if ((VERB > 2) && (nestedXvalBins_ > 1u)) {
++      cerr << "Split " << set + 1 << " nested fold " << nestedFold
++           << ": Training with " << svmInput->positives << " positives and "
++           << svmInput->negatives << " negatives" << std::endl;
++    }
++    testSets[nestedFold] = &nestedTestScores[nestedFold];
++  }
++}
++
+ /**
+  * Train SVM over a single (cpos, cneg) pair
+  * @param cpCnFold contains cpos, cneg pair and SVM learned weights
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.h b/src/openms/thirdparty/percolator/CrossValidation.h
+index 3fcefdd056..b518ce830d 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.h
++++ b/src/openms/thirdparty/percolator/CrossValidation.h
+@@ -139,6 +139,10 @@ class CrossValidation {
+                      const vector<double>& cpos_vec,
+                      const vector<double>& cfrac_vec);
+   int doStep(const Normalizer* pNorm, double selectionFdr);
++  // OpenMS: see CrossValidation.cpp
++  void setupFoldInputs(int set, double selectionFdr, std::vector<Scores>& nestedTestScores,
++                       const Scores** testSets);
++  void trainFoldChains();
+ 
+   void printSetWeights(ostream& weightStream, unsigned int set);
+   void printRawSetWeights(ostream& weightStream,
+diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
+index d14a15f0c0..ada09cf6b7 100644
+--- a/src/openms/thirdparty/percolator/Scores.cpp
++++ b/src/openms/thirdparty/percolator/Scores.cpp
+@@ -18,6 +18,7 @@
+ #include <boost/assign.hpp>
+ #include <cassert>
+ #include <exception>
++#include <functional>
+ #include <cmath>
+ #include <fstream>
+ #include <iostream>
+@@ -578,12 +579,55 @@ int Scores::countPositives(const std::vector<double>& w, double fdr,
+   for (const ScoreHolder& sh : scores_) {
+     combined.emplace_back(calcScore(sh.pPSM->features, w), sh.isTarget());
+   }
++  return countPositivesOfScores(combined, w, fdr, skipDecoysPlusOne);
++}
++
++/**
++ * OpenMS: the feature rows of the PSMs (pPSM->features) with their isTarget(), sorted by address:
++ * countPositives(w, fdr, skipDecoysPlusOne, rows) reads the rows in the order they are in memory
++ * instead of following each PSM's pointers in the order of the scores. The rows stay valid as
++ * long as the set holds the same PSMs with the same labels, in any order.
++ */
++void Scores::getFeatureRows(std::vector<pair<const double*, bool> >& rows) const {
++  rows.clear();
++  rows.reserve(scores_.size());
++  for (const ScoreHolder& sh : scores_) {
++    rows.emplace_back(sh.pPSM->features, sh.isTarget());
++  }
++  std::sort(rows.begin(), rows.end(),
++            [](const pair<const double*, bool>& a, const pair<const double*, bool>& b) {
++              return std::less<const double*>()(a.first, b.first);
++            });
++}
++
++/**
++ * OpenMS: countPositives(w, fdr, skipDecoysPlusOne) with the rows of getFeatureRows of this set
++ * (the count does not depend on the order of the scores, see countPositives).
++ */
++int Scores::countPositives(const std::vector<double>& w, double fdr, bool skipDecoysPlusOne,
++                           const std::vector<pair<const double*, bool> >& rows) const {
++  std::vector<pair<double, bool> > combined;
++  combined.reserve(rows.size());
++  for (const pair<const double*, bool>& row : rows) {
++    combined.emplace_back(calcScore(row.first, w), row.second);
++  }
++  return countPositivesOfScores(combined, w, fdr, skipDecoysPlusOne);
++}
++
++// OpenMS: countPositives from the (score, isTarget) pairs of the PSMs, in any order
++int Scores::countPositivesOfScores(std::vector<pair<double, bool> >& combined,
++                                   const std::vector<double>& w, double fdr,
++                                   bool skipDecoysPlusOne) const {
+   if (std::any_of(combined.begin(), combined.end(),
+                   [](const pair<double, bool>& x) { return std::isnan(x.first); })) {
+     Scores copy = *this;
+     std::vector<double> weights = w;
+     return copy.calcScoresAndQvals(weights, fdr, skipDecoysPlusOne);
+   }
++  int numPos = 0;
++  if (countPositivesOfTop(combined, fdr, skipDecoysPlusOne, numPos)) {
++    return numPos;
++  }
+   std::sort(combined.begin(), combined.end(),
+             [](const pair<double, bool>& a, const pair<double, bool>& b) {
+               return a.first > b.first;
+@@ -591,6 +635,79 @@ int Scores::countPositives(const std::vector<double>& w, double fdr,
+   return countPositivesOfPairs(combined, fdr, skipDecoysPlusOne);
+ }
+ 
++/**
++ * OpenMS: the count of countPositivesOfPairs (combined sorted by score, no NaN score) from the
++ * PSMs with the highest scores only, where that gives the same count; then true (combined is
++ * permuted), otherwise false (only permuted).
++ * With pi0 >= 1 (finite) and a finite decoy factor >= 0, getQValues makes no mix-max correction:
++ * at the end of each group of equal scores, FDR = (decoys * pi0 + 0) / max(1, targets) *
++ * decoyFactor (decoys and targets counted from the top, decoys from 1 without skipDecoysPlusOne),
++ * and the q-value of a PSM is the minimum of min(FDR, 1) at the ends of its group and the groups
++ * after it. So the positives are the targets up to the end of the last group with min(FDR, 1) <
++ * fdr. The groups of a top part (all PSMs scoring at least as high as the k-th highest, sorted)
++ * are walked as in getQValues; a group after the top part ends with at least the top part's
++ * decoys and at most all targets, and each operation of the expression is monotone, so its FDR
++ * is at least that of (decoys of the top part, all targets). If min(that, 1) >= fdr, no later
++ * group counts, and the top part is sorted and walked. Otherwise k grows; once the top part is
++ * all PSMs, false (the caller sorts them).
++ */
++bool Scores::countPositivesOfTop(std::vector<pair<double, bool> >& combined, double fdr,
++                                 bool skipDecoysPlusOne, int& numPos) const {
++  const double pi0 = pi0_;
++  const double decoyFactor = nullTargetWinProb_ / (1.0 - nullTargetWinProb_);
++  // (with fdr > 1 or NaN, no bound can exclude the later groups)
++  if (!(pi0 >= 1.0) || !std::isfinite(pi0) || !(decoyFactor >= 0.0) ||
++      !std::isfinite(decoyFactor) || !(fdr <= 1.0)) {
++    return false;
++  }
++  const auto greater = [](const pair<double, bool>& a, const pair<double, bool>& b) {
++    return a.first > b.first;
++  };
++  const std::size_t n = combined.size();
++  int numTargets = 0;
++  for (const pair<double, bool>& x : combined) {
++    if (x.second) ++numTargets;
++  }
++  for (std::size_t k = std::max<std::size_t>(4096, n / 8); k < n; k *= 4) {
++    std::nth_element(combined.begin(), combined.begin() + static_cast<std::ptrdiff_t>(k - 1),
++                     combined.end(), greater);
++    // the top part: the k highest scores and all PSMs scoring equal to the k-th (whole groups)
++    const double kth = combined[k - 1].first;
++    const auto topEnd = std::partition(
++        combined.begin() + static_cast<std::ptrdiff_t>(k), combined.end(),
++        [kth](const pair<double, bool>& x) { return x.first == kth; });
++    if (topEnd == combined.end()) break;
++    // the bound for the groups after the top part first (from its decoys, in any order)
++    int topDecoys = skipDecoysPlusOne ? 0 : 1;
++    for (auto it = combined.begin(); it != topEnd; ++it) {
++      if (!it->second) ++topDecoys;
++    }
++    const double tailFdr =
++        (topDecoys * pi0 + 0.0) / (double)((std::max)(1, numTargets)) * decoyFactor;
++    if (!((std::min)(tailFdr, 1.0) >= fdr)) continue;
++    std::sort(combined.begin(), topEnd, greater);
++    // the loop of getQValues on the top part
++    PosteriorEstimator::setNegative(true);  // as countPositivesOfPairs
++    int n_z_ge_w = skipDecoysPlusOne ? 0 : 1, n_w_ge_w = 0;
++    int count = 0;
++    for (auto it = combined.begin(); it != topEnd; ++it) {
++      if (it->second) {
++        ++n_w_ge_w;
++      } else {
++        ++n_z_ge_w;
++      }
++      if (it + 1 == topEnd || it->first != (it + 1)->first) {
++        const double groupFdr =
++            (n_z_ge_w * pi0 + 0.0) / (double)((std::max)(1, n_w_ge_w)) * decoyFactor;
++        if ((std::min)(groupFdr, 1.0) < fdr) count = n_w_ge_w;
++      }
++    }
++    numPos = count;
++    return true;
++  }
++  return false;
++}
++
+ /**
+  * Calculates the SVM cost/score of each PSM and sorts them
+  * @param w normal vector used for SVM cost
+diff --git a/src/openms/thirdparty/percolator/Scores.h b/src/openms/thirdparty/percolator/Scores.h
+index 74038b88cf..20a59b532b 100644
+--- a/src/openms/thirdparty/percolator/Scores.h
++++ b/src/openms/thirdparty/percolator/Scores.h
+@@ -90,6 +90,11 @@ class Scores {
+   // OpenMS: see Scores.cpp
+   int countPositives(const std::vector<double>& w, double fdr,
+                      bool skipDecoysPlusOne = false) const;
++  // OpenMS: the feature rows of the PSMs with their isTarget(), in the order of the rows in
++  // memory, and countPositives from these (see Scores.cpp)
++  void getFeatureRows(std::vector<std::pair<const double*, bool> >& rows) const;
++  int countPositives(const std::vector<double>& w, double fdr, bool skipDecoysPlusOne,
++                     const std::vector<std::pair<const double*, bool> >& rows) const;
+   int calcQvals(double fdr, bool skipDecoysPlusOne = false);
+   void calcPep(const bool spline = false, const bool interpol = false, const bool from_q = false);
+  
+@@ -163,6 +168,11 @@ class Scores {
+   // OpenMS: see Scores.cpp
+   int countPositivesOfPairs(const std::vector<std::pair<double, bool> >& combined,
+                          double fdr, bool skipDecoysPlusOne) const;
++  int countPositivesOfScores(std::vector<std::pair<double, bool> >& combined,
++                             const std::vector<double>& w, double fdr,
++                             bool skipDecoysPlusOne) const;
++  bool countPositivesOfTop(std::vector<std::pair<double, bool> >& combined, double fdr,
++                           bool skipDecoysPlusOne, int& numPos) const;
+   bool usePi0_;
+ 
+   double pi0_;

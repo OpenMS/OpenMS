@@ -26,6 +26,10 @@
 #include "FeatureNames.h"
 #include "Globals.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 namespace OpenMS { namespace Internal { namespace Percolator {
 
 using namespace std;
@@ -53,6 +57,42 @@ void Normalizer::normalizeSet(vector<double*>& featuresV,
     features = *it;
     normalize(features, features, offset, numFeatures);
   }
+}
+
+/**
+ * OpenMS: normalizeSet(featuresV, rtFeaturesV) for DISTINCT rows that do not overlap (the feature
+ * rows of the PSMs of a SetHandler: each PSM has its own row of a FeatureMemoryPool), on large
+ * sets without retention features by static blocks of rows on all threads: each value is
+ * normalized as by normalize(), so the rows get the same values. A row that occurs twice would be
+ * normalized by two threads at once (int14 review r3): the pool never gives a row to two PSMs.
+ */
+void Normalizer::normalizeRowsByFeature(vector<double*>& featuresV,
+                                        vector<double*>& rtFeaturesV) {
+#ifdef _OPENMP
+  // (with a team of one thread, the row-major loop of normalizeSet below, which is faster then)
+  bool byFeature = false;
+  if (rtFeaturesV.empty() && numRetentionFeatures == 0 && featuresV.size() >= 4096 &&
+      numFeatures >= 2 && omp_get_max_threads() > 1 && !omp_in_parallel()) {
+    const std::ptrdiff_t nf = static_cast<std::ptrdiff_t>(numFeatures);
+#pragma omp parallel
+    if (omp_get_num_threads() > 1) {
+#pragma omp single
+      byFeature = true;
+      // OpenMS: by blocks of rows (each row's features in a row: one pass over the rows, all threads), the same
+      // expression for every value as by feature
+      const std::ptrdiff_t numRows = static_cast<std::ptrdiff_t>(featuresV.size());
+#pragma omp for schedule(static)
+      for (std::ptrdiff_t r = 0; r < numRows; ++r) {
+        double* features = featuresV[static_cast<std::size_t>(r)];
+        for (std::ptrdiff_t ix = 0; ix < nf; ++ix) {
+          features[ix] = (features[ix] - sub[static_cast<std::size_t>(ix)]) / div[static_cast<std::size_t>(ix)];
+        }
+      }
+    }
+  }
+  if (byFeature) return;
+#endif
+  normalizeSet(featuresV, rtFeaturesV);
 }
 
 void Normalizer::normalize(const double* in, double* out, size_t offset,
