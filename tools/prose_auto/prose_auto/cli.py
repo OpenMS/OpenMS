@@ -68,6 +68,23 @@ def _outside_panel(ev, panel, max_n=2):
     return out[:max_n]
 
 
+def _panel_match(name, panel):
+    """the panel database of a species name (genus and species), if any"""
+    key = " ".join(str(name).replace("_", " ").split()[:2]).lower()
+    return next((k for k in panel if k.replace("_", " ").lower() == key), None)
+
+
+def _organism_shortlist(ev, panel, fastag_top, max_n=5):
+    """Tier-2 candidates: the stated organisms and confident FASTag calls the panel lacks (_outside_panel), then the
+    FASTag top-ranked species (in the panel or not), without duplicates."""
+    out = []
+    for o in _outside_panel(ev, panel) + list(fastag_top):
+        if " ".join(str(o).replace("_", " ").split()[:2]).lower() not in {" ".join(x.replace("_", " ").split()[:2]).lower()
+                                                                            for x in out}:
+            out.append(str(o))
+    return out[:max_n]
+
+
 def analyze(a, log=print):
     t0 = time.time()
     timings = {}
@@ -173,7 +190,8 @@ def analyze(a, log=print):
         log("  FASTag: genus call from sequence tags")
         try:
             ev += ext.fastag_species(a.fastag, spectra_file, ftol, funit, threads=a.threads,
-                                     subsample=a.fastag_subsample, log=log)
+                                     subsample=a.fastag_subsample, log=log, taxonomy_dir=a.fastag_taxonomy,
+                                     rank="species" if a.fastag_taxonomy else "genus")
             db = (h.best_db[1] if h is not None and h.best_db else None) or a.fasta
             if db:
                 log(f"  FASTag: mass-gap histogram against {os.path.basename(db)} without fixed modifications")
@@ -221,24 +239,32 @@ def analyze(a, log=print):
         e, jev_report = J.read_study(jev, study, user=bool(desc))
         ev += e
 
-    outside = _outside_panel(ev, panel)
-    if outside and h is not None and a.panel:
-        # a stated organism or a confident FASTag genus the panel lacks: fetch its proteome and let the
-        # mini-search compare it with the panel winner, instead of the nearest panel organism winning by default
-        extra = dict(p for p in (fetch_proteome(o, os.path.join(a.panel, "extra"), log) for o in outside) if p)
-        if extra:
-            log(f"  organism outside the panel: re-testing {', '.join(extra)} against the panel winner")
-            t = time.time()
-            rival = {h.best_db[0]: h.best_db[1]} if h.best_db else {}
+    # Organism, tier 2: the FASTag species ranking (extended index) gives a top-3 shortlist; with the stated
+    # organisms and confident FASTag calls the panel lacks, their reference proteomes are fetched (cached in
+    # <panel>/extra) and searched against the panel winner, so the nearest panel organism does not win by default
+    shortlist = _organism_shortlist(ev, panel, ext.fastag_shortlist(ev) if a.fastag_taxonomy else [])
+    if shortlist and h is not None and a.panel:
+        t = time.time()
+        dbs = {}
+        for o in shortlist:
+            hit = _panel_match(o, panel)
+            p = (hit, panel[hit]) if hit else fetch_proteome(o, os.path.join(a.panel, "extra"), log)
+            if p:
+                dbs[p[0]] = p[1]
+        prev = h.best_db[0] if h.best_db else None
+        if prev:
+            dbs[prev] = h.best_db[1]
+        if len(dbs) > 1 or (dbs and prev is None):
+            log(f"  organism tier 2: testing {', '.join(dbs)}")
             redo = ("organism", "precursor_offset", "precursor_tolerance", "fragment_offset", "fragment_tolerance",
                     "cys_alkylation", "enzyme")
-            new = h.organism({**rival, **extra})
-            if h.best_db and h.best_db[0] in extra:  # the new proteome wins: redo the stages that used the winner
+            new = h.organism(dbs)
+            if h.best_db and h.best_db[0] != prev:  # a new winner: redo the stages that used the old one
                 ev = [e for e in ev if not (e.source == "search" and e.parameter in redo)] + new
                 ev += h.accuracy() + h.alkylation() + ([] if a.skip_enzyme else h.enzyme())
-            else:  # the panel winner holds; the new search evidence records that the stated organism was tested
+            else:  # the winner holds; the new search evidence records which candidates were tested
                 ev = [e for e in ev if not (e.source == "search" and e.parameter == "organism")] + new
-            timings["outside_panel"] = round(time.time() - t, 1)
+        timings["organism_tier2"] = round(time.time() - t, 1)
 
     log("[7/7] reconciling")
     decisions = reconcile(ev)
@@ -445,6 +471,9 @@ def main(argv=None):
     an.add_argument("--prose", nargs="?", const="", help="confirm with a ProSE subset search (path or PATH)")
     an.add_argument("--open-search", action="store_true", help="with --prose: also run an open search")
     an.add_argument("--fastag", help="FASTag executable: genus call and Cys alkylation from sequence tags")
+    an.add_argument("--fastag-taxonomy", default=os.environ.get("PROSE_AUTO_FASTAG_TAXONOMY"),
+                    help="extended FASTag index directory (tax_k7.taxdb, nodes.dmp, names.dmp): species-rank "
+                         "ranking and the two-tier organism test (default $PROSE_AUTO_FASTAG_TAXONOMY)")
     an.add_argument("--fastag-subsample", type=float, default=0.0, help="fraction of spectra FASTag tags (0 = all)")
     an.add_argument("--diaspextract", help="DIAspeXtract executable: pseudo-MS/MS spectra for DIA / .d input")
     an.add_argument("--threads", type=int, default=0, help="threads for external tools (0 = their default)")

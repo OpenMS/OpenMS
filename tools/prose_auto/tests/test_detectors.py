@@ -167,3 +167,15 @@ def test_fragment_floor_per_analyzer():
         ev = [Evidence("instrument", ins, 0.9, "metadata", "mzML"),
               Evidence("fragment_tolerance", {"value": 3, "unit": "ppm"}, 0.9, "search", "mini-search PSMs")]
         assert pp.to_prose(reconcile(ev))["params"]["Search:fragment:mass_tolerance"] == floor, ins
+
+
+def test_two_tier_shortlist():
+    from prose_auto import external as ext
+    from prose_auto.cli import _organism_shortlist
+    taxa = [{"name": n} for n in ("Bos taurus", "Macaca mulatta", "Homo sapiens", "Pan troglodytes", "Mus musculus")]
+    ev = [Evidence("organism", "Macaca mulatta", 0.6, "data", "FASTag species", "", {"taxa": taxa}),
+          Evidence("organism", "Macaca fascicularis", 0.7, "repository", "sdrf")]
+    top = ext.fastag_shortlist(ev)
+    assert top == ["Macaca mulatta", "Homo sapiens", "Pan troglodytes"]   # the reagent genus Bos is skipped
+    got = _organism_shortlist(ev, {"Homo_sapiens": "h.fasta"}, top)
+    assert got == ["Macaca fascicularis", "Macaca mulatta", "Homo sapiens", "Pan troglodytes"]

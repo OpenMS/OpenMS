@@ -56,14 +56,24 @@ def _frag_args(frag_tol, frag_unit):
     return ["-fragment_tolerance", frag_tol, "-fragment_tolerance_unit", frag_unit]
 
 
+def _taxonomy_args(taxonomy_dir, rank):
+    """an external FASTag index (tax_k7.taxdb + pruned nodes/names.dmp in one directory) and the report rank"""
+    a = ["-species_rank", rank]
+    if taxonomy_dir:
+        a += ["-taxdb", os.path.join(taxonomy_dir, "tax_k7.taxdb"),
+              "-taxonomy_nodes", os.path.join(taxonomy_dir, "nodes.dmp"),
+              "-taxonomy_names", os.path.join(taxonomy_dir, "names.dmp")]
+    return a
+
+
 def fastag_species(fastag, mzml, frag_tol=20.0, frag_unit="ppm", fixed=("Carbamidomethyl (C)",),
-                   subsample=0.0, threads=0, log=print):
-    """Genus call from FASTag -species."""
+                   subsample=0.0, threads=0, log=print, taxonomy_dir=None, rank="genus"):
+    """Taxon call from FASTag -species: genus with the shipped index, species with an extended one."""
     with tempfile.TemporaryDirectory(prefix="fastag_") as tmp:
         out = os.path.join(tmp, "tags.tsv")
         sp = os.path.join(tmp, "species.tsv")
         cmd = [fastag, "-in", mzml, "-out", out, "-species", "-tag_length", 7, "-species_out", sp,
-               "-threads", threads] + _frag_args(frag_tol, frag_unit)
+               "-threads", threads] + _frag_args(frag_tol, frag_unit) + _taxonomy_args(taxonomy_dir, rank)
         cmd += ["-fixed_modifications"] + list(fixed)
         if subsample:
             cmd += ["-subsample_fraction", subsample]
@@ -78,17 +88,26 @@ def fastag_species(fastag, mzml, frag_tol=20.0, frag_unit="ppm", fixed=("Carbami
     table = [{k: r.get(k) for k in ("name", "observed", "adjusted", "expected", "qvalue")} for r in rows[:15]]
     # the top non-reagent genus is the call; a reagent genus on top is reported as such
     top = rows[0]
-    real = [r for r in rows if r["name"] not in REAGENT_GENERA]
-    call = real[0] if real and (top["name"] in REAGENT_GENERA and real[0]["adjusted"] >= 0.5 * top["adjusted"]) else top
+    real = [r for r in rows if str(r["name"]).split()[0] not in REAGENT_GENERA]  # genus or species rank
+    call = real[0] if real and (str(top["name"]).split()[0] in REAGENT_GENERA and real[0]["adjusted"] >= 0.5 * top["adjusted"]) else top
     nxt = next((r for r in rows if r is not call), None)
     margin = (call["adjusted"] - (nxt["adjusted"] if nxt else 0)) / max(call["adjusted"], 1)
     n = call["observed"]
     conf = 0.25 + min(0.35, 0.12 * (n ** 0.5) / 3) + min(0.3, margin)
     conf = min(0.85, conf if n >= 20 else min(conf, 0.35))
-    detail = (f"FASTag genus call {call['name']} from {int(n)} tag-carrying spectra"
+    detail = (f"FASTag {rank} call {call['name']} from {int(n)} tag-carrying spectra"
               + (f"; next {nxt['name']} ({nxt['adjusted']:.0f} vs {call['adjusted']:.0f})" if nxt else "")
               + ("; reagent genus on top skipped" if call is not top else ""))
     return [Evidence("organism", call["name"], conf, "data", "FASTag species", detail, {"taxa": table})]
+
+
+def fastag_shortlist(evs, n=3):
+    """The top-n taxa of a FASTag species ranking (reagent genera only when nothing else is ranked), for the
+    two-tier organism test."""
+    taxa = [t for e in evs if e.method == "FASTag species" for t in (e.stats or {}).get("taxa", [])]
+    names = [t["name"] for t in taxa if t.get("name")]
+    real = [x for x in names if x.split()[0] not in REAGENT_GENERA]
+    return (real or names)[:n]
 
 
 def fastag_alkylation(fastag, mzml, fasta, frag_tol=20.0, frag_unit="ppm", threads=0, log=print):
