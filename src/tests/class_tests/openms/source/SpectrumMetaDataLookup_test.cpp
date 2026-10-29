@@ -226,6 +226,18 @@ START_SECTION((bool addMissingIMToPeptideIDs(PeptideIdentificationList& peptides
   // Verify peptide annotations
   TEST_REAL_SIMILAR(peptides[0].getMetaValue(Constants::UserParam::IM), 2.5);
   TEST_REAL_SIMILAR(peptides[1].getMetaValue(Constants::UserParam::IM), 5.3);
+
+  // Test 4: a FAIMS compensation voltage is no ion mobility value
+  MSExperiment exp_faims;
+  MSSpectrum spectrum_faims;
+  spectrum_faims.setNativeID("index=0");
+  spectrum_faims.setDriftTime(-45.0);
+  spectrum_faims.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  exp_faims.addSpectrum(spectrum_faims);
+  PeptideIdentificationList faims_peptides(1);
+  faims_peptides[0].setSpectrumReference("index=0");
+  TEST_EQUAL(SpectrumMetaDataLookup::addMissingIMToPeptideIDs(faims_peptides, exp_faims), false);
+  TEST_EQUAL(faims_peptides[0].metaValueExists(Constants::UserParam::IM), false);
 }
 END_SECTION
 
