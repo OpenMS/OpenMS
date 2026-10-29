@@ -313,7 +313,6 @@ START_SECTION((static bool supportsCompressedWriting(Type type, Type compression
     TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::IDXML, comp))
     TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::TRANSFORMATIONXML, comp))
     TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::PEPXML, comp))
-    TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::QCML, comp))
     TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::INI, comp))
     TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::MGF, comp))
     TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::TSV, comp))

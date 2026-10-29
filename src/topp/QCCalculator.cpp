@@ -14,7 +14,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -26,7 +25,7 @@ using namespace std;
 /**
 @page TOPP_QCCalculator QCCalculator
 
-@brief Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into a mzQC or qcML file.
+@brief Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into an mzQC file.
 
 <CENTER>
   <table>
@@ -37,31 +36,24 @@ using namespace std;
     </tr>
     <tr>
     <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderCentroided </td>
-    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCMerger </td>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> any tool reading mzQC files </td>
     </tr>
     <tr>
     <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_CometAdapter </td>
-    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCExporter </td>
     </tr>
   </table>
 </CENTER>
 
-The calculated quality parameters or data compiled as attachments for easy plotting input include file origin, spectra distribution, aquisition details, ion current stability ( & TIC ), id accuracy statistics and feature statistics.
-The MS experiments base name is used as name to the qcML element that is comprising all quality parameter values for the given run (including the given downstream analysis data).
+The calculated quality parameters include spectra counts, acquisition ranges, ion current stability (TIC), identification statistics and feature statistics.
 
 - @p id produces quality parameter values for the identification file; this file should contain either only the final psm to each spectrum (1 PeptideHit per identified spectrum) or have the PeptideHits sorted to 'best' first, where 'best' depends on the use case.
-- @p feature produces quality parameter values for the feature file; this file can be either mapped or unmapped, the latter reulting in less metrics available.
-- @p consensus produces quality parameter values for the consensus file;
-some quality parameter calculation are only available if both feature and ids are given.
-- @p remove_duplicate_features only needed when you work with a set of merged features. Then considers duplicate features only once.
-- @p name only for mzQC: name of the person creating the mzQC file
-- @p address only for mzQC: contact address (mail/e-mail or phone) of the person creating the mzQC file
-- @p label only for mzQC: RECOMMENDED unique and informative label for the run, so that it can be used as a figure label
-- @p description only for mzQC: description and comments about the mzQC file contents
-- @p out_type specifies the output file type, default: determined by output file extension
+- @p feature produces quality parameter values for the feature file.
+- @p name name of the person creating the mzQC file
+- @p address contact address (mail/e-mail or phone) of the person creating the mzQC file
+- @p label RECOMMENDED unique and informative label for the run, so that it can be used as a figure label
+- @p description description and comments about the mzQC file contents
 
-Output is in mzQC with JSON formatting or qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
-The output file specified by the user determines which output file format will be used.
+Output is in mzQC with JSON formatting.
 
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -99,9 +91,7 @@ protected:
     registerInputFile_("in", "<file>", "", "raw data input file (this is relevant if you want to look at MS1, MS2 and precursor peak information)");
     setValidFormats_("in", ListUtils::create<std::string>("mzML"));
     registerOutputFile_("out", "<file>", "", "Your QC file.");
-    setValidFormats_("out", {"mzQC", "qcML"});
-    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content", false);
-    setValidStrings_("out_type", {"mzQC", "qcML"});
+    setValidFormats_("out", {"mzQC"});
     registerStringOption_("label", "<label>", "label", "unique name for the run that can be used in a figure label", false);
     registerStringOption_("name", "<contact_name>", "", "name of the person creating this mzQC file", false);
     registerStringOption_("address", "<contact_address>", "", "contact address (mail/e-mail or phone)", false);
@@ -110,9 +100,6 @@ protected:
     setValidFormats_("id", ListUtils::create<std::string>("idXML"));
     registerInputFile_("feature", "<file>", "", "feature input file (this is relevant for most QC issues)", false);
     setValidFormats_("feature", ListUtils::create<std::string>("featureXML"));
-    registerInputFile_("consensus", "<file>", "", "consensus input file (this is only used for charge state deconvoluted output. Use the consensusXML output form the DeCharger)", false);
-    setValidFormats_("consensus", ListUtils::create<std::string>("consensusXML"));
-    registerFlag_("remove_duplicate_features", "This flag should be set, if you work with a set of merged features.");
   }
 
   ExitCodes main_(int, const char**) override
@@ -120,17 +107,12 @@ protected:
     // parsing parameters
     std::string inputfile_id = getStringOption_("id");
     std::string inputfile_feature = getStringOption_("feature");
-    std::string inputfile_consensus = getStringOption_("consensus");
     std::string inputfile_name = getStringOption_("in");
     std::string outputfile_name = getStringOption_("out");
     std::string contact_name = getStringOption_("name");
     std::string contact_address = getStringOption_("address");
     std::string description = getStringOption_("description");
     std::string label = getStringOption_("label");
-    bool remove_duplicate_features(getFlag_("remove_duplicate_features"));
-    
-    // ensure output file hase valid extension
-    FileTypes::Type out_type = FileHandler::getConsistentOutputfileType(outputfile_name, getStringOption_("out_type"));
 
     // prepare input
     cout << "Reading mzML file..." << endl;
@@ -148,13 +130,6 @@ protected:
       feature_map.sortByRT();
     }
 
-    ConsensusMap consensus_map;
-    if (!inputfile_consensus.empty())
-    {
-      cout << "Reading consensusXML file..." << endl;
-      FileHandler().loadConsensusFeatures(inputfile_consensus, consensus_map, {FileTypes::CONSENSUSXML}, log_type_);
-    }
-
     vector<ProteinIdentification> prot_ids;
     PeptideIdentificationList pep_ids;
     if (!inputfile_id.empty())
@@ -163,10 +138,10 @@ protected:
       FileHandler().loadIdentifications(inputfile_id, prot_ids, pep_ids, {FileTypes::IDXML}, log_type_);
     }
     
-    // collect QC data and store according to output file extension
+    // collect QC data and store it as mzQC
 
-    FileHandler().storeQC(inputfile_name, outputfile_name, exp, feature_map, prot_ids, pep_ids, consensus_map, contact_name, 
-    contact_address, description, label, remove_duplicate_features, {out_type});
+    FileHandler().storeQC(inputfile_name, outputfile_name, exp, feature_map, prot_ids, pep_ids, contact_name,
+    contact_address, description, label, {FileTypes::MZQC});
 
 
     return EXECUTION_OK;
