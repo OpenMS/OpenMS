@@ -231,6 +231,9 @@ protected:
 #ifdef WITH_OPENTIMS
     "d",
 #endif
+#ifdef WITH_MZPEAK
+    "mzpeak",
+#endif
     "tsv", "peplist", "kroenik", "edta", "oms", "sqMass"};
     setValidFormats_("in", input_formats);
     setValidStrings_("in_type", input_formats);
@@ -239,7 +242,11 @@ protected:
     std::string method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<std::string>(method));
 
-    vector<std::string> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "featureparquet", "consensusparquet", "edta", "mzData", "dta2d", "csv", "sqMass", "xic", "oms"};
+    vector<std::string> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "featureparquet", "consensusparquet", "edta", "mzData", "dta2d", "csv", "sqMass", "xic", "oms",
+#ifdef WITH_MZPEAK
+    "mzpeak",
+#endif
+    };
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", output_formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, false); // optional and not advanced (for workflow engines to show this param)
@@ -1289,6 +1296,11 @@ protected:
     else if (out_type == FileTypes::SQMASS)
     {
       FileHandler().storeExperiment(out, exp, {FileTypes::SQMASS}, log_type_);
+    }
+    else if (out_type == FileTypes::MZPEAK)
+    {
+      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
+      FileHandler().storeExperiment(out, exp, {FileTypes::MZPEAK}, log_type_);
     }
     else if (out_type == FileTypes::OMS)
     {

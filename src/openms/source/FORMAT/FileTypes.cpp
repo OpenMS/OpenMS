@@ -121,6 +121,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::BRUKER_TDF, "d", "Bruker TDF", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::COMPRESSED_READABLE}), // .d.zip via ZipArchiveFile
     TypeNameBinding(FileTypes::IMZML, "imzML", "imzML mass spectrometry imaging file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE}),
     TypeNameBinding(FileTypes::YAML, "yaml", "YAML file", {PROP::WRITEABLE}),
+    TypeNameBinding(FileTypes::MZPEAK, "mzpeak", "mzPeak raw data file (HUPO-PSI, Parquet in a ZIP archive or a directory)", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::XML, "xml", "any XML file", {PROP::READABLE, PROP::COMPRESSED_READABLE}),  // make sure this comes last, since the name is a suffix of other formats and should only be matched last
   };
 
@@ -368,6 +369,7 @@ namespace OpenMS
       case FileTypes::XMASS: return "Bruker FID file";
       case FileTypes::BRUKER_TDF: return "Bruker TDF format";
       case FileTypes::RAW: return "Thermo RAW format";
+      case FileTypes::MZPEAK: return "mzPeak format";
       default: return "";
     }
   }
