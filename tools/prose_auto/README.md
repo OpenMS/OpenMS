@@ -41,7 +41,7 @@ can run it as a sidecar.
 |---|---|---|
 | `--fastag <exe>` | [FASTag](https://github.com/okohlbacher/FASTag) | a database-free genus call (`-species`, reagent genera such as Bos/Sus are skipped when a real genus is close) and, with a FASTA, the Cys alkylation from the tag mass-gap histogram searched without fixed modifications (`-recon_fasta`, `-delta_out`) |
 | `--fastag-subsample <f>` | FASTag | analyse only a fraction of the MS2 spectra |
-| `--diaspextract <exe>` | [DIAspeXtract](https://github.com/okohlbacher/diaspextract) | converts a diaPASEF `.d` folder (required for `.d` input) or a DIA mzML into pseudo-MS/MS spectra, so the mini-search and FASTag also run on DIA data |
+| `--diaspextract <exe>` | [DIAspeXtract](https://github.com/okohlbacher/diaspextract) | converts a diaPASEF `.d` folder (required for `.d` input) or a DIA mzML with ion mobility into pseudo-MS/MS spectra (Orbitrap DIA without ion mobility skips it and stays on the DIA path; DDA-PASEF `.d` is not supported and stops with an error), so the mini-search and FASTag also run on DIA data |
 | `--threads <n>` | both | threads for the external tools |
 
 FASTag needs high-resolution MS2 to be useful: on the ion-trap BSA example it

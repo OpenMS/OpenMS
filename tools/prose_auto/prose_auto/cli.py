@@ -61,7 +61,11 @@ def analyze(a, log=print):
         if not a.diaspextract:
             raise SystemExit("a Bruker .d input needs --diaspextract")
         log(f"[0/7] DIAspeXtract: {a.mzml} -> pseudo-MS/MS spectra")
-        spectra_file = ext.diaspextract(a.diaspextract, a.mzml, base + ".pseudo.mzML", a.threads, log=log)
+        try:
+            spectra_file = ext.diaspextract(a.diaspextract, a.mzml, base + ".pseudo.mzML", a.threads, log=log)
+        except RuntimeError as e:
+            raise SystemExit(f"DIAspeXtract cannot read {a.mzml} (only diaPASEF .d is supported; "
+                             f"DDA-PASEF needs a conversion to mzML first): {str(e).strip()[-300:]}")
         ev.append(Evidence("acquisition", "DIA (diaPASEF)", 0.9, "metadata", "Bruker .d input",
                            "a Bruker .d run converted to pseudo-spectra by DIAspeXtract"))
         ev.append(Evidence("ion_mobility", True, 0.95, "metadata", "Bruker .d input", "timsTOF data"))
@@ -74,10 +78,17 @@ def analyze(a, log=print):
     if spectra_file == a.mzml:
         ev += inst.detect_acquisition(run)
     acq = _first(ev, "acquisition").value
-    if str(acq).startswith("DIA") and a.diaspextract and spectra_file == a.mzml:
-        log("  DIA mzML: DIAspeXtract pseudo-MS/MS spectra for the DDA-style stages")
-        spectra_file = ext.diaspextract(a.diaspextract, a.mzml, base + ".pseudo.mzML", a.threads, log=log)
-        run = load_mzml(spectra_file, max_ms2=a.max_ms2)
+    im = _first(ev, "ion_mobility")
+    if str(acq).startswith("DIA") and a.diaspextract and spectra_file == a.mzml and im and im.value is True:
+        # DIAspeXtract needs ion mobility (diaPASEF); Orbitrap DIA stays on the DIA path
+        log("  DIA mzML with ion mobility: DIAspeXtract pseudo-MS/MS spectra for the DDA-style stages")
+        try:
+            spectra_file = ext.diaspextract(a.diaspextract, a.mzml, base + ".pseudo.mzML", a.threads, log=log)
+            run = load_mzml(spectra_file, max_ms2=a.max_ms2)
+        except RuntimeError as e:
+            log(f"  DIAspeXtract failed, continuing without pseudo-spectra: {str(e).strip()[-300:]}")
+    elif str(acq).startswith("DIA") and a.diaspextract and spectra_file == a.mzml:
+        log("  DIA mzML without ion mobility: DIAspeXtract skipped (it needs diaPASEF)")
     pseudo = spectra_file != a.mzml
     search_acq = "DDA" if pseudo else acq      # pseudo-spectra have one precursor each
     ms1a = (_first(ev, "ms1_analyzer").value if _first(ev, "ms1_analyzer") else "ORBITRAP")
@@ -123,7 +134,7 @@ def analyze(a, log=print):
                 ev += h.enzyme()
         timings["mini_search"] = round(time.time() - t, 1)
     else:
-        log("[5/7] mini-search skipped" + (" (DIA without --diaspextract)" if str(search_acq).startswith("DIA") else
+        log("[5/7] mini-search skipped" + (" (DIA without pseudo-spectra)" if str(search_acq).startswith("DIA") else
                                            " (no --panel/--fasta)" if not panel else ""))
     if a.fastag:
         t = time.time()
