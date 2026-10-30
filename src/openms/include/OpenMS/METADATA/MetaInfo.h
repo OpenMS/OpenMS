@@ -119,6 +119,9 @@ public:
     /// Returns if the MetaInfo is empty
     bool empty() const;
 
+    /// Reserves room for @p n meta values (no value is added)
+    void reserve(Size n) { index_to_value_.reserve(n); }
+
     /// Removes all meta values
     void clear();
 

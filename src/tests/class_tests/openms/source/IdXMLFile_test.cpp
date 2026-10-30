@@ -1629,6 +1629,13 @@ START_SECTION([EXTRA] store - a file renamed into the place of the output while 
       peps[l].insertHit(hit);
     }
 
+    // on one thread: the swap is done at allocations of the calling thread, and store() formats the protein hits in
+    // parallel blocks, so with several threads whether the calling thread allocates once the first block is written
+    // depends on which thread formats which block
+#ifdef _OPENMP
+    const int max_threads = omp_get_max_threads();
+    omp_set_num_threads(1);
+#endif
     long swapped = 0, sentinel_lost = 0, first_lost = 0, other_outcome = 0, aside_lost = 0;
     for (long n = 1; n < 10000000; ++n)
     {
@@ -1662,6 +1669,9 @@ START_SECTION([EXTRA] store - a file renamed into the place of the output while 
       }
       if (!fs::exists(swap_test_aside)) ++aside_lost;
     }
+#ifdef _OPENMP
+    omp_set_num_threads(max_threads);
+#endif
     STATUS(swapped << " stores had another file renamed into the place of their output; it was removed or changed in "
            << sentinel_lost << " (first at allocation " << first_lost << "); stores that did not fail as expected: "
            << other_outcome << "; the output moved aside was removed in " << aside_lost)

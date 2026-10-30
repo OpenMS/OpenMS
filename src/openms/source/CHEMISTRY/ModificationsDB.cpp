@@ -21,6 +21,7 @@
 
 #include <cmath>
 #include <fstream>
+#include <future>
 #include <limits>
 #include <utility>
 
@@ -621,9 +622,18 @@ namespace OpenMS
 
   void ModificationsDB::loadFromProviders_(std::vector<std::unique_ptr<ModificationDataProvider>>& providers)
   {
-    for (auto& provider : providers)
+    // The providers read their sources independently of each other and of this database (UniMod XML,
+    // PSI-MOD and XLMOD OBO files): the second and later ones load on helper threads while this
+    // thread loads the first one, and their modifications are added in the order of the providers
+    // as before (alias resolution of an OBO entry looks up the UniMod entries added before it).
+    std::vector<std::future<std::vector<std::unique_ptr<ResidueModification>>>> later_mods;
+    for (Size i = 1; i < providers.size(); ++i)
     {
-      auto mods = provider->loadModifications();
+      later_mods.push_back(std::async(std::launch::async | std::launch::deferred, [&provider = *providers[i]]() { return provider.loadModifications(); }));
+    }
+    for (Size i = 0; i < providers.size(); ++i)
+    {
+      auto mods = i == 0 ? providers[0]->loadModifications() : later_mods[i - 1].get();
       for (auto& m : mods)
       {
         // OBO mods with UniMod record ID: alias resolution
