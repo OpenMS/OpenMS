@@ -37,8 +37,7 @@ namespace OpenMS
     solves one ILP per component (so a single big input doesn't translate into a single
     intractable LP) — this slicing is handled internally and is transparent to callers.
 
-    LP-solver choice (GLPK, COIN-OR, or HiGHS — selected at build time via the
-    @c LP_SOLVER CMake variable) is hidden behind @ref LPWrapper.
+    The LP solver (HiGHS) is accessed through @ref LPWrapper.
 
     @ingroup Quantitation
   */
