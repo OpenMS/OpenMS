@@ -1,5 +1,6 @@
 /* See newton_svm.h. */
 #include "newton_svm.h"
+#include "OpenMPTasks.h"  // OpenMS: PERCOLATOR_OMP_TASKS, PERCOLATOR_TASK_PRAGMA
 
 #include <algorithm>
 #include <cmath>
@@ -35,7 +36,7 @@ void forEachBlock(int numBlocks, const F& f) {
   if (numBlocks >= kMinTaskBlocks && omp_in_parallel() && omp_get_num_threads() > 1) {
     // a few tasks per thread (libgomp runs a taskloop undeferred if the team has too many tasks)
     const int numTasks = std::min(numBlocks, 2 * omp_get_num_threads());
-#pragma omp taskloop num_tasks(numTasks) default(shared)
+    PERCOLATOR_TASK_PRAGMA(omp taskloop num_tasks(numTasks) default(shared))
     for (int b = 0; b < numBlocks; ++b) f(b);
     return;
   }

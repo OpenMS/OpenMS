@@ -504,6 +504,17 @@ hand-editing sources and committing them, to keep sync self-healing.
   spectrum are equivalent for `OrderScanLabel` (equal score and PSM id), or a file number does not fit, it returns
   false and the caller copies and sorts. `generatePositiveTrainingSet` sorts by `OrderScanLabel` like `std::sort`
   (`SortLikeStd.h`).
+- `patches/33-omp-tasks-guard.patch` — the OpenMP task constructs of patches 08-32 only where the compiler has
+  them (OpenMS-local header `OpenMPTasks.h`: `PERCOLATOR_OMP_TASKS`, `_OPENMP >= 201511` and not MSVC's own
+  OpenMP, which is OpenMP 2.0 without tasks, and `PERCOLATOR_TASK_PRAGMA`). Without tasks the task pragmas, and the
+  `parallel` + `single` regions that only host tasks, expand to nothing, and the loops over the folds (and over the
+  (cpos, cneg) pairs of `doStep`) are a `parallel for schedule(dynamic, 1)`, one fold per thread, as in develop
+  before patch 08. The same applies to the OpenMS-local `newton_svm.cpp`, `SortLikeStd.h` (`std::sort` without
+  tasks) and OpenMS' `Percolator.cpp`. GCC and Clang keep the tasks. The results are the same (each iteration
+  computes what its task computes); `-DPERCOLATOR_OMP_TASKS=0` builds the variant with any compiler. Measured with
+  GCC 13 on 4 cores on a synthetic PIN of 600,000 PSMs (20 features), CV to PEP: 3 threads 15.0 s without tasks,
+  15.3 s with tasks (develop 41.3 s); 4 threads 15.1 s and 11.5 s, as without tasks only the 3 folds run in
+  parallel.
 
 Numbering: the patches were renumbered without gaps when the branches of 25 Oct 2026 were integrated (int14), in
 their application order; old -> new: 10 -> 09, 11 -> 10, 12 -> 11, 13 -> 12, 14 -> 13, 15 -> 14, 16 -> 15,

@@ -47,6 +47,7 @@
 #include "ssl.h"
 #include "IsotonicPEP.h"
 #include "SortLikeStd.h"
+#include "OpenMPTasks.h"  // OpenMS: PERCOLATOR_OMP_TASKS, PERCOLATOR_TASK_PRAGMA
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -96,7 +97,7 @@ static void permuteScores(std::vector<ScoreHolder>& scores, const std::vector<Ke
   const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(keys.size());
   if (n >= 4 * kMinScoreTaskSize && keys.size() == scores.size() && omp_in_parallel()) {
     std::vector<ScoreHolder> permuted(keys.size());
-#pragma omp taskloop grainsize(loopGrain(n, 4 * kMinScoreTaskSize)) shared(scores, keys, permuted)
+    PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(loopGrain(n, 4 * kMinScoreTaskSize)) shared(scores, keys, permuted))
     for (std::ptrdiff_t k = 0; k < n; ++k) {
       permuted[static_cast<std::size_t>(k)] = scores[keys[static_cast<std::size_t>(k)].index];
     }
@@ -342,7 +343,7 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
     std::vector<HashKey> keys(scores_.size());
     const std::ptrdiff_t numScores = static_cast<std::ptrdiff_t>(scores_.size());
     // (blocks of PSMs as the tasks of an enclosing parallel region, if any)
-#pragma omp taskloop grainsize(loopGrain(numScores, 4 * kMinScoreTaskSize)) shared(keys) if(numScores >= 8 * kMinScoreTaskSize)
+    PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(loopGrain(numScores, 4 * kMinScoreTaskSize)) shared(keys) if(numScores >= 8 * kMinScoreTaskSize))
     for (std::ptrdiff_t i = 0; i < numScores; ++i) {
       const PSMDescription* psm = scores_[static_cast<std::size_t>(i)].pPSM;
       const size_t hash = fast_uint_hash(psm->specFileNr) ^ (fast_uint_hash(psm->scan) << 1);
@@ -434,7 +435,7 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
     // OpenMS: fold i gets the PSMs drawn for it (test) and the others (train), in the order of
     // the PSMs, as the loop above would insert them
     std::vector<std::exception_ptr> fillErrors(xval_fold);
-#pragma omp taskloop grainsize(1) shared(train, test, foldOfPSM, labelOfPSM, fillErrors)
+    PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(train, test, foldOfPSM, labelOfPSM, fillErrors))
     for (int i = 0; i < static_cast<int>(xval_fold); ++i) {
       try {
         const std::size_t testSize = static_cast<std::size_t>(
@@ -600,7 +601,7 @@ void Scores::normalizeScores(double fdr, std::vector<double>& weights) {
   // OpenMS: inside an OpenMP parallel region, large sets by its tasks (blocks of PSMs)
   const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(scores_.size());
   if (n >= 2 * kMinPairTaskSize && omp_in_parallel()) {
-#pragma omp taskloop grainsize(loopGrain(n, kMinPairTaskSize)) shared(fdrScore, diff)
+    PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(loopGrain(n, kMinPairTaskSize)) shared(fdrScore, diff))
     for (std::ptrdiff_t i = 0; i < n; ++i) {
       ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
       sh.score -= fdrScore;
@@ -686,7 +687,7 @@ int Scores::countPositives(const std::vector<double>& w, double fdr, bool skipDe
 #ifdef _OPENMP
   if (numRows >= kLargeSet && omp_in_parallel()) {
     combined.resize(rows.size());
-#pragma omp taskloop grainsize(numRows / 64) shared(combined, rows, w)
+    PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(numRows / 64) shared(combined, rows, w))
     for (std::ptrdiff_t i = 0; i < numRows; ++i) {
       const pair<const double*, bool>& row = rows[static_cast<std::size_t>(i)];
       const double score = calcScore(row.first, w);
@@ -744,7 +745,7 @@ int Scores::calcScoresOfRowsAndQvals(std::vector<double>& w,
     const std::ptrdiff_t blockSize = loopGrain(n, kMinPairTaskSize);
     const std::ptrdiff_t numBlocks = (n + blockSize - 1) / blockSize;
     found.assign(static_cast<std::size_t>(numBlocks), 1);
-#pragma omp taskloop grainsize(1) shared(found, assign)
+    PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(found, assign))
     for (std::ptrdiff_t block = 0; block < numBlocks; ++block) {
       found[static_cast<std::size_t>(block)] = assign(block * blockSize, std::min(n, (block + 1) * blockSize));
     }
@@ -870,7 +871,7 @@ int Scores::calcScores(std::vector<double>& w) {
   const std::ptrdiff_t numScores = static_cast<std::ptrdiff_t>(scores_.size());
 #ifdef _OPENMP
   if (numScores >= 2 * kMinScoreTaskSize && omp_in_parallel()) {
-#pragma omp taskloop grainsize(loopGrain(numScores, kMinScoreTaskSize)) shared(w)
+    PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(loopGrain(numScores, kMinScoreTaskSize)) shared(w))
     for (std::ptrdiff_t i = 0; i < numScores; ++i) {
       ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
       sh.score = calcScore(sh.pPSM->features, w);
@@ -934,7 +935,7 @@ bool Scores::sortedUpToInterchangeable() const {
     const std::ptrdiff_t blockSize = loopGrain(n, kMinPairTaskSize);
     const std::ptrdiff_t numBlocks = (n + blockSize - 1) / blockSize;
     std::vector<char> ok(static_cast<std::size_t>(numBlocks), 1);
-#pragma omp taskloop grainsize(1) shared(ok, ordered)
+    PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(ok, ordered))
     for (std::ptrdiff_t block = 0; block < numBlocks; ++block) {
       // a block and its link to the next one
       ok[static_cast<std::size_t>(block)] = ordered(block * blockSize, std::min(n, (block + 1) * blockSize + 1));
@@ -973,7 +974,7 @@ void Scores::getScoreLabelPairs(std::vector<pair<double, bool> >& combined) {
   // OpenMS: inside an OpenMP parallel region, large sets by its tasks (blocks of PSMs)
   const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(scores_.size());
   if (n >= 2 * kMinPairTaskSize && omp_in_parallel()) {
-#pragma omp taskloop grainsize(loopGrain(n, kMinPairTaskSize)) shared(combined)
+    PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(loopGrain(n, kMinPairTaskSize)) shared(combined))
     for (std::ptrdiff_t i = 0; i < n; ++i) {
       combined[static_cast<std::size_t>(i)] = scores_[static_cast<std::size_t>(i)].toPair();
     }
@@ -1019,7 +1020,7 @@ int Scores::calcQvals(double fdr, bool skipDecoysPlusOne,
     const std::ptrdiff_t blockSize = loopGrain(n, kMinPairTaskSize);
     const std::ptrdiff_t numBlocks = (n + blockSize - 1) / blockSize;
     std::vector<int> positivesOfBlock(static_cast<std::size_t>(numBlocks), 0);
-#pragma omp taskloop grainsize(1) shared(qvals, positivesOfBlock, fdr)
+    PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(qvals, positivesOfBlock, fdr))
     for (std::ptrdiff_t block = 0; block < numBlocks; ++block) {
       const std::ptrdiff_t last = std::min(n, (block + 1) * blockSize);
       int positives = 0;
@@ -1181,7 +1182,7 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
     };
 #ifdef _OPENMP
     if (inTasks) {
-#pragma omp taskloop grainsize(1) shared(fill)
+      PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(fill))
       for (std::ptrdiff_t block = 0; block < numBlocks; ++block) fill(block);
     } else
 #endif
@@ -1194,7 +1195,7 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
     });
 #ifdef _OPENMP
     if (inTasks) {
-#pragma omp taskloop grainsize(1) shared(pick)
+      PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(pick))
       for (std::ptrdiff_t block = 0; block < numBlocks; ++block) pick(block);
     } else
 #endif
@@ -1234,7 +1235,7 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
   };
 #ifdef _OPENMP
   if (inTasks) {
-#pragma omp taskloop grainsize(1) shared(collect)
+    PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(collect))
     for (std::ptrdiff_t block = 0; block < numBlocks; ++block) collect(block);
   } else
 #endif
@@ -1282,7 +1283,7 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
   };
 #ifdef _OPENMP
   if (inTasks) {
-#pragma omp taskloop grainsize(1) shared(emit)
+    PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(emit))
     for (std::ptrdiff_t block = 0; block < numBlocks; ++block) emit(block);
   } else
 #endif
@@ -1513,7 +1514,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
     // (each key is written once, so the order of the blocks does not matter)
     constexpr std::ptrdiff_t kMinChainTaskSize = 16384;
     const std::ptrdiff_t numKeys = static_cast<std::ptrdiff_t>(n);
-#pragma omp taskgroup
+    PERCOLATOR_TASK_PRAGMA(omp taskgroup)
     {
       try {
         // the rank of (scan, expMass, label) in the lexicographic order of operator<
@@ -1548,7 +1549,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
         adviseHugePages(columns.get(), static_cast<std::size_t>(numFeatures) * n * sizeof(double));  // (ssl.h)
         const std::ptrdiff_t blockSize = loopGrain(numKeys, kMinScoreTaskSize);
         const std::ptrdiff_t numBlocks = (numKeys + blockSize - 1) / blockSize;
-#pragma omp taskloop grainsize(1) shared(columns, isTarget)
+        PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(columns, isTarget))
         for (std::ptrdiff_t block = 0; block < numBlocks; ++block) {
           const std::size_t first = static_cast<std::size_t>(block * blockSize);
           const std::size_t last = std::min(n, first + static_cast<std::size_t>(blockSize));
@@ -1584,7 +1585,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
         const bool packable = indexBits + tieBits + 16 <= 64;
         std::vector<std::vector<double> > valuesOfFeature(numFeatures);  // sorted distinct values; empty = not packed
         if (packable) {
-#pragma omp taskloop grainsize(1) shared(valuesOfFeature, columns)
+          PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(valuesOfFeature, columns))
           for (unsigned int f = 0; f < numFeatures; ++f) {
             // (no exception may leave a task: if an allocation fails, the feature is sorted as ChainKeys, which makes
             // the same moves; int14 review r3)
@@ -1613,7 +1614,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
             const std::vector<double>& values = valuesOfFeature[featNo];
             const unsigned int shift = tieBits + indexBits;
             packed.resize(n);
-#pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys, packed, values)
+            PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys, packed, values))
             for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
               const ChainKey& key = keys[static_cast<std::size_t>(i)];
               const std::uint64_t code = static_cast<std::uint64_t>(
@@ -1625,13 +1626,13 @@ int Scores::getInitDirection(const double initialSelectionFdr,
               return (x >> indexBits) < (y >> indexBits);
             });
             const std::uint64_t indexMask = (std::uint64_t(1) << indexBits) - 1;
-#pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys, packed, tieRank)
+            PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys, packed, tieRank))
             for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
               const unsigned int index = static_cast<unsigned int>(packed[static_cast<std::size_t>(i)] & indexMask);
               keys[static_cast<std::size_t>(i)] = {column[index], tieRank[index], index};
             }
           } else {
-#pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys)
+          PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys))
           for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
             ChainKey& key = keys[static_cast<std::size_t>(i)];
             key.score = column[key.index];
@@ -1659,15 +1660,14 @@ int Scores::getInitDirection(const double initialSelectionFdr,
               buffers->pairs.resize(n);
             }
             pair<double, bool>* pairs = buffers->pairs.data();
-#pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys, isTarget)
+            PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys, isTarget))
             for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
               const ChainKey& key = keys[static_cast<std::size_t>(i)];
               pairs[i] = pair<double, bool>(key.score, isTarget[key.index] != 0);
             }
             pairsOfFeature[featNo] = std::move(buffers);
           }
-#pragma omp task firstprivate(featNo) shared(pairsOfFeature, positives, errors, initialSelectionFdr, skipDecoysPlusOne, \
-                                             buffersMutex, freeCountBuffers)
+          PERCOLATOR_TASK_PRAGMA(omp task firstprivate(featNo) shared(pairsOfFeature, positives, errors, initialSelectionFdr, skipDecoysPlusOne, buffersMutex, freeCountBuffers))
           try {
             std::unique_ptr<CountBuffers> buffers = std::move(pairsOfFeature[featNo]);
             std::vector<pair<double, bool> >& pairs = buffers->pairs;
@@ -1680,7 +1680,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
             errors[featNo] = std::current_exception();
           }
           // reversed (the pairs of positions as tasks)
-#pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys)
+          PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys))
           for (std::ptrdiff_t i = 0; i < numKeys / 2; ++i) {
             std::swap(keys[static_cast<std::size_t>(i)], keys[static_cast<std::size_t>(numKeys - 1 - i)]);
           }
@@ -1688,7 +1688,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
         // the PSMs in the order of the keys (as permuteScores), with the scores of the last feature
         // (blocks as tasks)
         std::vector<ScoreHolder> permuted(n);
-#pragma omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys, permuted)
+        PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(loopGrain(numKeys, kMinChainTaskSize)) shared(keys, permuted))
         for (std::ptrdiff_t i = 0; i < numKeys; ++i) {
           const ChainKey& key = keys[static_cast<std::size_t>(i)];
           permuted[static_cast<std::size_t>(i)] = scores_[key.index];

@@ -17,6 +17,7 @@
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include "PercolatorImpl.h"
 #include "ssl.h" // vendored: adviseHugePages
+#include "OpenMPTasks.h" // vendored: PERCOLATOR_OMP_TASKS, PERCOLATOR_TASK_PRAGMA
 #include <new>
 
 #include <OpenMS/CONCEPT/Exception.h>
@@ -99,9 +100,13 @@ namespace
       // the folds in parallel, each on its own training set (as Percolator's validateDirection scores its test sets);
       // the sorts of the scorings run as tasks of this region
       std::vector<std::exception_ptr> errors(w.size());
+#if PERCOLATOR_OMP_TASKS
 #pragma omp parallel num_threads(static_cast<int>(std::max<size_t>(1, std::min<size_t>(w.size(), numThreads_))))
 #pragma omp single
 #pragma omp taskloop grainsize(1)
+#else
+#pragma omp parallel for schedule(dynamic, 1) num_threads(static_cast<int>(std::max<size_t>(1, std::min<size_t>(w.size(), numThreads_))))
+#endif
       for (SignedSize task = 0; task < static_cast<SignedSize>(w.size()); ++task)
       try
       {
@@ -742,8 +747,8 @@ static void peptideLevelEstimates(const P::Scores& psms, const RescoreInput& inp
   for (const P::ScoreHolder* sh : reps) peptides.addScoreHolder(*sh);
   // as rescore(): the sort and the bootstraps of a pi0 estimate as the tasks of a parallel region
   std::exception_ptr error;
-#pragma omp parallel num_threads(team_threads)
-#pragma omp single
+  PERCOLATOR_TASK_PRAGMA(omp parallel num_threads(team_threads))
+  PERCOLATOR_TASK_PRAGMA(omp single)
   {
     try
     {
@@ -1342,8 +1347,8 @@ RescoreOutput Percolator::score_(const RescoreInput& input,
     // In a parallel region, as in rescore(): the sorts and the bootstraps of the pi0 estimate run as its tasks, with the
     // same results (see thirdparty/percolator/SortLikeStd.h and PosteriorEstimator::estimatePi0).
     std::exception_ptr error;
-#pragma omp parallel num_threads(teamThreads(impl_->num_threads))
-#pragma omp single
+    PERCOLATOR_TASK_PRAGMA(omp parallel num_threads(teamThreads(impl_->num_threads)))
+    PERCOLATOR_TASK_PRAGMA(omp single)
     {
       try
       {
@@ -2021,8 +2026,8 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       all_scores = P::Scores(use_pi0);
       std::vector<std::vector<double>> merge_weights = fold_weights; // Scores::merge rescales them
       std::exception_ptr merge_error;
-#pragma omp parallel num_threads(teamThreads(impl_->num_threads))
-#pragma omp single
+      PERCOLATOR_TASK_PRAGMA(omp parallel num_threads(teamThreads(impl_->num_threads)))
+      PERCOLATOR_TASK_PRAGMA(omp single)
       {
         try
         {
@@ -2069,8 +2074,8 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       // bootstraps of the pi0 estimate run as its tasks, with the same results (see
       // thirdparty/percolator/SortLikeStd.h and PosteriorEstimator::estimatePi0).
       std::exception_ptr tdc_error;
-#pragma omp parallel num_threads(teamThreads(impl_->num_threads))
-#pragma omp single
+      PERCOLATOR_TASK_PRAGMA(omp parallel num_threads(teamThreads(impl_->num_threads)))
+      PERCOLATOR_TASK_PRAGMA(omp single)
       {
         try
         {

@@ -12,6 +12,7 @@
 // Vendored Percolator (OpenMS::Internal::Percolator): this test links the
 // static OpenMS_Percolator library directly, its symbols are hidden in libOpenMS.
 #include "ssl.h"
+#include "OpenMPTasks.h" // PERCOLATOR_OMP_TASKS, PERCOLATOR_TASK_PRAGMA
 
 #include <cmath>
 #include <cstdint>
@@ -428,11 +429,15 @@ START_SECTION([EXTRA] tron: solves sharing X in a TronPairGroup and weights only
       {
         vector<Result> res(4);
         TronPairGroup group(*in);
+#if PERCOLATOR_OMP_TASKS
 #pragma omp parallel num_threads(threads)
 #pragma omp single
+#else
+#pragma omp parallel for schedule(dynamic, 1) num_threads(threads)
+#endif
         for (int k = 0; k < 4; ++k)
         {
-#pragma omp task firstprivate(k) shared(res, group, in, other, costs)
+          PERCOLATOR_TASK_PRAGMA(omp task firstprivate(k) shared(res, group, in, other, costs))
           res[k] = solveInput(k == 3 ? *other : *in, costs[k][0], costs[k][1], &group, threads == 3);
         }
         for (int k = 0; k < 4; ++k)
