@@ -1,0 +1,66 @@
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
+index c1ba2c41..cb7afb35 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.cpp
++++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
+@@ -453,7 +453,7 @@ void CrossValidation::trainFoldChains() {
+     // the feature rows of the training set (its PSMs and labels do not change during the training;
+     // its test sets of the pairs hold the same PSMs), for counting the positives of the pairs
+     std::vector<std::pair<const double*, bool> > rows;
+-    // OpenMS (CV-A2): the scores of each pair's weights on the rows (from its validation), so that the
++    // OpenMS: the scores of each pair's weights on the rows (from its validation), so that the
+     // step's rescoring with the chosen pair's weights does not score the PSMs again
+     std::vector<std::vector<double> > pairRowScores(numCpCnPairsPerSet);
+     try {
+diff --git a/src/openms/thirdparty/percolator/Normalizer.cpp b/src/openms/thirdparty/percolator/Normalizer.cpp
+index 4fc0936c..9acda948 100644
+--- a/src/openms/thirdparty/percolator/Normalizer.cpp
++++ b/src/openms/thirdparty/percolator/Normalizer.cpp
+@@ -64,7 +64,7 @@ void Normalizer::normalizeSet(vector<double*>& featuresV,
+  * rows of the PSMs of a SetHandler: each PSM has its own row of a FeatureMemoryPool), on large
+  * sets without retention features by static blocks of rows on all threads: each value is
+  * normalized as by normalize(), so the rows get the same values. A row that occurs twice would be
+- * normalized by two threads at once (int14 review r3): the pool never gives a row to two PSMs.
++ * normalized by two threads at once: the pool never gives a row to two PSMs.
+  */
+ void Normalizer::normalizeRowsByFeature(vector<double*>& featuresV,
+                                         vector<double*>& rtFeaturesV) {
+diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
+index 11003fb0..0d9d7bee 100644
+--- a/src/openms/thirdparty/percolator/Scores.cpp
++++ b/src/openms/thirdparty/percolator/Scores.cpp
+@@ -709,7 +709,7 @@ int Scores::countPositives(const std::vector<double>& w, double fdr, bool skipDe
+ }
+ 
+ /**
+- * OpenMS (CV-A2): calcScoresAndQvals(w, fdr, skipDecoysPlusOne) where the scores of w were computed
++ * OpenMS: calcScoresAndQvals(w, fdr, skipDecoysPlusOne) where the scores of w were computed
+  * already, by countPositives(w, ..., rows, &rowScores) on the rows of getFeatureRows of this set:
+  * each PSM gets the score of its row (calcScore of the same row and weights, the same bits), found by
+  * its address; then the sort and the q-values as calcScoresAndQvals. A PSM whose row is not in rows
+@@ -1127,7 +1127,7 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
+   std::vector<char> kept(scores_.size(), 1);
+   if (trainBestPositive && !scores_.empty()) {
+     if (!comparableScores(scores_.begin(), scores_.end()) || scores_.size() >= (std::size_t(1) << 32)) return false;
+-    // OpenMS (CV-A1, BP-PAR): one 64-bit key (file << 32 | scan) per candidate (a target with q <= fdr), kNone for
++    // OpenMS: one 64-bit key (file << 32 | scan) per candidate (a target with q <= fdr), kNone for
+     // the other PSMs, with the position; in blocks as tasks inside a parallel region
+     struct PackedKey {
+       std::uint64_t key;
+@@ -1204,7 +1204,7 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
+     }
+     if (std::any_of(blockOk.begin(), blockOk.end(), [](char x) { return x == 0; })) return false;
+   }
+-  // OpenMS (SETUP-PAR): the positives and the decoys of blocks of PSMs (as tasks inside a parallel region),
++  // OpenMS: the positives and the decoys of blocks of PSMs (as tasks inside a parallel region),
+   // then the blocks in order: the same positives, the same check, the same rows in the same order
+   const std::ptrdiff_t total = static_cast<std::ptrdiff_t>(scores_.size());
+   std::ptrdiff_t blockSize = total > 0 ? total : 1;
+@@ -1588,7 +1588,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+           PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(valuesOfFeature, columns))
+           for (unsigned int f = 0; f < numFeatures; ++f) {
+             // (no exception may leave a task: if an allocation fails, the feature is sorted as ChainKeys, which makes
+-            // the same moves; int14 review r3)
++            // the same moves)
+             try {
+               const double* column = &columns[static_cast<std::size_t>(f) * n];
+               std::unordered_set<double> distinct;

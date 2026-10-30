@@ -24,6 +24,7 @@
 // line references and re-sync instructions.
 #include "InProcessSampler.h"
 
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <vector>
@@ -34,11 +35,23 @@ namespace OpenMS
   {
     // Per-call scratch. Reset between rescore() invocations.
     // Percolator's vendored code is designed for one shot per instance.
+    /// The training PSMs of rescore() in one block, constructed and destroyed by the OpenMP threads (the DataSets
+    /// do not own them: setOwnsPsms(false)); owned_psms then points into it. Declared
+    /// first, so that it is destroyed after the data sets that point to it.
+    struct PsmSlab
+    {
+      OpenMS::Internal::Percolator::PSMDescription* data = nullptr;
+      std::size_t size = 0;
+      void create(std::size_t n);
+      void destroy();
+      ~PsmSlab() { destroy(); }
+    };
+    PsmSlab psm_slab;
     std::unique_ptr<OpenMS::Internal::Percolator::SetHandler> set_handler;
     std::unique_ptr<OpenMS::Internal::Percolator::DataSet> target_ds;
     std::unique_ptr<OpenMS::Internal::Percolator::DataSet> decoy_ds;
     std::vector<std::string> synthesized_ids;
-    /// PSMs are owned by the DataSets inside set_handler; this vector is for
+    /// PSMs are owned by the DataSets inside set_handler (rescore(): by psm_slab); this vector is for
     /// bookkeeping only (so we can count rows). Do NOT delete these pointers
     /// directly — DataSet::~DataSet will.
     std::vector<OpenMS::Internal::Percolator::PSMDescription*> owned_psms;
@@ -48,6 +61,10 @@ namespace OpenMS
     /// Fresh FeatureMemoryPool used by the second pass (feature slots are
     /// deallocated by scoreAndAddPSM but the pool itself must outlive it).
     std::unique_ptr<OpenMS::Internal::Percolator::FeatureMemoryPool> second_pass_pool;
+    /// Out-of-fold modes: the scoring pass's PSMs (one per row) in one block, constructed and destroyed in parallel
+    /// (Percolator.cpp: makePsmSlab_ / destroyPsmSlab_); reset() destroys it.
+    OpenMS::Internal::Percolator::PSMDescription* second_pass_slab = nullptr;
+    size_t second_pass_slab_size = 0;
 
     // Persisted params (mirrored from DefaultParamHandler param_).
     double c_pos = 0.1;
@@ -62,10 +79,42 @@ namespace OpenMS
     bool   post_processing_tdc = true;
     int    nested_xval_bins = 1;
     int    subset_max_train = 100000;         ///< 0 = no cap; default 100k
+    bool   subset_out_of_fold = false;        ///< subset_mode "out_of_fold" or "out_of_fold_avg" (true), "in_sample" (false, upstream)
+    bool   subset_oof_avg = false;            ///< subset_mode "out_of_fold_avg": unsampled rows scored by the average model
+    bool   subset_curve = false;              ///< subset_mode "learning_curve"
+    int    subset_curve_start = 100000;
+    double subset_curve_min_gain = 0.002;
+    int    subset_curve_validation = 250000;
+    int    subset_curve_max = 1000000;
+    /// Out-of-fold capped training of the last rescore() (empty otherwise).
+    Percolator::CappedTrainingInfo capped_info;
+    double tron_epsilon = 1e-7;               ///< TRON stopping tolerance (Percolator: EPSILON = 1e-7)
+    bool   warm_start = false;                ///< pairs start from their previous iteration's weights
+    bool   single_cneg = false;               ///< one Cneg candidate (3 x ratio) instead of three
     int    num_threads = 3;                   ///< max OpenMP threads for CV, within omp_get_max_threads()
     std::string initial_direction;            ///< feature name; prefix "-" = lower is better; empty = auto
+    int    solver = 0;                        ///< SvmSolver of the cross-validation (param "solver"; 0 = TRON)
+    bool   calc_mass_feature = false;         ///< rescorePSMs(): CalcMass is a training feature (param "calc_mass_feature")
     std::string use_pi0 = "auto";             ///< "auto" | "true" | "false": pi0 correction on q-values; false = pure TDA (pi0=1)
     std::string report_as_main_score = "none"; ///< "none"|"q-value"|"pep"|"svm" — which Percolator output to promote to hit.getScore()
+    std::string algorithm = "percolator";     ///< rescorePSMs(): "percolator" | "reset"
+    bool   peptide_level = false;             ///< rescore(): also peptide-level q-values and PEPs (RescoreInput::peptide_keys)
+    std::string reset_salt;                   ///< empty = random
+    std::string reset_learner = "svm";
+    int    reset_iterations = 25;
+    std::string reset_representative = "model";
+    bool   reset_audit = false;
+    std::string reset_stem_table;             ///< empty = none
+    int    reset_decoy_databases = 1;         ///< 1 or 2 (two-decoy mode, param "reset:decoys")
+    std::string reset_second_decoy_prefix = "DECOY_X_"; ///< two-decoy mode: accession prefix of the second decoy set
+    int    reset_mlp_members = 8;             ///< learner "mlp" (PercolatorReset::Options)
+    int    reset_mlp_hidden = 16;
+    int    reset_mlp_epochs = 30;
+    int    reset_mlp_warm_epochs = 3;
+    bool   reset_mlp_crossfit = true;
+    int    reset_mlp_norm_min_decoys = 1000;
+    /// Result of the last RESET rescorePSMs() call (null otherwise).
+    std::shared_ptr<const PercolatorReset::Output> last_reset;
 
     /// Per-fold, per-feature weights populated after rescore(). Read by
     /// Percolator::getSvmWeights(). Empty before the first rescore().

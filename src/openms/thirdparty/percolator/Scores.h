@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <cfloat>
 #include <cstdlib>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <vector>
@@ -85,25 +86,50 @@ class Scores {
                          double fdr,
                          bool skipDecoysPlusOne = false);
   int calcScores(vector<double>& w);
+  // OpenMS: see Scores.cpp
+  int sortScoresAndCalcQvals(double fdr, bool skipDecoysPlusOne = false);
+  // OpenMS: see Scores.cpp
+  bool sortedUpToInterchangeable() const;
+  // OpenMS: see Scores.cpp
+  int countPositives(const std::vector<double>& w, double fdr,
+                     bool skipDecoysPlusOne = false) const;
+  // OpenMS: the feature rows of the PSMs with their isTarget(), in the order of the rows in
+  // memory, and countPositives from these (see Scores.cpp)
+  void getFeatureRows(std::vector<std::pair<const double*, bool> >& rows) const;
+  // (rowScores != nullptr: also receives the score of each row, in the order of rows)
+  int countPositives(const std::vector<double>& w, double fdr, bool skipDecoysPlusOne,
+                     const std::vector<std::pair<const double*, bool> >& rows,
+                     std::vector<double>* rowScores = nullptr) const;
+  // OpenMS: calcScoresAndQvals(w, fdr, skipDecoysPlusOne) with the scores of w already computed for
+  // the rows of getFeatureRows (rowScores, from countPositives); see Scores.cpp
+  int calcScoresOfRowsAndQvals(std::vector<double>& w,
+                               const std::vector<std::pair<const double*, bool> >& rows,
+                               const std::vector<double>& rowScores, double fdr,
+                               bool skipDecoysPlusOne = false);
   int calcQvals(double fdr, bool skipDecoysPlusOne = false);
   void calcPep(const bool spline = false, const bool interpol = false, const bool from_q = false);
  
   void populateWithPSMs(SetHandler& setHandler);
 
   int getInitDirection(const double initialSelectionFdr,
-                       std::vector<double>& direction);
+                       std::vector<double>& direction,
+                       std::ostream& report = std::cerr);
   void createXvalSetsBySpectrum(std::vector<Scores>& train,
                                 std::vector<Scores>& test,
                                 unsigned int xval_fold,
                                 FeatureMemoryPool& featurePool,
                                 double decoyFractionTraining = 1.0,
-                                unsigned int decoysPerTarget = 1u);
+                                unsigned int decoysPerTarget = 1u,
+                                const std::function<unsigned int(const PSMDescription&)>* fixedFold = nullptr);
 
   void generatePositiveTrainingSet(AlgIn& data,
                                    const double fdr,
                                    const double cpos,
                                    const bool trainBestPositive);
   void generateNegativeTrainingSet(AlgIn& data, const double cneg);
+  // OpenMS: see Scores.cpp
+  bool generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
+                                       const bool trainBestPositive) const;
 
   void recalculateSizes();
   void normalizeScores(double fdr, std::vector<double>& weights);
@@ -130,6 +156,8 @@ class Scores {
   inline unsigned int negSize() const { return totalNumberOfDecoys_; }
 
   inline void addScoreHolder(const ScoreHolder& sh) { scores_.push_back(sh); }
+  // OpenMS: replaces the score holders (built elsewhere, e.g. in parallel); call recalculateSizes after
+  inline void setScoreHolders(std::vector<ScoreHolder>&& scores) { scores_ = std::move(scores); }
   inline void reserve(size_t n) { scores_.reserve(n); }
 
   inline void setNullTargetWinProb(const double nullTargetWinProb) {
@@ -151,6 +179,18 @@ class Scores {
   }
 
  protected:
+  // OpenMS: see Scores.cpp
+  int countPositivesOfPairs(const std::vector<std::pair<double, bool> >& combined,
+                         double fdr, bool skipDecoysPlusOne) const;
+  // OpenMS: the same, with qvals as scratch for the q-values when they are computed (its capacity is reused; its
+  // contents afterwards are unspecified)
+  int countPositivesOfPairs(const std::vector<std::pair<double, bool> >& combined,
+                            double fdr, bool skipDecoysPlusOne, std::vector<double>& qvals) const;
+  int countPositivesOfScores(std::vector<std::pair<double, bool> >& combined,
+                             const std::vector<double>& w, double fdr,
+                             bool skipDecoysPlusOne) const;
+  bool countPositivesOfTop(std::vector<std::pair<double, bool> >& combined, double fdr,
+                           bool skipDecoysPlusOne, int& numPos) const;
   bool usePi0_;
 
   double pi0_;
@@ -159,6 +199,9 @@ class Scores {
 
   std::vector<ScoreHolder> scores_;
   std::map<PSMDescription*, std::vector<PSMDescription*> > peptidePsmMap_;
+  // OpenMS: the certificate of sortScoresAndCalcQvals failed for this set once: later calls sort
+  // without checking (a forced sort is always exact)
+  bool sortCertificateFailed_ = false;
 
   void reorderFeatureRows(
       FeatureMemoryPool& featurePool,
@@ -169,6 +212,8 @@ class Scores {
   int calcQvals(double fdr, bool skipDecoysPlusOne,
                 std::vector<std::pair<double, bool> >& combined);
   void checkSeparationAndSetPi0();
+  // OpenMS: see Scores.cpp
+  int sortScores();
   bool is_output_rt_ = false;
 };
 

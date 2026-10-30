@@ -70,6 +70,47 @@ def test_reproducible_with_same_seed():
         assert abs(a - b) < 1e-9
 
 
+def test_dense_feature_matrix_and_peptide_level():
+    """The dense row-major feature_matrix gives the scores of the same rows as features; with peptide_level and
+    peptide_keys the peptide-level q-values and PEPs are filled, one per row."""
+    rows, labels, keys = [], [], []
+    for i in range(400):
+        is_decoy = (i % 2 == 1)
+        rows.append([(-1.0 if is_decoy else +1.0) + 0.01 * i, float(i % 5)])
+        labels.append(is_decoy)
+        keys.append(("DECOY_" if is_decoy else "") + "PEP" + str(i // 4))  # two PSMs per peptide and label
+
+    def make_percolator(peptide_level):
+        p = oms.Percolator()
+        par = p.getDefaults()
+        par.setValue("seed", 23)
+        par.setValue("peptide_level", "true" if peptide_level else "false")
+        p.setParameters(par)
+        return p
+
+    nested = oms.RescoreInput()
+    nested.feature_names = ["f", "g"]
+    nested.features = rows
+    nested.is_decoy = labels
+    dense = oms.RescoreInput()
+    dense.feature_names = ["f", "g"]
+    dense.feature_matrix = [v for row in rows for v in row]
+    dense.is_decoy = labels
+    assert len(dense.feature_matrix) == 2 * len(rows)
+
+    o_nested = make_percolator(False).rescore(nested)
+    o_dense = make_percolator(False).rescore(dense)
+    assert list(o_dense.scores) == list(o_nested.scores)
+    assert len(o_dense.peptide_q_values) == 0
+
+    dense.peptide_keys = keys
+    assert list(dense.peptide_keys) == keys
+    o_peptide = make_percolator(True).rescore(dense)
+    assert len(o_peptide.peptide_q_values) == len(rows)
+    assert len(o_peptide.peptide_peps) == len(rows)
+    assert all(0.0 <= q <= 1.0 for q in o_peptide.peptide_q_values)
+
+
 def _synthetic_psms(n=600):
     import random
     rng = random.Random(7)
@@ -119,6 +160,8 @@ if __name__ == "__main__":
     print("test_low_level_rescore_on_separable_data: passed")
     test_reproducible_with_same_seed()
     print("test_reproducible_with_same_seed: passed")
+    test_dense_feature_matrix_and_peptide_level()
+    print("test_dense_feature_matrix_and_peptide_level: passed")
     test_rescore_psms()
     print("test_rescore_psms: passed")
     print("\nAll Percolator pyOpenMS tests passed.")

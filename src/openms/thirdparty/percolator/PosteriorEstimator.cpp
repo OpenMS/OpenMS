@@ -35,6 +35,12 @@
 #include "Transform.h"
 #include "Globals.h"
 #include "Version.h"
+#include "OpenMPTasks.h"  // OpenMS: PERCOLATOR_OMP_TASKS, PERCOLATOR_TASK_PRAGMA
+#include <exception>
+#include <stdint.h>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
@@ -72,6 +78,20 @@ template<class T> void bootstrap(const vector<T>& in, vector<T>& out,
   size_t num_draw = min(in.size(), max_size);
   for (size_t ix = 0; ix < num_draw; ++ix) {
     size_t draw = (size_t)(PseudoRandom::lcg_uniform_rand() * n);
+    out.push_back(in[draw]);
+  }
+  // sort in desending order
+  sort(out.begin(), out.end());
+}
+
+// OpenMS: bootstrap with the numbers drawn from the caller's state of the generator
+template<class T> void bootstrapFrom(const vector<T>& in, vector<T>& out, uint64_t& state,
+                                     size_t max_size = 1000) {
+  out.clear();
+  double n = static_cast<double>(in.size());
+  size_t num_draw = min(in.size(), max_size);
+  for (size_t ix = 0; ix < num_draw; ++ix) {
+    size_t draw = (size_t)(PseudoRandom::lcg_uniform_rand(state) * n);
     out.push_back(in[draw]);
   }
   // sort in desending order
@@ -399,6 +419,125 @@ void PosteriorEstimator::getQValues(double pi0,
   partial_sum(q.rbegin(), q.rend(), q.rbegin(), mymin);
 }
 
+// OpenMS: the smallest block of PSMs a task of getQValuesInTasks handles
+[[maybe_unused]] static const size_t kMinQValueBlock = 4096;
+
+/**
+ * OpenMS: getQValues(pi0, combined, q, skipDecoysPlusOne, nullTargetWinProb) with the tasks of
+ * an enclosing OpenMP parallel region, for pi0 = 1 (then getQValues makes no mix-max correction,
+ * and every FDR is a number in [0, +inf]), a finite decoy factor >= 0 and an empty q; otherwise
+ * returns false and does nothing.
+ * The PSMs are split into blocks of whole groups of equal scores (at fixed positions, not
+ * depending on the number of threads). The targets and decoys of the blocks are counted first,
+ * so each block computes the FDRs of its groups from the same counts as the loop of getQValues,
+ * by the same expression. The q-values (the minimum FDR from a position to the end: the q-values
+ * are numbers in [0, 1], so the order of the minimisation does not matter) are the minima
+ * within each block, and then the minimum of these and the q-value at the start of the next
+ * block.
+ */
+bool PosteriorEstimator::getQValuesInTasks(double pi0,
+    const vector<pair<double, bool> >& combined, vector<double>& q,
+    bool skipDecoysPlusOne, double nullTargetWinProb) {
+#ifdef _OPENMP
+  const size_t n = combined.size();
+  const double decoyFactor = nullTargetWinProb / (1.0 - nullTargetWinProb);
+  if (pi0 != 1.0 || !(decoyFactor >= 0.0) || !std::isfinite(decoyFactor) || !q.empty() ||
+      n < 2 * kMinQValueBlock || n > static_cast<size_t>(INT_MAX) || !omp_in_parallel()) {
+    return false;
+  }
+  const bool withNegatives = includeNegativesInResult;
+  // the blocks [starts[b], starts[b + 1]): from multiples of the block size (kMinQValueBlock, or
+  // more for at most 64 blocks: libgomp runs all tasks of a taskloop in the encountering thread if
+  // its team's queue would then hold more than 64 tasks per thread) to the next group (each
+  // position is compared at most once)
+  const size_t blockSize = (std::max)(kMinQValueBlock, (n + 63) / 64);
+  vector<size_t> starts(1, 0);
+  size_t scanned = 1;
+  for (size_t at = blockSize; at < n; at += blockSize) {
+    size_t start = (std::max)(at, scanned);
+    while (start < n && combined[start - 1].first == combined[start].first) ++start;
+    scanned = start + 1;
+    if (start >= n) break;
+    if (start > starts.back()) starts.push_back(start);
+  }
+  starts.push_back(n);
+  const int numBlocks = static_cast<int>(starts.size() - 1);
+  vector<int> targets(static_cast<size_t>(numBlocks)), decoys(static_cast<size_t>(numBlocks));
+  PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(combined, starts, targets, decoys))
+  for (int b = 0; b < numBlocks; ++b) {
+    int t = 0, d = 0;
+    for (size_t i = starts[static_cast<size_t>(b)]; i < starts[static_cast<size_t>(b) + 1]; ++i) {
+      if (combined[i].second) ++t; else ++d;
+    }
+    targets[static_cast<size_t>(b)] = t;
+    decoys[static_cast<size_t>(b)] = d;
+  }
+  // the counts before each block, and the position of its first q-value
+  vector<int> zBefore(static_cast<size_t>(numBlocks)), wBefore(static_cast<size_t>(numBlocks));
+  vector<size_t> qBefore(static_cast<size_t>(numBlocks) + 1);
+  int n_z = skipDecoysPlusOne ? 0 : 1, n_w = 0;
+  qBefore[0] = 0;
+  for (size_t b = 0; b < static_cast<size_t>(numBlocks); ++b) {
+    zBefore[b] = n_z;
+    wBefore[b] = n_w;
+    n_z += decoys[b];
+    n_w += targets[b];
+    qBefore[b + 1] = qBefore[b] + static_cast<size_t>(targets[b]) +
+                     (withNegatives ? static_cast<size_t>(decoys[b]) : 0u);
+  }
+  q.resize(qBefore[static_cast<size_t>(numBlocks)]);
+  PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(combined, starts, zBefore, wBefore, qBefore, q))
+  for (int b = 0; b < numBlocks; ++b) {
+    // the loop of getQValues on the block, without the mix-max correction (pi0 >= 1)
+    const double E_f1_mod_run_tot = 0.0;
+    int n_z_ge_w = zBefore[static_cast<size_t>(b)], n_w_ge_w = wBefore[static_cast<size_t>(b)];
+    int decoyQueue = 0, targetQueue = 0;
+    size_t out = qBefore[static_cast<size_t>(b)];
+    const size_t end = starts[static_cast<size_t>(b) + 1];
+    for (size_t i = starts[static_cast<size_t>(b)]; i < end; ++i) {
+      if (combined[i].second) {
+        ++n_w_ge_w;
+        ++targetQueue;
+      } else {
+        ++n_z_ge_w;
+        ++decoyQueue;
+      }
+      if (i + 1 == end || combined[i].first != combined[i + 1].first) {
+        if (withNegatives) {
+          targetQueue += decoyQueue;
+        }
+        double fdr = (n_z_ge_w * pi0 + E_f1_mod_run_tot) / (double)((std::max)(1, n_w_ge_w)) * decoyFactor;
+        for (int k = 0; k < targetQueue; ++k) {
+          q[out++] = (std::min)(fdr, 1.0);
+        }
+        decoyQueue = 0;
+        targetQueue = 0;
+      }
+    }
+    // the minima within the block
+    for (size_t k = qBefore[static_cast<size_t>(b) + 1]; k-- > qBefore[static_cast<size_t>(b)] + 1;) {
+      q[k - 1] = mymin(q[k], q[k - 1]);
+    }
+  }
+  // the minimum of the q-values after each block
+  vector<double> after(static_cast<size_t>(numBlocks), 2.0);  // above every FDR (none after the last block)
+  for (size_t b = static_cast<size_t>(numBlocks) - 1; b-- > 0;) {
+    const bool empty = qBefore[b + 1] == qBefore[b + 2];
+    after[b] = empty ? after[b + 1] : mymin(after[b + 1], q[qBefore[b + 1]]);
+  }
+  PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(after, qBefore, q))
+  for (int b = 0; b < numBlocks - 1; ++b) {
+    for (size_t k = qBefore[static_cast<size_t>(b)]; k < qBefore[static_cast<size_t>(b) + 1]; ++k) {
+      q[k] = mymin(after[static_cast<size_t>(b)], q[k]);
+    }
+  }
+  return true;
+#else
+  (void)pi0; (void)combined; (void)q; (void)skipDecoysPlusOne; (void)nullTargetWinProb;
+  return false;
+#endif
+}
+
 void PosteriorEstimator::getQValuesFromP(double pi0,
                                          const vector<double>& p, vector<double> & q) {
 	double m = (double)p.size();
@@ -503,8 +642,55 @@ double PosteriorEstimator::estimatePi0(vector<double>& p,
   vector<double> pBoot, mse;
   // Initialize the vector mse with zeroes.
   fill_n(back_inserter(mse), pi0s.size(), 0.0);
+  // OpenMS: inside an OpenMP parallel region (CrossValidation, Scores::merge), the bootstraps
+  // are tasks: each draws its numbers from the generator's state at its first draw (the
+  // bootstraps draw min(n, 1000) numbers each, see bootstrap; PseudoRandom::advance), the
+  // errors are added up in the order of the bootstraps as below, and the generator ends in
+  // the state the loop below leaves.
+  bool booted = false;
+#ifdef _OPENMP
+  if (numBoot > 1 && numBoot <= static_cast<unsigned int>(INT_MAX) && !p.empty() &&
+      omp_in_parallel()) {
+    const uint64_t numDraw = min(p.size(), static_cast<size_t>(1000));
+    const uint64_t seed = PseudoRandom::getSeed();
+    const size_t numLambdas = lambdas.size();
+    vector<double> pi0Boots(static_cast<size_t>(numBoot) * numLambdas);
+    vector<std::exception_ptr> errors(numBoot);
+    PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(4) shared(p, lambdas, pi0Boots, errors))
+    for (int boot = 0; boot < static_cast<int>(numBoot); ++boot) {
+      try {
+        uint64_t state = PseudoRandom::advance(seed, static_cast<uint64_t>(boot) * numDraw);
+        vector<double> pBootOfTask;
+        bootstrapFrom<double>(p, pBootOfTask, state);
+        const size_t nBoot = pBootOfTask.size();
+        for (size_t ix = 0; ix < numLambdas; ++ix) {
+          vector<double>::const_iterator startOfTask =
+              lower_bound(pBootOfTask.begin(), pBootOfTask.end(), lambdas[ix]);
+          double Wl = (double)distance(startOfTask, pBootOfTask.cend());
+          pi0Boots[static_cast<size_t>(boot) * numLambdas + ix] =
+              Wl / static_cast<double>(nBoot) / (1. - lambdas[ix]);
+        }
+      } catch (...) {
+        errors[static_cast<size_t>(boot)] = std::current_exception();
+      }
+    }
+    for (const std::exception_ptr& error : errors) {
+      if (error) std::rethrow_exception(error);
+    }
+    for (unsigned int boot = 0; boot < numBoot; ++boot) {
+      for (unsigned int ix = 0; ix < lambdas.size(); ++ix) {
+        double pi0Boot = pi0Boots[static_cast<size_t>(boot) * numLambdas + ix];
+        // Estimated mean-squared error.
+        mse[ix] += (pi0Boot - minPi0) * (pi0Boot - minPi0);
+      }
+    }
+    PseudoRandom::setSeed(static_cast<unsigned long>(
+        PseudoRandom::advance(seed, static_cast<uint64_t>(numBoot) * numDraw)));
+    booted = true;
+  }
+#endif
   // Examine which lambda level that is most stable under bootstrap
-  for (unsigned int boot = 0; boot < numBoot; ++boot) {
+  for (unsigned int boot = 0; !booted && boot < numBoot; ++boot) {
     // Create an array of bootstrapped p-values, and sort in ascending order.
     bootstrap<double> (p, pBoot);
     n = pBoot.size();

@@ -2517,6 +2517,12 @@ Probability ties resolved by taking protein with largest number of peptides
                 "Per-row integer key to keep related rows in the same CV fold. Leave empty for no grouping.")
         .def_rw("feature_names",  &OpenMS::RescoreInput::feature_names,
                 "Names aligned 1:1 with feature columns; used for logging only.")
+        .def_rw("feature_matrix", &OpenMS::RescoreInput::feature_matrix,
+                "Dense row-major features (n_rows x len(feature_names)), used when 'features' is empty; "
+                "'is_decoy' gives the number of rows.")
+        .def_rw("peptide_keys",   &OpenMS::RescoreInput::peptide_keys,
+                "Optional per-row peptide key for peptide-level q-values (Percolator parameter 'peptide_level'). "
+                "Empty, or one entry per row.")
 
         .def("set_features_np",
              [](OpenMS::RescoreInput& self,
@@ -2549,7 +2555,7 @@ Probability ties resolved by taking protein with largest number of peptides
         ;
 
     nb::class_<OpenMS::RescoreOutput>(m, "RescoreOutput",
-        "Output from Percolator.rescore(). Aligned 1:1 with RescoreInput.features.")
+        "Output from Percolator.rescore(). Aligned 1:1 with the rows of the RescoreInput (features or feature_matrix).")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::RescoreOutput &>())
         .def("__copy__",     [](const OpenMS::RescoreOutput& self) { return OpenMS::RescoreOutput(self); })
@@ -2557,6 +2563,10 @@ Probability ties resolved by taking protein with largest number of peptides
         .def_rw("scores",   &OpenMS::RescoreOutput::scores,   "SVM discriminant score per row")
         .def_rw("q_values", &OpenMS::RescoreOutput::q_values, "q-value per row")
         .def_rw("peps",     &OpenMS::RescoreOutput::peps,     "posterior error probability per row")
+        .def_rw("peptide_q_values", &OpenMS::RescoreOutput::peptide_q_values,
+                "With 'peptide_level' and RescoreInput.peptide_keys: the peptide-level q-value per row (empty otherwise)")
+        .def_rw("peptide_peps",     &OpenMS::RescoreOutput::peptide_peps,
+                "With 'peptide_level' and RescoreInput.peptide_keys: the peptide-level PEP per row (empty otherwise)")
 
         .def("scores_np",
              [](nb::object self_obj) -> nb::object {
