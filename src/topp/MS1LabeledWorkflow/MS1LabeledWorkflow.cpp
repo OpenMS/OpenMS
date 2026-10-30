@@ -993,7 +993,9 @@ protected:
     ratio. So an identified partial multiplet takes up the partial multiplets at the m/z its peptide has in the channels it
     misses (MultiplexResolverAlgorithm::expectedChannelMZs()): of the same charge and CV, eluting at the identification (within
     the 'id_mapping' tolerances), with all their channels among the missing ones and identifications (if any) of the same
-    peptide only.
+    peptide only (the same sequence and modifications apart from the labels, at the same charge). The identifications have to
+    be settled first (keepMultiAssignedOnClosest_): one that the mapping attached to several multiplets would let each of them
+    take up the partner.
   */
   void joinChannelsOfIdentifiedPeptides_(ConsensusMap& multiplets, const FeatureMap& channels, const MultiplexResolverAlgorithm& resolver) const
   {
@@ -1041,6 +1043,7 @@ protected:
       if (mzs.empty()) { continue; }
       const int charge = best->getHits()[0].getCharge();
       const double rt = best->getRT();
+      const AASequence peptide = unlabelled_(best->getHits()[0]);
       const std::optional<double> cv = compensationVoltage_(target);
 
       // the channels the multiplet has
@@ -1058,11 +1061,12 @@ protected:
         }
         return std::nullopt;
       };
+      // the same peptide (sequence and other modifications, in another channel) at the same charge
       auto same_peptide = [&](const PeptideIdentification& id)
       {
         Size id_own = 0;
         const vector<double> id_mzs = expected_mzs(id, id_own);
-        if (id_mzs.size() != mzs.size() || id.getHits()[0].getCharge() != charge) { return false; }
+        if (id_mzs.size() != mzs.size() || id.getHits()[0].getCharge() != charge || !(unlabelled_(id.getHits()[0]) == peptide)) { return false; }
         for (Size j = 0; j < mzs.size(); ++j)
         {
           if (std::abs(id_mzs[j] - mzs[j]) > tolerance_at(mzs[j])) { return false; }
@@ -1567,7 +1571,9 @@ protected:
 
     if (knock_out_)
     {
-      // the channels of an identified peptide that were detected separately form one multiplet
+      // the channels of an identified peptide that were detected separately form one multiplet (with every spectrum match on
+      // its closest multiplet only, so that a match the mapping attached to several does not join the wrong one)
+      keepMultiAssignedOnClosest_(multiplets);
       joinChannelsOfIdentifiedPeptides_(multiplets, channels, resolver);
       // an identification of a channel the detection missed joins the multiplet detected in the peptide's other channels
       attachToUndetectedChannels_(multiplets, channels, resolver);
@@ -2096,6 +2102,14 @@ protected:
     experimental design; 0 if unknown). These are exported as opt_ columns by mzTab and as
     cv_params by the QPX feature and psm views.
   */
+  /// The sequence of @p hit without its labels (other modifications kept), see stripLabels_
+  AASequence unlabelled_(const PeptideHit& hit) const
+  {
+    PeptideHit copy = hit;
+    stripLabels_(copy);
+    return copy.getSequence();
+  }
+
   void stripLabels_(PeptideHit& hit) const
   {
     const AASequence original = hit.getSequence();

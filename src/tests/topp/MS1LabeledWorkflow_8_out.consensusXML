@@ -110,10 +110,10 @@
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="string" name="feature_id" value="16907355690727166316"/>
 			</PeptideIdentification>
-			<UserParam type="string" name="feature_id" value="16907355690727166316"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="YVNDLAGHEK(Label:13C(6)15N(2))"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="Lys8"/>
 			<UserParam type="int" name="MS1Label:channel" value="2"/>
+			<UserParam type="string" name="feature_id" value="16907355690727166316"/>
 			<UserParam type="stringList" name="MS1Label:evidence_ratio_run" value="[MS1LabeledWorkflow_8_input.mzML,MS1LabeledWorkflow_8_input.mzML]"/>
 			<UserParam type="intList" name="MS1Label:evidence_ratio_channel" value="[1, 2]"/>
 			<UserParam type="floatList" name="MS1Label:evidence_ratio" value="[1.0, 0.96224843075975]"/>
@@ -140,10 +140,10 @@
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="string" name="feature_id" value="10306100746905639127"/>
 			</PeptideIdentification>
-			<UserParam type="string" name="feature_id" value="10306100746905639127"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="LVNELTEFAK"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
 			<UserParam type="int" name="MS1Label:channel" value="1"/>
+			<UserParam type="string" name="feature_id" value="10306100746905639127"/>
 			<UserParam type="stringList" name="MS1Label:evidence_ratio_run" value="[MS1LabeledWorkflow_8_input.mzML,MS1LabeledWorkflow_8_input.mzML]"/>
 			<UserParam type="intList" name="MS1Label:evidence_ratio_channel" value="[1, 2]"/>
 			<UserParam type="floatList" name="MS1Label:evidence_ratio" value="[1.0, 0.934722523328513]"/>

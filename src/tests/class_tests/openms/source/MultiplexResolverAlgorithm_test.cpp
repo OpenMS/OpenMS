@@ -321,6 +321,13 @@ START_SECTION(([EXTRA] blacklist check: own isotopic peaks of the multiplet, and
     with_other.push_back(645.0 + lys4 / 2 + 0.0015); // another feature, 2 ppm above the Lys4 channel
     resolver.resolve(in, out, conflicts, blacklistAt(100.0, with_other));
     TEST_EQUAL(std::isnan(out[0].getFeatures().rbegin()->getIntensity()), true)
+
+    // another feature exactly at the Lys4 channel (within the tolerance of where the light M+4 would be, which the light channel
+    // need not have at all: here only its first three isotopic peaks are blacklisted): not quantifiable
+    std::vector<double> other_at_dummy(light_isotopes.begin(), light_isotopes.begin() + 3);
+    for (int k = 0; k < 3; ++k) { other_at_dummy.push_back(645.0 + lys4 / 2 + k * c13 / 3); } // a 3+ feature
+    resolver.resolve(in, out, conflicts, blacklistAt(100.0, other_at_dummy));
+    TEST_EQUAL(std::isnan(out[0].getFeatures().rbegin()->getIntensity()), true)
   }
 
   // a light channel that was added for an identification of it (intensity 0, no unique id) to a multiplet of which only the

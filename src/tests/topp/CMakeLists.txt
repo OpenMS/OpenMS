@@ -4840,6 +4840,25 @@ set_tests_properties("TOPP_MS1LabeledWorkflow_8_joined" PROPERTIES PASS_REGULAR_
 add_test("TOPP_MS1LabeledWorkflow_8_joined_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_8_joined.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_8_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_8_joined_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_8_joined")
 
+# channels detected separately that must not be joined to the wrong partner: MS1LabeledWorkflow_9_input.mzML with
+# MS1LabeledWorkflow_9.idXML (synthetic SILAC duplex, isotopes alternating between the channels as in MS1LabeledWorkflow_8):
+#   a light envelope identified as LVNELTEFAK and a heavy one identified as VLNELTEFAK - the same composition, i.e. the same
+#     masses, but another peptide: not joined, so neither is quantified;
+#   YVNDLAGHEK 1:1, plus a ten times stronger envelope 15 ppm above its light channel, eluting 1 s earlier, onto which the light
+#     identification maps as well: the identification stays on the closer (exact) light channel before the channels are joined,
+#     so the heavy channel is joined to that one (ratio ~1, rather than ~0.1 with the stronger envelope).
+add_test("TOPP_MS1LabeledWorkflow_9_not_joined" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_9_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_9.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_9.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_9_not_joined.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_9_not_joined" PROPERTIES PASS_REGULAR_EXPRESSION "1 partial multiplet.s. were found to be other channels of an identified partial multiplet")
+add_test("TOPP_MS1LabeledWorkflow_9_not_joined_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_9_not_joined.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_9_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_9_not_joined_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_9_not_joined")
+
 # the labels must have been searched as modifications: identifications whose search parameters lack
 # them are refused (with -force the run continues)
 add_test("TOPP_MS1LabeledWorkflow_missing_label_mods" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test

@@ -15,6 +15,7 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <map>
@@ -225,6 +226,8 @@ namespace OpenMS
 
     // The isotopic peaks of the multiplet's own detected channels are blacklisted, too, but they are no other feature: e.g. the
     // M+4 peak of a light channel lies a few ppm below a channel labelled with Lys4 or Dimethyl4 (+4.0251 Da vs. 4 x 1.0034 Da).
+    // A blacklisted peak is attributed to them only if it is closer to one of their positions than to the dummy's, so that a
+    // peak of another feature at the dummy's position still counts.
     std::vector<double> own_peaks;
     for (const FeatureHandle& handle : consensus.getFeatures())
     {
@@ -234,9 +237,12 @@ namespace OpenMS
         own_peaks.push_back(handle.getMZ() + isotope * Constants::C13C12_MASSDIFF_U / charge);
       }
     }
-    auto is_own_peak = [&](double peak_mz)
+    // distance of a peak to the closest of them
+    auto own_distance = [&](double peak_mz)
     {
-      return std::any_of(own_peaks.begin(), own_peaks.end(), [&](double own) { return std::abs(own - peak_mz) < mz_tolerance_ * own / 1000000; });
+      double distance = std::numeric_limits<double>::infinity();
+      for (double own : own_peaks) { distance = std::min(distance, std::abs(own - peak_mz)); }
+      return distance;
     };
 
     const MSExperiment::ConstIterator it_rt_begin = blacklist.RTBegin(rt - rt_tolerance_);
@@ -265,9 +271,10 @@ namespace OpenMS
         // every blacklisted peak within the tolerance, on either side of the m/z
         for (MSSpectrum::ConstIterator it_mz = it_rt->MZBegin(mz_isotope - mz_tolerance); it_mz != it_rt->end() && it_mz->getMZ() < mz_isotope + mz_tolerance; ++it_mz)
         {
-          if ((std::abs(it_mz->getMZ() - mz_isotope) < mz_tolerance) && !is_own_peak(it_mz->getMZ()))
+          // a blacklisted peak close-by that is not closer to an isotopic peak of the multiplet itself: another feature
+          const double distance = std::abs(it_mz->getMZ() - mz_isotope);
+          if ((distance < mz_tolerance) && !(own_distance(it_mz->getMZ()) < distance))
           {
-            // a blacklisted peak of another feature close-by
             return true;
           }
         }
