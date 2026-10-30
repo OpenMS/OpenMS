@@ -228,7 +228,7 @@
 		on the size of your dataset). Running too many parallel jobs on a machine with not enough memory may cause problems.
 		Also, do not confuse this setting with the @em threads parameter of the individual TOPP tools: every TOPP tool has this
 		parameter specifying the maximum number of threads the tool is allowed to use (although only a subset of the TOPP tools make use
-		of this parameter, since there are tasks that cannot be computed in parallel). Be especially careful with combinations
+		of this parameter, since there are tasks that cannot be computed in parallel; a value of 0 uses the physical cores of the machine, without their hardware threads). Be especially careful with combinations
 		of both parameters! If you have a pipeline containing the @em FeatureFinderCentroided, for example, and its @em threads parameter
 		is set to 8, and you additionally set the number of parallel jobs in @b TOPPAS to 8, then you may end up using 8*8=64 threads in parallel (if you have 8 or more input files), which
 		might not be what you intended to do.
