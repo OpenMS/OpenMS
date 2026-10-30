@@ -235,13 +235,8 @@ namespace OpenMS
       {
         const double mz_isotope = mz + isotope * Constants::C13C12_MASSDIFF_U / charge;
 
-        const MSSpectrum::ConstIterator it_mz = it_rt->MZBegin(mz_isotope);
-        if (it_mz == it_rt->end())
-        {
-          continue;
-        }
-
-        if ((std::abs(it_mz->getMZ() - mz_isotope)) < mz_tolerance)
+        // the nearest blacklisted peak on either side (the first peak at or above the m/z alone misses one just below it)
+        if (it_rt->findNearest(mz_isotope, mz_tolerance) != -1)
         {
           // a blacklisted peak close-by
           return true;

@@ -215,6 +215,23 @@ START_SECTION((void resolve(const ConsensusMap& map_in, ConsensusMap& map_out, C
   TEST_EQUAL(out2.size(), 3)
   TEST_REAL_SIMILAR(out2[2].getFeatures().begin()->getIntensity(), 0.0)
 
+  // a blacklisted peak within the m/z tolerance (10 ppm, i.e. ~0.009 Th here) counts on either side of the dummy,
+  // whereas one outside of it does not
+  for (const auto& [offset, blacklisted] : std::vector<std::pair<double, bool>>{{-0.001, true}, {0.001, true}, {-0.02, false}, {0.02, false}})
+  {
+    MSExperiment nearby;
+    MSSpectrum nearby_spec;
+    nearby_spec.setRT(500.0);
+    nearby_spec.setMSLevel(1);
+    nearby_spec.push_back(Peak1D(900.0 - ARG10 / 2 + offset, 1000.0));
+    nearby.addSpectrum(nearby_spec);
+    nearby.updateRanges();
+    ConsensusMap out_nearby, conflicts_nearby;
+    resolver.resolve(in, out_nearby, conflicts_nearby, nearby);
+    TEST_EQUAL(out_nearby.size(), 3)
+    TEST_EQUAL(std::isnan(out_nearby[2].getFeatures().begin()->getIntensity()), blacklisted)
+  }
+
   // with one allowed missed cleavage, a doubly labelled peptide (Lys8 + Arg10) resolves as well
   {
     Param p = resolver.getParameters();
