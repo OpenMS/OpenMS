@@ -40,6 +40,7 @@ START_SECTION((static ToolListType getTOPPToolList()))
 {
   ToolListType list = ToolHandler::getTOPPToolList();
   TEST_TRUE(list.find("DecoyDatabase") != list.end())
+  TEST_TRUE(list.find("ExecutePipeline") != list.end())
   TEST_TRUE(list.size() > 30)  // assume we have over 30 tools in there
   // the registry comes from the registry files of the share directory; an empty list means they
   // were not found, which would let every check below pass vacuously

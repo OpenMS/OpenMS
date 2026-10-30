@@ -20,6 +20,8 @@ configure_file(${PROJECT_SOURCE_DIR}/../openms/include/OpenMS/test_config.h.in $
 set(cli_executables_list
   #MapAlignerBase_test
   ParameterInformation_test
+  PipelineGraph_test
+  PipelineExecutor_test
   SearchEngineBase_test
   TOPPBase_test
   TOPPExternalToolBase_test
@@ -48,6 +50,13 @@ foreach(_class_test ${cli_executables_list})
     set_target_properties(${_class_test} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
   endif()
 endforeach(_class_test)
+
+# A real sibling TOPP executable exercises discovery, invocation and process lifecycle.
+add_executable(PipelineTestTool source/PipelineTestTool.cpp)
+target_link_libraries(PipelineTestTool PRIVATE ${OpenMS_CLI_LIBRARIES})
+openms_add_executable_compiler_flags(PipelineTestTool)
+add_dependencies(PipelineExecutor_test PipelineTestTool)
+set_tests_properties(PipelineExecutor_test PROPERTIES TIMEOUT 90)
 
 #------------------------------------------------------------------------------
 # restore old compiler flags

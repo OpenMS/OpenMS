@@ -95,6 +95,28 @@ namespace OpenMS
 
 
     // -----------------------------------------------------------------------
+    // UTF-8 validation (non-inline; defined in StringUtils.cpp)
+    // -----------------------------------------------------------------------
+
+    /**
+      @brief Decode the UTF-8 sequence starting at @p pos of @p text
+
+      Truncated or malformed sequences, overlong forms, surrogates and values above
+      U+10FFFF are rejected.
+
+      @param[in] text Text to decode
+      @param[in] pos Offset of the sequence's first byte; must be less than text.size()
+      @param[out] code_point The decoded code point
+      @param[out] length The number of bytes of the sequence
+      @return false if the sequence is not well-formed; @p length is then left unchanged
+    */
+    OPENMS_DLLAPI bool decodeUTF8(std::string_view text, Size pos, UInt32& code_point, Size& length);
+
+    /// Is @p text entirely well-formed UTF-8 (see decodeUTF8())?
+    OPENMS_DLLAPI bool isValidUTF8(std::string_view text);
+
+
+    // -----------------------------------------------------------------------
     // toStr() — convert a value to a new std::string
     // -----------------------------------------------------------------------
 

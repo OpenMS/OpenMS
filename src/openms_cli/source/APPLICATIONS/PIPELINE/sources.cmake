@@ -1,0 +1,7 @@
+set(directory source/APPLICATIONS/PIPELINE)
+set(sources_list PipelineGraph.cpp PipelineFile.cpp PipelineTool.cpp PipelineExecutor.cpp)
+foreach(source ${sources_list})
+  list(APPEND OpenMS_CLI_sources ${directory}/${source})
+endforeach()
+set_source_files_properties(${directory}/PipelineTool.h PROPERTIES HEADER_FILE_ONLY TRUE)
+list(APPEND OpenMS_CLI_sources ${directory}/PipelineTool.h)

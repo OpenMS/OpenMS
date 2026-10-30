@@ -61,6 +61,7 @@
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
 #include <OpenMS/FORMAT/ZipIfstream.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 
 #ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
@@ -177,7 +178,7 @@ namespace OpenMS
 
     bool appendFileToSha1_(SHA1& sha, const std::string& filename)
     {
-      std::ifstream file{std::filesystem::path{std::string(filename)}, std::ios::binary};
+      std::ifstream file {to_path(filename), std::ios::binary};
       if (!file.is_open())
       {
         return false;
@@ -553,7 +554,7 @@ namespace OpenMS
     std::string decompressed_preview;
 
     // test whether the file is compressed (bzip2, gzip, or zip)
-    ifstream compressed_file(filename.c_str());
+    ifstream compressed_file(to_path(filename), std::ios::binary);
     char bz[4] = {};
     compressed_file.read(bz, 4);
     char g1 = 0x1f;

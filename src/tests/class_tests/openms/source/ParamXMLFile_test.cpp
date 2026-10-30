@@ -18,10 +18,12 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 
 ///////////////////////////
 
 #include <fstream>
+#include <filesystem>
 #ifdef __clang__
   #pragma clang diagnostic push
   #pragma clang diagnostic ignored "-Wshadow"
@@ -40,6 +42,78 @@ START_SECTION((ParamXMLFile()))
   ptr = new ParamXMLFile();
   TEST_NOT_EQUAL(ptr, nullPtr)
   delete ptr;
+}
+END_SECTION
+
+START_SECTION([EXTRA] Unicode parameter paths and values survive store and load)
+{
+  // Explicit UTF-8 bytes keep this independent of the compiler's source code page.
+  const std::string unicode = "\xC3\xBC"
+                              "mlaut_\xE6\x9D\xB1\xE4\xBA\xAC";
+  std::string temporary;
+  NEW_TMP_FILE(temporary)
+  const std::string filename = temporary + "_" + unicode + ".ini";
+  struct Cleanup
+  {
+    std::filesystem::path file;
+    ~Cleanup()
+    {
+      std::error_code ignored;
+      std::filesystem::remove(file, ignored);
+    }
+  } cleanup {to_path(filename)};
+  Param original;
+  original.setValue("tool:in", unicode + ".mzML", unicode, {"input file"});
+  original.setValue("tool:files", std::vector<std::string> {unicode + " # %.mzML", "second_" + unicode + ".mzML"}, "", {"input file"});
+  original.setValue("tool:" + unicode, unicode);
+  original.setSectionDescription("tool", unicode);
+  ParamXMLFile file;
+  file.store(filename, original);
+  Param loaded;
+  file.load(filename, loaded);
+  TEST_EQUAL(loaded.getValue("tool:in"), original.getValue("tool:in"))
+  TEST_EQUAL(loaded.getValue("tool:files"), original.getValue("tool:files"))
+  TEST_EQUAL(loaded.getValue("tool:" + unicode), original.getValue("tool:" + unicode))
+  TEST_EQUAL(loaded.getDescription("tool:in"), unicode)
+  TEST_EQUAL(loaded.getSectionDescription("tool"), unicode)
+}
+END_SECTION
+
+START_SECTION([EXTRA] Values in a legacy code page are stored as UTF-8)
+{
+  // E.g. a Windows ANSI temp path: the file must stay valid UTF-8, as declared.
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  Param original;
+  original.setValue("path", "C:/Users/J\xF6rg/spectra.mzML");
+  ParamXMLFile file;
+  file.store(filename, original);
+  Param loaded;
+  file.load(filename, loaded);
+  TEST_EQUAL(loaded.getValue("path").toString(), "C:/Users/J\xC3\xB6rg/spectra.mzML")
+  // UTF-8 values next to a converted one are not converted again.
+  original.setValue("description", "m/z\xE2\x80\x93ion mobility");
+  file.store(filename, original);
+  file.load(filename, loaded);
+  TEST_EQUAL(loaded.getValue("description").toString(), "m/z\xE2\x80\x93ion mobility")
+  TEST_EQUAL(loaded.getValue("path").toString(), "C:/Users/J\xC3\xB6rg/spectra.mzML")
+}
+END_SECTION
+
+START_SECTION([EXTRA] Legacy Latin1 parameter files remain readable)
+{
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  {
+    std::ofstream stream(to_path(filename), std::ios::binary);
+    stream << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
+              "<PARAMETERS version=\"1.8.0\">\n"
+              "  <ITEM name=\"name\" value=\"caf\xE9\" type=\"string\" description=\"\"/>\n"
+              "</PARAMETERS>\n";
+  }
+  Param loaded;
+  ParamXMLFile().load(filename, loaded);
+  TEST_EQUAL(loaded.getValue("name").toString(), "caf\xC3\xA9")
 }
 END_SECTION
 
@@ -499,4 +573,3 @@ END_TEST
 #ifdef __clang__
   #pragma clang diagnostic pop
 #endif
-

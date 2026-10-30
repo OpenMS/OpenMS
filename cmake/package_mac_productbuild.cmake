@@ -101,7 +101,7 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README.md
                     WORLD_READ
         COMPONENT   TOPPShell)
 
-## bin/qt.conf, which ExecutePipeline needs to find the Qt platform plugin, is installed in
+## bin/qt.conf, used by the remaining Qt-based applications, is installed in
 ## src/openms_gui/CMakeLists.txt.
 
 ## Fix OpenMS dependencies for all executables in the install directory under bin.

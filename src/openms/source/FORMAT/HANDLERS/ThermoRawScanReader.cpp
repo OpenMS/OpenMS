@@ -15,6 +15,7 @@
 #include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/FORMAT/HANDLERS/ThermoRawFileMetadata.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Acquisition.h>
@@ -109,7 +110,7 @@ namespace
                       << "ignoring it and looking in the OpenMS share directory instead\n";
     }
 
-    std::filesystem::path share_dir(File::getOpenMSDataPath());
+    const std::filesystem::path share_dir = to_path(File::getOpenMSDataPath()); // UTF-8 on Windows too
     std::filesystem::path candidate = share_dir / "openms_thermo_bridge" / "managed";
     if (isManagedDirectory(candidate))
     {

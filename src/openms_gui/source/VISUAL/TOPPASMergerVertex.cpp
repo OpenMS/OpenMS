@@ -80,55 +80,7 @@ namespace OpenMS
 
   void TOPPASMergerVertex::run()
   {
-    //check if everything ready
-    if (!isUpstreamFinished()) 
-    {
-      return;
-    }
-    RoundPackages pkg;
-    std::string error_msg;
-    bool success = buildRoundPackages(pkg, error_msg);
-    if (!success)
-    {
-      std::cerr << "Could not retrieve input files from upstream nodes...\n";
-      emit mergeFailed(toQString((std::string("Merger #") + this->getTopoNr() + " failed. " + error_msg)));
-      return;
-    }
-
-    /// update round status
-    Size input_rounds = pkg.size();
-    round_total_ = (round_based_mode_ ? (int) input_rounds : 1);  // for round based: take number of rounds from previous tool(s) - should all be equal
-    round_counter_ = 0; // once round_counter_ reaches round_total_, we are done
-
-    // clear output file list
-    output_files_.clear();
-    output_files_.resize(round_total_); // #rounds
-
-    // Do the virtual merging (nothing more than reorganizing filenames)
-    for (Size round = 0; round < input_rounds; ++round)
-    {
-      QStringList files;
-      // warning: ite->first (i.e. target-in param could be -1,-2,... etc to cover all incoming edges (they all have -1 theoretically - see buildRoundPackages())
-      for (RoundPackageConstIt ite = pkg[round].begin();
-           ite != pkg[round].end(); ++ite)
-      {
-        files.append(ite->second.filenames.get()); // concat filenames from all incoming edges
-      }
-      Size round_index = (round_based_mode_ ? round : 0);
-      output_files_[round_index][-1].filenames.append(files); // concat over all rounds (if required)
-    }
-
-    round_counter_ = round_total_;
-    finished_ = true;
-
-    // call all children, proceed in pipeline
-    for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
-    {
-      TOPPASVertex* tv = (*it)->getTargetVertex();
-      debugOut_(std::string("Starting child ") + tv->getTopoNr());
-      tv->run();
-    }
-
+    if (auto* pipeline = qobject_cast<TOPPASScene*>(scene())) { pipeline->runPipeline(); }
   }
 
 }

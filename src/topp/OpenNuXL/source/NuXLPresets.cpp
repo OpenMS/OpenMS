@@ -8,6 +8,7 @@
 
 #include "NuXLPresets.h"
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <nlohmann/json.hpp>
 #include <fstream>
 
@@ -42,7 +43,7 @@ namespace OpenMS
       {
         try
         {
-          std::ifstream file(json_path.c_str());
+          std::ifstream file(to_path(json_path)); // UTF-8 data path (wide open on Windows)
           json j;
           file >> j;
           
@@ -102,7 +103,7 @@ namespace OpenMS
       {
         try
         {
-          std::ifstream file(json_path.c_str());
+          std::ifstream file(to_path(json_path)); // UTF-8 data path (wide open on Windows)
           json j;
           file >> j;
           
