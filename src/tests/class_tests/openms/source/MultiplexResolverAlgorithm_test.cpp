@@ -273,6 +273,85 @@ START_SECTION((void resolve(const ConsensusMap& map_in, ConsensusMap& map_out, C
 }
 END_SECTION
 
+START_SECTION(([EXTRA] blacklist check: own isotopic peaks of the multiplet, and channels added for an identification))
+{
+  const double c13 = Constants::C13C12_MASSDIFF_U;
+  auto blacklistAt = [](double rt, const std::vector<double>& mzs)
+  {
+    MSExperiment blacklist;
+    MSSpectrum spec;
+    spec.setRT(rt);
+    spec.setMSLevel(1);
+    for (double mz : mzs) { spec.push_back(Peak1D(mz, 1000.0)); }
+    spec.sortByPosition();
+    blacklist.addSpectrum(spec);
+    blacklist.updateRanges();
+    return blacklist;
+  };
+
+  // Lys4 duplex, only the light channel detected (645 Th, 2+): its M+4 peak lies 9 ppm below the Lys4 channel (4 x 1.0034 Da
+  // vs. 4.0251 Da) and is blacklisted with the light channel's other isotopic peaks. That is no other feature: the Lys4 channel
+  // is absent (0), unless another blacklisted peak is there.
+  {
+    MultiplexResolverAlgorithm resolver;
+    Param p = resolver.getParameters();
+    p.setValue("algorithm:labels", "[][Lys4]");
+    resolver.setParameters(p);
+    const double lys4 = (double)p.getValue("labels:Lys4");
+
+    ConsensusMap in;
+    in.setExperimentType("labeled_MS1");
+    ConsensusFeature cf;
+    cf.setRT(100.0);
+    cf.setMZ(645.0);
+    cf.setCharge(2);
+    cf.insert(makeHandle(0, 100.0, 645.0, 2, 100.0));
+    cf.getPeptideIdentifications().push_back(makeId("PEPTIDEK", 2, 0));
+    in.push_back(cf);
+
+    std::vector<double> light_isotopes;
+    for (int k = 0; k < 6; ++k) { light_isotopes.push_back(645.0 + k * c13 / 2); }
+    ConsensusMap out, conflicts;
+    resolver.resolve(in, out, conflicts, blacklistAt(100.0, light_isotopes));
+    TEST_EQUAL(out.size(), 1)
+    TEST_REAL_SIMILAR(out[0].getFeatures().rbegin()->getMZ(), 645.0 + lys4 / 2)
+    TEST_REAL_SIMILAR(out[0].getFeatures().rbegin()->getIntensity(), 0.0)
+
+    std::vector<double> with_other = light_isotopes;
+    with_other.push_back(645.0 + lys4 / 2 + 0.0015); // another feature, 2 ppm above the Lys4 channel
+    resolver.resolve(in, out, conflicts, blacklistAt(100.0, with_other));
+    TEST_EQUAL(std::isnan(out[0].getFeatures().rbegin()->getIntensity()), true)
+  }
+
+  // a light channel that was added for an identification of it (intensity 0, no unique id) to a multiplet of which only the
+  // heavy channel was detected: checked like a missing channel
+  {
+    MultiplexResolverAlgorithm resolver;
+    ConsensusMap in;
+    in.setExperimentType("labeled_MS1");
+    ConsensusFeature cf;
+    cf.setRT(500.0);
+    cf.setMZ(900.0 - ARG10 / 2);
+    cf.setCharge(2);
+    cf.insert(makeHandle(0, 500.0, 900.0 - ARG10 / 2, 2, 0.0));
+    cf.insert(makeHandle(1, 500.0, 900.0, 2, 50.0));
+    cf.getPeptideIdentifications().push_back(makeId("AAAAR", 2, 0));
+    in.push_back(cf);
+
+    ConsensusMap out, conflicts;
+    resolver.resolve(in, out, conflicts, blacklistAt(500.0, {900.0 - ARG10 / 2 - 0.001}));
+    TEST_EQUAL(out.size(), 1)
+    TEST_EQUAL(out[0].size(), 2)
+    TEST_EQUAL(std::isnan(out[0].getFeatures().begin()->getIntensity()), true)
+    TEST_REAL_SIMILAR(out[0].getFeatures().rbegin()->getIntensity(), 50.0)
+
+    // nothing blacklisted there: absent
+    resolver.resolve(in, out, conflicts, blacklistAt(500.0, {}));
+    TEST_REAL_SIMILAR(out[0].getFeatures().begin()->getIntensity(), 0.0)
+  }
+}
+END_SECTION
+
 START_SECTION((std::vector<bool> checkIdentifications(const ConsensusFeature& consensus) const))
 {
   MultiplexResolverAlgorithm resolver;

@@ -4820,6 +4820,26 @@ add_test("TOPP_MS1LabeledWorkflow_7_complete_only" ${TOPP_BIN_PATH}/MS1LabeledWo
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_complete_only.tmp.consensusXML)
 set_tests_properties("TOPP_MS1LabeledWorkflow_7_complete_only" PROPERTIES PASS_REGULAR_EXPRESSION "Resolved 1 multiplet.s.; 0 identified")
 
+# the channels of one peptide detected separately: a synthetic SILAC duplex, MS1LabeledWorkflow_8_input.mzML with
+# MS1LabeledWorkflow_8.idXML (two peptides, 1:1, co-eluting light and heavy):
+#   LVNELTEFAK, whose third and fourth isotopes alternate between the channels from spectrum to spectrum (light complete in
+#     even spectra, heavy in odd ones), so that no spectrum holds the doublet and each channel is detected on its own;
+#     identified by a light spectrum;
+#   YVNDLAGHEK, an ordinary doublet, identified by a heavy spectrum.
+# The heavy channel of LVNELTEFAK joins the light one it was identified by, so both peptides are quantified (rather than the
+# heavy channel being completed as a dummy on its own blacklisted peaks, i.e. not quantifiable).
+add_test("TOPP_MS1LabeledWorkflow_8_joined" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_8_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_8.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_8.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_8_joined.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_8_joined" PROPERTIES PASS_REGULAR_EXPRESSION "1 partial multiplet.s. were found to be other channels of an identified partial multiplet")
+add_test("TOPP_MS1LabeledWorkflow_8_joined_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_8_joined.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_8_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_8_joined_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_8_joined")
+
 # the labels must have been searched as modifications: identifications whose search parameters lack
 # them are refused (with -force the run continues)
 add_test("TOPP_MS1LabeledWorkflow_missing_label_mods" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
