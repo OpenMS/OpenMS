@@ -196,3 +196,8 @@ def test_not_in_panel_does_not_outrank_a_species_call():
     ev = [Evidence("organism", "not in panel", 0.5, "search", "panel mini-search"),
           Evidence("organism", "Homo sapiens", 0.65, "data", "FASTag species")]
     assert reconcile(ev)["organism"].value == "Homo sapiens"
+
+
+def test_dia_spectra_do_not_test_enrichment():
+    none = [e for e in chem.detect_enrichment(_ms2(400, 0.0), dia=True) if e.value == "none"]
+    assert none and none[0].confidence < 0.6    # weak: records and text decide

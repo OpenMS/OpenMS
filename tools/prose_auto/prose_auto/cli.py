@@ -153,7 +153,7 @@ def analyze(a, log=print):
 
     log("[4/7] labels, enrichment, Cys alkylation (diagnostic ions)")
     t = time.time()
-    ev += chem.detect_labels(run, hr2) + chem.detect_enrichment(run, hr2, dia=str(search_acq).startswith("DIA")) \
+    ev += chem.detect_labels(run, hr2) + chem.detect_enrichment(run, hr2, dia=str(acq).startswith("DIA")) \
           + chem.detect_cys_alkylation(run, hr2)
     timings["chemistry"] = round(time.time() - t, 1)
 
