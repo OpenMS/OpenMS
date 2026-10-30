@@ -411,16 +411,16 @@ def run(a):
                              "truth": "|".join(sorted(map(str, truth))), "correct": "" if c is None else c,
                              "p": probs.get(h) if pred_name == "jev" else ""})
         rec["pred"] = preds
-        with open(os.path.join(a.out, "raw", f"{acc}.json"), "w") as fh:
+        with open(os.path.join(a.out, "raw", f"{acc}.json"), "w", encoding="utf-8") as fh:
             json.dump(rec, fh, indent=1, default=str)
         done += 1
         print(f"{done}/{a.n} {acc}", flush=True)
-    with open(os.path.join(a.out, "rows.tsv"), "w", newline="") as fh:
+    with open(os.path.join(a.out, "rows.tsv"), "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=["acc", "head", "predictor", "pred", "truth", "correct", "p"], delimiter="\t")
         w.writeheader()
         w.writerows(rows)
     summary = summarize(rows, done, jev)
-    with open(os.path.join(a.out, "summary.md"), "w") as fh:
+    with open(os.path.join(a.out, "summary.md"), "w", encoding="utf-8") as fh:
         fh.write(summary)
     print(summary)
 

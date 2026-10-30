@@ -76,6 +76,11 @@ class Run:
 _FILTER_CE = re.compile(r"@([a-z]+)(\d+(?:\.\d+)?)", re.I)
 
 
+def _text(value) -> str:
+    """pyopenms returns bytes for some strings in older builds (e.g. the Python 3.10 wheels)."""
+    return value.decode("utf-8", "replace") if isinstance(value, bytes) else str(value)
+
+
 def _activation_from_filter(fs: str):
     """Thermo filter strings name every activation step: '@hcd27.00' or
     '@etd50.00@hcd25.00' (EThcD)."""
@@ -94,8 +99,8 @@ def load_mzml(path: str, max_ms2: int = 20000, max_ms1: int = 2000,
     oms.MzMLFile().load(str(path), exp)
     run = Run(path=str(path))
     ins = exp.getInstrument()
-    run.instrument_name = ins.getName() or ins.getModel() or ""
-    run.instrument_vendor = ins.getVendor() or ""
+    run.instrument_name = _text(ins.getName() or ins.getModel() or "")
+    run.instrument_vendor = _text(ins.getVendor() or "")
     for ma in ins.getMassAnalyzers():
         name = str(ma.getType()).split(".")[-1]
         if name != "ANALYZERNULL":
@@ -153,7 +158,7 @@ def load_mzml(path: str, max_ms2: int = 20000, max_ms1: int = 2000,
             scan.charge = p.getCharge()
             scan.iso_lower = p.getIsolationWindowLowerOffset()
             scan.iso_upper = p.getIsolationWindowUpperOffset()
-            scan.activation = tuple(sorted(p.getActivationMethodsAsShortString()))
+            scan.activation = tuple(sorted(_text(m) for m in p.getActivationMethodsAsShortString()))
             scan.energy = p.getActivationEnergy()
             if p.metaValueExists("drift time") or p.getDriftTime() > 0:
                 scan.ion_mobility = True

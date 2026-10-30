@@ -17,12 +17,16 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python: ["3.10", "3.11", "3.12"]
     runs-on: ${{ matrix.os }}
+    env:
+      PYTHONUTF8: "1" # Windows: the reports hold non-cp1252 characters (e.g. '≥')
     steps:
       - uses: actions/checkout@v4
         with:
           sparse-checkout: |
             tools/prose_auto
             share/OpenMS/examples/BSA
+            share/OpenMS/examples/TOPPAS/data/BSA_Identification
+            share/OpenMS/examples/TOPPAS/data/Identification
             src/tests/topp
           sparse-checkout-cone-mode: true
       - uses: actions/setup-python@v5
