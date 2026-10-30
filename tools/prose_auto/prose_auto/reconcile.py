@@ -205,6 +205,12 @@ def reconcile(evidence: list) -> dict:
             out["label"] = d
     # organism: the search result names a panel file; match it to the stated species
     if "organism" in by:
+        # "not in panel" only says the panel search could not decide; it must not outrank a real organism call
+        # (FASTag species, records, text): on DIA runs and TMT runs with reporters in MS3 the mini-search finds too
+        # few PSMs while FASTag names the species
+        real = [e for e in by["organism"] if e.value not in ("not in panel", "unknown") and e.confidence >= 0.5]
+        if real:
+            by["organism"] = [e for e in by["organism"] if e.value != "not in panel"]
         d = _decide("organism", by["organism"])
         if d:
             out["organism"] = _stated_untested(d, by["organism"])

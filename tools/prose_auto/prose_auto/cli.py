@@ -193,9 +193,13 @@ def analyze(a, log=print):
         ftol, funit = (20.0, "ppm") if hr2 else (0.3, "Da")
         log("  FASTag: genus call from sequence tags")
         try:
-            ev += ext.fastag_species(a.fastag, spectra_file, ftol, funit, threads=a.threads,
+            fev = ext.fastag_species(a.fastag, spectra_file, ftol, funit, threads=a.threads,
                                      subsample=a.fastag_subsample, log=log, taxonomy_dir=a.fastag_taxonomy,
                                      rank="species" if a.fastag_taxonomy else "genus")
+            if a.fastag_taxonomy and not hr2:  # ion-trap tags hit large proteomes by chance (wheat, salmon first)
+                for e in fev:
+                    e.confidence = min(e.confidence, 0.2)
+            ev += fev
             db = (h.best_db[1] if h is not None and h.best_db else None) or a.fasta
             if db:
                 log(f"  FASTag: mass-gap histogram against {os.path.basename(db)} without fixed modifications")

@@ -190,3 +190,9 @@ def test_dia_placeholder_charges_are_no_charge_range():
                             charge=2, iso_lower=12.5, iso_upper=12.5, scan_low=100, scan_high=2000))
     cr = [e for e in inst.detect_acquisition(run) if e.parameter == "charge_range"]
     assert cr and cr[0].value == [2, 4] and cr[0].source == "default"
+
+
+def test_not_in_panel_does_not_outrank_a_species_call():
+    ev = [Evidence("organism", "not in panel", 0.5, "search", "panel mini-search"),
+          Evidence("organism", "Homo sapiens", 0.65, "data", "FASTag species")]
+    assert reconcile(ev)["organism"].value == "Homo sapiens"
