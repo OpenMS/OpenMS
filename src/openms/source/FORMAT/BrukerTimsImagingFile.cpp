@@ -54,10 +54,21 @@ namespace OpenMS
 
     // The SQLite file of the data that BrukerTimsFile::detectFormat() finds in @p path: analysis.tsf for TSF data,
     // analysis.tdf otherwise. TSF data (timsTOF without ion mobility) has the same GlobalMetadata and MaldiFrameInfo
-    // tables as TDF data.
+    // tables as TDF data. (As analysisDatabaseName() in BrukerTimsFile.cpp.)
     std::string sqliteFileName(const std::string& path)
     {
-      return BrukerTimsFile::detectFormat(path) == BrukerTimsFile::DataFormat::TSF ? "analysis.tsf" : "analysis.tdf";
+      using DataFormat = BrukerTimsFile::DataFormat;
+      switch (BrukerTimsFile::detectFormat(path)) // every format listed (no default): -Wswitch flags a new one here
+      {
+        case DataFormat::TSF:
+          return "analysis.tsf";
+        case DataFormat::TDF:
+        case DataFormat::BAF:                // not read yet (checkDataFormat() rejects it): its file goes here then
+        case DataFormat::NONE:               // the callers report the missing analysis.tdf
+        case DataFormat::UNREADABLE_ARCHIVE:
+          return "analysis.tdf";
+      }
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION); // a format not listed above
     }
 
     // The analysis.tdf (or for TSF data analysis.tsf, see sqliteFileName()) entry of the .d directory that

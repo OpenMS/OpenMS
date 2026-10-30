@@ -82,10 +82,11 @@ namespace OpenMS
    * timsTOF instruments write without TIMS separation: most MALDI imaging runs (read by BrukerTimsImagingFile),
    * MALDI spot runs and LC-MS runs with TIMS off. Every frame gives one spectrum, in every export mode: its line
    * spectrum, which the acquisition stored centroided, without ion mobility. The spectra of MS/MS frames (any
-   * MsMsType but 0) are MS2 spectra with the precursor of FrameMsMsInfo (trigger m/z, isolation width, charge,
-   * collision energy; CID). Spectra of MALDI runs get the spot name of MaldiFrameInfo as the MetaValue
-   * "maldi_spot_id", as the mzML reader stores the spotID of a spectrum. The native IDs are "frame=<id>" (Bruker
-   * TSF nativeID format). m/z comes from the same calibrations as for TDF data (see tims_calibration_strategy).
+   * MsMsType but 0) are MS2 spectra with the precursor of FrameMsMsInfo (trigger m/z, isolation width, charge; the
+   * collision energy as the meta value "collision energy" in eV, as for DDA-PASEF; CID). Spectra of MALDI runs get
+   * the spot name of MaldiFrameInfo as the MetaValue "maldi_spot_id", as the mzML reader stores the spotID of a
+   * spectrum. The native IDs are "frame=<id>" (Bruker TSF nativeID format). m/z comes from the same calibrations as
+   * for TDF data (see tims_calibration_strategy).
    *
    * The ion mobility options do not apply to TSF data: load() and transform() throw Exception::InvalidParameter if
    * any of them differs from its default (im_min/im_max, the centroiding, isotopic prefilter and frame aggregation

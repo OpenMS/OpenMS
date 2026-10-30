@@ -1367,7 +1367,8 @@ START_SECTION([EXTRA] TSF data: one spectrum per frame with the m/z of the Bruke
       TEST_REAL_SIMILAR(p.getIsolationWindowLowerOffset(), 2.0)
       TEST_REAL_SIMILAR(p.getIsolationWindowUpperOffset(), 2.0)
       TEST_EQUAL(p.getCharge(), 2)
-      TEST_REAL_SIMILAR(p.getActivationEnergy(), 20.0)
+      TEST_REAL_SIMILAR(double(p.getMetaValue("collision energy")), 20.0) // eV
+      TEST_REAL_SIMILAR(p.getActivationEnergy(), 0.0) // not as activation energy (MS:1000509), as for TDF data
       TEST_EQUAL(p.getActivationMethods().count(Precursor::ActivationMethod::CID), 1)
     }
     TEST_STRING_EQUAL(exp[2].getNativeID(), "frame=3")
@@ -1528,12 +1529,12 @@ START_SECTION([EXTRA] TSF data: options and MALDI spots and what cannot be read)
     TEST_EQUAL(exp.size(), 4)
     if (!exp.empty() && exp[0].size() == 2) TEST_TRUE(tsfPpm(exp[0][1], 1) < 1e-4)
 
-    // without either calibration only the SDK can give m/z: it is tried (BRUKER_SDK fails on the SDK, not on the
-    // missing tables), and without a usable SDK the data cannot be read
+    // with an MzCalibration table that cannot be used here (ModelType 3) and no linear model only the SDK can give m/z:
+    // it is tried (BRUKER_SDK fails on the SDK, not on the calibration); without a usable SDK the data cannot be read
     const std::string uncalibrated = writeFakeTsf(tmp.getPath() + "/uncalibrated.d", lc);
     {
       SqliteConnector conn(uncalibrated + "/analysis.tsf", SqliteConnector::SqlOpenMode::READWRITE);
-      conn.executeStatement("DROP TABLE MzCalibration;");
+      conn.executeStatement("UPDATE MzCalibration SET ModelType = 3;");
       conn.executeStatement("DELETE FROM GlobalMetadata WHERE Key IN ('MzAcqRangeLower', 'MzAcqRangeUpper');");
     }
     cfg.tims_calibration_strategy = BrukerTimsFile::Config::TimsCalibrationStrategy::BRUKER_SDK;
@@ -1588,10 +1589,19 @@ START_SECTION([EXTRA] TSF data: options and MALDI spots and what cannot be read)
     const std::string huge = writeFakeTsf(tmp.getPath() + "/huge.d", lc);
     {
       std::fstream bin((huge + "/analysis.tsf_bin").c_str(), std::ios::binary | std::ios::in | std::ios::out);
-      const uint32_t block_size = 0xFFFFFFF0u; // the size of frame 1's block
-      bin.write(reinterpret_cast<const char*>(&block_size), sizeof(block_size));
+      // frame 1's block size and line spectrum size: reading the line spectrum would take 4 GiB
+      const uint32_t sizes[2] = {0xFFFFFFF0u, 0xFFFFFFE0u};
+      bin.write(reinterpret_cast<const char*>(sizes), sizeof(sizes));
     }
     TEST_TRUE(hasText(parseErrorOf([&] { BrukerTimsFile().load(huge, exp); }), "ends behind the end of the file"))
+
+    // without analysis.tsf_bin the consumer gets nothing, as for TDF data without analysis.tdf_bin
+    const std::string no_bin = writeFakeTsf(tmp.getPath() + "/no_bin.d", lc);
+    std::filesystem::remove(no_bin + "/analysis.tsf_bin");
+    MSDataStoringConsumer no_bin_consumer;
+    TEST_EXCEPTION(Exception::FileNotReadable, BrukerTimsFile().transform(no_bin, &no_bin_consumer))
+    TEST_TRUE(no_bin_consumer.getData().getSourceFiles().empty())
+    TEST_EQUAL(no_bin_consumer.getData().size(), 0)
 
     // a frame without a block (TimsId NULL) is read only if it has no peaks, instead of reading the first frame's block
     const std::string no_block = writeFakeTsf(tmp.getPath() + "/no_block.d", lc);
@@ -1704,7 +1714,7 @@ START_SECTION([EXTRA] TSF data: an LC-MS run with TIMS off as the Bruker SDK rea
     TEST_REAL_SIMILAR(p.getMZ(), 516.4264787230516)
     TEST_REAL_SIMILAR(p.getIsolationWindowLowerOffset(), 2.032852957446103)
     TEST_EQUAL(p.getCharge(), 1)
-    TEST_REAL_SIMILAR(p.getActivationEnergy(), 20.0)
+    TEST_REAL_SIMILAR(double(p.getMetaValue("collision energy")), 20.0) // eV
     const double base_peak = std::max_element(frame2->begin(), frame2->end(),
       [](const Peak1D& a, const Peak1D& b) { return a.getIntensity() < b.getIntensity(); })->getMZ();
     TEST_TRUE(std::abs(base_peak - 327.25177912720835) / 327.25177912720835 * 1e6 < 1e-4) // SDK, ppm

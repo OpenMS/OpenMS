@@ -1746,10 +1746,27 @@ namespace OpenMS
       "without ion mobility). Convert the run to mzML with another tool first");
   }
 
-  // The SQLite file of the .d directory @p d_path: analysis.tsf for TSF data, analysis.tdf otherwise
+  // The name of the SQLite file of data in @p format: analysis.tsf for TSF data, analysis.tdf otherwise
+  static std::string analysisDatabaseName(BrukerTimsFile::DataFormat format)
+  {
+    using DataFormat = BrukerTimsFile::DataFormat;
+    switch (format) // every format listed (no default): -Wswitch flags a new one here
+    {
+      case DataFormat::TSF:
+        return "analysis.tsf";
+      case DataFormat::TDF:
+      case DataFormat::BAF:                // not read yet (checkDataFormat() rejects it): its file goes here then
+      case DataFormat::NONE:               // the callers report the missing analysis.tdf
+      case DataFormat::UNREADABLE_ARCHIVE:
+        return "analysis.tdf";
+    }
+    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION); // a format not listed above
+  }
+
+  // The SQLite file of the .d directory @p d_path (see analysisDatabaseName())
   static std::string analysisDatabase(const std::string& d_path)
   {
-    return d_path + (BrukerTimsFile::detectFormat(d_path) == BrukerTimsFile::DataFormat::TSF ? "/analysis.tsf" : "/analysis.tdf");
+    return d_path + "/" + analysisDatabaseName(BrukerTimsFile::detectFormat(d_path));
   }
 
   void BrukerTimsFile::checkDataFormat(const std::string& path)
@@ -1958,7 +1975,7 @@ namespace OpenMS
     // files only, so take the shallowest .d that holds analysis.tdf or analysis.tdf_bin (as
     // FileHandler::getType() requires of a directory), and the first by name among equals.
     // For TSF data (no TDF data in the archive, see detectFormat()) the same with analysis.tsf or analysis.tsf_bin.
-    const std::string db_name = format == DataFormat::TSF ? "analysis.tsf" : "analysis.tdf";
+    const std::string db_name = analysisDatabaseName(format);
     std::filesystem::path found;
     int found_depth = std::numeric_limits<int>::max();
     for (auto it = std::filesystem::recursive_directory_iterator(to_path(root));
@@ -3218,7 +3235,7 @@ namespace OpenMS
   public:
     /// @throws std::runtime_error if the library or one of its TSF functions cannot be loaded, or tsf_open() fails
     TsfSdkTof2MzConverter(const std::string& lib_path, const std::string& d_path) :
-      lib_(lib_path)
+      lib_(lib_path), d_path_(d_path)
     {
       tsf_open_ = lib_.symbol_lookup<OpenFunction>("tsf_open");
       tsf_close_ = lib_.symbol_lookup<CloseFunction>("tsf_close");
@@ -3238,7 +3255,8 @@ namespace OpenMS
     {
       if (size > 0 && tsf_index_to_mz_(handle_, frame_id, tofs, mzs, size) == 0)
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bruker SDK tsf_index_to_mz(): " + lastError_());
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path_,
+          "frame " + std::to_string(frame_id) + ": Bruker SDK tsf_index_to_mz(): " + lastError_());
       }
     }
 
@@ -3253,7 +3271,8 @@ namespace OpenMS
       std::vector<double> indices(size);
       if (size > 0 && tsf_mz_to_index_(handle_, frame_id, mzs, indices.data(), size) == 0)
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bruker SDK tsf_mz_to_index(): " + lastError_());
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path_,
+          "frame " + std::to_string(frame_id) + ": Bruker SDK tsf_mz_to_index(): " + lastError_());
       }
       for (uint32_t i = 0; i < size; ++i) tofs[i] = indices[i] > 0.0 ? static_cast<uint32_t>(indices[i] + 0.5) : 0;
     }
@@ -3278,6 +3297,7 @@ namespace OpenMS
     }
 
     LoadedLibraryHandle lib_;
+    std::string d_path_; ///< the .d directory, for the errors of convert() and inverse_convert()
     OpenFunction* tsf_open_ = nullptr;
     CloseFunction* tsf_close_ = nullptr;
     ErrorFunction* tsf_get_last_error_string_ = nullptr;
@@ -3288,7 +3308,8 @@ namespace OpenMS
 
   // The m/z converter for the TSF data in @p d_path, by the rules of openTimsDataHandle() for TDF data: the MzCalibration
   // table (unless LINEAR), else the linear model of GlobalMetadata; replaced by the Bruker SDK if one is given (AUTO,
-  // BRUKER_SDK). @p global: the GlobalMetadata table. Data without either calibration is read with the SDK only.
+  // BRUKER_SDK). @p global: the GlobalMetadata table. With an MzCalibration table that OpenMS cannot use (e.g. another
+  // ModelType) and no linear model, only the SDK gives m/z (the SDK needs the MzCalibration table as well).
   static std::unique_ptr<Tof2MzConverter> openTSFMzConverter(const std::string& d_path, const Config& config,
                                                              const std::map<std::string, std::string>& global)
   {
@@ -3403,6 +3424,11 @@ namespace OpenMS
         "(zstd-compressed line spectra) can be read");
     }
     checkFrameOffsets(d_path); // before the first spectrum goes to a consumer
+    // before the consumer gets anything, as for TDF data (opentims in openTimsDataHandle())
+    if (!File::readable(d_path + "/analysis.tsf_bin"))
+    {
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path + "/analysis.tsf_bin");
+    }
     mz_converter = openTSFMzConverter(d_path, config, global);
 
     std::vector<Frame> all;
@@ -3454,7 +3480,14 @@ namespace OpenMS
         precursor.setIsolationWindowUpperOffset(width / 2.0);
         if (!query.getColumn(3).isNull()) precursor.setCharge(query.getColumn(3).getInt());
         precursor.setActivationMethods({Precursor::ActivationMethod::CID});
-        if (!query.getColumn(4).isNull()) precursor.setActivationEnergy(query.getColumn(4).getDouble());
+        if (!query.getColumn(4).isNull())
+        {
+          // the meta value "collision energy" in eV (MS:1000045 in mzML), as for DDA-PASEF precursors of TDF data
+          DataValue collision_energy(query.getColumn(4).getDouble());
+          collision_energy.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+          collision_energy.setUnit(266); // UO:0000266 electronvolt
+          precursor.setMetaValue("collision energy", collision_energy);
+        }
         precursors[static_cast<uint32_t>(query.getColumn(0).getInt64())] = std::move(precursor);
       }
     }
