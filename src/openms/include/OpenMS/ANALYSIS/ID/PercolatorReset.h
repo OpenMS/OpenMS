@@ -29,7 +29,7 @@ namespace OpenMS
     2. Stem reduction: per stem (unmodified sequence; Input::stems) the best of these PSMs by search engine score; it
        carries that PSM's features and label (label-blind: a sequence with target and decoy PSMs is one stem). Every
        stem is considered ("PSM-only" protocol of the paper: ProSE's decoys are reversed proteins, which give no fixed
-       target-decoy peptide pairing; a pseudo-reverse pairing was tried and removed, review round 2).
+       target-decoy peptide pairing).
     3. Coin: every decoy stem is a training decoy or an estimating decoy, by an independent Bernoulli(1/2) coin:
        bit 0 of a 64-bit hash of (salt, stem). Pseudo-targets = targets + estimating decoys.
     4. Options::iterations rounds (default 25; the paper uses 5, which do not converge on DIA pseudo-spectra): positive set = pseudo-targets that pass Options::train_fdr against the
@@ -38,7 +38,7 @@ namespace OpenMS
        (C+, C-) from Options::c_values by 3-fold cross-validation maximizing the held-out pseudo-target discoveries
        (same SeqStep+), then a linear L2-SVM (Percolator's TRON solver) on all of the round's training rows rescores
        every stem. Only training-decoy labels enter (masking): estimating decoys are pseudo-targets throughout. The C
-       grid uses all 9 pairs (the design handoff; the authors' Python restricts it to C- >= C+).
+       grid uses all 9 pairs (the authors' Python restricts it to C- >= C+).
     5. Final ranking: training decoys are dropped; targets and estimating decoys are ranked by the last model and
        q-values follow from FDP = 2 (D_est + 1) / max(T, 1) (SeqStep+ at c = 2/3), monotonized from the bottom.
 
@@ -57,17 +57,16 @@ namespace OpenMS
     rows of its sequence, also competition losers) come from both sets is one decoy for its hypotheses, which win as a
     decoy with probability 1/2 instead of 2/3; such stems count twice in the positive-set and final estimates (training
     and estimating decoy 1/4 each against 1/2 for the null target), and the final estimate's offset is then the largest
-    weight, (sum of the weights + 2) / max(T, 1) (with + 1, a block of shared null hypotheses is anti-conservative;
-    review r3). The detection needs the complete protein evidence of every decoy hit (all proteins that contain its
+    weight, (sum of the weights + 2) / max(T, 1) (with + 1, a block of shared null hypotheses is anti-conservative). The detection needs the complete protein evidence of every decoy hit (all proteins that contain its
     sequence, as ProSE reports them): a shared sequence reported with the proteins of one set only counts once and its
     hypotheses are then under-estimated. Equal shares do not prove
     exchangeability: the two sets must be built so that a null hypothesis really has two independent decoys of the
     target's distribution (e.g. no sequences shared between the sets, the same multiplicity of sequences in both).
 
-    Feature-symmetry audit (Options::audit, option 2 of the RESET handoff): before training, the training decoys are
+    Feature-symmetry audit (Options::audit): before training, the training decoys are
     compared with an unlabelled null proxy, the pseudo-targets below the median search engine score of the training
-    decoys (the training decoys are restricted to the same score range; the handoff's "lowest third of the targets"
-    is mostly correct targets in runs with many identifications). Per feature
+    decoys (the training decoys are restricted to the same score range; the lowest third of the targets would be
+    mostly correct targets in runs with many identifications). Per feature
     the AUC (Mann-Whitney) and the two-sample Kolmogorov-Smirnov statistic are reported, and a cross-fitted logistic
     regression on all features gives a multivariate AUC. Features with |AUC - 0.5| > 0.05, and the set if the
     multivariate AUC exceeds 0.55, are flagged; flags are reported, nothing is dropped. The null proxy holds the
@@ -115,10 +114,10 @@ namespace OpenMS
       double train_fdr = 0.01;          ///< FDR for the positive set and for the cross-validation counts
       std::vector<double> c_values = {0.1, 1.0, 10.0}; ///< grid for C+ and C- (all pairs)
       std::string learner = "svm";      ///< "svm" (linear) or "mlp" (small MLP ensemble, experimental)
-      /// "model" (default, user decision 24 Oct 2026): after each round a stem is represented by its PSM with the best
+      /// "model" (default): after each round a stem is represented by its PSM with the best
       /// score under the new model; "search": by its PSM with the best search engine score (the paper). With "model"
       /// masking holds, but the FDR also needs null targets and decoys to be exchangeable over their whole PSM
-      /// collections, including their sizes (review r4: a null target with many more PSMs than a decoy gains from the
+      /// collections, including their sizes (a null target with many more PSMs than a decoy gains from the
       /// maximum); entrapment validation decides.
       std::string representative = "model";
       bool audit = false;               ///< run the feature-symmetry audit

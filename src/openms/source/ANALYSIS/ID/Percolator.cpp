@@ -3037,7 +3037,7 @@ Size Percolator::rescorePSMsWithScorer(PeptideIdentificationList& peptide_ids,
   }
   else
   {
-    // no peptide-level estimates this time: values from an earlier rescoring of these hits would be stale (review r2)
+    // no peptide-level estimates this time: values from an earlier rescoring of these hits would be stale
     const UInt pep_q_index = MetaInfoInterface::metaRegistry().getIndex("percolator_peptide_q_value");
     const UInt pep_pep_index = MetaInfoInterface::metaRegistry().getIndex("percolator_peptide_pep");
     if (pep_q_index != UInt(-1) || pep_pep_index != UInt(-1)) // (never registered: no hit has them)

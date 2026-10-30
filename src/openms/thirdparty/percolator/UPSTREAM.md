@@ -470,7 +470,7 @@ hand-editing sources and committing them, to keep sync self-healing.
   normalisation by static blocks of rows (each row's features together) instead of by feature
   (each thread walking a column through all rows); every value is computed by the same expression.
   The statistics are unchanged. No change of results.
-- `patches/29-review-fixes-int14.patch` — review fixes of the int14 integration (26 Oct 2026): the
+- `patches/29-review-fixes-int14.patch` — fixes: the
   distinct-value tasks of patch 17's packed keys catch their exceptions (a feature then is sorted as
   before, with the same moves); `FeatureMemoryPool::claimRows` checks the row count without
   overflow; `normalizeRowsByFeature` documents that its rows must be distinct. No change of results.
@@ -515,15 +515,8 @@ hand-editing sources and committing them, to keep sync self-healing.
   GCC 13 on 4 cores on a synthetic PIN of 600,000 PSMs (20 features), CV to PEP: 3 threads 15.0 s without tasks,
   15.3 s with tasks (develop 41.3 s); 4 threads 15.1 s and 11.5 s, as without tasks only the 3 folds run in
   parallel.
-
-Numbering: the patches were renumbered without gaps when the branches of 25 Oct 2026 were integrated (int14), in
-their application order; old -> new: 10 -> 09, 11 -> 10, 12 -> 11, 13 -> 12, 14 -> 13, 15 -> 14, 16 -> 15,
-19 -> 16, 21 (initdir count buffers) -> 17, 22 (TRON weights only, shared X) -> 18, 20 (fixed folds) -> 19,
-20 (best positive by score) -> 20; second integration (int14 c3, 26 Oct): memalloc 23 (PSM slab) -> 21, cvmem
-24 -> 22, 25 -> 23, 26 -> 24, 28 -> 25, 29 (certificate cache) -> 26, 30 -> 27, memalloc 29 (normalize row
-blocks) -> 28. Patches 12-28 were regenerated in this order (each the difference to the tree of the ones before
-it); their contents are unchanged except for the context lines (and, where two branches changed the same lines,
-which patch carries them). Commits and logs before those dates use the old numbers.
+- `patches/34-comments.patch` — removes references to internal reviews from comments. No change of
+  results.
 
 ### Regenerating the patch
 

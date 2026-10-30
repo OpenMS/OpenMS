@@ -47,7 +47,7 @@ namespace OpenMS
        * counts every site as enzymatic. A protein terminus ('[', ']') counts as a cleavage site, and so does the
        * position after an initial Met (initial-Met clipping: flank 'M', evidence start 1). The modifier
        * "+keep_termini" after the name (e.g. "trypsinp+keep_termini") compares the terminus marks as residues and
-       * leaves out the initial-Met rule (the features of OpenMS 3.5 and ProSE int15); "+termini" states the default.
+       * leaves out the initial-Met rule (the features of OpenMS 3.5); "+termini" states the default.
        */
       static void store(const std::string& pin_file, 
         const PeptideIdentificationList& peptide_ids, 

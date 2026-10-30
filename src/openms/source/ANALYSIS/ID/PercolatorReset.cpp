@@ -631,7 +631,7 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     s.role = !s.decoy ? Role::TARGET : (isTrainingDecoy(salt, s.stem) ? Role::TRAINING_DECOY : Role::ESTIMATING_DECOY);
     s.considered = true;
   }
-  // two-decoy mode: the decoy sets of each stem, from ALL its decoy rows (also those that lost a competition; review r2:
+  // two-decoy mode: the decoy sets of each stem, from ALL its decoy rows (also those that lost a competition:
   // a sequence of both sets may win as a set-1 row on one spectrum and as a set-2 row on another): bit 0 = set 1, bit 1 =
   // set 2 (Input::decoy_set 3 = both)
   std::vector<unsigned char> stem_sets(two_decoys ? out.stems.size() : 0, 0);
@@ -1334,7 +1334,7 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     {
       std::vector<double> w(fin.size(), 0.0);
       for (Size r = 0; r < fin.size(); ++r) w[r] = dec[r] ? decoyWeight(cs[fin[r]]) : 0.0;
-      // review r3: the offset is the largest decoy weight (2), not 1: with weight-2 decoys and +1 the estimate is
+      // the offset is the largest decoy weight (2), not 1: with weight-2 decoys and +1 the estimate is
       // anti-conservative (a block of shared null hypotheses gives FDR 1.13 % at 1 %); +2 is SeqStep+ of the
       // single-decoy case for them and only more conservative for the others
       q = seqStepQValuesWeighted(dec, w, final_factor, 2.0);
@@ -1409,7 +1409,7 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
   for (Size i = 0; i < n_rows; ++i)
   {
     // the row's role follows its own label (decoy rows: the coin of their sequence); the stem's q-value is exported
-    // only to rows of the stem's label (review r2: a target row of a sequence whose stem is a decoy must not inherit
+    // only to rows of the stem's label (a target row of a sequence whose stem is a decoy must not inherit
     // that decoy's q-value)
     out.roles[i] = !in.is_decoy[i] ? Role::TARGET
                    : (isTrainingDecoy(salt, in.stems[i]) ? Role::TRAINING_DECOY : Role::ESTIMATING_DECOY);
@@ -1432,7 +1432,7 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     rankByScore(psms, out.scores, row_tie);
     std::vector<bool> dec(psms.size());
     for (Size r = 0; r < psms.size(); ++r) dec[r] = in.is_decoy[psms[r]];
-    // review r3: with shared decoy stems (two-decoy mode) the PSMs get the stems' weights and offset, as the final
+    // with shared decoy stems (two-decoy mode) the PSMs get the stems' weights and offset, as the final
     // ranking (a PSM of a shared decoy stem counts twice)
     std::vector<double> psm_w(psms.size(), 0.0);
     for (Size r = 0; r < psms.size(); ++r)
@@ -1446,7 +1446,7 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     // PEP: antitonic regression (pool adjacent violators) of the estimating-decoy indicator over the ranks
     std::vector<double> blk_val, blk_w;
     std::vector<Size> blk_len;
-    // one initial block per distinct score (review r3: tied scores get one PEP, whatever their tie-broken order)
+    // one initial block per distinct score (tied scores get one PEP, whatever their tie-broken order)
     for (Size r = 0; r < dec.size();)
     {
       Size e = r;

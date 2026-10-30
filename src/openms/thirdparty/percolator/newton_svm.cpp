@@ -263,7 +263,7 @@ class NewtonWorkspaceLease {
     NewtonWorkspacePool& pool = newtonWorkspacePool();
     std::unique_lock<std::mutex> lock(pool.mutex);
     // (the hold is checked under the pool's mutex, which newtonReleaseWorkspaces takes after the last hold ended, so a
-    // large workspace cannot enter the pool after that release: int14 review r3)
+    // large workspace cannot enter the pool after that release)
     if (ws_->bytes() > kNewtonKeepBytes && !tronWorkspacesHeld()) {
       lock.unlock();
       ws_.reset();  // freed
