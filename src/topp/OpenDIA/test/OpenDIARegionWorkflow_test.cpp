@@ -269,6 +269,64 @@ void nativeFrames(const std::shared_ptr<OpenMS::SpectrumAccessOnDisc>& source)
     check(temporary.enableNativeFrames(native), "Native cache could not restart after cancellation");
   }
   check(native->getNativeFrameCacheStats().limit_bytes == 0, "Cache destruction retained native admission");
+
+  // Optional frames must yield to complete scans before pressure evicts their cache entries.
+  const auto index = frames.begin()->second;
+  const auto expected = native->getSpectrum(index);
+  const auto region_bytes = RawRegion::requiredBytes({1, expected.size()}, expected.getNativeID().size());
+  const auto max_scan = checkedByteMultiply(region_bytes, 2);
+  auto pressure = std::make_shared<RawCache>(checkedByteMultiply(max_scan, 4), 0, max_scan);
+  check(pressure->enableNativeFrames(native), "Cannot enable native frames for pressure check");
+  auto lane = std::make_shared<OpenMS::SpectrumAccessOnDisc>(native, std::vector<OpenMS::Size> {index});
+  std::vector<RawRegion> pinned;
+  const auto acquire = [&]
+  {
+    // A fresh reader must reserve the maximum until it has proved its own scan bound.
+    RawAccess access(lane, pressure);
+    RecordContext context;
+    context.calibration_snapshot_id = pinned.size();
+    return access.acquireRegion(0, context);
+  };
+  while (pinned.size() < 16 && pressure->snapshot().budget.committed_bytes + max_scan <= pressure->snapshot().budget.usable_bytes)
+  {
+    pinned.push_back(acquire());
+  }
+  const auto before_pressure = pressure->snapshot();
+  check(before_pressure.budget.committed_bytes + max_scan > before_pressure.budget.usable_bytes,
+        "Native pressure fixture did not exhaust admission headroom");
+  pinned.push_back(acquire());
+  const auto after_pressure = pressure->snapshot();
+  check(native->getNativeFrameCacheStats().limit_bytes == 0 && native->getNativeFrameCacheStats().retained_bytes == 0,
+        "Scan pressure did not release optional native frames");
+  check(after_pressure.evictions == before_pressure.evictions && after_pressure.cache_entries == pinned.size(),
+        "Optional frames displaced complete scan cache entries");
+  for (const auto& region : pinned)
+  {
+    const auto scan = region.scan(0);
+    check(std::equal(scan.mz().begin(), scan.mz().end(), expected.begin(), expected.end(),
+                     [](double mz, const auto& peak) { return mz == peak.getMZ(); }),
+          "Native frame reclamation changed pinned masses");
+    check(std::equal(scan.intensity().begin(), scan.intensity().end(), expected.begin(), expected.end(),
+                     [](float intensity, const auto& peak) { return intensity == peak.getIntensity(); }),
+          "Native frame reclamation changed pinned intensities");
+    const auto& im = expected.getFloatDataArrays()[expected.getIMData().first];
+    check(std::equal(scan.mobility().begin(), scan.mobility().end(), im.begin(), im.end()),
+          "Native frame reclamation changed pinned mobility");
+  }
+  while (pinned.size() < 16 && pressure->snapshot().budget.committed_bytes + max_scan <= pressure->snapshot().budget.usable_bytes)
+  {
+    pinned.push_back(acquire());
+  }
+  rejects([&] { acquire(); });
+  check(pressure->snapshot().budget.peak_total_bytes <= pressure->snapshot().budget.usable_bytes,
+        "Native frame reclamation exceeded the shared budget");
+  pressure->clear();
+  check(pressure->snapshot().budget.committed_bytes > 0, "Pressure revoked pinned regions");
+  pinned.clear();
+  check(pressure->snapshot().budget.committed_bytes == 0 && pressure->snapshot().budget.reserved_bytes == 0,
+        "Native frame pressure check retained admission");
+  OPENMS_LOG_INFO << "PASS native frame pressure: scan_evictions=" << after_pressure.evictions
+                  << " peak=" << after_pressure.budget.peak_total_bytes << " limit=" << after_pressure.budget.usable_bytes << '\n';
   OPENMS_LOG_INFO << "PASS native physical-frame lane reuse: hits=" << used.native_frames.hits << " misses=" << used.native_frames.misses
                   << " peak=" << used.native_frames.peak_retained_bytes << " limit=" << used.native_frames.limit_bytes << '\n';
 }

@@ -74,6 +74,8 @@ namespace OpenDIA
     ~RawCache();
     /** @brief Pre-admit one optional shared native frame cache from the same byte budget.
       Configure only before readers start. Unsupported backends retain their existing path.
+      Scan admission pressure disables this optional cache and releases its reservation
+      before evicting complete scan entries. Retained scan views remain valid.
       @param[in] source Native source whose clones share the optional cache.
       @return True if this cache admitted and enabled native frame storage.
     */

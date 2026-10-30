@@ -181,8 +181,15 @@ namespace OpenDIA
 
   std::optional<ByteReservation> RawCache::reserve_(ByteCount bytes, RawPhase phase)
   {
-    // Evict on pressure. Pinned scans keep leases, so admission can still fail.
+    // Optional decoded frames must not displace complete scans. Once pressure
+    // exhausts headroom, release their reservation before evicting scan entries.
     auto reservation = budget_.tryReserve(bytes);
+    if (!reservation && native_source_ && !budget_.snapshot().cancelled)
+    {
+      clearNativeFrames_();
+      reservation = budget_.tryReserve(bytes);
+    }
+    // Pinned scans keep leases, so admission can still fail after reclamation.
     while (!reservation && !entries_.empty() && !budget_.snapshot().cancelled)
     {
       entries_.pop_back();
