@@ -318,15 +318,10 @@ namespace OpenMS{
 
   bool File::remove(const std::string& file)
   {
-    if (!exists(file))
-    {
-      return true;
-    }
-    if (std::remove(file.c_str()) != 0)
-    {
-      return false;
-    }
-    return true;
+    // to_path() so a UTF-8 name also works on Windows. A missing file is not an error.
+    std::error_code ec;
+    fs::remove(to_path(file), ec);
+    return !ec;
   }
 
   bool File::removeDir(const std::string& dir_name)

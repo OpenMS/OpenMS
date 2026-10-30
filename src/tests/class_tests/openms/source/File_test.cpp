@@ -129,9 +129,13 @@ START_SECTION([EXTRA] UTF - 8 paths use wide access checks and leave no writable
     }
     TEST_TRUE(File::readable(filename))
     TEST_TRUE(File::writable(filename))
-    std::ifstream stream(file, std::ios::binary);
-    const std::string contents {std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>()};
-    TEST_EQUAL(contents, "preserve contents")
+    {
+      std::ifstream stream(file, std::ios::binary);
+      const std::string contents {std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>()};
+      TEST_EQUAL(contents, "preserve contents")
+    }
+    TEST_TRUE(File::remove(filename))
+    TEST_FALSE(std::filesystem::exists(file))
   }
 }
 END_SECTION
