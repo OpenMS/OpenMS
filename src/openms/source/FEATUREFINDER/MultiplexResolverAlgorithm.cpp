@@ -15,7 +15,6 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
-#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <map>
@@ -24,17 +23,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  namespace
-  {
-    /// Isotopic peaks per channel that the blacklist check attributes to the multiplet itself: those the feature detection
-    /// follows (and blacklists) by default (FeatureFinderMultiplexAlgorithm 'isotopes_per_peptide' 3:6). A blacklisted peak at a
-    /// later isotopic position was blacklisted for another feature.
-    constexpr size_t OWN_ISOTOPES = 6;
-
-    /// A channel that was not detected but added to the multiplet for an identification of it (zero intensity, no feature)
-    bool isUndetected(const FeatureHandle& handle) { return handle.getIntensity() == 0.0 && !handle.hasValidUniqueId(); }
-  }
-
   MultiplexResolverAlgorithm::MultiplexResolverAlgorithm() :
     DefaultParamHandler("MultiplexResolverAlgorithm")
   {
@@ -224,27 +212,6 @@ namespace OpenMS
   {
     const double mz_tolerance = mz_tolerance_ * mz / 1000000; // m/z tolerance in Da
 
-    // The isotopic peaks of the multiplet's own detected channels are blacklisted, too, but they are no other feature: e.g. the
-    // M+4 peak of a light channel lies a few ppm below a channel labelled with Lys4 or Dimethyl4 (+4.0251 Da vs. 4 x 1.0034 Da).
-    // A blacklisted peak is attributed to them only if it is closer to one of their positions than to the dummy's, so that a
-    // peak of another feature at the dummy's position still counts.
-    std::vector<double> own_peaks;
-    for (const FeatureHandle& handle : consensus.getFeatures())
-    {
-      if (!(handle.getIntensity() > 0.0)) { continue; } // not detected (a channel added for an identification)
-      for (size_t isotope = 0; isotope < OWN_ISOTOPES; ++isotope)
-      {
-        own_peaks.push_back(handle.getMZ() + isotope * Constants::C13C12_MASSDIFF_U / charge);
-      }
-    }
-    // distance of a peak to the closest of them
-    auto own_distance = [&](double peak_mz)
-    {
-      double distance = std::numeric_limits<double>::infinity();
-      for (double own : own_peaks) { distance = std::min(distance, std::abs(own - peak_mz)); }
-      return distance;
-    };
-
     const MSExperiment::ConstIterator it_rt_begin = blacklist.RTBegin(rt - rt_tolerance_);
     const MSExperiment::ConstIterator it_rt_end = blacklist.RTEnd(rt + rt_tolerance_);
 
@@ -268,15 +235,16 @@ namespace OpenMS
       {
         const double mz_isotope = mz + isotope * Constants::C13C12_MASSDIFF_U / charge;
 
-        // every blacklisted peak within the tolerance, on either side of the m/z
-        for (MSSpectrum::ConstIterator it_mz = it_rt->MZBegin(mz_isotope - mz_tolerance); it_mz != it_rt->end() && it_mz->getMZ() < mz_isotope + mz_tolerance; ++it_mz)
+        const MSSpectrum::ConstIterator it_mz = it_rt->MZBegin(mz_isotope);
+        if (it_mz == it_rt->end())
         {
-          // a blacklisted peak close-by that is not closer to an isotopic peak of the multiplet itself: another feature
-          const double distance = std::abs(it_mz->getMZ() - mz_isotope);
-          if ((distance < mz_tolerance) && !(own_distance(it_mz->getMZ()) < distance))
-          {
-            return true;
-          }
+          continue;
+        }
+
+        if ((std::abs(it_mz->getMZ() - mz_isotope)) < mz_tolerance)
+        {
+          // a blacklisted peak close-by
+          return true;
         }
       }
     }
@@ -290,25 +258,10 @@ namespace OpenMS
                                                                   const std::vector<bool>& delta_mass_matched, int index_label_set,
                                                                   const MSExperiment& blacklist) const
   {
-    // A channel added for an identification of it (see isUndetected) is checked like a missing one: absent (0) or, if
-    // another feature overlaps with its position, not quantifiable (NaN).
-    auto checkUndetected = [&](FeatureHandle handle)
-    {
-      if (isUndetected(handle) && isBlacklisted_(blacklist, consensus.getRT(), handle.getMZ(), consensus.getCharge(), consensus))
-      {
-        handle.setIntensity(std::numeric_limits<double>::quiet_NaN());
-      }
-      return handle;
-    };
-
-    // nothing to complete: all channels are there
+    // nothing to do: the detected consensus is already complete
     if (consensus.size() == pattern.size())
     {
-      ConsensusFeature complete(consensus);
-      ConsensusFeature::HandleSetType handles;
-      for (const FeatureHandle& handle : consensus.getFeatures()) { handles.insert(checkUndetected(handle)); }
-      complete.setFeatures(std::move(handles));
-      return complete;
+      return ConsensusFeature(consensus);
     }
 
     if (pattern.size() != delta_mass_matched.size())
@@ -348,7 +301,7 @@ namespace OpenMS
       if (*it_delta_mass_matched)
       {
         // copy feature from incomplete consensus
-        FeatureHandle feature_handle = checkUndetected(*it_feature);
+        FeatureHandle feature_handle(*it_feature);
         feature_handle.setMapIndex(it_mass_shift - pattern.begin());
         consensus_complete.insert(feature_handle);
 

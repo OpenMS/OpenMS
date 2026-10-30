@@ -35,11 +35,7 @@ namespace OpenMS
     - Incomplete multiplets (e.g. only the heavy partner of a pair was detected) are completed with
       dummy features. A dummy feature gets intensity 0 when nothing was blacklisted around its
       position during feature detection (the peptide is absent), and NaN (not quantifiable) when
-      the region was blacklisted, i.e. another feature overlaps with it. Blacklisted peaks closer to
-      an isotopic position of the multiplet's own detected channels than to the dummy's position do
-      not count (e.g. the M+4 peak of the light channel lies within a few ppm of a Lys4 channel). A
-      channel of the input that was not detected but added for an identification of it (intensity 0,
-      no unique id) is checked the same way.
+      the region was blacklisted, i.e. another feature overlaps with it.
 
     Only the first peptide identification of a consensus feature is taken into account, so the map should
     have been reduced to one identification per feature (IDConflictResolverAlgorithm::resolve()) first.
@@ -180,7 +176,7 @@ namespace OpenMS
     static double findNewMZ_(double mz, int charge, const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern,
                              const std::vector<bool>& delta_mass_matched);
 
-    /// Is one of the first three isotopes of a (dummy) feature at this position blacklisted (on either side of it, by another feature than @p consensus)?
+    /// Is one of the first three isotopes of a (dummy) feature at this position blacklisted?
     bool isBlacklisted_(const MSExperiment& blacklist, double rt, double mz, size_t charge, const ConsensusFeature& consensus) const;
 
     /**

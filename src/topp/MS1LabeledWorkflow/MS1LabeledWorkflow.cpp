@@ -983,175 +983,6 @@ protected:
   }
 
   /**
-    @brief Join the partial multiplets of an identified peptide that were detected in different channels.
-
-    The detection reports a channel on its own (a partial multiplet, see 'algorithm:knock_out') where no spectrum holds the
-    complete pattern of the peptide, e.g. when the third isotope of the light channel is above the intensity cutoff in some
-    spectra and that of the heavy channel in others. mergeFragments_ does not merge two such partial multiplets (neither is
-    larger than the other), and the resolver would complete each with a dummy for the other channel - on the other one's
-    peaks, which the detection has blacklisted, so the channel would be reported as not quantifiable and the peptide get no
-    ratio. So an identified partial multiplet takes up the partial multiplets at the m/z its peptide has in the channels it
-    misses (MultiplexResolverAlgorithm::expectedChannelMZs()): of the same charge and CV, eluting at the identification (within
-    the 'id_mapping' tolerances), with all their channels among the missing ones and identifications (if any) of the same
-    peptide only (the same sequence and modifications apart from the labels, at the same charge). The identifications have to
-    be settled first (keepMultiAssignedOnClosest_): one that the mapping attached to several multiplets would let each of them
-    take up the partner.
-  */
-  void joinChannelsOfIdentifiedPeptides_(ConsensusMap& multiplets, const FeatureMap& channels, const MultiplexResolverAlgorithm& resolver) const
-  {
-    std::unordered_map<UInt64, Size> multiplet_of;
-    for (Size m = 0; m < multiplets.size(); ++m)
-    {
-      for (const FeatureHandle& handle : multiplets[m].getFeatures()) { multiplet_of.emplace(handle.getUniqueId(), m); }
-    }
-    vector<std::pair<double, const Feature*>> by_mz;
-    by_mz.reserve(channels.size());
-    for (const Feature& channel : channels) { by_mz.emplace_back(channel.getMZ(), &channel); }
-    std::sort(by_mz.begin(), by_mz.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
-
-    const double rt_tolerance = getParam_().getValue("id_mapping:rt_tolerance");
-    const double mz_tolerance = getParam_().getValue("id_mapping:mz_tolerance");
-    const bool ppm = getParam_().getValue("id_mapping:mz_measure").toString() == "ppm";
-    auto tolerance_at = [&](double mz) { return ppm ? mz * mz_tolerance * 1e-6 : mz_tolerance; };
-    auto detected = [](const ConsensusFeature& cf)
-    { return static_cast<Size>(std::count_if(cf.getFeatures().begin(), cf.getFeatures().end(), [](const FeatureHandle& h) { return h.hasValidUniqueId(); })); };
-    // the expected channel m/z of an identification (empty if its labels fit no pattern)
-    auto expected_mzs = [&](const PeptideIdentification& id, Size& own) -> vector<double>
-    {
-      if (id.getHits().empty() || id.getHits()[0].getCharge() == 0) { return {}; }
-      return resolver.expectedChannelMZs(id.getHits()[0].getSequence(), id.getHits()[0].getCharge(), own);
-    };
-
-    vector<bool> joined(multiplets.size(), false);
-    Size n_joined = 0;
-    for (Size m = 0; m < multiplets.size(); ++m)
-    {
-      ConsensusFeature& target = multiplets[m];
-      if (joined[m] || target.getPeptideIdentifications().empty() || detected(target) >= multiplicity_) { continue; }
-
-      // the best identification is the one the multiplet will be quantified under
-      const PeptideIdentification* best = nullptr;
-      for (const PeptideIdentification& id : target.getPeptideIdentifications())
-      {
-        if (id.getHits().empty() || id.getHits()[0].getCharge() == 0) { continue; }
-        const double score = id.getHits()[0].getScore();
-        if (best == nullptr || (id.isHigherScoreBetter() ? score > best->getHits()[0].getScore() : score < best->getHits()[0].getScore())) { best = &id; }
-      }
-      if (best == nullptr) { continue; }
-      Size own = 0;
-      const vector<double> mzs = expected_mzs(*best, own);
-      if (mzs.empty()) { continue; }
-      const int charge = best->getHits()[0].getCharge();
-      const double rt = best->getRT();
-      const AASequence peptide = unlabelled_(best->getHits()[0]);
-      const std::optional<double> cv = compensationVoltage_(target);
-
-      // the channels the multiplet has
-      vector<bool> present(mzs.size(), false);
-      for (const FeatureHandle& handle : target.getFeatures())
-      {
-        for (Size j = 0; j < mzs.size(); ++j) { present[j] = present[j] || std::abs(handle.getMZ() - mzs[j]) <= tolerance_at(mzs[j]); }
-      }
-      // the channel of a partial multiplet that is one of the missing ones
-      auto missing_channel_of = [&](double mz) -> std::optional<Size>
-      {
-        for (Size j = 0; j < mzs.size(); ++j)
-        {
-          if (!present[j] && std::abs(mz - mzs[j]) <= tolerance_at(mzs[j])) { return j; }
-        }
-        return std::nullopt;
-      };
-      // the same peptide (sequence and other modifications, in another channel) at the same charge
-      auto same_peptide = [&](const PeptideIdentification& id)
-      {
-        Size id_own = 0;
-        const vector<double> id_mzs = expected_mzs(id, id_own);
-        if (id_mzs.size() != mzs.size() || id.getHits()[0].getCharge() != charge || !(unlabelled_(id.getHits()[0]) == peptide)) { return false; }
-        for (Size j = 0; j < mzs.size(); ++j)
-        {
-          if (std::abs(id_mzs[j] - mzs[j]) > tolerance_at(mzs[j])) { return false; }
-        }
-        return true;
-      };
-
-      for (Size j = 0; j < mzs.size(); ++j)
-      {
-        if (present[j]) { continue; }
-        // the closest partial multiplet with a channel at the m/z of the peptide in this channel
-        Size partner = multiplets.size();
-        double partner_error = std::numeric_limits<double>::max();
-        const double tolerance = tolerance_at(mzs[j]);
-        auto it = std::lower_bound(by_mz.begin(), by_mz.end(), mzs[j] - tolerance, [](const auto& a, double mz) { return a.first < mz; });
-        for (; it != by_mz.end() && it->first <= mzs[j] + tolerance; ++it)
-        {
-          const Feature& channel = *it->second;
-          if (channel.getCharge() != charge || compensationVoltage_(channel) != cv) { continue; }
-          const DBoundingBox<2> box = channel.getConvexHull().getBoundingBox();
-          if (rt < box.minX() - rt_tolerance || rt > box.maxX() + rt_tolerance) { continue; }
-          const auto found = multiplet_of.find(channel.getUniqueId());
-          if (found == multiplet_of.end() || found->second == m || joined[found->second]) { continue; }
-          const ConsensusFeature& candidate = multiplets[found->second];
-          if (detected(candidate) >= multiplicity_) { continue; }
-          if (!std::all_of(candidate.getFeatures().begin(), candidate.getFeatures().end(),
-                           [&](const FeatureHandle& h) { return missing_channel_of(h.getMZ()).has_value(); })) { continue; }
-          if (!std::all_of(candidate.getPeptideIdentifications().begin(), candidate.getPeptideIdentifications().end(), same_peptide)) { continue; }
-          const double error = std::abs(channel.getMZ() - mzs[j]);
-          if (error < partner_error)
-          {
-            partner = found->second;
-            partner_error = error;
-          }
-        }
-        if (partner == multiplets.size()) { continue; }
-
-        // the partner's channels and identifications join the multiplet
-        ConsensusFeature& other = multiplets[partner];
-        vector<FeatureHandle> handles(target.getFeatures().begin(), target.getFeatures().end());
-        for (const FeatureHandle& handle : other.getFeatures())
-        {
-          present[*missing_channel_of(handle.getMZ())] = true;
-          handles.push_back(handle);
-        }
-        // channels in m/z order, numbered from 0 like a detected pattern; the lightest is the anchor
-        std::sort(handles.begin(), handles.end(), [](const FeatureHandle& a, const FeatureHandle& b) { return a.getMZ() < b.getMZ(); });
-        ConsensusFeature::HandleSetType renumbered;
-        for (Size i = 0; i < handles.size(); ++i)
-        {
-          handles[i].setMapIndex(i);
-          renumbered.insert(handles[i]);
-        }
-        target.setFeatures(std::move(renumbered));
-        target.setMZ(handles.front().getMZ());
-        for (PeptideIdentification& id : other.getPeptideIdentifications())
-        {
-          id.setMetaValue("map_index", 0); // the channel is settled by keepMultiAssignedOnClosest_
-          target.getPeptideIdentifications().push_back(std::move(id));
-        }
-        other.getPeptideIdentifications().clear();
-        joined[partner] = true;
-        ++n_joined;
-      }
-    }
-    if (n_joined == 0) { return; }
-
-    vector<ConsensusFeature> kept;
-    kept.reserve(multiplets.size() - n_joined);
-    for (Size m = 0; m < multiplets.size(); ++m)
-    {
-      if (!joined[m]) { kept.push_back(std::move(multiplets[m])); }
-    }
-    multiplets.resize(0);
-    for (auto& cf : kept) { multiplets.push_back(std::move(cf)); }
-    for (auto& [index, header] : multiplets.getColumnHeaders()) { header.size = 0; }
-    for (const auto& cf : multiplets)
-    {
-      for (const FeatureHandle& handle : cf.getFeatures()) { ++multiplets.getColumnHeaders()[handle.getMapIndex()].size; }
-    }
-    OPENMS_LOG_INFO << n_joined << " partial multiplet(s) were found to be other channels of an identified partial multiplet and were "
-                    << "joined to it." << endl;
-  }
-
-  /**
     @brief Attach identifications of channels the detection did not find to the multiplet of their peptide.
 
     An identification maps onto a multiplet through its own channel. When that channel was too weak to be detected (e.g. the
@@ -1569,15 +1400,8 @@ protected:
       resolver.setParameters(res_param);
     }
 
-    if (knock_out_)
-    {
-      // the channels of an identified peptide that were detected separately form one multiplet (with every spectrum match on
-      // its closest multiplet only, so that a match the mapping attached to several does not join the wrong one)
-      keepMultiAssignedOnClosest_(multiplets);
-      joinChannelsOfIdentifiedPeptides_(multiplets, channels, resolver);
-      // an identification of a channel the detection missed joins the multiplet detected in the peptide's other channels
-      attachToUndetectedChannels_(multiplets, channels, resolver);
-    }
+    // an identification of a channel the detection missed joins the multiplet detected in the peptide's other channels
+    if (knock_out_) { attachToUndetectedChannels_(multiplets, channels, resolver); }
 
     // a spectrum match that landed on several multiplets stays on the closest one only
     keepMultiAssignedOnClosest_(multiplets);
@@ -2102,14 +1926,6 @@ protected:
     experimental design; 0 if unknown). These are exported as opt_ columns by mzTab and as
     cv_params by the QPX feature and psm views.
   */
-  /// The sequence of @p hit without its labels (other modifications kept), see stripLabels_
-  AASequence unlabelled_(const PeptideHit& hit) const
-  {
-    PeptideHit copy = hit;
-    stripLabels_(copy);
-    return copy.getSequence();
-  }
-
   void stripLabels_(PeptideHit& hit) const
   {
     const AASequence original = hit.getSequence();
