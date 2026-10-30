@@ -35,6 +35,7 @@
 
 #include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
+#include <set>
 #include <vector>
 #include <numeric>
 #include <optional>
@@ -191,6 +192,9 @@ namespace OpenMS
     library_.clear(true);
     trafo_ = TransformationDescription();
     n_shared_ = 0;
+    // targets without features in a group, by PeptideRef (in order): kept below if no group found them
+    std::vector<PeptideIdentification> missing_targets;
+    std::set<std::string> missing_refs;
 
     for (auto& [group_cv, faims_group] : faims_groups)
     {
@@ -205,10 +209,18 @@ namespace OpenMS
       FeatureMap features_cv;
       ff_group.runSingleGroup_(metaboIdentTable, features_cv, spectra_file);
 
+      // the same transitions are extracted at every CV: make the chromatogram native ids (and the references of the
+      // subordinates to them) unique per CV
+      const std::string cv_suffix = "_CV" + StringUtils::toStr(group_cv);
+
       // Annotate features with FAIMS CV and add to combined results
       for (auto& feat : features_cv)
       {
         feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        for (Feature& sub : feat.getSubordinates())
+        {
+          if (sub.metaValueExists("native_id")) sub.setMetaValue("native_id", StringUtils::toStr(sub.getMetaValue("native_id")) + cv_suffix);
+        }
         features.push_back(feat);
       }
 
@@ -219,17 +231,17 @@ namespace OpenMS
         features.setProteinIdentifications(features_cv.getProteinIdentifications());
       }
 
-      // Copy UnassignedPeptideIdentifications with FAIMS annotation
+      // Targets without features at this CV (unassigned "identifications")
       for (auto& pep_id : features_cv.getUnassignedPeptideIdentifications())
       {
-        pep_id.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
-        features.getUnassignedPeptideIdentifications().push_back(std::move(pep_id));
+        if (missing_refs.insert(StringUtils::toStr(pep_id.getMetaValue("PeptideRef"))).second) missing_targets.push_back(std::move(pep_id));
       }
 
       // Combine chromatograms
       for (auto& chrom : ff_group.getChromatograms().getChromatograms())
       {
         chrom.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        chrom.setNativeID(chrom.getNativeID() + cv_suffix);
         chrom_data_.addChromatogram(std::move(chrom));
       }
 
@@ -242,6 +254,25 @@ namespace OpenMS
       trafo_.setDataPoints(points);
 
       n_shared_ += ff_group.getNShared();
+    }
+
+    // Targets without features are those without a feature at any CV (as without FAIMS, once each)
+    std::set<std::string> found_refs;
+    for (const Feature& feat : features)
+    {
+      found_refs.insert(StringUtils::toStr(feat.getMetaValue("PeptideRef")));
+      if (feat.metaValueExists("alt_PeptideRef"))
+      {
+        StringList alt_refs = feat.getMetaValue("alt_PeptideRef");
+        found_refs.insert(alt_refs.begin(), alt_refs.end());
+      }
+    }
+    for (auto& pep_id : missing_targets)
+    {
+      if (!found_refs.contains(StringUtils::toStr(pep_id.getMetaValue("PeptideRef"))))
+      {
+        features.getUnassignedPeptideIdentifications().push_back(std::move(pep_id));
+      }
     }
 
     // Warn about library output for FAIMS data
