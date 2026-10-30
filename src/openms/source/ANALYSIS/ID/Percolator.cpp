@@ -1760,7 +1760,9 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       // each fold model's training rows (getCappedTrainingInfo)
       trained.trained_rows.assign(num_folds, {});
       std::vector<std::exception_ptr> fold_row_errors(num_folds);
-#pragma omp parallel for schedule(static, 1) num_threads(std::max(1, std::min(static_cast<int>(num_folds), teamThreads(impl_->num_threads))))
+      // (a local: MSVC's OpenMP does not accept impl_ in the clause, C2327)
+      [[maybe_unused]] const int fold_threads = std::max(1, std::min(static_cast<int>(num_folds), teamThreads(impl_->num_threads)));
+#pragma omp parallel for schedule(static, 1) num_threads(fold_threads)
       for (SignedSize f = 0; f < static_cast<SignedSize>(num_folds); ++f)
       {
         try

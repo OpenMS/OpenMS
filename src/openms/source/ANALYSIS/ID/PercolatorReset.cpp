@@ -780,7 +780,9 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
     {
       for (Size s0 = 0; s0 < groups[g].size(); s0 += static_cast<Size>(mlp_chunk)) blocks.emplace_back(g, s0);
     }
-#pragma omp parallel num_threads(mlp_threads)
+    // (a local: MSVC's OpenMP does not accept a variable captured by the lambda in the clause, C2065)
+    [[maybe_unused]] const int team_threads = mlp_threads;
+#pragma omp parallel num_threads(team_threads)
     {
       MlpWork work;
       MatF xc(mlp_chunk, static_cast<Eigen::Index>(used.size()));

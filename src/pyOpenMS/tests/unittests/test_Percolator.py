@@ -78,7 +78,7 @@ def test_dense_feature_matrix_and_peptide_level():
         is_decoy = (i % 2 == 1)
         rows.append([(-1.0 if is_decoy else +1.0) + 0.01 * i, float(i % 5)])
         labels.append(is_decoy)
-        keys.append("PEP" + str(i // 2))  # two PSMs per peptide and label
+        keys.append(("DECOY_" if is_decoy else "") + "PEP" + str(i // 4))  # two PSMs per peptide and label
 
     def make_percolator(peptide_level):
         p = oms.Percolator()
