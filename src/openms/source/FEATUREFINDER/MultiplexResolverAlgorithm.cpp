@@ -93,6 +93,14 @@ namespace OpenMS
     defaults_.setMinFloat("algorithm:mz_tolerance", 0.0);
     defaults_.setValue("algorithm:rt_tolerance", 5.0, "Retention time tolerance in seconds for checking if dummy feature vicinity was blacklisted.", {"advanced"});
     defaults_.setMinFloat("algorithm:rt_tolerance", 0.0);
+    defaults_.setValue("algorithm:use_blacklist_owners", "false",
+                       "For a blacklist that records which feature reserved each peak (FeatureFinderMultiplex -out_blacklist).\n"
+                       "true: a missing channel is not quantifiable (NaN) only if a peak reserved by another multiplet lies at its expected position, "
+                       "and channels added for an identification (intensity 0, no feature id) are checked the same way. Peaks of the multiplet's own "
+                       "channels (their isotopes) or of no reported feature (a pattern the detection dropped) leave it at 0, which then means 'not "
+                       "occupied', not 'absent': use this only if such channels are measured afterwards (as MS1LabeledWorkflow re-quantifies them).\n"
+                       "false: the owners are ignored, every blacklisted peak counts.", {"advanced"});
+    defaults_.setValidStrings("algorithm:use_blacklist_owners", {"true", "false"});
     defaults_.setSectionDescription("algorithm", "Parameters for the algorithm.");
 
     // one advanced parameter per known label: its mass shift
@@ -114,6 +122,7 @@ namespace OpenMS
     mass_tolerance_ = param_.getValue("algorithm:mass_tolerance");
     mz_tolerance_ = param_.getValue("algorithm:mz_tolerance");
     rt_tolerance_ = param_.getValue("algorithm:rt_tolerance");
+    use_blacklist_owners_ = param_.getValue("algorithm:use_blacklist_owners").toBool();
   }
 
   double MultiplexResolverAlgorithm::deltaMassFromMapIndex_(const ConsensusFeature::HandleSetType& feature_handles, unsigned idx)
@@ -337,21 +346,22 @@ namespace OpenMS
           switch (classifyBlacklistOwner(blacklistOwner(*it_rt, it_mz - it_rt->begin()), consensus, peptides))
           {
             case OwnerRelation::OTHER_PEPTIDE: other_peptide = true; break;
+            case OwnerRelation::SAME_PEPTIDE: same_peptide = true; break;
             case OwnerRelation::UNIDENTIFIED: unidentified = true; break;
             case OwnerRelation::OWN: own = true; break;
-            case OwnerRelation::SAME_PEPTIDE: same_peptide = true; break;
             case OwnerRelation::ORPHAN: orphan = true; break;
           }
         }
       }
     }
+    // the same rule as isForeign()
     if (other_peptide) { ++counts.other_peptide; return true; }
+    if (same_peptide) { ++counts.same_peptide; return true; }
     if (unidentified) { ++counts.unidentified; return true; }
-    if (own || same_peptide || orphan)
+    if (own || orphan)
     {
       ++counts.usable;
       counts.own += own;
-      counts.same_peptide += same_peptide;
       counts.orphan += orphan;
     }
     return false;
@@ -464,7 +474,7 @@ namespace OpenMS
 
   bool MultiplexResolverAlgorithm::isForeign(OwnerRelation relation)
   {
-    return relation == OwnerRelation::UNIDENTIFIED || relation == OwnerRelation::OTHER_PEPTIDE;
+    return relation == OwnerRelation::UNIDENTIFIED || relation == OwnerRelation::SAME_PEPTIDE || relation == OwnerRelation::OTHER_PEPTIDE;
   }
 
   ConsensusFeature MultiplexResolverAlgorithm::completeConsensus_(const ConsensusFeature& consensus,
@@ -475,7 +485,7 @@ namespace OpenMS
   {
     OwnerCheckCounts_ no_counts;
     if (counts == nullptr) { counts = &no_counts; }
-    // with owners, a channel added for an identification is not quantifiable if another peptide occupies its position
+    // with owners, a channel added for an identification is not quantifiable if another multiplet occupies its position
     auto checked = [&](FeatureHandle handle)
     {
       if (peptides != nullptr && isAddedChannel(handle))
@@ -570,14 +580,14 @@ namespace OpenMS
         }
         if (blacklisted)
         {
-          // Some peaks close-by were blacklisted during feature detection (by another peptide, if owners are known), i.e. another peptide feature overlaps with the dummy feature.
+          // Some peaks close-by were blacklisted during feature detection (by another multiplet, if owners are used), i.e. another peptide feature overlaps with the dummy feature.
           // Consequently, we better report NaN i.e. not quantifiable.
           feature_handle.setIntensity(std::numeric_limits<double>::quiet_NaN());
         }
         else
         {
-          // There is no blacklisted peak near-by, i.e. there is no peptide feature in the vicinity.
-          // Consequently, we can confidently report zero, i.e. the peptide is absent.
+          // There is no blacklisted peak near-by, i.e. there is no peptide feature in the vicinity: the peptide is absent.
+          // (With owners: no other multiplet's, so the caller measures the channel; see algorithm:use_blacklist_owners.)
           feature_handle.setIntensity(0.0);
         }
         feature_handle.setCharge(charge);
@@ -671,8 +681,8 @@ namespace OpenMS
     const std::vector<std::vector<std::string>> samples = generator.getSamplesLabelsList();
     const size_t multiplicity = theoretical_masses[0].getDeltaMasses().size();
 
-    // with the owners of the blacklisted peaks, only peaks of other peptides make a channel not quantifiable
-    const bool owners = hasBlacklistOwners(blacklist);
+    // with the owners of the blacklisted peaks, only peaks of other multiplets make a channel not quantifiable
+    const bool owners = use_blacklist_owners_ && hasBlacklistOwners(blacklist);
     OwnerPeptides peptides;
     if (owners) { peptides = ownerPeptides(map_in); }
     OwnerCheckCounts_ counts;
@@ -720,10 +730,11 @@ namespace OpenMS
     {
       OPENMS_LOG_INFO << "Blacklist with owners: " << counts.dummies_vetoed << " of " << counts.dummies << " missing channel(s) and "
                       << counts.added_vetoed << " of " << counts.added << " channel(s) added for identifications are not quantifiable ("
-                      << counts.other_peptide << " occupied by another identified peptide, " << counts.unidentified
-                      << " only by unidentified multiplets); " << counts.usable << " lie on peaks reserved only by their own multiplet ("
-                      << counts.own << "), the same peptide (" << counts.same_peptide << ") or no reported feature (" << counts.orphan
-                      << "). Without owners, " << counts.anonymous << " of the missing channels and none of the added ones would be not quantifiable." << endl;
+                      << counts.other_peptide << " occupied by another identified peptide, " << counts.same_peptide
+                      << " by another multiplet of the same peptide, " << counts.unidentified << " only by unidentified multiplets); "
+                      << counts.usable << " lie on peaks reserved only by their own multiplet's channels (" << counts.own
+                      << ") or by no reported feature (" << counts.orphan << "). Without owners, " << counts.anonymous
+                      << " of the missing channels and none of the added ones would be not quantifiable." << endl;
     }
 
     // update map sizes

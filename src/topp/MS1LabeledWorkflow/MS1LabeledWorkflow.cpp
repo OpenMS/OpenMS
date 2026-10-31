@@ -74,6 +74,7 @@
 #include <string>
 #include <tuple>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -170,12 +171,13 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      sequence information (@ref OpenMS::MultiplexResolverAlgorithm, @p resolver): multiplets whose mass shifts
      contradict the labels found in the annotated sequence are removed from quantification (their
      identifications are kept for protein inference), partial multiplets are completed with dummy
-     features (intensity 0 = absent, NaN = not quantifiable, i.e. a detected pattern of another peptide overlaps;
-     the detection records which feature reserved each peak, so peaks of the multiplet itself, of the same peptide
-     and of patterns the detection dropped do not count). With
+     features (intensity 0 = absent, NaN = not quantifiable, i.e. another detected multiplet overlaps). With
      @p requantify (default), a missing channel is then measured at its expected position over the elution region
-     of the multiplet, like MaxQuant's re-quantify, and reported as absent only if it shows no signal there; peaks of
-     other peptides' patterns are left out. With @p targeted_quantification, an identified peptide that has no multiplet in
+     of the multiplet, like MaxQuant's re-quantify, and reported as absent only if it shows no signal there. The
+     detection records which feature reserved each peak: only peaks of another multiplet (also one of the same peptide,
+     which is quantified on its own) make such a channel not quantifiable, and of the reserved peaks it uses only those
+     of patterns the detection dropped, not the isotopes of the multiplet's other channels. With
+     @p targeted_quantification, an identified peptide that has no multiplet in
      the run (the detection missed it, or no multiplet fits its identifications) is measured at the m/z of its channels over
      the elution peak at its identification: the identified channel is integrated (if its isotope pattern fits the peptide),
      the other channels are measured against it from paired peaks. Such a feature and its identifications carry the meta
@@ -371,7 +373,8 @@ protected:
       "every other channel is measured against it from paired peaks (absent if it shows no signal, not quantifiable if another signal occupies\n"
       "its position). The identified channel has to show its first two isotopes in at least three spectra and an isotope pattern that fits\n"
       "the peptide ('algorithm:averagine_similarity'). Such features and their identifications carry the meta value 'quantification_method'\n"
-      "= 'targeted'. Peptides quantified by a multiplet in the run, decoys and identifications whose labels fit no pattern are not measured.\n"
+      "= 'targeted'. Peptides quantified by a multiplet in the run, identifications on a channel of another peptide's multiplet, decoys and\n"
+      "identifications whose labels fit no pattern are not measured; of identifications of different peptides on one signal, only the best one is.\n"
       "false: such identifications are kept for protein inference only.", false);
     setValidStrings_("targeted_quantification", {"true", "false"});
 
@@ -390,6 +393,7 @@ protected:
     Param resolver_defaults = MultiplexResolverAlgorithm().getDefaults().copy("algorithm:", true);
     resolver_defaults.remove("labels");
     resolver_defaults.remove("max_nr_labelled_aas");
+    resolver_defaults.remove("use_blacklist_owners"); // set from 'requantify'
 
     Param idm_defaults = IDMapper().getDefaults();
     // The identified peptidoform carries its labels, so its theoretical m/z is the monoisotopic m/z of its channel. The
@@ -1063,7 +1067,7 @@ protected:
     The partial multiplets were quantified over different spectra and numbers of isotopes, so their intensities are not
     comparable. The most intense channel keeps its intensity, and the channels of the other partial multiplets are re-measured
     against it from paired peaks over the union of the two channels' elution regions, with as many mass traces as both have
-    (requantifyChannel_; the joined channels' own reserved peaks are used, those of other peptides are not). A candidate with
+    (requantifyChannel_; of the reserved peaks, a channel uses only its own and those of no reported feature). A candidate with
     fewer than min_join_paired_spectra_ spectra of paired peaks is not joined. No elution correlation is required: on real data
     it did not separate good from bad joins, the m/z tolerance and the re-measurement did.
   */
@@ -1088,7 +1092,6 @@ protected:
     const double rt_tolerance = getParam_().getValue("id_mapping:rt_tolerance");
     // the joined channels' own peaks are reserved by them; without owners they cannot be told from others', so none is skipped
     const bool owners = MultiplexResolverAlgorithm::hasBlacklistOwners(blacklist);
-    const MultiplexResolverAlgorithm::OwnerPeptides peptides = owners ? resolver.ownerPeptides(multiplets) : MultiplexResolverAlgorithm::OwnerPeptides();
     auto detected = [](const ConsensusFeature& cf)
     { return static_cast<Size>(std::count_if(cf.getFeatures().begin(), cf.getFeatures().end(), [](const FeatureHandle& h) { return h.hasValidUniqueId(); })); };
     // the channel whose expected m/z @p mz lies at
@@ -1203,20 +1206,13 @@ protected:
       while (!partners.empty())
       {
         vector<std::pair<FeatureHandle, Size>> handles; // with their partial multiplet: 0 = target, i + 1 = partners[i]
-        ConsensusFeature joined; // for the owners of reserved peaks
         for (Size g = 0; g <= partners.size(); ++g)
         {
-          for (const FeatureHandle& handle : multiplets[g == 0 ? m : partners[g - 1]].getFeatures())
-          {
-            handles.emplace_back(handle, g);
-            joined.insert(handle);
-          }
+          for (const FeatureHandle& handle : multiplets[g == 0 ? m : partners[g - 1]].getFeatures()) { handles.emplace_back(handle, g); }
         }
+        UInt64 measured = UniqueIdInterface::INVALID; // the channel being re-measured
         auto skip_reserved = [&](const MSSpectrum& black, Size index)
-        {
-          return owners && MultiplexResolverAlgorithm::isForeign(
-            MultiplexResolverAlgorithm::classifyBlacklistOwner(MultiplexResolverAlgorithm::blacklistOwner(black, index), joined, peptides));
-        };
+        { return owners && !mayUseReserved_(MultiplexResolverAlgorithm::blacklistOwner(black, index), measured); };
         const auto reference = std::max_element(handles.begin(), handles.end(), [](const auto& a, const auto& b)
                                                 { return a.first.getIntensity() < b.first.getIntensity(); });
         const Feature* reference_channel = channel_of.at(reference->first.getUniqueId());
@@ -1227,6 +1223,7 @@ protected:
         for (const auto& [handle, group] : handles)
         {
           if (group == reference->second) { continue; }
+          measured = handle.getUniqueId();
           const Feature* channel = channel_of.at(handle.getUniqueId());
           const DBoundingBox<2> box = channel->getConvexHull().getBoundingBox();
           const Size traces = std::min(channel->getConvexHulls().size(), reference_channel->getConvexHulls().size());
@@ -1546,6 +1543,14 @@ protected:
     }
   }
 
+  /// May a channel use a peak that the detection reserved for @p owner (blacklist with owners)? Only if the channel reserved it itself
+  /// (@p channel: its unique id, INVALID if it was not detected) or no reported feature did: another channel's peak at its position is
+  /// that channel's isotope, and another multiplet quantifies its peaks itself (MultiplexResolverAlgorithm::isForeign()).
+  static bool mayUseReserved_(UInt64 owner, UInt64 channel)
+  {
+    return owner == UniqueIdInterface::INVALID || owner == channel;
+  }
+
   /// The blacklist spectrum of @p spectrum (same RT and CV), if any
   static const MSSpectrum* blacklistSpectrum_(const MSExperiment& blacklist, const MSSpectrum& spectrum, const std::optional<double>& cv)
   {
@@ -1648,18 +1653,17 @@ protected:
     mixture). It is replaced by the signal at the channel's expected position over the elution region of the multiplet,
     relative to the most intense detected channel and with as many mass traces as the detected channels have
     (requantifyChannel_), so that a weak channel still yields a ratio and only a really absent one is reported as 0 (like
-    MaxQuant's 're-quantify'). Reserved peaks are left out if they belong to another peptide (with @p peptides, i.e. a
-    blacklist with owners, as the resolver decides: MultiplexResolverAlgorithm::classifyBlacklistOwner()), or all of them
-    (without).
+    MaxQuant's 're-quantify'). Of the reserved peaks, only those of no reported feature are used if the blacklist records
+    @p owners (mayUseReserved_(): the missing channel was not detected, so the multiplet's own reserved peaks at its position
+    are isotopes of its other channels), none without.
   */
   void requantifyMissingChannels_(ConsensusMap& resolved, const FeatureMap& channels, const MSExperiment& centroided,
-                                  const MSExperiment& blacklist, const MultiplexResolverAlgorithm::OwnerPeptides* peptides) const
+                                  const MSExperiment& blacklist, bool owners) const
   {
     std::unordered_map<UInt64, const Feature*> channel_of;
     for (const Feature& channel : channels) { channel_of.emplace(channel.getUniqueId(), &channel); }
 
-    Size requantified = 0, absent = 0;
-    std::map<MultiplexResolverAlgorithm::OwnerRelation, Size> reserved_used; // reserved peaks used, by owner
+    Size requantified = 0, absent = 0, reserved_used = 0;
     for (auto& cf : resolved)
     {
       // the elution region and the number of mass traces of the detected channels, and the most intense one
@@ -1687,10 +1691,8 @@ protected:
       const std::optional<double> cv = compensationVoltage_(cf);
       auto skip_reserved = [&](const MSSpectrum& black, Size index)
       {
-        if (peptides == nullptr) { return true; }
-        const auto relation = MultiplexResolverAlgorithm::classifyBlacklistOwner(MultiplexResolverAlgorithm::blacklistOwner(black, index), cf, *peptides);
-        if (MultiplexResolverAlgorithm::isForeign(relation)) { return true; }
-        ++reserved_used[relation];
+        if (!owners || !mayUseReserved_(MultiplexResolverAlgorithm::blacklistOwner(black, index), UniqueIdInterface::INVALID)) { return true; }
+        ++reserved_used;
         return false;
       };
       ConsensusFeature::HandleSetType handles;
@@ -1719,12 +1721,9 @@ protected:
       OPENMS_LOG_INFO << "Re-quantified " << requantified << " channel(s) the detection did not find; " << absent
                       << " show no signal at their expected position and are reported as absent." << endl;
     }
-    if (!reserved_used.empty())
+    if (reserved_used > 0)
     {
-      using Relation = MultiplexResolverAlgorithm::OwnerRelation;
-      OPENMS_LOG_INFO << "The re-quantification used reserved peaks of no other peptide: " << reserved_used[Relation::OWN]
-                      << " of the channel's own multiplet, " << reserved_used[Relation::SAME_PEPTIDE] << " of the same peptide, "
-                      << reserved_used[Relation::ORPHAN] << " of no reported feature." << endl;
+      OPENMS_LOG_INFO << "The re-quantification used " << reserved_used << " reserved peak(s) of no reported feature (patterns the detection dropped)." << endl;
     }
   }
 
@@ -1754,6 +1753,7 @@ protected:
   {
     double rt_lo = 0.0, rt_hi = 0.0, rt = 0.0; ///< boundaries, and the RT of the identified channel
     vector<double> intensities;                 ///< per channel: > 0 measured, 0 absent, NaN not quantifiable
+    vector<UInt64> owners;                      ///< features whose reserved peaks it read within its boundaries
   };
 
   enum class TargetedOutcome_ { MEASURED, NO_SIGNAL, ISOTOPE_PATTERN };
@@ -1787,6 +1787,7 @@ protected:
     vector<double> rts;
     vector<vector<vector<double>>> intensity(n_channels, vector<vector<double>>(targeted_isotopes_));
     vector<vector<char>> reserved(n_channels); // a peak of the first two isotopes belongs to another peptide
+    vector<std::pair<Size, UInt64>> read_owners; // (spectrum, owner) of the reserved peaks read
     vector<char> lower_envelope;
     for (auto it = centroided.RTBegin(candidate.rt - rt_typical); it != centroided.RTEnd(candidate.rt + rt_typical); ++it)
     {
@@ -1804,6 +1805,10 @@ protected:
           const bool other = reserved_index >= 0 && occupied(*black, static_cast<Size>(reserved_index));
           intensity[c][k].push_back(index >= 0 && !other ? (*it)[index].getIntensity() : 0.0);
           if (other && k < 2) { reserved[c].back() = true; }
+          if (reserved_index >= 0 && !other)
+          {
+            read_owners.emplace_back(rts.size() - 1, MultiplexResolverAlgorithm::blacklistOwner(*black, static_cast<Size>(reserved_index)));
+          }
         }
       }
       bool lower = false;
@@ -1930,6 +1935,10 @@ protected:
     }
     peak.rt_lo = rts[first];
     peak.rt_hi = rts[last];
+    for (const auto& [i, owner] : read_owners)
+    {
+      if (i >= first && i <= last && owner != UniqueIdInterface::INVALID) { peak.owners.push_back(owner); }
+    }
     return TargetedOutcome_::MEASURED;
   }
 
@@ -1939,7 +1948,9 @@ protected:
     The candidates are the identifications that are not attached to a resolved multiplet: target hits whose labels fit a pattern
     (MultiplexResolverAlgorithm::expectedChannelMZs()), of a peptide (sequence without labels, charge, CV) that no resolved
     multiplet quantifies within 'algorithm:rt_typical' of its elution region - the abundances of a peptide add up over its
-    multiplets, so it must not be measured twice.
+    multiplets, so it must not be measured twice. Nor is an identification whose own channel lies at a quantified channel of a
+    resolved multiplet of another peptide (same charge and CV), within 'algorithm:rt_typical' of its elution region: its signal is
+    that multiplet's (e.g. its tail beyond the reserved peaks), whose identification the resolver preferred.
 
     Around each identification (+/- 'algorithm:rt_typical'), the first isotopic peaks of every channel are taken from the spectra
     the detection worked on (nearest peak within 'algorithm:mz_tolerance', same CV). Peaks the detection reserved for a multiplet
@@ -1956,10 +1967,15 @@ protected:
     'algorithm:peptide_similarity'); otherwise it is absent (0) if nothing is there, and not quantifiable (left out) if something
     else, or another peptide's pattern, is.
 
+    Targeted peaks of different peptides that read the same peaks (the identified channel of one at a channel of the other, same
+    charge and CV, overlapping boundaries; e.g. isomers, or a wrong identification next to a right one) are one signal: only the
+    one with the best identification is kept, as IDConflictResolverAlgorithm keeps one identification per multiplet.
+
     Each elution peak gives one consensus feature (RT: the intensity-weighted mean of the identified channel's monoisotopic peaks;
     m/z: the lightest channel's), onto which every identification of the peptide within the peak is moved, with the map index of
     its own channel. The feature and these identifications are marked with the meta value 'quantification_method' = 'targeted'
-    (only the identifications' survives linking).
+    (only the identifications' survives linking). An unidentified multiplet kept for match between runs whose reserved peaks a
+    feature read is that feature's signal and is removed, so that linking cannot quantify the signal a second time.
   */
   void quantifyTargeted_(ConsensusMap& resolved, const FeatureMap& channels, const MultiplexResolverAlgorithm& resolver,
                          const MSExperiment& centroided, const MSExperiment& blacklist, const MultiplexResolverAlgorithm::OwnerPeptides* peptides) const
@@ -1969,9 +1985,17 @@ protected:
     std::unordered_map<UInt64, const Feature*> channel_of;
     for (const Feature& channel : channels) { channel_of.emplace(channel.getUniqueId(), &channel); }
 
-    // elution regions of the peptides (and CVs) that resolved multiplets quantify
+    // elution regions of the peptides (and CVs) that resolved multiplets quantify, and the channels they quantify there
     using Key = std::pair<std::string, std::optional<double>>;
     std::map<Key, vector<std::pair<double, double>>> quantified;
+    struct QuantifiedChannel
+    {
+      double mz;
+      Key key;
+      int charge;
+      double rt_lo, rt_hi;
+    };
+    vector<QuantifiedChannel> quantified_channels; // sorted by m/z
     for (const auto& cf : resolved)
     {
       if (cf.getPeptideIdentifications().empty() || cf.getPeptideIdentifications()[0].getHits().empty()) { continue; }
@@ -1985,11 +2009,17 @@ protected:
           rt_hi = std::max(rt_hi, box.maxX());
         }
       }
-      quantified[{resolver.peptideKey(cf.getPeptideIdentifications()[0].getHits()[0], cf.getCharge()), compensationVoltage_(cf)}].emplace_back(rt_lo, rt_hi);
+      Key key{resolver.peptideKey(cf.getPeptideIdentifications()[0].getHits()[0], cf.getCharge()), compensationVoltage_(cf)};
+      for (const FeatureHandle& handle : cf.getFeatures())
+      {
+        if (handle.getIntensity() > 0.0) { quantified_channels.push_back({handle.getMZ(), key, cf.getCharge(), rt_lo, rt_hi}); }
+      }
+      quantified[std::move(key)].emplace_back(rt_lo, rt_hi);
     }
+    std::sort(quantified_channels.begin(), quantified_channels.end(), [](const auto& a, const auto& b) { return a.mz < b.mz; });
 
     PeptideIdentificationList& unassigned = resolved.getUnassignedPeptideIdentifications();
-    Size decoys = 0, no_pattern = 0, already = 0;
+    Size decoys = 0, no_pattern = 0, already = 0, other_multiplet = 0;
     std::map<Key, vector<TargetedCandidate_>> groups;
     for (Size i = 0; i < unassigned.size(); ++i)
     {
@@ -2006,11 +2036,25 @@ protected:
       candidate.cv = compensationVoltage_(id);
       candidate.peptide = resolver.peptideKey(hit, candidate.charge);
       Key key{candidate.peptide, candidate.cv};
+      auto near = [&](double lo, double hi) { return candidate.rt >= lo - rt_typical && candidate.rt <= hi + rt_typical; };
       if (const auto it = quantified.find(key); it != quantified.end()
-          && std::any_of(it->second.begin(), it->second.end(), [&](const auto& region)
-                         { return candidate.rt >= region.first - rt_typical && candidate.rt <= region.second + rt_typical; }))
+          && std::any_of(it->second.begin(), it->second.end(), [&](const auto& region) { return near(region.first, region.second); }))
       {
         ++already;
+        continue;
+      }
+      // the identified channel on a channel of another peptide's multiplet, near its elution region: that multiplet's signal
+      const double own_mz = candidate.mzs[candidate.own], tolerance = detectionMZTolerance_(own_mz);
+      bool other = false;
+      for (auto it = std::lower_bound(quantified_channels.begin(), quantified_channels.end(), own_mz - tolerance,
+                                      [](const QuantifiedChannel& q, double mz) { return q.mz < mz; });
+           !other && it != quantified_channels.end() && it->mz <= own_mz + tolerance; ++it)
+      {
+        other = it->charge == candidate.charge && it->key.second == candidate.cv && it->key.first != candidate.peptide && near(it->rt_lo, it->rt_hi);
+      }
+      if (other)
+      {
+        ++other_multiplet;
         continue;
       }
       groups[std::move(key)].push_back(std::move(candidate));
@@ -2029,9 +2073,15 @@ protected:
       integrator.setParameters(integrator_param);
     }
 
-    Size used = 0, no_signal = 0, isotope_pattern = 0, measured_channels = 0, absent_channels = 0, not_quantifiable = 0;
-    vector<ConsensusFeature> features;
-    vector<bool> moved(unassigned.size(), false);
+    // the elution peaks of every peptide, with their identifications (positions in the group)
+    struct Measured
+    {
+      const vector<TargetedCandidate_>* group;
+      TargetedPeak_ peak;
+      vector<Size> members;
+    };
+    vector<Measured> measured;
+    Size no_signal = 0, isotope_pattern = 0;
     for (auto& [key, group] : groups)
     {
       const std::string& peptide = key.first;
@@ -2077,53 +2127,126 @@ protected:
         else if (outcome[g] == TargetedOutcome_::NO_SIGNAL) { ++no_signal; }
         else { ++isotope_pattern; }
       }
+      for (auto& [peak, members] : found) { measured.push_back({&group, std::move(peak), std::move(members)}); }
+    }
 
-      for (auto& [peak, members] : found)
+    // One signal, one peptide: of the peaks of different peptides that read the same peaks (the identified channel of one at a
+    // channel of the other, same charge and CV, overlapping boundaries), the one with the best identification is kept.
+    auto seed_of = [&](Size i) -> const TargetedCandidate_& { return (*measured[i].group)[measured[i].members.front()]; };
+    vector<double> badness(measured.size(), std::numeric_limits<double>::infinity()); // the best score, lower = better
+    for (Size i = 0; i < measured.size(); ++i)
+    {
+      for (Size g : measured[i].members)
       {
-        const TargetedCandidate_& seed = group[members.front()]; // the identification the peak was measured for
-        ConsensusFeature cf;
-        for (Size c = 0; c < peak.intensities.size(); ++c)
-        {
-          const double intensity = peak.intensities[c];
-          if (c != seed.own)
-          {
-            if (std::isnan(intensity)) { ++not_quantifiable; }
-            else if (intensity > 0.0) { ++measured_channels; }
-            else { ++absent_channels; }
-          }
-          if (std::isnan(intensity)) { continue; }
-          FeatureHandle handle;
-          handle.setMapIndex(c);
-          handle.setMZ(seed.mzs[c]);
-          handle.setRT(peak.rt);
-          handle.setIntensity(intensity);
-          handle.setCharge(seed.charge);
-          cf.insert(handle);
-        }
-        cf.setRT(peak.rt);
-        cf.setMZ(seed.mzs.front());
-        cf.setCharge(seed.charge);
-        // the lightest measured channel is the anchor, as in a detected multiplet
-        for (const FeatureHandle& handle : cf.getFeatures())
-        {
-          if (handle.getIntensity() > 0.0) { cf.setIntensity(handle.getIntensity()); break; }
-        }
-        if (seed.cv) { cf.setMetaValue(Constants::UserParam::FAIMS_CV, *seed.cv); }
-        cf.setMetaValue("quantification_method", "targeted");
-        std::sort(members.begin(), members.end());
-        for (Size g : members)
-        {
-          PeptideIdentification& id = unassigned[group[g].index];
-          id.setMetaValue("map_index", group[g].own);
-          id.getHits()[0].setMetaValue("map_index", group[g].own);
-          id.setMetaValue("quantification_method", "targeted");
-          cf.getPeptideIdentifications().push_back(std::move(id));
-          moved[group[g].index] = true;
-          ++used;
-        }
-        cf.setUniqueId();
-        features.push_back(std::move(cf));
+        const PeptideIdentification& id = unassigned[(*measured[i].group)[g].index];
+        badness[i] = std::min(badness[i], id.isHigherScoreBetter() ? -id.getHits()[0].getScore() : id.getHits()[0].getScore());
       }
+    }
+    vector<Size> order(measured.size());
+    std::iota(order.begin(), order.end(), Size(0));
+    std::stable_sort(order.begin(), order.end(), [&](Size a, Size b) { return badness[a] < badness[b]; });
+    auto same_signal = [&](Size a, Size b)
+    {
+      return measured[a].group != measured[b].group && seed_of(a).charge == seed_of(b).charge && seed_of(a).cv == seed_of(b).cv
+             && measured[a].peak.rt_lo <= measured[b].peak.rt_hi && measured[a].peak.rt_hi >= measured[b].peak.rt_lo;
+    };
+    std::multimap<double, Size> kept_channels, kept_references; // m/z of every channel and of the identified one, of the kept peaks
+    auto shares = [&](const std::multimap<double, Size>& kept, double mz, Size i)
+    {
+      const double tolerance = detectionMZTolerance_(mz);
+      for (auto it = kept.lower_bound(mz - tolerance); it != kept.end() && it->first <= mz + tolerance; ++it)
+      {
+        if (same_signal(i, it->second)) { return true; }
+      }
+      return false;
+    };
+    vector<bool> keep(measured.size(), false);
+    Size other_identification = 0;
+    for (Size i : order)
+    {
+      const TargetedCandidate_& s = seed_of(i);
+      bool conflict = shares(kept_channels, s.mzs[s.own], i);
+      for (Size c = 0; !conflict && c < s.mzs.size(); ++c) { conflict = shares(kept_references, s.mzs[c], i); }
+      if (conflict)
+      {
+        other_identification += measured[i].members.size(); // they stay unassigned
+        continue;
+      }
+      keep[i] = true;
+      for (double mz : s.mzs) { kept_channels.emplace(mz, i); }
+      kept_references.emplace(s.mzs[s.own], i);
+    }
+
+    Size used = 0, measured_channels = 0, absent_channels = 0, not_quantifiable = 0;
+    vector<ConsensusFeature> features;
+    vector<bool> moved(unassigned.size(), false);
+    std::unordered_set<UInt64> read_owners; // features whose reserved peaks the targeted features read
+    for (Size i = 0; i < measured.size(); ++i)
+    {
+      if (!keep[i]) { continue; }
+      const vector<TargetedCandidate_>& group = *measured[i].group;
+      const TargetedPeak_& peak = measured[i].peak;
+      vector<Size>& members = measured[i].members;
+      const TargetedCandidate_& seed = group[members.front()]; // the identification the peak was measured for
+      ConsensusFeature cf;
+      for (Size c = 0; c < peak.intensities.size(); ++c)
+      {
+        const double intensity = peak.intensities[c];
+        if (c != seed.own)
+        {
+          if (std::isnan(intensity)) { ++not_quantifiable; }
+          else if (intensity > 0.0) { ++measured_channels; }
+          else { ++absent_channels; }
+        }
+        if (std::isnan(intensity)) { continue; }
+        FeatureHandle handle;
+        handle.setMapIndex(c);
+        handle.setMZ(seed.mzs[c]);
+        handle.setRT(peak.rt);
+        handle.setIntensity(intensity);
+        handle.setCharge(seed.charge);
+        cf.insert(handle);
+      }
+      cf.setRT(peak.rt);
+      cf.setMZ(seed.mzs.front());
+      cf.setCharge(seed.charge);
+      // the lightest measured channel is the anchor, as in a detected multiplet
+      for (const FeatureHandle& handle : cf.getFeatures())
+      {
+        if (handle.getIntensity() > 0.0) { cf.setIntensity(handle.getIntensity()); break; }
+      }
+      if (seed.cv) { cf.setMetaValue(Constants::UserParam::FAIMS_CV, *seed.cv); }
+      cf.setMetaValue("quantification_method", "targeted");
+      std::sort(members.begin(), members.end());
+      for (Size g : members)
+      {
+        PeptideIdentification& id = unassigned[group[g].index];
+        id.setMetaValue("map_index", group[g].own);
+        id.getHits()[0].setMetaValue("map_index", group[g].own);
+        id.setMetaValue("quantification_method", "targeted");
+        cf.getPeptideIdentifications().push_back(std::move(id));
+        moved[group[g].index] = true;
+        ++used;
+      }
+      cf.setUniqueId();
+      features.push_back(std::move(cf));
+      read_owners.insert(peak.owners.begin(), peak.owners.end());
+    }
+
+    // An (unidentified) multiplet kept for match between runs whose reserved peaks a targeted feature read is that feature's signal:
+    // the feature replaces it, so that linking cannot give it the peptide's identification from another run as well.
+    Size replaced = 0;
+    if (!read_owners.empty())
+    {
+      const Size before = resolved.size();
+      resolved.erase(std::remove_if(resolved.begin(), resolved.end(), [&](const ConsensusFeature& cf)
+                                    {
+                                      return cf.getPeptideIdentifications().empty()
+                                             && std::any_of(cf.getFeatures().begin(), cf.getFeatures().end(), [&](const FeatureHandle& h)
+                                                            { return h.hasValidUniqueId() && read_owners.contains(h.getUniqueId()); });
+                                    }),
+                     resolved.end());
+      replaced = before - resolved.size();
     }
 
     if (!features.empty())
@@ -2141,8 +2264,15 @@ protected:
     OPENMS_LOG_INFO << "Targeted quantification: " << features.size() << " feature(s) for " << used << " identification(s) of peptides without a "
                     << "multiplet in this run (" << measured_channels << " other channel(s) measured against the identified one, " << absent_channels
                     << " absent, " << not_quantifiable << " not quantifiable); not quantified: " << already << " identification(s) of peptides quantified "
-                    << "in this run, " << no_signal << " without a clean elution peak of the identified channel, " << isotope_pattern
-                    << " whose isotope pattern does not fit, " << no_pattern << " whose labels fit no pattern, " << decoys << " decoy(s)." << endl;
+                    << "in this run, " << other_multiplet << " on a channel of another peptide's multiplet, " << other_identification
+                    << " on the signal of a better identification of another peptide, " << no_signal << " without a clean elution peak of the "
+                    << "identified channel, " << isotope_pattern << " whose isotope pattern does not fit, " << no_pattern << " whose labels fit no "
+                    << "pattern, " << decoys << " decoy(s)." << endl;
+    if (replaced > 0)
+    {
+      OPENMS_LOG_INFO << replaced << " unidentified multiplet(s) kept for match between runs were replaced by the targeted feature(s) measured "
+                      << "from their peaks." << endl;
+    }
   }
 
   /// Let the peaks the detection reserved for a merged flank (blacklist with owners) belong to the channel it was merged into
@@ -2221,6 +2351,8 @@ protected:
       res_param.insert("algorithm:", getParam_().copy("resolver:", true));
       res_param.setValue("algorithm:labels", labels_);
       res_param.setValue("algorithm:max_nr_labelled_aas", max_nr_labelled_aas_);
+      // a missing channel that only the multiplet's own isotopes or dropped patterns occupy is left at 0 for the re-quantification
+      res_param.setValue("algorithm:use_blacklist_owners", requantify_ ? "true" : "false");
       res_param.insert("labels:", getParam_().copy("label_mass_shifts:", true));
       writeDebug_("Parameters passed to MultiplexResolverAlgorithm", res_param, 3);
       resolver.setParameters(res_param);
@@ -2292,15 +2424,18 @@ protected:
                       << " multiplet(s) are unidentified, " << kept_for_mbr << " of them kept for match between runs." << endl;
     }
 
-    // the channels the detection did not find are measured where they are expected (without the peaks of other peptides,
-    // as far as the blacklist tells their owners; the resolver has seen the same multiplets)
+    // the channels the detection did not find are measured where they are expected (without peaks reserved by other features,
+    // as far as the blacklist tells their owners)
     if (requantify_ || targeted_quantification_)
     {
       const bool owners = MultiplexResolverAlgorithm::hasBlacklistOwners(blacklist);
-      const MultiplexResolverAlgorithm::OwnerPeptides peptides = owners ? resolver.ownerPeptides(multiplets) : MultiplexResolverAlgorithm::OwnerPeptides();
-      if (requantify_) { requantifyMissingChannels_(resolved, channels, centroided, blacklist, owners ? &peptides : nullptr); }
+      if (requantify_) { requantifyMissingChannels_(resolved, channels, centroided, blacklist, owners); }
       // identified peptides without a multiplet are measured where they are expected (while the handles still name their channels)
-      if (targeted_quantification_) { quantifyTargeted_(resolved, channels, resolver, centroided, blacklist, owners ? &peptides : nullptr); }
+      if (targeted_quantification_)
+      {
+        const MultiplexResolverAlgorithm::OwnerPeptides peptides = owners ? resolver.ownerPeptides(multiplets) : MultiplexResolverAlgorithm::OwnerPeptides();
+        quantifyTargeted_(resolved, channels, resolver, centroided, blacklist, owners ? &peptides : nullptr);
+      }
     }
 
     // The handles referred to the run's channel features by unique id; those are internal to this run and

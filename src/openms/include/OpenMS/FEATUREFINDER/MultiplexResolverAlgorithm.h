@@ -38,14 +38,16 @@ namespace OpenMS
       position during feature detection (the peptide is absent), and NaN (not quantifiable) when
       the region was blacklisted, i.e. another feature overlaps with it.
 
-    If the blacklist records who reserved each peak (hasBlacklistOwners(), as FeatureFinderMultiplexAlgorithm
-    writes it), only peaks reserved by another peptide make a channel not quantifiable: peaks of the multiplet's
-    own channels, of another multiplet of the same peptide (e.g. its missing channel detected on its own) and of no
-    reported feature (a pattern the detection dropped later) do not (see classifyBlacklistOwner()). Then all
-    blacklisted peaks within the m/z tolerance count, on either side of the expected positions, and channels that
-    MS1LabeledWorkflow added for an identification (intensity 0, no unique id) are checked like dummy features.
-    Without owners, a dummy feature is not quantifiable if the first blacklisted peak at or above one of its
-    expected positions is within the tolerance, and added channels are not checked.
+    With @c algorithm:use_blacklist_owners, and a blacklist that records who reserved each peak (hasBlacklistOwners(),
+    as FeatureFinderMultiplexAlgorithm writes it), only peaks reserved by another multiplet make a channel not
+    quantifiable (isForeign()): peaks of the multiplet's own channels (their isotopes) and of no reported feature (a
+    pattern the detection dropped later) do not. A dummy feature of intensity 0 then means that no other multiplet
+    occupies its position, not that the peptide is absent, so the caller has to measure it (MS1LabeledWorkflow
+    re-quantifies such channels). All blacklisted peaks within the m/z tolerance count, on either side of the
+    expected positions, and channels that MS1LabeledWorkflow added for an identification (intensity 0, no unique id)
+    are checked like dummy features. Otherwise (the default) the owners are ignored: a dummy feature is not
+    quantifiable if the first blacklisted peak at or above one of its expected positions is within the tolerance,
+    and added channels are not checked.
 
     Only the first peptide identification of a consensus feature is taken into account, so the map should
     have been reduced to one identification per feature (IDConflictResolverAlgorithm::resolve()) first.
@@ -85,8 +87,8 @@ namespace OpenMS
       @param[out] map_conflicts Multiplets without identification or with conflicting quant/ID information; cleared first
       @param[in] blacklist Spectral peaks blacklisted during feature detection (FeatureFinderMultiplexAlgorithm::getBlacklist()).
                  Used to decide whether a dummy feature is absent (intensity 0) or not quantifiable (NaN). May be empty.
-                 If it records the owners of its peaks (hasBlacklistOwners()), the feature handles of @p map_in must carry
-                 the unique ids of their features, as FeatureFinderMultiplexAlgorithm::getConsensusMap() does.
+                 If its owners are used (@c algorithm:use_blacklist_owners and hasBlacklistOwners()), the feature handles of
+                 @p map_in must carry the unique ids of their features, as FeatureFinderMultiplexAlgorithm::getConsensusMap() does.
 
       @throws Exception::MissingInformation if an identified feature lacks the @c map_index meta value
       @throws Exception::InvalidValue if the @c map_index does not name a feature handle of the consensus feature
@@ -187,7 +189,13 @@ namespace OpenMS
     */
     static OwnerRelation classifyBlacklistOwner(UInt64 owner, const std::string& peptide, const OwnerPeptides& peptides);
 
-    /// Does a peak reserved by an owner of this relation belong to another peptide, so that a channel must not use it? (UNIDENTIFIED, OTHER_PEPTIDE)
+    /**
+      @brief Does a peak reserved by an owner of this relation belong to another multiplet? (UNIDENTIFIED, SAME_PEPTIDE, OTHER_PEPTIDE)
+
+      Such a peak makes a missing channel at its position not quantifiable, and a channel must not use it. Another multiplet of
+      the same peptide (e.g. its missing channel, detected on its own) is quantified itself: measuring the channel from its peaks
+      would count them twice.
+    */
     static bool isForeign(OwnerRelation relation);
     ///@}
 
@@ -276,16 +284,16 @@ namespace OpenMS
       Size dummies_vetoed = 0; ///< dummy features found not quantifiable
       Size added_vetoed = 0;   ///< added channels found not quantifiable
       Size other_peptide = 0;  ///< not quantifiable: a peak reserved by another identified peptide
-      Size unidentified = 0;   ///< not quantifiable: peaks reserved by unidentified multiplets only (no other peptide)
+      Size same_peptide = 0;   ///< not quantifiable: a peak reserved by another multiplet of the same peptide (no other peptide)
+      Size unidentified = 0;   ///< not quantifiable: peaks reserved by unidentified multiplets only
       Size usable = 0;         ///< reserved peaks, but none foreign
       Size own = 0;            ///< ... of these, with a peak of the multiplet's own channels
-      Size same_peptide = 0;   ///< ... with a peak of the same peptide
       Size orphan = 0;         ///< ... with a peak of no reported feature
       Size anonymous = 0;      ///< dummy features the check without owners finds blacklisted
     };
 
     /**
-      @brief Is a peak reserved by another peptide within the m/z tolerance of one of the first three isotopes at this position?
+      @brief Is a peak reserved by another multiplet within the m/z tolerance of one of the first three isotopes at this position?
 
       The owner-aware check of a (dummy or added) channel of @p consensus: every blacklisted peak in the RT and m/z
       tolerance counts (both sides), and only foreign owners (isForeign()) make the channel not quantifiable.
@@ -301,8 +309,8 @@ namespace OpenMS
       @param[in] delta_mass_matched Which delta masses of the pattern were matched
       @param[in] index_label_set Index within the pattern at which the label set was matched
       @param[in] blacklist Blacklisted spectral peaks (may be empty)
-      @param[in] peptides If not null, the blacklist records owners and these are the ownerPeptides() of the map:
-                 owner-aware check of dummy features and of channels added for an identification
+      @param[in] peptides If not null, the owners of the blacklisted peaks are used and these are the ownerPeptides() of the
+                 map: owner-aware check of dummy features and of channels added for an identification
       @param[in,out] counts Counts of the owner-aware check (used only with @p peptides)
       @return The complete multiplet
     */
@@ -317,6 +325,8 @@ namespace OpenMS
     double mz_tolerance_ = 10.0;
     /// RT tolerance in seconds for the blacklist check
     double rt_tolerance_ = 5.0;
+    /// Use the owners of blacklisted peaks, if recorded ('algorithm:use_blacklist_owners')
+    bool use_blacklist_owners_ = false;
 
     void updateMembers_() override;
   };

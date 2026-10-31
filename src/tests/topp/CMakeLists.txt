@@ -4554,6 +4554,19 @@ add_test("TOPP_MultiplexResolver_4_out1" ${DIFF} -whitelist "id=" "href=" -in1 $
 set_tests_properties("TOPP_MultiplexResolver_4_out1" PROPERTIES DEPENDS "TOPP_MultiplexResolver_4")
 add_test("TOPP_MultiplexResolver_4_out3" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/MultiplexResolver_4_conflicts.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MultiplexResolver_4_output_conflicts.consensusXML )
 set_tests_properties("TOPP_MultiplexResolver_4_out3" PROPERTIES DEPENDS "TOPP_MultiplexResolver_4")
+# a blacklist with the owner of every reserved peak, as FeatureFinderMultiplex -out_blacklist writes it, and identified multiplets
+# with the feature ids (synthetic, SILAC duplex): AAAAR detected as two partial multiplets, its heavy channel (E) and its light
+# channel (S), co-eluting; GGGGR heavy only (O), its light channel on peaks of a pattern the detection dropped.
+# By default the owners are ignored: every missing channel lies on blacklisted peaks and is not quantifiable (NaN), as with an
+# anonymous blacklist. With algorithm:use_blacklist_owners, E's and S's missing channels lie on peaks of another multiplet
+# (of the same peptide, which quantifies them) and stay NaN; O's light channel is left at 0 for a re-quantification.
+add_test("TOPP_MultiplexResolver_5" ${TOPP_BIN_PATH}/MultiplexResolver -test -in ${DATA_DIR_TOPP}/MultiplexResolver_5_input.consensusXML -in_blacklist ${DATA_DIR_TOPP}/MultiplexResolver_5_blacklist.mzML -out ${TESTS_TEMP_DIR}/MultiplexResolver_5.tmp.consensusXML)
+add_test("TOPP_MultiplexResolver_5_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MultiplexResolver_5.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MultiplexResolver_5_output.consensusXML )
+set_tests_properties("TOPP_MultiplexResolver_5_out1" PROPERTIES DEPENDS "TOPP_MultiplexResolver_5")
+add_test("TOPP_MultiplexResolver_5_owners" ${TOPP_BIN_PATH}/MultiplexResolver -test -in ${DATA_DIR_TOPP}/MultiplexResolver_5_input.consensusXML -in_blacklist ${DATA_DIR_TOPP}/MultiplexResolver_5_blacklist.mzML -algorithm:use_blacklist_owners true -out ${TESTS_TEMP_DIR}/MultiplexResolver_5_owners.tmp.consensusXML)
+set_tests_properties("TOPP_MultiplexResolver_5_owners" PROPERTIES PASS_REGULAR_EXPRESSION "Blacklist with owners: 2 of 3 missing channel.s. and 0 of 0 channel.s. added for identifications are not quantifiable .0 occupied by another identified peptide, 2 by another multiplet of the same peptide, 0 only by unidentified multiplets.. 1 lie on peaks reserved only by their own multiplet's channels .0. or by no reported feature .1.")
+add_test("TOPP_MultiplexResolver_5_owners_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MultiplexResolver_5_owners.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MultiplexResolver_5_owners_output.consensusXML )
+set_tests_properties("TOPP_MultiplexResolver_5_owners_out1" PROPERTIES DEPENDS "TOPP_MultiplexResolver_5_owners")
 
 #------------------------------------------------------------------------------
 # MS1LabeledWorkflow tests
@@ -4798,7 +4811,7 @@ add_test("TOPP_MS1LabeledWorkflow_7_partial" ${TOPP_BIN_PATH}/MS1LabeledWorkflow
   -proteinFDR 1.0
   -ratios:min_ratio_count 1
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_partial.tmp.consensusXML)
-set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial" PROPERTIES PASS_REGULAR_EXPRESSION "Re-quantified 4 channel.s. the detection did not find; 5 show no signal")
+set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial" PROPERTIES PASS_REGULAR_EXPRESSION "Re-quantified 4 channel.s. the detection did not find. 5 show no signal")
 add_test("TOPP_MS1LabeledWorkflow_7_partial_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_partial.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_partial_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_7_partial")
 add_test("TOPP_MS1LabeledWorkflow_7_attached" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
@@ -4818,7 +4831,7 @@ add_test("TOPP_MS1LabeledWorkflow_7_complete_only" ${TOPP_BIN_PATH}/MS1LabeledWo
   -proteinFDR 1.0
   -algorithm:knock_out false
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_complete_only.tmp.consensusXML)
-set_tests_properties("TOPP_MS1LabeledWorkflow_7_complete_only" PROPERTIES PASS_REGULAR_EXPRESSION "Resolved 1 multiplet.s.; 0 identified")
+set_tests_properties("TOPP_MS1LabeledWorkflow_7_complete_only" PROPERTIES PASS_REGULAR_EXPRESSION "Resolved 1 multiplet.s.. 0 identified")
 
 # -join_channels: the channels of one peptide detected separately (synthetic SILAC duplexes, 2+, 1:1 in the monoisotopic peak;
 # a channel's third and fourth isotopes are only present in every other spectrum, alternating with the other channel, so that
@@ -4834,12 +4847,13 @@ add_test("TOPP_MS1LabeledWorkflow_8_join_channels" ${TOPP_BIN_PATH}/MS1LabeledWo
   -ratios:min_ratio_count 1
   -join_channels true
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_8_join_channels.tmp.consensusXML)
-set_tests_properties("TOPP_MS1LabeledWorkflow_8_join_channels" PROPERTIES PASS_REGULAR_EXPRESSION "1 partial multiplet.s. were found to be other channels of an identified partial multiplet and were joined to it, re-measured over common spectra; 0 such candidate.s. were not joined")
+set_tests_properties("TOPP_MS1LabeledWorkflow_8_join_channels" PROPERTIES PASS_REGULAR_EXPRESSION "1 partial multiplet.s. were found to be other channels of an identified partial multiplet and were joined to it, re-measured over common spectra. 0 such candidate.s. were not joined")
 add_test("TOPP_MS1LabeledWorkflow_8_join_channels_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_8_join_channels.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_8_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_8_join_channels_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_8_join_channels")
 # MS1LabeledWorkflow_9: a light envelope identified as LVNELTEFAK and a heavy one identified as VLNELTEFAK (the same composition,
-# another peptide) are not joined. YVNDLAGHEK 1:1 has a ten times stronger envelope 15 ppm above its light channel (outside the
-# detection's m/z tolerance), onto which the light identification maps as well: the heavy channel is joined to the exact light one.
+# another peptide) are not joined. YVNDLAGHEK 1:1 has a ten times stronger envelope 15 ppm above its light channel, onto which the
+# light identification maps as well: the identification stays on the exact light channel (the closer one), and the heavy channel
+# is joined to it (the closest candidate; the envelope is also outside the detection's m/z tolerance, see _9_join_tolerance).
 add_test("TOPP_MS1LabeledWorkflow_9_join_channels" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_9_input.mzML
   -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_9.idXML
@@ -4849,7 +4863,7 @@ add_test("TOPP_MS1LabeledWorkflow_9_join_channels" ${TOPP_BIN_PATH}/MS1LabeledWo
   -ratios:min_ratio_count 1
   -join_channels true
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_9_join_channels.tmp.consensusXML)
-set_tests_properties("TOPP_MS1LabeledWorkflow_9_join_channels" PROPERTIES PASS_REGULAR_EXPRESSION "1 partial multiplet.s. were found to be other channels of an identified partial multiplet and were joined to it, re-measured over common spectra; 0 such candidate.s. were not joined")
+set_tests_properties("TOPP_MS1LabeledWorkflow_9_join_channels" PROPERTIES PASS_REGULAR_EXPRESSION "1 partial multiplet.s. were found to be other channels of an identified partial multiplet and were joined to it, re-measured over common spectra. 0 such candidate.s. were not joined")
 add_test("TOPP_MS1LabeledWorkflow_9_join_channels_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_9_join_channels.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_9_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_9_join_channels_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_9_join_channels")
 # MS1LabeledWorkflow_10: channels detected over very different elution regions, so that their own intensities give a wrong ratio.
@@ -4867,7 +4881,7 @@ add_test("TOPP_MS1LabeledWorkflow_10_join_channels" ${TOPP_BIN_PATH}/MS1LabeledW
   -ratios:min_ratio_count 1
   -join_channels true
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_10_join_channels.tmp.consensusXML)
-set_tests_properties("TOPP_MS1LabeledWorkflow_10_join_channels" PROPERTIES PASS_REGULAR_EXPRESSION "2 partial multiplet.s. were found to be other channels of an identified partial multiplet and were joined to it, re-measured over common spectra; 1 such candidate.s. were not joined")
+set_tests_properties("TOPP_MS1LabeledWorkflow_10_join_channels" PROPERTIES PASS_REGULAR_EXPRESSION "2 partial multiplet.s. were found to be other channels of an identified partial multiplet and were joined to it, re-measured over common spectra. 1 such candidate.s. were not joined")
 add_test("TOPP_MS1LabeledWorkflow_10_join_channels_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_10_join_channels.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_10_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_10_join_channels_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_10_join_channels")
 
@@ -4899,7 +4913,7 @@ add_test("TOPP_MS1LabeledWorkflow_11_targeted" ${TOPP_BIN_PATH}/MS1LabeledWorkfl
   -targeted_quantification true
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_targeted.tmp.consensusXML
   -out_qpx ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_qpx_dir)
-set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_qpx_clean" PASS_REGULAR_EXPRESSION "Targeted quantification: 5 feature.s. for 6 identification.s. of peptides without a multiplet in this run .2 other channel.s. measured against the identified one, 1 absent, 2 not quantifiable.; not quantified: 1 identification.s. of peptides quantified in this run, 1 without a clean elution peak of the identified channel, 0 whose isotope pattern does not fit, 0 whose labels fit no pattern, 1 decoy.s.")
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_qpx_clean" PASS_REGULAR_EXPRESSION "Targeted quantification: 5 feature.s. for 6 identification.s. of peptides without a multiplet in this run .2 other channel.s. measured against the identified one, 1 absent, 2 not quantifiable.. not quantified: 1 identification.s. of peptides quantified in this run, 0 on a channel of another peptide's multiplet, 0 on the signal of a better identification of another peptide, 1 without a clean elution peak of the identified channel, 0 whose isotope pattern does not fit, 0 whose labels fit no pattern, 1 decoy.s.")
 add_test("TOPP_MS1LabeledWorkflow_11_targeted_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_targeted.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_targeted")
 add_test("TOPP_MS1LabeledWorkflow_11_targeted_qpx_psms" ${TOPP_BIN_PATH}/ParquetDiff
@@ -4915,6 +4929,92 @@ add_test("TOPP_MS1LabeledWorkflow_11_default" ${TOPP_BIN_PATH}/MS1LabeledWorkflo
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_default.tmp.consensusXML)
 add_test("TOPP_MS1LabeledWorkflow_11_default_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_default.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_default_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_11_default_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_default")
+
+# Without -join_channels, YVNDLAGHEK's channels in MS1LabeledWorkflow_9 stay two partial multiplets, each identified. Each one's
+# missing channel lies on the other's reserved peaks, i.e. on another multiplet of the same peptide, which quantifies them: not
+# quantifiable (no value), rather than re-quantified from them, which would count the peptide's signal twice.
+add_test("TOPP_MS1LabeledWorkflow_9_default" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_9_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_9.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_9.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_9_default.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_9_default" PROPERTIES PASS_REGULAR_EXPRESSION "Blacklist with owners: 4 of 4 missing channel.s. and 0 of 0 channel.s. added for identifications are not quantifiable .2 occupied by another identified peptide, 2 by another multiplet of the same peptide, 0 only by unidentified multiplets.")
+add_test("TOPP_MS1LabeledWorkflow_9_default_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_9_default.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_9_default_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_9_default_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_9_default")
+# A join candidate has to lie at the expected m/z within the detection's tolerance (6 ppm): with YVNDLAGHEK's exact light channel
+# identified as another peptide (VYNDLAGHEK, an isomer; MS1LabeledWorkflow_9_isomer.idXML/.fasta), the only candidate left for the heavy
+# channel's partner is the envelope 15 ppm above it, which is not joined (id_mapping's 20 ppm would join it).
+add_test("TOPP_MS1LabeledWorkflow_9_join_tolerance" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_9_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_9_isomer.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_9_isomer.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -join_channels true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_9_join_tolerance.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_9_join_tolerance" PROPERTIES FAIL_REGULAR_EXPRESSION "[1-9][0-9]* partial multiplet.s. were found to be other channels")
+
+# -targeted_quantification, one signal for one peptide (MS1LabeledWorkflow_11_conflicts.idXML/.fasta: fixture 11 plus):
+#   EAFVEVTK (another protein) identified next to AEFVEVTK, an isomer with a worse score: both identifications measure the same peaks,
+#     only AEFVEVTK's targeted feature is kept.
+#   VLDELTLAR identified at its doublet's apex, so the doublet is quantified as VLDELTLAR; the identification 12.5 s after the apex
+#     names the isomer LVDELTLAR: its channel lies on VLDELTLAR's, near its elution region (the doublet's tail), not measured.
+add_test("TOPP_MS1LabeledWorkflow_11_conflicts" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_conflicts.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_conflicts.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -targeted_quantification true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_conflicts.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_conflicts" PROPERTIES PASS_REGULAR_EXPRESSION "not quantified: 1 identification.s. of peptides quantified in this run, 1 on a channel of another peptide's multiplet, 1 on the signal of a better identification of another peptide")
+add_test("TOPP_MS1LabeledWorkflow_11_conflicts_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_conflicts.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_conflicts_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_conflicts_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_conflicts")
+# -targeted_quantification with -match_between_runs: run A is fixture 11, where VLDELTLAR's doublet stays unidentified (kept for match
+# between runs) and its targeted feature is measured from the doublet's peaks; run B (the same spectra, MS1LabeledWorkflow_11_apex.idXML)
+# identifies the doublet at its apex. The targeted feature replaces the kept doublet in run A, so that linking does not quantify the
+# signal twice: one VLDELTLAR feature with both runs.
+add_test(NAME "TOPP_MS1LabeledWorkflow_11_mbr_prepare" COMMAND ${CMAKE_COMMAND} -E copy ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_input.mzML ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11b_input.mzML)
+add_test("TOPP_MS1LabeledWorkflow_11_targeted_mbr" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_input.mzML ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11b_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11.idXML ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_apex.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -targeted_quantification true
+  -match_between_runs true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_targeted_mbr.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_mbr" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_mbr_prepare" PASS_REGULAR_EXPRESSION "1 unidentified multiplet.s. kept for match between runs were replaced by the targeted feature.s. measured from their peaks")
+add_test("TOPP_MS1LabeledWorkflow_11_targeted_mbr_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_targeted_mbr.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_targeted_mbr_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_mbr_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_targeted_mbr")
+
+# Reserved peaks in the re-quantification: MS1LabeledWorkflow_12 is a synthetic triple SILAC run (2+, one MS1 spectrum per second)
+# whose isotope peaks sit at their measured (fine-structure averaged) positions:
+#   SAGLEVDNVLGTSLEAPYNAPLLEK (2599 Da, one K), light only: its medium m/z lies 5.4 ppm from the light channel's M+4, which the light
+#     channel reserved. The medium channel is absent (0), not measured from the light channel's own isotopes.
+#   YVNDLAGHEK 1:1:1.
+#   LVNELTEFAK, heavy only and identified by a heavy spectrum; its light channel appears in two spectra at the apex, where the
+#     detection reserves it for a light+heavy pattern that it then drops (shorter than algorithm:rt_min). Those peaks belong to no
+#     reported feature: the light channel is re-quantified from them (H/L 2).
+#   TPELGSVDNALAYNGLSVEPLTAEK (2587 Da, one K), light : heavy 1 : 0.02, the heavy channel detected around the apex only: a light+heavy
+#     multiplet with a light-only flank merged into it. Its medium m/z lies on light M+4 peaks of the multiplet and of the flank, which
+#     count as its own (the flank's are remapped to it): absent (0), not vetoed as peaks of an unidentified multiplet.
+add_test("TOPP_MS1LabeledWorkflow_12_reserved" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_12_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_12.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_12.fasta
+  -labels "[][Lys4,Arg6][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_12_reserved.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_12_reserved" PROPERTIES PASS_REGULAR_EXPRESSION "The re-quantification used 10 reserved peak.s. of no reported feature")
+add_test("TOPP_MS1LabeledWorkflow_12_reserved_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_12_reserved.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_12_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_12_reserved_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_12_reserved")
 
 # the labels must have been searched as modifications: identifications whose search parameters lack
 # them are refused (with -force the run continues)

@@ -604,7 +604,7 @@ START_SECTION((static OwnerRelation classifyBlacklistOwner(UInt64 owner, const C
 
   TEST_FALSE(MultiplexResolverAlgorithm::isForeign(Relation::ORPHAN))
   TEST_FALSE(MultiplexResolverAlgorithm::isForeign(Relation::OWN))
-  TEST_FALSE(MultiplexResolverAlgorithm::isForeign(Relation::SAME_PEPTIDE))
+  TEST_TRUE(MultiplexResolverAlgorithm::isForeign(Relation::SAME_PEPTIDE)) // quantified by its own multiplet
   TEST_TRUE(MultiplexResolverAlgorithm::isForeign(Relation::UNIDENTIFIED))
   TEST_TRUE(MultiplexResolverAlgorithm::isForeign(Relation::OTHER_PEPTIDE))
 }
@@ -714,31 +714,45 @@ START_SECTION(([EXTRA] resolve with a blacklist that records owners))
     blacklist.updateRanges();
     return blacklist;
   };
+  // the owners are used only on request (by a caller that measures the channels left at 0, like MS1LabeledWorkflow)
+  MultiplexResolverAlgorithm ignoring_owners;
   MultiplexResolverAlgorithm resolver;
+  {
+    Param p = resolver.getParameters();
+    TEST_EQUAL(p.getValue("algorithm:use_blacklist_owners").toString(), "false")
+    p.setValue("algorithm:use_blacklist_owners", "true");
+    resolver.setParameters(p);
+  }
   // the intensity of E's light dummy, given the blacklist
-  auto dummyOfE = [&](const MSExperiment& blacklist) -> double
+  auto dummyOf = [&](const MultiplexResolverAlgorithm& r, const MSExperiment& blacklist) -> double
   {
     ConsensusMap out, conflicts;
-    resolver.resolve(in, out, conflicts, blacklist);
+    r.resolve(in, out, conflicts, blacklist);
     for (const ConsensusFeature& cf : out)
     {
       if (cf.getRT() == 500.0) { return cf.getFeatures().begin()->getIntensity(); }
     }
     return -1.0;
   };
+  auto dummyOfE = [&](const MSExperiment& blacklist) { return dummyOf(resolver, blacklist); };
 
-  // a peak at the dummy position reserved by no reported feature, by E itself or by the same peptide: absent (0), to be re-quantified
+  // a peak at the dummy position reserved by no reported feature or by E itself: 0 (not occupied), to be re-quantified
   TEST_REAL_SIMILAR(dummyOfE(blacklistAt(500.0, dummy_mz, UniqueIdInterface::INVALID)), 0.0)
   TEST_REAL_SIMILAR(dummyOfE(blacklistAt(500.0, dummy_mz, E)), 0.0)
-  TEST_REAL_SIMILAR(dummyOfE(blacklistAt(500.0, dummy_mz, S)), 0.0)
-  // ... reserved by another peptide or by an unidentified multiplet: not quantifiable
+  // ... reserved by another multiplet of the same peptide (S quantifies it), another peptide or an unidentified multiplet:
+  // not quantifiable
+  TEST_TRUE(std::isnan(dummyOfE(blacklistAt(500.0, dummy_mz, S))))
   TEST_TRUE(std::isnan(dummyOfE(blacklistAt(500.0, dummy_mz, F))))
   TEST_TRUE(std::isnan(dummyOfE(blacklistAt(500.0, dummy_mz, U))))
-  // ... the same peak without owners: not quantifiable (as before)
+  // ... the same peak without owners, or with owners that are not used: not quantifiable (as before), whoever reserved it
   {
     MSExperiment anonymous = blacklistAt(500.0, dummy_mz, S);
     anonymous[0].getIntegerDataArrays().clear();
     TEST_TRUE(std::isnan(dummyOfE(anonymous)))
+    TEST_TRUE(std::isnan(dummyOf(ignoring_owners, blacklistAt(500.0, dummy_mz, UniqueIdInterface::INVALID))))
+    TEST_TRUE(std::isnan(dummyOf(ignoring_owners, blacklistAt(500.0, dummy_mz, E))))
+    TEST_TRUE(std::isnan(dummyOf(ignoring_owners, blacklistAt(500.0, dummy_mz, S))))
+    TEST_REAL_SIMILAR(dummyOf(ignoring_owners, blacklistAt(500.0, dummy_mz - 0.002, F)), 0.0) // one-sided, as without owners
   }
 
   // with owners, peaks below the expected position count as well (the anonymous check looks at the first peak above it only)
@@ -773,16 +787,22 @@ START_SECTION(([EXTRA] resolve with a blacklist that records owners))
       return out[0].getFeatures().begin()->getIntensity();
     };
     TEST_TRUE(std::isnan(addedChannel(blacklistAt(500.0, dummy_mz, F))))
-    TEST_REAL_SIMILAR(addedChannel(blacklistAt(500.0, dummy_mz, S)), 0.0)
+    TEST_TRUE(std::isnan(addedChannel(blacklistAt(500.0, dummy_mz, S))))
     TEST_REAL_SIMILAR(addedChannel(blacklistAt(500.0, dummy_mz, UniqueIdInterface::INVALID)), 0.0)
     MSExperiment anonymous = blacklistAt(500.0, dummy_mz, F);
     anonymous[0].getIntegerDataArrays().clear();
     TEST_REAL_SIMILAR(addedChannel(anonymous), 0.0)
+    {
+      ConsensusMap out, conflicts;
+      ignoring_owners.resolve(in2, out, conflicts, blacklistAt(500.0, dummy_mz, F));
+      TEST_REAL_SIMILAR(out[0].getFeatures().begin()->getIntensity(), 0.0) // not checked
+    }
 
     // triple SILAC: an added light channel next to the detected heavy one, the medium one completed with a dummy
     MultiplexResolverAlgorithm triple;
     Param p = triple.getParameters();
     p.setValue("algorithm:labels", "[][Lys4,Arg6][Lys8,Arg10]");
+    p.setValue("algorithm:use_blacklist_owners", "true");
     triple.setParameters(p);
     ConsensusMap in3 = in2;
     in3.getColumnHeaders()[2] = in3.getColumnHeaders()[1];
