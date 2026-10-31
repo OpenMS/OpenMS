@@ -5015,6 +5015,63 @@ add_test("TOPP_MS1LabeledWorkflow_12_reserved" ${TOPP_BIN_PATH}/MS1LabeledWorkfl
 set_tests_properties("TOPP_MS1LabeledWorkflow_12_reserved" PROPERTIES PASS_REGULAR_EXPRESSION "The re-quantification used 10 reserved peak.s. of no reported feature")
 add_test("TOPP_MS1LabeledWorkflow_12_reserved_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_12_reserved.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_12_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_12_reserved_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_12_reserved")
+# The same with -targeted_quantification and without knock-outs, so that SAGLEVDNVLGTSLEAPYNAPLLEK and TPELGSVDNALAYNGLSVEPLTAEK are
+# measured by the targeted quantification: their medium m/z lies on the light channel's M+4, an isotope of another channel, so the
+# medium is not quantifiable (no value) rather than measured from the light channel's own isotopes.
+add_test("TOPP_MS1LabeledWorkflow_12_targeted" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_12_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_12.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_12.fasta
+  -labels "[][Lys4,Arg6][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -algorithm:knock_out false
+  -targeted_quantification true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_12_targeted.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_12_targeted" PROPERTIES PASS_REGULAR_EXPRESSION "Targeted quantification: 3 feature.s. for 3 identification.s. of peptides without a multiplet in this run .1 other channel.s. measured against the identified one, 2 absent, 3 not quantifiable.")
+add_test("TOPP_MS1LabeledWorkflow_12_targeted_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_12_targeted.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_12_targeted_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_12_targeted_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_12_targeted")
+
+# -targeted_quantification next to other signals: MS1LabeledWorkflow_13 is a synthetic SILAC duplex (2+, one MS1 spectrum per second,
+# Gaussian elution; light identifications only, all peptides but the detected doublets with two isotopes, missed by the detection):
+#   DLGEEHFK light only; a stronger unidentified doublet co-elutes whose light channel lies at DLGEEHFK's heavy m/z. Its channels are
+#     not DLGEEHFK's, so it cannot be that peptide: its peaks are left out, heavy not quantifiable (no value).
+#   TFAEVLSGK 1:1; NNLQTLTR, a detected and identified doublet 30 s earlier with a long tail, has its light channel at TFAEVLSGK's heavy
+#     m/z: that channel holds the other peptide's signal (its tail beyond the reserved peaks), heavy not quantifiable.
+#   NVYDLGSEK light only; AHQQQQHR light only at its heavy m/z, 10 s later, with a worse score. NVYDLGSEK's heavy reads AHQQQQHR's flank,
+#     which does not co-elute (not quantifiable): NVYDLGSEK does not report that channel, so AHQQQQHR is quantified as well.
+#   SEGFLDAVNR 1:1; HTTQYAHNK light only, co-eluting, with a worse score, whose heavy m/z is SEGFLDAVNR's light m/z: its heavy channel
+#     reads the identified channel of SEGFLDAVNR, only SEGFLDAVNR is kept (HTTQYAHNK comes first in map order, the score decides).
+#   GDVTALFEQR light only, isotopes 1:2:1: the pattern does not fit the peptide, not measured.
+add_test("TOPP_MS1LabeledWorkflow_13_targeted" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_13_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_13.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_13.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -targeted_quantification true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_13_targeted.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_13_targeted" PROPERTIES PASS_REGULAR_EXPRESSION "Targeted quantification: 5 feature.s. for 5 identification.s. of peptides without a multiplet in this run .1 other channel.s. measured against the identified one, 1 absent, 3 not quantifiable.. not quantified: 0 identification.s. of peptides quantified in this run, 0 on a channel of another peptide's multiplet, 1 on the signal of a better identification of another peptide, 0 without a clean elution peak of the identified channel, 1 whose isotope pattern does not fit, 0 whose labels fit no pattern, 0 decoy.s.")
+add_test("TOPP_MS1LabeledWorkflow_13_targeted_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_13_targeted.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_13_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_13_targeted_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_13_targeted")
+# With -match_between_runs: run A is fixture 13, where the doublet at DLGEEHFK's heavy m/z stays unidentified and is kept for match
+# between runs; run B (the same spectra, MS1LabeledWorkflow_13b.idXML) identifies it as HTSHAHHR. The doublet is not DLGEEHFK's signal,
+# so it is not replaced by DLGEEHFK's targeted feature: HTSHAHHR is quantified in both runs.
+add_test(NAME "TOPP_MS1LabeledWorkflow_13_mbr_prepare" COMMAND ${CMAKE_COMMAND} -E copy ${DATA_DIR_TOPP}/MS1LabeledWorkflow_13_input.mzML ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_13b_input.mzML)
+add_test("TOPP_MS1LabeledWorkflow_13_targeted_mbr" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_13_input.mzML ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_13b_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_13.idXML ${DATA_DIR_TOPP}/MS1LabeledWorkflow_13b.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_13.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -targeted_quantification true
+  -match_between_runs true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_13_targeted_mbr.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_13_targeted_mbr" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_13_mbr_prepare" PASS_REGULAR_EXPRESSION "1 multiplet.s. are unidentified, 1 of them kept for match between runs" FAIL_REGULAR_EXPRESSION "replaced by the targeted feature")
+add_test("TOPP_MS1LabeledWorkflow_13_targeted_mbr_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_13_targeted_mbr.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_13_targeted_mbr_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_13_targeted_mbr_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_13_targeted_mbr")
 
 # the labels must have been searched as modifications: identifications whose search parameters lack
 # them are refused (with -force the run continues)
