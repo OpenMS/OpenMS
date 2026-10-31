@@ -164,6 +164,9 @@ namespace OpenMS
     */
     OwnerPeptides ownerPeptides(const ConsensusMap& multiplets) const;
 
+    /// The peptide of @p hit at charge @p charge, as ownerPeptides() names it (the sequence without the labels, and the charge)
+    std::string peptideKey(const PeptideHit& hit, int charge) const;
+
     /**
       @brief How the feature @p owner, which reserved a blacklisted peak, relates to the multiplet @p consensus
 
@@ -172,6 +175,17 @@ namespace OpenMS
       @param[in] peptides ownerPeptides() of the map the multiplets were detected in (incl. @p consensus)
     */
     static OwnerRelation classifyBlacklistOwner(UInt64 owner, const ConsensusFeature& consensus, const OwnerPeptides& peptides);
+
+    /**
+      @brief How the feature @p owner, which reserved a blacklisted peak, relates to the peptide @p peptide (of an identification without a multiplet)
+
+      As above, for a peptide that has no multiplet of its own (never OWN).
+
+      @param[in] owner Unique id of the owner (blacklistOwner())
+      @param[in] peptide The peptide, as peptideKey() names it
+      @param[in] peptides ownerPeptides() of the map the multiplets were detected in
+    */
+    static OwnerRelation classifyBlacklistOwner(UInt64 owner, const std::string& peptide, const OwnerPeptides& peptides);
 
     /// Does a peak reserved by an owner of this relation belong to another peptide, so that a channel must not use it? (UNIDENTIFIED, OTHER_PEPTIDE)
     static bool isForeign(OwnerRelation relation);

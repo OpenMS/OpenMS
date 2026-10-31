@@ -4871,6 +4871,51 @@ set_tests_properties("TOPP_MS1LabeledWorkflow_10_join_channels" PROPERTIES PASS_
 add_test("TOPP_MS1LabeledWorkflow_10_join_channels_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_10_join_channels.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_10_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_10_join_channels_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_10_join_channels")
 
+# -targeted_quantification: identified peptides without a multiplet. MS1LabeledWorkflow_11 is a synthetic SILAC duplex (2+, one MS1
+# spectrum per second, Gaussian elution):
+#   YVNDLAGHEK 1:1, detected; its heavy identification loses to the light one and stays unassigned, but the peptide is quantified in
+#     the run, so it is not measured again.
+#   AEFVEVTK 1:1, only its first two isotopes are above the cutoff, so the detection misses it: one targeted feature with its light and
+#     its heavy identification, H/L ~1.
+#   IQVDENLGASK, a decoy, the same: not measured.
+#   SLHTLFGDK is not present: its light m/z is the second isotope of an Arg10 doublet, onto which its identification maps as a quant/ID
+#     conflict; the peak one isotope below shows another envelope: not measured.
+#   HLVDEPQNLIK, light only (two isotopes): heavy absent (0).
+#   QDILDDYQK, light only (two isotopes); its heavy m/z lies under YVNDLAGHEK's light peaks, which belong to that identified peptide:
+#     heavy not quantifiable (no value).
+#   VLDELTLAR 1:1, detected around its apex only and identified 12.5 s after it: the doublet stays unidentified, and the targeted
+#     feature is measured from its peaks (those of an unidentified multiplet are used), H/L ~1.
+#   LSSPATLNSR, light only (two isotopes); a narrow signal at its heavy m/z on the light's flank is paired with it in a few spectra but
+#     does not co-elute: heavy not quantifiable.
+# The QPX output checks that every moved identification is linked to one feature only. Without the switch only YVNDLAGHEK is quantified.
+add_test(NAME "TOPP_MS1LabeledWorkflow_11_qpx_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_qpx_dir)
+add_test("TOPP_MS1LabeledWorkflow_11_targeted" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -targeted_quantification true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_targeted.tmp.consensusXML
+  -out_qpx ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_qpx_dir)
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_qpx_clean" PASS_REGULAR_EXPRESSION "Targeted quantification: 5 feature.s. for 6 identification.s. of peptides without a multiplet in this run .2 other channel.s. measured against the identified one, 1 absent, 2 not quantifiable.; not quantified: 1 identification.s. of peptides quantified in this run, 1 without a clean elution peak of the identified channel, 0 whose isotope pattern does not fit, 0 whose labels fit no pattern, 1 decoy.s.")
+add_test("TOPP_MS1LabeledWorkflow_11_targeted_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_targeted.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_targeted")
+add_test("TOPP_MS1LabeledWorkflow_11_targeted_qpx_psms" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_qpx_dir/quantms.psm.parquet -schema psm -min_rows 9)
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_qpx_psms" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_targeted")
+add_test("TOPP_MS1LabeledWorkflow_11_default" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_default.tmp.consensusXML)
+add_test("TOPP_MS1LabeledWorkflow_11_default_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_default.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_default_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_default_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_default")
+
 # the labels must have been searched as modifications: identifications whose search parameters lack
 # them are refused (with -force the run continues)
 add_test("TOPP_MS1LabeledWorkflow_missing_label_mods" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test

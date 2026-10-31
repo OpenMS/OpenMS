@@ -52,6 +52,32 @@ namespace OpenMS
     {
       return handle.getIntensity() == 0.0 && !handle.hasValidUniqueId();
     }
+
+    // the label modifications of the samples, as they appear in a sequence string, e.g. "(Label:13C(6)15N(2))"
+    std::vector<std::string> labelModifications(MultiplexDeltaMassesGenerator& generator)
+    {
+      std::vector<std::string> label_mods;
+      for (const std::vector<std::string>& sample : generator.getSamplesLabelsList())
+      {
+        for (const std::string& label : sample)
+        {
+          if (label == "no_label") { continue; }
+          const std::string name = generator.getLabelLong(label);
+          if (name.empty()) { continue; }
+          const std::string mod = "(" + name + ")";
+          if (std::find(label_mods.begin(), label_mods.end(), mod) == label_mods.end()) { label_mods.push_back(mod); }
+        }
+      }
+      return label_mods;
+    }
+
+    // the peptide of a hit at a charge: its sequence without the label modifications, and the charge
+    std::string peptideOf(const PeptideHit& hit, int charge, const std::vector<std::string>& label_mods)
+    {
+      std::string peptide = hit.getSequence().toString();
+      for (const std::string& mod : label_mods) { StringUtils::substitute(peptide, mod, ""); }
+      return peptide + "/" + std::to_string(charge);
+    }
   }
 
   MultiplexResolverAlgorithm::MultiplexResolverAlgorithm() :
@@ -382,34 +408,35 @@ namespace OpenMS
 
   MultiplexResolverAlgorithm::OwnerPeptides MultiplexResolverAlgorithm::ownerPeptides(const ConsensusMap& multiplets) const
   {
-    // the label modifications of the samples, as they appear in a sequence string, e.g. "(Label:13C(6)15N(2))"
     MultiplexDeltaMassesGenerator generator = createGenerator_();
-    std::vector<std::string> label_mods;
-    for (const std::vector<std::string>& sample : generator.getSamplesLabelsList())
-    {
-      for (const std::string& label : sample)
-      {
-        if (label == "no_label") { continue; }
-        const std::string name = generator.getLabelLong(label);
-        if (name.empty()) { continue; }
-        const std::string mod = "(" + name + ")";
-        if (std::find(label_mods.begin(), label_mods.end(), mod) == label_mods.end()) { label_mods.push_back(mod); }
-      }
-    }
+    const std::vector<std::string> label_mods = labelModifications(generator);
 
     OwnerPeptides peptides;
     for (const ConsensusFeature& cf : multiplets)
     {
       if (cf.getPeptideIdentifications().empty() || cf.getPeptideIdentifications()[0].getHits().empty()) { continue; }
-      std::string peptide = cf.getPeptideIdentifications()[0].getHits()[0].getSequence().toString();
-      for (const std::string& mod : label_mods) { StringUtils::substitute(peptide, mod, ""); }
-      peptide += "/" + std::to_string(cf.getCharge());
+      const std::string peptide = peptideOf(cf.getPeptideIdentifications()[0].getHits()[0], cf.getCharge(), label_mods);
       for (const FeatureHandle& handle : cf.getFeatures())
       {
         if (handle.hasValidUniqueId()) { peptides.emplace(handle.getUniqueId(), peptide); }
       }
     }
     return peptides;
+  }
+
+  std::string MultiplexResolverAlgorithm::peptideKey(const PeptideHit& hit, int charge) const
+  {
+    MultiplexDeltaMassesGenerator generator = createGenerator_();
+    return peptideOf(hit, charge, labelModifications(generator));
+  }
+
+  MultiplexResolverAlgorithm::OwnerRelation MultiplexResolverAlgorithm::classifyBlacklistOwner(UInt64 owner, const std::string& peptide,
+                                                                                            const OwnerPeptides& peptides)
+  {
+    if (owner == UniqueIdInterface::INVALID) { return OwnerRelation::ORPHAN; }
+    const auto it_owner = peptides.find(owner);
+    if (it_owner == peptides.end()) { return OwnerRelation::UNIDENTIFIED; }
+    return it_owner->second == peptide ? OwnerRelation::SAME_PEPTIDE : OwnerRelation::OTHER_PEPTIDE;
   }
 
   MultiplexResolverAlgorithm::OwnerRelation MultiplexResolverAlgorithm::classifyBlacklistOwner(UInt64 owner, const ConsensusFeature& consensus,

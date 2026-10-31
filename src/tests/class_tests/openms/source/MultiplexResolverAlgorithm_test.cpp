@@ -610,6 +610,72 @@ START_SECTION((static OwnerRelation classifyBlacklistOwner(UInt64 owner, const C
 }
 END_SECTION
 
+START_SECTION((std::string peptideKey(const PeptideHit& hit, int charge) const))
+{
+  MultiplexResolverAlgorithm resolver; // [][Lys8,Arg10]
+  auto key = [&](const std::string& sequence, int charge) { return resolver.peptideKey(makeId(sequence, charge, 0).getHits()[0], charge); };
+  TEST_EQUAL(key("PEPTIDEK", 2), "PEPTIDEK/2")
+  TEST_EQUAL(key("PEPTIDEK(Label:13C(6)15N(2))", 2), "PEPTIDEK/2")              // the label states of a peptide share it
+  TEST_EQUAL(key("PEPTIDEKR(Label:13C(6)15N(4))", 2), key("PEPTIDEKR", 2))
+  TEST_EQUAL(key("PEPTIDEK(Label:13C(6)15N(2))R(Label:13C(6)15N(4))", 2), key("PEPTIDEKR", 2))
+  TEST_NOT_EQUAL(key("PEPTIDEK", 3), key("PEPTIDEK", 2))                      // charge
+  TEST_NOT_EQUAL(key("EPPTIDEK", 2), key("PEPTIDEK", 2))                      // same composition, other sequence
+  TEST_EQUAL(key("PEPTM(Oxidation)IDEK(Label:13C(6)15N(2))", 2), "PEPTM(Oxidation)IDEK/2") // other modifications are kept
+
+  // the key of ownerPeptides()
+  ConsensusMap map;
+  ConsensusFeature cf;
+  cf.setCharge(2);
+  FeatureHandle h = makeHandle(0, 100.0, 500.0, 2, 100.0);
+  h.setUniqueId(21);
+  cf.insert(h);
+  cf.getPeptideIdentifications().push_back(makeId("PEPTIDEK(Label:13C(6)15N(2))", 2, 0));
+  map.push_back(cf);
+  TEST_EQUAL(resolver.ownerPeptides(map).at(21), key("PEPTIDEK", 2))
+
+  // labels of other configurations: Dimethyl sits on the N-terminus as well
+  MultiplexResolverAlgorithm dimethyl;
+  Param p = dimethyl.getParameters();
+  p.setValue("algorithm:labels", "[Dimethyl0][Dimethyl6]");
+  dimethyl.setParameters(p);
+  const PeptideHit light = makeId(".(Dimethyl)PEPTIDEK(Dimethyl)", 2, 0).getHits()[0];
+  const PeptideHit heavy = makeId(".(Dimethyl:2H(4)13C(2))PEPTIDEK(Dimethyl:2H(4)13C(2))", 2, 0).getHits()[0];
+  const PeptideHit other = makeId(".(Dimethyl)EPPTIDEK(Dimethyl)", 2, 0).getHits()[0];
+  TEST_EQUAL(dimethyl.peptideKey(light, 2), dimethyl.peptideKey(heavy, 2))
+  TEST_NOT_EQUAL(dimethyl.peptideKey(light, 2), dimethyl.peptideKey(other, 2))
+}
+END_SECTION
+
+START_SECTION((static OwnerRelation classifyBlacklistOwner(UInt64 owner, const std::string& peptide, const OwnerPeptides& peptides)))
+{
+  using Relation = MultiplexResolverAlgorithm::OwnerRelation;
+  MultiplexResolverAlgorithm resolver;
+  ConsensusMap map;
+  auto add = [&](UInt64 id, const std::string& sequence)
+  {
+    ConsensusFeature cf;
+    cf.setCharge(2);
+    FeatureHandle h = makeHandle(0, 100.0, 500.0, 2, 100.0);
+    h.setUniqueId(id);
+    cf.insert(h);
+    if (!sequence.empty()) { cf.getPeptideIdentifications().push_back(makeId(sequence, 2, 0)); }
+    map.push_back(cf);
+  };
+  add(31, "PEPTIDEK(Label:13C(6)15N(2))"); // the peptide, in another label state
+  add(32, "EPPTIDEK");                     // another peptide
+  add(33, "");                             // unidentified
+  const MultiplexResolverAlgorithm::OwnerPeptides peptides = resolver.ownerPeptides(map);
+  // a peptide without a multiplet of its own, e.g. an identification that mapped onto none
+  const std::string peptide = resolver.peptideKey(makeId("PEPTIDEK", 2, 0).getHits()[0], 2);
+  auto classify = [&](UInt64 owner) { return MultiplexResolverAlgorithm::classifyBlacklistOwner(owner, peptide, peptides); };
+  TEST_TRUE(classify(UniqueIdInterface::INVALID) == Relation::ORPHAN)
+  TEST_TRUE(classify(31) == Relation::SAME_PEPTIDE)
+  TEST_TRUE(classify(32) == Relation::OTHER_PEPTIDE)
+  TEST_TRUE(classify(33) == Relation::UNIDENTIFIED)
+  TEST_TRUE(classify(99) == Relation::UNIDENTIFIED)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] resolve with a blacklist that records owners))
 {
   // E: only the heavy channel of AAAAR (Arg10) detected at RT 500; its light channel is missing at 900 - ARG10/2.
