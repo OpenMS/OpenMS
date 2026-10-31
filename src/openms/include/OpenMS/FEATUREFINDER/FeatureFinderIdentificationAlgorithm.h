@@ -122,16 +122,14 @@ public:
 
   /**
     @brief Mutable access to the accumulated extracted chromatograms (XICs) from the last @ref run.
-    @return Reference to the accumulated XIC @ref PeakMap.
+    @return Reference to the accumulated XIC @ref PeakMap; empty unless the parameter @c keep_chromatograms is "true".
   */
   PeakMap& getChromatograms();
   /**
     @brief Read-only access to the accumulated extracted chromatograms.
-    @return Const reference to the accumulated XIC @ref PeakMap.
+    @return Const reference to the accumulated XIC @ref PeakMap; empty unless the parameter @c keep_chromatograms is "true".
   */
   const PeakMap& getChromatograms() const;
-
-  void setKeepChromatograms(bool keep);
 
   /**
     @brief Mutable access to the progress logger used by the algorithm.
@@ -285,7 +283,7 @@ protected:
 
   PeakMap ms_data_; ///< input LC-MS data
   PeakMap chrom_data_; ///< accumulated chromatograms (XICs)
-  bool keep_chromatograms_ = false;
+  bool keep_chromatograms_ = false; ///< keep the chromatograms of every batch in chrom_data_ (parameter keep_chromatograms)
   TargetedExperiment library_; ///< assays for peptides (cleared per chunk during processing)
   TargetedExperiment output_library_; ///< accumulated assays for output (populated from library_ before clearing)
 

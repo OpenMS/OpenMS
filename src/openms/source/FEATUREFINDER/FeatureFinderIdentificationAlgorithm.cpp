@@ -73,6 +73,9 @@ namespace OpenMS
     defaults_.setValue("debug", 0, "Debug level for feature detection.", {"advanced"});
     defaults_.setMinInt("debug", 0);
 
+    defaults_.setValue("keep_chromatograms", "false", "Keep the extracted chromatograms of all batches, so that getChromatograms() returns them after the run (needs more memory).", {"advanced"});
+    defaults_.setValidStrings("keep_chromatograms", {"true", "false"});
+
     defaults_.setValue("extract:batch_size", 5000, "Nr of peptides used in each batch of chromatogram extraction."
                          " Smaller values decrease memory usage but increase runtime.");
     defaults_.setMinInt("extract:batch_size", 1);
@@ -212,11 +215,6 @@ namespace OpenMS
   const PeakMap& FeatureFinderIdentificationAlgorithm::getChromatograms() const
   {
     return chrom_data_;
-  }
-
-  void FeatureFinderIdentificationAlgorithm::setKeepChromatograms(bool keep)
-  {
-    keep_chromatograms_ = keep;
   }
 
   ProgressLogger& FeatureFinderIdentificationAlgorithm::getProgressLogger()
@@ -534,6 +532,9 @@ namespace OpenMS
     const std::string& spectra_file
     )
   {
+    chrom_data_.clear(true);
+    output_library_.clear(true);
+
     // Without spectra there is nothing to extract chromatograms from, and the
     // extraction below indexes the experiment unconditionally. Fail with a usable
     // message instead of reading out of bounds.
@@ -589,7 +590,6 @@ namespace OpenMS
       FeatureFinderIdentificationAlgorithm ffid_group;
       ffid_group.getProgressLogger().setLogType(prog_log_.getLogType());
       ffid_group.setParameters(this->getParameters());
-      ffid_group.setKeepChromatograms(keep_chromatograms_);
       ffid_group.setMSData(std::move(faims_group));
 
       // Seeds found at this CV (DDAWorkflowCommons::calculateSeeds and Biosaur2 label them with FAIMS_CV); seeds
@@ -636,11 +636,12 @@ namespace OpenMS
       }
 
       // Combine chromatograms
-      for (const auto& chrom : ffid_group.getChromatograms().getChromatograms())
+      const std::string cv_suffix = "_CV" + StringUtils::toStr(group_cv);
+      for (auto& chrom : ffid_group.getChromatograms().getChromatograms())
       {
-        MSChromatogram chrom_copy = chrom;
-        chrom_copy.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
-        chrom_data_.addChromatogram(std::move(chrom_copy));
+        chrom.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        chrom.setNativeID(chrom.getNativeID() + cv_suffix);
+        chrom_data_.addChromatogram(std::move(chrom));
       }
 
       first_group = false;
@@ -685,7 +686,6 @@ namespace OpenMS
   {
     // Clear output library from any previous run
     output_library_.clear(true);
-    chrom_data_.clear(true);
 
     // annotate mzML file
     features.setPrimaryMSRunPath({spectra_file}, ms_data_);
@@ -867,10 +867,9 @@ namespace OpenMS
                                   TransformationDescription(), ms_data_);
       if (keep_chromatograms_)
       {
-        for (auto& chrom : chrom_batch.getChromatograms())
-        {
-          chrom_data_.addChromatogram(std::move(chrom));
-        }
+        auto& kept = chrom_data_.getChromatograms();
+        auto& batch = chrom_batch.getChromatograms();
+        kept.insert(kept.end(), std::make_move_iterator(batch.begin()), std::make_move_iterator(batch.end()));
       }
       // Accumulate library entries for output before clearing
       for (const auto& pep : library_.getPeptides())
@@ -886,7 +885,7 @@ namespace OpenMS
         output_library_.addTransition(trans);
       }
       library_.clear(true);
-      // since chrom_data_ here is just a container for the chromatograms and identifications will be empty,
+      // since chrom_batch is just a container for the chromatograms and identifications will be empty,
       // pickExperiment above will only add empty ProteinIdentification runs with colliding identifiers.
       // Usually we could sanitize the identifiers or merge the runs, but since they are empty and we add the
       // "real" proteins later -> just clear them
@@ -1791,6 +1790,7 @@ namespace OpenMS
     // debug
     debug_level_ = param_.getValue("debug");
     candidates_out_ = param_.getValue("candidates_out").toString();
+    keep_chromatograms_ = param_.getValue("keep_chromatograms").toBool();
 
     // quantification of decoys
     quantify_decoys_ = param_.getValue("quantify_decoys").toBool();

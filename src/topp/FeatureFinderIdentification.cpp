@@ -170,6 +170,7 @@ protected:
     Param algo_with_subsection;
     Param subsection = FeatureFinderIdentificationAlgorithm().getDefaults();
     subsection.remove("candidates_out");
+    subsection.remove("keep_chromatograms");
     algo_with_subsection.insert("", subsection);
     registerFullParam_(algo_with_subsection);
   }
@@ -229,8 +230,9 @@ protected:
       //-------------------------------------------------------------
       FeatureFinderIdentificationAlgorithm ffid_algo_run;
       ffid_algo_run.getProgressLogger().setLogType(log_type_);
-      ffid_algo_run.setParameters(getParam_().copySubset(FeatureFinderIdentificationAlgorithm().getDefaults()));
-      ffid_algo_run.setKeepChromatograms(!chrom_out.empty());
+      Param algo_params = getParam_().copySubset(FeatureFinderIdentificationAlgorithm().getDefaults());
+      algo_params.setValue("keep_chromatograms", chrom_out.empty() ? "false" : "true");
+      ffid_algo_run.setParameters(algo_params);
       ffid_algo_run.setMSData(std::move(ms_data_full));
 
       ffid_algo_run.run(peptides, proteins, features, FeatureMap(), in);
@@ -243,7 +245,7 @@ protected:
 
       if (!chrom_out.empty())
       {
-        PeakMap chrom_data = ffid_algo_run.getChromatograms();
+        PeakMap& chrom_data = ffid_algo_run.getChromatograms();
         addDataProcessing_(chrom_data, getProcessingInfo_(DataProcessing::FILTERING));
         FileHandler().storeExperiment(chrom_out, chrom_data, {FileTypes::MZML});
       }
