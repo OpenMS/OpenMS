@@ -119,6 +119,27 @@ foreach(_configuration IN LISTS _configurations)
   endif()
 endforeach()
 
+if(UNIX)
+  set(_versioned_targets OpenMS::OpenMS OpenMS::OpenSwathAlgo OpenMS::OpenMS_CLI)
+  if(OpenMS_GUI_FOUND)
+    list(APPEND _versioned_targets OpenMS::OpenMS_GUI)
+  endif()
+  foreach(_target IN LISTS _versioned_targets)
+    get_target_property(_target_configs ${_target} IMPORTED_CONFIGURATIONS)
+    foreach(_config IN LISTS _target_configs)
+      get_target_property(_location ${_target} IMPORTED_LOCATION_${_config})
+      if(APPLE)
+        set(_versioned_library_pattern "[.]${OpenMS_VERSION}[.]dylib$")
+      else()
+        set(_versioned_library_pattern "[.]so[.]${OpenMS_VERSION}$")
+      endif()
+      if(NOT _location MATCHES "${_versioned_library_pattern}")
+        message(FATAL_ERROR "${_target} is not installed under its versioned library name: ${_location}")
+      endif()
+    endforeach()
+  endforeach()
+endif()
+
 ## GUI component: requested as optional above, so a runner whose Qt6 is not findable
 ## from this project (unlike from the OpenMS build) skips the check instead of failing.
 if(OpenMS_WITH_GUI)
@@ -188,6 +209,25 @@ add_test(TestExternalOpenDIA TestExternalOpenDIA -test -write_ini "${CMAKE_CURRE
 
 ## Enable testing - for Nightly Build log
 add_test(TestExternalCode TestExternalCode)
+
+if(UNIX AND BUILD_TESTING)
+  # This unversioned, incompatible library simulates another OpenMS installation
+  # found first via LD_LIBRARY_PATH / DYLD_LIBRARY_PATH.
+  add_library(ConflictingOpenMS SHARED ConflictingOpenMS.cpp)
+  set_target_properties(ConflictingOpenMS PROPERTIES
+    OUTPUT_NAME OpenMS
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/conflicting-libraries")
+  add_dependencies(TestExternalCode ConflictingOpenMS)
+  if(APPLE)
+    set(_library_path_variable DYLD_LIBRARY_PATH)
+  else()
+    set(_library_path_variable LD_LIBRARY_PATH)
+  endif()
+  add_test(NAME TestExternalCode_versioned_soname_fallback
+    COMMAND ${CMAKE_COMMAND} -E env
+      "${_library_path_variable}=$<TARGET_FILE_DIR:ConflictingOpenMS>"
+      "$<TARGET_FILE:TestExternalCode>")
+endif()
 
 ## A WITH_ONNX installation ships the PeptDeep inference classes and their ONNX
 ## models under OPENMS_DATA_DIR/models, and the ONNX Runtime library among its
