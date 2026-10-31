@@ -155,14 +155,33 @@ START_SECTION([EXTRA] filter() gives the same result for any number of threads)
         peaks.emplace_back(p, results[p].getMZ(i), results[p].getRT(i), results[p].getPeak(i).size());
       }
     }
-    return peaks;
+    // every blacklisted peak with its owner: the filtered peak (pattern, index in its result) and mass trace it was reserved for
+    std::vector<std::tuple<size_t, double, unsigned, size_t, int>> owners;
+    const MSExperiment blacklist = dense_filtering.getBlacklist();
+    const std::vector<std::vector<MultiplexFiltering::BlacklistOwner>> blacklist_owners = dense_filtering.getBlacklistOwners();
+    TEST_EQUAL(blacklist_owners.size(), blacklist.size())
+    for (size_t s = 0; s < blacklist.size() && s < blacklist_owners.size(); ++s)
+    {
+      TEST_EQUAL(blacklist_owners[s].size(), blacklist[s].size())
+      for (size_t k = 0; k < blacklist[s].size() && k < blacklist_owners[s].size(); ++k)
+      {
+        const MultiplexFiltering::BlacklistOwner& owner = blacklist_owners[s][k];
+        owners.emplace_back(s, blacklist[s][k].getMZ(), owner.pattern_idx, owner.peak_idx, owner.mass_trace);
+        // the owner is a filtered peak that passed
+        TEST_EQUAL(owner.pattern_idx < results.size() && owner.peak_idx < results[owner.pattern_idx].size(), true)
+      }
+    }
+    return std::make_pair(peaks, owners);
   };
 
   const auto serial = run(1);
-  TEST_EQUAL(serial.size() > 100, true)
+  TEST_EQUAL(serial.first.size() > 100, true)
+  TEST_EQUAL(serial.second.size() > 100, true)
   for (int threads : {2, 4, 8})
   {
-    TEST_EQUAL(run(threads) == serial, true)
+    const auto parallel = run(threads);
+    TEST_EQUAL(parallel.first == serial.first, true)
+    TEST_EQUAL(parallel.second == serial.second, true)
   }
 }
 END_SECTION

@@ -15,6 +15,8 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
+#include <OpenMS/FEATUREFINDER/MultiplexResolverAlgorithm.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredPeak.h>
@@ -46,9 +48,9 @@ public:
     return determinePeptideIntensitiesCentroided_(pattern, satellites);
   }
   void generateMaps(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results,
-                    std::vector<std::map<int, GridBasedCluster>>& cluster_results)
+                    std::vector<std::map<int, GridBasedCluster>>& cluster_results, std::vector<std::map<int, std::vector<UInt64>>>* multiplet_ids = nullptr)
   {
-    generateMapsCentroided_(patterns, filter_results, cluster_results);
+    generateMapsCentroided_(patterns, filter_results, cluster_results, multiplet_ids);
   }
 };
 
@@ -179,6 +181,22 @@ START_SECTION((virtual void run()))
   // the peaks of the detected patterns and the peaks the detection worked on are available
   TEST_EQUAL(algorithm.getBlacklist().empty(), false)
   TEST_EQUAL(algorithm.getCentroidedExperiment().empty(), false)
+
+  // every blacklisted peak records the feature it was reserved for (profile input), a reported feature or none
+  TEST_TRUE(MultiplexResolverAlgorithm::hasBlacklistOwners(algorithm.getBlacklist()))
+  Size owned = 0, unknown = 0;
+  for (const MSSpectrum& spectrum : algorithm.getBlacklist())
+  {
+    for (Size k = 0; k < spectrum.size(); ++k)
+    {
+      const UInt64 owner = MultiplexResolverAlgorithm::blacklistOwner(spectrum, k);
+      if (owner == UniqueIdInterface::INVALID) { continue; }
+      ++owned;
+      unknown += (feature_of.count(owner) == 0);
+    }
+  }
+  TEST_NOT_EQUAL(owned, 0)
+  TEST_EQUAL(unknown, 0)
 }
 END_SECTION
 
@@ -316,18 +334,125 @@ START_SECTION(([EXTRA] multiplets from clusters: union of satellites and channel
   clusters[0].insert(std::make_pair(0, GridBasedCluster(GridBasedCluster::Point(500.0, 101.5), box, std::vector<int>{0, 1})));
   clusters[0].insert(std::make_pair(1, GridBasedCluster(GridBasedCluster::Point(500.0, 101.5), box, std::vector<int>{2})));
 
-  algorithm.generateMaps(patterns, {filtered}, clusters);
+  // cluster 2: the light channel has no mono-isotopic satellites, so it gets no feature: the multiplet is reported with its
+  // heavy channel only, which is not the first feature built for it by position
+  MultiplexFilteredPeak no_light_mono(500.0, 100.0f, 0, 0);
+  addSatellites(no_light_mono, {1, 2, 3, 4, 5}, {0, 1, 2, 3});
+  filtered.addPeak(no_light_mono);
+  clusters[0].insert(std::make_pair(2, GridBasedCluster(GridBasedCluster::Point(500.0, 101.5), box, std::vector<int>{3})));
+
+  std::vector<std::map<int, std::vector<UInt64>>> multiplet_ids;
+  algorithm.generateMaps(patterns, {filtered}, clusters, &multiplet_ids);
   const ConsensusMap& multiplets = algorithm.getConsensusMap();
-  TEST_EQUAL(multiplets.size(), 1)
-  if (multiplets.size() == 1)
+  TEST_EQUAL(multiplets.size(), 2)
+  if (multiplets.size() == 2)
   {
     TEST_EQUAL(multiplets[0].size(), 2)
     TEST_REAL_SIMILAR(multiplets[0].getFeatures().begin()->getMZ(), 500.0)
+    TEST_EQUAL(multiplets[1].size(), 1)
   }
-  // only the reported doublet counts in the column headers
+  // only the reported multiplets count in the column headers
   TEST_EQUAL(multiplets.getColumnHeaders().at(0).size, 1)
-  TEST_EQUAL(multiplets.getColumnHeaders().at(1).size, 1)
-  TEST_EQUAL(algorithm.getFeatureMap().size(), 2)
+  TEST_EQUAL(multiplets.getColumnHeaders().at(1).size, 2)
+  TEST_EQUAL(algorithm.getFeatureMap().size(), 3)
+
+  // the features of every reported multiplet per (pattern, cluster, channel), by provisional id; the aborted multiplet
+  // (cluster 1) is not recorded, although its light feature had an id (which the next multiplet reuses)
+  TEST_EQUAL(multiplet_ids.size(), 1)
+  ABORT_IF(multiplet_ids.size() != 1)
+  TEST_EQUAL(multiplet_ids[0].size(), 2)
+  TEST_EQUAL(multiplet_ids[0].count(1), 0)
+  ABORT_IF(multiplet_ids[0].count(0) != 1 || multiplet_ids[0].count(2) != 1)
+  const FeatureMap& features = algorithm.getFeatureMap();
+  TEST_EQUAL(multiplet_ids[0][0].size(), 2)
+  TEST_EQUAL(multiplet_ids[0][0][0], features[0].getUniqueId())
+  TEST_EQUAL(multiplet_ids[0][0][1], features[1].getUniqueId())
+  TEST_EQUAL(multiplet_ids[0][2].size(), 2)
+  TEST_EQUAL(multiplet_ids[0][2][0], 0)
+  TEST_EQUAL(multiplet_ids[0][2][1], features[2].getUniqueId())
+  TEST_REAL_SIMILAR(features[2].getMZ(), 500.0 + 10.008268600 / 2)
+}
+END_SECTION
+
+// Every reserved peak records the unique id of the feature it was reserved for: the feature of its channel in the reported
+// multiplet, or none if the detection dropped the multiplet after the peak was reserved (here: elutes shorter than rt_min).
+START_SECTION(([EXTRA] blacklist owners))
+{
+  const double lys8 = 8.0141988132, charge = 2.0;
+  const double mz_light = 600.0, mz_heavy = mz_light + lys8 / charge, mz_short = 700.0;
+  CoarseIsotopePatternGenerator generator(4);
+  auto isotopes = [&](double mz)
+  {
+    std::vector<double> intensities;
+    for (const Peak1D& peak : generator.estimateFromPeptideWeight(mz * charge)) { intensities.push_back(peak.getIntensity()); }
+    return intensities;
+  };
+  const std::vector<double> doublet_isotopes = isotopes(mz_light), short_isotopes = isotopes(mz_short);
+
+  MSExperiment exp;
+  for (int i = 0; i < 60; ++i)
+  {
+    const double rt = 100.0 + i;
+    const double elution = std::exp(-0.5 * std::pow((rt - 130.0) / 5.0, 2));
+    MSSpectrum spectrum;
+    spectrum.setMSLevel(1);
+    spectrum.setRT(rt);
+    spectrum.setType(SpectrumSettings::SpectrumType::CENTROID);
+    for (const double mz : {mz_light, mz_heavy})
+    {
+      for (Size k = 0; k < doublet_isotopes.size(); ++k)
+      {
+        if (1e6 * elution * doublet_isotopes[k] > 2000.0) { spectrum.push_back(Peak1D(mz + k * Constants::C13C12_MASSDIFF_U / charge, 1e6 * elution * doublet_isotopes[k])); }
+      }
+    }
+    // a peptide seen in two scans only: it passes the filters there, but its multiplet is dropped for eluting less than rt_min
+    if (rt == 150.0 || rt == 151.0)
+    {
+      for (Size k = 0; k < short_isotopes.size(); ++k) { spectrum.push_back(Peak1D(mz_short + k * Constants::C13C12_MASSDIFF_U / charge, 1e6 * short_isotopes[k])); }
+    }
+    spectrum.sortByPosition();
+    exp.addSpectrum(spectrum);
+  }
+  exp.updateRanges();
+
+  FeatureFinderMultiplexAlgorithm algorithm;
+  Param param = algorithm.getParameters();
+  param.setValue("algorithm:labels", "[][Lys8]");
+  param.setValue("algorithm:charge", "2:2");
+  param.setValue("algorithm:isotopes_per_peptide", "3:4");
+  param.setValue("algorithm:knock_out", "true");
+  algorithm.setParameters(param);
+  MSExperiment input = exp;
+  algorithm.run(input, false);
+
+  const ConsensusMap& multiplets = algorithm.getConsensusMap();
+  TEST_EQUAL(multiplets.size(), 1)
+  ABORT_IF(multiplets.size() != 1)
+  TEST_EQUAL(multiplets[0].size(), 2)
+  ABORT_IF(multiplets[0].size() != 2)
+  const UInt64 light_id = multiplets[0].getFeatures().begin()->getUniqueId();
+  const UInt64 heavy_id = multiplets[0].getFeatures().rbegin()->getUniqueId();
+  TEST_NOT_EQUAL(light_id, heavy_id)
+
+  const MSExperiment& blacklist = algorithm.getBlacklist();
+  TEST_EQUAL(blacklist.size(), exp.size())
+  TEST_TRUE(MultiplexResolverAlgorithm::hasBlacklistOwners(blacklist))
+  Size light = 0, heavy = 0, orphans = 0, wrong = 0;
+  for (const MSSpectrum& spectrum : blacklist)
+  {
+    for (Size k = 0; k < spectrum.size(); ++k)
+    {
+      const double mz = spectrum[k].getMZ();
+      const UInt64 owner = MultiplexResolverAlgorithm::blacklistOwner(spectrum, k);
+      if (mz > mz_short - 0.1) { orphans += (owner == UniqueIdInterface::INVALID); wrong += (owner != UniqueIdInterface::INVALID); }
+      else if (mz > mz_heavy - 0.1) { heavy += (owner == heavy_id); wrong += (owner != heavy_id); }
+      else { light += (owner == light_id); wrong += (owner != light_id); }
+    }
+  }
+  TEST_NOT_EQUAL(light, 0)
+  TEST_NOT_EQUAL(heavy, 0)
+  TEST_NOT_EQUAL(orphans, 0)
+  TEST_EQUAL(wrong, 0)
 }
 END_SECTION
 

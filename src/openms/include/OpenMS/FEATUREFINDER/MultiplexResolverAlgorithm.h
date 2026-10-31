@@ -15,6 +15,7 @@
 
 #include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace OpenMS
@@ -36,6 +37,15 @@ namespace OpenMS
       dummy features. A dummy feature gets intensity 0 when nothing was blacklisted around its
       position during feature detection (the peptide is absent), and NaN (not quantifiable) when
       the region was blacklisted, i.e. another feature overlaps with it.
+
+    If the blacklist records who reserved each peak (hasBlacklistOwners(), as FeatureFinderMultiplexAlgorithm
+    writes it), only peaks reserved by another peptide make a channel not quantifiable: peaks of the multiplet's
+    own channels, of another multiplet of the same peptide (e.g. its missing channel detected on its own) and of no
+    reported feature (a pattern the detection dropped later) do not (see classifyBlacklistOwner()). Then all
+    blacklisted peaks within the m/z tolerance count, on either side of the expected positions, and channels that
+    MS1LabeledWorkflow added for an identification (intensity 0, no unique id) are checked like dummy features.
+    Without owners, a dummy feature is not quantifiable if the first blacklisted peak at or above one of its
+    expected positions is within the tolerance, and added channels are not checked.
 
     Only the first peptide identification of a consensus feature is taken into account, so the map should
     have been reduced to one identification per feature (IDConflictResolverAlgorithm::resolve()) first.
@@ -75,6 +85,8 @@ namespace OpenMS
       @param[out] map_conflicts Multiplets without identification or with conflicting quant/ID information; cleared first
       @param[in] blacklist Spectral peaks blacklisted during feature detection (FeatureFinderMultiplexAlgorithm::getBlacklist()).
                  Used to decide whether a dummy feature is absent (intensity 0) or not quantifiable (NaN). May be empty.
+                 If it records the owners of its peaks (hasBlacklistOwners()), the feature handles of @p map_in must carry
+                 the unique ids of their features, as FeatureFinderMultiplexAlgorithm::getConsensusMap() does.
 
       @throws Exception::MissingInformation if an identified feature lacks the @c map_index meta value
       @throws Exception::InvalidValue if the @c map_index does not name a feature handle of the consensus feature
@@ -110,6 +122,60 @@ namespace OpenMS
       @return The m/z per channel (pattern position), empty if no theoretical pattern fits @p sequence
     */
     std::vector<double> expectedChannelMZs(const AASequence& sequence, int charge, Size& position) const;
+
+    /**
+      @name Owners of blacklisted peaks
+
+      FeatureFinderMultiplexAlgorithm records which feature reserved each blacklisted peak, as two integer data
+      arrays aligned with the peaks of each blacklist spectrum: @c owner_unique_id_high and @c owner_unique_id_low,
+      the upper and lower 32 bits of the feature's unique id (an integer data array holds 32-bit values). 0 in
+      both means that no reported feature owns the peak (its multiplet was dropped after the peak was reserved).
+      The arrays survive mzML files (as non-standard data arrays).
+    */
+    ///@{
+    /// Does every spectrum of @p blacklist that has peaks record their owners (and is there a peak)?
+    static bool hasBlacklistOwners(const MSExperiment& blacklist);
+
+    /// The unique id of the feature that reserved peak @p peak_index of @p spectrum (UniqueIdInterface::INVALID if none, or if not recorded)
+    static UInt64 blacklistOwner(const MSSpectrum& spectrum, Size peak_index);
+
+    /// Record @p owners (one unique id per peak, INVALID if none) as the owners of the peaks of @p spectrum
+    static void setBlacklistOwners(MSSpectrum& spectrum, const std::vector<UInt64>& owners);
+
+    /// How the owner of a blacklisted peak relates to a multiplet
+    enum class OwnerRelation
+    {
+      ORPHAN,        ///< no reported feature owns the peak
+      OWN,           ///< a detected channel of the multiplet itself
+      SAME_PEPTIDE,  ///< a channel of another multiplet identified as the same peptide (and charge)
+      UNIDENTIFIED,  ///< a channel of an unidentified multiplet (or of none in the map)
+      OTHER_PEPTIDE  ///< a channel of a multiplet identified as another peptide
+    };
+
+    /// Peptide (as compared by classifyBlacklistOwner()) of each detected channel of the identified multiplets of a map, by unique id
+    using OwnerPeptides = std::unordered_map<UInt64, std::string>;
+
+    /**
+      @brief The peptide of every detected channel (feature handle with a unique id) of the identified multiplets in @p multiplets
+
+      A multiplet's peptide is that of its first identification: the sequence without the labels of section
+      @c algorithm:labels (other modifications kept) and the charge of the multiplet. So the label states of a
+      peptide share it, while another sequence of the same composition or another modification state does not.
+    */
+    OwnerPeptides ownerPeptides(const ConsensusMap& multiplets) const;
+
+    /**
+      @brief How the feature @p owner, which reserved a blacklisted peak, relates to the multiplet @p consensus
+
+      @param[in] owner Unique id of the owner (blacklistOwner())
+      @param[in] consensus The multiplet; its detected channels carry the unique ids of their features
+      @param[in] peptides ownerPeptides() of the map the multiplets were detected in (incl. @p consensus)
+    */
+    static OwnerRelation classifyBlacklistOwner(UInt64 owner, const ConsensusFeature& consensus, const OwnerPeptides& peptides);
+
+    /// Does a peak reserved by an owner of this relation belong to another peptide, so that a channel must not use it? (UNIDENTIFIED, OTHER_PEPTIDE)
+    static bool isForeign(OwnerRelation relation);
+    ///@}
 
   protected:
     /// The generator of the theoretical mass-shift patterns, as configured in the sections @c algorithm and @c labels
@@ -185,8 +251,33 @@ namespace OpenMS
     static double findNewMZ_(double mz, int charge, const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern,
                              const std::vector<bool>& delta_mass_matched);
 
-    /// Is one of the first three isotopes of a (dummy) feature at this position blacklisted?
+    /// Is one of the first three isotopes of a (dummy) feature at this position blacklisted? (anonymous blacklist: the first peak at or above each position)
     bool isBlacklisted_(const MSExperiment& blacklist, double rt, double mz, size_t charge, const ConsensusFeature& consensus) const;
+
+    /// What the owner-aware blacklist check found in resolve(), for its log
+    struct OwnerCheckCounts_
+    {
+      Size dummies = 0;        ///< dummy features checked
+      Size added = 0;          ///< channels added for an identification checked
+      Size dummies_vetoed = 0; ///< dummy features found not quantifiable
+      Size added_vetoed = 0;   ///< added channels found not quantifiable
+      Size other_peptide = 0;  ///< not quantifiable: a peak reserved by another identified peptide
+      Size unidentified = 0;   ///< not quantifiable: peaks reserved by unidentified multiplets only (no other peptide)
+      Size usable = 0;         ///< reserved peaks, but none foreign
+      Size own = 0;            ///< ... of these, with a peak of the multiplet's own channels
+      Size same_peptide = 0;   ///< ... with a peak of the same peptide
+      Size orphan = 0;         ///< ... with a peak of no reported feature
+      Size anonymous = 0;      ///< dummy features the check without owners finds blacklisted
+    };
+
+    /**
+      @brief Is a peak reserved by another peptide within the m/z tolerance of one of the first three isotopes at this position?
+
+      The owner-aware check of a (dummy or added) channel of @p consensus: every blacklisted peak in the RT and m/z
+      tolerance counts (both sides), and only foreign owners (isForeign()) make the channel not quantifiable.
+    */
+    bool isReservedByOther_(const MSExperiment& blacklist, double rt, double mz, size_t charge, const ConsensusFeature& consensus,
+                            const OwnerPeptides& peptides, OwnerCheckCounts_& counts) const;
 
     /**
       @brief Complete an incomplete multiplet with dummy features
@@ -196,11 +287,15 @@ namespace OpenMS
       @param[in] delta_mass_matched Which delta masses of the pattern were matched
       @param[in] index_label_set Index within the pattern at which the label set was matched
       @param[in] blacklist Blacklisted spectral peaks (may be empty)
+      @param[in] peptides If not null, the blacklist records owners and these are the ownerPeptides() of the map:
+                 owner-aware check of dummy features and of channels added for an identification
+      @param[in,out] counts Counts of the owner-aware check (used only with @p peptides)
       @return The complete multiplet
     */
     ConsensusFeature completeConsensus_(const ConsensusFeature& consensus, const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern,
                                         const std::vector<bool>& delta_mass_matched, int index_label_set,
-                                        const MSExperiment& blacklist) const;
+                                        const MSExperiment& blacklist, const OwnerPeptides* peptides = nullptr,
+                                        OwnerCheckCounts_* counts = nullptr) const;
 
     /// Mass tolerance in Da for matching detected to theoretical mass shifts
     double mass_tolerance_ = 0.1;

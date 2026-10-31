@@ -60,6 +60,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <limits>
 #include <map>
 #include <optional>
@@ -160,9 +161,12 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      sequence information (@ref OpenMS::MultiplexResolverAlgorithm, @p resolver): multiplets whose mass shifts
      contradict the labels found in the annotated sequence are removed from quantification (their
      identifications are kept for protein inference), partial multiplets are completed with dummy
-     features (intensity 0 = absent, NaN = not quantifiable, i.e. another detected pattern overlaps). With
+     features (intensity 0 = absent, NaN = not quantifiable, i.e. a detected pattern of another peptide overlaps;
+     the detection records which feature reserved each peak, so peaks of the multiplet itself, of the same peptide
+     and of patterns the detection dropped do not count). With
      @p requantify (default), a missing channel is then measured at its expected position over the elution region
-     of the multiplet, like MaxQuant's re-quantify, and reported as absent only if it shows no signal there.
+     of the multiplet, like MaxQuant's re-quantify, and reported as absent only if it shows no signal there; peaks of
+     other peptides' patterns are left out.
      Multiplets without identification are dropped,
      unless @p match_between_runs is set (see below). Once the resolver has used the labels, every identification
      is reduced to the <em>peptide identity</em>: the label modifications of @p labels are removed from the sequence,
@@ -846,12 +850,17 @@ protected:
     larger one. Its intensities are not added: the larger multiplet quantifies all its channels over the same scans, so its
     ratios are not biased by flanks that lack a channel. Identifications in the flanks map onto the larger multiplet instead.
 
+    @param[in,out] multiplets The detected multiplets; merged flanks are removed
+    @param[in] features The channel features of the detection
+    @param[out] merged_into For the channels of every merged flank (unique id), the coinciding channel of the multiplet it was
+                merged into (for a flank of a flank, of the outermost one)
     @return One feature per (multiplet, channel): the unique id, position and charge of the channel's handle, and one convex hull
             per mass trace of the channel, spanning the elution region of the multiplet (incl. merged flanks). Identifications
             are mapped onto these, and missing channels are re-quantified over the same region.
   */
-  FeatureMap mergeFragments_(ConsensusMap& multiplets, const FeatureMap& features) const
+  FeatureMap mergeFragments_(ConsensusMap& multiplets, const FeatureMap& features, std::unordered_map<UInt64, UInt64>& merged_into) const
   {
+    merged_into.clear();
     std::unordered_map<UInt64, const Feature*> feature_of;
     for (const Feature& f : features) { feature_of.emplace(f.getUniqueId(), &f); }
 
@@ -925,6 +934,25 @@ protected:
       region[b].first = std::min(region[b].first, region[a].first);
       region[b].second = std::max(region[b].second, region[a].second);
       ++merged;
+    }
+
+    // every channel of a flank becomes the channel of the larger multiplet it coincides with (the closest one)
+    for (Size a = 0; a < multiplets.size(); ++a)
+    {
+      if (target[a] == none) { continue; }
+      for (const FeatureHandle& h : multiplets[a].getFeatures())
+      {
+        const FeatureHandle* closest = nullptr;
+        for (const FeatureHandle& g : multiplets[target[a]].getFeatures())
+        {
+          if (coincides(h, g) && (closest == nullptr || std::abs(g.getMZ() - h.getMZ()) < std::abs(closest->getMZ() - h.getMZ()))) { closest = &g; }
+        }
+        if (closest != nullptr && h.hasValidUniqueId() && closest->hasValidUniqueId()) { merged_into[h.getUniqueId()] = closest->getUniqueId(); }
+      }
+    }
+    for (auto& [flank, into] : merged_into)
+    {
+      for (auto it = merged_into.find(into); it != merged_into.end(); it = merged_into.find(into)) { into = it->second; }
     }
 
     vector<ConsensusFeature> kept;
@@ -1232,11 +1260,13 @@ protected:
     m/z tolerance. The intensity is @p reference_intensity scaled by the ratio of the paired peak intensities, i.e. the ratio
     is taken where both channels were measured, the way the detection corrects the channels of a multiplet. (An integral of
     the weak channel on its own would miss the flanks and isotopes that fall below the intensity cutoff and be biased low.)
-    Peaks that belong to a detected pattern (@p blacklist) are not used for the channel. Returns 0 (absent) unless the first
-    two traces of the channel are observed together in at least two spectra (one trace if @p traces is 1).
+    A peak that a detected pattern reserved (@p blacklist) is not used for the channel if @p skip_reserved says so (it gets the
+    blacklist spectrum and the index of the peak in it). Returns 0 (absent) unless the first two traces of the channel are
+    observed together in at least two spectra (one trace if @p traces is 1).
   */
-  double requantifyChannel_(const MSExperiment& spectra, const MSExperiment& blacklist, const std::optional<double>& cv, double rt_lo,
-                            double rt_hi, double mz, int charge, Size traces, double reference_mz, double reference_intensity) const
+  double requantifyChannel_(const MSExperiment& spectra, const MSExperiment& blacklist, const std::function<bool(const MSSpectrum&, Size)>& skip_reserved,
+                            const std::optional<double>& cv, double rt_lo, double rt_hi, double mz, int charge, Size traces,
+                            double reference_mz, double reference_intensity) const
   {
     if (charge == 0 || traces == 0 || !(reference_intensity > 0.0)) { return 0.0; }
     const Size required = std::min<Size>(traces, 2);
@@ -1258,7 +1288,11 @@ protected:
         const Int index = it->findNearest(mz + shift, detectionMZTolerance_(mz + shift));
         if (index < 0) { continue; }
         const Peak1D& peak = (*it)[index];
-        if (black != nullptr && black->findNearest(peak.getMZ(), 1e-9) >= 0) { continue; }
+        if (black != nullptr)
+        {
+          const Int reserved = black->findNearest(peak.getMZ(), 1e-9);
+          if (reserved >= 0 && skip_reserved(*black, static_cast<Size>(reserved))) { continue; }
+        }
         if (k < required) { ++found; }
         const Int reference = it->findNearest(reference_mz + shift, detectionMZTolerance_(reference_mz + shift));
         if (reference < 0) { continue; }
@@ -1280,15 +1314,18 @@ protected:
     mixture). It is replaced by the signal at the channel's expected position over the elution region of the multiplet,
     relative to the most intense detected channel and with as many mass traces as the detected channels have
     (requantifyChannel_), so that a weak channel still yields a ratio and only a really absent one is reported as 0 (like
-    MaxQuant's 're-quantify').
+    MaxQuant's 're-quantify'). Reserved peaks are left out if they belong to another peptide (with @p peptides, i.e. a
+    blacklist with owners, as the resolver decides: MultiplexResolverAlgorithm::classifyBlacklistOwner()), or all of them
+    (without).
   */
   void requantifyMissingChannels_(ConsensusMap& resolved, const FeatureMap& channels, const MSExperiment& centroided,
-                                  const MSExperiment& blacklist) const
+                                  const MSExperiment& blacklist, const MultiplexResolverAlgorithm::OwnerPeptides* peptides) const
   {
     std::unordered_map<UInt64, const Feature*> channel_of;
     for (const Feature& channel : channels) { channel_of.emplace(channel.getUniqueId(), &channel); }
 
     Size requantified = 0, absent = 0;
+    std::map<MultiplexResolverAlgorithm::OwnerRelation, Size> reserved_used; // reserved peaks used, by owner
     for (auto& cf : resolved)
     {
       // the elution region and the number of mass traces of the detected channels, and the most intense one
@@ -1314,13 +1351,21 @@ protected:
       const double reference_mz = reference->getMZ(), reference_intensity = reference->getIntensity();
 
       const std::optional<double> cv = compensationVoltage_(cf);
+      auto skip_reserved = [&](const MSSpectrum& black, Size index)
+      {
+        if (peptides == nullptr) { return true; }
+        const auto relation = MultiplexResolverAlgorithm::classifyBlacklistOwner(MultiplexResolverAlgorithm::blacklistOwner(black, index), cf, *peptides);
+        if (MultiplexResolverAlgorithm::isForeign(relation)) { return true; }
+        ++reserved_used[relation];
+        return false;
+      };
       ConsensusFeature::HandleSetType handles;
       for (FeatureHandle handle : cf.getFeatures())
       {
         if (handle.getIntensity() == 0.0 && !channel_of.contains(handle.getUniqueId()))
         {
-          const double intensity = requantifyChannel_(centroided, blacklist, cv, rt_lo, rt_hi, handle.getMZ(), handle.getCharge(), traces,
-                                                      reference_mz, reference_intensity);
+          const double intensity = requantifyChannel_(centroided, blacklist, skip_reserved, cv, rt_lo, rt_hi, handle.getMZ(), handle.getCharge(),
+                                                      traces, reference_mz, reference_intensity);
           if (intensity > 0.0)
           {
             handle.setIntensity(intensity);
@@ -1339,6 +1384,34 @@ protected:
     {
       OPENMS_LOG_INFO << "Re-quantified " << requantified << " channel(s) the detection did not find; " << absent
                       << " show no signal at their expected position and are reported as absent." << endl;
+    }
+    if (!reserved_used.empty())
+    {
+      using Relation = MultiplexResolverAlgorithm::OwnerRelation;
+      OPENMS_LOG_INFO << "The re-quantification used reserved peaks of no other peptide: " << reserved_used[Relation::OWN]
+                      << " of the channel's own multiplet, " << reserved_used[Relation::SAME_PEPTIDE] << " of the same peptide, "
+                      << reserved_used[Relation::ORPHAN] << " of no reported feature." << endl;
+    }
+  }
+
+  /// Let the peaks the detection reserved for a merged flank (blacklist with owners) belong to the channel it was merged into
+  static void remapBlacklistOwners_(MSExperiment& blacklist, const std::unordered_map<UInt64, UInt64>& merged_into)
+  {
+    if (merged_into.empty() || !MultiplexResolverAlgorithm::hasBlacklistOwners(blacklist)) { return; }
+    for (MSSpectrum& spectrum : blacklist)
+    {
+      std::vector<UInt64> owners(spectrum.size());
+      bool changed = false;
+      for (Size k = 0; k < spectrum.size(); ++k)
+      {
+        owners[k] = MultiplexResolverAlgorithm::blacklistOwner(spectrum, k);
+        if (const auto it = merged_into.find(owners[k]); it != merged_into.end())
+        {
+          owners[k] = it->second;
+          changed = true;
+        }
+      }
+      if (changed) { MultiplexResolverAlgorithm::setBlacklistOwners(spectrum, owners); }
     }
   }
 
@@ -1374,9 +1447,11 @@ protected:
       FeatureMap features;
       e = detectMultiplets_(mz_file, std::move(ms1), multiplets, features, blacklist, centroided);
       if (e != EXECUTION_OK) { return e; }
-      // partial multiplets that flank a larger one of the same peptide become part of it; every channel is described
-      // by where its multiplet elutes
-      channels = mergeFragments_(multiplets, features);
+      // partial multiplets that flank a larger one of the same peptide become part of it, with the peaks reserved for them;
+      // every channel is described by where its multiplet elutes
+      std::unordered_map<UInt64, UInt64> merged_into;
+      channels = mergeFragments_(multiplets, features, merged_into);
+      remapBlacklistOwners_(blacklist, merged_into);
     }
 
     // map the identifications onto the multiplets: an identification matches a multiplet if it lies in the elution
@@ -1456,8 +1531,14 @@ protected:
                       << " multiplet(s) are unidentified, " << kept_for_mbr << " of them kept for match between runs." << endl;
     }
 
-    // the channels the detection did not find are measured where they are expected
-    if (requantify_) { requantifyMissingChannels_(resolved, channels, centroided, blacklist); }
+    // the channels the detection did not find are measured where they are expected (without the peaks of other peptides,
+    // as far as the blacklist tells their owners; the resolver has seen the same multiplets)
+    if (requantify_)
+    {
+      const bool owners = MultiplexResolverAlgorithm::hasBlacklistOwners(blacklist);
+      const MultiplexResolverAlgorithm::OwnerPeptides peptides = owners ? resolver.ownerPeptides(multiplets) : MultiplexResolverAlgorithm::OwnerPeptides();
+      requantifyMissingChannels_(resolved, channels, centroided, blacklist, owners ? &peptides : nullptr);
+    }
 
     // The handles referred to the run's channel features by unique id; those are internal to this run and
     // not part of any output.

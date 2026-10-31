@@ -10,10 +10,12 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FEATUREFINDER/MultiplexResolverAlgorithm.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/test_config.h>
+#include <algorithm>
 #include <cmath>
 
 using namespace OpenMS;
@@ -491,6 +493,245 @@ START_SECTION((FAIMS metadata and CV - specific blacklisting))
   blacklist[0].setDriftTime(-65.0);
   resolver.resolve(in, out, conflicts, blacklist);
   TEST_TRUE(std::isnan(out[2].getFeatures().begin()->getIntensity()))
+}
+END_SECTION
+
+START_SECTION((static UInt64 blacklistOwner(const MSSpectrum& spectrum, Size peak_index)))
+{
+  // 64-bit unique ids, also with the upper bit of either half set, are split into two 32-bit integer arrays and back
+  const std::vector<UInt64> owners = {0xF123456789ABCDEFULL, UniqueIdInterface::INVALID, 0x00000001FFFFFFFFULL, 42};
+  MSSpectrum spectrum;
+  spectrum.setRT(10.0);
+  for (Size i = 0; i < owners.size(); ++i) { spectrum.push_back(Peak1D(500.0 + i, 1000.0)); }
+  TEST_EQUAL(MultiplexResolverAlgorithm::blacklistOwner(spectrum, 0), UniqueIdInterface::INVALID) // nothing recorded
+  MultiplexResolverAlgorithm::setBlacklistOwners(spectrum, owners);
+  TEST_EQUAL(spectrum.getIntegerDataArrays().size(), 2)
+  for (Size i = 0; i < owners.size(); ++i) { TEST_EQUAL(MultiplexResolverAlgorithm::blacklistOwner(spectrum, i), owners[i]) }
+  TEST_EQUAL(MultiplexResolverAlgorithm::blacklistOwner(spectrum, owners.size()), UniqueIdInterface::INVALID)
+  // setting them again replaces them
+  MultiplexResolverAlgorithm::setBlacklistOwners(spectrum, std::vector<UInt64>(owners.size(), 7));
+  TEST_EQUAL(spectrum.getIntegerDataArrays().size(), 2)
+  TEST_EQUAL(MultiplexResolverAlgorithm::blacklistOwner(spectrum, 0), 7)
+  MultiplexResolverAlgorithm::setBlacklistOwners(spectrum, owners);
+
+  // the owners stay aligned with the peaks when these are sorted, and survive an mzML file
+  MSExperiment blacklist;
+  MSSpectrum empty;
+  empty.setRT(5.0);
+  blacklist.addSpectrum(empty); // no peaks, no owners
+  MSSpectrum reversed = spectrum;
+  std::reverse(reversed.begin(), reversed.end());
+  for (auto& array : reversed.getIntegerDataArrays()) { std::reverse(array.begin(), array.end()); }
+  reversed.sortByPosition();
+  blacklist.addSpectrum(reversed);
+  std::string file;
+  NEW_TMP_FILE(file)
+  MzMLFile().store(file, blacklist);
+  MSExperiment loaded;
+  MzMLFile().load(file, loaded);
+  TEST_EQUAL(loaded.size(), 2)
+  ABORT_IF(loaded.size() != 2)
+  TEST_EQUAL(loaded[1].size(), owners.size())
+  for (Size i = 0; i < owners.size() && i < loaded[1].size(); ++i)
+  {
+    TEST_REAL_SIMILAR(loaded[1][i].getMZ(), 500.0 + i)
+    TEST_EQUAL(MultiplexResolverAlgorithm::blacklistOwner(loaded[1], i), owners[i])
+  }
+  TEST_TRUE(MultiplexResolverAlgorithm::hasBlacklistOwners(loaded))
+}
+END_SECTION
+
+START_SECTION((static bool hasBlacklistOwners(const MSExperiment& blacklist)))
+{
+  MSExperiment blacklist;
+  TEST_FALSE(MultiplexResolverAlgorithm::hasBlacklistOwners(blacklist)) // no peaks
+  MSSpectrum spectrum;
+  spectrum.setRT(10.0);
+  spectrum.push_back(Peak1D(500.0, 1000.0));
+  spectrum.push_back(Peak1D(501.0, 1000.0));
+  blacklist.addSpectrum(spectrum);
+  TEST_FALSE(MultiplexResolverAlgorithm::hasBlacklistOwners(blacklist)) // anonymous
+  MultiplexResolverAlgorithm::setBlacklistOwners(blacklist[0], {1, 2});
+  TEST_TRUE(MultiplexResolverAlgorithm::hasBlacklistOwners(blacklist))
+  MSSpectrum empty;
+  empty.setRT(20.0);
+  blacklist.addSpectrum(empty);
+  TEST_TRUE(MultiplexResolverAlgorithm::hasBlacklistOwners(blacklist)) // spectra without peaks need no owners
+  blacklist.addSpectrum(spectrum);
+  TEST_FALSE(MultiplexResolverAlgorithm::hasBlacklistOwners(blacklist)) // a spectrum with peaks but without owners
+  MultiplexResolverAlgorithm::setBlacklistOwners(blacklist[2], {1});
+  TEST_FALSE(MultiplexResolverAlgorithm::hasBlacklistOwners(blacklist)) // not aligned with the peaks
+}
+END_SECTION
+
+START_SECTION((static OwnerRelation classifyBlacklistOwner(UInt64 owner, const ConsensusFeature& consensus, const OwnerPeptides& peptides)))
+{
+  using Relation = MultiplexResolverAlgorithm::OwnerRelation;
+  auto multiplet = [](UInt64 id, int charge, const std::string& sequence)
+  {
+    ConsensusFeature cf;
+    cf.setCharge(charge);
+    FeatureHandle h = makeHandle(0, 100.0, 500.0, charge, 100.0);
+    h.setUniqueId(id);
+    cf.insert(h);
+    if (!sequence.empty()) { cf.getPeptideIdentifications().push_back(makeId(sequence, charge, 0)); }
+    return cf;
+  };
+  ConsensusMap map;
+  ConsensusFeature own = multiplet(11, 2, "PEPTIDEK");
+  own.insert(makeHandle(1, 100.0, 500.0 + LYS8 / 2, 2, 0.0)); // a dummy (no unique id) changes nothing
+  map.push_back(own);
+  map.push_back(multiplet(12, 2, "PEPTIDEK(Label:13C(6)15N(2))")); // same peptide, other label state
+  map.push_back(multiplet(13, 3, "PEPTIDEK"));                     // other charge
+  map.push_back(multiplet(14, 2, "EPPTIDEK"));                     // same composition, other sequence
+  map.push_back(multiplet(15, 2, "PEPTM(Oxidation)IDEK"));         // other modification state
+  map.push_back(multiplet(16, 2, ""));                             // unidentified
+
+  MultiplexResolverAlgorithm resolver;
+  const MultiplexResolverAlgorithm::OwnerPeptides peptides = resolver.ownerPeptides(map);
+  TEST_EQUAL(peptides.size(), 5)
+  TEST_EQUAL(peptides.at(11), peptides.at(12))
+
+  auto classify = [&](UInt64 owner) { return MultiplexResolverAlgorithm::classifyBlacklistOwner(owner, own, peptides); };
+  TEST_TRUE(classify(UniqueIdInterface::INVALID) == Relation::ORPHAN)
+  TEST_TRUE(classify(11) == Relation::OWN)
+  TEST_TRUE(classify(12) == Relation::SAME_PEPTIDE)
+  TEST_TRUE(classify(13) == Relation::OTHER_PEPTIDE)
+  TEST_TRUE(classify(14) == Relation::OTHER_PEPTIDE)
+  TEST_TRUE(classify(15) == Relation::OTHER_PEPTIDE)
+  TEST_TRUE(classify(16) == Relation::UNIDENTIFIED)
+  TEST_TRUE(classify(99) == Relation::UNIDENTIFIED) // not in the map at all
+
+  TEST_FALSE(MultiplexResolverAlgorithm::isForeign(Relation::ORPHAN))
+  TEST_FALSE(MultiplexResolverAlgorithm::isForeign(Relation::OWN))
+  TEST_FALSE(MultiplexResolverAlgorithm::isForeign(Relation::SAME_PEPTIDE))
+  TEST_TRUE(MultiplexResolverAlgorithm::isForeign(Relation::UNIDENTIFIED))
+  TEST_TRUE(MultiplexResolverAlgorithm::isForeign(Relation::OTHER_PEPTIDE))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] resolve with a blacklist that records owners))
+{
+  // E: only the heavy channel of AAAAR (Arg10) detected at RT 500; its light channel is missing at 900 - ARG10/2.
+  // S: the light channel of the same peptide, detected on its own; F: another peptide; U: an unidentified multiplet.
+  auto multiplet = [](UInt64 id, double rt, double mz, const std::string& sequence)
+  {
+    ConsensusFeature cf;
+    cf.setRT(rt);
+    cf.setMZ(mz);
+    cf.setCharge(2);
+    cf.setIntensity(50.0);
+    FeatureHandle h = makeHandle(0, rt, mz, 2, 50.0);
+    h.setUniqueId(id);
+    cf.insert(h);
+    if (!sequence.empty()) { cf.getPeptideIdentifications().push_back(makeId(sequence, 2, 0)); }
+    return cf;
+  };
+  const UInt64 E = 101, S = 201, F = 301, U = 401;
+  const double dummy_mz = 900.0 - ARG10 / 2;
+  ConsensusMap in = makeDuplexMap();
+  in.clear(false);
+  in.push_back(multiplet(E, 500.0, 900.0, "AAAAR(Label:13C(6)15N(4))"));
+  in.push_back(multiplet(S, 520.0, dummy_mz, "AAAAR"));
+  in.push_back(multiplet(F, 300.0, 700.0, "CCCCK"));
+  in.push_back(multiplet(U, 400.0, 800.0, ""));
+
+  auto blacklistAt = [](double rt, double mz, UInt64 owner)
+  {
+    MSExperiment blacklist;
+    MSSpectrum spec;
+    spec.setRT(rt);
+    spec.setMSLevel(1);
+    spec.push_back(Peak1D(mz, 1000.0));
+    MultiplexResolverAlgorithm::setBlacklistOwners(spec, {owner});
+    blacklist.addSpectrum(spec);
+    blacklist.updateRanges();
+    return blacklist;
+  };
+  MultiplexResolverAlgorithm resolver;
+  // the intensity of E's light dummy, given the blacklist
+  auto dummyOfE = [&](const MSExperiment& blacklist) -> double
+  {
+    ConsensusMap out, conflicts;
+    resolver.resolve(in, out, conflicts, blacklist);
+    for (const ConsensusFeature& cf : out)
+    {
+      if (cf.getRT() == 500.0) { return cf.getFeatures().begin()->getIntensity(); }
+    }
+    return -1.0;
+  };
+
+  // a peak at the dummy position reserved by no reported feature, by E itself or by the same peptide: absent (0), to be re-quantified
+  TEST_REAL_SIMILAR(dummyOfE(blacklistAt(500.0, dummy_mz, UniqueIdInterface::INVALID)), 0.0)
+  TEST_REAL_SIMILAR(dummyOfE(blacklistAt(500.0, dummy_mz, E)), 0.0)
+  TEST_REAL_SIMILAR(dummyOfE(blacklistAt(500.0, dummy_mz, S)), 0.0)
+  // ... reserved by another peptide or by an unidentified multiplet: not quantifiable
+  TEST_TRUE(std::isnan(dummyOfE(blacklistAt(500.0, dummy_mz, F))))
+  TEST_TRUE(std::isnan(dummyOfE(blacklistAt(500.0, dummy_mz, U))))
+  // ... the same peak without owners: not quantifiable (as before)
+  {
+    MSExperiment anonymous = blacklistAt(500.0, dummy_mz, S);
+    anonymous[0].getIntegerDataArrays().clear();
+    TEST_TRUE(std::isnan(dummyOfE(anonymous)))
+  }
+
+  // with owners, peaks below the expected position count as well (the anonymous check looks at the first peak above it only)
+  {
+    MSExperiment below = blacklistAt(500.0, dummy_mz - 0.002, F); // 2.2 ppm
+    TEST_TRUE(std::isnan(dummyOfE(below)))
+    below[0].getIntegerDataArrays().clear();
+    TEST_REAL_SIMILAR(dummyOfE(below), 0.0)
+    // outside the tolerance (10 ppm) or the RT window (5 s): nothing
+    TEST_REAL_SIMILAR(dummyOfE(blacklistAt(500.0, dummy_mz - 0.01, F)), 0.0)
+    TEST_REAL_SIMILAR(dummyOfE(blacklistAt(506.0, dummy_mz, F)), 0.0)
+    // the M+1 position
+    TEST_TRUE(std::isnan(dummyOfE(blacklistAt(500.0, dummy_mz + Constants::C13C12_MASSDIFF_U / 2, F))))
+  }
+
+  // a channel added for an identification (intensity 0, no unique id) is checked with owners only, also in a complete multiplet
+  {
+    ConsensusFeature added = multiplet(E, 500.0, dummy_mz, "AAAAR(Label:13C(6)15N(4))");
+    added.setFeatures(ConsensusFeature::HandleSetType());
+    FeatureHandle heavy = makeHandle(1, 500.0, 900.0, 2, 50.0);
+    heavy.setUniqueId(E);
+    added.insert(heavy);
+    added.insert(makeHandle(0, 500.0, dummy_mz, 2, 0.0));
+    added.getPeptideIdentifications()[0].setMetaValue("map_index", 1);
+    ConsensusMap in2 = in;
+    in2[0] = added;
+    auto addedChannel = [&](const MSExperiment& blacklist) -> double
+    {
+      ConsensusMap out, conflicts;
+      resolver.resolve(in2, out, conflicts, blacklist);
+      TEST_EQUAL(out[0].size(), 2)
+      return out[0].getFeatures().begin()->getIntensity();
+    };
+    TEST_TRUE(std::isnan(addedChannel(blacklistAt(500.0, dummy_mz, F))))
+    TEST_REAL_SIMILAR(addedChannel(blacklistAt(500.0, dummy_mz, S)), 0.0)
+    TEST_REAL_SIMILAR(addedChannel(blacklistAt(500.0, dummy_mz, UniqueIdInterface::INVALID)), 0.0)
+    MSExperiment anonymous = blacklistAt(500.0, dummy_mz, F);
+    anonymous[0].getIntegerDataArrays().clear();
+    TEST_REAL_SIMILAR(addedChannel(anonymous), 0.0)
+
+    // triple SILAC: an added light channel next to the detected heavy one, the medium one completed with a dummy
+    MultiplexResolverAlgorithm triple;
+    Param p = triple.getParameters();
+    p.setValue("algorithm:labels", "[][Lys4,Arg6][Lys8,Arg10]");
+    triple.setParameters(p);
+    ConsensusMap in3 = in2;
+    in3.getColumnHeaders()[2] = in3.getColumnHeaders()[1];
+    ConsensusMap out3, conflicts3;
+    triple.resolve(in3, out3, conflicts3, blacklistAt(500.0, dummy_mz, F));
+    TEST_EQUAL(out3[0].size(), 3)
+    ABORT_IF(out3[0].size() != 3)
+    auto it = out3[0].getFeatures().begin();
+    TEST_TRUE(std::isnan(it->getIntensity())) // the added light channel
+    ++it;
+    TEST_REAL_SIMILAR(it->getMZ(), dummy_mz + ARG6 / 2)
+    TEST_REAL_SIMILAR(it->getIntensity(), 0.0) // the medium dummy
+    ++it;
+    TEST_REAL_SIMILAR(it->getIntensity(), 50.0)
+  }
 }
 END_SECTION
 

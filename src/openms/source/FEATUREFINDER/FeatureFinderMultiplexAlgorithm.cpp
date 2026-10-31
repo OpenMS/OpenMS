@@ -15,6 +15,7 @@
 #include <OpenMS/FEATUREFINDER/MultiplexFilteringCentroided.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/FEATUREFINDER/MultiplexClustering.h>
+#include <OpenMS/FEATUREFINDER/MultiplexResolverAlgorithm.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/ML/CLUSTERING/GridBasedCluster.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
@@ -50,6 +51,54 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    /*
+      The provisional id of the feature each blacklisted peak was reserved for (0: none), aligned with the blacklist: the
+      feature of the channel of the peak's mass trace, in the multiplet of the cluster of the filtered peak that reserved it.
+    */
+    std::vector<std::vector<UInt64>> provisionalOwners(const std::vector<std::vector<MultiplexFiltering::BlacklistOwner>>& owners,
+                                                       const std::vector<MultiplexFilteredMSExperiment>& filter_results,
+                                                       const std::vector<std::map<int, GridBasedCluster>>& cluster_results,
+                                                       const std::vector<std::map<int, std::vector<UInt64>>>& multiplet_ids,
+                                                       unsigned isotopes_per_peptide_max)
+    {
+      // the channel ids of the reported multiplet of every filtered peak (null: its cluster was not reported)
+      std::vector<std::vector<const std::vector<UInt64>*>> ids_of_peak(filter_results.size());
+      for (Size pattern = 0; pattern < filter_results.size() && pattern < cluster_results.size() && pattern < multiplet_ids.size(); ++pattern)
+      {
+        ids_of_peak[pattern].assign(filter_results[pattern].size(), nullptr);
+        for (const auto& [cluster_id, cluster] : cluster_results[pattern])
+        {
+          const auto it = multiplet_ids[pattern].find(cluster_id);
+          if (it == multiplet_ids[pattern].end()) { continue; }
+          for (int point : cluster.getPoints())
+          {
+            if (point >= 0 && static_cast<Size>(point) < ids_of_peak[pattern].size()) { ids_of_peak[pattern][point] = &it->second; }
+          }
+        }
+      }
+
+      std::vector<std::vector<UInt64>> provisional(owners.size());
+      for (Size s = 0; s < owners.size(); ++s)
+      {
+        provisional[s].reserve(owners[s].size());
+        for (const MultiplexFiltering::BlacklistOwner& owner : owners[s])
+        {
+          UInt64 id = 0;
+          if (owner.pattern_idx < ids_of_peak.size() && owner.peak_idx < ids_of_peak[owner.pattern_idx].size() && owner.mass_trace >= 0)
+          {
+            const std::vector<UInt64>* ids = ids_of_peak[owner.pattern_idx][owner.peak_idx];
+            const Size channel = static_cast<Size>(owner.mass_trace) / isotopes_per_peptide_max;
+            if (ids != nullptr && channel < ids->size()) { id = (*ids)[channel]; }
+          }
+          provisional[s].push_back(id);
+        }
+      }
+      return provisional;
+    }
+  }
+
   FeatureFinderMultiplexAlgorithm::FeatureFinderMultiplexAlgorithm() :
     DefaultParamHandler("FeatureFinderMultiplexAlgorithm")
   {
@@ -525,8 +574,10 @@ namespace OpenMS
     return intensity_peptide;
   }
 
-  void FeatureFinderMultiplexAlgorithm::generateMapsCentroided_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, std::vector<std::map<int, GridBasedCluster> >& cluster_results)
+  void FeatureFinderMultiplexAlgorithm::generateMapsCentroided_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, std::vector<std::map<int, GridBasedCluster> >& cluster_results,
+                                                               std::vector<std::map<int, std::vector<UInt64>>>* multiplet_ids)
   {
+    if (multiplet_ids != nullptr) { multiplet_ids->assign(patterns.size(), {}); }
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
     {
@@ -576,6 +627,7 @@ namespace OpenMS
         }
 
         std::vector<Feature> features;
+        std::vector<UInt64> channel_ids(patterns[pattern].getMassShiftCount(), 0); // provisional feature id per channel (not features[k]: a channel may have none)
         ConsensusFeature consensus;
         bool abort = false;
 
@@ -669,6 +721,7 @@ namespace OpenMS
           // A provisional id (the feature's position in the feature map, from 1), which the handle below
           // carries as well; run() replaces both by the feature's final unique id.
           feature.setUniqueId(feature_map_.size() + features.size() + 1);
+          channel_ids[peptide] = feature.getUniqueId();
           features.push_back(feature);
 
           if (peptide == 0)
@@ -704,6 +757,8 @@ namespace OpenMS
           {
             feature_map_.push_back(feat);
           }
+          // the provisional ids are unique among reported multiplets only (an aborted one reuses its ids for the next)
+          if (multiplet_ids != nullptr) { (*multiplet_ids)[pattern][cluster_pair.first] = std::move(channel_ids); }
         }
 
       }
@@ -712,8 +767,10 @@ namespace OpenMS
 
   }
 
-  void FeatureFinderMultiplexAlgorithm::generateMapsProfile_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, const std::vector<std::map<int, GridBasedCluster> >& cluster_results)
+  void FeatureFinderMultiplexAlgorithm::generateMapsProfile_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, const std::vector<std::map<int, GridBasedCluster> >& cluster_results,
+                                                            std::vector<std::map<int, std::vector<UInt64>>>* multiplet_ids)
   {
+    if (multiplet_ids != nullptr) { multiplet_ids->assign(patterns.size(), {}); }
     // progress logger
     unsigned progress = 0;
     startProgress(0, patterns.size(), "constructing maps");
@@ -753,6 +810,7 @@ namespace OpenMS
         }
 
         std::vector<Feature> features;
+        std::vector<UInt64> channel_ids(patterns[pattern].getMassShiftCount(), 0); // provisional feature id per channel (not features[k]: a channel may have none)
         ConsensusFeature consensus;
         bool abort = false;
 
@@ -835,6 +893,7 @@ namespace OpenMS
           // A provisional id (the feature's position in the feature map, from 1), which the handle below
           // carries as well; run() replaces both by the feature's final unique id.
           feature.setUniqueId(feature_map_.size() + features.size() + 1);
+          channel_ids[peptide] = feature.getUniqueId();
           features.push_back(feature);
 
           if (peptide == 0)
@@ -870,6 +929,8 @@ namespace OpenMS
           {
             feature_map_.push_back(feat);
           }
+          // the provisional ids are unique among reported multiplets only (an aborted one reuses its ids for the next)
+          if (multiplet_ids != nullptr) { (*multiplet_ids)[pattern][cluster_pair.first] = std::move(channel_ids); }
         }
 
       }
@@ -1012,6 +1073,9 @@ namespace OpenMS
       averagine_similarity_scaling = param_.getValue("algorithm:averagine_similarity_scaling");
     }
 
+    // the provisional id of the feature that owns each blacklisted peak, aligned with exp_blacklist_
+    std::vector<std::vector<UInt64>> blacklist_owners;
+
     if (centroided_)
     {
       // centroided data
@@ -1034,8 +1098,11 @@ namespace OpenMS
        * construct feature and consensus maps i.e. the final results
        */
       exp_blacklist_ = filtering.getBlacklist();
+      const std::vector<std::vector<MultiplexFiltering::BlacklistOwner>> owners = filtering.getBlacklistOwners();
       filtering.getCentroidedExperiment().swap(exp_centroid_);
-      generateMapsCentroided_(patterns, filter_results, cluster_results);
+      std::vector<std::map<int, std::vector<UInt64>>> multiplet_ids;
+      generateMapsCentroided_(patterns, filter_results, cluster_results, &multiplet_ids);
+      blacklist_owners = provisionalOwners(owners, filter_results, cluster_results, multiplet_ids, isotopes_per_peptide_max_);
     }
     else
     {
@@ -1048,6 +1115,7 @@ namespace OpenMS
       filtering.setLogType(getLogType());
       std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
       exp_blacklist_ = filtering.getBlacklist();
+      const std::vector<std::vector<MultiplexFiltering::BlacklistOwner>> owners = filtering.getBlacklistOwners();
 
       /**
        * cluster filter results
@@ -1061,7 +1129,9 @@ namespace OpenMS
        */
       filtering.getCentroidedExperiment().swap(exp_centroid_);
       filtering.getPeakBoundaries().swap(boundaries_exp_s);
-      generateMapsProfile_(patterns, filter_results, cluster_results);
+      std::vector<std::map<int, std::vector<UInt64>>> multiplet_ids;
+      generateMapsProfile_(patterns, filter_results, cluster_results, &multiplet_ids);
+      blacklist_owners = provisionalOwners(owners, filter_results, cluster_results, multiplet_ids, isotopes_per_peptide_max_);
     }
 
     // finalize consensus map
@@ -1156,6 +1226,17 @@ namespace OpenMS
         handles.insert(handle);
       }
       consensus.setFeatures(std::move(handles));
+    }
+
+    // every blacklisted peak records the unique id of the feature it was reserved for
+    for (Size s = 0; s < exp_blacklist_.size() && s < blacklist_owners.size(); ++s)
+    {
+      std::vector<UInt64>& owners = blacklist_owners[s];
+      for (UInt64& owner : owners)
+      {
+        if (owner != 0) { owner = unique_id_of.at(owner); }
+      }
+      MultiplexResolverAlgorithm::setBlacklistOwners(exp_blacklist_[s], owners);
     }
   }
 

@@ -17,6 +17,7 @@
 #include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 
+#include <limits>
 #include <utility>
 
 #ifdef _OPENMP
@@ -58,13 +59,15 @@ namespace OpenMS
     exp_centroided_.updateRanges();
     exp_centroided_.sortSpectra();
     
-    // initialise blacklist <blacklist_>
+    // initialise blacklist <blacklist_> and its owners
     blacklist_.reserve(exp_centroided_.getNrSpectra());
+    blacklist_owner_.reserve(exp_centroided_.getNrSpectra());
     // loop over spectra
     for (const auto &it_rt : exp_centroided_)
     {
       std::vector<int> blacklist_spectrum(it_rt.size(), -1);
       blacklist_.push_back(blacklist_spectrum);
+      blacklist_owner_.push_back(std::move(blacklist_spectrum));
     }
     
   }
@@ -321,7 +324,7 @@ namespace OpenMS
         if (std::optional<MultiplexFilteredPeak> peak = filter_peak(s, nullptr))
         {
           result.addPeak(*peak);
-          blacklistPeak_(*peak, pattern_idx);
+          blacklistPeak_(*peak, pattern_idx, result.size() - 1);
         }
       }
       return;
@@ -361,22 +364,27 @@ namespace OpenMS
       if (passed[s])
       {
         result.addPeak(*passed[s]);
-        for (const BlacklistEntry& write : blacklist_writes_[s])
-        {
-          blacklist_[write.rt_idx][write.mz_idx] = write.value;
-        }
+        applyBlacklistEntries_(blacklist_writes_[s], pattern_idx, result.size() - 1);
         blacklisted = true;
       }
     }
   }
 
-  void MultiplexFiltering::blacklistPeak_(const MultiplexFilteredPeak& peak, unsigned pattern_idx)
+  void MultiplexFiltering::blacklistPeak_(const MultiplexFilteredPeak& peak, unsigned pattern_idx, size_t peak_idx)
   {
     std::vector<BlacklistEntry> entries;
     blacklistEntries_(peak, pattern_idx, entries);
+    applyBlacklistEntries_(entries, pattern_idx, peak_idx);
+  }
+
+  void MultiplexFiltering::applyBlacklistEntries_(const std::vector<BlacklistEntry>& entries, unsigned pattern_idx, size_t peak_idx)
+  {
+    const int owner = static_cast<int>(filtered_peaks_.size());
+    filtered_peaks_.emplace_back(pattern_idx, peak_idx);
     for (const BlacklistEntry& entry : entries)
     {
       blacklist_[entry.rt_idx][entry.mz_idx] = entry.value;
+      blacklist_owner_[entry.rt_idx][entry.mz_idx] = owner;
     }
   }
 
@@ -480,6 +488,28 @@ namespace OpenMS
     exp_blacklist.updateRanges();
     
     return exp_blacklist;
+  }
+
+  std::vector<std::vector<MultiplexFiltering::BlacklistOwner>> MultiplexFiltering::getBlacklistOwners() const
+  {
+    // the same peaks in the same order as getBlacklist(), which keeps the peaks that are not white
+    std::vector<std::vector<BlacklistOwner>> owners(blacklist_.size());
+    for (size_t rt_idx = 0; rt_idx < blacklist_.size(); ++rt_idx)
+    {
+      for (size_t mz_idx = 0; mz_idx < blacklist_[rt_idx].size(); ++mz_idx)
+      {
+        const int value = blacklist_[rt_idx][mz_idx];
+        if (value == -1) { continue; }
+        const int owner = blacklist_owner_[rt_idx][mz_idx];
+        if (owner < 0)
+        {
+          owners[rt_idx].push_back({std::numeric_limits<unsigned>::max(), std::numeric_limits<size_t>::max(), value});
+          continue;
+        }
+        owners[rt_idx].push_back({filtered_peaks_[owner].first, filtered_peaks_[owner].second, value});
+      }
+    }
+    return owners;
   }
   
   bool MultiplexFiltering::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak) const
