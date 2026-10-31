@@ -27,6 +27,7 @@
     "boost-interprocess",
     "boost-iostreams",
     "boost-iterator",
+    "boost-json",
     "boost-lexical-cast",
     "boost-math",
     "boost-multi-index",
