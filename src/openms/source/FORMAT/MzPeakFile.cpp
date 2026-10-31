@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/MzPeakFile.h>
 
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
@@ -613,9 +614,11 @@ namespace OpenMS
         {
           try
           {
-            std::string t = *md.run()->start_time;
-            if (t.size() > 19) { t.resize(19); } // "yyyy-MM-ddThh:mm:ss" (no fraction, no zone)
-            settings.setDateTime(DateTime::fromString(t));
+            // ISO 8601 (with or without fraction and zone; the zone is dropped) or "yyyy-MM-dd hh:mm:ss". set() throws
+            // for anything else (fromString() would return an invalid DateTime instead).
+            DateTime start;
+            start.set(*md.run()->start_time);
+            settings.setDateTime(start);
           }
           catch (...)
           {
@@ -625,6 +628,7 @@ namespace OpenMS
       }
       if (md.file_description())
       {
+        const ControlledVocabulary& cv = ControlledVocabulary::getPSIMSCV();
         for (const MzPeak::SourceFile& sf : md.file_description()->source_files)
         {
           SourceFile out;
@@ -633,9 +637,15 @@ namespace OpenMS
           for (const MzPeak::CvParam& p : sf.parameters)
           {
             if (!p.accession || !p.name) { continue; }
-            if (p.accession->rfind("MS:", 0) == 0 && p.name->find("file format") != std::string::npos) { out.setFileType(*p.name); }
-            else if (*p.accession == "MS:1000569" && p.value) { out.setChecksum(*p.value, SourceFile::ChecksumType::SHA1); }
+            if (*p.accession == "MS:1000569" && p.value) { out.setChecksum(*p.value, SourceFile::ChecksumType::SHA1); }
             else if (*p.accession == "MS:1000568" && p.value) { out.setChecksum(*p.value, SourceFile::ChecksumType::MD5); }
+            // the file format and the native ID format by the CV, as MzMLHandler reads them
+            else if (cv.exists(*p.accession) && cv.isChildOf(*p.accession, "MS:1000560")) { out.setFileType(cv.getTerm(*p.accession).name); }
+            else if (cv.exists(*p.accession) && cv.isChildOf(*p.accession, "MS:1000767"))
+            {
+              out.setNativeIDType(cv.getTerm(*p.accession).name);
+              out.setNativeIDTypeAccession(*p.accession);
+            }
             else { setCvMeta(out, p); }
           }
           settings.getSourceFiles().push_back(out);
@@ -913,6 +923,22 @@ namespace OpenMS
       return out;
     }
 
+    /// The PSI-MS term below @p parent_accession named @p name, or nullptr (none of that name, or an empty name)
+    const ControlledVocabulary::CVTerm* childWithName(const std::string& parent_accession, const std::string& name)
+    {
+      if (name.empty()) { return nullptr; }
+      const ControlledVocabulary& cv = ControlledVocabulary::getPSIMSCV();
+      const ControlledVocabulary::CVTerm* found = nullptr;
+      cv.iterateAllChildren(parent_accession, [&cv, &name, &found](const std::string& child)
+      {
+        const ControlledVocabulary::CVTerm& term = cv.getTerm(child);
+        if (term.name != name) { return false; }
+        found = &term;
+        return true;
+      });
+      return found;
+    }
+
     /// The run-level metadata of the archive: run id, source files, software
     MzPeak::RunMetadata toRunMetadata(const PeakMap& exp)
     {
@@ -920,7 +946,7 @@ namespace OpenMS
       json::object root;
       json::object run;
       if (!exp.getIdentifier().empty()) { run["id"] = exp.getIdentifier(); }
-      if (exp.getDateTime().isValid()) { run["start_time"] = exp.getDateTime().get(); }
+      if (exp.getDateTime().isValid()) { run["start_time"] = exp.getDateTime().toString("yyyy-MM-ddThh:mm:ss"); } // ISO 8601
       if (!run.empty()) { root["run"] = run; }
       json::array source_files;
       Size k = 0;
@@ -930,6 +956,27 @@ namespace OpenMS
         o["id"] = "sf" + std::to_string(k++);
         o["name"] = sf.getNameOfFile();
         o["location"] = sf.getPathToFile();
+        json::array parameters;
+        const auto param = [&parameters](const std::string& accession, const std::string& name, const std::string& value)
+        {
+          json::object p;
+          p["accession"] = accession;
+          p["name"] = name;
+          if (!value.empty()) { p["value"] = value; }
+          parameters.push_back(p);
+        };
+        if (!sf.getChecksum().empty() && sf.getChecksumType() == SourceFile::ChecksumType::SHA1) { param("MS:1000569", "SHA-1", sf.getChecksum()); }
+        else if (!sf.getChecksum().empty() && sf.getChecksumType() == SourceFile::ChecksumType::MD5) { param("MS:1000568", "MD5", sf.getChecksum()); }
+        // the file format and the native ID format as CV terms (as MzMLHandler writes them; a name not in the CV is left out)
+        if (const ControlledVocabulary::CVTerm* term = childWithName("MS:1000560", sf.getFileType())) { param(term->id, term->name, ""); }
+        const ControlledVocabulary::CVTerm* id_term = nullptr;
+        if (!sf.getNativeIDTypeAccession().empty() && ControlledVocabulary::getPSIMSCV().exists(sf.getNativeIDTypeAccession()))
+        {
+          id_term = &ControlledVocabulary::getPSIMSCV().getTerm(sf.getNativeIDTypeAccession());
+        }
+        if (id_term == nullptr) { id_term = childWithName("MS:1000767", sf.getNativeIDType()); }
+        if (id_term != nullptr) { param(id_term->id, id_term->name, ""); }
+        if (!parameters.empty()) { o["parameters"] = parameters; }
         source_files.push_back(o);
       }
       if (!source_files.empty())

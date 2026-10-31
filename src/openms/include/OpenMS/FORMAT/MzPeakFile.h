@@ -38,7 +38,8 @@ namespace OpenMS
     the OpenMP threads of the calling thread (one reader per thread, as the library's thread-safety model requires).
 
     Writing: m/z, intensity, representation, MS level, retention time, polarity, native ID, precursors (isolation window,
-    selected ion, charge, intensity) and the spectrum's ion mobility. Not written (yet): per-peak ion mobility arrays,
+    selected ion, charge, intensity) and the spectrum's ion mobility; run-level metadata (run start time, source files
+    with their checksum, file format and native ID format). Not written (yet): per-peak ion mobility arrays,
     activation methods, scan windows, chromatograms and instrument metadata.
 
     @ingroup FileIO

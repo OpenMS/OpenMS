@@ -18,7 +18,9 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <cmath>
@@ -115,6 +117,9 @@ START_SECTION((void load(const std::string& filename, PeakMap& exp)))
   compareSpectra(reference, exp);
   TEST_EQUAL(exp.getSourceFiles().size(), 1) // (FileConverter rewrote the source file when it wrote the fixture)
   TEST_EQUAL(exp.getLoadedFileType(), FileTypes::MZPEAK)
+  // the run's start time, stored as "2007-06-27 15:23:45" (the form store() wrote before it wrote ISO 8601)
+  TEST_EQUAL(exp.getDateTime().isValid(), true)
+  TEST_STRING_EQUAL(exp.getDateTime().get(), "2007-06-27 15:23:45")
   // the options that select spectra: MS level ...
   file.getOptions().addMSLevel(2);
   file.load(OPENMS_GET_TEST_DATA_PATH("MzPeakFile_1.mzpeak"), exp);
@@ -235,6 +240,30 @@ START_SECTION((void store(const std::string& filename, const PeakMap& exp) const
     TEST_EQUAL(exp[i].getPrecursors()[0].metaValueExists("isolation window target m/z"), true)
     TEST_REAL_SIMILAR(double(exp[i].getPrecursors()[0].getMetaValue("isolation window target m/z")), 500.0)
   }
+  // the run's start time and its source file: checksum, file format and native ID format
+  PeakMap with_source = reference;
+  DateTime start;
+  start.set("2007-06-27T15:23:45");
+  with_source.setDateTime(start);
+  SourceFile source;
+  source.setNameOfFile("run.RAW");
+  source.setPathToFile("file:///data");
+  source.setFileType("Thermo RAW format");
+  source.setNativeIDType("Thermo nativeID format");
+  source.setNativeIDTypeAccession("MS:1000768");
+  source.setChecksum("0123456789abcdef0123456789abcdef01234567", SourceFile::ChecksumType::SHA1);
+  with_source.getSourceFiles() = {source};
+  file.store(tmp, with_source);
+  file.load(tmp, exp);
+  TEST_STRING_EQUAL(exp.getDateTime().get(), "2007-06-27 15:23:45")
+  TEST_EQUAL(exp.getSourceFiles().size(), 1)
+  ABORT_IF(exp.getSourceFiles().size() != 1)
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNameOfFile(), "run.RAW")
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "0123456789abcdef0123456789abcdef01234567")
+  TEST_EQUAL(static_cast<int>(exp.getSourceFiles()[0].getChecksumType()), static_cast<int>(SourceFile::ChecksumType::SHA1))
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getFileType(), "Thermo RAW format")
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNativeIDType(), "Thermo nativeID format")
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNativeIDTypeAccession(), "MS:1000768")
   // a failed write leaves the archive that was there (the new one is written beside it and moved when finished)
   file.store(tmp, reference);
   PeakMap bad = reference;
@@ -330,6 +359,22 @@ START_SECTION([EXTRA] a file of the reference implementation)
   TEST_EQUAL(exp.getChromatograms()[0].size(), 48)
   TEST_EQUAL(static_cast<int>(exp.getChromatograms()[0].getChromatogramType()), static_cast<int>(ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM))
   TEST_REAL_SIMILAR(exp.getChromatograms()[0][0].getRT(), 0.2961)
+  // the run's start time (ISO 8601 with zone: "2005-07-20T19:44:22Z") and source file (by its CV terms)
+  TEST_STRING_EQUAL(exp.getDateTime().get(), "2005-07-20 19:44:22")
+  TEST_EQUAL(exp.getSourceFiles().size(), 1)
+  ABORT_IF(exp.getSourceFiles().size() != 1)
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNameOfFile(), "small.RAW")
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getFileType(), "Thermo RAW format")
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNativeIDType(), "Thermo nativeID format")
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNativeIDTypeAccession(), "MS:1000768")
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "b43e9286b40e8b5dbc0dfa2e428495769ca96a96")
+  // FileHandler with rewrite_source_file (and no hash): the source file is the archive, without the checksum recorded
+  // for small.RAW
+  FileHandler().loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzPeakFile_small.mzpeak"), exp, {FileTypes::MZPEAK}, ProgressLogger::NONE, true, false);
+  TEST_EQUAL(exp.getSourceFiles().size(), 1)
+  ABORT_IF(exp.getSourceFiles().size() != 1)
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNameOfFile(), "MzPeakFile_small.mzpeak")
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "")
 }
 END_SECTION
 
