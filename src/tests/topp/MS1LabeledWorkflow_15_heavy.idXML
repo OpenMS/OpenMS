@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="MS1LabeledWorkflow_15.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		<VariableModification name="Dimethyl (N-term)" />
+		<VariableModification name="Dimethyl:2H(4) (N-term)" />
+		<VariableModification name="Dimethyl:2H(6)13C(2) (N-term)" />
+	</SearchParameters>
+	<IdentificationRun date="0000-00-00T00:00:00" search_engine="synthetic" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
+			<ProteinHit id="PH_0" accession="PROT_T" score="0.0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="PROT_D" score="0.0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="PROT_Q" score="0.0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="PROT_C" score="0.0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="PROT_A" score="0.0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="PROT_B" score="0.0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="PROT_E" score="0.0" sequence="" >
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[MS1LabeledWorkflow_15_input.mzML]"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="717.873883" RT="150.5" spectrum_reference="scan=51" >
+			<PeptideHit score="1.0e-03" sequence=".(Dimethyl:2H(6)13C(2))SVEDLAFGNYQR" charge="2" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="582.306395" RT="250.5" spectrum_reference="scan=151" >
+			<PeptideHit score="1.0e-03" sequence=".(Dimethyl)GDVTALFEQR" charge="2" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="578.785295" RT="250.5" spectrum_reference="scan=151" >
+			<PeptideHit score="2.0e-03" sequence=".(Dimethyl)FTDNTDLFR" charge="2" protein_refs="PH_2" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="1261.595343" RT="320.5" spectrum_reference="scan=221" >
+			<PeptideHit score="1.0e-03" sequence=".(Dimethyl)SVEDLAFGNYQSVEDLAFGNYR" charge="2" protein_refs="PH_3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="1315.142657" RT="390.5" spectrum_reference="scan=291" >
+			<PeptideHit score="1.0e-03" sequence=".(Dimethyl)SVEDLAFGNYQGEDVTALFEQLR" charge="2" protein_refs="PH_4" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="1258.600625" RT="460.5" spectrum_reference="scan=361" >
+			<PeptideHit score="1.0e-03" sequence=".(Dimethyl)SVEDLAFGNYQGEDVTALFEQR" charge="2" protein_refs="PH_5" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="1205.109339" RT="530.5" spectrum_reference="scan=431" >
+			<PeptideHit score="1.0e-03" sequence=".(Dimethyl:2H(6)13C(2))TALFEQLSVEDLAFGNYQGDR" charge="2" protein_refs="PH_6" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

@@ -374,7 +374,9 @@ protected:
       "MS1 peaks at the m/z it has in every channel: over the elution peak at the identification, the identified channel is integrated, and\n"
       "every other channel is measured against it from paired peaks (absent if it shows no signal, not quantifiable if another signal occupies\n"
       "its position). The identified channel has to show its first two isotopes in at least three spectra and an isotope pattern that fits\n"
-      "the peptide ('algorithm:averagine_similarity'). Such features and their identifications carry the meta value 'quantification_method'\n"
+      "the peptide ('algorithm:averagine_similarity'). A lower channel's isotope in a channel's peak (unresolved: the same centroid, e.g. the\n"
+      "light M+4 in a Dimethyl4 or Lys4 channel) is subtracted, estimated from that channel's monoisotopic peak; a channel whose peaks are\n"
+      "mostly (20 % or more) such isotopes is not quantifiable. Such features and their identifications carry the meta value 'quantification_method'\n"
       "= 'targeted'. Peptides quantified by a multiplet in the run, identifications on a channel of another peptide's multiplet, decoys and\n"
       "identifications whose labels fit no pattern are not measured; of identifications of different peptides on one signal, only the best one is.\n"
       "false: such identifications are kept for protein inference only.", false);
@@ -1745,7 +1747,7 @@ protected:
   static constexpr Size min_targeted_paired_spectra_ = 2;
   /// A peak one isotope below the identified channel above this fraction of its monoisotopic peak belongs to another envelope (as in the detection)
   static constexpr double targeted_lower_isotope_fraction_ = 0.3;
-  /// A channel's peak is left out if an isotope of another channel is expected to make up at least this fraction of it
+  /// A channel's peak is left out (the identified channel's: its intensity is not reported) if isotopes of other channels are expected to make up at least this fraction of it
   static constexpr double targeted_other_isotope_fraction_ = 0.2;
 
   /// An unassigned identification that the targeted quantification may measure
@@ -1796,49 +1798,60 @@ protected:
                          || (c != own && k >= 0.0 && std::abs(lower_mz - candidate.mzs[c] - k * spacing) <= 2.0 * detectionMZTolerance_(lower_mz));
     }
 
-    // A peak of channel c can hold an isotope (k >= 1, up to the isotopes the detection assigns to a channel) of another channel
-    // (e.g. a Lys4 channel on the light channel's M+4). That isotope's part of it is estimated from the other channel's
-    // monoisotopic peak in the spectrum and the peptide's isotope distribution: the peak is left out if it is a substantial part
-    // (targeted_other_isotope_fraction_), else subtracted (e.g. a Dimethyl8 channel on the Dimethyl4 channel's M+4, a few percent).
+    // A peak of channel c can hold an isotope (k >= 1, up to the isotopes the detection assigns to a channel) of a lower channel o
+    // (see quantifyTargeted_()): it does if the peak is also the nearest one to the isotope's m/z within twice the detection's m/z
+    // tolerance (the window in which MultiplexFiltering looks for peaks of another envelope), i.e. the two are one centroid; a
+    // resolved isotope has a centroid of its own, nearer to its m/z. Its part is o's monoisotopic peak, without the isotopes of the
+    // channels below o (hence the correction in ascending m/z), times I_k/I_0 of the peptide's isotope distribution.
     const std::string isotopes_per_peptide = getParam_().getValue("algorithm:isotopes_per_peptide").toString();
     const Size max_isotope = std::max(StringUtils::toInt32(StringUtils::prefix(isotopes_per_peptide, ':')),
                                       StringUtils::toInt32(StringUtils::suffix(isotopes_per_peptide, ':'))) - 1;
     const IsotopeDistribution theoretical = hit.getSequence().getFormula().getIsotopeDistribution(
       CoarseIsotopePatternGenerator(std::max(targeted_isotopes_, max_isotope + 1)));
-    auto isotope_of_other = [&](Size c, double mz, const vector<double>& monoisotopic)
+    vector<Size> ascending_mz(n_channels);
+    std::iota(ascending_mz.begin(), ascending_mz.end(), Size(0));
+    std::sort(ascending_mz.begin(), ascending_mz.end(), [&](Size a, Size b) { return candidate.mzs[a] < candidate.mzs[b]; });
+    // the expected part of the lower channels' isotopes in peak @p index of @p spectrum, found for channel @p c
+    auto isotopes_of_others = [&](const MSSpectrum& spectrum, Size c, Int index, const vector<double>& monoisotopic)
     {
       double expected = 0.0;
       for (Size o = 0; o < n_channels; ++o)
       {
-        const double k = std::round((mz - candidate.mzs[o]) / spacing);
-        if (o != c && monoisotopic[o] > 0.0 && k >= 1.0 && k <= static_cast<double>(max_isotope) && static_cast<Size>(k) < theoretical.size()
-            && std::abs(mz - candidate.mzs[o] - k * spacing) <= detectionMZTolerance_(mz))
+        const double k = std::round((spectrum[index].getMZ() - candidate.mzs[o]) / spacing);
+        if (o == c || !(monoisotopic[o] > 0.0) || k < 1.0 || k > static_cast<double>(max_isotope) || static_cast<Size>(k) >= theoretical.size())
         {
-          expected += monoisotopic[o] * theoretical[static_cast<Size>(k)].getIntensity() / theoretical[0].getIntensity();
+          continue;
         }
+        const double isotope_mz = candidate.mzs[o] + k * spacing;
+        if (spectrum.findNearest(isotope_mz, 2.0 * detectionMZTolerance_(isotope_mz)) != index) { continue; }
+        expected += monoisotopic[o] * theoretical[static_cast<Size>(k)].getIntensity() / theoretical[0].getIntensity();
       }
       return expected;
     };
 
     // per channel, isotope and spectrum of the window: the nearest peak (0 if none, or if it belongs to another peptide or channel),
-    // without the part of another channel's isotope
+    // without the expected part of the other channels' isotopes; a peak of another channel than the identified one is left out if
+    // that part is at least targeted_other_isotope_fraction_ of it, the identified channel's peaks (the reference) are kept
     vector<double> rts;
     vector<vector<vector<double>>> intensity(n_channels, vector<vector<double>>(targeted_isotopes_));
     vector<vector<char>> reserved(n_channels); // a peak of the first two isotopes belongs to another peptide or channel
     struct ReadOwner { Size spectrum, channel, isotope; UInt64 owner; };
     vector<ReadOwner> read_owners; // the reserved peaks read
     vector<char> lower_envelope;
-    vector<double> monoisotopic(n_channels); // per channel: the peak at its m/z in the spectrum (0 if none)
+    vector<char> own_mostly_other; // a peak of the identified channel's first two isotopes is mostly another channel's isotope
+    vector<double> monoisotopic(n_channels); // per channel: its peak at its m/z in the spectrum without the lower channels' isotopes
     for (auto it = centroided.RTBegin(candidate.rt - rt_typical); it != centroided.RTEnd(candidate.rt + rt_typical); ++it)
     {
       if (compensationVoltage_(*it) != candidate.cv) { continue; }
       const MSSpectrum* black = blacklistSpectrum_(blacklist, *it, candidate.cv);
       rts.push_back(it->getRT());
-      for (Size c = 0; c < n_channels; ++c)
+      std::fill(monoisotopic.begin(), monoisotopic.end(), 0.0);
+      for (Size c : ascending_mz)
       {
         const Int index = it->findNearest(candidate.mzs[c], detectionMZTolerance_(candidate.mzs[c]));
-        monoisotopic[c] = index >= 0 ? (*it)[index].getIntensity() : 0.0;
+        if (index >= 0) { monoisotopic[c] = std::max(0.0, (*it)[index].getIntensity() - isotopes_of_others(*it, c, index, monoisotopic)); }
       }
+      own_mostly_other.push_back(false);
       for (Size c = 0; c < n_channels; ++c)
       {
         reserved[c].push_back(false);
@@ -1851,11 +1864,13 @@ protected:
           bool other = index >= 0
                        && ((c != own && candidate.on_other_multiplet[c])
                            || (reserved_index >= 0 && occupied(*black, static_cast<Size>(reserved_index))));
-          if (index >= 0 && !other && c != own)
+          if (index >= 0 && !other)
           {
-            const double expected = isotope_of_other(c, (*it)[index].getMZ(), monoisotopic);
-            other = expected > 0.0 && expected >= targeted_other_isotope_fraction_ * value;
-            value -= expected;
+            const double expected = isotopes_of_others(*it, c, index, monoisotopic);
+            const bool mostly_other = expected > 0.0 && expected >= targeted_other_isotope_fraction_ * value;
+            value = std::max(0.0, value - expected);
+            if (c != own) { other = mostly_other; }
+            else if (mostly_other && k < 2) { own_mostly_other.back() = true; }
           }
           intensity[c][k].push_back(index >= 0 && !other ? value : 0.0);
           if (other && k < 2) { reserved[c].back() = true; }
@@ -1917,11 +1932,12 @@ protected:
 
     // the identified channel is the reference, measured where its first two isotopes are seen without another envelope below
     vector<vector<double>> reference(targeted_isotopes_, vector<double>(rts.size(), 0.0));
-    Size clean = 0;
+    Size clean = 0, mostly_own = 0; // mostly_own: of them, spectra in which its first two isotopes are not mostly another channel's isotope
     for (Size i = first; i <= last; ++i)
     {
       if (!(intensity[own][0][i] > 0.0) || !(intensity[own][1][i] > 0.0) || lower_envelope[i]) { continue; }
       ++clean;
+      mostly_own += !own_mostly_other[i];
       for (Size k = 0; k < targeted_isotopes_; ++k) { reference[k][i] = intensity[own][k][i]; }
     }
     if (clean < min_targeted_reference_spectra_) { return TargetedOutcome_::NO_SIGNAL; }
@@ -1969,7 +1985,8 @@ protected:
     };
     const vector<double> reference_profile = profile(intensity[own]);
     peak.intensities.assign(n_channels, 0.0);
-    peak.intensities[own] = reference_intensity;
+    // not quantifiable itself if its peaks are mostly another channel's isotope (as another channel's would be left out)
+    peak.intensities[own] = mostly_own >= min_targeted_reference_spectra_ ? reference_intensity : std::numeric_limits<double>::quiet_NaN();
     for (Size c = 0; c < n_channels; ++c)
     {
       if (c == own) { continue; }
@@ -2019,22 +2036,35 @@ protected:
 
     Around each identification (+/- 'algorithm:rt_typical'), the first isotopic peaks of every channel are taken from the spectra
     the detection worked on (nearest peak within 'algorithm:mz_tolerance', same CV). Left out are the peaks the detection reserved
-    for a multiplet of another identified peptide (it is quantified there), a channel's peaks of which an isotope of another
-    channel makes up at least targeted_other_isotope_fraction_ (estimated from that channel's monoisotopic peak and the peptide's
-    isotope distribution, e.g. a Lys4 channel on the light channel's M+4; a smaller part is subtracted, e.g. a Dimethyl8 channel on
-    the Dimethyl4 channel's M+4), and the peaks of an unidentified multiplet (of @p multiplets, the detected ones) that cannot be
-    the peptide (other charge or CV, or a channel not at one of the peptide's). Unlike in the re-quantification, the peaks of other
-    unidentified multiplets are used, since they can be the peptide itself, detected without its identification mapping onto it.
-    The elution peak is taken from the sum of the channels' first two isotopes (ElutionPeakDetection: smoothed and split at
-    minima): the one containing the identification, else the nearest within 'id_mapping:rt_tolerance'.
+    for a multiplet of another identified peptide (it is quantified there) and the peaks of an unidentified multiplet (of
+    @p multiplets, the detected ones) that cannot be the peptide (other charge or CV, or a channel not at one of the peptide's).
+    Unlike in the re-quantification, the peaks of other unidentified multiplets are used, since they can be the peptide itself,
+    detected without its identification mapping onto it.
+
+    A channel's peak can also hold an isotope (M+1 up to M+n, n + 1 the maximum of 'algorithm:isotopes_per_peptide') of a lower
+    channel, e.g. a Dimethyl4 or Lys4 channel the light channel's M+4 (0.0117 Da away), a Dimethyl8 channel the Dimethyl4 channel's
+    M+4 (0.0059 Da). The isotope counts as part of the peak if the peak is also the nearest one to the isotope's m/z within twice
+    'algorithm:mz_tolerance' (the window in which the detection looks for peaks of another envelope): the two are one centroid,
+    unresolved, while a resolved isotope has a centroid of its own. Its part is the lower channel's monoisotopic peak in the
+    spectrum times I_k/I_0 of the identified sequence's isotope distribution; that monoisotopic peak is itself taken without the
+    isotopes of the channels below it (the channels are corrected in ascending m/z, so that e.g. the light M+4 in the Dimethyl4
+    peak is not taken for Dimethyl4 when its M+4 is taken off the Dimethyl8 peak). The part is subtracted from the peak; a peak of
+    another channel than the identified one is left out instead if the part is at least targeted_other_isotope_fraction_ of it
+    (the estimate's error would be a substantial part of what is left, e.g. a Lys4 channel on the M+4 of a much stronger light
+    channel). The elution peak is taken from the sum of the channels' first two isotopes (ElutionPeakDetection: smoothed and split
+    at minima): the one containing the identification, else the nearest within 'id_mapping:rt_tolerance'.
 
     Within its boundaries, the identified channel is the reference. It needs its first two isotopes in at least
     min_targeted_reference_spectra_ spectra (not counting those with a strong peak one isotope below, i.e. another envelope, as
     in the detection) and an isotope pattern that fits the identified sequence (Pearson >= 'algorithm:averagine_similarity');
-    its intensity is the trapezoid area of its isotopic traces, as the detection integrates them. Every other channel is measured
-    against it from paired peaks (pairedIntensity_), and reported if it co-elutes (Pearson of the isotope-summed profiles >=
-    'algorithm:peptide_similarity'); otherwise it is absent (0) if nothing is there, and not quantifiable (left out) if something
-    else, or a peak left out above, is.
+    its intensity is the trapezoid area of its isotopic traces, as the detection integrates them. Its peaks keep their place as
+    the reference also where another channel's isotope makes up at least targeted_other_isotope_fraction_ of them (only the
+    subtracted part's error is then not small; the other channels' paired intensities scale with the reference and do not depend
+    on a constant error of it), but its own intensity is then reported not quantifiable, unless min_targeted_reference_spectra_ of
+    its spectra are free of that, so that the same data give the same values whichever channel was identified. Every other channel
+    is measured against it from paired peaks (pairedIntensity_), and reported if it co-elutes (Pearson of the isotope-summed
+    profiles >= 'algorithm:peptide_similarity'); otherwise it is absent (0) if nothing is there, and not quantifiable (left out)
+    if something else, or a peak left out above, is.
 
     Targeted peaks of different peptides that read the same peaks (the identified channel of one at a measured channel of the
     other, same charge and CV, overlapping boundaries; e.g. isomers, or a wrong identification next to a right one) are one signal:
@@ -2288,7 +2318,7 @@ protected:
       kept_references.emplace(s.mzs[s.own], i);
     }
 
-    Size used = 0, measured_channels = 0, absent_channels = 0, not_quantifiable = 0;
+    Size used = 0, measured_channels = 0, absent_channels = 0, not_quantifiable = 0, identified_not_quantifiable = 0;
     vector<ConsensusFeature> features;
     vector<bool> moved(unassigned.size(), false);
     std::unordered_set<UInt64> read_owners; // features whose reserved peaks entered the targeted features
@@ -2309,6 +2339,7 @@ protected:
           else if (intensity > 0.0) { ++measured_channels; }
           else { ++absent_channels; }
         }
+        else if (std::isnan(intensity)) { ++identified_not_quantifiable; }
         if (std::isnan(intensity)) { continue; }
         FeatureHandle handle;
         handle.setMapIndex(c);
@@ -2379,6 +2410,11 @@ protected:
                     << " on the signal of a better identification of another peptide, " << no_signal << " without a clean elution peak of the "
                     << "identified channel, " << isotope_pattern << " whose isotope pattern does not fit, " << no_pattern << " whose labels fit no "
                     << "pattern, " << decoys << " decoy(s)." << endl;
+    if (identified_not_quantifiable > 0)
+    {
+      OPENMS_LOG_INFO << "Of the targeted features, " << identified_not_quantifiable << " report their identified channel as not quantifiable: "
+                      << "another channel's isotope makes up a substantial part of its peaks (the other channels are measured against them)." << endl;
+    }
     if (replaced > 0)
     {
       OPENMS_LOG_INFO << replaced << " unidentified multiplet(s) kept for match between runs were replaced by the targeted feature(s) measured "
