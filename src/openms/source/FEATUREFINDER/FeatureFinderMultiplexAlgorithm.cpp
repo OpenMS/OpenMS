@@ -56,6 +56,8 @@ namespace OpenMS
     /*
       The provisional id of the feature each blacklisted peak was reserved for (0: none), aligned with the blacklist: the
       feature of the channel of the peak's mass trace, in the multiplet of the cluster of the filtered peak that reserved it.
+      Of a peak reserved more than once, the first filtered peak counts if its multiplet was reported, else the last one: a
+      later pattern whose RT band reaches over a reported multiplet's peaks and that is dropped leaves them to that multiplet.
     */
     std::vector<std::vector<UInt64>> provisionalOwners(const std::vector<std::vector<MultiplexFiltering::BlacklistOwner>>& owners,
                                                        const std::vector<MultiplexFilteredMSExperiment>& filter_results,
@@ -79,20 +81,21 @@ namespace OpenMS
         }
       }
 
+      auto id_of = [&](const MultiplexFiltering::BlacklistWriter& writer) -> UInt64
+      {
+        if (writer.pattern_idx >= ids_of_peak.size() || writer.peak_idx >= ids_of_peak[writer.pattern_idx].size() || writer.mass_trace < 0) { return 0; }
+        const std::vector<UInt64>* ids = ids_of_peak[writer.pattern_idx][writer.peak_idx];
+        const Size channel = static_cast<Size>(writer.mass_trace) / isotopes_per_peptide_max;
+        return (ids != nullptr && channel < ids->size()) ? (*ids)[channel] : 0;
+      };
       std::vector<std::vector<UInt64>> provisional(owners.size());
       for (Size s = 0; s < owners.size(); ++s)
       {
         provisional[s].reserve(owners[s].size());
         for (const MultiplexFiltering::BlacklistOwner& owner : owners[s])
         {
-          UInt64 id = 0;
-          if (owner.pattern_idx < ids_of_peak.size() && owner.peak_idx < ids_of_peak[owner.pattern_idx].size() && owner.mass_trace >= 0)
-          {
-            const std::vector<UInt64>* ids = ids_of_peak[owner.pattern_idx][owner.peak_idx];
-            const Size channel = static_cast<Size>(owner.mass_trace) / isotopes_per_peptide_max;
-            if (ids != nullptr && channel < ids->size()) { id = (*ids)[channel]; }
-          }
-          provisional[s].push_back(id);
+          const UInt64 id = id_of(owner.first);
+          provisional[s].push_back(id != 0 ? id : id_of(owner.last));
         }
       }
       return provisional;

@@ -4930,7 +4930,7 @@ add_test("TOPP_MS1LabeledWorkflow_11_default" ${TOPP_BIN_PATH}/MS1LabeledWorkflo
 add_test("TOPP_MS1LabeledWorkflow_11_default_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_default.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_default_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_11_default_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_default")
 
-# Without -join_channels, YVNDLAGHEK's channels in MS1LabeledWorkflow_9 stay two partial multiplets, each identified. Each one's
+# With -join_channels false, YVNDLAGHEK's channels in MS1LabeledWorkflow_9 stay two partial multiplets, each identified. Each one's
 # missing channel lies on the other's reserved peaks, i.e. on another multiplet of the same peptide, which quantifies them: not
 # quantifiable (no value), rather than re-quantified from them, which would count the peptide's signal twice.
 add_test("TOPP_MS1LabeledWorkflow_9_default" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
@@ -4940,6 +4940,7 @@ add_test("TOPP_MS1LabeledWorkflow_9_default" ${TOPP_BIN_PATH}/MS1LabeledWorkflow
   -labels "[][Lys8,Arg10]"
   -proteinFDR 1.0
   -ratios:min_ratio_count 1
+  -join_channels false
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_9_default.tmp.consensusXML)
 set_tests_properties("TOPP_MS1LabeledWorkflow_9_default" PROPERTIES PASS_REGULAR_EXPRESSION "Blacklist with owners: 4 of 4 missing channel.s. and 0 of 0 channel.s. added for identifications are not quantifiable .2 occupied by another identified peptide, 2 by another multiplet of the same peptide, 0 only by unidentified multiplets.")
 add_test("TOPP_MS1LabeledWorkflow_9_default_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_9_default.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_9_default_out.consensusXML )
@@ -4996,14 +4997,16 @@ set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_mbr_out1" PROPERTIES D
 # Reserved peaks in the re-quantification: MS1LabeledWorkflow_12 is a synthetic triple SILAC run (2+, one MS1 spectrum per second)
 # whose isotope peaks sit at their measured (fine-structure averaged) positions:
 #   SAGLEVDNVLGTSLEAPYNAPLLEK (2599 Da, one K), light only: its medium m/z lies 5.4 ppm from the light channel's M+4, which the light
-#     channel reserved. The medium channel is absent (0), not measured from the light channel's own isotopes.
+#     channel reserved. The medium channel is not measured from the light channel's own isotopes, and since they occupy its position
+#     its absence cannot be told: not quantifiable (no value).
 #   YVNDLAGHEK 1:1:1.
 #   LVNELTEFAK, heavy only and identified by a heavy spectrum; its light channel appears in two spectra at the apex, where the
 #     detection reserves it for a light+heavy pattern that it then drops (shorter than algorithm:rt_min). Those peaks belong to no
 #     reported feature: the light channel is re-quantified from them (H/L 2).
 #   TPELGSVDNALAYNGLSVEPLTAEK (2587 Da, one K), light : heavy 1 : 0.02, the heavy channel detected around the apex only: a light+heavy
 #     multiplet with a light-only flank merged into it. Its medium m/z lies on light M+4 peaks of the multiplet and of the flank, which
-#     count as its own (the flank's are remapped to it): absent (0), not vetoed as peaks of an unidentified multiplet.
+#     count as its own (the flank's are remapped to it): not vetoed as peaks of an unidentified multiplet, and not quantifiable (no value)
+#     like SAGLEVDNVLGTSLEAPYNAPLLEK's.
 add_test("TOPP_MS1LabeledWorkflow_12_reserved" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_12_input.mzML
   -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_12.idXML
@@ -5072,6 +5075,43 @@ add_test("TOPP_MS1LabeledWorkflow_13_targeted_mbr" ${TOPP_BIN_PATH}/MS1LabeledWo
 set_tests_properties("TOPP_MS1LabeledWorkflow_13_targeted_mbr" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_13_mbr_prepare" PASS_REGULAR_EXPRESSION "1 multiplet.s. are unidentified, 1 of them kept for match between runs" FAIL_REGULAR_EXPRESSION "replaced by the targeted feature")
 add_test("TOPP_MS1LabeledWorkflow_13_targeted_mbr_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_13_targeted_mbr.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_13_targeted_mbr_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_13_targeted_mbr_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_13_targeted_mbr")
+
+# With -requantify false the resolver does not use the owners of reserved peaks (legacy check): LVNELTEFAK's light channel in
+# MS1LabeledWorkflow_12 lies on reserved peaks of a dropped pattern and is not quantifiable (no value). With owners it would be
+# left at 0 for a re-quantification that does not run, i.e. reported as absent. (The medium channels of SAGLEVDNVLGTSLEAPYNAPLLEK and
+# TPELGSVDNALAYNGLSVEPLTAEK are 0: the legacy check only looks at and above their m/z, the light M+4 lies below.)
+add_test("TOPP_MS1LabeledWorkflow_12_no_requantify" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_12_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_12.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_12.fasta
+  -labels "[][Lys4,Arg6][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -requantify false
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_12_no_requantify.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_12_no_requantify" PROPERTIES PASS_REGULAR_EXPRESSION "1 channel value.s. of completed multiplets are not quantifiable" FAIL_REGULAR_EXPRESSION "Blacklist with owners")
+add_test("TOPP_MS1LabeledWorkflow_12_no_requantify_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_12_no_requantify.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_12_no_requantify_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_12_no_requantify_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_12_no_requantify")
+
+# The join (default -join_channels) next to other signals: MS1LabeledWorkflow_14 is a synthetic SILAC duplex (2+, one MS1 spectrum per
+# second, Gaussian elution, light identifications; a channel's third and fourth isotopes alternate with the other channel's while both
+# elute, so each is detected on its own):
+#   LSEFDGTVK 1:1; the heavy channel stops earlier, so it is re-measured against the light one over the light's longer region. There
+#     a stronger unidentified species elutes whose second to fourth isotopes lie at the heavy channel's first three. Its multiplet
+#     reserved those peaks, so they are not used: H/L ~1 (with them ~1.25).
+#   VNDLYGSAK: its identification maps onto another species 12 ppm above its light m/z (the only multiplet it maps onto), which does
+#     not fit the light channel within the detection's tolerance: not joined to the exact heavy partial multiplet next to it.
+add_test("TOPP_MS1LabeledWorkflow_14_join" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_14_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_14.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_14.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_14_join.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_14_join" PROPERTIES PASS_REGULAR_EXPRESSION "1 partial multiplet.s. were found to be other channels of an identified partial multiplet and were joined to it, re-measured over common spectra. 0 such candidate.s. were not joined")
+add_test("TOPP_MS1LabeledWorkflow_14_join_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_14_join.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_14_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_14_join_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_14_join")
 
 # the labels must have been searched as modifications: identifications whose search parameters lack
 # them are refused (with -force the run continues)

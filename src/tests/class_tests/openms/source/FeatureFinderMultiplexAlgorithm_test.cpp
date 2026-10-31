@@ -456,4 +456,83 @@ START_SECTION(([EXTRA] blacklist owners))
 }
 END_SECTION
 
+// With an RT band, a pattern reserves the peaks of its mass traces over their RT range extended by twice the band, also peaks
+// that an earlier pattern reserved. Here the light channel of a doublet outlasts the heavy one: the doublet reserves the light
+// tail up to 2 * rt_band after its last light satellite. A singlet then finds the two spectra of the tail beyond that and is
+// dropped (shorter than rt_min), but its extended traces reach back over the doublet's reserved tail. Those peaks stay the
+// doublet's; only the peaks the singlet alone reserved belong to no reported feature.
+START_SECTION(([EXTRA] blacklist owners: a dropped pattern does not take over the peaks of a reported multiplet))
+{
+  const double lys8 = 8.0141988132, charge = 2.0, rt_band = 5.0;
+  const double mz_light = 600.0, mz_heavy = mz_light + lys8 / charge;
+  const double heavy_end = 125.0, light_end = 141.0;
+  CoarseIsotopePatternGenerator generator(4);
+  std::vector<double> isotopes;
+  for (const Peak1D& peak : generator.estimateFromPeptideWeight(mz_light * charge)) { isotopes.push_back(peak.getIntensity()); }
+
+  MSExperiment exp;
+  for (int i = 0; i < 70; ++i)
+  {
+    const double rt = 90.0 + i;
+    const double elution = std::exp(-0.5 * std::pow((rt - 115.0) / 4.0, 2));
+    MSSpectrum spectrum;
+    spectrum.setMSLevel(1);
+    spectrum.setRT(rt);
+    spectrum.setType(SpectrumSettings::SpectrumType::CENTROID);
+    for (Size k = 0; k < isotopes.size(); ++k)
+    {
+      const double light = rt <= light_end ? 1e6 * std::max(elution, rt > 115.0 ? 0.3 : 0.0) * isotopes[k] : 0.0;
+      const double heavy = rt <= heavy_end ? 1e6 * elution * isotopes[k] : 0.0;
+      if (light > 2000.0) { spectrum.push_back(Peak1D(mz_light + k * Constants::C13C12_MASSDIFF_U / charge, light)); }
+      if (heavy > 2000.0) { spectrum.push_back(Peak1D(mz_heavy + k * Constants::C13C12_MASSDIFF_U / charge, heavy)); }
+    }
+    spectrum.sortByPosition();
+    exp.addSpectrum(spectrum);
+  }
+  exp.updateRanges();
+
+  FeatureFinderMultiplexAlgorithm algorithm;
+  Param param = algorithm.getParameters();
+  param.setValue("algorithm:labels", "[][Lys8]");
+  param.setValue("algorithm:charge", "2:2");
+  param.setValue("algorithm:isotopes_per_peptide", "3:4");
+  param.setValue("algorithm:rt_band", rt_band);
+  param.setValue("algorithm:knock_out", "true");
+  algorithm.setParameters(param);
+  MSExperiment input = exp;
+  algorithm.run(input, false);
+
+  // the doublet only (the singlet on the tail is dropped)
+  const ConsensusMap& multiplets = algorithm.getConsensusMap();
+  TEST_EQUAL(multiplets.size(), 1)
+  ABORT_IF(multiplets.size() != 1)
+  TEST_EQUAL(multiplets[0].size(), 2)
+  ABORT_IF(multiplets[0].size() != 2)
+  const UInt64 light_id = multiplets[0].getFeatures().begin()->getUniqueId();
+  double last_satellite = 0.0; // of the light channel
+  for (const Feature& feature : algorithm.getFeatureMap())
+  {
+    if (feature.getUniqueId() == light_id) { last_satellite = feature.getConvexHull().getBoundingBox().maxX(); }
+  }
+  TEST_EQUAL(last_satellite > heavy_end && last_satellite + 2 * rt_band < light_end, true)
+
+  // light peaks up to 2 * rt_band after the last satellite are the doublet's, the rest (the singlet's own) are orphans
+  Size doublet = 0, orphans = 0, wrong = 0;
+  const MSExperiment& blacklist = algorithm.getBlacklist();
+  for (const MSSpectrum& spectrum : blacklist)
+  {
+    for (Size k = 0; k < spectrum.size(); ++k)
+    {
+      if (spectrum[k].getMZ() > mz_heavy - 0.1) { continue; }
+      const UInt64 owner = MultiplexResolverAlgorithm::blacklistOwner(spectrum, k);
+      if (spectrum.getRT() <= last_satellite + 2 * rt_band) { doublet += (owner == light_id); wrong += (owner != light_id); }
+      else { orphans += (owner == UniqueIdInterface::INVALID); wrong += (owner != UniqueIdInterface::INVALID); }
+    }
+  }
+  TEST_NOT_EQUAL(doublet, 0)
+  TEST_NOT_EQUAL(orphans, 0)
+  TEST_EQUAL(wrong, 0)
+}
+END_SECTION
+
 END_TEST

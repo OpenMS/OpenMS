@@ -131,7 +131,7 @@ namespace OpenMS
       FeatureFinderMultiplexAlgorithm records which feature reserved each blacklisted peak, as two integer data
       arrays aligned with the peaks of each blacklist spectrum: @c owner_unique_id_high and @c owner_unique_id_low,
       the upper and lower 32 bits of the feature's unique id (an integer data array holds 32-bit values). 0 in
-      both means that no reported feature owns the peak (its multiplet was dropped after the peak was reserved).
+      both means that no reported feature owns the peak (the multiplets it was reserved for were dropped after it was reserved).
       The arrays survive mzML files (as non-standard data arrays).
     */
     ///@{

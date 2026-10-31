@@ -163,8 +163,8 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      peptidoform, which carries the label, since the precursor m/z can be that of another isotopic peak. An
      identification of a channel the detection did not find (too weak) joins a partial multiplet detected in the
      peptide's other channels, at the m/z the peptide has there; its own channel is then re-quantified. With
-     @p join_channels, the channels of an identified peptide that the detection found as separate partial multiplets (no
-     spectrum held its complete pattern) are joined into one multiplet, and re-measured against its most intense channel
+     @p join_channels (default), the channels of an identified peptide that the detection found as separate partial multiplets
+     (no spectrum held its complete pattern) are joined into one multiplet, and re-measured against its most intense channel
      from paired peaks over their common elution region, because each partial multiplet was quantified over other spectra.
   -# Per run: reduction to one identification per multiplet - preferring identifications whose labels agree with
      the multiplet's mass shifts over better-scoring ones that do not - and consolidation of quantitative and
@@ -176,7 +176,8 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      of the multiplet, like MaxQuant's re-quantify, and reported as absent only if it shows no signal there. The
      detection records which feature reserved each peak: only peaks of another multiplet (also one of the same peptide,
      which is quantified on its own) make such a channel not quantifiable, and of the reserved peaks it uses only those
-     of patterns the detection dropped, not the isotopes of the multiplet's other channels. With
+     of patterns the detection dropped, not the isotopes of the multiplet's other channels; a channel that only the peaks
+     it may not use would give a value is not quantifiable either. With
      @p targeted_quantification, an identified peptide that has no multiplet in
      the run (the detection missed it, or no multiplet fits its identifications) is measured at the m/z of its channels over
      the elution peak at its identification: the identified channel is integrated (if its isotope pattern fits the peptide),
@@ -354,17 +355,18 @@ protected:
       "true: a channel of an identified multiplet that the detection did not find (see 'algorithm:knock_out') is re-quantified from the\n"
       "MS1 peaks at its expected position over the elution region of the multiplet, relative to the most intense detected channel (like\n"
       "MaxQuant's 're-quantify'). It is reported as absent (0) only if its first two isotopic traces are not seen together in at least\n"
-      "two spectra there.\n"
+      "two spectra there, and as not quantifiable if they are seen only on peaks reserved for other features or channels.\n"
       "false: such channels are reported as absent.", false);
     setValidStrings_("requantify", {"true", "false"});
 
-    registerStringOption_("join_channels", "<option>", "false",
+    registerStringOption_("join_channels", "<option>", "true",
       "true: when the detection found the channels of an identified peptide as separate partial multiplets (see 'algorithm:knock_out'),\n"
       "they are joined into one multiplet: partial multiplets at the m/z the peptide has in its missing channels (within 'algorithm:mz_tolerance'),\n"
       "of the same charge and CV, eluting at the identification and identified as the same peptide or not at all. The joined channels are\n"
       "re-measured against the most intense one from paired peaks over their common elution region, since the two partial multiplets were\n"
       "quantified over different spectra; a candidate with fewer than six spectra of paired peaks is not joined.\n"
-      "false: such partial multiplets are quantified separately.", false);
+      "false: such partial multiplets are quantified separately (a missing channel that lies on another multiplet of the same peptide is\n"
+      "then not quantifiable).", false);
     setValidStrings_("join_channels", {"true", "false"});
 
     registerStringOption_("targeted_quantification", "<option>", "false",
@@ -1607,8 +1609,10 @@ protected:
     the reference channel at @p reference_mz, in the spectra of @p cv between @p rt_lo and @p rt_hi, within the detection's
     m/z tolerance (pairedIntensity_). (An integral of the weak channel on its own would miss the flanks and isotopes that fall
     below the intensity cutoff and be biased low.) A peak that a detected pattern reserved (@p blacklist) is not used for the
-    channel if @p skip_reserved says so (it gets the blacklist spectrum and the index of the peak in it). If @p paired_spectra
-    is given, it is set to the number of spectra in which at least one peak of the channel was paired with the reference.
+    channel if @p skip_reserved says so (it gets the blacklist spectrum and the index of the peak in it). Returns NaN (not
+    quantifiable) instead of 0 if the channel would have a value with the skipped peaks: they occupy its position, so its
+    absence cannot be told. If @p paired_spectra is given, it is set to the number of spectra in which at least one peak of
+    the channel was paired with the reference.
   */
   double requantifyChannel_(const MSExperiment& spectra, const MSExperiment& blacklist, const std::function<bool(const MSSpectrum&, Size)>& skip_reserved,
                             const std::optional<double>& cv, double rt_lo, double rt_hi, double mz, int charge, Size traces,
@@ -1616,7 +1620,8 @@ protected:
   {
     if (paired_spectra != nullptr) { *paired_spectra = 0; }
     if (charge == 0 || traces == 0 || !(reference_intensity > 0.0)) { return 0.0; }
-    vector<vector<double>> channel(traces), reference(traces);
+    vector<vector<double>> channel(traces), occupied(traces), reference(traces); // occupied: with the skipped peaks
+    bool skipped = false;
     for (auto it = spectra.RTBegin(rt_lo); it != spectra.RTEnd(rt_hi); ++it)
     {
       if (compensationVoltage_(*it) != cv) { continue; }
@@ -1624,23 +1629,31 @@ protected:
       for (Size k = 0; k < traces; ++k)
       {
         const double shift = static_cast<double>(k) * Constants::C13C12_MASSDIFF_U / charge;
-        double channel_intensity = 0.0, reference_intensity_k = 0.0;
+        double channel_intensity = 0.0, occupied_intensity = 0.0, reference_intensity_k = 0.0;
         const Int index = it->findNearest(mz + shift, detectionMZTolerance_(mz + shift));
-        const Int reserved = (index >= 0 && black != nullptr) ? black->findNearest((*it)[index].getMZ(), 1e-9) : -1;
-        if (index >= 0 && !(reserved >= 0 && skip_reserved(*black, static_cast<Size>(reserved))))
+        if (index >= 0)
         {
-          channel_intensity = (*it)[index].getIntensity();
+          occupied_intensity = (*it)[index].getIntensity();
+          const Int reserved = black != nullptr ? black->findNearest((*it)[index].getMZ(), 1e-9) : -1;
+          if (reserved >= 0 && skip_reserved(*black, static_cast<Size>(reserved))) { skipped = true; }
+          else { channel_intensity = occupied_intensity; }
           const Int ref = it->findNearest(reference_mz + shift, detectionMZTolerance_(reference_mz + shift));
           if (ref >= 0) { reference_intensity_k = (*it)[ref].getIntensity(); }
         }
         channel[k].push_back(channel_intensity);
+        occupied[k].push_back(occupied_intensity);
         reference[k].push_back(reference_intensity_k);
       }
     }
     if (channel[0].empty()) { return 0.0; }
     Size paired = 0;
-    const double intensity = pairedIntensity_(channel, reference, 0, channel[0].size() - 1, reference_intensity, paired);
+    double intensity = pairedIntensity_(channel, reference, 0, channel[0].size() - 1, reference_intensity, paired);
     if (paired_spectra != nullptr) { *paired_spectra = paired; }
+    Size unused = 0;
+    if (!(intensity > 0.0) && skipped && pairedIntensity_(occupied, reference, 0, channel[0].size() - 1, reference_intensity, unused) > 0.0)
+    {
+      intensity = std::numeric_limits<double>::quiet_NaN();
+    }
     return intensity;
   }
 
@@ -1655,7 +1668,8 @@ protected:
     (requantifyChannel_), so that a weak channel still yields a ratio and only a really absent one is reported as 0 (like
     MaxQuant's 're-quantify'). Of the reserved peaks, only those of no reported feature are used if the blacklist records
     @p owners (mayUseReserved_(): the missing channel was not detected, so the multiplet's own reserved peaks at its position
-    are isotopes of its other channels), none without.
+    are isotopes of its other channels), none without. A channel that has no value only because such peaks occupy its
+    position is not quantifiable (NaN), not absent.
   */
   void requantifyMissingChannels_(ConsensusMap& resolved, const FeatureMap& channels, const MSExperiment& centroided,
                                   const MSExperiment& blacklist, bool owners) const
@@ -1663,7 +1677,7 @@ protected:
     std::unordered_map<UInt64, const Feature*> channel_of;
     for (const Feature& channel : channels) { channel_of.emplace(channel.getUniqueId(), &channel); }
 
-    Size requantified = 0, absent = 0, reserved_used = 0;
+    Size requantified = 0, absent = 0, occupied = 0, reserved_used = 0;
     for (auto& cf : resolved)
     {
       // the elution region and the number of mass traces of the detected channels, and the most intense one
@@ -1702,24 +1716,20 @@ protected:
         {
           const double intensity = requantifyChannel_(centroided, blacklist, skip_reserved, cv, rt_lo, rt_hi, handle.getMZ(), handle.getCharge(),
                                                       traces, reference_mz, reference_intensity);
-          if (intensity > 0.0)
-          {
-            handle.setIntensity(intensity);
-            ++requantified;
-          }
-          else
-          {
-            ++absent;
-          }
+          if (intensity > 0.0 || std::isnan(intensity)) { handle.setIntensity(intensity); }
+          requantified += intensity > 0.0;
+          occupied += std::isnan(intensity);
+          absent += intensity == 0.0;
         }
         handles.insert(handle);
       }
       cf.setFeatures(std::move(handles));
     }
-    if (requantified + absent > 0)
+    if (requantified + absent + occupied > 0)
     {
       OPENMS_LOG_INFO << "Re-quantified " << requantified << " channel(s) the detection did not find; " << absent
-                      << " show no signal at their expected position and are reported as absent." << endl;
+                      << " show no signal at their expected position and are reported as absent, " << occupied
+                      << " lie on reserved peaks they may not use (e.g. isotopes of the multiplet's other channels) and are not quantifiable." << endl;
     }
     if (reserved_used > 0)
     {
@@ -3412,7 +3422,7 @@ private:
   bool match_between_runs_ = false;    ///< keep unidentified multiplets so that linking can identify them from other runs
   bool knock_out_ = true;              ///< detect partial multiplets as well ('algorithm:knock_out', up to four channels)
   bool requantify_ = true;             ///< re-quantify the channels of partial multiplets from the MS1 peaks
-  bool join_channels_ = false;         ///< join the separately detected channels of an identified peptide ('-join_channels')
+  bool join_channels_ = true;          ///< join the separately detected channels of an identified peptide ('-join_channels')
   bool targeted_quantification_ = false; ///< quantify identified peptides without a multiplet from their MS1 peaks ('-targeted_quantification')
   ExperimentalDesign design_;
   std::string picked_decoy_string_;

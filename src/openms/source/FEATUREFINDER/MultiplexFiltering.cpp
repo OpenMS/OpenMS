@@ -383,8 +383,14 @@ namespace OpenMS
     filtered_peaks_.emplace_back(pattern_idx, peak_idx);
     for (const BlacklistEntry& entry : entries)
     {
+      int& last = blacklist_owner_[entry.rt_idx][entry.mz_idx];
+      // a peak another filtered peak reserved before keeps a record of the first one
+      if (last >= 0 && last != owner)
+      {
+        blacklist_first_owner_.try_emplace((static_cast<std::uint64_t>(entry.rt_idx) << 32) | entry.mz_idx, last, blacklist_[entry.rt_idx][entry.mz_idx]);
+      }
       blacklist_[entry.rt_idx][entry.mz_idx] = entry.value;
-      blacklist_owner_[entry.rt_idx][entry.mz_idx] = owner;
+      last = owner;
     }
   }
 
@@ -492,6 +498,11 @@ namespace OpenMS
 
   std::vector<std::vector<MultiplexFiltering::BlacklistOwner>> MultiplexFiltering::getBlacklistOwners() const
   {
+    auto writer = [this](int owner, int value) -> BlacklistWriter
+    {
+      if (owner < 0) { return {std::numeric_limits<unsigned>::max(), std::numeric_limits<size_t>::max(), value}; }
+      return {filtered_peaks_[owner].first, filtered_peaks_[owner].second, value};
+    };
     // the same peaks in the same order as getBlacklist(), which keeps the peaks that are not white
     std::vector<std::vector<BlacklistOwner>> owners(blacklist_.size());
     for (size_t rt_idx = 0; rt_idx < blacklist_.size(); ++rt_idx)
@@ -500,13 +511,9 @@ namespace OpenMS
       {
         const int value = blacklist_[rt_idx][mz_idx];
         if (value == -1) { continue; }
-        const int owner = blacklist_owner_[rt_idx][mz_idx];
-        if (owner < 0)
-        {
-          owners[rt_idx].push_back({std::numeric_limits<unsigned>::max(), std::numeric_limits<size_t>::max(), value});
-          continue;
-        }
-        owners[rt_idx].push_back({filtered_peaks_[owner].first, filtered_peaks_[owner].second, value});
+        const BlacklistWriter last = writer(blacklist_owner_[rt_idx][mz_idx], value);
+        const auto first = blacklist_first_owner_.find((static_cast<std::uint64_t>(rt_idx) << 32) | mz_idx);
+        owners[rt_idx].push_back({first == blacklist_first_owner_.end() ? last : writer(first->second.first, first->second.second), last});
       }
     }
     return owners;

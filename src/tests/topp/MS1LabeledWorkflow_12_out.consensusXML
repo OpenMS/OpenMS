@@ -153,10 +153,10 @@
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="string" name="feature_id" value="14811341817612382122"/>
 			</PeptideIdentification>
-			<UserParam type="string" name="feature_id" value="14811341817612382122"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="YVNDLAGHEK"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
 			<UserParam type="int" name="MS1Label:channel" value="1"/>
+			<UserParam type="string" name="feature_id" value="14811341817612382122"/>
 			<UserParam type="stringList" name="MS1Label:evidence_ratio_run" value="[MS1LabeledWorkflow_12_input.mzML,MS1LabeledWorkflow_12_input.mzML,MS1LabeledWorkflow_12_input.mzML]"/>
 			<UserParam type="intList" name="MS1Label:evidence_ratio_channel" value="[1, 2, 3]"/>
 			<UserParam type="floatList" name="MS1Label:evidence_ratio" value="[1.0, 1.0, 1.0]"/>
@@ -170,7 +170,6 @@
 			<centroid rt="150.0" mz="1300.676332907722099" it="1.0686915e09"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="150.0" mz="1300.676332907722099" it="1.0686915e09" charge="2"/>
-				<element map="1" id="0" rt="150.0" mz="1302.688886399522062" it="0.0" charge="2"/>
 				<element map="2" id="0" rt="150.0" mz="1304.68343231432209" it="0.0" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="1300.676333" RT="150.5" spectrum_reference="scan=43" >
@@ -185,10 +184,10 @@
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="string" name="feature_id" value="2684106197423007927"/>
 			</PeptideIdentification>
-			<UserParam type="string" name="feature_id" value="2684106197423007927"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="SAGLEVDNVLGTSLEAPYNAPLLEK"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
 			<UserParam type="int" name="MS1Label:channel" value="1"/>
+			<UserParam type="string" name="feature_id" value="2684106197423007927"/>
 		</consensusElement>
 		<consensusElement id="e_8119044117483804262" quality="1.0" charge="2">
 			<centroid rt="184.907092859486283" mz="582.318971140882013" it="2.4178426e08"/>
@@ -209,10 +208,10 @@
 				<UserParam type="int" name="map_index" value="2"/>
 				<UserParam type="string" name="feature_id" value="8119044117483804262"/>
 			</PeptideIdentification>
-			<UserParam type="string" name="feature_id" value="8119044117483804262"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="LVNELTEFAK(Label:13C(6)15N(2))"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="Lys8"/>
 			<UserParam type="int" name="MS1Label:channel" value="3"/>
+			<UserParam type="string" name="feature_id" value="8119044117483804262"/>
 			<UserParam type="stringList" name="MS1Label:evidence_ratio_run" value="[MS1LabeledWorkflow_12_input.mzML,MS1LabeledWorkflow_12_input.mzML]"/>
 			<UserParam type="intList" name="MS1Label:evidence_ratio_channel" value="[1, 3]"/>
 			<UserParam type="floatList" name="MS1Label:evidence_ratio" value="[1.0, 2.0]"/>
@@ -226,7 +225,6 @@
 			<centroid rt="225.0" mz="1294.658140153362183" it="2.39999e07"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="225.0" mz="1294.658140153362183" it="2.39999e07" charge="2"/>
-				<element map="1" id="0" rt="225.0" mz="1296.670693645162146" it="0.0" charge="2"/>
 				<element map="2" id="0" rt="225.0" mz="1298.665239559962174" it="3.8606012e05" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="1294.65814" RT="225.5" spectrum_reference="scan=118" >
@@ -241,10 +239,10 @@
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="string" name="feature_id" value="17314619952666245179"/>
 			</PeptideIdentification>
-			<UserParam type="string" name="feature_id" value="17314619952666245179"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="TPELGSVDNALAYNGLSVEPLTAEK"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
 			<UserParam type="int" name="MS1Label:channel" value="1"/>
+			<UserParam type="string" name="feature_id" value="17314619952666245179"/>
 			<UserParam type="stringList" name="MS1Label:evidence_ratio_run" value="[MS1LabeledWorkflow_12_input.mzML,MS1LabeledWorkflow_12_input.mzML]"/>
 			<UserParam type="intList" name="MS1Label:evidence_ratio_channel" value="[1, 3]"/>
 			<UserParam type="floatList" name="MS1Label:evidence_ratio" value="[1.0, 0.016085905566273]"/>

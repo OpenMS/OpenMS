@@ -18,8 +18,10 @@
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredPeak.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
+#include <cstdint>
 #include <functional>
 #include <optional>
+#include <unordered_map>
 #include <vector>
 #include <algorithm>
 #include <iostream>
@@ -96,9 +98,9 @@ public:
     MSExperiment getBlacklist();
 
     /**
-     * @brief who blacklisted a peak: the filtered peak whose pattern it was reserved for
+     * @brief a filtered peak that blacklisted a peak, and the mass trace of its pattern it reserved the peak for
      */
-    struct BlacklistOwner
+    struct BlacklistWriter
     {
       /// index of the pattern, i.e. of its filter result in the list filter() returns
       unsigned pattern_idx;
@@ -109,11 +111,22 @@ public:
     };
 
     /**
+     * @brief who blacklisted a peak: the first and the last filtered peak that reserved it (the same if only one did)
+     */
+    struct BlacklistOwner
+    {
+      /// the first filtered peak that reserved the peak
+      BlacklistWriter first;
+      /// the last one, whose mass trace the blacklist holds
+      BlacklistWriter last;
+    };
+
+    /**
      * @brief the owners of the blacklisted peaks, aligned with getBlacklist(): one list per spectrum, one entry per peak
      *
-     * A peak reserved for several filtered peaks belongs to the last one, whose mass trace the blacklist holds.
-     * The owners are recorded when a peak passes, in the order in which peaks pass, so they do not depend on the
-     * number of threads.
+     * A pattern reserves the peaks of its mass traces over their RT range extended by the RT band, also peaks that
+     * another filtered peak reserved before, so a peak can be reserved several times. The owners are recorded when a
+     * peak passes, in the order in which peaks pass, so they do not depend on the number of threads.
      */
     std::vector<std::vector<BlacklistOwner>> getBlacklistOwners() const;
 
@@ -264,6 +277,13 @@ protected:
      * @brief for every peak of @em blacklist_ that is blacklisted, the filtered peak that blacklisted it last (index in @em filtered_peaks_)
      */
     std::vector<std::vector<int>> blacklist_owner_;
+
+    /**
+     * @brief for every peak blacklisted by more than one filtered peak, the first one (index in @em filtered_peaks_) and its value
+     *
+     * Key: spectrum index * 2^32 + peak index.
+     */
+    std::unordered_map<std::uint64_t, std::pair<int, int>> blacklist_first_owner_;
 
     /**
      * @brief every filtered peak that passed, in the order they passed: index of its pattern and its index in the pattern's filter result
