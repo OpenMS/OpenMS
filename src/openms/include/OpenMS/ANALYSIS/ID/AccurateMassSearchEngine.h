@@ -362,6 +362,16 @@ public:
        */
     void queryByMZ(const double& observed_mz, const Int& observed_charge, const std::string& ion_mode, std::vector<AccurateMassSearchResult>& results, const EmpiricalFormula& observed_adduct = EmpiricalFormula()) const;
     void queryByFeature(const Feature& feature, const Size& feature_index, const std::string& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
+
+    /**
+      @brief search for the observed mass of a ConsensusFeature (see queryByMZ()) and augment the hits with meta data.
+
+      @note The m/z of @p cfeat is interpreted as an <i>observed</i> (ion) m/z, i.e. adduct hypotheses
+            are enumerated to obtain neutral masses (a charge of 0 means 'unknown charge' here).
+            Do not use the decharged consensusXML of @ref TOPP_MetaboliteAdductDecharger as input, since its
+            consensus features already carry a neutral mass (see ConsensusFeature::computeDechargeConsensus());
+            use the featureXML output of the decharger instead.
+    */
     void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, const std::string& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
 
     /// main method of AccurateMassSearchEngine
