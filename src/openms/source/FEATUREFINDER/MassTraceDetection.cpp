@@ -196,6 +196,9 @@ namespace OpenMS
       // make sure the output vector is empty
       found_masstraces.clear();
 
+      OPENMS_PRECONDITION(std::is_sorted(input_exp.begin(), input_exp.end(), PeakMap::SpectrumType::RTLess()),
+       "MassTraceDetection::run() requires input spectra to be sorted by retention time. Call MSExperiment::sortSpectra() first.");
+
       // Check IM unit and warn if CCS data with small tolerance (single-threaded check at algorithm start)
       for (const auto& spec : input_exp)
       {
