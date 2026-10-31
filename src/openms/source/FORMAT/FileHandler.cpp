@@ -23,6 +23,7 @@
 #include <OpenMS/FORMAT/EDTAFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzPeakFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
@@ -310,9 +311,17 @@ namespace OpenMS
       // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
       src_file.setFileType(FileTypes::typeToMZML(type));
 
-      if (compute_hash && type != FileTypes::BRUKER_TDF)
+      // (a directory, e.g. an mzPeak run as a directory, has no content to hash: computeFileHash() would give the
+      // SHA-1 of no bytes)
+      if (compute_hash && type != FileTypes::BRUKER_TDF && !File::isDirectory(filename))
       {
         src_file.setChecksum(FileHandler::computeFileHash(filename), SourceFile::ChecksumType::SHA1);
+      }
+      else if (File::isDirectory(filename) || type == FileTypes::MZPEAK)
+      {
+        // nor does it keep a checksum the reader took from its contents: mzPeak records the SHA-1 of its original source
+        // file (e.g. the .raw), which is not that of the file renamed here
+        src_file.setChecksum("", SourceFile::ChecksumType::UNKNOWN_CHECKSUM);
       }
 
       settings.getSourceFiles().clear();
@@ -466,6 +475,12 @@ namespace OpenMS
       return FileTypes::UNKNOWN; // .d format requires WITH_OPENTIMS
     }
 #endif
+
+    if (type == FileTypes::MZPEAK)
+    {
+      // An mzPeak run: a ZIP archive, or a directory with the index file. Anything else named .mzpeak is unknown.
+      return MzPeakFile::isMzPeak(normalized) ? FileTypes::MZPEAK : FileTypes::UNKNOWN;
+    }
 
     // Note: .raw is always recognized as FileTypes::RAW, even without WITH_THERMO_RAW.
     // The in-process reader (loadExperiment below) is #ifdef WITH_THERMO_RAW guarded,
@@ -1175,6 +1190,17 @@ namespace OpenMS
       }
       break;
 
+      case FileTypes::MZPEAK:
+      {
+        // The reader applies the scan-level options before it decodes the peaks, and the peak-level ones to each spectrum
+        MzPeakFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.load(filename, exp);
+        ChromatogramTools().convertSpectraToChromatograms<PeakMap>(exp, true); // as for mzML
+      }
+      break;
+
       case FileTypes::XMASS: 
       {
         exp.reset();
@@ -1232,7 +1258,7 @@ namespace OpenMS
     }
     // The ion mobility range, which the readers of the other formats ignore (applyPostLoadOptions_() applies it with the rest;
     // for mzML it is applied above, before the SRM spectra are converted to chromatograms)
-    if (options_.hasIMRange() && type != FileTypes::BRUKER_TDF && type != FileTypes::RAW)
+    if (options_.hasIMRange() && type != FileTypes::BRUKER_TDF && type != FileTypes::RAW && type != FileTypes::MZPEAK)
     {
       if (type != FileTypes::MZML) { filterSpectra(exp, [this](MSSpectrum& s) { return applyIMRange(options_, s); }); }
       exp.updateRanges();
@@ -1314,6 +1340,17 @@ namespace OpenMS
       }
       break;
 #endif
+
+      case FileTypes::MZPEAK:
+      {
+        // The reader applies all options itself (the scan-level ones before the peaks are decoded)
+        ForwardingConsumer forward(consumer, settings, {});
+        MzPeakFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.transform(filename, &forward);
+      }
+      break;
 
       default:
       {
@@ -1440,6 +1477,15 @@ namespace OpenMS
         {
           f.store(filename, exp);
         }
+      }
+      break;
+
+      case FileTypes::MZPEAK:
+      {
+        MzPeakFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.store(filename, exp);
       }
       break;
 
