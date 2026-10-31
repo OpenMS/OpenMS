@@ -21,6 +21,10 @@
 			</ProteinHit>
 			<ProteinHit id="PH_6" accession="PROT_E" score="0.0" sequence="" >
 			</ProteinHit>
+			<ProteinHit id="PH_7" accession="PROT_S" score="0.0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="PROT_I" score="0.0" sequence="" >
+			</ProteinHit>
 			<UserParam type="stringList" name="spectra_data" value="[MS1LabeledWorkflow_15_input.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="717.873883" RT="150.5" spectrum_reference="scan=51" >
@@ -55,6 +59,16 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="1205.109339" RT="530.5" spectrum_reference="scan=431" >
 			<PeptideHit score="1.0e-03" sequence=".(Dimethyl:2H(6)13C(2))TALFEQLSVEDLAFGNYQGDR" charge="2" protein_refs="PH_6" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="1060.538018" RT="600.5" spectrum_reference="scan=501" >
+			<PeptideHit score="1.0e-03" sequence=".(Dimethyl:2H(6)13C(2))SVEDLAFGNYQGEDVTALR" charge="2" protein_refs="PH_7" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="1205.109339" RT="530.5" spectrum_reference="scan=431" >
+			<PeptideHit score="5.0e-03" sequence=".(Dimethyl:2H(6)13C(2))TALFEQLSVEDLAFGNYQDGR" charge="2" protein_refs="PH_8" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>

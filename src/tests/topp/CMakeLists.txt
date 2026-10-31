@@ -5155,6 +5155,8 @@ set_tests_properties("TOPP_MS1LabeledWorkflow_14_join_out1" PROPERTIES DEPENDS "
 #     medium's m/z: medium not quantifiable (its peak is the light M+4), heavy measured without a medium M+4 (H/L 0.251, 0.501: the
 #     light M+8 in the heavy M0 is beyond the isotopes considered).
 #   TALFEQLSVEDLAFGNYQGDR (2.4 kDa) 1:2:1: the medium M+4 makes up 26 % of the heavy M0 (heavy not quantifiable), M/L 2.
+#   SVEDLAFGNYQGEDVTALR (2.1 kDa) 1:0:1, with an unrelated co-eluting peak at the absent medium's m/z (50 x the channel height),
+#     taken for the medium: its "M+4" and "M+5" would be more than the heavy M0 and M1, heavy not quantifiable; medium absent (0).
 add_test("TOPP_MS1LabeledWorkflow_15_targeted" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_15_input.mzML
   -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_15.idXML
@@ -5164,13 +5166,17 @@ add_test("TOPP_MS1LabeledWorkflow_15_targeted" ${TOPP_BIN_PATH}/MS1LabeledWorkfl
   -ratios:min_ratio_count 1
   -targeted_quantification true
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_15_targeted.tmp.consensusXML)
-set_tests_properties("TOPP_MS1LabeledWorkflow_15_targeted" PROPERTIES PASS_REGULAR_EXPRESSION "Targeted quantification: 6 feature.s. for 6 identification.s. of peptides without a multiplet in this run .7 other channel.s. measured against the identified one, 1 absent, 4 not quantifiable.")
+set_tests_properties("TOPP_MS1LabeledWorkflow_15_targeted" PROPERTIES PASS_REGULAR_EXPRESSION "Targeted quantification: 7 feature.s. for 7 identification.s. of peptides without a multiplet in this run .7 other channel.s. measured against the identified one, 2 absent, 5 not quantifiable.")
 add_test("TOPP_MS1LabeledWorkflow_15_targeted_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_15_targeted.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_15_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_15_targeted_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_15_targeted")
-# the same data with SVEDLAFGNYQR and TALFEQLSVEDLAFGNYQGDR identified as heavy: the identified channel is corrected as well, so
-# the values are those of the light identifications (SVEDLAFGNYQR H/L 1.0015 vs 0.99997: the isotope distribution is the heavy
-# sequence's, with two 12C fewer); TALFEQLSVEDLAFGNYQGDR's heavy (26 % medium M+4) stays the reference, but is reported not
-# quantifiable, M/L 2.
+# the same data with SVEDLAFGNYQR, TALFEQLSVEDLAFGNYQGDR and SVEDLAFGNYQGEDVTALR identified as heavy: the identified channel is
+# corrected as well, so the values are those of the light identifications (SVEDLAFGNYQR H/L 1.0015 vs 0.99997: the isotope
+# distribution is the heavy sequence's, with two 12C fewer); TALFEQLSVEDLAFGNYQGDR's heavy (26 % medium M+4) stays the reference,
+# but is reported not quantifiable, M/L 2. SVEDLAFGNYQGEDVTALR: the subtraction would leave the identified heavy no peaks, so it
+# is used as measured (not quantifiable itself) and the light is measured against it, as with the light identification (not
+# dropped for want of a clean elution peak). Plus the isomer TALFEQLSVEDLAFGNYQDGR, identified as heavy at TALFEQLSVEDLAFGNYQGDR's
+# apex with a worse score: its heavy is that identification's (whose heavy is not quantifiable but read as the reference), so it
+# is not quantified (one signal, one peptide).
 add_test("TOPP_MS1LabeledWorkflow_15_heavy_id" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_15_input.mzML
   -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_15_heavy.idXML
@@ -5180,7 +5186,7 @@ add_test("TOPP_MS1LabeledWorkflow_15_heavy_id" ${TOPP_BIN_PATH}/MS1LabeledWorkfl
   -ratios:min_ratio_count 1
   -targeted_quantification true
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_15_heavy_id.tmp.consensusXML)
-set_tests_properties("TOPP_MS1LabeledWorkflow_15_heavy_id" PROPERTIES PASS_REGULAR_EXPRESSION "Of the targeted features, 1 report their identified channel as not quantifiable")
+set_tests_properties("TOPP_MS1LabeledWorkflow_15_heavy_id" PROPERTIES PASS_REGULAR_EXPRESSION "Targeted quantification: 7 feature.s. for 7 identification.s. of peptides without a multiplet in this run .9 other channel.s. measured against the identified one, 2 absent, 3 not quantifiable.. not quantified: 0 identification.s. of peptides quantified in this run, 0 on a channel of another peptide's multiplet, 1 on the signal of a better identification of another peptide, 0 without a clean elution peak of the identified channel")
 add_test("TOPP_MS1LabeledWorkflow_15_heavy_id_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_15_heavy_id.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_15_heavy_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_15_heavy_id_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_15_heavy_id")
 # ... with SVEDLAFGNYQR and SVEDLAFGNYQSVEDLAFGNYR identified as medium: the medium (light M+4 subtracted) is the reference and,
@@ -5194,7 +5200,7 @@ add_test("TOPP_MS1LabeledWorkflow_15_medium_id" ${TOPP_BIN_PATH}/MS1LabeledWorkf
   -ratios:min_ratio_count 1
   -targeted_quantification true
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_15_medium_id.tmp.consensusXML)
-set_tests_properties("TOPP_MS1LabeledWorkflow_15_medium_id" PROPERTIES PASS_REGULAR_EXPRESSION "Targeted quantification: 6 feature.s. for 6 identification.s. of peptides without a multiplet in this run .7 other channel.s. measured against the identified one, 1 absent, 4 not quantifiable.")
+set_tests_properties("TOPP_MS1LabeledWorkflow_15_medium_id" PROPERTIES PASS_REGULAR_EXPRESSION "Targeted quantification: 7 feature.s. for 7 identification.s. of peptides without a multiplet in this run .7 other channel.s. measured against the identified one, 2 absent, 5 not quantifiable.")
 add_test("TOPP_MS1LabeledWorkflow_15_medium_id_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_15_medium_id.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_15_medium_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_15_medium_id_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_15_medium_id")
 
