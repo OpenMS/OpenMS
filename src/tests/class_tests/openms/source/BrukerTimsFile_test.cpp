@@ -30,6 +30,7 @@
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 
 #include <algorithm>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -349,6 +350,115 @@ namespace
     const MSExperiment& expected_;
     SpectraComparison comparison_;
   };
+
+  // ---------------------------------------------------------------------------------------------
+  // A fake TSF run (timsTOF without ion mobility), SDK-free and small enough to build in a test
+  // ---------------------------------------------------------------------------------------------
+
+  // Three peaks of the line spectrum of a MALDI spot run (MassIVE MSV000088438, rs17e_1mgml_no_tims_1_0_C2_MS.d, frame 1):
+  // the fractional TOF index stored in analysis.tsf_bin and the m/z of the Bruker SDK (TIMSCONVERT 2.0.0)
+  const double TSF_INDEX[3] = {75182.82477446218, 119863.65367102693, 437635.2683363148};
+  const double TSF_SDK_MZ[3] = {254.08942900289034, 379.09864007179004, 1987.23938706468};
+
+  struct FakeTsfFrame
+  {
+    double time = 0.0;
+    int msms_type = 0;              ///< 0: MS1, else MS/MS with the precursor below
+    std::vector<int> peaks;         ///< indices into TSF_INDEX
+    std::vector<float> intensities; ///< one per peak
+    double trigger_mass = 0.0;      ///< MS/MS frames
+    std::string spot{};             ///< MaldiFrameInfo.SpotName, if @p application_type is given to writeFakeTsf()
+  };
+
+  // Writes the .d directory @p d with analysis.tsf (the tables of a real run that the reader uses, with the calibration and
+  // frame temperatures of the spot run above) and analysis.tsf_bin (one block per frame: its size, the size of the line
+  // spectrum, the zstd-compressed line spectrum, and a profile part). @p application_type: MaldiApplicationType ("" none).
+  [[maybe_unused]] std::string writeFakeTsf(const std::string& d, const std::vector<FakeTsfFrame>& frames,
+                                            const std::string& application_type = "", const std::string& compression = "3")
+  {
+    std::filesystem::create_directories(d);
+    const auto num = [](double value)
+    {
+      std::ostringstream os;
+      os.precision(17);
+      os << value;
+      return os.str();
+    };
+    SqliteConnector conn(d + "/analysis.tsf", SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
+    conn.executeStatement("CREATE TABLE GlobalMetadata (Key TEXT PRIMARY KEY, Value TEXT);");
+    conn.executeStatement("INSERT INTO GlobalMetadata VALUES ('SchemaType', 'TSF'), ('TimsCompressionType', '" + compression + "'), "
+                          "('MzAcqRangeLower', '100.000000'), ('MzAcqRangeUpper', '2000.000000'), ('DigitizerNumSamples', '439445'), "
+                          "('AcquisitionSoftware', 'timsTOF'), ('InstrumentVendor', 'Bruker'), ('InstrumentName', 'timsTOF fleX'), "
+                          "('InstrumentFamily', '9'), ('AcquisitionDateTime', '2021-10-08T16:01:31.867-07:00');");
+    if (!application_type.empty())
+    {
+      conn.executeStatement("INSERT INTO GlobalMetadata VALUES ('MaldiApplicationType', '" + application_type + "');");
+    }
+    conn.executeStatement("CREATE TABLE MzCalibration (Id INTEGER PRIMARY KEY, ModelType INTEGER, DigitizerTimebase REAL, "
+                          "DigitizerDelay REAL, T1 REAL, T2 REAL, dC1 REAL, dC2 REAL, C0 REAL, C1 REAL, C2 REAL, C3 REAL, C4 REAL);");
+    conn.executeStatement("INSERT INTO MzCalibration VALUES (1, 1, 0.19999999999999998, 25627.6, 25.661657387366994, "
+                          "27.37440317917224, 20.0, 0.0, 314.2024623155012, 156059.18973537948, -0.0020587980315838962, 0.0, 0.0);");
+    conn.executeStatement("CREATE TABLE Frames (Id INTEGER PRIMARY KEY, Time REAL, Polarity CHAR(1), ScanMode INTEGER, MsMsType INTEGER, "
+                          "TimsId INTEGER, MaxIntensity INTEGER, SummedIntensities INTEGER, NumPeaks INTEGER, MzCalibration INTEGER, "
+                          "T1 REAL, T2 REAL, PropertyGroup INTEGER);");
+    conn.executeStatement("CREATE TABLE FrameMsMsInfo (Frame INTEGER PRIMARY KEY, Parent INTEGER, TriggerMass REAL, IsolationWidth REAL, "
+                          "PrecursorCharge INTEGER, CollisionEnergy REAL);");
+    if (!application_type.empty())
+    {
+      conn.executeStatement("CREATE TABLE MaldiFrameInfo (Frame INTEGER PRIMARY KEY, Chip INTEGER, SpotName TEXT, RegionNumber INTEGER, "
+                            "XIndexPos INTEGER, YIndexPos INTEGER);");
+    }
+
+    std::ofstream bin((d + "/analysis.tsf_bin").c_str(), std::ios::binary);
+    uint64_t offset = 0;
+    int parent = 0;
+    for (size_t i = 0; i < frames.size(); ++i)
+    {
+      const FakeTsfFrame& frame = frames[i];
+      const int id = static_cast<int>(i) + 1;
+      const size_t n = frame.peaks.size();
+      std::string line(n * (sizeof(double) + sizeof(float)), '\0');
+      for (size_t k = 0; k < n; ++k)
+      {
+        std::memcpy(&line[k * sizeof(double)], &TSF_INDEX[frame.peaks[k]], sizeof(double));
+        std::memcpy(&line[n * sizeof(double) + k * sizeof(float)], &frame.intensities[k], sizeof(float));
+      }
+      std::string line_zstd, profile_zstd;
+      ZstdCompression::compressData(line.data(), line.size(), line_zstd);
+      const std::string profile(64, '\0');
+      ZstdCompression::compressData(profile.data(), profile.size(), profile_zstd);
+      const uint32_t header[2] = {static_cast<uint32_t>(8 + line_zstd.size() + profile_zstd.size()), static_cast<uint32_t>(line_zstd.size())};
+      bin.write(reinterpret_cast<const char*>(header), sizeof(header));
+      bin.write(line_zstd.data(), line_zstd.size());
+      bin.write(profile_zstd.data(), profile_zstd.size());
+
+      conn.executeStatement("INSERT INTO Frames VALUES (" + std::to_string(id) + ", " + num(frame.time) + ", '+', 20, " +
+                            std::to_string(frame.msms_type) + ", " + std::to_string(offset) + ", 0, 0, " + std::to_string(n) +
+                            ", 1, 25.69411772046709, 27.491792202523506, 1);");
+      offset += header[0];
+      if (frame.msms_type == 0)
+      {
+        parent = id;
+      }
+      else
+      {
+        conn.executeStatement("INSERT INTO FrameMsMsInfo VALUES (" + std::to_string(id) + ", " + std::to_string(parent) + ", " +
+                              num(frame.trigger_mass) + ", 4.0, 2, 20.0);");
+      }
+      if (!application_type.empty())
+      {
+        conn.executeStatement("INSERT INTO MaldiFrameInfo VALUES (" + std::to_string(id) + ", 0, '" + frame.spot + "', -1, " +
+                              std::to_string(i % 2) + ", " + std::to_string(i / 2) + ");");
+      }
+    }
+    return d;
+  }
+
+  // The m/z of TSF_INDEX[@p peak] in a spectrum, relative to the Bruker SDK's (ppm)
+  [[maybe_unused]] double tsfPpm(const Peak1D& p, int peak)
+  {
+    return std::abs(p.getMZ() - TSF_SDK_MZ[peak]) / TSF_SDK_MZ[peak] * 1e6;
+  }
 
   // The numbers of one comparison of transform() with load()
   struct TransformParity
@@ -1126,9 +1236,9 @@ END_SECTION
 
 START_SECTION([EXTRA] Bruker data that cannot be read is reported as such)
 {
-  // TSF data (timsTOF without ion mobility), BAF data (QTOF) and TDF data that is not zstd-compressed
-  // cannot be read. The read functions say so, instead of "could not determine the file type" or
-  // opentims' "... is not readable for the current user". SDK-free.
+  // BAF data (QTOF) and TDF data that is not zstd-compressed cannot be read. The read functions say so,
+  // instead of "could not determine the file type" or opentims' "... is not readable for the current user".
+  // SDK-free. (TSF data is read, see the TSF sections.)
   TempDir tmp;
   BrukerTimsFile f;
   MSExperiment exp;
@@ -1152,9 +1262,9 @@ START_SECTION([EXTRA] Bruker data that cannot be read is reported as such)
   };
   const auto contains = [](const std::string& text, const std::string& part) { return text.find(part) != std::string::npos; };
 
-  for (const std::string name : {"TSF", "BAF"})
+  for (const std::string name : {"BAF"})
   {
-    const std::string file = name == "TSF" ? "analysis.tsf" : "analysis.baf";
+    const std::string file = "analysis.baf";
     const std::string d = tmp.getPath() + "/" + name + "/run.d";
     File::makeDir(d);
     { std::ofstream os((d + "/" + file).c_str()); os << "no data"; }
@@ -1207,6 +1317,302 @@ START_SECTION([EXTRA] Bruker data that cannot be read is reported as such)
   // no frame data in these
   TEST_EXCEPTION(Exception::FileNotReadable, f.load(make_tdf("zstd", "('TimsCompressionType', '2')"), exp))
   TEST_EXCEPTION(Exception::FileNotReadable, f.load(make_tdf("no_entry", ""), exp))
+}
+END_SECTION
+
+START_SECTION([EXTRA] TSF data: one spectrum per frame with the m/z of the Bruker SDK)
+{
+  // An LC-MS run with TIMS off: two MS1 frames, an MS/MS frame between them and an MS1 frame without peaks
+  TempDir tmp;
+  const std::string d = writeFakeTsf(tmp.getPath() + "/lc/run.d", {
+    {1.0, 0, {0, 1}, {1206.0f, 1197486.0f}},
+    {1.5, 2, {2}, {1256.0f}, 516.4264787230516},
+    {2.0, 0, {1, 2}, {10.0f, 20.0f}},
+    {3.0, 0, {}, {}}});
+  TEST_TRUE(BrukerTimsFile::detectFormat(d) == BrukerTimsFile::DataFormat::TSF)
+  BrukerTimsFile::checkDataFormat(d); // TSF data passes
+
+  MSExperiment exp;
+  BrukerTimsFile().load(d, exp);
+  TEST_EQUAL(exp.size(), 4)
+  if (exp.size() == 4)
+  {
+    const MSSpectrum& ms1 = exp[0];
+    TEST_STRING_EQUAL(ms1.getNativeID(), "frame=1")
+    TEST_EQUAL(ms1.getMSLevel(), 1)
+    TEST_REAL_SIMILAR(ms1.getRT(), 1.0)
+    TEST_TRUE(ms1.getType() == SpectrumSettings::SpectrumType::CENTROID)
+    TEST_TRUE(ms1.getInstrumentSettings().getPolarity() == IonSource::Polarity::POSITIVE)
+    TEST_TRUE(ms1.getFloatDataArrays().empty()) // no ion mobility
+    TEST_FALSE(ms1.containsIMData())
+    TEST_FALSE(ms1.metaValueExists("maldi_spot_id"))
+    TEST_EQUAL(ms1.size(), 2)
+    if (ms1.size() == 2)
+    {
+      TEST_TRUE(tsfPpm(ms1[0], 0) < 1e-4)
+      TEST_TRUE(tsfPpm(ms1[1], 1) < 1e-4)
+      TEST_REAL_SIMILAR(ms1[1].getIntensity(), 1197486.0)
+    }
+
+    const MSSpectrum& ms2 = exp[1];
+    TEST_STRING_EQUAL(ms2.getNativeID(), "frame=2")
+    TEST_EQUAL(ms2.getMSLevel(), 2)
+    TEST_EQUAL(ms2.size(), 1)
+    if (ms2.size() == 1) TEST_TRUE(tsfPpm(ms2[0], 2) < 1e-4)
+    TEST_EQUAL(ms2.getPrecursors().size(), 1)
+    if (ms2.getPrecursors().size() == 1)
+    {
+      const Precursor& p = ms2.getPrecursors()[0];
+      TEST_REAL_SIMILAR(p.getMZ(), 516.4264787230516)
+      TEST_REAL_SIMILAR(p.getIsolationWindowLowerOffset(), 2.0)
+      TEST_REAL_SIMILAR(p.getIsolationWindowUpperOffset(), 2.0)
+      TEST_EQUAL(p.getCharge(), 2)
+      TEST_REAL_SIMILAR(double(p.getMetaValue("collision energy")), 20.0) // eV
+      TEST_REAL_SIMILAR(p.getActivationEnergy(), 0.0) // not as activation energy (MS:1000509), as for TDF data
+      TEST_EQUAL(p.getActivationMethods().count(Precursor::ActivationMethod::CID), 1)
+    }
+    TEST_STRING_EQUAL(exp[2].getNativeID(), "frame=3")
+    TEST_STRING_EQUAL(exp[3].getNativeID(), "frame=4")
+    TEST_EQUAL(exp[3].size(), 0) // no peaks
+  }
+  // the run: Bruker TSF format and nativeID format, the instrument and start time of GlobalMetadata
+  TEST_EQUAL(exp.getSourceFiles().size(), 1)
+  if (!exp.getSourceFiles().empty())
+  {
+    TEST_STRING_EQUAL(exp.getSourceFiles()[0].getFileType(), "Bruker TSF format")
+    TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNativeIDTypeAccession(), "MS:1003283")
+  }
+  std::string mzml;
+  MzMLFile().storeBuffer(mzml, exp);
+  TEST_TRUE(mzml.find("accession=\"MS:1003282\" name=\"Bruker TSF format\"") != std::string::npos)
+  TEST_TRUE(mzml.find("accession=\"MS:1003283\" name=\"Bruker TSF nativeID format\"") != std::string::npos)
+  TEST_STRING_EQUAL(exp.getInstrument().getVendor(), "Bruker")
+  TEST_STRING_EQUAL(exp.getMetaValue("mzml_start_time_stamp").toString(), "2021-10-08T16:01:31.867-07:00")
+
+  // transform() hands over what load() returns, and as many spectra as it announces
+  const TransformParity parity = testTransformAgainstLoad(d, BrukerTimsFile::Config());
+  TEST_EQUAL(parity.expected_size, 4)
+  TEST_EQUAL(BrukerTimsFile::Config().export_mode, BrukerTimsFile::Config::AUTO)
+  for (auto mode : {BrukerTimsFile::Config::SPECTRUM, BrukerTimsFile::Config::FRAME})
+  {
+    BrukerTimsFile::Config cfg;
+    cfg.export_mode = mode;
+    MSExperiment same;
+    BrukerTimsFile().load(d, same, cfg);
+    TEST_EQUAL(same.size(), exp.size()) // one spectrum per frame in every export mode
+  }
+
+  // the zipped .d directory
+  const std::string archive = tmp.getPath() + "/lc.d.zip";
+  ZipArchiveFile::zipDirectory(tmp.getPath() + "/lc", archive);
+  MSExperiment zipped;
+  BrukerTimsFile().load(archive, zipped);
+  TEST_EQUAL(zipped.size(), 4)
+  if (zipped.size() == 4) TEST_EQUAL(zipped[1].getPrecursors().size(), 1)
+
+  // FileHandler reads it as Bruker data
+  TEST_EQUAL(FileHandler::getType(d), FileTypes::BRUKER_TDF)
+  MSExperiment handled;
+  FileHandler().loadExperiment(d, handled, {FileTypes::BRUKER_TDF});
+  TEST_EQUAL(handled.size(), 4)
+  // with the source file rewritten, it keeps the format (BRUKER_TDF stands for TDF and TSF data)
+  FileHandler().loadExperiment(d, handled, {FileTypes::BRUKER_TDF}, ProgressLogger::NONE, true);
+  TEST_EQUAL(handled.getSourceFiles().size(), 1)
+  if (handled.getSourceFiles().size() == 1)
+  {
+    TEST_STRING_EQUAL(handled.getSourceFiles()[0].getFileType(), "Bruker TSF format")
+    TEST_STRING_EQUAL(handled.getSourceFiles()[0].getNativeIDTypeAccession(), "MS:1003283")
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] TSF data: options and MALDI spots and what cannot be read)
+{
+  TempDir tmp;
+  const std::vector<FakeTsfFrame> lc = {
+    {1.0, 0, {0, 1}, {1206.0f, 1197486.0f}},
+    {1.5, 2, {2}, {1256.0f}, 516.4264787230516},
+    {2.0, 0, {1, 2}, {10.0f, 20.0f}},
+    {3.0, 0, {}, {}}};
+  const std::string d = writeFakeTsf(tmp.getPath() + "/lc.d", lc);
+  const auto load = [&d](const BrukerTimsFile::Config& cfg)
+  {
+    MSExperiment exp;
+    BrukerTimsFile().load(d, exp, cfg);
+    std::string ids;
+    for (const MSSpectrum& s : exp) ids += (ids.empty() ? "" : ",") + s.getNativeID().substr(6);
+    return ids;
+  };
+
+  // the MS levels, frame ids and retention times to read select frames, each a spectrum; transform() gives the same
+  {
+    BrukerTimsFile::Config cfg;
+    TEST_STRING_EQUAL(load(cfg), "1,2,3,4")
+    cfg.load_ms2 = false;
+    TEST_STRING_EQUAL(load(cfg), "1,3,4")
+    cfg = BrukerTimsFile::Config();
+    cfg.load_ms1 = false;
+    TEST_STRING_EQUAL(load(cfg), "2")
+    cfg = BrukerTimsFile::Config();
+    cfg.frame_id_min = 2;
+    cfg.frame_id_max = 3;
+    TEST_STRING_EQUAL(load(cfg), "2,3")
+    testTransformAgainstLoad(d, cfg);
+    cfg = BrukerTimsFile::Config();
+    cfg.rt_min_sec = 1.2;
+    cfg.rt_max_sec = 2.0;
+    TEST_STRING_EQUAL(load(cfg), "2,3")
+    cfg.rt_selects_spectra = true;
+    TEST_STRING_EQUAL(load(cfg), "2,3")
+    testTransformAgainstLoad(d, cfg);
+  }
+
+  // the options that concern ion mobility or DDA-PASEF precursors do not apply
+  {
+    const auto rejected = [&d](const std::function<void(BrukerTimsFile::Config&)>& set)
+    {
+      BrukerTimsFile::Config cfg;
+      set(cfg);
+      MSExperiment exp;
+      try
+      {
+        BrukerTimsFile().load(d, exp, cfg);
+      }
+      catch (const Exception::InvalidParameter&)
+      {
+        return true;
+      }
+      return false;
+    };
+    TEST_TRUE(rejected([](BrukerTimsFile::Config& c) { c.im_min = 0.8; }))
+    TEST_TRUE(rejected([](BrukerTimsFile::Config& c) { c.ms1_centroid_algo = BrukerTimsFile::Config::CentroidAlgo::HILL_BASED; }))
+    TEST_TRUE(rejected([](BrukerTimsFile::Config& c) { c.ms1_n_neighbors = 1; }))
+    TEST_TRUE(rejected([](BrukerTimsFile::Config& c) { c.ms1_min_support = 1; }))
+    TEST_TRUE(rejected([](BrukerTimsFile::Config& c) { c.dia_ms2_n_neighbors = 1; }))
+    TEST_TRUE(rejected([](BrukerTimsFile::Config& c) { c.isotopic_prefilter = true; }))
+    TEST_TRUE(rejected([](BrukerTimsFile::Config& c) { c.calibrate = true; }))
+    TEST_TRUE(rejected([](BrukerTimsFile::Config& c) { c.pressure_compensation = BrukerTimsFile::Config::PressureCompensation::GLOBAL; }))
+    TEST_TRUE(rejected([](BrukerTimsFile::Config& c) { c.tims_calibration_strategy = BrukerTimsFile::Config::TimsCalibrationStrategy::RATIONAL; }))
+    TEST_TRUE(!rejected([](BrukerTimsFile::Config& c) { c.export_mode = BrukerTimsFile::Config::FRAME; }))
+    BrukerTimsFile::Config im;
+    im.im_max = 1.0;
+    MSExperiment none;
+    ComparingConsumer consumer(none);
+    TEST_EXCEPTION(Exception::InvalidParameter, BrukerTimsFile().transform(d, &consumer, im))
+
+    // FileHandler does not pass an ion mobility range on for TSF data: its spectra, without ion mobility, pass it
+    FileHandler fh;
+    fh.getOptions().setIMRange(DRange<1>(0.8, 1.0));
+    MSExperiment handled;
+    fh.loadExperiment(d, handled, {FileTypes::BRUKER_TDF});
+    TEST_EQUAL(handled.size(), 4)
+  }
+
+  // m/z: the linear model of GlobalMetadata with LINEAR (tens of ppm off); the SDK is required by BRUKER_SDK
+  {
+    BrukerTimsFile::Config cfg;
+    cfg.tims_calibration_strategy = BrukerTimsFile::Config::TimsCalibrationStrategy::LINEAR;
+    MSExperiment exp;
+    BrukerTimsFile().load(d, exp, cfg);
+    TEST_EQUAL(exp.size(), 4)
+    if (!exp.empty() && exp[0].size() == 2)
+    {
+      TEST_TRUE(tsfPpm(exp[0][1], 1) > 1e-4)
+      TEST_TRUE(tsfPpm(exp[0][1], 1) < 1000.0)
+    }
+    cfg.tims_calibration_strategy = BrukerTimsFile::Config::TimsCalibrationStrategy::BRUKER_SDK;
+    cfg.bruker_sdk_path = tmp.getPath() + "/no_such_sdk.dll";
+    TEST_EXCEPTION(Exception::FileNotReadable, BrukerTimsFile().load(d, exp, cfg))
+    // with AUTO, an SDK that cannot be loaded is skipped (with a warning)
+    cfg.tims_calibration_strategy = BrukerTimsFile::Config::TimsCalibrationStrategy::AUTO;
+    BrukerTimsFile().load(d, exp, cfg);
+    TEST_EQUAL(exp.size(), 4)
+    if (!exp.empty() && exp[0].size() == 2) TEST_TRUE(tsfPpm(exp[0][1], 1) < 1e-4)
+
+    // with an MzCalibration table that cannot be used here (ModelType 3) and no linear model only the SDK can give m/z:
+    // it is tried (BRUKER_SDK fails on the SDK, not on the calibration); without a usable SDK the data cannot be read
+    const std::string uncalibrated = writeFakeTsf(tmp.getPath() + "/uncalibrated.d", lc);
+    {
+      SqliteConnector conn(uncalibrated + "/analysis.tsf", SqliteConnector::SqlOpenMode::READWRITE);
+      conn.executeStatement("UPDATE MzCalibration SET ModelType = 3;");
+      conn.executeStatement("DELETE FROM GlobalMetadata WHERE Key IN ('MzAcqRangeLower', 'MzAcqRangeUpper');");
+    }
+    cfg.tims_calibration_strategy = BrukerTimsFile::Config::TimsCalibrationStrategy::BRUKER_SDK;
+    TEST_EXCEPTION(Exception::FileNotReadable, BrukerTimsFile().load(uncalibrated, exp, cfg))
+    cfg.tims_calibration_strategy = BrukerTimsFile::Config::TimsCalibrationStrategy::AUTO;
+    TEST_TRUE(hasText(parseErrorOf([&] { BrukerTimsFile().load(uncalibrated, exp, cfg); }), "no usable m/z calibration"))
+  }
+
+  // MALDI spots: the spot name as the MetaValue maldi_spot_id, as the mzML reader stores the spotID of a spectrum
+  {
+    const std::string spot = writeFakeTsf(tmp.getPath() + "/spot.d", {{0.0, 0, {0, 1, 2}, {1.0f, 2.0f, 3.0f}, 0.0, "C2"}},
+                                          "SingleSpectra");
+    MSExperiment exp;
+    BrukerTimsFile().load(spot, exp);
+    TEST_EQUAL(exp.size(), 1)
+    if (exp.size() == 1) TEST_STRING_EQUAL(exp[0].getMetaValue("maldi_spot_id").toString(), "C2")
+    // a MALDI imaging run is read in export mode FRAME only (by BrukerTimsImagingFile), as TDF data
+    const std::string imaging = writeFakeTsf(tmp.getPath() + "/imaging.d", {{0.0, 0, {0}, {1.0f}, 0.0, "R00X0Y0"}}, "Imaging");
+    TEST_EXCEPTION(Exception::InvalidFileType, BrukerTimsFile().load(imaging, exp))
+    BrukerTimsFile::Config frame;
+    frame.export_mode = BrukerTimsFile::Config::FRAME;
+    BrukerTimsFile().load(imaging, exp, frame);
+    TEST_EQUAL(exp.size(), 1)
+  }
+
+  // what cannot be read: DIA functions, another compression, frame data that does not match analysis.tsf
+  {
+    ExperimentalSettings settings;
+    TEST_EXCEPTION(Exception::ParseError, BrukerTimsFile().readDIAMetadata(d, settings))
+    RegularSwathFileConsumer swath;
+    TEST_EXCEPTION(Exception::ParseError, BrukerTimsFile().loadDIAStreaming(d, swath))
+    MSExperiment exp;
+    TEST_EXCEPTION(Exception::ParseError, BrukerTimsFile().load(writeFakeTsf(tmp.getPath() + "/c2.d", lc, "", "2"), exp))
+    const std::string truncated = writeFakeTsf(tmp.getPath() + "/truncated.d", lc);
+    std::filesystem::resize_file(truncated + "/analysis.tsf_bin", 20);
+    TEST_EXCEPTION(Exception::ParseError, BrukerTimsFile().load(truncated, exp))
+
+    // a line spectrum that is not zstd data (here: its magic number overwritten)
+    const std::string invalid = writeFakeTsf(tmp.getPath() + "/invalid.d", lc);
+    {
+      std::fstream bin((invalid + "/analysis.tsf_bin").c_str(), std::ios::binary | std::ios::in | std::ios::out);
+      bin.seekp(8); // behind the header of frame 1
+      bin.write("XXXX", 4);
+    }
+    TEST_TRUE(hasText(parseErrorOf([&] { BrukerTimsFile().load(invalid, exp); }), "frame 1: line spectrum for 2 peaks: "))
+    // a line spectrum with more peaks than NumPeaks: decompressed up to the size of NumPeaks peaks only
+    const std::string larger = writeFakeTsf(tmp.getPath() + "/larger.d", lc);
+    SqliteConnector(larger + "/analysis.tsf", SqliteConnector::SqlOpenMode::READWRITE).executeStatement(
+      "UPDATE Frames SET NumPeaks = 1 WHERE Id = 1;");
+    TEST_TRUE(hasText(parseErrorOf([&] { BrukerTimsFile().load(larger, exp); }), "larger than 12 bytes"))
+    // a block size beyond the end of the file is reported before any memory is taken for it
+    const std::string huge = writeFakeTsf(tmp.getPath() + "/huge.d", lc);
+    {
+      std::fstream bin((huge + "/analysis.tsf_bin").c_str(), std::ios::binary | std::ios::in | std::ios::out);
+      // frame 1's block size and line spectrum size: reading the line spectrum would take 4 GiB
+      const uint32_t sizes[2] = {0xFFFFFFF0u, 0xFFFFFFE0u};
+      bin.write(reinterpret_cast<const char*>(sizes), sizeof(sizes));
+    }
+    TEST_TRUE(hasText(parseErrorOf([&] { BrukerTimsFile().load(huge, exp); }), "ends behind the end of the file"))
+
+    // without analysis.tsf_bin the consumer gets nothing, as for TDF data without analysis.tdf_bin
+    const std::string no_bin = writeFakeTsf(tmp.getPath() + "/no_bin.d", lc);
+    std::filesystem::remove(no_bin + "/analysis.tsf_bin");
+    MSDataStoringConsumer no_bin_consumer;
+    TEST_EXCEPTION(Exception::FileNotReadable, BrukerTimsFile().transform(no_bin, &no_bin_consumer))
+    TEST_TRUE(no_bin_consumer.getData().getSourceFiles().empty())
+    TEST_EQUAL(no_bin_consumer.getData().size(), 0)
+
+    // a frame without a block (TimsId NULL) is read only if it has no peaks, instead of reading the first frame's block
+    const std::string no_block = writeFakeTsf(tmp.getPath() + "/no_block.d", lc);
+    SqliteConnector(no_block + "/analysis.tsf", SqliteConnector::SqlOpenMode::READWRITE).executeStatement(
+      "UPDATE Frames SET TimsId = NULL WHERE Id = 4;"); // no peaks
+    BrukerTimsFile().load(no_block, exp);
+    TEST_EQUAL(exp.size(), 4)
+    SqliteConnector(no_block + "/analysis.tsf", SqliteConnector::SqlOpenMode::READWRITE).executeStatement(
+      "UPDATE Frames SET TimsId = NULL WHERE Id = 2;"); // one peak
+    TEST_TRUE(hasText(parseErrorOf([&] { BrukerTimsFile().load(no_block, exp); }), "frame 2 has 1 peaks, but no offset"))
+  }
 }
 END_SECTION
 
@@ -1278,6 +1684,46 @@ START_SECTION([EXTRA] an incomplete or corrupt analysis.tdf_bin is reported inst
   }
 }
 END_SECTION
+
+#ifdef OPENTIMS_TSF_TEST_DATA
+START_SECTION([EXTRA] TSF data: an LC-MS run with TIMS off as the Bruker SDK reads it)
+{
+  // MassIVE MSV000095813, 'Molecular Networking_OE_timsOFF.d'. TIMSCONVERT 2.0.0 (Bruker SDK, centroid mode) gives 20751
+  // spectra (9245 MS1, 11506 MS2) with 10312288 peaks; the m/z of every peak agrees with it within 1e-9 ppm.
+  MSExperiment exp;
+  BrukerTimsFile().load(OPENTIMS_TSF_TEST_DATA, exp);
+  Size ms1 = 0, ms2 = 0, peaks = 0;
+  const MSSpectrum* frame2 = nullptr;
+  for (const MSSpectrum& spec : exp)
+  {
+    (spec.getMSLevel() == 1 ? ms1 : ms2) += 1;
+    peaks += spec.size();
+    if (spec.getNativeID() == "frame=2") frame2 = &spec;
+  }
+  TEST_EQUAL(exp.size(), 20751)
+  TEST_EQUAL(ms1, 9245)
+  TEST_EQUAL(ms2, 11506)
+  TEST_EQUAL(peaks, 10312288)
+  TEST_NOT_EQUAL(frame2, nullptr)
+  ABORT_IF(frame2 == nullptr)
+  TEST_EQUAL(frame2->getPrecursors().size(), 1)
+  TEST_EQUAL(frame2->size(), 33)
+  if (frame2->getPrecursors().size() == 1 && !frame2->empty()) // the checks above fail otherwise
+  {
+    const Precursor& p = frame2->getPrecursors()[0];
+    TEST_REAL_SIMILAR(p.getMZ(), 516.4264787230516)
+    TEST_REAL_SIMILAR(p.getIsolationWindowLowerOffset(), 2.032852957446103)
+    TEST_EQUAL(p.getCharge(), 1)
+    TEST_REAL_SIMILAR(double(p.getMetaValue("collision energy")), 20.0) // eV
+    const double base_peak = std::max_element(frame2->begin(), frame2->end(),
+      [](const Peak1D& a, const Peak1D& b) { return a.getIntensity() < b.getIntensity(); })->getMZ();
+    TEST_TRUE(std::abs(base_peak - 327.25177912720835) / 327.25177912720835 * 1e6 < 1e-4) // SDK, ppm
+  }
+  const TransformParity parity = testTransformAgainstLoad(OPENTIMS_TSF_TEST_DATA, BrukerTimsFile::Config());
+  TEST_EQUAL(parity.expected_size, 20751)
+}
+END_SECTION
+#endif
 
 START_SECTION([EXTRA] frames that cannot be decoded are reported as ParseError)
 {
@@ -1373,6 +1819,12 @@ START_SECTION([EXTRA] exceptions of the consumer and running out of memory are n
   // an OpenMS exception of the consumer leaves as it is as well
   TEST_EQUAL(hasText(thrown([&] { ThrowingConsumer consumer([] { throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "out.mzML"); });
                                  f.transform(d, &consumer); }), "OpenMS UnableToCreateFile"), true)
+
+  // the same for TSF data
+  const std::string tsf = writeFakeTsf(tmp.getPath() + "/tsf.d", {{1.0, 0, {0, 1}, {1206.0f, 1197486.0f}}});
+  TEST_STRING_EQUAL(thrown([&] { ThrowingConsumer consumer(runtime_error); f.transform(tsf, &consumer); }),
+                    "std::runtime_error: Python callback consumeSpectrum raised an exception")
+  TEST_STRING_EQUAL(thrown([&] { ThrowingConsumer consumer(bad_alloc); f.transform(tsf, &consumer); }), "std::bad_alloc")
 }
 END_SECTION
 
@@ -2065,6 +2517,48 @@ START_SECTION(std::unique_ptr<Tof2MzConverter> tryCreateMzCalibrationConverter(c
     const uint32_t tof = 150000;
     conv_no_t->convert(2, &mz, &tof, 1);
     TEST_REAL_SIMILAR(mz, MzCalibrationTof2MzConverter::tofToMz(ref, tof))
+  }
+
+  // TSF data (timsTOF without ion mobility): the same tables in analysis.tsf. The calibration and frame temperatures of a
+  // MALDI spot run (MassIVE MSV000088438, rs17e_1mgml_no_tims_1_0_C2_MS.d, frame 1), and three peaks of its line spectrum:
+  // the fractional index stored in analysis.tsf_bin and the m/z of the Bruker SDK (TIMSCONVERT 2.0.0)
+  {
+    const std::string d = tmp_dir.getPath() + "/tsf.d";
+    std::filesystem::create_directories(d);
+    {
+      SqliteConnector conn(d + "/analysis.tsf", SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
+      conn.executeStatement("CREATE TABLE MzCalibration (Id INTEGER PRIMARY KEY, ModelType INTEGER, DigitizerTimebase REAL, "
+                            "DigitizerDelay REAL, T1 REAL, T2 REAL, dC1 REAL, dC2 REAL, C0 REAL, C1 REAL, C2 REAL, C3 REAL, C4 REAL);");
+      conn.executeStatement("INSERT INTO MzCalibration VALUES (1, 1, 0.19999999999999998, 25627.6, 25.661657387366994, "
+                            "27.37440317917224, 20.0, 0.0, 314.2024623155012, 156059.18973537948, -0.0020587980315838962, 0.0, 0.0);");
+      conn.executeStatement("CREATE TABLE Frames (Id INTEGER PRIMARY KEY, MzCalibration INTEGER, T1 REAL, T2 REAL);");
+      conn.executeStatement("INSERT INTO Frames VALUES (1, 1, 25.69411772046709, 27.491792202523506);");
+    }
+    auto conv_tsf = tryCreateMzCalibrationConverter(d);
+    TEST_NOT_EQUAL(conv_tsf.get(), nullptr)
+    if (conv_tsf)
+    {
+      const double index[3] = {75182.82477446218, 119863.65367102693, 437635.2683363148};
+      const double sdk_mz[3] = {254.08942900289034, 379.09864007179004, 1987.23938706468};
+      double mz[3] = {0.0, 0.0, 0.0};
+      conv_tsf->convert(1, mz, index, 3);
+      for (int i = 0; i < 3; ++i)
+      {
+        TEST_TRUE(std::abs(mz[i] - sdk_mz[i]) / sdk_mz[i] * 1e6 < 1e-4) // ppm
+      }
+    }
+    // a .d with both: analysis.tdf is read, as BrukerTimsFile::detectFormat() reports TDF data for it
+    const std::string both = make_d("tdf_and_tsf", 1, true);
+    std::filesystem::copy_file(d + "/analysis.tsf", both + "/analysis.tsf");
+    auto conv_both = tryCreateMzCalibrationConverter(both);
+    TEST_NOT_EQUAL(conv_both.get(), nullptr)
+    if (conv_both)
+    {
+      const uint32_t tof = 150000;
+      double mz = 0.0;
+      conv_both->convert(1, &mz, &tof, 1);
+      TEST_REAL_SIMILAR(mz, 469.54221185610277) // the TDF calibration above
+    }
   }
 
   // ModelType 2 with the correction columns C5..C14, and without them (base curve only)

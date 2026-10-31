@@ -445,8 +445,8 @@ END_SECTION
 
 START_SECTION(([Bruker .d] getType() looks at the files of a .d directory))
 {
-  // TDF data is what can be read. TSF and BAF data (no ion mobility) are taken as Bruker .d as well, so
-  // that loading them fails with a message that names the format, not with an unknown file type.
+  // TDF and TSF data (timsTOF with and without ion mobility) are what can be read. BAF data is taken as Bruker .d
+  // as well, so that loading it fails with a message that names the format, not with an unknown file type.
   TempDir tmp_dir;
   auto make_d = [&tmp_dir](const std::string& name, const std::string& file)
   {
@@ -465,11 +465,17 @@ START_SECTION(([Bruker .d] getType() looks at the files of a .d directory))
 
   PeakMap exp;
   MSImagingExperiment img;
-  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadExperiment(make_d("tsf", "analysis.tsf"), exp))
+  // BAF data cannot be read: every function says so
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadExperiment(make_d("baf", "analysis.baf"), exp))
   TEST_EXCEPTION(Exception::ParseError, FileHandler().loadExperiment(make_d("baf", "analysis.baf"), exp, {FileTypes::MZML, FileTypes::BRUKER_TDF}))
-  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadImagingExperiment(make_d("tsf", "analysis.tsf"), img))
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadImagingExperiment(make_d("baf", "analysis.baf"), img))
   MSDataStoringConsumer streamed;
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().transformExperiment(make_d("baf", "analysis.baf"), &streamed))
+  // TSF data is read: an analysis.tsf that is no SQLite file is reported as such, and an imaging run is not
+  // recognized in it (as for such an analysis.tdf)
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadExperiment(make_d("tsf", "analysis.tsf"), exp))
   TEST_EXCEPTION(Exception::ParseError, FileHandler().transformExperiment(make_d("tsf", "analysis.tsf"), &streamed))
+  TEST_EXCEPTION(Exception::InvalidValue, FileHandler().loadImagingExperiment(make_d("tsf", "analysis.tsf"), img))
 }
 END_SECTION
 #endif

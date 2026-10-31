@@ -7,6 +7,7 @@
 
 #include <OpenMS/FORMAT/MzCalibrationTof2MzConverter.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <algorithm>
@@ -180,12 +181,16 @@ namespace OpenMS
   std::unique_ptr<Tof2MzConverter> tryCreateMzCalibrationConverter(
     const std::string& tims_dir_path)
   {
-    const std::string tdf_path = tims_dir_path + "/analysis.tdf";
+    // TDF and TSF data have the same MzCalibration table and Frames columns. TDF takes precedence, as in
+    // BrukerTimsFile::detectFormat() (keep the two in sync; this library function does not depend on BrukerTimsFile)
+    const bool tsf = !File::exists(tims_dir_path + "/analysis.tdf") && !File::exists(tims_dir_path + "/analysis.tdf_bin")
+                     && File::exists(tims_dir_path + "/analysis.tsf");
+    const std::string db_path = tims_dir_path + (tsf ? "/analysis.tsf" : "/analysis.tdf");
     using Calibration = MzCalibrationTof2MzConverter::Calibration;
 
     try
     {
-      SQLite::Database db(tdf_path, SQLite::OPEN_READONLY);
+      SQLite::Database db(db_path, SQLite::OPEN_READONLY);
 
       // 1. Read the MzCalibration table. Rows that no frame uses may be unsupported or
       //    incomplete (older files carry such rows); only rows used by a frame are checked.
@@ -350,11 +355,12 @@ namespace OpenMS
       }
       std::string description = "MzCalibrationTof2MzConverter (MzCalibration ModelType " + types
                                 + ", per-frame temperature correction)";
-      OPENMS_LOG_INFO << "TIMS m/z calibration: MzCalibration table (ModelType " << types << ", "
+      const char* label = tsf ? "TSF m/z calibration: " : "TIMS m/z calibration: ";
+      OPENMS_LOG_INFO << label << "MzCalibration table (ModelType " << types << ", "
                       << n_frames << " frames, per-frame temperature correction)" << std::endl;
       if (n_without_correction > 0 && model_types.count(2))
       {
-        OPENMS_LOG_WARN << "TIMS m/z calibration: " << n_without_correction << " ModelType 2 calibration(s) "
+        OPENMS_LOG_WARN << label << n_without_correction << " ModelType 2 calibration(s) "
                         << "without usable correction terms (C5..C14); m/z uses the base curve only, which "
                         << "can deviate from the Bruker SDK by a few ppm" << std::endl;
       }
@@ -364,7 +370,7 @@ namespace OpenMS
     catch (const SQLite::Exception& e)
     {
       // MzCalibration table or the Frames T1/T2/MzCalibration columns do not exist
-      OPENMS_LOG_DEBUG << "MzCalibration not usable in " << tdf_path << " (" << e.what()
+      OPENMS_LOG_DEBUG << "MzCalibration not usable in " << db_path << " (" << e.what()
                        << "), falling back to the linear m/z converter" << std::endl;
       return nullptr;
     }
