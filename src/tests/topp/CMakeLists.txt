@@ -4656,10 +4656,10 @@ add_test("TOPP_MS1LabeledWorkflow_3_mbr" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -te
   -proteinFDR 1.0
   -match_between_runs true
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_3_mbr.tmp.consensusXML)
-# Knock-outs are detected by default, so run B also has six unidentified partial multiplets (singlets);
+# Knock-outs are detected by default, so run B also has seven unidentified partial multiplets (singlets);
 # only the complete unidentified doublet is kept for match between runs, since the channels of a partial
 # one are known from an identification only.
-set_tests_properties("TOPP_MS1LabeledWorkflow_3_mbr" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare" PASS_REGULAR_EXPRESSION "7 multiplet.s. are unidentified, 1 of them kept for match between runs")
+set_tests_properties("TOPP_MS1LabeledWorkflow_3_mbr" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare" PASS_REGULAR_EXPRESSION "8 multiplet.s. are unidentified, 1 of them kept for match between runs")
 add_test("TOPP_MS1LabeledWorkflow_3_mbr_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_3_mbr.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_3_mbr_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_3_mbr_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_3_mbr")
 add_test("TOPP_MS1LabeledWorkflow_3_targeted" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
