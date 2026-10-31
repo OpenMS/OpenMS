@@ -1,6 +1,7 @@
 {
   "name": "opentims",
   "version": "1.2.0",
+  "port-version": 1,
   "description": "Open-source C++ and Python module for opening binary timsTOF data files.",
   "homepage": "https://github.com/michalsta/opentims",
   "license": "MIT",

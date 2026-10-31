@@ -74,6 +74,15 @@ function(install_library lib_target_name)
       RUNTIME DESTINATION ${INSTALL_LIB_DIR} COMPONENT ${_component}
       ${_header_install_args}
       )
+    # MSVC writes the debug information of a DLL to a .pdb file next to it (in a Debug
+    # or RelWithDebInfo build; a Release build has none, hence OPTIONAL). It ships with
+    # the DLL, so a consumer of the Windows Debug SDK can step into OpenMS code.
+    # TARGET_PDB_FILE is only defined for shared libraries and executables.
+    get_target_property(_type ${lib_target_name} TYPE)
+    if(MSVC AND _type STREQUAL "SHARED_LIBRARY")
+      install(FILES $<TARGET_PDB_FILE:${lib_target_name}>
+        DESTINATION ${INSTALL_LIB_DIR} COMPONENT ${_component} OPTIONAL)
+    endif()
 endfunction()
 
 #------------------------------------------------------------------------------
