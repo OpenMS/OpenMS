@@ -15,6 +15,7 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <map>
@@ -126,7 +127,8 @@ namespace OpenMS
     return true;
   }
 
-  bool MultiplexResolverAlgorithm::matchesResidues_(const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, const AASequence& sequence)
+  bool MultiplexResolverAlgorithm::matchesResidues_(const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, const AASequence& sequence,
+                                                    const std::vector<std::vector<std::string>>& samples)
   {
     // the residue a metabolic label sits on ('\0' for labels that are not counted)
     auto residue_of = [](const std::string& label) -> char
@@ -145,10 +147,27 @@ namespace OpenMS
 
     for (const MultiplexDeltaMasses::DeltaMass& delta_mass : pattern)
     {
+      // labels per residue kind in this channel
       std::map<char, Size> labels;
       for (const std::string& label : delta_mass.label_set)
       {
         if (const char residue = residue_of(label); residue != '\0') { ++labels[residue]; }
+      }
+      // A kind the channel's sample (the one whose labels include the channel's) labels but the channel does not carry
+      // must be absent from the peptide: the Lys8 channel of sample [Lys8,Arg10] fits a peptide with one K and no R.
+      const auto sample = std::find_if(samples.begin(), samples.end(), [&delta_mass](const std::vector<std::string>& sample_labels)
+      {
+        return std::all_of(delta_mass.label_set.begin(), delta_mass.label_set.end(), [&sample_labels](const std::string& label)
+        {
+          return std::find(sample_labels.begin(), sample_labels.end(), label) != sample_labels.end();
+        });
+      });
+      if (sample != samples.end())
+      {
+        for (const std::string& label : *sample)
+        {
+          if (const char residue = residue_of(label); residue != '\0') { labels.try_emplace(residue, 0); }
+        }
       }
       for (const auto& [residue, count] : labels)
       {
@@ -163,6 +182,7 @@ namespace OpenMS
                                                        const AASequence& sequence,
                                                        const MultiplexDeltaMasses::LabelSet& label_set,
                                                        const std::vector<MultiplexDeltaMasses>& theoretical_patterns,
+                                                       const std::vector<std::vector<std::string>>& samples,
                                                        std::vector<bool>& delta_mass_matched, int& index_label_set) const
   {
     for (auto it_pattern = theoretical_patterns.begin(); it_pattern != theoretical_patterns.end(); ++it_pattern)
@@ -170,7 +190,7 @@ namespace OpenMS
       const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern = it_pattern->getDeltaMasses();
 
       const double shift = matchLabelSet_(pattern, label_set, index_label_set);
-      if (!std::isnan(shift) && matchesResidues_(pattern, sequence))
+      if (!std::isnan(shift) && matchesResidues_(pattern, sequence, samples))
       {
         // the label set occurs in this pattern; now all detected mass shifts have to fit as well
         delta_mass_matched.assign(delta_mass_matched.size(), false);
@@ -360,6 +380,7 @@ namespace OpenMS
 
     MultiplexDeltaMassesGenerator generator = createGenerator_();
     const std::vector<MultiplexDeltaMasses> theoretical_masses = generator.getDeltaMassesList();
+    const std::vector<std::vector<std::string>> samples = generator.getSamplesLabelsList();
     const size_t multiplicity = theoretical_masses[0].getDeltaMasses().size();
 
     for (Size i = 0; i < ids.size(); ++i)
@@ -373,7 +394,8 @@ namespace OpenMS
       const MultiplexDeltaMasses::LabelSet label_set = generator.extractLabelSet(sequence);
       std::vector<bool> delta_mass_matched(multiplicity, false);
       int index_label_set = -1;
-      consistent[i] = findMatchingPattern_(consensus, detected_delta_mass, sequence, label_set, theoretical_masses, delta_mass_matched, index_label_set) >= 0;
+      consistent[i] = findMatchingPattern_(consensus, detected_delta_mass, sequence, label_set, theoretical_masses, samples,
+                                           delta_mass_matched, index_label_set) >= 0;
     }
     return consistent;
   }
@@ -383,12 +405,13 @@ namespace OpenMS
     if (charge == 0) { return {}; }
     MultiplexDeltaMassesGenerator generator = createGenerator_();
     const MultiplexDeltaMasses::LabelSet label_set = generator.extractLabelSet(sequence);
+    const std::vector<std::vector<std::string>> samples = generator.getSamplesLabelsList();
     for (const MultiplexDeltaMasses& theoretical : generator.getDeltaMassesList())
     {
       const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern = theoretical.getDeltaMasses();
       int index_label_set = -1;
       const double shift = matchLabelSet_(pattern, label_set, index_label_set);
-      if (std::isnan(shift) || !matchesResidues_(pattern, sequence)) { continue; }
+      if (std::isnan(shift) || !matchesResidues_(pattern, sequence, samples)) { continue; }
 
       const double mz = sequence.getMZ(charge);
       std::vector<double> mzs;
@@ -414,6 +437,7 @@ namespace OpenMS
     map_conflicts.resize(0);
 
     const std::vector<MultiplexDeltaMasses> theoretical_masses = generator.getDeltaMassesList();
+    const std::vector<std::vector<std::string>> samples = generator.getSamplesLabelsList();
     const size_t multiplicity = theoretical_masses[0].getDeltaMasses().size();
 
     for (const ConsensusFeature& cf : map_in)
@@ -441,7 +465,8 @@ namespace OpenMS
       std::vector<bool> delta_mass_matched(multiplicity, false);
       int index_label_set = -1;
 
-      const int index = findMatchingPattern_(cf, detected_delta_mass, sequence, label_set, theoretical_masses, delta_mass_matched, index_label_set);
+      const int index = findMatchingPattern_(cf, detected_delta_mass, sequence, label_set, theoretical_masses, samples,
+                                             delta_mass_matched, index_label_set);
 
       if (index >= 0)
       {

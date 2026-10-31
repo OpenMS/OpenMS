@@ -100,7 +100,7 @@ namespace OpenMS
       @brief Where the peptide of @p sequence appears in every channel.
 
       The theoretical pattern of the peptide is the one whose label set at some position equals the labels
-      of @p sequence and whose channels label as many residues as it has (see matchesResidues_()). Its
+      of @p sequence and whose channels label exactly the residues it has (see matchesResidues_()). Its
       mass shifts, relative to the position of @p sequence, give the m/z of the peptide at charge
       @p charge in every channel.
 
@@ -151,6 +151,7 @@ namespace OpenMS
       @param[in] sequence Sequence annotated to the detected pattern
       @param[in] label_set Label set extracted from @p sequence
       @param[in] theoretical_patterns All theoretical patterns
+      @param[in] samples Labels of every sample (MultiplexDeltaMassesGenerator::getSamplesLabelsList())
       @param[out] delta_mass_matched Which delta masses of the matching pattern were matched
       @param[out] index_label_set Index within the matching pattern at which the label set was matched
       @return Index of the matching pattern, or -1
@@ -158,19 +159,27 @@ namespace OpenMS
     int findMatchingPattern_(const ConsensusFeature& consensus, double detected_delta_mass_at_label_set,
                              const AASequence& sequence, const MultiplexDeltaMasses::LabelSet& label_set,
                              const std::vector<MultiplexDeltaMasses>& theoretical_patterns,
+                             const std::vector<std::vector<std::string>>& samples,
                              std::vector<bool>& delta_mass_matched, int& index_label_set) const;
 
     /**
-      @brief Does every channel of @p pattern label as many residues as @p sequence has?
+      @brief Does every channel of @p pattern label exactly the residues @p sequence has?
 
       Metabolic labels (SILAC Lys/Arg, Leu3) sit on every residue of their kind, so in a pattern that
       fits the peptide, each channel carries one Lys label per K, one Arg label per R and one Leu label
-      per L - counted for the residue kinds the channel labels at all. This tells the pattern of an
-      unlabelled identification, whose label set ("no_label") occurs in every pattern, e.g. a light
-      singlet of a K-terminal peptide must not be completed with Arg-shifted channels. Other labels
-      (Dimethyl, ICPL, plain mass shifts) are not counted.
+      per L, for every residue kind its sample labels - none if the peptide has no residue of that kind.
+      The sample of a channel is the one in @p samples whose labels include all labels of the channel.
+      E.g. with samples [][Lys8,Arg10], a peptide with one K and one R fits only the pattern whose heavy
+      channel carries Lys8 and Arg10, not the one carrying Lys8 alone. This tells the pattern of an
+      unlabelled identification, whose label set ("no_label") occurs in every pattern. Unlabelled channels
+      impose nothing, and other labels (Dimethyl, ICPL, plain mass shifts) are not counted.
+
+      @param[in] pattern Theoretical pattern
+      @param[in] sequence Identified peptidoform
+      @param[in] samples Labels of every sample (MultiplexDeltaMassesGenerator::getSamplesLabelsList())
     */
-    static bool matchesResidues_(const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, const AASequence& sequence);
+    static bool matchesResidues_(const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, const AASequence& sequence,
+                                 const std::vector<std::vector<std::string>>& samples);
 
     /// m/z of the lightest peptide of the complete multiplet, given the incomplete one at @p mz
     static double findNewMZ_(double mz, int charge, const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern,

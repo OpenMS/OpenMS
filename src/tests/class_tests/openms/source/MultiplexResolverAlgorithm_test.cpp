@@ -23,6 +23,10 @@ using namespace OpenMS;
 // identification of a feature carries the map index of the handle it was mapped to.
 const double LYS8 = 8.0141988132;
 const double ARG10 = 10.008268600;
+const double LYS4 = 4.0251069836;
+const double ARG6 = 6.0201290268;
+const double DIMETHYL0 = 28.031300;
+const double DIMETHYL6 = 34.063117;
 
 FeatureHandle makeHandle(Size map_index, double rt, double mz, int charge, double intensity)
 {
@@ -246,6 +250,46 @@ START_SECTION((void resolve(const ConsensusMap& map_in, ConsensusMap& map_out, C
     TEST_EQUAL(conflicts3.size(), 1)
   }
 
+  // a light peptide with K and R: its heavy channel carries Lys8 and Arg10
+  {
+    MultiplexResolverAlgorithm resolver_kr;
+    Param p = resolver_kr.getParameters();
+    p.setValue("algorithm:max_nr_labelled_aas", 1);
+    resolver_kr.setParameters(p);
+
+    ConsensusMap in_kr;
+    in_kr.setExperimentType("labeled_MS1");
+    in_kr.getColumnHeaders() = in.getColumnHeaders();
+    // a light singlet is completed at the combined shift, not at the Lys8 shift alone
+    ConsensusFeature singlet;
+    singlet.setRT(100.0);
+    singlet.setMZ(500.0);
+    singlet.setCharge(2);
+    singlet.insert(makeHandle(0, 100.0, 500.0, 2, 100.0));
+    singlet.getPeptideIdentifications().push_back(makeId("PEPTIDEKAAR", 2, 0));
+    in_kr.push_back(singlet);
+    // a doublet at the Lys8 shift cannot be this peptide
+    ConsensusFeature lys8_doublet = singlet;
+    lys8_doublet.setRT(200.0);
+    lys8_doublet.insert(makeHandle(1, 200.0, 500.0 + LYS8 / 2, 2, 100.0));
+    in_kr.push_back(lys8_doublet);
+
+    ConsensusMap out_kr, conflicts_kr;
+    resolver_kr.resolve(in_kr, out_kr, conflicts_kr);
+    TEST_EQUAL(out_kr.size(), 1)
+    TEST_EQUAL(conflicts_kr.size(), 1)
+    ABORT_IF(out_kr.size() != 1)
+    TEST_EQUAL(out_kr[0].size(), 2)
+    auto it = out_kr[0].getFeatures().begin();
+    TEST_EQUAL(it->getMapIndex(), 0)
+    TEST_REAL_SIMILAR(it->getIntensity(), 100.0)
+    ++it;
+    TEST_EQUAL(it->getMapIndex(), 1)
+    TEST_REAL_SIMILAR(it->getMZ(), 500.0 + (LYS8 + ARG10) / 2)
+    TEST_REAL_SIMILAR(it->getIntensity(), 0.0)
+    TEST_REAL_SIMILAR(conflicts_kr[0].getRT(), 200.0)
+  }
+
   // an identification without the 'map_index' annotation cannot be resolved
   {
     ConsensusMap in3 = makeDuplexMap();
@@ -306,6 +350,30 @@ START_SECTION((std::vector<bool> checkIdentifications(const ConsensusFeature& co
 
   // a multiplet without features has nothing to agree with
   TEST_EQUAL(resolver.checkIdentifications(ConsensusFeature()).size(), 0)
+
+  // a light peptide with K and R fits the doublet at the Lys8 + Arg10 shift, not the one at the Lys8 shift
+  {
+    Param p = resolver.getParameters();
+    p.setValue("algorithm:max_nr_labelled_aas", 1);
+    resolver.setParameters(p);
+    ConsensusFeature lys8_doublet;
+    lys8_doublet.setRT(100.0);
+    lys8_doublet.setMZ(500.0);
+    lys8_doublet.setCharge(2);
+    lys8_doublet.insert(makeHandle(0, 100.0, 500.0, 2, 100.0));
+    lys8_doublet.insert(makeHandle(1, 100.0, 500.0 + LYS8 / 2, 2, 200.0));
+    lys8_doublet.getPeptideIdentifications().push_back(makeId("PEPTIDEKAAR", 2, 0));
+    TEST_FALSE(resolver.checkIdentifications(lys8_doublet)[0])
+
+    ConsensusFeature kr_doublet;
+    kr_doublet.setRT(100.0);
+    kr_doublet.setMZ(500.0);
+    kr_doublet.setCharge(2);
+    kr_doublet.insert(makeHandle(0, 100.0, 500.0, 2, 100.0));
+    kr_doublet.insert(makeHandle(1, 100.0, 500.0 + (LYS8 + ARG10) / 2, 2, 200.0));
+    kr_doublet.getPeptideIdentifications().push_back(makeId("PEPTIDEKAAR", 2, 0));
+    TEST_TRUE(resolver.checkIdentifications(kr_doublet)[0])
+  }
 }
 END_SECTION
 
@@ -330,9 +398,68 @@ START_SECTION((std::vector<double> expectedChannelMZs(const AASequence& sequence
   TEST_EQUAL(mzs.size(), 2)
   TEST_REAL_SIMILAR(mzs[1] - mzs[0], ARG10 / 3)
 
-  // no pattern: two labelled residues with max_nr_labelled_aas = 0, or no charge
+  // no pattern: two labelled residues with max_nr_labelled_aas = 0 (two K, or K and R), or no charge
   TEST_EQUAL(resolver.expectedChannelMZs(AASequence::fromString("PEKPTIDEK"), 2, position).size(), 0)
+  const AASequence kr = AASequence::fromString("PEPTIDEKAAR");
+  TEST_EQUAL(resolver.expectedChannelMZs(kr, 2, position).size(), 0)
   TEST_EQUAL(resolver.expectedChannelMZs(light, 0, position).size(), 0)
+
+  // a peptide with K and R is shifted by both labels in the heavy channel
+  Param p = resolver.getParameters();
+  p.setValue("algorithm:max_nr_labelled_aas", 1);
+  resolver.setParameters(p);
+  mzs = resolver.expectedChannelMZs(kr, 2, position);
+  TEST_EQUAL(mzs.size(), 2)
+  TEST_EQUAL(position, 0)
+  TEST_REAL_SIMILAR(mzs[0], kr.getMZ(2))
+  TEST_REAL_SIMILAR(mzs[1] - mzs[0], (LYS8 + ARG10) / 2)
+  mzs = resolver.expectedChannelMZs(AASequence::fromString("PEPTIDEK(Label:13C(6)15N(2))AAR(Label:13C(6)15N(4))"), 2, position);
+  TEST_EQUAL(mzs.size(), 2)
+  TEST_EQUAL(position, 1)
+  TEST_REAL_SIMILAR(mzs[0], kr.getMZ(2))
+  // K-only and R-only peptides keep their single shift
+  mzs = resolver.expectedChannelMZs(light, 2, position);
+  TEST_EQUAL(mzs.size(), 2)
+  TEST_REAL_SIMILAR(mzs[1] - mzs[0], LYS8 / 2)
+  mzs = resolver.expectedChannelMZs(AASequence::fromString("PEPTIDER"), 2, position);
+  TEST_EQUAL(mzs.size(), 2)
+  TEST_REAL_SIMILAR(mzs[1] - mzs[0], ARG10 / 2)
+  // no pattern: two K and one R exceed two labelled residues (no Arg10-only shift), no K or R, or a partially
+  // labelled peptide (heavy K, light R) that no sample produces
+  TEST_EQUAL(resolver.expectedChannelMZs(AASequence::fromString("PEKPTIDEKR"), 2, position).size(), 0)
+  TEST_EQUAL(resolver.expectedChannelMZs(AASequence::fromString("PEPTIDE"), 2, position).size(), 0)
+  TEST_EQUAL(resolver.expectedChannelMZs(AASequence::fromString("PEPTIDEK(Label:13C(6)15N(2))AAR"), 2, position).size(), 0)
+
+  // triple SILAC: both labelled channels carry both labels
+  p.setValue("algorithm:labels", "[][Lys4,Arg6][Lys8,Arg10]");
+  resolver.setParameters(p);
+  mzs = resolver.expectedChannelMZs(kr, 2, position);
+  TEST_EQUAL(mzs.size(), 3)
+  TEST_EQUAL(position, 0)
+  TEST_REAL_SIMILAR(mzs[1] - mzs[0], (LYS4 + ARG6) / 2)
+  TEST_REAL_SIMILAR(mzs[2] - mzs[0], (LYS8 + ARG10) / 2)
+
+  // the sample of a channel is found by its labels, not by its position (implicit light sample)
+  p.setValue("algorithm:labels", "[Lys8,Arg10]");
+  resolver.setParameters(p);
+  mzs = resolver.expectedChannelMZs(kr, 2, position);
+  TEST_EQUAL(mzs.size(), 2)
+  TEST_REAL_SIMILAR(mzs[1] - mzs[0], (LYS8 + ARG10) / 2)
+
+  // a residue kind the sample does not label imposes nothing: with Lys8 labelling only, R is not shifted
+  p.setValue("algorithm:labels", "[][Lys8]");
+  resolver.setParameters(p);
+  mzs = resolver.expectedChannelMZs(kr, 2, position);
+  TEST_EQUAL(mzs.size(), 2)
+  TEST_REAL_SIMILAR(mzs[1] - mzs[0], LYS8 / 2)
+
+  // labels that are not counted per residue (Dimethyl: N-terminus and K) follow the labels of the sequence
+  p.setValue("algorithm:labels", "[Dimethyl0][Dimethyl6]");
+  resolver.setParameters(p);
+  mzs = resolver.expectedChannelMZs(AASequence::fromString(".(Dimethyl)PEPTIDEK(Dimethyl)"), 2, position);
+  TEST_EQUAL(mzs.size(), 2)
+  TEST_EQUAL(position, 0)
+  TEST_REAL_SIMILAR(mzs[1] - mzs[0], 2 * (DIMETHYL6 - DIMETHYL0) / 2)
 }
 END_SECTION
 
