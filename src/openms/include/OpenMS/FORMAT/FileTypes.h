@@ -102,6 +102,7 @@ namespace OpenMS
       IMZML,              ///< imzML mass spectrometry imaging file (.imzML + .ibd)
       YAML,               ///< YAML Ain't Markup Language file (.yaml)
       BEDRMOD,            ///< bedRMod file (.bedrmod, also accepts .bed)
+      MZPEAK,             ///< mzPeak raw data file (HUPO-PSI; Parquet tables in a ZIP archive, or the same members in a directory; see MzPeakFile)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 

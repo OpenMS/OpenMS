@@ -84,6 +84,30 @@ struct OPENMS_DLLAPI HyperScore
                                     double mass_error_sd_ppm,
                                     PSMDetail& detail);
 
+  /**
+   * @brief computeWithDetail() and computeMassAccuracy() for a theoretical spectrum without ion names
+   *
+   * @p theo_ion_series holds per peak of @p theo_spectrum 0 for an N-terminal (a, b, c) and 1 for a C-terminal (x, y, z)
+   * ion, as TheoreticalSpectrumGenerator::getIonSeriesSpectrum() provides it; any other value counts as neither. The
+   * scores are those of the overloads above for the ion names of the same ions.
+   * @throws Exception::InvalidSize if @p theo_ion_series does not hold one entry per peak
+   */
+  static double computeWithDetail(double fragment_mass_tolerance,
+                                  bool fragment_mass_tolerance_unit_ppm,
+                                  const PeakSpectrum& exp_spectrum,
+                                  const PeakSpectrum& theo_spectrum,
+                                  const std::vector<uint8_t>& theo_ion_series,
+                                  PSMDetail& d);
+
+  /// @copydoc computeWithDetail(double, bool, const PeakSpectrum&, const PeakSpectrum&, const std::vector<uint8_t>&, PSMDetail&)
+  static double computeMassAccuracy(double fragment_mass_tolerance,
+                                    bool fragment_mass_tolerance_unit_ppm,
+                                    const PeakSpectrum& exp_spectrum,
+                                    const PeakSpectrum& theo_spectrum,
+                                    const std::vector<uint8_t>& theo_ion_series,
+                                    double mass_error_sd_ppm,
+                                    PSMDetail& detail);
+
   /* @brief compute the (ln transformed) X!Tandem HyperScore only matching peaks that match in charge
    *  1. the dot product of peak intensities between matching peaks in experimental and theoretical spectrum is calculated
    *  2. the HyperScore is calculated from the dot product by multiplying by factorials of matching b- and y-ions

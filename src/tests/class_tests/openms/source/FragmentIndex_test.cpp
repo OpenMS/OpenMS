@@ -176,6 +176,10 @@ public:
 
   static void sortPeptides(std::vector<Peptide>& peptides) { sortPeptides_(peptides); }
   static void sortPeptides(std::vector<Peptide>& peptides, size_t min_task_size) { sortPeptides_(peptides, min_task_size); }
+  static void sortPeptides(std::vector<Peptide>& peptides, size_t min_task_size, size_t min_parallel_partition)
+  {
+    sortPeptides_(peptides, min_task_size, min_parallel_partition);
+  }
 
   std::vector<double> exposeComputeSigmaDeltaSet(bool include_prot_nterm_mods,
                                                 bool include_prot_cterm_mods) const
@@ -3510,7 +3514,7 @@ START_SECTION([EXTRA] sortPeptides_() leaves exactly the order of std::sort)
     return key;
   };
 
-  const int n_patterns = 10;
+  const int n_patterns = 11;
   const auto makePeptides = [&](int pattern, size_t n)
   {
     std::mt19937 rng(static_cast<uint32_t>(pattern * 1000003 + n));
@@ -3534,7 +3538,8 @@ START_SECTION([EXTRA] sortPeptides_() leaves exactly the order of std::sort)
         case 6: mz = static_cast<float>(i % 17); protein = i % 2; break;                  // sawtooth
         case 7: mz = 500.0f + 0.01f * static_cast<float>(rng() % 200000); protein = static_cast<UInt32>(i / 10); break; // as build() has them
         case 8: mz = static_cast<float>(killer[i]); break;                                // heap sort fallback
-        default: mz = static_cast<float>(killer[i] / 4); protein = rng() % 2; break;      // heap sort fallback, ties
+        case 9: mz = static_cast<float>(killer[i] / 4); protein = rng() % 2; break;       // heap sort fallback, ties
+        default: mz = (rng() % 2 ? 1.0f : -1.0f) * static_cast<float>(rng() % 3); protein = rng() % 2; break; // signs, -0.0 == 0.0
       }
       // mod_bitmask_ and sequence_ are not part of the sort key: they tell equal peptides apart
       peptides.emplace_back(protein, static_cast<uint32_t>(i),
@@ -3576,18 +3581,25 @@ START_SECTION([EXTRA] sortPeptides_() leaves exactly the order of std::sort)
 #endif
         if (n < 1000000)
         {
-          // every partitioning step hands its right part to another task / only the larger parts
+          // every partitioning step hands its right part to another task / only the larger parts; every partitioning
+          // step / those of more than 1000 peptides / none is done by all threads
           for (const size_t min_task_size : {size_t(0), size_t(100)})
           {
-            std::vector<Peptide> sorted = input;
-            FragmentIndex_test::sortPeptides(sorted, min_task_size);
-            differences += countDifferences(sorted, expected);
+            for (const size_t min_parallel_partition : {size_t(0), size_t(1000), std::numeric_limits<size_t>::max()})
+            {
+              std::vector<Peptide> sorted = input;
+              FragmentIndex_test::sortPeptides(sorted, min_task_size, min_parallel_partition);
+              differences += countDifferences(sorted, expected);
+            }
           }
         }
         else
         {
           std::vector<Peptide> sorted = input;
           FragmentIndex_test::sortPeptides(sorted); // as build() calls it
+          differences += countDifferences(sorted, expected);
+          sorted = input;
+          FragmentIndex_test::sortPeptides(sorted, 8192, 20000); // partitioning by all threads down to 20000 peptides
           differences += countDifferences(sorted, expected);
         }
         (void)threads;
@@ -4062,9 +4074,11 @@ START_SECTION((bool hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntr
   fi.setParameters(p);
   fi.build(db);
   TEST_TRUE(fi.hasProteinOccurrences(db))
+  TEST_TRUE(fi.isBuiltFrom(db))
   vector<FASTAFile::FASTAEntry> other = db;
   other[1].sequence += "R";
   TEST_FALSE(fi.hasProteinOccurrences(other)) // not built from these entries
+  TEST_FALSE(fi.isBuiltFrom(other))
   other = db;
   other.pop_back();
   TEST_FALSE(fi.hasProteinOccurrences(other))
@@ -4079,6 +4093,7 @@ START_SECTION((bool hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntr
     fi.setParameters(p);
     fi.build(db);
     TEST_FALSE(fi.hasProteinOccurrences(db))
+    TEST_TRUE(fi.isBuiltFrom(db)) // (its entries are spans of the database)
   }
   p.setValue("modifications:fixed", vector<string> {"Acetyl (Protein N-term)"});
   p.setValue("modifications:variable", vector<string> {});
@@ -4092,6 +4107,7 @@ START_SECTION((bool hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntr
   fi.build(db);
   TEST_TRUE(fi.isPeptideMassMode())
   TEST_FALSE(fi.hasProteinOccurrences(db))
+  TEST_FALSE(fi.isBuiltFrom(db))
 }
 END_SECTION
 

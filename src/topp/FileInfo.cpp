@@ -80,7 +80,11 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    StringList in_types = { "mzData", "mzXML", "mzML", "sqMass", "dta", "dta2d", "mgf", "featureXML", "consensusXML", "idXML", "pepXML", "mzTab", "fid", "mzid", "trafoXML", "fasta", "pqp" };
+    StringList in_types = { "mzData", "mzXML", "mzML", "sqMass", "dta", "dta2d", "mgf", "featureXML", "consensusXML", "idXML", "pepXML", "mzTab", "fid", "mzid", "trafoXML", "fasta", "pqp",
+#ifdef WITH_MZPEAK
+      "mzpeak",
+#endif
+    };
     registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", in_types);
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);

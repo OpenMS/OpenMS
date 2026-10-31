@@ -207,6 +207,25 @@ namespace OpenMS
                    bool ppm,
                    std::vector<Ion>& ions) const;
 
+    /**
+      @brief matchIons() with the ions given as codes instead of names: per peak of @p theoretical its series (0: a/b/c,
+      1: x/y/z), ordinal and charge, as TheoreticalSpectrumGenerator::getIonSeriesSpectrum() writes them. The same ions
+      as matchIons() on the spectrum of getSpectrum() with the names.
+      @throws Exception::InvalidValue if the codes do not have one entry per peak
+      @throws Exception::InvalidParameter if the tolerance is not finite and positive
+    */
+    void matchIons(const PeakLists& peaks,
+                   Size index,
+                   const MSSpectrum& theoretical,
+                   const std::vector<uint8_t>& ion_series,
+                   const std::vector<UInt>& ion_ordinals,
+                   const std::vector<Int>& ion_charges,
+                   const AASequence& peptide,
+                   int precursor_charge,
+                   double tolerance,
+                   bool ppm,
+                   std::vector<Ion>& ions) const;
+
     /// Add the matched ions of one PSM to the signal (@p noise false) or noise counts
     void addObservations(const std::vector<Ion>& ions, bool noise);
 
@@ -244,6 +263,11 @@ namespace OpenMS
     Features score(const std::vector<Ion>& ions, Size top_k = 6) const;
 
   private:
+    /// matchIons() for ion(i, prefix, ordinal) (false: not an ion of a terminal series) and charge(i) of the peaks
+    template <typename IonOf, typename ChargeOf>
+    void matchIons_(const PeakLists& peaks, Size index, const MSSpectrum& theoretical, IonOf&& ion_of, ChargeOf&& charge_of,
+                    const AASequence& peptide, int precursor_charge, double tolerance, bool ppm, std::vector<Ion>& ions) const;
+
     /// Contexts of the coarser back-off levels: level 1 is the coarsest above the flat prior
     Size level1Context_(Size context) const;
     Size level2Context_(Size context) const;

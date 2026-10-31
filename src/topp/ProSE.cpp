@@ -25,6 +25,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -41,6 +42,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 
+#include <exception>
 #include <algorithm>
 #include <fstream>
 #include <future>
@@ -54,12 +56,376 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <iterator>
+#include <thread>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+#if defined(__linux__) && defined(__GLIBC__)
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <gnu/libc-version.h>
+#include <malloc.h>
+#include <string>
+#include <sys/prctl.h>
+#include <strings.h>
+#include <sys/auxv.h>
+#include <unistd.h>
+#define PROSE_GLIBC_MALLOC
+#endif
+
+#if defined(__has_feature)
+#if __has_feature(address_sanitizer) || __has_feature(thread_sanitizer) || __has_feature(memory_sanitizer)
+#define PROSE_SANITIZED
+#endif
+#endif
+#if defined(__linux__) && (defined(__x86_64__) || defined(__aarch64__)) && !defined(__ILP32__) && \
+    !defined(__SANITIZE_ADDRESS__) && !defined(__SANITIZE_THREAD__) && !defined(PROSE_SANITIZED)
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
+#include <fcntl.h>
+#include <fstream>
+#include <poll.h>
+#include <pthread.h>
+#include <sched.h>
+#include <signal.h>
+#include <strings.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+#define PROSE_HAND_OVER_MEMORY
+#ifndef SYS_close_range
+#define SYS_close_range 436 // Linux 5.9; the same number on all architectures
+#endif
+#endif
 #include <tuple>
 #include <unordered_set>
 #include <utility>
 
 using namespace OpenMS;
 using namespace std;
+
+#if defined(PROSE_HAND_OVER_MEMORY) || defined(PROSE_GLIBC_MALLOC)
+namespace
+{
+  /// Is a debugger or tracer attached (it would not follow the fast exit's helper, see CLONE_UNTRACED), or does a
+  /// seccomp filter run (it might kill the process for the helper's clone(), review int14 r2, or for the huge pages'
+  /// execve())? True if /proc/self/status cannot tell.
+  [[maybe_unused]] bool tracedOrFiltered()
+  {
+    std::ifstream status("/proc/self/status");
+    std::string line;
+    bool tracer_known = false, seccomp_known = false;
+    while (std::getline(status, line))
+    {
+      if (line.rfind("TracerPid:", 0) == 0)
+      {
+        if (std::atol(line.c_str() + 10) != 0) return true;
+        tracer_known = true;
+      }
+      else if (line.rfind("Seccomp:", 0) == 0)
+      {
+        if (std::atol(line.c_str() + 8) != 0) return true;
+        seccomp_known = true;
+      }
+    }
+    return !(tracer_known && seccomp_known);
+  }
+
+
+  /// Valgrind (its preload library): it runs no process that shares memory without being a thread, and a program that
+  /// a process under Valgrind starts again would run without it
+  [[maybe_unused]] bool underValgrind()
+  {
+    const char* preload = getenv("LD_PRELOAD");
+    return preload != nullptr && strstr(preload, "vgpreload") != nullptr;
+  }
+}
+#endif
+
+#ifdef PROSE_HAND_OVER_MEMORY
+namespace
+{
+  /**
+    On by default (environment variable OPENMS_FAST_EXIT=0, false, no or off turns it off): when a process ends, the
+    kernel releases its memory before the
+    waiting parent learns of the end: 40-80 ms for the 0.5-1 GB that a search leaves behind, after all outputs are
+    written. A helper process that shares the address space (CLONE_VM) takes over that work: it waits until this
+    process has ended (end of file on a pipe whose write end only this process holds; a process drops its address
+    space before it closes its files) and ends itself, so the memory goes back to the system with the helper, a
+    moment after this process ended. This process ends exactly as before (destructors, flushed streams, exit code);
+    the helper writes nothing and holds no file of this process once this process continues.
+
+    The helper is a process of its own for that moment: a parent that does not reap the children it adopts (an init
+    process or subreaper that only waits for its own child) keeps one zombie per run; a job system that waits for all
+    processes of a job waits for it (a moment); if the helper cannot be created, or a sandbox stops it (e.g. a
+    seccomp filter on close_range), the tool ends as without it. Tested: bash, systemd, Slurm and Apptainer (exec,
+    --pid, --containall) reap it; identical outputs. Not used under a debugger or tracer, nor under a seccomp filter
+    (a filter may kill the whole process for a clone() that is not a thread, after all outputs are written).
+  */
+  struct HelperFiles
+  {
+    long end_pipe; ///< read end: end of file when this process has ended
+    long end_pipe_write; ///< this process's write end (closed in the helper)
+    long ready_pipe_write; ///< the helper closes it (with all other files) when it holds no file but end_pipe
+  };
+  HelperFiles memory_helper_files{-1, -1, -1};
+  alignas(64) char memory_helper_stack[16384];
+
+  /// a system call without the C library: the helper shares the memory of this process, but not its thread state
+  /// (errno)
+  long rawSyscall(long n, long a = 0, long b = 0, long c = 0)
+  {
+#if defined(__x86_64__)
+    long ret;
+    asm volatile("syscall" : "=a"(ret) : "a"(n), "D"(a), "S"(b), "d"(c) : "rcx", "r11", "memory");
+    return ret;
+#else
+    register long x8 asm("x8") = n;
+    register long x0 asm("x0") = a;
+    register long x1 asm("x1") = b;
+    register long x2 asm("x2") = c;
+    asm volatile("svc 0" : "+r"(x0) : "r"(x8), "r"(x1), "r"(x2) : "memory");
+    return x0;
+#endif
+  }
+
+  int memoryHelper(void*)
+  {
+    // signals are blocked (by this process before clone()); keep no file of this process open (e.g. the pipe of a
+    // caller that reads its output until the end), else end now and leave the memory to this process
+    const long fd = memory_helper_files.end_pipe;
+    if (rawSyscall(SYS_close, memory_helper_files.end_pipe_write) != 0 ||
+        (fd > 0 && rawSyscall(SYS_close_range, 0, fd - 1, 0) != 0) ||
+        rawSyscall(SYS_close_range, fd + 1, ~0U, 0) != 0) // also closes ready_pipe_write: this process continues
+    {
+      rawSyscall(SYS_exit, 0);
+    }
+    char c;
+    long r;
+    do { r = rawSyscall(SYS_read, fd, long(&c), 1); } while (r > 0 || r == -EINTR); // 0 when this process has ended
+    rawSyscall(SYS_exit, 0);
+    return 0;
+  }
+
+  /// OPENMS_FAST_EXIT turns the hand-over off with 0, false, no or off (any case)
+  bool fastExitDisabled()
+  {
+    const char* v = getenv("OPENMS_FAST_EXIT");
+    if (v == nullptr) return false;
+    for (const char* off : {"0", "false", "no", "off"})
+    {
+      if (strcasecmp(v, off) == 0) return true;
+    }
+    return false;
+  }
+
+  /// Unless OPENMS_FAST_EXIT turns it off, hands the release of the memory at exit to a helper process (see above);
+  /// does nothing if that fails
+  void handOverMemoryAtExit()
+  {
+    if (fastExitDisabled()) { return; }
+    // Valgrind does not run processes that share memory without being threads
+    if (underValgrind()) { return; }
+    if (tracedOrFiltered()) { return; }
+    int end_pipe[2], ready_pipe[2];
+    if (pipe2(end_pipe, O_CLOEXEC) != 0) { return; } // close-on-exec: no program started later holds the write end
+    if (pipe2(ready_pipe, O_CLOEXEC) != 0) { close(end_pipe[0]); close(end_pipe[1]); return; }
+    memory_helper_files = {end_pipe[0], end_pipe[1], ready_pipe[1]};
+    // the helper starts with all signals blocked: no handler of this process runs in it
+    sigset_t all, previous;
+    sigfillset(&all);
+    pthread_sigmask(SIG_SETMASK, &all, &previous);
+    const bool started = clone(memoryHelper, memory_helper_stack + sizeof(memory_helper_stack), CLONE_VM | CLONE_UNTRACED, nullptr) != -1;
+    pthread_sigmask(SIG_SETMASK, &previous, nullptr);
+    close(end_pipe[0]);
+    close(ready_pipe[1]);
+    if (!started) { close(end_pipe[1]); }
+    else
+    {
+      // wait (at most 0.1 s) until the helper holds no file of this process but the pipe (end of file on ready_pipe)
+      pollfd ready{ready_pipe[0], POLLIN, 0};
+      while (poll(&ready, 1, 100) < 0 && errno == EINTR) {}
+    }
+    close(ready_pipe[0]);
+    // end_pipe[1] stays open until this process ends
+  }
+}
+#endif
+
+#ifdef PROSE_GLIBC_MALLOC
+namespace
+{
+  /// whether the colon-separated list @p tunables (GLIBC_TUNABLES) has an entry that starts with @p name_eq ("name=";
+  /// not a longer name that contains it)
+  bool hasTunable(const char* tunables, const char* name_eq)
+  {
+    const size_t n = strlen(name_eq);
+    for (const char* p = tunables; p != nullptr && *p != '\0';)
+    {
+      if (strncmp(p, name_eq, n) == 0) { return true; }
+      p = strchr(p, ':');
+      if (p != nullptr) { ++p; }
+    }
+    return false;
+  }
+
+  bool mallocDefaultsKept()
+  {
+    const char* defaults = getenv("OPENMS_MALLOC_DEFAULTS");
+    return defaults != nullptr && strcmp(defaults, "0") == 0;
+  }
+
+  /**
+    glibc's malloc: the arena of a thread other than the main thread grows its heap (a 64 MiB reservation) by just
+    the pages that an allocation lacks, with one mprotect() each, and mprotect() blocks the page faults of all other
+    threads while it runs. A search keeps several GB of peak lists that its threads allocate in small blocks, so at
+    64 threads the preprocessing of the spectra spent most of its time in the kernel (HeLa 25pc_50_25: 1.2 million
+    mprotect() calls, 76 % system time). With a top pad of 64 MiB a new heap is made writable in one call when it is
+    created. The pad also applies to the main arena (64 MiB more address space per sbrk(), touched only when used)
+    and it freezes the threshold above which a block is mapped on its own at its value when main() starts (glibc
+    otherwise raises it with the mapped blocks that are freed; normally still the default 128 KiB here).
+
+    Not when the user set glibc's top pad (GLIBC_TUNABLES=glibc.malloc.top_pad=...), nor with
+    OPENMS_MALLOC_DEFAULTS=0; other malloc tunables (e.g. glibc.malloc.hugetlb=1) keep it. No change of results.
+  */
+  void configureMalloc()
+  {
+    if (hasTunable(getenv("GLIBC_TUNABLES"), "glibc.malloc.top_pad=") || mallocDefaultsKept()) { return; }
+    mallopt(M_TOP_PAD, 64 << 20);
+  }
+
+  /**
+    Huge pages, on by default: glibc's malloc asks for transparent huge pages (madvise) for its heaps and large blocks
+    with GLIBC_TUNABLES=glibc.malloc.hugetlb=1, which reduces the page faults of the GBs of peak lists, index and
+    feature rows a large search touches (HeLa 1.12 M PSMs on 64 threads: 5.0 M -> 0.4 M faults, about 5 % faster; peak
+    memory about +0.2 GiB; no change of results). glibc reads its tunables only when a program starts, so ProSE starts
+    itself again (execve of /proc/self/exe: the same process, arguments and environment) with the entry added to
+    GLIBC_TUNABLES (and glibc.malloc.top_pad=67108864, the top pad above, unless the list has one or
+    OPENMS_MALLOC_DEFAULTS=0), once, at the start of main(), before ProSE reads its parameters or any file (the
+    constructors of the libraries, which run before main(), run again, as does the dynamic loader: its diagnostics,
+    e.g. LD_DEBUG or a missing LD_PRELOAD library, appear twice). The restarted ProSE puts GLIBC_TUNABLES back as it
+    was (programs it starts get the caller's environment) and its process name (comm, which an execve of
+    /proc/self/exe would set to "exe"), and does not start itself again: the marker below carries the process ID, and
+    a marker of this process stops a second start whatever else the environment holds.
+
+    Not done: with OPENMS_HUGEPAGES=0 (or false, no, off); if GLIBC_TUNABLES already has glibc.malloc.hugetlb (the
+    user's value is kept, e.g. glibc.malloc.hugetlb=0 also turns it off); with glibc before 2.35 (no such tunable); if
+    transparent huge pages are off (/sys/kernel/mm/transparent_hugepage/enabled 'never' or unreadable); if the OpenMP
+    runtime binds threads to CPUs (OMP_PROC_BIND other than false, OMP_PLACES, GOMP_CPU_AFFINITY or KMP_AFFINITY set:
+    the runtime may already have bound the main thread to its first place, and the restarted runtime would then see
+    only that CPU; review int15 r1); for a secure (setuid) or static program or one started by running the dynamic
+    loader as a program; under Valgrind, a debugger or tracer, or a seccomp filter (as for the fast exit); in address,
+    thread or memory sanitizer builds. If the restart fails, ProSE runs as without.
+  */
+  /// "<pid>=<GLIBC_TUNABLES>" or "<pid>-" (it was unset): set for the restart, valid only in the same process
+  constexpr const char* kHugePagesRestart = "OPENMS_HUGEPAGES_RESTARTED";
+  constexpr const char* kHugePagesComm = "OPENMS_HUGEPAGES_COMM"; ///< the process name before the restart
+
+  /// whether an OpenMP runtime binds the threads to CPUs (see above)
+  [[maybe_unused]] bool openMPBindsThreads()
+  {
+    const char* bind = getenv("OMP_PROC_BIND");
+    if (bind != nullptr && *bind != '\0' && strcasecmp(bind, "false") != 0) { return true; }
+    for (const char* name : {"OMP_PLACES", "GOMP_CPU_AFFINITY", "KMP_AFFINITY"})
+    {
+      const char* v = getenv(name);
+      if (v != nullptr && *v != '\0') { return true; }
+    }
+    return false;
+  }
+
+  [[maybe_unused]] bool hugePagesTurnedOff()
+  {
+    const char* v = getenv("OPENMS_HUGEPAGES");
+    if (v == nullptr) { return false; }
+    for (const char* off : {"0", "false", "no", "off"})
+    {
+      if (strcasecmp(v, off) == 0) { return true; }
+    }
+    return false;
+  }
+
+  /// glibc 2.35 or later (glibc.malloc.hugetlb) and transparent huge pages 'always' or 'madvise'
+  [[maybe_unused]] bool hugePagesAvailable()
+  {
+    int major = 0, minor = 0;
+    if (sscanf(gnu_get_libc_version(), "%d.%d", &major, &minor) != 2 || major < 2 || (major == 2 && minor < 35))
+    {
+      return false;
+    }
+    std::ifstream thp("/sys/kernel/mm/transparent_hugepage/enabled");
+    std::string modes;
+    if (!std::getline(thp, modes)) { return false; }
+    return modes.find("[always]") != std::string::npos || modes.find("[madvise]") != std::string::npos;
+  }
+
+  void restoreTunables(const char* tunables)
+  {
+    if (tunables != nullptr) { setenv("GLIBC_TUNABLES", tunables, 1); }
+    else { unsetenv("GLIBC_TUNABLES"); }
+    unsetenv(kHugePagesRestart);
+    unsetenv(kHugePagesComm);
+  }
+
+  /// Starts ProSE again with huge pages for glibc's malloc (see above); returns if it does not (or it was done)
+  void useHugePages(const char** argv)
+  {
+    const std::string pid = std::to_string(static_cast<long>(getpid()));
+    const char* restarted = getenv(kHugePagesRestart);
+    if (restarted != nullptr && strncmp(restarted, pid.c_str(), pid.size()) == 0 &&
+        (restarted[pid.size()] == '=' || restarted[pid.size()] == '-'))
+    {
+      // started again below: never a second time (a marker of this process is enough, review int15 r2); the process
+      // name and, if the restart's entry is there, the environment as the caller set them
+      const char* comm = getenv(kHugePagesComm);
+      if (comm != nullptr) { prctl(PR_SET_NAME, comm, 0, 0, 0); }
+      const char* rest = restarted + pid.size();
+      if (hasTunable(getenv("GLIBC_TUNABLES"), "glibc.malloc.hugetlb=")) { restoreTunables(*rest == '=' ? rest + 1 : nullptr); }
+      else
+      {
+        unsetenv(kHugePagesRestart);
+        unsetenv(kHugePagesComm);
+      }
+      return;
+    }
+    if (restarted != nullptr || getenv(kHugePagesComm) != nullptr)
+    {
+      // not from this process (e.g. inherited): dropped
+      unsetenv(kHugePagesRestart);
+      unsetenv(kHugePagesComm);
+    }
+#if defined(PROSE_SANITIZED) || defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_THREAD__)
+    (void)argv;
+#else
+    const char* tunables = getenv("GLIBC_TUNABLES");
+    if (hugePagesTurnedOff() || hasTunable(tunables, "glibc.malloc.hugetlb=") || openMPBindsThreads()) { return; }
+    // secure mode (glibc ignores the tunables); no program interpreter: static, or the loader run as a program (whose
+    // /proc/self/exe is the loader)
+    if (getauxval(AT_SECURE) != 0 || getauxval(AT_BASE) == 0) { return; }
+    if (!hugePagesAvailable() || underValgrind() || tracedOrFiltered()) { return; }
+    const std::string old_value = tunables != nullptr ? tunables : "";
+    std::string value = old_value;
+    if (!value.empty()) { value += ':'; }
+    value += "glibc.malloc.hugetlb=1";
+    if (!hasTunable(tunables, "glibc.malloc.top_pad=") && !mallocDefaultsKept()) { value += ":glibc.malloc.top_pad=67108864"; }
+    const std::string mark = pid + (tunables != nullptr ? "=" + old_value : std::string("-"));
+    char comm[17] = {0};
+    const bool have_comm = prctl(PR_GET_NAME, comm, 0, 0, 0) == 0; // else the restarted image keeps "exe"
+    if (setenv(kHugePagesRestart, mark.c_str(), 1) == 0 && (!have_comm || setenv(kHugePagesComm, comm, 1) == 0) &&
+        setenv("GLIBC_TUNABLES", value.c_str(), 1) == 0)
+    {
+      execv("/proc/self/exe", const_cast<char* const*>(argv));
+    }
+    // not started again: as without
+    restoreTunables(tunables != nullptr ? old_value.c_str() : nullptr);
+#endif
+  }
+}
+#endif
 
 //-------------------------------------------------------------
 // Doxygen docu
@@ -78,7 +444,7 @@ using namespace std;
             <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML or Bruker .d format)</td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML, mzPeak or Bruker .d format)</td>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
         </tr>
     </table>
@@ -89,7 +455,7 @@ It lacks behind in speed and/or quality of results when compared to state-of-the
 
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 @note Open-search mode is automatically determined by the precursor mass tolerance: enabled when tolerance exceeds 1 Da or 1000 ppm. No explicit open-search parameter is needed. This is logged at runtime and recorded in the output search parameters as UserParam 'open_search'.
-@note Decoy handling is controlled by '-Search:decoys'. The default 'auto' ensures decoys are available for target-decoy FDR: it reuses decoys already present in the FASTA (the marker is auto-detected, prefix or suffix, e.g. from DecoyDatabase) or generates them internally (prefixing accessions with '-Search:decoy_prefix', default "DECOY_") if none are found. 'auto' reuses supplied decoys only at 0.5 to 2 decoys per target protein: target-decoy FDR needs about one decoy per target, so a database with far fewer (e.g. a few 'DECOY_' entries) or far more decoys is refused with an error before the search. Use 'generate' to always (re)build decoys from the targets, or 'ignore' to search the targets only.
+@note Decoy handling is controlled by '-Search:decoys'. The default 'generate' always builds the decoys from the targets (prefixing accessions with '-Search:decoy_prefix', default "DECOY_"; decoys in the FASTA are removed first), with '-Search:decoy_method' keep_termini (default; for a fully specific digestion with an enzyme whose cleavage sites are fixed by K, R and P, e.g. Trypsin, Trypsin/P, Lys-C, Arg-C; semi- or non-specific digestion as 'reverse', other enzymes with a warning): every target peptide, also every protein N-terminal and Met-clipped one, has a decoy of the same start, length, mass and cleavage sites, so the protein N-terminal classes are controlled by target-decoy competition like the others (with 'Acetyl (Protein N-term)' among the default variable modifications, '-Search:rescoring:terminal_features' and '-Search:rescoring:stratum_q_values', also defaults). 'auto' reuses decoys already present in the FASTA (the marker is auto-detected, prefix or suffix, e.g. from DecoyDatabase) or generates them if none are found; it reuses supplied decoys only at 0.5 to 2 decoys per target protein (target-decoy FDR needs about one decoy per target: a database with far fewer, e.g. a few 'DECOY_' entries, or far more decoys is refused with an error before the search); with reversed-protein decoys the protein N-terminal classes have almost no decoys (set '-Search:rescoring:terminal_features false' and '-Search:rescoring:stratum_q_values false' then). 'ignore' searches the targets only.
 @note Repeated database entries: an entry whose accession and sequence an entry before it has (e.g. a FASTA file or the contaminants added twice) is searched once, with a warning; two entries of one accession with different sequences are refused with an error naming the accession and the file, before the search.
 @section ProSE_modes Final results vs. intermediates
 '-Search:FDR:protein' decides what a run of ProSE is:
@@ -130,14 +496,14 @@ that Percolator could not rescore at all, not even with the model of the other i
 Outputs by mode:
 <table>
 <tr><th>output</th><th>FDR:protein > 0 (final result)</th><th>FDR:protein 0 (intermediate)</th></tr>
-<tr><td>-out_idxml, -out_parquet, -out_qpx (per input)</td><td>the input's part of the pooled result: PSMs at FDR:PSM whose proteins pass the protein FDR, the proteins (with q-values and groups) they reference, without decoys unless -keep_decoys</td><td>the input's PSMs at FDR:PSM with run-level q-values and PEPs, target and decoy, all referenced proteins, no protein q-values</td></tr>
+<tr><td>-out_idxml, -out_parquet, -out_qpx (per input)</td><td>the input's part of the pooled result: PSMs at FDR:PSM whose proteins pass the protein FDR, the proteins (with q-values and groups) they reference, without decoys unless -keep_decoys</td><td>the input's PSMs at FDR:PSM with run-level q-values and PEPs, target and decoy, the proteins the search indexed for its PSMs, no protein q-values</td></tr>
 <tr><td>quantms.* of -out_qpx</td><td>the PSMs of all inputs as above, quantms.pg.parquet: the pooled protein groups with their q-values</td><td>the PSMs of all inputs as above; with several inputs and -out_merged the pooled groups (no FDR), else one group per protein of each input</td></tr>
 <tr><td>-out_merged (several inputs)</td><td>the pooled final result</td><td>the pooled PSMs with a protein inference across inputs, no protein FDR</td></tr>
 <tr><td>-out_pin</td><td colspan="2">the PSMs before rescoring and FDR, with ProSE's own scores (input for an external Percolator)</td></tr>
 </table>
 @note Protein-level FDR scope: picked-protein FDR does not compose across runs, so it is applied to a @em complete protein set only: a single input, or the pooled inputs of a run (see above). ProSE never filters the proteins of one input of several on their own.
 @note Protein inference of the protein FDR: as in ProteomicsLFQ, the inference and the picked-protein FDR use the PSMs up to a looser q-value than '-Search:FDR:PSM', '-Search:FDR:protein_inference_PSM' (default 0.1), which leaves more decoy proteins for the picked-protein FDR, and a protein scores with the best posterior error probability of its PSMs (Percolator's PEP; without rescoring the best HyperScore). The proteins and the protein groups are filtered at '-Search:FDR:protein', each by its own q-value (the picked FDR of the groups counts a group once, however many targets it holds, so a group can be above the threshold while its proteins are not), and only the proteins of the groups that pass are kept. The reported PSMs are those that pass '-Search:FDR:PSM', but for the PSMs all of whose proteins fail the protein FDR, which are removed (as in ProteomicsLFQ), so that every reported PSM maps to a reported protein; proteins and protein groups without a reported PSM are removed after the protein FDR.
-@note PSM FDR: '-Search:FDR:PSM' filters the PSMs of each input on their q-values (Percolator's, or target-decoy competition of ProSE's score). It is never lifted: if no PSM of an input matched a decoy, the q-value of its T PSMs is the conservative 1/T (target-decoy competition with +1, where the uncorrected 0/T would pass every PSM), so a lower threshold reports no PSM, as an unattainable protein FDR reports no protein. Only a search without decoys ('-Search:decoys ignore') skips the filter, with a warning. Whatever FDR applies, the proteins of an output are those its reported PSMs reference.
+@note PSM FDR: '-Search:FDR:PSM' filters the PSMs of each input on their q-values (Percolator's, or target-decoy competition of ProSE's score). It is never lifted: if no PSM of an input matched a decoy, the q-value of its T PSMs is the conservative 1/T (target-decoy competition with +1, where the uncorrected 0/T would pass every PSM), so a lower threshold reports no PSM, as an unattainable protein FDR reports no protein. Only a search without decoys ('-Search:decoys ignore') skips the filter, with a warning. The proteins of a per-file intermediate ('-Search:FDR:protein' 0) are those the search indexed for its PSMs (also for the PSMs that the PSM FDR removed); a final result holds the proteins its reported PSMs reference (see "Final results vs. intermediates").
 @note Percolator rescoring: by default ('-Search:rescore true'), the PSMs of each input file are rescored separately with OpenMS' built-in (in-process) Percolator implementation, the same backend PercolatorAdapter uses by default. No percolator executable is needed (the former '-percolator_executable' parameter and '-rescore' flag were removed).
 Training uses the standard Percolator feature set plus ProSE's search engine features, '-train_best_positive' and target-decoy competition ('-post_processing_tdc'), so q-values and PEPs come from target-decoy competition without a pi0 estimate, as with the percolator executable's -Y; Percolator q-values become the main score (the SVM score and PEP are kept as meta values MS:1001492/MS:1001493, the HyperScore as meta value 'ln(hyperscore)'), only the best hit per spectrum is kept, and the runs report 'Percolator' as search engine. The PSM and protein FDR thresholds are then applied on the rescored PSMs. A file with fewer than 100 PSMs or without decoys, or for which Percolator fails, is @em not rescored on its own: ProSE prints a warning and continues. Searched alone, such a file keeps its HyperScores (FDR is then computed from them); in a multi-file search, it gets the scores of a model trained on other inputs (see below) and keeps its HyperScores only if that fails too. The end-of-search report states how many files were rescored, and with '-qpx_extended' the run view has 'rescoring_applied' and 'rescoring_skipped_reason' per input.
 In a multi-file search, the inputs that Percolator rescores on their own keep exactly these results, whatever other inputs are searched with them. An input that it cannot rescore on its own (e.g. a small file next to large ones) gets the scores of a Percolator model trained on the PSMs of the inputs it rescored on their own, applied on the scale of that model's training PSMs: a PSM gets the score it would get among them and their PEP at that score (the score-to-PEP function is not estimated again on the few PSMs of the input); its q-values are those of target-decoy competition of the input's PSMs on that score (FDR per run, as for every input), on which '-Search:FDR:PSM' filters, and the run view's 'rescoring_warning' says that the scores come from a model trained on the other inputs. So every PSM has a Percolator PEP, and '-out_merged' ranks the proteins of all inputs by PEP. If Percolator can rescore no input on its own, the PSMs of all inputs are rescored together, with one model. Only if that fails too (e.g. fewer than 100 PSMs in all), such inputs keep their search engine scores, and the pooled evaluation ('-Search:FDR:protein' > 0 or '-out_merged') then scores the proteins of all inputs by ProSE's score 'ln(hyperscore)' (as without rescoring) instead of Percolator's PEP, which only the rescored PSMs have (every pooled PSM has a q-value as main score).
@@ -276,8 +642,10 @@ key), also without '-qpx_extended'.
 @note Decoys: '-keep_decoys' keeps the decoy PSMs and decoy proteins that pass the FDR thresholds in a final result, e.g.
 for showing target and decoy score distributions (see "Final results vs. intermediates").
 @note Several input files: give all files that share the database and the search parameters to one call ('-in a.mzML b.mzML ...'). The fragment index is then built once instead of once per file, and with more than one thread the next mzML file is read while the current one is searched. Each file's outputs depend on '-Search:FDR:protein' (see "Final results vs. intermediates"), and the whole run usually takes less time than one call per file. Compare search engines in the same mode.
-@note Threads: '-threads' sets the OpenMP threads of the search; mzML files are read with a share of them. With many threads on a shared machine, set the environment variable OMP_WAIT_POLICY=passive: idle OpenMP threads then sleep instead of spinning, which saves CPU time at about the same wall time. Do not bind threads (OMP_PROC_BIND), which made ProSE slower.
+@note Threads: '-threads' sets the threads of the search ('-threads 0': the physical cores the process may use, without their hardware threads); an mzML file read while the search runs takes its threads from these if they are fewer than the physical cores the process may use (otherwise it reads with threads of its own). For many files on a machine with many cores, several processes at 16-32 threads, each searching a share of the files, finish sooner than one process at 64 threads. With many threads on a shared machine, set the environment variable OMP_WAIT_POLICY=passive: idle OpenMP threads then sleep instead of spinning, which saves CPU time at about the same wall time. Do not bind threads (OMP_PROC_BIND), which made ProSE slower.
 @note Memory in chunked multi-file runs: '-Search:database:chunk_size' bounds the fragment-index memory only. With multiple '-in' files and chunking active, the chunk-major schedule keeps every input file's preprocessed MS2 spectra in memory for the whole search (each chunk's index is built once and scored against all files). Budget roughly the sum of all files' MS2 peak data on top of one chunk's index, or split very large cohorts across separate invocations (see the sharded-FDR workflow below).
+@note Memory: on Linux with glibc, ProSE sets glibc's malloc top pad to 64 MiB (mallopt M_TOP_PAD), so that the heap of a thread's arena is made writable at once instead of page by page (with many threads the latter kept the kernel busy; no change of results). Not if the environment sets the top pad itself (GLIBC_TUNABLES=glibc.malloc.top_pad=...), nor with OPENMS_MALLOC_DEFAULTS=0. Huge pages (on by default): on Linux with glibc 2.35 or later and transparent huge pages 'madvise' or 'always' (/sys/kernel/mm/transparent_hugepage/enabled), ProSE has glibc's malloc use transparent huge pages for its heaps and large blocks (GLIBC_TUNABLES=glibc.malloc.hugetlb=1; fewer page faults: a 64-thread search of a 250,000-spectrum timsTOF run was about 15 % faster, a HeLa run about 5 %, at about +0.2 GiB peak memory; results unchanged). glibc reads this setting only when a program starts, so ProSE starts itself again once at the very beginning (same process ID, arguments and environment; GLIBC_TUNABLES gets glibc.malloc.hugetlb=1 and the top pad above added to the entries it has, and is put back as it was for programs that ProSE starts). OPENMS_HUGEPAGES=0 (or false, no, off) turns this off; a glibc.malloc.hugetlb entry that GLIBC_TUNABLES already has is kept (e.g. glibc.malloc.hugetlb=0 also turns it off). Not done when the OpenMP runtime binds threads to CPUs (OMP_PROC_BIND other than false, OMP_PLACES, GOMP_CPU_AFFINITY or KMP_AFFINITY set; set GLIBC_TUNABLES=glibc.malloc.hugetlb=1 yourself there), under Valgrind, a debugger or tracer, a seccomp filter (as in some container runtimes and systemd services), for a setuid or static program, or when ProSE is started by running the dynamic loader as a program. Side effects of the restart: each ProSE process starts about 50 ms later (the program is loaded twice; measured on IBMI nodes), which makes very small searches slightly slower (20 small files in 7 processes at 64 threads: +4 %); and start-up diagnostics of the dynamic loader or the OpenMP runtime (LD_DEBUG, OMP_DISPLAY_ENV) appear twice.
+@note Exit: on Linux, ProSE hands the release of its memory at the end to a short-lived helper process, so that its caller sees the end earlier (40-80 ms for a small search, about 0.8 s for a 250,000-spectrum run; exit code and outputs unchanged). OPENMS_FAST_EXIT=0 (or false, no, off) turns this off. Caveat: the helper is a process of its own for that moment, so a parent that does not reap the children it adopts (an init process or subreaper that waits only for its own child) keeps one zombie process per run; shells, systemd, Slurm and Apptainer reap it. Not used under a debugger or tracer, nor under a seccomp filter (as in some container runtimes and systemd services).
 @note Distributed (sharded) searches: '-Search:FDR:protein' 0 on each node, then @ref TOPP_ProteomicsLFQ ('-psmFDR' and '-proteinFDR' 0.01, '-picked_proteinFDR' true, the same FASTA) on the intermediates of all shards (see "Final results vs. intermediates").
 
 <B>The command line parameters of this tool are:</B>
@@ -338,6 +706,9 @@ class ProSE :
     {
       registerInputFileList_("in", "<files>", StringList(), "Input spectrum file(s). Multiple files are searched against the same database; the fragment index is built once and reused.");
       setValidFormats_("in", { "mzML",
+#ifdef WITH_MZPEAK
+        "mzpeak",
+#endif
 #ifdef WITH_OPENTIMS
         "d",
 #endif
@@ -382,8 +753,33 @@ class ProSE :
 
       // put search algorithm parameters at Search: subtree of parameters
       Param search_algo_params_with_subsection;
-      search_algo_params_with_subsection.insert("Search:", ProSEAlgorithm().getDefaults());
+      search_algo_params_with_subsection.insert("Search:", toolSearchDefaults_());
       registerFullParam_(search_algo_params_with_subsection);
+    }
+
+    /// ProSEAlgorithm's defaults with the tool's own configuration (int16, quality gate v2 of 26 Oct 2026): symmetric
+    /// protein N-terminal decoys (decoys generate, decoy_method keep_termini), 'Acetyl (Protein N-term)' among the variable
+    /// modifications, the terminal rescoring features and stratum q-values. The library keeps its defaults for these
+    /// five (decoys auto, decoy_method reverse, Oxidation (M) only, no terminal features or stratum q-values); its
+    /// CalcMass handling (not a training feature, #10717) and charge range (recorded charges outside of it are not
+    /// searched, #10713) are those of OpenMS develop.
+    static Param toolSearchDefaults_()
+    {
+      Param p = ProSEAlgorithm().getDefaults();
+      const auto set = [&p](const std::string& key, const ParamValue& value)
+      {
+        const std::string description = p.getDescription(key);
+        const auto tags = p.getTags(key);
+        const auto restrictions = p.getEntry(key).valid_strings;
+        p.setValue(key, value, description, std::vector<std::string>(tags.begin(), tags.end()));
+        if (!restrictions.empty()) { p.setValidStrings(key, restrictions); }
+      };
+      set("decoys", "generate");
+      set("decoy_method", "keep_termini");
+      set("modifications:variable", std::vector<std::string>{"Oxidation (M)", "Acetyl (Protein N-term)"});
+      set("rescoring:terminal_features", "true");
+      set("rescoring:stratum_q_values", "true");
+      return p;
     }
 
     /// The PeptDeep prediction of one PSM row of -qpx_extended: its 'predicted_*' columns (null when @p has_prediction
@@ -442,6 +838,117 @@ class ProSE :
         if (!reference.empty()) { references.push_back(std::move(reference)); }
       }
       return references;
+    }
+
+    /// The QPX files of one input without -qpx_extended (runs/<basename>.psm.parquet, and runs/<basename>.pg.parquet
+    /// where protein groups were inferred): the tables, built by buildQPXRunFiles_(), written by writeQPXRunFiles_()
+    /// on any thread; psm and scan_format are kept for quantms.psm.parquet, pg for quantms.pg.parquet
+    struct QPXRunFiles_
+    {
+      std::shared_ptr<arrow::Table> psm, pg; // (null: the build returned none, warned by the output)
+      std::string scan_format;
+      std::string psm_file, pg_file;
+      // the footers, minted here in file order (psm, then pg): UniqueIdGenerator's sequence is fixed in test mode
+      std::shared_ptr<const arrow::KeyValueMetadata> psm_meta, pg_meta;
+      bool has_groups = false; // pg has rows (else no pg file: see the output)
+      std::string pg_error;    // the protein groups could not be built (the input fails; the psm file is still written)
+      // psm passed ArrowIOHelpers::validateQPXTable() already (a single input: the table is written twice, as the run's
+      // file and as quantms.psm.parquet, checked once by the output): the writes skip the check
+      bool psm_validated = false;
+    };
+
+    /// Builds the tables of the QPX files of one input into @p files (see QPXRunFiles_) from @p runs and @p ids, with
+    /// @p threads (the scan format; the psm table takes the team of this thread); @p pg_async: the protein groups on a
+    /// thread of their own meanwhile (not where the team is small). Throws as the exporters do (e.g. std::bad_alloc);
+    /// what was built before stays in @p files (the psm table, if the groups failed).
+    static void buildQPXRunFiles_(QPXRunFiles_& files, const std::vector<ProteinIdentification>& runs, const PeptideIdentificationList& ids,
+                                  const std::string& runs_dir, const std::string& basename, int threads, bool pg_async)
+    {
+      files = QPXRunFiles_();
+      files.psm_file = runs_dir + "/" + basename + ".psm.parquet";
+      files.pg_file = runs_dir + "/" + basename + ".pg.parquet";
+      std::future<std::shared_ptr<arrow::Table>> pg_build;
+      if (pg_async)
+      {
+        pg_build = std::async(std::launch::async, [&runs, &ids]() { return ProteinGroupArrowExport::exportToArrow(runs, ids); });
+      }
+      files.psm = QPXFile::exportPSMsToQPXArrow(runs, ids, /*export_all_psms=*/false);
+      files.scan_format = ArrowIOHelpers::qpxScanFormat(spectrumReferences_(ids), threads);
+      if (files.psm)
+      {
+        std::map<std::string, std::string> keys;
+        if (!files.scan_format.empty()) { keys["scan_format"] = files.scan_format; }
+        files.psm_meta = ArrowIOHelpers::qpxFileMetadata("psm_file", ParquetWriteConfig{}, keys);
+      }
+      try
+      {
+        files.pg = pg_async ? pg_build.get() : ProteinGroupArrowExport::exportToArrow(runs, ids);
+        // Row count via the library helper, not arrow::Table::num_rows(): Arrow is confined to libOpenMS' implementation,
+        // and on Windows its symbols are dllimport, so calling the member here links on Linux but not on MSVC.
+        files.has_groups = files.pg && ArrowIOHelpers::tableRowCount(files.pg) > 0;
+        if (files.has_groups) { files.pg_meta = ArrowIOHelpers::qpxFileMetadata("pg_file"); }
+      }
+      catch (const std::exception& e) // (as before, the psm file is written and the input fails: reported by the caller)
+      {
+        files.pg_error = e.what();
+        files.has_groups = false;
+      }
+    }
+
+    /// Writes the files of buildQPXRunFiles_() of @p in_file, each with @p threads (the psm file, then the pg file if
+    /// there are groups; the footer stamped by concatenateAndWriteToParquet(), as Arrow is confined to libOpenMS), logging a failure: {psm written, pg written} (true where there is nothing to write). The
+    /// tables are only read: the caller may keep using them meanwhile.
+    /// @p staged: written as <file>.part, published by publishQPXRunFiles_() (the files of a run written during the
+    /// search: the output directory keeps the earlier run's files until the search succeeded, see the output)
+    static std::pair<bool, bool> writeQPXRunFiles_(const QPXRunFiles_& files, const std::string& in_file, int threads, bool staged)
+    {
+      std::pair<bool, bool> written{true, true};
+      ParquetWriteConfig config;
+      config.threads = threads;
+      const std::string part = staged ? ".part" : "";
+      if (files.psm)
+      {
+        ParquetWriteConfig psm_config = config;
+        psm_config.validated = files.psm_validated;
+        written.first = files.psm_meta && ArrowIOHelpers::concatenateAndWriteToParquet({files.psm}, files.psm_file + part, psm_config, files.psm_meta);
+        if (!written.first)
+        {
+          OPENMS_LOG_ERROR << "Failed to write QPX PSM parquet for " << in_file << " -> " << files.psm_file << endl;
+        }
+      }
+      if (files.has_groups)
+      {
+        written.second = files.pg_meta && ArrowIOHelpers::concatenateAndWriteToParquet({files.pg}, files.pg_file + part, config, files.pg_meta);
+        if (!written.second)
+        {
+          OPENMS_LOG_ERROR << "Failed to write QPX PG parquet for " << in_file << " -> " << files.pg_file << endl;
+        }
+      }
+      return written;
+    }
+
+    /// Renames the staged files of writeQPXRunFiles_() that it wrote (@p written, its result: {psm, pg}) to their
+    /// names, and removes a staged file it did not complete (left by an exception, or by an earlier invocation);
+    /// false (logged) if one cannot be renamed
+    static bool publishQPXRunFiles_(const QPXRunFiles_& files, const std::string& in_file, const std::pair<bool, bool>& written)
+    {
+      bool ok = true;
+      for (const auto& [file, done] : {std::make_pair(files.psm_file, written.first && files.psm),
+                                       std::make_pair(files.pg_file, written.second && files.has_groups)})
+      {
+        if (!File::exists(file + ".part")) { continue; }
+        if (!done)
+        {
+          if (!File::remove(file + ".part")) { OPENMS_LOG_WARN << "Cannot remove the staged file '" << file << ".part'." << endl; }
+        }
+        else if (!File::rename(file + ".part", file, true, false))
+        {
+          OPENMS_LOG_ERROR << "Failed to write QPX parquet for " << in_file << " -> " << file << " (cannot rename " << file << ".part)" << endl;
+          ok = false;
+          if (!File::remove(file + ".part")) { OPENMS_LOG_WARN << "Cannot remove the staged file '" << file << ".part'." << endl; }
+        }
+      }
+      return ok;
     }
 
     /// The spectra and predictions of the PSMs of one searched file (collectPSMSpectra_())
@@ -1302,6 +1809,47 @@ class ProSE :
         aggregate_base_name = out_mod_analysis_dir + "/" + AGGREGATE_STEM;
       }
 
+      // The mzML reader needs the PSI-MS controlled vocabulary (ControlledVocabulary::getPSIMSCV(), read once per process
+      // from five OBO files, 60-170 ms) when it parses the header of the first file, in the background next to the FASTA
+      // read and the index build, which then wait for it. One more thread loads it during the start of the search, so
+      // that the reader finds it (partly) loaded: only with more than one thread, an mzML input and the five files
+      // readable (a load that fails anyway is ignored here, and the reader's own call then loads it again and throws as
+      // before). The load prints nothing for the files shipped with OpenMS (it warns about malformed OBO files only).
+      // The thread ends with the start-up: joined after the search, or on an exception.
+      struct JoinOnReturn
+      {
+        std::thread thread;
+        ~JoinOnReturn() { if (thread.joinable()) { thread.join(); } }
+      } cv_load;
+#ifdef _OPENMP
+      try // any failure here only means no preload
+      {
+        // the files of getPSIMSCV(), which File::find() takes from /CV/ if they exist there, else from the shared data
+        static constexpr const char* cv_files[] = {"psi-ms.obo", "quality.obo", "unit.obo", "brenda.obo", "goslim_goa.obo"};
+        const std::string cv_dir = File::getOpenMSDataPath() + "/CV/";
+#if _OPENMP >= 200805 // OpenMP 3.0: OMP_THREAD_LIMIT
+        const int threads = std::min(omp_get_max_threads(), omp_get_thread_limit()); // as set by TOPPBase from -threads
+#else
+        const int threads = omp_get_max_threads();
+#endif
+        const bool cv_needed = threads > 1
+          && std::any_of(in_list.begin(), in_list.end(), [](const std::string& in) { return FileHandler::getTypeByFileName(in) == FileTypes::MZML; })
+          && std::all_of(std::begin(cv_files), std::end(cv_files), [&cv_dir](const char* obo)
+             {
+               return !File::exists(std::string("/CV/") + obo) && File::readable(cv_dir + obo);
+             });
+        if (cv_needed)
+        {
+          cv_load.thread = std::thread([]()
+          {
+            try { ControlledVocabulary::getPSIMSCV(); }
+            catch (...) {}
+          });
+        }
+      }
+      catch (...) {} // no thread: the reader loads it
+#endif
+
       // Single-shot multi-file search: builds the fragment index once and iterates over -in.
       // Timer spans search (incl. Percolator and PSM FDR) + protein FDR + output writing (stopped at report time).
       StopWatch sw_total; sw_total.start();
@@ -1311,8 +1859,187 @@ class ProSE :
       // their PSMs, so it pools the search's copy (its pooled aggregate).
       const bool pooled_evaluation = in_list.size() > 1 && (user_protein_fdr > 0.0 || !out_merged.empty());
       const bool build_pooled_aggregate = pooled_evaluation && user_protein_fdr <= 0.0;
-      ProSEAlgorithm::MultiFileSearchResult mfres = sse.searchWithModificationAnalysis(in_list, database,
-        mod_analysis_base_names, aggregate_base_name, build_pooled_aggregate);
+      // The identification output (idXML or idparquet) of each file of several is written as soon as its result is final,
+      // while the next file is searched (setFileResultConsumer()), unless the pooled evaluation of several inputs may
+      // change the files' results (pooled_evaluation). Nothing changes the identifications of a
+      // file of several after its search but the database path the search records after the last file (set here on a
+      // copy of the runs, as the search does), the proteins of the PSMs that only the protein inference uses (removed
+      // here as below) and the run path of the test mode (below): the same file as written below.
+      // early_idxml[i]: 1 written, 2 failed (early_idxml_error[i]), 3 see below; 0: written below.
+      std::vector<char> early_idxml(in_list.size(), 0);
+      std::vector<std::string> early_idxml_error(in_list.size());
+      std::vector<std::exception_ptr> early_idxml_exception(in_list.size()); // early_idxml[i] 3: another exception
+      // The QPX files of each file of several likewise (buildQPXRunFiles_() and writeQPXRunFiles_() on the consumer's
+      // thread, with its share of the threads; staged as .part files and published by the output loop once the search
+      // succeeded, where the files of an earlier run are removed): early_qpx[i] keeps its tables for quantms.*;
+      // early_qpx_state[i]: 1 written, 2 a write failed (logged there), 3 the build failed (early_qpx_error[i]; the
+      // tables built before stay); 0: built and written below.
+      std::vector<QPXRunFiles_> early_qpx(in_list.size());
+      std::vector<char> early_qpx_state(in_list.size(), 0);
+      std::vector<std::string> early_qpx_error(in_list.size());
+      std::vector<std::pair<bool, bool>> early_qpx_written(in_list.size(), {false, false}); // (the files written: published)
+      // (not with -qpx_extended: it stores the NCE of its predictions on the runs before their idXML is written)
+      const bool early_idxml_files = in_list.size() > 1 && !out_id_list.empty() && !pooled_evaluation && !qpx_extended;
+      const bool early_qpx_files = in_list.size() > 1 && !out_qpx_dir.empty() && !pooled_evaluation && !qpx_extended;
+      // Group mode (early_qpx_files): quantms.psm.parquet is written run by run (ArrowIOHelpers::ParquetTableStream;
+      // staged as quantms.psm.parquet.part and published with the merged files below, after the files of an earlier
+      // run are removed): the rows of each run appended in input order, on the consumer thread right after the run's
+      // own files, or in the output loop for a run the consumer did not get (the last one). A run the consumer skipped
+      // (its search failed, or its rescoring was deferred: the consumer cannot tell them apart) stops the stream
+      // (qpx_stream_gap): the merged file is then written from all tables after the loop, as before. One thread uses
+      // the stream at a time (the search waits for the consumer before it returns). Its footer has the scan_format
+      // added at the close, once every run is seen.
+      std::unique_ptr<ArrowIOHelpers::ParquetTableStream> qpx_stream;
+      const std::string qpx_stream_file = out_qpx_dir.empty() ? std::string() : out_qpx_dir + "/" + QPX_AGGREGATE_STEM + ".psm.parquet";
+      Size qpx_stream_next = 0;    // the input whose rows come next
+      Size qpx_stream_tables = 0;  // the tables appended
+      bool qpx_stream_gap = false; // the stream stopped: see above
+      bool qpx_stream_error = false; // a write of the stream failed (logged): the merged output fails, whatever is written after
+      // Appends the psm table of input @p i (built: @p files; none: nothing) with @p threads if it is the next; a failure
+      // is logged (the stream has failed then: merged_ok below)
+      auto qpx_stream_append = [&](Size i, const QPXRunFiles_& files, int threads)
+      {
+        if (qpx_stream_gap || (qpx_stream && qpx_stream->failed())) { return; }
+        if (i != qpx_stream_next) { qpx_stream_gap = true; return; }
+        qpx_stream_next = i + 1;
+        if (!files.psm) { return; }
+        try
+        {
+          if (!qpx_stream)
+          {
+            // (its footer; a concatenation would inherit the first run's uuid and creation_date)
+            auto psm_meta = ArrowIOHelpers::qpxFileMetadata("psm_file");
+            if (!psm_meta) { qpx_stream_gap = true; return; } // (logged; written after the loop, failing the same way)
+            qpx_stream = std::make_unique<ArrowIOHelpers::ParquetTableStream>(qpx_stream_file + ".part", ParquetWriteConfig{}, psm_meta);
+          }
+          if (qpx_stream->append(files.psm, threads)) { ++qpx_stream_tables; } else { qpx_stream_error = true; }
+        }
+        catch (const std::exception& e)
+        {
+          OPENMS_LOG_ERROR << "Failed to write " << qpx_stream_file << " (Arrow/Parquet): " << e.what() << endl;
+          qpx_stream_error = true;
+          if (qpx_stream) { qpx_stream->abandon(); }
+        }
+      };
+      if (early_qpx_files)
+      {
+        // the staged files of an aborted earlier run (see writeQPXRunFiles_() and qpx_stream): never part of a result
+        StringList staged, staged_aggregate;
+        File::fileList(qpx_runs_dir, "*.parquet.part", staged, true);
+        File::fileList(out_qpx_dir, QPX_AGGREGATE_STEM + ".*.parquet.part", staged_aggregate, true);
+        staged.insert(staged.end(), staged_aggregate.begin(), staged_aggregate.end());
+        for (const std::string& file : staged)
+        {
+          if (!File::remove(file)) { OPENMS_LOG_WARN << "Cannot remove the staged file '" << file << "' of an earlier run." << endl; }
+        }
+      }
+      if (early_idxml_files || early_qpx_files)
+      {
+        const bool test_mode = getFlag_("test");
+        sse.setFileResultConsumer([&, test_mode, early_idxml_files, early_qpx_files](Size i, const ProSEAlgorithm::SearchResult& result)
+        {
+          std::vector<ProteinIdentification> protein_ids;
+          bool runs_copied = false;
+          std::string copy_error; // (the QPX error, where no idXML is written)
+          try
+          {
+            protein_ids = result.protein_ids;
+            if (!protein_ids.empty())
+            {
+              protein_ids[0].getSearchParameters().db = database;
+              if (test_mode) { protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in_list[i])}); }
+            }
+            runs_copied = true;
+            if (early_idxml_files)
+            {
+              FileHandler().storeIdentifications(out_id_list[i], protein_ids, result.peptide_ids, {identificationOutputType_(out_id_list[i])});
+              early_idxml[i] = 1;
+            }
+          }
+          catch (const Exception::BaseException& e) // reported below, as by the write there
+          {
+            early_idxml_error[i] = e.what();
+            early_idxml[i] = 2;
+            copy_error = e.what();
+          }
+          catch (const std::exception& e) // rethrown below, as from the write there
+          {
+            early_idxml_exception[i] = std::current_exception();
+            early_idxml[i] = 3;
+            copy_error = e.what();
+          }
+          catch (...)
+          {
+            early_idxml_exception[i] = std::current_exception();
+            early_idxml[i] = 3;
+            copy_error = "unknown exception";
+          }
+          if (early_qpx_files && runs_copied)
+          {
+#ifdef _OPENMP
+            const int threads = std::max(1, omp_get_max_threads()); // the consumer's share (see setFileResultConsumer())
+#else
+            const int threads = 1;
+#endif
+            bool built = false;
+            try
+            {
+              buildQPXRunFiles_(early_qpx[i], protein_ids, result.peptide_ids, qpx_runs_dir, File::stemName(in_list[i]), threads,
+                                /*pg_async=*/false);
+              built = true;
+            }
+            catch (const std::exception& e) // reported below, as by the build there
+            {
+              early_qpx_error[i] = e.what();
+              early_qpx_state[i] = 3;
+            }
+            catch (...)
+            {
+              early_qpx_error[i] = "unknown exception";
+              early_qpx_state[i] = 3;
+            }
+            if (built)
+            {
+              bool written = false;
+              try
+              {
+                const auto outcome = writeQPXRunFiles_(early_qpx[i], in_list[i], threads, /*staged=*/true);
+                early_qpx_written[i] = outcome;
+                written = outcome.first && outcome.second;
+              }
+              catch (const std::exception& e) // (the tables stay for quantms.*)
+              {
+                OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_list[i] << " -> " << out_qpx_dir
+                                 << " (Arrow/Parquet): " << e.what() << endl;
+              }
+              catch (...)
+              {
+                OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_list[i] << " -> " << out_qpx_dir
+                                 << " (unknown exception)" << endl;
+              }
+              early_qpx_state[i] = written && early_qpx[i].pg_error.empty() ? 1 : 2;
+              if (!early_qpx[i].pg_error.empty())
+              {
+                OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_list[i] << " -> " << out_qpx_dir
+                                 << " (Arrow/Parquet): " << early_qpx[i].pg_error << endl;
+              }
+            }
+            // its rows of quantms.psm.parquet (those the build gave, whatever the outcome of the writes, as below)
+            qpx_stream_append(i, early_qpx[i], threads);
+          }
+          else if (early_qpx_files)
+          {
+            early_qpx_error[i] = "the runs could not be copied: " + copy_error;
+            early_qpx_state[i] = 3;
+            qpx_stream_append(i, early_qpx[i], 1); // (no table: the input is not in the merged file)
+          }
+        });
+      }
+      ProSEAlgorithm::MultiFileSearchResult mfres =
+        sse.searchWithModificationAnalysis(in_list, database, mod_analysis_base_names, aggregate_base_name,
+                                           build_pooled_aggregate);
+      sse.setFileResultConsumer({});
+      if (cv_load.thread.joinable()) { cv_load.thread.join(); }
       // the outputs from here on, with the -qpx_extended work (the report's timing)
       const double seconds_searching = sw_total.getClockTime();
       StopWatch sw_qpx_extended;
@@ -1327,7 +2054,8 @@ class ProSE :
       // The output directories hold the files of this run only: the Parquet files of an earlier run into the same
       // directory (of other inputs, or views this run does not write, e.g. a pg file without protein inference) would
       // otherwise be read as part of this dataset. Removed once the search succeeded, right before the new files are
-      // written: a run refused for its parameters or failing earlier leaves the earlier result as it is.
+      // written: a run refused for its parameters or failing earlier leaves the earlier result as it is (the QPX files
+      // the consumer above wrote during the search are staged as .part files, published below).
       if (!removeEarlierParquetFiles_(out_qpx_dir, {QPX_AGGREGATE_STEM})
           || !removeEarlierParquetFiles_(out_parquet_dir, {PARQUET_AGGREGATE_STEM, PARQUET_POOLED_STEM}))
       {
@@ -1360,6 +2088,10 @@ class ProSE :
           if (result.percolator.applied)
           {
             ++n_rescored;
+            if (!result.percolator.model.empty())
+            {
+              OPENMS_LOG_INFO << "Percolator model of " << in_list[i] << " (Search:rescore_reuse): " << result.percolator.model << endl;
+            }
             if (!result.percolator.warning.empty())
             {
               OPENMS_LOG_WARN << "Percolator rescoring of " << in_list[i] << ": " << result.percolator.warning << endl;
@@ -1398,7 +2130,9 @@ class ProSE :
           else
           {
             const auto& sp = result.protein_ids.front().getSearchParameters();
-            const std::string enz_str = sp.digestion_enzyme.getName(); // PercolatorInfile maps it to its enzyme names
+            // (with 'rescoring:fixed_enzyme_termini', as the rescoring computes enzN/enzC)
+            const std::string enz_str = ProSEAlgorithm::pinFeatureEnzyme(sp.digestion_enzyme.getName(),
+              search_params.getValue("rescoring:fixed_enzyme_termini").toString() == "true");
             const auto colon = sp.charges.find(':');
             const int min_charge = (colon != std::string::npos)
                                      ? StringUtils::toInt32(sp.charges.substr(0, colon))
@@ -1441,6 +2175,8 @@ class ProSE :
       // here) or the pooled set of several inputs (handled below). Filtering each file of a
       // multi-file run separately would not control the FDR of the combined protein list
       // (false positives accumulate across files), so that is deliberately never done.
+      // the files whose identifications the protein FDR changed (only these need their statistics recomputed below)
+      std::vector<char> protein_fdr_changed(in_list.size(), 0);
       // Whether the protein FDR was applied to a complete protein set (one input here, the pooled set below).
       bool protein_fdr_applied = false;
       if (user_protein_fdr > 0.0 && !mfres.have_decoys)
@@ -1465,6 +2201,7 @@ class ProSE :
             mfres.decoy_string, mfres.decoy_is_prefix, user_protein_fdr, /*remove_decoys=*/ !keep_decoys,
             result.inference_only_peptide_ids);
           result.inference_only_peptide_ids = PeptideIdentificationList(); // release the copy
+          protein_fdr_changed[0] = 1;
         }
       }
 
@@ -1528,7 +2265,11 @@ class ProSE :
         // have (those all of whose proteins failed the protein FDR, without -keep_decoys the decoys) and scored the
         // proteins: each file gets its part of the pooled PSMs and the pooled proteins (with their q-values) and groups
         // they reference.
-        if (merged_done && user_protein_fdr > 0.0) { ProSEAlgorithm::splitMergedPsms(merged, mfres); }
+        if (merged_done && user_protein_fdr > 0.0)
+        {
+          ProSEAlgorithm::splitMergedPsms(merged, mfres);
+          std::fill(protein_fdr_changed.begin(), protein_fdr_changed.end(), 1); // (the statistics are recounted below)
+        }
       }
       else if (!out_merged.empty() && in_list.size() == 1)
       {
@@ -1540,10 +2281,14 @@ class ProSE :
       // result-level stats so the report reflects the final identifications the user
       // receives; the HyperScore distribution and per-phase timing captured during the
       // search are preserved by updateFinalStats().
+      // A closed search of a file without protein FDR left the identifications as the search counted them (with the
+      // same enzyme): the recount would give the same statistics. An open search's modification analysis runs after
+      // the count, so those files are recounted.
       for (Size i = 0; i < in_list.size(); ++i)
       {
         auto& result = mfres.per_file[i];
         if (result.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) { continue; }
+        if (!protein_fdr_changed[i] && !result.is_open_search) { continue; }
         ProSEAlgorithm::updateFinalStats(result.stats, result.peptide_ids, mfres.shared.enzyme,
                                          /*fdr_applied=*/ result.stats.fdr_applied);
       }
@@ -1554,6 +2299,10 @@ class ProSE :
       // Per-run QPX scan_format tokens, reconciled for the merged file below. A built table
       // no longer carries the native IDs, so this has to be collected as we go.
       std::vector<std::string> qpx_psm_scan_formats;
+      // (reserved, and a table whose scan_format cannot be recorded is taken out again: the two stay in step)
+      qpx_psm_tables.reserve(in_list.size());
+      qpx_psm_scan_formats.reserve(in_list.size());
+      qpx_pg_tables.reserve(in_list.size());
       std::vector<std::shared_ptr<arrow::Table>> oms_psm_tables, oms_prot_tables, oms_pg_tables, oms_sp_tables;
 
       Size failed_count = 0;
@@ -1568,6 +2317,36 @@ class ProSE :
         std::future<std::pair<bool, std::set<std::string>>> result; // written, and the views that failed
       };
       std::vector<InputWrite> input_writes;
+      // Without -qpx_extended: the writes of the inputs' psm and pg files (writeQPXRunFiles_() of early_qpx[i]), each on a
+      // thread of its own while the input's other outputs and quantms.* are written; joined below, before the report
+      // (the input fails if a file could not be written). The team of this thread, and the threads of each file written
+      // next to another: the encoding runs over the columns, so 8 to 16 threads saturate it.
+      std::vector<std::pair<Size, std::future<std::pair<bool, bool>>>> qpx_writes;
+#ifdef _OPENMP
+      const int qpx_threads = std::max(1, omp_get_max_threads());
+#else
+      const int qpx_threads = 1;
+#endif
+      const int qpx_write_threads = std::max(1, std::min(16, qpx_threads / 2));
+      // joins one of them: an input whose psm or pg file could not be written fails (once)
+      auto finish_qpx_write = [&](std::pair<Size, std::future<std::pair<bool, bool>>>& write)
+      {
+        std::pair<bool, bool> written{false, false};
+        try
+        {
+          written = write.second.get();
+        }
+        catch (const std::exception& e)
+        {
+          OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_list[write.first] << " -> " << out_qpx_dir
+                           << " (Arrow/Parquet): " << e.what() << endl;
+        }
+        if (!(written.first && written.second) && !input_failed_of[write.first])
+        {
+          input_failed_of[write.first] = true;
+          ++failed_count;
+        }
+      };
       // Paths actually written, for an accurate output manifest in the report.
       std::vector<std::string> written_idxml, written_idparquet;
       // -qpx_extended: the rows of each input in quantms.psm.parquet (its footer says), the footer keys of the per-input
@@ -1578,8 +2357,12 @@ class ProSE :
         qpx_extended ? predictionMetadata_(search_params) : std::map<std::string, std::string>{};
       ParquetWriteConfig qpx_extended_config;
       qpx_extended_config.qpx_extra_columns = true;
+      qpx_extended_config.threads = qpx_write_threads; // (quantms.psm.parquet: validated and encoded in parallel)
       ParquetWriteConfig qpx_spectra_config = qpx_extended_config;
       qpx_spectra_config.row_group_size = QPX_SPECTRA_ROW_GROUP;
+      // the per-input files are written serially: the parallel encoding is over the columns of a row group, and with
+      // 256-row groups its tasks cost more than they gain (the largest HeLa run: +4 s with 16 threads)
+      qpx_spectra_config.threads = 1;
       // m/z and intensities are mostly distinct: a dictionary per row group would make the files 40 % larger
       qpx_spectra_config.plain_columns = {"predicted_mz_array", "predicted_intensity_array"};
       ParquetWriteConfig qpx_mz_config;
@@ -1595,15 +2378,11 @@ class ProSE :
           OPENMS_LOG_ERROR << "Search failed for " << in_file
                            << " (algorithm exit code " << static_cast<int>(result.exit_code) << "). Skipping output." << endl;
           ++failed_count;
+          if (qpx_stream_next == i) { ++qpx_stream_next; } // (not in the merged file: the stream goes on with the next)
           continue;
         }
 
         const std::string basename = File::stemName(in_file);
-
-        // The proteins of an input's outputs are those its reported PSMs reference. The search keeps the proteins of the
-        // PSMs that only the protein inference of the pooled evaluation uses (FDR:protein_inference_PSM); -out_merged
-        // pools the search's own copy of the runs (built with build_pooled_aggregate), not these.
-        ProSEAlgorithm::removeUnreportedProteins(result.protein_ids, result.peptide_ids);
 
         // In test mode, replace the absolute MS run path with file://<basename> for reproducible diffs.
         if (getFlag_("test") && !result.protein_ids.empty())
@@ -1622,14 +2401,12 @@ class ProSE :
         // The protein groups of the QPX output, built on a thread of their own while the input's other outputs are (from
         // a copy of its runs, on which -qpx_extended stores the NCE of its predictions; its PSMs are only read)
         std::future<std::shared_ptr<arrow::Table>> pg_build;
-        if (!out_qpx_dir.empty())
+        if (!out_qpx_dir.empty() && qpx_extended)
         {
           // (-qpx_extended: a copy of the runs, as the NCE is stored on them meanwhile)
-          std::vector<ProteinIdentification> runs_copy;
-          if (qpx_extended) { runs_copy = result.protein_ids; }
-          pg_build = std::async(std::launch::async, [&result, qpx_extended, runs = std::move(runs_copy)]() mutable
+          std::vector<ProteinIdentification> runs_copy = result.protein_ids;
+          pg_build = std::async(std::launch::async, [&result, runs = std::move(runs_copy)]() mutable
           {
-            if (!qpx_extended) { return ProteinGroupArrowExport::exportToArrow(result.protein_ids, result.peptide_ids); }
             if (!runs.empty() && runs[0].getIndistinguishableProteins().empty())
             {
               // -qpx_extended: without protein inference, one group per protein (without a q-value)
@@ -1679,8 +2456,165 @@ class ProSE :
           logPhase_(in_file, "writing");
         }
 
-        // -- identification output (idXML or idparquet) --
-        if (!out_id_list.empty())
+        // -- QPX directory output without -qpx_extended -- (before the idXML: the files are written on a thread of
+        // their own while the idXML is written, unless they were written after the search of the file, see
+        // setFileResultConsumer() above; the tables are kept for quantms.*)
+        if (!out_qpx_dir.empty() && !qpx_extended)
+        {
+          // Wrapped like the sibling modes: the QPX exporters refuse input they cannot key (a merged run whose PSMs
+          // lack 'id_merge_index', ambiguous feature identities), and an escaping exception would abort the whole
+          // per-file loop rather than failing this mode.
+          try
+          {
+            QPXRunFiles_& files = early_qpx[i];
+            if (early_qpx_state[i] == 3)
+            {
+              OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_file << " -> " << out_qpx_dir
+                               << " (Arrow/Parquet): " << early_qpx_error[i] << endl;
+              input_failed = true;
+            }
+            else if (early_qpx_state[i] == 2) { input_failed = true; } // (logged there)
+            bool built = early_qpx_state[i] == 1 || early_qpx_state[i] == 2;
+            if (early_qpx_state[i] == 0)
+            {
+              try
+              {
+                buildQPXRunFiles_(files, result.protein_ids, result.peptide_ids, qpx_runs_dir, basename, qpx_threads, /*pg_async=*/qpx_threads > 1);
+                built = true;
+              }
+              catch (const Exception::BaseException& e) // (the tables built before stay, as below)
+              {
+                OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_file << " -> " << out_qpx_dir << ": " << e.what() << endl;
+                input_failed = true;
+              }
+              catch (const std::exception& e)
+              {
+                OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_file << " -> " << out_qpx_dir
+                                 << " (Arrow/Parquet): " << e.what() << endl;
+                input_failed = true;
+              }
+              if (built && !files.pg_error.empty())
+              {
+                OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_file << " -> " << out_qpx_dir
+                                 << " (Arrow/Parquet): " << files.pg_error << endl;
+                input_failed = true;
+              }
+              if (in_list.size() == 1 && files.psm && qpx_threads > 1)
+              {
+                // quantms.psm.parquet is this table again: checked once here, with the team, for both writes (a
+                // refused table is refused by the writes again, which log it as before)
+                ParquetWriteConfig check;
+                check.threads = qpx_threads;
+                try
+                {
+                  // (with its footer: the exporter's table has no QPX metadata, so without a footer nothing is checked)
+                  files.psm_validated = files.psm_meta && ArrowIOHelpers::validateQPXTable(files.psm, files.psm_file, check, files.psm_meta);
+                }
+                catch (const std::exception&) { files.psm_validated = false; } // (the writes check it, and fail as before)
+              }
+            }
+            { // the tables, for quantms.* (whatever the outcome of the writes, as before): before the writes start
+              if (files.psm)
+              {
+                qpx_psm_tables.push_back(files.psm);
+                // (the two stay in step: a throw of the second takes the table out again)
+                try { qpx_psm_scan_formats.push_back(files.scan_format); } catch (...) { qpx_psm_tables.pop_back(); throw; }
+              }
+              else if (built && !input_failed)
+              {
+                OPENMS_LOG_WARN << "QPX PSM table build returned null for " << in_file << " — skipping " << files.psm_file << endl;
+              }
+              if (files.has_groups)
+              {
+                qpx_pg_tables.push_back(files.pg);
+              }
+              else if (files.pg)
+              {
+                // No protein groups, so no pg file. Rows come only from getIndistinguishableProteins(),
+                // and ProSE infers proteins in just two places: single-file finalization, which needs
+                // 'FDR:protein' > 0 AND decoys, and the merged path, which needs '-out_merged' with several
+                // inputs. Identification-only runs open neither, so an empty table is the normal
+                // outcome rather than a failure. Writing it anyway produced a schema-valid file saying
+                // "no protein groups", which a consumer cannot tell apart from "inference ran and found
+                // none" - so the file is omitted and the reason logged instead.
+                OPENMS_LOG_INFO << "No protein groups inferred for " << in_file << " — not writing "
+                                << files.pg_file << ". Protein inference requires 'FDR:protein' > 0 with "
+                                << "decoys, or '-out_merged' with several inputs." << endl;
+              }
+              else if (built && files.pg_error.empty())
+              {
+                OPENMS_LOG_WARN << "QPX PG table build returned null for " << in_file << " — skipping " << files.pg_file << endl;
+              }
+            }
+            if (early_qpx_state[i] == 0 && built && qpx_threads > 1)
+            {
+              // at most two writes pending (next to this thread's work): the oldest is joined first
+              while (qpx_writes.size() >= 2) { finish_qpx_write(qpx_writes.front()); qpx_writes.erase(qpx_writes.begin()); }
+              // (files: early_qpx[i], in_file: in_list[i]; both outlive the write, which is joined below)
+              qpx_writes.emplace_back(i, std::async(std::launch::async, [&files, &in_file, qpx_write_threads]()
+              {
+                return writeQPXRunFiles_(files, in_file, qpx_write_threads, /*staged=*/false);
+              }));
+            }
+            else if (early_qpx_state[i] == 0 && built) // (one thread: here, as before)
+            {
+              try
+              {
+                const auto written = writeQPXRunFiles_(files, in_file, 1, /*staged=*/false);
+                if (!(written.first && written.second)) { input_failed = true; }
+              }
+              catch (const std::exception& e)
+              {
+                OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_file << " -> " << out_qpx_dir
+                                 << " (Arrow/Parquet): " << e.what() << endl;
+                input_failed = true;
+              }
+            }
+            else if (early_qpx_state[i] != 0 && !publishQPXRunFiles_(files, in_file, early_qpx_written[i])) // (written during the search)
+            {
+              input_failed = true;
+            }
+            if (early_qpx_state[i] == 0 && early_qpx_files)
+            {
+              // the rows of a run the consumer did not get (the last one), while its own files are written
+              qpx_stream_append(i, files, qpx_write_threads);
+            }
+          }
+          catch (const Exception::BaseException& e)
+          {
+            OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_file
+                             << " -> " << out_qpx_dir << ": " << e.what() << endl;
+            input_failed = true;
+          }
+          catch (const std::exception& e)
+          {
+            // Unlike the sibling modes, this one calls into Arrow/Parquet, whose exceptions do
+            // not derive from Exception::BaseException. The write helpers check Status rather
+            // than throwing, but allocation and internal parquet failures still surface here,
+            // and letting one escape would skip the remaining outputs for this input.
+            OPENMS_LOG_ERROR << "Failed to write QPX output for " << in_file
+                             << " -> " << out_qpx_dir << " (Arrow/Parquet): " << e.what() << endl;
+            input_failed = true;
+          }
+        }
+
+        // -- identification output (idXML or idparquet) -- (unless written after the search of the file, see
+        // setFileResultConsumer() above)
+        if (!out_id_list.empty() && early_idxml[i] == 1)
+        {
+          (identificationOutputType_(out_id_list[i]) == FileTypes::IDPARQUET ? written_idparquet : written_idxml).push_back(out_id_list[i]);
+        }
+        else if (!out_id_list.empty() && early_idxml[i] == 3)
+        {
+          std::rethrow_exception(early_idxml_exception[i]);
+        }
+        else if (!out_id_list.empty() && early_idxml[i] == 2)
+        {
+          OPENMS_LOG_ERROR << "Failed to write identification output for " << in_file
+                           << " -> " << out_id_list[i] << ": " << early_idxml_error[i] << endl;
+          input_failed = true;
+        }
+        else if (!out_id_list.empty())
         {
           try
           {
@@ -1696,9 +2630,9 @@ class ProSE :
           }
         }
 
-        // -- QPX directory output --
+        // -- QPX directory output with -qpx_extended --
         bool psm_file_written = false; // -qpx_extended: the input's psm file
-        if (!out_qpx_dir.empty())
+        if (!out_qpx_dir.empty() && qpx_extended)
         {
           // Wrapped like the sibling modes above: the QPX exporters refuse input they cannot key
           // (a merged run whose PSMs lack 'id_merge_index', ambiguous feature identities), and an
@@ -1743,16 +2677,6 @@ class ProSE :
               psm_rows_table = rows_table;
             }
           }
-          else if (qpx_psm_table)
-          {
-            qpx_psm_tables.push_back(qpx_psm_table);
-            qpx_psm_scan_formats.push_back(psm_scan_format);
-            if (!QPXFile::exportToParquet(qpx_psm_table, qpx_psm_file, ParquetWriteConfig{}, psm_scan_format))
-            {
-              OPENMS_LOG_ERROR << "Failed to write QPX PSM parquet for " << in_file << " -> " << qpx_psm_file << endl;
-              input_failed = true;
-            }
-          }
           else if (!input_failed)
           {
             OPENMS_LOG_WARN << "QPX PSM table build returned null for " << in_file << " — skipping " << qpx_psm_file << endl;
@@ -1767,15 +2691,7 @@ class ProSE :
           if (qpx_pg_table && ArrowIOHelpers::tableRowCount(qpx_pg_table) > 0)
           {
             qpx_pg_tables.push_back(qpx_pg_table);
-            if (qpx_extended)
-            {
-              run_views["pg"] = {{qpx_pg_table}, ParquetWriteConfig{}, {}};
-            }
-            else if (!ProteinGroupArrowExport::exportToParquet(qpx_pg_table, qpx_pg_file))
-            {
-              OPENMS_LOG_ERROR << "Failed to write QPX PG parquet for " << in_file << " -> " << qpx_pg_file << endl;
-              input_failed = true;
-            }
+            run_views["pg"] = {{qpx_pg_table}, ParquetWriteConfig{}, {}};
           }
           else if (qpx_pg_table)
           {
@@ -1818,7 +2734,7 @@ class ProSE :
           {
             // (unless its psm file fails, see input_writes)
             qpx_psm_tables.push_back(psm_rows_table);
-            qpx_psm_scan_formats.push_back(psm_scan_format);
+            try { qpx_psm_scan_formats.push_back(psm_scan_format); } catch (...) { qpx_psm_tables.pop_back(); throw; }
             qpx_psm_rows[i] = ArrowIOHelpers::tableRowCount(psm_rows_table);
             psm_file_written = true;
           }
@@ -1949,24 +2865,61 @@ class ProSE :
       }
       if (!out_qpx_dir.empty() && !qpx_extended)
       {
-        // Concatenation inherits the first input's schema metadata, i.e. that per-run file's
-        // uuid/creation_date. Stamp a fresh identity so the merged file is its own QPX file.
-        auto psm_meta = ArrowIOHelpers::qpxFileMetadata("psm_file", ParquetWriteConfig{}, qpx_psm_keys);
-        auto pg_meta  = ArrowIOHelpers::qpxFileMetadata("pg_file");
-        merged_ok = psm_meta && pg_meta && merged_ok;
-        if (psm_meta)
+        // (in parallel; next to the per-input writes still running, the last input's at least)
+        ParquetWriteConfig merged_config;
+        merged_config.threads = qpx_write_threads;
+        // the stream has the rows of every run: every input seen, as many tables appended as the loop collected (a
+        // table of the stream missing from the loop's bookkeeping, e.g. by an exception after the append, would give
+        // the footer a scan_format of the other runs: then written again from the tables, as without the stream)
+        const bool qpx_streamed = early_qpx_files && !qpx_stream_gap && !qpx_stream_error && qpx_stream_next == in_list.size()
+                                  && qpx_stream_tables == qpx_psm_tables.size() && (qpx_stream || qpx_psm_tables.empty());
+        if (qpx_stream_error) { merged_ok = false; } // (logged there; the file written below does not undo the failure)
+        if (qpx_streamed)
         {
-          merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
-            qpx_psm_tables, out_qpx_dir + "/" + QPX_AGGREGATE_STEM + ".psm.parquet", ParquetWriteConfig{}, psm_meta) && merged_ok;
+          // (none: no file, as the concatenation of no table): its footer completed, the staged file published (the
+          // earlier run's files are removed above)
+          if (qpx_stream)
+          {
+            merged_ok = qpx_stream->close(qpx_psm_keys) && merged_ok;
+            if (qpx_stream->closed() && !File::rename(qpx_stream_file + ".part", qpx_stream_file, true, false))
+            {
+              OPENMS_LOG_ERROR << "Failed to write " << qpx_stream_file << " (cannot rename " << qpx_stream_file << ".part)" << endl;
+              merged_ok = false;
+              if (!File::remove(qpx_stream_file + ".part"))
+              {
+                OPENMS_LOG_ERROR << "Cannot remove the staged file " << qpx_stream_file << ".part" << endl;
+              }
+            }
+          }
         }
+        else
+        {
+          if (qpx_stream) { qpx_stream->abandon(); } // (a run is missing from it: see qpx_stream_gap)
+          // Concatenation inherits the first input's schema metadata, i.e. that per-run file's
+          // uuid/creation_date. Stamp a fresh identity so the merged file is its own QPX file.
+          auto psm_meta = ArrowIOHelpers::qpxFileMetadata("psm_file", ParquetWriteConfig{}, qpx_psm_keys);
+          merged_ok = psm_meta && merged_ok;
+          if (psm_meta)
+          {
+            merged_config.validated = in_list.size() == 1 && qpx_psm_tables.size() == 1 && early_qpx[0].psm_validated; // (the same table)
+            merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
+              qpx_psm_tables, qpx_stream_file, merged_config, psm_meta) && merged_ok;
+            merged_config.validated = false;
+          }
+        }
+        auto pg_meta = ArrowIOHelpers::qpxFileMetadata("pg_file");
+        merged_ok = pg_meta && merged_ok;
         // Same rule as the per-file pg above: with no group anywhere there is nothing to merge, and
         // an empty merged table would be indistinguishable from an inference that found nothing.
         if (pg_meta && !quantms_pg_tables.empty())
         {
           merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(
-            quantms_pg_tables, out_qpx_dir + "/" + QPX_AGGREGATE_STEM + ".pg.parquet", ParquetWriteConfig{}, pg_meta) && merged_ok;
+            quantms_pg_tables, out_qpx_dir + "/" + QPX_AGGREGATE_STEM + ".pg.parquet", merged_config, pg_meta) && merged_ok;
         }
       }
+      // the per-input QPX writes (without -qpx_extended) still pending
+      for (auto& write : qpx_writes) { finish_qpx_write(write); }
+      qpx_writes.clear();
 
       if (!out_parquet_dir.empty())
       {
@@ -2235,6 +3188,10 @@ class ProSE :
         }
       }
 
+      // All outputs are written: free the identifications with the threads, not one by one when mfres goes out of scope
+      for (auto& result : mfres.per_file) { ProSEAlgorithm::releaseInParallel(result); }
+      ProSEAlgorithm::releaseInParallel(mfres.aggregate);
+
       if (failed_count > 0)
       {
         OPENMS_LOG_ERROR << "ProSE finished with " << failed_count
@@ -2258,8 +3215,16 @@ class ProSE :
 
 int main(int argc, const char** argv)
 {
+#ifdef PROSE_GLIBC_MALLOC
+  useHugePages(argv);
+  configureMalloc();
+#endif
   ProSE tool;
-  return tool.main(argc, argv);
+  const int exit_code = tool.main(argc, argv);
+#ifdef PROSE_HAND_OVER_MEMORY
+  handOverMemoryAtExit();
+#endif
+  return exit_code;
 }
 
 ///@endcond

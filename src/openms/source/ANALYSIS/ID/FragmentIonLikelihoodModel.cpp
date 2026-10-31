@@ -30,6 +30,16 @@ namespace OpenMS
 
   void FragmentIonLikelihoodModel::PeakLists::clear()
   {
+    // The lists of the spectra are freed by the OpenMP threads, in equal static parts as a static loop over the spectra
+    // assigns them (ProSE's preprocessing, which fills them: each thread then frees into the arena it allocated from);
+    // one after the other, the 2 x 619,000 lists of a timsTOF HeLa run took 0.26 s.
+    const SignedSize n = static_cast<SignedSize>(std::min(mz_.size(), rank_bins_.size())); // (equal, see reset())
+#pragma omp parallel for schedule(static) if (n >= 4096)
+    for (SignedSize i = 0; i < n; ++i)
+    {
+      std::vector<float>().swap(mz_[i]);
+      std::vector<std::uint8_t>().swap(rank_bins_[i]);
+    }
     std::vector<std::vector<float>>().swap(mz_);
     std::vector<std::vector<std::uint8_t>>().swap(rank_bins_);
   }
@@ -164,28 +174,11 @@ namespace OpenMS
     return true;
   }
 
-  void FragmentIonLikelihoodModel::matchIons(const PeakLists& peaks,
-                                             Size index,
-                                             const MSSpectrum& theoretical,
-                                             const AASequence& peptide,
-                                             int precursor_charge,
-                                             double tolerance,
-                                             bool ppm,
-                                             std::vector<Ion>& ions) const
+  template <typename IonOf, typename ChargeOf>
+  void FragmentIonLikelihoodModel::matchIons_(const PeakLists& peaks, Size index, const MSSpectrum& theoretical, IonOf&& ion_of,
+                                              ChargeOf&& charge_of, const AASequence& peptide, int precursor_charge,
+                                              double tolerance, bool ppm, std::vector<Ion>& ions) const
   {
-    if (! std::isfinite(tolerance) || tolerance <= 0.0)
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Matching tolerance must be finite and positive.");
-    }
-    if (theoretical.getStringDataArrays().empty() || theoretical.getStringDataArrays()[0].size() != theoretical.size())
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Theoretical spectrum needs one ion name per peak", "IonNames");
-    }
-    const auto& names = theoretical.getStringDataArrays()[0];
-    // TheoreticalSpectrumGenerator writes the fragment charges as the first integer array.
-    const auto* charges = (! theoretical.getIntegerDataArrays().empty() && theoretical.getIntegerDataArrays()[0].size() == theoretical.size())
-                            ? &theoretical.getIntegerDataArrays()[0]
-                            : nullptr;
     const Size n = peptide.size();
     const Size bucket = precursor_charge <= 2 ? 0 : (precursor_charge == 3 ? 1 : 2);
     const bool rich = context_set_ == ContextSet::RICH;
@@ -199,8 +192,8 @@ namespace OpenMS
     {
       bool prefix = false;
       Size ordinal = 0;
-      if (! parseIonName(names[i], prefix, ordinal) || ordinal >= n) continue;
-      const int fragment_charge = charges != nullptr ? (*charges)[i] : 1;
+      if (! ion_of(i, prefix, ordinal) || ordinal >= n) continue;
+      const int fragment_charge = charge_of(i);
       const Size charge_bin = fragment_charge <= 1 ? 0 : 1;
       const double mz = theoretical[i].getMZ();
       const double width = ppm ? mz * tolerance * 1e-6 : tolerance;
@@ -238,6 +231,61 @@ namespace OpenMS
                            * complement_ + complement;
       ion.context = static_cast<UInt32>(context);
     }
+  }
+
+  void FragmentIonLikelihoodModel::matchIons(const PeakLists& peaks,
+                                             Size index,
+                                             const MSSpectrum& theoretical,
+                                             const AASequence& peptide,
+                                             int precursor_charge,
+                                             double tolerance,
+                                             bool ppm,
+                                             std::vector<Ion>& ions) const
+  {
+    if (! std::isfinite(tolerance) || tolerance <= 0.0)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Matching tolerance must be finite and positive.");
+    }
+    if (theoretical.getStringDataArrays().empty() || theoretical.getStringDataArrays()[0].size() != theoretical.size())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Theoretical spectrum needs one ion name per peak", "IonNames");
+    }
+    const auto& names = theoretical.getStringDataArrays()[0];
+    // TheoreticalSpectrumGenerator writes the fragment charges as the first integer array.
+    const auto* charges = (! theoretical.getIntegerDataArrays().empty() && theoretical.getIntegerDataArrays()[0].size() == theoretical.size())
+                            ? &theoretical.getIntegerDataArrays()[0]
+                            : nullptr;
+    matchIons_(peaks, index, theoretical,
+      [&](Size i, bool& prefix, Size& ordinal) { return parseIonName(names[i], prefix, ordinal); },
+      [&](Size i) { return charges != nullptr ? (*charges)[i] : 1; },
+      peptide, precursor_charge, tolerance, ppm, ions);
+  }
+
+  void FragmentIonLikelihoodModel::matchIons(const PeakLists& peaks,
+                                             Size index,
+                                             const MSSpectrum& theoretical,
+                                             const std::vector<uint8_t>& ion_series,
+                                             const std::vector<UInt>& ion_ordinals,
+                                             const std::vector<Int>& ion_charges,
+                                             const AASequence& peptide,
+                                             int precursor_charge,
+                                             double tolerance,
+                                             bool ppm,
+                                             std::vector<Ion>& ions) const
+  {
+    if (! std::isfinite(tolerance) || tolerance <= 0.0)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Matching tolerance must be finite and positive.");
+    }
+    if (ion_series.size() != theoretical.size() || ion_ordinals.size() != theoretical.size() || ion_charges.size() != theoretical.size())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Theoretical spectrum needs one ion code per peak", "IonCodes");
+    }
+    // (an ordinal of 0 is not an ion, as for parseIonName())
+    matchIons_(peaks, index, theoretical,
+      [&](Size i, bool& prefix, Size& ordinal) { prefix = ion_series[i] == 0; ordinal = ion_ordinals[i]; return ordinal != 0; },
+      [&](Size i) { return ion_charges[i]; },
+      peptide, precursor_charge, tolerance, ppm, ions);
   }
 
   void FragmentIonLikelihoodModel::addObservations(const std::vector<Ion>& ions, bool noise)

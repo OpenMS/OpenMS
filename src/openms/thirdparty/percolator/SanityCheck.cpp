@@ -17,6 +17,8 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <exception>
+#include <sstream>
 #include "DataSet.h"
 #include "Scores.h"
 #include "Normalizer.h"
@@ -29,6 +31,14 @@ using namespace std;
 
 // Class doing the sanity check for non SQT file condition
 // In most sence a place holder as very little logic is build-in in this case
+
+// OpenMS: rethrows the first error, in iteration order, caught in the iterations of a
+// parallel loop (an exception must not leave an OpenMP region).
+static void rethrowFirstError(const std::vector<std::exception_ptr>& errors) {
+  for (const std::exception_ptr& error : errors) {
+    if (error) std::rethrow_exception(error);
+  }
+}
 
 SanityCheck::SanityCheck() :
   initPositives_(0), pTestset_(NULL), pTrainset_(NULL), concatenatedSearch_(true),
@@ -101,9 +111,24 @@ int SanityCheck::getInitDirection(vector<Scores>& testset,
   } else {
     getDefaultDirection(w);
   }
+  // OpenMS: the folds in parallel, as tasks of a region on all numThreads_ threads (which run the
+  // tasks of the sorts as well, see Scores.cpp); each scores and sorts only its own test set
+  vector<int> positives(w.size());
+  vector<std::exception_ptr> errors(w.size());
+#pragma omp parallel num_threads(numThreads_)
+#pragma omp single
+#pragma omp taskloop grainsize(1)
+  for (int set = 0; set < static_cast<int>(w.size()); ++set) {
+    try {
+      positives[set] = (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr);
+    } catch (...) {
+      errors[set] = std::current_exception();
+    }
+  }
+  rethrowFirstError(errors);
   initPositives_ = 0;
   for (size_t set = 0; set < w.size(); ++set) {
-    initPositives_ += (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr);
+    initPositives_ += positives[set];
   }
   return initPositives_;
 }
@@ -115,9 +140,23 @@ void SanityCheck::getDefaultDirection(vector<vector<double> >& w) {
     //if the default_weights from pin.xml are not present
     if (default_weights.size() == 0) {
       // Set init direction to be the most discriminative direction
+      // OpenMS: the folds in parallel, each on its own training set; their
+      // reports are printed afterwards, in fold order
+      vector<ostringstream> reports(w.size());
+      vector<std::exception_ptr> errors(w.size());
+#pragma omp parallel num_threads(numThreads_)
+#pragma omp single
+#pragma omp taskloop grainsize(1)
+      for (int set = 0; set < static_cast<int>(w.size()); ++set) {
+        try {
+          calcInitDirection(w[set], static_cast<size_t>(set), reports[set]);
+        } catch (...) {
+          errors[set] = std::current_exception();
+        }
+      }
       for (size_t set = 0; set < w.size(); ++set) {
-        if (VERB > 1) std::cerr << "Split " << set + 1 << ":\t";
-        calcInitDirection(w[set], set);
+        if (VERB > 1) std::cerr << "Split " << set + 1 << ":\t" << reports[set].str();
+        if (errors[set]) std::rethrow_exception(errors[set]);
       }
     } else {
       // I want to assign the default vector that is present in the input file
@@ -140,8 +179,9 @@ void SanityCheck::getDefaultDirection(vector<vector<double> >& w) {
   }
 }
 
-void SanityCheck::calcInitDirection(vector<double>& wSet, size_t set) {
-  (*pTrainset_)[set].getInitDirection(initial_train_fdr_, wSet);
+void SanityCheck::calcInitDirection(vector<double>& wSet, size_t set,
+                                    std::ostream& report) {
+  (*pTrainset_)[set].getInitDirection(initial_train_fdr_, wSet, report);
 }
 
 bool SanityCheck::validateDirection(vector<vector<double> >& w) {
@@ -149,9 +189,23 @@ bool SanityCheck::validateDirection(vector<vector<double> >& w) {
     cerr << "SanityCheck wrongly configured" << endl;
     return false;
   }
+  // OpenMS: the folds in parallel, as in getInitDirection
+  vector<int> positives(w.size());
+  vector<std::exception_ptr> errors(w.size());
+#pragma omp parallel num_threads(numThreads_)
+#pragma omp single
+#pragma omp taskloop grainsize(1)
+  for (int set = 0; set < static_cast<int>(w.size()); ++set) {
+    try {
+      positives[set] = (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr_);
+    } catch (...) {
+      errors[set] = std::current_exception();
+    }
+  }
+  rethrowFirstError(errors);
   int overFDR = 0;
   for (size_t set = 0; set < w.size(); ++set) {
-    overFDR += (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr_);
+    overFDR += positives[set];
   }
   if (overFDR <= 0) {
     cerr << "No targets found with q<" << test_fdr_ << endl;

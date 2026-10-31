@@ -249,6 +249,7 @@ set(format_executables_list
   MzIdentMLValidator_test
   ThermoRawFileMetadata_test
   MzMLFile_test
+  MzPeakFile_test
   ImzMLFile_test
   ImzMLFile_all_modes_test
   MzMLSpectrumDecoder_test
@@ -287,6 +288,11 @@ set(format_executables_list
   PercolatorInfile_test
   PercolatorOutfile_test
   PercolatorPosteriorEstimator_test
+  PercolatorReset_test
+  PercolatorTron_test
+  PercolatorNewton_test
+  PercolatorSampler_test
+  PercolatorBestPositive_test
   PercolatorScores_test
   ProtXMLFile_test
   S3InputSource_test

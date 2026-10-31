@@ -58,6 +58,7 @@ MsInspectFile.cpp
 MzDataFile.cpp
 MzIdentMLFile.cpp
 MzMLFile.cpp
+MzPeakFile.cpp
 MzQCFile.cpp
 MzTab.cpp
 MzTabBase.cpp

@@ -1,0 +1,71 @@
+diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
+index 0c2046fffc..71640277ee 100644
+--- a/src/openms/thirdparty/percolator/Scores.cpp
++++ b/src/openms/thirdparty/percolator/Scores.cpp
+@@ -17,6 +17,7 @@
+ 
+ #include <boost/assign.hpp>
+ #include <cassert>
++#include <cstring>
+ #include <exception>
+ #include <functional>
+ #include <cfloat>
+@@ -829,21 +830,37 @@ int Scores::calcScores(std::vector<double>& w) {
+  * already and that have not changed since (in any order): the PSMs are not scored again.
+  */
+ int Scores::sortScoresAndCalcQvals(double fdr, bool skipDecoysPlusOne) {
+-  // OpenMS: if each PSM compares strictly greater than the next (no two are equivalent, no NaN),
+-  // this order is the only sorted one, so every sort leaves it as it is: the sort is skipped
+-  // (CrossValidation sorts the same scores again in the next step)
+-  if (VERB > 3 || !strictlySortedByScore()) sortScores();
++  // OpenMS: the sort is skipped where it cannot change what any later step sees (CrossValidation sorts
++  // the training scores that the step before sorted): see sortedUpToInterchangeable
++  if (VERB > 3 || !comparableScores(scores_.begin(), scores_.end()) || !sortedUpToInterchangeable()) {
++    sortScores();
++  }
+   return calcQvals(fdr, skipDecoysPlusOne);
+ }
+ 
+-// OpenMS: whether ScoreHolderGreater holds for every two neighbours (then also no score or mass is
+-// NaN: a comparison with NaN is false)
+-bool Scores::strictlySortedByScore() const {
++// OpenMS: whether every two neighbours are either strictly ordered (ScoreHolderGreater) or
++// interchangeable: bit-identical score, equal label, scan, expMass, spectrum file and bit-identical feature rows
++// (only the PSM objects differ). A sort of such an order can only permute holders within runs of
++// interchangeable ones (the equalities are transitive), so every later consumer of the training set
++// (q-values by position, the selection of the best positive per spectrum with the same moves and
++// value-identical representatives, the SVM rows in the same order, the counts) sees the same values
++// at every position as after the sort; the identity of a training holder never reaches the output.
++// (With NaN scores or masses the caller sorts: comparableScores.)
++bool Scores::sortedUpToInterchangeable() const {
+   const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(scores_.size());
+   const ScoreHolderGreater greater;
++  const std::size_t featureBytes = FeatureNames::getNumFeatures() * sizeof(double);
++  const auto interchangeable = [featureBytes](const ScoreHolder& a, const ScoreHolder& b) {
++    return std::memcmp(&a.score, &b.score, sizeof(double)) == 0 && a.label == b.label && a.pPSM->scan == b.pPSM->scan &&
++           a.pPSM->expMass == b.pPSM->expMass && a.pPSM->specFileNr == b.pPSM->specFileNr &&
++           (a.pPSM->features == b.pPSM->features ||
++            std::memcmp(a.pPSM->features, b.pPSM->features, featureBytes) == 0);
++  };
+   const auto ordered = [&](std::ptrdiff_t b, std::ptrdiff_t e) {
+     for (std::ptrdiff_t i = b; i + 1 < e; ++i) {
+-      if (!greater(scores_[static_cast<std::size_t>(i)], scores_[static_cast<std::size_t>(i + 1)])) return false;
++      const ScoreHolder& x = scores_[static_cast<std::size_t>(i)];
++      const ScoreHolder& y = scores_[static_cast<std::size_t>(i + 1)];
++      if (!greater(x, y) && !interchangeable(x, y)) return false;
+     }
+     return true;
+   };
+diff --git a/src/openms/thirdparty/percolator/Scores.h b/src/openms/thirdparty/percolator/Scores.h
+index cb1b1ad43e..4292ae7e8d 100644
+--- a/src/openms/thirdparty/percolator/Scores.h
++++ b/src/openms/thirdparty/percolator/Scores.h
+@@ -89,7 +89,7 @@ class Scores {
+   // OpenMS: see Scores.cpp
+   int sortScoresAndCalcQvals(double fdr, bool skipDecoysPlusOne = false);
+   // OpenMS: see Scores.cpp
+-  bool strictlySortedByScore() const;
++  bool sortedUpToInterchangeable() const;
+   // OpenMS: see Scores.cpp
+   int countPositives(const std::vector<double>& w, double fdr,
+                      bool skipDecoysPlusOne = false) const;

@@ -20,6 +20,8 @@
 
 
 #include <assert.h>
+#include <utility>
+#include <vector>
 #include "Transform.h"
 #include "PackedVector.h"
 #include "PackedMatrix.h"
@@ -44,6 +46,13 @@ class BaseSpline {
       return splineEval(xx);
     }
     static void solveInPlace(PackedMatrix& mat, PackedVector& res);
+    // OpenMS: a row of the band matrix of bandedIteration (sorted column indices)
+    struct BandRow {
+      static const int capacity = 8;
+      int size = 0;
+      int index[capacity];
+      double value[capacity];
+    };
   protected:
     virtual void calcPZW() {}
     virtual void initg() {
@@ -66,12 +75,21 @@ class BaseSpline {
                                double p1, double p2,
                                double cv1, double cv2);
     void testPerformance();
+    // OpenMS: a faster path for one iteration of iterativeReweightedLeastSquares, see BaseSpline.cpp
+    void initiateBanded();
+    bool bandedIteration(double alpha, double& step);
     Transform transf;
 
     PackedMatrix Q, Qt, R;
     PackedVector gnew, w, z, dx;
     PackedVector g, gamma;
     vector<double> x;
+    // OpenMS: Q and R as bands, and the buffers of bandedIteration (reused across the iterations)
+    bool banded = false;
+    vector<double> bandQ, bandR0, bandR1;
+    vector<double> bandA, bandRes, bandNew;
+    vector<BandRow> bandRows;
+    vector<pair<int, double> > bandNonEmpty;
 };
 
 }}}  // namespace OpenMS::Internal::Percolator
