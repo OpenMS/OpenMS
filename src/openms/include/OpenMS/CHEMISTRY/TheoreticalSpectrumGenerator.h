@@ -106,8 +106,13 @@ namespace OpenMS
       @brief getIonSeriesSpectrum() that also returns, per peak, the number and the charge of its ion: what getSpectrum()
       writes into the ion names (e.g. 5 for "y5++") and the charge array (2), without the strings.
 
+      @param[out] spectrum Its peaks and data arrays are replaced (the meta data is kept)
+      @param[out] ion_series One entry per peak of @p spectrum
       @param[out] ion_ordinals The ordinal of each peak's ion (the number of residues of the fragment)
       @param[out] ion_charges The charge of each peak's ion
+      @param[in] peptide The input peptide
+      @param[in] min_charge Lowest fragment charge
+      @param[in] max_charge Highest fragment charge
       @return as getIonSeriesSpectrum()
     */
     bool getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series, std::vector<UInt>& ion_ordinals,

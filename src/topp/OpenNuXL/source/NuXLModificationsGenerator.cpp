@@ -14,6 +14,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <algorithm>
 #include <cmath>
 #include <map>
 
@@ -88,7 +89,8 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
                                                                                      const StringList& modifications,
                                                                                      std::string sequence_restriction,
                                                                                      bool cysteine_adduct,
-                                                                                     Int max_length)
+                                                                                     Int max_length,
+                                                                                     const std::set<char>& standalone)
 {
   std::string original_sequence_restriction = sequence_restriction;
 
@@ -268,6 +270,7 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
     // Append precursor modifications (e.g., "-H2O") 
     // to generate modified nucleotides: e.g.: "U" -> "U", "U-H2O", ... 
     vector<EmpiricalFormula> actual_combinations;
+    vector<EmpiricalFormula> standalone_combinations; // adducts of standalone nucleotides (e.g., a cross-linker without nucleotide) are not extended to oligos
     for (auto mit = map_target_to_formula.cbegin(); mit != map_target_to_formula.cend(); ++mit)
     {
       std::string target_nucleotide = mit->first;
@@ -302,7 +305,14 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
 
         if (!formulas_of_modified_nucleotide.contains(sum_formula.toString()))
         {
-          actual_combinations.push_back(sum_formula);
+          if (standalone.contains(target_nucleotide[0]))
+          {
+            standalone_combinations.push_back(sum_formula);
+          }
+          else
+          {
+            actual_combinations.push_back(sum_formula);
+          }
           result.mod_combinations[sum_formula.toString()].insert(nt);  // add sum formula -> nucleotide
           OPENMS_LOG_INFO << "\t" << "modifications: " << nt << "\t\t" << sum_formula.toString() << endl;
         }
@@ -319,6 +329,7 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
     // The first element of the chain is an unmodified AND modified nucleotides.
     // That way, at most one modified nucleotide is part of the chain
     vector<EmpiricalFormula> all_combinations = actual_combinations;
+    all_combinations.insert(all_combinations.end(), standalone_combinations.begin(), standalone_combinations.end());
     for (Int i = 0; i < max_length - 1; ++i)
     {
       vector<EmpiricalFormula> new_combinations;
@@ -326,6 +337,7 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
       {
         const std::string & target_nucleotide = target_to_formula.first;
         const EmpiricalFormula & target_nucleotide_formula = target_to_formula.second;
+        if (standalone.contains(target_nucleotide[0])) { continue; } // standalone nucleotides are never part of an oligo
 
         for (EmpiricalFormula const & ac : actual_combinations) // append unmodified nucleotide to yield a (i+1)-mer
         {
@@ -334,6 +346,7 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
           const auto& ambiguities = result.mod_combinations[ac.toString()];
           for (auto const & s : ambiguities)
           {
+            if (standalone.contains(s[0])) { continue; } // same formula as a standalone adduct: don't extend the standalone one
             result.mod_combinations[all_combinations.back().toString()].insert(target_nucleotide + s);
             OPENMS_LOG_DEBUG << target_nucleotide + s << endl;
           }
@@ -424,6 +437,9 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
       }
 
       // check if nucleotide is contained in at least one of the target sequences
+      // (standalone nucleotides, e.g. a cross-linker without nucleotide, are not part of the nucleic acid sequence)
+      const bool is_standalone = any_of(nucleotide_style_formula.begin(), nucleotide_style_formula.end(),
+               [&standalone](char c) { return standalone.contains(c); });
       bool containment_violated(false);
       Size violation_count(0);
       for (const std::string & current_target_seq : target_sequences)
@@ -431,7 +447,7 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
         if (notInSeq(current_target_seq, nucleotide_style_formula)) { ++violation_count; }
       }
 
-      if (violation_count == target_sequences.size()) { containment_violated = true; }
+      if (!is_standalone && violation_count == target_sequences.size()) { containment_violated = true; }
 
       if (containment_violated)
       { 

@@ -659,6 +659,12 @@ namespace OpenMS
       writeDebug_(std::string("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
       return UNKNOWN_ERROR;
     }
+    // Standard library and third-party exceptions: report them instead of letting them reach std::terminate
+    catch (std::exception& e)
+    {
+      writeLogError_(std::string("Error: Unexpected internal error (") + e.what() + ")");
+      return UNKNOWN_ERROR;
+    }
     log_->close();
 
     return result;

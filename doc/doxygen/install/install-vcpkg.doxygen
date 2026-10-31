@@ -128,9 +128,20 @@
     \endcode
 
     The installed libraries must meet the minimum versions of %OpenMS; the presets build the dependency set that CI
-    tests. `dockerfiles/Dockerfile` is an example of a build on Ubuntu packages. If you set `-DOPENMS_USE_VCPKG=ON`
-    without a preset, pass the vcpkg toolchain as shown above, otherwise the configure stops with an error that names
-    the alternatives.
+    tests.
+
+    libxml2 must be version 2.13 or newer, built with SAX1, PUSH, READER, SCHEMAS and THREAD support. Several current
+    distributions ship an older libxml2: Ubuntu 24.04 and Debian 13 have 2.9.14, RHEL, AlmaLinux and Rocky Linux 10
+    have 2.12.5. On these systems, take libxml2 from vcpkg or build it from source, and add its install prefix to
+    `CMAKE_PREFIX_PATH`.
+
+    `dockerfiles/Dockerfile` is an example of a build on Ubuntu 24.04 packages. It builds only libxml2 from source and
+    installs it to `/opt/libxml2`.
+
+    If you set `-DOPENMS_USE_VCPKG=ON` without a preset and without `CMAKE_TOOLCHAIN_FILE`, CMake uses the toolchain of
+    the initialized `vcpkg` submodule. Without that submodule (a source tarball, or a checkout without
+    `git submodule update --init vcpkg`), pass the toolchain of your own vcpkg checkout as shown above; otherwise the
+    configure stops with an error that names the alternatives.
 
     @subsection install_vcpkg_generator Choosing a CMake generator
 

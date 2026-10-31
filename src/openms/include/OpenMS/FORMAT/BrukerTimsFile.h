@@ -30,6 +30,11 @@ namespace OpenMS
    * Ion mobility data is stored in VSSC (1/K0) units using IM_PEAK format
    * for MS1 and DIA MS2, and scalar drift times for DDA MS2.
    *
+   * Synchro-PASEF (diagonal-PASEF), where the quadrupole moves along with the ion mobility scan,
+   * is not supported: its isolation windows are one scan step wide, so the DIA loaders split its
+   * MS2 frames into very many spectra of a few peaks each. They warn when most windows span fewer
+   * than 10 scans. Export mode FRAME reads such runs frame by frame.
+   *
    * Every method taking a path also accepts a zipped .d directory ('.d.zip'), which is
    * unpacked into a temporary directory for the duration of the call. The .d directory may be
    * nested in the archive: the shallowest one holding analysis.tdf is read, and __MACOSX
@@ -53,6 +58,17 @@ namespace OpenMS
    * - **AUTO** (default): detects DDA vs DIA by querying for SWATH windows.
    *   DDA uses per-precursor MS2 spectra with scalar drift times; DIA uses
    *   per-frame MS2 spectra split by SWATH isolation window with per-peak IM.
+   *   The precursor of a DDA MS2 spectrum has the CollisionEnergy of its
+   *   PasefFrameMsMsInfo rows as the meta value "collision energy" (eV, with
+   *   the sign stored in the file: negative in negative mode; none if the
+   *   rows differ) and, if the PASEF frames record it (property
+   *   MSMSAuto_FragmentationMode), the activation method (CID or ETD). PASEF
+   *   runs that isolate a fixed list of targets (such as SIMSEF) have
+   *   isolation windows without a precursor (PasefFrameMsMsInfo rows whose
+   *   Precursor is NULL). Each such window becomes one MS2 spectrum (none if
+   *   it has no peaks, as for a precursor), with the isolation m/z as
+   *   precursor m/z (charge 0), the 1/K0 of the middle of its scans as drift
+   *   time, and the native ID "frame=<F> scan=<S>".
    * - **SPECTRUM**: forces the DDA (per-precursor) path regardless of
    *   acquisition type.
    * - **FRAME**: returns raw 4D frames as IM_PEAK spectra (per-peak IM
@@ -317,8 +333,9 @@ namespace OpenMS
     /// Load entire .d directory into MSExperiment
     /// @throws Exception::ParseError for Bruker data that cannot be read: TSF or BAF data (see detectFormat()), TDF
     ///         data that is not zstd-compressed (TimsCompressionType other than 2), a '.d.zip' archive without a
-    ///         .d directory, or an analysis.tdf that lacks a table or column the reader needs. The other read
-    ///         functions throw the same.
+    ///         .d directory, an analysis.tdf that lacks a table or column the reader needs, an analysis.tdf_bin
+    ///         that ends before the last of its frames (e.g. not completely copied), or frames that cannot be
+    ///         decoded. The other read functions throw the same.
     /// @throws Exception::InvalidFileType for a MALDI imaging run, unless the export mode is FRAME (see above), as
     ///         do transform() and, in every export mode, readDIAMetadata() and loadDIAStreaming()
     /// @throws Exception::FileNotReadable if opentims cannot open the directory
@@ -348,7 +365,7 @@ namespace OpenMS
     /// Receives the spectra a loader emits, one after the other. It may move from the spectrum.
     using SpectrumSink = std::function<void(MSSpectrum&)>;
 
-    // The public read functions of the same names run these and report SQLite errors as Exception::ParseError
+    // The public read functions of the same names run these and report SQLite and decoding errors as Exception::ParseError
     DIAStreamingMetadata readDIAMetadata_(const std::string& path, ExperimentalSettings& exp_settings, const Config& config);
     void loadDIAStreaming_(const std::string& path, FullSwathFileConsumer& consumer, const Config& config);
     void load_(const std::string& path, MSExperiment& exp, const Config& config);

@@ -11,6 +11,7 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
+#include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
@@ -18,9 +19,17 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
+#include <fstream>
+#include <exception>
 #include <sstream>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace OpenMS
 {
@@ -32,6 +41,165 @@ namespace OpenMS
   }
 
   MzMLFile::~MzMLFile() = default;
+
+  namespace
+  {
+    // ponytail: fixed cap; per-chunk header reparse and memory bandwidth stop paying off above ~32 threads (EPYC 9654).
+    constexpr int PARALLEL_LOAD_MAX_THREADS = 32;
+    /// Contiguous spectrum ranges per thread, so uneven spectra (MS1 frames vs. MS2) still balance.
+    constexpr int PARALLEL_LOAD_CHUNKS_PER_THREAD = 4;
+    /// Smaller chunks cost more in header reparsing and thread start-up than they save (small files).
+    constexpr std::streamoff PARALLEL_LOAD_MIN_CHUNK_BYTES = 1 << 20;
+
+    /// Appends bytes [begin, end) of @p in to @p out (reusing its capacity).
+    void appendRange(std::ifstream& in, std::streamoff begin, std::streamoff end, std::string& out)
+    {
+      const Size old_size = out.size();
+      out.resize(old_size + static_cast<Size>(end - begin));
+      in.seekg(begin);
+      in.read(out.data() + old_size, static_cast<std::streamsize>(end - begin));
+      if (in.gcount() != static_cast<std::streamsize>(end - begin))
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "Short read in indexed mzML");
+      }
+    }
+
+    std::string readRange(std::ifstream& in, std::streamoff begin, std::streamoff end)
+    {
+      std::string bytes;
+      appendRange(in, begin, end, bytes);
+      return bytes;
+    }
+  }
+
+  bool MzMLFile::loadParallelIndexed_(const std::string& filename, PeakMap& map)
+  {
+#ifdef _OPENMP
+    const int threads = std::min(omp_get_max_threads(), PARALLEL_LOAD_MAX_THREADS);
+    // Only the plain full load is parallelized; everything else keeps the serial streaming parse.
+    if (threads < 2 || FileNameUtils::compressionType(filename) != FileTypes::UNKNOWN || options_.hasFilters() ||
+        !options_.getFillData() || options_.getMetadataOnly() || options_.getSkipChromatograms())
+    {
+      return false;
+    }
+    IndexedMzMLDecoder decoder;
+    const std::streampos index_offset = decoder.findIndexListOffset(filename);
+    IndexedMzMLDecoder::OffsetVector spectrum_offsets, chromatogram_offsets;
+    if (index_offset == std::streampos(-1) ||
+        decoder.parseOffsets(filename, index_offset, spectrum_offsets, chromatogram_offsets) != 0 ||
+        spectrum_offsets.size() < 2)
+    {
+      return false;
+    }
+
+    // Split the document: everything before the first spectrum is the header (prolog, mzML/run metadata and the
+    // spectrumList start tag); each chunk is header + a contiguous run of <spectrum> elements + closing tags, so a
+    // normal MzMLHandler parses metadata and peaks exactly as in the serial load.
+    std::ifstream in(filename, std::ios::binary);
+    const std::streamoff first = spectrum_offsets.front().second;
+    const std::string header = readRange(in, 0, first);
+    const bool wrapped = header.find("<indexedmzML") != std::string::npos;
+    const std::string closing = std::string("</spectrumList></run></mzML>") + (wrapped ? "</indexedmzML>" : "");
+    const std::streamoff tail_begin = spectrum_offsets.back().second;
+    const std::string tail = readRange(in, tail_begin, index_offset);
+    const Size spectra_end_in_tail = tail.find("</spectrumList>");
+    if (spectra_end_in_tail == std::string::npos)
+    {
+      return false;
+    }
+    const std::streamoff spectra_end = tail_begin + static_cast<std::streamoff>(spectra_end_in_tail);
+    for (Size i = 1; i < spectrum_offsets.size(); ++i)
+    {
+      if (spectrum_offsets[i].second <= spectrum_offsets[i - 1].second) return false; // not in document order
+    }
+
+    // Chunk boundaries balanced by bytes, always at spectrum starts.
+    const Size n_chunks = std::max<Size>(1, std::min<Size>({spectrum_offsets.size(), static_cast<Size>(threads) * PARALLEL_LOAD_CHUNKS_PER_THREAD,
+                                                             static_cast<Size>((spectra_end - first) / PARALLEL_LOAD_MIN_CHUNK_BYTES)}));
+    if (n_chunks < 2)
+    {
+      return false; // too small to gain from splitting
+    }
+    std::vector<std::streamoff> bounds{first};
+    for (Size c = 1; c < n_chunks; ++c)
+    {
+      const std::streamoff target = first + (spectra_end - first) * static_cast<std::streamoff>(c) / static_cast<std::streamoff>(n_chunks);
+      auto it = std::lower_bound(spectrum_offsets.begin(), spectrum_offsets.end(), target,
+                                 [](const auto& entry, std::streamoff value) { return std::streamoff(entry.second) < value; });
+      if (it != spectrum_offsets.end() && std::streamoff(it->second) > bounds.back()) bounds.push_back(it->second);
+    }
+    bounds.push_back(spectra_end);
+    const Size chunks = bounds.size() - 1;
+
+    // Parts: spectrum chunks, then (if any) everything from </spectrumList> to the index: the chromatogram list.
+    const bool has_chromatograms = !chromatogram_offsets.empty();
+    std::vector<PeakMap> parts(chunks + (has_chromatograms ? 1 : 0));
+    std::exception_ptr error;
+    #pragma omp parallel num_threads(std::min<int>(threads, static_cast<int>(parts.size())))
+    {
+      std::ifstream part_in(filename, std::ios::binary);
+      // One buffer per thread, reused across chunks: freeing large buffers in a process with many threads
+      // costs a TLB shootdown on every core, which dominated with several concurrent loads.
+      std::string buffer;
+      #pragma omp for schedule(dynamic, 1)
+      for (SignedSize p = 0; p < static_cast<SignedSize>(parts.size()); ++p)
+      {
+        try
+        {
+          buffer.assign(header);
+          if (static_cast<Size>(p) < chunks)
+          {
+            appendRange(part_in, bounds[p], bounds[p + 1], buffer);
+            buffer += closing;
+          }
+          else
+          {
+            appendRange(part_in, spectra_end, index_offset, buffer);
+            if (wrapped) buffer += "</indexedmzML>";
+          }
+          MzMLFile part_file;
+          part_file.setOptions(options_);
+          Internal::MzMLHandler handler(parts[p], filename, getVersion(), part_file);
+          handler.setOptions(options_);
+          part_file.parseBuffer_(buffer, &handler);
+        }
+        catch (...)
+        {
+          #pragma omp critical(MzMLFileParallelLoad)
+          if (!error) error = std::current_exception();
+        }
+      }
+    }
+    if (error) std::rethrow_exception(error);
+
+    // Settings come from the header (identical in every part); spectra are concatenated in document order.
+    Size n_spectra = 0;
+    for (Size p = 0; p < chunks; ++p) n_spectra += parts[p].size();
+    const Size n_chromatograms = has_chromatograms ? parts.back().getChromatograms().size() : 0;
+    if (n_spectra != spectrum_offsets.size() || n_chromatograms != chromatogram_offsets.size())
+    {
+      return false; // index disagrees with the document; the caller reparses serially
+    }
+    std::vector<MSSpectrum> spectra;
+    spectra.reserve(n_spectra);
+    for (Size p = 0; p < chunks; ++p)
+    {
+      for (auto& spectrum : parts[p].getSpectra()) spectra.push_back(std::move(spectrum));
+    }
+    std::vector<MSChromatogram> chromatograms;
+    if (has_chromatograms) chromatograms = std::move(parts.back().getChromatograms());
+    map = std::move(parts.front());
+    map.setSpectra(std::move(spectra));
+    map.setChromatograms(std::move(chromatograms));
+    map.setLoadedFileType(filename);
+    map.setLoadedFilePath(filename);
+    return true;
+#else
+    (void)filename;
+    (void)map;
+    return false;
+#endif
+  }
 
   PeakFileOptions& MzMLFile::getOptions()
   {
@@ -122,8 +290,10 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      // the problem and the file, not the source location of the exception (debug output, see TOPPBase)
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, std::string(e.getName()) + ": " + e.what());
+      // the problem and the file, not the source location of the exception (debug output, see TOPPBase); a URL without
+      // its credentials
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, HTTPInputSource::redactURL(filename),
+                                  std::string(e.getName()) + ": " + e.what());
     }
   }
 
@@ -139,23 +309,29 @@ namespace OpenMS
 
   void MzMLFile::load(const std::string& filename, PeakMap& map)
   {
-    map.reset();
-
-    //set DocumentIdentifier
-    if (StringUtils::hasPrefix(filename, "http://") || StringUtils::hasPrefix(filename, "https://") || StringUtils::hasPrefix(filename, "ftp://") || StringUtils::hasPrefix(filename, "s3://"))
+    const bool remote = StringUtils::hasPrefix(filename, "http://") || StringUtils::hasPrefix(filename, "https://")
+                        || StringUtils::hasPrefix(filename, "ftp://") || StringUtils::hasPrefix(filename, "s3://");
+    // the parallel load reads byte ranges of a local file; remote documents are streamed
+    if (remote || !loadParallelIndexed_(filename, map))
     {
-      map.setLoadedFileType(FileTypes::MZML);
-      map.setLoadedNetFilePath(filename);
-    }
-    else
-    {
-      map.setLoadedFileType(filename);
-      map.setLoadedFilePath(filename);
-    }
+      map.reset();
 
-    Internal::MzMLHandler handler(map, filename, getVersion(), *this);
-    handler.setOptions(options_);
-    safeParse_(filename, &handler);
+      //set DocumentIdentifier
+      if (remote)
+      {
+        map.setLoadedFileType(FileTypes::MZML);
+        map.setLoadedNetFilePath(filename);
+      }
+      else
+      {
+        map.setLoadedFileType(filename);
+        map.setLoadedFilePath(filename);
+      }
+
+      Internal::MzMLHandler handler(map, filename, getVersion(), *this);
+      handler.setOptions(options_);
+      safeParse_(filename, &handler);
+    }
     map.updateRanges();
   }
 

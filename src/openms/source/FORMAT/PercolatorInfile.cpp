@@ -302,7 +302,10 @@ namespace OpenMS
         pids.resize(pids.size() + 1);
         pids.back().setHigherScoreBetter(higher_score_better);
         pids.back().setScoreType(score_name);
-        pids.back().setMetaValue(Constants::UserParam::ID_MERGE_INDEX, map_filename_to_idx.at(raw_file_name));
+        if (file_name_column_index >= 0) // FileName is optional; map_filename_to_idx is only populated when it is present
+        {
+          pids.back().setMetaValue(Constants::UserParam::ID_MERGE_INDEX, map_filename_to_idx.at(raw_file_name));
+        }
         pids.back().setRT(StringUtils::toDouble(row[to_idx.at("retentiontime")]) * 60.0); // search engines typically write minutes (e.g., sage)
         pids.back().setMetaValue("PinSpecId", sSpecId);
         if (IM > 0.0) // Sage might annotate 0.0 if no IM is present

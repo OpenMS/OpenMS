@@ -38,7 +38,6 @@
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
-#include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/XMassFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
@@ -738,11 +737,6 @@ namespace OpenMS
     {
       return FileTypes::MZIDENTML;
     }
-    //subject to change!
-    if (StringUtils::hasSubstring(all_simple, "<MzQualityMLType"))
-    {
-      return FileTypes::QCML;
-    }
     //pepXML (all lines)
     if (StringUtils::hasSubstring(all_simple, "xmlns=\"http://regis-web.systemsbiology.net/pepXML\""))
     {
@@ -1241,6 +1235,10 @@ namespace OpenMS
 
         // Only the peak-level filters (m/z, intensity, ion mobility) are left to apply post-load.
         if (options_.hasMZRange() || options_.hasIntensityRange() || options_.hasIMRange()) { applyPostLoadOptions_(exp); }
+        // SRM scans (triple quadrupoles) become chromatograms, as for mzML
+        const Size chromatograms = exp.getNrChromatograms();
+        ChromatogramTools().convertSpectraToChromatograms<PeakMap>(exp, true);
+        if (exp.getNrChromatograms() != chromatograms) { exp.updateRanges(); }
       }
       break;
 #endif
@@ -2075,12 +2073,10 @@ namespace OpenMS
                const FeatureMap& feature_map,
                std::vector<ProteinIdentification>& prot_ids,
                PeptideIdentificationList& pep_ids,
-               const ConsensusMap& consensus_map,
                const std::string& contact_name,
                const std::string& contact_address,
                const std::string& description,
                const std::string& label,
-               const bool remove_duplicate_features,
                const std::vector<FileTypes::Type> allowed_types
              )
   {
@@ -2100,15 +2096,6 @@ namespace OpenMS
 
     switch (type)
     {
-      case FileTypes::QCML:
-      {
-      QcMLFile qcmlfile;
-      qcmlfile.collectQCData(prot_ids, pep_ids, feature_map,
-                    consensus_map, input_file, remove_duplicate_features, exp);
-      qcmlfile.store(filename);
-      }
-      break;
-      
       case FileTypes::MZQC:
       {
       MzQCFile().store(input_file, filename, exp, contact_name, contact_address,

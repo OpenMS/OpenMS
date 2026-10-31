@@ -16,6 +16,7 @@
 #include <map>
 #include <set>
 #include <iostream>
+#include <iterator>
 
 namespace OpenMS
 {
@@ -63,6 +64,29 @@ namespace OpenMS
     /// Empirical formula → @ref NucleotideFormulas.
     using MapSumFormulaToNucleotideFormulas = std::map<std::string, NucleotideFormulas>;
     MapSumFormulaToNucleotideFormulas mod_combinations; ///< Empirical formula → all nucleotide compositions yielding that formula (kept as a set because mutations / losses can make the mapping ambiguous).
+
+    /// Sum formula and precursor adduct (nucleotide composition) returned by @ref findPrecursorAdduct.
+    struct PrecursorAdduct
+    {
+      const std::string* sum_formula = nullptr; ///< Key in @c mod_combinations, @c nullptr if not found.
+      const std::string* adduct = nullptr; ///< Entry in the set of nucleotide compositions with that sum formula, @c nullptr if not found.
+    };
+
+    /**
+      @brief Looks up the precursor adduct that a hit refers to by its indices.
+
+      @param[in] NA_mod_index Index of the sum formula in @c mod_combinations.
+      @param[in] NA_adduct_amb_index Index of the adduct in the set of nucleotide compositions with that sum formula
+                 (e.g., 0 for C-H3N1 and 1 for U-H2O1).
+      @return Pointers to the sum formula and the adduct, both @c nullptr if either index is out of range.
+    */
+    PrecursorAdduct findPrecursorAdduct(Size NA_mod_index, Size NA_adduct_amb_index) const
+    {
+      if (NA_mod_index >= mod_combinations.size()) { return {}; }
+      auto mod_combinations_it = std::next(mod_combinations.cbegin(), NA_mod_index);
+      if (NA_adduct_amb_index >= mod_combinations_it->second.size()) { return {}; }
+      return {&mod_combinations_it->first, &*std::next(mod_combinations_it->second.cbegin(), NA_adduct_amb_index)};
+    }
   };
 
   /**
@@ -126,6 +150,14 @@ namespace OpenMS
                                          the result.
         @param[in] max_length            Maximum oligomer length to enumerate when
                                          @p sequence_restriction is empty. Default @c 4.
+        @param[in] standalone            Target nucleotides that only form precursor adducts on
+                                         their own (e.g. @c 's' for a cross-linker bound to
+                                         the peptide without nucleotide). They are never
+                                         combined with other nucleotides into oligos and are
+                                         exempt from @p sequence_restriction. They still need
+                                         a @p target_nucleotides entry, @p modifications and,
+                                         to be kept, must be in @p can_xl (to be scored, they
+                                         also need fragment adducts). Default empty.
 
         @return Populated @ref NuXLModificationMassesResult.
 
@@ -140,7 +172,8 @@ namespace OpenMS
                                                                      const StringList& modifications,
                                                                      std::string sequence_restriction = "",
                                                                      bool cysteine_adduct = false,
-                                                                     Int max_length = 4);
+                                                                     Int max_length = 4,
+                                                                     const std::set<char>& standalone = {});
 
       /**
         @brief Register the precursor adduct as a named modification of @p residue.

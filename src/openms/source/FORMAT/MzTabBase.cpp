@@ -334,7 +334,10 @@ namespace OpenMS
       ret += CV_label_ + ", ";
       ret += accession_ + ", ";
 
-      if (StringUtils::hasSubstring(name_, ", "))
+      // fromCellString splits on every unquoted comma, not just one followed
+      // by a space, so any comma -- not only ", " -- needs quoting here, or
+      // a name like "N,N-dimethyl" is written unquoted and gains a field.
+      if (StringUtils::hasSubstring(name_, ','))
       {
         ret +="\"" + name_ + "\""; // quote name if it contains a ","
       }
@@ -345,7 +348,7 @@ namespace OpenMS
 
       ret +=std::string(", ");
 
-      if (StringUtils::hasSubstring(value_, ", "))
+      if (StringUtils::hasSubstring(value_, ','))
       {
         ret +="\"" + value_ + "\""; // quote value if it contains a ","
       }

@@ -562,6 +562,7 @@ namespace OpenMS
     features.clear(true);
     chrom_data_.clear(true);
     output_library_.clear(true);
+    FeatureMap candidates; // of all groups, for candidates_out
     bool first_group = true;
 
     for (auto& [group_cv, faims_group] : faims_groups)
@@ -589,9 +590,24 @@ namespace OpenMS
       // without a CV are tried at every CV, like identifications without one
       const FeatureMap seeds_cv = FAIMSHelper::filterFeaturesByFAIMSCV(seeds, group_cv);
 
-      // Run feature detection
-      FeatureMap features_cv;
+      // Run feature detection (the candidates of all groups are written together below)
+      FeatureMap features_cv, candidates_cv;
+      if (!candidates_out_.empty()) ffid_group.candidates_sink_ = &candidates_cv;
       ffid_group.runSingleGroup_(peptides_cv, proteins, features_cv, seeds_cv, spectra_file);
+      if (!candidates_out_.empty())
+      {
+        for (auto& feat : candidates_cv)
+        {
+          feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+          candidates.push_back(std::move(feat));
+        }
+        for (auto& pep_id : candidates_cv.getUnassignedPeptideIdentifications())
+        {
+          pep_id.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+          candidates.getUnassignedPeptideIdentifications().push_back(std::move(pep_id));
+        }
+        if (first_group) candidates.setProteinIdentifications(candidates_cv.getProteinIdentifications());
+      }
 
       // Annotate features with FAIMS CV and add to results
       for (auto& feat : features_cv)
@@ -622,6 +638,13 @@ namespace OpenMS
       }
 
       first_group = false;
+    }
+
+    if (!candidates_out_.empty())
+    {
+      candidates.ensureUniqueId();
+      candidates.setPrimaryMSRunPath({spectra_file});
+      storeCandidates_(candidates);
     }
 
     // Warn about library output for FAIMS data
@@ -898,12 +921,13 @@ namespace OpenMS
     features.ensureUniqueId();
 
     // store feature candidates before filtering
-    if (!candidates_out_.empty())
+    if (candidates_sink_ != nullptr)
     {
-      FileTypes::Type candidates_out_type = FileHandler::getType(candidates_out_);
-      if (candidates_out_type != FileTypes::FEATUREPARQUET)
-        candidates_out_type = FileTypes::FEATUREXML;
-      FileHandler().storeFeatures(candidates_out_, features, {candidates_out_type});
+      *candidates_sink_ = features; // FAIMS CV group: run() writes the candidates of all groups
+    }
+    else if (!candidates_out_.empty())
+    {
+      storeCandidates_(features);
     }
 
     filterFeatures_(features);
@@ -938,6 +962,14 @@ namespace OpenMS
 
   }
 
+  void FeatureFinderIdentificationAlgorithm::storeCandidates_(const FeatureMap& candidates) const
+  {
+    FileTypes::Type candidates_out_type = FileHandler::getType(candidates_out_);
+    if (candidates_out_type != FileTypes::FEATUREPARQUET)
+      candidates_out_type = FileTypes::FEATUREXML;
+    FileHandler().storeFeatures(candidates_out_, candidates, {candidates_out_type});
+  }
+
   void FeatureFinderIdentificationAlgorithm::runOnCandidates(FeatureMap & features)
   {
     // extract ID information for statistics:
@@ -968,6 +1000,12 @@ namespace OpenMS
 
     // remove all hits with pseudo ids (seeds and offset peptides), which the candidates keep
     removeSeedPseudoIDs_(features);
+
+    // candidates of FAIMS data (annotated with their CV by run()): merge across CVs as run() does
+    if (param_.getValue("faims:merge_features").toBool())
+    {
+      FeatureOverlapFilter::mergeFAIMSFeatures(features, 5.0, 0.05);
+    }
   }
 
   void FeatureFinderIdentificationAlgorithm::statistics_(FeatureMap const & features) const

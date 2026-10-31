@@ -1254,6 +1254,35 @@ START_SECTION(void mergePeaks(MSChromatogram & other) )
 }
 END_SECTION
 
+START_SECTION([EXTRA] mergePeaks clears peak-parallel data arrays sized for the pre-merge peaks)
+{
+  MSChromatogram a, b;
+  a.push_back(p1);
+  a.push_back(p3);
+  b.push_back(p2);
+  b.push_back(p5);
+  a.sortByPosition();
+  b.sortByPosition();
+
+  MSChromatogram::FloatDataArray fa;
+  fa.push_back(1.0f);
+  fa.push_back(2.0f);
+  a.getFloatDataArrays().push_back(fa);
+  TEST_EQUAL(a.getFloatDataArrays()[0].size(), a.size())
+
+  // setSumSimilarUnion combines similar peaks, so the merged chromatogram's
+  // peak count need not equal either input's -- a float data array sized for
+  // a's pre-merge peaks can no longer describe the merged ones.
+  a.mergePeaks(b, false);
+  TEST_EQUAL(a.getFloatDataArrays().size(), 0)
+
+  // Without clearing the mis-sized array, this permuting sort would throw
+  // Exception::Precondition from checkDataArraySizes_() on perfectly valid
+  // input.
+  a.sortByIntensity(true);
+}
+END_SECTION
+
 START_SECTION( std::ostream& operator<<(std::ostream& os, const MSChromatogram& chrom)) 
 {
   MSChromatogram a;
