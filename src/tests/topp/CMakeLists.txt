@@ -4820,6 +4820,57 @@ add_test("TOPP_MS1LabeledWorkflow_7_complete_only" ${TOPP_BIN_PATH}/MS1LabeledWo
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_complete_only.tmp.consensusXML)
 set_tests_properties("TOPP_MS1LabeledWorkflow_7_complete_only" PROPERTIES PASS_REGULAR_EXPRESSION "Resolved 1 multiplet.s.; 0 identified")
 
+# -join_channels: the channels of one peptide detected separately (synthetic SILAC duplexes, 2+, 1:1 in the monoisotopic peak;
+# a channel's third and fourth isotopes are only present in every other spectrum, alternating with the other channel, so that
+# no spectrum holds the complete doublet and each channel is detected on its own).
+# MS1LabeledWorkflow_8: LVNELTEFAK (identified by a light spectrum) has its heavy channel joined; without the join its heavy dummy
+# lies on the peaks of the unidentified heavy multiplet and is not quantifiable. YVNDLAGHEK is an ordinary doublet.
+add_test("TOPP_MS1LabeledWorkflow_8_join_channels" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_8_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_8.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_8.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -join_channels true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_8_join_channels.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_8_join_channels" PROPERTIES PASS_REGULAR_EXPRESSION "1 partial multiplet.s. were found to be other channels of an identified partial multiplet and were joined to it, re-measured over common spectra; 0 such candidate.s. were not joined")
+add_test("TOPP_MS1LabeledWorkflow_8_join_channels_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_8_join_channels.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_8_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_8_join_channels_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_8_join_channels")
+# MS1LabeledWorkflow_9: a light envelope identified as LVNELTEFAK and a heavy one identified as VLNELTEFAK (the same composition,
+# another peptide) are not joined. YVNDLAGHEK 1:1 has a ten times stronger envelope 15 ppm above its light channel (outside the
+# detection's m/z tolerance), onto which the light identification maps as well: the heavy channel is joined to the exact light one.
+add_test("TOPP_MS1LabeledWorkflow_9_join_channels" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_9_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_9.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_9.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -join_channels true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_9_join_channels.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_9_join_channels" PROPERTIES PASS_REGULAR_EXPRESSION "1 partial multiplet.s. were found to be other channels of an identified partial multiplet and were joined to it, re-measured over common spectra; 0 such candidate.s. were not joined")
+add_test("TOPP_MS1LabeledWorkflow_9_join_channels_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_9_join_channels.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_9_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_9_join_channels_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_9_join_channels")
+# MS1LabeledWorkflow_10: channels detected over very different elution regions, so that their own intensities give a wrong ratio.
+#   TLSDYNIQK 1:1: the light channel is complete only in the three spectra at the apex and detected over 4 s, the heavy one over
+#     26 s (H/L 3.0 from their own intensities); joined and re-measured over the common spectra: ~1.
+#   ALVAYYQK 5:1 (light:heavy): the light channel, detected over 4 s, is still the more intense one and the reference; the heavy one
+#     (28 s, H/L 0.6 from their own intensities) is re-measured from peaks it reserved itself, which are used: ~0.2.
+#   VSFELFADK: the light and heavy channels elute 10 s apart and share only five spectra: not joined.
+add_test("TOPP_MS1LabeledWorkflow_10_join_channels" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_10_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_10.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_10.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -join_channels true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_10_join_channels.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_10_join_channels" PROPERTIES PASS_REGULAR_EXPRESSION "2 partial multiplet.s. were found to be other channels of an identified partial multiplet and were joined to it, re-measured over common spectra; 1 such candidate.s. were not joined")
+add_test("TOPP_MS1LabeledWorkflow_10_join_channels_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_10_join_channels.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_10_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_10_join_channels_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_10_join_channels")
+
 # the labels must have been searched as modifications: identifications whose search parameters lack
 # them are refused (with -force the run continues)
 add_test("TOPP_MS1LabeledWorkflow_missing_label_mods" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
