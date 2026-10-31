@@ -70,7 +70,8 @@ namespace OpenMS
       StringList& mapping, 
       StringList& modifications, 
       StringList& fragment_adducts, 
-      std::string& can_cross_link)
+      std::string& can_cross_link,
+      std::string& standalone)
     {
       StringList presets = getAllPresetsNames(custom_presets_file);
       OPENMS_LOG_INFO << "Found presets: " << presets.size() << std::endl;
@@ -155,6 +156,13 @@ namespace OpenMS
             {
               can_cross_link = preset["can_cross_link"].get<std::string>();
             }
+
+            // Load standalone nucleotides (optional)
+            standalone.clear();
+            if (preset.contains("standalone"))
+            {
+              standalone = preset["standalone"].get<std::string>();
+            }
             
             // Special handling for DEB and NM presets that need methionine loss
             if (StringUtils::hasSubstring(p, "DEB") || StringUtils::hasSubstring(p, "NM"))
@@ -188,9 +196,10 @@ namespace OpenMS
       StringList& mapping, 
       StringList& modifications, 
       StringList& fragment_adducts, 
-      std::string& can_cross_link)
+      std::string& can_cross_link,
+      std::string& standalone)
     {
-      getPresets(p, "", nucleotides, mapping, modifications, fragment_adducts, can_cross_link);
+      getPresets(p, "", nucleotides, mapping, modifications, fragment_adducts, can_cross_link, standalone);
     }
   }
 }

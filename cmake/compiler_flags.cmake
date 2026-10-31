@@ -79,7 +79,7 @@ function(openms_add_compiler_flags target_name)
   # Essential preprocessor definitions
   if(MSVC)
     target_compile_definitions(${target_name} PUBLIC
-      NOMINMAX  # coinor windows.h include bug workaround
+      NOMINMAX  # keep windows.h from defining min/max macros
     )
   endif()
   

@@ -14,6 +14,7 @@
 #include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <iostream>
+#include <thread>
 
 ///////////////////////////
 
@@ -60,6 +61,17 @@ START_SECTION(static bool getProcessMemoryConsumption(size_t& mem_virtual))
   // (and indeed, it does not work on all OS's; e.g. on Linux, the page tables will remain in RAM, unless mem pressure is high)
   //TEST_EQUAL(after > final, true)
 
+}
+END_SECTION
+
+START_SECTION(static UInt getAvailablePhysicalCores())
+{
+  const UInt cores = SysInfo::getAvailablePhysicalCores();
+  std::cout << "Physical cores available: " << cores << " (hardware threads: " << std::thread::hardware_concurrency() << ")" << std::endl;
+  TEST_EQUAL(cores >= 1, true)
+  // no more cores than hardware threads, where these are known
+  TEST_EQUAL(std::thread::hardware_concurrency() == 0 || cores <= std::thread::hardware_concurrency(), true)
+  TEST_EQUAL(SysInfo::getAvailablePhysicalCores(), cores) // the same again
 }
 END_SECTION
 

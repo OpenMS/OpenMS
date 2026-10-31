@@ -218,6 +218,11 @@ START_SECTION([EXTRA] Bruker TDF frame= / MS:1002818 native ID)
   // merged PASEF spectra carry multiple scan= tokens; the last one is the merged scan number
   TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("frame=1 scan=5 frame=1 scan=9", "MS:1002818"), 9);
 
+  // "frame=<F>" without a scan= token (diaTracer pseudo-spectra): the frame number is the scan-number proxy
+  TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("frame=178383"), R"(frame=(?<GROUP>\d+))");
+  TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("frame=178383", RegularExpression(SpectrumNativeIDParser::getRegExFromNativeID("frame=178383")), true), 178383);
+  TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("frame=2 scan=529", RegularExpression(SpectrumNativeIDParser::getRegExFromNativeID("frame=2 scan=529")), true), 529);
+
   // the scan= token wins over the frame= prefix in all Bruker TDF variants
   TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("frame=120 windowGroup=3 scan=475"), R"(scan=(?<GROUP>\d+))");
   TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("frame=1 scan=5 frame=1 scan=9"), R"(scan=(?<GROUP>\d+))");

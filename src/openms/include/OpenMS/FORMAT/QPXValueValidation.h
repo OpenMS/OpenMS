@@ -138,6 +138,14 @@ namespace OpenMS
     */
     void setExtraColumnsAllowed(bool allowed);
 
+    /**
+      @brief Check the rows of a psm table in @p threads ranges in parallel (OpenMP; default 1: serial)
+
+      The result is that of the serial check: the same errors in the same order, the same rows reported as
+      duplicates. Inside a parallel region, or without OpenMP, the check is serial.
+    */
+    void setThreads(int threads);
+
   private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

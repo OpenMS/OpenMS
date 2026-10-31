@@ -47,6 +47,7 @@
 
 #include <OpenMS/SYSTEM/PathUtils.h>
 
+#include <algorithm>
 #include <cctype>
 #include <filesystem>
 #include <fstream>
@@ -57,6 +58,7 @@
 #include <optional>
 #include <sstream>
 #include <unordered_set>
+#include <vector>
 
 // OpenMP support
 #ifdef _OPENMP
@@ -66,6 +68,8 @@
 #ifdef OPENMS_WINDOWSPLATFORM
 #undef min
 #undef max
+#else
+#include <dlfcn.h> // dlsym(), see limitOpenBLASThreads()
 #endif
 
 #include <cmath>
@@ -77,6 +81,24 @@ namespace OpenMS
 
   namespace
   {
+    /// OpenBLAS (a dependency of the LP solver's libCoinUtils) starts a thread per core when it is loaded, and these
+    /// threads spin for about 0.1 s before they sleep: 7 CPU-s in a process that may use 64 cores, taken from the
+    /// threads of the tool. No TOPP tool needs BLAS with several threads: unless OPENBLAS_NUM_THREADS or
+    /// GOTO_NUM_THREADS says otherwise, set OpenBLAS to one thread and stop the threads it started (should it be
+    /// called with more threads after all, it starts them again). Looked up at run time: nothing happens without
+    /// OpenBLAS or with a BLAS of another kind.
+    void limitOpenBLASThreads()
+    {
+#ifndef OPENMS_WINDOWSPLATFORM
+      if (getenv("OPENBLAS_NUM_THREADS") != nullptr || getenv("GOTO_NUM_THREADS") != nullptr) { return; }
+      if (auto set_threads = reinterpret_cast<void (*)(int)>(dlsym(RTLD_DEFAULT, "openblas_set_num_threads")))
+      {
+        set_threads(1);
+        if (auto shutdown = reinterpret_cast<int (*)()>(dlsym(RTLD_DEFAULT, "blas_thread_shutdown_"))) { shutdown(); }
+      }
+#endif
+    }
+
     /// Does any entry of @p valid_strings denote the same format as @p type?
     /// Compared by type, so a tool declaring 'fasta' accepts 'db.fa' and one declaring 'fa' accepts 'db.fasta'.
     /// Entries that are not known formats keep their exact spelling, so a custom extension only matches itself.
@@ -186,7 +208,19 @@ namespace OpenMS
 #ifdef _OPENMP
     if (num_threads <= 0)
     {
-      num_threads = omp_get_num_procs();
+      // all cores: the physical ones, without their hardware threads (SMT), which seldom make the tools faster but
+      // double the threads that compete for the cores. With OpenMP places (OMP_PLACES, OMP_PROC_BIND), the runtime
+      // may have bound this thread to the first one already: the cores of all places.
+      std::vector<int> cpus;
+#if _OPENMP >= 201511 // OpenMP 4.5: places
+      for (int place = 0; place < omp_get_num_places(); ++place)
+      {
+        std::vector<int> ids(static_cast<Size>(std::max(0, omp_get_place_num_procs(place))));
+        omp_get_place_proc_ids(place, ids.data());
+        cpus.insert(cpus.end(), ids.begin(), ids.end());
+      }
+#endif
+      num_threads = std::clamp(static_cast<int>(SysInfo::getAvailablePhysicalCores(cpus)), 1, std::max(1, omp_get_num_procs()));
     }
     omp_set_num_threads(num_threads);
 #endif
@@ -268,6 +302,7 @@ namespace OpenMS
 
   TOPPBase::ExitCodes TOPPBase::main(int argc, const char** argv)
   {
+    limitOpenBLASThreads(); // as early as possible: its threads spin from the start of the process
     //----------------------------------------------------------
     //parse command line
     //----------------------------------------------------------

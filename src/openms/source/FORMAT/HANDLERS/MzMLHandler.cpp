@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 
+#include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -270,7 +271,7 @@ namespace OpenMS::Internal
         {
           std::cerr << "  Parsing error: '" << error_message  << "'" << std::endl;
           std::cerr << "  You could try to disable sorting spectra while loading." << std::endl;
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data: '" + error_message + "'");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, HTTPInputSource::redactURL(file_), "Error during parsing of binary data: '" + error_message + "'");
         }
       }
 
@@ -350,7 +351,7 @@ namespace OpenMS::Internal
           // throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
           std::cerr << "  Parsing error: '" << error_message  << "'" << std::endl;
           std::cerr << "  You could try to disable sorting spectra while loading." << std::endl;
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data: '" + error_message + "'");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, HTTPInputSource::redactURL(file_), "Error during parsing of binary data: '" + error_message + "'");
         }
 
       }
@@ -4721,6 +4722,10 @@ namespace OpenMS::Internal
               os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002954\" name=\"collisional cross sectional area\" value=\"" << precursor.getDriftTime()
                   << "\" unitAccession=\"UO:0000324\" unitName=\"square angstrom\" unitCvRef=\"UO\" />\n";
               break;
+            case DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE: // an ion selection attribute in the PSI-MS CV, read back from <selectedIon>
+              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001581\" name=\"FAIMS compensation voltage\" value=\"" << precursor.getDriftTime()
+                  << "\" unitAccession=\"UO:0000218\" unitName=\"volt\" unitCvRef=\"UO\" />\n";
+              break;
           }
         }
         //userParam: no extra object for it => no user parameters
@@ -5515,6 +5520,40 @@ namespace OpenMS::Internal
           os << "\t\t\t\t\t\t" << writeCV_(cv_.getTerm(accession), value);
         }
       };
+      // ion mobility of the spectrum (FAIMS compensation voltage or drift time), written into the first <scan>
+      auto writeSpectrumDriftTime = [&]()
+      {
+        if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+        {
+          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001581\" name=\"FAIMS compensation voltage\" value=\"" << spec.getDriftTime()
+             << "\" unitAccession=\"UO:0000218\" unitName=\"volt\" unitCvRef=\"UO\" />\n";
+        }
+        else if (spec.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET)// if drift time was never set, don't report it
+        {
+          if (spec.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND)
+          {
+            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime()
+               << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+          }
+          else if (spec.getDriftTimeUnit() == DriftTimeUnit::VSSC)
+          {
+            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << spec.getDriftTime()
+               << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";
+          }
+          else if (spec.getDriftTimeUnit() == DriftTimeUnit::CCS)
+          {
+            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002954\" name=\"collisional cross sectional area\" value=\"" << spec.getDriftTime()
+               << "\" unitAccession=\"UO:0000324\" unitName=\"square angstrom\" unitCvRef=\"UO\" />\n";
+          }
+          else
+          {
+            // assume milliseconds, but warn
+            warning(STORE,std::string("Spectrum drift time unit not set, assume milliseconds"));
+            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime()
+               << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+          }
+        }
+      };
       //--------------------------------------------------------------------------------------------
       //scan list
       //--------------------------------------------------------------------------------------------
@@ -5554,36 +5593,7 @@ namespace OpenMS::Internal
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << scan_start_time
              << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
 
-          if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
-          {
-            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001581\" name=\"FAIMS compensation voltage\" value=\"" << spec.getDriftTime()
-                << "\" unitAccession=\"UO:0000218\" unitName=\"volt\" unitCvRef=\"UO\" />\n";
-          }
-          else if (spec.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET)// if drift time was never set, don't report it
-          {
-            if (spec.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND)
-            {
-              os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime()
-                 << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
-            }
-            else if (spec.getDriftTimeUnit() == DriftTimeUnit::VSSC)
-            {
-              os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << spec.getDriftTime()
-                 << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";
-            }
-            else if (spec.getDriftTimeUnit() == DriftTimeUnit::CCS)
-            {
-              os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002954\" name=\"collisional cross sectional area\" value=\"" << spec.getDriftTime()
-                 << "\" unitAccession=\"UO:0000324\" unitName=\"square angstrom\" unitCvRef=\"UO\" />\n";
-            }
-            else
-            {
-              // assume milliseconds, but warn
-              warning(STORE,std::string("Spectrum drift time unit not set, assume milliseconds"));
-              os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime()
-                 << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
-            }
-          }
+          writeSpectrumDriftTime();
         }
         writeScanAttributes(ac, j == 0);
         writeUserParam_(os, ac, 6, "/mzML/run/spectrumList/spectrum/scanList/scan/cvParam/@accession", validator, scan_exclude);
@@ -5617,6 +5627,7 @@ namespace OpenMS::Internal
       {
         os << "\t\t\t\t\t<scan>\n";
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << scan_start_time << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
+        writeSpectrumDriftTime();
         writeScanAttributes(Acquisition(), true);
 
         if (spec.getInstrumentSettings().getZoomScan())
