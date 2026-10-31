@@ -235,6 +235,15 @@ START_SECTION((knock-out detection of a multiplet without its lightest channel))
     TEST_REAL_SIMILAR(multiplets[0].getFeatures().begin()->getMZ(), mz_medium)
     TEST_REAL_SIMILAR(multiplets[0].getFeatures().rbegin()->getMZ(), mz_heavy)
   }
+  // every configured channel has a column header with its own channel id, also the third one, which no multiplet uses (with
+  // knock-outs the map index is the position in the detected pattern, so the doublet fills columns 0 and 1)
+  TEST_EQUAL(multiplets.getColumnHeaders().size(), 3)
+  for (const auto& [index, header] : multiplets.getColumnHeaders())
+  {
+    TEST_EQUAL(header.metaValueExists("channel_id"), true)
+    if (header.metaValueExists("channel_id")) { TEST_EQUAL(static_cast<Size>(header.getMetaValue("channel_id")), index) }
+  }
+  TEST_EQUAL(multiplets.getColumnHeaders().at(2).size, 0)
 
   // centroided input has a blacklist, too (the resolver tells absent from not quantifiable channels with it)
   Size blacklisted = 0;

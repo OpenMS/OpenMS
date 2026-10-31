@@ -1071,13 +1071,6 @@ namespace OpenMS
     consensus_map_.sortByPosition();
     consensus_map_.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
-    Size i{0};
-    for (auto & ch : consensus_map_.getColumnHeaders())
-    {
-      ch.second.setMetaValue("channel_id", i);
-      ++i;
-    }
-
     // construct sample_labels
     std::vector<std::vector<std::string> > samples_labels;
     std::vector<std::string> temp_samples;
@@ -1136,6 +1129,13 @@ namespace OpenMS
         }
         desc.label = label_string;
       }
+    }
+
+    // the channel id is the channel's position in the labels: every configured channel has a column header by now, also one
+    // without any reported multiplet (e.g. a knock-out channel never detected), so the ids do not shift
+    for (auto& [index, header] : consensus_map_.getColumnHeaders())
+    {
+      header.setMetaValue("channel_id", static_cast<Size>(index));
     }
 
     // finalize feature map: unique ids in position order, and every handle of the consensus map refers to the
