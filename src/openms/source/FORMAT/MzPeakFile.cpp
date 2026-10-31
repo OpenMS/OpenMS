@@ -593,7 +593,12 @@ namespace OpenMS
       }
       const std::vector<double>& time = in.time(); // seconds
       const std::vector<float>& intensity = in.intensity();
-      const Size n = std::min(time.size(), intensity.size());
+      if (time.size() != intensity.size()) // (as toSpectrum rejects m/z and intensity arrays of different length)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, md.id,
+                                    "mzPeak chromatogram with " + std::to_string(time.size()) + " time and " + std::to_string(intensity.size()) + " intensity values");
+      }
+      const Size n = time.size();
       out.resize(n);
       for (Size i = 0; i < n; ++i)
       {
@@ -636,7 +641,7 @@ namespace OpenMS
           if (sf.location) { out.setPathToFile(*sf.location); }
           for (const MzPeak::CvParam& p : sf.parameters)
           {
-            if (!p.accession || !p.name) { continue; }
+            if (!p.accession) { continue; } // (the terms below are recognised by their accession alone; setCvMeta needs a name)
             if (*p.accession == "MS:1000569" && p.value) { out.setChecksum(*p.value, SourceFile::ChecksumType::SHA1); }
             else if (*p.accession == "MS:1000568" && p.value) { out.setChecksum(*p.value, SourceFile::ChecksumType::MD5); }
             // the file format and the native ID format by the CV, as MzMLHandler reads them
@@ -946,7 +951,13 @@ namespace OpenMS
       json::object root;
       json::object run;
       if (!exp.getIdentifier().empty()) { run["id"] = exp.getIdentifier(); }
-      if (exp.getDateTime().isValid()) { run["start_time"] = exp.getDateTime().toString("yyyy-MM-ddThh:mm:ss"); } // ISO 8601
+      if (exp.getDateTime().isValid())
+      {
+        // ISO 8601, with the milliseconds if there are any
+        std::string start = exp.getDateTime().toString("yyyy-MM-ddThh:mm:ss.zzz");
+        if (start.size() > 4 && start.compare(start.size() - 4, 4, ".000") == 0) { start.resize(start.size() - 4); }
+        run["start_time"] = start;
+      }
       if (!run.empty()) { root["run"] = run; }
       json::array source_files;
       Size k = 0;

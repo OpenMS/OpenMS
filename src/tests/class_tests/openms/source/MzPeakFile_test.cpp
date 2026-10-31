@@ -264,6 +264,12 @@ START_SECTION((void store(const std::string& filename, const PeakMap& exp) const
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getFileType(), "Thermo RAW format")
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNativeIDType(), "Thermo nativeID format")
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNativeIDTypeAccession(), "MS:1000768")
+  // milliseconds of the start time are kept
+  start.set("2007-06-27T15:23:45.123");
+  with_source.setDateTime(start);
+  file.store(tmp, with_source);
+  file.load(tmp, exp);
+  TEST_STRING_EQUAL(exp.getDateTime().toString("yyyy-MM-ddThh:mm:ss.zzz"), "2007-06-27T15:23:45.123")
   // a failed write leaves the archive that was there (the new one is written beside it and moved when finished)
   file.store(tmp, reference);
   PeakMap bad = reference;
