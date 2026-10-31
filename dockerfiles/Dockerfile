@@ -34,7 +34,6 @@ RUN apt-get update \
     build-essential \
     # OpenMS build dependencies
     libsvm-dev \
-    libglpk-dev \
     libzip-dev \
     zlib1g-dev \
     libzstd-dev \
@@ -46,7 +45,6 @@ RUN apt-get update \
     libcurl4-openssl-dev \
     libomp-dev \
     libhdf5-dev\
-    coinor-libcoinmp-dev \
     libeigen3-dev \
     # Boost headers only: OpenMS links no compiled Boost library
     libboost-dev \
@@ -283,7 +281,6 @@ RUN apt-get update \
     libcurl4 \
     libgomp1 \
     libqt6svg6 \
-    coinor-libcoinmp1v5 \
     # ICU is required by the .NET runtime that hosts the openms-thermo-bridge
     libicu74 \
   && wget https://packages.apache.org/artifactory/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb \

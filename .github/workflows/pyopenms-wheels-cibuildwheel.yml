@@ -387,10 +387,6 @@ jobs:
           brew install \
             apache-arrow \
             boost \
-            cbc \
-            cgl \
-            clp \
-            coinutils \
             eigen \
             libsvm \
             libzip \

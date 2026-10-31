@@ -210,6 +210,12 @@ namespace OpenMS
     }
   }
 
+  void MetaInfoInterface::reserveMetaValues(Size n)
+  {
+    if (meta_ == nullptr) { meta_ = new MetaInfo(); }
+    meta_->reserve(n);
+  }
+
   bool MetaInfoInterface::isMetaEmpty() const
   {
     if (meta_ == nullptr)

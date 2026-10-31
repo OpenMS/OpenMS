@@ -85,12 +85,49 @@ namespace OpenMS
     /// @throw Exception::InvalidParameter   If fragmentation method is anything else than 'CID', 'HCID', 'ECD' or 'ETD'.
     static MSSpectrum generateSpectrum(const Precursor::ActivationMethod& fm, const AASequence& seq, int precursor_charge);
 
+    /**
+      @brief The peaks of getSpectrum() for scoring: same positions, intensities and order, but no ion names, charges or precursor
+
+      Only for a configuration of plain ion series (no isotopes, losses, internal fragments, precursor or immonium ions;
+      sorted output). Instead of the ion names, @p ion_series receives per peak 0 for an N-terminal (a, b, c) and 1 for a
+      C-terminal (x, y, z, z+1, z+2) ion, which is what HyperScore reads from the names.
+
+      @param[out] spectrum Its peaks and data arrays are replaced (the meta data is kept)
+      @param[out] ion_series One entry per peak of @p spectrum
+      @param[in] peptide The input peptide
+      @param[in] min_charge Lowest fragment charge
+      @param[in] max_charge Highest fragment charge
+      @return false (outputs unspecified) if the configuration is not supported, the peptide has fewer than two residues,
+              or an ion series is not ascending in m/z; getSpectrum() is then the way to generate the spectrum
+    */
+    bool getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series, const AASequence& peptide, Int min_charge, Int max_charge) const;
+
+    /**
+      @brief getIonSeriesSpectrum() that also returns, per peak, the number and the charge of its ion: what getSpectrum()
+      writes into the ion names (e.g. 5 for "y5++") and the charge array (2), without the strings.
+
+      @param[out] spectrum Its peaks and data arrays are replaced (the meta data is kept)
+      @param[out] ion_series One entry per peak of @p spectrum
+      @param[out] ion_ordinals The ordinal of each peak's ion (the number of residues of the fragment)
+      @param[out] ion_charges The charge of each peak's ion
+      @param[in] peptide The input peptide
+      @param[in] min_charge Lowest fragment charge
+      @param[in] max_charge Highest fragment charge
+      @return as getIonSeriesSpectrum()
+    */
+    bool getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series, std::vector<UInt>& ion_ordinals,
+                              std::vector<Int>& ion_charges, const AASequence& peptide, Int min_charge, Int max_charge) const;
+
 
     /// overwrite
     void updateMembers_() override;
     //@}
 
     protected:
+    /// getIonSeriesSpectrum(), the ordinals and charges optional (nullptr: not written)
+    bool getIonSeriesSpectrum_(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series, std::vector<UInt>* ion_ordinals,
+                               std::vector<Int>* ion_charges, const AASequence& peptide, Int min_charge, Int max_charge) const;
+
 
     /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
     virtual void addPeaks_(PeakSpectrum& spectrum, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, MSSpectrum::Chunks& chunks, const Residue::ResidueType res_type, Int charge = 1) const;

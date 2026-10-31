@@ -57,10 +57,8 @@
 
  @subsection can_i_use_another_solver Which LP solvers are supported?
 
- OpenMS uses <a href="https://highs.dev">HiGHS</a> by default (<code>LP_SOLVER=HIGHS</code>). It is taken from vcpkg or the
- system if available (HiGHS 1.11 or newer), and fetched and linked statically otherwise.
- COIN-OR (<code>LP_SOLVER=COIN</code>) and GLPK (<code>LP_SOLVER=GLPK</code>) are still available but deprecated and will be
- removed in the next release; <code>AUTO</code>, the former default, is an alias for <code>HIGHS</code>.
+ OpenMS uses <a href="https://highs.dev">HiGHS</a> as its LP/MIP solver. It is taken from vcpkg or the system if available
+ (HiGHS 1.11 or newer), and fetched and linked statically otherwise. Support for COIN-OR and GLPK was removed.
  Refer to the documentation of the <code>LPWrapper</code> class for the interface.
 
  <h2><a class="anchor" id="changed_library_path"></a>I changed a library path (e.g. <code>CMAKE_PREFIX_PATH</code>), but re-running <code>CMake</code> won't change the library paths?</h2>

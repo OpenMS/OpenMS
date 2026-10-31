@@ -444,6 +444,122 @@ START_SECTION((bool writeTableToParquet(const std::shared_ptr<arrow::Table>&, co
 }
 END_SECTION
 
+START_SECTION([EXTRA] ParquetTableStream - append and close; a failed or unfinished file is removed)
+{
+  using ArrowIOHelpers::ParquetTableStream;
+  // the int32 values [first, first + n) in a column named @p name
+  const auto values = [](int first, int n, const std::string& name)
+  {
+    arrow::Int32Builder builder;
+    for (int v = first; v < first + n; ++v)
+    {
+      if (!builder.Append(v).ok()) return std::shared_ptr<arrow::Table>();
+    }
+    std::shared_ptr<arrow::Array> array;
+    if (!builder.Finish(&array).ok()) return std::shared_ptr<arrow::Table>();
+    return arrow::Table::Make(arrow::schema({arrow::field(name, arrow::int32())}), {array});
+  };
+  const auto open = [](const std::string& file)
+  {
+    auto input = arrow::io::ReadableFile::Open(file).ValueOrDie();
+    return parquet::arrow::OpenFile(input, arrow::default_memory_pool()).ValueOrDie();
+  };
+  // the number of rows of each row group of @p file
+  const auto row_groups = [&open](const std::string& file)
+  {
+    std::vector<int64_t> rows;
+    auto reader = open(file);
+    const auto metadata = reader->parquet_reader()->metadata();
+    for (int g = 0; g < metadata->num_row_groups(); ++g) rows.push_back(metadata->RowGroup(g)->num_rows());
+    return rows;
+  };
+
+  ParquetWriteConfig config;
+  config.row_group_size = 4;
+  const auto footer = arrow::key_value_metadata({"producer"}, {"ParquetTableStream_test"});
+
+  // two tables of 6 and 5 rows: the row groups of the concatenation (4, 4, 3; a group continued across the tables),
+  // the rows in order, the footer of the constructor and the keys of close()
+  std::string file;
+  NEW_TMP_FILE(file)
+  {
+    ParquetTableStream stream(file, config, footer);
+    TEST_TRUE(stream.append(values(0, 6, "value")))
+    TEST_TRUE(stream.append(values(6, 5, "value"), 2))
+    TEST_EQUAL(stream.rows(), 11)
+    TEST_FALSE(stream.closed())
+    TEST_TRUE(stream.close({{"scan_format", "scan"}}))
+    TEST_TRUE(stream.closed())
+    TEST_FALSE(stream.failed())
+    TEST_STRING_EQUAL(stream.filename(), file)
+  }
+  TEST_TRUE(File::exists(file))
+  std::string concatenated;
+  NEW_TMP_FILE(concatenated)
+  TEST_TRUE(ArrowIOHelpers::writeTableToParquet(values(0, 11, "value"), concatenated, config))
+  TEST_TRUE(row_groups(file) == row_groups(concatenated))
+  TEST_TRUE(row_groups(file) == (std::vector<int64_t>{4, 4, 3}))
+  {
+    auto reader = open(file);
+    const auto read = reader->ReadTable();
+    TEST_TRUE(read.ok())
+    TEST_TRUE(read.ok() && (*read)->Equals(*values(0, 11, "value")))
+    std::shared_ptr<arrow::Schema> schema;
+    TEST_TRUE(reader->GetSchema(&schema).ok())
+    TEST_TRUE(schema->metadata() != nullptr)
+    TEST_STRING_EQUAL(schema->metadata()->Get("producer").ValueOr(""), "ParquetTableStream_test")
+    TEST_STRING_EQUAL(schema->metadata()->Get("scan_format").ValueOr(""), "scan")
+    const auto file_metadata = reader->parquet_reader()->metadata()->key_value_metadata();
+    TEST_TRUE(file_metadata != nullptr)
+    TEST_STRING_EQUAL(file_metadata->Get("scan_format").ValueOr(""), "scan")
+  }
+
+  // a table of another schema: refused, the file removed, the stream failed for good
+  std::string mismatch;
+  NEW_TMP_FILE(mismatch)
+  {
+    ParquetTableStream stream(mismatch, config, footer);
+    TEST_TRUE(stream.append(values(0, 6, "value")))
+    TEST_TRUE(File::exists(mismatch))
+    TEST_FALSE(stream.append(values(6, 5, "other")))
+    TEST_TRUE(stream.failed())
+    TEST_FALSE(File::exists(mismatch))
+    TEST_FALSE(stream.append(values(6, 5, "value")))
+    TEST_FALSE(stream.close())
+    TEST_FALSE(File::exists(mismatch))
+  }
+
+  // an unfinished stream: its destructor removes the file
+  std::string unfinished;
+  NEW_TMP_FILE(unfinished)
+  {
+    ParquetTableStream stream(unfinished, config, footer);
+    TEST_TRUE(stream.append(values(0, 6, "value")))
+    TEST_TRUE(File::exists(unfinished))
+  }
+  TEST_FALSE(File::exists(unfinished))
+
+  // abandon(): the file removed; without an append(), close() writes nothing
+  std::string abandoned;
+  NEW_TMP_FILE(abandoned)
+  {
+    ParquetTableStream stream(abandoned, config, footer);
+    TEST_TRUE(stream.append(values(0, 6, "value")))
+    stream.abandon();
+    TEST_TRUE(stream.failed())
+    TEST_FALSE(File::exists(abandoned))
+  }
+  std::string empty;
+  NEW_TMP_FILE(empty)
+  {
+    ParquetTableStream stream(empty, config, footer);
+    stream.close();
+    TEST_EQUAL(stream.rows(), 0)
+  }
+  TEST_FALSE(File::exists(empty))
+}
+END_SECTION
+
 START_SECTION((std::shared_ptr<arrow::Table> withColumns(const std::shared_ptr<arrow::Table>&, const std::vector<ParquetColumn>&)))
 {
   using Column = ArrowIOHelpers::ParquetColumn;
