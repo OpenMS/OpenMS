@@ -100,16 +100,10 @@ PipEchoAlgorithm::PipEchoAlgorithm(): FeatureGroupingAlgorithm()
 
   defaults_.setValue("max_training_points", 50000,
                      "Upper bound on the number of candidate transfers used to"
-                     " TRAIN the transfer-FDR SVM in each cross-validation fold"
-                     " (0 = unlimited). Predictions and the FDR/q-values are"
-                     " always computed over ALL transfers, so this only bounds"
-                     " the SVM-fitting cost and does not change which transfers"
-                     " are scored. Runs with very many features per run can"
-                     " otherwise make the SVM grid search slow. When the cap is"
-                     " hit, a deterministic stratified subsample is used: both"
-                     " labelled classes (decoys and positives) are kept whole if"
-                     " they fit, otherwise the minority class is kept whole and"
-                     " the majority is score-spread sampled to fit the budget.",
+                     " TRAIN the transfer-FDR SVM (Percolator's 'subset_max_train';"
+                     " 0 = unlimited). Every transfer is still scored and enters"
+                     " the FDR/q-values, so this only bounds the training cost."
+                     " When the cap is hit, a reproducible random subset is used.",
                      {"advanced"});
   defaults_.setMinInt("max_training_points", 0);
 

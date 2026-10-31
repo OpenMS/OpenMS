@@ -67,34 +67,4 @@ std::optional<double> feature_ion_mobility(const Feature&);
  */
 std::optional<double> feature_im_width(const Feature&);
 
-/******************************************************************************/
-/**
- * Function object that wraps around another function object `F`.
- * When invoked, this function object will dereference a pointer and
- * invoke `F` with the result.
- *
- */
-template<typename F>
-struct dref_fn_t
-{
-  F f;
-
-  /// operator() :: (T -> R) -> T* -> R
-  template<typename T>
-  constexpr decltype(auto) operator()(T&& t)
-  {
-    return std::invoke(f, *t);
-  };
-};
-
-/******************************************************************************/
-/**
- * See `dref_fn_t`.
- */
-template<typename F>
-constexpr dref_fn_t<std::decay_t<F>> dref_fn(F&& f)
-{
-  return {std::forward<F>(f)};
-}
-
 } // namespace OpenMS::PipEcho::Util

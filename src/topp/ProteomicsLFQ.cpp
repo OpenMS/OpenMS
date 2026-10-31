@@ -129,8 +129,8 @@ meta value @p mbr_transfer_qvalues holds the q-values of these transfers, in the
 By default, the second method links the features across runs by QT clustering on their RT and m/z
 (@p Linking:*), without estimating the error rate of the transferred identifications. With @p -pip_echo @p true,
 PIP-ECHO links the features instead and controls the false discovery rate of the transfers. Decoy transfers, which
-look for a peptide at the retention time of an unrelated peptide, estimate the error rate. A support vector machine
-scores each transfer (on intensity, mass error, RT agreement, isotope envelope and, if every run has ion mobility
+look for a peptide at the retention time of an unrelated peptide, estimate the error rate. A linear support vector
+machine, trained semi-supervised as in Percolator, scores each transfer (on intensity, mass error, RT agreement, isotope envelope and, if every run has ion mobility
 data, ion mobility), and the transfers up to @p PipEcho:fdr (default 0.05) are kept.
 @p -pip_echo requires @p -targeted_only @p false (the default).
   - The RT window in which a transfer is searched is local by default: for each peptide, it is predicted from
@@ -144,9 +144,8 @@ data, ion mobility), and the transfers up to @p PipEcho:fdr (default 0.05) are k
     <= 0.001 in at least one run are transferred. Otherwise a false identification in one run would be copied into
     every other run, where no decoy transfer can reveal it; the protein FDR filter removes most of these.
   - @p PipEcho:random_seed selects the decoys; with the same seed (default 0), results are reproducible.
-  - @p PipEcho:max_training_points limits how many transfers the support vector machine is trained on in each
-    cross-validation fold (default 50000, 0 = no limit), which bounds the run time on large data sets. All
-    transfers are scored.
+  - @p PipEcho:max_training_points limits how many transfers the support vector machine is trained on
+    (default 50000, 0 = no limit), which bounds the training time on large data sets. All transfers are scored.
 
 @b Resuming @b and @b distributing @b feature @b detection (@p -feat_dir): @n
 Feature detection is the expensive part of the workflow and each MS run is detected independently
