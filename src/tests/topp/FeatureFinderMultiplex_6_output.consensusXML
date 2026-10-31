@@ -11,10 +11,10 @@
 	</mapList>
 	<consensusElementList>
 		<consensusElement id="e_5658321881636691494" quality="1.0" charge="3">
-			<centroid rt="2173.496300296150821" mz="388.916474205616908" it="1.794527e09"/>
+			<centroid rt="2173.45268096198015" mz="388.916477832398925" it="1.78222e09"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="2173.496300296150821" mz="388.916474205616908" it="1.794527e09" charge="3"/>
-				<element map="1" id="0" rt="2170.518473260826795" mz="392.937235597873496" it="1.604332e09" charge="3"/>
+				<element map="0" id="0" rt="2173.45268096198015" mz="388.916477832398925" it="1.78222e09" charge="3"/>
+				<element map="1" id="0" rt="2170.537453726338299" mz="392.937242021524241" it="1.538873e09" charge="3"/>
 			</groupedElementList>
 		</consensusElement>
 	</consensusElementList>
