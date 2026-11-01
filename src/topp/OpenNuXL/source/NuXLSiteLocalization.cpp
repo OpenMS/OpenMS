@@ -142,4 +142,21 @@ namespace OpenMS
       [](const string& entry, string_view value) { return string_view(entry) < value; });
     return it != protein_n_termini.end() && string_view(*it).substr(0, peptide.size()) == peptide;
   }
+
+  // static
+  vector<string> NuXLSiteLocalization::proteinCTermini(const vector<string_view>& protein_sequences)
+  {
+    vector<string> c_termini;
+    c_termini.reserve(protein_sequences.size());
+    for (const string_view& s : protein_sequences) { c_termini.emplace_back(s.rbegin(), s.rend()); }
+    sort(c_termini.begin(), c_termini.end());
+    return c_termini;
+  }
+
+  // static
+  bool NuXLSiteLocalization::isProteinCTerminal(const vector<string>& protein_c_termini, string_view peptide)
+  {
+    const string reversed(peptide.rbegin(), peptide.rend());
+    return isProteinNTerminal(protein_c_termini, reversed);
+  }
 } // namespace OpenMS

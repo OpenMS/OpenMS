@@ -175,6 +175,19 @@ START_SECTION((static Site localizeNHS(const std::string& sequence, bool reactiv
     TEST_STRING_EQUAL(s.method, "K")
   }
 
+  // a blocked C-terminal lysine (not cleaved by trypsin if modified): the threonine next to the histidine
+  {
+    const Evidence e = prefixEvidence(7, 3, 6);
+    vector<bool> blocked(7, false);
+    blocked[6] = true;
+    const NuXLSiteLocalization::Site s = NuXLSiteLocalization::localizeNHS("HFAATGK", false, e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts,
+      NuXLSiteLocalization::DEFAULT_TOLERANCE, blocked);
+    TEST_EQUAL(s.position, 4)
+    TEST_STRING_EQUAL(s.method, "STY+H")
+    TEST_EQUAL(s.range_begin, 3)
+    TEST_EQUAL(s.range_end, 6)
+  }
+
   // equally close: the one closer to the N-terminus
   {
     const NuXLSiteLocalization::Site s = localize("AAKAKAAR", false, prefixEvidence(8, 2, 4));
@@ -246,6 +259,28 @@ START_SECTION((static bool isProteinNTerminal(const std::vector<std::string>& pr
   TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal(n_termini, "EPTIDEK"), false)
   TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal(n_termini, "PEPTIDEKR"), false) // longer than the protein
   TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal({}, "PEPTIDEK"), false)
+}
+END_SECTION
+
+START_SECTION((static std::vector<std::string> proteinCTermini(const std::vector<std::string_view>& protein_sequences)))
+{
+  const vector<string> c_termini = NuXLSiteLocalization::proteinCTermini({"PEPTIDEK", "MSAEKLLR"});
+  TEST_EQUAL(c_termini.size(), 2)
+  ABORT_IF(c_termini.size() != 2)
+  TEST_STRING_EQUAL(c_termini[0], "KEDITPEP")
+  TEST_STRING_EQUAL(c_termini[1], "RLLKEASM")
+}
+END_SECTION
+
+START_SECTION((static bool isProteinCTerminal(const std::vector<std::string>& protein_c_termini, std::string_view peptide)))
+{
+  const vector<string> c_termini = NuXLSiteLocalization::proteinCTermini({"AKRGKSVEEILGK", "MSAEKLLR"});
+  TEST_EQUAL(NuXLSiteLocalization::isProteinCTerminal(c_termini, "SVEEILGK"), true)
+  TEST_EQUAL(NuXLSiteLocalization::isProteinCTerminal(c_termini, "LLR"), true)
+  TEST_EQUAL(NuXLSiteLocalization::isProteinCTerminal(c_termini, "AKRGK"), false)
+  TEST_EQUAL(NuXLSiteLocalization::isProteinCTerminal(c_termini, "MSAEK"), false)
+  TEST_EQUAL(NuXLSiteLocalization::isProteinCTerminal(c_termini, "AMSAEKLLR"), false) // longer than the protein
+  TEST_EQUAL(NuXLSiteLocalization::isProteinCTerminal({}, "SVEEILGK"), false)
 }
 END_SECTION
 

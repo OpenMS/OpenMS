@@ -333,7 +333,8 @@ namespace OpenMS
     bool fragment_mass_tolerance_unit_ppm, 
     const NuXLParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts,
     bool nhs_localization,
-    const vector<string>* protein_n_termini)
+    const vector<string>* protein_n_termini,
+    const vector<string>* protein_c_termini)
   {
     TheoreticalSpectrumGenerator partial_loss_spectrum_generator;
     auto param = partial_loss_spectrum_generator.getParameters();
@@ -875,6 +876,13 @@ namespace OpenMS
           {
             const Residue& r = fixed_and_variable_modified_peptide[i];
             blocked[i] = r.isModified() && !isIsotopeLabel(r.getModification());
+          }
+          // the enzyme doesn't cleave after a modified lysine: a C-terminal one can't carry the cross-link,
+          // unless no cleavage was needed because the peptide ends the protein
+          if (protein_c_termini != nullptr && !unmodified_sequence.empty() && unmodified_sequence.back() == 'K'
+            && !NuXLSiteLocalization::isProteinCTerminal(*protein_c_termini, unmodified_sequence))
+          {
+            blocked.back() = true;
           }
           const NuXLSiteLocalization::Site site = NuXLSiteLocalization::localizeNHS(unmodified_sequence, reactive_protein_n_term,
             n_shifts, n_noshifts, c_shifts, c_noshifts, NuXLSiteLocalization::DEFAULT_TOLERANCE, blocked);

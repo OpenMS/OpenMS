@@ -115,5 +115,15 @@ public:
 
   /// Whether @p peptide starts a protein, i.e. is a prefix of one of the sorted @p protein_n_termini
   static bool isProteinNTerminal(const std::vector<std::string>& protein_n_termini, std::string_view peptide);
+
+  /**
+    @brief Sorted protein ends to look up protein C-terminal peptides with @ref isProteinCTerminal.
+
+    For every protein, its reversed sequence.
+  */
+  static std::vector<std::string> proteinCTermini(const std::vector<std::string_view>& protein_sequences);
+
+  /// Whether @p peptide ends a protein, i.e. its reverse is a prefix of one of the sorted @p protein_c_termini
+  static bool isProteinCTerminal(const std::vector<std::string>& protein_c_termini, std::string_view peptide);
 };
 } // namespace OpenMS

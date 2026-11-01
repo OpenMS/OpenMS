@@ -796,6 +796,7 @@ class OpenNuXL :
   set<char> standalone_; ///< nucleotides that only form adducts on their own (e.g., a cross-linker without nucleotide)
   bool nhs_localization_ = false; ///< localize cross-links by the NHS-ester chemistry (NuXL:localization NHS)
   vector<std::string> protein_n_termini_; ///< sorted protein starts (targets and decoys) for NHS localization
+  vector<std::string> protein_c_termini_; ///< sorted reversed protein ends (targets and decoys) for NHS localization, if the enzyme cleaves after lysine
   Size named_adduct_count_ = 0; ///< localized cross-links written as a named modification
   Size mass_delta_adduct_count_ = 0; ///< localized cross-links written as an anonymous mass delta
 
@@ -967,7 +968,7 @@ protected:
     registerStringOption_("NuXL:localization",
                         "<method>",
                         "fragments",
-                        "How cross-links are localized. 'fragments': at the residue the shifted fragment ions point to. 'NHS': for cross-linkers attached through an NHS ester (e.g. SDA), by its chemistry among the residues the fragment ions can't tell apart: the free protein N-terminus, then lysine, then S/T/Y with a histidine within four residues, skipping residues with a modification other than an isotope label (e.g. Acetyl (K)); otherwise unlocalized. Reports how the site was chosen in NuXL:localization_method and the supported residues in NuXL:localization_range.",
+                        "How cross-links are localized. 'fragments': at the residue the shifted fragment ions point to. 'NHS': for cross-linkers attached through an NHS ester (e.g. SDA), by its chemistry among the residues the fragment ions can't tell apart: the free protein N-terminus, then lysine, then S/T/Y with a histidine within four residues, skipping residues with a modification other than an isotope label (e.g. Acetyl (K)) and, if the enzyme cleaves after lysine, a C-terminal lysine unless the peptide ends the protein; otherwise unlocalized. Reports how the site was chosen in NuXL:localization_method and the supported residues in NuXL:localization_range.",
                         false,
                         true);
     setValidStrings_("NuXL:localization", {"fragments", "NHS"});
@@ -3156,8 +3157,8 @@ protected:
       rescoreFastHits_(exp, annotated_peptide_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_adducts);
     }
 
-    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_XL_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,  all_feasible_adducts, nhs_localization_, &protein_n_termini_);
-    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_peptide_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_adducts, nhs_localization_, &protein_n_termini_);
+    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_XL_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,  all_feasible_adducts, nhs_localization_, &protein_n_termini_, protein_c_termini_.empty() ? nullptr : &protein_c_termini_);
+    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_peptide_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_adducts, nhs_localization_, &protein_n_termini_, protein_c_termini_.empty() ? nullptr : &protein_c_termini_);
   }
 
   void fillSpectrumID_(
@@ -5183,6 +5184,16 @@ protected:
       protein_sequences.reserve(fasta_db.size());
       for (const auto& e : fasta_db) { protein_sequences.emplace_back(e.sequence); }
       protein_n_termini_ = NuXLSiteLocalization::proteinNTermini(protein_sequences);
+
+      // the enzyme (e.g. trypsin) doesn't cleave after a lysine modified by the cross-linker: a C-terminal
+      // lysine can then only carry it at a protein C-terminus
+      const std::string enzyme = getStringOption_("peptide:enzyme");
+      ProteaseDigestion pd;
+      pd.setEnzyme(enzyme);
+      if (enzyme != "unspecific cleavage" && pd.countInternalCleavageSites("KA") > 0)
+      {
+        protein_c_termini_ = NuXLSiteLocalization::proteinCTermini(protein_sequences);
+      }
     }
 
     // set up enzyme
