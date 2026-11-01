@@ -103,6 +103,17 @@
 
 #ifdef _OPENMP
   #include <omp.h>
+
+/// omp_get_level(), which the OpenMP 2.0 of MSVC lacks: there an inactive enclosing region (if(false), one thread)
+/// counts as none, which only makes the thread lending of BackgroundSpectra a no-op inside such a region.
+static int parallelLevel()
+{
+  #if _OPENMP >= 200805
+  return omp_get_level();
+  #else
+  return omp_in_parallel() ? 1 : 0;
+  #endif
+}
 #endif
 
 #if defined(__linux__)
@@ -3312,7 +3323,11 @@ namespace OpenMS
       {
         std::vector<std::pair<Size, Size>> target_spans, decoy_spans;
         // monotonic: without the parallel region (serial fallback) the proteins are processed in order
+#if _OPENMP >= 201511
 #pragma omp for schedule(monotonic: dynamic, 64)
+#else
+#pragma omp for schedule(dynamic, 64) // OpenMP 2.0 (MSVC): no modifier, and dynamic is monotonic
+#endif
         for (SignedSize si = 0; si < static_cast<SignedSize>(old_size); ++si)
         {
           const size_t i = static_cast<size_t>(si);
@@ -8084,7 +8099,7 @@ namespace OpenMS
         omp_set_num_threads(std::max(1, own_threads_ - threads));
         // taken back early (takeBackThreadsOfEndedRead()) only outside of parallel regions, where this thread runs a
         // single task, whose ICV this is
-        if (omp_get_level() == 0) { lending_read = this; }
+        if (parallelLevel() == 0) { lending_read = this; }
 #endif
       }
 
@@ -8093,7 +8108,7 @@ namespace OpenMS
       void startDeferred(const std::string& filename, const bool survey_scans = false)
       {
 #ifdef _OPENMP
-        if (omp_get_level() != 0 || !readBorrowsThreads()) { start(filename, false, readerThreads(true, false), survey_scans); return; } // see start()
+        if (parallelLevel() != 0 || !readBorrowsThreads()) { start(filename, false, readerThreads(true, false), survey_scans); return; } // see start()
 #endif
         restoreThreads_();
         spectra_ = std::future<PeakMap>(); // waits for the helper of a read before
@@ -8181,7 +8196,7 @@ namespace OpenMS
         // about 2.5 s instead of 1.5 s, still during the search of the next one). The next consumer waits for the one
         // before, so searches shorter than that write wait for it: that run followed by two small ones (0.4 GB) took
         // 17.4 instead of 15.4 s (4 / 8 helper threads: 15.9 / 15.6 s, and less of the memory saved).
-        if (omp_get_level() == 0 && threads > 1 && !readBorrowsThreads()) { helper_threads = std::min(2, std::max(1, threads / 4)); }
+        if (parallelLevel() == 0 && threads > 1 && !readBorrowsThreads()) { helper_threads = std::min(2, std::max(1, threads / 4)); }
 #endif
         if (helper_threads > 0)
         {
@@ -8235,8 +8250,8 @@ namespace OpenMS
     void takeBackThreadsOfEndedRead()
     {
 #ifdef _OPENMP
-      if (lending_read != nullptr && omp_get_level() == 0) { lending_read->takeBackThreadsIfRead(); } // see start()
-      if (lending_consumer != nullptr && omp_get_level() == 0) { lending_consumer->takeBackThreadsIfDone(); } // see BackgroundConsumer
+      if (lending_read != nullptr && parallelLevel() == 0) { lending_read->takeBackThreadsIfRead(); } // see start()
+      if (lending_consumer != nullptr && parallelLevel() == 0) { lending_consumer->takeBackThreadsIfDone(); } // see BackgroundConsumer
 #endif
     }
 
