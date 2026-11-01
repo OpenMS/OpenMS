@@ -437,6 +437,13 @@ namespace OpenMS
           continue; 
         }
 
+        if (nhs_localization) // stays so if no shifted fragment ion is annotated
+        {
+          a.localization_method = "unlocalized";
+          a.localization_range_begin = -1;
+          a.localization_range_end = -1;
+        }
+
         // ion centric (e.g. b and y-ion) spectrum annotation that records all shifts of specific ions (e.g. y5, y5 + U, y5 + C3O)
 
         // generate all partial loss spectra (excluding the complete loss spectrum) merged into one spectrum
@@ -870,7 +877,7 @@ namespace OpenMS
           const bool reactive_protein_n_term = protein_n_termini != nullptr
             && !fixed_and_variable_modified_peptide.hasNTerminalModification()
             && NuXLSiteLocalization::isProteinNTerminal(*protein_n_termini, unmodified_sequence);
-          // a modification other than an isotope label (e.g. Acetyl (K)) blocks the residue's amine or hydroxyl
+          // a modification other than a pure isotope substitution (e.g. Acetyl (K), TMT6plex (K)) blocks the residue's amine or hydroxyl
           vector<bool> blocked(unmodified_sequence.size(), false);
           for (Size i = 0; i != fixed_and_variable_modified_peptide.size(); ++i)
           {
