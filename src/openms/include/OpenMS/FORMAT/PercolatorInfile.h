@@ -216,7 +216,7 @@ namespace OpenMS
        * @brief The feature matrix of in-process rescoring: the PIN columns of the PSMs as Percolator reads them from
        * a .pin file, computed straight into dense rows, without meta values on the hits.
        *
-       * Row for row and value for value what in-process rescoring formerly read back after @ref stampPinFeaturesOnHits:
+       * Row for row and value for value what in-process rescoring formerly read back after @ref stampPinFeaturesOnHits "stampPinFeaturesOnHits":
        * the PIN columns are computed by the same functions as there (same arithmetic, so the same doubles), the other
        * features are read from the hits' meta values with @ref getFeatureValue. The rows are the hits that
        * stampPinFeaturesOnHits() does not skip (they have peptide evidences and a known target/decoy type) and that
@@ -287,7 +287,7 @@ namespace OpenMS
       /// Meta values of a hit that pinHitColumns_ reads
       enum PinLookup_ : int { LOOKUP_CALC_MASS, LOOKUP_ISOTOPE_ERROR_LEGACY, LOOKUP_ISOTOPE_ERROR };
 
-      /**
+      /*
        * @brief The PIN columns of one hit: the formulas of the .pin file, shared by stamping and buildFeatureMatrix.
        *
        * Calls put(column, value) for the columns in stamping order (an int, double or bool; the string columns

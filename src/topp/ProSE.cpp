@@ -481,7 +481,7 @@ unless '-keep_decoys', the inference-only PSMs dropped; each input gets its part
 node. Only steps 1 and 2 above happen, with '-Search:FDR:PSM' as the loose threshold (e.g. 0.1, not the final FDR) and no
 inference-only set; steps 3 to 5 happen downstream (e.g. in ProteomicsLFQ, which applies its final PSM FDR on the PEPs of
 all runs pooled). Every output is a per-input intermediate: the PSM q-values and PEPs of each run (Percolator's), the decoy
-PSMs and all proteins the PSMs reference kept, no protein inference and no protein filter. Finish the experiment downstream on the intermediates of all parts together:
+PSMs and the proteins the search indexed for the run's PSMs kept, no protein inference and no protein filter. Finish the experiment downstream on the intermediates of all parts together:
 @ref TOPP_ProteomicsLFQ (its PSM and protein FDR, e.g. 0.01, and quantification), or @ref TOPP_IDMerger &rarr;
 @ref TOPP_ProteinInference / @ref TOPP_Epifany &rarr; @ref TOPP_FalseDiscoveryRate &rarr; @ref TOPP_IDFilter. Search every part
 with the same parameters and the same FASTA, with its decoys in it (e.g. from @ref TOPP_DecoyDatabase), which the downstream
