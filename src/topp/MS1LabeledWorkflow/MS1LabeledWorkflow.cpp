@@ -357,9 +357,10 @@ protected:
       "true: a channel of an identified multiplet that the detection did not find (see 'algorithm:knock_out') is re-quantified from the\n"
       "MS1 peaks at its expected position over the elution region of the multiplet, relative to the most intense detected channel (like\n"
       "MaxQuant's 're-quantify'). It is reported as absent (0) only if its first two isotopic traces are not seen together in at least\n"
-      "two spectra there, and as not quantifiable if they are seen only on peaks reserved for other features or channels, or if they do\n"
-      "not show the channel's isotope pattern (first two isotopes present, no peak one isotope below above 30 % of the monoisotopic one)\n"
-      "in at least two spectra paired with the reference channel.\n"
+      "two spectra there, and as not quantifiable if they are seen only on peaks reserved for other features or channels, or if its peaks\n"
+      "do not show its isotope pattern (its first two isotopes, and no peak one isotope below above 30 % of its monoisotopic peak unless\n"
+      "that peak is an isotope of another channel, M+0 to M+n with n + 1 the maximum of 'algorithm:isotopes_per_peptide') in at least\n"
+      "two spectra paired with the most intense detected channel.\n"
       "false: such channels are reported as absent.", false);
     setValidStrings_("requantify", {"true", "false"});
 
@@ -1123,7 +1124,7 @@ protected:
     const Size none = std::numeric_limits<Size>::max();
     vector<bool> taken(multiplets.size(), false);    // took part in a join
     vector<bool> absorbed(multiplets.size(), false); // joined to another multiplet
-    std::set<std::pair<Size, Size>> rejected;        // pairs with too few paired spectra
+    std::set<std::pair<Size, Size>> rejected;        // pairs not joined: too few paired spectra, or a re-measured channel without a value
     Size n_joined = 0;
     for (Size m = 0; m < multiplets.size(); ++m)
     {

@@ -5270,6 +5270,20 @@ add_test("TOPP_MS1LabeledWorkflow_16_dimethyl" ${TOPP_BIN_PATH}/MS1LabeledWorkfl
   -targeted_quantification true
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_16_dimethyl.tmp.consensusXML)
 set_tests_properties("TOPP_MS1LabeledWorkflow_16_dimethyl" PROPERTIES PASS_REGULAR_EXPRESSION "Targeted quantification: 1 feature.s. for 1 identification.s. of peptides without a multiplet in this run .1 other channel.s. measured against the identified one, 0 absent, 0 not quantifiable.")
+# The same spectra with MS1LabeledWorkflow_16_heavy.idXML: LSDEFVNGAYK identified in its heavy channel, whose peaks are the M+1 and M+2
+# of the unrelated envelope; the envelope's M0, one isotope below, lies at the light M+7, which does not exempt it (only M+0 to M+5 of
+# another channel do). The bound applies to the identified channel as well: it has no clean elution peak, so LSDEFVNGAYK is not
+# quantified (was L 1.2e6, H 7.4e5). TNLGEFAVDR's light identification gives the one feature.
+add_test("TOPP_MS1LabeledWorkflow_16_heavy_id" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_16_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_16_heavy.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_16.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -targeted_quantification true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_16_heavy_id.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_16_heavy_id" PROPERTIES PASS_REGULAR_EXPRESSION "Targeted quantification: 1 feature.s. for 1 identification.s. of peptides without a multiplet in this run .1 other channel.s. measured against the identified one, 0 absent, 0 not quantifiable.. not quantified: 0 identification.s. of peptides quantified in this run, 0 on a channel of another peptide's multiplet, 0 on the signal of a better identification of another peptide, 1 without a clean elution peak of the identified channel")
 
 # the labels must have been searched as modifications: identifications whose search parameters lack
 # them are refused (with -force the run continues)
