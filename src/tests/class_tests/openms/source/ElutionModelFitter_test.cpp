@@ -84,6 +84,25 @@ START_SECTION((void fitElutionModels(FeatureMap& features)))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] void fitElutionModels(FeatureMap& features) - no failed fit to impute))
+{
+  // valid models of the same raw intensity (a linear model cannot be fitted to them), but no failed fit: nothing to
+  // impute, so no imputation model is needed
+  FeatureMap all;
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ElutionModelFitter_test.featureXML"), all);
+  FeatureMap two;
+  two.push_back(all[0]);
+  two.push_back(all[1]);
+  for (Feature& feature : two) feature.setIntensity(1.0e5);
+  ElutionModelFitter emf;
+  emf.fitElutionModels(two);
+  ABORT_IF(two.size() != 2);
+  TEST_EQUAL(two[0].getMetaValue("model_status"), "0 (valid)");
+  TEST_EQUAL(two[1].getMetaValue("model_status"), "0 (valid)");
+  TEST_NOT_EQUAL(two[0].getIntensity(), 1.0e5); // the model areas
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

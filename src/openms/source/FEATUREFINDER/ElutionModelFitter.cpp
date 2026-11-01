@@ -432,7 +432,8 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   OPENMS_LOG_INFO << "Model fitting: " << model_successes << " successes, "
            << model_failures << " failures" << endl;
 
-  if (impute) // impute results for cases where the model fit failed
+  if (impute && !failed_models.empty()) // impute results for cases where the model fit failed (only then: the linear
+                                         // model cannot be fitted e.g. to valid models that all have the same raw intensity)
   {
     TransformationModelLinear lm(quant_values, Param());
     double slope, intercept;
