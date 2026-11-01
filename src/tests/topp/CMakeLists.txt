@@ -5213,7 +5213,8 @@ set_tests_properties("TOPP_MS1LabeledWorkflow_15_medium_id_out1" PROPERTIES DEPE
 # Th (2+) from the Lys8 channel's M-1, is not. Targeted (the light channel shows two isotopes, missed by the detection):
 #   LSDEFVNGAYK light only (m/z 622); an unrelated envelope (isotopes 1 : 0.9 : 1.1, not detected) one isotope below the heavy channel
 #     has its M+1 and M+2 at the heavy M0 and M1, and its M0 at the heavy M-1 (on the light M+7): heavy not quantifiable (was H/L 0.60).
-#   VDTYQLAGNR: a single peak at the heavy M0 (half the light M0) while the light elutes, and a heavy M0/M1 pair only 8-9 s from the
+#   VDTYQLAGNR: a single peak at the heavy M0 (half the light M0) while the light elutes, except 7 s before the apex, where the heavy
+#     shows its M0 and M1 next to the light's (one pattern spectrum, one less than needed), and a heavy M0/M1 pair 8-9 s from the
 #     apex, where the light has no clean pattern (its M+1 is not recorded): heavy not quantifiable (was H/L 0.50).
 #   TNLGEFAVDR 1:0.25: H/L 0.25.
 #   AFDNLVGSTK 1:0.03, only the heavy M0 recorded: a peak is seen at the heavy m/z, which therefore is not quantifiable (was absent, 0).

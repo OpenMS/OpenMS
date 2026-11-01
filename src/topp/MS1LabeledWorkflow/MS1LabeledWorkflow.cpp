@@ -173,12 +173,13 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      identifications are kept for protein inference), partial multiplets are completed with dummy
      features (intensity 0 = absent, NaN = not quantifiable, i.e. another detected multiplet overlaps). With
      @p requantify (default), a missing channel is then measured at its expected position over the elution region
-     of the multiplet, like MaxQuant's re-quantify, and reported as absent only if it shows no signal there, and as not
-     quantifiable if its peaks there do not show its isotope pattern in at least two spectra. The
-     detection records which feature reserved each peak: only peaks of another multiplet (also one of the same peptide,
-     which is quantified on its own) make such a channel not quantifiable, and of the reserved peaks it uses only those
-     of patterns the detection dropped, not the isotopes of the multiplet's other channels; a channel that only the peaks
-     it may not use would give a value is not quantifiable either. With
+     of the multiplet, like MaxQuant's re-quantify, and reported as absent only if it shows no signal there (its first
+     two isotopes are not seen together in at least two spectra), and otherwise as not quantifiable if its peaks there do
+     not show its isotope pattern in at least two spectra. The detection records which feature reserved each peak: only
+     peaks reserved by another multiplet (also one of the same peptide, which is quantified on its own) make such a channel
+     not quantifiable without measuring it, and of the reserved peaks it uses only those of patterns the detection
+     dropped, not the isotopes of the multiplet's other channels; a channel that only the peaks it may not use would give a
+     value is not quantifiable either. With
      @p targeted_quantification, an identified peptide that has no multiplet in
      the run (the detection missed it, or no multiplet fits its identifications) is measured at the m/z of its channels over
      the elution peak at its identification: the identified channel is integrated (if its isotope pattern fits the peptide),
@@ -357,10 +358,10 @@ protected:
       "true: a channel of an identified multiplet that the detection did not find (see 'algorithm:knock_out') is re-quantified from the\n"
       "MS1 peaks at its expected position over the elution region of the multiplet, relative to the most intense detected channel (like\n"
       "MaxQuant's 're-quantify'). It is reported as absent (0) only if its first two isotopic traces are not seen together in at least\n"
-      "two spectra there, and as not quantifiable if they are seen only on peaks reserved for other features or channels, or if its peaks\n"
-      "do not show its isotope pattern (its first two isotopes, and no peak one isotope below above 30 % of its monoisotopic peak unless\n"
-      "that peak is an isotope of another channel, M+0 to M+n with n + 1 the maximum of 'algorithm:isotopes_per_peptide') in at least\n"
-      "two spectra paired with the most intense detected channel.\n"
+      "two spectra there. Otherwise it is not quantifiable if those traces are seen only on peaks reserved for other features or channels,\n"
+      "or if fewer than two spectra paired with the most intense detected channel show its isotope pattern (both traces, and no peak one\n"
+      "isotope lower that exceeds 30 % of its monoisotopic peak, unless that peak lies at isotope M+0 to M+n of another channel, with n + 1\n"
+      "the upper bound of 'algorithm:isotopes_per_peptide').\n"
       "false: such channels are reported as absent.", false);
     setValidStrings_("requantify", {"true", "false"});
 
@@ -2732,7 +2733,7 @@ protected:
       if (not_quantifiable > 0)
       {
         OPENMS_LOG_INFO << not_quantifiable << " channel value(s) of completed multiplets are not quantifiable (another feature overlaps "
-                        << "with the expected position, or its peaks there do not form its isotope pattern) and are reported as missing." << endl;
+                        << "with the expected position, or the channel's peaks there do not form its isotope pattern) and are reported as missing." << endl;
       }
     }
 
