@@ -5207,8 +5207,8 @@ set_tests_properties("TOPP_MS1LabeledWorkflow_15_medium_id_out1" PROPERTIES DEPE
 
 # The isotope pattern of channels measured against a reference: MS1LabeledWorkflow_16 is a synthetic SILAC duplex (2+, one MS1
 # spectrum per second, Gaussian elution, light identifications, peaks below 2000 not recorded). A channel measured from peaks paired
-# with a reference needs its isotope pattern (its first two isotopes, and no peak one isotope below above 30 % of its M0, which would
-# make its peaks another envelope's isotopes) in at least two spectra paired with the reference, else it is not quantifiable (no
+# with a reference needs its isotope pattern (its first two isotopes, and no peak one isotope lower that exceeds 30 % of its M0, which
+# would make its peaks another envelope's isotopes) in at least two spectra paired with the reference, else it is not quantifiable (no
 # value). A peak one isotope below a channel does not count if it is an isotope (M+0 to M+5) of another channel; the light M+7, 0.0063
 # Th (2+) from the Lys8 channel's M-1, is not. Targeted (the light channel shows two isotopes, missed by the detection):
 #   LSDEFVNGAYK light only (m/z 622); an unrelated envelope (isotopes 1 : 0.9 : 1.1, not detected) one isotope below the heavy channel

@@ -370,22 +370,22 @@ protected:
       "they are joined into one multiplet: partial multiplets at the m/z the peptide has in its missing channels (within 'algorithm:mz_tolerance'),\n"
       "of the same charge and CV, eluting at the identification and identified as the same peptide or not at all. The joined channels are\n"
       "re-measured against the most intense one from paired peaks over their common elution region, since the two partial multiplets were\n"
-      "quantified over different spectra; a candidate with fewer than six spectra of paired peaks is not joined.\n"
+      "quantified over different spectra; a candidate with fewer than six spectra of paired peaks is not joined, nor one with a re-measured\n"
+      "channel that is absent or not quantifiable (e.g. its peaks do not show its isotope pattern, see 'requantify').\n"
       "false: such partial multiplets are quantified separately (a missing channel that lies on another multiplet of the same peptide is\n"
       "then not quantifiable).", false);
     setValidStrings_("join_channels", {"true", "false"});
 
     registerStringOption_("targeted_quantification", "<option>", "false",
-      "true: an identified peptide that has no multiplet in the run (none was detected, or its identifications fit none) is quantified from the\n"
-      "MS1 peaks at the m/z it has in every channel: over the elution peak at the identification, the identified channel is integrated, and\n"
-      "every other channel is measured against it from paired peaks (absent if no peak is seen at its m/z, not quantifiable if another signal\n"
-      "occupies its position or its peaks do not show its isotope pattern in at least two spectra paired with the identified channel).\n"
-      "The identified channel has to show its first two isotopes in at least three spectra and an isotope pattern that fits\n"
-      "the peptide ('algorithm:averagine_similarity'). A lower channel's isotope in a channel's peak (unresolved: the same centroid, e.g. the\n"
-      "light M+4 in a Dimethyl4 or Lys4 channel) is subtracted, estimated from that channel's monoisotopic peak; a channel whose peaks are\n"
-      "mostly (20 % or more) such isotopes is not quantifiable. Such features and their identifications carry the meta value 'quantification_method'\n"
-      "= 'targeted'. Peptides quantified by a multiplet in the run, identifications on a channel of another peptide's multiplet, decoys and\n"
-      "identifications whose labels fit no pattern are not measured; of identifications of different peptides on one signal, only the best one is.\n"
+      "true: an identified peptide that has no multiplet in the run (none was detected, or its identifications fit none) is quantified from the MS1 peaks at\n"
+      "the m/z it has in every channel: over the elution peak at the identification, the identified channel is integrated, and every other channel is\n"
+      "measured against it from paired peaks (absent if no peak is seen at its m/z, not quantifiable if another signal occupies its position or its peaks do\n"
+      "not show its isotope pattern in at least two spectra paired with the identified channel). The identified channel has to show its first two isotopes\n"
+      "in at least three spectra and an isotope pattern that fits the peptide ('algorithm:averagine_similarity'). A lower channel's isotope in a channel's\n"
+      "peak (unresolved: the same centroid, e.g. the light M+4 in a Dimethyl4 or Lys4 channel) is subtracted, estimated from that channel's monoisotopic\n"
+      "peak; a channel whose peaks are mostly (20 % or more) such isotopes is not quantifiable. Such features and their identifications carry the meta value\n"
+      "'quantification_method' = 'targeted'. Peptides quantified by a multiplet in the run, identifications on a channel of another peptide's multiplet,\n"
+      "decoys and identifications whose labels fit no pattern are not measured; of identifications of different peptides on one signal, only the best one is.\n"
       "false: such identifications are kept for protein inference only.", false);
     setValidStrings_("targeted_quantification", {"true", "false"});
 
@@ -1574,11 +1574,11 @@ protected:
     return nullptr;
   }
 
-  /// A peak one isotope below a channel above this fraction of the channel's monoisotopic peak belongs to another envelope, whose
-  /// isotopes the channel's peaks would be (as MultiplexFiltering::checkForSignificantPeak_)
+  /// A peak one isotope lower than a channel that exceeds this fraction of the channel's monoisotopic peak belongs to another envelope,
+  /// whose isotopes the channel's peaks would be (as MultiplexFiltering::checkForSignificantPeak_)
   static constexpr double lower_isotope_fraction_ = 0.3;
-  /// Spectra in which a channel measured against a reference needs its isotope pattern (first two isotopes, no stronger envelope one
-  /// isotope below) paired with the reference
+  /// Spectra in which a channel measured against a reference needs its isotope pattern (first two isotopes, and no peak one isotope
+  /// lower that exceeds lower_isotope_fraction_ of its monoisotopic peak) paired with the reference
   static constexpr Size min_pattern_spectra_ = 2;
 
   /// The largest isotope (M+n) the detection assigns to a channel: the maximum of 'algorithm:isotopes_per_peptide' minus one
@@ -1639,10 +1639,10 @@ protected:
 
     Also counted are the spectra in which at least one peak of the channel was paired with the reference, and of them the
     <em>pattern spectra</em>, which show the channel's isotope pattern: its first two isotopes (one if there is only one), and no
-    peak one isotope below above lower_isotope_fraction_ of its monoisotopic peak (else its peaks are the isotopes of another
-    envelope, as in the detection). The callers accept the intensity only with at least min_pattern_spectra_ pattern spectra; with
-    fewer, a channel with an intensity is not quantifiable, not absent. The intensity itself stays the one over all paired peaks:
-    taken over the pattern spectra only, it was less accurate on real data (1:1 mixtures).
+    peak one isotope lower that exceeds lower_isotope_fraction_ of its monoisotopic peak (else its peaks are the isotopes of
+    another envelope, as in the detection). The callers accept the intensity only with at least min_pattern_spectra_ pattern
+    spectra; with fewer, a channel with an intensity is not quantifiable, not absent. The intensity itself stays the one over all
+    paired peaks: taken over the pattern spectra only, it was less accurate on real data (1:1 mixtures).
   */
   static PairedIntensity_ pairedIntensity_(const vector<vector<double>>& channel, const vector<vector<double>>& reference, const vector<double>& lower,
                                            Size first, Size last, double reference_intensity)
@@ -1835,9 +1835,9 @@ protected:
     }
     if (no_pattern > 0)
     {
-      OPENMS_LOG_INFO << no_pattern << " re-quantified channel(s) are not quantifiable: their peaks do not show the channel's isotope pattern (first "
-                      << "two isotopes, without a stronger envelope one isotope below) in at least " << min_pattern_spectra_ << " spectra paired "
-                      << "with the reference." << endl;
+      OPENMS_LOG_INFO << no_pattern << " re-quantified channel(s) are not quantifiable: their peaks do not show the channel's isotope pattern (both "
+                      << "of its first two isotopes, and no peak one isotope lower that exceeds 30 % of its monoisotopic peak) in at least "
+                      << min_pattern_spectra_ << " spectra paired with the reference." << endl;
     }
     if (reserved_used > 0)
     {
