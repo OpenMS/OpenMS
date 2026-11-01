@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+
 #include <string>
 #include <string_view>
 #include <vector>
@@ -106,24 +108,44 @@ public:
                           const std::vector<bool>& blocked = {});
 
   /**
-    @brief Sorted protein starts to look up protein N-terminal peptides with @ref isProteinNTerminal.
+    @brief The peptides of a protein as searched: its digest and, optionally, its N-terminal peptides after removal of the initial methionine.
 
-    For every protein, its sequence and, if it starts with methionine, its sequence without the
-    initiator methionine.
+    @param[in] digestion the enzyme and missed cleavages of the search
+    @param[in] protein protein sequence
+    @param[in] min_length minimum peptide length
+    @param[in] max_length maximum peptide length (0: no limit)
+    @param[in] clip_nterm_methionine also the N-terminal products of the protein without its initial methionine, if it starts with M
+    @param[out] peptides views into @p protein
   */
-  static std::vector<std::string> proteinNTermini(const std::vector<std::string_view>& protein_sequences);
+  static void digestProtein(const EnzymaticDigestion& digestion,
+                            std::string_view protein,
+                            size_t min_length,
+                            size_t max_length,
+                            bool clip_nterm_methionine,
+                            std::vector<std::string_view>& peptides);
 
-  /// Whether @p peptide starts a protein, i.e. is a prefix of one of the sorted @p protein_n_termini
-  static bool isProteinNTerminal(const std::vector<std::string>& protein_n_termini, std::string_view peptide);
+  /// Protein N- and C-terminal peptides of a digest, sorted, to look them up with @ref isProteinNTerminal and @ref isProteinCTerminal
+  struct ProteinTermini
+  {
+    std::vector<std::string> n_terminal; ///< peptides that start a protein (also right behind a clipped initial methionine)
+    std::vector<std::string> c_terminal; ///< peptides that end a protein
+  };
 
   /**
-    @brief Sorted protein ends to look up protein C-terminal peptides with @ref isProteinCTerminal.
+    @brief The protein-terminal peptides among the peptides @ref digestProtein yields for @p proteins.
 
-    For every protein, its reversed sequence.
+    Only digestion products count: a peptide that merely is a prefix or suffix of a protein, without being produced from its terminus, is not protein-terminal.
   */
-  static std::vector<std::string> proteinCTermini(const std::vector<std::string_view>& protein_sequences);
+  static ProteinTermini proteinTermini(const std::vector<std::string_view>& proteins,
+                                       const EnzymaticDigestion& digestion,
+                                       size_t min_length,
+                                       size_t max_length,
+                                       bool clip_nterm_methionine);
 
-  /// Whether @p peptide ends a protein, i.e. its reverse is a prefix of one of the sorted @p protein_c_termini
-  static bool isProteinCTerminal(const std::vector<std::string>& protein_c_termini, std::string_view peptide);
+  /// Whether @p peptide is a protein N-terminal digestion product (see @ref proteinTermini)
+  static bool isProteinNTerminal(const ProteinTermini& termini, std::string_view peptide);
+
+  /// Whether @p peptide is a protein C-terminal digestion product (see @ref proteinTermini)
+  static bool isProteinCTerminal(const ProteinTermini& termini, std::string_view peptide);
 };
 } // namespace OpenMS

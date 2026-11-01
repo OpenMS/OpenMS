@@ -12,7 +12,11 @@
 #include "NuXLSiteLocalization.h"
 ///////////////////////////
 
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+
+#include <set>
 #include <string>
+#include <string_view>
 #include <vector>
 
 using namespace OpenMS;
@@ -238,49 +242,67 @@ START_SECTION((static Site localizeNHS(const std::string& sequence, bool reactiv
 }
 END_SECTION
 
-START_SECTION((static std::vector<std::string> proteinNTermini(const std::vector<std::string_view>& protein_sequences)))
+START_SECTION((static void digestProtein(const EnzymaticDigestion& digestion, std::string_view protein, size_t min_length, size_t max_length, bool clip_nterm_methionine, std::vector<std::string_view>& peptides)))
 {
-  const vector<string> n_termini = NuXLSiteLocalization::proteinNTermini({"PEPTIDEK", "MSAEKLLR"});
-  TEST_EQUAL(n_termini.size(), 3)
-  ABORT_IF(n_termini.size() != 3)
-  TEST_STRING_EQUAL(n_termini[0], "MSAEKLLR")
-  TEST_STRING_EQUAL(n_termini[1], "PEPTIDEK")
-  TEST_STRING_EQUAL(n_termini[2], "SAEKLLR") // initiator methionine removed
+  ProteaseDigestion trypsin;
+  trypsin.setEnzyme("Trypsin");
+  trypsin.setMissedCleavages(1);
+  const string protein = "MSAEKLLRPEK";
+  vector<string_view> peptides;
+
+  NuXLSiteLocalization::digestProtein(trypsin, protein, 3, 0, false, peptides);
+  set<string> digest(peptides.begin(), peptides.end());
+  TEST_EQUAL(digest == set<string>({"MSAEK", "LLRPEK", "MSAEKLLRPEK"}), true)
+
+  // initial methionine removed: also the N-terminal peptides of SAEKLLRPEK, as views into the protein
+  NuXLSiteLocalization::digestProtein(trypsin, protein, 3, 0, true, peptides);
+  digest = set<string>(peptides.begin(), peptides.end());
+  TEST_EQUAL(digest == set<string>({"MSAEK", "LLRPEK", "MSAEKLLRPEK", "SAEK", "SAEKLLRPEK"}), true)
+  for (const string_view& p : peptides) { TEST_EQUAL(p.data() >= protein.data() && p.data() + p.size() <= protein.data() + protein.size(), true) }
+
+  // no initial methionine: nothing to clip
+  NuXLSiteLocalization::digestProtein(trypsin, "PEPTIDEKAAR", 3, 0, true, peptides);
+  TEST_EQUAL(peptides.size(), 3)
 }
 END_SECTION
 
-START_SECTION((static bool isProteinNTerminal(const std::vector<std::string>& protein_n_termini, std::string_view peptide)))
+START_SECTION((static ProteinTermini proteinTermini(const std::vector<std::string_view>& proteins, const EnzymaticDigestion& digestion, size_t min_length, size_t max_length, bool clip_nterm_methionine)))
 {
-  const vector<string> n_termini = NuXLSiteLocalization::proteinNTermini({"PEPTIDEK", "MSAEKLLR"});
-  TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal(n_termini, "MSAEK"), true)
-  TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal(n_termini, "SAEK"), true)
-  TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal(n_termini, "PEPTIDEK"), true)
-  TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal(n_termini, "AEKLLR"), false)
-  TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal(n_termini, "EPTIDEK"), false)
-  TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal(n_termini, "PEPTIDEKR"), false) // longer than the protein
-  TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal({}, "PEPTIDEK"), false)
+  ProteaseDigestion trypsin;
+  trypsin.setEnzyme("Trypsin");
+  trypsin.setMissedCleavages(0);
+  const NuXLSiteLocalization::ProteinTermini termini = NuXLSiteLocalization::proteinTermini({"MACDEKPGGR", "RACDEKAAAAK"}, trypsin, 3, 0, true);
+  // MACDEKPGGR: no cleavage before P, so its N-terminal peptides are MACDEKPGGR and, without the methionine, ACDEKPGGR
+  TEST_EQUAL(termini.n_terminal == vector<string>({"ACDEKPGGR", "MACDEKPGGR"}), true)
+  TEST_EQUAL(termini.c_terminal == vector<string>({"AAAAK", "ACDEKPGGR", "MACDEKPGGR"}), true) // the clipped protein ends it, too
 }
 END_SECTION
 
-START_SECTION((static std::vector<std::string> proteinCTermini(const std::vector<std::string_view>& protein_sequences)))
+START_SECTION((static bool isProteinNTerminal(const ProteinTermini& termini, std::string_view peptide)))
 {
-  const vector<string> c_termini = NuXLSiteLocalization::proteinCTermini({"PEPTIDEK", "MSAEKLLR"});
-  TEST_EQUAL(c_termini.size(), 2)
-  ABORT_IF(c_termini.size() != 2)
-  TEST_STRING_EQUAL(c_termini[0], "KEDITPEP")
-  TEST_STRING_EQUAL(c_termini[1], "RLLKEASM")
+  ProteaseDigestion trypsin;
+  trypsin.setEnzyme("Trypsin");
+  trypsin.setMissedCleavages(0);
+  const NuXLSiteLocalization::ProteinTermini termini = NuXLSiteLocalization::proteinTermini({"MACDEKPGGR", "RACDEKAAAAK"}, trypsin, 3, 0, true);
+  TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal(termini, "MACDEKPGGR"), true)
+  TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal(termini, "ACDEKPGGR"), true)
+  // internal peptide of RACDEKAAAAK: a prefix of the clipped MACDEKPGGR, but not a product of its N-terminus
+  TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal(termini, "ACDEK"), false)
+  TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal(termini, "AAAAK"), false)
+  TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal(NuXLSiteLocalization::ProteinTermini(), "MACDEKPGGR"), false)
 }
 END_SECTION
 
-START_SECTION((static bool isProteinCTerminal(const std::vector<std::string>& protein_c_termini, std::string_view peptide)))
+START_SECTION((static bool isProteinCTerminal(const ProteinTermini& termini, std::string_view peptide)))
 {
-  const vector<string> c_termini = NuXLSiteLocalization::proteinCTermini({"AKRGKSVEEILGK", "MSAEKLLR"});
-  TEST_EQUAL(NuXLSiteLocalization::isProteinCTerminal(c_termini, "SVEEILGK"), true)
-  TEST_EQUAL(NuXLSiteLocalization::isProteinCTerminal(c_termini, "LLR"), true)
-  TEST_EQUAL(NuXLSiteLocalization::isProteinCTerminal(c_termini, "AKRGK"), false)
-  TEST_EQUAL(NuXLSiteLocalization::isProteinCTerminal(c_termini, "MSAEK"), false)
-  TEST_EQUAL(NuXLSiteLocalization::isProteinCTerminal(c_termini, "AMSAEKLLR"), false) // longer than the protein
-  TEST_EQUAL(NuXLSiteLocalization::isProteinCTerminal({}, "SVEEILGK"), false)
+  ProteaseDigestion trypsin;
+  trypsin.setEnzyme("Trypsin");
+  trypsin.setMissedCleavages(0);
+  const NuXLSiteLocalization::ProteinTermini termini = NuXLSiteLocalization::proteinTermini({"AKRGKSVEEILGK", "SVEEILGKAAR"}, trypsin, 3, 0, true);
+  TEST_EQUAL(NuXLSiteLocalization::isProteinCTerminal(termini, "SVEEILGK"), true)
+  TEST_EQUAL(NuXLSiteLocalization::isProteinCTerminal(termini, "AAR"), true)
+  TEST_EQUAL(NuXLSiteLocalization::isProteinCTerminal(termini, "GKSVEEILGK"), false) // a suffix, but not a product
+  TEST_EQUAL(NuXLSiteLocalization::isProteinCTerminal(NuXLSiteLocalization::ProteinTermini(), "SVEEILGK"), false)
 }
 END_SECTION
 

@@ -333,8 +333,8 @@ namespace OpenMS
     bool fragment_mass_tolerance_unit_ppm, 
     const NuXLParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts,
     bool nhs_localization,
-    const vector<string>* protein_n_termini,
-    const vector<string>* protein_c_termini)
+    const NuXLSiteLocalization::ProteinTermini* protein_termini,
+    bool enzyme_cleaves_after_lysine)
   {
     TheoreticalSpectrumGenerator partial_loss_spectrum_generator;
     auto param = partial_loss_spectrum_generator.getParameters();
@@ -874,9 +874,9 @@ namespace OpenMS
         // choose the site by this chemistry among the residues the fragment ions can't tell apart
         if (nhs_localization)
         {
-          const bool reactive_protein_n_term = protein_n_termini != nullptr
+          const bool reactive_protein_n_term = protein_termini != nullptr
             && !fixed_and_variable_modified_peptide.hasNTerminalModification()
-            && NuXLSiteLocalization::isProteinNTerminal(*protein_n_termini, unmodified_sequence);
+            && NuXLSiteLocalization::isProteinNTerminal(*protein_termini, unmodified_sequence);
           // a modification other than a pure isotope substitution (e.g. Acetyl (K), TMT6plex (K)) blocks the residue's amine or hydroxyl
           vector<bool> blocked(unmodified_sequence.size(), false);
           for (Size i = 0; i != fixed_and_variable_modified_peptide.size(); ++i)
@@ -886,8 +886,8 @@ namespace OpenMS
           }
           // the enzyme doesn't cleave after a modified lysine: a C-terminal one can't carry the cross-link,
           // unless no cleavage was needed because the peptide ends the protein
-          if (protein_c_termini != nullptr && !unmodified_sequence.empty() && unmodified_sequence.back() == 'K'
-            && !NuXLSiteLocalization::isProteinCTerminal(*protein_c_termini, unmodified_sequence))
+          if (enzyme_cleaves_after_lysine && protein_termini != nullptr && !unmodified_sequence.empty() && unmodified_sequence.back() == 'K'
+            && !NuXLSiteLocalization::isProteinCTerminal(*protein_termini, unmodified_sequence))
           {
             blocked.back() = true;
           }

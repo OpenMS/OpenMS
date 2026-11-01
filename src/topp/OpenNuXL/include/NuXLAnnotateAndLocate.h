@@ -13,6 +13,7 @@
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include "NuXLParameterParsing.h"
 #include "NuXLAnnotatedHit.h"
+#include "NuXLSiteLocalization.h"
 
 #include <set>
 #include <map>
@@ -100,8 +101,8 @@ class NuXLAnnotateAndLocate
     @param[in]     fragment_mass_tolerance_unit_ppm Interpret @p fragment_mass_tolerance as ppm (true) or Da (false).
     @param[in]     all_feasible_adducts             Per-precursor-adduct fragment-adduct definitions used to generate marker and shifted immonium ions.
     @param[in]     nhs_localization                 Localize by the NHS-ester chemistry (cross-linkers such as SDA) instead of the fragment evidence alone.
-    @param[in]     protein_n_termini                Sorted protein starts (see @ref NuXLSiteLocalization::proteinNTermini) to detect protein N-terminal peptides for @p nhs_localization; nullptr: none.
-    @param[in]     protein_c_termini                Sorted protein ends (see @ref NuXLSiteLocalization::proteinCTermini), if the enzyme cleaves after lysine: with @p nhs_localization, a C-terminal lysine counts as blocked (a modified lysine isn't cleaved) unless the peptide ends a protein; nullptr: no such rule.
+    @param[in]     protein_termini                  Protein-terminal peptides of the digest (see @ref NuXLSiteLocalization::proteinTermini) for @p nhs_localization: a protein N-terminal peptide can carry the cross-link on its free N-terminus; nullptr: none is protein-terminal.
+    @param[in]     enzyme_cleaves_after_lysine      With @p nhs_localization and @p protein_termini: a C-terminal lysine counts as blocked (the enzyme doesn't cleave after a modified lysine) unless the peptide ends a protein.
   */
   static void annotateAndLocate_(
     const PeakMap& exp,
@@ -114,8 +115,8 @@ class NuXLAnnotateAndLocate
     bool fragment_mass_tolerance_unit_ppm,
     const NuXLParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts,
     bool nhs_localization = false,
-    const std::vector<std::string>* protein_n_termini = nullptr,
-    const std::vector<std::string>* protein_c_termini = nullptr);
+    const NuXLSiteLocalization::ProteinTermini* protein_termini = nullptr,
+    bool enzyme_cleaves_after_lysine = false);
 
 };
 } // namespace OpenMS

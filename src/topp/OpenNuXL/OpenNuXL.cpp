@@ -795,8 +795,8 @@ class OpenNuXL :
   set<char> can_xl_; ///< nucleotides that can form cross-links
   set<char> standalone_; ///< nucleotides that only form adducts on their own (e.g., a cross-linker without nucleotide)
   bool nhs_localization_ = false; ///< localize cross-links by the NHS-ester chemistry (NuXL:localization NHS)
-  vector<std::string> protein_n_termini_; ///< sorted protein starts (targets and decoys) for NHS localization
-  vector<std::string> protein_c_termini_; ///< sorted reversed protein ends (targets and decoys) for NHS localization, if the enzyme cleaves after lysine
+  NuXLSiteLocalization::ProteinTermini protein_termini_; ///< protein-terminal peptides of the digest (targets and decoys) for NHS localization
+  bool enzyme_cleaves_after_lysine_ = false; ///< NHS localization: a C-terminal lysine of a peptide that doesn't end a protein can't carry the cross-link
   Size named_adduct_count_ = 0; ///< localized cross-links written as a named modification
   Size mass_delta_adduct_count_ = 0; ///< localized cross-links written as an anonymous mass delta
 
@@ -3202,8 +3202,8 @@ protected:
       rescoreFastHits_(exp, annotated_peptide_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_adducts);
     }
 
-    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_XL_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,  all_feasible_adducts, nhs_localization_, &protein_n_termini_, protein_c_termini_.empty() ? nullptr : &protein_c_termini_);
-    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_peptide_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_adducts, nhs_localization_, &protein_n_termini_, protein_c_termini_.empty() ? nullptr : &protein_c_termini_);
+    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_XL_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,  all_feasible_adducts, nhs_localization_, &protein_termini_, enzyme_cleaves_after_lysine_);
+    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_peptide_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_adducts, nhs_localization_, &protein_termini_, enzyme_cleaves_after_lysine_);
   }
 
   void fillSpectrumID_(
@@ -5249,25 +5249,6 @@ protected:
       progresslogger.endProgress();
     }
 
-    // NHS localization: protein N-terminal peptides (targets and decoys) can carry the cross-link on their free N-terminus
-    if (nhs_localization_)
-    {
-      vector<std::string_view> protein_sequences;
-      protein_sequences.reserve(fasta_db.size());
-      for (const auto& e : fasta_db) { protein_sequences.emplace_back(e.sequence); }
-      protein_n_termini_ = NuXLSiteLocalization::proteinNTermini(protein_sequences);
-
-      // the enzyme (e.g. trypsin) doesn't cleave after a lysine modified by the cross-linker: a C-terminal
-      // lysine can then only carry it at a protein C-terminus
-      const std::string enzyme = getStringOption_("peptide:enzyme");
-      ProteaseDigestion pd;
-      pd.setEnzyme(enzyme);
-      if (enzyme != "unspecific cleavage" && pd.countInternalCleavageSites("KA") > 0)
-      {
-        protein_c_termini_ = NuXLSiteLocalization::proteinCTermini(protein_sequences);
-      }
-    }
-
     // set up enzyme
     const Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
     ProteaseDigestion digestor;
@@ -5282,6 +5263,21 @@ protected:
     // set minimum size of peptide after digestion
     Size min_peptide_length = (Size)getIntOption_("peptide:min_size");
     Size max_peptide_length = (Size)getIntOption_("peptide:max_size");
+
+    // NHS localization: protein N-terminal peptides (targets and decoys) can carry the cross-link on their free N-terminus
+    if (nhs_localization_)
+    {
+      vector<std::string_view> protein_sequences;
+      protein_sequences.reserve(fasta_db.size());
+      for (const auto& e : fasta_db) { protein_sequences.emplace_back(e.sequence); }
+      protein_termini_ = NuXLSiteLocalization::proteinTermini(protein_sequences, digestor, min_peptide_length, max_peptide_length,
+        clip_nterm_methionine);
+
+      // the enzyme (e.g. trypsin) doesn't cleave after a lysine modified by the cross-linker: a C-terminal
+      // lysine can then only carry it at a protein C-terminus
+      const std::string enzyme = getStringOption_("peptide:enzyme");
+      enzyme_cleaves_after_lysine_ = enzyme != EnzymaticDigestion::UnspecificCleavage && digestor.countInternalCleavageSites("KA") > 0;
+    }
 
     Size count_proteins(0), count_peptides(0);
     Size count_decoy_peptides(0), count_target_peptides(0);
@@ -5312,21 +5308,9 @@ protected:
 
       bool is_decoy = current_fasta_entry.identifier[5] == '_'; // faster check than current_fasta_entry.StringUtils::hasPrefix(identifier, "DECOY_")
 
-      // digest the protein into peptides (filter out too short or too long peptides)
-      digestor.digestUnmodified(current_fasta_entry.sequence, current_digest, min_peptide_length, max_peptide_length);
-
-      // initial methionine removed: the N-terminal peptides of the rest of the protein
-      const std::string_view protein_sequence(current_fasta_entry.sequence);
-      if (clip_nterm_methionine && protein_sequence.size() > 1 && protein_sequence[0] == 'M')
-      {
-        vector<std::string_view> clipped_digest;
-        digestor.digestUnmodified(protein_sequence.substr(1), clipped_digest, min_peptide_length, max_peptide_length);
-        for (const std::string_view& p : clipped_digest)
-        {
-          // views into the protein sequence: N-terminal products of the clipped protein start right after the methionine
-          if (p.data() == protein_sequence.data() + 1) { current_digest.push_back(p); }
-        }
-      }
+      // digest the protein into peptides (filter out too short or too long peptides), also without its initial methionine
+      NuXLSiteLocalization::digestProtein(digestor, current_fasta_entry.sequence, min_peptide_length, max_peptide_length,
+        clip_nterm_methionine, current_digest);
 
       // for each peptide of the current digest
       for (auto cit = current_digest.begin(); cit != current_digest.end(); ++cit)

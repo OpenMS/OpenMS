@@ -121,42 +121,64 @@ namespace OpenMS
   }
 
   // static
-  vector<string> NuXLSiteLocalization::proteinNTermini(const vector<string_view>& protein_sequences)
+  void NuXLSiteLocalization::digestProtein(const EnzymaticDigestion& digestion,
+                                           string_view protein,
+                                           size_t min_length,
+                                           size_t max_length,
+                                           bool clip_nterm_methionine,
+                                           vector<string_view>& peptides)
   {
-    vector<string> n_termini;
-    n_termini.reserve(2 * protein_sequences.size());
-    for (const string_view& s : protein_sequences)
+    digestion.digestUnmodified(protein, peptides, min_length, max_length);
+    if (!clip_nterm_methionine || protein.size() < 2 || protein[0] != 'M') { return; }
+
+    // initial methionine removed: the N-terminal peptides of the rest of the protein
+    vector<string_view> clipped;
+    digestion.digestUnmodified(protein.substr(1), clipped, min_length, max_length);
+    for (const string_view& p : clipped)
     {
-      n_termini.emplace_back(s);
-      if (!s.empty() && s[0] == 'M') { n_termini.emplace_back(s.substr(1)); } // initiator methionine removed
+      // views into the protein: N-terminal products of the clipped protein start right after the methionine
+      if (p.data() == protein.data() + 1) { peptides.push_back(p); }
     }
-    sort(n_termini.begin(), n_termini.end());
-    return n_termini;
   }
 
   // static
-  bool NuXLSiteLocalization::isProteinNTerminal(const vector<string>& protein_n_termini, string_view peptide)
+  NuXLSiteLocalization::ProteinTermini NuXLSiteLocalization::proteinTermini(const vector<string_view>& proteins,
+                                                                            const EnzymaticDigestion& digestion,
+                                                                            size_t min_length,
+                                                                            size_t max_length,
+                                                                            bool clip_nterm_methionine)
   {
-    // the smallest entry not less than the peptide is the one to start with it, if any does
-    const auto it = lower_bound(protein_n_termini.begin(), protein_n_termini.end(), peptide,
-      [](const string& entry, string_view value) { return string_view(entry) < value; });
-    return it != protein_n_termini.end() && string_view(*it).substr(0, peptide.size()) == peptide;
+    ProteinTermini termini;
+    vector<string_view> peptides;
+    for (const string_view& protein : proteins)
+    {
+      digestProtein(digestion, protein, min_length, max_length, clip_nterm_methionine, peptides);
+      for (const string_view& p : peptides)
+      {
+        const bool clipped_start = clip_nterm_methionine && protein[0] == 'M' && p.data() == protein.data() + 1;
+        if (p.data() == protein.data() || clipped_start) { termini.n_terminal.emplace_back(p); }
+        if (p.data() + p.size() == protein.data() + protein.size()) { termini.c_terminal.emplace_back(p); }
+      }
+    }
+    for (vector<string>* v : {&termini.n_terminal, &termini.c_terminal})
+    {
+      sort(v->begin(), v->end());
+      v->erase(unique(v->begin(), v->end()), v->end());
+    }
+    return termini;
   }
 
   // static
-  vector<string> NuXLSiteLocalization::proteinCTermini(const vector<string_view>& protein_sequences)
+  bool NuXLSiteLocalization::isProteinNTerminal(const ProteinTermini& termini, string_view peptide)
   {
-    vector<string> c_termini;
-    c_termini.reserve(protein_sequences.size());
-    for (const string_view& s : protein_sequences) { c_termini.emplace_back(s.rbegin(), s.rend()); }
-    sort(c_termini.begin(), c_termini.end());
-    return c_termini;
+    return binary_search(termini.n_terminal.begin(), termini.n_terminal.end(), peptide,
+      [](const auto& a, const auto& b) { return string_view(a) < string_view(b); });
   }
 
   // static
-  bool NuXLSiteLocalization::isProteinCTerminal(const vector<string>& protein_c_termini, string_view peptide)
+  bool NuXLSiteLocalization::isProteinCTerminal(const ProteinTermini& termini, string_view peptide)
   {
-    const string reversed(peptide.rbegin(), peptide.rend());
-    return isProteinNTerminal(protein_c_termini, reversed);
+    return binary_search(termini.c_terminal.begin(), termini.c_terminal.end(), peptide,
+      [](const auto& a, const auto& b) { return string_view(a) < string_view(b); });
   }
 } // namespace OpenMS
