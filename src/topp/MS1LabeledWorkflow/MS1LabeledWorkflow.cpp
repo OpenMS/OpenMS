@@ -1930,7 +1930,7 @@ protected:
     vector<double> rts;
     vector<vector<vector<double>>> intensity(n_channels, vector<vector<double>>(targeted_isotopes_));
     vector<vector<double>> own_measured(targeted_isotopes_); // the identified channel's peaks without the subtraction
-    vector<vector<char>> reserved(n_channels); // a peak of the first two isotopes belongs to another peptide or channel
+    vector<vector<char>> reserved(n_channels); // a peak of an isotope read (M+0 to M+2) belongs to another peptide or channel (left out)
     struct ReadOwner { Size spectrum, channel, isotope; UInt64 owner; };
     vector<ReadOwner> read_owners; // the reserved peaks read
     vector<vector<double>> lower_peaks(n_channels); // per channel: the peak one isotope below it, unless that is an isotope of another channel
@@ -1970,7 +1970,7 @@ protected:
           }
           intensity[c][k].push_back(index >= 0 && !other ? value : 0.0);
           if (c == own) { own_measured[k].push_back(index >= 0 && !other ? (*it)[index].getIntensity() : 0.0); }
-          if (other && k < 2) { reserved[c].back() = true; }
+          if (other) { reserved[c].back() = true; }
           if (reserved_index >= 0 && !other)
           {
             read_owners.push_back({rts.size() - 1, c, k, MultiplexResolverAlgorithm::blacklistOwner(*black, static_cast<Size>(reserved_index))});
@@ -2109,8 +2109,8 @@ protected:
         continue;
       }
       // not quantifiable if something is there: a signal that does not co-elute or does not show the channel's isotope pattern, a
-      // peak of another peptide or channel, or any other peak of the channel (its absence cannot be told); absent (0) only if none
-      // of its peaks is seen (those used for pairing: peaks of other peptides or channels are left out above)
+      // peak left out above (of another peptide or channel) at any isotope read (M+0 to M+2), or any other peak of the channel (its
+      // absence cannot be told); absent (0) only if none of these positions holds a peak, its own or another's, within the elution peak
       const bool interfered = paired.intensity > 0.0 || std::any_of(reserved[c].begin() + first, reserved[c].begin() + last + 1, [](char r) { return r != 0; });
       const bool seen = std::any_of(intensity[c].begin(), intensity[c].end(), [&](const vector<double>& isotope)
                                     { return std::any_of(isotope.begin() + first, isotope.begin() + last + 1, [](double v) { return v > 0.0; }); });
@@ -2177,8 +2177,8 @@ protected:
     is measured against it from paired peaks (pairedIntensity_), and reported if its peaks show its isotope pattern paired with the
     reference in at least min_pattern_spectra_ spectra (first two isotopes, no strong peak one isotope below, as for the
     reference) and it co-elutes (Pearson of the isotope-summed profiles >= 'algorithm:peptide_similarity'). Otherwise it is
-    absent (0) only if none of its isotopic peaks is seen within the boundaries; it is not quantifiable (left out) if its peaks
-    there do not form its isotope pattern, or if something else, or a peak left out above, is.
+    absent (0) only if none of its isotopic peaks read (M+0 to M+2) is seen within the boundaries; it is not quantifiable (left
+    out) if its peaks there do not form its isotope pattern, or if something else, or a peak left out above, is at any of them.
 
     Targeted peaks of different peptides that read the same peaks (the identified channel of one at a measured channel or at the
     identified channel of the other - the reference, also if its own intensity is not quantifiable -, same charge and CV,
