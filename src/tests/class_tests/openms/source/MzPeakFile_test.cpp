@@ -278,6 +278,29 @@ START_SECTION((void store(const std::string& filename, const PeakMap& exp) const
   TEST_EXCEPTION(Exception::UnableToCreateFile, file.store(tmp, bad))
   file.load(tmp, exp);
   compareSpectra(reference, exp);
+  // both signal tables (the profile spectrum 3 with points, the centroided ones as peaks) and two precursors
+  PeakMap both_tables = reference;
+  {
+    ABORT_IF(both_tables.getNrSpectra() < 4)
+    MSSpectrum& profile = both_tables[3];
+    TEST_EQUAL(static_cast<int>(profile.getType()), static_cast<int>(SpectrumSettings::SpectrumType::PROFILE))
+    for (int i = 0; i < 50; ++i) { profile.emplace_back(500.0 + 0.01 * i, static_cast<float>(10 + i)); }
+    for (MSSpectrum& s : both_tables)
+    {
+      if (s.getPrecursors().empty()) { continue; }
+      Precursor second = s.getPrecursors()[0];
+      second.setMZ(second.getMZ() + 1.5);
+      second.setCharge(3);
+      s.getPrecursors().push_back(second);
+      break;
+    }
+  }
+  file.store(tmp, both_tables);
+  file.load(tmp, exp);
+  compareSpectra(both_tables, exp);
+  ABORT_IF(exp.getNrSpectra() < 4)
+  TEST_EQUAL(static_cast<int>(exp[3].getType()), static_cast<int>(SpectrumSettings::SpectrumType::PROFILE))
+  TEST_EQUAL(static_cast<int>(exp[0].getType()), static_cast<int>(SpectrumSettings::SpectrumType::CENTROID))
   // a spectrum of unknown type is written as the peaks make it out to be: profile here (as PeakPickerHiRes estimates it)
   PeakMap unknown_type;
   {
