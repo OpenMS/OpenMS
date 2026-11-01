@@ -84,7 +84,7 @@ START_SECTION((void fitElutionModels(FeatureMap& features)))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] void fitElutionModels(FeatureMap& features) - no failed fit to impute))
+START_SECTION(([EXTRA] void fitElutionModels(FeatureMap& features) - degenerate imputation))
 {
   // valid models of the same raw intensity (a linear model cannot be fitted to them), but no failed fit: nothing to
   // impute, so no imputation model is needed
@@ -100,6 +100,21 @@ START_SECTION(([EXTRA] void fitElutionModels(FeatureMap& features) - no failed f
   TEST_EQUAL(two[0].getMetaValue("model_status"), "0 (valid)");
   TEST_EQUAL(two[1].getMetaValue("model_status"), "0 (valid)");
   TEST_NOT_EQUAL(two[0].getIntensity(), 1.0e5); // the model areas
+
+  // ... and with a failed fit (feature 3: left side out of bounds): nothing to base the imputation on, so the failed fit
+  // gets intensity zero, as with 'no_imputation'
+  FeatureMap three;
+  three.push_back(all[0]);
+  three.push_back(all[1]);
+  three.push_back(all[3]);
+  three[0].setIntensity(1.0e5);
+  three[1].setIntensity(1.0e5);
+  emf.fitElutionModels(three);
+  ABORT_IF(three.size() != 3);
+  TEST_EQUAL(three[0].getMetaValue("model_status"), "0 (valid)");
+  TEST_EQUAL(three[1].getMetaValue("model_status"), "0 (valid)");
+  TEST_EQUAL(three[2].getMetaValue("model_status"), "3 (left side out of bounds)");
+  TEST_EQUAL(three[2].getIntensity(), 0.0);
 }
 END_SECTION
 
