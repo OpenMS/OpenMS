@@ -432,7 +432,6 @@
 			<centroid rt="600.0" mz="1056.515839167871263" it="1.4167222e06"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="600.0" mz="1056.515839167871263" it="1.4167222e06" charge="2"/>
-				<element map="1" id="0" rt="600.0" mz="1058.528392667871231" it="0.0" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="1056.515833" RT="600.5" spectrum_reference="scan=501" >
 				<PeptideHit score="0.111111111111111" sequence="SVEDLAFGNYQGEDVTALR" charge="2" aa_before="K" aa_after="G" start="2" end="20" protein_refs="PH_1">
