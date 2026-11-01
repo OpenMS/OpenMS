@@ -144,6 +144,7 @@ null_delta_decode(typename type_traits<T>::value_type start,
   }
 
   using ArrayType = typename type_traits<T>::array_type;
+  Decoders::check_array_type<T>(*src);
   std::shared_ptr<ArrayType> casted = std::static_pointer_cast<ArrayType>(src);
 
   auto append = [&](const std::optional<ValueType>& v) -> void {

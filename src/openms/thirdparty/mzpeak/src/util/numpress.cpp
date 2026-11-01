@@ -96,6 +96,10 @@ decode_linear(const std::shared_ptr<arrow::Array>& src)
 /******************************************************************************/
 void decode_slof(const std::vector<uint8_t>& input, std::vector<double>& output)
 {
+  // 8 bytes of fixed point, then 2 bytes per value (OpenMS local change: a corrupt length is an error, not a short read)
+  if (input.size() < 8 || (input.size() - 8) % 2 != 0) {
+    throw InvalidFormatError("numpress SLOF data of " + std::to_string(input.size()) + " bytes (expected 8 + 2n)");
+  }
   try {
     ms::numpress::MSNumpress::decodeSlof(input, output);
   } catch (const char* msg) {

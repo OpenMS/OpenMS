@@ -66,6 +66,13 @@ the OpenMS interface.
   the collision energy). In `src/util/metadata_model.cpp` (CV parameter values, the promoted activation columns,
   `mz_delta_model`, auxiliary array data), `src/util/parquet_writer.cpp`, `src/util/planner.cpp` and
   `src/data/signals.cpp`; the library's own typed readers already did it this way.
+- Untrusted input (second review of OpenMS#10771): `include/mzpeak/util/decoders.h` (`check_array_type()`, used by
+  `Decoders::Scalar::decode`), `include/mzpeak/util/algorithm.h` (`null_delta_decode`) and
+  `include/mzpeak/data/transformer/primary.h` (the `chunk_end` check) throw a `TypeError` when a chunk's Arrow type
+  is not the one the array index declares, instead of casting it to the declared type's array class (a 64-bit
+  declaration over a 32-bit column read past the buffer, the reverse gave wrong values). `src/util/numpress.cpp`
+  rejects SLOF data whose length is not 8 + 2n bytes (OpenMS' `MSNumpress::decodeSlof` wrote one value past its
+  output for an odd length).
 - `src/boost_json_src.cpp` (new): Boost.JSON compiled header-only, so libOpenMS links no
   compiled Boost library.
 - `sources.cmake`, `CMakeLists.txt`, this file.

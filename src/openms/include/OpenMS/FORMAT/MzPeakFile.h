@@ -39,8 +39,10 @@ namespace OpenMS
 
     Writing: m/z, intensity, representation, MS level, retention time, polarity, native ID, precursors (isolation window,
     selected ion, charge, intensity) and the spectrum's ion mobility; run-level metadata (run start time, source files
-    with their checksum, file format and native ID format). Not written (yet): per-peak ion mobility arrays,
-    activation methods, scan windows, chromatograms and instrument metadata.
+    with their checksum, file format and native ID format). Not written (yet), with a warning: other data arrays,
+    activation methods and energies, and chromatograms; without one: scan windows and instrument metadata. An
+    experiment with a per-peak ion mobility array is refused (Exception::IllegalArgument), as storing it without one
+    would change what its peaks are.
 
     @ingroup FileIO
   */

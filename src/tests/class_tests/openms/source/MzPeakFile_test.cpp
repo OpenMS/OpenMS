@@ -17,6 +17,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/IONMOBILITY/IMDataArrayUtils.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -275,6 +276,37 @@ START_SECTION((void store(const std::string& filename, const PeakMap& exp) const
   PeakMap bad = reference;
   bad[0][0].setMZ(std::numeric_limits<double>::quiet_NaN());
   TEST_EXCEPTION(Exception::UnableToCreateFile, file.store(tmp, bad))
+  file.load(tmp, exp);
+  compareSpectra(reference, exp);
+  // a spectrum of unknown type is written as the peaks make it out to be: profile here (as PeakPickerHiRes estimates it)
+  PeakMap unknown_type;
+  {
+    MSSpectrum s;
+    s.setRT(5.0);
+    s.setNativeID("scan=1");
+    for (int i = 0; i < 200; ++i) { s.emplace_back(400.0 + 0.002 * i, static_cast<float>(1000.0 * std::exp(-0.5 * std::pow((i - 100) / 15.0, 2)))); }
+    TEST_EQUAL(static_cast<int>(s.getType()), static_cast<int>(SpectrumSettings::SpectrumType::UNKNOWN))
+    TEST_EQUAL(static_cast<int>(s.getType(true)), static_cast<int>(SpectrumSettings::SpectrumType::PROFILE))
+    unknown_type.addSpectrum(s);
+  }
+  file.store(tmp, unknown_type);
+  file.load(tmp, exp);
+  TEST_EQUAL(exp.getNrSpectra(), 1)
+  ABORT_IF(exp.getNrSpectra() != 1)
+  TEST_EQUAL(static_cast<int>(exp[0].getType()), static_cast<int>(SpectrumSettings::SpectrumType::PROFILE))
+  // an ion mobility per peak cannot be written yet: refused, and the archive that was there is kept
+  file.store(tmp, reference);
+  PeakMap im_per_peak = reference;
+  {
+    MSSpectrum& s = im_per_peak[0];
+    s.getFloatDataArrays().clear();
+    DataArrays::FloatDataArray im;
+    im.assign(s.size(), 1.0f);
+    IMDataArrayUtils::setIMUnit(im, DriftTimeUnit::VSSC);
+    s.getFloatDataArrays().push_back(im);
+    TEST_EQUAL(s.containsIMData(), true)
+  }
+  TEST_EXCEPTION(Exception::IllegalArgument, file.store(tmp, im_per_peak))
   file.load(tmp, exp);
   compareSpectra(reference, exp);
   // via FileHandler

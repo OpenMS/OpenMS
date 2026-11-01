@@ -38,6 +38,7 @@
 #include <mzpeak/schema/psi/array_type.h>
 #include <mzpeak/spectra.h>
 #include <mzpeak/spectrum.h>
+#include <mzpeak/util/decode_pool.h>
 #include <mzpeak/writer.h>
 
 #include <boost/json.hpp>
@@ -184,6 +185,14 @@ namespace OpenMS
 
     /// The spectra decoded in parallel per call of the consumer (transform()): bounds the memory of a streamed read
     constexpr Size BATCH_SIZE = 2048;
+
+    /// Hands the decoded Parquet buffers back to the system when the index and the readers declared after it are gone.
+    /// The library's process-wide decode pool otherwise keeps the buffers of its recent peak (up to the row group
+    /// cache's budget of 1 GiB) until a later read.
+    struct ReleaseDecodeBuffers
+    {
+      ~ReleaseDecodeBuffers() { MzPeak::Util::decode_pool().ReleaseUnused(); }
+    };
 
     /// How often the progress is updated (spectra)
     constexpr Size PROGRESS_STEP = 1000;
@@ -891,7 +900,8 @@ namespace OpenMS
         out.mz[i] = in[i].getMZ();
         out.intensity[i] = in[i].getIntensity();
       }
-      out.centroid = in.getType() != SpectrumSettings::SpectrumType::PROFILE; // (unknown: centroided, as most OpenMS inputs are)
+      // (an unknown type is estimated from the peaks, as PeakPickerHiRes does; a spectrum without peaks is centroided)
+      out.centroid = in.getType(true) != SpectrumSettings::SpectrumType::PROFILE;
       out.ms_level = static_cast<uint8_t>(std::min<UInt>(in.getMSLevel(), 255));
       out.retention_time = in.getRT();
       switch (in.getInstrumentSettings().getPolarity())
@@ -1010,6 +1020,7 @@ namespace OpenMS
 
   void MzPeakFile::load(const std::string& filename, PeakMap& exp)
   {
+    ReleaseDecodeBuffers release; // (first: destroyed after the index and the reader)
     exp.reset();
     const MzPeak::Index index = openIndex(filename);
     toSettings(index, filename, exp);
@@ -1038,6 +1049,7 @@ namespace OpenMS
 
   void MzPeakFile::transform(const std::string& filename, Interfaces::IMSDataConsumer* consumer)
   {
+    ReleaseDecodeBuffers release; // (first: destroyed after the index and the reader)
     if (consumer == nullptr) { throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION); }
     const MzPeak::Index index = openIndex(filename);
     ExperimentalSettings settings;
@@ -1067,6 +1079,30 @@ namespace OpenMS
 
   void MzPeakFile::store(const std::string& filename, const PeakMap& exp) const
   {
+    // What the writer cannot store yet: an ion mobility per peak would be lost silently, turning a frame into a flat
+    // spectrum of merged peaks, so it is refused; other data arrays and activation are lost with a warning.
+    Size with_im = 0, with_arrays = 0, with_activation = 0;
+    for (const MSSpectrum& s : exp)
+    {
+      with_im += s.containsIMData();
+      with_arrays += !s.getFloatDataArrays().empty() || !s.getIntegerDataArrays().empty() || !s.getStringDataArrays().empty();
+      bool activation = false;
+      for (const Precursor& p : s.getPrecursors()) { activation = activation || !p.getActivationMethods().empty() || p.getActivationEnergy() != 0.0; }
+      with_activation += activation;
+    }
+    if (with_im > 0)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename + ": " + std::to_string(with_im) +
+                                       " spectra have an ion mobility per peak, which the mzPeak writer cannot store yet");
+    }
+    if (with_arrays > 0)
+    {
+      OPENMS_LOG_WARN << "MzPeakFile: the data arrays of " << with_arrays << " spectra are not written to '" << filename << "' (not supported by the writer yet)" << std::endl;
+    }
+    if (with_activation > 0)
+    {
+      OPENMS_LOG_WARN << "MzPeakFile: the activation methods and energies of the precursors of " << with_activation << " spectra are not written to '" << filename << "' (not supported by the writer yet)" << std::endl;
+    }
     // Written as a sibling first and moved over the destination when finished: an existing archive survives a failed
     // write (libzip would also add to an existing archive rather than replace it). A finished archive that could not
     // be moved stays beside the destination (named in the error), it is not removed; see replaceFile().
