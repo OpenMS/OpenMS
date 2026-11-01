@@ -16,6 +16,7 @@
  *******************************************************************************/
 
 #include "CrossValidation.h"
+#include "OpenMPTasks.h"  // OpenMS: PERCOLATOR_OMP_TASKS, PERCOLATOR_TASK_PRAGMA
 
 #include <algorithm>
 #include <exception>
@@ -177,8 +178,8 @@ int CrossValidation::preIterationSetup(Scores& fullset,
   unsigned int decoysPerTarget = 1u;  // TODO: make this a command line argument
   // OpenMS: in a parallel region, whose threads run the tasks of the sort (see SortLikeStd.h)
   std::exception_ptr xvalError;
-#pragma omp parallel num_threads(numSetupTeamThreads(numThreads_))
-#pragma omp single
+  PERCOLATOR_TASK_PRAGMA(omp parallel num_threads(numSetupTeamThreads(numThreads_)))
+  PERCOLATOR_TASK_PRAGMA(omp single)
   try {
     fullset.createXvalSetsBySpectrum(trainScores_, testScores_, numFolds_,
                                      featurePool, decoyFractionTraining_,
@@ -360,9 +361,13 @@ void CrossValidation::train(const Normalizer* pNorm) {
   // OpenMS: the folds in parallel; the counts are added up in fold order
   vector<int> testPositives(numFolds_);
   vector<std::exception_ptr> testErrors(numFolds_);
+#if PERCOLATOR_OMP_TASKS
 #pragma omp parallel num_threads(numTeamThreads(numThreads_))
 #pragma omp single
 #pragma omp taskloop grainsize(1)
+#else
+#pragma omp parallel for schedule(dynamic, 1) num_threads(numTeamThreads(numThreads_))
+#endif
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
     try {
       testPositives[set] =
@@ -433,9 +438,13 @@ void CrossValidation::trainFoldChains() {
   const int teamThreads = solver_ != kSolverTron && largestTrainSet >= kSolverAllThreadsPsms
                               ? numLoopThreads(numThreads_)
                               : numChainTeamThreads(numThreads_, trainScores_);
+#if PERCOLATOR_OMP_TASKS
 #pragma omp parallel num_threads(teamThreads)
 #pragma omp single
 #pragma omp taskloop grainsize(1)
+#else
+#pragma omp parallel for schedule(dynamic, 1) num_threads(teamThreads)
+#endif
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
     // OpenMS: a fold set inactive (setActiveFolds) is not trained; its weights stay the initial ones
     if (!activeFolds_.empty() && !activeFolds_[static_cast<std::size_t>(set)]) continue;
@@ -477,7 +486,7 @@ void CrossValidation::trainFoldChains() {
         TronPairGroup tronGroup(*svmInputs_[set]);
         while (true) {
           for (std::size_t k = pairsBegin; k < numPairsTrained; ++k) {
-#pragma omp task default(shared) firstprivate(k)
+            PERCOLATOR_TASK_PRAGMA(omp task default(shared) firstprivate(k))
             {
               try {
                 const std::size_t pairIdx = set * numCpCnPairsPerSet + k;
@@ -495,7 +504,7 @@ void CrossValidation::trainFoldChains() {
               }
             }
           }
-#pragma omp taskwait
+          PERCOLATOR_TASK_PRAGMA(omp taskwait)
           rethrowFirstError(pairErrors);
           if (numPairsTrained == numCpCnPairsPerSet || pairCostIndependent[0]) break;
           pairsBegin = numPairsTrained;
@@ -611,9 +620,13 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
   const bool scored = trainScoresOfWeights_;
   trainScoresOfWeights_ = false;
   vector<std::exception_ptr> trainErrors(numFolds_);
+#if PERCOLATOR_OMP_TASKS
 #pragma omp parallel num_threads(numTeamThreads(numThreads_))
 #pragma omp single
 #pragma omp taskloop grainsize(1)
+#else
+#pragma omp parallel for schedule(dynamic, 1) num_threads(numTeamThreads(numThreads_))
+#endif
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
     try {
       if (scored) {
@@ -684,9 +697,13 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
     }
     ++nestedSteps_;
   } else {
+#if PERCOLATOR_OMP_TASKS
 #pragma omp parallel num_threads(numTeamThreads(numThreads_))
 #pragma omp single
 #pragma omp taskloop grainsize(1)
+#else
+#pragma omp parallel for schedule(dynamic, 1) num_threads(numTeamThreads(numThreads_))
+#endif
     for (int set = 0; set < static_cast<int>(numFolds_); ++set) setupFold(set);
   }
   rethrowFirstError(setupErrors);
@@ -701,10 +718,14 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
   const bool skipDecoysPlusOneValidation = true;
   vector<int> pairTruePoses(classWeightsPerFold_.size());
   vector<std::exception_ptr> pairErrors(classWeightsPerFold_.size());
+#if PERCOLATOR_OMP_TASKS
 #pragma omp parallel num_threads(numTeamThreads(numThreads_))
 #pragma omp single
+#else
+#pragma omp parallel for schedule(dynamic, 1) num_threads(numTeamThreads(numThreads_))
+#endif
   for (int pairIdx = 0; pairIdx < static_cast<int>(classWeightsPerFold_.size()); pairIdx++) {
-#pragma omp task firstprivate(pairIdx) shared(pairErrors, pairTruePoses, svmInputsVec, pairTestScores, pOptions)
+    PERCOLATOR_TASK_PRAGMA(omp task firstprivate(pairIdx) shared(pairErrors, pairTruePoses, svmInputsVec, pairTestScores, pOptions))
     {
       try {
         CandidateCposCfrac* cpCnFold = &classWeightsPerFold_[pairIdx];
@@ -964,9 +985,13 @@ int CrossValidation::mergeCpCnPairs(
   // OpenMS: the folds in parallel; the counts are added up in fold order
   vector<int> truePoses(numFolds_);
   vector<std::exception_ptr> foldErrors(numFolds_);
+#if PERCOLATOR_OMP_TASKS
 #pragma omp parallel num_threads(numTeamThreads(numThreads_))
 #pragma omp single
 #pragma omp taskloop grainsize(1)
+#else
+#pragma omp parallel for schedule(dynamic, 1) num_threads(numTeamThreads(numThreads_))
+#endif
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
     try {
       truePoses[set] =
@@ -1028,9 +1053,13 @@ void CrossValidation::postIterationProcessing(Scores& fullset,
       // their scoring, sorts and q-values (see Scores::calcScores and SortLikeStd.h): each test
       // set gets the same scores, order and q-values as in a loop over the sets.
       std::vector<std::exception_ptr> resetErrors(numFolds_);
+#if PERCOLATOR_OMP_TASKS
 #pragma omp parallel num_threads(numTeamThreads(numThreads_))
 #pragma omp single
 #pragma omp taskloop grainsize(1) shared(resetErrors)
+#else
+#pragma omp parallel for schedule(dynamic, 1) num_threads(numTeamThreads(numThreads_))
+#endif
       for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
         try {
           testScores_[static_cast<std::size_t>(set)].calcScoresAndQvals(weights_[0], selectionFdr_);
@@ -1043,8 +1072,8 @@ void CrossValidation::postIterationProcessing(Scores& fullset,
   }
   // OpenMS: in a parallel region, whose threads run the tasks of the sorts (see SortLikeStd.h)
   std::exception_ptr mergeError;
-#pragma omp parallel num_threads(numTeamThreads(numThreads_))
-#pragma omp single
+  PERCOLATOR_TASK_PRAGMA(omp parallel num_threads(numTeamThreads(numThreads_)))
+  PERCOLATOR_TASK_PRAGMA(omp single)
   try {
     fullset.merge(testScores_, selectionFdr_, skipNormalizeScores_, weights_);
   } catch (...) {

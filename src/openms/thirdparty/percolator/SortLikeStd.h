@@ -24,8 +24,8 @@
  * The same algorithm sorts the peptides of OpenMS' FragmentIndex (FragmentIndex::sortPeptides_,
  * whose test compares it with std::sort).
  *
- * Only with libstdc++ and OpenMP, and only inside an active parallel region (the tasks run on
- * its threads); otherwise, and for small ranges, it calls std::sort.
+ * Only with libstdc++ and OpenMP tasks (OpenMPTasks.h), and only inside an active parallel
+ * region (the tasks run on its threads); otherwise, and for small ranges, it calls std::sort.
  */
 #ifndef PERCOLATOR_SORT_LIKE_STD_H
 #define PERCOLATOR_SORT_LIKE_STD_H
@@ -38,6 +38,8 @@
 #include <new>
 #include <utility>
 #include <vector>
+
+#include "OpenMPTasks.h"  // OpenMS: PERCOLATOR_OMP_TASKS
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -57,7 +59,7 @@ constexpr std::ptrdiff_t kMinChunk = 2048;          // elements a task of partit
 constexpr std::ptrdiff_t kSwapBlocksPerPartition = 16;
 constexpr std::ptrdiff_t kMinSwapBlock = 1024;
 
-#if defined(__GLIBCXX__) && defined(_OPENMP)
+#if defined(__GLIBCXX__) && PERCOLATOR_OMP_TASKS
 // std::__unguarded_partition(first + 1, last, first) with the tasks of the enclosing parallel
 // region, for large ranges, where its sequential scans are the critical path of the sort (the
 // idea of FragmentIndex::sortPeptides_). The scans swap the k-th element from the left that is
@@ -228,7 +230,7 @@ void introsortLoop(T* first, T* last, int depth_limit, Less less,
 // partitionInParallel (for tests)
 template <typename T, typename Less>
 void sortLikeStdSort(T* first, T* last, Less less, std::ptrdiff_t minParallelPartition) {
-#if defined(__GLIBCXX__) && defined(_OPENMP)
+#if defined(__GLIBCXX__) && PERCOLATOR_OMP_TASKS
   const std::ptrdiff_t n = last - first;
   if (n > 2 * kMinTaskSize && omp_in_parallel()) {
     const int depth_limit = 2 * (static_cast<int>(std::bit_width(static_cast<std::size_t>(n))) - 1);  // std::__lg(n) * 2

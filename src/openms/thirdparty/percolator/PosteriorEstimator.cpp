@@ -35,6 +35,7 @@
 #include "Transform.h"
 #include "Globals.h"
 #include "Version.h"
+#include "OpenMPTasks.h"  // OpenMS: PERCOLATOR_OMP_TASKS, PERCOLATOR_TASK_PRAGMA
 #include <exception>
 #include <stdint.h>
 #ifdef _OPENMP
@@ -462,7 +463,7 @@ bool PosteriorEstimator::getQValuesInTasks(double pi0,
   starts.push_back(n);
   const int numBlocks = static_cast<int>(starts.size() - 1);
   vector<int> targets(static_cast<size_t>(numBlocks)), decoys(static_cast<size_t>(numBlocks));
-#pragma omp taskloop grainsize(1) shared(combined, starts, targets, decoys)
+  PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(combined, starts, targets, decoys))
   for (int b = 0; b < numBlocks; ++b) {
     int t = 0, d = 0;
     for (size_t i = starts[static_cast<size_t>(b)]; i < starts[static_cast<size_t>(b) + 1]; ++i) {
@@ -485,7 +486,7 @@ bool PosteriorEstimator::getQValuesInTasks(double pi0,
                      (withNegatives ? static_cast<size_t>(decoys[b]) : 0u);
   }
   q.resize(qBefore[static_cast<size_t>(numBlocks)]);
-#pragma omp taskloop grainsize(1) shared(combined, starts, zBefore, wBefore, qBefore, q)
+  PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(combined, starts, zBefore, wBefore, qBefore, q))
   for (int b = 0; b < numBlocks; ++b) {
     // the loop of getQValues on the block, without the mix-max correction (pi0 >= 1)
     const double E_f1_mod_run_tot = 0.0;
@@ -524,7 +525,7 @@ bool PosteriorEstimator::getQValuesInTasks(double pi0,
     const bool empty = qBefore[b + 1] == qBefore[b + 2];
     after[b] = empty ? after[b + 1] : mymin(after[b + 1], q[qBefore[b + 1]]);
   }
-#pragma omp taskloop grainsize(1) shared(after, qBefore, q)
+  PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(after, qBefore, q))
   for (int b = 0; b < numBlocks - 1; ++b) {
     for (size_t k = qBefore[static_cast<size_t>(b)]; k < qBefore[static_cast<size_t>(b) + 1]; ++k) {
       q[k] = mymin(after[static_cast<size_t>(b)], q[k]);
@@ -655,7 +656,7 @@ double PosteriorEstimator::estimatePi0(vector<double>& p,
     const size_t numLambdas = lambdas.size();
     vector<double> pi0Boots(static_cast<size_t>(numBoot) * numLambdas);
     vector<std::exception_ptr> errors(numBoot);
-#pragma omp taskloop grainsize(4) shared(p, lambdas, pi0Boots, errors)
+    PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(4) shared(p, lambdas, pi0Boots, errors))
     for (int boot = 0; boot < static_cast<int>(numBoot); ++boot) {
       try {
         uint64_t state = PseudoRandom::advance(seed, static_cast<uint64_t>(boot) * numDraw);

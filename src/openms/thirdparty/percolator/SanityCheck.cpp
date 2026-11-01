@@ -24,6 +24,7 @@
 #include "Normalizer.h"
 #include "SanityCheck.h"
 #include "Globals.h"
+#include "OpenMPTasks.h"  // OpenMS: PERCOLATOR_OMP_TASKS, PERCOLATOR_TASK_PRAGMA
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
@@ -115,9 +116,13 @@ int SanityCheck::getInitDirection(vector<Scores>& testset,
   // tasks of the sorts as well, see Scores.cpp); each scores and sorts only its own test set
   vector<int> positives(w.size());
   vector<std::exception_ptr> errors(w.size());
+#if PERCOLATOR_OMP_TASKS
 #pragma omp parallel num_threads(numThreads_)
 #pragma omp single
 #pragma omp taskloop grainsize(1)
+#else
+#pragma omp parallel for schedule(dynamic, 1) num_threads(numThreads_)
+#endif
   for (int set = 0; set < static_cast<int>(w.size()); ++set) {
     try {
       positives[set] = (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr);
@@ -144,9 +149,13 @@ void SanityCheck::getDefaultDirection(vector<vector<double> >& w) {
       // reports are printed afterwards, in fold order
       vector<ostringstream> reports(w.size());
       vector<std::exception_ptr> errors(w.size());
+#if PERCOLATOR_OMP_TASKS
 #pragma omp parallel num_threads(numThreads_)
 #pragma omp single
 #pragma omp taskloop grainsize(1)
+#else
+#pragma omp parallel for schedule(dynamic, 1) num_threads(numThreads_)
+#endif
       for (int set = 0; set < static_cast<int>(w.size()); ++set) {
         try {
           calcInitDirection(w[set], static_cast<size_t>(set), reports[set]);
@@ -192,9 +201,13 @@ bool SanityCheck::validateDirection(vector<vector<double> >& w) {
   // OpenMS: the folds in parallel, as in getInitDirection
   vector<int> positives(w.size());
   vector<std::exception_ptr> errors(w.size());
+#if PERCOLATOR_OMP_TASKS
 #pragma omp parallel num_threads(numThreads_)
 #pragma omp single
 #pragma omp taskloop grainsize(1)
+#else
+#pragma omp parallel for schedule(dynamic, 1) num_threads(numThreads_)
+#endif
   for (int set = 0; set < static_cast<int>(w.size()); ++set) {
     try {
       positives[set] = (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr_);

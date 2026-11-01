@@ -17,6 +17,7 @@
 
 #include "FeatureMemoryPool.h"
 #include "ssl.h"  // OpenMS: adviseHugePages
+#include "OpenMPTasks.h"  // OpenMS: PERCOLATOR_OMP_TASKS, PERCOLATOR_TASK_PRAGMA
 
 #include <algorithm>
 #include <cstdint>
@@ -156,7 +157,7 @@ bool FeatureMemoryPool::moveRowsInOrder(const std::vector<double**>& rows,
   // the index of each row (n if it is none of the pool's rows), by the tasks of an enclosing
   // OpenMP parallel region if there is one; then whether each row occurs once
   const std::unique_ptr<std::size_t[]> indexOf(new std::size_t[n]);
-#pragma omp taskloop grainsize(grain) shared(rows, blocks, indexOf) if(inTasks)
+  PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(grain) shared(rows, blocks, indexOf) if(inTasks))
   for (std::ptrdiff_t k = 0; k < numRows; ++k) {
     std::size_t idx = n;
     const std::uintptr_t a = reinterpret_cast<std::uintptr_t>(*rows[static_cast<std::size_t>(k)]);
@@ -181,11 +182,11 @@ bool FeatureMemoryPool::moveRowsInOrder(const std::vector<double**>& rows,
   // if there is one (the blocks are disjoint)
   const std::unique_ptr<double[]> moved(new double[n * numFeatures_]);
   adviseHugePages(moved.get(), n * numFeatures_ * sizeof(double));  // OpenMS (ssl.h): written once, read once
-#pragma omp taskloop grainsize(grain) shared(rows, moved) if(inTasks)
+  PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(grain) shared(rows, moved) if(inTasks))
   for (std::ptrdiff_t k = 0; k < numRows; ++k) {
     std::copy(*rows[k], *rows[k] + numFeatures_, moved.get() + k * numFeatures_);
   }
-#pragma omp taskloop grainsize(grain) shared(rows, moved) if(inTasks)
+  PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(grain) shared(rows, moved) if(inTasks))
   for (std::ptrdiff_t k = 0; k < numRows; ++k) {
     double* row = addressFromIdx(static_cast<unsigned int>(k));
     std::copy(moved.get() + k * numFeatures_, moved.get() + (k + 1) * numFeatures_, row);

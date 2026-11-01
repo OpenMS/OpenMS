@@ -533,7 +533,7 @@ START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that 
     }
     TEST_TRUE(rule)
     // a threshold no doubling reaches: every fold that accepted validation targets at the first size stops at the
-    // second (a fold at 0 targets needs a gain > 0: 0 < 0 does not stop it, as preregistered)
+    // second (a fold at 0 targets needs a gain > 0: 0 < 0 does not stop it)
     Percolator::CappedTrainingInfo lc_stop;
     curve(10.0, 8, 17, &lc_stop, nullptr);
     bool stops_second = lc_stop.curve_sizes.size() >= 2;
@@ -577,13 +577,22 @@ START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that 
     std::vector<std::vector<double>> lc_relabel_w;
     curve(0.002, 8, 17, &lc_relabel, &lc_relabel_w);
     input.is_decoy = labels;
-    bool fold0_same = lc_relabel.chosen_size[0] == lc.chosen_size[0] && lc_relabel.curve_sizes == lc.curve_sizes;
-    bool others_changed = false;
-    for (std::size_t k = 0; fold0_same && k < lc.curve_sizes.size(); ++k)
+    // only fold 0's own data: its size, its counts and its weights. The curve has a size as long as any fold is still
+    // training, so the other folds decide how long it is: up to the longer curve's end, fold 0 has no count (-1).
+    bool fold0_same = lc_relabel.chosen_size[0] == lc.chosen_size[0];
+    bool others_changed = lc_relabel.curve_sizes.size() != lc.curve_sizes.size();
+    const std::size_t common = std::min(lc.curve_sizes.size(), lc_relabel.curve_sizes.size());
+    for (std::size_t k = 0; k < common; ++k)
     {
-      fold0_same = fold0_same && lc_relabel.curve_counts[k][0] == lc.curve_counts[k][0];
+      fold0_same = fold0_same && lc_relabel.curve_counts[k][0] == lc.curve_counts[k][0] &&
+                   (lc.curve_counts[k][0] < 0 || lc_relabel.curve_sizes[k] == lc.curve_sizes[k]);
       others_changed = others_changed || lc_relabel.curve_counts[k][1] != lc.curve_counts[k][1] ||
                        lc_relabel.curve_counts[k][2] != lc.curve_counts[k][2];
+    }
+    for (std::size_t k = common; k < lc.curve_sizes.size(); ++k) fold0_same = fold0_same && lc.curve_counts[k][0] == -1;
+    for (std::size_t k = common; k < lc_relabel.curve_sizes.size(); ++k)
+    {
+      fold0_same = fold0_same && lc_relabel.curve_counts[k][0] == -1;
     }
     for (std::size_t j = 0; fold0_same && j < lc_w[0].size(); ++j)
     {
