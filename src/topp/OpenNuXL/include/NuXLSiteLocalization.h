@@ -38,6 +38,9 @@ namespace OpenMS
 class NuXLSiteLocalization
 {
 public:
+  /// Default fraction of the fragment intensity by which a residue's support may fall short of the best and still count as supported
+  static constexpr double DEFAULT_TOLERANCE = 0.1;
+
   /// Result of localizing one cross-link
   struct Site
   {
@@ -52,19 +55,24 @@ public:
 
     For every residue, sums the intensity of the ions consistent with a cross-link there (shifted ions
     that contain the residue, unshifted ions that don't) minus the intensity of the inconsistent ones.
-    The returned range spans the residues with the highest sum: residues no ion separates get the
-    same sum (e.g., the first two residues if neither b<sub>1</sub> nor y<sub>length-1</sub> is observed).
+    The returned range spans the residues whose sum is at most @p tolerance times the total fragment
+    intensity below the highest one, so that a single weak or misassigned ion doesn't decide. Residues no
+    ion separates get the same sum (e.g., the first two residues without a<sub>1</sub>/b<sub>1</sub> and
+    y<sub>length-1</sub> ions). Unshifted ions alone also limit the range. Unshifted a<sub>1</sub>/b<sub>1</sub>
+    ions are ignored: b<sub>1</sub> of lysine coincides with common lysine ions of any peptide.
 
     @param[in] n_shifts intensity of the shifted prefix (a/b) ions ending at each residue
     @param[in] n_noshifts intensity of the unshifted prefix (a/b) ions ending at each residue
     @param[in] c_shifts intensity of the shifted suffix (y) ions starting at each residue
     @param[in] c_noshifts intensity of the unshifted suffix (y) ions starting at each residue
-    @return 0-based first and last residue (inclusive); (-1, -1) if no shifted ion was observed
+    @param[in] tolerance fraction of the total fragment intensity by which a residue's sum may fall short of the highest
+    @return 0-based first and last residue (inclusive); (-1, -1) without any fragment evidence
   */
   static std::pair<int, int> supportedRange(const std::vector<double>& n_shifts,
                                             const std::vector<double>& n_noshifts,
                                             const std::vector<double>& c_shifts,
-                                            const std::vector<double>& c_noshifts);
+                                            const std::vector<double>& c_noshifts,
+                                            double tolerance = DEFAULT_TOLERANCE);
 
   /**
     @brief Localizes a cross-link attached through an NHS ester.
@@ -85,13 +93,15 @@ public:
     @param[in] n_noshifts intensity of the unshifted prefix (a/b) ions ending at each residue
     @param[in] c_shifts intensity of the shifted suffix (y) ions starting at each residue
     @param[in] c_noshifts intensity of the unshifted suffix (y) ions starting at each residue
+    @param[in] tolerance see @ref supportedRange
   */
   static Site localizeNHS(const std::string& sequence,
                           bool reactive_protein_n_term,
                           const std::vector<double>& n_shifts,
                           const std::vector<double>& n_noshifts,
                           const std::vector<double>& c_shifts,
-                          const std::vector<double>& c_noshifts);
+                          const std::vector<double>& c_noshifts,
+                          double tolerance = DEFAULT_TOLERANCE);
 
   /**
     @brief Sorted protein starts to look up protein N-terminal peptides with @ref isProteinNTerminal.

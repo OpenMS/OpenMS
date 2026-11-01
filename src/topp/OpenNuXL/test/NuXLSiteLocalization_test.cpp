@@ -48,14 +48,27 @@ START_TEST(NuXLSiteLocalization, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION((static std::pair<int, int> supportedRange(const std::vector<double>& n_shifts, const std::vector<double>& n_noshifts, const std::vector<double>& c_shifts, const std::vector<double>& c_noshifts)))
+START_SECTION((static std::pair<int, int> supportedRange(const std::vector<double>& n_shifts, const std::vector<double>& n_noshifts, const std::vector<double>& c_shifts, const std::vector<double>& c_noshifts, double tolerance = DEFAULT_TOLERANCE)))
 {
-  // no shifted ion: no evidence for any site
+  // no fragment ion: no evidence for any site
+  {
+    Evidence e(8);
+    TEST_EQUAL(NuXLSiteLocalization::supportedRange(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == make_pair(-1, -1), true)
+  }
+
+  // unshifted ions alone: b3 and y3 unshifted, the cross-link is on residues 4-5 (0-based 3-4)
   {
     Evidence e(8);
     e.n_noshifts[2] = 1.0;
     e.c_noshifts[5] = 1.0;
-    TEST_EQUAL(NuXLSiteLocalization::supportedRange(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == make_pair(-1, -1), true)
+    TEST_EQUAL(NuXLSiteLocalization::supportedRange(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == make_pair(3, 4), true)
+  }
+
+  // an unshifted b1 is ignored (b1 of lysine coincides with common lysine ions): kLLDEGR with b2 shifted
+  {
+    Evidence e = prefixEvidence(7, 0, 1);
+    e.n_noshifts[0] = 5.0;
+    TEST_EQUAL(NuXLSiteLocalization::supportedRange(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == make_pair(0, 1), true)
   }
 
   // b3 unshifted, b5 shifted: residues 3 and 4 (0-based 2-4 without b4)
@@ -64,7 +77,7 @@ START_SECTION((static std::pair<int, int> supportedRange(const std::vector<doubl
     TEST_EQUAL(NuXLSiteLocalization::supportedRange(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == make_pair(2, 4), true)
   }
 
-  // only b2 shifted: without b1 and y7, the first two residues can't be told apart (KgAIVTGK in MSFragger)
+  // only b2 shifted: without y7, the first two residues can't be told apart (KgAIVTGK in MSFragger)
   {
     const Evidence e = prefixEvidence(8, 0, 1);
     TEST_EQUAL(NuXLSiteLocalization::supportedRange(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == make_pair(0, 1), true)
@@ -78,6 +91,19 @@ START_SECTION((static std::pair<int, int> supportedRange(const std::vector<doubl
     TEST_EQUAL(NuXLSiteLocalization::supportedRange(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == make_pair(1, 1), true)
   }
 
+  // a weak contradicting ion (below the tolerance) doesn't decide: NDKNGIIHTTIGK with a weak a2+SDA
+  {
+    Evidence e(13);
+    e.n_shifts[1] = 0.02; // a2+SDA: site at residue 1-2
+    e.n_shifts[2] = 1.0;  // b3+SDA: site at residue 1-3
+    e.c_noshifts[3] = 1.0; // y10 unshifted: site at residue 1-3
+    TEST_EQUAL(NuXLSiteLocalization::supportedRange(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == make_pair(0, 2), true)
+    TEST_EQUAL(NuXLSiteLocalization::supportedRange(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts, 0.0) == make_pair(0, 1), true)
+    const NuXLSiteLocalization::Site s = localize("NDKNGIIHTTIGK", false, e);
+    TEST_EQUAL(s.position, 2)
+    TEST_STRING_EQUAL(s.method, "K")
+  }
+
   // contradicting ions: the stronger ones decide
   {
     Evidence e = prefixEvidence(8, 2, 4);
@@ -87,7 +113,7 @@ START_SECTION((static std::pair<int, int> supportedRange(const std::vector<doubl
 }
 END_SECTION
 
-START_SECTION((static Site localizeNHS(const std::string& sequence, bool reactive_protein_n_term, const std::vector<double>& n_shifts, const std::vector<double>& n_noshifts, const std::vector<double>& c_shifts, const std::vector<double>& c_noshifts)))
+START_SECTION((static Site localizeNHS(const std::string& sequence, bool reactive_protein_n_term, const std::vector<double>& n_shifts, const std::vector<double>& n_noshifts, const std::vector<double>& c_shifts, const std::vector<double>& c_noshifts, double tolerance = DEFAULT_TOLERANCE)))
 {
   // lysine at the peptide N-terminus (KgAIVTGK)
   {
@@ -137,7 +163,7 @@ START_SECTION((static Site localizeNHS(const std::string& sequence, bool reactiv
     const NuXLSiteLocalization::Site s = localize("LLSAAAAHR", false, prefixEvidence(9, 1, 2));
     TEST_EQUAL(s.position, -1)
     TEST_STRING_EQUAL(s.method, "unlocalized")
-    TEST_EQUAL(s.range_begin, 1)
+    TEST_EQUAL(s.range_begin, 0) // the unshifted b1 doesn't count
     TEST_EQUAL(s.range_end, 2)
   }
 
@@ -146,6 +172,17 @@ START_SECTION((static Site localizeNHS(const std::string& sequence, bool reactiv
     const NuXLSiteLocalization::Site s = localize("TKPHVNVGTIGHVDHGK", false, prefixEvidence(17, 2, 3));
     TEST_EQUAL(s.position, -1)
     TEST_STRING_EQUAL(s.method, "unlocalized")
+  }
+
+  // lysine found by the unshifted y ions alone (vtkIFVDEGPSMK: y10 unshifted)
+  {
+    Evidence e(13);
+    e.c_noshifts[3] = 1.0;
+    const NuXLSiteLocalization::Site s = localize("VTKIFVDEGPSMK", false, e);
+    TEST_EQUAL(s.position, 2)
+    TEST_STRING_EQUAL(s.method, "K")
+    TEST_EQUAL(s.range_begin, 0)
+    TEST_EQUAL(s.range_end, 2)
   }
 
   // no fragment evidence: unlocalized without a range

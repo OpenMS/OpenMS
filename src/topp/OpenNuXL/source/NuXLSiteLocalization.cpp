@@ -21,35 +21,40 @@ namespace OpenMS
   pair<int, int> NuXLSiteLocalization::supportedRange(const vector<double>& n_shifts,
                                                       const vector<double>& n_noshifts,
                                                       const vector<double>& c_shifts,
-                                                      const vector<double>& c_noshifts)
+                                                      const vector<double>& c_noshifts,
+                                                      double tolerance)
   {
     const int length = static_cast<int>(n_shifts.size());
-    const double shifted_intensity = accumulate(n_shifts.begin(), n_shifts.end(), 0.0) + accumulate(c_shifts.begin(), c_shifts.end(), 0.0);
-    if (length == 0 || shifted_intensity <= 0.0) { return {-1, -1}; } // no fragment evidence for any site
+    // unshifted a1/b1 ions are not used: b1 of lysine (m/z 129.10) is also a common lysine ion of any peptide
+    // (e.g. y1-H2O of a C-terminal lysine), whether the lysine is cross-linked or not
+    const double total_intensity = accumulate(n_shifts.begin(), n_shifts.end(), 0.0)
+      + (length > 1 ? accumulate(n_noshifts.begin() + 1, n_noshifts.end(), 0.0) : 0.0)
+      + accumulate(c_shifts.begin(), c_shifts.end(), 0.0) + accumulate(c_noshifts.begin(), c_noshifts.end(), 0.0);
+    if (length == 0 || total_intensity <= 0.0) { return {-1, -1}; } // no fragment evidence for any site
 
-    // intensity of the ions consistent with a cross-link at residue k minus the inconsistent ones
+    // intensity of the ions consistent with a cross-link at residue k minus the inconsistent ones.
+    // Unshifted ions alone also locate it: they can't contain the cross-linked residue.
     vector<double> support(length, 0.0);
     for (int k = 0; k != length; ++k)
     {
       for (int i = 0; i != length; ++i)
       {
         support[k] += (i >= k ? n_shifts[i] : -n_shifts[i]);     // prefix ending at i contains k: must be shifted
-        support[k] += (i < k ? n_noshifts[i] : -n_noshifts[i]);  // prefix ending at i doesn't contain k: must be unshifted
+        if (i > 0) { support[k] += (i < k ? n_noshifts[i] : -n_noshifts[i]); } // prefix ending at i doesn't contain k: must be unshifted
         support[k] += (i <= k ? c_shifts[i] : -c_shifts[i]);     // suffix starting at i contains k: must be shifted
         support[k] += (i > k ? c_noshifts[i] : -c_noshifts[i]);  // suffix starting at i doesn't contain k: must be unshifted
       }
     }
 
-    // residues not separated by any ion get exactly the same terms: allow for rounding only.
-    // E.g. without b1 and y(n-1) ions, the first two residues always tie.
+    // Residues not separated by any ion get exactly the same support (e.g. the first two residues without a1/b1
+    // and y(n-1) ions). Support differences below the tolerance (a fraction of all fragment intensity) are
+    // not conclusive either: a single weak or misassigned ion would otherwise decide.
     const double best = *max_element(support.begin(), support.end());
-    const double total_intensity = shifted_intensity
-      + accumulate(n_noshifts.begin(), n_noshifts.end(), 0.0) + accumulate(c_noshifts.begin(), c_noshifts.end(), 0.0);
-    const double tolerance = 1e-9 * total_intensity;
+    const double margin = max(tolerance, 1e-9) * total_intensity;
     int begin = -1, end = -1;
     for (int k = 0; k != length; ++k)
     {
-      if (support[k] < best - tolerance) { continue; }
+      if (support[k] < best - margin) { continue; }
       if (begin == -1) { begin = k; }
       end = k;
     }
@@ -62,10 +67,11 @@ namespace OpenMS
                                                                const vector<double>& n_shifts,
                                                                const vector<double>& n_noshifts,
                                                                const vector<double>& c_shifts,
-                                                               const vector<double>& c_noshifts)
+                                                               const vector<double>& c_noshifts,
+                                                               double tolerance)
   {
     Site site;
-    const auto [begin, end] = supportedRange(n_shifts, n_noshifts, c_shifts, c_noshifts);
+    const auto [begin, end] = supportedRange(n_shifts, n_noshifts, c_shifts, c_noshifts, tolerance);
     if (begin < 0 || end >= static_cast<int>(sequence.size())) { return site; }
     site.range_begin = begin;
     site.range_end = end;
