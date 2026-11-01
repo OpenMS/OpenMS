@@ -532,7 +532,7 @@ set_tests_properties("TOPP_FeatureFinderIdentification_9_rescore" PROPERTIES DEP
 foreach(_ffid_9_out FeatureFinderIdentification_9 FeatureFinderIdentification_9_rescored)
   add_test("TOPP_${_ffid_9_out}_models" ${CMAKE_COMMAND}
     -DINPUT_FILE=${TESTS_TEMP_DIR}/${_ffid_9_out}.tmp.featureXML
-    "-DEXPECTED=name=\"model_status\" value=\"0 (valid)\""
+    "-DEXPECTED=<featureList count=\"10\">;name=\"FAIMS_CV\" value=\"-45.0\";name=\"FAIMS_CV\" value=\"-55.0\";name=\"model_status\" value=\"0 (valid)\""
     "-DFORBIDDEN=width too large"
     -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
   set_tests_properties("TOPP_${_ffid_9_out}_models" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_9_rescore")
