@@ -7,6 +7,7 @@ directory of this repository.
 */
 
 #include "mzpeak/util/parquet_writer.h"
+#include "mzpeak/util/arrow.h"
 
 #include <algorithm>
 #include <arrow/array/array_nested.h>
@@ -173,7 +174,7 @@ bool entity_index_is_ascending(const arrow::Table& table)
     values = std::static_pointer_cast<arrow::StructArray>(values)->field(0);
   }
 
-  auto index = std::dynamic_pointer_cast<arrow::UInt64Array>(values);
+  auto index = MzPeak::Util::numeric_array_cast<arrow::UInt64Array>(values);
   if (!index) return false;
   if (index->null_count() != 0) return false; // nulls_first=false would be a lie
 

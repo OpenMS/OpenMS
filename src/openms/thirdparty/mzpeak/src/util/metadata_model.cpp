@@ -592,7 +592,7 @@ CvParam extract_one_cv_param(const Facet& items, int64_t k)
         return p;
       }
       // "integer" arm — Int64.
-      if (auto f = std::dynamic_pointer_cast<arrow::Int64Array>(
+      if (auto f = MzPeak::Util::numeric_array_cast<arrow::Int64Array>(
               val_struct->GetFieldByName("integer"))) {
         if (!f->IsNull(k)) {
           p.value = std::to_string(f->Value(k));
@@ -601,7 +601,7 @@ CvParam extract_one_cv_param(const Facet& items, int64_t k)
       }
       // "float" arm — Double (stored as float64 in Arrow; use canonical
       // format per M2 to avoid trailing zeros, e.g. 35.0 -> "35").
-      if (auto f = std::dynamic_pointer_cast<arrow::DoubleArray>(
+      if (auto f = MzPeak::Util::numeric_array_cast<arrow::DoubleArray>(
               val_struct->GetFieldByName("float"))) {
         if (!f->IsNull(k)) {
           p.value = format_double_canonical(f->Value(k));
@@ -777,15 +777,15 @@ void append_activation_columns(const Facet& facet,
       param.value = large->GetString(row);
     } else if (auto str = std::dynamic_pointer_cast<arrow::StringArray>(field)) {
       param.value = str->GetString(row);
-    } else if (auto dbl = std::dynamic_pointer_cast<arrow::DoubleArray>(field)) {
+    } else if (auto dbl = MzPeak::Util::numeric_array_cast<arrow::DoubleArray>(field)) {
       // std::format, not std::to_string: the latter is %f with six decimals,
       // which silently truncates anything with more resolution than that.
       param.value = std::format("{}", dbl->Value(row));
-    } else if (auto flt = std::dynamic_pointer_cast<arrow::FloatArray>(field)) {
+    } else if (auto flt = MzPeak::Util::numeric_array_cast<arrow::FloatArray>(field)) {
       param.value = std::format("{}", flt->Value(row));
-    } else if (auto i64 = std::dynamic_pointer_cast<arrow::Int64Array>(field)) {
+    } else if (auto i64 = MzPeak::Util::numeric_array_cast<arrow::Int64Array>(field)) {
       param.value = std::format("{}", i64->Value(row));
-    } else if (auto i32 = std::dynamic_pointer_cast<arrow::Int32Array>(field)) {
+    } else if (auto i32 = MzPeak::Util::numeric_array_cast<arrow::Int32Array>(field)) {
       param.value = std::format("{}", i32->Value(row));
     } else {
       continue; // a shape this reader has no honest representation for
@@ -1543,7 +1543,7 @@ read_spectra_metadata_(const SpectraMetadataFiles& files, MetadataDetail detail)
                 auto data_slice = list_slice(resolve_field(aux, "data"), begin + k);
                 if (data_slice) {
                   {
-                    auto data_values = std::dynamic_pointer_cast<arrow::UInt8Array>(
+                    auto data_values = MzPeak::Util::numeric_array_cast<arrow::UInt8Array>(
                         data_slice->values);
                     if (data_values) {
                       int64_t d_begin = data_slice->begin;

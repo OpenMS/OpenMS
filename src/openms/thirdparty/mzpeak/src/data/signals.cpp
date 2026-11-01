@@ -116,8 +116,10 @@ std::size_t Signals::record_count() const
     if (!chunk->is_stats_set()) continue;
     auto stats = chunk->statistics();
     if (!stats || !stats->HasMinMax()) continue;
-    auto typed = std::dynamic_pointer_cast<parquet::Int64Statistics>(stats);
-    if (!typed) continue;
+    // The physical type decides the cast, as in the planner: TypedStatistics<T> is not exported by libparquet,
+    // so a dynamic_cast across the library boundary fails on macOS (libc++ compares type_info by address).
+    if (stats->physical_type() != parquet::Type::INT64) continue;
+    auto typed = std::static_pointer_cast<parquet::Int64Statistics>(stats);
     max_signed = std::max(max_signed, typed->max());
   }
 

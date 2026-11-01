@@ -44,6 +44,14 @@ the OpenMS interface.
 - Reader: `Spectrum::ion_mobility_array_type()` tells the array type of the per-peak ion mobility
   array (`include/mzpeak/spectrum.h`, `src/spectrum.cpp`); a timed scan replaces an untimed
   representative scan (`src/util/metadata_model.cpp`).
+- Reader and writer: casts to the typed numeric Arrow arrays (`arrow::Int64Array`, `DoubleArray`, ...)
+  and to `parquet::Int64Statistics` go by the type id (`Util::numeric_array_cast()` in
+  `include/mzpeak/util/arrow.h`; `physical_type()` in `Signals::record_count()`) instead of a
+  `dynamic_pointer_cast`: `arrow::NumericArray<T>` and `parquet::TypedStatistics<T>` are templates the
+  libraries do not export, so those casts fail across the library boundary on macOS (libc++
+  compares `type_info` by address): chromatogram reads threw "no statistics for
+  point.chromatogram_index" and numeric CV parameter values (collision energy, ...) were read as
+  absent (`src/data/signals.cpp`, `src/util/metadata_model.cpp`, `src/util/parquet_writer.cpp`).
 - `src/boost_json_src.cpp` (new): Boost.JSON compiled header-only, so libOpenMS links no
   compiled Boost library.
 - `sources.cmake`, `CMakeLists.txt`, this file.
