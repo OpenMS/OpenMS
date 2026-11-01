@@ -18,7 +18,7 @@ using namespace std;
 namespace OpenMS
 {
   // static
-  pair<int, int> NuXLSiteLocalization::supportedRange(const vector<double>& n_shifts,
+  vector<int> NuXLSiteLocalization::supportedResidues(const vector<double>& n_shifts,
                                                       const vector<double>& n_noshifts,
                                                       const vector<double>& c_shifts,
                                                       const vector<double>& c_noshifts,
@@ -30,7 +30,7 @@ namespace OpenMS
     const double total_intensity = accumulate(n_shifts.begin(), n_shifts.end(), 0.0)
       + (length > 1 ? accumulate(n_noshifts.begin() + 1, n_noshifts.end(), 0.0) : 0.0)
       + accumulate(c_shifts.begin(), c_shifts.end(), 0.0) + accumulate(c_noshifts.begin(), c_noshifts.end(), 0.0);
-    if (length == 0 || total_intensity <= 0.0) { return {-1, -1}; } // no fragment evidence for any site
+    if (length == 0 || total_intensity <= 0.0) { return {}; } // no fragment evidence for any site
 
     // intensity of the ions consistent with a cross-link at residue k minus the inconsistent ones.
     // Unshifted ions alone also locate it: they can't contain the cross-linked residue.
@@ -51,14 +51,12 @@ namespace OpenMS
     // not conclusive either: a single weak or misassigned ion would otherwise decide.
     const double best = *max_element(support.begin(), support.end());
     const double margin = max(tolerance, 1e-9) * total_intensity;
-    int begin = -1, end = -1;
+    vector<int> supported;
     for (int k = 0; k != length; ++k)
     {
-      if (support[k] < best - margin) { continue; }
-      if (begin == -1) { begin = k; }
-      end = k;
+      if (support[k] >= best - margin) { supported.push_back(k); }
     }
-    return {begin, end};
+    return supported;
   }
 
   // static
@@ -71,8 +69,10 @@ namespace OpenMS
                                                                double tolerance)
   {
     Site site;
-    const auto [begin, end] = supportedRange(n_shifts, n_noshifts, c_shifts, c_noshifts, tolerance);
-    if (begin < 0 || end >= static_cast<int>(sequence.size())) { return site; }
+    // contradicting ions can support residues on both sides of unsupported ones: only supported residues are candidates
+    vector<int> by_distance = supportedResidues(n_shifts, n_noshifts, c_shifts, c_noshifts, tolerance);
+    if (by_distance.empty() || by_distance.back() >= static_cast<int>(sequence.size())) { return site; }
+    const int begin = by_distance.front(), end = by_distance.back();
     site.range_begin = begin;
     site.range_end = end;
 
@@ -84,10 +84,8 @@ namespace OpenMS
       return site;
     }
 
-    // residues of the range ordered by distance to its middle (ties: closer to the N-terminus)
+    // supported residues ordered by distance to the middle of their range (ties: closer to the N-terminus)
     const int middle = begin + (end - begin + 2) / 2 - 1;
-    vector<int> by_distance(end - begin + 1);
-    iota(by_distance.begin(), by_distance.end(), begin);
     stable_sort(by_distance.begin(), by_distance.end(), [middle](int a, int b) { return abs(a - middle) < abs(b - middle); });
 
     // 2. lysine

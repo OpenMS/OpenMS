@@ -13,7 +13,6 @@
 ///////////////////////////
 
 #include <string>
-#include <utility>
 #include <vector>
 
 using namespace OpenMS;
@@ -37,6 +36,14 @@ namespace
     return e;
   }
 
+  // residues first..last; empty for first < 0
+  vector<int> residues(int first, int last)
+  {
+    vector<int> r;
+    for (int i = first; first >= 0 && i <= last; ++i) { r.push_back(i); }
+    return r;
+  }
+
   NuXLSiteLocalization::Site localize(const string& sequence, bool reactive_protein_n_term, const Evidence& e)
   {
     return NuXLSiteLocalization::localizeNHS(sequence, reactive_protein_n_term, e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts);
@@ -48,12 +55,12 @@ START_TEST(NuXLSiteLocalization, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION((static std::pair<int, int> supportedRange(const std::vector<double>& n_shifts, const std::vector<double>& n_noshifts, const std::vector<double>& c_shifts, const std::vector<double>& c_noshifts, double tolerance = DEFAULT_TOLERANCE)))
+START_SECTION((static std::vector<int> supportedResidues(const std::vector<double>& n_shifts, const std::vector<double>& n_noshifts, const std::vector<double>& c_shifts, const std::vector<double>& c_noshifts, double tolerance = DEFAULT_TOLERANCE)))
 {
   // no fragment ion: no evidence for any site
   {
     Evidence e(8);
-    TEST_EQUAL(NuXLSiteLocalization::supportedRange(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == make_pair(-1, -1), true)
+    TEST_EQUAL(NuXLSiteLocalization::supportedResidues(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == residues(-1, -1), true)
   }
 
   // unshifted ions alone: b3 and y3 unshifted, the cross-link is on residues 4-5 (0-based 3-4)
@@ -61,26 +68,26 @@ START_SECTION((static std::pair<int, int> supportedRange(const std::vector<doubl
     Evidence e(8);
     e.n_noshifts[2] = 1.0;
     e.c_noshifts[5] = 1.0;
-    TEST_EQUAL(NuXLSiteLocalization::supportedRange(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == make_pair(3, 4), true)
+    TEST_EQUAL(NuXLSiteLocalization::supportedResidues(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == residues(3, 4), true)
   }
 
   // an unshifted b1 is ignored (b1 of lysine coincides with common lysine ions): kLLDEGR with b2 shifted
   {
     Evidence e = prefixEvidence(7, 0, 1);
     e.n_noshifts[0] = 5.0;
-    TEST_EQUAL(NuXLSiteLocalization::supportedRange(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == make_pair(0, 1), true)
+    TEST_EQUAL(NuXLSiteLocalization::supportedResidues(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == residues(0, 1), true)
   }
 
   // b3 unshifted, b5 shifted: residues 3 and 4 (0-based 2-4 without b4)
   {
     const Evidence e = prefixEvidence(8, 2, 4);
-    TEST_EQUAL(NuXLSiteLocalization::supportedRange(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == make_pair(2, 4), true)
+    TEST_EQUAL(NuXLSiteLocalization::supportedResidues(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == residues(2, 4), true)
   }
 
   // only b2 shifted: without y7, the first two residues can't be told apart (KgAIVTGK in MSFragger)
   {
     const Evidence e = prefixEvidence(8, 0, 1);
-    TEST_EQUAL(NuXLSiteLocalization::supportedRange(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == make_pair(0, 1), true)
+    TEST_EQUAL(NuXLSiteLocalization::supportedResidues(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == residues(0, 1), true)
   }
 
   // y7 shifted, y6 unshifted: the second residue, not the first
@@ -88,7 +95,7 @@ START_SECTION((static std::pair<int, int> supportedRange(const std::vector<doubl
     Evidence e(8);
     e.c_shifts[1] = 1.0;
     e.c_noshifts[2] = 1.0;
-    TEST_EQUAL(NuXLSiteLocalization::supportedRange(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == make_pair(1, 1), true)
+    TEST_EQUAL(NuXLSiteLocalization::supportedResidues(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == residues(1, 1), true)
   }
 
   // a weak contradicting ion (below the tolerance) doesn't decide: NDKNGIIHTTIGK with a weak a2+SDA
@@ -97,18 +104,30 @@ START_SECTION((static std::pair<int, int> supportedRange(const std::vector<doubl
     e.n_shifts[1] = 0.02; // a2+SDA: site at residue 1-2
     e.n_shifts[2] = 1.0;  // b3+SDA: site at residue 1-3
     e.c_noshifts[3] = 1.0; // y10 unshifted: site at residue 1-3
-    TEST_EQUAL(NuXLSiteLocalization::supportedRange(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == make_pair(0, 2), true)
-    TEST_EQUAL(NuXLSiteLocalization::supportedRange(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts, 0.0) == make_pair(0, 1), true)
+    TEST_EQUAL(NuXLSiteLocalization::supportedResidues(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == residues(0, 2), true)
+    TEST_EQUAL(NuXLSiteLocalization::supportedResidues(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts, 0.0) == residues(0, 1), true)
     const NuXLSiteLocalization::Site s = localize("NDKNGIIHTTIGK", false, e);
     TEST_EQUAL(s.position, 2)
     TEST_STRING_EQUAL(s.method, "K")
+  }
+
+  // contradicting ions of equal intensity support both ends of the peptide, but not the residues between them
+  {
+    Evidence e(8);
+    e.n_shifts[1] = 1.0; // b2 shifted: residue 1-2
+    e.c_shifts[6] = 1.0; // y2 shifted: residue 7-8
+    TEST_EQUAL(NuXLSiteLocalization::supportedResidues(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == vector<int>({0, 1, 6, 7}), true)
+    const NuXLSiteLocalization::Site s = localize("AAAKAAAR", false, e); // the lysine is not supported
+    TEST_EQUAL(s.position, -1)
+    TEST_EQUAL(s.range_begin, 0)
+    TEST_EQUAL(s.range_end, 7)
   }
 
   // contradicting ions: the stronger ones decide
   {
     Evidence e = prefixEvidence(8, 2, 4);
     e.c_shifts[6] = 0.2; // a weak y2 that would put the site at the C-terminus
-    TEST_EQUAL(NuXLSiteLocalization::supportedRange(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == make_pair(2, 4), true)
+    TEST_EQUAL(NuXLSiteLocalization::supportedResidues(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == residues(2, 4), true)
   }
 }
 END_SECTION

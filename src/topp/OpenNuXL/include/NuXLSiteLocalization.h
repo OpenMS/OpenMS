@@ -10,7 +10,6 @@
 
 #include <string>
 #include <string_view>
-#include <utility>
 #include <vector>
 
 namespace OpenMS
@@ -23,7 +22,7 @@ namespace OpenMS
   histidine, see Mädler et al., J. Mass Spectrom. 2009, 44, 694-706).
 
   Localization works in two steps:
-  1. @ref supportedRange determines the residues the fragment ions can't tell apart (the ambiguity
+  1. @ref supportedResidues determines the residues the fragment ions can't tell apart (the ambiguity
      stretch, like the lower-case range in the MSFragger localization).
   2. @ref localizeNHS picks the site in that stretch by the NHS chemistry.
 
@@ -46,7 +45,7 @@ public:
   {
     int position = -1;                      ///< localized residue, -1 if unlocalized
     int range_begin = -1;                   ///< first residue supported by the fragment ions, -1 without fragment evidence
-    int range_end = -1;                     ///< last residue supported by the fragment ions (inclusive), -1 without fragment evidence
+    int range_end = -1;                     ///< last residue supported by the fragment ions, -1 without fragment evidence
     std::string method = "unlocalized";     ///< how the site was chosen: "N-term", "K", "STY+H" or "unlocalized"
   };
 
@@ -55,8 +54,9 @@ public:
 
     For every residue, sums the intensity of the ions consistent with a cross-link there (shifted ions
     that contain the residue, unshifted ions that don't) minus the intensity of the inconsistent ones.
-    The returned range spans the residues whose sum is at most @p tolerance times the total fragment
-    intensity below the highest one, so that a single weak or misassigned ion doesn't decide. Residues no
+    Returns the residues whose sum is at most @p tolerance times the total fragment intensity below the
+    highest one, so that a single weak or misassigned ion doesn't decide. They are usually contiguous;
+    contradicting ions can support residues on both sides of unsupported ones. Residues no
     ion separates get the same sum (e.g., the first two residues without a<sub>1</sub>/b<sub>1</sub> and
     y<sub>length-1</sub> ions). Unshifted ions alone also limit the range. Unshifted a<sub>1</sub>/b<sub>1</sub>
     ions are ignored: b<sub>1</sub> of lysine coincides with common lysine ions of any peptide.
@@ -66,9 +66,9 @@ public:
     @param[in] c_shifts intensity of the shifted suffix (y) ions starting at each residue
     @param[in] c_noshifts intensity of the unshifted suffix (y) ions starting at each residue
     @param[in] tolerance fraction of the total fragment intensity by which a residue's sum may fall short of the highest
-    @return 0-based first and last residue (inclusive); (-1, -1) without any fragment evidence
+    @return supported residues (0-based, ascending); empty without any fragment evidence
   */
-  static std::pair<int, int> supportedRange(const std::vector<double>& n_shifts,
+  static std::vector<int> supportedResidues(const std::vector<double>& n_shifts,
                                             const std::vector<double>& n_noshifts,
                                             const std::vector<double>& c_shifts,
                                             const std::vector<double>& c_noshifts,
@@ -77,12 +77,12 @@ public:
   /**
     @brief Localizes a cross-link attached through an NHS ester.
 
-    Within the @ref supportedRange, in this order:
+    Among the @ref supportedResidues, in this order:
     1. the peptide N-terminus, if @p reactive_protein_n_term (the peptide starts the protein and its
-       N-terminus is free) and the range starts at the first residue;
-    2. the lysine closest to the middle of the range;
-    3. the serine, threonine or tyrosine closest to the middle of the range that has a histidine within
-       four residues in the peptide;
+       N-terminus is free) and the first residue is supported;
+    2. the lysine closest to the middle of the supported residues;
+    3. the serine, threonine or tyrosine closest to the middle of the supported residues that has a
+       histidine within four residues in the peptide;
     4. otherwise the cross-link stays unlocalized.
 
     Ties go to the residue closer to the N-terminus.
@@ -93,7 +93,7 @@ public:
     @param[in] n_noshifts intensity of the unshifted prefix (a/b) ions ending at each residue
     @param[in] c_shifts intensity of the shifted suffix (y) ions starting at each residue
     @param[in] c_noshifts intensity of the unshifted suffix (y) ions starting at each residue
-    @param[in] tolerance see @ref supportedRange
+    @param[in] tolerance see @ref supportedResidues
   */
   static Site localizeNHS(const std::string& sequence,
                           bool reactive_protein_n_term,
