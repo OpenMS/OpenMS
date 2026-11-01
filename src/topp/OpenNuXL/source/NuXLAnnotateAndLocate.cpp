@@ -21,6 +21,8 @@
 #include <OpenMS/CONCEPT/Macros.h> // for OPENMS_PRECONDITION
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <algorithm>
+#include <map>
 #include <regex>
 
 using namespace std;
@@ -29,6 +31,22 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  // whether a modification only exchanges isotopes (e.g. Label:13C(6)) and so leaves the residue's chemistry,
+  // e.g. the lysine amine, unchanged
+  static bool isIsotopeLabel(const ResidueModification* mod)
+  {
+    const EmpiricalFormula& diff = mod->getDiffFormula();
+    if (diff.isEmpty()) { return false; } // defined by mass only: chemistry unknown
+    map<string, SignedSize> net_count; // element symbol without mass number (e.g. "(13)C" -> "C")
+    for (const auto& [element, count] : diff)
+    {
+      string symbol = element->getSymbol();
+      if (!symbol.empty() && symbol[0] == '(') { symbol = symbol.substr(symbol.find(')') + 1); }
+      net_count[symbol] += count;
+    }
+    return all_of(net_count.begin(), net_count.end(), [](const auto& e) { return e.second == 0; });
+  }
 
   // create total loss spectrum using new_param as template
   static PeakSpectrum createTotalLossSpectrumForAnnotations(const AASequence& fixed_and_variable_modified_peptide, size_t precursor_charge, Param new_param)
@@ -851,8 +869,15 @@ namespace OpenMS
           const bool reactive_protein_n_term = protein_n_termini != nullptr
             && !fixed_and_variable_modified_peptide.hasNTerminalModification()
             && NuXLSiteLocalization::isProteinNTerminal(*protein_n_termini, unmodified_sequence);
+          // a modification other than an isotope label (e.g. Acetyl (K)) blocks the residue's amine or hydroxyl
+          vector<bool> blocked(unmodified_sequence.size(), false);
+          for (Size i = 0; i != fixed_and_variable_modified_peptide.size(); ++i)
+          {
+            const Residue& r = fixed_and_variable_modified_peptide[i];
+            blocked[i] = r.isModified() && !isIsotopeLabel(r.getModification());
+          }
           const NuXLSiteLocalization::Site site = NuXLSiteLocalization::localizeNHS(unmodified_sequence, reactive_protein_n_term,
-            n_shifts, n_noshifts, c_shifts, c_noshifts);
+            n_shifts, n_noshifts, c_shifts, c_noshifts, NuXLSiteLocalization::DEFAULT_TOLERANCE, blocked);
           best_localization = unmodified_sequence;
           if (site.position >= 0) { best_localization[site.position] = tolower(best_localization[site.position]); }
           best_localization_position = site.position;

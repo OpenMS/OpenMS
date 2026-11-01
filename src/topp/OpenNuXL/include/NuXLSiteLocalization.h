@@ -85,7 +85,7 @@ public:
        histidine within four residues in the peptide;
     4. otherwise the cross-link stays unlocalized.
 
-    Ties go to the residue closer to the N-terminus.
+    Ties go to the residue closer to the N-terminus. Residues flagged in @p blocked are skipped.
 
     @param[in] sequence unmodified peptide sequence
     @param[in] reactive_protein_n_term whether the peptide N-terminus is the free N-terminus of a protein
@@ -94,6 +94,7 @@ public:
     @param[in] c_shifts intensity of the shifted suffix (y) ions starting at each residue
     @param[in] c_noshifts intensity of the unshifted suffix (y) ions starting at each residue
     @param[in] tolerance see @ref supportedResidues
+    @param[in] blocked per residue, whether a modification blocks its reactive group (e.g. an acetylated lysine); empty: none
   */
   static Site localizeNHS(const std::string& sequence,
                           bool reactive_protein_n_term,
@@ -101,7 +102,8 @@ public:
                           const std::vector<double>& n_noshifts,
                           const std::vector<double>& c_shifts,
                           const std::vector<double>& c_noshifts,
-                          double tolerance = DEFAULT_TOLERANCE);
+                          double tolerance = DEFAULT_TOLERANCE,
+                          const std::vector<bool>& blocked = {});
 
   /**
     @brief Sorted protein starts to look up protein N-terminal peptides with @ref isProteinNTerminal.

@@ -132,7 +132,7 @@ START_SECTION((static std::vector<int> supportedResidues(const std::vector<doubl
 }
 END_SECTION
 
-START_SECTION((static Site localizeNHS(const std::string& sequence, bool reactive_protein_n_term, const std::vector<double>& n_shifts, const std::vector<double>& n_noshifts, const std::vector<double>& c_shifts, const std::vector<double>& c_noshifts, double tolerance = DEFAULT_TOLERANCE)))
+START_SECTION((static Site localizeNHS(const std::string& sequence, bool reactive_protein_n_term, const std::vector<double>& n_shifts, const std::vector<double>& n_noshifts, const std::vector<double>& c_shifts, const std::vector<double>& c_noshifts, double tolerance = DEFAULT_TOLERANCE, const std::vector<bool>& blocked = {})))
 {
   // lysine at the peptide N-terminus (KgAIVTGK)
   {
@@ -161,6 +161,17 @@ START_SECTION((static Site localizeNHS(const std::string& sequence, bool reactiv
   {
     const NuXLSiteLocalization::Site s = localize("AAAKAAKAAR", false, prefixEvidence(10, 2, 7));
     TEST_EQUAL(s.position, 3)
+    TEST_STRING_EQUAL(s.method, "K")
+  }
+
+  // a lysine whose amine is blocked (e.g. acetylated) is skipped
+  {
+    const Evidence e = prefixEvidence(10, 2, 7);
+    vector<bool> blocked(10, false);
+    blocked[3] = true;
+    const NuXLSiteLocalization::Site s = NuXLSiteLocalization::localizeNHS("AAAKAAKAAR", false, e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts,
+      NuXLSiteLocalization::DEFAULT_TOLERANCE, blocked);
+    TEST_EQUAL(s.position, 6)
     TEST_STRING_EQUAL(s.method, "K")
   }
 

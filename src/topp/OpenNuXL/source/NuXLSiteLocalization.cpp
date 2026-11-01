@@ -66,9 +66,11 @@ namespace OpenMS
                                                                const vector<double>& n_noshifts,
                                                                const vector<double>& c_shifts,
                                                                const vector<double>& c_noshifts,
-                                                               double tolerance)
+                                                               double tolerance,
+                                                               const vector<bool>& blocked)
   {
     Site site;
+    const auto reactive = [&blocked](int p) { return p >= static_cast<int>(blocked.size()) || !blocked[p]; };
     // contradicting ions can support residues on both sides of unsupported ones: only supported residues are candidates
     vector<int> by_distance = supportedResidues(n_shifts, n_noshifts, c_shifts, c_noshifts, tolerance);
     if (by_distance.empty() || by_distance.back() >= static_cast<int>(sequence.size())) { return site; }
@@ -91,7 +93,7 @@ namespace OpenMS
     // 2. lysine
     for (int p : by_distance)
     {
-      if (sequence[p] == 'K')
+      if (sequence[p] == 'K' && reactive(p))
       {
         site.position = p;
         site.method = "K";
@@ -102,7 +104,7 @@ namespace OpenMS
     // 3. serine, threonine or tyrosine with a histidine within four residues
     for (int p : by_distance)
     {
-      if (sequence[p] != 'S' && sequence[p] != 'T' && sequence[p] != 'Y') { continue; }
+      if ((sequence[p] != 'S' && sequence[p] != 'T' && sequence[p] != 'Y') || !reactive(p)) { continue; }
       for (int h = max(0, p - 4); h <= min(static_cast<int>(sequence.size()) - 1, p + 4); ++h)
       {
         if (h != p && sequence[h] == 'H')
