@@ -100,7 +100,7 @@ public:
   /// Every FeatureHandle carries the unique id of its feature in @ref getFeatureMap, so that the elution region of each
   /// channel can be looked up there.
   ConsensusMap& getConsensusMap();
-  /// Return the blacklist produced during @ref run: one spectrum per centroided MS1 spectrum with the peaks the detected patterns
+  /// Return the blacklist produced by the most recent @ref run call: one spectrum per centroided MS1 spectrum with the peaks the detected patterns
   /// reserved (of all patterns). Each spectrum records, aligned with its peaks, the unique id of the feature in
   /// @ref getFeatureMap that reserved each peak (0 if its multiplet was not reported, e.g. dropped by @c algorithm:rt_min; of a
   /// peak reserved by several patterns, the first one whose multiplet was reported); see MultiplexResolverAlgorithm::blacklistOwner().
