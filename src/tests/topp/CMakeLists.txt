@@ -5286,6 +5286,33 @@ add_test("TOPP_MS1LabeledWorkflow_16_heavy_id" ${TOPP_BIN_PATH}/MS1LabeledWorkfl
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_16_heavy_id.tmp.consensusXML)
 set_tests_properties("TOPP_MS1LabeledWorkflow_16_heavy_id" PROPERTIES PASS_REGULAR_EXPRESSION "Targeted quantification: 1 feature.s. for 1 identification.s. of peptides without a multiplet in this run .1 other channel.s. measured against the identified one, 0 absent, 0 not quantifiable.. not quantified: 0 identification.s. of peptides quantified in this run, 0 on a channel of another peptide's multiplet, 0 on the signal of a better identification of another peptide, 1 without a clean elution peak of the identified channel")
 
+# The isotope pattern in the join: MS1LabeledWorkflow_17 is a synthetic SILAC duplex (2+, one MS1 spectrum per second, Gaussian
+# elution, light identifications, peaks below 2000 not recorded). The join re-measures the less intense channel against the more
+# intense one from paired peaks, as the re-quantification does (MS1LabeledWorkflow_16): without its isotope pattern in at least two
+# spectra paired with the reference it has no value, and the candidate is not joined. The six spectra with paired peaks that a join
+# needs are counted whether they show the pattern or not.
+#   AVFDNLGTEYK light only; the unrelated envelope of MS1LabeledWorkflow_16 (isotopes 1 : 0.9 : 1.1, not detected) co-elutes one
+#     isotope below the heavy channel (its M0 on the light M+7). Right after the light, a signal at the heavy m/z is detected as a
+#     partial multiplet, the join candidate. The heavy channel's peaks are paired with the light's in 14 spectra, but there they are the
+#     envelope's M+1 and M+2 (in the last one merged with the candidate's first peaks), with the envelope's M0 one isotope below: no
+#     pattern spectrum, not joined (was joined, H/L 1.19 from the envelope). The heavy channel re-quantified afterwards is not
+#     quantifiable either.
+#   TFGDNLVSAER 1:0.063. In every other spectrum the light shows all its isotopes and the heavy its M0 only, in the others the heavy
+#     all its isotopes and the light its M0 and M1 only, so each channel is detected on its own. The heavy channel has paired peaks in
+#     9 spectra and its pattern in 3 of them: joined, H/L 0.063 (counting only the pattern spectra would reject it).
+add_test("TOPP_MS1LabeledWorkflow_17_join" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_17_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_17.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_17.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -join_channels true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_17_join.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_17_join" PROPERTIES PASS_REGULAR_EXPRESSION "1 partial multiplet.s. were found to be other channels of an identified partial multiplet and were joined to it, re-measured over common spectra. 1 such candidate.s. were not joined")
+add_test("TOPP_MS1LabeledWorkflow_17_join_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_17_join.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_17_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_17_join_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_17_join")
+
 # the labels must have been searched as modifications: identifications whose search parameters lack
 # them are refused (with -force the run continues)
 add_test("TOPP_MS1LabeledWorkflow_missing_label_mods" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
