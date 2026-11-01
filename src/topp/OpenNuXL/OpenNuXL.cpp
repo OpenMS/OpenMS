@@ -49,6 +49,7 @@
 #include "NuXLSearchIndex.h"
 #include "NuXLPresets.h"
 #include "NuXLReport.h"
+#include "NuXLSiteLocalization.h"
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -793,6 +794,8 @@ class OpenNuXL :
   bool fast_scoring_ = true; // fast or all fragment adduct scoring mode
   set<char> can_xl_; ///< nucleotides that can form cross-links
   set<char> standalone_; ///< nucleotides that only form adducts on their own (e.g., a cross-linker without nucleotide)
+  bool nhs_localization_ = false; ///< localize cross-links by the NHS-ester chemistry (NuXL:localization NHS)
+  vector<std::string> protein_n_termini_; ///< sorted protein starts (targets and decoys) for NHS localization
   Size named_adduct_count_ = 0; ///< localized cross-links written as a named modification
   Size mass_delta_adduct_count_ = 0; ///< localized cross-links written as an anonymous mass delta
 
@@ -913,13 +916,14 @@ protected:
       std::string subsection_name = "presets:" + p;
       registerTOPPSubsection_(subsection_name, "Presets for " + p + " cross-link protocol (Note: changes will be ignored).");
       StringList target_nucleotides, mappings, modifications, fragment_adducts;
-      std::string can_cross_link, standalone;
-      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone);
+      std::string can_cross_link, standalone, localization;
+      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone, localization);
 
       registerStringList_(subsection_name + ":target_nucleotides", "", target_nucleotides, "", false, true);
       registerStringList_(subsection_name + ":mapping", "", mappings, "", false, true);
       registerStringOption_(subsection_name + ":can_cross_link", "", can_cross_link, "", false, true);
       if (!standalone.empty()) { registerStringOption_(subsection_name + ":standalone", "", standalone, "", false, true); }
+      if (!localization.empty()) { registerStringOption_(subsection_name + ":localization", "", localization, "", false, true); }
       registerStringList_(subsection_name + ":modifications", "", modifications, "", false, true);
       registerStringList_(subsection_name + ":fragment_adducts", "", fragment_adducts, "", false, true);
     }
@@ -959,6 +963,14 @@ protected:
                         "Target nucleotides that only form precursor adducts on their own (e.g. 's' for a cross-linker without nucleotide). They are never combined with other nucleotides and are not restricted by NuXL:sequence. They need a NuXL:target_nucleotides entry, NuXL:modifications and NuXL:fragment_adducts, and must be listed in NuXL:can_cross_link. Hits with only standalone nucleotides count as peptides, not cross-links (FDR and reports), and are not searched with NuXL:only_xl.",
                         false,
                         true);
+
+    registerStringOption_("NuXL:localization",
+                        "<method>",
+                        "fragments",
+                        "How cross-links are localized. 'fragments': at the residue the shifted fragment ions point to. 'NHS': for cross-linkers attached through an NHS ester (e.g. SDA), by its chemistry among the residues the fragment ions can't tell apart: the free protein N-terminus, then lysine, then S/T/Y with a histidine within four residues; otherwise unlocalized. Reports how the site was chosen in NuXL:localization_method and the supported residues in NuXL:localization_range.",
+                        false,
+                        true);
+    setValidStrings_("NuXL:localization", {"fragments", "NHS"});
 
     StringList modifications;
     modifications.emplace_back("U:");
@@ -3144,8 +3156,8 @@ protected:
       rescoreFastHits_(exp, annotated_peptide_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_adducts);
     }
 
-    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_XL_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,  all_feasible_adducts);
-    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_peptide_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_adducts);
+    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_XL_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,  all_feasible_adducts, nhs_localization_, &protein_n_termini_);
+    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_peptide_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_adducts, nhs_localization_, &protein_n_termini_);
   }
 
   void fillSpectrumID_(
@@ -3298,6 +3310,12 @@ protected:
       }
       ph.setMetaValue("NuXL:best_localization", ah.best_localization);
       ph.setMetaValue("NuXL:best_localization_position", ah.best_localization_position);
+      if (!ah.localization_method.empty()) // NHS localization
+      {
+        ph.setMetaValue("NuXL:localization_method", ah.localization_method);
+        ph.setMetaValue("NuXL:localization_range", ah.localization_range_begin < 0 ? std::string("NA")
+          : StringUtils::toStr(ah.localization_range_begin) + "-" + StringUtils::toStr(ah.localization_range_end));
+      }
 
       // one-hot encoding of cross-linked nucleotide
       for (const auto& c : can_xl_) 
@@ -4758,6 +4776,7 @@ protected:
     StringList fragment_adducts;
     std::string can_cross_link;
     std::string standalone; // nucleotides that only form adducts on their own (e.g., a cross-linker without nucleotide)
+    std::string localization; // how cross-links are localized ("fragments" or "NHS")
     // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
     StringList target_nucleotides;
     // string format:  source->target e.g. "A->A", ..., "U->U", "U->X"
@@ -4774,6 +4793,7 @@ protected:
       fragment_adducts = getStringList_("NuXL:fragment_adducts");
       can_cross_link = getStringOption_("NuXL:can_cross_link");
       standalone = getStringOption_("NuXL:standalone");
+      localization = getStringOption_("NuXL:localization");
 
       for (const auto& t : target_nucleotides) // TODO: improve: checking also formula is safe
       {
@@ -4791,7 +4811,8 @@ protected:
     { // set from presets
       std::string p = getStringOption_("NuXL:presets");
       std::string custom_presets_file = getStringOption_("NuXL:presets_file");
-      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone);
+      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone, localization);
+      if (localization.empty()) { localization = "fragments"; }
       
       // set if DNA or RNA preset
       if (StringUtils::hasSubstring(p, "RNA"))
@@ -4806,6 +4827,11 @@ protected:
     // convert string to set
     for (const auto& c : can_cross_link) { can_xl_.insert(c); } // sort and make unique
     standalone_ = std::set<char>(standalone.begin(), standalone.end());
+    if (localization != "fragments" && localization != "NHS")
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown localization method (valid: 'fragments', 'NHS').", localization);
+    }
+    nhs_localization_ = localization == "NHS";
 
     std::string sequence_restriction = getStringOption_("NuXL:sequence");
 
@@ -5148,6 +5174,15 @@ protected:
       Math::RandomShuffler r{4711};
       r.portable_random_shuffle(fasta_db.begin(),fasta_db.end());
       progresslogger.endProgress();
+    }
+
+    // NHS localization: protein N-terminal peptides (targets and decoys) can carry the cross-link on their free N-terminus
+    if (nhs_localization_)
+    {
+      vector<std::string_view> protein_sequences;
+      protein_sequences.reserve(fasta_db.size());
+      for (const auto& e : fasta_db) { protein_sequences.emplace_back(e.sequence); }
+      protein_n_termini_ = NuXLSiteLocalization::proteinNTermini(protein_sequences);
     }
 
     // set up enzyme

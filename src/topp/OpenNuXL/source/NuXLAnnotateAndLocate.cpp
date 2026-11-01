@@ -12,6 +12,7 @@
 #include <OpenMS/CHEMISTRY/IonNaming.h>
 #include "NuXLFragmentAnnotationHelper.h"
 #include "NuXLConstants.h"
+#include "NuXLSiteLocalization.h"
 
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -312,7 +313,9 @@ namespace OpenMS
     Size max_variable_mods_per_peptide, 
     double fragment_mass_tolerance, 
     bool fragment_mass_tolerance_unit_ppm, 
-    const NuXLParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts)   
+    const NuXLParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts,
+    bool nhs_localization,
+    const vector<string>* protein_n_termini)
   {
     TheoreticalSpectrumGenerator partial_loss_spectrum_generator;
     auto param = partial_loss_spectrum_generator.getParameters();
@@ -840,6 +843,23 @@ namespace OpenMS
         #ifdef DEBUG_OpenNuXL
           OPENMS_LOG_DEBUG << endl;
         #endif
+
+        // NHS esters (e.g. SDA) bind the protein N-terminus and lysines (rarely S/T/Y next to a histidine):
+        // choose the site by this chemistry among the residues the fragment ions can't tell apart
+        if (nhs_localization)
+        {
+          const bool reactive_protein_n_term = protein_n_termini != nullptr
+            && !fixed_and_variable_modified_peptide.hasNTerminalModification()
+            && NuXLSiteLocalization::isProteinNTerminal(*protein_n_termini, unmodified_sequence);
+          const NuXLSiteLocalization::Site site = NuXLSiteLocalization::localizeNHS(unmodified_sequence, reactive_protein_n_term,
+            n_shifts, n_noshifts, c_shifts, c_noshifts);
+          best_localization = unmodified_sequence;
+          if (site.position >= 0) { best_localization[site.position] = tolower(best_localization[site.position]); }
+          best_localization_position = site.position;
+          a.localization_method = site.method;
+          a.localization_range_begin = site.range_begin;
+          a.localization_range_end = site.range_end;
+        }
 
         // create annotation strings for shifted fragment ions
         NuXLFragmentAnnotationHelper::addShiftedPeakFragmentAnnotation_(shifted_b_ions,
