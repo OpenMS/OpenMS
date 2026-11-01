@@ -17,12 +17,18 @@
 #include "ScoreHolder.h"
 #include "Scores.h"
 #include "ssl.h"
+#include "SortLikeStd.h"
 
 #include <algorithm>
 #include <map>
 #include <memory>
+#include <random>
 #include <string>
 #include <vector>
+#include <utility>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -172,4 +178,37 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION([EXTRA] sortLikeStdSort leaves the permutation of std::sort)
+{
+  // with many ties, so that the order of equal keys shows; in a parallel region (with libstdc++ and OpenMP tasks the
+  // partitions run as tasks, large ones partitioned by all of them), and on the calling thread alone
+  std::mt19937_64 rng(1);
+  const auto less = [](const std::pair<int, int>& x, const std::pair<int, int>& y) { return x.first < y.first; };
+  bool same = true;
+  for (const std::size_t n : {std::size_t(1000), std::size_t(70000), std::size_t(300000)})
+  {
+    for (const int keys : {3, 50, 100000})
+    {
+      std::vector<std::pair<int, int>> a(n);
+      for (std::size_t i = 0; i < n; ++i) { a[i] = {static_cast<int>(rng() % static_cast<unsigned>(keys)), static_cast<int>(i)}; }
+      std::vector<std::pair<int, int>> b = a, c = a, d = a;
+      std::sort(b.begin(), b.end(), less);
+#ifdef _OPENMP
+#pragma omp parallel num_threads(4)
+#pragma omp single
+#endif
+      OpenMS::Internal::Percolator::SortLikeStdDetail::sortLikeStdSort(a.data(), a.data() + a.size(), less, 4096);
+#ifdef _OPENMP
+#pragma omp parallel num_threads(4)
+#pragma omp single
+#endif
+      OpenMS::Internal::Percolator::sortLikeStdSort(c, less);
+      OpenMS::Internal::Percolator::sortLikeStdSort(d, less);
+      same = same && a == b && c == b && d == b;
+    }
+  }
+  TEST_EQUAL(same, true)
+}
+END_SECTION
+
 END_TEST
