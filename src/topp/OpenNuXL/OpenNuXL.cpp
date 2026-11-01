@@ -813,6 +813,46 @@ public:
 protected:
   /// percolator feature set
   StringList feature_set_;
+
+  /**
+    @brief Chooses the Percolator backend for score recalibration with PercolatorAdapter.
+
+    Uses the percolator executable (option @p percolator_executable) if it is installed, and then also writes the
+    model weights to @p weights_out. Otherwise PercolatorAdapter rescores with the Percolator built into OpenMS,
+    which writes no weights.
+
+    @param[in,out] process_params PercolatorAdapter parameters, extended by the backend
+    @param[in] weights_out file for the model weights of the percolator executable
+    @return false if score recalibration is disabled (empty @p percolator_executable)
+  */
+  bool addPercolatorBackend_(std::vector<std::string>& process_params, const std::string& weights_out) const
+  {
+    std::string executable = getStringOption_("percolator_executable");
+    if (executable.empty()) { return false; }
+    if (findExecutable_(executable))
+    {
+      process_params.insert(process_params.end(), {"-percolator_executable", executable, "-weights", weights_out});
+    }
+    else
+    {
+      OPENMS_LOG_INFO << "Percolator executable '" << getStringOption_("percolator_executable")
+                      << "' not found: rescoring with the Percolator built into OpenMS (no weights file)." << endl;
+    }
+    return true;
+  }
+
+  /// PercolatorAdapter next to this executable, else on the PATH
+  static std::string percolatorAdapterExecutable_()
+  {
+    try
+    {
+      return File::findSiblingTOPPExecutable("PercolatorAdapter");
+    }
+    catch (const Exception::FileNotFound&)
+    {
+      return "PercolatorAdapter";
+    }
+  }
   
   bool has_IM_{false}; // compatible IM annotated
 
@@ -882,6 +922,11 @@ protected:
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("peptide:enzyme", "<cleavage site>", "Trypsin/P", "The enzyme used for peptide digestion.", false);
     setValidStrings_("peptide:enzyme", all_enzymes);
+    registerStringOption_("peptide:clip_nterm_methionine", "<bool>", "true",
+      "Also search protein N-terminal peptides after removal of their initial methionine (the form with the methionine is still searched). "
+      "Generated decoys keep the initial methionine, so that targets and decoys gain the same peptides. "
+      "Set false for the previous search space.", false, false);
+    setValidStrings_("peptide:clip_nterm_methionine", {"true", "false"});
 
     registerTOPPSubsection_("report", "Reporting Options");
     registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top scoring hits per spectrum that are reported.", false, true);
@@ -896,7 +941,7 @@ protected:
         #else
                        "percolator",
         #endif
-                       "Percolator executable of the installation e.g. 'percolator.exe'", false, false, ListUtils::create<std::string>("skipexists"));
+                       "Percolator executable of the installation e.g. 'percolator.exe'. If it isn't found, the Percolator built into OpenMS rescores the PSMs (without writing the model weights). Empty: no score recalibration.", false, false, ListUtils::create<std::string>("skipexists"));
 
 
     // NuXL specific
@@ -4396,6 +4441,9 @@ protected:
     double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
     bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
     bool generate_decoys = getStringOption_("NuXL:decoys") == "true";
+    // with unspecific cleavage, the digest contains the peptides without the initial methionine already
+    const bool clip_nterm_methionine = getStringOption_("peptide:clip_nterm_methionine") == "true"
+      && getStringOption_("peptide:enzyme") != EnzymaticDigestion::UnspecificCleavage;
     Size decoy_factor = static_cast<Size>(getIntOption_("NuXL:decoy_factor"));
 
     StringList filter = getStringList_("filter");
@@ -4484,9 +4532,11 @@ protected:
         vector<ProteinIdentification> perc_prot_ids;
         PeptideIdentificationList perc_pep_ids;
 
-        const std::string percolator_executable = getStringOption_("percolator_executable");
         bool sufficient_PSMs_for_score_recalibration = pep_ids.size() > 1000;
-        if (!percolator_executable.empty() && sufficient_PSMs_for_score_recalibration) // only try to call percolator if we have some PSMs
+        std::vector<std::string> process_params;
+        std::string weights_out = out_idxml;
+        StringUtils::substitute(weights_out, ".idXML", "_sse_perc.weights");
+        if (sufficient_PSMs_for_score_recalibration && addPercolatorBackend_(process_params, weights_out)) // only try to call percolator if we have some PSMs
         {
           std::string perc_in = out_idxml;
           StringUtils::substitute(perc_in, ".idXML", "_sse_perc_in.idXML");
@@ -4496,22 +4546,17 @@ protected:
           std::string perc_out = out_idxml;
           StringUtils::substitute(perc_out, ".idXML", "_sse_perc_out.idXML");
            
-          std::string weights_out = out_idxml;
-          StringUtils::substitute(weights_out, ".idXML", "_sse_perc.weights");
-
-          std::vector<std::string> process_params = {"-in", perc_in, "-out", perc_out,
-                       "-percolator_executable", percolator_executable,
+          process_params.insert(process_params.end(), {"-in", perc_in, "-out", perc_out,
                        "-train_best_positive",
                        "-score_type", "q-value",
-                       "-post_processing_tdc",
-                       "-weights", weights_out};
+                       "-post_processing_tdc"});
 
           if (getStringOption_("peptide:enzyme") == "Lys-C")
           {
             process_params.push_back("-enzyme"); process_params.push_back("lys-c");
           }
 
-          TOPPBase::ExitCodes exit_code = runExternalProcess_(std::string("PercolatorAdapter"), process_params);
+          TOPPBase::ExitCodes exit_code = runExternalProcess_(percolatorAdapterExecutable_(), process_params);
 
           if (exit_code != EXECUTION_OK) 
           { 
@@ -5116,6 +5161,29 @@ protected:
     fastaFile.load(in_db, fasta_db);
     progresslogger.endProgress();
 
+    // Supplied decoys often don't start with M (a reversed protein ends with it): then clipping the initial
+    // methionine adds target peptides without decoy counterparts. Warn if the share of decoys starting with M
+    // is below half that of targets (as ProSE does).
+    if (clip_nterm_methionine && !generate_decoys)
+    {
+      Size targets = 0, targets_with_met = 0, decoys = 0, decoys_with_met = 0;
+      for (const auto& e : fasta_db)
+      {
+        const bool is_decoy = StringUtils::hasPrefix(e.identifier, "DECOY_");
+        (is_decoy ? decoys : targets) += 1;
+        (is_decoy ? decoys_with_met : targets_with_met) += (e.sequence.size() > 1 && e.sequence[0] == 'M') ? 1 : 0;
+      }
+      if (decoys > 0 && targets_with_met > 0 && 2 * decoys_with_met * targets < targets_with_met * decoys)
+      {
+        OPENMS_LOG_WARN << "peptide:clip_nterm_methionine: " << targets_with_met << " of " << targets
+                        << " target proteins but only " << decoys_with_met << " of " << decoys << " decoy proteins "
+                        << "in the database start with M. Removing the initial methionine adds N-terminal peptides to the "
+                        << "targets that have no decoy counterpart, which makes the FDR estimates slightly optimistic. "
+                        << "Use '-NuXL:decoys true' (generated decoys keep the initial methionine) or "
+                        << "'-peptide:clip_nterm_methionine false' for a symmetric search space." << endl;
+      }
+    }
+
     // generate decoy protein sequences
     if (generate_decoys)
     {
@@ -5148,11 +5216,15 @@ protected:
           continue;
         }
 
+        // keep an initial methionine on the decoy as well: otherwise clipping it adds target peptides without decoys
+        const bool preserve_met = clip_nterm_methionine && e.sequence.size() > 1 && e.sequence[0] == 'M';
+        if (preserve_met) { e.sequence.erase(0, 1); }
+
         std::vector<AASequence> output;
         digestor.digest(AASequence::fromString(e.sequence), output);
 
         // generate decoy peptides from current digest
-        e.sequence = "";
+        e.sequence = preserve_met ? "M" : "";
         for (const auto & aas : output)
         {
           if (aas.size() <= 2) { e.sequence += aas.toUnmodifiedString(); continue; }
@@ -5242,6 +5314,19 @@ protected:
 
       // digest the protein into peptides (filter out too short or too long peptides)
       digestor.digestUnmodified(current_fasta_entry.sequence, current_digest, min_peptide_length, max_peptide_length);
+
+      // initial methionine removed: the N-terminal peptides of the rest of the protein
+      const std::string_view protein_sequence(current_fasta_entry.sequence);
+      if (clip_nterm_methionine && protein_sequence.size() > 1 && protein_sequence[0] == 'M')
+      {
+        vector<std::string_view> clipped_digest;
+        digestor.digestUnmodified(protein_sequence.substr(1), clipped_digest, min_peptide_length, max_peptide_length);
+        for (const std::string_view& p : clipped_digest)
+        {
+          // views into the protein sequence: N-terminal products of the clipped protein start right after the methionine
+          if (p.data() == protein_sequence.data() + 1) { current_digest.push_back(p); }
+        }
+      }
 
       // for each peptide of the current digest
       for (auto cit = current_digest.begin(); cit != current_digest.end(); ++cit)
@@ -6182,26 +6267,25 @@ protected:
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       // score recalibration with percolator
 
-      std::string percolator_executable = getStringOption_("percolator_executable");
       bool sufficient_PSMs_for_score_recalibration = (xl_pi.size() + pep_pi.size()) >= 1000;
-      if (!percolator_executable.empty() && sufficient_PSMs_for_score_recalibration) // only try to call percolator if we have some PSMs
+      std::vector<std::string> process_params;
+      std::string weights_out = out_idxml;
+      StringUtils::substitute(weights_out, ".idXML", ".weights");
+      const bool recalibrate = addPercolatorBackend_(process_params, weights_out);
+      if (recalibrate && sufficient_PSMs_for_score_recalibration) // only try to call percolator if we have some PSMs
       {
         // run percolator on idXML
         std::string perc_out = out_idxml;
         StringUtils::substitute(perc_out, ".idXML", "_perc.idXML");
-        std::string weights_out = out_idxml;
-        StringUtils::substitute(weights_out, ".idXML", ".weights");
         std::string pin = out_idxml;
         StringUtils::substitute(pin, ".idXML", ".tsv");
 
-        std::vector<std::string> process_params = {"-in", out_idxml, "-out", perc_out,
-                       "-percolator_executable", percolator_executable,
+        process_params.insert(process_params.end(), {"-in", out_idxml, "-out", perc_out,
                        "-train_best_positive",
                        "-score_type", "svm",
                        "-unitnorm",
                        "-post_processing_tdc",
-                       "-weights", weights_out,
-                       "-out_pin", pin};
+                       "-out_pin", pin});
 
         if (getStringOption_("peptide:enzyme") == "Lys-C")
         {
@@ -6209,7 +6293,7 @@ protected:
         }
 
         OPENMS_LOG_INFO << "Running percolator." << endl;
-        TOPPBase::ExitCodes exit_code = runExternalProcess_(std::string("PercolatorAdapter"), process_params);
+        TOPPBase::ExitCodes exit_code = runExternalProcess_(percolatorAdapterExecutable_(), process_params);
         OPENMS_LOG_INFO << "done." << endl;
 
         if (exit_code != EXECUTION_OK) 
