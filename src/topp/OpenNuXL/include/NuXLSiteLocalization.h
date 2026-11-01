@@ -55,6 +55,10 @@ public:
     The returned range spans the residues with the highest sum: residues no ion separates get the
     same sum (e.g., the first two residues if neither b<sub>1</sub> nor y<sub>length-1</sub> is observed).
 
+    @param[in] n_shifts intensity of the shifted prefix (a/b) ions ending at each residue
+    @param[in] n_noshifts intensity of the unshifted prefix (a/b) ions ending at each residue
+    @param[in] c_shifts intensity of the shifted suffix (y) ions starting at each residue
+    @param[in] c_noshifts intensity of the unshifted suffix (y) ions starting at each residue
     @return 0-based first and last residue (inclusive); (-1, -1) if no shifted ion was observed
   */
   static std::pair<int, int> supportedRange(const std::vector<double>& n_shifts,
@@ -77,6 +81,10 @@ public:
 
     @param[in] sequence unmodified peptide sequence
     @param[in] reactive_protein_n_term whether the peptide N-terminus is the free N-terminus of a protein
+    @param[in] n_shifts intensity of the shifted prefix (a/b) ions ending at each residue
+    @param[in] n_noshifts intensity of the unshifted prefix (a/b) ions ending at each residue
+    @param[in] c_shifts intensity of the shifted suffix (y) ions starting at each residue
+    @param[in] c_noshifts intensity of the unshifted suffix (y) ions starting at each residue
   */
   static Site localizeNHS(const std::string& sequence,
                           bool reactive_protein_n_term,
