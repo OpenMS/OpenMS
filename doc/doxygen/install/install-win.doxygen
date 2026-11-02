@@ -12,7 +12,7 @@
   instead of building %OpenMS from sources.
   For more information read the install instructions for the TOPP binaries.
 
-  Most third-party libraries required by %OpenMS (Boost, Eigen, Xerces-C, Apache Arrow, ...) are obtained automatically through vcpkg
+  Most third-party libraries required by %OpenMS (Boost, Eigen, libxml2, Apache Arrow, ...) are obtained automatically through vcpkg
   when you configure %OpenMS with one of its CMake presets; see @ref install_vcpkg for the general guide.
   This page covers the Windows-specific parts: the compiler, Qt (which you install yourself) and building in Visual Studio.
   <br>

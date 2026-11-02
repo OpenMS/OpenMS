@@ -196,6 +196,9 @@ protected:
     /// Safe parse that catches exceptions and handles them accordingly
     void safeParse_(const std::string & filename, Internal::XMLHandler * handler);
 
+    /// Full load of an uncompressed indexed mzML file with OpenMP: metadata serially, then spectra/chromatograms by index offset in parallel. Returns false (map untouched or to be reloaded) if not applicable.
+    bool loadParallelIndexed_(const std::string& filename, PeakMap& map);
+
 private:
 
     /// Options for loading / storing

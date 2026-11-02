@@ -9,12 +9,14 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/SIMDe.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
 #include <bit>
@@ -40,17 +42,19 @@ namespace OpenMS::Internal
 
     void XMLHandler::fatalError(ActionMode mode, const std::string & msg, UInt line, UInt column) const
     {
+      const std::string name = HTTPInputSource::redactURL(file_); // a URL without credentials
       std::string error_message;
       if (mode == LOAD)
       {
-        error_message = std::string("While loading '") + file_ + "': " + msg;
-        // test if file has the wrong extension and is therefore passed to the wrong parser
-        // only makes sense if we are loading/parsing a local file (not remote URIs)
-        if (!StringUtils::hasPrefix(file_, "http://") && !StringUtils::hasPrefix(file_, "https://")
-            && !StringUtils::hasPrefix(file_, "ftp://") && !StringUtils::hasPrefix(file_, "s3://"))
+        error_message =std::string("While loading '") + name + "': " + msg;
+	      // test if file has the wrong extension and is therefore passed to the wrong parser
+        // only makes sense for a local file (not for remote URIs or in-memory buffers)
+        const bool remote = StringUtils::hasPrefix(file_, "http://") || StringUtils::hasPrefix(file_, "https://")
+                            || StringUtils::hasPrefix(file_, "ftp://") || StringUtils::hasPrefix(file_, "s3://");
+        if (!remote && File::exists(file_))
         {
-          FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
-          FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
+          const FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
+          const FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
           if (ft_name != ft_content)
           {
             error_message += std::string("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
@@ -61,7 +65,7 @@ namespace OpenMS::Internal
       }
       else if (mode == STORE)
       {
-        error_message =std::string("While storing '") + file_ + "': " + msg;
+        error_message =std::string("While storing '") + name + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
@@ -69,19 +73,20 @@ namespace OpenMS::Internal
       }
 
       OPENMS_LOG_FATAL_ERROR << error_message << std::endl;
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, error_message);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name, error_message);
     }
 
     void XMLHandler::error(ActionMode mode, const std::string & msg, UInt line, UInt column) const
     {
+      const std::string name = HTTPInputSource::redactURL(file_); // a URL without credentials
       std::string error_message;
       if (mode == LOAD)
       {
-        error_message =std::string("Non-fatal error while loading '") + file_ + "': " + msg;
+        error_message =std::string("Non-fatal error while loading '") + name + "': " + msg;
       }
       else if (mode == STORE)
       {
-        error_message =std::string("Non-fatal error while storing '") + file_ + "': " + msg;
+        error_message =std::string("Non-fatal error while storing '") + name + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
@@ -92,14 +97,15 @@ namespace OpenMS::Internal
 
     void XMLHandler::warning(ActionMode mode, const std::string & msg, UInt line, UInt column) const
     {
+      const std::string name = HTTPInputSource::redactURL(file_); // a URL without credentials
       std::string error_message;
       if (mode == LOAD)
       {
-        error_message =std::string("While loading '") + file_ + "': " + msg;
+        error_message =std::string("While loading '") + name + "': " + msg;
       }
       else if (mode == STORE)
       {
-        error_message =std::string("While storing '") + file_ + "': " + msg;
+        error_message =std::string("While storing '") + name + "': " + msg;
       }
       if (line != 0 || column != 0)
       {
@@ -126,6 +132,21 @@ namespace OpenMS::Internal
 
     void XMLHandler::onCharacters(const char16_t * /*chars*/, Size /*length*/)
     {
+    }
+
+    bool XMLHandler::tryOnCharactersUTF8(const char* /*chars*/, Size /*length*/)
+    {
+      return false;
+    }
+
+    bool XMLHandler::tryOnStartElementUTF8(std::string_view /*qname*/, const XMLAttributes& /*attributes*/)
+    {
+      return false;
+    }
+
+    bool XMLHandler::tryOnEndElementUTF8(std::string_view /*qname*/)
+    {
+      return false;
     }
 
     void XMLHandler::writeTo(std::ostream & /*os*/)
@@ -166,9 +187,10 @@ namespace OpenMS::Internal
     DataValue XMLHandler::cvParamToValue(const ControlledVocabulary& cv, const std::string& parent_tag, const std::string& accession, const std::string& name,
                                          const std::string& value, const std::string& unit_accession) const
     {
-      // the actual value stored in the CVParam
-      // we assume for now that it is a string value, we update the type later on
-      DataValue cv_value = value;
+      // the actual value stored in the CVParam: numeric and boolean types are set
+      // below, everything else keeps the string (assigned at the end, which
+      // avoids allocating a string value that a number then replaces)
+      DataValue cv_value;
 
       // Abort on unknown terms
       try
@@ -284,6 +306,11 @@ namespace OpenMS::Internal
           warning(LOAD,std::string("Unknown cvParam '") + accession + "' in tag '" + parent_tag + "'.");
           return DataValue::EMPTY;
         }
+      }
+
+      if (cv_value.isEmpty())
+      {
+        cv_value = value;
       }
 
       if (!unit_accession.empty())

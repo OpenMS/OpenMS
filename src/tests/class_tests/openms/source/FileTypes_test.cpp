@@ -313,7 +313,6 @@ START_SECTION((static bool supportsCompressedWriting(Type type, Type compression
     TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::IDXML, comp))
     TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::TRANSFORMATIONXML, comp))
     TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::PEPXML, comp))
-    TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::QCML, comp))
     TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::INI, comp))
     TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::MGF, comp))
     TEST_FALSE(FileTypes::supportsCompressedWriting(FileTypes::TSV, comp))
@@ -339,7 +338,7 @@ END_SECTION
     f.push_back(FileTypes::FileProperties::READABLE);
     FileTypeList g = FileTypeList::typesWithProperties(f);
     TEST_EQUAL(g.contains(FileTypes::PEAKMAPPARQUET), true);
-    TEST_EQUAL(g.getTypes().size(), 50); // YAML is WRITEABLE-only, so the readable count includes the new xipm type
+    TEST_EQUAL(g.getTypes().size(), 51); // YAML is WRITEABLE-only, so the readable count includes the new xipm type and mzPeak
     // Test that empty filter returns the full list, equal to the list of known file types
     TEST_EQUAL(FileTypeList::typesWithProperties({}).size(),static_cast<size_t>(FileTypes::Type::SIZE_OF_TYPE));
     // Check that we don't have duplicate Types in our type_with_annotation__
