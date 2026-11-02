@@ -1536,7 +1536,6 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
                                          const MSSpectrum*& prev_spectrum_ptr,
                                          vector<double>* hill_mass_diffs) const
 {
-  double rt = spectrum.getRT();
   const Size len_mz = cur.ids.size();
   if (len_mz == 0)
   {
@@ -2403,8 +2402,11 @@ vector<Biosaur2Algorithm::PatternCandidate> Biosaur2Algorithm::generateIsotopeCa
   const Size chunk = 2048;
   const SignedSize n_chunks = static_cast<SignedSize>((n_hills + chunk - 1) / chunk);
   vector<vector<PatternCandidate>> ready_chunks(static_cast<Size>(n_chunks));
+  std::exception_ptr err;   // an exception may not leave an OpenMP region: the first one is rethrown after it
   #pragma omp parallel for schedule(dynamic, 1)
   for (SignedSize c = 0; c < n_chunks; ++c)
+  {
+  try
   {
   vector<PatternCandidate>& ready = ready_chunks[static_cast<Size>(c)];
   const Size i_end = min(n_hills, static_cast<Size>(c + 1) * chunk);
@@ -2596,10 +2598,14 @@ vector<Biosaur2Algorithm::PatternCandidate> Biosaur2Algorithm::generateIsotopeCa
               {
                 ready.push_back(pc);
 
-                for (int ch_v : charge_ban_map.at(charge))
+                const auto ban_it = charge_ban_map.find(charge);   // charges above 8 (cmax >= 9) ban nothing
+                if (ban_it != charge_ban_map.end())
                 {
-                  auto& ref = banned_charges[ch_v];
-                  ref = max(ref, n_iso_used);
+                  for (int ch_v : ban_it->second)
+                  {
+                    auto& ref = banned_charges[ch_v];
+                    ref = max(ref, n_iso_used);
+                  }
                 }
               }
             }
@@ -2626,6 +2632,13 @@ vector<Biosaur2Algorithm::PatternCandidate> Biosaur2Algorithm::generateIsotopeCa
     }
   }
   }
+  catch (...)
+  {
+    #pragma omp critical(b2_err)
+    if (!err) err = std::current_exception();
+  }
+  }
+  if (err) std::rethrow_exception(err);
   for (auto& v : ready_chunks)
   {
     ready.insert(ready.end(), make_move_iterator(v.begin()), make_move_iterator(v.end()));
