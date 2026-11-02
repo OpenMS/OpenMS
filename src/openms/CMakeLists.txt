@@ -255,6 +255,19 @@ if(WITH_ONNX)
           DESTINATION "${INSTALL_SHARE_DIR}/models"
           COMPONENT share)
 
+  # The models are AlphaPeptDeep's pretrained models, under the Apache License 2.0, which
+  # requires its text (and the copyright notice) to accompany them; they go to
+  # share/OpenMS/LICENSES/PeptDeep and into THIRD-PARTY-NOTICES.txt.
+  set(_peptdeep_licenses "${OPENMS_HOST_DIRECTORY}/cmake/third_party_licenses/PeptDeep/README.txt"
+                         "${OPENMS_HOST_DIRECTORY}/cmake/third_party_licenses/PeptDeep/LICENSE.txt")
+  install(FILES ${_peptdeep_licenses}
+          DESTINATION "${INSTALL_SHARE_DIR}/LICENSES/PeptDeep"
+          COMPONENT share)
+  foreach(_file IN LISTS _peptdeep_licenses)
+    get_filename_component(_name "${_file}" NAME)
+    openms_add_third_party_notice("LICENSES/PeptDeep/${_name}" "${_file}")
+  endforeach()
+
 endif()
 
 # Parquet support requires Arrow core + compute (filter expressions) + Parquet.
