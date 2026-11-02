@@ -977,8 +977,21 @@ END_SECTION
 // Test 5b: Percolator::storeWeights() writes the executable's -w file.
 //
 // Same data and seed as Test 5. The file has the executable's comment lines and,
-// per CV bin, the same feature-name line; the normalized and raw weights (the
-// executable prints them with 3 or 4 decimals) agree within WEIGHTS_FILE_TOLERANCE.
+// per CV bin, the same feature-name line, and the same feature weights, normalized
+// and raw (printed with 3 or 4 decimals), within WEIGHTS_FILE_TOLERANCE: both
+// paths write the weights after the cross-validation rescaled each bin's model by
+// its test set (CrossValidation::postIterationProcessing).
+//
+// The bias (m0) is not compared. On this data both paths replace the learned
+// model by the default direction (the sanity check: fewer identifications than
+// the best single feature), and Scores::getInitDirection zeroes the feature
+// weights of the default vector but keeps each bin's learned bias (upstream
+// Percolator too). All test sets are then scored with bin 1's vector and each
+// bin's vector is rescaled by its test set, so the bias written for bins 2 and 3
+// depends on how their learned biases differ from bin 1's. The vendored training
+// (TRON solver) and the executable's (SVMlin) learn slightly different models,
+// so these biases differ (on data without the reset, the learned feature weights
+// differ by up to ~0.1 in a bin).
 ///////////////////////////////////////////////////////////////////////////////
 
 START_SECTION([EXTRA] storeWeights writes the weights file of the executable (-w))
@@ -1040,7 +1053,8 @@ START_SECTION([EXTRA] storeWeights writes the weights file of the executable (-w
       }
       const std::vector<std::string> in_w = fields(in_lines[i]), sub_w = fields(sub_lines[i]);
       TEST_EQUAL(in_w.size(), sub_w.size())
-      for (size_t j = 0; j < std::min(in_w.size(), sub_w.size()); ++j)
+      TEST_EQUAL(in_w.size(), ri.feature_names.size() + 1)
+      for (size_t j = 0; j + 1 < std::min(in_w.size(), sub_w.size()); ++j) // (not the bias m0, see above)
       {
         const double d = std::abs(std::stod(in_w[j]) - std::stod(sub_w[j]));
         if (d > max_abs)
@@ -1051,7 +1065,7 @@ START_SECTION([EXTRA] storeWeights writes the weights file of the executable (-w
         }
       }
     }
-    STATUS("weights file: largest difference " << max_abs << (worst.empty() ? "" : " (" + worst + ")"))
+    STATUS("weights file: largest difference of a feature weight " << max_abs << (worst.empty() ? "" : " (" + worst + ")"))
     TEST_TRUE(max_abs <= WEIGHTS_FILE_TOLERANCE)
   }
 }

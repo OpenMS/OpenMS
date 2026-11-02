@@ -1,0 +1,12 @@
+# This file contains the weights from each cross validation bin from percolator training
+# First line is the feature names, followed by normalized weights, and the raw weights of bin 1
+# This is repeated for the other bins
+mass	peplen	charge2	charge3	enzN	enzC	enzInt	dm	absdm	COMET:deltCn	COMET:deltLCn	COMET:lnExpect	MS:1002252	MS:1002255	COMET:lnNumSP	COMET:lnRankSP	COMET:IonFrac	m0
+-3.09	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	1.3347
+-0.0715	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	40.8138
+mass	peplen	charge2	charge3	enzN	enzC	enzInt	dm	absdm	COMET:deltCn	COMET:deltLCn	COMET:lnExpect	MS:1002252	MS:1002255	COMET:lnNumSP	COMET:lnRankSP	COMET:IonFrac	m0
+-0.436	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	-0.8147
+-0.0101	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	4.7609
+mass	peplen	charge2	charge3	enzN	enzC	enzInt	dm	absdm	COMET:deltCn	COMET:deltLCn	COMET:lnExpect	MS:1002252	MS:1002255	COMET:lnNumSP	COMET:lnRankSP	COMET:IonFrac	m0
+0.000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	-1.1831	0.0000	0.0000	-0.1759
+0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	-1.7144	0.0000	0.0000	15.6342
