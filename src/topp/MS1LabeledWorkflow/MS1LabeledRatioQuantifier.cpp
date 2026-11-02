@@ -48,6 +48,16 @@ namespace OpenMS
     return (lower + upper) / 2.0;
   }
 
+  namespace
+  {
+    /// ratios of one (peptide or protein group, fraction group, channel), kept apart by whether targeted quantification measured them
+    struct SplitRatios
+    {
+      std::vector<double> detected; ///< from multiplets of the feature detection (their re-quantified and joined channels included)
+      std::vector<double> targeted; ///< from targeted quantification
+    };
+  } // namespace
+
   const std::map<AASequence, std::vector<MS1LabeledRatioQuantifier::ChannelRatio>>& MS1LabeledRatioQuantifier::getPeptideRatios() const
   {
     return peptide_ratios_;
@@ -82,12 +92,19 @@ namespace OpenMS
 
     // -- evidence ratios: one per (feature, run, channel) --
     // Collected per peptide identity as well, so that the peptide medians below need no second pass.
-    std::map<std::tuple<AASequence, unsigned, unsigned>, std::vector<double>> peptide_evidence_ratios;
+    std::map<std::tuple<AASequence, unsigned, unsigned>, SplitRatios> peptide_evidence_ratios;
     Size features_with_ratio = 0;
     Size features_without_reference = 0;
 
     for (ConsensusFeature& feature : consensus)
     {
+      std::set<std::string> targeted_runs;
+      if (feature.metaValueExists(TARGETED_RUNS))
+      {
+        const StringList runs = feature.getMetaValue(TARGETED_RUNS);
+        targeted_runs.insert(runs.begin(), runs.end());
+      }
+
       // intensity of every (run, channel) of this feature
       std::map<std::string, std::map<unsigned, double>> intensities;
       for (const FeatureHandle& handle : feature.getFeatures())
@@ -156,29 +173,38 @@ namespace OpenMS
       {
         const auto fraction_group = run_to_fraction_group.find(ratio_runs[i]);
         if (fraction_group == run_to_fraction_group.end()) { continue; } // run not in the design
-        peptide_evidence_ratios[{sequence, fraction_group->second, static_cast<unsigned>(ratio_channels[i])}].push_back(ratio_values[i]);
+        SplitRatios& evidences = peptide_evidence_ratios[{sequence, fraction_group->second, static_cast<unsigned>(ratio_channels[i])}];
+        (targeted_runs.contains(ratio_runs[i]) ? evidences.targeted : evidences.detected).push_back(ratio_values[i]);
       }
     }
 
     // -- peptide ratios: median over the evidences of one peptide in one fraction group --
-    std::map<std::pair<unsigned, unsigned>, std::vector<double>> ratios_per_cell; // for the normalization factors
-    for (auto& [key, ratios] : peptide_evidence_ratios)
+    // Those of targeted quantification only if the peptide has no other evidence there (see the class documentation).
+    std::map<std::pair<unsigned, unsigned>, SplitRatios> ratios_per_cell; // for the normalization factors
+    Size targeted_peptide_ratios = 0;
+    for (auto& [key, evidences] : peptide_evidence_ratios)
     {
       const auto& [sequence, fraction_group, channel] = key;
+      const bool targeted = evidences.detected.empty();
+      std::vector<double>& ratios = targeted ? evidences.targeted : evidences.detected;
       ChannelRatio peptide_ratio;
       peptide_ratio.fraction_group = fraction_group;
       peptide_ratio.channel = channel;
       peptide_ratio.count = ratios.size();
+      peptide_ratio.targeted_count = targeted ? ratios.size() : 0;
       peptide_ratio.ratio = median_(ratios);
       peptide_ratios_[sequence].push_back(peptide_ratio);
-      ratios_per_cell[{fraction_group, channel}].push_back(peptide_ratio.ratio);
+      SplitRatios& cell = ratios_per_cell[{fraction_group, channel}];
+      (targeted ? cell.targeted : cell.detected).push_back(peptide_ratio.ratio);
+      if (targeted && channel != reference_channel) { ++targeted_peptide_ratios; }
     }
 
     // -- normalization factor per (fraction group, channel): the median peptide ratio --
+    // of the peptide ratios measured without targeted quantification, if there are any
     std::map<std::pair<unsigned, unsigned>, double> normalization;
     for (auto& [cell, ratios] : ratios_per_cell)
     {
-      const double factor = median_(ratios);
+      const double factor = median_(ratios.detected.empty() ? ratios.targeted : ratios.detected);
       normalization[cell] = (normalize && std::isfinite(factor) && factor > 0.0) ? factor : 1.0;
     }
     const auto normalized = [&normalization](const ChannelRatio& r)
@@ -245,7 +271,7 @@ namespace OpenMS
     {
       for (const std::string& accession : groups[g].accessions) { accession_to_group.emplace(accession, g); }
     }
-    std::vector<std::map<std::pair<unsigned, unsigned>, std::vector<double>>> group_ratios(groups.size());
+    std::vector<std::map<std::pair<unsigned, unsigned>, SplitRatios>> split_group_ratios(groups.size());
     for (const auto& [sequence, ratios] : peptide_ratios_)
     {
       const auto accessions = peptide_accessions.find(sequence);
@@ -257,8 +283,35 @@ namespace OpenMS
                                             [&group_accessions](const std::string& accession)
                                             { return std::find(group_accessions.begin(), group_accessions.end(), accession) != group_accessions.end(); });
       if (!all_in_group) { continue; }
-      for (const ChannelRatio& r : ratios) { group_ratios[candidate->second][{r.fraction_group, r.channel}].push_back(r.ratio); }
+      for (const ChannelRatio& r : ratios)
+      {
+        SplitRatios& cell = split_group_ratios[candidate->second][{r.fraction_group, r.channel}];
+        (r.targeted_count > 0 ? cell.targeted : cell.detected).push_back(r.ratio);
+      }
     }
+
+    // The peptide ratios of every (group, fraction group, channel): those measured without targeted quantification if they
+    // reach the minimum, else together with those of targeted quantification. A ratio reported without targeted
+    // quantification therefore stays the same with it; targeted quantification only adds ratios.
+    struct GroupCell
+    {
+      std::vector<double> ratios;
+      Size targeted_count = 0;
+    };
+    std::vector<std::map<std::pair<unsigned, unsigned>, GroupCell>> group_ratios(groups.size());
+    for (Size g = 0; g < groups.size(); ++g)
+    {
+      for (auto& [cell, split] : split_group_ratios[g])
+      {
+        GroupCell& chosen = group_ratios[g][cell];
+        chosen.ratios = std::move(split.detected);
+        if (chosen.ratios.size() >= min_ratio_count) { continue; }
+        chosen.targeted_count = split.targeted.size();
+        chosen.ratios.insert(chosen.ratios.end(), split.targeted.begin(), split.targeted.end());
+      }
+    }
+    split_group_ratios.clear();
+    Size targeted_group_ratios = 0;
 
     static const char* const ratio_array_names[] = {"fraction_group_level_ratio_fraction_group", "fraction_group_level_ratio_label",
                                                     "fraction_group_level_ratio_count", "fraction_group_level_ratio",
@@ -285,24 +338,26 @@ namespace OpenMS
       // A reference/reference ratio is only meaningful alongside a passing comparison in the
       // same fraction group. Its count otherwise pools disjoint, insufficient triplex comparisons.
       std::set<unsigned> quantified_fraction_groups;
-      for (const auto& [cell, ratios] : group_ratios[g])
+      for (const auto& [cell, chosen] : group_ratios[g])
       {
-        if (cell.second != reference_channel && ratios.size() >= min_ratio_count) { quantified_fraction_groups.insert(cell.first); }
+        if (cell.second != reference_channel && chosen.ratios.size() >= min_ratio_count) { quantified_fraction_groups.insert(cell.first); }
       }
       std::vector<ChannelRatio> reported;
-      for (auto& [cell, ratios] : group_ratios[g])
+      for (auto& [cell, chosen] : group_ratios[g])
       {
         // Below the minimum the ratio is not reported at all: a protein quantified from one peptide
         // is exactly what the threshold exists to keep out of the result.
-        if (ratios.size() < min_ratio_count) { continue; }
+        if (chosen.ratios.size() < min_ratio_count) { continue; }
         if (cell.second == reference_channel && ! quantified_fraction_groups.contains(cell.first)) { continue; }
         ChannelRatio group_ratio;
         group_ratio.fraction_group = cell.first;
         group_ratio.channel = cell.second;
-        group_ratio.count = ratios.size();
-        group_ratio.ratio = median_(ratios);
+        group_ratio.count = chosen.ratios.size();
+        group_ratio.targeted_count = chosen.targeted_count;
+        group_ratio.ratio = median_(chosen.ratios);
         group_ratio.normalized_ratio = normalized(group_ratio);
         reported.push_back(group_ratio);
+        if (chosen.targeted_count > 0 && cell.second != reference_channel) { ++targeted_group_ratios; }
 
         fraction_groups.push_back(static_cast<Int>(group_ratio.fraction_group));
         labels.push_back(static_cast<Int>(group_ratio.channel));
@@ -331,5 +386,11 @@ namespace OpenMS
       OPENMS_LOG_INFO << "; " << features_without_reference << " multiplet(s) have no positive reference channel and no ratio";
     }
     OPENMS_LOG_INFO << "." << endl;
+    if (targeted_peptide_ratios > 0 || targeted_group_ratios > 0)
+    {
+      OPENMS_LOG_INFO << "Channel ratios from targeted quantification: " << targeted_peptide_ratios << " peptide ratio(s) of peptides measured "
+                      << "only that way in their fraction group; " << targeted_group_ratios << " protein group ratio(s) that have too few "
+                      << "other peptide ratios include them." << endl;
+    }
   }
 } // namespace OpenMS

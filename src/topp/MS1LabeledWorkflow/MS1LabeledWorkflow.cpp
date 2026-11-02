@@ -182,7 +182,9 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      the run (the detection missed it, or no multiplet fits its identifications) is measured at the m/z of its channels over
      the elution peak at its identification: the identified channel is integrated (if its isotope pattern fits the peptide),
      the other channels are measured against it from paired peaks. Such a feature and its identifications carry the meta
-     value @c quantification_method = @c targeted.
+     value @c quantification_method = @c targeted. Its values are less accurate at extreme ratios than those of a detected
+     multiplet, so they only add ratios and never change one that is reported without them (see <b>Ratios</b> below),
+     and one whose other channel is not quantifiable is left out of the abundances.
      Multiplets without identification are dropped,
      unless @p match_between_runs is set (see below). Once the resolver has used the labels, every identification
      is reduced to the <em>peptide identity</em>: the label modifications of @p labels are removed from the sequence,
@@ -222,6 +224,10 @@ intensities (@p ratios, computed by @c MS1LabeledRatioQuantifier next to this to
     @p ratios:min_ratio_count peptides upwards (MaxQuant's "min. ratio count", 2 by default), with the number of
     contributing peptides next to it. Every ratio is also reported divided by the median peptide ratio of its
     (fraction group, channel), i.e. normalized on the assumption that most peptides do not change.
+  - evidences of @p targeted_quantification only stand in where nothing else was measured: a peptide ratio uses them only if
+    the peptide has no other evidence in that fraction group, a protein group ratio only if its other peptide ratios do
+    not reach @p ratios:min_ratio_count, and the normalization factors only if a (fraction group, channel) has no other
+    peptide ratio.
 
 The reference channel is reported with the ratio 1.0 it has by construction, wherever another channel was
 measured against it, so that every annotation covers the complete set of channels.
@@ -379,6 +385,8 @@ protected:
       "mostly (20 % or more) such isotopes is not quantifiable. Such features and their identifications carry the meta value 'quantification_method'\n"
       "= 'targeted'. Peptides quantified by a multiplet in the run, identifications on a channel of another peptide's multiplet, decoys and\n"
       "identifications whose labels fit no pattern are not measured; of identifications of different peptides on one signal, only the best one is.\n"
+      "These values are less accurate at extreme ratios, so they only add ratios: a peptide or protein group ratio that the other evidences\n"
+      "give (see 'ratios:min_ratio_count') does not change, and a feature whose other channel is not quantifiable is left out of the abundances.\n"
       "false: such identifications are kept for protein inference only.", false);
     setValidStrings_("targeted_quantification", {"true", "false"});
 
@@ -2787,6 +2795,102 @@ protected:
     OPENMS_LOG_INFO << "Linked " << maps.size() << " run(s) into " << consensus_fraction.size() << " consensus multiplet(s)." << endl;
   }
 
+  /**
+    @brief Record on every multiplet of @p fraction the runs in which targeted quantification measured it
+
+    The run names (file basenames) go to the meta value MS1LabeledRatioQuantifier::TARGETED_RUNS, which the abundances
+    and ratios below read. After linking, a multiplet holds the channels of several runs, and only its identifications
+    still tell which of them targeted quantification measured: those carry 'quantification_method' = 'targeted', and
+    their 'map_index' names their column, i.e. their (run, channel). A targeted feature gets only such identifications,
+    and a detected multiplet none of them.
+  */
+  static void markTargetedRuns_(ConsensusMap& fraction)
+  {
+    const auto& headers = fraction.getColumnHeaders();
+    for (ConsensusFeature& cf : fraction)
+    {
+      std::set<std::string> runs;
+      for (const PeptideIdentification& id : cf.getPeptideIdentifications())
+      {
+        if (!id.metaValueExists("map_index") || id.getMetaValue("quantification_method", DataValue("")).toString() != "targeted") { continue; }
+        const auto header = headers.find(static_cast<UInt64>(id.getMetaValue("map_index")));
+        if (header != headers.end()) { runs.insert(File::basename(header->second.filename)); }
+      }
+      if (!runs.empty()) { cf.setMetaValue(MS1LabeledRatioQuantifier::TARGETED_RUNS, StringList(runs.begin(), runs.end())); }
+    }
+  }
+
+  /**
+    @brief Take the channels of targeted evidences that lack a value in some channel out of @p consensus
+
+    A targeted feature whose other channel is not quantifiable keeps only its measured channel. Summed into the protein
+    abundances, that channel would count without its partner and bias the abundance ratios (towards the identified
+    channel, mostly at extreme ratios). Such evidences are therefore taken out before the abundances are read, and given
+    back with restoreEvidences_() afterwards, so that the features keep them in the output.
+
+    @return The handles taken out, by the index of their feature in @p consensus
+  */
+  std::vector<std::pair<Size, std::vector<FeatureHandle>>> withholdIncompleteTargeted_(ConsensusMap& consensus) const
+  {
+    std::vector<std::pair<Size, std::vector<FeatureHandle>>> withheld;
+    Size evidences = 0;
+    const auto& headers = consensus.getColumnHeaders();
+    for (Size i = 0; i < consensus.size(); ++i)
+    {
+      ConsensusFeature& cf = consensus[i];
+      if (!cf.metaValueExists(MS1LabeledRatioQuantifier::TARGETED_RUNS)) { continue; }
+      const StringList targeted = cf.getMetaValue(MS1LabeledRatioQuantifier::TARGETED_RUNS);
+      const std::set<std::string> targeted_runs(targeted.begin(), targeted.end());
+
+      // the handles of every targeted run of this feature
+      std::map<std::string, std::vector<FeatureHandle>> by_run;
+      for (const FeatureHandle& handle : cf.getFeatures())
+      {
+        const auto header = headers.find(handle.getMapIndex());
+        if (header == headers.end()) { continue; }
+        const std::string run = File::basename(header->second.filename);
+        if (targeted_runs.contains(run)) { by_run[run].push_back(handle); }
+      }
+      std::vector<FeatureHandle> taken;
+      std::set<UInt64> taken_columns;
+      for (auto& [run, handles] : by_run)
+      {
+        // a not-quantifiable channel has no handle (see quantifyRun_), an absent one has intensity 0
+        if (handles.size() >= multiplicity_) { continue; }
+        ++evidences;
+        for (const FeatureHandle& handle : handles)
+        {
+          taken_columns.insert(handle.getMapIndex());
+          taken.push_back(handle);
+        }
+      }
+      if (taken.empty()) { continue; }
+      ConsensusFeature::HandleSetType kept;
+      for (const FeatureHandle& handle : cf.getFeatures())
+      {
+        if (!taken_columns.contains(handle.getMapIndex())) { kept.insert(handle); }
+      }
+      cf.setFeatures(std::move(kept));
+      withheld.emplace_back(i, std::move(taken));
+    }
+    if (evidences > 0)
+    {
+      OPENMS_LOG_INFO << "Abundances: " << evidences << " evidence(s) of targeted quantification with a channel that is not quantifiable "
+                      << "are left out of the peptide and protein abundances." << endl;
+    }
+    return withheld;
+  }
+
+  /// Give the handles that withholdIncompleteTargeted_() took out back to their features
+  static void restoreEvidences_(ConsensusMap& consensus, std::vector<std::pair<Size, std::vector<FeatureHandle>>>& withheld)
+  {
+    for (auto& [index, handles] : withheld)
+    {
+      for (const FeatureHandle& handle : handles) { consensus[index].insert(handle); }
+    }
+    withheld.clear();
+  }
+
   void alignAndLink_(vector<ConsensusMap>& maps, ConsensusMap& consensus_fraction)
   {
     if (maps.size() > 1)
@@ -3345,6 +3449,7 @@ protected:
 
       ConsensusMap consensus_fraction;
       alignAndLink_(maps, consensus_fraction);
+      if (targeted_quantification_) { markTargetedRuns_(consensus_fraction); }
 
       // fractions are combined column-wise: one column per (run, channel), rows stay per fraction
       consensus.appendColumns(consensus_fraction);
@@ -3399,7 +3504,11 @@ protected:
     writeDebug_("Parameters passed to PeptideAndProteinQuant algorithm", pq_param, 3);
     PeptideAndProteinQuant quantifier;
     quantifier.setParameters(pq_param);
-    quantifier.readQuantData(consensus, design_);
+    {
+      auto withheld = withholdIncompleteTargeted_(consensus);
+      quantifier.readQuantData(consensus, design_);
+      restoreEvidences_(consensus, withheld);
+    }
     quantifier.quantifyPeptides();
 
     ProteinIdentification& inferred_proteins = consensus.getProteinIdentifications()[0];
@@ -3423,6 +3532,8 @@ protected:
       ratio_quantifier.setParameters(ratio_param);
       ratio_quantifier.run(consensus, design_, inferred_proteins);
     }
+    // the targeted runs were bookkeeping for the abundances and ratios; the identifications keep 'quantification_method'
+    for (auto& cf : consensus) { cf.removeMetaValue(MS1LabeledRatioQuantifier::TARGETED_RUNS); }
 
     consensus.resolveUniqueIdConflicts();
     consensus.ensureUniqueId(); // the map's own id is reset when the fractions are combined

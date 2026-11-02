@@ -50,6 +50,16 @@ namespace OpenMS
         re-aggregating gives the same protein ratios as dividing the protein ratios directly. With
         @p normalize off, no normalized values are written at all.
 
+    Evidences of targeted quantification (MS1LabeledWorkflow's '-targeted_quantification': the runs a feature lists in its
+    meta value @c MS1Label:targeted_runs) only stand in where nothing else was measured. Their values are less accurate
+    at extreme ratios, so they must not change a ratio that is reported without them:
+      - a peptide ratio is the median of the peptide's other evidences in that fraction group; only a peptide that has
+        none there gets the median of its targeted ones.
+      - a protein group ratio is the median of the group's other peptide ratios if these reach @p min_ratio_count;
+        otherwise the peptide ratios of targeted quantification are added, which can lift the group over the threshold.
+      - a normalization factor is the median of the peptide ratios measured without targeted quantification, if
+        the (fraction group, channel) has any.
+
     A ratio is therefore <em>not</em> the ratio of the abundances that PeptideAndProteinQuant reports:
     that one is a ratio of per-channel aggregates, which is a different statistic (it weights peptides
     by their intensity, and a single intense peptide can dominate it). Both are useful and both are
@@ -88,7 +98,12 @@ namespace OpenMS
       double normalized_ratio = 0.0;
       /// Number of contributing ratios (evidences for a peptide, peptides for a protein group)
       Size count = 0;
+      /// Of @p count, the ratios that come from targeted quantification (a peptide ratio has either all or none)
+      Size targeted_count = 0;
     };
+
+    /// Meta value (StringList) of a consensus feature: the runs (file basenames) in which it was measured by targeted quantification
+    inline static const std::string TARGETED_RUNS = "MS1Label:targeted_runs";
 
     MS1LabeledRatioQuantifier();
 

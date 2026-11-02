@@ -4967,6 +4967,31 @@ add_test("TOPP_MS1LabeledWorkflow_11_default" ${TOPP_BIN_PATH}/MS1LabeledWorkflo
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_default.tmp.consensusXML)
 add_test("TOPP_MS1LabeledWorkflow_11_default_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_default.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_default_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_11_default_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_default")
+# Targeted values only add ratios: MS1LabeledWorkflow_11 with all quantified peptides in one protein
+# (MS1LabeledWorkflow_11_one_protein.fasta): YVNDLAGHEK detected (H/L 1); AEFVEVTK and VLDELTLAR targeted with both channels
+# (H/L ~1); HLVDEPQNLIK targeted, heavy absent; QDILDDYQK and LSSPATLNSR targeted, heavy not quantifiable.
+#   - min_ratio_count 1: the detected peptide reaches the minimum, so PROT_X's ratio is YVNDLAGHEK's alone (count 1).
+#   - min_ratio_count 2: it does not, so the two targeted peptide ratios are added (count 3).
+#   - Both: QDILDDYQK's and LSSPATLNSR's light channels, whose heavy is not quantifiable, are left out of the abundances.
+foreach(_min 1 2)
+  add_test("TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+    -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_input.mzML
+    -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11.idXML
+    -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_one_protein.fasta
+    -labels "[][Lys8,Arg10]"
+    -proteinFDR 1.0
+    -ratios:min_ratio_count ${_min}
+    -targeted_quantification true
+    -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_one_protein_min${_min}.tmp.consensusXML)
+  add_test("TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion"
+    -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_one_protein_min${_min}.tmp.consensusXML
+    -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_one_protein_min${_min}_out.consensusXML)
+  set_tests_properties("TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}")
+endforeach()
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_one_protein_min1" PROPERTIES PASS_REGULAR_EXPRESSION
+  "Abundances: 2 evidence.s. of targeted quantification with a channel that is not quantifiable.*Channel ratios from targeted quantification: 2 peptide ratio.s. of peptides measured only that way in their fraction group; 0 protein group ratio.s.")
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_one_protein_min2" PROPERTIES PASS_REGULAR_EXPRESSION
+  "Abundances: 2 evidence.s. of targeted quantification with a channel that is not quantifiable.*Channel ratios from targeted quantification: 2 peptide ratio.s. of peptides measured only that way in their fraction group; 1 protein group ratio.s.")
 
 # With -join_channels false, YVNDLAGHEK's channels in MS1LabeledWorkflow_9 stay two partial multiplets, each identified. Each one's
 # missing channel lies on the other's reserved peaks, i.e. on another multiplet of the same peptide, which quantifies them: not
