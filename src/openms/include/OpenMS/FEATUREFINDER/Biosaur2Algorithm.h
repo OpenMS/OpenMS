@@ -397,7 +397,7 @@ private:
     std::vector<std::pair<int, int>> by_bin;    ///< (m/z bin, position in ids), sorted: the scan's bin lookup
     int bin_lo = 0;                             ///< lowest bin of by_bin
     std::vector<int> bin_start;                 ///< bin b's entries: by_bin[bin_start[b - bin_lo] .. bin_start[b - bin_lo + 1])
-    std::vector<int> im_bin_per_peak;           ///< IM bin per peak index (0 without IM)
+    std::vector<int> im_bin_per_peak;           ///< IM bin per peak index (empty without per-peak IM)
     bool use_im = false;
   };
 

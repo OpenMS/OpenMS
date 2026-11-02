@@ -37,8 +37,9 @@ namespace
 {
   // Synthetic MS1 run for the parallel paths: 600 scans (crosses the 256-scan block of the hill detection), enough
   // hills for several parallel chunks, isotope envelopes of charge 1-10, gaps, equal-intensity twins within htol,
-  // empty scans and noise. With `im`, every peak carries an ion mobility (1/K0) in a float data array.
-  MSExperiment syntheticRun(bool im)
+  // empty scans and noise. With `im`, every peak carries an ion mobility (1/K0) in a float data array; with `faims`, the
+  // scans alternate between two FAIMS CVs (two groups, processed in parallel).
+  MSExperiment syntheticRun(bool im, bool faims = false)
   {
     std::mt19937 rng(42);
     auto uni = [&](double lo, double hi) { return lo + (hi - lo) * (rng() / 4294967296.0); };
@@ -57,6 +58,11 @@ namespace
       MSSpectrum spec;
       spec.setRT(s * 1.0);
       spec.setMSLevel(1);
+      if (faims)
+      {
+        spec.setDriftTime(s % 2 ? -60.0 : -45.0);
+        spec.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+      }
       vector<float> ims;
       auto add = [&](double mz, double it, double mob) { spec.push_back(Peak1D(mz, static_cast<float>(it))); ims.push_back(static_cast<float>(mob)); };
       if (s % 97 != 50)   // a few empty scans, some of them next to the block boundaries
@@ -559,13 +565,13 @@ START_SECTION([EXTRA] run() preserves the stored MS data on the non-FAIMS path)
 }
 END_SECTION
 
-START_SECTION([EXTRA] run() gives identical hills and features at 1 and 4 threads with and without ion mobility at cmax 10)
+START_SECTION([EXTRA] run() gives identical hills and features at 1 and 4 threads: plain / ion mobility / two FAIMS CVs at cmax 10)
 {
   // pins the parallel hill detection, processing, splitting, isotope search and feature build to the serial result;
   // cmax 10 also covers charges above 8, which once aborted the candidate search
-  for (bool im : {false, true})
+  for (int mode : {0, 1, 2})
   {
-    const MSExperiment run = syntheticRun(im);
+    const MSExperiment run = syntheticRun(mode == 1, mode == 2);
     vector<Biosaur2Algorithm::Hill> h1, h4;
     vector<Biosaur2Algorithm::PeptideFeature> f1, f4;
     runAt(1, run, h1, f1);

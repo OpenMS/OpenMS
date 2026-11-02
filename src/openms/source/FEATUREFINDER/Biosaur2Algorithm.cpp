@@ -349,28 +349,21 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
     vector<vector<PeptideFeature>> features_per_group(n_groups);
     vector<FeatureMap> fmap_per_group(n_groups);
 
-    // one CV: no outer region, so the parallel loops inside processFAIMSGroup_ get the threads (nested regions run serially)
-    #pragma omp parallel for schedule(dynamic) if(n_groups > 1)
-    for (int i = 0; i < static_cast<int>(n_groups); ++i)
+    auto process_group = [&](Size i)
     {
-      auto& group_pair = groups[static_cast<Size>(i)];
-      double cv = group_pair.first;
-      MSExperiment& group_exp = group_pair.second;
-
-      vector<Hill> local_hills;
-      vector<PeptideFeature> local_features;
-
-      processFAIMSGroup_(cv, group_exp, original_paseftol, local_hills, local_features);
-
-      FeatureMap local_map;
-      if (!local_hills.empty() && !local_features.empty())
+      processFAIMSGroup_(groups[i].first, groups[i].second, original_paseftol, hills_per_group[i], features_per_group[i]);
+    };
+    // several CVs: one group per thread (the parallel loops inside then run serially, as nested regions); one CV: no
+    // outer region, so those loops get the threads
+    if (n_groups == 1) process_group(0);
+    else parallelFor_(0, static_cast<SignedSize>(n_groups), 1, [&](SignedSize i) { process_group(static_cast<Size>(i)); });
+    // the feature maps afterwards, in CV order: their unique ids are then drawn in the same order at every thread count
+    for (Size i = 0; i < n_groups; ++i)
+    {
+      if (!hills_per_group[i].empty() && !features_per_group[i].empty())
       {
-        local_map = convertToFeatureMap_(local_features, local_hills);
+        fmap_per_group[i] = convertToFeatureMap_(features_per_group[i], hills_per_group[i]);
       }
-
-      hills_per_group[static_cast<Size>(i)] = std::move(local_hills);
-      features_per_group[static_cast<Size>(i)] = std::move(local_features);
-      fmap_per_group[static_cast<Size>(i)] = std::move(local_map);
     }
 
     for (Size i = 0; i < n_groups; ++i)
@@ -1475,12 +1468,12 @@ Biosaur2Algorithm::ScanPrep Biosaur2Algorithm::prepareScan_(const MSSpectrum& sp
   // Build intensity, m/z and optional ion-mobility-bin arrays for valid peaks.
   vector<double> intensities(len_mz);
   vector<double> mzs(len_mz);
-  sp.im_bin_per_peak.assign(spectrum.size(), 0);
 
   // Use the standardized IM format/helper logic: only build per-peak IM bins
   // when we have concatenated ion-mobility data.
   const IMFormat im_format = IMTypes::determineIMFormat(spectrum);
   sp.use_im = use_im_global && (im_format == IMFormat::IM_PEAK);
+  if (sp.use_im) sp.im_bin_per_peak.assign(spectrum.size(), 0);   // read only when use_im
 
   const MSSpectrum::FloatDataArray* im_array_ptr = nullptr;
   if (sp.use_im)
@@ -1602,17 +1595,18 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
     if (!all_idx.empty())
     {
       // Optional ion-mobility gating for previous-scan candidates.
-      if (cur.use_im && !prev->im_bin_per_peak.empty())
+      // (candidates exist only if the previous scan had peaks; one without per-peak IM counts as IM bin 0)
+      if (cur.use_im)
       {
         vector<int> filtered;
         filtered.reserve(all_idx.size());
         for (int idx_prev : all_idx)
         {
-          if (idx_prev < 0 || static_cast<Size>(idx_prev) >= prev->im_bin_per_peak.size())
+          if (prev->use_im && (idx_prev < 0 || static_cast<Size>(idx_prev) >= prev->im_bin_per_peak.size()))
           {
             continue;
           }
-          int prev_bin = prev->im_bin_per_peak[static_cast<Size>(idx_prev)];
+          int prev_bin = prev->use_im ? prev->im_bin_per_peak[static_cast<Size>(idx_prev)] : 0;
           if (abs(prev_bin - fi) <= 1)
           {
             filtered.push_back(idx_prev);
