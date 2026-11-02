@@ -332,7 +332,8 @@ namespace OpenMS::Math
       defaults_.setValidStrings("decoy_handling", {"auto", "isotonic", "semi_supervised", "ignore"});
       defaults_.setValue("decoy_ratio", 1.0, "Number of decoy sequences per target sequence in the searched database (cf. DecoyDatabase's 'shuffle_decoy_ratio'). Under target-decoy competition, the number of incorrect targets is estimated as the number of decoys divided by this ratio.", {"advanced"});
       defaults_.setMinFloat("decoy_ratio", 1e-6);
-      defaults_.setValue("min_decoys", 10, "Minimum number of decoy PSMs (per model, i.e. per charge state with 'split_charge') to fit the semi-supervised mixture model. With fewer decoys, the non-parametric estimate is used.", {"advanced"});
+      defaults_.setValue("min_decoys", 10, "Minimum number of decoy PSMs (per model, i.e. per charge state with 'split_charge') to fit the semi-supervised mixture model. With fewer decoys, the non-parametric estimate is used. "
+                                        "IDPosteriorErrorProbability with 'split_charge': charge states with fewer decoys use the target-decoy data of all charge states (1: separate models for all charge states with decoys).", {"advanced"});
       defaults_.setMinInt("min_decoys", 1);
       defaults_.setValue("min_decoys_isotonic", 50, "With decoy_handling 'auto', the non-parametric estimate is used with at least this many decoy PSMs (per model); the semi-supervised mixture model with at least 'min_decoys' but fewer decoys.", {"advanced"});
       defaults_.setMinInt("min_decoys_isotonic", 1);
