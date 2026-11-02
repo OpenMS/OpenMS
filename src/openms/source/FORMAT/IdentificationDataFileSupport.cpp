@@ -5,6 +5,7 @@
 
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <algorithm>
+#include <array>
 #include <arrow/util/future.h>
 #include <bit>
 #include <limits>
@@ -304,35 +305,38 @@ void readMetadata(const arrow::Array& array, int64_t row, MetaInfoInterface& met
   if (array.IsNull(row)) invalid("Null metadata list");
   const auto& list = static_cast<const arrow::ListArray&>(array);
   const auto& entries = static_cast<const arrow::StructArray&>(*list.values());
+  // StructArray::field() loads a shared pointer atomically, so the fields are looked up once per record.
+  std::array<const arrow::Array*, 7> fields;
+  for (int f = 0; f < 7; ++f)
+    fields[f] = entries.field(f).get();
   // Entries are collected first and copied once: values set one by one leave their container with spare capacity.
   MetaInfoInterface values;
-  std::set<UInt> names;
   for (int64_t i = list.value_offset(row), end = i + list.value_length(row); i < end; ++i)
   {
     if (entries.IsNull(i)) invalid("Null metadata entry");
-    const auto& descriptor = dictionary.at(number<arrow::UInt32Array>(*entries.field(0), i));
-    if (! names.insert(descriptor.registry_index).second) invalid("Duplicate metadata name in record");
+    const auto& descriptor = dictionary.at(number<arrow::UInt32Array>(*fields[0], i));
+    if (values.metaValueExists(descriptor.registry_index)) invalid("Duplicate metadata name in record");
     int active = descriptor.type == DataValue::EMPTY_VALUE ? 0 : static_cast<int>(descriptor.type) + 1;
     for (int f = 1; f < 7; ++f)
-      if (entries.field(f)->IsNull(i) == (f == active)) invalid("Metadata value does not match its descriptor type");
+      if (fields[f]->IsNull(i) == (f == active)) invalid("Metadata value does not match its descriptor type");
     DataValue item;
     switch (descriptor.type)
     {
       case DataValue::STRING_VALUE:
-        item = text(*entries.field(1), i);
+        item = text(*fields[1], i);
         break;
       case DataValue::INT_VALUE: {
-        int64_t v = number<arrow::Int64Array>(*entries.field(2), i);
+        int64_t v = number<arrow::Int64Array>(*fields[2], i);
         if (v < std::numeric_limits<SignedSize>::min() || v > std::numeric_limits<SignedSize>::max())
           invalid("Metadata integer exceeds platform range");
         item = static_cast<long long>(v);
         break;
       }
       case DataValue::DOUBLE_VALUE:
-        item = std::bit_cast<double>(number<arrow::UInt64Array>(*entries.field(3), i));
+        item = std::bit_cast<double>(number<arrow::UInt64Array>(*fields[3], i));
         break;
       case DataValue::STRING_LIST: {
-        const auto& values = static_cast<const arrow::ListArray&>(*entries.field(4));
+        const auto& values = static_cast<const arrow::ListArray&>(*fields[4]);
         StringList target;
         for (int64_t n = values.value_offset(i), end = n + values.value_length(i); n < end; ++n)
           target.push_back(text(*values.values(), n));
@@ -340,7 +344,7 @@ void readMetadata(const arrow::Array& array, int64_t row, MetaInfoInterface& met
         break;
       }
       case DataValue::INT_LIST: {
-        const auto& values = static_cast<const arrow::ListArray&>(*entries.field(5));
+        const auto& values = static_cast<const arrow::ListArray&>(*fields[5]);
         IntList target;
         for (int64_t n = values.value_offset(i), end = n + values.value_length(i); n < end; ++n)
         {
@@ -352,7 +356,7 @@ void readMetadata(const arrow::Array& array, int64_t row, MetaInfoInterface& met
         break;
       }
       case DataValue::DOUBLE_LIST: {
-        const auto& values = static_cast<const arrow::ListArray&>(*entries.field(6));
+        const auto& values = static_cast<const arrow::ListArray&>(*fields[6]);
         DoubleList target;
         for (int64_t n = values.value_offset(i), end = n + values.value_length(i); n < end; ++n)
           target.push_back(std::bit_cast<double>(number<arrow::UInt64Array>(*values.values(), n)));

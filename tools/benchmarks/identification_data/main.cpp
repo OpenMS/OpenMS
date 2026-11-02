@@ -176,7 +176,7 @@ ID synthetic(OpenMS::UInt64 rows, OpenMS::UInt64 run_count, bool inference = fal
       match.representation = i % 2 ? "PEPTIDEK" : "PEPTIDER";
       match.charge = 2 + i % 2;
       match.target_decoy = i % 10 ? ID::TargetDecoy::TARGET : ID::TargetDecoy::DECOY;
-      match.sequence_evidence.push_back({database_id, "P" + std::to_string(i % 2000), 1, 8, "K", "A"});
+      match.sequence_evidence.push_back({database_id, "P" + std::to_string(i % 2000), 1, 8, 'K', 'A'});
       if (inference)
       {
         // Repeated peptidoforms retain the same mapping across every input run.

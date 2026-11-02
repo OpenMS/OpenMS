@@ -620,8 +620,9 @@ ID::MatchId ID::Run::importMatch(QueryId query_id, MatchId id, MatchData data, c
   match.tag_ = score_table_->tag;
   match.slot_ = static_cast<UInt32>(match_count_);
   auto& columns = score_table_->columns;
+  // Grow geometrically: reserving one more row per match would copy every column for each match.
   for (auto& column : columns)
-    column.reserve(match_count_ + 1);
+    if (column.capacity() <= match_count_) column.reserve(std::max<Size>(16, 2 * match_count_));
   std::array<Size, 2> qp;
   if (last_query_ && sources_[(*last_query_)[0]].identifications[(*last_query_)[1]].id_ == query_id) qp = *last_query_;
   else
