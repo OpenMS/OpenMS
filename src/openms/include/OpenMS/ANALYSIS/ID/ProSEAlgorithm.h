@@ -1682,7 +1682,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
        * The model at one retention time, for the peaks of a spectrum: the chunk lookup of error(mz, rt) once per
        * spectrum, the same arithmetic per peak (the values of error() and correct(), bit for bit).
        */
-      struct AtRT
+      struct OPENMS_DLLAPI AtRT // (exported like its parent: MSVC links nothing of a nested struct without it)
       {
         const Chunk* lo{nullptr}; ///< null: no correction (error 0)
         const Chunk* hi{nullptr}; ///< null: the model of lo alone; else interpolated between lo and hi with weight w

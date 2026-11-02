@@ -3919,6 +3919,7 @@ namespace OpenMS
           // next candidate; getSpectrum appends to whatever is there. clear(false) keeps the capacity of the
           // peak vector (clear(true) would shrink it); the data arrays are emptied either way.
           theo_spectrum.clear(false);
+          theo_spectrum.getPrecursors().clear(); // (clear(false) keeps the meta data; getSpectrum() appends a precursor per call)
           spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, scoringMaxCharge_(sms.precursor_charge_));
           // Note: TSG emits sorted output when add_metainfo=true (see the
           // sortByPositionPresorted() call at the tail of getSpectrum_); the extra
@@ -8114,12 +8115,13 @@ namespace OpenMS
     // The threads that a BackgroundConsumer (below) lends from this thread while it runs: the read policies below count
     // them as this thread's (the threads this thread was given), so that a read decides as without the consumer.
     thread_local int consumer_lent_threads = 0;
+    thread_local int reader_lent_threads = 0;   // lent to a background reader (BackgroundSpectra::start()), until taken back
 
     // The OpenMP threads of this thread, with those that a BackgroundConsumer has lent
     [[maybe_unused]] int threadsGiven()
     {
 #ifdef _OPENMP
-      return omp_get_max_threads() + consumer_lent_threads;
+      return omp_get_max_threads() + consumer_lent_threads + reader_lent_threads; // (the budget, loans included)
 #else
       return 1;
 #endif
@@ -8243,6 +8245,7 @@ namespace OpenMS
         if (!borrow) { return; }
         own_threads_ = omp_get_max_threads();
         omp_set_num_threads(std::max(1, own_threads_ - threads));
+        reader_lent_threads = own_threads_ - std::max(1, own_threads_ - threads);
         // taken back early (takeBackThreadsOfEndedRead()) only outside of parallel regions, where this thread runs a
         // single task, whose ICV this is
         if (parallelLevel() == 0) { lending_read = this; }
@@ -8297,7 +8300,7 @@ namespace OpenMS
       void restoreThreads_() noexcept
       {
 #ifdef _OPENMP
-        if (own_threads_ > 0) { omp_set_num_threads(own_threads_); }
+        if (own_threads_ > 0) { omp_set_num_threads(own_threads_); reader_lent_threads = 0; }
 #endif
         own_threads_ = 0;
         if (lending_read == this) { lending_read = nullptr; }
@@ -8342,7 +8345,12 @@ namespace OpenMS
         // about 2.5 s instead of 1.5 s, still during the search of the next one). The next consumer waits for the one
         // before, so searches shorter than that write wait for it: that run followed by two small ones (0.4 GB) took
         // 17.4 instead of 15.4 s (4 / 8 helper threads: 15.9 / 15.6 s, and less of the memory saved).
+        bool lend = true; // the helper's threads are taken from this thread's team
         if (parallelLevel() == 0 && threads > 1 && !readBorrowsThreads()) { helper_threads = std::min(2, std::max(1, threads / 4)); }
+        // With as many threads as CPUs the reader borrows threads of this thread (see helpersOversubscribe()), and the
+        // two loans cannot be juggled at once: the consumer then gets one thread of its own (the idXML writer is serial),
+        // one more than the CPUs, so that the write still overlaps the search of the next file instead of running here.
+        else if (parallelLevel() == 0 && threads > 1 && helpersOversubscribe()) { helper_threads = 1; lend = false; }
 #endif
         if (helper_threads > 0)
         {
@@ -8358,10 +8366,13 @@ namespace OpenMS
               done_.store(true, std::memory_order_release);
             });
 #ifdef _OPENMP
-            own_threads_ = threads;
-            omp_set_num_threads(threads - helper_threads);
-            consumer_lent_threads = helper_threads;
-            lending_consumer = this;
+            if (lend)
+            {
+              own_threads_ = threads;
+              omp_set_num_threads(threads - helper_threads);
+              consumer_lent_threads = helper_threads;
+              lending_consumer = this;
+            }
 #endif
             return;
           }
@@ -11286,16 +11297,22 @@ namespace OpenMS
         for (Size i = begin; i < begin + take; ++i) { subset.push_back(tic_index[i].second); }
       }
     }
-    // Scored in the order of the precursor mass, as the main search (scoringOrder_()): neighbouring iterations probe the
-    // same precursor-window slices of the fragment index, which stay in the caches. The hits are sorted by score below,
-    // so the order does not change the result.
-    {
-      std::vector<unsigned char> in_subset(spectra.size(), 0);
-      for (Size i : subset) in_subset[i] = 1;
-      subset.clear();
-      for (SignedSize i : scoringOrder_(spectra, query_spectra)) { if (in_subset[i]) subset.push_back(static_cast<Size>(i)); }
-    }
     const Size subset_size = subset.size();
+    // Scored in the order of the precursor mass, as the main search (scoringOrder_()): neighbouring iterations probe the
+    // same precursor-window slices of the fragment index, which stay in the caches. The hits are collected in the order
+    // of the subset (per tenth of the run, by TIC), as one thread scored them before: the sort by score below is not
+    // stable, so this order decides which of two hits with the same score at the cut survives; it depends neither on
+    // the threads nor on the chunks.
+    std::vector<Size> order; // positions in subset, by precursor mass
+    {
+      std::vector<SignedSize> position_in_subset(spectra.size(), -1);
+      for (Size k = 0; k < subset_size; ++k) position_in_subset[subset[k]] = static_cast<SignedSize>(k);
+      order.reserve(subset_size);
+      for (SignedSize i : scoringOrder_(spectra, query_spectra))
+      {
+        if (position_in_subset[i] >= 0) order.push_back(static_cast<Size>(position_in_subset[i]));
+      }
+    }
 
     OPENMS_LOG_INFO << "[ProSE] Calibration: scoring " << subset_size << " / " << spectra.size()
                     << " spectra (top TIC per tenth of the run)..." << std::endl;
@@ -11307,11 +11324,10 @@ namespace OpenMS
     // Collect per-spectrum best hits with scores and errors
     // (rt, prec_mz [theoretical] and frag_mzs [theoretical, aligned with frag_errors] feed the models of calibration:recalibrate)
     struct CalHit { double score; double prec_error; std::vector<float> frag_errors; double rt; double prec_mz; std::vector<float> frag_mzs; };
-    vector<CalHit> cal_hits;
-    // At most one hit per spectrum of the subset: the push_back() in the critical section below never reallocates, so
-    // it cannot throw there (an exception must not leave an OpenMP critical section; the catch of the loop body is
-    // outside it).
-    cal_hits.reserve(subset_size);
+    // At most one hit per spectrum of the subset, in its slot (written by one iteration only): collected in subset order
+    // after the loop
+    vector<CalHit> slots(subset_size);
+    std::vector<unsigned char> filled(subset_size, 0);
 
     // Parallelize over the calibration subset, mirroring the main scoring loop
     // (scoreSpectraAgainstIndex_). Each iteration is independent: querySpectrum and
@@ -11336,11 +11352,12 @@ namespace OpenMS
     [[maybe_unused]] const int cal_chunk = 1; // (only the OpenMP directive uses it)
 #endif
 #pragma omp parallel for schedule(dynamic, cal_chunk)
-    for (SignedSize si = 0; si < (SignedSize)subset_size; ++si)
+    for (SignedSize oi = 0; oi < (SignedSize)subset_size; ++oi)
     {
       if (calibration_failed.load(std::memory_order_relaxed)) continue;
       try
       {
+      const Size si = order[oi];
       const Size scan_idx = subset[si];
       const MSSpectrum& spec = spectra[scan_idx];
       const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spec);
@@ -11386,6 +11403,7 @@ namespace OpenMS
         else
         {
           theo.clear(false); // peaks and data arrays; getSpectrum appends, its output is sorted with add_metainfo=true
+          theo.getPrecursors().clear(); // (clear(false) keeps the meta data; getSpectrum() appends a precursor per call)
           tsg.getSpectrum(theo, seq, 1, scoringMaxCharge_(sms.precursor_charge_));
           score = mass_accuracy_score_
             ? HyperScore::computeMassAccuracy(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, mass_error_sd_ppm_, detail)
@@ -11427,12 +11445,13 @@ namespace OpenMS
       if (!tsg.getIonSeriesSpectrum(theo, theo_ion_series, best_seq, 1, scoringMaxCharge_(best_charge))) // (the same peaks)
       {
         theo.clear(false);
+        theo.getPrecursors().clear();
         tsg.getSpectrum(theo, best_seq, 1, scoringMaxCharge_(best_charge));
       }
       matchedFragmentErrors(spec, theo, pass_fragment, fragment_mass_tolerance_unit_ppm, frag_errors, &frag_mzs);
 
-#pragma omp critical (prose_calibration_hits)
-      cal_hits.push_back({best_score, prec_err, std::move(frag_errors), spec.getRT(), theo_mz, std::move(frag_mzs)});
+      slots[si] = CalHit{best_score, prec_err, std::move(frag_errors), spec.getRT(), theo_mz, std::move(frag_mzs)};
+      filled[si] = 1;
       }
       catch (...)
       {
@@ -11444,6 +11463,10 @@ namespace OpenMS
       }
     }
     if (calibration_error) std::rethrow_exception(calibration_error);
+    vector<CalHit> cal_hits;
+    cal_hits.reserve(static_cast<Size>(std::count(filled.begin(), filled.end(), 1)));
+    for (Size k = 0; k < subset_size; ++k) { if (filled[k]) cal_hits.push_back(std::move(slots[k])); }
+    vector<CalHit>().swap(slots);
 
     // The confident half: the top 50 % by score (random matches inflate the tails), if that leaves calibration_min_psms_
     Size cal_hits_total = cal_hits.size();
