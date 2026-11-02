@@ -246,6 +246,25 @@ START_SECTION(([EXTRA] void run(ConsensusMap&, const ExperimentalDesign&, Protei
   TEST_REAL_SIMILAR(quantifier.getProteinGroupRatios().at("P1")[1].ratio, 3.0)
   TEST_REAL_SIMILAR(quantifier.getProteinGroupRatios().at("P1")[1].normalized_ratio, 0.75)
   TEST_REAL_SIMILAR(quantifier.getProteinGroupRatios().at("P2")[1].ratio, 4.0)
+
+  // The rule holds per channel: a triplex peptide detected as L/M in run 0 (its heavy channel missing) and measured by
+  // targeted quantification as L/H 0.5 in run 1 keeps its detected M/L and gets the targeted H/L, which nothing else gives.
+  ConsensusMap triplex = map;
+  triplex.clear(false);
+  addFeature(triplex, "PEPFK", "P1", {{0, {100, 300}}, {1, {100, 0, 50}}}, {"run1.mzML"});
+  quantifier.run(triplex, design, proteins);
+  const auto& pep_f = quantifier.getPeptideRatios().at(AASequence::fromString("PEPFK"));
+  TEST_EQUAL(pep_f.size(), 3)
+  TEST_EQUAL(pep_f[0].channel, 1)
+  TEST_EQUAL(pep_f[0].count, 1) // the detected reference only
+  TEST_EQUAL(pep_f[0].targeted_count, 0)
+  TEST_EQUAL(pep_f[1].channel, 2)
+  TEST_EQUAL(pep_f[1].targeted_count, 0)
+  TEST_REAL_SIMILAR(pep_f[1].ratio, 3.0)
+  TEST_EQUAL(pep_f[2].channel, 3)
+  TEST_EQUAL(pep_f[2].count, 1)
+  TEST_EQUAL(pep_f[2].targeted_count, 1)
+  TEST_REAL_SIMILAR(pep_f[2].ratio, 0.5)
 }
 END_SECTION
 

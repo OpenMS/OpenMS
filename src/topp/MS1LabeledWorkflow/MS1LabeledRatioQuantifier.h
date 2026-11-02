@@ -53,8 +53,9 @@ namespace OpenMS
     Evidences of targeted quantification (MS1LabeledWorkflow's '-targeted_quantification': the runs a feature lists in its
     meta value @c MS1Label:targeted_runs) only stand in where nothing else was measured. Their values are less accurate
     at extreme ratios, so they must not change a ratio that is reported without them:
-      - a peptide ratio is the median of the peptide's other evidences in that fraction group; only a peptide that has
-        none there gets the median of its targeted ones.
+      - a peptide ratio (per fraction group and channel) is the median of the peptide's other evidences of that channel
+        in that fraction group; only where it has none does it get the median of its targeted ones (e.g. the heavy channel
+        of a triplex peptide whose detected multiplets lack it).
       - a protein group ratio is the median of the group's other peptide ratios if these reach @p min_ratio_count;
         otherwise the peptide ratios of targeted quantification are added, which can lift the group over the threshold.
       - a normalization factor is the median of the peptide ratios measured without targeted quantification, if

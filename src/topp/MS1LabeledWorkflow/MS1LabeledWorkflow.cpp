@@ -225,7 +225,7 @@ intensities (@p ratios, computed by @c MS1LabeledRatioQuantifier next to this to
     contributing peptides next to it. Every ratio is also reported divided by the median peptide ratio of its
     (fraction group, channel), i.e. normalized on the assumption that most peptides do not change.
   - evidences of @p targeted_quantification only stand in where nothing else was measured: a peptide ratio uses them only if
-    the peptide has no other evidence in that fraction group, a protein group ratio only if its other peptide ratios do
+    the peptide has no other evidence of that channel in that fraction group, a protein group ratio only if its other peptide ratios do
     not reach @p ratios:min_ratio_count, and the normalization factors only if a (fraction group, channel) has no other
     peptide ratio.
 

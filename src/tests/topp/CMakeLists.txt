@@ -4989,9 +4989,9 @@ foreach(_min 1 2)
   set_tests_properties("TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}")
 endforeach()
 set_tests_properties("TOPP_MS1LabeledWorkflow_11_one_protein_min1" PROPERTIES PASS_REGULAR_EXPRESSION
-  "Abundances: 2 evidence.s. of targeted quantification with a channel that is not quantifiable.*Channel ratios from targeted quantification: 2 peptide ratio.s. of peptides measured only that way in their fraction group; 0 protein group ratio.s.")
+  "Abundances: 2 evidence.s. of targeted quantification with a channel that is not quantifiable.*Channel ratios from targeted quantification: 2 peptide ratio.s. of peptides measured only that way in their fraction group. 0 protein group ratio.s.")
 set_tests_properties("TOPP_MS1LabeledWorkflow_11_one_protein_min2" PROPERTIES PASS_REGULAR_EXPRESSION
-  "Abundances: 2 evidence.s. of targeted quantification with a channel that is not quantifiable.*Channel ratios from targeted quantification: 2 peptide ratio.s. of peptides measured only that way in their fraction group; 1 protein group ratio.s.")
+  "Abundances: 2 evidence.s. of targeted quantification with a channel that is not quantifiable.*Channel ratios from targeted quantification: 2 peptide ratio.s. of peptides measured only that way in their fraction group. 1 protein group ratio.s.")
 
 # With -join_channels false, YVNDLAGHEK's channels in MS1LabeledWorkflow_9 stay two partial multiplets, each identified. Each one's
 # missing channel lies on the other's reserved peaks, i.e. on another multiplet of the same peptide, which quantifies them: not

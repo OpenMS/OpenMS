@@ -179,7 +179,7 @@ namespace OpenMS
     }
 
     // -- peptide ratios: median over the evidences of one peptide in one fraction group --
-    // Those of targeted quantification only if the peptide has no other evidence there (see the class documentation).
+    // Those of targeted quantification only if the peptide has no other evidence of that channel there (see the class documentation).
     std::map<std::pair<unsigned, unsigned>, SplitRatios> ratios_per_cell; // for the normalization factors
     Size targeted_peptide_ratios = 0;
     for (auto& [key, evidences] : peptide_evidence_ratios)
