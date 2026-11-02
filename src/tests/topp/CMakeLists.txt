@@ -6500,10 +6500,17 @@ set_tests_properties("TOPP_PercolatorAdapter_1_inproc_no_binary_out" PROPERTIES 
 add_test("TOPP_PercolatorAdapter_1_inproc_pin" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess false -percolator_executable ${TESTS_TEMP_DIR}/this_percolator_does_not_exist -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_inproc_pin_out.tmp.idXML -out_type idXML -out_pin PercolatorAdapter_1_inproc_pin.tmp.tsv)
 add_test("TOPP_PercolatorAdapter_1_inproc_pin_written" ${CMAKE_COMMAND} -E sha256sum PercolatorAdapter_1_inproc_pin.tmp.tsv)
 set_tests_properties("TOPP_PercolatorAdapter_1_inproc_pin_written" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1_inproc_pin")
-# An option that only the executable implements (here -weights) runs the executable instead
+# The in-process backend writes the -weights file itself, in the format of the executable's -w
+# (Percolator::storeWeights), and asking for it does not change the results.
+add_test("TOPP_PercolatorAdapter_1_inproc_weights" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess false -percolator_executable ${TESTS_TEMP_DIR}/this_percolator_does_not_exist -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_inproc_weights_out.tmp.idXML -out_type idXML -weights PercolatorAdapter_1_inproc_weights.tmp.tsv)
+add_test("TOPP_PercolatorAdapter_1_inproc_weights_out" ${DIFF} -in1 PercolatorAdapter_1_inproc_weights_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_inproc_out.idXML -whitelist ${_topp_percolator_diff_whitelist} "name=\"Percolator:weights\"")
+set_tests_properties("TOPP_PercolatorAdapter_1_inproc_weights_out" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1_inproc_weights")
+add_test("TOPP_PercolatorAdapter_1_inproc_weights_file" ${DIFF} -in1 PercolatorAdapter_1_inproc_weights.tmp.tsv -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_inproc_weights.tsv)
+set_tests_properties("TOPP_PercolatorAdapter_1_inproc_weights_file" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1_inproc_weights")
+# An option that only the executable implements (here -out_pout_target) runs the executable instead
 # of being ignored, so it needs the executable: with a missing one, the tool says so.
-add_test("TOPP_PercolatorAdapter_1_weights_needs_binary" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess false -percolator_executable ${TESTS_TEMP_DIR}/this_percolator_does_not_exist -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_weights_out.tmp.idXML -out_type idXML -weights PercolatorAdapter_1_weights.tmp.tsv)
-set_tests_properties("TOPP_PercolatorAdapter_1_weights_needs_binary" PROPERTIES PASS_REGULAR_EXPRESSION "could not be found .by searching on PATH.")
+add_test("TOPP_PercolatorAdapter_1_pout_needs_binary" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess false -percolator_executable ${TESTS_TEMP_DIR}/this_percolator_does_not_exist -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_pout_out.tmp.idXML -out_type idXML -out_pout_target PercolatorAdapter_1_pout.tmp.tab)
+set_tests_properties("TOPP_PercolatorAdapter_1_pout_needs_binary" PROPERTIES PASS_REGULAR_EXPRESSION "could not be found .by searching on PATH.")
 
 # An input CalcMass is search-engine data, whereas one synthesized for PIN training
 # is temporary; the in-process backend must preserve only the former (#9997). This
