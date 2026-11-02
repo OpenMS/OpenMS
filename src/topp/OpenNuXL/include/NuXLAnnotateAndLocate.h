@@ -13,6 +13,7 @@
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include "NuXLParameterParsing.h"
 #include "NuXLAnnotatedHit.h"
+#include "NuXLSiteLocalization.h"
 
 #include <set>
 #include <map>
@@ -75,6 +76,11 @@ class NuXLAnnotateAndLocate
          - Writes @c localization_scores (comma-separated @c "0..100" percentages),
            @c best_localization, @c best_localization_score, and
            @c best_localization_position back into the hit.
+         - With @p nhs_localization, chooses @c best_localization and
+           @c best_localization_position instead by the NHS-ester chemistry within the
+           residues the fragment ions support (see @ref NuXLSiteLocalization::localizeNHS),
+           and stores how the site was chosen and that range in @c localization_method and
+           @c localization_range_begin / @c localization_range_end.
 
     All output goes into @p annotated_hits — no exceptions are thrown by this function;
     malformed alignments emit @c OPENMS_LOG_WARN. Hits whose precursor adduct or
@@ -94,6 +100,9 @@ class NuXLAnnotateAndLocate
     @param[in]     fragment_mass_tolerance          Half-width of the fragment-alignment tolerance window.
     @param[in]     fragment_mass_tolerance_unit_ppm Interpret @p fragment_mass_tolerance as ppm (true) or Da (false).
     @param[in]     all_feasible_adducts             Per-precursor-adduct fragment-adduct definitions used to generate marker and shifted immonium ions.
+    @param[in]     nhs_localization                 Localize by the NHS-ester chemistry (cross-linkers such as SDA) instead of the fragment evidence alone.
+    @param[in]     protein_termini                  Protein-terminal peptides of the digest (see @ref NuXLSiteLocalization::proteinTermini) for @p nhs_localization: a protein N-terminal peptide can carry the cross-link on its free N-terminus; nullptr: none is protein-terminal.
+    @param[in]     enzyme_cleaves_after_lysine      With @p nhs_localization and @p protein_termini: a C-terminal lysine counts as blocked (the enzyme doesn't cleave after a modified lysine) unless the peptide ends a protein.
   */
   static void annotateAndLocate_(
     const PeakMap& exp,
@@ -104,7 +113,10 @@ class NuXLAnnotateAndLocate
     Size max_variable_mods_per_peptide,
     double fragment_mass_tolerance,
     bool fragment_mass_tolerance_unit_ppm,
-    const NuXLParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts);
+    const NuXLParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts,
+    bool nhs_localization = false,
+    const NuXLSiteLocalization::ProteinTermini* protein_termini = nullptr,
+    bool enzyme_cleaves_after_lysine = false);
 
 };
 } // namespace OpenMS

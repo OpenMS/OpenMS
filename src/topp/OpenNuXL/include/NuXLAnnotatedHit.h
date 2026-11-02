@@ -204,6 +204,9 @@ class NuXLAnnotatedHit
   std::string localization_scores = "0";
   std::string best_localization;
   int best_localization_position = -1; // UNKNOWN
+  std::string localization_method; ///< how the site was chosen with NHS localization (see NuXLSiteLocalization::Site); empty otherwise
+  int localization_range_begin = -1; ///< first residue supported by the fragment ions with NHS localization; -1 if none
+  int localization_range_end = -1; ///< last residue supported by the fragment ions with NHS localization (inclusive); -1 if none
   std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
 
   size_t tag_unshifted = 0;

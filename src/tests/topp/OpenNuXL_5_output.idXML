@@ -1352,8 +1352,8 @@
 				<UserParam type="float" name="nucleotide_mass_tags" value="13.213778495788574"/>
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="2"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="3.5"/>
-				<UserParam type="int" name="nr_candidates" value="3"/>
-				<UserParam type="float" name="-ln(poisson)" value="6.10658861354591"/>
+				<UserParam type="int" name="nr_candidates" value="2"/>
+				<UserParam type="float" name="-ln(poisson)" value="4.948479095964295"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.298507462686567"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.272108852863312"/>
 				<UserParam type="float" name="NuXL:wTop50" value="3.0"/>

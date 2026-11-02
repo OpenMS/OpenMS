@@ -432,19 +432,30 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   OPENMS_LOG_INFO << "Model fitting: " << model_successes << " successes, "
            << model_failures << " failures" << endl;
 
-  if (impute) // impute results for cases where the model fit failed
+  if (impute && !failed_models.empty()) // impute results for cases where the model fit failed
   {
-    TransformationModelLinear lm(quant_values, Param());
-    double slope, intercept;
-    std::string x_weight, y_weight;
-    double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
-    lm.getParameters(slope, intercept, x_weight, y_weight, x_datum_min, x_datum_max, y_datum_min, y_datum_max);
-    OPENMS_LOG_INFO << "Imputing model failures with a linear model based on log(rawIntensities). Slope: " << slope << ", Intercept: " << intercept << endl;
-    for (vector<FeatureMap::Iterator>::iterator it = failed_models.begin();
-         it != failed_models.end(); ++it)
+    try
     {
-      double area = exp(lm.evaluate(log((*it)->getIntensity())));
-      (*it)->setIntensity(area);
+      TransformationModelLinear lm(quant_values, Param());
+      double slope, intercept;
+      std::string x_weight, y_weight;
+      double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
+      lm.getParameters(slope, intercept, x_weight, y_weight, x_datum_min, x_datum_max, y_datum_min, y_datum_max);
+      OPENMS_LOG_INFO << "Imputing model failures with a linear model based on log(rawIntensities). Slope: " << slope << ", Intercept: " << intercept << endl;
+      for (vector<FeatureMap::Iterator>::iterator it = failed_models.begin();
+           it != failed_models.end(); ++it)
+      {
+        double area = exp(lm.evaluate(log((*it)->getIntensity())));
+        (*it)->setIntensity(area);
+      }
+    }
+    catch (Exception::BaseException& e)
+    {
+      // the linear model cannot be fitted, e.g. if the valid models all have the same raw intensity (possible in a
+      // small FAIMS CV group): nothing to base the imputation on, so treat the failed fits as with 'no_imputation'
+      OPENMS_LOG_WARN << "Warning: cannot impute the intensities of " << failed_models.size()
+                      << " failed elution model fit(s) (" << e.what() << "); setting them to zero." << endl;
+      for (FeatureMap::Iterator it : failed_models) it->setIntensity(0.0);
     }
   }
 }
