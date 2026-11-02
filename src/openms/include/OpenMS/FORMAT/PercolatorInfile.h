@@ -108,6 +108,13 @@ namespace OpenMS
       static std::string getFileIdentifier(const PeptideIdentification& pid);
 
       /**
+       * @brief getFileIdentifier() with the registry indices of 'file_origin' and 'id_merge_index' looked up once
+       * (MetaInfoRegistry::getIndex(); UInt(-1): not registered, so no PSM carries it): for loops over many PSMs, where
+       * the lookups by name take the registry's lock per call
+       */
+      static std::string getFileIdentifier(const PeptideIdentification& pid, UInt file_origin_index, UInt id_merge_index_index);
+
+      /**
        * @brief Returns the standard Percolator feature columns every .pin file should declare.
        *
        * The list contains the three mandatory header columns (SpecId, Label, ScanNr)
