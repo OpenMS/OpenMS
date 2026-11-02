@@ -1670,7 +1670,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * alone, slope 0, with mode 'offset'), linearly interpolated between the chunks' centres and constant beyond
      * them. The errors are in ppm or in the unit of the tolerance (Da); correct() removes the modelled error from an m/z.
      */
-    struct MzRecalibration_
+    struct OPENMS_DLLAPI MzRecalibration_ // exported: the class test calls its functions (MSVC links nothing of a nested struct without it)
     {
       struct Chunk { double rt; double intercept; double slope; Size points; };
       std::vector<Chunk> chunks; ///< in RT order; empty: no correction
