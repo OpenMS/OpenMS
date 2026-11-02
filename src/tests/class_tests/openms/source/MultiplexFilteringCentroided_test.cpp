@@ -15,6 +15,7 @@
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 
+#include <algorithm>
 #include <cmath>
 #include <tuple>
 
@@ -23,6 +24,34 @@
 #endif
 
 using namespace OpenMS;
+
+namespace
+{
+  // gives the test access to MultiplexFiltering::applyBlacklistEntries_(), to reserve peaks by hand, and to the number of owner
+  // records it keeps
+  class BlacklistOwnerTester : public MultiplexFiltering
+  {
+  public:
+    using MultiplexFiltering::MultiplexFiltering;
+
+    // the filtered peak peak_idx of pattern pattern_idx reserves peaks, given in order as (spectrum index, peak index, mass trace)
+    void reserve(const std::vector<std::tuple<size_t, size_t, int>>& peaks, unsigned pattern_idx, size_t peak_idx)
+    {
+      std::vector<BlacklistEntry> entries;
+      for (const auto& [rt_idx, mz_idx, mass_trace] : peaks)
+      {
+        entries.push_back({rt_idx, mz_idx, mass_trace});
+      }
+      applyBlacklistEntries_(entries, pattern_idx, peak_idx);
+    }
+
+    // one record per peak that more than one filtered peak reserved
+    Size recordCount() const
+    {
+      return blacklist_owner_records_.size();
+    }
+  };
+}
 
 START_TEST(MultiplexFilteringCentroided, "$Id$")
 
@@ -190,6 +219,114 @@ START_SECTION([EXTRA] filter() gives the same result for any number of threads)
     const auto parallel = run(threads);
     TEST_EQUAL(parallel.first == serial.first, true)
     TEST_EQUAL(parallel.second == serial.second, true)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] getBlacklistOwners() keeps the first and the last filtered peak that reserved a peak)
+{
+  // two spectra of four peaks each, all above the intensity cutoff, so that the constructor sizes the blacklist and its owners to them
+  MSExperiment two_spectra;
+  for (int s = 0; s < 2; ++s)
+  {
+    MSSpectrum spectrum;
+    spectrum.setMSLevel(1);
+    spectrum.setRT(100.0 + s);
+    for (int k = 0; k < 4; ++k)
+    {
+      spectrum.push_back(Peak1D(500.0 + k, 1e5));
+    }
+    two_spectra.addSpectrum(spectrum);
+  }
+  two_spectra.updateRanges();
+  BlacklistOwnerTester tester(two_spectra, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type);
+  // a writer as "pattern index, index of the filtered peak in the result of the pattern, mass trace"
+  auto writer = [](const MultiplexFiltering::BlacklistWriter& w)
+  {
+    return std::to_string(w.pattern_idx) + ", " + std::to_string(w.peak_idx) + ", " + std::to_string(w.mass_trace);
+  };
+
+  // A (filtered peak 0 of pattern 0) reserves peak 0 (mass trace 8) and peak 1 of spectrum 0, peak 1 twice (mass trace 1, then 3),
+  // and peak 2 of spectrum 1 (mass trace 2)
+  tester.reserve({{0, 0, 8}, {0, 1, 1}, {0, 1, 3}, {1, 2, 2}}, 0, 0);
+  // A rewriting its own peak adds no record
+  TEST_EQUAL(tester.recordCount(), 0)
+  const std::vector<MultiplexFiltering::BlacklistOwner> owners_after_a = tester.getBlacklistOwners(0);
+  // the entries of a list are checked only if the list has the right size, which the TEST_EQUAL before them checks; unlike
+  // ABORT_IF, a wrong size does not skip the independent checks further down
+  TEST_EQUAL(owners_after_a.size(), 2)
+  if (owners_after_a.size() == 2)
+  {
+    // peak 1 of spectrum 0 has a single writer, A, which is its first and its last owner, with the mass trace it wrote last
+    TEST_STRING_EQUAL(writer(owners_after_a[1].first), "0, 0, 3")
+    TEST_STRING_EQUAL(writer(owners_after_a[1].last), "0, 0, 3")
+  }
+
+  // B (filtered peak 0 of pattern 1) reserves peaks 1 (mass trace 4) and 3 (mass trace 5) of spectrum 0; peak 2 stays white
+  tester.reserve({{0, 1, 4}, {0, 3, 5}}, 1, 0);
+  // B is the second writer of peak 1 of spectrum 0, which gets a record
+  TEST_EQUAL(tester.recordCount(), 1)
+  // C (filtered peak 1 of pattern 0) reserves peak 1 of spectrum 0 (mass trace 6) and peak 2 of spectrum 1 (mass trace 7)
+  tester.reserve({{0, 1, 6}, {1, 2, 7}}, 0, 1);
+  // C updates the record of peak 1 of spectrum 0, and is the second writer of peak 2 of spectrum 1, which gets a record
+  TEST_EQUAL(tester.recordCount(), 2)
+
+  const std::vector<std::vector<MultiplexFiltering::BlacklistOwner>> owners = tester.getBlacklistOwners();
+  TEST_EQUAL(owners.size(), 2)
+  if (owners.size() == 2)
+  {
+    // spectrum 0: peaks 0, 1 and 3 are reserved; the white peak 2 has no entry
+    TEST_EQUAL(owners[0].size(), 3)
+    if (owners[0].size() == 3)
+    {
+      // peak 0: A alone is the first and the last owner (mass trace 8, so that it differs from a value-initialized BlacklistWriter)
+      TEST_STRING_EQUAL(writer(owners[0][0].first), "0, 0, 8")
+      TEST_STRING_EQUAL(writer(owners[0][0].last), "0, 0, 8")
+      // peak 1: the first owner is A with mass trace 3, which its own rewrite left (not 1, and not B's 4)
+      TEST_STRING_EQUAL(writer(owners[0][1].first), "0, 0, 3")
+      // peak 1: the last owner is C with mass trace 6; B, which reserved the peak in between, is not kept
+      TEST_STRING_EQUAL(writer(owners[0][1].last), "0, 1, 6")
+      // peak 3: B alone is the first and the last owner
+      TEST_STRING_EQUAL(writer(owners[0][2].first), "1, 0, 5")
+      TEST_STRING_EQUAL(writer(owners[0][2].last), "1, 0, 5")
+    }
+    // spectrum 1: only peak 2 is reserved, with a record of its own: A (mass trace 2) is the first, C (mass trace 7) the last owner
+    TEST_EQUAL(owners[1].size(), 1)
+    if (owners[1].size() == 1)
+    {
+      TEST_STRING_EQUAL(writer(owners[1][0].first), "0, 0, 2")
+      TEST_STRING_EQUAL(writer(owners[1][0].last), "0, 1, 7")
+    }
+  }
+
+  // the owners of spectrum 1 alone are the same
+  const std::vector<MultiplexFiltering::BlacklistOwner> owners_1 = tester.getBlacklistOwners(1);
+  TEST_EQUAL(owners_1.size(), 1)
+  if (owners_1.size() == 1)
+  {
+    TEST_STRING_EQUAL(writer(owners_1[0].first), "0, 0, 2")
+    TEST_STRING_EQUAL(writer(owners_1[0].last), "0, 1, 7")
+  }
+  // there are only two spectra
+  TEST_EXCEPTION(Exception::IndexOverflow, tester.getBlacklistOwners(2))
+
+  // entry k of the owners of a spectrum belongs to peak k of that spectrum of the blacklist, which skips the white peaks as well
+  const MSExperiment blacklist = tester.getBlacklist();
+  TEST_EQUAL(blacklist.size(), 2)
+  if (blacklist.size() == 2)
+  {
+    TEST_EQUAL(blacklist[0].size(), 3)
+    if (blacklist[0].size() == 3)
+    {
+      TEST_REAL_SIMILAR(blacklist[0][0].getMZ(), 500.0)
+      TEST_REAL_SIMILAR(blacklist[0][1].getMZ(), 501.0)
+      TEST_REAL_SIMILAR(blacklist[0][2].getMZ(), 503.0)
+    }
+    TEST_EQUAL(blacklist[1].size(), 1)
+    if (blacklist[1].size() == 1)
+    {
+      TEST_REAL_SIMILAR(blacklist[1][0].getMZ(), 502.0)
+    }
   }
 }
 END_SECTION

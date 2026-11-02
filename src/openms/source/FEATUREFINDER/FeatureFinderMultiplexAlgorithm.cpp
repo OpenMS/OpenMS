@@ -58,8 +58,13 @@ namespace OpenMS
       feature of the channel of the peak's mass trace, in the multiplet of the cluster of the filtered peak that reserved it.
       Of a peak reserved more than once, the first filtered peak counts if its multiplet was reported, else the last one: a
       later pattern whose RT band reaches over a reported multiplet's peaks and that is dropped leaves them to that multiplet.
+      Only these two writers are recorded (MultiplexFiltering::getBlacklistOwners()): a reported multiplet that reserved the
+      peak between two writers whose clusters were dropped loses it, and the peak counts as reserved by no reported feature
+      (0). That takes at least three writers of one peak, which in practice requires algorithm:rt_band > 0.
+      The owners are read from the filtering one spectrum at a time (n_spectra: the number of spectra of its blacklist), so
+      that those of all blacklisted peaks are never held at once.
     */
-    std::vector<std::vector<UInt64>> provisionalOwners(const std::vector<std::vector<MultiplexFiltering::BlacklistOwner>>& owners,
+    std::vector<std::vector<UInt64>> provisionalOwners(const MultiplexFiltering& filtering, Size n_spectra,
                                                        const std::vector<MultiplexFilteredMSExperiment>& filter_results,
                                                        const std::vector<std::map<int, GridBasedCluster>>& cluster_results,
                                                        const std::vector<std::map<int, std::vector<UInt64>>>& multiplet_ids,
@@ -88,11 +93,12 @@ namespace OpenMS
         const Size channel = static_cast<Size>(writer.mass_trace) / isotopes_per_peptide_max;
         return (ids != nullptr && channel < ids->size()) ? (*ids)[channel] : 0;
       };
-      std::vector<std::vector<UInt64>> provisional(owners.size());
-      for (Size s = 0; s < owners.size(); ++s)
+      std::vector<std::vector<UInt64>> provisional(n_spectra);
+      for (Size s = 0; s < n_spectra; ++s)
       {
-        provisional[s].reserve(owners[s].size());
-        for (const MultiplexFiltering::BlacklistOwner& owner : owners[s])
+        const std::vector<MultiplexFiltering::BlacklistOwner> owners = filtering.getBlacklistOwners(s);
+        provisional[s].reserve(owners.size());
+        for (const MultiplexFiltering::BlacklistOwner& owner : owners)
         {
           const UInt64 id = id_of(owner.first);
           provisional[s].push_back(id != 0 ? id : id_of(owner.last));
@@ -1101,11 +1107,10 @@ namespace OpenMS
        * construct feature and consensus maps i.e. the final results
        */
       exp_blacklist_ = filtering.getBlacklist();
-      const std::vector<std::vector<MultiplexFiltering::BlacklistOwner>> owners = filtering.getBlacklistOwners();
       filtering.getCentroidedExperiment().swap(exp_centroid_);
       std::vector<std::map<int, std::vector<UInt64>>> multiplet_ids;
       generateMapsCentroided_(patterns, filter_results, cluster_results, &multiplet_ids);
-      blacklist_owners = provisionalOwners(owners, filter_results, cluster_results, multiplet_ids, isotopes_per_peptide_max_);
+      blacklist_owners = provisionalOwners(filtering, exp_blacklist_.size(), filter_results, cluster_results, multiplet_ids, isotopes_per_peptide_max_);
     }
     else
     {
@@ -1118,7 +1123,6 @@ namespace OpenMS
       filtering.setLogType(getLogType());
       std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
       exp_blacklist_ = filtering.getBlacklist();
-      const std::vector<std::vector<MultiplexFiltering::BlacklistOwner>> owners = filtering.getBlacklistOwners();
 
       /**
        * cluster filter results
@@ -1134,7 +1138,7 @@ namespace OpenMS
       filtering.getPeakBoundaries().swap(boundaries_exp_s);
       std::vector<std::map<int, std::vector<UInt64>>> multiplet_ids;
       generateMapsProfile_(patterns, filter_results, cluster_results, &multiplet_ids);
-      blacklist_owners = provisionalOwners(owners, filter_results, cluster_results, multiplet_ids, isotopes_per_peptide_max_);
+      blacklist_owners = provisionalOwners(filtering, exp_blacklist_.size(), filter_results, cluster_results, multiplet_ids, isotopes_per_peptide_max_);
     }
 
     // finalize consensus map

@@ -10,6 +10,7 @@
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
@@ -17,6 +18,7 @@
 #include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 
+#include <algorithm>
 #include <limits>
 #include <utility>
 
@@ -379,18 +381,37 @@ namespace OpenMS
 
   void MultiplexFiltering::applyBlacklistEntries_(const std::vector<BlacklistEntry>& entries, unsigned pattern_idx, size_t peak_idx)
   {
+    // owners and records are indexed by int (see blacklist_owner_); each entry adds at most one record
+    constexpr Size max_count = static_cast<Size>(std::numeric_limits<int>::max());
+    if (filtered_peaks_.size() >= max_count || peak_idx >= max_count || entries.size() > max_count - blacklist_owner_records_.size())
+    {
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filtered_peaks_.size() + 1,
+                                   "Too many filtered peaks, or peaks reserved by more than one of them, for the blacklist owners (limit: INT_MAX each).");
+    }
     const int owner = static_cast<int>(filtered_peaks_.size());
-    filtered_peaks_.emplace_back(pattern_idx, peak_idx);
+    filtered_peaks_.emplace_back(pattern_idx, static_cast<unsigned>(peak_idx));
     for (const BlacklistEntry& entry : entries)
     {
-      int& last = blacklist_owner_[entry.rt_idx][entry.mz_idx];
-      // a peak another filtered peak reserved before keeps a record of the first one
-      if (last >= 0 && last != owner)
+      int& value = blacklist_[entry.rt_idx][entry.mz_idx];
+      int& owned_by = blacklist_owner_[entry.rt_idx][entry.mz_idx];
+      if (owned_by == -1)
       {
-        blacklist_first_owner_.try_emplace((static_cast<std::uint64_t>(entry.rt_idx) << 32) | entry.mz_idx, last, blacklist_[entry.rt_idx][entry.mz_idx]);
+        owned_by = owner;
       }
-      blacklist_[entry.rt_idx][entry.mz_idx] = entry.value;
-      last = owner;
+      else if (owned_by >= 0)
+      {
+        // a peak another filtered peak reserved before keeps a record of the first one, and of the last one from now on
+        if (owned_by != owner)
+        {
+          blacklist_owner_records_.push_back({owned_by, value, owner});
+          owned_by = -2 - static_cast<int>(blacklist_owner_records_.size() - 1);
+        }
+      }
+      else
+      {
+        blacklist_owner_records_[static_cast<Size>(-2 - owned_by)].last = owner;
+      }
+      value = entry.value;
     }
   }
 
@@ -498,22 +519,45 @@ namespace OpenMS
 
   std::vector<std::vector<MultiplexFiltering::BlacklistOwner>> MultiplexFiltering::getBlacklistOwners() const
   {
+    std::vector<std::vector<BlacklistOwner>> owners;
+    owners.reserve(blacklist_.size());
+    for (Size rt_idx = 0; rt_idx < blacklist_.size(); ++rt_idx)
+    {
+      owners.push_back(getBlacklistOwners(rt_idx));
+    }
+    return owners;
+  }
+
+  std::vector<MultiplexFiltering::BlacklistOwner> MultiplexFiltering::getBlacklistOwners(Size spectrum_index) const
+  {
+    if (spectrum_index >= blacklist_.size())
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, static_cast<SignedSize>(spectrum_index), blacklist_.size());
+    }
     auto writer = [this](int owner, int value) -> BlacklistWriter
     {
-      if (owner < 0) { return {std::numeric_limits<unsigned>::max(), std::numeric_limits<size_t>::max(), value}; }
+      if (owner < 0) { return {std::numeric_limits<unsigned>::max(), std::numeric_limits<unsigned>::max(), value}; }
       return {filtered_peaks_[owner].first, filtered_peaks_[owner].second, value};
     };
+    const std::vector<int>& values = blacklist_[spectrum_index];
+    const std::vector<int>& owners_of_peaks = blacklist_owner_[spectrum_index];
     // the same peaks in the same order as getBlacklist(), which keeps the peaks that are not white
-    std::vector<std::vector<BlacklistOwner>> owners(blacklist_.size());
-    for (size_t rt_idx = 0; rt_idx < blacklist_.size(); ++rt_idx)
+    std::vector<BlacklistOwner> owners;
+    owners.reserve(values.size() - static_cast<Size>(std::count(values.begin(), values.end(), -1)));
+    for (Size mz_idx = 0; mz_idx < values.size(); ++mz_idx)
     {
-      for (size_t mz_idx = 0; mz_idx < blacklist_[rt_idx].size(); ++mz_idx)
+      const int value = values[mz_idx];
+      if (value == -1) { continue; }
+      const int owner = owners_of_peaks[mz_idx];
+      if (owner <= -2)
       {
-        const int value = blacklist_[rt_idx][mz_idx];
-        if (value == -1) { continue; }
-        const BlacklistWriter last = writer(blacklist_owner_[rt_idx][mz_idx], value);
-        const auto first = blacklist_first_owner_.find((static_cast<std::uint64_t>(rt_idx) << 32) | mz_idx);
-        owners[rt_idx].push_back({first == blacklist_first_owner_.end() ? last : writer(first->second.first, first->second.second), last});
+        const BlacklistOwnerRecord& record = blacklist_owner_records_[static_cast<Size>(-2 - owner)];
+        owners.push_back({writer(record.first, record.first_value), writer(record.last, value)});
+      }
+      else
+      {
+        const BlacklistWriter last = writer(owner, value);
+        owners.push_back({last, last});
       }
     }
     return owners;

@@ -97,8 +97,9 @@ namespace OpenMS
                        "For a blacklist that records which feature reserved each peak (FeatureFinderMultiplex -out_blacklist).\n"
                        "true: a missing channel is not quantifiable (NaN) only if a peak reserved by another multiplet lies at its expected position, "
                        "and channels added for an identification (intensity 0, no feature id) are checked the same way. Peaks of the multiplet's own "
-                       "channels (their isotopes) or of no reported feature (a pattern the detection dropped) leave it at 0, which then means 'not "
-                       "occupied', not 'absent': use this only if such channels are measured afterwards (as MS1LabeledWorkflow re-quantifies them).\n"
+                       "channels (their isotopes) or of no reported feature (a pattern the detection dropped; FeatureFinderMultiplex records only the "
+                       "first and the last pattern that reserved a peak) leave it at 0, which then means 'not occupied', not 'absent': use this only "
+                       "if such channels are measured afterwards (as MS1LabeledWorkflow re-quantifies them).\n"
                        "false: the owners are ignored, every blacklisted peak counts.", {"advanced"});
     defaults_.setValidStrings("algorithm:use_blacklist_owners", {"true", "false"});
     defaults_.setSectionDescription("algorithm", "Parameters for the algorithm.");
