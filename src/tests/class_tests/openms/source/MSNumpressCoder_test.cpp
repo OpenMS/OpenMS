@@ -226,6 +226,34 @@ START_SECTION([EXTRA] decodeNP_LINEAR)
 }
 END_SECTION
 
+START_SECTION([EXTRA] encodeNP_LINEAR_mass_acc_small_array)
+{
+  // A 1- or 2-point array estimating its fixed point from a target mass
+  // accuracy (linear_fp_mass_acc > 0, as MzMLSqliteHandler's lossy sqMass
+  // writer sets unconditionally) must round-trip its real values, not NaN.
+  std::vector< double > in;
+  in.push_back(1234.5678);
+  in.push_back(1234.6789);
+  std::string out;
+
+  MSNumpressCoder::NumpressConfig config;
+  config.np_compression = MSNumpressCoder::LINEAR;
+  config.estimate_fixed_point = true; // critical
+  config.linear_fp_mass_acc = 0.05;
+
+  bool zlib_compression = false;
+  MSNumpressCoder().encodeNP(in, out, zlib_compression, config);
+
+  std::vector<double> result;
+  MSNumpressCoder().decodeNP(out, result, zlib_compression, config);
+
+  TEST_EQUAL(result.size(), 2)
+  TOLERANCE_ABSOLUTE(0.001)
+  TEST_REAL_SIMILAR(result[0], 1234.5678)
+  TEST_REAL_SIMILAR(result[1], 1234.6789)
+}
+END_SECTION
+
 START_SECTION([EXTRA] encodeNP_PIC)
 {
   std::vector< double > in = setup_test_vec1();
