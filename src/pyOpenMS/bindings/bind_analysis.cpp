@@ -2644,6 +2644,13 @@ The stamped features are removed again. Returns the number of rescored hits.
 feature_set: e.g. PercolatorInfile.getStandardFeatureSet(min_charge, max_charge) plus extra
 features plus "Peptide" and "Proteins".
 )doc")
+        .def("storeWeights", &OpenMS::Percolator::storeWeights, "filename"_a,
+             R"doc(
+Write the models of the last rescore() as the percolator executable writes them with -w:
+three comment lines, then per cross-validation fold the feature names and "m0" (the bias),
+the weights of the normalized features and those of the raw features (tab-separated).
+Raises an exception if nothing has been trained yet, or after rescorePSMs() with RESET.
+)doc")
         ;
     def_DefaultParamHandler<OpenMS::Percolator>(percolator_class);
 

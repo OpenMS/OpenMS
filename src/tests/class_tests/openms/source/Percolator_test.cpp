@@ -103,6 +103,30 @@ static bool medianTargetBeatsDecoy_(const OpenMS::RescoreOutput& out,
   return tt[tt.size() / 2] > dd[dd.size() / 2];
 }
 
+// Reads a weights file of Percolator::storeWeights() (the percolator executable's -w): its comment lines and its
+// other lines, split at tabs.
+static void readWeightsFile_(const std::string& filename, std::vector<std::string>& comments,
+                             std::vector<std::vector<std::string>>& rows)
+{
+  comments.clear();
+  rows.clear();
+  std::ifstream is(filename.c_str());
+  std::string line;
+  while (std::getline(is, line))
+  {
+    if (rows.empty() && !line.empty() && line[0] == '#')
+    {
+      comments.push_back(line);
+      continue;
+    }
+    std::vector<std::string> fields;
+    std::istringstream ls(line);
+    std::string field;
+    while (std::getline(ls, field, '\t')) fields.push_back(field);
+    rows.push_back(fields);
+  }
+}
+
 START_TEST(Percolator, "$Id$")
 
 START_SECTION((RescoreOutput rescore(const RescoreInput& input)))
@@ -311,7 +335,8 @@ START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that 
   }
   auto run = [&input](const std::string& mode, int max_train, int seed, int threads, const std::string& tdc,
                       Percolator::CappedTrainingInfo* info = nullptr, std::vector<std::vector<double>>* weights = nullptr,
-                      bool* default_direction = nullptr, const std::function<void(Param&)>& tweak = {})
+                      bool* default_direction = nullptr, const std::function<void(Param&)>& tweak = {},
+                      const std::string& weights_file = "")
   {
     Percolator p;
     Param par = p.getDefaults();
@@ -328,13 +353,44 @@ START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that 
     if (info) *info = p.getCappedTrainingInfo();
     if (weights) *weights = p.getSvmWeights();
     if (default_direction) *default_direction = p.usedDefaultDirection();
+    if (!weights_file.empty()) p.storeWeights(weights_file);
     return out;
+  };
+  // whether the weights file (storeWeights) holds the fold models of getSvmWeights(): each fold's raw feature weights
+  // proportional to those of its model (the file's are rescaled by the fold's test set, as Percolator's merge does)
+  auto foldsOfWeightsFile = [](const std::string& file, const std::vector<std::vector<double>>& fold_models)
+  {
+    std::vector<std::string> comments;
+    std::vector<std::vector<std::string>> rows;
+    readWeightsFile_(file, comments, rows);
+    if (comments.size() != 3 || rows.size() != 9 || fold_models.size() < 3) return false;
+    for (std::size_t f = 0; f < 3; ++f)
+    {
+      const std::vector<std::string>& raw = rows[3 * f + 2];
+      const std::size_t n = fold_models[f].size() - 1; // (the bias last)
+      if (raw.size() != n + 1) return false;
+      double norm_file = 0.0, norm_model = 0.0;
+      for (std::size_t j = 0; j < n; ++j)
+      {
+        norm_file += std::stod(raw[j]) * std::stod(raw[j]);
+        norm_model += fold_models[f][j] * fold_models[f][j];
+      }
+      for (std::size_t j = 0; j < n; ++j)
+      {
+        if (std::abs(std::stod(raw[j]) / std::sqrt(norm_file) - fold_models[f][j] / std::sqrt(norm_model)) > 1e-3) return false;
+      }
+    }
+    return true;
   };
 
   Percolator::CappedTrainingInfo info;
   std::vector<std::vector<double>> weights;
   bool default_direction = true;
-  const RescoreOutput out = run("out_of_fold", static_cast<int>(cap), 17, 8, "false", &info, &weights, &default_direction);
+  std::string oof_weights;
+  NEW_TMP_FILE(oof_weights);
+  const RescoreOutput out = run("out_of_fold", static_cast<int>(cap), 17, 8, "false", &info, &weights, &default_direction,
+                                {}, oof_weights);
+  TEST_TRUE(foldsOfWeightsFile(oof_weights, weights))
   TEST_FALSE(default_direction) // the learned fold models are kept (they differ from fold to fold)
   TEST_EQUAL(info.fold.size(), n_rows)
   TEST_EQUAL(info.sampled.size(), n_rows)
@@ -534,17 +590,23 @@ START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that 
 
   // learning_curve: nested samples of 2000, 4000, ... rows; fold k's curve on the validation spectra of the other folds
   {
-    auto curve = [&](double min_gain, int threads, int seed, Percolator::CappedTrainingInfo* ci, std::vector<std::vector<double>>* cw)
+    auto curve = [&](double min_gain, int threads, int seed, Percolator::CappedTrainingInfo* ci, std::vector<std::vector<double>>* cw,
+                     const std::string& weights_file = "")
     {
       return run("learning_curve", 0, seed, threads, "true", ci, cw, nullptr, [min_gain](Param& par)
       {
         par.setValue("subset_curve_start", 2000);
         par.setValue("subset_curve_min_gain", min_gain);
-      });
+      }, weights_file);
     };
     Percolator::CappedTrainingInfo lc;
     std::vector<std::vector<double>> lc_w;
-    const RescoreOutput lc_out = curve(0.002, 8, 17, &lc, &lc_w);
+    std::string lc_weights;
+    NEW_TMP_FILE(lc_weights);
+    const RescoreOutput lc_out = curve(0.002, 8, 17, &lc, &lc_w, lc_weights);
+    // the weights file: each fold's model from the sample size kept for it
+    TEST_TRUE(foldsOfWeightsFile(lc_weights, lc_w))
+    STATUS("learning curve: sizes kept " << lc.chosen_size[0] << ", " << lc.chosen_size[1] << ", " << lc.chosen_size[2])
     TEST_EQUAL(lc.validation_rows, n_rows / 5)
     TEST_TRUE(!lc.curve_sizes.empty() && lc.curve_sizes[0] <= 2000 && lc.curve_sizes[0] + 2 > 2000)
     TEST_EQUAL(lc_w.size(), 3)
@@ -1568,6 +1630,74 @@ START_SECTION([EXTRA] score rejects feature-name mismatch)
   RescoreInput bad = input;
   bad.feature_names = StringList{"signal", "different_name"};
   TEST_EXCEPTION(Exception::InvalidValue, p.score(bad, model))
+}
+END_SECTION
+
+START_SECTION((void storeWeights(const std::string& filename) const))
+{
+  std::string file;
+  NEW_TMP_FILE(file);
+  Percolator p;
+  Param par = p.getDefaults();
+  par.setValue("seed", 17);
+  p.setParameters(par);
+  TEST_EXCEPTION(Exception::MissingInformation, p.storeWeights(file)) // nothing trained yet
+
+  const RescoreInput input = makePortableModeratelySeparableInput_(300, 42);
+  p.rescore(input);
+  p.storeWeights(file);
+  // as the percolator executable writes it with -w: three comment lines, then per fold the feature names and m0, the
+  // weights of the normalized features and those of the raw features
+  std::vector<std::string> comments;
+  std::vector<std::vector<std::string>> rows;
+  readWeightsFile_(file, comments, rows);
+  TEST_EQUAL(comments.size(), 3)
+  TEST_EQUAL(rows.size(), 9)
+  const std::vector<std::string> header{"signal", "noise", "m0"};
+  bool shape = rows.size() == 9;
+  for (std::size_t f = 0; shape && f < 3; ++f)
+  {
+    shape = rows[3 * f] == header && rows[3 * f + 1].size() == 3 && rows[3 * f + 2].size() == 3;
+  }
+  TEST_TRUE(shape)
+  // the raw weights (4 decimals) average to getSvmWeights()
+  const std::vector<std::vector<double>>& svm_weights = p.getSvmWeights();
+  TEST_EQUAL(svm_weights.size(), 1)
+  TOLERANCE_ABSOLUTE(1e-4)
+  for (std::size_t j = 0; shape && j < 3; ++j)
+  {
+    double avg = 0.0;
+    for (std::size_t f = 0; f < 3; ++f) avg += std::stod(rows[3 * f + 2][j]) / 3.0;
+    TEST_REAL_SIMILAR(avg, svm_weights[0][j])
+  }
+  TOLERANCE_ABSOLUTE(1e-5)
+  // the signal separates targets from decoys in every fold
+  bool signal_positive = shape;
+  for (std::size_t f = 0; shape && f < 3; ++f) signal_positive = signal_positive && std::stod(rows[3 * f + 2][0]) > 0.0;
+  TEST_TRUE(signal_positive)
+
+  // train() writes its models too; score() keeps them
+  auto contents = [](const std::string& filename)
+  {
+    std::ifstream is(filename.c_str());
+    return std::string(std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>());
+  };
+  const std::string after_rescore = contents(file);
+  PercolatorModel model = p.train(makePortableModeratelySeparableInput_(300, 7));
+  p.storeWeights(file);
+  const std::string after_train = contents(file);
+  TEST_NOT_EQUAL(after_train, after_rescore)
+  p.score(input, model);
+  p.storeWeights(file);
+  TEST_EQUAL(contents(file), after_train)
+  // a fresh instance writes the same file for the same input and seed
+  Percolator q;
+  q.setParameters(par);
+  q.rescore(input);
+  q.storeWeights(file);
+  TEST_EQUAL(contents(file), after_rescore)
+
+  TEST_EXCEPTION(Exception::UnableToCreateFile, p.storeWeights(file + "_no_such_dir/x.weights"))
 }
 END_SECTION
 
@@ -2910,6 +3040,10 @@ START_SECTION(([EXTRA] rescorePSMs with peptide_level: percolator_peptide_q_valu
   perc.rescorePSMs(ids_reset, feature_set, "trypsin", 2, 2, "q-value");
   TEST_EQUAL(ids_reset[0].getHits()[0].metaValueExists("percolator_peptide_q_value"), false)
   TEST_EQUAL(ids_reset[0].getHits()[0].metaValueExists("RESET:peptide_q_value"), true)
+  // RESET trains no Percolator model to write as the executable's weights file
+  std::string reset_weights;
+  NEW_TMP_FILE(reset_weights);
+  TEST_EXCEPTION(Exception::MissingInformation, perc.storeWeights(reset_weights))
 }
 END_SECTION
 

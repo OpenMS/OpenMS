@@ -778,10 +778,11 @@ struct ImmoniumIonsInPeptide
            -
            - For peptides with methionine try to also score plain precursors - CH4S (NM and DEB related methionie cross-link)
 
-    @note Score recalibration: PercolatorAdapter rescores the PSMs (given decoys and about 1000 PSMs or more). By default
-    ('-percolator_backend builtin') it uses the Percolator built into OpenMS, so the percolator executable doesn't
-    have to be installed. '-percolator_backend executable' runs the percolator executable (-percolator_executable)
-    instead, which also writes the model weights; '-percolator_backend none' disables score recalibration.
+    @note Score recalibration: PercolatorAdapter rescores the PSMs (given decoys and about 1000 PSMs or more) and
+    writes the model weights next to the output. By default ('-percolator_backend builtin') it uses the Percolator
+    built into OpenMS, so the percolator executable doesn't have to be installed. '-percolator_backend executable'
+    runs the percolator executable (-percolator_executable) instead; '-percolator_backend none' disables score
+    recalibration.
 
 
     <B>The command line parameters of this tool are:</B>
@@ -822,13 +823,13 @@ protected:
   /**
     @brief Chooses the Percolator backend for score recalibration with PercolatorAdapter (option @p percolator_backend).
 
-    'builtin' (the default) rescores with the Percolator built into OpenMS, which needs no installation and writes no
-    model weights. 'executable' runs the percolator executable (option @p percolator_executable) and writes the model
-    weights to @p weights_out; if the executable isn't found, the built-in Percolator rescores instead.
+    'builtin' (the default) rescores with the Percolator built into OpenMS, which needs no installation.
+    'executable' runs the percolator executable (option @p percolator_executable); if it isn't found, the built-in
+    Percolator rescores instead. Both write the model weights to @p weights_out, in the same format.
     PercolatorAdapter gets the number of threads of this tool.
 
     @param[in,out] process_params PercolatorAdapter parameters, extended by the backend
-    @param[in] weights_out file for the model weights of the percolator executable
+    @param[in] weights_out file for the model weights
     @return false if score recalibration is disabled ('none', or an empty @p percolator_executable)
   */
   bool addPercolatorBackend_(std::vector<std::string>& process_params, const std::string& weights_out) const
@@ -841,15 +842,15 @@ protected:
     {
       if (findExecutable_(executable))
       {
-        process_params.insert(process_params.end(), {"-percolator_executable", executable, "-weights", weights_out});
+        process_params.insert(process_params.end(), {"-use_subprocess", "true", "-percolator_executable", executable});
       }
       else
       {
         OPENMS_LOG_WARN << "Percolator executable '" << executable
-                        << "' not found: rescoring with the Percolator built into OpenMS (no weights file)." << endl;
+                        << "' not found: rescoring with the Percolator built into OpenMS." << endl;
       }
     }
-    process_params.insert(process_params.end(), {"-threads", std::to_string(getIntOption_("threads"))});
+    process_params.insert(process_params.end(), {"-weights", weights_out, "-threads", std::to_string(getIntOption_("threads"))});
     return true;
   }
 
@@ -957,8 +958,8 @@ protected:
     registerStringOption_("percolator_backend", "<choice>", "builtin",
                           "Percolator that recalibrates the scores. "
                           "'builtin': the Percolator built into OpenMS (no installation needed). "
-                          "'executable': the percolator executable of -percolator_executable, which also writes the model weights; "
-                          "if it isn't found, the built-in Percolator is used. "
+                          "'executable': the percolator executable of -percolator_executable; "
+                          "if it isn't found, the built-in Percolator is used. Both write the model weights. "
                           "'none': no score recalibration.", false, false);
     setValidStrings_("percolator_backend", {"builtin", "executable", "none"});
 
