@@ -14,7 +14,6 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
-#include <set>
 
 using namespace OpenMS;
 
@@ -49,24 +48,23 @@ START_SECTION(([EXTRA] void run(const std::vector<FeatureFinderMetaboIdentCompou
   FeatureMap features;
   ff.run(targets, features, "test.mzML");
 
-  // the targets without features of both groups: identifications without matches of one run "id", which no feature
-  // links, each with its compensation voltage
+  // the targets without a feature at any CV: identifications without matches of one run "id", which no feature links,
+  // once each (as without FAIMS) and without a compensation voltage
   const auto& data = features.getIdentificationData();
   ABORT_IF(data.getRuns().size() != 1)
   TEST_EQUAL(data.getRuns()[0].getIdentifier(), "id")
   TEST_EQUAL(data.getRuns()[0].getNumberOfMatches(), 0)
-  std::set<double> cvs;
+  Size missing = 0;
   for (const auto& target : features.getUnassignedIdentifications())
   {
     if (target.query->getMetaValue("label") != DataValue("missing")) continue;
+    ++missing;
     TEST_EQUAL(target.query->getMetaValue("PeptideRef").toString().empty(), false)
     TEST_EQUAL(bool(target.query->rt), true)
     TEST_EQUAL(bool(target.query->mz), true)
-    cvs.insert(double(target.query->getMetaValue(Constants::UserParam::FAIMS_CV)));
+    TEST_EQUAL(target.query->metaValueExists(Constants::UserParam::FAIMS_CV), false)
   }
-  TEST_EQUAL(cvs.size(), 2)
-  TEST_EQUAL(cvs.contains(-45.0), true)
-  TEST_EQUAL(cvs.contains(-65.0), true)
+  TEST_EQUAL(missing, 1)
 }
 END_SECTION
 

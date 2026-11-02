@@ -71,6 +71,7 @@ set(datastructures_executables_list
   QTCluster_test
   RangeManager_test
   StringListUtils_test
+  StringManager_test
   StringUtils_test
   String_test
   #ToolDescription_test
@@ -205,6 +206,7 @@ set(format_executables_list
   ChromeleonFile_test
   CVMappingFile_test
   CompressedInputSource_test
+  DecompressingInputStream_test
   ConsensusXMLFile_test
   ControlledVocabulary_test
   CsvFile_test
@@ -226,6 +228,7 @@ set(format_executables_list
   GNPSQuantificationFile_test
   GzipIfstream_test
   GzipInputStream_test
+  HTTPInputSource_test
   IBSpectraFile_test
   IdXMLFile_test
   IndentedStream_test
@@ -252,6 +255,7 @@ set(format_executables_list
   MzIdentMLValidator_test
   ThermoRawFileMetadata_test
   MzMLFile_test
+  MzPeakFile_test
   ImzMLFile_test
   ImzMLFile_all_modes_test
   MzMLSpectrumDecoder_test
@@ -289,9 +293,13 @@ set(format_executables_list
   PercolatorInfile_test
   PercolatorOutfile_test
   PercolatorPosteriorEstimator_test
+  PercolatorReset_test
+  PercolatorTron_test
+  PercolatorNewton_test
+  PercolatorSampler_test
+  PercolatorBestPositive_test
   PercolatorScores_test
   ProtXMLFile_test
-  QcMLFile_test
   S3InputSource_test
   SVOutStream_test
   SemanticValidator_test
@@ -804,6 +812,7 @@ set(TEST_executables
     ${kernel_executables_list}
     ${metadata_executables_list}
     ${format_executables_list}
+    XMLParserBackend_test
     ${math_executables_list}
     ${filtering_executables_list}
     ${comparison_executables_list}

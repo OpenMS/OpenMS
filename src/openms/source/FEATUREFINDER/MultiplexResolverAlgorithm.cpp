@@ -11,8 +11,12 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <map>
@@ -23,6 +27,59 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    // names of the integer data arrays with the owners of blacklisted peaks (upper and lower 32 bits of the unique id)
+    const std::string OWNER_HIGH = "owner_unique_id_high";
+    const std::string OWNER_LOW = "owner_unique_id_low";
+
+    // Was the blacklist spectrum acquired at the FAIMS CV of the multiplet? (Peaks at another CV cannot occlude it.)
+    bool sameCompensationVoltage(const MSSpectrum& spectrum, const ConsensusFeature& consensus)
+    {
+      const bool feature_has_cv = consensus.metaValueExists(Constants::UserParam::FAIMS_CV);
+      const bool spectrum_has_cv
+        = spectrum.metaValueExists(Constants::UserParam::FAIMS_CV) || spectrum.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+      if (feature_has_cv != spectrum_has_cv) { return false; }
+      if (!feature_has_cv) { return true; }
+      const double spectrum_cv = spectrum.metaValueExists(Constants::UserParam::FAIMS_CV)
+                                   ? static_cast<double>(spectrum.getMetaValue(Constants::UserParam::FAIMS_CV))
+                                   : spectrum.getDriftTime();
+      return static_cast<double>(consensus.getMetaValue(Constants::UserParam::FAIMS_CV)) == spectrum_cv;
+    }
+
+    // a channel added for an identification (MS1LabeledWorkflow): not detected, intensity 0
+    bool isAddedChannel(const FeatureHandle& handle)
+    {
+      return handle.getIntensity() == 0.0 && !handle.hasValidUniqueId();
+    }
+
+    // the label modifications of the samples, as they appear in a sequence string, e.g. "(Label:13C(6)15N(2))"
+    std::vector<std::string> labelModifications(MultiplexDeltaMassesGenerator& generator)
+    {
+      std::vector<std::string> label_mods;
+      for (const std::vector<std::string>& sample : generator.getSamplesLabelsList())
+      {
+        for (const std::string& label : sample)
+        {
+          if (label == "no_label") { continue; }
+          const std::string name = generator.getLabelLong(label);
+          if (name.empty()) { continue; }
+          const std::string mod = "(" + name + ")";
+          if (std::find(label_mods.begin(), label_mods.end(), mod) == label_mods.end()) { label_mods.push_back(mod); }
+        }
+      }
+      return label_mods;
+    }
+
+    // the peptide of a hit at a charge: its sequence without the label modifications, and the charge
+    std::string peptideOf(const std::string& sequence, int charge, const std::vector<std::string>& label_mods)
+    {
+      std::string peptide = sequence;
+      for (const std::string& mod : label_mods) { StringUtils::substitute(peptide, mod, ""); }
+      return peptide + "/" + std::to_string(charge);
+    }
+  }
+
   MultiplexResolverAlgorithm::MultiplexResolverAlgorithm() :
     DefaultParamHandler("MultiplexResolverAlgorithm")
   {
@@ -36,6 +93,15 @@ namespace OpenMS
     defaults_.setMinFloat("algorithm:mz_tolerance", 0.0);
     defaults_.setValue("algorithm:rt_tolerance", 5.0, "Retention time tolerance in seconds for checking if dummy feature vicinity was blacklisted.", {"advanced"});
     defaults_.setMinFloat("algorithm:rt_tolerance", 0.0);
+    defaults_.setValue("algorithm:use_blacklist_owners", "false",
+                       "For a blacklist that records which feature reserved each peak (FeatureFinderMultiplex -out_blacklist).\n"
+                       "true: a missing channel is not quantifiable (NaN) only if a peak reserved by another multiplet lies at its expected position, "
+                       "and channels added for an identification (intensity 0, no feature id) are checked the same way. Peaks of the multiplet's own "
+                       "channels (their isotopes) or of no reported feature (a pattern the detection dropped; FeatureFinderMultiplex records only the "
+                       "first and the last pattern that reserved a peak) leave it at 0, which then means 'not occupied', not 'absent': use this only "
+                       "if such channels are measured afterwards (as MS1LabeledWorkflow re-quantifies them).\n"
+                       "false: the owners are ignored, every blacklisted peak counts.", {"advanced"});
+    defaults_.setValidStrings("algorithm:use_blacklist_owners", {"true", "false"});
     defaults_.setSectionDescription("algorithm", "Parameters for the algorithm.");
 
     // one advanced parameter per known label: its mass shift
@@ -57,6 +123,7 @@ namespace OpenMS
     mass_tolerance_ = param_.getValue("algorithm:mass_tolerance");
     mz_tolerance_ = param_.getValue("algorithm:mz_tolerance");
     rt_tolerance_ = param_.getValue("algorithm:rt_tolerance");
+    use_blacklist_owners_ = param_.getValue("algorithm:use_blacklist_owners").toBool();
   }
 
   double MultiplexResolverAlgorithm::deltaMassFromMapIndex_(const ConsensusFeature::HandleSetType& feature_handles, unsigned idx)
@@ -126,7 +193,8 @@ namespace OpenMS
     return true;
   }
 
-  bool MultiplexResolverAlgorithm::matchesResidues_(const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, const AASequence& sequence)
+  bool MultiplexResolverAlgorithm::matchesResidues_(const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, const AASequence& sequence,
+                                                    const std::vector<std::vector<std::string>>& samples)
   {
     // the residue a metabolic label sits on ('\0' for labels that are not counted)
     auto residue_of = [](const std::string& label) -> char
@@ -145,10 +213,27 @@ namespace OpenMS
 
     for (const MultiplexDeltaMasses::DeltaMass& delta_mass : pattern)
     {
+      // labels per residue kind in this channel
       std::map<char, Size> labels;
       for (const std::string& label : delta_mass.label_set)
       {
         if (const char residue = residue_of(label); residue != '\0') { ++labels[residue]; }
+      }
+      // A kind the channel's sample (the one whose labels include the channel's) labels but the channel does not carry
+      // must be absent from the peptide: the Lys8 channel of sample [Lys8,Arg10] fits a peptide with one K and no R.
+      const auto sample = std::find_if(samples.begin(), samples.end(), [&delta_mass](const std::vector<std::string>& sample_labels)
+      {
+        return std::all_of(delta_mass.label_set.begin(), delta_mass.label_set.end(), [&sample_labels](const std::string& label)
+        {
+          return std::find(sample_labels.begin(), sample_labels.end(), label) != sample_labels.end();
+        });
+      });
+      if (sample != samples.end())
+      {
+        for (const std::string& label : *sample)
+        {
+          if (const char residue = residue_of(label); residue != '\0') { labels.try_emplace(residue, 0); }
+        }
       }
       for (const auto& [residue, count] : labels)
       {
@@ -163,6 +248,7 @@ namespace OpenMS
                                                        const AASequence& sequence,
                                                        const MultiplexDeltaMasses::LabelSet& label_set,
                                                        const std::vector<MultiplexDeltaMasses>& theoretical_patterns,
+                                                       const std::vector<std::vector<std::string>>& samples,
                                                        std::vector<bool>& delta_mass_matched, int& index_label_set) const
   {
     for (auto it_pattern = theoretical_patterns.begin(); it_pattern != theoretical_patterns.end(); ++it_pattern)
@@ -170,7 +256,7 @@ namespace OpenMS
       const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern = it_pattern->getDeltaMasses();
 
       const double shift = matchLabelSet_(pattern, label_set, index_label_set);
-      if (!std::isnan(shift) && matchesResidues_(pattern, sequence))
+      if (!std::isnan(shift) && matchesResidues_(pattern, sequence, samples))
       {
         // the label set occurs in this pattern; now all detected mass shifts have to fit as well
         delta_mass_matched.assign(delta_mass_matched.size(), false);
@@ -218,18 +304,7 @@ namespace OpenMS
     // loop over range of relevant spectra
     for (MSExperiment::ConstIterator it_rt = it_rt_begin; it_rt < it_rt_end; ++it_rt)
     {
-      // Coincident peaks acquired at another FAIMS voltage cannot occlude this channel.
-      const bool feature_has_cv = consensus.metaValueExists(Constants::UserParam::FAIMS_CV);
-      const bool spectrum_has_cv
-        = it_rt->metaValueExists(Constants::UserParam::FAIMS_CV) || it_rt->getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
-      if (feature_has_cv != spectrum_has_cv) { continue; }
-      if (feature_has_cv)
-      {
-        const double spectrum_cv = it_rt->metaValueExists(Constants::UserParam::FAIMS_CV)
-                                     ? static_cast<double>(it_rt->getMetaValue(Constants::UserParam::FAIMS_CV))
-                                     : it_rt->getDriftTime();
-        if (static_cast<double>(consensus.getMetaValue(Constants::UserParam::FAIMS_CV)) != spectrum_cv) { continue; }
-      }
+      if (!sameCompensationVoltage(*it_rt, consensus)) { continue; }
       // check the first three isotopes of the dummy feature
       for (size_t isotope = 0; isotope < 3; ++isotope)
       {
@@ -253,15 +328,191 @@ namespace OpenMS
     return false;
   }
 
+  bool MultiplexResolverAlgorithm::isReservedByOther_(const MSExperiment& blacklist, double rt, double mz, size_t charge,
+                                                      const ConsensusFeature& consensus, const OwnerPeptides& peptides,
+                                                      OwnerCheckCounts_& counts) const
+  {
+    const double mz_tolerance = mz_tolerance_ * mz / 1000000; // m/z tolerance in Da
+    bool other_peptide = false, unidentified = false, own = false, same_peptide = false, orphan = false;
+    const MSExperiment::ConstIterator it_rt_end = blacklist.RTEnd(rt + rt_tolerance_);
+    for (auto it_rt = blacklist.RTBegin(rt - rt_tolerance_); it_rt < it_rt_end; ++it_rt)
+    {
+      if (!sameCompensationVoltage(*it_rt, consensus)) { continue; }
+      for (size_t isotope = 0; isotope < 3; ++isotope)
+      {
+        const double mz_isotope = mz + isotope * Constants::C13C12_MASSDIFF_U / charge;
+        for (auto it_mz = it_rt->MZBegin(mz_isotope - mz_tolerance); it_mz != it_rt->end() && it_mz->getMZ() < mz_isotope + mz_tolerance; ++it_mz)
+        {
+          if (std::abs(it_mz->getMZ() - mz_isotope) >= mz_tolerance) { continue; }
+          switch (classifyBlacklistOwner(blacklistOwner(*it_rt, it_mz - it_rt->begin()), consensus, peptides))
+          {
+            case OwnerRelation::OTHER_PEPTIDE: other_peptide = true; break;
+            case OwnerRelation::SAME_PEPTIDE: same_peptide = true; break;
+            case OwnerRelation::UNIDENTIFIED: unidentified = true; break;
+            case OwnerRelation::OWN: own = true; break;
+            case OwnerRelation::ORPHAN: orphan = true; break;
+          }
+        }
+      }
+    }
+    // the same rule as isForeign()
+    if (other_peptide) { ++counts.other_peptide; return true; }
+    if (same_peptide) { ++counts.same_peptide; return true; }
+    if (unidentified) { ++counts.unidentified; return true; }
+    if (own || orphan)
+    {
+      ++counts.usable;
+      counts.own += own;
+      counts.orphan += orphan;
+    }
+    return false;
+  }
+
+  bool MultiplexResolverAlgorithm::hasBlacklistOwners(const MSExperiment& blacklist)
+  {
+    bool peaks = false;
+    for (const MSSpectrum& spectrum : blacklist)
+    {
+      if (spectrum.empty()) { continue; }
+      const MSSpectrum::IntegerDataArrays& arrays = spectrum.getIntegerDataArrays();
+      const auto high = getDataArrayByName(arrays, OWNER_HIGH);
+      const auto low = getDataArrayByName(arrays, OWNER_LOW);
+      if (high == arrays.end() || low == arrays.end() || high->size() != spectrum.size() || low->size() != spectrum.size()) { return false; }
+      peaks = true;
+    }
+    return peaks;
+  }
+
+  UInt64 MultiplexResolverAlgorithm::blacklistOwner(const MSSpectrum& spectrum, Size peak_index)
+  {
+    const MSSpectrum::IntegerDataArrays& arrays = spectrum.getIntegerDataArrays();
+    const auto high = getDataArrayByName(arrays, OWNER_HIGH);
+    const auto low = getDataArrayByName(arrays, OWNER_LOW);
+    if (high == arrays.end() || low == arrays.end() || peak_index >= high->size() || peak_index >= low->size())
+    {
+      return UniqueIdInterface::INVALID;
+    }
+    return (static_cast<UInt64>(static_cast<UInt32>((*high)[peak_index])) << 32) | static_cast<UInt32>((*low)[peak_index]);
+  }
+
+  void MultiplexResolverAlgorithm::setBlacklistOwners(MSSpectrum& spectrum, const std::vector<UInt64>& owners)
+  {
+    MSSpectrum::IntegerDataArrays& arrays = spectrum.getIntegerDataArrays();
+    for (const std::string* name : {&OWNER_HIGH, &OWNER_LOW})
+    {
+      if (getDataArrayByName(arrays, *name) == arrays.end())
+      {
+        arrays.emplace_back();
+        arrays.back().setName(*name);
+      }
+    }
+    auto high = getDataArrayByName(arrays, OWNER_HIGH);
+    auto low = getDataArrayByName(arrays, OWNER_LOW);
+    high->resize(owners.size());
+    low->resize(owners.size());
+    for (Size i = 0; i < owners.size(); ++i)
+    {
+      (*high)[i] = static_cast<Int>(static_cast<UInt32>(owners[i] >> 32));
+      (*low)[i] = static_cast<Int>(static_cast<UInt32>(owners[i]));
+    }
+  }
+
+  MultiplexResolverAlgorithm::OwnerPeptides MultiplexResolverAlgorithm::ownerPeptides(const ConsensusMap& multiplets) const
+  {
+    MultiplexDeltaMassesGenerator generator = createGenerator_();
+    const std::vector<std::string> label_mods = labelModifications(generator);
+
+    OwnerPeptides peptides;
+    for (const ConsensusFeature& cf : multiplets)
+    {
+      const auto linked = cf.getLinkedIdentifications(multiplets.getIdentificationData());
+      if (linked.empty() || linked[0].matches.empty()) { continue; }
+      const std::string peptide = peptideOf(linked[0].matches[0]->representation, cf.getCharge(), label_mods);
+      for (const FeatureHandle& handle : cf.getFeatures())
+      {
+        if (handle.hasValidUniqueId()) { peptides.emplace(handle.getUniqueId(), peptide); }
+      }
+    }
+    return peptides;
+  }
+
+  std::string MultiplexResolverAlgorithm::peptideKey(const std::string& sequence, int charge) const
+  {
+    MultiplexDeltaMassesGenerator generator = createGenerator_();
+    return peptideOf(sequence, charge, labelModifications(generator));
+  }
+
+  MultiplexResolverAlgorithm::OwnerRelation MultiplexResolverAlgorithm::classifyBlacklistOwner(UInt64 owner, const std::string& peptide,
+                                                                                            const OwnerPeptides& peptides)
+  {
+    if (owner == UniqueIdInterface::INVALID) { return OwnerRelation::ORPHAN; }
+    const auto it_owner = peptides.find(owner);
+    if (it_owner == peptides.end()) { return OwnerRelation::UNIDENTIFIED; }
+    return it_owner->second == peptide ? OwnerRelation::SAME_PEPTIDE : OwnerRelation::OTHER_PEPTIDE;
+  }
+
+  MultiplexResolverAlgorithm::OwnerRelation MultiplexResolverAlgorithm::classifyBlacklistOwner(UInt64 owner, const ConsensusFeature& consensus,
+                                                                                            const OwnerPeptides& peptides)
+  {
+    if (owner == UniqueIdInterface::INVALID) { return OwnerRelation::ORPHAN; }
+    for (const FeatureHandle& handle : consensus.getFeatures())
+    {
+      if (handle.hasValidUniqueId() && handle.getUniqueId() == owner) { return OwnerRelation::OWN; }
+    }
+    const auto it_owner = peptides.find(owner);
+    if (it_owner == peptides.end()) { return OwnerRelation::UNIDENTIFIED; }
+    // the peptide of the multiplet is that of its detected channels
+    for (const FeatureHandle& handle : consensus.getFeatures())
+    {
+      if (!handle.hasValidUniqueId()) { continue; }
+      const auto it_own = peptides.find(handle.getUniqueId());
+      if (it_own != peptides.end())
+      {
+        return it_own->second == it_owner->second ? OwnerRelation::SAME_PEPTIDE : OwnerRelation::OTHER_PEPTIDE;
+      }
+    }
+    return OwnerRelation::OTHER_PEPTIDE;
+  }
+
+  bool MultiplexResolverAlgorithm::isForeign(OwnerRelation relation)
+  {
+    return relation == OwnerRelation::UNIDENTIFIED || relation == OwnerRelation::SAME_PEPTIDE || relation == OwnerRelation::OTHER_PEPTIDE;
+  }
+
   ConsensusFeature MultiplexResolverAlgorithm::completeConsensus_(const ConsensusFeature& consensus,
                                                                   const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern,
                                                                   const std::vector<bool>& delta_mass_matched, int index_label_set,
-                                                                  const MSExperiment& blacklist) const
+                                                                  const MSExperiment& blacklist, const OwnerPeptides* peptides,
+                                                                  OwnerCheckCounts_* counts) const
   {
-    // nothing to do: the detected consensus is already complete
+    OwnerCheckCounts_ no_counts;
+    if (counts == nullptr) { counts = &no_counts; }
+    // with owners, a channel added for an identification is not quantifiable if another multiplet occupies its position
+    auto checked = [&](FeatureHandle handle)
+    {
+      if (peptides != nullptr && isAddedChannel(handle))
+      {
+        ++counts->added;
+        if (isReservedByOther_(blacklist, consensus.getRT(), handle.getMZ(), consensus.getCharge(), consensus, *peptides, *counts))
+        {
+          ++counts->added_vetoed;
+          handle.setIntensity(std::numeric_limits<double>::quiet_NaN());
+        }
+      }
+      return handle;
+    };
+
+    // nothing to complete: the detected consensus is already complete
     if (consensus.size() == pattern.size())
     {
-      return ConsensusFeature(consensus);
+      ConsensusFeature complete(consensus);
+      if (peptides != nullptr)
+      {
+        ConsensusFeature::HandleSetType handles;
+        for (const FeatureHandle& handle : consensus.getFeatures()) { handles.insert(checked(handle)); }
+        complete.setFeatures(std::move(handles));
+      }
+      return complete;
     }
 
     if (pattern.size() != delta_mass_matched.size())
@@ -302,7 +553,7 @@ namespace OpenMS
       if (*it_delta_mass_matched)
       {
         // copy feature from incomplete consensus
-        FeatureHandle feature_handle(*it_feature);
+        FeatureHandle feature_handle = checked(*it_feature);
         feature_handle.setMapIndex(it_mass_shift - pattern.begin());
         consensus_complete.insert(feature_handle);
 
@@ -318,16 +569,28 @@ namespace OpenMS
         const double mz_dummy = mz_complete + it_mass_shift->delta_mass / charge;
         feature_handle.setMZ(mz_dummy);
         feature_handle.setRT(rt);
-        if (isBlacklisted_(blacklist, rt, mz_dummy, charge, consensus))
+        bool blacklisted = false;
+        if (peptides != nullptr)
         {
-          // Some peaks close-by were blacklisted during feature detection, i.e. another peptide feature overlaps with the dummy feature.
+          ++counts->dummies;
+          counts->anonymous += isBlacklisted_(blacklist, rt, mz_dummy, charge, consensus);
+          blacklisted = isReservedByOther_(blacklist, rt, mz_dummy, charge, consensus, *peptides, *counts);
+          counts->dummies_vetoed += blacklisted;
+        }
+        else
+        {
+          blacklisted = isBlacklisted_(blacklist, rt, mz_dummy, charge, consensus);
+        }
+        if (blacklisted)
+        {
+          // Some peaks close-by were blacklisted during feature detection (by another multiplet, if owners are used), i.e. another peptide feature overlaps with the dummy feature.
           // Consequently, we better report NaN i.e. not quantifiable.
           feature_handle.setIntensity(std::numeric_limits<double>::quiet_NaN());
         }
         else
         {
-          // There is no blacklisted peak near-by, i.e. there is no peptide feature in the vicinity.
-          // Consequently, we can confidently report zero, i.e. the peptide is absent.
+          // There is no blacklisted peak near-by, i.e. there is no peptide feature in the vicinity: the peptide is absent.
+          // (With owners: no other multiplet's, so the caller measures the channel; see algorithm:use_blacklist_owners.)
           feature_handle.setIntensity(0.0);
         }
         feature_handle.setCharge(charge);
@@ -361,6 +624,7 @@ namespace OpenMS
 
     MultiplexDeltaMassesGenerator generator = createGenerator_();
     const std::vector<MultiplexDeltaMasses> theoretical_masses = generator.getDeltaMassesList();
+    const std::vector<std::vector<std::string>> samples = generator.getSamplesLabelsList();
     const size_t multiplicity = theoretical_masses[0].getDeltaMasses().size();
 
     for (Size i = 0; i < identifications.size(); ++i)
@@ -374,7 +638,8 @@ namespace OpenMS
       const MultiplexDeltaMasses::LabelSet label_set = generator.extractLabelSet(sequence);
       std::vector<bool> delta_mass_matched(multiplicity, false);
       int index_label_set = -1;
-      consistent[i] = findMatchingPattern_(consensus, detected_delta_mass, sequence, label_set, theoretical_masses, delta_mass_matched, index_label_set) >= 0;
+      consistent[i] = findMatchingPattern_(consensus, detected_delta_mass, sequence, label_set, theoretical_masses, samples,
+                                           delta_mass_matched, index_label_set) >= 0;
     }
     return consistent;
   }
@@ -384,12 +649,13 @@ namespace OpenMS
     if (charge == 0) { return {}; }
     MultiplexDeltaMassesGenerator generator = createGenerator_();
     const MultiplexDeltaMasses::LabelSet label_set = generator.extractLabelSet(sequence);
+    const std::vector<std::vector<std::string>> samples = generator.getSamplesLabelsList();
     for (const MultiplexDeltaMasses& theoretical : generator.getDeltaMassesList())
     {
       const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern = theoretical.getDeltaMasses();
       int index_label_set = -1;
       const double shift = matchLabelSet_(pattern, label_set, index_label_set);
-      if (std::isnan(shift) || !matchesResidues_(pattern, sequence)) { continue; }
+      if (std::isnan(shift) || !matchesResidues_(pattern, sequence, samples)) { continue; }
 
       const double mz = sequence.getMZ(charge);
       std::vector<double> mzs;
@@ -464,7 +730,14 @@ namespace OpenMS
     map_conflicts.resize(0);
 
     const std::vector<MultiplexDeltaMasses> theoretical_masses = generator.getDeltaMassesList();
+    const std::vector<std::vector<std::string>> samples = generator.getSamplesLabelsList();
     const size_t multiplicity = theoretical_masses[0].getDeltaMasses().size();
+
+    // with the owners of the blacklisted peaks, only peaks of other multiplets make a channel not quantifiable
+    const bool owners = use_blacklist_owners_ && hasBlacklistOwners(blacklist);
+    OwnerPeptides peptides;
+    if (owners) { peptides = ownerPeptides(in); }
+    OwnerCheckCounts_ counts;
 
     for (const ConsensusFeature& cf : in)
     {
@@ -493,12 +766,13 @@ namespace OpenMS
       std::vector<bool> delta_mass_matched(multiplicity, false);
       int index_label_set = -1;
 
-      const int index = findMatchingPattern_(cf, detected_delta_mass, sequence, label_set, theoretical_masses, delta_mass_matched, index_label_set);
+      const int index = findMatchingPattern_(cf, detected_delta_mass, sequence, label_set, theoretical_masses, samples,
+                                             delta_mass_matched, index_label_set);
 
       if (index >= 0)
       {
         const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern = theoretical_masses[index].getDeltaMasses();
-        map_out.push_back(completeConsensus_(cf, pattern, delta_mass_matched, index_label_set, blacklist));
+        map_out.push_back(completeConsensus_(cf, pattern, delta_mass_matched, index_label_set, blacklist, owners ? &peptides : nullptr, &counts));
         if (cf.size() != pattern.size())
         {
           // the new map index of the identified feature
@@ -518,6 +792,17 @@ namespace OpenMS
     // conflicting ones are to be kept)
     if (!keep_conflicting_identifications) removeOtherFeatureIdentifications(map_out, in);
     removeOtherFeatureIdentifications(map_conflicts, in);
+
+    if (owners && counts.dummies + counts.added > 0)
+    {
+      OPENMS_LOG_INFO << "Blacklist with owners: " << counts.dummies_vetoed << " of " << counts.dummies << " missing channel(s) and "
+                      << counts.added_vetoed << " of " << counts.added << " channel(s) added for identifications are not quantifiable ("
+                      << counts.other_peptide << " occupied by another identified peptide, " << counts.same_peptide
+                      << " by another multiplet of the same peptide, " << counts.unidentified << " only by unidentified multiplets); "
+                      << counts.usable << " lie on peaks reserved only by their own multiplet's channels (" << counts.own
+                      << ") or by no reported feature (" << counts.orphan << "). Without owners, " << counts.anonymous
+                      << " of the missing channels and none of the added ones would be not quantifiable." << endl;
+    }
 
     // update map sizes
     for (unsigned map_index = 0; map_index < multiplicity; ++map_index)

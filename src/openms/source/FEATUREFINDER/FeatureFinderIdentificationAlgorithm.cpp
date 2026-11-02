@@ -38,6 +38,7 @@
 #include <fstream>
 #include <algorithm>
 #include <random>
+#include <map>
 #include <optional>
 
 #ifdef _OPENMP
@@ -552,6 +553,21 @@ namespace OpenMS
     features.clear(true);
     chrom_data_.clear(true);
     output_library_.clear(true);
+    FeatureMap candidates; // of all groups, for candidates_out
+    // the FAIMS CV of the features of a group and of its identifications that no feature links
+    const auto annotateCV = [](FeatureMap& group, double group_cv)
+    {
+      for (auto& feat : group)
+      {
+        feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+      }
+      for (const auto& unassigned : group.getUnassignedIdentifications())
+      {
+        IdentificationData::Observation observation = unassigned.query->getObservation();
+        observation.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        group.getIdentificationData().findRunByUuid(unassigned.run->getUuid())->replaceObservation(unassigned.query->getId(), observation);
+      }
+    };
 
     for (auto& [group_cv, faims_group] : faims_groups)
     {
@@ -583,26 +599,20 @@ namespace OpenMS
       // without a CV are tried at every CV, like identifications without one
       const FeatureMap seeds_cv = FAIMSHelper::filterFeaturesByFAIMSCV(seeds, group_cv);
 
-      // Run feature detection
-      FeatureMap features_cv;
+      // Run feature detection (the candidates of all groups are written together below)
+      FeatureMap features_cv, candidates_cv;
+      if (!candidates_out_.empty()) ffid_group.candidates_sink_ = &candidates_cv;
       ffid_group.runSingleGroup_(std::move(identifications_cv), features_cv, seeds_cv, spectra_file);
 
-      // Annotate features with FAIMS CV
-      for (auto& feat : features_cv)
-      {
-        feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
-      }
-
-      // Annotate unassigned identifications with FAIMS CV
-      for (const auto& unassigned : features_cv.getUnassignedIdentifications())
-      {
-        IdentificationData::Observation observation = unassigned.query->getObservation();
-        observation.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
-        features_cv.getIdentificationData().findRunByUuid(unassigned.run->getUuid())->replaceObservation(unassigned.query->getId(), observation);
-      }
-
-      // Add the features with their identifications to the results (the runs of the first group are kept)
+      // Add the features with their identifications, annotated with the CV, to the results (the runs of the first
+      // group are kept), and the candidates likewise
+      annotateCV(features_cv, group_cv);
       IdentificationDataConverter::appendFeatures(features, features_cv);
+      if (!candidates_out_.empty())
+      {
+        annotateCV(candidates_cv, group_cv);
+        IdentificationDataConverter::appendFeatures(candidates, candidates_cv);
+      }
 
       // Combine chromatograms
       for (const auto& chrom : ffid_group.getChromatograms().getChromatograms())
@@ -611,6 +621,13 @@ namespace OpenMS
         chrom_copy.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
         chrom_data_.addChromatogram(std::move(chrom_copy));
       }
+    }
+
+    if (!candidates_out_.empty())
+    {
+      candidates.ensureUniqueId();
+      candidates.setPrimaryMSRunPath({spectra_file});
+      storeCandidates_(candidates);
     }
 
     // Warn about library output for FAIMS data
@@ -888,18 +905,19 @@ namespace OpenMS
     features.ensureUniqueId();
   }
 
-  void FeatureFinderIdentificationAlgorithm::postProcess_(FeatureMap & features)
+  void FeatureFinderIdentificationAlgorithm::postProcess_(FeatureMap & features, bool store_candidates)
   {
     // make sure proper unique ids get assigned to all features
     features.ensureUniqueId();
 
     // store feature candidates before filtering
-    if (!candidates_out_.empty())
+    if (candidates_sink_ != nullptr)
     {
-      FileTypes::Type candidates_out_type = FileHandler::getType(candidates_out_);
-      if (candidates_out_type != FileTypes::FEATUREPARQUET)
-        candidates_out_type = FileTypes::FEATUREXML;
-      FileHandler().storeFeatures(candidates_out_, features, {candidates_out_type});
+      *candidates_sink_ = features; // FAIMS CV group: run() writes the candidates of all groups
+    }
+    else if (store_candidates && !candidates_out_.empty())
+    {
+      storeCandidates_(features);
     }
 
     filterFeatures_(features);
@@ -934,6 +952,14 @@ namespace OpenMS
 
   }
 
+  void FeatureFinderIdentificationAlgorithm::storeCandidates_(const FeatureMap& candidates) const
+  {
+    FileTypes::Type candidates_out_type = FileHandler::getType(candidates_out_);
+    if (candidates_out_type != FileTypes::FEATUREPARQUET)
+      candidates_out_type = FileTypes::FEATUREXML;
+    FileHandler().storeFeatures(candidates_out_, candidates, {candidates_out_type});
+  }
+
   void FeatureFinderIdentificationAlgorithm::runOnCandidates(FeatureMap & features)
   {
     // candidates of a file (e.g. featureXML) have peptide identifications
@@ -959,12 +985,56 @@ namespace OpenMS
     // sort the features (the unassigned identifications keep the order of the candidates):
     sort(features.begin(), features.end(), feature_compare_);
 
-    postProcess_(features);
+    const bool faims = std::any_of(features.begin(), features.end(),
+      [](const Feature& feat) { return feat.metaValueExists(Constants::UserParam::FAIMS_CV); });
+    if (!faims)
+    {
+      postProcess_(features);
+    }
+    else
+    {
+      // candidates of FAIMS data (annotated with their CV by run()): post-process the features of each CV separately,
+      // as run() does - ElutionModelFitter takes its outlier limits and the imputation of failed fits from all
+      // features it gets
+      // Each group gets the identification data of the candidates, so that its features keep their identifications;
+      // the features that no group keeps are then erased with the identifications that only they link.
+      features.ensureUniqueId();
+      if (!candidates_out_.empty()) storeCandidates_(features); // all CVs at once
+      std::map<std::optional<double>, FeatureMap> cv_groups;
+      for (const Feature& feat : features)
+      {
+        std::optional<double> cv;
+        if (feat.metaValueExists(Constants::UserParam::FAIMS_CV)) cv = double(feat.getMetaValue(Constants::UserParam::FAIMS_CV));
+        auto [group, added] = cv_groups.try_emplace(cv);
+        if (added) group->second.getIdentificationData() = features.getIdentificationData();
+        group->second.push_back(feat);
+      }
+      std::vector<Feature> kept;
+      std::set<UInt64> kept_ids;
+      for (auto& [cv, group] : cv_groups)
+      {
+        postProcess_(group, false);
+        for (Feature& feat : group)
+        {
+          kept_ids.insert(feat.getUniqueId());
+          kept.push_back(std::move(feat));
+        }
+      }
+      features.eraseFeatures([&kept_ids](const Feature& feat) { return !kept_ids.contains(feat.getUniqueId()); });
+      features.clear(false);
+      for (Feature& feat : kept) features.push_back(std::move(feat));
+    }
 
     statistics_(features);
 
     // remove all pseudo identifications (seeds and offset peptides), which the candidates keep
     removeSeedPseudoIDs_(features);
+
+    // candidates of FAIMS data (annotated with their CV by run()): merge across CVs as run() does
+    if (param_.getValue("faims:merge_features").toBool())
+    {
+      FeatureOverlapFilter::mergeFAIMSFeatures(features, 5.0, 0.05);
+    }
   }
 
   std::string FeatureFinderIdentificationAlgorithm::sequenceKey_(const IdentificationData::QueryMatches& id)
