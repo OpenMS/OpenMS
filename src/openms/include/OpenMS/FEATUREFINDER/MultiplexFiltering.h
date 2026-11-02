@@ -18,10 +18,8 @@
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredPeak.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
-#include <cstdint>
 #include <functional>
 #include <optional>
-#include <unordered_map>
 #include <vector>
 #include <algorithm>
 #include <iostream>
@@ -104,8 +102,9 @@ public:
     {
       /// index of the pattern, i.e. of its filter result in the list filter() returns
       unsigned pattern_idx;
-      /// index of the filtered peak in the filter result of the pattern (MultiplexFilteredMSExperiment::getPeak())
-      size_t peak_idx;
+      /// index of the filtered peak in the filter result of the pattern (MultiplexFilteredMSExperiment::getPeak()); it fits
+      /// in an int, since the filtered peaks of all patterns together are limited to INT_MAX (see applyBlacklistEntries_())
+      unsigned peak_idx;
       /// mass trace of the pattern the peak was reserved for (peptide * isotopes_per_peptide_max + isotope)
       int mass_trace;
     };
@@ -132,8 +131,21 @@ public:
      * multiplet is reported and the clusters of the first and the last writer are dropped, the peak counts as reserved by
      * no reported feature (FeatureFinderMultiplexAlgorithm::getBlacklist()). That takes at least three writers of one peak,
      * which in practice requires an RT band > 0 (@em rt_band_, FeatureFinderMultiplex's algorithm:rt_band).
+     *
+     * This copy holds the owners of all blacklisted peaks at once; getBlacklistOwners(Size) returns those of one spectrum.
      */
     std::vector<std::vector<BlacklistOwner>> getBlacklistOwners() const;
+
+    /**
+     * @brief the owners of the blacklisted peaks of one spectrum, aligned with that spectrum of getBlacklist()
+     *
+     * The same entries as getBlacklistOwners()[@p spectrum_index], without a copy of the owners of the other spectra.
+     *
+     * @param[in] spectrum_index    index of the spectrum in the centroided experiment (and in getBlacklist())
+     *
+     * @throws Exception::IndexOverflow if @p spectrum_index is not below the number of spectra
+     */
+    std::vector<BlacklistOwner> getBlacklistOwners(Size spectrum_index) const;
 
 protected:
     /**
@@ -144,6 +156,19 @@ protected:
       size_t rt_idx;
       size_t mz_idx;
       int value;
+    };
+
+    /**
+     * @brief the owners of a peak of @em blacklist_ that more than one filtered peak reserved (indices in @em filtered_peaks_)
+     */
+    struct BlacklistOwnerRecord
+    {
+      /// the first filtered peak that reserved the peak
+      int first;
+      /// the value @em first left in @em blacklist_ (read when another filtered peak reserved the peak for the first time)
+      int first_value;
+      /// the last filtered peak that reserved the peak, whose value @em blacklist_ holds
+      int last;
     };
 
     /**
@@ -202,7 +227,12 @@ protected:
      * @brief write @p entries to @em blacklist_, with the filtered peak (@p pattern_idx, @p peak_idx) as their owner
      *
      * It becomes the last owner of each peak (@em blacklist_owner_). Of a peak that another filtered peak reserved before, the
-     * first owner is kept as well (@em blacklist_first_owner_), any owner in between is overwritten (see getBlacklistOwners()).
+     * first owner is kept as well (@em blacklist_owner_records_), any owner in between is overwritten (see getBlacklistOwners()).
+     *
+     * Owners and records are indexed by int, so the filtered peaks of all patterns together, and the peaks reserved by more
+     * than one of them, are limited to INT_MAX each.
+     *
+     * @throws Exception::InvalidSize if this filtered peak, or the records its entries may add, would exceed that limit
      */
     void applyBlacklistEntries_(const std::vector<BlacklistEntry>& entries, unsigned pattern_idx, size_t peak_idx);
 
@@ -282,21 +312,22 @@ protected:
     std::vector<std::vector<int> > blacklist_;
 
     /**
-     * @brief for every peak of @em blacklist_ that is blacklisted, the filtered peak that blacklisted it last (index in @em filtered_peaks_)
+     * @brief for every peak of @em blacklist_, who reserved it
+     *
+     * -1: nobody (the peak is white); >= 0: the only filtered peak that reserved it so far (index in @em filtered_peaks_);
+     * <= -2: more than one filtered peak reserved it, and -2 - value is the index of its record in @em blacklist_owner_records_.
      */
     std::vector<std::vector<int>> blacklist_owner_;
 
     /**
-     * @brief for every peak blacklisted by more than one filtered peak, the first one (index in @em filtered_peaks_) and its value
-     *
-     * Key: spectrum index * 2^32 + peak index.
+     * @brief the first and the last owner of every peak reserved by more than one filtered peak (see @em blacklist_owner_)
      */
-    std::unordered_map<std::uint64_t, std::pair<int, int>> blacklist_first_owner_;
+    std::vector<BlacklistOwnerRecord> blacklist_owner_records_;
 
     /**
      * @brief every filtered peak that passed, in the order they passed: index of its pattern and its index in the pattern's filter result
      */
-    std::vector<std::pair<unsigned, size_t>> filtered_peaks_;
+    std::vector<std::pair<unsigned, unsigned>> filtered_peaks_;
     
     /**
      * @brief for each peak of the spectrum being filtered, the entries of @em blacklist_ its decision read (see filterSpectrum_())

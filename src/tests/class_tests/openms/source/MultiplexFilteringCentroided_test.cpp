@@ -15,6 +15,7 @@
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 
+#include <algorithm>
 #include <cmath>
 #include <tuple>
 
@@ -176,6 +177,22 @@ START_SECTION([EXTRA] filter() gives the same result for any number of threads)
         }
       }
     }
+    // the owners of one spectrum are those of the full list
+    auto same_writer = [](const MultiplexFiltering::BlacklistWriter& a, const MultiplexFiltering::BlacklistWriter& b)
+    {
+      return a.pattern_idx == b.pattern_idx && a.peak_idx == b.peak_idx && a.mass_trace == b.mass_trace;
+    };
+    bool same_owners = true;
+    for (size_t s = 0; s < blacklist_owners.size(); ++s)
+    {
+      const std::vector<MultiplexFiltering::BlacklistOwner> spectrum_owners = dense_filtering.getBlacklistOwners(s);
+      same_owners = same_owners && spectrum_owners.size() == blacklist_owners[s].size()
+                    && std::equal(spectrum_owners.begin(), spectrum_owners.end(), blacklist_owners[s].begin(),
+                                  [&](const MultiplexFiltering::BlacklistOwner& a, const MultiplexFiltering::BlacklistOwner& b)
+                                  { return same_writer(a.first, b.first) && same_writer(a.last, b.last); });
+    }
+    TEST_EQUAL(same_owners, true)
+    TEST_EXCEPTION(Exception::IndexOverflow, dense_filtering.getBlacklistOwners(blacklist.size()))
     return std::make_pair(peaks, owners);
   };
 
