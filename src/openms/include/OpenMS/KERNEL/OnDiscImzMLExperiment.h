@@ -49,7 +49,7 @@ namespace OpenMS
 
     @b Design.
     The PIMPL idiom hides all implementation details (IBD FILE*, index vector,
-    coordinate map) so that this header has no dependency on expat, Xerces, or
+    coordinate map) so that this header has no dependency on parser implementations or
     the native @p imzml:: parser library.  The index is built by running
     @p ImzMLFile::loadSpectraIndex() during @p open() — no peak arrays
     are decoded until @p getSpectrum() is called. Unless opened with @p skip_metadata,

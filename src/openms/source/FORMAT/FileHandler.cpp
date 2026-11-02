@@ -23,6 +23,7 @@
 #include <OpenMS/FORMAT/EDTAFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzPeakFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
@@ -37,7 +38,6 @@
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
-#include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/XMassFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
@@ -309,11 +309,23 @@ namespace OpenMS
       src_file.setPathToFile(File::toFileURI(File::path(normalized_name)));
       // this is more complicated since the data formats allowed by mzML are very verbose.
       // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
-      src_file.setFileType(FileTypes::typeToMZML(type));
+      // BRUKER_TDF covers TDF and TSF data: BrukerTimsFile sets the exact format, which is kept
+      if (type != FileTypes::BRUKER_TDF || src_file.getFileType().empty())
+      {
+        src_file.setFileType(FileTypes::typeToMZML(type));
+      }
 
-      if (compute_hash && type != FileTypes::BRUKER_TDF)
+      // (a directory, e.g. an mzPeak run as a directory, has no content to hash: computeFileHash() would give the
+      // SHA-1 of no bytes)
+      if (compute_hash && type != FileTypes::BRUKER_TDF && !File::isDirectory(filename))
       {
         src_file.setChecksum(FileHandler::computeFileHash(filename), SourceFile::ChecksumType::SHA1);
+      }
+      else if (File::isDirectory(filename) || type == FileTypes::MZPEAK)
+      {
+        // nor does it keep a checksum the reader took from its contents: mzPeak records the SHA-1 of its original source
+        // file (e.g. the .raw), which is not that of the file renamed here
+        src_file.setChecksum("", SourceFile::ChecksumType::UNKNOWN_CHECKSUM);
       }
 
       settings.getSourceFiles().clear();
@@ -363,7 +375,7 @@ namespace OpenMS
     /// BrukerTimsFile configuration for FileHandler: the MS levels and the RT and ion mobility ranges of the PeakFileOptions
     /// are passed to the reader, so that the frames they exclude are not decoded. The caller applies all options to the
     /// spectra afterwards.
-    BrukerTimsFile::Config brukerConfig(const PeakFileOptions& options)
+    BrukerTimsFile::Config brukerConfig(const PeakFileOptions& options, const std::string& filename)
     {
       // The reader emits MS levels 1 and 2 only: every frame that is not MS1 (any MsMsType but 0) gives MS2 spectra.
       // Asking for MS3 or higher alone therefore decodes nothing.
@@ -382,7 +394,9 @@ namespace OpenMS
         config.rt_max_sec = options.getRTRange().maxPosition()[0];
         config.rt_selects_spectra = true;
       }
-      if (options.hasIMRange())
+      // TSF data has no ion mobility, and the reader rejects the range for it; its spectra pass the range applied
+      // afterwards, as those of other data without ion mobility do
+      if (options.hasIMRange() && BrukerTimsFile::detectFormat(filename) != BrukerTimsFile::DataFormat::TSF)
       {
         config.im_min = options.getIMRange().minPosition()[0];
         config.im_max = options.getIMRange().maxPosition()[0];
@@ -454,10 +468,10 @@ namespace OpenMS
 #ifdef WITH_OPENTIMS
     if (type == FileTypes::BRUKER_TDF)
     {
-      // A Bruker .d directory, or a ZIP archive that holds one according to its list of entries. TSF and BAF
-      // data (no ion mobility) count as well: BrukerTimsFile then says that it cannot read them, which tells
-      // more than an unknown file type. An archive whose entries cannot be listed is taken by its name; the
-      // reader reports what is wrong with it.
+      // A Bruker .d directory, or a ZIP archive that holds one according to its list of entries: TDF and TSF data,
+      // which BrukerTimsFile reads, and BAF data, for which it says that it cannot read it, which tells more than an
+      // unknown file type. An archive whose entries cannot be listed is taken by its name; the reader reports what
+      // is wrong with it.
       return BrukerTimsFile::detectFormat(normalized) != BrukerTimsFile::DataFormat::NONE ? FileTypes::BRUKER_TDF
                                                                                           : FileTypes::UNKNOWN;
     }
@@ -467,6 +481,12 @@ namespace OpenMS
       return FileTypes::UNKNOWN; // .d format requires WITH_OPENTIMS
     }
 #endif
+
+    if (type == FileTypes::MZPEAK)
+    {
+      // An mzPeak run: a ZIP archive, or a directory with the index file. Anything else named .mzpeak is unknown.
+      return MzPeakFile::isMzPeak(normalized) ? FileTypes::MZPEAK : FileTypes::UNKNOWN;
+    }
 
     // Note: .raw is always recognized as FileTypes::RAW, even without WITH_THERMO_RAW.
     // The in-process reader (loadExperiment below) is #ifdef WITH_THERMO_RAW guarded,
@@ -730,11 +750,6 @@ namespace OpenMS
     if (StringUtils::hasSubstring(all_simple, "<MzIdentML"))
     {
       return FileTypes::MZIDENTML;
-    }
-    //subject to change!
-    if (StringUtils::hasSubstring(all_simple, "<MzQualityMLType"))
-    {
-      return FileTypes::QCML;
     }
     //pepXML (all lines)
     if (StringUtils::hasSubstring(all_simple, "xmlns=\"http://regis-web.systemsbiology.net/pepXML\""))
@@ -1181,6 +1196,17 @@ namespace OpenMS
       }
       break;
 
+      case FileTypes::MZPEAK:
+      {
+        // The reader applies the scan-level options before it decodes the peaks, and the peak-level ones to each spectrum
+        MzPeakFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.load(filename, exp);
+        ChromatogramTools().convertSpectraToChromatograms<PeakMap>(exp, true); // as for mzML
+      }
+      break;
+
       case FileTypes::XMASS: 
       {
         exp.reset();
@@ -1205,7 +1231,7 @@ namespace OpenMS
         BrukerTimsFile f;
         f.setLogType(log);
         // Do not decode what the PeakFileOptions exclude anyway
-        f.load(filename, exp, brukerConfig(options_));
+        f.load(filename, exp, brukerConfig(options_, filename));
 
         // Apply the remaining PeakFileOptions filters (and the exact RT range, which is inclusive in the reader).
         applyPostLoadOptions_(exp);
@@ -1238,7 +1264,7 @@ namespace OpenMS
     }
     // The ion mobility range, which the readers of the other formats ignore (applyPostLoadOptions_() applies it with the rest;
     // for mzML it is applied above, before the SRM spectra are converted to chromatograms)
-    if (options_.hasIMRange() && type != FileTypes::BRUKER_TDF && type != FileTypes::RAW)
+    if (options_.hasIMRange() && type != FileTypes::BRUKER_TDF && type != FileTypes::RAW && type != FileTypes::MZPEAK)
     {
       if (type != FileTypes::MZML) { filterSpectra(exp, [this](MSSpectrum& s) { return applyIMRange(options_, s); }); }
       exp.updateRanges();
@@ -1316,10 +1342,21 @@ namespace OpenMS
         ForwardingConsumer forward(consumer, settings, [this](MSSpectrum& s) { return applyOptions(options_, s); });
         BrukerTimsFile f;
         f.setLogType(log);
-        f.transform(filename, &forward, brukerConfig(options_));
+        f.transform(filename, &forward, brukerConfig(options_, filename));
       }
       break;
 #endif
+
+      case FileTypes::MZPEAK:
+      {
+        // The reader applies all options itself (the scan-level ones before the peaks are decoded)
+        ForwardingConsumer forward(consumer, settings, {});
+        MzPeakFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.transform(filename, &forward);
+      }
+      break;
 
       default:
       {
@@ -1446,6 +1483,15 @@ namespace OpenMS
         {
           f.store(filename, exp);
         }
+      }
+      break;
+
+      case FileTypes::MZPEAK:
+      {
+        MzPeakFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.store(filename, exp);
       }
       break;
 
@@ -2041,12 +2087,10 @@ namespace OpenMS
                const FeatureMap& feature_map,
                std::vector<ProteinIdentification>& prot_ids,
                PeptideIdentificationList& pep_ids,
-               const ConsensusMap& consensus_map,
                const std::string& contact_name,
                const std::string& contact_address,
                const std::string& description,
                const std::string& label,
-               const bool remove_duplicate_features,
                const std::vector<FileTypes::Type> allowed_types
              )
   {
@@ -2066,15 +2110,6 @@ namespace OpenMS
 
     switch (type)
     {
-      case FileTypes::QCML:
-      {
-      QcMLFile qcmlfile;
-      qcmlfile.collectQCData(prot_ids, pep_ids, feature_map,
-                    consensus_map, input_file, remove_duplicate_features, exp);
-      qcmlfile.store(filename);
-      }
-      break;
-      
       case FileTypes::MZQC:
       {
       MzQCFile().store(input_file, filename, exp, contact_name, contact_address,

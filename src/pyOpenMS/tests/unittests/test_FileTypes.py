@@ -6,7 +6,7 @@ def test_enum_values_accessible():
     expected = [
         "UNKNOWN", "DTA", "DTA2D", "MZDATA", "MZXML", "FEATUREXML", "IDXML",
         "CONSENSUSXML", "MGF", "INI", "TOPPAS", "TRANSFORMATIONXML", "MZML",
-        "CACHEDMZML", "IMZML", "MS2", "PEPXML", "PROTXML", "MZIDENTML", "QCML", "MZQC",
+        "CACHEDMZML", "IMZML", "MS2", "PEPXML", "PROTXML", "MZIDENTML", "MZQC",
         "GELML", "TRAML", "MSP", "OMSSAXML", "MASCOTXML", "PNG", "XMASS",
         "TSV", "MZTAB", "PEPLIST", "HARDKLOER", "KROENIK", "FASTA", "EDTA",
         "CSV", "TXT", "OBO", "HTML", "ANALYSISXML", "XSD", "PSQ", "MRM",
@@ -14,7 +14,7 @@ def test_enum_values_accessible():
         "NOVOR", "XQUESTXML", "SPECXML", "JSON", "RAW", "OMS", "EXE", "XML",
         "BZ2", "GZ", "ZIP", "PARQUET", "IDPARQUET", "FEATUREPARQUET",
         "CONSENSUSPARQUET", "BRUKER_TDF", "CHROMPARQUET", "MOBILPARQUET",
-        "PEAKMAPPARQUET", "OSWPQ", "PEFF", "YAML", "BEDRMOD", "SIZE_OF_TYPE",
+        "PEAKMAPPARQUET", "OSWPQ", "PEFF", "YAML", "BEDRMOD", "MZPEAK", "SIZE_OF_TYPE",
     ]
     for name in expected:
         val = getattr(pyopenms.FileType, name)

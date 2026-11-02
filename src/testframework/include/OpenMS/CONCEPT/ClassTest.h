@@ -22,8 +22,6 @@
 #include <vector>
 #include <type_traits>
 
-using XMLCh = char16_t; // Xerces-C++ uses char16_t for UTF-16 strings that we need to output in tests
-
 // Empty declaration to avoid problems in case the namespace is not
 // yet defined (e.g. TEST/ClassTest_test.cpp)
 
@@ -251,10 +249,10 @@ namespace OpenMS
                     << expression_2_stringified << "): got '";
 
             // we can't print wide chars directly using operator<< so we need to test for it
-            if constexpr (std::is_same_v<std::remove_cv_t<T1>, XMLCh*> || std::is_same_v<std::remove_cv_t<T2>, XMLCh*>)
+            if constexpr (std::is_same_v<std::remove_cv_t<T1>, char16_t*> || std::is_same_v<std::remove_cv_t<T2>, char16_t*>)
             {
-              stdcout << (expression_1 == nullptr ? "(null)" : "(XMLCh*)") << "', expected '"
-                      << (expression_2 == nullptr ? "(null)" : "(XMLCh*)") << "'\n";
+              stdcout << (expression_1 == nullptr ? "(null)" : "(char16_t*)") << "', expected '"
+                      << (expression_2 == nullptr ? "(null)" : "(char16_t*)") << "'\n";
             }
             else if constexpr (std::is_enum_v<T1> && std::is_enum_v<T2>)
             {

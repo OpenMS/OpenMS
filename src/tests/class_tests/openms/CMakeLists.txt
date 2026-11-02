@@ -56,6 +56,16 @@ endforeach(_class_test)
 #------------------------------------------------------------------------------
 # some tests need special treatment
 
+# These tests spell UTF-8 text as narrow string literals. MSVC would encode them in
+# the build machine's code page instead (and read the source as such).
+if (MSVC)
+  foreach(_utf8_test StringManager_test XMLHandler_test XMLParserBackend_test)
+    if (TARGET ${_utf8_test})
+      target_compile_options(${_utf8_test} PRIVATE /utf-8)
+    endif()
+  endforeach()
+endif()
+
 # Class tests of classes that live with a TOPP tool rather than in the library. A tool that
 # has a test/CMakeLists.txt gets it added here, and declares its tests with
 # openms_add_tool_class_test(), which cmake/class_test_macros.cmake defines. Adding a test/
@@ -141,15 +151,7 @@ endif()
 # 2 - add link dependencies
 target_link_libraries(Base64_test ZLIB::ZLIB)
 target_link_libraries(Libzip_test libzip::zip)
-# Xerces is a PRIVATE dependency of libOpenMS. These tests exercise the internal
-# Xerces InputSource / BinInputStream adapters directly, so they must link Xerces
-# themselves.
-target_link_libraries(ZipInputStream_test XercesC::XercesC)
-target_link_libraries(GzipInputStream_test XercesC::XercesC)
-target_link_libraries(Bzip2InputStream_test XercesC::XercesC)
-target_link_libraries(CompressedInputSource_test XercesC::XercesC)
 target_link_libraries(ZipRandomAccessFile_test libzip::zip)
-target_link_libraries(LPWrapper_test ${LPTARGET})
 target_link_libraries(UniqueIdGenerator_test Threads::Threads)
 target_link_libraries(SpectraSTSimilarityScore_test Eigen3::Eigen)
 target_link_libraries(BinnedSpectrum_test Eigen3::Eigen)
@@ -344,6 +346,16 @@ if (TARGET BrukerTimsFile_test AND OPENTIMS_DDA_TEST_DATA)
   # a peptide search engine run, and three-way (greedy vs. hill) centroiding
   # comparisons (which add 4 extra full-fixture loads), so it needs a generous timeout.
   set_tests_properties(BrukerTimsFile_test PROPERTIES TIMEOUT 3600)
+endif()
+
+# Real Bruker TSF runs (timsTOF without ion mobility), if given: OPENTIMS_TSF_TEST_DATA, the .d directory of an LC-MS run
+# with TIMS off (MassIVE MSV000095813, 'Molecular Networking_OE_timsOFF.d'), and OPENTIMS_TSF_IMAGING_TEST_DATA, that of a
+# MALDI imaging run (MassIVE MSV000088438, 20210920_vc_rugose_1mMTCA_gordon.d). The tests compare with the Bruker SDK.
+if (TARGET BrukerTimsFile_test AND OPENTIMS_TSF_TEST_DATA)
+  target_compile_definitions(BrukerTimsFile_test PRIVATE OPENTIMS_TSF_TEST_DATA="${OPENTIMS_TSF_TEST_DATA}")
+endif()
+if (TARGET BrukerTimsImagingFile_test AND OPENTIMS_TSF_IMAGING_TEST_DATA)
+  target_compile_definitions(BrukerTimsImagingFile_test PRIVATE OPENTIMS_TSF_IMAGING_TEST_DATA="${OPENTIMS_TSF_IMAGING_TEST_DATA}")
 endif()
 
 # Tests reading real Thermo .raw files: ThermoRawFile_test reads both fixtures, the

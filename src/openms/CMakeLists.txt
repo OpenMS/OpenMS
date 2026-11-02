@@ -63,11 +63,15 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 add_subdirectory(thirdparty/percolator)
 
 #------------------------------------------------------------------------------
+# Vendored mzPeak library (thirdparty/mzpeak/README.OpenMS.md): the same pattern, a static library with its own
+# flags, linked PRIVATE below; only MzPeakFile.cpp includes its headers.
+if (OPENMS_ENABLE_MZPEAK)
+  add_subdirectory(thirdparty/mzpeak)
+endif()
+
+#------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
-## Note: XercesC::XercesC is PRIVATE — Xerces is fully encapsulated behind the
-## Xerces-free XMLHandler / XMLAttributes / StringManager public API and the
-## internal SAX2HandlerAdapter, so it no longer appears in any installed header
-## and downstream consumers neither include nor link it (see #8547).
+## libxml2 is private: installed headers expose no libxml2 declarations requiring its headers.
 ## Boost is an implementation dependency: no installed header includes it.
 set(OPENMS_DEP_LIBRARIES)
 
@@ -79,7 +83,7 @@ set(OPENMS_DEP_LIBRARIES)
 set(OPENMS_DEP_PRIVATE_LIBRARIES
   Boost::boost
   CURL::libcurl
-  XercesC::XercesC
+  LibXml2::LibXml2
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
   ${LPTARGET}
   BZip2::BZip2
@@ -258,6 +262,19 @@ if(WITH_ONNX)
           DESTINATION "${INSTALL_SHARE_DIR}/models"
           COMPONENT share)
 
+  # The models are AlphaPeptDeep's pretrained models, under the Apache License 2.0, which
+  # requires its text (and the copyright notice) to accompany them; they go to
+  # share/OpenMS/LICENSES/PeptDeep and into THIRD-PARTY-NOTICES.txt.
+  set(_peptdeep_licenses "${OPENMS_HOST_DIRECTORY}/cmake/third_party_licenses/PeptDeep/README.txt"
+                         "${OPENMS_HOST_DIRECTORY}/cmake/third_party_licenses/PeptDeep/LICENSE.txt")
+  install(FILES ${_peptdeep_licenses}
+          DESTINATION "${INSTALL_SHARE_DIR}/LICENSES/PeptDeep"
+          COMPONENT share)
+  foreach(_file IN LISTS _peptdeep_licenses)
+    get_filename_component(_name "${_file}" NAME)
+    openms_add_third_party_notice("LICENSES/PeptDeep/${_name}" "${_file}")
+  endforeach()
+
 endif()
 
 # Parquet support requires Arrow core + compute (filter expressions) + Parquet.
@@ -276,6 +293,10 @@ if (WITH_OPENTIMS)
   list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES opentims::opentims_cpp)
 endif()
 
+if (OPENMS_ENABLE_MZPEAK)
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES OpenMS_mzpeak)
+endif()
+
 if (WITH_ARROW_S3 AND OPENMS_ARROW_S3_TARGET)
   # S3 (S3InputSource): Arrow's S3 filesystem, a library of its own in newer Arrow releases
   list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ${OPENMS_ARROW_S3_TARGET})
@@ -290,17 +311,6 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
     ${OPENMS_DEP_PRIVATE_LIBRARIES}
     tdl::tdl
     )
-endif()
-
-# Xerces requires linking against CoreFoundation&CoreServices on macOS.
-# Xerces is now a PRIVATE dependency, so these frameworks are private too.
-# TODO check if this is still the case
-if(APPLE)
-  find_library(CoreFoundation_LIBRARY CoreFoundation )
-  find_library(CoreServices_LIBRARY CoreServices )
-  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES
-                           ${CoreFoundation_LIBRARY}
-                           ${CoreServices_LIBRARY})
 endif()
 
 if (OPENMP_FOUND)
@@ -334,7 +344,7 @@ set_target_properties(OpenMS PROPERTIES AUTOMOC OFF)
 ## When an in-tree executable links libOpenMS.so, the linker has to locate the
 ## private shared dependencies of libOpenMS by soname. CMake passes -rpath-link
 ## for them only when the imported target is typed SHARED; find modules such as
-## FindCURL and FindXercesC create UNKNOWN targets. Without the hint, a library
+## FindCURL and FindLibXml2 create UNKNOWN targets. Without the hint, a library
 ## of the same soname earlier on the search path (e.g. a conda environment on
 ## CMAKE_PREFIX_PATH) is picked instead of the one libOpenMS was linked against,
 ## and its versioned symbols stay unresolved (#10114). Point the linker at the
@@ -465,6 +475,13 @@ if(ARROW_USE_STATIC AND NOT MSVC AND NOT APPLE)
   target_link_options(OpenMS PRIVATE "LINKER:--exclude-libs,libarrow_bundled_dependencies.a")
 endif()
 
+# Keep a statically linked libxml2 private on ELF, so another XML library loaded
+# by the application cannot interpose parser functions or global state. This
+# option has no effect when LibXml2::LibXml2 resolves to a shared library.
+if(NOT MSVC AND NOT APPLE)
+  target_link_options(OpenMS PRIVATE "LINKER:--exclude-libs,libxml2.a")
+endif()
+
 if (MSVC)
   ## treat warning of unused function parameter as error, similar to -Werror=unused-variable on GCC
   target_compile_options(OpenMS PRIVATE "/we4100")
@@ -482,6 +499,10 @@ target_compile_definitions(OpenMS PRIVATE BOOST_PROCESS_USE_STD_FS)
 
 if (WITH_OPENTIMS)
     target_compile_definitions(OpenMS PUBLIC WITH_OPENTIMS=1)
+endif()
+
+if (OPENMS_ENABLE_MZPEAK)
+    target_compile_definitions(OpenMS PUBLIC WITH_MZPEAK=1)
 endif()
 
 if (WITH_ARROW_S3)
