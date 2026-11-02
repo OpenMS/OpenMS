@@ -10907,9 +10907,14 @@ namespace OpenMS
     // hypothesis shares composition, mass and enzymatic C-terminus with the peptide.
     const Size n = sequence.size();
     if (n < 3) return sequence;
-    AASequence reversed;
-    for (Size i = n - 1; i-- > 0;) { reversed += &sequence[i]; }
-    reversed += &sequence[n - 1];
+    // The residues are those of the sequence: fromResidues() takes them as they are, where operator+=(const Residue*)
+    // looks every residue up in the ResidueDB under a critical section (the threads of annotateIonPriors_() spent
+    // a third of their time in that section in stack samples of a 27-run search).
+    std::vector<const Residue*> residues;
+    residues.reserve(n);
+    for (Size i = n - 1; i-- > 0;) { residues.push_back(&sequence[i]); }
+    residues.push_back(&sequence[n - 1]);
+    AASequence reversed = AASequence::fromResidues(std::move(residues));
     if (sequence.hasNTerminalModification()) { reversed.setNTerminalModification(sequence.getNTerminalModification()); }
     if (sequence.hasCTerminalModification()) { reversed.setCTerminalModification(sequence.getCTerminalModification()); }
     return reversed;
@@ -11598,23 +11603,30 @@ namespace OpenMS
   // =====================================================================
   // calibration:recalibrate: the m/z error models and their application to the spectra
   // =====================================================================
-  double ProSEAlgorithm::MzRecalibration_::error(double mz, double rt) const
+  ProSEAlgorithm::MzRecalibration_::AtRT ProSEAlgorithm::MzRecalibration_::at(double rt) const
   {
-    if (chunks.empty()) return 0.0;
-    const auto at = [mz](const Chunk& c) { return c.intercept + c.slope * mz; };
-    if (chunks.size() == 1 || rt <= chunks.front().rt) return at(chunks.front());
-    if (rt >= chunks.back().rt) return at(chunks.back());
+    AtRT model;
+    model.ppm = ppm;
+    if (chunks.empty()) return model;
+    if (chunks.size() == 1 || rt <= chunks.front().rt) { model.lo = &chunks.front(); return model; }
+    if (rt >= chunks.back().rt) { model.lo = &chunks.back(); return model; }
     // the chunks around rt: lo->rt <= rt < hi->rt
     const auto hi = std::upper_bound(chunks.begin(), chunks.end(), rt, [](double r, const Chunk& c) { return r < c.rt; });
     const auto lo = hi - 1;
-    const double w = (rt - lo->rt) / (hi->rt - lo->rt);
-    return (1.0 - w) * at(*lo) + w * at(*hi);
+    model.lo = &*lo;
+    model.hi = &*hi;
+    model.w = (rt - lo->rt) / (hi->rt - lo->rt);
+    return model;
+  }
+
+  double ProSEAlgorithm::MzRecalibration_::error(double mz, double rt) const
+  {
+    return at(rt).error(mz);
   }
 
   double ProSEAlgorithm::MzRecalibration_::correct(double mz, double rt) const
   {
-    const double e = error(mz, rt);
-    return ppm ? mz - e * 1e-6 * mz : mz - e;
+    return at(rt).correct(mz);
   }
 
   std::string ProSEAlgorithm::MzRecalibration_::toString() const
@@ -11679,9 +11691,11 @@ namespace OpenMS
     const MzRecalibration_& precursor_model = cal.precursor_recalibration;
     const MzRecalibration_& fragment_model = cal.fragment_recalibration;
     const UInt observed_key = MetaInfoInterface::metaRegistry().registerName(OBSERVED_PRECURSOR_MZ);
-    const auto correct_peaks = [&fragment_model](MSSpectrum& s, double rt)
+    // The model at the spectrum's RT once, per peak only its arithmetic (the chunk lookup per peak was a third of the
+    // time of this function in stack samples of a 27-run search)
+    const auto correct_peaks = [](MSSpectrum& s, const MzRecalibration_::AtRT& model)
     {
-      for (Peak1D& p : s) { p.setMZ(fragment_model.correct(p.getMZ(), rt)); } // (monotone for any sane model: the order stays)
+      for (Peak1D& p : s) { p.setMZ(model.correct(p.getMZ())); } // (monotone for any sane model: the order stays)
     };
     Size precursors = 0, peaks = 0;
 #pragma omp parallel for schedule(static) reduction(+: precursors, peaks)
@@ -11701,9 +11715,10 @@ namespace OpenMS
       }
       if (fragment_model.active())
       {
-        correct_peaks(s, rt);
-        if (query_spectra != nullptr) { correct_peaks((*query_spectra)[i], rt); }
-        if (evidence_spectra != nullptr) { correct_peaks((*evidence_spectra)[i], rt); }
+        const MzRecalibration_::AtRT model = fragment_model.at(rt);
+        correct_peaks(s, model);
+        if (query_spectra != nullptr) { correct_peaks((*query_spectra)[i], model); }
+        if (evidence_spectra != nullptr) { correct_peaks((*evidence_spectra)[i], model); }
         peaks += s.size();
       }
     }
