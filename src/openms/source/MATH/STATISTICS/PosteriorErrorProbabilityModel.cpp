@@ -26,6 +26,8 @@
 #include <OpenMS/SYSTEM/PathUtils.h>
 #include <filesystem>
 
+#include <boost/math/special_functions/gamma.hpp>
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -194,6 +196,12 @@ namespace OpenMS::Math
         return ScoreScale::RAW;
       }
 
+      /// strict weak ordering that sorts NaN values to the end
+      bool nanLastLess(double a, double b)
+      {
+        return std::isnan(b) ? !std::isnan(a) : a < b;
+      }
+
       /// -log10 of an e-value or p-value; 0 is mapped to the smallest positive double, negative or NaN values yield NaN
       double negLog10(double value)
       {
@@ -211,6 +219,7 @@ namespace OpenMS::Math
         double decoys;     ///< number of decoys
         double min_score;  ///< smallest score in the block
         double max_score;  ///< largest score in the block
+        double score_sum;  ///< sum of the scores of the PSMs in the block
 
         /// fraction of decoys, optionally with a Jeffreys prior (pseudo-count of 1/2 decoy and 1/2 target)
         double decoyFraction(bool jeffreys) const
@@ -224,6 +233,7 @@ namespace OpenMS::Math
           decoys += other.decoys;
           min_score = std::min(min_score, other.min_score);
           max_score = std::max(max_score, other.max_score);
+          score_sum += other.score_sum;
         }
       };
 
@@ -360,7 +370,7 @@ namespace OpenMS::Math
     bool PosteriorErrorProbabilityModel::fitGumbelGauss(std::vector<double>& search_engine_scores, const std::string& outlier_handling)
     {
       resetFit_();
-      sort(search_engine_scores.begin(), search_engine_scores.end());
+      std::sort(search_engine_scores.begin(), search_engine_scores.end(), nanLastLess);
       std::vector<double> finite_scores;
       std::copy_if(search_engine_scores.begin(), search_engine_scores.end(), std::back_inserter(finite_scores), [](double x) { return std::isfinite(x); });
       if (finite_scores.size() < 2) { return false; }
@@ -376,7 +386,7 @@ namespace OpenMS::Math
       // nothing to fit?
       if (search_engine_scores.empty()) { return false; }
 
-      sort(search_engine_scores.begin(), search_engine_scores.end());
+      std::sort(search_engine_scores.begin(), search_engine_scores.end(), nanLastLess);
       std::vector<double> finite_scores;
       std::copy_if(search_engine_scores.begin(), search_engine_scores.end(), std::back_inserter(finite_scores), [](double x) { return std::isfinite(x); });
       if (finite_scores.size() < 2) { return false; }
@@ -715,6 +725,12 @@ namespace OpenMS::Math
       const std::string decoy_handling = param_.getValue("decoy_handling").toString();
       if (decoy_handling != "ignore" && !decoys.empty())
       {
+        if (double(decoys.size()) >= 0.95 * decoy_ratio * double(targets.size()))
+        {
+          OPENMS_LOG_WARN << "Warning: there are about as many (or more) decoy as target PSMs (" << decoys.size() << " decoys, " << targets.size()
+                          << " targets, decoy_ratio " << decoy_ratio << "). Either the data contain (almost) no correct identifications, or targets and decoys"
+                          << " did not compete (e.g. separate target and decoy searches that cannot be matched by spectrum). PEPs will be (close to) 1." << std::endl;
+        }
         const double auc = targetDecoyAUC(targets, decoys);
         if (auc <= 0.5)
         {
@@ -728,15 +744,17 @@ namespace OpenMS::Math
         return false;
       }
 
-      // calibration check: under target-decoy competition, the mean PEP of the targets above a score threshold
-      // estimates the FDR at this threshold, which can be compared to the target-decoy estimate (#decoys / decoy_ratio) / #targets.
+      // Calibration check: under target-decoy competition, the number of decoys scoring at least as well as the targets accepted
+      // at a score threshold is (decoy_ratio times) the number of incorrect targets among them, which the model estimates by the
+      // sum of their PEPs. Compare observed and expected decoys at the thresholds of 1%, 5% and 10% target-decoy FDR:
+      // flag deviations that are both statistically significant (two-sided Poisson test) and larger than a factor of 2.
       if (decoys.size() >= 10 && decoy_handling != "ignore")
       {
         std::vector<double> t_sorted(targets), d_sorted(decoys);
         std::sort(t_sorted.begin(), t_sorted.end(), std::greater<double>());
         std::sort(d_sorted.begin(), d_sorted.end(), std::greater<double>());
-        std::vector<double> fdr_levels = {0.01, 0.05, 0.1};
-        std::vector<double> mean_pep_at_level(fdr_levels.size(), -1.0), size_at_level(fdr_levels.size(), 0.0);
+        const std::vector<double> fdr_levels = {0.01, 0.05, 0.1};
+        std::vector<double> expected_at_level(fdr_levels.size(), 0.0), observed_at_level(fdr_levels.size(), 0.0), size_at_level(fdr_levels.size(), 0.0);
         double sum_pep = 0.0;
         Size d_index = 0;
         for (Size i = 0; i < t_sorted.size(); )
@@ -754,30 +772,37 @@ namespace OpenMS::Math
           {
             if (fdr <= fdr_levels[l]) // keep the largest set below the FDR level
             {
-              mean_pep_at_level[l] = sum_pep / n_targets;
+              expected_at_level[l] = sum_pep * decoy_ratio;
+              observed_at_level[l] = double(d_index);
               size_at_level[l] = n_targets;
             }
           }
           i = j;
         }
         std::string report;
+        bool miscalibrated = false;
         for (Size l = 0; l < fdr_levels.size(); ++l)
         {
-          if (size_at_level[l] < 50) { continue; } // too few PSMs for a meaningful comparison
-          report += " FDR " + StringUtils::toStr(fdr_levels[l]) + ": mean PEP " + StringUtils::toStr(mean_pep_at_level[l]) + " (" + StringUtils::toStr(int(size_at_level[l])) + " targets);";
-          const double ratio = mean_pep_at_level[l] / fdr_levels[l];
-          if (ratio > 2.0 || ratio < 0.5)
+          if (size_at_level[l] == 0.0) { continue; }
+          const double observed = observed_at_level[l], expected = std::max(expected_at_level[l], 1e-12);
+          report += " FDR " + StringUtils::toStr(fdr_levels[l]) + ": " + StringUtils::toStr(int(size_at_level[l])) + " targets, "
+                    + StringUtils::toStr(int(observed)) + " decoys, " + StringUtils::toStr(expected) + " expected from PEPs;";
+          // two-sided Poisson test (each tail at 0.5e-3)
+          const double p_upper = observed > 0.0 ? boost::math::gamma_p(observed, expected) : 1.0; // P(X >= observed)
+          const double p_lower = boost::math::gamma_q(observed + 1.0, expected);                // P(X <= observed)
+          if ((p_upper < 5e-4 && observed > 2.0 * expected) || (p_lower < 5e-4 && 2.0 * observed < expected))
           {
-            calibration_warning_ = true;
+            miscalibrated = true;
           }
         }
         if (!report.empty())
         {
-          OPENMS_LOG_INFO << "Calibration check (target-decoy FDR vs. mean PEP of accepted targets):" << report << std::endl;
+          OPENMS_LOG_INFO << "Calibration check (decoys above the target-decoy FDR thresholds vs. expected from the PEPs of the accepted targets):" << report << std::endl;
         }
-        if (calibration_warning_)
+        if (miscalibrated)
         {
-          OPENMS_LOG_WARN << "Warning: the estimated PEPs disagree with the target-decoy FDR estimates by more than a factor of 2:"
+          calibration_warning_ = true;
+          OPENMS_LOG_WARN << "Warning: the estimated PEPs disagree significantly with the target-decoy estimates:"
                           << report << " The model (" << modelTypeToString(model_type_) << ") might not fit the data well." << std::endl;
         }
       }
@@ -823,6 +848,16 @@ namespace OpenMS::Math
         if (fitMixture_(targets, decoys, use_gumbel, outlier_handling))
         {
           model_type_ = ModelType::SEMI_SUPERVISED_MIXTURE;
+          if (decoysContradictModel_(targets, decoys))
+          {
+            if (decoy_handling == "auto" && fitIsotonic_(targets, decoys))
+            {
+              OPENMS_LOG_WARN << "Using the non-parametric target-decoy estimate instead of the semi-supervised mixture model." << std::endl;
+              model_type_ = ModelType::TARGET_DECOY_ISOTONIC;
+              return true;
+            }
+            calibration_warning_ = true;
+          }
           const double ratio = negative_prior_ / std::max(td_incorrect_fraction_, 1e-12);
           if (ratio > 1.5 || ratio < 1.0 / 1.5)
           {
@@ -837,6 +872,52 @@ namespace OpenMS::Math
 
       if (!fitMixture_(targets, {}, use_gumbel, outlier_handling)) { return false; }
       model_type_ = ModelType::MIXTURE;
+      if (!decoys.empty() && decoysContradictModel_(targets, decoys))
+      {
+        calibration_warning_ = true;
+      }
+      return true;
+    }
+
+    bool PosteriorErrorProbabilityModel::decoysContradictModel_(const std::vector<double>& targets, const std::vector<double>& decoys) const
+    {
+      // Under target-decoy competition, the number of decoys scoring at least as well as a set of targets
+      // is (decoy_ratio times) the number of incorrect targets in the set, which the model estimates by the sum of their PEPs.
+      // Test this for the targets that the model considers (fairly) confident (PEP < 0.1): many more decoys than expected
+      // indicate a spurious "correct" component, e.g. fitted to the upper tail of data without (many) correct assignments.
+      const double decoy_ratio = param_.getValue("decoy_ratio");
+      double threshold = std::numeric_limits<double>::infinity();
+      double n_targets = 0.0, expected_decoys = 0.0;
+      for (double t : targets)
+      {
+        const double pep = computeProbability(t);
+        if (pep < 0.1)
+        {
+          threshold = std::min(threshold, t);
+          n_targets += 1.0;
+          expected_decoys += pep;
+        }
+      }
+      if (n_targets == 0.0)
+      {
+        return false;
+      }
+      expected_decoys *= decoy_ratio;
+      const double observed_decoys = double(std::count_if(decoys.begin(), decoys.end(), [threshold](double d) { return d >= threshold; }));
+      if (observed_decoys < 2.0 || observed_decoys <= 2.0 * expected_decoys)
+      {
+        return false;
+      }
+      // Poisson upper tail: P(X >= observed | expected) = P(observed, expected) (regularized lower incomplete gamma function)
+      const double p_value = boost::math::gamma_p(observed_decoys, std::max(expected_decoys, 1e-12));
+      if (p_value >= 1e-3)
+      {
+        return false;
+      }
+      OPENMS_LOG_WARN << "Warning: " << observed_decoys << " decoys score at least as well as the " << n_targets
+                      << " target PSMs with PEP < 0.1, but the PEPs of these targets imply only " << expected_decoys
+                      << " (p = " << p_value << "). The model (" << modelTypeToString(model_type_) << ") is overconfident;"
+                      << " the data might contain few or no correct assignments." << std::endl;
       return true;
     }
 
@@ -858,11 +939,12 @@ namespace OpenMS::Math
       for (Size i = 0; i < psms.size(); )
       {
         const double score = psms[i].first;
-        PAVABlock group{0.0, 0.0, score, score};
+        PAVABlock group{0.0, 0.0, score, score, 0.0};
         for (; i < psms.size() && psms[i].first == score; ++i)
         {
           group.n += 1.0;
           group.decoys += psms[i].second ? 1.0 : 0.0;
+          group.score_sum += score;
         }
         addNonDecreasing(blocks, group, true, false);
       }
@@ -873,27 +955,54 @@ namespace OpenMS::Math
       std::vector<PAVABlock> shrunk_blocks;
       for (const PAVABlock& b : blocks)
       {
-        addNonDecreasing(shrunk_blocks, b, false, true);
+        addNonDecreasing(shrunk_blocks, b, true, true);
       }
 
       // 3) PEP of a target under target-decoy competition: PEP = (#decoys / decoy_ratio) / #targets = p / (1 - p) / decoy_ratio
-      //    The PEP is constant from the smallest to the largest score of a block (so the estimate is exact for all observed
-      //    scores) and interpolated linearly between neighbouring blocks.
       const double decoy_ratio = param_.getValue("decoy_ratio");
+      std::vector<double> block_peps; // best scores first
+      for (const PAVABlock& b : shrunk_blocks)
+      {
+        const double p = std::min(b.decoyFraction(true), 1.0 - 1e-12);
+        block_peps.push_back(std::min(1.0, p / (1.0 - p) / decoy_ratio));
+      }
+      // The targets above the best decoy contain on average 1 / decoy_ratio incorrect targets (the number of incorrect targets
+      // before the first decoy is geometrically distributed); cf. the "+1" correction of target-decoy FDR estimates.
+      if (shrunk_blocks.front().decoys == 0.0)
+      {
+        block_peps.front() = std::max(block_peps.front(), std::min(1.0, 1.0 / (decoy_ratio * shrunk_blocks.front().n)));
+      }
+      for (Size b = 1; b < block_peps.size(); ++b)
+      {
+        block_peps[b] = std::max(block_peps[b], block_peps[b - 1]);
+      }
+
+      // Curve: within a block, the PEP decreases linearly with the score around the block's PEP at the mean score of the block,
+      // which keeps the mean PEP of the block (calibration) and orders the PSMs of a block by score (no ties of different scores,
+      // e.g. for FDR estimates based on the PEPs). The slope is limited such that the PEP stays strictly between the PEPs
+      // of the neighbouring blocks. Between blocks, the PEP is interpolated linearly.
       isotonic_scores_.clear();
       isotonic_peps_.clear();
-      for (auto it = shrunk_blocks.rbegin(); it != shrunk_blocks.rend(); ++it) // ascending scores
+      for (Size b = shrunk_blocks.size(); b-- > 0; ) // ascending scores
       {
-        const double p = std::min(it->decoyFraction(true), 1.0 - 1e-12);
-        const double pep = std::min(1.0, p / (1.0 - p) / decoy_ratio);
-        for (double score : {it->min_score, it->max_score})
+        const PAVABlock& block = shrunk_blocks[b];
+        const double pep = block_peps[b];
+        const double gap_better = (b == 0) ? pep : pep - block_peps[b - 1]; // towards the better scores (PEP must stay >= 0)
+        const double gap_worse = (b + 1 == shrunk_blocks.size()) ? 1.0 - pep : block_peps[b + 1] - pep; // towards the worse scores (PEP <= 1)
+        const double half_range = 0.45 * std::max(0.0, std::min(gap_better, gap_worse));
+        const double center = block.score_sum / block.n;
+        const double half_width = std::max(block.max_score - center, center - block.min_score);
+        if (half_width > 0.0)
         {
-          // blocks cover disjoint, increasing score ranges
-          if (isotonic_scores_.empty() || score > isotonic_scores_.back())
-          {
-            isotonic_scores_.push_back(score);
-            isotonic_peps_.push_back(pep);
-          }
+          isotonic_scores_.push_back(block.min_score);
+          isotonic_peps_.push_back(pep + half_range * (center - block.min_score) / half_width);
+          isotonic_scores_.push_back(block.max_score);
+          isotonic_peps_.push_back(pep - half_range * (block.max_score - center) / half_width);
+        }
+        else
+        {
+          isotonic_scores_.push_back(block.min_score);
+          isotonic_peps_.push_back(pep);
         }
       }
 
@@ -1207,6 +1316,10 @@ namespace OpenMS::Math
       }
       file << plot;
       file.store(out_plot + "_target_decoy");
+      if (!mixture)
+      {
+        file.store(out_plot); // the non-parametric estimate has no other plot
+      }
       tryGnuplot(out_plot + "_target_decoy");
     }
 
@@ -1334,75 +1447,91 @@ namespace OpenMS::Math
       return false;
     }
 
-    double PosteriorErrorProbabilityModel::transformScore_(const std::string & engine, const PeptideHit & hit, const std::string& current_score_type, bool higher_score_better)
+    namespace
+    {
+      /// dedicated score selection of supported search engines
+      struct DedicatedScores
+      {
+        std::vector<std::string> names; ///< requested score types in order of preference (empty: engine without dedicated support)
+        bool neg_log = true;            ///< transform with -log10 (e-values)
+        double factor = 1.0;            ///< otherwise: multiply with this factor
+      };
+
+      DedicatedScores dedicatedScores(const std::string& engine)
+      {
+        DedicatedScores d;
+        if (engine == "OMSSA") { d.names = {"OMSSA", "expect", "MS:1001328"}; }
+        else if (engine == "MYRIMATCH") { d.names = {"mvh", "MS:1001589"}; d.neg_log = false; }
+        else if (engine == "XTANDEM") { d.names = {"E-Value", "expect", "MS:1001330"}; }
+        else if (engine == "MASCOT") { d.names = {"EValue", "expect", "MS:1001172"}; }
+        else if (engine == "SPECTRAST") { d.names = {"f-val", "fval", "MS:1001419"}; d.neg_log = false; d.factor = 100.0; }
+        else if (engine == "SIMTANDEM") { d.names = {"E-Value"}; }
+        else if (engine == "MSGFPLUS") { d.names = {"MS:1002053", "expect", "SpecEValue", "MS:1002052"}; }
+        else if (engine == "COMET") { d.names = {"MS:1002257", "expect"}; }
+        else if (engine == "SIMPLESEARCHENGINE" || engine == "PROSE" || engine == "SAGE")
+        {
+          // HyperScore already returns the log-space value (HyperScore.cpp: log1p(dot_product) + log-factorials)
+          // and is labeled "ln(hyperscore)"; "hyperscore" is the older name for the same quantity.
+          d.names = {"hyperscore", "ln(hyperscore)"};
+          d.neg_log = false;
+        }
+        else if (engine == "MSFRAGGER") { d.names = {"expect", "MS:1001330"}; }
+        return d;
+      }
+    }
+
+    bool PosteriorErrorProbabilityModel::hasDedicatedScore_(const std::string& engine, const PeptideHit& hit, const std::string& current_score_type)
+    {
+      const DedicatedScores d = dedicatedScores(engine);
+      double value;
+      return !d.names.empty() && getScore_(d.names, hit, current_score_type, value);
+    }
+
+    std::set<std::string> PosteriorErrorProbabilityModel::runsWithDedicatedScores_(const std::map<std::string, std::string>& run_to_engine, const PeptideIdentificationList& peptide_ids)
+    {
+      std::set<std::string> runs;
+      for (const PeptideIdentification& pep : peptide_ids)
+      {
+        auto engine_it = run_to_engine.find(pep.getIdentifier());
+        if (engine_it == run_to_engine.end() || runs.count(pep.getIdentifier()) > 0)
+        {
+          continue;
+        }
+        for (const PeptideHit& hit : pep.getHits())
+        {
+          if (hasDedicatedScore_(engine_it->second, hit, pep.getScoreType()))
+          {
+            runs.insert(pep.getIdentifier());
+            break;
+          }
+        }
+      }
+      return runs;
+    }
+
+    double PosteriorErrorProbabilityModel::transformScore_(const std::string & engine, const PeptideHit & hit, const std::string& current_score_type, bool higher_score_better, bool generic_fallback)
     {
       //TODO implement censoring. 1) if value is below censoring take cumulative density below it, instead of point estimate
       const double nan = std::numeric_limits<double>::quiet_NaN();
-      double value = 0;
 
-      // dedicated score selection for supported engines: (requested score types in order of preference, -log10 transform?)
-      std::vector<std::string> requested;
-      bool neg_log = true;
-      double factor = 1.0;
-      if (engine == "OMSSA")
-      {
-        requested = {"OMSSA", "expect", "MS:1001328"};
-      }
-      else if (engine == "MYRIMATCH")
-      {
-        requested = {"mvh", "MS:1001589"};
-        neg_log = false;
-      }
-      else if (engine == "XTANDEM")
-      {
-        requested = {"E-Value", "expect", "MS:1001330"};
-      }
-      else if (engine == "MASCOT")
+      if (!generic_fallback)
       {
         // issue #740: unable to fit data with (ion) score 0
-        if (higher_score_better && hit.getScore() == 0.0)
+        if (engine == "MASCOT" && higher_score_better && hit.getScore() == 0.0)
         {
           return nan;
         }
-        requested = {"EValue", "expect", "MS:1001172"};
-      }
-      else if (engine == "SPECTRAST")
-      {
-        requested = {"f-val", "fval", "MS:1001419"};
-        neg_log = false;
-        factor = 100.0;
-      }
-      else if (engine == "SIMTANDEM")
-      {
-        requested = {"E-Value"};
-      }
-      else if (engine == "MSGFPLUS")
-      {
-        requested = {"MS:1002053", "expect", "SpecEValue", "MS:1002052"};
-      }
-      else if (engine == "COMET")
-      {
-        requested = {"MS:1002257", "expect"};
-      }
-      else if (engine == "SIMPLESEARCHENGINE" || engine == "PROSE" || engine == "SAGE")
-      {
-        // HyperScore already returns the log-space value (HyperScore.cpp: log1p(dot_product) + log-factorials)
-        // and is labeled "ln(hyperscore)"; "hyperscore" is the older name for the same quantity.
-        requested = {"hyperscore", "ln(hyperscore)"};
-        neg_log = false;
-      }
-      else if (engine == "MSFRAGGER")
-      {
-        requested = {"expect", "MS:1001330"};
-      }
-
-      if (!requested.empty() && getScore_(requested, hit, current_score_type, value))
-      {
-        return neg_log ? negLog10(value) : factor * value;
+        const DedicatedScores d = dedicatedScores(engine);
+        double value = 0;
+        if (!d.names.empty() && getScore_(d.names, hit, current_score_type, value))
+        {
+          return d.neg_log ? negLog10(value) : d.factor * value;
+        }
+        return nan; // the score of this search engine is missing for this hit
       }
 
       // generic fallback: main score of the identification
-      value = hit.getScore();
+      const double value = hit.getScore();
       switch (classifyScore(current_score_type))
       {
         case ScoreScale::PROBABILITY:
@@ -1426,8 +1555,15 @@ namespace OpenMS::Math
         }
         else
         {
+          // resolve to the original search engine only if there is exactly one (otherwise, the consensus score is used)
+          std::vector<std::string> keys;
+          protein_id.getSearchParameters().getKeys(keys);
+          const Size n_engines = std::count_if(keys.begin(), keys.end(), [](const std::string& key)
+          {
+            return StringUtils::hasPrefix(key, "SE:") && !StringUtils::hasSubstring(key, "percolator");
+          });
           const std::string original = protein_id.getOriginalSearchEngineName();
-          if (original != "Unknown")
+          if (n_engines == 1 && original != "Unknown")
           {
             search_engine = original;
           }
@@ -1479,10 +1615,14 @@ namespace OpenMS::Math
 
       // search engine of each run
       std::map<std::string, std::string> run_to_engine;
+      std::map<std::string, StringList> run_to_ms_files; // spectra files of each run (for per-spectrum competition)
       for (const ProteinIdentification& prot : protein_ids)
       {
         run_to_engine[prot.getIdentifier()] = getSearchEngineKey(prot);
+        prot.getPrimaryMSRunPath(run_to_ms_files[prot.getIdentifier()]);
       }
+      // runs of supported engines use the dedicated score of the engine (if any hit has it), otherwise the main score
+      const std::set<std::string> dedicated_runs = runsWithDedicatedScores_(run_to_engine, peptide_ids);
 
       struct ScoreGroup
       {
@@ -1519,11 +1659,12 @@ namespace OpenMS::Math
         const vector<PeptideHit>& hits = pep.getHits();
         const std::string& score_type = pep.getScoreType();
         const bool higher_score_better = pep.isHigherScoreBetter();
+        const bool generic_fallback = (dedicated_runs.count(pep.getIdentifier()) == 0);
 
         {
           const PeptideHit& top = hits[0];
           const TDLabel label = getTDLabel(top);
-          const double score = transformScore_(engine, top, score_type, higher_score_better);
+          const double score = transformScore_(engine, top, score_type, higher_score_better, generic_fallback);
           if (!std::isnan(score) && label != TDLabel::UNKNOWN)
           {
             std::string spectrum_key;
@@ -1534,8 +1675,30 @@ namespace OpenMS::Math
             }
             else
             {
-              spectrum_key = pep.getIdentifier() + "\t" + pep.getMetaValue("file_origin", std::string()).toString() + "|"
-                             + pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX, std::string()).toString() + "\t" + spectrum_reference;
+              // identify the spectrum by its spectra file (e.g. separate target and decoy searches of the same file, stored as separate runs)
+              const StringList& ms_files = run_to_ms_files[pep.getIdentifier()];
+              Size ms_file_index = 0;
+              if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
+              {
+                try
+                {
+                  ms_file_index = static_cast<Size>(std::max(0, StringUtils::toInt32(pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX).toString())));
+                }
+                catch (Exception::BaseException&)
+                {
+                  ms_file_index = 0;
+                }
+              }
+              if (ms_file_index < ms_files.size() && !ms_files[ms_file_index].empty())
+              {
+                spectrum_key = "file:" + ms_files[ms_file_index] + "\t" + spectrum_reference;
+              }
+              else
+              {
+                // no spectra file annotated: identify the spectrum within its identification run
+                spectrum_key = "run:" + pep.getIdentifier() + "\t" + pep.getMetaValue("file_origin", std::string()).toString() + "|"
+                               + pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX, std::string()).toString() + "\t" + spectrum_reference;
+              }
             }
             const TopHit hit{score, label == TDLabel::DECOY};
             auto [it, inserted] = top_hits[group_key(engine, top.getCharge())].emplace(spectrum_key, hit);
@@ -1554,7 +1717,7 @@ namespace OpenMS::Math
         const Size n_hits = top_hits_only ? 1 : hits.size();
         for (Size i = 0; i < n_hits; ++i)
         {
-          const double score = transformScore_(engine, hits[i], score_type, higher_score_better);
+          const double score = transformScore_(engine, hits[i], score_type, higher_score_better, generic_fallback);
           if (!std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
           {
             groups[group_key(engine, hits[i].getCharge())].scores.push_back(score);
@@ -1602,8 +1765,8 @@ namespace OpenMS::Math
       bool & unable_to_fit_data,
       bool & data_might_not_be_well_fit)
     {
-      std::set<Size> updated_peptide_ids;
-      updateScores(PEP_model, search_engine, charge, prob_correct, split_charge, protein_ids, peptide_ids, unable_to_fit_data, data_might_not_be_well_fit, updated_peptide_ids);
+      std::set<std::pair<Size, Size>> updated_hits;
+      updateScores(PEP_model, search_engine, charge, prob_correct, split_charge, protein_ids, peptide_ids, unable_to_fit_data, data_might_not_be_well_fit, updated_hits);
     }
 
     void PosteriorErrorProbabilityModel::updateScores(
@@ -1616,20 +1779,23 @@ namespace OpenMS::Math
       PeptideIdentificationList & peptide_ids,
       bool & unable_to_fit_data,
       bool & data_might_not_be_well_fit,
-      std::set<Size> & updated_peptide_ids)
+      std::set<std::pair<Size, Size>> & updated_hits)
     {
       const std::string engine = normalizeEngineKey(search_engine);
       unable_to_fit_data = false;
       data_might_not_be_well_fit = false;
 
-      std::set<std::string> runs;
+      std::map<std::string, std::string> runs; // identifier -> engine key
       for (const ProteinIdentification& prot : protein_ids)
       {
         if (getSearchEngineKey(prot) == engine)
         {
-          runs.insert(prot.getIdentifier());
+          runs[prot.getIdentifier()] = engine;
         }
       }
+      // decided before any score is changed (consistent with extractAndTransformScores())
+      const std::set<std::string> dedicated_runs = runsWithDedicatedScores_(runs, peptide_ids);
+      Size n_unusable = 0;
 
       for (Size index = 0; index < peptide_ids.size(); ++index)
       {
@@ -1640,19 +1806,21 @@ namespace OpenMS::Math
         }
         const std::string score_type = pep.getScoreType() + "_score";
         vector<PeptideHit>& hits = pep.getHits();
-        for (PeptideHit & hit : hits)
+        for (Size hit_index = 0; hit_index < hits.size(); ++hit_index)
         {
+          PeptideHit& hit = hits[hit_index];
           if (!split_charge || (hit.getCharge() == charge))
           {
             double score;
             hit.setMetaValue(score_type, hit.getScore());
-            score = PosteriorErrorProbabilityModel::transformScore_(engine, hit, pep.getScoreType(), pep.isHigherScoreBetter());
+            score = PosteriorErrorProbabilityModel::transformScore_(engine, hit, pep.getScoreType(), pep.isHigherScoreBetter(), dedicated_runs.count(pep.getIdentifier()) == 0);
 
             //TODO they should be ignored during fitting already!
             // and in this issue the -log(10^99) should actually be an acceptable value.
             if (std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
             {
               score = 1.0;
+              ++n_unusable;
             }
             else
             {
@@ -1666,9 +1834,14 @@ namespace OpenMS::Math
               //TODO implement something to check the quality of fit and set data_might_not_be_well_fit
             }
             hit.setScore(prob_correct ? 1.0 - score : score);
-            updated_peptide_ids.insert(index);
+            updated_hits.emplace(index, hit_index);
           }
         }
+      }
+      if (n_unusable > 0)
+      {
+        OPENMS_LOG_WARN << "Warning: " << n_unusable << " hit(s) of search engine " << engine << (split_charge ? " (charge " + StringUtils::toStr(charge) + ")" : std::string())
+                        << " have no usable score and were assigned a PEP of 1." << std::endl;
       }
     }
 } // namespace OpenMS // namespace Math

@@ -69,6 +69,8 @@ Without target/decoy information (or with @p fit_algorithm:decoy_handling 'ignor
 By default an estimation is performed using the (inverse) Gumbel distribution for incorrectly assigned sequences
 and a Gaussian distribution for correctly assigned sequences. The probabilities are calculated by using Bayes' law, similar to PeptideProphet.
 Alternatively, a second Gaussian distribution can be used for incorrectly assigned sequences.
+Without decoys, the mixture model assumes that the data contain correct assignments: for data with few or no correct assignments,
+it might assign low PEPs to a few PSMs in the extreme upper tail of the scores. Use target/decoy information whenever possible.
 
 <B>Plots</B>
 
@@ -203,7 +205,7 @@ protected:
     std::string out_plot = fit_algorithm.getValue("out_plot").toString();
     StringUtils::trim(out_plot);
 
-    std::set<Size> updated_peptide_ids;
+    std::set<std::pair<Size, Size>> updated_hits; // (index of identification, index of hit)
     for (auto & score : all_scores)
     {
       vector<std::string> engine_info;
@@ -293,7 +295,7 @@ protected:
        peptide_ids,
        unable_to_fit_data,
        data_might_not_be_well_fit,
-       updated_peptide_ids);
+       updated_hits);
 
       if (unable_to_fit_data)
       {
@@ -311,32 +313,33 @@ protected:
     // Unfortunately this cannot go into the algorithm since
     // you would overwrite some score types before they are extracted when you
     // do split_charge
-    // Only identifications whose hits were updated are relabeled; others keep their original scores and score types.
-    if (updated_peptide_ids.size() < peptide_ids.size())
-    {
-      Size n_not_updated = std::count_if(peptide_ids.begin(), peptide_ids.end(), [](const PeptideIdentification& pep) { return !pep.getHits().empty(); })
-                           - std::count_if(updated_peptide_ids.begin(), updated_peptide_ids.end(), [&peptide_ids](Size i) { return !peptide_ids[i].getHits().empty(); });
-      if (n_not_updated > 0)
-      {
-        writeLogWarn_("Warning: " + StringUtils::toStr(n_not_updated) + " peptide identification(s) could not be assigned a PEP (e.g. unsupported search engine, or too few PSMs) and keep their original scores.");
-      }
-    }
-    // identifications without hits: relabel if their run was processed (for consistency within a run)
+    // Score types are kept consistent within each run: all identifications of runs with at least one updated hit (and of all runs
+    // with -ignore_bad_data, so that pipelines can continue) are relabeled, and their hits without a PEP get a PEP of 1.
     std::set<std::string> updated_runs;
-    for (Size index : updated_peptide_ids)
+    for (const auto& updated : updated_hits)
     {
-      updated_runs.insert(peptide_ids[index].getIdentifier());
+      updated_runs.insert(peptide_ids[updated.first].getIdentifier());
     }
+    Size n_set_to_one = 0, n_kept = 0;
     for (Size index = 0; index < peptide_ids.size(); ++index)
     {
-      if (peptide_ids[index].getHits().empty() && updated_runs.count(peptide_ids[index].getIdentifier()) > 0)
-      {
-        updated_peptide_ids.insert(index);
-      }
-    }
-    for (Size index : updated_peptide_ids)
-    {
       PeptideIdentification& pep = peptide_ids[index];
+      if (!ignore_bad_data && updated_runs.count(pep.getIdentifier()) == 0)
+      {
+        n_kept += pep.getHits().size();
+        continue;
+      }
+      const std::string original_score_type = pep.getScoreType() + "_score";
+      std::vector<PeptideHit>& hits = pep.getHits();
+      for (Size hit_index = 0; hit_index < hits.size(); ++hit_index)
+      {
+        if (updated_hits.count({index, hit_index}) == 0)
+        {
+          hits[hit_index].setMetaValue(original_score_type, hits[hit_index].getScore());
+          hits[hit_index].setScore(prob_correct ? 0.0 : 1.0);
+          ++n_set_to_one;
+        }
+      }
       if (prob_correct)
       {
         pep.setScoreType("Posterior Probability");
@@ -347,6 +350,16 @@ protected:
         pep.setScoreType("Posterior Error Probability");
         pep.setHigherScoreBetter(false);
       }
+    }
+    if (n_set_to_one > 0)
+    {
+      writeLogWarn_("Warning: " + StringUtils::toStr(n_set_to_one) + " hit(s) could not be assigned a PEP by a model (e.g. unusable score, or too few PSMs)"
+                    " and were assigned a PEP of 1 (the original score is kept as meta value).");
+    }
+    if (n_kept > 0)
+    {
+      writeLogWarn_("Warning: " + StringUtils::toStr(n_kept) + " hit(s) of search runs without a PEP model keep their original scores and score types"
+                    " (use -ignore_bad_data to assign them a PEP of 1).");
     }
     //-------------------------------------------------------------
     // writing output

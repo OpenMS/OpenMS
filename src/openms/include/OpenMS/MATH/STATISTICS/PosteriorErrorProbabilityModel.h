@@ -48,12 +48,21 @@ namespace OpenMS
         <tt>PEP(s) = p(s) / (1 - p(s)) / decoy_ratio</tt> (cf. Percolator/qvality, Käll et al. 2008).
         Only the ordering of the scores is used, so the estimate is invariant to any monotone score transformation
         (e-values, p-values, raw scores, discrete or censored scores). Block decoy fractions are shrunk with a Jeffreys
-        prior, so that targets scoring above all decoys do not get a PEP of exactly 0.
-        Probabilities of scores between the fitted blocks are interpolated linearly.
+        prior, and the PEPs of the targets scoring above all decoys sum up to 1 / decoy_ratio (the expected number of incorrect
+        targets above the best decoy), so that no PEP is exactly 0.
+        Within a block, the PEP decreases linearly with the score around the block's PEP (keeping the mean PEP of the block),
+        such that PSMs are ordered by score; between blocks, the PEP is interpolated linearly.
 
       With @p decoy_handling = auto (default), fitTargetDecoy() chooses the isotonic estimate if there are at least
       @p min_decoys_isotonic decoys, the semi-supervised mixture if there are at least @p min_decoys decoys,
       and the unsupervised mixture of the target scores otherwise.
+      Mixture models fitted with decoys are checked against them: if far more decoys score as well as the targets with low PEPs
+      than these PEPs imply (e.g. a spurious "correct" component fitted to data with few or no correct assignments),
+      'auto' switches to the isotonic estimate (otherwise, hasCalibrationWarning() is set).
+
+      @note Without decoys, the (unsupervised) mixture model assumes that the data contain correct assignments.
+      For data with few or no correct assignments, it might assign low PEPs to a few PSMs in the extreme upper tail of the scores.
+      Use target/decoy information whenever possible.
 
       One can output the fit as a gnuplot formula using getGumbelGnuplotFormula() and getGaussGnuplotFormula() after fitting.
       @note All parameters are stored in GaussFitResult. In the case of the Gumbel distribution x0 and sigma represent the local parameter alpha and the scale parameter beta, respectively.
@@ -160,10 +169,11 @@ public:
         bool & data_might_not_be_well_fit);
 
       /**
-       * @brief update score entries with PEP (or 1-PEP) estimates and report which identifications were updated
+       * @brief update score entries with PEP (or 1-PEP) estimates and report which hits were updated
        *
-       * Same as the overload without @p updated_peptide_ids.
-       * @param[in,out] updated_peptide_ids indices (into @p peptide_ids) of the identifications with at least one updated hit are added
+       * Same as the overload without @p updated_hits.
+       * Hits without a usable score get a PEP of 1.
+       * @param[in,out] updated_hits pairs (index into @p peptide_ids, index of the hit) of the updated hits are added
        */
       static void updateScores(
         const PosteriorErrorProbabilityModel & PEP_model,
@@ -175,7 +185,7 @@ public:
         PeptideIdentificationList & peptide_ids,
         bool & unable_to_fit_data,
         bool & data_might_not_be_well_fit,
-        std::set<Size> & updated_peptide_ids);
+        std::set<std::pair<Size, Size>> & updated_hits);
 
       /**
        * @brief the key under which the scores of a search run are reported by extractAndTransformScores()
@@ -253,10 +263,12 @@ public:
       }
 
       /**
-          @brief returns true if the last call to fitTargetDecoy() found the PEPs to disagree with target-decoy FDR estimates
+          @brief returns true if the last call to fitTargetDecoy() found the PEPs to disagree with the decoys
 
-          The mean PEP of the target PSMs accepted at a target-decoy FDR of 1%, 5% and 10% is compared to that FDR.
-          A difference of more than a factor of 2 indicates that the model does not fit the data well.
+          Under target-decoy competition, the number of decoys scoring at least as well as a set of targets is (decoy_ratio times)
+          the number of incorrect targets in the set, which is estimated by the sum of their PEPs.
+          This is tested for the targets accepted at a target-decoy FDR of 1%, 5% and 10%, and for the targets with a PEP below 0.1.
+          A warning is raised if observed and expected decoys differ significantly (Poisson test) and by more than a factor of 2.
       */
       bool hasCalibrationWarning() const
       {
@@ -401,6 +413,9 @@ private:
       /// fits the model chosen by parameter 'decoy_handling' (with fallbacks) to finite target and decoy scores
       bool fitTargetDecoyModel_(const std::vector<double>& targets, const std::vector<double>& decoys, const std::string& outlier_handling);
 
+      /// tests whether (far) more decoys score as well as the targets with low PEPs than the PEPs imply (Poisson test)
+      bool decoysContradictModel_(const std::vector<double>& targets, const std::vector<double>& decoys) const;
+
       /// estimates the non-parametric target-decoy model; returns false if it cannot be estimated
       bool fitIsotonic_(const std::vector<double>& target_scores, const std::vector<double>& decoy_scores);
 
@@ -418,8 +433,16 @@ private:
       /// @param[in] hit the PeptideHit to extract transformed scores from
       /// @param[in] current_score_type the current score type of the PeptideIdentification to take precedence
       /// @param[in] higher_score_better the score orientation of the PeptideIdentification (used for the main score of unknown engines)
+      /// @param[in] generic_fallback use the main score (instead of the dedicated score of a supported engine), see runsWithDedicatedScores_()
       /// @return transformed score (higher is better), or NaN if no usable score is available
-      static double transformScore_(const std::string& engine, const PeptideHit& hit, const std::string& current_score_type, bool higher_score_better);
+      static double transformScore_(const std::string& engine, const PeptideHit& hit, const std::string& current_score_type, bool higher_score_better, bool generic_fallback);
+
+      /// whether @p engine has a dedicated score and @p hit carries it
+      static bool hasDedicatedScore_(const std::string& engine, const PeptideHit& hit, const std::string& current_score_type);
+
+      /// identifiers of the runs (with engine keys given by @p run_to_engine) with at least one hit carrying the dedicated score of the engine;
+      /// all other runs use the main score of their identifications (never a mix of both within one run)
+      static std::set<std::string> runsWithDedicatedScores_(const std::map<std::string, std::string>& run_to_engine, const PeptideIdentificationList& peptide_ids);
 
       /// gets a specific score (either main score [preferred] or metavalue)
       /// @param[in] requested_score_types the requested score_types in order of preference (will be tested with a "_score" suffix as well)

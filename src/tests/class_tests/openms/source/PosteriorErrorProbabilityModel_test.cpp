@@ -516,13 +516,32 @@ START_SECTION((bool fitTargetDecoy(const std::vector<double>& target_scores, con
   for (double t : data.targets) { sum_pep += model.computeProbability(t); }
   TOLERANCE_ABSOLUTE(0.05)
   TEST_REAL_SIMILAR(sum_pep / n0, 1.0)
-  // targets above all decoys get a small, but positive PEP: at most the Jeffreys estimate for the targets above the best decoy
+  // targets above all decoys get small, but positive PEPs, which sum up to the expected number of incorrect targets above the best decoy (1)
   {
     const double best_decoy = *std::max_element(data.decoys.begin(), data.decoys.end());
-    const double n_above = double(std::count_if(data.targets.begin(), data.targets.end(), [best_decoy](double t) { return t > best_decoy; }));
-    const double p = 0.5 / (n_above + 1.0);
+    double sum_above = 0.0;
+    for (double t : data.targets)
+    {
+      if (t > best_decoy) { sum_above += model.computeProbability(t); }
+    }
     TEST_EQUAL(model.computeProbability(1e6) > 0.0, true)
-    TEST_EQUAL(model.computeProbability(1e6) <= p / (1.0 - p) + 1e-12, true)
+    TOLERANCE_ABSOLUTE(1e-9)
+    TEST_REAL_SIMILAR(sum_above, 1.0)
+  }
+  // PSMs are ordered by score (no ties of different scores), except for PEPs of 1
+  {
+    std::vector<double> sorted_targets(data.targets);
+    std::sort(sorted_targets.begin(), sorted_targets.end());
+    bool strictly_decreasing = true;
+    for (Size i = 1; i < sorted_targets.size(); ++i)
+    {
+      const double previous = model.computeProbability(sorted_targets[i - 1]), current = model.computeProbability(sorted_targets[i]);
+      if (sorted_targets[i] > sorted_targets[i - 1] && previous < 1.0)
+      {
+        strictly_decreasing = strictly_decreasing && current < previous;
+      }
+    }
+    TEST_EQUAL(strictly_decreasing, true)
   }
 
   // the estimate only depends on the ordering of the scores: invariant to monotone transformations
@@ -532,15 +551,32 @@ START_SECTION((bool fitTargetDecoy(const std::vector<double>& target_scores, con
     for (double& d : transformed.decoys) { d = std::exp(d / 2.0); }
     PosteriorErrorProbabilityModel model2;
     TEST_EQUAL(model2.fitTargetDecoy(transformed.targets, transformed.decoys, "none"), true)
-    auto curve1 = model.getIsotonicPEPCurve(), curve2 = model2.getIsotonicPEPCurve();
-    TEST_EQUAL(curve1.size(), curve2.size())
-    double max_difference = 0.0;
-    for (Size i = 0; i < std::min(curve1.size(), curve2.size()); ++i)
+    // same blocks (the linear ordering of the PSMs within a block depends on the score scale, but not the blocks themselves) ...
+    TEST_EQUAL(model.getIsotonicPEPCurve().size(), model2.getIsotonicPEPCurve().size())
+    // ... hence the same total PEP (each block keeps its mean PEP) and the same ordering of the PSMs by PEP
+    std::vector<double> all(data.targets), all_transformed(transformed.targets);
+    all.insert(all.end(), data.decoys.begin(), data.decoys.end());
+    all_transformed.insert(all_transformed.end(), transformed.decoys.begin(), transformed.decoys.end());
+    double sum1 = 0.0, sum2 = 0.0;
+    std::vector<std::pair<double, Size>> order1, order2;
+    for (Size i = 0; i < all.size(); ++i)
     {
-      max_difference = std::max(max_difference, std::fabs(curve1[i].second - curve2[i].second));
+      const double pep1 = model.computeProbability(all[i]), pep2 = model2.computeProbability(all_transformed[i]);
+      sum1 += pep1;
+      sum2 += pep2;
+      order1.emplace_back(pep1, i);
+      order2.emplace_back(pep2, i);
     }
-    TOLERANCE_ABSOLUTE(1e-12)
-    TEST_REAL_SIMILAR(max_difference, 0.0)
+    TOLERANCE_ABSOLUTE(1e-6)
+    TEST_REAL_SIMILAR(sum1, sum2)
+    std::sort(order1.begin(), order1.end());
+    std::sort(order2.begin(), order2.end());
+    bool same_order = true;
+    for (Size i = 0; i < order1.size(); ++i)
+    {
+      same_order = same_order && order1[i].second == order2[i].second;
+    }
+    TEST_EQUAL(same_order, true)
   }
 
   // discrete scores: tied scores are pooled, the result does not depend on the order of the input
@@ -565,24 +601,27 @@ START_SECTION((bool fitTargetDecoy(const std::vector<double>& target_scores, con
     TEST_REAL_SIMILAR(model3.computeProbability(3.5), truePEP(3.5, n0, n1))
   }
 
-  // several decoys per target: the number of incorrect targets is #decoys / decoy_ratio
+  // two decoys per target (each incorrect spectrum is won by a decoy with probability 2/3): the number of incorrect targets is #decoys / decoy_ratio
   {
+    TDData two_decoys = simulateTDC(43, n0, n1, 2 * n0);
     PosteriorErrorProbabilityModel model5;
     Param p = model5.getParameters();
     p.setValue("decoy_ratio", 2.0);
     model5.setParameters(p);
-    TEST_EQUAL(model5.fitTargetDecoy(data.targets, data.decoys, "none"), true)
-    auto curve1 = model.getIsotonicPEPCurve(), curve5 = model5.getIsotonicPEPCurve();
-    TEST_EQUAL(curve1.size(), curve5.size())
-    TOLERANCE_ABSOLUTE(1e-12)
-    for (Size i = 0; i < std::min(curve1.size(), curve5.size()); ++i)
+    TEST_EQUAL(model5.fitTargetDecoy(two_decoys.targets, two_decoys.decoys, "none"), true)
+    TOLERANCE_ABSOLUTE(1e-9)
+    TEST_REAL_SIMILAR(model5.getTargetDecoyIncorrectFraction(), double(n0) / double(n0 + n1))
+    double sum_pep5 = 0.0, sum_above5 = 0.0;
+    const double best_decoy = *std::max_element(two_decoys.decoys.begin(), two_decoys.decoys.end());
+    for (double t : two_decoys.targets)
     {
-      if (curve1[i].second < 1.0)
-      {
-        TEST_REAL_SIMILAR(curve5[i].second, curve1[i].second / 2.0)
-      }
+      sum_pep5 += model5.computeProbability(t);
+      if (t > best_decoy) { sum_above5 += model5.computeProbability(t); }
     }
-    TEST_REAL_SIMILAR(model5.getTargetDecoyIncorrectFraction(), double(n0) / double(n0 + n1) / 2.0)
+    TEST_REAL_SIMILAR(sum_above5, 0.5) // 1 / decoy_ratio
+    TOLERANCE_ABSOLUTE(0.05)
+    TEST_REAL_SIMILAR(sum_pep5 / n0, 1.0)
+    TEST_EQUAL(model5.hasCalibrationWarning(), false)
   }
 
   // semi-supervised mixture model
@@ -632,6 +671,110 @@ START_SECTION((bool fitTargetDecoy(const std::vector<double>& target_scores, con
     PosteriorErrorProbabilityModel model9;
     TEST_EQUAL(model9.fitTargetDecoy({}, data.decoys, "none"), false)
     TEST_EQUAL(model9.getModelType() == PosteriorErrorProbabilityModel::ModelType::NONE, true)
+  }
+
+  // calibration check: with a wrong decoy_ratio, there are 4 times more decoys than the (correct) PEPs of the semi-supervised model imply
+  {
+    PosteriorErrorProbabilityModel model10;
+    Param p = model10.getParameters();
+    p.setValue("decoy_handling", "semi_supervised");
+    p.setValue("decoy_ratio", 0.25);
+    model10.setParameters(p);
+    TEST_EQUAL(model10.fitTargetDecoy(data.targets, data.decoys, "none"), true)
+    TEST_EQUAL(model10.hasCalibrationWarning(), true)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] degenerate input))
+{
+  auto check_monotone = [](const PosteriorErrorProbabilityModel& model)
+  {
+    double previous = 1.0;
+    bool ok = true;
+    for (double s = -20.0; s < 20.0; s += 0.01)
+    {
+      const double pep = model.computeProbability(s);
+      ok = ok && pep <= previous + 1e-12 && pep >= 0.0 && pep <= 1.0;
+      previous = pep;
+    }
+    return ok;
+  };
+  const double inf = std::numeric_limits<double>::infinity(), nan = std::numeric_limits<double>::quiet_NaN();
+
+  // NaN values are sorted to the end
+  {
+    PosteriorErrorProbabilityModel model;
+    std::vector<double> scores = {3.0, nan, 1.0, 2.0, nan, 0.5};
+    model.fit(scores, "none");
+    TEST_EQUAL(std::is_sorted(scores.begin(), scores.begin() + 4), true)
+    TEST_EQUAL(std::isnan(scores[4]) && std::isnan(scores[5]), true)
+  }
+
+  // unsupervised: too few scores, no spread, non-finite scores only
+  for (std::vector<double> scores : std::vector<std::vector<double>>{{}, {1.0}, {1.0, 2.0}, std::vector<double>(1000, 4.2), {nan, inf, -inf}})
+  {
+    PosteriorErrorProbabilityModel model;
+    TEST_EQUAL(model.fit(scores, "none"), false)
+    TEST_EQUAL(model.getModelType() == PosteriorErrorProbabilityModel::ModelType::NONE, true)
+  }
+
+  // target-decoy: all scores identical -> no information, PEP 1
+  {
+    PosteriorErrorProbabilityModel model;
+    TEST_EQUAL(model.fitTargetDecoy(std::vector<double>(500, 3.0), std::vector<double>(500, 3.0), "none"), true)
+    TEST_REAL_SIMILAR(model.computeProbability(3.0), 1.0)
+    TEST_REAL_SIMILAR(model.computeProbability(100.0), 1.0)
+  }
+
+  TDData null_data = simulateTDC(11, 2000, 0, 2000);
+  // decoys score better than targets (e.g. wrong score orientation): PEP 1 for all targets
+  {
+    std::vector<double> better_decoys;
+    for (double t : null_data.targets) { better_decoys.push_back(t + 10.0); }
+    PosteriorErrorProbabilityModel model;
+    TEST_EQUAL(model.fitTargetDecoy(null_data.decoys, better_decoys, "none"), true)
+    double max_pep = 0.0, min_pep = 1.0;
+    for (double t : null_data.decoys)
+    {
+      min_pep = std::min(min_pep, model.computeProbability(t));
+      max_pep = std::max(max_pep, model.computeProbability(t));
+    }
+    TEST_REAL_SIMILAR(min_pep, 1.0)
+    TEST_EQUAL(check_monotone(model), true)
+  }
+
+  // no correct targets at all: the default (non-parametric) estimate assigns no target a low PEP
+  {
+    PosteriorErrorProbabilityModel model;
+    TEST_EQUAL(model.fitTargetDecoy(null_data.targets, null_data.decoys, "none"), true)
+    TEST_EQUAL(model.getModelType() == PosteriorErrorProbabilityModel::ModelType::TARGET_DECOY_ISOTONIC, true)
+    Size low_pep = std::count_if(null_data.targets.begin(), null_data.targets.end(), [&model](double t) { return model.computeProbability(t) < 0.05; });
+    TEST_EQUAL(low_pep, 0)
+    TEST_EQUAL(check_monotone(model), true)
+  }
+
+  // perfect separation: small (but positive) PEPs for targets above all decoys, PEP 1 below
+  {
+    TDData separated = simulateTDC(12, 0, 500, 500);
+    for (double& t : separated.targets) { t += 10.0; }
+    PosteriorErrorProbabilityModel model;
+    TEST_EQUAL(model.fitTargetDecoy(separated.targets, separated.decoys, "none"), true)
+    const double best_decoy = *std::max_element(separated.decoys.begin(), separated.decoys.end());
+    TEST_EQUAL(model.computeProbability(best_decoy + 5.0) > 0.0, true)
+    TEST_EQUAL(model.computeProbability(best_decoy + 5.0) < 0.01, true)
+    TEST_REAL_SIMILAR(model.computeProbability(best_decoy), 1.0)
+    TEST_EQUAL(check_monotone(model), true)
+  }
+
+  // non-finite scores are ignored, a single target is not enough
+  {
+    PosteriorErrorProbabilityModel model;
+    TEST_EQUAL(model.fitTargetDecoy({5.0, nan, inf}, null_data.decoys, "none"), false)
+    std::vector<double> targets(null_data.targets);
+    targets.insert(targets.end(), {nan, inf, -inf});
+    TEST_EQUAL(model.fitTargetDecoy(targets, null_data.decoys, "none"), true)
+    TEST_EQUAL(check_monotone(model), true)
   }
 }
 END_SECTION
@@ -739,21 +882,84 @@ START_SECTION((static std::map<std::string, std::vector<std::vector<double>>> ex
   TDData data = simulateTDC(3, 400, 200, 400);
   TEST_EQUAL(model.fit(data.targets, "none"), true)
   bool unable_to_fit = true, not_well_fit = true;
-  std::set<Size> updated;
+  std::set<std::pair<Size, Size>> updated;
   PosteriorErrorProbabilityModel::updateScores(model, "XTANDEM", -1, false, false, proteins, peptides, unable_to_fit, not_well_fit, updated);
   TEST_EQUAL(unable_to_fit, false)
-  TEST_EQUAL(updated.size(), 7)
+  TEST_EQUAL(updated.size(), 13) // all hits of the X! Tandem run
   bool only_xtandem = true, valid = true;
-  for (Size index : updated)
+  for (const auto& [pep_index, hit_index] : updated)
   {
-    only_xtandem = only_xtandem && peptides[index].getIdentifier() == "xtandem";
-    for (const PeptideHit& hit : peptides[index].getHits())
-    {
-      valid = valid && hit.getScore() >= 0.0 && hit.getScore() <= 1.0 && hit.metaValueExists("XTandem_score");
-    }
+    only_xtandem = only_xtandem && peptides[pep_index].getIdentifier() == "xtandem";
+    const PeptideHit& hit = peptides[pep_index].getHits()[hit_index];
+    valid = valid && hit.getScore() >= 0.0 && hit.getScore() <= 1.0 && hit.metaValueExists("XTandem_score");
   }
   TEST_EQUAL(only_xtandem, true)
   TEST_EQUAL(valid, true)
+
+  // separate target and decoy searches of the same spectra file, stored as separate runs: top hits compete per spectrum
+  {
+    std::vector<ProteinIdentification> runs(2);
+    runs[0].setIdentifier("target_search");
+    runs[1].setIdentifier("decoy_search");
+    for (ProteinIdentification& run : runs)
+    {
+      run.setSearchEngine("Comet");
+      run.setPrimaryMSRunPath({"/data/sample.mzML"});
+    }
+    PeptideIdentificationList separate;
+    for (Size i = 0; i < 20; ++i)
+    {
+      PeptideIdentification target = makeIdentification("target_search", "expect", false, "scan=" + StringUtils::toStr(i));
+      target.setHits({makeHit(std::pow(10.0, -double(i % 5)), 2, "target")});
+      PeptideIdentification decoy = makeIdentification("decoy_search", "expect", false, "scan=" + StringUtils::toStr(i));
+      decoy.setHits({makeHit(0.5, 2, "decoy")}); // e-value 0.5: the target wins unless its e-value is 1 (i % 5 == 0)
+      separate.push_back(target);
+      separate.push_back(decoy);
+    }
+    auto competed = PosteriorErrorProbabilityModel::extractAndTransformScores(runs, separate, false, true);
+    TEST_EQUAL(competed["COMET"][1].size(), 16)
+    TEST_EQUAL(competed["COMET"][2].size(), 4)
+    TEST_EQUAL(competed["COMET"][0].size(), 40) // the unsupervised scores contain all hits
+  }
+
+  // supported engine: within a run, either the dedicated score is used (hits without it are skipped) or, if no hit has it, the main score
+  {
+    std::vector<ProteinIdentification> runs(2);
+    runs[0].setIdentifier("with_evalues");
+    runs[1].setIdentifier("without_evalues");
+    runs[0].setSearchEngine("XTandem");
+    runs[1].setSearchEngine("XTandem");
+    PeptideIdentificationList ids;
+    for (Size i = 0; i < 4; ++i)
+    {
+      PeptideIdentification pep = makeIdentification("with_evalues", "XTandem", true, "");
+      PeptideHit hit = makeHit(40.0 + double(i), 2, "target");
+      if (i % 2 == 0) { hit.setMetaValue("E-Value", 1e-5); }
+      pep.setHits({hit});
+      ids.push_back(pep);
+      PeptideIdentification pep2 = makeIdentification("without_evalues", "XTandem", true, "");
+      pep2.setHits({makeHit(40.0 + double(i), 3, "target")});
+      ids.push_back(pep2);
+    }
+    auto scores = PosteriorErrorProbabilityModel::extractAndTransformScores(runs, ids, true, false);
+    TEST_EQUAL(scores["XTANDEM,2"][0].size(), 2) // only the hits with e-values, no mix of e-values and hyperscores
+    TEST_REAL_SIMILAR(scores["XTANDEM,2"][0][0], 5.0)
+    TEST_EQUAL(scores["XTANDEM,3"][0].size(), 4) // hyperscore (main score) for all hits
+    TEST_REAL_SIMILAR(*std::max_element(scores["XTANDEM,3"][0].begin(), scores["XTANDEM,3"][0].end()), 43.0)
+  }
+
+  // ConsensusID runs are resolved to the original search engine only if there is exactly one
+  {
+    ProteinIdentification consensus;
+    consensus.setSearchEngine("OpenMS/ConsensusID_best");
+    ProteinIdentification::SearchParameters sp;
+    sp.setMetaValue("SE:Comet", "");
+    consensus.setSearchParameters(sp);
+    TEST_EQUAL(PosteriorErrorProbabilityModel::getSearchEngineKey(consensus), "COMET")
+    sp.setMetaValue("SE:MS-GF+", "");
+    consensus.setSearchParameters(sp);
+    TEST_EQUAL(PosteriorErrorProbabilityModel::getSearchEngineKey(consensus), "OPENMSCONSENSUSIDBEST")
+  }
 }
 END_SECTION
 
