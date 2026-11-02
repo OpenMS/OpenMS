@@ -330,7 +330,8 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
     vector<vector<PeptideFeature>> features_per_group(n_groups);
     vector<FeatureMap> fmap_per_group(n_groups);
 
-    #pragma omp parallel for schedule(dynamic)
+    // one CV: no outer region, so the parallel loops inside processFAIMSGroup_ get the threads (nested regions run serially)
+    #pragma omp parallel for schedule(dynamic) if(n_groups > 1)
     for (int i = 0; i < static_cast<int>(n_groups); ++i)
     {
       auto& group_pair = groups[static_cast<Size>(i)];
@@ -1516,13 +1517,20 @@ Biosaur2Algorithm::ScanPrep Biosaur2Algorithm::prepareScan_(const MSSpectrum& sp
   sp.by_bin.resize(len_mz);
   for (Size pos = 0; pos < len_mz; ++pos) sp.by_bin[pos] = {sp.bins[pos], static_cast<int>(pos)};
   sort(sp.by_bin.begin(), sp.by_bin.end());
-  // dense offsets: bin b's entries are by_bin[bin_start[b - bin_lo] .. bin_start[b - bin_lo + 1])
+  return sp;
+}
+
+void Biosaur2Algorithm::buildBinOffsets_(ScanPrep& sp) const
+{
+  // dense offsets: bin b's entries are by_bin[bin_start[b - bin_lo] .. bin_start[b - bin_lo + 1]). The table spans the
+  // scan's whole m/z-bin range (~1e6 / htol entries), so it is built only for the scan being linked to.
+  sp.bin_start.clear();
+  if (sp.by_bin.empty()) return;
   sp.bin_lo = sp.by_bin.front().first;
   const Size range = static_cast<Size>(sp.by_bin.back().first - sp.bin_lo) + 1;
   sp.bin_start.assign(range + 1, 0);
   for (const auto& e : sp.by_bin) ++sp.bin_start[static_cast<Size>(e.first - sp.bin_lo) + 1];
   for (Size k = 0; k < range; ++k) sp.bin_start[k + 1] += sp.bin_start[k];
-  return sp;
 }
 
 void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
@@ -1702,6 +1710,7 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills_(const MSExperime
   vector<ScanPrep> preps(static_cast<Size>(min<SignedSize>(n, block)));
   ScanPrep carry;   // the last prepared scan of the previous block (the next block's first scan links to it)
   bool have_carry = false;
+  vector<int> bin_buf;   // the dense bin table, lent to the scan being linked to (one table alive at a time)
 
   // Mapping from previous-scan peak index to hill index.
   vector<Size> prev_peak_to_hill;
@@ -1724,9 +1733,15 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills_(const MSExperime
     if (err) std::rethrow_exception(err);
     for (SignedSize s = b0; s < b1; ++s)
     {
-      const ScanPrep* prev = s == b0 ? (have_carry ? &carry : nullptr) : &preps[static_cast<Size>(s - b0 - 1)];
+      ScanPrep* prev = s == b0 ? (have_carry ? &carry : nullptr) : &preps[static_cast<Size>(s - b0 - 1)];
+      if (prev != nullptr)
+      {
+        prev->bin_start.swap(bin_buf);
+        buildBinOffsets_(*prev);
+      }
       linkScanToHills_(exp[static_cast<Size>(s)], static_cast<Size>(s), htol_ppm, preps[static_cast<Size>(s - b0)], prev,
                        refs, hill_idx_counter, prev_peak_to_hill, prev_spectrum_ptr, hill_mass_diffs);
+      if (prev != nullptr) prev->bin_start.swap(bin_buf);
     }
     carry = std::move(preps[static_cast<Size>(b1 - b0 - 1)]);
     have_carry = true;

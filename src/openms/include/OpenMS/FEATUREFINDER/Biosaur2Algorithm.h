@@ -415,6 +415,9 @@ private:
   ScanPrep prepareScan_(const MSSpectrum& spectrum, double min_intensity, double min_mz, double max_mz,
                         double mz_step, bool use_im_global) const;
 
+  /// fills @p sp's dense bin table (bin_lo, bin_start) from its by_bin lookup
+  void buildBinOffsets_(ScanPrep& sp) const;
+
   void linkScanToHills_(const MSSpectrum& spectrum,
                         Size scan_idx,
                         double htol_ppm,
