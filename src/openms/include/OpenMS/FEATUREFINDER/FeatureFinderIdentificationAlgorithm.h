@@ -375,7 +375,8 @@ protected:
 
   void ensureConvexHulls_(Feature& feature) const;
 
-  void postProcess_(FeatureMap& features);
+  /// Store the candidates (if requested and @p store_candidates), filter them and fit elution models
+  void postProcess_(FeatureMap& features, bool store_candidates = true);
 
   /// Helper functions for run()
   void initializeFeatureFinder_();
