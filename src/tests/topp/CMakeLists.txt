@@ -5057,6 +5057,26 @@ set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_mbr" PROPERTIES DEPEND
 add_test("TOPP_MS1LabeledWorkflow_11_targeted_mbr_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_targeted_mbr.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_targeted_mbr_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_mbr_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_targeted_mbr")
 
+# Match between runs promotes no evidence to "detected": with run B's VLDELTLAR identification removed
+# (MS1LabeledWorkflow_11_apex_noVLDELTLAR.idXML), run B's VLDELTLAR doublet is unidentified and takes over the identification of run
+# A's targeted feature in linking. Without -targeted_quantification neither run has a VLDELTLAR value, so run B's counts as targeted
+# too and stays out of the normalization (YVNDLAGHEK's normalized ratio in run B stays 1.0): 4 targeted peptide ratios, not 3.
+add_test("TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_input.mzML ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11b_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11.idXML ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_apex_noVLDELTLAR.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -targeted_quantification true
+  -match_between_runs true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_targeted_mbr_promoted.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_mbr_prepare" PASS_REGULAR_EXPRESSION "Channel ratios from targeted quantification: 4 peptide ratio.s. of peptides measured only that way")
+add_test("TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion"
+  -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_targeted_mbr_promoted.tmp.consensusXML
+  -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_targeted_mbr_promoted_out.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted")
+
 # Reserved peaks in the re-quantification: MS1LabeledWorkflow_12 is a synthetic triple SILAC run (2+, one MS1 spectrum per second)
 # whose isotope peaks sit at their measured (fine-structure averaged) positions:
 #   SAGLEVDNVLGTSLEAPYNAPLLEK (2599 Da, one K), light only: its medium m/z lies 5.4 ppm from the light channel's M+4, which the light

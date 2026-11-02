@@ -265,6 +265,8 @@ START_SECTION(([EXTRA] void run(ConsensusMap&, const ExperimentalDesign&, Protei
   TEST_EQUAL(pep_f[2].count, 1)
   TEST_EQUAL(pep_f[2].targeted_count, 1)
   TEST_REAL_SIMILAR(pep_f[2].ratio, 0.5)
+  // a (fraction group, channel) with targeted ratios only is normalized by them
+  TEST_REAL_SIMILAR(pep_f[2].normalized_ratio, 1.0)
 }
 END_SECTION
 
