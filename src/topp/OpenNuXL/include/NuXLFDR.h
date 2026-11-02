@@ -84,7 +84,8 @@ class NuXLFDR
       XLGroups::ON: if there are short cross-links. XLGroups::AUTO: if, among the cross-links that pass AUTO_FDR with
       one FDR over all cross-links, at least AUTO_MIN_DECOYS are short decoys. Below that, the FDR of the short
       cross-links would rest on too few decoys. The decision uses only the decoy counts, not the numbers of
-      identifications the two ways would give.
+      identifications the two ways would give. In both modes, the short and the other cross-links each need at least
+      one decoy: FalseDiscoveryRate gives every target of a list without decoys q-value 0.
 
       @param[in] xl_pi Cross-link identifications, one hit each (as produced by splitIntoPeptidesAndXLs()).
       @param[out] short_decoys Number of short decoys counted for the decision (XLGroups::AUTO; 0 otherwise).

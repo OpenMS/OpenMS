@@ -127,6 +127,15 @@ START_SECTION((bool useShortXLGroup(const PeptideIdentificationList& xl_pi, Size
   TEST_EQUAL(short_decoys, 0)
   TEST_EQUAL(on.useShortXLGroup(xl9, short_decoys), true)
   TEST_EQUAL(on.useShortXLGroup(select(example(9), true, 0), short_decoys), false) // no short cross-links
+  // a group without decoys would get q-value 0 for all its targets: one FDR
+  TEST_EQUAL(on.useShortXLGroup(select(example(0), true, -1), short_decoys), false) // no short decoys
+  PeptideIdentificationList no_other_decoys;
+  for (const auto& pi : xl12)
+  {
+    if (!pi.getHits()[0].isDecoy() || NuXLFDR::isShortXL(pi.getHits()[0])) no_other_decoys.push_back(pi);
+  }
+  TEST_EQUAL(on.useShortXLGroup(no_other_decoys, short_decoys), false)
+  TEST_EQUAL(autom.useShortXLGroup(no_other_decoys, short_decoys), false)
   // auto: 12 short decoys pass 10% FDR over all cross-links -> own group; with 9 not
   TEST_EQUAL(autom.useShortXLGroup(xl12, short_decoys), true)
   TEST_EQUAL(short_decoys, 12)

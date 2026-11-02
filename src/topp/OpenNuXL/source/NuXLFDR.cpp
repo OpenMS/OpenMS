@@ -56,6 +56,19 @@ namespace OpenMS
     const bool has_short = std::any_of(xl_pi.begin(), xl_pi.end(), [](const PeptideIdentification& pi)
       { return !pi.getHits().empty() && isShortXL(pi.getHits()[0]); });
     if (!has_short) return false;
+
+    // FalseDiscoveryRate gives every target of a list without decoys q-value 0: both groups need decoys
+    auto has_decoy = [&xl_pi](bool short_group)
+    {
+      return std::any_of(xl_pi.begin(), xl_pi.end(), [short_group](const PeptideIdentification& pi)
+        { return !pi.getHits().empty() && pi.getHits()[0].isDecoy() && isShortXL(pi.getHits()[0]) == short_group; });
+    };
+    if (!has_decoy(true) || !has_decoy(false))
+    {
+      OPENMS_LOG_WARN << "Cross-link FDR: the " << (has_decoy(true) ? "other" : "short") << " cross-links have no decoys, "
+                      << "so they can't form their own FDR group: one FDR over all cross-links." << endl;
+      return false;
+    }
     if (xl_groups_ == XLGroups::ON) return true;
 
     // AUTO: short decoys among the cross-links that pass AUTO_FDR with one FDR over all cross-links

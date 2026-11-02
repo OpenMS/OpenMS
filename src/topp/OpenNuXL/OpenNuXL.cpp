@@ -953,7 +953,7 @@ protected:
       "so with one FDR over all cross-links far more of the short ones are false. In their own group, the FDR of the short and of the "
       "other cross-links is each held at report:xlFDR (annotated as NuXL:fdr_group). 'auto': only if the short cross-links have at least "
       + std::to_string(NuXLFDR::AUTO_MIN_DECOYS) + " decoys at " + std::to_string(static_cast<int>(NuXLFDR::AUTO_FDR * 100)) + "% FDR over all "
-      "cross-links, enough to estimate their own FDR. 'on': whenever there are short cross-links. 'off': one FDR over all cross-links.", false, false);
+      "cross-links, enough to estimate their own FDR. 'on': whenever the short and the other cross-links both have decoys. 'off': one FDR over all cross-links.", false, false);
     setValidStrings_("report:xl_fdr_groups", {"auto", "on", "off"});
 
     registerInputFile_("percolator_executable", "<executable>", 

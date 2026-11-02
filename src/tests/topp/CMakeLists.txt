@@ -3484,6 +3484,15 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
     -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_8_output.tmp.idXML
     -P ${DATA_DIR_TOPP}/OpenNuXL_8_rescoring_features_test.cmake)
   set_tests_properties("TOPP_OpenNuXL_8_rescoring_features" PROPERTIES DEPENDS "TOPP_OpenNuXL_8")
+
+  # report:xl_fdr_groups on: the test data have no cross-link decoys, and a group without decoys would get q-value 0
+  # for all its targets, so the cross-links keep one FDR (no NuXL:fdr_group in -out_xls)
+  add_test("TOPP_OpenNuXL_9" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+  ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_9_output.tmp.idXML -out_xls ${TESTS_TEMP_DIR}/OpenNuXL_9_xls.tmp.idXML -NuXL:decoys "true" -report:xl_fdr_groups on)
+  add_test("TOPP_OpenNuXL_9_xl_fdr_groups" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_9_xls.tmp.idXML
+    -P ${DATA_DIR_TOPP}/OpenNuXL_9_xl_fdr_groups_test.cmake)
+  set_tests_properties("TOPP_OpenNuXL_9_xl_fdr_groups" PROPERTIES DEPENDS "TOPP_OpenNuXL_9")
 endif(NOT MSVC)
 
 # OpenNuXL writes localized cross-links as named modifications (K(NuXL:U-H2O1)) whose definitions
