@@ -45,6 +45,7 @@ set(tool_headers
   include/NuXLParameterParsing.h
   include/NuXLPresets.h
   include/NuXLReport.h
+  include/NuXLRescoring.h
   include/NuXLSearchIndex.h
   include/NuXLSiteLocalization.h
 )
@@ -61,6 +62,7 @@ set(tool_sources
   source/NuXLParameterParsing.cpp
   source/NuXLPresets.cpp
   source/NuXLReport.cpp
+  source/NuXLRescoring.cpp
   source/NuXLSiteLocalization.cpp
 )
 

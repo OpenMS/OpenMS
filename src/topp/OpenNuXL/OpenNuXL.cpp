@@ -43,6 +43,7 @@
 #include "NuXLFragmentAnnotationHelper.h"
 #include "NuXLFragmentIonGenerator.h"
 #include "NuXLIonLikelihood.h"
+#include "NuXLRescoring.h"
 
 #include "NuXLMarkerIonExtractor.h"
 #include "NuXLModificationsGenerator.h"
@@ -860,31 +861,8 @@ protected:
   bool ion_likelihood_enabled_{false}; ///< annotate the NuXL:ion_* features (needs decoys)
   bool native_rescoring_{false};      ///< add the delta score of cross-links and the ion likelihood ratio to the hit score
 
-  /// Best score of the hits of a spectrum and the best score of a different (unmodified) peptide sequence
-  struct ScoreGap
-  {
-    float best = -std::numeric_limits<float>::infinity();
-    float second = -std::numeric_limits<float>::infinity(); ///< best score of a sequence other than best_sequence
-    std::string_view best_sequence;
-
-    void add(float score, std::string_view sequence)
-    {
-      if (sequence == best_sequence) { best = std::max(best, score); return; }
-      if (score > best)
-      {
-        second = best; // the old best has another sequence and is at least as good as every other hit seen so far
-        best = score;
-        best_sequence = sequence;
-        return;
-      }
-      second = std::max(second, score);
-    }
-
-    /// best score of a sequence other than @p sequence (-inf if there is none)
-    float bestOtherThan(std::string_view sequence) const { return sequence == best_sequence ? second : best; }
-  };
-  const vector<ScoreGap>* xl_gaps_ = nullptr;      ///< per spectrum, over all cross-link hits scored in the search
-  const vector<ScoreGap>* peptide_gaps_ = nullptr; ///< per spectrum, over all peptide hits scored in the search
+  const vector<NuXLRescoring::ScoreGap>* xl_gaps_ = nullptr;      ///< per spectrum, over all cross-link hits scored in the search
+  const vector<NuXLRescoring::ScoreGap>* peptide_gaps_ = nullptr; ///< per spectrum, over all peptide hits scored in the search
 
   std::unique_ptr<NuXLIonLikelihood> ion_likelihood_;
   vector<NuXLIonLikelihood::Evidence> ion_evidence_; ///< matched ions of the hits, indexed by their NuXL:ion_evidence
@@ -1087,7 +1065,7 @@ protected:
       "'features': annotate the score margin over the best hit of another peptide sequence (NuXL:delta_score, and NuXL:delta_score_class within cross-links or peptides; needs slow scoring) "
       "and a fragment ion likelihood learned from the confident hits of the run (NuXL:ion_llr, NuXL:ion_llr_shifted, NuXL:ion_explained, NuXL:ion_topk_observed; needs decoys), "
       "and pass them to Percolator. The hits of each half of the spectra are scored by the ion model trained on the other half. "
-      "'native': in addition, add the delta score of cross-links and 0.3 times NuXL:ion_llr to the score of every hit, which ranks the hits and defines the FDR filtered outputs.", false, false);
+      "'native': in addition, add the delta score of cross-links and 0.3 times NuXL:ion_llr to the score of every hit, which ranks the hits and is reported in the idXML, the TSV report and the FDR filtered outputs (needs decoys).", false, false);
     setValidStrings_("NuXL:rescoring", {"none", "features", "native"});
 
     registerStringOption_("NuXL:decoys", "<bool>", "true", "Generate decoys internally (recommended).", false, false);
@@ -3535,63 +3513,6 @@ protected:
   }
 
 
-  /// FDR threshold of the training hits of the self-trained ion likelihood
-  static constexpr double TRAIN_FDR = 0.05;
-
-  /**
-    Training hits of the self-trained models: the spectra are split into two halves by scan index parity. Per half and
-    class (cross-link or not), the identifications whose best hit is a target at q <= TRAIN_FDR, with q = (D + 1) / T
-    over the hit score computed within the half (decoys win ties). Cross-links are rare, so a stricter threshold leaves
-    too few of them (and an unstable number) for training.
-
-    @param[out] counts training hits per [half][class] (class 1: cross-links)
-    @return indices into @p peptide_ids per half
-  */
-  static std::array<vector<Size>, 2> confidentHitsPerHalf_(const PeptideIdentificationList& peptide_ids, std::array<std::array<Size, 2>, 2>& counts)
-  {
-    struct Row { double score; bool decoy; Size id; };
-    std::array<std::array<vector<Row>, 2>, 2> rows; // [half][class]
-    for (Size i = 0; i < peptide_ids.size(); ++i)
-    {
-      const PeptideIdentification& pi = peptide_ids[i];
-      if (pi.getHits().empty() || !pi.metaValueExists("scan_index")) continue;
-      const PeptideHit& top = pi.getHits()[0];
-      const Size half = static_cast<Size>(static_cast<int>(pi.getMetaValue("scan_index"))) % 2;
-      const Size cls = static_cast<int>(top.getMetaValue("NuXL:isXL")) != 0 ? 1 : 0;
-      rows[half][cls].push_back({top.getScore(), top.isDecoy(), i});
-    }
-    std::array<vector<Size>, 2> training;
-    counts = {};
-    for (Size half = 0; half < 2; ++half)
-    {
-      for (Size cls = 0; cls < 2; ++cls)
-      {
-        vector<Row>& r = rows[half][cls];
-        std::sort(r.begin(), r.end(), [](const Row& a, const Row& b)
-        {
-          if (a.score != b.score) return a.score > b.score;
-          if (a.decoy != b.decoy) return a.decoy;
-          return a.id < b.id;
-        });
-        vector<double> q(r.size(), 1.0);
-        Size targets = 0, decoys = 0;
-        for (Size k = 0; k < r.size(); ++k)
-        {
-          if (r[k].decoy) { ++decoys; } else { ++targets; }
-          q[k] = static_cast<double>(decoys + 1) / static_cast<double>(std::max<Size>(targets, 1));
-        }
-        for (Size k = r.size(); k-- > 1;) { q[k - 1] = std::min(q[k - 1], q[k]); }
-        for (Size k = 0; k < r.size(); ++k)
-        {
-          if (r[k].decoy || q[k] > TRAIN_FDR) continue;
-          training[half].push_back(r[k].id);
-          ++counts[half][cls];
-        }
-      }
-    }
-    return training;
-  }
-
   /**
     Self-trained fragment ion likelihood (after ProSE, see NuXLIonLikelihood). The spectra are split into two halves by
     scan index parity. The models of each half are trained on its confident best hits and score the hits of the other
@@ -3601,7 +3522,7 @@ protected:
   {
     constexpr Size MIN_TRAINING_HITS = 50; // per half
     std::array<std::array<Size, 2>, 2> training_counts{};
-    const std::array<vector<Size>, 2> training = confidentHitsPerHalf_(peptide_ids, training_counts);
+    const std::array<vector<Size>, 2> training = NuXLRescoring::confidentHitsPerHalf(peptide_ids, NuXLRescoring::TRAIN_FDR, training_counts);
 
     const bool trained = training[0].size() >= MIN_TRAINING_HITS && training[1].size() >= MIN_TRAINING_HITS;
     if (trained)
@@ -3618,7 +3539,7 @@ protected:
       ion_likelihood_->finalize();
       OPENMS_LOG_INFO << "Ion likelihood trained on " << training_counts[0][0] << " peptides and " << training_counts[0][1]
                       << " cross-links (first half of the spectra) and " << training_counts[1][0] << " peptides and "
-                      << training_counts[1][1] << " cross-links (second half) at q <= " << TRAIN_FDR << "." << endl;
+                      << training_counts[1][1] << " cross-links (second half) at q <= " << NuXLRescoring::TRAIN_FDR << "." << endl;
     }
     else
     {
@@ -3648,29 +3569,6 @@ protected:
     }
     ion_evidence_.clear();
     ion_evidence_.shrink_to_fit();
-  }
-
-  /// NuXL:rescoring native: score = NuXL:score + delta score (cross-links only) + 0.3 * ion likelihood ratio
-  static void rescoreHits_(PeptideIdentificationList& peptide_ids)
-  {
-    // Weights from PXD048145 (RNA-UV, E. coli). The delta score is added to cross-links only: for non-cross-linked
-    // peptides it gained PSMs at 1% FDR but lost some at 10% FDR.
-    constexpr double DELTA_WEIGHT = 1.0;
-    constexpr double ION_LLR_WEIGHT = 0.3;
-    for (auto& pi : peptide_ids)
-    {
-      for (auto& ph : pi.getHits())
-      {
-        double score = ph.getMetaValue("NuXL:score");
-        const bool is_xl = static_cast<int>(ph.getMetaValue("NuXL:isXL")) != 0;
-        if (is_xl && ph.metaValueExists("NuXL:delta_score")) { score += DELTA_WEIGHT * static_cast<double>(ph.getMetaValue("NuXL:delta_score")); }
-        if (ph.metaValueExists("NuXL:ion_llr")) { score += ION_LLR_WEIGHT * static_cast<double>(ph.getMetaValue("NuXL:ion_llr")); }
-        ph.setScore(score);
-      }
-      pi.sort();
-      vector<PeptideHit>& phs = pi.getHits();
-      for (Size r = 0; r != phs.size(); ++r) { phs[r].setRank(static_cast<int>(r)); }
-    }
   }
 
   /**
@@ -4982,6 +4880,11 @@ protected:
     {
       OPENMS_LOG_WARN << "NuXL:rescoring: the ion likelihood is trained on target-decoy q-values and needs NuXL:decoys true. It is not annotated." << endl;
     }
+    if (native_rescoring_ && !generate_decoys)
+    {
+      OPENMS_LOG_WARN << "NuXL:rescoring native needs NuXL:decoys true: the hit scores are left unchanged (as with 'features')." << endl;
+      native_rescoring_ = false;
+    }
 
     // true positives: assumed gaussian distribution of mass error
     // with sigma^2 = precursor_mass_tolerance
@@ -5372,8 +5275,8 @@ protected:
     vector<vector<NuXLAnnotatedHit> > annotated_peptides(spectra.size(), vector<NuXLAnnotatedHit>());
     for (auto & a : annotated_peptides) { a.reserve(2 * report_top_hits); }
     // best score and best score of another sequence per spectrum (for the delta score), updated under the hit locks
-    vector<ScoreGap> xl_gaps(delta_score_ ? spectra.size() : 0);
-    vector<ScoreGap> peptide_gaps(delta_score_ ? spectra.size() : 0);
+    vector<NuXLRescoring::ScoreGap> xl_gaps(delta_score_ ? spectra.size() : 0);
+    vector<NuXLRescoring::ScoreGap> peptide_gaps(delta_score_ ? spectra.size() : 0);
 #ifdef _OPENMP     
     // locking is done at the spectrum level to ensure good parallelisation 
     vector<omp_lock_t> annotated_XLs_lock(annotated_XLs.size());
@@ -6168,6 +6071,11 @@ protected:
       meta_values_to_export.push_back("RT_error");
     }
 
+    // NuXL:rescoring (needs the target/decoy labels): before the report, so that the TSV report, the idXML and the FDR
+    // filtered outputs share the native score and the ranks
+    if (ion_likelihood_) { annotateIonLikelihood_(peptide_ids); }
+    if (native_rescoring_) { NuXLRescoring::rescoreHits(peptide_ids); }
+
     // annotate NuXL related information to hits and create report
     vector<NuXLReportRow> csv_rows = NuXLReport::annotate(spectra, peptide_ids, meta_values_to_export, marker_ions_tolerance);
 
@@ -6335,9 +6243,6 @@ protected:
         OPENMS_LOG_INFO << "Imputed XL features in " << imputed << " linear peptides." << endl;
       }
 
-
-      if (ion_likelihood_) { annotateIonLikelihood_(peptide_ids); }
-      if (native_rescoring_) { rescoreHits_(peptide_ids); }
 
       // q-value at PSM level irrespective of class (XL/non-XL)
       //fdr.QValueAtPSMLevel(peptide_ids); 
