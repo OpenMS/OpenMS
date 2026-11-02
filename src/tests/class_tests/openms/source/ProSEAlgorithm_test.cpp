@@ -461,6 +461,7 @@ static void configure_calibration_params_(ProSEAlgorithm& algo,
   p.setValue("fragment:mass_tolerance_unit", "ppm");
   p.setValue("fragment:min_ion_index", 0);
   p.setValue("calibration:enabled", "true");
+  p.setValue("calibration:precursor_sigma_factor", 4.0); // these sections test the precursor window (off by default)
   p.setValue("calibration:subset_ratio", 1.0);
   // min_psms is chosen per-test. When min_psms > cal_hits/2, the top-50% score
   // crop at ProSEAlgorithm.cpp:1571 is skipped and every collected error reaches the
@@ -3733,6 +3734,7 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
   {
     Param p = algo.getParameters();
     p.setValue("calibration:sigma_factor", 3.0);
+    p.setValue("calibration:precursor_sigma_factor", 3.0);
     algo.setParameters(p);
   }
 
@@ -3802,6 +3804,7 @@ START_SECTION(([EXTRA] calibration windows are median +/- k sigma of the errors,
   {
     Param p = algo.getParameters();
     p.setValue("calibration:sigma_factor", 3.0);
+    p.setValue("calibration:precursor_sigma_factor", 3.0);
     algo.setParameters(p);
   }
   vector<ProteinIdentification> prot_ids;
@@ -3824,6 +3827,7 @@ START_SECTION(([EXTRA] calibration windows are median +/- k sigma of the errors,
   {
     Param p = capped.getParameters();
     p.setValue("calibration:sigma_factor", 3.0);
+    p.setValue("calibration:precursor_sigma_factor", 3.0);
     p.setValue("calibration:min_precursor_tolerance", 5.0);
     capped.setParameters(p);
   }
@@ -4665,6 +4669,7 @@ START_SECTION(([EXTRA] scoring:fragment_charges scores multiply charged fragment
   p.setValue("fragment:mass_tolerance", 0.01);
   p.setValue("fragment:mass_tolerance_unit", "Da");
   p.setValue("calibration:enabled", "true");
+  p.setValue("calibration:precursor_sigma_factor", 4.0); // these sections test the precursor window (off by default)
   p.setValue("calibration:subset_ratio", 1.0);
   p.setValue("calibration:min_psms", 1);
   ProSEAlgorithm_test calibrated;

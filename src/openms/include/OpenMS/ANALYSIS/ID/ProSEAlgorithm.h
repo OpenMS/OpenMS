@@ -1646,7 +1646,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     double calibration_subset_ratio_{0.1};
     bool chimeric_enabled_{false};       ///< chimeric:enabled: also search the precursors co-isolated with the selected one
     Size calibration_min_psms_{50};
-    double calibration_sigma_factor_{4.0};       ///< calibration:sigma_factor
+    double calibration_sigma_factor_{4.0};       ///< calibration:sigma_factor (fragment)
+    double calibration_precursor_sigma_factor_{0.0}; ///< calibration:precursor_sigma_factor (0: the precursor window is kept)
     double calibration_min_precursor_tol_{0.0};  ///< calibration:min_precursor_tolerance (0: by unit)
     double calibration_min_fragment_tol_{0.0};   ///< calibration:min_fragment_tolerance (0: by unit)
     bool mono_correction_enabled_{false};        ///< precursor:mono_correction

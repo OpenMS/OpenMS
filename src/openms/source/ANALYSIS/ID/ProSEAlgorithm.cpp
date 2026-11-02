@@ -959,9 +959,10 @@ namespace OpenMS
       "intense spectra (calibration:subset_ratio), searched with at least 20 ppm (0.5 Da) precursor and fragment windows "
       "(the configured ones if wider) so the error is measured and not censored, takes the offset (median) and the "
       "spread (robust standard deviation, 1.4826 * MAD) of the signed mass errors of its confident PSMs; the main search "
-      "then uses the precursor window [median - k sigma, median + k sigma] (asymmetric about zero when the run has an "
-      "offset) and the fragment tolerance |median| + k sigma (calibration:sigma_factor k), each within "
-      "[calibration:min_*_tolerance, the configured tolerance]: the configured tolerances are the widest windows searched. "
+      "then uses the fragment tolerance |median| + k sigma (calibration:sigma_factor k) within "
+      "[calibration:min_fragment_tolerance, the configured tolerance], and the precursor window [median - k sigma, "
+      "median + k sigma] only with calibration:precursor_sigma_factor k > 0 (by default the precursor errors are "
+      "measured and reported, the configured window kept): the configured tolerances are the widest windows searched. "
       "The pass takes its spectra per tenth of the run; a window that covers less than 98 % of the calibration PSMs "
       "(precursor; heavy tails or a mass offset that changes over the run) or 95 % of their matched fragment peaks "
       "(fragment) is not trusted, and the configured tolerance is kept with a warning. "
@@ -977,10 +978,18 @@ namespace OpenMS
       "calibration is skipped and the user-configured tolerances are used.");
     defaults_.setMinInt("calibration:min_psms", 1);
     defaults_.setValue("calibration:sigma_factor", 4.0,
-      "Half-width of the calibrated windows in robust standard deviations (1.4826 * MAD) of the mass errors of the "
-      "calibration PSMs: the precursor window is median +/- k sigma, the fragment tolerance |median| + k sigma. 4 covers "
-      "practically all correct matches of a normal error distribution.");
+      "Half-width of the calibrated fragment tolerance in robust standard deviations (1.4826 * MAD) of the signed errors "
+      "of the matched fragment peaks of the calibration PSMs: |median| + k sigma. 4 covers practically all correct "
+      "matches of a normal error distribution.");
     defaults_.setMinFloat("calibration:sigma_factor", 1.0);
+    defaults_.setValue("calibration:precursor_sigma_factor", 0.0,
+      "Half-width of the calibrated precursor window in robust standard deviations of the precursor errors of the "
+      "calibration PSMs, around their median (asymmetric about zero when the run has an offset). 0 keeps the configured "
+      "precursor window and only measures and reports the errors: precursor yields are flat from 5 to 50 ppm, and a "
+      "tightened precursor window cost identifications on every Orbitrap HCD set of the benchmark (heavy tails), while "
+      "the fragment window gains. A value such as 4 tightens it, within calibration:min_precursor_tolerance and the "
+      "configured window, when the window covers 98 % of the calibration PSMs.");
+    defaults_.setMinFloat("calibration:precursor_sigma_factor", 0.0);
     defaults_.setValue("calibration:min_precursor_tolerance", 0.0,
       "Smallest calibrated precursor tolerance per side, in precursor:mass_tolerance_unit (0: 2.5 ppm or 0.005 Da). "
       "The calibrated window never exceeds the configured one.");
@@ -1308,6 +1317,7 @@ namespace OpenMS
     calibration_subset_ratio_ = param_.getValue("calibration:subset_ratio");
     calibration_min_psms_ = param_.getValue("calibration:min_psms");
     calibration_sigma_factor_ = param_.getValue("calibration:sigma_factor");
+    calibration_precursor_sigma_factor_ = param_.getValue("calibration:precursor_sigma_factor");
     calibration_min_precursor_tol_ = param_.getValue("calibration:min_precursor_tolerance");
     calibration_min_fragment_tol_ = param_.getValue("calibration:min_fragment_tolerance");
     mono_correction_enabled_ = param_.getValue("precursor:mono_correction").toBool();
@@ -11336,6 +11346,7 @@ namespace OpenMS
     //     when the run has an offset; fragment: |median| + k sigma, symmetric (fragment masses are not shifted). Both only
     //     tighten: within [the floor, the configured tolerance]. ---
     const double k = calibration_sigma_factor_;
+    const double kp = calibration_precursor_sigma_factor_; // 0: the precursor window is kept
     const double min_tolerance = 1e-6; // avoid non-positive tolerances
     // The share of the calibration PSMs (fragment peaks) a window must cover to be trusted. Precursor errors have heavy
     // tails (5 % of the PSMs of an Astral run beyond 8 ppm at sigma 0.7), and a window that cuts them costs more
@@ -11348,21 +11359,31 @@ namespace OpenMS
       const double sigma = 1.4826 * mad;
       result.precursor_shift = med;
       result.precursor_sigma = sigma;
-      const double lo = med - k * sigma, hi = med + k * sigma; // e in [-cal_upper, +cal_lower]
+      // Window of the precursor errors e = observed - theoretical in [-cal_upper, +cal_lower]; with kp 0 the configured
+      // window: the calibration then measures and reports the precursor errors and tightens the fragment tolerance only
+      // (precursor yields are flat from 5 to 50 ppm; a tightened precursor window cost identifications on every Orbitrap
+      // HCD set of the 20-run benchmark at equal entrapment FDP, HF-X -1.6 %, Lumos LFQ -2.8 %)
+      const double lo = kp > 0 ? med - kp * sigma : -precursor_mass_tolerance_upper_;
+      const double hi = kp > 0 ? med + kp * sigma : precursor_mass_tolerance_lower_;
       const double cal_lower_raw = std::max(min_tolerance, hi);
       const double cal_upper_raw = std::max(min_tolerance, -lo);
       // Zero spread (a synthetic fixture, a single peptide): nothing to calibrate the precursor window on, it is kept;
       // the fragment calibration still applies. Unit-aware: 1 ppm, or min_tolerance in Da.
-      result.extreme_bias = (hi - lo) < (precursor_ppm ? 1.0 : min_tolerance);
+      result.extreme_bias = kp > 0 && (hi - lo) < (precursor_ppm ? 1.0 : min_tolerance);
       result.precursor_spread = std::max(cal_lower_raw, cal_upper_raw);
       // The median and MAD describe one mode. A run whose offset changes (a lock mass that drops out: half of the
       // precursors near 0 ppm, half near +10 ppm) has errors the window does not cover; then the measurement is not
       // trusted and the configured window stays.
       result.precursor_coverage = std::count_if(precursor_errors.begin(), precursor_errors.end(),
                                                 [&](double e) { return e >= lo && e <= hi; }) / static_cast<double>(precursor_errors.size());
-      if (!result.extreme_bias && result.precursor_coverage < min_coverage_precursor)
+      if (kp <= 0)
       {
-        OPENMS_LOG_WARN << "[ProSE] Calibration: the precursor window median +/- " << k << " sigma covers only "
+        result.cal_lower = precursor_mass_tolerance_lower_;
+        result.cal_upper = precursor_mass_tolerance_upper_;
+      }
+      else if (!result.extreme_bias && result.precursor_coverage < min_coverage_precursor)
+      {
+        OPENMS_LOG_WARN << "[ProSE] Calibration: the precursor window median +/- " << kp << " sigma covers only "
                         << static_cast<int>(100.0 * result.precursor_coverage) << " % of the calibration PSMs (heavy tails, or a mass "
                         << "offset that changes over the run): the configured precursor window is kept." << std::endl;
         result.cal_lower = precursor_mass_tolerance_lower_;
@@ -11418,6 +11439,7 @@ namespace OpenMS
                     << ", sigma " << result.precursor_sigma << " " << precursor_mass_tolerance_unit_
                     << " -> window [-" << result.cal_lower << ", +" << result.cal_upper << "]"
                     << " (covers " << static_cast<int>(100.0 * result.precursor_coverage) << " % of the PSMs)"
+                    << (kp <= 0 ? " (the configured window, calibration:precursor_sigma_factor 0)" : "")
                     << (result.extreme_bias ? " (zero spread: the configured window is kept)" : "") << std::endl;
     OPENMS_LOG_INFO << "[ProSE]   Fragment:  offset " << result.fragment_shift << ", sigma " << result.fragment_sigma
                     << " " << fragment_mass_tolerance_unit_ << " (" << result.fragment_peaks << " peaks) -> tolerance "
