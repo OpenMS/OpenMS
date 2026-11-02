@@ -1563,10 +1563,16 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
     curr_peak_to_hill[static_cast<Size>(peak_idx)] = hill_id;
   };
 
-  // previous scan's peaks in m/z bin `bin`, in descending-intensity order
+  // previous scan's peaks in m/z bin `bin`, in descending-intensity order: by_bin[first, second)
   auto bin_range = [&](int bin) -> pair<Size, Size>
   {
-    if (prev->bin_start.empty() || bin < prev->bin_lo) return {0, 0};
+    if (prev->bin_start.empty())   // no dense table (sparse bins): the same range by binary search
+    {
+      const auto r = equal_range(prev->by_bin.begin(), prev->by_bin.end(), make_pair(bin, 0),
+                                 [](const pair<int, int>& a, const pair<int, int>& b) { return a.first < b.first; });
+      return {static_cast<Size>(r.first - prev->by_bin.begin()), static_cast<Size>(r.second - prev->by_bin.begin())};
+    }
+    if (bin < prev->bin_lo) return {0, 0};
     const Size k = static_cast<Size>(bin - prev->bin_lo);
     if (k + 1 >= prev->bin_start.size()) return {0, 0};
     return {static_cast<Size>(prev->bin_start[k]), static_cast<Size>(prev->bin_start[k + 1])};
@@ -1710,7 +1716,8 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills_(const MSExperime
   vector<ScanPrep> preps(static_cast<Size>(min<SignedSize>(n, block)));
   ScanPrep carry;   // the last prepared scan of the previous block (the next block's first scan links to it)
   // the dense bin table spans the scan's whole m/z-bin range (~1e6 / htol entries), so only the scan being linked to
-  // has one, in a reused buffer: bin b's entries are by_bin[bin_start[b - bin_lo] .. bin_start[b - bin_lo + 1])
+  // has one, in a reused buffer: bin b's entries are by_bin[bin_start[b - bin_lo] .. bin_start[b - bin_lo + 1]).
+  // A range far beyond the peak count (a sub-ppm htol) gets no table; linking then binary-searches by_bin instead
   vector<int> bin_buf;
   auto build_bin_offsets = [](ScanPrep& sp)
   {
@@ -1718,6 +1725,7 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills_(const MSExperime
     if (sp.by_bin.empty()) return;
     sp.bin_lo = sp.by_bin.front().first;
     const Size range = static_cast<Size>(sp.by_bin.back().first - sp.bin_lo) + 1;
+    if (range > max<Size>(Size(1) << 20, 16 * sp.by_bin.size())) return;   // at most 4 MB, or 64 bytes per peak
     sp.bin_start.assign(range + 1, 0);
     for (const auto& e : sp.by_bin) ++sp.bin_start[static_cast<Size>(e.first - sp.bin_lo) + 1];
     for (Size k = 0; k < range; ++k) sp.bin_start[k + 1] += sp.bin_start[k];
