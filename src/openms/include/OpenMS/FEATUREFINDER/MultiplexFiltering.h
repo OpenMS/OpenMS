@@ -226,8 +226,10 @@ protected:
     /**
      * @brief write @p entries to @em blacklist_, with the filtered peak (@p pattern_idx, @p peak_idx) as their owner
      *
-     * It becomes the last owner of each peak (@em blacklist_owner_). Of a peak that another filtered peak reserved before, the
-     * first owner is kept as well (@em blacklist_owner_records_), any owner in between is overwritten (see getBlacklistOwners()).
+     * It becomes the last owner of each peak. As long as a single filtered peak has reserved a peak, @em blacklist_owner_ holds
+     * that owner. When a second filtered peak reserves it, the peak gets a record in @em blacklist_owner_records_ with the first
+     * owner, the value the first owner left in @em blacklist_, and the last owner. Later owners only replace the last owner of
+     * the record, so any owner in between is lost (see getBlacklistOwners()).
      *
      * Owners and records are indexed by int, so the filtered peaks of all patterns together, and the peaks reserved by more
      * than one of them, are limited to INT_MAX each.
