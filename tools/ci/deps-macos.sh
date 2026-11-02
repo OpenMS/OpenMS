@@ -54,16 +54,12 @@ brew update
 
 # Required dependencies:
 brew install \
-  autoconf \
-  autoconf-archive \
-  automake \
   bash \
   bison \
   dotnet \
   flex \
   icu4c \
   libomp \
-  libtool \
   pkg-config \
   ninja
 
