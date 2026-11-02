@@ -39,6 +39,7 @@ set(tool_headers
   include/NuXLFragmentAdductDefinition.h
   include/NuXLFragmentAnnotationHelper.h
   include/NuXLFragmentIonGenerator.h
+  include/NuXLIonLikelihood.h
   include/NuXLMarkerIonExtractor.h
   include/NuXLModificationsGenerator.h
   include/NuXLParameterParsing.h
@@ -54,6 +55,7 @@ set(tool_sources
   source/NuXLFragmentAdductDefinition.cpp
   source/NuXLFragmentAnnotationHelper.cpp
   source/NuXLFragmentIonGenerator.cpp
+  source/NuXLIonLikelihood.cpp
   source/NuXLMarkerIonExtractor.cpp
   source/NuXLModificationsGenerator.cpp
   source/NuXLParameterParsing.cpp

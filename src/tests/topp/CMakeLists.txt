@@ -3455,6 +3455,15 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
       -P ${DATA_DIR_TOPP}/OpenNuXL_7_ambiguous_adducts_test.cmake)
     set_tests_properties("TOPP_OpenNuXL_7_ambiguous_adducts" PROPERTIES DEPENDS "TOPP_OpenNuXL_7")
   endif()
+
+  # NuXL:rescoring native: delta score and ion likelihood features on every hit, passed to Percolator
+  # (structural checks only, so the floating-point differences that disable the tests above don't matter)
+  add_test("TOPP_OpenNuXL_8" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+  ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_8_output.tmp.idXML -NuXL:decoys "true" -NuXL:scoring slow -NuXL:rescoring native)
+  add_test("TOPP_OpenNuXL_8_rescoring_features" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_8_output.tmp.idXML
+    -P ${DATA_DIR_TOPP}/OpenNuXL_8_rescoring_features_test.cmake)
+  set_tests_properties("TOPP_OpenNuXL_8_rescoring_features" PROPERTIES DEPENDS "TOPP_OpenNuXL_8")
 endif(NOT MSVC)
 
 # OpenNuXL writes localized cross-links as named modifications (K(NuXL:U-H2O1)) whose definitions
