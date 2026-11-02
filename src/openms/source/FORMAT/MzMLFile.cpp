@@ -76,8 +76,10 @@ namespace OpenMS
   {
 #ifdef _OPENMP
     const int threads = std::min(omp_get_max_threads(), PARALLEL_LOAD_MAX_THREADS);
-    // Only the plain full load is parallelized; everything else keeps the serial streaming parse.
-    if (threads < 2 || FileNameUtils::compressionType(filename) != FileTypes::UNKNOWN || options_.hasFilters() ||
+    // Only full loads are parallelized (with or without the spectrum filters of the options: MS levels, RT and precursor
+    // m/z range, which the handler of each part applies to each spectrum as in the serial load); everything else keeps
+    // the serial streaming parse.
+    if (threads < 2 || FileNameUtils::compressionType(filename) != FileTypes::UNKNOWN ||
         !options_.getFillData() || options_.getMetadataOnly() || options_.getSkipChromatograms())
     {
       return false;
@@ -134,6 +136,8 @@ namespace OpenMS
     // Parts: spectrum chunks, then (if any) everything from </spectrumList> to the index: the chromatogram list.
     const bool has_chromatograms = !chromatogram_offsets.empty();
     std::vector<PeakMap> parts(chunks + (has_chromatograms ? 1 : 0));
+    // the <spectrum> elements each part read, also those the options skipped
+    std::vector<Size> spectra_read(parts.size(), 0);
     std::exception_ptr error;
     #pragma omp parallel num_threads(std::min<int>(threads, static_cast<int>(parts.size())))
     {
@@ -162,6 +166,7 @@ namespace OpenMS
           Internal::MzMLHandler handler(parts[p], filename, getVersion(), part_file);
           handler.setOptions(options_);
           part_file.parseBuffer_(buffer, &handler);
+          spectra_read[p] = handler.getSpectraRead();
         }
         catch (...)
         {
@@ -173,10 +178,15 @@ namespace OpenMS
     if (error) std::rethrow_exception(error);
 
     // Settings come from the header (identical in every part); spectra are concatenated in document order.
-    Size n_spectra = 0;
-    for (Size p = 0; p < chunks; ++p) n_spectra += parts[p].size();
+    Size n_spectra = 0, n_spectra_read = 0;
+    for (Size p = 0; p < chunks; ++p)
+    {
+      n_spectra += parts[p].size();
+      n_spectra_read += spectra_read[p];
+    }
     const Size n_chromatograms = has_chromatograms ? parts.back().getChromatograms().size() : 0;
-    if (n_spectra != spectrum_offsets.size() || n_chromatograms != chromatogram_offsets.size())
+    // (all <spectrum> elements read, also those the options skipped; chromatograms are not filtered)
+    if (n_spectra_read != spectrum_offsets.size() || n_chromatograms != chromatogram_offsets.size())
     {
       return false; // index disagrees with the document; the caller reparses serially
     }
