@@ -78,28 +78,27 @@ namespace
     }
   };
 
-  // after CrossValidation::postIterationProcessing, as the executable (Caller.cpp)
-  WeightsFile printWeights(P::CrossValidation& cv, const P::Normalizer* normalizer)
+  // after CrossValidation::postIterationProcessing, as the executable (Caller.cpp). printAllWeights writes three
+  // comment lines, then three lines per fold; split by position (a feature name may start with '#'), and fail if the
+  // vendored output has another layout, instead of splitting it wrongly.
+  WeightsFile printWeights(P::CrossValidation& cv, const P::Normalizer* normalizer, size_t num_folds)
   {
+    constexpr size_t comment_lines = 3, lines_per_fold = 3;
     std::ostringstream os;
     cv.printAllWeights(os, normalizer);
-    WeightsFile file;
+    std::vector<std::string> lines;
     std::istringstream is(os.str());
-    std::string line;
-    size_t block_line = 0;
-    while (std::getline(is, line))
+    for (std::string line; std::getline(is, line);) lines.push_back(line + '\n');
+    if (lines.size() != comment_lines + lines_per_fold * num_folds)
     {
-      line += '\n';
-      // (the comment lines come first; a feature name could start with '#')
-      if (file.folds.empty() && block_line == 0 && line[0] == '#')
-      {
-        file.comments += line;
-        continue;
-      }
-      if (block_line % 3 == 0) file.folds.emplace_back();
-      file.folds.back() += line;
-      ++block_line;
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "unexpected layout of CrossValidation::printAllWeights (lines; expected 3 + 3 per fold)",
+        std::to_string(lines.size()));
     }
+    WeightsFile file;
+    for (size_t i = 0; i < comment_lines; ++i) file.comments += lines[i];
+    file.folds.resize(num_folds);
+    for (size_t i = comment_lines; i < lines.size(); ++i) file.folds[(i - comment_lines) / lines_per_fold] += lines[i];
     return file;
   }
 
@@ -590,7 +589,7 @@ void Percolator::storeWeights(const std::string& filename) const
   if (impl_->weights_text.empty())
   {
     throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      "No Percolator model to write: rescore()/train() has not been called, or the last rescorePSMs() used RESET.");
+      "No Percolator model to write: rescore()/train() has not been called or failed, or the last rescorePSMs() used RESET.");
   }
   std::ofstream os(filename.c_str());
   if (!os)
@@ -1120,6 +1119,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   // Also covers throws from validateRescoreInput_ below.
   impl_->last_pi0 = -1.0;
   impl_->last_used_default_direction = false;
+  impl_->weights_text.clear(); // storeWeights() must not write a previous call's models if this one fails
 
   validateRescoreInput_(input);
   const bool use_pi0 = resolveUsePi0(impl_->use_pi0, impl_->post_processing_tdc, input);
@@ -1236,7 +1236,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
     // getAvgWeights returns un-normalized (raw feature space) averaged weights:
     // size = n_features + 1, bias last. This is what score() will use.
     cv.getAvgWeights(avg_weights, normalizer);
-    weights_file = printWeights(cv, normalizer);
+    weights_file = printWeights(cv, normalizer, 3);
   }
   catch (const std::exception& e)
   {
@@ -1556,6 +1556,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   // from a prior successful call.
   impl_->last_pi0 = -1.0;
   impl_->last_used_default_direction = false;
+  impl_->weights_text.clear(); // storeWeights() must not write a previous call's models if this one fails
 
   validateRescoreInput_(input);
   const bool use_pi0 = resolveUsePi0(impl_->use_pi0, impl_->post_processing_tdc, input);
@@ -1808,7 +1809,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     cv.postIterationProcessing(all_scores, sanity.get());
     impl_->last_used_default_direction = sanity->used_default_direction;
     cv.getAvgWeights(avg_weights, normalizer);
-    trained.weights_file = printWeights(cv, normalizer);
+    trained.weights_file = printWeights(cv, normalizer, num_folds);
     if (out_of_fold)
     {
       trained.reset_folds = sanity->reset_folds;

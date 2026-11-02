@@ -4554,8 +4554,9 @@ protected:
 
         bool sufficient_PSMs_for_score_recalibration = pep_ids.size() > 1000;
         std::vector<std::string> process_params;
-        std::string weights_out = out_idxml;
-        StringUtils::substitute(weights_out, ".idXML", "_sse_perc.weights");
+        // (not by replacing ".idXML": with another spelling of the extension, e.g. ".idxml", it would be the
+        // PercolatorAdapter input and output)
+        const std::string weights_out = FileHandler::stripExtension(out_idxml) + "_sse_perc.weights";
         if (sufficient_PSMs_for_score_recalibration && addPercolatorBackend_(process_params, weights_out)) // only try to call percolator if we have some PSMs
         {
           std::string perc_in = out_idxml;
@@ -6273,8 +6274,7 @@ protected:
 
       bool sufficient_PSMs_for_score_recalibration = (xl_pi.size() + pep_pi.size()) >= 1000;
       std::vector<std::string> process_params;
-      std::string weights_out = out_idxml;
-      StringUtils::substitute(weights_out, ".idXML", ".weights");
+      const std::string weights_out = FileHandler::stripExtension(out_idxml) + ".weights"; // (see the autotune step)
       const bool recalibrate = addPercolatorBackend_(process_params, weights_out);
       if (recalibrate && sufficient_PSMs_for_score_recalibration) // only try to call percolator if we have some PSMs
       {

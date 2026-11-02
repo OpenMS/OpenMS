@@ -331,8 +331,8 @@ namespace OpenMS
       score() doesn't change the models written.
 
       @param filename The output file (usually with the extension .weights or .tsv)
-      @throws Exception::MissingInformation before the first rescore()/train() call, and after rescorePSMs() with
-              RESET (parameter 'algorithm' 'reset'), which trains no Percolator model
+      @throws Exception::MissingInformation before the first rescore()/train() call, after one that failed (threw),
+              and after rescorePSMs() with RESET (parameter 'algorithm' 'reset'), which trains no Percolator model
       @throws Exception::UnableToCreateFile if @p filename can't be written
     */
     void storeWeights(const std::string& filename) const;

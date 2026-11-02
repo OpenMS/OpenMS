@@ -103,8 +103,8 @@ static bool medianTargetBeatsDecoy_(const OpenMS::RescoreOutput& out,
   return tt[tt.size() / 2] > dd[dd.size() / 2];
 }
 
-// Reads a weights file of Percolator::storeWeights() (the percolator executable's -w): its comment lines and its
-// other lines, split at tabs.
+// Reads a weights file of Percolator::storeWeights() (the percolator executable's -w): its three comment lines and
+// its other lines, split at tabs (by position: a feature name may start with '#').
 static void readWeightsFile_(const std::string& filename, std::vector<std::string>& comments,
                              std::vector<std::vector<std::string>>& rows)
 {
@@ -114,7 +114,7 @@ static void readWeightsFile_(const std::string& filename, std::vector<std::strin
   std::string line;
   while (std::getline(is, line))
   {
-    if (rows.empty() && !line.empty() && line[0] == '#')
+    if (comments.size() < 3)
     {
       comments.push_back(line);
       continue;
@@ -1696,6 +1696,27 @@ START_SECTION((void storeWeights(const std::string& filename) const))
   q.rescore(input);
   q.storeWeights(file);
   TEST_EQUAL(contents(file), after_rescore)
+
+  // a call that fails leaves no model to write (not the previous call's)
+  RescoreInput malformed;
+  malformed.features.push_back({1.0});
+  malformed.features.push_back({1.0});
+  malformed.is_decoy.push_back(false);
+  TEST_EXCEPTION(Exception::InvalidValue, q.rescore(malformed))
+  TEST_EXCEPTION(Exception::MissingInformation, q.storeWeights(file))
+  q.rescore(input);
+  TEST_EXCEPTION(Exception::InvalidValue, q.train(malformed))
+  TEST_EXCEPTION(Exception::MissingInformation, q.storeWeights(file))
+
+  // a feature name starting with '#' is a feature name, not a comment
+  RescoreInput hash_named = input;
+  hash_named.feature_names = StringList{"#signal", "noise"};
+  q.rescore(hash_named);
+  q.storeWeights(file);
+  readWeightsFile_(file, comments, rows);
+  bool hash_header = comments.size() == 3 && rows.size() == 9;
+  for (std::size_t f = 0; hash_header && f < 3; ++f) hash_header = rows[3 * f] == std::vector<std::string>{"#signal", "noise", "m0"};
+  TEST_TRUE(hash_header)
 
   TEST_EXCEPTION(Exception::UnableToCreateFile, p.storeWeights(file + "_no_such_dir/x.weights"))
 }

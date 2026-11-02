@@ -122,7 +122,8 @@ namespace OpenMS
 
     /// The models of the last rescore()/train() as the percolator executable writes them with -w
     /// (CrossValidation::printAllWeights). Written by Percolator::storeWeights(). Empty before the
-    /// first rescore()/train() and after a RESET rescorePSMs(); like svm_weights, kept by score().
+    /// first rescore()/train(), after one that failed and after a RESET rescorePSMs(); like svm_weights,
+    /// kept by score().
     std::string weights_text;
 
     /// Pi0 (null fraction) estimated on the post-CV, post-TDC merged Scores
