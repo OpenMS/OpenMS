@@ -38,6 +38,7 @@
 #include <iostream>
 #include <ostream>
 #include <algorithm>
+#include <limits>
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -320,8 +321,9 @@ namespace OpenMS
       // coordinates of the peptide feature
       // RT is the intensity-average of all satellites peaks of all (!) mass traces
       double rt(0);
-      double rt_min(0);
-      double rt_max(0);
+      // RT range of all satellites of this peptide, i.e. of its own mass traces only
+      double rt_min = std::numeric_limits<double>::infinity();
+      double rt_max = -std::numeric_limits<double>::infinity();
       double intensity_sum_simple(0);    // for intensity-averaged rt
       double intensity_sum(0);
 
@@ -350,15 +352,8 @@ namespace OpenMS
           double rt_temp = it_rt->getRT();
           double intensity_temp = it_mz->getIntensity();
 
-          if ((peptide + isotope == 0) || (rt_temp < rt_min))
-          {
-            rt_min = rt_temp;
-          }
-
-          if ((peptide + isotope == 0) || (rt_temp > rt_max))
-          {
-            rt_max = rt_temp;
-          }
+          rt_min = std::min(rt_min, rt_temp);
+          rt_max = std::max(rt_max, rt_temp);
 
           rt += rt_temp * intensity_temp;
           intensity_sum_simple += intensity_temp;
@@ -442,8 +437,9 @@ namespace OpenMS
       // coordinates of the peptide feature
       // RT is the intensity-average of all satellites peaks of all (!) mass traces
       double rt(0);
-      double rt_min(0);
-      double rt_max(0);
+      // RT range of all satellites of this peptide, i.e. of its own mass traces only
+      double rt_min = std::numeric_limits<double>::infinity();
+      double rt_max = -std::numeric_limits<double>::infinity();
       double intensity_sum_simple(0);    // for intensity-averaged rt
       double intensity_sum(0);
 
@@ -462,15 +458,8 @@ namespace OpenMS
           double rt_temp = (satellite_it->second).getRT();
           double intensity_temp = (satellite_it->second).getIntensity();
 
-          if ((peptide + isotope == 0) || (rt_temp < rt_min))
-          {
-            rt_min = rt_temp;
-          }
-
-          if ((peptide + isotope == 0) || (rt_temp > rt_max))
-          {
-            rt_max = rt_temp;
-          }
+          rt_min = std::min(rt_min, rt_temp);
+          rt_max = std::max(rt_max, rt_temp);
 
           rt += rt_temp * intensity_temp;
           intensity_sum_simple += intensity_temp;
@@ -569,7 +558,8 @@ namespace OpenMS
             }
             if (satellite_in_set)
             {
-              break;
+              // skip only this satellite: the remaining ones of the peak may still be new
+              continue;
             }
 
             satellites.insert(std::make_pair(satellite.first, MultiplexSatelliteCentroided(satellite.second.getRTidx(), satellite.second.getMZidx())));
@@ -700,11 +690,15 @@ namespace OpenMS
           feature_handle.setMapIndex(peptide);
           feature_handle.setUniqueId(feature.getUniqueId());
           consensus.insert(feature_handle);
-          consensus_map_.getColumnHeaders()[peptide].size++;
         }
 
         if (!abort)
         {
+          // count the channels of reported multiplets only (a later channel can still abort the multiplet above)
+          for (const FeatureHandle& handle : consensus.getFeatures())
+          {
+            consensus_map_.getColumnHeaders()[handle.getMapIndex()].size++;
+          }
           consensus_map_.push_back(consensus);
           for (Feature& feat : features)
           {
@@ -862,11 +856,15 @@ namespace OpenMS
           feature_handle.setMapIndex(peptide);
           feature_handle.setUniqueId(feature.getUniqueId());
           consensus.insert(feature_handle);
-          consensus_map_.getColumnHeaders()[peptide].size++;
         }
 
         if (!abort)
         {
+          // count the channels of reported multiplets only (a later channel can still abort the multiplet above)
+          for (const FeatureHandle& handle : consensus.getFeatures())
+          {
+            consensus_map_.getColumnHeaders()[handle.getMapIndex()].size++;
+          }
           consensus_map_.push_back(consensus);
           for (Feature& feat : features)
           {
@@ -1073,13 +1071,6 @@ namespace OpenMS
     consensus_map_.sortByPosition();
     consensus_map_.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
-    Size i{0};
-    for (auto & ch : consensus_map_.getColumnHeaders())
-    {
-      ch.second.setMetaValue("channel_id", i);
-      ++i;
-    }
-
     // construct sample_labels
     std::vector<std::vector<std::string> > samples_labels;
     std::vector<std::string> temp_samples;
@@ -1138,6 +1129,13 @@ namespace OpenMS
         }
         desc.label = label_string;
       }
+    }
+
+    // the channel id is the channel's position in the labels: every configured channel has a column header by now, also one
+    // without any reported multiplet (e.g. a knock-out channel never detected), so the ids do not shift
+    for (auto& [index, header] : consensus_map_.getColumnHeaders())
+    {
+      header.setMetaValue("channel_id", static_cast<Size>(index));
     }
 
     // finalize feature map: unique ids in position order, and every handle of the consensus map refers to the

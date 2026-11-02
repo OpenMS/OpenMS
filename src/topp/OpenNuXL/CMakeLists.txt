@@ -45,6 +45,7 @@ set(tool_headers
   include/NuXLPresets.h
   include/NuXLReport.h
   include/NuXLSearchIndex.h
+  include/NuXLSiteLocalization.h
 )
 set(tool_sources
   source/NuXLAnnotateAndLocate.cpp
@@ -58,6 +59,7 @@ set(tool_sources
   source/NuXLParameterParsing.cpp
   source/NuXLPresets.cpp
   source/NuXLReport.cpp
+  source/NuXLSiteLocalization.cpp
 )
 
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp ${tool_sources} ${tool_headers})

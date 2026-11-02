@@ -49,6 +49,7 @@
 #include "NuXLSearchIndex.h"
 #include "NuXLPresets.h"
 #include "NuXLReport.h"
+#include "NuXLSiteLocalization.h"
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -793,6 +794,9 @@ class OpenNuXL :
   bool fast_scoring_ = true; // fast or all fragment adduct scoring mode
   set<char> can_xl_; ///< nucleotides that can form cross-links
   set<char> standalone_; ///< nucleotides that only form adducts on their own (e.g., a cross-linker without nucleotide)
+  bool nhs_localization_ = false; ///< localize cross-links by the NHS-ester chemistry (NuXL:localization NHS)
+  NuXLSiteLocalization::ProteinTermini protein_termini_; ///< protein-terminal peptides of the digest (targets and decoys) for NHS localization
+  bool enzyme_cleaves_after_lysine_ = false; ///< NHS localization: a C-terminal lysine of a peptide that doesn't end a protein can't carry the cross-link
   Size named_adduct_count_ = 0; ///< localized cross-links written as a named modification
   Size mass_delta_adduct_count_ = 0; ///< localized cross-links written as an anonymous mass delta
 
@@ -809,6 +813,46 @@ public:
 protected:
   /// percolator feature set
   StringList feature_set_;
+
+  /**
+    @brief Chooses the Percolator backend for score recalibration with PercolatorAdapter.
+
+    Uses the percolator executable (option @p percolator_executable) if it is installed, and then also writes the
+    model weights to @p weights_out. Otherwise PercolatorAdapter rescores with the Percolator built into OpenMS,
+    which writes no weights.
+
+    @param[in,out] process_params PercolatorAdapter parameters, extended by the backend
+    @param[in] weights_out file for the model weights of the percolator executable
+    @return false if score recalibration is disabled (empty @p percolator_executable)
+  */
+  bool addPercolatorBackend_(std::vector<std::string>& process_params, const std::string& weights_out) const
+  {
+    std::string executable = getStringOption_("percolator_executable");
+    if (executable.empty()) { return false; }
+    if (findExecutable_(executable))
+    {
+      process_params.insert(process_params.end(), {"-percolator_executable", executable, "-weights", weights_out});
+    }
+    else
+    {
+      OPENMS_LOG_INFO << "Percolator executable '" << getStringOption_("percolator_executable")
+                      << "' not found: rescoring with the Percolator built into OpenMS (no weights file)." << endl;
+    }
+    return true;
+  }
+
+  /// PercolatorAdapter next to this executable, else on the PATH
+  static std::string percolatorAdapterExecutable_()
+  {
+    try
+    {
+      return File::findSiblingTOPPExecutable("PercolatorAdapter");
+    }
+    catch (const Exception::FileNotFound&)
+    {
+      return "PercolatorAdapter";
+    }
+  }
   
   bool has_IM_{false}; // compatible IM annotated
 
@@ -878,6 +922,11 @@ protected:
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("peptide:enzyme", "<cleavage site>", "Trypsin/P", "The enzyme used for peptide digestion.", false);
     setValidStrings_("peptide:enzyme", all_enzymes);
+    registerStringOption_("peptide:clip_nterm_methionine", "<bool>", "true",
+      "Also search protein N-terminal peptides after removal of their initial methionine (the form with the methionine is still searched). "
+      "Generated decoys keep the initial methionine, so that targets and decoys gain the same peptides. "
+      "Set false for the previous search space.", false, false);
+    setValidStrings_("peptide:clip_nterm_methionine", {"true", "false"});
 
     registerTOPPSubsection_("report", "Reporting Options");
     registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top scoring hits per spectrum that are reported.", false, true);
@@ -892,7 +941,7 @@ protected:
         #else
                        "percolator",
         #endif
-                       "Percolator executable of the installation e.g. 'percolator.exe'", false, false, ListUtils::create<std::string>("skipexists"));
+                       "Percolator executable of the installation e.g. 'percolator.exe'. If it isn't found, the Percolator built into OpenMS rescores the PSMs (without writing the model weights). Empty: no score recalibration.", false, false, ListUtils::create<std::string>("skipexists"));
 
 
     // NuXL specific
@@ -913,13 +962,14 @@ protected:
       std::string subsection_name = "presets:" + p;
       registerTOPPSubsection_(subsection_name, "Presets for " + p + " cross-link protocol (Note: changes will be ignored).");
       StringList target_nucleotides, mappings, modifications, fragment_adducts;
-      std::string can_cross_link, standalone;
-      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone);
+      std::string can_cross_link, standalone, localization;
+      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone, localization);
 
       registerStringList_(subsection_name + ":target_nucleotides", "", target_nucleotides, "", false, true);
       registerStringList_(subsection_name + ":mapping", "", mappings, "", false, true);
       registerStringOption_(subsection_name + ":can_cross_link", "", can_cross_link, "", false, true);
       if (!standalone.empty()) { registerStringOption_(subsection_name + ":standalone", "", standalone, "", false, true); }
+      if (!localization.empty()) { registerStringOption_(subsection_name + ":localization", "", localization, "", false, true); }
       registerStringList_(subsection_name + ":modifications", "", modifications, "", false, true);
       registerStringList_(subsection_name + ":fragment_adducts", "", fragment_adducts, "", false, true);
     }
@@ -959,6 +1009,14 @@ protected:
                         "Target nucleotides that only form precursor adducts on their own (e.g. 's' for a cross-linker without nucleotide). They are never combined with other nucleotides and are not restricted by NuXL:sequence. They need a NuXL:target_nucleotides entry, NuXL:modifications and NuXL:fragment_adducts, and must be listed in NuXL:can_cross_link. Hits with only standalone nucleotides count as peptides, not cross-links (FDR and reports), and are not searched with NuXL:only_xl.",
                         false,
                         true);
+
+    registerStringOption_("NuXL:localization",
+                        "<method>",
+                        "fragments",
+                        "How cross-links are localized. 'fragments': at the residue the shifted fragment ions point to. 'NHS': for cross-linkers attached through an NHS ester (e.g. SDA), by its chemistry among the residues the fragment ions can't tell apart: the free protein N-terminus, then lysine, then S/T/Y with a histidine within four residues, skipping residues with a modification other than a pure isotope substitution (e.g. Acetyl (K) or TMT6plex (K), but not Label:13C(6) (K)) and, if the enzyme cleaves after lysine, a C-terminal lysine unless the peptide ends the protein; otherwise unlocalized. Reports how the site was chosen in NuXL:localization_method and the supported residues in NuXL:localization_range.",
+                        false,
+                        true);
+    setValidStrings_("NuXL:localization", {"fragments", "NHS"});
 
     StringList modifications;
     modifications.emplace_back("U:");
@@ -3144,8 +3202,8 @@ protected:
       rescoreFastHits_(exp, annotated_peptide_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_adducts);
     }
 
-    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_XL_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,  all_feasible_adducts);
-    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_peptide_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_adducts);
+    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_XL_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,  all_feasible_adducts, nhs_localization_, &protein_termini_, enzyme_cleaves_after_lysine_);
+    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_peptide_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_adducts, nhs_localization_, &protein_termini_, enzyme_cleaves_after_lysine_);
   }
 
   void fillSpectrumID_(
@@ -3298,6 +3356,12 @@ protected:
       }
       ph.setMetaValue("NuXL:best_localization", ah.best_localization);
       ph.setMetaValue("NuXL:best_localization_position", ah.best_localization_position);
+      if (!ah.localization_method.empty()) // NHS localization
+      {
+        ph.setMetaValue("NuXL:localization_method", ah.localization_method);
+        ph.setMetaValue("NuXL:localization_range", ah.localization_range_begin < 0 ? std::string("NA")
+          : StringUtils::toStr(ah.localization_range_begin) + "-" + StringUtils::toStr(ah.localization_range_end));
+      }
 
       // one-hot encoding of cross-linked nucleotide
       for (const auto& c : can_xl_) 
@@ -4377,6 +4441,9 @@ protected:
     double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
     bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
     bool generate_decoys = getStringOption_("NuXL:decoys") == "true";
+    // with unspecific cleavage, the digest contains the peptides without the initial methionine already
+    const bool clip_nterm_methionine = getStringOption_("peptide:clip_nterm_methionine") == "true"
+      && getStringOption_("peptide:enzyme") != EnzymaticDigestion::UnspecificCleavage;
     Size decoy_factor = static_cast<Size>(getIntOption_("NuXL:decoy_factor"));
 
     StringList filter = getStringList_("filter");
@@ -4465,9 +4532,11 @@ protected:
         vector<ProteinIdentification> perc_prot_ids;
         PeptideIdentificationList perc_pep_ids;
 
-        const std::string percolator_executable = getStringOption_("percolator_executable");
         bool sufficient_PSMs_for_score_recalibration = pep_ids.size() > 1000;
-        if (!percolator_executable.empty() && sufficient_PSMs_for_score_recalibration) // only try to call percolator if we have some PSMs
+        std::vector<std::string> process_params;
+        std::string weights_out = out_idxml;
+        StringUtils::substitute(weights_out, ".idXML", "_sse_perc.weights");
+        if (sufficient_PSMs_for_score_recalibration && addPercolatorBackend_(process_params, weights_out)) // only try to call percolator if we have some PSMs
         {
           std::string perc_in = out_idxml;
           StringUtils::substitute(perc_in, ".idXML", "_sse_perc_in.idXML");
@@ -4477,22 +4546,17 @@ protected:
           std::string perc_out = out_idxml;
           StringUtils::substitute(perc_out, ".idXML", "_sse_perc_out.idXML");
            
-          std::string weights_out = out_idxml;
-          StringUtils::substitute(weights_out, ".idXML", "_sse_perc.weights");
-
-          std::vector<std::string> process_params = {"-in", perc_in, "-out", perc_out,
-                       "-percolator_executable", percolator_executable,
+          process_params.insert(process_params.end(), {"-in", perc_in, "-out", perc_out,
                        "-train_best_positive",
                        "-score_type", "q-value",
-                       "-post_processing_tdc",
-                       "-weights", weights_out};
+                       "-post_processing_tdc"});
 
           if (getStringOption_("peptide:enzyme") == "Lys-C")
           {
             process_params.push_back("-enzyme"); process_params.push_back("lys-c");
           }
 
-          TOPPBase::ExitCodes exit_code = runExternalProcess_(std::string("PercolatorAdapter"), process_params);
+          TOPPBase::ExitCodes exit_code = runExternalProcess_(percolatorAdapterExecutable_(), process_params);
 
           if (exit_code != EXECUTION_OK) 
           { 
@@ -4758,6 +4822,7 @@ protected:
     StringList fragment_adducts;
     std::string can_cross_link;
     std::string standalone; // nucleotides that only form adducts on their own (e.g., a cross-linker without nucleotide)
+    std::string localization; // how cross-links are localized ("fragments" or "NHS")
     // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
     StringList target_nucleotides;
     // string format:  source->target e.g. "A->A", ..., "U->U", "U->X"
@@ -4774,6 +4839,7 @@ protected:
       fragment_adducts = getStringList_("NuXL:fragment_adducts");
       can_cross_link = getStringOption_("NuXL:can_cross_link");
       standalone = getStringOption_("NuXL:standalone");
+      localization = getStringOption_("NuXL:localization");
 
       for (const auto& t : target_nucleotides) // TODO: improve: checking also formula is safe
       {
@@ -4791,7 +4857,8 @@ protected:
     { // set from presets
       std::string p = getStringOption_("NuXL:presets");
       std::string custom_presets_file = getStringOption_("NuXL:presets_file");
-      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone);
+      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone, localization);
+      if (localization.empty()) { localization = "fragments"; }
       
       // set if DNA or RNA preset
       if (StringUtils::hasSubstring(p, "RNA"))
@@ -4806,6 +4873,11 @@ protected:
     // convert string to set
     for (const auto& c : can_cross_link) { can_xl_.insert(c); } // sort and make unique
     standalone_ = std::set<char>(standalone.begin(), standalone.end());
+    if (localization != "fragments" && localization != "NHS")
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown localization method (valid: 'fragments', 'NHS').", localization);
+    }
+    nhs_localization_ = localization == "NHS";
 
     std::string sequence_restriction = getStringOption_("NuXL:sequence");
 
@@ -5089,6 +5161,29 @@ protected:
     fastaFile.load(in_db, fasta_db);
     progresslogger.endProgress();
 
+    // Supplied decoys often don't start with M (a reversed protein ends with it): then clipping the initial
+    // methionine adds target peptides without decoy counterparts. Warn if the share of decoys starting with M
+    // is below half that of targets (as ProSE does).
+    if (clip_nterm_methionine && !generate_decoys)
+    {
+      Size targets = 0, targets_with_met = 0, decoys = 0, decoys_with_met = 0;
+      for (const auto& e : fasta_db)
+      {
+        const bool is_decoy = StringUtils::hasPrefix(e.identifier, "DECOY_");
+        (is_decoy ? decoys : targets) += 1;
+        (is_decoy ? decoys_with_met : targets_with_met) += (e.sequence.size() > 1 && e.sequence[0] == 'M') ? 1 : 0;
+      }
+      if (decoys > 0 && targets_with_met > 0 && 2 * decoys_with_met * targets < targets_with_met * decoys)
+      {
+        OPENMS_LOG_WARN << "peptide:clip_nterm_methionine: " << targets_with_met << " of " << targets
+                        << " target proteins but only " << decoys_with_met << " of " << decoys << " decoy proteins "
+                        << "in the database start with M. Removing the initial methionine adds N-terminal peptides to the "
+                        << "targets that have no decoy counterpart, which makes the FDR estimates slightly optimistic. "
+                        << "Use '-NuXL:decoys true' (generated decoys keep the initial methionine) or "
+                        << "'-peptide:clip_nterm_methionine false' for a symmetric search space." << endl;
+      }
+    }
+
     // generate decoy protein sequences
     if (generate_decoys)
     {
@@ -5121,11 +5216,15 @@ protected:
           continue;
         }
 
+        // keep an initial methionine on the decoy as well: otherwise clipping it adds target peptides without decoys
+        const bool preserve_met = clip_nterm_methionine && e.sequence.size() > 1 && e.sequence[0] == 'M';
+        if (preserve_met) { e.sequence.erase(0, 1); }
+
         std::vector<AASequence> output;
         digestor.digest(AASequence::fromString(e.sequence), output);
 
         // generate decoy peptides from current digest
-        e.sequence = "";
+        e.sequence = preserve_met ? "M" : "";
         for (const auto & aas : output)
         {
           if (aas.size() <= 2) { e.sequence += aas.toUnmodifiedString(); continue; }
@@ -5165,6 +5264,21 @@ protected:
     Size min_peptide_length = (Size)getIntOption_("peptide:min_size");
     Size max_peptide_length = (Size)getIntOption_("peptide:max_size");
 
+    // NHS localization: protein N-terminal peptides (targets and decoys) can carry the cross-link on their free N-terminus
+    if (nhs_localization_)
+    {
+      vector<std::string_view> protein_sequences;
+      protein_sequences.reserve(fasta_db.size());
+      for (const auto& e : fasta_db) { protein_sequences.emplace_back(e.sequence); }
+      protein_termini_ = NuXLSiteLocalization::proteinTermini(protein_sequences, digestor, min_peptide_length, max_peptide_length,
+        clip_nterm_methionine);
+
+      // the enzyme (e.g. trypsin) doesn't cleave after a lysine modified by the cross-linker: a C-terminal
+      // lysine can then only carry it at a protein C-terminus
+      const std::string enzyme = getStringOption_("peptide:enzyme");
+      enzyme_cleaves_after_lysine_ = enzyme != EnzymaticDigestion::UnspecificCleavage && digestor.countInternalCleavageSites("KA") > 0;
+    }
+
     Size count_proteins(0), count_peptides(0);
     Size count_decoy_peptides(0), count_target_peptides(0);
 
@@ -5194,8 +5308,9 @@ protected:
 
       bool is_decoy = current_fasta_entry.identifier[5] == '_'; // faster check than current_fasta_entry.StringUtils::hasPrefix(identifier, "DECOY_")
 
-      // digest the protein into peptides (filter out too short or too long peptides)
-      digestor.digestUnmodified(current_fasta_entry.sequence, current_digest, min_peptide_length, max_peptide_length);
+      // digest the protein into peptides (filter out too short or too long peptides), also without its initial methionine
+      NuXLSiteLocalization::digestProtein(digestor, current_fasta_entry.sequence, min_peptide_length, max_peptide_length,
+        clip_nterm_methionine, current_digest);
 
       // for each peptide of the current digest
       for (auto cit = current_digest.begin(); cit != current_digest.end(); ++cit)
@@ -6136,26 +6251,25 @@ protected:
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       // score recalibration with percolator
 
-      std::string percolator_executable = getStringOption_("percolator_executable");
       bool sufficient_PSMs_for_score_recalibration = (xl_pi.size() + pep_pi.size()) >= 1000;
-      if (!percolator_executable.empty() && sufficient_PSMs_for_score_recalibration) // only try to call percolator if we have some PSMs
+      std::vector<std::string> process_params;
+      std::string weights_out = out_idxml;
+      StringUtils::substitute(weights_out, ".idXML", ".weights");
+      const bool recalibrate = addPercolatorBackend_(process_params, weights_out);
+      if (recalibrate && sufficient_PSMs_for_score_recalibration) // only try to call percolator if we have some PSMs
       {
         // run percolator on idXML
         std::string perc_out = out_idxml;
         StringUtils::substitute(perc_out, ".idXML", "_perc.idXML");
-        std::string weights_out = out_idxml;
-        StringUtils::substitute(weights_out, ".idXML", ".weights");
         std::string pin = out_idxml;
         StringUtils::substitute(pin, ".idXML", ".tsv");
 
-        std::vector<std::string> process_params = {"-in", out_idxml, "-out", perc_out,
-                       "-percolator_executable", percolator_executable,
+        process_params.insert(process_params.end(), {"-in", out_idxml, "-out", perc_out,
                        "-train_best_positive",
                        "-score_type", "svm",
                        "-unitnorm",
                        "-post_processing_tdc",
-                       "-weights", weights_out,
-                       "-out_pin", pin};
+                       "-out_pin", pin});
 
         if (getStringOption_("peptide:enzyme") == "Lys-C")
         {
@@ -6163,7 +6277,7 @@ protected:
         }
 
         OPENMS_LOG_INFO << "Running percolator." << endl;
-        TOPPBase::ExitCodes exit_code = runExternalProcess_(std::string("PercolatorAdapter"), process_params);
+        TOPPBase::ExitCodes exit_code = runExternalProcess_(percolatorAdapterExecutable_(), process_params);
         OPENMS_LOG_INFO << "done." << endl;
 
         if (exit_code != EXECUTION_OK) 

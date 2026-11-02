@@ -68,6 +68,28 @@ unsafe_array_value(const std::shared_ptr<typename type_traits<T>::array_type>& a
 
 /******************************************************************************/
 /**
+ * Throw a TypeError unless `ary` holds values of `T`.  `T` is the type the
+ * array index declares, and a static_pointer_cast to the array class of
+ * another type would read the column's buffer with the wrong width (OpenMS
+ * local change).  Byte arrays may be string or binary, which share a layout.
+ */
+template <Type T>
+void check_array_type(const arrow::Array& ary)
+{
+  using A = type_traits<T>::array_type;
+  const arrow::Type::type id = ary.type_id();
+  bool ok = id == A::TypeClass::type_id;
+  if constexpr (std::is_same_v<A, arrow::StringArray>) {
+    ok = ok || id == arrow::Type::BINARY;
+  }
+  if (!ok) {
+    throw TypeError("the column holds " + ary.type()->ToString() + " values, but the array index declares " +
+                    type_traits<T>::name);
+  }
+}
+
+/******************************************************************************/
+/**
  * If the given array is a "list of lists" then visit each element of
  * the outer list.  The given function is called on non-null elements
  * and given the index to the list element.
@@ -189,6 +211,7 @@ public:
     using array_type = type_traits<enum_type_v<V>>::array_type;
     using array_ptr_type = std::shared_ptr<array_type>;
 
+    check_array_type<enum_type_v<V>>(*src);
     array_ptr_type casted = std::static_pointer_cast<array_type>(src);
 
     if constexpr (requires { null_decoder_.chunk(casted); }) {

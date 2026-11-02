@@ -36,9 +36,9 @@ WavelengthSpectra::WavelengthSpectra(
 {
   // See Chromatograms: a declared count of zero is not evidence of an empty
   // run, and the reference writer does emit zero on files that have rows.
-  const std::size_t derived = data_->record_count();
+  // (derived only then: it needs the entity count or the row-group statistics, which a file may lack)
   const std::size_t declared = count.value_or(0);
-  resize(declared == 0 ? derived : declared);
+  resize(declared == 0 ? data_->record_count() : declared);
 
   md_map_ = std::make_shared<const std::map<uint64_t, WavelengthSpectrumMetadata>>(
       std::move(metadata));

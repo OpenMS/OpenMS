@@ -353,7 +353,7 @@ START_SECTION(static Output run(const Input& input, const Options& options))
 
   opt.learner = "svm";
   opt.iterations = 5;
-  // review r1: a target and a decoy hit of the same sequence form ONE stem (label-blind stem construction); its label
+  // a target and a decoy hit of the same sequence form ONE stem (label-blind stem construction); its label
   // is the label of its best PSM
   {
     PercolatorReset::Input col = in;
@@ -365,7 +365,7 @@ START_SECTION(static Output run(const Input& input, const Options& options))
     TEST_EQUAL(n, 1)
   }
 
-  // review r2: a target row never inherits the q-value of a decoy stem of its sequence: a strong decoy PSM and a weak
+  // a target row never inherits the q-value of a decoy stem of its sequence: a strong decoy PSM and a weak
   // target PSM of one sequence -> the stem is a decoy; the target row gets peptide q-value 1 and role TARGET
   {
     PercolatorReset::Input col = in;
@@ -392,7 +392,7 @@ START_SECTION(static Output run(const Input& input, const Options& options))
     TEST_EQUAL(exported == accepted, true)
   }
 
-  // review r1: without a salt, run() draws one and records it
+  // without a salt, run() draws one and records it
   {
     PercolatorReset::Options no_salt = opt;
     no_salt.salt.reset();
@@ -404,7 +404,7 @@ START_SECTION(static Output run(const Input& input, const Options& options))
     TEST_EQUAL(PercolatorReset::run(in, replay).scores == a.scores, true)
   }
 
-  // review r1: invalid options and features whose standardization overflows are rejected
+  // invalid options and features whose standardization overflows are rejected
   {
     PercolatorReset::Options o = opt;
     o.train_fdr = -std::numeric_limits<double>::infinity();
@@ -515,7 +515,7 @@ START_SECTION([EXTRA] two-decoy mode (Options::decoy_databases = 2))
     PercolatorReset::Input one_set = in;
     for (char& d : one_set.decoy_set) d = d == 2 ? 1 : d;
     TEST_EXCEPTION(Exception::InvalidValue, PercolatorReset::run(one_set, o))
-    // review r1 (Codex MAJOR 1): the two "sets" offer the same decoy (identical sequence, features and score), i.e. one
+    // the two "sets" offer the same decoy (identical sequence, features and score), i.e. one
     // decoy per hypothesis; marked as shared (decoy_set 3, as Percolator::rescorePSMs does for a hit with proteins of
     // both sets): no stem of the second set alone -> refused
     PercolatorReset::Input same = in;
@@ -539,7 +539,7 @@ START_SECTION([EXTRA] two-decoy mode (Options::decoy_databases = 2))
     }
     const PercolatorReset::Output po = PercolatorReset::run(part, o);
     TEST_EQUAL(po.decoy_stems_both_sets > 0 && po.decoy_stems_both_sets <= shared, true)
-    // review r2 (Codex MAJOR 2): a sequence of both sets seen as a set-1 row on one spectrum and as a set-2 row on another
+    // a sequence of both sets seen as a set-1 row on one spectrum and as a set-2 row on another
     // (no row marked 3) is shared, too
     PercolatorReset::Input across = in;
     size_t moved = 0;
@@ -605,7 +605,7 @@ START_SECTION([EXTRA] two-decoy mode (Options::decoy_databases = 2))
       o2.salt = 555 + rep;
       o2.iterations = 3;
       o2.decoy_databases = 2;
-      // review r2: 30 % of the hypotheses with ONE decoy shared by both sets (same sequence, features and score; rows
+      // 30 % of the hypotheses with ONE decoy shared by both sets (same sequence, features and score; rows
       // marked 3): counted twice, the estimate stays valid
       PercolatorReset::Input shared_sim = sim;
       for (size_t i = 0; i + 2 < shared_sim.is_decoy.size(); i += 3)

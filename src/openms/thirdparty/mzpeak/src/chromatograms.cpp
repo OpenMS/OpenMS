@@ -37,9 +37,9 @@ Chromatograms::Chromatograms(std::unique_ptr<Data::Signals> data,
   // writer emits zero for several count keys on files that plainly have rows,
   // and taking it at face value reports no chromatograms at all -- silently,
   // with nothing to distinguish it from a run that really has none.
-  const std::size_t derived = data_->record_count();
+  // (derived only then: it needs the entity count or the row-group statistics, which a file may lack)
   const std::size_t declared = count.value_or(0);
-  resize(declared == 0 ? derived : declared);
+  resize(declared == 0 ? data_->record_count() : declared);
 
   md_map_ = std::make_shared<const std::map<uint64_t, ChromatogramMetadata>>(
       std::move(metadata));

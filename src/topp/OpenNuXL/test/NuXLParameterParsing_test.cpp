@@ -166,12 +166,13 @@ START_SECTION((static PrecursorsToMS2Adducts getAllFeasibleFragmentAdducts(const
   StringList fragment_adducts; // these are responsible for shifted fragment ions. Their fragment adducts thus determine which shifts will be observed on b-,a-,y-ions
   std::string can_cross_link; // nucleotides that can directly cross-link
   std::string standalone; // nucleotides that only form adducts on their own
+  std::string localization; // localization method
   // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
   StringList target_nucleotides;
   // string format:  source->target e.g. "A->A", ..., "U->U", "U->X"
   StringList mappings;
 
-  NuXLPresets::getPresets("RNA-UV (U)", target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone);
+  NuXLPresets::getPresets("RNA-UV (U)", target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone, localization);
 
   // test preset strings
   TEST_EQUAL(target_nucleotides.size(), 4)
@@ -252,6 +253,7 @@ START_SECTION((static PrecursorsToMS2Adducts getAllFeasibleFragmentAdducts(const
 
   TEST_EQUAL(can_cross_link, "U")
   TEST_EQUAL(standalone, "")
+  TEST_EQUAL(localization, "")
 
   TEST_EQUAL(mappings.size(), 4)
   StringList expected_mapping = {

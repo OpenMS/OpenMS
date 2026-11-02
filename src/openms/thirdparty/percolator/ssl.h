@@ -101,7 +101,7 @@ int tron(const AlgIn& set, options& opts,
 // solves alone. A solve waits only while the copy is being built by running solves; solves with another set or
 // size, or on the reference solver, build their own. The group must outlive its solves, and the set (its rows, their
 // contents and the labels) must not change during the group's lifetime: a solve checks only the set's address, size,
-// row array, first and last row and class counts (int14 review r3), so one group per set and step, as CrossValidation
+// row array, first and last row and class counts, so one group per set and step, as CrossValidation
 // makes them.
 class TronPairGroup {
  public:

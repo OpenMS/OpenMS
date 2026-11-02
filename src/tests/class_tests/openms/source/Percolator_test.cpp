@@ -248,6 +248,45 @@ START_SECTION([EXTRA] num_threads does not change the results)
 }
 END_SECTION
 
+START_SECTION([EXTRA] the large-set paths do not depend on the number of threads)
+{
+  // 420000 rows, all of them training (subset_max_train 0): the training sets of the folds (280000 rows) and the sorts
+  // of the whole set are above the thresholds of the large-set paths: the validations scored in tasks and Newton on
+  // all threads (2^17 rows), the fold chains on all threads (2^18), SortLikeStd's parallel partitions (2^18).
+  // The OpenMP threads change (as with a TOPP tool's -threads), not only num_threads. (The nonparametric PEP: the
+  // I-spline PEP's matrix products are split by Eigen by the number of threads.)
+  const RescoreInput input = makePortableModeratelySeparableInput_(210000, 23);
+  for (const std::string solver : {"tron", "newton"})
+  {
+    std::vector<RescoreOutput> outs;
+    for (const int threads : {1, 4})
+    {
+#ifdef _OPENMP
+      const int max_threads = omp_get_max_threads();
+      omp_set_num_threads(threads);
+#endif
+      Percolator p;
+      Param par = p.getDefaults();
+      par.setValue("seed", 5);
+      par.setValue("num_threads", threads);
+      par.setValue("num_iterations", 2);
+      par.setValue("subset_max_train", 0);
+      par.setValue("solver", solver);
+      par.setValue("pep_method", "nonparametric");
+      p.setParameters(par);
+      outs.push_back(p.rescore(input));
+#ifdef _OPENMP
+      omp_set_num_threads(max_threads);
+#endif
+    }
+    TEST_EQUAL(outs[0].scores.size(), input.features.size())
+    TEST_EQUAL(outs[0].scores == outs[1].scores, true)
+    TEST_EQUAL(outs[0].q_values == outs[1].q_values, true)
+    TEST_EQUAL(outs[0].peps == outs[1].peps, true)
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that trained on it)
 {
   // 20000 spectra with a target and a decoy hit each (rows 2s, 2s + 1); half of the targets are correct

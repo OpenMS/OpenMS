@@ -64,7 +64,7 @@ void Normalizer::normalizeSet(vector<double*>& featuresV,
  * rows of the PSMs of a SetHandler: each PSM has its own row of a FeatureMemoryPool), on large
  * sets without retention features by static blocks of rows on all threads: each value is
  * normalized as by normalize(), so the rows get the same values. A row that occurs twice would be
- * normalized by two threads at once (int14 review r3): the pool never gives a row to two PSMs.
+ * normalized by two threads at once: the pool never gives a row to two PSMs.
  */
 void Normalizer::normalizeRowsByFeature(vector<double*>& featuresV,
                                         vector<double*>& rtFeaturesV) {

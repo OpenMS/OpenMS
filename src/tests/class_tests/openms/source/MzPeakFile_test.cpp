@@ -17,8 +17,11 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/IONMOBILITY/IMDataArrayUtils.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <cmath>
@@ -115,6 +118,9 @@ START_SECTION((void load(const std::string& filename, PeakMap& exp)))
   compareSpectra(reference, exp);
   TEST_EQUAL(exp.getSourceFiles().size(), 1) // (FileConverter rewrote the source file when it wrote the fixture)
   TEST_EQUAL(exp.getLoadedFileType(), FileTypes::MZPEAK)
+  // the run's start time, stored as "2007-06-27 15:23:45" (the form store() wrote before it wrote ISO 8601)
+  TEST_EQUAL(exp.getDateTime().isValid(), true)
+  TEST_STRING_EQUAL(exp.getDateTime().get(), "2007-06-27 15:23:45")
   // the options that select spectra: MS level ...
   file.getOptions().addMSLevel(2);
   file.load(OPENMS_GET_TEST_DATA_PATH("MzPeakFile_1.mzpeak"), exp);
@@ -235,11 +241,95 @@ START_SECTION((void store(const std::string& filename, const PeakMap& exp) const
     TEST_EQUAL(exp[i].getPrecursors()[0].metaValueExists("isolation window target m/z"), true)
     TEST_REAL_SIMILAR(double(exp[i].getPrecursors()[0].getMetaValue("isolation window target m/z")), 500.0)
   }
+  // the run's start time and its source file: checksum, file format and native ID format
+  PeakMap with_source = reference;
+  DateTime start;
+  start.set("2007-06-27T15:23:45");
+  with_source.setDateTime(start);
+  SourceFile source;
+  source.setNameOfFile("run.RAW");
+  source.setPathToFile("file:///data");
+  source.setFileType("Thermo RAW format");
+  source.setNativeIDType("Thermo nativeID format");
+  source.setNativeIDTypeAccession("MS:1000768");
+  source.setChecksum("0123456789abcdef0123456789abcdef01234567", SourceFile::ChecksumType::SHA1);
+  with_source.getSourceFiles() = {source};
+  file.store(tmp, with_source);
+  file.load(tmp, exp);
+  TEST_STRING_EQUAL(exp.getDateTime().get(), "2007-06-27 15:23:45")
+  TEST_EQUAL(exp.getSourceFiles().size(), 1)
+  ABORT_IF(exp.getSourceFiles().size() != 1)
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNameOfFile(), "run.RAW")
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "0123456789abcdef0123456789abcdef01234567")
+  TEST_EQUAL(static_cast<int>(exp.getSourceFiles()[0].getChecksumType()), static_cast<int>(SourceFile::ChecksumType::SHA1))
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getFileType(), "Thermo RAW format")
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNativeIDType(), "Thermo nativeID format")
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNativeIDTypeAccession(), "MS:1000768")
+  // milliseconds of the start time are kept
+  start.set("2007-06-27T15:23:45.123");
+  with_source.setDateTime(start);
+  file.store(tmp, with_source);
+  file.load(tmp, exp);
+  TEST_STRING_EQUAL(exp.getDateTime().toString("yyyy-MM-ddThh:mm:ss.zzz"), "2007-06-27T15:23:45.123")
   // a failed write leaves the archive that was there (the new one is written beside it and moved when finished)
   file.store(tmp, reference);
   PeakMap bad = reference;
   bad[0][0].setMZ(std::numeric_limits<double>::quiet_NaN());
   TEST_EXCEPTION(Exception::UnableToCreateFile, file.store(tmp, bad))
+  file.load(tmp, exp);
+  compareSpectra(reference, exp);
+  // both signal tables (the profile spectrum 3 with points, the centroided ones as peaks) and two precursors
+  PeakMap both_tables = reference;
+  {
+    ABORT_IF(both_tables.getNrSpectra() < 4)
+    MSSpectrum& profile = both_tables[3];
+    TEST_EQUAL(static_cast<int>(profile.getType()), static_cast<int>(SpectrumSettings::SpectrumType::PROFILE))
+    for (int i = 0; i < 50; ++i) { profile.emplace_back(500.0 + 0.01 * i, static_cast<float>(10 + i)); }
+    for (MSSpectrum& s : both_tables)
+    {
+      if (s.getPrecursors().empty()) { continue; }
+      Precursor second = s.getPrecursors()[0];
+      second.setMZ(second.getMZ() + 1.5);
+      second.setCharge(3);
+      s.getPrecursors().push_back(second);
+      break;
+    }
+  }
+  file.store(tmp, both_tables);
+  file.load(tmp, exp);
+  compareSpectra(both_tables, exp);
+  ABORT_IF(exp.getNrSpectra() < 4)
+  TEST_EQUAL(static_cast<int>(exp[3].getType()), static_cast<int>(SpectrumSettings::SpectrumType::PROFILE))
+  TEST_EQUAL(static_cast<int>(exp[0].getType()), static_cast<int>(SpectrumSettings::SpectrumType::CENTROID))
+  // a spectrum of unknown type is written as the peaks make it out to be: profile here (as PeakPickerHiRes estimates it)
+  PeakMap unknown_type;
+  {
+    MSSpectrum s;
+    s.setRT(5.0);
+    s.setNativeID("scan=1");
+    for (int i = 0; i < 200; ++i) { s.emplace_back(400.0 + 0.002 * i, static_cast<float>(1000.0 * std::exp(-0.5 * std::pow((i - 100) / 15.0, 2)))); }
+    TEST_EQUAL(static_cast<int>(s.getType()), static_cast<int>(SpectrumSettings::SpectrumType::UNKNOWN))
+    TEST_EQUAL(static_cast<int>(s.getType(true)), static_cast<int>(SpectrumSettings::SpectrumType::PROFILE))
+    unknown_type.addSpectrum(s);
+  }
+  file.store(tmp, unknown_type);
+  file.load(tmp, exp);
+  TEST_EQUAL(exp.getNrSpectra(), 1)
+  ABORT_IF(exp.getNrSpectra() != 1)
+  TEST_EQUAL(static_cast<int>(exp[0].getType()), static_cast<int>(SpectrumSettings::SpectrumType::PROFILE))
+  // an ion mobility per peak cannot be written yet: refused, and the archive that was there is kept
+  file.store(tmp, reference);
+  PeakMap im_per_peak = reference;
+  {
+    MSSpectrum& s = im_per_peak[0];
+    s.getFloatDataArrays().clear();
+    DataArrays::FloatDataArray im;
+    im.assign(s.size(), 1.0f);
+    IMDataArrayUtils::setIMUnit(im, DriftTimeUnit::VSSC);
+    s.getFloatDataArrays().push_back(im);
+    TEST_EQUAL(s.containsIMData(), true)
+  }
+  TEST_EXCEPTION(Exception::IllegalArgument, file.store(tmp, im_per_peak))
   file.load(tmp, exp);
   compareSpectra(reference, exp);
   // via FileHandler
@@ -330,6 +420,22 @@ START_SECTION([EXTRA] a file of the reference implementation)
   TEST_EQUAL(exp.getChromatograms()[0].size(), 48)
   TEST_EQUAL(static_cast<int>(exp.getChromatograms()[0].getChromatogramType()), static_cast<int>(ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM))
   TEST_REAL_SIMILAR(exp.getChromatograms()[0][0].getRT(), 0.2961)
+  // the run's start time (ISO 8601 with zone: "2005-07-20T19:44:22Z") and source file (by its CV terms)
+  TEST_STRING_EQUAL(exp.getDateTime().get(), "2005-07-20 19:44:22")
+  TEST_EQUAL(exp.getSourceFiles().size(), 1)
+  ABORT_IF(exp.getSourceFiles().size() != 1)
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNameOfFile(), "small.RAW")
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getFileType(), "Thermo RAW format")
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNativeIDType(), "Thermo nativeID format")
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNativeIDTypeAccession(), "MS:1000768")
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "b43e9286b40e8b5dbc0dfa2e428495769ca96a96")
+  // FileHandler with rewrite_source_file (and no hash): the source file is the archive, without the checksum recorded
+  // for small.RAW
+  FileHandler().loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzPeakFile_small.mzpeak"), exp, {FileTypes::MZPEAK}, ProgressLogger::NONE, true, false);
+  TEST_EQUAL(exp.getSourceFiles().size(), 1)
+  ABORT_IF(exp.getSourceFiles().size() != 1)
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNameOfFile(), "MzPeakFile_small.mzpeak")
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "")
 }
 END_SECTION
 

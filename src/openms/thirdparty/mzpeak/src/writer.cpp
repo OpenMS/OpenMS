@@ -16,6 +16,9 @@ directory of this repository.
 #include <numeric>
 #include <string>
 #include <zip.h>
+#ifndef ZIP_LENGTH_TO_END // libzip < 1.10.1: a length of -1 (or 0) reads the file to its end as well
+#define ZIP_LENGTH_TO_END -1
+#endif
 
 #include "mzpeak/exception.h"
 #include "mzpeak/util/compat.h"
