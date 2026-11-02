@@ -5261,6 +5261,82 @@ add_test("TOPP_MS1LabeledWorkflow_ambiguous_design" ${TOPP_BIN_PATH}/MS1LabeledW
 set_tests_properties("TOPP_MS1LabeledWorkflow_ambiguous_design" PROPERTIES
   DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare" PASS_REGULAR_EXPRESSION "distinct paths with the same basename")
 
+# FAIMS: MS1LabeledWorkflow_19 is fixture 8 (synthetic SILAC duplex, 2+) acquired at two FAIMS compensation voltages, -45 V and -60 V
+# (mzML scan cvParam 'FAIMS compensation voltage'), one MS1 spectrum per CV at every RT of fixture 8 (both spectra of an RT have the
+# same RT). The identifications (MS1LabeledWorkflow_19.idXML) refer to -45 V spectra and carry FAIMS_CV -45.
+# MS1LabeledWorkflow_19_input.mzML:
+#   YVNDLAGHEK 1:1 at -45 V, as in fixture 8.
+#   LVNELTEFAK: the light channel at -45 V (identified there), the heavy channel only at -60 V, where it is detected as a partial
+#     multiplet of its own. It is not joined to the light one (another CV), whose heavy channel is re-quantified at -45 V: absent (0).
+#   TLSDYNIQK: light at -45 V (identified), heavy at -60 V, both detected; at each CV the other channel is present at 25 % (two
+#     isotopes, missed by the detection). The heavy partial at -60 V is not joined either; the light multiplet's heavy channel is
+#     re-quantified from the weak heavy peaks at -45 V: H/L 0.25. Those peaks have the m/z of the heavy peaks that the -60 V partial
+#     reserved in the spectra of the same RT, which do not count at -45 V; nor do the -60 V spectra (heavy : light 4 : 1 there).
+#   AEFVEVTK (two isotopes per channel, never detected): light at both CVs, heavy 1:1 only at -60 V (see _19_faims_targeted).
+# The join reports nothing (it logs only joined or rejected candidates): neither -60 V partial is a candidate.
+# MS1LabeledWorkflow_19_samecv_input.mzML is the same with the heavy channels of LVNELTEFAK and AEFVEVTK at -45 V: the -45 V spectra
+# hold all of fixture 8's peaks, and LVNELTEFAK's heavy channel is joined to the light one with fixture 8's values (H/L 0.956).
+add_test("TOPP_MS1LabeledWorkflow_19_faims_split" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -join_channels true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_19_faims_split.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_19_faims_split" PROPERTIES PASS_REGULAR_EXPRESSION "Re-quantified 1 channel.s. the detection did not find. 1 show no signal at their expected position and are reported as absent, 0 lie on reserved peaks they may not use" FAIL_REGULAR_EXPRESSION "partial multiplet.s. were found to be other channels")
+add_test("TOPP_MS1LabeledWorkflow_19_faims_split_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_19_faims_split.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_19_faims_split_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_19_faims_split")
+# The same run: the blacklists of both detections (one FeatureFinderMultiplex run per CV) record the owners of their reserved peaks,
+# and the missing channels at -45 V are not vetoed by the peaks the partial multiplets reserved at -60 V, with the owners or without.
+add_test("TOPP_MS1LabeledWorkflow_19_faims_owners" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -join_channels true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_19_faims_owners.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_19_faims_owners" PROPERTIES PASS_REGULAR_EXPRESSION "Blacklist with owners: 0 of 2 missing channel.s. and 0 of 0 channel.s. added for identifications are not quantifiable .0 occupied by another identified peptide, 0 by another multiplet of the same peptide, 0 only by unidentified multiplets.. 0 lie on peaks reserved only by their own multiplet's channels .0. or by no reported feature .0.. Without owners, 0 of the missing channels and none of the added ones would be not quantifiable")
+add_test("TOPP_MS1LabeledWorkflow_19_faims_samecv" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19_samecv_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -join_channels true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_19_faims_samecv.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_19_faims_samecv" PROPERTIES PASS_REGULAR_EXPRESSION "1 partial multiplet.s. were found to be other channels of an identified partial multiplet and were joined to it, re-measured over common spectra. 0 such candidate.s. were not joined")
+add_test("TOPP_MS1LabeledWorkflow_19_faims_samecv_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_19_faims_samecv.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19_samecv_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_19_faims_samecv_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_19_faims_samecv")
+# -targeted_quantification: AEFVEVTK has no multiplet and is measured at -45 V, the CV of its identification. Its heavy channel is
+# absent (0) there, not measured from the -60 V spectra; with the heavy channel at -45 V (samecv) it is measured: H/L 1.
+add_test("TOPP_MS1LabeledWorkflow_19_faims_targeted" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -targeted_quantification true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_19_faims_targeted.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_19_faims_targeted" PROPERTIES PASS_REGULAR_EXPRESSION "Targeted quantification: 1 feature.s. for 1 identification.s. of peptides without a multiplet in this run .0 other channel.s. measured against the identified one, 1 absent, 0 not quantifiable.. not quantified: 0 identification.s. of peptides quantified in this run, 0 on a channel of another peptide's multiplet, 0 on the signal of a better identification of another peptide, 0 without a clean elution peak of the identified channel, 0 whose isotope pattern does not fit, 0 whose labels fit no pattern, 0 decoy.s.")
+add_test("TOPP_MS1LabeledWorkflow_19_faims_targeted_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_19_faims_targeted.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19_targeted_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_19_faims_targeted_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_19_faims_targeted")
+add_test("TOPP_MS1LabeledWorkflow_19_faims_samecv_targeted" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19_samecv_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -targeted_quantification true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_19_faims_samecv_targeted.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_19_faims_samecv_targeted" PROPERTIES PASS_REGULAR_EXPRESSION "Targeted quantification: 1 feature.s. for 1 identification.s. of peptides without a multiplet in this run .1 other channel.s. measured against the identified one, 0 absent, 0 not quantifiable.")
+
 # INIUpdater:
 if(WITH_GUI AND HAS_XSERVER)
   add_test("TOPP_INIUpdater_1" ${TOPP_BIN_PATH}/INIUpdater -test -in ${DATA_DIR_TOPP}/INIUpdater_1_noupdate.toppas -out ${TESTS_TEMP_DIR}/INIUpdater_1_noupdate.tmp.toppas)
