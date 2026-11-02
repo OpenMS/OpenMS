@@ -1722,6 +1722,76 @@ START_SECTION((void storeWeights(const std::string& filename) const))
 }
 END_SECTION
 
+START_SECTION([EXTRA] storeWeights: the weights file holds the learned models that scored the PSMs)
+{
+  // Two informative features and noise, 1000 targets and 1000 decoys: the learned model passes the sanity check (unlike
+  // the small test inputs, where Percolator falls back to the best single feature). After the cross-validation, each
+  // fold's model is rescaled as its test set's scores were, so applying a fold's raw weights to a row's features gives
+  // the row's SVM score if the row was in that fold's test set.
+  std::mt19937 gen(5);
+  auto rand01 = [&gen]() { return (static_cast<double>(gen()) + 0.5) / 4294967296.0; };
+  auto randn = [&rand01]() { return std::sqrt(-2.0 * std::log(rand01())) * std::cos(2.0 * M_PI * rand01()); };
+  RescoreInput input;
+  input.feature_names = StringList{"f0", "f1", "noise"};
+  for (std::size_t i = 0; i < 2000; ++i)
+  {
+    const bool decoy = i >= 1000;
+    const double mu = decoy ? 0.0 : 1.5;
+    input.features.push_back({mu + randn(), mu + randn(), randn()});
+    input.is_decoy.push_back(decoy);
+  }
+  Percolator p;
+  Param par = p.getDefaults();
+  par.setValue("seed", 1);
+  p.setParameters(par);
+  const RescoreOutput out = p.rescore(input);
+  TEST_FALSE(p.usedDefaultDirection())
+  std::string file;
+  NEW_TMP_FILE(file);
+  p.storeWeights(file);
+
+  std::vector<std::string> comments;
+  std::vector<std::vector<std::string>> rows;
+  readWeightsFile_(file, comments, rows);
+  TEST_EQUAL(rows.size(), 9)
+  std::vector<std::vector<double>> raw(3);
+  for (std::size_t f = 0; f < 3 && rows.size() == 9; ++f)
+  {
+    for (const std::string& w : rows[3 * f + 2]) raw[f].push_back(std::stod(w));
+  }
+  // the learned models: both informative features count in every fold
+  bool learned = rows.size() == 9;
+  for (std::size_t f = 0; learned && f < 3; ++f) learned = raw[f].size() == 4 && raw[f][0] > 0.0 && raw[f][1] > 0.0;
+  TEST_TRUE(learned)
+
+  // every row's score is that of one fold's model (up to the printed 4 decimals of the weights), and each fold scored
+  // about a third of the rows
+  std::vector<std::size_t> scored_by(3, 0);
+  std::size_t unexplained = 0;
+  for (std::size_t i = 0; learned && i < input.features.size(); ++i)
+  {
+    const std::vector<double>& x = input.features[i];
+    const double tolerance = 5e-5 * (1.0 + std::abs(x[0]) + std::abs(x[1]) + std::abs(x[2])) + 1e-9;
+    std::size_t matches = 0;
+    for (std::size_t f = 0; f < 3; ++f)
+    {
+      const double predicted = raw[f][0] * x[0] + raw[f][1] * x[1] + raw[f][2] * x[2] + raw[f][3];
+      if (std::abs(predicted - out.scores[i]) <= tolerance)
+      {
+        ++matches;
+        ++scored_by[f];
+      }
+    }
+    if (matches == 0) ++unexplained;
+  }
+  TEST_EQUAL(unexplained, 0)
+  STATUS("rows scored by the folds' models: " << scored_by[0] << ", " << scored_by[1] << ", " << scored_by[2])
+  bool thirds = true;
+  for (std::size_t f = 0; f < 3; ++f) thirds = thirds && scored_by[f] > 500 && scored_by[f] < 850;
+  TEST_TRUE(thirds)
+}
+END_SECTION
+
 START_SECTION((static void saveModel(const PercolatorModel& model, const String& filename)))
 {
   RescoreInput input = makeModeratelySeparableInput_(300, 42);
