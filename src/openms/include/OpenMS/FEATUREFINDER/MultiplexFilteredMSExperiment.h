@@ -35,11 +35,16 @@ namespace OpenMS
          * @brief adds a single peak to the results
          */
         void addPeak(const MultiplexFilteredPeak& peak);
+
+        /**
+         * @brief adds a single peak to the results (moved)
+         */
+        void addPeak(MultiplexFilteredPeak&& peak);
         
         /**
          * @brief returns a single peak from the results
          */
-        MultiplexFilteredPeak getPeak(size_t i) const;
+        const MultiplexFilteredPeak& getPeak(size_t i) const;
                
         /**
          * @brief returns m/z of a single peak

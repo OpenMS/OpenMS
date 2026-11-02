@@ -25,8 +25,14 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <cmath>
+#include <string>
+#include <utility>
 #include <map>
 #include <vector>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -328,6 +334,81 @@ START_SECTION(([EXTRA] multiplets from clusters: union of satellites and channel
   TEST_EQUAL(multiplets.getColumnHeaders().at(0).size, 1)
   TEST_EQUAL(multiplets.getColumnHeaders().at(1).size, 1)
   TEST_EQUAL(algorithm.getFeatureMap().size(), 2)
+}
+END_SECTION
+
+// The result must not depend on the number of threads: filtering, clustering and map construction run on several
+// threads (profile data: the spline navigators of the spectra used to be shared by the threads that filter the peaks of a
+// spectrum, which made the intensities of the features differ from run to run).
+START_SECTION(([EXTRA] run() gives the same result for any number of threads, profile and centroided data))
+{
+  // features (position, intensity, charge, convex hulls) and multiplets (handles) of a run with the given parameters
+  auto run = [](const std::string& input, const std::string& ini, [[maybe_unused]] int threads)
+  {
+    MzMLFile mzml_file;
+    mzml_file.getOptions().addMSLevel(1);
+    MSExperiment exp;
+    mzml_file.load(input, exp);
+    Param param;
+    ParamXMLFile().load(ini, param);
+    param = param.copy("FeatureFinderMultiplex:1:", true);
+    for (const char* key : {"in", "out", "out_multiplets", "out_blacklist", "log", "debug", "threads", "no_progress", "force", "test"})
+    {
+      param.remove(key);
+    }
+#ifdef _OPENMP
+    const int max_threads = omp_get_max_threads();
+    omp_set_num_threads(threads);
+#endif
+    FeatureFinderMultiplexAlgorithm algorithm;
+    algorithm.setParameters(param);
+    algorithm.run(exp, false);
+#ifdef _OPENMP
+    omp_set_num_threads(max_threads);
+#endif
+    std::vector<std::vector<double>> result;
+    for (const Feature& feature : algorithm.getFeatureMap())
+    {
+      std::vector<double> values{feature.getRT(), feature.getMZ(), feature.getIntensity(), double(feature.getCharge())};
+      for (const ConvexHull2D& hull : feature.getConvexHulls())
+      {
+        for (const auto& point : hull.getHullPoints())
+        {
+          values.push_back(point.getX());
+          values.push_back(point.getY());
+        }
+      }
+      result.push_back(std::move(values));
+    }
+    for (const ConsensusFeature& consensus : algorithm.getConsensusMap())
+    {
+      std::vector<double> values{consensus.getRT(), consensus.getMZ(), consensus.getIntensity()};
+      for (const FeatureHandle& handle : consensus.getFeatures())
+      {
+        values.push_back(double(handle.getMapIndex()));
+        values.push_back(handle.getIntensity());
+      }
+      result.push_back(std::move(values));
+    }
+    return result;
+  };
+
+  const std::vector<std::pair<std::string, std::string>> inputs{
+    {OPENMS_GET_TEST_DATA_PATH("FeatureFinderMultiplex_1_input.mzML"), OPENMS_GET_TEST_DATA_PATH("FeatureFinderMultiplex_1_parameters.ini")}, // profile
+    {OPENMS_GET_TEST_DATA_PATH("../../../topp/FeatureFinderMultiplex_9_input.mzML"), OPENMS_GET_TEST_DATA_PATH("../../../topp/FeatureFinderMultiplex_9_parameters.ini")}}; // centroided
+  for (const auto& [input, ini] : inputs)
+  {
+    const auto serial = run(input, ini, 1);
+    TEST_EQUAL(serial.empty(), false)
+    for (int threads : {2, 4, 8})
+    {
+      // (several runs: a difference between threads need not show in every run)
+      for (int repeat = 0; repeat < 3; ++repeat)
+      {
+        TEST_EQUAL(run(input, ini, threads) == serial, true)
+      }
+    }
+  }
 }
 END_SECTION
 
