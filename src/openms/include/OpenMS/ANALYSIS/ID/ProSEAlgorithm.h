@@ -1305,6 +1305,16 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// The file-based searches then also read the survey scans.
     bool chimericSearch_() const { return chimeric_enabled_ && database_chunk_size_ == 0; }
 
+    /// precursor:mono_correction, which (like chimeric:enabled) needs the survey scans and the unchunked search
+    bool monoCorrection_() const { return mono_correction_enabled_ && database_chunk_size_ == 0; }
+
+    /// Whether the file-based searches read the survey (MS1) scans with the MS2 spectra
+    bool surveyScans_() const { return chimericSearch_() || monoCorrection_(); }
+
+    /// precursor:mono_correction: moves the precursors of the MS2 spectra of @p spectra (which include the survey scans)
+    /// to the monoisotopic m/z and charge of the MS1 features Biosaur2 finds; returns the number of corrected precursors
+    Size correctPrecursors_(PeakMap& spectra) const;
+
     /// The PSM of a precursor co-isolated with the selected one (chimeric:enabled), until its residual spectrum is built
     struct CoIsolatedPSM_
     {
@@ -1636,6 +1646,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     double calibration_subset_ratio_{0.1};
     bool chimeric_enabled_{false};       ///< chimeric:enabled: also search the precursors co-isolated with the selected one
     Size calibration_min_psms_{50};
+    double calibration_sigma_factor_{4.0};       ///< calibration:sigma_factor
+    double calibration_min_precursor_tol_{0.0};  ///< calibration:min_precursor_tolerance (0: by unit)
+    double calibration_min_fragment_tol_{0.0};   ///< calibration:min_fragment_tolerance (0: by unit)
+    bool mono_correction_enabled_{false};        ///< precursor:mono_correction
 
     /**
      * @brief Result of a calibration pass.
@@ -1646,13 +1660,19 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      */
     struct CalibrationResult_
     {
-      double precursor_shift{0};     ///< signed median of precursor errors (calibration bias)
-      double precursor_spread{0};    ///< median(|e - shift|) + 3 * MAD(|e - shift|)
+      double precursor_shift{0};     ///< median of the signed precursor errors of the calibration PSMs (the mass offset)
+      double precursor_sigma{0};     ///< their robust standard deviation, 1.4826 * MAD
+      double precursor_spread{0};    ///< the larger side of the window before the caps, max(cal_lower, cal_upper) (diagnostic)
       double cal_lower{0};           ///< calibrated lower magnitude (valid iff !extreme_bias && success)
       double cal_upper{0};           ///< calibrated upper magnitude (valid iff !extreme_bias && success)
       double fragment_tolerance{0};  ///< estimated fragment tolerance (same unit as configured)
-      double fragment_shift{0};      ///< reserved for future fragment m/z shift correction
-      bool extreme_bias{false};      ///< |shift| >= spread — writeback skipped (test observability)
+      double fragment_shift{0};      ///< median of the signed errors of the matched fragment peaks (covered by the window, not corrected)
+      double fragment_sigma{0};      ///< their robust standard deviation, 1.4826 * MAD
+      double precursor_coverage{0};  ///< share of the calibration PSMs inside the precursor window median +/- k sigma
+      double fragment_coverage{0};   ///< share of the matched fragment peaks inside the fragment tolerance
+      Size psms{0};                  ///< calibration PSMs the windows were estimated from
+      Size fragment_peaks{0};        ///< matched fragment peaks the fragment window was estimated from
+      bool extreme_bias{false};      ///< zero spread of the precursor errors: the precursor window is kept (test observability)
       bool success{false};           ///< true if enough PSMs were found for reliable estimation
     };
 

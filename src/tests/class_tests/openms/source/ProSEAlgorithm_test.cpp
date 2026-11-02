@@ -3728,6 +3728,13 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
   ProSEAlgorithm_test algo;
   configure_calibration_params_(algo, /*lower_ppm*/ 20.0, /*upper_ppm*/ 30.0,
                                 /*min_psms*/ 3);
+  // The windows are median +/- k sigma of the errors: with k = 4 the wide synthetic spread of this fixture (sigma
+  // 3.7 ppm) reaches the configured 20 ppm side; k = 3 keeps both sides tightened, which this section asserts
+  {
+    Param p = algo.getParameters();
+    p.setValue("calibration:sigma_factor", 3.0);
+    algo.setParameters(p);
+  }
 
   vector<ProteinIdentification> prot_ids;
   PeptideIdentificationList pep_ids;
@@ -3775,6 +3782,60 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
   TEST_REAL_SIMILAR(algo.last_calibration_result_.cal_lower, processed_calibration.cal_lower)
   TEST_REAL_SIMILAR(algo.last_calibration_result_.cal_upper, processed_calibration.cal_upper)
   TEST_REAL_SIMILAR(algo.last_calibration_result_.fragment_tolerance, processed_calibration.fragment_tolerance)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] calibration windows are median +/- k sigma of the errors, within the floor and the configured tolerance))
+{
+  // The fixture above: the pass finds four of its twelve spectra (the preprocessing strips the others), so the
+  // expected windows are computed from the offset and sigma the pass reports, with k = 3 and no top-50 % crop
+  // (min_psms 3 > 4 / 2): cal_lower = median + 3 sigma, cal_upper = 3 sigma - median, each within [2.5 ppm, the
+  // configured side]; the fragment tolerance within [10 ppm, the configured 20 ppm].
+  const vector<double> ppm_shifts = {
+    0.0, 2.0, 4.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0
+  };
+  PeakMap spectra = build_calibration_spectra_(ppm_shifts);
+  auto fasta_db = calibration_fasta_db_();
+
+  ProSEAlgorithm_test algo;
+  configure_calibration_params_(algo, /*lower_ppm*/ 20.0, /*upper_ppm*/ 30.0, /*min_psms*/ 3);
+  {
+    Param p = algo.getParameters();
+    p.setValue("calibration:sigma_factor", 3.0);
+    algo.setParameters(p);
+  }
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  const auto cal = algo.last_calibration_result_;
+  TEST_EQUAL(cal.success, true)
+  TEST_EQUAL(cal.extreme_bias, false)
+  TEST_EQUAL(cal.psms >= 3, true)
+  TEST_EQUAL(cal.precursor_shift > 0.0 && cal.precursor_sigma > 0.0, true)
+  TEST_REAL_SIMILAR(cal.cal_lower, std::clamp(cal.precursor_shift + 3.0 * cal.precursor_sigma, 2.5, 20.0))
+  TEST_REAL_SIMILAR(cal.cal_upper, std::clamp(3.0 * cal.precursor_sigma - cal.precursor_shift, 2.5, 30.0))
+  TEST_EQUAL(cal.fragment_tolerance >= 10.0 - 1e-9 && cal.fragment_tolerance <= 20.0 + 1e-9, true)
+  TEST_EQUAL(cal.fragment_peaks > 0, true)
+
+  // The caps: a configured side tighter than the measurement is kept (the calibration only tightens; the pass still
+  // searched with 20 ppm), and the floor of 5 ppm holds the lower side up, but never above the configured side
+  ProSEAlgorithm_test capped;
+  configure_calibration_params_(capped, /*lower_ppm*/ 10.0, /*upper_ppm*/ 3.0, /*min_psms*/ 3);
+  {
+    Param p = capped.getParameters();
+    p.setValue("calibration:sigma_factor", 3.0);
+    p.setValue("calibration:min_precursor_tolerance", 5.0);
+    capped.setParameters(p);
+  }
+  spectra = build_calibration_spectra_(ppm_shifts);
+  vector<ProteinIdentification> capped_proteins;
+  PeptideIdentificationList capped_peptides;
+  TEST_EQUAL(capped.search(spectra, fasta_db, capped_proteins, capped_peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  const auto& cap = capped.last_calibration_result_;
+  TEST_EQUAL(cap.success, true)
+  TEST_REAL_SIMILAR(cap.precursor_shift, cal.precursor_shift)  // the same PSMs: the pass windows cover the fixture either way
+  TEST_REAL_SIMILAR(cap.cal_lower, std::clamp(cap.precursor_shift + 3.0 * cap.precursor_sigma, 5.0, 10.0))
+  TEST_REAL_SIMILAR(cap.cal_upper, 3.0)  // floor 5 is above the configured 3: the configured side wins
 }
 END_SECTION
 

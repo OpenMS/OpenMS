@@ -60,6 +60,8 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
+#include <OpenMS/FEATUREFINDER/Biosaur2Algorithm.h>                // precursor:mono_correction
+#include <OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/PROCESSING/FILTERING/NLargest.h>
@@ -313,6 +315,15 @@ namespace OpenMS
                        "searches it at its recorded charge. Spectra without a recorded charge are searched with every charge of the range.",
                        {"advanced"});
     defaults_.setValidStrings("precursor:recorded_charge_outside_range", {"search", "skip"});
+    defaults_.setValue("precursor:mono_correction", "false",
+                       "Correct the precursor m/z of the MS2 spectra from the MS1 features of the run before the search (needs "
+                       "the centroided survey scans in the input; not with database:chunk_size > 0). Biosaur2 detects the isotope "
+                       "patterns of the survey scans; a precursor on the first or second 13C trace of a feature of its recorded "
+                       "charge (within 10 ppm, inside the feature's retention time range) moves to the feature's monoisotopic m/z. "
+                       "For spectra whose precursor was picked on an isotope peak, which precursor:isotope_error_min otherwise "
+                       "has to absorb. Measured on a Q Exactive run (PXD000001, 76,000 features): a fifth of the precursors moved "
+                       "and 7 % fewer PSMs, since the isotope-error search already covers these peaks; off by default.");
+    defaults_.setValidStrings("precursor:mono_correction", {"true", "false"});
 
     defaults_.setSectionDescription("precursor",
       "Precursor (Parent Ion) Options. mass_tolerance_lower/_upper are positive magnitudes "
@@ -944,10 +955,18 @@ namespace OpenMS
     defaults_.setSectionDescription("ions", "Theoretical ion series toggles");
 
     defaults_.setValue("calibration:enabled", "false",
-      "If enabled, run a fast calibration pass on a subset of spectra before the main search. "
-      "Estimates tighter precursor and fragment tolerances from confident PSMs. "
-      "The fragment index is NOT rebuilt — only query-time tolerances are tightened. "
-      "Inspired by MSFragger's calibrate_mass and OpenNuXL's autotune.");
+      "Measure the mass error of the run and search with windows derived from it: a fast calibration pass on the most "
+      "intense spectra (calibration:subset_ratio), searched with at least 20 ppm (0.5 Da) precursor and fragment windows "
+      "(the configured ones if wider) so the error is measured and not censored, takes the offset (median) and the "
+      "spread (robust standard deviation, 1.4826 * MAD) of the signed mass errors of its confident PSMs; the main search "
+      "then uses the precursor window [median - k sigma, median + k sigma] (asymmetric about zero when the run has an "
+      "offset) and the fragment tolerance |median| + k sigma (calibration:sigma_factor k), each within "
+      "[calibration:min_*_tolerance, the configured tolerance]: the configured tolerances are the widest windows searched. "
+      "The pass takes its spectra per tenth of the run; a window that covers less than 98 % of the calibration PSMs "
+      "(precursor; heavy tails or a mass offset that changes over the run) or 95 % of their matched fragment peaks "
+      "(fragment) is not trusted, and the configured tolerance is kept with a warning. "
+      "The fragment index is not rebuilt, only the query-time tolerances change. With too few PSMs "
+      "(calibration:min_psms) the configured tolerances are used. 'false' searches with the configured tolerances as given.");
     defaults_.setValidStrings("calibration:enabled", {"true", "false"});
     defaults_.setValue("calibration:subset_ratio", 0.1,
       "Fraction of spectra (by TIC, highest first) used for the calibration pass (0.0-1.0).");
@@ -957,6 +976,19 @@ namespace OpenMS
       "Minimum number of confident PSMs required for calibration. If fewer are found, "
       "calibration is skipped and the user-configured tolerances are used.");
     defaults_.setMinInt("calibration:min_psms", 1);
+    defaults_.setValue("calibration:sigma_factor", 4.0,
+      "Half-width of the calibrated windows in robust standard deviations (1.4826 * MAD) of the mass errors of the "
+      "calibration PSMs: the precursor window is median +/- k sigma, the fragment tolerance |median| + k sigma. 4 covers "
+      "practically all correct matches of a normal error distribution.");
+    defaults_.setMinFloat("calibration:sigma_factor", 1.0);
+    defaults_.setValue("calibration:min_precursor_tolerance", 0.0,
+      "Smallest calibrated precursor tolerance per side, in precursor:mass_tolerance_unit (0: 2.5 ppm or 0.005 Da). "
+      "The calibrated window never exceeds the configured one.");
+    defaults_.setMinFloat("calibration:min_precursor_tolerance", 0.0);
+    defaults_.setValue("calibration:min_fragment_tolerance", 0.0,
+      "Smallest calibrated fragment tolerance, in fragment:mass_tolerance_unit (0: 10 ppm or 0.2 Da). "
+      "The calibrated tolerance never exceeds the configured one.");
+    defaults_.setMinFloat("calibration:min_fragment_tolerance", 0.0);
 
     defaults_.setValue("database:chunk_size", 0,
       "Split the protein database into chunks of at most this many proteins for fragment index "
@@ -998,9 +1030,9 @@ namespace OpenMS
     defaults_.setSectionDescription("chimeric", "Search of precursors co-isolated with the selected one (chimeric spectra).");
 
     defaults_.setSectionDescription("calibration",
-      "Automatic mass accuracy calibration (two-pass search). A fast first pass on a subset of "
-      "spectra estimates instrument-specific mass accuracy, then the main search uses the "
-      "calibrated (typically tighter) tolerances for better discrimination.");
+      "Automatic mass tolerances (two-pass search). A fast first pass on the most intense spectra measures the offset and "
+      "spread of the precursor and fragment mass errors of the run; the main search uses windows derived from them, "
+      "never wider than the configured tolerances.");
 
     FragmentIndex::restrictSearchParameters(defaults_); // the bounds of the parameters it shares with the FragmentIndex
 
@@ -1275,6 +1307,10 @@ namespace OpenMS
     calibration_enabled_ = param_.getValue("calibration:enabled") == "true";
     calibration_subset_ratio_ = param_.getValue("calibration:subset_ratio");
     calibration_min_psms_ = param_.getValue("calibration:min_psms");
+    calibration_sigma_factor_ = param_.getValue("calibration:sigma_factor");
+    calibration_min_precursor_tol_ = param_.getValue("calibration:min_precursor_tolerance");
+    calibration_min_fragment_tol_ = param_.getValue("calibration:min_fragment_tolerance");
+    mono_correction_enabled_ = param_.getValue("precursor:mono_correction").toBool();
   }
 
   // static
@@ -2738,6 +2774,7 @@ namespace OpenMS
     p.remove("annotate:self_trained_ion_priors");
     p.removeAll("annotate:ion_prior_");
     p.remove("peptide:protein_mapping"); // ProSE's own (FragmentIndex::getProteinOccurrences() serves it)
+    p.remove("precursor:mono_correction"); // ProSE's own (the survey scans, before the search)
     return p;
   }
 
@@ -5228,30 +5265,55 @@ namespace OpenMS
     pre_fdr_peptide_ids_ = PeptideIdentificationList();
     inference_only_peptide_ids_ = PeptideIdentificationList();
 
-    // chimeric:enabled: find the precursors co-isolated with the selected one in the survey scans, which are not
-    // searched themselves
+    // The survey scans: precursor:mono_correction moves the precursors to the monoisotopic m/z of the MS1 features, and
+    // chimeric:enabled finds the precursors co-isolated with the selected one; the survey scans are not searched themselves
     if (chimeric_enabled_ && !chimericSearch_())
     {
       OPENMS_LOG_WARN << "[ProSE] chimeric:enabled is not supported with database:chunk_size > 0 and is ignored." << std::endl;
     }
-    if (chimericSearch_())
+    if (mono_correction_enabled_ && !monoCorrection_())
+    {
+      OPENMS_LOG_WARN << "[ProSE] precursor:mono_correction is not supported with database:chunk_size > 0 and is ignored." << std::endl;
+    }
+    if (surveyScans_())
     {
       std::vector<MSSpectrum>& all = spectra.getSpectra();
       const bool survey_scans = std::any_of(all.begin(), all.end(), [](const MSSpectrum& s) { return s.getMSLevel() == 1; });
       if (survey_scans)
       {
-        const Size found = CoIsolationDetector::annotate(spectra, precursor_min_charge_, precursor_max_charge_,
-                                                         param_.getValue("chimeric:mz_tolerance"), true,
-                                                         param_.getValue("chimeric:max_kl"),
-                                                         static_cast<Size>(static_cast<int>(param_.getValue("chimeric:max_coisolated"))));
-        all.erase(std::remove_if(all.begin(), all.end(), [](const MSSpectrum& s) { return s.getMSLevel() == 1; }), all.end());
-        OPENMS_LOG_INFO << "[ProSE] Chimeric search: " << found << " co-isolated precursors in the isolation windows of "
-                        << spectra.size() << " spectra." << std::endl;
+        if (monoCorrection_())
+        {
+          const Size corrected = correctPrecursors_(spectra);
+          OPENMS_LOG_INFO << "[ProSE] Precursor correction: " << corrected << " of " << countSpectra_(spectra).ms2
+                          << " MS2 precursors moved to the monoisotopic peak of their MS1 feature." << std::endl;
+        }
+        if (chimericSearch_())
+        {
+          const Size found = CoIsolationDetector::annotate(spectra, precursor_min_charge_, precursor_max_charge_,
+                                                           param_.getValue("chimeric:mz_tolerance"), true,
+                                                           param_.getValue("chimeric:max_kl"),
+                                                           static_cast<Size>(static_cast<int>(param_.getValue("chimeric:max_coisolated"))));
+          all.erase(std::remove_if(all.begin(), all.end(), [](const MSSpectrum& s) { return s.getMSLevel() == 1; }), all.end());
+          OPENMS_LOG_INFO << "[ProSE] Chimeric search: " << found << " co-isolated precursors in the isolation windows of "
+                          << spectra.size() << " spectra." << std::endl;
+        }
+        else
+        {
+          all.erase(std::remove_if(all.begin(), all.end(), [](const MSSpectrum& s) { return s.getMSLevel() == 1; }), all.end());
+        }
       }
-      else if (std::none_of(all.begin(), all.end(), [](const MSSpectrum& s) { return s.metaValueExists(CoIsolationDetector::META_MZ); }))
+      else
       {
-        OPENMS_LOG_WARN << "[ProSE] chimeric:enabled needs the survey (MS1) scans, which the spectra do not include;"
-                        << " no co-isolated precursors are searched." << std::endl;
+        if (monoCorrection_())
+        {
+          OPENMS_LOG_WARN << "[ProSE] precursor:mono_correction needs the survey (MS1) scans, which the spectra do not include;"
+                          << " the precursors are searched as recorded." << std::endl;
+        }
+        if (chimericSearch_() && std::none_of(all.begin(), all.end(), [](const MSSpectrum& s) { return s.metaValueExists(CoIsolationDetector::META_MZ); }))
+        {
+          OPENMS_LOG_WARN << "[ProSE] chimeric:enabled needs the survey (MS1) scans, which the spectra do not include;"
+                          << " no co-isolated precursors are searched." << std::endl;
+        }
       }
     }
 
@@ -8320,7 +8382,7 @@ namespace OpenMS
       // they did when the spectra were read first (decoding them was the first parallel region):
       // started next to a busy helper, they more often end up on another NUMA node than this
       // thread, which slows down the index build and the scoring.
-      BackgroundSpectra spectra_ready(in_spectra, false, chimericSearch_());
+      BackgroundSpectra spectra_ready(in_spectra, false, surveyScans_());
 
       // load FASTA
       loadFASTA(in_db, fasta_db);
@@ -8388,7 +8450,7 @@ namespace OpenMS
     }
     else
     {
-      spectra = loadMS2Spectra(in_spectra, readerThreads(false), nullptr, 0, chimericSearch_());
+      spectra = loadMS2Spectra(in_spectra, readerThreads(false), nullptr, 0, surveyScans_());
 
       // load FASTA
       loadFASTA(in_db, fasta_db);
@@ -8587,9 +8649,9 @@ namespace OpenMS
         // start (measured on three Orbitrap files at 16 threads without rescoring: from the end of the scoring on, 3%
         // slower, as more of the read is left for get()). The reader then registers the names of the file's meta values
         // after the protein mapping of the file before (see the registry order above).
-        if (i == 0) { next_spectra.start(in_spectra_files[i], wait_for_first_spectra, 0, chimericSearch_()); }
-        else if (rescore_ && threads_started >= 12) { next_spectra.startDeferred(in_spectra_files[i], chimericSearch_()); }
-        else { next_spectra.start(in_spectra_files[i], false, readerThreads(true, false), chimericSearch_()); }
+        if (i == 0) { next_spectra.start(in_spectra_files[i], wait_for_first_spectra, 0, surveyScans_()); }
+        else if (rescore_ && threads_started >= 12) { next_spectra.startDeferred(in_spectra_files[i], surveyScans_()); }
+        else { next_spectra.start(in_spectra_files[i], false, readerThreads(true, false), surveyScans_()); }
       }
     };
     read_next(0);
@@ -8706,7 +8768,7 @@ namespace OpenMS
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         OPENMS_LOG_INFO << "[ProSE] Loading " << in_spectra_files[i] << std::endl;
-        all_spectra[i] = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra_files[i], readerThreads(false), nullptr, 0, chimericSearch_());
+        all_spectra[i] = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra_files[i], readerThreads(false), nullptr, 0, surveyScans_());
         preprocessSearchedSpectra_(all_spectra[i], in_spectra_files[i], all_ion_evidence[i],
                                    retain_evidence ? &all_evidence_spectra[i] : nullptr,
                                    query_raw_spectrum_ ? &all_query_spectra[i] : nullptr);
@@ -9157,7 +9219,7 @@ namespace OpenMS
         if (i == 0) { build_index_while_first_file_is_read(); }
 
         PeakMap spectra = first_spectra_taken ? std::move(first_spectra)
-                          : next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra, readerThreads(false), nullptr, 0, chimericSearch_());
+                          : next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra, readerThreads(false), nullptr, 0, surveyScans_());
         first_spectra_taken = false;
         read_next(i + 1);
         std::function<const PeakMap*(Size)> searched_spectra;
@@ -10592,6 +10654,74 @@ namespace OpenMS
   // SearchResult::stats is consistent for any caller; leaves achieved FDR and
   // timing fields untouched (captured at well-defined points in the search paths).
   // =====================================================================
+  Size ProSEAlgorithm::correctPrecursors_(PeakMap& spectra) const
+  {
+    // Biosaur2 works on the MS1 spectra of an experiment it owns (and modifies them): a copy of the survey scans
+    MSExperiment ms1;
+    for (const MSSpectrum& s : spectra) { if (s.getMSLevel() == 1) { ms1.addSpectrum(s); } }
+    Biosaur2Algorithm biosaur;
+    // Profile survey scans (as recorded, or as the data look) are centroided by Biosaur2 first: on profile points its
+    // hills explode (600,000 features and 79 GB on a 1,400-scan Q Exactive run)
+    const bool profile = !ms1.empty() && ms1[0].getType(true) == SpectrumSettings::SpectrumType::PROFILE;
+    if (profile)
+    {
+      Param p = biosaur.getParameters();
+      p.setValue("profile", "true");
+      biosaur.setParameters(p);
+      OPENMS_LOG_INFO << "[ProSE] Precursor correction: the survey scans are profile spectra; Biosaur2 centroids them." << std::endl;
+    }
+    biosaur.setMSData(std::move(ms1));
+    FeatureMap features;
+    biosaur.run(features);
+    // A precursor on the first or second 13C trace of a feature of its recorded charge, within 10 ppm and inside the
+    // feature's retention time range, moves to the feature's monoisotopic m/z. Precursors without a charge keep their m/z.
+    // ponytail: fixed 10 ppm and two traces, as HighResPrecursorMassCorrector's defaults; parameters when a data type needs them.
+    std::vector<double> before(spectra.size(), 0.0);
+    for (Size i = 0; i < spectra.size(); ++i)
+    {
+      if (spectra[i].getMSLevel() == 2 && !spectra[i].getPrecursors().empty()) { before[i] = spectra[i].getPrecursors()[0].getMZ(); }
+    }
+    // Two passes. A precursor on the monoisotopic trace of a feature of its charge stays there (refined to the feature's
+    // m/z): the nearest-feature rule alone moved a fifth of a Q Exactive run's precursors, mostly onto the isotope trace
+    // of a co-eluting feature (76,000 features on a 60 min run), and cost 7 % of the PSMs. Only the precursors on no
+    // monoisotopic trace are then moved from the first or second 13C trace of a feature to its monoisotope. The second
+    // pass skips the first pass's precursors by taking their charge away for its duration (believe_charge: no feature
+    // has charge 0).
+    const std::set<Size> on_mono = PrecursorCorrection::correctToNearestFeature(features, spectra, /*rt_tolerance_s*/ 0.0,
+      /*mz_tolerance*/ 10.0, /*ppm*/ true, /*believe_charge*/ true, /*keep_original*/ false, /*all_matching_features*/ false,
+      /*max_trace*/ 0);
+    std::vector<std::pair<Size, int>> charges;
+    charges.reserve(on_mono.size());
+    for (const Size i : on_mono)
+    {
+      charges.emplace_back(i, spectra[i].getPrecursors()[0].getCharge());
+      spectra[i].getPrecursors()[0].setCharge(0);
+    }
+    std::set<Size> corrected;
+    try
+    {
+      corrected = PrecursorCorrection::correctToNearestFeature(features, spectra, /*rt_tolerance_s*/ 0.0,
+        /*mz_tolerance*/ 10.0, /*ppm*/ true, /*believe_charge*/ true, /*keep_original*/ false, /*all_matching_features*/ false,
+        /*max_trace*/ 2);
+    }
+    catch (...)
+    {
+      for (const auto& [i, z] : charges) { spectra[i].getPrecursors()[0].setCharge(z); }
+      throw;
+    }
+    for (const auto& [i, z] : charges) { spectra[i].getPrecursors()[0].setCharge(z); }
+    // The moves to another isotope peak are at least a 13C spacing over the charge apart (0.2 Da at charge 5)
+    Size moved = 0;
+    for (const Size i : corrected)
+    {
+      if (std::fabs(spectra[i].getPrecursors()[0].getMZ() - before[i]) > 0.1) ++moved;
+    }
+    OPENMS_LOG_INFO << "[ProSE] Precursor correction: " << features.size() << " MS1 features (Biosaur2); "
+                    << on_mono.size() << " precursors on the monoisotopic trace of a feature (refined to its m/z), "
+                    << (corrected.size() - moved) << " more refined." << std::endl;
+    return moved;
+  }
+
   ProSEAlgorithm::SpectraCounts_ ProSEAlgorithm::countSpectra_(const PeakMap& spectra) const
   {
     // in parallel: one pass over the spectra of a timsTOF run (600,000) took 0.13 s on one thread (memory bound)
@@ -10975,6 +11105,22 @@ namespace OpenMS
   // =====================================================================
   // Helper: run calibration pass on a subset of spectra
   // =====================================================================
+  namespace
+  {
+    /// The signed errors (ppm, or Da) of the peaks of @p spec closest to the theoretical peaks of @p theo within
+    /// @p tolerance (unmatched theoretical peaks contribute nothing); both spectra sorted by m/z
+    void matchedFragmentErrors(const MSSpectrum& spec, const PeakSpectrum& theo, double tolerance, bool ppm, std::vector<float>& errors)
+    {
+      for (const Peak1D& t : theo)
+      {
+        const Int i = spec.findNearest(t.getMZ(), ppm ? t.getMZ() * tolerance * 1e-6 : tolerance);
+        if (i < 0) continue;
+        const double e = spec[i].getMZ() - t.getMZ();
+        errors.push_back(static_cast<float>(ppm ? e / t.getMZ() * 1e6 : e));
+      }
+    }
+  }
+
   ProSEAlgorithm::CalibrationResult_
   ProSEAlgorithm::runCalibrationPass_(
       PeakMap& spectra,
@@ -10984,9 +11130,31 @@ namespace OpenMS
   {
     CalibrationResult_ result;
 
-    bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
+    const bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
+    const bool precursor_ppm = (precursor_mass_tolerance_unit_ == "ppm");
 
-    // Select subset by TIC (highest-quality spectra first)
+    // The pass searches with windows wide enough to measure the error: 20 ppm or 0.5 Da, the configured ones if wider
+    // (an error of up to about 20 ppm is measured, not censored; the windows of the main search are derived from the
+    // measurement below and never exceed the configured ones). Query-time parameters of the index only, restored on exit.
+    const double pass_lower = std::max(precursor_mass_tolerance_lower_, precursor_ppm ? 20.0 : 0.5);
+    const double pass_upper = std::max(precursor_mass_tolerance_upper_, precursor_ppm ? 20.0 : 0.5);
+    const double pass_fragment = std::max(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm ? 20.0 : 0.5);
+    const Param fi_params_saved = fragment_index.getParameters();
+    {
+      Param p = fi_params_saved;
+      p.setValue("precursor:mass_tolerance_lower", pass_lower);
+      p.setValue("precursor:mass_tolerance_upper", pass_upper);
+      p.setValue("fragment:mass_tolerance", pass_fragment);
+      fragment_index.setParameters(p);
+    }
+    const OnScopeExit restore_fi([&fragment_index, &fi_params_saved]()
+    {
+      try { fragment_index.setParameters(fi_params_saved); }
+      catch (...) {} // only after another exception: the caller restores the parameters of its index
+    });
+
+    // The subset: the spectra of the highest TIC (the best-measured ones), taken per tenth of the run (the spectra are in
+    // acquisition order) so that a mass offset that changes over the run is represented in the sample
     vector<pair<double, Size>> tic_index;
     tic_index.reserve(spectra.size());
     for (Size i = 0; i < spectra.size(); ++i)
@@ -10995,19 +11163,29 @@ namespace OpenMS
       for (const auto& p : spectra[i]) { tic += p.getIntensity(); }
       tic_index.emplace_back(tic, i);
     }
-    std::sort(tic_index.rbegin(), tic_index.rend());
-    Size subset_size = std::max<Size>(1, static_cast<Size>(spectra.size() * calibration_subset_ratio_));
-    if (subset_size > tic_index.size()) subset_size = tic_index.size();
+    vector<Size> subset;
+    {
+      const Size blocks = std::min<Size>(10, spectra.size());
+      for (Size b = 0; b < blocks; ++b)
+      {
+        const Size begin = spectra.size() * b / blocks, end = spectra.size() * (b + 1) / blocks;
+        const Size take = std::min<Size>(end - begin, std::max<Size>(1, static_cast<Size>(std::llround((end - begin) * calibration_subset_ratio_))));
+        std::partial_sort(tic_index.begin() + begin, tic_index.begin() + begin + take, tic_index.begin() + end,
+                          [](const pair<double, Size>& a, const pair<double, Size>& c) { return a.first > c.first; });
+        for (Size i = begin; i < begin + take; ++i) { subset.push_back(tic_index[i].second); }
+      }
+    }
+    const Size subset_size = subset.size();
 
     OPENMS_LOG_INFO << "[ProSE] Calibration: scoring " << subset_size << " / " << spectra.size()
-                    << " spectra (top TIC)..." << std::endl;
+                    << " spectra (top TIC per tenth of the run)..." << std::endl;
 
     // Score subset and collect errors from the best hit per spectrum, with the ion series
     // the fragment index was built from (e.g. c/z+1 for ETD, where b/y would match nothing)
     const SpectrumGenerators_ generators = spectrumGenerators_();
 
     // Collect per-spectrum best hits with scores and errors
-    struct CalHit { double score; double prec_error; double frag_error; };
+    struct CalHit { double score; double prec_error; std::vector<float> frag_errors; };
     vector<CalHit> cal_hits;
     // At most one hit per spectrum of the subset: the push_back() in the critical section below never reallocates, so
     // it cannot throw there (an exception must not leave an OpenMP critical section; the catch of the loop body is
@@ -11034,7 +11212,7 @@ namespace OpenMS
       if (calibration_failed.load(std::memory_order_relaxed)) continue;
       try
       {
-      const Size scan_idx = tic_index[si].second;
+      const Size scan_idx = subset[si];
       const MSSpectrum& spec = spectra[scan_idx];
       const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spec);
 
@@ -11047,7 +11225,6 @@ namespace OpenMS
       AASequence best_seq;
       int best_isotope_error = 0;
       uint16_t best_charge = 0;
-      float best_mean_error = 0;
 
       // Reused across this spectrum's candidates — same rationale as the main
       // scoring loop: a fresh PeakSpectrum per candidate churns its DataArrays
@@ -11071,8 +11248,8 @@ namespace OpenMS
         // change the yield measurably.
         HyperScore::PSMDetail detail;
         double score = mass_accuracy_score_
-          ? HyperScore::computeMassAccuracy(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, mass_error_sd_ppm_, detail)
-          : HyperScore::computeWithDetail(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm, spec, theo, detail);
+          ? HyperScore::computeMassAccuracy(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, mass_error_sd_ppm_, detail)
+          : HyperScore::computeWithDetail(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, detail);
 
         if (score > best_score)
         {
@@ -11080,7 +11257,6 @@ namespace OpenMS
           best_seq = std::move(seq);
           best_isotope_error = sms.isotope_error_;
           best_charge = sms.precursor_charge_;
-          best_mean_error = static_cast<float>(detail.mean_error);
         }
       }
 
@@ -11105,8 +11281,14 @@ namespace OpenMS
                           ? Math::getPPM(corrected_exp_mz, theo_mz)
                           : (corrected_exp_mz - theo_mz);
 
+      // The signed errors of the fragment peaks the best hit explains, within the pass window
+      std::vector<float> frag_errors;
+      theo.clear(true);
+      tsg.getSpectrum(theo, best_seq, 1, scoringMaxCharge_(best_charge));
+      matchedFragmentErrors(spec, theo, pass_fragment, fragment_mass_tolerance_unit_ppm, frag_errors);
+
 #pragma omp critical (prose_calibration_hits)
-      cal_hits.push_back({best_score, prec_err, static_cast<double>(best_mean_error)});
+      cal_hits.push_back({best_score, prec_err, std::move(frag_errors)});
       }
       catch (...)
       {
@@ -11119,11 +11301,7 @@ namespace OpenMS
     }
     if (calibration_error) std::rethrow_exception(calibration_error);
 
-
-    // Filter to high-confidence PSMs: keep only top 50% by score (robust against
-    // random matches inflating the error distribution tails). Only crop if the
-    // top 50% still meets the minimum PSM threshold; otherwise leave all hits
-    // and let the calibration_min_psms_ check below disable calibration.
+    // The confident half: the top 50 % by score (random matches inflate the tails), if that leaves calibration_min_psms_
     Size cal_hits_total = cal_hits.size();
     std::sort(cal_hits.begin(), cal_hits.end(),
               [](const CalHit& a, const CalHit& b) { return a.score > b.score; });
@@ -11133,23 +11311,15 @@ namespace OpenMS
       cal_hits.resize(keep);
     }
 
-    // Extract error vectors from filtered hits.
-    // Additionally discard PSMs whose signed precursor error falls outside the band the
-    // FragmentIndex actually delivers. The mass-space window is [observed - lower, observed + upper];
-    // rewriting in terms of the signed error e = observed - theoretical:
-    //   theoretical in [observed - lower, observed + upper]
-    //     <=>  e in [-upper, +lower]
-    // So legitimate hits from FragmentIndex have e in [-upper, +lower], NOT [-lower, +upper].
-    // The bounds flip for asymmetric windows; matching on the wrong band silently drops
-    // real matches when the user has compensated an instrument bias.
+    // The hits the pass window delivers: the signed error e = observed - theoretical lies in [-upper, +lower] (the
+    // mass-space window is [observed - lower, observed + upper]; the bounds flip for asymmetric windows)
     vector<double> precursor_errors;
-    vector<double> fragment_errors_abs;
+    vector<double> fragment_errors;
     for (const auto& h : cal_hits)
     {
-      if (h.prec_error < -precursor_mass_tolerance_upper_ ||
-          h.prec_error > precursor_mass_tolerance_lower_) continue; // wrong match
+      if (h.prec_error < -pass_upper || h.prec_error > pass_lower) continue; // wrong match
       precursor_errors.push_back(h.prec_error);
-      if (h.frag_error > 0) fragment_errors_abs.push_back(h.frag_error);
+      fragment_errors.insert(fragment_errors.end(), h.frag_errors.begin(), h.frag_errors.end());
     }
 
     if (precursor_errors.size() < calibration_min_psms_)
@@ -11160,71 +11330,80 @@ namespace OpenMS
       return result; // success=false
     }
 
-    // --- Compute calibrated tolerances ---
+    // --- The calibrated windows: the median (offset) and 1.4826 * MAD (spread) of the signed errors are robust against
+    //     the false matches among the PSMs; quantiles of the errors are not (the accepted false matches spread over the
+    //     whole window and make up the tails). Precursor: [median - k sigma, median + k sigma], asymmetric about zero
+    //     when the run has an offset; fragment: |median| + k sigma, symmetric (fragment masses are not shifted). Both only
+    //     tighten: within [the floor, the configured tolerance]. ---
+    const double k = calibration_sigma_factor_;
     const double min_tolerance = 1e-6; // avoid non-positive tolerances
-
-    // Signed precursor errors: 0.5% and 99.5% empirical quantiles give a distribution-free
-    // 99% window (same approach as NuXL autotune, OpenNuXL.cpp:4939-4941). Asymmetric by
-    // construction, no Gaussian assumption required — heavy tails and biased distributions
-    // are handled correctly. We previously used residual_median + 3*residual_MAD which
-    // captures only ~94% coverage on a Gaussian and less on heavy-tailed data; the
-    // quantile method consistently produces more realistic windows.
-    std::vector<double> sorted_errs = precursor_errors;
-    std::sort(sorted_errs.begin(), sorted_errs.end());
-    const size_t n = sorted_errs.size();
-    // Bias estimate — median of the signed errors. Kept as a diagnostic field; the
-    // quantile bounds below don't use it directly (they already encode the bias via
-    // the asymmetry of [lo, hi]), but callers log it and tests assert on it.
-    result.precursor_shift = Math::median(sorted_errs.begin(), sorted_errs.end(), /*sorted=*/true);
-    const double lo = sorted_errs[static_cast<size_t>(n * 0.005)];                   // ~most negative
-    const double hi = sorted_errs[std::min(n - 1, static_cast<size_t>(n * 0.995))];  // ~most positive
-    // Convention (see lines 2193-2197): signed error e = observed - theoretical lies in
-    // [-cal_upper, +cal_lower]. Matching the observed [lo, hi] against that gives:
-    //   -cal_upper = lo  →  cal_upper = -lo
-    //   +cal_lower = hi  →  cal_lower =  hi
-    const double cal_lower_raw = std::max(min_tolerance, hi);
-    const double cal_upper_raw = std::max(min_tolerance, -lo);
-    // "Extreme" guards the degenerate case where the signed-error distribution
-    // has essentially zero spread — e.g. a pure uniform shift fixture or a
-    // single-peptide corner case — and the quantile bounds can't usefully inform
-    // a calibrated window. Precursor calibration is then discarded; fragment
-    // calibration still applies. A distribution strictly on one side of zero is
-    // NOT extreme by this definition: we emit a legal half-line window
-    // (cal_upper or cal_lower clamped to min_tolerance).
-    //
-    // Unit-aware threshold: 1 ppm is the right floor for ppm tolerances —
-    // realistic proteomics-scale fixtures never trip it. In Da mode, 1.0 Da
-    // would flag every realistic calibration (spreads are <0.05 Da), so fall
-    // back to min_tolerance.
-    const double extreme_bias_threshold =
-        (precursor_mass_tolerance_unit_ == "ppm") ? 1.0 : min_tolerance;
-    result.extreme_bias = (hi - lo) < extreme_bias_threshold;
-    result.precursor_spread = std::max(cal_lower_raw, cal_upper_raw);  // diagnostic only
-    if (!result.extreme_bias)
+    // The share of the calibration PSMs (fragment peaks) a window must cover to be trusted. Precursor errors have heavy
+    // tails (5 % of the PSMs of an Astral run beyond 8 ppm at sigma 0.7), and a window that cuts them costs more
+    // identifications than it gains (the yield is flat from 5 to 50 ppm): 98 %. Fragment windows gain (10 ppm on
+    // Astral: +4 %): 95 %.
+    constexpr double min_coverage_precursor = 0.98, min_coverage_fragment = 0.95;
     {
-      // Only tighten — cap against user-configured bounds.
-      result.cal_lower = std::min(cal_lower_raw, precursor_mass_tolerance_lower_);
-      result.cal_upper = std::min(cal_upper_raw, precursor_mass_tolerance_upper_);
+      std::vector<double> errs = precursor_errors; // reordered by the selection
+      const auto [med, mad] = medianAndMADBySelection(errs); // = Math::median() / Math::MAD()
+      const double sigma = 1.4826 * mad;
+      result.precursor_shift = med;
+      result.precursor_sigma = sigma;
+      const double lo = med - k * sigma, hi = med + k * sigma; // e in [-cal_upper, +cal_lower]
+      const double cal_lower_raw = std::max(min_tolerance, hi);
+      const double cal_upper_raw = std::max(min_tolerance, -lo);
+      // Zero spread (a synthetic fixture, a single peptide): nothing to calibrate the precursor window on, it is kept;
+      // the fragment calibration still applies. Unit-aware: 1 ppm, or min_tolerance in Da.
+      result.extreme_bias = (hi - lo) < (precursor_ppm ? 1.0 : min_tolerance);
+      result.precursor_spread = std::max(cal_lower_raw, cal_upper_raw);
+      // The median and MAD describe one mode. A run whose offset changes (a lock mass that drops out: half of the
+      // precursors near 0 ppm, half near +10 ppm) has errors the window does not cover; then the measurement is not
+      // trusted and the configured window stays.
+      result.precursor_coverage = std::count_if(precursor_errors.begin(), precursor_errors.end(),
+                                                [&](double e) { return e >= lo && e <= hi; }) / static_cast<double>(precursor_errors.size());
+      if (!result.extreme_bias && result.precursor_coverage < min_coverage_precursor)
+      {
+        OPENMS_LOG_WARN << "[ProSE] Calibration: the precursor window median +/- " << k << " sigma covers only "
+                        << static_cast<int>(100.0 * result.precursor_coverage) << " % of the calibration PSMs (heavy tails, or a mass "
+                        << "offset that changes over the run): the configured precursor window is kept." << std::endl;
+        result.cal_lower = precursor_mass_tolerance_lower_;
+        result.cal_upper = precursor_mass_tolerance_upper_;
+      }
+      else if (!result.extreme_bias)
+      {
+        const double floor_side = calibration_min_precursor_tol_ > 0 ? calibration_min_precursor_tol_ : (precursor_ppm ? 2.5 : 0.005);
+        result.cal_lower = std::clamp(cal_lower_raw, std::min(floor_side, precursor_mass_tolerance_lower_), precursor_mass_tolerance_lower_);
+        result.cal_upper = std::clamp(cal_upper_raw, std::min(floor_side, precursor_mass_tolerance_upper_), precursor_mass_tolerance_upper_);
+      }
+      // else: cal_lower/cal_upper stay at 0; the writeback skips the precursor window.
     }
-    // else: cal_lower/cal_upper stay at 0; writeback block skips the calibration result.
-
-    // Fragment: 4 × 68th percentile (following NuXL / identipy convention).
-    std::sort(fragment_errors_abs.begin(), fragment_errors_abs.end());
-    if (!fragment_errors_abs.empty())
+    result.psms = precursor_errors.size();
+    result.fragment_peaks = fragment_errors.size();
+    if (fragment_errors.size() >= calibration_min_psms_)
     {
-      double frag_68 = fragment_errors_abs[static_cast<Size>((fragment_errors_abs.size() - 1) * 0.68)];
-      result.fragment_tolerance = 4.0 * frag_68;
-      if (result.fragment_tolerance < min_tolerance) result.fragment_tolerance = min_tolerance;
+      const auto [med, mad] = medianAndMADBySelection(fragment_errors);
+      const double sigma = 1.4826 * mad;
+      result.fragment_shift = med;
+      result.fragment_sigma = sigma;
+      const double measured = std::fabs(med) + k * sigma;
+      const double floor = calibration_min_fragment_tol_ > 0 ? calibration_min_fragment_tol_ : (fragment_mass_tolerance_unit_ppm ? 10.0 : 0.2);
+      result.fragment_tolerance = std::clamp(measured, std::min(floor, fragment_mass_tolerance_), fragment_mass_tolerance_);
+      result.fragment_coverage = std::count_if(fragment_errors.begin(), fragment_errors.end(),
+                                               [&](double e) { return std::fabs(e) <= result.fragment_tolerance; }) / static_cast<double>(fragment_errors.size());
+      if (result.fragment_coverage < min_coverage_fragment)
+      {
+        OPENMS_LOG_WARN << "[ProSE] Calibration: the fragment tolerance |median| + " << k << " sigma covers only "
+                        << static_cast<int>(100.0 * result.fragment_coverage) << " % of the matched fragment peaks of the calibration PSMs: "
+                        << "the configured fragment tolerance is kept." << std::endl;
+        result.fragment_tolerance = fragment_mass_tolerance_;
+      }
+      if (!fragment_mass_tolerance_unit_ppm && measured < 0.05)
+      {
+        OPENMS_LOG_WARN << "[ProSE] Calibration: the fragment errors (|offset| + " << k << " sigma = " << std::fixed << std::setprecision(3)
+                        << measured << " Da) are those of high-resolution MS2 spectra, but the fragment tolerance is given in Da ("
+                        << fragment_mass_tolerance_ << "); a ppm tolerance would suit the data." << std::endl;
+      }
     }
     else
-    {
-      result.fragment_tolerance = fragment_mass_tolerance_;
-    }
-
-    result.fragment_shift = 0.0;
-
-    // Don't widen beyond configured fragment tolerance (only tighten).
-    if (result.fragment_tolerance > fragment_mass_tolerance_)
     {
       result.fragment_tolerance = fragment_mass_tolerance_;
     }
@@ -11232,14 +11411,18 @@ namespace OpenMS
     result.success = true;
 
     OPENMS_LOG_INFO << "[ProSE] Calibration: " << precursor_errors.size() << " PSMs used (top "
-                    << static_cast<int>(100.0 * precursor_errors.size() / cal_hits_total) << "% by score)" << std::endl;
-    OPENMS_LOG_INFO << "[ProSE]   Precursor signed: shift=" << std::fixed << std::setprecision(2) << result.precursor_shift
-                    << " " << precursor_mass_tolerance_unit_ << std::endl;
-    OPENMS_LOG_INFO << "[ProSE]   Precursor spread: -> " << result.precursor_spread
-                    << " " << precursor_mass_tolerance_unit_
-                    << (result.extreme_bias ? " (extreme bias, discarded)" : "") << std::endl;
-    OPENMS_LOG_INFO << "[ProSE]   Fragment tolerance:  " << fragment_mass_tolerance_
-                    << " -> " << result.fragment_tolerance << " " << fragment_mass_tolerance_unit_ << std::endl;
+                    << static_cast<int>(100.0 * precursor_errors.size() / std::max<Size>(1, cal_hits_total)) << "% by score); pass windows [-"
+                    << pass_lower << ", +" << pass_upper << "] " << precursor_mass_tolerance_unit_ << ", fragment "
+                    << pass_fragment << " " << fragment_mass_tolerance_unit_ << std::endl;
+    OPENMS_LOG_INFO << "[ProSE]   Precursor: offset " << std::fixed << std::setprecision(2) << result.precursor_shift
+                    << ", sigma " << result.precursor_sigma << " " << precursor_mass_tolerance_unit_
+                    << " -> window [-" << result.cal_lower << ", +" << result.cal_upper << "]"
+                    << " (covers " << static_cast<int>(100.0 * result.precursor_coverage) << " % of the PSMs)"
+                    << (result.extreme_bias ? " (zero spread: the configured window is kept)" : "") << std::endl;
+    OPENMS_LOG_INFO << "[ProSE]   Fragment:  offset " << result.fragment_shift << ", sigma " << result.fragment_sigma
+                    << " " << fragment_mass_tolerance_unit_ << " (" << result.fragment_peaks << " peaks) -> tolerance "
+                    << fragment_mass_tolerance_ << " -> " << result.fragment_tolerance << " " << fragment_mass_tolerance_unit_
+                    << " (covers " << static_cast<int>(100.0 * result.fragment_coverage) << " % of the peaks)" << std::endl;
 
     return result;
   }
