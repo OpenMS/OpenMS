@@ -528,6 +528,39 @@ START_SECTION((bool fitTargetDecoy(const std::vector<double>& target_scores, con
     TOLERANCE_ABSOLUTE(1e-9)
     TEST_REAL_SIMILAR(sum_above, 1.0)
   }
+  // the "+1" of the targets above the best decoy is pooled with the following block if necessary (no inflation, no ties):
+  // best first: 9 targets, decoy, 19 targets, decoy, then targets and decoys alternating
+  {
+    std::vector<double> targets, decoys;
+    double s = 200.0;
+    for (int i = 0; i < 9; ++i) { targets.push_back(s--); }
+    decoys.push_back(s--);
+    for (int i = 0; i < 19; ++i) { targets.push_back(s--); }
+    decoys.push_back(s--);
+    for (int i = 0; i < 40; ++i) { targets.push_back(s--); decoys.push_back(s--); }
+    PosteriorErrorProbabilityModel pooled;
+    Param p = pooled.getParameters();
+    p.setValue("decoy_handling", "isotonic");
+    pooled.setParameters(p);
+    TEST_EQUAL(pooled.fitTargetDecoy(targets, decoys, "none"), true)
+    double sum_top = 0.0, previous = 0.0;
+    bool strictly_decreasing = true;
+    for (int i = 27; i >= 0; --i) // the 28 targets above the second decoy, from worst to best
+    {
+      const double pep = pooled.computeProbability(targets[i]);
+      strictly_decreasing = strictly_decreasing && (i == 27 || pep < previous);
+      previous = pep;
+      sum_top += pep;
+    }
+    // the 9 targets above the best decoy are pooled with the next 19 targets and the decoy (PEP at the mean score 186: 2 / 28)
+    TOLERANCE_ABSOLUTE(1e-9)
+    TEST_REAL_SIMILAR(pooled.computeProbability(186.0), 2.0 / 28.0)
+    // target-decoy estimate: (#decoys + 1) = 2 incorrect targets (up to the small shift of the linear ramp within the block)
+    TOLERANCE_ABSOLUTE(0.02)
+    TEST_REAL_SIMILAR(sum_top, 2.0)
+    TEST_EQUAL(strictly_decreasing, true)
+  }
+
   // PSMs are ordered by score (no ties of different scores), except for PEPs of 1
   {
     std::vector<double> sorted_targets(data.targets);
@@ -964,7 +997,7 @@ START_SECTION((static std::map<std::string, std::vector<std::vector<double>>> ex
     TEST_EQUAL(competed["COMET"][0].size(), 40) // the unsupervised scores contain all hits
   }
 
-  // supported engine: within a run, either the dedicated score is used (hits without it are skipped) or, if no hit has it, the main score
+  // supported engine: one score type per engine; either the dedicated score (hits without it are skipped) or, if no hit has it, the main score
   {
     std::vector<ProteinIdentification> runs(2);
     runs[0].setIdentifier("with_evalues");
@@ -983,11 +1016,84 @@ START_SECTION((static std::map<std::string, std::vector<std::vector<double>>> ex
       pep2.setHits({makeHit(40.0 + double(i), 3, "target")});
       ids.push_back(pep2);
     }
-    auto scores = PosteriorErrorProbabilityModel::extractAndTransformScores(runs, ids, true, false);
-    TEST_EQUAL(scores["XTANDEM,2"][0].size(), 2) // only the hits with e-values, no mix of e-values and hyperscores
-    TEST_REAL_SIMILAR(scores["XTANDEM,2"][0][0], 5.0)
-    TEST_EQUAL(scores["XTANDEM,3"][0].size(), 4) // hyperscore (main score) for all hits
-    TEST_REAL_SIMILAR(*std::max_element(scores["XTANDEM,3"][0].begin(), scores["XTANDEM,3"][0].end()), 43.0)
+    // both runs belong to the same engine (and model): only the hits with e-values are used, no mix of e-values and hyperscores
+    auto scores = PosteriorErrorProbabilityModel::extractAndTransformScores(runs, ids, false, false);
+    TEST_EQUAL(scores["XTANDEM"][0].size(), 2)
+    TEST_REAL_SIMILAR(*std::max_element(scores["XTANDEM"][0].begin(), scores["XTANDEM"][0].end()), 5.0)
+    // without any e-values: hyperscore (main score) for all hits
+    std::vector<ProteinIdentification> run_without_evalues(1, runs[1]);
+    auto main_scores = PosteriorErrorProbabilityModel::extractAndTransformScores(run_without_evalues, ids, false, false);
+    TEST_EQUAL(main_scores["XTANDEM"][0].size(), 4)
+    TEST_REAL_SIMILAR(*std::max_element(main_scores["XTANDEM"][0].begin(), main_scores["XTANDEM"][0].end()), 43.0)
+  }
+
+  // MS-GF+: a single score type for all hits (the most preferred one available), even if hits have different aliases
+  {
+    std::vector<ProteinIdentification> runs(1);
+    runs[0].setIdentifier("msgf");
+    runs[0].setSearchEngine("MSGFPlus");
+    PeptideIdentificationList ids;
+    for (Size i = 0; i < 4; ++i)
+    {
+      PeptideIdentification pep = makeIdentification("msgf", "SpecEValue", false, "scan=" + StringUtils::toStr(i));
+      PeptideHit hit = makeHit(1e-12, 2, "target");
+      if (i < 3)
+      {
+        hit.setMetaValue("MS:1002053", 1e-5); // EValue (preferred); the last hit only has a SpecEValue
+      }
+      pep.setHits({hit});
+      ids.push_back(pep);
+    }
+    auto scores = PosteriorErrorProbabilityModel::extractAndTransformScores(runs, ids, false, false);
+    TEST_EQUAL(scores["MSGFPLUS"][0].size(), 3)
+    TEST_REAL_SIMILAR(*std::max_element(scores["MSGFPLUS"][0].begin(), scores["MSGFPLUS"][0].end()), 5.0)
+  }
+
+  // competition per spectrum also between hits of different charges (with split_charge), but not if the spectra file is ambiguous
+  {
+    std::vector<ProteinIdentification> runs(2);
+    runs[0].setIdentifier("target_search");
+    runs[1].setIdentifier("decoy_search");
+    for (ProteinIdentification& run : runs)
+    {
+      run.setSearchEngine("Comet");
+      run.setPrimaryMSRunPath({"/data/sample.mzML"});
+    }
+    PeptideIdentificationList separate;
+    for (Size i = 0; i < 20; ++i)
+    {
+      PeptideIdentification target = makeIdentification("target_search", "expect", false, "scan=" + StringUtils::toStr(i));
+      target.setHits({makeHit(1e-3, 2, "target")});
+      PeptideIdentification decoy = makeIdentification("decoy_search", "expect", false, "scan=" + StringUtils::toStr(i));
+      decoy.setHits({makeHit(i < 5 ? 1e-4 : 1e-2, 3, "decoy")}); // other charge state; the decoy wins for 5 spectra
+      separate.push_back(target);
+      separate.push_back(decoy);
+    }
+    auto by_charge = PosteriorErrorProbabilityModel::extractAndTransformScores(runs, separate, true, true);
+    TEST_EQUAL(by_charge["COMET,2"][1].size(), 15)
+    TEST_EQUAL(by_charge["COMET,2"][2].size(), 0)
+    TEST_EQUAL(by_charge["COMET,3"][1].size(), 0)
+    TEST_EQUAL(by_charge["COMET,3"][2].size(), 5)
+    TEST_EQUAL(by_charge["COMET,3"][0].size(), 20) // all top hits for the unsupervised model
+
+    // one run with two spectra files, identifications without id_merge_index: the file of a spectrum is unknown, no competition
+    std::vector<ProteinIdentification> merged(1);
+    merged[0].setIdentifier("merged");
+    merged[0].setSearchEngine("Comet");
+    merged[0].setPrimaryMSRunPath({"/data/a.mzML", "/data/b.mzML"});
+    PeptideIdentificationList ids;
+    for (Size i = 0; i < 10; ++i)
+    {
+      PeptideIdentification first = makeIdentification("merged", "expect", false, "scan=" + StringUtils::toStr(i));
+      first.setHits({makeHit(1e-3, 2, "target")});
+      PeptideIdentification second = makeIdentification("merged", "expect", false, "scan=" + StringUtils::toStr(i)); // same native ID, other file
+      second.setHits({makeHit(1e-2, 2, "decoy")});
+      ids.push_back(first);
+      ids.push_back(second);
+    }
+    auto not_competed = PosteriorErrorProbabilityModel::extractAndTransformScores(merged, ids, false, true);
+    TEST_EQUAL(not_competed["COMET"][1].size(), 10)
+    TEST_EQUAL(not_competed["COMET"][2].size(), 10)
   }
 
 }

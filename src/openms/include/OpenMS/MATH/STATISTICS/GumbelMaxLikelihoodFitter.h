@@ -73,6 +73,7 @@ public:
           The scale parameter is the unique root of the (monotone) profile score equation, which is solved by
           safeguarded Newton iterations; the location parameter then follows in closed form.
           Data points with non-finite values or non-positive weights are ignored.
+          The scale parameter of the initial parameters is the starting point of the iterations (warm start).
           If no data point remains, the initial parameters are returned.
           The fitted parameters are used as initial parameters of the next call.
 

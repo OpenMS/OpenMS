@@ -62,7 +62,7 @@ target+decoy database), the decoys are used (parameter @p fit_algorithm:decoy_ha
 Only top hits (one per spectrum) are used for fitting. Lower-ranked hits and decoys receive the PEP of a target hit with the same score.
 Decoys therefore need to be kept in the data, i.e. run this tool before @ref TOPP_FalseDiscoveryRate (or use its option to keep decoys).
 If a spectrum has several identifications (e.g. results of separate target and decoy searches of the same run), only its best top hit is used for fitting.
-With @p split_charge, charge states with too few decoys for the preferred estimator (or whose model cannot be fitted) use the target-decoy model of all charge states.
+With @p split_charge, charge states with fewer than @p fit_algorithm:min_decoys decoys (or without targets, or whose model cannot be fitted) use the target-decoy data of all charge states.
 
 <B>Mixture models</B>
 
@@ -161,7 +161,6 @@ protected:
     std::string outlier_handling = fit_algorithm.getValue("outlier_handling").toString();
     const std::string decoy_handling = fit_algorithm.getValue("decoy_handling").toString();
     const Size min_decoys = static_cast<Size>(int(fit_algorithm.getValue("min_decoys")));
-    const Size min_decoys_isotonic = static_cast<Size>(int(fit_algorithm.getValue("min_decoys_isotonic")));
 
     //-------------------------------------------------------------
     // reading input
@@ -230,12 +229,12 @@ protected:
       vector<double>* targets = &score.second[1];
       vector<double>* decoys = &score.second[2];
 
-      // With split_charge, charge states with too few decoys for the preferred estimator use the target-decoy model of all charge states.
+      // With split_charge, charge states with fewer than min_decoys decoys (or without targets) use the target-decoy data of all
+      // charge states, if these contain more decoys. (Which estimator is used is decided by the model, see decoy_handling.)
       auto pooled_it = pooled_scores.find(engine);
       const bool pooled_available = split_charge && pooled_it != pooled_scores.end() && !pooled_it->second[1].empty() && !pooled_it->second[2].empty();
       // decoys present: target-decoy based estimate (without targets, nothing can be estimated; never model decoys without supervision)
       const bool use_decoys = (decoy_handling != "ignore") && (!decoys->empty() || pooled_available);
-      const Size preferred_min_decoys = (decoy_handling == "semi_supervised") ? min_decoys : min_decoys_isotonic;
       bool use_pooled = false;
       auto switch_to_pooled = [&](const std::string& reason)
       {
@@ -244,8 +243,7 @@ protected:
         decoys = &pooled_it->second[2];
         use_pooled = true;
       };
-      if (use_decoys && pooled_available && decoys->size() < preferred_min_decoys && pooled_it->second[2].size() > decoys->size()
-          && (pooled_it->second[2].size() >= preferred_min_decoys || decoys->size() < min_decoys || targets->empty()))
+      if (use_decoys && pooled_available && pooled_it->second[2].size() > decoys->size() && (decoys->size() < min_decoys || targets->empty()))
       {
         switch_to_pooled("Only " + StringUtils::toStr(targets->size()) + " target and " + StringUtils::toStr(decoys->size()) + " decoy top hits for " + model_name + ".");
       }

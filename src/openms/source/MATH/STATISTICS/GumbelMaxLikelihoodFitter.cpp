@@ -112,26 +112,43 @@ namespace OpenMS::Math
         return b - mean_s + m;
       };
 
-      // Bracket the root. Start from the moment estimate b0 = sqrt(6)/pi * sd.
+      // Start from the initial (e.g. previous) scale parameter if available (warm start, e.g. in EM iterations),
+      // otherwise from the moment estimate b0 = sqrt(6)/pi * sd, and bracket the root.
+      // g(0+) = min(s) - mean(s) < 0 because the data have spread, and g(b) -> infinity for large b.
       const double b_moment = std::sqrt(6.0 * var_s) / Constants::PI;
-      double lo = b_moment, hi = b_moment;
-      // g(lo) < 0 is required; g(0+) = min(s) - mean(s) < 0 because the data have spread.
-      for (int i = 0; i < 200 && g(lo, nullptr) >= 0.0; ++i)
+      const double b_start = (std::isfinite(init_param_.b) && init_param_.b > 0.0) ? init_param_.b : b_moment;
+      double lo = b_start, hi = b_start;
+      if (g(b_start, nullptr) < 0.0)
       {
-        lo *= 0.5;
+        int i = 0;
+        for (hi = 2.0 * b_start; i < 200 && g(hi, nullptr) <= 0.0; ++i)
+        {
+          lo = hi;
+          hi *= 2.0;
+        }
+        if (i == 200)
+        {
+          throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-GumbelMaxLikelihoodFitter",
+                                       "Could not bracket the maximum likelihood estimate of the Gumbel scale parameter.");
+        }
       }
-      for (int i = 0; i < 200 && g(hi, nullptr) <= 0.0; ++i)
+      else
       {
-        hi *= 2.0;
-      }
-      if (!(g(lo, nullptr) < 0.0) || !(g(hi, nullptr) > 0.0))
-      {
-        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-GumbelMaxLikelihoodFitter",
-                                     "Could not bracket the maximum likelihood estimate of the Gumbel scale parameter.");
+        int i = 0;
+        for (lo = 0.5 * b_start; i < 200 && g(lo, nullptr) >= 0.0; ++i)
+        {
+          hi = lo;
+          lo *= 0.5;
+        }
+        if (i == 200)
+        {
+          throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-GumbelMaxLikelihoodFitter",
+                                       "Could not bracket the maximum likelihood estimate of the Gumbel scale parameter.");
+        }
       }
 
       // safeguarded Newton iterations (fall back to bisection whenever Newton leaves the bracket)
-      double b = std::clamp(b_moment, lo, hi);
+      double b = std::clamp(b_start, lo, hi);
       for (int iteration = 0; iteration < 200; ++iteration)
       {
         double dg = 0.0;

@@ -433,16 +433,15 @@ private:
       /// @param[in] hit the PeptideHit to extract transformed scores from
       /// @param[in] current_score_type the current score type of the PeptideIdentification to take precedence
       /// @param[in] higher_score_better the score orientation of the PeptideIdentification (used for the main score of unknown engines)
-      /// @param[in] generic_fallback use the main score (instead of the dedicated score of a supported engine), see runsWithDedicatedScores_()
+      /// @param[in] score_source the score type to use (see chooseScoreSources_()); empty: the main score of the identification
       /// @return transformed score (higher is better), or NaN if no usable score is available
-      static double transformScore_(const std::string& engine, const PeptideHit& hit, const std::string& current_score_type, bool higher_score_better, bool generic_fallback);
+      static double transformScore_(const std::string& engine, const PeptideHit& hit, const std::string& current_score_type, bool higher_score_better, const std::string& score_source);
 
-      /// whether @p engine has a dedicated score and @p hit carries it
-      static bool hasDedicatedScore_(const std::string& engine, const PeptideHit& hit, const std::string& current_score_type);
-
-      /// identifiers of the runs (with engine keys given by @p run_to_engine) with at least one hit carrying the dedicated score of the engine;
-      /// all other runs use the main score of their identifications (never a mix of both within one run)
-      static std::set<std::string> runsWithDedicatedScores_(const std::map<std::string, std::string>& run_to_engine, const PeptideIdentificationList& peptide_ids);
+      /// For each engine (key) of @p run_to_engine (run identifier -> engine key): the score type to use for all of its hits.
+      /// For engines with dedicated support, the most preferred of their score types that any hit has; otherwise (or if no hit
+      /// has any of them) an empty string, i.e. the main score of the identifications. One score type per engine keeps the scores
+      /// of a model on the same scale.
+      static std::map<std::string, std::string> chooseScoreSources_(const std::map<std::string, std::string>& run_to_engine, const PeptideIdentificationList& peptide_ids);
 
       /// gets a specific score (either main score [preferred] or metavalue)
       /// @param[in] requested_score_types the requested score_types in order of preference (will be tested with a "_score" suffix as well)
@@ -463,10 +462,6 @@ private:
       GaussFitter::GaussFitResult correctly_assigned_fit_param_;
       ///stores final prior probability for negative peptides
       double negative_prior_;
-      ///peak of the incorrectly assigned sequences distribution
-      double max_incorrectly_;
-      ///peak of the gauss distribution (correctly assigned sequences)
-      double max_correctly_;
       ///smallest score which was used for fitting the model
       double smallest_score_;
       ///points either to getGumbelGnuplotFormula or getGaussGnuplotFormula depending on whether one uses the gumbel or the gaussian distribution for incorrectly assigned sequences.

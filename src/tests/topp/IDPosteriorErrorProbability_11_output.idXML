@@ -1423,7 +1423,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="462.089999999999975" RT="354.0" >
-			<PeptideHit score="0.674204009424241" sequence="TIQV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_382 PH_85 PH_264 PH_295 PH_488 PH_489 PH_204 PH_64 PH_53 PH_491 PH_52 PH_18 PH_604 PH_57 PH_133 PH_22 PH_580 PH_131 PH_275 PH_462 PH_602 PH_97 PH_444 PH_378 PH_385 PH_51 PH_14 PH_558 PH_464 PH_609 PH_74 PH_393 PH_556 PH_504 PH_453 PH_420 PH_334 PH_242 PH_120 PH_594 PH_335 PH_265 PH_184 PH_509 PH_330 PH_153 PH_365 PH_244 PH_54 PH_101 PH_306 PH_172 PH_254 PH_247 PH_1 PH_477 PH_216 PH_582 PH_324 PH_272 PH_561 PH_511 PH_96 PH_259 PH_361 PH_362 PH_65 PH_152 PH_66 PH_345 PH_480 PH_127 PH_654 PH_321 PH_493 PH_42 PH_676 PH_37 PH_677 PH_107 PH_465 PH_260 PH_555 PH_60 PH_583 PH_46 PH_663 PH_95 PH_250 PH_297 PH_641 PH_470 PH_392 PH_510 PH_255 PH_360 PH_223 PH_157 PH_327 PH_409 PH_410 PH_274 PH_642 PH_13 PH_262 PH_313 PH_608 PH_425 PH_399 PH_89 PH_206 PH_207 PH_128 PH_521 PH_495 PH_599 PH_633 PH_371 PH_58 PH_59 PH_25 PH_55 PH_516 PH_173 PH_199 PH_258 PH_179 PH_141 PH_50 PH_417 PH_658 PH_354 PH_154 PH_485 PH_540 PH_541 PH_320 PH_357 PH_117" >
+			<PeptideHit score="0.266844758127942" sequence="TIQV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_382 PH_85 PH_264 PH_295 PH_488 PH_489 PH_204 PH_64 PH_53 PH_491 PH_52 PH_18 PH_604 PH_57 PH_133 PH_22 PH_580 PH_131 PH_275 PH_462 PH_602 PH_97 PH_444 PH_378 PH_385 PH_51 PH_14 PH_558 PH_464 PH_609 PH_74 PH_393 PH_556 PH_504 PH_453 PH_420 PH_334 PH_242 PH_120 PH_594 PH_335 PH_265 PH_184 PH_509 PH_330 PH_153 PH_365 PH_244 PH_54 PH_101 PH_306 PH_172 PH_254 PH_247 PH_1 PH_477 PH_216 PH_582 PH_324 PH_272 PH_561 PH_511 PH_96 PH_259 PH_361 PH_362 PH_65 PH_152 PH_66 PH_345 PH_480 PH_127 PH_654 PH_321 PH_493 PH_42 PH_676 PH_37 PH_677 PH_107 PH_465 PH_260 PH_555 PH_60 PH_583 PH_46 PH_663 PH_95 PH_250 PH_297 PH_641 PH_470 PH_392 PH_510 PH_255 PH_360 PH_223 PH_157 PH_327 PH_409 PH_410 PH_274 PH_642 PH_13 PH_262 PH_313 PH_608 PH_425 PH_399 PH_89 PH_206 PH_207 PH_128 PH_521 PH_495 PH_599 PH_633 PH_371 PH_58 PH_59 PH_25 PH_55 PH_516 PH_173 PH_199 PH_258 PH_179 PH_141 PH_50 PH_417 PH_658 PH_354 PH_154 PH_485 PH_540 PH_541 PH_320 PH_357 PH_117" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="2.8799201350054e06"/>
 			</PeptideHit>
@@ -2335,7 +2335,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="635.379999999999995" RT="900.0" >
-			<PeptideHit score="0.671034584068142" sequence="DIIFK" charge="1" aa_before="R X X X X X X X X X X" aa_after="F X X X X X X X X X X" protein_refs="PH_585 PH_94 PH_307 PH_171 PH_82 PH_302 PH_377 PH_79 PH_569 PH_623 PH_411" >
+			<PeptideHit score="0.168357102695401" sequence="DIIFK" charge="1" aa_before="R X X X X X X X X X X" aa_after="F X X X X X X X X X X" protein_refs="PH_585 PH_94 PH_307 PH_171 PH_82 PH_302 PH_377 PH_79 PH_569 PH_623 PH_411" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="2212.620485215969893"/>
 			</PeptideHit>
@@ -2473,7 +2473,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="841.450000000000045" RT="960.0" >
-			<PeptideHit score="0.664398498660224" sequence="C(Carbamidomethyl)YELEK" charge="1" aa_before="K" aa_after="L" protein_refs="PH_587" >
+			<PeptideHit score="0.138700811588495" sequence="C(Carbamidomethyl)YELEK" charge="1" aa_before="K" aa_after="L" protein_refs="PH_587" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="255.320990624220002"/>
 			</PeptideHit>
@@ -2695,7 +2695,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="666.419999999999959" RT="1068.0" >
-			<PeptideHit score="0.67394149424937" sequence="NIPPAR" charge="1" aa_before="R X" aa_after="W X" protein_refs="PH_49 PH_47" >
+			<PeptideHit score="0.258687284395746" sequence="NIPPAR" charge="1" aa_before="R X" aa_after="W X" protein_refs="PH_49 PH_47" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="OMSSA_score" value="1.59007198497628e06"/>
 			</PeptideHit>
@@ -2809,7 +2809,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="667.149999999999977" RT="1152.0" >
-			<PeptideHit score="0.673152912288909" sequence="SQAAAAM(Oxidation)" charge="1" aa_before="R" protein_refs="PH_559" >
+			<PeptideHit score="0.23418265668688" sequence="SQAAAAM(Oxidation)" charge="1" aa_before="R" protein_refs="PH_559" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="2.66997592325089e05"/>
 			</PeptideHit>
@@ -2995,7 +2995,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="462.139999999999986" RT="1368.0" >
-			<PeptideHit score="0.674124587416273" sequence="TIQV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_382 PH_85 PH_264 PH_295 PH_488 PH_489 PH_204 PH_64 PH_53 PH_491 PH_52 PH_18 PH_604 PH_57 PH_133 PH_22 PH_580 PH_131 PH_275 PH_462 PH_602 PH_97 PH_444 PH_378 PH_385 PH_51 PH_14 PH_558 PH_464 PH_609 PH_74 PH_393 PH_556 PH_504 PH_453 PH_420 PH_334 PH_242 PH_120 PH_594 PH_335 PH_265 PH_184 PH_509 PH_330 PH_153 PH_365 PH_244 PH_54 PH_101 PH_306 PH_172 PH_254 PH_247 PH_1 PH_477 PH_216 PH_582 PH_324 PH_272 PH_561 PH_511 PH_96 PH_259 PH_361 PH_362 PH_65 PH_152 PH_66 PH_345 PH_480 PH_127 PH_654 PH_321 PH_493 PH_42 PH_676 PH_37 PH_677 PH_107 PH_465 PH_260 PH_555 PH_60 PH_583 PH_46 PH_663 PH_95 PH_250 PH_297 PH_641 PH_470 PH_392 PH_510 PH_255 PH_360 PH_223 PH_157 PH_327 PH_409 PH_410 PH_274 PH_642 PH_13 PH_262 PH_313 PH_608 PH_425 PH_399 PH_89 PH_206 PH_207 PH_128 PH_521 PH_495 PH_599 PH_633 PH_371 PH_58 PH_59 PH_25 PH_55 PH_516 PH_173 PH_199 PH_258 PH_179 PH_141 PH_50 PH_417 PH_658 PH_354 PH_154 PH_485 PH_540 PH_541 PH_320 PH_357 PH_117" >
+			<PeptideHit score="0.2643767752996" sequence="TIQV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_382 PH_85 PH_264 PH_295 PH_488 PH_489 PH_204 PH_64 PH_53 PH_491 PH_52 PH_18 PH_604 PH_57 PH_133 PH_22 PH_580 PH_131 PH_275 PH_462 PH_602 PH_97 PH_444 PH_378 PH_385 PH_51 PH_14 PH_558 PH_464 PH_609 PH_74 PH_393 PH_556 PH_504 PH_453 PH_420 PH_334 PH_242 PH_120 PH_594 PH_335 PH_265 PH_184 PH_509 PH_330 PH_153 PH_365 PH_244 PH_54 PH_101 PH_306 PH_172 PH_254 PH_247 PH_1 PH_477 PH_216 PH_582 PH_324 PH_272 PH_561 PH_511 PH_96 PH_259 PH_361 PH_362 PH_65 PH_152 PH_66 PH_345 PH_480 PH_127 PH_654 PH_321 PH_493 PH_42 PH_676 PH_37 PH_677 PH_107 PH_465 PH_260 PH_555 PH_60 PH_583 PH_46 PH_663 PH_95 PH_250 PH_297 PH_641 PH_470 PH_392 PH_510 PH_255 PH_360 PH_223 PH_157 PH_327 PH_409 PH_410 PH_274 PH_642 PH_13 PH_262 PH_313 PH_608 PH_425 PH_399 PH_89 PH_206 PH_207 PH_128 PH_521 PH_495 PH_599 PH_633 PH_371 PH_58 PH_59 PH_25 PH_55 PH_516 PH_173 PH_199 PH_258 PH_179 PH_141 PH_50 PH_417 PH_658 PH_354 PH_154 PH_485 PH_540 PH_541 PH_320 PH_357 PH_117" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="2.40622072803744e06"/>
 			</PeptideHit>
@@ -3031,7 +3031,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="667.039999999999964" RT="1464.0" >
-			<PeptideHit score="0.673664297045664" sequence="NIPPAR" charge="1" aa_before="R X" aa_after="W X" protein_refs="PH_49 PH_47" >
+			<PeptideHit score="0.25007357698253" sequence="NIPPAR" charge="1" aa_before="R X" aa_after="W X" protein_refs="PH_49 PH_47" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="OMSSA_score" value="8.4923064476257e05"/>
 			</PeptideHit>
@@ -3049,7 +3049,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="666.870000000000005" RT="1518.0" >
-			<PeptideHit score="0.6733986318308" sequence="SGYALR" charge="1" aa_before="R" aa_after="A" protein_refs="PH_636" >
+			<PeptideHit score="0.241818217981394" sequence="SGYALR" charge="1" aa_before="R" aa_after="A" protein_refs="PH_636" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="4.65550261468386e05"/>
 			</PeptideHit>
@@ -3061,7 +3061,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="462.050000000000011" RT="1578.0" >
-			<PeptideHit score="0.67405001472061" sequence="TIQV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_382 PH_85 PH_264 PH_295 PH_488 PH_489 PH_204 PH_64 PH_53 PH_491 PH_52 PH_18 PH_604 PH_57 PH_133 PH_22 PH_580 PH_131 PH_275 PH_462 PH_602 PH_97 PH_444 PH_378 PH_385 PH_51 PH_14 PH_558 PH_464 PH_609 PH_74 PH_393 PH_556 PH_504 PH_453 PH_420 PH_334 PH_242 PH_120 PH_594 PH_335 PH_265 PH_184 PH_509 PH_330 PH_153 PH_365 PH_244 PH_54 PH_101 PH_306 PH_172 PH_254 PH_247 PH_1 PH_477 PH_216 PH_582 PH_324 PH_272 PH_561 PH_511 PH_96 PH_259 PH_361 PH_362 PH_65 PH_152 PH_66 PH_345 PH_480 PH_127 PH_654 PH_321 PH_493 PH_42 PH_676 PH_37 PH_677 PH_107 PH_465 PH_260 PH_555 PH_60 PH_583 PH_46 PH_663 PH_95 PH_250 PH_297 PH_641 PH_470 PH_392 PH_510 PH_255 PH_360 PH_223 PH_157 PH_327 PH_409 PH_410 PH_274 PH_642 PH_13 PH_262 PH_313 PH_608 PH_425 PH_399 PH_89 PH_206 PH_207 PH_128 PH_521 PH_495 PH_599 PH_633 PH_371 PH_58 PH_59 PH_25 PH_55 PH_516 PH_173 PH_199 PH_258 PH_179 PH_141 PH_50 PH_417 PH_658 PH_354 PH_154 PH_485 PH_540 PH_541 PH_320 PH_357 PH_117" >
+			<PeptideHit score="0.262059481427702" sequence="TIQV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_382 PH_85 PH_264 PH_295 PH_488 PH_489 PH_204 PH_64 PH_53 PH_491 PH_52 PH_18 PH_604 PH_57 PH_133 PH_22 PH_580 PH_131 PH_275 PH_462 PH_602 PH_97 PH_444 PH_378 PH_385 PH_51 PH_14 PH_558 PH_464 PH_609 PH_74 PH_393 PH_556 PH_504 PH_453 PH_420 PH_334 PH_242 PH_120 PH_594 PH_335 PH_265 PH_184 PH_509 PH_330 PH_153 PH_365 PH_244 PH_54 PH_101 PH_306 PH_172 PH_254 PH_247 PH_1 PH_477 PH_216 PH_582 PH_324 PH_272 PH_561 PH_511 PH_96 PH_259 PH_361 PH_362 PH_65 PH_152 PH_66 PH_345 PH_480 PH_127 PH_654 PH_321 PH_493 PH_42 PH_676 PH_37 PH_677 PH_107 PH_465 PH_260 PH_555 PH_60 PH_583 PH_46 PH_663 PH_95 PH_250 PH_297 PH_641 PH_470 PH_392 PH_510 PH_255 PH_360 PH_223 PH_157 PH_327 PH_409 PH_410 PH_274 PH_642 PH_13 PH_262 PH_313 PH_608 PH_425 PH_399 PH_89 PH_206 PH_207 PH_128 PH_521 PH_495 PH_599 PH_633 PH_371 PH_58 PH_59 PH_25 PH_55 PH_516 PH_173 PH_199 PH_258 PH_179 PH_141 PH_50 PH_417 PH_658 PH_354 PH_154 PH_485 PH_540 PH_541 PH_320 PH_357 PH_117" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="2.03261776730451e06"/>
 			</PeptideHit>
@@ -3073,13 +3073,13 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="462.089999999999975" RT="1698.0" >
-			<PeptideHit score="0.674791057151142" sequence="CWGP" charge="1" aa_before="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_322 PH_36 PH_332 PH_270 PH_108 PH_624 PH_221 PH_103 PH_598 PH_112 PH_24 PH_111 PH_110 PH_134 PH_278 PH_186 PH_104 PH_237 PH_105 PH_178 PH_75 PH_557 PH_261 PH_331 PH_669 PH_424 PH_189 PH_129 PH_180 PH_396 PH_522 PH_461 PH_535 PH_666 PH_41 PH_130 PH_266 PH_245 PH_143 PH_148 PH_246 PH_145" >
+			<PeptideHit score="0.285086851805319" sequence="CWGP" charge="1" aa_before="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_322 PH_36 PH_332 PH_270 PH_108 PH_624 PH_221 PH_103 PH_598 PH_112 PH_24 PH_111 PH_110 PH_134 PH_278 PH_186 PH_104 PH_237 PH_105 PH_178 PH_75 PH_557 PH_261 PH_331 PH_669 PH_424 PH_189 PH_129 PH_180 PH_396 PH_522 PH_461 PH_535 PH_666 PH_41 PH_130 PH_266 PH_245 PH_143 PH_148 PH_246 PH_145" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="1.08705088491685e07"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="667.100000000000023" RT="1704.0" >
-			<PeptideHit score="0.673078637304235" sequence="KIIFF" charge="1" aa_before="K" protein_refs="PH_323" >
+			<PeptideHit score="0.231874613973793" sequence="KIIFF" charge="1" aa_before="K" protein_refs="PH_323" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="OMSSA_score" value="2.25694069900761e05"/>
 			</PeptideHit>
@@ -3097,7 +3097,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="519.090000000000032" RT="1782.0" >
-			<PeptideHit score="0.674336512099338" sequence="C(Carbamidomethyl)LAR" charge="1" aa_before="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" aa_after="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_607 PH_639 PH_443 PH_442 PH_191 PH_181 PH_12 PH_11 PH_218 PH_325 PH_657 PH_280 PH_217 PH_215 PH_219 PH_220 PH_596 PH_515 PH_438 PH_531 PH_429 PH_366 PH_104 PH_574 PH_615 PH_421 PH_483 PH_452 PH_500 PH_342 PH_196 PH_263 PH_238 PH_484 PH_305 PH_301 PH_303 PH_302 PH_304 PH_299 PH_300 PH_187 PH_621 PH_687 PH_463 PH_257 PH_248 PH_498 PH_499 PH_553 PH_649 PH_620 PH_400 PH_597 PH_403 PH_628 PH_529 PH_588 PH_589 PH_601 PH_466 PH_430 PH_78 PH_358 PH_109 PH_165 PH_164 PH_90 PH_151 PH_482 PH_289 PH_84 PH_56 PH_672 PH_125 PH_668 PH_395 PH_368 PH_568 PH_502 PH_352 PH_205 PH_370 PH_383 PH_450 PH_231 PH_501 PH_414 PH_670 PH_177 PH_665 PH_652 PH_283 PH_586 PH_224 PH_318 PH_503 PH_39 PH_114 PH_194 PH_570 PH_290 PH_560 PH_431 PH_490 PH_404 PH_287 PH_646 PH_86 PH_690 PH_341 PH_468 PH_351 PH_683 PH_195 PH_175 PH_448 PH_545 PH_678 PH_460 PH_309 PH_122 PH_550 PH_612 PH_176 PH_513 PH_606 PH_655 PH_650 PH_625 PH_631 PH_520 PH_656 PH_542 PH_70 PH_651 PH_19 PH_359 PH_398 PH_185 PH_548 PH_236 PH_389 PH_573 PH_306 PH_481 PH_565 PH_567 PH_566 PH_617 PH_562 PH_45 PH_279 PH_632 PH_551 PH_390 PH_81 PH_408 PH_643 PH_5 PH_6 PH_4 PH_87 PH_23 PH_7 PH_235 PH_469 PH_428 PH_144 PH_603 PH_402 PH_286 PH_203 PH_388 PH_387 PH_333 PH_405 PH_629 PH_31 PH_478 PH_193 PH_227 PH_198 PH_233 PH_435 PH_407 PH_243 PH_436 PH_437 PH_653 PH_69 PH_524 PH_486 PH_394 PH_391 PH_98 PH_170 PH_619 PH_614 PH_451 PH_613 PH_232 PH_174 PH_337 PH_416 PH_458 PH_455 PH_336 PH_538 PH_457 PH_123 PH_543 PH_441 PH_556 PH_406 PH_536 PH_667 PH_415 PH_285 PH_399 PH_592 PH_426" >
+			<PeptideHit score="0.27096218521413" sequence="C(Carbamidomethyl)LAR" charge="1" aa_before="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" aa_after="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_607 PH_639 PH_443 PH_442 PH_191 PH_181 PH_12 PH_11 PH_218 PH_325 PH_657 PH_280 PH_217 PH_215 PH_219 PH_220 PH_596 PH_515 PH_438 PH_531 PH_429 PH_366 PH_104 PH_574 PH_615 PH_421 PH_483 PH_452 PH_500 PH_342 PH_196 PH_263 PH_238 PH_484 PH_305 PH_301 PH_303 PH_302 PH_304 PH_299 PH_300 PH_187 PH_621 PH_687 PH_463 PH_257 PH_248 PH_498 PH_499 PH_553 PH_649 PH_620 PH_400 PH_597 PH_403 PH_628 PH_529 PH_588 PH_589 PH_601 PH_466 PH_430 PH_78 PH_358 PH_109 PH_165 PH_164 PH_90 PH_151 PH_482 PH_289 PH_84 PH_56 PH_672 PH_125 PH_668 PH_395 PH_368 PH_568 PH_502 PH_352 PH_205 PH_370 PH_383 PH_450 PH_231 PH_501 PH_414 PH_670 PH_177 PH_665 PH_652 PH_283 PH_586 PH_224 PH_318 PH_503 PH_39 PH_114 PH_194 PH_570 PH_290 PH_560 PH_431 PH_490 PH_404 PH_287 PH_646 PH_86 PH_690 PH_341 PH_468 PH_351 PH_683 PH_195 PH_175 PH_448 PH_545 PH_678 PH_460 PH_309 PH_122 PH_550 PH_612 PH_176 PH_513 PH_606 PH_655 PH_650 PH_625 PH_631 PH_520 PH_656 PH_542 PH_70 PH_651 PH_19 PH_359 PH_398 PH_185 PH_548 PH_236 PH_389 PH_573 PH_306 PH_481 PH_565 PH_567 PH_566 PH_617 PH_562 PH_45 PH_279 PH_632 PH_551 PH_390 PH_81 PH_408 PH_643 PH_5 PH_6 PH_4 PH_87 PH_23 PH_7 PH_235 PH_469 PH_428 PH_144 PH_603 PH_402 PH_286 PH_203 PH_388 PH_387 PH_333 PH_405 PH_629 PH_31 PH_478 PH_193 PH_227 PH_198 PH_233 PH_435 PH_407 PH_243 PH_436 PH_437 PH_653 PH_69 PH_524 PH_486 PH_394 PH_391 PH_98 PH_170 PH_619 PH_614 PH_451 PH_613 PH_232 PH_174 PH_337 PH_416 PH_458 PH_455 PH_336 PH_538 PH_457 PH_123 PH_543 PH_441 PH_556 PH_406 PH_536 PH_667 PH_415 PH_285 PH_399 PH_592 PH_426" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="3.88674253888911e06"/>
 			</PeptideHit>
@@ -3109,13 +3109,13 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="462.110000000000014" RT="1872.0" >
-			<PeptideHit score="0.674873116490574" sequence="TIQV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_382 PH_85 PH_264 PH_295 PH_488 PH_489 PH_204 PH_64 PH_53 PH_491 PH_52 PH_18 PH_604 PH_57 PH_133 PH_22 PH_580 PH_131 PH_275 PH_462 PH_602 PH_97 PH_444 PH_378 PH_385 PH_51 PH_14 PH_558 PH_464 PH_609 PH_74 PH_393 PH_556 PH_504 PH_453 PH_420 PH_334 PH_242 PH_120 PH_594 PH_335 PH_265 PH_184 PH_509 PH_330 PH_153 PH_365 PH_244 PH_54 PH_101 PH_306 PH_172 PH_254 PH_247 PH_1 PH_477 PH_216 PH_582 PH_324 PH_272 PH_561 PH_511 PH_96 PH_259 PH_361 PH_362 PH_65 PH_152 PH_66 PH_345 PH_480 PH_127 PH_654 PH_321 PH_493 PH_42 PH_676 PH_37 PH_677 PH_107 PH_465 PH_260 PH_555 PH_60 PH_583 PH_46 PH_663 PH_95 PH_250 PH_297 PH_641 PH_470 PH_392 PH_510 PH_255 PH_360 PH_223 PH_157 PH_327 PH_409 PH_410 PH_274 PH_642 PH_13 PH_262 PH_313 PH_608 PH_425 PH_399 PH_89 PH_206 PH_207 PH_128 PH_521 PH_495 PH_599 PH_633 PH_371 PH_58 PH_59 PH_25 PH_55 PH_516 PH_173 PH_199 PH_258 PH_179 PH_141 PH_50 PH_417 PH_658 PH_354 PH_154 PH_485 PH_540 PH_541 PH_320 PH_357 PH_117" >
+			<PeptideHit score="0.287636787847027" sequence="TIQV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_382 PH_85 PH_264 PH_295 PH_488 PH_489 PH_204 PH_64 PH_53 PH_491 PH_52 PH_18 PH_604 PH_57 PH_133 PH_22 PH_580 PH_131 PH_275 PH_462 PH_602 PH_97 PH_444 PH_378 PH_385 PH_51 PH_14 PH_558 PH_464 PH_609 PH_74 PH_393 PH_556 PH_504 PH_453 PH_420 PH_334 PH_242 PH_120 PH_594 PH_335 PH_265 PH_184 PH_509 PH_330 PH_153 PH_365 PH_244 PH_54 PH_101 PH_306 PH_172 PH_254 PH_247 PH_1 PH_477 PH_216 PH_582 PH_324 PH_272 PH_561 PH_511 PH_96 PH_259 PH_361 PH_362 PH_65 PH_152 PH_66 PH_345 PH_480 PH_127 PH_654 PH_321 PH_493 PH_42 PH_676 PH_37 PH_677 PH_107 PH_465 PH_260 PH_555 PH_60 PH_583 PH_46 PH_663 PH_95 PH_250 PH_297 PH_641 PH_470 PH_392 PH_510 PH_255 PH_360 PH_223 PH_157 PH_327 PH_409 PH_410 PH_274 PH_642 PH_13 PH_262 PH_313 PH_608 PH_425 PH_399 PH_89 PH_206 PH_207 PH_128 PH_521 PH_495 PH_599 PH_633 PH_371 PH_58 PH_59 PH_25 PH_55 PH_516 PH_173 PH_199 PH_258 PH_179 PH_141 PH_50 PH_417 PH_658 PH_354 PH_154 PH_485 PH_540 PH_541 PH_320 PH_357 PH_117" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="1.30883969992023e07"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="667.059999999999945" RT="1950.0" >
-			<PeptideHit score="0.673255782773465" sequence="APRPPK" charge="1" aa_before="R X X X X X" aa_after="A X X X X X" protein_refs="PH_419 PH_211 PH_209 PH_472 PH_312 PH_311" >
+			<PeptideHit score="0.237379284371363" sequence="APRPPK" charge="1" aa_before="R X X X X X" aa_after="A X X X X X" protein_refs="PH_419 PH_211 PH_209 PH_472 PH_312 PH_311" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="3.36972337104935e05"/>
 			</PeptideHit>
@@ -3127,13 +3127,13 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="666.519999999999982" RT="2280.0" >
-			<PeptideHit score="0.674145431510954" sequence="NIPPAR" charge="1" aa_before="R X" aa_after="W X" protein_refs="PH_49 PH_47" >
+			<PeptideHit score="0.26502449082659" sequence="NIPPAR" charge="1" aa_before="R X" aa_after="W X" protein_refs="PH_49 PH_47" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="OMSSA_score" value="2.52242441367186e06"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="519.100000000000023" RT="2358.0" >
-			<PeptideHit score="0.67321907708346" sequence="TNPNA" charge="1" aa_before="R X X X X X X" protein_refs="PH_142 PH_635 PH_268 PH_269 PH_282 PH_83 PH_427" >
+			<PeptideHit score="0.236238680967434" sequence="TNPNA" charge="1" aa_before="R X X X X X X" protein_refs="PH_142 PH_635 PH_268 PH_269 PH_282 PH_83 PH_427" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="3.10116566703121e05"/>
 			</PeptideHit>
@@ -3151,7 +3151,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="519.100000000000023" RT="2592.0" >
-			<PeptideHit score="0.673272392654106" sequence="TNPNA" charge="1" aa_before="R X X X X X X" protein_refs="PH_142 PH_635 PH_268 PH_269 PH_282 PH_83 PH_427" >
+			<PeptideHit score="0.237895424686251" sequence="TNPNA" charge="1" aa_before="R X X X X X X" protein_refs="PH_142 PH_635 PH_268 PH_269 PH_282 PH_83 PH_427" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="3.498776064033e05"/>
 			</PeptideHit>
@@ -3169,7 +3169,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="592.690000000000055" RT="2604.0" >
-			<PeptideHit score="0.673960278111792" sequence="LVAAAM(Oxidation)" charge="1" aa_before="R X X X X X X" protein_refs="PH_679 PH_680 PH_681 PH_611 PH_579 PH_308 PH_251" >
+			<PeptideHit score="0.259270979659732" sequence="LVAAAM(Oxidation)" charge="1" aa_before="R X X X X X X" protein_refs="PH_679 PH_680 PH_681 PH_611 PH_579 PH_308 PH_251" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="1.65910920060316e06"/>
 			</PeptideHit>
@@ -3421,7 +3421,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="2849.0" RT="2688.0" >
-			<PeptideHit score="0.672495455869215" sequence="ANCYTAFHVTCAQQAGLYMKM(Oxidation)EPVR" charge="1" aa_before="K" aa_after="E" protein_refs="PH_48" >
+			<PeptideHit score="0.213752662587141" sequence="ANCYTAFHVTCAQQAGLYMKM(Oxidation)EPVR" charge="1" aa_before="K" aa_after="E" protein_refs="PH_48" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="OMSSA_score" value="6.03184226662323e04"/>
 			</PeptideHit>
@@ -3439,7 +3439,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="1008.019999999999982" RT="2694.0" >
-			<PeptideHit score="0.672732746264446" sequence="GGEPGPPGAGGR" charge="1" aa_before="K" aa_after="L" protein_refs="PH_447" >
+			<PeptideHit score="0.221126294099849" sequence="GGEPGPPGAGGR" charge="1" aa_before="K" aa_after="L" protein_refs="PH_447" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="1.03187289525553e05"/>
 			</PeptideHit>
@@ -3451,7 +3451,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="1118.490000000000009" RT="2694.0" >
-			<PeptideHit score="0.67313800440089" sequence="HGKLDLKPGR" charge="1" aa_before="K" aa_after="V" protein_refs="PH_397" >
+			<PeptideHit score="0.233719404591172" sequence="HGKLDLKPGR" charge="1" aa_before="K" aa_after="V" protein_refs="PH_397" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="2.58141560832672e05"/>
 			</PeptideHit>
@@ -3529,25 +3529,25 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="519.090000000000032" RT="2826.0" >
-			<PeptideHit score="0.674034330405379" sequence="C(Carbamidomethyl)LAR" charge="1" aa_before="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" aa_after="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_607 PH_639 PH_443 PH_442 PH_191 PH_181 PH_12 PH_11 PH_218 PH_325 PH_657 PH_280 PH_217 PH_215 PH_219 PH_220 PH_596 PH_515 PH_438 PH_531 PH_429 PH_366 PH_104 PH_574 PH_615 PH_421 PH_483 PH_452 PH_500 PH_342 PH_196 PH_263 PH_238 PH_484 PH_305 PH_301 PH_303 PH_302 PH_304 PH_299 PH_300 PH_187 PH_621 PH_687 PH_463 PH_257 PH_248 PH_498 PH_499 PH_553 PH_649 PH_620 PH_400 PH_597 PH_403 PH_628 PH_529 PH_588 PH_589 PH_601 PH_466 PH_430 PH_78 PH_358 PH_109 PH_165 PH_164 PH_90 PH_151 PH_482 PH_289 PH_84 PH_56 PH_672 PH_125 PH_668 PH_395 PH_368 PH_568 PH_502 PH_352 PH_205 PH_370 PH_383 PH_450 PH_231 PH_501 PH_414 PH_670 PH_177 PH_665 PH_652 PH_283 PH_586 PH_224 PH_318 PH_503 PH_39 PH_114 PH_194 PH_570 PH_290 PH_560 PH_431 PH_490 PH_404 PH_287 PH_646 PH_86 PH_690 PH_341 PH_468 PH_351 PH_683 PH_195 PH_175 PH_448 PH_545 PH_678 PH_460 PH_309 PH_122 PH_550 PH_612 PH_176 PH_513 PH_606 PH_655 PH_650 PH_625 PH_631 PH_520 PH_656 PH_542 PH_70 PH_651 PH_19 PH_359 PH_398 PH_185 PH_548 PH_236 PH_389 PH_573 PH_306 PH_481 PH_565 PH_567 PH_566 PH_617 PH_562 PH_45 PH_279 PH_632 PH_551 PH_390 PH_81 PH_408 PH_643 PH_5 PH_6 PH_4 PH_87 PH_23 PH_7 PH_235 PH_469 PH_428 PH_144 PH_603 PH_402 PH_286 PH_203 PH_388 PH_387 PH_333 PH_405 PH_629 PH_31 PH_478 PH_193 PH_227 PH_198 PH_233 PH_435 PH_407 PH_243 PH_436 PH_437 PH_653 PH_69 PH_524 PH_486 PH_394 PH_391 PH_98 PH_170 PH_619 PH_614 PH_451 PH_613 PH_232 PH_174 PH_337 PH_416 PH_458 PH_455 PH_336 PH_538 PH_457 PH_123 PH_543 PH_441 PH_556 PH_406 PH_536 PH_667 PH_415 PH_285 PH_399 PH_592 PH_426" >
+			<PeptideHit score="0.261572102404508" sequence="C(Carbamidomethyl)LAR" charge="1" aa_before="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" aa_after="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_607 PH_639 PH_443 PH_442 PH_191 PH_181 PH_12 PH_11 PH_218 PH_325 PH_657 PH_280 PH_217 PH_215 PH_219 PH_220 PH_596 PH_515 PH_438 PH_531 PH_429 PH_366 PH_104 PH_574 PH_615 PH_421 PH_483 PH_452 PH_500 PH_342 PH_196 PH_263 PH_238 PH_484 PH_305 PH_301 PH_303 PH_302 PH_304 PH_299 PH_300 PH_187 PH_621 PH_687 PH_463 PH_257 PH_248 PH_498 PH_499 PH_553 PH_649 PH_620 PH_400 PH_597 PH_403 PH_628 PH_529 PH_588 PH_589 PH_601 PH_466 PH_430 PH_78 PH_358 PH_109 PH_165 PH_164 PH_90 PH_151 PH_482 PH_289 PH_84 PH_56 PH_672 PH_125 PH_668 PH_395 PH_368 PH_568 PH_502 PH_352 PH_205 PH_370 PH_383 PH_450 PH_231 PH_501 PH_414 PH_670 PH_177 PH_665 PH_652 PH_283 PH_586 PH_224 PH_318 PH_503 PH_39 PH_114 PH_194 PH_570 PH_290 PH_560 PH_431 PH_490 PH_404 PH_287 PH_646 PH_86 PH_690 PH_341 PH_468 PH_351 PH_683 PH_195 PH_175 PH_448 PH_545 PH_678 PH_460 PH_309 PH_122 PH_550 PH_612 PH_176 PH_513 PH_606 PH_655 PH_650 PH_625 PH_631 PH_520 PH_656 PH_542 PH_70 PH_651 PH_19 PH_359 PH_398 PH_185 PH_548 PH_236 PH_389 PH_573 PH_306 PH_481 PH_565 PH_567 PH_566 PH_617 PH_562 PH_45 PH_279 PH_632 PH_551 PH_390 PH_81 PH_408 PH_643 PH_5 PH_6 PH_4 PH_87 PH_23 PH_7 PH_235 PH_469 PH_428 PH_144 PH_603 PH_402 PH_286 PH_203 PH_388 PH_387 PH_333 PH_405 PH_629 PH_31 PH_478 PH_193 PH_227 PH_198 PH_233 PH_435 PH_407 PH_243 PH_436 PH_437 PH_653 PH_69 PH_524 PH_486 PH_394 PH_391 PH_98 PH_170 PH_619 PH_614 PH_451 PH_613 PH_232 PH_174 PH_337 PH_416 PH_458 PH_455 PH_336 PH_538 PH_457 PH_123 PH_543 PH_441 PH_556 PH_406 PH_536 PH_667 PH_415 PH_285 PH_399 PH_592 PH_426" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="1.96174854240672e06"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="666.659999999999968" RT="2892.0" >
-			<PeptideHit score="0.673991339695517" sequence="NIPPAR" charge="1" aa_before="R X" aa_after="W X" protein_refs="PH_49 PH_47" >
+			<PeptideHit score="0.260236196445561" sequence="NIPPAR" charge="1" aa_before="R X" aa_after="W X" protein_refs="PH_49 PH_47" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="OMSSA_score" value="1.77990984952878e06"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="462.009999999999991" RT="2934.0" >
-			<PeptideHit score="0.674034820616599" sequence="TIQV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_382 PH_85 PH_264 PH_295 PH_488 PH_489 PH_204 PH_64 PH_53 PH_491 PH_52 PH_18 PH_604 PH_57 PH_133 PH_22 PH_580 PH_131 PH_275 PH_462 PH_602 PH_97 PH_444 PH_378 PH_385 PH_51 PH_14 PH_558 PH_464 PH_609 PH_74 PH_393 PH_556 PH_504 PH_453 PH_420 PH_334 PH_242 PH_120 PH_594 PH_335 PH_265 PH_184 PH_509 PH_330 PH_153 PH_365 PH_244 PH_54 PH_101 PH_306 PH_172 PH_254 PH_247 PH_1 PH_477 PH_216 PH_582 PH_324 PH_272 PH_561 PH_511 PH_96 PH_259 PH_361 PH_362 PH_65 PH_152 PH_66 PH_345 PH_480 PH_127 PH_654 PH_321 PH_493 PH_42 PH_676 PH_37 PH_677 PH_107 PH_465 PH_260 PH_555 PH_60 PH_583 PH_46 PH_663 PH_95 PH_250 PH_297 PH_641 PH_470 PH_392 PH_510 PH_255 PH_360 PH_223 PH_157 PH_327 PH_409 PH_410 PH_274 PH_642 PH_13 PH_262 PH_313 PH_608 PH_425 PH_399 PH_89 PH_206 PH_207 PH_128 PH_521 PH_495 PH_599 PH_633 PH_371 PH_58 PH_59 PH_25 PH_55 PH_516 PH_173 PH_199 PH_258 PH_179 PH_141 PH_50 PH_417 PH_658 PH_354 PH_154 PH_485 PH_540 PH_541 PH_320 PH_357 PH_117" >
+			<PeptideHit score="0.26158733537209" sequence="TIQV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_382 PH_85 PH_264 PH_295 PH_488 PH_489 PH_204 PH_64 PH_53 PH_491 PH_52 PH_18 PH_604 PH_57 PH_133 PH_22 PH_580 PH_131 PH_275 PH_462 PH_602 PH_97 PH_444 PH_378 PH_385 PH_51 PH_14 PH_558 PH_464 PH_609 PH_74 PH_393 PH_556 PH_504 PH_453 PH_420 PH_334 PH_242 PH_120 PH_594 PH_335 PH_265 PH_184 PH_509 PH_330 PH_153 PH_365 PH_244 PH_54 PH_101 PH_306 PH_172 PH_254 PH_247 PH_1 PH_477 PH_216 PH_582 PH_324 PH_272 PH_561 PH_511 PH_96 PH_259 PH_361 PH_362 PH_65 PH_152 PH_66 PH_345 PH_480 PH_127 PH_654 PH_321 PH_493 PH_42 PH_676 PH_37 PH_677 PH_107 PH_465 PH_260 PH_555 PH_60 PH_583 PH_46 PH_663 PH_95 PH_250 PH_297 PH_641 PH_470 PH_392 PH_510 PH_255 PH_360 PH_223 PH_157 PH_327 PH_409 PH_410 PH_274 PH_642 PH_13 PH_262 PH_313 PH_608 PH_425 PH_399 PH_89 PH_206 PH_207 PH_128 PH_521 PH_495 PH_599 PH_633 PH_371 PH_58 PH_59 PH_25 PH_55 PH_516 PH_173 PH_199 PH_258 PH_179 PH_141 PH_50 PH_417 PH_658 PH_354 PH_154 PH_485 PH_540 PH_541 PH_320 PH_357 PH_117" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="1.96392568696608e06"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="666.909999999999968" RT="2982.0" >
-			<PeptideHit score="0.67304676791725" sequence="VQPPTK" charge="1" aa_before="K X" aa_after="Q X" protein_refs="PH_188 PH_99" >
+			<PeptideHit score="0.230884295271977" sequence="VQPPTK" charge="1" aa_before="K X" aa_after="Q X" protein_refs="PH_188 PH_99" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="OMSSA_score" value="2.09992273773243e05"/>
 			</PeptideHit>
@@ -6163,13 +6163,13 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="666.919999999999959" RT="204.0" >
-			<PeptideHit score="0.67417180365206" sequence="APRPPK" charge="1" aa_before="R X X X X X" aa_after="A X X X X X" protein_refs="PH_1471 PH_1101 PH_1097 PH_1570 PH_1272 PH_1269" >
+			<PeptideHit score="0.26584398649361" sequence="APRPPK" charge="1" aa_before="R X X X X X" aa_after="A X X X X X" protein_refs="PH_1471 PH_1101 PH_1097 PH_1570 PH_1272 PH_1269" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="2.67752206957659e06"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="462.129999999999995" RT="210.0" >
-			<PeptideHit score="0.675037216603137" sequence="DPQT" charge="1" aa_before="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_1365 PH_1885 PH_1911 PH_1043 PH_1247 PH_1948 PH_730 PH_811 PH_1318 PH_1388 PH_1351 PH_1961 PH_1694 PH_1739 PH_1907 PH_1616 PH_1340 PH_1089 PH_1039 PH_1057 PH_861 PH_1024 PH_741 PH_945 PH_985 PH_855 PH_1213 PH_1166 PH_1231 PH_891 PH_1915 PH_1113 PH_1796 PH_1206 PH_1561 PH_1315 PH_1172 PH_1287 PH_1281 PH_827 PH_1266 PH_957 PH_803 PH_1190 PH_1858 PH_912 PH_1930 PH_1725 PH_1220 PH_1345 PH_987 PH_789 PH_757 PH_983 PH_1164 PH_1278 PH_1296 PH_963 PH_984 PH_1353 PH_1944 PH_1855 PH_755 PH_720 PH_1006 PH_980 PH_1728 PH_1336 PH_917 PH_1175 PH_1265 PH_1884 PH_1250 PH_1240 PH_1014 PH_1146 PH_944 PH_928 PH_1373 PH_919 PH_1850 PH_1120 PH_1795 PH_1162 PH_896 PH_1047 PH_1048 PH_1049 PH_1236 PH_1263 PH_1161 PH_1200 PH_1211 PH_1209 PH_1219 PH_1761 PH_1820 PH_1640 PH_1805 PH_1201 PH_1954 PH_1894 PH_836 PH_1387 PH_1314 PH_1903 PH_901 PH_903 PH_940 PH_1264 PH_1977 PH_1595 PH_1583 PH_890 PH_889 PH_880 PH_955 PH_1505 PH_1772 PH_1396 PH_1839 PH_826 PH_1963 PH_1664 PH_1433 PH_1317 PH_1731 PH_1632 PH_1277 PH_1203 PH_1218 PH_1217 PH_1174 PH_1237 PH_1867 PH_1638 PH_1453 PH_833 PH_812 PH_1496 PH_1334 PH_950 PH_1395 PH_1187 PH_723 PH_722 PH_1443 PH_708 PH_1280 PH_1384 PH_1346 PH_1347 PH_1485 PH_1129 PH_873 PH_1560 PH_1540 PH_1700 PH_1481" >
+			<PeptideHit score="0.292736082995741" sequence="DPQT" charge="1" aa_before="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_1365 PH_1885 PH_1911 PH_1043 PH_1247 PH_1948 PH_730 PH_811 PH_1318 PH_1388 PH_1351 PH_1961 PH_1694 PH_1739 PH_1907 PH_1616 PH_1340 PH_1089 PH_1039 PH_1057 PH_861 PH_1024 PH_741 PH_945 PH_985 PH_855 PH_1213 PH_1166 PH_1231 PH_891 PH_1915 PH_1113 PH_1796 PH_1206 PH_1561 PH_1315 PH_1172 PH_1287 PH_1281 PH_827 PH_1266 PH_957 PH_803 PH_1190 PH_1858 PH_912 PH_1930 PH_1725 PH_1220 PH_1345 PH_987 PH_789 PH_757 PH_983 PH_1164 PH_1278 PH_1296 PH_963 PH_984 PH_1353 PH_1944 PH_1855 PH_755 PH_720 PH_1006 PH_980 PH_1728 PH_1336 PH_917 PH_1175 PH_1265 PH_1884 PH_1250 PH_1240 PH_1014 PH_1146 PH_944 PH_928 PH_1373 PH_919 PH_1850 PH_1120 PH_1795 PH_1162 PH_896 PH_1047 PH_1048 PH_1049 PH_1236 PH_1263 PH_1161 PH_1200 PH_1211 PH_1209 PH_1219 PH_1761 PH_1820 PH_1640 PH_1805 PH_1201 PH_1954 PH_1894 PH_836 PH_1387 PH_1314 PH_1903 PH_901 PH_903 PH_940 PH_1264 PH_1977 PH_1595 PH_1583 PH_890 PH_889 PH_880 PH_955 PH_1505 PH_1772 PH_1396 PH_1839 PH_826 PH_1963 PH_1664 PH_1433 PH_1317 PH_1731 PH_1632 PH_1277 PH_1203 PH_1218 PH_1217 PH_1174 PH_1237 PH_1867 PH_1638 PH_1453 PH_833 PH_812 PH_1496 PH_1334 PH_950 PH_1395 PH_1187 PH_723 PH_722 PH_1443 PH_708 PH_1280 PH_1384 PH_1346 PH_1347 PH_1485 PH_1129 PH_873 PH_1560 PH_1540 PH_1700 PH_1481" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="1.8973235032764e07"/>
 			</PeptideHit>
@@ -6181,7 +6181,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="519.100000000000023" RT="264.0" >
-			<PeptideHit score="0.674468920176181" sequence="SAPSR" charge="1" aa_before="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" aa_after="V X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_1329 PH_1041 PH_1680 PH_1038 PH_1755 PH_1655 PH_883 PH_1084 PH_1469 PH_1215 PH_924 PH_1851 PH_1943 PH_1437 PH_1223 PH_1275 PH_1222 PH_1224 PH_959 PH_1628 PH_1559 PH_1434 PH_1555 PH_1876 PH_838 PH_754 PH_772 PH_923 PH_1902 PH_1888 PH_1327 PH_1321 PH_1542 PH_1912 PH_1543 PH_1408 PH_1878 PH_1686 PH_1785 PH_1983 PH_1184 PH_1957 PH_744 PH_1691 PH_1025 PH_1128 PH_1849 PH_747 PH_1701 PH_1155 PH_875 PH_1822 PH_1069 PH_1765" >
+			<PeptideHit score="0.275076672726347" sequence="SAPSR" charge="1" aa_before="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" aa_after="V X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_1329 PH_1041 PH_1680 PH_1038 PH_1755 PH_1655 PH_883 PH_1084 PH_1469 PH_1215 PH_924 PH_1851 PH_1943 PH_1437 PH_1223 PH_1275 PH_1222 PH_1224 PH_959 PH_1628 PH_1559 PH_1434 PH_1555 PH_1876 PH_838 PH_754 PH_772 PH_923 PH_1902 PH_1888 PH_1327 PH_1321 PH_1542 PH_1912 PH_1543 PH_1408 PH_1878 PH_1686 PH_1785 PH_1983 PH_1184 PH_1957 PH_744 PH_1691 PH_1025 PH_1128 PH_1849 PH_747 PH_1701 PH_1155 PH_875 PH_1822 PH_1069 PH_1765" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="5.24442820969016e06"/>
 			</PeptideHit>
@@ -7129,7 +7129,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="1000.440000000000055" RT="852.0" >
-			<PeptideHit score="0.671954749479569" sequence="GPPVTPSSEK" charge="1" aa_before="R" aa_after="R" protein_refs="PH_830" >
+			<PeptideHit score="0.196950593249507" sequence="GPPVTPSSEK" charge="1" aa_before="R" aa_after="R" protein_refs="PH_830" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="OMSSA_score" value="1.77467328855282e04"/>
 			</PeptideHit>
@@ -7381,7 +7381,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="841.42999999999995" RT="954.0" >
-			<PeptideHit score="0.66028368961107" sequence="C(Carbamidomethyl)YELEK" charge="1" aa_before="K" aa_after="L" protein_refs="PH_1813" >
+			<PeptideHit score="0.136021505376344" sequence="C(Carbamidomethyl)YELEK" charge="1" aa_before="K" aa_after="L" protein_refs="PH_1813" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="210.067498717171986"/>
 			</PeptideHit>
@@ -7885,7 +7885,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="3029.800000000000182" RT="1152.0" >
-			<PeptideHit score="0.672389941028329" sequence="ILCNHSNLDRHIICM(Oxidation)SHLYAM(Oxidation)GSAIGK" charge="1" aa_before="K" aa_after="A" protein_refs="PH_1706" >
+			<PeptideHit score="0.210473863396548" sequence="ILCNHSNLDRHIICM(Oxidation)SHLYAM(Oxidation)GSAIGK" charge="1" aa_before="K" aa_after="A" protein_refs="PH_1706" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="4.75077610066128e04"/>
 			</PeptideHit>
@@ -9097,7 +9097,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="666.759999999999991" RT="1668.0" >
-			<PeptideHit score="0.673522586012602" sequence="NDESAM" charge="1" aa_before="R" protein_refs="PH_1712" >
+			<PeptideHit score="0.245670006673376" sequence="NDESAM" charge="1" aa_before="R" protein_refs="PH_1712" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="6.16270849758121e05"/>
 			</PeptideHit>
@@ -9223,7 +9223,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="3505.5" RT="1782.0" >
-			<PeptideHit score="0.672140999943546" sequence="CVCPSGFTGSHC(Carbamidomethyl)EKDIDEC(Carbamidomethyl)SEGIIECHNHSR" charge="1" aa_before="K" aa_after="C" protein_refs="PH_1127" >
+			<PeptideHit score="0.202738194931006" sequence="CVCPSGFTGSHC(Carbamidomethyl)EKDIDEC(Carbamidomethyl)SEGIIECHNHSR" charge="1" aa_before="K" aa_after="C" protein_refs="PH_1127" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="OMSSA_score" value="2.70482795181204e04"/>
 			</PeptideHit>
@@ -9271,7 +9271,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="667.110000000000014" RT="1806.0" >
-			<PeptideHit score="0.674280946292964" sequence="NIPPAR" charge="1" aa_before="R X" aa_after="W X" protein_refs="PH_777 PH_774" >
+			<PeptideHit score="0.269235517008652" sequence="NIPPAR" charge="1" aa_before="R X" aa_after="W X" protein_refs="PH_777 PH_774" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="OMSSA_score" value="3.42754664029325e06"/>
 			</PeptideHit>
@@ -9487,7 +9487,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="519.159999999999968" RT="1914.0" >
-			<PeptideHit score="0.673132855992632" sequence="TNPNA" charge="1" aa_before="R X X X X X X" protein_refs="PH_954 PH_1904 PH_1196 PH_1197 PH_1233 PH_857 PH_1487" >
+			<PeptideHit score="0.233559421439153" sequence="TNPNA" charge="1" aa_before="R X X X X X X" protein_refs="PH_954 PH_1904 PH_1196 PH_1197 PH_1233 PH_857 PH_1487" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="2.551518884753e05"/>
 			</PeptideHit>
@@ -9589,7 +9589,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="667.120000000000005" RT="2022.0" >
-			<PeptideHit score="0.673994917986383" sequence="IKLPAK" charge="1" aa_before="K X" aa_after="L X" protein_refs="PH_1610 PH_887" >
+			<PeptideHit score="0.260347389308042" sequence="IKLPAK" charge="1" aa_before="K X" aa_after="L X" protein_refs="PH_1610 PH_887" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="1.79437932407213e06"/>
 			</PeptideHit>
@@ -9637,7 +9637,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="519.100000000000023" RT="2154.0" >
-			<PeptideHit score="0.67352547216356" sequence="C(Carbamidomethyl)LAR" charge="1" aa_before="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" aa_after="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_1842 PH_1920 PH_1508 PH_1507 PH_1058 PH_1028 PH_706 PH_705 PH_1107 PH_1300 PH_1950 PH_1227 PH_1106 PH_1104 PH_1108 PH_1109 PH_1831 PH_1671 PH_1502 PH_1709 PH_1489 PH_1366 PH_908 PH_1790 PH_1861 PH_1474 PH_1597 PH_1539 PH_1634 PH_1319 PH_1071 PH_1189 PH_1139 PH_1601 PH_1260 PH_1256 PH_1258 PH_1257 PH_1259 PH_1254 PH_1255 PH_1050 PH_1880 PH_1987 PH_1557 PH_1171 PH_1153 PH_1629 PH_1630 PH_1744 PH_1929 PH_1879 PH_1439 PH_1832 PH_1445 PH_1892 PH_1699 PH_1814 PH_1815 PH_1835 PH_1564 PH_1491 PH_841 PH_1352 PH_913 PH_991 PH_990 PH_868 PH_967 PH_1594 PH_1244 PH_860 PH_794 PH_1969 PH_934 PH_1960 PH_1425 PH_1370 PH_1778 PH_1641 PH_1341 PH_1090 PH_1371 PH_1391 PH_1537 PH_1130 PH_1639 PH_1456 PH_1964 PH_1015 PH_1958 PH_1936 PH_1235 PH_1808 PH_1118 PH_1292 PH_1642 PH_751 PH_916 PH_1063 PH_1783 PH_1245 PH_1753 PH_1492 PH_1613 PH_1446 PH_1243 PH_1927 PH_864 PH_1990 PH_1316 PH_1566 PH_1335 PH_1981 PH_1070 PH_1009 PH_1526 PH_1732 PH_1978 PH_1548 PH_1267 PH_929 PH_1738 PH_1848 PH_1013 PH_1670 PH_1841 PH_1946 PH_1931 PH_1887 PH_1898 PH_1684 PH_1947 PH_1729 PH_825 PH_1935 PH_718 PH_1354 PH_1430 PH_1042 PH_1737 PH_1138 PH_1417 PH_1789 PH_1262 PH_1591 PH_1767 PH_1769 PH_1768 PH_1869 PH_1757 PH_765 PH_1225 PH_1900 PH_1741 PH_1418 PH_854 PH_1452 PH_1925 PH_698 PH_699 PH_697 PH_865 PH_729 PH_700 PH_1137 PH_1568 PH_1488 PH_956 PH_1837 PH_1442 PH_1239 PH_1081 PH_1412 PH_1411 PH_1308 PH_1447 PH_1897 PH_737 PH_1581 PH_1061 PH_1122 PH_1074 PH_1133 PH_1497 PH_1450 PH_1145 PH_1498 PH_1499 PH_1938 PH_823 PH_1690 PH_1603 PH_1424 PH_1421 PH_885 PH_996 PH_1877 PH_1859 PH_1538 PH_1854 PH_1132 PH_1007 PH_1312 PH_1465 PH_1547 PH_1545 PH_1311 PH_1721 PH_1546 PH_930 PH_1730 PH_1506 PH_1747 PH_1449 PH_1717 PH_1959 PH_1463 PH_1238 PH_1432 PH_1824 PH_1486" >
+			<PeptideHit score="0.245759691776876" sequence="C(Carbamidomethyl)LAR" charge="1" aa_before="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" aa_after="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_1842 PH_1920 PH_1508 PH_1507 PH_1058 PH_1028 PH_706 PH_705 PH_1107 PH_1300 PH_1950 PH_1227 PH_1106 PH_1104 PH_1108 PH_1109 PH_1831 PH_1671 PH_1502 PH_1709 PH_1489 PH_1366 PH_908 PH_1790 PH_1861 PH_1474 PH_1597 PH_1539 PH_1634 PH_1319 PH_1071 PH_1189 PH_1139 PH_1601 PH_1260 PH_1256 PH_1258 PH_1257 PH_1259 PH_1254 PH_1255 PH_1050 PH_1880 PH_1987 PH_1557 PH_1171 PH_1153 PH_1629 PH_1630 PH_1744 PH_1929 PH_1879 PH_1439 PH_1832 PH_1445 PH_1892 PH_1699 PH_1814 PH_1815 PH_1835 PH_1564 PH_1491 PH_841 PH_1352 PH_913 PH_991 PH_990 PH_868 PH_967 PH_1594 PH_1244 PH_860 PH_794 PH_1969 PH_934 PH_1960 PH_1425 PH_1370 PH_1778 PH_1641 PH_1341 PH_1090 PH_1371 PH_1391 PH_1537 PH_1130 PH_1639 PH_1456 PH_1964 PH_1015 PH_1958 PH_1936 PH_1235 PH_1808 PH_1118 PH_1292 PH_1642 PH_751 PH_916 PH_1063 PH_1783 PH_1245 PH_1753 PH_1492 PH_1613 PH_1446 PH_1243 PH_1927 PH_864 PH_1990 PH_1316 PH_1566 PH_1335 PH_1981 PH_1070 PH_1009 PH_1526 PH_1732 PH_1978 PH_1548 PH_1267 PH_929 PH_1738 PH_1848 PH_1013 PH_1670 PH_1841 PH_1946 PH_1931 PH_1887 PH_1898 PH_1684 PH_1947 PH_1729 PH_825 PH_1935 PH_718 PH_1354 PH_1430 PH_1042 PH_1737 PH_1138 PH_1417 PH_1789 PH_1262 PH_1591 PH_1767 PH_1769 PH_1768 PH_1869 PH_1757 PH_765 PH_1225 PH_1900 PH_1741 PH_1418 PH_854 PH_1452 PH_1925 PH_698 PH_699 PH_697 PH_865 PH_729 PH_700 PH_1137 PH_1568 PH_1488 PH_956 PH_1837 PH_1442 PH_1239 PH_1081 PH_1412 PH_1411 PH_1308 PH_1447 PH_1897 PH_737 PH_1581 PH_1061 PH_1122 PH_1074 PH_1133 PH_1497 PH_1450 PH_1145 PH_1498 PH_1499 PH_1938 PH_823 PH_1690 PH_1603 PH_1424 PH_1421 PH_885 PH_996 PH_1877 PH_1859 PH_1538 PH_1854 PH_1132 PH_1007 PH_1312 PH_1465 PH_1547 PH_1545 PH_1311 PH_1721 PH_1546 PH_930 PH_1730 PH_1506 PH_1747 PH_1449 PH_1717 PH_1959 PH_1463 PH_1238 PH_1432 PH_1824 PH_1486" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="6.20308505600195e05"/>
 			</PeptideHit>
@@ -9667,19 +9667,19 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="667.129999999999995" RT="2268.0" >
-			<PeptideHit score="0.674259299531118" sequence="APRHGK" charge="1" aa_before="K" aa_after="R" protein_refs="PH_1660" >
+			<PeptideHit score="0.268562859166164" sequence="APRHGK" charge="1" aa_before="K" aa_after="R" protein_refs="PH_1660" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="3.26371272841106e06"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="593.139999999999986" RT="2298.0" >
-			<PeptideHit score="0.67312390280992" sequence="SVEEK" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" aa_after="L X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_1617 PH_1906 PH_1332 PH_1937 PH_806 PH_1873 PH_1883 PH_1089 PH_1050 PH_793 PH_1727 PH_1381 PH_1624 PH_1270 PH_1271 PH_1121 PH_1743 PH_846 PH_1726 PH_807 PH_1933 PH_1493 PH_776 PH_972 PH_804 PH_909 PH_1608 PH_1151 PH_1478 PH_1479 PH_1922 PH_1261 PH_1062 PH_728 PH_1893 PH_1606 PH_815 PH_1031 PH_1924 PH_1770 PH_1899 PH_1896" >
+			<PeptideHit score="0.233281207607045" sequence="SVEEK" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" aa_after="L X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_1617 PH_1906 PH_1332 PH_1937 PH_806 PH_1873 PH_1883 PH_1089 PH_1050 PH_793 PH_1727 PH_1381 PH_1624 PH_1270 PH_1271 PH_1121 PH_1743 PH_846 PH_1726 PH_807 PH_1933 PH_1493 PH_776 PH_972 PH_804 PH_909 PH_1608 PH_1151 PH_1478 PH_1479 PH_1922 PH_1261 PH_1062 PH_728 PH_1893 PH_1606 PH_815 PH_1031 PH_1924 PH_1770 PH_1899 PH_1896" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="2.50035017246311e05"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="593.129999999999995" RT="2556.0" >
-			<PeptideHit score="0.67388457479627" sequence="KLSTM(Oxidation)" charge="1" aa_before="R X X X X X X X X X X X X X" protein_refs="PH_1878 PH_1578 PH_1643 PH_1872 PH_1708 PH_878 PH_1518 PH_1598 PH_1462 PH_1065 PH_1551 PH_1760 PH_1908 PH_1005" >
+			<PeptideHit score="0.256918552573896" sequence="KLSTM(Oxidation)" charge="1" aa_before="R X X X X X X X X X X X X X" protein_refs="PH_1878 PH_1578 PH_1643 PH_1872 PH_1708 PH_878 PH_1518 PH_1598 PH_1462 PH_1065 PH_1551 PH_1760 PH_1908 PH_1005" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="1.39792608400336e06"/>
 			</PeptideHit>
@@ -9703,7 +9703,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="592.559999999999945" RT="2598.0" >
-			<PeptideHit score="0.674931329890633" sequence="EMRR" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" aa_after="Q X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_1249 PH_1111 PH_1103 PH_906 PH_905 PH_961 PH_1093 PH_1375 PH_1019 PH_1045 PH_1156 PH_1377 PH_1302 PH_1246 PH_1589 PH_1473 PH_1363 PH_1968 PH_943 PH_1586 PH_1087 PH_1279 PH_1600 PH_1695 PH_1773 PH_1719 PH_775 PH_834 PH_1590 PH_1060 PH_1625 PH_1868 PH_1167 PH_849 PH_1759 PH_1758 PH_1338 PH_1802 PH_1803 PH_1865 PH_1513 PH_1210 PH_782 PH_1016 PH_838 PH_847 PH_1011 PH_1080 PH_1037 PH_1131 PH_1435 PH_858 PH_1821 PH_1677 PH_939 PH_1871 PH_1762 PH_1427 PH_1511 PH_1720 PH_1150 PH_1816 PH_886 PH_1112 PH_1208 PH_1766 PH_726 PH_1870 PH_1154 PH_1415 PH_1416 PH_1631 PH_1810 PH_763 PH_764 PH_1682 PH_1158 PH_1565 PH_1619 PH_1457 PH_1652 PH_1933 PH_1024 PH_760 PH_1477 PH_1919 PH_1360 PH_1482 PH_1894 PH_829 PH_759 PH_1134 PH_881 PH_1863 PH_1636 PH_1967 PH_1229 PH_1198 PH_1464 PH_1973 PH_1588 PH_1086 PH_1012 PH_988 PH_1299 PH_1002 PH_1003 PH_999 PH_1000 PH_1794 PH_1754 PH_1580 PH_1941 PH_1378 PH_1576 PH_1577 PH_899 PH_1410 PH_1809 PH_1342 PH_1924 PH_816 PH_1268 PH_1376 PH_907 PH_1010 PH_1032 PH_945 PH_897 PH_1845 PH_1438 PH_1125 PH_1776 PH_1777 PH_1891 PH_717 PH_1974 PH_1380 PH_1556 PH_952" >
+			<PeptideHit score="0.289445728157164" sequence="EMRR" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" aa_after="Q X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_1249 PH_1111 PH_1103 PH_906 PH_905 PH_961 PH_1093 PH_1375 PH_1019 PH_1045 PH_1156 PH_1377 PH_1302 PH_1246 PH_1589 PH_1473 PH_1363 PH_1968 PH_943 PH_1586 PH_1087 PH_1279 PH_1600 PH_1695 PH_1773 PH_1719 PH_775 PH_834 PH_1590 PH_1060 PH_1625 PH_1868 PH_1167 PH_849 PH_1759 PH_1758 PH_1338 PH_1802 PH_1803 PH_1865 PH_1513 PH_1210 PH_782 PH_1016 PH_838 PH_847 PH_1011 PH_1080 PH_1037 PH_1131 PH_1435 PH_858 PH_1821 PH_1677 PH_939 PH_1871 PH_1762 PH_1427 PH_1511 PH_1720 PH_1150 PH_1816 PH_886 PH_1112 PH_1208 PH_1766 PH_726 PH_1870 PH_1154 PH_1415 PH_1416 PH_1631 PH_1810 PH_763 PH_764 PH_1682 PH_1158 PH_1565 PH_1619 PH_1457 PH_1652 PH_1933 PH_1024 PH_760 PH_1477 PH_1919 PH_1360 PH_1482 PH_1894 PH_829 PH_759 PH_1134 PH_881 PH_1863 PH_1636 PH_1967 PH_1229 PH_1198 PH_1464 PH_1973 PH_1588 PH_1086 PH_1012 PH_988 PH_1299 PH_1002 PH_1003 PH_999 PH_1000 PH_1794 PH_1754 PH_1580 PH_1941 PH_1378 PH_1576 PH_1577 PH_899 PH_1410 PH_1809 PH_1342 PH_1924 PH_816 PH_1268 PH_1376 PH_907 PH_1010 PH_1032 PH_945 PH_897 PH_1845 PH_1438 PH_1125 PH_1776 PH_1777 PH_1891 PH_717 PH_1974 PH_1380 PH_1556 PH_952" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="1.4931056863062e07"/>
 			</PeptideHit>
@@ -9751,7 +9751,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="1146.3900000000001" RT="2628.0" >
-			<PeptideHit score="0.673429222191936" sequence="ERPTFETLR" charge="1" aa_before="K" aa_after="W" protein_refs="PH_942" >
+			<PeptideHit score="0.242768791857903" sequence="ERPTFETLR" charge="1" aa_before="K" aa_after="W" protein_refs="PH_942" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="OMSSA_score" value="4.98914995092863e05"/>
 			</PeptideHit>
@@ -9769,7 +9769,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="1159.900000000000091" RT="2628.0" >
-			<PeptideHit score="0.672886521041984" sequence="FLC(Carbamidomethyl)IGLVPNK" charge="1" aa_before="K" aa_after="K" protein_refs="PH_797" >
+			<PeptideHit score="0.225904736752022" sequence="FLC(Carbamidomethyl)IGLVPNK" charge="1" aa_before="K" aa_after="K" protein_refs="PH_797" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="OMSSA_score" value="1.46128463731989e05"/>
 			</PeptideHit>
@@ -9985,13 +9985,13 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="445.079999999999984" RT="2754.0" >
-			<PeptideHit score="0.675072409604784" sequence="GPLGV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_831 PH_1536 PH_1520 PH_1527 PH_1716 PH_911 PH_1522 PH_1519 PH_1523 PH_1535 PH_1763 PH_1179 PH_1534 PH_1516 PH_893 PH_1143 PH_1178 PH_1533 PH_1607 PH_1584 PH_1703 PH_1718 PH_1675 PH_1517 PH_761 PH_808 PH_1135 PH_1102 PH_1368 PH_1495 PH_1521 PH_1654 PH_1033 PH_1982 PH_1529 PH_1528 PH_1525 PH_1524 PH_1531 PH_1532 PH_1587 PH_1932 PH_1212 PH_1530 PH_802 PH_1290 PH_1289 PH_1515 PH_1414" >
+			<PeptideHit score="0.293829680676831" sequence="GPLGV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_831 PH_1536 PH_1520 PH_1527 PH_1716 PH_911 PH_1522 PH_1519 PH_1523 PH_1535 PH_1763 PH_1179 PH_1534 PH_1516 PH_893 PH_1143 PH_1178 PH_1533 PH_1607 PH_1584 PH_1703 PH_1718 PH_1675 PH_1517 PH_761 PH_808 PH_1135 PH_1102 PH_1368 PH_1495 PH_1521 PH_1654 PH_1033 PH_1982 PH_1529 PH_1528 PH_1525 PH_1524 PH_1531 PH_1532 PH_1587 PH_1932 PH_1212 PH_1530 PH_802 PH_1290 PH_1289 PH_1515 PH_1414" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="2.0545854497208e07"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="519.090000000000032" RT="2754.0" >
-			<PeptideHit score="0.673880344576299" sequence="C(Carbamidomethyl)AIR" charge="1" aa_before="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" aa_after="I X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_1100 PH_1939 PH_1724 PH_1736 PH_1746 PH_1889 PH_1890 PH_1674 PH_1066 PH_767 PH_766 PH_1458 PH_1459 PH_1648 PH_1647 PH_1786 PH_710 PH_1448 PH_1181 PH_1596 PH_1972 PH_1328 PH_938 PH_1818 PH_1962 PH_1928 PH_813 PH_1567 PH_745 PH_1627 PH_1475 PH_1787 PH_1685 PH_1971 PH_1667 PH_1874 PH_1781 PH_1782 PH_1575 PH_1574 PH_920" >
+			<PeptideHit score="0.256787101474691" sequence="C(Carbamidomethyl)AIR" charge="1" aa_before="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" aa_after="I X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_1100 PH_1939 PH_1724 PH_1736 PH_1746 PH_1889 PH_1890 PH_1674 PH_1066 PH_767 PH_766 PH_1458 PH_1459 PH_1648 PH_1647 PH_1786 PH_710 PH_1448 PH_1181 PH_1596 PH_1972 PH_1328 PH_938 PH_1818 PH_1962 PH_1928 PH_813 PH_1567 PH_745 PH_1627 PH_1475 PH_1787 PH_1685 PH_1971 PH_1667 PH_1874 PH_1781 PH_1782 PH_1575 PH_1574 PH_920" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="1.38460958127796e06"/>
 			</PeptideHit>
@@ -10003,19 +10003,19 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="462.069999999999993" RT="2814.0" >
-			<PeptideHit score="0.674187834227317" sequence="TIQV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_1390 PH_863 PH_1192 PH_1251 PH_1609 PH_1610 PH_1088 PH_809 PH_790 PH_1614 PH_787 PH_715 PH_1838 PH_798 PH_946 PH_727 PH_1799 PH_941 PH_1221 PH_1552 PH_1836 PH_884 PH_1510 PH_1386 PH_1393 PH_781 PH_709 PH_1751 PH_1558 PH_1846 PH_832 PH_1423 PH_1747 PH_1645 PH_1544 PH_1472 PH_1309 PH_1144 PH_927 PH_1828 PH_1310 PH_1194 PH_1036 PH_1657 PH_1307 PH_970 PH_1362 PH_1147 PH_791 PH_895 PH_1262 PH_997 PH_1168 PH_1152 PH_693 PH_1579 PH_1105 PH_1800 PH_1297 PH_1208 PH_1756 PH_1663 PH_879 PH_1177 PH_1356 PH_1357 PH_810 PH_968 PH_818 PH_1322 PH_1586 PH_935 PH_1945 PH_1295 PH_1618 PH_753 PH_1975 PH_750 PH_1976 PH_910 PH_1559 PH_1180 PH_1745 PH_801 PH_1804 PH_768 PH_1955 PH_877 PH_1157 PH_1253 PH_1923 PH_1569 PH_1422 PH_1659 PH_1169 PH_1355 PH_1117 PH_978 PH_1304 PH_1454 PH_1455 PH_1214 PH_1924 PH_707 PH_1182 PH_1277 PH_1843 PH_1485 PH_1432 PH_867 PH_1094 PH_1095 PH_936 PH_1687 PH_1621 PH_1833 PH_1901 PH_1374 PH_799 PH_800 PH_731 PH_792 PH_1673 PH_1004 PH_1075 PH_1173 PH_1022 PH_951 PH_779 PH_1467 PH_1952 PH_1343 PH_974 PH_1602 PH_1722 PH_1723 PH_1294 PH_1350 PH_922" >
+			<PeptideHit score="0.266342125302668" sequence="TIQV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_1390 PH_863 PH_1192 PH_1251 PH_1609 PH_1610 PH_1088 PH_809 PH_790 PH_1614 PH_787 PH_715 PH_1838 PH_798 PH_946 PH_727 PH_1799 PH_941 PH_1221 PH_1552 PH_1836 PH_884 PH_1510 PH_1386 PH_1393 PH_781 PH_709 PH_1751 PH_1558 PH_1846 PH_832 PH_1423 PH_1747 PH_1645 PH_1544 PH_1472 PH_1309 PH_1144 PH_927 PH_1828 PH_1310 PH_1194 PH_1036 PH_1657 PH_1307 PH_970 PH_1362 PH_1147 PH_791 PH_895 PH_1262 PH_997 PH_1168 PH_1152 PH_693 PH_1579 PH_1105 PH_1800 PH_1297 PH_1208 PH_1756 PH_1663 PH_879 PH_1177 PH_1356 PH_1357 PH_810 PH_968 PH_818 PH_1322 PH_1586 PH_935 PH_1945 PH_1295 PH_1618 PH_753 PH_1975 PH_750 PH_1976 PH_910 PH_1559 PH_1180 PH_1745 PH_801 PH_1804 PH_768 PH_1955 PH_877 PH_1157 PH_1253 PH_1923 PH_1569 PH_1422 PH_1659 PH_1169 PH_1355 PH_1117 PH_978 PH_1304 PH_1454 PH_1455 PH_1214 PH_1924 PH_707 PH_1182 PH_1277 PH_1843 PH_1485 PH_1432 PH_867 PH_1094 PH_1095 PH_936 PH_1687 PH_1621 PH_1833 PH_1901 PH_1374 PH_799 PH_800 PH_731 PH_792 PH_1673 PH_1004 PH_1075 PH_1173 PH_1022 PH_951 PH_779 PH_1467 PH_1952 PH_1343 PH_974 PH_1602 PH_1722 PH_1723 PH_1294 PH_1350 PH_922" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="2.77642339094377e06"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="666.980000000000018" RT="2934.0" >
-			<PeptideHit score="0.674088799078548" sequence="LPDPAR" charge="1" aa_before="K X" aa_after="E X" protein_refs="PH_1026 PH_1834" >
+			<PeptideHit score="0.263264677970189" sequence="LPDPAR" charge="1" aa_before="K X" aa_after="E X" protein_refs="PH_1026 PH_1834" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="2.21905275948081e06"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="666.759999999999991" RT="2982.0" >
-			<PeptideHit score="0.673235736395021" sequence="SEAAMR" charge="1" aa_before="R" aa_after="T" protein_refs="PH_1490" >
+			<PeptideHit score="0.23675635731328" sequence="SEAAMR" charge="1" aa_before="R" aa_after="T" protein_refs="PH_1490" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="3.22029336975508e05"/>
 			</PeptideHit>
@@ -11619,7 +11619,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="667.07000000000005" RT="270.0" >
-			<PeptideHit score="0.673427191762043" sequence="KPVLGR" charge="1" aa_after="S" protein_refs="PH_2608" >
+			<PeptideHit score="0.242705697682422" sequence="KPVLGR" charge="1" aa_after="S" protein_refs="PH_2608" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="4.96628147999259e05"/>
 			</PeptideHit>
@@ -11691,7 +11691,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="739.360000000000014" RT="390.0" >
-			<PeptideHit score="0.673397132096496" sequence="YKAAMR" charge="1" aa_before="R" aa_after="R" protein_refs="PH_2007" >
+			<PeptideHit score="0.241771614796658" sequence="YKAAMR" charge="1" aa_before="R" aa_after="R" protein_refs="PH_2007" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="OMSSA_score" value="4.63973143987499e05"/>
 			</PeptideHit>
@@ -14457,7 +14457,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="462.170000000000016" RT="2052.0" >
-			<PeptideHit score="0.674662587856051" sequence="TGMR" charge="1" aa_before="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" aa_after="E X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_2445 PH_2283 PH_2046 PH_2045 PH_2543 PH_2541 PH_2542 PH_2627 PH_2574 PH_2775 PH_2086 PH_2292 PH_2372 PH_2517 PH_2732 PH_2682 PH_2301 PH_2302 PH_2478 PH_2783 PH_2347 PH_2709 PH_2629 PH_2380 PH_2473 PH_2663 PH_2476 PH_2469 PH_2673 PH_2538 PH_2284 PH_2524 PH_2678 PH_2110 PH_2140 PH_2415 PH_2341 PH_2713 PH_2712 PH_2040 PH_2331 PH_2662 PH_2406 PH_2590 PH_2599 PH_2704 PH_2546 PH_2078 PH_2211 PH_2625 PH_2221 PH_2638 PH_2683 PH_2355 PH_2752 PH_2260 PH_2450 PH_2512" >
+			<PeptideHit score="0.281094759155418" sequence="TGMR" charge="1" aa_before="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" aa_after="E X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_2445 PH_2283 PH_2046 PH_2045 PH_2543 PH_2541 PH_2542 PH_2627 PH_2574 PH_2775 PH_2086 PH_2292 PH_2372 PH_2517 PH_2732 PH_2682 PH_2301 PH_2302 PH_2478 PH_2783 PH_2347 PH_2709 PH_2629 PH_2380 PH_2473 PH_2663 PH_2476 PH_2469 PH_2673 PH_2538 PH_2284 PH_2524 PH_2678 PH_2110 PH_2140 PH_2415 PH_2341 PH_2713 PH_2712 PH_2040 PH_2331 PH_2662 PH_2406 PH_2590 PH_2599 PH_2704 PH_2546 PH_2078 PH_2211 PH_2625 PH_2221 PH_2638 PH_2683 PH_2355 PH_2752 PH_2260 PH_2450 PH_2512" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="8.12845476848062e06"/>
 			</PeptideHit>
@@ -14487,7 +14487,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="666.899999999999977" RT="2370.0" >
-			<PeptideHit score="0.673872139530025" sequence="NIPPAR" charge="1" aa_before="R X" aa_after="W X" protein_refs="PH_2039 PH_2038" >
+			<PeptideHit score="0.256532135454202" sequence="NIPPAR" charge="1" aa_before="R X" aa_after="W X" protein_refs="PH_2039 PH_2038" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="OMSSA_score" value="1.35914110201325e06"/>
 			</PeptideHit>
@@ -14505,7 +14505,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="519.07000000000005" RT="2592.0" >
-			<PeptideHit score="0.673578376959664" sequence="GCSPR" charge="1" aa_before="R X X X X X X X X X X X" aa_after="V X X X X X X X X X X X" protein_refs="PH_2076 PH_2612 PH_2611 PH_2317 PH_2334 PH_2615 PH_2771 PH_2680 PH_2562 PH_2298 PH_2594 PH_2135" >
+			<PeptideHit score="0.247403670966785" sequence="GCSPR" charge="1" aa_before="R X X X X X X X X X X X" aa_after="V X X X X X X X X X X X" protein_refs="PH_2076 PH_2612 PH_2611 PH_2317 PH_2334 PH_2615 PH_2771 PH_2680 PH_2562 PH_2298 PH_2594 PH_2135" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="6.9919008843965e05"/>
 			</PeptideHit>
@@ -14745,7 +14745,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="461.899999999999977" RT="2760.0" >
-			<PeptideHit score="0.674124946537957" sequence="TIQV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_2411 PH_2102 PH_2286 PH_2318 PH_2567 PH_2568 PH_2215 PH_2060 PH_2048 PH_2572 PH_2047 PH_2008 PH_2700 PH_2053 PH_2143 PH_2015 PH_2671 PH_2140 PH_2294 PH_2519 PH_2697 PH_2114 PH_2502 PH_2409 PH_2413 PH_2044 PH_2005 PH_2652 PH_2523 PH_2705 PH_2080 PH_2427 PH_2649 PH_2586 PH_2513 PH_2470 PH_2361 PH_2261 PH_2130 PH_2689 PH_2363 PH_2287 PH_2190 PH_2588 PH_2358 PH_2158 PH_2392 PH_2263 PH_2049 PH_2117 PH_2328 PH_2174 PH_2273 PH_2265 PH_1992 PH_2539 PH_2225 PH_2672 PH_2348 PH_2288 PH_2655 PH_2592 PH_2113 PH_2278 PH_2387 PH_2388 PH_2061 PH_2157 PH_2066 PH_2371 PH_2550 PH_2138 PH_2749 PH_2346 PH_2575 PH_2032 PH_2777 PH_2028 PH_2778 PH_2121 PH_2525 PH_2280 PH_2648 PH_2056 PH_2675 PH_2035 PH_2757 PH_2112 PH_2270 PH_2319 PH_2738 PH_2531 PH_2426 PH_2589 PH_2274 PH_2386 PH_2234 PH_2161 PH_2351 PH_2454 PH_2455 PH_2291 PH_2739 PH_2004 PH_2282 PH_2335 PH_2703 PH_2477 PH_2434 PH_2106 PH_2219 PH_2220 PH_2139 PH_2604 PH_2577 PH_2695 PH_2731 PH_2400 PH_2054 PH_2055 PH_2017 PH_2050 PH_2598 PH_2175 PH_2208 PH_2277 PH_2187 PH_2144 PH_2043 PH_2463 PH_2756 PH_2381 PH_2160 PH_2560 PH_2631 PH_2632 PH_2345 PH_2383 PH_2128" >
+			<PeptideHit score="0.264387934752423" sequence="TIQV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_2411 PH_2102 PH_2286 PH_2318 PH_2567 PH_2568 PH_2215 PH_2060 PH_2048 PH_2572 PH_2047 PH_2008 PH_2700 PH_2053 PH_2143 PH_2015 PH_2671 PH_2140 PH_2294 PH_2519 PH_2697 PH_2114 PH_2502 PH_2409 PH_2413 PH_2044 PH_2005 PH_2652 PH_2523 PH_2705 PH_2080 PH_2427 PH_2649 PH_2586 PH_2513 PH_2470 PH_2361 PH_2261 PH_2130 PH_2689 PH_2363 PH_2287 PH_2190 PH_2588 PH_2358 PH_2158 PH_2392 PH_2263 PH_2049 PH_2117 PH_2328 PH_2174 PH_2273 PH_2265 PH_1992 PH_2539 PH_2225 PH_2672 PH_2348 PH_2288 PH_2655 PH_2592 PH_2113 PH_2278 PH_2387 PH_2388 PH_2061 PH_2157 PH_2066 PH_2371 PH_2550 PH_2138 PH_2749 PH_2346 PH_2575 PH_2032 PH_2777 PH_2028 PH_2778 PH_2121 PH_2525 PH_2280 PH_2648 PH_2056 PH_2675 PH_2035 PH_2757 PH_2112 PH_2270 PH_2319 PH_2738 PH_2531 PH_2426 PH_2589 PH_2274 PH_2386 PH_2234 PH_2161 PH_2351 PH_2454 PH_2455 PH_2291 PH_2739 PH_2004 PH_2282 PH_2335 PH_2703 PH_2477 PH_2434 PH_2106 PH_2219 PH_2220 PH_2139 PH_2604 PH_2577 PH_2695 PH_2731 PH_2400 PH_2054 PH_2055 PH_2017 PH_2050 PH_2598 PH_2175 PH_2208 PH_2277 PH_2187 PH_2144 PH_2043 PH_2463 PH_2756 PH_2381 PH_2160 PH_2560 PH_2631 PH_2632 PH_2345 PH_2383 PH_2128" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="2.40817674832828e06"/>
 			</PeptideHit>
@@ -14763,7 +14763,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="519.129999999999995" RT="2808.0" >
-			<PeptideHit score="0.674016598162064" sequence="C(Carbamidomethyl)LAR" charge="1" aa_before="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" aa_after="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_2702 PH_2737 PH_2501 PH_2500 PH_2199 PH_2188 PH_2003 PH_2002 PH_2227 PH_2349 PH_2754 PH_2296 PH_2226 PH_2224 PH_2228 PH_2229 PH_2692 PH_2597 PH_2494 PH_2619 PH_2483 PH_2393 PH_2120 PH_2667 PH_2715 PH_2471 PH_2556 PH_2511 PH_2581 PH_2370 PH_2205 PH_2285 PH_2255 PH_2558 PH_2326 PH_2322 PH_2324 PH_2323 PH_2325 PH_2320 PH_2321 PH_2195 PH_2721 PH_2784 PH_2521 PH_2276 PH_2267 PH_2578 PH_2579 PH_2646 PH_2742 PH_2720 PH_2439 PH_2694 PH_2442 PH_2725 PH_2616 PH_2684 PH_2685 PH_2696 PH_2526 PH_2486 PH_2089 PH_2384 PH_2122 PH_2168 PH_2167 PH_2107 PH_2156 PH_2555 PH_2312 PH_2098 PH_2051 PH_2766 PH_2136 PH_2762 PH_2429 PH_2398 PH_2664 PH_2584 PH_2380 PH_2217 PH_2399 PH_2412 PH_2508 PH_2248 PH_2583 PH_2456 PH_2765 PH_2179 PH_2760 PH_2746 PH_2303 PH_2677 PH_2236 PH_2344 PH_2585 PH_2031 PH_2126 PH_2202 PH_2665 PH_2313 PH_2654 PH_2489 PH_2569 PH_2443 PH_2309 PH_2741 PH_2103 PH_2785 PH_2368 PH_2528 PH_2377 PH_2780 PH_2204 PH_2177 PH_2503 PH_2639 PH_2779 PH_2518 PH_2330 PH_2132 PH_2643 PH_2706 PH_2178 PH_2595 PH_2701 PH_2750 PH_2744 PH_2723 PH_2729 PH_2600 PH_2751 PH_2636 PH_2072 PH_2745 PH_2011 PH_2385 PH_2432 PH_2194 PH_2642 PH_2254 PH_2421 PH_2666 PH_2328 PH_2552 PH_2659 PH_2661 PH_2660 PH_2718 PH_2656 PH_2034 PH_2295 PH_2730 PH_2644 PH_2422 PH_2096 PH_2451 PH_2740 PH_1997 PH_1998 PH_1996 PH_2104 PH_2016 PH_1999 PH_2253 PH_2529 PH_2481 PH_2146 PH_2698 PH_2441 PH_2306 PH_2212 PH_2420 PH_2419 PH_2360 PH_2444 PH_2726 PH_2019 PH_2544 PH_2201 PH_2245 PH_2207 PH_2250 PH_2491 PH_2449 PH_2262 PH_2492 PH_2493 PH_2747 PH_2071 PH_2606 PH_2561 PH_2428 PH_2424 PH_2115 PH_2173 PH_2719 PH_2714 PH_2509 PH_2711 PH_2249 PH_2176 PH_2366 PH_2460 PH_2516 PH_2514 PH_2365 PH_2628 PH_2515 PH_2133 PH_2637 PH_2496 PH_2649 PH_2446 PH_2626 PH_2761 PH_2459 PH_2305 PH_2434 PH_2688 PH_2479" >
+			<PeptideHit score="0.26102108546187" sequence="C(Carbamidomethyl)LAR" charge="1" aa_before="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" aa_after="R X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_2702 PH_2737 PH_2501 PH_2500 PH_2199 PH_2188 PH_2003 PH_2002 PH_2227 PH_2349 PH_2754 PH_2296 PH_2226 PH_2224 PH_2228 PH_2229 PH_2692 PH_2597 PH_2494 PH_2619 PH_2483 PH_2393 PH_2120 PH_2667 PH_2715 PH_2471 PH_2556 PH_2511 PH_2581 PH_2370 PH_2205 PH_2285 PH_2255 PH_2558 PH_2326 PH_2322 PH_2324 PH_2323 PH_2325 PH_2320 PH_2321 PH_2195 PH_2721 PH_2784 PH_2521 PH_2276 PH_2267 PH_2578 PH_2579 PH_2646 PH_2742 PH_2720 PH_2439 PH_2694 PH_2442 PH_2725 PH_2616 PH_2684 PH_2685 PH_2696 PH_2526 PH_2486 PH_2089 PH_2384 PH_2122 PH_2168 PH_2167 PH_2107 PH_2156 PH_2555 PH_2312 PH_2098 PH_2051 PH_2766 PH_2136 PH_2762 PH_2429 PH_2398 PH_2664 PH_2584 PH_2380 PH_2217 PH_2399 PH_2412 PH_2508 PH_2248 PH_2583 PH_2456 PH_2765 PH_2179 PH_2760 PH_2746 PH_2303 PH_2677 PH_2236 PH_2344 PH_2585 PH_2031 PH_2126 PH_2202 PH_2665 PH_2313 PH_2654 PH_2489 PH_2569 PH_2443 PH_2309 PH_2741 PH_2103 PH_2785 PH_2368 PH_2528 PH_2377 PH_2780 PH_2204 PH_2177 PH_2503 PH_2639 PH_2779 PH_2518 PH_2330 PH_2132 PH_2643 PH_2706 PH_2178 PH_2595 PH_2701 PH_2750 PH_2744 PH_2723 PH_2729 PH_2600 PH_2751 PH_2636 PH_2072 PH_2745 PH_2011 PH_2385 PH_2432 PH_2194 PH_2642 PH_2254 PH_2421 PH_2666 PH_2328 PH_2552 PH_2659 PH_2661 PH_2660 PH_2718 PH_2656 PH_2034 PH_2295 PH_2730 PH_2644 PH_2422 PH_2096 PH_2451 PH_2740 PH_1997 PH_1998 PH_1996 PH_2104 PH_2016 PH_1999 PH_2253 PH_2529 PH_2481 PH_2146 PH_2698 PH_2441 PH_2306 PH_2212 PH_2420 PH_2419 PH_2360 PH_2444 PH_2726 PH_2019 PH_2544 PH_2201 PH_2245 PH_2207 PH_2250 PH_2491 PH_2449 PH_2262 PH_2492 PH_2493 PH_2747 PH_2071 PH_2606 PH_2561 PH_2428 PH_2424 PH_2115 PH_2173 PH_2719 PH_2714 PH_2509 PH_2711 PH_2249 PH_2176 PH_2366 PH_2460 PH_2516 PH_2514 PH_2365 PH_2628 PH_2515 PH_2133 PH_2637 PH_2496 PH_2649 PH_2446 PH_2626 PH_2761 PH_2459 PH_2305 PH_2434 PH_2688 PH_2479" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="1.88459718829588e06"/>
 			</PeptideHit>
@@ -14781,13 +14781,13 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="462.089999999999975" RT="2892.0" >
-			<PeptideHit score="0.674534584584918" sequence="TIQV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_2411 PH_2102 PH_2286 PH_2318 PH_2567 PH_2568 PH_2215 PH_2060 PH_2048 PH_2572 PH_2047 PH_2008 PH_2700 PH_2053 PH_2143 PH_2015 PH_2671 PH_2140 PH_2294 PH_2519 PH_2697 PH_2114 PH_2502 PH_2409 PH_2413 PH_2044 PH_2005 PH_2652 PH_2523 PH_2705 PH_2080 PH_2427 PH_2649 PH_2586 PH_2513 PH_2470 PH_2361 PH_2261 PH_2130 PH_2689 PH_2363 PH_2287 PH_2190 PH_2588 PH_2358 PH_2158 PH_2392 PH_2263 PH_2049 PH_2117 PH_2328 PH_2174 PH_2273 PH_2265 PH_1992 PH_2539 PH_2225 PH_2672 PH_2348 PH_2288 PH_2655 PH_2592 PH_2113 PH_2278 PH_2387 PH_2388 PH_2061 PH_2157 PH_2066 PH_2371 PH_2550 PH_2138 PH_2749 PH_2346 PH_2575 PH_2032 PH_2777 PH_2028 PH_2778 PH_2121 PH_2525 PH_2280 PH_2648 PH_2056 PH_2675 PH_2035 PH_2757 PH_2112 PH_2270 PH_2319 PH_2738 PH_2531 PH_2426 PH_2589 PH_2274 PH_2386 PH_2234 PH_2161 PH_2351 PH_2454 PH_2455 PH_2291 PH_2739 PH_2004 PH_2282 PH_2335 PH_2703 PH_2477 PH_2434 PH_2106 PH_2219 PH_2220 PH_2139 PH_2604 PH_2577 PH_2695 PH_2731 PH_2400 PH_2054 PH_2055 PH_2017 PH_2050 PH_2598 PH_2175 PH_2208 PH_2277 PH_2187 PH_2144 PH_2043 PH_2463 PH_2756 PH_2381 PH_2160 PH_2560 PH_2631 PH_2632 PH_2345 PH_2383 PH_2128" >
+			<PeptideHit score="0.277117147870964" sequence="TIQV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_2411 PH_2102 PH_2286 PH_2318 PH_2567 PH_2568 PH_2215 PH_2060 PH_2048 PH_2572 PH_2047 PH_2008 PH_2700 PH_2053 PH_2143 PH_2015 PH_2671 PH_2140 PH_2294 PH_2519 PH_2697 PH_2114 PH_2502 PH_2409 PH_2413 PH_2044 PH_2005 PH_2652 PH_2523 PH_2705 PH_2080 PH_2427 PH_2649 PH_2586 PH_2513 PH_2470 PH_2361 PH_2261 PH_2130 PH_2689 PH_2363 PH_2287 PH_2190 PH_2588 PH_2358 PH_2158 PH_2392 PH_2263 PH_2049 PH_2117 PH_2328 PH_2174 PH_2273 PH_2265 PH_1992 PH_2539 PH_2225 PH_2672 PH_2348 PH_2288 PH_2655 PH_2592 PH_2113 PH_2278 PH_2387 PH_2388 PH_2061 PH_2157 PH_2066 PH_2371 PH_2550 PH_2138 PH_2749 PH_2346 PH_2575 PH_2032 PH_2777 PH_2028 PH_2778 PH_2121 PH_2525 PH_2280 PH_2648 PH_2056 PH_2675 PH_2035 PH_2757 PH_2112 PH_2270 PH_2319 PH_2738 PH_2531 PH_2426 PH_2589 PH_2274 PH_2386 PH_2234 PH_2161 PH_2351 PH_2454 PH_2455 PH_2291 PH_2739 PH_2004 PH_2282 PH_2335 PH_2703 PH_2477 PH_2434 PH_2106 PH_2219 PH_2220 PH_2139 PH_2604 PH_2577 PH_2695 PH_2731 PH_2400 PH_2054 PH_2055 PH_2017 PH_2050 PH_2598 PH_2175 PH_2208 PH_2277 PH_2187 PH_2144 PH_2043 PH_2463 PH_2756 PH_2381 PH_2160 PH_2560 PH_2631 PH_2632 PH_2345 PH_2383 PH_2128" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="6.08448825168842e06"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="462.089999999999975" RT="2982.0" >
-			<PeptideHit score="0.674534584584918" sequence="TIQV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_2411 PH_2102 PH_2286 PH_2318 PH_2567 PH_2568 PH_2215 PH_2060 PH_2048 PH_2572 PH_2047 PH_2008 PH_2700 PH_2053 PH_2143 PH_2015 PH_2671 PH_2140 PH_2294 PH_2519 PH_2697 PH_2114 PH_2502 PH_2409 PH_2413 PH_2044 PH_2005 PH_2652 PH_2523 PH_2705 PH_2080 PH_2427 PH_2649 PH_2586 PH_2513 PH_2470 PH_2361 PH_2261 PH_2130 PH_2689 PH_2363 PH_2287 PH_2190 PH_2588 PH_2358 PH_2158 PH_2392 PH_2263 PH_2049 PH_2117 PH_2328 PH_2174 PH_2273 PH_2265 PH_1992 PH_2539 PH_2225 PH_2672 PH_2348 PH_2288 PH_2655 PH_2592 PH_2113 PH_2278 PH_2387 PH_2388 PH_2061 PH_2157 PH_2066 PH_2371 PH_2550 PH_2138 PH_2749 PH_2346 PH_2575 PH_2032 PH_2777 PH_2028 PH_2778 PH_2121 PH_2525 PH_2280 PH_2648 PH_2056 PH_2675 PH_2035 PH_2757 PH_2112 PH_2270 PH_2319 PH_2738 PH_2531 PH_2426 PH_2589 PH_2274 PH_2386 PH_2234 PH_2161 PH_2351 PH_2454 PH_2455 PH_2291 PH_2739 PH_2004 PH_2282 PH_2335 PH_2703 PH_2477 PH_2434 PH_2106 PH_2219 PH_2220 PH_2139 PH_2604 PH_2577 PH_2695 PH_2731 PH_2400 PH_2054 PH_2055 PH_2017 PH_2050 PH_2598 PH_2175 PH_2208 PH_2277 PH_2187 PH_2144 PH_2043 PH_2463 PH_2756 PH_2381 PH_2160 PH_2560 PH_2631 PH_2632 PH_2345 PH_2383 PH_2128" >
+			<PeptideHit score="0.277117147870964" sequence="TIQV" charge="1" aa_before="K X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X" protein_refs="PH_2411 PH_2102 PH_2286 PH_2318 PH_2567 PH_2568 PH_2215 PH_2060 PH_2048 PH_2572 PH_2047 PH_2008 PH_2700 PH_2053 PH_2143 PH_2015 PH_2671 PH_2140 PH_2294 PH_2519 PH_2697 PH_2114 PH_2502 PH_2409 PH_2413 PH_2044 PH_2005 PH_2652 PH_2523 PH_2705 PH_2080 PH_2427 PH_2649 PH_2586 PH_2513 PH_2470 PH_2361 PH_2261 PH_2130 PH_2689 PH_2363 PH_2287 PH_2190 PH_2588 PH_2358 PH_2158 PH_2392 PH_2263 PH_2049 PH_2117 PH_2328 PH_2174 PH_2273 PH_2265 PH_1992 PH_2539 PH_2225 PH_2672 PH_2348 PH_2288 PH_2655 PH_2592 PH_2113 PH_2278 PH_2387 PH_2388 PH_2061 PH_2157 PH_2066 PH_2371 PH_2550 PH_2138 PH_2749 PH_2346 PH_2575 PH_2032 PH_2777 PH_2028 PH_2778 PH_2121 PH_2525 PH_2280 PH_2648 PH_2056 PH_2675 PH_2035 PH_2757 PH_2112 PH_2270 PH_2319 PH_2738 PH_2531 PH_2426 PH_2589 PH_2274 PH_2386 PH_2234 PH_2161 PH_2351 PH_2454 PH_2455 PH_2291 PH_2739 PH_2004 PH_2282 PH_2335 PH_2703 PH_2477 PH_2434 PH_2106 PH_2219 PH_2220 PH_2139 PH_2604 PH_2577 PH_2695 PH_2731 PH_2400 PH_2054 PH_2055 PH_2017 PH_2050 PH_2598 PH_2175 PH_2208 PH_2277 PH_2187 PH_2144 PH_2043 PH_2463 PH_2756 PH_2381 PH_2160 PH_2560 PH_2631 PH_2632 PH_2345 PH_2383 PH_2128" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="OMSSA_score" value="6.08448825168842e06"/>
 			</PeptideHit>

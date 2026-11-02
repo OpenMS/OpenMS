@@ -18,6 +18,7 @@
 #include <OpenMS/MATH/STATISTICS/GumbelMaxLikelihoodFitter.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/IdentifierMSRunMapper.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -89,22 +90,23 @@ namespace OpenMS::Math
       /// target/decoy status of a hit, parsed defensively (missing, empty or unexpected annotations yield UNKNOWN)
       TDLabel getTDLabel(const PeptideHit& hit)
       {
-        if (!hit.metaValueExists(Constants::UserParam::TARGET_DECOY))
+        try
         {
-          return TDLabel::UNKNOWN;
+          switch (hit.getTargetDecoyType())
+          {
+            case PeptideHit::TargetDecoyType::TARGET:
+            case PeptideHit::TargetDecoyType::TARGET_DECOY:
+              return TDLabel::TARGET;
+            case PeptideHit::TargetDecoyType::DECOY:
+              return TDLabel::DECOY;
+            default:
+              return TDLabel::UNKNOWN;
+          }
         }
-        std::string value = hit.getMetaValue(Constants::UserParam::TARGET_DECOY).toString();
-        StringUtils::trim(value);
-        StringUtils::toLower(value);
-        if (value == "target" || value == "target+decoy")
+        catch (Exception::InvalidValue&)
         {
-          return TDLabel::TARGET;
+          return TDLabel::UNKNOWN; // e.g. an empty annotation
         }
-        if (value == "decoy")
-        {
-          return TDLabel::DECOY;
-        }
-        return TDLabel::UNKNOWN;
       }
 
       /// upper-case and remove all non-alphanumeric characters, e.g. "X! Tandem" -> "XTANDEM"
@@ -220,17 +222,19 @@ namespace OpenMS::Math
         double min_score;  ///< smallest score in the block
         double max_score;  ///< largest score in the block
         double score_sum;  ///< sum of the scores of the PSMs in the block
+        double pseudo_decoys = 0.5; ///< pseudo-count of decoys for the shrunk decoy fraction (Jeffreys prior: 1/2 decoy, 1/2 target)
 
-        /// fraction of decoys, optionally with a Jeffreys prior (pseudo-count of 1/2 decoy and 1/2 target)
-        double decoyFraction(bool jeffreys) const
+        /// fraction of decoys, optionally shrunk by the pseudo-counts ((decoys + pseudo_decoys) / (n + 1))
+        double decoyFraction(bool shrunk) const
         {
-          return jeffreys ? (decoys + 0.5) / (n + 1.0) : decoys / n;
+          return shrunk ? (decoys + pseudo_decoys) / (n + 1.0) : decoys / n;
         }
 
         void merge(const PAVABlock& other)
         {
           n += other.n;
           decoys += other.decoys;
+          pseudo_decoys = std::max(pseudo_decoys, other.pseudo_decoys);
           min_score = std::min(min_score, other.min_score);
           max_score = std::max(max_score, other.max_score);
           score_sum += other.score_sum;
@@ -304,7 +308,7 @@ namespace OpenMS::Math
       incorrectly_assigned_fit_param_(GaussFitter::GaussFitResult(-1, -1, -1)),
       incorrectly_assigned_fit_gumbel_param_(GumbelMaxLikelihoodFitter::GumbelDistributionFitResult(-1,-1)),
       correctly_assigned_fit_param_(GaussFitter::GaussFitResult(-1, -1, -1)),
-      negative_prior_(0.5), max_incorrectly_(0), max_correctly_(0), smallest_score_(0),
+      negative_prior_(0.5), smallest_score_(0),
       model_type_(ModelType::NONE), incorrect_is_gumbel_(true), td_incorrect_fraction_(-1), calibration_warning_(false)
     {
       defaults_.setValue("out_plot", "", "If given, the some output files will be saved in the following manner: <out_plot>_scores.txt for the scores and <out_plot> which contains the fitted values for each step of the EM-algorithm, e.g., out_plot = /usr/home/OMSSA123 leads to /usr/home/OMSSA123_scores.txt, /usr/home/OMSSA123 will be written. If no directory is specified, e.g. instead of '/usr/home/OMSSA123' just OMSSA123, the files will be written into the working directory.", {"advanced","output file"});
@@ -677,8 +681,6 @@ namespace OpenMS::Math
                            "The data might not contain enough correct assignments. Unable to fit the data." << std::endl;
         return false;
       }
-      max_incorrectly_ = std::exp(logIncorrectDensity_(incorrectMode_()));
-      max_correctly_ = std::exp(logCorrectDensity_(correctly_assigned_fit_param_.x0));
 
       if (output_plots)
       {
@@ -944,7 +946,7 @@ namespace OpenMS::Math
       for (Size i = 0; i < psms.size(); )
       {
         const double score = psms[i].first;
-        PAVABlock group{0.0, 0.0, score, score, 0.0};
+        PAVABlock group{0.0, 0.0, score, score, 0.0, 0.5};
         for (; i < psms.size() && psms[i].first == score; ++i)
         {
           group.n += 1.0;
@@ -954,9 +956,15 @@ namespace OpenMS::Math
         addNonDecreasing(blocks, group, true, false);
       }
 
-      // 2) Jeffreys prior on the decoy fraction of each block (avoids PEPs of exactly 0 for blocks without decoys,
-      //    e.g. above the best scoring decoy, in particular if such a block is small), followed by pool-adjacent-violators
-      //    to restore monotonicity (one pseudo-count per final block)
+      // 2) Shrink the decoy fraction of each block with a Jeffreys prior (avoids PEPs of exactly 0 for blocks without decoys),
+      //    followed by pool-adjacent-violators to restore monotonicity (one pseudo-count per final block).
+      //    The targets above the best decoy contain on average 1 / decoy_ratio incorrect targets (the number of incorrect targets
+      //    before the first decoy is geometrically distributed), which a pseudo-count of one decoy for this block yields
+      //    (cf. the "+1" correction of target-decoy FDR estimates, (#decoys + 1) / #targets).
+      if (blocks.front().decoys == 0.0)
+      {
+        blocks.front().pseudo_decoys = 1.0;
+      }
       std::vector<PAVABlock> shrunk_blocks;
       for (const PAVABlock& b : blocks)
       {
@@ -970,16 +978,6 @@ namespace OpenMS::Math
       {
         const double p = std::min(b.decoyFraction(true), 1.0 - 1e-12);
         block_peps.push_back(std::min(1.0, p / (1.0 - p) / decoy_ratio));
-      }
-      // The targets above the best decoy contain on average 1 / decoy_ratio incorrect targets (the number of incorrect targets
-      // before the first decoy is geometrically distributed); cf. the "+1" correction of target-decoy FDR estimates.
-      if (shrunk_blocks.front().decoys == 0.0)
-      {
-        block_peps.front() = std::max(block_peps.front(), std::min(1.0, 1.0 / (decoy_ratio * shrunk_blocks.front().n)));
-      }
-      for (Size b = 1; b < block_peps.size(); ++b)
-      {
-        block_peps[b] = std::max(block_peps[b], block_peps[b - 1]);
       }
 
       // Curve: within a block, the PEP decreases linearly with the score around the block's PEP at the mean score of the block,
@@ -1321,7 +1319,7 @@ namespace OpenMS::Math
       }
       file << plot;
       file.store(out_plot + "_target_decoy");
-      if (!mixture)
+      if (!mixture && !out_plot.empty())
       {
         file.store(out_plot); // the non-parametric estimate has no other plot
       }
@@ -1485,41 +1483,56 @@ namespace OpenMS::Math
       }
     }
 
-    bool PosteriorErrorProbabilityModel::hasDedicatedScore_(const std::string& engine, const PeptideHit& hit, const std::string& current_score_type)
+    std::map<std::string, std::string> PosteriorErrorProbabilityModel::chooseScoreSources_(const std::map<std::string, std::string>& run_to_engine, const PeptideIdentificationList& peptide_ids)
     {
-      const DedicatedScores d = dedicatedScores(engine);
-      double value;
-      return !d.names.empty() && getScore_(d.names, hit, current_score_type, value);
-    }
-
-    std::set<std::string> PosteriorErrorProbabilityModel::runsWithDedicatedScores_(const std::map<std::string, std::string>& run_to_engine, const PeptideIdentificationList& peptide_ids)
-    {
-      std::set<std::string> runs;
+      // For each engine with dedicated support: the most preferred of its score types that any hit (of any run of the engine) has.
+      // A single score type per engine keeps all scores of a model on the same scale.
+      std::map<std::string, std::string> sources;
+      std::map<std::string, Size> best_rank; // engine -> index of the best score type found so far
+      for (const auto& [identifier, engine] : run_to_engine)
+      {
+        if (!dedicatedScores(engine).names.empty())
+        {
+          best_rank.emplace(engine, std::numeric_limits<Size>::max());
+        }
+        sources.emplace(engine, std::string());
+      }
       for (const PeptideIdentification& pep : peptide_ids)
       {
         auto engine_it = run_to_engine.find(pep.getIdentifier());
-        if (engine_it == run_to_engine.end() || runs.count(pep.getIdentifier()) > 0)
+        if (engine_it == run_to_engine.end())
         {
           continue;
         }
+        auto rank_it = best_rank.find(engine_it->second);
+        if (rank_it == best_rank.end() || rank_it->second == 0)
+        {
+          continue; // generic engine, or the most preferred score type was already found
+        }
+        const std::vector<std::string> names = dedicatedScores(engine_it->second).names;
         for (const PeptideHit& hit : pep.getHits())
         {
-          if (hasDedicatedScore_(engine_it->second, hit, pep.getScoreType()))
+          double value;
+          for (Size rank = 0; rank < std::min(rank_it->second, names.size()); ++rank)
           {
-            runs.insert(pep.getIdentifier());
-            break;
+            if (getScore_({names[rank]}, hit, pep.getScoreType(), value))
+            {
+              rank_it->second = rank;
+              sources[engine_it->second] = names[rank];
+              break;
+            }
           }
         }
       }
-      return runs;
+      return sources;
     }
 
-    double PosteriorErrorProbabilityModel::transformScore_(const std::string & engine, const PeptideHit & hit, const std::string& current_score_type, bool higher_score_better, bool generic_fallback)
+    double PosteriorErrorProbabilityModel::transformScore_(const std::string & engine, const PeptideHit & hit, const std::string& current_score_type, bool higher_score_better, const std::string& score_source)
     {
       //TODO implement censoring. 1) if value is below censoring take cumulative density below it, instead of point estimate
       const double nan = std::numeric_limits<double>::quiet_NaN();
 
-      if (!generic_fallback)
+      if (!score_source.empty())
       {
         // issue #740: unable to fit data with (ion) score 0
         if (engine == "MASCOT" && higher_score_better && hit.getScore() == 0.0)
@@ -1528,7 +1541,7 @@ namespace OpenMS::Math
         }
         const DedicatedScores d = dedicatedScores(engine);
         double value = 0;
-        if (!d.names.empty() && getScore_(d.names, hit, current_score_type, value))
+        if (getScore_({score_source}, hit, current_score_type, value))
         {
           return d.neg_log ? negLog10(value) : d.factor * value;
         }
@@ -1597,14 +1610,22 @@ namespace OpenMS::Math
 
       // search engine of each run
       std::map<std::string, std::string> run_to_engine;
-      std::map<std::string, StringList> run_to_ms_files; // spectra files of each run (for per-spectrum competition)
       for (const ProteinIdentification& prot : protein_ids)
       {
         run_to_engine[prot.getIdentifier()] = getSearchEngineKey(prot);
-        prot.getPrimaryMSRunPath(run_to_ms_files[prot.getIdentifier()]);
       }
-      // runs of supported engines use the dedicated score of the engine (if any hit has it), otherwise the main score
-      const std::set<std::string> dedicated_runs = runsWithDedicatedScores_(run_to_engine, peptide_ids);
+      // one score type per engine (the dedicated score of a supported engine, or the main score)
+      const std::map<std::string, std::string> score_sources = chooseScoreSources_(run_to_engine, peptide_ids);
+      // spectra files of the runs (to identify spectra across runs, e.g. separate target and decoy searches of the same file)
+      IdentifierMSRunMapper ms_runs;
+      try
+      {
+        ms_runs.create(protein_ids);
+      }
+      catch (Exception::InvalidValue&)
+      {
+        // several runs of the same spectra files: expected here; the mapping from runs to files is complete nevertheless
+      }
 
       struct ScoreGroup
       {
@@ -1617,73 +1638,72 @@ namespace OpenMS::Math
       };
 
       // Top hits (one per spectrum) are used for target-decoy based estimates. If a spectrum has several identifications
-      // (e.g. separate target and decoy searches of the same run), the best scoring top hit wins (ties: decoy),
-      // which reconstructs the target-decoy competition.
+      // (e.g. separate target and decoy searches), the best scoring top hit wins (ties: decoy), which reconstructs the
+      // target-decoy competition. The competition is per search engine (independent of the charge of the hits).
       struct TopHit
       {
         double score;
         bool is_decoy;
+        Int charge;
       };
-      std::map<std::string, std::map<std::string, TopHit>> top_hits; // group key -> spectrum key -> top hit
+      std::map<std::string, std::map<std::string, TopHit>> top_hits; // engine -> spectrum key -> top hit
       Size n_competitions = 0;
 
       for (Size pep_index = 0; pep_index < peptide_ids.size(); ++pep_index)
       {
-        const PeptideIdentification& pep_id = peptide_ids[pep_index];
-        auto engine_it = run_to_engine.find(pep_id.getIdentifier());
-        if (engine_it == run_to_engine.end() || pep_id.getHits().empty())
+        const PeptideIdentification& pep = peptide_ids[pep_index];
+        auto engine_it = run_to_engine.find(pep.getIdentifier());
+        if (engine_it == run_to_engine.end() || pep.getHits().empty())
         {
           continue;
         }
         const std::string& engine = engine_it->second;
-        PeptideIdentification pep(pep_id);
-        pep.sort();
+        const std::string& score_source = score_sources.at(engine);
         const vector<PeptideHit>& hits = pep.getHits();
         const std::string& score_type = pep.getScoreType();
         const bool higher_score_better = pep.isHigherScoreBetter();
-        const bool generic_fallback = (dedicated_runs.count(pep.getIdentifier()) == 0);
+
+        // top hit (first of the best scoring hits)
+        Size top_index = 0;
+        for (Size i = 1; i < hits.size(); ++i)
+        {
+          if (higher_score_better ? hits[i].getScore() > hits[top_index].getScore() : hits[i].getScore() < hits[top_index].getScore())
+          {
+            top_index = i;
+          }
+        }
 
         {
-          const PeptideHit& top = hits[0];
+          const PeptideHit& top = hits[top_index];
           const TDLabel label = getTDLabel(top);
-          const double score = transformScore_(engine, top, score_type, higher_score_better, generic_fallback);
+          const double score = transformScore_(engine, top, score_type, higher_score_better, score_source);
           if (!std::isnan(score) && label != TDLabel::UNKNOWN)
           {
-            std::string spectrum_key;
+            std::string spectrum_key = "#" + StringUtils::toStr(pep_index); // unknown spectrum: no competition
             const std::string spectrum_reference = pep.getSpectrumReference();
-            if (spectrum_reference.empty())
+            if (!spectrum_reference.empty())
             {
-              spectrum_key = "#" + StringUtils::toStr(pep_index); // unknown spectrum: no competition
-            }
-            else
-            {
-              // identify the spectrum by its spectra file (e.g. separate target and decoy searches of the same file, stored as separate runs)
-              const StringList& ms_files = run_to_ms_files[pep.getIdentifier()];
-              Size ms_file_index = 0;
-              if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
+              try
               {
-                try
+                ms_runs.validateMergeIndex(pep, pep_index); // throws if the run has several spectra files, but the one of this identification is unknown
+                const std::string ms_file = ms_runs.getPrimaryMSRunPath(pep);
+                if (!ms_file.empty())
                 {
-                  ms_file_index = static_cast<Size>(std::max(0, StringUtils::toInt32(pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX).toString())));
+                  spectrum_key = "file:" + ms_file + "\t" + spectrum_reference;
                 }
-                catch (Exception::BaseException&)
+                else
                 {
-                  ms_file_index = 0;
+                  // no spectra file annotated: identify the spectrum within its identification run
+                  spectrum_key = "run:" + pep.getIdentifier() + "\t" + pep.getMetaValue("file_origin", std::string()).toString() + "\t" + spectrum_reference;
                 }
               }
-              if (ms_file_index < ms_files.size() && !ms_files[ms_file_index].empty())
+              catch (Exception::BaseException&)
               {
-                spectrum_key = "file:" + ms_files[ms_file_index] + "\t" + spectrum_reference;
-              }
-              else
-              {
-                // no spectra file annotated: identify the spectrum within its identification run
-                spectrum_key = "run:" + pep.getIdentifier() + "\t" + pep.getMetaValue("file_origin", std::string()).toString() + "|"
-                               + pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX, std::string()).toString() + "\t" + spectrum_reference;
+                // spectra file unknown: no competition
               }
             }
-            const TopHit hit{score, label == TDLabel::DECOY};
-            auto [it, inserted] = top_hits[group_key(engine, top.getCharge())].emplace(spectrum_key, hit);
+            const TopHit hit{score, label == TDLabel::DECOY, top.getCharge()};
+            auto [it, inserted] = top_hits[engine].emplace(spectrum_key, hit);
             if (!inserted)
             {
               ++n_competitions;
@@ -1696,10 +1716,13 @@ namespace OpenMS::Math
         }
 
         // all considered hits: used for the unsupervised model
-        const Size n_hits = top_hits_only ? 1 : hits.size();
-        for (Size i = 0; i < n_hits; ++i)
+        for (Size i = 0; i < hits.size(); ++i)
         {
-          const double score = transformScore_(engine, hits[i], score_type, higher_score_better, generic_fallback);
+          if (top_hits_only && i != top_index)
+          {
+            continue;
+          }
+          const double score = transformScore_(engine, hits[i], score_type, higher_score_better, score_source);
           if (!std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
           {
             groups[group_key(engine, hits[i].getCharge())].scores.push_back(score);
@@ -1714,11 +1737,11 @@ namespace OpenMS::Math
       }
 
       bool any_decoy = false;
-      for (const auto& [key, spectra] : top_hits)
+      for (const auto& [engine, spectra] : top_hits)
       {
-        ScoreGroup& group = groups[key];
         for (const auto& [spectrum_key, hit] : spectra)
         {
+          ScoreGroup& group = groups[group_key(engine, hit.charge)];
           (hit.is_decoy ? group.decoys : group.targets).push_back(hit.score);
           any_decoy = any_decoy || hit.is_decoy;
         }
@@ -1776,7 +1799,7 @@ namespace OpenMS::Math
         }
       }
       // decided before any score is changed (consistent with extractAndTransformScores())
-      const std::set<std::string> dedicated_runs = runsWithDedicatedScores_(runs, peptide_ids);
+      const std::string score_source = chooseScoreSources_(runs, peptide_ids)[engine];
       Size n_unusable = 0;
 
       for (Size index = 0; index < peptide_ids.size(); ++index)
@@ -1795,7 +1818,7 @@ namespace OpenMS::Math
           {
             double score;
             hit.setMetaValue(score_type, hit.getScore());
-            score = PosteriorErrorProbabilityModel::transformScore_(engine, hit, pep.getScoreType(), pep.isHigherScoreBetter(), dedicated_runs.count(pep.getIdentifier()) == 0);
+            score = PosteriorErrorProbabilityModel::transformScore_(engine, hit, pep.getScoreType(), pep.isHigherScoreBetter(), score_source);
 
             //TODO they should be ignored during fitting already!
             // and in this issue the -log(10^99) should actually be an acceptable value.
