@@ -3904,6 +3904,19 @@ add_test("TOPP_IDPosteriorErrorProbability_7" ${TOPP_BIN_PATH}/IDPosteriorErrorP
 add_test("TOPP_IDPosteriorErrorProbability_8" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_OMSSA_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_8.tmp.idXML -prob_correct)
 add_test("TOPP_IDPosteriorErrorProbability_8_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_8.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_prob_correct_output.idXML)
 set_tests_properties("TOPP_IDPosteriorErrorProbability_8_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_8")
+# target/decoy annotated inputs (PEPs live in [0,1]: compare with the relative tolerance only, without FuzzyDiff.ini's absdiff of 0.01)
+# OMSSA (e-values), 446 decoys: non-parametric target-decoy estimate (default 'auto'):
+add_test("TOPP_IDPosteriorErrorProbability_9" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_9.tmp.idXML)
+add_test("TOPP_IDPosteriorErrorProbability_9_out1" ${DIFF} -absdiff 0 -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_9.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_9_output.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_9_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_9")
+# SimpleSearchEngine (hyperscore), 66 decoys: semi-supervised mixture model
+add_test("TOPP_IDPosteriorErrorProbability_10" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_10.tmp.idXML -fit_algorithm:decoy_handling semi_supervised)
+add_test("TOPP_IDPosteriorErrorProbability_10_out1" ${DIFF} -absdiff 0 -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_10.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_10_output.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_10_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_10")
+# SimpleSearchEngine with "split_charge": charge states with too few decoys use the model of all charge states
+add_test("TOPP_IDPosteriorErrorProbability_11" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_11.tmp.idXML -split_charge)
+add_test("TOPP_IDPosteriorErrorProbability_11_out1" ${DIFF} -absdiff 0 -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_11.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_11_output.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_11_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_11")
 
 #------------------------------------------------------------------------------
 # ProteinQuantifier tests

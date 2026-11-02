@@ -1994,9 +1994,49 @@ def testPosteriorErrorProbabilityModel():
     target = [float(i) for i in range(10)]
     model.getGumbelGnuplotFormula(GaussFitResult) 
     model.getGaussGnuplotFormula(GaussFitResult) 
-    model.getBothGnuplotFormula(GaussFitResult, GaussFitResult) 
+    model.getBothGnuplotFormula(GaussFitResult, GaussFitResult)
     model.plotTargetDecoyEstimation(target, target)
     model.getSmallestScore()
+
+
+@report
+def testPosteriorErrorProbabilityModelTargetDecoy():
+    """
+    @tests: PosteriorErrorProbabilityModel
+     PosteriorErrorProbabilityModel.fitTargetDecoy
+     PosteriorErrorProbabilityModel.getModelType
+    """
+    # target-decoy competition: incorrect targets and decoys ~ Gumbel(2, 0.6), correct targets ~ N(5, 1)
+    rng = np.random.default_rng(1)
+    targets = list(rng.gumbel(2.0, 0.6, 2000)) + list(rng.normal(5.0, 1.0, 1000))
+    decoys = list(rng.gumbel(2.0, 0.6, 2000))
+
+    model = pyopenms.PosteriorErrorProbabilityModel()
+    ModelType = pyopenms.PosteriorErrorProbabilityModel.ModelType
+    assert model.getModelType() == ModelType.NONE
+    assert model.fitTargetDecoy(targets, decoys, "none")
+    assert model.getModelType() == ModelType.TARGET_DECOY_ISOTONIC
+    assert "isotonic" in pyopenms.PosteriorErrorProbabilityModel.modelTypeToString(model.getModelType())
+    assert abs(model.getTargetDecoyIncorrectFraction() - 2000.0 / 3000.0) < 1e-9
+    assert not model.hasCalibrationWarning()
+
+    curve = model.getIsotonicPEPCurve()
+    assert len(curve) > 2
+    peps = [model.computeProbability(s) for s in np.linspace(-2.0, 10.0, 200)]
+    assert all(0.0 <= p <= 1.0 for p in peps)
+    assert all(b <= a + 1e-12 for a, b in zip(peps, peps[1:]))  # non-increasing
+    # the PEPs of the targets sum up to (about) the number of incorrect targets
+    assert abs(sum(model.computeProbability(t) for t in targets) / 2000.0 - 1.0) < 0.1
+
+    # semi-supervised mixture model
+    p = model.getParameters()
+    p.setValue("decoy_handling", "semi_supervised")
+    model.setParameters(p)
+    assert model.fitTargetDecoy(targets, decoys, "none")
+    assert model.getModelType() == ModelType.SEMI_SUPERVISED_MIXTURE
+    assert abs(model.getNegativePrior() - 2000.0 / 3000.0) < 0.05
+    location, scale = model.getIncorrectlyAssignedGumbelFitResult()
+    assert abs(scale - 0.6) < 0.1
 
 @report
 def testSeedListGenerator():
