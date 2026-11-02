@@ -138,8 +138,17 @@ START_SECTION([NuXLPrecursorIndex] lowerBound and upperBound match the multimap)
   vector<double> q{0.0, 299.0, 1000.0, std::nextafter(1000.0, 0.0), std::nextafter(1000.0, 1e9), 7000.0};
   for (const auto& e : mm) { q.push_back(e.first); q.push_back(std::nextafter(e.first, 0.0)); }
   for (int i = 0; i < 20000; ++i) { q.push_back(mass(rng)); }
+  // reference: the multimap's keys in its order (std::distance on the multimap itself would be linear per query)
+  vector<double> keys;
+  for (const auto& e : mm) { keys.push_back(e.first); }
   Size mismatches = 0;
   for (double x : q)
+  {
+    if (pi.lowerBound(x) != static_cast<Size>(std::lower_bound(keys.begin(), keys.end(), x) - keys.begin())) ++mismatches;
+    if (pi.upperBound(x) != static_cast<Size>(std::upper_bound(keys.begin(), keys.end(), x) - keys.begin())) ++mismatches;
+  }
+  // spot checks against the multimap itself
+  for (double x : {299.0, 1000.0, std::nextafter(1000.0, 0.0), 7000.0})
   {
     if (pi.lowerBound(x) != static_cast<Size>(std::distance(mm.begin(), mm.lower_bound(x)))) ++mismatches;
     if (pi.upperBound(x) != static_cast<Size>(std::distance(mm.begin(), mm.upper_bound(x)))) ++mismatches;
