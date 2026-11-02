@@ -320,17 +320,17 @@ namespace OpenMS::Math
                                                                    "- none: do nothing");
       defaults_.setValidStrings("outlier_handling", {"ignore_iqr_outliers","set_iqr_to_closest_valid","ignore_extreme_percentiles","none"});
       defaults_.setValue("decoy_handling", "auto", "How target/decoy annotations are used (if decoy PSMs are present):\n"
-                                                   "- auto: 'isotonic' if there are at least 'min_decoys_isotonic' decoys, 'semi_supervised' if there are at least 'min_decoys' decoys, otherwise an unsupervised mixture model is fitted to the target scores\n"
+                                                   "- auto: 'semi_supervised' if there are at least 'min_decoys' but fewer than 'min_decoys_isotonic' decoys, otherwise 'isotonic' (also for very few decoys: even a single decoy is informative)\n"
                                                    "- isotonic: non-parametric estimate from the local ratio of decoys and targets (isotonic regression). Invariant to monotone transformations of the score, i.e. suitable for any score type.\n"
-                                                   "- semi_supervised: mixture model in which decoys belong to the incorrect component\n"
+                                                   "- semi_supervised: mixture model in which decoys belong to the incorrect component (requires 'min_decoys' decoys, otherwise 'isotonic')\n"
                                                    "- ignore: ignore the annotations, i.e. targets and decoys are pooled and modeled without supervision (behavior of OpenMS 3.5 and earlier)\n"
                                                    "Decoy-based estimates assume a search against a concatenated target+decoy database (target-decoy competition). Only top hits are used for fitting.");
       defaults_.setValidStrings("decoy_handling", {"auto", "isotonic", "semi_supervised", "ignore"});
       defaults_.setValue("decoy_ratio", 1.0, "Number of decoy sequences per target sequence in the searched database (cf. DecoyDatabase's 'shuffle_decoy_ratio'). Under target-decoy competition, the number of incorrect targets is estimated as the number of decoys divided by this ratio.", {"advanced"});
       defaults_.setMinFloat("decoy_ratio", 1e-6);
-      defaults_.setValue("min_decoys", 10, "Minimum number of decoy PSMs (per model, i.e. per charge state with 'split_charge') to use decoy information. Otherwise an unsupervised mixture model is fitted to the target scores.", {"advanced"});
+      defaults_.setValue("min_decoys", 10, "Minimum number of decoy PSMs (per model, i.e. per charge state with 'split_charge') to fit the semi-supervised mixture model. With fewer decoys, the non-parametric estimate is used.", {"advanced"});
       defaults_.setMinInt("min_decoys", 1);
-      defaults_.setValue("min_decoys_isotonic", 50, "Minimum number of decoy PSMs (per model) for the 'isotonic' estimate with decoy_handling 'auto'.", {"advanced"});
+      defaults_.setValue("min_decoys_isotonic", 50, "With decoy_handling 'auto', the non-parametric estimate is used with at least this many decoy PSMs (per model); the semi-supervised mixture model with at least 'min_decoys' but fewer decoys.", {"advanced"});
       defaults_.setMinInt("min_decoys_isotonic", 1);
       defaultsToParam_();
       getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGumbelGnuplotFormula;
@@ -717,7 +717,7 @@ namespace OpenMS::Math
       std::vector<double> targets, decoys;
       std::copy_if(target_scores.begin(), target_scores.end(), std::back_inserter(targets), [](double x) { return std::isfinite(x); });
       std::copy_if(decoy_scores.begin(), decoy_scores.end(), std::back_inserter(decoys), [](double x) { return std::isfinite(x); });
-      if (targets.size() < 2) { return false; }
+      if (targets.empty()) { return false; }
 
       const double decoy_ratio = param_.getValue("decoy_ratio");
       td_incorrect_fraction_ = std::min(1.0, double(decoys.size()) / (decoy_ratio * double(targets.size())));
@@ -826,57 +826,62 @@ namespace OpenMS::Math
       const Size min_decoys = static_cast<Size>(int(param_.getValue("min_decoys")));
       const Size min_decoys_isotonic = static_cast<Size>(int(param_.getValue("min_decoys_isotonic")));
       const Size n_decoys = decoys.size();
-      const bool enough_decoys = n_decoys >= min_decoys;
-      if (!enough_decoys && n_decoys > 0)
+
+      if (n_decoys == 0)
       {
-        OPENMS_LOG_WARN << "Only " << n_decoys << " decoy PSMs available (min_decoys: " << min_decoys << "). Fitting an unsupervised mixture model to the target scores." << std::endl;
+        // no decoy information: unsupervised model of the targets
+        if (!fitMixture_(targets, {}, use_gumbel, outlier_handling)) { return false; }
+        model_type_ = ModelType::MIXTURE;
+        return true;
       }
 
-      bool try_isotonic = enough_decoys && (decoy_handling == "isotonic" || (decoy_handling == "auto" && n_decoys >= min_decoys_isotonic));
-      if (try_isotonic)
+      // Semi-supervised mixture model: if requested (and there are enough decoys to fit their distribution), or with 'auto' for a
+      // moderate number of decoys. Otherwise the non-parametric estimate: with very few decoys, their distribution cannot be fitted,
+      // but their number is still informative (e.g. 1 decoy: about 1 incorrect target, 1/2 of which above the decoy); with many decoys,
+      // the non-parametric estimate is accurate and does not depend on the shape of the score distributions.
+      const bool semi_supervised = (decoy_handling == "semi_supervised" && n_decoys >= min_decoys)
+                                   || (decoy_handling == "auto" && n_decoys >= min_decoys && n_decoys < min_decoys_isotonic);
+      if (decoy_handling == "semi_supervised" && n_decoys < min_decoys)
       {
-        if (fitIsotonic_(targets, decoys))
-        {
-          model_type_ = ModelType::TARGET_DECOY_ISOTONIC;
-          return true;
-        }
-        OPENMS_LOG_WARN << "Unable to estimate the non-parametric target-decoy model. Trying the semi-supervised mixture model." << std::endl;
+        OPENMS_LOG_WARN << "Only " << n_decoys << " decoy PSMs available (min_decoys: " << min_decoys
+                        << "). Using the non-parametric target-decoy estimate instead of the semi-supervised mixture model." << std::endl;
       }
-
-      if (enough_decoys)
+      if (semi_supervised)
       {
         if (fitMixture_(targets, decoys, use_gumbel, outlier_handling))
         {
           model_type_ = ModelType::SEMI_SUPERVISED_MIXTURE;
+          bool keep = true;
           if (decoysContradictModel_(targets, decoys))
           {
-            if (decoy_handling == "auto" && fitIsotonic_(targets, decoys))
-            {
-              OPENMS_LOG_WARN << "Using the non-parametric target-decoy estimate instead of the semi-supervised mixture model." << std::endl;
-              model_type_ = ModelType::TARGET_DECOY_ISOTONIC;
-              return true;
-            }
-            calibration_warning_ = true;
+            keep = (decoy_handling == "semi_supervised");
+            calibration_warning_ = keep;
           }
-          const double ratio = negative_prior_ / std::max(td_incorrect_fraction_, 1e-12);
-          if (ratio > 1.5 || ratio < 1.0 / 1.5)
+          if (keep)
           {
-            OPENMS_LOG_WARN << "The fraction of incorrect target PSMs estimated by the mixture model (" << negative_prior_
-                            << ") differs from the target-decoy estimate (" << td_incorrect_fraction_
-                            << "). The model might not fit the data well, or the decoys might not represent incorrect targets (e.g. separate target and decoy searches)." << std::endl;
+            const double ratio = negative_prior_ / std::max(td_incorrect_fraction_, 1e-12);
+            if (ratio > 1.5 || ratio < 1.0 / 1.5)
+            {
+              OPENMS_LOG_WARN << "The fraction of incorrect target PSMs estimated by the mixture model (" << negative_prior_
+                              << ") differs from the target-decoy estimate (" << td_incorrect_fraction_
+                              << "). The model might not fit the data well, or the decoys might not represent incorrect targets (e.g. separate target and decoy searches)." << std::endl;
+            }
+            return true;
           }
-          return true;
+          OPENMS_LOG_WARN << "Using the non-parametric target-decoy estimate instead of the semi-supervised mixture model." << std::endl;
         }
-        OPENMS_LOG_WARN << "Unable to fit the semi-supervised mixture model. Fitting an unsupervised mixture model to the target scores." << std::endl;
+        else
+        {
+          OPENMS_LOG_WARN << "Unable to fit the semi-supervised mixture model. Using the non-parametric target-decoy estimate." << std::endl;
+        }
       }
 
-      if (!fitMixture_(targets, {}, use_gumbel, outlier_handling)) { return false; }
-      model_type_ = ModelType::MIXTURE;
-      if (!decoys.empty() && decoysContradictModel_(targets, decoys))
+      if (fitIsotonic_(targets, decoys))
       {
-        calibration_warning_ = true;
+        model_type_ = ModelType::TARGET_DECOY_ISOTONIC;
+        return true;
       }
-      return true;
+      return false;
     }
 
     bool PosteriorErrorProbabilityModel::decoysContradictModel_(const std::vector<double>& targets, const std::vector<double>& decoys) const
@@ -1546,30 +1551,7 @@ namespace OpenMS::Math
 
     std::string PosteriorErrorProbabilityModel::getSearchEngineKey(const ProteinIdentification & protein_id)
     {
-      std::string search_engine = protein_id.getSearchEngine();
-      if (StringUtils::hasPrefix(search_engine, "OpenMS/ConsensusID"))
-      {
-        if (protein_id.metaValueExists("ConsensusIDBaseSearch"))
-        {
-          search_engine = StringUtils::prefix(StringUtils::toStr(protein_id.getMetaValue("ConsensusIDBaseSearch")), ':');
-        }
-        else
-        {
-          // resolve to the original search engine only if there is exactly one (otherwise, the consensus score is used)
-          std::vector<std::string> keys;
-          protein_id.getSearchParameters().getKeys(keys);
-          const Size n_engines = std::count_if(keys.begin(), keys.end(), [](const std::string& key)
-          {
-            return StringUtils::hasPrefix(key, "SE:") && !StringUtils::hasSubstring(key, "percolator");
-          });
-          const std::string original = protein_id.getOriginalSearchEngineName();
-          if (n_engines == 1 && original != "Unknown")
-          {
-            search_engine = original;
-          }
-        }
-      }
-      return normalizeEngineKey(search_engine);
+      return normalizeEngineKey(protein_id.getSearchEngine());
     }
 
     map<std::string, vector<vector<double>>> PosteriorErrorProbabilityModel::extractAndTransformScores(

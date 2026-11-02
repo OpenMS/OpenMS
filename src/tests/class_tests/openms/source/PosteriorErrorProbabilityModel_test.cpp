@@ -649,7 +649,8 @@ START_SECTION((bool fitTargetDecoy(const std::vector<double>& target_scores, con
   {
     const std::vector<std::pair<Size, PosteriorErrorProbabilityModel::ModelType>> expected =
     {
-      {5, PosteriorErrorProbabilityModel::ModelType::MIXTURE},
+      {0, PosteriorErrorProbabilityModel::ModelType::MIXTURE},
+      {5, PosteriorErrorProbabilityModel::ModelType::TARGET_DECOY_ISOTONIC},
       {20, PosteriorErrorProbabilityModel::ModelType::SEMI_SUPERVISED_MIXTURE},
       {60, PosteriorErrorProbabilityModel::ModelType::TARGET_DECOY_ISOTONIC}
     };
@@ -767,10 +768,51 @@ START_SECTION(([EXTRA] degenerate input))
     TEST_EQUAL(check_monotone(model), true)
   }
 
-  // non-finite scores are ignored, a single target is not enough
+  // a single target: no evidence that it is correct (above all decoys, it is incorrect with probability 1/2 under target-decoy competition)
   {
     PosteriorErrorProbabilityModel model;
-    TEST_EQUAL(model.fitTargetDecoy({5.0, nan, inf}, null_data.decoys, "none"), false)
+    TEST_EQUAL(model.fitTargetDecoy({100.0}, null_data.decoys, "none"), true)
+    TEST_EQUAL(model.getModelType() == PosteriorErrorProbabilityModel::ModelType::TARGET_DECOY_ISOTONIC, true)
+    TEST_REAL_SIMILAR(model.computeProbability(100.0), 1.0)
+    TEST_EQUAL(model.fitTargetDecoy({5.0}, {3.0}, "none"), true) // one target, one decoy
+    TEST_REAL_SIMILAR(model.computeProbability(5.0), 1.0)
+    TEST_REAL_SIMILAR(model.computeProbability(3.0), 1.0)
+    Param p = model.getParameters();
+    p.setValue("decoy_ratio", 4.0); // 4 decoys per target: an incorrect PSM scores above the best of the decoys with probability 1/5
+    model.setParameters(p);
+    TEST_EQUAL(model.fitTargetDecoy({100.0}, null_data.decoys, "none"), true)
+    TEST_REAL_SIMILAR(model.computeProbability(100.0), 0.25)
+  }
+
+  // a single decoy (among many correct targets): still informative, about one incorrect target is expected above it
+  {
+    TDData one_decoy = simulateTDC(13, 0, 1000, 1);
+    one_decoy.decoys[0] = 3.5;
+    PosteriorErrorProbabilityModel model;
+    TEST_EQUAL(model.fitTargetDecoy(one_decoy.targets, one_decoy.decoys, "none"), true)
+    TEST_EQUAL(model.getModelType() == PosteriorErrorProbabilityModel::ModelType::TARGET_DECOY_ISOTONIC, true)
+    double sum_pep = 0.0, sum_above = 0.0;
+    for (double t : one_decoy.targets)
+    {
+      sum_pep += model.computeProbability(t);
+      if (t > 3.5) { sum_above += model.computeProbability(t); }
+    }
+    TOLERANCE_ABSOLUTE(1e-9)
+    TEST_REAL_SIMILAR(sum_above, 1.0)
+    TEST_EQUAL(sum_pep < 3.0, true) // an unsupervised mixture model would assign much larger PEPs to (many of) these correct targets
+    TEST_EQUAL(check_monotone(model), true)
+    // forced semi-supervised mixture with too few decoys: non-parametric estimate
+    Param p = model.getParameters();
+    p.setValue("decoy_handling", "semi_supervised");
+    model.setParameters(p);
+    TEST_EQUAL(model.fitTargetDecoy(one_decoy.targets, one_decoy.decoys, "none"), true)
+    TEST_EQUAL(model.getModelType() == PosteriorErrorProbabilityModel::ModelType::TARGET_DECOY_ISOTONIC, true)
+  }
+
+  // non-finite scores are ignored, no (finite) target is not enough
+  {
+    PosteriorErrorProbabilityModel model;
+    TEST_EQUAL(model.fitTargetDecoy({nan, inf}, null_data.decoys, "none"), false)
     std::vector<double> targets(null_data.targets);
     targets.insert(targets.end(), {nan, inf, -inf});
     TEST_EQUAL(model.fitTargetDecoy(targets, null_data.decoys, "none"), true)
@@ -948,18 +990,6 @@ START_SECTION((static std::map<std::string, std::vector<std::vector<double>>> ex
     TEST_REAL_SIMILAR(*std::max_element(scores["XTANDEM,3"][0].begin(), scores["XTANDEM,3"][0].end()), 43.0)
   }
 
-  // ConsensusID runs are resolved to the original search engine only if there is exactly one
-  {
-    ProteinIdentification consensus;
-    consensus.setSearchEngine("OpenMS/ConsensusID_best");
-    ProteinIdentification::SearchParameters sp;
-    sp.setMetaValue("SE:Comet", "");
-    consensus.setSearchParameters(sp);
-    TEST_EQUAL(PosteriorErrorProbabilityModel::getSearchEngineKey(consensus), "COMET")
-    sp.setMetaValue("SE:MS-GF+", "");
-    consensus.setSearchParameters(sp);
-    TEST_EQUAL(PosteriorErrorProbabilityModel::getSearchEngineKey(consensus), "OPENMSCONSENSUSIDBEST")
-  }
 }
 END_SECTION
 

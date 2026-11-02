@@ -53,9 +53,10 @@ namespace OpenMS
         Within a block, the PEP decreases linearly with the score around the block's PEP (keeping the mean PEP of the block),
         such that PSMs are ordered by score; between blocks, the PEP is interpolated linearly.
 
-      With @p decoy_handling = auto (default), fitTargetDecoy() chooses the isotonic estimate if there are at least
-      @p min_decoys_isotonic decoys, the semi-supervised mixture if there are at least @p min_decoys decoys,
-      and the unsupervised mixture of the target scores otherwise.
+      With @p decoy_handling = auto (default), fitTargetDecoy() chooses the semi-supervised mixture if there are at least
+      @p min_decoys but fewer than @p min_decoys_isotonic decoys, and the isotonic estimate otherwise: with very few decoys,
+      their score distribution cannot be fitted, but their number is still informative (even a single decoy, or a single target).
+      Without decoys, the unsupervised mixture model of the target scores is fitted.
       Mixture models fitted with decoys are checked against them: if far more decoys score as well as the targets with low PEPs
       than these PEPs imply (e.g. a spurious "correct" component fitted to data with few or no correct assignments),
       'auto' switches to the isotonic estimate (otherwise, hasCalibrationWarning() is set).
@@ -114,7 +115,6 @@ public:
        * @note Supported engines (i.e. with a dedicated score selection) are: XTandem, OMSSA, Mascot, SpectraST, MyriMatch, SimTandem,
        *       MSGFPlus/MS-GF+, Comet, MSFragger, Sage, SimpleSearchEngine and ProSE. For other engines, the main score
        *       of the identifications is used, if it is not on a probability scale (e.g. q-values or PEPs).
-       *       Identifications from OpenMS/ConsensusID_* runs are resolved to their original search engine.
        */
       static std::map<std::string, std::vector<std::vector<double>>> extractAndTransformScores(
         const std::vector<ProteinIdentification> & protein_ids,
@@ -190,8 +190,8 @@ public:
       /**
        * @brief the key under which the scores of a search run are reported by extractAndTransformScores()
        *
-       * This is the upper-case name of the search engine, with aliases resolved (e.g. "X! Tandem" -> "XTANDEM") and
-       * ConsensusID runs resolved to their original search engine.
+       * This is the upper-case name of the search engine without non-alphanumeric characters, with aliases resolved
+       * (e.g. "X! Tandem" -> "XTANDEM", "MS-GF+" -> "MSGFPLUS").
        */
       static std::string getSearchEngineKey(const ProteinIdentification & protein_id);
 
