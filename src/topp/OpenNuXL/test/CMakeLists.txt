@@ -25,9 +25,10 @@ set(_nuxl_NuXLModificationsGenerator_sources NuXLModificationsGenerator.cpp)
 set(_nuxl_NuXLParameterParsing_sources NuXLParameterParsing.cpp NuXLFragmentAdductDefinition.cpp
                                        NuXLModificationsGenerator.cpp NuXLPresets.cpp)
 set(_nuxl_NuXLReport_sources NuXLReport.cpp NuXLMarkerIonExtractor.cpp NuXLModificationsGenerator.cpp)
+set(_nuxl_NuXLSearchIndex_sources NuXLFragmentAdductDefinition.cpp)
 set(_nuxl_NuXLSiteLocalization_sources NuXLSiteLocalization.cpp)
 
-foreach(_nuxl_test NuXLDeisotoper NuXLFragmentAdductDefinition NuXLIonLikelihood NuXLModificationsGenerator NuXLParameterParsing NuXLReport NuXLSiteLocalization)
+foreach(_nuxl_test NuXLDeisotoper NuXLFragmentAdductDefinition NuXLIonLikelihood NuXLModificationsGenerator NuXLParameterParsing NuXLReport NuXLSearchIndex NuXLSiteLocalization)
   set(_nuxl_test_sources)
   foreach(_nuxl_source ${_nuxl_${_nuxl_test}_sources})
     list(APPEND _nuxl_test_sources ${CMAKE_CURRENT_SOURCE_DIR}/../source/${_nuxl_source})
