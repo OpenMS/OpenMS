@@ -1074,6 +1074,12 @@ protected:
     (requantifyChannel_; of the reserved peaks, a channel uses only its own and those of no reported feature). A candidate with
     fewer than min_join_paired_spectra_ spectra of paired peaks is not joined. No elution correlation is required: on real data
     it did not separate good from bad joins, the m/z tolerance and the re-measurement did.
+
+    A partner is joined to one partial multiplet only. Another identified partial multiplet of the same channels that the partner
+    also spans (e.g. one elution that the detection split into two, in RT or, within its m/z tolerance, in m/z) keeps its own
+    multiplet, in which the partner's channel is not quantifiable: the partner's peaks belong to a multiplet of the same peptide
+    now. It adds no ratio then, but the summed channel abundances miss the partner channel's share of it (or, if the partner was
+    the reference, count its share of the identified channels twice).
   */
   void joinChannelsOfIdentifiedPeptides_(ConsensusMap& multiplets, const FeatureMap& channels, const MultiplexResolverAlgorithm& resolver,
                                          const MSExperiment& centroided, const MSExperiment& blacklist) const

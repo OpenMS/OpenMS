@@ -58,6 +58,9 @@ namespace OpenMS
       feature of the channel of the peak's mass trace, in the multiplet of the cluster of the filtered peak that reserved it.
       Of a peak reserved more than once, the first filtered peak counts if its multiplet was reported, else the last one: a
       later pattern whose RT band reaches over a reported multiplet's peaks and that is dropped leaves them to that multiplet.
+      Only these two writers are recorded (MultiplexFiltering::getBlacklistOwners()): a reported multiplet that reserved the
+      peak between two writers whose clusters were dropped loses it, and the peak counts as reserved by no reported feature
+      (0). That takes at least three writers of one peak, which in practice requires algorithm:rt_band > 0.
     */
     std::vector<std::vector<UInt64>> provisionalOwners(const std::vector<std::vector<MultiplexFiltering::BlacklistOwner>>& owners,
                                                        const std::vector<MultiplexFilteredMSExperiment>& filter_results,

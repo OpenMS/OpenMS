@@ -127,6 +127,11 @@ public:
      * A pattern reserves the peaks of its mass traces over their RT range extended by the RT band, also peaks that
      * another filtered peak reserved before, so a peak can be reserved several times. The owners are recorded when a
      * peak passes, in the order in which peaks pass, so they do not depend on the number of threads.
+     *
+     * Only the first and the last writer of a peak are kept. A filtered peak that reserved it in between is lost: if its
+     * multiplet is reported and the clusters of the first and the last writer are dropped, the peak counts as reserved by
+     * no reported feature (FeatureFinderMultiplexAlgorithm::getBlacklist()). That takes at least three writers of one peak,
+     * which in practice requires an RT band > 0 (@em rt_band_, FeatureFinderMultiplex's algorithm:rt_band).
      */
     std::vector<std::vector<BlacklistOwner>> getBlacklistOwners() const;
 
@@ -195,6 +200,9 @@ protected:
 
     /**
      * @brief write @p entries to @em blacklist_, with the filtered peak (@p pattern_idx, @p peak_idx) as their owner
+     *
+     * It becomes the last owner of each peak (@em blacklist_owner_). Of a peak that another filtered peak reserved before, the
+     * first owner is kept as well (@em blacklist_first_owner_), any owner in between is overwritten (see getBlacklistOwners()).
      */
     void applyBlacklistEntries_(const std::vector<BlacklistEntry>& entries, unsigned pattern_idx, size_t peak_idx);
 

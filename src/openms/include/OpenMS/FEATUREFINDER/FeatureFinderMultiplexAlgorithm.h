@@ -103,7 +103,8 @@ public:
   /// Return the blacklist produced by the most recent @ref run call: one spectrum per centroided MS1 spectrum with the peaks the detected patterns
   /// reserved (of all patterns). Each spectrum records, aligned with its peaks, the unique id of the feature in
   /// @ref getFeatureMap that reserved each peak (0 if its multiplet was not reported, e.g. dropped by @c algorithm:rt_min; of a
-  /// peak reserved by several patterns, the first one whose multiplet was reported); see MultiplexResolverAlgorithm::blacklistOwner().
+  /// peak reserved by several patterns, the first one if its multiplet was reported, else the last one, the only two that
+  /// MultiplexFiltering::getBlacklistOwners() records); see MultiplexResolverAlgorithm::blacklistOwner().
   MSExperiment& getBlacklist();
   /// Return the centroided MS1 spectra the detection worked on (peaks above @c algorithm:intensity_cutoff only; for profile
   /// input the picked peaks), as left by the most recent @ref run call. Spectra carry their RT, but no further meta data.
