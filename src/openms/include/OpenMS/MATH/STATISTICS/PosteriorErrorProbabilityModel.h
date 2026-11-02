@@ -279,6 +279,13 @@ public:
           the number of incorrect targets in the set, which is estimated by the sum of their PEPs.
           This is tested for the targets accepted at a target-decoy FDR of 1%, 5% and 10%, and for the targets with a PEP below 0.1.
           A warning is raised if observed and expected decoys differ significantly (Poisson test) and by more than a factor of 2.
+
+          A warning is also raised if even the lowest-scoring PSMs contain significantly (binomial test) and clearly too few decoys
+          for incorrect PSMs (decoy fraction below decoy_ratio / (1 + decoy_ratio), PEP below 0.8), so that the PEPs stay well below 1
+          down to the lowest scores. Then either correct PSMs extend to the lowest scores, or decoys are underrepresented among the
+          incorrect PSMs (e.g. a wrong decoy_ratio), which makes all target-decoy PEPs (and FDRs) too low.
+          The set of lowest-scoring PSMs with the highest decoy fraction among those with at least a quarter of the estimated number of
+          incorrect PSMs (and at least 100 PSMs) is tested.
       */
       bool hasCalibrationWarning() const
       {

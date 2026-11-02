@@ -717,6 +717,20 @@ START_SECTION((bool fitTargetDecoy(const std::vector<double>& target_scores, con
     TEST_EQUAL(model10.fitTargetDecoy(data.targets, data.decoys, "none"), true)
     TEST_EQUAL(model10.hasCalibrationWarning(), true)
   }
+
+  // low-score check: decoys underrepresented by 40% among the incorrect PSMs (the PEPs of low-scoring PSMs stay at about 0.6)
+  {
+    TDData too_few_decoys = simulateTDC(11, 3000, 1000, 1800);
+    PosteriorErrorProbabilityModel model11;
+    TEST_EQUAL(model11.fitTargetDecoy(too_few_decoys.targets, too_few_decoys.decoys, "none"), true)
+    TEST_EQUAL(model11.getModelType() == PosteriorErrorProbabilityModel::ModelType::TARGET_DECOY_ISOTONIC, true)
+    TEST_EQUAL(model11.hasCalibrationWarning(), true)
+    // correct number of decoys: no warning
+    TDData enough_decoys = simulateTDC(11, 3000, 1000, 3000);
+    PosteriorErrorProbabilityModel model12;
+    TEST_EQUAL(model12.fitTargetDecoy(enough_decoys.targets, enough_decoys.decoys, "none"), true)
+    TEST_EQUAL(model12.hasCalibrationWarning(), false)
+  }
 }
 END_SECTION
 

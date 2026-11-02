@@ -27,6 +27,7 @@
 #include <OpenMS/SYSTEM/PathUtils.h>
 #include <filesystem>
 
+#include <boost/math/distributions/binomial.hpp>
 #include <boost/math/special_functions/gamma.hpp>
 
 #include <algorithm>
@@ -807,6 +808,57 @@ namespace OpenMS::Math
           calibration_warning_ = true;
           OPENMS_LOG_WARN << "Warning: the estimated PEPs disagree significantly with the target-decoy estimates:"
                           << report << " The model (" << modelTypeToString(model_type_) << ") might not fit the data well." << std::endl;
+        }
+      }
+
+      // Low-score check: the lowest-scoring PSMs should be (almost) all incorrect, i.e. decoys with probability
+      // decoy_ratio / (1 + decoy_ratio). Among the sets of lowest-scoring PSMs with at least a quarter of the estimated number of
+      // incorrect PSMs, take the one with the highest decoy fraction. If even this one has significantly (one-sided binomial test)
+      // and clearly (PEP below 0.8) too few decoys, the PEPs stay well below 1 down to the lowest scores: either correct PSMs
+      // extend to the lowest scores, or decoys are underrepresented among the incorrect PSMs (then all PEPs are too low).
+      // The minimum set size keeps false alarms rare (< 0.5% in simulations of correct target-decoy competition).
+      const Size min_tail_size = Size(0.25 * double(decoys.size()) * (1.0 + 1.0 / decoy_ratio));
+      if (decoy_handling != "ignore" && min_tail_size >= 100 && min_tail_size <= targets.size() + decoys.size())
+      {
+        std::vector<std::pair<double, bool>> psms; // (score, is_decoy), worst first
+        psms.reserve(targets.size() + decoys.size());
+        for (double t : targets) { psms.emplace_back(t, false); }
+        for (double d : decoys) { psms.emplace_back(d, true); }
+        std::sort(psms.begin(), psms.end(), [](const std::pair<double, bool>& a, const std::pair<double, bool>& b) { return a.first < b.first; });
+        double n = 0.0, d = 0.0, tail_n = 0.0, tail_d = 0.0, tail_score = 0.0;
+        for (Size i = 0; i < psms.size(); )
+        {
+          const double score = psms[i].first;
+          for (; i < psms.size() && psms[i].first == score; ++i) // tied scores together
+          {
+            n += 1.0;
+            d += psms[i].second ? 1.0 : 0.0;
+          }
+          if (n >= double(min_tail_size) && (tail_n == 0.0 || d / n > tail_d / tail_n || (d / n == tail_d / tail_n && n > tail_n)))
+          {
+            tail_n = n;
+            tail_d = d;
+            tail_score = score;
+          }
+        }
+        const double q0 = decoy_ratio / (1.0 + decoy_ratio);
+        const double tail_t = tail_n - tail_d;
+        const double tail_pep = (tail_d + 0.5) / (tail_t + 0.5) / decoy_ratio;
+        if (tail_n > 0.0 && tail_pep < 0.8)
+        {
+          const double p_value = boost::math::cdf(boost::math::binomial_distribution<double>(tail_n, q0), tail_d); // P(X <= tail_d)
+          if (p_value < 1e-3)
+          {
+            calibration_warning_ = true;
+            OPENMS_LOG_WARN << "Warning: even among the " << tail_n << " lowest-scoring PSMs (score <= " << tail_score << "), only " << tail_d
+                            << " are decoys, while incorrect PSMs would give about " << tail_n * q0 << " (binomial p = " << p_value
+                            << "). The PEPs therefore stay at about " << tail_pep << " or below down to the lowest scores. Either correct"
+                            << " identifications extend to the lowest scores (weakly separating score, or only PSMs above a score threshold"
+                            << " were reported), or decoys are underrepresented among the incorrect PSMs (wrong 'decoy_ratio', mismatched decoy"
+                            << " database, peptides shared by targets and decoys counted as targets). In the latter case, all target-decoy PEPs"
+                            << " and FDRs are too low by about a factor of " << 1.0 / tail_pep << " (effective decoy ratio "
+                            << tail_d / std::max(tail_t, 1.0) << ", cf. parameter 'decoy_ratio')." << std::endl;
+          }
         }
       }
       return true;
