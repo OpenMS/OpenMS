@@ -412,7 +412,8 @@ private:
 
     Each peak (in descending intensity) takes the most intense unclaimed previous-scan peak within @p htol_ppm in its
     own or a neighbouring m/z bin (and IM bin, with ion mobility); the assignments go to @p refs, from which
-    detectHills_ builds the hills. @p prev needs its dense bin table (bin_start).
+    detectHills_ builds the hills. Without a dense bin table in @p prev (bin_start empty: too many bins for the
+    cap), its sorted by_bin list is binary-searched instead, with the same candidates in the same order.
   */
   void linkScanToHills_(const MSSpectrum& spectrum,
                         Size scan_idx,

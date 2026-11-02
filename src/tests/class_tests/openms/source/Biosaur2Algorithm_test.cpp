@@ -78,7 +78,11 @@ namespace
             if (e.twin && k == 0) add(e.mz * (1.0 + 2e-6), h, e.im);   // same intensity, 2 ppm away
           }
         }
-        for (int n = 0; n < 150; ++n) add(uni(350.0, 1500.0), uni(50.0, 5000.0), uni(0.6, 1.4));
+        for (int n = 0; n < 150; ++n)
+        {
+          const double mz = uni(350.0, 1500.0), h = uni(50.0, 5000.0), im_n = uni(0.6, 1.4);   // drawn in a fixed order
+          add(mz, h, im_n);
+        }
       }
       if (im)
       {

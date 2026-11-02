@@ -3010,7 +3010,13 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>&
   auto hillOf = [&hill_by_idx](Size id) -> const Hill* { return id < hill_by_idx.size() ? hill_by_idx[id] : nullptr; };
 
   // the features are built in parallel (feature order kept); their unique ids are drawn afterwards, serially
-  // and in feature order
+  // and in feature order. The meta value names are registered here, serially, so their registry indices (and
+  // the UserParam order in featureXML) do not depend on which thread sets them first.
+  for (const std::string& name : {std::string("mass_calib"), std::string("n_isotopes"), std::string("n_scans"), std::string("intensity_sum"),
+                                  std::string("FAIMS_CV"), Constants::UserParam::IM, std::string("IM_min"), std::string("IM_max")})
+  {
+    MetaInfoInterface::metaRegistry().registerName(name);
+  }
   vector<Feature> built;
   orderedParallel_(features.size(), 1024, built, [&](Size fi, vector<Feature>& built)
   {
