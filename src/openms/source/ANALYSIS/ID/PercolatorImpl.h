@@ -125,6 +125,8 @@ namespace OpenMS
     /// first rescore()/train(), after one that failed and after a RESET rescorePSMs(); like svm_weights,
     /// kept by score().
     std::string weights_text;
+    /// Why the last training has no weights_text although it succeeded (an unexpected layout of the vendored output)
+    std::string weights_error;
 
     /// Pi0 (null fraction) estimated on the post-CV, post-TDC merged Scores
     /// set right before calcPep. Populated by rescore() and score(). Read by

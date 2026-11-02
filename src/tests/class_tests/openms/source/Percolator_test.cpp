@@ -1708,6 +1708,14 @@ START_SECTION((void storeWeights(const std::string& filename) const))
   TEST_EXCEPTION(Exception::InvalidValue, q.train(malformed))
   TEST_EXCEPTION(Exception::MissingInformation, q.storeWeights(file))
 
+  // a feature name with a line break: the weights output can't be split by fold, so there is no weights file (and the
+  // rescoring is not affected)
+  RescoreInput line_break = input;
+  line_break.feature_names = StringList{"sig\nnal", "noise"};
+  const RescoreOutput line_break_out = q.rescore(line_break);
+  TEST_EQUAL(line_break_out.scores.size(), input.features.size())
+  TEST_EXCEPTION(Exception::MissingInformation, q.storeWeights(file))
+
   // a feature name starting with '#' is a feature name, not a comment
   RescoreInput hash_named = input;
   hash_named.feature_names = StringList{"#signal", "noise"};
@@ -3122,8 +3130,17 @@ START_SECTION(([EXTRA] rescorePSMs with peptide_level: percolator_peptide_q_valu
   STATUS("target peptides at 5 %: peptide level " << targets_1pct << ", distinct of the 5 % PSMs " << psm_peptides_1pct.size())
   TEST_EQUAL(targets_1pct > 50, true)
 
-  // algorithm 'reset': its own peptide-level q-value only
+  // algorithm 'reset': its own peptide-level q-value only. A RESET call leaves no weights file of the Percolator
+  // training before it, also if it fails (here: an invalid salt)
+  std::string reset_weights;
+  NEW_TMP_FILE(reset_weights);
+  perc.storeWeights(reset_weights);
   prm.setValue("algorithm", "reset");
+  prm.setValue("reset:salt", "not a number");
+  perc.setParameters(prm);
+  PeptideIdentificationList ids_bad_salt = makeIds();
+  TEST_EXCEPTION(Exception::InvalidValue, perc.rescorePSMs(ids_bad_salt, feature_set, "trypsin", 2, 2, "q-value"))
+  TEST_EXCEPTION(Exception::MissingInformation, perc.storeWeights(reset_weights))
   prm.setValue("reset:salt", "5");
   prm.setValue("reset:iterations", 2);
   perc.setParameters(prm);
@@ -3132,8 +3149,6 @@ START_SECTION(([EXTRA] rescorePSMs with peptide_level: percolator_peptide_q_valu
   TEST_EQUAL(ids_reset[0].getHits()[0].metaValueExists("percolator_peptide_q_value"), false)
   TEST_EQUAL(ids_reset[0].getHits()[0].metaValueExists("RESET:peptide_q_value"), true)
   // RESET trains no Percolator model to write as the executable's weights file
-  std::string reset_weights;
-  NEW_TMP_FILE(reset_weights);
   TEST_EXCEPTION(Exception::MissingInformation, perc.storeWeights(reset_weights))
 }
 END_SECTION

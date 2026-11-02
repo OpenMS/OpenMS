@@ -332,7 +332,8 @@ namespace OpenMS
 
       @param filename The output file (usually with the extension .weights or .tsv)
       @throws Exception::MissingInformation before the first rescore()/train() call, after one that failed (threw),
-              and after rescorePSMs() with RESET (parameter 'algorithm' 'reset'), which trains no Percolator model
+              after rescorePSMs() with RESET (parameter 'algorithm' 'reset'), which trains no Percolator model, and
+              if the vendored output could not be split by fold (e.g. a feature name with a line break)
       @throws Exception::UnableToCreateFile if @p filename can't be written
     */
     void storeWeights(const std::string& filename) const;
