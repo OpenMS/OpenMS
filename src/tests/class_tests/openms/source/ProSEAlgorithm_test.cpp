@@ -155,6 +155,8 @@ public:
   using ProSEAlgorithm::scoringMaxCharge_;
   using ProSEAlgorithm::last_mod_match_tolerance_used_;
   using ProSEAlgorithm::CalibrationResult_;
+  using ProSEAlgorithm::MzRecalibration_;
+  using ProSEAlgorithm::OBSERVED_PRECURSOR_MZ;
   using ProSEAlgorithm::preprocessSpectra_;
   using ProSEAlgorithm::mass_accuracy_score_;
   using ProSEAlgorithm::DeisotopingSettings_;
@@ -385,8 +387,9 @@ static vector<FASTAFile::FASTAEntry> calibration_fasta_db_()
   };
 }
 
-// etd_ions: c/z+1 instead of b/y fragments
-static PeakMap build_calibration_spectra_(const vector<double>& ppm_shifts, bool etd_ions = false)
+// etd_ions: c/z+1 instead of b/y fragments; fragment_ppm_shift: every fragment peak shifted by this error (the precursor
+// errors are per spectrum, ppm_shifts)
+static PeakMap build_calibration_spectra_(const vector<double>& ppm_shifts, bool etd_ions = false, double fragment_ppm_shift = 0.0)
 {
   // Digest the test protein into tryptic peptides >= 8 residues.
   ProteaseDigestion digester;
@@ -430,6 +433,10 @@ static PeakMap build_calibration_spectra_(const vector<double>& ppm_shifts, bool
     tsg.getSpectrum(spec, pep, 1, std::min<int>(charge - 1, 2));
     spec.sortByPosition();
     if (spec.size() < 10) continue;
+    if (fragment_ppm_shift != 0.0)
+    {
+      for (Peak1D& peak : spec) { peak.setMZ(peak.getMZ() * (1.0 + fragment_ppm_shift * 1e-6)); }
+    }
 
     spec.setMSLevel(2);
     spec.setRT(rt);
@@ -3840,6 +3847,157 @@ START_SECTION(([EXTRA] calibration windows are median +/- k sigma of the errors,
   TEST_REAL_SIMILAR(cap.precursor_shift, cal.precursor_shift)  // the same PSMs: the pass windows cover the fixture either way
   TEST_REAL_SIMILAR(cap.cal_lower, std::clamp(cap.precursor_shift + 3.0 * cap.precursor_sigma, 5.0, 10.0))
   TEST_REAL_SIMILAR(cap.cal_upper, 3.0)  // floor 5 is above the configured 3: the configured side wins
+}
+END_SECTION
+
+START_SECTION(([EXTRA] MzRecalibration_::fit models the error per RT chunk, the median or a line in m/z, and correct() removes it))
+{
+  using Model = ProSEAlgorithm_test::MzRecalibration_;
+  // 200 points at rt 0..199: error 2 + 0.004 mz ppm in the first half of the run, 6 + 0.004 mz in the second; two outliers
+  vector<double> errors, mzs, rts;
+  for (Size i = 0; i < 200; ++i)
+  {
+    const double mz = 300.0 + 5.0 * i, rt = static_cast<double>(i);
+    errors.push_back((rt < 100.0 ? 2.0 : 6.0) + 0.004 * mz);
+    mzs.push_back(mz);
+    rts.push_back(rt);
+  }
+  errors[10] += 40.0;
+  errors[150] -= 40.0;
+
+  // offset, one chunk: the median of all errors, at any m/z and RT
+  const Model offset = Model::fit(errors, mzs, rts, 1, 10, false, true);
+  TEST_EQUAL(offset.active(), true)
+  TEST_EQUAL(offset.chunks.size(), 1)
+  vector<double> sorted = errors;
+  std::sort(sorted.begin(), sorted.end());
+  const double median = (sorted[99] + sorted[100]) / 2.0;
+  TEST_REAL_SIMILAR(offset.error(500.0, 50.0), median)
+  TEST_REAL_SIMILAR(offset.error(1200.0, 180.0), median)
+  TEST_REAL_SIMILAR(offset.correct(1000.0, 0.0), 1000.0 - median * 1e-6 * 1000.0)
+  TEST_EQUAL(offset.toString().substr(0, 3), "ppm")
+
+  // linear, two chunks (centres rt 50 and 150): each chunk's line without its outlier, interpolated in between
+  const Model linear = Model::fit(errors, mzs, rts, 2, 10, true, true);
+  TEST_EQUAL(linear.chunks.size(), 2)
+  TEST_REAL_SIMILAR(linear.chunks[0].rt, 50.0)
+  TEST_REAL_SIMILAR(linear.chunks[1].rt, 150.0)
+  TEST_REAL_SIMILAR(linear.chunks[0].intercept, 2.0)
+  TEST_REAL_SIMILAR(linear.chunks[0].slope, 0.004)
+  TEST_EQUAL(linear.chunks[0].points, 99)
+  TEST_REAL_SIMILAR(linear.chunks[1].intercept, 6.0)
+  TEST_REAL_SIMILAR(linear.chunks[1].slope, 0.004)
+  TEST_REAL_SIMILAR(linear.error(1000.0, 0.0), 6.0)     // before the first centre: the first chunk
+  TEST_REAL_SIMILAR(linear.error(1000.0, 199.0), 10.0)  // after the last: the last chunk
+  TEST_REAL_SIMILAR(linear.error(1000.0, 100.0), 8.0)   // midway between the centres
+  TEST_REAL_SIMILAR(linear.correct(1000.0, 0.0), 1000.0 * (1.0 - 6e-6))
+
+  // fewer chunks than asked when a chunk would hold less than min_points points
+  const Model few = Model::fit(errors, mzs, rts, 10, 50, false, true);
+  TEST_EQUAL(few.chunks.size(), 4)
+
+  // Da: the error is subtracted as it is
+  const Model da = Model::fit({0.1, 0.1, 0.1}, {500.0, 600.0, 700.0}, {1.0, 2.0, 3.0}, 1, 1, false, false);
+  TEST_REAL_SIMILAR(da.correct(500.0, 1.0), 499.9)
+  TEST_EQUAL(da.toString().substr(0, 2), "Da")
+
+  // nothing to fit: inactive
+  const Model none = Model::fit({}, {}, {}, 1, 1, true, true);
+  TEST_EQUAL(none.active(), false)
+  TEST_REAL_SIMILAR(none.error(500.0, 1.0), 0.0)
+  TEST_REAL_SIMILAR(none.correct(500.0, 1.0), 500.0)
+  TEST_STRING_EQUAL(none.toString(), "")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] calibration:recalibrate corrects the precursor m/z and the fragment peaks in place, reports the observed m/z and records the models))
+{
+  // Precursor errors around +7 ppm, every fragment peak at +5 ppm
+  const vector<double> ppm_shifts = {6.0, 7.0, 7.0, 8.0, 6.5, 7.5, 7.0, 6.8, 7.2, 7.1, 6.9, 7.3};
+  PeakMap spectra = build_calibration_spectra_(ppm_shifts, /*etd_ions*/ false, /*fragment_ppm_shift*/ 5.0);
+  const PeakMap observed = spectra; // the search corrects the spectra in place
+  auto fasta_db = calibration_fasta_db_();
+
+  ProSEAlgorithm_test algo;
+  configure_calibration_params_(algo, /*lower_ppm*/ 20.0, /*upper_ppm*/ 30.0, /*min_psms*/ 3);
+  {
+    Param p = algo.getParameters();
+    p.setValue("calibration:recalibrate", "offset");
+    p.setValue("calibration:precursor_sigma_factor", 0.0);
+    algo.setParameters(p);
+  }
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  const auto& cal = algo.last_calibration_result_;
+  TEST_EQUAL(cal.success, true)
+  TEST_EQUAL(cal.recalibrated(), true)
+  // the models: the median error (one chunk), ppm; the residual offset is zero
+  TEST_EQUAL(cal.precursor_recalibration.chunks.size(), 1)
+  TEST_EQUAL(cal.precursor_recalibration.ppm, true)
+  TEST_REAL_SIMILAR(cal.precursor_recalibration.chunks[0].intercept, cal.precursor_raw_shift)
+  TEST_EQUAL(cal.precursor_raw_shift > 5.0 && cal.precursor_raw_shift < 9.0, true)
+  TEST_EQUAL(std::fabs(cal.precursor_shift) < 1e-6, true)
+  TEST_EQUAL(cal.fragment_recalibration.active(), true)
+  TEST_EQUAL(cal.fragment_raw_shift > 4.0 && cal.fragment_raw_shift < 6.0, true)
+  TEST_EQUAL(std::fabs(cal.fragment_shift) < 0.5, true)
+  TEST_EQUAL(cal.fragment_tolerance >= 5.0 - 1e-9 && cal.fragment_tolerance <= 20.0 + 1e-9, true)
+  // the spectra: corrected in place, the observed precursor m/z kept; the PSMs: the observed m/z, the residual error
+  Size psms = 0;
+  for (const auto& pid : pep_ids)
+  {
+    if (pid.getHits().empty()) continue;
+    const Size scan = static_cast<Size>(static_cast<int>(pid.getMetaValue("scan_index")));
+    const double observed_mz = observed[scan].getPrecursors()[0].getMZ();
+    const Precursor& precursor = spectra[scan].getPrecursors()[0];
+    TEST_REAL_SIMILAR(pid.getMZ(), observed_mz)
+    TEST_REAL_SIMILAR(static_cast<double>(precursor.getMetaValue(ProSEAlgorithm_test::OBSERVED_PRECURSOR_MZ)), observed_mz)
+    TEST_REAL_SIMILAR(precursor.getMZ(), observed_mz * (1.0 - cal.precursor_raw_shift * 1e-6))
+    TEST_REAL_SIMILAR(spectra[scan][0].getMZ(), observed[scan][0].getMZ() * (1.0 - cal.fragment_recalibration.chunks[0].intercept * 1e-6))
+    const double residual = pid.getHits()[0].getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM);
+    TEST_EQUAL(std::fabs(residual) < 2.0, true)
+    ++psms;
+  }
+  TEST_EQUAL(psms >= 3, true)
+  // the search parameters record the mode, the models and the errors before and after
+  const ProteinIdentification::SearchParameters& sp = prot_ids[0].getSearchParameters();
+  TEST_STRING_EQUAL(sp.getMetaValue("calibration:recalibrate").toString(), "offset")
+  TEST_EQUAL(static_cast<int>(sp.getMetaValue("calibration:recalibrate_rt_chunks")), 1)
+  TEST_STRING_EQUAL(sp.getMetaValue("calibration:precursor_model").toString(), cal.precursor_recalibration.toString())
+  TEST_STRING_EQUAL(sp.getMetaValue("calibration:fragment_model").toString(), cal.fragment_recalibration.toString())
+  TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("calibration:precursor_error_offset")), cal.precursor_raw_shift)
+  TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("calibration:precursor_residual_offset")), cal.precursor_shift)
+  TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("calibration:fragment_error_offset")), cal.fragment_raw_shift)
+  // ... and the run statistics carry them for the summary
+  ProSEAlgorithm::RunStatistics stats;
+  algo.collectRunStatistics_(spectra, prot_ids, pep_ids, stats);
+  TEST_EQUAL(stats.recalibration.empty(), false)
+  TEST_EQUAL(std::any_of(stats.recalibration.begin(), stats.recalibration.end(),
+                         [](const auto& r) { return r.first == "recalibrate" && r.second.toString() == "offset"; }), true)
+
+  // mode none (the default): nothing corrected, nothing recorded, and the errors as measured
+  PeakMap untouched = build_calibration_spectra_(ppm_shifts, false, 5.0);
+  ProSEAlgorithm_test plain;
+  configure_calibration_params_(plain, 20.0, 30.0, 3);
+  {
+    Param p = plain.getParameters();
+    p.setValue("calibration:precursor_sigma_factor", 0.0);
+    plain.setParameters(p);
+  }
+  vector<ProteinIdentification> plain_prot_ids;
+  PeptideIdentificationList plain_pep_ids;
+  TEST_EQUAL(plain.search(untouched, fasta_db, plain_prot_ids, plain_pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  const auto& none = plain.last_calibration_result_;
+  TEST_EQUAL(none.success, true)
+  TEST_EQUAL(none.recalibrated(), false)
+  TEST_REAL_SIMILAR(none.precursor_raw_shift, none.precursor_shift)
+  TEST_REAL_SIMILAR(none.precursor_shift, cal.precursor_raw_shift) // the same PSMs: the same measured offset
+  TEST_EQUAL(plain_prot_ids[0].getSearchParameters().metaValueExists("calibration:recalibrate"), false)
+  TEST_REAL_SIMILAR(untouched[0].getPrecursors()[0].getMZ(), observed[0].getPrecursors()[0].getMZ())
+  TEST_EQUAL(untouched[0].getPrecursors()[0].metaValueExists(ProSEAlgorithm_test::OBSERVED_PRECURSOR_MZ), false)
+  ProSEAlgorithm::RunStatistics plain_stats;
+  plain.collectRunStatistics_(untouched, plain_prot_ids, plain_pep_ids, plain_stats);
+  TEST_EQUAL(plain_stats.recalibration.empty(), true)
 }
 END_SECTION
 

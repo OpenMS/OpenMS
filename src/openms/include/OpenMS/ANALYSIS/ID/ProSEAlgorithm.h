@@ -121,6 +121,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       double seconds_search = 0.0;             ///< scoring + post-processing wall time
       double seconds_calibration = 0.0;        ///< calibration pass wall time (0 if disabled)
       double seconds_fdr = 0.0;                ///< FDR filtering wall time (0 if not applied)
+      /// calibration:recalibrate: the 'calibration:*' records of the search parameters (the mode, the models, the
+      /// errors before and after), as name without the prefix and value; empty when the spectra were not corrected
+      std::vector<std::pair<std::string, DataValue>> recalibration;
     };
 
     /**
@@ -144,6 +147,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       std::vector<std::string> fixed_mods, variable_mods, ion_series;
       bool open_search = false;
       bool calibration_enabled = false;
+      std::string recalibrate;                 ///< calibration:recalibrate ("none", or empty, when the spectra are not corrected)
       bool peptide_mass_mode = false;
       bool chunked = false;
       std::string decoy_mode;                  ///< "generated" | "external" | "none (target-only)"
@@ -1650,7 +1654,40 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     double calibration_precursor_sigma_factor_{0.0}; ///< calibration:precursor_sigma_factor (0: the precursor window is kept)
     double calibration_min_precursor_tol_{0.0};  ///< calibration:min_precursor_tolerance (0: by unit)
     double calibration_min_fragment_tol_{0.0};   ///< calibration:min_fragment_tolerance (0: by unit)
+    std::string calibration_recalibrate_{"none"}; ///< calibration:recalibrate: none | offset | linear
+    Size calibration_recalibrate_rt_chunks_{1};   ///< calibration:recalibrate_rt_chunks
     bool mono_correction_enabled_{false};        ///< precursor:mono_correction
+
+    /// Meta value of the precursor of a searched spectrum: its m/z as observed, kept by applyRecalibration_() when
+    /// calibration:recalibrate corrects the precursor m/z in place; postProcessHits_() reports it as the PSM's m/z
+    static constexpr const char* OBSERVED_PRECURSOR_MZ = "observed_precursor_mz";
+
+    /**
+     * @brief An m/z error model of a run (calibration:recalibrate), fitted to the calibration PSMs and subtracted
+     * from the spectra before the main search.
+     *
+     * Per retention-time chunk a linear function of m/z of the signed error (observed minus theoretical; the median
+     * alone, slope 0, with mode 'offset'), linearly interpolated between the chunks' centres and constant beyond
+     * them. The errors are in ppm or in the unit of the tolerance (Da); correct() removes the modelled error from an m/z.
+     */
+    struct MzRecalibration_
+    {
+      struct Chunk { double rt; double intercept; double slope; Size points; };
+      std::vector<Chunk> chunks; ///< in RT order; empty: no correction
+      bool ppm{true};            ///< the error unit: ppm (correction mz - e * mz * 1e-6) or Da (mz - e)
+      bool active() const { return !chunks.empty(); }
+      double error(double mz, double rt) const;   ///< the modelled error at (mz, rt)
+      double correct(double mz, double rt) const; ///< @p mz without the modelled error
+      std::string toString() const;               ///< "ppm; rt <s>: <intercept> + <slope> mz (<points>) | ..." (empty: inactive)
+      /**
+       * Fit the model: the points (error, m/z, RT) are split in RT order into @p n_chunks groups of equal size (fewer
+       * when a group would hold less than @p min_points points), each fitted to its points within three robust
+       * standard deviations of its median: the median (@p linear false) or the least-squares line in m/z (@p linear;
+       * the median when the line cannot be fitted). Deterministic (no RANSAC).
+       */
+      static MzRecalibration_ fit(const std::vector<double>& errors, const std::vector<double>& mzs,
+                                  const std::vector<double>& rts, Size n_chunks, Size min_points, bool linear, bool ppm);
+    };
 
     /**
      * @brief Result of a calibration pass.
@@ -1658,11 +1695,20 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * Holds the estimated precursor and fragment tolerances computed from
      * confident PSMs during the calibration pass. When @c success is false,
      * the tolerance values are undefined and should not be used.
+     * With calibration:recalibrate the shifts and sigmas are those of the residual errors after the models
+     * (*_recalibration) are subtracted, i.e. the errors the main search sees; *_raw_* hold the errors as measured.
      */
     struct CalibrationResult_
     {
       double precursor_shift{0};     ///< median of the signed precursor errors of the calibration PSMs (the mass offset)
       double precursor_sigma{0};     ///< their robust standard deviation, 1.4826 * MAD
+      double precursor_raw_shift{0}; ///< offset and spread of the precursor errors as measured (= precursor_shift / precursor_sigma without recalibration)
+      double precursor_raw_sigma{0};
+      double fragment_raw_shift{0};  ///< the same of the fragment errors
+      double fragment_raw_sigma{0};
+      MzRecalibration_ precursor_recalibration; ///< the models subtracted from the spectra (calibration:recalibrate; inactive otherwise)
+      MzRecalibration_ fragment_recalibration;
+      bool recalibrated() const { return precursor_recalibration.active() || fragment_recalibration.active(); }
       double precursor_spread{0};    ///< the larger side of the window before the caps, max(cal_lower, cal_upper) (diagnostic)
       double cal_lower{0};           ///< calibrated lower magnitude (valid iff !extreme_bias && success)
       double cal_upper{0};           ///< calibrated upper magnitude (valid iff !extreme_bias && success)
@@ -1831,6 +1877,21 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                            FragmentIndex& fragment_index,
                                            const std::vector<FASTAFile::FASTAEntry>& db,
                                            const PeakMap* query_spectra = nullptr) const;
+
+    /**
+     * @brief calibration:recalibrate: subtract the error models of @p cal from the MS2 spectra, in place.
+     *
+     * The precursor m/z and the peaks of @p spectra and of the candidate-retrieval and fragment-evidence copies
+     * (where given) are corrected; the observed precursor m/z is kept as meta value OBSERVED_PRECURSOR_MZ of the
+     * precursor of @p spectra, which postProcessHits_() reports as the PSM's m/z. Nothing happens without a
+     * successful calibration or without active models.
+     */
+    void applyRecalibration_(const CalibrationResult_& cal, PeakMap& spectra, PeakMap* query_spectra,
+                             PeakMap* evidence_spectra) const;
+
+    /// Record the recalibration of @p cal (if any) in the search parameters of @p protein_ids[0]: the mode, the models
+    /// and the errors before and after ('calibration:*')
+    void recordRecalibration_(const CalibrationResult_& cal, std::vector<ProteinIdentification>& protein_ids) const;
 
     /**
      * @brief The protein occurrences of the sequences of a search's hits (peptide:protein_mapping = index).
