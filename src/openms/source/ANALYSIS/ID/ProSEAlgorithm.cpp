@@ -199,6 +199,32 @@ namespace OpenMS
       spectra.clear(true);
     }
 
+    // IDFilter::filterHitsByScore(ids, threshold), spectrum by spectrum in parallel: the same hits remain in the same
+    // order, and the hits that fail the threshold are destroyed on the thread that removes them. On one thread,
+    // destroying the hits of the ~140,000 spectra of a timsTOF run that fail FDR:PSM (each with its meta values and peak
+    // annotations) took about a second per run while the other threads waited (5 of 44 stack samples of a 27-run search).
+    void filterHitsByScoreInParallel(PeptideIdentificationList& ids, double threshold)
+    {
+      const SignedSize n = static_cast<SignedSize>(ids.size());
+      std::exception_ptr error; // (an allocation failure in a move; must not leave the parallel region)
+#pragma omp parallel for schedule(dynamic, 256) if (n >= 1024)
+      for (SignedSize i = 0; i < n; ++i)
+      {
+        try
+        {
+          IDFilter::filterHitsByScore(ids[i], threshold);
+        }
+        catch (...)
+        {
+#pragma omp critical (ProSEAlgorithm_filter_hits_error)
+          {
+            if (!error) error = std::current_exception();
+          }
+        }
+      }
+      if (error) std::rethrow_exception(error);
+    }
+
     // Resizes @p v to @p n elements as resize() does; on Linux, the pages of the storage that it allocates for them are
     // first faulted in by the OpenMP threads (madvise(MADV_POPULATE_WRITE) on parts of the range, Linux 5.14 or later; no
     // access to the storage itself), so that the serial construction of the elements does not take the page faults of
@@ -1521,6 +1547,12 @@ namespace OpenMS
     void takeBackThreadsOfEndedRead();
     void startDeferredRead();
     bool readLendsThreads();
+    // helpersOversubscribe(): whether helper threads next to the OpenMP threads of this thread (a reader of its own,
+    // a release of dropped hits or spectra) would exceed the logical CPUs of the process. With as many threads as CPUs,
+    // the threads that spin at a barrier take the CPUs of the threads that work: at 128 threads on 64 cores with SMT
+    // the 8,000-spectrum runs of the benchmark took twice the wall of 64 threads (1.9 s with OMP_WAIT_POLICY=passive,
+    // 3.1 s with the default spinning, 1.5 s at 64 threads). The helpers then take threads of this thread instead.
+    bool helpersOversubscribe();
 
     // Keeps the peaks WindowMower::filterPeakSpectrumForTopNInJumpingWindow() keeps: the peak_count most intense peaks of
     // each m/z window of window_size that starts at a peak (of the last window a share of peak_count by its width), and
@@ -7168,7 +7200,7 @@ namespace OpenMS
       // The PSMs the filter removes but the protein inference uses (FDR:protein_inference_PSM), on the same q-values.
       if (inference_only_psms != nullptr) { collectInferenceOnlyPsms_(peptide_ids, fdr_psm_, *inference_only_psms); }
       // Filters target and decoy PSMs alike by q-value; decoy removal is the protein FDR's finalization.
-      IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
+      filterHitsByScoreInParallel(peptide_ids, fdr_psm_);
       stats.fdr_applied = true;
       stats.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
       sw_fdr.stop();
@@ -7396,7 +7428,7 @@ namespace OpenMS
 #ifdef OPENMS_WINDOWSPLATFORM
       constexpr bool release_later = false;
 #else
-      const bool release_later = threads > 1;
+      const bool release_later = threads > 1 && !helpersOversubscribe(); // (inline, in parallel, when a helper's team would exceed the CPUs)
 #endif
       std::vector<std::vector<PeptideHit>> dropped;
       // rescore_method 'reset' with a directory as reset:stem_table: one table per run, named after its spectra file
@@ -7495,7 +7527,7 @@ namespace OpenMS
       StopWatch sw_fdr; sw_fdr.start();
       if (!rescoring.applied && !peptide_ids.empty()) { annotatePsmQValues(peptide_ids); }
       if (inference_only != nullptr) { collectInferenceOnlyPsms_(peptide_ids, fdr_psm_, *inference_only); }
-      IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
+      filterHitsByScoreInParallel(peptide_ids, fdr_psm_);
       stats.fdr_applied = true;
       stats.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
       sw_fdr.stop();
@@ -8144,7 +8176,17 @@ namespace OpenMS
     {
 #ifdef _OPENMP
       static const int cores = static_cast<int>(SysInfo::getAvailablePhysicalCores());
-      return threadsGiven() < cores;
+      return threadsGiven() < cores || helpersOversubscribe(); // (or the reader's own threads would exceed the CPUs)
+#else
+      return false;
+#endif
+    }
+
+    bool helpersOversubscribe()
+    {
+#ifdef _OPENMP
+      static const int cpus = omp_get_num_procs(); // the logical CPUs available to the process
+      return threadsGiven() >= cpus;
 #else
       return false;
 #endif
@@ -9322,7 +9364,7 @@ namespace OpenMS
         // memory); the holder joins it like the hits that the rescoring dropped (see released_hits_). Otherwise here.
         bool released_later = false;
 #if !defined(OPENMS_WINDOWSPLATFORM) && defined(_OPENMP) // Windows: the holder may go under the loader lock (a static object of a DLL), where joining deadlocks
-        if (i + 1 == in_spectra_files.size() && spectra.size() >= 1024 && omp_get_max_threads() > 1)
+        if (i + 1 == in_spectra_files.size() && spectra.size() >= 1024 && omp_get_max_threads() > 1 && !helpersOversubscribe())
         {
           try
           {
