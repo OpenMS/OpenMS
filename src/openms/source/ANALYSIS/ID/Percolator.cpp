@@ -16,32 +16,48 @@
 
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include "PercolatorImpl.h"
+#include "ssl.h" // vendored: adviseHugePages
+#include "OpenMPTasks.h" // vendored: PERCOLATOR_OMP_TASKS, PERCOLATOR_TASK_PRAGMA
+#include <new>
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <algorithm>
+#include <cmath>
 #include <compare>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <exception>
 #include <fstream>
+#include <iterator>
 #include <limits>
 #include <map>
+#include <new>
 #include <numeric>
 #include <queue>
 #include <set>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
+#include <tuple>
 #include <utility>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace OpenMS
 {
 
 namespace P = OpenMS::Internal::Percolator;
+
+static void rethrowFirstError(const std::vector<std::exception_ptr>& errors);
 
 namespace
 {
@@ -54,13 +70,129 @@ namespace
   public:
     bool validateDirection(std::vector<std::vector<double>>& w) override
     {
+      if (per_fold) return validateFolds_(w);
       const bool valid = P::SanityCheck::validateDirection(w);
       used_default_direction = used_default_direction || !valid;
       return valid;
     }
 
     bool used_default_direction = false;
+    /// Out-of-fold capped training: each fold's model is checked on its own training set only (Percolator's check
+    /// counts the targets of all test sets, i.e. of the held-out folds, and resets all models at once).
+    bool per_fold = false;
+    /// per_fold: the fold models as checked (normalized feature space), before the cross-validation's merge rescales
+    /// them by their test sets' scores
+    std::vector<std::vector<double>> validated_weights;
+    /// per_fold: which folds' models were replaced by their default direction
+    std::vector<char> reset_folds;
+
+  private:
+    // Per fold, as validateDirection() for all: the learned weights are replaced by the fold's default direction
+    // (getDefaultDirection: from its training set) if they find fewer targets at q < test_fdr on the fold's training
+    // set than the default direction does, or give the initial direction's feature the wrong sign; the test set of a
+    // replaced model is scored again (for the merge), its labels decide nothing. getInitDirection's count over the
+    // test sets (initPositives_) is not used here. Returns true.
+    bool validateFolds_(std::vector<std::vector<double>>& w)
+    {
+      std::vector<std::vector<double>> w0(w.size(), std::vector<double>(w.empty() ? 0 : w[0].size(), 0.0));
+      getDefaultDirection(w0);
+      reset_folds.assign(w.size(), 0);
+      // the folds in parallel, each on its own training set (as Percolator's validateDirection scores its test sets);
+      // the sorts of the scorings run as tasks of this region
+      std::vector<std::exception_ptr> errors(w.size());
+#if PERCOLATOR_OMP_TASKS
+#pragma omp parallel num_threads(static_cast<int>(std::max<size_t>(1, std::min<size_t>(w.size(), numThreads_))))
+#pragma omp single
+#pragma omp taskloop grainsize(1)
+#else
+#pragma omp parallel for schedule(dynamic, 1) num_threads(static_cast<int>(std::max<size_t>(1, std::min<size_t>(w.size(), numThreads_))))
+#endif
+      for (SignedSize task = 0; task < static_cast<SignedSize>(w.size()); ++task)
+      try
+      {
+        const size_t set = static_cast<size_t>(task);
+        P::Scores& train = (*pTrainset_)[set];
+        const int learned = train.calcScoresAndQvals(w[set], test_fdr_);
+        const int initial = train.calcScoresAndQvals(w0[set], test_fdr_);
+        // (Percolator's check also resets when no fold finds a target; per fold, a model that finds as many as the
+        // default direction, even none, is kept)
+        bool valid = learned >= initial;
+        if (valid && initDefaultDir != 0)
+        {
+          valid = w[set][static_cast<size_t>(std::abs(initDefaultDir) - 1)] * initDefaultDir > 0;
+        }
+        if (!valid && !overRule)
+        {
+          std::cerr << "Fold " << set + 1 << ": the learned model (" << learned << " training set PSMs with q<"
+                    << test_fdr_ << ") is replaced by the default direction (" << initial << ")." << std::endl;
+          w[set] = w0[set];
+          reset_folds[set] = 1;
+          // the CV merge rescales each model by its test set's scores (getAvgWeights averages the rescaled models):
+          // score the test set with the replacement (the saved fold models below do not depend on this)
+          (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr_);
+        }
+      }
+      catch (...)
+      {
+        errors[static_cast<size_t>(task)] = std::current_exception();
+      }
+      rethrowFirstError(errors);
+      for (char reset : reset_folds) used_default_direction = used_default_direction || reset != 0;
+      validated_weights = w;
+      return true;
+    }
   };
+}
+
+void Percolator::Impl::PsmSlab::create(std::size_t n)
+{
+  destroy();
+  if (n == 0) return;
+  // one block for all PSMs (the default constructor allocates nothing: empty strings, no features), constructed in
+  // static parts by the threads that fill them below
+  void* raw = ::operator new(n * sizeof(P::PSMDescription));
+  P::adviseHugePages(raw, n * sizeof(P::PSMDescription));
+  data = static_cast<P::PSMDescription*>(raw);
+#pragma omp parallel for schedule(static)
+  for (SignedSize i = 0; i < static_cast<SignedSize>(n); ++i)
+  {
+    new (data + i) P::PSMDescription();
+  }
+  size = n;
+}
+
+void Percolator::Impl::PsmSlab::destroy()
+{
+  if (data == nullptr) return;
+#pragma omp parallel for schedule(static)
+  for (SignedSize i = 0; i < static_cast<SignedSize>(size); ++i)
+  {
+    data[i].deleteRetentionFeatures(); // as PSMDescription::deletePtr
+    data[i].~PSMDescription();
+  }
+  ::operator delete(data);
+  data = nullptr;
+  size = 0;
+}
+
+// The PSMs of a scoring pass in one block: constructed and destroyed by the OpenMP threads in static parts (one
+// allocation instead of one per row; the pages are touched in parallel). Their strings ("row_" and 8 digits) fit into
+// the strings' own buffers, so filling them allocates nothing either.
+static P::PSMDescription* makePsmSlab_(size_t n)
+{
+  auto* slab = static_cast<P::PSMDescription*>(
+    ::operator new(n * sizeof(P::PSMDescription), std::align_val_t(alignof(P::PSMDescription))));
+#pragma omp parallel for schedule(static)
+  for (SignedSize i = 0; i < static_cast<SignedSize>(n); ++i) new (slab + i) P::PSMDescription();
+  return slab;
+}
+
+static void destroyPsmSlab_(P::PSMDescription* slab, size_t n)
+{
+  if (slab == nullptr) return;
+#pragma omp parallel for schedule(static)
+  for (SignedSize i = 0; i < static_cast<SignedSize>(n); ++i) slab[i].~PSMDescription();
+  ::operator delete(slab, std::align_val_t(alignof(P::PSMDescription)));
 }
 
 void Percolator::Impl::reset()
@@ -74,6 +206,9 @@ void Percolator::Impl::reset()
   }
   second_pass_psms.clear();
   second_pass_pool.reset();
+  destroyPsmSlab_(second_pass_slab, second_pass_slab_size);
+  second_pass_slab = nullptr;
+  second_pass_slab_size = 0;
 
   // First-pass (training) PSM ownership lives with DataSet: DataSet::~DataSet()
   // calls PSMDescription::deletePtr on each PSM. Don't double-free.
@@ -89,6 +224,7 @@ void Percolator::Impl::reset()
   // SetHandler with something that doesn't cascade through, FeatureNames
   // must be reset manually here.
   set_handler.reset();
+  psm_slab.destroy(); // (after the DataSets, which do not own them)
 
   // svm_weights is intentionally NOT cleared here — getSvmWeights() is
   // documented to retain the last training's weights across subsequent
@@ -171,6 +307,64 @@ Percolator::Percolator()
                      "CLI contract by passing its own int option (CLI default 0) through to "
                      "this param.");
   defaults_.setMinInt("subset_max_train", 0);
+  defaults_.setValue("subset_mode", "in_sample",
+                     "How rescore() trains when subset_max_train caps the training set. 'in_sample' (default, as the "
+                     "percolator executable's --subset-max-train): the cross-validation runs on the sample, and all rows "
+                     "are scored by the average of the fold models, so a sampled row is scored by two models that "
+                     "trained on it. 'out_of_fold': every spectrum (spectrum file, scan) is assigned to one of the "
+                     "cross-validation folds first; a seeded random sample of whole spectra of at most "
+                     "subset_max_train rows is drawn from the entire input (one sample: each fold's model trains on the "
+                     "sampled spectra of the other folds); each fold's model is trained (positive selection and Cpos/Cneg "
+                     "choice inside its training set) without the spectra of its fold, and every row, sampled or not, is "
+                     "scored by the model of its fold only; the folds' scores are merged as in the cross-validation "
+                     "(rescaled per fold). 'out_of_fold_avg': as 'out_of_fold', but the rows of the spectra that are NOT "
+                     "in the sample, which no model has seen, are scored by the average of the fold models (as "
+                     "'in_sample' scores them; with fewer than 100 targets or decoys there, by their folds' models); "
+                     "the sampled rows only by their own fold's model. Both are out-of-sample "
+                     "for every row, and the targets and decoys of a spectrum always share their scorer (a spectrum is "
+                     "sampled or not as a whole); the four scorers' scores are merged as the folds' (rescaled per "
+                     "scorer). Out-of-fold modes: the model of a fold is also checked (sanity check against the default "
+                     "direction) and gets its Cneg candidates on its own training set only. A spectrum is the rows' "
+                     "(spectrum file, scan): without scan numbers (or cv_group_keys) each row is its own spectrum. Inert "
+                     "when the input has at most subset_max_train rows.");
+  defaults_.setValidStrings("subset_mode", {"in_sample", "out_of_fold", "out_of_fold_avg", "learning_curve"});
+  defaults_.setValue("subset_curve_start", 100000,
+                     "subset_mode 'learning_curve': rows of the first training sample. The mode trains out-of-fold "
+                     "(folds as 'out_of_fold') on nested whole-spectrum samples of subset_curve_start, twice, four times ... "
+                     "as many rows, up to subset_max_train (if > 0, else subset_curve_max) or all rows but the validation "
+                     "spectra; the validation spectra (the end of the random order, at most subset_curve_validation rows "
+                     "and 20 % of the rows) are never trained on. Fold k's model is measured by the targets at q <= "
+                     "train_fdr among the validation spectra of the OTHER folds; fold k stops at the first doubling that "
+                     "adds less than max(subset_curve_min_gain (relative), 2 standard errors of the paired difference "
+                     "(sqrt of the validation targets accepted by only one of the two models)) and keeps that model; a "
+                     "stopped fold is not trained further. Every row is scored by its fold's model, as 'out_of_fold'. "
+                     "Inert with at most subset_curve_start rows.",
+                     {"advanced"});
+  defaults_.setMinInt("subset_curve_start", 1);
+  defaults_.setValue("subset_curve_min_gain", 0.002, "subset_mode 'learning_curve': see subset_curve_start.", {"advanced"});
+  defaults_.setMinFloat("subset_curve_min_gain", 0.0);
+  defaults_.setValue("subset_curve_validation", 250000, "subset_mode 'learning_curve': see subset_curve_start.", {"advanced"});
+  defaults_.setMinInt("subset_curve_validation", 1);
+  defaults_.setValue("subset_curve_max", 1000000,
+                     "subset_mode 'learning_curve': largest sample if subset_max_train is 0 (0 = all rows).", {"advanced"});
+  defaults_.setMinInt("subset_curve_max", 0);
+
+  defaults_.setValue("tron_epsilon", 1e-7,
+                     "Stopping tolerance of the TRON solver of the SVM training (relative gradient norm). "
+                     "Larger values train faster; the results differ from Percolator's (1e-7).",
+                     {"advanced"});
+  defaults_.setMinFloat("tron_epsilon", 1e-15);
+  defaults_.setValue("warm_start", "false",
+                     "Start each SVM training of a cross-validation iteration from the weights its (Cpos, Cneg) "
+                     "pair learned in the previous iteration instead of 0 (faster; the results differ). "
+                     "Not with nested_xval_bins > 1.",
+                     {"advanced"});
+  defaults_.setValidStrings("warm_start", {"true", "false"});
+  defaults_.setValue("single_cneg", "false",
+                     "Without c_neg: only Cneg = 3 x the target/decoy ratio x Cpos instead of selecting among 1, 3 "
+                     "and 10 x by cross-validation (faster; the results differ).",
+                     {"advanced"});
+  defaults_.setValidStrings("single_cneg", {"true", "false"});
 
   defaults_.setValue("report_as_main_score", "none",
                      "Which Percolator output to stamp as the main PeptideHit score after rescoring. "
@@ -204,6 +398,86 @@ Percolator::Percolator()
                      "PSMs (separate searches), false otherwise.");
   defaults_.setValidStrings("use_pi0", {"auto","true","false"});
 
+  defaults_.setValue("calc_mass_feature", "false",
+                     "rescorePSMs(): train on the CalcMass column too. 'false' (default): as the percolator executable, "
+                     "which reads it as metadata; 'true': the in-process training before OpenMS #10717.");
+  defaults_.setValidStrings("calc_mass_feature", {"true","false"});
+
+  defaults_.setValue("solver", "tron",
+                     "Solver of the SVMs of the cross-validation. 'tron' (default): the trust region Newton method "
+                     "(TRON) of Percolator, from 0 in every step. 'newton': the modified finite Newton method of "
+                     "Keerthi & DeCoste (2005) with the explicit Hessian (one pass over the active PSMs per step) and "
+                     "an exact line search, warm-started from the weights of the step before, with a looser tolerance "
+                     "in all steps but the last; for a given training set it reaches the same optimum as 'tron' (within the "
+                     "tolerance) in far fewer passes over the data (the looser steps may choose slightly different "
+                     "training sets for the next), and runs the blocks of large training sets on all threads. 'lda': "
+                     "Fisher's linear discriminant of the positives and the decoys in every step (one pass, no "
+                     "optimization; a fast approximation of the SVM). Upstream percolator has no such option.");
+  defaults_.setValidStrings("solver", {"tron","newton","lda"});
+  defaults_.setValue("algorithm", "percolator",
+                     "rescorePSMs(): 'percolator' = Percolator's cross-validated PSM-level FDR (default); 'reset' = "
+                     "Percolator-RESET (PercolatorReset): FDR control at the peptide (stem = unmodified sequence) level, "
+                     "PSM-level q-values heuristic. rescore() and train()/score() always use Percolator.");
+  defaults_.setValidStrings("algorithm", {"percolator","reset"});
+  defaults_.setValue("peptide_level", "false",
+                     "rescore(): also estimate peptide-level q-values and PEPs as the percolator executable does without "
+                     "-U (its peptide output): after the target-decoy competition the best PSM of each peptide and label "
+                     "(RescoreInput::peptide_keys, the PIN 'Peptide' string between the flanks) is kept and q-values (pi0 = 1 "
+                     "with post_processing_tdc, as the executable) and PEPs are computed on these peptides "
+                     "(RescoreOutput::peptide_q_values, peptide_peps). rescorePSMs() then writes them to the rescored hits as "
+                     "'percolator_peptide_q_value' and 'percolator_peptide_pep'. Not with algorithm 'reset' (its own "
+                     "peptide-level q-value) or a scorer.");
+  defaults_.setValidStrings("peptide_level", {"true","false"});
+  defaults_.setValue("reset:salt", "",
+                     "RESET: salt of the decoy coins (an unsigned 64-bit integer). Empty = a fresh random salt per run "
+                     "(recorded in the log and by ProSE in the search parameters). Never choose the best of several salts.");
+  defaults_.setValue("reset:learner", "svm",
+                     "RESET: 'svm' = linear L2-SVM (default); 'mlp' = ensemble of small MLPs (experimental).");
+  defaults_.setValidStrings("reset:learner", {"svm","mlp"});
+  defaults_.setValue("reset:mlp_members", 8, "RESET learner 'mlp': networks per ensemble.");
+  defaults_.setMinInt("reset:mlp_members", 1);
+  defaults_.setValue("reset:mlp_hidden", 16, "RESET learner 'mlp': units of each of the two hidden layers.");
+  defaults_.setMinInt("reset:mlp_hidden", 1);
+  defaults_.setValue("reset:mlp_epochs", 30, "RESET learner 'mlp': training epochs of the first round (of every round without warm starts).");
+  defaults_.setMinInt("reset:mlp_epochs", 1);
+  defaults_.setValue("reset:mlp_warm_epochs", 3,
+                     "RESET learner 'mlp': > 0 = warm starts: the networks continue from the previous round for this many "
+                     "epochs; 0 = trained afresh every round.");
+  defaults_.setMinInt("reset:mlp_warm_epochs", 0);
+  defaults_.setValue("reset:mlp_crossfit", "true",
+                     "RESET learner 'mlp': score each stem by the networks that did not train on it (3 folds by a hash of the "
+                     "sequence, as Percolator's cross-validation); 'false' = one final ensemble scores everything, which ranks "
+                     "the training decoys it learned too low and selects too many positives.");
+  defaults_.setValidStrings("reset:mlp_crossfit", {"true","false"});
+  defaults_.setValue("reset:mlp_norm_min_decoys", 1000,
+                     "RESET learner 'mlp', cross-fitted: normalize the fold ensembles' scores (as Percolator's folds) only if "
+                     "every fold has at least this many training decoys (0 = always).");
+  defaults_.setMinInt("reset:mlp_norm_min_decoys", 0);
+  defaults_.setValue("reset:representative", "model",
+                     "RESET: the PSM that represents a stem: 'model' = after each round, best score under the new model "
+                     "(default; the FDR then also assumes that null targets and decoys are exchangeable over their whole PSM "
+                     "collections, including their sizes); 'search' = best search engine score (the paper).");
+  defaults_.setValidStrings("reset:representative", {"search","model"});
+  defaults_.setValue("reset:iterations", 25, "RESET: training rounds (the paper: 5, which do not converge on DIA data).");
+  defaults_.setMinInt("reset:iterations", 1);
+  defaults_.setValue("reset:audit", "false",
+                     "RESET: feature-symmetry audit before training (per-feature AUC and KS of training decoys vs "
+                     "low-scoring pseudo-targets), reported in the log.");
+  defaults_.setValidStrings("reset:audit", {"true","false"});
+  defaults_.setValue("reset:decoys", "single",
+                     "RESET: 'single' = one decoy database (default); 'two' = the two-decoy mode of Percolator-RESET: the PSMs "
+                     "come from a search against the targets and two decoy databases of the same construction (the second "
+                     "with accessions starting with reset:second_decoy_prefix), and the FDR factors change from 3 and 2 to 2 "
+                     "and 1 (see PercolatorReset).");
+  defaults_.setValidStrings("reset:decoys", {"single","two"});
+  defaults_.setValue("reset:second_decoy_prefix", "DECOY_X_",
+                     "RESET 'two' decoys: accession prefix of the proteins of the second decoy database (a decoy hit is of "
+                     "the second set if all its proteins have this prefix).");
+  defaults_.setValue("reset:stem_table", "",
+                     "RESET: if not empty, rescorePSMs() writes every stem (considered or not) to this tab-separated file: "
+                     "stem, representative peptidoform, label, role, considered, search engine score, RESET score, "
+                     "q-value (peptide level), spectrum reference, charge.");
+
   defaultsToParam_();
 }
 
@@ -226,17 +500,52 @@ void Percolator::updateMembers_()
   impl_->normalizer     = param_.getValue("normalizer").toString();
   impl_->train_best_positive = (param_.getValue("train_best_positive").toString() == "true");
   impl_->post_processing_tdc = (param_.getValue("post_processing_tdc").toString() == "true");
+  impl_->calc_mass_feature = (param_.getValue("calc_mass_feature").toString() == "true");
   impl_->nested_xval_bins    = static_cast<int>(param_.getValue("nested_xval_bins"));
   impl_->subset_max_train    = static_cast<int>(param_.getValue("subset_max_train"));
+  const std::string subset_mode = param_.getValue("subset_mode").toString();
+  impl_->subset_out_of_fold  = subset_mode == "out_of_fold" || subset_mode == "out_of_fold_avg";
+  impl_->subset_oof_avg      = subset_mode == "out_of_fold_avg";
+  impl_->subset_curve        = subset_mode == "learning_curve";
+  impl_->subset_curve_start  = static_cast<int>(param_.getValue("subset_curve_start"));
+  impl_->subset_curve_min_gain = static_cast<double>(param_.getValue("subset_curve_min_gain"));
+  impl_->subset_curve_validation = static_cast<int>(param_.getValue("subset_curve_validation"));
+  impl_->subset_curve_max    = static_cast<int>(param_.getValue("subset_curve_max"));
+  impl_->tron_epsilon        = static_cast<double>(param_.getValue("tron_epsilon"));
+  impl_->warm_start          = (param_.getValue("warm_start").toString() == "true");
+  impl_->single_cneg         = (param_.getValue("single_cneg").toString() == "true");
   impl_->initial_direction   = param_.getValue("initial_direction").toString();
   impl_->use_pi0             = param_.getValue("use_pi0").toString();
   impl_->num_threads         = static_cast<int>(param_.getValue("num_threads"));
   impl_->report_as_main_score = param_.getValue("report_as_main_score").toString();
+  const std::string solver = param_.getValue("solver").toString();
+  impl_->solver = solver == "newton" ? P::kSolverNewton : solver == "lda" ? P::kSolverLda : P::kSolverTron;
+  impl_->algorithm = param_.getValue("algorithm").toString();
+  impl_->reset_salt = param_.getValue("reset:salt").toString();
+  impl_->reset_learner = param_.getValue("reset:learner").toString();
+  impl_->reset_mlp_members = static_cast<int>(param_.getValue("reset:mlp_members"));
+  impl_->reset_mlp_hidden = static_cast<int>(param_.getValue("reset:mlp_hidden"));
+  impl_->reset_mlp_epochs = static_cast<int>(param_.getValue("reset:mlp_epochs"));
+  impl_->reset_mlp_warm_epochs = static_cast<int>(param_.getValue("reset:mlp_warm_epochs"));
+  impl_->reset_mlp_crossfit = param_.getValue("reset:mlp_crossfit").toString() == "true";
+  impl_->reset_mlp_norm_min_decoys = static_cast<int>(param_.getValue("reset:mlp_norm_min_decoys"));
+  impl_->reset_iterations = static_cast<int>(param_.getValue("reset:iterations"));
+  impl_->reset_representative = param_.getValue("reset:representative").toString();
+  impl_->reset_audit = param_.getValue("reset:audit").toString() == "true";
+  impl_->reset_stem_table = param_.getValue("reset:stem_table").toString();
+  impl_->reset_decoy_databases = param_.getValue("reset:decoys").toString() == "two" ? 2 : 1;
+  impl_->reset_second_decoy_prefix = param_.getValue("reset:second_decoy_prefix").toString();
+  impl_->peptide_level = param_.getValue("peptide_level").toString() == "true";
 }
 
 const std::vector<std::vector<double>>& Percolator::getSvmWeights() const
 {
   return impl_->svm_weights;
+}
+
+const Percolator::CappedTrainingInfo& Percolator::getCappedTrainingInfo() const
+{
+  return impl_->capped_info;
 }
 
 double Percolator::getPi0() const
@@ -259,33 +568,294 @@ struct RowKeys
 
 // Populate a single PSMDescription from one row of RescoreInput. The row's
 // feature pointer comes from SetHandler's FeatureMemoryPool.
+// The threads of a parallel region whose sorts and pi0 bootstraps run as its tasks: at most 12,
+// as the cross-validation's (thirdparty/percolator/CrossValidation.cpp: numTeamThreads), more
+// would mostly wait for tasks; never more than OpenMP allows here.
+[[maybe_unused]] static int teamThreads(int num_threads)
+{
+#ifdef _OPENMP
+  return std::max(1, std::min({num_threads, 12, omp_get_max_threads()}));
+#else
+  (void)num_threads;
+  return 1;
+#endif
+}
+
+// Rethrows the first error, in iteration order, caught in the iterations of a parallel loop.
+static void rethrowFirstError(const std::vector<std::exception_ptr>& errors)
+{
+  for (const std::exception_ptr& error : errors)
+  {
+    if (error) std::rethrow_exception(error);
+  }
+}
+
+// The row of a PSM that rescore() or score() made from row i of the input (id "row_<i>"), or n_rows for another id
+static size_t rowOfPSM(const P::ScoreHolder& sh, size_t n_rows)
+{
+  if (sh.pPSM == nullptr) return n_rows;
+  const std::string& id = sh.pPSM->getFullPeptide();
+  if (id.size() < 12 || id.compare(0, 4, "row_") != 0) return n_rows;
+  char* end = nullptr;
+  const char* num_begin = id.c_str() + 4;
+  const unsigned long row = std::strtoul(num_begin, &end, 10);
+  if (end == nullptr || end == num_begin || *end != '\0' || row >= n_rows) return n_rows;
+  return static_cast<size_t>(row);
+}
+
+// OpenMS (PL-PAR): the PSMs (at least this many, and more than one thread) whose peptide-level representatives
+// peptideLevelEstimates finds with threads
+[[maybe_unused]] constexpr size_t kMinParallelPeptidePSMs = size_t(1) << 14;
+
+// Percolator's peptide level, as the executable computes it without -U (Caller::calcAndOutputResult, second
+// calculatePSMProb pass): the PSM-level set @p psms after the target-decoy competition is reduced to the best PSM of each
+// peptide and label (Scores::weedOutRedundant; its lexicOrderProb keys the PSMs by the peptide string between the flanks,
+// here RescoreInput::peptide_keys, and by the label: target and decoy peptides are separate entries, not paired), then
+// the q-values (at @p test_fdr) and PEPs are computed on these peptides. The executable's Scores has usePi0 = mix-max,
+// i.e. false with target-decoy competition (@p use_pi0). Fills out.peptide_q_values / peptide_peps for every row
+// (1 for a row whose peptide and label have no PSM in @p psms).
+//
+// The groups (label = input.is_decoy of the row, peptide key; full string equality) and their representatives: walking
+// the PSMs in the order of @p psms (rows that are not "row_<i>" of the input skipped), the first PSM of a group makes it
+// (the groups in the order of their first PSMs), and a later PSM of the group replaces the representative if it scores
+// strictly higher (operator>: a NaN score never replaces, nor is it replaced). With @p team_threads > 1 and many PSMs
+// (PL-PAR) the groups are partitioned by a hash of their key; the thread of a partition walks the PSMs of its groups in
+// the order of @p psms, so each group gets the same first PSM and the same chain of replacements as in one walk; the
+// groups are then put in the order of their first PSMs (positions in @p psms, distinct per group). The same
+// representatives in the same order give the same input to the q-values and PEPs, which are computed as before; every
+// row then takes the estimates of its group by a group number instead of a second map of peptide strings.
+static void peptideLevelEstimates(const P::Scores& psms, const RescoreInput& input, bool use_pi0, double test_fdr,
+                                  const std::string& pep_method, int team_threads, RescoreOutput& out)
+{
+  const size_t n_rows = input.rowCount();
+  const size_t n_psms = psms.size();
+  constexpr uint32_t kNone = std::numeric_limits<uint32_t>::max();
+  std::vector<const P::ScoreHolder*> reps;
+  // PL-PAR: the group of each input row (kNone: no PSM of its peptide and label)
+  std::vector<uint32_t> group_of_row;
+  bool by_group = false;
+#ifdef _OPENMP
+  by_group = team_threads > 1 && n_psms >= kMinParallelPeptidePSMs && n_rows < size_t(kNone) && n_psms < size_t(kNone);
+#endif
+  if (by_group)
+  {
+    const P::ScoreHolder* const base = &*psms.begin();
+    const size_t num_parts = std::min<size_t>(static_cast<size_t>(team_threads), 64); // fits part_of_psm
+    std::vector<size_t> hash_of_row(n_rows);
+    std::vector<uint32_t> row_of_psm(n_psms);
+    std::vector<unsigned char> part_of_psm(n_psms);
+    const auto row_hash = [&hash_of_row](uint32_t r) { return hash_of_row[r]; };
+    const auto row_equal = [&input](uint32_t a, uint32_t b) {
+      return input.is_decoy[a] == input.is_decoy[b] && input.peptide_keys[a] == input.peptide_keys[b];
+    };
+    using GroupMap = std::unordered_map<uint32_t, uint32_t, decltype(row_hash), decltype(row_equal)>;
+    std::vector<GroupMap> map_of_part;
+    map_of_part.reserve(num_parts);
+    for (size_t p = 0; p < num_parts; ++p) map_of_part.emplace_back(16, row_hash, row_equal);
+    struct Group
+    {
+      uint32_t first; ///< position of its first PSM in psms
+      uint32_t rep;   ///< position of its representative
+    };
+    std::vector<std::vector<Group>> groups_of_part(num_parts);
+    std::vector<std::exception_ptr> errors(num_parts);
+#pragma omp parallel num_threads(team_threads)
+    {
+      // the hash of each row's (label, peptide), then the row and partition of each PSM
+#pragma omp for schedule(static)
+      for (SignedSize i = 0; i < static_cast<SignedSize>(n_rows); ++i)
+      {
+        const size_t h = std::hash<std::string>{}(input.peptide_keys[i]);
+        hash_of_row[i] = input.is_decoy[i] ? h ^ size_t(0x9e3779b97f4a7c15ull) : h;
+      }
+#pragma omp for schedule(static)
+      for (SignedSize j = 0; j < static_cast<SignedSize>(n_psms); ++j)
+      {
+        const size_t row = rowOfPSM(base[j], n_rows);
+        row_of_psm[j] = row == n_rows ? kNone : static_cast<uint32_t>(row);
+        part_of_psm[j] = row == n_rows ? 0 : static_cast<unsigned char>(hash_of_row[row] % num_parts);
+      }
+      // the groups of each partition, walking the PSMs in order
+#pragma omp for schedule(dynamic, 1)
+      for (SignedSize sp = 0; sp < static_cast<SignedSize>(num_parts); ++sp)
+      {
+        const size_t p = static_cast<size_t>(sp);
+        try
+        {
+          GroupMap& groups_map = map_of_part[p];
+          std::vector<Group>& groups = groups_of_part[p];
+          for (size_t j = 0; j < n_psms; ++j)
+          {
+            if (part_of_psm[j] != p || row_of_psm[j] == kNone) continue;
+            const auto [it, inserted] = groups_map.try_emplace(row_of_psm[j], static_cast<uint32_t>(groups.size()));
+            if (inserted) groups.push_back({static_cast<uint32_t>(j), static_cast<uint32_t>(j)});
+            else if (base[j].score > base[groups[it->second].rep].score) groups[it->second].rep = static_cast<uint32_t>(j);
+          }
+        }
+        catch (...)
+        {
+          errors[p] = std::current_exception();
+        }
+      }
+    }
+    rethrowFirstError(errors);
+    // the groups in the order of their first PSMs; the local group numbers of each partition -> global ones
+    std::vector<std::pair<uint32_t, std::pair<uint32_t, uint32_t>>> order; // (first, (partition, local group))
+    for (size_t p = 0; p < num_parts; ++p)
+    {
+      for (size_t g = 0; g < groups_of_part[p].size(); ++g)
+      {
+        order.push_back({groups_of_part[p][g].first, {static_cast<uint32_t>(p), static_cast<uint32_t>(g)}});
+      }
+    }
+    std::sort(order.begin(), order.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+    std::vector<std::vector<uint32_t>> global_of_part(num_parts);
+    for (size_t p = 0; p < num_parts; ++p) global_of_part[p].resize(groups_of_part[p].size());
+    reps.resize(order.size());
+    for (size_t g = 0; g < order.size(); ++g)
+    {
+      const auto [p, local] = order[g].second;
+      global_of_part[p][local] = static_cast<uint32_t>(g);
+      reps[g] = base + groups_of_part[p][local].rep;
+    }
+    // the group of every input row (also of rows without a PSM in psms: by their peptide and label)
+    group_of_row.assign(n_rows, kNone);
+#pragma omp parallel for schedule(static) num_threads(team_threads)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(n_rows); ++i)
+    {
+      const size_t p = hash_of_row[i] % num_parts;
+      const auto it = map_of_part[p].find(static_cast<uint32_t>(i));
+      if (it != map_of_part[p].end()) group_of_row[i] = global_of_part[p][it->second];
+    }
+  }
+  std::unordered_map<std::string, size_t> best[2]; // [decoy] peptide -> index into reps
+  if (!by_group)
+  {
+    // best PSM of each (label, peptide): the first of the highest score (as weedOutRedundant, which keeps one of equal
+    // scores; the q-value and PEP of the peptide do not depend on which)
+    for (const P::ScoreHolder& sh : psms)
+    {
+      const size_t row = rowOfPSM(sh, n_rows);
+      if (row == n_rows) continue;
+      auto [it, inserted] = best[input.is_decoy[row] ? 1 : 0].try_emplace(input.peptide_keys[row], reps.size());
+      if (inserted) reps.push_back(&sh);
+      else if (sh.score > reps[it->second]->score) reps[it->second] = &sh;
+    }
+  }
+  P::Scores peptides(use_pi0);
+  peptides.reserve(reps.size());
+  for (const P::ScoreHolder* sh : reps) peptides.addScoreHolder(*sh);
+  // as rescore(): the sort and the bootstraps of a pi0 estimate as the tasks of a parallel region
+  std::exception_ptr error;
+  PERCOLATOR_TASK_PRAGMA(omp parallel num_threads(team_threads))
+  PERCOLATOR_TASK_PRAGMA(omp single)
+  {
+    try
+    {
+      peptides.postMergeStep();
+      peptides.calcQvals(test_fdr);
+    }
+    catch (...)
+    {
+      error = std::current_exception();
+    }
+  }
+  if (error) std::rethrow_exception(error);
+  if (pep_method == "isotonic")
+  {
+    peptides.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/true);
+  }
+  else if (pep_method == "nonparametric")
+  {
+    peptides.calcPep(/*spline=*/true,  /*interp=*/false, /*pava=*/false);
+  }
+  else
+  {
+    peptides.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/false);
+  }
+  out.peptide_q_values.assign(n_rows, 1.0);
+  out.peptide_peps.assign(n_rows, 1.0);
+  if (by_group)
+  {
+    // (q-value, PEP) of each group: from its peptide-level entry (each group has one; a group without one keeps 1, 1)
+    std::vector<std::pair<double, double>> estimates(reps.size(), {1.0, 1.0});
+    for (const P::ScoreHolder& sh : peptides)
+    {
+      const size_t row = rowOfPSM(sh, n_rows);
+      if (row == n_rows || group_of_row[row] == kNone) continue;
+      estimates[group_of_row[row]] = {sh.q, sh.pep};
+    }
+#pragma omp parallel for schedule(static) num_threads(team_threads)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(n_rows); ++i)
+    {
+      const uint32_t g = group_of_row[i];
+      if (g == kNone) continue;
+      out.peptide_q_values[i] = estimates[g].first;
+      out.peptide_peps[i] = estimates[g].second;
+    }
+    return;
+  }
+  std::unordered_map<std::string, std::pair<double, double>> estimates[2]; // [decoy] peptide -> (q-value, PEP)
+  for (const P::ScoreHolder& sh : peptides)
+  {
+    const size_t row = rowOfPSM(sh, n_rows);
+    estimates[input.is_decoy[row] ? 1 : 0][input.peptide_keys[row]] = {sh.q, sh.pep};
+  }
+#pragma omp parallel for schedule(static) num_threads(team_threads)
+  for (SignedSize i = 0; i < static_cast<SignedSize>(n_rows); ++i)
+  {
+    const auto& m = estimates[input.is_decoy[i] ? 1 : 0];
+    const auto it = m.find(input.peptide_keys[i]);
+    if (it == m.end()) continue;
+    out.peptide_q_values[i] = it->second.first;
+    out.peptide_peps[i] = it->second.second;
+  }
+}
+
+// Fills a PSMDescription from one row of RescoreInput (n_feat values at feats); its feature row
+// (psm.features) is allocated already.
+static void fillPSMFromRow(
+  P::PSMDescription& psm,
+  const double* feats,
+  size_t n_feat,
+  const RowKeys& keys,
+  size_t row_index,
+  std::string& synth_id)
+{
+  // Synthesize an opaque row ID as the "peptide" string: "row_%08zu" (written without snprintf, which cost more than
+  // the rest of the row); the scores are mapped back to the rows by it.
+  char digits[24];
+  size_t n_digits = 0;
+  for (size_t v = row_index; v != 0 || n_digits < 8; v /= 10) digits[n_digits++] = static_cast<char>('0' + v % 10);
+  synth_id.assign("row_");
+  while (n_digits > 0) synth_id += digits[--n_digits];
+  psm.setId(synth_id);
+  psm.setPeptide(synth_id);
+  psm.scan        = static_cast<unsigned int>(keys.scan);
+  psm.specFileNr  = static_cast<unsigned int>(keys.spec_file);
+  psm.expMass     = keys.exp_mass;
+  psm.calcMass    = keys.calc_mass;
+  psm.retentionTime_ = 0.0;
+
+  double* feat_ptr = psm.features;
+  for (size_t j = 0; j < n_feat; ++j)
+  {
+    feat_ptr[j] = feats[j];
+  }
+}
+
 static P::PSMDescription* makePSMFromRow(
-  const std::vector<double>& feats,
+  const double* feats,
+  size_t n_feat,
   const RowKeys& keys,
   size_t row_index,
   std::string& synth_id,
   P::FeatureMemoryPool& pool)
 {
   auto* psm = new P::PSMDescription();
-  // Synthesize an opaque row ID as the "peptide" string — never parsed.
-  char buf[32];
-  std::snprintf(buf, sizeof(buf), "row_%08zu", row_index);
-  synth_id = buf;
-  psm->setId(synth_id);
-  psm->setPeptide(synth_id);
-  psm->scan        = static_cast<unsigned int>(keys.scan);
-  psm->specFileNr  = static_cast<unsigned int>(keys.spec_file);
-  psm->expMass     = keys.exp_mass;
-  psm->calcMass    = keys.calc_mass;
-  psm->retentionTime_ = 0.0;
-
   // Allocate feature row from the pool.
-  double* feat_ptr = pool.allocate();
-  for (size_t j = 0; j < feats.size(); ++j)
-  {
-    feat_ptr[j] = feats[j];
-  }
-  psm->features = feat_ptr;
+  psm->features = pool.allocate();
+  fillPSMFromRow(*psm, feats, n_feat, keys, row_index, synth_id);
   return psm;
 }
 
@@ -314,7 +884,7 @@ static bool resolveUsePi0(const std::string& use_pi0, bool post_processing_tdc, 
   if (use_pi0 != "auto") return use_pi0 == "true";
   if (post_processing_tdc) return false;
   std::map<std::pair<int, double>, bool> decoy_by_spectrum;
-  for (size_t i = 0; i < input.features.size(); ++i)
+  for (size_t i = 0; i < input.rowCount(); ++i) // (rows of features or of the dense feature_matrix)
   {
     const RowKeys keys = makeRowKeys(input, i);
     const auto [it, inserted] = decoy_by_spectrum.emplace(std::make_pair(keys.scan, keys.exp_mass), input.is_decoy[i]);
@@ -350,7 +920,10 @@ static RescoreInput makeSubsetInput_(
 {
   RescoreInput out;
   out.feature_names = input.feature_names;
-  out.features.reserve(indices.size());
+  const bool dense = input.features.empty();
+  const size_t n_feat = input.featureCount();
+  if (dense) out.feature_matrix.reserve(indices.size() * n_feat);
+  else       out.features.reserve(indices.size());
   out.is_decoy.reserve(indices.size());
   const bool has_cv       = !input.cv_group_keys.empty();
   const bool has_scan     = !input.scan_numbers.empty();
@@ -364,7 +937,8 @@ static RescoreInput makeSubsetInput_(
   if (has_calc)     out.calc_masses.reserve(indices.size());
   for (size_t i : indices)
   {
-    out.features.push_back(input.features[i]);
+    if (dense) out.feature_matrix.insert(out.feature_matrix.end(), input.row(i), input.row(i) + n_feat);
+    else       out.features.push_back(input.features[i]);
     out.is_decoy.push_back(input.is_decoy[i]);
     if (has_cv)       out.cv_group_keys.push_back(input.cv_group_keys[i]);
     if (has_scan)     out.scan_numbers.push_back(input.scan_numbers[i]);
@@ -378,18 +952,30 @@ static RescoreInput makeSubsetInput_(
 // Dimension + optional-field checks shared by rescore/train/score entry points.
 static void validateRescoreInput_(const RescoreInput& input)
 {
-  if (input.features.empty())
+  if (input.features.empty() && input.feature_matrix.empty())
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
       "RescoreInput has empty features matrix", "");
   }
-  if (input.features.size() != input.is_decoy.size())
+  if (!input.features.empty() && !input.feature_matrix.empty())
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "RescoreInput has rows in both features and feature_matrix", "");
+  }
+  if (input.features.empty() &&
+      (input.feature_names.empty() || input.feature_matrix.size() / input.feature_names.size() != input.is_decoy.size() ||
+       input.feature_matrix.size() % input.feature_names.size() != 0))
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "feature_matrix must hold is_decoy.size() rows of feature_names.size() values", "");
+  }
+  if (input.rowCount() != input.is_decoy.size())
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
       "features and is_decoy length mismatch", "");
   }
-  const size_t n_rows = input.features.size();
-  const size_t n_feat = input.features.front().size();
+  const size_t n_rows = input.rowCount();
+  const size_t n_feat = input.featureCount();
   for (const auto& row : input.features)
   {
     if (row.size() != n_feat)
@@ -411,6 +997,7 @@ static void validateRescoreInput_(const RescoreInput& input)
   validate_opt(input.spec_file_numbers,  "spec_file_numbers");
   validate_opt(input.exp_masses,         "exp_masses");
   validate_opt(input.calc_masses,        "calc_masses");
+  validate_opt(input.peptide_keys,       "peptide_keys");
 }
 
 // Feature-count + feature-names compatibility between a scoring input and a
@@ -420,7 +1007,7 @@ static void validateRescoreInput_(const RescoreInput& input)
 static void validateModelCompat_(
   const RescoreInput& input, const PercolatorModel& model)
 {
-  const size_t n_feat = input.features.front().size();
+  const size_t n_feat = input.featureCount();
   if (model.weights.size() != n_feat + 1)
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -478,8 +1065,8 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   impl_->reset();
   P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
 
-  const size_t n_rows = input.features.size();
-  const size_t n_feat = input.features.front().size();
+  const size_t n_rows = input.rowCount();
+  const size_t n_feat = input.featureCount();
 
   // SetHandler + feature pool. maxPSMs=0 because we never use SetHandler's own
   // readPSMs path (it's a file-level loader); we register rows directly.
@@ -512,7 +1099,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   for (size_t i = 0; i < n_rows; ++i)
   {
     const RowKeys keys = makeRowKeys(input, i);
-    auto* psm = makePSMFromRow(input.features[i], keys, i,
+    auto* psm = makePSMFromRow(input.row(i), n_feat, keys, i,
                                impl_->synthesized_ids[i], pool);
     impl_->owned_psms.push_back(psm);
     if (input.is_decoy[i]) impl_->decoy_ds->registerPsm(psm);
@@ -570,6 +1157,8 @@ PercolatorModel Percolator::train(const RescoreInput& input)
     /*skipNormalizeScores=*/false,
     /*decoyFractionTraining=*/1.0,
     /*numFolds=*/3);
+  cv.setSolver(impl_->solver);
+  cv.setTrainingOptions(impl_->tron_epsilon, impl_->warm_start, impl_->single_cneg);
 
   std::vector<double> avg_weights;
   try
@@ -663,13 +1252,15 @@ RescoreOutput Percolator::score(const RescoreInput& input,
   };
   const std::vector<double>& rescaled_weights = scale.rescaled_weights;
 
-  const size_t n_feat = input.features.front().size();
+  const size_t n_rows = input.rowCount();
+  const size_t n_feat = input.featureCount();
   RescoreOutput out;
-  out.scores.reserve(input.features.size());
-  out.q_values.reserve(input.features.size());
-  out.peps.reserve(input.features.size());
-  for (const std::vector<double>& row : input.features)
+  out.scores.reserve(n_rows);
+  out.q_values.reserve(n_rows);
+  out.peps.reserve(n_rows);
+  for (size_t i = 0; i < n_rows; ++i)
   {
+    const double* row = input.row(i);
     // as Scores::scoreAndAddPSM, with the weights that Scores::normalizeScores rescaled for the reference
     double s = rescaled_weights[n_feat];
     for (size_t j = 0; j < n_feat; ++j) { s += row[j] * rescaled_weights[j]; }
@@ -702,8 +1293,8 @@ RescoreOutput Percolator::score_(const RescoreInput& input,
   // which scores the reference again.
   P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
 
-  const size_t n_rows = input.features.size();
-  const size_t n_feat = input.features.front().size();
+  const size_t n_rows = input.rowCount();
+  const size_t n_feat = input.featureCount();
 
   // Fresh feature pool. Reuses the second_pass_* scratch fields in Impl so
   // the next reset() cleans everything up via RAII.
@@ -724,6 +1315,10 @@ RescoreOutput Percolator::score_(const RescoreInput& input,
   }
   fn.initFeatures();
 
+  // As train() and rescore(): a score distribution that cannot be rescaled at test_fdr (e.g. no target below it) is
+  // shifted instead of failing (Scores::normalizeScores); the q-values and PEPs do not depend on that scale.
+  P::Globals::getInstance()->setNoTerminate(true);
+
   P::Scores all_scores(/*usePi0=*/use_pi0);
   impl_->synthesized_ids.resize(n_rows);
   impl_->second_pass_psms.reserve(n_rows);
@@ -731,7 +1326,7 @@ RescoreOutput Percolator::score_(const RescoreInput& input,
   for (size_t i = 0; i < n_rows; ++i)
   {
     const RowKeys keys = makeRowKeys(input, i);
-    auto* psm = makePSMFromRow(input.features[i], keys, i,
+    auto* psm = makePSMFromRow(input.row(i), n_feat, keys, i,
                                impl_->synthesized_ids[i], pool);
     impl_->second_pass_psms.push_back(psm);
 
@@ -749,27 +1344,42 @@ RescoreOutput Percolator::score_(const RescoreInput& input,
   // train()/rescore() — otherwise callers see raw upstream exceptions.
   try
   {
-    all_scores.postMergeStep();
-    all_scores.calcQvals(impl_->test_fdr);
-    // normalizeScores takes a non-const ref and rescales the weight vector in
-    // place (endScoreNormalizeWeights). Use a local copy so the caller's model
-    // is not mutated.
-    std::vector<double> weights_copy = model.weights;
-    all_scores.normalizeScores(impl_->test_fdr, weights_copy);
-    if (scale != nullptr) { scale->rescaled_weights = weights_copy; }
-
-    if (impl_->post_processing_tdc)
+    // In a parallel region, as in rescore(): the sorts and the bootstraps of the pi0 estimate run as its tasks, with the
+    // same results (see thirdparty/percolator/SortLikeStd.h and PosteriorEstimator::estimatePi0).
+    std::exception_ptr error;
+    PERCOLATOR_TASK_PRAGMA(omp parallel num_threads(teamThreads(impl_->num_threads)))
+    PERCOLATOR_TASK_PRAGMA(omp single)
     {
-      all_scores.weedOutRedundantTDC();
-    }
+      try
+      {
+        all_scores.postMergeStep();
+        all_scores.calcQvals(impl_->test_fdr);
+        // normalizeScores takes a non-const ref and rescales the weight vector in
+        // place (endScoreNormalizeWeights). Use a local copy so the caller's model
+        // is not mutated.
+        std::vector<double> weights_copy = model.weights;
+        all_scores.normalizeScores(impl_->test_fdr, weights_copy);
+        if (scale != nullptr) { scale->rescaled_weights = weights_copy; }
 
-    // Mirror Caller::calculatePSMProb: after any TDC weed-out, recompute
-    // q-values so they use the post-TDC pi0 set by weedOutRedundantTDC's
-    // internal postMergeStep. Kept unconditional for symmetry with rescore()
-    // — when TDC is off this is a no-op (pi0 and scores are unchanged since
-    // the earlier calcQvals call) but the cost is negligible on already-
-    // sorted scores.
-    all_scores.calcQvals(impl_->test_fdr);
+        if (impl_->post_processing_tdc)
+        {
+          all_scores.weedOutRedundantTDC();
+        }
+
+        // Mirror Caller::calculatePSMProb: after any TDC weed-out, recompute
+        // q-values so they use the post-TDC pi0 set by weedOutRedundantTDC's
+        // internal postMergeStep. Kept unconditional for symmetry with rescore()
+        // — when TDC is off this is a no-op (pi0 and scores are unchanged since
+        // the earlier calcQvals call) but the cost is negligible on already-
+        // sorted scores.
+        all_scores.calcQvals(impl_->test_fdr);
+      }
+      catch (...)
+      {
+        error = std::current_exception();
+      }
+    }
+    if (error) std::rethrow_exception(error);
     impl_->last_pi0 = all_scores.getPi0();
 
     if (impl_->pep_method == "isotonic")
@@ -827,6 +1437,52 @@ RescoreOutput Percolator::score_(const RescoreInput& input,
   return out;
 }
 
+// The learning curve's measure: the targets at q <= fdr among @p rows scored by @p w (raw feature space, bias last),
+// with q = (decoys + 1) / targets (Percolator's convention), ties ordered decoys first, then by row; returns their
+// rows, ascending.
+static std::vector<size_t> acceptedTargets_(const RescoreInput& input, const std::vector<size_t>& rows,
+                                           const std::vector<double>& w, double fdr)
+{
+  const size_t n_feat = input.featureCount();
+  struct Scored
+  {
+    double score;
+    bool decoy;
+    size_t row;
+  };
+  std::vector<Scored> scored;
+  scored.reserve(rows.size());
+  for (size_t i : rows)
+  {
+    const double* feats = input.row(i);
+    double score = 0.0;
+    for (size_t j = 0; j < n_feat; ++j) score += feats[j] * w[j];
+    scored.push_back({score + w[n_feat], static_cast<bool>(input.is_decoy[i]), i});
+  }
+  std::sort(scored.begin(), scored.end(), [](const Scored& a, const Scored& b)
+  {
+    if (a.score != b.score) return a.score > b.score;
+    if (a.decoy != b.decoy) return a.decoy;
+    return a.row < b.row;
+  });
+  std::vector<double> fdp(scored.size());
+  size_t targets = 0, decoys = 0;
+  for (size_t k = 0; k < scored.size(); ++k)
+  {
+    ++(scored[k].decoy ? decoys : targets);
+    fdp[k] = static_cast<double>(decoys + 1) / static_cast<double>(std::max<size_t>(targets, 1));
+  }
+  std::vector<size_t> accepted;
+  double q = std::numeric_limits<double>::infinity();
+  for (size_t k = scored.size(); k-- > 0;)
+  {
+    q = std::min(q, fdp[k]);
+    if (!scored[k].decoy && q <= fdr) accepted.push_back(scored[k].row);
+  }
+  std::sort(accepted.begin(), accepted.end());
+  return accepted;
+}
+
 RescoreOutput Percolator::rescore(const RescoreInput& input)
 {
   // Mark pi0 invalid up front: any throw — including from input validation
@@ -839,18 +1495,99 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   validateRescoreInput_(input);
   const bool use_pi0 = resolveUsePi0(impl_->use_pi0, impl_->post_processing_tdc, input);
 
-  const size_t n_rows = input.features.size();
-  const size_t n_feat = input.features.front().size();
+  const size_t n_rows = input.rowCount();
+  const size_t n_feat = input.featureCount();
 
   impl_->reset();
   P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
 
-  // Reservoir-sample the training subset. When subset_max_train is 0 or
-  // >= n_rows, training_rows is the identity [0..n).
-  const std::vector<size_t> training_rows =
-    selectTrainingSubset(input, n_rows, impl_->subset_max_train);
-  const bool did_subsample = training_rows.size() < n_rows;
+  impl_->capped_info = CappedTrainingInfo();
+  // subset_mode 'out_of_fold' with an active cap: every spectrum gets its fold first, then a random sample of whole
+  // spectra is drawn from the entire input (InProcessSampler.h: drawOutOfFoldSample); the cross-validation keeps these
+  // folds, and every row is scored by its fold's model below. No draw of the reservoir sampler (PseudoRandom) here.
+  const unsigned int num_folds = 3;
+  bool out_of_fold = false;
+  P::OutOfFoldSample oof;
+  std::vector<size_t> training_rows;
+  const std::uint64_t sample_seed = static_cast<std::uint64_t>(static_cast<std::uint32_t>(impl_->seed));
+  std::vector<int> spec_files, scans; // out-of-fold modes: the spectrum of each row
+  auto spectrum_keys = [&]()
+  {
+    if (input.scan_numbers.empty() && input.cv_group_keys.empty())
+    {
+      OPENMS_LOG_WARN << "Percolator: out-of-fold capped training without scan numbers: every row counts as a spectrum "
+                      << "of its own (PSMs of one spectrum may fall into different folds)." << std::endl;
+    }
+    spec_files.resize(n_rows);
+    scans.resize(n_rows);
+    for (size_t i = 0; i < n_rows; ++i)
+    {
+      const RowKeys k = makeRowKeys(input, i);
+      spec_files[i] = k.spec_file;
+      scans[i] = k.scan;
+    }
+  };
+  // subset_mode 'learning_curve': folds and validation spectra here, the samples in trainLearningCurve below
+  const bool learning_curve = impl_->subset_curve && static_cast<size_t>(impl_->subset_curve_start) < n_rows;
+  const size_t curve_validation = std::min(n_rows / 5, static_cast<size_t>(impl_->subset_curve_validation));
+  if (learning_curve)
+  {
+    spectrum_keys();
+    oof = P::drawOutOfFoldSample(spec_files, scans, 1, sample_seed, num_folds, curve_validation);
+    out_of_fold = true;
+  }
+  else if (impl_->subset_out_of_fold && impl_->subset_max_train > 0 &&
+           static_cast<size_t>(impl_->subset_max_train) < n_rows)
+  {
+    spectrum_keys();
+    oof = P::drawOutOfFoldSample(spec_files, scans, static_cast<size_t>(impl_->subset_max_train), sample_seed, num_folds);
+    // each fold needs sampled targets and decoys (its test set; the other folds' training sets)
+    std::vector<size_t> targets(num_folds, 0), decoys(num_folds, 0);
+    for (size_t i : oof.sampled_rows) ++(input.is_decoy[i] ? decoys : targets)[oof.fold[i]];
+    out_of_fold = true;
+    for (unsigned int f = 0; f < num_folds; ++f) out_of_fold = out_of_fold && targets[f] > 0 && decoys[f] > 0;
+    if (out_of_fold)
+    {
+      training_rows = oof.sampled_rows;
+      OPENMS_LOG_INFO << "Percolator: out-of-fold capped training" << (impl_->subset_oof_avg ? " (unsampled rows: average model)" : "")
+                      << " on " << training_rows.size() << " of " << n_rows
+                      << " PSMs (" << oof.num_sampled_spectra << " of " << oof.num_spectra << " spectra); sampled "
+                      << "targets/decoys per fold: " << targets[0] << "/" << decoys[0] << ", " << targets[1] << "/"
+                      << decoys[1] << ", " << targets[2] << "/" << decoys[2] << std::endl;
+    }
+    else
+    {
+      OPENMS_LOG_WARN << "Percolator: the sample of subset_max_train = " << impl_->subset_max_train << " PSMs ("
+                      << oof.sampled_rows.size() << " PSMs of " << oof.num_sampled_spectra << " spectra) lacks the "
+                      << "targets or decoys of a cross-validation fold; training on all " << n_rows << " PSMs."
+                      << std::endl;
+      training_rows.resize(n_rows);
+      std::iota(training_rows.begin(), training_rows.end(), size_t{0});
+    }
+  }
+  else
+  {
+    // Reservoir-sample the training subset. When subset_max_train is 0 or
+    // >= n_rows, training_rows is the identity [0..n). (An inert learning_curve trains on all rows.)
+    training_rows = selectTrainingSubset(input, n_rows, impl_->subset_curve ? 0 : impl_->subset_max_train);
+  }
+  bool did_subsample = training_rows.size() < n_rows;
 
+  // The training on training_rows (out-of-fold: with the folds of oof, the fold models checked on their own training
+  // sets), as a function: the learning-curve mode trains on several nested samples. all_scores: the merged test sets
+  // of the cross-validation (the scores of the uncapped and in_sample paths).
+  P::Scores all_scores(/*usePi0=*/use_pi0);
+  std::vector<char> active_folds; // learning curve: the folds still trained (empty: all)
+  struct Trained
+  {
+    std::vector<double> avg_weights;               // Percolator's average of the fold models (raw feature space)
+    std::vector<std::vector<double>> fold_weights; // out-of-fold: each fold's model as checked (raw feature space)
+    std::vector<std::vector<size_t>> trained_rows; // out-of-fold: each fold model's training rows, ascending
+    std::vector<char> reset_folds;                 // out-of-fold: the fold models replaced by the default direction
+  };
+  auto train_rows = [&](const std::vector<size_t>& training_rows) -> Trained
+  {
+  Trained trained;
   impl_->set_handler = std::make_unique<P::SetHandler>(0);
   P::FeatureMemoryPool& pool = impl_->set_handler->getFeaturePool();
   pool.createPool(static_cast<size_t>(n_feat));
@@ -875,16 +1612,62 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
 
   // Populate rows (training subset only — the second pass below scores the
   // full set using the trained model, mirroring upstream Caller.cpp flow).
+  // The PSMs and their feature rows are allocated and registered by this
+  // thread, in the order of the rows, and filled in parallel. (The data sets
+  // delete the PSMs in this thread; PSMs allocated by other threads would take
+  // much longer to free.)
+  // The PSMs are made in one block (psm_slab) and get the pool's rows in the order of the rows, as one allocate() per
+  // PSM did (claimRows; the pool's blocks zero-filled in parallel); the data sets get them in the same order and do not
+  // own them. (Before: one new and one allocate() per PSM on this thread, ~0.5 s for 5.3 M rows.)
   impl_->synthesized_ids.resize(n_rows);
-  impl_->owned_psms.reserve(training_rows.size());
-  for (size_t i : training_rows)
+  const size_t n_train = training_rows.size();
+  impl_->psm_slab.create(n_train);
+  impl_->owned_psms.resize(n_train);
+  std::size_t first_row = 0;
+  if (!pool.claimRows(n_train, first_row))
   {
-    const RowKeys keys = makeRowKeys(input, i);
-    auto* psm = makePSMFromRow(input.features[i], keys, i,
-                               impl_->synthesized_ids[i], pool);
-    impl_->owned_psms.push_back(psm);
-    if (input.is_decoy[i]) impl_->decoy_ds->registerPsm(psm);
-    else                   impl_->target_ds->registerPsm(psm);
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Percolator: too many rows for the feature pool.",
+                                  std::to_string(n_train));
+  }
+  impl_->target_ds->setOwnsPsms(false);
+  impl_->decoy_ds->setOwnsPsms(false);
+  {
+    size_t n_decoys = 0;
+    for (size_t i : training_rows) n_decoys += input.is_decoy[i] ? 1 : 0;
+    impl_->decoy_ds->reservePsms(n_decoys);
+    impl_->target_ds->reservePsms(n_train - n_decoys);
+  }
+  for (size_t k = 0; k < n_train; ++k)
+  {
+    P::PSMDescription* psm = impl_->psm_slab.data + k;
+    impl_->owned_psms[k] = psm;
+    if (input.is_decoy[training_rows[k]]) impl_->decoy_ds->registerPsm(psm);
+    else                                  impl_->target_ds->registerPsm(psm);
+  }
+  std::vector<std::exception_ptr> row_errors(n_train);
+  // (static: the threads that constructed the PSMs fill them)
+#pragma omp parallel for schedule(static)
+  for (SignedSize k = 0; k < static_cast<SignedSize>(n_train); ++k)
+  {
+    try
+    {
+      const size_t i = training_rows[k];
+      impl_->owned_psms[k]->features = pool.rowOfClaim(first_row + static_cast<size_t>(k));
+      fillPSMFromRow(*impl_->owned_psms[k], input.row(i), n_feat, makeRowKeys(input, i), i,
+                     impl_->synthesized_ids[i]);
+    }
+    catch (...)
+    {
+      row_errors[k] = std::current_exception();
+    }
+  }
+  rethrowFirstError(row_errors);
+  // out-of-fold: the input row of each training PSM (the cross-validation's folds and training sets are looked up)
+  std::unordered_map<const P::PSMDescription*, size_t> row_of_psm;
+  if (out_of_fold)
+  {
+    row_of_psm.reserve(training_rows.size());
+    for (size_t k = 0; k < training_rows.size(); ++k) row_of_psm.emplace(impl_->owned_psms[k], training_rows[k]);
   }
 
   impl_->set_handler->push_back_dataset(impl_->target_ds.release());
@@ -905,6 +1688,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   // whether it replaced the learned weights (see usedDefaultDirection()).
   // unique_ptr releases it on every exit path (including throws).
   auto sanity = std::make_unique<RecordingSanityCheck>();
+  sanity->per_fold = out_of_fold;
   try
   {
     sanity->checkAndSetDefaultDir();
@@ -918,7 +1702,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
 
   impl_->set_handler->normalizeFeatures(normalizer);
 
-  P::Scores all_scores(/*usePi0=*/use_pi0);
+  all_scores = P::Scores(/*usePi0=*/use_pi0);
   all_scores.populateWithPSMs(*impl_->set_handler);
 
   P::CrossValidation cv(
@@ -937,8 +1721,17 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     /*skipNormalizeScores=*/false,
     /*decoyFractionTraining=*/1.0,
     /*numFolds=*/3);
+  cv.setSolver(impl_->solver);
+  cv.setTrainingOptions(impl_->tron_epsilon, impl_->warm_start, impl_->single_cneg);
+  if (out_of_fold)
+  {
+    cv.setFixedFolds([&row_of_psm, &oof](const P::PSMDescription& psm)
+                     { return static_cast<unsigned int>(oof.fold[row_of_psm.at(&psm)]); });
+    cv.setActiveFolds(active_folds);
+  }
 
-  std::vector<double> avg_weights;
+  std::vector<double>& avg_weights = trained.avg_weights;
+  std::vector<std::vector<double>>& fold_weights = trained.fold_weights;
   try
   {
     // CV uses sanity transiently per call (no storage); the unique_ptr in
@@ -949,6 +1742,45 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     cv.postIterationProcessing(all_scores, sanity.get());
     impl_->last_used_default_direction = sanity->used_default_direction;
     cv.getAvgWeights(avg_weights, normalizer);
+    if (out_of_fold)
+    {
+      trained.reset_folds = sanity->reset_folds;
+      // the fold models as the per-fold sanity check left them (Scores::merge then rescales each by its test set,
+      // i.e. by held-out labels; the scorers below are rescaled on their own rows anyway)
+      if (sanity->validated_weights.size() != num_folds)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "out-of-fold training: the fold models were not checked", std::to_string(sanity->validated_weights.size()));
+      }
+      for (const std::vector<double>& w : sanity->validated_weights)
+      {
+        fold_weights.emplace_back(n_feat + 1);
+        normalizer->unnormalizeweight(w, fold_weights.back());
+      }
+      // each fold model's training rows (getCappedTrainingInfo)
+      trained.trained_rows.assign(num_folds, {});
+      std::vector<std::exception_ptr> fold_row_errors(num_folds);
+      // (a local: MSVC's OpenMP does not accept impl_ in the clause, C2327)
+      [[maybe_unused]] const int fold_threads = std::max(1, std::min(static_cast<int>(num_folds), teamThreads(impl_->num_threads)));
+#pragma omp parallel for schedule(static, 1) num_threads(fold_threads)
+      for (SignedSize f = 0; f < static_cast<SignedSize>(num_folds); ++f)
+      {
+        try
+        {
+          std::vector<const P::PSMDescription*> psms;
+          cv.getTrainingPsms(static_cast<size_t>(f), psms);
+          std::vector<size_t>& rows = trained.trained_rows[static_cast<size_t>(f)];
+          rows.reserve(psms.size());
+          for (const P::PSMDescription* psm : psms) rows.push_back(row_of_psm.at(psm));
+          std::sort(rows.begin(), rows.end());
+        }
+        catch (...)
+        {
+          fold_row_errors[static_cast<size_t>(f)] = std::current_exception();
+        }
+      }
+      rethrowFirstError(fold_row_errors);
+    }
   }
   catch (const std::exception& e)
   {
@@ -956,8 +1788,171 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       std::string("Percolator training failed: ") + e.what(), "");
   }
 
+  return trained;
+  };
+
+  Trained trained;
+  if (learning_curve)
+  {
+    // Nested samples of start, 2 start, 4 start ... rows (the last: the largest allowed); each trained out-of-fold.
+    // Fold k's curve: the targets at q <= train_fdr among the validation spectra of the other folds under fold k's
+    // model; fold k stops at the first doubling that adds less than subset_curve_min_gain and keeps that model.
+    const size_t available = n_rows - oof.validation_rows.size();
+    const size_t largest_allowed = impl_->subset_max_train > 0 ? static_cast<size_t>(impl_->subset_max_train)
+                                   : impl_->subset_curve_max > 0 ? static_cast<size_t>(impl_->subset_curve_max) : available;
+    const size_t last = std::min(largest_allowed, available);
+    std::vector<size_t> sizes;
+    // (without validation spectra, e.g. one spectrum holding more rows than their budget, there is no curve: the
+    // largest sample only)
+    for (size_t size = static_cast<size_t>(impl_->subset_curve_start); size < last && !oof.validation_rows.empty();
+         size *= 2)
+    {
+      sizes.push_back(size);
+    }
+    sizes.push_back(last);
+    std::vector<std::vector<size_t>> validation_of_fold(num_folds); // validation rows outside fold k
+    for (size_t i : oof.validation_rows)
+    {
+      for (unsigned int f = 0; f < num_folds; ++f)
+      {
+        if (oof.fold[i] != f) validation_of_fold[f].push_back(i);
+      }
+    }
+    CappedTrainingInfo& info = impl_->capped_info;
+    info.validation_rows = oof.validation_rows.size();
+    info.chosen_size.assign(num_folds, 0);
+    trained.fold_weights.assign(num_folds, {});
+    trained.trained_rows.assign(num_folds, {});
+    trained.reset_folds.assign(num_folds, 0);
+    std::vector<char> stopped(num_folds, 0);
+    std::vector<long> previous(num_folds, -1);
+    std::vector<std::vector<size_t>> previous_accepted(num_folds);
+    const P::OutOfFoldSample folds = oof;
+    for (size_t size : sizes)
+    {
+      if (std::all_of(stopped.begin(), stopped.end(), [](char x) { return x != 0; })) break;
+      oof = P::drawOutOfFoldSample(spec_files, scans, size, sample_seed, num_folds, curve_validation);
+      std::vector<size_t> targets(num_folds, 0), decoys(num_folds, 0);
+      for (size_t i : oof.sampled_rows) ++(input.is_decoy[i] ? decoys : targets)[oof.fold[i]];
+      bool usable = true;
+      for (unsigned int f = 0; f < num_folds; ++f) usable = usable && targets[f] > 0 && decoys[f] > 0;
+      // (a joint feasibility gate: a size is skipped for every fold if some fold lacks sampled targets or decoys; it
+      // reads the class counts of all folds; not expected to bind at the default start of 100,000 rows on representative
+      // data, but with tiny starts, sparse classes or extreme spectrum grouping it can change a fold's curve)
+      if (!usable)
+      {
+        OPENMS_LOG_INFO << "Percolator: learning curve: the sample of " << oof.sampled_rows.size()
+                        << " PSMs lacks the targets or decoys of a fold; next size." << std::endl;
+        continue;
+      }
+      impl_->reset();
+      P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
+      // only the folds that have not stopped are trained (each fold's chain is independent of the others')
+      active_folds.assign(stopped.size(), 0);
+      for (unsigned int f = 0; f < num_folds; ++f) active_folds[f] = stopped[f] ? 0 : 1;
+      Trained at_size = train_rows(oof.sampled_rows);
+      active_folds.clear();
+      info.curve_sizes.push_back(oof.sampled_rows.size());
+      info.curve_counts.emplace_back(num_folds, -1);
+      info.curve_discordant.emplace_back(num_folds, -1);
+      for (unsigned int f = 0; f < num_folds; ++f)
+      {
+        if (stopped[f]) continue;
+        std::vector<size_t> accepted =
+          acceptedTargets_(input, validation_of_fold[f], at_size.fold_weights[f], impl_->train_fdr);
+        const long count = static_cast<long>(accepted.size());
+        info.curve_counts.back()[f] = count;
+        trained.fold_weights[f] = std::move(at_size.fold_weights[f]);
+        trained.trained_rows[f] = std::move(at_size.trained_rows[f]);
+        trained.reset_folds[f] = at_size.reset_folds[f];
+        info.chosen_size[f] = oof.sampled_rows.size();
+        if (previous[f] >= 0)
+        {
+          // the paired difference's standard error: sqrt(discordant validation targets), McNemar (both counts are on
+          // the same validation spectra)
+          std::vector<size_t> discordant;
+          std::set_symmetric_difference(accepted.begin(), accepted.end(), previous_accepted[f].begin(),
+                                        previous_accepted[f].end(), std::back_inserter(discordant));
+          info.curve_discordant.back()[f] = static_cast<long>(discordant.size());
+          const double needed = std::max(impl_->subset_curve_min_gain * static_cast<double>(previous[f]),
+                                         2.0 * std::sqrt(static_cast<double>(discordant.size())));
+          if (static_cast<double>(count - previous[f]) < needed) stopped[f] = 1;
+        }
+        previous[f] = count;
+        previous_accepted[f] = std::move(accepted);
+      }
+      OPENMS_LOG_INFO << "Percolator: learning curve: " << oof.sampled_rows.size() << " PSMs: validation targets "
+                      << info.curve_counts.back()[0] << ", " << info.curve_counts.back()[1] << ", "
+                      << info.curve_counts.back()[2] << " (folds; -1 = stopped)" << std::endl;
+    }
+    oof.fold = folds.fold;
+    oof.validation_rows = folds.validation_rows;
+    if (trained.fold_weights[0].empty())
+    {
+      OPENMS_LOG_WARN << "Percolator: learning curve: no sample fills the folds; training on all " << n_rows
+                      << " PSMs." << std::endl;
+      out_of_fold = false;
+      info = CappedTrainingInfo();
+      impl_->reset();
+      P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
+      // (Percolator's uncapped training: its own folds, every row scored by the model of its test fold)
+      training_rows.resize(n_rows);
+      std::iota(training_rows.begin(), training_rows.end(), size_t{0});
+      trained = train_rows(training_rows);
+      did_subsample = false;
+    }
+    else
+    {
+      did_subsample = true;
+      // the default direction is reported if a kept fold model is one
+      impl_->last_used_default_direction =
+        std::any_of(trained.reset_folds.begin(), trained.reset_folds.end(), [](char x) { return x != 0; });
+    }
+  }
+  else
+  {
+    trained = train_rows(training_rows);
+  }
+  std::vector<double>& avg_weights = trained.avg_weights;
+  // out-of-fold: the scorers' models (raw feature space): each fold's, and (out_of_fold_avg) their average last
+  std::vector<std::vector<double>>& fold_weights = trained.fold_weights;
+  // out-of-fold: per row, its scorer (index into fold_weights): its fold, or (out_of_fold_avg, unsampled) the average
+  std::vector<unsigned char> scorer_of_row;
+  if (out_of_fold)
+  {
+    // the record of the folds, the sample and each fold model's training rows (getCappedTrainingInfo)
+    CappedTrainingInfo& info = impl_->capped_info;
+    info.fold.assign(oof.fold.begin(), oof.fold.end());
+    info.sampled.assign(n_rows, 0);
+    for (const std::vector<size_t>& rows : trained.trained_rows)
+    {
+      for (size_t i : rows) info.sampled[i] = 1;
+    }
+    info.trained_rows = trained.trained_rows;
+    scorer_of_row.assign(oof.fold.begin(), oof.fold.end());
+    size_t unsampled_targets = 0, unsampled_decoys = 0;
+    for (size_t i = 0; i < n_rows; ++i)
+    {
+      if (!info.sampled[i]) ++(input.is_decoy[i] ? unsampled_decoys : unsampled_targets);
+    }
+    // (a scorer needs enough targets and decoys for its rescaling at train_fdr; a small remainder of unsampled rows
+    // stays with the fold scorers)
+    if (impl_->subset_oof_avg && unsampled_targets >= 100 && unsampled_decoys >= 100)
+    {
+      // the unsampled rows (no model saw their spectra): the average of the fold models, as in_sample scores them
+      // (getAvgWeights: each fold model rescaled by its sampled test set first, as Percolator averages them)
+      fold_weights.push_back(avg_weights);
+      for (size_t i = 0; i < n_rows; ++i)
+      {
+        if (!info.sampled[i]) scorer_of_row[i] = static_cast<unsigned char>(num_folds);
+      }
+    }
+    info.scorer.assign(scorer_of_row.begin(), scorer_of_row.end());
+  }
+
   impl_->svm_weights.clear();
-  if (!avg_weights.empty()) impl_->svm_weights.push_back(avg_weights);
+  if (out_of_fold) impl_->svm_weights = fold_weights;
+  else if (!avg_weights.empty()) impl_->svm_weights.push_back(avg_weights);
 
   try
   {
@@ -966,7 +1961,89 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     // lines 1196-1236): reset allScores, rebuild via readAndScoreTab, then
     // postMergeStep + calcQvals + normalizeScores. Makes the subset_max_train
     // docstring claim "trained model applied to ALL PSMs" true.
-    if (did_subsample)
+    if (did_subsample && out_of_fold)
+    {
+      // Out-of-fold: every row is scored by its scorer only: the model of its fold, which never trained on the spectra
+      // of that fold, or (out_of_fold_avg) for the rows of unsampled spectra, which no model trained on, the average of
+      // the fold models. A spectrum is sampled or not as a whole, so its targets and decoys share their scorer. Then
+      // the scorers' scores are merged as the cross-validation merges its test sets (CrossValidation::
+      // postIterationProcessing: per set q-values and rescaling at the selection FDR, Scores::merge). The PSMs are
+      // allocated by this thread, in row order (see above), and filled and scored in parallel.
+      impl_->second_pass_slab = makePsmSlab_(n_rows);
+      impl_->second_pass_slab_size = n_rows;
+      P::PSMDescription* const slab = impl_->second_pass_slab;
+      std::vector<double> scores(n_rows);
+      std::exception_ptr score_error;
+      size_t score_error_row = n_rows;
+      int score_threads = std::max(1, impl_->num_threads);
+#ifdef _OPENMP
+      score_threads = std::min(score_threads, omp_get_max_threads());
+#endif
+#pragma omp parallel for schedule(dynamic, 4096) num_threads(score_threads)
+      for (SignedSize k = 0; k < static_cast<SignedSize>(n_rows); ++k)
+      {
+        const size_t i = static_cast<size_t>(k);
+        try
+        {
+          fillPSMFromRow(slab[i], nullptr, 0, makeRowKeys(input, i), i, impl_->synthesized_ids[i]);
+          // as Scores::scoreAndAddPSM: the features in order, then the bias
+          const std::vector<double>& w = fold_weights[scorer_of_row[i]];
+          const double* feats = input.row(i);
+          double score = 0.0;
+          for (size_t j = 0; j < n_feat; ++j) score += feats[j] * w[j];
+          scores[i] = score + w[n_feat];
+        }
+        catch (...)
+        {
+#pragma omp critical(percolator_oof_score_error)
+          if (i < score_error_row)
+          {
+            score_error_row = i;
+            score_error = std::current_exception();
+          }
+        }
+      }
+      if (score_error) std::rethrow_exception(score_error);
+      // each scorer's score holders in the order of the rows (as one after the other would add them), built in parallel
+      const size_t num_scorers = fold_weights.size();
+      std::vector<size_t> scorer_size(num_scorers, 0);
+      std::vector<uint32_t> rank_in_scorer(n_rows);
+      for (size_t i = 0; i < n_rows; ++i) rank_in_scorer[i] = static_cast<uint32_t>(scorer_size[scorer_of_row[i]]++);
+      std::vector<std::vector<P::ScoreHolder>> holders(num_scorers);
+      for (size_t g = 0; g < num_scorers; ++g) holders[g].resize(scorer_size[g]);
+#pragma omp parallel for schedule(static) num_threads(score_threads)
+      for (SignedSize k = 0; k < static_cast<SignedSize>(n_rows); ++k)
+      {
+        const size_t i = static_cast<size_t>(k);
+        holders[scorer_of_row[i]][rank_in_scorer[i]] =
+          P::ScoreHolder(scores[i], input.is_decoy[i] ? P::LabelType::DECOY : P::LabelType::TARGET, slab + i);
+      }
+      std::vector<P::Scores> fold_scores(num_scorers, P::Scores(use_pi0));
+      for (size_t g = 0; g < num_scorers; ++g)
+      {
+        fold_scores[g].setScoreHolders(std::move(holders[g]));
+        fold_scores[g].recalculateSizes();
+      }
+
+      all_scores = P::Scores(use_pi0);
+      std::vector<std::vector<double>> merge_weights = fold_weights; // Scores::merge rescales them
+      std::exception_ptr merge_error;
+      PERCOLATOR_TASK_PRAGMA(omp parallel num_threads(teamThreads(impl_->num_threads)))
+      PERCOLATOR_TASK_PRAGMA(omp single)
+      {
+        try
+        {
+          // at the CV's selection FDR (CrossValidation: selectionFdr_ = train_fdr), as it merges its test folds
+          all_scores.merge(fold_scores, impl_->train_fdr, /*skipNormalizeScores=*/false, merge_weights);
+        }
+        catch (...)
+        {
+          merge_error = std::current_exception();
+        }
+      }
+      if (merge_error) std::rethrow_exception(merge_error);
+    }
+    else if (did_subsample)
     {
       impl_->second_pass_pool = std::make_unique<P::FeatureMemoryPool>();
       impl_->second_pass_pool->createPool(static_cast<size_t>(n_feat));
@@ -978,7 +2055,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       for (size_t i = 0; i < n_rows; ++i)
       {
         const RowKeys keys = makeRowKeys(input, i);
-        auto* psm = makePSMFromRow(input.features[i], keys, i,
+        auto* psm = makePSMFromRow(input.row(i), n_feat, keys, i,
                                    impl_->synthesized_ids[i], full_pool);
         impl_->second_pass_psms.push_back(psm);
 
@@ -995,7 +2072,23 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
 
     if (impl_->post_processing_tdc)
     {
-      all_scores.weedOutRedundantTDC();
+      // In a parallel region, as the cross-validation calls Scores::merge: the sorts and the
+      // bootstraps of the pi0 estimate run as its tasks, with the same results (see
+      // thirdparty/percolator/SortLikeStd.h and PosteriorEstimator::estimatePi0).
+      std::exception_ptr tdc_error;
+      PERCOLATOR_TASK_PRAGMA(omp parallel num_threads(teamThreads(impl_->num_threads)))
+      PERCOLATOR_TASK_PRAGMA(omp single)
+      {
+        try
+        {
+          all_scores.weedOutRedundantTDC();
+        }
+        catch (...)
+        {
+          tdc_error = std::current_exception();
+        }
+      }
+      if (tdc_error) std::rethrow_exception(tdc_error);
     }
 
     // Mirror Caller::calculatePSMProb: after the merge, recompute q-values
@@ -1030,11 +2123,19 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   out.q_values.assign(n_rows, 1.0);
   out.peps.assign(n_rows, 1.0);
 
+  // The row of each score holder (its PSM's id "row_<n>", see makePSMFromRow; none: n_rows) is decoded in parallel, then
+  // the values are written to their rows in parallel if no row has two holders (the case: one PSM per row), else in
+  // order (the last one wins, as before). The count and the extremes only go to the debug log.
   size_t matched = 0;
   double score_min = std::numeric_limits<double>::infinity();
   double score_max = -std::numeric_limits<double>::infinity();
-  for (const auto& sh : all_scores)
+  const P::Scores& merged_scores = all_scores;
+  const SignedSize n_holders = static_cast<SignedSize>(merged_scores.size());
+  std::vector<size_t> row_of(static_cast<size_t>(n_holders), n_rows);
+#pragma omp parallel for schedule(static)
+  for (SignedSize k = 0; k < n_holders; ++k)
   {
+    const P::ScoreHolder& sh = *(merged_scores.begin() + k);
     if (sh.pPSM == nullptr) continue;
     const std::string& id = sh.pPSM->getFullPeptide();
     if (id.size() < 12 || id.compare(0, 4, "row_") != 0) continue;
@@ -1045,18 +2146,64 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     // or unexpected trailing chars after the number.
     if (end == nullptr || end == num_begin || *end != '\0') continue;
     if (row >= n_rows) continue;
+    row_of[static_cast<size_t>(k)] = static_cast<size_t>(row);
+  }
+  std::vector<char> taken(n_rows, 0);
+  bool unique_rows = true;
+  for (const size_t row : row_of)
+  {
+    if (row == n_rows) continue;
+    if (taken[row]) { unique_rows = false; break; }
+    taken[row] = 1;
+  }
+#pragma omp parallel if (unique_rows)
+  {
+  size_t thread_matched = 0;
+  double thread_min = std::numeric_limits<double>::infinity();
+  double thread_max = -std::numeric_limits<double>::infinity();
+#pragma omp for schedule(static)
+  for (SignedSize k = 0; k < n_holders; ++k)
+  {
+    const size_t row = row_of[static_cast<size_t>(k)];
+    if (row == n_rows) continue;
+    const P::ScoreHolder& sh = *(merged_scores.begin() + k);
     out.scores[row]   = sh.score;
     out.q_values[row] = sh.q;
     out.peps[row]     = sh.pep;
-    ++matched;
-    if (sh.score < score_min) score_min = sh.score;
-    if (sh.score > score_max) score_max = sh.score;
+    ++thread_matched;
+    if (sh.score < thread_min) thread_min = sh.score;
+    if (sh.score > thread_max) thread_max = sh.score;
+  }
+#pragma omp critical (Percolator_rescore_extracted)
+  {
+    matched += thread_matched;
+    if (thread_min < score_min) score_min = thread_min;
+    if (thread_max > score_max) score_max = thread_max;
+  }
   }
   OPENMS_LOG_DEBUG << "[Percolator] extracted " << matched << " / " << n_rows
                    << " rows from all_scores (size=" << all_scores.size() << "); "
                    << "score range [" << score_min << ", " << score_max << "]"
                    << std::endl;
 
+  if (impl_->peptide_level && !input.peptide_keys.empty())
+  {
+    try
+    {
+      peptideLevelEstimates(all_scores, input, use_pi0 && !impl_->post_processing_tdc, impl_->test_fdr,
+                            impl_->pep_method, teamThreads(impl_->num_threads), out);
+    }
+    catch (const std::exception& e)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        std::string("Percolator peptide-level estimation failed: ") + e.what(), "");
+    }
+    catch (...)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Percolator peptide-level estimation failed.", "");
+    }
+  }
   return out;
 }
 
@@ -1069,6 +2216,7 @@ namespace
   {
     static const std::vector<std::string> blocklist {
       "percolator_score", "percolator_q_value", "percolator_pep",
+      "percolator_peptide_q_value", "percolator_peptide_pep",
       "q-value", "q-value_score", "score", "RT", "MZ",
       "target_decoy", "isDecoy"
     };
@@ -1480,195 +2628,42 @@ void Percolator::rescore(std::vector<PeptideIdentification>& peptide_ids,
   }
 }
 
-namespace
+void Percolator::buildPSMRescoreInput(const PeptideIdentificationList& peptide_ids,
+                                      const StringList& feature_set,
+                                      const std::string& enzyme,
+                                      int min_charge,
+                                      int max_charge,
+                                      RescoreInput& input,
+                                      PSMRowLocations& rows,
+                                      bool calc_mass_feature)
 {
-  // The rows of PSMs for Percolator: each hit with every numeric feature of the feature set, and where it is.
-  struct PsmRows
-  {
-    RescoreInput input;
-    std::vector<std::pair<size_t, size_t>> hit_locs; ///< (PSM, hit) of each row
+  // SpecId/Label/Peptide/Proteins/ScanNr are strings or bookkeeping, not training features. ExpMass and
+  // CalcMass are read by the percolator executable as such, not as features (they go into RescoreInput.exp_masses /
+  // calc_masses), so they are not trained on here either; CalcMass is with calc_mass_feature (before #10717).
+  std::set<std::string> pin_metadata_not_feature {
+    "SpecId", "Label", "ScanNr", "ExpMass", "CalcMass", "Peptide", "Proteins"
   };
-
-  // Removes the PIN feature meta values that stampPinFeaturesOnHits() added (not those that existed before), also
-  // when rescoring throws.
-  struct PinMetaValueCleanup
+  if (calc_mass_feature) { pin_metadata_not_feature.erase("CalcMass"); }
+  StringList numeric_features;
+  for (const std::string& f : feature_set)
   {
-    PeptideIdentificationList& ids;
-    const PercolatorInfile::PinFeatureMetaValueMap& added;
-    ~PinMetaValueCleanup()
-    {
-      for (const auto& [hit_location, keys] : added)
-      {
-        PeptideHit& hit = ids[hit_location.first].getHits()[hit_location.second];
-        for (const std::string& key : keys)
-        {
-          hit.removeMetaValue(key);
-        }
-      }
-    }
-  };
-
-  // Stamps the PIN features on the hits of @p peptide_ids (recorded in @p added_pin_meta_values, for
-  // PinMetaValueCleanup) and builds the rows of the hits that have all numeric features of @p feature_set, with the
-  // PIN-compatible fields (scan, spectrum file, masses).
-  PsmRows buildPsmRows(PeptideIdentificationList& peptide_ids, const StringList& feature_set, const std::string& enzyme,
-                       int min_charge, int max_charge, PercolatorInfile::PinFeatureMetaValueMap& added_pin_meta_values)
-  {
-    // Training then uses the feature vectors the executable would read from the .pin file, row for row.
-    const auto skipped = PercolatorInfile::stampPinFeaturesOnHits(
-      peptide_ids, enzyme, min_charge, max_charge, added_pin_meta_values);
-    OPENMS_LOG_INFO << "Stamped PIN feature meta values; "
-                    << skipped.size() << " PSMs skipped (no evidence or unknown TD)." << std::endl;
-
-    // SpecId/Label/Peptide/Proteins/ScanNr are strings or bookkeeping, not training features. ExpMass and
-    // CalcMass are read by the percolator executable as such, not as features (it goes into
-    // RescoreInput.exp_masses / calc_masses), so they are not trained on here either.
-    const std::set<std::string> pin_metadata_not_feature {
-      "SpecId", "Label", "ScanNr", "ExpMass", "CalcMass", "Peptide", "Proteins"
-    };
-    StringList numeric_features;
-    for (const std::string& f : feature_set)
-    {
-      if (pin_metadata_not_feature.contains(f)) continue;
-      numeric_features.push_back(f);
-    }
-    if (numeric_features.empty())
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "No numeric Percolator features in the feature set.");
-    }
-
-    // The RescoreInput is built here rather than with fillPINCompatibleFields() so the PIN-compatible
-    // fields stay aligned with the feature rows when hits are skipped (missing target_decoy or feature).
-    PsmRows rows;
-    RescoreInput& ri = rows.input;
-    ri.feature_names = numeric_features;
-    std::vector<std::pair<size_t, size_t>>& hit_locs = rows.hit_locs;
-    // Spectrum files in order of appearance, as Percolator numbers the FileName column of the pin
-    // file: it identifies a spectrum by file, scan number and precursor m/z (e.g. for target-decoy
-    // competition), so spectra of different inputs with the same scan number must not share a file.
-    std::map<std::string, int> spec_files;
-    for (size_t i = 0; i < peptide_ids.size(); ++i)
-    {
-      const auto& pid = peptide_ids[i];
-      for (size_t j = 0; j < pid.getHits().size(); ++j)
-      {
-        if (skipped.contains({i, j})) continue;
-        const PeptideHit& hit = pid.getHits()[j];
-
-        std::vector<double> row;
-        row.reserve(numeric_features.size());
-        bool ok = true;
-        for (const std::string& f : numeric_features)
-        {
-          if (!hit.metaValueExists(f)) { ok = false; break; }
-          // as the executable reads the .pin: search engine scores may be stored as strings
-          row.push_back(PercolatorInfile::getFeatureValue(hit.getMetaValue(f), f));
-        }
-        if (!ok) continue;
-
-        ri.features.push_back(std::move(row));
-        ri.is_decoy.push_back(hit.isDecoy());
-        ri.scan_numbers.push_back(static_cast<int>(hit.getMetaValue("ScanNr")));
-        ri.spec_file_numbers.push_back(spec_files.try_emplace(
-          PercolatorInfile::getFileIdentifier(pid), static_cast<int>(spec_files.size())).first->second);
-        ri.exp_masses.push_back(static_cast<double>(hit.getMetaValue("ExpMass")));
-        ri.calc_masses.push_back(PercolatorInfile::getFeatureValue(hit.getMetaValue("CalcMass"), "CalcMass"));
-        hit_locs.emplace_back(i, j);
-      }
-    }
-    if (ri.features.empty())
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "No PSM carries all Percolator features.");
-    }
-    return rows;
+    if (pin_metadata_not_feature.contains(f)) continue;
+    numeric_features.push_back(f);
   }
-
-  // Writes Percolator's results @p ro of the rows @p hit_locs onto the hits (see Percolator::rescorePSMs()).
-  void writePsmResults(PeptideIdentificationList& peptide_ids, const std::vector<std::pair<size_t, size_t>>& hit_locs,
-                       const RescoreOutput& ro, const std::string& score_type)
+  // (computed first: errors of the PSMs come before a missing feature set, as when the PIN features were stamped)
+  const Size skipped = PercolatorInfile::buildFeatureMatrix(peptide_ids, numeric_features, enzyme, min_charge, max_charge,
+                                                            input, rows);
+  OPENMS_LOG_INFO << "Computed the PIN features; " << skipped
+                  << " PSMs skipped (no evidence or unknown TD)." << std::endl;
+  if (numeric_features.empty())
   {
-    std::vector<std::vector<bool>> rescored(peptide_ids.size());
-    for (size_t i = 0; i < peptide_ids.size(); ++i)
-    {
-      rescored[i].assign(peptide_ids[i].getHits().size(), false);
-    }
-    for (size_t row = 0; row < ro.scores.size(); ++row)
-    {
-      const auto [pid_i, hit_i] = hit_locs[row];
-      PeptideHit& hit = peptide_ids[pid_i].getHits()[hit_i];
-      hit.setMetaValue("percolator_score",   ro.scores[row]);
-      hit.setMetaValue("percolator_q_value", ro.q_values[row]);
-      hit.setMetaValue("percolator_pep",     ro.peps[row]);
-      rescored[pid_i][hit_i] = true;
-    }
-
-    // Canonical score fields and PSI-MS CV terms, as PercolatorAdapter writes them for the executable.
-    for (size_t i = 0; i < peptide_ids.size(); ++i)
-    {
-      PeptideIdentification& pid = peptide_ids[i];
-      const std::string old_score_type = pid.getScoreType();
-      if (score_type == "pep")
-      {
-        pid.setScoreType("Posterior Error Probability");
-        pid.setHigherScoreBetter(false);
-      }
-      else if (score_type == "svm")
-      {
-        pid.setScoreType("svm");
-        pid.setHigherScoreBetter(true);
-      }
-      else
-      {
-        pid.setScoreType("q-value");
-        pid.setHigherScoreBetter(false);
-      }
-
-      auto& hits = pid.getHits();
-      for (size_t j = 0; j < hits.size(); ++j)
-      {
-        PeptideHit& hit = hits[j];
-        hit.setMetaValue(old_score_type, hit.getScore());  // preserve original
-        // Hits that were not rescored get the values the executable path gives PSMs missing from
-        // Percolator's output (q-value = PEP = 1, SVM score = -100: confidently not identified), so
-        // their main score matches the new score type of the identification.
-        double svm = -100.0, qval = 1.0, pep = 1.0;
-        if (rescored[i][j])
-        {
-          svm  = hit.getMetaValue("percolator_score");
-          qval = hit.getMetaValue("percolator_q_value");
-          pep  = hit.getMetaValue("percolator_pep");
-        }
-
-        hit.setMetaValue("MS:1001492", svm);    // percolator:score
-        hit.setMetaValue("MS:1001491", qval);   // percolator:Q value
-        hit.setMetaValue("MS:1001493", pep);    // percolator:PEP
-
-        if (score_type == "q-value")      hit.setScore(qval);
-        else if (score_type == "pep")     hit.setScore(pep);
-        else                              hit.setScore(svm);
-      }
-    }
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "No numeric Percolator features in the feature set.");
   }
-
-  void checkScoreType(const std::string& score_type)
+  if (rows.empty())
   {
-    if (score_type != "q-value" && score_type != "pep" && score_type != "svm")
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "score_type must be 'q-value', 'pep' or 'svm'", score_type);
-    }
-  }
-
-  void checkHasPsms(const PeptideIdentificationList& peptide_ids)
-  {
-    if (std::none_of(peptide_ids.begin(), peptide_ids.end(),
-                     [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }))
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "No PSMs to rescore.");
-    }
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "No PSM carries all Percolator features.");
   }
 }
 
@@ -1677,18 +2672,444 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
                              const std::string& enzyme,
                              int min_charge,
                              int max_charge,
-                             const std::string& score_type)
+                             const std::string& score_type,
+                             bool best_hit_only)
 {
-  checkScoreType(score_type);
-  checkHasPsms(peptide_ids);
-  PercolatorInfile::PinFeatureMetaValueMap added;
-  PinMetaValueCleanup cleanup{peptide_ids, added};
-  const PsmRows rows = buildPsmRows(peptide_ids, feature_set, enzyme, min_charge, max_charge, added);
-  OPENMS_LOG_INFO << "Rescoring " << rows.input.features.size() << " PSMs in-process with "
-                  << rows.input.feature_names.size() << " features." << std::endl;
-  // Low-level API: the high-level rescore(peptide_ids, ...) ignores the PIN-compatible fields.
-  const RescoreOutput ro = rescore(rows.input);
-  writePsmResults(peptide_ids, rows.hit_locs, ro, score_type);
+  return rescorePSMsWithScorer(peptide_ids, feature_set, enzyme, min_charge, max_charge, score_type, PSMScorer(),
+                               best_hit_only);
+}
+
+Size Percolator::rescorePSMsWithScorer(PeptideIdentificationList& peptide_ids,
+                                       const StringList& feature_set,
+                                       const std::string& enzyme,
+                                       int min_charge,
+                                       int max_charge,
+                                       const std::string& score_type,
+                                       const PSMScorer& scorer,
+                                       bool best_hit_only)
+{
+  if (score_type != "q-value" && score_type != "pep" && score_type != "svm")
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "score_type must be 'q-value', 'pep' or 'svm'", score_type);
+  }
+  if (std::none_of(peptide_ids.begin(), peptide_ids.end(),
+                   [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }))
+  {
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "No PSMs to rescore.");
+  }
+
+  // Training then uses the feature vectors the executable would read from the .pin file, row for row.
+  RescoreInput ri;
+  PSMRowLocations hit_locs;
+  buildPSMRescoreInput(peptide_ids, feature_set, enzyme, min_charge, max_charge, ri, hit_locs, impl_->calc_mass_feature);
+
+  // A hit that carries a meta value under the name of a PIN column gets its PIN value, as stamping did (before the
+  // training, so also if it fails). After the matrix: its computation succeeded for every hit, the matrix's errors
+  // are raised in order first.
+  PercolatorInfile::refreshPinMetaValues(peptide_ids, enzyme, min_charge, max_charge);
+  OPENMS_LOG_INFO << "Rescoring " << ri.rowCount() << " PSMs in-process with "
+                  << ri.featureCount() << " features." << std::endl;
+
+  impl_->last_reset.reset();
+  const size_t n_rows = ri.rowCount();
+  RescoreOutput ro;
+  if (scorer)
+  {
+    // e.g. ProSE's rescore_reuse: a model trained on other PSMs (also with algorithm 'reset')
+    ro = scorer(ri, hit_locs);
+    if (ro.scores.size() != n_rows || ro.q_values.size() != n_rows || ro.peps.size() != n_rows)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "The scorer returned " + std::to_string(ro.scores.size()) + " scores for "
+        + std::to_string(n_rows) + " feature rows.", "");
+    }
+  }
+  else if (impl_->algorithm == "reset")
+  {
+    ro = rescoreReset_(peptide_ids, ri, hit_locs);
+  }
+  else
+  {
+    if (impl_->peptide_level)
+    {
+      // peptide-level estimates: the PIN 'Peptide' string between the flanks (PercolatorInfile::store), by which the
+      // executable groups the PSMs of a peptide
+      ri.peptide_keys.resize(n_rows);
+      std::vector<std::exception_ptr> errors(n_rows);
+#pragma omp parallel for schedule(dynamic, 1024)
+      for (SignedSize r = 0; r < static_cast<SignedSize>(n_rows); ++r)
+      {
+        try
+        {
+          const auto [pid_i, hit_i] = hit_locs[r];
+          ri.peptide_keys[r] = peptide_ids[pid_i].getHits()[hit_i].getSequence().toBracketString(false, true);
+        }
+        catch (...)
+        {
+          errors[r] = std::current_exception();
+        }
+      }
+      rethrowFirstError(errors);
+    }
+    // Low-level API: the high-level rescore(peptide_ids, ...) ignores the PIN-compatible fields.
+    ro = rescore(ri);
+  }
+  if (impl_->peptide_level && ro.peptide_q_values.empty())
+  {
+    OPENMS_LOG_WARN << "Percolator: no peptide-level q-values with " << (scorer ? "a scorer" : "algorithm 'reset' (see "
+                       "RESET:peptide_q_value)") << "." << std::endl;
+  }
+
+  // When the PIN features were stamped, the PIN columns that a stamped hit (evidence, target/decoy type) did not have
+  // were removed after the write-back below, also the original score that it stores under the old score type if that is
+  // the name of a PIN column (e.g. "score"). Kept that way: these hits lose that meta value again.
+  // (identification, hit, old score type), removed also if the write-back throws, as by the cleanup of the stamped values
+  struct RemoveOldScore
+  {
+    PeptideIdentificationList& ids;
+    std::vector<std::tuple<size_t, size_t, std::string>> hits;
+    ~RemoveOldScore()
+    {
+      for (const auto& [i, j, type] : hits) ids[i].getHits()[j].removeMetaValue(type); // (allocates nothing)
+    }
+  } remove_old_score{peptide_ids, {}};
+  {
+    const StringList pin_columns = PercolatorInfile::getPinColumnNames(min_charge, max_charge);
+    const std::string* last_type = nullptr;
+    bool pin_type = false;
+    for (size_t i = 0; i < peptide_ids.size(); ++i)
+    {
+      const std::string& type = peptide_ids[i].getScoreType();
+      if (last_type == nullptr || type != *last_type)
+      {
+        last_type = &type;
+        pin_type = std::find(pin_columns.begin(), pin_columns.end(), type) != pin_columns.end();
+      }
+      if (!pin_type) continue;
+      const std::vector<PeptideHit>& hits = peptide_ids[i].getHits();
+      for (size_t j = 0; j < hits.size(); ++j)
+      {
+        if (!hits[j].getPeptideEvidences().empty() && hits[j].getTargetDecoyType() != PeptideHit::TargetDecoyType::UNKNOWN
+            && !hits[j].metaValueExists(type))
+        {
+          remove_old_score.hits.emplace_back(i, j, type);
+        }
+      }
+    }
+  }
+
+  // looking names up takes a lock on the registry, which threads would contend for: the parallel loops below use indices
+  auto index_of = [](const std::string& name) { return MetaInfoInterface::metaRegistry().getIndex(name); };
+  constexpr size_t NO_ROW = std::numeric_limits<size_t>::max();
+
+  // The row of each hit (NO_ROW: not rescored); the Percolator scores of a hit are read from the rows, not back from
+  // the meta values they were written to.
+  std::vector<std::vector<size_t>> row_of(peptide_ids.size());
+  for (size_t i = 0; i < peptide_ids.size(); ++i)
+  {
+    row_of[i].assign(peptide_ids[i].getHits().size(), NO_ROW);
+  }
+  for (size_t row = 0; row < ro.scores.size(); ++row)
+  {
+    row_of[hit_locs[row].first][hit_locs[row].second] = row;
+  }
+
+  // The identifications without hits come first (updated serially), then the first one with hits; with several score
+  // types (each a meta value name) all spectra are updated serially, registering their names in order.
+  size_t first_with_hits = 0;
+  while (first_with_hits < peptide_ids.size() && peptide_ids[first_with_hits].getHits().empty()) ++first_with_hits;
+  const bool one_score_type = first_with_hits < peptide_ids.size()
+    && std::all_of(peptide_ids.begin() + first_with_hits + 1, peptide_ids.end(),
+                   [&](const PeptideIdentification& pid) { return pid.getHits().empty() || pid.getScoreType() == peptide_ids[first_with_hits].getScoreType(); });
+  // Only the best hits get meta values: with one score type (the names are registered below as the writes to all hits
+  // registered them).
+  const bool best_only = best_hit_only && one_score_type;
+
+  // The hits are updated in parallel, except for the first row and the first spectrum with hits: these register the
+  // new meta value names in the order of a serial loop, and MetaInfo keeps meta values in the order of their name
+  // indices. The parallel updates use the name indices: looking names up takes a lock on the registry, which the
+  // threads would contend for.
+  auto store_row = [&](size_t row, const auto& score_key, const auto& q_value_key, const auto& pep_key)
+  {
+    const auto [pid_i, hit_i] = hit_locs[row];
+    PeptideHit& hit = peptide_ids[pid_i].getHits()[hit_i];
+    hit.setMetaValue(score_key,   ro.scores[row]);
+    hit.setMetaValue(q_value_key, ro.q_values[row]);
+    hit.setMetaValue(pep_key,     ro.peps[row]);
+  };
+  if (!ro.scores.empty())
+  {
+    if (best_only)
+    {
+      // (as the write to the first row registered them)
+      MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
+      for (const char* name : {"percolator_score", "percolator_q_value", "percolator_pep"}) registry.registerName(name);
+    }
+    else
+    {
+      store_row(0, "percolator_score", "percolator_q_value", "percolator_pep");
+      const UInt score_index = index_of("percolator_score"), q_value_index = index_of("percolator_q_value"),
+                 pep_index = index_of("percolator_pep");
+      std::vector<std::exception_ptr> errors(ro.scores.size());
+#pragma omp parallel for schedule(dynamic, 256)
+      for (SignedSize row = 1; row < static_cast<SignedSize>(ro.scores.size()); ++row)
+      {
+        try
+        {
+          store_row(static_cast<size_t>(row), score_index, q_value_index, pep_index);
+        }
+        catch (...)
+        {
+          errors[row] = std::current_exception();
+        }
+      }
+      rethrowFirstError(errors);
+    }
+  }
+
+  // Canonical score fields and PSI-MS CV terms, as PercolatorAdapter writes them for the executable.
+  // index: the name indices of the old score type, percolator_score, _q_value, _pep, MS:1001492, 91 and 93, or empty
+  auto store_canonical = [&](size_t i, const std::vector<UInt>& index)
+  {
+    PeptideIdentification& pid = peptide_ids[i];
+    const std::string old_score_type = pid.getScoreType();
+    if (score_type == "pep")
+    {
+      pid.setScoreType("Posterior Error Probability");
+      pid.setHigherScoreBetter(false);
+    }
+    else if (score_type == "svm")
+    {
+      pid.setScoreType("svm");
+      pid.setHigherScoreBetter(true);
+    }
+    else
+    {
+      pid.setScoreType("q-value");
+      pid.setHigherScoreBetter(false);
+    }
+
+    auto& hits = pid.getHits();
+    // Hits that were not rescored get the values the executable path gives PSMs missing from
+    // Percolator's output (q-value = PEP = 1, SVM score = -100: confidently not identified), so
+    // their main score matches the new score type of the identification.
+    // (an old score type named like a Percolator value: the original score, kept under that name after the Percolator
+    // values were written, replaced the value there, and the values were read back from the meta values)
+    const bool old_is_score = old_score_type == "percolator_score", old_is_q_value = old_score_type == "percolator_q_value",
+               old_is_pep = old_score_type == "percolator_pep";
+    auto scores_of = [&](size_t j, double& svm, double& qval, double& pep)
+    {
+      svm = -100.0; qval = 1.0; pep = 1.0;
+      const size_t row = row_of[i][j];
+      if (row != NO_ROW)
+      {
+        svm  = old_is_score   ? hits[j].getScore() : ro.scores[row];
+        qval = old_is_q_value ? hits[j].getScore() : ro.q_values[row];
+        pep  = old_is_pep     ? hits[j].getScore() : ro.peps[row];
+      }
+    };
+    auto new_score = [&](double svm, double qval, double pep)
+    {
+      if (score_type == "q-value") return qval;
+      if (score_type == "pep") return pep;
+      return svm;
+    };
+    // best_only: the hit that the stable sort by the new score puts first (the first of the lowest q-values or PEPs,
+    // highest SVM scores); with a NaN score that order is not defined: all hits are written
+    size_t best = NO_ROW;
+    if (best_only && !index.empty() && !hits.empty())
+    {
+      bool nan = false;
+      double best_score = 0.0;
+      for (size_t j = 0; j < hits.size() && !nan; ++j)
+      {
+        double svm, qval, pep;
+        scores_of(j, svm, qval, pep);
+        const double score = new_score(svm, qval, pep);
+        if (std::isnan(score)) { nan = true; break; }
+        if (j == 0 || (score_type == "svm" ? score > best_score : score < best_score))
+        {
+          best = j;
+          best_score = score;
+        }
+      }
+      if (nan)
+      {
+        best = NO_ROW;
+        for (size_t j = 0; j < hits.size(); ++j)
+        {
+          if (row_of[i][j] != NO_ROW) store_row(row_of[i][j], index[1], index[2], index[3]);
+        }
+      }
+    }
+    for (size_t j = 0; j < hits.size(); ++j)
+    {
+      PeptideHit& hit = hits[j];
+      double svm, qval, pep;
+      scores_of(j, svm, qval, pep);
+      if (index.empty())
+      {
+        hit.setMetaValue(old_score_type, hit.getScore());  // preserve original
+        hit.setMetaValue("MS:1001492", svm);    // percolator:score
+        hit.setMetaValue("MS:1001491", qval);   // percolator:Q value
+        hit.setMetaValue("MS:1001493", pep);    // percolator:PEP
+      }
+      else if (best == NO_ROW || j == best)
+      {
+        // (in the order of the writes to all hits: the Percolator values first, then the original score)
+        if (best != NO_ROW && row_of[i][j] != NO_ROW) store_row(row_of[i][j], index[1], index[2], index[3]);
+        hit.setMetaValue(index[0], hit.getScore());
+        hit.setMetaValue(index[4], svm);
+        hit.setMetaValue(index[5], qval);
+        hit.setMetaValue(index[6], pep);
+      }
+      hit.setScore(new_score(svm, qval, pep));
+    }
+  };
+  size_t first_parallel = 0;
+  while (first_parallel < first_with_hits)
+  {
+    store_canonical(first_parallel++, {});
+  }
+  if (first_parallel < peptide_ids.size())
+  {
+    const std::string first_score_type = peptide_ids[first_parallel].getScoreType();
+    std::vector<UInt> index;
+    if (best_only)
+    {
+      // the names the serial update of the first spectrum with hits registered, in that order; it is updated in parallel
+      MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
+      for (const std::string& name : {first_score_type, std::string("MS:1001492"), std::string("MS:1001491"), std::string("MS:1001493")})
+      {
+        registry.registerName(name);
+      }
+    }
+    else
+    {
+      store_canonical(first_parallel++, {});
+    }
+    if (one_score_type)
+    {
+      for (const std::string& name : {first_score_type, std::string("percolator_score"), std::string("percolator_q_value"),
+                                      std::string("percolator_pep"), std::string("MS:1001492"), std::string("MS:1001491"),
+                                      std::string("MS:1001493")})
+      {
+        index.push_back(index_of(name));
+      }
+    }
+    std::vector<std::exception_ptr> errors(peptide_ids.size());
+#pragma omp parallel for schedule(dynamic, 256) if(one_score_type)
+    for (SignedSize i = static_cast<SignedSize>(first_parallel); i < static_cast<SignedSize>(peptide_ids.size()); ++i)
+    {
+      try
+      {
+        store_canonical(static_cast<size_t>(i), index);
+      }
+      catch (...)
+      {
+        errors[i] = std::current_exception();
+      }
+    }
+    rethrowFirstError(errors);
+  }
+  if (ro.peptide_q_values.size() == n_rows && ro.peptide_peps.size() == n_rows)
+  {
+    // the q-value and PEP of the hit's peptide (Percolator's peptide level, parameter 'peptide_level')
+    const UInt pep_q_index = MetaInfoInterface::metaRegistry().registerName("percolator_peptide_q_value");
+    const UInt pep_pep_index = MetaInfoInterface::metaRegistry().registerName("percolator_peptide_pep");
+    std::vector<std::exception_ptr> errors(n_rows);
+#pragma omp parallel for schedule(dynamic, 256)
+    for (SignedSize row = 0; row < static_cast<SignedSize>(n_rows); ++row)
+    {
+      try
+      {
+        const auto [pid_i, hit_i] = hit_locs[row];
+        PeptideHit& hit = peptide_ids[pid_i].getHits()[hit_i];
+        hit.setMetaValue(pep_q_index, ro.peptide_q_values[row]);
+        hit.setMetaValue(pep_pep_index, ro.peptide_peps[row]);
+      }
+      catch (...)
+      {
+        errors[row] = std::current_exception();
+      }
+    }
+    rethrowFirstError(errors);
+  }
+  else
+  {
+    // no peptide-level estimates this time: values from an earlier rescoring of these hits would be stale
+    const UInt pep_q_index = MetaInfoInterface::metaRegistry().getIndex("percolator_peptide_q_value");
+    const UInt pep_pep_index = MetaInfoInterface::metaRegistry().getIndex("percolator_peptide_pep");
+    if (pep_q_index != UInt(-1) || pep_pep_index != UInt(-1)) // (never registered: no hit has them)
+    {
+#pragma omp parallel for schedule(dynamic, 256)
+      for (SignedSize row = 0; row < static_cast<SignedSize>(n_rows); ++row)
+      {
+        const auto [pid_i, hit_i] = hit_locs[row];
+        PeptideHit& hit = peptide_ids[pid_i].getHits()[hit_i];
+        if (pep_q_index != UInt(-1)) hit.removeMetaValue(pep_q_index);
+        if (pep_pep_index != UInt(-1)) hit.removeMetaValue(pep_pep_index);
+      }
+    }
+  }
+  if (impl_->last_reset)
+  {
+    // RESET: the q-value of the hit's peptide (stem) - the FDR-controlled output - and the role of decoy hits
+    const PercolatorReset::Output& rr = *impl_->last_reset;
+    const UInt pep_q_index = MetaInfoInterface::metaRegistry().registerName("RESET:peptide_q_value");
+    const UInt role_index = MetaInfoInterface::metaRegistry().registerName("RESET:decoy_role");
+    std::vector<std::exception_ptr> errors(hit_locs.size());
+#pragma omp parallel for schedule(dynamic, 256)
+    for (SignedSize row = 0; row < static_cast<SignedSize>(hit_locs.size()); ++row)
+    {
+      try
+      {
+        const auto [pid_i, hit_i] = hit_locs[row];
+        PeptideHit& hit = peptide_ids[pid_i].getHits()[hit_i];
+        hit.setMetaValue(pep_q_index, rr.stem_q_values[row]);
+        if (rr.roles[row] != PercolatorReset::Role::TARGET)
+        {
+          hit.setMetaValue(role_index, rr.roles[row] == PercolatorReset::Role::TRAINING_DECOY ? "training" : "estimating");
+        }
+      }
+      catch (...)
+      {
+        errors[row] = std::current_exception();
+      }
+    }
+    rethrowFirstError(errors);
+    if (!impl_->reset_stem_table.empty())
+    {
+      std::ofstream os(impl_->reset_stem_table);
+      if (!os)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, impl_->reset_stem_table);
+      }
+      os << "# RESET stem table: salt " << rr.salt << ", PSM-only protocol, learner " << rr.learner
+         << (impl_->reset_decoy_databases == 2 ? ", two decoy databases" : "")
+         << "; q_value = peptide (stem) level, FDP = " << (impl_->reset_decoy_databases == 2 ? "" : "2 ")
+         << "(D_est + 1) / max(T, 1) over targets and estimating decoys\n";
+      os << "stem\tpeptide\tlabel\trole\tconsidered\tsearch_score\treset_score\tq_value\tspectrum_reference\tcharge\n";
+      os.precision(10);
+      for (const PercolatorReset::Stem& st : rr.stems)
+      {
+        const auto [pid_i, hit_i] = hit_locs[st.representative];
+        const PeptideIdentification& pid = peptide_ids[pid_i];
+        const PeptideHit& hit = pid.getHits()[hit_i];
+        os << st.stem << '\t' << hit.getSequence().toString() << '\t' << (st.decoy ? "decoy" : "target") << '\t'
+           << (st.role == PercolatorReset::Role::TARGET ? "target"
+               : st.role == PercolatorReset::Role::TRAINING_DECOY ? "training_decoy" : "estimating_decoy") << '\t'
+           << (st.considered ? 1 : 0) << '\t' << st.search_score << '\t' << st.score << '\t' << st.q_value << '\t'
+           << pid.getSpectrumReference() << '\t' << hit.getCharge() << '\n';
+      }
+      if (!os)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, impl_->reset_stem_table);
+      }
+    }
+  }
   return ro.scores.size();
 }
 
@@ -1698,13 +3119,19 @@ PercolatorModel Percolator::trainPSMs(PeptideIdentificationList& peptide_ids,
                                       int min_charge,
                                       int max_charge)
 {
-  checkHasPsms(peptide_ids);
-  PercolatorInfile::PinFeatureMetaValueMap added;
-  PinMetaValueCleanup cleanup{peptide_ids, added};
-  const PsmRows rows = buildPsmRows(peptide_ids, feature_set, enzyme, min_charge, max_charge, added);
-  OPENMS_LOG_INFO << "Training a Percolator model on " << rows.input.features.size() << " PSMs with "
-                  << rows.input.feature_names.size() << " features." << std::endl;
-  return train(rows.input);
+  if (std::none_of(peptide_ids.begin(), peptide_ids.end(),
+                   [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }))
+  {
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "No PSMs to rescore.");
+  }
+  RescoreInput ri;
+  PSMRowLocations hit_locs;
+  buildPSMRescoreInput(peptide_ids, feature_set, enzyme, min_charge, max_charge, ri, hit_locs, impl_->calc_mass_feature);
+  PercolatorInfile::refreshPinMetaValues(peptide_ids, enzyme, min_charge, max_charge); // (as rescorePSMs)
+  OPENMS_LOG_INFO << "Training a Percolator model on " << ri.rowCount() << " PSMs with "
+                  << ri.featureCount() << " features." << std::endl;
+  return train(ri);
 }
 
 Size Percolator::scorePSMs(PeptideIdentificationList& peptide_ids,
@@ -1716,16 +3143,209 @@ Size Percolator::scorePSMs(PeptideIdentificationList& peptide_ids,
                            int max_charge,
                            const std::string& score_type)
 {
-  checkScoreType(score_type);
-  checkHasPsms(peptide_ids);
-  checkHasPsms(reference_ids);
-  PercolatorInfile::PinFeatureMetaValueMap added, reference_added;
-  PinMetaValueCleanup cleanup{peptide_ids, added}, reference_cleanup{reference_ids, reference_added};
-  const PsmRows rows = buildPsmRows(peptide_ids, feature_set, enzyme, min_charge, max_charge, added);
-  const PsmRows reference = buildPsmRows(reference_ids, feature_set, enzyme, min_charge, max_charge, reference_added);
-  const RescoreOutput ro = score(rows.input, model, reference.input);
-  writePsmResults(peptide_ids, rows.hit_locs, ro, score_type);
-  return ro.scores.size();
+  if (score_type != "q-value" && score_type != "pep" && score_type != "svm")
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "score_type must be 'q-value', 'pep' or 'svm'", score_type);
+  }
+  for (const PeptideIdentificationList* ids : {&peptide_ids, &reference_ids})
+  {
+    if (std::none_of(ids->begin(), ids->end(), [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }))
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "No PSMs to rescore.");
+    }
+  }
+  // the rows of the reference after those of peptide_ids (as their errors), scored with score(input, model, reference)
+  const PSMScorer scorer = [&](const RescoreInput& input, const PSMRowLocations&)
+  {
+    RescoreInput reference;
+    PSMRowLocations reference_locs;
+    buildPSMRescoreInput(reference_ids, feature_set, enzyme, min_charge, max_charge, reference, reference_locs,
+                         impl_->calc_mass_feature);
+    PercolatorInfile::refreshPinMetaValues(reference_ids, enzyme, min_charge, max_charge); // (as rescorePSMs)
+    return score(input, model, reference);
+  };
+  return rescorePSMsWithScorer(peptide_ids, feature_set, enzyme, min_charge, max_charge, score_type, scorer);
+}
+
+RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide_ids, RescoreInput& ri,
+                                        const std::vector<std::pair<size_t, size_t>>& hit_locs)
+{
+  PercolatorReset::Input in;
+  in.feature_names.assign(ri.feature_names.begin(), ri.feature_names.end());
+  in.is_decoy = ri.is_decoy;
+  in.features = std::move(ri.features);            // (empty with buildPSMRescoreInput's dense rows)
+  in.feature_matrix = std::move(ri.feature_matrix); // RESET reads the rows through Input::row(), as rescore() does
+  const size_t n = hit_locs.size();
+  in.search_scores.resize(n);
+  in.spectrum.resize(n);
+  in.stems.resize(n);
+  const bool two_decoys = impl_->reset_decoy_databases == 2;
+  if (two_decoys) in.decoy_set.resize(n);
+  std::vector<std::exception_ptr> errors(n);
+#pragma omp parallel for schedule(dynamic, 1024)
+  for (SignedSize r = 0; r < static_cast<SignedSize>(n); ++r)
+  {
+    try
+    {
+      const auto [pid_i, hit_i] = hit_locs[r];
+      const PeptideIdentification& pid = peptide_ids[pid_i];
+      const PeptideHit& hit = pid.getHits()[hit_i];
+      in.spectrum[r] = pid_i;
+      in.stems[r] = hit.getSequence().toUnmodifiedString();
+      in.search_scores[r] = pid.isHigherScoreBetter() ? hit.getScore() : -hit.getScore();
+      if (two_decoys)
+      {
+        // the decoy set(s) of a decoy hit: 2 if all its proteins are of the second decoy database, 3 if it has proteins of
+        // both (a sequence shared by the sets), else 1 (also without protein evidence)
+        const std::vector<PeptideEvidence>& evidences = hit.getPeptideEvidences();
+        const std::string& prefix = impl_->reset_second_decoy_prefix;
+        const auto second = std::count_if(evidences.begin(), evidences.end(), [&](const PeptideEvidence& ev)
+                                          { return ev.getProteinAccession().compare(0, prefix.size(), prefix) == 0; });
+        in.decoy_set[r] = !in.is_decoy[r] ? 0
+          : second == 0 ? 1 : (static_cast<size_t>(second) == evidences.size() ? 2 : 3);
+      }
+    }
+    catch (...)
+    {
+      errors[r] = std::current_exception();
+    }
+  }
+  rethrowFirstError(errors);
+  // the PSM-level competition unit is the spectrum: identifications of the same spectrum (file and spectrum reference)
+  // compete together; without a spectrum reference, each identification is its own spectrum
+  {
+    size_t without_reference = 0;
+    std::unordered_map<std::string, size_t> spectrum_of;
+    std::vector<size_t> unit(peptide_ids.size(), std::numeric_limits<size_t>::max());
+    for (size_t r = 0; r < n; ++r)
+    {
+      const size_t pid_i = in.spectrum[r];
+      if (unit[pid_i] == std::numeric_limits<size_t>::max())
+      {
+        const PeptideIdentification& pid = peptide_ids[pid_i];
+        const std::string& ref = pid.getSpectrumReference();
+        without_reference += ref.empty() ? 1 : 0;
+        unit[pid_i] = ref.empty() ? pid_i
+                      : spectrum_of.try_emplace(PercolatorInfile::getFileIdentifier(pid) + '\x1f' + ref, pid_i).first->second;
+      }
+      in.spectrum[r] = unit[pid_i];
+    }
+    if (without_reference > 0)
+    {
+      OPENMS_LOG_WARN << "RESET: " << without_reference << " identifications without spectrum reference compete as "
+                         "separate spectra." << std::endl;
+    }
+  }
+
+  PercolatorReset::Options opt;
+  if (!impl_->reset_salt.empty()) // empty: PercolatorReset::run() draws a fresh salt (reported below)
+  {
+    try
+    {
+      size_t pos = 0;
+      if (impl_->reset_salt.find_first_not_of("0123456789") != std::string::npos) throw std::invalid_argument("not a number");
+      opt.salt = std::stoull(impl_->reset_salt, &pos);
+      if (pos != impl_->reset_salt.size()) throw std::invalid_argument("trailing characters");
+    }
+    catch (const std::exception&)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "reset:salt must be empty or an unsigned 64-bit integer", impl_->reset_salt);
+    }
+  }
+  opt.learner = impl_->reset_learner;
+  opt.mlp_members = impl_->reset_mlp_members;
+  opt.mlp_hidden = impl_->reset_mlp_hidden;
+  opt.mlp_epochs = impl_->reset_mlp_epochs;
+  opt.mlp_warm_epochs = impl_->reset_mlp_warm_epochs;
+  opt.mlp_crossfit = impl_->reset_mlp_crossfit;
+  opt.mlp_norm_min_decoys = impl_->reset_mlp_norm_min_decoys;
+  opt.iterations = impl_->reset_iterations;
+  opt.representative = impl_->reset_representative;
+  opt.train_fdr = impl_->train_fdr;
+  opt.audit = impl_->reset_audit;
+  opt.decoy_databases = impl_->reset_decoy_databases;
+#ifdef _OPENMP
+  opt.threads = std::max(1, std::min(impl_->num_threads, omp_get_max_threads()));
+#else
+  opt.threads = 1;
+#endif
+  auto rr = std::make_shared<PercolatorReset::Output>(PercolatorReset::run(in, opt));
+  OPENMS_LOG_INFO << "RESET: salt " << rr->salt << (opt.salt.has_value() ? "" : " (drawn)") << ", PSM-only protocol"
+                  << ", learner " << opt.learner << (rr->learner_settings.empty() ? "" : " (" + rr->learner_settings + ")") << ", "
+                  << opt.iterations << " rounds." << std::endl;
+  OPENMS_LOG_INFO << "RESET: " << rr->target_stems << " target and " << rr->decoy_stems << " decoy stems considered ("
+                  << rr->training_decoys << " training, " << rr->estimating_decoys << " estimating decoys); features: "
+                  << ListUtils::concatenate(rr->used_features, ",") << std::endl;
+  if (two_decoys)
+  {
+    // under the null both decoy sets win equally often (a diagnostic only: equal shares do not prove exchangeability)
+    const Size one_set = rr->decoy_stems - rr->decoy_stems_both_sets;
+    const double share = static_cast<double>(rr->decoy_stems_second_set) / static_cast<double>(std::max<Size>(one_set, 1));
+    OPENMS_LOG_INFO << "RESET two-decoy mode: " << rr->decoy_stems_second_set << " of " << one_set
+                    << " decoy stems of one set from the second decoy set (" << impl_->reset_second_decoy_prefix << "), share "
+                    << share << "; " << rr->decoy_stems_both_sets << " decoy stems of both sets." << std::endl;
+    // beyond 3 binomial standard deviations plus 2 points
+    if (one_set >= 100 && std::fabs(share - 0.5) > 0.02 + 1.5 / std::sqrt(static_cast<double>(one_set)))
+    {
+      OPENMS_LOG_WARN << "RESET two-decoy mode: the two decoy sets do not win equally often (share of the second "
+                      << share << "); the two-decoy FDR estimate assumes decoy sets of the same construction." << std::endl;
+    }
+    if (rr->decoy_stems_both_sets * 100 > rr->decoy_stems)
+    {
+      OPENMS_LOG_WARN << "RESET two-decoy mode: " << rr->decoy_stems_both_sets << " of " << rr->decoy_stems
+                      << " decoy stems are sequences of both decoy sets; such a hypothesis has one decoy, not two, and the "
+                         "two-decoy estimate is anti-conservative for them. Build the second set without shared sequences."
+                      << std::endl;
+    }
+  }
+  if (opt.audit)
+  {
+    if (rr->audit.empty())
+    {
+      OPENMS_LOG_INFO << "RESET audit: too few low-scoring stems (fewer than 20 per group), skipped." << std::endl;
+    }
+    // standard error of an AUC of two groups of sizes na, nb under the null: sqrt((na + nb + 1) / (12 na nb))
+    const double na = static_cast<double>(rr->audit_decoys), nb = static_cast<double>(rr->audit_proxy);
+    const double auc_se = na > 0 && nb > 0 ? std::sqrt((na + nb + 1.0) / (12.0 * na * nb)) : 1.0;
+    if (!rr->audit.empty())
+    {
+      OPENMS_LOG_INFO << "RESET audit: " << rr->audit_decoys << " training decoys vs " << rr->audit_proxy
+                      << " pseudo-targets (null proxy); approximate AUC standard error under symmetry (no ties, the "
+                         "median cut ignored) " << auc_se << std::endl;
+    }
+    for (const PercolatorReset::AuditFeature& af : rr->audit)
+    {
+      OPENMS_LOG_INFO << "RESET audit: " << af.name << " AUC " << af.auc << " (z " << (af.auc - 0.5) / auc_se << ") KS "
+                      << af.ks << (af.flagged ? "  FLAGGED (|AUC - 0.5| > 0.05)" : "") << std::endl;
+    }
+    if (!rr->audit.empty())
+    {
+      OPENMS_LOG_INFO << "RESET audit: multivariate (cross-fitted logistic regression) AUC " << rr->audit_multivariate_auc
+                      << (rr->audit_flagged ? "  FLAGGED (> 0.55)" : "") << "; null proxy: " << rr->audit_proxy_ratio
+                      << " pseudo-targets per training decoy below the training decoys' median search score (about 3 "
+                         "if all are incorrect; more suggests correct targets in the proxy, which bias the AUCs, or "
+                         "asymmetry; diagnostic only)" << std::endl;
+    }
+  }
+  for (const std::string& line : rr->rounds) OPENMS_LOG_INFO << "RESET " << line << std::endl;
+  OPENMS_LOG_INFO << "RESET: " << rr->discoveries_1pct << " target peptides (stems) at q <= 0.01 (peptide level)." << std::endl;
+  RescoreOutput ro;
+  ro.scores = rr->scores;
+  ro.q_values = rr->psm_q_values;
+  ro.peps = rr->psm_peps;
+  impl_->svm_weights.clear();
+  if (!rr->weights.empty()) impl_->svm_weights.assign(1, rr->weights); // the linear learner only
+  impl_->last_used_default_direction = false;
+  impl_->last_reset = std::move(rr);
+  return ro;
+}
+
+std::shared_ptr<const PercolatorReset::Output> Percolator::getResetOutput() const
+{
+  return impl_->last_reset;
 }
 
 } // namespace OpenMS
