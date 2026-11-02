@@ -5,6 +5,9 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/XMLFile.h>
 
 class StringManager_test : public OpenMS::Internal::StringManager
 {
@@ -12,7 +15,7 @@ public:
   StringManager_test() = default;
   ~StringManager_test() = default;
 
-  static void compress64(const XMLCh* input_it, char* output_it)
+  static void compress64(const char16_t* input_it, char* output_it)
   {
     StringManager::compress64_(input_it, output_it);
   }
@@ -24,34 +27,68 @@ using namespace OpenMS::Internal;
 
 
 
+namespace
+{
+  struct CharacterSpy : OpenMS::Internal::XMLHandler
+  {
+    CharacterSpy() : XMLHandler("memory", "1.0") {}
+    std::u16string text;
+    void onCharacters(const char16_t* chars, OpenMS::Size length) override { text.append(chars, length); }
+  };
+
+  struct BufferReader : OpenMS::Internal::XMLFile
+  {
+    using XMLFile::parseBuffer_;
+  };
+
+  struct MzMLCharacterSpy : OpenMS::Internal::MzMLHandler
+  {
+    MzMLCharacterSpy(OpenMS::MSExperiment& experiment, const OpenMS::ProgressLogger& logger) :
+      MzMLHandler(experiment, "memory", "1.1.0", logger) {}
+    std::u16string text;
+    void onStartElement(const char16_t*, const OpenMS::Internal::XMLAttributes&) override {}
+    void onEndElement(const char16_t*) override {}
+    void onCharacters(const char16_t* chars, OpenMS::Size length) override { text.append(chars, length); }
+    void prepareBinary(bool fill)
+    {
+      options_.setFillData(fill);
+      open_tags_.assign(1, "binary");
+      bin_data_.clear();
+      bin_data_.emplace_back();
+    }
+    void appendUTF16(const char16_t* chars, OpenMS::Size length) { MzMLHandler::onCharacters(chars, length); }
+    const std::string& payload() const { return bin_data_.back().base64; }
+  };
+}
+
 START_TEST(StringManager, "$Id$")
 
 
-const XMLCh russianHello[] = {
+const char16_t russianHello[] = {
     0x041F, 0x0440, 0x0438, 0x0432, 0x0435, 0x0442, 0x043C,
     0x0438, 0x0440,0x0000 // "Привет мир" (Hello World in Russian)
 };
 size_t r_length = StringManager::strLength(russianHello);
 
-const XMLCh ascii[] = {
+const char16_t ascii[] = {
     0x0048,0x0065,0x006C,0x006C,0x006F,0x002C,0x0057,0x006F,
     0x0072,0x006C,0x0064,0x0021, 0x0000};
 size_t a_length = StringManager::strLength(ascii);
 
-const XMLCh mixed[] = {
+const char16_t mixed[] = {
     0x0048, 0x0065,0x0432, 0x0435, 0x0442, 0x043C, 0x006F,
     0x0072,0x006C,0x0064, 0x0021, 0x0000 };
 size_t m_length = StringManager::strLength(mixed);
 
-const XMLCh empty[] = {0};
+const char16_t empty[] = {0};
 size_t e_length = StringManager::strLength(empty);
 
-const XMLCh upperBoundary [] = {0x00FF,0x00FF,0x0000};
+const char16_t upperBoundary [] = {0x00FF,0x00FF,0x0000};
 size_t u_length = StringManager::strLength(upperBoundary);
 
 bool isAscii = false;
 
-START_SECTION(isASCII(const XMLCh * chars, const size_t length))
+START_SECTION(isASCII(const char16_t * chars, const size_t length))
   isAscii = StringManager::isASCII(ascii,a_length);
   TEST_TRUE(isAscii)
 
@@ -69,13 +106,13 @@ START_SECTION(isASCII(const XMLCh * chars, const size_t length))
   TEST_FALSE(isAscii)
 END_SECTION
 
-const XMLCh eight_block_negative[] = {0x0148,0x0165,0x016C,0x016C,0x016F,0x012C,0x0157,0x016F};
+const char16_t eight_block_negative[] = {0x0148,0x0165,0x016C,0x016C,0x016F,0x012C,0x0157,0x016F};
 
-const XMLCh eight_block[] = {0x0048,0x0065,0x006C,0x006C,0x006F,0x002C,0x0057,0x006F};
+const char16_t eight_block[] = {0x0048,0x0065,0x006C,0x006C,0x006F,0x002C,0x0057,0x006F};
 
-const XMLCh eight_block_mixed[] ={0x0042,0x0045,0x004C,0x0041,0x0142,0x0145,0x014C,0x0141};
+const char16_t eight_block_mixed[] ={0x0042,0x0045,0x004C,0x0041,0x0142,0x0145,0x014C,0x0141};
 
-const XMLCh eight_block_kadabra[] = {
+const char16_t eight_block_kadabra[] = {
     0x004B, // K
     0x0041, // A
     0x0044, // D
@@ -86,7 +123,7 @@ const XMLCh eight_block_kadabra[] = {
     0x0021  // !
 };
 
-START_SECTION(compress64 (const XMLCh* input_it, char* output_it))
+START_SECTION(compress64 (const char16_t* input_it, char* output_it))
     std::string o1_str(8,'\0');
     StringManager_test::compress64(eight_block,o1_str.data());
     std::string res1_str = "Hello,Wo";
@@ -128,7 +165,7 @@ std::string o7_str;
 std::string res7_str;
 
 
-START_SECTION(appendASCII(const XMLCh * chars, const size_t length, String & result))
+START_SECTION(appendASCII(const char16_t * chars, const size_t length, String & result))
 
     StringManager::appendASCII(ascii,a_length,o5_str);
     TEST_STRING_EQUAL(o5_str, res5_str);
@@ -141,8 +178,8 @@ START_SECTION(appendASCII(const XMLCh * chars, const size_t length, String & res
 
 
 END_SECTION
-XMLCh* nullPointer = nullptr;
-START_SECTION(strLength(const XMLCh* input_ptr))
+char16_t* nullPointer = nullptr;
+START_SECTION(strLength(const char16_t* input_ptr))
     int o_length = StringManager::strLength(ascii);
     TEST_EQUAL(o_length, a_length);
     o_length = StringManager::strLength(empty);
@@ -151,6 +188,73 @@ START_SECTION(strLength(const XMLCh* input_ptr))
     TEST_EQUAL(o_length, u_length);
     o_length = StringManager::strLength(nullPointer);
     TEST_EQUAL(o_length, 0);
+END_SECTION
+
+START_SECTION((UTF8 fast-path default preserves existing UTF16 virtual callbacks))
+  CharacterSpy handler;
+  TEST_FALSE(handler.tryOnCharactersUTF8("plain", 5))
+  TEST_FALSE(handler.tryOnCharactersUTF8("β🧬", std::string("β🧬").size()))
+  TEST_TRUE(handler.text.empty())
+  BufferReader reader;
+  reader.parseBuffer_("<root>β🧬 &amp;</root>", &handler);
+  TEST_EQUAL(handler.text == u"β🧬 &", true)
+END_SECTION
+
+START_SECTION((MzML UTF8 opt-in preserves a derived handler UTF16 override))
+  OpenMS::MSExperiment experiment;
+  OpenMS::ProgressLogger logger;
+  OpenMS::Internal::MzMLHandler exact(experiment, "memory", "1.1.0", logger);
+  TEST_TRUE(exact.tryOnCharactersUTF8(nullptr, 0))
+  TEST_TRUE(exact.tryOnCharactersUTF8("plain", 5))
+  // Outside <binary>, onCharacters drops all text: it is consumed without conversion.
+  TEST_TRUE(exact.tryOnCharactersUTF8("β🧬", std::string("β🧬").size()))
+  MzMLCharacterSpy derived(experiment, logger);
+  TEST_FALSE(derived.tryOnCharactersUTF8("plain", 5))
+  TEST_FALSE(derived.tryOnCharactersUTF8("β🧬", std::string("β🧬").size()))
+  BufferReader reader;
+  reader.parseBuffer_("<root>plain β🧬</root>", &derived);
+  TEST_EQUAL(derived.text == u"plain β🧬", true)
+END_SECTION
+
+START_SECTION((Metadata-only UTF16 callbacks do not retain discarded base64 payloads))
+  OpenMS::MSExperiment experiment;
+  OpenMS::ProgressLogger logger;
+  MzMLCharacterSpy handler(experiment, logger);
+  handler.prepareBinary(false);
+  handler.appendUTF16(u"AAAAAAAAAAA=", 12);
+  TEST_TRUE(handler.payload().empty())
+  handler.prepareBinary(true);
+  handler.appendUTF16(u"AAAAAAAAAAA=", 12);
+  TEST_STRING_EQUAL(handler.payload(), "AAAAAAAAAAA=")
+END_SECTION
+
+START_SECTION((Skipping binary accumulation preserves mzML spectrum and chromatogram metadata))
+  OpenMS::MSExperiment full, metadata;
+  OpenMS::MzMLFile file;
+  const std::string path = OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML");
+  file.load(path, full);
+  auto options = file.getOptions();
+  options.setFillData(false);
+  file.setOptions(options);
+  file.load(path, metadata);
+  TEST_EQUAL(full.size(), metadata.size())
+  TEST_EQUAL(full.getChromatograms().size(), metadata.getChromatograms().size())
+  for (OpenMS::Size i = 0; i < metadata.size(); ++i)
+  {
+    TEST_TRUE(metadata[i].empty())
+    TEST_EQUAL(metadata[i].getRT(), full[i].getRT())
+    TEST_EQUAL(metadata[i].getMSLevel(), full[i].getMSLevel())
+    TEST_STRING_EQUAL(metadata[i].getNativeID(), full[i].getNativeID())
+    TEST_EQUAL(metadata[i].getPrecursors() == full[i].getPrecursors(), true)
+    TEST_EQUAL(metadata[i].getProducts() == full[i].getProducts(), true)
+  }
+  for (OpenMS::Size i = 0; i < metadata.getChromatograms().size(); ++i)
+  {
+    TEST_TRUE(metadata.getChromatograms()[i].empty())
+    TEST_STRING_EQUAL(metadata.getChromatograms()[i].getNativeID(), full.getChromatograms()[i].getNativeID())
+    TEST_EQUAL(metadata.getChromatograms()[i].getPrecursor() == full.getChromatograms()[i].getPrecursor(), true)
+    TEST_EQUAL(metadata.getChromatograms()[i].getProduct() == full.getChromatograms()[i].getProduct(), true)
+  }
 END_SECTION
 
 END_TEST

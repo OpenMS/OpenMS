@@ -12,6 +12,7 @@ Bzip2InputStream.cpp
 CachedMzML.cpp
 ChromeleonFile.cpp
 CompressedInputSource.cpp
+DecompressingInputStream.cpp
 CVMappingFile.cpp
 ConsensusXMLFile.cpp
 ControlledVocabulary.cpp
@@ -62,6 +63,7 @@ MsInspectFile.cpp
 MzDataFile.cpp
 MzIdentMLFile.cpp
 MzMLFile.cpp
+MzPeakFile.cpp
 MzQCFile.cpp
 MzTab.cpp
 MzTabBase.cpp
@@ -87,7 +89,6 @@ PepXMLFileMascot.cpp
 PercolatorInfile.cpp
 PercolatorOutfile.cpp
 ProtXMLFile.cpp
-QcMLFile.cpp
 SequestInfile.cpp
 SequestOutfile.cpp
 SpecArrayFile.cpp

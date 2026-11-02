@@ -214,8 +214,10 @@ bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(PeptideIdentificationList
       std::string native_id = pep.getSpectrumReference();
       Size index = lookup.findByNativeID(native_id);
       const MSSpectrum& spec =  exp.getSpectra()[index];
-      // Check if desired IM format is present
-	  if (IMTypes::determineIMFormat(spec) == IMFormat::IM_SPECTRUM)
+      // Check if desired IM format is present (a FAIMS compensation voltage is no ion mobility value:
+      // addMissingFAIMSToPeptideIDs annotates it as FAIMS_CV)
+	  if (IMTypes::determineIMFormat(spec) == IMFormat::IM_SPECTRUM
+          && spec.getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
 	  {
         pep.setMetaValue(Constants::UserParam::IM, spec.getDriftTime());
 	  }

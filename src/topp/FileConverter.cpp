@@ -97,7 +97,9 @@ Bruker timsTOF .d directories, and zipped ones (.d.zip), are read with the built
 built with WITH_OPENTIMS (the default). DDA-PASEF data gives one MS1 spectrum per frame, with the ion
 mobility of every peak, and one MS2 spectrum per precursor; DIA-PASEF data gives MS2 spectra per frame and
 isolation window. The advanced bruker:* options select the export mode and control m/z recalibration,
-frame aggregation and centroiding along the ion mobility axis.
+frame aggregation and centroiding along the ion mobility axis. TSF data (timsTOF without ion mobility: MALDI
+spot runs, LC-MS with TIMS off) gives one centroided spectrum per frame, MS2 spectra with their precursor; the
+bruker:* options for ion mobility, aggregation and recalibration do not apply to it.
 
 For MaxQuant-flavoured mzXML the use of the advanced option '-force_MaxQuant_compatibility' is recommended.
 
@@ -229,6 +231,9 @@ protected:
 #ifdef WITH_OPENTIMS
     "d",
 #endif
+#ifdef WITH_MZPEAK
+    "mzpeak",
+#endif
     "tsv", "peplist", "kroenik", "edta", "sqMass"};
     setValidFormats_("in", input_formats);
     setValidStrings_("in_type", input_formats);
@@ -237,7 +242,11 @@ protected:
     std::string method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<std::string>(method));
 
-    vector<std::string> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "featureparquet", "consensusparquet", "edta", "mzData", "dta2d", "csv", "sqMass", "xic"};
+    vector<std::string> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "featureparquet", "consensusparquet", "edta", "mzData", "dta2d", "csv", "sqMass", "xic",
+#ifdef WITH_MZPEAK
+    "mzpeak",
+#endif
+    };
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", output_formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, false); // optional and not advanced (for workflow engines to show this param)
@@ -1280,6 +1289,11 @@ protected:
     else if (out_type == FileTypes::SQMASS)
     {
       FileHandler().storeExperiment(out, exp, {FileTypes::SQMASS}, log_type_);
+    }
+    else if (out_type == FileTypes::MZPEAK)
+    {
+      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
+      FileHandler().storeExperiment(out, exp, {FileTypes::MZPEAK}, log_type_);
     }
     else
     {

@@ -789,7 +789,7 @@ protected:
 
     // Check if any input is a Bruker .d folder (not mzML) — skip mzML-specific post-processing
     bool has_non_mzml_input = std::any_of(input_files.begin(), input_files.end(),
-      [](const std::string& f) { return !StringUtils::hasSuffix(f, ".mzML"); });
+      [](const std::string& f) { return FileHandler::getType(f) != FileTypes::MZML; }); // any case of the extension
 
     // Build native ID lookup from mzML files (not applicable for .d input)
     map<std::string,unordered_map<int, std::string>> file2specnr2nativeid;

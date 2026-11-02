@@ -512,6 +512,9 @@ function(openms_install_vendored_licenses)
                                    "${_texts}/libkdtree/README.txt"
                                    "${_texts}/libkdtree/Artistic-2.0.txt")
   _openms_install_vendored_license(MSNumpress "${_texts}/MSNumpress/LICENSE.txt")
+  if(OPENMS_ENABLE_MZPEAK)
+    _openms_install_vendored_license(mzpeak "${_openms}/thirdparty/mzpeak/LICENSE")
+  endif()
   ## HiGHS fetched by FetchContent is linked statically, so no other step installs its
   ## license: openms_install_vcpkg_licenses() covers vcpkg ports, and the wheel's license
   ## collection covers shared libraries. A HiGHS from vcpkg or the system is found by

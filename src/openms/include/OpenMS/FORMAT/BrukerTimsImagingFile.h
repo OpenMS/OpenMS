@@ -51,6 +51,10 @@ namespace OpenMS
     temporary directory; for the frames, load() has BrukerTimsFile unpack
     the whole archive.
 
+    For TSF data (timsTOF without ion mobility, see BrukerTimsFile::detectFormat()),
+    the metadata (@c GlobalMetadata, @c MaldiFrameInfo) is read from @c analysis.tsf,
+    which has the same tables.
+
     @ingroup FileIO
   */
   class OPENMS_DLLAPI BrukerTimsImagingFile : public ProgressLogger
@@ -83,7 +87,7 @@ namespace OpenMS
       @brief Loads a MALDI imaging .d folder into @p exp using default Config.
       @param[in]  path The path to the Bruker .d directory or '.d.zip' archive.
       @param[out] exp  Destination experiment; replaced (not appended).
-      @throws Exception::FileNotReadable if the .d folder or @c analysis.tdf is missing.
+      @throws Exception::FileNotReadable if the .d folder or @c analysis.tdf (@c analysis.tsf for TSF data) is missing.
       @throws Exception::InvalidValue if the dataset is not MALDI imaging and
               @c strict_imaging_only is true, or if the dataset contains
               multiple distinct @c ZIndexPos values (out of scope for the 2D
@@ -104,7 +108,7 @@ namespace OpenMS
       @param[out] exp    Destination experiment; replaced (not appended).
       @param[in]  config Loader configuration; @c export_mode is forced to FRAME
                          and @c load_ms1 and @c load_ms2 to true internally.
-      @throws Exception::FileNotReadable if the .d folder or @c analysis.tdf is missing.
+      @throws Exception::FileNotReadable if the .d folder or @c analysis.tdf (@c analysis.tsf for TSF data) is missing.
       @throws Exception::InvalidValue if the dataset is not MALDI imaging and
               @c strict_imaging_only is true, or if the dataset contains
               multiple distinct @c ZIndexPos values.
@@ -165,7 +169,8 @@ namespace OpenMS
                                     UInt& width, UInt& height);
 
     /// Resolves @c analysis.tdf inside a .d folder, or extracts it from a '.d.zip' archive into @p temp_dir, which
-    /// then owns it. Throws FileNotReadable if a .d folder has none, ParseError if an archive has none.
+    /// then owns it; for TSF data (BrukerTimsFile::detectFormat()) @c analysis.tsf, which has the same metadata tables.
+    /// Throws FileNotReadable if a .d folder has none, ParseError if an archive has none.
     static std::string resolveTdfPath_(const std::string& path, std::unique_ptr<TempDir>& temp_dir);
   };
 

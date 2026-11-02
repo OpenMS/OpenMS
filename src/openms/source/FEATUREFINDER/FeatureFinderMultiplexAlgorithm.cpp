@@ -15,6 +15,7 @@
 #include <OpenMS/FEATUREFINDER/MultiplexFilteringCentroided.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/FEATUREFINDER/MultiplexClustering.h>
+#include <OpenMS/FEATUREFINDER/MultiplexResolverAlgorithm.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/ML/CLUSTERING/GridBasedCluster.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
@@ -38,6 +39,7 @@
 #include <iostream>
 #include <ostream>
 #include <algorithm>
+#include <limits>
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -49,6 +51,63 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    /*
+      The provisional id of the feature each blacklisted peak was reserved for (0: none), aligned with the blacklist: the
+      feature of the channel of the peak's mass trace, in the multiplet of the cluster of the filtered peak that reserved it.
+      Of a peak reserved more than once, the first filtered peak counts if its multiplet was reported, else the last one: a
+      later pattern whose RT band reaches over a reported multiplet's peaks and that is dropped leaves them to that multiplet.
+      Only these two writers are recorded (MultiplexFiltering::getBlacklistOwners()): a reported multiplet that reserved the
+      peak between two writers whose clusters were dropped loses it, and the peak counts as reserved by no reported feature
+      (0). That takes at least three writers of one peak, which in practice requires algorithm:rt_band > 0.
+      The owners are read from the filtering one spectrum at a time (n_spectra: the number of spectra of its blacklist), so
+      that those of all blacklisted peaks are never held at once.
+    */
+    std::vector<std::vector<UInt64>> provisionalOwners(const MultiplexFiltering& filtering, Size n_spectra,
+                                                       const std::vector<MultiplexFilteredMSExperiment>& filter_results,
+                                                       const std::vector<std::map<int, GridBasedCluster>>& cluster_results,
+                                                       const std::vector<std::map<int, std::vector<UInt64>>>& multiplet_ids,
+                                                       unsigned isotopes_per_peptide_max)
+    {
+      // the channel ids of the reported multiplet of every filtered peak (null: its cluster was not reported)
+      std::vector<std::vector<const std::vector<UInt64>*>> ids_of_peak(filter_results.size());
+      for (Size pattern = 0; pattern < filter_results.size() && pattern < cluster_results.size() && pattern < multiplet_ids.size(); ++pattern)
+      {
+        ids_of_peak[pattern].assign(filter_results[pattern].size(), nullptr);
+        for (const auto& [cluster_id, cluster] : cluster_results[pattern])
+        {
+          const auto it = multiplet_ids[pattern].find(cluster_id);
+          if (it == multiplet_ids[pattern].end()) { continue; }
+          for (int point : cluster.getPoints())
+          {
+            if (point >= 0 && static_cast<Size>(point) < ids_of_peak[pattern].size()) { ids_of_peak[pattern][point] = &it->second; }
+          }
+        }
+      }
+
+      auto id_of = [&](const MultiplexFiltering::BlacklistWriter& writer) -> UInt64
+      {
+        if (writer.pattern_idx >= ids_of_peak.size() || writer.peak_idx >= ids_of_peak[writer.pattern_idx].size() || writer.mass_trace < 0) { return 0; }
+        const std::vector<UInt64>* ids = ids_of_peak[writer.pattern_idx][writer.peak_idx];
+        const Size channel = static_cast<Size>(writer.mass_trace) / isotopes_per_peptide_max;
+        return (ids != nullptr && channel < ids->size()) ? (*ids)[channel] : 0;
+      };
+      std::vector<std::vector<UInt64>> provisional(n_spectra);
+      for (Size s = 0; s < n_spectra; ++s)
+      {
+        const std::vector<MultiplexFiltering::BlacklistOwner> owners = filtering.getBlacklistOwners(s);
+        provisional[s].reserve(owners.size());
+        for (const MultiplexFiltering::BlacklistOwner& owner : owners)
+        {
+          const UInt64 id = id_of(owner.first);
+          provisional[s].push_back(id != 0 ? id : id_of(owner.last));
+        }
+      }
+      return provisional;
+    }
+  }
+
   FeatureFinderMultiplexAlgorithm::FeatureFinderMultiplexAlgorithm() :
     DefaultParamHandler("FeatureFinderMultiplexAlgorithm")
   {
@@ -320,8 +379,9 @@ namespace OpenMS
       // coordinates of the peptide feature
       // RT is the intensity-average of all satellites peaks of all (!) mass traces
       double rt(0);
-      double rt_min(0);
-      double rt_max(0);
+      // RT range of all satellites of this peptide, i.e. of its own mass traces only
+      double rt_min = std::numeric_limits<double>::infinity();
+      double rt_max = -std::numeric_limits<double>::infinity();
       double intensity_sum_simple(0);    // for intensity-averaged rt
       double intensity_sum(0);
 
@@ -350,15 +410,8 @@ namespace OpenMS
           double rt_temp = it_rt->getRT();
           double intensity_temp = it_mz->getIntensity();
 
-          if ((peptide + isotope == 0) || (rt_temp < rt_min))
-          {
-            rt_min = rt_temp;
-          }
-
-          if ((peptide + isotope == 0) || (rt_temp > rt_max))
-          {
-            rt_max = rt_temp;
-          }
+          rt_min = std::min(rt_min, rt_temp);
+          rt_max = std::max(rt_max, rt_temp);
 
           rt += rt_temp * intensity_temp;
           intensity_sum_simple += intensity_temp;
@@ -442,8 +495,9 @@ namespace OpenMS
       // coordinates of the peptide feature
       // RT is the intensity-average of all satellites peaks of all (!) mass traces
       double rt(0);
-      double rt_min(0);
-      double rt_max(0);
+      // RT range of all satellites of this peptide, i.e. of its own mass traces only
+      double rt_min = std::numeric_limits<double>::infinity();
+      double rt_max = -std::numeric_limits<double>::infinity();
       double intensity_sum_simple(0);    // for intensity-averaged rt
       double intensity_sum(0);
 
@@ -462,15 +516,8 @@ namespace OpenMS
           double rt_temp = (satellite_it->second).getRT();
           double intensity_temp = (satellite_it->second).getIntensity();
 
-          if ((peptide + isotope == 0) || (rt_temp < rt_min))
-          {
-            rt_min = rt_temp;
-          }
-
-          if ((peptide + isotope == 0) || (rt_temp > rt_max))
-          {
-            rt_max = rt_temp;
-          }
+          rt_min = std::min(rt_min, rt_temp);
+          rt_max = std::max(rt_max, rt_temp);
 
           rt += rt_temp * intensity_temp;
           intensity_sum_simple += intensity_temp;
@@ -536,8 +583,10 @@ namespace OpenMS
     return intensity_peptide;
   }
 
-  void FeatureFinderMultiplexAlgorithm::generateMapsCentroided_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, std::vector<std::map<int, GridBasedCluster> >& cluster_results)
+  void FeatureFinderMultiplexAlgorithm::generateMapsCentroided_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, std::vector<std::map<int, GridBasedCluster> >& cluster_results,
+                                                               std::vector<std::map<int, std::vector<UInt64>>>* multiplet_ids)
   {
+    if (multiplet_ids != nullptr) { multiplet_ids->assign(patterns.size(), {}); }
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
     {
@@ -569,7 +618,8 @@ namespace OpenMS
             }
             if (satellite_in_set)
             {
-              break;
+              // skip only this satellite: the remaining ones of the peak may still be new
+              continue;
             }
 
             satellites.insert(std::make_pair(satellite.first, MultiplexSatelliteCentroided(satellite.second.getRTidx(), satellite.second.getMZidx())));
@@ -586,6 +636,7 @@ namespace OpenMS
         }
 
         std::vector<Feature> features;
+        std::vector<UInt64> channel_ids(patterns[pattern].getMassShiftCount(), 0); // provisional feature id per channel (not features[k]: a channel may have none)
         ConsensusFeature consensus;
         bool abort = false;
 
@@ -679,6 +730,7 @@ namespace OpenMS
           // A provisional id (the feature's position in the feature map, from 1), which the handle below
           // carries as well; run() replaces both by the feature's final unique id.
           feature.setUniqueId(feature_map_.size() + features.size() + 1);
+          channel_ids[peptide] = feature.getUniqueId();
           features.push_back(feature);
 
           if (peptide == 0)
@@ -700,16 +752,22 @@ namespace OpenMS
           feature_handle.setMapIndex(peptide);
           feature_handle.setUniqueId(feature.getUniqueId());
           consensus.insert(feature_handle);
-          consensus_map_.getColumnHeaders()[peptide].size++;
         }
 
         if (!abort)
         {
+          // count the channels of reported multiplets only (a later channel can still abort the multiplet above)
+          for (const FeatureHandle& handle : consensus.getFeatures())
+          {
+            consensus_map_.getColumnHeaders()[handle.getMapIndex()].size++;
+          }
           consensus_map_.push_back(consensus);
           for (Feature& feat : features)
           {
             feature_map_.push_back(feat);
           }
+          // the provisional ids are unique among reported multiplets only (an aborted one reuses its ids for the next)
+          if (multiplet_ids != nullptr) { (*multiplet_ids)[pattern][cluster_pair.first] = std::move(channel_ids); }
         }
 
       }
@@ -718,8 +776,10 @@ namespace OpenMS
 
   }
 
-  void FeatureFinderMultiplexAlgorithm::generateMapsProfile_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, const std::vector<std::map<int, GridBasedCluster> >& cluster_results)
+  void FeatureFinderMultiplexAlgorithm::generateMapsProfile_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, const std::vector<std::map<int, GridBasedCluster> >& cluster_results,
+                                                            std::vector<std::map<int, std::vector<UInt64>>>* multiplet_ids)
   {
+    if (multiplet_ids != nullptr) { multiplet_ids->assign(patterns.size(), {}); }
     // progress logger
     unsigned progress = 0;
     startProgress(0, patterns.size(), "constructing maps");
@@ -759,6 +819,7 @@ namespace OpenMS
         }
 
         std::vector<Feature> features;
+        std::vector<UInt64> channel_ids(patterns[pattern].getMassShiftCount(), 0); // provisional feature id per channel (not features[k]: a channel may have none)
         ConsensusFeature consensus;
         bool abort = false;
 
@@ -841,6 +902,7 @@ namespace OpenMS
           // A provisional id (the feature's position in the feature map, from 1), which the handle below
           // carries as well; run() replaces both by the feature's final unique id.
           feature.setUniqueId(feature_map_.size() + features.size() + 1);
+          channel_ids[peptide] = feature.getUniqueId();
           features.push_back(feature);
 
           if (peptide == 0)
@@ -862,16 +924,22 @@ namespace OpenMS
           feature_handle.setMapIndex(peptide);
           feature_handle.setUniqueId(feature.getUniqueId());
           consensus.insert(feature_handle);
-          consensus_map_.getColumnHeaders()[peptide].size++;
         }
 
         if (!abort)
         {
+          // count the channels of reported multiplets only (a later channel can still abort the multiplet above)
+          for (const FeatureHandle& handle : consensus.getFeatures())
+          {
+            consensus_map_.getColumnHeaders()[handle.getMapIndex()].size++;
+          }
           consensus_map_.push_back(consensus);
           for (Feature& feat : features)
           {
             feature_map_.push_back(feat);
           }
+          // the provisional ids are unique among reported multiplets only (an aborted one reuses its ids for the next)
+          if (multiplet_ids != nullptr) { (*multiplet_ids)[pattern][cluster_pair.first] = std::move(channel_ids); }
         }
 
       }
@@ -1014,6 +1082,9 @@ namespace OpenMS
       averagine_similarity_scaling = param_.getValue("algorithm:averagine_similarity_scaling");
     }
 
+    // the provisional id of the feature that owns each blacklisted peak, aligned with exp_blacklist_
+    std::vector<std::vector<UInt64>> blacklist_owners;
+
     if (centroided_)
     {
       // centroided data
@@ -1037,7 +1108,9 @@ namespace OpenMS
        */
       exp_blacklist_ = filtering.getBlacklist();
       filtering.getCentroidedExperiment().swap(exp_centroid_);
-      generateMapsCentroided_(patterns, filter_results, cluster_results);
+      std::vector<std::map<int, std::vector<UInt64>>> multiplet_ids;
+      generateMapsCentroided_(patterns, filter_results, cluster_results, &multiplet_ids);
+      blacklist_owners = provisionalOwners(filtering, exp_blacklist_.size(), filter_results, cluster_results, multiplet_ids, isotopes_per_peptide_max_);
     }
     else
     {
@@ -1063,7 +1136,9 @@ namespace OpenMS
        */
       filtering.getCentroidedExperiment().swap(exp_centroid_);
       filtering.getPeakBoundaries().swap(boundaries_exp_s);
-      generateMapsProfile_(patterns, filter_results, cluster_results);
+      std::vector<std::map<int, std::vector<UInt64>>> multiplet_ids;
+      generateMapsProfile_(patterns, filter_results, cluster_results, &multiplet_ids);
+      blacklist_owners = provisionalOwners(filtering, exp_blacklist_.size(), filter_results, cluster_results, multiplet_ids, isotopes_per_peptide_max_);
     }
 
     // finalize consensus map
@@ -1072,13 +1147,6 @@ namespace OpenMS
     consensus_map_.setExperimentType("labeled_MS1");
     consensus_map_.sortByPosition();
     consensus_map_.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-
-    Size i{0};
-    for (auto & ch : consensus_map_.getColumnHeaders())
-    {
-      ch.second.setMetaValue("channel_id", i);
-      ++i;
-    }
 
     // construct sample_labels
     std::vector<std::vector<std::string> > samples_labels;
@@ -1140,6 +1208,13 @@ namespace OpenMS
       }
     }
 
+    // the channel id is the channel's position in the labels: every configured channel has a column header by now, also one
+    // without any reported multiplet (e.g. a knock-out channel never detected), so the ids do not shift
+    for (auto& [index, header] : consensus_map_.getColumnHeaders())
+    {
+      header.setMetaValue("channel_id", static_cast<Size>(index));
+    }
+
     // finalize feature map: unique ids in position order, and every handle of the consensus map refers to the
     // feature it was built from by it (instead of the provisional id set during construction)
     feature_map_.sortByPosition();
@@ -1158,6 +1233,17 @@ namespace OpenMS
         handles.insert(handle);
       }
       consensus.setFeatures(std::move(handles));
+    }
+
+    // every blacklisted peak records the unique id of the feature it was reserved for
+    for (Size s = 0; s < exp_blacklist_.size() && s < blacklist_owners.size(); ++s)
+    {
+      std::vector<UInt64>& owners = blacklist_owners[s];
+      for (UInt64& owner : owners)
+      {
+        if (owner != 0) { owner = unique_id_of.at(owner); }
+      }
+      MultiplexResolverAlgorithm::setBlacklistOwners(exp_blacklist_[s], owners);
     }
   }
 

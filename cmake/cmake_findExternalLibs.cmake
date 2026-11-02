@@ -19,7 +19,42 @@
 #   * never mix Release/Debug versions of libraries. Leads to strange segfaults,
 #     stack corruption etc, due to different runtime libs ...
 # compiler-wise: build the dependencies with the same compiler as OpenMS!
-find_package(XercesC REQUIRED)
+# libxml2's CMake build (vcpkg, dockerfiles/Dockerfile) installs a package config with a version file
+# and exported targets, which carry the private dependencies and LIBXML_STATIC of a static libxml2.
+# Its autotools and meson builds (Linux distribution packages) install only an unversioned
+# libxml2-config.cmake, which a find_package() with a minimum version rejects; CMake's FindLibXml2
+# module finds those installations.
+find_package(LibXml2 2.13 CONFIG QUIET NAMES LibXml2 libxml2)
+if(NOT LibXml2_FOUND)
+  if(LibXml2_NOT_FOUND_MESSAGE)
+    message(FATAL_ERROR "The libxml2 package configuration failed: ${LibXml2_NOT_FOUND_MESSAGE}")
+  endif()
+  find_package(LibXml2 2.13 MODULE REQUIRED)
+endif()
+if(NOT TARGET LibXml2::LibXml2)
+  message(FATAL_ERROR "The libxml2 package must provide the LibXml2::LibXml2 target")
+endif()
+
+# OpenMS uses push parsing, the forward-only reader, legacy qualified names, XSD validation and concurrent
+# parser contexts. A version-compatible minimal libxml2 build can omit these.
+include(CheckSymbolExists)
+include(CMakePushCheckState)
+cmake_push_check_state(RESET)
+set(CMAKE_REQUIRED_INCLUDES ${LIBXML2_INCLUDE_DIRS})
+foreach(feature SAX1 PUSH READER SCHEMAS THREAD ICONV ICU)
+  # Recheck when an existing build tree changes its libxml2 installation.
+  unset(OPENMS_LIBXML2_${feature} CACHE)
+  check_symbol_exists(LIBXML_${feature}_ENABLED "libxml/xmlversion.h" OPENMS_LIBXML2_${feature})
+endforeach()
+cmake_pop_check_state()
+foreach(feature SAX1 PUSH READER SCHEMAS THREAD)
+  if(NOT OPENMS_LIBXML2_${feature})
+    message(FATAL_ERROR "OpenMS requires libxml2 built with ${feature} support")
+  endif()
+endforeach()
+if(NOT OPENMS_LIBXML2_ICONV AND NOT OPENMS_LIBXML2_ICU)
+  message(WARNING "libxml2 has neither iconv nor ICU: XML encodings such as Windows-1252 are unavailable")
+endif()
 
 #------------------------------------------------------------------------------
 # BOOST
@@ -53,106 +88,60 @@ if (LIBSVM_FOUND)
 endif()
 
 #------------------------------------------------------------------------------
-# LP Solver selection
-# LP_SOLVER option: HIGHS (default), COIN or GLPK.
+# LP solver: HiGHS (COIN-OR and GLPK support was removed, see #10551)
 # HiGHS is taken from the system/vcpkg if found, otherwise fetched via FetchContent.
-# COIN and GLPK are deprecated and will be removed in the next release (see #10551).
-# AUTO (the former default) is kept as an alias for HIGHS, so existing build trees switch over.
-set(LP_SOLVER "HIGHS" CACHE STRING "LP solver to use: HIGHS (default), COIN (deprecated) or GLPK (deprecated)")
-set_property(CACHE LP_SOLVER PROPERTY STRINGS HIGHS COIN GLPK)
-if (LP_SOLVER STREQUAL "AUTO")
-  message(STATUS "LP_SOLVER=AUTO now selects HiGHS")
-  set(LP_SOLVER "HIGHS")
-endif()
-if (LP_SOLVER STREQUAL "COIN" OR LP_SOLVER STREQUAL "GLPK")
-  message(DEPRECATION "LP_SOLVER=${LP_SOLVER} is deprecated and will be removed in the next OpenMS release. Use the default, HIGHS.")
-elseif (NOT LP_SOLVER STREQUAL "HIGHS")
-  message(FATAL_ERROR "Invalid LP_SOLVER '${LP_SOLVER}'. Use HIGHS (default), COIN or GLPK.")
+if (DEFINED LP_SOLVER AND NOT LP_SOLVER MATCHES "^(HIGHS|AUTO)$")
+  message(FATAL_ERROR "LP_SOLVER=${LP_SOLVER} is no longer supported: COIN-OR and GLPK support was removed and HiGHS "
+                      "is the only LP solver. Remove LP_SOLVER from your CMake cache/command line.")
 endif()
 
-if (LP_SOLVER STREQUAL "COIN")
-  find_package(COIN QUIET)
-  if (COIN_FOUND)
-    set(OPENMS_HAS_COINOR 1)
-    set(LPTARGET "CoinOR::CoinOR")
-    message(STATUS "LP solver: COIN-OR")
-  else()
-    message(FATAL_ERROR "LP_SOLVER set to COIN but COIN-OR was not found.")
-  endif()
-endif()
-
-if (LP_SOLVER STREQUAL "GLPK")
-  find_package(GLPK QUIET)
-  if (GLPK_FOUND)
-    set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
-    set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR})
-    set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
-    set(LPTARGET "GLPK::GLPK")
-    message(STATUS "LP solver: GLPK ${GLPK_VERSION_STRING}")
-  else()
-    message(FATAL_ERROR "LP_SOLVER set to GLPK but GLPK was not found.")
-  endif()
-endif()
-
-if (LP_SOLVER STREQUAL "HIGHS")
-  # Try to find a system-installed (or vcpkg) HiGHS first.
-  # 1.11 is the first release with the probing presolve rule LPWrapper switches off (LPWrapper.cpp guards the
-  # enumeration rule, added in 1.13, by version).
-  find_package(highs 1.11 QUIET CONFIG)
-  if (highs_FOUND)
-    set(OPENMS_HAS_HIGHS 1)
-    set(LPTARGET "highs::highs")
-    message(STATUS "LP solver: HiGHS ${highs_VERSION} (system)")
-  else()
-    # Fetch HiGHS via FetchContent
-    include(FetchContent)
-    FetchContent_Declare(
-      highs
-      GIT_REPOSITORY https://github.com/ERGO-Code/HiGHS.git
-      GIT_TAG        v1.14.0
-      GIT_SHALLOW    TRUE
-    )
-    # Settings for the HiGHS subproject only (normal variables, restored afterwards; HiGHS' option()s honor them):
-    # - static + PIC: HiGHS is linked into libOpenMS, so no extra shared library has to be installed or shipped
-    #   alongside it (OpenMS sets BUILD_SHARED_LIBS=ON for libOpenMS itself)
-    # - no LTO: OpenMS is a CXX-only project, so the C compiler HiGHS enables may differ from the C++ compiler
-    #   (e.g. clang vs. gcc), and their LTO objects cannot be linked together
-    # - only the library: no tests, examples or the highs executable
-    set(_openms_highs_saved_vars BUILD_SHARED_LIBS CMAKE_POSITION_INDEPENDENT_CODE CMAKE_INTERPROCEDURAL_OPTIMIZATION
-                                 BUILD_TESTING BUILD_EXAMPLES BUILD_CXX_EXE HIGHS_BUILD_TESTING)
-    foreach(_var IN LISTS _openms_highs_saved_vars)
-      if (DEFINED ${_var})
-        set(_openms_highs_saved_${_var} "${${_var}}")
-      endif()
-    endforeach()
-    set(BUILD_SHARED_LIBS OFF)
-    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
-    set(BUILD_TESTING OFF)
-    set(BUILD_EXAMPLES OFF)
-    set(BUILD_CXX_EXE OFF)
-    set(HIGHS_BUILD_TESTING OFF)
-    FetchContent_MakeAvailable(highs)
-    foreach(_var IN LISTS _openms_highs_saved_vars)
-      if (DEFINED _openms_highs_saved_${_var})
-        set(${_var} "${_openms_highs_saved_${_var}}")
-        unset(_openms_highs_saved_${_var})
-      else()
-        unset(${_var})
-      endif()
-    endforeach()
-    set(OPENMS_HAS_HIGHS 1)
-    set(LPTARGET "highs")
-    message(STATUS "LP solver: HiGHS (FetchContent)")
-  endif()
-endif()
-
-
-# Set default GLPK version variables if GLPK was not found (needed for config.h.in substitution)
-if (NOT DEFINED CF_OPENMS_GLPK_VERSION_MAJOR)
-  set(CF_OPENMS_GLPK_VERSION_MAJOR 0)
-  set(CF_OPENMS_GLPK_VERSION_MINOR 0)
-  set(CF_OPENMS_GLPK_VERSION "0.0")
+# Try to find a system-installed (or vcpkg) HiGHS first.
+# 1.11 is the first release with the probing presolve rule LPWrapper switches off (LPWrapper.cpp guards the
+# enumeration rule, added in 1.13, by version).
+find_package(highs 1.11 QUIET CONFIG)
+if (highs_FOUND)
+  set(LPTARGET "highs::highs")
+  message(STATUS "LP solver: HiGHS ${highs_VERSION} (system)")
+else()
+  # Fetch HiGHS via FetchContent
+  include(FetchContent)
+  FetchContent_Declare(
+    highs
+    GIT_REPOSITORY https://github.com/ERGO-Code/HiGHS.git
+    GIT_TAG        v1.14.0
+    GIT_SHALLOW    TRUE
+  )
+  # Settings for the HiGHS subproject only (normal variables, restored afterwards; HiGHS' option()s honor them):
+  # - static + PIC: HiGHS is linked into libOpenMS, so no extra shared library has to be installed or shipped
+  #   alongside it (OpenMS sets BUILD_SHARED_LIBS=ON for libOpenMS itself)
+  # - no LTO: OpenMS is a CXX-only project, so the C compiler HiGHS enables may differ from the C++ compiler
+  #   (e.g. clang vs. gcc), and their LTO objects cannot be linked together
+  # - only the library: no tests, examples or the highs executable
+  set(_openms_highs_saved_vars BUILD_SHARED_LIBS CMAKE_POSITION_INDEPENDENT_CODE CMAKE_INTERPROCEDURAL_OPTIMIZATION
+                               BUILD_TESTING BUILD_EXAMPLES BUILD_CXX_EXE HIGHS_BUILD_TESTING)
+  foreach(_var IN LISTS _openms_highs_saved_vars)
+    if (DEFINED ${_var})
+      set(_openms_highs_saved_${_var} "${${_var}}")
+    endif()
+  endforeach()
+  set(BUILD_SHARED_LIBS OFF)
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
+  set(BUILD_TESTING OFF)
+  set(BUILD_EXAMPLES OFF)
+  set(BUILD_CXX_EXE OFF)
+  set(HIGHS_BUILD_TESTING OFF)
+  FetchContent_MakeAvailable(highs)
+  foreach(_var IN LISTS _openms_highs_saved_vars)
+    if (DEFINED _openms_highs_saved_${_var})
+      set(${_var} "${_openms_highs_saved_${_var}}")
+      unset(_openms_highs_saved_${_var})
+    else()
+      unset(${_var})
+    endif()
+  endforeach()
+  set(LPTARGET "highs")
+  message(STATUS "LP solver: HiGHS (FetchContent)")
 endif()
 
 #------------------------------------------------------------------------------
@@ -261,8 +250,9 @@ endif()
 
 
 #------------------------------------------------------------------------------
-# libcurl (used for HTTP in OpenMS core; also needed by Apache Arrow 23+)
-find_package(CURL REQUIRED)
+# libcurl (used for HTTP in OpenMS core, e.g. HTTPInputSource, which needs curl_multi_poll() of 7.66; also needed by
+# Apache Arrow 23+)
+find_package(CURL 7.66 REQUIRED)
 
 #------------------------------------------------------------------------------
 # Apache Arrow and Parquet (required dependency).
@@ -374,50 +364,29 @@ endif()
 # through Arrow::arrow_static's own interface, so a static build without Arrow
 # Dataset needs libxml2 just the same.
 #
-# Record the edge on the Arrow target rather than adding LibXml2 as another direct
-# OpenMS dependency. CMake emits every direct link library before the transitive
-# archives it pulls in, so a direct entry lands on the link line ahead of
-# libarrow_bundled_dependencies.a -- and a --as-needed linker (the default on most
-# Linux distributions) then drops libxml2.so again because nothing has referenced
-# it yet. The result is a libOpenMS.so with undefined xml* symbols that only fails
-# when something dlopen()s it, e.g. "import pyopenms" => ImportError: undefined
-# symbol: xmlBufferFree. Appending to the imported target's interface instead puts
-# libxml2 after the archive that needs it, which is what the linker requires.
+# OpenMS already requires libxml2 directly. Also record this edge on Arrow:
+# static archives are emitted after direct dependencies, so Arrow's XML writer
+# can need a later occurrence of libxml2 to resolve its symbols. Appending keeps
+# that order for both a static libxml2 archive and --as-needed shared linking.
 if(OPENMS_ARROW_TARGET STREQUAL "Arrow::arrow_static"
    OR (OPENMS_ARROW_DATASET_TARGET AND
        OPENMS_ARROW_DATASET_TARGET STREQUAL "ArrowDataset::arrow_dataset_static"))
-  # Deliberately not REQUIRED: only the platforms that actually resolve those
-  # symbols against a system libxml2 need it. MSVC has no --as-needed, and the
-  # Windows vcpkg triplets link a static Arrow that vcpkg builds against its own
-  # ports, without the azure feature (see vcpkg.json), so the Windows builds need
-  # no libxml2 through Arrow; attaching it where it is found anyway is harmless.
-  # A mandatory lookup would turn a link-order workaround into a hard build
-  # dependency everywhere and fail configuration where it is not needed.
-  find_package(LibXml2 QUIET)
-  if(LibXml2_FOUND)
-    if(TARGET Arrow::arrow_bundled_dependencies)
-      set_property(TARGET Arrow::arrow_bundled_dependencies APPEND
-                   PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
-    else()
-      # Older/repackaged Arrow configs without the bundled-dependencies target:
-      # attach to whichever static targets are in use. Appending puts libxml2 at
-      # the end of their interface, i.e. still behind Arrow's own archives.
-      if(OPENMS_ARROW_TARGET STREQUAL "Arrow::arrow_static")
-        set_property(TARGET ${OPENMS_ARROW_TARGET} APPEND
-                     PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
-      endif()
-      if(OPENMS_ARROW_DATASET_TARGET AND
-         OPENMS_ARROW_DATASET_TARGET STREQUAL "ArrowDataset::arrow_dataset_static")
-        set_property(TARGET ${OPENMS_ARROW_DATASET_TARGET} APPEND
-                     PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
-      endif()
-    endif()
-    message(STATUS "Arrow is linked statically: added LibXml2 to its link interface")
+  if(TARGET Arrow::arrow_bundled_dependencies)
+    set_property(TARGET Arrow::arrow_bundled_dependencies APPEND
+                 PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
   else()
-    message(STATUS "Arrow is linked statically, but no LibXml2 was found: skipping "
-                   "the libxml2 link-interface workaround. Install the libxml2 "
-                   "development files if linking fails with undefined xml* symbols.")
+    # Repackaged Arrow configs may not expose the bundled-dependencies target.
+    if(OPENMS_ARROW_TARGET STREQUAL "Arrow::arrow_static")
+      set_property(TARGET ${OPENMS_ARROW_TARGET} APPEND
+                   PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
+    endif()
+    if(OPENMS_ARROW_DATASET_TARGET AND
+       OPENMS_ARROW_DATASET_TARGET STREQUAL "ArrowDataset::arrow_dataset_static")
+      set_property(TARGET ${OPENMS_ARROW_DATASET_TARGET} APPEND
+                   PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
+    endif()
   endif()
+  message(STATUS "Arrow is linked statically: added LibXml2 to its link interface")
 endif()
 
 #------------------------------------------------------------------------------
