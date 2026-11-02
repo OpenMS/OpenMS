@@ -139,6 +139,9 @@ namespace OpenMS
     // the <spectrum> elements each part read, also those the options skipped
     std::vector<Size> spectra_read(parts.size(), 0);
     std::exception_ptr error;
+    // (the part handlers report no progress; the parts are counted here)
+    Size parts_done = 0;
+    startProgress(0, parts.size(), "loading mzML");
     #pragma omp parallel num_threads(std::min<int>(threads, static_cast<int>(parts.size())))
     {
       std::ifstream part_in(filename, std::ios::binary);
@@ -167,6 +170,8 @@ namespace OpenMS
           handler.setOptions(options_);
           part_file.parseBuffer_(buffer, &handler);
           spectra_read[p] = handler.getSpectraRead();
+          #pragma omp critical(MzMLFileParallelLoadProgress)
+          setProgress(++parts_done);
         }
         catch (...)
         {
@@ -175,6 +180,7 @@ namespace OpenMS
         }
       }
     }
+    endProgress();
     if (error) std::rethrow_exception(error);
 
     // Settings come from the header (identical in every part); spectra are concatenated in document order.
