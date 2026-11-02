@@ -100,6 +100,11 @@ window, again with the ion mobility of every peak.
     True raw inverse reduced ion mobility array
     DriftTimeUnit.VSSC
 
+TSF data (``analysis.tsf``, timsTOF without ion mobility, e.g. MALDI imaging or LC-MS runs with TIMS
+off) is read the same way. Every frame gives one centroided spectrum without ion mobility, and MS/MS
+frames give :term:`MS2` spectra with their precursor. The ion mobility options of
+:py:class:`~.BrukerTimsFile.Config` do not apply to TSF data and raise an error if set.
+
 A :py:class:`~.BrukerTimsFile.Config` changes how the data is read. For a database search, for
 example, the :term:`MS1` spectra are not needed:
 
