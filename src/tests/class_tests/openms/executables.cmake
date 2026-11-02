@@ -249,6 +249,7 @@ set(format_executables_list
   MzIdentMLValidator_test
   ThermoRawFileMetadata_test
   MzMLFile_test
+  MzPeakFile_test
   ImzMLFile_test
   ImzMLFile_all_modes_test
   MzMLSpectrumDecoder_test

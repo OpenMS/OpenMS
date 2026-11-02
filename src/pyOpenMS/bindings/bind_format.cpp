@@ -953,6 +953,7 @@ Converts a file type name into a Type
         .value("OSWPQ", OpenMS::FileTypes::Type::OSWPQ)
         .value("PEFF", OpenMS::FileTypes::Type::PEFF)
         .value("YAML", OpenMS::FileTypes::Type::YAML)
+        .value("MZPEAK", OpenMS::FileTypes::Type::MZPEAK)
         .value("SIZE_OF_TYPE", OpenMS::FileTypes::Type::SIZE_OF_TYPE)
 
         .export_values();
