@@ -39,12 +39,15 @@ set(tool_headers
   include/NuXLFragmentAdductDefinition.h
   include/NuXLFragmentAnnotationHelper.h
   include/NuXLFragmentIonGenerator.h
+  include/NuXLIonLikelihood.h
   include/NuXLMarkerIonExtractor.h
   include/NuXLModificationsGenerator.h
   include/NuXLParameterParsing.h
   include/NuXLPresets.h
   include/NuXLReport.h
+  include/NuXLRescoring.h
   include/NuXLSearchIndex.h
+  include/NuXLSiteLocalization.h
 )
 set(tool_sources
   source/NuXLAnnotateAndLocate.cpp
@@ -53,11 +56,14 @@ set(tool_sources
   source/NuXLFragmentAdductDefinition.cpp
   source/NuXLFragmentAnnotationHelper.cpp
   source/NuXLFragmentIonGenerator.cpp
+  source/NuXLIonLikelihood.cpp
   source/NuXLMarkerIonExtractor.cpp
   source/NuXLModificationsGenerator.cpp
   source/NuXLParameterParsing.cpp
   source/NuXLPresets.cpp
   source/NuXLReport.cpp
+  source/NuXLRescoring.cpp
+  source/NuXLSiteLocalization.cpp
 )
 
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp ${tool_sources} ${tool_headers})

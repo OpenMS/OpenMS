@@ -524,6 +524,26 @@ add_test("TOPP_FeatureFinderIdentification_8_rescore_merged" ${CMAKE_COMMAND}
   "-DEXPECTED=<featureList count=\"1\">;name=\"FAIMS_merge_count\" value=\"3\""
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_FeatureFinderIdentification_8_rescore_merged" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_8_rescore")
+# FAIMS (synthetic): narrow peaks at one CV, wide ones at the other. The elution models are checked per CV, also when
+# the candidates are re-scored: pooled, the wide peaks would fail the width check against the narrow ones.
+add_test("TOPP_FeatureFinderIdentification_9" ${TOPP_BIN_PATH}/FeatureFinderIdentification -test -in ${DATA_DIR_TOPP}/FAIMS_2CV_widths_synthetic.mzML -id ${DATA_DIR_TOPP}/FAIMS_2CV_widths_synthetic.idXML -out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_9.tmp.featureXML -candidates_out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_9_candidates.tmp.featureXML -model:no_imputation true)
+add_test("TOPP_FeatureFinderIdentification_9_rescore" ${TOPP_BIN_PATH}/FeatureFinderIdentification -test -in ${DATA_DIR_TOPP}/FAIMS_2CV_widths_synthetic.mzML -id ${DATA_DIR_TOPP}/FAIMS_2CV_widths_synthetic.idXML -candidates_in ${TESTS_TEMP_DIR}/FeatureFinderIdentification_9_candidates.tmp.featureXML -out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_9_rescored.tmp.featureXML -model:no_imputation true)
+set_tests_properties("TOPP_FeatureFinderIdentification_9_rescore" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_9")
+foreach(_ffid_9_out FeatureFinderIdentification_9 FeatureFinderIdentification_9_rescored)
+  # all 10 features, at both CVs, with valid models (failure statuses 1-6 of the symmetric model are forbidden)
+  add_test("TOPP_${_ffid_9_out}_models" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/${_ffid_9_out}.tmp.featureXML
+    "-DEXPECTED=<featureList count=\"10\">;name=\"FAIMS_CV\" value=\"-45.0\";name=\"FAIMS_CV\" value=\"-55.0\";name=\"model_status\" value=\"0 (valid)\""
+    "-DFORBIDDEN=invalid area;out of bounds;width too large;width too small"
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_${_ffid_9_out}_models" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_9_rescore")
+  # one line per feature with its meta values in fixed columns, to compare the two outputs
+  add_test("TOPP_${_ffid_9_out}_csv" ${TOPP_BIN_PATH}/TextExporter -test -in ${TESTS_TEMP_DIR}/${_ffid_9_out}.tmp.featureXML -out ${TESTS_TEMP_DIR}/${_ffid_9_out}.tmp.csv -no_ids -feature:add_metavalues 0)
+  set_tests_properties("TOPP_${_ffid_9_out}_csv" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_9_rescore")
+endforeach()
+# re-scoring the candidates gives the same features as the direct run
+add_test("TOPP_FeatureFinderIdentification_9_rescored_same" ${DIFF} -in1 ${TESTS_TEMP_DIR}/FeatureFinderIdentification_9.tmp.csv -in2 ${TESTS_TEMP_DIR}/FeatureFinderIdentification_9_rescored.tmp.csv)
+set_tests_properties("TOPP_FeatureFinderIdentification_9_rescored_same" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_9_csv;TOPP_FeatureFinderIdentification_9_rescored_csv")
 
 
 #------------------------------------------------------------------------------
@@ -3455,6 +3475,15 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
       -P ${DATA_DIR_TOPP}/OpenNuXL_7_ambiguous_adducts_test.cmake)
     set_tests_properties("TOPP_OpenNuXL_7_ambiguous_adducts" PROPERTIES DEPENDS "TOPP_OpenNuXL_7")
   endif()
+
+  # NuXL:rescoring native: delta score and ion likelihood features on every hit, passed to Percolator
+  # (structural checks only, so the floating-point differences that disable the tests above don't matter)
+  add_test("TOPP_OpenNuXL_8" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+  ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_8_output.tmp.idXML -NuXL:decoys "true" -NuXL:scoring slow -NuXL:rescoring native)
+  add_test("TOPP_OpenNuXL_8_rescoring_features" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_8_output.tmp.idXML
+    -P ${DATA_DIR_TOPP}/OpenNuXL_8_rescoring_features_test.cmake)
+  set_tests_properties("TOPP_OpenNuXL_8_rescoring_features" PROPERTIES DEPENDS "TOPP_OpenNuXL_8")
 endif(NOT MSVC)
 
 # OpenNuXL writes localized cross-links as named modifications (K(NuXL:U-H2O1)) whose definitions
@@ -6683,6 +6712,35 @@ add_test("TOPP_ProSE_19_parts_merged_info_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/Pr
   -in2 ${DATA_DIR_TOPP}/ProSE_19_parts_merged_info.tsv -whitelist "file name" "database" "search engine")
 set_tests_properties("TOPP_ProSE_19_parts_merged_info_out" PROPERTIES DEPENDS "TOPP_ProSE_19_parts_merged_info")
 
+# Bruker .d input of TSF data (timsTOF without ion mobility): an LC-MS run with TIMS off, MS1 and MS/MS frames (see
+# OPENTIMS_TSF_TEST_DATA in src/tests/class_tests/openms/CMakeLists.txt, whose class test compares it with the Bruker SDK)
+if (WITH_OPENTIMS AND OPENTIMS_TSF_TEST_DATA)
+  # FileHandler recognizes a .d directory by its suffix: link to one without it (as a FetchContent download). A link that
+  # cannot be made (e.g. Windows without the privilege for symbolic links) skips the tests instead of failing the configuration.
+  if (OPENTIMS_TSF_TEST_DATA MATCHES "\\.d$")
+    set(OPENTIMS_TSF_SYMLINK "${OPENTIMS_TSF_TEST_DATA}")
+  else()
+    set(OPENTIMS_TSF_SYMLINK "${CMAKE_BINARY_DIR}/test_data/TSF_LCMS.d")
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/test_data")
+    file(CREATE_LINK "${OPENTIMS_TSF_TEST_DATA}" "${OPENTIMS_TSF_SYMLINK}" RESULT _tsf_link SYMBOLIC)
+    if (NOT _tsf_link STREQUAL "0")
+      message(WARNING "TSF test data: cannot link ${OPENTIMS_TSF_SYMLINK} to ${OPENTIMS_TSF_TEST_DATA} (${_tsf_link}); "
+                      "the TOPP_FileConverter_TSF tests are skipped")
+      unset(OPENTIMS_TSF_SYMLINK)
+    endif()
+  endif()
+endif()
+if (WITH_OPENTIMS AND OPENTIMS_TSF_SYMLINK)
+  # FileConverter .d -> mzML: the run loaded into memory, and written as it is read (-process_lowmemory). Both have to give the same file.
+  add_test("TOPP_FileConverter_TSF_d" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_TSF_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_TSF_d.tmp.mzML)
+  add_test("TOPP_FileConverter_TSF_d_lowmemory" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_TSF_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_TSF_d_lowmemory.tmp.mzML -process_lowmemory)
+  add_test("TOPP_FileConverter_TSF_d_lowmemory_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/FileConverter_TSF_d_lowmemory.tmp.mzML -in2 ${TESTS_TEMP_DIR}/FileConverter_TSF_d.tmp.mzML)
+  set_tests_properties("TOPP_FileConverter_TSF_d_lowmemory_out1" PROPERTIES DEPENDS "TOPP_FileConverter_TSF_d;TOPP_FileConverter_TSF_d_lowmemory")
+  # an option for ion mobility does not apply to TSF data: FileConverter fails with that message (not with a crash)
+  add_test("TOPP_FileConverter_TSF_d_im_option" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_TSF_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_TSF_d_im_option.tmp.mzML -bruker:ms1_n_neighbors 1)
+  set_tests_properties("TOPP_FileConverter_TSF_d_im_option" PROPERTIES PASS_REGULAR_EXPRESSION "do not apply")
+endif()
+
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   # Create a symlink with .d suffix so FileHandler recognizes the format
@@ -7079,10 +7137,17 @@ set_tests_properties("TOPP_PercolatorAdapter_1_inproc_no_binary_out" PROPERTIES 
 add_test("TOPP_PercolatorAdapter_1_inproc_pin" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess false -percolator_executable ${TESTS_TEMP_DIR}/this_percolator_does_not_exist -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_inproc_pin_out.tmp.idXML -out_type idXML -out_pin PercolatorAdapter_1_inproc_pin.tmp.tsv)
 add_test("TOPP_PercolatorAdapter_1_inproc_pin_written" ${CMAKE_COMMAND} -E sha256sum PercolatorAdapter_1_inproc_pin.tmp.tsv)
 set_tests_properties("TOPP_PercolatorAdapter_1_inproc_pin_written" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1_inproc_pin")
-# An option that only the executable implements (here -weights) runs the executable instead
+# The in-process backend writes the -weights file itself, in the format of the executable's -w
+# (Percolator::storeWeights), and asking for it does not change the results.
+add_test("TOPP_PercolatorAdapter_1_inproc_weights" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess false -percolator_executable ${TESTS_TEMP_DIR}/this_percolator_does_not_exist -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_inproc_weights_out.tmp.idXML -out_type idXML -weights PercolatorAdapter_1_inproc_weights.tmp.tsv)
+add_test("TOPP_PercolatorAdapter_1_inproc_weights_out" ${DIFF} -in1 PercolatorAdapter_1_inproc_weights_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_inproc_out.idXML -whitelist ${_topp_percolator_diff_whitelist} "name=\"Percolator:weights\"")
+set_tests_properties("TOPP_PercolatorAdapter_1_inproc_weights_out" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1_inproc_weights")
+add_test("TOPP_PercolatorAdapter_1_inproc_weights_file" ${DIFF} -in1 PercolatorAdapter_1_inproc_weights.tmp.tsv -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_inproc_weights.tsv)
+set_tests_properties("TOPP_PercolatorAdapter_1_inproc_weights_file" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1_inproc_weights")
+# An option that only the executable implements (here -out_pout_target) runs the executable instead
 # of being ignored, so it needs the executable: with a missing one, the tool says so.
-add_test("TOPP_PercolatorAdapter_1_weights_needs_binary" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess false -percolator_executable ${TESTS_TEMP_DIR}/this_percolator_does_not_exist -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_weights_out.tmp.idXML -out_type idXML -weights PercolatorAdapter_1_weights.tmp.tsv)
-set_tests_properties("TOPP_PercolatorAdapter_1_weights_needs_binary" PROPERTIES PASS_REGULAR_EXPRESSION "could not be found .by searching on PATH.")
+add_test("TOPP_PercolatorAdapter_1_pout_needs_binary" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess false -percolator_executable ${TESTS_TEMP_DIR}/this_percolator_does_not_exist -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_pout_out.tmp.idXML -out_type idXML -out_pout_target PercolatorAdapter_1_pout.tmp.tab)
+set_tests_properties("TOPP_PercolatorAdapter_1_pout_needs_binary" PROPERTIES PASS_REGULAR_EXPRESSION "could not be found .by searching on PATH.")
 
 # An input CalcMass is search-engine data, whereas one synthesized for PIN training
 # is temporary; the in-process backend must preserve only the former (#9997). This

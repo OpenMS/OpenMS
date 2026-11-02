@@ -15,8 +15,9 @@
 ## share/OpenMS/THIRDPARTY.
 ##
 ## The code that installs these files records them with openms_add_third_party_notice():
-## cmake/third_party_licenses.cmake, the Thermo bridge in cmake_findExternalLibs.cmake and
-## the THIRDPARTY tools in package_general.cmake. openms_install_third_party_notices(), which
+## cmake/third_party_licenses.cmake, the Thermo bridge in cmake_findExternalLibs.cmake, the
+## PeptDeep models in src/openms/CMakeLists.txt and the THIRDPARTY tools in
+## package_general.cmake. openms_install_third_party_notices(), which
 ## the top-level CMakeLists.txt calls last, writes the list of recorded files when
 ## configuring, and the notices from that list when installing, in the component 'share'.
 ## The notices cannot be written when configuring, since some of the files (the Thermo
@@ -148,8 +149,11 @@ function(_openms_third_party_notice_component group_var component_var path)
   elseif(path MATCHES "^THIRDPARTY/([^/]+)/")
     set(_component "${CMAKE_MATCH_1}")
     set(_group 7)
-  else()
+  elseif(path MATCHES "^LICENSES/PeptDeep/")
     set(_group 8)
+    set(_component "PeptDeep (AlphaPeptDeep)")
+  else()
+    set(_group 9)
     set(_component "${path}")
   endif()
   set(${group_var} "${_group}" PARENT_SCOPE)
@@ -249,6 +253,7 @@ function(openms_write_third_party_notices output)
     "Third-party code compiled into OpenMS"
     "Thermo RawFileReader"
     "Tools in share/OpenMS/THIRDPARTY"
+    "Models in share/OpenMS/models"
     "Other")
   set(_rule "==========================================================================================")
   string(CONCAT _header

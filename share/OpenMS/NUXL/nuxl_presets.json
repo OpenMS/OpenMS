@@ -1734,6 +1734,7 @@
     "mapping": ["A->A", "C->C", "G->G", "U->U"],
     "can_cross_link": "UCGAs",
     "standalone": "s",
+    "localization": "NHS",
     "modifications": [
       "U:+C5H6O1",
       "U:+C5H6O1-H2O",

@@ -37,6 +37,7 @@
 #include <fstream>
 #include <algorithm>
 #include <random>
+#include <map>
 #include <optional>
 
 #ifdef _OPENMP
@@ -915,7 +916,7 @@ namespace OpenMS
     features.ensureUniqueId();
   }
 
-  void FeatureFinderIdentificationAlgorithm::postProcess_(FeatureMap & features)
+  void FeatureFinderIdentificationAlgorithm::postProcess_(FeatureMap & features, bool store_candidates)
   {
     // make sure proper unique ids get assigned to all features
     features.ensureUniqueId();
@@ -925,7 +926,7 @@ namespace OpenMS
     {
       *candidates_sink_ = features; // FAIMS CV group: run() writes the candidates of all groups
     }
-    else if (!candidates_out_.empty())
+    else if (store_candidates && !candidates_out_.empty())
     {
       storeCandidates_(features);
     }
@@ -994,7 +995,33 @@ namespace OpenMS
          peptide_compare_);
     sort(features.begin(), features.end(), feature_compare_);
 
-    postProcess_(features);
+    const bool faims = std::any_of(features.begin(), features.end(),
+      [](const Feature& feat) { return feat.metaValueExists(Constants::UserParam::FAIMS_CV); });
+    if (!faims)
+    {
+      postProcess_(features);
+    }
+    else
+    {
+      // candidates of FAIMS data (annotated with their CV by run()): post-process the features of each CV separately,
+      // as run() does - ElutionModelFitter takes its outlier limits and the imputation of failed fits from all
+      // features it gets
+      features.ensureUniqueId();
+      if (!candidates_out_.empty()) storeCandidates_(features); // all CVs at once
+      std::map<std::optional<double>, FeatureMap> cv_groups;
+      for (Feature& feat : features)
+      {
+        std::optional<double> cv;
+        if (feat.metaValueExists(Constants::UserParam::FAIMS_CV)) cv = double(feat.getMetaValue(Constants::UserParam::FAIMS_CV));
+        cv_groups[cv].push_back(std::move(feat));
+      }
+      features.clear(false);
+      for (auto& [cv, group] : cv_groups)
+      {
+        postProcess_(group, false);
+        for (Feature& feat : group) features.push_back(std::move(feat));
+      }
+    }
 
     statistics_(features);
 
