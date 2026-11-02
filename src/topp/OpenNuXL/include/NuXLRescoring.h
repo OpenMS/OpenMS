@@ -61,6 +61,8 @@ namespace OpenMS
       NuXL:isXL), the identifications whose best (first) hit is a target at q <= @p fdr, with q = (D + 1) / T over the
       hit score computed within the half (decoys win ties). Identifications without hits or scan index are skipped.
 
+      @param[in] peptide_ids identifications with target/decoy annotated hits, the best hit first
+      @param[in] fdr q-value threshold of the training hits
       @param[out] counts training hits per [half][class] (class 1: cross-links)
       @return indices into @p peptide_ids per half
     */
