@@ -42,6 +42,8 @@
 #include "NuXLFDR.h"
 #include "NuXLFragmentAnnotationHelper.h"
 #include "NuXLFragmentIonGenerator.h"
+#include "NuXLIonLikelihood.h"
+#include "NuXLRescoring.h"
 
 #include "NuXLMarkerIonExtractor.h"
 #include "NuXLModificationsGenerator.h"
@@ -853,6 +855,18 @@ protected:
       return "PercolatorAdapter";
     }
   }
+
+  // NuXL:rescoring: additional evidence per hit, after ProSE (delta score, self-trained fragment ion likelihood)
+  bool delta_score_{false};           ///< annotate NuXL:delta_score and NuXL:delta_score_class (slow scoring only)
+  bool ion_likelihood_enabled_{false}; ///< annotate the NuXL:ion_* features (needs decoys)
+  bool native_rescoring_{false};      ///< add the delta score of cross-links and the ion likelihood ratio to the hit score
+
+  const vector<NuXLRescoring::ScoreGap>* xl_gaps_ = nullptr;      ///< per spectrum, over all cross-link hits scored in the search
+  const vector<NuXLRescoring::ScoreGap>* peptide_gaps_ = nullptr; ///< per spectrum, over all peptide hits scored in the search
+
+  std::unique_ptr<NuXLIonLikelihood> ion_likelihood_;
+  vector<NuXLIonLikelihood::Evidence> ion_evidence_; ///< matched ions of the hits, indexed by their NuXL:ion_evidence
+  const NuXLParameterParsing::PrecursorsToMS2Adducts* feasible_adducts_ = nullptr;
   
   bool has_IM_{false}; // compatible IM annotated
 
@@ -1046,6 +1060,14 @@ protected:
     registerStringOption_("NuXL:scoring", "<method>", "slow", "Scoring algorithm used in prescoring (fast: total-loss only, slow: all losses).", false, false);
     setValidStrings_("NuXL:scoring", {"fast", "slow"});
 
+    registerStringOption_("NuXL:rescoring", "<mode>", "none",
+      "Additional evidence per hit, after ProSE. "
+      "'features': annotate the score margin over the best hit of another peptide sequence (NuXL:delta_score, and NuXL:delta_score_class within cross-links or peptides; needs slow scoring) "
+      "and a fragment ion likelihood learned from the confident hits of the run (NuXL:ion_llr, NuXL:ion_llr_shifted, NuXL:ion_explained, NuXL:ion_topk_observed; needs decoys), "
+      "and pass them to Percolator. The hits of each half of the spectra are scored by the ion model trained on the other half. "
+      "'native': in addition, add the delta score of cross-links and 0.3 times NuXL:ion_llr to the score of every hit, which ranks the hits and is reported in the idXML, the TSV report and the FDR filtered outputs (needs decoys).", false, false);
+    setValidStrings_("NuXL:rescoring", {"none", "features", "native"});
+
     registerStringOption_("NuXL:decoys", "<bool>", "true", "Generate decoys internally (recommended).", false, false);
     setValidStrings_("NuXL:decoys", {"true", "false"});
     registerIntOption_("NuXL:decoy_factor", "<num>", 1, "Ratio of decoys to targets.", false, true);
@@ -1118,6 +1140,9 @@ protected:
     
     // add additional (e.g., data dependent features that might not be present in every dataset)
     for (const auto& d : data_dependent_features)  { feature_set_ << d; }
+
+    if (delta_score_) { feature_set_ << "NuXL:delta_score" << "NuXL:delta_score_class"; }
+    if (ion_likelihood_enabled_) { feature_set_ << "NuXL:ion_llr" << "NuXL:ion_llr_shifted" << "NuXL:ion_explained" << "NuXL:ion_topk_observed"; }
 
     // one-hot encoding of cross-linked nucleotide
     for (const auto& c : can_xl_) { feature_set_ << std::string("NuXL:XL_" + StringUtils::toStr(c)); }
@@ -3412,6 +3437,33 @@ protected:
       ph.setMetaValue("isotope_error", static_cast<int>(ah.isotope_error));
       ph.setMetaValue(std::string("NuXL:ladder_score"), ah.ladder_score);
       ph.setMetaValue(std::string("NuXL:sequence_score"), ah.sequence_score);
+      if (xl_gaps_ != nullptr && peptide_gaps_ != nullptr)
+      {
+        // delta score (ProSE): margin over the best hit of any other peptide sequence, and over the best hit of another
+        // sequence of the same class (cross-link or not). Without such a hit, the margin is the score itself.
+        const float other_xl = (*xl_gaps_)[scan_index].bestOtherThan(ah.sequence);
+        const float other_peptide = (*peptide_gaps_)[scan_index].bestOtherThan(ah.sequence);
+        auto margin = [&ah](float other) { return std::isfinite(other) ? static_cast<double>(ah.score) - other : static_cast<double>(ah.score); };
+        ph.setMetaValue("NuXL:delta_score", margin(std::max(other_xl, other_peptide)));
+        ph.setMetaValue("NuXL:delta_score_class", margin(na_mass_z0 > 0 ? other_xl : other_peptide));
+      }
+      if (ion_likelihood_)
+      {
+        // the fragment adducts of the cross-linked nucleotide shift the ions that contain the cross-linked residue
+        vector<double> shifts;
+        if (na_mass_z0 > 0)
+        {
+          for (const auto& nt_adducts : feasible_adducts_->at(NA).feasible_adducts)
+          {
+            if (nt_adducts.first != ah.cross_linked_nucleotide) continue;
+            for (const auto& fa : nt_adducts.second) { shifts.push_back(fa.mass); }
+          }
+        }
+        // the ion outcomes are kept until the model is trained (annotateIonLikelihood_)
+        ph.setMetaValue("NuXL:ion_evidence", static_cast<int>(ion_evidence_.size()));
+        ion_evidence_.push_back(ion_likelihood_->match(scan_index, fixed_and_variable_modified_peptide, static_cast<int>(charge), shifts, ah.best_localization_position));
+      }
+
       // CalcMass must be based on the peptide before embedding the adduct. It remains the
       // only representation of the full precursor mass when the cross-link is unlocalized.
       const double calc_mass = (fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge) + na_mass_z0) / charge;
@@ -3460,6 +3512,64 @@ protected:
     pi.setHits(phs);
   }
 
+
+  /**
+    Self-trained fragment ion likelihood (after ProSE, see NuXLIonLikelihood). The spectra are split into two halves by
+    scan index parity. The models of each half are trained on its confident best hits and score the hits of the other
+    half, so no hit is scored by a model that saw it.
+  */
+  void annotateIonLikelihood_(PeptideIdentificationList& peptide_ids)
+  {
+    constexpr Size MIN_TRAINING_HITS = 50; // per half
+    std::array<std::array<Size, 2>, 2> training_counts{};
+    const std::array<vector<Size>, 2> training = NuXLRescoring::confidentHitsPerHalf(peptide_ids, NuXLRescoring::TRAIN_FDR, training_counts);
+
+    const bool trained = training[0].size() >= MIN_TRAINING_HITS && training[1].size() >= MIN_TRAINING_HITS;
+    if (trained)
+    {
+      for (Size half = 0; half < 2; ++half)
+      {
+        ion_likelihood_->resetFold(half);
+        for (Size id : training[half])
+        {
+          const int e = peptide_ids[id].getHits()[0].getMetaValue("NuXL:ion_evidence");
+          ion_likelihood_->addTraining(half, ion_evidence_[e]);
+        }
+      }
+      ion_likelihood_->finalize();
+      OPENMS_LOG_INFO << "Ion likelihood trained on " << training_counts[0][0] << " peptides and " << training_counts[0][1]
+                      << " cross-links (first half of the spectra) and " << training_counts[1][0] << " peptides and "
+                      << training_counts[1][1] << " cross-links (second half) at q <= " << NuXLRescoring::TRAIN_FDR << "." << endl;
+    }
+    else
+    {
+      OPENMS_LOG_WARN << "Ion likelihood: " << training[0].size() << " and " << training[1].size() << " confident hits in the two halves "
+                      << "of the spectra, fewer than " << MIN_TRAINING_HITS << ". The NuXL:ion_* features are 0." << endl;
+    }
+
+    // every hit is scored by the models of the other half
+    for (PeptideIdentification& pi : peptide_ids)
+    {
+      const bool has_scan = pi.metaValueExists("scan_index");
+      const Size other_half = has_scan ? 1 - static_cast<Size>(static_cast<int>(pi.getMetaValue("scan_index"))) % 2 : 0;
+      for (PeptideHit& ph : pi.getHits())
+      {
+        NuXLIonLikelihood::Features f;
+        if (trained && has_scan && ph.metaValueExists("NuXL:ion_evidence"))
+        {
+          const int e = ph.getMetaValue("NuXL:ion_evidence");
+          f = ion_likelihood_->score(other_half, ion_evidence_[e].signal);
+        }
+        ph.setMetaValue("NuXL:ion_llr", f.llr);
+        ph.setMetaValue("NuXL:ion_llr_shifted", f.llr_shifted);
+        ph.setMetaValue("NuXL:ion_explained", f.explained_presence);
+        ph.setMetaValue("NuXL:ion_topk_observed", f.top_predicted_observed);
+        ph.removeMetaValue("NuXL:ion_evidence");
+      }
+    }
+    ion_evidence_.clear();
+    ion_evidence_.shrink_to_fit();
+  }
 
   /**
     1. Reconstruct original peptide from memory efficient structure
@@ -4758,6 +4868,24 @@ protected:
 
     fast_scoring_ = getStringOption_("NuXL:scoring") == "fast" ? true : false;
 
+    const std::string rescoring = getStringOption_("NuXL:rescoring");
+    delta_score_ = rescoring != "none" && !fast_scoring_;
+    ion_likelihood_enabled_ = rescoring != "none" && generate_decoys;
+    native_rescoring_ = rescoring == "native";
+    if (rescoring != "none" && fast_scoring_)
+    {
+      OPENMS_LOG_WARN << "NuXL:rescoring: the delta score needs slow scoring (NuXL:scoring slow) and is not annotated." << endl;
+    }
+    if (rescoring != "none" && !generate_decoys)
+    {
+      OPENMS_LOG_WARN << "NuXL:rescoring: the ion likelihood is trained on target-decoy q-values and needs NuXL:decoys true. It is not annotated." << endl;
+    }
+    if (native_rescoring_ && !generate_decoys)
+    {
+      OPENMS_LOG_WARN << "NuXL:rescoring native needs NuXL:decoys true: the hit scores are left unchanged (as with 'features')." << endl;
+      native_rescoring_ = false;
+    }
+
     // true positives: assumed gaussian distribution of mass error
     // with sigma^2 = precursor_mass_tolerance
     boost::math::normal gaussian_mass_error(0.0, sqrt(precursor_mass_tolerance));
@@ -5146,6 +5274,9 @@ protected:
     for (auto & a : annotated_XLs) { a.reserve(2 * report_top_hits); }
     vector<vector<NuXLAnnotatedHit> > annotated_peptides(spectra.size(), vector<NuXLAnnotatedHit>());
     for (auto & a : annotated_peptides) { a.reserve(2 * report_top_hits); }
+    // best score and best score of another sequence per spectrum (for the delta score), updated under the hit locks
+    vector<NuXLRescoring::ScoreGap> xl_gaps(delta_score_ ? spectra.size() : 0);
+    vector<NuXLRescoring::ScoreGap> peptide_gaps(delta_score_ ? spectra.size() : 0);
 #ifdef _OPENMP     
     // locking is done at the spectrum level to ensure good parallelisation 
     vector<omp_lock_t> annotated_XLs_lock(annotated_XLs.size());
@@ -5534,6 +5665,7 @@ protected:
                   omp_set_lock(&(annotated_peptides_lock[scan_index]));
 #endif
                   {
+                    if (delta_score_) { peptide_gaps[scan_index].add(ah.score, ah.sequence); }
                     annotated_peptides[scan_index].emplace_back(move(ah));
 
                     // prevent vector from growing indefinitly (memory) but don't shrink the vector every time
@@ -5734,6 +5866,7 @@ protected:
                     omp_set_lock(&(annotated_XLs_lock[scan_index]));
 #endif
                     {
+                      if (delta_score_) { xl_gaps[scan_index].add(ah.score, ah.sequence); }
                       annotated_XLs[scan_index].emplace_back(move(ah));
 
                       // prevent vector from growing indefinitely (memory) but don't shrink the vector every time
@@ -5862,6 +5995,15 @@ protected:
     filterTopNAnnotations_(annotated_XLs, report_top_hits);
     filterTopNAnnotations_(annotated_peptides, report_top_hits);
 
+    xl_gaps_ = delta_score_ ? &xl_gaps : nullptr;
+    peptide_gaps_ = delta_score_ ? &peptide_gaps : nullptr;
+    if (ion_likelihood_enabled_)
+    {
+      feasible_adducts_ = &all_feasible_fragment_adducts;
+      ion_likelihood_ = std::make_unique<NuXLIonLikelihood>(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+      ion_likelihood_->setSpectra(spectra);
+    }
+
     postProcessHits_(spectra, 
                      annotated_XLs, 
                      annotated_peptides, 
@@ -5928,6 +6070,11 @@ protected:
       meta_values_to_export.push_back("RT_predict");
       meta_values_to_export.push_back("RT_error");
     }
+
+    // NuXL:rescoring (needs the target/decoy labels): before the report, so that the TSV report, the idXML and the FDR
+    // filtered outputs share the native score and the ranks
+    if (ion_likelihood_) { annotateIonLikelihood_(peptide_ids); }
+    if (native_rescoring_) { NuXLRescoring::rescoreHits(peptide_ids); }
 
     // annotate NuXL related information to hits and create report
     vector<NuXLReportRow> csv_rows = NuXLReport::annotate(spectra, peptide_ids, meta_values_to_export, marker_ions_tolerance);
