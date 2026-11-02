@@ -1,15 +1,5 @@
 # Valgrind suppression file for external code 
 
-# possibly lost: 16,131 bytes in 382 blocks
-# still reachable: 62 bytes in 2 blocks
-{
-   Xercesc
-   Memcheck:Leak
-   ...
-   fun:_ZN11xercesc_*
-   ...
-}
-
 # possibly lost: 30 bytes in 1 blocks
 # still reachable: 32,976 bytes in 2 blocks
 {

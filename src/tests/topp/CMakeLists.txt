@@ -450,6 +450,17 @@ set_tests_properties("TOPP_FeatureFinderMetabo_5_out" PROPERTIES DEPENDS "TOPP_F
 add_test("TOPP_FeatureFinderMetabo_6" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo_6.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_6_input.mzML -out ${TESTS_TEMP_DIR}/FeatureFinderMetabo_6.tmp.featureXML)
 add_test("TOPP_FeatureFinderMetabo_6_out" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/FeatureFinderMetabo_6.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_6_output.featureXML)
 set_tests_properties("TOPP_FeatureFinderMetabo_6_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_6")
+# FAIMS (synthetic): the features of the three CVs are merged into one, and -out_chrom holds the chromatograms of
+# exactly the remaining features (a chromatogram's native ID starts with the unique id of its feature)
+add_test("TOPP_FeatureFinderMetabo_7" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -in ${DATA_DIR_TOPP}/FAIMS_3CV_synthetic.mzML -out ${TESTS_TEMP_DIR}/FeatureFinderMetabo_7.tmp.featureXML -out_chrom ${TESTS_TEMP_DIR}/FeatureFinderMetabo_7_chrom.tmp.mzML)
+add_test("TOPP_FeatureFinderMetabo_7_merged" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetabo_7.tmp.featureXML
+  "-DEXPECTED=name=\"FAIMS_merge_count\" value=\"3\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetabo_7_merged" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_7")
+add_test("TOPP_FeatureFinderMetabo_7_chrom"
+  bash -c "diff <(grep -o '<feature id=\"f_[0-9]*' ${TESTS_TEMP_DIR}/FeatureFinderMetabo_7.tmp.featureXML | grep -o '[0-9]*$' | sort -u) <(grep -o '<chromatogram id=\"[0-9]*_' ${TESTS_TEMP_DIR}/FeatureFinderMetabo_7_chrom.tmp.mzML | grep -o '[0-9][0-9]*' | sort -u)")
+set_tests_properties("TOPP_FeatureFinderMetabo_7_chrom" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_7")
 
 
 #------------------------------------------------------------------------------
@@ -493,6 +504,46 @@ set_tests_properties("TOPP_FeatureFinderIdentification_7_rescore" PROPERTIES DEP
 add_test("TOPP_FeatureFinderIdentification_7_no_pseudo_ids"
   bash -c "grep -q 'XXX' ${TESTS_TEMP_DIR}/FeatureFinderIdentification_7_candidates.tmp.featureXML && ! grep -q 'XXX' ${TESTS_TEMP_DIR}/FeatureFinderIdentification_7.tmp.featureXML && ! grep -q 'XXX' ${TESTS_TEMP_DIR}/FeatureFinderIdentification_7_rescored.tmp.featureXML")
 set_tests_properties("TOPP_FeatureFinderIdentification_7_no_pseudo_ids" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_7_rescore")
+# FAIMS (synthetic): one peptide at three compensation voltages, identified at each. The features of
+# the three CVs are merged into one; the candidates keep each CV, and re-scoring them merges them again.
+add_test("TOPP_FeatureFinderIdentification_8" ${TOPP_BIN_PATH}/FeatureFinderIdentification -test -in ${DATA_DIR_TOPP}/FAIMS_3CV_synthetic.mzML -id ${DATA_DIR_TOPP}/FAIMS_3CV_synthetic.idXML -out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_8.tmp.featureXML -candidates_out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_8_candidates.tmp.featureXML)
+add_test("TOPP_FeatureFinderIdentification_8_merged" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderIdentification_8.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"1\">;name=\"FAIMS_merge_count\" value=\"3\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderIdentification_8_merged" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_8")
+add_test("TOPP_FeatureFinderIdentification_8_candidates" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderIdentification_8_candidates.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"3\">;name=\"FAIMS_CV\" value=\"-45.0\";name=\"FAIMS_CV\" value=\"-55.0\";name=\"FAIMS_CV\" value=\"-65.0\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderIdentification_8_candidates" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_8")
+add_test("TOPP_FeatureFinderIdentification_8_rescore" ${TOPP_BIN_PATH}/FeatureFinderIdentification -test -in ${DATA_DIR_TOPP}/FAIMS_3CV_synthetic.mzML -id ${DATA_DIR_TOPP}/FAIMS_3CV_synthetic.idXML -candidates_in ${TESTS_TEMP_DIR}/FeatureFinderIdentification_8_candidates.tmp.featureXML -out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_8_rescored.tmp.featureXML)
+set_tests_properties("TOPP_FeatureFinderIdentification_8_rescore" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_8")
+add_test("TOPP_FeatureFinderIdentification_8_rescore_merged" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderIdentification_8_rescored.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"1\">;name=\"FAIMS_merge_count\" value=\"3\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderIdentification_8_rescore_merged" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_8_rescore")
+# FAIMS (synthetic): narrow peaks at one CV, wide ones at the other. The elution models are checked per CV, also when
+# the candidates are re-scored: pooled, the wide peaks would fail the width check against the narrow ones.
+add_test("TOPP_FeatureFinderIdentification_9" ${TOPP_BIN_PATH}/FeatureFinderIdentification -test -in ${DATA_DIR_TOPP}/FAIMS_2CV_widths_synthetic.mzML -id ${DATA_DIR_TOPP}/FAIMS_2CV_widths_synthetic.idXML -out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_9.tmp.featureXML -candidates_out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_9_candidates.tmp.featureXML -model:no_imputation true)
+add_test("TOPP_FeatureFinderIdentification_9_rescore" ${TOPP_BIN_PATH}/FeatureFinderIdentification -test -in ${DATA_DIR_TOPP}/FAIMS_2CV_widths_synthetic.mzML -id ${DATA_DIR_TOPP}/FAIMS_2CV_widths_synthetic.idXML -candidates_in ${TESTS_TEMP_DIR}/FeatureFinderIdentification_9_candidates.tmp.featureXML -out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_9_rescored.tmp.featureXML -model:no_imputation true)
+set_tests_properties("TOPP_FeatureFinderIdentification_9_rescore" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_9")
+foreach(_ffid_9_out FeatureFinderIdentification_9 FeatureFinderIdentification_9_rescored)
+  # all 10 features, at both CVs, with valid models (failure statuses 1-6 of the symmetric model are forbidden)
+  add_test("TOPP_${_ffid_9_out}_models" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/${_ffid_9_out}.tmp.featureXML
+    "-DEXPECTED=<featureList count=\"10\">;name=\"FAIMS_CV\" value=\"-45.0\";name=\"FAIMS_CV\" value=\"-55.0\";name=\"model_status\" value=\"0 (valid)\""
+    "-DFORBIDDEN=invalid area;out of bounds;width too large;width too small"
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_${_ffid_9_out}_models" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_9_rescore")
+  # one line per feature with its meta values in fixed columns, to compare the two outputs
+  add_test("TOPP_${_ffid_9_out}_csv" ${TOPP_BIN_PATH}/TextExporter -test -in ${TESTS_TEMP_DIR}/${_ffid_9_out}.tmp.featureXML -out ${TESTS_TEMP_DIR}/${_ffid_9_out}.tmp.csv -no_ids -feature:add_metavalues 0)
+  set_tests_properties("TOPP_${_ffid_9_out}_csv" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_9_rescore")
+endforeach()
+# re-scoring the candidates gives the same features as the direct run
+add_test("TOPP_FeatureFinderIdentification_9_rescored_same" ${DIFF} -in1 ${TESTS_TEMP_DIR}/FeatureFinderIdentification_9.tmp.csv -in2 ${TESTS_TEMP_DIR}/FeatureFinderIdentification_9_rescored.tmp.csv)
+set_tests_properties("TOPP_FeatureFinderIdentification_9_rescored_same" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_9_csv;TOPP_FeatureFinderIdentification_9_rescored_csv")
 
 
 #------------------------------------------------------------------------------
@@ -1072,7 +1123,7 @@ add_test("TOPP_FileInfo_14" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}
 add_test("TOPP_FileInfo_14_out1" ${DIFF} -whitelist "File name" -in1 ${TESTS_TEMP_DIR}/FileInfo_14.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_14_output.txt )
 set_tests_properties("TOPP_FileInfo_14_out1" PROPERTIES DEPENDS "TOPP_FileInfo_14")
 add_test("TOPP_FileInfo_15" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_15_input.mzid -v -no_progress -out ${TESTS_TEMP_DIR}/FileInfo_15.tmp.txt)
-add_test("TOPP_FileInfo_15_out1" ${DIFF} -whitelist "File name" "line 327 column 183" -in1 ${TESTS_TEMP_DIR}/FileInfo_15.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_15_output.txt )
+add_test("TOPP_FileInfo_15_out1" ${DIFF} -whitelist "File name" "line 327 column 0" -in1 ${TESTS_TEMP_DIR}/FileInfo_15.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_15_output.txt )
 set_tests_properties("TOPP_FileInfo_15_out1" PROPERTIES DEPENDS "TOPP_FileInfo_15")
 add_test("TOPP_FileInfo_16" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_16_input.trafoXML -out ${TESTS_TEMP_DIR}/FileInfo_16_output.tmp.txt)
 add_test("TOPP_FileInfo_16_out1" ${DIFF} -whitelist "File name" -in1 ${TESTS_TEMP_DIR}/FileInfo_16_output.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_16_output.txt )
@@ -1086,6 +1137,20 @@ set_tests_properties("TOPP_FileInfo_18_out1" PROPERTIES DEPENDS "TOPP_FileInfo_1
 add_test("TOPP_FileInfo_19" ${TOPP_BIN_PATH}/FileInfo -test -d -in ${DATA_DIR_TOPP}/FAIMS_test_data.mzML -out ${TESTS_TEMP_DIR}/FileInfo_19_output.tmp.txt)
 add_test("TOPP_FileInfo_19_out1" ${DIFF} -whitelist "File name" -in1 ${TESTS_TEMP_DIR}/FileInfo_19_output.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_19_output.txt )
 set_tests_properties("TOPP_FileInfo_19_out1" PROPERTIES DEPENDS "TOPP_FileInfo_19")
+# IonMobilityBinning on FAIMS data (two CVs): one file per compensation voltage
+add_test("TOPP_IonMobilityBinning_FAIMS" ${TOPP_BIN_PATH}/IonMobilityBinning -test -in ${DATA_DIR_TOPP}/FAIMS_CV-60C_V-45_Interleaved.mzML -out ${TESTS_TEMP_DIR}/IonMobilityBinning_FAIMS)
+add_test("TOPP_IonMobilityBinning_FAIMS_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/IonMobilityBinning_FAIMS_part1of2_-60--60.mzML
+  "-DEXPECTED=name=\"FAIMS compensation voltage\" value=\"-60\""
+  "-DFORBIDDEN=name=\"FAIMS compensation voltage\" value=\"-45\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_IonMobilityBinning_FAIMS_out1" PROPERTIES DEPENDS "TOPP_IonMobilityBinning_FAIMS")
+add_test("TOPP_IonMobilityBinning_FAIMS_out2" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/IonMobilityBinning_FAIMS_part2of2_-45--45.mzML
+  "-DEXPECTED=name=\"FAIMS compensation voltage\" value=\"-45\""
+  "-DFORBIDDEN=name=\"FAIMS compensation voltage\" value=\"-60\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_IonMobilityBinning_FAIMS_out2" PROPERTIES DEPENDS "TOPP_IonMobilityBinning_FAIMS")
 add_test("TOPP_FileInfo_20" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_20_input.fasta -out ${TESTS_TEMP_DIR}/FileInfo_20_output.tmp.txt)
 add_test("TOPP_FileInfo_20_out1" ${DIFF} -whitelist "File name" -in1 ${TESTS_TEMP_DIR}/FileInfo_20_output.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_20_output.txt )
 set_tests_properties("TOPP_FileInfo_20_out1" PROPERTIES DEPENDS "TOPP_FileInfo_20")
@@ -4611,10 +4676,10 @@ add_test("TOPP_MS1LabeledWorkflow_3_mbr" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -te
   -proteinFDR 1.0
   -match_between_runs true
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_3_mbr.tmp.consensusXML)
-# Knock-outs are detected by default, so run B also has six unidentified partial multiplets (singlets);
+# Knock-outs are detected by default, so run B also has seven unidentified partial multiplets (singlets);
 # only the complete unidentified doublet is kept for match between runs, since the channels of a partial
 # one are known from an identification only.
-set_tests_properties("TOPP_MS1LabeledWorkflow_3_mbr" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare" PASS_REGULAR_EXPRESSION "7 multiplet.s. are unidentified, 1 of them kept for match between runs")
+set_tests_properties("TOPP_MS1LabeledWorkflow_3_mbr" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare" PASS_REGULAR_EXPRESSION "8 multiplet.s. are unidentified, 1 of them kept for match between runs")
 add_test("TOPP_MS1LabeledWorkflow_3_mbr_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_3_mbr.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_3_mbr_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_3_mbr_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_3_mbr")
 add_test("TOPP_MS1LabeledWorkflow_3_targeted" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
@@ -6330,6 +6395,20 @@ endif()
 add_test("TOPP_FeatureFinderMetaboIdent_1" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_1_output.tmp.featureXML -extract:mz_window 5 -extract:rt_window 20 -detect:peak_width 3)
 add_test("TOPP_FeatureFinderMetaboIdent_1_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_1_output.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_output.featureXML)
 set_tests_properties("TOPP_FeatureFinderMetaboIdent_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_1")
+# FAIMS (synthetic): a target seen at three CVs is merged into one feature, a target found at no CV is reported once
+# (not once per CV), and the chromatograms of the CVs get distinct native ids
+add_test("TOPP_FeatureFinderMetaboIdent_2" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FAIMS_3CV_synthetic.mzML -id ${DATA_DIR_TOPP}/FAIMS_3CV_synthetic_targets.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_2_output.tmp.featureXML -chrom_out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_2_chrom.tmp.mzML -extract:rt_window 20)
+add_test("TOPP_FeatureFinderMetaboIdent_2_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_2_output.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"1\">;name=\"FAIMS_merge_count\" value=\"3\";name=\"label\" value=\"absent\""
+  "-DFORBIDDEN=name=\"FAIMS_CV\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_2_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_2")
+add_test("TOPP_FeatureFinderMetaboIdent_2_out2" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_2_chrom.tmp.mzML
+  "-DEXPECTED=_i0_CV-45.0\";_i0_CV-55.0\";_i0_CV-65.0\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_2_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_2")
 
 # MzMLSplitter test:
 # specify number of parts directly:
@@ -7834,11 +7913,6 @@ set_tests_properties("TOPP_Epifany_5_out" PROPERTIES DEPENDS "TOPP_Epifany_5")
 
 #------------------------------------------------------------------------------
 # QCCalculator:
-# test for qcML file export
-add_test("TOPP_QCCalculator_1" ${TOPP_BIN_PATH}/QCCalculator -test -in ${DATA_DIR_TOPP}/QCCalculator_input.mzML -out ${TESTS_TEMP_DIR}/QCCalculator_1.qcML)
-add_test("TOPP_QCCalculator_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/QCCalculator_1.qcML -in2 ${DATA_DIR_TOPP}/QCCalculator_1_output.qcML)
-set_tests_properties("TOPP_QCCalculator_1_out" PROPERTIES DEPENDS "TOPP_QCCalculator_1")
-
 # test for mzQC file export
 add_test("TOPP_QCCalculator_2" ${TOPP_BIN_PATH}/QCCalculator -test -in ${DATA_DIR_TOPP}/QCCalculator_input.mzML -label label -name name -address address -description description -out ${TESTS_TEMP_DIR}/QCCalculator_2.mzQC -feature ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_output.featureXML -id ${DATA_DIR_TOPP}/OpenPepXL_output.idXML)
 add_test("TOPP_QCCalculator_2_out" ${DIFF} -whitelist "creationDate" "location" "version" -in1 ${TESTS_TEMP_DIR}/QCCalculator_2.mzQC -in2 ${DATA_DIR_TOPP}/QCCalculator_2_output.mzQC)

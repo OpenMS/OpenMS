@@ -6361,41 +6361,6 @@ def testInspectInfile():
     assert len(mods) == 0
 
 @report
-def testAttachment():
-    """
-    @tests: Attachment
-     Attachment.__init__
-    """
-    inst = pyopenms.Attachment()
-
-    assert inst.name is not None
-    assert inst.value is not None
-    assert inst.cvRef is not None
-    assert inst.cvAcc is not None
-    assert inst.unitRef is not None
-    assert inst.unitAcc is not None
-    assert inst.binary is not None
-    assert inst.qualityRef is not None
-    assert inst.colTypes is not None
-    assert inst.tableRows  is not None
-
-    assert inst.toXMLString is not None
-    assert inst.toCSVString is not None
-
-    inst.name = "test"
-    inst.value = "test"
-    inst.cvRef = "test"
-    inst.cvAcc = "test"
-    inst.unitRef = "test"
-    inst.unitAcc = "test"
-    inst.binary = "test"
-    inst.qualityRef = "test"
-    inst.colTypes = [ "test", "test2"]
-    inst.tableRows = [ ["test", "test2"], ["otherTest"] ]
-
-    assert inst.tableRows[1][0] == "otherTest"
-
-@report
 def testKernelMassTrace():
     trace = pyopenms.MassTrace()
 

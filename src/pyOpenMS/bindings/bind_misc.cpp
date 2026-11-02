@@ -133,7 +133,6 @@
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFileMascot.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
-#include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
@@ -5744,101 +5743,6 @@ Stores the data in a ProtXML file (not implemented yet)
   Exception: NotImplemented is always thrown; storing ProtXML is not supported
 )doc")
         ;
-
-    // -----------------------------------------------------------------------
-    // QualityParameter (QcMLFile::QualityParameter)
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::QcMLFile::QualityParameter>(m, "QualityParameter",
-        "Representation of a quality parameter in QcMLFile")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::QcMLFile::QualityParameter &>())
-        .def("__copy__", [](const OpenMS::QcMLFile::QualityParameter& self) { return OpenMS::QcMLFile::QualityParameter(self); })
-        .def("__deepcopy__", [](const OpenMS::QcMLFile::QualityParameter& self, nb::dict) { return OpenMS::QcMLFile::QualityParameter(self); }, "memo"_a)
-        .def_rw("name", &OpenMS::QcMLFile::QualityParameter::name)
-        .def_rw("id", &OpenMS::QcMLFile::QualityParameter::id)
-        .def_rw("value", &OpenMS::QcMLFile::QualityParameter::value)
-        .def_rw("cvRef", &OpenMS::QcMLFile::QualityParameter::cvRef)
-        .def_rw("cvAcc", &OpenMS::QcMLFile::QualityParameter::cvAcc)
-        .def_rw("unitRef", &OpenMS::QcMLFile::QualityParameter::unitRef)
-        .def_rw("unitAcc", &OpenMS::QcMLFile::QualityParameter::unitAcc)
-        .def_rw("flag", &OpenMS::QcMLFile::QualityParameter::flag)
-        .def("toXMLString", [](const OpenMS::QcMLFile::QualityParameter& self, OpenMS::UInt indentation_level) { return self.toXMLString(indentation_level); }, "indentation_level"_a)
-        .def(nb::self == nb::self)
-        .def(nb::self < nb::self)
-        ;
-
-    // -----------------------------------------------------------------------
-    // Attachment (QcMLFile::Attachment)
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::QcMLFile::Attachment>(m, "Attachment",
-        "Attachment for QcMLFile quality parameters")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::QcMLFile::Attachment &>())
-        .def("__copy__", [](const OpenMS::QcMLFile::Attachment& self) { return OpenMS::QcMLFile::Attachment(self); })
-        .def("__deepcopy__", [](const OpenMS::QcMLFile::Attachment& self, nb::dict) { return OpenMS::QcMLFile::Attachment(self); }, "memo"_a)
-        .def_rw("name", &OpenMS::QcMLFile::Attachment::name)
-        .def_rw("id", &OpenMS::QcMLFile::Attachment::id)
-        .def_rw("value", &OpenMS::QcMLFile::Attachment::value)
-        .def_rw("cvRef", &OpenMS::QcMLFile::Attachment::cvRef)
-        .def_rw("cvAcc", &OpenMS::QcMLFile::Attachment::cvAcc)
-        .def_rw("unitRef", &OpenMS::QcMLFile::Attachment::unitRef)
-        .def_rw("unitAcc", &OpenMS::QcMLFile::Attachment::unitAcc)
-        .def_rw("binary", &OpenMS::QcMLFile::Attachment::binary)
-        .def_rw("qualityRef", &OpenMS::QcMLFile::Attachment::qualityRef)
-        .def_rw("colTypes", &OpenMS::QcMLFile::Attachment::colTypes)
-        .def_rw("tableRows", &OpenMS::QcMLFile::Attachment::tableRows)
-        .def("toXMLString", [](const OpenMS::QcMLFile::Attachment& self, OpenMS::UInt indentation_level) { return self.toXMLString(indentation_level); }, "indentation_level"_a)
-        .def("toCSVString", [](const OpenMS::QcMLFile::Attachment& self, const std::string& separator) { return self.toCSVString(separator); }, "separator"_a)
-        .def(nb::self == nb::self)
-        .def(nb::self < nb::self)
-        ;
-
-    // -----------------------------------------------------------------------
-    // QcMLFile
-    // -----------------------------------------------------------------------
-    auto qcmlfile_class = nb::class_<OpenMS::QcMLFile, OpenMS::Internal::XMLFile>(m, "QcMLFile",
-        R"doc(
-File adapter for QcML files used to load and store QcML files
-
-This Class is supposed to internally collect the data for the qcML File
-)doc")
-        .def(nb::init<>())
-        .def("map2csv", [](const OpenMS::QcMLFile& self, const std::map<std::string, std::map<std::string, std::string>>& cvs_table, const std::string& separator) { return self.map2csv(cvs_table, separator); }, "cvs_table"_a, "separator"_a, "Converts a map of maps to a CSV string")
-        .def("exportIDstats", [](const OpenMS::QcMLFile& self, const std::string& filename) { return self.exportIDstats(filename); }, "filename"_a)
-        .def("registerRun", [](OpenMS::QcMLFile& self, const std::string& id, const std::string& name) { return self.registerRun(id, name); }, "id"_a, "name"_a, "Registers a run in the qcml file with the respective mappings")
-        .def("registerSet", [](OpenMS::QcMLFile& self, const std::string& id, const std::string& name, const std::set<std::string>& names) { return self.registerSet(id, name, names); }, "id"_a, "name"_a, "names"_a, "Registers a set in the qcml file with the respective mappings")
-        .def("addRunQualityParameter", [](OpenMS::QcMLFile& self, const std::string& r, const OpenMS::QcMLFile::QualityParameter& qp) { return self.addRunQualityParameter(r, qp); }, "r"_a, "qp"_a, "Adds a QualityParameter to run by the name r")
-        .def("addRunAttachment", [](OpenMS::QcMLFile& self, const std::string& r, const OpenMS::QcMLFile::Attachment& at) { return self.addRunAttachment(r, at); }, "r"_a, "at"_a, "Adds a attachment to run by the name r")
-        .def("addSetQualityParameter", [](OpenMS::QcMLFile& self, const std::string& r, const OpenMS::QcMLFile::QualityParameter& qp) { return self.addSetQualityParameter(r, qp); }, "r"_a, "qp"_a, "Adds a QualityParameter to set by the name r")
-        .def("addSetAttachment", [](OpenMS::QcMLFile& self, const std::string& r, const OpenMS::QcMLFile::Attachment& at) { return self.addSetAttachment(r, at); }, "r"_a, "at"_a, "Adds a attachment to set by the name r")
-        .def("removeAttachment", [](OpenMS::QcMLFile& self, const std::string& r, std::vector<std::string> ids, const std::string& at) { return self.removeAttachment(r, ids, at); }, "r"_a, "ids"_a, "at"_a = "", "Removes attachments referencing an id given in ids, from run/set r. All attachments if no attachment name is given with at")
-        .def("removeAttachment", [](OpenMS::QcMLFile& self, const std::string& r, const std::string& at) { return self.removeAttachment(r, at); }, "r"_a, "at"_a, "Removes attachment with cv accession at from run/set r")
-        .def("removeAllAttachments", [](OpenMS::QcMLFile& self, const std::string& at) { return self.removeAllAttachments(at); }, "at"_a, "Removes attachment with cv accession at from  all runs/sets")
-        .def("removeQualityParameter", [](OpenMS::QcMLFile& self, const std::string& r, std::vector<std::string> ids) { return self.removeQualityParameter(r, ids); }, "r"_a, "ids"_a, "Removes QualityParameter going by one of the ID attributes given in ids")
-        .def("merge", [](OpenMS::QcMLFile& self, const OpenMS::QcMLFile& addendum, const std::string& setname) { return self.merge(addendum, setname); }, "addendum"_a, "setname"_a = "", "Merges the given QCFile into this one")
-        .def("collectSetParameter", [](OpenMS::QcMLFile& self, const std::string& setname, const std::string& qp) { std::vector<std::string> ret; self.collectSetParameter(setname, qp, ret); return ret; }, "setname"_a, "qp"_a, "Collects the values of given QPs (as CVid) of the given set")
-        .def("exportAttachment", [](const OpenMS::QcMLFile& self, const std::string& filename, const std::string& qpname) { return self.exportAttachment(filename, qpname); }, "filename"_a, "qpname"_a, "Returns a std::string of a tab separated rows if found empty string else from run/set by the name filename of the qualityparameter by the name qpname")
-        .def("exportQP", [](const OpenMS::QcMLFile& self, const std::string& filename, const std::string& qpname) { return self.exportQP(filename, qpname); }, "filename"_a, "qpname"_a, "Returns a std::string value in quotation of a QualityParameter by the name qpname in run/set by the name filename")
-        .def("exportQPs", [](const OpenMS::QcMLFile& self, const std::string& filename, const std::vector<std::string>& qpnames) { return self.exportQPs(filename, qpnames); }, "filename"_a, "qpnames"_a, "Returns a std::string of a tab separated QualityParameter by the name qpname in run/set by the name filename")
-        .def("getRunIDs", [](const OpenMS::QcMLFile& self) { std::vector<std::string> ids; self.getRunIDs(ids); return ids; }, "Gives the ids of the registered runs in the vector ids")
-        .def("getRunNames", [](const OpenMS::QcMLFile& self) { std::vector<std::string> ids; self.getRunNames(ids); return ids; }, "Gives the names of the registered runs in the vector ids")
-        .def("existsRun", [](const OpenMS::QcMLFile& self, const std::string& filename, bool checkname) { return self.existsRun(filename, checkname); }, "filename"_a, "checkname"_a = false, "Returns true if the given run id is present in this file, if checkname is true it also checks the names")
-        .def("existsSet", [](const OpenMS::QcMLFile& self, const std::string& filename, bool checkname) { return self.existsSet(filename, checkname); }, "filename"_a, "checkname"_a = false, "Returns true if the given set id is present in this file, if checkname is true it also checks the names")
-        .def("existsRunQualityParameter", [](const OpenMS::QcMLFile& self, const std::string& filename, const std::string& qpname) {
-            std::vector<std::string> ids;
-            self.existsRunQualityParameter(filename, qpname, ids);
-            return ids;
-        }, "filename"_a, "qpname"_a, "Returns the ids of the parameter name given if found in given run empty else")
-        .def("existsSetQualityParameter", [](const OpenMS::QcMLFile& self, const std::string& filename, const std::string& qpname) {
-            std::vector<std::string> ids;
-            self.existsSetQualityParameter(filename, qpname, ids);
-            return ids;
-        }, "filename"_a, "qpname"_a, "Returns the ids of the parameter name given if found in given set, empty else")
-        .def("store", [](const OpenMS::QcMLFile& self, const std::string& filename) { return self.store(filename); }, "filename"_a, "Store the qcML file")
-        .def("load", [](OpenMS::QcMLFile& self, const std::string& filename) { return self.load(filename); }, "filename"_a, "Load a QCFile")
-        .def("reset", [](OpenMS::QcMLFile& self) { return self.reset(); })
-        ;
-    def_ProgressLogger<OpenMS::QcMLFile>(qcmlfile_class);
 
     // -----------------------------------------------------------------------
     // TraMLFile

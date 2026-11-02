@@ -27,7 +27,7 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value=""/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="DECOY_Cas6e" score="0.0" sequence="LMSKYIVARIWARSLYHLFDGQNLLHWRQPAADPRHLKVEFDFRATEVCVSQGTLTLNKASPMVPVAQHITKFLGVLQFQPRVVQEYLRPAIKNLNKITDQRDLKSNGKIRCRLVIKPQRAEELAQIWKALGRNAHPEEIDRVVSGYKPQDGSFGSKGDNCETKAPQGTDVLLFIVIAAIVQQLGIPPLSAMGLLSLGC" >
+			<ProteinHit id="PH_2" accession="DECOY_Cas6e" score="0.0" sequence="MLYKSIVARIWARSLYHLFDGQNLLHWRQPAADPRHLKVEFDFRATEVCVSQGTLTLNKASPMVPVAQHITKFLGVLQFQPRVVQEYLRPAIKNLNKITDQRDLKSNGKIRCRLVIKPQRAEELAQIWKALGRNAHPEEIDRVVSGYKPQDGSFGSKGDNCETKAPQGTDVLLFIVIAAIVQQLGIPPLSAMGLLSLGC" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="Description" value=""/>
 			</ProteinHit>
@@ -39,11 +39,11 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value=""/>
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="DECOY_Cas7" score="0.0" sequence="SCRIPSNSINFHMNILSHLVMMKDDNQAKDGFIGRRVRSSKSIQLRMARKLEGRGSQSSYINAYLHLRQITAVDRLQKGLREDFKQDIKILAKSGLTLEDVSKAEQIDFAEWVIGAVKCVAWAVSETPDAKAEDLNDKLKLLVKIARDEAISVRQGLDNQIAGVLAMGMKSTLGMTETSQIVDSWAISYGTDAQLTEHAVFDDVTEMQHGRHGQSFSAVDAFILDGLQRLSNGANAILGQEAYNATAKALLQETIPEAMGVEHVVHQRAMEVAYFMMLASKPANVPFMNNDTDSFAVAKAKQYQWDLPQRNIDGFSFAYSDGQAAVAPFNTADIVVAKGQGNSLLLQMPKQLETWSRVEGNNA" >
+			<ProteinHit id="PH_5" accession="DECOY_Cas7" score="0.0" sequence="MNVHSIFLSIPRNSNLHCISMMKDDNQAKDGFIGRRVRSSKSIQLRMARKLEGRGSQSSYINAYLHLRQITAVDRLQKGLREDFKQDIKILAKSGLTLEDVSKAEQIDFAEWVIGAVKCVAWAVSETPDAKAEDLNDKLKLLVKIARDEAISVRQGLDNQIAGVLAMGMKSTLGMTETSQIVDSWAISYGTDAQLTEHAVFDDVTEMQHGRHGQSFSAVDAFILDGLQRLSNGANAILGQEAYNATAKALLQETIPEAMGVEHVVHQRAMEVAYFMMLASKPANVPFMNNDTDSFAVAKAKQYQWDLPQRNIDGFSFAYSDGQAAVAPFNTADIVVAKGQGNSLLLQMPKQLETWSRVEGNNA" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="Description" value=""/>
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="DECOY_Cse1" score="0.0" sequence="PMVNDNILRILWPRGNKGQISLSCVRQLNYIQDRWPLRLSLMAIVDKAQLAALAICEGDLIPERDDVFHRDNADKQWTQMFLIEPFMTAHMNELQFEIYIHPLPVGKEDKANMPTVTGASAGPQGLQCVALGGLFAAQGNIGGNVCGFGTLPFCEFANANKAQGSRLVTGVTTRGPFDGLRILSPVNTLVRTLLQLKTPKWSNQQPEENFITHIPKSPGISNSVFRAISEAILEGIHDQGPGPLWKCIFSRCLCGSEQCNFKLTYGEKCFKHPVVNLTVHLPWSFGPTTKVGEEKEWFTAISTLRFSSTPQAVVDKVNQRIIGNENFVVAARVQNIAPIRLGPSQMELNGYEQRNNLISARNQYEQVGGNKFMIWQVVHGLGVYDTLNIATRLKFALFEYKATGNKFDKAGEHVASGRTVEFHRYLQLVAAIELNDELPRIAFSQDSVNDVDKNLLKHCHSYQPVHMALEAFQPASRLILALTLAYKTLHRLEKSGPQNGPG" >
+			<ProteinHit id="PH_6" accession="DECOY_Cse1" score="0.0" sequence="MVPNDLIRNIWLPRGNKGQISLSCVRQLNYIQDRWPLRLSLMAIVDKAQLAALAICEGDLIPERDDVFHRDNADKQWTQMFLIEPFMTAHMNELQFEIYIHPLPVGKEDKANMPTVTGASAGPQGLQCVALGGLFAAQGNIGGNVCGFGTLPFCEFANANKAQGSRLVTGVTTRGPFDGLRILSPVNTLVRTLLQLKTPKWSNQQPEENFITHIPKSPGISNSVFRAISEAILEGIHDQGPGPLWKCIFSRCLCGSEQCNFKLTYGEKCFKHPVVNLTVHLPWSFGPTTKVGEEKEWFTAISTLRFSSTPQAVVDKVNQRIIGNENFVVAARVQNIAPIRLGPSQMELNGYEQRNNLISARNQYEQVGGNKFMIWQVVHGLGVYDTLNIATRLKFALFEYKATGNKFDKAGEHVASGRTVEFHRYLQLVAAIELNDELPRIAFSQDSVNDVDKNLLKHCHSYQPVHMALEAFQPASRLILALTLAYKTLHRLEKSGPQNGPG" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="Description" value=""/>
 			</ProteinHit>
@@ -1652,7 +1652,7 @@
 				<UserParam type="float" name="nucleotide_mass_tags" value="13.213778495788574"/>
 				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="2"/>
 				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
-				<UserParam type="int" name="nr_candidates" value="3"/>
+				<UserParam type="int" name="nr_candidates" value="2"/>
 				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
 				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
 				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
@@ -1675,83 +1675,11 @@
 				<UserParam type="float" name="G_346.055250000000001" value="0.0"/>
 				<UserParam type="float" name="U_113.035089999999997" value="0.0"/>
 				<UserParam type="float" name="U_307.033110000000022" value="0.0"/>
-				<UserParam type="float" name="NuXL:Da difference" value="-6.337530290920768e-04"/>
-				<UserParam type="float" name="NuXL:z1 mass" value="1395.586182589670671"/>
-				<UserParam type="float" name="NuXL:z2 mass" value="698.296729528220908"/>
-				<UserParam type="float" name="NuXL:z3 mass" value="465.86691184107093"/>
-				<UserParam type="float" name="NuXL:z4 mass" value="349.652002997495913"/>
-			</PeptideHit>
-			<PeptideHit score="39.625930786132813" sequence="P(NuXL:U)MVNDNILR" charge="2" aa_before="[" aa_after="I" start="0" end="8" protein_refs="PH_6" >
-				<UserParam type="string" name="fragment_annotation" value="112.050773620605469,0.042819745838642,1,&quot;MI:C&apos;+&quot;|136.061843872070313,0.196844235062599,1,&quot;MI:A&apos;+&quot;|152.056671142578125,0.023113740608096,1,&quot;MI:G&apos;+&quot;|153.1024169921875,0.012729996815324,1,&quot;a2-C1H4S1+&quot;|158.092819213867188,0.016056764870882,1,&quot;y1-H3N1+&quot;|175.118804931640625,0.146781176328659,1,&quot;y1+&quot;|182.092300415039063,0.052632980048656,1,&quot;a1+U&apos;+&quot;|227.065277099609375,0.01328039355576,1,&quot;MI:U-H3PO4+&quot;|245.076187133789063,0.142766728997231,1,&quot;MI:U-HPO3+&quot;|253.100723266601563,9.467311203479767e-03,1,&quot;a2+C3O+&quot;|281.09564208984375,9.001040831208229e-03,1,&quot;b2+C3O+&quot;|288.20294189453125,8.992226794362068e-03,1,&quot;y2+&quot;|296.12347412109375,0.02242861315608,1,&quot;a1+U-H3PO4+&quot;|313.13702392578125,0.016673086211085,1,&quot;a2+U&apos;+&quot;|341.126983642578125,0.080299213528633,1,&quot;b2+U&apos;+&quot;|348.068084716796875,9.060680866241455e-03,1,&quot;MI:A+&quot;|376.089996337890625,0.029012143611908,1,&quot;a1+U-H2O+&quot;|394.095611572265625,0.040202785283327,1,&quot;a1+U+&quot;|427.164215087890625,0.022860564291477,1,&quot;a2+U-H3PO4+&quot;|525.14324951171875,0.028857138007879,1,&quot;a2+U+&quot;|527.2733154296875,1.0,2,&quot;[M+2H-H2O]++&quot;|535.1282958984375,7.558762095868588e-03,1,&quot;b2+U-H2O+&quot;|553.13372802734375,0.032937977463007,1,&quot;b2+U+&quot;|553.27215576171875,0.012286836281419,1,&quot;NDNIL-H3N1+&quot;|640.3057861328125,0.033281195908785,2,&quot;[M+2H-H2O]+U-H3PO4++&quot;|649.3082275390625,0.248698011040688,2,&quot;[M+2H]+U-H3PO4++&quot;|669.29034423828125,0.01186771504581,1,&quot;MVNDNI-H2O1+&quot;|825.46112060546875,0.037652637809515,1,&quot;y7-H2O1+&quot;|956.483642578125,0.047358602285385,1,&quot;y8-H2O1+&quot;|1053.5389404296875,0.277017205953598,1,&quot;[M+H-H2O]+&quot;|1123.5164794921875,0.02236651070416,1,&quot;b8+U-H3PO4+&quot;|1183.5704345703125,0.054004456847906,1,&quot;[M+H]+U&apos;+&quot;"/>
-				<UserParam type="int" name="isotope_error" value="0"/>
-				<UserParam type="float" name="precursor_mz_error_ppm" value="-7.135515152334818"/>
-				<UserParam type="string" name="target_decoy" value="decoy"/>
-				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="precursor_intensity_log10" value="6.237926027955229"/>
-				<UserParam type="float" name="NuXL:score" value="39.625930786132813"/>
-				<UserParam type="int" name="variable_modifications" value="0"/>
-				<UserParam type="int" name="n_theoretical_peaks" value="35"/>
-				<UserParam type="float" name="NuXL:mass_error_p" value="0.077834099531174"/>
-				<UserParam type="float" name="NuXL:total_loss_score" value="0.837916910648346"/>
-				<UserParam type="float" name="NuXL:immonium_score" value="0.0"/>
-				<UserParam type="float" name="NuXL:precursor_score" value="2.14618992805481"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="1.037245965562761e-03"/>
-				<UserParam type="float" name="NuXL:partial_loss_score" value="0.834788680076599"/>
-				<UserParam type="float" name="NuXL:MIC" value="0.017832582816482"/>
-				<UserParam type="float" name="NuXL:err" value="0.55327582359314"/>
-				<UserParam type="float" name="NuXL:Morph" value="2.017832517623901"/>
-				<UserParam type="float" name="NuXL:modds" value="9.499466896057129"/>
-				<UserParam type="float" name="NuXL:pl_MIC" value="0.049031101167202"/>
-				<UserParam type="float" name="NuXL:pl_err" value="20.0"/>
-				<UserParam type="float" name="NuXL:pl_Morph" value="18.049030303955078"/>
-				<UserParam type="float" name="NuXL:pl_modds" value="30.12646484375"/>
-				<UserParam type="float" name="NuXL:pl_pc_MIC" value="0.0"/>
-				<UserParam type="float" name="NuXL:pl_im_MIC" value="0.0"/>
-				<UserParam type="float" name="NuXL:total_Morph" value="20.066862106323242"/>
-				<UserParam type="float" name="NuXL:total_HS" value="1.67270565032959"/>
-				<UserParam type="int" name="NuXL:tag_XLed" value="0"/>
-				<UserParam type="int" name="NuXL:tag_unshifted" value="0"/>
-				<UserParam type="int" name="NuXL:tag_shifted" value="0"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.21409085392952"/>
-				<UserParam type="string" name="NuXL:NA" value="U"/>
-				<UserParam type="int" name="NuXL:NA_length" value="1"/>
-				<UserParam type="string" name="NuXL:NT" value="U"/>
-				<UserParam type="float" name="NuXL:NA_MASS_z0" value="324.035869904700007"/>
-				<UserParam type="int" name="NuXL:isXL" value="1"/>
-				<UserParam type="int" name="NuXL:isPhospho" value="0"/>
-				<UserParam type="float" name="NuXL:best_localization_score" value="0.374298125505447"/>
-				<UserParam type="string" name="NuXL:localization_scores" value="37.43,23.00,0,0,0,0,0,0,0"/>
-				<UserParam type="string" name="NuXL:best_localization" value="pMVNDNILR"/>
-				<UserParam type="int" name="NuXL:best_localization_position" value="0"/>
-				<UserParam type="int" name="NuXL:XL_U" value="1"/>
-				<UserParam type="float" name="nucleotide_mass_tags" value="13.213778495788574"/>
-				<UserParam type="int" name="NuXL:aminoacid_max_tag" value="2"/>
-				<UserParam type="float" name="NuXL:aminoacid_id_to_max_tag_ratio" value="0.0"/>
-				<UserParam type="int" name="nr_candidates" value="3"/>
-				<UserParam type="float" name="-ln(poisson)" value="315.0"/>
-				<UserParam type="float" name="NuXL:explained_peak_fraction" value="0.0"/>
-				<UserParam type="float" name="NuXL:theo_peak_fraction" value="0.0"/>
-				<UserParam type="float" name="NuXL:wTop50" value="0.0"/>
-				<UserParam type="float" name="NuXL:ladder_score" value="0.252229064702988"/>
-				<UserParam type="float" name="NuXL:sequence_score" value="0.252229064702988"/>
-				<UserParam type="float" name="CalcMass" value="698.302346028220882"/>
-				<UserParam type="int" name="missed_cleavages" value="0"/>
-				<UserParam type="int" name="rank" value="1"/>
-				<UserParam type="float" name="NuXL:peptide_mass_z0" value="1070.554269218200034"/>
-				<UserParam type="float" name="NuXL:xl_mass_z0" value="1394.590139122899927"/>
-				<UserParam type="float" name="A_136.062309999999997" value="19.684423506259918"/>
-				<UserParam type="float" name="A_330.060330000000022" value="3.370465710759163"/>
-				<UserParam type="float" name="C_112.051079999999999" value="4.281974583864212"/>
-				<UserParam type="float" name="C_306.04910000000001" value="0.0"/>
-				<UserParam type="float" name="G_152.057230000000004" value="2.311374060809612"/>
-				<UserParam type="float" name="G_346.055250000000001" value="0.0"/>
-				<UserParam type="float" name="U_113.035089999999997" value="0.0"/>
-				<UserParam type="float" name="U_307.033110000000022" value="0.0"/>
-				<UserParam type="float" name="NuXL:Da difference" value="4.982746970995322e-03"/>
-				<UserParam type="float" name="NuXL:z1 mass" value="1395.597415589670845"/>
-				<UserParam type="float" name="NuXL:z2 mass" value="698.302346028220995"/>
-				<UserParam type="float" name="NuXL:z3 mass" value="465.870656174404303"/>
-				<UserParam type="float" name="NuXL:z4 mass" value="349.654811247495957"/>
+				<UserParam type="float" name="NuXL:Da difference" value="-6.337530288647031e-04"/>
+				<UserParam type="float" name="NuXL:z1 mass" value="1395.586182589671125"/>
+				<UserParam type="float" name="NuXL:z2 mass" value="698.296729528221135"/>
+				<UserParam type="float" name="NuXL:z3 mass" value="465.866911841071044"/>
+				<UserParam type="float" name="NuXL:z4 mass" value="349.652002997496027"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="16"/>
 			<UserParam type="float" name="precursor_intensity_log10" value="6.237926027955229"/>

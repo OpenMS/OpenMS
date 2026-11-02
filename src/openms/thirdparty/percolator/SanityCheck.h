@@ -65,10 +65,16 @@ class SanityCheck {
   void setConcatenatedSearch(const bool s) {
     concatenatedSearch_ = s;
   }
+
+  // OpenMS: the number of threads for the loops over the cross-validation folds
+  void setNumThreads(const unsigned int n) {
+    numThreads_ = n;
+  }
   
  protected:
   virtual void getDefaultDirection(vector<vector<double> >& w);
-  virtual void calcInitDirection(vector<double>& wSet, size_t set);
+  virtual void calcInitDirection(vector<double>& wSet, size_t set,
+                                 std::ostream& report);
   
   int initPositives_;
   double test_fdr_, initial_train_fdr_;
@@ -87,6 +93,8 @@ class SanityCheck {
   
   // input from concatenated search, i.e. not separate target and decoy searches
   bool concatenatedSearch_;
+
+  unsigned int numThreads_ = 1;
 };
 
 }}}  // namespace OpenMS::Internal::Percolator

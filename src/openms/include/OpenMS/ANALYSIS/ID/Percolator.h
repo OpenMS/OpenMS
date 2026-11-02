@@ -8,12 +8,15 @@
 
 #pragma once
 
+#include <OpenMS/ANALYSIS/ID/PercolatorReset.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
+#include <functional>
 #include <memory>
+#include <utility>
 #include <vector>
 
 namespace OpenMS
@@ -137,25 +140,24 @@ namespace OpenMS
       @brief Rescore search engine PSMs in place on the standard Percolator (.pin) feature set.
 
       This is the in-process equivalent of writing a .pin file, running the percolator executable
-      and reading its results back. PercolatorAdapter's in-process backend and ProSE ('Search:rescore')
-      use it. Steps:
-      1. stamp the PIN feature meta values on every hit (PercolatorInfile::stampPinFeaturesOnHits)
-      2. build a RescoreInput from the numeric columns of @p feature_set. Bookkeeping columns
-         (SpecId, Label, ScanNr, ExpMass, Peptide, Proteins) are not used as training features.
-         Scan numbers, spectrum file numbers and experimental/calculated masses are filled the
-         way the executable reads them from a .pin file, so CV folds and target-decoy
-         competition match the external binary.
-      3. call rescore(const RescoreInput&) with the parameters of this instance
-      4. write the results back onto the hits:
+      and reading its results back, without the file and without PIN meta values on the hits.
+      PercolatorAdapter's in-process backend and ProSE ('Search:rescore') use it. Steps:
+      1. build the feature matrix (buildPSMRescoreInput()): the feature vectors the executable
+         would read from the .pin file (PercolatorInfile::store) of @p peptide_ids, row for row,
+         computed straight into a dense RescoreInput, with the hit of every row
+      2. call rescore(const RescoreInput&) with the parameters of this instance
+      3. write the results back onto the hits:
          - the original main score is kept as a meta value named after the old score type
          - MS:1001492 holds the SVM score, MS:1001491 the q-value, MS:1001493 the PEP
          - the main score becomes the one selected by @p score_type, and every
            PeptideIdentification gets the matching score type and orientation
-      5. remove the PIN meta values that step 1 added. Input meta values with the same names
-         (e.g. CalcMass) are kept.
+
+      No PIN column is added to the hits. A meta value that a hit already carries under the name
+      of a PIN column (other than CalcMass, which is read as the hit's calculated mass) is set to
+      its PIN value, as stamping the PIN features did (PercolatorInfile::refreshPinMetaValues).
 
       Hits without peptide evidences, without target/decoy information or with a missing
-      feature are not rescored (see stampPinFeaturesOnHits). Like PSMs missing from the
+      feature are not rescored (see buildPSMRescoreInput()). Like PSMs missing from the
       executable's output, they get q-value = PEP = 1 and SVM score = -100 (meta values and main
       score), so that they rank last under the new score type; their original score is kept as
       a meta value as well.
@@ -167,6 +169,10 @@ namespace OpenMS
       @param[in] min_charge       Lowest charge of the charge{N} one-hot features
       @param[in] max_charge       Highest charge of the charge{N} one-hot features
       @param[in] score_type       New main score: "q-value", "pep" or "svm"
+      @param[in] best_hit_only    For callers that keep only the best hit of each identification: the meta values
+                                  above (the original score, the Percolator scores) are written only to the hit that
+                                  PeptideIdentification::sort() puts first under the new score; the others get only
+                                  their new main score. (Identifications with a NaN score: all hits, as without.)
 
       @return The number of rescored hits
 
@@ -180,13 +186,78 @@ namespace OpenMS
                      const std::string& enzyme,
                      int min_charge,
                      int max_charge,
-                     const std::string& score_type = "q-value");
+                     const std::string& score_type = "q-value",
+                     bool best_hit_only = false);
+
+    /// The hit of every feature row of a PSM RescoreInput (buildPSMRescoreInput(), rescorePSMs()):
+    /// (index of its PeptideIdentification, index of the hit in it)
+    using PSMRowLocations = std::vector<std::pair<size_t, size_t>>;
+
+    /**
+      @brief The feature matrix of PSM rescoring: what rescorePSMs() trains and scores on, without rescoring.
+
+      Computes the feature vectors that the percolator executable reads from the .pin file of @p peptide_ids
+      (PercolatorInfile::store with @p feature_set), row for row and bit for bit, straight into a RescoreInput
+      (PercolatorInfile::buildFeatureMatrix(); no meta values are added to the hits):
+      - feature_names: the numeric columns of @p feature_set. The bookkeeping columns (SpecId, Label, ScanNr,
+        ExpMass, Peptide, Proteins) are not training features.
+      - feature_matrix: the rows, dense (row-major); features stays empty
+      - is_decoy (Label), scan_numbers (ScanNr), exp_masses (ExpMass), calc_masses (CalcMass) and
+        spec_file_numbers (the spectrum files in order of appearance), as the executable reads them from the
+        .pin file, so CV folds and target-decoy competition match the external binary
+      - @p rows: the hit of each row, i.e. its peptide, proteins and spectrum
+
+      This matrix is the input of every rescoring of rescorePSMs(): Percolator's training and scoring copy its
+      rows into their PSMs, and an alternative algorithm on PSMs reads the same RescoreInput and @p rows.
+      Hits without peptide evidences, without target/decoy information or with a missing feature get no row.
+
+      CalcMass is not a training feature (the executable reads it as metadata; it goes into calc_masses), unless
+      @p calc_mass_feature (parameter 'calc_mass_feature', the in-process training before OpenMS #10717).
+
+      @throws Exception::MissingInformation if @p feature_set has no numeric feature or no hit could be turned into
+              a feature row
+      @throws Exception::InvalidValue for a feature without a finite numeric value or an unknown target/decoy value
+    */
+    static void buildPSMRescoreInput(const PeptideIdentificationList& peptide_ids,
+                                     const StringList& feature_set,
+                                     const std::string& enzyme,
+                                     int min_charge,
+                                     int max_charge,
+                                     RescoreInput& input,
+                                     PSMRowLocations& rows,
+                                     bool calc_mass_feature = false);
+
+    /// Scores the feature rows that rescorePSMs() built, in place of rescore(): one score, q-value and PEP per row
+    using PSMScorer = std::function<RescoreOutput(const RescoreInput&, const PSMRowLocations&)>;
+
+    /**
+      @brief As rescorePSMs(), but the feature rows are scored by @p scorer instead of rescore(input).
+
+      (Its own name: as an overload of rescorePSMs(), a function pointer passed for @p scorer would convert to the
+      bool best_hit_only of the other overload.)
+
+      The other steps are those of rescorePSMs() above. @p scorer gets the feature rows (buildPSMRescoreInput()) and
+      the hit of each row; it must return one score, q-value and PEP per row (e.g. from score() with a model trained
+      on other PSMs). It replaces rescore(input) and, with algorithm 'reset', RESET. An empty @p scorer: as
+      rescorePSMs() above.
+
+      @throws Exception::InvalidValue if @p scorer returns another number of rows, or as rescorePSMs() above
+    */
+    Size rescorePSMsWithScorer(PeptideIdentificationList& peptide_ids,
+                               const StringList& feature_set,
+                               const std::string& enzyme,
+                               int min_charge,
+                               int max_charge,
+                               const std::string& score_type,
+                               const PSMScorer& scorer,
+                               bool best_hit_only = false);
 
     /**
       @brief Train a model on search engine PSMs (the .pin features of rescorePSMs()), for scorePSMs() on other PSMs.
 
-      Builds the rows as rescorePSMs() does (the PIN feature meta values it stamps are removed again) and calls
-      train() on all of them (subsetting, e.g. to a training cap, is the caller's). The PSMs are not changed.
+      Builds the rows as rescorePSMs() does (buildPSMRescoreInput(); a hit's meta values under the name of a PIN column
+      get their PIN values, as in rescorePSMs()) and calls train() on all of them (subsetting, e.g. to a training cap,
+      is the caller's). The PSMs are not changed otherwise.
 
       @throws Exception::MissingInformation as rescorePSMs()
       @throws Exception::InvalidValue if training fails
@@ -236,10 +307,38 @@ namespace OpenMS
       score() leaves the buffer unchanged (empty if this instance has
       never trained).
 
-      @return Outer size = 1 (averaged); inner size = num_features + 1.
+      After rescore() with an out-of-fold capped training (parameter subset_mode), the models that scored the rows
+      instead: the three fold models, and with 'out_of_fold_avg' their average (for the unsampled rows) fourth.
+
+      @return Outer size = 1 (averaged; 3 or 4 after an out-of-fold capped rescore()); inner size = num_features + 1.
               Empty until rescore()/train() has been called on this instance.
     */
     const std::vector<std::vector<double>>& getSvmWeights() const;
+
+    /// @brief The out-of-fold capped training of the last rescore() (subset_mode 'out_of_fold', 'out_of_fold_avg' or
+    ///        'learning_curve', active).
+    struct CappedTrainingInfo
+    {
+      std::vector<int> fold;                          ///< per input row: its cross-validation fold, whose model scored it
+      std::vector<char> sampled;                      ///< per input row: whether it is in a fold model's training set (the
+                                                      ///< sample; learning_curve: of a kept model)
+      std::vector<std::vector<size_t>> trained_rows;  ///< per fold: the input rows of its model's training set, ascending
+      std::vector<int> scorer;                        ///< per input row: the model that scored it (getSvmWeights() index:
+                                                      ///< its fold, or 3 = the average of the fold models)
+      // subset_mode 'learning_curve':
+      size_t validation_rows = 0;                     ///< rows of the validation spectra (never trained on)
+      std::vector<size_t> curve_sizes;                ///< training-sample rows of each trained size, in order
+      std::vector<std::vector<long>> curve_counts;    ///< per size and fold: validation targets (-1: fold had stopped)
+      std::vector<std::vector<long>> curve_discordant; ///< per size and fold: validation targets accepted by only one of
+                                                       ///< this and the previous size's models (-1: none compared)
+      std::vector<size_t> chosen_size;                ///< per fold: the sample rows of its kept model
+    };
+
+    /**
+      @brief The folds, sample and training sets of the last rescore() if it trained out-of-fold on a capped sample
+             (subset_mode 'out_of_fold' or 'out_of_fold_avg', more rows than subset_max_train); otherwise empty. For tests and diagnostics.
+    */
+    const CappedTrainingInfo& getCappedTrainingInfo() const;
 
     /**
       @brief Pi0 (null fraction) from the last rescore()/score() call.
@@ -444,10 +543,22 @@ namespace OpenMS
     */
     static PercolatorModel loadModel(const std::string& filename);
 
+    /**
+      @brief Result of the last rescorePSMs() call with parameter 'algorithm' = 'reset' (null otherwise).
+
+      With RESET, rescorePSMs() stores the heuristic PSM-level q-value and PEP (PercolatorReset::Output) where
+      Percolator stores its PSM-level values, the RESET score as SVM score, and on every rescored hit the q-value of
+      its peptide (stem) as meta value "RESET:peptide_q_value" (the FDR-controlled output), on decoy hits
+      "RESET:decoy_role" ("training" or "estimating").
+    */
+    std::shared_ptr<const PercolatorReset::Output> getResetOutput() const;
+
   protected:
     void updateMembers_() override;
 
   private:
+    RescoreOutput rescoreReset_(const PeptideIdentificationList& peptide_ids, RescoreInput& ri,
+                                const std::vector<std::pair<size_t, size_t>>& hit_locs);
     /// The scale of a scoring, for score(input, model, reference): see score_()
     struct ReferenceScale_;
     /// score(); with @p scale, also the model's weights rescaled as the scores (Scores::normalizeScores) and the
