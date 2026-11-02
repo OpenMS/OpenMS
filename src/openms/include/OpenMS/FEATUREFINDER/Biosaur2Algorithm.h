@@ -389,14 +389,6 @@ private:
   */
   std::vector<Hill> detectHills_(const MSExperiment& exp, double htol_ppm, double min_intensity, double min_mz, double max_mz, bool use_im, std::vector<double>* hill_mass_diffs = nullptr) const;
 
-  /**
-    @brief Link peaks in a single scan to existing hills or start new hills.
-
-    This method implements the core hill-linking logic for one spectrum,
-    updating the running hill list and the state that is carried across
-    scans (previous fast m/z dictionary, ion-mobility bins, and peak-to-hill
-    assignments).
-  */
   /// the part of linking one scan that depends on that scan alone (filter, intensity order, m/z and IM bins)
   struct ScanPrep
   {
@@ -415,9 +407,13 @@ private:
   ScanPrep prepareScan_(const MSSpectrum& spectrum, double min_intensity, double min_mz, double max_mz,
                         double mz_step, bool use_im_global) const;
 
-  /// fills @p sp's dense bin table (bin_lo, bin_start) from its by_bin lookup
-  void buildBinOffsets_(ScanPrep& sp) const;
+  /**
+    @brief Link the peaks of one scan to the hills of the previous scan, or start new hills.
 
+    Each peak (in descending intensity) takes the most intense unclaimed previous-scan peak within @p htol_ppm in its
+    own or a neighbouring m/z bin (and IM bin, with ion mobility); the assignments go to @p refs, from which
+    detectHills_ builds the hills. @p prev needs its dense bin table (bin_start).
+  */
   void linkScanToHills_(const MSSpectrum& spectrum,
                         Size scan_idx,
                         double htol_ppm,
@@ -463,26 +459,6 @@ private:
     @return Recommended number of isotopes to retain (may be shorter than input)
   */
   Size checkIsotopeValleySplit_(const std::vector<IsotopeCandidate>& isotopes, const std::vector<Hill>& hills, double ivf) const;
-
-  /**
-    @brief Perform an initial mass calibration for isotope spacings based on raw hills.
-
-    Scans all hills for regularly spaced C13 isotope peaks across a range of charge
-    states and derives per-isotope shift/sigma estimates (in ppm). The results are
-    primarily diagnostic and mirror the behaviour of the reference Biosaur2 code.
-
-    @param[in] hills Input hills sorted by m/z
-    @param[in] itol_ppm Isotope mass tolerance in ppm
-    @param[in] min_charge Minimum charge state to consider
-    @param[in] max_charge Maximum charge state to consider
-    @param[in] enable_isotope_calib Whether isotope calibration is enabled
-    @return Map from isotope index (1..9) to (shift, sigma) in ppm
-  */
-  std::map<int, std::pair<double, double>> performInitialIsotopeCalibration_(const std::vector<Hill>& hills,
-                                                                             double itol_ppm,
-                                                                             int min_charge,
-                                                                             int max_charge,
-                                                                             bool enable_isotope_calib) const;
 
   /**
     @brief Build fast m/z and optional ion-mobility lookup structures for hills.

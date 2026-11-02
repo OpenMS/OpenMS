@@ -24,6 +24,7 @@
 
 #include <cmath>
 #include <random>
+#include <tuple>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -111,47 +112,33 @@ namespace
 #endif
   }
 
+  auto hillKey(const Biosaur2Algorithm::Hill& h)
+  {
+    return std::tie(h.scan_indices, h.peak_indices, h.mz_values, h.intensities, h.rt_values, h.drift_times, h.ion_mobilities,
+                    h.mz_weighted_mean, h.rt_start, h.rt_end, h.rt_apex, h.intensity_apex, h.intensity_sum,
+                    h.drift_time_median, h.ion_mobility_median, h.length, h.hill_idx);
+  }
+
+  auto featureKey(const Biosaur2Algorithm::PeptideFeature& f)
+  {
+    return std::tie(f.mz, f.rt_start, f.rt_end, f.rt_apex, f.intensity_apex, f.intensity_sum, f.charge, f.n_isotopes,
+                    f.n_scans, f.mass_calib, f.drift_time, f.ion_mobility, f.mono_hill_idx);
+  }
+
   bool sameHills(const vector<Biosaur2Algorithm::Hill>& a, const vector<Biosaur2Algorithm::Hill>& b)
   {
-    if (a.size() != b.size()) return false;
-    for (Size i = 0; i < a.size(); ++i)
-    {
-      const auto& x = a[i];
-      const auto& y = b[i];
-      if (x.scan_indices != y.scan_indices || x.peak_indices != y.peak_indices || x.mz_values != y.mz_values ||
-          x.intensities != y.intensities || x.rt_values != y.rt_values || x.drift_times != y.drift_times ||
-          x.ion_mobilities != y.ion_mobilities || x.mz_weighted_mean != y.mz_weighted_mean || x.rt_start != y.rt_start ||
-          x.rt_end != y.rt_end || x.rt_apex != y.rt_apex || x.intensity_apex != y.intensity_apex ||
-          x.intensity_sum != y.intensity_sum || x.drift_time_median != y.drift_time_median ||
-          x.ion_mobility_median != y.ion_mobility_median || x.length != y.length || x.hill_idx != y.hill_idx)
-        return false;
-    }
-    return true;
+    return std::equal(a.begin(), a.end(), b.begin(), b.end(), [](const auto& x, const auto& y) { return hillKey(x) == hillKey(y); });
   }
 
   bool sameFeatures(const vector<Biosaur2Algorithm::PeptideFeature>& a, const vector<Biosaur2Algorithm::PeptideFeature>& b)
   {
-    if (a.size() != b.size()) return false;
-    for (Size i = 0; i < a.size(); ++i)
+    auto isoKey = [](const Biosaur2Algorithm::IsotopeCandidate& i) { return std::tie(i.hill_idx, i.isotope_number, i.mass_diff_ppm, i.cos_corr); };
+    return std::equal(a.begin(), a.end(), b.begin(), b.end(), [&](const auto& x, const auto& y)
     {
-      const auto& x = a[i];
-      const auto& y = b[i];
-      if (x.mz != y.mz || x.rt_start != y.rt_start || x.rt_end != y.rt_end || x.rt_apex != y.rt_apex ||
-          x.intensity_apex != y.intensity_apex || x.intensity_sum != y.intensity_sum || x.charge != y.charge ||
-          x.n_isotopes != y.n_isotopes || x.n_scans != y.n_scans || x.mass_calib != y.mass_calib ||
-          x.drift_time != y.drift_time || x.ion_mobility != y.ion_mobility || x.mono_hill_idx != y.mono_hill_idx ||
-          x.isotopes.size() != y.isotopes.size())
-        return false;
-      for (Size k = 0; k < x.isotopes.size(); ++k)
-      {
-        const auto& u = x.isotopes[k];
-        const auto& v = y.isotopes[k];
-        if (u.hill_idx != v.hill_idx || u.isotope_number != v.isotope_number || u.mass_diff_ppm != v.mass_diff_ppm ||
-            u.cos_corr != v.cos_corr)
-          return false;
-      }
-    }
-    return true;
+      return featureKey(x) == featureKey(y) &&
+             std::equal(x.isotopes.begin(), x.isotopes.end(), y.isotopes.begin(), y.isotopes.end(),
+                        [&](const auto& u, const auto& v) { return isoKey(u) == isoKey(v); });
+    });
   }
 }
 

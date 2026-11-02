@@ -29,6 +29,7 @@
 #include <set>
 #include <limits>
 #include <exception>
+#include <functional>
 
 using namespace std;
 
@@ -40,22 +41,16 @@ namespace
   /// position of hill @p hill_idx in the hill vector (NO_POS_: not there), from the dense hill_idx -> position table
   inline Size posOf_(const vector<Size>& pos, Size hill_idx) { return hill_idx < pos.size() ? pos[hill_idx] : NO_POS_; }
 
-  /// fn(i, out) for i in [0, n) in parallel over contiguous chunks, results concatenated in index order: the
-  /// output equals the sequential loop's whenever fn(i, .) reads only shared immutable data
-  template <class T, class F>
-  void orderedParallel_(Size n, Size chunk, vector<T>& out, F fn)
+  /// fn(i) for i in [b, e) in parallel (dynamic schedule, `chunk` iterations per grab); an exception may not leave an
+  /// OpenMP region, so the first one is rethrown after it
+  template <class F>
+  void parallelFor_(SignedSize b, SignedSize e, int chunk, F fn)
   {
-    const SignedSize nc = static_cast<SignedSize>((n + chunk - 1) / chunk);
-    vector<vector<T>> parts(static_cast<Size>(nc));
-    std::exception_ptr err;   // an exception may not leave an OpenMP region: the first one is rethrown after it
-    #pragma omp parallel for schedule(dynamic, 1)
-    for (SignedSize c = 0; c < nc; ++c)
+    std::exception_ptr err;
+    #pragma omp parallel for schedule(dynamic, chunk)
+    for (SignedSize i = b; i < e; ++i)
     {
-      try
-      {
-        const Size b = static_cast<Size>(c) * chunk, e = min(n, b + chunk);
-        for (Size i = b; i < e; ++i) fn(i, parts[static_cast<Size>(c)]);
-      }
+      try { fn(i); }
       catch (...)
       {
         #pragma omp critical(b2_err)
@@ -63,10 +58,34 @@ namespace
       }
     }
     if (err) std::rethrow_exception(err);
+  }
+
+  /// fn(i, out) for i in [0, n) in parallel over contiguous chunks, results concatenated in index order: the
+  /// output equals the sequential loop's whenever fn(i, .) reads only shared immutable data
+  template <class T, class F>
+  void orderedParallel_(Size n, Size chunk, vector<T>& out, F fn)
+  {
+    vector<vector<T>> parts((n + chunk - 1) / chunk);
+    parallelFor_(0, static_cast<SignedSize>(parts.size()), 1, [&](SignedSize c)
+    {
+      const Size b = static_cast<Size>(c) * chunk, e = min(n, b + chunk);
+      for (Size i = b; i < e; ++i) fn(i, parts[static_cast<Size>(c)]);
+    });
     Size total = out.size();
     for (const auto& v : parts) total += v.size();
     out.reserve(total);
     for (auto& v : parts) out.insert(out.end(), make_move_iterator(v.begin()), make_move_iterator(v.end()));
+  }
+
+  /// dense hill_idx -> hill table (nullptr: no such hill)
+  template <class H>
+  vector<const H*> byId_(const vector<H>& hills)
+  {
+    Size max_id = 0;
+    for (const H& h : hills) max_id = max(max_id, h.hill_idx);
+    vector<const H*> by_id(hills.empty() ? 0 : max_id + 1, nullptr);
+    for (const H& h : hills) by_id[h.hill_idx] = &h;
+    return by_id;
   }
 }
 
@@ -1520,19 +1539,6 @@ Biosaur2Algorithm::ScanPrep Biosaur2Algorithm::prepareScan_(const MSSpectrum& sp
   return sp;
 }
 
-void Biosaur2Algorithm::buildBinOffsets_(ScanPrep& sp) const
-{
-  // dense offsets: bin b's entries are by_bin[bin_start[b - bin_lo] .. bin_start[b - bin_lo + 1]). The table spans the
-  // scan's whole m/z-bin range (~1e6 / htol entries), so it is built only for the scan being linked to.
-  sp.bin_start.clear();
-  if (sp.by_bin.empty()) return;
-  sp.bin_lo = sp.by_bin.front().first;
-  const Size range = static_cast<Size>(sp.by_bin.back().first - sp.bin_lo) + 1;
-  sp.bin_start.assign(range + 1, 0);
-  for (const auto& e : sp.by_bin) ++sp.bin_start[static_cast<Size>(e.first - sp.bin_lo) + 1];
-  for (Size k = 0; k < range; ++k) sp.bin_start[k + 1] += sp.bin_start[k];
-}
-
 void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
                                          Size scan_idx,
                                          double htol_ppm,
@@ -1709,8 +1715,19 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills_(const MSExperime
   const SignedSize block = 256;
   vector<ScanPrep> preps(static_cast<Size>(min<SignedSize>(n, block)));
   ScanPrep carry;   // the last prepared scan of the previous block (the next block's first scan links to it)
-  bool have_carry = false;
-  vector<int> bin_buf;   // the dense bin table, lent to the scan being linked to (one table alive at a time)
+  // the dense bin table spans the scan's whole m/z-bin range (~1e6 / htol entries), so only the scan being linked to
+  // has one, in a reused buffer: bin b's entries are by_bin[bin_start[b - bin_lo] .. bin_start[b - bin_lo + 1])
+  vector<int> bin_buf;
+  auto build_bin_offsets = [](ScanPrep& sp)
+  {
+    sp.bin_start.clear();
+    if (sp.by_bin.empty()) return;
+    sp.bin_lo = sp.by_bin.front().first;
+    const Size range = static_cast<Size>(sp.by_bin.back().first - sp.bin_lo) + 1;
+    sp.bin_start.assign(range + 1, 0);
+    for (const auto& e : sp.by_bin) ++sp.bin_start[static_cast<Size>(e.first - sp.bin_lo) + 1];
+    for (Size k = 0; k < range; ++k) sp.bin_start[k + 1] += sp.bin_start[k];
+  };
 
   // Mapping from previous-scan peak index to hill index.
   vector<Size> prev_peak_to_hill;
@@ -1719,32 +1736,23 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills_(const MSExperime
   for (SignedSize b0 = 0; b0 < n; b0 += block)
   {
     const SignedSize b1 = min(n, b0 + block);
-    std::exception_ptr err;
-    #pragma omp parallel for schedule(dynamic, 4)
+    parallelFor_(b0, b1, 4, [&](SignedSize s)
+    {
+      preps[static_cast<Size>(s - b0)] = prepareScan_(exp[static_cast<Size>(s)], min_intensity, min_mz, max_mz, mz_step, use_im);
+    });
     for (SignedSize s = b0; s < b1; ++s)
     {
-      try { preps[static_cast<Size>(s - b0)] = prepareScan_(exp[static_cast<Size>(s)], min_intensity, min_mz, max_mz, mz_step, use_im); }
-      catch (...)
-      {
-        #pragma omp critical(b2_err)
-        if (!err) err = std::current_exception();
-      }
-    }
-    if (err) std::rethrow_exception(err);
-    for (SignedSize s = b0; s < b1; ++s)
-    {
-      ScanPrep* prev = s == b0 ? (have_carry ? &carry : nullptr) : &preps[static_cast<Size>(s - b0 - 1)];
+      ScanPrep* prev = s == b0 ? (b0 > 0 ? &carry : nullptr) : &preps[static_cast<Size>(s - b0 - 1)];
       if (prev != nullptr)
       {
         prev->bin_start.swap(bin_buf);
-        buildBinOffsets_(*prev);
+        build_bin_offsets(*prev);
       }
       linkScanToHills_(exp[static_cast<Size>(s)], static_cast<Size>(s), htol_ppm, preps[static_cast<Size>(s - b0)], prev,
                        refs, hill_idx_counter, prev_peak_to_hill, prev_spectrum_ptr, hill_mass_diffs);
       if (prev != nullptr) prev->bin_start.swap(bin_buf);
     }
     carry = std::move(preps[static_cast<Size>(b1 - b0 - 1)]);
-    have_carry = true;
   }
 
   // Build the hills from the references: each hill's peaks in the order they were linked (scan order), with the
@@ -1791,65 +1799,54 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills_(const MSExperime
     }
   }
   hills.resize(hill_idx_counter);
-  std::exception_ptr err;
-  #pragma omp parallel for schedule(dynamic, 4096)
-  for (SignedSize hs = 0; hs < static_cast<SignedSize>(hill_idx_counter); ++hs)
+  parallelFor_(0, static_cast<SignedSize>(hill_idx_counter), 4096, [&](SignedSize hs)
   {
-    try
+    Hill& hill = hills[static_cast<Size>(hs)];
+    hill.hill_idx = static_cast<Size>(hs);
+    const Size b = start[static_cast<Size>(hs)], e = start[static_cast<Size>(hs) + 1], m = e - b;
+    hill.scan_indices.reserve(m); hill.peak_indices.reserve(m); hill.mz_values.reserve(m); hill.intensities.reserve(m);
+    hill.rt_values.reserve(m); hill.drift_times.reserve(m); hill.ion_mobilities.reserve(m);
+    for (Size k = b; k < e; ++k)
     {
-      Hill& hill = hills[static_cast<Size>(hs)];
-      hill.hill_idx = static_cast<Size>(hs);
-      const Size b = start[static_cast<Size>(hs)], e = start[static_cast<Size>(hs) + 1], m = e - b;
-      hill.scan_indices.reserve(m); hill.peak_indices.reserve(m); hill.mz_values.reserve(m); hill.intensities.reserve(m);
-      hill.rt_values.reserve(m); hill.drift_times.reserve(m); hill.ion_mobilities.reserve(m);
-      for (Size k = b; k < e; ++k)
+      const PeakRef& r = refs[order[k]];
+      if (scan_err[r.scan]) std::rethrow_exception(scan_err[r.scan]);
+      const MSSpectrum& spectrum = exp[r.scan];
+      const Peak1D& peak = spectrum[r.peak];
+      const double rt = spectrum.getRT(), mz = peak.getMZ(), intensity = peak.getIntensity();
+      hill.scan_indices.push_back(r.scan);
+      hill.peak_indices.push_back(r.peak);
+      hill.mz_values.push_back(mz);
+      hill.intensities.push_back(intensity);
+      hill.rt_values.push_back(rt);
+      hill.drift_times.push_back(spectrum.getDriftTime());
+      double ion_mobility = -1.0;
+      if (im_arr[r.scan] != nullptr)
       {
-        const PeakRef& r = refs[order[k]];
-        if (scan_err[r.scan]) std::rethrow_exception(scan_err[r.scan]);
-        const MSSpectrum& spectrum = exp[r.scan];
-        const Peak1D& peak = spectrum[r.peak];
-        const double rt = spectrum.getRT(), mz = peak.getMZ(), intensity = peak.getIntensity();
-        hill.scan_indices.push_back(r.scan);
-        hill.peak_indices.push_back(r.peak);
-        hill.mz_values.push_back(mz);
-        hill.intensities.push_back(intensity);
-        hill.rt_values.push_back(rt);
-        hill.drift_times.push_back(spectrum.getDriftTime());
-        double ion_mobility = -1.0;
-        if (im_arr[r.scan] != nullptr)
+        if (r.peak >= im_arr[r.scan]->size())
         {
-          if (r.peak >= im_arr[r.scan]->size())
-          {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Ion mobility array shorter than peak list.",
-                                          StringUtils::toStr(r.peak));
-          }
-          ion_mobility = (*im_arr[r.scan])[r.peak];
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Ion mobility array shorter than peak list.",
+                                        StringUtils::toStr(r.peak));
         }
-        hill.ion_mobilities.push_back(ion_mobility);
-        hill.length = hill.scan_indices.size();
-        hill.rt_end = rt;
-        if (hill.length == 1)
-        {
-          hill.rt_start = rt;
-          hill.rt_apex = rt;
-          hill.intensity_apex = intensity;
-        }
-        else if (intensity > hill.intensity_apex)
-        {
-          hill.intensity_apex = intensity;
-          hill.rt_apex = rt;
-        }
-        hill.intensity_sum += intensity;
+        ion_mobility = (*im_arr[r.scan])[r.peak];
       }
+      hill.ion_mobilities.push_back(ion_mobility);
+      hill.length = hill.scan_indices.size();
+      hill.rt_end = rt;
+      if (hill.length == 1)
+      {
+        hill.rt_start = rt;
+        hill.rt_apex = rt;
+        hill.intensity_apex = intensity;
+      }
+      else if (intensity > hill.intensity_apex)
+      {
+        hill.intensity_apex = intensity;
+        hill.rt_apex = rt;
+      }
+      hill.intensity_sum += intensity;
     }
-    catch (...)
-    {
-      #pragma omp critical(b2_err)
-      if (!err) err = std::current_exception();
-    }
-  }
-  if (err) std::rethrow_exception(err);
+  });
 
   return hills;
 }
@@ -1927,7 +1924,6 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::splitHills_(vector<Hill> hill
 
   // each hill's segments in parallel (hill order kept); a segment s > 0 needs a fresh id, which the serial pass
   // below hands out in the same order as the sequential loop did (marked by hill_idx = max meanwhile)
-  const Size FRESH = numeric_limits<Size>::max();
   orderedParallel_(hills.size(), 1024, split_hills, [&](Size hi, vector<Hill>& split_hills)
   {
     Hill& hill = hills[hi];
@@ -2144,7 +2140,7 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::splitHills_(vector<Hill> hill
 	      }
 	      else
 	      {
-	        new_hill.hill_idx = FRESH;
+	        new_hill.hill_idx = NO_POS_;
 	      }
 
       split_hills.push_back(std::move(new_hill));
@@ -2152,7 +2148,7 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::splitHills_(vector<Hill> hill
   });
   for (Hill& h : split_hills)
   {
-    if (h.hill_idx == FRESH) h.hill_idx = next_hill_idx++;
+    if (h.hill_idx == NO_POS_) h.hill_idx = next_hill_idx++;
   }
 
   return split_hills;
@@ -2191,130 +2187,6 @@ Size Biosaur2Algorithm::checkIsotopeValleySplit_(const vector<IsotopeCandidate>&
   }
 
   return smoothed.size();
-}
-
-map<int, pair<double, double>> Biosaur2Algorithm::performInitialIsotopeCalibration_(const vector<Hill>& hills,
-                                                                                    double itol_ppm,
-                                                                                    int min_charge,
-                                                                                    int max_charge,
-                                                                                    bool enable_isotope_calib) const
-{
-  map<int, pair<double, double>> isotope_calib_map;
-  for (int ic = 1; ic <= 9; ++ic)
-  {
-    isotope_calib_map[ic] = make_pair(0.0, itol_ppm);
-  }
-
-  if (!enable_isotope_calib || hills.empty())
-  {
-    return isotope_calib_map;
-  }
-
-  OPENMS_LOG_INFO << "Performing isotope calibration..." << endl;
-
-  const double ISOTOPE_MASSDIFF = Constants::C13C12_MASSDIFF_U;
-
-  map<int, vector<double>> isotope_errors;
-  for (int ic = 1; ic <= 9; ++ic)
-  {
-    isotope_errors[ic] = vector<double>();
-  }
-
-  for (Size i = 0; i < hills.size(); ++i)
-  {
-    const Hill& mono_hill = hills[i];
-    double mono_mz = mono_hill.mz_weighted_mean;
-
-    for (int charge = max_charge; charge >= min_charge; --charge)
-    {
-      double mz_spacing = ISOTOPE_MASSDIFF / static_cast<double>(charge);
-      bool found_first = false;
-
-      for (int iso_num = 1; iso_num <= 9; ++iso_num)
-      {
-        double expected_mz = mono_mz + iso_num * mz_spacing;
-        double mz_tolerance = expected_mz * itol_ppm * 1e-6;
-
-        Size best_j = numeric_limits<Size>::max();
-        double best_intensity = -1.0;
-
-        for (Size j = i + 1; j < hills.size(); ++j)
-        {
-          if (hills[j].mz_weighted_mean > expected_mz + mz_tolerance)
-          {
-            break;
-          }
-
-          if (hills[j].mz_weighted_mean < expected_mz - mz_tolerance)
-          {
-            continue;
-          }
-
-          double diff = fabs(hills[j].mz_weighted_mean - expected_mz);
-          if (diff <= mz_tolerance)
-          {
-            if (hills[j].intensity_apex > best_intensity)
-            {
-              best_intensity = hills[j].intensity_apex;
-              best_j = j;
-            }
-          }
-        }
-
-        if (best_j != numeric_limits<Size>::max())
-        {
-          if (mono_hill.length >= 3)
-          {
-            double mass_diff_ppm = calculatePPM_(hills[best_j].mz_weighted_mean, expected_mz);
-            isotope_errors[iso_num].push_back(mass_diff_ppm);
-            if (iso_num == 1)
-            {
-              found_first = true;
-            }
-          }
-        }
-      }
-
-      if (found_first)
-      {
-        break;
-      }
-    }
-  }
-
-  for (int ic = 1; ic <= 3; ++ic)
-  {
-    if (isotope_errors[ic].size() >= 1000)
-    {
-      auto calib = calibrateMass_(isotope_errors[ic]);
-      isotope_calib_map[ic] = calib;
-      OPENMS_LOG_INFO << "Isotope " << ic << " calibration: shift="
-                      << calib.first << " ppm, sigma=" << calib.second << " ppm" << endl;
-    }
-  }
-
-  for (int ic = 4; ic <= 9; ++ic)
-  {
-    if (isotope_errors[ic].size() >= 1000)
-    {
-      isotope_calib_map[ic] = calibrateMass_(isotope_errors[ic]);
-    }
-    else if (ic > 1 && isotope_calib_map.contains(ic - 1))
-    {
-      auto prev = isotope_calib_map[ic - 1];
-      auto prev2 = isotope_calib_map.contains(ic - 2) ?
-                   isotope_calib_map[ic - 2] : make_pair(0.0, itol_ppm);
-
-      double shift_delta = prev.first - prev2.first;
-      double sigma_ratio = prev.second / max(prev2.second, 0.1);
-      isotope_calib_map[ic] = make_pair(prev.first + shift_delta, prev.second * sigma_ratio);
-    }
-  }
-
-  OPENMS_LOG_INFO << "Isotope 1 calibration: shift=" << isotope_calib_map[1].first
-                  << " ppm, sigma=" << isotope_calib_map[1].second << " ppm" << endl;
-
-  return isotope_calib_map;
 }
 
 double Biosaur2Algorithm::buildFastMzLookup_(const vector<Hill>& hills,
@@ -2413,22 +2285,10 @@ vector<Biosaur2Algorithm::PatternCandidate> Biosaur2Algorithm::generateIsotopeCa
   // Initial isotope candidate generation (analogous to get_initial_isotopes).
   // In parallel over contiguous chunks of mono hills; the chunks are concatenated in order, so the candidate
   // list equals the sequential one (each mono hill's candidates depend only on read-only data)
-  const Size n_hills = hills.size();
-  const Size chunk = 2048;
-  const SignedSize n_chunks = static_cast<SignedSize>((n_hills + chunk - 1) / chunk);
-  vector<vector<PatternCandidate>> ready_chunks(static_cast<Size>(n_chunks));
-  std::exception_ptr err;   // an exception may not leave an OpenMP region: the first one is rethrown after it
-  #pragma omp parallel for schedule(dynamic, 1)
-  for (SignedSize c = 0; c < n_chunks; ++c)
-  {
-  try
-  {
-  vector<PatternCandidate>& ready = ready_chunks[static_cast<Size>(c)];
-  const Size i_end = min(n_hills, static_cast<Size>(c + 1) * chunk);
-  for (Size i = static_cast<Size>(c) * chunk; i < i_end; ++i)
+  orderedParallel_(hills.size(), 2048, ready, [&](Size i, vector<PatternCandidate>& ready)
   {
     const Hill& mono_hill = hills[i];
-    if (mono_hill.scan_indices.empty()) continue;
+    if (mono_hill.scan_indices.empty()) return;
 
     double mono_mz = mono_hill.mz_weighted_mean;
     double mz_tol = itol_ppm * 1e-6 * mono_mz;
@@ -2645,19 +2505,7 @@ vector<Biosaur2Algorithm::PatternCandidate> Biosaur2Algorithm::generateIsotopeCa
         }
       }
     }
-  }
-  }
-  catch (...)
-  {
-    #pragma omp critical(b2_err)
-    if (!err) err = std::current_exception();
-  }
-  }
-  if (err) std::rethrow_exception(err);
-  for (auto& v : ready_chunks)
-  {
-    ready.insert(ready.end(), make_move_iterator(v.begin()), make_move_iterator(v.end()));
-  }
+  });
 
   return ready;
 }
@@ -2896,15 +2744,9 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::selectNonOverlappin
   // Build a lookup from hill_idx to Hill pointer for fast access to
   // apex intensities during the truncation / re-correlation step.
   // hill_idx -> hill and the occupied marks as dense tables (hill ids are below max + 1)
-  Size max_hill_idx = 0;
-  for (const auto& h : hills) max_hill_idx = max(max_hill_idx, h.hill_idx);
-  vector<const Hill*> hill_by_idx(max_hill_idx + 1, nullptr);
-  for (const auto& h : hills)
-  {
-    hill_by_idx[h.hill_idx] = &h;
-  }
+  const vector<const Hill*> hill_by_idx = byId_(hills);
   auto hillOf = [&hill_by_idx](Size id) -> const Hill* { return id < hill_by_idx.size() ? hill_by_idx[id] : nullptr; };
-  vector<char> occupied(max_hill_idx + 1, 0);
+  vector<char> occupied(hill_by_idx.size(), 0);
   auto isOccupied = [&occupied](Size id) { return id < occupied.size() && occupied[id] != 0; };
 
   for (Size si : sorted)
@@ -3118,9 +2960,6 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::detectIsotopePatter
     hill_idx_to_index[hills[idx].hill_idx] = idx;
   }
 
-  // The initial isotope calibration (performInitialIsotopeCalibration_) is diagnostic only: its result is
-  // discarded and it only logs, so it is not run here.
-
   // Build fast m/z lookup and optional ion-mobility bins.
   map<int, vector<FastHillEntry>> hills_mz_fast;
   vector<int> hill_im_bins;
@@ -3165,13 +3004,7 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>&
 
   // Build a lookup from hill index to Hill pointer so we can reconstruct
   // per-isotope convex hulls for each peptide feature.
-  Size max_hill_idx = 0;
-  for (const auto& h : hills) max_hill_idx = max(max_hill_idx, h.hill_idx);
-  vector<const Hill*> hill_by_idx(hills.empty() ? 0 : max_hill_idx + 1, nullptr);   // dense hill_idx -> hill
-  for (const auto& h : hills)
-  {
-    hill_by_idx[h.hill_idx] = &h;
-  }
+  const vector<const Hill*> hill_by_idx = byId_(hills);
   auto hillOf = [&hill_by_idx](Size id) -> const Hill* { return id < hill_by_idx.size() ? hill_by_idx[id] : nullptr; };
 
   // the features are built in parallel (feature order kept); their unique ids are drawn afterwards, serially
@@ -3414,59 +3247,22 @@ double Biosaur2Algorithm::cosineCorrelation_(const vector<double>& intensities1,
                                              const vector<double>& intensities2,
                                              const vector<Size>& scans2) const
 {
-  // hills' scan lists are strictly increasing (one peak per scan, appended in scan order): a merge walk then
-  // visits the same pairs in the same order as the two ordered maps below, so the sums are bit-identical without the
-  // two map builds per candidate pair; any other input takes the original path
-  auto increasing = [](const vector<Size>& v) { for (Size i = 1; i < v.size(); ++i) if (v[i] <= v[i - 1]) return false; return true; };
-  if (scans1.size() == intensities1.size() && scans2.size() == intensities2.size() && increasing(scans1) && increasing(scans2))
+  // hills' scan lists are strictly increasing (one peak per scan, appended in scan order), so a merge walk visits the
+  // shared scans in ascending order, as the two scan -> intensity maps it replaces did: same sums, bit for bit
+  OPENMS_PRECONDITION(scans1.size() == intensities1.size() && scans2.size() == intensities2.size(), "one intensity per scan");
+  OPENMS_PRECONDITION(std::adjacent_find(scans1.begin(), scans1.end(), std::greater_equal<>()) == scans1.end() &&
+                      std::adjacent_find(scans2.begin(), scans2.end(), std::greater_equal<>()) == scans2.end(),
+                      "scan lists must be strictly increasing");
+  double dot = 0.0, n1 = 0.0, n2 = 0.0;
+  for (Size i = 0, j = 0; i < scans1.size(); ++i)
   {
-    double dot = 0.0, n1 = 0.0, n2 = 0.0;
-    for (Size i = 0, j = 0; i < scans1.size(); ++i)
-    {
-      while (j < scans2.size() && scans2[j] < scans1[i]) ++j;
-      if (j < scans2.size() && scans2[j] == scans1[i]) dot += intensities1[i] * intensities2[j];
-      n1 += intensities1[i] * intensities1[i];
-    }
-    for (Size j = 0; j < scans2.size(); ++j) n2 += intensities2[j] * intensities2[j];
-    if (n1 == 0.0 || n2 == 0.0) return 0.0;
-    return dot / (sqrt(n1) * sqrt(n2));
+    while (j < scans2.size() && scans2[j] < scans1[i]) ++j;
+    if (j < scans2.size() && scans2[j] == scans1[i]) dot += intensities1[i] * intensities2[j];
+    n1 += intensities1[i] * intensities1[i];
   }
-  map<Size, double> map1, map2;
-  for (Size i = 0; i < scans1.size(); ++i)
-  {
-    map1[scans1[i]] = intensities1[i];
-  }
-  for (Size i = 0; i < scans2.size(); ++i)
-  {
-    map2[scans2[i]] = intensities2[i];
-  }
-
-  double dot_product = 0.0;
-  double norm1 = 0.0;
-  double norm2 = 0.0;
-
-  for (const auto& p1 : map1)
-  {
-    Size scan = p1.first;
-    double i1 = p1.second;
-    auto it = map2.find(scan);
-    if (it != map2.end())
-    {
-      dot_product += i1 * it->second;
-    }
-    norm1 += i1 * i1;
-  }
-
-  for (const auto& p2 : map2)
-  {
-    norm2 += p2.second * p2.second;
-  }
-
-  if (norm1 == 0.0 || norm2 == 0.0)
-  {
-    return 0.0;
-  }
-  return dot_product / (sqrt(norm1) * sqrt(norm2));
+  for (Size j = 0; j < scans2.size(); ++j) n2 += intensities2[j] * intensities2[j];
+  if (n1 == 0.0 || n2 == 0.0) return 0.0;
+  return dot / (sqrt(n1) * sqrt(n2));
 }
 
 void Biosaur2Algorithm::writeTSV(const vector<PeptideFeature>& features, const std::string& filename) const
