@@ -174,6 +174,15 @@ public:
        * Same as the overload without @p updated_hits, except for hits without a usable score: these are left unchanged
        * (and not added to @p updated_hits), so that the caller can treat them consistently with the other hits of their run
        * (the overload without @p updated_hits assigns them a PEP of 1).
+       * @param[in] PEP_model the PEP model used to update the scores
+       * @param[in] search_engine the score of search_engine will be updated (key as returned by extractAndTransformScores())
+       * @param[in] charge identifications with the given charge will be updated
+       * @param[in] prob_correct report 1-PEP
+       * @param[in] split_charge if charge states have been treated separately
+       * @param[in,out] protein_ids the protein identifications
+       * @param[in,out] peptide_ids the peptide identifications
+       * @param[out] unable_to_fit_data there was a problem fitting the data (probabilities are all smaller 0 or larger 1)
+       * @param[out] data_might_not_be_well_fit fit was successful but of bad quality (probabilities are all smaller 0.8 and larger 0.2)
        * @param[in,out] updated_hits pairs (index into @p peptide_ids, index of the hit) of the updated hits are added
        */
       static void updateScores(
