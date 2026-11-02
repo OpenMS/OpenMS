@@ -455,6 +455,7 @@ It lacks behind in speed and/or quality of results when compared to state-of-the
 
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 @note Open-search mode is automatically determined by the precursor mass tolerance: enabled when tolerance exceeds 1 Da or 1000 ppm. No explicit open-search parameter is needed. This is logged at runtime and recorded in the output search parameters as UserParam 'open_search'.
+@note Mass tolerances are measured by default ('-Search:calibration:enabled', on in this tool; the library's ProSEAlgorithm default is off). A calibration pass over the 10 % most intense spectra, searched with at least 20 ppm precursor and fragment windows (the configured ones if wider), takes the offset (median) and the spread (robust standard deviation, 1.4826 * MAD) of the signed mass errors of its confident PSMs. The main search then uses the precursor window median +/- 4 sigma (asymmetric about zero when the run has a mass offset) and the fragment tolerance |median| + 4 sigma, never wider than '-Search:precursor:mass_tolerance_lower/_upper' and '-Search:fragment:mass_tolerance' and never below 2.5 ppm per side and 10 ppm (0.005 and 0.2 Da): the configured tolerances are the widest windows searched, and a stated window stays an upper bound. The pass takes its spectra per tenth of the run, and a window that covers less than 98 % of the calibration PSMs (precursor; heavy tails, or a mass offset that changes over the run such as a lock mass dropping out) or 95 % of their matched fragment peaks (fragment) is not trusted: the configured tolerance is kept, with a warning. In practice the gain comes from the fragment window (10 ppm on Astral data: +4 % PSMs); the precursor window stays at the configured value unless the run's errors are very clean. Set '-Search:calibration:enabled false' to search with the configured tolerances as given. The measured errors are logged and the errors of the final PSMs reported in the run summary and the QPX provenance ('precursor_error_*', 'fragment_error_*'). '-Search:precursor:isotope_error_min' is -2 in this tool (the library: -1): a precursor may have been picked on the first or second 13C peak of its peptide, which holds for 2-4 % of the identifications of DIA pseudo-spectra and for some of DDA. '-Search:precursor:mono_correction' (off) corrects such precursors from the MS1 features of the run (Biosaur2) before the search, for inputs that include the survey scans.
 @note Decoy handling is controlled by '-Search:decoys'. The default 'generate' always builds the decoys from the targets (prefixing accessions with '-Search:decoy_prefix', default "DECOY_"; decoys in the FASTA are removed first), with '-Search:decoy_method' keep_termini (default; for a fully specific digestion with an enzyme whose cleavage sites are fixed by K, R and P, e.g. Trypsin, Trypsin/P, Lys-C, Arg-C; semi- or non-specific digestion as 'reverse', other enzymes with a warning): every target peptide, also every protein N-terminal and Met-clipped one, has a decoy of the same start, length, mass and cleavage sites, so the protein N-terminal classes are controlled by target-decoy competition like the others (with 'Acetyl (Protein N-term)' among the default variable modifications, '-Search:rescoring:terminal_features' and '-Search:rescoring:stratum_q_values', also defaults). 'auto' reuses decoys already present in the FASTA (the marker is auto-detected, prefix or suffix, e.g. from DecoyDatabase) or generates them if none are found; it reuses supplied decoys only at 0.5 to 2 decoys per target protein (target-decoy FDR needs about one decoy per target: a database with far fewer, e.g. a few 'DECOY_' entries, or far more decoys is refused with an error before the search); with reversed-protein decoys the protein N-terminal classes have almost no decoys (set '-Search:rescoring:terminal_features false' and '-Search:rescoring:stratum_q_values false' then). 'ignore' searches the targets only.
 @note Repeated database entries: an entry whose accession and sequence an entry before it has (e.g. a FASTA file or the contaminants added twice) is searched once, with a warning; two entries of one accession with different sequences are refused with an error naming the accession and the file, before the search.
 @section ProSE_modes Final results vs. intermediates
@@ -759,8 +760,10 @@ class ProSE :
 
     /// ProSEAlgorithm's defaults with the tool's own configuration (int16, quality gate v2 of 26 Oct 2026): symmetric
     /// protein N-terminal decoys (decoys generate, decoy_method keep_termini), 'Acetyl (Protein N-term)' among the variable
-    /// modifications, the terminal rescoring features and stratum q-values. The library keeps its defaults for these
-    /// five (decoys auto, decoy_method reverse, Oxidation (M) only, no terminal features or stratum q-values); its
+    /// modifications, the terminal rescoring features and stratum q-values; since 2 Nov 2026 also the automatic mass
+    /// tolerances (calibration:enabled) and the second 13C peak as a precursor isotope error (isotope_error_min -2). The
+    /// library keeps its defaults for these seven (decoys auto, decoy_method reverse, Oxidation (M) only, no terminal
+    /// features or stratum q-values, calibration off, isotope_error_min -1); its
     /// CalcMass handling (not a training feature, #10717) and charge range (recorded charges outside of it are not
     /// searched, #10713) are those of OpenMS develop.
     static Param toolSearchDefaults_()
@@ -779,6 +782,9 @@ class ProSE :
       set("modifications:variable", std::vector<std::string>{"Oxidation (M)", "Acetyl (Protein N-term)"});
       set("rescoring:terminal_features", "true");
       set("rescoring:stratum_q_values", "true");
+      // automatic mass tolerances and the second 13C peak (2 Nov 2026; the library keeps calibration off and -1)
+      set("calibration:enabled", "true");
+      set("precursor:isotope_error_min", -2);
       return p;
     }
 
