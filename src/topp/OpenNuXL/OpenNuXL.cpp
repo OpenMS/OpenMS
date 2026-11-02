@@ -960,6 +960,14 @@ protected:
     registerDoubleOption_("report:peptideFDR", "<num>", 0.01, "Maximum q-value of non-cross-linked peptides. (0 = disabled).", false, true);
     registerDoubleList_("report:xlFDR", "<num>", { 0.01, 0.1, 1.0 }, "Maximum q-value of cross-linked peptides at the PSM-level. (0 or 1 = disabled). If multiple values are provided, multiple output files will be created.", false, true);
     registerDoubleList_("report:xl_peptidelevel_FDR", "<num>", { 1.00, 1.0, 1.0 }, "Maximum q-value of cross-linked peptides at the peptide-level. (0 or 1 = disabled). Needs to have same size as PSM-level FDR. Filtering is applied together with the correpsonding value in the report:xlFDR list.", false, true);
+    registerStringOption_("report:xl_fdr_groups", "<mode>", "auto",
+      "Separate FDR group for short cross-links (at most " + std::to_string(NuXLFDR::SHORT_XL_MAX_LENGTH) + " residues, nucleic acid adduct of at least "
+      + std::to_string(NuXLFDR::SHORT_XL_MIN_NA_LENGTH) + " nucleotides). They carry little sequence-specific fragment evidence next to their adduct, "
+      "so with one FDR over all cross-links far more of the short ones are false. In their own group, the FDR of the short and of the "
+      "other cross-links is each held at report:xlFDR (annotated as NuXL:fdr_group). 'auto': only if the short cross-links have at least "
+      + std::to_string(NuXLFDR::AUTO_MIN_DECOYS) + " decoys at " + std::to_string(static_cast<int>(NuXLFDR::AUTO_FDR * 100)) + "% FDR over all "
+      "cross-links, enough to estimate their own FDR. 'on': whenever the short and the other cross-links both have decoys. 'off': one FDR over all cross-links.", false, false);
+    setValidStrings_("report:xl_fdr_groups", {"auto", "on", "off"});
 
     registerInputFile_("percolator_executable", "<executable>", 
  // choose the default value according to the platform where it will be executed
@@ -5096,7 +5104,7 @@ protected:
       all_possible_marker_ion_sub_score_spectrum_z1.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
       all_possible_marker_ion_sub_score_spectrum_z1.getStringDataArrays()[0]);
 
-    NuXLFDR fdr(report_top_hits);
+    NuXLFDR fdr(report_top_hits, NuXLFDR::xlGroupsFromString(getStringOption_("report:xl_fdr_groups")));
 
     // load MS2 map
     PeakMap spectra;
