@@ -11219,13 +11219,13 @@ namespace OpenMS
 
     // The subset: the spectra of the highest TIC (the best-measured ones), taken per tenth of the run (the spectra are in
     // acquisition order) so that a mass offset that changes over the run is represented in the sample
-    vector<pair<double, Size>> tic_index;
-    tic_index.reserve(spectra.size());
-    for (Size i = 0; i < spectra.size(); ++i)
+    vector<pair<double, Size>> tic_index(spectra.size());
+#pragma omp parallel for schedule(static) if (spectra.size() >= 4096)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(spectra.size()); ++i)
     {
       double tic = 0;
       for (const auto& p : spectra[i]) { tic += p.getIntensity(); }
-      tic_index.emplace_back(tic, i);
+      tic_index[i] = {tic, static_cast<Size>(i)};
     }
     vector<Size> subset;
     {
@@ -11238,6 +11238,15 @@ namespace OpenMS
                           [](const pair<double, Size>& a, const pair<double, Size>& c) { return a.first > c.first; });
         for (Size i = begin; i < begin + take; ++i) { subset.push_back(tic_index[i].second); }
       }
+    }
+    // Scored in the order of the precursor mass, as the main search (scoringOrder_()): neighbouring iterations probe the
+    // same precursor-window slices of the fragment index, which stay in the caches. The hits are sorted by score below,
+    // so the order does not change the result.
+    {
+      std::vector<unsigned char> in_subset(spectra.size(), 0);
+      for (Size i : subset) in_subset[i] = 1;
+      subset.clear();
+      for (SignedSize i : scoringOrder_(spectra, query_spectra)) { if (in_subset[i]) subset.push_back(static_cast<Size>(i)); }
     }
     const Size subset_size = subset.size();
 
@@ -11271,7 +11280,15 @@ namespace OpenMS
     // leave the parallel region, which would terminate the process: the first one is rethrown after the loop.
     std::exception_ptr calibration_error;
     std::atomic<bool> calibration_failed{false};
-#pragma omp parallel for schedule(dynamic)
+    // Runs of neighbouring masses per core, at least 8 chunks per thread; one spectrum per chunk in peptide-mass mode
+    // (as the main loop)
+#ifdef _OPENMP
+    const int cal_chunk = fragment_index.isPeptideMassMode() ? 1 : static_cast<int>(std::clamp<SignedSize>(
+      static_cast<SignedSize>(subset_size) / (SignedSize(8) * std::max(1, omp_get_max_threads())), 1, 64));
+#else
+    [[maybe_unused]] const int cal_chunk = 1; // (only the OpenMP directive uses it)
+#endif
+#pragma omp parallel for schedule(dynamic, cal_chunk)
     for (SignedSize si = 0; si < (SignedSize)subset_size; ++si)
     {
       if (calibration_failed.load(std::memory_order_relaxed)) continue;
@@ -11281,7 +11298,11 @@ namespace OpenMS
       const MSSpectrum& spec = spectra[scan_idx];
       const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spec);
 
-      FragmentIndex::SpectrumMatchesTopN top_sms;
+      // The per-thread containers of the main loop (scoreSpectraAgainstIndex_()): the candidates and the theoretical
+      // spectrum keep the capacity the thread's largest spectrum needed instead of taking fresh buffers per spectrum
+      ScoringScratch_& scratch = scoringScratch_();
+      FragmentIndex::SpectrumMatchesTopN& top_sms = scratch.top_sms;
+      top_sms.clear();
       const MSSpectrum& query = query_spectra != nullptr ? (*query_spectra)[scan_idx] : spec;
       fragment_index.querySpectrum(query, db, top_sms, generators.electronIons(spec));
 
@@ -11291,10 +11312,8 @@ namespace OpenMS
       int best_isotope_error = 0;
       uint16_t best_charge = 0;
 
-      // Reused across this spectrum's candidates — same rationale as the main
-      // scoring loop: a fresh PeakSpectrum per candidate churns its DataArrays
-      // (ion names / charges filled by add_metainfo) on the heap.
-      PeakSpectrum theo;
+      PeakSpectrum& theo = scratch.theo_spectrum;
+      std::vector<uint8_t>& theo_ion_series = scratch.theo_ion_series;
 
       for (const auto& sms : top_sms.hits_)
       {
@@ -11302,19 +11321,29 @@ namespace OpenMS
         AASequence seq = fragment_index.isPeptideMassMode()
           ? fragment_index.reconstructRealizedSubSequence(peptide, db, sms.realized_length_, sms.subset_bitmask_)
           : fragment_index.reconstructModifiedSequence(peptide, db);
-        // Clear peaks + data arrays before refilling; getSpectrum appends to
-        // whatever is there. Its output is already sorted with add_metainfo=true.
-        theo.clear(true);
-        tsg.getSpectrum(theo, seq, 1, scoringMaxCharge_(sms.precursor_charge_));
 
         // The calibration PSMs are selected with the search's own score (upstream 825c33bb). The mass-accuracy score
         // favours PSMs with small fragment errors, so it narrows the fragment tolerance estimated from them below
         // (2-10% narrower than with HyperScore on 12 of 14 ppm runs); selecting by HyperScore instead did not
         // change the yield measurably.
+        // The peaks of getSpectrum() with the ion series per peak instead of the ion names (no strings, no data
+        // arrays), as the main loop: the same scores. The string path only when the generator cannot (losses, ...).
         HyperScore::PSMDetail detail;
-        double score = mass_accuracy_score_
-          ? HyperScore::computeMassAccuracy(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, mass_error_sd_ppm_, detail)
-          : HyperScore::computeWithDetail(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, detail);
+        double score;
+        if (tsg.getIonSeriesSpectrum(theo, theo_ion_series, seq, 1, scoringMaxCharge_(sms.precursor_charge_)))
+        {
+          score = mass_accuracy_score_
+            ? HyperScore::computeMassAccuracy(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, theo_ion_series, mass_error_sd_ppm_, detail)
+            : HyperScore::computeWithDetail(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, theo_ion_series, detail);
+        }
+        else
+        {
+          theo.clear(false); // peaks and data arrays; getSpectrum appends, its output is sorted with add_metainfo=true
+          tsg.getSpectrum(theo, seq, 1, scoringMaxCharge_(sms.precursor_charge_));
+          score = mass_accuracy_score_
+            ? HyperScore::computeMassAccuracy(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, mass_error_sd_ppm_, detail)
+            : HyperScore::computeWithDetail(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, detail);
+        }
 
         if (score > best_score)
         {
@@ -11348,8 +11377,11 @@ namespace OpenMS
 
       // The signed errors of the fragment peaks the best hit explains, within the pass window
       std::vector<float> frag_errors, frag_mzs;
-      theo.clear(true);
-      tsg.getSpectrum(theo, best_seq, 1, scoringMaxCharge_(best_charge));
+      if (!tsg.getIonSeriesSpectrum(theo, theo_ion_series, best_seq, 1, scoringMaxCharge_(best_charge))) // (the same peaks)
+      {
+        theo.clear(false);
+        tsg.getSpectrum(theo, best_seq, 1, scoringMaxCharge_(best_charge));
+      }
       matchedFragmentErrors(spec, theo, pass_fragment, fragment_mass_tolerance_unit_ppm, frag_errors, &frag_mzs);
 
 #pragma omp critical (prose_calibration_hits)
