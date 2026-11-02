@@ -913,7 +913,6 @@ Converts a file type name into a Type
         .value("HARDKLOER", OpenMS::FileTypes::Type::HARDKLOER)
         .value("KROENIK", OpenMS::FileTypes::Type::KROENIK)
         .value("BEDRMOD", OpenMS::FileTypes::Type::BEDRMOD)
-        .value("MZPEAK", OpenMS::FileTypes::Type::MZPEAK)
         .value("FASTA", OpenMS::FileTypes::Type::FASTA)
         .value("EDTA", OpenMS::FileTypes::Type::EDTA)
         .value("CSV", OpenMS::FileTypes::Type::CSV)
