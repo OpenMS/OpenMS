@@ -1772,7 +1772,7 @@ namespace OpenMS::Math
       bool & data_might_not_be_well_fit)
     {
       std::set<std::pair<Size, Size>> updated_hits;
-      updateScores(PEP_model, search_engine, charge, prob_correct, split_charge, protein_ids, peptide_ids, unable_to_fit_data, data_might_not_be_well_fit, updated_hits);
+      updateScores_(PEP_model, search_engine, charge, prob_correct, split_charge, protein_ids, peptide_ids, unable_to_fit_data, data_might_not_be_well_fit, true, updated_hits);
     }
 
     void PosteriorErrorProbabilityModel::updateScores(
@@ -1785,6 +1785,22 @@ namespace OpenMS::Math
       PeptideIdentificationList & peptide_ids,
       bool & unable_to_fit_data,
       bool & data_might_not_be_well_fit,
+      std::set<std::pair<Size, Size>> & updated_hits)
+    {
+      updateScores_(PEP_model, search_engine, charge, prob_correct, split_charge, protein_ids, peptide_ids, unable_to_fit_data, data_might_not_be_well_fit, false, updated_hits);
+    }
+
+    void PosteriorErrorProbabilityModel::updateScores_(
+      const PosteriorErrorProbabilityModel & PEP_model,
+      const std::string & search_engine,
+      const Int charge,
+      const bool prob_correct,
+      const bool split_charge,
+      vector<ProteinIdentification> & protein_ids,
+      PeptideIdentificationList & peptide_ids,
+      bool & unable_to_fit_data,
+      bool & data_might_not_be_well_fit,
+      bool unusable_to_one,
       std::set<std::pair<Size, Size>> & updated_hits)
     {
       const std::string engine = normalizeEngineKey(search_engine);
@@ -1817,16 +1833,15 @@ namespace OpenMS::Math
           PeptideHit& hit = hits[hit_index];
           if (!split_charge || (hit.getCharge() == charge))
           {
-            double score;
-            hit.setMetaValue(score_type, hit.getScore());
-            score = PosteriorErrorProbabilityModel::transformScore_(engine, hit, pep.getScoreType(), pep.isHigherScoreBetter(), score_source);
-
-            //TODO they should be ignored during fitting already!
-            // and in this issue the -log(10^99) should actually be an acceptable value.
-            if (std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
+            double score = PosteriorErrorProbabilityModel::transformScore_(engine, hit, pep.getScoreType(), pep.isHigherScoreBetter(), score_source);
+            if (std::isnan(score)) // no usable score (e.g. issue #740: Mascot score 0; or the score type of the model is missing)
             {
-              score = 1.0;
               ++n_unusable;
+              if (!unusable_to_one)
+              {
+                continue; // left unchanged
+              }
+              score = 1.0;
             }
             else
             {
@@ -1839,6 +1854,7 @@ namespace OpenMS::Math
               }
               //TODO implement something to check the quality of fit and set data_might_not_be_well_fit
             }
+            hit.setMetaValue(score_type, hit.getScore());
             hit.setScore(prob_correct ? 1.0 - score : score);
             updated_hits.emplace(index, hit_index);
           }
@@ -1847,7 +1863,7 @@ namespace OpenMS::Math
       if (n_unusable > 0)
       {
         OPENMS_LOG_WARN << "Warning: " << n_unusable << " hit(s) of search engine " << engine << (split_charge ? " (charge " + StringUtils::toStr(charge) + ")" : std::string())
-                        << " have no usable score and were assigned a PEP of 1." << std::endl;
+                        << " have no usable score and " << (unusable_to_one ? "were assigned a PEP of 1." : "were not updated.") << std::endl;
       }
     }
 } // namespace OpenMS // namespace Math

@@ -171,8 +171,9 @@ public:
       /**
        * @brief update score entries with PEP (or 1-PEP) estimates and report which hits were updated
        *
-       * Same as the overload without @p updated_hits.
-       * Hits without a usable score get a PEP of 1.
+       * Same as the overload without @p updated_hits, except for hits without a usable score: these are left unchanged
+       * (and not added to @p updated_hits), so that the caller can treat them consistently with the other hits of their run
+       * (the overload without @p updated_hits assigns them a PEP of 1).
        * @param[in,out] updated_hits pairs (index into @p peptide_ids, index of the hit) of the updated hits are added
        */
       static void updateScores(
@@ -441,6 +442,20 @@ private:
       /// For engines with dedicated support, the most preferred of their score types that any hit has; otherwise (or if no hit
       /// has any of them) an empty string, i.e. the main score of the identifications. One score type per engine keeps the scores
       /// of a model on the same scale.
+      /// implementation of updateScores(); hits without a usable score get a PEP of 1 if @p unusable_to_one is set, otherwise they are left unchanged
+      static void updateScores_(
+        const PosteriorErrorProbabilityModel & PEP_model,
+        const std::string & search_engine,
+        const Int charge,
+        const bool prob_correct,
+        const bool split_charge,
+        std::vector<ProteinIdentification> & protein_ids,
+        PeptideIdentificationList & peptide_ids,
+        bool & unable_to_fit_data,
+        bool & data_might_not_be_well_fit,
+        bool unusable_to_one,
+        std::set<std::pair<Size, Size>> & updated_hits);
+
       static std::map<std::string, std::string> chooseScoreSources_(const std::map<std::string, std::string>& run_to_engine, const PeptideIdentificationList& peptide_ids);
 
       /// gets a specific score (either main score [preferred] or metavalue)

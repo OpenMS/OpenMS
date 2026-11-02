@@ -971,6 +971,39 @@ START_SECTION((static std::map<std::string, std::vector<std::vector<double>>> ex
   TEST_EQUAL(only_xtandem, true)
   TEST_EQUAL(valid, true)
 
+  // hits without the score type of the model (here: X! Tandem runs with and without e-values) are left unchanged by the
+  // overload reporting the updated hits (the caller keeps the score types of a run consistent); the other overload assigns a PEP of 1
+  {
+    std::vector<ProteinIdentification> runs(2);
+    runs[0].setIdentifier("with_evalues");
+    runs[0].setSearchEngine("XTandem");
+    runs[1].setIdentifier("without_evalues");
+    runs[1].setSearchEngine("XTandem");
+    PeptideIdentificationList ids;
+    for (Size i = 0; i < 3; ++i)
+    {
+      PeptideIdentification with = makeIdentification("with_evalues", "XTandem", true, "scan=" + StringUtils::toStr(i));
+      PeptideHit hit = makeHit(30.0, 2, "target");
+      hit.setMetaValue("expect", 1e-3);
+      with.setHits({hit});
+      PeptideIdentification without = makeIdentification("without_evalues", "XTandem", true, "scan=" + StringUtils::toStr(i));
+      without.setHits({makeHit(40.0, 2, "target")});
+      ids.push_back(with);
+      ids.push_back(without);
+    }
+    PeptideIdentificationList ids_copy = ids;
+    std::set<std::pair<Size, Size>> updated_hits;
+    PosteriorErrorProbabilityModel::updateScores(model, "XTANDEM", -1, false, false, runs, ids, unable_to_fit, not_well_fit, updated_hits);
+    TEST_EQUAL(updated_hits.size(), 3)
+    TEST_EQUAL(updated_hits.count({0, 0}), 1)
+    TEST_EQUAL(ids[0].getHits()[0].metaValueExists("XTandem_score"), true)
+    TEST_REAL_SIMILAR(ids[1].getHits()[0].getScore(), 40.0) // unchanged
+    TEST_EQUAL(ids[1].getHits()[0].metaValueExists("XTandem_score"), false)
+    PosteriorErrorProbabilityModel::updateScores(model, "XTANDEM", -1, false, false, runs, ids_copy, unable_to_fit, not_well_fit);
+    TEST_REAL_SIMILAR(ids_copy[1].getHits()[0].getScore(), 1.0)
+    TEST_REAL_SIMILAR(double(ids_copy[1].getHits()[0].getMetaValue("XTandem_score")), 40.0)
+  }
+
   // separate target and decoy searches of the same spectra file, stored as separate runs: top hits compete per spectrum
   {
     std::vector<ProteinIdentification> runs(2);

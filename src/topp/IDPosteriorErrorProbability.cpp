@@ -230,9 +230,11 @@ protected:
       vector<double>* decoys = &score.second[2];
 
       // With split_charge, charge states with fewer than min_decoys decoys (or without targets) use the target-decoy data of all
-      // charge states, if these contain more decoys. (Which estimator is used is decided by the model, see decoy_handling.)
+      // charge states, if other charge states contribute top hits (targets or decoys). (Which estimator is used is decided by
+      // the model, see decoy_handling.)
       auto pooled_it = pooled_scores.find(engine);
       const bool pooled_available = split_charge && pooled_it != pooled_scores.end() && !pooled_it->second[1].empty() && !pooled_it->second[2].empty();
+      const bool pooled_has_more = pooled_available && pooled_it->second[1].size() + pooled_it->second[2].size() > targets->size() + decoys->size();
       // decoys present: target-decoy based estimate (without targets, nothing can be estimated; never model decoys without supervision)
       const bool use_decoys = (decoy_handling != "ignore") && (!decoys->empty() || pooled_available);
       bool use_pooled = false;
@@ -243,7 +245,7 @@ protected:
         decoys = &pooled_it->second[2];
         use_pooled = true;
       };
-      if (use_decoys && pooled_available && pooled_it->second[2].size() > decoys->size() && (decoys->size() < min_decoys || targets->empty()))
+      if (use_decoys && pooled_has_more && (decoys->size() < min_decoys || targets->empty()))
       {
         switch_to_pooled("Only " + StringUtils::toStr(targets->size()) + " target and " + StringUtils::toStr(decoys->size()) + " decoy top hits for " + model_name + ".");
       }
