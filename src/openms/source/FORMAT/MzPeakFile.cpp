@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/MzPeakFile.h>
 
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
@@ -37,6 +38,7 @@
 #include <mzpeak/schema/psi/array_type.h>
 #include <mzpeak/spectra.h>
 #include <mzpeak/spectrum.h>
+#include <mzpeak/util/decode_pool.h>
 #include <mzpeak/writer.h>
 
 #include <boost/json.hpp>
@@ -183,6 +185,14 @@ namespace OpenMS
 
     /// The spectra decoded in parallel per call of the consumer (transform()): bounds the memory of a streamed read
     constexpr Size BATCH_SIZE = 2048;
+
+    /// Hands the decoded Parquet buffers back to the system when the index and the readers declared after it are gone.
+    /// The library's process-wide decode pool otherwise keeps the buffers of its recent peak (up to the row group
+    /// cache's budget of 1 GiB) until a later read.
+    struct ReleaseDecodeBuffers
+    {
+      ~ReleaseDecodeBuffers() { MzPeak::Util::decode_pool().ReleaseUnused(); }
+    };
 
     /// How often the progress is updated (spectra)
     constexpr Size PROGRESS_STEP = 1000;
@@ -592,7 +602,12 @@ namespace OpenMS
       }
       const std::vector<double>& time = in.time(); // seconds
       const std::vector<float>& intensity = in.intensity();
-      const Size n = std::min(time.size(), intensity.size());
+      if (time.size() != intensity.size()) // (as toSpectrum rejects m/z and intensity arrays of different length)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, md.id,
+                                    "mzPeak chromatogram with " + std::to_string(time.size()) + " time and " + std::to_string(intensity.size()) + " intensity values");
+      }
+      const Size n = time.size();
       out.resize(n);
       for (Size i = 0; i < n; ++i)
       {
@@ -613,9 +628,11 @@ namespace OpenMS
         {
           try
           {
-            std::string t = *md.run()->start_time;
-            if (t.size() > 19) { t.resize(19); } // "yyyy-MM-ddThh:mm:ss" (no fraction, no zone)
-            settings.setDateTime(DateTime::fromString(t));
+            // ISO 8601 (with or without fraction and zone; the zone is dropped) or "yyyy-MM-dd hh:mm:ss". set() throws
+            // for anything else (fromString() would return an invalid DateTime instead).
+            DateTime start;
+            start.set(*md.run()->start_time);
+            settings.setDateTime(start);
           }
           catch (...)
           {
@@ -625,6 +642,7 @@ namespace OpenMS
       }
       if (md.file_description())
       {
+        const ControlledVocabulary& cv = ControlledVocabulary::getPSIMSCV();
         for (const MzPeak::SourceFile& sf : md.file_description()->source_files)
         {
           SourceFile out;
@@ -632,10 +650,16 @@ namespace OpenMS
           if (sf.location) { out.setPathToFile(*sf.location); }
           for (const MzPeak::CvParam& p : sf.parameters)
           {
-            if (!p.accession || !p.name) { continue; }
-            if (p.accession->rfind("MS:", 0) == 0 && p.name->find("file format") != std::string::npos) { out.setFileType(*p.name); }
-            else if (*p.accession == "MS:1000569" && p.value) { out.setChecksum(*p.value, SourceFile::ChecksumType::SHA1); }
+            if (!p.accession) { continue; } // (the terms below are recognised by their accession alone; setCvMeta needs a name)
+            if (*p.accession == "MS:1000569" && p.value) { out.setChecksum(*p.value, SourceFile::ChecksumType::SHA1); }
             else if (*p.accession == "MS:1000568" && p.value) { out.setChecksum(*p.value, SourceFile::ChecksumType::MD5); }
+            // the file format and the native ID format by the CV, as MzMLHandler reads them
+            else if (cv.exists(*p.accession) && cv.isChildOf(*p.accession, "MS:1000560")) { out.setFileType(cv.getTerm(*p.accession).name); }
+            else if (cv.exists(*p.accession) && cv.isChildOf(*p.accession, "MS:1000767"))
+            {
+              out.setNativeIDType(cv.getTerm(*p.accession).name);
+              out.setNativeIDTypeAccession(*p.accession);
+            }
             else { setCvMeta(out, p); }
           }
           settings.getSourceFiles().push_back(out);
@@ -876,7 +900,8 @@ namespace OpenMS
         out.mz[i] = in[i].getMZ();
         out.intensity[i] = in[i].getIntensity();
       }
-      out.centroid = in.getType() != SpectrumSettings::SpectrumType::PROFILE; // (unknown: centroided, as most OpenMS inputs are)
+      // (an unknown type is estimated from the peaks, as PeakPickerHiRes does; a spectrum without peaks is centroided)
+      out.centroid = in.getType(true) != SpectrumSettings::SpectrumType::PROFILE;
       out.ms_level = static_cast<uint8_t>(std::min<UInt>(in.getMSLevel(), 255));
       out.retention_time = in.getRT();
       switch (in.getInstrumentSettings().getPolarity())
@@ -913,6 +938,22 @@ namespace OpenMS
       return out;
     }
 
+    /// The PSI-MS term below @p parent_accession named @p name, or nullptr (none of that name, or an empty name)
+    const ControlledVocabulary::CVTerm* childWithName(const std::string& parent_accession, const std::string& name)
+    {
+      if (name.empty()) { return nullptr; }
+      const ControlledVocabulary& cv = ControlledVocabulary::getPSIMSCV();
+      const ControlledVocabulary::CVTerm* found = nullptr;
+      cv.iterateAllChildren(parent_accession, [&cv, &name, &found](const std::string& child)
+      {
+        const ControlledVocabulary::CVTerm& term = cv.getTerm(child);
+        if (term.name != name) { return false; }
+        found = &term;
+        return true;
+      });
+      return found;
+    }
+
     /// The run-level metadata of the archive: run id, source files, software
     MzPeak::RunMetadata toRunMetadata(const PeakMap& exp)
     {
@@ -920,7 +961,13 @@ namespace OpenMS
       json::object root;
       json::object run;
       if (!exp.getIdentifier().empty()) { run["id"] = exp.getIdentifier(); }
-      if (exp.getDateTime().isValid()) { run["start_time"] = exp.getDateTime().get(); }
+      if (exp.getDateTime().isValid())
+      {
+        // ISO 8601, with the milliseconds if there are any
+        std::string start = exp.getDateTime().toString("yyyy-MM-ddThh:mm:ss.zzz");
+        if (start.size() > 4 && start.compare(start.size() - 4, 4, ".000") == 0) { start.resize(start.size() - 4); }
+        run["start_time"] = start;
+      }
       if (!run.empty()) { root["run"] = run; }
       json::array source_files;
       Size k = 0;
@@ -930,6 +977,27 @@ namespace OpenMS
         o["id"] = "sf" + std::to_string(k++);
         o["name"] = sf.getNameOfFile();
         o["location"] = sf.getPathToFile();
+        json::array parameters;
+        const auto param = [&parameters](const std::string& accession, const std::string& name, const std::string& value)
+        {
+          json::object p;
+          p["accession"] = accession;
+          p["name"] = name;
+          if (!value.empty()) { p["value"] = value; }
+          parameters.push_back(p);
+        };
+        if (!sf.getChecksum().empty() && sf.getChecksumType() == SourceFile::ChecksumType::SHA1) { param("MS:1000569", "SHA-1", sf.getChecksum()); }
+        else if (!sf.getChecksum().empty() && sf.getChecksumType() == SourceFile::ChecksumType::MD5) { param("MS:1000568", "MD5", sf.getChecksum()); }
+        // the file format and the native ID format as CV terms (as MzMLHandler writes them; a name not in the CV is left out)
+        if (const ControlledVocabulary::CVTerm* term = childWithName("MS:1000560", sf.getFileType())) { param(term->id, term->name, ""); }
+        const ControlledVocabulary::CVTerm* id_term = nullptr;
+        if (!sf.getNativeIDTypeAccession().empty() && ControlledVocabulary::getPSIMSCV().exists(sf.getNativeIDTypeAccession()))
+        {
+          id_term = &ControlledVocabulary::getPSIMSCV().getTerm(sf.getNativeIDTypeAccession());
+        }
+        if (id_term == nullptr) { id_term = childWithName("MS:1000767", sf.getNativeIDType()); }
+        if (id_term != nullptr) { param(id_term->id, id_term->name, ""); }
+        if (!parameters.empty()) { o["parameters"] = parameters; }
         source_files.push_back(o);
       }
       if (!source_files.empty())
@@ -952,6 +1020,7 @@ namespace OpenMS
 
   void MzPeakFile::load(const std::string& filename, PeakMap& exp)
   {
+    ReleaseDecodeBuffers release; // (first: destroyed after the index and the reader)
     exp.reset();
     const MzPeak::Index index = openIndex(filename);
     toSettings(index, filename, exp);
@@ -980,6 +1049,7 @@ namespace OpenMS
 
   void MzPeakFile::transform(const std::string& filename, Interfaces::IMSDataConsumer* consumer)
   {
+    ReleaseDecodeBuffers release; // (first: destroyed after the index and the reader)
     if (consumer == nullptr) { throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION); }
     const MzPeak::Index index = openIndex(filename);
     ExperimentalSettings settings;
@@ -1009,6 +1079,30 @@ namespace OpenMS
 
   void MzPeakFile::store(const std::string& filename, const PeakMap& exp) const
   {
+    // What the writer cannot store yet: an ion mobility per peak would be lost silently, turning a frame into a flat
+    // spectrum of merged peaks, so it is refused; other data arrays and activation are lost with a warning.
+    Size with_im = 0, with_arrays = 0, with_activation = 0;
+    for (const MSSpectrum& s : exp)
+    {
+      with_im += s.containsIMData();
+      with_arrays += !s.getFloatDataArrays().empty() || !s.getIntegerDataArrays().empty() || !s.getStringDataArrays().empty();
+      bool activation = false;
+      for (const Precursor& p : s.getPrecursors()) { activation = activation || !p.getActivationMethods().empty() || p.getActivationEnergy() != 0.0; }
+      with_activation += activation;
+    }
+    if (with_im > 0)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename + ": " + std::to_string(with_im) +
+                                       " spectra have an ion mobility per peak, which the mzPeak writer cannot store yet");
+    }
+    if (with_arrays > 0)
+    {
+      OPENMS_LOG_WARN << "MzPeakFile: the data arrays of " << with_arrays << " spectra are not written to '" << filename << "' (not supported by the writer yet)" << std::endl;
+    }
+    if (with_activation > 0)
+    {
+      OPENMS_LOG_WARN << "MzPeakFile: the activation methods and energies of the precursors of " << with_activation << " spectra are not written to '" << filename << "' (not supported by the writer yet)" << std::endl;
+    }
     // Written as a sibling first and moved over the destination when finished: an existing archive survives a failed
     // write (libzip would also add to an existing archive rather than replace it). A finished archive that could not
     // be moved stays beside the destination (named in the error), it is not removed; see replaceFile().

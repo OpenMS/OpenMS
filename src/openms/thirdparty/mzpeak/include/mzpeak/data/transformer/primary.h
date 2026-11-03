@@ -118,6 +118,7 @@ Decoder<T>::Decoder(std::shared_ptr<Signals> signals,
     std::size_t flat = 0;
     if (ends_raw != nullptr) {
       for (const auto& chunk : *ends_raw) {
+        Util::Decoders::check_array_type<Util::enum_type_v<T>>(*chunk);
         auto ends = std::static_pointer_cast<
             typename Util::type_traits<Util::enum_type_v<T>>::array_type>(chunk);
         for (int64_t r = 0; r < ends->length(); ++r, ++flat) {

@@ -110,6 +110,15 @@ struct StatsIndex::Impl {
     return slot.stats;
   }
 
+  /// Whether @p column is the FIRST sorting column of @p group, ascending: a later sorting column is ordered only
+  /// within runs of the ones before it, not across the row group (OpenMS change, see README.OpenMS.md)
+  static bool sorted_first(const parquet::RowGroupMetaData& group, int32_t column)
+  {
+    const auto columns = group.sorting_columns();
+    return !columns.empty() && columns.front().column_idx == column && !columns.front().descending
+           && !columns.front().nulls_first;
+  }
+
   bool sorted_ascending(int32_t row_group, int32_t column)
   {
     std::lock_guard<std::mutex> guard(mutex_);
@@ -119,11 +128,7 @@ struct StatsIndex::Impl {
 
     bool sorted = false;
     if (row_group >= 0 && row_group < metadata_->num_row_groups()) {
-      for (const auto& cs : metadata_->RowGroup(row_group)->sorting_columns()) {
-        if (cs.column_idx != column) continue;
-        sorted = !cs.descending && !cs.nulls_first;
-        break;
-      }
+      sorted = sorted_first(*metadata_->RowGroup(row_group), column);
     }
     sorted_.emplace(key, sorted);
     return sorted;
@@ -138,13 +143,34 @@ struct StatsIndex::Impl {
     if (auto it = all_sorted_.find(column); it != all_sorted_.end()) return it->second;
     bool all = metadata_->num_row_groups() > 0;
     for (int32_t g = 0; all && g < metadata_->num_row_groups(); ++g) {
-      bool one = false;
-      for (const auto& cs : metadata_->RowGroup(g)->sorting_columns()) {
-        if (cs.column_idx != column) continue;
-        one = !cs.descending && !cs.nulls_first;
+      all = sorted_first(*metadata_->RowGroup(g), column);
+    }
+    // ...and the row groups in ascending order of it, which the sorting columns of each group do not say (OpenMS
+    // change, see README.OpenMS.md): every group's min not below the max of the group before, by their statistics
+    // (none: not ordered). An entity at a group boundary is in both groups (equal values).
+    // The values compared as unsigned: a UInt64 column is stored with a signed physical type, so as its bits; any
+    // other with the sign bit flipped, which keeps the order of the signed values.
+    const auto* node = all ? static_cast<const parquet::schema::PrimitiveNode*>(
+                                 metadata_->schema()->Column(column)->schema_node().get())
+                           : nullptr;
+    const std::uint64_t flip =
+        node != nullptr && type_from_parquet(*node) == Type::UInt64 ? 0 : std::uint64_t{1} << 63;
+    std::uint64_t previous_max = 0;
+    for (int32_t g = 0; all && g < metadata_->num_row_groups(); ++g) {
+      const auto chunk = metadata_->RowGroup(g)->ColumnChunk(column);
+      // (by the physical type, not dynamic_pointer_cast: Int64Statistics is a template instance, see ColMinMax)
+      const std::shared_ptr<parquet::Statistics> any = chunk->is_stats_set() ? chunk->statistics() : nullptr;
+      const auto stats = any && any->physical_type() == parquet::Type::INT64
+                             ? std::static_pointer_cast<parquet::Int64Statistics>(any)
+                             : nullptr;
+      if (!stats || !stats->HasMinMax()) {
+        all = false;
         break;
       }
-      all = one;
+      const std::uint64_t min = std::bit_cast<std::uint64_t>(stats->min()) ^ flip;
+      const std::uint64_t max = std::bit_cast<std::uint64_t>(stats->max()) ^ flip;
+      if (g > 0 && min < previous_max) all = false;
+      previous_max = max;
     }
     all_sorted_.emplace(column, all);
     return all;

@@ -453,7 +453,7 @@ void CrossValidation::trainFoldChains() {
     // the feature rows of the training set (its PSMs and labels do not change during the training;
     // its test sets of the pairs hold the same PSMs), for counting the positives of the pairs
     std::vector<std::pair<const double*, bool> > rows;
-    // OpenMS (CV-A2): the scores of each pair's weights on the rows (from its validation), so that the
+    // OpenMS: the scores of each pair's weights on the rows (from its validation), so that the
     // step's rescoring with the chosen pair's weights does not score the PSMs again
     std::vector<std::vector<double> > pairRowScores(numCpCnPairsPerSet);
     try {

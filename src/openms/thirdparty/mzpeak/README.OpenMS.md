@@ -44,14 +44,35 @@ the OpenMS interface.
 - Reader: `Spectrum::ion_mobility_array_type()` tells the array type of the per-peak ion mobility
   array (`include/mzpeak/spectrum.h`, `src/spectrum.cpp`); a timed scan replaces an untimed
   representative scan (`src/util/metadata_model.cpp`).
-- Reader and writer: casts to the typed numeric Arrow arrays (`arrow::Int64Array`, `DoubleArray`, ...)
-  and to `parquet::Int64Statistics` go by the type id (`Util::numeric_array_cast()` in
-  `include/mzpeak/util/arrow.h`; `physical_type()` in `Signals::record_count()`) instead of a
-  `dynamic_pointer_cast`: `arrow::NumericArray<T>` and `parquet::TypedStatistics<T>` are templates the
-  libraries do not export, so those casts fail across the library boundary on macOS (libc++
-  compares `type_info` by address): chromatogram reads threw "no statistics for
-  point.chromatogram_index" and numeric CV parameter values (collision energy, ...) were read as
-  absent (`src/data/signals.cpp`, `src/util/metadata_model.cpp`, `src/util/parquet_writer.cpp`).
+- `include/mzpeak/util/compat.h`, `include/mzpeak/util/query.h`, `src/util/numpress.cpp`: `MzPeak::Util::function_ref`
+  (in compat.h) replaces `boost::compat::function_ref` (Boost 1.86) in the query evaluation callbacks and
+  `std::move_only_function` in the numpress decoders, whose fallback for libc++ without it was
+  `boost::compat::move_only_function` (Boost 1.89). The library then needs no newer Boost than OpenMS (1.81) and no
+  Boost.Compat.
+- `src/writer.cpp`: `ZIP_LENGTH_TO_END` is defined as -1 where libzip does not define it (before 1.10.1, e.g.
+  1.7.3 of Ubuntu 24.04), which reads the file to its end there as well.
+- Reader robustness (review of OpenMS#10771): `src/chromatograms.cpp`, `src/wavelength_spectra.cpp` derive the
+  count from the row-group statistics only when the declared count is missing or zero (a file without statistics
+  failed to open otherwise); `Index::spectra()` (`src/index.cpp`) takes the first `metadata` member, as the
+  chromatogram and wavelength readers do; `src/util/metadata_model.cpp` reads `mz_delta_model` only as float64
+  (another value type was cast unchecked and read past its buffer); `src/util/planner.cpp` takes a column as sorted
+  only if it is the first Parquet sorting column (a later one is ordered only within runs of the first), and its
+  contiguous-group fast path also needs the row groups in ascending order of the column by their statistics, compared
+  as signed or unsigned by the column's type (the sorting columns describe each row group only).
+- Typed Arrow arrays and Parquet statistics are taken by their type id (`type_id()`, `physical_type()`) and
+  `static_pointer_cast`, not by `dynamic_pointer_cast`: `DoubleArray`, `Int64Array`, `UInt8Array`, `UInt64Array`,
+  `Int64Statistics` and the like are template instances, whose `type_info` can differ between the images of a process
+  (macOS), and then the cast fails silently. On macOS the numeric values of CV parameters were lost that way (e.g.
+  the collision energy). In `src/util/metadata_model.cpp` (CV parameter values, the promoted activation columns,
+  `mz_delta_model`, auxiliary array data), `src/util/parquet_writer.cpp`, `src/util/planner.cpp` and
+  `src/data/signals.cpp`; the library's own typed readers already did it this way.
+- Untrusted input (second review of OpenMS#10771): `include/mzpeak/util/decoders.h` (`check_array_type()`, used by
+  `Decoders::Scalar::decode`), `include/mzpeak/util/algorithm.h` (`null_delta_decode`) and
+  `include/mzpeak/data/transformer/primary.h` (the `chunk_end` check) throw a `TypeError` when a chunk's Arrow type
+  is not the one the array index declares, instead of casting it to the declared type's array class (a 64-bit
+  declaration over a 32-bit column read past the buffer, the reverse gave wrong values). `src/util/numpress.cpp`
+  rejects SLOF data whose length is not 8 + 2n bytes (OpenMS' `MSNumpress::decodeSlof` wrote one value past its
+  output for an odd length).
 - `src/boost_json_src.cpp` (new): Boost.JSON compiled header-only, so libOpenMS links no
   compiled Boost library.
 - `sources.cmake`, `CMakeLists.txt`, this file.

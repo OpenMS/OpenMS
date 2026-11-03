@@ -709,7 +709,7 @@ int Scores::countPositives(const std::vector<double>& w, double fdr, bool skipDe
 }
 
 /**
- * OpenMS (CV-A2): calcScoresAndQvals(w, fdr, skipDecoysPlusOne) where the scores of w were computed
+ * OpenMS: calcScoresAndQvals(w, fdr, skipDecoysPlusOne) where the scores of w were computed
  * already, by countPositives(w, ..., rows, &rowScores) on the rows of getFeatureRows of this set:
  * each PSM gets the score of its row (calcScore of the same row and weights, the same bits), found by
  * its address; then the sort and the q-values as calcScoresAndQvals. A PSM whose row is not in rows
@@ -1127,7 +1127,7 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
   std::vector<char> kept(scores_.size(), 1);
   if (trainBestPositive && !scores_.empty()) {
     if (!comparableScores(scores_.begin(), scores_.end()) || scores_.size() >= (std::size_t(1) << 32)) return false;
-    // OpenMS (CV-A1, BP-PAR): one 64-bit key (file << 32 | scan) per candidate (a target with q <= fdr), kNone for
+    // OpenMS: one 64-bit key (file << 32 | scan) per candidate (a target with q <= fdr), kNone for
     // the other PSMs, with the position; in blocks as tasks inside a parallel region
     struct PackedKey {
       std::uint64_t key;
@@ -1204,7 +1204,7 @@ bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
     }
     if (std::any_of(blockOk.begin(), blockOk.end(), [](char x) { return x == 0; })) return false;
   }
-  // OpenMS (SETUP-PAR): the positives and the decoys of blocks of PSMs (as tasks inside a parallel region),
+  // OpenMS: the positives and the decoys of blocks of PSMs (as tasks inside a parallel region),
   // then the blocks in order: the same positives, the same check, the same rows in the same order
   const std::ptrdiff_t total = static_cast<std::ptrdiff_t>(scores_.size());
   std::ptrdiff_t blockSize = total > 0 ? total : 1;
@@ -1588,7 +1588,7 @@ int Scores::getInitDirection(const double initialSelectionFdr,
           PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(valuesOfFeature, columns))
           for (unsigned int f = 0; f < numFeatures; ++f) {
             // (no exception may leave a task: if an allocation fails, the feature is sorted as ChainKeys, which makes
-            // the same moves; int14 review r3)
+            // the same moves)
             try {
               const double* column = &columns[static_cast<std::size_t>(f) * n];
               std::unordered_set<double> distinct;

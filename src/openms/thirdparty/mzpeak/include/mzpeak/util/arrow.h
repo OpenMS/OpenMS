@@ -8,7 +8,6 @@ directory of this repository.
 
 #pragma once
 
-#include <arrow/array/array_primitive.h>
 #include <arrow/io/api.h>
 #include <arrow/result.h>
 #include <arrow/table.h>
@@ -70,15 +69,5 @@ private:
   struct Impl;
   std::unique_ptr<Impl> impl_;
 };
-
-/// Cast to a typed numeric array (arrow::NumericArray<T>) by the array's type id. Those arrays are
-/// templates that libarrow does not export, so a dynamic_cast to one fails across the library
-/// boundary on macOS (libc++ compares type_info by address): the value is read as absent there.
-template <typename ArrayT>
-std::shared_ptr<ArrayT> numeric_array_cast(const std::shared_ptr<arrow::Array>& array)
-{
-  if (!array || array->type_id() != ArrayT::TypeClass::type_id) return nullptr;
-  return std::static_pointer_cast<ArrayT>(array);
-}
 
 } // namespace MzPeak::Util

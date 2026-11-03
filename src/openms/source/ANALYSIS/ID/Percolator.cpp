@@ -61,6 +61,49 @@ static void rethrowFirstError(const std::vector<std::exception_ptr>& errors);
 
 namespace
 {
+  // The weights file of a trained cross-validation, as the percolator executable writes it with -w
+  // (CrossValidation::printAllWeights): its comment lines, then per fold a block of three lines (the feature names
+  // and m0, the normalized weights, the raw weights). Kept per fold so that the learning curve can take each fold's
+  // block from the training whose model it keeps. error: why there is none (storeWeights() reports it).
+  struct WeightsFile
+  {
+    std::string comments;
+    std::vector<std::string> folds;
+    std::string error;
+
+    std::string str() const
+    {
+      std::string s = comments;
+      for (const std::string& fold : folds) s += fold;
+      return s;
+    }
+  };
+
+  // after CrossValidation::postIterationProcessing, as the executable (Caller.cpp). printAllWeights writes three
+  // comment lines, then three lines per fold; split by position (a feature name may start with '#'). Output of another
+  // layout (e.g. a feature name with a line break, or a changed vendored printAllWeights) is not split wrongly: there
+  // is no weights file then (error), and the training is not affected.
+  WeightsFile printWeights(P::CrossValidation& cv, const P::Normalizer* normalizer, size_t num_folds)
+  {
+    constexpr size_t comment_lines = 3, lines_per_fold = 3;
+    std::ostringstream os;
+    cv.printAllWeights(os, normalizer);
+    std::vector<std::string> lines;
+    std::istringstream is(os.str());
+    for (std::string line; std::getline(is, line);) lines.push_back(line + '\n');
+    WeightsFile file;
+    if (lines.size() != comment_lines + lines_per_fold * num_folds)
+    {
+      file.error = "the weights output has " + std::to_string(lines.size()) + " lines, not 3 + 3 per fold ("
+                   + std::to_string(num_folds) + " folds); is there a line break in a feature name?";
+      return file;
+    }
+    for (size_t i = 0; i < comment_lines; ++i) file.comments += lines[i];
+    file.folds.resize(num_folds);
+    for (size_t i = comment_lines; i < lines.size(); ++i) file.folds[(i - comment_lines) / lines_per_fold] += lines[i];
+    return file;
+  }
+
   // Percolator's sanity check, recording whether it replaced the learned
   // weights by the default direction (the best single feature): validateDirection()
   // does that whenever it returns false, i.e. no target at q < test_fdr, fewer
@@ -541,6 +584,31 @@ void Percolator::updateMembers_()
 const std::vector<std::vector<double>>& Percolator::getSvmWeights() const
 {
   return impl_->svm_weights;
+}
+
+void Percolator::storeWeights(const std::string& filename) const
+{
+  if (!impl_->weights_error.empty())
+  {
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "The weights of the last training can't be written: " + impl_->weights_error);
+  }
+  if (impl_->weights_text.empty())
+  {
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "No Percolator model to write: rescore()/train() has not been called or failed, or the last rescorePSMs() used RESET.");
+  }
+  std::ofstream os(filename.c_str());
+  if (!os)
+  {
+    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+  }
+  os << impl_->weights_text;
+  os.close();
+  if (!os)
+  {
+    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+  }
 }
 
 const Percolator::CappedTrainingInfo& Percolator::getCappedTrainingInfo() const
@@ -1058,6 +1126,8 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   // Also covers throws from validateRescoreInput_ below.
   impl_->last_pi0 = -1.0;
   impl_->last_used_default_direction = false;
+  impl_->weights_text.clear(); // storeWeights() must not write a previous call's models if this one fails
+  impl_->weights_error.clear();
 
   validateRescoreInput_(input);
   const bool use_pi0 = resolveUsePi0(impl_->use_pi0, impl_->post_processing_tdc, input);
@@ -1161,6 +1231,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   cv.setTrainingOptions(impl_->tron_epsilon, impl_->warm_start, impl_->single_cneg);
 
   std::vector<double> avg_weights;
+  WeightsFile weights_file;
   try
   {
     // CV uses sanity transiently per call (no storage); the unique_ptr in
@@ -1173,6 +1244,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
     // getAvgWeights returns un-normalized (raw feature space) averaged weights:
     // size = n_features + 1, bias last. This is what score() will use.
     cv.getAvgWeights(avg_weights, normalizer);
+    weights_file = printWeights(cv, normalizer, 3);
   }
   catch (const std::exception& e)
   {
@@ -1183,6 +1255,8 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   // Mirror into getSvmWeights() buffer for backward compatibility.
   impl_->svm_weights.clear();
   if (!avg_weights.empty()) impl_->svm_weights.push_back(avg_weights);
+  impl_->weights_text = weights_file.error.empty() ? weights_file.str() : std::string();
+  impl_->weights_error = weights_file.error;
 
   PercolatorModel model;
   model.format_version  = 1;
@@ -1491,6 +1565,8 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   // from a prior successful call.
   impl_->last_pi0 = -1.0;
   impl_->last_used_default_direction = false;
+  impl_->weights_text.clear(); // storeWeights() must not write a previous call's models if this one fails
+  impl_->weights_error.clear();
 
   validateRescoreInput_(input);
   const bool use_pi0 = resolveUsePi0(impl_->use_pi0, impl_->post_processing_tdc, input);
@@ -1584,6 +1660,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     std::vector<std::vector<double>> fold_weights; // out-of-fold: each fold's model as checked (raw feature space)
     std::vector<std::vector<size_t>> trained_rows; // out-of-fold: each fold model's training rows, ascending
     std::vector<char> reset_folds;                 // out-of-fold: the fold models replaced by the default direction
+    WeightsFile weights_file;                      // the fold models as the executable's -w writes them (storeWeights)
   };
   auto train_rows = [&](const std::vector<size_t>& training_rows) -> Trained
   {
@@ -1742,6 +1819,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     cv.postIterationProcessing(all_scores, sanity.get());
     impl_->last_used_default_direction = sanity->used_default_direction;
     cv.getAvgWeights(avg_weights, normalizer);
+    trained.weights_file = printWeights(cv, normalizer, num_folds);
     if (out_of_fold)
     {
       trained.reset_folds = sanity->reset_folds;
@@ -1822,6 +1900,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     info.validation_rows = oof.validation_rows.size();
     info.chosen_size.assign(num_folds, 0);
     trained.fold_weights.assign(num_folds, {});
+    trained.weights_file.folds.assign(num_folds, {});
     trained.trained_rows.assign(num_folds, {});
     trained.reset_folds.assign(num_folds, 0);
     std::vector<char> stopped(num_folds, 0);
@@ -1863,6 +1942,15 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
         const long count = static_cast<long>(accepted.size());
         info.curve_counts.back()[f] = count;
         trained.fold_weights[f] = std::move(at_size.fold_weights[f]);
+        if (at_size.weights_file.error.empty())
+        {
+          trained.weights_file.comments = at_size.weights_file.comments;
+          trained.weights_file.folds[f] = std::move(at_size.weights_file.folds[f]);
+        }
+        else
+        {
+          trained.weights_file.error = at_size.weights_file.error;
+        }
         trained.trained_rows[f] = std::move(at_size.trained_rows[f]);
         trained.reset_folds[f] = at_size.reset_folds[f];
         info.chosen_size[f] = oof.sampled_rows.size();
@@ -2204,6 +2292,9 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
         "Percolator peptide-level estimation failed.", "");
     }
   }
+  // (only now: storeWeights() has nothing to write after a call that failed)
+  impl_->weights_text = trained.weights_file.error.empty() ? trained.weights_file.str() : std::string();
+  impl_->weights_error = trained.weights_file.error;
   return out;
 }
 
@@ -2688,6 +2779,12 @@ Size Percolator::rescorePSMsWithScorer(PeptideIdentificationList& peptide_ids,
                                        const PSMScorer& scorer,
                                        bool best_hit_only)
 {
+  // RESET trains no Percolator model: no weights file after it, also if it fails (a scorer, as score(), keeps it)
+  if (!scorer && impl_->algorithm == "reset")
+  {
+    impl_->weights_text.clear();
+    impl_->weights_error.clear();
+  }
   if (score_type != "q-value" && score_type != "pep" && score_type != "svm")
   {
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -3039,7 +3136,7 @@ Size Percolator::rescorePSMsWithScorer(PeptideIdentificationList& peptide_ids,
   }
   else
   {
-    // no peptide-level estimates this time: values from an earlier rescoring of these hits would be stale (review r2)
+    // no peptide-level estimates this time: values from an earlier rescoring of these hits would be stale
     const UInt pep_q_index = MetaInfoInterface::metaRegistry().getIndex("percolator_peptide_q_value");
     const UInt pep_pep_index = MetaInfoInterface::metaRegistry().getIndex("percolator_peptide_pep");
     if (pep_q_index != UInt(-1) || pep_pep_index != UInt(-1)) // (never registered: no hit has them)

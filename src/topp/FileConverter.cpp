@@ -98,7 +98,9 @@ Bruker timsTOF .d directories, and zipped ones (.d.zip), are read with the built
 built with WITH_OPENTIMS (the default). DDA-PASEF data gives one MS1 spectrum per frame, with the ion
 mobility of every peak, and one MS2 spectrum per precursor; DIA-PASEF data gives MS2 spectra per frame and
 isolation window. The advanced bruker:* options select the export mode and control m/z recalibration,
-frame aggregation and centroiding along the ion mobility axis.
+frame aggregation and centroiding along the ion mobility axis. TSF data (timsTOF without ion mobility: MALDI
+spot runs, LC-MS with TIMS off) gives one centroided spectrum per frame, MS2 spectra with their precursor; the
+bruker:* options for ion mobility, aggregation and recalibration do not apply to it.
 
 For MaxQuant-flavoured mzXML the use of the advanced option '-force_MaxQuant_compatibility' is recommended.
 

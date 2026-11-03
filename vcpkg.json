@@ -40,6 +40,7 @@
     "boost-smart-ptr",
     "boost-sort",
     "boost-spirit",
+    "boost-type-index",
     "boost-type-traits",
     "boost-unordered",
     "boost-variant",
