@@ -79,6 +79,12 @@ namespace OpenMS
       - if any evidence comes from targeted quantification: how many of the contributing ratios do, as
         @c MS1Label:peptide_ratio_targeted_count on the features and the integer array
         @c fraction_group_level_ratio_targeted_count on the protein groups (parallel to the counts above).
+      - if any channel was re-quantified (the (run, channel) pairs a feature lists in its meta values @c MS1Label:requantified_runs
+        and @c MS1Label:requantified_labels): how
+        many of the contributing ratios rest on re-quantified channels, as @c MS1Label:peptide_ratio_requantified_count
+        (evidences whose channel or reference channel was re-quantified) and @c fraction_group_level_ratio_requantified_count
+        (peptide ratios all of whose evidences were). Re-quantified values are less accurate at extreme ratios than detected
+        ones (they are measured where the detection found no pattern), so these counts allow filtering them.
 
     A peptide counts for the group that covers every protein it references; peptides shared between
     groups count for none (a razor assignment, if wanted, rewrites the references during inference).
@@ -104,10 +110,18 @@ namespace OpenMS
       Size count = 0;
       /// Of @p count, the ratios that come from targeted quantification (a peptide ratio has either all or none)
       Size targeted_count = 0;
+      /// Of @p count, the ratios that rest on re-quantified channels: for a peptide, the evidences whose channel or reference
+      /// channel was re-quantified; for a protein group, the peptide ratios all of whose evidences were
+      Size requantified_count = 0;
     };
 
     /// Meta value (StringList) of a consensus feature: the runs (file basenames) in which it was measured by targeted quantification
     inline static const std::string TARGETED_RUNS = "MS1Label:targeted_runs";
+
+    /// Parallel meta values (StringList, IntList) of a consensus feature: the runs (file basenames) and channels (labels) whose channel
+    /// was not detected but re-quantified at its expected position (MS1LabeledWorkflow's '-requantify')
+    inline static const std::string REQUANTIFIED_RUNS = "MS1Label:requantified_runs";
+    inline static const std::string REQUANTIFIED_LABELS = "MS1Label:requantified_labels";
 
     MS1LabeledRatioQuantifier();
 

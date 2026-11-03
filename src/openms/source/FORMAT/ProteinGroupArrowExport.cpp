@@ -66,6 +66,7 @@ struct GroupRatio
   bool has_normalized = false; ///< the producer normalized; otherwise only the raw ratio is reported
   Int count = 0;
   Int targeted_count = -1; ///< ratios of targeted quantification among them; -1 = not annotated
+  Int requantified_count = -1; ///< ratios resting on re-quantified channels among them; -1 = not annotated
 };
 
 std::map<std::pair<UInt, UInt>, GroupRatio> fractionGroupRatios(
@@ -77,6 +78,7 @@ std::map<std::pair<UInt, UInt>, GroupRatio> fractionGroupRatios(
   const ProteinIdentification::ProteinGroup::IntegerDataArray* labels = nullptr;
   const ProteinIdentification::ProteinGroup::IntegerDataArray* counts = nullptr;
   const ProteinIdentification::ProteinGroup::IntegerDataArray* targeted_counts = nullptr;
+  const ProteinIdentification::ProteinGroup::IntegerDataArray* requantified_counts = nullptr;
   for (const auto& array : group.getFloatDataArrays())
   {
     if (array.getName() == "fraction_group_level_ratio") { ratios = &array; }
@@ -88,6 +90,7 @@ std::map<std::pair<UInt, UInt>, GroupRatio> fractionGroupRatios(
     else if (array.getName() == "fraction_group_level_ratio_label") { labels = &array; }
     else if (array.getName() == "fraction_group_level_ratio_count") { counts = &array; }
     else if (array.getName() == "fraction_group_level_ratio_targeted_count") { targeted_counts = &array; }
+    else if (array.getName() == "fraction_group_level_ratio_requantified_count") { requantified_counts = &array; }
   }
 
   std::map<std::pair<UInt, UInt>, GroupRatio> result;
@@ -103,6 +106,7 @@ std::map<std::pair<UInt, UInt>, GroupRatio> fractionGroupRatios(
     entry.normalized = entry.has_normalized ? (*normalized)[i] : (*ratios)[i];
     entry.count = (counts != nullptr && counts->size() == n) ? (*counts)[i] : 0;
     entry.targeted_count = (targeted_counts != nullptr && targeted_counts->size() == n) ? (*targeted_counts)[i] : -1;
+    entry.requantified_count = (requantified_counts != nullptr && requantified_counts->size() == n) ? (*requantified_counts)[i] : -1;
     result[{static_cast<UInt>((*fraction_groups)[i]), static_cast<UInt>((*labels)[i])}] = entry;
   }
   return result;
@@ -859,6 +863,10 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
             if (ratio->second.targeted_count >= 0)
             {
               row_cv_params.emplace_back("ratio_targeted_count", std::to_string(ratio->second.targeted_count));
+            }
+            if (ratio->second.requantified_count >= 0)
+            {
+              row_cv_params.emplace_back("ratio_requantified_count", std::to_string(ratio->second.requantified_count));
             }
           }
           emitRow(group, unit.runs, channel.qpx_label, value->second, row_cv_params, row_additional_intensities);

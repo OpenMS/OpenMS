@@ -35,9 +35,10 @@ void addPeptide(ConsensusMap& map, const std::string& sequence, Size run, const 
 }
 
 // a feature of @p sequence (protein @p accession) with the channel intensities of every run (three channels per run),
-// measured by targeted quantification in @p targeted_runs
+// measured by targeted quantification in @p targeted_runs, with the (run, label) channels of @p requantified re-quantified
 void addFeature(ConsensusMap& map, const std::string& sequence, const std::string& accession,
-                const std::map<Size, std::vector<double>>& intensities, const StringList& targeted_runs = {})
+                const std::map<Size, std::vector<double>>& intensities, const StringList& targeted_runs = {},
+                const std::vector<std::pair<std::string, Int>>& requantified = {})
 {
   ConsensusFeature feature;
   for (const auto& [run, channels] : intensities)
@@ -51,6 +52,18 @@ void addFeature(ConsensusMap& map, const std::string& sequence, const std::strin
     }
   }
   if (!targeted_runs.empty()) { feature.setMetaValue(MS1LabeledRatioQuantifier::TARGETED_RUNS, targeted_runs); }
+  if (!requantified.empty())
+  {
+    StringList runs;
+    IntList labels;
+    for (const auto& [run, label] : requantified)
+    {
+      runs.push_back(run);
+      labels.push_back(label);
+    }
+    feature.setMetaValue(MS1LabeledRatioQuantifier::REQUANTIFIED_RUNS, runs);
+    feature.setMetaValue(MS1LabeledRatioQuantifier::REQUANTIFIED_LABELS, labels);
+  }
   PeptideHit hit;
   hit.setSequence(AASequence::fromString(sequence));
   PeptideEvidence evidence;
@@ -267,6 +280,98 @@ START_SECTION(([EXTRA] void run(ConsensusMap&, const ExperimentalDesign&, Protei
   TEST_REAL_SIMILAR(pep_f[2].ratio, 0.5)
   // a (fraction group, channel) with targeted ratios only is normalized by them
   TEST_REAL_SIMILAR(pep_f[2].normalized_ratio, 1.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] void run(ConsensusMap&, const ExperimentalDesign&, ProteinIdentification&) with re-quantified channels))
+{
+  // two fractions (runs) of one fraction group, three channels each (columns run * 3 + channel)
+  ConsensusMap map;
+  map.setExperimentType("labeled_MS1");
+  ExperimentalDesign design;
+  ExperimentalDesign::MSFileSection files;
+  for (unsigned run = 0; run < 2; ++run)
+  {
+    for (unsigned channel = 0; channel < 3; ++channel)
+    {
+      auto& header = map.getColumnHeaders()[run * 3 + channel];
+      header.filename = "/data/run" + std::to_string(run) + ".mzML";
+      header.setMetaValue("channel_id", channel);
+      ExperimentalDesign::MSFileSectionEntry entry;
+      entry.path = header.filename;
+      entry.fraction_group = 1;
+      entry.fraction = run + 1;
+      entry.label = channel + 1;
+      entry.sample = channel;
+      files.push_back(entry);
+    }
+  }
+  design.setMSFileSection(files);
+  ProteinIdentification proteins;
+  ProteinIdentification::ProteinGroup p1, p2;
+  p1.accessions = {"P1"};
+  p2.accessions = {"P2"};
+  proteins.getIndistinguishableProteins() = {p1, p2};
+
+  // without re-quantified channels, no counts are written
+  addFeature(map, "PEPAK", "P1", {{0, {100, 200, 0}}, {1, {100, 100, 0}}});
+  addFeature(map, "PEPBK", "P1", {{0, {100, 400, 0}}});
+  MS1LabeledRatioQuantifier quantifier; // min_ratio_count 2
+  quantifier.run(map, design, proteins);
+  TEST_EQUAL(map[0].metaValueExists("MS1Label:peptide_ratio_requantified_count"), false)
+  TEST_EQUAL(quantifier.getProteinGroupRatios().at("P1")[1].requantified_count, 0)
+  for (const auto& array : proteins.getIndistinguishableProteins()[0].getIntegerDataArrays())
+  {
+    TEST_NOT_EQUAL(array.getName(), "fraction_group_level_ratio_requantified_count")
+  }
+
+  // P1: PEPAK's channel 2 in run 0 was re-quantified, its run 1 evidence not; PEPBK's reference channel in run 0 was, which
+  // makes its M/L rest on a re-quantified channel as well. P2: PEPCK detected, PEPDK's channel 2 in run 1 re-quantified.
+  map.clear(false);
+  addFeature(map, "PEPAK", "P1", {{0, {100, 200, 0}}, {1, {100, 100, 0}}}, {}, {{"run0.mzML", 2}});
+  addFeature(map, "PEPBK", "P1", {{0, {100, 400, 0}}}, {}, {{"run0.mzML", 1}});
+  addFeature(map, "PEPCK", "P2", {{0, {100, 300, 0}}});
+  addFeature(map, "PEPDK", "P2", {{1, {100, 50, 0}}}, {}, {{"run1.mzML", 2}});
+  quantifier.run(map, design, proteins);
+
+  // peptide ratios: the evidences that rest on a re-quantified channel; the ratios themselves do not change
+  const auto& peptides = quantifier.getPeptideRatios();
+  const auto& pep_a = peptides.at(AASequence::fromString("PEPAK"));
+  TEST_EQUAL(pep_a[0].channel, 1)
+  TEST_EQUAL(pep_a[0].requantified_count, 0) // its reference channel was detected in both runs
+  TEST_EQUAL(pep_a[1].channel, 2)
+  TEST_EQUAL(pep_a[1].count, 2)
+  TEST_EQUAL(pep_a[1].requantified_count, 1)
+  TEST_REAL_SIMILAR(pep_a[1].ratio, 1.5)
+  const auto& pep_b = peptides.at(AASequence::fromString("PEPBK"));
+  TEST_EQUAL(pep_b[0].requantified_count, 1)
+  TEST_EQUAL(pep_b[1].count, 1)
+  TEST_EQUAL(pep_b[1].requantified_count, 1)
+  TEST_EQUAL(peptides.at(AASequence::fromString("PEPCK"))[1].requantified_count, 0)
+  TEST_EQUAL(peptides.at(AASequence::fromString("PEPDK"))[1].requantified_count, 1)
+
+  // protein group ratios: the peptide ratios all of whose evidences were re-quantified (PEPBK, PEPDK; not PEPAK)
+  const auto& r1 = quantifier.getProteinGroupRatios().at("P1");
+  TEST_EQUAL(r1[1].count, 2)
+  TEST_EQUAL(r1[1].requantified_count, 1)
+  TEST_REAL_SIMILAR(r1[1].ratio, 2.75)
+  const auto& r2 = quantifier.getProteinGroupRatios().at("P2");
+  TEST_EQUAL(r2[1].count, 2)
+  TEST_EQUAL(r2[1].requantified_count, 1)
+  TEST_REAL_SIMILAR(r2[1].ratio, 1.75)
+
+  // the counts are written next to the others
+  TEST_EQUAL(map[0].getMetaValue("MS1Label:peptide_ratio_requantified_count").toIntList() == IntList({0, 1}), true)
+  bool group_array = false;
+  for (const auto& array : proteins.getIndistinguishableProteins()[0].getIntegerDataArrays())
+  {
+    if (array.getName() != "fraction_group_level_ratio_requantified_count") { continue; }
+    group_array = true;
+    TEST_EQUAL(array.size(), 2)
+    TEST_EQUAL(array[0], 1) // the reference row: PEPBK's 1.0 rests on its re-quantified reference channel, PEPAK's does not
+    TEST_EQUAL(array[1], 1)
+  }
+  TEST_EQUAL(group_array, true)
 }
 END_SECTION
 

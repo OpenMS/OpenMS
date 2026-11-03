@@ -4852,6 +4852,42 @@ add_test("TOPP_MS1LabeledWorkflow_7_partial" ${TOPP_BIN_PATH}/MS1LabeledWorkflow
 set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial" PROPERTIES PASS_REGULAR_EXPRESSION "Re-quantified 4 channel.s. the detection did not find. 5 show no signal")
 add_test("TOPP_MS1LabeledWorkflow_7_partial_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_partial.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_partial_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_7_partial")
+# The ratios that rest on the 4 re-quantified channels are counted (MS1Label:peptide_ratio_requantified_count and
+# fraction_group_level_ratio_requantified_count in the reference above) and reach the QPX pg view: the medium and heavy ratio of
+# the two protein groups whose peptide was detected in its light channel only rest on one re-quantified peptide ratio each.
+# QPX output in a run of its own: writing it reorders meta values of the consensusXML's column headers
+add_test("TOPP_MS1LabeledWorkflow_7_partial_qpx" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.fasta
+  -labels "[][Lys4,Arg6][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -out_qpx ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_partial_qpx_dir)
+set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial_qpx" PROPERTIES PASS_REGULAR_EXPRESSION
+  "Channel ratios from re-quantified channels: 4 peptide ratio.s. rest on re-quantified channels only. 4 protein group ratio.s. include such peptide ratios")
+add_test("TOPP_MS1LabeledWorkflow_7_partial_qpx_pg_dump" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_partial_qpx_dir/quantms.pg.parquet -schema pg
+  -out_tsv ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_partial_qpx_pg.tmp.tsv)
+set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial_qpx_pg_dump" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_7_partial_qpx")
+add_test("TOPP_MS1LabeledWorkflow_7_partial_qpx_pg_requantified_count" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_partial_qpx_pg.tmp.tsv
+  "-DEXPECTED={cv_name:string = ratio_requantified_count, cv_value:string = 1}"
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial_qpx_pg_requantified_count" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_7_partial_qpx_pg_dump")
+# -requantify_min_correlation: a re-quantified channel whose elution profile does not follow the reference's is not quantifiable.
+# The channels of this synthetic fixture co-elute (correlation ~0.9999), so only the limit 1 rejects them: all 4.
+add_test("TOPP_MS1LabeledWorkflow_7_partial_min_correlation" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.fasta
+  -labels "[][Lys4,Arg6][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -requantify_min_correlation 1.0
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_partial_min_correlation.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial_min_correlation" PROPERTIES PASS_REGULAR_EXPRESSION
+  "Re-quantified 0 channel.s. the detection did not find.*4 re-quantified channel.s. are not quantifiable: their elution profile correlates with the reference's by less than 1")
 add_test("TOPP_MS1LabeledWorkflow_7_attached" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_input.mzML
   -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.idXML
