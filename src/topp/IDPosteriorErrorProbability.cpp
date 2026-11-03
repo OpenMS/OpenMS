@@ -82,7 +82,9 @@ By default an estimation is performed using the (inverse) Gumbel distribution fo
 and a Gaussian distribution for correctly assigned sequences. The probabilities are calculated by using Bayes' law, similar to PeptideProphet.
 Alternatively, a second Gaussian distribution can be used for incorrectly assigned sequences.
 Without decoys, the mixture model assumes that the data contain correct assignments: for data with few or no correct assignments,
-it might assign low PEPs to a few PSMs in the extreme upper tail of the scores. Use target/decoy information whenever possible.
+it might assign low PEPs to a few PSMs in the extreme upper tail of the scores. On real data (Comet e-values of a yeast/UPS1 dataset,
+validated with an entrapment database), the PEPs of the mixture model were about 1.5 times too high in total, and much too high for
+confident PSMs, while the target-decoy estimate was within a few percent. Use target/decoy information whenever possible.
 
 <B>Plots</B>
 

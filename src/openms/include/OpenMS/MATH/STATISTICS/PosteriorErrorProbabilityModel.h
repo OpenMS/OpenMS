@@ -61,7 +61,8 @@ namespace OpenMS
 
       @note Without decoys, the (unsupervised) mixture model assumes that the data contain correct assignments.
       For data with few or no correct assignments, it might assign low PEPs to a few PSMs in the extreme upper tail of the scores.
-      Use target/decoy information whenever possible.
+      Its parametric densities are also only an approximation of real score distributions (on Comet e-values of a yeast/UPS1
+      dataset, its PEPs were about 1.5 times too high in total). Use target/decoy information whenever possible.
 
       One can output the fit as a gnuplot formula using getGumbelGnuplotFormula() and getGaussGnuplotFormula() after fitting.
       @note All parameters are stored in GaussFitResult. In the case of the Gumbel distribution x0 and sigma represent the local parameter alpha and the scale parameter beta, respectively.
