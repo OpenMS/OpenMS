@@ -27,6 +27,7 @@ namespace OpenMS
       missed_cleavages_(0),
       enzyme_(ProteaseDB::getInstance()->getEnzyme("Trypsin")), // @TODO: keep trypsin as default?
       re_(enzyme_->getRegEx()),
+      simple_rule_(SimpleCleavageRule::parse(enzyme_->getRegEx())),
       specificity_(SPEC_FULL)
   {
   }
@@ -51,6 +52,22 @@ namespace OpenMS
   {
     enzyme_ = enzyme;
     re_.assign(enzyme_->getRegEx());
+    simple_rule_ = SimpleCleavageRule::parse(enzyme_->getRegEx());
+  }
+
+  std::optional<EnzymaticDigestion::SimpleCleavageRule> EnzymaticDigestion::SimpleCleavageRule::parse(const std::string& regex)
+  {
+    const auto is_letter = [](char c) { return c >= 'A' && c <= 'Z'; };
+    SimpleCleavageRule rule;
+    if (regex.compare(0, 5, "(?<=[") != 0) return std::nullopt;
+    size_t i = 5;
+    for (; i < regex.size() && is_letter(regex[i]); ++i) rule.after[static_cast<unsigned char>(regex[i])] = true;
+    if (i == 5 || regex.compare(i, 2, "])") != 0) return std::nullopt;
+    i += 2;
+    if (i == regex.size()) return rule;
+    if (regex.size() != i + 5 || regex.compare(i, 3, "(?!") != 0 || !is_letter(regex[i + 3]) || regex[i + 4] != ')') return std::nullopt;
+    rule.not_before[static_cast<unsigned char>(regex[i + 3])] = true;
+    return rule;
   }
 
   std::string EnzymaticDigestion::getEnzymeName() const
@@ -86,24 +103,20 @@ namespace OpenMS
     if (end < 0 || end > (int)sequence.size())
       end = (int)sequence.size();
 
-    const std::string regex = re_.str(); // the pattern the boost path below compiles (re_ follows the enzyme in setEnzyme())
-    if (regex != "()") // if it's not "no cleavage"
+    if (simple_rule_) // Trypsin, Lys-C, Chymotrypsin, ...: the rule by hand
     {
-      // The two tryptic rules by hand: a token starts after every K, R or X inside the range (Trypsin: not before a P),
-      // exactly the tokens the regular expression gives (checked on the token positions of 30,000 random sequences over
-      // all their sub-ranges: the lookbehind cannot see before 'start', and a boundary at 'end' starts no token). A regex
-      // search takes a block from boost's process-wide memory cache, which the threads of a parallel caller contend for.
-      const bool trypsin_p = regex == "(?<=[KRX])", trypsin = regex == "(?<=[KRX])(?!P)";
-      if (trypsin_p || trypsin)
+      // Exactly the tokens the regular expression gives: a token starts after every residue of the rule's set inside
+      // the range unless the next residue blocks it; the lookbehind cannot see before 'start', and a boundary at 'end'
+      // starts no token (EnzymaticDigestion_test pins this against the regex path for every enzyme with such a rule).
+      if (start < end) positions.push_back(start);
+      for (int i = start + 1; i < end; ++i)
       {
-        if (start < end) positions.push_back(start);
-        for (int i = start + 1; i < end; ++i)
-        {
-          const char c = sequence[i - 1];
-          if ((c == 'K' || c == 'R' || c == 'X') && (trypsin_p || sequence[i] != 'P')) positions.push_back(i);
-        }
-        return positions;
+        if (simple_rule_->cleavesBetween(sequence[i - 1], sequence[i])) positions.push_back(i);
       }
+      return positions;
+    }
+    if (re_.str() != "()") // if it's not "no cleavage"
+    {
       boost::sregex_token_iterator i(sequence.begin() + start, sequence.begin() + end, RegularExpressionAccess::get(re_), -1);
       boost::sregex_token_iterator j;
       while (i != j)

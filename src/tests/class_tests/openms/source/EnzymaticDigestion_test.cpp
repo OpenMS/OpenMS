@@ -16,6 +16,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <random>
+#include <set>
 #include <vector>
 using namespace OpenMS;
 using namespace std;
@@ -589,25 +590,73 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-START_SECTION(([EXTRA] Trypsin and Trypsin/P: the hand-counted cleavage positions of tokenize_() equal those of the regular expression))
+START_SECTION(([EXTRA] static std::optional<SimpleCleavageRule> SimpleCleavageRule::parse(const std::string& regex)))
 {
-  // the same rules spelled differently, so that they take the boost regex path of tokenize_(); one check covers both paths
-  const std::vector<std::pair<std::string, std::string>> rules = {{"Trypsin", "(?<=[XKR])(?!P)"}, {"Trypsin/P", "(?<=[XKR])"}};
-  std::mt19937 rng(42);
-  const std::string alphabet = "KRXPKRPAGLDK";
-  for (const auto& [name, respelled] : rules)
+  using Rule = EnzymaticDigestion::SimpleCleavageRule;
+  const std::optional<Rule> trypsin = Rule::parse("(?<=[KRX])(?!P)");
+  TEST_TRUE(trypsin.has_value())
+  TEST_TRUE(trypsin->cleavesBetween('K', 'A'))
+  TEST_TRUE(trypsin->cleavesBetween('R', 'K'))
+  TEST_TRUE(trypsin->cleavesBetween('X', 'R'))
+  TEST_TRUE(!trypsin->cleavesBetween('K', 'P'))
+  TEST_TRUE(!trypsin->cleavesBetween('A', 'A'))
+  TEST_TRUE(!trypsin->cleavesBetween('P', 'K'))
+  const std::optional<Rule> trypsin_p = Rule::parse("(?<=[KRX])");
+  TEST_TRUE(trypsin_p.has_value())
+  TEST_TRUE(trypsin_p->cleavesBetween('K', 'P'))
+  TEST_TRUE(!trypsin_p->cleavesBetween('P', 'K'))
+  const std::optional<Rule> lys_c = Rule::parse("(?<=[KX])(?!P)");
+  TEST_TRUE(lys_c.has_value())
+  TEST_TRUE(lys_c->cleavesBetween('K', 'R'))
+  TEST_TRUE(!lys_c->cleavesBetween('R', 'K'))
+  // every other pattern is left to the regular expression
+  for (const char* regex : {"", "()", "(?<=W)", "(?<=[])", "(?<=[A-Z])", "(?<=[kr])", "(?<=[KR]", "(?<=[KR]))", "(?<=[KR])(?!P",
+                            "(?<=[KR])(?![P])", "(?<=[KR])(?!PQ)", "(?<=[KR])(?!p)", "(?<=[KR])(?!P) ", "(?=[DBX])",
+                            "(?<=[DBX])(?=[DBX])", "(?<=[HKRX][PX])(?!P)"})
   {
-    const DigestionEnzymeProtein regex_enzyme(name + " (regex)", respelled);
-    EnzymaticDigestion fast, slow;
-    fast.setEnzyme(ProteaseDB::getInstance()->getEnzyme(name));
-    slow.setEnzyme(&regex_enzyme);
+    TEST_TRUE(!Rule::parse(regex).has_value())
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] every enzyme with a simple cleavage rule: the hand-counted cleavage positions of tokenize_() equal those of the regular expression))
+{
+  // the regular-expression path of tokenize_() for the same enzyme: the cached simple rule is cleared after setEnzyme()
+  struct RegexDigestion : EnzymaticDigestion
+  {
+    void setEnzyme(const DigestionEnzyme* enzyme) { EnzymaticDigestion::setEnzyme(enzyme); simple_rule_.reset(); }
+  };
+  std::mt19937 rng(42);
+  std::set<std::string> simple, regex_only;
+  const ProteaseDB* db = ProteaseDB::getInstance();
+  for (auto it = db->beginEnzyme(); it != db->endEnzyme(); ++it)
+  {
+    const DigestionEnzymeProtein* enzyme = *it;
+    const std::optional<EnzymaticDigestion::SimpleCleavageRule> rule = EnzymaticDigestion::SimpleCleavageRule::parse(enzyme->getRegEx());
+    if (!rule)
+    {
+      regex_only.insert(enzyme->getName());
+      continue;
+    }
+    simple.insert(enzyme->getName());
+    // sequences rich in the residues of the rule: the cleaving ones, the blocking one (three times) and a few others
+    std::string alphabet = "AGL";
+    for (int c = 'A'; c <= 'Z'; ++c)
+    {
+      if (rule->after[static_cast<size_t>(c)]) alphabet += static_cast<char>(c);
+      if (rule->not_before[static_cast<size_t>(c)]) alphabet += std::string(3, static_cast<char>(c));
+    }
+    EnzymaticDigestion fast;
+    RegexDigestion slow;
+    fast.setEnzyme(enzyme);
+    slow.setEnzyme(enzyme);
     fast.setMissedCleavages(1);
     slow.setMissedCleavages(1);
     for (auto spec : {EnzymaticDigestion::SPEC_FULL, EnzymaticDigestion::SPEC_SEMI, EnzymaticDigestion::SPEC_NONE})
     {
       fast.setSpecificity(spec);
       slow.setSpecificity(spec);
-      for (int k = 0; k < 300; ++k)
+      for (int k = 0; k < 100; ++k)
       {
         std::string s(std::uniform_int_distribution<int>(1, 16)(rng), 'A');
         for (char& c : s) c = alphabet[std::uniform_int_distribution<size_t>(0, alphabet.size() - 1)(rng)];
@@ -626,6 +675,14 @@ START_SECTION(([EXTRA] Trypsin and Trypsin/P: the hand-counted cleavage position
         }
       }
     }
+  }
+  for (const char* name : {"Trypsin", "Trypsin/P", "Lys-C", "Arg-C", "Chymotrypsin", "glutamyl endopeptidase"})
+  {
+    TEST_TRUE(simple.count(name) == 1)
+  }
+  for (const char* name : {"Asp-N", "no cleavage", "unspecific cleavage", "Formic_acid", "proline endopeptidase"})
+  {
+    TEST_TRUE(regex_only.count(name) == 1)
   }
 }
 END_SECTION
