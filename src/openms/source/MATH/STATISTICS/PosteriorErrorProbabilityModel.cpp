@@ -508,8 +508,7 @@ namespace OpenMS::Math
       if (scores.size() < std::max<Size>(2, min_scores))
       {
         OPENMS_LOG_WARN << "Warning: only " << scores.size() << " scores, too few to fit the mixture model (min_mixture_scores: " << min_scores
-                        << "). Without decoys, the PEPs of so few PSMs cannot be estimated; search against a target+decoy database"
-                        << " (DecoyDatabase, PeptideIndexer) to use the target-decoy estimate, which also works with few PSMs." << std::endl;
+                        << "). The target-decoy estimate (fitTargetDecoy() with decoy PSMs and decoy_handling 'auto') also works with few PSMs." << std::endl;
         return false;
       }
 

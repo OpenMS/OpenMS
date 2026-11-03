@@ -286,9 +286,13 @@ protected:
         }
         else
         {
-          writeLogWarn_("Only " + StringUtils::toStr(finiteCount(*mixture_scores)) + " scores for " + model_name + ", too few to fit the mixture model without decoys"
-                        " (fit_algorithm:min_mixture_scores: " + StringUtils::toStr(min_mixture_scores) + "). Search against a target+decoy database"
-                        " (DecoyDatabase, PeptideIndexer) to use the target-decoy estimate, which also works with few PSMs.");
+          const bool pooled_too_few = split_charge && pooled_mixture != pooled_scores.end();
+          const bool has_decoys = !score.second[2].empty() || (pooled_too_few && !pooled_mixture->second[2].empty());
+          writeLogWarn_("Only " + StringUtils::toStr(finiteCount(*mixture_scores)) + " scores for " + model_name
+                        + (pooled_too_few ? " (all charge states: " + StringUtils::toStr(finiteCount(pooled_mixture->second[0])) + ")" : std::string())
+                        + ", too few to fit the mixture model (fit_algorithm:min_mixture_scores: " + StringUtils::toStr(min_mixture_scores) + "). "
+                        + (has_decoys ? "The data contain decoys: with fit_algorithm:decoy_handling 'auto', the target-decoy estimate is used, which also works with few PSMs."
+                                      : "Search against a target+decoy database (DecoyDatabase, PeptideIndexer) to use the target-decoy estimate, which also works with few PSMs."));
           if (!ignore_bad_data)
           {
             return UNEXPECTED_RESULT;
