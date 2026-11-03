@@ -729,6 +729,149 @@ START_SECTION((bool fitTargetDecoy(const std::vector<double>& target_scores, con
 }
 END_SECTION
 
+START_SECTION((double computeDecoyProbability(double score) const))
+{
+  // label swap: a decoy gets the PEP that it would get as a target
+  // best first: 5 targets, decoy (5), target, decoy (3.5), 2 targets, decoys (1, 0.5)
+  const std::vector<double> targets = {10.0, 9.0, 8.0, 7.0, 6.0, 4.0, 3.0, 2.0};
+  const std::vector<double> decoys = {5.0, 3.5, 1.0, 0.5};
+  PosteriorErrorProbabilityModel model;
+  TEST_EQUAL(model.fitTargetDecoy(targets, decoys, "none"), true)
+  TOLERANCE_ABSOLUTE(1e-9)
+  for (Size i = 0; i < decoys.size(); ++i)
+  {
+    std::vector<double> swapped_targets(targets), swapped_decoys;
+    swapped_targets.push_back(decoys[i]);
+    for (Size j = 0; j < decoys.size(); ++j)
+    {
+      if (j != i) { swapped_decoys.push_back(decoys[j]); }
+    }
+    PosteriorErrorProbabilityModel swapped;
+    TEST_EQUAL(swapped.fitTargetDecoy(swapped_targets, swapped_decoys, "none"), true)
+    TEST_REAL_SIMILAR(model.computeDecoyProbability(decoys[i]), swapped.computeProbability(decoys[i]))
+  }
+  // the best decoy: as a target, it is pooled with the 5 targets above it (and the next target): 1 / 7 at the mean score
+  TEST_REAL_SIMILAR(model.computeDecoyProbability(5.0), 0.18571428571428572)
+  TEST_REAL_SIMILAR(model.computeProbability(5.0), 0.5857142857142857)
+  // decoy PEPs never exceed target PEPs, and do not increase with the score
+  {
+    bool bounded = true, monotone = true;
+    double previous = 1.0;
+    for (double s = -1.0; s < 12.0; s += 0.01)
+    {
+      const double pep = model.computeDecoyProbability(s);
+      bounded = bounded && pep >= 0.0 && pep <= model.computeProbability(s) + 1e-12;
+      monotone = monotone && pep <= previous + 1e-12;
+      previous = pep;
+    }
+    TEST_EQUAL(bounded, true)
+    TEST_EQUAL(monotone, true)
+  }
+
+  // exchangeability: in many small target-decoy datasets, decoys and incorrect targets get the same distribution of PEPs
+  // (without the label swap, no decoy scores above the best decoy, but incorrect targets do, and get low PEPs).
+  // Under target-decoy competition, each incorrect PSM is a target or a decoy with probability 1/2.
+  {
+    double n_incorrect = 0.0, n_decoys = 0.0, sum_incorrect = 0.0, sum_decoy = 0.0, sum_decoy_in_sample = 0.0;
+    double low_incorrect = 0.0, low_decoy = 0.0, low_decoy_in_sample = 0.0; // PEP < 0.2
+    for (unsigned rep = 0; rep < 400; ++rep)
+    {
+      PortableRNG rng(1000 + rep);
+      TDData data;
+      Size n0 = 0; // incorrect targets (first in data.targets)
+      for (int i = 0; i < 60; ++i)
+      {
+        const double score = rng.gumbel(2.0, 0.6);
+        if (rng.uniform() < 0.5)
+        {
+          data.decoys.push_back(score);
+        }
+        else
+        {
+          data.targets.push_back(score);
+          ++n0;
+        }
+      }
+      for (int i = 0; i < 15; ++i) { data.targets.push_back(rng.normal(5.0, 1.0)); }
+      PosteriorErrorProbabilityModel small;
+      if (data.decoys.empty() || !small.fitTargetDecoy(data.targets, data.decoys, "none")) { continue; }
+      for (Size i = 0; i < n0; ++i)
+      {
+        const double pep = small.computeProbability(data.targets[i]);
+        sum_incorrect += pep;
+        low_incorrect += (pep < 0.2) ? 1.0 : 0.0;
+        n_incorrect += 1.0;
+      }
+      for (double d : data.decoys)
+      {
+        const double pep = small.computeDecoyProbability(d), pep_in_sample = small.computeProbability(d);
+        sum_decoy += pep;
+        sum_decoy_in_sample += pep_in_sample;
+        low_decoy += (pep < 0.2) ? 1.0 : 0.0;
+        low_decoy_in_sample += (pep_in_sample < 0.2) ? 1.0 : 0.0;
+        n_decoys += 1.0;
+      }
+    }
+    STATUS("mean PEP: incorrect targets " << sum_incorrect / n_incorrect << ", decoys " << sum_decoy / n_decoys << " (in-sample " << sum_decoy_in_sample / n_decoys << ")")
+    STATUS("PEP < 0.2: incorrect targets " << low_incorrect / n_incorrect << ", decoys " << low_decoy / n_decoys << " (in-sample " << low_decoy_in_sample / n_decoys << ")")
+    TOLERANCE_ABSOLUTE(0.015)
+    TEST_REAL_SIMILAR(sum_decoy / n_decoys, sum_incorrect / n_incorrect)
+    TEST_REAL_SIMILAR(low_decoy / n_decoys, low_incorrect / n_incorrect)
+    // the in-sample PEPs of the decoys are clearly higher (the bias the label swap removes)
+    TEST_EQUAL(sum_decoy_in_sample / n_decoys > sum_incorrect / n_incorrect + 0.03, true)
+    TEST_EQUAL(low_decoy_in_sample / n_decoys < 0.5 * low_incorrect / n_incorrect, true)
+  }
+
+  // mixture model: same PEPs for decoys and targets
+  {
+    TDData data = simulateTDC(7, 2000, 1000, 0);
+    PosteriorErrorProbabilityModel mixture;
+    TEST_EQUAL(mixture.fitTargetDecoy(data.targets, {}, "none"), true)
+    TEST_EQUAL(mixture.getModelType() == PosteriorErrorProbabilityModel::ModelType::MIXTURE, true)
+    TEST_REAL_SIMILAR(mixture.computeDecoyProbability(3.0), mixture.computeProbability(3.0))
+  }
+}
+END_SECTION
+
+START_SECTION((double getTargetDecoyAUC() const))
+{
+  PosteriorErrorProbabilityModel model;
+  TEST_REAL_SIMILAR(model.getTargetDecoyAUC(), -1.0)
+  TDData data = simulateTDC(42, 400, 200, 400);
+  TEST_EQUAL(model.fitTargetDecoy(data.targets, data.decoys, "none"), true)
+  TEST_EQUAL(model.getTargetDecoyAUC() > 0.6, true)
+  TEST_EQUAL(model.hasCalibrationWarning(), false)
+  // targets score worse than decoys: still fitted (constant PEPs), but flagged
+  TEST_EQUAL(model.fitTargetDecoy({1.0, 2.0, 3.0, 4.0}, {5.0, 6.0}, "none"), true)
+  TEST_REAL_SIMILAR(model.getTargetDecoyAUC(), 0.0)
+  TEST_EQUAL(model.hasCalibrationWarning(), true)
+  // without decoys: not available
+  TEST_EQUAL(model.fitTargetDecoy(data.targets, {}, "none"), true)
+  TEST_REAL_SIMILAR(model.getTargetDecoyAUC(), -1.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] blocks of tied scores))
+{
+  // a block that consists of one group of tied scores has no ramp, even if the mean of its scores is off by rounding
+  // (3 * 2.7 / 3 = 2.7000000000000006): best first: 20 targets, 2 targets and a decoy tied at 2.7, 3 decoys
+  std::vector<double> targets, decoys = {2.7, 1.0, 0.5, 0.2};
+  for (int i = 10; i < 30; ++i) { targets.push_back(double(i)); }
+  targets.push_back(2.7);
+  targets.push_back(2.7);
+  PosteriorErrorProbabilityModel model;
+  TEST_EQUAL(model.fitTargetDecoy(targets, decoys, "none"), true)
+  // block PEP: (1 + 0.5) / (3 + 1) = 0.375 decoy fraction -> PEP 0.375 / 0.625
+  TOLERANCE_ABSOLUTE(1e-9)
+  TEST_REAL_SIMILAR(model.computeProbability(2.7), 0.6)
+  // knots of the curve have strictly increasing scores
+  const auto curve = model.getIsotonicPEPCurve();
+  bool increasing = true;
+  for (Size i = 1; i < curve.size(); ++i) { increasing = increasing && curve[i].first > curve[i - 1].first; }
+  TEST_EQUAL(increasing, true)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] degenerate input))
 {
   auto check_monotone = [](const PosteriorErrorProbabilityModel& model)

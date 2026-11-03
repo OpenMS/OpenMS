@@ -223,6 +223,7 @@ namespace OpenMS::Math
         double max_score;  ///< largest score in the block
         double score_sum;  ///< sum of the scores of the PSMs in the block
         double pseudo_decoys = 0.5; ///< pseudo-count of decoys for the shrunk decoy fraction (Jeffreys prior: 1/2 decoy, 1/2 target)
+        Size n_groups = 1; ///< number of groups of tied scores in the block
 
         /// fraction of decoys, optionally shrunk by the pseudo-counts ((decoys + pseudo_decoys) / (n + 1))
         double decoyFraction(bool shrunk) const
@@ -238,6 +239,7 @@ namespace OpenMS::Math
           min_score = std::min(min_score, other.min_score);
           max_score = std::max(max_score, other.max_score);
           score_sum += other.score_sum;
+          n_groups += other.n_groups;
         }
       };
 
@@ -261,6 +263,103 @@ namespace OpenMS::Math
           PAVABlock last_block = blocks.back();
           blocks.pop_back();
           blocks.back().merge(last_block);
+        }
+      }
+
+      /// non-parametric target-decoy estimate: PEP curve (knots with ascending scores) and its blocks
+      struct IsotonicFit
+      {
+        std::vector<double> scores;         ///< knots: scores (ascending)
+        std::vector<double> peps;           ///< knots: PEPs (non-increasing)
+        std::vector<PAVABlock> blocks;      ///< final blocks, best scores first
+        std::vector<double> block_peps;     ///< PEP of each final block
+      };
+
+      /// linear interpolation of a PEP curve given by knots (ascending scores), constant outside
+      double interpolateCurve(const std::vector<double>& scores, const std::vector<double>& peps, double score)
+      {
+        if (std::isnan(score) || scores.empty()) { return std::numeric_limits<double>::quiet_NaN(); }
+        if (score <= scores.front()) { return peps.front(); }
+        if (score >= scores.back()) { return peps.back(); }
+        const Size upper = std::upper_bound(scores.begin(), scores.end(), score) - scores.begin();
+        const double x0 = scores[upper - 1], x1 = scores[upper];
+        const double t = (score - x0) / (x1 - x0);
+        return peps[upper - 1] + t * (peps[upper] - peps[upper - 1]);
+      }
+
+      /**
+        @brief non-parametric target-decoy estimate from groups of tied scores (best scores first, each a PAVABlock of one group)
+
+        @param swap_group if valid, one decoy of this group is counted as a target (label swap)
+      */
+      void fitIsotonicCurve(const std::vector<PAVABlock>& groups, Size swap_group, double decoy_ratio, IsotonicFit& fit)
+      {
+        // 1) maximum likelihood estimate of a decoy probability that does not decrease with decreasing score:
+        //    pool-adjacent-violators on groups of tied scores (tied scores always get the same estimate).
+        //    Neighbours with equal decoy fractions are merged as well, which yields maximal blocks.
+        std::vector<PAVABlock> blocks;
+        blocks.reserve(groups.size());
+        for (Size g = 0; g < groups.size(); ++g)
+        {
+          PAVABlock group = groups[g];
+          if (g == swap_group)
+          {
+            group.decoys -= 1.0;
+          }
+          addNonDecreasing(blocks, group, true, false);
+        }
+
+        // 2) Shrink the decoy fraction of each block with a Jeffreys prior (avoids PEPs of exactly 0 for blocks without decoys),
+        //    followed by pool-adjacent-violators to restore monotonicity (one pseudo-count per final block).
+        //    The targets above the best decoy contain on average 1 / decoy_ratio incorrect targets (the number of incorrect targets
+        //    before the first decoy is geometrically distributed), which a pseudo-count of one decoy for this block yields
+        //    (cf. the "+1" correction of target-decoy FDR estimates, (#decoys + 1) / #targets).
+        if (blocks.front().decoys == 0.0)
+        {
+          blocks.front().pseudo_decoys = 1.0;
+        }
+        fit.blocks.clear();
+        for (const PAVABlock& b : blocks)
+        {
+          addNonDecreasing(fit.blocks, b, true, true);
+        }
+
+        // 3) PEP of a target under target-decoy competition: PEP = (#decoys / decoy_ratio) / #targets = p / (1 - p) / decoy_ratio
+        fit.block_peps.clear();
+        for (const PAVABlock& b : fit.blocks)
+        {
+          const double p = std::min(b.decoyFraction(true), 1.0 - 1e-12);
+          fit.block_peps.push_back(std::min(1.0, p / (1.0 - p) / decoy_ratio));
+        }
+
+        // Curve: within a block, the PEP decreases linearly with the score around the block's PEP at the mean score of the block,
+        // which keeps the mean PEP of the block (calibration) and orders the PSMs of a block by score (no ties of different scores,
+        // e.g. for FDR estimates based on the PEPs). The slope is limited such that the PEP stays strictly between the PEPs
+        // of the neighbouring blocks. Between blocks, the PEP is interpolated linearly.
+        fit.scores.clear();
+        fit.peps.clear();
+        const std::vector<PAVABlock>& final_blocks = fit.blocks;
+        for (Size b = final_blocks.size(); b-- > 0; ) // ascending scores
+        {
+          const PAVABlock& block = final_blocks[b];
+          const double pep = fit.block_peps[b];
+          if (block.max_score > block.min_score) // (a block of tied scores has no ramp, even if the mean score is off by rounding)
+          {
+            const double gap_better = (b == 0) ? pep : pep - fit.block_peps[b - 1]; // towards the better scores (PEP must stay >= 0)
+            const double gap_worse = (b + 1 == final_blocks.size()) ? 1.0 - pep : fit.block_peps[b + 1] - pep; // towards the worse scores (PEP <= 1)
+            const double half_range = 0.45 * std::max(0.0, std::min(gap_better, gap_worse));
+            const double center = std::clamp(block.score_sum / block.n, block.min_score, block.max_score);
+            const double half_width = std::max(block.max_score - center, center - block.min_score);
+            fit.scores.push_back(block.min_score);
+            fit.peps.push_back(pep + half_range * (center - block.min_score) / half_width);
+            fit.scores.push_back(block.max_score);
+            fit.peps.push_back(pep - half_range * (block.max_score - center) / half_width);
+          }
+          else
+          {
+            fit.scores.push_back(block.min_score);
+            fit.peps.push_back(pep);
+          }
         }
       }
 
@@ -308,7 +407,7 @@ namespace OpenMS::Math
       incorrectly_assigned_fit_gumbel_param_(GumbelMaxLikelihoodFitter::GumbelDistributionFitResult(-1,-1)),
       correctly_assigned_fit_param_(GaussFitter::GaussFitResult(-1, -1, -1)),
       negative_prior_(0.5), smallest_score_(0),
-      model_type_(ModelType::NONE), incorrect_is_gumbel_(true), td_incorrect_fraction_(-1), calibration_warning_(false)
+      model_type_(ModelType::NONE), incorrect_is_gumbel_(true), td_incorrect_fraction_(-1), td_auc_(-1), calibration_warning_(false)
     {
       defaults_.setValue("out_plot", "", "If given, the some output files will be saved in the following manner: <out_plot>_scores.txt for the scores and <out_plot> which contains the fitted values for each step of the EM-algorithm, e.g., out_plot = /usr/home/OMSSA123 leads to /usr/home/OMSSA123_scores.txt, /usr/home/OMSSA123 will be written. If no directory is specified, e.g. instead of '/usr/home/OMSSA123' just OMSSA123, the files will be written into the working directory.", {"advanced","output file"});
       defaults_.setValue("number_of_bins", 100, "Number of bins used for visualization. Only needed if each iteration step of the EM-Algorithm will be visualized", {"advanced"});
@@ -361,9 +460,12 @@ namespace OpenMS::Math
     {
       model_type_ = ModelType::NONE;
       td_incorrect_fraction_ = -1;
+      td_auc_ = -1;
       calibration_warning_ = false;
       isotonic_scores_.clear();
       isotonic_peps_.clear();
+      decoy_scores_.clear();
+      decoy_peps_.clear();
     }
 
     bool PosteriorErrorProbabilityModel::fitGumbelGauss(std::vector<double>& search_engine_scores, const std::string& outlier_handling)
@@ -686,13 +788,15 @@ namespace OpenMS::Math
         if (double(decoys.size()) >= 0.95 * decoy_ratio * double(targets.size()))
         {
           OPENMS_LOG_WARN << "Warning: there are about as many (or more) decoy as target PSMs (" << decoys.size() << " decoys, " << targets.size()
-                          << " targets, decoy_ratio " << decoy_ratio << "). Either the data contain (almost) no correct identifications, or targets and decoys"
-                          << " did not compete (e.g. separate target and decoy searches that cannot be matched by spectrum). PEPs will be (close to) 1." << std::endl;
+                          << " targets, decoy_ratio " << decoy_ratio << "), i.e. (almost) all target PSMs are estimated to be incorrect. Most PEPs will be"
+                          << " close to 1; only targets that score clearly better than the decoys get lower PEPs. If more correct identifications"
+                          << " are expected, check whether targets and decoys competed (e.g. separate target and decoy searches that cannot be"
+                          << " matched by spectrum)." << std::endl;
         }
-        const double auc = targetDecoyAUC(targets, decoys);
-        if (auc <= 0.5)
+        td_auc_ = targetDecoyAUC(targets, decoys);
+        if (td_auc_ <= 0.5)
         {
-          OPENMS_LOG_WARN << "Warning: target PSMs do not score better than decoy PSMs (AUC = " << auc
+          OPENMS_LOG_WARN << "Warning: target PSMs do not score better than decoy PSMs (AUC = " << td_auc_
                           << "). Please check the score type and its orientation (higher_score_better)." << std::endl;
         }
       }
@@ -700,6 +804,10 @@ namespace OpenMS::Math
       if (!fitTargetDecoyModel_(targets, decoys, outlier_handling))
       {
         return false;
+      }
+      if (td_auc_ >= 0.0 && td_auc_ <= 0.5)
+      {
+        calibration_warning_ = true;
       }
 
       // Low-score check: the lowest-scoring PSMs should be (almost) all incorrect, i.e. decoys with probability
@@ -799,10 +907,8 @@ namespace OpenMS::Math
       for (double s : decoy_scores) { psms.emplace_back(s, true); }
       std::sort(psms.begin(), psms.end(), [](const std::pair<double, bool>& a, const std::pair<double, bool>& b) { return a.first > b.first; });
 
-      // 1) maximum likelihood estimate of a decoy probability that does not decrease with decreasing score:
-      //    pool-adjacent-violators on groups of tied scores (tied scores always get the same estimate).
-      //    Neighbours with equal decoy fractions are merged as well, which yields maximal blocks.
-      std::vector<PAVABlock> blocks;
+      // groups of tied scores
+      std::vector<PAVABlock> groups;
       for (Size i = 0; i < psms.size(); )
       {
         const double score = psms[i].first;
@@ -813,66 +919,88 @@ namespace OpenMS::Math
           group.decoys += psms[i].second ? 1.0 : 0.0;
           group.score_sum += score;
         }
-        addNonDecreasing(blocks, group, true, false);
+        groups.push_back(group);
       }
 
-      // 2) Shrink the decoy fraction of each block with a Jeffreys prior (avoids PEPs of exactly 0 for blocks without decoys),
-      //    followed by pool-adjacent-violators to restore monotonicity (one pseudo-count per final block).
-      //    The targets above the best decoy contain on average 1 / decoy_ratio incorrect targets (the number of incorrect targets
-      //    before the first decoy is geometrically distributed), which a pseudo-count of one decoy for this block yields
-      //    (cf. the "+1" correction of target-decoy FDR estimates, (#decoys + 1) / #targets).
-      if (blocks.front().decoys == 0.0)
-      {
-        blocks.front().pseudo_decoys = 1.0;
-      }
-      std::vector<PAVABlock> shrunk_blocks;
-      for (const PAVABlock& b : blocks)
-      {
-        addNonDecreasing(shrunk_blocks, b, true, true);
-      }
-
-      // 3) PEP of a target under target-decoy competition: PEP = (#decoys / decoy_ratio) / #targets = p / (1 - p) / decoy_ratio
       const double decoy_ratio = param_.getValue("decoy_ratio");
-      std::vector<double> block_peps; // best scores first
-      for (const PAVABlock& b : shrunk_blocks)
-      {
-        const double p = std::min(b.decoyFraction(true), 1.0 - 1e-12);
-        block_peps.push_back(std::min(1.0, p / (1.0 - p) / decoy_ratio));
-      }
+      IsotonicFit fit;
+      fitIsotonicCurve(groups, groups.size(), decoy_ratio, fit);
+      isotonic_scores_ = fit.scores;
+      isotonic_peps_ = fit.peps;
 
-      // Curve: within a block, the PEP decreases linearly with the score around the block's PEP at the mean score of the block,
-      // which keeps the mean PEP of the block (calibration) and orders the PSMs of a block by score (no ties of different scores,
-      // e.g. for FDR estimates based on the PEPs). The slope is limited such that the PEP stays strictly between the PEPs
-      // of the neighbouring blocks. Between blocks, the PEP is interpolated linearly.
-      isotonic_scores_.clear();
-      isotonic_peps_.clear();
-      for (Size b = shrunk_blocks.size(); b-- > 0; ) // ascending scores
+      // PEPs of the decoys: the curve is fitted with the decoy labels, which makes it more favorable for targets than for decoys
+      // at the same score (e.g. an incorrect target can score above the best decoy and get a low PEP, a decoy never can).
+      // Decoys therefore get the PEP that they would get as targets: the estimate in which this decoy is labeled as a target (label
+      // swap). Then decoy and incorrect target PSMs are exchangeable, as target-decoy FDR estimates on the PEPs require.
+      // The estimate is recomputed for the groups of tied scores with decoys, best scores first, as long as the cost is small
+      // (this covers all decoys of smaller datasets, where the effect matters). For the remaining decoys (in large blocks of
+      // large datasets), the PEP of their block is recomputed with one decoy less and one target more.
+      const Size max_steps = 50000000; // number of processed groups for the exact estimates
+      const Size max_exact = std::max(Size(100), max_steps / std::max(Size(1), groups.size()));
+      std::vector<Size> group_block(groups.size()); // final block of each group
+      for (Size b = 0, g = 0; b < fit.blocks.size(); ++b)
       {
-        const PAVABlock& block = shrunk_blocks[b];
-        const double pep = block_peps[b];
-        const double gap_better = (b == 0) ? pep : pep - block_peps[b - 1]; // towards the better scores (PEP must stay >= 0)
-        const double gap_worse = (b + 1 == shrunk_blocks.size()) ? 1.0 - pep : block_peps[b + 1] - pep; // towards the worse scores (PEP <= 1)
-        const double half_range = 0.45 * std::max(0.0, std::min(gap_better, gap_worse));
-        const double center = block.score_sum / block.n;
-        const double half_width = std::max(block.max_score - center, center - block.min_score);
-        if (half_width > 0.0)
+        for (Size k = 0; k < fit.blocks[b].n_groups; ++k) { group_block[g++] = b; }
+      }
+      std::vector<std::pair<double, double>> decoy_peps; // (score, PEP) of the groups with decoys, best scores first
+      std::vector<double> decoy_weights;
+      IsotonicFit swapped;
+      Size n_exact = 0;
+      for (Size g = 0; g < groups.size(); ++g)
+      {
+        if (groups[g].decoys == 0.0) { continue; }
+        const double score = groups[g].min_score;
+        const double target_pep = interpolateCurve(isotonic_scores_, isotonic_peps_, score);
+        double pep;
+        if (n_exact < max_exact)
         {
-          isotonic_scores_.push_back(block.min_score);
-          isotonic_peps_.push_back(pep + half_range * (center - block.min_score) / half_width);
-          isotonic_scores_.push_back(block.max_score);
-          isotonic_peps_.push_back(pep - half_range * (block.max_score - center) / half_width);
+          fitIsotonicCurve(groups, g, decoy_ratio, swapped);
+          pep = interpolateCurve(swapped.scores, swapped.peps, score);
+          ++n_exact;
         }
         else
         {
-          isotonic_scores_.push_back(block.min_score);
-          isotonic_peps_.push_back(pep);
+          const Size b = group_block[g];
+          const PAVABlock& block = fit.blocks[b];
+          const double p = std::min((block.decoys - 1.0 + block.pseudo_decoys) / (block.n + 1.0), 1.0 - 1e-12);
+          const double block_pep = std::min(1.0, p / (1.0 - p) / decoy_ratio);
+          const double lower = (b == 0) ? 0.0 : fit.block_peps[b - 1];
+          pep = std::max(lower, target_pep - (fit.block_peps[b] - block_pep));
         }
+        decoy_peps.emplace_back(score, std::min(pep, target_pep));
+        decoy_weights.push_back(groups[g].decoys);
+      }
+      // the PEP must not decrease with decreasing score: weighted pool-adjacent-violators (keeps the mean PEP of the decoys)
+      struct Pool { double w, sum; Size first, last; };
+      std::vector<Pool> pools;
+      for (Size i = 0; i < decoy_peps.size(); ++i)
+      {
+        pools.push_back({decoy_weights[i], decoy_weights[i] * decoy_peps[i].second, i, i});
+        while (pools.size() > 1 && pools[pools.size() - 2].sum / pools[pools.size() - 2].w > pools.back().sum / pools.back().w)
+        {
+          Pool last = pools.back();
+          pools.pop_back();
+          pools.back().w += last.w;
+          pools.back().sum += last.sum;
+          pools.back().last = last.last;
+        }
+      }
+      for (const Pool& pool : pools)
+      {
+        for (Size i = pool.first; i <= pool.last; ++i) { decoy_peps[i].second = pool.sum / pool.w; }
+      }
+      decoy_scores_.clear();
+      decoy_peps_.clear();
+      for (Size i = decoy_peps.size(); i-- > 0; ) // ascending scores
+      {
+        decoy_scores_.push_back(decoy_peps[i].first);
+        decoy_peps_.push_back(decoy_peps[i].second);
       }
 
       smallest_score_ = psms.back().first;
       negative_prior_ = td_incorrect_fraction_ >= 0 ? td_incorrect_fraction_ : std::min(1.0, double(decoy_scores.size()) / (decoy_ratio * double(target_scores.size())));
       OPENMS_LOG_INFO << "Non-parametric target-decoy estimate: " << target_scores.size() << " targets, " << decoy_scores.size() << " decoys, "
-                      << shrunk_blocks.size() << " blocks, PEP range [" << isotonic_peps_.back() << ", " << isotonic_peps_.front() << "]." << std::endl;
+                      << fit.blocks.size() << " blocks, PEP range [" << isotonic_peps_.back() << ", " << isotonic_peps_.front() << "]." << std::endl;
       return !isotonic_scores_.empty();
     }
 
@@ -1005,13 +1133,7 @@ namespace OpenMS::Math
     {
       if (model_type_ == ModelType::TARGET_DECOY_ISOTONIC)
       {
-        if (std::isnan(score)) { return score; }
-        if (score <= isotonic_scores_.front()) { return isotonic_peps_.front(); }
-        if (score >= isotonic_scores_.back()) { return isotonic_peps_.back(); }
-        const Size upper = std::upper_bound(isotonic_scores_.begin(), isotonic_scores_.end(), score) - isotonic_scores_.begin();
-        const double x0 = isotonic_scores_[upper - 1], x1 = isotonic_scores_[upper];
-        const double t = (score - x0) / (x1 - x0);
-        return isotonic_peps_[upper - 1] + t * (isotonic_peps_[upper] - isotonic_peps_[upper - 1]);
+        return interpolateCurve(isotonic_scores_, isotonic_peps_, score);
       }
 
       // apply the same transformation that was applied before fitting
@@ -1027,6 +1149,16 @@ namespace OpenMS::Math
       const double log_odds_correct = std::log(1.0 - negative_prior_) + log_correct - std::log(negative_prior_) - log_incorrect;
       if (std::isnan(log_odds_correct)) { return log_odds_correct; }
       return 1.0 / (1.0 + std::exp(log_odds_correct));
+    }
+
+    double PosteriorErrorProbabilityModel::computeDecoyProbability(double score) const
+    {
+      if (model_type_ != ModelType::TARGET_DECOY_ISOTONIC || decoy_scores_.empty())
+      {
+        return computeProbability(score);
+      }
+      // the target PEP bounds the label-swapped decoy PEP (e.g. for decoys scoring above all fitted decoys)
+      return std::min(computeProbability(score), interpolateCurve(decoy_scores_, decoy_peps_, score));
     }
 
     TextFile PosteriorErrorProbabilityModel::initPlots(vector<double>& x_scores)
@@ -1704,7 +1836,7 @@ namespace OpenMS::Math
             }
             else
             {
-              score = PEP_model.computeProbability(score);
+              score = (getTDLabel(hit) == TDLabel::DECOY) ? PEP_model.computeDecoyProbability(score) : PEP_model.computeProbability(score);
 
               // invalid score? invalid fit!
               if (!(score >= 0.0 && score <= 1.0))

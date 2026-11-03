@@ -54,6 +54,10 @@ namespace OpenMS
         i.e. they (but not the block PEPs) depend on the score scale.
         As in qvality, Percolator and mokapot, the PEP is not forced to 1 at the lowest scores, where it follows the local ratio
         of decoys and targets (see hasCalibrationWarning()).
+        Decoys get their PEPs from a symmetric (label-swapped) estimate, see computeDecoyProbability(): the curve is fitted with
+        the decoy labels, which makes it more favorable for targets than for decoys at the same score. Without the label swap, an
+        incorrect target can score above the best decoy and get a low PEP, but a decoy never can. Downstream target-decoy FDR estimates
+        on the PEPs (e.g. protein FDR after protein inference across many small runs) would then miss these incorrect targets.
 
       @note Without decoys, the (unsupervised) mixture model assumes that the data contain correct assignments.
       For data with few or no correct assignments, it might assign low PEPs to a few PSMs in the extreme upper tail of the scores.
@@ -235,7 +239,7 @@ public:
       bool fit(std::vector<double>& search_engine_scores, std::vector<double>& probabilities, const std::string& outlier_handling);
 
       /**
-          @brief estimates the PEP model from scores of target and decoy PSMs. computeProbability can be used afterwards.
+          @brief estimates the PEP model from scores of target and decoy PSMs. computeProbability() (targets) and computeDecoyProbability() (decoys) can be used afterwards.
 
           The scores must be oriented such that higher scores are better (as returned by extractAndTransformScores()).
           They should stem from a target-decoy competition, i.e. a search against a concatenated target+decoy database,
@@ -269,7 +273,8 @@ public:
       /**
           @brief returns true if the last call to fitTargetDecoy() found the target-decoy assumptions to be violated at low scores
 
-          A warning is raised if even the lowest-scoring PSMs contain significantly (binomial test) and clearly too few decoys
+          A warning is raised if targets do not score better than decoys (see getTargetDecoyAUC()), or
+          if even the lowest-scoring PSMs contain significantly (binomial test) and clearly too few decoys
           for incorrect PSMs (decoy fraction below decoy_ratio / (1 + decoy_ratio), PEP below 0.8), so that the PEPs stay well below 1
           down to the lowest scores. Then either correct PSMs extend to the lowest scores, or decoys are underrepresented among the
           incorrect PSMs (e.g. a wrong decoy_ratio), which makes all target-decoy PEPs (and FDRs) too low.
@@ -280,6 +285,18 @@ public:
       bool hasCalibrationWarning() const
       {
         return calibration_warning_;
+      }
+
+      /**
+          @brief returns the area under the ROC curve for separating target from decoy PSMs by score (ties count half), as computed
+          by the last call to fitTargetDecoy(), or -1 if it is not available (no decoys, or @p decoy_handling = ignore).
+
+          Values of 0.5 or below mean that targets do not score better than decoys (e.g. a wrong score orientation, or a group of
+          PSMs without correct identifications whose targets and decoys did not compete fairly).
+      */
+      double getTargetDecoyAUC() const
+      {
+        return td_auc_;
       }
 
       /**
@@ -369,6 +386,19 @@ public:
       */
       double computeProbability(double score) const;
 
+      /**
+          @brief returns the posterior error probability of a decoy PSM with the given score
+
+          For the non-parametric target-decoy estimate, the PEP of a decoy that was used for fitting is the PEP it would get as a target,
+          i.e. from the estimate in which this decoy is labeled as a target (label swap). This makes decoy and incorrect target PSMs
+          exchangeable (the same distribution of PEPs), which target-decoy FDR estimates based on the PEPs require. Decoy PEPs are therefore
+          lower than or equal to the PEPs of targets with the same score. Exact for the best scoring decoys (all decoys of
+          smaller datasets); for decoys in large blocks of large datasets, where the effect is small, the change of the block PEP is used.
+          Scores in between the scores of the fitted decoys are interpolated linearly.
+          For the mixture model, the PEP equals computeProbability().
+      */
+      double computeDecoyProbability(double score) const;
+
       /// initializes the plots
       TextFile initPlots(std::vector<double> & x_scores);
 
@@ -440,10 +470,6 @@ private:
       /// @return transformed score (higher is better), or NaN if no usable score is available
       static double transformScore_(const std::string& engine, const PeptideHit& hit, const std::string& current_score_type, bool higher_score_better, const std::string& score_source);
 
-      /// For each engine (key) of @p run_to_engine (run identifier -> engine key): the score type to use for all of its hits.
-      /// For engines with dedicated support, the most preferred of their score types that any hit has; otherwise (or if no hit
-      /// has any of them) an empty string, i.e. the main score of the identifications. One score type per engine keeps the scores
-      /// of a model on the same scale.
       /// implementation of updateScores(); hits without a usable score get a PEP of 1 if @p unusable_to_one is set, otherwise they are left unchanged
       static void updateScores_(
         const PosteriorErrorProbabilityModel & PEP_model,
@@ -458,6 +484,10 @@ private:
         bool unusable_to_one,
         std::set<std::pair<Size, Size>> & updated_hits);
 
+      /// For each engine (key) of @p run_to_engine (run identifier -> engine key): the score type to use for all of its hits.
+      /// For engines with dedicated support, the most preferred of their score types that any hit has; otherwise (or if no hit
+      /// has any of them) an empty string, i.e. the main score of the identifications. One score type per engine keeps the scores
+      /// of a model on the same scale.
       static std::map<std::string, std::string> chooseScoreSources_(const std::map<std::string, std::string>& run_to_engine, const PeptideIdentificationList& peptide_ids);
 
       /// gets a specific score (either main score [preferred] or metavalue)
@@ -492,8 +522,13 @@ private:
       /// knots of the non-parametric PEP curve: scores (ascending) and PEPs (non-increasing)
       std::vector<double> isotonic_scores_;
       std::vector<double> isotonic_peps_;
+      /// knots of the PEP curve of decoys (label-swapped estimates at the scores of the fitted decoys): scores (ascending) and PEPs (non-increasing)
+      std::vector<double> decoy_scores_;
+      std::vector<double> decoy_peps_;
       /// target-decoy estimate of the fraction of incorrect targets (-1 if not available)
       double td_incorrect_fraction_;
+      /// area under the ROC curve of targets vs. decoys of the last target-decoy fit (-1 if not available)
+      double td_auc_;
       /// whether the last target-decoy fit found too few decoys among the lowest-scoring PSMs (see hasCalibrationWarning())
       bool calibration_warning_;
     };

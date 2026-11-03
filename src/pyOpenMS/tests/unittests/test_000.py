@@ -2005,6 +2005,8 @@ def testPosteriorErrorProbabilityModelTargetDecoy():
     @tests: PosteriorErrorProbabilityModel
      PosteriorErrorProbabilityModel.fitTargetDecoy
      PosteriorErrorProbabilityModel.getModelType
+     PosteriorErrorProbabilityModel.computeDecoyProbability
+     PosteriorErrorProbabilityModel.getTargetDecoyAUC
     """
     # target-decoy competition: incorrect targets and decoys ~ Gumbel(2, 0.6), correct targets ~ N(5, 1)
     rng = np.random.default_rng(1)
@@ -2027,10 +2029,16 @@ def testPosteriorErrorProbabilityModelTargetDecoy():
     assert all(b <= a + 1e-12 for a, b in zip(peps, peps[1:]))  # non-increasing
     # the PEPs of the targets sum up to (about) the number of incorrect targets
     assert abs(sum(model.computeProbability(t) for t in targets) / 2000.0 - 1.0) < 0.1
+    # targets score better than decoys
+    assert model.getTargetDecoyAUC() > 0.5
+    # decoys get the (label-swapped) PEPs they would get as targets: never above the PEP of a target with the same score
+    assert all(0.0 <= model.computeDecoyProbability(d) <= model.computeProbability(d) + 1e-12 for d in decoys)
 
     # without decoys: mixture model of the targets
     assert model.fitTargetDecoy(targets, [], "none")
     assert model.getModelType() == ModelType.MIXTURE
+    assert model.getTargetDecoyAUC() == -1.0
+    assert model.computeDecoyProbability(3.0) == model.computeProbability(3.0)
     assert abs(model.getNegativePrior() - 2000.0 / 3000.0) < 0.05
     location, scale = model.getIncorrectlyAssignedGumbelFitResult()
     assert abs(scale - 0.6) < 0.1

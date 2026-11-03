@@ -58,10 +58,22 @@ estimated by isotonic regression, so the PEP decreases with the score. The estim
 and only depends on the ordering of the scores (up to the interpolation within and between blocks), so it works for any score type.
 This also works with very few decoys (or targets): even a single decoy carries information about the number of incorrect targets.
 
-Only top hits (one per spectrum) are used for fitting. Lower-ranked hits and decoys receive the PEP of a target hit with the same score.
+Only top hits (one per spectrum) are used for fitting. Lower-ranked target hits receive the PEP of a target top hit with the same score.
+Decoys receive the PEP that they would get as targets (label swap), which makes decoys and incorrect targets exchangeable, as target-decoy
+FDR estimates on the PEPs (e.g. @ref TOPP_FalseDiscoveryRate, or the protein FDR after protein inference) require.
 Decoys therefore need to be kept in the data, i.e. run this tool before @ref TOPP_FalseDiscoveryRate (or use its option to keep decoys).
 If a spectrum has several identifications (e.g. results of separate target and decoy searches of the same run), only its best top hit is used for fitting.
-With @p split_charge, charge states with fewer than @p fit_algorithm:min_decoys decoys (or without targets, or whose model cannot be fitted) use the target-decoy data of all charge states.
+With @p split_charge, charge states with fewer than @p fit_algorithm:min_decoys decoys (or without targets, or whose model cannot be fitted,
+or whose targets do not score better than their decoys) use the target-decoy data of all charge states.
+
+<B>Several runs: one model for all of them</B>
+
+All search runs of the input file that stem from the same search engine are modeled together (one PEP curve per search engine),
+with target-decoy competition per spectrum. For a study with many small runs (e.g. fractions, or runs with few identifications),
+fitting one model to all runs is more accurate than fitting each run separately: with few decoys per run, the PEPs of a run
+depend strongly on the chance positions of its decoys. Merge the identification files of the study (@ref TOPP_IDMerger), estimate
+the PEPs once, and split the result by spectra file again (@ref TOPP_IDRipper) if needed. Score types must be comparable across the runs
+(same search engine and settings; e-values are preferable to raw scores).
 
 <B>Mixture models</B>
 
@@ -261,6 +273,12 @@ protected:
       if (!return_value && use_decoys && pooled_available && !use_pooled)
       {
         switch_to_pooled("Unable to fit the data of " + model_name + ".");
+        return_value = PEP_model.fitTargetDecoy(*targets, *decoys, outlier_handling);
+      }
+      else if (return_value && use_decoys && pooled_has_more && !use_pooled && PEP_model.getTargetDecoyAUC() >= 0.0 && PEP_model.getTargetDecoyAUC() <= 0.5)
+      {
+        // a charge state whose targets do not score better than its decoys would get (almost) constant PEPs, for decoys as well
+        switch_to_pooled("Target PSMs of " + model_name + " do not score better than decoy PSMs (AUC = " + StringUtils::toStr(PEP_model.getTargetDecoyAUC()) + ").");
         return_value = PEP_model.fitTargetDecoy(*targets, *decoys, outlier_handling);
       }
 

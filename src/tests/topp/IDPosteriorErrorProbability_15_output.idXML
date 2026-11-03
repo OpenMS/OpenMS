@@ -93,7 +93,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="513.0" RT="130.0" spectrum_reference="scan=13" >
-			<PeptideHit score="0.325595242786354" sequence="FIMQTYDK" charge="2" >
+			<PeptideHit score="0.088095239213665" sequence="FIMQTYDK" charge="2" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="E-Value" value="3.981072e-05"/>
 				<UserParam type="float" name="XTandem_score" value="42.0"/>
@@ -114,7 +114,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="516.0" RT="160.0" spectrum_reference="scan=16" >
-			<PeptideHit score="0.410544224015063" sequence="GKNRVAEK" charge="2" >
+			<PeptideHit score="0.289772737070046" sequence="GKNRVAEK" charge="2" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="E-Value" value="3.162278e-04"/>
 				<UserParam type="float" name="XTandem_score" value="37.5"/>
@@ -135,7 +135,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="519.0" RT="190.0" spectrum_reference="scan=19" >
-			<PeptideHit score="0.495493192423533" sequence="HLPSWCFK" charge="2" >
+			<PeptideHit score="0.383333328363136" sequence="HLPSWCFK" charge="2" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="E-Value" value="2.511886e-03"/>
 				<UserParam type="float" name="XTandem_score" value="33.0"/>
@@ -156,7 +156,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="522.0" RT="220.0" spectrum_reference="scan=22" >
-			<PeptideHit score="0.580442172850058" sequence="IMQTYDGK" charge="2" >
+			<PeptideHit score="0.434736839159956" sequence="IMQTYDGK" charge="2" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="E-Value" value="0.01995262"/>
 				<UserParam type="float" name="XTandem_score" value="28.5"/>
@@ -177,7 +177,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="525.0" RT="250.0" spectrum_reference="scan=25" >
-			<PeptideHit score="0.665391154198699" sequence="KNRVAEHK" charge="2" >
+			<PeptideHit score="0.490295029473042" sequence="KNRVAEHK" charge="2" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="E-Value" value="0.1584893"/>
 				<UserParam type="float" name="XTandem_score" value="24.0"/>
@@ -198,7 +198,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="528.0" RT="280.0" spectrum_reference="scan=28" >
-			<PeptideHit score="1.0" sequence="LPSWCFIK" charge="2" >
+			<PeptideHit score="0.655978257157572" sequence="LPSWCFIK" charge="2" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="E-Value" value="1.258925"/>
 				<UserParam type="float" name="XTandem_score" value="19.5"/>

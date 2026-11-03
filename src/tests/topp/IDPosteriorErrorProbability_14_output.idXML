@@ -27,7 +27,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="503.0" RT="130.0" spectrum_reference="scan=4" >
-			<PeptideHit score="0.32917891857326" sequence="EMEPEPK" charge="2" >
+			<PeptideHit score="0.049426251737008" sequence="EMEPEPK" charge="2" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="expect_score" value="5.0e-03"/>
 			</PeptideHit>

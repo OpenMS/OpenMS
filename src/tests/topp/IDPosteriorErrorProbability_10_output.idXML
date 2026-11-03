@@ -3375,7 +3375,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="602.825371956687945" RT="3143.015519999999924" >
-			<PeptideHit score="0.776013047613604" sequence="ITKESELQEK" charge="2" aa_before="K K K" aa_after="K K K" start="75 59 84" end="84 68 93" protein_refs="PH_174 PH_269 PH_288" >
+			<PeptideHit score="0.588781935265089" sequence="ITKESELQEK" charge="2" aa_before="K K K" aa_after="K K K" start="75 59 84" end="84 68 93" protein_refs="PH_174 PH_269 PH_288" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 				<UserParam type="float" name="hyperscore_score" value="6.48573720224597"/>
@@ -3424,7 +3424,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="603.848352314208" RT="3167.798519999999826" >
-			<PeptideHit score="0.842978214392854" sequence="LVYLQLMAQK" charge="2" aa_before="K K" aa_after="V V" start="124 48" end="133 57" protein_refs="PH_498 PH_499" >
+			<PeptideHit score="0.738218217290762" sequence="LVYLQLMAQK" charge="2" aa_before="K K" aa_after="V V" start="124 48" end="133 57" protein_refs="PH_498 PH_499" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 				<UserParam type="float" name="hyperscore_score" value="5.39788318382869"/>
@@ -3487,7 +3487,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="620.965325169422044" RT="3197.356319999999869" >
-			<PeptideHit score="0.790151538084869" sequence="EQSSLM(Oxidation)EVESVVGEPPK" charge="3" aa_before="R R R" aa_after="S S S" start="1275 1275 1275" end="1291 1291 1291" protein_refs="PH_745 PH_747 PH_746" >
+			<PeptideHit score="0.621325576965477" sequence="EQSSLM(Oxidation)EVESVVGEPPK" charge="3" aa_before="R R R" aa_after="S S S" start="1275 1275 1275" end="1291 1291 1291" protein_refs="PH_745 PH_747 PH_746" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 				<UserParam type="float" name="hyperscore_score" value="6.02672305876802"/>
@@ -3676,7 +3676,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="620.843562366414972" RT="3279.002160000000003" >
-			<PeptideHit score="0.80035047376786" sequence="LSELPIEPSQK" charge="2" aa_before="R R R R R" aa_after="Q Q Q Q Q" start="3179 3174 2168 2164 3175" end="3189 3184 2178 2174 3185" protein_refs="PH_669 PH_671 PH_670 PH_359 PH_154" >
+			<PeptideHit score="0.655599551301514" sequence="LSELPIEPSQK" charge="2" aa_before="R R R R R" aa_after="Q Q Q Q Q" start="3179 3174 2168 2164 3175" end="3189 3184 2178 2174 3185" protein_refs="PH_669 PH_671 PH_670 PH_359 PH_154" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 				<UserParam type="float" name="hyperscore_score" value="5.69560880463817"/>
@@ -3725,7 +3725,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="614.314282991271966" RT="3297.465239999999994" >
-			<PeptideHit score="1.0" sequence="FTLLKMC(Carbamidomethyl)PQHPPSER" charge="3" aa_before="R" aa_after="G" start="1089" end="1103" protein_refs="PH_500" >
+			<PeptideHit score="0.827637256984041" sequence="FTLLKMC(Carbamidomethyl)PQHPPSER" charge="3" aa_before="R" aa_after="G" start="1089" end="1103" protein_refs="PH_500" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="hyperscore_score" value="5.06471805076068"/>
@@ -3844,7 +3844,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="606.323577809636049" RT="3345.080159999999978" >
-			<PeptideHit score="0.794619234691849" sequence="SLHELQVETR" charge="2" aa_before="R R R R" aa_after="G G G G" start="232 249 63 249" end="241 258 72 258" protein_refs="PH_551 PH_412 PH_415 PH_414" >
+			<PeptideHit score="0.636339468964446" sequence="SLHELQVETR" charge="2" aa_before="R R R R" aa_after="G G G G" start="232 249 63 249" end="241 258 72 258" protein_refs="PH_551 PH_412 PH_415 PH_414" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 				<UserParam type="float" name="hyperscore_score" value="5.88167674455643"/>
@@ -3893,7 +3893,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="605.854031621774993" RT="3369.533100000000104" >
-			<PeptideHit score="1.0" sequence="IRLSSTQLHR" charge="2" aa_before="K K K K" aa_after="E E E E" start="1283 1149 123 1073" end="1292 1158 132 1082" protein_refs="PH_645 PH_648 PH_647 PH_646" >
+			<PeptideHit score="0.836918550879779" sequence="IRLSSTQLHR" charge="2" aa_before="K K K K" aa_after="E E E E" start="1283 1149 123 1073" end="1292 1158 132 1082" protein_refs="PH_645 PH_648 PH_647 PH_646" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 				<UserParam type="float" name="hyperscore_score" value="4.99525966348604"/>
@@ -3907,7 +3907,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="600.982471632155011" RT="3371.689620000000104" >
-			<PeptideHit score="0.841297181449227" sequence="INNWLYKFEEFGLK" charge="3" aa_before="K K" aa_after="G G" start="97 97" end="110 110" protein_refs="PH_934 PH_561" >
+			<PeptideHit score="0.736910126363125" sequence="INNWLYKFEEFGLK" charge="3" aa_before="K K" aa_after="G G" start="97 97" end="110 110" protein_refs="PH_934 PH_561" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 				<UserParam type="float" name="hyperscore_score" value="5.40982284640976"/>
@@ -3928,7 +3928,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="622.823084915837967" RT="3378.151919999999791" >
-			<PeptideHit score="0.77243075949392" sequence="LEAASYAHLNR" charge="2" aa_before="K K K K K K K" aa_after="M M M M M M M" start="205 169 242 115 207 207 205" end="215 179 252 125 217 217 215" protein_refs="PH_592 PH_466 PH_470 PH_468 PH_469 PH_467 PH_318" >
+			<PeptideHit score="0.588781935265089" sequence="LEAASYAHLNR" charge="2" aa_before="K K K K K K K" aa_after="M M M M M M M" start="205 169 242 115 207 207 205" end="215 179 252 125 217 217 215" protein_refs="PH_592 PH_466 PH_470 PH_468 PH_469 PH_467 PH_318" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 				<UserParam type="float" name="hyperscore_score" value="6.60203822577391"/>
@@ -4467,7 +4467,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="615.339896418495982" RT="3606.595800000000054" >
-			<PeptideHit score="0.763967611336032" sequence="INTLANVDELK" charge="2" aa_before="K" aa_after="V" start="252" end="262" protein_refs="PH_502" >
+			<PeptideHit score="0.455452595209919" sequence="INTLANVDELK" charge="2" aa_before="K" aa_after="V" start="252" end="262" protein_refs="PH_502" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="hyperscore_score" value="6.87679914955959"/>
@@ -4572,7 +4572,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="625.338386210741987" RT="3657.203939999999875" >
-			<PeptideHit score="0.779598285851392" sequence="SIATSVTNELSK" charge="2" aa_before="K K" aa_after="L L" start="513 513" end="524 524" protein_refs="PH_635 PH_636" >
+			<PeptideHit score="0.588781935265089" sequence="SIATSVTNELSK" charge="2" aa_before="K K" aa_after="L L" start="513 513" end="524 524" protein_refs="PH_635 PH_636" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 				<UserParam type="float" name="hyperscore_score" value="6.36934040145401"/>
@@ -4754,7 +4754,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="612.303078344579944" RT="3726.744239999999991" >
-			<PeptideHit score="0.834407853296662" sequence="FTM(Oxidation)EASSIPPK" charge="2" aa_before="R R" aa_after="H H" start="438 396" end="448 406" protein_refs="PH_921 PH_922" >
+			<PeptideHit score="0.731549215568337" sequence="FTM(Oxidation)EASSIPPK" charge="2" aa_before="R R" aa_after="H H" start="438 396" end="448 406" protein_refs="PH_921 PH_922" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 				<UserParam type="float" name="hyperscore_score" value="5.45875481640102"/>
@@ -4859,7 +4859,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="613.824801880420978" RT="3773.989919999999984" >
-			<PeptideHit score="1.0" sequence="VPQPSGAVC(Carbamidomethyl)RR" charge="2" aa_before="[" aa_after="G" start="0" end="10" protein_refs="PH_43" >
+			<PeptideHit score="0.818524071506814" sequence="VPQPSGAVC(Carbamidomethyl)RR" charge="2" aa_before="[" aa_after="G" start="0" end="10" protein_refs="PH_43" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="hyperscore_score" value="5.122160311912"/>
@@ -4873,7 +4873,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="622.568975709110987" RT="3779.664360000000215" >
-			<PeptideHit score="0.266165413533835" sequence="M(Oxidation)GM(Oxidation)LHLLGDLTNLTDQITVGANK" charge="4" aa_before="[" aa_after="A" start="0" end="22" protein_refs="PH_713" >
+			<PeptideHit score="6.536915606174382e-03" sequence="M(Oxidation)GM(Oxidation)LHLLGDLTNLTDQITVGANK" charge="4" aa_before="[" aa_after="A" start="0" end="22" protein_refs="PH_713" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="float" name="hyperscore_score" value="7.64283728212364"/>
@@ -4971,7 +4971,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="600.832150559920024" RT="3824.448359999999866" >
-			<PeptideHit score="0.832934593540836" sequence="NATPKSDLINK" charge="2" aa_before="K K K K" aa_after="K K K K" start="57 57 57 57" end="67 67 67 67" protein_refs="PH_497 PH_465 PH_416 PH_112" >
+			<PeptideHit score="0.730402802746414" sequence="NATPKSDLINK" charge="2" aa_before="K K K K" aa_after="K K K K" start="57 57 57 57" end="67 67 67 67" protein_refs="PH_497 PH_465 PH_416 PH_112" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 				<UserParam type="float" name="hyperscore_score" value="5.46921875433009"/>
@@ -5006,7 +5006,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="605.291525960629997" RT="3842.586839999999938" >
-			<PeptideHit score="0.83093128439874" sequence="EETEPFSSKR" charge="2" aa_before="K K K" aa_after="L L L" start="1700 1640 1750" end="1709 1649 1759" protein_refs="PH_951 PH_953 PH_952" >
+			<PeptideHit score="0.728843933526174" sequence="EETEPFSSKR" charge="2" aa_before="K K K" aa_after="L L L" start="1700 1640 1750" end="1709 1649 1759" protein_refs="PH_951 PH_953 PH_952" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 				<UserParam type="float" name="hyperscore_score" value="5.48344740778562"/>
