@@ -191,7 +191,8 @@ protected:
      * @param[in] it_rt    pointer to the spectrum
      * @param[in] intensity_first_peak    intensity to compare to
      *
-     * @return -1 (if there is no significant peak), or peak index mz_idx (if there is a significant peak)
+     * @return -1 (if there is no significant peak), or the index of the significant peak in the spectrum @p it_rt points to
+     * (in filterPeakPositions_() a spectrum of @em exp_centroided_white_, see @em exp_centroided_mapping_)
      */
     int checkForSignificantPeak_(double mz, double mz_tolerance, MSExperiment::ConstIterator& it_rt, double intensity_first_peak) const;
 
@@ -202,9 +203,10 @@ protected:
      * and that the primary peak position is not blacklisted.
      *
      * @param[in] mz    m/z of the primary peak
-     * @param[in] it_rt_begin    RT iterator of the very first spectrum of the experiment (needed to determine indices)
-     * @param[in] it_rt_band_begin    RT iterator of the first spectrum in the RT band
-     * @param[in] it_rt_band_end    RT iterator of the spectrum after the last spectrum in the RT band
+     * @param[in] it_rt_begin    RT iterator of the very first spectrum of @em exp_centroided_white_ (needed to determine indices;
+     * peak indices in its spectra are mapped to @em exp_centroided_ with @em exp_centroided_mapping_)
+     * @param[in] it_rt_band_begin    RT iterator of the first spectrum in the RT band (of @em exp_centroided_white_)
+     * @param[in] it_rt_band_end    RT iterator of the spectrum after the last spectrum in the RT band (of @em exp_centroided_white_)
      * @param[in] pattern    m/z pattern to search for
      * @param[out] peak    filter result output
      * @param[out] blacklist_reads    if not null, every entry of @em blacklist_ read is appended to it, with the value read

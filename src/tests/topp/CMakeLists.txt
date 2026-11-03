@@ -612,6 +612,32 @@ add_test("TOPP_FeatureFinderMultiplex_11" ${TOPP_BIN_PATH}/FeatureFinderMultiple
 add_test("TOPP_FeatureFinderMultiplex_11_out1" ${DIFF} -whitelist "id=" "href=" "spectra_data" -in1 ${TESTS_TEMP_DIR}/FeatureFinderMultiplex_21.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_11_output.featureXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_11_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_11")
 
+# 12 and 13: the zeroth peak (M-1) check of a heavier peptide in a pattern searched after another pattern has blacklisted peaks.
+# Synthetic SILAC data, labels [][Arg6], charge 2:3 (pattern 0 = 2+ doublets, pattern 1 = 3+ doublets), 29 centroided MS1
+# spectra (RT 86 to 114 s). Target T: 3+ doublet, light m/z 1330.948, light:heavy 1:1. Arg6 is six 13C, so T's heavy M-1 is
+# its light M+5, 0.455 x the heavy M0 (significant) and a satellite of T as long as isotopes_per_peptide reaches six peaks.
+# Peptide E: 2+ doublet, co-eluting, found by pattern 0, which blacklists its peaks before pattern 1 runs. The check finds
+# the M-1 in the white spectrum (blacklisted peaks removed) and has to compare its index in the experiment with the satellites.
+# 12: E below T (light m/z 1320.143), all 12 of E's pattern peaks lie below T's heavy M-1, so its white index is 12 lower
+#     than its experiment index (9 and 21 at the apex, RT 94 to 106 s; read as an experiment index it is a peak of E).
+#     T is found in all 25 spectra it elutes in (RT 88 to 112 s): light 6.839e8, heavy 7.065e8, as with E above T or without
+#     E. (With the white index compared, T was rejected in the 23 spectra that contain its M-1 and reported from the two tail
+#     spectra only, light 6.8e5.)
+# 13: isotopes_per_peptide 3:5, so the light M+5 is no satellite and T has to be rejected wherever its M-1 is significant.
+#     E interleaved with T (light m/z 1331.068), 4 of E's peaks below the M-1 (white index 5, experiment index 9). T is left
+#     with the two tail spectra (light 6.8e5, heavy 7.1e5), as with E above T or without E. (The white index 5 was the
+#     experiment index of T's light M+3, a satellite: T was accepted in every spectrum, 6.4e8.)
+add_test("TOPP_FeatureFinderMultiplex_12" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_12_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_12_parameters.ini -out ${TESTS_TEMP_DIR}/FeatureFinderMultiplex_22.tmp.featureXML -out_multiplets ${TESTS_TEMP_DIR}/FeatureFinderMultiplex_23.tmp.consensusXML)
+add_test("TOPP_FeatureFinderMultiplex_12_out1" ${DIFF} -whitelist "id=" "href=" "spectra_data" -in1 ${TESTS_TEMP_DIR}/FeatureFinderMultiplex_22.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_12_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_12_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_12")
+add_test("TOPP_FeatureFinderMultiplex_12_out2" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FeatureFinderMultiplex_23.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_12_output.consensusXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_12_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_12")
+add_test("TOPP_FeatureFinderMultiplex_13" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_13_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_13_parameters.ini -out ${TESTS_TEMP_DIR}/FeatureFinderMultiplex_24.tmp.featureXML -out_multiplets ${TESTS_TEMP_DIR}/FeatureFinderMultiplex_25.tmp.consensusXML)
+add_test("TOPP_FeatureFinderMultiplex_13_out1" ${DIFF} -whitelist "id=" "href=" "spectra_data" -in1 ${TESTS_TEMP_DIR}/FeatureFinderMultiplex_24.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_13_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_13_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_13")
+add_test("TOPP_FeatureFinderMultiplex_13_out2" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FeatureFinderMultiplex_25.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_13_output.consensusXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_13_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_13")
+
 #------------------------------------------------------------------------------
 # FileConverter tests
 add_test("TOPP_FileConverter_1" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_1_input.mzData -out ${TESTS_TEMP_DIR}/FileConverter_1.tmp.mzML -out_type mzML)
