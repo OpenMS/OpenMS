@@ -81,6 +81,7 @@
 			<UserParam type="intList" name="indistinguishable_proteins_1_fraction_group_level_ratio_fraction_group" value="[1, 1, 1]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_1_fraction_group_level_ratio_label" value="[1, 2, 3]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_1_fraction_group_level_ratio_count" value="[1, 1, 1]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_1_fraction_group_level_ratio_requantified_count" value="[0, 0, 0]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_1_file_channel_level_filename" value="[MS1LabeledWorkflow_12_input,MS1LabeledWorkflow_12_input,MS1LabeledWorkflow_12_input]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_1_quantified_proteins" value="[PROT_B]"/>
 			<UserParam type="string" name="indistinguishable_proteins_2" value="0.2,PH_2"/>
@@ -94,6 +95,7 @@
 			<UserParam type="intList" name="indistinguishable_proteins_2_fraction_group_level_ratio_fraction_group" value="[1, 1]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_2_fraction_group_level_ratio_label" value="[1, 3]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_2_fraction_group_level_ratio_count" value="[1, 1]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_2_fraction_group_level_ratio_requantified_count" value="[1, 1]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_2_file_channel_level_filename" value="[MS1LabeledWorkflow_12_input,MS1LabeledWorkflow_12_input,MS1LabeledWorkflow_12_input]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_2_quantified_proteins" value="[PROT_C]"/>
 			<UserParam type="string" name="indistinguishable_proteins_3" value="0.2,PH_3"/>
@@ -107,6 +109,7 @@
 			<UserParam type="intList" name="indistinguishable_proteins_3_fraction_group_level_ratio_fraction_group" value="[1, 1]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_3_fraction_group_level_ratio_label" value="[1, 3]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_3_fraction_group_level_ratio_count" value="[1, 1]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_3_fraction_group_level_ratio_requantified_count" value="[0, 0]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_3_file_channel_level_filename" value="[MS1LabeledWorkflow_12_input,MS1LabeledWorkflow_12_input,MS1LabeledWorkflow_12_input]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_3_quantified_proteins" value="[PROT_D]"/>
 		</ProteinIdentification>
@@ -165,6 +168,7 @@
 			<UserParam type="floatList" name="MS1Label:peptide_ratio" value="[1.0, 1.0, 1.0]"/>
 			<UserParam type="floatList" name="MS1Label:peptide_ratio_normalized" value="[1.0, 1.0, 1.0]"/>
 			<UserParam type="intList" name="MS1Label:peptide_ratio_count" value="[1, 1, 1]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_requantified_count" value="[0, 0, 0]"/>
 		</consensusElement>
 		<consensusElement id="e_2684106197423007927" quality="1.0" charge="2">
 			<centroid rt="150.0" mz="1300.676332907722099" it="1.0686915e09"/>
@@ -220,6 +224,7 @@
 			<UserParam type="floatList" name="MS1Label:peptide_ratio" value="[1.0, 2.0]"/>
 			<UserParam type="floatList" name="MS1Label:peptide_ratio_normalized" value="[1.0, 2.0]"/>
 			<UserParam type="intList" name="MS1Label:peptide_ratio_count" value="[1, 1]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_requantified_count" value="[1, 1]"/>
 		</consensusElement>
 		<consensusElement id="e_17314619952666245179" quality="1.0" charge="2">
 			<centroid rt="225.0" mz="1294.658140153362183" it="2.39999e07"/>
@@ -251,6 +256,7 @@
 			<UserParam type="floatList" name="MS1Label:peptide_ratio" value="[1.0, 0.016085905566273]"/>
 			<UserParam type="floatList" name="MS1Label:peptide_ratio_normalized" value="[1.0, 0.016085905566273]"/>
 			<UserParam type="intList" name="MS1Label:peptide_ratio_count" value="[1, 1]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_requantified_count" value="[0, 0]"/>
 		</consensusElement>
 	</consensusElementList>
 </consensusXML>

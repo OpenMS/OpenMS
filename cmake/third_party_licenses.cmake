@@ -33,8 +33,9 @@
 ##
 ## openms_install_system_library_licenses() installs system/<package>/: on Linux, the
 ## libraries the package takes from the build machine's distribution rather than from vcpkg
-## (libgfortran, which vcpkg's LAPACK needs), with the copyright file of the Debian package
-## each comes from; cmake/package_general.cmake calls it.
+## (none at the moment; it was libgfortran for the LAPACK of the removed COIN-OR solver),
+## with the copyright file of the Debian package each comes from; cmake/package_general.cmake
+## calls it.
 ##
 ## openms_install_vendored_licenses() installs the licenses of the third-party code that
 ## OpenMS carries in its own source tree and compiles into its libraries (vendored/<name>/).
@@ -283,9 +284,10 @@ endfunction()
 ##                    POST_EXCLUDE_REGEXES of its runtime dependency set (the C and C++
 ##                    runtime, Qt, ...)
 ## The libraries the roots need that neither another root provides nor an exclusion drops
-## come from the build machine's distribution, and the package bundles them: on Ubuntu, the
-## GCC Fortran runtime libgfortran, which vcpkg's LAPACK needs. They are found as the
-## compiler finds them (-print-file-name), and the libraries they need are followed in turn.
+## come from the build machine's distribution, and the package bundles them (none at the
+## moment; it was the GCC Fortran runtime libgfortran for the LAPACK of the removed COIN-OR
+## solver). They are found as the compiler finds them (-print-file-name), and the libraries
+## they need are followed in turn.
 ## For each Debian package that installed one, its copyright file goes to
 ## LICENSES/system/<package>/copyright. Debian's copyright files refer to the full texts of
 ## common licenses in /usr/share/common-licenses instead of including them, so the texts

@@ -290,14 +290,6 @@ namespace OpenMS
       {add_zp1_ions_, false, stat_zp1, z_intensity_}, {add_zp2_ions_, false, stat_zp2, z_intensity_}};
 
     const Size n = peptide.size();
-    thread_local std::vector<double> residue_weights;
-    residue_weights.resize(n);
-    for (Size i = 0; i < n; ++i) residue_weights[i] = peptide[i].getMonoWeight(Residue::Internal);
-    const double n_term_diff = peptide.hasNTerminalModification() ? peptide.getNTerminalModification()->getDiffMonoMass() : 0.0;
-    const double c_term_diff = peptide.hasCTerminalModification() ? peptide.getCTerminalModification()->getDiffMonoMass() : 0.0;
-
-    // The peaks of each series are appended as addPeaks_() computes them (same operations in the same order), then
-    // the ascending chunks are merged stably, which is the order sortByPositionPresorted() gives them.
     // per peak: the peak, its series (0 prefix, 1 suffix), its ordinal (the number of its ion name) and charge
     struct Ion
     {
@@ -306,7 +298,26 @@ namespace OpenMS
       UInt ordinal;
       Int charge;
     };
-    thread_local std::vector<Ion> merged, chunk, scratch;
+    // The scratch of this thread in one object: each thread_local of a shared library costs a __tls_get_addr call and
+    // an initialisation check per access, and this function runs once per candidate (26 of 1727 busy stack samples of
+    // a 27-run search were in __tls_get_addr).
+    struct Scratch
+    {
+      std::vector<double> residue_weights;
+      std::vector<Ion> merged, chunk, scratch;
+    };
+    thread_local Scratch tls;
+    std::vector<double>& residue_weights = tls.residue_weights;
+    residue_weights.resize(n);
+    for (Size i = 0; i < n; ++i) residue_weights[i] = peptide[i].getMonoWeight(Residue::Internal);
+    const double n_term_diff = peptide.hasNTerminalModification() ? peptide.getNTerminalModification()->getDiffMonoMass() : 0.0;
+    const double c_term_diff = peptide.hasCTerminalModification() ? peptide.getCTerminalModification()->getDiffMonoMass() : 0.0;
+
+    // The peaks of each series are appended as addPeaks_() computes them (same operations in the same order), then
+    // the ascending chunks are merged stably, which is the order sortByPositionPresorted() gives them.
+    std::vector<Ion>& merged = tls.merged;
+    std::vector<Ion>& chunk = tls.chunk;
+    std::vector<Ion>& scratch = tls.scratch;
     merged.clear();
     for (Int charge = min_charge; charge <= max_charge; ++charge)
     {

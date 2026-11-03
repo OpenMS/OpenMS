@@ -5181,6 +5181,16 @@ START_SECTION((static void precursorCharges(const Precursor& precursor, int min_
   precursor.setCharge(1);
   FragmentIndex::precursorCharges(precursor, 2, 5, charges);
   TEST_TRUE(charges.empty())
+  // precursor:recorded_charge_outside_range 'search': a recorded charge outside of the range is searched
+  precursor.setCharge(6);
+  FragmentIndex::precursorCharges(precursor, 2, 5, charges, true);
+  TEST_TRUE(charges == std::vector<uint16_t>({6}))
+  precursor.setCharge(1);
+  FragmentIndex::precursorCharges(precursor, 2, 5, charges, true);
+  TEST_TRUE(charges == std::vector<uint16_t>({1}))
+  precursor.setCharge(0); // unknown: the range, as without the flag
+  FragmentIndex::precursorCharges(precursor, 2, 4, charges, true);
+  TEST_TRUE(charges == std::vector<uint16_t>({2, 3, 4}))
   // the largest range ends (a uint16_t loop up to 65535 never did)
   precursor.setCharge(0);
   FragmentIndex::precursorCharges(precursor, 1, 65535, charges);

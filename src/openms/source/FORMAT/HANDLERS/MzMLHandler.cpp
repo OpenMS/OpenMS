@@ -217,6 +217,11 @@ namespace OpenMS::Internal
       }
     }
 
+    Size MzMLHandler::getSpectraRead() const
+    {
+      return spectra_read_;
+    }
+
     /// Set the IMSDataConsumer consumer which will consume the read data
     void MzMLHandler::setMSDataConsumer(Interfaces::IMSDataConsumer* consumer)
     {
@@ -956,6 +961,9 @@ namespace OpenMS::Internal
         // for cppcheck
         constexpr char16_t s_spot_id[] = { 's','p','o','t','I','D', 0 };
 
+        // (the options decide later on whether the spectrum is skipped)
+        ++spectra_read_;
+
         //number of peaks
         spec_ = SpectrumType();
         default_array_length_ = attributeAsInt_(attributes, s_default_array_length);
@@ -1240,6 +1248,7 @@ namespace OpenMS::Internal
       else if (tag == "mzML"sv)
       {
         scan_count_ = 0;
+        spectra_read_ = 0;
         chromatogram_count_ = 0;
         scan_count_total_ = -1;
         chrom_count_total_ = -1;

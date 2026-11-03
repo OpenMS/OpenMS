@@ -17,9 +17,12 @@
 #include <OpenMS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
+#include <tuple>
 #include <utility>
 
 #ifdef _OPENMP
@@ -30,6 +33,64 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    /**
+      The same as spectrum.findNearest(mz, tolerance), but the search for the first peak at or right of @p mz starts
+      from @p cursor, where the previous search on the spectrum ended: peaks are searched at increasing m/z, so it is
+      usually close. (Any cursor gives the same result: unless all peaks left of it lie left of @p mz, the whole
+      spectrum is searched.) Afterwards, @p cursor is that first peak at or right of @p mz.
+    */
+    Int findNearestFrom(const MSSpectrum& spectrum, double mz, double tolerance, Size& cursor)
+    {
+      if (spectrum.empty())
+      {
+        return -1;
+      }
+      const Size n = spectrum.size();
+      Size lo = std::min(cursor, n);
+      MSSpectrum::ConstIterator it;
+      if (lo > 0 && !(spectrum[lo - 1].getMZ() < mz))
+      {
+        it = spectrum.MZBegin(mz);
+      }
+      else
+      {
+        // All peaks before lo lie left of mz. Double the step to the right until a peak at or right of mz is passed.
+        Size hi = lo;
+        for (Size step = 1; hi < n && spectrum[hi].getMZ() < mz; step *= 2)
+        {
+          lo = hi + 1;
+          hi += step;
+        }
+        it = spectrum.MZBegin(spectrum.begin() + lo, mz, spectrum.begin() + std::min(hi, n));
+      }
+      cursor = static_cast<Size>(it - spectrum.begin());
+
+      // as MSSpectrum::findNearest(mz) and findNearest(mz, tolerance)
+      Size i;
+      if (it == spectrum.begin())
+      {
+        i = 0;
+      }
+      else if (it == spectrum.end())
+      {
+        i = n - 1;
+      }
+      else
+      {
+        MSSpectrum::ConstIterator it2 = it;
+        --it2;
+        i = (std::fabs(it->getMZ() - mz) < std::fabs(it2->getMZ() - mz)) ? Size(it - spectrum.begin()) : Size(it2 - spectrum.begin());
+      }
+      const double found_mz = spectrum[i].getMZ();
+      if (found_mz >= mz - tolerance && found_mz <= mz + tolerance)
+      {
+        return static_cast<Int>(i);
+      }
+      return -1;
+    }
+  }
 
   MultiplexFiltering::MultiplexFiltering(const MSExperiment& exp_centroided, const std::vector<MultiplexIsotopicPeakPattern>& patterns,
                                          int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band,
@@ -83,29 +144,37 @@ namespace OpenMS
   {
     // reset both the white MS experiment and the corresponding mapping to the complete i.e. original MS experiment
     exp_centroided_white_.clear(true);
-    exp_centroided_mapping_.clear();
-    
-    // loop over spectra
-    for (const auto &it_rt : exp_centroided_)
+    const SignedSize n_spectra = static_cast<SignedSize>(exp_centroided_.size());
+    std::vector<MSSpectrum> spectra(n_spectra);
+    exp_centroided_mapping_.assign(n_spectra, {});
+
+    // loop over spectra (independent of each other)
+    #pragma omp parallel for schedule(dynamic, 64)
+    for (SignedSize idx_rt = 0; idx_rt < n_spectra; ++idx_rt)
     {
-      MSSpectrum spectrum_picked_white;
-      spectrum_picked_white.setRT(it_rt.getRT());
-      
-      std::map<int, int> mapping_spectrum;
-      int count = 0;
+      const MSSpectrum& spectrum = exp_centroided_[idx_rt];
+      const std::vector<int>& blacklist_spectrum = blacklist_[idx_rt];
+      MSSpectrum& spectrum_picked_white = spectra[idx_rt];
+      std::vector<int>& mapping_spectrum = exp_centroided_mapping_[idx_rt];
+      spectrum_picked_white.setRT(spectrum.getRT());
+
+      const Size n_white = static_cast<Size>(std::count(blacklist_spectrum.begin(), blacklist_spectrum.end(), -1));
+      spectrum_picked_white.reserve(n_white);
+      mapping_spectrum.reserve(n_white);
       // loop over m/z
-      for (const auto &it_mz : it_rt)
+      for (Size idx_mz = 0; idx_mz < spectrum.size(); ++idx_mz)
       {
-        if (blacklist_[&it_rt - &exp_centroided_[0]][&it_mz - &it_rt[0]] == -1)
+        if (blacklist_spectrum[idx_mz] == -1)
         {
-          spectrum_picked_white.push_back(it_mz);
-          
-          mapping_spectrum[count] = &it_mz - &it_rt[0];
-          ++count;
+          spectrum_picked_white.push_back(spectrum[idx_mz]);
+          mapping_spectrum.push_back(static_cast<int>(idx_mz));
         }
       }
-      exp_centroided_white_.addSpectrum(spectrum_picked_white);
-      exp_centroided_mapping_.push_back(mapping_spectrum);
+    }
+    exp_centroided_white_.reserve(n_spectra);
+    for (MSSpectrum& spectrum : spectra)
+    {
+      exp_centroided_white_.addSpectrum(std::move(spectrum));
     }
     exp_centroided_white_.updateRanges();
   }
@@ -165,6 +234,25 @@ namespace OpenMS
     // to be present. Otherwise it would be easy to mistake say a 2+ peptide for a 4+ peptide.
     size_t length = 0;
     bool interrupted = false;
+    // The satellites found (spectrum index, peak index, m/z shift index), in this order added to the peak once the
+    // pattern is long enough. (Most peaks fail before, and adding to the satellites of a peak allocates.)
+    static thread_local std::vector<std::tuple<size_t, size_t, size_t>> found_satellites_of_thread;
+    std::vector<std::tuple<size_t, size_t, size_t>>& found_satellites = found_satellites_of_thread;
+    found_satellites.clear();
+    auto isSatellite = [&peak, &found_satellites](size_t rt_idx, size_t mz_idx)
+    {
+      return peak.checkSatellite(rt_idx, mz_idx)
+             || std::any_of(found_satellites.begin(), found_satellites.end(),
+                            [&](const auto& satellite) { return std::get<0>(satellite) == rt_idx && std::get<1>(satellite) == mz_idx; });
+    };
+    // where the last search of each m/z shift in each spectrum of the band ended on this thread (see findNearestFrom())
+    static thread_local std::vector<Size> cursors_of_thread;
+    std::vector<Size>& cursors = cursors_of_thread;
+    const Size n_shifts = pattern.getMassShiftCount() * isotopes_per_peptide_max_; // (the m/z shift indices used below)
+    if (cursors.size() < static_cast<Size>(it_rt_band_end - it_rt_band_begin) * n_shifts)
+    {
+      cursors.resize(static_cast<Size>(it_rt_band_end - it_rt_band_begin) * n_shifts, 0);
+    }
     // loop over isotopes i.e. mass traces within the peptide
     for (size_t isotope = 0; isotope < isotopes_per_peptide_max_; ++isotope)
     {
@@ -181,7 +269,7 @@ namespace OpenMS
         // loop over spectra in RT band
         for (MSExperiment::ConstIterator it_rt = it_rt_band_begin; it_rt < it_rt_band_end; ++it_rt)
         {
-          int i = it_rt->findNearest(mz + mz_shift, mz_tolerance);
+          int i = findNearestFrom(*it_rt, mz + mz_shift, mz_tolerance, cursors[static_cast<Size>(it_rt - it_rt_band_begin) * n_shifts + mz_shift_idx]);
          
           if (i != -1)
           {
@@ -192,10 +280,10 @@ namespace OpenMS
             
             // Check that the peak has not been blacklisted and is not already in the satellite set.
             if (blacklist_reads) { blacklist_reads->push_back({rt_idx, mz_idx, blacklist_[rt_idx][mz_idx]}); }
-            if (((blacklist_[rt_idx][mz_idx] == -1) || (blacklist_[rt_idx][mz_idx] == static_cast<int>(mz_shift_idx))) && (!(peak.checkSatellite(rt_idx, mz_idx))))
+            if (((blacklist_[rt_idx][mz_idx] == -1) || (blacklist_[rt_idx][mz_idx] == static_cast<int>(mz_shift_idx))) && (!isSatellite(rt_idx, mz_idx)))
             {
               found = true;
-              peak.addSatellite(rt_idx, mz_idx, mz_shift_idx);
+              found_satellites.emplace_back(rt_idx, mz_idx, mz_shift_idx);
             }
             
           }
@@ -220,6 +308,10 @@ namespace OpenMS
           return false;
         }
       }
+    }
+    for (const auto& [rt_idx, mz_idx, mz_shift_idx] : found_satellites)
+    {
+      peak.addSatellite(rt_idx, mz_idx, mz_shift_idx);
     }
 
 
@@ -315,18 +407,22 @@ namespace OpenMS
     const SignedSize n_peaks = static_cast<SignedSize>(exp_centroided_white_[idx_rt].size());
 
 #ifdef _OPENMP
-    const bool parallel = omp_get_max_threads() > 1;
+    const SignedSize n_threads = omp_get_max_threads();
 #else
-    const bool parallel = false;
+    const SignedSize n_threads = 1;
 #endif
+    // A spectrum of few peaks is filtered faster on one thread than the threads take to start. (The serial loop gives the
+    // same result.)
+    const bool parallel = n_threads > 1 && n_peaks >= std::max<SignedSize>(64, 2 * n_threads);
     if (!parallel)
     {
       for (SignedSize s = 0; s < n_peaks; ++s)
       {
         if (std::optional<MultiplexFilteredPeak> peak = filter_peak(s, nullptr))
         {
-          result.addPeak(*peak);
-          blacklistPeak_(*peak, pattern_idx, result.size() - 1);
+          // (blacklisted before it is moved into the result, as the peak it will be there)
+          blacklistPeak_(*peak, pattern_idx, result.size());
+          result.addPeak(std::move(*peak));
         }
       }
       return;
@@ -334,13 +430,21 @@ namespace OpenMS
 
     // Filter every peak against the blacklist as it is now, and find the entries each one that passes would
     // blacklist. Nothing writes to the blacklist meanwhile.
-    std::vector<std::optional<MultiplexFilteredPeak>> passed(n_peaks);
+    // (The buffers are kept from spectrum to spectrum: allocating them anew for every spectrum costs more than filtering
+    // its peaks, and every element used is assigned below.)
+    std::vector<std::optional<MultiplexFilteredPeak>>& passed = passed_;
     if (blacklist_reads_.size() < static_cast<Size>(n_peaks))
     {
       blacklist_reads_.resize(n_peaks);
       blacklist_writes_.resize(n_peaks);
     }
-    #pragma omp parallel for
+    if (passed.size() < static_cast<Size>(n_peaks))
+    {
+      passed.resize(n_peaks);
+    }
+    // (dynamic: the peaks that pass the first checks take much longer than the others; about 16 chunks per thread)
+    const SignedSize chunk = std::max<SignedSize>(1, n_peaks / (16 * n_threads));
+    #pragma omp parallel for schedule(dynamic, chunk)
     for (SignedSize s = 0; s < n_peaks; ++s)
     {
       blacklist_reads_[s].clear();
@@ -365,7 +469,7 @@ namespace OpenMS
       }
       if (passed[s])
       {
-        result.addPeak(*passed[s]);
+        result.addPeak(std::move(*passed[s]));
         applyBlacklistEntries_(blacklist_writes_[s], pattern_idx, result.size() - 1);
         blacklisted = true;
       }
@@ -455,6 +559,16 @@ namespace OpenMS
       }
     }
     
+    // where the last search of each mass trace in each spectrum ended on this thread (see findNearestFrom(); the peaks
+    // of a spectrum are blacklisted in order of m/z)
+    static thread_local std::vector<Size> cursors_of_thread;
+    std::vector<Size>& cursors = cursors_of_thread;
+    const Size n_traces = patterns_[pattern_idx].getMassShiftCount() * isotopes_per_peptide_max_; // (the mass trace indices)
+    if (cursors.size() < exp_centroided_.size() * n_traces)
+    {
+      cursors.resize(exp_centroided_.size() * n_traces, 0);
+    }
+
     // Blacklist all peaks along the mass traces
     // loop over mass traces (i.e. the mass trace boundaries)
     for (const auto &it : rt_boundaries)
@@ -478,7 +592,7 @@ namespace OpenMS
       // loop over RT along the mass trace
       for (MSExperiment::ConstIterator it_rt = it_rt_begin; it_rt < it_rt_end; ++it_rt)
       {
-        int idx_mz = it_rt->findNearest(mz, mz_tolerance);
+        int idx_mz = findNearestFrom(*it_rt, mz, mz_tolerance, cursors[static_cast<Size>(it_rt - exp_centroided_.begin()) * n_traces + it.first]);
         
         if (idx_mz != -1)
         {
@@ -563,17 +677,17 @@ namespace OpenMS
     return owners;
   }
   
-  bool MultiplexFiltering::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak) const
+  const IsotopeDistribution& MultiplexFiltering::averagineDistribution_(double mass) const
   {
-    // construct averagine distribution
-    double mass = peak.getMZ() * pattern.getCharge();
-    CoarseIsotopePatternGenerator solver(isotopes_per_peptide_max_);
-    IsotopeDistribution distribution;
     if (averagine_type_ == "peptide")
     {
-      distribution = solver.estimateFromPeptideWeight(mass);
+      // the same as CoarseIsotopePatternGenerator(isotopes_per_peptide_max_).estimateFromPeptideWeight(mass), computed
+      // once per element composition of the averagine model (many masses share one)
+      return DIAHelpers::averagineIsotopeDistribution(mass, static_cast<int>(isotopes_per_peptide_max_));
     }
-    else if (averagine_type_ == "RNA")
+    static thread_local IsotopeDistribution distribution;
+    CoarseIsotopePatternGenerator solver(isotopes_per_peptide_max_);
+    if (averagine_type_ == "RNA")
     {
       distribution = solver.estimateFromRNAWeight(mass);
     }
@@ -585,6 +699,14 @@ namespace OpenMS
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid averagine type.");
     }
+    return distribution;
+  }
+
+  bool MultiplexFiltering::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak) const
+  {
+    // construct averagine distribution
+    double mass = peak.getMZ() * pattern.getCharge();
+    const IsotopeDistribution& distribution = averagineDistribution_(mass);
     
     // loop over peptides
     for (size_t peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
