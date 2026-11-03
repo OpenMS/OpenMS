@@ -34,7 +34,10 @@ const double CrossValidation::requiredIncreaseOver2Iterations_ = 0.01;
 // more than OpenMP allows here (a TOPP tool's -threads). Upstream calls
 // omp_set_num_threads() instead, which would change the count for the whole process.
 // Without an OpenMP runtime (e.g. -fopenmp-simd, which still parses the clauses) 1.
-// A loop over the folds (or pairs) uses no more threads than it has iterations. The loops
+// A loop over the folds (or pairs) uses no more threads than it has iterations. Without tasks
+// (OpenMP 2.0, cl.exe) the pairs of a chain run as a nested loop on the chain's share of the
+// threads, rounded up, so the training may use up to two threads more than numThreads (4 threads:
+// 3 chains of 2); each nested team is capped by the pairs of its pass. The loops
 // whose iterations sort (Scores, see SortLikeStd.h) run them as tasks of a parallel region on
 // more threads instead (numTeamThreads): the threads without an iteration of their own run
 // the tasks of the sorts.
@@ -526,9 +529,10 @@ void CrossValidation::trainFoldChains() {
 #if PERCOLATOR_OMP_TASKS
           for (std::size_t k = pairsBegin; k < numPairsTrained; ++k) {
 #else
-          // OpenMS: the pairs of the chain as a nested parallel loop; the loop variable is an int,
-          // MSVC's OpenMP 2.0 takes signed ones only
-#pragma omp parallel for schedule(dynamic, 1) num_threads(pairThreads) if (pairThreads > 1)
+          // OpenMS: the pairs of the chain as a nested parallel loop on no more threads than the pass has
+          // pairs (LDA's first pass has one); the loop variable is an int, MSVC's OpenMP 2.0 takes signed ones only
+          const int pairTeam = std::min(pairThreads, static_cast<int>(numPairsTrained - pairsBegin));
+#pragma omp parallel for schedule(dynamic, 1) num_threads(pairTeam) if (pairTeam > 1)
           for (int k = static_cast<int>(pairsBegin); k < static_cast<int>(numPairsTrained); ++k) {
 #endif
             PERCOLATOR_TASK_PRAGMA(omp task default(shared) firstprivate(k))
