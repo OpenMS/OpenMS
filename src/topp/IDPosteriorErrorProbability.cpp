@@ -52,12 +52,11 @@ For other search engines, the main score of the identifications is used, unless 
 
 If the peptide hits are annotated as target or decoy (e.g. by @ref TOPP_PeptideIndexer after a search against a concatenated
 target+decoy database), the decoys are used (parameter @p fit_algorithm:decoy_handling, default 'auto'):
-- By default, the PEP is estimated non-parametrically from the local ratio of decoy and target top hits
-  (target-decoy competition: each decoy top hit stands in for one incorrect target top hit). The decoy probability as a function of the score is
-  estimated by isotonic regression, so the PEP decreases with the score. Only the ordering of the scores matters, so this works for any score type.
-  This also works with very few decoys (or targets): even a single decoy carries information about the number of incorrect targets.
-- With at least @p fit_algorithm:min_decoys but fewer than @p fit_algorithm:min_decoys_isotonic decoys, a semi-supervised mixture model
-  is fitted instead, in which the decoys belong to the incorrect component.
+the PEP is estimated non-parametrically from the local ratio of decoy and target top hits
+(target-decoy competition: each decoy top hit stands in for one incorrect target top hit). The decoy probability as a function of the score is
+estimated by isotonic regression, so the PEP decreases with the score. The estimate does not assume any shape of the score distributions
+and only depends on the ordering of the scores (up to the interpolation within and between blocks), so it works for any score type.
+This also works with very few decoys (or targets): even a single decoy carries information about the number of incorrect targets.
 
 Only top hits (one per spectrum) are used for fitting. Lower-ranked hits and decoys receive the PEP of a target hit with the same score.
 Decoys therefore need to be kept in the data, i.e. run this tool before @ref TOPP_FalseDiscoveryRate (or use its option to keep decoys).
@@ -230,8 +229,7 @@ protected:
       vector<double>* decoys = &score.second[2];
 
       // With split_charge, charge states with fewer than min_decoys decoys (or without targets) use the target-decoy data of all
-      // charge states, if other charge states contribute top hits (targets or decoys). (Which estimator is used is decided by
-      // the model, see decoy_handling.)
+      // charge states, if other charge states contribute top hits (targets or decoys).
       auto pooled_it = pooled_scores.find(engine);
       const bool pooled_available = split_charge && pooled_it != pooled_scores.end() && !pooled_it->second[1].empty() && !pooled_it->second[2].empty();
       const bool pooled_has_more = pooled_available && pooled_it->second[1].size() + pooled_it->second[2].size() > targets->size() + decoys->size();

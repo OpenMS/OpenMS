@@ -2185,18 +2185,19 @@ Optional protein inference information can be supplied via proteins.
         R"doc(
 Estimates posterior error probabilities (PEPs) of peptide-spectrum matches from search engine scores:
 with an (unsupervised) mixture model of a Gumbel (or Gauss) and a Gauss distribution, or using
-target/decoy information (non-parametric target-decoy estimate or semi-supervised mixture model, see fitTargetDecoy)
+target/decoy information (non-parametric target-decoy estimate, see fitTargetDecoy)
 )doc")
         .def(nb::init<>())
         .def("fitTargetDecoy", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, const std::vector<double>& target_scores, const std::vector<double>& decoy_scores, const std::string& outlier_handling) { return self.fitTargetDecoy(target_scores, decoy_scores, outlier_handling); }, "target_scores"_a, "decoy_scores"_a, "outlier_handling"_a,
             R"doc(
 Estimates the PEP model from scores of target and decoy PSMs (higher scores must be better; one top hit per spectrum,
-search against a concatenated target+decoy database). The estimator is chosen by the parameter 'decoy_handling'.
+search against a concatenated target+decoy database). With at least one decoy, the non-parametric target-decoy
+estimate is used; without decoys (or with decoy_handling 'ignore'), the mixture model.
 computeProbability can be used afterwards.
 
 :param target_scores: Scores of target PSMs
 :param decoy_scores: Scores of decoy PSMs
-:param outlier_handling: Outlier handling strategy (only used for the mixture models)
+:param outlier_handling: Outlier handling strategy (only used for the mixture model)
 :return: True if a model could be estimated
 )doc")
         .def("getModelType", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getModelType(); }, "Returns the kind of model estimated by the last fit")
@@ -2244,7 +2245,6 @@ Uses two Gaussians to fit. And Gauss+Gauss or Gumbel+Gauss to plot and calculate
     nb::enum_<OpenMS::Math::PosteriorErrorProbabilityModel::ModelType>(pep_model_class, "ModelType", "Kind of model estimated by the last fit")
         .value("NONE", OpenMS::Math::PosteriorErrorProbabilityModel::ModelType::NONE)
         .value("MIXTURE", OpenMS::Math::PosteriorErrorProbabilityModel::ModelType::MIXTURE)
-        .value("SEMI_SUPERVISED_MIXTURE", OpenMS::Math::PosteriorErrorProbabilityModel::ModelType::SEMI_SUPERVISED_MIXTURE)
         .value("TARGET_DECOY_ISOTONIC", OpenMS::Math::PosteriorErrorProbabilityModel::ModelType::TARGET_DECOY_ISOTONIC)
         ;
 

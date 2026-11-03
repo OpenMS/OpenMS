@@ -2028,12 +2028,9 @@ def testPosteriorErrorProbabilityModelTargetDecoy():
     # the PEPs of the targets sum up to (about) the number of incorrect targets
     assert abs(sum(model.computeProbability(t) for t in targets) / 2000.0 - 1.0) < 0.1
 
-    # semi-supervised mixture model
-    p = model.getParameters()
-    p.setValue("decoy_handling", "semi_supervised")
-    model.setParameters(p)
-    assert model.fitTargetDecoy(targets, decoys, "none")
-    assert model.getModelType() == ModelType.SEMI_SUPERVISED_MIXTURE
+    # without decoys: mixture model of the targets
+    assert model.fitTargetDecoy(targets, [], "none")
+    assert model.getModelType() == ModelType.MIXTURE
     assert abs(model.getNegativePrior() - 2000.0 / 3000.0) < 0.05
     location, scale = model.getIncorrectlyAssignedGumbelFitResult()
     assert abs(scale - 0.6) < 0.1

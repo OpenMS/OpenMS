@@ -539,9 +539,6 @@ START_SECTION((bool fitTargetDecoy(const std::vector<double>& target_scores, con
     decoys.push_back(s--);
     for (int i = 0; i < 40; ++i) { targets.push_back(s--); decoys.push_back(s--); }
     PosteriorErrorProbabilityModel pooled;
-    Param p = pooled.getParameters();
-    p.setValue("decoy_handling", "isotonic");
-    pooled.setParameters(p);
     TEST_EQUAL(pooled.fitTargetDecoy(targets, decoys, "none"), true)
     double sum_top = 0.0, previous = 0.0;
     bool strictly_decreasing = true;
@@ -657,14 +654,11 @@ START_SECTION((bool fitTargetDecoy(const std::vector<double>& target_scores, con
     TEST_EQUAL(model5.hasCalibrationWarning(), false)
   }
 
-  // semi-supervised mixture model
+  // without decoys: mixture model of the targets
   {
     PosteriorErrorProbabilityModel model6;
-    Param p = model6.getParameters();
-    p.setValue("decoy_handling", "semi_supervised");
-    model6.setParameters(p);
-    TEST_EQUAL(model6.fitTargetDecoy(data.targets, data.decoys, "none"), true)
-    TEST_EQUAL(model6.getModelType() == PosteriorErrorProbabilityModel::ModelType::SEMI_SUPERVISED_MIXTURE, true)
+    TEST_EQUAL(model6.fitTargetDecoy(data.targets, {}, "none"), true)
+    TEST_EQUAL(model6.getModelType() == PosteriorErrorProbabilityModel::ModelType::MIXTURE, true)
     TOLERANCE_ABSOLUTE(0.03)
     TEST_REAL_SIMILAR(model6.getNegativePrior(), double(n0) / double(n0 + n1))
     TEST_REAL_SIMILAR(model6.getIncorrectlyAssignedGumbelFitResult().b, 0.6)
@@ -678,13 +672,14 @@ START_SECTION((bool fitTargetDecoy(const std::vector<double>& target_scores, con
     TEST_EQUAL(model6.hasCalibrationWarning(), false)
   }
 
-  // 'auto': the estimator depends on the number of decoys
+  // 'auto': with decoys (even very few), the non-parametric estimate; without decoys, the mixture model
   {
     const std::vector<std::pair<Size, PosteriorErrorProbabilityModel::ModelType>> expected =
     {
       {0, PosteriorErrorProbabilityModel::ModelType::MIXTURE},
+      {1, PosteriorErrorProbabilityModel::ModelType::TARGET_DECOY_ISOTONIC},
       {5, PosteriorErrorProbabilityModel::ModelType::TARGET_DECOY_ISOTONIC},
-      {20, PosteriorErrorProbabilityModel::ModelType::SEMI_SUPERVISED_MIXTURE},
+      {20, PosteriorErrorProbabilityModel::ModelType::TARGET_DECOY_ISOTONIC},
       {60, PosteriorErrorProbabilityModel::ModelType::TARGET_DECOY_ISOTONIC}
     };
     for (const auto& [n_decoys, type] : expected)
@@ -707,12 +702,11 @@ START_SECTION((bool fitTargetDecoy(const std::vector<double>& target_scores, con
     TEST_EQUAL(model9.getModelType() == PosteriorErrorProbabilityModel::ModelType::NONE, true)
   }
 
-  // calibration check: with a wrong decoy_ratio, there are 4 times more decoys than the (correct) PEPs of the semi-supervised model imply
+  // low-score check: with a too large decoy_ratio (4 instead of 1), even the lowest-scoring PSMs contain too few decoys
   {
     PosteriorErrorProbabilityModel model10;
     Param p = model10.getParameters();
-    p.setValue("decoy_handling", "semi_supervised");
-    p.setValue("decoy_ratio", 0.25);
+    p.setValue("decoy_ratio", 4.0);
     model10.setParameters(p);
     TEST_EQUAL(model10.fitTargetDecoy(data.targets, data.decoys, "none"), true)
     TEST_EQUAL(model10.hasCalibrationWarning(), true)
@@ -848,12 +842,6 @@ START_SECTION(([EXTRA] degenerate input))
     TEST_REAL_SIMILAR(sum_above, 1.0)
     TEST_EQUAL(sum_pep < 3.0, true) // an unsupervised mixture model would assign much larger PEPs to (many of) these correct targets
     TEST_EQUAL(check_monotone(model), true)
-    // forced semi-supervised mixture with too few decoys: non-parametric estimate
-    Param p = model.getParameters();
-    p.setValue("decoy_handling", "semi_supervised");
-    model.setParameters(p);
-    TEST_EQUAL(model.fitTargetDecoy(one_decoy.targets, one_decoy.decoys, "none"), true)
-    TEST_EQUAL(model.getModelType() == PosteriorErrorProbabilityModel::ModelType::TARGET_DECOY_ISOTONIC, true)
   }
 
   // non-finite scores are ignored, no (finite) target is not enough

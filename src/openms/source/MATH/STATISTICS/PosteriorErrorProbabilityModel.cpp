@@ -28,7 +28,6 @@
 #include <filesystem>
 
 #include <boost/math/distributions/binomial.hpp>
-#include <boost/math/special_functions/gamma.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -298,7 +297,6 @@ namespace OpenMS::Math
       {
         case ModelType::NONE: return "none";
         case ModelType::MIXTURE: return "unsupervised mixture model";
-        case ModelType::SEMI_SUPERVISED_MIXTURE: return "semi-supervised (decoy-anchored) mixture model";
         case ModelType::TARGET_DECOY_ISOTONIC: return "non-parametric target-decoy estimate (isotonic regression)";
       }
       return "unknown";
@@ -324,20 +322,15 @@ namespace OpenMS::Math
                                                                    "- ignore_extreme_percentiles: ignore everything outside 99.9th and 1st percentile (also removes equal values like potential censored max values in XTandem)\n"
                                                                    "- none: do nothing");
       defaults_.setValidStrings("outlier_handling", {"ignore_iqr_outliers","set_iqr_to_closest_valid","ignore_extreme_percentiles","none"});
-      defaults_.setValue("decoy_handling", "auto", "How target/decoy annotations are used (if decoy PSMs are present):\n"
-                                                   "- auto: 'semi_supervised' if there are at least 'min_decoys' but fewer than 'min_decoys_isotonic' decoys, otherwise 'isotonic' (also for very few decoys: even a single decoy is informative)\n"
-                                                   "- isotonic: non-parametric estimate from the local ratio of decoys and targets (isotonic regression). Invariant to monotone transformations of the score, i.e. suitable for any score type.\n"
-                                                   "- semi_supervised: mixture model in which decoys belong to the incorrect component (requires 'min_decoys' decoys, otherwise 'isotonic')\n"
+      defaults_.setValue("decoy_handling", "auto", "How target/decoy annotations are used:\n"
+                                                   "- auto: if decoy PSMs are present (even a single one), non-parametric target-decoy estimate from the local ratio of decoys and targets (isotonic regression); its blocks depend only on the order of the scores, i.e. it is suitable for any score type. Without decoys, mixture model of the target scores.\n"
                                                    "- ignore: ignore the annotations, i.e. targets and decoys are pooled and modeled without supervision (behavior of OpenMS 3.5 and earlier)\n"
-                                                   "Decoy-based estimates assume a search against a concatenated target+decoy database (target-decoy competition). Only top hits are used for fitting.");
-      defaults_.setValidStrings("decoy_handling", {"auto", "isotonic", "semi_supervised", "ignore"});
+                                                   "The target-decoy estimate assumes a search against a concatenated target+decoy database (target-decoy competition). Only top hits are used for fitting.");
+      defaults_.setValidStrings("decoy_handling", {"auto", "ignore"});
       defaults_.setValue("decoy_ratio", 1.0, "Number of decoy sequences per target sequence in the searched database (cf. DecoyDatabase's 'shuffle_decoy_ratio'). Under target-decoy competition, the number of incorrect targets is estimated as the number of decoys divided by this ratio.", {"advanced"});
       defaults_.setMinFloat("decoy_ratio", 1e-6);
-      defaults_.setValue("min_decoys", 10, "Minimum number of decoy PSMs (per model, i.e. per charge state with 'split_charge') to fit the semi-supervised mixture model. With fewer decoys, the non-parametric estimate is used. "
-                                        "IDPosteriorErrorProbability with 'split_charge': charge states with fewer decoys use the target-decoy data of all charge states (1: separate models for all charge states with decoys).", {"advanced"});
+      defaults_.setValue("min_decoys", 10, "Only used by IDPosteriorErrorProbability with 'split_charge': charge states with fewer decoy PSMs use the target-decoy data of all charge states (1: separate models for all charge states with decoys).", {"advanced"});
       defaults_.setMinInt("min_decoys", 1);
-      defaults_.setValue("min_decoys_isotonic", 50, "With decoy_handling 'auto', the non-parametric estimate is used with at least this many decoy PSMs (per model); the semi-supervised mixture model with at least 'min_decoys' but fewer decoys.", {"advanced"});
-      defaults_.setMinInt("min_decoys_isotonic", 1);
       defaultsToParam_();
       getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGumbelGnuplotFormula;
       getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
@@ -381,7 +374,7 @@ namespace OpenMS::Math
       std::copy_if(search_engine_scores.begin(), search_engine_scores.end(), std::back_inserter(finite_scores), [](double x) { return std::isfinite(x); });
       if (finite_scores.size() < 2) { return false; }
 
-      if (!fitMixture_(finite_scores, {}, true, outlier_handling)) { return false; }
+      if (!fitMixture_(finite_scores, true, outlier_handling)) { return false; }
       model_type_ = ModelType::MIXTURE;
       return true;
     }
@@ -398,12 +391,12 @@ namespace OpenMS::Math
       if (finite_scores.size() < 2) { return false; }
 
       const bool use_gumbel = (param_.getValue("incorrectly_assigned") == "Gumbel");
-      if (!fitMixture_(finite_scores, {}, use_gumbel, outlier_handling)) { return false; }
+      if (!fitMixture_(finite_scores, use_gumbel, outlier_handling)) { return false; }
       model_type_ = ModelType::MIXTURE;
       return true;
     }
 
-    bool PosteriorErrorProbabilityModel::fitMixture_(std::vector<double> scores, std::vector<double> decoy_scores, bool use_gumbel, const std::string& outlier_handling)
+    bool PosteriorErrorProbabilityModel::fitMixture_(std::vector<double> scores, bool use_gumbel, const std::string& outlier_handling)
     {
       if (scores.size() < 2) { return false; }
 
@@ -412,23 +405,14 @@ namespace OpenMS::Math
       //-------------------------------------------------------------
       // transform to a positive range (the shift is irrelevant for the location-scale families, but kept for compatibility)
       smallest_score_ = *std::min_element(scores.begin(), scores.end());
-      if (!decoy_scores.empty())
-      {
-        smallest_score_ = std::min(smallest_score_, *std::min_element(decoy_scores.begin(), decoy_scores.end()));
-      }
       const double shift = fabs(smallest_score_) + 0.001;
       for (double& d : scores) { d += shift; }
-      for (double& d : decoy_scores) { d += shift; }
       sort(scores.begin(), scores.end());
-      sort(decoy_scores.begin(), decoy_scores.end());
 
       processOutliers_(scores, outlier_handling);
-      if (!decoy_scores.empty()) { processOutliers_(decoy_scores, outlier_handling); }
 
       std::vector<double>& x = scores;
-      std::vector<double>& xd = decoy_scores;
       const Size n = x.size();
-      const Size nd = xd.size();
       if (n < 2) { return false; }
 
       incorrect_is_gumbel_ = use_gumbel;
@@ -443,8 +427,8 @@ namespace OpenMS::Math
         return false;
       }
 
-      // incorrect component: from decoys if available, otherwise from the lower half of the scores
-      std::pair<double, double> incorrect_ms = (nd >= 2) ? meanSD(xd.cbegin(), xd.cend()) : meanSD(x.cbegin(), x.cbegin() + std::max<Size>(2, n / 2));
+      // incorrect component: from the lower half of the scores
+      std::pair<double, double> incorrect_ms = meanSD(x.cbegin(), x.cbegin() + std::max<Size>(2, n / 2));
       if (!(incorrect_ms.second > min_sd)) { incorrect_ms.second = overall_sd; }
       // correct component: from the upper 30% of the scores
       const Size correct_start = std::min(n - 2, static_cast<Size>(std::ceil(0.7 * n)));
@@ -457,18 +441,6 @@ namespace OpenMS::Math
         // method of moments (Gumbel: sd = pi / sqrt(6) * b, mean = a + gamma * b)
         const double b = incorrect_ms.second * std::sqrt(6.0) / Constants::PI;
         incorrectly_assigned_fit_gumbel_param_ = GumbelMaxLikelihoodFitter::GumbelDistributionFitResult(incorrect_ms.first - EULER_GAMMA * b, b);
-        if (nd >= 2)
-        {
-          try
-          {
-            gumbel_fitter.setInitialParameters(incorrectly_assigned_fit_gumbel_param_);
-            incorrectly_assigned_fit_gumbel_param_ = gumbel_fitter.fitWeighted(xd, std::vector<double>(nd, 1.0));
-          }
-          catch (Exception::UnableToFit&)
-          {
-            // keep the moment estimates
-          }
-        }
         gumbel_fitter.setInitialParameters(incorrectly_assigned_fit_gumbel_param_);
       }
       else
@@ -480,16 +452,8 @@ namespace OpenMS::Math
       correctly_assigned_fit_param_.sigma = correct_ms.second;
       correctly_assigned_fit_param_.A = 1.0 / sqrt(2.0 * Constants::PI * pow(correctly_assigned_fit_param_.sigma, 2.0));
 
-      // prior probability of an incorrect assignment (of a target)
-      if (nd > 0)
-      {
-        const double decoy_ratio = param_.getValue("decoy_ratio");
-        negative_prior_ = std::clamp(double(nd) / (decoy_ratio * double(n)), 0.05, 0.95);
-      }
-      else
-      {
-        negative_prior_ = 0.7;
-      }
+      // prior probability of an incorrect assignment
+      negative_prior_ = 0.7;
 
       // keep the GaussFitResult representation in sync (used for plotting and by the getters)
       auto sync_incorrect_params = [&]()
@@ -538,7 +502,7 @@ namespace OpenMS::Math
       const Int max_itns = param_.getValue("max_nr_iterations");
       const int delta = param_.getValue("neg_log_delta");
 
-      // E-step: responsibilities of the incorrect component (targets/unlabeled PSMs only) and the log-likelihood
+      // E-step: responsibilities of the incorrect component and the log-likelihood
       std::vector<double> incorrect_posteriors(n);
       auto e_step = [&]() -> double
       {
@@ -555,17 +519,8 @@ namespace OpenMS::Math
           incorrect_posteriors[i] = resp_incorrect / (resp_incorrect + resp_correct);
           loglikelihood += max_log_resp + std::log(resp_incorrect + resp_correct);
         }
-        for (double d : xd)
-        {
-          loglikelihood += logIncorrectDensity_(d); // decoys are known to be incorrect
-        }
         return loglikelihood;
       };
-
-      // all PSMs that (may) contribute to the incorrect component: targets/unlabeled PSMs, then decoys
-      std::vector<double> x_incorrect(x);
-      x_incorrect.insert(x_incorrect.end(), xd.begin(), xd.end());
-      std::vector<double> w_incorrect(n + nd, 1.0);
 
       double maxlike = e_step();
       if (std::isnan(maxlike))
@@ -580,7 +535,7 @@ namespace OpenMS::Math
         // M-STEP
         double sum_incorrect_posteriors = std::accumulate(incorrect_posteriors.begin(), incorrect_posteriors.end(), 0.0);
         const double sum_correct_posteriors = double(n) - sum_incorrect_posteriors;
-        if (!(sum_correct_posteriors > 1e-6) || !(sum_incorrect_posteriors + double(nd) > 1e-6))
+        if (!(sum_correct_posteriors > 1e-6) || !(sum_incorrect_posteriors > 1e-6))
         {
           OPENMS_LOG_WARN << "Warning: all scores were assigned to a single component. Unable to fit the mixture model." << std::endl;
           return false;
@@ -593,14 +548,13 @@ namespace OpenMS::Math
         const std::pair<double, double> correct_new = weightedMeanSD(x, correct_weights);
 
         // incorrect component (Gumbel or Gauss)
-        std::copy(incorrect_posteriors.begin(), incorrect_posteriors.end(), w_incorrect.begin());
         GumbelMaxLikelihoodFitter::GumbelDistributionFitResult gumbel_new = incorrectly_assigned_fit_gumbel_param_;
         std::pair<double, double> incorrect_new(incorrectly_assigned_fit_param_.x0, incorrectly_assigned_fit_param_.sigma);
         if (use_gumbel)
         {
           try
           {
-            gumbel_new = gumbel_fitter.fitWeighted(x_incorrect, w_incorrect);
+            gumbel_new = gumbel_fitter.fitWeighted(x, incorrect_posteriors);
           }
           catch (Exception::UnableToFit&)
           {
@@ -610,7 +564,7 @@ namespace OpenMS::Math
         }
         else
         {
-          incorrect_new = weightedMeanSD(x_incorrect, w_incorrect);
+          incorrect_new = weightedMeanSD(x, incorrect_posteriors);
         }
 
         const double incorrect_scale = use_gumbel ? gumbel_new.b : incorrect_new.second;
@@ -748,69 +702,6 @@ namespace OpenMS::Math
         return false;
       }
 
-      // Calibration check: under target-decoy competition, the number of decoys scoring at least as well as the targets accepted
-      // at a score threshold is (decoy_ratio times) the number of incorrect targets among them, which the model estimates by the
-      // sum of their PEPs. Compare observed and expected decoys at the thresholds of 1%, 5% and 10% target-decoy FDR:
-      // flag deviations that are both statistically significant (two-sided Poisson test) and larger than a factor of 2.
-      if (decoys.size() >= 10 && decoy_handling != "ignore")
-      {
-        std::vector<double> t_sorted(targets), d_sorted(decoys);
-        std::sort(t_sorted.begin(), t_sorted.end(), std::greater<double>());
-        std::sort(d_sorted.begin(), d_sorted.end(), std::greater<double>());
-        const std::vector<double> fdr_levels = {0.01, 0.05, 0.1};
-        std::vector<double> expected_at_level(fdr_levels.size(), 0.0), observed_at_level(fdr_levels.size(), 0.0), size_at_level(fdr_levels.size(), 0.0);
-        double sum_pep = 0.0;
-        Size d_index = 0;
-        for (Size i = 0; i < t_sorted.size(); )
-        {
-          // process groups of tied target scores together
-          Size j = i;
-          for (; j < t_sorted.size() && t_sorted[j] == t_sorted[i]; ++j)
-          {
-            sum_pep += computeProbability(t_sorted[j]);
-          }
-          while (d_index < d_sorted.size() && d_sorted[d_index] >= t_sorted[i]) { ++d_index; }
-          const double n_targets = double(j);
-          const double fdr = double(d_index) / decoy_ratio / n_targets;
-          for (Size l = 0; l < fdr_levels.size(); ++l)
-          {
-            if (fdr <= fdr_levels[l]) // keep the largest set below the FDR level
-            {
-              expected_at_level[l] = sum_pep * decoy_ratio;
-              observed_at_level[l] = double(d_index);
-              size_at_level[l] = n_targets;
-            }
-          }
-          i = j;
-        }
-        std::string report;
-        bool miscalibrated = false;
-        for (Size l = 0; l < fdr_levels.size(); ++l)
-        {
-          if (size_at_level[l] == 0.0) { continue; }
-          const double observed = observed_at_level[l], expected = std::max(expected_at_level[l], 1e-12);
-          report += " FDR " + StringUtils::toStr(fdr_levels[l]) + ": " + StringUtils::toStr(int(size_at_level[l])) + " targets, "
-                    + StringUtils::toStr(int(observed)) + " decoys, " + StringUtils::toStr(expected) + " expected from PEPs;";
-          // two-sided Poisson test (each tail at 0.5e-3)
-          const double p_upper = observed > 0.0 ? boost::math::gamma_p(observed, expected) : 1.0; // P(X >= observed)
-          const double p_lower = boost::math::gamma_q(observed + 1.0, expected);                // P(X <= observed)
-          if ((p_upper < 5e-4 && observed > 2.0 * expected) || (p_lower < 5e-4 && 2.0 * observed < expected))
-          {
-            miscalibrated = true;
-          }
-        }
-        if (!report.empty())
-        {
-          OPENMS_LOG_INFO << "Calibration check (decoys above the target-decoy FDR thresholds vs. expected from the PEPs of the accepted targets):" << report << std::endl;
-        }
-        if (miscalibrated)
-        {
-          calibration_warning_ = true;
-          OPENMS_LOG_WARN << "Warning: the estimated PEPs disagree significantly with the target-decoy estimates:"
-                          << report << " The model (" << modelTypeToString(model_type_) << ") might not fit the data well." << std::endl;
-        }
-      }
-
       // Low-score check: the lowest-scoring PSMs should be (almost) all incorrect, i.e. decoys with probability
       // decoy_ratio / (1 + decoy_ratio). Among the sets of lowest-scoring PSMs with at least a quarter of the estimated number of
       // incorrect PSMs, take the one with the highest decoy fraction. If even this one has significantly (one-sided binomial test)
@@ -873,112 +764,28 @@ namespace OpenMS::Math
       {
         std::vector<double> pooled(targets);
         pooled.insert(pooled.end(), decoys.begin(), decoys.end());
-        if (!fitMixture_(pooled, {}, use_gumbel, outlier_handling)) { return false; }
+        if (!fitMixture_(pooled, use_gumbel, outlier_handling)) { return false; }
         model_type_ = ModelType::MIXTURE;
         return true;
       }
 
-      const Size min_decoys = static_cast<Size>(int(param_.getValue("min_decoys")));
-      const Size min_decoys_isotonic = static_cast<Size>(int(param_.getValue("min_decoys_isotonic")));
-      const Size n_decoys = decoys.size();
-
-      if (n_decoys == 0)
+      if (decoys.empty())
       {
         // no decoy information: unsupervised model of the targets
-        if (!fitMixture_(targets, {}, use_gumbel, outlier_handling)) { return false; }
+        OPENMS_LOG_INFO << "No decoy PSMs: fitting the mixture model to the " << targets.size() << " target scores." << std::endl;
+        if (!fitMixture_(targets, use_gumbel, outlier_handling)) { return false; }
         model_type_ = ModelType::MIXTURE;
         return true;
       }
 
-      // Semi-supervised mixture model: if requested (and there are enough decoys to fit their distribution), or with 'auto' for a
-      // moderate number of decoys. Otherwise the non-parametric estimate: with very few decoys, their distribution cannot be fitted,
-      // but their number is still informative (e.g. 1 decoy: about 1 incorrect target, 1/2 of which above the decoy); with many decoys,
-      // the non-parametric estimate is accurate and does not depend on the shape of the score distributions.
-      const bool semi_supervised = (decoy_handling == "semi_supervised" && n_decoys >= min_decoys)
-                                   || (decoy_handling == "auto" && n_decoys >= min_decoys && n_decoys < min_decoys_isotonic);
-      if (decoy_handling == "semi_supervised" && n_decoys < min_decoys)
-      {
-        OPENMS_LOG_WARN << "Only " << n_decoys << " decoy PSMs available (min_decoys: " << min_decoys
-                        << "). Using the non-parametric target-decoy estimate instead of the semi-supervised mixture model." << std::endl;
-      }
-      if (semi_supervised)
-      {
-        if (fitMixture_(targets, decoys, use_gumbel, outlier_handling))
-        {
-          model_type_ = ModelType::SEMI_SUPERVISED_MIXTURE;
-          bool keep = true;
-          if (decoysContradictModel_(targets, decoys))
-          {
-            keep = (decoy_handling == "semi_supervised");
-            calibration_warning_ = keep;
-          }
-          if (keep)
-          {
-            const double ratio = negative_prior_ / std::max(td_incorrect_fraction_, 1e-12);
-            if (ratio > 1.5 || ratio < 1.0 / 1.5)
-            {
-              OPENMS_LOG_WARN << "The fraction of incorrect target PSMs estimated by the mixture model (" << negative_prior_
-                              << ") differs from the target-decoy estimate (" << td_incorrect_fraction_
-                              << "). The model might not fit the data well, or the decoys might not represent incorrect targets (e.g. separate target and decoy searches)." << std::endl;
-            }
-            return true;
-          }
-          OPENMS_LOG_WARN << "Using the non-parametric target-decoy estimate instead of the semi-supervised mixture model." << std::endl;
-        }
-        else
-        {
-          OPENMS_LOG_WARN << "Unable to fit the semi-supervised mixture model. Using the non-parametric target-decoy estimate." << std::endl;
-        }
-      }
-
+      // Non-parametric target-decoy estimate: no assumptions on the shape of the score distributions, and even very few decoys
+      // are informative (e.g. 1 decoy: about 1 incorrect target, 1/2 of which above the decoy).
       if (fitIsotonic_(targets, decoys))
       {
         model_type_ = ModelType::TARGET_DECOY_ISOTONIC;
         return true;
       }
       return false;
-    }
-
-    bool PosteriorErrorProbabilityModel::decoysContradictModel_(const std::vector<double>& targets, const std::vector<double>& decoys) const
-    {
-      // Under target-decoy competition, the number of decoys scoring at least as well as a set of targets
-      // is (decoy_ratio times) the number of incorrect targets in the set, which the model estimates by the sum of their PEPs.
-      // Test this for the targets that the model considers (fairly) confident (PEP < 0.1): many more decoys than expected
-      // indicate a spurious "correct" component, e.g. fitted to the upper tail of data without (many) correct assignments.
-      const double decoy_ratio = param_.getValue("decoy_ratio");
-      double threshold = std::numeric_limits<double>::infinity();
-      double n_targets = 0.0, expected_decoys = 0.0;
-      for (double t : targets)
-      {
-        const double pep = computeProbability(t);
-        if (pep < 0.1)
-        {
-          threshold = std::min(threshold, t);
-          n_targets += 1.0;
-          expected_decoys += pep;
-        }
-      }
-      if (n_targets == 0.0)
-      {
-        return false;
-      }
-      expected_decoys *= decoy_ratio;
-      const double observed_decoys = double(std::count_if(decoys.begin(), decoys.end(), [threshold](double d) { return d >= threshold; }));
-      if (observed_decoys < 2.0 || observed_decoys <= 2.0 * expected_decoys)
-      {
-        return false;
-      }
-      // Poisson upper tail: P(X >= observed | expected) = P(observed, expected) (regularized lower incomplete gamma function)
-      const double p_value = boost::math::gamma_p(observed_decoys, std::max(expected_decoys, 1e-12));
-      if (p_value >= 1e-3)
-      {
-        return false;
-      }
-      OPENMS_LOG_WARN << "Warning: " << observed_decoys << " decoys score at least as well as the " << n_targets
-                      << " target PSMs with PEP < 0.1, but the PEPs of these targets imply only " << expected_decoys
-                      << " (p = " << p_value << "). The model (" << modelTypeToString(model_type_) << ") is overconfident;"
-                      << " the data might contain few or no correct assignments." << std::endl;
-      return true;
     }
 
     bool PosteriorErrorProbabilityModel::fitIsotonic_(const std::vector<double>& target_scores, const std::vector<double>& decoy_scores)
@@ -1324,7 +1131,7 @@ namespace OpenMS::Math
       sort(decoy.begin(), decoy.end());
 
       // plot in the same (shifted) score space as the mixture model
-      const bool mixture = (model_type_ == ModelType::MIXTURE || model_type_ == ModelType::SEMI_SUPERVISED_MIXTURE);
+      const bool mixture = (model_type_ == ModelType::MIXTURE);
       const double shift = mixture ? fabs(smallest_score_) + 0.001 : 0.0;
       const double lo = std::min(target.front(), decoy.front()) + shift;
       const double hi = std::max(target.back(), decoy.back()) + shift;

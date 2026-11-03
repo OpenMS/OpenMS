@@ -33,33 +33,26 @@ namespace OpenMS
     /**
       @brief Estimates posterior error probabilities (PEPs) of peptide-spectrum matches from search engine scores.
 
-      Three estimators are available:
+      Two estimators are available:
 
-      - <b>Unsupervised mixture model</b> (fit()): a two-component mixture of a Gumbel (or Gauss) distribution for incorrect
-        and a Gauss distribution for correct assignments is fitted to all scores with the EM algorithm. The very same
-        densities are used for fitting and for computing probabilities. The Gumbel component is fitted by weighted maximum likelihood.
-      - <b>Semi-supervised mixture model</b> (fitTargetDecoy() with @p decoy_handling = semi_supervised):
-        as above, but decoy PSMs are known to be incorrect. They contribute to the incorrect component only,
-        and the prior probability of an incorrect assignment is estimated on target PSMs only (Choi & Nesvizhskii, 2008).
-      - <b>Non-parametric target-decoy estimate</b> (fitTargetDecoy() with @p decoy_handling = isotonic):
+      - <b>Unsupervised mixture model</b> (fit(), and fitTargetDecoy() without decoys): a two-component mixture of a Gumbel
+        (or Gauss) distribution for incorrect and a Gauss distribution for correct assignments is fitted to all scores with the
+        EM algorithm. The very same densities are used for fitting and for computing probabilities. The Gumbel component is
+        fitted by weighted maximum likelihood.
+      - <b>Non-parametric target-decoy estimate</b> (fitTargetDecoy() with at least one decoy):
         Under target-decoy competition (concatenated target+decoy search, top hit per spectrum), each decoy winner stands
         in for (about) one incorrect target winner. The probability p(s) that a PSM with score s is a decoy is estimated by
         weighted isotonic regression (pool-adjacent-violators, tied scores pooled) and the PEP of a target PSM is
         <tt>PEP(s) = p(s) / (1 - p(s)) / decoy_ratio</tt> (cf. Percolator/qvality, Käll et al. 2008).
-        Only the ordering of the scores is used, so the estimate is invariant to any monotone score transformation
-        (e-values, p-values, raw scores, discrete or censored scores). Block decoy fractions are shrunk with a Jeffreys
-        prior, and the PEPs of the targets scoring above all decoys sum up to 1 / decoy_ratio (the expected number of incorrect
-        targets above the best decoy), so that no PEP is exactly 0.
+        The blocks and their PEPs only depend on the ordering of the scores, so they are invariant to monotone score
+        transformations (e-values, p-values, raw scores, discrete or censored scores). Block decoy fractions are shrunk with a
+        Jeffreys prior, and the PEPs of the targets scoring above all decoys sum up to 1 / decoy_ratio (the expected number of
+        incorrect targets above the best decoy), so that no PEP is exactly 0. Even a single decoy (or a single target) is informative.
         Within a block, the PEP decreases linearly with the score around the block's PEP (keeping the mean PEP of the block),
-        such that PSMs are ordered by score; between blocks, the PEP is interpolated linearly.
-
-      With @p decoy_handling = auto (default), fitTargetDecoy() chooses the semi-supervised mixture if there are at least
-      @p min_decoys but fewer than @p min_decoys_isotonic decoys, and the isotonic estimate otherwise: with very few decoys,
-      their score distribution cannot be fitted, but their number is still informative (even a single decoy, or a single target).
-      Without decoys, the unsupervised mixture model of the target scores is fitted.
-      Mixture models fitted with decoys are checked against them: if far more decoys score as well as the targets with low PEPs
-      than these PEPs imply (e.g. a spurious "correct" component fitted to data with few or no correct assignments),
-      'auto' switches to the isotonic estimate (otherwise, hasCalibrationWarning() is set).
+        such that PSMs are ordered by score; between blocks, the PEP is interpolated linearly. These ramps use the score values,
+        i.e. they (but not the block PEPs) depend on the score scale.
+        As in qvality, Percolator and mokapot, the PEP is not forced to 1 at the lowest scores, where it follows the local ratio
+        of decoys and targets (see hasCalibrationWarning()).
 
       @note Without decoys, the (unsupervised) mixture model assumes that the data contain correct assignments.
       For data with few or no correct assignments, it might assign low PEPs to a few PSMs in the extreme upper tail of the scores.
@@ -84,7 +77,6 @@ public:
       {
         NONE,                    ///< nothing was fitted (yet), or the last fit failed
         MIXTURE,                 ///< unsupervised two-component mixture model
-        SEMI_SUPERVISED_MIXTURE, ///< two-component mixture model with decoy PSMs fixed to the incorrect component
         TARGET_DECOY_ISOTONIC    ///< non-parametric target-decoy estimate (isotonic regression of the decoy probability)
       };
 
@@ -246,12 +238,13 @@ public:
 
           The scores must be oriented such that higher scores are better (as returned by extractAndTransformScores()).
           They should stem from a target-decoy competition, i.e. a search against a concatenated target+decoy database,
-          with one (the top) hit per spectrum. The estimator is chosen according to the parameter @p decoy_handling
-          (see class documentation). Use getModelType() to find out which estimator was used.
+          with one (the top) hit per spectrum. With at least one decoy, the non-parametric target-decoy estimate is used;
+          without decoys (or with @p decoy_handling = ignore), the unsupervised mixture model (see class documentation).
+          Use getModelType() to find out which estimator was used.
 
           @param[in] target_scores scores of target PSMs
           @param[in] decoy_scores scores of decoy PSMs
-          @param[in] outlier_handling Valid values are in the Param 'outlier_handling' (only used for the mixture models)
+          @param[in] outlier_handling Valid values are in the Param 'outlier_handling' (only used for the mixture model)
           @return true if a model could be estimated
       */
       bool fitTargetDecoy(const std::vector<double>& target_scores, const std::vector<double>& decoy_scores, const std::string& outlier_handling);
@@ -273,14 +266,9 @@ public:
       }
 
       /**
-          @brief returns true if the last call to fitTargetDecoy() found the PEPs to disagree with the decoys
+          @brief returns true if the last call to fitTargetDecoy() found the target-decoy assumptions to be violated at low scores
 
-          Under target-decoy competition, the number of decoys scoring at least as well as a set of targets is (decoy_ratio times)
-          the number of incorrect targets in the set, which is estimated by the sum of their PEPs.
-          This is tested for the targets accepted at a target-decoy FDR of 1%, 5% and 10%, and for the targets with a PEP below 0.1.
-          A warning is raised if observed and expected decoys differ significantly (Poisson test) and by more than a factor of 2.
-
-          A warning is also raised if even the lowest-scoring PSMs contain significantly (binomial test) and clearly too few decoys
+          A warning is raised if even the lowest-scoring PSMs contain significantly (binomial test) and clearly too few decoys
           for incorrect PSMs (decoy fraction below decoy_ratio / (1 + decoy_ratio), PEP below 0.8), so that the PEPs stay well below 1
           down to the lowest scores. Then either correct PSMs extend to the lowest scores, or decoys are underrepresented among the
           incorrect PSMs (e.g. a wrong decoy_ratio), which makes all target-decoy PEPs (and FDRs) too low.
@@ -419,19 +407,15 @@ private:
       /**
           @brief fits a two-component mixture model with the EM algorithm
 
-          @param[in] scores (finite) scores of PSMs with unknown status
-          @param[in] decoy_scores (finite) scores of PSMs known to be incorrect (may be empty)
+          @param[in] scores (finite) scores of the PSMs
           @param[in] use_gumbel use a Gumbel (instead of a Gauss) distribution for the incorrect component
           @param[in] outlier_handling see parameter 'outlier_handling'
           @return true on success
       */
-      bool fitMixture_(std::vector<double> scores, std::vector<double> decoy_scores, bool use_gumbel, const std::string& outlier_handling);
+      bool fitMixture_(std::vector<double> scores, bool use_gumbel, const std::string& outlier_handling);
 
-      /// fits the model chosen by parameter 'decoy_handling' (with fallbacks) to finite target and decoy scores
+      /// fits the target-decoy model (or, without decoys or with decoy_handling 'ignore', the mixture model) to finite target and decoy scores
       bool fitTargetDecoyModel_(const std::vector<double>& targets, const std::vector<double>& decoys, const std::string& outlier_handling);
-
-      /// tests whether (far) more decoys score as well as the targets with low PEPs than the PEPs imply (Poisson test)
-      bool decoysContradictModel_(const std::vector<double>& targets, const std::vector<double>& decoys) const;
 
       /// estimates the non-parametric target-decoy model; returns false if it cannot be estimated
       bool fitIsotonic_(const std::vector<double>& target_scores, const std::vector<double>& decoy_scores);
