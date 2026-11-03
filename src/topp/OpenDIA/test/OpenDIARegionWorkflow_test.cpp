@@ -16,6 +16,7 @@
 #include <filesystem>
 #include <limits>
 #include <map>
+#include <set>
 #include <stdexcept>
 
 using namespace OpenDIA;
@@ -175,6 +176,7 @@ void fixtures()
     auto source = std::make_shared<OpenMS::SpectrumAccessOnDisc>(experiment);
     exercise(source);
     auto cache = std::make_shared<RawCache>(16 * MIB, 0, 8 * MIB);
+    check(! experiment->getAcquisitionBatchId(0), "Indexed mzML unexpectedly exposed a native acquisition batch key");
     check(! cache->enableNativeFrames(std::shared_ptr<OpenMS::IMSExperimentRandomAccess>(experiment->clone())),
           "Indexed mzML unexpectedly enabled a native frame cache");
     check(cache->snapshot().budget.committed_bytes == 0, "Unsupported native cache retained admission");
@@ -331,6 +333,71 @@ void nativeFrames(const std::shared_ptr<OpenMS::SpectrumAccessOnDisc>& source)
                   << " peak=" << used.native_frames.peak_retained_bytes << " limit=" << used.native_frames.limit_bytes << '\n';
 }
 
+void nativeBatchWorkflow(const std::vector<OpenSwath::SwathMap>& maps)
+{
+  std::vector<std::shared_ptr<OpenMS::SpectrumAccessOnDisc>> sources;
+  std::vector<std::shared_ptr<RawAccess>> accessors;
+  std::set<OpenMS::Size> acquisition_ids;
+  auto cache = std::make_shared<RawCache>(512 * MIB, 0, 64 * MIB);
+  for (const auto& map : maps)
+  {
+    auto source = std::dynamic_pointer_cast<OpenMS::SpectrumAccessOnDisc>(map.sptr);
+    check(source != nullptr, "Native loader did not return a lane adapter");
+    sources.push_back(source);
+    accessors.push_back(std::make_shared<RawAccess>(source, cache));
+    auto native = std::shared_ptr<OpenMS::IMSExperimentRandomAccess>(source->getExperiment().clone());
+    for (OpenMS::Size id = 0; id < source->getNrSpectra(); ++id)
+    {
+      const auto acquisition = native->getAcquisitionBatchId(source->getExperimentIndex(id));
+      if (acquisition) { acquisition_ids.insert(*acquisition); }
+    }
+  }
+  cache->registerBatchGroup(accessors);
+
+  std::vector<std::vector<Coordinate>> coordinates(maps.size(), std::vector<Coordinate>(1));
+  std::vector<Chromatograms> expected;
+  expected.reserve(maps.size());
+  for (OpenMS::Size lane = 0; lane < sources.size(); ++lane)
+  {
+    check(sources[lane]->getNrSpectra() > 0, "Native lane has no spectra");
+    const auto spectrum = sources[lane]->getSpectrumById(0);
+    check(! spectrum->getMZArray()->data.empty(), "Native lane has no peaks");
+    coordinates[lane][0].mz = spectrum->getMZArray()->data.front();
+    coordinates[lane][0].rt_start = sources[lane]->getSpectrumMetaById(0).RT;
+    coordinates[lane][0].rt_end = -1;
+    coordinates[lane][0].ion_mobility = -1;
+    expected.push_back(empty(1));
+    OpenMS::ChromatogramExtractor().extractChromatograms(
+      sources[lane]->lightClone(), expected.back(), coordinates[lane], 0.05, false, -1, "tophat");
+  }
+
+  const auto native_before = cache->snapshot().native_frames;
+  RegionWorkflow workflow(false, false, false, false, false, 1);
+  OpenMS::ChromExtractParams cp {};
+  cp.mz_extraction_window = 0.05;
+  cp.im_extraction_window = -1;
+  cp.extraction_function = "tophat";
+  bool signal_observed = false;
+  for (OpenMS::Size lane = 0; lane < sources.size(); ++lane)
+  {
+    auto actual = empty(1);
+    workflow.extractChromatograms_(accessors[lane], actual, coordinates[lane], cp);
+    equal(actual, expected[lane]);
+    const auto& intensities = actual.front()->getIntensityArray()->data;
+    signal_observed = signal_observed || std::any_of(intensities.begin(), intensities.end(), [](double value) { return value != 0; });
+  }
+  const auto after = cache->snapshot();
+  const auto decoded = after.native_frames.decoded_frames - native_before.decoded_frames;
+  check(signal_observed, "Batched native workflow comparison contained only zero signal");
+  check(decoded == acquisition_ids.size(), "Workflow did not decode each physical Bruker acquisition exactly once");
+  check(after.hits > 0 && after.work.copies == 0, "Sibling lane reads missed staged regions or copied legacy arrays");
+  check(after.native_frames.limit_bytes == 0 && after.native_frames.retained_bytes == 0,
+        "Workflow batching unexpectedly enabled persistent native-frame retention");
+  check(after.budget.peak_total_bytes <= after.budget.usable_bytes, "Batched workflow exceeded shared admission");
+  OPENMS_LOG_INFO << "PASS native multi-lane workflow: lanes=" << sources.size() << " acquisitions=" << acquisition_ids.size()
+                  << " decoded=" << decoded << " raw_hits=" << after.hits << " peak=" << after.budget.peak_total_bytes << '\n';
+}
+
 void edges()
 {
   OpenMS::MSExperiment experiment;
@@ -411,6 +478,7 @@ int main(int argc, char** argv)
         std::shared_ptr<OpenMS::ExperimentalSettings> settings;
         auto maps = OpenMS::SwathFile().loadOnDisc(argv[argument], settings);
         check(! maps.empty(), "Native loader returned no lanes");
+        nativeBatchWorkflow(maps);
         nativeFrames(std::dynamic_pointer_cast<OpenMS::SpectrumAccessOnDisc>(maps.front().sptr));
         for (const auto map_index : {OpenMS::Size {0}, maps.size() / 2, maps.size() - 1})
         {

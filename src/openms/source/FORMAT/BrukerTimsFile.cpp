@@ -2696,6 +2696,14 @@ namespace OpenMS
     Size getNrSpectra() const override { return source_->entries.size(); }
     Size getNrChromatograms() const override { return 0; }
     MSSpectrum getSpectrumMetadata(Size i) override { return source_->entries.at(i).metadata; }
+
+    std::optional<Size> getAcquisitionBatchId(Size index) const override
+    {
+      if (index >= source_->entries.size()) { throw std::out_of_range("Native Bruker DIA spectrum index"); }
+      const auto& entry = source_->entries[index];
+      if (!entry.window) { return std::nullopt; }
+      return static_cast<Size>(entry.frame);
+    }
     double getSpectrumRT(Size i) const override { return source_->entries.at(i).metadata.getRT(); }
     UInt getSpectrumMSLevel(Size i) const override { return source_->entries.at(i).metadata.getMSLevel(); }
     bool isSortedByRT() const override { return true; }

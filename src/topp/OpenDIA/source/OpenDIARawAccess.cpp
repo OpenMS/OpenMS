@@ -11,6 +11,8 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <limits>
+#include <unordered_map>
 
 namespace OpenDIA
 {
@@ -57,6 +59,9 @@ namespace OpenDIA
     }
 
     using Clock = std::chrono::steady_clock;
+    struct BatchAdmissionFailure
+    {
+    };
     ByteCount elapsed(Clock::time_point start)
     {
       return std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now() - start).count();
@@ -132,6 +137,19 @@ namespace OpenDIA
     };
   }
 
+  struct RawCache::BatchFrame
+  {
+    struct Member
+    {
+      std::weak_ptr<RawAccess> access;
+      int id = 0;
+      OpenMS::Size index = 0;
+    };
+    std::shared_ptr<OpenMS::IMSExperimentRandomAccess> source;
+    std::vector<OpenMS::Size> indices;
+    std::unordered_map<OpenMS::Size, std::vector<Member>> members_by_index;
+  };
+
   const OpenSwath::BinaryDataArray& RawScan::array(OpenMS::Size index) const
   {
     if (index >= arrayCount())
@@ -169,6 +187,65 @@ namespace OpenDIA
     return true;
   }
 
+  void RawCache::registerBatchGroup(const std::vector<std::shared_ptr<RawAccess>>& accessors)
+  {
+    std::lock_guard lock(mutex_);
+    if (!entries_.empty()) { invalid("Configure batch groups before readers start"); }
+    if (budget_.snapshot().cancelled) { invalid("Cache is cancelled"); }
+    if (accessors.empty()) { return; }
+
+    std::unordered_map<OpenMS::Size, std::vector<BatchFrame::Member>> members_by_acquisition;
+    std::shared_ptr<OpenMS::IMSExperimentRandomAccess> source;
+    for (const auto& access : accessors)
+    {
+      if (!access || access->cache_.get() != this) { invalid("Batch lanes must share this cache"); }
+      if (!source) { source = access->metadata_source_; }
+      const auto count = access->source_->getNrSpectra();
+      if (count > static_cast<OpenMS::Size>(std::numeric_limits<int>::max())) { invalid("Too many batch lane spectra"); }
+      access->batch_frames_by_id_.assign(count, {});
+      for (OpenMS::Size i = 0; i < count; ++i)
+      {
+        const auto native_index = access->source_->getExperimentIndex(static_cast<int>(i));
+        const auto acquisition = access->metadata_source_->getAcquisitionBatchId(native_index);
+        if (acquisition)
+        {
+          members_by_acquisition[*acquisition].push_back({access, static_cast<int>(i), native_index});
+        }
+      }
+    }
+
+    if (members_by_acquisition.empty()) { return; }
+    std::shared_ptr<OpenMS::IMSExperimentRandomAccess> batch_source(source->clone());
+    batch_sources_.push_back(batch_source);
+    for (auto& [acquisition, members] : members_by_acquisition)
+    {
+      static_cast<void>(acquisition);
+      if (members.size() < 2) { continue; }
+      auto frame = std::make_shared<BatchFrame>();
+      frame->source = batch_source;
+      for (const auto& member : members)
+      {
+        frame->members_by_index[member.index].push_back(member);
+      }
+      frame->indices.reserve(frame->members_by_index.size());
+      for (const auto& [index, aliases] : frame->members_by_index)
+      {
+        static_cast<void>(aliases);
+        frame->indices.push_back(index);
+      }
+      std::sort(frame->indices.begin(), frame->indices.end());
+      for (const auto& member : members)
+      {
+        if (const auto access = member.access.lock())
+        {
+          access->batch_frames_by_id_[static_cast<OpenMS::Size>(member.id)] = frame;
+        }
+      }
+      batch_frames_.push_back(std::move(frame));
+    }
+    if (batch_frames_.empty()) { batch_sources_.pop_back(); }
+  }
+
   void RawCache::clearNativeFrames_()
   {
     if (! native_source_) { return; }
@@ -203,8 +280,29 @@ namespace OpenDIA
   RawCacheSnapshot RawCache::snapshot() const
   {
     std::lock_guard lock(mutex_);
+    OpenMS::NativeFrameCacheStats frame_stats = native_frame_stats_;
+    if (!batch_sources_.empty())
+    {
+      frame_stats = {};
+      for (const auto& source : batch_sources_)
+      {
+        const auto stats = source->getNativeFrameCacheStats();
+        frame_stats.limit_bytes = checkedByteAdd(frame_stats.limit_bytes, stats.limit_bytes);
+        frame_stats.retained_bytes = checkedByteAdd(frame_stats.retained_bytes, stats.retained_bytes);
+        frame_stats.peak_retained_bytes = checkedByteAdd(frame_stats.peak_retained_bytes, stats.peak_retained_bytes);
+        frame_stats.hits = checkedByteAdd(frame_stats.hits, stats.hits);
+        frame_stats.misses = checkedByteAdd(frame_stats.misses, stats.misses);
+        frame_stats.evictions = checkedByteAdd(frame_stats.evictions, stats.evictions);
+        frame_stats.decoded_frames = checkedByteAdd(frame_stats.decoded_frames, stats.decoded_frames);
+        frame_stats.sorted_frames = checkedByteAdd(frame_stats.sorted_frames, stats.sorted_frames);
+      }
+    }
+    else if (native_source_)
+    {
+      frame_stats = native_source_->getNativeFrameCacheStats();
+    }
     return {budget_.snapshot(), entries_.size(), work_.hits, work_.misses,
-            work_.evictions,    work_,           phases_,    native_source_ ? native_source_->getNativeFrameCacheStats() : native_frame_stats_};
+            work_.evictions,    work_,           phases_,    frame_stats};
   }
 
   void RawCache::setCalibration(bool active)
@@ -311,7 +409,7 @@ namespace OpenDIA
     if (bytes > scan_bound) { invalid("Scan exceeds previously admitted scan bytes"); }
     scan->lease_ = reservation->commit(bytes);
     // Publish only a complete scan whose retained capacities fit the bound.
-    entries.push_front({source_, id, scan});
+    entries.push_front({source_, id, scan, {}, {}, {}});
     known_bound = std::max(native_bound, bytes);
     const auto numeric_bytes = numericBytes(*scan->columns_);
     work.decoded_numeric_bytes = checkedByteAdd(work.decoded_numeric_bytes, numeric_bytes);
@@ -357,6 +455,90 @@ namespace OpenDIA
       phase.read_ns += ns;
       return *entries.front().region;
     }
+
+    std::shared_ptr<RawCache::BatchFrame> batch_frame;
+    if (static_cast<OpenMS::Size>(id) < batch_frames_by_id_.size())
+    {
+      batch_frame = batch_frames_by_id_[static_cast<OpenMS::Size>(id)].lock();
+    }
+    if (batch_frame)
+    {
+      struct StagedRegion
+      {
+        OpenMS::Size index = 0;
+        ByteCount bytes = 0;
+        RawRegion region;
+        std::vector<RawCache::BatchFrame::Member> members;
+      };
+      std::vector<StagedRegion> staged;
+      const auto decode_started = Clock::now();
+      try
+      {
+        batch_frame->source->forEachSpectrum(batch_frame->indices, [&](OpenMS::Size native_index, OpenMS::MSSpectrum&& spectrum)
+        {
+          const auto found_members = batch_frame->members_by_index.find(native_index);
+          if (found_members == batch_frame->members_by_index.end()) { invalid("Batch source returned an unregistered index"); }
+          const auto bytes = RawRegion::requiredBytes({1, spectrum.size()}, spectrum.getNativeID().size());
+          if (bytes > cache_->max_scan_bytes_) { invalid("Scan exceeds maximum scan bytes"); }
+          auto reservation = cache_->reserve_(bytes, phase_id);
+          if (!reservation)
+          {
+            if (cache_->budget_.snapshot().cancelled) { invalid("Cache is cancelled"); }
+            throw BatchAdmissionFailure {};
+          }
+          reservation.reset();
+          auto region = RawRegion::fromSpectrum(spectrum, native_index, context, cache_->budget_, calibration);
+          staged.push_back({native_index, bytes, std::move(region), found_members->second});
+        });
+      }
+      catch (const BatchAdmissionFailure&)
+      {
+        // A whole-frame batch may exceed the remaining region budget. Discard it
+        // atomically, then preserve the established one-scan admission behavior.
+        staged.clear();
+      }
+
+      if (!staged.empty())
+      {
+        bool current_found = false;
+        RawRegion current_region;
+        for (const auto& decoded : staged)
+        {
+          const auto scan = decoded.region.scan(0);
+          const ByteCount values = scan.mz().size();
+          const ByteCount numeric_bytes = checkedByteMultiply(values,
+            sizeof(double) + sizeof(float) * (scan.mobility().empty() ? 1 : 2));
+          ++work.decodes;
+          work.decoded_numeric_bytes = checkedByteAdd(work.decoded_numeric_bytes, numeric_bytes);
+          phase.decoded_numeric_bytes = checkedByteAdd(phase.decoded_numeric_bytes, numeric_bytes);
+          for (const auto& member : decoded.members)
+          {
+            const auto access = member.access.lock();
+            if (!access) { continue; }
+            auto& member_phase = cache_->phases_[static_cast<size_t>(access->phase_(member.id))];
+            ++work.misses;
+            ++member_phase.misses;
+            access->region_bounds_->at(static_cast<OpenMS::Size>(member.id)) = decoded.bytes;
+            entries.push_front({access->source_, member.id, {}, decoded.region, context, calibration});
+            if (access.get() == this && member.id == id)
+            {
+              current_region = decoded.region;
+              current_found = true;
+            }
+          }
+        }
+        const auto ns = elapsed(started);
+        work.read_ns += ns;
+        phase.read_ns += ns;
+        const auto decode_ns = elapsed(decode_started);
+        work.decode_ns += decode_ns;
+        phase.decode_ns += decode_ns;
+        phase.decodes += staged.size();
+        if (current_found) { return current_region; }
+        invalid("Batch did not produce the requested source index");
+      }
+    }
+
     ++work.misses;
     ++phase.misses;
     auto& known_bound = region_bounds_->at(static_cast<size_t>(id));

@@ -36,6 +36,8 @@ namespace OpenDIA
     OpenMS::NativeFrameCacheStats native_frames;
   };
 
+  class RawAccess;
+
   /// Read-only scan. The lease stays valid after cache removal.
   class RawScan final
   {
@@ -80,6 +82,12 @@ namespace OpenDIA
       @return True if this cache admitted and enabled native frame storage.
     */
     bool enableNativeFrames(std::shared_ptr<OpenMS::IMSExperimentRandomAccess> source);
+    /** @brief Register sibling random-access lanes that share one native run.
+      Registration is complete before readers start. Backends without batchable
+      acquisition IDs keep their existing single-spectrum path.
+      @param[in] accessors Lane adapters from the same source file.
+    */
+    void registerBatchGroup(const std::vector<std::shared_ptr<RawAccess>>& accessors);
     /// Read counters and budget state under one lock.
     RawCacheSnapshot snapshot() const;
     /// Change only between joined workflow stages, never while readers are active.
@@ -90,6 +98,7 @@ namespace OpenDIA
     void cancel();
   private:
     friend class RawAccess;
+    struct BatchFrame;
     struct Entry
     {
       std::shared_ptr<OpenMS::SpectrumAccessOnDisc> source;
@@ -104,6 +113,8 @@ namespace OpenDIA
     ByteBudget budget_;
     MemoryLease native_frame_lease_;
     std::shared_ptr<OpenMS::IMSExperimentRandomAccess> native_source_;
+    std::vector<std::shared_ptr<OpenMS::IMSExperimentRandomAccess>> batch_sources_;
+    std::vector<std::shared_ptr<BatchFrame>> batch_frames_;
     OpenMS::NativeFrameCacheStats native_frame_stats_;
     void clearNativeFrames_();
     ByteCount max_scan_bytes_;
@@ -154,6 +165,7 @@ namespace OpenDIA
     size_t getNrChromatograms() const override;
     std::string getChromatogramNativeID(int id) const override;
   private:
+    friend class RawCache;
     RawPhase phase_(int id) const; // cache lock held
     std::shared_ptr<OpenMS::SpectrumAccessOnDisc> source_;
     std::shared_ptr<RawCache> cache_;
@@ -162,5 +174,6 @@ namespace OpenDIA
     // Two ByteCounts per visible scan use the native metadata/control allowance.
     std::shared_ptr<std::vector<ByteCount>> scan_bounds_;
     std::shared_ptr<std::vector<ByteCount>> region_bounds_;
+    std::vector<std::weak_ptr<RawCache::BatchFrame>> batch_frames_by_id_;
   };
 }

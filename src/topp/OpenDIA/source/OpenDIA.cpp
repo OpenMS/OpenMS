@@ -1818,8 +1818,15 @@ protected:
       }
       if (raw_cache)
       {
-        for (auto& map : swath_maps)
+        if (swath_map_sources.size() != swath_maps.size())
         {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           "SWATH source names do not match the loaded maps.");
+        }
+        std::unordered_map<std::string, std::vector<std::shared_ptr<OpenDIA::RawAccess>>> batch_groups;
+        for (Size i = 0; i < swath_maps.size(); ++i)
+        {
+          auto& map = swath_maps[i];
           auto source = std::dynamic_pointer_cast<SpectrumAccessOnDisc>(map.sptr);
           if (!source || source->getNrSpectra() == 0)
           {
@@ -1830,7 +1837,14 @@ protected:
           {
             raw_cache->enableNativeFrames(std::shared_ptr<IMSExperimentRandomAccess>(source->getExperiment().clone()));
           }
-          map.sptr = std::make_shared<OpenDIA::RawAccess>(std::move(source), raw_cache);
+          auto access = std::make_shared<OpenDIA::RawAccess>(std::move(source), raw_cache);
+          batch_groups[swath_map_sources[i]].push_back(access);
+          map.sptr = std::move(access);
+        }
+        for (const auto& [source_path, accessors] : batch_groups)
+        {
+          static_cast<void>(source_path);
+          raw_cache->registerBatchGroup(accessors);
         }
       }
 

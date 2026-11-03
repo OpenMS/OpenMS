@@ -15,6 +15,7 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <span>
 
 namespace OpenMS
@@ -98,6 +99,19 @@ namespace OpenMS
     */
     virtual void forEachSpectrum(std::span<const Size> indices,
                                  const std::function<void(Size, MSSpectrum&&)>& visitor);
+
+    /**
+      @brief Return a grouping key for spectra from the same batchable physical acquisition.
+
+      Backends that can serve multiple logical spectra from one acquisition return the
+      same key for those spectra. Other spectra and backends return no key. Keys can be
+      compared across clones sharing the same source, not across unrelated sources.
+
+      @param[in] index Source spectrum index.
+      @return Batchable acquisition key, or no value when batching does not apply.
+      @throws std::out_of_range if @p index is out of range (backend dependent)
+    */
+    virtual std::optional<Size> getAcquisitionBatchId(Size index) const;
 
     /**
       @brief The spectrum with index @p index without peaks and data arrays.

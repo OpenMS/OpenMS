@@ -41,6 +41,11 @@ namespace OpenMS
     }
   }
 
+  std::optional<Size> IMSExperimentRandomAccess::getAcquisitionBatchId(Size) const
+  {
+    return std::nullopt;
+  }
+
   Size IMSExperimentRandomAccess::findFirstRT(double rt) const
   {
     const Size n = getNrSpectra();

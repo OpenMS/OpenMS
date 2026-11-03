@@ -739,6 +739,8 @@ START_SECTION(native decoded-frame cache)
     TEST_TRUE(index < native->size())
     if (index < native->size())
     {
+      const auto acquisition = native->getAcquisitionBatchId(index);
+      TEST_TRUE(acquisition.has_value())
       const auto expected = native->getSpectrum(index);
       TEST_EQUAL(native->getNativeFrameCacheStats().misses, 1)
       const std::string frame_id = expected.getNativeID().substr(0, expected.getNativeID().find(' '));
@@ -750,6 +752,12 @@ START_SECTION(native decoded-frame cache)
         if (id.substr(0, id.find(' ')) == frame_id) { batch_indices.push_back(j); }
       }
       TEST_TRUE(batch_indices.size() > 1)
+      for (const auto batch_index : batch_indices)
+      {
+        const auto batch_acquisition = native->getAcquisitionBatchId(batch_index);
+        TEST_TRUE(batch_acquisition.has_value())
+        TEST_EQUAL(*batch_acquisition, *acquisition)
+      }
       batch_indices.push_back(batch_indices.front()); // Repeated indices keep their place in the output.
       auto batched = file.openDIAOnDisc(path);
       TEST_TRUE(batched->setNativeFrameCacheSize(64 * 1024 * 1024))
@@ -789,6 +797,7 @@ START_SECTION(native decoded-frame cache)
       {
         if (native->getSpectrumMSLevel(j) == 1)
         {
+          TEST_FALSE(native->getAcquisitionBatchId(j).has_value())
           const auto before_ms1 = native->getNativeFrameCacheStats();
           native->getSpectrum(j);
           TEST_EQUAL(native->getNativeFrameCacheStats().hits, before_ms1.hits)
