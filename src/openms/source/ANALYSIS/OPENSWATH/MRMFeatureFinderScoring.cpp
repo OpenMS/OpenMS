@@ -805,7 +805,7 @@ namespace OpenMS
         // Reuse the large IPF score vectors per worker thread. The pool is
         // cleared immediately before each target or decoy identification pass.
         static thread_local MRMFeatureFinderScoring::OpenSwath_Ind_Scores_Pooled idscores_pool;
-        if (idscores_pool.ind_transition_names.capacity() < idscores_needed_capacity)
+        if (su_.use_uis_scores && idscores_pool.ind_transition_names.capacity() < idscores_needed_capacity)
         {
           idscores_pool.preallocate(idscores_needed_capacity);
         }
