@@ -110,7 +110,8 @@ namespace OpenMS
       /**
        * @brief getFileIdentifier() with the registry indices of 'file_origin' and 'id_merge_index' looked up once
        * (MetaInfoRegistry::getIndex(); UInt(-1): not registered, so no PSM carries it): for loops over many PSMs, where
-       * the lookups by name take the registry's lock per call
+       * the lookups by name take the registry's lock per call. Look the indices up after the PSMs are loaded: a name
+       * registered later (setMetaValue() by name) is not seen through an index cached as UInt(-1).
        */
       static std::string getFileIdentifier(const PeptideIdentification& pid, UInt file_origin_index, UInt id_merge_index_index);
 
