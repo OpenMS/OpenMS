@@ -14,6 +14,9 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
+#include <algorithm>
+#include <cmath>
+
 using namespace OpenMS;
 using namespace Math; //PosteriorErrorProbabilityModel
 using namespace std;
@@ -160,6 +163,12 @@ protected:
   }
 
 
+  /// number of finite scores (the mixture model ignores non-finite ones)
+  static Size finiteCount(const vector<double>& scores)
+  {
+    return static_cast<Size>(std::count_if(scores.begin(), scores.end(), [](double score) { return std::isfinite(score); }));
+  }
+
   ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
@@ -266,18 +275,18 @@ protected:
       {
         switch_to_pooled("Only " + StringUtils::toStr(targets->size()) + " target and " + StringUtils::toStr(decoys->size()) + " decoy top hits for " + model_name + ".");
       }
-      else if (!use_decoys && mixture_scores->size() < min_mixture_scores)
+      else if (!use_decoys && finiteCount(*mixture_scores) < min_mixture_scores)
       {
         auto pooled_mixture = pooled_scores.find(engine);
-        if (split_charge && pooled_mixture != pooled_scores.end() && pooled_mixture->second[0].size() >= min_mixture_scores)
+        if (split_charge && pooled_mixture != pooled_scores.end() && finiteCount(pooled_mixture->second[0]) >= min_mixture_scores)
         {
-          writeLogInfo_("Only " + StringUtils::toStr(mixture_scores->size()) + " scores for " + model_name + ". Using the mixture model of all charge states ("
-                        + StringUtils::toStr(pooled_mixture->second[0].size()) + " scores).");
+          writeLogInfo_("Only " + StringUtils::toStr(finiteCount(*mixture_scores)) + " scores for " + model_name + ". Using the mixture model of all charge states ("
+                        + StringUtils::toStr(finiteCount(pooled_mixture->second[0])) + " scores).");
           mixture_scores = &pooled_mixture->second[0];
         }
         else
         {
-          writeLogWarn_("Only " + StringUtils::toStr(mixture_scores->size()) + " scores for " + model_name + ", too few to fit the mixture model without decoys"
+          writeLogWarn_("Only " + StringUtils::toStr(finiteCount(*mixture_scores)) + " scores for " + model_name + ", too few to fit the mixture model without decoys"
                         " (fit_algorithm:min_mixture_scores: " + StringUtils::toStr(min_mixture_scores) + "). Search against a target+decoy database"
                         " (DecoyDatabase, PeptideIndexer) to use the target-decoy estimate, which also works with few PSMs.");
           if (!ignore_bad_data)
@@ -323,7 +332,7 @@ protected:
       }
       else
       {
-        summary += " (" + StringUtils::toStr(mixture_scores->size()) + " scores" + (mixture_scores != &score.second[0] ? " of all charge states" : "") + ")";
+        summary += " (" + StringUtils::toStr(finiteCount(*mixture_scores)) + " scores" + (mixture_scores != &score.second[0] ? " of all charge states" : "") + ")";
       }
       writeLogInfo_(summary);
 
