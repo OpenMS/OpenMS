@@ -13,6 +13,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -23,6 +24,34 @@ using namespace std;
 
 namespace
 {
+  class ViewOnlySpectrumAccess final : public SpectrumAccessOpenMS
+  {
+  public:
+    explicit ViewOnlySpectrumAccess(const shared_ptr<PeakMap>& experiment)
+      : SpectrumAccessOpenMS(experiment), experiment_(experiment), delegate_(experiment)
+    {
+    }
+
+    SpectrumAccessPtr lightClone() const override
+    {
+      return make_shared<ViewOnlySpectrumAccess>(experiment_);
+    }
+
+    SpectrumPtr getSpectrumById(int) override
+    {
+      throw runtime_error("Evidence scoring requested a mutable spectrum copy");
+    }
+
+    SpectrumView getSpectrumView(int id) override
+    {
+      return delegate_.getSpectrumView(id);
+    }
+
+  private:
+    shared_ptr<PeakMap> experiment_;
+    SpectrumAccessOpenMS delegate_;
+  };
+
   ChromExtractParams makeExtractParams(double mz_window)
   {
     ChromExtractParams params;
@@ -217,6 +246,28 @@ START_SECTION((filter() - MS2 support))
   TEST_EQUAL(result.ms2_supported, 1)
   TEST_EQUAL(result.filtered_targets.compounds.size(), 1)
   TEST_EQUAL(result.filtered_targets.compounds[0].id, "PEP_A")
+  TEST_EQUAL(result.evidence[0].ms2_best_fragment_hits, 2)
+}
+END_SECTION
+
+START_SECTION((filter() - scoring uses read-only spectrum access))
+{
+  LightTargetedExperiment transition_exp;
+  LightProtein protein;
+  protein.id = "protein";
+  transition_exp.proteins.push_back(protein);
+  addCompound(transition_exp, "PEP_VIEW", 500.0, {100.0, 110.0, 120.0});
+
+  shared_ptr<PeakMap> experiment = make_shared<PeakMap>();
+  experiment->addSpectrum(makeSpectrum(12.0, {{100.002, 1200.0}, {110.003, 900.0}}));
+  SwathMap swath_map(400.0, 650.0, 525.0, false);
+  swath_map.sptr = make_shared<ViewOnlySpectrumAccess>(experiment);
+
+  TransitionListEvidenceFilter filter = makeFilter("ms2");
+  TransitionListEvidenceFilter::Result result = filter.filter(
+    {swath_map}, transition_exp, makeExtractParams(0.02), makeExtractParams(0.02), false, 2);
+
+  TEST_EQUAL(result.supported_precursors, 1)
   TEST_EQUAL(result.evidence[0].ms2_best_fragment_hits, 2)
 }
 END_SECTION
