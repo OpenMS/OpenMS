@@ -380,21 +380,21 @@ namespace OpenMS
         OPENMS_LOG_WARN << "IDMapper is configured to validate charges. Because the data looks like TMT/iTRAQ this option will be ignored."  << std::endl;
       }
 
+      // Default-constructed, so empty() holds until the first scan_id sets it below. A compiled
+      // empty pattern ("") is not empty(): with it the fallback never ran, and extractScanNumber()
+      // found no capture group and threw. Declared outside the loop, the regex is derived once.
+      RegularExpression scanregex;
       for (auto& cf : map)
       {  
         const auto first_channel = *cf.getFeatures().begin();                  
         std::string filename = File::basename(map.getColumnHeaders()[first_channel.getMapIndex()].filename); // all channels are associated with same file in TMT/iTRAQ
 
-        boost::regex scanregex{""};
         std::string cf_scan_id_key_name = (native_id_type == NATIVE_ID_TYPE::MS2IDMS3TMT) ? "id_scan_id" : "scan_id";
         std::string cf_scan_id = StringUtils::toStr(cf.getMetaValue(cf_scan_id_key_name, ""));
         if (!cf_scan_id.empty()) 
         {
           // This assumes all scan_ids are of the same structure
-          if (lookForScanNrsAsIntegers && scanregex.empty())
-          {
-            scanregex = SpectrumLookup::getRegExFromNativeID(cf_scan_id);
-          }
+          if (lookForScanNrsAsIntegers && scanregex.empty()) { scanregex.assign(SpectrumLookup::getRegExFromNativeID(cf_scan_id)); }
           if (auto run_it = file2nativeid2pepid.find(filename); run_it != file2nativeid2pepid.end()) // TMT/iTRAQ run has identifications
           {
             if (auto scanid_it = run_it->second.find(cf_scan_id); scanid_it != run_it->second.end()) // TMT/iTRAQ run has scan_id with identification
@@ -405,7 +405,13 @@ namespace OpenMS
             // look for only the scan_number in case the search engine only extracted this (e.g. Sage)
             else if (lookForScanNrsAsIntegers)
             {
-              auto scanid_it = run_it->second.find(StringUtils::toStr(SpectrumLookup::extractScanNumber(cf_scan_id, scanregex, false)));
+              // A WIFF native ID ("sample=1 period=1 cycle=96 experiment=1") holds two numbers, and
+              // the generic regex would take the last, the experiment. Its scan number is
+              // cycle * 1000 + experiment (96001), which the accession-based overload computes.
+              const Int scan_number = StringUtils::hasSubstring(cf_scan_id, "cycle=")
+                ? SpectrumLookup::extractScanNumber(cf_scan_id, "MS:1000770")
+                : SpectrumLookup::extractScanNumber(cf_scan_id, scanregex, false);
+              auto scanid_it = run_it->second.find(StringUtils::toStr(scan_number));
               if(scanid_it != run_it->second.end())
               {
                 cf.getPeptideIdentifications().push_back(*scanid_it->second);

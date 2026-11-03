@@ -122,7 +122,7 @@ Proteolytic Digestion with Lys-C
 
 In the previous examples we used Trypsin as our enzyme of choice.
 We can of course also use different enzymes, these are defined in the ``Enzymes.xml``
-file and can be accessed using the :py:class:`~.EnzymesDB` object
+file and can be accessed using the :py:class:`~.ProteaseDB` object
 
 .. code-block:: python
 
@@ -165,8 +165,7 @@ file and can be accessed using the :py:class:`~.RNaseDB` object
 .. code-block:: python
 
     db = oms.RNaseDB()
-    names = []
-    db.getAllNames(names)
+    names = db.getAllNames()
     names
     # Will print out all available enzymes:
     # ['RNase_U2', 'RNase_T1', 'RNase_H', 'unspecific cleavage', 'no cleavage', 'RNase_MC1', 'RNase_A', 'cusativin']
@@ -183,8 +182,7 @@ We can now use it to cut an oligo:
     dig = oms.RNaseDigestion()
     dig.setEnzyme("RNase_T1")
 
-    result = []
-    dig.digest(oligo, result)
+    result = dig.digest(oligo)
     for fragment in result:
         print(fragment)
 

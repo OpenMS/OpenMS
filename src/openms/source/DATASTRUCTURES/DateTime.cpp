@@ -366,7 +366,8 @@ namespace OpenMS
   DateTime DateTime::now()
   {
     auto tp = chrono::system_clock::now();
-    time_t tt = chrono::system_clock::to_time_t(tp);
+    const auto whole_seconds = chrono::floor<chrono::seconds>(tp);
+    time_t tt = chrono::system_clock::to_time_t(whole_seconds);
     struct tm local{};
 #ifdef _WIN32
     localtime_s(&local, &tt);
@@ -381,7 +382,7 @@ namespace OpenMS
     d.fields_.hour = local.tm_hour;
     d.fields_.minute = local.tm_min;
     d.fields_.second = local.tm_sec;
-    d.fields_.millisecond = 0;
+    d.fields_.millisecond = static_cast<int>(chrono::duration_cast<chrono::milliseconds>(tp - whole_seconds).count());
     d.fields_.valid = true;
     return d;
   }
@@ -389,7 +390,8 @@ namespace OpenMS
   DateTime DateTime::nowUTC()
   {
     auto tp = chrono::system_clock::now();
-    time_t tt = chrono::system_clock::to_time_t(tp);
+    const auto whole_seconds = chrono::floor<chrono::seconds>(tp);
+    time_t tt = chrono::system_clock::to_time_t(whole_seconds);
     struct tm utc{};
 #ifdef _WIN32
     _gmtime64_s(&utc, &tt);
@@ -404,7 +406,7 @@ namespace OpenMS
     d.fields_.hour = utc.tm_hour;
     d.fields_.minute = utc.tm_min;
     d.fields_.second = utc.tm_sec;
-    d.fields_.millisecond = 0;
+    d.fields_.millisecond = static_cast<int>(chrono::duration_cast<chrono::milliseconds>(tp - whole_seconds).count());
     d.fields_.valid = true;
     return d;
   }

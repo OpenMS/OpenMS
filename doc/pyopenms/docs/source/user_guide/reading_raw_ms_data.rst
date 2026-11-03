@@ -1,6 +1,11 @@
 Reading Raw MS Data
 ===========================
 
+.. note::
+
+    Thermo Fisher ``.raw`` files and Bruker timsTOF ``.d`` directories can be read directly;
+    see :doc:`vendor_formats`.
+
 :term:`mzML` Files in Memory
 ****************************
 

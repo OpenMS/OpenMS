@@ -37,11 +37,17 @@ namespace OpenMS
   SpectrumCheapDPCorr::SpectrumCheapDPCorr(const SpectrumCheapDPCorr & source) :
     PeakSpectrumCompareFunctor(source),
     lastconsensus_(source.lastconsensus_),
+    keeppeaks_(source.keeppeaks_),
     factor_(source.factor_)
   {
   }
 
   SpectrumCheapDPCorr::~SpectrumCheapDPCorr() = default;
+
+  void SpectrumCheapDPCorr::updateMembers_()
+  {
+    keeppeaks_ = (int)param_.getValue("keeppeaks") != 0;
+  }
 
   SpectrumCheapDPCorr & SpectrumCheapDPCorr::operator=(const SpectrumCheapDPCorr & source)
   {
@@ -49,6 +55,7 @@ namespace OpenMS
     {
       PeakSpectrumCompareFunctor::operator=(source);
       lastconsensus_ = source.lastconsensus_;
+      keeppeaks_ = source.keeppeaks_;
       factor_ = source.factor_;
     }
     return *this;
@@ -79,7 +86,6 @@ namespace OpenMS
   {
     double var = (double)param_.getValue("variation");
     double score(0);
-    bool keeppeaks_ = (int)param_.getValue("keeppeaks");
 
     lastconsensus_ = PeakSpectrum();
     Precursor p1, p2;

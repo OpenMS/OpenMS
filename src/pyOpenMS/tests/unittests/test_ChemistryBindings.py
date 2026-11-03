@@ -5,10 +5,12 @@ Tests for newly bound CHEMISTRY methods in the nanobind build:
 - EmpiricalFormula.getLightestIsotopeWeight()
 - Residue.getHydrophobicity(HydrophobicityScaleMethod) + the enum
 - TheoreticalSpectrumGenerator.getPrefixAndSuffixIonsMZ(peptide, charge)
+- NucleicAcidSpectrumGenerator a1-B masses with a 5-prime modification
 """
 import math
 import numpy as np
 import pyopenms as poms
+import pytest
 
 
 def test_empirical_formula_get_number_of():
@@ -53,6 +55,22 @@ def test_tsg_prefix_and_suffix_ions_mz():
     assert out.ndim == 1
     assert out.size > 0
     assert np.all(out > 0.0)
+
+
+@pytest.mark.parametrize("charge", [-1, 1])
+def test_nasg_five_prime_a1_base_loss(charge):
+    """Generated a1-B ions retain the 5-prime modification in either polarity."""
+    generator = poms.NucleicAcidSpectrumGenerator()
+    parameters = generator.getParameters()
+    for name in ("add_metainfo", "add_a-B_ions", "add_first_prefix_ion"):
+        parameters.setValue(name, "true")
+    generator.setParameters(parameters)
+    sequence = poms.NASequence.fromString("pACGU")
+    spectrum = generator.getSpectrum(sequence, charge, charge)
+    masses = [spectrum[i].getMZ() for i, label in enumerate(spectrum.getStringDataArrays()[0])
+              if label == "a1-B"]
+    expected = sequence.getPrefix(1).getMonoWeight(poms.NASequence.NASFragmentType.AminusB, charge)
+    assert masses == pytest.approx([expected])
 
 
 def test_proteomics_pka_scale_enum():

@@ -247,11 +247,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="comp2"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="632">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -283,11 +278,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="comp1"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="632">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -309,9 +299,9 @@
 <indexList count="1">
 	<index name="chromatogram">
 		<offset idRef="tr_gr2_Precursor_i0">16981</offset>
-		<offset idRef="tr_gr1_Precursor_i0">19850</offset>
+		<offset idRef="tr_gr1_Precursor_i0">19615</offset>
 	</index>
 </indexList>
-<indexListOffset>22753</indexListOffset>
+<indexListOffset>22283</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

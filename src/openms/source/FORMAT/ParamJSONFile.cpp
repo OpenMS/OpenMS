@@ -12,11 +12,9 @@
 #include <iostream>
 #include <limits>
 #include <nlohmann/json.hpp>
-#if defined(ENABLE_TDL)
-#include <tdl/tdl.h>
-#else
-#include <stdexcept>
-#endif
+#include <set>
+#include <string>
+#include <vector>
 
 using json = nlohmann::json;
 
@@ -31,6 +29,81 @@ static std::string replaceAll(std::string str, const std::string& pattern, const
     pos += replacement.size();
   }
   return str;
+}
+
+// Reports a JSON value whose shape does not fit a parameter tagged as a file.
+// This method is 'static' so no external linkage occurs
+[[noreturn]] static void raiseFileShapeError(const std::string& key, const std::string& accepted, const json& node)
+{
+  std::string msg = "Parameter '" + key + "' is tagged as a file, but its JSON value is of type '" + std::string(node.type_name())
+                    + "'. Accepted are " + accepted + ".";
+  throw OpenMS::Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", msg);
+}
+
+// Extracts a single file (or directory) path from a JSON value.
+// Accepted are a CWL 'File'/'Directory' object ({"class": "File", "path": "in.mzML"}), which is what a
+// CWL runner writes, and a plain path string, which is what hand-written JSON and 'is_executable'
+// parameters (they may name a tool on PATH rather than a file) use.
+// This method is 'static' so no external linkage occurs
+static std::string extractFilePath(const json& node, const std::string& key)
+{
+  if (node.is_string())
+  {
+    return node.get<std::string>();
+  }
+  if (node.is_object())
+  {
+    auto path = node.find("path");
+    if (path != node.end() && path->is_string())
+    {
+      return path->get<std::string>();
+    }
+  }
+  raiseFileShapeError(key, "a path string and an object with a 'path' string", node);
+}
+
+// Extracts a list of file (or directory) paths from a JSON value.
+// A CWL runner serializes a 'File[]' input as an array of 'File' objects, so all of the following
+// shapes have to be understood (see issue #10121):
+//   (a) an array of CWL 'File'/'Directory' objects, written by every CWL runner:
+//       [{"class": "File", "path": "a.mzML"}, {"class": "File", "path": "b.mzML"}]
+//   (b) an array of plain path strings: ["a.mzML", "b.mzML"]
+//   (c) a single object whose 'path' holds the array, which is what ParamJSONFile::store writes:
+//       {"class": "File", "path": ["a.mzML", "b.mzML"]}
+// This method is 'static' so no external linkage occurs
+static std::vector<std::string> extractFilePathList(const json& node, const std::string& key)
+{
+  std::vector<std::string> paths;
+  if (node.is_array()) // (a) and (b)
+  {
+    paths.reserve(node.size());
+    for (const auto& element : node)
+    {
+      paths.push_back(extractFilePath(element, key));
+    }
+    return paths;
+  }
+  if (node.is_object()) // (c)
+  {
+    auto path = node.find("path");
+    if (path != node.end())
+    {
+      if (path->is_array())
+      {
+        paths.reserve(path->size());
+        for (const auto& element : *path)
+        {
+          paths.push_back(extractFilePath(element, key));
+        }
+        return paths;
+      }
+      if (path->is_string()) // a single file for a list-valued parameter
+      {
+        return {path->get<std::string>()};
+      }
+    }
+  }
+  raiseFileShapeError(key, "an array of path strings, an array of objects with a 'path' string, and an object with a 'path' array", node);
 }
 
 namespace OpenMS
@@ -78,8 +151,10 @@ namespace OpenMS
           {
             continue; // No value given
           }
-          // If class member exists with some string, we assume it is a file type annotation
-          if (node.is_object() && (!node.contains("class") || !node["class"].is_string())) {
+          // An object is a nested parameter section, unless it is the value of a parameter. Only
+          // leaves exist as entries, so the parameter tree answers this for every shape a value
+          // can take, the {"class": "File", "path": ...} objects a CWL runner passes included.
+          if (node.is_object() && !param.exists(key)) {
             traverseJSONTree(key + ":", node);
             continue;
           }
@@ -92,30 +167,31 @@ namespace OpenMS
           auto value = entry.value;
           if (entry.value.valueType() == ParamValue::ValueType::STRING_VALUE)
           {
-            if ((entry.valid_strings.size() == 2 && entry.valid_strings[0] == "true" && entry.valid_strings[1] == "false") ||
-                (entry.valid_strings.size() == 2 && entry.valid_strings[0] == "false" && entry.valid_strings[1] == "true"))
+            if (entry.isBool())
             {
-              value = node.get<bool>() ? "true" : "false";
+              // a CWL runner and ParamJSONFile::store write a JSON boolean, but hand-written JSON
+              // (and older CWL descriptions, which declared these inputs as strings) uses the
+              // strings the parameter itself is restricted to
+              if (node.is_string())
+              {
+                const std::string as_string = node.get<std::string>();
+                if (as_string != "true" && as_string != "false")
+                {
+                  throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
+                                              "Parameter " + key + " only accepts 'true' or 'false', but '" + as_string + "' was given.");
+                }
+                value = as_string;
+              }
+              else
+              {
+                value = node.get<bool>() ? "true" : "false";
+              }
             }
             else if (entry.tags.contains("input file"))
             {
-              // If this is an input file and 'is_executable' is set. this can be of 'class: File' or 'type: string'
-              if (entry.tags.contains("is_executable"))
-              {
-                if (node.is_object())
-                {
-                  value = node["path"].get<std::string>();
-                }
-                else
-                {
-                  value = node.get<std::string>();
-                }
-              }
-              // Just a normal input file
-              else
-              {
-                value = node["path"].get<std::string>();
-              }
+              // A CWL runner writes a 'class: File' object, hand-written JSON a plain string. An
+              // 'is_executable' parameter uses a string for a tool that is looked up on PATH.
+              value = extractFilePath(node, key);
             }
             else
             {
@@ -132,9 +208,9 @@ namespace OpenMS
           }
           else if (entry.value.valueType() == ParamValue::ValueType::STRING_LIST)
           {
-            if (entry.tags.contains("input file"))
+            if (entry.tags.contains("input file") || entry.tags.contains("output file"))
             {
-              value = node["path"].get<std::vector<std::string>>();
+              value = extractFilePathList(node, key);
             }
             else
             {
@@ -190,16 +266,10 @@ namespace OpenMS
 
   void ParamJSONFile::writeToStream(std::ostream* os_ptr, const Param& param) const
   {
-#if defined(ENABLE_TDL)
     std::ostream& os = *os_ptr;
 
-    // discover the name of the first nesting Level
-    // this is expected to result in something like "ToolName:1:"
-    auto traces = param.begin().getTrace();
-    std::string toolNamespace = traces.front().name + ":1:";
-
-    std::vector<tdl::Node> stack;
-    stack.push_back(tdl::Node {});
+    // names of the currently open sections, below an unnamed root (e.g. "", "ToolName", "1", "algorithm")
+    std::vector<std::string> stack{""};
 
     json jsonDoc{};
 
@@ -211,18 +281,15 @@ namespace OpenMS
       {
         if (trace.opened)
         {
-          stack.push_back(tdl::Node {trace.name, trace.description, {}, tdl::Node::Children {}});
+          stack.push_back(trace.name);
         }
         else // these nodes must be closed
         {
-          auto top = stack.back();
           stack.pop_back();
-          auto& children = std::get<tdl::Node::Children>(stack.back().value);
-          children.push_back(top);
         }
       }
 
-      // converting trags to tdl compatible tags
+      // converting OpenMS tags to CWL compatible tags
       std::set<std::string> tags;
       for (auto const& t : param_it->tags)
       {
@@ -246,7 +313,7 @@ namespace OpenMS
         }
       }
 
-      // Sets a single value into the tdl library
+      // Sets a single value into the json document
       auto name = param_it->name;
       if (stack.size() > 2) {
         json node{};
@@ -260,8 +327,7 @@ namespace OpenMS
             node = static_cast<double>(param_it->value);
             break;
           case ParamValue::STRING_VALUE:
-            if ((param_it->valid_strings.size() == 2 && param_it->valid_strings[0] == "true" && param_it->valid_strings[1] == "false")
-               || (param_it->valid_strings.size() == 2 && param_it->valid_strings[0] == "false" && param_it->valid_strings[1] == "true"))
+            if (param_it->isBool())
             {
                 node = param_it->value.toBool();
             } else {
@@ -296,34 +362,19 @@ namespace OpenMS
           // Traverse to the correct node
           auto* parent = &jsonDoc;
           for (size_t i{3}; i < stack.size(); ++i) {
-              parent = &(*parent)[stack[i].name];
+              parent = &(*parent)[stack[i]];
           }
           (*parent)[name] = node;
         } else {
           // Expand name to include all namespaces
           for (size_t i{0}; i < stack.size()-3; ++i) {
-            auto const& e = stack[stack.size()-1-i];
-            name = e.name + "__" + name;
+            name = stack[stack.size()-1-i] + "__" + name;
           }
           jsonDoc[name] = node;
         }
       }
     }
 
-    while (stack.size() > 1)
-    {
-      auto top = stack.back();
-      stack.pop_back();
-      auto& children = std::get<tdl::Node::Children>(stack.back().value);
-      children.push_back(top);
-    }
-    assert(stack.size() == 1);
-
     os << jsonDoc.dump(2);
-#else
-    (void)os_ptr;
-    (void)param;
-    throw std::runtime_error{"TDL support is not available. Rebuild with -DENABLE_TDL=ON to enable this feature."};
-#endif
   }
 } // namespace OpenMS

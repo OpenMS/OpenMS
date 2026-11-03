@@ -9,7 +9,7 @@
 
 - [OpenMS GitHub Container Registry](https://ghcr.io) for nightly binaries AND releases:
 
-	On our registry, we provide one image for the library (with contrib) and one for the executables (with thirdparty).
+	On our registry, we provide one image for the library (with its runtime dependencies) and one for the executables (with thirdparty).
 
 	1. [openms-library](https://ghcr.io/openms/openms-library)
 	2. [openms-executables](https://ghcr.io/openms/openms-executables)

@@ -16,7 +16,7 @@ OpenMS is an open-source software C++ library for LC-MS data management and anal
 - **Visualization tools** (TOPPView) for 1D, 2D, and 3D data
 - **Support for major file formats** (mzML, mzXML, mzIdentML, pepXML, mzTab)
 - **Comprehensive quantitation support** (label-free, SILAC, iTRAQ, TMT, SRM, SWATH)
-- **Integration with workflow systems** (KNIME, Galaxy, nextflow)
+- **Integration with workflow systems** (Galaxy, nextflow)
 
 ### Architecture Components
 
@@ -39,7 +39,7 @@ OpenMS is an open-source software C++ library for LC-MS data management and anal
    - Hand-maintained nanobind C++ bindings (no code generation)
    - 13 domain-based modules compiled in parallel
    - Pure Python addon system for DataFrame export and convenience methods
-   - Custom type casters for OpenMS::String, DataValue, ParamValue, DPosition
+   - Custom type casters for std::string, DataValue, ParamValue, DPosition
    - Integration with scientific Python ecosystem (numpy, pandas, pyarrow)
    - Located in `src/pyOpenMS/`; see `src/pyOpenMS/CLAUDE.md` for detailed binding guide
 
@@ -121,7 +121,7 @@ OpenMS/
 
 ## Testing Infrastructure
 
-- **Class tests**: Unit tests in `src/tests/class_tests/openms/source/`
+- **Class tests**: Unit tests in `src/tests/class_tests/openms/source/` (TOPP tool framework: `src/tests/class_tests/openms_cli/source/`)
 - **TOPP tests**: Integration tests in `src/tests/topp/`
 - **Python tests**: pyOpenMS tests in `src/pyOpenMS/tests/`
 - Test naming convention: `ClassName_test.cpp` for C++ class `ClassName`

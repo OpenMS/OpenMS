@@ -33,12 +33,12 @@
 				<element map="0" id="9" rt="15" mz="530" it="100" charge="2"/>
 				<element map="1" id="11" rt="14" mz="534" it="100" charge="2"/>
 			</groupedElementList>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
 				<PeptideHit score="35" sequence="C" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
 				<PeptideHit score="35" sequence="D" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="1"/>
@@ -50,12 +50,12 @@
 				<element map="0" id="3" rt="11" mz="558" it="100" charge="1"/>
 				<element map="1" id="7" rt="10" mz="566" it="100" charge="1"/>
 			</groupedElementList>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
 				<PeptideHit score="35" sequence="A" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
 				<PeptideHit score="35" sequence="E" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="1"/>

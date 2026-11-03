@@ -15,8 +15,9 @@ Before opening a pull request, check the following:
    It is also recommended to document non-public members and methods.
 4. **Does the code introduce changes to the API?**
    If the code introduces changes to the API, make sure that the documentation is up-to-date and that the Python bindings
-   (pyOpenMS) still work. For each change in the C++ API, make a change in the Python API wrapper via 
-   the `pyOpenMS/pxds/` files.
+   (pyOpenMS) still work. For each change in the C++ API, update the matching nanobind binding in
+   `src/pyOpenMS/bindings/bind_<domain>.cpp` (see the
+   [wrapping guide](https://github.com/OpenMS/OpenMS/blob/develop/src/pyOpenMS/README_WRAPPING_NEW_CLASSES.md)).
 5. **Have you completed regression testing?**
    Make sure that you include a test in the test suite for:
    - Public methods of a class

@@ -1,0 +1,9 @@
+{
+  "in": [
+    { "class": "File", "path": "@DATA_DIR_TOPP@/FileMerger_1_input1.dta2d" },
+    { "class": "File", "path": "@DATA_DIR_TOPP@/FileMerger_1_input2.dta" },
+    { "class": "File", "path": "@DATA_DIR_TOPP@/FileMerger_1_input3.dta2d" }
+  ],
+  "out": "@TESTS_TEMP_DIR@/FileMerger_cwl_filelist.tmp.mzML",
+  "raw__rt_custom": [1.0, 2.0, 3.0]
+}

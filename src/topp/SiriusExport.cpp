@@ -54,7 +54,7 @@ class TOPPSiriusExport :
  public:
   TOPPSiriusExport() :
     TOPPBase("SiriusExport", 
-    "Metabolite identification using single and tandem mass spectrometry", true,
+    "Metabolite identification using single and tandem mass spectrometry",
       {
         {"Kai Duehrkop and Sebastian Boecker",
          "Fragmentation trees reloaded",

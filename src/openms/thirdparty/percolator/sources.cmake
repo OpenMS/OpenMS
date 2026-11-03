@@ -42,6 +42,17 @@ set(OpenMS_percolator_sources
   ssl.cpp
   tron.cpp
 
+  # OpenMS-local: kernels of ssl.cpp's TRON function object for the x86-64
+  # baseline, compiled for SSE2 and for AVX2 (chosen at run time); see
+  # tron_kernels.h. Empty translation units on other architectures.
+  tron_kernels_sse2.cpp
+  tron_kernels_avx2.cpp
+
+  # OpenMS-local: the Newton (explicit Hessian, exact line search) and LDA solvers
+  # that the cross-validation can use instead of TRON (Percolator parameter
+  # 'solver'); see newton_svm.h. Not in whitelist.txt.
+  newton_svm.cpp
+
   # OpenMS-local addition: reservoir-sampling helper derived from
   # SetHandler::readPSMs, required by the in-process Percolator wrapper
   # since we don't vendor Caller.cpp. Not in whitelist.txt — preserved

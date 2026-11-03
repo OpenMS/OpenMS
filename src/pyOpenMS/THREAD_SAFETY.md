@@ -13,20 +13,20 @@ Unless an individual OpenMS API explicitly documents stronger guarantees, follow
 - Do not call pyOpenMS methods concurrently on the same object unless the type or API documents concurrent read-only access. The object must be fully initialized, and no thread may write to it or receive a writable alias into it.
 - Do not read or mutate an input, output, or object reachable from either concurrently with a GIL-releasing call that can modify it or expose writable aliased storage.
 - Give each worker its own algorithm and data objects. Use copies or explicit synchronization when data must cross worker boundaries.
-- Python callbacks routed through the streaming consumer caster (used by APIs like ImzMLFile.load with a Python consumer object) reacquire the GIL before entering Python. Not all streaming-style APIs use this caster; check the specific binding's docstring.
+- Python callbacks routed through the streaming consumer caster (used by APIs like `MzMLFile.transform()`, `MzXMLFile.transform()` and `ImzMLFile.load()` with a Python consumer object) reacquire the GIL before entering Python. Not all streaming-style APIs use this caster; check the specific binding's docstring.
 
 In particular, an Arrow table or Python buffer that aliases OpenMS storage is shared mutable state for its entire lifetime. It must not be read or written concurrently with an operation that can modify that storage.
 
 ## GIL-releasing binding inventory
 
-The current bindings contain 62 `nb::gil_scoped_release` sites. This is an implementation inventory, not an endorsement of calling the listed operations concurrently.
+The current bindings contain 83 GIL-releasing sites: 79 `nb::gil_scoped_release` scopes and four `nb::call_guard<nb::gil_scoped_release>()` (`OMSFile.load()`, `OMSFile.store()`, `BedRModFile.store()` and `ThermoRawFile.load()`). Nine of them are only compiled in builds with Thermo RAW support and two only in builds with Bruker timsTOF (opentims) support. Recount with `grep -o gil_scoped_release src/pyOpenMS/bindings/*.cpp | sort | uniq -c`. This is an implementation inventory, not an endorsement of calling the listed operations concurrently.
 
 | Binding source | Calls | Covered operations |
 | --- | ---: | --- |
 | `bindings/arrow_zerocopy.cpp` | 16 | Arrow import/export, including experimental zero-copy paths |
 | `bindings/bind_experiment.cpp` | 2 | `MSExperiment.sortSpectra()` and `sortChromatograms()` |
-| `bindings/bind_format.cpp` | 13 | FileHandler, imzML, and indexed mzML load/store/validation operations |
-| `bindings/bind_misc.cpp` | 31 | File I/O and long-running feature-finding, deconvolution, indexing, and search operations |
+| `bindings/bind_format.cpp` | 29 | OMS and bedRMod file I/O; `ThermoRawFile.load()`/`transform()` and `OnDiscThermoRawExperiment` access (only in builds with Thermo RAW support); `BrukerTimsFile.transform()` (only in builds with opentims support); FileHandler, imzML, and indexed mzML load/store/validation operations |
+| `bindings/bind_misc.cpp` | 36 | File I/O, including the streaming `MzMLFile.transform()` and `MzXMLFile.transform()`, and long-running feature-finding, multiplet resolution (`MultiplexResolverAlgorithm.resolve()`), deconvolution, indexing, search, and transition-list filtering operations |
 
 **Note:** one `bind_misc.cpp` site (`TransitionListEvidenceFilter.filter`) additionally parallelizes internally via a `threads` argument; the active SWATH maps and their spectra, plus derived `candidates`/`precursor_index`, are read by multiple worker threads during the threaded scan. `transition_exp` is read before that phase to build `candidates`.
 

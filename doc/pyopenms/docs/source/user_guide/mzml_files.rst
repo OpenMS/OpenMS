@@ -120,9 +120,8 @@ Alternatively, we could also use pyOpenMS to decode the same data:
         + b"AAAAAAAACRAAAAAAAAAKEAAAAAAAAAsQAAAAAAAADBAAAAAAAAAMkA="
     )
 
-    out = []
-    oms.Base64().decode64(
-        encoded_data, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, out, False
+    out = oms.Base64().decode64(
+        encoded_data, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, False
     )
     print(out)
 .. code-block:: output
@@ -140,33 +139,30 @@ This allows us thus to manually decode the data. We can use pyOpenMS to encode a
         + b"AAAAAAAACRAAAAAAAAAKEAAAAAAAAAsQAAAAAAAADBAAAAAAAAAMkA="
     )
 
-    out = []
-    oms.Base64().decode64(
-        encoded_data, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, out, False
+    out = oms.Base64().decode64(
+        encoded_data, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, False
     )
     print(out)
 
-    data = oms.String()
-    oms.Base64().encode64(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, data, False)
+    data = oms.Base64().encode64(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, False)
     print(data)
 
-    oms.Base64().encode64(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, data, True)
+    data = oms.Base64().encode64(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, True)
     print(data)
 
-    data = oms.String()
-    oms.Base64().encode32(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, data, False)
+    data = oms.Base64().encode32(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, False)
     print(data)
 
-    oms.Base64().encode32(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, data, True)
+    data = oms.Base64().encode32(out, oms.Base64.ByteOrder.BYTEORDER_LITTLEENDIAN, True)
     print(data)
 
 .. code-block:: output
 
     [0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0]
-    b'AAAAAAAAAAAAAAAAAAAAQAAAAAAAABBAAAAAAAAAGEAAAAAAAAAgQAAAAAAAACRAAAAAAAAAKEAAAAAAAAAsQAAAAAAAADBAAAAAAAAAMkA='
-    b'eJxjYEABDhBKAEpLQGkFKK0CpTWgtA6UNoDSRg4AZlQDYw=='
-    b'AAAAAAAAAEAAAIBAAADAQAAAAEEAACBBAABAQQAAYEEAAIBBAACQQQ=='
-    b'eJxjYAADBwaGBiA+AMQMjgwMCkDsAMQJQNwAxBMcAVbKBVc='
+    AAAAAAAAAAAAAAAAAAAAQAAAAAAAABBAAAAAAAAAGEAAAAAAAAAgQAAAAAAAACRAAAAAAAAAKEAAAAAAAAAsQAAAAAAAADBAAAAAAAAAMkA=
+    eJxjYEABDhBKAEpLQGkFKK0CpTWgtA6UNoDSRg4AZlQDYw==
+    AAAAAAAAAEAAAIBAAADAQAAAAEEAACBBAABAQQAAYEEAAIBBAACQQQ==
+    eJxjYAADBwaGBiA+AMQMjgwMCkDsAMQJQNwAxBMcAVbKBVc=
 
 Note how encoding the data with 64 bit precision results in an output string of
 length :math:`108` characters that is about twice as long compared to encoding the data
@@ -191,15 +187,14 @@ original input data exactly:
 
     c = oms.NumpressConfig()
     c.np_compression = oms.MSNumpressCoder.NumpressCompression.LINEAR
-    res = oms.String()
-    oms.MSNumpressCoder().encodeNP(data, res, False, c)
+    res = oms.MSNumpressCoder().encodeNP(data, False, c)
     print(res)
 
     oms.MSNumpressCoder().decodeNP(res, r, False, c)
     print(r)
 
     c.np_compression = oms.MSNumpressCoder.NumpressCompression.PIC
-    oms.MSNumpressCoder().encodeNP(data, res, False, c)
+    res = oms.MSNumpressCoder().encodeNP(data, False, c)
     print(res)
 
     oms.MSNumpressCoder().decodeNP(res, r, False, c)
@@ -208,9 +203,9 @@ original input data exactly:
 .. code-block:: output
 
     [0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.00000001]
-    b'Qc////+AAAAAAAAA/v//f4iIiIew'
+    Qc////+AAAAAAAAA/v//f4iIiIew
     [0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.00000001024455]
-    b'hydHZ4enx+YBYhA='
+    hydHZ4enx+YBYhA=
     [0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0]
 
 Note how the lossy numpress compression leads to even shorter data, with 16
@@ -221,4 +216,55 @@ discussed above, however this is at the price of accuracy.
 Different numpress compression schemes result in different accuracy, the LINEAR
 compression scheme introduced an inaccuracy of 10e-10 while the PIC (positive
 integer compression) can only store positive integers and results in greater
-loss of accuracy. 
+loss of accuracy.
+
+Zstandard Compression
+---------------------
+
+Since version 3.6, pyOpenMS can also compress the data arrays of an :term:`mzML`
+file with :index:`Zstandard <zstd compression>` (zstd) instead of zlib. Like
+zlib, zstd is lossless. Numeric arrays without numpress encoding are
+byte-shuffled before they are compressed (``MS:1003781``, "byte-shuffled zstd
+compression"), which usually makes the file smaller than with zlib. We enable it
+in the options of :py:class:`~.MzMLFile` and store the data that we loaded from
+``test.mzML``:
+
+.. code-block:: python
+    :linenos:
+
+    f = oms.MzMLFile()
+    options = f.getOptions()
+    options.setZstdCompression(True)
+    f.setOptions(options)
+    f.store("test_zstd.mzML", exp)
+
+    for line in open("test_zstd.mzML"):
+        if "compression" in line:
+            print(line.strip())
+            break
+
+.. code-block:: output
+
+    <cvParam cvRef="MS" accession="MS:1003781" name="byte-shuffled zstd compression" />
+
+Reading such a file needs no option: :py:class:`~.MzMLFile` and
+:py:class:`~.FileHandler` recognize the compression from the file itself:
+
+.. code-block:: python
+    :linenos:
+
+    exp_zstd = oms.MSExperiment()
+    oms.MzMLFile().load("test_zstd.mzML", exp_zstd)
+    print(exp_zstd.getSpectrum(1).get_peaks()[0])
+
+.. code-block:: output
+
+    [ 0.  2.  4.  6.  8. 10. 12. 14. 16. 18.]
+
+When both are set, zstd takes precedence over zlib (``setCompression``). zstd
+can also be combined with numpress: the numpress-encoded arrays are then
+compressed with zstd instead of zlib (``MS:1003783`` to ``MS:1003785``). Not
+every program outside OpenMS reads zstd-compressed :term:`mzML` yet, so leave the
+option off for files that other software has to read. On the command line,
+``FileConverter -zstd_compression`` and ``FileFilter -peak_options:zstd_compression true``
+write such files.

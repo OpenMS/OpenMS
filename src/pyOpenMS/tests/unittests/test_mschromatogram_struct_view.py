@@ -9,7 +9,7 @@ def test_chromatogram_zero_copy_modification():
 
     chrom.set_peaks([[1.0, 2.0], [10.0, 20.0]])
 
-    arr = chrom.get_peaks_struct()
+    arr = chrom.peaks_struct()
 
     # Value correctness
     assert np.isclose(arr['rt'][0], 1.0)   # RT
@@ -26,7 +26,7 @@ def test_chromatogram_memory_safety():
     def get_view():
         chrom = poms.MSChromatogram()
         chrom.set_peaks([[5.0], [42.0]])
-        return chrom.get_peaks_struct()
+        return chrom.peaks_struct()
 
     arr = get_view()
 
@@ -39,7 +39,7 @@ def test_chromatogram_memory_safety():
 
 def test_empty_chromatogram():
     chrom = poms.MSChromatogram()
-    arr = chrom.get_peaks_struct()
+    arr = chrom.peaks_struct()
 
     assert isinstance(arr, np.ndarray)
     assert arr.shape == (0,)
@@ -56,7 +56,7 @@ def test_consistency_with_get_peaks():
     chrom = poms.MSChromatogram()
     chrom.set_peaks([rts, ints])
 
-    arr = chrom.get_peaks_struct()
+    arr = chrom.peaks_struct()
     rt_copy, int_copy = chrom.get_peaks()
 
     np.testing.assert_array_equal(arr['rt'], rt_copy)
@@ -77,7 +77,7 @@ def test_chromatogram_intensity_type_is_float32():
 
 
 def test_chromatogram_struct_view_dtype():
-    """get_peaks_struct() should return {rt: float64, intensity: float32} matching Peak1D layout."""
+    """peaks_struct() should return {rt: float64, intensity: float32} matching Peak1D layout."""
     chrom = poms.MSChromatogram()
     for i in range(3):
         p = poms.ChromatogramPeak()
@@ -85,7 +85,7 @@ def test_chromatogram_struct_view_dtype():
         p.setIntensity(float(i * 100))
         chrom.push_back(p)
 
-    arr = chrom.get_peaks_struct()
+    arr = chrom.peaks_struct()
     assert arr.dtype['rt'] == np.float64, f"RT dtype should be float64, got {arr.dtype['rt']}"
     assert arr.dtype['intensity'] == np.float32, f"Intensity dtype should be float32, got {arr.dtype['intensity']}"
     assert arr['rt'][0] == 0.0

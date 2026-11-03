@@ -6,12 +6,14 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflowScheduler.h>
 #include <OpenMS/ANALYSIS/TARGETED/IChromatogramHandler.h>
 #include <OpenMS/ANALYSIS/TARGETED/ChromatogramProcessor.h>
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -40,6 +42,133 @@ namespace OpenMS
 {
   namespace
   {
+    /**
+      @brief Chromatograms encoded for the output ahead of the output lock.
+
+      The chromatogram consumers are not thread-safe, so all chromatograms pass through one
+      critical section. The XIC Parquet consumer can do the expensive part (compressing the
+      arrays) without touching its state: the thread that owns the chromatograms does that here,
+      and only the finished rows are appended inside the lock. For other consumers this does
+      nothing and writeOutFeaturesAndChroms_() writes the chromatograms as before.
+
+      Outside of a parallel region (e.g. after the scoring of a wave with fewer SWATHs than
+      threads), the chromatograms are encoded in ranges by all threads; write() appends the ranges
+      in order, so the rows are the same as if one thread encoded them.
+    */
+    struct PreEncodedChromatograms
+    {
+      PreEncodedChromatograms(Interfaces::IMSDataConsumer* chrom_consumer,
+                              std::vector<MSChromatogram>& chromatograms,
+                              std::vector<MSChromatogram>& ms1_chromatograms) :
+        consumer(dynamic_cast<MSChromatogramParquetConsumer*>(chrom_consumer))
+      {
+        if (consumer == nullptr)
+        {
+          return;
+        }
+        // same order and the same skipping of empty chromatograms as writeOutFeaturesAndChroms_(),
+        // which finds the encoded chromatograms empty afterwards and skips them
+        std::vector<MSChromatogram*> to_encode;
+        to_encode.reserve(ms1_chromatograms.size() + chromatograms.size());
+        for (MSChromatogram& chromatogram : ms1_chromatograms)
+        {
+          if (!chromatogram.empty()) to_encode.push_back(&chromatogram);
+        }
+        for (MSChromatogram& chromatogram : chromatograms)
+        {
+          if (!chromatogram.empty()) to_encode.push_back(&chromatogram);
+        }
+
+        constexpr Size chromatograms_per_range = 256;
+        const SignedSize nr_ranges = static_cast<SignedSize>((to_encode.size() + chromatograms_per_range - 1) / chromatograms_per_range);
+        rows.resize(nr_ranges);
+        std::exception_ptr encode_exception;
+        std::mutex encode_exception_mutex;
+        auto encode_range = [&](const SignedSize range)
+        {
+          try
+          {
+            const Size end = std::min(to_encode.size(), static_cast<Size>(range + 1) * chromatograms_per_range);
+            for (Size i = static_cast<Size>(range) * chromatograms_per_range; i < end; ++i)
+            {
+              consumer->encodeChromatogram(*to_encode[i], rows[range]);
+            }
+          }
+          catch (...)
+          {
+            std::lock_guard<std::mutex> lock(encode_exception_mutex);
+            if (encode_exception == nullptr) encode_exception = std::current_exception();
+          }
+        };
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic, 1) if (omp_in_parallel() == 0)
+#endif
+        for (SignedSize range = 0; range < nr_ranges; ++range)
+        {
+          encode_range(range);
+        }
+        if (encode_exception != nullptr)
+        {
+          std::rethrow_exception(encode_exception);
+        }
+      }
+
+      /// Appends the encoded rows: call inside the output lock, before writeOutFeaturesAndChroms_().
+      void write()
+      {
+        if (consumer != nullptr)
+        {
+          for (MSChromatogramParquetConsumer::EncodedChromatograms& range_rows : rows)
+          {
+            consumer->consumeEncodedChromatograms(range_rows);
+          }
+        }
+      }
+
+      MSChromatogramParquetConsumer* consumer;
+      std::vector<MSChromatogramParquetConsumer::EncodedChromatograms> rows;
+    };
+
+    /**
+      @brief The points of @p chromatogram with an RT in [@p rt_min, @p rt_max]
+
+      The same as a copy of @p chromatogram followed by select() of these points (which also handles
+      data arrays), without copying the points outside the range.
+    */
+    MSChromatogram copyRTRange_(const MSChromatogram& chromatogram, double rt_min, double rt_max)
+    {
+      std::vector<Size> indices_to_keep;
+      indices_to_keep.reserve(chromatogram.size());
+      for (Size i = 0; i < chromatogram.size(); ++i)
+      {
+        double rt = chromatogram[i].getRT();
+        if (rt >= rt_min && rt <= rt_max)
+        {
+          indices_to_keep.push_back(i);
+        }
+      }
+      if (indices_to_keep.size() == chromatogram.size() || !chromatogram.getFloatDataArrays().empty() ||
+          !chromatogram.getStringDataArrays().empty() || !chromatogram.getIntegerDataArrays().empty())
+      {
+        MSChromatogram result = chromatogram;
+        if (indices_to_keep.size() != chromatogram.size())
+        {
+          result.select(indices_to_keep);
+        }
+        return result;
+      }
+      MSChromatogram result;
+      static_cast<RangeManagerContainer<RangeRT, RangeIntensity>&>(result) = chromatogram;
+      static_cast<ChromatogramSettings&>(result) = chromatogram;
+      result.setName(chromatogram.getName());
+      result.reserve(indices_to_keep.size());
+      for (Size i : indices_to_keep)
+      {
+        result.push_back(chromatogram[i]);
+      }
+      return result;
+    }
+
     // --- Dynamic batching helpers ---
     Size estimateFeatureMemoryPerCompound()
     {
@@ -189,8 +318,10 @@ namespace OpenMS
         {
           while (true)
           {
-            OpenSwathOSWWriter::OSWData batch;
-            UInt64 batch_bytes = 0;
+            // Take everything that is queued in one step. The rows are written as they were
+            // enqueued: merging them into one batch first means moving every row once more,
+            // and doing that under the mutex blocks the scoring threads in enqueue().
+            std::deque<QueueItem> pending;
 
             {
               std::unique_lock<std::mutex> lock(mutex_);
@@ -210,25 +341,18 @@ namespace OpenMS
               {
                 return;
               }
-              if (queue_.empty())
-              {
-                continue;
-              }
-              while (!queue_.empty())
-              {
-                QueueItem item = std::move(queue_.front());
-                queue_.pop_front();
-                batch_bytes += item.byte_count;
-                batch.append(std::move(item.rows));
-              }
+              pending.swap(queue_);
             }
 
-            if (!batch.empty())
+            for (QueueItem& item : pending)
             {
-              writer_.writeRows(batch);
-
-              std::lock_guard<std::mutex> lock(mutex_);
-              buffered_bytes_ -= batch_bytes;
+              writer_.writeRows(item.rows);
+              // release the rows before handing their share of the budget back
+              item.rows = OpenSwathOSWWriter::OSWData();
+              {
+                std::lock_guard<std::mutex> lock(mutex_);
+                buffered_bytes_ -= item.byte_count;
+              }
               cv_.notify_all();
             }
           }
@@ -261,7 +385,7 @@ namespace OpenMS
   {
     OpenSwath::SpectrumAccessPtr ms1_map;
     // store reference to MS1 map for later -> note that this is *not* threadsafe!
-    for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+    for (SignedSize i = 0; i < checkedCast<SignedSize>(swath_maps.size()); ++i)
     {
       // if (swath_maps[i].ms1 && use_ms1_traces_)
       if (swath_maps[i].ms1)
@@ -301,6 +425,14 @@ namespace OpenMS
     // Suppress repeated resampling-spacing warnings for this workflow call
     // only, so embedded use does not affect later resampling in the process.
     Internal::ScopedResamplingWarningSuppression scoped_resampling_warning_suppression;
+
+    // The peptide identifications of the features reference the protein identification run (search run) of the
+    // transition list, which scorePeakgroups() does not add: add it (with all proteins, in the order of the transition
+    // list) once here instead of for every scoring batch.
+    if (store_features)
+    {
+      MRMFeatureFinderScoring::addProteinIdentificationRun(transition_exp, out_featureFile);
+    }
 
     // user-controllable overrides for inner batching and outer concurrency
     const int user_inner_batch_size = innerBatchSize;
@@ -380,7 +512,7 @@ namespace OpenMS
       // centered around the target peptide. We therefore select for each peptide
       // the best-matching PRM / DIA window:
       tr_win_map.resize(transition_exp.transitions.size(), -1);
-      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+      for (SignedSize i = 0; i < checkedCast<SignedSize>(swath_maps.size()); ++i)
       {
         for (Size k = 0; k < transition_exp.transitions.size(); k++)
         {
@@ -412,7 +544,7 @@ namespace OpenMS
       // Extract from the DIA window in which the precursor is more centered across its IM.
 
       tr_win_map.resize(transition_exp.transitions.size(), -1);
-      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+      for (SignedSize i = 0; i < checkedCast<SignedSize>(swath_maps.size()); ++i)
       {
         for (Size k = 0; k < transition_exp.transitions.size(); k++)
         {
@@ -502,17 +634,22 @@ namespace OpenMS
         OpenSwath::SpectrumAccessPtr current_swath_map;
         std::vector<MSChromatogram> ms1_chromatograms;
         PeakMap chrom_exp;
+        ChromatogramIndex chromatogram_index; // shared by the scoring jobs of the SWATH
         FeatureMap feature_file;
       };
 
       std::vector<SwathSchedulerContext> contexts(swath_maps.size());
       std::unique_ptr<OSWBufferedWriter> buffered_osw_writer;
-      if (osw_writer.isActive())
+      if (osw_writer.isActive() && scoring_threads > 1)
       {
         OPENMS_LOG_INFO << "Use buffered OSW writer with "
                         << bytesToHumanReadable(scheduler_options.osw_buffer_bytes)
                         << " queue budget and a single writer thread." << std::endl;
         buffered_osw_writer = std::make_unique<OSWBufferedWriter>(osw_writer, scheduler_options.osw_buffer_bytes);
+      }
+      else if (osw_writer.isActive())
+      {
+        OPENMS_LOG_INFO << "Use direct OSW writes with a single SWATH scoring thread." << std::endl;
       }
 
       struct InnerBatchScoringJob
@@ -560,18 +697,23 @@ namespace OpenMS
                          << wave.swath_indices.size() << " SWATHs (estimated "
                          << bytesToHumanReadable(wave.estimated_bytes) << ")." << std::endl;
 
-#ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic,1)
-#endif
-      for (SignedSize wave_pos = 0; wave_pos < boost::numeric_cast<SignedSize>(wave.swath_indices.size()); ++wave_pos)
+      // Extract the SWATHs of a wave in parallel only if every thread gets one. Fewer SWATHs (e.g.
+      // max_concurrent_swaths = 1) are extracted one after the other outside of a parallel region,
+      // and the chromatogram extraction of each then uses all threads.
+      const bool parallel_swath_extraction = wave.swath_indices.size() >= scoring_threads;
+      // Such SWATHs are written out after the wave if all threads then encode their XIC chromatograms
+      // (see PreEncodedChromatograms); otherwise the thread that scored their last job writes them.
+      const bool finalize_after_wave = !parallel_swath_extraction &&
+                                       dynamic_cast<MSChromatogramParquetConsumer*>(chromConsumer) != nullptr;
+      auto extract_swath = [&](const SignedSize wave_pos)
       {
-        const SignedSize swath_index = boost::numeric_cast<SignedSize>(wave.swath_indices[wave_pos]);
+        const SignedSize swath_index = checkedCast<SignedSize>(wave.swath_indices[wave_pos]);
         SwathSchedulerContext& context = contexts[swath_index];
         context.swath_index = swath_index;
 
         if (swath_maps[swath_index].ms1)
         {
-          continue;
+          return;
         }
 
         if (!(prm_ || pasef_))
@@ -621,7 +763,7 @@ namespace OpenMS
         }
         if (context.transition_exp_used_all.getTransitions().empty())
         {
-          continue;
+          return;
         }
 
         context.current_swath_map = swath_maps[swath_index].sptr;
@@ -661,8 +803,26 @@ namespace OpenMS
 
         extractor.return_chromatogram(chrom_list, coordinates, context.transition_exp_used_all, SpectrumSettings(),
                                       context.chrom_exp.getChromatograms(), false, cp.im_extraction_window);
+        context.chromatogram_index.build(context.chrom_exp.getChromatograms(), context.ms1_chromatograms);
 
         context.active = true;
+      };
+      if (parallel_swath_extraction)
+      {
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic,1)
+#endif
+        for (SignedSize wave_pos = 0; wave_pos < checkedCast<SignedSize>(wave.swath_indices.size()); ++wave_pos)
+        {
+          extract_swath(wave_pos);
+        }
+      }
+      else
+      {
+        for (SignedSize wave_pos = 0; wave_pos < checkedCast<SignedSize>(wave.swath_indices.size()); ++wave_pos)
+        {
+          extract_swath(wave_pos);
+        }
       }
 
       // Create inner scoring jobs for all active SWATHs. The assay-range scheduler
@@ -703,7 +863,7 @@ namespace OpenMS
 
         const Size n_compounds = context.transition_exp_used_all.getCompounds().size();
         const Size inner_batch = std::min<Size>(wave_inner_batch, n_compounds);
-        context.score_job_size = boost::numeric_cast<int>(inner_batch);
+        context.score_job_size = checkedCast<int>(inner_batch);
         if (context.score_job_size > 0)
         {
           context.nr_score_jobs = static_cast<SignedSize>((n_compounds + context.score_job_size - 1) / context.score_job_size);
@@ -770,10 +930,12 @@ namespace OpenMS
           return;
         }
 
+        PreEncodedChromatograms encoded(chromConsumer, context.chrom_exp.getChromatograms(), context.ms1_chromatograms);
 #ifdef _OPENMP
 #pragma omp critical (osw_write_out)
 #endif
         {
+          encoded.write();
           writeOutFeaturesAndChroms_(context.chrom_exp.getChromatograms(), context.ms1_chromatograms,
               context.feature_file, out_featureFile, store_features, chromConsumer);
         }
@@ -817,7 +979,7 @@ namespace OpenMS
             OpenSwathOSWWriter::OSWData job_osw_output;
             scoreAllChromatograms_(context.chrom_exp.getChromatograms(), context.ms1_chromatograms, tmp, transition_exp_used,
               feature_finder_param, trafo, cp.rt_extraction_window, featureFile, osw_writer, ms1_isotopes, false,
-              mobilogram_consumer, &job_osw_output);
+              mobilogram_consumer, &job_osw_output, &context.chromatogram_index);
 
             if (osw_writer.isActive() && !job_osw_output.empty())
             {
@@ -859,7 +1021,9 @@ namespace OpenMS
               context_ready_to_finalize = context.remaining_score_jobs == 0;
             }
 
-            if (context_ready_to_finalize)
+            // The thread that scored the last job of a SWATH writes it out while the others score
+            // (unless all threads encode the chromatograms after the wave, see finalize_after_wave).
+            if (context_ready_to_finalize && !finalize_after_wave)
             {
               finalize_context(job.context_index);
             }
@@ -904,6 +1068,7 @@ namespace OpenMS
         context.ms1_chromatograms.clear();
         context.ms1_chromatograms.shrink_to_fit();
         context.chrom_exp = PeakMap();
+        context.chromatogram_index = ChromatogramIndex();
         context.feature_file = FeatureMap();
         context.active = false;
         context.finalized = true;
@@ -958,7 +1123,7 @@ namespace OpenMS
 #endif
 #pragma omp parallel for schedule(dynamic,1)
 #endif
-    for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+    for (SignedSize i = 0; i < checkedCast<SignedSize>(swath_maps.size()); ++i)
     {
       if (!swath_maps[i].ms1) // skip MS1
       {
@@ -1129,8 +1294,10 @@ namespace OpenMS
             // Step 4: write all chromatograms and features out into an output object / file
             // (this needs to be done in a critical section since we only have one
             // output file and one output map).
+            PreEncodedChromatograms encoded(chromConsumer, chrom_exp.getChromatograms(), ms1_chromatograms);
             #pragma omp critical (osw_write_out)
             {
+              encoded.write();
               writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
             }
           }
@@ -1220,6 +1387,22 @@ namespace OpenMS
         SpectrumSettings(), ms1_chromatograms, true, cp.im_extraction_window);
   }
 
+  void ChromatogramIndex::build(const std::vector<MSChromatogram>& ms2_chromatograms, const std::vector<MSChromatogram>& ms1_chromatograms)
+  {
+    ms1.clear();
+    ms1.reserve(ms1_chromatograms.size());
+    for (Size i = 0; i < ms1_chromatograms.size(); i++)
+    {
+      ms1[ms1_chromatograms[i].getNativeID()] = checkedCast<int>(i);
+    }
+    ms2.clear();
+    ms2.reserve(ms2_chromatograms.size());
+    for (Size i = 0; i < ms2_chromatograms.size(); i++)
+    {
+      ms2[ms2_chromatograms[i].getNativeID()] = checkedCast<int>(i);
+    }
+  }
+
   void OpenSwathWorkflow::scoreAllChromatograms_(
     const std::vector< OpenMS::MSChromatogram > & ms2_chromatograms,
     const std::vector< OpenMS::MSChromatogram > & ms1_chromatograms,
@@ -1233,7 +1416,8 @@ namespace OpenMS
     int nr_ms1_isotopes,
     bool ms1only,
     MobilogramParquetConsumer* mobilogram_consumer,
-    OpenSwathOSWWriter::OSWData* deferred_osw_output) const
+    OpenSwathOSWWriter::OSWData* deferred_osw_output,
+    const ChromatogramIndex* chromatogram_index) const
   {
     TransformationDescription trafo_inv = trafo;
     trafo_inv.invert();
@@ -1265,25 +1449,19 @@ namespace OpenMS
     featureFinder.setParameters(feature_finder_param);
     featureFinder.prepareProteinPeptideMaps_(transition_exp);
 
-    std::unordered_map<std::string, int> ms1_chromatogram_map;
-    ms1_chromatogram_map.reserve(ms1_chromatograms.size());
-    for (Size i = 0; i < ms1_chromatograms.size(); i++)
+    ChromatogramIndex local_chromatogram_index;
+    if (chromatogram_index == nullptr)
     {
-      ms1_chromatogram_map[ms1_chromatograms[i].getNativeID()] = boost::numeric_cast<int>(i);
+      local_chromatogram_index.build(ms2_chromatograms, ms1_chromatograms);
+      chromatogram_index = &local_chromatogram_index;
     }
-
-    std::unordered_map<std::string, int> chromatogram_map;
-    chromatogram_map.reserve(ms2_chromatograms.size());
-    for (Size i = 0; i < ms2_chromatograms.size(); i++)
-    {
-      const std::string cid = ms2_chromatograms[i].getNativeID();
-      chromatogram_map[cid] = boost::numeric_cast<int>(i);
-    }
+    const std::unordered_map<std::string, int>& ms1_chromatogram_map = chromatogram_index->ms1;
+    const std::unordered_map<std::string, int>& chromatogram_map = chromatogram_index->ms2;
     std::unordered_map<std::string, int> assay_peptide_map;
     assay_peptide_map.reserve(transition_exp.getCompounds().size());
     for (Size i = 0; i < transition_exp.getCompounds().size(); i++)
     {
-      assay_peptide_map[transition_exp.getCompounds()[i].id] = boost::numeric_cast<int>(i);
+      assay_peptide_map[transition_exp.getCompounds()[i].id] = checkedCast<int>(i);
     }
 
     // Map peptide id to corresponding transitions
@@ -1351,33 +1529,25 @@ namespace OpenMS
           }
         }
 
-        // Convert chromatogram to MSChromatogram and filter (properly handles DataArrays via select())
-        auto chromatogram = ms2_chromatograms[ chromatogram_map[transition->getNativeID()] ];
-        chromatogram.setNativeID(transition->getNativeID());
+        // Copy the chromatogram, restricted to the RT extraction window
+        const MSChromatogram& extracted_chromatogram = ms2_chromatograms[ chromatogram_map.at(transition->getNativeID()) ];
+        MSChromatogram chromatogram;
         if (rt_extraction_window > 0)
         {
           double de_normalized_experimental_rt = trafo_inv.apply(expected_rt);
           double rt_max = de_normalized_experimental_rt + rt_extraction_window;
           double rt_min = de_normalized_experimental_rt - rt_extraction_window;
-          std::vector<Size> indices_to_keep;
-          indices_to_keep.reserve(chromatogram.size());
-          for (Size i = 0; i < chromatogram.size(); ++i)
-          {
-            double rt = chromatogram[i].getRT();
-            if (rt >= rt_min && rt <= rt_max)
-            {
-              indices_to_keep.push_back(i);
-            }
-          }
-          if (indices_to_keep.size() != chromatogram.size())
-          {
-            chromatogram.select(indices_to_keep);
-          }
+          chromatogram = copyRTRange_(extracted_chromatogram, rt_min, rt_max);
         }
+        else
+        {
+          chromatogram = extracted_chromatogram;
+        }
+        chromatogram.setNativeID(transition->getNativeID());
 
         // Add the transition and the chromatogram to the MRMTransitionGroup
         transition_group.addTransition(*transition, transition->getNativeID());
-        transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
+        transition_group.addChromatogram(std::move(chromatogram), transition->getNativeID());
       }
 
       // currently  .osw and .featureXML are mutually exclusive
@@ -1391,7 +1561,7 @@ namespace OpenMS
         std::string prec_id = OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), iso);
         if (!ms1_chromatograms.empty() && ms1_chromatogram_map.contains(prec_id))
         {
-          const MSChromatogram& chromatogram = ms1_chromatograms[ ms1_chromatogram_map[prec_id] ];
+          const MSChromatogram& chromatogram = ms1_chromatograms[ ms1_chromatogram_map.at(prec_id) ];
           transition_group.addPrecursorChromatogram(chromatogram, chromatogram.getNativeID());
         }
       }

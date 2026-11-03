@@ -37,6 +37,7 @@ namespace OpenMS::Internal
       {
         sites_.clear();
         modification_ = new ResidueModification();
+        modification_->setProvenance(ResidueModification::CV); // unimod.xml and custom_mods.xml
         std::string title(attributeAsString_(attributes, "title"));
         modification_->setId(title);
 
@@ -108,7 +109,10 @@ namespace OpenMS::Internal
       {
         // mono_mass="97.976896" avge_mass="97.9952" flag="false"
         //                               composition="H(3) O(4) P">
-
+        neutral_loss_mono_mass_ = attributeAsDouble_(attributes, "mono_mass");
+        neutral_loss_avge_mass_ = attributeAsDouble_(attributes, "avge_mass");
+        collect_elements_ = true;
+        return;
       }
 
       // delta mass definitions?
@@ -117,11 +121,14 @@ namespace OpenMS::Internal
         // avge_mass="-0.9848" mono_mass="-0.984016" composition="H N O(-1)" >
         avge_mass_ = StringUtils::toDouble(sm_.convert(attributes.valueByIndex(attributes.index(sm_.convert("avge_mass").c_str()))));
         mono_mass_ = StringUtils::toDouble(sm_.convert(attributes.valueByIndex(attributes.index(sm_.convert("mono_mass").c_str()))));
+        collect_elements_ = true;
         return;
       }
 
       // <umod:element symbol="H" number="1"/>
-      if (tag_ == "umod:element")
+      // Only elements below <delta> and <NeutralLoss> belong to the modification; those below
+      // <Ignore>, <aa> and <brick> describe something else and are skipped (see #collect_elements_).
+      if ((tag_ == "umod:element" || tag_ == "element") && collect_elements_)
       {
         std::string symbol = sm_.convert(attributes.valueByIndex(attributes.index(sm_.convert("symbol").c_str())));
         std::string num = sm_.convert(attributes.valueByIndex(attributes.index(sm_.convert("number").c_str())));
@@ -167,15 +174,20 @@ namespace OpenMS::Internal
           new_mod->setOrigin(sites_[i]);
           new_mod->setTermSpecificity(term_specs_[i]);
           new_mod->setNeutralLossDiffFormulas(neutral_loss_diff_formulas_[i]);
+          new_mod->setNeutralLossMonoMasses(neutral_loss_mono_masses_all_[i]);
+          new_mod->setNeutralLossAverageMasses(neutral_loss_avg_masses_all_[i]);
           modifications_.push_back(new_mod);
         }
 
         avge_mass_ = 0.0;
         mono_mass_ = 0.0;
         diff_formula_ = EmpiricalFormula();
+        collect_elements_ = false;
         term_specs_.clear();
         sites_.clear();
         neutral_loss_diff_formulas_.clear();
+        neutral_loss_mono_masses_all_.clear();
+        neutral_loss_avg_masses_all_.clear();
 
         delete modification_;
         return;
@@ -186,23 +198,31 @@ namespace OpenMS::Internal
         if (was_valid_peptide_modification_) // as we exclude "Protein" modifications (see above)
         {
           neutral_loss_diff_formulas_.push_back(neutral_loss_diff_formula_);
-          modification_->setNeutralLossMonoMasses(neutral_loss_mono_masses_);
-          modification_->setNeutralLossAverageMasses(neutral_loss_avg_masses_);
+          neutral_loss_mono_masses_all_.push_back(neutral_loss_mono_masses_);
+          neutral_loss_avg_masses_all_.push_back(neutral_loss_avg_masses_);
           neutral_loss_diff_formula_.clear();
           neutral_loss_mono_masses_.clear();
           neutral_loss_avg_masses_.clear();
         }
       }
 
-      if ( (tag_ == "umod:NeutralLoss" || tag_ == "NeutralLoss") && !diff_formula_.isEmpty() )
+      if (tag_ == "umod:delta" || tag_ == "delta")
       {
-        // now diff_formula_ contains the neutral loss diff formula
-        neutral_loss_diff_formula_.push_back(diff_formula_);
-        neutral_loss_mono_masses_.push_back(mono_mass_);
-        neutral_loss_avg_masses_.push_back(avge_mass_);
-        avge_mass_ = 0.0;
-        mono_mass_ = 0.0;
-        diff_formula_ = EmpiricalFormula();
+        collect_elements_ = false;
+        return;
+      }
+
+      if (tag_ == "umod:NeutralLoss" || tag_ == "NeutralLoss")
+      {
+        collect_elements_ = false;
+        if (!diff_formula_.isEmpty())
+        {
+          // now diff_formula_ contains the neutral loss diff formula
+          neutral_loss_diff_formula_.push_back(diff_formula_);
+          neutral_loss_mono_masses_.push_back(neutral_loss_mono_mass_);
+          neutral_loss_avg_masses_.push_back(neutral_loss_avge_mass_);
+          diff_formula_ = EmpiricalFormula();
+        }
       }
     }
 

@@ -17,6 +17,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathExportConfig.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 
 #include <fstream>
 

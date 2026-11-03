@@ -43,6 +43,22 @@ START_SECTION((Normalizer(const Normalizer& source)))
 	Normalizer copy(*e_ptr);
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
+
+	// getParameters() cannot see 'method_', which updateMembers_() caches, so also
+	// check that a copy of a configured Normalizer filters the same way
+	Normalizer configured;
+	Param p(configured.getParameters());
+	p.setValue("method", "to_TIC");
+	configured.setParameters(p);
+	Normalizer configured_copy(configured);
+
+	PeakSpectrum unfiltered;
+	unfiltered.push_back(Peak1D(100.0, 1.0f));
+	unfiltered.push_back(Peak1D(200.0, 3.0f));
+	PeakSpectrum from_source(unfiltered), from_copy(unfiltered);
+	configured.filterSpectrum(from_source);
+	configured_copy.filterSpectrum(from_copy);
+	TEST_EQUAL(from_copy == from_source, true)
 END_SECTION
 
 START_SECTION((Normalizer& operator = (const Normalizer& source)))
@@ -50,6 +66,22 @@ START_SECTION((Normalizer& operator = (const Normalizer& source)))
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
+
+	// same for assignment
+	Normalizer configured;
+	Param p(configured.getParameters());
+	p.setValue("method", "to_TIC");
+	configured.setParameters(p);
+	Normalizer assigned;
+	assigned = configured;
+
+	PeakSpectrum unfiltered;
+	unfiltered.push_back(Peak1D(100.0, 1.0f));
+	unfiltered.push_back(Peak1D(200.0, 3.0f));
+	PeakSpectrum from_source(unfiltered), from_assigned(unfiltered);
+	configured.filterSpectrum(from_source);
+	assigned.filterSpectrum(from_assigned);
+	TEST_EQUAL(from_assigned == from_source, true)
 END_SECTION
 
 

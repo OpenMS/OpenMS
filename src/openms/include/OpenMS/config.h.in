@@ -106,8 +106,6 @@ static constexpr cstr past_last_slash(cstr str)
 
 #cmakedefine OPENMS_BIG_ENDIAN
 
-#define OPENMS_HASDOXYGENDOT @CF_OPENMS_HASDOXYGENDOT@
-
 // Define on 64 bit architectures
 #cmakedefine OPENMS_64BIT_ARCHITECTURE
 
@@ -139,14 +137,6 @@ static constexpr cstr past_last_slash(cstr str)
 #define OPENMS_BOOST_VERSION_SUBMINOR @CF_OPENMS_BOOST_VERSION_SUBMINOR@
 #define OPENMS_BOOST_VERSION @CF_OPENMS_BOOST_VERSION@
 
-#cmakedefine OPENMS_HAS_COINOR
-#cmakedefine OPENMS_HAS_COIN_INCLUDE_SUBDIR_IS_COIN
-#cmakedefine OPENMS_HAS_HIGHS
-
-#define OPENMS_GLPK_VERSION @CF_OPENMS_GLPK_VERSION@
-#define OPENMS_GLPK_VERSION_MAJOR @CF_OPENMS_GLPK_VERSION_MAJOR@
-#define OPENMS_GLPK_VERSION_MINOR @CF_OPENMS_GLPK_VERSION_MINOR@
-
 // custom compile flags
 #define OPENMS_MORECXX_FLAGS "@CF_MYCXXFLAGS@"
 
@@ -169,5 +159,8 @@ static constexpr cstr past_last_slash(cstr str)
 // Whether WNet alignment support was enabled at build time (WITH_WNETALIGN option).
 // Used by ToolHandler to conditionally register FeatureLinkerWNet.
 #cmakedefine WITH_WNETALIGN 1
+
+// Whether native ONNX/PeptDeep support was enabled at build time.
+#cmakedefine WITH_ONNX 1
 
 #endif // OPENMS_CONFIG_H

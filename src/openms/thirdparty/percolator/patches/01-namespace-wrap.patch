@@ -707,7 +707,17 @@
  int Normalizer::subclass_type = STDV;
  Normalizer* Normalizer::theNormalizer = NULL;
  
-@@ -90,3 +93,5 @@
+@@ -68,9 +71,6 @@
+     } else {
+      theNormalizer = new NoNormalizer();
+     }
+-  } else {
+-    assert(false);
+-    cerr << "Multiple instantiations of Normalizer" << endl;
+   }
+   return theNormalizer;
+ }
+@@ -90,3 +90,5 @@
    }
    out[i] = (in[i] - subScore) / scale; // update the intercept m0
  }

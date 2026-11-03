@@ -82,6 +82,49 @@ namespace OpenMS
     void consumeSpectrum(SpectrumType& s) override;
     /// @brief Consume a chromatogram and append it to the parquet output.
     void consumeChromatogram(ChromatogramType& c) override;
+
+    /**
+      @brief Rows prepared by encodeChromatogram(), to be appended with consumeEncodedChromatograms().
+
+      Opaque to callers: a batch is filled by one thread and handed to the consumer once.
+    */
+    class OPENMS_DLLAPI EncodedChromatograms
+    {
+    public:
+      EncodedChromatograms();
+      ~EncodedChromatograms();
+      EncodedChromatograms(EncodedChromatograms&&) noexcept;
+      EncodedChromatograms& operator=(EncodedChromatograms&&) noexcept;
+
+      /// Number of encoded chromatograms (rows).
+      Size size() const;
+
+    private:
+      friend class MSChromatogramParquetConsumer;
+      struct Rows;
+      std::unique_ptr<Rows> rows_;
+    };
+
+    /**
+      @brief Encode a chromatogram into a row of @p rows without appending it to the output.
+
+      This is the expensive part of consumeChromatogram() (metadata lookup and compression of the
+      RT and intensity arrays). It does not modify the consumer, so several threads may encode
+      into their own batches at the same time, and only consumeEncodedChromatograms() needs to
+      be serialized. The data of @p c is released as by consumeChromatogram().
+
+      @param[in,out] c Chromatogram to encode.
+      @param[in,out] rows Batch the encoded row is appended to.
+    */
+    void encodeChromatogram(ChromatogramType& c, EncodedChromatograms& rows) const;
+
+    /**
+      @brief Append rows prepared by encodeChromatogram() to the parquet output, in their order.
+
+      Equivalent to calling consumeChromatogram() for the encoded chromatograms and, like it,
+      not thread-safe. The rows are moved out of @p rows, which is empty afterwards.
+    */
+    void consumeEncodedChromatograms(EncodedChromatograms& rows);
     /**
       @brief Finalize and write the parquet file.
 

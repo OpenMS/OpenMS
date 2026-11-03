@@ -10,7 +10,9 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <limits>
 #include <set>
 
 ///////////////////////////
@@ -128,6 +130,24 @@ START_SECTION((static void addMSGFFeatures(std::vector< PeptideIdentification > 
 
     //check registration of percolator features for adapter
     ABORT_IF(!check_proids(msgf_check_pods, msgf_pods, fs));
+
+    // MS-GF+ reports NaN for a degenerate fragment error standard deviation; it is set to 0
+    PeptideIdentificationList nan_pids(1);
+    PeptideHit nan_hit;
+    nan_hit.setMetaValue("StdevErrorAll", std::string("NaN"));
+    nan_hit.setMetaValue("StdevErrorTop7", std::numeric_limits<double>::quiet_NaN());
+    nan_hit.setMetaValue("StdevRelErrorAll", std::string("1.5"));
+    nan_hit.setMetaValue("MeanErrorAll", std::string("NaN")); // not a standard deviation: untouched
+    nan_pids[0].insertHit(nan_hit);
+    StringList nan_fs;
+    PercolatorFeatureSetHelper::addMSGFFeatures(nan_pids, nan_fs);
+    const PeptideHit& fixed_hit = nan_pids[0].getHits()[0];
+    TEST_EQUAL(fixed_hit.getMetaValue("StdevErrorAll").valueType(), DataValue::STRING_VALUE)
+    TEST_REAL_SIMILAR(StringUtils::toDouble(fixed_hit.getMetaValue("StdevErrorAll").toString()), 0.0)
+    TEST_REAL_SIMILAR(static_cast<double>(fixed_hit.getMetaValue("StdevErrorTop7")), 0.0)
+    TEST_STRING_EQUAL(fixed_hit.getMetaValue("StdevRelErrorAll").toString(), "1.5")
+    TEST_STRING_EQUAL(fixed_hit.getMetaValue("MeanErrorAll").toString(), "NaN")
+    TEST_FALSE(fixed_hit.metaValueExists("StdevRelErrorTop7"))
 }
 END_SECTION
 

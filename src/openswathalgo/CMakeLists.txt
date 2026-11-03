@@ -8,7 +8,6 @@
 
 
 project("OpenSWATHAlgo")
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 #------------------------------------------------------------------------------
 # Find Boost lib
@@ -28,9 +27,11 @@ include(source/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
 openms_add_library(TARGET_NAME OpenSwathAlgo
                    SOURCE_FILES ${OpenSwathAlgoFiles}
                    HEADER_FILES ${OpenSwathAlgoHeaders}
-                   INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
-                   EXTERNAL_INCLUDES ${Boost_INCLUDE_DIRS}
-                   PRIVATE_LINK_LIBRARIES Eigen3::Eigen $<$<BOOL:${OPENMP_FOUND}>:OpenMP::OpenMP_CXX>
+                   BASE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+                   PRIVATE_LINK_LIBRARIES Boost::boost Eigen3::Eigen $<$<BOOL:${OPENMP_FOUND}>:OpenMP::OpenMP_CXX>
                    DLL_EXPORT_PATH "OpenMS/OPENSWATHALGO/")
+
+# Keep this algorithm library independent of Qt code generation in GUI builds.
+set_target_properties(OpenSwathAlgo PROPERTIES AUTOMOC OFF)
 
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")

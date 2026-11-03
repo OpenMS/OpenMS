@@ -14,6 +14,7 @@ ChromatogramSettings.cpp
 ContactPerson.cpp
 DataArrays.cpp
 DataProcessing.cpp
+DataProcessingUtils.cpp
 DocumentIdentifier.cpp
 ExperimentalDesign.cpp
 ExperimentalSettings.cpp
@@ -24,6 +25,7 @@ Instrument.cpp
 InstrumentSettings.cpp
 IonDetector.cpp
 IonSource.cpp
+MS1LabelState.cpp
 MassAnalyzer.cpp
 MetaInfo.cpp
 MetaInfoDescription.cpp
@@ -39,6 +41,7 @@ Product.cpp
 ProteinHit.cpp
 ProteinIdentification.cpp
 ProteinModificationSummary.cpp
+ProteinRunReferences.cpp
 Sample.cpp
 ScanWindow.cpp
 Software.cpp
@@ -60,4 +63,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\METADATA" FILES ${sources})
-

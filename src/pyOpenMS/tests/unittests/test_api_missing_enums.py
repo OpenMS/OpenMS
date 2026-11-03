@@ -96,10 +96,10 @@ class TestValueType:
 
 
 class TestXRefTypeCVTermControlledVocabulary:
-    """XRefType_CVTerm_ControlledVocabulary — CV term cross-reference types."""
+    """ControlledVocabulary.CVTerm.XRefType — CV term cross-reference types."""
 
     def test_exists(self):
-        assert hasattr(pyopenms, 'XRefType_CVTerm_ControlledVocabulary')
+        assert hasattr(pyopenms.ControlledVocabulary.CVTerm, 'XRefType')
 
 
 # === 8 Nested Enums needing module-level aliases ===

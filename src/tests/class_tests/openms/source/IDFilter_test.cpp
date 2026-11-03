@@ -6,6 +6,9 @@
 // $Authors: Nico Pfeifer, Mathias Walzer, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <cmath>
+#include <limits>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
@@ -226,6 +229,20 @@ START_SECTION((class PeptideDigestionFilter::operator(PeptideHit& hit)))
 }
 END_SECTION
 
+
+START_SECTION((class DigestionFilter::operator()(const PeptideEvidence& evidence)))
+{
+  // PeptideEvidence start and end are 0-based and both inclusive. In this BSA N-terminus,
+  // WVTFISLLLLFSSAYSR spans residues 2..18 (K1 before, G19 after): a fully tryptic product.
+  std::vector<FASTAFile::FASTAEntry> proteins(1, FASTAFile::FASTAEntry("P02769", "", "MKWVTFISLLLLFSSAYSRGVFRR"));
+  ProteaseDigestion digestion;
+  digestion.setEnzyme("Trypsin");
+  IDFilter::DigestionFilter filter(proteins, digestion, true, false);
+  TEST_EQUAL(filter(PeptideEvidence("P02769", 2, 18, 'K', 'G')), true)
+  // 2..19 (WVTFISLLLLFSSAYSRG) ends after G19, not after K/R: no tryptic product
+  TEST_EQUAL(filter(PeptideEvidence("P02769", 2, 19, 'K', 'V')), false)
+}
+END_SECTION
 
 START_SECTION((static void removeUnreferencedProteins(vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides)))
 {
@@ -531,6 +548,26 @@ START_SECTION((template <class IdentificationType> static void filterHitsByScore
   IDFilter::filterHitsByScore(peptides, 41);
   TEST_EQUAL(peptides[0].getScoreType(), "Mascot");
   TEST_EQUAL(peptide_hits.size(), 0);
+}
+END_SECTION
+
+START_SECTION((template <class IdentificationType> static void filterHitsByScore(vector<IdentificationType>& ids, double threshold_score, IDScoreSwitcherAlgorithm::ScoreType score_type)))
+{
+  // The documented contract removes hits when the requested score type is absent.
+
+  // Case A: the ID's main score type ("Mascot") IS the requested RAW score type, so this behaves
+  // exactly like the 2-arg overload (threshold 33 keeps 5 hits).
+  PeptideIdentificationList peptides = global_peptides; // score type "Mascot" (registered as RAW)
+  TEST_NOT_EQUAL(peptides[0].getHits().size(), 0);
+  IDFilter::filterHitsByScore(peptides.getData(), 33.0, IDScoreSwitcherAlgorithm::ScoreType::RAW);
+  TEST_EQUAL(peptides[0].getHits().size(), 5);
+
+  // Case B (the regression this fixes): the requested score type (PEP) is present neither as the
+  // main score ("Mascot") nor as any secondary score, so ALL hits of that ID must be removed.
+  PeptideIdentificationList missing = global_peptides;
+  TEST_NOT_EQUAL(missing[0].getHits().size(), 0);
+  IDFilter::filterHitsByScore(missing.getData(), 0.0, IDScoreSwitcherAlgorithm::ScoreType::PEP);
+  TEST_EQUAL(missing[0].getHits().size(), 0); // documented contract: hits removed, NOT kept
 }
 END_SECTION
 
@@ -1074,6 +1111,132 @@ START_SECTION((static void keepNBestSpectra(PeptideIdentificationList& peptides,
   cout << peptides[1].getHits()[0].getSequence().toString() << endl;
   TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), 1000);
   TEST_REAL_SIMILAR(peptides[1].getHits()[0].getScore(), 40);
+}
+END_SECTION
+
+START_SECTION((static void filterObservationMatchesByScore(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref, double cutoff)))
+{
+  // Q-value cutoffs include their boundaries and remove missing scores.
+  for (const std::string& accession : {"MS:1002354", "MS:1001868"})
+  {
+    for (double cutoff : {0.05, 1.0})
+    {
+      IdentificationData data;
+      const auto file = data.registerInputFile(IdentificationData::InputFile("test.mzML"));
+      const auto q = data.registerScoreType(IdentificationData::ScoreType(CVTerm(accession, "q-value", "MS"), false));
+      const auto other = data.registerScoreType(IdentificationData::ScoreType("unrelated score", false));
+      const auto software = data.registerProcessingSoftware(IdentificationData::ProcessingSoftware("q-value recalculation", "1", {q}));
+      const auto step = data.registerProcessingStep(IdentificationData::ProcessingStep(software, {file}));
+      const auto parent = data.registerParentSequence(IdentificationData::ParentSequence("RNA", IdentificationData::MoleculeType::RNA, "ACGU"));
+      IdentificationData::IdentifiedOligo candidate(NASequence::fromString("ACGU"));
+      candidate.parent_matches[parent].insert(IdentificationData::ParentMatch(0, 3));
+      const auto oligo = data.registerIdentifiedOligo(candidate);
+      const std::vector<double> values{0.0, 0.01, 0.05, 0.1, 1.0};
+      for (Size i = 0; i < values.size(); ++i)
+      {
+        const auto observation = data.registerObservation(IdentificationData::Observation(std::to_string(i), file));
+        IdentificationData::ObservationMatch match(oligo, observation, -2);
+        // Filter using the most recent requested score, ignoring other score types.
+        match.addScore(q, 1.0);
+        match.addScore(q, values[i], step);
+        match.addScore(other, std::numeric_limits<double>::quiet_NaN(), step);
+        data.registerObservationMatch(match);
+      }
+      // A match lacking the requested score must also be removed.
+      const auto missing = data.registerObservation(IdentificationData::Observation("missing", file));
+      data.registerObservationMatch(IdentificationData::ObservationMatch(oligo, missing, -2));
+      IDFilter::filterObservationMatchesByScore(data, q, cutoff);
+      TEST_EQUAL(data.getObservationMatches().size(), cutoff == 0.05 ? 3 : 5);
+      for (const auto& match : data.getObservationMatches())
+      {
+        const auto score = match.getScore(q);
+        TEST_TRUE(score.second);
+        TEST_TRUE(score.first >= 0.0 && score.first <= cutoff);
+      }
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] filterObservationMatchesByScore permits negative non-q-value scores))
+{
+  for (bool higher_better : {false, true})
+  {
+    IdentificationData data;
+    const auto file = data.registerInputFile(IdentificationData::InputFile("test.mzML"));
+    const auto score_type = data.registerScoreType(IdentificationData::ScoreType("custom score", higher_better));
+    const auto parent = data.registerParentSequence(IdentificationData::ParentSequence("RNA", IdentificationData::MoleculeType::RNA, "ACGU"));
+    IdentificationData::IdentifiedOligo candidate(NASequence::fromString("ACGU"));
+    candidate.parent_matches[parent].insert(IdentificationData::ParentMatch(0, 3));
+    const auto oligo = data.registerIdentifiedOligo(candidate);
+    const std::vector<double> values{-2.0, -1.0, 0.0};
+    for (Size i = 0; i < values.size(); ++i)
+    {
+      const auto observation = data.registerObservation(IdentificationData::Observation(std::to_string(i), file));
+      IdentificationData::ObservationMatch match(oligo, observation, -2);
+      match.addScore(score_type, values[i]);
+      data.registerObservationMatch(match);
+    }
+    IDFilter::filterObservationMatchesByScore(data, score_type, -1.0);
+    TEST_EQUAL(data.getObservationMatches().size(), 2);
+    for (const auto& match : data.getObservationMatches())
+    {
+      TEST_FALSE(score_type->isBetterScore(-1.0, match.getScore(score_type).first));
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] filterObservationMatchesByScore throws on invalid stored scores without modifying data))
+{
+  for (const std::string& accession : {"MS:1002354", "MS:1001868", ""})
+  {
+    const std::vector<double> invalid_values{-1.0, 2.0, std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity()};
+    for (double value : invalid_values)
+    {
+      // Ordinary scores may be negative or greater than one; only non-finite values are invalid.
+      if (accession.empty() && std::isfinite(value))
+      {
+        continue;
+      }
+      IdentificationData data;
+      const auto file = data.registerInputFile(IdentificationData::InputFile("test.mzML"));
+      const auto score_type = data.registerScoreType(IdentificationData::ScoreType(CVTerm(accession, "test score", "MS"), false));
+      const auto parent = data.registerParentSequence(IdentificationData::ParentSequence("RNA", IdentificationData::MoleculeType::RNA, "ACGU"));
+      IdentificationData::IdentifiedOligo candidate(NASequence::fromString("ACGU"));
+      candidate.parent_matches[parent].insert(IdentificationData::ParentMatch(0, 3));
+      const auto oligo = data.registerIdentifiedOligo(candidate);
+      const auto worse = data.registerObservation(IdentificationData::Observation("0_worse", file));
+      IdentificationData::ObservationMatch worse_match(oligo, worse, -2);
+      worse_match.addScore(score_type, 0.1);
+      const auto worse_ref = data.registerObservationMatch(worse_match);
+      const auto missing = data.registerObservation(IdentificationData::Observation("1_missing", file));
+      const auto missing_ref = data.registerObservationMatch(IdentificationData::ObservationMatch(oligo, missing, -2));
+      const auto invalid = data.registerObservation(IdentificationData::Observation("2_invalid", file));
+      IdentificationData::ObservationMatch invalid_match(oligo, invalid, -2);
+      invalid_match.addScore(score_type, value);
+      data.registerObservationMatch(invalid_match);
+
+      TEST_EXCEPTION(Exception::InvalidValue, IDFilter::filterObservationMatchesByScore(data, score_type, 0.05));
+      TEST_EQUAL(data.getObservationMatches().size(), 3);
+      TEST_EQUAL(data.getObservations().size(), 3);
+      TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
+      TEST_EQUAL(data.getParentSequences().size(), 1);
+      TEST_REAL_SIMILAR(worse_ref->getScore(score_type).first, 0.1);
+      TEST_FALSE(missing_ref->getScore(score_type).second);
+
+      // A later valid score must not hide an invalid score from an earlier step.
+      const auto software = data.registerProcessingSoftware(IdentificationData::ProcessingSoftware("score recalculation", "1", {score_type}));
+      const auto step = data.registerProcessingStep(IdentificationData::ProcessingStep(software, {file}));
+      invalid_match.addScore(score_type, 0.01, step);
+      const auto invalid_ref = data.registerObservationMatch(invalid_match);
+      TEST_REAL_SIMILAR(invalid_ref->getScore(score_type).first, 0.01);
+      TEST_EXCEPTION(Exception::InvalidValue, IDFilter::filterObservationMatchesByScore(data, score_type, 0.05));
+      TEST_EQUAL(data.getObservationMatches().size(), 3);
+      TEST_EQUAL(data.getObservations().size(), 3);
+    }
+  }
 }
 END_SECTION
 

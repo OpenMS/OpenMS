@@ -18,6 +18,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 #include <vector>
+#include <map>
 
 namespace OpenMS
 {
@@ -83,6 +84,15 @@ public:
     /// sets the MS instrument description
     void setInstrument(const Instrument & instrument);
 
+    /// Additional instrument configurations, keyed by mzML ID. Scan acquisitions reference
+    /// these IDs using the "instrument_configuration_ref" meta value. getInstrument()
+    /// continues to describe the default instrument (normally serialized as ic_0).
+    const std::map<std::string, Instrument>& getInstrumentConfigurations() const;
+    /// Mutable instrument configurations.
+    std::map<std::string, Instrument>& getInstrumentConfigurations();
+    /// Replace instrument configurations.
+    void setInstrumentConfigurations(const std::map<std::string, Instrument>& configurations);
+
     /// returns a const reference to the description of the HPLC run
     const HPLC & getHPLC() const;
     /// returns a mutable reference to the description of the HPLC run
@@ -110,6 +120,7 @@ protected:
     std::vector<SourceFile> source_files_;
     std::vector<ContactPerson> contacts_;
     Instrument instrument_;
+    std::map<std::string, Instrument> instrument_configurations_;
     HPLC hplc_;
     DateTime datetime_;
     std::string comment_;

@@ -5,7 +5,7 @@ MTD	title	ConsensusMap export from OpenMS
 MTD	description	OpenMS export from consensusXML
 MTD	protein_search_engine_score[1]	[MS, MS:1003119, EPIFANY:Protein posterior probability, ]
 MTD	peptide_search_engine_score[1]	[MS, MS:1003114, OpenMS:Best PSM Score, ]
-MTD	psm_search_engine_score[1]	[, , Epifany, ]
+MTD	psm_search_engine_score[1]	[, , Epifany score, ]
 MTD	software[1]	[MS, MS:1000752, TOPP software, 3.0.0-pre-fix-mztab-meta-value-export-2022-11-16]
 MTD	software[2]	[MS, MS:1003118, EPIFANY, 2.6.0]
 MTD	software[3]	[, , Epifany, 2.6.0]

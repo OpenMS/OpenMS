@@ -51,11 +51,9 @@ by storing only centroided data. Thus, many algorithms and tools assume that cen
 .. code-block:: python
     :linenos:
 
-    centroided_spectra = oms.MSExperiment()
-
-    # input, output, chec_spectrum_type (if set, checks spectrum type and throws an exception if a centroided spectrum is passed)
-    oms.PeakPickerHiRes().pickExperiment(
-        profile_spectra, centroided_spectra, True
+    # input, check_spectrum_type (if set, checks spectrum type and throws an exception if a centroided spectrum is passed)
+    centroided_spectra = oms.PeakPickerHiRes().pickExperiment(
+        profile_spectra, True
     )  # pick all spectra
 
     plt.xlim(771.8, 774)  # zoom into isotopic pattern

@@ -8,9 +8,8 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <vector>
 #include <map>
@@ -20,6 +19,7 @@ namespace OpenMS
 {
   class ConsensusMap;
   class FeatureMap;
+  class ProteinIdentification;
 
   /**
 
@@ -535,10 +535,15 @@ namespace OpenMS
       /// Checks whether Sample Section has a specific factor (i.e. column name)
       bool hasFactor(const std::string &factor) const;
 
-      /// Returns value of factor for given sample NAME and factor name
+      /// @brief Returns value of factor for given sample NAME and factor name
+      /// @throws Exception::MissingInformation if the sample or the factor is unknown, or the row
+      ///         of the sample has no value for the factor (a row can be shorter than the column
+      ///         list, e.g. when it was added with addSample() without content)
       std::string getFactorValue(const std::string& sample_name, const std::string &factor) const;
 
-      /// Returns value of factor for given sample ROW INDEX (zero-based) and factor name
+      /// @brief Returns value of factor for given sample ROW INDEX (zero-based) and factor name
+      /// @throws Exception::MissingInformation if the factor is unknown or the row has no value
+      ///         for it; std::out_of_range if there is no such row
       std::string getFactorValue(unsigned sample_idx, const std::string &factor) const;
 
       /// @brief Returns column index of factor
@@ -764,4 +769,3 @@ namespace OpenMS
     SampleSection sample_section_;
   };
 }
-

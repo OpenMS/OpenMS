@@ -8,6 +8,7 @@
 //
 
 #include <OpenMS/ML/CLUSTERING/ClusteringGrid.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 
 #include <functional>
 #include <sstream>
@@ -30,30 +31,28 @@ std::vector<double> ClusteringGrid::getGridSpacingY() const
     return grid_spacing_y_;
 }
 
+size_t ClusteringGrid::CellIndexHash::operator()(const CellIndex& cell_index) const noexcept
+{
+    size_t seed = hash_int(cell_index.first);
+    hash_combine(seed, hash_int(cell_index.second));
+    return seed;
+}
+
 void ClusteringGrid::addCluster(const CellIndex &cell_index, const int &cluster_index)
 {
-    if (!cells_.contains(cell_index))
-    {
-        // If hash grid cell does not yet exist, create a new one.
-        std::list<int> clusters;
-        clusters.push_back(cluster_index);
-        cells_.insert(std::make_pair(cell_index, clusters));
-    }
-    else
-    {
-        // If hash grid cell already exists, add the new cluster index to the existing list of clusters.
-        cells_.find(cell_index)->second.push_back(cluster_index);
-    }
+    // Add the new cluster index to the list of clusters of the hash grid cell (created if it does not yet exist).
+    cells_[cell_index].push_back(cluster_index);
 }
 
 void ClusteringGrid::removeCluster(const CellIndex &cell_index, const int &cluster_index)
 {
-    if (cells_.contains(cell_index))
+    auto it = cells_.find(cell_index);
+    if (it != cells_.end())
     {
-        cells_.find(cell_index)->second.remove(cluster_index);
-        if (cells_.find(cell_index)->second.empty())
+        it->second.remove(cluster_index);
+        if (it->second.empty())
         {
-            cells_.erase(cell_index);
+            cells_.erase(it);
         }
     }
 }
@@ -63,12 +62,13 @@ void ClusteringGrid::removeAllClusters()
     cells_.clear();
 }
 
-std::list<int> ClusteringGrid::getClusters(const CellIndex &cell_index) const
+const std::list<int>& ClusteringGrid::getClusters(const CellIndex &cell_index) const
 {
+    static const std::list<int> no_clusters;
     auto it = cells_.find(cell_index);
     if (it == cells_.end())
     {
-        return std::list<int>(); // empty/never-populated cell -> no clusters
+        return no_clusters; // empty/never-populated cell -> no clusters
     }
     return it->second;
 }

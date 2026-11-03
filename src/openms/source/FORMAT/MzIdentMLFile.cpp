@@ -17,6 +17,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 
 namespace OpenMS
@@ -45,6 +46,9 @@ namespace OpenMS
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::MZIDENTML) + "'");
     }
+
+    // every peptide identification needs its protein identification run: fail before the file is opened
+    ProteinRunReferences::check(poid, peid);
 
     Internal::MzIdentMLHandler handler(poid, peid, filename, schema_version_, *this);
     save_(filename, &handler);

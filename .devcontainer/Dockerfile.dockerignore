@@ -1,0 +1,4 @@
+# The build context is the repository root; the image needs only these files.
+*
+!tools/ci/deps-ubuntu.sh
+!tools/ci/install_dotnet_sdk_linux.sh

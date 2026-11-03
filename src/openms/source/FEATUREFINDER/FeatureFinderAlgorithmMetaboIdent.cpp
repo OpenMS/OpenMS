@@ -35,8 +35,10 @@
 
 #include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
+#include <set>
 #include <vector>
 #include <numeric>
+#include <optional>
 #include <fstream>
 #include <algorithm>
 #include <random>
@@ -190,7 +192,9 @@ namespace OpenMS
     library_.clear(true);
     trafo_ = TransformationDescription();
     n_shared_ = 0;
-    bool first_group = true;
+    // targets without features in a group, by PeptideRef (in order): kept below if no group found them
+    std::vector<PeptideIdentification> missing_targets;
+    std::set<std::string> missing_refs;
 
     for (auto& [group_cv, faims_group] : faims_groups)
     {
@@ -205,30 +209,39 @@ namespace OpenMS
       FeatureMap features_cv;
       ff_group.runSingleGroup_(metaboIdentTable, features_cv, spectra_file);
 
+      // the same transitions are extracted at every CV: make the chromatogram native ids (and the references of the
+      // subordinates to them) unique per CV
+      const std::string cv_suffix = "_CV" + StringUtils::toStr(group_cv);
+
       // Annotate features with FAIMS CV and add to combined results
       for (auto& feat : features_cv)
       {
         feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        for (Feature& sub : feat.getSubordinates())
+        {
+          if (sub.metaValueExists("native_id")) sub.setMetaValue("native_id", StringUtils::toStr(sub.getMetaValue("native_id")) + cv_suffix);
+        }
         features.push_back(feat);
       }
 
-      // Copy ProteinIdentifications from first group
-      if (first_group)
+      // Copy ProteinIdentifications (the run "id" of the unassigned peptide identifications, which a group only has if
+      // it has targets without features) from the first group that has them
+      if (features.getProteinIdentifications().empty())
       {
         features.setProteinIdentifications(features_cv.getProteinIdentifications());
       }
 
-      // Copy UnassignedPeptideIdentifications with FAIMS annotation
+      // Targets without features at this CV (unassigned "identifications")
       for (auto& pep_id : features_cv.getUnassignedPeptideIdentifications())
       {
-        pep_id.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
-        features.getUnassignedPeptideIdentifications().push_back(std::move(pep_id));
+        if (missing_refs.insert(StringUtils::toStr(pep_id.getMetaValue("PeptideRef"))).second) missing_targets.push_back(std::move(pep_id));
       }
 
       // Combine chromatograms
       for (auto& chrom : ff_group.getChromatograms().getChromatograms())
       {
         chrom.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        chrom.setNativeID(chrom.getNativeID() + cv_suffix);
         chrom_data_.addChromatogram(std::move(chrom));
       }
 
@@ -241,7 +254,25 @@ namespace OpenMS
       trafo_.setDataPoints(points);
 
       n_shared_ += ff_group.getNShared();
-      first_group = false;
+    }
+
+    // Targets without features are those without a feature at any CV (as without FAIMS, once each)
+    std::set<std::string> found_refs;
+    for (const Feature& feat : features)
+    {
+      found_refs.insert(StringUtils::toStr(feat.getMetaValue("PeptideRef")));
+      if (feat.metaValueExists("alt_PeptideRef"))
+      {
+        StringList alt_refs = feat.getMetaValue("alt_PeptideRef");
+        found_refs.insert(alt_refs.begin(), alt_refs.end());
+      }
+    }
+    for (auto& pep_id : missing_targets)
+    {
+      if (!found_refs.contains(StringUtils::toStr(pep_id.getMetaValue("PeptideRef"))))
+      {
+        features.getUnassignedPeptideIdentifications().push_back(std::move(pep_id));
+      }
     }
 
     // Warn about library output for FAIMS data
@@ -400,9 +431,16 @@ namespace OpenMS
               << " chromatogram(s)." << endl;
 
     OPENMS_LOG_INFO << "Detecting chromatographic peaks..." << endl;
-    Logger::LogSinkGuard log_guard(getGlobalLogInfo(), cout); // suppress status output from OpenSWATH (exception-safe)
-    feat_finder_.pickExperiment(chrom_data_, features, library_,
-                                TransformationDescription(), ms_data_);
+    {
+      // suppress status output from OpenSWATH, unless in debug mode:
+      std::optional<Logger::LogSinkGuard> log_guard; // RAII: re-inserts cout on scope exit (exception-safe)
+      if (debug_level_ < 1)
+      {
+        log_guard.emplace(getThreadLocalLogInfo(), cout);
+      }
+      feat_finder_.pickExperiment(chrom_data_, features, library_,
+                                  TransformationDescription(), ms_data_);
+    }
     OPENMS_LOG_INFO << "Found " << features.size()
                     << " feature candidates in total." << endl;
     ms_data_.reset(); // not needed anymore, free up the memory

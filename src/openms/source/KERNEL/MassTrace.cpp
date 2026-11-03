@@ -10,6 +10,7 @@
 
 #include <boost/dynamic_bitset.hpp>
 
+#include <algorithm>
 #include <numeric>
 
 namespace OpenMS
@@ -146,6 +147,18 @@ namespace OpenMS
 
     double MassTrace::estimateFWHM(bool use_smoothed_ints)
     {
+      // The flank search below walks peak indices outward from the apex, so the trace
+      // has to be sorted along its x axis. This used to be caught only indirectly, by
+      // the postcondition of linearInterpolationAtY_ firing when a shuffled axis
+      // happened to hand it a descending bracketing pair (see #10051, where a
+      // non-stable sort on equal RT permutes the ion-mobility axis PeakPickerIM builds
+      // its traces from). That postcondition is not a sortedness check -- it is correct
+      // for either x order -- so the invariant is stated here instead, where it holds
+      // for every shuffle rather than only the ones that invert a bracket.
+      OPENMS_PRECONDITION(std::is_sorted(trace_peaks_.begin(), trace_peaks_.end(),
+                                         [](const PeakType& a, const PeakType& b) { return a.getRT() < b.getRT(); }),
+                          "mass trace is not sorted along its x (RT) axis")
+
       Size max_idx(this->findMaxByIntPeak(use_smoothed_ints));
 
       std::vector<double> tmp_ints;
@@ -188,6 +201,8 @@ namespace OpenMS
       fwhm_end_idx_ = right_border;
 
       // calculate RT of left side
+      // the pair below half max is (left_rt_bottom, tmp_ints[left_border]),
+      // the pair above half max is (left_rt_top, tmp_ints[fwhm_left_top_idx])
       Size fwhm_left_top_idx = left_border + 1;
       double left_rt_bottom = trace_peaks_[left_border].getRT();
       double left_rt_top = trace_peaks_[fwhm_left_top_idx].getRT();
@@ -206,6 +221,11 @@ namespace OpenMS
       }
 
       // calculate RT of right side
+      // as on the left side, the point below half max comes first: it is
+      // (right_rt_bottom, tmp_ints[right_border]), the one above half max is
+      // (right_rt_top, tmp_ints[fwhm_right_top_idx]). Each x must travel with
+      // its own y, so the x arguments are in descending order here for a trace
+      // with ascending RT.
       Size fwhm_right_top_idx = right_border - 1;
       double right_rt_bottom = trace_peaks_[right_border].getRT();
       double right_rt_top = trace_peaks_[fwhm_right_top_idx].getRT();
@@ -218,7 +238,7 @@ namespace OpenMS
       }
       else
       {
-        fwhm_end_rt = linearInterpolationAtY_(right_rt_top, right_rt_bottom,
+        fwhm_end_rt = linearInterpolationAtY_(right_rt_bottom, right_rt_top,
                                               (tmp_ints[right_border]),
                                               (tmp_ints[fwhm_right_top_idx]),
                                               (half_max_int));
@@ -238,7 +258,9 @@ namespace OpenMS
       if (std::fabs(xA - xB) == 0 || std::fabs(yA - yB) == 0)  { return xA; }
 
       double xC = (xA + ((y_eval - yA) * (xB - xA) / (yB - yA)));
-      OPENMS_POSTCONDITION(xA <= xC && xC <= xB, "xC is not between xA and xB");
+      // the interpolation parameter is in [0, 1] because of the precondition, so xC lies
+      // between xA and xB -- in either x order, since x need not ascend with y
+      OPENMS_POSTCONDITION(std::min(xA, xB) <= xC && xC <= std::max(xA, xB), "xC is not between xA and xB");
 
       return xC;
     }
@@ -413,31 +435,39 @@ namespace OpenMS
         return;
       }
 
+      // Intensity-weighted mean RT, integrated with the trapezoidal rule: each peak is
+      // weighted by its intensity times the RT span it stands for, which is half the
+      // distance to each of its neighbours (the outermost peaks only have the half towards
+      // their single neighbour).
+      //
+      // The previous formulation weighted every peak by the distance to its *predecessor*
+      // and started the sum at the second peak, so peak 0 contributed to neither the
+      // numerator nor the denominator. That biased the centroid towards later RT and, for a
+      // two-point trace, degenerated to the RT of the second peak whatever the intensities
+      // (see issue #2777).
+      double wmean_rt(0.0);
+      double trace_area(0.0);
 
-
-
-      /* seems not to work with the way we compute the area in the code below -> as a result the RT values are outside the feature boundaries
-      trace_area = this->computePeakArea();
+      for (Size i = 0; i < trace_peaks_.size(); ++i)
+      {
+        const double rt_lower = (i > 0) ? trace_peaks_[i - 1].getRT() : trace_peaks_[i].getRT();
+        const double rt_upper = (i + 1 < trace_peaks_.size()) ? trace_peaks_[i + 1].getRT() : trace_peaks_[i].getRT();
+        const double weight = trace_peaks_[i].getIntensity() * (rt_upper - rt_lower) / 2.0;
+        wmean_rt += weight * trace_peaks_[i].getRT();
+        trace_area += weight;
+      }
 
       if (trace_area < std::numeric_limits<double>::epsilon())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peak area equals zero... impossible to compute weights!",StringUtils::toStr(trace_peaks_.size()));
+      { // no intensity at all, or all peaks share one RT -> weights carry no information
+        double rt_sum(0.0);
+        for (const Peak2D& peak : trace_peaks_)
+        {
+          rt_sum += peak.getRT();
+        }
+        centroid_rt_ = rt_sum / trace_peaks_.size();
+        return;
       }
-      the reason is because computePeakArea uses trapezoidal rule to compute the area, which is not the same as the sum of the intensities
-      we could probably change the part below to also use trapezoidal rule to compute the trace area
-      */
 
-      double wmean_rt(0.0);
-      double trace_area = 0;
-
-      double rt_before = trace_peaks_[0].getRT();
-      for (MassTrace::const_iterator l_it = trace_peaks_.begin() + 1; l_it != trace_peaks_.end(); ++l_it)
-      {
-        double rt_diff = l_it->getRT() - rt_before;                
-        wmean_rt += l_it->getIntensity() * l_it->getRT() * rt_diff;
-        rt_before = l_it->getRT();
-        trace_area += l_it->getIntensity() * rt_diff;
-      }
       centroid_rt_ = wmean_rt / trace_area;
     }
 

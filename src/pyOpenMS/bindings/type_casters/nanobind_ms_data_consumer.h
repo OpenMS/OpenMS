@@ -18,7 +18,7 @@ namespace
   /// Spectra and chromatograms passed to a consumer live in the parser's batch buffer,
   /// which is cleared and refilled as soon as the callback returns. Handing Python a
   /// reference into that buffer therefore leaves any retained wrapper -- and every child
-  /// alias derived from it, including the zero-copy ndarray from get_peaks_struct() --
+  /// alias derived from it, including the zero-copy ndarray from peaks_struct() --
   /// pointing at storage that has since been reused.
   ///
   /// Copying into the callback is not an option: IMSDataConsumer explicitly permits a

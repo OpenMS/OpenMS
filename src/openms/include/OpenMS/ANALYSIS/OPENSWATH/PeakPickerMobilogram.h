@@ -209,7 +209,7 @@ namespace OpenMS
         /// Whether to use Gaussian smoothing
         bool use_gauss_;
         /// Whether to resolve overlapping peaks
-        bool remove_overlapping_;
+        bool remove_overlapping_ = false;
 
         /// Forced peak with
         double peak_width_;

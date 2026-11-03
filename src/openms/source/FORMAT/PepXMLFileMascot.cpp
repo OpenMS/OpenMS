@@ -16,7 +16,7 @@ namespace OpenMS
 
   PepXMLFileMascot::PepXMLFileMascot() :
     XMLHandler("", "1.8"),
-    XMLFile("/SCHEMAS/PepXML_1_8.xsd", "1.8"),
+    XMLFile("", "1.8"), // no bundled XSD (PepXML_1_8.xsd never existed; see share/OpenMS/SCHEMAS/README.md)
     peptides_(nullptr)
   {
 

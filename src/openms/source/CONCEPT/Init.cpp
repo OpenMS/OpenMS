@@ -8,27 +8,14 @@
 
 #include <OpenMS/CONCEPT/Init.h>
 
-#include <xercesc/util/PlatformUtils.hpp>
+#include <libxml/parser.h>
+#include <mutex>
 
 namespace OpenMS::Internal
 {
-
-  // Initialize xerces
-  // see ticket #352 for more details
-  struct xerces_init
+  void libxmlInitialize()
   {
-    xerces_init() 
-    {
-      xercesc::XMLPlatformUtils::Initialize();
-    }
-
-    ~xerces_init() 
-    {
-      xercesc::XMLPlatformUtils::Terminate();
-    }
-
-  };
-  const xerces_init xinit;
-
-} //OpenMS //Internal
-
+    static std::once_flag initialized;
+    std::call_once(initialized, [] { xmlInitParser(); });
+  }
+}

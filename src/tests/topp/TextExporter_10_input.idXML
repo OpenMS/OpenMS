@@ -8,9 +8,9 @@
 			<ProteinHit id="PH_0" accession="PROT1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/data/spectra/test_run.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/data/spectra/test_run.MGF]"/>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="score" higher_score_better="true" significance_threshold="0" MZ="460.7400" RT="100.5" spectrum_reference="scan=42" >
+		<PeptideIdentification score_type="score" higher_score_better="true" significance_threshold="0" MZ="460.7400" RT="100.5" spectrum_reference="index=42" >
 			<PeptideHit score="1.5" sequence="PEPTIDEK" charge="2" aa_before="K" aa_after="L" start="10" end="17" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>

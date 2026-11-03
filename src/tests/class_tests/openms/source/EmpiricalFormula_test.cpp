@@ -17,9 +17,11 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
 #include <sstream>
+#include <vector>
 #include <map>
 #include <unordered_set>
 #include <functional>
@@ -113,13 +115,24 @@ START_SECTION(SignedSize getNumberOfAtoms() const)
 END_SECTION
 
 START_SECTION(EmpiricalFormula& operator<(const EmpiricalFormula& rhs))
-  // operator< compares pointers so this only works for same elements
   TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C6H2"), true)
   TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C5H3"), true)
   TEST_EQUAL(EmpiricalFormula("C5") < EmpiricalFormula("C5H2"), true)
 
   TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C4H2"), false)
   TEST_EQUAL(EmpiricalFormula("C5") < EmpiricalFormula("C5"), false)
+
+  // different elements: by atomic number, not by the addresses of the Element objects
+  TEST_EQUAL(EmpiricalFormula("H2") < EmpiricalFormula("C2"), true)
+  TEST_EQUAL(EmpiricalFormula("C2") < EmpiricalFormula("H2"), false)
+  TEST_EQUAL(EmpiricalFormula("C") < EmpiricalFormula("(13)C"), true)
+  std::vector<Element> elements(2); // elements[0] has the lower address and the higher atomic number
+  elements[0].setAtomicNumber(8);
+  elements[0].setSymbol("O");
+  elements[1].setAtomicNumber(1);
+  elements[1].setSymbol("H");
+  TEST_EQUAL(EmpiricalFormula(1, &elements[1]) < EmpiricalFormula(1, &elements[0]), true)
+  TEST_EQUAL(EmpiricalFormula(1, &elements[0]) < EmpiricalFormula(1, &elements[1]), false)
 END_SECTION
 
 START_SECTION(EmpiricalFormula& operator=(const EmpiricalFormula& rhs))
@@ -434,6 +447,30 @@ START_SECTION(ConstIterator end() const)
   NOT_TESTABLE
 END_SECTION
 
+START_SECTION(([EXTRA] the elements are iterated in order of atomic number, an element before its isotopes))
+  auto symbols = [](const EmpiricalFormula& ef)
+  {
+    std::vector<std::string> result;
+    for (const auto& element : ef) result.push_back(element.first->getSymbol());
+    return ListUtils::concatenate(result, " ");
+  };
+  TEST_EQUAL(symbols(EmpiricalFormula("SO(13)CN(2)HCHP(15)N(12)C")), "H (2)H C (12)C (13)C N (15)N O P S")
+  TEST_EQUAL(symbols(EmpiricalFormula("C2H5") + EmpiricalFormula("D")), "H (2)H C")
+
+  // the order (and so the weight, summed in this order) does not depend on the addresses of the Element objects
+  std::vector<Element> elements(3); // in order of address: atomic numbers 8, 6, 1
+  const std::vector<std::pair<unsigned int, std::string>> numbers_symbols{{8, "O"}, {6, "C"}, {1, "H"}};
+  for (Size i = 0; i < elements.size(); ++i)
+  {
+    elements[i].setAtomicNumber(numbers_symbols[i].first);
+    elements[i].setSymbol(numbers_symbols[i].second);
+    elements[i].setMonoWeight(numbers_symbols[i].first * 1.1);
+  }
+  EmpiricalFormula ef = EmpiricalFormula(1, &elements[0]) + EmpiricalFormula(2, &elements[1]) + EmpiricalFormula(3, &elements[2]);
+  TEST_EQUAL(symbols(ef), "H C O")
+  TEST_EQUAL(ef.getMonoWeight(), elements[2].getMonoWeight() * 3 + elements[1].getMonoWeight() * 2 + elements[0].getMonoWeight() * 1)
+END_SECTION
+
 START_SECTION(IsotopeDistribution getIsotopeDistribution(UInt max_depth) const)
   EmpiricalFormula ef("C");
   IsotopeDistribution iso = ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(20));
@@ -584,6 +621,28 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   {
     TEST_REAL_SIMILAR(big_it->getIntensity(), small_it->getIntensity())
   }
+END_SECTION
+
+START_SECTION(([EXTRA] getConditionalFragmentIsotopeDist with a solver that caps the number of isotopes))
+  // The fragment and its complement are computed deep enough for the isolated precursor isotopes
+  // (here M, M+1 and M+2 -> 3 peaks), but the solver may cap the result below that. The loop that
+  // fills the result used to run over the uncapped length and wrote behind the end of the capped
+  // result (AddressSanitizer: heap-buffer-overflow).
+  EmpiricalFormula cap_precursor("C50H80N15O20");
+  EmpiricalFormula cap_fragment("C25H40N7O10");
+  std::set<UInt> cap_isolated = {0, 1, 2};
+
+  IsotopeDistribution uncapped = cap_fragment.getConditionalFragmentIsotopeDist(cap_precursor, cap_isolated, CoarseIsotopePatternGenerator());
+  IsotopeDistribution capped = cap_fragment.getConditionalFragmentIsotopeDist(cap_precursor, cap_isolated, CoarseIsotopePatternGenerator(2));
+  TEST_EQUAL(uncapped.size(), 3)
+  TEST_EQUAL(capped.size(), 2)
+  // renormalized to 1 over the peaks that are left
+  TEST_REAL_SIMILAR(capped.getContainer()[0].getIntensity() + capped.getContainer()[1].getIntensity(), 1.0)
+  // the kept peaks are the first ones of the uncapped distribution, so their ratio is unchanged
+  TEST_REAL_SIMILAR(capped.getContainer()[1].getIntensity() / capped.getContainer()[0].getIntensity(),
+                    uncapped.getContainer()[1].getIntensity() / uncapped.getContainer()[0].getIntensity())
+  TEST_REAL_SIMILAR(capped.getContainer()[0].getMZ(), uncapped.getContainer()[0].getMZ())
+  TEST_REAL_SIMILAR(capped.getContainer()[1].getMZ(), uncapped.getContainer()[1].getMZ())
 END_SECTION
 
 START_SECTION(([EXTRA] Check correct charge semantics))

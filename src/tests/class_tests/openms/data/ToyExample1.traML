@@ -63,7 +63,7 @@
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="G1"/>
       <cvParam cvRef="MS" accession="MS:1000863" name="predicted isoelectric point" value="5.22"/>
       <cvParam cvRef="MS" accession="MS:1000891" name="heavy labeled peptide"/>
-      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value="1189.22" unitCvRef="UO" unitAccession="UO:0000221" unitName="dalton"/>
+      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical neutral mass" value="1189.22" unitCvRef="UO" unitAccession="UO:0000221" unitName="dalton"/>
       <userParam name="isomerization potential" type="xsd:double" value="0.583"/>
       <ProteinRef ref="Q12149"/>
       <ProteinRef ref="ENSP00000332698"/>
@@ -90,7 +90,7 @@
     <Peptide id="PEPTIDEM" sequence="PEPTIDEM">
     </Peptide>
     <Compound id="glyoxylate">
-      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value="423.39" unitCvRef="UO" unitAccession="UO:0000221" unitName="dalton"/>
+      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical neutral mass" value="423.39" unitCvRef="UO" unitAccession="UO:0000221" unitName="dalton"/>
       <cvParam cvRef="MS" accession="MS:1000866" name="molecular formula" value="C2HO3"/>
       <cvParam cvRef="MS" accession="MS:1000868" name="SMILES string" value="[CH](=[O])[C](=[O])[O-]"/>
       <RetentionTimeList>

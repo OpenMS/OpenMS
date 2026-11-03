@@ -1,0 +1,42 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8131eb0..cba4b27 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -47,7 +47,7 @@ if(NOT OPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR AND NOT OPENMS_THERMO_BRIDGE_DO
+ else()
+   find_program(DOTNET_EXECUTABLE NAMES dotnet)
+ endif()
+-find_package(DotNetHost REQUIRED)
++find_package(unofficial-nethost CONFIG REQUIRED)
+ 
+ set(OPENMS_THERMO_BRIDGE_MANAGED_DIR "${CMAKE_CURRENT_BINARY_DIR}/openms_thermo_bridge_managed")
+ 
+@@ -211,7 +211,7 @@ target_include_directories(openms_thermo_bridge
+     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+-target_link_libraries(openms_thermo_bridge PRIVATE DotNetHost::nethost)
++target_link_libraries(openms_thermo_bridge PRIVATE unofficial::nethost::nethost)
+ if(NOT WIN32)
+   target_link_libraries(openms_thermo_bridge PRIVATE ${CMAKE_DL_LIBS})
+ endif()
+@@ -302,5 +302,4 @@ install(FILES
+   "${CMAKE_CURRENT_BINARY_DIR}/OpenMSThermoBridgeConfig.cmake"
+   "${CMAKE_CURRENT_BINARY_DIR}/OpenMSThermoBridgeConfigVersion.cmake"
+   "${CMAKE_CURRENT_BINARY_DIR}/OpenMSThermoBridgeHelpers.cmake"
+-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindDotNetHost.cmake"
+   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/OpenMSThermoBridge")
+diff --git a/cmake/OpenMSThermoBridgeConfig.cmake.in b/cmake/OpenMSThermoBridgeConfig.cmake.in
+index 7e5411e..5ba5a07 100644
+--- a/cmake/OpenMSThermoBridgeConfig.cmake.in
++++ b/cmake/OpenMSThermoBridgeConfig.cmake.in
+@@ -1,8 +1,7 @@
+ @PACKAGE_INIT@
+ 
+ include(CMakeFindDependencyMacro)
+-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
+-find_dependency(DotNetHost REQUIRED)
++find_dependency(unofficial-nethost CONFIG REQUIRED)
+ 
+ include("${CMAKE_CURRENT_LIST_DIR}/OpenMSThermoBridgeTargets.cmake")
+ include("${CMAKE_CURRENT_LIST_DIR}/OpenMSThermoBridgeHelpers.cmake")

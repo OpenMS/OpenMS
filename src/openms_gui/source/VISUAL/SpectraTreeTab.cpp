@@ -19,6 +19,10 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMenu>
 
+#include <map>
+#include <string_view>
+#include <unordered_map>
+
 namespace OpenMS
 {
 
@@ -298,6 +302,51 @@ namespace OpenMS
     return is_peak || is_chrom;
   }
 
+  std::vector<int> SpectraTreeTab::getParentIndices(const MSExperiment& exp)
+  {
+    std::vector<int> parents(exp.size(), -1);
+    // native ID --> index of the last spectrum with this ID (the keys view the IDs stored in @p exp)
+    std::unordered_map<std::string_view, int> index_of_native_id;
+    // MS level --> index of the last spectrum of this level, as long as no spectrum of a lower level followed it
+    std::map<UInt, int> last_of_level;
+
+    for (int i = 0; i < static_cast<int>(exp.size()); ++i)
+    {
+      const MSSpectrum& spec = exp[i];
+      const UInt ms_level = spec.getMSLevel();
+      if (ms_level > 1)
+      {
+        // the spectrum the precursor refers to, if it is one MS level lower (same rule as MSExperiment::getPrecursorSpectrum())
+        if (!spec.getPrecursors().empty())
+        {
+          const std::string ref = StringUtils::toStr(spec.getPrecursors()[0].getMetaValue("spectrum_ref", ""));
+          const auto it_ref = ref.empty() ? index_of_native_id.end() : index_of_native_id.find(ref);
+          if (it_ref != index_of_native_id.end() && exp[it_ref->second].getMSLevel() + 1 == ms_level)
+          {
+            parents[i] = it_ref->second;
+          }
+        }
+        // no usable reference: fall back to the order of the spectra
+        if (parents[i] == -1)
+        {
+          const auto it_last = last_of_level.find(ms_level - 1);
+          if (it_last != last_of_level.end())
+          {
+            parents[i] = it_last->second;
+          }
+        }
+      }
+
+      last_of_level.erase(last_of_level.upper_bound(ms_level), last_of_level.end());
+      last_of_level[ms_level] = i;
+      if (!spec.getNativeID().empty())
+      {
+        index_of_native_id[spec.getNativeID()] = i;
+      }
+    }
+    return parents;
+  }
+
   void SpectraTreeTab::updateEntries(LayerDataBase* layer)
   {
     if (layer == nullptr)
@@ -333,100 +382,32 @@ namespace OpenMS
       const auto& cl = *lp;
       spectra_treewidget_->clear();
 
-      std::vector<QTreeWidgetItem *> parent_stack;
-      parent_stack.push_back(nullptr);
-      bool fail = false;
-      last_peakmap_ = &(cl.getPeakData()->getMSExperiment());
+      const MSExperiment& peak_map = cl.getPeakData()->getMSExperiment();
+      last_peakmap_ = &peak_map;
       spectra_treewidget_->setHeaders(ClmnPeak::HEADER_NAMES);
 
-      for (Size i = 0; i < cl.getPeakData()->getMSExperiment().size(); ++i)
+      // list each spectrum under its precursor spectrum; a parent always precedes its children, so its item exists already
+      const std::vector<int> parents = getParentIndices(peak_map);
+      std::vector<QTreeWidgetItem*> items(peak_map.size(), nullptr);
+      for (Size i = 0; i < peak_map.size(); ++i)
       {
-        const MSSpectrum& current_spec = cl.getPeakData()->getMSExperiment()[i];
-
-        if (i > 0)
+        if (parents[i] == -1)
         {
-          const MSSpectrum& prev_spec = cl.getPeakData()->getMSExperiment()[i-1];
-          // current MS level = previous MS level + 1 (e.g. current: MS2, previous: MS1)
-          if (current_spec.getMSLevel() == prev_spec.getMSLevel() + 1)
-          {
-            toplevel_item = new QTreeWidgetItem(parent_stack.back());
-            parent_stack.resize(parent_stack.size() + 1);
-          }
-          // current MS level = previous MS level (e.g. MS2,MS2 or MS1,MS1)
-          else if (current_spec.getMSLevel() == prev_spec.getMSLevel())
-          {
-            if (parent_stack.size() == 1)
-            {
-              toplevel_item = new QTreeWidgetItem();
-            }
-            else
-            {
-              toplevel_item = new QTreeWidgetItem(*(parent_stack.end() - 2));
-            }
-          }
-          // current MS level < previous MS level (e.g. MS1,MS2)
-          else if (current_spec.getMSLevel() < prev_spec.getMSLevel())
-          {
-            Int level_diff = prev_spec.getMSLevel() - current_spec.getMSLevel();
-            Size parent_index = 0;
-            if (parent_stack.size() - level_diff >= 2)
-            {
-              parent_index = parent_stack.size() - level_diff - 1;
-              QTreeWidgetItem * parent = parent_stack[parent_index];
-              toplevel_item = new QTreeWidgetItem(parent, parent_stack[parent_index + 1]);
-            }
-            else
-            {
-              toplevel_item = new QTreeWidgetItem((QTreeWidget *)nullptr);
-            }
-            parent_stack.resize(parent_index + 1);
-          }
-          else
-          {
-            std::cerr << "Cannot build treelike view for spectrum browser, generating flat list instead." << std::endl;
-            fail = true;
-            break;
-          }
+          toplevel_item = new QTreeWidgetItem();
+          toplevel_items.push_back(toplevel_item);
         }
         else
         {
-          toplevel_item = new QTreeWidgetItem();
+          toplevel_item = new QTreeWidgetItem(items[parents[i]]);
         }
+        items[i] = toplevel_item;
 
-        parent_stack.back() = toplevel_item;
-        if (parent_stack.size() == 1)
-        {
-          toplevel_items.push_back(toplevel_item);
-        }
-
-        populatePeakDataRow_(toplevel_item, i, current_spec);
+        populatePeakDataRow_(toplevel_item, i, peak_map[i]);
 
         if (i == spec_index)
         {
           // just remember it, select later
           selected_item = toplevel_item;
-        }
-      }
-
-      if (fail)
-      {
-        // generate flat list instead
-        spectra_treewidget_->clear();
-        toplevel_items.clear();
-        selected_item = nullptr;
-        for (Size i = 0; i < cl.getPeakData()->getMSExperiment().size(); ++i)
-        {
-          const MSSpectrum& current_spec = cl.getPeakData()->getMSExperiment()[i];
-          toplevel_item = new QTreeWidgetItem();
-          
-          populatePeakDataRow_(toplevel_item, i, current_spec);
-
-          toplevel_items.push_back(toplevel_item);
-          if (i == spec_index)
-          {
-            // just remember it, select later
-            selected_item = toplevel_item;
-          }
         }
       }
       spectra_treewidget_->addTopLevelItems(toplevel_items);

@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -20,22 +21,38 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/MetaInfo.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
 #include <cctype>
+#include <charconv>
+#include <cmath>
 #include <cstdint>
+#include <exception>
+#include <functional>
+#include <limits>
 #include <map>
+#include <optional>
 #include <set>
+#include <stdexcept>
 #include <unordered_set>
+#include <variant>
 
 #include <arrow/api.h>
 #include <arrow/io/file.h>
+#include <arrow/ipc/writer.h>
+#include <arrow/util/base64.h>
 #include <arrow/table.h>
+#include <arrow/util/thread_pool.h>
 #include <parquet/arrow/writer.h>
 #include <parquet/properties.h>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace OpenMS
 {
@@ -86,7 +103,9 @@ namespace
   /// Non-QPX tables, and QPX sidecars not produced by these exporters, pass through unchanged.
   bool validateQPXValuesForWrite(
     const std::shared_ptr<arrow::Table>& table,
-    const std::string& filename)
+    const std::string& filename,
+    bool extra_columns,
+    int threads)
   {
     const auto metadata = table->schema()->metadata();
     if (!metadata || !metadata->Contains("qpx_version")) { return true; }
@@ -119,6 +138,8 @@ namespace
     }
 
     QPXValueValidation validator(view);
+    validator.setExtraColumnsAllowed(extra_columns);
+    validator.setThreads(threads);
     const auto validation = validator.validate(table);
     if (!validation.valid)
     {
@@ -462,6 +483,30 @@ bool qpxIsCanonicalIntensityLabel(const std::string& label)
   return canonical.contains(label);
 }
 
+std::vector<std::pair<std::string, std::string>> qpxCvParams(const MetaInfoInterface& hit)
+{
+  return qpxCvParams(hit, MS1LabelState::Keys());
+}
+
+std::vector<std::pair<std::string, std::string>> qpxCvParams(const MetaInfoInterface& hit,
+                                                              const MS1LabelState::Keys& keys)
+{
+  // The label state written by MS1LabeledWorkflow; see MS1LabelState for the meaning of each key.
+  // Looked up by index: this runs once per exported row, and a lookup by name takes the registry lock.
+  std::vector<std::pair<std::string, std::string>> params;
+  const auto add = [&](const std::string& name, UInt index)
+  {
+    if (index != static_cast<UInt>(-1) && hit.metaValueExists(index))
+    {
+      params.emplace_back(name, hit.getMetaValue(index).toString());
+    }
+  };
+  add(MS1LabelState::LABELED_SEQUENCE, keys.labeled_sequence);
+  add(MS1LabelState::REMOVED_LABELS, keys.removed_labels);
+  add(MS1LabelState::CHANNEL, keys.channel);
+  return params;
+}
+
 std::string qpxRunFileName(const std::string& ms_run_path)
 {
   // File::stemName() already maps "" -> "".
@@ -475,12 +520,12 @@ std::vector<Int32> qpxScanComponents(const std::string& spectrum_reference)
   if (regex_str.empty()) { return {}; }
 
   // getRegExFromNativeID() maps every native-ID convention onto one of a handful of fixed
-  // patterns, but compiling a boost::regex parses the pattern each time -- and this runs once per
+  // patterns, but compiling a RegularExpression parses the pattern each time -- and this runs once per
   // exported row. Cached per thread rather than shared: the exporters call it from inside an
   // OpenMP region, where one shared cache would need a lock and reintroduce the cost it saves.
-  thread_local std::map<std::string, boost::regex> compiled;
+  thread_local std::map<std::string, RegularExpression> compiled;
   auto entry = compiled.find(regex_str);
-  if (entry == compiled.end()) { entry = compiled.emplace(regex_str, boost::regex(regex_str)).first; }
+  if (entry == compiled.end()) { entry = compiled.emplace(regex_str, RegularExpression(regex_str)).first; }
 
   const Int scan = SpectrumNativeIDParser::extractScanNumber(spectrum_reference, entry->second, true);
   if (scan < 0) { return {}; }
@@ -548,22 +593,555 @@ bool qpxWarnOnRunNameCollisions(const std::string& context,
 
 std::string qpxScanFormat(const std::vector<std::string>& native_ids)
 {
-  std::string resolved;
-  for (const auto& id : native_ids)
+  return qpxScanFormat(native_ids, 1);
+}
+
+std::string qpxScanFormat(const std::vector<std::string>& native_ids, int threads)
+{
+  // Per range of IDs (one per thread): the first convention seen and the first one that differs from it. Merged in
+  // order below, the result and the warning (the first pair of conventions in ID order) are those of one serial pass.
+  struct Range { std::string resolved, conflict; };
+  int ranges = 1;
+#ifdef _OPENMP
+  if (threads > 1 && !omp_in_parallel()) { ranges = static_cast<int>(std::min<size_t>(static_cast<size_t>(threads), std::max<size_t>(1, native_ids.size() / 4096))); }
+#endif
+  std::vector<Range> parts(ranges);
+  std::exception_ptr error; // (exceptions must not leave the parallel region)
+  #pragma omp parallel for num_threads(ranges) schedule(static) if(ranges > 1)
+  for (int r = 0; r < ranges; ++r)
   {
-    const std::string fmt = qpxScanFormat(id);
-    if (fmt.empty()) { continue; } // unrecognized IDs carry no evidence either way
-    if (resolved.empty()) { resolved = fmt; }
-    else if (resolved != fmt)
+    try
+    {
+      Range& part = parts[r];
+      const size_t begin = native_ids.size() * r / ranges, end = native_ids.size() * (r + 1) / ranges;
+      for (size_t i = begin; i < end; ++i)
+      {
+        const std::string fmt = qpxScanFormat(native_ids[i]);
+        if (fmt.empty()) { continue; } // unrecognized IDs carry no evidence either way
+        if (part.resolved.empty()) { part.resolved = fmt; }
+        else if (part.resolved != fmt) { part.conflict = fmt; break; }
+      }
+    }
+    catch (...)
+    {
+      #pragma omp critical (ArrowIOHelpers_qpxScanFormat)
+      if (!error) { error = std::current_exception(); }
+    }
+  }
+  if (error) { std::rethrow_exception(error); }
+  std::string resolved;
+  for (const Range& part : parts)
+  {
+    std::string conflict;
+    if (resolved.empty()) { resolved = part.resolved; conflict = part.conflict; }
+    else if (!part.resolved.empty() && part.resolved != resolved) { conflict = part.resolved; }
+    else { conflict = part.conflict; }
+    if (!conflict.empty())
     {
       // Two conventions in one export: neither token would describe the whole file, so
       // omit scan_format rather than assert a wrong one.
       OPENMS_LOG_WARN << "ArrowIOHelpers: spectrum native IDs mix '" << resolved << "' and '"
-                      << fmt << "' conventions; omitting QPX scan_format." << std::endl;
+                      << conflict << "' conventions; omitting QPX scan_format." << std::endl;
       return "";
     }
   }
   return resolved;
+}
+
+namespace
+{
+  /// The rows of @p c (the size of the vector of its type).
+  size_t parquetColumnRows(const ParquetColumn& c)
+  {
+    switch (c.type)
+    {
+      case ParquetColumn::Type::INT16:
+      case ParquetColumn::Type::INT32:
+      case ParquetColumn::Type::BOOL:
+      case ParquetColumn::Type::INT64:                return c.int64_values.size();
+      case ParquetColumn::Type::DOUBLE:
+      case ParquetColumn::Type::FLOAT:                return c.double_values.size();
+      case ParquetColumn::Type::INT32_LIST:           return c.int32_lists.size();
+      case ParquetColumn::Type::STRUCT_LIST:          return c.struct_lists.size();
+      case ParquetColumn::Type::UTF8:                 return c.utf8_values.size();
+      case ParquetColumn::Type::FLOAT_LIST:           return c.float_lists.size();
+      case ParquetColumn::Type::UTF8_LIST:            return c.utf8_lists.size();
+      case ParquetColumn::Type::SCORE_LIST:           return c.score_lists.size();
+    }
+    return 0;
+  }
+
+  /// The Arrow type of a STRUCT_LIST of @p fields (null for a field of another type)
+  std::shared_ptr<arrow::DataType> structListType(const std::vector<ParquetColumn::StructField>& fields)
+  {
+    std::vector<std::shared_ptr<arrow::Field>> out;
+    for (const ParquetColumn::StructField& f : fields)
+    {
+      std::shared_ptr<arrow::DataType> type;
+      switch (f.type)
+      {
+        case ParquetColumn::Type::UTF8:        type = arrow::utf8(); break;
+        case ParquetColumn::Type::INT32:       type = arrow::int32(); break;
+        case ParquetColumn::Type::BOOL:        type = arrow::boolean(); break;
+        case ParquetColumn::Type::DOUBLE:      type = arrow::float64(); break;
+        case ParquetColumn::Type::FLOAT:       type = arrow::float32(); break;
+        case ParquetColumn::Type::STRUCT_LIST: type = structListType(f.fields); break;
+        default: break;
+      }
+      if (!type) { return nullptr; }
+      out.push_back(arrow::field(f.name, type, f.nullable));
+    }
+    return arrow::list(arrow::struct_(out));
+  }
+
+  /// Appends a list of @p entries of the structs of @p fields to @p b (whose type is structListType(@p fields))
+  arrow::Status appendStructEntries(arrow::ListBuilder& b, const std::vector<ParquetColumn::StructField>& fields,
+                                    const std::vector<ParquetColumn::StructEntry>& entries, const std::string& column)
+  {
+    ARROW_RETURN_NOT_OK(b.Append());
+    auto& entry_builder = static_cast<arrow::StructBuilder&>(*b.value_builder());
+    for (const ParquetColumn::StructEntry& entry : entries)
+    {
+      if (entry.size() != fields.size())
+      {
+        return arrow::Status::Invalid("column '", column, "': an entry of ", entry.size(), " values for ", fields.size(), " fields");
+      }
+      ARROW_RETURN_NOT_OK(entry_builder.Append());
+      for (size_t k = 0; k < fields.size(); ++k)
+      {
+        const ParquetColumn::StructField& f = fields[k];
+        const auto& v = entry[k].value;
+        arrow::ArrayBuilder& fb = *entry_builder.field_builder(static_cast<int>(k));
+        if (std::holds_alternative<std::monostate>(v))
+        {
+          if (!f.nullable) { return arrow::Status::Invalid("column '", column, "': the field '", f.name, "' is non-null"); }
+          ARROW_RETURN_NOT_OK(fb.AppendNull());
+          continue;
+        }
+        const auto mismatch = [&]() { return arrow::Status::Invalid("column '", column, "': a value of another type for the field '", f.name, "'"); };
+        switch (f.type)
+        {
+          case ParquetColumn::Type::UTF8:
+            if (!std::holds_alternative<std::string>(v)) { return mismatch(); }
+            ARROW_RETURN_NOT_OK(static_cast<arrow::StringBuilder&>(fb).Append(std::get<std::string>(v)));
+            break;
+          case ParquetColumn::Type::INT32:
+            if (!std::holds_alternative<Int32>(v)) { return mismatch(); }
+            ARROW_RETURN_NOT_OK(static_cast<arrow::Int32Builder&>(fb).Append(std::get<Int32>(v)));
+            break;
+          case ParquetColumn::Type::BOOL:
+            if (!std::holds_alternative<bool>(v)) { return mismatch(); }
+            ARROW_RETURN_NOT_OK(static_cast<arrow::BooleanBuilder&>(fb).Append(std::get<bool>(v)));
+            break;
+          case ParquetColumn::Type::DOUBLE:
+            if (!std::holds_alternative<double>(v)) { return mismatch(); }
+            ARROW_RETURN_NOT_OK(static_cast<arrow::DoubleBuilder&>(fb).Append(std::get<double>(v)));
+            break;
+          case ParquetColumn::Type::FLOAT:
+            if (!std::holds_alternative<double>(v)) { return mismatch(); }
+            ARROW_RETURN_NOT_OK(static_cast<arrow::FloatBuilder&>(fb).Append(static_cast<float>(std::get<double>(v))));
+            break;
+          case ParquetColumn::Type::STRUCT_LIST:
+            if (!std::holds_alternative<std::vector<ParquetColumn::StructEntry>>(v)) { return mismatch(); }
+            ARROW_RETURN_NOT_OK(appendStructEntries(static_cast<arrow::ListBuilder&>(fb), f.fields,
+                                                    std::get<std::vector<ParquetColumn::StructEntry>>(v), column));
+            break;
+          default:
+            return mismatch();
+        }
+      }
+    }
+    return arrow::Status::OK();
+  }
+
+  /// The Arrow array and field of @p c (@p rows rows); a builder error is returned as its status.
+  /// The number of values of all lists of @p lists (for the exact reserve of a list column's values)
+  template <typename List>
+  int64_t totalSize(const std::vector<List>& lists)
+  {
+    int64_t n = 0;
+    for (const List& list : lists) { n += static_cast<int64_t>(list.size()); }
+    return n;
+  }
+
+  arrow::Status buildParquetColumn(const ParquetColumn& c, size_t rows, std::shared_ptr<arrow::Field>& field,
+                                   std::shared_ptr<arrow::Array>& array)
+  {
+    auto isNull = [&c](size_t row) { return !c.null_rows.empty() && c.null_rows[row]; };
+    // One row of each type: append the value of @p row (not null) to @p b.
+    auto build = [&](arrow::ArrayBuilder& b, const std::shared_ptr<arrow::DataType>& type, auto&& append) -> arrow::Status
+    {
+      ARROW_RETURN_NOT_OK(b.Reserve(static_cast<int64_t>(rows)));
+      for (size_t row = 0; row < rows; ++row)
+      {
+        if (isNull(row) && !c.nullable)
+        {
+          return arrow::Status::Invalid("column '", c.name, "' is non-null, row ", row, " is null");
+        }
+        ARROW_RETURN_NOT_OK(isNull(row) ? b.AppendNull() : append(row));
+      }
+      ARROW_RETURN_NOT_OK(b.Finish(&array));
+      field = arrow::field(c.name, type, c.nullable);
+      return arrow::Status::OK();
+    };
+    auto int32Of = [&c](int64_t v, size_t row, int32_t& out) -> arrow::Status
+    {
+      if (v < std::numeric_limits<int32_t>::min() || v > std::numeric_limits<int32_t>::max())
+      {
+        return arrow::Status::Invalid("column '", c.name, "' row ", row, ": ", v, " is outside the range of int32");
+      }
+      out = static_cast<int32_t>(v);
+      return arrow::Status::OK();
+    };
+    switch (c.type)
+    {
+      case ParquetColumn::Type::INT16:
+      {
+        arrow::Int16Builder b;
+        return build(b, arrow::int16(), [&](size_t row)
+        {
+          const int64_t v = c.int64_values[row];
+          if (v < std::numeric_limits<int16_t>::min() || v > std::numeric_limits<int16_t>::max())
+          {
+            return arrow::Status::Invalid("column '", c.name, "' row ", row, ": ", v, " is outside the range of int16");
+          }
+          return b.Append(static_cast<int16_t>(v));
+        });
+      }
+      case ParquetColumn::Type::INT64:
+      {
+        arrow::Int64Builder b;
+        return build(b, arrow::int64(), [&](size_t row) { return b.Append(c.int64_values[row]); });
+      }
+      case ParquetColumn::Type::INT32:
+      {
+        arrow::Int32Builder b;
+        return build(b, arrow::int32(), [&](size_t row)
+        {
+          int32_t v = 0;
+          ARROW_RETURN_NOT_OK(int32Of(c.int64_values[row], row, v));
+          return b.Append(v);
+        });
+      }
+      case ParquetColumn::Type::BOOL:
+      {
+        arrow::BooleanBuilder b;
+        return build(b, arrow::boolean(), [&](size_t row) { return b.Append(c.int64_values[row] != 0); });
+      }
+      case ParquetColumn::Type::DOUBLE:
+      {
+        arrow::DoubleBuilder b;
+        return build(b, arrow::float64(), [&](size_t row) { return b.Append(c.double_values[row]); });
+      }
+      case ParquetColumn::Type::FLOAT:
+      {
+        arrow::FloatBuilder b;
+        return build(b, arrow::float32(), [&](size_t row) { return b.Append(static_cast<float>(c.double_values[row])); });
+      }
+      case ParquetColumn::Type::INT32_LIST:
+      {
+        auto values = std::make_shared<arrow::Int32Builder>();
+        arrow::ListBuilder b(arrow::default_memory_pool(), values);
+        ARROW_RETURN_NOT_OK(values->Reserve(totalSize(c.int32_lists)));
+        return build(b, arrow::list(arrow::int32()), [&](size_t row)
+        {
+          ARROW_RETURN_NOT_OK(b.Append());
+          return values->AppendValues(c.int32_lists[row]);
+        });
+      }
+      case ParquetColumn::Type::STRUCT_LIST:
+      {
+        const auto type = structListType(c.struct_fields);
+        if (!type) { return arrow::Status::Invalid("column '", c.name, "': a struct field of an unsupported type"); }
+        std::unique_ptr<arrow::ArrayBuilder> made;
+        ARROW_RETURN_NOT_OK(arrow::MakeBuilder(arrow::default_memory_pool(), type, &made));
+        auto& b = static_cast<arrow::ListBuilder&>(*made);
+        return build(b, type, [&](size_t row) { return appendStructEntries(b, c.struct_fields, c.struct_lists[row], c.name); });
+      }
+      case ParquetColumn::Type::UTF8:
+      {
+        arrow::StringBuilder b;
+        int64_t bytes = 0;
+        for (const std::string& v : c.utf8_values) { bytes += static_cast<int64_t>(v.size()); }
+        ARROW_RETURN_NOT_OK(b.ReserveData(bytes));
+        return build(b, arrow::utf8(), [&](size_t row) { return b.Append(c.utf8_values[row]); });
+      }
+      case ParquetColumn::Type::FLOAT_LIST:
+      {
+        auto values = std::make_shared<arrow::FloatBuilder>();
+        arrow::ListBuilder b(arrow::default_memory_pool(), values);
+        ARROW_RETURN_NOT_OK(values->Reserve(totalSize(c.float_lists)));
+        return build(b, arrow::list(arrow::float32()), [&](size_t row)
+        {
+          ARROW_RETURN_NOT_OK(b.Append());
+          return values->AppendValues(c.float_lists[row]);
+        });
+      }
+      case ParquetColumn::Type::UTF8_LIST:
+      {
+        auto values = std::make_shared<arrow::StringBuilder>();
+        arrow::ListBuilder b(arrow::default_memory_pool(), values);
+        ARROW_RETURN_NOT_OK(values->Reserve(totalSize(c.utf8_lists)));
+        int64_t bytes = 0;
+        for (const auto& list : c.utf8_lists) { for (const std::string& v : list) { bytes += static_cast<int64_t>(v.size()); } }
+        ARROW_RETURN_NOT_OK(values->ReserveData(bytes));
+        return build(b, arrow::list(arrow::utf8()), [&](size_t row)
+        {
+          ARROW_RETURN_NOT_OK(b.Append());
+          return values->AppendValues(c.utf8_lists[row]);
+        });
+      }
+      case ParquetColumn::Type::SCORE_LIST:
+      {
+        // the type of the QPX additional_scores, so that the column can replace that of a QPX view
+        const auto type = QPXPSMSchema::additionalScoresType();
+        auto name = std::make_shared<arrow::StringBuilder>();
+        auto value = std::make_shared<arrow::DoubleBuilder>();
+        auto higher_better = std::make_shared<arrow::BooleanBuilder>();
+        auto entry = std::make_shared<arrow::StructBuilder>(std::static_pointer_cast<arrow::ListType>(type)->value_type(),
+          arrow::default_memory_pool(), std::vector<std::shared_ptr<arrow::ArrayBuilder>>{name, value, higher_better});
+        arrow::ListBuilder b(arrow::default_memory_pool(), entry, type);
+        return build(b, type, [&](size_t row)
+        {
+          ARROW_RETURN_NOT_OK(b.Append());
+          for (const ParquetColumn::Score& s : c.score_lists[row])
+          {
+            ARROW_RETURN_NOT_OK(entry->Append());
+            ARROW_RETURN_NOT_OK(name->Append(s.name));
+            ARROW_RETURN_NOT_OK(value->Append(s.value));
+            ARROW_RETURN_NOT_OK(s.higher_better ? higher_better->Append(*s.higher_better) : higher_better->AppendNull());
+          }
+          return arrow::Status::OK();
+        });
+      }
+    }
+    return arrow::Status::Invalid("unknown column type");
+  }
+} // namespace
+
+std::shared_ptr<arrow::Table> withColumns(
+  const std::shared_ptr<arrow::Table>& table,
+  const std::vector<ParquetColumn>& columns)
+{
+  if (!table)
+  {
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "withColumns: null table");
+  }
+  const size_t rows = static_cast<size_t>(table->num_rows());
+  for (const ParquetColumn& c : columns)
+  {
+    if (parquetColumnRows(c) != rows || (!c.null_rows.empty() && c.null_rows.size() != rows))
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Column '" + c.name + "' has " + std::to_string(parquetColumnRows(c)) + " rows, the table " + std::to_string(rows));
+    }
+  }
+
+  std::shared_ptr<arrow::Table> out = table;
+  for (const ParquetColumn& c : columns)
+  {
+    std::shared_ptr<arrow::Field> field;
+    std::shared_ptr<arrow::Array> array;
+    arrow::Status status = buildParquetColumn(c, rows, field, array);
+    if (status.ok())
+    {
+      const auto chunked = std::make_shared<arrow::ChunkedArray>(array);
+      const int existing = out->schema()->GetFieldIndex(c.name);
+      auto result = existing >= 0 ? out->SetColumn(existing, field, chunked) : out->AddColumn(out->num_columns(), field, chunked);
+      status = result.status();
+      if (status.ok()) { out = result.ValueOrDie(); }
+    }
+    if (!status.ok())
+    {
+      OPENMS_LOG_ERROR << "ArrowIOHelpers: adding column '" << c.name << "' failed: " << status.ToString() << std::endl;
+      return nullptr;
+    }
+  }
+  return out;
+}
+
+std::shared_ptr<arrow::Table> tableOfColumns(
+  const std::vector<ParquetColumn>& columns,
+  Size rows)
+{
+  std::vector<std::shared_ptr<arrow::Field>> fields;
+  std::vector<std::shared_ptr<arrow::Array>> arrays;
+  for (const ParquetColumn& c : columns)
+  {
+    if (parquetColumnRows(c) != rows || (!c.null_rows.empty() && c.null_rows.size() != rows))
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Column '" + c.name + "' has " + std::to_string(parquetColumnRows(c)) + " rows, the table " + std::to_string(rows));
+    }
+    std::shared_ptr<arrow::Field> field;
+    std::shared_ptr<arrow::Array> array;
+    const arrow::Status status = buildParquetColumn(c, rows, field, array);
+    if (!status.ok())
+    {
+      OPENMS_LOG_ERROR << "ArrowIOHelpers: building column '" << c.name << "' failed: " << status.ToString() << std::endl;
+      return nullptr;
+    }
+    fields.push_back(field);
+    arrays.push_back(array);
+  }
+  return arrow::Table::Make(arrow::schema(fields), arrays, static_cast<int64_t>(rows));
+}
+
+namespace
+{
+  /// The writer properties of @p config for the fields of @p schema: compression, page size, statistics, and no
+  /// dictionary encoding for the leaves of the plain_columns and for every floating-point leaf (m/z, intensities,
+  /// scores: mostly distinct values, whose dictionary page each row group would otherwise try and drop again)
+  std::shared_ptr<parquet::WriterProperties> writerProperties(const arrow::Schema& schema, const ParquetWriteConfig& config)
+  {
+    auto builder = parquet::WriterProperties::Builder();
+    builder.compression(toArrowCompression(config.compression));
+    if (config.compression == ParquetWriteConfig::Compression::ZSTD ||
+        config.compression == ParquetWriteConfig::Compression::GZIP)
+    {
+      builder.compression_level(config.compression_level);
+    }
+    builder.data_pagesize(config.data_page_size);
+    if (config.write_statistics) { builder.enable_statistics(); }
+    else                         { builder.disable_statistics(); }
+    std::function<void(const std::string&, const std::shared_ptr<arrow::DataType>&, bool)> leaves =
+      [&](const std::string& path, const std::shared_ptr<arrow::DataType>& type, bool plain)
+    {
+      if (type->id() == arrow::Type::LIST)
+      {
+        leaves(path + ".list.element", std::static_pointer_cast<arrow::ListType>(type)->value_type(), plain);
+      }
+      else if (type->id() == arrow::Type::STRUCT)
+      {
+        for (const auto& child : type->fields()) { leaves(path + "." + child->name(), child->type(), plain); }
+      }
+      else if (plain || arrow::is_floating(type->id())) { builder.disable_dictionary(path); }
+    };
+    for (const auto& field : schema.fields())
+    {
+      const bool plain = std::find(config.plain_columns.begin(), config.plain_columns.end(), field->name()) != config.plain_columns.end();
+      leaves(field->name(), field->type(), plain);
+    }
+    return builder.build();
+  }
+
+  /// The parallel write (writeTableToParquet() with threads > 1, ParquetTableStream): the row groups WriteTable cuts
+  /// (row_group_size rows each, at most the writer's max_row_group_length, whatever the chunks of the tables are) as
+  /// buffered row groups whose columns are encoded in parallel (use_threads with an executor of its own: Arrow's global
+  /// CPU pool has as many threads as the machine has hardware threads, whatever -threads says). Same encodings,
+  /// dictionary rules, compression and statistics as the serial write. A group continues across the tables of a
+  /// stream. The pool outlives the writer (Close() joins the column tasks; the writer is destroyed before the pool is
+  /// shut down).
+  class BufferedGroupWriter
+  {
+  public:
+    ~BufferedGroupWriter()
+    {
+      writer_.reset();
+      if (pool_) { (void)pool_->Shutdown(); }
+    }
+
+    arrow::Status open(const std::shared_ptr<arrow::Schema>& schema, const std::shared_ptr<arrow::io::OutputStream>& sink,
+                       const ParquetWriteConfig& config)
+    {
+      ARROW_ASSIGN_OR_RAISE(pool_, arrow::internal::ThreadPool::Make(std::max(1, config.threads)));
+      const auto writer_properties = writerProperties(*schema, config);
+      auto arrow_properties = parquet::ArrowWriterProperties::Builder().store_schema()->set_use_threads(true)
+                                ->set_executor(pool_.get())->build();
+      ARROW_ASSIGN_OR_RAISE(writer_, parquet::arrow::FileWriter::Open(*schema, arrow::default_memory_pool(), sink,
+                                                                      writer_properties, arrow_properties));
+      group_rows_ = std::max<int64_t>(1, std::min(config.row_group_size, writer_properties->max_row_group_length()));
+      in_group_ = group_rows_; // (full: the first rows open a group)
+      return arrow::Status::OK();
+    }
+
+    /// The pool of the column tasks has @p threads from now on (at least one)
+    arrow::Status setThreads(int threads)
+    {
+      return pool_->SetCapacity(std::max(1, threads));
+    }
+
+    /// Appends the rows of @p table: a batch is a chunk or the rest of a group
+    arrow::Status write(const arrow::Table& table)
+    {
+      arrow::TableBatchReader reader(table);
+      reader.set_chunksize(group_rows_);
+      std::shared_ptr<arrow::RecordBatch> batch;
+      while (true)
+      {
+        ARROW_RETURN_NOT_OK(reader.ReadNext(&batch));
+        if (!batch) { break; }
+        for (int64_t offset = 0; offset < batch->num_rows();)
+        {
+          if (in_group_ == group_rows_)
+          {
+            ARROW_RETURN_NOT_OK(writer_->NewBufferedRowGroup());
+            in_group_ = 0;
+          }
+          const int64_t rows = std::min(batch->num_rows() - offset, group_rows_ - in_group_);
+          ARROW_RETURN_NOT_OK(writer_->WriteRecordBatch(*batch->Slice(offset, rows)));
+          in_group_ += rows;
+          offset += rows;
+        }
+      }
+      return arrow::Status::OK();
+    }
+
+    /// Adds @p keys to the footer (written by close()), after the keys of the schema: in the file's key-value
+    /// metadata, and in the Arrow schema stored in it (ARROW:schema, serialized at open() by store_schema; a reader
+    /// takes the schema metadata from there, so it is serialized again with the keys), as if the schema had them
+    arrow::Status addKeyValueMetadata(const std::shared_ptr<arrow::Schema>& schema, const std::map<std::string, std::string>& keys)
+    {
+      if (keys.empty()) { return arrow::Status::OK(); }
+      auto metadata = schema->metadata() ? schema->metadata()->Copy() : std::make_shared<arrow::KeyValueMetadata>();
+      for (const auto& [k, v] : keys) { if (metadata->Contains(k)) { ARROW_RETURN_NOT_OK(metadata->Set(k, v)); } else { metadata->Append(k, v); } }
+      ARROW_ASSIGN_OR_RAISE(std::shared_ptr<arrow::Buffer> serialized,
+                            arrow::ipc::SerializeSchema(*schema->WithMetadata(metadata), arrow::default_memory_pool()));
+      auto added = std::make_shared<arrow::KeyValueMetadata>();
+      for (const auto& [k, v] : keys) { added->Append(k, v); }
+      added->Append("ARROW:schema", arrow::util::base64_encode(std::string_view(reinterpret_cast<const char*>(serialized->data()), static_cast<size_t>(serialized->size()))));
+      return writer_->AddKeyValueMetadata(added);
+    }
+
+    arrow::Status close()
+    {
+      return writer_->Close();
+    }
+
+  private:
+    std::shared_ptr<arrow::internal::ThreadPool> pool_;
+    std::unique_ptr<parquet::arrow::FileWriter> writer_;
+    int64_t group_rows_ = 0, in_group_ = 0;
+  };
+
+  /// Removes @p filename after a failed write (logged): FileOutputStream::Open created (and truncated) the file, and
+  /// a truncated Parquet file has no footer, so a reader reports it as corrupt rather than as the smaller table it
+  /// looks like. Closed before: on Windows an open handle blocks the unlink.
+  bool abandonFile(const std::shared_ptr<arrow::io::FileOutputStream>& outfile, const std::string& filename, const std::string& what)
+  {
+    OPENMS_LOG_ERROR << "ArrowIOHelpers: " << what << std::endl;
+    if (outfile) { (void)outfile->Close(); }
+    if (File::exists(filename) && !File::remove(filename))
+    {
+      OPENMS_LOG_ERROR << "ArrowIOHelpers: Failed to remove incomplete output " << filename << std::endl;
+    }
+    return false;
+  }
+} // namespace
+
+bool validateQPXTable(
+  const std::shared_ptr<arrow::Table>& table,
+  const std::string& filename,
+  const ParquetWriteConfig& config,
+  const std::shared_ptr<const arrow::KeyValueMetadata>& metadata)
+{
+  if (!table)
+  {
+    OPENMS_LOG_ERROR << "ArrowIOHelpers: null table passed to validateQPXTable (" << filename << ")" << std::endl;
+    return false;
+  }
+  return validateQPXValuesForWrite(metadata ? table->ReplaceSchemaMetadata(metadata) : table, filename,
+                                   config.qpx_extra_columns, config.threads);
 }
 
 bool writeTableToParquet(
@@ -576,7 +1154,7 @@ bool writeTableToParquet(
     OPENMS_LOG_ERROR << "ArrowIOHelpers: null table passed to writeTableToParquet (" << filename << ")" << std::endl;
     return false;
   }
-  if (!validateQPXValuesForWrite(table, filename)) { return false; }
+  if (!config.validated && !validateQPXValuesForWrite(table, filename, config.qpx_extra_columns, config.threads)) { return false; }
 
   auto file_result = arrow::io::FileOutputStream::Open(filename);
   if (!file_result.ok())
@@ -587,53 +1165,43 @@ bool writeTableToParquet(
   }
   const auto& outfile = file_result.ValueOrDie();
 
-  auto builder = parquet::WriterProperties::Builder();
-  builder.compression(toArrowCompression(config.compression));
-  if (config.compression == ParquetWriteConfig::Compression::ZSTD ||
-      config.compression == ParquetWriteConfig::Compression::GZIP)
+  arrow::Status status;
+  try
   {
-    builder.compression_level(config.compression_level);
-  }
-  builder.data_pagesize(config.data_page_size);
-  if (config.write_statistics) { builder.enable_statistics(); }
-  else                         { builder.disable_statistics(); }
-
-  auto writer_properties = builder.build();
-  auto arrow_properties = parquet::ArrowWriterProperties::Builder().store_schema()->build();
-
-  auto status = parquet::arrow::WriteTable(
-    *table,
-    arrow::default_memory_pool(),
-    outfile,
-    config.row_group_size,
-    writer_properties,
-    arrow_properties);
-
-  // FileOutputStream::Open above already created (and truncated) the file, so any failure from
-  // here on leaves a partial .parquet behind -- and a truncated Parquet file has no footer, so a
-  // reader reports it as corrupt rather than as the smaller table it looks like. Close before
-  // removing: on Windows an open handle blocks the unlink.
-  const auto abandon = [&](const std::string& what)
-  {
-    OPENMS_LOG_ERROR << "ArrowIOHelpers: " << what << std::endl;
-    (void)outfile->Close();
-    if (!File::remove(filename))
+    if (config.threads <= 1 || table->num_rows() == 0 || config.row_group_size <= 0) // (WriteTable rejects the size)
     {
-      OPENMS_LOG_ERROR << "ArrowIOHelpers: Failed to remove incomplete output " << filename
-                       << std::endl;
+      auto arrow_properties = parquet::ArrowWriterProperties::Builder().store_schema()->build();
+      status = parquet::arrow::WriteTable(
+        *table,
+        arrow::default_memory_pool(),
+        outfile,
+        config.row_group_size,
+        writerProperties(*table->schema(), config),
+        arrow_properties);
     }
-    return false;
-  };
+    else
+    {
+      BufferedGroupWriter writer;
+      status = writer.open(table->schema(), outfile, config);
+      if (status.ok()) { status = writer.write(*table); }
+      if (status.ok()) { status = writer.close(); }
+    }
+  }
+  catch (...) // (e.g. std::bad_alloc: no partial file is left behind, which a staged write would publish)
+  {
+    abandonFile(outfile, filename, "Failed to write " + filename + " (exception)");
+    throw;
+  }
 
   if (!status.ok())
   {
-    return abandon("Failed to write " + filename + ": " + status.ToString());
+    return abandonFile(outfile, filename, "Failed to write " + filename + ": " + status.ToString());
   }
 
   auto close_status = outfile->Close();
   if (!close_status.ok())
   {
-    return abandon("Failed to close " + filename + ": " + close_status.ToString());
+    return abandonFile(outfile, filename, "Failed to close " + filename + ": " + close_status.ToString());
   }
 
   return true;
@@ -647,20 +1215,185 @@ bool concatenateAndWriteToParquet(
 {
   if (tables.empty()) { return true; }
 
-  auto concat_result = arrow::ConcatenateTables(tables);
-  if (!concat_result.ok())
+  std::shared_ptr<arrow::Table> table;
+  if (tables.size() == 1 && tables.front()) // (one table: as it is)
   {
-    OPENMS_LOG_ERROR << "ArrowIOHelpers: Failed to concatenate tables for " << filename
-                     << ": " << concat_result.status().ToString() << std::endl;
-    return false;
+    table = tables.front();
   }
-
-  auto table = concat_result.ValueOrDie();
+  else
+  {
+    auto concat_result = arrow::ConcatenateTables(tables);
+    if (!concat_result.ok())
+    {
+      OPENMS_LOG_ERROR << "ArrowIOHelpers: Failed to concatenate tables for " << filename
+                       << ": " << concat_result.status().ToString() << std::endl;
+      return false;
+    }
+    table = concat_result.ValueOrDie();
+  }
   // The concatenated table inherits the first input's schema metadata, which carries that
   // input's uuid/creation_date. Stamp one identity for the merged file instead.
   if (metadata) { table = table->ReplaceSchemaMetadata(metadata); }
   return writeTableToParquet(table, filename, config);
 }
+
+// ---------------------------------------------------------------------------
+// ParquetTableStream
+// ---------------------------------------------------------------------------
+
+struct ParquetTableStream::Impl
+{
+  std::string filename;
+  ParquetWriteConfig config;
+  std::shared_ptr<const arrow::KeyValueMetadata> metadata;
+  std::shared_ptr<arrow::Schema> schema; // of the file (the first table's, with the metadata), once open
+  std::shared_ptr<arrow::io::FileOutputStream> outfile;
+  std::unique_ptr<BufferedGroupWriter> writer;
+  std::optional<QPXValueValidation> validator; // for a QPX view (the metadata's file_type)
+  Size rows = 0;
+  bool failed = false, closed = false, opened = false; // (opened: the file exists, created by append())
+
+  /// The validator of the QPX view the metadata names, if any: as validateQPXValuesForWrite() decides it
+  bool makeValidator()
+  {
+    const auto& meta = schema->metadata();
+    if (!meta || !meta->Contains("qpx_version")) { return true; }
+    const auto file_type = meta->Get("file_type");
+    if (!file_type.ok())
+    {
+      OPENMS_LOG_ERROR << "ArrowIOHelpers: QPX table for " << filename << " has no file_type metadata." << std::endl;
+      return false;
+    }
+    QPXValueValidation::View view;
+    if      (*file_type == "psm_file")     { view = QPXValueValidation::View::PSM; }
+    else if (*file_type == "feature_file") { view = QPXValueValidation::View::FEATURE; }
+    else if (*file_type == "pg_file")      { view = QPXValueValidation::View::PROTEIN_GROUP; }
+    else { return true; }
+    validator.emplace(view);
+    validator->setExtraColumnsAllowed(config.qpx_extra_columns);
+    return true;
+  }
+
+  /// The stream has failed (terminal): the writer is destroyed before the file is closed and removed (logged)
+  bool fail(const std::string& what)
+  {
+    failed = true;
+    writer.reset();
+    if (opened) { abandonFile(outfile, filename, what); }
+    else { OPENMS_LOG_ERROR << "ArrowIOHelpers: " << what << std::endl; }
+    outfile.reset();
+    return false;
+  }
+};
+
+ParquetTableStream::ParquetTableStream(std::string filename, const ParquetWriteConfig& config,
+                                       std::shared_ptr<const arrow::KeyValueMetadata> metadata) :
+  impl_(std::make_unique<Impl>())
+{
+  impl_->filename = std::move(filename);
+  impl_->config = config;
+  impl_->config.threads = std::max(1, config.threads);
+  impl_->metadata = std::move(metadata);
+}
+
+ParquetTableStream::~ParquetTableStream()
+{
+  abandon();
+}
+
+bool ParquetTableStream::append(const std::shared_ptr<arrow::Table>& table, int threads)
+{
+  Impl& s = *impl_;
+  if (s.failed || s.closed)
+  {
+    OPENMS_LOG_ERROR << "ArrowIOHelpers: no table can be appended to " << s.filename << (s.closed ? " (closed)" : " (failed)") << std::endl;
+    return false;
+  }
+  if (!table) { return s.fail("null table passed to ParquetTableStream (" + s.filename + ")"); }
+  if (threads > 0) { s.config.threads = threads; }
+  try // (every failure ends the stream: an exception too, e.g. std::bad_alloc, so that no later table opens the file anew)
+  {
+    if (!s.writer)
+    {
+      s.schema = s.metadata ? table->schema()->WithMetadata(s.metadata) : table->schema();
+      if (!s.makeValidator()) { return s.fail("Failed to write " + s.filename + ": no QPX view"); }
+      auto file_result = arrow::io::FileOutputStream::Open(s.filename);
+      if (!file_result.ok())
+      {
+        return s.fail("Failed to open " + s.filename + " for writing: " + file_result.status().ToString());
+      }
+      s.outfile = file_result.ValueOrDie();
+      s.opened = true;
+      s.writer = std::make_unique<BufferedGroupWriter>();
+      const arrow::Status status = s.writer->open(s.schema, s.outfile, s.config);
+      if (!status.ok()) { return s.fail("Failed to write " + s.filename + ": " + status.ToString()); }
+    }
+    else if (!table->schema()->Equals(*s.schema, /*check_metadata=*/false))
+    {
+      return s.fail("Failed to write " + s.filename + ": the schema of a table differs from the first table's");
+    }
+    if (s.validator)
+    {
+      s.validator->setThreads(s.config.threads);
+      const auto validation = s.validator->validate(table);
+      if (!validation.valid)
+      {
+        return s.fail("refusing invalid QPX " + s.schema->metadata()->Get("file_type").ValueOr("") + " table for " + s.filename + ": " + validation.toString());
+      }
+    }
+    arrow::Status status = s.writer->setThreads(s.config.threads);
+    if (status.ok()) { status = s.writer->write(*table); }
+    if (!status.ok()) { return s.fail("Failed to write " + s.filename + ": " + status.ToString()); }
+    s.rows += static_cast<Size>(table->num_rows());
+    return true;
+  }
+  catch (const std::exception& e)
+  {
+    return s.fail("Failed to write " + s.filename + " (exception): " + e.what());
+  }
+}
+
+bool ParquetTableStream::close(const std::map<std::string, std::string>& keys)
+{
+  Impl& s = *impl_;
+  if (s.failed || s.closed) { return !s.failed; }
+  if (!s.writer) { s.closed = true; return true; } // (nothing appended: no file)
+  try
+  {
+    arrow::Status status = s.writer->addKeyValueMetadata(s.schema, keys);
+    if (status.ok()) { status = s.writer->close(); }
+    if (!status.ok()) { return s.fail("Failed to write " + s.filename + ": " + status.ToString()); }
+    s.writer.reset();
+    status = s.outfile->Close();
+    if (!status.ok()) { return s.fail("Failed to close " + s.filename + ": " + status.ToString()); }
+  }
+  catch (const std::exception& e)
+  {
+    return s.fail("Failed to write " + s.filename + " (exception): " + e.what());
+  }
+  s.outfile.reset();
+  s.closed = true;
+  return true;
+}
+
+void ParquetTableStream::abandon()
+{
+  Impl& s = *impl_;
+  if (s.closed || s.failed) { return; }
+  s.failed = true;
+  s.writer.reset();
+  if (s.outfile) { (void)s.outfile->Close(); }
+  s.outfile.reset();
+  if (s.opened && File::exists(s.filename) && !File::remove(s.filename))
+  {
+    OPENMS_LOG_ERROR << "ArrowIOHelpers: Failed to remove incomplete output " << s.filename << std::endl;
+  }
+}
+
+Size ParquetTableStream::rows() const { return impl_->rows; }
+bool ParquetTableStream::failed() const { return impl_->failed; }
+bool ParquetTableStream::closed() const { return impl_->closed; }
+const std::string& ParquetTableStream::filename() const { return impl_->filename; }
 
 // ---------------------------------------------------------------------------
 // Read helpers
@@ -739,6 +1472,42 @@ bool isNull(const std::shared_ptr<arrow::Array>& array, int64_t row)
   return !array || array->IsNull(row);
 }
 
+std::string metaValueString(const DataValue& value)
+{
+  // Shortest decimal that reads back as the same double. NaN as DataValue::toString() writes it, since
+  // StringUtils::toDouble() reads "NaN" and "inf"/"-inf" but std::to_chars writes "nan".
+  const auto append_double = [](double d, std::string& target)
+  {
+    if (std::isnan(d)) { target += "NaN"; return; }
+    char buf[32];
+    const auto result = std::to_chars(buf, buf + sizeof(buf), d);
+    target.append(buf, result.ptr);
+  };
+
+  std::string s;
+  if (value.valueType() == DataValue::DOUBLE_VALUE)
+  {
+    append_double(static_cast<double>(value), s);
+  }
+  else if (value.valueType() == DataValue::DOUBLE_LIST)
+  {
+    // the list format of DataValue::toString(), "[a, b, c]"
+    s += '[';
+    const DoubleList list = value.toDoubleList();
+    for (Size i = 0; i < list.size(); ++i)
+    {
+      if (i > 0) s += ", ";
+      append_double(list[i], s);
+    }
+    s += ']';
+  }
+  else
+  {
+    s = value.toString();
+  }
+  return s;
+}
+
 void readMetaValues(
   const std::shared_ptr<arrow::Array>& array,
   int64_t row,
@@ -773,7 +1542,7 @@ void readMetaValues(
     }
     else if (type_str == "double" || type_str == "float")
     {
-      try { target.setMetaValue(name, std::stod(value_str)); }
+      try { target.setMetaValue(name, StringUtils::toDouble(value_str)); }
       catch (...) { target.setMetaValue(name, value_str); }
     }
     else if (type_str == "int_list")

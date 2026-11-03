@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -455,10 +456,12 @@ public:
         }
       }
 
-      // Check for completely overlapping features
+      // Check for completely overlapping features (against all earlier features, so decide for all
+      // of them before moving the kept ones into the transition group)
+      std::vector<char> keep(features.size(), 0);
       for (Size i = 0; i < features.size(); i++)
       {
-        MRMFeature& mrm_feature = features[i];
+        const MRMFeature& mrm_feature = features[i];
         bool skip = false;
         for (Size j = 0; j < i; j++)
         {
@@ -466,9 +469,13 @@ public:
               (double)mrm_feature.getMetaValue(MRMTransitionGroupPickerMeta::rightWidth()) <= (double)features[j].getMetaValue(MRMTransitionGroupPickerMeta::rightWidth()))
           { skip = true; }
         }
-        if (mrm_feature.getIntensity() > 0 && !skip)
+        keep[i] = mrm_feature.getIntensity() > 0 && !skip;
+      }
+      for (Size i = 0; i < features.size(); i++)
+      {
+        if (keep[i])
         {
-          transition_group.addFeature(mrm_feature);
+          transition_group.addFeature(std::move(features[i]));
         }
       }
 
@@ -943,7 +950,7 @@ public:
           f.setMetaValue(MRMTransitionGroupPickerMeta::pointsAcrossHalfHeight(), psm.points_across_half_height);
         }
 
-        mrmFeature.addFeature(f, chromatogram.getNativeID()); //map index and feature
+        mrmFeature.addFeature(std::move(f), chromatogram.getNativeID()); //map index and feature
       }
     }
 
@@ -1074,7 +1081,7 @@ public:
           total_intensity += peak_integral;
         }
 
-        mrmFeature.addPrecursorFeature(f, chromatogram.getNativeID());
+        mrmFeature.addPrecursorFeature(std::move(f), chromatogram.getNativeID());
       }
     }
 
@@ -1263,8 +1270,8 @@ protected:
         for (Size i = 0; i < all_ints.size(); i++)
         {
           if (i == k) {continue;}
-          OpenSwath::Scoring::XCorrArrayType res = OpenSwath::Scoring::normalizedCrossCorrelation(
-              all_ints[k], all_ints[i], boost::numeric_cast<int>(all_ints[i].size()), 1);
+          OpenSwath::Scoring::XCorrArrayType res
+            = OpenSwath::Scoring::normalizedCrossCorrelation(all_ints[k], all_ints[i], OpenMS::checkedCast<int>(all_ints[i].size()), 1);
 
           // the first value is the x-axis (retention time) and should be an int -> it show the lag between the two
           double res_coelution = std::abs(OpenSwath::Scoring::xcorrArrayGetMaxPeak(res)->first);
@@ -1541,7 +1548,8 @@ protected:
       if (end != chromatogram.end()) { end++; }
 
       auto resampled_peak_container = master_peak_container; // copy the master container, which contains the RT values
-      LinearResamplerAlign lresampler;
+      // raster() only uses the default parameters: construct the resampler (and its Param) once per thread
+      static thread_local LinearResamplerAlign lresampler;
       lresampler.raster(begin, end, resampled_peak_container.begin(), resampled_peak_container.end());
 
       return resampled_peak_container;

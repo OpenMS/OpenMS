@@ -15,7 +15,6 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="int" name="nr_found_peptides" value="2"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[]"/>
 			<UserParam type="string" name="indistinguishable_proteins_0" value="0.1,PH_0"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.862100000000002" MZ="0.0" RT="0.0" >

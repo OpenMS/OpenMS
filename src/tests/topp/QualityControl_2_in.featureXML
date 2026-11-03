@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" id="fm_15835687919951109158" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="stringList" name="spectra_data" value="[file://C:\Users\bielow\AppData\Local\Temp\20190911_152818_14688_1\QualityControl\010_InternalCalibration\out\QualityControl_1_in1.mzML]"/>
+	<IdentificationRun id="PI_0" date="2019-09-11T15:48:11" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="C:\Users\bielow\AppData\Local\Temp\20190911_152818_14688_1\QualityControl\006_DecoyDatabase\out\crap_to_database_minimal_mrgd.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="XTandem" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="ES-0001a_PROKKA_00009" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="ES-0001a_PROKKA_00014" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="ES-0001a_PROKKA_00038" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="ES-0001a_PROKKA_00065" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="ES-0001a_PROKKA_00090" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="ES-0001a_PROKKA_00113" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="ES-0001a_PROKKA_00153" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="ES-0001a_PROKKA_00233" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="ES-0001a_PROKKA_00281" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="ES-0001a_PROKKA_00457" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="ES-0001a_PROKKA_00615" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="ES-0001a_PROKKA_00640" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_12" accession="ES-0001a_PROKKA_00962" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_13" accession="ES-0001a_PROKKA_01329" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_14" accession="ES-0001a_PROKKA_01511" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_15" accession="ES-0001a_PROKKA_01597" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_16" accession="ES-0001a_PROKKA_01599" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_17" accession="ES-0001a_PROKKA_01604" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_18" accession="ES-0001a_PROKKA_01616" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_19" accession="ES-0001a_PROKKA_01670" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_20" accession="ES-0001a_PROKKA_01833" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_21" accession="ES-0001a_PROKKA_01939" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_22" accession="ES-0001a_PROKKA_01941" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_23" accession="ES-0001a_PROKKA_02064" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_24" accession="ES-0001a_PROKKA_02310" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_25" accession="ES-0001a_PROKKA_02337" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_26" accession="ES-0001a_PROKKA_02364" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_27" accession="ES-0001a_PROKKA_02449" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_28" accession="ES-0001a_PROKKA_02567" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_29" accession="ES-0001a_PROKKA_02568" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_30" accession="ES-0001a_PROKKA_03080" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_31" accession="ES-0001a_PROKKA_03139" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_32" accession="ES-0002a_PROKKA_00060" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_33" accession="ES-0002a_PROKKA_00085" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML]"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<featureList count="1">
+		<feature id="f_11686747818621372046">
+			<position dim="0">1359.919377428128883</position>
+			<position dim="1">460.205376301870956</position>
+			<intensity>7.662995e08</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>4.326448</overallquality>
+			<charge>3</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="460.2" RT="1350.0" spectrum_reference="spectrum=999" >
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="460.20484945008" RT="1349.89575195313" spectrum_reference="spectrum=217" >
+				<PeptideHit score="0.02" sequence="ARAEDAMDEASGR" charge="3" aa_before="K" aa_after="L" start="39" end="51" protein_refs="PH_3">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="nextscore" value="22.199999999999999"/>
+					<UserParam type="float" name="delta" value="-0.0016"/>
+					<UserParam type="float" name="mass" value="1378.601599999999962"/>
+					<UserParam type="float" name="E-Value" value="3.4e-06"/>
+					<UserParam type="float" name="hyperscore" value="35.899999999999999"/>
+					<UserParam type="float" name="b_score" value="17.5"/>
+					<UserParam type="int" name="b_ions" value="5"/>
+					<UserParam type="float" name="y_score" value="17.899999999999999"/>
+					<UserParam type="int" name="y_ions" value="7"/>
+					<UserParam type="string" name="protein_references" value="unique"/>
+					<UserParam type="float" name="XTandem_score" value="35.899999999999999"/>
+				</PeptideHit>
+				<UserParam type="string" name="FFId_category" value="internal"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="460.205294786631" RT="1380.05310058594" spectrum_reference="spectrum=334" >
+				<PeptideHit score="0.001" sequence="ARAEDAMDEASGR" charge="3" aa_before="K" aa_after="L" start="39" end="51" protein_refs="PH_3">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="nextscore" value="25.899999999999999"/>
+					<UserParam type="float" name="delta" value="-2.0e-04"/>
+					<UserParam type="float" name="mass" value="1378.601599999999962"/>
+					<UserParam type="float" name="E-Value" value="3.6e-10"/>
+					<UserParam type="float" name="hyperscore" value="51.799999999999997"/>
+					<UserParam type="float" name="b_score" value="20.899999999999999"/>
+					<UserParam type="int" name="b_ions" value="7"/>
+					<UserParam type="float" name="y_score" value="21.0"/>
+					<UserParam type="int" name="y_ions" value="7"/>
+					<UserParam type="string" name="protein_references" value="unique"/>
+					<UserParam type="float" name="XTandem_score" value="51.799999999999997"/>
+				</PeptideHit>
+				<UserParam type="string" name="FFId_category" value="internal"/>
+			</PeptideIdentification>
+			<UserParam type="float" name="total_xic" value="1.760234539183594e09"/>
+			<UserParam type="string" name="PeptideRef" value="ARAEDAMDEASGR/3"/>
+			<UserParam type="float" name="leftWidth" value="1347.135986328125"/>
+			<UserParam type="float" name="rightWidth" value="1399.580810546875"/>
+			<UserParam type="float" name="peak_apices_sum" value="7.2270892e07"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[460.205376301870956, -0.020338049869306, 460.539827914470948, -1.221012637742337]"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.999389321393273"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999122581877101"/>
+			<UserParam type="float" name="var_library_corr" value="1.000000000000003"/>
+			<UserParam type="float" name="var_library_rmsd" value="9.144035194386113e-05"/>
+			<UserParam type="float" name="var_library_sangle" value="1.75492277569817e-04"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="9.144035194386113e-05"/>
+			<UserParam type="float" name="var_library_manhattan" value="9.443283801996438e-05"/>
+			<UserParam type="float" name="var_library_dotprod" value="0.999999995635584"/>
+			<UserParam type="float" name="var_intensity_score" value="0.999028686720131"/>
+			<UserParam type="float" name="nr_peaks" value="2.0"/>
+			<UserParam type="float" name="sn_ratio" value="62.639743282153219"/>
+			<UserParam type="float" name="var_log_sn_score" value="4.137399953368806"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.99375656247139"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="7.208320326678062"/>
+			<UserParam type="float" name="var_isotope_correlation_score" value="0.985087112944827"/>
+			<UserParam type="float" name="var_isotope_overlap_score" value="0.397452890872955"/>
+			<UserParam type="float" name="var_massdev_score" value="0.620675343805822"/>
+			<UserParam type="float" name="var_massdev_score_weighted" value="0.497439853907087"/>
+			<UserParam type="float" name="var_bseries_score" value="0.0"/>
+			<UserParam type="float" name="var_yseries_score" value="0.0"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.723491023259109"/>
+			<UserParam type="float" name="var_manhatt_score" value="0.985023317866311"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.326447984283253"/>
+			<UserParam type="int" name="missedCleavages" value="1"/>
+			<UserParam type="float" name="PrecursorMZ" value="460.205376301870956"/>
+			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
+			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
+			<UserParam type="int" name="n_total_ids" value="2"/>
+			<UserParam type="int" name="n_matching_ids" value="2"/>
+			<UserParam type="string" name="feature_class" value="positive"/>
+			<UserParam type="float" name="model_height" value="6.796450425494119e07"/>
+			<UserParam type="float" name="model_FWHM" value="10.592152715830631"/>
+			<UserParam type="float" name="model_center" value="1360.181156819628541"/>
+			<UserParam type="float" name="model_lower" value="1348.935973837669508"/>
+			<UserParam type="float" name="model_upper" value="1371.426339801587574"/>
+			<UserParam type="float" name="model_Gauss_sigma" value="4.49807319278358"/>
+			<UserParam type="float" name="model_error" value="0.2183834570461"/>
+			<UserParam type="float" name="model_area" value="7.662995279624415e08"/>
+			<UserParam type="string" name="model_status" value="0 (valid)"/>
+			<UserParam type="float" name="raw_intensity" value="1.758524672e09"/>
+		</feature>
+	</featureList>
+</featureMap>

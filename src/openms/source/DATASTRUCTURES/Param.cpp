@@ -165,6 +165,16 @@ namespace OpenMS
     return true;
   }
 
+  bool Param::ParamEntry::isBool() const
+  {
+    if (value.valueType() != ParamValue::STRING_VALUE || valid_strings.size() != 2)
+    {
+      return false;
+    }
+    return (valid_strings[0] == "true" && valid_strings[1] == "false") ||
+           (valid_strings[0] == "false" && valid_strings[1] == "true");
+  }
+
   bool Param::ParamEntry::operator==(const ParamEntry& rhs) const
   {
     return name == rhs.name && value == rhs.value;
@@ -616,6 +626,22 @@ namespace OpenMS
         {
           setMinFloat(name, it->min_float);
           setMaxFloat(name, it->max_float);
+        }
+      }
+      else
+      {
+        // An existing string entry takes the defaults' string restrictions: the defaults
+        // describe what the parameter is, checkDefaults() validates against them anyway,
+        // and a Param built by hand (e.g. in pyOpenMS) otherwise keeps restrictions that
+        // contradict them -- or none at all -- for good. Values are left untouched.
+        ParamEntry& entry = getEntry_(prefix2 + it.getName());
+        const auto is_stringy = [](ParamValue::ValueType t)
+        {
+          return t == ParamValue::STRING_VALUE || t == ParamValue::STRING_LIST;
+        };
+        if (is_stringy(entry.value.valueType()) && is_stringy(it->value.valueType()))
+        {
+          entry.valid_strings = it->valid_strings;
         }
       }
 
@@ -1162,6 +1188,7 @@ namespace OpenMS
       //parameter restrictions
       ParamEntry pe = *default_value;
       pe.value = it->value;
+      pe.name = it.getName(); // the full name (relative to prefix), for the message
       std::string s;
       if (!pe.isValid(s))
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name + ": " + s);
@@ -1317,6 +1344,9 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           // check entry for consistency (in case restrictions have changed)
           ParamValue default_value = new_entry.value;
           new_entry.value = it->value;
+          // the message names the parameter by its full name in this Param (e.g. 'section:name', as a tool's user
+          // sets it), not by its leaf name alone, which several sections may share
+          new_entry.name = target_name;
           std::string validation_result;
           if (new_entry.isValid(validation_result))
           {

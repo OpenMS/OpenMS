@@ -149,7 +149,7 @@ public:
     setValidFormats_("out", ListUtils::create<std::string>("featureXML"));
     registerOutputFile_("out_multiplets", "<file>", "", "Optional output file containing all detected peptide groups (i.e. peptide pairs or triplets or singlets or ..). The m/z-RT positions correspond to the lightest peptide in each group.", false, true);
     setValidFormats_("out_multiplets", ListUtils::create<std::string>("consensusXML"));
-    registerOutputFile_("out_blacklist", "<file>", "", "Optional output file containing all peaks which have been associated with a peptide feature (and subsequently blacklisted).", false, true);
+    registerOutputFile_("out_blacklist", "<file>", "", "Optional output file containing all peaks which have been associated with a peptide feature (and subsequently blacklisted), with the unique id of the feature that reserved each peak (integer data arrays 'owner_unique_id_high' and 'owner_unique_id_low', 0 if the feature was not reported).", false, true);
     setValidFormats_("out_blacklist", ListUtils::create<std::string>("mzML"));
 
     addEmptyLine_();

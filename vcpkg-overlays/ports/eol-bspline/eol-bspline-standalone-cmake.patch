@@ -1,0 +1,64 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index dad51bd..232be71 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -7,7 +7,7 @@
+ # --------------------------------------------------------------------------
+ 
+ 
+-project("OpenMS-eol-bsplines")
++project("eol-bspline")
+ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+ 
+ set(_EOL_BSPLINE_SOURCES
+@@ -30,24 +30,37 @@ add_library(eol-bspline STATIC ${EOL_BSPLINE_SOURCES})
+ # Set include directories for the library
+ target_include_directories(eol-bspline SYSTEM PUBLIC 
+                           "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
+-                          "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}/OpenMS/thirdparty>")
++                          "$<INSTALL_INTERFACE:include>")
+ 
+-# Apply compiler flags
+-if (NOT WIN32)
+-  target_compile_options(eol-bspline PRIVATE -fPIC)
+-endif()
++# Objects are linked into a shared library, so they must be position independent.
++set_target_properties(eol-bspline PROPERTIES POSITION_INDEPENDENT_CODE ON)
+ 
+-# Install the library
+-install_library(eol-bspline)
+-openms_register_export_target(eol-bspline)
+ 
+-# Install headers
++install(TARGETS eol-bspline
++  EXPORT eol-bsplineTargets
++  RUNTIME DESTINATION bin
++  LIBRARY DESTINATION lib
++  ARCHIVE DESTINATION lib
++)
++
++install(EXPORT eol-bsplineTargets
++  FILE eol-bsplineConfig.cmake
++  DESTINATION share/eol-bspline
++)
++
+ install(DIRECTORY ${PROJECT_SOURCE_DIR}/BSpline/
+-  DESTINATION ${INSTALL_INCLUDE_DIR}/OpenMS/thirdparty/BSpline
+-  COMPONENT thirdparty_headers
++  DESTINATION include/BSpline
+   FILES_MATCHING PATTERN "*.h"
+   PATTERN "*.cpp" EXCLUDE
+ )
+ 
+-file(APPEND ${TPLICENSEFILE} "\neol-bspline:\n")
+-cat(${PROJECT_SOURCE_DIR}/LICENSE ${TPLICENSEFILE})
++include(CMakePackageConfigHelpers)
++write_basic_package_version_file(
++  "${CMAKE_CURRENT_BINARY_DIR}/eol-bsplineConfigVersion.cmake"
++  VERSION 2.2.0
++  COMPATIBILITY SameMajorVersion
++)
++
++install(FILES "${CMAKE_CURRENT_BINARY_DIR}/eol-bsplineConfigVersion.cmake"
++  DESTINATION share/eol-bspline
++)

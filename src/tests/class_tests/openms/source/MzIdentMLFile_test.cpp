@@ -17,6 +17,13 @@
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
+#include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
+
+#include <set>
+#include <regex>
+#include <fstream>
+#include <sstream>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -659,6 +666,551 @@ START_SECTION(([EXTRA] mzIdentML 1.3 multiple spectra per identification))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] PeptideSequence held in a CDATA section, behind a comment or padded with whitespace))
+{
+  // reference: the same identifications with the plain spelling '<PeptideSequence>PEPTIDER</PeptideSequence>'
+  std::vector<ProteinIdentification> ref_protein_ids;
+  PeptideIdentificationList ref_peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid"), ref_protein_ids, ref_peptide_ids);
+
+  // same file, but one sequence sits in a CDATA section, one is preceded by an XML comment inside the element
+  // and one is surrounded by whitespace; the reader used to discard the first two ("Non Text Node")
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_cdata_comment_peptide_sequence.mzid"), protein_ids, peptide_ids);
+
+  TEST_EQUAL(protein_ids.size(), ref_protein_ids.size())
+  ABORT_IF(peptide_ids.size() != ref_peptide_ids.size())
+  std::multiset<std::string> all_sequences;
+  for (Size i = 0; i < peptide_ids.size(); ++i)
+  {
+    std::multiset<std::string> sequences, ref_sequences;
+    for (const PeptideHit& hit : peptide_ids[i].getHits())
+    {
+      sequences.insert(hit.getSequence().toString());
+      all_sequences.insert(hit.getSequence().toString());
+    }
+    for (const PeptideHit& hit : ref_peptide_ids[i].getHits())
+    {
+      ref_sequences.insert(hit.getSequence().toString());
+    }
+    TEST_EQUAL(sequences == ref_sequences, true)
+  }
+  // the three rewritten peptides are referenced by PSMs and came back as plain residues
+  TEST_EQUAL(all_sequences.count("PEPTIDER"), 1)    // CDATA section
+  TEST_EQUAL(all_sequences.count("PEPTIDERR"), 1)   // padded with whitespace
+  TEST_EQUAL(all_sequences.count("PEPTIDERRRR"), 2) // comment before the residues
+  TEST_EQUAL(all_sequences.count(""), 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Peptide with an empty PeptideSequence element))
+{
+  // '<PeptideSequence></PeptideSequence>' and '<PeptideSequence/>' are schema-valid and are what the writer
+  // emits for a hit with an empty sequence; the reader used to dereference the missing first child node of
+  // such an element and crash
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_empty_peptide_sequence.mzid"), protein_ids, peptide_ids);
+
+  // the proteins reached through the PeptideEvidences are still there
+  ABORT_IF(protein_ids.size() != 1)
+  TEST_EQUAL(protein_ids[0].getHits().size(), 2)
+
+  // every PSM is kept: the ones referencing an empty peptide carry an empty sequence, the others keep theirs
+  ABORT_IF(peptide_ids.size() != 3)
+  const std::vector<std::multiset<std::string>> expected = {
+    {"", "PEPTIDERR"},  // spectrumID 17: PEPTIDER (now '<PeptideSequence></PeptideSequence>') and PEPTIDERR
+    {"", "PEPTIDERRR"}, // spectrumID 45: PEPTIDERRRR (now '<PeptideSequence/>') and PEPTIDERRR
+    {"", "PEPTIDERRR"}  // spectrumID 99: PEPTIDERRR and PEPTIDERRRR (now '<PeptideSequence/>')
+  };
+  for (Size i = 0; i < peptide_ids.size(); ++i)
+  {
+    std::multiset<std::string> sequences;
+    Size n_empty = 0;
+    for (const PeptideHit& hit : peptide_ids[i].getHits())
+    {
+      sequences.insert(hit.getSequence().toString());
+      if (hit.getSequence().empty()) ++n_empty;
+      TEST_EQUAL(hit.getPeptideEvidences().empty(), false) // the PSM was built completely
+    }
+    TEST_EQUAL(sequences == expected[i], true)
+    TEST_EQUAL(n_empty, 1)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Peptide with an out-of-range SubstitutionModification location (CPP-169)))
+{
+  // A SubstitutionModification's "location" is a 1-based residue position;
+  // location="0" (or one past the sequence length) used to write one byte
+  // before (or past) the sequence's character buffer via
+  // as[toInt32(location) - 1] with no bounds check. Reuse the empty-sequence
+  // fixture and inject one into the "PEPTIDERR" peptide.
+  std::ifstream orig_in(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_empty_peptide_sequence.mzid"));
+  std::stringstream orig_buf;
+  orig_buf << orig_in.rdbuf();
+  std::string content = orig_buf.str();
+
+  std::string from = "<PeptideSequence>PEPTIDERR</PeptideSequence>";
+  std::string to = "<PeptideSequence>PEPTIDERR</PeptideSequence>"
+                    // A huge location (rather than "0") makes the pre-fix write land far
+                    // outside any mapped memory, so this reliably crashes without the fix
+                    // instead of landing one byte before the string's own small-object
+                    // buffer, which in practice can go unnoticed in a non-sanitized build.
+                    "<SubstitutionModification location=\"100000000\" originalResidue=\"P\" replacementResidue=\"A\"/>";
+  Size pos = content.find(from);
+  TEST_NOT_EQUAL(pos, std::string::npos)
+  content.replace(pos, from.size(), to);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  std::ofstream of(tmp_filename.c_str());
+  of << content;
+  of.close();
+
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(tmp_filename, protein_ids, peptide_ids);
+
+  // Must not crash, and must come back with the same identification/hit
+  // structure as the unmodified fixture (see the empty-PeptideSequence test
+  // above: 3 identifications, each with one empty-sequence PSM and one real
+  // one -- the identification carrying "PEPTIDERR" is spectrumID 17, with
+  // hits {"", "PEPTIDERR"}). The out-of-range SubstitutionModification is
+  // rejected (caught by the same fallback as an unreadable Peptide), so that
+  // identification's "PEPTIDERR" hit now also comes back empty -- {"", ""}
+  // -- instead of either applying a one-byte-out-of-bounds write or silently
+  // keeping "PEPTIDERR" unmodified.
+  ABORT_IF(peptide_ids.size() != 3)
+  Size n_empty = 0, n_hits = 0;
+  for (const auto& pep_id : peptide_ids)
+  {
+    for (const PeptideHit& hit : pep_id.getHits())
+    {
+      ++n_hits;
+      if (hit.getSequence().empty()) ++n_empty;
+    }
+  }
+  TEST_EQUAL(n_hits, 6)
+  TEST_EQUAL(n_empty, 4)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store and load a PeptideHit with an empty sequence))
+{
+  // the writer emits '<PeptideSequence></PeptideSequence>' for such a hit; loading the file used to crash
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid"), protein_ids, peptide_ids);
+  ABORT_IF(peptide_ids.empty() || peptide_ids[0].getHits().empty())
+
+  PeptideHit empty_hit(0.5, 3, 1, AASequence());
+  empty_hit.setPeptideEvidences(peptide_ids[0].getHits()[0].getPeptideEvidences()); // a protein reference is needed to be written
+  peptide_ids[0].insertHit(empty_hit);
+  Size n_hits = 0;
+  for (const PeptideIdentification& pid : peptide_ids)
+  {
+    n_hits += pid.getHits().size();
+  }
+
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  MzIdentMLFile().store(filename, protein_ids, peptide_ids);
+
+  std::vector<ProteinIdentification> protein_ids2;
+  PeptideIdentificationList peptide_ids2;
+  MzIdentMLFile().load(filename, protein_ids2, peptide_ids2);
+
+  TEST_EQUAL(peptide_ids2.size(), peptide_ids.size())
+  Size n_hits2 = 0, n_empty2 = 0;
+  for (const PeptideIdentification& pid : peptide_ids2)
+  {
+    for (const PeptideHit& hit : pid.getHits())
+    {
+      ++n_hits2;
+      if (hit.getSequence().empty()) ++n_empty2;
+    }
+  }
+  TEST_EQUAL(n_hits2, n_hits)
+  TEST_EQUAL(n_empty2, 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store and load a PeptideHit with a C-terminal modification))
+{
+  // mzIdentML puts a C-terminal modification at location length + 1; length is the last residue
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid"), protein_ids, peptide_ids);
+  ABORT_IF(peptide_ids.empty() || peptide_ids[0].getHits().empty())
+
+  PeptideHit cterm_hit(0.5, 3, 2, AASequence::fromString("PEPTIDEK.(Methyl)"));
+  cterm_hit.setPeptideEvidences(peptide_ids[0].getHits()[0].getPeptideEvidences());
+  peptide_ids[0].insertHit(cterm_hit);
+
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  MzIdentMLFile().store(filename, protein_ids, peptide_ids);
+
+  TextFile stored;
+  stored.load(filename, true);
+  bool c_term_location = false, last_residue_location = false;
+  for (const std::string& line : stored)
+  {
+    if (line == "<Modification location=\"9\">") c_term_location = true;
+    if (line == "<Modification location=\"8\">") last_residue_location = true;
+  }
+  TEST_EQUAL(c_term_location, true)
+  TEST_EQUAL(last_residue_location, false)
+
+  std::vector<ProteinIdentification> protein_ids2;
+  PeptideIdentificationList peptide_ids2;
+  MzIdentMLFile().load(filename, protein_ids2, peptide_ids2);
+  Size n_found = 0;
+  for (const PeptideIdentification& pid : peptide_ids2)
+  {
+    for (const PeptideHit& hit : pid.getHits())
+    {
+      if (hit.getSequence().toUnmodifiedString() == "PEPTIDEK")
+      {
+        ++n_found;
+        TEST_STRING_EQUAL(hit.getSequence().toString(), "PEPTIDEK.(Methyl)")
+      }
+    }
+  }
+  TEST_EQUAL(n_found, 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] score selection with Comet:expectation value and PSM-level q-value))
+{
+  // Comet:expectation value (MS:1002257) is lower-is-better and must not displace a PSM-level q-value.
+  // Every result holds a better (PEPTIDER) and a worse (PEPTIDERR) hit.
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_comet_scores.mzid"), protein_ids, peptide_ids);
+  TEST_EQUAL(peptide_ids.size(), 5)
+  ABORT_IF(peptide_ids.size() != 5)
+
+  struct Expected
+  {
+    std::string score_type;
+    bool higher_better;
+    double best_score;
+  };
+  const std::vector<Expected> expected{
+    {"q-value", false, 0.0001},                // expectation value and q-value
+    {"q-value", false, 0.0001},                // the same, q-value listed first
+    {"Comet:expectation value", false, 1e-05}, // expectation value only
+    {"q-value", false, 0.0001},                // q-value only
+    {"Comet:xcorr", true, 3.5}                 // xcorr, expectation value and q-value: the raw score is used
+  };
+  for (Size i = 0; i < expected.size(); ++i)
+  {
+    PeptideIdentification& pid = peptide_ids[i];
+    pid.sort();
+    TEST_STRING_EQUAL(pid.getScoreType(), expected[i].score_type)
+    TEST_EQUAL(pid.isHigherScoreBetter(), expected[i].higher_better)
+    TEST_EQUAL(pid.getHits().size(), 2)
+    if (pid.getHits().empty()) continue;
+    TEST_STRING_EQUAL(pid.getHits()[0].getSequence().toString(), "PEPTIDER")
+    TEST_REAL_SIMILAR(pid.getHits()[0].getScore(), expected[i].best_score)
+  }
+
+  // the expectation value stays available when the q-value is used
+  TEST_REAL_SIMILAR(double(peptide_ids[0].getHits()[0].getMetaValue("MS:1002257")), 1e-05)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] score selection with X!Tandem and OMSSA scores))
+{
+  // X!Tandem:expect (MS:1001330), OMSSA:evalue (MS:1001328) and OMSSA:pvalue (MS:1001329) have no score order in
+  // PSI-MS; they are lower-is-better. Every result holds a better (PEPTIDER) and a worse (PEPTIDERR) hit.
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_xtandem_omssa_scores.mzid"), protein_ids, peptide_ids);
+  TEST_EQUAL(peptide_ids.size(), 6)
+  ABORT_IF(peptide_ids.size() != 6)
+
+  struct Expected
+  {
+    std::string score_type;
+    bool higher_better;
+    double best_score;
+  };
+  const std::vector<Expected> expected{
+    {"X\\!Tandem:expect", false, 0.001},     // expect and hyperscore
+    {"q-value", false, 0.005},               // expect, hyperscore and q-value: the expect yields to the q-value
+    {"X\\!Tandem:hyperscore", true, 45.5},   // hyperscore only
+    {"OMSSA:evalue", false, 0.002},          // E-value and p-value
+    {"q-value", false, 0.004},               // E-value, p-value and q-value
+    {"OMSSA:pvalue", false, 2e-06}           // p-value only
+  };
+  for (Size i = 0; i < expected.size(); ++i)
+  {
+    PeptideIdentification& pid = peptide_ids[i];
+    pid.sort();
+    TEST_STRING_EQUAL(pid.getScoreType(), expected[i].score_type)
+    TEST_EQUAL(pid.isHigherScoreBetter(), expected[i].higher_better)
+    TEST_EQUAL(pid.getHits().size(), 2)
+    if (pid.getHits().empty()) continue;
+    TEST_STRING_EQUAL(pid.getHits()[0].getSequence().toString(), "PEPTIDER")
+    TEST_REAL_SIMILAR(pid.getHits()[0].getScore(), expected[i].best_score)
+  }
+
+  // the search engine scores stay available when the q-value is used
+  TEST_REAL_SIMILAR(double(peptide_ids[1].getHits()[0].getMetaValue("MS:1001330")), 0.001)
+  TEST_REAL_SIMILAR(double(peptide_ids[1].getHits()[0].getMetaValue("MS:1001331")), 45.5)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION(([EXTRA] native DOM namespace Unicode entity and malformed-input regressions))
+{
+  std::ifstream source(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid"));
+  const std::string original((std::istreambuf_iterator<char>(source)), std::istreambuf_iterator<char>());
+  ABORT_IF(original.empty())
+  auto save_xml = [](const std::string& path, const std::string& contents)
+  {
+    std::ofstream output(path, std::ios::binary);
+    output << contents;
+  };
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+
+  // All element names may carry a namespace prefix; attributes stay unqualified.
+  std::string prefixed = std::regex_replace(original, std::regex("<(/?)([A-Za-z][A-Za-z0-9]*)"), "<$1mzid:$2");
+  StringUtils::substitute(prefixed, "xmlns=", "xmlns:mzid=");
+  StringUtils::substitute(prefixed, "<mzid:DBSequence accession=", "<mzid:DBSequence xmlns:foreign=\"urn:foreign\" foreign:accession=\"ignored\" accession=");
+  StringUtils::substitute(prefixed, "accession=\"PROT1\"", "accession=\"Pröt&#x1F9EC;&amp;&quot;\"");
+  save_xml(filename, prefixed);
+  MzIdentMLFile().load(filename, proteins, peptides);
+  ABORT_IF(proteins.size() != 1)
+  TEST_EQUAL(peptides.size(), 3)
+  std::set<std::string> accessions;
+  for (const auto& hit : proteins[0].getHits()) { accessions.insert(hit.getAccession()); }
+  TEST_TRUE(accessions.contains("Pröt🧬&\""))
+  TEST_TRUE(accessions.contains("PROT2"))
+
+  // Foreign element names do not enter the mzIdentML identifier/score maps.
+  const double reference_score = peptides[0].getHits()[0].getScore();
+  std::string foreign = prefixed;
+  foreign.insert(foreign.find("<mzid:DBSequence "),
+    "<foreign:DBSequence xmlns:foreign='urn:unrelated' accession='POISON' id='5172702226708088127'>"
+    "<foreign:Seq>AAAAAAAA</foreign:Seq></foreign:DBSequence>");
+  const auto item_begin = foreign.find("<mzid:SpectrumIdentificationItem ");
+  ABORT_IF(item_begin == std::string::npos)
+  foreign.insert(foreign.find('>', item_begin) + 1,
+    "<foreign:cvParam xmlns:foreign='urn:unrelated' accession='MS:1001171' cvRef='PSI-MS' name='Mascot:score' value='999999'/>");
+  save_xml(filename, foreign);
+  MzIdentMLFile().load(filename, proteins, peptides);
+  ABORT_IF(proteins.size() != 1 || peptides.size() != 3 || peptides[0].getHits().empty())
+  TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), reference_score)
+  for (const auto& hit : proteins[0].getHits())
+  {
+    TEST_NOT_EQUAL(hit.getAccession(), "POISON")
+    TEST_NOT_EQUAL(hit.getSequence(), "AAAAAAAA")
+  }
+
+  // An entity's declaration tree is not a second copy of its expanded content.
+  std::string entity_wrapped = original;
+  const auto sil_begin = entity_wrapped.find("<SpectrumIdentificationList ");
+  const auto sil_end_tag = entity_wrapped.find("</SpectrumIdentificationList>", sil_begin);
+  ABORT_IF(sil_begin == std::string::npos || sil_end_tag == std::string::npos)
+  const auto sil_length = sil_end_tag + std::string("</SpectrumIdentificationList>").size() - sil_begin;
+  std::string entity_value = entity_wrapped.substr(sil_begin, sil_length);
+  StringUtils::substitute(entity_value, "'", "&#39;");
+  StringUtils::substitute(entity_value, "%", "&#37;");
+  entity_wrapped.replace(sil_begin, sil_length, "&identification_list;");
+  entity_wrapped.insert(entity_wrapped.find("?>") + 2,
+    "\n<!DOCTYPE MzIdentML [<!ENTITY identification_list '" + entity_value + "'>]>");
+  save_xml(filename, entity_wrapped);
+  MzIdentMLFile().load(filename, proteins, peptides);
+  TEST_EQUAL(proteins.size(), 1)
+  TEST_EQUAL(peptides.size(), 3)
+
+  // A real existing local file is never loaded through an external entity.
+  std::string secret_file;
+  NEW_TMP_FILE(secret_file)
+  save_xml(secret_file, "EXTERNAL_ENTITY_MUST_NOT_BE_READ");
+  std::string external = original;
+  const auto declaration = external.find("?>");
+  ABORT_IF(declaration == std::string::npos)
+  external.insert(declaration + 2, "\n<!DOCTYPE MzIdentML [<!ENTITY secret SYSTEM 'file://" + secret_file + "'>]>");
+  StringUtils::substitute(external, "<Seq>PRGTEIN</Seq>", "<Seq>&secret;</Seq>");
+  save_xml(filename, external);
+  MzIdentMLFile().load(filename, proteins, peptides);
+  for (const auto& protein : proteins)
+  {
+    for (const auto& hit : protein.getHits())
+    {
+      TEST_NOT_EQUAL(hit.getSequence(), "EXTERNAL_ENTITY_MUST_NOT_BE_READ")
+    }
+  }
+
+  // Large ordinary text and attributes remain readable. HUGE
+  // relaxes the 10 MB node limit but must retain the explicit entity budget.
+  {
+    const std::string large_sequence(10000001, 'A');
+    std::string large = original;
+    StringUtils::substitute(large, "<Seq>PRGTEIN</Seq>", "<Seq>" + large_sequence + "</Seq>");
+    const auto root = large.find("<MzIdentML ");
+    ABORT_IF(root == std::string::npos)
+    large.insert(root + std::string("<MzIdentML").size(), " ignored=\"" + large_sequence + "\"");
+    save_xml(filename, large);
+    MzIdentMLFile().load(filename, proteins, peptides);
+    ABORT_IF(proteins.size() != 1)
+    bool found = false;
+    for (const auto& hit : proteins[0].getHits())
+    {
+      if (hit.getAccession() == "PROT1")
+      {
+        found = true;
+        TEST_EQUAL(hit.getSequence().size(), large_sequence.size())
+        TEST_TRUE(hit.getSequence() == large_sequence)
+      }
+    }
+    TEST_TRUE(found)
+    TEST_EQUAL(peptides.size(), 3)
+  }
+  std::string amplified = original;
+  std::string declarations = "\n<!DOCTYPE MzIdentML [<!ENTITY a '" + std::string(1000, 'A') + "'>";
+  for (char name = 'b'; name <= 'e'; ++name)
+  {
+    declarations += "<!ENTITY " + std::string(1, name) + " '";
+    for (int repeat = 0; repeat < 10; ++repeat) { declarations += "&" + std::string(1, name - 1) + ";"; }
+    declarations += "'>";
+  }
+  declarations += "]>";
+  const auto xml_declaration_end = amplified.find("?>");
+  ABORT_IF(xml_declaration_end == std::string::npos)
+  amplified.insert(xml_declaration_end + 2, declarations);
+  // The same declaration and entity path must also work below the budget.
+  std::string below_limit = amplified;
+  StringUtils::substitute(below_limit, "<Seq>PRGTEIN</Seq>", "<Seq>&b;</Seq>");
+  save_xml(filename, below_limit);
+  MzIdentMLFile().load(filename, proteins, peptides);
+  ABORT_IF(proteins.size() != 1)
+  bool expanded_below_limit = false;
+  for (const auto& hit : proteins[0].getHits())
+  {
+    if (hit.getAccession() == "PROT1")
+    {
+      expanded_below_limit = hit.getSequence() == std::string(10000, 'A');
+    }
+  }
+  TEST_TRUE(expanded_below_limit)
+  StringUtils::substitute(amplified, "<Seq>PRGTEIN</Seq>", "<Seq>&e;</Seq>");
+  save_xml(filename, amplified);
+  bool rejected_amplification = false;
+  try
+  {
+    MzIdentMLFile().load(filename, proteins, peptides);
+  }
+  catch (const Exception::ParseError& error)
+  {
+    rejected_amplification = std::string(error.getMessage()).find("amplification") != std::string::npos;
+  }
+  TEST_TRUE(rejected_amplification)
+
+  // Diagnostics keep the actual input location in the exception, not stderr.
+  save_xml(filename, "<MzIdentML>\n<broken></MzIdentML>");
+  bool reported_location = false;
+  try
+  {
+    MzIdentMLFile().load(filename, proteins, peptides);
+  }
+  catch (const Exception::ParseError& error)
+  {
+    const std::string message = error.getMessage();
+    reported_location = message.find(filename) != std::string::npos &&
+      message.find("(line 2, column ") != std::string::npos;
+  }
+  TEST_TRUE(reported_location)
+
+  // Do not traverse a partial DOM after a malformed tail, invalid reference or UTF8.
+  save_xml(filename, original.substr(0, original.rfind("</MzIdentML>")));
+  TEST_EXCEPTION(Exception::ParseError, MzIdentMLFile().load(filename, proteins, peptides))
+  std::string malformed = original;
+  StringUtils::substitute(malformed, "accession=\"PROT1\"", "accession=\"bad&-\"");
+  save_xml(filename, malformed);
+  TEST_EXCEPTION(Exception::ParseError, MzIdentMLFile().load(filename, proteins, peptides))
+  malformed = original;
+  StringUtils::substitute(malformed, "accession=\"PROT1\"", std::string("accession=\"bad") + char(0xff) + "\"");
+  save_xml(filename, malformed);
+  TEST_EXCEPTION(Exception::ParseError, MzIdentMLFile().load(filename, proteins, peptides))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] legacy DOM writer emits UTF8 namespaces and propagates output failures))
+{
+  ProteinIdentification protein;
+  ProteinHit hit;
+  hit.setAccession("Pröt🧬&\"");
+  hit.setSequence("PEPTIDER");
+  protein.insertHit(hit);
+  protein.setSearchEngine("Mascot");
+  protein.setSearchEngineVersion("2.1.0");
+  const std::vector<ProteinIdentification> proteins{protein};
+  const PeptideIdentificationList peptides;
+  MzIdentMLFile logger;
+  Internal::MzIdentMLDOMHandler writer(proteins, peptides, "1.1.0", logger);
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  writer.writeMzIdentMLFile(filename);
+  std::ifstream stream(filename, std::ios::binary);
+  const std::string xml((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+  TEST_TRUE(xml.find("xmlns=\"http://psidev.info/psi/pi/mzIdentML/1.1\"") != std::string::npos)
+  TEST_TRUE(xml.find("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"") != std::string::npos)
+  TEST_TRUE(xml.find("xsi:schemaLocation=") != std::string::npos)
+  TEST_TRUE(xml.find("Pröt🧬&amp;&quot;") != std::string::npos)
+  struct SoftwareAttributes : Internal::XMLHandler
+  {
+    SoftwareAttributes() : XMLHandler("memory", "1.1.0") {}
+    Size count = 0;
+    std::u16string engine, version;
+    void onStartElement(const char16_t* name, const Internal::XMLAttributes& attributes) override
+    {
+      if (std::u16string_view(name) == u"AnalysisSoftware")
+      {
+        ++count;
+        if (const auto* value = attributes.value("name")) { engine = value; }
+        if (const auto* value = attributes.value("version")) { version = value; }
+      }
+    }
+  };
+  struct Reader : Internal::XMLFile
+  {
+    using XMLFile::parse_;
+    using XMLFile::parseBuffer_;
+  } reader;
+  SoftwareAttributes explicit_version;
+  reader.parseBuffer_(xml, &explicit_version);
+  TEST_EQUAL(explicit_version.count, 1)
+  TEST_TRUE(explicit_version.engine == u"Mascot")
+  TEST_TRUE(explicit_version.version == u"2.1.0")
+
+  // The reader ignores AnalysisSoftware entries with an empty version. Preserve
+  // the real engine name and emit a nonempty fallback when no version is known.
+  protein.setSearchEngineVersion("");
+  const std::vector<ProteinIdentification> missing_version_proteins{protein};
+  Internal::MzIdentMLDOMHandler missing_version_writer(missing_version_proteins, peptides, "1.1.0", logger);
+  std::string missing_version_file;
+  NEW_TMP_FILE(missing_version_file)
+  missing_version_writer.writeMzIdentMLFile(missing_version_file);
+  SoftwareAttributes missing_version;
+  reader.parse_(missing_version_file, &missing_version);
+  TEST_EQUAL(missing_version.count, 1)
+  TEST_TRUE(missing_version.engine == u"Mascot")
+  TEST_TRUE(missing_version.version == u"unknown")
+
+  // An existing regular file cannot be used as the parent directory of an output.
+  TEST_EXCEPTION(Exception::UnableToCreateFile, writer.writeMzIdentMLFile(filename + "/unwritable.mzid"))
+}
+END_SECTION
+
 END_TEST

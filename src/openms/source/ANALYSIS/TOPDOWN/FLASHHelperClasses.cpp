@@ -78,21 +78,15 @@ namespace OpenMS
         double lint = iso[left_count].getIntensity();
         double rint = iso[right_count].getIntensity();
 
-        bool trim_left = true;
-        if (lint < rint)
-        {
-          pwr += lint * lint;
-        }
-        else
-        {
-          pwr += rint * rint;
-          trim_left = false;
-        }
-        if (total_pwr - pwr < total_pwr * min_pwr)
+        const bool trim_left = lint < rint;
+        const double candidate_pwr = trim_left ? lint * lint : rint * rint;
+        if (total_pwr - (pwr + candidate_pwr) < total_pwr * min_pwr)
         {
           break;
         }
 
+        // Subtract power only for isotopes actually removed from the pattern.
+        pwr += candidate_pwr;
         trim_count++;
         if (trim_left)
         {

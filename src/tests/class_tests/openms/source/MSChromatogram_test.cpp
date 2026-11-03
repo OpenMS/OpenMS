@@ -434,11 +434,11 @@ START_SECTION(([EXTRA] sorting reorders string and integer data arrays even when
   TEST_EXCEPTION(Exception::Precondition, c.select(std::vector<Size>{0, 7}))
   TEST_EQUAL(c.size(), 3)
 
-  // --- duplicate indices duplicate the values (no moved-from holes)
+  // --- a valid (unique) reorder keeps the data arrays aligned
   c = make();
-  c.select(std::vector<Size>{0, 0});
+  c.select(std::vector<Size>{2, 0});
   TEST_EQUAL(c.size(), 2)
-  TEST_STRING_EQUAL(c.getStringDataArrays()[0][0], "rt3")
+  TEST_STRING_EQUAL(c.getStringDataArrays()[0][0], "rt2")
   TEST_STRING_EQUAL(c.getStringDataArrays()[0][1], "rt3")
 
   // --- stable order across *tied* keys: the data arrays must stay aligned with the peaks
@@ -1251,6 +1251,35 @@ START_SECTION(void mergePeaks(MSChromatogram & other) )
   DoubleList dl = { b.getMZ() };
   c.setMetaValue(Constants::UserParam::MERGED_CHROMATOGRAM_MZS, dl);
   TEST_EQUAL(a, c)
+}
+END_SECTION
+
+START_SECTION([EXTRA] mergePeaks clears peak-parallel data arrays sized for the pre-merge peaks)
+{
+  MSChromatogram a, b;
+  a.push_back(p1);
+  a.push_back(p3);
+  b.push_back(p2);
+  b.push_back(p5);
+  a.sortByPosition();
+  b.sortByPosition();
+
+  MSChromatogram::FloatDataArray fa;
+  fa.push_back(1.0f);
+  fa.push_back(2.0f);
+  a.getFloatDataArrays().push_back(fa);
+  TEST_EQUAL(a.getFloatDataArrays()[0].size(), a.size())
+
+  // setSumSimilarUnion combines similar peaks, so the merged chromatogram's
+  // peak count need not equal either input's -- a float data array sized for
+  // a's pre-merge peaks can no longer describe the merged ones.
+  a.mergePeaks(b, false);
+  TEST_EQUAL(a.getFloatDataArrays().size(), 0)
+
+  // Without clearing the mis-sized array, this permuting sort would throw
+  // Exception::Precondition from checkDataArraySizes_() on perfectly valid
+  // input.
+  a.sortByIntensity(true);
 }
 END_SECTION
 

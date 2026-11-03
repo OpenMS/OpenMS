@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/QPXValueValidation.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -23,6 +24,7 @@
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -31,6 +33,7 @@
 #include <parquet/properties.h>
 
 #include <algorithm>
+#include <cmath>
 #include <exception>
 #include <functional>
 #include <limits>
@@ -98,6 +101,10 @@ struct FeatureIdLookups
   /// Set when a column header names a channel QPX cannot label; the export must not proceed,
   /// since the label is a join key.
   bool has_unlabelable_channel = false;
+  /// Whether channel 1 -- the channel a row's observed_mz is anchored on -- carries a chemical
+  /// label of its own. Decides whether mass_error_ppm can be computed against a sequence that
+  /// was reduced to its label-free identity; see the note at the mass_error_ppm call site.
+  bool reference_channel_is_labeled = false;
 };
 
 /// Build the per-map protein-group q-value and gene-info lookups from the
@@ -174,6 +181,19 @@ FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
                           "cannot be identified, so no QPX intensity label can be derived for it."
                        << std::endl;
     }
+    // Channel 1 is the one FeatureFinderMultiplex anchors the consensus centroid on, so it is
+    // the channel observed_mz measures. "LFQ" and "SILAC light" are the canonical labels that
+    // mean the peptide itself carries nothing; every other label in an MS1-labeled map shifts
+    // the precursor away from the label-free identity. A header without channel_id cannot be
+    // placed, so assume it could be channel 1 rather than emit an error computed on a guess.
+    if (cmap.getExperimentType() == "labeled_MS1"
+        && (!header.metaValueExists("channel_id")
+            || static_cast<unsigned>(header.getMetaValue("channel_id")) == 0)
+        && !label.empty() && label != "LFQ" && label != "SILAC light")
+    {
+      lut.reference_channel_is_labeled = true;
+    }
+
     lut.run_columns[map_index] = FeatureIdLookups::RunColumnInfo{
       header.filename, ArrowIOHelpers::qpxRunFileName(header.filename), std::move(label)};
   }
@@ -194,8 +214,12 @@ FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
       }
     }
 
+    // the group probabilities are q-values only after a protein FDR (it sets the run's score type), otherwise they are
+    // the proteins' scores (e.g. posterior probabilities), which pg_global_qvalue must not report; NaN: no q-value
+    if (!Scores::isScoreType(prot_id.getScoreType(), Scores::IDType::QVAL)) { continue; }
     for (const auto& pg : prot_id.getProteinGroups())
     {
+      if (!std::isfinite(pg.probability)) { continue; }
       for (const auto& acc : pg.accessions)
       {
         lut.pg_qvalue[acc] = pg.probability;
@@ -203,6 +227,7 @@ FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
     }
     for (const auto& ig : prot_id.getIndistinguishableProteins())
     {
+      if (!std::isfinite(ig.probability)) { continue; }
       for (const auto& acc : ig.accessions)
       {
         if (!lut.pg_qvalue.contains(acc))
@@ -316,6 +341,7 @@ std::shared_ptr<parquet::WriterProperties> makeFeatureWriterProperties(const Par
 bool topHitPsmIdentity(const PeptideIdentification& pid,
                        const IdentifierMSRunMapper& mapper,
                        const ArrowIOHelpers::QPXRunFileNameKeys& run_file_name_keys,
+                       const MS1LabelState::Keys& label_state_keys,
                        std::string& run_file_name,
                        Int64& psm_id)
 {
@@ -327,7 +353,9 @@ bool topHitPsmIdentity(const PeptideIdentification& pid,
   // The psm view reads the spectrum reference from the member only, with no metavalue fallback;
   // matching that matters because `scan` is part of the key.
   const auto scan = ArrowIOHelpers::qpxScanComponents(pid.getSpectrumReference());
-  const auto pf = ProForma::fromAASequence(hit.getSequence());
+  // The psm view writes the peptidoform the hit was matched with (MS1LabelState), so the id
+  // must be derived from that one and not from the peptide identity the feature reports.
+  const auto pf = ProForma::fromAASequence(MS1LabelState::matchedSequence(hit, label_state_keys));
   psm_id = QPXIdentity::psmId(run_file_name, scan,
                               ProForma::toString(pf, ProForma::WriteMode::CANONICAL),
                               static_cast<int16_t>(hit.getCharge()));
@@ -645,6 +673,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
   // Same reason as the indices above: resolving a metavalue key by name takes the
   // MetaInfoRegistry's `omp critical` lock, and the psm identities are derived per row.
   const ArrowIOHelpers::QPXRunFileNameKeys run_file_name_keys;
+  const MS1LabelState::Keys label_state_keys; // resolved once; see MS1LabelState::Keys
   // Presence check against a pre-resolved index; UInt(-1) is guarded because the index overload of
   // metaValueExists() does not special-case the sentinel the way the string overload does.
   auto metaHas = [](const MetaInfoInterface& m, UInt idx) -> bool
@@ -714,7 +743,20 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
         (void)calculated_mz_builder.Append(calc_mz);
         float obs_mz = static_cast<float>(row_mz);
         // mass_error_ppm = (observed - calculated) / calculated * 1e6
-        if (calc_mz > 0)
+        //
+        // Only if both sides describe the same peptidoform, which in MS1-labeled data they need
+        // not: the label belongs to the channel, so the workflow reduces every hit to its
+        // label-free peptide identity (MS1LabelState) and calculated_mz above is that identity,
+        // while observed_mz is the consensus centroid, anchored on channel 1. Where channel 1 is
+        // itself unlabeled (SILAC light) the two agree and the error is a real measurement.
+        // Where channel 1 carries a label (Dimethyl0, or a SILAC set without a light channel)
+        // calculated_mz is short by the entire label mass -- tens of thousands of ppm, e.g.
+        // +33879 for a doubly dimethylated tryptic peptide at charge 2 -- so report no error
+        // rather than a fabricated one. sequence, peptidoform and calculated_mz stay on the
+        // identity: that is the documented feature-level contract and the psm view's join key.
+        const bool label_shifted_precursor = id_lut.reference_channel_is_labeled
+                                             && MS1LabelState::hasMatchedSequence(*best_hit, label_state_keys);
+        if (calc_mz > 0 && !label_shifted_precursor)
         {
           (void)mass_error_ppm_builder.Append((obs_mz - calc_mz) / calc_mz * 1e6f);
         }
@@ -972,7 +1014,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
       {
         std::string psm_run;
         Int64 psm_id = 0;
-        if (!topHitPsmIdentity(pid, id_lut.run_mapper, run_file_name_keys, psm_run, psm_id)) { continue; }
+        if (!topHitPsmIdentity(pid, id_lut.run_mapper, run_file_name_keys, label_state_keys, psm_run, psm_id)) { continue; }
         if (psm_run != row.run) { continue; }
         // Two identifications of one feature can agree on all four key columns; the psm view
         // stores one row for them, so this must list it once.
@@ -994,8 +1036,27 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
       }
     }
 
-    // === cv_params (empty list for now) ===
-    (void)cv_params_builder.AppendNull();
+    // === cv_params (list<struct>, nullable) ===
+    // The label state of an MS1-labeled identification (see ArrowIOHelpers::qpxCvParams); null
+    // for every other identification, as before.
+    {
+      const auto cv_params = best_hit ? ArrowIOHelpers::qpxCvParams(*best_hit, label_state_keys)
+                                      : std::vector<std::pair<std::string, std::string>>{};
+      if (cv_params.empty())
+      {
+        (void)cv_params_builder.AppendNull();
+      }
+      else
+      {
+        (void)cv_params_builder.Append();
+        for (const auto& [name, value] : cv_params)
+        {
+          (void)cv_struct_b->Append();
+          (void)cv_name_b->Append(name);
+          (void)cv_value_b->Append(value);
+        }
+      }
+    }
 
     // === ion_mobility, start/stop ===
     if (best_pid && metaHas(*best_pid, idx_ion_mobility))
@@ -1409,8 +1470,8 @@ void ConsensusMapArrowExport::requireUnambiguousIdentities(const ConsensusMap& c
     std::to_string(divergent) + " consensus feature(s), the first at index "
     + std::to_string(first_index) + ", carry peptide identifications that disagree on the top "
     "peptide. The QPX feature and protein-group views record one peptide per feature and cannot "
-    "represent this. Resolve the conflicts first (IDConflictResolver, ConsensusID with "
-    "algorithm 'best', or FileFilter with id:keep_best_score_id), or export the unresolved data "
+    "represent this. Resolve the conflicts first (IDConflictResolver or FileFilter with "
+    "id:keep_best_score_id), or export the unresolved data "
     "as consensusparquet, which preserves every identification.");
 }
 
@@ -1439,6 +1500,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
                                                                      QPXIdentity::FeatureLinks* out_links)
 {
   requireUnambiguousIdentities(cmap);   // preflight: single-threaded, before any OpenMP region
+  ProteinRunReferences::check(cmap);    // every peptide identification needs its protein identification run
   const auto id_lut = buildFeatureIdLookups(cmap);
   requireResolvableIdRunsWith(cmap, id_lut.run_mapper);
   // A channel QPX cannot name would be written into intensities[].label, a documented join
@@ -1547,6 +1609,7 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
   // Preflight before the writer is opened and before the OpenMP batch build: a throw from
   // inside that region would be captured by the worker's catch-all and flattened to a bool.
   requireUnambiguousIdentities(cmap);
+  ProteinRunReferences::check(cmap); // every peptide identification needs its protein identification run
 
   const auto id_lut = buildFeatureIdLookups(cmap);
   requireResolvableIdRunsWith(cmap, id_lut.run_mapper); // preflight, before the OpenMP region below

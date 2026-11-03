@@ -39,4 +39,9 @@
 // The directory containing the installed documentation of OpenMS
 #define OPENMS_INSTALL_DOC_PATH "@CF_OPENMS_INSTALL_DOC_PATH@"
 
+// The TOPP tool registry this build generated (cmake/topp_tool_macros.cmake). Used only
+// when running from a build tree that has not been installed: an installation carries the
+// same registry in its own share/OpenMS/TOOLS, which ToolHandler prefers.
+#define OPENMS_BUILD_TOOL_REGISTRY_PATH "@CF_OPENMS_BUILD_TOOL_REGISTRY_PATH@"
+
 #endif // #ifndef OPENMS_DATA_PATH_H

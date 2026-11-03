@@ -14,6 +14,16 @@ message(STATUS "OpenMP support requested: ${MT_ENABLE_OPENMP}")
 if (MT_ENABLE_OPENMP)
   find_package(OpenMP COMPONENTS CXX)
 
+  if (NOT OPENMP_FOUND AND MT_REQUIRE_OPENMP)
+    # The CI presets require the runtime: the fallback below went unnoticed in CI and
+    # built the macOS packages single-threaded (#10326).
+    message(FATAL_ERROR
+      "OpenMP is required (MT_REQUIRE_OPENMP=ON), but find_package(OpenMP) found no "
+      "OpenMP runtime. On macOS, install Homebrew's libomp (`brew install libomp`) and "
+      "reconfigure with -DOpenMP_ROOT=$(brew --prefix libomp). Pass -DMT_REQUIRE_OPENMP=OFF "
+      "to build without parallel regions instead.")
+  endif()
+
   if (NOT OPENMP_FOUND)
     # Full OpenMP runtime not found (typical on macOS with stock Apple clang).
     # Fall back to -fopenmp-simd, which enables `#pragma omp simd` vectorization

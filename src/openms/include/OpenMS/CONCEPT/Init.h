@@ -19,4 +19,13 @@
 
 */
 
+namespace OpenMS::Internal
+{
+  /**
+    @brief Initialize libxml2 once before parsing from concurrent threads.
 
+    OpenMS deliberately never calls xmlCleanupParser: other threads or dependent
+    libraries may still own parser contexts when an OpenMS object is destroyed.
+  */
+  OPENMS_DLLAPI void libxmlInitialize();
+}

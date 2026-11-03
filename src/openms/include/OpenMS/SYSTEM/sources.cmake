@@ -27,9 +27,10 @@ NetworkGetRequest.h
 PathUtils.h
 PythonInfo.h
 RWrapper.h
-SIMDe.h
 StopWatch.h
 SysInfo.h
+SystemSettings.h
+TempFiles.h
 UpdateCheck.h
 )
 
@@ -44,3 +45,17 @@ source_group("Header Files\\OpenMS\\SYSTEM" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
 
+### Private (non-installed) header: SIMDe.h pulls in <simde/x86/ssse3.h> and, on
+### MSVC, defines operators on simde__m128i. Its own comment says to include it
+### from .cpp files only, and nothing but libOpenMS sources does. Keeping it off
+### OpenMS_sources_h is what lets SIMDe be a PRIVATE link dependency: no SIMDe
+### type or include appears in any installed header.
+set(private_headers_list_h
+SIMDe.h
+)
+set(private_sources_h)
+foreach(i ${private_headers_list_h})
+	list(APPEND private_sources_h ${directory}/${i})
+endforeach(i)
+source_group("Header Files\\OpenMS\\SYSTEM" FILES ${private_sources_h})
+set(OpenMS_private_headers ${OpenMS_private_headers} ${private_sources_h})

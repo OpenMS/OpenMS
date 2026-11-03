@@ -23,6 +23,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <QApplication>
@@ -58,7 +59,7 @@ namespace OpenMS
     file_name_(),
     tmp_path_(tmp_path),
     gui_(gui),
-    out_dir_(toQString(File::getUserDirectory())),
+    out_dir_(toQString(SystemSettings::getUserDirectory())),
     changed_(false),
     running_(false),
     error_occured_(false),

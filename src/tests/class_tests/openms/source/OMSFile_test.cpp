@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/test_config.h>
 
@@ -18,6 +19,8 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <fstream>
+#include <iterator>
 
 ///////////////////////////
 
@@ -99,6 +102,64 @@ START_SECTION(void load(const std::string& filename, IdentificationData& id_data
   TEST_EQUAL(adduct_it->identified_molecule_var.toString(),
              ids.getObservationMatches().begin()->identified_molecule_var.toString());
   TEST_EQUAL((*adduct_it->adduct_opt)->getName(), "Cl-");
+
+  // Same-second steps with different actions must retain both search-parameter mappings.
+  IdentificationData input;
+  auto file = input.registerInputFile(IdentificationData::InputFile("same-second.mzML"));
+  auto software = input.registerProcessingSoftware(IdentificationData::ProcessingSoftware("NASE", "test"));
+  IdentificationData::DBSearchParam original;
+  original.precursor_mass_tolerance = 10;
+  auto original_ref = input.registerDBSearchParam(original);
+  IdentificationData::DBSearchParam current = original;
+  current.precursor_mass_tolerance = 20;
+  auto current_ref = input.registerDBSearchParam(current);
+  DateTime time;
+  time.set("2026-10-10T12:00:00.123");
+  input.registerProcessingStep(IdentificationData::ProcessingStep(software, {file}, time), original_ref);
+  input.registerProcessingStep(IdentificationData::ProcessingStep(software, {file}, time,
+    {DataProcessing::IDENTIFICATION, DataProcessing::FILTERING}), current_ref);
+  std::string path;
+  NEW_TMP_FILE(path);
+  OMSFile().store(path, input);
+  IdentificationData output;
+  OMSFile().load(path, output);
+  TEST_EQUAL(output.getProcessingSteps().size(), 2);
+  TEST_EQUAL(output.getDBSearchSteps().size(), 2);
+  for (const auto& mapping : output.getDBSearchSteps())
+  {
+    TEST_EQUAL(mapping.first->date_time, time);
+    if (mapping.first->actions.empty())
+    {
+      TEST_REAL_SIMILAR(mapping.second->precursor_mass_tolerance, 10);
+    }
+    else
+    {
+      TEST_EQUAL(mapping.first->actions.size(), 2);
+      TEST_EQUAL(mapping.first->actions.count(DataProcessing::IDENTIFICATION), 1);
+      TEST_EQUAL(mapping.first->actions.count(DataProcessing::FILTERING), 1);
+      TEST_REAL_SIMILAR(mapping.second->precursor_mass_tolerance, 20);
+    }
+  }
+  // Simulate a future writer's extra action without changing SQLite cell lengths.
+  // The remaining known action and all other data must still be readable.
+  std::ifstream binary_in(path, std::ios::binary);
+  std::string bytes((std::istreambuf_iterator<char>(binary_in)), std::istreambuf_iterator<char>());
+  binary_in.close();
+  const std::string known = DataProcessing::processingActionToString(DataProcessing::IDENTIFICATION);
+  const auto location = bytes.find(known);
+  TEST_TRUE(location != std::string::npos)
+  ABORT_IF(location == std::string::npos)
+  bytes.replace(location, known.size(), std::string(known.size(), 'X'));
+  std::ofstream binary_out(path, std::ios::binary | std::ios::trunc);
+  binary_out.write(bytes.data(), bytes.size());
+  binary_out.close();
+  IdentificationData future;
+  OMSFile().load(path, future);
+  TEST_EQUAL(future.getProcessingSteps().size(), 2)
+  for (const auto& processing : future.getProcessingSteps())
+  {
+    TEST_FALSE(processing.actions.count(DataProcessing::IDENTIFICATION))
+  }
 }
 END_SECTION
 
@@ -222,4 +283,7 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
 END_TEST

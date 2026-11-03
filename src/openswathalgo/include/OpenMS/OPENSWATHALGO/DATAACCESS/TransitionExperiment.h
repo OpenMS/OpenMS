@@ -508,4 +508,3 @@ namespace std
     }
   };
 } // namespace std
-

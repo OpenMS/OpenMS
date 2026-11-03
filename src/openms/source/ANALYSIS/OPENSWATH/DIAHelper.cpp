@@ -76,8 +76,7 @@ namespace OpenMS::DIAHelpers
           isotope_cache.clear();
         }
 
-        CoarseIsotopePatternGenerator solver(nr_isotopes);
-        const IsotopeDistribution distribution = solver.estimateFromPeptideWeight(product_mz * charge);
+        const IsotopeDistribution& distribution = averagineIsotopeDistribution(product_mz * charge, nr_isotopes);
 
         std::vector<double> intensities;
         intensities.reserve(distribution.size());
@@ -88,6 +87,38 @@ namespace OpenMS::DIAHelpers
 
         return isotope_cache.emplace(key, std::move(intensities)).first->second;
       }
+    }
+
+    const IsotopeDistribution& averagineIsotopeDistribution(double average_weight, int nr_isotopes)
+    {
+      // Senko's averagine model, as in CoarseIsotopePatternGenerator::estimateFromPeptideWeight()
+      EmpiricalFormula composition;
+      composition.estimateFromWeightAndComp(average_weight, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
+
+      struct Hash
+      {
+        std::size_t operator()(const std::pair<EmpiricalFormula, int>& key) const
+        {
+          std::size_t seed = std::hash<EmpiricalFormula>{}(key.first);
+          hashCombine(seed, std::hash<int>{}(key.second));
+          return seed;
+        }
+      };
+      static thread_local std::unordered_map<std::pair<EmpiricalFormula, int>, IsotopeDistribution, Hash> cache;
+      static constexpr std::size_t MAX_CACHE_ENTRIES = 100000;
+
+      std::pair<EmpiricalFormula, int> key(std::move(composition), nr_isotopes);
+      const auto cached = cache.find(key);
+      if (cached != cache.end())
+      {
+        return cached->second;
+      }
+      if (cache.size() >= MAX_CACHE_ENTRIES)
+      {
+        cache.clear();
+      }
+      IsotopeDistribution distribution = key.first.getIsotopeDistribution(CoarseIsotopePatternGenerator(nr_isotopes));
+      return cache.emplace(std::move(key), std::move(distribution)).first->second;
     }
 
     void adjustExtractionWindow(double& right, double& left, const double& mz_extract_window, const bool& mz_extraction_ppm)

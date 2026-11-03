@@ -13,6 +13,7 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/PlotWidget.h>
+#include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
 
 class QGroupBox;
@@ -21,8 +22,6 @@ class QCheckBox;
 
 namespace OpenMS
 {
-  class Plot1DWidget;
-
   /**
       @brief Widget for 2D-visualization of peak map and feature map data
 
@@ -153,4 +152,3 @@ private slots:
     void autoUpdateProjections_();
   };
 }
-

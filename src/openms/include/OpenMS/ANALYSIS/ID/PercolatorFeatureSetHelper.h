@@ -56,6 +56,11 @@ namespace OpenMS
           @param[in] feature_set register of added features
          
           Creates and adds MSGF+ specific Percolator features and registers them in feature_set. MSGF+ should be run with the addFeatures flag enabled.
+
+          MS-GF+ computes the fragment mass error standard deviations of '-addFeatures' (StdevErrorAll, StdevErrorTop7,
+          StdevRelErrorAll, StdevRelErrorTop7) as sqrt(E[x^2] - mean^2) in single precision. When all matched fragment
+          errors are (nearly) identical, rounding makes the variance slightly negative and MS-GF+ reports 'NaN'. These values are set
+          to 0 here, as Percolator rejects non-finite features.
          */
         static void addMSGFFeatures(PeptideIdentificationList& peptide_ids, StringList& feature_set);
 

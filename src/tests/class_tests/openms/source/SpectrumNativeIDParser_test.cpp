@@ -79,16 +79,16 @@ START_SECTION((static std::string getRegExFromNativeID(const std::string& native
 END_SECTION
 
 
-START_SECTION((static Int extractScanNumber(const std::string& native_id, const boost::regex& scan_regexp, bool no_error = false)))
+START_SECTION((static Int extractScanNumber(const std::string& native_id, const RegularExpression& scan_regexp, bool no_error = false)))
 {
   // Test successful extraction with spectrum= format
-  boost::regex re_spectrum("spectrum=(?<SCAN>\\d+)");
+  RegularExpression re_spectrum("spectrum=(?<SCAN>\\d+)");
   TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("spectrum=42", re_spectrum), 42);
   TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("spectrum=0", re_spectrum), 0);
   TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("spectrum=99999", re_spectrum), 99999);
 
   // Test successful extraction with scan= format
-  boost::regex re_scan("scan=(?<SCAN>\\d+)");
+  RegularExpression re_scan("scan=(?<SCAN>\\d+)");
   TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("scan=123", re_scan), 123);
   TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("controllerType=0 controllerNumber=1 scan=456", re_scan), 456);
 
@@ -102,11 +102,11 @@ START_SECTION((static Int extractScanNumber(const std::string& native_id, const 
   TEST_EXCEPTION(Exception::ParseError, SpectrumNativeIDParser::extractScanNumber("no_match", re_spectrum, false));
 
   // Test multiple matches - should return last one
-  boost::regex re_multi("(?<SCAN>\\d+)");
+  RegularExpression re_multi("(?<SCAN>\\d+)");
   TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("1 2 3 42", re_multi), 42);
 
   // Test edge cases
-  boost::regex re_index("index=(?<SCAN>\\d+)");
+  RegularExpression re_index("index=(?<SCAN>\\d+)");
   TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("index=0", re_index), 0);
 }
 END_SECTION
@@ -189,10 +189,9 @@ START_SECTION([EXTRA] Edge cases and error handling)
 
   // Test getRegExFromNativeID preserves regex structure
   std::string regex = SpectrumNativeIDParser::getRegExFromNativeID("scan=123");
-  boost::regex re(regex);
-  boost::smatch match;
+  RegularExpression re(regex);
   std::string test = "scan=456";
-  TEST_EQUAL(boost::regex_search(test, match, re), true);
+  TEST_EQUAL(re.search(test), true);
 }
 END_SECTION
 
@@ -218,6 +217,34 @@ START_SECTION([EXTRA] Bruker TDF frame= / MS:1002818 native ID)
 
   // merged PASEF spectra carry multiple scan= tokens; the last one is the merged scan number
   TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("frame=1 scan=5 frame=1 scan=9", "MS:1002818"), 9);
+
+  // "frame=<F>" without a scan= token (diaTracer pseudo-spectra): the frame number is the scan-number proxy
+  TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("frame=178383"), R"(frame=(?<GROUP>\d+))");
+  TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("frame=178383", RegularExpression(SpectrumNativeIDParser::getRegExFromNativeID("frame=178383")), true), 178383);
+  TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("frame=2 scan=529", RegularExpression(SpectrumNativeIDParser::getRegExFromNativeID("frame=2 scan=529")), true), 529);
+
+  // the scan= token wins over the frame= prefix in all Bruker TDF variants
+  TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("frame=120 windowGroup=3 scan=475"), R"(scan=(?<GROUP>\d+))");
+  TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("frame=1 scan=5 frame=1 scan=9"), R"(scan=(?<GROUP>\d+))");
+
+  // PercolatorInfile::getScanIdentifier() strips the whitespace before the regex is chosen, so
+  // the scan= token must also be found without a space in front of it
+  TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("frame=10scan=42precursor=3"), R"(scan=(?<GROUP>\d+))");
+  TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("frame=10scan=42precursor=3", "MS:1002818"), 42);
+}
+END_SECTION
+
+START_SECTION([EXTRA] frame= native ID without a scan= token (#10719))
+{
+  // Bruker TDF MS1 frames and diaTracer pseudo-DDA spectra have IDs "frame=<N>" only.
+  // The frame number identifies the spectrum; the scan= pattern would match nothing
+  // and give -1 for every spectrum, which collapses Percolator's cross-validation folds.
+  TEST_EQUAL(SpectrumNativeIDParser::isNativeID("frame=17"), true);
+  TEST_EQUAL(SpectrumNativeIDParser::getRegExFromNativeID("frame=17"), R"(frame=(?<GROUP>\d+))");
+
+  RegularExpression frame_re(SpectrumNativeIDParser::getRegExFromNativeID("frame=1"));
+  TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("frame=17", frame_re, true), 17);
+  TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("frame=62784", frame_re, true), 62784);
 }
 END_SECTION
 

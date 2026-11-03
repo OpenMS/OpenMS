@@ -307,6 +307,24 @@ START_SECTION([EXTRA] decodeNP_SLOF)
 }
 END_SECTION
 
+START_SECTION([EXTRA] decodeNP_SLOF of an odd number of bytes)
+{
+  // 8 bytes of fixed point and 2 per value: a trailing odd byte is not decoded (and not read past)
+  MSNumpressCoder::NumpressConfig config;
+  config.np_compression = MSNumpressCoder::SLOF;
+  config.estimate_fixed_point = true;
+  std::string raw;
+  MSNumpressCoder().encodeNPRaw({100.0, 200.0, 300.0}, raw, config);
+  TEST_EQUAL(raw.size(), 14)
+  std::vector<double> out;
+  MSNumpressCoder().decodeNPRaw(raw.substr(0, 13), out, config);
+  TEST_EQUAL(out.size(), 2)
+  TOLERANCE_RELATIVE(1 + 1e-4)
+  TEST_REAL_SIMILAR(out[0], 100.0)
+  TEST_REAL_SIMILAR(out[1], 200.0)
+}
+END_SECTION
+
 ///////////////////////////////////////////////////////////////////////////
 // Large test
 ///////////////////////////////////////////////////////////////////////////

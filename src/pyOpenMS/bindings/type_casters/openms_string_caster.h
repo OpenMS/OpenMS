@@ -35,7 +35,7 @@ public:
     /**
      * Convert Python object to std::string
      */
-    bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
+    bool from_python(handle src, uint32_t flags, cleanup_list* cleanup) noexcept {
         // Handle None
         if (src.is_none()) {
             return false;
@@ -119,7 +119,7 @@ template <>
 struct type_caster<std::string*> {
     NB_TYPE_CASTER(std::string*, const_name("str | None"))
 
-    bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
+    bool from_python(handle src, uint32_t flags, cleanup_list* cleanup) noexcept {
         if (src.is_none()) {
             value = nullptr;
             return true;

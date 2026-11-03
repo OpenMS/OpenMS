@@ -122,6 +122,22 @@ namespace OpenMS
     return precursor_mz_range_;
   }
 
+  void PeakFileOptions::setIMRange(const DRange<1>& range)
+  {
+    im_range_ = range;
+    has_im_range_ = true;
+  }
+
+  bool PeakFileOptions::hasIMRange() const
+  {
+    return has_im_range_;
+  }
+
+  const DRange<1>& PeakFileOptions::getIMRange() const
+  {
+    return im_range_;
+  }
+
   void PeakFileOptions::setMSLevels(const vector<Int>& levels)
   {
     ms_levels_ = levels;
@@ -160,6 +176,16 @@ namespace OpenMS
   bool PeakFileOptions::getCompression() const
   {
     return zlib_compression_;
+  }
+
+  void PeakFileOptions::setZstdCompression(bool zstd)
+  {
+    zstd_compression_ = zstd;
+  }
+
+  bool PeakFileOptions::getZstdCompression() const
+  {
+    return zstd_compression_;
   }
 
   bool PeakFileOptions::getAlwaysAppendData() const

@@ -17,6 +17,16 @@
 #include <memory>
 #include <type_traits>
 
+// Locale headers for the locale-independent strtod_l/strtof_l fallback used with libc++
+// (see OPENMS_NO_FLOAT_FROM_CHARS below).
+#if defined(_LIBCPP_VERSION)
+  #include <clocale>
+  #include <locale.h>
+  #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+    #include <xlocale.h>
+  #endif
+#endif
+
 // DataValue can now be included here; it depends on String.h which includes StringUtils.h,
 // but since this is a .cpp there is no circularity at compile time.
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
@@ -178,6 +188,27 @@ namespace OpenMS
 #endif
 
 #ifdef OPENMS_NO_FLOAT_FROM_CHARS
+    // std::strtod/strtof honour the decimal separator of the global C locale (LC_NUMERIC).
+    // QApplication calls setlocale(LC_ALL, ""), so in e.g. a de_DE locale "60.5" would parse
+    // as 60. std::from_chars is locale-independent, so parse with an explicit "C" locale.
+  #if defined(_WIN32)
+    inline _locale_t cLocale()
+    {
+      static const _locale_t c_loc = _create_locale(LC_ALL, "C");
+      return c_loc;
+    }
+    inline double strtodC(const char* s, char** end) { return _strtod_l(s, end, cLocale()); }
+    inline float strtofC(const char* s, char** end) { return _strtof_l(s, end, cLocale()); }
+  #else
+    inline locale_t cLocale()
+    {
+      static const locale_t c_loc = newlocale(LC_ALL_MASK, "C", (locale_t)0);
+      return c_loc;
+    }
+    inline double strtodC(const char* s, char** end) { return strtod_l(s, end, cLocale()); }
+    inline float strtofC(const char* s, char** end) { return strtof_l(s, end, cLocale()); }
+  #endif
+
     template <typename T>
     std::from_chars_result fromCharsFloat(const char* first, const char* last, T& value)
     {
@@ -207,9 +238,9 @@ namespace OpenMS
       errno = 0;
       char* parse_end = nullptr;
       if constexpr (std::is_same_v<T, float>)
-        value = std::strtof(buf, &parse_end);
+        value = strtofC(buf, &parse_end);
       else
-        value = std::strtod(buf, &parse_end);
+        value = strtodC(buf, &parse_end);
 
       if (parse_end == buf) // nothing consumed
       {
@@ -497,7 +528,15 @@ namespace OpenMS
     // Long double overloads
     void appendToStr(long double ld, std::string& target)
     {
+#ifdef _LIBCPP_VERSION
+      // libc++ implements std::to_chars for long double by converting the value to double.
+      // Where long double is wider (x86_64 macOS, WebAssembly), the digits of a long double
+      // would only spell out the binary expansion of that double (7.4L as
+      // "7.400000000000000355..."): write it as the double it is formatted as.
+      appendNumeric(static_cast<double>(ld), target, writtenDigits<double>(), false);
+#else
       appendNumeric(ld, target, writtenDigits<long double>(), false);
+#endif
     }
     void appendToStrLowP(long double ld, std::string& target)
     {
@@ -556,7 +595,7 @@ namespace OpenMS
       const simde__m128i w2 = simde_mm_set1_epi8('\n');
       const simde__m128i w3 = simde_mm_set1_epi8('\r');
 
-      for (; p <= p_end - 16; p += 16)
+      for (; p_end - p >= 16; p += 16)
       {
         const simde__m128i s = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(p));
         simde__m128i x = simde_mm_cmpeq_epi8(s, w0);
@@ -591,7 +630,7 @@ namespace OpenMS
       const simde__m128i w2 = simde_mm_set1_epi8('\n');
       const simde__m128i w3 = simde_mm_set1_epi8('\r');
 
-      for (; p <= p_end - 16; p += 16)
+      for (; p_end - p >= 16; p += 16)
       {
         const simde__m128i s = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(p));
         simde__m128i x = simde_mm_cmpeq_epi8(s, w0);

@@ -28,6 +28,20 @@ void wait(double seconds)
   };
 }
 
+// Busy-waits until this process has used at least `cpu_seconds` of CPU time, as measured by a
+// StopWatch probe. A wall-clock wait() does not guarantee that: on a loaded machine (e.g. CI
+// running several tests in parallel) the process may get only a fraction of a core. Gives up
+// after `max_wall` seconds of wall time, so a broken CPU clock fails the test instead of hanging it.
+void consumeCPU(double cpu_seconds, double max_wall = 30.0)
+{
+  StopWatch probe;
+  probe.start();
+  while (probe.getCPUTime() < cpu_seconds && probe.getClockTime() < max_wall)
+  {
+    wait(0.001); // spin in user space between two probes (keeps the system time low)
+  }
+}
+
 START_TEST(StopWatch, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -110,6 +124,9 @@ START_SECTION((bool start()))
 END_SECTION
 
 START_SECTION((bool stop()))
+  // The waits consume CPU time (consumeCPU) instead of wall time, so the CPU time checks below hold
+  // however busy the machine is; the wall time this takes grows with the load. CPU time is counted
+  // in coarse ticks (10 ms on POSIX, ~15.6 ms on Windows), hence the 0.8 factors on lower bounds.
   const double t_wait = 0.2;
   const double t_wait_more = 0.1;
   StopWatch s, s_nostop, s_reset, s_resume;
@@ -117,13 +134,13 @@ START_SECTION((bool stop()))
   s_nostop.start();
   s_reset.start();
   s_resume.resume();
-  wait(t_wait);
+  consumeCPU(t_wait);
   s.stop();
   s_resume.stop();
   TEST_EXCEPTION(Exception::Precondition, s.stop()); // cannot stop twice
 
-  TEST_EQUAL(s.getClockTime() > 0.1, true)
-  TEST_EQUAL(s.getClockTime() < 0.3, true)
+  TEST_EQUAL(s.getClockTime() > t_wait * 0.8, true) // a single thread needs at least as much wall time as CPU time
+  TEST_EQUAL(s.getClockTime() < 60, true) // coarse (the wall time grows with the load), but catches unit errors
   
   double t1 = s.getCPUTime();
   double t2 = s.getClockTime();
@@ -133,7 +150,7 @@ START_SECTION((bool stop()))
   TEST_EQUAL(s_reset.isRunning(), true); // keeps on running
   s_resume.resume();
   // wait some more
-  wait(t_wait_more);
+  consumeCPU(t_wait_more);
   // ... and see if time is still the old one
   TEST_EQUAL(s.getCPUTime(), t1)
   TEST_EQUAL(s.getClockTime(), t2)
@@ -141,9 +158,8 @@ START_SECTION((bool stop()))
   TEST_EQUAL(s.getUserTime(), t4)
   TEST_EQUAL(s.getCPUTime(), t1)
 
-  TEST_EQUAL(s.getCPUTime() > t_wait / 2, true) // waiting costs CPU time in our implementation... just not sure how much...
-  TEST_EQUAL(s.getClockTime() > t_wait * 0.95, true) // and must consume wall time
-  TEST_EQUAL(s.getClockTime() < t_wait * 3, true) // be a bit more loose if e.g. a VM is busy
+  TEST_EQUAL(s.getCPUTime() > t_wait * 0.8, true) // consumeCPU() used this much CPU time
+  TEST_EQUAL(s.getClockTime() >= s.getCPUTime() * 0.8, true) // and at least as much wall time
   std::cout << "Usertime: " << s.getUserTime() << "\n";
 #ifdef OPENMS_WINDOWSPLATFORM
   // workaround for Windows-CI on VMs which report usertime = 0 ...
@@ -176,8 +192,8 @@ START_SECTION((bool stop()))
   TEST_EQUAL(s_reset.getCPUTime() > 0, true);
 
   // don't stop the timer.. just keep running and query on the fly
-  TEST_EQUAL(s_resume.getCPUTime() > (t_wait_more + t_wait) / 2, true) // waiting costs CPU time in our implementation... just not sure how much...
-  TEST_EQUAL(s_resume.getClockTime() > (t_wait_more + t_wait) * 0.95, true) //  must consume wall time
+  TEST_EQUAL(s_resume.getCPUTime() > (t_wait_more + t_wait) * 0.8, true) // accumulated both consumeCPU() calls
+  TEST_EQUAL(s_resume.getClockTime() > (t_wait_more + t_wait) * 0.8, true) // and at least as much wall time
 END_SECTION
 
 START_SECTION((void clear()))

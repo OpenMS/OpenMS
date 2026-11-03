@@ -441,6 +441,8 @@ protected:
 
     registerStringOption_("peak_options:zlib_compression", "true or false", "false", "Whether to store data with zlib compression (lossless compression)", false);
     setValidStrings_("peak_options:zlib_compression", ListUtils::create<std::string>("true,false"));
+    registerStringOption_("peak_options:zstd_compression", "true or false", "false", "Whether to store data with Zstandard (zstd) compression instead of zlib (lossless compression; mzML only). Attention: not all external tools can read zstd-compressed mzML files yet.", false, true);
+    setValidStrings_("peak_options:zstd_compression", ListUtils::create<std::string>("true,false"));
 
     registerTOPPSubsection_("peak_options:numpress", "Numpress compression for peak data");
     registerStringOption_("peak_options:numpress:masstime", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in m/z or rt dimension (recommended: linear)", false);
@@ -686,6 +688,7 @@ protected:
     int int32 = StringUtils::toInt32(getStringOption_("peak_options:int_precision"));
     bool indexed_file = getStringOption_("peak_options:indexed_file") == "true";
     bool zlib_compression = getStringOption_("peak_options:zlib_compression") == "true";
+    bool zstd_compression = getStringOption_("peak_options:zstd_compression") == "true";
 
     //-----------------------------------
     // MS Numpress options
@@ -813,6 +816,7 @@ protected:
       // set writing index (e.g. indexedmzML)
       f.getOptions().setWriteIndex(indexed_file);
       f.getOptions().setCompression(zlib_compression);
+      f.getOptions().setZstdCompression(zstd_compression);
       // numpress compression
       f.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
       f.getOptions().setNumpressConfigurationIntensity(npconfig_int);

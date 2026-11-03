@@ -1,0 +1,13 @@
+diff --git a/BSpline/BandedMatrix.h b/BSpline/BandedMatrix.h
+index 97b75e0..2335900 100644
+--- a/BSpline/BandedMatrix.h
++++ b/BSpline/BandedMatrix.h
+@@ -23,6 +23,8 @@
+ #include <vector>
+ #include <algorithm>
+ #include <iostream>
++#include <cassert>
++#include <cstdlib>
+ 
+ namespace eol_bspline
+ {

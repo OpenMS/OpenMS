@@ -53,11 +53,16 @@ public:
         @param[in] filename PepXML file to load
         @param[out] proteins Protein identification output
         @param[out] peptides Peptide identification output
-        @param[out] experiment_name Experiment file name, which is used to extract the corresponding search results from the PepXML file.
+        @param[in] experiment_name Experiment (spectra) file name, which is used to extract the corresponding search results from the PepXML file. Empty: load all runs.
         @param[in] lookup Helper for looking up retention times (PepXML may contain only scan numbers).
 
+        A run ("msms_run_summary" element) belongs to @p experiment_name if @p experiment_name (without extension)
+        forms the trailing path components of the run's "base_name", with '/' and '\\' treated alike:
+        "run1", "data/run1" and "C:\\data\\run1.mzML" all select the run with "base_name" "C:/data/run1", but "un1" does not.
+        Runs with different "base_name"s must not match at the same time (e.g. "run1" for "C:/light/run1" and "C:/heavy/run1").
+
         @exception Exception::FileNotFound is thrown if the file could not be opened
-        @exception Exception::ParseError is thrown if an error occurs during parsing
+        @exception Exception::ParseError is thrown if an error occurs during parsing, or if no run or runs with different "base_name"s match @p experiment_name
     */
     void load(const std::string& filename,
               std::vector<ProteinIdentification>& proteins,
@@ -121,6 +126,9 @@ private:
 
     /// Read RT, m/z, charge information from attributes of "spectrum_query"
     void readRTMZCharge_(const Internal::XMLAttributes& attributes);
+
+    /// Does the run with this "base_name" belong to the experiment of interest (see load())? Records @p base_name for error messages.
+    bool isExperimentOfInterest_(std::string base_name);
 
     struct AminoAcidModification
     {
@@ -192,7 +200,7 @@ private:
     /// Pointer to wrapper for looking up spectrum meta data
     const SpectrumMetaDataLookup* lookup_;
 
-    /// Name of the associated experiment (filename of the data file, extension will be removed)
+    /// Name of the associated experiment (filename of the data file without extension, with '/' as path separator)
     std::string exp_name_;
 
     /// Set name of search engine
@@ -228,8 +236,9 @@ private:
     /// Do current entries belong to the experiment of interest (for pepXML files that bundle results from different experiments)?
     bool wrong_experiment_{};
 
-    /// Have we seen the experiment of interest at all?
-    bool seen_experiment_{};
+    /// Distinct "base_name"s of all runs / of the runs of the experiment of interest (with '/' as path separator)
+    std::vector<std::string> base_names_;
+    std::vector<std::string> matched_base_names_;
 
     /// Have we checked the "base_name" attribute in the "msms_run_summary" element?
     bool checked_base_name_{};

@@ -1,5 +1,5 @@
 // Compile-time layout guards for the AoS peak types published as zero-copy
-// structured numpy arrays by get_peaks_struct().
+// structured numpy arrays by peaks_struct().
 //
 // The dtype overlays Peak1D / ChromatogramPeak / MobilityPeak1D directly, so it
 // has to name the true byte offsets of position_ and intensity_. Both members

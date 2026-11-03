@@ -112,17 +112,10 @@ namespace OpenMS
   }
 
 
-  TheoreticalSpectrumGenerator::TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& rhs) :
-    DefaultParamHandler(rhs)
-  {
-  }
+  TheoreticalSpectrumGenerator::TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& rhs) = default;
 
 
-  TheoreticalSpectrumGenerator& TheoreticalSpectrumGenerator::operator=(const TheoreticalSpectrumGenerator& rhs)
-  {
-    DefaultParamHandler::operator=(rhs);
-    return *this;
-  }
+  TheoreticalSpectrumGenerator& TheoreticalSpectrumGenerator::operator=(const TheoreticalSpectrumGenerator& rhs) = default;
 
   TheoreticalSpectrumGenerator::~TheoreticalSpectrumGenerator() = default;
 
@@ -250,6 +243,137 @@ namespace OpenMS
     prec.setCharge(precursor_charge);
     prec.setMZ(peptide.getMZ(precursor_charge, Residue::Full));
     spectrum.getPrecursors().push_back(prec);
+  }
+
+  bool TheoreticalSpectrumGenerator::getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series,
+                                                          const AASequence& peptide, Int min_charge, Int max_charge) const
+  {
+    return getIonSeriesSpectrum_(spectrum, ion_series, nullptr, nullptr, peptide, min_charge, max_charge);
+  }
+
+  bool TheoreticalSpectrumGenerator::getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series,
+                                                          std::vector<UInt>& ion_ordinals, std::vector<Int>& ion_charges,
+                                                          const AASequence& peptide, Int min_charge, Int max_charge) const
+  {
+    return getIonSeriesSpectrum_(spectrum, ion_series, &ion_ordinals, &ion_charges, peptide, min_charge, max_charge);
+  }
+
+  bool TheoreticalSpectrumGenerator::getIonSeriesSpectrum_(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series,
+                                                           std::vector<UInt>* ion_ordinals, std::vector<Int>* ion_charges,
+                                                           const AASequence& peptide, Int min_charge, Int max_charge) const
+  {
+    if (add_isotopes_ || add_losses_ || add_internal_fragments_ || add_precursor_peaks_ || add_abundant_immonium_ions_
+        || !sort_by_position_ || peptide.size() < 2)
+    {
+      return false;
+    }
+    // the ion series of getSpectrum(), in its order: per charge b, y, a, c, x, z, z+1, z+2 (one sorted chunk each)
+    struct Series
+    {
+      bool active;
+      bool prefix;
+      double offset;
+      double intensity;
+    };
+    static const double stat_a = Residue::getInternalToAIon().getMonoWeight();
+    static const double stat_b = Residue::getInternalToBIon().getMonoWeight();
+    static const double stat_c = Residue::getInternalToCIon().getMonoWeight();
+    static const double stat_x = Residue::getInternalToXIon().getMonoWeight();
+    static const double stat_y = Residue::getInternalToYIon().getMonoWeight();
+    static const double stat_z = Residue::getInternalToZIon().getMonoWeight();
+    static const double stat_zp1 = Residue::getInternalToZp1Ion().getMonoWeight();
+    static const double stat_zp2 = Residue::getInternalToZp2Ion().getMonoWeight();
+    const Series series[] = {
+      {add_b_ions_, true, stat_b, b_intensity_},     {add_y_ions_, false, stat_y, y_intensity_},
+      {add_a_ions_, true, stat_a, a_intensity_},     {add_c_ions_, true, stat_c, c_intensity_},
+      {add_x_ions_, false, stat_x, x_intensity_},    {add_z_ions_, false, stat_z, z_intensity_},
+      {add_zp1_ions_, false, stat_zp1, z_intensity_}, {add_zp2_ions_, false, stat_zp2, z_intensity_}};
+
+    const Size n = peptide.size();
+    thread_local std::vector<double> residue_weights;
+    residue_weights.resize(n);
+    for (Size i = 0; i < n; ++i) residue_weights[i] = peptide[i].getMonoWeight(Residue::Internal);
+    const double n_term_diff = peptide.hasNTerminalModification() ? peptide.getNTerminalModification()->getDiffMonoMass() : 0.0;
+    const double c_term_diff = peptide.hasCTerminalModification() ? peptide.getCTerminalModification()->getDiffMonoMass() : 0.0;
+
+    // The peaks of each series are appended as addPeaks_() computes them (same operations in the same order), then
+    // the ascending chunks are merged stably, which is the order sortByPositionPresorted() gives them.
+    // per peak: the peak, its series (0 prefix, 1 suffix), its ordinal (the number of its ion name) and charge
+    struct Ion
+    {
+      Peak1D first;
+      uint8_t second;
+      UInt ordinal;
+      Int charge;
+    };
+    thread_local std::vector<Ion> merged, chunk, scratch;
+    merged.clear();
+    for (Int charge = min_charge; charge <= max_charge; ++charge)
+    {
+      for (const Series& s : series)
+      {
+        if (!s.active) continue;
+        chunk.clear();
+        const float intensity = static_cast<float>(s.intensity);
+        double mono_weight(Constants::PROTON_MASS_U * charge);
+        if (s.prefix)
+        {
+          mono_weight += n_term_diff;
+          Size i = Size(!add_first_prefix_ion_);
+          if (i == 1) mono_weight += residue_weights[0];
+          for (; i < n - 1; ++i)
+          {
+            mono_weight += residue_weights[i];
+            chunk.push_back({Peak1D((mono_weight + s.offset) / charge, intensity), uint8_t(0), static_cast<UInt>(i + 1), charge});
+          }
+        }
+        else
+        {
+          mono_weight += c_term_diff;
+          for (Size i = n - 1; i > 0; --i)
+          {
+            mono_weight += residue_weights[i];
+            chunk.push_back({Peak1D((mono_weight + s.offset) / charge, intensity), uint8_t(1), static_cast<UInt>(n - i), charge});
+          }
+        }
+        for (Size k = 1; k < chunk.size(); ++k)
+        {
+          if (chunk[k].first.getMZ() < chunk[k - 1].first.getMZ()) return false; // not a sorted chunk
+        }
+        // stable merge: on equal m/z, the peak of the earlier chunk comes first
+        scratch.clear();
+        auto left = merged.cbegin();
+        auto right = chunk.cbegin();
+        while (left != merged.cend() && right != chunk.cend())
+        {
+          if (right->first.getMZ() < left->first.getMZ()) scratch.push_back(*right++);
+          else scratch.push_back(*left++);
+        }
+        scratch.insert(scratch.end(), left, merged.cend());
+        scratch.insert(scratch.end(), right, chunk.cend());
+        merged.swap(scratch);
+      }
+    }
+
+    spectrum.clear(false);
+    spectrum.reserve(merged.size());
+    ion_series.resize(merged.size());
+    for (Size k = 0; k < merged.size(); ++k)
+    {
+      spectrum.push_back(merged[k].first);
+      ion_series[k] = merged[k].second;
+    }
+    if (ion_ordinals != nullptr)
+    {
+      ion_ordinals->resize(merged.size());
+      for (Size k = 0; k < merged.size(); ++k) (*ion_ordinals)[k] = merged[k].ordinal;
+    }
+    if (ion_charges != nullptr)
+    {
+      ion_charges->resize(merged.size());
+      for (Size k = 0; k < merged.size(); ++k) (*ion_charges)[k] = merged[k].charge;
+    }
+    return true;
   }
 
   MSSpectrum TheoreticalSpectrumGenerator::generateSpectrum(const Precursor::ActivationMethod& fm, const AASequence& seq, int precursor_charge)
@@ -601,7 +725,7 @@ namespace OpenMS
       }
     }
 
-    for (Size l = 1; l + 3 < peptide.size(); ++l) // start at a2/b2, stop at n-1 a/b ion with min length of 2 (additive form avoids unsigned underflow on short peptides)
+    for (Size l = 1; l + 2 < peptide.size(); ++l) // first residue after the N-terminal one; the fragment ends before the C-terminal residue and has at least 2 residues (additive form avoids unsigned underflow on short peptides)
     {
       double intensity(1);
 
@@ -1285,6 +1409,7 @@ namespace OpenMS
     add_internal_fragments_ = param_.getValue("add_internal_fragments").toBool();
     if (param_.getValue("isotope_model") == "coarse") isotope_model_ = 1;
     else if (param_.getValue("isotope_model") == "fine") isotope_model_ = 2;
+    else isotope_model_ = 0; // 'none': reset, otherwise a previous setting would linger
     sort_by_position_ = param_.getValue("sort_by_position").toBool();
     add_precursor_peaks_ = param_.getValue("add_precursor_peaks").toBool();
     add_all_precursor_charges_ = param_.getValue("add_all_precursor_charges").toBool();

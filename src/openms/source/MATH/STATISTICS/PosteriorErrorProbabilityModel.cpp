@@ -939,9 +939,12 @@ namespace OpenMS::Math
       {
         return (-1) * log10(getScore_({"MS:1002257","expect"}, hit, current_score_type));
       }
-      else if (engine == "SIMPLESEARCHENGINE")
+      else if ((engine == "SIMPLESEARCHENGINE") || (engine == "PROSE"))
       {
-        return getScore_({"hyperscore"}, hit, current_score_type); //TODO evaluate transformations
+        // Both score with HyperScore, which already returns the log-space value
+        // (HyperScore.cpp: log1p(dot_product) + log-factorials) and label it
+        // "ln(hyperscore)"; "hyperscore" is the older name for the same quantity.
+        return getScore_({"hyperscore", "ln(hyperscore)"}, hit, current_score_type); //TODO evaluate transformations
       }
       else if (engine == "SAGE")
       {
@@ -966,7 +969,7 @@ namespace OpenMS::Math
       std::set<Int> charges;
       const StringList search_engines = {"XTandem","OMSSA","MASCOT","SpectraST","MyriMatch",
                                          "SimTandem","MSGFPlus","MS-GF+","Comet","MSFragger",
-                                         "tide-search","Sage","SimpleSearchEngine",
+                                         "tide-search","Sage","SimpleSearchEngine","ProSE",
                                          "OpenMS/ConsensusID_best","OpenMS/ConsensusID_worst","OpenMS/ConsensusID_average"};
 
       if (split_charge)

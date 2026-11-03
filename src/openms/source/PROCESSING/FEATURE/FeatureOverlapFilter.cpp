@@ -11,9 +11,12 @@
 
 #include <Quadtree.h>
 #include <Box.h>
+#include <set>
 #include <unordered_set>
 
 #include <cmath>
+#include <algorithm>
+#include <tuple>
 
 namespace OpenMS
 {
@@ -112,6 +115,17 @@ namespace OpenMS
     return false;
   }
 
+  /// Sequences (with modifications) of the best hits of the identifications of @p f
+  std::set<std::string> identifiedSequences(const Feature& f)
+  {
+    std::set<std::string> sequences;
+    for (const auto& pep_id : f.getPeptideIdentifications())
+    {
+      if (!pep_id.getHits().empty()) sequences.insert(pep_id.getHits()[0].getSequence().toString());
+    }
+    return sequences;
+  }
+
   bool tracesOverlap(const Feature& a, const Feature& b, const FeatureBoundsMap& feature_bounds)
   {
     auto fbm_it1 = feature_bounds.find(a.getUniqueId());
@@ -197,14 +211,17 @@ namespace OpenMS
       fbm = getFeatureBounds(fmap);
     }
 
-    std::unordered_set<Size> removed_uids;
+    // mark removals by address, not by unique id: ids may be unset (0) or shared
+    std::unordered_set<const Feature*> removed;
     for (auto& f : fmap)
     {
-      if (!removed_uids.contains(f.getUniqueId()))
+      if (!removed.contains(&f))
       {
         for (auto& overlap : quadtree.query(getBox(&f)))
         {
-          if ((overlap != &f))
+          // a feature removed by an earlier representative must not be passed to the callback again
+          // (e.g. its intensity would be added to a second representative)
+          if (overlap != &f && !removed.contains(overlap))
           {
             bool is_true_overlap = true;
             
@@ -266,7 +283,7 @@ namespace OpenMS
               // if the callback returns false, overlap will not be removed (at least not because of an overlap with f)
               if (FeatureOverlapCallback(f, *overlap)) 
               {
-                removed_uids.insert(overlap->getUniqueId());
+                removed.insert(overlap);
               }                            
             }
           }
@@ -274,11 +291,14 @@ namespace OpenMS
       }
     }
 
-    const auto filtered = [&removed_uids](const Feature& f)
+    Size kept = 0;
+    for (Size i = 0; i < fmap.size(); ++i)
     {
-      return removed_uids.count(f.getUniqueId()) == 1;
-    };
-    fmap.erase(std::remove_if(fmap.begin(), fmap.end(), filtered), fmap.end());
+      if (removed.contains(&fmap[i])) continue;
+      if (kept != i) fmap[kept] = std::move(fmap[i]);
+      ++kept;
+    }
+    fmap.erase(fmap.begin() + kept, fmap.end());
   }
 
   std::function<bool(Feature&, Feature&)> FeatureOverlapFilter::createFAIMSMergeCallback(
@@ -429,27 +449,63 @@ namespace OpenMS
       // Custom callback that only merges features with DIFFERENT FAIMS CV values
       auto merge_callback = [](Feature& best_in_cluster, Feature& f) -> bool
       {
-        // After a merge, FAIMS_CV is removed and replaced with merged_centroid_IMs.
-        // If the best feature was already merged, skip (can't merge again without CV).
-        if (!best_in_cluster.metaValueExists(Constants::UserParam::FAIMS_CV) ||
-            !f.metaValueExists(Constants::UserParam::FAIMS_CV))
+        // f must be an unmerged feature (merged features carry merged_centroid_IMs instead of FAIMS_CV)
+        if (!f.metaValueExists(Constants::UserParam::FAIMS_CV))
         {
           return false;
         }
 
-        // Only merge if FAIMS CVs are DIFFERENT
-        // (same CV features should not be merged - they are different analytes)
-        double best_cv = (double)best_in_cluster.getMetaValue(Constants::UserParam::FAIMS_CV);
-        double f_cv = (double)f.getMetaValue(Constants::UserParam::FAIMS_CV);
-
-        if (best_cv == f_cv)
+        // CVs the cluster covers so far: the representative's own CV, or all CVs merged into it
+        // (after the first merge, FAIMS_CV is replaced by merged_centroid_IMs)
+        std::vector<double> merged_ims;
+        if (best_in_cluster.metaValueExists("merged_centroid_IMs"))
         {
-          return false; // Don't merge features with same CV
+          merged_ims = best_in_cluster.getMetaValue("merged_centroid_IMs").toDoubleList();
+        }
+        else if (best_in_cluster.metaValueExists(Constants::UserParam::FAIMS_CV))
+        {
+          merged_ims.push_back(best_in_cluster.getMetaValue(Constants::UserParam::FAIMS_CV));
+        }
+        else
+        {
+          return false;
+        }
+
+        // Only merge features of a CV the cluster does not cover yet
+        // (same CV features should not be merged - they are different analytes)
+        double f_cv = (double)f.getMetaValue(Constants::UserParam::FAIMS_CV);
+        if (std::find(merged_ims.begin(), merged_ims.end(), f_cv) != merged_ims.end())
+        {
+          return false;
+        }
+
+        // Features identified as different peptides are different analytes, even within the tolerances
+        // (features without identifications, e.g. from untargeted feature finders, are merged by position alone)
+        const std::set<std::string> best_sequences = identifiedSequences(best_in_cluster);
+        const std::set<std::string> f_sequences = identifiedSequences(f);
+        if (!best_sequences.empty() && !f_sequences.empty() &&
+            std::none_of(f_sequences.begin(), f_sequences.end(), [&](const std::string& seq) { return best_sequences.count(seq) > 0; }))
+        {
+          return false;
         }
 
         // Merge features with different CVs - sum intensities
         double best_intensity = best_in_cluster.getIntensity();
         double f_intensity = f.getIntensity();
+
+        // keep the identifications of the merged feature, once: an identification without a FAIMS CV is given to the
+        // features of every CV (FAIMSHelper::filterPeptidesByFAIMSCV), so the features of a cluster can share copies
+        auto& best_ids = best_in_cluster.getPeptideIdentifications();
+        for (const PeptideIdentification& pep_id : f.getPeptideIdentifications())
+        {
+          const bool known = std::any_of(best_ids.begin(), best_ids.end(), [&pep_id](const PeptideIdentification& other)
+          {
+            const auto same = [](double a, double b) { return a == b || (std::isnan(a) && std::isnan(b)); }; // RT and m/z may be unset (NaN)
+            return other.getSpectrumReference() == pep_id.getSpectrumReference() && other.getIdentifier() == pep_id.getIdentifier()
+                   && same(other.getRT(), pep_id.getRT()) && same(other.getMZ(), pep_id.getMZ());
+          });
+          if (!known) best_ids.push_back(pep_id);
+        }
 
         // Collect centroid RT positions
         std::vector<double> merged_rts;
@@ -478,16 +534,7 @@ namespace OpenMS
         best_in_cluster.setMetaValue("merged_centroid_mzs", merged_mzs);
 
         // Collect FAIMS CV values
-        std::vector<double> merged_ims;
-        if (best_in_cluster.metaValueExists("merged_centroid_IMs"))
-        {
-          merged_ims = best_in_cluster.getMetaValue("merged_centroid_IMs").toDoubleList();
-        }
-        else
-        {
-          merged_ims.push_back(best_cv);
-          best_in_cluster.removeMetaValue(Constants::UserParam::FAIMS_CV);
-        }
+        best_in_cluster.removeMetaValue(Constants::UserParam::FAIMS_CV);
         merged_ims.push_back(f_cv);
         best_in_cluster.setMetaValue("merged_centroid_IMs", merged_ims);
         best_in_cluster.setMetaValue("FAIMS_merge_count", static_cast<int>(merged_ims.size()));
@@ -511,8 +558,11 @@ namespace OpenMS
              tolerances);
     }
 
-    // Combine back: merged FAIMS features + untouched non-FAIMS features
-    feature_map.clear();
+    // Combine back: merged FAIMS features + untouched non-FAIMS features.
+    // clear(false): only the feature container is refilled here -- the default
+    // clear(true) would also wipe protein/peptide identifications, data processing
+    // and the unique id that the caller set before calling us.
+    feature_map.clear(false);
     for (auto& f : faims_features)
     {
       feature_map.push_back(std::move(f));
@@ -521,6 +571,80 @@ namespace OpenMS
     {
       feature_map.push_back(std::move(f));
     }
+  }
+
+  Size FeatureOverlapFilter::mergeCoincidentFeatures(FeatureMap& feature_map)
+  {
+    // Copies of one extracted signal agree up to floating-point noise only: the theoretical m/z of
+    // isomers may be summed in a different order or from rounded modification mass deltas.
+    // 1e-8 (0.01 ppm) covers that and is far below any instrument resolution.
+    constexpr double rel_tol = 1e-8;
+    auto close = [](double a, double b) { return std::fabs(a - b) <= rel_tol * std::max(std::fabs(a), std::fabs(b)); };
+
+    std::vector<Size> order;
+    order.reserve(feature_map.size());
+    for (Size i = 0; i < feature_map.size(); ++i)
+    {
+      if (std::isfinite(feature_map[i].getRT()) && std::isfinite(feature_map[i].getMZ())) { order.push_back(i); }
+    }
+    std::sort(order.begin(), order.end(), [&feature_map](Size a, Size b) {
+      const Feature& fa = feature_map[a];
+      const Feature& fb = feature_map[b];
+      return std::make_tuple(fa.getCharge(), fa.getRT(), fa.getMZ(), a) < std::make_tuple(fb.getCharge(), fb.getRT(), fb.getMZ(), b);
+    });
+
+    std::vector<bool> grouped(feature_map.size(), false);
+    std::vector<bool> remove(feature_map.size(), false);
+    Size n_removed = 0;
+    for (Size p = 0; p < order.size(); ++p)
+    {
+      const Size anchor = order[p];
+      if (grouped[anchor]) { continue; }
+      const Feature& fa = feature_map[anchor];
+
+      // features within the RT window of the anchor follow it in the sort order; their m/z is unsorted
+      std::vector<Size> group{anchor};
+      for (Size q = p + 1; q < order.size(); ++q)
+      {
+        const Feature& fb = feature_map[order[q]];
+        if (fb.getCharge() != fa.getCharge() || !close(fb.getRT(), fa.getRT())) { break; }
+        if (!grouped[order[q]] && close(fb.getMZ(), fa.getMZ())) { group.push_back(order[q]); }
+      }
+      if (group.size() < 2) { continue; }
+
+      std::sort(group.begin(), group.end()); // original order: ties keep the first feature
+      Size keep = group.front();
+      for (Size i : group)
+      {
+        grouped[i] = true;
+        if (feature_map[i].getIntensity() > feature_map[keep].getIntensity()) { keep = i; }
+      }
+      auto& kept_ids = feature_map[keep].getPeptideIdentifications();
+      for (Size i : group)
+      {
+        if (i == keep) { continue; }
+        for (auto& pep_id : feature_map[i].getPeptideIdentifications())
+        {
+          kept_ids.push_back(std::move(pep_id));
+        }
+        feature_map[i].getPeptideIdentifications().clear();
+        remove[i] = true;
+        ++n_removed;
+      }
+    }
+
+    if (n_removed == 0) { return 0; }
+
+    // compact in place, keeping the survivors in their original order
+    Size out = 0;
+    for (Size i = 0; i < feature_map.size(); ++i)
+    {
+      if (remove[i]) { continue; }
+      if (out != i) { feature_map[out] = std::move(feature_map[i]); }
+      ++out;
+    }
+    feature_map.resize(out);
+    return n_removed;
   }
 
 }

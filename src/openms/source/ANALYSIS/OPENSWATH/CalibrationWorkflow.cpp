@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
-#include <OpenMS/APPLICATIONS/OpenSwathBase.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionListEvidenceFilter.h>
@@ -25,8 +24,19 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <iomanip>
+#include <sstream>
+
 namespace OpenMS
 {
+  namespace
+  {
+    /// Margin by which the MS1 RT extraction window exceeds the fragment window on either side:
+    /// more than the time between two MS1 scans, so that the MS1 point beyond a peak boundary
+    /// at the edge of the fragment window is still extracted.
+    constexpr double MS1_RT_WINDOW_MARGIN_SECONDS = 15.0;
+  }
+
   CalibrationWorkflow::CalibrationWorkflow() :
     DefaultParamHandler("CalibrationWorkflow"),
     ProgressLogger()
@@ -189,8 +199,10 @@ namespace OpenMS
     }
 
     // Apply estimated extraction windows if requested
+    const bool ms1_traces_picked = feature_finder_param.exists("TransitionGroupPicker:use_precursors")
+                                   && feature_finder_param.getValue("TransitionGroupPicker:use_precursors").toBool();
     applyEstimatedWindows_(result, cp, cp_ms1, pasef,
-                          feature_finder_param.getValue("use_ms1_ion_mobility").toBool());
+                          feature_finder_param.getValue("use_ms1_ion_mobility").toBool(), ms1_traces_picked);
 
     return result;
   }
@@ -413,11 +425,13 @@ namespace OpenMS
         [](const MSChromatogram& c) { return c.empty(); });
       Size nr_total = irt_chromatograms.size();
       Size nr_nonempty = nr_total - nr_empty;
+      std::ostringstream nonempty_pct;
+      nonempty_pct << std::fixed << std::setprecision(1)
+                   << (nr_total > 0 ? (100.0 * nr_nonempty / nr_total) : 0.0);
       if (nr_total > 0 && nr_empty > nr_total / 2)
       {
         OPENMS_LOG_WARN << "[OpenSwath] iRT chromatogram extraction: " << nr_nonempty << "/"
-                        << nr_total << " non-empty (" << std::fixed << std::setprecision(1)
-                        << (100.0 * nr_nonempty / nr_total) << "%). "
+                        << nr_total << " non-empty (" << nonempty_pct.str() << "%). "
                         << "Over half are empty - iRT calibration may fail. "
                         << "Common causes: wrong SWATH boundaries, poor data quality, "
                         << "or unsorted m/z peaks in the input spectra." << std::endl;
@@ -425,8 +439,7 @@ namespace OpenMS
       else if (nr_total > 0)
       {
         OPENMS_LOG_INFO << "[OpenSwath] iRT chromatogram extraction: " << nr_nonempty << "/"
-                        << nr_total << " non-empty (" << std::fixed << std::setprecision(1)
-                        << (100.0 * nr_nonempty / nr_total) << "%)" << std::endl;
+                        << nr_total << " non-empty (" << nonempty_pct.str() << "%)" << std::endl;
       }
     }
 
@@ -686,7 +699,8 @@ namespace OpenMS
     ChromExtractParams& cp,
     ChromExtractParams& cp_ms1,
     bool pasef,
-    bool use_ms1_im) const
+    bool use_ms1_im,
+    bool ms1_traces_picked) const
   {
     // Apply RT window
     if (windows_estimate_rt_ && result.estimated_rt_window > 0)
@@ -709,6 +723,20 @@ namespace OpenMS
 
       applyWindow_("RT", effective_rt_window, cp.rt_extraction_window,
                   cp.rt_extraction_window, true, true);
+      // The precursor (MS1) traces are only used inside the peak groups picked on the fragment
+      // traces, plus one point beyond each peak boundary for the resampling
+      // (MRMTransitionGroupPicker::resampleChromatogram_). They therefore need the fragment RT
+      // window and a margin of one MS1 scan, not the uncalibrated default, at which they are
+      // several times longer than the fragment traces and hold most of the chromatogram memory.
+      // Not so if they are peak-picked as well (TransitionGroupPicker:use_precursors): the S/N
+      // estimator of the picker is initialised on the whole trace, so a shorter trace would change
+      // the noise level and with it the picked peak boundaries.
+      const double ms1_rt_window = cp.rt_extraction_window + 2.0 * MS1_RT_WINDOW_MARGIN_SECONDS;
+      if (!ms1_traces_picked
+          && (cp_ms1.rt_extraction_window <= 0.0 || ms1_rt_window < cp_ms1.rt_extraction_window))
+      {
+        cp_ms1.rt_extraction_window = ms1_rt_window;
+      }
       if (effective_rt_window > 1000)
       {
         OPENMS_LOG_WARN << "Estimated RT extraction window is fairly large ("

@@ -198,6 +198,55 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   r = pi.run(proteins, prot_ids, pep_ids);
   for (Size i = 0; i < pep_ids.size(); ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessionsSet().size(), 0); // no hits
 
+  // regression test: https://github.com/OpenMS/OpenMS/issues/2987
+  // empty peptide sequences must not break the mapping. An empty sequence used to flag the root node of the
+  // Aho-Corasick trie as a hit, which made the search report hits until memory was exhausted.
+  {
+    PeptideIndexing indexer;
+    Param p_e = indexer.getParameters();
+    p_e.setValue("decoy_string", "DECOY_");
+    p_e.setValue("enzyme:specificity", "none");
+    p_e.setValue("missing_decoy_action", "warn");
+    p_e.setValue("unmatched_action", "warn"); // an empty sequence cannot match any protein
+    indexer.setParameters(p_e);
+
+    std::vector<FASTAFile::FASTAEntry> proteins_e = toFASTAVec({"MLTEAEKPEPTIDER"});
+    std::vector<ProteinIdentification> prot_ids_e;
+    // empty sequences before, in between and after the real ones
+    PeptideIdentificationList pep_ids_e = toPepVec({"", "MLTEAEK", "", "PEPTIDER", ""});
+    PeptideIndexing::ExitCodes r_e = indexer.run(proteins_e, prot_ids_e, pep_ids_e);
+    TEST_EQUAL(r_e, PeptideIndexing::ExitCodes::EXECUTION_OK);
+    TEST_EQUAL(pep_ids_e.size(), 5);
+    TEST_EQUAL(pep_ids_e[0].getHits()[0].extractProteinAccessionsSet().size(), 0); // empty sequence: no hit
+    TEST_EQUAL(pep_ids_e[1].getHits()[0].extractProteinAccessionsSet().size(), 1); // the real peptides are still mapped ...
+    TEST_EQUAL(pep_ids_e[2].getHits()[0].extractProteinAccessionsSet().size(), 0);
+    TEST_EQUAL(pep_ids_e[3].getHits()[0].extractProteinAccessionsSet().size(), 1); // ... and not shifted by the empty ones
+    TEST_EQUAL(pep_ids_e[4].getHits()[0].extractProteinAccessionsSet().size(), 0);
+
+    // ... the same, but letting PeptideIndexer remove the (unmatchable) empty hits
+    p_e.setValue("unmatched_action", "remove");
+    indexer.setParameters(p_e);
+    pep_ids_e = toPepVec({"", "MLTEAEK", "", "PEPTIDER", ""});
+    r_e = indexer.run(proteins_e, prot_ids_e, pep_ids_e);
+    TEST_EQUAL(r_e, PeptideIndexing::ExitCodes::EXECUTION_OK);
+    TEST_EQUAL(pep_ids_e[0].getHits().size(), 0); // empty sequence: hit was removed
+    TEST_EQUAL(pep_ids_e[1].getHits().size(), 1);
+    TEST_EQUAL(pep_ids_e[1].getHits()[0].extractProteinAccessionsSet().size(), 1);
+    TEST_EQUAL(pep_ids_e[2].getHits().size(), 0);
+    TEST_EQUAL(pep_ids_e[3].getHits().size(), 1);
+    TEST_EQUAL(pep_ids_e[3].getHits()[0].extractProteinAccessionsSet().size(), 1);
+    TEST_EQUAL(pep_ids_e[4].getHits().size(), 0);
+
+    // all peptide sequences empty: nothing to match, but the run must terminate gracefully
+    p_e.setValue("unmatched_action", "warn");
+    indexer.setParameters(p_e);
+    pep_ids_e = toPepVec({"", ""});
+    r_e = indexer.run(proteins_e, prot_ids_e, pep_ids_e);
+    TEST_EQUAL(r_e, PeptideIndexing::ExitCodes::EXECUTION_OK);
+    TEST_EQUAL(pep_ids_e[0].getHits()[0].extractProteinAccessionsSet().size(), 0);
+    TEST_EQUAL(pep_ids_e[1].getHits()[0].extractProteinAccessionsSet().size(), 0);
+  }
+
   // auto mode for decoy strings and position
   std::vector<ProteinIdentification> prot_ids_2;
   PeptideIdentificationList pep_ids_2;
@@ -339,6 +388,98 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
       const auto r = pep.getHits()[0].extractProteinAccessionsSet();
       TEST_EQUAL(r.size(), 1);                // one hit!
       TEST_EQUAL(*r.begin(), "otherProtein"); // one hit!
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] enzyme specificity is evaluated on the unmodified protein sequence))
+{
+  // regression test: https://github.com/OpenMS/OpenMS/issues/1793
+  //
+  // Chymotrypsin cleaves after 'F','Y','W','L' -- but NOT after 'I'. Replacing 'L' by 'I' for the
+  // 'IL_equivalent' search therefore destroys valid cleavage sites. The enzyme filter (and the reported
+  // flanking residues) must use the original sequence, not the substituted one.
+  //
+  //                                0    5             18
+  //                                |    |             |
+  //   Protein1: AAGG L DTAYDDLGNSGHF SSGGAA   <-- peptide preceded by 'L' (cleavage site only in the ORIGINAL)
+  //   Protein2: AAGG W DTAYDDIGNSGHF SSGGAA   <-- 'I' instead of 'L' inside the peptide; only matched with 'IL_equivalent'
+  const std::string prot_L = "AAGGLDTAYDDLGNSGHFSSGGAA";
+  const std::string prot_W = "AAGGWDTAYDDIGNSGHFSSGGAA";
+
+  for (const std::string il_equivalent : {"false", "true"})
+  {
+    PeptideIndexing pi;
+    Param p = pi.getParameters();
+    p.setValue("decoy_string", "DECOY_");
+    p.setValue("missing_decoy_action", "warn");
+    p.setValue("enzyme:name", "Chymotrypsin");
+    p.setValue("enzyme:specificity", "full");
+    p.setValue("aaa_max", 0); // no tolerant matching, to isolate the enzyme filter
+    p.setValue("mismatches_max", 0);
+    p.setValue("IL_equivalent", il_equivalent);
+    pi.setParameters(p);
+
+    std::vector<FASTAFile::FASTAEntry> proteins = toFASTAVec({prot_L, prot_W}, {"Protein1", "Protein2"});
+    std::vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids = toPepVec({"DTAYDDLGNSGHF"}); // fully specific in both proteins
+
+    PeptideIndexing::ExitCodes r = pi.run(proteins, prot_ids, pep_ids);
+    TEST_EQUAL(r, PeptideIndexing::ExitCodes::EXECUTION_OK);
+
+    const PeptideHit& hit = pep_ids[0].getHits()[0];
+    std::set<std::string> accessions = hit.extractProteinAccessionsSet();
+    // Protein1 must be found either way. Before the fix it was rejected by the enzyme filter when
+    // 'IL_equivalent' was on, because "AAGGL|DTAY..." had become "AAGGI|DTAY..." (no cleavage after 'I').
+    TEST_EQUAL(accessions.count("Protein1"), 1);
+    // Protein2 differs from the peptide by I<->L, so it is only found when 'IL_equivalent' is on
+    TEST_EQUAL(accessions.count("Protein2"), il_equivalent == "true" ? 1 : 0);
+
+    // the flanking residues must be reported from the original sequence ('L'), not the substituted one ('I')
+    Size checked_flanks = 0;
+    for (const PeptideEvidence& pe : hit.getPeptideEvidences())
+    {
+      if (pe.getProteinAccession() != "Protein1") continue;
+      TEST_EQUAL(pe.getAABefore(), 'L');
+      TEST_EQUAL(pe.getAAAfter(), 'S');
+      ++checked_flanks;
+    }
+    TEST_EQUAL(checked_flanks, 1); // ... and the evidence for Protein1 must be there in the first place
+  }
+
+  // Since the enzyme filter now sees the protein as-is, a 'J' in the database reaches the cleavage
+  // rules unsubstituted. All enzymes which cleave after I/L list 'J' in their cleavage rule, so a 'J'
+  // flank is a valid cleavage site regardless of the 'IL_equivalent' setting.
+  //
+  //   Protein3: GGG J DTAYDDSGNSGGGG   <-- peptide preceded by 'J', peptide ends at the protein C-term
+  for (const std::string il_equivalent : {"false", "true"})
+  {
+    PeptideIndexing pi;
+    Param p = pi.getParameters();
+    p.setValue("decoy_string", "DECOY_");
+    p.setValue("missing_decoy_action", "warn");
+    p.setValue("enzyme:name", "elastase-trypsin-chymotrypsin");
+    p.setValue("enzyme:specificity", "full");
+    p.setValue("aaa_max", 0);
+    p.setValue("mismatches_max", 0);
+    p.setValue("IL_equivalent", il_equivalent);
+    pi.setParameters(p);
+
+    std::vector<FASTAFile::FASTAEntry> proteins = toFASTAVec({"GGGJDTAYDDSGNSGGGG"}, {"Protein3"});
+    std::vector<ProteinIdentification> prot_ids;
+    PeptideIdentificationList pep_ids = toPepVec({"DTAYDDSGNSGGGG"});
+
+    PeptideIndexing::ExitCodes r = pi.run(proteins, prot_ids, pep_ids);
+    TEST_EQUAL(r, PeptideIndexing::ExitCodes::EXECUTION_OK);
+
+    const PeptideHit& hit = pep_ids[0].getHits()[0];
+    TEST_EQUAL(hit.extractProteinAccessionsSet().count("Protein3"), 1);
+    // and the flanking residue is the original 'J', not the 'I' used for searching
+    TEST_EQUAL(hit.getPeptideEvidences().size(), 1);
+    if (!hit.getPeptideEvidences().empty())
+    {
+      TEST_EQUAL(hit.getPeptideEvidences()[0].getAABefore(), 'J');
     }
   }
 }

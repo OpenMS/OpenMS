@@ -58,48 +58,18 @@ END_SECTION
 
 /////
 
-// Prepare data
-PeakMap mse;
-{
-  MSSpectrum mss;
-  Peak1D p;
-  for ( UInt m = 0; m < 3; ++m )
-  {
-    mss.clear(true);
-    for ( UInt i = 0; i < 4; ++i )
-    {
-      p.setMZ( 10* m + i + 100.35);
-      p.setIntensity( 900 + 7*m + 5*i );
-      mss.push_back(p);
-    }
-    mse.addSpectrum(mss);
-    mse.getSpectra().back().setRT(m*5);
-  }
-}
-
-START_SECTION((static void convert(UInt64 const input_map_index, PeakMap & input_map, ConsensusMap& output_map, Size n = -1)))
-{
-
-  ConsensusMap cm;
-
-  MapConversion::convert(33,mse,cm,8);
-
-  TEST_EQUAL(cm.size(),8);
-
-  for ( UInt i = 0; i < cm.size(); ++i)
-  {
-    STATUS("\n" << i << ": " << cm[i] );
-  }
-
-  TEST_EQUAL(cm.back().getIntensity(),912);
-
-}
-END_SECTION
-
-/////
-
 ConsensusMap cm;
-MapConversion::convert(33,mse,cm,8);
+cm.setUniqueId();
+for (UInt i = 0; i < 3; ++i)
+{
+  ConsensusFeature cf;
+  cf.setRT(i * 5.0);
+  cf.setMZ(i + 100.35);
+  cf.setIntensity(900 + 5 * i);
+  cf.setUniqueId();
+  cm.push_back(cf);
+}
+cm.updateRanges();
 
 START_SECTION((template < typename FeatureT > static void convert(ConsensusMap const &input_map, const bool keep_uids, FeatureMap< FeatureT > &output_map)))
 {

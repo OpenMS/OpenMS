@@ -1,0 +1,75 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b804563..55d3d1c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -7,7 +7,7 @@
+ # --------------------------------------------------------------------------
+ 
+ 
+-project("OpenMS-IsoSpec")
++project("IsoSpec")
+ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+ 
+ 
+@@ -45,10 +45,16 @@ add_library(IsoSpec STATIC ${ISOSPEC_SOURCES})
+ # Require C++11 for IsoSpec
+ target_compile_features(IsoSpec PUBLIC cxx_std_11)
+ 
++target_compile_definitions(IsoSpec PUBLIC
++  ISOSPEC_GOT_SYSTEM_MMAN=false
++  ISOSPEC_GOT_MMAN=false
++  ISOSPEC_BUILDING_OPENMS=true
++)
++
+ # Set include directories for the library
+ target_include_directories(IsoSpec SYSTEM PUBLIC 
+                           "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
+-                          "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}/OpenMS/thirdparty>")
++                          "$<INSTALL_INTERFACE:include>")
+ 
+ # Generate export header for Windows DLL symbols
+ include(GenerateExportHeader)
+@@ -62,26 +68,26 @@ target_include_directories(IsoSpec PUBLIC
+ 
+ # Install the generated export header
+ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/IsoSpec/IsoSpecExport.h
+-        DESTINATION ${INSTALL_INCLUDE_DIR}/OpenMS/thirdparty/IsoSpec
+-        COMPONENT thirdparty_headers)
++        DESTINATION include/IsoSpec)
+ 
+-# Apply compiler flags
+-if (NOT WIN32)
+-  target_compile_options(IsoSpec PRIVATE -fPIC)
+-endif()
++# Objects are linked into a shared library, so they must be position independent.
++set_target_properties(IsoSpec PROPERTIES POSITION_INDEPENDENT_CODE ON)
+ 
+-# Install the library
+-install_library(IsoSpec)
+-openms_register_export_target(IsoSpec)
+ 
+-# Install headers
++install(TARGETS IsoSpec
++  EXPORT IsoSpecTargets
++  RUNTIME DESTINATION bin
++  LIBRARY DESTINATION lib
++  ARCHIVE DESTINATION lib
++)
++
++install(EXPORT IsoSpecTargets
++  FILE IsoSpecConfig.cmake
++  DESTINATION share/isospec
++)
++
+ install(DIRECTORY ${PROJECT_SOURCE_DIR}/IsoSpec/
+-  DESTINATION ${INSTALL_INCLUDE_DIR}/OpenMS/thirdparty/IsoSpec
+-  COMPONENT thirdparty_headers
++  DESTINATION include/IsoSpec
+   FILES_MATCHING PATTERN "*.h"
+   PATTERN "*.cpp" EXCLUDE
+-)
+-
+-get_filename_component(ISOSPEC_FOLDER "${CMAKE_CURRENT_LIST_FILE}" PATH)
+-file(APPEND ${TPLICENSEFILE} "\nIsoSpec:\n")
+-cat(${ISOSPEC_FOLDER}/LICENSE ${TPLICENSEFILE})
++)

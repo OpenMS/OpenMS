@@ -46,7 +46,7 @@
 			<UserParam type="string" name="indistinguishable_proteins_8" value="0,PH_8"/>
 			<UserParam type="string" name="indistinguishable_proteins_9" value="0,PH_9"/>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+		<PeptideIdentification score_type="ProteinProphet probability" higher_score_better="true" significance_threshold="0" >
 			<PeptideHit score="0.8836" sequence="DLTQQER" charge="1" protein_refs="PH_0" >
 				<UserParam type="int" name="is_unique" value="1"/>
 				<UserParam type="int" name="is_contributing" value="1"/>

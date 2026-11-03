@@ -21,7 +21,7 @@
 #include <utility>
 #include <vector>
 
-#include <boost/regex.hpp>
+#include <OpenMS/DATASTRUCTURES/RegularExpression.h>
 
 namespace OpenMS
 {
@@ -456,8 +456,8 @@ public:
     DecoyStatistics ds;
 
     // setup regexes
-    const boost::regex pattern_prefix(regexstr_prefix);
-    const boost::regex pattern_suffix(regexstr_suffix);
+    const RegularExpression pattern_prefix(regexstr_prefix);
+    const RegularExpression pattern_suffix(regexstr_suffix);
 
     constexpr size_t PROTEIN_CACHE_SIZE = 4e5;
 
@@ -469,7 +469,7 @@ public:
       auto prot_count = (SignedSize)proteins.chunkSize();
       ds.all_proteins_count += prot_count;
 
-      boost::smatch sm;
+      std::string sm;
       for (SignedSize i = 0; i < prot_count; ++i)
       {
         std::string seq = proteins.chunkAt(i).identifier;
@@ -478,10 +478,10 @@ public:
         StringUtils::toLower(seq_lower);
 
         // search for prefix
-        bool found_prefix = boost::regex_search(seq_lower, sm, pattern_prefix);
+        bool found_prefix = pattern_prefix.search(seq_lower, &sm);
         if (found_prefix)
         {
-          std::string match = sm[0];
+          std::string match = sm;
           ds.all_prefix_occur++;
 
           // increase count of observed prefix
@@ -493,10 +493,10 @@ public:
         }
 
         // search for suffix
-        bool found_suffix = boost::regex_search(seq_lower, sm, pattern_suffix);
+        bool found_suffix = pattern_suffix.search(seq_lower, &sm);
         if (found_suffix)
         {
-          std::string match = sm[0];
+          std::string match = sm;
           ds.all_suffix_occur++;
 
           // increase count of observed suffix

@@ -174,3 +174,113 @@ def test_copy_constructor(class_name):
     assert type(obj_copy) is type(obj)
     if _has_own_eq(cls):
         assert obj_copy == obj
+
+
+# Classes whose copy.copy() and copy.deepcopy() worked in pyOpenMS 3.5.0. Most of them
+# derive from a bound base (DefaultParamHandler, ProgressLogger, CVTermList, CsvFile)
+# and need their own __copy__/__deepcopy__, or they inherit the base's and return a
+# copy of the base class instead of themselves (#10260).
+COPYABLE_IN_3_5 = [
+    "AScore", "AbsoluteQuantitation", "AbsoluteQuantitationMethodFile",
+    "AccurateMassSearchEngine", "Biosaur2Algorithm", "CachedMzMLHandler", "ChannelInfo",
+    "ConfidenceScoring", "Contact", "DTA2DFile", "DataFilter", "DataFilters",
+    "ElutionModelFitter", "ElutionPeakDetection", "EmgGradientDescent", "EmgScoring",
+    "FeatureFinderMultiplexAlgorithm", "GNPSMGFFile", "GaussFilter", "IDFilter",
+    "ILPDCWrapper", "InternalCalibration", "IsotopeLabelingMDVs", "MRMAssay", "MRMDecoy",
+    "MRMFeatureFilter", "MRMFeaturePickerFile", "MRMFeatureQCFile", "MRMTransitionGroupPicker",
+    "MS2File", "MZTrafoModel", "MascotGenericFile", "MassTraceDetection", "MassTraces",
+    "MasstraceCorrelator", "MetaboliteSpectralMatching", "MultiplexDeltaMasses",
+    "MultiplexDeltaMassesGenerator", "OpenPepXLAlgorithm", "PeakIntegrator",
+    "PeakPickerChromatogram", "PeakPickerHiRes", "PeakPickerIM", "PeakPickerIterative",
+    "PeptideAndProteinQuant", "PeptideIndexing", "Prediction", "Protein", "Publication",
+    "SavitzkyGolayFilter", "SeedListGenerator", "SimpleSearchEngineAlgorithm",
+    "SiriusExportAlgorithm", "TargetedExperiment_Instrument",
+    "TargetedExperiment_Interpretation", "TargetedExperiment_Modification",
+    "TargetedSpectraExtractor", "TraMLProduct", "TransitionPQPFile", "TransitionTSVFile",
+    "XFDRAlgorithm",
+]
+
+
+@pytest.mark.parametrize("class_name", COPYABLE_IN_3_5)
+def test_copy_keeps_the_class(class_name):
+    cls = getattr(pyopenms, class_name)
+    obj = cls()
+    for duplicate in (copy.copy(obj), copy.deepcopy(obj), cls(obj)):
+        assert type(duplicate) is cls
+
+
+# Further classes with a copy constructor that derive from DefaultParamHandler, whose
+# __copy__ they inherited, so copy.copy() returned a DefaultParamHandler
+DERIVED_WITH_OWN_COPY = {
+    "FeatureDistance": lambda: pyopenms.FeatureDistance(1.0, False),
+    "MultiplexResolverAlgorithm": lambda: pyopenms.MultiplexResolverAlgorithm(),
+    "SwathMapMassCorrection": lambda: pyopenms.SwathMapMassCorrection(),
+}
+
+
+@pytest.mark.parametrize("class_name", sorted(DERIVED_WITH_OWN_COPY))
+def test_copy_of_derived_class_keeps_the_class(class_name):
+    cls = getattr(pyopenms, class_name)
+    obj = DERIVED_WITH_OWN_COPY[class_name]()
+    for duplicate in (copy.copy(obj), copy.deepcopy(obj), cls(obj)):
+        assert type(duplicate) is cls
+
+
+def _has_copy_constructor(cls):
+    """True if a constructor of cls takes a single argument of type cls."""
+    for signature, *_ in getattr(cls.__init__, "__nb_signature__", ()):
+        params = signature[signature.index("(") + 1:signature.rindex(")")].split(", ")
+        args = [p for p in params if p not in ("self", "/", "*")]
+        if len(args) == 1 and args[0].split(": ")[-1].split(".")[-1] == cls.__name__:
+            return True
+    return False
+
+
+def test_classes_with_a_copy_constructor_do_not_inherit_copy():
+    # A class that inherits __copy__ from a bound base (DefaultParamHandler, ProgressLogger,
+    # XMLFile, ...) gets a copy of that base from copy.copy() (#10260)
+    assert _has_copy_constructor(pyopenms.MSSpectrum)  # the signature check works
+    inheriting = sorted(
+        name for name, cls in inspect.getmembers(pyopenms, inspect.isclass)
+        if _has_copy_constructor(cls) and "__copy__" not in cls.__dict__ and hasattr(cls, "__copy__"))
+    assert inheriting == []
+
+
+def _peak_width_estimator():
+    # PeakWidthEstimator fits a spline to the widths of picked peaks, so it needs some
+    mzs = [400.0 + 5.0 * i for i in range(200)]
+    spectrum = pyopenms.MSSpectrum()
+    spectrum.set_peaks((mzs, [100.0] * len(mzs)))
+    experiment = pyopenms.MSExperiment()
+    experiment.addSpectrum(spectrum)
+    boundaries = []
+    for mz in mzs:
+        boundary = pyopenms.PeakBoundary()
+        boundary.mz_min, boundary.mz_max = mz * (1 - 1e-5), mz * (1 + 1e-5)
+        boundaries.append(boundary)
+    return pyopenms.PeakWidthEstimator(experiment, [boundaries])
+
+
+# Classes that must refuse to be copied, each with a way to make one
+UNCOPYABLE = {
+    # Has no C++ copy constructor (it owns a unique_ptr<SimpleSVM>). Without its own
+    # __copy__, copy.copy() returned the DefaultParamHandler part of it.
+    "FeatureFindingMetabo": lambda tmp_path: pyopenms.FeatureFindingMetabo(),
+    # These delete objects that their C++ copy would share, so the copy and the original
+    # would both delete them. MSDataSqlConsumer(other) aborted Python in 3.5.0.
+    "MSDataSqlConsumer": lambda tmp_path: pyopenms.MSDataSqlConsumer(str(tmp_path / "x.sqMass"), 1, 500, True, False, 1e-4),
+    "CachedSwathFileConsumer": lambda tmp_path: pyopenms.CachedSwathFileConsumer(str(tmp_path) + "/", "cached", 0, []),
+    "MzMLSwathFileConsumer": lambda tmp_path: pyopenms.MzMLSwathFileConsumer(str(tmp_path) + "/", "mzml", 0, []),
+    "PeakWidthEstimator": lambda tmp_path: _peak_width_estimator(),
+}
+
+
+@pytest.mark.parametrize("name", sorted(UNCOPYABLE))
+def test_uncopyable_class_refuses_to_copy(name, tmp_path):
+    obj = UNCOPYABLE[name](tmp_path)
+    with pytest.raises(TypeError, match="cannot be copied"):
+        copy.copy(obj)
+    with pytest.raises(TypeError, match="cannot be copied"):
+        copy.deepcopy(obj)
+    with pytest.raises(TypeError):
+        type(obj)(obj)  # no copy constructor X(other)

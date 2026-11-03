@@ -92,9 +92,9 @@ START_SECTION(void pickChromatogram(const RichPeakChromatogram &chromatogram, Ri
   // point with zero derivative.
   TEST_REAL_SIMILAR( picked_chrom[0].getIntensity(), 9981.93933103869);
   TEST_REAL_SIMILAR( picked_chrom[0].getRT(), 1495.11321013749);
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerChromatogram::IDX_ABUNDANCE][0], 60124.9); // IntegratedIntensity
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerChromatogram::IDX_ABUNDANCE][0], 59512.1); // IntegratedIntensity
   TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerChromatogram::IDX_LEFTBORDER][0], 1490.95); // leftWidth
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerChromatogram::IDX_RIGHTBORDER][0], 1502.03); // rightWidth
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerChromatogram::IDX_RIGHTBORDER][0], 1499.25); // rightWidth
 
   // chrom = transition_group.getChromatograms()[1];
   chrom = get_chrom(1);
@@ -107,8 +107,8 @@ START_SECTION(void pickChromatogram(const RichPeakChromatogram &chromatogram, Ri
   // point with zero derivative.
   TEST_REAL_SIMILAR( picked_chrom[0].getIntensity(), 78719.134569503);
   TEST_REAL_SIMILAR( picked_chrom[0].getRT(), 1492.830608593);
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerChromatogram::IDX_ABUNDANCE][0], 523378); // IntegratedIntensity
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerChromatogram::IDX_LEFTBORDER][0], 1481.84); // leftWidth
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerChromatogram::IDX_ABUNDANCE][0], 520301); // IntegratedIntensity
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerChromatogram::IDX_LEFTBORDER][0], 1484.61); // leftWidth
   TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerChromatogram::IDX_RIGHTBORDER][0], 1501.23); // rightWidth
 
   ///////////////////////////////////////////////////////////////////////////

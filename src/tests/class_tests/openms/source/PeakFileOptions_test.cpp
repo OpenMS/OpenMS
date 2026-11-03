@@ -71,6 +71,19 @@ START_SECTION((bool getCompression() const))
 	TEST_EQUAL(tmp.getCompression(), false);
 END_SECTION
 
+START_SECTION((void setZstdCompression(bool zstd)))
+	PeakFileOptions tmp;
+	tmp.setZstdCompression(true);
+	TEST_TRUE(tmp.getZstdCompression());
+	tmp.setZstdCompression(false);
+	TEST_FALSE(tmp.getZstdCompression());
+END_SECTION
+
+START_SECTION((bool getZstdCompression() const))
+	PeakFileOptions tmp;
+	TEST_FALSE(tmp.getZstdCompression());
+END_SECTION
+
 START_SECTION((void setMetadataOnly(bool only)))
 	PeakFileOptions tmp;
 	tmp.setMetadataOnly(true);
@@ -159,6 +172,23 @@ END_SECTION
 START_SECTION((const DRange<1>& getPrecursorMZRange() const))
 	PeakFileOptions tmp;
 	TEST_EQUAL(tmp.getPrecursorMZRange(), DRange<1>());
+END_SECTION
+
+START_SECTION((void setIMRange(const DRange<1>& range)))
+	PeakFileOptions tmp;
+	tmp.setIMRange(makeRange(0.8, 1.2));
+	TEST_EQUAL(tmp.hasIMRange(), true);
+	TEST_EQUAL(tmp.getIMRange(), makeRange(0.8, 1.2));
+END_SECTION
+
+START_SECTION((bool hasIMRange() const))
+	PeakFileOptions tmp;
+	TEST_EQUAL(tmp.hasIMRange(), false);
+END_SECTION
+
+START_SECTION((const DRange<1>& getIMRange() const))
+	PeakFileOptions tmp;
+	TEST_EQUAL(tmp.getIMRange(), DRange<1>());
 END_SECTION
 
 START_SECTION((void setMSLevels(const vector<Int>& levels)))
@@ -264,6 +294,11 @@ START_SECTION((hasFilters))
   PeakFileOptions opts3;
   opts3.setPrecursorMZRange(makeRange(400, 1200));
   TEST_TRUE(opts3.hasFilters())
+
+  // the ion mobility range is applied by FileHandler, not by the readers that hasFilters() is for
+  PeakFileOptions opts4;
+  opts4.setIMRange(makeRange(0.8, 1.2));
+  TEST_FALSE(opts4.hasFilters())
 }
 END_SECTION
 

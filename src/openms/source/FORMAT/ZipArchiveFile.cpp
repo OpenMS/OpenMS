@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #ifdef __has_include
 #if __has_include(<zip.h>)
@@ -19,12 +20,41 @@
 #endif
 #endif
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <limits>
+#include <string>
 #include <vector>
 
 namespace OpenMS
 {
+
+#if defined(OPENMS_HAVE_LIBZIP)
+namespace
+{
+  // Extraction budget, checked before anything is written: the declared uncompressed size must fit into 90% of the
+  // free space of the temporary directory @p dir, which leaves room for the output and for other work on the same
+  // filesystem. Returns why the budget is exceeded, or an empty string. (The callers close the archive before they
+  // throw, so this does not throw itself.)
+  std::string exceedsFreeSpace(zip_uint64_t declared, const std::filesystem::path& dir)
+  {
+    std::error_code space_error;
+    const std::filesystem::space_info space = std::filesystem::space(dir, space_error);
+    if (space_error)
+    {
+      return "Cannot determine the free space of the temporary directory: " + space_error.message();
+    }
+    const std::uintmax_t budget = space.available - space.available / 10;
+    if (declared > budget)
+    {
+      return "Zip archive unpacks to " + std::to_string(declared) + " bytes, more than 90% of the "
+             + std::to_string(space.available) + " bytes free in the temporary directory";
+    }
+    return std::string();
+  }
+} // namespace
+#endif
 
 void ZipArchiveFile::zipDirectory(const std::string& directory_path, const std::string& output_zip)
 {
@@ -87,7 +117,7 @@ void ZipArchiveFile::zipDirectory(const std::string& directory_path, const std::
 #endif
 }
 
-std::string ZipArchiveFile::unzipDirectory(const std::string& input_path, std::unique_ptr<File::TempDir>& temp_dir)
+std::string ZipArchiveFile::unzipDirectory(const std::string& input_path, std::unique_ptr<TempDir>& temp_dir)
 {
 #if defined(OPENMS_HAVE_LIBZIP)
   if (File::isDirectory(input_path))
@@ -100,7 +130,7 @@ std::string ZipArchiveFile::unzipDirectory(const std::string& input_path, std::u
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, input_path);
   }
 
-  temp_dir = std::make_unique<File::TempDir>();
+  temp_dir = std::make_unique<TempDir>();
   const std::string unpack_dir = temp_dir->getPath() + "/parquet_unpacked";
   File::makeDir(unpack_dir);
 
@@ -114,6 +144,40 @@ std::string ZipArchiveFile::unzipDirectory(const std::string& input_path, std::u
 
   zip_int64_t num = zip_get_num_entries(za, 0);
   const std::filesystem::path base_path = std::filesystem::u8path(std::string(unpack_dir)).lexically_normal();
+
+  // Extraction budget, checked before anything is written: at most MAX_ENTRIES entries, and the
+  // declared uncompressed sizes must fit into the free space of the temporary directory (see
+  // exceedsFreeSpace()). The copy loop below stops any entry that inflates beyond its declared size,
+  // so a crafted archive cannot write more than this check allowed.
+  constexpr zip_int64_t MAX_ENTRIES = 100000;
+  if (num > MAX_ENTRIES)
+  {
+    zip_close(za);
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Zip archive has more than " + std::to_string(MAX_ENTRIES) + " entries", input_path);
+  }
+  std::vector<zip_uint64_t> declared_sizes(static_cast<size_t>(num), 0);
+  zip_uint64_t declared_total = 0;
+  for (zip_uint64_t i = 0; i < static_cast<zip_uint64_t>(num); ++i)
+  {
+    zip_stat_t st;
+    zip_stat_init(&st);
+    if (zip_stat_index(za, i, 0, &st) != 0 || (st.valid & ZIP_STAT_SIZE) == 0)
+    {
+      zip_close(za);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Failed to read the size of a zip entry", input_path);
+    }
+    declared_sizes[i] = st.size;
+    declared_total = (st.size > std::numeric_limits<zip_uint64_t>::max() - declared_total)
+                     ? std::numeric_limits<zip_uint64_t>::max() : declared_total + st.size;
+  }
+  if (const std::string problem = exceedsFreeSpace(declared_total, base_path); !problem.empty())
+  {
+    zip_close(za);
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, problem, input_path);
+  }
+
   for (zip_uint64_t i = 0; i < static_cast<zip_uint64_t>(num); ++i)
   {
     const char* name = zip_get_name(za, i, 0);
@@ -130,9 +194,9 @@ std::string ZipArchiveFile::unzipDirectory(const std::string& input_path, std::u
     }
 
     std::filesystem::path outpath = (base_path / entry_path).lexically_normal();
-    const std::string base_str = base_path.string();
-    const std::string out_str = outpath.string();
-    if (out_str.size() < base_str.size() || out_str.compare(0, base_str.size(), base_str) != 0)
+    // Compare path elements, not strings: '../parquet_unpacked_x/f' shares the base's string prefix
+    const std::filesystem::path relative = outpath.lexically_relative(base_path);
+    if (relative.empty() || *relative.begin() == "..")
     {
       zip_close(za);
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -166,8 +230,18 @@ std::string ZipArchiveFile::unzipDirectory(const std::string& input_path, std::u
     constexpr size_t BUF_SIZE = 1 << 16;
     std::vector<char> buffer(BUF_SIZE);
     zip_int64_t nread = 0;
+    zip_uint64_t written = 0;
     while ((nread = zip_fread(zf, buffer.data(), buffer.size())) > 0)
     {
+      // libzip does not stop an entry at its declared size
+      written += static_cast<zip_uint64_t>(nread);
+      if (written > declared_sizes[i])
+      {
+        zip_fclose(zf);
+        zip_close(za);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Zip entry is larger than its declared size", entry_name);
+      }
       ofs.write(buffer.data(), static_cast<std::streamsize>(nread));
       if (ofs.fail())
       {
@@ -265,21 +339,29 @@ void ZipArchiveFile::addOrReplaceFromFile(const std::string& archive_path, const
 std::vector<std::string> ZipArchiveFile::listEntries(const std::string& archive_path)
 {
   std::vector<std::string> out;
+  listEntries(archive_path, out);
+  return out;
+}
+
+bool ZipArchiveFile::listEntries(const std::string& archive_path, std::vector<std::string>& entries)
+{
+  entries.clear();
 #if defined(OPENMS_HAVE_LIBZIP)
   int err = 0;
   zip_t* za = zip_open(archive_path.c_str(), ZIP_RDONLY, &err);
-  if (!za) return out;
+  if (!za) return false;
   zip_int64_t num = zip_get_num_entries(za, 0);
   for (zip_uint64_t i = 0; i < static_cast<zip_uint64_t>(num); ++i)
   {
     const char* name = zip_get_name(za, i, 0);
-    if (name) out.emplace_back(name);
+    if (name) entries.emplace_back(name);
   }
   zip_close(za);
+  return true;
 #else
   (void)archive_path;
+  return false;
 #endif
-  return out;
 }
 
 void ZipArchiveFile::writeSidecarIndex(const std::string& archive_path)
@@ -405,7 +487,7 @@ void ZipArchiveFile::writeSidecarIndex(const std::string& archive_path)
 #endif
 }
 
-std::string ZipArchiveFile::extractEntryToTempFile(const std::string& archive_path, const std::string& entry_name, std::unique_ptr<File::TempDir>& temp_dir)
+std::string ZipArchiveFile::extractEntryToTempFile(const std::string& archive_path, const std::string& entry_name, std::unique_ptr<TempDir>& temp_dir)
 {
 #if defined(OPENMS_HAVE_LIBZIP)
   // If archive_path is actually a directory (tests create a .oswpq directory),
@@ -441,6 +523,17 @@ std::string ZipArchiveFile::extractEntryToTempFile(const std::string& archive_pa
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, entry_name);
   }
 
+  // The declared size, for the extraction budget as in unzipDirectory()
+  zip_stat_t st;
+  zip_stat_init(&st);
+  if (zip_stat_index(za, static_cast<zip_uint64_t>(idx), 0, &st) != 0 || (st.valid & ZIP_STAT_SIZE) == 0)
+  {
+    zip_close(za);
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Failed to read the size of a zip entry", entry_name);
+  }
+  const zip_uint64_t declared_size = st.size;
+
   zip_file_t* zf = zip_fopen_index(za, idx, 0);
   if (!zf)
   {
@@ -449,7 +542,7 @@ std::string ZipArchiveFile::extractEntryToTempFile(const std::string& archive_pa
                                   "Failed to open zip entry", entry_name);
   }
 
-  if (!temp_dir) temp_dir = std::make_unique<File::TempDir>();
+  if (!temp_dir) temp_dir = std::make_unique<TempDir>();
   const std::string base = temp_dir->getPath();
 
   // construct output path and create parent dirs
@@ -462,15 +555,25 @@ std::string ZipArchiveFile::extractEntryToTempFile(const std::string& archive_pa
                                   "Zip entry has absolute path", entry_name);
   }
 
-  const std::filesystem::path outpath = (std::filesystem::u8path(std::string(base)) / entry_path).lexically_normal();
-  const std::string base_str = std::filesystem::u8path(std::string(base)).string();
-  const std::string out_str = outpath.string();
-  if (out_str.size() < base_str.size() || out_str.compare(0, base_str.size(), base_str) != 0)
+  // As in unzipDirectory(): the base is normalized as the output path is (on Windows lexically_normal() turns the '/'
+  // in the TempDir path into '\', so comparing strings with the unnormalized base rejected every entry), and path
+  // elements are compared, not strings
+  const std::filesystem::path base_path = std::filesystem::u8path(std::string(base)).lexically_normal();
+  const std::filesystem::path outpath = (base_path / entry_path).lexically_normal();
+  const std::filesystem::path relative = outpath.lexically_relative(base_path);
+  if (relative.empty() || *relative.begin() == "..")
   {
     zip_fclose(zf);
     zip_close(za);
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   "Zip entry would extract outside target directory", entry_name);
+  }
+
+  if (const std::string problem = exceedsFreeSpace(declared_size, base_path); !problem.empty())
+  {
+    zip_fclose(zf);
+    zip_close(za);
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, problem, archive_path);
   }
 
   if (!entry_name.empty() && entry_name.back() == '/')
@@ -494,8 +597,18 @@ std::string ZipArchiveFile::extractEntryToTempFile(const std::string& archive_pa
   constexpr size_t BUF_SIZE = 1 << 16;
   std::vector<char> buffer(BUF_SIZE);
   zip_int64_t nread = 0;
+  zip_uint64_t written = 0;
   while ((nread = zip_fread(zf, buffer.data(), buffer.size())) > 0)
   {
+    // libzip does not stop an entry at its declared size
+    written += static_cast<zip_uint64_t>(nread);
+    if (written > declared_size)
+    {
+      zip_fclose(zf);
+      zip_close(za);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Zip entry is larger than its declared size", entry_name);
+    }
     ofs.write(buffer.data(), static_cast<std::streamsize>(nread));
     if (ofs.fail())
     {
@@ -521,6 +634,52 @@ std::string ZipArchiveFile::extractEntryToTempFile(const std::string& archive_pa
   (void)archive_path;
   (void)entry_name;
   (void)temp_dir;
+  throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+#endif
+}
+
+std::string ZipArchiveFile::findSingleEntry(const std::string& archive_path, const std::string& extension)
+{
+#if defined(OPENMS_HAVE_LIBZIP)
+  std::vector<std::string> entries;
+  if (!listEntries(archive_path, entries))
+  {
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, archive_path, "Cannot read the ZIP archive");
+  }
+  // Files only: directory entries end with '/'. The AppleDouble files that macOS adds below '__MACOSX/'
+  // ('__MACOSX/._run.raw') carry the name of the file they describe, so they are skipped as well.
+  const std::string suffix = StringUtils::toLowered(extension);
+  std::vector<std::string> found;
+  for (const std::string& entry : entries)
+  {
+    if (entry.empty() || entry.back() == '/') continue;
+    const std::filesystem::path entry_path = std::filesystem::u8path(entry);
+    if (std::find(entry_path.begin(), entry_path.end(), std::filesystem::path("__MACOSX")) != entry_path.end()) continue;
+    if (StringUtils::hasSuffix(StringUtils::toLowered(entry), suffix)) found.push_back(entry);
+  }
+  if (found.size() == 1)
+  {
+    return found.front();
+  }
+  if (found.empty())
+  {
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, archive_path,
+                                "ZIP archive holds no file with the extension '" + extension + "'");
+  }
+  // Name a few of them, for archives that hold a whole project
+  constexpr size_t MAX_NAMED = 5;
+  std::string names;
+  for (size_t i = 0; i < std::min(found.size(), MAX_NAMED); ++i)
+  {
+    names += (i == 0 ? "" : ", ") + found[i];
+  }
+  if (found.size() > MAX_NAMED) names += ", ...";
+  throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, archive_path,
+                              "ZIP archive holds " + std::to_string(found.size()) + " files with the extension '" + extension
+                              + "' (" + names + "), but only one can be read: extract the file to read from the archive first");
+#else
+  (void)archive_path;
+  (void)extension;
   throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #endif
 }

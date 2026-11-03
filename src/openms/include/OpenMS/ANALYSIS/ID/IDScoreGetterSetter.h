@@ -472,11 +472,15 @@ namespace OpenMS
     }
 
     //TODO could also get a keep_decoy flag when we define what a "decoy group" is -> keep all always for now
+    /// @p old_higher_better is the direction of the groups' current scores (the keys of @p scores_to_FDR),
+    /// @p q_value whether @p scores_to_FDR holds q-values (else raw FDRs)
     static void setScores_(
         const std::map<double, double> &scores_to_FDR,
         std::vector<ProteinIdentification::ProteinGroup> &grps,
         const std::string &score_type,
-        bool higher_better);
+        bool higher_better,
+        bool old_higher_better = true,
+        bool q_value = true);
 
     /** @} */
 

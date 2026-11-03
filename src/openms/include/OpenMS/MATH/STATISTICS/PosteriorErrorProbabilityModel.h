@@ -65,7 +65,9 @@ public:
        * @param[in] target_decoy_available whether target decoy information is stored as meta value
        * @param[in] fdr_for_targets_smaller fdr threshold for targets
        * @return engine (and optional charge state) id -> vector of triplets (score, target, decoy)
-       * @note supported engines are: XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem,MSGFPlus,MS-GF+,Comet,Sage
+       * @note supported engines are: XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem,MSGFPlus,MS-GF+,Comet,MSFragger,Sage,SimpleSearchEngine,ProSE -- i.e. those with a branch in
+       *       transformScore_(). Identifications from OpenMS/ConsensusID_* runs are resolved to
+       *       their ConsensusIDBaseSearch engine, which must itself be one of the above.
        */
       static std::map<std::string, std::vector<std::vector<double>>> extractAndTransformScores(
         const std::vector<ProteinIdentification> & protein_ids,
@@ -86,7 +88,9 @@ public:
        * @param[in,out] peptide_ids the peptide identifications
        * @param[out] unable_to_fit_data there was a problem fitting the data (probabilities are all smaller 0 or larger 1)
        * @param[out] data_might_not_be_well_fit fit was successful but of bad quality (probabilities are all smaller 0.8 and larger 0.2)
-       * @note supported engines are: XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem,MSGFPlus,MS-GF+,Comet
+       * @note supported engines are: XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem,MSGFPlus,MS-GF+,Comet,MSFragger,Sage,SimpleSearchEngine,ProSE -- i.e. those with a branch in
+       *       transformScore_(). Identifications from OpenMS/ConsensusID_* runs are resolved to
+       *       their ConsensusIDBaseSearch engine, which must itself be one of the above.
        */
       static void updateScores(
         const PosteriorErrorProbabilityModel & PEP_model,

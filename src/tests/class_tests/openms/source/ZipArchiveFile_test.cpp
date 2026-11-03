@@ -9,7 +9,9 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <fstream>
+#include <iterator>
 
 using namespace OpenMS;
 
@@ -18,7 +20,7 @@ START_TEST(ZipArchiveFile, "$Id$")
 START_SECTION(void addOrReplaceFromFile(const std::string&, const std::string&, const std::string&))
 {
   // prepare temporary workspace
-  File::TempDir tmp;
+  TempDir tmp;
   const std::string base = tmp.getPath() + "/workspace";
   File::makeDir(base);
   File::makeDir(base + "/library");
@@ -45,7 +47,7 @@ START_SECTION(void addOrReplaceFromFile(const std::string&, const std::string&, 
   TEST_EQUAL(found, true)
 
   // extract and verify content
-  std::unique_ptr<File::TempDir> unpack_tmp;
+  std::unique_ptr<TempDir> unpack_tmp;
   const std::string unpack_dir = ZipArchiveFile::unzipDirectory(archive, unpack_tmp);
   const std::string extracted = unpack_dir + "/library/precursors.parquet";
   TEST_EQUAL(File::exists(extracted), true)
@@ -68,7 +70,7 @@ START_SECTION(void addOrReplaceFromFile(const std::string&, const std::string&, 
   ZipArchiveFile::addOrReplaceFromFile(archive, "library/precursors.parquet", file1);
 
   // extract to new temp dir and verify replaced content
-  std::unique_ptr<File::TempDir> unpack_tmp2;
+  std::unique_ptr<TempDir> unpack_tmp2;
   const std::string unpack_dir2 = ZipArchiveFile::unzipDirectory(archive, unpack_tmp2);
   const std::string extracted2 = unpack_dir2 + "/library/precursors.parquet";
   TEST_EQUAL(File::exists(extracted2), true)
@@ -84,7 +86,7 @@ END_SECTION
 
 START_SECTION([EXTRA] unzipDirectory error paths)
 {
-  File::TempDir tmp;
+  TempDir tmp;
 
   // Corrupt archive: an existing, readable file that is not a valid ZIP (garbage
   // bytes, no central directory). libzip's zip_open() fails and unzipDirectory
@@ -98,13 +100,13 @@ START_SECTION([EXTRA] unzipDirectory error paths)
   }
   TEST_EQUAL(File::exists(corrupt), true)
   {
-    std::unique_ptr<File::TempDir> td;
+    std::unique_ptr<TempDir> td;
     TEST_EXCEPTION(Exception::InvalidValue, ZipArchiveFile::unzipDirectory(corrupt, td))
   }
 
   // Missing / unreadable input: a clear FileNotFound.
   {
-    std::unique_ptr<File::TempDir> td;
+    std::unique_ptr<TempDir> td;
     TEST_EXCEPTION(Exception::FileNotFound, ZipArchiveFile::unzipDirectory("/nonexistent/path/to/archive.oswpq", td))
   }
 
@@ -113,9 +115,208 @@ START_SECTION([EXTRA] unzipDirectory error paths)
   {
     const std::string adir = tmp.getPath() + "/already_a_dir";
     File::makeDir(adir);
-    std::unique_ptr<File::TempDir> td;
+    std::unique_ptr<TempDir> td;
     TEST_STRING_EQUAL(ZipArchiveFile::unzipDirectory(adir, td), adir)
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA] unzipDirectory stops at an entry larger than it declares)
+{
+  // A crafted archive (zip bomb) can declare small entries that inflate to much more. libzip
+  // does not stop an entry at its declared size, so unzipDirectory counts the bytes itself.
+  // Here a 1 MiB entry claims 1000 bytes in its headers.
+  TempDir tmp;
+  const std::string src = tmp.getPath() + "/src";
+  File::makeDir(src);
+  {
+    std::ofstream ofs((src + "/data.bin").c_str(), std::ios::binary);
+    ofs << std::string(1 << 20, 'x');
+  }
+  const std::string archive = tmp.getPath() + "/lying.zip";
+  ZipArchiveFile::zipDirectory(src, archive);
+
+  std::string bytes;
+  {
+    std::ifstream ifs(archive.c_str(), std::ios::binary);
+    bytes.assign(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
+  }
+  const size_t local = bytes.find(std::string("PK\x03\x04", 4));
+  const size_t central = bytes.find(std::string("PK\x01\x02", 4));
+  TEST_NOT_EQUAL(local, std::string::npos)
+  TEST_NOT_EQUAL(central, std::string::npos)
+  const std::string declared("\xe8\x03\x00\x00", 4); // 1000, little endian
+  bytes.replace(local + 22, 4, declared);   // uncompressed size in the local file header
+  bytes.replace(central + 24, 4, declared); // and in the central directory header
+  {
+    std::ofstream ofs(archive.c_str(), std::ios::binary | std::ios::trunc);
+    ofs << bytes;
+  }
+
+  std::unique_ptr<TempDir> td;
+  std::string message;
+  try
+  {
+    ZipArchiveFile::unzipDirectory(archive, td);
+  }
+  catch (const Exception::InvalidValue& e)
+  {
+    message = e.what();
+  }
+  TEST_EQUAL(message.find("larger than its declared size") != std::string::npos, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] unzipDirectory rejects an entry that leaves the target directory)
+{
+  // The target directory is <TempDir>/parquet_unpacked. '../parquet_unpacked_x/f.txt' leads to
+  // a sibling whose path starts with the target's path, so a string prefix check accepts it.
+  TempDir tmp;
+  const std::string file = tmp.getPath() + "/f.txt";
+  {
+    std::ofstream ofs(file.c_str());
+    ofs << "payload";
+  }
+  const std::string archive = tmp.getPath() + "/escape.zip";
+  ZipArchiveFile::addOrReplaceFromFile(archive, "../parquet_unpacked_x/f.txt", file);
+
+  std::unique_ptr<TempDir> td;
+  std::string message;
+  try
+  {
+    ZipArchiveFile::unzipDirectory(archive, td);
+  }
+  catch (const Exception::InvalidValue& e)
+  {
+    message = e.what();
+  }
+  TEST_EQUAL(message.find("outside target directory") != std::string::npos, true)
+}
+END_SECTION
+
+START_SECTION(static std::string extractEntryToTempFile(const std::string& archive_path, const std::string& entry_name, std::unique_ptr<TempDir>& temp_dir))
+{
+  // A nested entry of a real archive. On Windows the TempDir path holds '\' and '/', which the check that the
+  // entry stays inside the directory took for an escape, so every entry was rejected.
+  TempDir tmp;
+  const std::string file = tmp.getPath() + "/f.txt";
+  {
+    std::ofstream ofs(file.c_str());
+    ofs << "payload";
+  }
+  const std::string archive = tmp.getPath() + "/entries.zip";
+  ZipArchiveFile::addOrReplaceFromFile(archive, "run.d/analysis.tdf", file);
+  ZipArchiveFile::addOrReplaceFromFile(archive, "../escape_x/f.txt", file);
+
+  std::unique_ptr<TempDir> td;
+  const std::string extracted = ZipArchiveFile::extractEntryToTempFile(archive, "run.d/analysis.tdf", td);
+  TEST_EQUAL(td != nullptr, true)
+  std::ifstream ifs(extracted.c_str());
+  const std::string content((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+  TEST_EQUAL(content, "payload")
+
+  std::string message;
+  try
+  {
+    ZipArchiveFile::extractEntryToTempFile(archive, "../escape_x/f.txt", td);
+  }
+  catch (const Exception::InvalidValue& e)
+  {
+    message = e.what();
+  }
+  TEST_EQUAL(message.find("outside target directory") != std::string::npos, true)
+  TEST_EXCEPTION(Exception::FileNotFound, ZipArchiveFile::extractEntryToTempFile(archive, "missing.txt", td))
+}
+END_SECTION
+
+START_SECTION([EXTRA] extractEntryToTempFile stops at an entry larger than it declares)
+{
+  // The crafted archive of the unzipDirectory test above: a 1 MiB entry that claims 1000 bytes
+  TempDir tmp;
+  const std::string src = tmp.getPath() + "/src";
+  File::makeDir(src);
+  {
+    std::ofstream ofs((src + "/data.bin").c_str(), std::ios::binary);
+    ofs << std::string(1 << 20, 'x');
+  }
+  const std::string archive = tmp.getPath() + "/lying.zip";
+  ZipArchiveFile::zipDirectory(src, archive);
+
+  std::string bytes;
+  {
+    std::ifstream ifs(archive.c_str(), std::ios::binary);
+    bytes.assign(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
+  }
+  const size_t local = bytes.find(std::string("PK\x03\x04", 4));
+  const size_t central = bytes.find(std::string("PK\x01\x02", 4));
+  TEST_NOT_EQUAL(local, std::string::npos)
+  TEST_NOT_EQUAL(central, std::string::npos)
+  const std::string declared("\xe8\x03\x00\x00", 4); // 1000, little endian
+  bytes.replace(local + 22, 4, declared);
+  bytes.replace(central + 24, 4, declared);
+  {
+    std::ofstream ofs(archive.c_str(), std::ios::binary | std::ios::trunc);
+    ofs << bytes;
+  }
+
+  std::unique_ptr<TempDir> td;
+  std::string message;
+  try
+  {
+    ZipArchiveFile::extractEntryToTempFile(archive, "data.bin", td);
+  }
+  catch (const Exception::InvalidValue& e)
+  {
+    message = e.what();
+  }
+  TEST_EQUAL(message.find("larger than its declared size") != std::string::npos, true)
+}
+END_SECTION
+
+START_SECTION(static std::string findSingleEntry(const std::string& archive_path, const std::string& extension))
+{
+  TempDir tmp;
+  const std::string file = tmp.getPath() + "/f.txt";
+  {
+    std::ofstream ofs(file.c_str());
+    ofs << "payload";
+  }
+  // One RAW file below a directory, with the AppleDouble file that macOS adds for it and a file of another type.
+  // The extension is compared case-insensitively.
+  const std::string archive = tmp.getPath() + "/run.raw.zip";
+  ZipArchiveFile::addOrReplaceFromFile(archive, "run/RUN.RAW", file);
+  ZipArchiveFile::addOrReplaceFromFile(archive, "__MACOSX/run/._RUN.RAW", file);
+  ZipArchiveFile::addOrReplaceFromFile(archive, "run/notes.txt", file);
+  TEST_STRING_EQUAL(ZipArchiveFile::findSingleEntry(archive, ".raw"), "run/RUN.RAW")
+  TEST_STRING_EQUAL(ZipArchiveFile::findSingleEntry(archive, ".TXT"), "run/notes.txt")
+
+  std::string message;
+  try
+  {
+    ZipArchiveFile::findSingleEntry(archive, ".mzML");
+  }
+  catch (const Exception::ParseError& e)
+  {
+    message = e.what();
+  }
+  TEST_EQUAL(message.find("holds no file with the extension '.mzML'") != std::string::npos, true)
+
+  // Two of them: the message names both
+  ZipArchiveFile::addOrReplaceFromFile(archive, "second.raw", file);
+  message.clear();
+  try
+  {
+    ZipArchiveFile::findSingleEntry(archive, ".raw");
+  }
+  catch (const Exception::ParseError& e)
+  {
+    message = e.what();
+  }
+  TEST_EQUAL(message.find("holds 2 files with the extension '.raw' (run/RUN.RAW, second.raw)") != std::string::npos, true)
+
+  // Not a ZIP archive, or none at all
+  TEST_EXCEPTION(Exception::ParseError, ZipArchiveFile::findSingleEntry(file, ".raw"))
+  TEST_EXCEPTION(Exception::ParseError, ZipArchiveFile::findSingleEntry(tmp.getPath() + "/missing.zip", ".raw"))
 }
 END_SECTION
 

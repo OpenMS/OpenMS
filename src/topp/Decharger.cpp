@@ -71,7 +71,7 @@ class TOPPDecharger :
 {
 public:
   TOPPDecharger() :
-    TOPPBase("Decharger", "Decharges and merges different feature charge variants of the same peptide.", true,
+    TOPPBase("Decharger", "Decharges and merges different feature charge variants of the same peptide.",
              { // citation(s), specific for this tool
               { "Bielow C, Ruzek S, Huber CG, Reinert K", "Optimal decharging and clustering of charge ladders generated in ESI-MS", "J Proteome Res 2010; 9: 2688", "10.1021/pr100177k" }
              }

@@ -12,6 +12,8 @@
 ///////////////////////////
 
 #include <OpenMS/QC/QCBase.h>
+#include <OpenMS/METADATA/DataProcessingUtils.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 ///////////////////////////
@@ -90,5 +92,24 @@ START_TEST(SpectraMap, "$Id$")
   }
   END_SECTION
 
-END_TEST
+START_SECTION((isLabeledExperiment preserves the IsobaricAnalyzer provenance convention))
+  ConsensusMap map;
+  TEST_FALSE(QCBase::isLabeledExperiment(map))
+  TEST_FALSE(DataProcessingUtils::hasIsobaricAnalyzer(map.getDataProcessing()))
+  DataProcessing processing;
+  map.getDataProcessing().push_back(processing);
+  for (const std::string name : {"", "FeatureFinder", "isobaricanalyzer", "IsobaricAnalyzer extra"})
+  {
+    map.getDataProcessing()[0].getSoftware().setName(name);
+    TEST_FALSE(QCBase::isLabeledExperiment(map))
+    TEST_FALSE(DataProcessingUtils::hasIsobaricAnalyzer(map.getDataProcessing()))
+  }
+  processing.getSoftware().setName("IsobaricAnalyzer");
+  map.getDataProcessing().push_back(processing);
+  map.getDataProcessing().push_back(DataProcessing());
+  TEST_TRUE(QCBase::isLabeledExperiment(map))
+  TEST_TRUE(DataProcessingUtils::hasIsobaricAnalyzer(map.getDataProcessing()))
+  TEST_EQUAL(map.getDataProcessing().size(), 3)
+END_SECTION
 
+END_TEST

@@ -6,18 +6,18 @@
 	<IdentificationRun date="0000-00-00T00:00:00" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 		</ProteinIdentification>
-		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<PeptideHit score="0" sequence="FIRSTSPEC" charge="0" >
+		<PeptideIdentification score_type="rank" higher_score_better="false" significance_threshold="0" >
+			<PeptideHit score="1" sequence="FIRSTSPEC" charge="0" >
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<PeptideHit score="0" sequence="SECONDSPEC" charge="0" >
+		<PeptideIdentification score_type="rank" higher_score_better="false" significance_threshold="0" >
+			<PeptideHit score="1" sequence="SECONDSPEC" charge="0" >
 			</PeptideHit>
-			<PeptideHit score="0" sequence="SECONDSEQ" charge="0" >
+			<PeptideHit score="2" sequence="SECONDSEQ" charge="0" >
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<PeptideHit score="0" sequence="LAST" charge="0" >
+		<PeptideIdentification score_type="rank" higher_score_better="false" significance_threshold="0" >
+			<PeptideHit score="1" sequence="LAST" charge="0" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

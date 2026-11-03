@@ -19,13 +19,13 @@
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
-	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="19" MZ="2000" RT="170" >
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="19" MZ="2000" RT="170" >
 		<PeptideHit score="5.41" sequence="DEAD" charge="2">
 		</PeptideHit>
 		<PeptideHit score="7.87" sequence="DEADA" charge="2">
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
-	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="19" MZ="2001" RT="180" >
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="19" MZ="2001" RT="180" >
 		<PeptideHit score="5.41" sequence="DEADAA" charge="2">
 		</PeptideHit>
 		<PeptideHit score="7.87" sequence="DEADAAA" charge="2">
@@ -40,7 +40,7 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>2</charge>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="31.8621" MZ="10" RT="60" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="31.8621" MZ="10" RT="60" >
 				<PeptideHit score="33.85" sequence="LHASGITVTEIPVTATNFK" charge="3" protein_refs="PH_0 PH_1">
 				</PeptideHit>
 				<PeptideHit score="33.12" sequence="MRSLGYVAVISAVATDTDK" charge="3" protein_refs="PH_0">
@@ -64,7 +64,7 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>2</charge>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="12" MZ="110" RT="120" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="12" MZ="110" RT="120" >
 				<PeptideHit score="43.9" sequence="HSKLSAK" charge="2" protein_refs="PH_1">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -86,7 +86,7 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>2</charge>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="19" MZ="2000" RT="180" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="19" MZ="2000" RT="180" >
 				<PeptideHit score="5.41" sequence="RASNSPQDPQSATAHSFR" charge="2">
 				</PeptideHit>
 				<PeptideHit score="7.87" sequence="MYSTVGPA" charge="2">

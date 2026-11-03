@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
@@ -101,7 +102,7 @@ namespace OpenMS
   bool TOPPASToolVertex::initParam_(const QString& old_ini_file)
   {
     // this is the only exception for writing directly to the tmpDir, instead of a subdir of tmpDir, as scene()->getTempDir() might not be available yet
-    QString ini_file = toQString(File::getTemporaryFile());
+    QString ini_file = toQString(TempFiles::getTemporaryFile());
     QString program = toQString(File::findSiblingTOPPExecutable(name_));
     QStringList arguments;
     arguments << "-write_ini" << ini_file;

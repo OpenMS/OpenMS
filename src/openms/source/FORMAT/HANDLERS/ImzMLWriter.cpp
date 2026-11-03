@@ -272,6 +272,70 @@ namespace
     }
   }
 
+  /// imzML carries per-peak data only as FloatDataArrays (written as external .ibd
+  /// arrays), so Integer/StringDataArrays — e.g. a "charge array" carried over from
+  /// mzML — have no representation and are dropped. Warn once per store, not once per
+  /// pixel, and cap the listing so the line cannot grow with the dataset.
+  void warnOnDroppedDataArrays_(const MSExperiment& exp)
+  {
+    const Size max_listed = 20;
+    std::vector<std::string> names;
+    bool more_names = false;
+    Size dropped = 0;
+
+    auto collect = [&](const auto& arrays) {
+      for (const auto& array : arrays)
+      {
+        if (array.empty())
+        {
+          continue;
+        }
+        ++dropped;
+        if (std::find(names.begin(), names.end(), array.getName()) != names.end())
+        {
+          continue;
+        }
+        if (names.size() < max_listed)
+        {
+          names.push_back(array.getName());
+        }
+        else
+        {
+          more_names = true;
+        }
+      }
+    };
+
+    for (const MSSpectrum& spec : exp.getSpectra())
+    {
+      collect(spec.getIntegerDataArrays());
+      collect(spec.getStringDataArrays());
+    }
+
+    if (dropped == 0)
+    {
+      return;
+    }
+
+    std::string listed;
+    for (Size k = 0; k < names.size(); ++k)
+    {
+      if (k > 0)
+      {
+        listed += ", ";
+      }
+      listed += "'" + names[k] + "'";
+    }
+    if (more_names)
+    {
+      listed += ", ...";
+    }
+    OPENMS_LOG_WARN << "imzML stores per-peak data only as FloatDataArrays: dropping "
+                    << dropped << " integer/string data array(s) across " << exp.size()
+                    << " spectra. Affected array names: " << listed
+                    << "." << std::endl; // std::endl: OPENMS_LOG_* only distributes a line on flush
+  }
+
   ImzMLMeta extractMeta_(const MSExperiment& exp)
   {
     ImzMLMeta meta;
@@ -327,6 +391,34 @@ namespace
     {
       meta.polarity = exp.getMetaValue("imzml:polarity").toString();
     }
+    if (exp.metaValueExists("imzml:pixel_size_unit"))
+    {
+      meta.pixel_size_unit = exp.getMetaValue("imzml:pixel_size_unit").toString();
+    }
+    else if (meta.pixel_size_x > 0 || meta.pixel_size_y > 0)
+    {
+      OPENMS_LOG_WARN << "imzML: pixel size without imzml:pixel_size_unit; assuming micrometer." << std::endl;
+      meta.pixel_size_unit = "micrometer";
+    }
+    // IMS:1000046/47 need a UO length unit; drop a pixel size whose unit cannot be written
+    const ControlledVocabulary& cv = ControlledVocabulary::getPSIMSCV();
+    if (!cv.hasTermWithName(meta.pixel_size_unit)
+        || !lengthUnitExponent(cv.getTermByName(meta.pixel_size_unit).id))
+    {
+      if (meta.pixel_size_x > 0 || meta.pixel_size_y > 0)
+      {
+        OPENMS_LOG_WARN << "imzML: pixel size unit '" << meta.pixel_size_unit
+                        << "' is not a supported length unit; pixel size not written." << std::endl;
+      }
+      meta.pixel_size_x = -1;
+      meta.pixel_size_y = -1;
+      meta.pixel_size_unit = "unknown";
+    }
+    if (meta.pixel_size_x > 0 && meta.pixel_size_y <= 0)
+    {
+      OPENMS_LOG_WARN << "imzML: pixel size y is unknown; only pixel size x is written, which readers "
+                         "also use for y (IMS:1000046)." << std::endl;
+    }
     return meta;
   }
 
@@ -359,7 +451,11 @@ namespace
       const auto& rt_range = options.getRTRange();
       exp.getSpectra().erase(
         std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
-                       [&rt_range](const MSSpectrum& s) { return !rt_range.encloses(DPosition<1>(s.getRT())); }),
+                       [&rt_range](const MSSpectrum& s) {
+                         // like the load filter (MzMLHandler), keep spectra without a scan start time
+                         const double t = ImzMLSpectrumRules::scanStartTime(s);
+                         return t >= 0.0 && !rt_range.encloses(DPosition<1>(t));
+                       }),
         exp.getSpectra().end());
     }
 
@@ -615,13 +711,19 @@ namespace
     {
       meta.max_count_z = 1;
     }
+    if (meta.pixel_size_x <= 0 && meta.pixel_size_y <= 0)
+    {
+      return;
+    }
+    // max dimension (IMS:1000044/45) is in micrometer; extractMeta_ guarantees a supported pixel size unit
+    const double to_um = std::pow(10.0, *lengthUnitExponent(ControlledVocabulary::getPSIMSCV().getTermByName(meta.pixel_size_unit).id) + 6);
     if (meta.pixel_size_x > 0 && meta.max_count_x > 0)
     {
-      meta.max_dim_x = meta.pixel_size_x * meta.max_count_x;
+      meta.max_dim_x = meta.pixel_size_x * meta.max_count_x * to_um;
     }
     if (meta.pixel_size_y > 0 && meta.max_count_y > 0)
     {
-      meta.max_dim_y = meta.pixel_size_y * meta.max_count_y;
+      meta.max_dim_y = meta.pixel_size_y * meta.max_count_y * to_um;
     }
   }
 
@@ -1210,6 +1312,14 @@ namespace
     os << "\t</softwareList>\n";
     os << "\t<scanSettingsList count=\"1\">\n";
     os << "\t\t<scanSettings id=\"scanSettings1\">\n";
+    // pixel size keeps its own unit; extractMeta_ guarantees a supported length unit when a pixel size is set
+    std::string length_unit_attrs;
+    if (meta.pixel_size_x > 0 || meta.pixel_size_y > 0)
+    {
+      const ControlledVocabulary::CVTerm& length_unit = ControlledVocabulary::getPSIMSCV().getTermByName(meta.pixel_size_unit);
+      length_unit_attrs = "unitCvRef=\"UO\" unitAccession=\"" + length_unit.id
+                          + "\" unitName=\"" + XMLHandler::writeXMLEscape(length_unit.name) + "\"";
+    }
     if (meta.max_count_x > 0)
     {
       os << "\t\t\t";
@@ -1222,32 +1332,32 @@ namespace
       writeCvParam_(os, "IMS", "IMS:1000043", "max count of pixels y", OpenMS::StringConversions::toString(meta.max_count_y));
       os << "\n";
     }
-    if (meta.max_dim_x > 0)
+    if (std::llround(meta.max_dim_x) > 0) // nonNegativeInteger micrometer; a sub-micrometer extent is not written
     {
       os << "\t\t\t";
-      writeCvParam_(os, "IMS", "IMS:1000044", "max dimension x", OpenMS::StringConversions::toString(meta.max_dim_x),
+      writeCvParam_(os, "IMS", "IMS:1000044", "max dimension x", OpenMS::StringConversions::toString(std::llround(meta.max_dim_x)),
                     "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
       os << "\n";
     }
-    if (meta.max_dim_y > 0)
+    if (std::llround(meta.max_dim_y) > 0) // nonNegativeInteger micrometer; a sub-micrometer extent is not written
     {
       os << "\t\t\t";
-      writeCvParam_(os, "IMS", "IMS:1000045", "max dimension y", OpenMS::StringConversions::toString(meta.max_dim_y),
+      writeCvParam_(os, "IMS", "IMS:1000045", "max dimension y", OpenMS::StringConversions::toString(std::llround(meta.max_dim_y)),
                     "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
       os << "\n";
     }
     if (meta.pixel_size_x > 0)
     {
       os << "\t\t\t";
-      writeCvParam_(os, "IMS", "IMS:1000046", "pixel size x", OpenMS::StringConversions::toString(meta.pixel_size_x),
-                    "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
+      writeCvParam_(os, "IMS", "IMS:1000046", "pixel size (x)", OpenMS::StringConversions::toString(meta.pixel_size_x),
+                    length_unit_attrs);
       os << "\n";
     }
     if (meta.pixel_size_y > 0)
     {
       os << "\t\t\t";
       writeCvParam_(os, "IMS", "IMS:1000047", "pixel size y", OpenMS::StringConversions::toString(meta.pixel_size_y),
-                    "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
+                    length_unit_attrs);
       os << "\n";
     }
     writeImsGeometryCvParams_(os, meta);
@@ -1299,10 +1409,15 @@ namespace
       writeCvParam_(os, "MS", "MS:1000795", "no combination");
       os << "\n";
       os << "\t\t\t\t\t<scan instrumentConfigurationRef=\"IC1\">\n";
+      const double scan_start_time = ImzMLSpectrumRules::scanStartTime(spec);
+      if (scan_start_time >= 0.0) // no time: omit the cvParam
+      {
+        os << "\t\t\t\t\t\t";
+        writeCvParam_(os, "MS", "MS:1000016", "scan start time", OpenMS::StringConversions::toString(scan_start_time),
+                      "unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"");
+        os << "\n";
+      }
       os << "\t\t\t\t\t\t";
-      writeCvParam_(os, "MS", "MS:1000016", "scan start time", OpenMS::StringConversions::toString(spec.getRT()),
-                    "unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"");
-      os << "\n\t\t\t\t\t\t";
       writeCvParam_(os, "IMS", "IMS:1000050", "position x", OpenMS::StringConversions::toString(plan.pixel.x));
       os << "\n\t\t\t\t\t\t";
       writeCvParam_(os, "IMS", "IMS:1000051", "position y", OpenMS::StringConversions::toString(plan.pixel.y));
@@ -1344,6 +1459,7 @@ void ImzMLWriter::store(const std::string& imzml_path,
   }
 
   validatePixelMetadataForStore_(work);
+  warnOnDroppedDataArrays_(work);
 
   ImzMLMeta meta = extractMeta_(work);
   const bool continuous = isContinuousMode_(work, meta);

@@ -4,7 +4,9 @@ set(directory source/IONMOBILITY)
 ### list all filenames of the directory here
 set(sources_list
 IMTypes.cpp
+IMTypesExperiment.cpp
 IMDataConverter.cpp
+IMDataArrayUtils.cpp
 FAIMSHelper.cpp
 )
 

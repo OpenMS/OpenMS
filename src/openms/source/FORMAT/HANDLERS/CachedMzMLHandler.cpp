@@ -14,6 +14,24 @@
 
 namespace OpenMS::Internal
 {
+
+  namespace
+  {
+    /// Writes one data array of a spectrum or chromatogram: its length, the length of its name, the name and the values
+    template <typename DataArray>
+    void writeDataArray(const DataArray& array, std::ofstream& ofs)
+    {
+      Size len = array.size();
+      ofs.write((char*)&len, sizeof(len));
+      const std::string& name = array.getName();
+      Size len_name = name.size();
+      ofs.write((char*)&len_name, sizeof(len_name));
+      ofs.write(name.data(), len_name);
+      const CachedMzMLHandler::Datavector values(array.begin(), array.end());
+      ofs.write((char*)values.data(), values.size() * sizeof(CachedMzMLHandler::DatumSingleton));
+    }
+  } // namespace
+
   CachedMzMLHandler::CachedMzMLHandler() = default;
 
   CachedMzMLHandler::~CachedMzMLHandler() = default;
@@ -366,7 +384,10 @@ namespace OpenMS::Internal
       }
       data.back()->data.resize(len);
       data.back()->description = buffer;
-      ifs.read((char*)&(data.back()->data)[0], len * sizeof(DatumSingleton));
+      if (len > 0)
+      {
+        ifs.read((char*)data.back()->data.data(), len * sizeof(DatumSingleton));
+      }
     }
     delete[] buffer;
     return;
@@ -437,7 +458,7 @@ namespace OpenMS::Internal
     {
       MSChromatogram::FloatDataArray fda;
       fda.reserve(data[j]->data.size());
-      for (const auto& k : fda) fda.push_back(k);
+      for (const auto& k : data[j]->data) fda.push_back(k);
       fda.setName(data[j]->description);
       fdas.push_back(fda);
     }
@@ -455,13 +476,6 @@ namespace OpenMS::Internal
     DoubleType dbl_field_ = spectrum.getRT();
     ofs.write((char*)&dbl_field_, sizeof(dbl_field_));
 
-    // Catch empty spectrum: we do not write any data and since the "size" we
-    // just wrote is zero, no data will be read
-    if (spectrum.empty())
-    {
-      return;
-    }
-
     Datavector mz_data;
     Datavector int_data;
     mz_data.reserve(spectrum.size());
@@ -472,35 +486,18 @@ namespace OpenMS::Internal
       int_data.push_back(static_cast<double>(spectrum[j].getIntensity()));
     }
 
-    ofs.write((char*)&mz_data.front(), mz_data.size() * sizeof(mz_data.front()));
-    ofs.write((char*)&int_data.front(), int_data.size() * sizeof(int_data.front()));
+    ofs.write((char*)mz_data.data(), mz_data.size() * sizeof(DatumSingleton));
+    ofs.write((char*)int_data.data(), int_data.size() * sizeof(DatumSingleton));
 
-    Datavector tmp;
-    for (const auto& fda : spectrum.getFloatDataArrays() )
+    // The data arrays are written for a spectrum without peaks as well (e.g. the empty ion mobility array of
+    // a Bruker frame without peaks): the readers expect as many as the count above announces.
+    for (const auto& fda : spectrum.getFloatDataArrays())
     {
-      Size len = fda.size();
-      ofs.write((char*)&len, sizeof(len));
-      Size len_name = fda.getName().size();
-      ofs.write((char*)&len_name, sizeof(len_name));
-      ofs.write((char*)&fda.getName().front(), len_name * sizeof(fda.getName().front()));
-      // now go to the actual data
-      tmp.clear();
-      tmp.reserve(fda.size());
-      for (const auto& val : fda) {tmp.push_back(val);}
-      ofs.write((char*)&tmp.front(), tmp.size() * sizeof(tmp.front()));
+      writeDataArray(fda, ofs);
     }
-    for (const auto& ida : spectrum.getIntegerDataArrays() )
+    for (const auto& ida : spectrum.getIntegerDataArrays())
     {
-      Size len = ida.size();
-      ofs.write((char*)&len, sizeof(len));
-      Size len_name = ida.getName().size();
-      ofs.write((char*)&len_name, sizeof(len_name));
-      ofs.write((char*)&ida.getName().front(), len_name * sizeof(ida.getName().front()));
-      // now go to the actual data
-      tmp.clear();
-      tmp.reserve(ida.size());
-      for (const auto& val : ida) {tmp.push_back(val);}
-      ofs.write((char*)&tmp.front(), tmp.size() * sizeof(tmp.front()));
+      writeDataArray(ida, ofs);
     }
   }
 
@@ -511,13 +508,6 @@ namespace OpenMS::Internal
     Size arr_s = chromatogram.getFloatDataArrays().size() + chromatogram.getIntegerDataArrays().size();
     ofs.write((char*)&arr_s, sizeof(arr_s));
 
-    // Catch empty chromatogram: we do not write any data and since the "size" we
-    // just wrote is zero, no data will be read
-    if (chromatogram.empty())
-    {
-      return;
-    }
-
     Datavector rt_data;
     Datavector int_data;
     rt_data.reserve(chromatogram.size());
@@ -527,41 +517,17 @@ namespace OpenMS::Internal
       rt_data.push_back(chromatogram[j].getRT());
       int_data.push_back(chromatogram[j].getIntensity());
     }
-    ofs.write((char*)&rt_data.front(), rt_data.size() * sizeof(rt_data.front()));
-    ofs.write((char*)&int_data.front(), int_data.size() * sizeof(int_data.front()));
+    ofs.write((char*)rt_data.data(), rt_data.size() * sizeof(DatumSingleton));
+    ofs.write((char*)int_data.data(), int_data.size() * sizeof(DatumSingleton));
 
-    Datavector tmp;
-    for (const auto& fda : chromatogram.getFloatDataArrays() )
+    // written for a chromatogram without peaks as well, see writeSpectrum_()
+    for (const auto& fda : chromatogram.getFloatDataArrays())
     {
-      Size len = fda.size();
-      ofs.write((char*)&len, sizeof(len));
-      Size len_name = fda.getName().size();
-      ofs.write((char*)&len_name, sizeof(len_name));
-      ofs.write((char*)&fda.getName().front(), len_name * sizeof(fda.getName().front()));
-      // now go to the actual data
-      tmp.clear();
-      tmp.reserve(fda.size());
-      for (const auto& val : fda)
-      {
-        tmp.push_back(val);
-      }
-      ofs.write((char*)&tmp.front(), tmp.size() * sizeof(tmp.front()));
+      writeDataArray(fda, ofs);
     }
-    for (const auto& ida : chromatogram.getIntegerDataArrays() )
+    for (const auto& ida : chromatogram.getIntegerDataArrays())
     {
-      Size len = ida.size();
-      ofs.write((char*)&len, sizeof(len));
-      Size len_name = ida.getName().size();
-      ofs.write((char*)&len_name, sizeof(len_name));
-      ofs.write((char*)&ida.getName().front(), len_name * sizeof(ida.getName().front()));
-      // now go to the actual data
-      tmp.clear();
-      tmp.reserve(ida.size());
-      for (const auto& val : ida)
-      {
-        tmp.push_back(val);
-      }
-      ofs.write((char*)&tmp.front(), tmp.size() * sizeof(tmp.front()));
+      writeDataArray(ida, ofs);
     }
   }
 

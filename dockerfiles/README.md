@@ -16,7 +16,7 @@ Images are tagged with the release version, for example: `3.1.0`. The `latest` t
 
 Ie. Substituting the version number of any commands below with "latest" will result in the most up to date images.
 ```shell
-docker pull ghcr.io/openms/contrib:latest
+docker pull ghcr.io/openms/openms-tools:latest
 ```
 
 ## Use

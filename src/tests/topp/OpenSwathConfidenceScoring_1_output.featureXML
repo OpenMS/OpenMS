@@ -46,7 +46,7 @@
 					<UserParam type="string" name="native_id" value="tr2"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="-21994.8526298809" sequence="PEPTIDEA" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -117,7 +117,7 @@
 					<UserParam type="string" name="native_id" value="tr5"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="-22000.3232536088" sequence="PEPTIDEB" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -187,7 +187,7 @@
 					<UserParam type="string" name="native_id" value="tr5"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="-21551.916238951" sequence="PEPTIDEB" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -257,7 +257,7 @@
 					<UserParam type="string" name="native_id" value="tr5"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="-21822.7123758505" sequence="PEPTIDEB" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -327,7 +327,7 @@
 					<UserParam type="string" name="native_id" value="tr5"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="-22208.0561597968" sequence="PEPTIDEB" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>

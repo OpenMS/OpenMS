@@ -189,21 +189,7 @@
 
 	The typical targeted quantitation workflow proceeds through these stages:
 
-	@dot
-	digraph TargetedWorkflow {
-		rankdir=TB;
-		node [shape=box, style=filled, fillcolor=lightblue];
-
-		raw [label="Raw Data\n(mzML)"];
-		picking [label="Peak Picking\nMRMTransitionGroupPicker\nPeakIntegrator"];
-		filtering [label="Quality Filtering\nMRMFeatureFilter\nMRMFeatureQC"];
-		selection [label="Feature Selection\nMRMFeatureSelector\nMRMBatchFeatureSelector"];
-		quant [label="Absolute Quantitation\nAbsoluteQuantitation\nAbsoluteQuantitationMethod"];
-		results [label="Quantified Results"];
-
-		raw -> picking -> filtering -> selection -> quant -> results;
-	}
-	@enddot
+	@image html TargetedQuantitation_module_workflow.svg
 
 	<h2>Core Components</h2>
 

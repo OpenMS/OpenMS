@@ -148,11 +148,16 @@ protected:
     registerFlag_("deisotoping_annotate_charge", "Annotate the charge to the peaks", false);
 
     addEmptyLine_();
-    auto defaults = sirius_export_algorithm.getDefaults();
-    defaults.remove("isotope_pattern_iterations"); 
-    defaults.remove("no_masstrace_info_isotope_pattern"); 
+    registerFullParam_(siriusExportParamSubset_());
+  }
 
-    registerFullParam_(defaults);
+  /// SiriusExportAlgorithm parameters exposed by this tool (the isotope pattern options are not used here)
+  Param siriusExportParamSubset_() const
+  {
+    Param defaults = sirius_export_algorithm.getDefaults();
+    defaults.remove("isotope_pattern_iterations");
+    defaults.remove("no_masstrace_info_isotope_pattern");
+    return defaults;
   }
 
   ExitCodes main_(int, const char **) override
@@ -197,6 +202,8 @@ protected:
     bool keep_only_deisotoped = getFlag_("deisotoping_keep_only_deisotoped");
     bool annotate_charge = getFlag_("deisotoping_annotate_charge");
 
+    // apply the SiriusExportAlgorithm options registered via registerFullParam_() (they were silently ignored before, see #10120)
+    sirius_export_algorithm.setParameters(getParam_().copySubset(siriusExportParamSubset_()));
     writeDebug_("Parameters passed to SiriusExportAlgorithm", sirius_export_algorithm.getParameters(), 3);
 
     //-------------------------------------------------------------

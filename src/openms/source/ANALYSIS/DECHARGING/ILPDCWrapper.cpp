@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/DECHARGING/ILPDCWrapper.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
@@ -189,7 +190,7 @@ namespace OpenMS
     f_set[rota_l].insert(v);
   }
 
-  double ILPDCWrapper::computeSlice_(const FeatureMap& fm,
+  double ILPDCWrapper::computeSlice_(const FeatureMap& /* fm */,
                                      PairsType& pairs,
                                      const PairsIndex margin_left,
                                      const PairsIndex margin_right,
@@ -208,7 +209,7 @@ namespace OpenMS
     {
       // log scores are good for addition in ILP - but they are < 0, thus not suitable for maximizing
       // ... so we just add normal probabilities...
-      double score = exp(getLogScore_(pairs[i], fm));
+      double score = exp(getLogScore_(pairs[i]));
       pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
 
       // create the column representing the edge
@@ -260,15 +261,16 @@ namespace OpenMS
     }
 
     LPWrapper::SolverParam param;
-    param.enable_mir_cuts = true;
-    param.enable_cov_cuts = true;
-    param.enable_feas_pump_heuristic = true;
-    param.enable_binarization = false;
-    param.enable_clq_cuts = true;
-    param.enable_gmi_cuts = true;
     param.enable_presolve = true;
 
     build.solve(param);
+    const LPWrapper::SolverStatus solution_status = build.getStatus();
+    if (solution_status != LPWrapper::OPTIMAL && solution_status != LPWrapper::FEASIBLE)
+    { // without this check a failed solve would silently deactivate all edges (see issue #9944)
+      throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "The ILP solver did not find a feasible charge assignment (solver status: " +
+        StringUtils::toStr(static_cast<Int>(solution_status)) + ").");
+    }
 
     for (UInt iColumn = 0; iColumn < margin_right - margin_left; ++iColumn)
     {
@@ -311,7 +313,7 @@ namespace OpenMS
 
       // log scores are good for addition in ILP - but they are < 0, thus not suitable for maximizing
       // ... so we just add normal probabilities...
-      double score = exp(getLogScore_(pairs[i], fm));
+      double score = exp(getLogScore_(pairs[i]));
       pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
       namebuf.str("");
       namebuf << "x#" << i;
@@ -424,21 +426,22 @@ namespace OpenMS
     if (verbose_level > 0)
       OPENMS_LOG_INFO << "Starting to solve..." << std::endl;
     LPWrapper::SolverParam param;
-    param.enable_mir_cuts = true;
-    param.enable_cov_cuts = true;
-    param.enable_feas_pump_heuristic = true;
-    param.enable_binarization = false;
-    param.enable_clq_cuts = true;
-    param.enable_gmi_cuts = true;
     param.enable_presolve = true;
     StopWatch time1;
     time1.start();
     build.solve(param);
     time1.stop();
+    const LPWrapper::SolverStatus solution_status = build.getStatus();
+    if (solution_status != LPWrapper::OPTIMAL && solution_status != LPWrapper::FEASIBLE)
+    { // without this check a failed solve would silently deactivate all edges (see issue #9944)
+      throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "The ILP solver did not find a feasible charge assignment (solver status: " +
+        StringUtils::toStr(static_cast<Int>(solution_status)) + ").");
+    }
     if (verbose_level > 0)
       OPENMS_LOG_INFO << " Branch and cut took " << time1.getClockTime() << " seconds, "
                << " with objective value: " << build.getObjectiveValue() << "."
-               << " Status: " << (!build.getStatus() ? " Finished" : " Not finished")
+               << " Status: " << (solution_status == LPWrapper::OPTIMAL ? " Finished" : " Not finished")
                << std::endl;
 
     // variable values
@@ -476,43 +479,9 @@ namespace OpenMS
     return opt_value;
   } // !compute_slice
 
-  double ILPDCWrapper::getLogScore_(const PairsType::value_type& pair, const FeatureMap& fm) const
+  double ILPDCWrapper::getLogScore_(const PairsType::value_type& pair) const
   {
-    double score;
-    std::string e;
-    if (getenv("M") != nullptr)
-      e =std::string(getenv("M"));
-    if (e.empty())
-    {
-      //std::cout << "1";
-      score = pair.getCompomer().getLogP();
-      /*double charge_enhance = 0;
-
-      if (pairs[i].getCharge(0) == fm[pairs[i].getElementIndex(0)].getCharge())
-          charge_enhance += log(0.9); else charge_enhance += log(0.1);
-
-      if (pairs[i].getCharge(1) == fm[pairs[i].getElementIndex(1)].getCharge())
-          charge_enhance += log(0.9); else charge_enhance += log(0.1);
-
-      score += charge_enhance;
-      */
-
-    }
-    else
-    {
-      //std::cout << "2";
-      double rt_diff =  fabs(fm[pair.getElementIndex(0)].getRT() - fm[pair.getElementIndex(1)].getRT());
-      // enhance correct charge
-      double charge_enhance = ((pair.getCharge(0) == fm[pair.getElementIndex(0)].getCharge())
-                              &&
-                               (pair.getCharge(1) == fm[pair.getElementIndex(1)].getCharge()))
-                              ? 100 : 1;
-      score = charge_enhance * (1 / (pair.getMassDiff() + 1) + 1 / (rt_diff + 1));
-    }
-
-    //std::cout << "logscore: " << score << "\n";
-
-    return score;
+    return pair.getCompomer().getLogP();
   }
 
 }

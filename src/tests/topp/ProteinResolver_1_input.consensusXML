@@ -62,6 +62,9 @@
 			<ProteinHit id="PH_7" accession="IPI:IPI00418471.6|SWISS-PROT:P08670|TREMBL:B0YJC4;B0YJC5;B3KRK8;Q53HU8|ENSEMBL:ENSP00000224237|REFSEQ:NP_003371|H-INV:HIT000262376|VEGA:OTTHUMP00000019224" score="0.860155344009399" sequence="">
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
+			<ProteinHit id="PH_12" accession="IPI:IPI00940386.1|SWISS-PROT:Q7Z739|TREMBL:B3KXL4;Q658Z6;Q8N3V9;Q8NA80;Q96MZ5|ENSEMBL:ENSP00000368753|REFSEQ:NP_689971|H-INV:HIT000053845|VEGA:OTTHUMP00000177566" score="0.860155344009399" sequence="">
+				<UserParam type="float" name="OMSSA_score" value="0"/>
+			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<IdentificationRun id="PI_2" date="2011-11-04T11:15:48" search_engine="OMSSA" search_engine_version="2.1.8">
@@ -84,6 +87,9 @@
 			<ProteinHit id="PH_11" accession="IPI:IPI00893179.1|TREMBL:B1AHC7|ENSEMBL:ENSP00000384104;ENSP00000413058|VEGA:OTTHUMP00000199334" score="0.860155344009399" sequence="">
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
+			<ProteinHit id="PH_13" accession="IPI:IPI00418471.6|SWISS-PROT:P08670|TREMBL:B0YJC4;B0YJC5;B3KRK8;Q53HU8|ENSEMBL:ENSP00000224237|REFSEQ:NP_003371|H-INV:HIT000262376|VEGA:OTTHUMP00000019224" score="0.860155344009399" sequence="">
+				<UserParam type="float" name="OMSSA_score" value="0"/>
+			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="493.251434326172" RT="2882.2542" >
@@ -94,14 +100,14 @@
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="918.90380859375" RT="3136.8036" >
-		<PeptideHit score="0" sequence="DGQVINETSQHHDDLE" charge="2" aa_before="R" protein_refs="PH_6">
+		<PeptideHit score="0" sequence="DGQVINETSQHHDDLE" charge="2" aa_before="R" protein_refs="PH_12">
 			<UserParam type="float" name="OMSSA_score" value="5.14098450426003e-06"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="string" name="protein_references" value="unique"/>
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="764.874145507812" RT="4289.8255" >
-		<PeptideHit score="0.00832282471626734" sequence="ELVYPPDYNPEGK(Label:13C(6)15N(2))" charge="2" aa_before="K" aa_after="V" protein_refs="PH_7 PH_9 PH_10 PH_11">
+		<PeptideHit score="0.00832282471626734" sequence="ELVYPPDYNPEGK(Label:13C(6)15N(2))" charge="2" aa_before="K" aa_after="V" protein_refs="PH_13 PH_9 PH_10 PH_11">
 			<UserParam type="float" name="OMSSA_score" value="0.0635712893443919"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="string" name="protein_references" value="non-unique"/>

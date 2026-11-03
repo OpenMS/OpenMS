@@ -72,6 +72,11 @@ public:
     void setFactor(double f);
     // @}
 
+protected:
+
+    /// caches the 'keeppeaks' parameter in keeppeaks_
+    void updateMembers_() override;
+
 private:
 
     /// O(n^2) dynamical programming
@@ -86,7 +91,7 @@ private:
     mutable PeakSpectrum lastconsensus_;
 
     /// should peaks with no alignment partner be kept in the consensus?
-    bool keeppeaks_;
+    bool keeppeaks_ = false;
 
     /// weighting factor for the next consensus spectrum
     mutable double factor_;

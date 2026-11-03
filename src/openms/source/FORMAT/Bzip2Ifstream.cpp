@@ -12,6 +12,10 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <cstdlib>
 
+// The header stores the bzip2 handle as void* (BZFILE is `typedef void BZFILE`)
+// so that bzip2 stays a private dependency; the bzlib API lives here.
+#include <bzlib.h>
+
 using namespace std;
 
 namespace OpenMS

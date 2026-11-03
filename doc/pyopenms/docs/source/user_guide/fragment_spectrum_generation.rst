@@ -29,7 +29,7 @@ First, we will generate a simple mass spectrum that only contains y-ions
     # Iterate over annotated ions and their masses
     print("Spectrum 1 of", peptide, "has", spec1.size(), "peaks.")
     for ion, peak in zip(spec1.getStringDataArrays()[0], spec1):
-        print(ion.decode(), "is generated at m/z", peak.getMZ())
+        print(ion, "is generated at m/z", peak.getMZ())
 
 which produces all y single charged ions:
 
@@ -86,7 +86,7 @@ losses:
     # Iterate over annotated ions and their masses
     print("Spectrum 2 of", peptide, "has", spec2.size(), "peaks.")
     for ion, peak in zip(spec2.getStringDataArrays()[0], spec2):
-        print(ion.decode(), "is generated at m/z", peak.getMZ())
+        print(ion, "is generated at m/z", peak.getMZ())
 
     exp = oms.MSExperiment()
     exp.addSpectrum(spec1)

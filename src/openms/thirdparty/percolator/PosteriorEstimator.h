@@ -18,6 +18,7 @@
 #ifndef POSTERIORESTIMATOR_H_
 #define POSTERIORESTIMATOR_H_
 
+#include <atomic>
 #include <vector>
 #include <string>
 #include <utility>
@@ -43,6 +44,11 @@ class PosteriorEstimator {
                          const std::vector<std::pair<double, bool> >& combined,
                          std::vector<double>& q, bool skipDecoysPlusOne = false,
                          double nullTargetWinProb = 0.5);
+  // OpenMS: see PosteriorEstimator.cpp
+  static bool getQValuesInTasks(double pi0,
+                                const std::vector<std::pair<double, bool> >& combined,
+                                std::vector<double>& q, bool skipDecoysPlusOne = false,
+                                double nullTargetWinProb = 0.5);
   static void getQValuesFromP(double pi0, const std::vector<double>& p,
                               std::vector<double>& q);
   static void getQValuesFromPEP(const std::vector<double>& pep,
@@ -76,7 +82,9 @@ class PosteriorEstimator {
 
   // used for standalone execution
   std::string targetFile, decoyFile;
-  static bool reversed, pvalInput, includeNegativesInResult, competition, usePi0_;
+  static bool reversed, pvalInput, competition, usePi0_;
+  // OpenMS: atomic, because Scores::calcQvals sets it from the parallel cross-validation loops.
+  static std::atomic<bool> includeNegativesInResult;
   std::string resultFileName;
 };
 

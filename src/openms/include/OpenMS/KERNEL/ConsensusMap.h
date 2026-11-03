@@ -151,6 +151,9 @@ public:
       @brief Add consensus map entries as new columns.
 
       The number of columns (maximum map index) is the sum of both maps.
+      The map indices of @p rhs are shifted by the number of columns of this map: those of the
+      features, of the peptide identifications (meta value "map_index") and of the match-between-runs
+      transfers (meta value Constants::UserParam::MBR_TRANSFER_MAP_INDICES).
 
       @param[in] rhs The consensus map to be merged.
     */
@@ -333,8 +336,19 @@ public:
 
      MetaValues of ConsensusFeatures can be copied to all FeatureMaps, just to the first or they can be ignored.
 
+     The result holds one FeatureMap per column header (see getColumnHeaders()), ordered by map index: the k-th
+     FeatureMap corresponds to the k-th column header in key order. Map indices do not have to be contiguous, e.g.
+     for the column headers {0, 3} the second FeatureMap (position 1) holds the features of map index 3. For the
+     usual contiguous map indices 0..n-1 the position equals the map index.
+
      @param[in] mode Decide what to do with the MetaValues annotated at the ConsensusFeatures.
-     @return FeatureMaps
+     @return FeatureMaps, one per column header, in key order of the column headers
+     @throws Exception::ElementNotFound if a FeatureHandle or the 'map_index' meta value of a PeptideIdentification
+             refers to a map index which is not a column header of this ConsensusMap (see isMapConsistent()).
+             Also thrown if there is no feature (or no column) with map index 0 although the data was processed by
+             the IsobaricAnalyzer or @p mode is SplitMeta::COPY_FIRST.
+     @throws Exception::MissingInformation if the data was not processed by the IsobaricAnalyzer and a
+             PeptideIdentification has no 'map_index' meta value
     */
     std::vector<FeatureMap> split(SplitMeta mode = SplitMeta::DISCARD) const;
 

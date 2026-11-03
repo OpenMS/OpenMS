@@ -8,10 +8,12 @@
 
 #pragma once
 
+#include <OpenMS/ANALYSIS/ID/PercolatorTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
+#include <map>
 #include <set>
 #include <utility>
 #include <vector>
@@ -22,10 +24,31 @@ namespace OpenMS
   /**
      @brief Class for storing Percolator tab-delimited input files.
 
+     The enzyme name of the enzN/enzC/enzInt features (@p enz of the functions below) is one of Percolator's
+     lower-case names (trypsin, trypsinp, chymotrypsin, thermolysin, proteinasek, pepsin, elastase, lys-n,
+     lys-c, arg-c, asp-n, glu-c); any other name makes every site enzymatic. The suffix "+termini" (e.g.
+     "trypsinp+termini") makes a protein terminus an enzymatic site for enzN/enzC, as Percolator counts it;
+     without it OpenMS' protein-terminus marks are compared as residues (enzN = 0 at a protein N-terminus).
+
   */
   class OPENMS_DLLAPI PercolatorInfile
   {
     public:
+      /// PIN meta values added to each hit, keyed by (peptide ID index, hit index).
+      using PinFeatureMetaValueMap = std::map<std::pair<size_t, size_t>, std::set<std::string>>;
+
+      /**
+       * @brief Writes the PSMs of @p peptide_ids as a Percolator input file.
+       *
+       * @p enz names the enzyme of the enzN, enzC and enzInt features: a name of PercolatorAdapter's 'enzyme' option
+       * (no_enzyme, elastase, pepsin, proteinasek, thermolysin, chymotrypsin, lys-n, lys-c, arg-c, asp-n, glu-c,
+       * trypsin, trypsinp) or of ProteaseDB (e.g. 'Trypsin/P', 'Lys-C', 'PepsinA'), which is mapped to it; another
+       * enzyme of ProteaseDB (e.g. 'Lys-C/P', 'V8-E') gives the features by its own cleavage rule. Any other enzyme
+       * counts every site as enzymatic. A protein terminus ('[', ']') counts as a cleavage site, and so does the
+       * position after an initial Met (initial-Met clipping: flank 'M', evidence start 1). The modifier
+       * "+keep_termini" after the name (e.g. "trypsinp+keep_termini") compares the terminus marks as residues and
+       * leaves out the initial-Met rule (the features of OpenMS 3.5); "+termini" states the default.
+       */
       static void store(const std::string& pin_file, 
         const PeptideIdentificationList& peptide_ids, 
         const StringList& feature_set, 
@@ -74,6 +97,17 @@ namespace OpenMS
       static std::string getScanIdentifier(const PeptideIdentification& pid, size_t index);
 
       /**
+       * @brief The spectrum file of a PSM: its 'file_origin' (empty if not set), followed by '|' and its
+       * 'id_merge_index' if that is set.
+       *
+       * The SpecId of a PSM in the .pin file starts with it. When the PSMs of a .pin file come from more than
+       * one spectrum file, @ref store also writes it to a 'FileName' column. Percolator numbers the spectrum
+       * files from that column and identifies a spectrum by file, ScanNr and ExpMass (e.g. for target-decoy
+       * competition), so spectra of different files with the same scan number stay apart.
+       */
+      static std::string getFileIdentifier(const PeptideIdentification& pid);
+
+      /**
        * @brief Returns the standard Percolator feature columns every .pin file should declare.
        *
        * The list contains the three mandatory header columns (SpecId, Label, ScanNr)
@@ -87,6 +121,14 @@ namespace OpenMS
       static StringList getStandardFeatureSet(int min_charge, int max_charge);
 
       /**
+       * @brief The names of all PIN columns (meta values) that @ref stampPinFeaturesOnHits sets on a hit.
+       *
+       * SpecId, ScanNr, Label, CalcMass, ExpMass, deltamass, retentiontime, mass, score, peplen, enzN, enzC, enzInt, dm,
+       * absdm, Peptide, Proteins, then charge{min_charge..max_charge}.
+       */
+      static StringList getPinColumnNames(int min_charge, int max_charge);
+
+      /**
        * @brief Compute and stamp PIN-equivalent meta values on every PeptideHit.
        *
        * Runs the same per-hit computation that @ref preparePin_ applies when
@@ -97,9 +139,21 @@ namespace OpenMS
        *   mass, score, peplen, charge1..chargeN, enzN, enzC, enzInt, dm,
        *   absdm, Peptide, Proteins.
        *
-       * Useful for in-process Percolator training (see OpenMS::Percolator):
-       * callers can then train on the exact same feature vectors the
-       * subprocess path would have seen via the .pin round-trip.
+       * ExpMass and mass are the observed precursor m/z, the same for all hits of
+       * a spectrum (Percolator identifies a spectrum by ScanNr and ExpMass). A
+       * precursor isotope error ('isotope_error', observed minus theoretical in
+       * 13C spacings; or the legacy MS-GF+ 'IsotopeError') is removed from the
+       * mass difference only: dm, absdm and deltamass.
+       *
+       * ScanNr tells the spectra of a spectrum file apart: the scan number of
+       * the native ID (e.g. Thermo); for Bruker TDF DDA ("frame=F scan=S
+       * precursor=P") the precursor P; for native IDs that number spectra only
+       * within a part of the run (Bruker TDF "frame=F ... scan=S" without a
+       * precursor, Waters, SCIEX) a running number per spectrum file, in the
+       * order of the PSMs.
+       *
+       * In-process rescoring does not stamp: @ref buildFeatureMatrix computes the
+       * same values with the same functions straight into feature rows.
        *
        * Hits with empty PeptideEvidences or UNKNOWN target/decoy status are
        * left untouched; their (pid_index, hit_index) pairs are returned so
@@ -117,7 +171,144 @@ namespace OpenMS
         int min_charge,
         int max_charge);
 
+      /**
+       * @brief Compute and stamp PIN-equivalent meta values, recording newly added keys.
+       *
+       * This overload additionally records, for every kept hit, the meta-value keys
+       * that did not exist before stamping. Callers that temporarily stamp hits can
+       * use this record to remove only adapter-generated values afterwards while
+       * preserving input metadata with the same names.
+       *
+       * @param[in,out] peptide_ids Mutated in place; each kept hit gets PIN meta values.
+       * @param[in] enz Enzyme name (same values accepted as for @ref store).
+       * @param[in] min_charge Lower bound for the charge{N} one-hot features.
+       * @param[in] max_charge Upper bound for the charge{N} one-hot features.
+       * @param[out] added_meta_values Newly added keys per (peptide ID, hit) index.
+       * @return Indices of skipped hits as (pid_index, hit_index) pairs.
+       */
+      static std::set<std::pair<size_t, size_t>> stampPinFeaturesOnHits(
+        PeptideIdentificationList& peptide_ids,
+        const std::string& enz,
+        int min_charge,
+        int max_charge,
+        PinFeatureMetaValueMap& added_meta_values);
+
+      /**
+       * @brief Numeric value of a PIN feature, as the percolator executable reads it.
+       *
+       * The .pin writer (@ref store) prints every feature as text and the percolator executable
+       * parses that text as a number. So an integer or floating-point meta value counts as it is,
+       * and a string meta value counts as the number it spells: adapters that read search engine
+       * scores from text keep them as strings (e.g. SageAdapter, via @ref load). In-process
+       * rescoring has to read feature values through this function to train on the same numbers
+       * as the executable; DataValue's conversion to double does not parse a string, it yields an
+       * unrelated number.
+       *
+       * @param[in] value Meta value of the feature
+       * @param[in] feature Name of the feature (for the error message)
+       * @return The numeric value
+       * @throws Exception::InvalidValue if @p value is empty, a list, a string that is not a number,
+       *         or not finite (NaN, infinity); the executable rejects such a feature as well
+       */
+      static double getFeatureValue(const DataValue& value, const std::string& feature);
+
+      /**
+       * @brief The feature matrix of in-process rescoring: the PIN columns of the PSMs as Percolator reads them from
+       * a .pin file, computed straight into dense rows, without meta values on the hits.
+       *
+       * Row for row and value for value what in-process rescoring formerly read back after stampPinFeaturesOnHits():
+       * the PIN columns are computed by the same functions as there (same arithmetic, so the same doubles), the other
+       * features are read from the hits' meta values with @ref getFeatureValue. The rows are the hits that
+       * stampPinFeaturesOnHits() does not skip (they have peptide evidences and a known target/decoy type) and that
+       * carry every feature, in the order of the identifications and their hits (none without features). Filled per row:
+       * - input.feature_names = @p features, input.feature_matrix (dense, row-major), input.features stays empty
+       * - input.is_decoy (Label -1), input.scan_numbers (ScanNr), input.exp_masses (ExpMass, the precursor m/z),
+       *   input.calc_masses (CalcMass), input.spec_file_numbers (the spectrum files, see @ref getFileIdentifier, in
+       *   order of appearance, as Percolator numbers the FileName column)
+       * - @p rows: the hit of each row, (index of its PeptideIdentification, index of the hit): its peptide, proteins
+       *   and spectrum
+       *
+       * The spectra are processed in parallel. Errors are those that stampPinFeaturesOnHits() and then the reading of
+       * the stamped feature rows raised, in that order: the first error of the stamping by spectrum, else the first
+       * error of the rows. Hits without evidence or target/decoy type are reported with a warning, as by stamping.
+       * The meta value names of the PIN columns are registered (as by stamping the first hit), so meta values that
+       * later code adds keep the order they had when rescoring stamped (MetaInfo orders by name index).
+       *
+       * @param[in] peptide_ids The PSMs (not modified)
+       * @param[in] features The numeric features (columns): PIN columns (e.g. of @ref getStandardFeatureSet; not SpecId,
+       *            Peptide, Proteins) or meta values of the hits
+       * @param[in] enz Enzyme name (as for @ref store)
+       * @param[in] min_charge Lower bound for the charge{N} one-hot features
+       * @param[in] max_charge Upper bound for the charge{N} one-hot features
+       * @param[out] input The feature matrix and the bookkeeping columns
+       * @param[out] rows The hit of each row
+       * @return The number of skipped hits (no evidence or unknown target/decoy type)
+       * @throws Exception::InvalidValue for a feature without a finite numeric value (see @ref getFeatureValue), an
+       *         unknown target/decoy value, or a string column (SpecId, Peptide, Proteins) among @p features
+       */
+      static Size buildFeatureMatrix(const PeptideIdentificationList& peptide_ids,
+        const StringList& features,
+        const std::string& enz,
+        int min_charge,
+        int max_charge,
+        RescoreInput& input,
+        std::vector<std::pair<size_t, size_t>>& rows);
+
+      /**
+       * @brief Sets the PIN columns that the hits already carry as meta values to their PIN values, adding none.
+       *
+       * @ref stampPinFeaturesOnHits overwrites a meta value that a hit already has under the name of a PIN column
+       * (except CalcMass, which it reads) and the cleanup after in-process rescoring kept it: such values reached the
+       * output. In-process rescoring keeps that effect with this function: only hits that carry such a value are
+       * computed and changed (none if no PIN column name is registered yet). An error (e.g. an invalid CalcMass)
+       * stops its spectrum, as stamping; the first by spectrum is raised. rescorePSMs() calls it after
+       * buildFeatureMatrix(), which raises the errors of the computation in stamping order first.
+       *
+       * @param[in,out] peptide_ids The PSMs
+       * @param[in] enz Enzyme name (as for @ref store)
+       * @param[in] min_charge Lower bound for the charge{N} one-hot features
+       * @param[in] max_charge Upper bound for the charge{N} one-hot features
+       */
+      /// @throws Exception::InvalidValue as @ref stampPinFeaturesOnHits for a hit that carries such a value
+      static void refreshPinMetaValues(PeptideIdentificationList& peptide_ids,
+        const std::string& enz,
+        int min_charge,
+        int max_charge);
+
     protected:
+      /// Fixed PIN columns as computed by pinHitColumns_ (the charge{N} columns follow from PIN_CHARGE on)
+      enum PinColumn_ : int
+      {
+        PIN_SPEC_ID, PIN_SCAN_NR, PIN_LABEL, PIN_CALC_MASS, PIN_EXP_MASS, PIN_DELTAMASS, PIN_RETENTIONTIME, PIN_MASS,
+        PIN_SCORE, PIN_PEPLEN, PIN_ENZ_N, PIN_ENZ_C, PIN_ENZ_INT, PIN_DM, PIN_ABSDM, PIN_PEPTIDE, PIN_PROTEINS,
+        PIN_CHARGE
+      };
+
+      /// Meta values of a hit that pinHitColumns_ reads
+      enum PinLookup_ : int { LOOKUP_CALC_MASS, LOOKUP_ISOTOPE_ERROR_LEGACY, LOOKUP_ISOTOPE_ERROR };
+
+      /// Warns once about the spectra of @p without_scan (their reference; empty: none) whose scan number could not be read,
+      /// of the @p stamped spectra (1: with stamped PSMs)
+      static void warnWithoutScanNumber_(const std::vector<std::string>& without_scan, const std::vector<char>& stamped);
+
+      /// The enzyme of the enzN/enzC/enzInt features as @ref store() describes it (name, modifiers), parsed once per call
+      /// (defined in PercolatorInfile.cpp)
+      struct PinEnzyme_;
+
+      /**
+       * @brief The PIN columns of one hit: the formulas of the .pin file, shared by stamping and buildFeatureMatrix.
+       *
+       * Calls put(column, value) for the columns in stamping order (an int, double or bool; the string columns
+       * SpecId, Peptide and Proteins only @p with_strings). CalcMass is put only if the hit has none (exists(
+       * LOOKUP_CALC_MASS) false); otherwise its value is read (get) and returned as well. Defined (and so usable) in
+       * PercolatorInfile.cpp only.
+       *
+       * @return The calculated mass of the hit (CalcMass)
+       */
+      template <bool with_strings, typename Exists, typename Get, typename Put>
+      static double pinHitColumns_(const PeptideHit& hit, bool decoy, const std::string& spec_id, Int scan_number,
+        double exp_mass, double retention_time, const PinEnzyme_& enz, int min_charge, int max_charge,
+        Exists&& exists, Get&& get, Put&& put);
 
       //id <tab> label <tab> scannr <tab> calcmass <tab> expmass <tab> feature1 <tab> ... <tab> featureN <tab> peptide <tab> proteinId1 <tab> .. <tab> proteinIdM
       static TextFile preparePin_(

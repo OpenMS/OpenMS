@@ -68,6 +68,15 @@ public:
      * possible ion mobility (drift time) shift of the empirical drift time vs
      * the theoretically expected drift time. The resulting linear
      * transformation is stored using a TransformationDescription object.
+     * Transitions with peptide references absent from targeted_exp are skipped
+     * for both calibration and auxiliary MS1 window estimation.
+     * Non-finite experimental/theoretical pairs are discarded before fitting and
+     * window estimation. Remaining pairs are ordered together deterministically.
+     * If correction is disabled or the extraction window is negative, the
+     * transformation and estimated windows are left unchanged.
+     *
+     * @throws Exception::UnableToFit if correction is enabled but no finite calibration
+     * pairs remain. The transformation and estimated windows are left unchanged.
      *
      * @param[out] transition_group_map A MRMFeatureFinderScoring result map
      * @param[in,out] swath_maps The raw swath maps from the current run
@@ -165,4 +174,3 @@ public:
     double precursor_im_window_ = -1;
   };
 }
-
