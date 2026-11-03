@@ -88,9 +88,9 @@ Without decoys, the mixture model assumes that the data contain correct assignme
 it might assign low PEPs to a few PSMs in the extreme upper tail of the scores. On real data (Comet e-values of a yeast/UPS1 dataset,
 validated with an entrapment database), the PEPs of the mixture model were about 1.5 times too high in total, and much too high for
 confident PSMs, while the target-decoy estimate was within a few percent. Use target/decoy information whenever possible.
-The mixture model needs at least @p fit_algorithm:min_mixture_scores scores (default 35, as PeptideProphet). With @p split_charge, a charge state
-with fewer scores uses the mixture model of all charge states. If there are still too few scores, the tool fails (with @p ignore_bad_data:
-the hits get a PEP of 1, the original score is kept as meta value).
+The mixture model needs at least @p fit_algorithm:min_mixture_scores scores (default 35, as PeptideProphet), also after outlier handling.
+With @p split_charge, a charge state with fewer scores, or whose mixture model cannot be fitted, uses the mixture model of all charge states.
+If there are still too few scores, the tool fails (with @p ignore_bad_data: the hits get a PEP of 1, the original score is kept as meta value).
 
 <B>Plots</B>
 
@@ -271,24 +271,29 @@ protected:
         decoys = &pooled_it->second[2];
         use_pooled = true;
       };
+      // Without target-decoy data, charge states with too few scores for their own mixture model (or whose mixture model cannot be
+      // fitted) use the mixture model of all charge states, if other charge states contribute scores.
+      const bool pooled_mixture_available = split_charge && pooled_it != pooled_scores.end() && finiteCount(pooled_it->second[0]) > finiteCount(score.second[0]);
+      auto switch_to_pooled_mixture = [&](const std::string& reason)
+      {
+        writeLogInfo_(reason + " Using the mixture model of all charge states (" + StringUtils::toStr(finiteCount(pooled_it->second[0])) + " scores) for " + model_name + ".");
+        mixture_scores = &pooled_it->second[0];
+      };
       if (use_decoys && pooled_has_more && (decoys->size() < min_decoys || targets->empty()))
       {
         switch_to_pooled("Only " + StringUtils::toStr(targets->size()) + " target and " + StringUtils::toStr(decoys->size()) + " decoy top hits for " + model_name + ".");
       }
       else if (!use_decoys && finiteCount(*mixture_scores) < min_mixture_scores)
       {
-        auto pooled_mixture = pooled_scores.find(engine);
-        if (split_charge && pooled_mixture != pooled_scores.end() && finiteCount(pooled_mixture->second[0]) >= min_mixture_scores)
+        if (pooled_mixture_available && finiteCount(pooled_it->second[0]) >= min_mixture_scores)
         {
-          writeLogInfo_("Only " + StringUtils::toStr(finiteCount(*mixture_scores)) + " scores for " + model_name + ". Using the mixture model of all charge states ("
-                        + StringUtils::toStr(finiteCount(pooled_mixture->second[0])) + " scores).");
-          mixture_scores = &pooled_mixture->second[0];
+          switch_to_pooled_mixture("Only " + StringUtils::toStr(finiteCount(*mixture_scores)) + " scores for " + model_name + ".");
         }
         else
         {
-          const bool pooled_too_few = split_charge && pooled_mixture != pooled_scores.end();
-          const bool has_targets = !score.second[1].empty() || (pooled_too_few && !pooled_mixture->second[1].empty());
-          const bool has_decoys = !score.second[2].empty() || (pooled_too_few && !pooled_mixture->second[2].empty());
+          const bool with_pooled = split_charge && pooled_it != pooled_scores.end();
+          const bool has_targets = !score.second[1].empty() || (with_pooled && !pooled_it->second[1].empty());
+          const bool has_decoys = !score.second[2].empty() || (with_pooled && !pooled_it->second[2].empty());
           std::string advice;
           if (!has_decoys)
           {
@@ -296,14 +301,16 @@ protected:
           }
           else if (!has_targets)
           {
-            advice = "The data contain decoy but no target top hits: annotate the target PSMs (meta value 'target_decoy', e.g. with PeptideIndexer) to use the target-decoy estimate, which also works with few PSMs.";
+            advice = "The data contain decoy but no target top hits: annotate the target PSMs (meta value 'target_decoy', e.g. with PeptideIndexer)"
+                     + std::string(decoy_handling == "ignore" ? " and use fit_algorithm:decoy_handling 'auto'" : "")
+                     + " to use the target-decoy estimate, which also works with few PSMs.";
           }
           else // only reachable with decoy_handling 'ignore' (otherwise the target-decoy estimate is used)
           {
             advice = "The data contain decoys: with fit_algorithm:decoy_handling 'auto', the target-decoy estimate is used, which also works with few PSMs.";
           }
           writeLogWarn_("Only " + StringUtils::toStr(finiteCount(*mixture_scores)) + " scores for " + model_name
-                        + (pooled_too_few ? " (all charge states: " + StringUtils::toStr(finiteCount(pooled_mixture->second[0])) + ")" : std::string())
+                        + (with_pooled ? " (all charge states: " + StringUtils::toStr(finiteCount(pooled_it->second[0])) + ")" : std::string())
                         + ", too few to fit the mixture model (fit_algorithm:min_mixture_scores: " + StringUtils::toStr(min_mixture_scores) + "). " + advice);
           if (!ignore_bad_data)
           {
@@ -329,6 +336,11 @@ protected:
         // a charge state whose targets do not score better than its decoys would get (almost) constant PEPs, for decoys as well
         switch_to_pooled("Target PSMs of " + model_name + " do not score better than decoy PSMs (AUC = " + StringUtils::toStr(PEP_model.getTargetDecoyAUC()) + ").");
         return_value = PEP_model.fitTargetDecoy(*targets, *decoys, outlier_handling);
+      }
+      else if (!return_value && !use_decoys && pooled_mixture_available && mixture_scores == &score.second[0])
+      {
+        switch_to_pooled_mixture("Unable to fit the mixture model of " + model_name + ".");
+        return_value = PEP_model.fit(*mixture_scores, outlier_handling);
       }
 
       if (!return_value)

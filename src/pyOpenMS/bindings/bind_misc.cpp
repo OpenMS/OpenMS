@@ -2217,9 +2217,10 @@ computeProbability can be used afterwards.
 )doc")
         .def("fit", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double> search_engine_scores, std::vector<double> probabilities, const std::string& outlier_handling) { bool result = self.fit(search_engine_scores, probabilities, outlier_handling); return nb::make_tuple(result, search_engine_scores, probabilities); }, "search_engine_scores"_a, "probabilities"_a, "outlier_handling"_a,
             R"doc(
-Fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables
+Fits the distributions to the data points(search_engine_scores) and computes the probabilities. Estimated parameters for the distributions are saved in member variables
 computeProbability can be used afterwards
-Uses two Gaussians to fit. And Gauss+Gauss or Gumbel+Gauss to plot and calculate final probabilities
+Fits a Gumbel (or Gauss, parameter incorrectly_assigned) and a Gauss distribution with the EM algorithm; the same distributions give the probabilities.
+With fewer than min_mixture_scores scores (default 35), no model is fitted
 
 :param search_engine_scores: A vector which holds the data points
 :param probabilities: Output vector for computed probabilities

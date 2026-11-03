@@ -430,7 +430,7 @@ namespace OpenMS::Math
       defaults_.setMinFloat("decoy_ratio", 1e-6);
       defaults_.setValue("min_decoys", 10, "Only used by IDPosteriorErrorProbability with 'split_charge': charge states with fewer decoy PSMs use the target-decoy data of all charge states (1: separate models for all charge states with decoys).", {"advanced"});
       defaults_.setMinInt("min_decoys", 1);
-      defaults_.setValue("min_mixture_scores", 35, "Minimum number of (finite) scores to fit the mixture model (used without decoys, or with decoy_handling 'ignore'). "
+      defaults_.setValue("min_mixture_scores", 35, "Minimum number of (finite) scores to fit the mixture model (used without decoys, or with decoy_handling 'ignore'), before and after outlier handling. "
                                                 "With fewer scores, no model is fitted: the scores of so few PSMs without decoys do not determine the two components "
                                                 "(PeptideProphet also requires 35 PSMs per model). IDPosteriorErrorProbability with 'split_charge' then uses the mixture model of all charge states.", {"advanced"});
       defaults_.setMinInt("min_mixture_scores", 2);
@@ -525,7 +525,12 @@ namespace OpenMS::Math
 
       std::vector<double>& x = scores;
       const Size n = x.size();
-      if (n < 2) { return false; }
+      if (n < std::max<Size>(2, min_scores))
+      {
+        OPENMS_LOG_WARN << "Warning: only " << n << " scores remain after outlier handling ('" << outlier_handling
+                        << "'), too few to fit the mixture model (min_mixture_scores: " << min_scores << ")." << std::endl;
+        return false;
+      }
 
       incorrect_is_gumbel_ = use_gumbel;
       getNegativeGnuplotFormula_ = use_gumbel ? &PosteriorErrorProbabilityModel::getGumbelGnuplotFormula : &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
@@ -813,6 +818,7 @@ namespace OpenMS::Math
 
       if (!fitTargetDecoyModel_(targets, decoys, outlier_handling))
       {
+        resetFit_(); // no diagnostics of a failed fit
         return false;
       }
       if (td_auc_ >= 0.0 && td_auc_ <= 0.5)

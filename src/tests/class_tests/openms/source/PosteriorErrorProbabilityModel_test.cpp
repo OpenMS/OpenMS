@@ -918,6 +918,24 @@ START_SECTION(([EXTRA] degenerate input))
     TEST_EQUAL(model.getModelType() == PosteriorErrorProbabilityModel::ModelType::MIXTURE, true)
     std::vector<double> targets_34(mixture.targets.begin(), mixture.targets.end() - 1);
     TEST_EQUAL(model.fitTargetDecoy(targets_34, {}, "none"), false)
+    TEST_REAL_SIMILAR(model.getTargetDecoyIncorrectFraction(), -1.0) // no diagnostics of a failed fit
+    // the minimum also applies after outlier handling: 34 scores and an extreme outlier
+    std::vector<double> scores_34_outlier(targets_34);
+    scores_34_outlier.push_back(1000.0);
+    TEST_EQUAL(model.fit(scores_34_outlier, "ignore_iqr_outliers"), false)
+    TEST_EQUAL(model.getModelType() == PosteriorErrorProbabilityModel::ModelType::NONE, true)
+    // decoy_handling 'ignore' (targets and decoys pooled), too few scores: fails, without diagnostics
+    {
+      PosteriorErrorProbabilityModel ignoring;
+      Param p_ignore = ignoring.getParameters();
+      p_ignore.setValue("decoy_handling", "ignore");
+      ignoring.setParameters(p_ignore);
+      TEST_EQUAL(ignoring.fitTargetDecoy({1.0, 2.0, 3.0, 4.0, 5.0}, {0.5, 1.5, 2.5}, "none"), false)
+      TEST_EQUAL(ignoring.getModelType() == PosteriorErrorProbabilityModel::ModelType::NONE, true)
+      TEST_REAL_SIMILAR(ignoring.getTargetDecoyIncorrectFraction(), -1.0)
+      TEST_REAL_SIMILAR(ignoring.getTargetDecoyAUC(), -1.0)
+      TEST_EQUAL(ignoring.hasCalibrationWarning(), false)
+    }
     // ... unless the minimum is lowered
     Param p = model.getParameters();
     p.setValue("min_mixture_scores", 30);
