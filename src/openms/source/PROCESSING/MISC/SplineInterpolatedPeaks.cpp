@@ -12,6 +12,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <algorithm>
+
 using namespace std;
 
 namespace OpenMS
@@ -188,89 +190,66 @@ namespace OpenMS
 
   SplineInterpolatedPeaks::Navigator::~Navigator() = default;
 
+  size_t SplineInterpolatedPeaks::Navigator::findPackage_(double pos) const
+  {
+    // The packages are ordered and separated by gaps (init_() splits sorted positions into them), so the package
+    // containing pos is the last one that starts at or before pos.
+    const std::vector<SplinePackage>& packages = *packages_;
+    const SplinePackage& last = packages[last_package_];
+    if (pos >= last.getPosMin())
+    {
+      // the last package, or one of the next two (positions are usually requested in increasing order)
+      if (pos <= last.getPosMax() || last_package_ + 1 == packages.size() || pos < packages[last_package_ + 1].getPosMin())
+      {
+        return last_package_;
+      }
+      if (last_package_ + 2 == packages.size() || pos < packages[last_package_ + 2].getPosMin())
+      {
+        return last_package_ + 1;
+      }
+    }
+    const auto right = std::upper_bound(packages.begin(), packages.end(), pos,
+                                        [](double p, const SplinePackage& package) { return p < package.getPosMin(); });
+    return right == packages.begin() ? packages.size() : static_cast<size_t>(right - packages.begin()) - 1;
+  }
+
   double SplineInterpolatedPeaks::Navigator::eval(double pos)
   {
-    if (pos < (*packages_)[last_package_].getPosMin())
-    { // look left
-      for (int i = (int) last_package_; i >= 0; --i)
-      {
-        if (pos > (*packages_)[i].getPosMax())
-        {
-          last_package_ = i;
-          return 0.0;
-        }
-        if (pos >= (*packages_)[i].getPosMin())
-        {
-          last_package_ = i;
-          return (*packages_)[i].eval(pos);
-        }
-      }
+    const size_t i = findPackage_(pos);
+    if (i == packages_->size())
+    {
+      // left of the first package
+      last_package_ = 0;
+      return 0.0;
     }
-    else
-    { // look right
-      for (size_t i = last_package_; i < (size_t)(*packages_).size(); ++i)
-      {
-        if (pos < (*packages_)[i].getPosMin())
-        {
-          last_package_ = i;
-          return 0.0;
-        }
-        if (pos <= (*packages_)[i].getPosMax())
-        {
-          last_package_ = i;
-          return (*packages_)[i].eval(pos);
-        }
-      }
-    }
-    return 0.0;
+    last_package_ = i;
+    // zero in the gap after package i (eval() checks the range)
+    return (*packages_)[i].eval(pos);
   }
 
   double SplineInterpolatedPeaks::Navigator::getNextPos(double pos)
   {
+    const std::vector<SplinePackage>& packages = *packages_;
+    const size_t max_index = packages.size() - 1;
+    const size_t i = findPackage_(pos);
 
-    int min_index = 0;
-    int max_index = static_cast<Int>((*packages_).size()) - 1;
-    int i = static_cast<Int>(last_package_);
-    SplinePackage package = (*packages_)[i];
-
-    // find correct package
-    while (!(package.isInPackage(pos)))
+    if (i == packages.size())
     {
-      if (pos < package.getPosMin())
+      // left of the first package: jump to its start
+      last_package_ = 0;
+      return packages[0].getPosMin();
+    }
+    const SplinePackage& package = packages[i];
+    if (pos > package.getPosMax())
+    {
+      // in the gap after package i: jump to the start of the next package (or to the end)
+      if (i == max_index)
       {
-        --i;
-        // check index limit
-        if (i < min_index)
-        {
-          last_package_ = min_index;
-          return (*packages_)[min_index].getPosMin();
-        }
-        // m/z in the gap?
-        package = (*packages_)[i];
-        if (pos > package.getPosMax())
-        {
-          last_package_ = i + 1;
-          return (*packages_)[i + 1].getPosMin();
-        }
+        last_package_ = max_index;
+        return pos_max_;
       }
-      else if (pos > package.getPosMax())
-      {
-
-        ++i;
-        // check index limit
-        if (i > max_index)
-        {
-          last_package_ = max_index;
-          return pos_max_;
-        }
-        // m/z in the gap?
-        package = (*packages_)[i];
-        if (pos < package.getPosMin())
-        {
-          last_package_ = i;
-          return package.getPosMin();
-        }
-      }
+      last_package_ = i + 1;
+      return packages[i + 1].getPosMin();
     }
 
     // find m/z in the package
@@ -278,16 +257,15 @@ namespace OpenMS
     {
       // The next step gets us outside the current package.
       // Let's move to the package to the right.
-      ++i;
       // check index limit
-      if (i > max_index)
+      if (i == max_index)
       {
         last_package_ = max_index;
         return pos_max_;
       }
       // jump to min m/z of next package
-      last_package_ = i;
-      return (*packages_)[i].getPosMin();
+      last_package_ = i + 1;
+      return packages[i + 1].getPosMin();
     }
     else
     {

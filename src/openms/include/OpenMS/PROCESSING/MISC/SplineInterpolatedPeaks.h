@@ -119,6 +119,14 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
         double getNextPos(double pos);
 
       private:
+        /**
+         * @brief index of the last package that starts at or before @p pos (packages_->size() if @p pos lies left of
+         * all packages)
+         *
+         * Checks the last package used and its two successors first, then searches all packages (binary search).
+         */
+        size_t findPackage_(double pos) const;
+
         
         /**
         * @brief list of spline packages to be accessed
