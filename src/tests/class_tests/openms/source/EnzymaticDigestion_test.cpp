@@ -14,6 +14,8 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <string_view>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
+#include <random>
 #include <vector>
 using namespace OpenMS;
 using namespace std;
@@ -587,4 +589,45 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION(([EXTRA] Trypsin and Trypsin/P: the hand-counted cleavage positions of tokenize_() equal those of the regular expression))
+{
+  // the same rules spelled differently, so that they take the boost regex path of tokenize_(); one check covers both paths
+  const std::vector<std::pair<std::string, std::string>> rules = {{"Trypsin", "(?<=[XKR])(?!P)"}, {"Trypsin/P", "(?<=[XKR])"}};
+  std::mt19937 rng(42);
+  const std::string alphabet = "KRXPKRPAGLDK";
+  for (const auto& [name, respelled] : rules)
+  {
+    const DigestionEnzymeProtein regex_enzyme(name + " (regex)", respelled);
+    EnzymaticDigestion fast, slow;
+    fast.setEnzyme(ProteaseDB::getInstance()->getEnzyme(name));
+    slow.setEnzyme(&regex_enzyme);
+    fast.setMissedCleavages(1);
+    slow.setMissedCleavages(1);
+    for (auto spec : {EnzymaticDigestion::SPEC_FULL, EnzymaticDigestion::SPEC_SEMI, EnzymaticDigestion::SPEC_NONE})
+    {
+      fast.setSpecificity(spec);
+      slow.setSpecificity(spec);
+      for (int k = 0; k < 300; ++k)
+      {
+        std::string s(std::uniform_int_distribution<int>(1, 16)(rng), 'A');
+        for (char& c : s) c = alphabet[std::uniform_int_distribution<size_t>(0, alphabet.size() - 1)(rng)];
+        TEST_EQUAL(fast.countInternalCleavageSites(s), slow.countInternalCleavageSites(s))
+        std::vector<std::pair<Size, Size>> a, b;
+        fast.digestUnmodified(s, a);
+        slow.digestUnmodified(s, b);
+        TEST_TRUE(a == b)
+        // SPEC_NONE: tokenize_(s, pos, end); SPEC_FULL and SPEC_SEMI: tokenize_(s, pos - 2, end + 2)
+        for (int pos = 0; pos < static_cast<int>(s.size()); ++pos)
+        {
+          for (int len = 1; pos + len <= static_cast<int>(s.size()); ++len)
+          {
+            TEST_EQUAL(fast.isValidProduct(s, pos, len, false), slow.isValidProduct(s, pos, len, false))
+          }
+        }
+      }
+    }
+  }
+}
+END_SECTION
+
 END_TEST
