@@ -143,6 +143,22 @@ START_SECTION((GumbelDistributionFitResult fitWeighted(const std::vector<double>
     TEST_REAL_SIMILAR(r4.b, r5.b)
   }
 
+  // a warm start far away from the solution (no bracket within 200 doublings/halvings) falls back to the moment estimate
+  {
+    const std::vector<double> x7 = {0.1, 0.5, 0.7, 1.3, 2.9};
+    const std::vector<double> w7(x7.size(), 1.0);
+    GumbelMaxLikelihoodFitter reference;
+    const FitResult expected = reference.fitWeighted(x7, w7);
+    for (double b_start : {1e62, 1e-62})
+    {
+      GumbelMaxLikelihoodFitter f7(FitResult(0.0, b_start));
+      const FitResult r7 = f7.fitWeighted(x7, w7);
+      TOLERANCE_ABSOLUTE(1e-8)
+      TEST_REAL_SIMILAR(r7.a, expected.a)
+      TEST_REAL_SIMILAR(r7.b, expected.b)
+    }
+  }
+
   // data without spread cannot be fitted; mismatching sizes are rejected
   {
     GumbelMaxLikelihoodFitter f6;

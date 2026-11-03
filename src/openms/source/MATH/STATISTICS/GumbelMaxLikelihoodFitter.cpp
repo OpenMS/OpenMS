@@ -116,31 +116,36 @@ namespace OpenMS::Math
       // otherwise from the moment estimate b0 = sqrt(6)/pi * sd, and bracket the root.
       // g(0+) = min(s) - mean(s) < 0 because the data have spread, and g(b) -> infinity for large b.
       const double b_moment = std::sqrt(6.0 * var_s) / Constants::PI;
-      const double b_start = (std::isfinite(init_param_.b) && init_param_.b > 0.0) ? init_param_.b : b_moment;
-      double lo = b_start, hi = b_start;
-      if (g(b_start, nullptr) < 0.0)
+      double lo = 0.0, hi = 0.0;
+      // brackets the root by doubling/halving from b0; false if no sign change was found within 200 steps
+      auto bracket = [&](double b0) -> bool
       {
-        int i = 0;
-        for (hi = 2.0 * b_start; i < 200 && g(hi, nullptr) <= 0.0; ++i)
+        lo = b0;
+        hi = b0;
+        if (g(b0, nullptr) < 0.0)
         {
-          lo = hi;
-          hi *= 2.0;
+          for (int i = 0; i < 200; ++i)
+          {
+            lo = hi;
+            hi *= 2.0;
+            if (g(hi, nullptr) > 0.0) { return true; }
+          }
+          return false;
         }
-        if (i == 200)
-        {
-          throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-GumbelMaxLikelihoodFitter",
-                                       "Could not bracket the maximum likelihood estimate of the Gumbel scale parameter.");
-        }
-      }
-      else
-      {
-        int i = 0;
-        for (lo = 0.5 * b_start; i < 200 && g(lo, nullptr) >= 0.0; ++i)
+        for (int i = 0; i < 200; ++i)
         {
           hi = lo;
           lo *= 0.5;
+          if (g(lo, nullptr) < 0.0) { return true; }
         }
-        if (i == 200)
+        return false;
+      };
+      double b_start = (std::isfinite(init_param_.b) && init_param_.b > 0.0) ? init_param_.b : b_moment;
+      if (!bracket(b_start))
+      {
+        // a warm start far away from the solution: start again from the moment estimate
+        b_start = b_moment;
+        if (!bracket(b_start))
         {
           throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-GumbelMaxLikelihoodFitter",
                                        "Could not bracket the maximum likelihood estimate of the Gumbel scale parameter.");
