@@ -600,11 +600,21 @@ namespace OpenMS
       FeatureMap features_cv, candidates_cv;
       if (!candidates_out_.empty()) ffid_group.candidates_sink_ = &candidates_cv;
       ffid_group.runSingleGroup_(peptides_cv, proteins, features_cv, seeds_cv, spectra_file);
+      const std::string cv_suffix = "_CV" + StringUtils::toStr(group_cv);
+      auto add_cv_suffix = [&cv_suffix](Feature& feat)
+      {
+        for (Feature& sub : feat.getSubordinates())
+        {
+          if (sub.metaValueExists("native_id")) sub.setMetaValue("native_id", StringUtils::toStr(sub.getMetaValue("native_id")) + cv_suffix);
+        }
+      };
+
       if (!candidates_out_.empty())
       {
         for (auto& feat : candidates_cv)
         {
           feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+          add_cv_suffix(feat);
           candidates.push_back(std::move(feat));
         }
         for (auto& pep_id : candidates_cv.getUnassignedPeptideIdentifications())
@@ -615,16 +625,11 @@ namespace OpenMS
         if (first_group) candidates.setProteinIdentifications(candidates_cv.getProteinIdentifications());
       }
 
-      const std::string cv_suffix = "_CV" + StringUtils::toStr(group_cv);
-
       // Annotate features with FAIMS CV and add to results
       for (auto& feat : features_cv)
       {
         feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
-        for (Feature& sub : feat.getSubordinates())
-        {
-          if (sub.metaValueExists("native_id")) sub.setMetaValue("native_id", StringUtils::toStr(sub.getMetaValue("native_id")) + cv_suffix);
-        }
+        add_cv_suffix(feat);
         features.push_back(feat);
       }
 
