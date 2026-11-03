@@ -69,8 +69,12 @@ file) with the [opentims](https://github.com/michalsta/opentims) library. A `.d`
 packed into a ZIP archive (`.d.zip`) can be given instead; it is unpacked into a temporary
 directory while the tool runs, so that directory needs space for the unpacked data.
 
-Other Bruker data in `.d` directories cannot be read, and the tools say so: TSF data
-(`analysis.tsf`, timsTOF without ion mobility separation, e.g. most MALDI imaging runs), BAF
+TSF data (`analysis.tsf`, timsTOF without ion mobility separation, e.g. MALDI spot runs or
+LC-MS runs with TIMS off) is read as well: every frame gives one centroided spectrum without
+ion mobility, and the ion mobility options of the tools do not apply to it (a non-default
+value is rejected). TDF takes precedence if a directory holds both.
+
+Other Bruker data in `.d` directories cannot be read, and the tools say so: BAF
 data (`analysis.baf`, QTOF instruments), and TDF data of early timsTOF software whose frames
 are not zstd-compressed. Convert such runs to mzML with another tool first.
 
