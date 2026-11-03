@@ -95,6 +95,8 @@ namespace OpenMS
     std::map<std::tuple<AASequence, unsigned, unsigned>, SplitRatios> peptide_evidence_ratios;
     Size features_with_ratio = 0;
     Size features_without_reference = 0;
+    // the counts of targeted ratios are only written where targeted quantification measured something
+    bool any_targeted = false;
 
     for (ConsensusFeature& feature : consensus)
     {
@@ -103,6 +105,7 @@ namespace OpenMS
       {
         const StringList runs = feature.getMetaValue(TARGETED_RUNS);
         targeted_runs.insert(runs.begin(), runs.end());
+        any_targeted = any_targeted || !runs.empty();
       }
 
       // intensity of every (run, channel) of this feature
@@ -228,13 +231,14 @@ namespace OpenMS
       const auto ratios = peptide_ratios_.find(ids[0].getHits()[0].getSequence());
       if (ratios == peptide_ratios_.end()) { continue; }
 
-      IntList fraction_groups, channels, counts;
+      IntList fraction_groups, channels, counts, targeted_counts;
       DoubleList values, normalized_values;
       for (const ChannelRatio& r : ratios->second)
       {
         fraction_groups.push_back(static_cast<Int>(r.fraction_group));
         channels.push_back(static_cast<Int>(r.channel));
         counts.push_back(static_cast<Int>(r.count));
+        targeted_counts.push_back(static_cast<Int>(r.targeted_count));
         values.push_back(r.ratio);
         normalized_values.push_back(r.normalized_ratio);
       }
@@ -243,6 +247,7 @@ namespace OpenMS
       feature.setMetaValue("MS1Label:peptide_ratio", values);
       if (normalize) { feature.setMetaValue("MS1Label:peptide_ratio_normalized", normalized_values); }
       feature.setMetaValue("MS1Label:peptide_ratio_count", counts);
+      if (any_targeted) { feature.setMetaValue("MS1Label:peptide_ratio_targeted_count", targeted_counts); }
     }
 
     // -- protein group ratios: median over the peptide ratios of the group's own peptides --
@@ -314,8 +319,8 @@ namespace OpenMS
     Size targeted_group_ratios = 0;
 
     static const char* const ratio_array_names[] = {"fraction_group_level_ratio_fraction_group", "fraction_group_level_ratio_label",
-                                                    "fraction_group_level_ratio_count", "fraction_group_level_ratio",
-                                                    "fraction_group_level_ratio_normalized"};
+                                                    "fraction_group_level_ratio_count", "fraction_group_level_ratio_targeted_count",
+                                                    "fraction_group_level_ratio", "fraction_group_level_ratio_normalized"};
     for (Size g = 0; g < groups.size(); ++g)
     {
       ProteinIdentification::ProteinGroup& group = groups[g];
@@ -327,10 +332,11 @@ namespace OpenMS
       std::erase_if(group.getIntegerDataArrays(), is_ratio_array);
       std::erase_if(group.getFloatDataArrays(), is_ratio_array);
 
-      ProteinIdentification::ProteinGroup::IntegerDataArray fraction_groups, labels, counts;
+      ProteinIdentification::ProteinGroup::IntegerDataArray fraction_groups, labels, counts, targeted_counts;
       fraction_groups.setName("fraction_group_level_ratio_fraction_group");
       labels.setName("fraction_group_level_ratio_label");
       counts.setName("fraction_group_level_ratio_count");
+      targeted_counts.setName("fraction_group_level_ratio_targeted_count");
       ProteinIdentification::ProteinGroup::FloatDataArray values, normalized_values;
       values.setName("fraction_group_level_ratio");
       normalized_values.setName("fraction_group_level_ratio_normalized");
@@ -362,6 +368,7 @@ namespace OpenMS
         fraction_groups.push_back(static_cast<Int>(group_ratio.fraction_group));
         labels.push_back(static_cast<Int>(group_ratio.channel));
         counts.push_back(static_cast<Int>(group_ratio.count));
+        targeted_counts.push_back(static_cast<Int>(group_ratio.targeted_count));
         values.push_back(static_cast<float>(group_ratio.ratio));
         normalized_values.push_back(static_cast<float>(group_ratio.normalized_ratio));
       }
@@ -373,6 +380,7 @@ namespace OpenMS
       integer_arrays.push_back(std::move(fraction_groups));
       integer_arrays.push_back(std::move(labels));
       integer_arrays.push_back(std::move(counts));
+      if (any_targeted) { integer_arrays.push_back(std::move(targeted_counts)); }
       auto& float_arrays = group.getFloatDataArrays();
       float_arrays.push_back(std::move(values));
       if (normalize) { float_arrays.push_back(std::move(normalized_values)); }

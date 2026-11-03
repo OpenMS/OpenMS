@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
-<consensusXML version="1.7" id="cm_1003624456647096845" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<consensusXML version="1.7" id="cm_15120290131060441429" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="MS1LabeledWorkflow" version="version_string" />
 		<processingAction name="Quantitation" />
@@ -21,7 +21,7 @@
 				<UserParam type="string" name="PeptideIndexer:unmatched_action" value="error"/>
 				<UserParam type="string" name="PeptideIndexer:missing_decoy_action" value="silent"/>
 				<UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
-				<UserParam type="string" name="InferenceEngineVersion" value="3.7.0-pre-disabled-20261031"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="3.7.0-pre-exported-20261103"/>
 				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="best"/>
 				<UserParam type="int" name="TOPPProteinInference:use_shared_peptides" value="1"/>
 				<UserParam type="int" name="TOPPProteinInference:treat_charge_variants_separately" value="1"/>
@@ -94,6 +94,7 @@
 			<UserParam type="intList" name="indistinguishable_proteins_0_fraction_group_level_ratio_fraction_group" value="[1, 1, 2, 2]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_0_fraction_group_level_ratio_label" value="[1, 2, 1, 2]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_0_fraction_group_level_ratio_count" value="[1, 1, 1, 1]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_0_fraction_group_level_ratio_targeted_count" value="[1, 1, 1, 1]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_0_file_channel_level_filename" value="[MS1LabeledWorkflow_13_input,MS1LabeledWorkflow_13_input,MS1LabeledWorkflow_13b_input,MS1LabeledWorkflow_13b_input]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_0_quantified_proteins" value="[PROT_KP]"/>
 			<UserParam type="string" name="indistinguishable_proteins_1" value="0.1,PH_1"/>
@@ -108,6 +109,7 @@
 			<UserParam type="intList" name="indistinguishable_proteins_2_fraction_group_level_ratio_fraction_group" value="[1, 1, 2, 2]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_2_fraction_group_level_ratio_label" value="[1, 2, 1, 2]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_2_fraction_group_level_ratio_count" value="[1, 1, 1, 1]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_2_fraction_group_level_ratio_targeted_count" value="[0, 0, 0, 0]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_2_file_channel_level_filename" value="[MS1LabeledWorkflow_13_input,MS1LabeledWorkflow_13_input,MS1LabeledWorkflow_13b_input,MS1LabeledWorkflow_13b_input]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_2_quantified_proteins" value="[PROT_QM]"/>
 			<UserParam type="string" name="indistinguishable_proteins_3" value="0.1,PH_6"/>
@@ -123,6 +125,7 @@
 			<UserParam type="intList" name="indistinguishable_proteins_5_fraction_group_level_ratio_fraction_group" value="[1, 1, 2, 2]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_5_fraction_group_level_ratio_label" value="[1, 2, 1, 2]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_5_fraction_group_level_ratio_count" value="[1, 1, 1, 1]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_5_fraction_group_level_ratio_targeted_count" value="[0, 0, 0, 0]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_5_file_channel_level_filename" value="[MS1LabeledWorkflow_13_input,MS1LabeledWorkflow_13_input,MS1LabeledWorkflow_13b_input,MS1LabeledWorkflow_13b_input]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_5_quantified_proteins" value="[PROT_QN]"/>
 			<UserParam type="string" name="indistinguishable_proteins_6" value="0.1,PH_3"/>
@@ -191,7 +194,7 @@
 			<UserParam type="float" name="Posterior Error Probability_score" value="2.0e-03"/>
 		</PeptideHit>
 		<UserParam type="int" name="map_index" value="2"/>
-		<UserParam type="string" name="feature_id" value="14768204679546465715"/>
+		<UserParam type="string" name="feature_id" value="3823858840059792698"/>
 		<UserParam type="string" name="quantification_method" value="targeted"/>
 		<UserParam type="int" name="id_merge_index" value="1"/>
 	</UnassignedPeptideIdentification>
@@ -204,7 +207,7 @@
 			<UserParam type="float" name="Posterior Error Probability_score" value="2.0e-03"/>
 		</PeptideHit>
 		<UserParam type="int" name="map_index" value="2"/>
-		<UserParam type="string" name="feature_id" value="15885522598119108466"/>
+		<UserParam type="string" name="feature_id" value="12156709473159629610"/>
 		<UserParam type="int" name="id_merge_index" value="1"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="476.260925" RT="205.5" spectrum_reference="scan=101" >
@@ -217,7 +220,7 @@
 			<UserParam type="float" name="Posterior Error Probability_score" value="2.0e-03"/>
 		</PeptideHit>
 		<UserParam type="int" name="map_index" value="2"/>
-		<UserParam type="string" name="feature_id" value="3823858840059792698"/>
+		<UserParam type="string" name="feature_id" value="893904610286969204"/>
 		<UserParam type="string" name="quantification_method" value="targeted"/>
 		<UserParam type="int" name="id_merge_index" value="1"/>
 	</UnassignedPeptideIdentification>
@@ -231,7 +234,7 @@
 			<UserParam type="float" name="Posterior Error Probability_score" value="1.0e-03"/>
 		</PeptideHit>
 		<UserParam type="int" name="map_index" value="2"/>
-		<UserParam type="string" name="feature_id" value="893904610286969204"/>
+		<UserParam type="string" name="feature_id" value="14851350658635457156"/>
 		<UserParam type="string" name="quantification_method" value="targeted"/>
 		<UserParam type="int" name="id_merge_index" value="1"/>
 	</UnassignedPeptideIdentification>
@@ -245,7 +248,7 @@
 			<UserParam type="float" name="Posterior Error Probability_score" value="3.0e-03"/>
 		</PeptideHit>
 		<UserParam type="int" name="map_index" value="2"/>
-		<UserParam type="string" name="feature_id" value="14851350658635457156"/>
+		<UserParam type="string" name="feature_id" value="17447818880105247092"/>
 		<UserParam type="string" name="quantification_method" value="targeted"/>
 		<UserParam type="int" name="id_merge_index" value="1"/>
 	</UnassignedPeptideIdentification>
@@ -259,7 +262,7 @@
 			<UserParam type="float" name="Posterior Error Probability_score" value="1.0e-03"/>
 		</PeptideHit>
 		<UserParam type="int" name="map_index" value="2"/>
-		<UserParam type="string" name="feature_id" value="17447818880105247092"/>
+		<UserParam type="string" name="feature_id" value="1003624456647096845"/>
 		<UserParam type="string" name="quantification_method" value="targeted"/>
 		<UserParam type="int" name="id_merge_index" value="1"/>
 	</UnassignedPeptideIdentification>
@@ -294,7 +297,7 @@
 		</map>
 	</mapList>
 	<consensusElementList>
-		<consensusElement id="e_14768204679546465715" quality="1.0" charge="2">
+		<consensusElement id="e_3823858840059792698" quality="1.0" charge="2">
 			<centroid rt="130.0" mz="487.732534471620966" it="1.117986e06"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="130.0" mz="487.732534471620966" it="1.117986e06" charge="2"/>
@@ -310,16 +313,16 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="2.0e-03"/>
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
-				<UserParam type="string" name="feature_id" value="14768204679546465715"/>
+				<UserParam type="string" name="feature_id" value="3823858840059792698"/>
 				<UserParam type="string" name="quantification_method" value="targeted"/>
 				<UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
-			<UserParam type="string" name="feature_id" value="14768204679546465715"/>
+			<UserParam type="string" name="feature_id" value="3823858840059792698"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="DLGEEHFK"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
 			<UserParam type="int" name="MS1Label:channel" value="1"/>
 		</consensusElement>
-		<consensusElement id="e_12156709473159629610" quality="1.0" charge="2">
+		<consensusElement id="e_14768204679546465715" quality="1.0" charge="2">
 			<centroid rt="130.0" mz="491.739348366057129" it="2.540385e07"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="130.0" mz="491.739348366057129" it="2.540385e07" charge="2"/>
@@ -336,10 +339,10 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="1.0e-03"/>
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="2"/>
-				<UserParam type="string" name="feature_id" value="12156709473159629610"/>
+				<UserParam type="string" name="feature_id" value="14768204679546465715"/>
 				<UserParam type="int" name="id_merge_index" value="1"/>
 			</PeptideIdentification>
-			<UserParam type="string" name="feature_id" value="12156709473159629610"/>
+			<UserParam type="string" name="feature_id" value="14768204679546465715"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="HTSHAHHR"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
 			<UserParam type="int" name="MS1Label:channel" value="1"/>
@@ -351,8 +354,9 @@
 			<UserParam type="floatList" name="MS1Label:peptide_ratio" value="[1.0, 1.0, 1.0, 1.0]"/>
 			<UserParam type="floatList" name="MS1Label:peptide_ratio_normalized" value="[1.0, 1.0, 1.0, 1.0]"/>
 			<UserParam type="intList" name="MS1Label:peptide_ratio_count" value="[1, 1, 1, 1]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_targeted_count" value="[0, 0, 0, 0]"/>
 		</consensusElement>
-		<consensusElement id="e_15885522598119108466" quality="1.0" charge="2">
+		<consensusElement id="e_12156709473159629610" quality="1.0" charge="2">
 			<centroid rt="175.081836051141408" mz="480.267072959782013" it="1.6671319e07"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="175.081836051141408" mz="480.267072959782013" it="1.6671319e07" charge="2"/>
@@ -369,10 +373,10 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="2.0e-03"/>
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
-				<UserParam type="string" name="feature_id" value="15885522598119108466"/>
+				<UserParam type="string" name="feature_id" value="12156709473159629610"/>
 				<UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
-			<UserParam type="string" name="feature_id" value="15885522598119108466"/>
+			<UserParam type="string" name="feature_id" value="12156709473159629610"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="NNLQTLTR"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
 			<UserParam type="int" name="MS1Label:channel" value="1"/>
@@ -384,8 +388,9 @@
 			<UserParam type="floatList" name="MS1Label:peptide_ratio" value="[1.0, 1.0, 1.0, 1.0]"/>
 			<UserParam type="floatList" name="MS1Label:peptide_ratio_normalized" value="[1.0, 1.0, 1.0, 1.0]"/>
 			<UserParam type="intList" name="MS1Label:peptide_ratio_count" value="[1, 1, 1, 1]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_targeted_count" value="[0, 0, 0, 0]"/>
 		</consensusElement>
-		<consensusElement id="e_3823858840059792698" quality="1.0" charge="2">
+		<consensusElement id="e_893904610286969204" quality="1.0" charge="2">
 			<centroid rt="205.0" mz="476.260927583271041" it="5.4257356e05"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="205.0" mz="476.260927583271041" it="5.4257356e05" charge="2"/>
@@ -401,16 +406,16 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="2.0e-03"/>
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
-				<UserParam type="string" name="feature_id" value="3823858840059792698"/>
+				<UserParam type="string" name="feature_id" value="893904610286969204"/>
 				<UserParam type="string" name="quantification_method" value="targeted"/>
 				<UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
-			<UserParam type="string" name="feature_id" value="3823858840059792698"/>
+			<UserParam type="string" name="feature_id" value="893904610286969204"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="TFAEVLSGK"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
 			<UserParam type="int" name="MS1Label:channel" value="1"/>
 		</consensusElement>
-		<consensusElement id="e_893904610286969204" quality="1.0" charge="2">
+		<consensusElement id="e_14851350658635457156" quality="1.0" charge="2">
 			<centroid rt="255.0" mz="512.750924567321022" it="1.1270196e06"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="255.0" mz="512.750924567321022" it="1.1270196e06" charge="2"/>
@@ -426,16 +431,16 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="1.0e-03"/>
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
-				<UserParam type="string" name="feature_id" value="893904610286969204"/>
+				<UserParam type="string" name="feature_id" value="14851350658635457156"/>
 				<UserParam type="string" name="quantification_method" value="targeted"/>
 				<UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
-			<UserParam type="string" name="feature_id" value="893904610286969204"/>
+			<UserParam type="string" name="feature_id" value="14851350658635457156"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="NVYDLGSEK"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
 			<UserParam type="int" name="MS1Label:channel" value="1"/>
 		</consensusElement>
-		<consensusElement id="e_14851350658635457156" quality="1.0" charge="2">
+		<consensusElement id="e_17447818880105247092" quality="1.0" charge="2">
 			<centroid rt="265.0" mz="516.757740503521063" it="1.1231871e06"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="265.0" mz="516.757740503521063" it="1.1231871e06" charge="2"/>
@@ -453,16 +458,16 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="3.0e-03"/>
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
-				<UserParam type="string" name="feature_id" value="14851350658635457156"/>
+				<UserParam type="string" name="feature_id" value="17447818880105247092"/>
 				<UserParam type="string" name="quantification_method" value="targeted"/>
 				<UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
-			<UserParam type="string" name="feature_id" value="14851350658635457156"/>
+			<UserParam type="string" name="feature_id" value="17447818880105247092"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="AHQQQQHR"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
 			<UserParam type="int" name="MS1Label:channel" value="1"/>
 		</consensusElement>
-		<consensusElement id="e_17447818880105247092" quality="1.0" charge="2">
+		<consensusElement id="e_1003624456647096845" quality="1.0" charge="2">
 			<centroid rt="305.0" mz="554.275098147071049" it="1.1594071e06"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="305.0" mz="554.275098147071049" it="1.1594071e06" charge="2"/>
@@ -480,11 +485,11 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="1.0e-03"/>
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="0"/>
-				<UserParam type="string" name="feature_id" value="17447818880105247092"/>
+				<UserParam type="string" name="feature_id" value="1003624456647096845"/>
 				<UserParam type="string" name="quantification_method" value="targeted"/>
 				<UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
-			<UserParam type="string" name="feature_id" value="17447818880105247092"/>
+			<UserParam type="string" name="feature_id" value="1003624456647096845"/>
 			<UserParam type="string" name="MS1Label:labeled_sequence" value="SEGFLDAVNR"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
 			<UserParam type="int" name="MS1Label:channel" value="1"/>
@@ -496,6 +501,7 @@
 			<UserParam type="floatList" name="MS1Label:peptide_ratio" value="[1.0, 1.0, 1.0, 1.0]"/>
 			<UserParam type="floatList" name="MS1Label:peptide_ratio_normalized" value="[1.0, 1.0, 1.0, 1.0]"/>
 			<UserParam type="intList" name="MS1Label:peptide_ratio_count" value="[1, 1, 1, 1]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_targeted_count" value="[1, 1, 1, 1]"/>
 		</consensusElement>
 	</consensusElementList>
 </consensusXML>

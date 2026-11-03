@@ -76,6 +76,9 @@ namespace OpenMS
         @c fraction_group_level_ratio_count (integer) plus @c fraction_group_level_ratio and
         @c fraction_group_level_ratio_normalized (float), next to the abundance arrays that
         PeptideAndProteinQuant writes. A second run() replaces them.
+      - if any evidence comes from targeted quantification: how many of the contributing ratios do, as
+        @c MS1Label:peptide_ratio_targeted_count on the features and the integer array
+        @c fraction_group_level_ratio_targeted_count on the protein groups (parallel to the counts above).
 
     A peptide counts for the group that covers every protein it references; peptides shared between
     groups count for none (a razor assignment, if wanted, rewrites the references during inference).

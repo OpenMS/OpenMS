@@ -26,7 +26,7 @@
 				<UserParam type="string" name="PeptideIndexer:unmatched_action" value="error"/>
 				<UserParam type="string" name="PeptideIndexer:missing_decoy_action" value="silent"/>
 				<UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
-				<UserParam type="string" name="InferenceEngineVersion" value="3.7.0-pre-disabled-20261031"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="3.7.0-pre-exported-20261103"/>
 				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="best"/>
 				<UserParam type="int" name="TOPPProteinInference:use_shared_peptides" value="1"/>
 				<UserParam type="int" name="TOPPProteinInference:treat_charge_variants_separately" value="1"/>
@@ -101,6 +101,7 @@
 			<UserParam type="intList" name="indistinguishable_proteins_0_fraction_group_level_ratio_fraction_group" value="[1, 1]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_0_fraction_group_level_ratio_label" value="[1, 2]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_0_fraction_group_level_ratio_count" value="[1, 1]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_0_fraction_group_level_ratio_targeted_count" value="[0, 0]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_0_file_channel_level_filename" value="[MS1LabeledWorkflow_11_input,MS1LabeledWorkflow_11_input]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_0_quantified_proteins" value="[PROT_A]"/>
 			<UserParam type="string" name="indistinguishable_proteins_1" value="0.111111111111111,PH_0"/>
@@ -114,6 +115,7 @@
 			<UserParam type="intList" name="indistinguishable_proteins_1_fraction_group_level_ratio_fraction_group" value="[1, 1]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_1_fraction_group_level_ratio_label" value="[1, 2]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_1_fraction_group_level_ratio_count" value="[1, 1]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_1_fraction_group_level_ratio_targeted_count" value="[0, 0]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_1_file_channel_level_filename" value="[MS1LabeledWorkflow_11_input,MS1LabeledWorkflow_11_input]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_1_quantified_proteins" value="[PROT_G]"/>
 			<UserParam type="string" name="indistinguishable_proteins_2" value="0.111111111111111,PH_7"/>
@@ -127,6 +129,7 @@
 			<UserParam type="intList" name="indistinguishable_proteins_2_fraction_group_level_ratio_fraction_group" value="[1, 1]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_2_fraction_group_level_ratio_label" value="[1, 2]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_2_fraction_group_level_ratio_count" value="[1, 1]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_2_fraction_group_level_ratio_targeted_count" value="[1, 1]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_2_file_channel_level_filename" value="[MS1LabeledWorkflow_11_input,MS1LabeledWorkflow_11_input]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_2_quantified_proteins" value="[PROT_B]"/>
 			<UserParam type="string" name="indistinguishable_proteins_3" value="0.111111111111111,PH_6"/>
@@ -271,6 +274,7 @@
 			<UserParam type="floatList" name="MS1Label:peptide_ratio" value="[1.0, 0.96224843075975]"/>
 			<UserParam type="floatList" name="MS1Label:peptide_ratio_normalized" value="[1.0, 1.00014931412008]"/>
 			<UserParam type="intList" name="MS1Label:peptide_ratio_count" value="[1, 1]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_targeted_count" value="[0, 0]"/>
 		</consensusElement>
 		<consensusElement id="e_3023658190814908261" quality="0.0" charge="2">
 			<centroid rt="160.0" mz="461.747653035420967" it="1.4851506e06"/>
@@ -304,6 +308,7 @@
 			<UserParam type="floatList" name="MS1Label:peptide_ratio" value="[1.0, 0.952114284704287]"/>
 			<UserParam type="floatList" name="MS1Label:peptide_ratio_normalized" value="[1.0, 0.989616005982013]"/>
 			<UserParam type="intList" name="MS1Label:peptide_ratio_count" value="[1, 1]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_targeted_count" value="[1, 1]"/>
 		</consensusElement>
 		<consensusElement id="e_7898004582401008768" quality="0.0" charge="2">
 			<centroid rt="250.0" mz="653.361704997970946" it="1.6868264e06"/>
@@ -359,6 +364,7 @@
 			<UserParam type="floatList" name="MS1Label:peptide_ratio" value="[1.0, 0.961961119103963]"/>
 			<UserParam type="floatList" name="MS1Label:peptide_ratio_normalized" value="[1.0, 0.99985068587992]"/>
 			<UserParam type="intList" name="MS1Label:peptide_ratio_count" value="[1, 1]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_targeted_count" value="[0, 0]"/>
 		</consensusElement>
 		<consensusElement id="e_15050004366391181853" quality="0.0" charge="2">
 			<centroid rt="315.0" mz="523.285465678971036" it="1.5159125e06"/>

@@ -4987,6 +4987,30 @@ foreach(_min 1 2)
     -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_one_protein_min${_min}.tmp.consensusXML
     -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_one_protein_min${_min}_out.consensusXML)
   set_tests_properties("TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}")
+  # QPX output in a run of its own: writing it reorders meta values of the consensusXML's column headers
+  add_test("TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_qpx" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+    -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_input.mzML
+    -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11.idXML
+    -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_one_protein.fasta
+    -labels "[][Lys8,Arg10]"
+    -proteinFDR 1.0
+    -ratios:min_ratio_count ${_min}
+    -targeted_quantification true
+    -out_qpx ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_one_protein_min${_min}_qpx_dir)
+  add_test("TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_qpx_pg_dump" ${TOPP_BIN_PATH}/ParquetDiff
+    -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_one_protein_min${_min}_qpx_dir/quantms.pg.parquet -schema pg
+    -out_tsv ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_one_protein_min${_min}_qpx_pg.tmp.tsv)
+  set_tests_properties("TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_qpx_pg_dump" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_qpx")
+endforeach()
+# The number of targeted ratios behind PROT_X's ratio reaches the QPX pg view: none with min_ratio_count 1, 2 of the 3 with 2.
+foreach(_case "1;0" "2;2")
+  list(GET _case 0 _min)
+  list(GET _case 1 _targeted)
+  add_test("TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_qpx_pg_targeted_count" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_one_protein_min${_min}_qpx_pg.tmp.tsv
+    "-DEXPECTED={cv_name:string = ratio_targeted_count, cv_value:string = ${_targeted}}"
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_qpx_pg_targeted_count" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_qpx_pg_dump")
 endforeach()
 set_tests_properties("TOPP_MS1LabeledWorkflow_11_one_protein_min1" PROPERTIES PASS_REGULAR_EXPRESSION
   "Abundances: 2 evidence.s. of targeted quantification with a channel that is not quantifiable.*Channel ratios from targeted quantification: 2 peptide ratio.s. of peptides measured only that way in their fraction group. 0 protein group ratio.s.")
@@ -5057,10 +5081,10 @@ set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_mbr" PROPERTIES DEPEND
 add_test("TOPP_MS1LabeledWorkflow_11_targeted_mbr_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_targeted_mbr.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_targeted_mbr_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_mbr_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_targeted_mbr")
 
-# Match between runs promotes no evidence to "detected": with run B's VLDELTLAR identification removed
-# (MS1LabeledWorkflow_11_apex_noVLDELTLAR.idXML), run B's VLDELTLAR doublet is unidentified and takes over the identification of run
-# A's targeted feature in linking. Without -targeted_quantification neither run has a VLDELTLAR value, so run B's counts as targeted
-# too and stays out of the normalization (YVNDLAGHEK's normalized ratio in run B stays 1.0): 4 targeted peptide ratios, not 3.
+# Targeted features are linked only among themselves: with run B's VLDELTLAR identification removed
+# (MS1LabeledWorkflow_11_apex_noVLDELTLAR.idXML), run B's VLDELTLAR doublet is unidentified and cannot take over the identification of
+# run A's targeted feature in linking. Without -targeted_quantification neither run has a VLDELTLAR value, and with it only run A has
+# one (targeted), so run B's normalization stays as it is (YVNDLAGHEK's normalized ratio in run B stays 1.0): 3 targeted peptide ratios.
 add_test("TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_input.mzML ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11b_input.mzML
   -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11.idXML ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_apex_noVLDELTLAR.idXML
@@ -5071,7 +5095,7 @@ add_test("TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted" ${TOPP_BIN_PATH}/MS1
   -targeted_quantification true
   -match_between_runs true
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_targeted_mbr_promoted.tmp.consensusXML)
-set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_mbr_prepare" PASS_REGULAR_EXPRESSION "Channel ratios from targeted quantification: 4 peptide ratio.s. of peptides measured only that way")
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_mbr_prepare" PASS_REGULAR_EXPRESSION "Channel ratios from targeted quantification: 3 peptide ratio.s. of peptides measured only that way")
 add_test("TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion"
   -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_targeted_mbr_promoted.tmp.consensusXML
   -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_targeted_mbr_promoted_out.consensusXML)

@@ -186,13 +186,12 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      the other channels are measured against it from paired peaks (a channel is absent only if no peak is seen at its m/z).
      Such a feature and its identifications carry the meta
      value @c quantification_method = @c targeted. Its values are less accurate at extreme ratios than those of a detected
-     multiplet, so without @p match_between_runs they only add ratios and never change one that is reported without them
-     (see <b>Ratios</b> below), and one whose other channel is not quantifiable is left out of the abundances. With
-     @p match_between_runs, linking can still move such ratios: a targeted feature replaces the unidentified multiplet kept
-     for match between runs that it is measured from (its run gets the targeted value instead of the one linking would have
-     given the multiplet), and a targeted feature can draw an unidentified multiplet of another peptide into its linked
-     feature (that run loses the ratio match between runs would have given it). On PXD022659 this concerns about 1 % of the
-     peptide ratios.
+     multiplet, so they only add ratios and never change one that is reported without them (see <b>Ratios</b> below),
+     and one whose other channel is not quantifiable is left out of the abundances. They take no part in the alignment, and
+     they are linked among themselves only, after the detected multiplets, so that alignment, linking and match between runs
+     stay as they are without them. One exception, with @p match_between_runs: a targeted feature replaces the unidentified
+     multiplet kept for match between runs that it is measured from, so that run gets the targeted value instead of the one
+     that linking would have given the multiplet (and that value no longer enters the run's normalization factors).
      Multiplets without identification are dropped,
      unless @p match_between_runs is set (see below). Once the resolver has used the labels, every identification
      is reduced to the <em>peptide identity</em>: the label modifications of @p labels are removed from the sequence,
@@ -230,7 +229,8 @@ intensities (@p ratios, computed by @c MS1LabeledRatioQuantifier next to this to
   - per peptide and fraction group, the median of its evidence ratios.
   - per protein group and fraction group, the median of its peptides' ratios, reported only from
     @p ratios:min_ratio_count peptides upwards (MaxQuant's "min. ratio count", 2 by default), with the number of
-    contributing peptides next to it. Every ratio is also reported divided by the median peptide ratio of its
+    contributing peptides next to it (and, with @p targeted_quantification, the number of those from targeted quantification).
+    Every ratio is also reported divided by the median peptide ratio of its
     (fraction group, channel), i.e. normalized on the assumption that most peptides do not change.
   - evidences of @p targeted_quantification only stand in where nothing else was measured: a peptide ratio uses them only if
     the peptide has no other evidence of that channel in that fraction group, a protein group ratio only if its other peptide ratios do
@@ -244,7 +244,10 @@ The ratios are annotated on the consensus features (@c MS1Label:evidence_ratio*,
 groups, so they reach the consensusXML and the mzTab peptide section (as <tt>opt_global_*</tt> columns). In the
 QPX pg view, whose rows are one per (protein group, fraction group, channel), they are written as that row's
 @c additional_intensities, named @c ratio and @c ratio_normalized under the row's own channel label; the number
-of contributing peptides sits in @c cv_params as @c ratio_count, being a count rather than an intensity. No
+of contributing peptides sits in @c cv_params as @c ratio_count, being a count rather than an intensity, with
+@p targeted_quantification next to the number of those from targeted quantification (@c ratio_targeted_count,
+@c MS1Label:peptide_ratio_targeted_count on the features, @c fraction_group_level_ratio_targeted_count on the protein
+groups). No
 separate @ref TOPP_ProteinQuantifier run is needed for any of it.
 
 Next to the ratios, the per-channel <em>abundances</em> are reported as before (mzTab peptide and protein
@@ -399,8 +402,10 @@ protected:
       "decoys and identifications whose labels fit no pattern are not measured; of identifications of different peptides on one signal, only the best one is.\n"
       "These values are less accurate at extreme ratios, so they only add ratios: a peptide or protein group ratio that the other evidences\n"
       "give (see 'ratios:min_ratio_count') does not change, and a feature whose other channel is not quantifiable is left out of the abundances.\n"
-      "With 'match_between_runs', linking can still move such ratios: a targeted feature replaces the unidentified multiplet kept for match\n"
-      "between runs that it is measured from, and it can draw an unidentified multiplet of another peptide into its linked feature.\n"
+      "They take no part in the alignment and are linked among themselves only. The number of targeted ratios behind every peptide and protein\n"
+      "group ratio is reported ('MS1Label:peptide_ratio_targeted_count', 'fraction_group_level_ratio_targeted_count', QPX 'ratio_targeted_count').\n"
+      "Exception with 'match_between_runs': a targeted feature replaces the unidentified multiplet kept for match between runs that it is\n"
+      "measured from, so that run gets the targeted value instead of the one linking would have given that multiplet.\n"
       "false: such identifications are kept for protein inference only.", false);
     setValidStrings_("targeted_quantification", {"true", "false"});
 
@@ -2871,7 +2876,7 @@ protected:
   }
 
   /// Link the runs of one fraction; the channels of every run are kept as sub-features (one column per run and channel)
-  void link_(vector<ConsensusMap>& maps, double max_alignment_diff, ConsensusMap& consensus_fraction)
+  void link_(vector<ConsensusMap>& maps, double max_alignment_diff, ConsensusMap& consensus_fraction, const std::string& what = "consensus multiplet(s)")
   {
     Param fl_param = getParam_().copy("linking:", true);
     const double rt_typical = getParam_().getValue("algorithm:rt_typical");
@@ -2898,7 +2903,7 @@ protected:
 
     consensus_fraction.applyMemberFunction(&UniqueIdInterface::setUniqueId);
     consensus_fraction.sortPeptideIdentificationsByMapIndex();
-    OPENMS_LOG_INFO << "Linked " << maps.size() << " run(s) into " << consensus_fraction.size() << " consensus multiplet(s)." << endl;
+    OPENMS_LOG_INFO << "Linked " << maps.size() << " run(s) into " << consensus_fraction.size() << " " << what << "." << endl;
   }
 
   /**
@@ -2908,8 +2913,8 @@ protected:
     and ratios below read. After linking, a multiplet holds the channels of several runs, and only its identifications
     still tell which of them targeted quantification measured: those carry 'quantification_method' = 'targeted', and
     their 'map_index' names their column, i.e. their (run, channel). A targeted feature gets only such identifications,
-    and a detected multiplet none of them. A multiplet identified by nothing else (with match between runs, its other runs
-    took over a targeted feature's identification) counts as targeted in all of its runs.
+    and a detected multiplet none of them. Targeted features are linked among themselves only (see alignAndLink_()), so a
+    multiplet identified by nothing else holds targeted features only and counts as targeted in all of its runs.
   */
   static void markTargetedRuns_(ConsensusMap& fraction)
   {
@@ -2929,9 +2934,8 @@ protected:
         const auto header = headers.find(static_cast<UInt64>(id.getMetaValue("map_index")));
         if (header != headers.end()) { runs.insert(File::basename(header->second.filename)); }
       }
-      // With match between runs, an unidentified multiplet of another run can take over the identification of a targeted
-      // feature. If targeted features are all that identify the multiplet, it exists only because of targeted quantification,
-      // so all of its runs count as targeted.
+      // If targeted features are all that identify the multiplet, it exists only because of targeted quantification, so all of
+      // its runs count as targeted (a safeguard: they are linked among themselves only, so these are the runs of its IDs).
       if (only_targeted)
       {
         for (const FeatureHandle& handle : cf.getFeatures())
@@ -3015,24 +3019,90 @@ protected:
     withheld.clear();
   }
 
+  /**
+    @brief Move the features of targeted quantification out of @p maps
+
+    @return One map per run with the targeted features of that run, the same columns and protein runs and no unassigned identifications
+  */
+  static vector<ConsensusMap> splitOffTargeted_(vector<ConsensusMap>& maps)
+  {
+    vector<ConsensusMap> targeted(maps.size());
+    for (Size i = 0; i < maps.size(); ++i)
+    {
+      ConsensusMap& map = maps[i];
+      ConsensusMap& part = targeted[i];
+      part = map;
+      part.resize(0);
+      part.getUnassignedPeptideIdentifications().clear();
+      for (auto& [index, header] : part.getColumnHeaders()) { header.size = 0; }
+      ConsensusMap::iterator kept = map.begin();
+      for (ConsensusMap::iterator it = map.begin(); it != map.end(); ++it)
+      {
+        if (it->getMetaValue("quantification_method", DataValue("")).toString() == "targeted")
+        {
+          for (const FeatureHandle& handle : it->getFeatures())
+          {
+            ++part.getColumnHeaders().at(handle.getMapIndex()).size;
+            --map.getColumnHeaders().at(handle.getMapIndex()).size;
+          }
+          part.push_back(std::move(*it));
+        }
+        else
+        {
+          if (kept != it) { *kept = std::move(*it); }
+          ++kept;
+        }
+      }
+      map.erase(kept, map.end());
+      map.updateRanges();
+      part.updateRanges();
+    }
+    return targeted;
+  }
+
+  /**
+    @brief Align and link the runs of one fraction
+
+    The features of targeted quantification take no part in the alignment and are linked among themselves only, after the
+    detected multiplets have been linked. So the alignment, the linking of the detected multiplets and with match between
+    runs the identifications that their unidentified multiplets take over are those without targeted quantification:
+    a targeted feature, whose position rests on one identification, cannot widen the RT tolerance of the linking or draw an
+    unidentified multiplet of another peptide into its linked feature.
+  */
   void alignAndLink_(vector<ConsensusMap>& maps, ConsensusMap& consensus_fraction)
   {
     if (maps.size() > 1)
     {
+      vector<ConsensusMap> targeted;
+      if (targeted_quantification_) { targeted = splitOffTargeted_(maps); }
+      const bool any_targeted = std::any_of(targeted.begin(), targeted.end(), [](const ConsensusMap& m) { return !m.empty(); });
+
       vector<TransformationDescription> transformations;
       const double max_alignment_diff = align_(maps, transformations);
-      for (Size i = 0; i < maps.size(); ++i)
+      const auto transform = [](ConsensusMap& map, const TransformationDescription& transformation)
       {
         try
         {
-          MapAlignmentTransformer::transformRetentionTimes(maps[i], transformations[i]);
+          MapAlignmentTransformer::transformRetentionTimes(map, transformation);
         }
         catch (Exception::IllegalArgument& e)
         {
           OPENMS_LOG_WARN << e.what() << endl;
         }
+      };
+      for (Size i = 0; i < maps.size(); ++i)
+      {
+        transform(maps[i], transformations[i]);
+        if (any_targeted) { transform(targeted[i], transformations[i]); }
       }
       link_(maps, max_alignment_diff, consensus_fraction);
+      if (any_targeted)
+      {
+        ConsensusMap linked_targeted;
+        link_(targeted, max_alignment_diff, linked_targeted, "consensus feature(s) of targeted quantification");
+        MS1LabeledFAIMS::append(consensus_fraction, std::move(linked_targeted));
+        consensus_fraction.updateRanges();
+      }
     }
     else
     {
