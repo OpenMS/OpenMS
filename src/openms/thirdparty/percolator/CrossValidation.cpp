@@ -34,7 +34,10 @@ const double CrossValidation::requiredIncreaseOver2Iterations_ = 0.01;
 // more than OpenMP allows here (a TOPP tool's -threads). Upstream calls
 // omp_set_num_threads() instead, which would change the count for the whole process.
 // Without an OpenMP runtime (e.g. -fopenmp-simd, which still parses the clauses) 1.
-// A loop over the folds (or pairs) uses no more threads than it has iterations. The loops
+// A loop over the folds (or pairs) uses no more threads than it has iterations. Without tasks
+// (OpenMP 2.0, cl.exe) the pairs of a chain run as a nested loop on the chain's share of the
+// threads, rounded up, so the training may use up to two threads more than numThreads (4 threads:
+// 3 chains of 2); each nested team is capped by the pairs of its pass. The loops
 // whose iterations sort (Scores, see SortLikeStd.h) run them as tasks of a parallel region on
 // more threads instead (numTeamThreads): the threads without an iteration of their own run
 // the tasks of the sorts.
@@ -86,6 +89,37 @@ constexpr unsigned int kMaxSetupTeamThreads = 64;
 [[maybe_unused]] static int numSetupTeamThreads(unsigned int numThreads) {
   return numLoopThreads(std::min(numThreads, kMaxSetupTeamThreads));
 }
+#if !PERCOLATOR_OMP_TASKS
+// OpenMS: without tasks (OpenMPTasks.h), the (cpos, cneg) pairs of a fold chain run as a nested
+// parallel loop (trainFoldChains). Nested parallel regions are off by default, and the setting is
+// process-global (as omp_set_num_threads would be): enableNestedParallel switches them on and
+// returns the previous setting, restoreNestedParallel puts it back. OpenMP 2.0 (MSVC) has only
+// omp_set_nested, deprecated from OpenMP 5.0; from OpenMP 3.0 on, omp_set_max_active_levels(2)
+// does it (with OpenMP 5.0's rules, as libgomp and LLVM's libomp have them, the active levels
+// alone decide).
+static int enableNestedParallel() {
+#if !defined(_OPENMP)
+  return 0;
+#elif _OPENMP >= 200805
+  const int levels = omp_get_max_active_levels();
+  if (levels < 2) omp_set_max_active_levels(2);
+  return levels;
+#else
+  const int nested = omp_get_nested();
+  omp_set_nested(1);
+  return nested;
+#endif
+}
+static void restoreNestedParallel(int previous) {
+#if !defined(_OPENMP)
+  (void)previous;
+#elif _OPENMP >= 200805
+  omp_set_max_active_levels(previous);
+#else
+  omp_set_nested(previous);
+#endif
+}
+#endif
 
 // OpenMS: rethrows the first error, in iteration order, caught in the iterations of a
 // parallel loop (an exception must not leave an OpenMP region).
@@ -429,6 +463,7 @@ void CrossValidation::trainFoldChains() {
   vector<FoldError> foldErrors(numFolds_);
   const bool scored = trainScoresOfWeights_;
   trainScoresOfWeights_ = false;
+#if PERCOLATOR_OMP_TASKS
   // OpenMS: all threads for the fold chains of large training sets: with TRON from
   // kLargeTrainingSet PSMs on (numChainTeamThreads), with Newton/LDA from kSolverAllThreadsPsms on
   std::size_t largestTrainSet = 0;
@@ -438,12 +473,18 @@ void CrossValidation::trainFoldChains() {
   const int teamThreads = solver_ != kSolverTron && largestTrainSet >= kSolverAllThreadsPsms
                               ? numLoopThreads(numThreads_)
                               : numChainTeamThreads(numThreads_, trainScores_);
-#if PERCOLATOR_OMP_TASKS
 #pragma omp parallel num_threads(teamThreads)
 #pragma omp single
 #pragma omp taskloop grainsize(1)
 #else
-#pragma omp parallel for schedule(dynamic, 1) num_threads(teamThreads)
+  // OpenMS: without tasks, one thread per fold chain, and the (cpos, cneg) pairs of a chain as a
+  // nested parallel loop (below) on the chain's share of the threads, rounded up (8 threads: 3
+  // chains of 3; 16: 3 chains of 6). The results are those of the tasks: each pair computes the
+  // same, whichever thread runs it.
+  const int chainThreads = numLoopThreads(numThreads_, numFolds_);
+  const int pairThreads = (numLoopThreads(numThreads_) + chainThreads - 1) / chainThreads;
+  const int nestedParallelBefore = enableNestedParallel();
+#pragma omp parallel for schedule(dynamic, 1) num_threads(chainThreads)
 #endif
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
     // OpenMS: a fold set inactive (setActiveFolds) is not trained; its weights stay the initial ones
@@ -485,7 +526,15 @@ void CrossValidation::trainFoldChains() {
         // features in the solver's layout, built once (ssl.h); the results are those of solves alone
         TronPairGroup tronGroup(*svmInputs_[set]);
         while (true) {
+#if PERCOLATOR_OMP_TASKS
           for (std::size_t k = pairsBegin; k < numPairsTrained; ++k) {
+#else
+          // OpenMS: the pairs of the chain as a nested parallel loop on no more threads than the pass has
+          // pairs (LDA's first pass has one); the loop variable is an int, MSVC's OpenMP 2.0 takes signed ones only
+          const int pairTeam = std::min(pairThreads, static_cast<int>(numPairsTrained - pairsBegin));
+#pragma omp parallel for schedule(dynamic, 1) num_threads(pairTeam) if (pairTeam > 1)
+          for (int k = static_cast<int>(pairsBegin); k < static_cast<int>(numPairsTrained); ++k) {
+#endif
             PERCOLATOR_TASK_PRAGMA(omp task default(shared) firstprivate(k))
             {
               try {
@@ -548,6 +597,9 @@ void CrossValidation::trainFoldChains() {
       foldErrors[set].error = std::current_exception();
     }
   }
+#if !PERCOLATOR_OMP_TASKS
+  restoreNestedParallel(nestedParallelBefore);
+#endif
   const FoldError* firstError = nullptr;
   for (const FoldError& foldError : foldErrors) {
     if (foldError.error &&

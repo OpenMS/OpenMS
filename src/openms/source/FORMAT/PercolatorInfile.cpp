@@ -98,9 +98,20 @@ namespace OpenMS
 
   std::string PercolatorInfile::getFileIdentifier(const PeptideIdentification& pid)
   {
-    std::string identifier = pid.getMetaValue("file_origin", std::string()).toString();
+    const MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
+    return getFileIdentifier(pid, registry.getIndex("file_origin"), registry.getIndex("id_merge_index"));
+  }
+
+  std::string PercolatorInfile::getFileIdentifier(const PeptideIdentification& pid, const UInt file_origin_index,
+                                                  const UInt id_merge_index_index)
+  {
+    // (an unregistered name, UInt(-1), has no value: as the lookups by name)
+    std::string identifier = file_origin_index != UInt(-1) ? pid.getMetaValue(file_origin_index, std::string()).toString() : std::string();
     // the index is a number: after the last '|', it cannot run into the file origin ("run1" vs. "run" + 1)
-    if (pid.metaValueExists("id_merge_index")) identifier += "|" + pid.getMetaValue("id_merge_index").toString();
+    if (id_merge_index_index != UInt(-1) && pid.metaValueExists(id_merge_index_index))
+    {
+      identifier += "|" + pid.getMetaValue(id_merge_index_index).toString();
+    }
     return identifier;
   }
 
@@ -817,6 +828,8 @@ namespace OpenMS
       const size_t n = peptide_ids.size();
       std::vector<std::string> scan_ids(n), file_ids(n);
       std::vector<char> ok(n, 0);
+      const UInt pin_file_origin_index = MetaInfoInterface::metaRegistry().getIndex("file_origin"); // (see getFileIdentifier())
+      const UInt pin_id_merge_index_index = MetaInfoInterface::metaRegistry().getIndex("id_merge_index");
 #pragma omp parallel for schedule(dynamic, 256)
       for (SignedSize si = 0; si < static_cast<SignedSize>(n); ++si)
       {
@@ -824,7 +837,7 @@ namespace OpenMS
         try
         {
           scan_ids[i] = PercolatorInfile::getScanIdentifier(peptide_ids[i], i + 1);
-          file_ids[i] = PercolatorInfile::getFileIdentifier(peptide_ids[i]);
+          file_ids[i] = PercolatorInfile::getFileIdentifier(peptide_ids[i], pin_file_origin_index, pin_id_merge_index_index);
           ok[i] = 1;
         }
         catch (...)
@@ -870,6 +883,8 @@ namespace OpenMS
     const PinEnzyme_ rule(enz);
 
     const std::vector<Int> scan_numbers = pinScanNumbers(peptide_ids); // ScanNr of the spectra
+    const UInt pin_file_origin_index = MetaInfoInterface::metaRegistry().getIndex("file_origin"); // (see getFileIdentifier())
+    const UInt pin_id_merge_index_index = MetaInfoInterface::metaRegistry().getIndex("id_merge_index");
 
     // Per spectrum (PeptideIdentification): the meta values it added (hit index, keys), the values it overwrote (hit
     // index, key, previous value), the hits it skipped (hit index, reason) and the error it stopped at, collected in
@@ -907,7 +922,7 @@ namespace OpenMS
       const size_t pid_index_1based = pid_index + 1;
 
       const std::string scan_identifier = getScanIdentifier(pep_id, pid_index_1based);
-      const std::string file_identifier = getFileIdentifier(pep_id);
+      const std::string file_identifier = getFileIdentifier(pep_id, pin_file_origin_index, pin_id_merge_index_index);
 
       const Int scan_number = scan_numbers[pid_index];
 
@@ -1181,6 +1196,8 @@ namespace OpenMS
     // First pass: the values of each spectrum, as stamping computes them before its hits (an error there stops the
     // spectrum before its first hit), and the hits that are stamped and rows, the number of rows of each spectrum.
     const std::vector<Int> scan_numbers = pinScanNumbers(peptide_ids);
+    const UInt pin_file_origin_index = MetaInfoInterface::metaRegistry().getIndex("file_origin"); // (see getFileIdentifier())
+    const UInt pin_id_merge_index_index = MetaInfoInterface::metaRegistry().getIndex("id_merge_index");
 #pragma omp parallel for schedule(dynamic, 64)
     for (SignedSize si = 0; si < static_cast<SignedSize>(n_spectra); ++si)
     {
@@ -1190,7 +1207,7 @@ namespace OpenMS
       try
       {
         static_cast<void>(getScanIdentifier(peptide_ids[i], i + 1)); // (its error, as stamping: ScanNr is in scan_numbers)
-        file_identifier[i] = getFileIdentifier(peptide_ids[i]);
+        file_identifier[i] = getFileIdentifier(peptide_ids[i], pin_file_origin_index, pin_id_merge_index_index);
       }
       catch (...)
       {
@@ -1512,6 +1529,8 @@ namespace OpenMS
     const UInt lookup_index[] = {registry.getIndex("CalcMass"), registry.getIndex("IsotopeError"),
                                  registry.getIndex(Constants::UserParam::ISOTOPE_ERROR)};
     const std::vector<Int> scan_numbers = pinScanNumbers(peptide_ids);
+    const UInt pin_file_origin_index = MetaInfoInterface::metaRegistry().getIndex("file_origin"); // (see getFileIdentifier())
+    const UInt pin_id_merge_index_index = MetaInfoInterface::metaRegistry().getIndex("id_merge_index");
 
     // An error stops its spectrum (as stamping); the first by spectrum is raised. (In rescorePSMs, buildFeatureMatrix()
     // computed the same numbers for every hit before, so only the string columns or an allocation can fail here.)
@@ -1533,7 +1552,7 @@ namespace OpenMS
             if (!spectrum)
             {
               const std::string scan_identifier = getScanIdentifier(pid, static_cast<size_t>(si) + 1);
-              spectrum.emplace(getFileIdentifier(pid) + scan_identifier,
+              spectrum.emplace(getFileIdentifier(pid, pin_file_origin_index, pin_id_merge_index_index) + scan_identifier,
                                scan_numbers[static_cast<size_t>(si)]);
             }
             auto exists = [&](int lookup)

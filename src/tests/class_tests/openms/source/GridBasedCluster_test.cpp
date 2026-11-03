@@ -13,6 +13,8 @@
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <utility>
+
 using namespace OpenMS;
 
 START_TEST(GridBasedCluster, "$Id$")
@@ -38,6 +40,15 @@ START_SECTION(GridBasedCluster(const Point &centre, const Rectangle &bounding_bo
     ptr = new GridBasedCluster(position, box, points, propA, propB);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
+END_SECTION
+
+START_SECTION(GridBasedCluster(const Point &centre, const Rectangle &bounding_box, std::vector<int> &&point_indices, const int &property_A, std::vector<int> &&properties_B))
+    std::vector<int> points_moved(points), propB_moved(propB);
+    GridBasedCluster cluster(position, box, std::move(points_moved), propA, std::move(propB_moved));
+    TEST_EQUAL(cluster.getCentre().getX(), 4.5);
+    TEST_EQUAL(cluster.getPoints() == points, true);
+    TEST_EQUAL(cluster.getPropertyA(), propA);
+    TEST_EQUAL(cluster.getPropertiesB() == propB, true);
 END_SECTION
 
 START_SECTION(GridBasedCluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices))

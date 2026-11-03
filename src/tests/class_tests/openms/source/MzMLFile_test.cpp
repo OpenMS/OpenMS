@@ -23,6 +23,10 @@
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include <cstdlib>
 #include <fstream>
 
@@ -2285,6 +2289,90 @@ START_SECTION((data array names and the fraction identifier are XML-escaped))
   TEST_EQUAL(loaded[0].getIntegerDataArrays()[0].getName(), tricky)
   ABORT_IF(loaded.getChromatograms().empty() || loaded.getChromatograms()[0].getFloatDataArrays().empty())
   TEST_EQUAL(loaded.getChromatograms()[0].getFloatDataArrays()[0].getName(), tricky)
+}
+END_SECTION
+
+// An indexed file of several MB is loaded in parallel parts (one per thread or more, at least 1 MB each), also with the
+// spectrum filters of the options (MS levels, RT and precursor m/z range). Every load gives the experiment that the serial
+// streaming parse (one thread) gives.
+START_SECTION(([EXTRA] load() of an indexed file in parallel, with and without filters, equals the serial load))
+{
+  MSExperiment written;
+  for (int s = 0; s < 240; ++s)
+  {
+    MSSpectrum spectrum;
+    spectrum.setNativeID("scan=" + std::to_string(s + 1));
+    spectrum.setRT(10.0 + 2.5 * s);
+    spectrum.setMSLevel(s % 4 == 0 ? 1 : 2);
+    if (spectrum.getMSLevel() == 2)
+    {
+      Precursor precursor;
+      precursor.setMZ(400.0 + (s * 37) % 600);
+      precursor.setCharge(2);
+      spectrum.getPrecursors().push_back(precursor);
+    }
+    for (int k = 0; k < 1500; ++k)
+    {
+      spectrum.push_back(Peak1D(200.0 + 0.61 * k + 0.001 * s, 100.0 + (k * 7 + s) % 997));
+    }
+    written.addSpectrum(spectrum);
+  }
+  MSChromatogram chromatogram;
+  chromatogram.setNativeID("TIC");
+  for (int k = 0; k < 100; ++k) { chromatogram.push_back(ChromatogramPeak(10.0 + 6.0 * k, 1e5 + k)); }
+  written.addChromatogram(chromatogram);
+  std::string indexed_file;
+  NEW_TMP_FILE(indexed_file);
+  MzMLFile writer;
+  writer.getOptions().setWriteIndex(true);
+  writer.store(indexed_file, written);
+  TEST_EQUAL(MzMLFile().hasIndex(indexed_file), true)
+  TEST_EQUAL(File::fileSize(indexed_file) > 4 * (1 << 20), true) // enough for several parallel parts
+
+  std::vector<std::pair<std::string, PeakFileOptions>> cases(6);
+  cases[0].first = "no filter";
+  cases[1].first = "MS1";
+  cases[1].second.addMSLevel(1);
+  cases[2].first = "MS2";
+  cases[2].second.addMSLevel(2);
+  cases[3].first = "RT range";
+  cases[3].second.setRTRange(DRange<1>(DPosition<1>(150.0), DPosition<1>(450.0)));
+  cases[4].first = "precursor m/z range";
+  cases[4].second.setPrecursorMZRange(DRange<1>(DPosition<1>(500.0), DPosition<1>(700.0)));
+  cases[5].first = "MS2, RT and m/z range";
+  cases[5].second.addMSLevel(2);
+  cases[5].second.setRTRange(DRange<1>(DPosition<1>(150.0), DPosition<1>(450.0)));
+  cases[5].second.setMZRange(DRange<1>(DPosition<1>(300.0), DPosition<1>(600.0)));
+
+  auto load = [&](const PeakFileOptions& options, [[maybe_unused]] int threads)
+  {
+#ifdef _OPENMP
+    const int max_threads = omp_get_max_threads();
+    omp_set_num_threads(threads);
+#endif
+    MzMLFile reader;
+    reader.setOptions(options);
+    MSExperiment loaded;
+    reader.load(indexed_file, loaded);
+#ifdef _OPENMP
+    omp_set_num_threads(max_threads);
+#endif
+    return loaded;
+  };
+  for (const auto& [name, options] : cases)
+  {
+    const MSExperiment serial = load(options, 1);
+    TEST_EQUAL(serial.empty(), false)
+    for (int threads : {2, 4})
+    {
+      const MSExperiment parallel = load(options, threads);
+      TEST_EQUAL(parallel.size(), serial.size())
+      TEST_EQUAL(parallel == serial, true)
+    }
+  }
+  // the filters do filter
+  TEST_EQUAL(load(cases[1].second, 4).size(), 60)
+  TEST_EQUAL(load(cases[2].second, 4).size(), 180)
 }
 END_SECTION
 
