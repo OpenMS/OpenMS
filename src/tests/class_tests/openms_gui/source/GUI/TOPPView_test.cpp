@@ -10,12 +10,18 @@
 
 #include <QTimer>
 #include <QElapsedTimer>
+#include <QTemporaryDir>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
+#include <OpenMS/VISUAL/LayerDataIdent.h>
+#include <OpenMS/VISUAL/PlotCanvas.h>
+
+#include <tuple>
 
 using namespace OpenMS;
 
@@ -122,6 +128,43 @@ void TestTOPPView::testGui()
 
   // compare the name of the opened tab
   QCOMPARE(tv.tab_bar_.tabText(tv.tab_bar_.currentIndex()), QString("peakpicker_tutorial_1 (1D)"));
+}
+
+void TestTOPPView::testIdentificationFile()
+{
+  // identifications without a spectrum file: TOPPView opens them in a window of their own
+  QTemporaryDir dir;
+  const std::string path = dir.filePath("identifications.idXML").toStdString();
+  ProteinIdentification proteins;
+  proteins.setIdentifier("search");
+  PeptideIdentificationList peptides;
+  for (const auto& [rt, mz, sequence] : std::vector<std::tuple<double, double, std::string>> {{100.0, 500.0, "PEPTIDE"}, {200.0, 600.0, "SAMPLER"}})
+  {
+    PeptideIdentification peptide;
+    peptide.setIdentifier("search");
+    peptide.setRT(rt);
+    peptide.setMZ(mz);
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(sequence));
+    hit.setCharge(2);
+    peptide.insertHit(hit);
+    peptides.push_back(peptide);
+  }
+  IdXMLFile().store(path, {proteins}, peptides);
+
+  TOPPViewBase tv(TOPPViewBase::TOOL_SCAN::SKIP_SCAN);
+  tv.show();
+  QApplication::processEvents();
+
+  QCOMPARE(tv.addDataFile(path, false, false), TOPPViewBase::LOAD_RESULT::OK);
+  auto* layer = dynamic_cast<LayerDataIdent*>(tv.getCurrentLayer());
+  QVERIFY(layer != nullptr);
+  QCOMPARE(layer->getPeptideIds().size(), Size(2));
+  // the canvas has an intensity range although its only layer has no intensities
+  QVERIFY(!tv.getActiveCanvas()->getDataRange().RangeIntensity::isEmpty());
+  // and paints the identifications
+  tv.getActiveCanvas()->repaint();
+  QApplication::processEvents();
 }
 
 // expands to a simple main() method that runs all the test functions

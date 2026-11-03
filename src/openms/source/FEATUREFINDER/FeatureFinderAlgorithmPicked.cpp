@@ -565,6 +565,7 @@ namespace OpenMS
           tmp.setMetaValue("intensity_score", meta[1][peak]);
           tmp.setMetaValue("pattern_score", meta[meta_index_isotope][peak]);
           tmp.setMetaValue("trace_score", meta[0][peak]);
+          tmp.setUniqueId();
           seed_map.push_back(tmp);
         }
         FileHandler().storeFeatures("debug/seeds_" + StringUtils::toStr(c) + ".featureXML", seed_map);
@@ -841,6 +842,9 @@ namespace OpenMS
           //re-set label
           f.second.setMetaValue(3, feature_nr_global);
           ++feature_nr_global;
+          // assign the id on insertion: the overlap resolution below sorts and filters the whole map and copies
+          // features into subordinates, and callers may depend on the ids (e.g. the FAIMS merge)
+          f.second.setUniqueId();
           (*features_).push_back(f.second);
 
           std::vector<Size> curr_seed = seeds_in_features[seed_nr];
@@ -1030,15 +1034,14 @@ namespace OpenMS
       //store map of abort reasons for failed seeds
       FeatureMap abort_map;
       abort_map.reserve(abort_reasons_.size());
-      Size counter = 0;
-      for (std::map<Seed, std::string>::iterator it2 = abort_reasons_.begin(); it2 != abort_reasons_.end(); ++it2, ++counter)
+      for (std::map<Seed, std::string>::iterator it2 = abort_reasons_.begin(); it2 != abort_reasons_.end(); ++it2)
       {
         Feature f;
         f.setRT(map_[it2->first.spectrum].getRT());
         f.setMZ(map_[it2->first.spectrum][it2->first.peak].getMZ());
         f.setIntensity(map_[it2->first.spectrum][it2->first.peak].getIntensity());
         f.setMetaValue("label", it2->second);
-        f.setUniqueId(counter); // ID = index
+        f.setUniqueId();
         abort_map.push_back(f);
       }
       abort_map.setUniqueId();
@@ -1132,14 +1135,18 @@ namespace OpenMS
   /// Writes the abort reason to the log file and counts occurrences for each reason
   void FeatureFinderAlgorithmPicked::abort_(const Seed& seed, const std::string& reason)
   {
-    if (debug_)
+    // called by all threads of the parallel seed extension in run_()
+#pragma omp critical(FeatureFinderAlgorithmPicked_ABORT)
     {
-      log_ << "Abort: " << reason << '\n';
-    }
-    aborts_[reason]++;
-    if (debug_)
-    {
-      abort_reasons_[seed] = reason;
+      if (debug_)
+      {
+        log_ << "Abort: " << reason << '\n';
+      }
+      aborts_[reason]++;
+      if (debug_)
+      {
+        abort_reasons_[seed] = reason;
+      }
     }
   }
 

@@ -183,7 +183,6 @@
 			<ProteinHit id="PH_49" accession="C9JUT4" score="0" sequence="">
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<featureList count="32">

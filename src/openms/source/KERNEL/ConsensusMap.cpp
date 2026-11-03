@@ -17,6 +17,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/DataProcessingUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <map>
@@ -230,6 +231,17 @@ namespace OpenMS
       }
       cf.setFeatures(std::move(new_handles));
       new_handles.clear();
+
+      // match-between-runs transfers (PipEchoAlgorithm) name their target runs by map index, too
+      if (cf.metaValueExists(Constants::UserParam::MBR_TRANSFER_MAP_INDICES))
+      {
+        IntList transfer_map_indices = cf.getMetaValue(Constants::UserParam::MBR_TRANSFER_MAP_INDICES);
+        for (Int& map_index : transfer_map_indices)
+        {
+          map_index += static_cast<Int>(lhs_map_size);
+        }
+        cf.setMetaValue(Constants::UserParam::MBR_TRANSFER_MAP_INDICES, transfer_map_indices);
+      }
 
       // update IDs (new format):
       cf.updateIDReferences(trans);

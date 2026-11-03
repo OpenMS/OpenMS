@@ -19,7 +19,7 @@ Each test section corresponds to a binding file:
 - bind_ml.cpp: NonNegativeLeastSquaresSolver
 - bind_analysis.cpp: ConsensusMapNormalizer*, TransformationModelLinear, OPXLHelper, etc.
 - bind_misc.cpp: File, PosteriorErrorProbabilityModel, LowessSmoothing,
-                 PeptideIndexing, SpectralDeconvolution, QcMLFile, etc.
+                 PeptideIndexing, SpectralDeconvolution, etc.
 """
 
 import os
@@ -524,34 +524,6 @@ class TestSpectralDeconvolution:
         cosine, offset = result
         assert isinstance(cosine, float)
         assert isinstance(offset, int)
-
-
-class TestQcMLFile:
-    """existsRunQualityParameter/existsSetQualityParameter took ids output by ref."""
-
-    def test_existsRunQualityParameter_returns_list(self):
-        """existsRunQualityParameter must return a list of ids."""
-        from pyopenms import QcMLFile
-
-        qcml = QcMLFile()
-        result = qcml.existsRunQualityParameter("nonexistent", "nonexistent")
-        assert isinstance(result, list), f"Expected list, got {type(result)}"
-
-    def test_existsSetQualityParameter_returns_list(self):
-        """existsSetQualityParameter must return a list of ids."""
-        from pyopenms import QcMLFile
-
-        qcml = QcMLFile()
-        result = qcml.existsSetQualityParameter("nonexistent", "nonexistent")
-        assert isinstance(result, list), f"Expected list, got {type(result)}"
-
-    def test_collectSetParameter_returns_list(self):
-        """collectSetParameter must return a list of values."""
-        from pyopenms import QcMLFile
-
-        qcml = QcMLFile()
-        result = qcml.collectSetParameter("nonexistent", "nonexistent")
-        assert isinstance(result, list), f"Expected list, got {type(result)}"
 
 
 class TestAbsoluteQuantitation:

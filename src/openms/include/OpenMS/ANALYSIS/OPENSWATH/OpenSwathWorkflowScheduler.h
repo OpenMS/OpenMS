@@ -58,7 +58,7 @@ namespace OpenMS
       int max_concurrent_swaths = -1;
       /// Number of scoring worker threads available. When @ref max_concurrent_swaths is @c <= @c 0, the auto SWATH concurrency will not exceed this.
       Size scoring_threads = 1;
-      /// Smallest scoring batch size that may be picked automatically by @ref chooseInnerBatchSize. Default @c 2000.
+      /// Smallest scoring batch size that may be picked automatically by @ref chooseInnerBatchSize, as long as the batches still give every scoring thread @ref target_jobs_per_thread jobs. Default @c 2000.
       Size min_inner_batch_size = 2000;
       /// Largest scoring batch size that may be picked automatically by @ref chooseInnerBatchSize. Default @c 10000.
       Size max_inner_batch_size = 10000;
@@ -145,8 +145,10 @@ namespace OpenMS
         - @p user_inner_batch_size @c > @c 0 short-circuits to @c min(user_inner_batch_size, total_compounds).
         - Otherwise the heuristic targets @c max(active_swaths, scoring_threads * target_jobs_per_thread)
           jobs in flight: @c batch_size @c = @c ceil(total_compounds / target_jobs), then
-          clamped to @c [min_inner_batch_size, max_inner_batch_size] and finally capped at
-          @p total_compounds.
+          clamped to @c [min_batch, max_inner_batch_size] and finally capped at
+          @p total_compounds. @c min_batch is @c min_inner_batch_size; with several scoring threads,
+          it is lowered to @c ceil(total_compounds / (scoring_threads * target_jobs_per_thread)) where
+          the floor would leave fewer jobs than that (e.g. a wave of a single SWATH).
 
       @p scoring_threads and @p active_swaths are each treated as @c max(1, value) inside
       the heuristic so callers may pass @c 0 without surprises.

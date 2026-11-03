@@ -528,7 +528,15 @@ namespace OpenMS
     // Long double overloads
     void appendToStr(long double ld, std::string& target)
     {
+#ifdef _LIBCPP_VERSION
+      // libc++ implements std::to_chars for long double by converting the value to double.
+      // Where long double is wider (x86_64 macOS, WebAssembly), the digits of a long double
+      // would only spell out the binary expansion of that double (7.4L as
+      // "7.400000000000000355..."): write it as the double it is formatted as.
+      appendNumeric(static_cast<double>(ld), target, writtenDigits<double>(), false);
+#else
       appendNumeric(ld, target, writtenDigits<long double>(), false);
+#endif
     }
     void appendToStrLowP(long double ld, std::string& target)
     {

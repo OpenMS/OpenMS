@@ -46,7 +46,7 @@ START_SECTION((static ToolListType getTOPPToolList()))
   TEST_TRUE(!list.empty())
   // the key and the description's own name are the same thing: the name the registry entry declares
   TEST_EQUAL(list.find("DecoyDatabase")->second.name, "DecoyDatabase")
-  TEST_EQUAL(list.find("QCShrinker")->second.name, "QCShrinker")
+  TEST_EQUAL(list.find("QCCalculator")->second.name, "QCCalculator")
   // a tool behind a build option is listed only by a build that has the option: the
   // openms_topp_tool() declaration is inside that option's if(), so a build without it
   // neither builds the tool nor writes it to the generated registry

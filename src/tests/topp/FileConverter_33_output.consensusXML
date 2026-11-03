@@ -386,7 +386,6 @@
 			</ProteinHit>
 			<ProteinHit id="PH_182" accession="Q9HMZ6" score="0" sequence="MQTETDGVELVGDQTVENIARAAVFAALTGAMAYVSFQNPVSPAPVTLQVLGVFLAGLYLGPVWGGASMVLYLIAGGVGAPVFAGGGSGLGTFVAPTGGYLLSYPFAAALTGLVAHGTTELADPRDVGVAKLVAAMVAATVVIYAAGTVGFAIVQRPSLAAAFAPSALVDAFLVAGAAFIPAEAFKIAAAIGITRSDQLNAA">
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="117.1" RT="4101.48" >

@@ -588,11 +588,12 @@ protected:
       if (FileHandler::getType(f) == FileTypes::RAW)
       {
         OPENMS_LOG_INFO << "Converting Thermo .raw to temp mzML for Sage: " << f << std::endl;
-        MSExperiment exp_raw;
-        FileHandler fh_raw;
-        fh_raw.loadExperiment(f, exp_raw, {FileTypes::RAW}, log_type_);
         auto tmp_mzml = TempFiles::getTemporaryFile() + ".mzML";
-        MzMLFile().store(tmp_mzml, exp_raw);
+        {
+          // Stream scan by scan, so the run is never held in memory
+          PlainMSDataWritingConsumer writer(tmp_mzml);
+          FileHandler().transformExperiment(f, &writer, {FileTypes::RAW}, log_type_);
+        }
         sage_tmp_basename_to_original[File::basename(tmp_mzml)] = f;
         f = tmp_mzml;
       }
@@ -788,7 +789,7 @@ protected:
 
     // Check if any input is a Bruker .d folder (not mzML) — skip mzML-specific post-processing
     bool has_non_mzml_input = std::any_of(input_files.begin(), input_files.end(),
-      [](const std::string& f) { return !StringUtils::hasSuffix(f, ".mzML"); });
+      [](const std::string& f) { return FileHandler::getType(f) != FileTypes::MZML; }); // any case of the extension
 
     // Build native ID lookup from mzML files (not applicable for .d input)
     map<std::string,unordered_map<int, std::string>> file2specnr2nativeid;

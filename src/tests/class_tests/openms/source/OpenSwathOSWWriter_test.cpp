@@ -15,6 +15,8 @@
 #include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <string>
+#include <utility>
+#include <vector>
 
 using namespace OpenMS;
 using namespace std;
@@ -114,6 +116,59 @@ START_SECTION([EXTRA] RUN.ID is stored as INTEGER not BLOB (regression test for 
   }
 
   File::remove(temp_file);
+}
+END_SECTION
+
+START_SECTION([EXTRA] OSWValue holds numbers in place and text out of line)
+{
+  typedef OpenSwathOSWWriter::OSWValue OSWValue;
+  // a scored feature fills several hundred cells: keep them small
+  TEST_EQUAL(sizeof(OSWValue) <= 16, true)
+
+  OSWValue int_value(Int64(42));
+  TEST_EQUAL(int_value.type == OSWValue::Type::Int64, true)
+  TEST_EQUAL(int_value.asInt(), 42)
+  OSWValue double_value(1.5);
+  TEST_EQUAL(double_value.type == OSWValue::Type::Double, true)
+  TEST_REAL_SIMILAR(double_value.asDouble(), 1.5)
+  TEST_EQUAL(OSWValue("NULL").isNull(), true)
+  TEST_EQUAL(OSWValue("17").asInt(), 17)
+
+  const std::string long_text = "a text value that does not fit into the small string buffer";
+  OSWValue text = OSWValue::text(long_text);
+  TEST_EQUAL(text.type == OSWValue::Type::Text, true)
+  TEST_EQUAL(text.asText(), long_text)
+
+  // copies own their text
+  OSWValue copy(text);
+  OSWValue assigned;
+  assigned = text;
+  text = OSWValue(Int64(1));
+  TEST_EQUAL(text.asInt(), 1)
+  TEST_EQUAL(copy.asText(), long_text)
+  TEST_EQUAL(assigned.asText(), long_text)
+
+  // moving hands the text over and leaves a NULL cell behind
+  OSWValue moved(std::move(copy));
+  TEST_EQUAL(moved.asText(), long_text)
+  TEST_EQUAL(copy.isNull(), true)
+  assigned = std::move(moved);
+  TEST_EQUAL(assigned.asText(), long_text)
+  TEST_EQUAL(moved.isNull(), true)
+  assigned = OSWValue::text("short");
+  TEST_EQUAL(assigned.asText(), "short")
+
+  // rows of cells can be copied and grown (vector reallocation moves the cells)
+  std::vector<OpenSwathOSWWriter::FeaturePrecursorRow> rows;
+  for (int i = 0; i < 100; ++i)
+  {
+    rows.push_back({OSWValue(Int64(i)), OSWValue::text(long_text + StringUtils::toStr(i)), OSWValue(0.5 * i), OSWValue()});
+  }
+  const std::vector<OpenSwathOSWWriter::FeaturePrecursorRow> rows_copy = rows;
+  TEST_EQUAL(rows_copy[99][0].asInt(), 99)
+  TEST_EQUAL(rows_copy[99][1].asText(), long_text + "99")
+  TEST_REAL_SIMILAR(rows_copy[7][2].asDouble(), 3.5)
+  TEST_EQUAL(rows_copy[7][3].isNull(), true)
 }
 END_SECTION
 

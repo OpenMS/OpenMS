@@ -61,6 +61,8 @@ INOUT_METHODS: Dict[Tuple[str, str], Dict[str, Any]] = {
     ("PercolatorFeatureSetHelper", "mergeMULTISEProteinIds"): {
         TUPLE: {2: ((0, 0, ("all_protein_ids",)), (1, 1, ("new_protein_ids",)))},
     },
+    ("SimpleTSGXLMS", "getLinearIonSpectrum"): {LIST: (0, ("spectrum",))},
+    ("SimpleTSGXLMS", "getXLinkIonSpectrum"): {LIST: (0, ("spectrum",))},
     ("SwathWindowLoader", "annotateSwathMapsFromFile"): {LIST: (1, ("swath_maps",))},
     ("TransformationModelBSpline", "weightData"): _WEIGHT,
     ("TransformationModelBSpline", "unWeightData"): _WEIGHT,
@@ -88,7 +90,7 @@ INOUT_METHODS: Dict[Tuple[str, str], Dict[str, Any]] = {
     ("IDFilter", "updateProteinGroups"): {TUPLE: {2: ((1, 0, ("groups",)),)}},
     ("PeptideIndexing", "run"): {
         # run(list[FASTAEntry], prots, peps) -> (exit_code, proteins, prot_ids)
-        # run(FASTAContainer, prots, peps)   -> (exit_code, prot_ids)
+        # run(fasta_file, prots, peps)       -> (exit_code, prot_ids)
         TUPLE: {3: ((1, 0, ("proteins",)), (2, 1, ("prot_ids",))), 2: ((1, 1, ("prot_ids",)),)},
     },
     ("PosteriorErrorProbabilityModel", "fit"): {

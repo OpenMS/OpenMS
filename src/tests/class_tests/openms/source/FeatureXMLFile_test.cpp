@@ -750,4 +750,24 @@ END_SECTION
 /// check the temporary files written above against their XML schema (types without a validator are skipped)
 VALIDATE_TMP_FILES
 
+START_SECTION([EXTRA] load - an empty file list ('spectra_data') is not stored)
+{
+  // older versions wrote one for runs without files
+  FeatureMap map;
+  ProteinIdentification run;
+  run.setIdentifier("run");
+  run.setMetaValue("spectra_data", StringList());
+  run.setMetaValue("spectra_data_raw", StringList());
+  map.getProteinIdentifications().push_back(run);
+  std::string file;
+  NEW_TMP_FILE_EXT(file, ".featureXML")
+  FeatureXMLFile().store(file, map);
+  FeatureMap loaded;
+  FeatureXMLFile().load(file, loaded);
+  TEST_EQUAL(loaded.getProteinIdentifications().size(), 1)
+  TEST_EQUAL(loaded.getProteinIdentifications()[0].metaValueExists("spectra_data"), false)
+  TEST_EQUAL(loaded.getProteinIdentifications()[0].metaValueExists("spectra_data_raw"), false)
+}
+END_SECTION
+
 END_TEST

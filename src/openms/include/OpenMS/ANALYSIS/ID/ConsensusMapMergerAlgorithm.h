@@ -53,7 +53,7 @@ namespace OpenMS
     /// Similar to above, merges every ID Run into one big run. Proteins get only inserted once but Peptides stay unfiltered
     /// i.e. might occur in several PeptideIdentifications afterwards
     /// @note Groups are not carried over during merging.
-    /// @throws MissingInformationException for e.g. missing map_indices in PeptideIDs
+    /// @throws MissingInformationException if @p cmap has no IdentificationRun, or for e.g. missing map_indices in PeptideIDs
     void mergeAllIDRuns(ConsensusMap& cmap) const;
 
     /// Takes a ConsensusMap and a mapping between ConsensusMap column index (sub map index in the map_index meta value)

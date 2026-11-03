@@ -115,11 +115,14 @@ namespace OpenMS
         Text
       };
 
+      /// Payload. Text is rare (only values that are neither numeric nor NULL) and is held
+      /// out of line, so that a cell takes 16 bytes instead of 40: a scored feature fills several
+      /// hundred cells, and millions of them are queued for the writer.
       union Storage
       {
         Int64 int_value;
         double double_value;
-        std::string text_value;
+        std::string* text_value; ///< owned by the OSWValue while type == Type::Text
 
         Storage();
         ~Storage();

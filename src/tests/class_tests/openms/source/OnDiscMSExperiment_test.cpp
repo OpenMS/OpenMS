@@ -675,6 +675,45 @@ START_SECTION(([EXTRA] Range filter on a spectrum with a data array of the wrong
 }
 END_SECTION
 
+START_SECTION(([EXTRA] getSpectrumMetadata/getSpectrumRT/getSpectrumMSLevel: meta data values, index checks, skipMetaData))
+{
+  // MzMLFile_4_indexed.mzML: MS1 (index 0), MS2 (index 1, precursor m/z 5.55), MS1 (index 2), MS1 (index 3)
+  OnDiscPeakMap with_meta;
+  TEST_EQUAL(with_meta.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_4_indexed.mzML")), true)
+  const Size n = with_meta.getNrSpectra();
+  TEST_EQUAL(n, 4)
+  for (Size i = 0; i < n; ++i)
+  {
+    const MSSpectrum full = with_meta.getSpectrum(i);
+    TEST_REAL_SIMILAR(with_meta.getSpectrumRT(i), full.getRT())
+    TEST_EQUAL(with_meta.getSpectrumMSLevel(i), full.getMSLevel())
+    const MSSpectrum meta = with_meta.getSpectrumMetadata(i);
+    TEST_EQUAL(meta.getNativeID(), full.getNativeID())
+    TEST_EQUAL(meta.getMSLevel(), full.getMSLevel())
+    TEST_EQUAL(meta.getPrecursors().size(), full.getPrecursors().size())
+    TEST_EQUAL(meta.empty(), true)
+  }
+  TEST_EQUAL(with_meta.getSpectrumMSLevel(1), 2)
+  TEST_EQUAL(with_meta.getSpectrumMetadata(1).getPrecursors().size(), 1)
+  TEST_EQUAL(with_meta.findFirstRT(with_meta.getSpectrumRT(0)), 0)
+
+  // an index past the end throws instead of reading out of bounds
+  TEST_EXCEPTION(Exception::IndexOverflow, with_meta.getSpectrumRT(n))
+  TEST_EXCEPTION(Exception::IndexOverflow, with_meta.getSpectrumMSLevel(n))
+  TEST_EXCEPTION(Exception::IndexOverflow, with_meta.getSpectrumMetadata(n))
+
+  // without meta data, RT, MS level and precursors are not known: reject instead of returning defaults
+  OnDiscPeakMap no_meta;
+  TEST_EQUAL(no_meta.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_4_indexed.mzML"), true), true)
+  TEST_EQUAL(no_meta.getNrSpectra(), n)
+  TEST_EXCEPTION(Exception::IllegalArgument, no_meta.getSpectrumRT(1))
+  TEST_EXCEPTION(Exception::IllegalArgument, no_meta.getSpectrumMSLevel(1))
+  TEST_EXCEPTION(Exception::IllegalArgument, no_meta.getSpectrumMetadata(1))
+  TEST_EXCEPTION(Exception::IllegalArgument, no_meta.findFirstRT(0.0))
+  TEST_EXCEPTION(Exception::IndexOverflow, no_meta.getSpectrumRT(n))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

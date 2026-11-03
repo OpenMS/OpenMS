@@ -182,6 +182,41 @@ START_SECTION([EXTRA] forced conversion of MS1 spectra gives every XIC chromatog
 }
 END_SECTION
 
+START_SECTION([EXTRA] SRM spectra with several product ions give every chromatogram its own native ID)
+{
+  // as triple quadrupoles (e.g. Thermo TSQ) store them: one spectrum per precursor with a peak per transition
+  PeakMap exp;
+  for (int s = 0; s < 3; ++s)
+  {
+    PeakSpectrum spec;
+    spec.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SRM);
+    spec.setNativeID("scan=" + StringUtils::toStr(s + 1));
+    spec.setRT(10.0 + s);
+    Precursor prec;
+    prec.setMZ(549.272);
+    spec.getPrecursors().push_back(prec);
+    for (double mz : {246.108, 529.777})
+    {
+      Peak1D p;
+      p.setMZ(mz);
+      p.setIntensity(100.0f + s);
+      spec.push_back(p);
+    }
+    exp.addSpectrum(spec);
+  }
+  ChromatogramTools().convertSpectraToChromatograms(exp, true);
+  TEST_EQUAL(exp.size(), 0)
+  TEST_EQUAL(exp.getChromatograms().size(), 2)
+  ABORT_IF(exp.getChromatograms().size() != 2)
+  // mzML requires unique chromatogram ids; both used to be "chromatogram=scan=1"
+  TEST_STRING_EQUAL(exp.getChromatograms()[0].getNativeID(), "chromatogram=scan=1 product=" + StringUtils::toStr(246.108))
+  TEST_STRING_EQUAL(exp.getChromatograms()[1].getNativeID(), "chromatogram=scan=1 product=" + StringUtils::toStr(529.777))
+  TEST_REAL_SIMILAR(exp.getChromatograms()[1].getProduct().getMZ(), 529.777)
+  TEST_EQUAL(exp.getChromatograms()[1].size(), 3)
+  TEST_REAL_SIMILAR(exp.getChromatograms()[1][2].getIntensity(), 102.0)
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

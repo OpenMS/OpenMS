@@ -33,8 +33,9 @@
 ##
 ## openms_install_system_library_licenses() installs system/<package>/: on Linux, the
 ## libraries the package takes from the build machine's distribution rather than from vcpkg
-## (libgfortran, which vcpkg's LAPACK needs), with the copyright file of the Debian package
-## each comes from; cmake/package_general.cmake calls it.
+## (none at the moment; it was libgfortran for the LAPACK of the removed COIN-OR solver),
+## with the copyright file of the Debian package each comes from; cmake/package_general.cmake
+## calls it.
 ##
 ## openms_install_vendored_licenses() installs the licenses of the third-party code that
 ## OpenMS carries in its own source tree and compiles into its libraries (vendored/<name>/).
@@ -283,9 +284,10 @@ endfunction()
 ##                    POST_EXCLUDE_REGEXES of its runtime dependency set (the C and C++
 ##                    runtime, Qt, ...)
 ## The libraries the roots need that neither another root provides nor an exclusion drops
-## come from the build machine's distribution, and the package bundles them: on Ubuntu, the
-## GCC Fortran runtime libgfortran, which vcpkg's LAPACK needs. They are found as the
-## compiler finds them (-print-file-name), and the libraries they need are followed in turn.
+## come from the build machine's distribution, and the package bundles them (none at the
+## moment; it was the GCC Fortran runtime libgfortran for the LAPACK of the removed COIN-OR
+## solver). They are found as the compiler finds them (-print-file-name), and the libraries
+## they need are followed in turn.
 ## For each Debian package that installed one, its copyright file goes to
 ## LICENSES/system/<package>/copyright. Debian's copyright files refer to the full texts of
 ## common licenses in /usr/share/common-licenses instead of including them, so the texts
@@ -481,8 +483,9 @@ function(openms_install_system_library_licenses)
 endfunction()
 
 ## Installs the licenses of the libraries under src/openms/extern and src/openms/thirdparty,
-## and of the third-party code in other OpenMS source files (libkdtree++ in KDTree.h,
-## MSNumpress), under share/OpenMS/LICENSES/vendored. A library of src/openms/extern that the
+## of the third-party code in other OpenMS source files (libkdtree++ in KDTree.h,
+## MSNumpress), and of HiGHS when the build fetches it and links it into libOpenMS
+## (cmake_findExternalLibs.cmake), under share/OpenMS/LICENSES/vendored. A library of src/openms/extern that the
 ## build takes from vcpkg or the system instead (USE_EXTERNAL_<name>) is left out; for a vcpkg
 ## port, openms_install_vcpkg_licenses() installs its license.
 ## Installs <files> to share/OpenMS/LICENSES/vendored/<library> and records them for
@@ -511,6 +514,16 @@ function(openms_install_vendored_licenses)
                                    "${_texts}/libkdtree/README.txt"
                                    "${_texts}/libkdtree/Artistic-2.0.txt")
   _openms_install_vendored_license(MSNumpress "${_texts}/MSNumpress/LICENSE.txt")
+  if(OPENMS_ENABLE_MZPEAK)
+    _openms_install_vendored_license(mzpeak "${_openms}/thirdparty/mzpeak/LICENSE")
+  endif()
+  ## HiGHS fetched by FetchContent is linked statically, so no other step installs its
+  ## license: openms_install_vcpkg_licenses() covers vcpkg ports, and the wheel's license
+  ## collection covers shared libraries. A HiGHS from vcpkg or the system is found by
+  ## find_package() instead, which leaves highs_SOURCE_DIR undefined.
+  if(DEFINED highs_SOURCE_DIR)
+    _openms_install_vendored_license(HiGHS "${highs_SOURCE_DIR}/LICENSE.txt")
+  endif()
 
   ## <directory in src/openms/extern>/<its license file>
   set(_extern_licenses evergreen/LICENSE GTE/LICENSE Quadtree/LICENSE)

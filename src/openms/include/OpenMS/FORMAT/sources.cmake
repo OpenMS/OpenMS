@@ -19,6 +19,7 @@ set(sources_list_h
 AbsoluteQuantitationMethodFile.h
 AbsoluteQuantitationStandardsFile.h
 Base64.h
+BedRModFile.h
 Bzip2Ifstream.h
 CachedMzML.h
 ChromeleonFile.h
@@ -62,6 +63,7 @@ MascotXMLFile.h
 MsInspectFile.h
 MzDataFile.h
 MzMLFile.h
+MzPeakFile.h
 MzQCFile.h
 MzTab.h
 MzTabBase.h
@@ -89,7 +91,6 @@ PepXMLFileMascot.h
 PercolatorInfile.h
 PercolatorOutfile.h
 ProtXMLFile.h
-QcMLFile.h
 SequestInfile.h
 SequestOutfile.h
 SpecArrayFile.h
@@ -133,6 +134,7 @@ list(APPEND sources_list_h QPXIdentity.h)
 list(APPEND sources_list_h ProteinGroupArrowExport.h)
 list(APPEND sources_list_h QPXCollectionExport.h)
 list(APPEND sources_list_h QPXValueValidation.h)
+list(APPEND sources_list_h QPXDatasetExport.h)
 list(APPEND sources_list_h ProteinIdentificationArrowIO.h)
 list(APPEND sources_list_h FeatureMapArrowIO.h)
 list(APPEND sources_list_h ConsensusMapArrowIO.h)
@@ -145,7 +147,7 @@ if (WITH_OPENTIMS)
 endif()
 
 if (WITH_THERMO_RAW)
-  list(APPEND sources_list_h ThermoRawFile.h)
+  list(APPEND sources_list_h OnDiscThermoRawExperiment.h ThermoRawFile.h)
 endif()
 
 ### add path to the filenames
@@ -159,9 +161,7 @@ source_group("Header Files\\OpenMS\\FORMAT" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
 
-### Private (non-installed) headers: the Xerces InputSource / BinInputStream
-### adapters are internal plumbing used only by XMLFile.cpp / CompressedInputSource.cpp.
-### Keeping them off OpenMS_sources_h is what lets Xerces be a PRIVATE link dependency.
+### Private (non-installed) byte-stream adapters used by XMLFile.cpp / CompressedInputSource.cpp.
 ###
 ### SqliteConnector_impl.h exposes the raw SQLite C API (sqlite3 / sqlite3_stmt)
 ### and OMSFileStore.h / OMSFileLoad.h expose the SQLiteCpp C++ API (SQLite::*).
@@ -180,8 +180,10 @@ set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
 ### <arrow/io/api.h>. The Arrow-based OpenSWATH and Parquet helpers that use either one
 ### live in libOpenMS too (#10247), so no tool directory needs them installed.
 set(private_headers_list_h
+InputStream.h
 Bzip2InputStream.h
 CompressedInputSource.h
+DecompressingInputStream.h
 GzipInputStream.h
 ZipInputStream.h
 SqliteConnector_impl.h

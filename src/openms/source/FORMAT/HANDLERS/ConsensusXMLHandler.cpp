@@ -87,6 +87,8 @@ namespace OpenMS::Internal
       getProteinGroups_(prot_id_.getProteinGroups(), "protein_group");
       getProteinGroups_(prot_id_.getIndistinguishableProteins(),
                         "indistinguishable_proteins");
+      // older files may contain an empty file list, which names no files
+      prot_id_.removeEmptyPrimaryMSRunPaths();
       consensus_map_->getProteinIdentifications().emplace_back(std::move(prot_id_));
       prot_id_ = ProteinIdentification();
       last_meta_ = nullptr;

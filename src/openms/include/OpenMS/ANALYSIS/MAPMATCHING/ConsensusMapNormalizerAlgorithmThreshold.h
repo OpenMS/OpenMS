@@ -77,7 +77,11 @@ public:
       @param[in] ratio_threshold Lower bound of the kept-ratio window. Use e.g. @c 0.5 to keep ratios in @c (0.5, 2.0).
       @param[in] acc_filter      Regex applied to accession strings; empty means "match anything".
       @param[in] desc_filter     Regex applied to description strings; empty means "match anything".
-      @return One normalisation factor per map (size equals @c map.getColumnHeaders().size()).
+      @return One normalisation factor per map, in the order of the column headers (size equals
+              @c map.getColumnHeaders().size()). For maps numbered @c 0 ... @c N-1 entry @c j belongs to
+              map index @c j; map indices need not be consecutive (e.g. after FileFilter -consensus:map).
+
+      @exception Exception::ElementNotFound if the map index of a feature handle has no column header
     */
     static std::vector<double> computeCorrelation(const ConsensusMap & map, const double & ratio_threshold, const std::string & acc_filter, const std::string & desc_filter);
 
@@ -85,12 +89,16 @@ public:
       @brief Multiply every feature handle's intensity by its map's factor.
 
       Iterates every consensus feature in @p map and, for each
-      sub-feature handle, multiplies its intensity by
-      @p ratios[handle.getMapIndex()]. Progress is reported to the
-      console via @ref ProgressLogger.
+      sub-feature handle, multiplies its intensity by the factor of its
+      map: the entry of @p ratios at the position of the handle's map
+      index among the column headers (the map index itself for maps
+      numbered @c 0 ... @c N-1). Progress is reported to the console via
+      @ref ProgressLogger.
 
       @param[in,out] map    Consensus map whose feature-handle intensities are scaled in place.
-      @param[in]     ratios Per-map factors (typically obtained from @ref computeCorrelation). Must have at least @c (max-map-index + 1) entries.
+      @param[in]     ratios Per-map factors, one per column header (typically obtained from @ref computeCorrelation).
+
+      @exception Exception::ElementNotFound if the map index of a feature handle has no column header
     */
     static void normalizeMaps(ConsensusMap & map, const std::vector<double> & ratios);
   };

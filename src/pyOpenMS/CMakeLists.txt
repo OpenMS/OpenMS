@@ -575,12 +575,12 @@ else()
   # Find Arrow ourselves so we can link the C++ bridge functions (ExportSchema, etc.).
   if(NOT OPENMS_ARROW_TARGET)
     # Don't pin the version in find_package — Arrow's ConfigVersion uses
-    # SameMajorVersion compatibility, so requesting 23 rejects 24.x. Check the
+    # SameMajorVersion compatibility, so requesting 24 rejects 25.x. Check the
     # version manually after the call. Mirrors the main cmake path in
     # cmake/cmake_findExternalLibs.cmake.
     find_package(Arrow CONFIG REQUIRED)
-    if(Arrow_VERSION VERSION_LESS 23)
-      message(FATAL_ERROR "Apache Arrow >= 23 required (found ${Arrow_VERSION}).")
+    if(Arrow_VERSION VERSION_LESS 24)
+      message(FATAL_ERROR "Apache Arrow >= 24 required (found ${Arrow_VERSION}).")
     endif()
     if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
       set(OPENMS_ARROW_TARGET Arrow::arrow_static)

@@ -12,6 +12,7 @@
 #include <OpenMS/CHEMISTRY/IonNaming.h>
 #include "NuXLFragmentAnnotationHelper.h"
 #include "NuXLConstants.h"
+#include "NuXLSiteLocalization.h"
 
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -20,6 +21,8 @@
 #include <OpenMS/CONCEPT/Macros.h> // for OPENMS_PRECONDITION
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <algorithm>
+#include <map>
 #include <regex>
 
 using namespace std;
@@ -28,6 +31,22 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  // whether a modification only exchanges isotopes (e.g. Label:13C(6)) and so leaves the residue's chemistry,
+  // e.g. the lysine amine, unchanged
+  static bool isIsotopeLabel(const ResidueModification* mod)
+  {
+    const EmpiricalFormula& diff = mod->getDiffFormula();
+    if (diff.isEmpty()) { return false; } // defined by mass only: chemistry unknown
+    map<string, SignedSize> net_count; // element symbol without mass number (e.g. "(13)C" -> "C")
+    for (const auto& [element, count] : diff)
+    {
+      string symbol = element->getSymbol();
+      if (!symbol.empty() && symbol[0] == '(') { symbol = symbol.substr(symbol.find(')') + 1); }
+      net_count[symbol] += count;
+    }
+    return all_of(net_count.begin(), net_count.end(), [](const auto& e) { return e.second == 0; });
+  }
 
   // create total loss spectrum using new_param as template
   static PeakSpectrum createTotalLossSpectrumForAnnotations(const AASequence& fixed_and_variable_modified_peptide, size_t precursor_charge, Param new_param)
@@ -312,7 +331,10 @@ namespace OpenMS
     Size max_variable_mods_per_peptide, 
     double fragment_mass_tolerance, 
     bool fragment_mass_tolerance_unit_ppm, 
-    const NuXLParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts)   
+    const NuXLParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts,
+    bool nhs_localization,
+    const NuXLSiteLocalization::ProteinTermini* protein_termini,
+    bool enzyme_cleaves_after_lysine)
   {
     TheoreticalSpectrumGenerator partial_loss_spectrum_generator;
     auto param = partial_loss_spectrum_generator.getParameters();
@@ -359,11 +381,15 @@ namespace OpenMS
         const AASequence& fixed_and_variable_modified_peptide = all_modified_peptides[a.peptide_mod_index];
         const double fixed_and_variable_modified_peptide_weight = fixed_and_variable_modified_peptide.getMonoWeight();
 
-        // determine NA on precursor from index in map
-        auto mod_combinations_it = mm.mod_combinations.cbegin();
-        std::advance(mod_combinations_it, a.NA_mod_index);
-        const std::string precursor_na_adduct = *mod_combinations_it->second.begin(); // TODO: check if it is enough to consider only first precursor adduct ????????????????????????????????????????????????????????
-        const double precursor_na_mass = EmpiricalFormula(mod_combinations_it->first).getMonoWeight();
+        // determine NA on precursor from the indices stored in the hit
+        const auto precursor = mm.findPrecursorAdduct(a.NA_mod_index, a.NA_adduct_amb_index);
+        if (precursor.adduct == nullptr)
+        {
+          OPENMS_LOG_WARN << "Precursor adduct indices " << a.NA_mod_index << "/" << a.NA_adduct_amb_index << " out of range for " << unmodified_sequence << ". Hit not localized." << endl;
+          continue;
+        }
+        const std::string& precursor_na_adduct = *precursor.adduct; // precursor adduct of this hit (e.g., U-H2O or C-NH3 for the same sum formula)
+        const double precursor_na_mass = EmpiricalFormula(*precursor.sum_formula).getMonoWeight();
 
         // generate total loss spectrum for the fixed and variable modified peptide (without NAs) (using the settings for partial loss generation)
         // but as we also add the abundant immonium ions for charge 1 and precursor ions for all charges to get a more complete annotation
@@ -411,13 +437,27 @@ namespace OpenMS
           continue; 
         }
 
+        if (nhs_localization) // stays so if no shifted fragment ion is annotated
+        {
+          a.localization_method = "unlocalized";
+          a.localization_range_begin = -1;
+          a.localization_range_end = -1;
+        }
+
         // ion centric (e.g. b and y-ion) spectrum annotation that records all shifts of specific ions (e.g. y5, y5 + U, y5 + C3O)
 
         // generate all partial loss spectra (excluding the complete loss spectrum) merged into one spectrum
         // 1. get all possible NA fragment shifts in the MS2 (based on the precursor RNA/DNA)
         OPENMS_LOG_DEBUG << "Precursor NA adduct: "  << precursor_na_adduct << endl;
 
-        const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_na_adduct).feasible_adducts;
+        const auto all_NA_adducts_it = all_feasible_adducts.find(precursor_na_adduct);
+        if (all_NA_adducts_it == all_feasible_adducts.end())
+        {
+          OPENMS_LOG_WARN << "No feasible fragment adducts for precursor adduct " << precursor_na_adduct << " (" << unmodified_sequence << "). Hit not localized." << endl;
+          a.fragment_annotations = std::move(fas);
+          continue;
+        }
+        const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_NA_adducts_it->second.feasible_adducts;
 
         if (feasible_MS2_adducts.empty()) { continue; } // should not be the case - check case of no nucleotide but base fragment ?
 
@@ -428,7 +468,12 @@ namespace OpenMS
             return (item.first == a.cross_linked_nucleotide);
           });
 
-        OPENMS_POSTCONDITION(nt_to_adducts != feasible_MS2_adducts.end(), "Nucleotide not found in mapping to feasible adducts.")
+        if (nt_to_adducts == feasible_MS2_adducts.end())
+        {
+          OPENMS_LOG_WARN << "Cross-linked nucleotide " << a.cross_linked_nucleotide << " not feasible for precursor adduct " << precursor_na_adduct << " (" << unmodified_sequence << "). Hit not localized." << endl;
+          a.fragment_annotations = std::move(fas);
+          continue;
+        }
 
         vector<NuXLFragmentAdductDefinition> partial_loss_modification = nt_to_adducts->second;
 
@@ -436,7 +481,7 @@ namespace OpenMS
         std::stable_sort(partial_loss_modification.begin(), partial_loss_modification.end());
 
         // get marker ions (these are not specific to the cross-linked nucleotide but also depend on the whole oligo bound to the precursor)
-        const vector<NuXLFragmentAdductDefinition>& marker_ions = all_feasible_adducts.at(precursor_na_adduct).marker_ions;
+        const vector<NuXLFragmentAdductDefinition>& marker_ions = all_NA_adducts_it->second.marker_ions;
         OPENMS_LOG_DEBUG << "Marker ions used for this Precursor NA adduct: "  << endl;
         for (auto & fa : marker_ions)
         {
@@ -824,6 +869,37 @@ namespace OpenMS
         #ifdef DEBUG_OpenNuXL
           OPENMS_LOG_DEBUG << endl;
         #endif
+
+        // NHS esters (e.g. SDA) bind the protein N-terminus and lysines (rarely S/T/Y next to a histidine):
+        // choose the site by this chemistry among the residues the fragment ions can't tell apart
+        if (nhs_localization)
+        {
+          const bool reactive_protein_n_term = protein_termini != nullptr
+            && !fixed_and_variable_modified_peptide.hasNTerminalModification()
+            && NuXLSiteLocalization::isProteinNTerminal(*protein_termini, unmodified_sequence);
+          // a modification other than a pure isotope substitution (e.g. Acetyl (K), TMT6plex (K)) blocks the residue's amine or hydroxyl
+          vector<bool> blocked(unmodified_sequence.size(), false);
+          for (Size i = 0; i != fixed_and_variable_modified_peptide.size(); ++i)
+          {
+            const Residue& r = fixed_and_variable_modified_peptide[i];
+            blocked[i] = r.isModified() && !isIsotopeLabel(r.getModification());
+          }
+          // the enzyme doesn't cleave after a modified lysine: a C-terminal one can't carry the cross-link,
+          // unless no cleavage was needed because the peptide ends the protein
+          if (enzyme_cleaves_after_lysine && protein_termini != nullptr && !unmodified_sequence.empty() && unmodified_sequence.back() == 'K'
+            && !NuXLSiteLocalization::isProteinCTerminal(*protein_termini, unmodified_sequence))
+          {
+            blocked.back() = true;
+          }
+          const NuXLSiteLocalization::Site site = NuXLSiteLocalization::localizeNHS(unmodified_sequence, reactive_protein_n_term,
+            n_shifts, n_noshifts, c_shifts, c_noshifts, NuXLSiteLocalization::DEFAULT_TOLERANCE, blocked);
+          best_localization = unmodified_sequence;
+          if (site.position >= 0) { best_localization[site.position] = tolower(best_localization[site.position]); }
+          best_localization_position = site.position;
+          a.localization_method = site.method;
+          a.localization_range_begin = site.range_begin;
+          a.localization_range_end = site.range_end;
+        }
 
         // create annotation strings for shifted fragment ions
         NuXLFragmentAnnotationHelper::addShiftedPeakFragmentAnnotation_(shifted_b_ions,

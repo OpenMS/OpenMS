@@ -53,7 +53,6 @@
 			<ProteinHit id="PH_4" accession="Protein5" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[]"/>
 			<UserParam type="string" name="SpectrumIdentificationProtocol" value="MS:1002494"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="OpenPepXL:score" higher_score_better="true" significance_threshold="0.0" MZ="467.945617675781023" RT="2129.236083984380002" spectrum_reference="spectrum=123,spectrum=77" >
