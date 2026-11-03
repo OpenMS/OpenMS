@@ -281,9 +281,9 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Theoretical spectrum needs one ion code per peak", "IonCodes");
     }
-    // (an ordinal of 0 is not an ion, as for parseIonName())
+    // (an ordinal of 0, or a series code other than 0 and 1, is not an ion: as parseIonName() and HyperScore's codeSeries())
     matchIons_(peaks, index, theoretical,
-      [&](Size i, bool& prefix, Size& ordinal) { prefix = ion_series[i] == 0; ordinal = ion_ordinals[i]; return ordinal != 0; },
+      [&](Size i, bool& prefix, Size& ordinal) { prefix = ion_series[i] == 0; ordinal = ion_ordinals[i]; return ion_series[i] <= 1 && ordinal != 0; },
       [&](Size i) { return ion_charges[i]; },
       peptide, precursor_charge, tolerance, ppm, ions);
   }

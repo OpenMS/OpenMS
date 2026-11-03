@@ -193,7 +193,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       bool single_cneg = false;    ///< one Cneg candidate instead of three
       std::string solver = "newton"; ///< Percolator's SVM solver (parameter 'rescore_solver', default 'newton')
       std::string use_pi0 = "true"; ///< pi0 estimate in the q-values and PEPs ('rescoring:use_pi0': true, false (the executable with TDC), auto)
-      bool calc_mass_feature = true; ///< Percolator trains on CalcMass ('rescoring:calc_mass_feature'; OpenMS develop: false)
+      bool calc_mass_feature = false; ///< Percolator trains on CalcMass ('rescoring:calc_mass_feature'; off, as the tool's default and OpenMS develop since #10717)
       bool fixed_enzyme_termini = false; ///< protein termini are enzymatic sites for enzN/enzC ('rescoring:fixed_enzyme_termini'; UNSAFE: breaks FDR control with Met clipping, keep false)
       bool peptide_level = true;   ///< also Percolator's peptide-level q-values and PEPs (parameter 'rescoring:peptide_level', default)
     };
