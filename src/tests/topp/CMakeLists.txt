@@ -5076,6 +5076,12 @@ add_test("TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted_out1" ${DIFF} -whitel
   -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_targeted_mbr_promoted.tmp.consensusXML
   -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_targeted_mbr_promoted_out.consensusXML)
 set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted")
+# YVNDLAGHEK's normalized ratios exactly (FuzzyDiff's 1 % tolerance would accept the 1.00015 of run B before the fix)
+add_test("TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted_normalized" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_targeted_mbr_promoted.tmp.consensusXML
+  "-DEXPECTED=name=\"MS1Label:peptide_ratio_normalized\" value=\"[1.0, 1.0, 1.0, 1.0]\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted_normalized" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted")
 
 # Reserved peaks in the re-quantification: MS1LabeledWorkflow_12 is a synthetic triple SILAC run (2+, one MS1 spectrum per second)
 # whose isotope peaks sit at their measured (fine-structure averaged) positions:

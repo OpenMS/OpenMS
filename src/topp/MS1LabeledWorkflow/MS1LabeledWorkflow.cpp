@@ -183,10 +183,13 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      the elution peak at its identification: the identified channel is integrated (if its isotope pattern fits the peptide),
      the other channels are measured against it from paired peaks. Such a feature and its identifications carry the meta
      value @c quantification_method = @c targeted. Its values are less accurate at extreme ratios than those of a detected
-     multiplet, so they only add ratios and never change one that is reported without them (see <b>Ratios</b> below),
-     and one whose other channel is not quantifiable is left out of the abundances. One exception, with @p match_between_runs:
-     a targeted feature that replaces an unidentified multiplet kept for match between runs (it is measured from that
-     multiplet's peaks) gives its run the targeted value instead of the one that linking would have given the multiplet.
+     multiplet, so without @p match_between_runs they only add ratios and never change one that is reported without them
+     (see <b>Ratios</b> below), and one whose other channel is not quantifiable is left out of the abundances. With
+     @p match_between_runs, linking can still move such ratios: a targeted feature replaces the unidentified multiplet kept
+     for match between runs that it is measured from (its run gets the targeted value instead of the one linking would have
+     given the multiplet), and a targeted feature can draw an unidentified multiplet of another peptide into its linked
+     feature (that run loses the ratio match between runs would have given it). On PXD022659 this concerns about 1 % of the
+     peptide ratios.
      Multiplets without identification are dropped,
      unless @p match_between_runs is set (see below). Once the resolver has used the labels, every identification
      is reduced to the <em>peptide identity</em>: the label modifications of @p labels are removed from the sequence,
@@ -389,8 +392,8 @@ protected:
       "identifications whose labels fit no pattern are not measured; of identifications of different peptides on one signal, only the best one is.\n"
       "These values are less accurate at extreme ratios, so they only add ratios: a peptide or protein group ratio that the other evidences\n"
       "give (see 'ratios:min_ratio_count') does not change, and a feature whose other channel is not quantifiable is left out of the abundances.\n"
-      "Exception with 'match_between_runs': a targeted feature that replaces an unidentified multiplet kept for match between runs gives its run\n"
-      "the targeted value instead of the one linking would have given that multiplet.\n"
+      "With 'match_between_runs', linking can still move such ratios: a targeted feature replaces the unidentified multiplet kept for match\n"
+      "between runs that it is measured from, and it can draw an unidentified multiplet of another peptide into its linked feature.\n"
       "false: such identifications are kept for protein inference only.", false);
     setValidStrings_("targeted_quantification", {"true", "false"});
 
