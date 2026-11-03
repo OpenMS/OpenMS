@@ -86,7 +86,7 @@ namespace OpenMS
     if (end < 0 || end > (int)sequence.size())
       end = (int)sequence.size();
 
-    const std::string& regex = enzyme_->getRegEx();
+    const std::string regex = re_.str(); // the pattern the boost path below compiles (re_ follows the enzyme in setEnzyme())
     if (regex != "()") // if it's not "no cleavage"
     {
       // The two tryptic rules by hand: a token starts after every K, R or X inside the range (Trypsin: not before a P),
