@@ -7,6 +7,7 @@
 #pragma once
 
 #include "OpenDIARecords.h"
+#include "OpenDIARawRegion.h"
 #include <vector>
 
 namespace OpenDIA
@@ -71,6 +72,15 @@ namespace OpenDIA
       @throws OpenMS::Exception::InvalidValue for context mismatch or output-cap exhaustion.
     */
     std::vector<SparseEvidenceRef> extract(const RawTile& tile, SparseEvidenceStats* stats = nullptr) const;
+
+    /**
+      @brief Join a native region scan without materializing a RawTile copy.
+      @param[in] scan Immutable native point columns and acquisition metadata.
+      @param[out] stats Optional deterministic work counters; reset on entry.
+      @return Sparse row references into the scan's point arrays.
+      @throws OpenMS::Exception::InvalidValue for unsupported selector fields or output-cap exhaustion.
+    */
+    std::vector<SparseEvidenceRef> extract(const RawRegion::Scan& scan, SparseEvidenceStats* stats = nullptr) const;
 
     OpenMS::Size queryCount() const noexcept;
 

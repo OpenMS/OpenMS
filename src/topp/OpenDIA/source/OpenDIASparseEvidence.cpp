@@ -178,5 +178,60 @@ namespace OpenDIA
     return output;
   }
 
+  std::vector<SparseEvidenceRef> SparseEvidenceExtractor::extract(const RawRegion::Scan& scan, SparseEvidenceStats* counters) const
+  {
+    const auto acquisition = scan.acquisition();
+    if (scan.context() != context_) { invalid("Raw scan context differs from fragment index context"); }
+    const auto mz = scan.mz();
+    const auto mobility = scan.mobility();
+    const bool selectors_need_mobility = std::any_of(selectors_.begin(), selectors_.end(), [](const auto& selector)
+    {
+      return selector.mobility.has_value();
+    });
+    if (selectors_need_mobility && (! acquisition.point_mobility || mobility.empty()))
+    {
+      invalid("Requested point mobility is absent");
+    }
+    for (const auto& selector : selectors_)
+    {
+      if (selector.isolation_mz || selector.acquisitions)
+      {
+        invalid("Native scan view does not provide the requested isolation/acquisition selector");
+      }
+    }
+
+    SparseEvidenceStats stats;
+    std::vector<SparseEvidenceRef> output;
+    std::vector<OpenMS::Size> matches;
+    for (OpenMS::Size point_index = 0; point_index < mz.size(); ++point_index)
+    {
+      ++stats.raw_points_examined;
+      matches.clear();
+      if (!order_.empty()) { findMatches_(1, 0, order_.size(), mz[point_index], matches, stats); }
+      for (const auto query_index : matches)
+      {
+        const auto& query = queries_[query_index];
+        const auto& selector = selectors_[query.selector_index];
+        if (selector.ms_level != acquisition.ms_level) { continue; }
+        if (selector.rt_seconds && !contains(*selector.rt_seconds, acquisition.rt_seconds)) { continue; }
+        if (selector.faims_voltage && (!acquisition.faims_voltage || *selector.faims_voltage != *acquisition.faims_voltage)) { continue; }
+        if (selector.mobility &&
+            (selector.mobility->unit != *acquisition.point_mobility ||
+             !contains(selector.mobility->interval, mobility[point_index])))
+        {
+          continue;
+        }
+        if (output.size() >= limits_.values) { invalid("Sparse evidence output cap exceeded"); }
+        output.push_back({query.family_id, query.precursor_id, query.fragment_id, point_index});
+      }
+    }
+    stats.queries_matched = output.size();
+    stats.index_bytes = index_bytes_;
+    stats.output_bytes = checkedByteMultiply(output.capacity(), sizeof(SparseEvidenceRef));
+    stats.retained_bytes = checkedByteAdd(stats.index_bytes, stats.output_bytes);
+    if (counters) { *counters = stats; }
+    return output;
+  }
+
   OpenMS::Size SparseEvidenceExtractor::queryCount() const noexcept { return queries_.size(); }
 }
