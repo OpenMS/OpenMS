@@ -82,6 +82,10 @@ namespace OpenDIA
     */
     std::vector<SparseEvidenceRef> extract(const RawRegion::Scan& scan, SparseEvidenceStats* stats = nullptr) const;
 
+    /// Bounded variant for streaming callers. Returns false and clears output when the cap is exceeded.
+    bool tryExtract(const RawRegion::Scan& scan, std::vector<SparseEvidenceRef>& output,
+                    SparseEvidenceStats* stats = nullptr) const;
+
     OpenMS::Size queryCount() const noexcept;
 
   private:

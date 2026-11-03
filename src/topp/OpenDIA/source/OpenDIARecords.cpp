@@ -98,7 +98,6 @@ namespace OpenDIA
   {
     auto& value = specification_;
     OpenDIA::context(value.context);
-    require(value.ms_level > 0, "MS level must be nonzero");
     interval(value.mz);
     if (value.isolation_mz) { interval(*value.isolation_mz); }
     if (value.rt_seconds) { interval(*value.rt_seconds); }
