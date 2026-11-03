@@ -179,13 +179,22 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      peaks reserved by another multiplet (also one of the same peptide, which is quantified on its own) make such a channel
      not quantifiable without measuring it, and of the reserved peaks it uses only those of patterns the detection
      dropped, not the isotopes of the multiplet's other channels; a channel that only the peaks it may not use would give a
-     value is not quantifiable either. With
+     value is not quantifiable either, and so is a weak one (below @p requantify_correlation_ratio times the reference) whose
+     elution profile correlates with the reference's by less than @p requantify_min_correlation (another species at its
+     position; at moderate ratios real re-quantified channels correlate less well and are not checked). Re-quantified values are less accurate at extreme ratios
+     than detected ones, so the ratios count the evidences that rest on them (see <b>Ratios</b> below). With
      @p targeted_quantification, an identified peptide that has no multiplet in
      the run (the detection missed it, or no multiplet fits its identifications) is measured at the m/z of its channels over
      the elution peak at its identification: the identified channel is integrated (if its isotope pattern fits the peptide),
      the other channels are measured against it from paired peaks (a channel is absent only if no peak is seen at its m/z).
      Such a feature and its identifications carry the meta
-     value @c quantification_method = @c targeted.
+     value @c quantification_method = @c targeted. Its values are less accurate at extreme ratios than those of a detected
+     multiplet, so they only add ratios and never change one that is reported without them (see <b>Ratios</b> below),
+     and one whose other channel is not quantifiable is left out of the abundances. They take no part in the alignment, and
+     they are linked among themselves only, after the detected multiplets, so that alignment, linking and match between runs
+     stay as they are without them. One exception, with @p match_between_runs: a targeted feature replaces the unidentified
+     multiplet kept for match between runs that it is measured from, so that run gets the targeted value instead of the one
+     that linking would have given the multiplet (and that value no longer enters the run's normalization factors).
      Multiplets without identification are dropped,
      unless @p match_between_runs is set (see below). Once the resolver has used the labels, every identification
      is reduced to the <em>peptide identity</em>: the label modifications of @p labels are removed from the sequence,
@@ -223,8 +232,13 @@ intensities (@p ratios, computed by @c MS1LabeledRatioQuantifier next to this to
   - per peptide and fraction group, the median of its evidence ratios.
   - per protein group and fraction group, the median of its peptides' ratios, reported only from
     @p ratios:min_ratio_count peptides upwards (MaxQuant's "min. ratio count", 2 by default), with the number of
-    contributing peptides next to it. Every ratio is also reported divided by the median peptide ratio of its
+    contributing peptides next to it (and, with @p targeted_quantification, the number of those from targeted quantification).
+    Every ratio is also reported divided by the median peptide ratio of its
     (fraction group, channel), i.e. normalized on the assumption that most peptides do not change.
+  - evidences of @p targeted_quantification only stand in where nothing else was measured: a peptide ratio uses them only if
+    the peptide has no other evidence of that channel in that fraction group, a protein group ratio only if its other peptide ratios do
+    not reach @p ratios:min_ratio_count, and the normalization factors only if a (fraction group, channel) has no other
+    peptide ratio.
 
 The reference channel is reported with the ratio 1.0 it has by construction, wherever another channel was
 measured against it, so that every annotation covers the complete set of channels.
@@ -233,7 +247,13 @@ The ratios are annotated on the consensus features (@c MS1Label:evidence_ratio*,
 groups, so they reach the consensusXML and the mzTab peptide section (as <tt>opt_global_*</tt> columns). In the
 QPX pg view, whose rows are one per (protein group, fraction group, channel), they are written as that row's
 @c additional_intensities, named @c ratio and @c ratio_normalized under the row's own channel label; the number
-of contributing peptides sits in @c cv_params as @c ratio_count, being a count rather than an intensity. No
+of contributing peptides sits in @c cv_params as @c ratio_count, being a count rather than an intensity, with
+@p targeted_quantification next to the number of those from targeted quantification (@c ratio_targeted_count,
+@c MS1Label:peptide_ratio_targeted_count on the features, @c fraction_group_level_ratio_targeted_count on the protein
+groups). Where @p requantify measured channels, the number of contributing ratios that rest on them is reported as well
+(@c ratio_requantified_count, @c MS1Label:peptide_ratio_requantified_count: the evidences whose channel or reference channel
+was re-quantified; @c fraction_group_level_ratio_requantified_count: the peptide ratios all of whose evidences were), so that
+they can be filtered at extreme ratios. No
 separate @ref TOPP_ProteinQuantifier run is needed for any of it.
 
 Next to the ratios, the per-channel <em>abundances</em> are reported as before (mzTab peptide and protein
@@ -362,8 +382,22 @@ protected:
       "or if fewer than two spectra paired with the most intense detected channel show its isotope pattern (both traces, and no peak one\n"
       "isotope lower that exceeds 30 % of its monoisotopic peak, unless that peak lies at isotope M+0 to M+n of another channel, with n + 1\n"
       "the upper bound of 'algorithm:isotopes_per_peptide').\n"
+      "The number of ratios that rest on re-quantified channels is reported ('MS1Label:peptide_ratio_requantified_count',\n"
+      "'fraction_group_level_ratio_requantified_count', QPX 'ratio_requantified_count'); see also 'requantify_min_correlation'.\n"
       "false: such channels are reported as absent.", false);
     setValidStrings_("requantify", {"true", "false"});
+    registerDoubleOption_("requantify_min_correlation", "<value>", 0.5,
+      "Minimum Pearson correlation between the elution profile of a weak re-quantified channel (see 'requantify_correlation_ratio') and\n"
+      "that of the reference channel over the multiplet's elution region (summed isotopic peaks per spectrum). Below it, the channel is\n"
+      "not quantifiable: the channels of one peptide co-elute, so a signal that does not follow the reference is another species.\n"
+      "-1: no such check.", false, true);
+    setMinFloat_("requantify_min_correlation", -1.0);
+    setMaxFloat_("requantify_min_correlation", 1.0);
+    registerDoubleOption_("requantify_correlation_ratio", "<value>", 0.3,
+      "'requantify_min_correlation' applies to the re-quantified channels whose intensity is below this fraction of the reference\n"
+      "channel's: at moderate ratios the re-quantified channels are reliable, and real ones there correlate less well (the\n"
+      "detection already missed them). A large value checks every re-quantified channel.", false, true);
+    setMinFloat_("requantify_correlation_ratio", 0.0);
 
     registerStringOption_("join_channels", "<option>", "true",
       "true: when the detection found the channels of an identified peptide as separate partial multiplets (see 'algorithm:knock_out'),\n"
@@ -376,7 +410,7 @@ protected:
       "then not quantifiable).", false);
     setValidStrings_("join_channels", {"true", "false"});
 
-    registerStringOption_("targeted_quantification", "<option>", "false",
+    registerStringOption_("targeted_quantification", "<option>", "true",
       "true: an identified peptide that has no multiplet in the run (none was detected, or its identifications fit none) is quantified from the MS1 peaks at\n"
       "the m/z it has in every channel: over the elution peak at the identification, the identified channel is integrated, and every other channel is\n"
       "measured against it from paired peaks (absent if no peak is seen at its m/z, not quantifiable if another signal occupies its position or its peaks do\n"
@@ -386,6 +420,12 @@ protected:
       "peak; a channel whose peaks are mostly (20 % or more) such isotopes is not quantifiable. Such features and their identifications carry the meta value\n"
       "'quantification_method' = 'targeted'. Peptides quantified by a multiplet in the run, identifications on a channel of another peptide's multiplet,\n"
       "decoys and identifications whose labels fit no pattern are not measured; of identifications of different peptides on one signal, only the best one is.\n"
+      "These values are less accurate at extreme ratios, so they only add ratios: a peptide or protein group ratio that the other evidences\n"
+      "give (see 'ratios:min_ratio_count') does not change, and a feature whose other channel is not quantifiable is left out of the abundances.\n"
+      "They take no part in the alignment and are linked among themselves only. The number of targeted ratios behind every peptide and protein\n"
+      "group ratio is reported ('MS1Label:peptide_ratio_targeted_count', 'fraction_group_level_ratio_targeted_count', QPX 'ratio_targeted_count').\n"
+      "Exception with 'match_between_runs': a targeted feature replaces the unidentified multiplet kept for match between runs that it is\n"
+      "measured from, so that run gets the targeted value instead of the one linking would have given that multiplet.\n"
       "false: such identifications are kept for protein inference only.", false);
     setValidStrings_("targeted_quantification", {"true", "false"});
 
@@ -1680,12 +1720,36 @@ protected:
     return result;
   }
 
+  /**
+    @brief Pearson correlation of the elution profiles of a channel and its reference
+
+    @p channel and @p reference hold the intensities of their isotopic peaks per spectrum ([isotope][spectrum], 0 = no peak); a
+    profile is the sum over the isotopes per spectrum. NaN with fewer than three spectra or a constant profile.
+  */
+  static double elutionCorrelation_(const vector<vector<double>>& channel, const vector<vector<double>>& reference)
+  {
+    const Size traces = std::min(channel.size(), reference.size());
+    const Size n = traces == 0 ? 0 : std::min(channel[0].size(), reference[0].size());
+    if (n < 3) { return std::numeric_limits<double>::quiet_NaN(); }
+    vector<double> channel_profile(n, 0.0), reference_profile(n, 0.0);
+    for (Size k = 0; k < traces; ++k)
+    {
+      for (Size i = 0; i < n; ++i)
+      {
+        channel_profile[i] += channel[k][i];
+        reference_profile[i] += reference[k][i];
+      }
+    }
+    return Math::pearsonCorrelationCoefficient(channel_profile.begin(), channel_profile.end(), reference_profile.begin(), reference_profile.end());
+  }
+
   /// The result of requantifyChannel_
   struct Requantified_
   {
     double intensity = 0.0;  ///< > 0 measured, 0 absent, NaN not quantifiable
     Size paired = 0;         ///< spectra in which at least one peak of the channel was paired with the reference (whether accepted or not)
     bool no_pattern = false; ///< not quantifiable because its peaks do not show its isotope pattern in min_pattern_spectra_ spectra
+    bool not_coeluting = false; ///< not quantifiable because its elution profile does not follow the reference's ('-requantify_min_correlation')
   };
 
   /**
@@ -1704,7 +1768,7 @@ protected:
   */
   Requantified_ requantifyChannel_(const MSExperiment& spectra, const MSExperiment& blacklist, const std::function<bool(const MSSpectrum&, Size)>& skip_reserved,
                                    const std::optional<double>& cv, double rt_lo, double rt_hi, double mz, int charge, const vector<double>& channel_mzs,
-                                   Size traces, double reference_mz, double reference_intensity) const
+                                   Size traces, double reference_mz, double reference_intensity, bool check_coelution = false) const
   {
     Requantified_ result;
     if (charge == 0 || traces == 0 || !(reference_intensity > 0.0)) { return result; }
@@ -1745,7 +1809,17 @@ protected:
     const Size last = channel[0].size() - 1;
     const PairedIntensity_ paired = pairedIntensity_(channel, reference, lower, 0, last, reference_intensity);
     result.paired = paired.paired;
-    if (paired.intensity > 0.0 && paired.pattern >= min_pattern_spectra_) { result.intensity = paired.intensity; }
+    if (paired.intensity > 0.0 && paired.pattern >= min_pattern_spectra_)
+    {
+      // the channels of one peptide co-elute: a weak signal whose elution profile does not follow the reference's is another species
+      if (check_coelution && requantify_min_correlation_ > -1.0 && paired.intensity < requantify_correlation_ratio_ * reference_intensity
+          && !(elutionCorrelation_(channel, reference) >= requantify_min_correlation_))
+      {
+        result.intensity = std::numeric_limits<double>::quiet_NaN();
+        result.not_coeluting = true;
+      }
+      else { result.intensity = paired.intensity; }
+    }
     else if (paired.intensity > 0.0)
     {
       result.intensity = std::numeric_limits<double>::quiet_NaN();
@@ -1781,7 +1855,7 @@ protected:
     std::unordered_map<UInt64, const Feature*> channel_of;
     for (const Feature& channel : channels) { channel_of.emplace(channel.getUniqueId(), &channel); }
 
-    Size requantified = 0, absent = 0, occupied = 0, no_pattern = 0, reserved_used = 0;
+    Size requantified = 0, absent = 0, occupied = 0, no_pattern = 0, not_coeluting = 0, reserved_used = 0;
     for (auto& cf : resolved)
     {
       // the elution region and the number of mass traces of the detected channels, and the most intense one
@@ -1816,24 +1890,32 @@ protected:
       vector<double> channel_mzs; // all channels of the multiplet, the missing ones included
       for (const FeatureHandle& handle : cf.getFeatures()) { channel_mzs.push_back(handle.getMZ()); }
       ConsensusFeature::HandleSetType handles;
+      IntList requantified_channels; // channel indices (the columns of this run's map) that got a value
       for (FeatureHandle handle : cf.getFeatures())
       {
         if (handle.getIntensity() == 0.0 && !channel_of.contains(handle.getUniqueId()))
         {
           const Requantified_ result = requantifyChannel_(centroided, blacklist, skip_reserved, cv, rt_lo, rt_hi, handle.getMZ(), handle.getCharge(),
-                                                          channel_mzs, traces, reference_mz, reference_intensity);
+                                                          channel_mzs, traces, reference_mz, reference_intensity, true);
           const double intensity = result.intensity;
           if (intensity > 0.0 || std::isnan(intensity)) { handle.setIntensity(intensity); }
           requantified += intensity > 0.0;
-          occupied += std::isnan(intensity) && !result.no_pattern;
+          if (intensity > 0.0) { requantified_channels.push_back(static_cast<Int>(handle.getMapIndex())); }
+          occupied += std::isnan(intensity) && !result.no_pattern && !result.not_coeluting;
           no_pattern += result.no_pattern;
+          not_coeluting += result.not_coeluting;
           absent += intensity == 0.0;
         }
         handles.insert(handle);
       }
       cf.setFeatures(std::move(handles));
+      // the handles lose their run in linking, the identifications keep it (map_index): see markRequantified_()
+      if (!requantified_channels.empty())
+      {
+        for (PeptideIdentification& id : cf.getPeptideIdentifications()) { id.setMetaValue(requantified_channels_meta_, requantified_channels); }
+      }
     }
-    if (requantified + absent + occupied + no_pattern > 0)
+    if (requantified + absent + occupied + no_pattern + not_coeluting > 0)
     {
       OPENMS_LOG_INFO << "Re-quantified " << requantified << " channel(s) the detection did not find; " << absent
                       << " show no signal at their expected position and are reported as absent, " << occupied
@@ -1844,6 +1926,12 @@ protected:
       OPENMS_LOG_INFO << no_pattern << " re-quantified channel(s) are not quantifiable: their peaks do not show the channel's isotope pattern (both "
                       << "of its first two isotopes, and no peak one isotope lower that exceeds 30 % of its monoisotopic peak) in at least "
                       << min_pattern_spectra_ << " spectra paired with the reference." << endl;
+    }
+    if (not_coeluting > 0)
+    {
+      OPENMS_LOG_INFO << not_coeluting << " re-quantified channel(s) weaker than " << requantify_correlation_ratio_ << " times the reference are not "
+                      << "quantifiable: their elution profile correlates with the reference's by less than " << requantify_min_correlation_
+                      << " ('-requantify_min_correlation')." << endl;
     }
     if (reserved_used > 0)
     {
@@ -2856,7 +2944,7 @@ protected:
   }
 
   /// Link the runs of one fraction; the channels of every run are kept as sub-features (one column per run and channel)
-  void link_(vector<ConsensusMap>& maps, double max_alignment_diff, ConsensusMap& consensus_fraction)
+  void link_(vector<ConsensusMap>& maps, double max_alignment_diff, ConsensusMap& consensus_fraction, const std::string& what = "consensus multiplet(s)")
   {
     Param fl_param = getParam_().copy("linking:", true);
     const double rt_typical = getParam_().getValue("algorithm:rt_typical");
@@ -2883,27 +2971,250 @@ protected:
 
     consensus_fraction.applyMemberFunction(&UniqueIdInterface::setUniqueId);
     consensus_fraction.sortPeptideIdentificationsByMapIndex();
-    OPENMS_LOG_INFO << "Linked " << maps.size() << " run(s) into " << consensus_fraction.size() << " consensus multiplet(s)." << endl;
+    OPENMS_LOG_INFO << "Linked " << maps.size() << " run(s) into " << consensus_fraction.size() << " " << what << "." << endl;
   }
 
+  /**
+    @brief Record on every multiplet of @p fraction the runs in which targeted quantification measured it
+
+    The run names (file basenames) go to the meta value MS1LabeledRatioQuantifier::TARGETED_RUNS, which the abundances
+    and ratios below read. After linking, a multiplet holds the channels of several runs, and only its identifications
+    still tell which of them targeted quantification measured: those carry 'quantification_method' = 'targeted', and
+    their 'map_index' names their column, i.e. their (run, channel). A targeted feature gets only such identifications,
+    and a detected multiplet none of them. Targeted features are linked among themselves only (see alignAndLink_()), so a
+    multiplet identified by nothing else holds targeted features only and counts as targeted in all of its runs.
+  */
+  static void markTargetedRuns_(ConsensusMap& fraction)
+  {
+    const auto& headers = fraction.getColumnHeaders();
+    for (ConsensusFeature& cf : fraction)
+    {
+      std::set<std::string> runs;
+      bool only_targeted = !cf.getPeptideIdentifications().empty();
+      for (const PeptideIdentification& id : cf.getPeptideIdentifications())
+      {
+        if (id.getMetaValue("quantification_method", DataValue("")).toString() != "targeted")
+        {
+          only_targeted = false;
+          continue;
+        }
+        if (!id.metaValueExists("map_index")) { continue; }
+        const auto header = headers.find(static_cast<UInt64>(id.getMetaValue("map_index")));
+        if (header != headers.end()) { runs.insert(File::basename(header->second.filename)); }
+      }
+      // If targeted features are all that identify the multiplet, it exists only because of targeted quantification, so all of
+      // its runs count as targeted (a safeguard: they are linked among themselves only, so these are the runs of its IDs).
+      if (only_targeted)
+      {
+        for (const FeatureHandle& handle : cf.getFeatures())
+        {
+          const auto header = headers.find(handle.getMapIndex());
+          if (header != headers.end()) { runs.insert(File::basename(header->second.filename)); }
+        }
+      }
+      if (!runs.empty()) { cf.setMetaValue(MS1LabeledRatioQuantifier::TARGETED_RUNS, StringList(runs.begin(), runs.end())); }
+    }
+  }
+
+  /// Meta value (IntList) that requantifyMissingChannels_() puts on the identifications of a multiplet: the channels
+  /// (0-based, the 'channel_id' of the run's columns) it re-quantified with a value; markRequantified_() moves it to the multiplet
+  inline static const std::string requantified_channels_meta_ = "MS1Label:requantified_channel_ids";
+
+  /**
+    @brief Record on every multiplet of @p fraction the (run, channel) pairs that the re-quantification measured
+
+    They go to the parallel meta values MS1LabeledRatioQuantifier::REQUANTIFIED_RUNS and REQUANTIFIED_LABELS, from which the
+    ratios count how many of their evidences rest on a re-quantified channel (by run name, as the targeted runs: the columns
+    change when the fractions are combined). After linking, only the identifications of a multiplet still tell its runs (their
+    'map_index'); requantifyMissingChannels_() recorded the re-quantified channels on them. That record is removed from the
+    identifications (also the unassigned ones).
+  */
+  static void markRequantified_(ConsensusMap& fraction)
+  {
+    const auto& headers = fraction.getColumnHeaders();
+    for (ConsensusFeature& cf : fraction)
+    {
+      std::set<std::pair<std::string, Int>> requantified; // (run, label)
+      for (PeptideIdentification& id : cf.getPeptideIdentifications())
+      {
+        if (!id.metaValueExists(requantified_channels_meta_)) { continue; }
+        const IntList channels = id.getMetaValue(requantified_channels_meta_);
+        id.removeMetaValue(requantified_channels_meta_);
+        if (!id.metaValueExists("map_index")) { continue; }
+        const auto header = headers.find(static_cast<UInt64>(id.getMetaValue("map_index")));
+        if (header == headers.end()) { continue; }
+        // the label of a channel is its channel_id + 1 (ConsensusMap::ColumnHeader::getLabelAsUInt())
+        for (const Int channel : channels) { requantified.emplace(File::basename(header->second.filename), channel + 1); }
+      }
+      if (requantified.empty()) { continue; }
+      StringList runs;
+      IntList labels;
+      for (const auto& [run, label] : requantified)
+      {
+        runs.push_back(run);
+        labels.push_back(label);
+      }
+      cf.setMetaValue(MS1LabeledRatioQuantifier::REQUANTIFIED_RUNS, runs);
+      cf.setMetaValue(MS1LabeledRatioQuantifier::REQUANTIFIED_LABELS, labels);
+    }
+    for (PeptideIdentification& id : fraction.getUnassignedPeptideIdentifications()) { id.removeMetaValue(requantified_channels_meta_); }
+  }
+
+  /**
+    @brief Take the channels of targeted evidences that lack a value in some channel out of @p consensus
+
+    A targeted feature whose other channel is not quantifiable keeps only its measured channel. Summed into the protein
+    abundances, that channel would count without its partner and bias the abundance ratios (towards the identified
+    channel, mostly at extreme ratios). Such evidences are therefore taken out before the abundances are read, and given
+    back with restoreEvidences_() afterwards, so that the features keep them in the output.
+
+    @return The handles taken out, by the index of their feature in @p consensus
+  */
+  std::vector<std::pair<Size, std::vector<FeatureHandle>>> withholdIncompleteTargeted_(ConsensusMap& consensus) const
+  {
+    std::vector<std::pair<Size, std::vector<FeatureHandle>>> withheld;
+    Size evidences = 0;
+    const auto& headers = consensus.getColumnHeaders();
+    for (Size i = 0; i < consensus.size(); ++i)
+    {
+      ConsensusFeature& cf = consensus[i];
+      if (!cf.metaValueExists(MS1LabeledRatioQuantifier::TARGETED_RUNS)) { continue; }
+      const StringList targeted = cf.getMetaValue(MS1LabeledRatioQuantifier::TARGETED_RUNS);
+      const std::set<std::string> targeted_runs(targeted.begin(), targeted.end());
+
+      // the handles of every targeted run of this feature
+      std::map<std::string, std::vector<FeatureHandle>> by_run;
+      for (const FeatureHandle& handle : cf.getFeatures())
+      {
+        const auto header = headers.find(handle.getMapIndex());
+        if (header == headers.end()) { continue; }
+        const std::string run = File::basename(header->second.filename);
+        if (targeted_runs.contains(run)) { by_run[run].push_back(handle); }
+      }
+      std::vector<FeatureHandle> taken;
+      std::set<UInt64> taken_columns;
+      for (auto& [run, handles] : by_run)
+      {
+        // a not-quantifiable channel has no handle (see quantifyRun_), an absent one has intensity 0
+        if (handles.size() >= multiplicity_) { continue; }
+        ++evidences;
+        for (const FeatureHandle& handle : handles)
+        {
+          taken_columns.insert(handle.getMapIndex());
+          taken.push_back(handle);
+        }
+      }
+      if (taken.empty()) { continue; }
+      ConsensusFeature::HandleSetType kept;
+      for (const FeatureHandle& handle : cf.getFeatures())
+      {
+        if (!taken_columns.contains(handle.getMapIndex())) { kept.insert(handle); }
+      }
+      cf.setFeatures(std::move(kept));
+      withheld.emplace_back(i, std::move(taken));
+    }
+    if (evidences > 0)
+    {
+      OPENMS_LOG_INFO << "Abundances: " << evidences << " evidence(s) of targeted quantification with a channel that is not quantifiable "
+                      << "are left out of the peptide and protein abundances." << endl;
+    }
+    return withheld;
+  }
+
+  /// Give the handles that withholdIncompleteTargeted_() took out back to their features
+  static void restoreEvidences_(ConsensusMap& consensus, std::vector<std::pair<Size, std::vector<FeatureHandle>>>& withheld)
+  {
+    for (auto& [index, handles] : withheld)
+    {
+      for (const FeatureHandle& handle : handles) { consensus[index].insert(handle); }
+    }
+    withheld.clear();
+  }
+
+  /**
+    @brief Move the features of targeted quantification out of @p maps
+
+    @return One map per run with the targeted features of that run, the same columns and protein runs and no unassigned identifications
+  */
+  static vector<ConsensusMap> splitOffTargeted_(vector<ConsensusMap>& maps)
+  {
+    vector<ConsensusMap> targeted(maps.size());
+    for (Size i = 0; i < maps.size(); ++i)
+    {
+      ConsensusMap& map = maps[i];
+      ConsensusMap& part = targeted[i];
+      part = map;
+      part.resize(0);
+      part.getUnassignedPeptideIdentifications().clear();
+      for (auto& [index, header] : part.getColumnHeaders()) { header.size = 0; }
+      ConsensusMap::iterator kept = map.begin();
+      for (ConsensusMap::iterator it = map.begin(); it != map.end(); ++it)
+      {
+        if (it->getMetaValue("quantification_method", DataValue("")).toString() == "targeted")
+        {
+          for (const FeatureHandle& handle : it->getFeatures())
+          {
+            ++part.getColumnHeaders().at(handle.getMapIndex()).size;
+            --map.getColumnHeaders().at(handle.getMapIndex()).size;
+          }
+          part.push_back(std::move(*it));
+        }
+        else
+        {
+          if (kept != it) { *kept = std::move(*it); }
+          ++kept;
+        }
+      }
+      map.erase(kept, map.end());
+      map.updateRanges();
+      part.updateRanges();
+    }
+    return targeted;
+  }
+
+  /**
+    @brief Align and link the runs of one fraction
+
+    The features of targeted quantification take no part in the alignment and are linked among themselves only, after the
+    detected multiplets have been linked. So the alignment, the linking of the detected multiplets and with match between
+    runs the identifications that their unidentified multiplets take over are those without targeted quantification:
+    a targeted feature, whose position rests on one identification, cannot widen the RT tolerance of the linking or draw an
+    unidentified multiplet of another peptide into its linked feature.
+  */
   void alignAndLink_(vector<ConsensusMap>& maps, ConsensusMap& consensus_fraction)
   {
     if (maps.size() > 1)
     {
+      vector<ConsensusMap> targeted;
+      if (targeted_quantification_) { targeted = splitOffTargeted_(maps); }
+      const bool any_targeted = std::any_of(targeted.begin(), targeted.end(), [](const ConsensusMap& m) { return !m.empty(); });
+
       vector<TransformationDescription> transformations;
       const double max_alignment_diff = align_(maps, transformations);
-      for (Size i = 0; i < maps.size(); ++i)
+      const auto transform = [](ConsensusMap& map, const TransformationDescription& transformation)
       {
         try
         {
-          MapAlignmentTransformer::transformRetentionTimes(maps[i], transformations[i]);
+          MapAlignmentTransformer::transformRetentionTimes(map, transformation);
         }
         catch (Exception::IllegalArgument& e)
         {
           OPENMS_LOG_WARN << e.what() << endl;
         }
+      };
+      for (Size i = 0; i < maps.size(); ++i)
+      {
+        transform(maps[i], transformations[i]);
+        if (any_targeted) { transform(targeted[i], transformations[i]); }
       }
       link_(maps, max_alignment_diff, consensus_fraction);
+      if (any_targeted)
+      {
+        ConsensusMap linked_targeted;
+        link_(targeted, max_alignment_diff, linked_targeted, "consensus feature(s) of targeted quantification");
+        MS1LabeledFAIMS::append(consensus_fraction, std::move(linked_targeted));
+        consensus_fraction.updateRanges();
+      }
     }
     else
     {
@@ -3299,6 +3610,8 @@ protected:
     match_between_runs_ = getStringOption_("match_between_runs") == "true";
     requantify_ = getStringOption_("requantify") == "true";
     join_channels_ = getStringOption_("join_channels") == "true";
+    requantify_min_correlation_ = getDoubleOption_("requantify_min_correlation");
+    requantify_correlation_ratio_ = getDoubleOption_("requantify_correlation_ratio");
     targeted_quantification_ = getStringOption_("targeted_quantification") == "true";
     knock_out_ = getParam_().getValue("algorithm:knock_out").toString() == "true";
     if (knock_out_ && multiplicity_ > 4)
@@ -3444,6 +3757,8 @@ protected:
 
       ConsensusMap consensus_fraction;
       alignAndLink_(maps, consensus_fraction);
+      if (targeted_quantification_) { markTargetedRuns_(consensus_fraction); }
+      if (requantify_) { markRequantified_(consensus_fraction); }
 
       // fractions are combined column-wise: one column per (run, channel), rows stay per fraction
       consensus.appendColumns(consensus_fraction);
@@ -3498,7 +3813,11 @@ protected:
     writeDebug_("Parameters passed to PeptideAndProteinQuant algorithm", pq_param, 3);
     PeptideAndProteinQuant quantifier;
     quantifier.setParameters(pq_param);
-    quantifier.readQuantData(consensus, design_);
+    {
+      auto withheld = withholdIncompleteTargeted_(consensus);
+      quantifier.readQuantData(consensus, design_);
+      restoreEvidences_(consensus, withheld);
+    }
     quantifier.quantifyPeptides();
 
     ProteinIdentification& inferred_proteins = consensus.getProteinIdentifications()[0];
@@ -3521,6 +3840,13 @@ protected:
       writeDebug_("Parameters passed to MS1LabeledRatioQuantifier", ratio_param, 3);
       ratio_quantifier.setParameters(ratio_param);
       ratio_quantifier.run(consensus, design_, inferred_proteins);
+    }
+    // the targeted runs and re-quantified columns were bookkeeping for the abundances and ratios; the identifications keep 'quantification_method'
+    for (auto& cf : consensus)
+    {
+      cf.removeMetaValue(MS1LabeledRatioQuantifier::TARGETED_RUNS);
+      cf.removeMetaValue(MS1LabeledRatioQuantifier::REQUANTIFIED_RUNS);
+      cf.removeMetaValue(MS1LabeledRatioQuantifier::REQUANTIFIED_LABELS);
     }
 
     consensus.resolveUniqueIdConflicts();
@@ -3604,7 +3930,9 @@ private:
   bool knock_out_ = true;              ///< detect partial multiplets as well ('algorithm:knock_out', up to four channels)
   bool requantify_ = true;             ///< re-quantify the channels of partial multiplets from the MS1 peaks
   bool join_channels_ = true;          ///< join the separately detected channels of an identified peptide ('-join_channels')
-  bool targeted_quantification_ = false; ///< quantify identified peptides without a multiplet from their MS1 peaks ('-targeted_quantification')
+  double requantify_min_correlation_ = 0.5; ///< minimum elution correlation of a re-quantified channel with its reference ('-requantify_min_correlation')
+  double requantify_correlation_ratio_ = 0.3; ///< the correlation is checked below this fraction of the reference's intensity ('-requantify_correlation_ratio')
+  bool targeted_quantification_ = true; ///< quantify identified peptides without a multiplet from their MS1 peaks ('-targeted_quantification')
   ExperimentalDesign design_;
   std::string picked_decoy_string_;
   bool picked_decoy_prefix_ = true;

@@ -44,9 +44,11 @@ public:
   /// Link only within a CV, preserving the input maps' channel subelements.
   static void group(FeatureGroupingAlgorithmQT& linker, const std::vector<ConsensusMap>& maps, ConsensusMap& result);
 
+  /// Append the rows of @p part, which was linked from the same columns and protein runs, to @p result
+  static void append(ConsensusMap& result, ConsensusMap&& part);
+
 private:
   static CV getCV_(const MetaInfoInterface& value);
   static std::map<CV, std::vector<ConsensusMap>> split_(const std::vector<ConsensusMap>& maps);
-  static void append_(ConsensusMap& result, ConsensusMap&& part);
 };
 } // namespace OpenMS

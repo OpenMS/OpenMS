@@ -4852,6 +4852,44 @@ add_test("TOPP_MS1LabeledWorkflow_7_partial" ${TOPP_BIN_PATH}/MS1LabeledWorkflow
 set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial" PROPERTIES PASS_REGULAR_EXPRESSION "Re-quantified 4 channel.s. the detection did not find. 5 show no signal")
 add_test("TOPP_MS1LabeledWorkflow_7_partial_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_partial.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_partial_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_7_partial")
+# The ratios that rest on the 4 re-quantified channels are counted (MS1Label:peptide_ratio_requantified_count and
+# fraction_group_level_ratio_requantified_count in the reference above) and reach the QPX pg view: the medium and heavy ratio of
+# the two protein groups whose peptide was detected in its light channel only rest on one re-quantified peptide ratio each.
+# QPX output in a run of its own: writing it reorders meta values of the consensusXML's column headers
+add_test("TOPP_MS1LabeledWorkflow_7_partial_qpx" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.fasta
+  -labels "[][Lys4,Arg6][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -out_qpx ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_partial_qpx_dir)
+set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial_qpx" PROPERTIES PASS_REGULAR_EXPRESSION
+  "Channel ratios from re-quantified channels: 4 peptide ratio.s. rest on re-quantified channels only. 4 protein group ratio.s. include such peptide ratios")
+add_test("TOPP_MS1LabeledWorkflow_7_partial_qpx_pg_dump" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_partial_qpx_dir/quantms.pg.parquet -schema pg
+  -out_tsv ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_partial_qpx_pg.tmp.tsv)
+set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial_qpx_pg_dump" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_7_partial_qpx")
+add_test("TOPP_MS1LabeledWorkflow_7_partial_qpx_pg_requantified_count" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_partial_qpx_pg.tmp.tsv
+  "-DEXPECTED={cv_name:string = ratio_requantified_count, cv_value:string = 1}"
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial_qpx_pg_requantified_count" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_7_partial_qpx_pg_dump")
+# -requantify_min_correlation: a re-quantified channel whose elution profile does not follow the reference's is not quantifiable.
+# The channels of this synthetic fixture co-elute (correlation ~0.9999), so only the limit 1 rejects them: all 4, with every
+# re-quantified channel checked (-requantify_correlation_ratio; by default only those below 0.3 times the reference).
+add_test("TOPP_MS1LabeledWorkflow_7_partial_min_correlation" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.fasta
+  -labels "[][Lys4,Arg6][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -requantify_min_correlation 1.0
+  -requantify_correlation_ratio 1000
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_partial_min_correlation.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial_min_correlation" PROPERTIES PASS_REGULAR_EXPRESSION
+  "Re-quantified 0 channel.s. the detection did not find.*4 re-quantified channel.s. weaker than 1000 times the reference are not quantifiable: their elution profile correlates with the reference's by less than 1")
 add_test("TOPP_MS1LabeledWorkflow_7_attached" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_input.mzML
   -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.idXML
@@ -4939,7 +4977,8 @@ set_tests_properties("TOPP_MS1LabeledWorkflow_10_join_channels_out1" PROPERTIES 
 #     feature is measured from its peaks (those of an unidentified multiplet are used), H/L ~1.
 #   LSSPATLNSR, light only (two isotopes); a narrow signal at its heavy m/z on the light's flank is paired with it in a few spectra but
 #     does not co-elute: heavy not quantifiable.
-# The QPX output checks that every moved identification is linked to one feature only. Without the switch only YVNDLAGHEK is quantified.
+# The QPX output checks that every moved identification is linked to one feature only (targeted quantification is the default).
+# With -targeted_quantification false only YVNDLAGHEK is quantified.
 add_test(NAME "TOPP_MS1LabeledWorkflow_11_qpx_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_qpx_dir)
 add_test("TOPP_MS1LabeledWorkflow_11_targeted" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_input.mzML
@@ -4948,7 +4987,6 @@ add_test("TOPP_MS1LabeledWorkflow_11_targeted" ${TOPP_BIN_PATH}/MS1LabeledWorkfl
   -labels "[][Lys8,Arg10]"
   -proteinFDR 1.0
   -ratios:min_ratio_count 1
-  -targeted_quantification true
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_targeted.tmp.consensusXML
   -out_qpx ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_qpx_dir)
 set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_qpx_clean" PASS_REGULAR_EXPRESSION "Targeted quantification: 5 feature.s. for 6 identification.s. of peptides without a multiplet in this run .2 other channel.s. measured against the identified one, 1 absent, 2 not quantifiable.. not quantified: 1 identification.s. of peptides quantified in this run, 0 on a channel of another peptide's multiplet, 0 on the signal of a better identification of another peptide, 1 without a clean elution peak of the identified channel, 0 whose isotope pattern does not fit, 0 whose labels fit no pattern, 1 decoy.s.")
@@ -4957,16 +4995,66 @@ set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_out1" PROPERTIES DEPEN
 add_test("TOPP_MS1LabeledWorkflow_11_targeted_qpx_psms" ${TOPP_BIN_PATH}/ParquetDiff
   -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_qpx_dir/quantms.psm.parquet -schema psm -min_rows 9)
 set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_qpx_psms" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_targeted")
-add_test("TOPP_MS1LabeledWorkflow_11_default" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+add_test("TOPP_MS1LabeledWorkflow_11_untargeted" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_input.mzML
   -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11.idXML
   -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11.fasta
   -labels "[][Lys8,Arg10]"
   -proteinFDR 1.0
   -ratios:min_ratio_count 1
-  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_default.tmp.consensusXML)
-add_test("TOPP_MS1LabeledWorkflow_11_default_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_default.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_default_out.consensusXML )
-set_tests_properties("TOPP_MS1LabeledWorkflow_11_default_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_default")
+  -targeted_quantification false
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_untargeted.tmp.consensusXML)
+add_test("TOPP_MS1LabeledWorkflow_11_untargeted_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_untargeted.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_untargeted_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_untargeted_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_untargeted")
+# Targeted values only add ratios: MS1LabeledWorkflow_11 with all quantified peptides in one protein
+# (MS1LabeledWorkflow_11_one_protein.fasta): YVNDLAGHEK detected (H/L 1); AEFVEVTK and VLDELTLAR targeted with both channels
+# (H/L ~1); HLVDEPQNLIK targeted, heavy absent; QDILDDYQK and LSSPATLNSR targeted, heavy not quantifiable.
+#   - min_ratio_count 1: the detected peptide reaches the minimum, so PROT_X's ratio is YVNDLAGHEK's alone (count 1).
+#   - min_ratio_count 2: it does not, so the two targeted peptide ratios are added (count 3).
+#   - Both: QDILDDYQK's and LSSPATLNSR's light channels, whose heavy is not quantifiable, are left out of the abundances.
+foreach(_min 1 2)
+  add_test("TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+    -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_input.mzML
+    -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11.idXML
+    -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_one_protein.fasta
+    -labels "[][Lys8,Arg10]"
+    -proteinFDR 1.0
+    -ratios:min_ratio_count ${_min}
+    -targeted_quantification true
+    -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_one_protein_min${_min}.tmp.consensusXML)
+  add_test("TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion"
+    -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_one_protein_min${_min}.tmp.consensusXML
+    -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_one_protein_min${_min}_out.consensusXML)
+  set_tests_properties("TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}")
+  # QPX output in a run of its own: writing it reorders meta values of the consensusXML's column headers
+  add_test("TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_qpx" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+    -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_input.mzML
+    -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11.idXML
+    -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_one_protein.fasta
+    -labels "[][Lys8,Arg10]"
+    -proteinFDR 1.0
+    -ratios:min_ratio_count ${_min}
+    -targeted_quantification true
+    -out_qpx ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_one_protein_min${_min}_qpx_dir)
+  add_test("TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_qpx_pg_dump" ${TOPP_BIN_PATH}/ParquetDiff
+    -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_one_protein_min${_min}_qpx_dir/quantms.pg.parquet -schema pg
+    -out_tsv ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_one_protein_min${_min}_qpx_pg.tmp.tsv)
+  set_tests_properties("TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_qpx_pg_dump" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_qpx")
+endforeach()
+# The number of targeted ratios behind PROT_X's ratio reaches the QPX pg view: none with min_ratio_count 1, 2 of the 3 with 2.
+foreach(_case "1;0" "2;2")
+  list(GET _case 0 _min)
+  list(GET _case 1 _targeted)
+  add_test("TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_qpx_pg_targeted_count" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_one_protein_min${_min}_qpx_pg.tmp.tsv
+    "-DEXPECTED={cv_name:string = ratio_targeted_count, cv_value:string = ${_targeted}}"
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_qpx_pg_targeted_count" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_one_protein_min${_min}_qpx_pg_dump")
+endforeach()
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_one_protein_min1" PROPERTIES PASS_REGULAR_EXPRESSION
+  "Abundances: 2 evidence.s. of targeted quantification with a channel that is not quantifiable.*Channel ratios from targeted quantification: 2 peptide ratio.s. of peptides measured only that way in their fraction group. 0 protein group ratio.s.")
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_one_protein_min2" PROPERTIES PASS_REGULAR_EXPRESSION
+  "Abundances: 2 evidence.s. of targeted quantification with a channel that is not quantifiable.*Channel ratios from targeted quantification: 2 peptide ratio.s. of peptides measured only that way in their fraction group. 1 protein group ratio.s.")
 
 # With -join_channels false, YVNDLAGHEK's channels in MS1LabeledWorkflow_9 stay two partial multiplets, each identified. Each one's
 # missing channel lies on the other's reserved peaks, i.e. on another multiplet of the same peptide, which quantifies them: not
@@ -5031,6 +5119,32 @@ add_test("TOPP_MS1LabeledWorkflow_11_targeted_mbr" ${TOPP_BIN_PATH}/MS1LabeledWo
 set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_mbr" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_mbr_prepare" PASS_REGULAR_EXPRESSION "1 unidentified multiplet.s. kept for match between runs were replaced by the targeted feature.s. measured from their peaks")
 add_test("TOPP_MS1LabeledWorkflow_11_targeted_mbr_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_targeted_mbr.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_targeted_mbr_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_mbr_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_targeted_mbr")
+
+# Targeted features are linked only among themselves: with run B's VLDELTLAR identification removed
+# (MS1LabeledWorkflow_11_apex_noVLDELTLAR.idXML), run B's VLDELTLAR doublet is unidentified and cannot take over the identification of
+# run A's targeted feature in linking. Without -targeted_quantification neither run has a VLDELTLAR value, and with it only run A has
+# one (targeted), so run B's normalization stays as it is (YVNDLAGHEK's normalized ratio in run B stays 1.0): 3 targeted peptide ratios.
+add_test("TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_input.mzML ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11b_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11.idXML ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_apex_noVLDELTLAR.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11.fasta
+  -labels "[][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -targeted_quantification true
+  -match_between_runs true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_targeted_mbr_promoted.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_mbr_prepare" PASS_REGULAR_EXPRESSION "Channel ratios from targeted quantification: 3 peptide ratio.s. of peptides measured only that way")
+add_test("TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion"
+  -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_targeted_mbr_promoted.tmp.consensusXML
+  -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_11_targeted_mbr_promoted_out.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted")
+# YVNDLAGHEK's normalized ratios exactly (FuzzyDiff's 1 % tolerance would accept the 1.00015 of run B before the fix)
+add_test("TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted_normalized" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/MS1LabeledWorkflow_11_targeted_mbr_promoted.tmp.consensusXML
+  "-DEXPECTED=name=\"MS1Label:peptide_ratio_normalized\" value=\"[1.0, 1.0, 1.0, 1.0]\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted_normalized" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_11_targeted_mbr_promoted")
 
 # Reserved peaks in the re-quantification: MS1LabeledWorkflow_12 is a synthetic triple SILAC run (2+, one MS1 spectrum per second)
 # whose isotope peaks sit at their measured (fine-structure averaged) positions:
@@ -5508,6 +5622,7 @@ add_test("TOPP_MS1LabeledWorkflow_19_faims_split" ${TOPP_BIN_PATH}/MS1LabeledWor
   -proteinFDR 1.0
   -ratios:min_ratio_count 1
   -join_channels true
+  -targeted_quantification false
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_19_faims_split.tmp.consensusXML)
 set_tests_properties("TOPP_MS1LabeledWorkflow_19_faims_split" PROPERTIES PASS_REGULAR_EXPRESSION "Re-quantified 1 channel.s. the detection did not find. 1 show no signal at their expected position and are reported as absent, 0 lie on reserved peaks they may not use" FAIL_REGULAR_EXPRESSION "partial multiplet.s. were found to be other channels")
 add_test("TOPP_MS1LabeledWorkflow_19_faims_split_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_19_faims_split.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19_out.consensusXML )
@@ -5532,6 +5647,7 @@ add_test("TOPP_MS1LabeledWorkflow_19_faims_samecv" ${TOPP_BIN_PATH}/MS1LabeledWo
   -proteinFDR 1.0
   -ratios:min_ratio_count 1
   -join_channels true
+  -targeted_quantification false
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_19_faims_samecv.tmp.consensusXML)
 set_tests_properties("TOPP_MS1LabeledWorkflow_19_faims_samecv" PROPERTIES PASS_REGULAR_EXPRESSION "1 partial multiplet.s. were found to be other channels of an identified partial multiplet and were joined to it, re-measured over common spectra. 0 such candidate.s. were not joined")
 add_test("TOPP_MS1LabeledWorkflow_19_faims_samecv_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_19_faims_samecv.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_19_samecv_out.consensusXML )
