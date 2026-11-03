@@ -13,7 +13,9 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/OpenMSConfig.h>
 
+#include <functional>
 #include <memory>
+#include <span>
 
 namespace OpenMS
 {
@@ -30,6 +32,8 @@ namespace OpenMS
     Size hits = 0;
     Size misses = 0;
     Size evictions = 0;
+    Size decoded_frames = 0; ///< Physical MS2 frames decoded after random-access index construction
+    Size sorted_frames = 0;  ///< Physical MS2 frames sorted by m/z after index construction
   };
 
   /**
@@ -76,6 +80,24 @@ namespace OpenMS
       @throws Exception::IndexOverflow if @p index is out of range (backend dependent)
     */
     virtual MSSpectrum getSpectrum(Size index) = 0;
+
+    /**
+      @brief Visit spectra for an ordered batch of source indices.
+
+      Backends may group requests that share one physical acquisition while preserving
+      the input order and producing the same spectrum as getSpectrum(). The default
+      implementation reads each spectrum independently. The visitor is called once
+      per requested index. It receives an rvalue reference and must move the spectrum
+      if it needs to retain it after the call. The callback runs synchronously and must
+      not re-enter this source.
+
+      @param[in] indices Source indices in output order; repeated indices are preserved.
+      @param[in] visitor Receives each index and its decoded spectrum.
+
+      @throws std::invalid_argument if @p visitor is empty
+    */
+    virtual void forEachSpectrum(std::span<const Size> indices,
+                                 const std::function<void(Size, MSSpectrum&&)>& visitor);
 
     /**
       @brief The spectrum with index @p index without peaks and data arrays.

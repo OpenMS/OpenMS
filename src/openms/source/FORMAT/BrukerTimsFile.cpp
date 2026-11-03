@@ -2755,6 +2755,8 @@ namespace OpenMS
             ~CloseFrame() { frame.close(); }
           } close_frame{frame};
           decoded.decode(*source_->handle, frame, true);
+          ++source_->cache_stats.decoded_frames;
+          ++source_->cache_stats.sorted_frames;
           const Size bytes = decoded.retainedBytes() + sizeof(Source::CachedFrame) - sizeof(DecodedFrame) + 2 * sizeof(void*);
           if (bytes <= source_->cache_stats.limit_bytes)
           {
@@ -2788,6 +2790,109 @@ namespace OpenMS
       }
       spec.sortByPosition();
       return spec;
+    }
+    void forEachSpectrum(std::span<const Size> indices,
+                         const std::function<void(Size, MSSpectrum&&)>& visitor) override
+    {
+      if (!visitor) { throw std::invalid_argument("Spectrum batch visitor must not be empty"); }
+      for (const Size index : indices)
+      {
+        if (index >= source_->entries.size()) { throw std::out_of_range("Native Bruker DIA spectrum index"); }
+      }
+
+      Size i = 0;
+      while (i < indices.size())
+      {
+        const Size index = indices[i];
+        const auto& entry = source_->entries[index];
+        if (!entry.window)
+        {
+          auto spectrum = getSpectrum(index);
+          visitor(index, std::move(spectrum));
+          ++i;
+          continue;
+        }
+
+        Size end = i + 1;
+        while (end < indices.size())
+        {
+          const auto& next = source_->entries[indices[end]];
+          if (!next.window || next.frame != entry.frame) { break; }
+          ++end;
+        }
+
+        std::lock_guard<std::mutex> lock(source_->mutex);
+        auto& frame = source_->handle->get_frame(entry.frame);
+        struct CloseFrame
+        {
+          TimsFrame* frame = nullptr;
+          ~CloseFrame()
+          {
+            if (frame) { frame->close(); }
+          }
+        } close_frame;
+        close_frame.frame = &frame;
+        DecodedFrame decoded;
+        const DecodedFrame* payload = &decoded;
+        const auto found = std::find_if(source_->cache.begin(), source_->cache.end(),
+          [&](const auto& cached) { return cached.id == entry.frame; });
+        if (found != source_->cache.end())
+        {
+          ++source_->cache_stats.hits;
+          source_->cache.splice(source_->cache.begin(), source_->cache, found);
+          payload = &source_->cache.front().decoded;
+        }
+        else
+        {
+          ++source_->cache_stats.misses;
+          decoded.decode(*source_->handle, frame, true);
+          ++source_->cache_stats.decoded_frames;
+          ++source_->cache_stats.sorted_frames;
+          const Size bytes = decoded.retainedBytes() + sizeof(Source::CachedFrame) - sizeof(DecodedFrame) + 2 * sizeof(void*);
+          if (bytes <= source_->cache_stats.limit_bytes)
+          {
+            while (source_->cache_stats.retained_bytes > source_->cache_stats.limit_bytes - bytes) source_->evictLast();
+            try
+            {
+              source_->cache.emplace_front();
+              auto& cached = source_->cache.front();
+              cached.id = entry.frame;
+              cached.bytes = bytes;
+              cached.decoded = std::move(decoded);
+              source_->cache_stats.retained_bytes += bytes;
+              source_->cache_stats.peak_retained_bytes = std::max(source_->cache_stats.peak_retained_bytes, source_->cache_stats.retained_bytes);
+              payload = &source_->cache.front().decoded;
+            }
+            catch (const std::bad_alloc&)
+            {
+              // Optional cache allocation must not prevent producing the spectra.
+            }
+          }
+        }
+
+        std::vector<char> in_window;
+        for (Size request = i; request < end; ++request)
+        {
+          const Size requested_index = indices[request];
+          const auto& requested_entry = source_->entries[requested_index];
+          MSSpectrum spectrum;
+          initDIAWindowSpectrum(frame, *requested_entry.window, spectrum);
+          DataArrays::FloatDataArray im_array;
+          IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+          markScansInWindow(*payload, *requested_entry.window, in_window);
+          addWindowPeaksByMZ(*payload, in_window, spectrum, im_array);
+          spectrum.getFloatDataArrays().push_back(std::move(im_array));
+          spectrum.setIMPeakType(IMPeakType::IM_PROFILE);
+          spectrum.sortByPosition();
+          visitor(requested_index, std::move(spectrum));
+        }
+        if (close_frame.frame)
+        {
+          close_frame.frame->close();
+          close_frame.frame = nullptr;
+        }
+        i = end;
+      }
     }
 
   private:

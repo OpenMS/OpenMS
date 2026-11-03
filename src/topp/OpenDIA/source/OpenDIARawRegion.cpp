@@ -83,12 +83,11 @@ RawRegion RawRegion::read(OpenMS::IMSExperimentRandomAccess& source,
   }
   if (stop.stop_requested()) { invalid("Cancelled region"); }
   auto storage = Storage::allocate(context, limits, id_capacity, budget);
-  for (auto index : indices)
+  source.forEachSpectrum(indices, [&](OpenMS::Size index, OpenMS::MSSpectrum&& spectrum)
   {
     if (stop.stop_requested() || budget.snapshot().cancelled) { invalid("Cancelled region"); }
-    auto spectrum = source.getSpectrum(index); // Decode each native acquisition exactly once.
     storage->append(spectrum, index, limits);
-  }
+  });
   if (stop.stop_requested() || budget.snapshot().cancelled) { invalid("Cancelled region"); }
   RawRegion result;
   result.storage_ = std::move(storage);

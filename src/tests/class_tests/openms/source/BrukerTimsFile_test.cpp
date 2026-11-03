@@ -729,6 +729,7 @@ START_SECTION(native decoded-frame cache)
     auto native = file.openDIAOnDisc(path);
     auto clone = native->clone();
     auto independent = file.openDIAOnDisc(path);
+    auto parity_reference = file.openDIAOnDisc(path);
     const auto initial = native->getNativeFrameCacheStats();
     TEST_EQUAL(initial.limit_bytes, 0)
     TEST_EQUAL(initial.retained_bytes, 0)
@@ -740,6 +741,39 @@ START_SECTION(native decoded-frame cache)
     {
       const auto expected = native->getSpectrum(index);
       TEST_EQUAL(native->getNativeFrameCacheStats().misses, 1)
+      const std::string frame_id = expected.getNativeID().substr(0, expected.getNativeID().find(' '));
+      std::vector<Size> batch_indices;
+      for (Size j = 0; j < native->size(); ++j)
+      {
+        if (native->getSpectrumMSLevel(j) != 2) { continue; }
+        const auto id = native->getSpectrumMetadata(j).getNativeID();
+        if (id.substr(0, id.find(' ')) == frame_id) { batch_indices.push_back(j); }
+      }
+      TEST_TRUE(batch_indices.size() > 1)
+      batch_indices.push_back(batch_indices.front()); // Repeated indices keep their place in the output.
+      auto batched = file.openDIAOnDisc(path);
+      TEST_TRUE(batched->setNativeFrameCacheSize(64 * 1024 * 1024))
+      const auto before_batch = batched->getNativeFrameCacheStats();
+      std::vector<std::pair<Size, MSSpectrum>> batch_output;
+      batched->forEachSpectrum(batch_indices, [&](Size requested, MSSpectrum&& spectrum)
+      {
+        batch_output.emplace_back(requested, std::move(spectrum));
+      });
+      TEST_EQUAL(batch_output.size(), batch_indices.size())
+      for (Size j = 0; j < batch_output.size(); ++j)
+      {
+        TEST_EQUAL(batch_output[j].first, batch_indices[j])
+        TEST_TRUE(sameSpectrum(parity_reference->getSpectrum(batch_indices[j]), batch_output[j].second))
+      }
+      const auto after_batch = batched->getNativeFrameCacheStats();
+      TEST_EQUAL(after_batch.decoded_frames - before_batch.decoded_frames, 1)
+      TEST_EQUAL(after_batch.sorted_frames - before_batch.sorted_frames, 1)
+      batched->forEachSpectrum(batch_indices, [](Size, MSSpectrum&&) {});
+      const auto after_batch_hit = batched->getNativeFrameCacheStats();
+      TEST_EQUAL(after_batch_hit.decoded_frames, after_batch.decoded_frames)
+      TEST_EQUAL(after_batch_hit.sorted_frames, after_batch.sorted_frames)
+      TEST_EQUAL(after_batch_hit.hits, after_batch.hits + 1)
+
       TEST_TRUE(native->setNativeFrameCacheSize(64 * 1024 * 1024))
       TEST_TRUE(sameSpectrum(expected, native->getSpectrum(index)))
       const auto admitted = native->getNativeFrameCacheStats();
@@ -750,7 +784,6 @@ START_SECTION(native decoded-frame cache)
       TEST_EQUAL(clone->getNativeFrameCacheStats().retained_bytes, admitted.retained_bytes)
       TEST_TRUE(sameSpectrum(expected, clone->getSpectrum(index)))
       TEST_EQUAL(native->getNativeFrameCacheStats().hits, 1)
-      const std::string frame_id = expected.getNativeID().substr(0, expected.getNativeID().find(' '));
       Size other_frame = native->size();
       for (Size j = 0; j < native->size(); ++j)
       {
