@@ -179,8 +179,9 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      peaks reserved by another multiplet (also one of the same peptide, which is quantified on its own) make such a channel
      not quantifiable without measuring it, and of the reserved peaks it uses only those of patterns the detection
      dropped, not the isotopes of the multiplet's other channels; a channel that only the peaks it may not use would give a
-     value is not quantifiable either, and so, with @p requantify_min_correlation, is one whose elution profile does not
-     follow the reference's (another species at its position). Re-quantified values are less accurate at extreme ratios
+     value is not quantifiable either, and so is a weak one (below @p requantify_correlation_ratio times the reference) whose
+     elution profile correlates with the reference's by less than @p requantify_min_correlation (another species at its
+     position; at moderate ratios real re-quantified channels correlate less well and are not checked). Re-quantified values are less accurate at extreme ratios
      than detected ones, so the ratios count the evidences that rest on them (see <b>Ratios</b> below). With
      @p targeted_quantification, an identified peptide that has no multiplet in
      the run (the detection missed it, or no multiplet fits its identifications) is measured at the m/z of its channels over
@@ -385,12 +386,18 @@ protected:
       "'fraction_group_level_ratio_requantified_count', QPX 'ratio_requantified_count'); see also 'requantify_min_correlation'.\n"
       "false: such channels are reported as absent.", false);
     setValidStrings_("requantify", {"true", "false"});
-    registerDoubleOption_("requantify_min_correlation", "<value>", -1.0,
-      "Minimum Pearson correlation between the elution profile of a re-quantified channel and that of the reference channel over the\n"
-      "multiplet's elution region (summed isotopic peaks per spectrum). Below it, the channel is not quantifiable: the channels of one\n"
-      "peptide co-elute, so a signal that does not follow the reference is another species. -1 (default): no such check.", false, true);
+    registerDoubleOption_("requantify_min_correlation", "<value>", 0.5,
+      "Minimum Pearson correlation between the elution profile of a weak re-quantified channel (see 'requantify_correlation_ratio') and\n"
+      "that of the reference channel over the multiplet's elution region (summed isotopic peaks per spectrum). Below it, the channel is\n"
+      "not quantifiable: the channels of one peptide co-elute, so a signal that does not follow the reference is another species.\n"
+      "-1: no such check.", false, true);
     setMinFloat_("requantify_min_correlation", -1.0);
     setMaxFloat_("requantify_min_correlation", 1.0);
+    registerDoubleOption_("requantify_correlation_ratio", "<value>", 0.3,
+      "'requantify_min_correlation' applies to the re-quantified channels whose intensity is below this fraction of the reference\n"
+      "channel's: at moderate ratios the re-quantified channels are reliable, and real ones there correlate less well (the\n"
+      "detection already missed them). A large value checks every re-quantified channel.", false, true);
+    setMinFloat_("requantify_correlation_ratio", 0.0);
 
     registerStringOption_("join_channels", "<option>", "true",
       "true: when the detection found the channels of an identified peptide as separate partial multiplets (see 'algorithm:knock_out'),\n"
@@ -403,7 +410,7 @@ protected:
       "then not quantifiable).", false);
     setValidStrings_("join_channels", {"true", "false"});
 
-    registerStringOption_("targeted_quantification", "<option>", "false",
+    registerStringOption_("targeted_quantification", "<option>", "true",
       "true: an identified peptide that has no multiplet in the run (none was detected, or its identifications fit none) is quantified from the MS1 peaks at\n"
       "the m/z it has in every channel: over the elution peak at the identification, the identified channel is integrated, and every other channel is\n"
       "measured against it from paired peaks (absent if no peak is seen at its m/z, not quantifiable if another signal occupies its position or its peaks do\n"
@@ -1724,24 +1731,16 @@ protected:
     const Size traces = std::min(channel.size(), reference.size());
     const Size n = traces == 0 ? 0 : std::min(channel[0].size(), reference[0].size());
     if (n < 3) { return std::numeric_limits<double>::quiet_NaN(); }
-    double sx = 0.0, sy = 0.0, sxx = 0.0, syy = 0.0, sxy = 0.0;
-    for (Size i = 0; i < n; ++i)
+    vector<double> channel_profile(n, 0.0), reference_profile(n, 0.0);
+    for (Size k = 0; k < traces; ++k)
     {
-      double x = 0.0, y = 0.0;
-      for (Size k = 0; k < traces; ++k)
+      for (Size i = 0; i < n; ++i)
       {
-        x += channel[k][i];
-        y += reference[k][i];
+        channel_profile[i] += channel[k][i];
+        reference_profile[i] += reference[k][i];
       }
-      sx += x;
-      sy += y;
-      sxx += x * x;
-      syy += y * y;
-      sxy += x * y;
     }
-    const double vx = sxx - sx * sx / static_cast<double>(n), vy = syy - sy * sy / static_cast<double>(n);
-    if (!(vx > 0.0) || !(vy > 0.0)) { return std::numeric_limits<double>::quiet_NaN(); }
-    return (sxy - sx * sy / static_cast<double>(n)) / std::sqrt(vx * vy);
+    return Math::pearsonCorrelationCoefficient(channel_profile.begin(), channel_profile.end(), reference_profile.begin(), reference_profile.end());
   }
 
   /// The result of requantifyChannel_
@@ -1769,7 +1768,7 @@ protected:
   */
   Requantified_ requantifyChannel_(const MSExperiment& spectra, const MSExperiment& blacklist, const std::function<bool(const MSSpectrum&, Size)>& skip_reserved,
                                    const std::optional<double>& cv, double rt_lo, double rt_hi, double mz, int charge, const vector<double>& channel_mzs,
-                                   Size traces, double reference_mz, double reference_intensity) const
+                                   Size traces, double reference_mz, double reference_intensity, bool check_coelution = false) const
   {
     Requantified_ result;
     if (charge == 0 || traces == 0 || !(reference_intensity > 0.0)) { return result; }
@@ -1812,8 +1811,9 @@ protected:
     result.paired = paired.paired;
     if (paired.intensity > 0.0 && paired.pattern >= min_pattern_spectra_)
     {
-      // the channels of one peptide co-elute: a signal whose elution profile does not follow the reference's is another species
-      if (requantify_min_correlation_ > -1.0 && !(elutionCorrelation_(channel, reference) >= requantify_min_correlation_))
+      // the channels of one peptide co-elute: a weak signal whose elution profile does not follow the reference's is another species
+      if (check_coelution && requantify_min_correlation_ > -1.0 && paired.intensity < requantify_correlation_ratio_ * reference_intensity
+          && !(elutionCorrelation_(channel, reference) >= requantify_min_correlation_))
       {
         result.intensity = std::numeric_limits<double>::quiet_NaN();
         result.not_coeluting = true;
@@ -1896,7 +1896,7 @@ protected:
         if (handle.getIntensity() == 0.0 && !channel_of.contains(handle.getUniqueId()))
         {
           const Requantified_ result = requantifyChannel_(centroided, blacklist, skip_reserved, cv, rt_lo, rt_hi, handle.getMZ(), handle.getCharge(),
-                                                          channel_mzs, traces, reference_mz, reference_intensity);
+                                                          channel_mzs, traces, reference_mz, reference_intensity, true);
           const double intensity = result.intensity;
           if (intensity > 0.0 || std::isnan(intensity)) { handle.setIntensity(intensity); }
           requantified += intensity > 0.0;
@@ -1929,8 +1929,9 @@ protected:
     }
     if (not_coeluting > 0)
     {
-      OPENMS_LOG_INFO << not_coeluting << " re-quantified channel(s) are not quantifiable: their elution profile correlates with the reference's by "
-                      << "less than " << requantify_min_correlation_ << " ('-requantify_min_correlation')." << endl;
+      OPENMS_LOG_INFO << not_coeluting << " re-quantified channel(s) weaker than " << requantify_correlation_ratio_ << " times the reference are not "
+                      << "quantifiable: their elution profile correlates with the reference's by less than " << requantify_min_correlation_
+                      << " ('-requantify_min_correlation')." << endl;
     }
     if (reserved_used > 0)
     {
@@ -3610,6 +3611,7 @@ protected:
     requantify_ = getStringOption_("requantify") == "true";
     join_channels_ = getStringOption_("join_channels") == "true";
     requantify_min_correlation_ = getDoubleOption_("requantify_min_correlation");
+    requantify_correlation_ratio_ = getDoubleOption_("requantify_correlation_ratio");
     targeted_quantification_ = getStringOption_("targeted_quantification") == "true";
     knock_out_ = getParam_().getValue("algorithm:knock_out").toString() == "true";
     if (knock_out_ && multiplicity_ > 4)
@@ -3928,8 +3930,9 @@ private:
   bool knock_out_ = true;              ///< detect partial multiplets as well ('algorithm:knock_out', up to four channels)
   bool requantify_ = true;             ///< re-quantify the channels of partial multiplets from the MS1 peaks
   bool join_channels_ = true;          ///< join the separately detected channels of an identified peptide ('-join_channels')
-  double requantify_min_correlation_ = -1.0; ///< minimum elution correlation of a re-quantified channel with its reference ('-requantify_min_correlation')
-  bool targeted_quantification_ = false; ///< quantify identified peptides without a multiplet from their MS1 peaks ('-targeted_quantification')
+  double requantify_min_correlation_ = 0.5; ///< minimum elution correlation of a re-quantified channel with its reference ('-requantify_min_correlation')
+  double requantify_correlation_ratio_ = 0.3; ///< the correlation is checked below this fraction of the reference's intensity ('-requantify_correlation_ratio')
+  bool targeted_quantification_ = true; ///< quantify identified peptides without a multiplet from their MS1 peaks ('-targeted_quantification')
   ExperimentalDesign design_;
   std::string picked_decoy_string_;
   bool picked_decoy_prefix_ = true;
