@@ -35,11 +35,12 @@ namespace OpenMS
 
       Two estimators are available:
 
-      - <b>Unsupervised mixture model</b> (fit(), and fitTargetDecoy() without decoys): a two-component mixture of a Gumbel
+      - <b>Unsupervised mixture model</b> (fit(), and fitTargetDecoy() without decoys or with @p decoy_handling = ignore, where
+        targets and decoys are pooled): a two-component mixture of a Gumbel
         (or Gauss) distribution for incorrect and a Gauss distribution for correct assignments is fitted to all scores with the
         EM algorithm. The very same densities are used for fitting and for computing probabilities. The Gumbel component is
         fitted by weighted maximum likelihood.
-      - <b>Non-parametric target-decoy estimate</b> (fitTargetDecoy() with at least one decoy):
+      - <b>Non-parametric target-decoy estimate</b> (fitTargetDecoy() with at least one decoy and @p decoy_handling = auto, the default):
         Under target-decoy competition (concatenated target+decoy search, top hit per spectrum), each decoy winner stands
         in for (about) one incorrect target winner. The probability p(s) that a PSM with score s is a decoy is estimated by
         weighted isotonic regression (pool-adjacent-violators, tied scores pooled) and the PEP of a target PSM is
@@ -273,7 +274,8 @@ public:
           down to the lowest scores. Then either correct PSMs extend to the lowest scores, or decoys are underrepresented among the
           incorrect PSMs (e.g. a wrong decoy_ratio), which makes all target-decoy PEPs (and FDRs) too low.
           The set of lowest-scoring PSMs with the highest decoy fraction among those with at least a quarter of the estimated number of
-          incorrect PSMs (and at least 100 PSMs) is tested.
+          incorrect PSMs (number of decoys * (1 + 1 / decoy_ratio) / 4) is tested. The check is skipped if this minimum set size is below 100 PSMs
+          (i.e. with fewer than 200 decoys at decoy_ratio 1), and with @p decoy_handling = ignore.
       */
       bool hasCalibrationWarning() const
       {

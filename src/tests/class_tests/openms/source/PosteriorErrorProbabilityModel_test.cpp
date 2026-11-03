@@ -487,7 +487,7 @@ START_SECTION((bool fitTargetDecoy(const std::vector<double>& target_scores, con
   // target-decoy competition: one decoy per incorrect target
   TDData data = simulateTDC(42, n0, n1, n0);
 
-  // non-parametric estimate (default with enough decoys)
+  // non-parametric estimate (default with decoys)
   PosteriorErrorProbabilityModel model;
   TEST_EQUAL(model.getModelType() == PosteriorErrorProbabilityModel::ModelType::NONE, true)
   TEST_EQUAL(model.fitTargetDecoy(data.targets, data.decoys, "ignore_iqr_outliers"), true)
@@ -574,7 +574,8 @@ START_SECTION((bool fitTargetDecoy(const std::vector<double>& target_scores, con
     TEST_EQUAL(strictly_decreasing, true)
   }
 
-  // the estimate only depends on the ordering of the scores: invariant to monotone transformations
+  // the blocks and block PEPs only depend on the ordering of the scores: invariant to monotone transformations
+  // (the ramps within and between blocks use the score values)
   {
     TDData transformed = data;
     for (double& t : transformed.targets) { t = std::exp(t / 2.0); }

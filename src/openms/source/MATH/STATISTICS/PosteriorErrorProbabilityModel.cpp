@@ -312,11 +312,11 @@ namespace OpenMS::Math
     {
       defaults_.setValue("out_plot", "", "If given, the some output files will be saved in the following manner: <out_plot>_scores.txt for the scores and <out_plot> which contains the fitted values for each step of the EM-algorithm, e.g., out_plot = /usr/home/OMSSA123 leads to /usr/home/OMSSA123_scores.txt, /usr/home/OMSSA123 will be written. If no directory is specified, e.g. instead of '/usr/home/OMSSA123' just OMSSA123, the files will be written into the working directory.", {"advanced","output file"});
       defaults_.setValue("number_of_bins", 100, "Number of bins used for visualization. Only needed if each iteration step of the EM-Algorithm will be visualized", {"advanced"});
-      defaults_.setValue("incorrectly_assigned", "Gumbel", "Distribution of the scores of incorrectly assigned sequences in the mixture models. For 'Gumbel', the Gumbel distribution is used (fitted by maximum likelihood). For 'Gauss', the Gauss distribution is used.", {"advanced"});
+      defaults_.setValue("incorrectly_assigned", "Gumbel", "Distribution of the scores of incorrectly assigned sequences in the mixture model. For 'Gumbel', the Gumbel distribution is used (fitted by maximum likelihood). For 'Gauss', the Gauss distribution is used.", {"advanced"});
       defaults_.setValue("max_nr_iterations", 1000, "Bounds the number of iterations for the EM algorithm when convergence is slow.", {"advanced"});
       defaults_.setValidStrings("incorrectly_assigned", {"Gumbel","Gauss"});
       defaults_.setValue("neg_log_delta",6, "The negative logarithm of the convergence threshold for the likelihood increase.");
-      defaults_.setValue("outlier_handling","ignore_iqr_outliers", "What to do with outliers (mixture models only):\n"
+      defaults_.setValue("outlier_handling","ignore_iqr_outliers", "What to do with outliers (mixture model only):\n"
                                                                    "- ignore_iqr_outliers: ignore outliers outside of 3*IQR from Q1/Q3 for fitting\n"
                                                                    "- set_iqr_to_closest_valid: set IQR-based outliers to the last valid value for fitting\n"
                                                                    "- ignore_extreme_percentiles: ignore everything outside 99.9th and 1st percentile (also removes equal values like potential censored max values in XTandem)\n"
