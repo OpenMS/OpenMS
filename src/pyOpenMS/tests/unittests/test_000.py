@@ -1975,6 +1975,9 @@ def testPosteriorErrorProbabilityModel():
     assert pyopenms.PosteriorErrorProbabilityModel().fit is not None
     assert pyopenms.PosteriorErrorProbabilityModel().computeProbability is not None
 
+    params = model.getParameters()
+    params.setValue("min_mixture_scores", 3)  # toy data (default: at least 35 scores)
+    model.setParameters(params)
     scores = [float(i) for i in range(10)]
     model.fit(scores, "none")
     model.fit(scores, scores, "none")

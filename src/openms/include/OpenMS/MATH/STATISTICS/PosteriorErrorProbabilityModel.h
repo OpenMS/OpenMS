@@ -63,6 +63,7 @@ namespace OpenMS
       For data with few or no correct assignments, it might assign low PEPs to a few PSMs in the extreme upper tail of the scores.
       Its parametric densities are also only an approximation of real score distributions (on Comet e-values of a yeast/UPS1
       dataset, its PEPs were about 1.5 times too high in total). Use target/decoy information whenever possible.
+      With fewer than @p min_mixture_scores scores (default 35, as PeptideProphet), the mixture model is not fitted at all.
 
       One can output the fit as a gnuplot formula using getGumbelGnuplotFormula() and getGaussGnuplotFormula() after fitting.
       @note All parameters are stored in GaussFitResult. In the case of the Gumbel distribution x0 and sigma represent the local parameter alpha and the scale parameter beta, respectively.
@@ -215,6 +216,7 @@ public:
           @return true if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated.
           @note the vector is sorted from smallest to biggest value!
           @note non-finite scores are ignored for fitting
+          @note with fewer finite scores than the parameter @p min_mixture_scores (default 35), no model is fitted (returns false)
       */
       bool fit(std::vector<double>& search_engine_scores, const std::string& outlier_handling);
 

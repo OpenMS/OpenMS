@@ -430,6 +430,10 @@ namespace OpenMS::Math
       defaults_.setMinFloat("decoy_ratio", 1e-6);
       defaults_.setValue("min_decoys", 10, "Only used by IDPosteriorErrorProbability with 'split_charge': charge states with fewer decoy PSMs use the target-decoy data of all charge states (1: separate models for all charge states with decoys).", {"advanced"});
       defaults_.setMinInt("min_decoys", 1);
+      defaults_.setValue("min_mixture_scores", 35, "Minimum number of (finite) scores to fit the mixture model (used without decoys, or with decoy_handling 'ignore'). "
+                                                "With fewer scores, no model is fitted: the scores of so few PSMs without decoys do not determine the two components "
+                                                "(PeptideProphet also requires 35 PSMs per model). IDPosteriorErrorProbability with 'split_charge' then uses the mixture model of all charge states.", {"advanced"});
+      defaults_.setMinInt("min_mixture_scores", 2);
       defaultsToParam_();
       getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGumbelGnuplotFormula;
       getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
@@ -500,7 +504,14 @@ namespace OpenMS::Math
 
     bool PosteriorErrorProbabilityModel::fitMixture_(std::vector<double> scores, bool use_gumbel, const std::string& outlier_handling)
     {
-      if (scores.size() < 2) { return false; }
+      const Size min_scores = static_cast<Size>(int(param_.getValue("min_mixture_scores")));
+      if (scores.size() < std::max<Size>(2, min_scores))
+      {
+        OPENMS_LOG_WARN << "Warning: only " << scores.size() << " scores, too few to fit the mixture model (min_mixture_scores: " << min_scores
+                        << "). Without decoys, the PEPs of so few PSMs cannot be estimated; search against a target+decoy database"
+                        << " (DecoyDatabase, PeptideIndexer) to use the target-decoy estimate, which also works with few PSMs." << std::endl;
+        return false;
+      }
 
       //-------------------------------------------------------------
       // Initializing Parameters

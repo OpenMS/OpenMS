@@ -85,6 +85,9 @@ Without decoys, the mixture model assumes that the data contain correct assignme
 it might assign low PEPs to a few PSMs in the extreme upper tail of the scores. On real data (Comet e-values of a yeast/UPS1 dataset,
 validated with an entrapment database), the PEPs of the mixture model were about 1.5 times too high in total, and much too high for
 confident PSMs, while the target-decoy estimate was within a few percent. Use target/decoy information whenever possible.
+The mixture model needs at least @p fit_algorithm:min_mixture_scores scores (default 35, as PeptideProphet). With @p split_charge, a charge state
+with fewer scores uses the mixture model of all charge states. If there are still too few scores, the tool fails (with @p ignore_bad_data:
+the hits get a PEP of 1, the original score is kept as meta value).
 
 <B>Plots</B>
 
@@ -174,6 +177,7 @@ protected:
     std::string outlier_handling = fit_algorithm.getValue("outlier_handling").toString();
     const std::string decoy_handling = fit_algorithm.getValue("decoy_handling").toString();
     const Size min_decoys = static_cast<Size>(int(fit_algorithm.getValue("min_decoys")));
+    const Size min_mixture_scores = static_cast<Size>(int(fit_algorithm.getValue("min_mixture_scores")));
 
     //-------------------------------------------------------------
     // reading input
@@ -197,17 +201,17 @@ protected:
      split_charge,
      top_hits_only);
 
-    // target/decoy top hits of all charge states (fallback for charge states with too few decoys)
+    // scores of all charge states (fallback for charge states with too few decoys, or too few scores for the mixture model)
     map<std::string, vector<vector<double> > > pooled_scores;
-    if (split_charge && decoy_handling != "ignore")
+    if (split_charge)
     {
-      pooled_scores = PosteriorErrorProbabilityModel::extractAndTransformScores(protein_ids, peptide_ids, false, true);
+      pooled_scores = PosteriorErrorProbabilityModel::extractAndTransformScores(protein_ids, peptide_ids, false, top_hits_only);
     }
 
-    // something to fit: enough scores for a mixture model, or target and decoy top hits (even a single one of each is informative)
+    // something to fit: scores for a mixture model, or target and decoy top hits (even a single one of each is informative)
     auto has_data = [](const std::pair<const std::string, vector<vector<double>>>& entry)
     {
-      return entry.second[0].size() > 2 || (!entry.second[1].empty() && !entry.second[2].empty());
+      return !entry.second[0].empty() || (!entry.second[1].empty() && !entry.second[2].empty());
     };
     const bool any_data = std::any_of(all_scores.begin(), all_scores.end(), has_data) || std::any_of(pooled_scores.begin(), pooled_scores.end(), has_data);
     if (!any_data)
@@ -241,6 +245,7 @@ protected:
 
       vector<double>* targets = &score.second[1];
       vector<double>* decoys = &score.second[2];
+      vector<double>* mixture_scores = &score.second[0];
 
       // With split_charge, charge states with fewer than min_decoys decoys (or without targets) use the target-decoy data of all
       // charge states, if other charge states contribute top hits (targets or decoys).
@@ -261,9 +266,26 @@ protected:
       {
         switch_to_pooled("Only " + StringUtils::toStr(targets->size()) + " target and " + StringUtils::toStr(decoys->size()) + " decoy top hits for " + model_name + ".");
       }
-      else if (!use_decoys && score.second[0].size() <= 2)
+      else if (!use_decoys && mixture_scores->size() < min_mixture_scores)
       {
-        continue; // too few scores to fit a model (reported below)
+        auto pooled_mixture = pooled_scores.find(engine);
+        if (split_charge && pooled_mixture != pooled_scores.end() && pooled_mixture->second[0].size() >= min_mixture_scores)
+        {
+          writeLogInfo_("Only " + StringUtils::toStr(mixture_scores->size()) + " scores for " + model_name + ". Using the mixture model of all charge states ("
+                        + StringUtils::toStr(pooled_mixture->second[0].size()) + " scores).");
+          mixture_scores = &pooled_mixture->second[0];
+        }
+        else
+        {
+          writeLogWarn_("Only " + StringUtils::toStr(mixture_scores->size()) + " scores for " + model_name + ", too few to fit the mixture model without decoys"
+                        " (fit_algorithm:min_mixture_scores: " + StringUtils::toStr(min_mixture_scores) + "). Search against a target+decoy database"
+                        " (DecoyDatabase, PeptideIndexer) to use the target-decoy estimate, which also works with few PSMs.");
+          if (!ignore_bad_data)
+          {
+            return UNEXPECTED_RESULT;
+          }
+          continue;
+        }
       }
 
       // fit to score vector
@@ -271,7 +293,7 @@ protected:
       //XTandem is prone to accumulation at min values/censoring
       //OMSSA is prone to outliers
       bool return_value = use_decoys ? PEP_model.fitTargetDecoy(*targets, *decoys, outlier_handling)
-                                     : PEP_model.fit(score.second[0], outlier_handling);
+                                     : PEP_model.fit(*mixture_scores, outlier_handling);
       if (!return_value && use_decoys && pooled_available && !use_pooled)
       {
         switch_to_pooled("Unable to fit the data of " + model_name + ".");
@@ -298,6 +320,10 @@ protected:
       if (use_decoys)
       {
         summary += " (" + StringUtils::toStr(targets->size()) + " target and " + StringUtils::toStr(decoys->size()) + " decoy top hits)";
+      }
+      else
+      {
+        summary += " (" + StringUtils::toStr(mixture_scores->size()) + " scores" + (mixture_scores != &score.second[0] ? " of all charge states" : "") + ")";
       }
       writeLogInfo_(summary);
 

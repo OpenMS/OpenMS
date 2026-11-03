@@ -225,9 +225,10 @@ START_SECTION((void fit( std::vector<double>& search_engine_scores, std::vector<
 	Param param;
 	param.setValue("number_of_bins", 10);
 	param.setValue("incorrectly_assigned","Gumbel");
+	param.setValue("min_mixture_scores", 3); // toy data: 20 scores
 
 	ptr->setParameters(param);
-	ptr->fit(score_vector, probabilities, "none");
+	TEST_EQUAL(ptr->fit(score_vector, probabilities, "none"), true)
 	
 	Size i(0),j(1);
 	// The incorrect component is a Gumbel distribution fitted by maximum likelihood (x0/sigma = location/scale).
@@ -903,6 +904,26 @@ START_SECTION(([EXTRA] degenerate input))
     PosteriorErrorProbabilityModel model;
     TEST_EQUAL(model.fit(scores, "none"), false)
     TEST_EQUAL(model.getModelType() == PosteriorErrorProbabilityModel::ModelType::NONE, true)
+  }
+
+  // unsupervised: fewer than 'min_mixture_scores' (default 35) finite scores are not fitted, also without decoys in fitTargetDecoy()
+  {
+    TDData mixture = simulateTDC(21, 25, 10, 0); // 35 targets: 25 incorrect, 10 correct
+    std::vector<double> scores_35(mixture.targets), scores_34(mixture.targets.begin(), mixture.targets.end() - 1);
+    scores_34.push_back(nan); // non-finite scores do not count
+    PosteriorErrorProbabilityModel model;
+    TEST_EQUAL(model.fit(scores_34, "none"), false)
+    TEST_EQUAL(model.getModelType() == PosteriorErrorProbabilityModel::ModelType::NONE, true)
+    TEST_EQUAL(model.fit(scores_35, "none"), true)
+    TEST_EQUAL(model.getModelType() == PosteriorErrorProbabilityModel::ModelType::MIXTURE, true)
+    std::vector<double> targets_34(mixture.targets.begin(), mixture.targets.end() - 1);
+    TEST_EQUAL(model.fitTargetDecoy(targets_34, {}, "none"), false)
+    // ... unless the minimum is lowered
+    Param p = model.getParameters();
+    p.setValue("min_mixture_scores", 30);
+    model.setParameters(p);
+    TEST_EQUAL(model.fitTargetDecoy(targets_34, {}, "none"), true)
+    TEST_EQUAL(model.getModelType() == PosteriorErrorProbabilityModel::ModelType::MIXTURE, true)
   }
 
   // target-decoy: all scores identical -> no information, PEP 1
