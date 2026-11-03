@@ -287,12 +287,24 @@ protected:
         else
         {
           const bool pooled_too_few = split_charge && pooled_mixture != pooled_scores.end();
+          const bool has_targets = !score.second[1].empty() || (pooled_too_few && !pooled_mixture->second[1].empty());
           const bool has_decoys = !score.second[2].empty() || (pooled_too_few && !pooled_mixture->second[2].empty());
+          std::string advice;
+          if (!has_decoys)
+          {
+            advice = "Search against a target+decoy database (DecoyDatabase, PeptideIndexer) to use the target-decoy estimate, which also works with few PSMs.";
+          }
+          else if (!has_targets)
+          {
+            advice = "The data contain decoy but no target top hits: annotate the target PSMs (meta value 'target_decoy', e.g. with PeptideIndexer) to use the target-decoy estimate, which also works with few PSMs.";
+          }
+          else // only reachable with decoy_handling 'ignore' (otherwise the target-decoy estimate is used)
+          {
+            advice = "The data contain decoys: with fit_algorithm:decoy_handling 'auto', the target-decoy estimate is used, which also works with few PSMs.";
+          }
           writeLogWarn_("Only " + StringUtils::toStr(finiteCount(*mixture_scores)) + " scores for " + model_name
                         + (pooled_too_few ? " (all charge states: " + StringUtils::toStr(finiteCount(pooled_mixture->second[0])) + ")" : std::string())
-                        + ", too few to fit the mixture model (fit_algorithm:min_mixture_scores: " + StringUtils::toStr(min_mixture_scores) + "). "
-                        + (has_decoys ? "The data contain decoys: with fit_algorithm:decoy_handling 'auto', the target-decoy estimate is used, which also works with few PSMs."
-                                      : "Search against a target+decoy database (DecoyDatabase, PeptideIndexer) to use the target-decoy estimate, which also works with few PSMs."));
+                        + ", too few to fit the mixture model (fit_algorithm:min_mixture_scores: " + StringUtils::toStr(min_mixture_scores) + "). " + advice);
           if (!ignore_bad_data)
           {
             return UNEXPECTED_RESULT;
