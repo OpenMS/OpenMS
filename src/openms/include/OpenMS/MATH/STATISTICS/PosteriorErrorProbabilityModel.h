@@ -492,7 +492,7 @@ private:
       std::vector<double> isotonic_peps_;
       /// target-decoy estimate of the fraction of incorrect targets (-1 if not available)
       double td_incorrect_fraction_;
-      /// whether the PEPs of the last target-decoy fit disagree with target-decoy FDR estimates
+      /// whether the last target-decoy fit found too few decoys among the lowest-scoring PSMs (see hasCalibrationWarning())
       bool calibration_warning_;
     };
   }
