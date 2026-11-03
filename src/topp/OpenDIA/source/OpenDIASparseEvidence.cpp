@@ -127,7 +127,7 @@ namespace OpenDIA
 
   bool SparseEvidenceExtractor::selectorsMatch_(const ExtractionQuerySpec& query, const Coordinates& coordinates) const
   {
-    if (query.ms_level != 0 && query.ms_level != coordinates.ms_level) { return false; }
+    if (query.ms_level != coordinates.ms_level) { return false; }
     if (query.rt_seconds && !contains(*query.rt_seconds, coordinates.rt_seconds)) { return false; }
     if (query.isolation_mz && !overlapsIsolation(*query.isolation_mz, coordinates.isolation_lower_mz, coordinates.isolation_upper_mz))
     {
@@ -180,14 +180,6 @@ namespace OpenDIA
 
   std::vector<SparseEvidenceRef> SparseEvidenceExtractor::extract(const RawRegion::Scan& scan, SparseEvidenceStats* counters) const
   {
-    std::vector<SparseEvidenceRef> output;
-    if (!tryExtract(scan, output, counters)) { invalid("Sparse evidence output cap exceeded"); }
-    return output;
-  }
-
-  bool SparseEvidenceExtractor::tryExtract(const RawRegion::Scan& scan, std::vector<SparseEvidenceRef>& output,
-                                            SparseEvidenceStats* counters) const
-  {
     const auto acquisition = scan.acquisition();
     if (scan.context() != context_) { invalid("Raw scan context differs from fragment index context"); }
     const auto mz = scan.mz();
@@ -196,7 +188,7 @@ namespace OpenDIA
     {
       return selector.mobility.has_value();
     });
-    if (!mz.empty() && selectors_need_mobility && (! acquisition.point_mobility || mobility.empty()))
+    if (selectors_need_mobility && (! acquisition.point_mobility || mobility.empty()))
     {
       invalid("Requested point mobility is absent");
     }
@@ -209,7 +201,7 @@ namespace OpenDIA
     }
 
     SparseEvidenceStats stats;
-    output.clear();
+    std::vector<SparseEvidenceRef> output;
     std::vector<OpenMS::Size> matches;
     for (OpenMS::Size point_index = 0; point_index < mz.size(); ++point_index)
     {
@@ -220,19 +212,16 @@ namespace OpenDIA
       {
         const auto& query = queries_[query_index];
         const auto& selector = selectors_[query.selector_index];
-        if (selector.ms_level != 0 && selector.ms_level != acquisition.ms_level) { continue; }
+        if (selector.ms_level != acquisition.ms_level) { continue; }
         if (selector.rt_seconds && !contains(*selector.rt_seconds, acquisition.rt_seconds)) { continue; }
         if (selector.faims_voltage && (!acquisition.faims_voltage || *selector.faims_voltage != *acquisition.faims_voltage)) { continue; }
         if (selector.mobility &&
-            !contains(selector.mobility->interval, mobility[point_index]))
+            (selector.mobility->unit != *acquisition.point_mobility ||
+             !contains(selector.mobility->interval, mobility[point_index])))
         {
           continue;
         }
-        if (output.size() >= limits_.values)
-        {
-          output.clear();
-          return false;
-        }
+        if (output.size() >= limits_.values) { invalid("Sparse evidence output cap exceeded"); }
         output.push_back({query.family_id, query.precursor_id, query.fragment_id, point_index});
       }
     }
@@ -241,7 +230,7 @@ namespace OpenDIA
     stats.output_bytes = checkedByteMultiply(output.capacity(), sizeof(SparseEvidenceRef));
     stats.retained_bytes = checkedByteAdd(stats.index_bytes, stats.output_bytes);
     if (counters) { *counters = stats; }
-    return true;
+    return output;
   }
 
   OpenMS::Size SparseEvidenceExtractor::queryCount() const noexcept { return queries_.size(); }

@@ -76,7 +76,6 @@ namespace OpenDIA
     RecordContext context;
     /// Absent means all acquisitions, present empty means none. IDs are opaque pairs.
     std::optional<std::vector<std::pair<RecordId, RecordId>>> acquisitions;
-    /// Zero matches any level; otherwise this is the exact acquisition MS level.
     unsigned ms_level = 1;
     std::optional<QueryInterval> isolation_mz;
     std::optional<QueryInterval> rt_seconds;

@@ -116,19 +116,13 @@ int main()
   const auto raw_region_bytes = RawRegion::requiredBytes({1, 2}, spectrum.getNativeID().size());
   ByteBudget raw_region_budget(raw_region_bytes, 0);
   auto raw_region = RawRegion::fromSpectrum(spectrum, 1, context(), raw_region_budget);
-  auto wildcard_spec = makeQuery({100, 101, EdgePolicy::OPEN}, QueryInterval{10, 20, EdgePolicy::CLOSED}).specification();
-  wildcard_spec.ms_level = 0;
-  SparseEvidenceExtractor zero_copy(context(), {2, 2}, {ExtractionQuery(std::move(wildcard_spec))},
+  SparseEvidenceExtractor zero_copy(context(), {2, 2}, {makeQuery({100, 101, EdgePolicy::OPEN},
+                                                                  QueryInterval{10, 20, EdgePolicy::CLOSED})},
                                     {{12, 22, 32, 0, {100, 101, EdgePolicy::OPEN}}});
   SparseEvidenceStats zero_copy_stats;
   const auto native_evidence = zero_copy.extract(raw_region.scan(0), &zero_copy_stats);
   CHECK(native_evidence.size() == 1 && native_evidence.front().raw_point_index == 0)
   CHECK(zero_copy_stats.raw_points_examined == 2 && zero_copy_stats.queries_matched == 1)
-  SparseEvidenceExtractor capped(context(), {1, 0}, {makeQuery({100, 101, EdgePolicy::OPEN})},
-                                 {{12, 22, 32, 0, {100, 101, EdgePolicy::OPEN}}});
-  std::vector<SparseEvidenceRef> capped_output {{1, 2, 3, 4}};
-  CHECK(!capped.tryExtract(raw_region.scan(0), capped_output))
-  CHECK(capped_output.empty())
 
   // A thousand distant intervals should not require a thousand checks for one observed point.
   std::vector<FragmentQuery> distant_queries;
