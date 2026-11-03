@@ -201,6 +201,27 @@ void calibratedCreation()
   ByteBudget tiny(bytes - 1, 0);
   rejects([&] { RawRegion::fromSpectrum(original, 0, context, tiny); });
   {
+    ByteBudget preadmitted(bytes + 1024, 0);
+    auto admission = preadmitted.tryReserve(bytes + 1024);
+    check(admission.has_value(), "Cannot pre-admit region storage");
+    {
+      auto region = RawRegion::fromSpectrum(original, 0, context, preadmitted, {}, std::move(*admission));
+      check(region.size() == 1 && preadmitted.snapshot().committed_bytes == bytes
+              && preadmitted.snapshot().reserved_bytes == 0,
+            "Pre-admitted region did not commit exact retained storage");
+    }
+    check(preadmitted.snapshot().committed_bytes == 0 && preadmitted.snapshot().reserved_bytes == 0,
+          "Pre-admitted region leaked its lease");
+  }
+  {
+    ByteBudget underadmitted(bytes, 0);
+    auto admission = underadmitted.tryReserve(bytes - 1);
+    check(admission.has_value(), "Cannot construct undersized admission fixture");
+    rejects([&] { RawRegion::fromSpectrum(original, 0, context, underadmitted, {}, std::move(*admission)); });
+    check(underadmitted.snapshot().committed_bytes == 0 && underadmitted.snapshot().reserved_bytes == 0,
+          "Rejected pre-admission leaked bytes");
+  }
+  {
     auto empty = RawRegion::fromSpectrum(source.spectra[2], 2, context, budget);
     check(empty.size() == 1 && empty.scan(0).mz().empty(), "Decoded empty row lost");
   }

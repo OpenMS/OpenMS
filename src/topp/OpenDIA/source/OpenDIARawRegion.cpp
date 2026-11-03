@@ -59,7 +59,8 @@ struct RawRegion::Storage
   std::unique_ptr<char[]> ids;
   RecordContext context;
   OpenMS::Size count = 0, id_capacity = 0;
-  static std::shared_ptr<Storage> allocate(RecordContext context, RecordLimits limits, OpenMS::Size id_capacity, ByteBudget& budget);
+  static std::shared_ptr<Storage> allocate(RecordContext context, RecordLimits limits, OpenMS::Size id_capacity,
+                                           ByteBudget& budget, ByteReservation admission = {});
   void append(const OpenMS::MSSpectrum& spectrum, OpenMS::Size index, RecordLimits limits, std::optional<MZCalibration> calibration = {});
 };
 ByteCount RawRegion::requiredBytes(RecordLimits limits, OpenMS::Size id_capacity)
@@ -94,13 +95,23 @@ RawRegion RawRegion::read(OpenMS::IMSExperimentRandomAccess& source,
   return result;
 }
 std::shared_ptr<RawRegion::Storage>
-RawRegion::Storage::allocate(RecordContext context, RecordLimits limits, OpenMS::Size id_capacity, ByteBudget& budget)
+RawRegion::Storage::allocate(RecordContext context, RecordLimits limits, OpenMS::Size id_capacity,
+                             ByteBudget& budget, ByteReservation admission)
 {
   if (context.schema_version != 0) { invalid("Invalid context"); }
-  auto reservation = budget.tryReserve(requiredBytes(limits, id_capacity));
-  if (! reservation) { invalid("Region admission failed"); }
+  const auto bytes = requiredBytes(limits, id_capacity);
+  if (admission.bytes() == 0)
+  {
+    auto reservation = budget.tryReserve(bytes);
+    if (! reservation) { invalid("Region admission failed"); }
+    admission = std::move(*reservation);
+  }
+  else if (bytes > admission.bytes())
+  {
+    invalid("Region exceeds pre-admitted bytes");
+  }
   auto storage = std::make_shared<Storage>();
-  storage->lease = reservation->commit(reservation->bytes());
+  storage->lease = admission.commit(bytes);
   storage->rows = std::make_unique<RegionAcquisition[]>(limits.records);
   storage->mz = std::make_unique<double[]>(limits.values);
   storage->intensity = std::make_unique<float[]>(limits.values);
@@ -204,12 +215,21 @@ RawRegion RawRegion::fromSpectrum(const OpenMS::MSSpectrum& spectrum,
                                   ByteBudget& budget,
                                   std::optional<MZCalibration> calibration)
 {
+  return fromSpectrum(spectrum, source_index, context, budget, calibration, {});
+}
+RawRegion RawRegion::fromSpectrum(const OpenMS::MSSpectrum& spectrum,
+                                  OpenMS::Size source_index,
+                                  RecordContext context,
+                                  ByteBudget& budget,
+                                  std::optional<MZCalibration> calibration,
+                                  ByteReservation admission)
+{
   if (calibration && (! std::isfinite(calibration->a) || ! std::isfinite(calibration->b) || ! std::isfinite(calibration->c)))
   {
     invalid("Invalid calibration coefficients");
   }
   const RecordLimits limits {1, spectrum.size()};
-  auto storage = Storage::allocate(context, limits, spectrum.getNativeID().size(), budget);
+  auto storage = Storage::allocate(context, limits, spectrum.getNativeID().size(), budget, std::move(admission));
   storage->append(spectrum, source_index, limits, calibration);
   if (budget.snapshot().cancelled) { invalid("Cancelled region"); }
   RawRegion result;

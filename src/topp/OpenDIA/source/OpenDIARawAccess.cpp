@@ -472,29 +472,40 @@ namespace OpenDIA
       };
       std::vector<StagedRegion> staged;
       const auto decode_started = Clock::now();
+      // Admit the first output before the decoder starts. Reserve each next
+      // output before returning to forEachSpectrum, which decodes sequentially.
+      auto admission = cache_->reserve_(cache_->max_scan_bytes_, phase_id);
       try
       {
+        if (!admission) { throw BatchAdmissionFailure {}; }
+        OpenMS::Size remaining = batch_frame->indices.size();
         batch_frame->source->forEachSpectrum(batch_frame->indices, [&](OpenMS::Size native_index, OpenMS::MSSpectrum&& spectrum)
         {
           const auto found_members = batch_frame->members_by_index.find(native_index);
           if (found_members == batch_frame->members_by_index.end()) { invalid("Batch source returned an unregistered index"); }
           const auto bytes = RawRegion::requiredBytes({1, spectrum.size()}, spectrum.getNativeID().size());
           if (bytes > cache_->max_scan_bytes_) { invalid("Scan exceeds maximum scan bytes"); }
-          auto reservation = cache_->reserve_(bytes, phase_id);
-          if (!reservation)
-          {
-            if (cache_->budget_.snapshot().cancelled) { invalid("Cache is cancelled"); }
-            throw BatchAdmissionFailure {};
-          }
-          reservation.reset();
-          auto region = RawRegion::fromSpectrum(spectrum, native_index, context, cache_->budget_, calibration);
+          if (!admission) { throw BatchAdmissionFailure {}; }
+          auto slot = std::move(*admission);
+          admission.reset();
+          auto region = RawRegion::fromSpectrum(spectrum, native_index, context, cache_->budget_, calibration, std::move(slot));
           staged.push_back({native_index, bytes, std::move(region), found_members->second});
+          if (remaining > 0) { --remaining; }
+          if (remaining > 0)
+          {
+            admission = cache_->reserve_(cache_->max_scan_bytes_, phase_id);
+            if (!admission)
+            {
+              if (cache_->budget_.snapshot().cancelled) { invalid("Cache is cancelled"); }
+              throw BatchAdmissionFailure {};
+            }
+          }
         });
       }
       catch (const BatchAdmissionFailure&)
       {
-        // A whole-frame batch may exceed the remaining region budget. Discard it
-        // atomically, then preserve the established one-scan admission behavior.
+        // A batch may exceed the remaining region budget. Discard staged leases,
+        // then preserve the established one-scan admission behavior.
         staged.clear();
       }
 

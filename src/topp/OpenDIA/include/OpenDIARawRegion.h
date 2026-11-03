@@ -100,6 +100,20 @@ public:
                                 RecordContext context,
                                 ByteBudget& budget,
                                 std::optional<MZCalibration> calibration = {});
+  /** @brief Copy one decoded spectrum using storage bytes admitted before decoding.
+    @param[in] spectrum Decoded source spectrum.
+    @param[in] source_index Exact source identity.
+    @param[in] context Caller namespace.
+    @param[in] budget Shared byte budget.
+    @param[in] calibration Exact mass transformation, absent for native masses.
+    @param[in] admission Reservation acquired before dispatching the decoder.
+  */
+  static RawRegion fromSpectrum(const OpenMS::MSSpectrum& spectrum,
+                                OpenMS::Size source_index,
+                                RecordContext context,
+                                ByteBudget& budget,
+                                std::optional<MZCalibration> calibration,
+                                ByteReservation admission);
   static ByteCount requiredBytes(RecordLimits limits, OpenMS::Size id_capacity);
   OpenMS::Size size() const;
   Scan scan(OpenMS::Size index) const;
