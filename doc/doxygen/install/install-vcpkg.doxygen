@@ -10,7 +10,7 @@
 
     @section install_vcpkg_prereqs System Prerequisites
 
-    OpenMS need an underlying compiler, build generator, and (because some vcpkg ports build upstream projects using an autotools build system, and because `WITH_GUI` is on by default) the autotools chain and GUI/OpenGL prerequisites below.
+    OpenMS need an underlying compiler, build generator, and (because `WITH_GUI` is on by default) the GUI/OpenGL prerequisites below.
 
     @subsection install_vcpkg_prereqs_linux Linux
 

@@ -27,6 +27,8 @@
 
 namespace OpenMS
 {
+  class IsotopeDistribution;
+
   /**
    * @brief base class for filtering centroided and profile data for peak patterns
    *
@@ -59,9 +61,10 @@ public:
      * which blacklisted peaks are removed is called 'white'. White spectra
      * contain fewer peaks than their corresponding primary spectra. Consequently,
      * their indices are shifted. The type maps a peak index in a 'white'
-     * spectrum back to its original spectrum.
+     * spectrum back to its original spectrum: element [s][i] is the index in spectrum s
+     * of the original experiment of peak i of white spectrum s.
      */
-    typedef std::vector<std::map<int, int> > White2Original;
+    typedef std::vector<std::vector<int> > White2Original;
 
     /**
      * @brief constructor
@@ -288,6 +291,17 @@ protected:
      * @return boolean if this filter was passed i.e. the correlation coefficient is greater than @em averagine_similarity_
      */
     bool filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak) const;
+
+    /**
+     * @brief averagine isotope distribution (of the type @em averagine_type_, with @em isotopes_per_peptide_max_ isotopes)
+     * of a molecule of @p mass
+     *
+     * The returned reference is valid until the next call on the same thread. Peptide distributions are computed once
+     * per element composition of the averagine model.
+     *
+     * @throw Exception::InvalidParameter for an unknown averagine type
+     */
+    const IsotopeDistribution& averagineDistribution_(double mass) const;
     
     /**
      * @brief check if corresponding satellite peaks of different peptides show a good correlation
@@ -342,6 +356,11 @@ protected:
      * @brief for each peak of the spectrum being filtered that passes, the entries of @em blacklist_ it sets (see filterSpectrum_())
      */
     std::vector<std::vector<BlacklistEntry>> blacklist_writes_;
+
+    /**
+     * @brief the decision of filterSpectrum_() on each peak of the spectrum (reused, as blacklist_reads_)
+     */
+    std::vector<std::optional<MultiplexFilteredPeak>> passed_;
 
     /**
      * @brief "white" centroided experimental data

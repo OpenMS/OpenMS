@@ -32,7 +32,12 @@ namespace OpenMS
     result_.push_back(peak);
   }
 
-  MultiplexFilteredPeak MultiplexFilteredMSExperiment::getPeak(size_t i) const
+  void MultiplexFilteredMSExperiment::addPeak(MultiplexFilteredPeak&& peak)
+  {
+    result_.push_back(std::move(peak));
+  }
+
+  const MultiplexFilteredPeak& MultiplexFilteredMSExperiment::getPeak(size_t i) const
   {
     return result_[i];
   }

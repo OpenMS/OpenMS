@@ -425,7 +425,9 @@ Percolator::Percolator()
   defaults_.setValue("num_threads",       3,
                      "Maximum number of OpenMP threads for cross-validation; never more than the "
                      "threads the tool may use (-threads). With the default settings, cross-validation "
-                     "trains 9 models (3 folds x 3 Cneg values) in parallel. Default and range match upstream.");
+                     "trains 9 models (3 folds x 3 Cneg values) in parallel. Default and range match upstream. "
+                     "A build without OpenMP tasks (cl.exe) runs the models of each fold as a nested loop and may "
+                     "use up to two threads more than this.");
   defaults_.setMinInt("num_threads",      1);
   defaults_.setMaxInt("num_threads",      128);
 
