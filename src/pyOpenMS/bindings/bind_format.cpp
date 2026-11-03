@@ -317,6 +317,10 @@ Supports DDA-PASEF, DIA-PASEF, and raw frame-level 4D access.
 Ion mobility data is stored in VSSC (1/K0) units using IM_PEAK format
 for MS1 and DIA MS2, and scalar drift times for DDA MS2.
 
+``load()`` and ``transform()`` also read TSF data (timsTOF without ion
+mobility: MALDI imaging and spot runs, LC-MS with TIMS off), one
+centroided spectrum per frame, MS2 spectra with their precursor.
+
 This class is only available when OpenMS is built with
 ``WITH_OPENTIMS=ON`` (the default). The Bruker SDK
 (``timsdata.dll`` / ``libtimsdata.so``) is not bundled with pyOpenMS;
@@ -365,7 +369,7 @@ runtime.
         .def_static("detectFormat", &OpenMS::BrukerTimsFile::detectFormat, "path"_a,
         "Which Bruker data format a .d directory or '.d.zip' archive holds, told by its file names (nothing is read or extracted)")
         .def_static("checkDataFormat", &OpenMS::BrukerTimsFile::checkDataFormat, "path"_a,
-        "Raises if the path holds Bruker data in a format that cannot be read (TSF, BAF); load() does this check itself")
+        "Raises if the path holds Bruker data in a format that cannot be read (BAF); load() does this check itself")
         ;
     def_ProgressLogger<OpenMS::BrukerTimsFile>(brukertimsfile_class);
 

@@ -10,6 +10,7 @@
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
@@ -20,6 +21,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <tuple>
 #include <utility>
 
@@ -120,13 +122,15 @@ namespace OpenMS
     exp_centroided_.updateRanges();
     exp_centroided_.sortSpectra();
     
-    // initialise blacklist <blacklist_>
+    // initialise blacklist <blacklist_> and its owners
     blacklist_.reserve(exp_centroided_.getNrSpectra());
+    blacklist_owner_.reserve(exp_centroided_.getNrSpectra());
     // loop over spectra
     for (const auto &it_rt : exp_centroided_)
     {
       std::vector<int> blacklist_spectrum(it_rt.size(), -1);
       blacklist_.push_back(blacklist_spectrum);
+      blacklist_owner_.push_back(std::move(blacklist_spectrum));
     }
     
   }
@@ -416,7 +420,8 @@ namespace OpenMS
       {
         if (std::optional<MultiplexFilteredPeak> peak = filter_peak(s, nullptr))
         {
-          blacklistPeak_(*peak, pattern_idx);
+          // (blacklisted before it is moved into the result, as the peak it will be there)
+          blacklistPeak_(*peak, pattern_idx, result.size());
           result.addPeak(std::move(*peak));
         }
       }
@@ -465,22 +470,52 @@ namespace OpenMS
       if (passed[s])
       {
         result.addPeak(std::move(*passed[s]));
-        for (const BlacklistEntry& write : blacklist_writes_[s])
-        {
-          blacklist_[write.rt_idx][write.mz_idx] = write.value;
-        }
+        applyBlacklistEntries_(blacklist_writes_[s], pattern_idx, result.size() - 1);
         blacklisted = true;
       }
     }
   }
 
-  void MultiplexFiltering::blacklistPeak_(const MultiplexFilteredPeak& peak, unsigned pattern_idx)
+  void MultiplexFiltering::blacklistPeak_(const MultiplexFilteredPeak& peak, unsigned pattern_idx, size_t peak_idx)
   {
     std::vector<BlacklistEntry> entries;
     blacklistEntries_(peak, pattern_idx, entries);
+    applyBlacklistEntries_(entries, pattern_idx, peak_idx);
+  }
+
+  void MultiplexFiltering::applyBlacklistEntries_(const std::vector<BlacklistEntry>& entries, unsigned pattern_idx, size_t peak_idx)
+  {
+    // owners and records are indexed by int (see blacklist_owner_); each entry adds at most one record
+    constexpr Size max_count = static_cast<Size>(std::numeric_limits<int>::max());
+    if (filtered_peaks_.size() >= max_count || peak_idx >= max_count || entries.size() > max_count - blacklist_owner_records_.size())
+    {
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filtered_peaks_.size() + 1,
+                                   "Too many filtered peaks, or peaks reserved by more than one of them, for the blacklist owners (limit: INT_MAX each).");
+    }
+    const int owner = static_cast<int>(filtered_peaks_.size());
+    filtered_peaks_.emplace_back(pattern_idx, static_cast<unsigned>(peak_idx));
     for (const BlacklistEntry& entry : entries)
     {
-      blacklist_[entry.rt_idx][entry.mz_idx] = entry.value;
+      int& value = blacklist_[entry.rt_idx][entry.mz_idx];
+      int& owned_by = blacklist_owner_[entry.rt_idx][entry.mz_idx];
+      if (owned_by == -1)
+      {
+        owned_by = owner;
+      }
+      else if (owned_by >= 0)
+      {
+        // a peak another filtered peak reserved before keeps a record of the first one, and of the last one from now on
+        if (owned_by != owner)
+        {
+          blacklist_owner_records_.push_back({owned_by, value, owner});
+          owned_by = -2 - static_cast<int>(blacklist_owner_records_.size() - 1);
+        }
+      }
+      else
+      {
+        blacklist_owner_records_[static_cast<Size>(-2 - owned_by)].last = owner;
+      }
+      value = entry.value;
     }
   }
 
@@ -594,6 +629,52 @@ namespace OpenMS
     exp_blacklist.updateRanges();
     
     return exp_blacklist;
+  }
+
+  std::vector<std::vector<MultiplexFiltering::BlacklistOwner>> MultiplexFiltering::getBlacklistOwners() const
+  {
+    std::vector<std::vector<BlacklistOwner>> owners;
+    owners.reserve(blacklist_.size());
+    for (Size rt_idx = 0; rt_idx < blacklist_.size(); ++rt_idx)
+    {
+      owners.push_back(getBlacklistOwners(rt_idx));
+    }
+    return owners;
+  }
+
+  std::vector<MultiplexFiltering::BlacklistOwner> MultiplexFiltering::getBlacklistOwners(Size spectrum_index) const
+  {
+    if (spectrum_index >= blacklist_.size())
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, static_cast<SignedSize>(spectrum_index), blacklist_.size());
+    }
+    auto writer = [this](int owner, int value) -> BlacklistWriter
+    {
+      if (owner < 0) { return {std::numeric_limits<unsigned>::max(), std::numeric_limits<unsigned>::max(), value}; }
+      return {filtered_peaks_[owner].first, filtered_peaks_[owner].second, value};
+    };
+    const std::vector<int>& values = blacklist_[spectrum_index];
+    const std::vector<int>& owners_of_peaks = blacklist_owner_[spectrum_index];
+    // the same peaks in the same order as getBlacklist(), which keeps the peaks that are not white
+    std::vector<BlacklistOwner> owners;
+    owners.reserve(values.size() - static_cast<Size>(std::count(values.begin(), values.end(), -1)));
+    for (Size mz_idx = 0; mz_idx < values.size(); ++mz_idx)
+    {
+      const int value = values[mz_idx];
+      if (value == -1) { continue; }
+      const int owner = owners_of_peaks[mz_idx];
+      if (owner <= -2)
+      {
+        const BlacklistOwnerRecord& record = blacklist_owner_records_[static_cast<Size>(-2 - owner)];
+        owners.push_back({writer(record.first, record.first_value), writer(record.last, value)});
+      }
+      else
+      {
+        const BlacklistWriter last = writer(owner, value);
+        owners.push_back({last, last});
+      }
+    }
+    return owners;
   }
   
   const IsotopeDistribution& MultiplexFiltering::averagineDistribution_(double mass) const

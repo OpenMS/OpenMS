@@ -111,6 +111,42 @@ def test_dense_feature_matrix_and_peptide_level():
     assert all(0.0 <= q <= 1.0 for q in o_peptide.peptide_q_values)
 
 
+def test_store_weights():
+    """storeWeights writes the models in the format of the percolator executable's -w."""
+    import os
+    import tempfile
+
+    ri = oms.RescoreInput()
+    ri.feature_names = ["separator", "noise"]
+    ri.features = [[+1.0 + 0.01 * i, float(i % 7)] for i in range(200)] + \
+                  [[-1.0 + 0.01 * i, float(i % 11)] for i in range(200)]
+    ri.is_decoy = [False] * 200 + [True] * 200
+
+    p = oms.Percolator()
+    par = p.getDefaults()
+    par.setValue("seed", 42)
+    p.setParameters(par)
+    path = os.path.join(tempfile.mkdtemp(), "model.weights")
+    try:
+        p.storeWeights(path)
+        raised = False
+    except Exception:
+        raised = True
+    assert raised  # nothing trained yet
+
+    p.rescore(ri)
+    p.storeWeights(path)
+    with open(path) as f:
+        lines = f.read().splitlines()
+    assert len(lines) == 3 + 3 * 3
+    assert all(line.startswith("#") for line in lines[:3])
+    for fold in range(3):
+        assert lines[3 + 3 * fold] == "separator\tnoise\tm0"
+        assert len(lines[4 + 3 * fold].split("\t")) == 3  # normalized weights
+        assert len(lines[5 + 3 * fold].split("\t")) == 3  # raw weights
+        assert float(lines[5 + 3 * fold].split("\t")[0]) > 0.0  # the separator scores targets higher
+
+
 def _synthetic_psms(n=600):
     import random
     rng = random.Random(7)
@@ -162,6 +198,8 @@ if __name__ == "__main__":
     print("test_reproducible_with_same_seed: passed")
     test_dense_feature_matrix_and_peptide_level()
     print("test_dense_feature_matrix_and_peptide_level: passed")
+    test_store_weights()
+    print("test_store_weights: passed")
     test_rescore_psms()
     print("test_rescore_psms: passed")
     print("\nAll Percolator pyOpenMS tests passed.")

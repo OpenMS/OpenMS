@@ -315,6 +315,29 @@ namespace OpenMS
     */
     const std::vector<std::vector<double>>& getSvmWeights() const;
 
+    /**
+      @brief Writes the models of the last rescore()/train() call as the percolator executable writes them with its
+             option -w (--weights).
+
+      Three comment lines, then per cross-validation fold three tab-separated lines: the feature names and "m0" (the
+      bias); the weights of the normalized features and the bias; the weights of the raw features and the bias. The
+      vendored code of the executable writes it (CrossValidation::printAllWeights), at the same point: after the
+      cross-validation has scored its test sets, i.e. each fold model rescaled by its test set's scores, or replaced by
+      the default direction if the sanity check rejected the learned one. getSvmWeights() is the average of the raw
+      weights (with subset_mode 'out_of_fold' etc.: the fold models before that rescaling). After a capped training
+      (parameter subset_max_train), the models trained on the sample; with subset_mode 'learning_curve', each fold's
+      from the sample size kept for it.
+
+      score() doesn't change the models written.
+
+      @param filename The output file (usually with the extension .weights or .tsv)
+      @throws Exception::MissingInformation before the first rescore()/train() call, after one that failed (threw),
+              after rescorePSMs() with RESET (parameter 'algorithm' 'reset'), which trains no Percolator model, and
+              if the vendored output could not be split by fold (e.g. a feature name with a line break)
+      @throws Exception::UnableToCreateFile if @p filename can't be written
+    */
+    void storeWeights(const std::string& filename) const;
+
     /// @brief The out-of-fold capped training of the last rescore() (subset_mode 'out_of_fold', 'out_of_fold_avg' or
     ///        'learning_curve', active).
     struct CappedTrainingInfo
