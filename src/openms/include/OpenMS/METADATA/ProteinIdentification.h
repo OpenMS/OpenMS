@@ -347,7 +347,7 @@ public:
     void setSearchEngine(const std::string& search_engine);
     /// Returns the type of search engine used
     const std::string& getSearchEngine() const;
-    /// Return the type of search engine that was first applied (e.g., before percolator or consensusID) or "Unknown"
+    /// Return the type of search engine that was first applied (e.g., before Percolator, or before ConsensusID in files from older OpenMS versions) or "Unknown"
     const std::string getOriginalSearchEngineName() const;
     /// Sets the search engine version
     void setSearchEngineVersion(const std::string& search_engine_version);

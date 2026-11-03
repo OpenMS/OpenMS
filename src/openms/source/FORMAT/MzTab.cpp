@@ -1505,7 +1505,7 @@ namespace OpenMS
 
       for (const std::string & mvkey : mvkeys)
       {
-        // this is how search engines get overwritten by PercolatorAdapter or ConsensusID
+        // this is how search engines get overwritten by PercolatorAdapter (or by ConsensusID, in files from older OpenMS versions)
         if (StringUtils::hasPrefix(mvkey, "SE:"))
         {
           std::string se_name = StringUtils::substr(mvkey, 3);
