@@ -380,8 +380,8 @@ protected:
       "MaxQuant's 're-quantify'). It is reported as absent (0) only if its first two isotopic traces are not seen together in at least\n"
       "two spectra there. Otherwise it is not quantifiable if those traces are seen only on peaks reserved for other features or channels,\n"
       "or if fewer than two spectra paired with the most intense detected channel show its isotope pattern (both traces, and no peak one\n"
-      "isotope lower that exceeds 30 % of its monoisotopic peak, unless that peak lies at isotope M+0 to M+n of another channel, with n + 1\n"
-      "the upper bound of 'algorithm:isotopes_per_peptide').\n"
+      "isotope lower that exceeds 30 % of its monoisotopic peak, unless that position lies within twice 'algorithm:mz_tolerance' of isotope\n"
+      "M+0 to M+n of another channel, with n + 1 the upper bound of 'algorithm:isotopes_per_peptide').\n"
       "The number of ratios that rest on re-quantified channels is reported ('MS1Label:peptide_ratio_requantified_count',\n"
       "'fraction_group_level_ratio_requantified_count', QPX 'ratio_requantified_count'); see also 'requantify_min_correlation'.\n"
       "false: such channels are reported as absent.", false);
@@ -405,7 +405,10 @@ protected:
       "of the same charge and CV, eluting at the identification and identified as the same peptide or not at all. The joined channels are\n"
       "re-measured against the most intense one from paired peaks over their common elution region, since the two partial multiplets were\n"
       "quantified over different spectra; a candidate with fewer than six spectra of paired peaks is not joined, nor one with a re-measured\n"
-      "channel that is absent or not quantifiable (e.g. its peaks do not show its isotope pattern, see 'requantify').\n"
+      "channel that is absent or not quantifiable (e.g. its peaks do not show its isotope pattern, see 'requantify'): its own channels, or the\n"
+      "identified multiplet's channels if the candidate holds the most intense one. The remaining candidates (in triple SILAC, the medium and\n"
+      "the heavy channel can be two) are then re-measured in the same way; the identified multiplet keeps its own values unless one of them is\n"
+      "joined and holds the most intense channel.\n"
       "false: such partial multiplets are quantified separately (a missing channel that lies on another multiplet of the same peptide is\n"
       "then not quantifiable).", false);
     setValidStrings_("join_channels", {"true", "false"});
@@ -1120,7 +1123,13 @@ protected:
     against it from paired peaks over the union of the two channels' elution regions, with as many mass traces as both have
     (requantifyChannel_; of the reserved peaks, a channel uses only its own and those of no reported feature). A candidate is not
     joined if a re-measured channel has no value (see requantifyChannel_; e.g. its peaks do not show its isotope pattern) or fewer
-    than min_join_paired_spectra_ spectra of paired peaks (counted whether they show the pattern or not). No elution correlation is
+    than min_join_paired_spectra_ spectra of paired peaks (counted whether they show the pattern or not). The re-measured channel
+    can also be one of the identified multiplet's own, if the candidate holds the most intense channel; that candidate is then not
+    joined (an identified one stays a multiplet of its own). The remaining candidates (in triple SILAC, the medium and the heavy
+    channel can be two) are then re-measured against the most intense channel among them and the identified multiplet, so the
+    identified multiplet's channels keep their own values only if no candidate is joined or they hold that channel. The peak one
+    isotope below a re-measured channel is not taken for another envelope if it is an isotope of another channel of the identified
+    multiplet or its candidates (lowerIsChannel_()); a channel that none of them has is not in that list. No elution correlation is
     required: on real data it did not separate good from bad joins, the m/z tolerance and the re-measurement did.
 
     A partner is joined to one partial multiplet only. Another identified partial multiplet of the same channels that the partner
@@ -1642,6 +1651,14 @@ protected:
     below) of isotope k of another channel, 0 <= k <= maxIsotope_(): a peak there belongs to the peptide, not to another envelope.
     Like MultiplexFiltering, which exempts only the isotopes of the pattern it detects, the higher isotopes of another channel do not
     count: e.g. the M-1 of a Lys8 channel lies 0.0063 Th (2+) from the light channel's M+7, which cannot explain a strong peak there.
+
+    The decision is by theoretical position, while the peak read at the M-1 (lowerPeak_()) is the nearest actual centroid within the
+    same window. Real isotope centroids are not spaced by the 13C mass difference (mainly their 15N and 34S variants pull M+3 to about
+    +3.006-3.008 Da instead of +3.010), so another channel's isotope centroid can be read at the M-1 while its theoretical position
+    lies just outside the window: in [][Lys4,Arg6][Lys8,Arg10], the medium M+3 at the heavy M-1 for peptides of about 1.7-2.1 kDa, where
+    a heavy channel weaker than about the medium is then not quantifiable. Conversely, inside the window any peak at the M-1 is exempt,
+    also an unrelated one. The lower isotopologue that a deuterium label (Lys4, Leu3, Dimethyl4/6/8, ICPL4/10) carries itself is not
+    modelled either, as in MultiplexFiltering: the 2H3 form of a Lys4 (2H4) channel lies 1.0063/z Th below its M0, inside the window.
   */
   bool lowerIsChannel_(double lower_mz, int charge, const vector<double>& mzs, Size self) const
   {
