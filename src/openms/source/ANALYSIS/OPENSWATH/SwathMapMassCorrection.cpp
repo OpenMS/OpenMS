@@ -21,6 +21,7 @@
 
 #include <fstream>
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <exception>
 
@@ -197,10 +198,12 @@ namespace OpenMS
     // Collect MS1 IM pairs across all transition groups
     std::vector<double> exp_im_ms1_all, theo_im_ms1_all;
     std::exception_ptr reader_exception;
+    std::atomic<bool> reader_failed{false};
 
     #pragma omp parallel for
     for (SignedSize k = 0; k < (SignedSize)trgr_ids.size(); k++)
     {
+      if (reader_failed.load(std::memory_order_relaxed)) { continue; }
       // we need at least one feature to find the best one
       auto transition_group = transition_group_map.at(trgr_ids[k]);
       if (transition_group->getFeatures().empty()) continue;
@@ -257,8 +260,10 @@ namespace OpenMS
         catch (...)
         {
           if (reader_exception == nullptr) { reader_exception = std::current_exception(); }
+          reader_failed.store(true, std::memory_order_relaxed);
         }
       }
+      if (reader_failed.load(std::memory_order_relaxed)) { continue; }
 
       for (const auto& tr : transition_group->getTransitions())
       {
@@ -340,8 +345,10 @@ namespace OpenMS
           catch (...)
           {
             if (reader_exception == nullptr) { reader_exception = std::current_exception(); }
+            reader_failed.store(true, std::memory_order_relaxed);
           }
         }
+        if (reader_failed.load(std::memory_order_relaxed)) { continue; }
 
         if (sp_ms1_collect && sp_ms1_collect->getDriftTimeArray() != nullptr)
         {

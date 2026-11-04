@@ -17,6 +17,7 @@
 #include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
 
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -886,6 +887,7 @@ namespace OpenMS
       if (thread_count > 1 && !omp_in_parallel())
       {
         std::exception_ptr reader_exception;
+        std::atomic<bool> reader_failed{false};
 #pragma omp parallel num_threads(thread_count)
         {
           const int thread_id = omp_get_thread_num();
@@ -894,6 +896,7 @@ namespace OpenMS
 #pragma omp for schedule(dynamic, 16)
           for (SignedSize spectrum_index = 0; spectrum_index < static_cast<SignedSize>(nr_spectra); ++spectrum_index)
           {
+            if (reader_failed.load(std::memory_order_relaxed)) { continue; }
             try
             {
               // Catch clone failures in the same region as read and filter failures.
@@ -930,6 +933,7 @@ namespace OpenMS
 #pragma omp critical (transition_list_evidence_error)
               {
                 if (reader_exception == nullptr) { reader_exception = std::current_exception(); }
+                reader_failed.store(true, std::memory_order_relaxed);
               }
             }
           }
@@ -971,6 +975,7 @@ namespace OpenMS
       if (thread_count > 1 && !omp_in_parallel())
       {
         std::exception_ptr reader_exception;
+        std::atomic<bool> reader_failed{false};
 #pragma omp parallel num_threads(thread_count)
         {
           const int thread_id = omp_get_thread_num();
@@ -979,6 +984,7 @@ namespace OpenMS
 #pragma omp for schedule(dynamic, 16)
           for (SignedSize spectrum_index = 0; spectrum_index < static_cast<SignedSize>(nr_spectra); ++spectrum_index)
           {
+            if (reader_failed.load(std::memory_order_relaxed)) { continue; }
             try
             {
               // Catch clone failures in the same region as read and filter failures.
@@ -1029,6 +1035,7 @@ namespace OpenMS
 #pragma omp critical (transition_list_evidence_error)
               {
                 if (reader_exception == nullptr) { reader_exception = std::current_exception(); }
+                reader_failed.store(true, std::memory_order_relaxed);
               }
             }
           }
@@ -1093,11 +1100,13 @@ namespace OpenMS
       for (const auto& wave : swath_waves)
       {
         std::exception_ptr reader_exception;
+        std::atomic<bool> reader_failed{false};
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,1) num_threads(thread_count)
 #endif
         for (SignedSize wave_pos = 0; wave_pos < static_cast<SignedSize>(wave.swath_indices.size()); ++wave_pos)
         {
+          if (reader_failed.load(std::memory_order_relaxed)) { continue; }
           try
           {
             const OpenSwath::SwathMap& map = swath_maps[wave.swath_indices[static_cast<Size>(wave_pos)]];
@@ -1118,6 +1127,7 @@ namespace OpenMS
 #endif
             {
               if (reader_exception == nullptr) { reader_exception = std::current_exception(); }
+              reader_failed.store(true, std::memory_order_relaxed);
             }
           }
         }
