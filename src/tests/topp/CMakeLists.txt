@@ -3610,6 +3610,37 @@ add_test("TOPP_OpenNuXL_legacy_mass_delta_check" ${CMAKE_COMMAND}
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_OpenNuXL_legacy_mass_delta_check" PROPERTIES DEPENDS "TOPP_OpenNuXL_legacy_mass_delta")
 
+# OpenNuXL on Thermo .raw input, read natively (no ThermoRawFileParser, no mzML conversion), and on the same run
+# converted to mzML: both have to give the same identifications. OpenNuXL writes '<input>.ambiguous_masses.csv' next to
+# its input, so the .raw is searched as a copy in the temporary directory, not in the fetched fixture's directory. The
+# fixture is Angiotensin I (DRVYIHPFHL), a synthetic standard without cross-links, searched against its own entry plus
+# 41 human proteins (see TOPP_ProSE_raw).
+# The Bruker timsTOF .d test is with the other OpenTIMS tests (TOPP_OpenNuXL_DDA), as it needs their symlinked fixture.
+if (WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
+  set(_nuxl_raw_args -database ${DATA_DIR_TOPP}/ProSE_raw_database.fasta
+    -precursor:mass_tolerance 10 -precursor:mass_tolerance_unit ppm
+    -fragment:mass_tolerance 20 -fragment:mass_tolerance_unit ppm)
+  add_test("TOPP_OpenNuXL_raw_prepare" ${CMAKE_COMMAND} -E copy ${THERMO_RAW_TEST_DATA} ${TESTS_TEMP_DIR}/OpenNuXL_raw.tmp.raw)
+  add_test("TOPP_OpenNuXL_raw" ${TOPP_BIN_PATH}/OpenNuXL -test -in ${TESTS_TEMP_DIR}/OpenNuXL_raw.tmp.raw ${_nuxl_raw_args}
+    -out ${TESTS_TEMP_DIR}/OpenNuXL_raw_out.tmp.idXML)
+  set_tests_properties("TOPP_OpenNuXL_raw" PROPERTIES DEPENDS "TOPP_OpenNuXL_raw_prepare")
+  add_test("TOPP_OpenNuXL_raw_check" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_raw_out.tmp.idXML
+    "-DEXPECTED=sequence=\"DRVYIHPFHL\";spectrum_reference=\"controllerType=0 controllerNumber=1 scan="
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_OpenNuXL_raw_check" PROPERTIES DEPENDS "TOPP_OpenNuXL_raw")
+  # the same run as mzML (own conversion, so the result does not depend on other tests)
+  add_test("TOPP_OpenNuXL_raw_convert" ${TOPP_BIN_PATH}/FileConverter -test -in ${THERMO_RAW_TEST_DATA}
+    -RawToMzML:reader inprocess -no_progress -out ${TESTS_TEMP_DIR}/OpenNuXL_raw_converted.tmp.mzML)
+  add_test("TOPP_OpenNuXL_raw_mzML" ${TOPP_BIN_PATH}/OpenNuXL -test -in ${TESTS_TEMP_DIR}/OpenNuXL_raw_converted.tmp.mzML
+    ${_nuxl_raw_args} -out ${TESTS_TEMP_DIR}/OpenNuXL_raw_mzML_out.tmp.idXML)
+  set_tests_properties("TOPP_OpenNuXL_raw_mzML" PROPERTIES DEPENDS "TOPP_OpenNuXL_raw_convert")
+  # only the date, the database and the name of the spectra file may differ
+  add_test("TOPP_OpenNuXL_raw_out1" ${DIFF} -whitelist "IdentificationRun date" "db=" "db_version=" "spectra_data"
+    -in1 ${TESTS_TEMP_DIR}/OpenNuXL_raw_out.tmp.idXML -in2 ${TESTS_TEMP_DIR}/OpenNuXL_raw_mzML_out.tmp.idXML)
+  set_tests_properties("TOPP_OpenNuXL_raw_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_raw;TOPP_OpenNuXL_raw_mzML")
+endif()
+
 #------------------------------------------------------------------------------
 # SeedListGenerator tests
 add_test("TOPP_SeedListGenerator_1" ${TOPP_BIN_PATH}/SeedListGenerator -test -in ${DATA_DIR_TOPP}/PepXMLFile_test.mzML -out_prefix tmp_path/SeedListGenerator_1_output_tmp)
@@ -7220,6 +7251,31 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
       ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_fdr.tmp.idXML 4650)
   set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_calibrated_psm_count"
     PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_ProSEDDA_calibrated")
+
+  # OpenNuXL on the DDA-PASEF .d run, read natively. To keep the run time down, the database is reduced to the proteins
+  # ProSE identified (1% PSM FDR, TOPP_FalseDiscoveryRate_ProSEDDA) and only linear peptides are searched (the HeLa run
+  # has no cross-links; -NuXL:length 0). The MS2 spectra carry the ion mobility of their precursor (1/K0), which
+  # OpenNuXL converts to CCS and annotates on every hit (IM); the native IDs are those of the Bruker reader.
+  add_test("TOPP_OpenNuXL_DDA_database" ${TOPP_BIN_PATH}/DatabaseFilter -test
+    -in ${OPENTIMS_TEST_FASTA}
+    -id ${TESTS_TEMP_DIR}/ProSE_DDA_fdr.tmp.idXML
+    -out ${TESTS_TEMP_DIR}/OpenNuXL_DDA_database.tmp.fasta)
+  set_tests_properties("TOPP_OpenNuXL_DDA_database" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_ProSEDDA")
+  add_test("TOPP_OpenNuXL_DDA" ${TOPP_BIN_PATH}/OpenNuXL -test
+    -in ${OPENTIMS_DDA_SYMLINK}
+    -database ${TESTS_TEMP_DIR}/OpenNuXL_DDA_database.tmp.fasta
+    -out ${TESTS_TEMP_DIR}/OpenNuXL_DDA_out.tmp.idXML
+    -precursor:mass_tolerance 20 -precursor:mass_tolerance_unit ppm
+    -fragment:mass_tolerance 20 -fragment:mass_tolerance_unit ppm
+    -NuXL:length 0
+    -threads 4)
+  # TIMEOUT as for the other searches of the full run (TOPP_ProSE_FAIMS_DDA); the run time was not measured yet
+  set_tests_properties("TOPP_OpenNuXL_DDA" PROPERTIES DEPENDS "TOPP_OpenNuXL_DDA_database" TIMEOUT 3600)
+  add_test("TOPP_OpenNuXL_DDA_check" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_DDA_out.tmp.idXML
+    "-DEXPECTED=spectrum_reference=\"frame=;name=\"IM\""
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_OpenNuXL_DDA_check" PROPERTIES DEPENDS "TOPP_OpenNuXL_DDA")
 
   # Chunked + calibration regression guard. Under the pre-#9180 code the chunked
   # calibration path collapsed the asymmetric calibrated window to symmetric max(),
