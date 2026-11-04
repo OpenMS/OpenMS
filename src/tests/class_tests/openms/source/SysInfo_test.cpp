@@ -75,4 +75,28 @@ START_SECTION(static UInt getAvailablePhysicalCores())
 }
 END_SECTION
 
+START_SECTION(static int ompThreadsOfThisThread())
+{
+  const int threads = SysInfo::ompThreadsOfThisThread();
+  TEST_EQUAL(threads >= 1, true)
+  // a number set on another thread stays there
+  int other = 0;
+  std::thread([&other]() { SysInfo::setOmpThreadsOfThisThread(3); other = SysInfo::ompThreadsOfThisThread(); }).join();
+  TEST_EQUAL(other, 3)
+  TEST_EQUAL(SysInfo::ompThreadsOfThisThread(), threads)
+}
+END_SECTION
+
+START_SECTION(static void setOmpThreadsOfThisThread(int threads))
+{
+  const int threads = SysInfo::ompThreadsOfThisThread();
+  SysInfo::setOmpThreadsOfThisThread(2);
+  TEST_EQUAL(SysInfo::ompThreadsOfThisThread(), 2)
+  SysInfo::setOmpThreadsOfThisThread(0); // back to the runtime's number
+  TEST_EQUAL(SysInfo::ompThreadsOfThisThread(), threads)
+  SysInfo::setOmpThreadsOfThisThread(-5); // like 0
+  TEST_EQUAL(SysInfo::ompThreadsOfThisThread(), threads)
+}
+END_SECTION
+
 END_TEST

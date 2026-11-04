@@ -75,6 +75,22 @@ namespace OpenMS
                     of those of the affinity mask
       */
       static UInt getAvailablePhysicalCores(const std::vector<int>& cpus = {});
+
+      /**
+        @brief The OpenMP threads for the parallel regions that the calling thread starts
+
+        omp_get_max_threads(), unless a number was set for this thread with setOmpThreadsOfThisThread(): a helper
+        thread of a tool sets its share there when the OpenMP runtime keeps one number of threads for the whole
+        process (MSVC's vcomp: omp_set_num_threads() by any thread sets it for every thread), where it must not call
+        omp_set_num_threads(). Library code that sizes a team itself (e.g. with a num_threads clause) reads this instead
+        of omp_get_max_threads(). Without OpenMP: 1.
+      */
+      static int ompThreadsOfThisThread();
+
+      /**
+        @brief Sets the OpenMP threads that ompThreadsOfThisThread() reports for the calling thread (0: omp_get_max_threads() again)
+      */
+      static void setOmpThreadsOfThisThread(int threads);
       /**
         @brief A convenience class to report either absolute or delta (between two timepoints) RAM usage
 

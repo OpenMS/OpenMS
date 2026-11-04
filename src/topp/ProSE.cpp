@@ -38,6 +38,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
@@ -1988,11 +1989,7 @@ class ProSE :
           }
           if (early_qpx_files && runs_copied)
           {
-#ifdef _OPENMP
-            const int threads = std::max(1, omp_get_max_threads()); // the consumer's share (see setFileResultConsumer())
-#else
-            const int threads = 1;
-#endif
+            const int threads = SysInfo::ompThreadsOfThisThread(); // the consumer's share (see setFileResultConsumer())
             bool built = false;
             try
             {

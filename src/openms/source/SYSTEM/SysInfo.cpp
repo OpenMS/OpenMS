@@ -8,6 +8,10 @@
 
 #include <OpenMS/SYSTEM/SysInfo.h>
 
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
+
 #include <algorithm>
 #include <array>
 #include <cerrno>
@@ -276,6 +280,26 @@ namespace OpenMS
 #else
     return static_cast<Int64>(getpid());
 #endif
+  }
+
+  namespace
+  {
+    thread_local int omp_threads_of_this_thread = 0; // see SysInfo::setOmpThreadsOfThisThread()
+  }
+
+  int SysInfo::ompThreadsOfThisThread()
+  {
+    if (omp_threads_of_this_thread > 0) { return omp_threads_of_this_thread; }
+#ifdef _OPENMP
+    return std::max(1, omp_get_max_threads());
+#else
+    return 1;
+#endif
+  }
+
+  void SysInfo::setOmpThreadsOfThisThread(const int threads)
+  {
+    omp_threads_of_this_thread = std::max(0, threads);
   }
 
   UInt SysInfo::getAvailablePhysicalCores([[maybe_unused]] const std::vector<int>& cpus)

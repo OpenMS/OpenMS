@@ -8351,9 +8351,10 @@ namespace OpenMS
     // its own) until it takes them back where it starts a phase after the helper has ended
     // (takeBackThreadsOfEndedRead()), when it starts the next consumer, or at the end (finish(), destruction). Only if a read in the background never takes threads from
     // this thread (readBorrowsThreads() false): this thread's number of threads is then changed here only, so it can be
-    // set back as it was. Otherwise, or with a single thread, or outside of the top level, or on a runtime that keeps
-    // one number of threads for the process (ProSEAlgorithm::ompThreadCountIsGlobal(): the helper could not have a
-    // number of its own), the consumer runs here.
+    // set back as it was. Otherwise, or with a single thread, or outside of the top level, the consumer runs here. On a
+    // runtime that keeps one number of threads for the process (ProSEAlgorithm::ompThreadCountIsGlobal()) the helper
+    // does not set its number with omp_set_num_threads() (that would set this thread's) but with
+    // SysInfo::setOmpThreadsOfThisThread(), which the idXML writer and the QPX export size their teams by.
     class BackgroundConsumer;
     thread_local BackgroundConsumer* lending_consumer = nullptr; // the consumer that lends threads of this thread, if any
 
@@ -8381,12 +8382,11 @@ namespace OpenMS
         // before, so searches shorter than that write wait for it: that run followed by two small ones (0.4 GB) took
         // 17.4 instead of 15.4 s (4 / 8 helper threads: 15.9 / 15.6 s, and less of the memory saved).
         bool lend = true; // the helper's threads are taken from this thread's team
-        const bool own_number = !ProSEAlgorithm::ompThreadCountIsGlobal(); // (see above)
-        if (own_number && parallelLevel() == 0 && threads > 1 && !readBorrowsThreads()) { helper_threads = std::min(2, std::max(1, threads / 4)); }
+        if (parallelLevel() == 0 && threads > 1 && !readBorrowsThreads()) { helper_threads = std::min(2, std::max(1, threads / 4)); }
         // With as many threads as CPUs the reader borrows threads of this thread (see helpersOversubscribe()), and the
         // two loans cannot be juggled at once: the consumer then gets one thread of its own (the idXML writer is serial),
         // one more than the CPUs, so that the write still overlaps the search of the next file instead of running here.
-        else if (own_number && parallelLevel() == 0 && threads > 1 && helpersOversubscribe()) { helper_threads = 1; lend = false; }
+        else if (parallelLevel() == 0 && threads > 1 && helpersOversubscribe()) { helper_threads = 1; lend = false; }
 #endif
         if (helper_threads > 0)
         {
@@ -8396,7 +8396,8 @@ namespace OpenMS
             helper_ = std::thread([this, &consumer, index, &result, helper_threads]()
             {
 #ifdef _OPENMP
-              omp_set_num_threads(helper_threads);
+              SysInfo::setOmpThreadsOfThisThread(helper_threads); // (see above; also where the runtime keeps a number per thread)
+              if (!ProSEAlgorithm::ompThreadCountIsGlobal()) { omp_set_num_threads(helper_threads); }
 #endif
               try { consumer(index, result); } catch (...) {} // (the consumer handles its errors)
               done_.store(true, std::memory_order_release);
