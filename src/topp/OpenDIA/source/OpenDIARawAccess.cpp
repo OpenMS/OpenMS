@@ -353,11 +353,11 @@ namespace OpenDIA
   }
 
   RawAccess::RawAccess(std::shared_ptr<OpenMS::SpectrumAccessOnDisc> source, std::shared_ptr<RawCache> cache) :
-    source_(std::move(source)), cache_(std::move(cache))
+    source_(std::move(source)), cache_(std::move(cache)), source_mutex_(std::make_shared<std::mutex>())
   {
     if (!source_ || !cache_) { invalid("Null source or cache"); }
-    std::lock_guard lock(cache_->mutex_);
-    // One metadata handle is enough. The cache lock also protects this handle.
+    std::lock_guard lock(*source_mutex_);
+    // One metadata handle is enough. The source lock protects both native handles.
     metadata_source_ = source_->getExperiment().clone();
     scan_bounds_ = std::make_shared<std::vector<ByteCount>>(source_->getNrSpectra(), 0);
     region_bounds_ = std::make_shared<std::vector<ByteCount>>(source_->getNrSpectra(), 0);
