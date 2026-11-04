@@ -96,7 +96,7 @@ after the competition per spectrum, as Percolator and mokapot do at the peptide 
 so the best PSM of each peptide carries the PEP of the peptide.
 Use the peptide level for protein inference that takes the best PSM of each peptide (e.g. @ref TOPP_Epifany): the best of several PSMs is
 selected by its score, which PSM-level PEPs do not account for, while the decoys go through the same selection at the peptide level.
-For PSM-level analyses (e.g. @ref TOPP_ConsensusID, or the PEPs of all PSMs of a peptide), use the PSM level.
+For PSM-level uses of the PEPs (e.g. filtering PSMs by PEP, or the PEPs of all PSMs of a peptide), use the PSM level.
 The parameter @p fit_algorithm:min_decoys counts decoy peptides at the peptide level, and @p fit_algorithm:min_mixture_scores the peptides
 (their best scores) for the mixture model.
 
