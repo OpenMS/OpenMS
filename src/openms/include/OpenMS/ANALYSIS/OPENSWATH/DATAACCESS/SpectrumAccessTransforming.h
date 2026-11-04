@@ -43,11 +43,13 @@ public:
 
     std::string getChromatogramNativeID(int id) const override;
 
+    /// Return the wrapped access. The transformation must remain unchanged while callers use it.
+    OpenSwath::SpectrumAccessPtr getInput() const { return sptr_; }
+
 protected:
     OpenSwath::SpectrumAccessPtr sptr_;
 
   };
 
 }
-
 

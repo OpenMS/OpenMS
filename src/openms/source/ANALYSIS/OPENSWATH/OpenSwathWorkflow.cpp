@@ -41,6 +41,15 @@
 // OpenSwathWorkflow
 namespace OpenMS
 {
+void OpenSwathWorkflowBase::extractChromatograms_(const OpenSwath::SpectrumAccessPtr& input,
+                                                  std::vector<OpenSwath::ChromatogramPtr>& output,
+                                                  const std::vector<ChromatogramExtractor::ExtractionCoordinates>& coordinates,
+                                                  const ChromExtractParams& parameters)
+{
+  ChromatogramExtractor().extractChromatograms(input, output, coordinates, parameters.mz_extraction_window, parameters.ppm,
+                                               parameters.im_extraction_window, parameters.extraction_function);
+}
+
   namespace
   {
     /**
@@ -799,8 +808,7 @@ namespace OpenMS
 
         prepareExtractionCoordinates_(chrom_list, coordinates, context.transition_exp_used_all, trafo_inverse, cp);
 
-        extractor.extractChromatograms(context.current_swath_map, chrom_list, coordinates, cp.mz_extraction_window,
-            cp.ppm, cp.im_extraction_window, cp.extraction_function);
+        extractChromatograms_(context.current_swath_map, chrom_list, coordinates, cp);
 
         extractor.return_chromatogram(chrom_list, coordinates, context.transition_exp_used_all, SpectrumSettings(),
                                       context.chrom_exp.getChromatograms(), false, cp.im_extraction_window);
@@ -1304,8 +1312,7 @@ namespace OpenMS
             // chrom_list contains one entry for each fragment ion (transition) in transition_exp_used
             prepareExtractionCoordinates_(chrom_list, coordinates, transition_exp_used, trafo_inverse, cp);
 
-            extractor.extractChromatograms(current_swath_map_inner, chrom_list, coordinates, cp.mz_extraction_window,
-                cp.ppm, cp.im_extraction_window, cp.extraction_function);
+            extractChromatograms_(current_swath_map_inner, chrom_list, coordinates, cp);
 
             // Step 2.3: convert chromatograms back to OpenMS::MSChromatogram and write to output
             PeakMap chrom_exp;
@@ -1432,8 +1439,7 @@ namespace OpenMS
 
     // prepare the extraction coordinates and extract chromatogram
     prepareExtractionCoordinates_(chrom_list, coordinates, transition_exp_used, trafo_inverse, cp, true, ms1_isotopes);
-    extractor.extractChromatograms(ms1_map, chrom_list, coordinates, cp.mz_extraction_window,
-        cp.ppm, cp.im_extraction_window, cp.extraction_function);
+    extractChromatograms_(ms1_map, chrom_list, coordinates, cp);
     extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,
         SpectrumSettings(), ms1_chromatograms, true, cp.im_extraction_window);
   }
@@ -1470,18 +1476,27 @@ namespace OpenMS
     OpenSwathOSWWriter::OSWData* deferred_osw_output,
     const ChromatogramIndex* chromatogram_index) const
   {
+    const OpenSwath::SpectrumAccessScope read_scope(OpenSwath::SpectrumAccessScope::Purpose::SCORING);
     TransformationDescription trafo_inv = trafo;
     trafo_inv.invert();
 
     MRMFeatureFinderScoring featureFinder;
     MRMTransitionGroupPicker trgroup_picker;
 
+    // Share extraction evidence with every spectrum and IM score in this batch.
+    // The default access is unchanged for workflows without retained evidence.
+    auto scoring_swath_maps = swath_maps;
+    for (auto& map : scoring_swath_maps)
+    {
+      map.sptr = spectrumAccessForScoring_(map.sptr);
+    }
+
     // To ensure multi-threading safe access to the individual spectra, we
     // need to use a light clone of the spectrum access (if multiple threads
     // share a single filestream and call seek on it, chaos will ensue).
     if (use_ms1_traces_ && ms1_map_)
     {
-      OpenSwath::SpectrumAccessPtr threadsafe_ms1 = ms1_map_->lightClone();
+      OpenSwath::SpectrumAccessPtr threadsafe_ms1 = spectrumAccessForScoring_(ms1_map_->lightClone());
       featureFinder.setMS1Map( threadsafe_ms1 );
     }
     else if (use_ms1_traces_ && !ms1_map_)
@@ -1539,6 +1554,66 @@ namespace OpenMS
       to_osw_output.reserve(transition_exp.getCompounds().size() * expected_features_per_assay,
                             transition_exp.getTransitions().size() * expected_features_per_assay);
     }
+    const bool candidate_rt_scoring = !mrm_ && osw_writer.isActive() && useCandidateRTScoring_();
+    struct PickedAssay
+    {
+      MRMTransitionGroupType group;
+      FeatureMap features;
+      const TransitionType* detection_transition;
+    };
+    std::vector<PickedAssay> picked_assays;
+    if (candidate_rt_scoring) { picked_assays.reserve(assay_map.size()); }
+
+    // Keep error handling and output conversion identical for the ordinary and
+    // batch scorer. Batch errors belong to their original assay, not its neighbors.
+    auto score_and_write = [&](MRMTransitionGroupType& transition_group, FeatureMap& features,
+                               const TransitionType* detection_transition, bool already_scored,
+                               const std::exception_ptr& error)
+    {
+      const std::string& id = transition_group.getTransitionGroupID();
+      try
+      {
+        if (error) { std::rethrow_exception(error); }
+        if (!already_scored)
+        {
+          featureFinder.scorePeakgroups(transition_group, trafo, scoring_swath_maps, features, ms1only, mobilogram_consumer);
+        }
+      }
+      catch (const Exception::InvalidRange& e)
+      {
+        if (!mrm_) { throw; }
+        OPENMS_LOG_ERROR << "InvalidRange while scoring transition group for assay " << id
+                         << " - transitions=" << transition_group.getTransitions().size()
+                         << ", chroms=" << transition_group.getChromatograms().size()
+                         << ", prec_chroms=" << transition_group.getPrecursorChromatograms().size()
+                         << ": " << e.getMessage() << " - skipping assay." << std::endl;
+        return;
+      }
+      catch (const Exception::IllegalArgument& e)
+      {
+        if (!mrm_) { throw; }
+        OPENMS_LOG_ERROR << "IllegalArgument while scoring transition group for assay " << id
+                         << ": " << e.getMessage() << " - skipping assay." << std::endl;
+        return;
+      }
+      catch (const std::exception& e)
+      {
+        OPENMS_LOG_ERROR << "Exception while scoring transition group for assay " << id
+                         << ": " << e.what() << " - skipping assay." << std::endl;
+        return;
+      }
+
+      if (detection_transition == nullptr && !features.empty())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Error, did not find any detection transition for feature " + id);
+      }
+      if (osw_writer.isActive() && !features.empty())
+      {
+        osw_writer.prepareRowsInto(to_osw_output, OpenSwath::LightCompound(), nullptr, features, id);
+      }
+    };
+
     ///////////////////////////////////
     // Start of main function
     // Iterating over all the assays
@@ -1702,56 +1777,35 @@ namespace OpenMS
         continue;
       }
 
-      try
+      if (candidate_rt_scoring)
       {
-        featureFinder.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only, mobilogram_consumer);
+        // Retain full picked traces only within the already bounded extraction
+        // batch. No raw spectra are pinned and no candidate is discarded.
+        picked_assays.push_back({std::move(transition_group), FeatureMap(), detection_assay_it});
       }
-      catch (const Exception::InvalidRange & e)
+      else
       {
-        if (!mrm_)
-        {
-          throw;
-        }
-        OPENMS_LOG_ERROR << "InvalidRange while scoring transition group for assay " << id
-                         << " - transitions=" << transition_group.getTransitions().size()
-                         << ", chroms=" << transition_group.getChromatograms().size()
-                         << ", prec_chroms=" << transition_group.getPrecursorChromatograms().size()
-                         << ": " << e.getMessage() << " - skipping assay." << std::endl;
-        continue;
+        score_and_write(transition_group, output, detection_assay_it, false, nullptr);
       }
-      catch (const Exception::IllegalArgument & e)
-      {
-        if (!mrm_)
-        {
-          throw;
-        }
-        OPENMS_LOG_ERROR << "IllegalArgument while scoring transition group for assay " << id
-                         << ": " << e.getMessage() << " - skipping assay." << std::endl;
-        continue;
-      }
-      catch (const std::exception & e)
-      {
-        OPENMS_LOG_ERROR << "Exception while scoring transition group for assay " << id
-                         << ": " << e.what() << " - skipping assay." << std::endl;
-        continue;
-      }
+    }
 
-      // Ensure that a detection transition is used to derive features for output
-      if (detection_assay_it == nullptr && !output.empty())
+    if (candidate_rt_scoring)
+    {
+      std::vector<std::pair<MRMTransitionGroupType*, FeatureMap*>> requests;
+      requests.reserve(picked_assays.size());
+      for (auto& assay : picked_assays) { requests.emplace_back(&assay.group, &assay.features); }
+      OPENMS_LOG_INFO << "Candidate-RT scoring batch: assays=" << requests.size() << '\n';
+      const auto errors = featureFinder.scorePeakgroupsBatch_(requests, trafo, scoring_swath_maps, ms1only, mobilogram_consumer);
+      for (Size i = 0; i < picked_assays.size(); ++i)
       {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              "Error, did not find any detection transition for feature " + id );
+        auto& assay = picked_assays[i];
+        score_and_write(assay.group, assay.features, assay.detection_transition, true, errors[i]);
       }
-
-      // 5. Add to the output osw if given
-      if (osw_writer.isActive() && !output.empty()) // implies that detection_assay_it was set
+      // OSW callers do not collect featureXML, but preserve the ordinary output
+      // argument's last-assay contents for callers that inspect it.
+      if (!picked_assays.empty() && picked_assays.back().group.getTransitionGroupID() == assay_map.rbegin()->first)
       {
-        // Compound and transition are currently unused by the OSW row writer.
-        osw_writer.prepareRowsInto(to_osw_output,
-                                   OpenSwath::LightCompound(),
-                                   nullptr,
-                                   output,
-                                   id);
+        output = std::move(picked_assays.back().features);
       }
     }
 

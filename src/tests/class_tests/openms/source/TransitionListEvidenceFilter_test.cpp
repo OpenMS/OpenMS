@@ -13,6 +13,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -23,6 +24,34 @@ using namespace std;
 
 namespace
 {
+  class ViewOnlySpectrumAccess final : public SpectrumAccessOpenMS
+  {
+  public:
+    explicit ViewOnlySpectrumAccess(const shared_ptr<PeakMap>& experiment)
+      : SpectrumAccessOpenMS(experiment), experiment_(experiment), delegate_(experiment)
+    {
+    }
+
+    SpectrumAccessPtr lightClone() const override
+    {
+      return make_shared<ViewOnlySpectrumAccess>(experiment_);
+    }
+
+    SpectrumPtr getSpectrumById(int) override
+    {
+      throw runtime_error("Evidence scoring requested a mutable spectrum copy");
+    }
+
+    SpectrumView getSpectrumView(int id) override
+    {
+      return delegate_.getSpectrumView(id);
+    }
+
+  private:
+    shared_ptr<PeakMap> experiment_;
+    SpectrumAccessOpenMS delegate_;
+  };
+
   ChromExtractParams makeExtractParams(double mz_window)
   {
     ChromExtractParams params;
@@ -221,6 +250,28 @@ START_SECTION((filter() - MS2 support))
 }
 END_SECTION
 
+START_SECTION((filter() - scoring uses read-only spectrum access))
+{
+  LightTargetedExperiment transition_exp;
+  LightProtein protein;
+  protein.id = "protein";
+  transition_exp.proteins.push_back(protein);
+  addCompound(transition_exp, "PEP_VIEW", 500.0, {100.0, 110.0, 120.0});
+
+  shared_ptr<PeakMap> experiment = make_shared<PeakMap>();
+  experiment->addSpectrum(makeSpectrum(12.0, {{100.002, 1200.0}, {110.003, 900.0}}));
+  SwathMap swath_map(400.0, 650.0, 525.0, false);
+  swath_map.sptr = make_shared<ViewOnlySpectrumAccess>(experiment);
+
+  TransitionListEvidenceFilter filter = makeFilter("ms2");
+  TransitionListEvidenceFilter::Result result = filter.filter(
+    {swath_map}, transition_exp, makeExtractParams(0.02), makeExtractParams(0.02), false, 2);
+
+  TEST_EQUAL(result.supported_precursors, 1)
+  TEST_EQUAL(result.evidence[0].ms2_best_fragment_hits, 2)
+}
+END_SECTION
+
 START_SECTION((filter() - hybrid support and decoy exclusion))
 {
   LightTargetedExperiment transition_exp = makeLibrary();
@@ -270,6 +321,62 @@ START_SECTION((filter() - peak picking path))
     swath_maps, transition_exp, makeExtractParams(0.02), makeExtractParams(0.08), false, 1);
   TEST_EQUAL(result.supported_precursors, 1)
   TEST_EQUAL(result.filtered_targets.compounds[0].id, "PEP_A")
+}
+END_SECTION
+
+START_SECTION((filter() - peak picking preserves MS1 ion mobility))
+{
+  LightTargetedExperiment transition_exp;
+  LightProtein protein;
+  protein.id = "protein";
+  transition_exp.proteins.push_back(protein);
+  addCompound(transition_exp, "PEP_IM_MATCH", 500.0, {100.0}, false, 0.70);
+  addCompound(transition_exp, "PEP_IM_MISMATCH", 500.0, {110.0}, false, 0.90);
+  addCompound(transition_exp, "PEP_IM_SECOND", 600.0, {120.0}, false, 0.90);
+
+  vector<tuple<double, double, double>> profile_points;
+  const vector<pair<double, double>> profile_shape{
+    {-0.020, 0.005}, {-0.015, 0.030}, {-0.010, 0.120}, {-0.005, 0.450},
+    { 0.000, 1.000}, { 0.005, 0.450}, { 0.010, 0.120}, { 0.015, 0.030}, { 0.020, 0.005}
+  };
+  auto append_profile_peak = [&](double center_mz, double mobility, double apex_intensity)
+  {
+    for (const auto& point : profile_shape)
+    {
+      profile_points.emplace_back(center_mz + point.first, apex_intensity * point.second, mobility);
+    }
+  };
+  append_profile_peak(500.0, 0.70, 2000.0);
+  append_profile_peak(600.0, 0.90, 1800.0);
+
+  vector<SwathMap> swath_maps;
+  swath_maps.push_back(makeSwathMap(true, 0.0, 0.0, {makeIMSpectrum(12.0, profile_points)}));
+
+  TransitionListEvidenceFilter filter = makeFilter("ms1");
+  Param params = filter.getParameters();
+  params.setValue("peak_picking:enabled", "true");
+  params.setValue("peak_picking:use_gauss", "false");
+  params.setValue("peak_picking:PeakPickerHiRes:signal_to_noise", 0.0);
+  filter.setParameters(params);
+
+  ChromExtractParams ms1_params = makeExtractParams(0.02);
+  ms1_params.im_extraction_window = 0.05;
+  TransitionListEvidenceFilter::Result result = filter.filter(
+    swath_maps, transition_exp, ms1_params, makeExtractParams(0.02), false, 1);
+  TransitionListEvidenceFilter::Result threaded_result = filter.filter(
+    swath_maps, transition_exp, ms1_params, makeExtractParams(0.02), false, 2);
+
+  TEST_TRUE(result.evidence[0].supported_ms1)
+  TEST_FALSE(result.evidence[1].supported_ms1)
+  TEST_TRUE(result.evidence[2].supported_ms1)
+  TEST_EQUAL(result.supported_precursors, 2)
+  TEST_EQUAL(result.filtered_targets.compounds.size(), 2)
+  TEST_EQUAL(result.filtered_targets.compounds[0].id, "PEP_IM_MATCH")
+  TEST_EQUAL(result.filtered_targets.compounds[1].id, "PEP_IM_SECOND")
+  TEST_TRUE(threaded_result.evidence[0].supported_ms1)
+  TEST_FALSE(threaded_result.evidence[1].supported_ms1)
+  TEST_TRUE(threaded_result.evidence[2].supported_ms1)
+  TEST_EQUAL(threaded_result.supported_precursors, result.supported_precursors)
 }
 END_SECTION
 
@@ -355,6 +462,42 @@ START_SECTION((filter() - PASEF MS2 support without precursor ion mobility uses 
   TEST_EQUAL(result.evidence[0].ms2_best_fragment_hits, 2)
   TEST_EQUAL(result.evidence[0].ms2_hit_count, 2)
   TEST_REAL_SIMILAR(result.evidence[0].precursor_im, -1.0)
+}
+END_SECTION
+
+START_SECTION((filter() - PASEF peak picking keeps filtered IM samples aligned))
+{
+  LightTargetedExperiment transition_exp = makeLibrary();
+  const vector<pair<double, double>> profile_shape{
+    {-0.020, 0.005}, {-0.015, 0.030}, {-0.010, 0.120}, {-0.005, 0.450},
+    { 0.000, 1.000}, { 0.005, 0.450}, { 0.010, 0.120}, { 0.015, 0.030}, { 0.020, 0.005}
+  };
+  vector<tuple<double, double, double>> profile_points;
+  for (const double center_mz : {100.0, 110.0})
+  {
+    for (Size i = 0; i < profile_shape.size(); ++i)
+    {
+      const auto& point = profile_shape[i];
+      const double mobility = i == 0 ? 0.90 : 0.70;
+      profile_points.emplace_back(center_mz + point.first, 2000.0 * point.second, mobility);
+    }
+  }
+
+  vector<SwathMap> swath_maps;
+  swath_maps.push_back(makeSwathMap(false, 400.0, 650.0,
+                                    {makeIMSpectrum(12.0, profile_points)}, 0.65, 0.75));
+
+  TransitionListEvidenceFilter filter = makeFilter("ms2");
+  Param params = filter.getParameters();
+  params.setValue("peak_picking:enabled", "true");
+  params.setValue("peak_picking:use_gauss", "false");
+  params.setValue("peak_picking:PeakPickerHiRes:signal_to_noise", 0.0);
+  filter.setParameters(params);
+
+  TransitionListEvidenceFilter::Result result = filter.filter(
+    swath_maps, transition_exp, makeExtractParams(0.02), makeExtractParams(0.08), true, 1);
+  TEST_EQUAL(result.supported_precursors, 1)
+  TEST_EQUAL(result.evidence[0].ms2_best_fragment_hits, 2)
 }
 END_SECTION
 

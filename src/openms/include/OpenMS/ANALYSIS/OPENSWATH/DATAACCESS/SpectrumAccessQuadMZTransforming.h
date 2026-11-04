@@ -10,6 +10,7 @@
 
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessTransforming.h>
+#include <tuple>
 
 namespace OpenMS
 {
@@ -46,6 +47,9 @@ public:
 
     OpenSwath::SpectrumPtr getSpectrumById(int id) override;
 
+    /// Return an immutable value snapshot: a, b, c and whether correction uses the ppm domain.
+    std::tuple<double, double, double, bool> getTransformation() const { return {a_, b_, c_, ppm_}; }
+
 private:
 
     double a_;
@@ -55,4 +59,3 @@ private:
 
   };
 }
-

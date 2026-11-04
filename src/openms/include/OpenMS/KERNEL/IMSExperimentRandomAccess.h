@@ -13,11 +13,29 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/OpenMSConfig.h>
 
+#include <functional>
 #include <memory>
+#include <optional>
+#include <span>
 
 namespace OpenMS
 {
   class ExperimentalSettings;
+
+  /**
+    @brief Observations for an optional backend decoded-frame cache, shared by clones of one source.
+  */
+  struct OPENMS_DLLAPI NativeFrameCacheStats
+  {
+    Size limit_bytes = 0;
+    Size retained_bytes = 0;
+    Size peak_retained_bytes = 0;
+    Size hits = 0;
+    Size misses = 0;
+    Size evictions = 0;
+    Size decoded_frames = 0; ///< Physical MS2 frames decoded after random-access index construction
+    Size sorted_frames = 0;  ///< Physical MS2 frames sorted by m/z after index construction
+  };
 
   /**
     @brief Random access to the spectra and chromatograms of an MS run that stays on disk.
@@ -65,6 +83,37 @@ namespace OpenMS
     virtual MSSpectrum getSpectrum(Size index) = 0;
 
     /**
+      @brief Visit spectra for an ordered batch of source indices.
+
+      Backends may group requests that share one physical acquisition while preserving
+      the input order and producing the same spectrum as getSpectrum(). The default
+      implementation reads each spectrum independently. The visitor is called once
+      per requested index. It receives an rvalue reference and must move the spectrum
+      if it needs to retain it after the call. The callback runs synchronously and must
+      not re-enter this source.
+
+      @param[in] indices Source indices in output order; repeated indices are preserved.
+      @param[in] visitor Receives each index and its decoded spectrum.
+
+      @throws std::invalid_argument if @p visitor is empty
+    */
+    virtual void forEachSpectrum(std::span<const Size> indices,
+                                 const std::function<void(Size, MSSpectrum&&)>& visitor);
+
+    /**
+      @brief Return a grouping key for spectra from the same batchable physical acquisition.
+
+      Backends that can serve multiple logical spectra from one acquisition return the
+      same key for those spectra. Other spectra and backends return no key. Keys can be
+      compared across clones sharing the same source, not across unrelated sources.
+
+      @param[in] index Source spectrum index.
+      @return Batchable acquisition key, or no value when batching does not apply.
+      @throws std::out_of_range if @p index is out of range (backend dependent)
+    */
+    virtual std::optional<Size> getAcquisitionBatchId(Size index) const;
+
+    /**
       @brief The spectrum with index @p index without peaks and data arrays.
 
       @param[in] index Spectrum index (0 <= index < getNrSpectra())
@@ -80,6 +129,28 @@ namespace OpenMS
       @param[in] index Spectrum index (0 <= index < getNrSpectra())
     */
     virtual MSSpectrum getSpectrumPeaks(Size index);
+
+    /**
+      @brief Configure an optional native decoded-frame cache (disabled by default).
+
+      Configure only between joined processing stages. Clones share the per-source cache.
+      The bound covers retained decoded vector capacities and object/node payloads, not
+      transient decoding workspace, allocator overhead or process RSS. Zero clears and
+      disables retention without resetting observations. Repeating a nonzero limit is idempotent.
+
+      @param[in] max_bytes Maximum retained payload bytes, or zero to disable
+      @return Whether this backend supports the cache
+    */
+    virtual bool setNativeFrameCacheSize(Size max_bytes);
+
+    /**
+      @brief Return native cache observations, or zero observations if unsupported.
+
+      Counts MS2 cache opportunities only, excluding index construction, MS1 and invalid
+      indices. Misses include requests with retention disabled. Evictions include clearing
+      and reducing the configured limit.
+    */
+    virtual NativeFrameCacheStats getNativeFrameCacheStats() const;
 
     /// Retention time (in seconds) of spectrum @p index, from the index
     virtual double getSpectrumRT(Size index) const = 0;

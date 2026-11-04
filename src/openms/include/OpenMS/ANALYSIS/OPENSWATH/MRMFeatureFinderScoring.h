@@ -28,7 +28,10 @@
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
+#include <exception>
+#include <memory>
 #include <unordered_map>
+#include <utility>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -226,6 +229,25 @@ public:
                                        TransformationDescription trafo,
                                        double rt_extraction_window);
 private:
+  friend class OpenSwathWorkflow;
+  friend class MRMFeatureFinderScoringTestAccess;
+  struct PreparedScoringGroup;
+
+  /// INTERNAL: score picked candidates across one bounded extraction batch in stable apex RT order.
+  /// Optional test-only peak_live_contexts counts simultaneously retained prepared groups.
+  std::vector<std::exception_ptr> scorePeakgroupsBatch_(const std::vector<std::pair<MRMTransitionGroupType*, FeatureMap*>>& groups,
+                            const TransformationDescription& trafo,
+                            const std::vector<OpenSwath::SwathMap>& swath_maps,
+                            bool ms1only, MobilogramParquetConsumer* mobilogram_consumer,
+                            Size* peak_live_contexts = nullptr) const;
+  std::unique_ptr<PreparedScoringGroup> prepareScoringGroup_(MRMTransitionGroupType& transition_group,
+                            const TransformationDescription& trafo,
+                            const std::vector<OpenSwath::SwathMap>& swath_maps,
+                            FeatureMap& output, bool ms1only,
+                            MobilogramParquetConsumer* mobilogram_consumer) const;
+  void scoreOneFeature_(PreparedScoringGroup& group, SignedSize feature_idx,
+                        std::vector<SignedSize>* local_scored_feature_indices) const;
+  void finalizeScoringGroup_(PreparedScoringGroup& group) const;
 
     /**
      * @brief Cache of transition-group invariant data to avoid per-feature recomputation

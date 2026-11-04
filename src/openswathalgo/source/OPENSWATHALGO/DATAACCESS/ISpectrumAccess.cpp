@@ -15,8 +15,38 @@
 
 namespace OpenSwath
 {
+  namespace
+  {
+    SpectrumAccessScope::Purpose& spectrumAccessPurpose() noexcept
+    {
+      static thread_local SpectrumAccessScope::Purpose purpose = SpectrumAccessScope::Purpose::UNSPECIFIED;
+      return purpose;
+    }
+  }
+
+  SpectrumAccessScope::SpectrumAccessScope(Purpose purpose) noexcept : previous_(current())
+  {
+    spectrumAccessPurpose() = purpose;
+  }
+
+  SpectrumAccessScope::~SpectrumAccessScope() noexcept
+  {
+    spectrumAccessPurpose() = previous_;
+  }
+
+  SpectrumAccessScope::Purpose SpectrumAccessScope::current() noexcept
+  {
+    return spectrumAccessPurpose();
+  }
+
   ISpectrumAccess::~ISpectrumAccess()
   {
+  }
+
+  ISpectrumAccess::SpectrumView ISpectrumAccess::getSpectrumView(int id)
+  {
+    const auto spectrum = getSpectrumById(id);
+    return {spectrum->getMZArray(), spectrum->getIntensityArray(), spectrum->getDriftTimeArray()};
   }
 
   SpectrumSequence ISpectrumAccess::getMultipleSpectra(double RT, int nr_spectra_to_fetch)

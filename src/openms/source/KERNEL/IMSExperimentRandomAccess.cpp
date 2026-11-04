@@ -8,13 +8,42 @@
 
 #include <OpenMS/KERNEL/IMSExperimentRandomAccess.h>
 
+#include <stdexcept>
+
 namespace OpenMS
 {
   IMSExperimentRandomAccess::~IMSExperimentRandomAccess() = default;
 
+  bool IMSExperimentRandomAccess::setNativeFrameCacheSize(Size)
+  {
+    return false;
+  }
+
+  NativeFrameCacheStats IMSExperimentRandomAccess::getNativeFrameCacheStats() const
+  {
+    return {};
+  }
+
   MSSpectrum IMSExperimentRandomAccess::getSpectrumPeaks(Size index)
   {
     return getSpectrum(index);
+  }
+
+  void IMSExperimentRandomAccess::forEachSpectrum(
+    std::span<const Size> indices,
+    const std::function<void(Size, MSSpectrum&&)>& visitor)
+  {
+    if (!visitor) { throw std::invalid_argument("Spectrum batch visitor must not be empty"); }
+    for (const Size index : indices)
+    {
+      auto spectrum = getSpectrum(index);
+      visitor(index, std::move(spectrum));
+    }
+  }
+
+  std::optional<Size> IMSExperimentRandomAccess::getAcquisitionBatchId(Size) const
+  {
+    return std::nullopt;
   }
 
   Size IMSExperimentRandomAccess::findFirstRT(double rt) const

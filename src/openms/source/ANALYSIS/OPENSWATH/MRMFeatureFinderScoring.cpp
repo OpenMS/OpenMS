@@ -27,9 +27,11 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/SqliteConnector_impl.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 #include <boost/range/adaptor/map.hpp>
 #include <algorithm>
+#include <cmath>
 #include <memory>
 #include <optional>
 #include <boost/foreach.hpp>
@@ -568,13 +570,56 @@ namespace OpenMS
     return cache.inverse;
   }
 
-  void MRMFeatureFinderScoring::scorePeakgroups(MRMTransitionGroupType& transition_group,
+  // Detection/identification subsets keep the complete chromatograms, never RT slices.
+  struct MRMFeatureFinderScoring::PreparedScoringGroup
+  {
+    MRMTransitionGroupType& transition_group;
+    const TransformationDescription& trafo;
+    const std::vector<OpenSwath::SwathMap>& swath_maps;
+    FeatureMap& output;
+    bool ms1only;
+    MobilogramParquetConsumer* mobilogram_consumer;
+    bool all_transitions_detecting = false;
+    MRMTransitionGroupType detection_subset, identification, identification_decoy;
+    MRMTransitionGroupType* detection = nullptr;
+    std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators, ms1_signal_noise_estimators;
+    std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators_identification, signal_noise_estimators_identification_decoy;
+    std::vector<SignedSize> scored_feature_indices;
+    std::vector<MRMFeature> feature_list;
+    RangeMobility im_range;
+    double drift_target = 0, expected_rt = 0, detection_precursor_mz = -1;
+    const PeptideType* pep = nullptr;
+    OpenSwathScoring scorer;
+    ProteaseDigestion pd;
+    bool defer_feature_output = false, swath_present = false, defer_unranked_scores = false;
+    int group_size = 0;
+    TransitionGroupCache tg_cache;
+    Size idscores_needed_capacity = 0;
+    OpenSwathScoring::ScoreSubset candidate_scores = OpenSwathScoring::ScoreSubset::ALL;
+    bool in_parallel = false;
+    bool batch_output = false;
+
+    PreparedScoringGroup(MRMTransitionGroupType& transition_group_in, const TransformationDescription& trafo_in,
+                        const std::vector<OpenSwath::SwathMap>& swath_maps_in, FeatureMap& output_in,
+                        bool ms1only_in, MobilogramParquetConsumer* consumer)
+      : transition_group(transition_group_in), trafo(trafo_in), swath_maps(swath_maps_in), output(output_in),
+        ms1only(ms1only_in), mobilogram_consumer(consumer)
+    {
+      #ifdef _OPENMP
+      in_parallel = omp_in_parallel() != 0;
+      #endif
+    }
+  };
+
+  std::unique_ptr<MRMFeatureFinderScoring::PreparedScoringGroup> MRMFeatureFinderScoring::prepareScoringGroup_(MRMTransitionGroupType& transition_group,
                                                 const TransformationDescription& trafo,
                                                 const std::vector<OpenSwath::SwathMap>& swath_maps,
                                                 FeatureMap& output,
                                                 bool ms1only,
                                                 MobilogramParquetConsumer* mobilogram_consumer) const
   {
+    auto prepared = std::make_unique<PreparedScoringGroup>(transition_group, trafo, swath_maps, output, ms1only, mobilogram_consumer);
+    auto& state = *prepared;
     if (PeptideRefMap_.empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -588,28 +633,30 @@ namespace OpenMS
 
     // Score the detecting transitions. If all transitions are detecting (the usual case), the
     // group itself is scored instead of a copy that would replace it at the end.
-    const bool all_transitions_detecting = std::all_of(transition_group.getTransitions().begin(), transition_group.getTransitions().end(),
+    const bool all_transitions_detecting = state.all_transitions_detecting = std::all_of(transition_group.getTransitions().begin(), transition_group.getTransitions().end(),
                                                        [](const TransitionType& tr) { return tr.isDetectingTransition(); });
-    MRMTransitionGroupType transition_group_detection_subset, transition_group_identification, transition_group_identification_decoy;
+    auto& transition_group_detection_subset = state.detection_subset;
+    auto& transition_group_identification = state.identification;
+    auto& transition_group_identification_decoy = state.identification_decoy;
     if (!all_transitions_detecting)
     {
       splitTransitionGroupsDetection_(transition_group, transition_group_detection_subset);
     }
     MRMTransitionGroupType& transition_group_detection = all_transitions_detecting ? transition_group : transition_group_detection_subset;
+    state.detection = &transition_group_detection;
     if (su_.use_uis_scores)
     {
       splitTransitionGroupsIdentification_(transition_group, transition_group_identification, transition_group_identification_decoy);
     }
 
-    std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
+    auto& signal_noise_estimators = state.signal_noise_estimators;
     const bool has_feature_report_limit = stop_report_after_feature_ >= 0;
-    std::vector<SignedSize> scored_feature_indices;
-    std::vector<MRMFeature> feature_list;
+    auto& feature_list = state.feature_list;
 
     // get drift time upper/lower offset (this assumes that all chromatograms
     // are derived from the same precursor with the same drift time)
-    RangeMobility im_range;
-    double drift_target(0);
+    auto& im_range = state.im_range;
+    auto& drift_target = state.drift_target;
 
     auto setDriftTarget = [](auto& prec){
       double lower_bound = prec.getDriftTime() - prec.getDriftTimeWindowLowerOffset();
@@ -642,7 +689,7 @@ namespace OpenMS
     }
 
     // skip MS1 noise estimator if we perform fragment ion analysis
-    std::vector<OpenSwath::ISignalToNoisePtr> ms1_signal_noise_estimators;
+    auto& ms1_signal_noise_estimators = state.ms1_signal_noise_estimators;
     if (ms1only)
     {
       for (Size k = 0; k < transition_group_detection.getPrecursorChromatograms().size(); k++)
@@ -654,10 +701,10 @@ namespace OpenMS
     }
 
     // get the expected rt value for this compound
-    const PeptideType* pep = PeptideRefMap_.at(transition_group_detection.getTransitionGroupID());
-    const double expected_rt = invertedTransformation_(trafo).apply(pep->rt);
+    state.pep = PeptideRefMap_.at(transition_group_detection.getTransitionGroupID());
+    state.expected_rt = invertedTransformation_(trafo).apply(state.pep->rt);
 
-    OpenSwathScoring scorer;
+    auto& scorer = state.scorer;
     scorer.initialize(rt_normalization_factor_, add_up_spectra_,
                       spacing_for_spectra_resampling_,
                       merge_spectra_by_peak_width_fraction_,
@@ -668,11 +715,10 @@ namespace OpenMS
                       use_ms1_ion_mobility_,
                       apply_im_peak_picking_);
 
-    ProteaseDigestion pd;
-    pd.setEnzyme(enzyme_);
+    state.pd.setEnzyme(enzyme_);
 
     auto& mrmfeatures = transition_group_detection.getFeaturesMuteable();
-    const bool defer_feature_output = has_feature_report_limit &&
+    const bool defer_feature_output = state.defer_feature_output = has_feature_report_limit &&
       static_cast<Size>(stop_report_after_feature_) < mrmfeatures.size();
     if (!defer_feature_output)
     {
@@ -680,10 +726,10 @@ namespace OpenMS
     }
 
     // Pre-compute group-invariant values (constant across all features)
-    const bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
-    const double detection_precursor_mz = !transition_group_detection.getTransitions().empty() ?
+    const bool swath_present = state.swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
+    state.detection_precursor_mz = !transition_group_detection.getTransitions().empty() ?
       transition_group_detection.getTransitions()[0].getPrecursorMZ() : -1.0;
-    const int group_size = checkedCast<int>(transition_group_detection.size());
+    const int group_size = state.group_size = checkedCast<int>(transition_group_detection.size());
     if (group_size == 0 && !ms1only)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -692,7 +738,7 @@ namespace OpenMS
     }
 
     // Populate a TransitionGroupCache once per group to avoid per-feature recomputation
-    TransitionGroupCache tg_cache;
+    auto& tg_cache = state.tg_cache;
     fillNormalizedLibraryIntensities_(transition_group_detection.getTransitions(), tg_cache.normalized_library_intensity);
 
     const auto& transitions = transition_group_detection.getTransitions();
@@ -727,9 +773,10 @@ namespace OpenMS
       return estimators;
     };
 
-    std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators_identification;
-    std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators_identification_decoy;
-    Size idscores_needed_capacity = std::max<Size>(transitions.size(), static_cast<Size>(16));
+    auto& signal_noise_estimators_identification = state.signal_noise_estimators_identification;
+    auto& signal_noise_estimators_identification_decoy = state.signal_noise_estimators_identification_decoy;
+    auto& idscores_needed_capacity = state.idscores_needed_capacity;
+    idscores_needed_capacity = std::max<Size>(transitions.size(), static_cast<Size>(16));
     if (su_.use_uis_scores)
     {
       // The estimators are chromatogram-local and feature-independent. Building
@@ -744,10 +791,25 @@ namespace OpenMS
     // are first scored with the scores of the ranking only, and the remaining scores are computed for the
     // reported peak groups. Ion mobility (mobilograms of every candidate) and UIS scores (which use the MI
     // score) need all scores of every candidate.
-    const bool defer_unranked_scores = defer_feature_output && !ms1only && swath_present && su_.use_dia_scores_ &&
+    const bool defer_unranked_scores = state.defer_unranked_scores = defer_feature_output && !ms1only && swath_present && su_.use_dia_scores_ &&
                                        !su_.use_im_scores && !su_.use_uis_scores;
-    const OpenSwathScoring::ScoreSubset candidate_scores = defer_unranked_scores ?
+    state.candidate_scores = defer_unranked_scores ?
       OpenSwathScoring::ScoreSubset::RANKING : OpenSwathScoring::ScoreSubset::ALL;
+
+    return prepared;
+  }
+
+  void MRMFeatureFinderScoring::scorePeakgroups(MRMTransitionGroupType& transition_group,
+                                               const TransformationDescription& trafo,
+                                               const std::vector<OpenSwath::SwathMap>& swath_maps,
+                                               FeatureMap& output, bool ms1only,
+                                               MobilogramParquetConsumer* mobilogram_consumer) const
+  {
+    auto prepared = prepareScoringGroup_(transition_group, trafo, swath_maps, output, ms1only, mobilogram_consumer);
+    auto& state = *prepared;
+    auto& mrmfeatures = state.detection->getFeaturesMuteable();
+    const bool defer_feature_output = state.defer_feature_output;
+    auto& scored_feature_indices = state.scored_feature_indices;
 
     // Go through all peak groups (found MRM features) and score them
     #ifdef _OPENMP
@@ -774,6 +836,7 @@ namespace OpenMS
     #pragma omp parallel if (in_parallel == 0)
     #endif
     {
+      const OpenSwath::SpectrumAccessScope scoring_scope(OpenSwath::SpectrumAccessScope::Purpose::SCORING);
       Size thread_index = 0;
       #ifdef _OPENMP
       thread_index = static_cast<Size>(omp_get_thread_num());
@@ -785,200 +848,7 @@ namespace OpenMS
       #endif
       for (SignedSize feature_idx = 0; feature_idx < (SignedSize) mrmfeatures.size(); ++feature_idx)
       {
-        auto& mrmfeature = mrmfeatures[feature_idx];
-        mrmfeature.ensureUniqueId();
-        std::optional<MRMFeatureOpenMS> imrmfeature_storage;
-        if (ms1only)
-        {
-          imrmfeature_storage.emplace(mrmfeature);
-        }
-        else
-        {
-          imrmfeature_storage.emplace(mrmfeature,
-                                      tg_cache.transition_native_ids,
-                                      tg_cache.precursor_ids,
-                                      tg_cache.transition_native_ids_openms,
-                                      tg_cache.precursor_ids_openms);
-        }
-        MRMFeatureOpenMS& imrmfeature = *imrmfeature_storage;
-
-        // Reuse the large IPF score vectors per worker thread. The pool is
-        // cleared immediately before each target or decoy identification pass.
-        static thread_local MRMFeatureFinderScoring::OpenSwath_Ind_Scores_Pooled idscores_pool;
-        if (idscores_pool.ind_transition_names.capacity() < idscores_needed_capacity)
-        {
-          idscores_pool.preallocate(idscores_needed_capacity);
-        }
-        const Int64 feature_id = mrmfeature.hasValidUniqueId() ? static_cast<Int64>(Internal::SqliteHelper::clearSignBit(mrmfeature.getUniqueId())) : -1;
-
-        OPENMS_LOG_DEBUG << "Scoring feature " << (mrmfeature) << " == " << mrmfeature.getMetaValue("PeptideRef") <<
-          " [ expected RT " << PeptideRefMap_.at(mrmfeature.getMetaValue("PeptideRef"))->rt << " / " << expected_rt << " ]" <<
-          " with " << group_size  << " transitions and " <<
-          transition_group_detection.getChromatograms().size() << " chromatograms" << std::endl;
-
-        double xx_lda_prescore;
-        double precursor_mz(-1);
-
-        if (ms1only)
-        {
-          ///////////////////////////////////
-          // Call the scoring for MS1 only
-          ///////////////////////////////////
-
-          OpenSwath_Scores& scores = mrmfeature.getScores();
-          precursor_mz = mrmfeature.getMZ();
-
-          // S/N scores
-          OpenSwath::MRMScoring mrmscore_;
-          scores.sn_ratio = mrmscore_.calcSNScore(&imrmfeature, ms1_signal_noise_estimators);
-          // everything below S/N 1 can be set to zero (and the log safely applied)
-          if (scores.sn_ratio < 1)
-          {
-            scores.log_sn_score = 0;
-          }
-          else
-          {
-            scores.log_sn_score = std::log(scores.sn_ratio);
-          }
-          // RT scores
-          double normalized_experimental_rt = trafo.apply(imrmfeature.getRT());
-          {
-            // rt score is delta iRT
-            double rt_score = mrmscore_.calcRTScore(*pep, normalized_experimental_rt);
-
-            scores.normalized_experimental_rt = normalized_experimental_rt;
-            scores.raw_rt_score = rt_score;
-            scores.norm_rt_score = rt_score / rt_normalization_factor_;
-          }
-          // full spectra scores
-          if (ms1_map_ && ms1_map_->getNrSpectra() > 0 && mrmfeature.getMZ() > 0)
-          {
-            scorer.calculatePrecursorDIAScores(ms1_map_, diascoring_, precursor_mz, imrmfeature.getRT(), *pep, im_range, scores);
-          }
-          xx_lda_prescore = -scores.calculate_lda_prescore(scores);
-          if (scoring_model_ == "single_transition")
-          {
-            xx_lda_prescore = -scores.calculate_lda_single_transition(scores);
-          }
-          mrmfeature.setOverallQuality(xx_lda_prescore);
-        }
-        else //!ms1only
-        {
-
-          ///////////////////////////////////
-          // Call the scoring for fragment ions
-          ///////////////////////////////////
-
-          ///////////////////////////////////
-          // Library and chromatographic scores
-          OpenSwath_Scores& scores = mrmfeature.getScores();
-          scorer.calculateChromatographicScores(&imrmfeature, tg_cache.transition_native_ids, tg_cache.precursor_ids, tg_cache.normalized_library_intensity,
-                        signal_noise_estimators, scores, candidate_scores);
-
-          double normalized_experimental_rt = trafo.apply(imrmfeature.getRT());
-          scorer.calculateLibraryScores(&imrmfeature, transitions, *pep, normalized_experimental_rt, scores);
-
-          ///////////////////////////////////
-          // DIA scores
-          if (swath_present && su_.use_dia_scores_)
-          {
-            thread_local std::vector<double> masserror_ppm;
-            masserror_ppm.clear();
-            scorer.calculateDIAScores(&imrmfeature,
-                                      transitions,
-                                      tg_cache.normalized_library_intensity,
-                                      swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm,
-                                      drift_target, im_range, mobilogram_consumer, feature_id, candidate_scores);
-            mrmfeature.setMetaValue("masserror_ppm", masserror_ppm);
-          }
-
-          double det_intensity_ratio_score = 0;
-          const double total_xic = static_cast<double>(mrmfeature.getMetaValue("total_xic"));
-          if (total_xic > 0)
-          {
-            det_intensity_ratio_score = mrmfeature.getIntensity() / total_xic;
-          }
-
-          ///////////////////////////////////
-          // Mutual Information scores
-          double det_mi_ratio_score = 0;
-          if (su_.use_mi_score_ && su_.use_total_mi_score_)
-          {
-            const double total_mi = static_cast<double>(mrmfeature.getMetaValue("total_mi"));
-            if (total_mi > 0)
-            {
-              det_mi_ratio_score = scores.mi_score / total_mi;
-            }
-          }
-
-          ///////////////////////////////////
-          // Unique Ion Signature (UIS) scores
-          if (su_.use_uis_scores)
-          {
-            if (!transition_group_identification.getTransitions().empty())
-            {
-              idscores_pool.reset();
-              scoreIdentification_(transition_group_identification, transition_group_detection, scorer, feature_idx,
-                                  feature_id,
-                                  tg_cache.transition_native_ids, signal_noise_estimators_identification, det_intensity_ratio_score,
-                                  det_mi_ratio_score, swath_maps, drift_target, im_range, idscores_pool, mobilogram_consumer);
-              mrmfeature.IDScoresAsMetaValue(false, idscores_pool);
-            }
-            if (!transition_group_identification_decoy.getTransitions().empty())
-            {
-              idscores_pool.reset();
-              scoreIdentification_(transition_group_identification_decoy, transition_group_detection, scorer, feature_idx,
-                                  feature_id,
-                                  tg_cache.transition_native_ids, signal_noise_estimators_identification_decoy, det_intensity_ratio_score,
-                                  det_mi_ratio_score, swath_maps, drift_target, im_range, idscores_pool, mobilogram_consumer);
-              mrmfeature.IDScoresAsMetaValue(true, idscores_pool);
-            }
-          }
-
-          // TODO get it working with imrmfeature
-          if (su_.use_elution_model_score_)
-          {
-            //TODO wouldn't a weighted elution model score be much better? lower intensity traces usually will not have
-            // a nice profile
-            scores.elution_model_fit_score = emgscoring_.calcElutionFitScore(mrmfeature, transition_group_detection);
-          }
-          xx_lda_prescore = -scores.calculate_lda_prescore(scores);
-          if (scoring_model_ == "single_transition")
-          {
-            xx_lda_prescore = -scores.calculate_lda_single_transition(scores);
-          }
-          mrmfeature.setOverallQuality(xx_lda_prescore);
-
-          // Add the DIA scores and ion mobility scores
-          if (swath_present && su_.use_dia_scores_)
-          {
-            double xx_swath_prescore = -scores.calculate_swath_lda_prescore(scores);
-            mrmfeature.setOverallQuality(xx_swath_prescore);
-          }
-
-          precursor_mz = detection_precursor_mz;
-
-        }
-
-        if (defer_feature_output)
-        {
-          local_scored_feature_indices->push_back(feature_idx);
-        }
-        else
-        {
-          ///////////////////////////////////////////////////////////////////////////
-          // add the peptide hit information to the feature
-          ///////////////////////////////////////////////////////////////////////////
-          addScoreMetaValues_(mrmfeature, transition_group_detection, signal_noise_estimators, ms1_signal_noise_estimators,
-                              expected_rt, swath_present, ms1only);
-          prepareScoredFeatureOutput_(mrmfeature, *pep, pd, swath_present, precursor_mz, ms1only);
-          #ifdef _OPENMP
-          #pragma omp critical (openswath_feature_output_list)
-          #endif
-          {
-            feature_list.push_back(mrmfeature);
-          }
-        }
+        scoreOneFeature_(state, feature_idx, local_scored_feature_indices);
       }
     }
 
@@ -995,6 +865,439 @@ namespace OpenMS
         scored_feature_indices.insert(scored_feature_indices.end(), indices.begin(), indices.end());
       }
     }
+    finalizeScoringGroup_(state);
+  }
+
+  std::vector<std::exception_ptr> MRMFeatureFinderScoring::scorePeakgroupsBatch_(
+    const std::vector<std::pair<MRMTransitionGroupType*, FeatureMap*>>& groups,
+    const TransformationDescription& trafo, const std::vector<OpenSwath::SwathMap>& swath_maps,
+    bool ms1only, MobilogramParquetConsumer* mobilogram_consumer, Size* peak_live_contexts) const
+  {
+    // ponytail: overlapping candidates or deferred raw work can retain the whole
+    // assay batch. Add byte-budgeted admission only if this still dominates RSS.
+    std::vector<std::unique_ptr<PreparedScoringGroup>> prepared;
+    prepared.resize(groups.size());
+    std::vector<std::exception_ptr> errors(groups.size());
+    struct Task
+    {
+      SignedSize feature_index;
+      double rt;
+      Size group_index;
+    };
+    std::vector<Task> tasks;
+    std::vector<Size> remaining(groups.size());
+    std::vector<FeatureMap> outputs(groups.size());
+    if (peak_live_contexts)
+    {
+      *peak_live_contexts = 0;
+    }
+    bool finite_rts = true;
+    for (Size group_index = 0; group_index < groups.size(); ++group_index)
+    {
+      auto* group = groups[group_index].first;
+      // subset() preserves every picked feature's RT and index, even when only
+      // detecting transitions are retained. Scheduling needs no copied traces.
+      const auto& features = group->getFeatures();
+      const bool group_finite = std::all_of(features.begin(), features.end(), [](const auto& feature) { return std::isfinite(feature.getRT()); });
+      if (!group_finite)
+      {
+        // Previously preparation failures were excluded before deciding the
+        // whole-batch fallback. Validate exceptional RT groups without keeping
+        // their contexts, so invalid NaNs cannot reorder healthy groups.
+        try
+        {
+          auto validation = prepareScoringGroup_(*group, trafo, swath_maps, outputs[group_index], ms1only, mobilogram_consumer);
+          if (peak_live_contexts)
+          {
+            *peak_live_contexts = std::max(*peak_live_contexts, Size{1});
+          }
+        }
+        catch (...)
+        {
+          errors[group_index] = std::current_exception();
+          continue;
+        }
+      }
+      remaining[group_index] = features.size();
+      finite_rts = finite_rts && group_finite;
+      for (Size i = 0; i < features.size(); ++i)
+      {
+        const double rt = features[i].getRT();
+        tasks.push_back({static_cast<SignedSize>(i), rt, group_index});
+      }
+    }
+    auto prepare = [&](Size index)
+    {
+      auto& state = prepared[index];
+      state = prepareScoringGroup_(*groups[index].first, trafo, swath_maps, outputs[index], ms1only, mobilogram_consumer);
+      state->batch_output = true;
+      // Batch scoring is serial even outside an enclosing workflow parallel region.
+      state->in_parallel = true;
+      if (peak_live_contexts)
+      {
+        const Size live = std::count_if(prepared.begin(), prepared.end(), [](const auto& context) { return context != nullptr; });
+        *peak_live_contexts = std::max(*peak_live_contexts, live);
+      }
+    };
+    auto finish = [&](Size index)
+    {
+      auto& state = prepared[index];
+      // Restore original candidate order before ranking, including quality ties.
+      const auto& features = state->detection->getFeatures();
+      if (state->defer_feature_output)
+      {
+        auto& indices = state->scored_feature_indices;
+        for (Size i = 0; i < indices.size(); ++i)
+        {
+          indices[i] = static_cast<SignedSize>(i);
+        }
+      }
+      else
+      {
+        state->feature_list.assign(features.begin(), features.end());
+      }
+      finalizeScoringGroup_(*state);
+      state.reset();
+    };
+    // Empty groups still undergo validation and subset replacement, but need
+    // not coexist with any candidate-scoring contexts.
+    for (Size i = 0; i < groups.size(); ++i)
+    {
+      if (remaining[i] == 0 && !errors[i])
+      {
+        try
+        {
+          prepare(i);
+          finish(i);
+        }
+        catch (...)
+        {
+          errors[i] = std::current_exception();
+          prepared[i].reset();
+        }
+      }
+    }
+    // Never pass NaN to the comparator. One nonfinite apex preserves the entire
+    // original group/feature traversal, not just the affected group's traversal.
+    if (finite_rts)
+    {
+      std::stable_sort(tasks.begin(), tasks.end(), [](const Task& lhs, const Task& rhs) { return lhs.rt < rhs.rt; });
+    }
+    for (const auto& task : tasks)
+    {
+      if (!errors[task.group_index])
+      {
+        try
+        {
+          auto& state = prepared[task.group_index];
+          if (!state)
+          {
+            prepare(task.group_index);
+          }
+          scoreOneFeature_(*state, task.feature_index, &state->scored_feature_indices);
+          if (--remaining[task.group_index] == 0 && (!state->defer_unranked_scores || stop_report_after_feature_ == 0))
+          {
+            // Finalization without REMAINDER cannot issue raw spectrum work.
+            // Release S/N estimators, complete subsets and caches immediately.
+            finish(task.group_index);
+          }
+        }
+        catch (...)
+        {
+          errors[task.group_index] = std::current_exception();
+          prepared[task.group_index].reset();
+        }
+      }
+    }
+    for (Size group_index = 0; group_index < prepared.size(); ++group_index)
+    {
+      if (errors[group_index])
+      {
+        continue;
+      }
+      try
+      {
+        if (prepared[group_index])
+        {
+          // Deferred raw work stays after all candidates, in input group order.
+          finish(group_index);
+        }
+      }
+      catch (...)
+      {
+        errors[group_index] = std::current_exception();
+        prepared[group_index].reset();
+      }
+    }
+    // Multiple groups may share a FeatureMap. Completion order must not change
+    // their output order, and partial output from a failing finalizer is retained.
+    for (Size i = 0; i < groups.size(); ++i)
+    {
+      try
+      {
+        for (auto& feature : outputs[i])
+        {
+          groups[i].second->push_back(std::move(feature));
+        }
+      }
+      catch (...)
+      {
+        errors[i] = std::current_exception();
+      }
+    }
+    return errors;
+  }
+
+  void MRMFeatureFinderScoring::scoreOneFeature_(PreparedScoringGroup& state, SignedSize feature_idx,
+                                               std::vector<SignedSize>* local_scored_feature_indices) const
+  {
+    auto& transition_group_detection = *state.detection;
+    auto& mrmfeatures = transition_group_detection.getFeaturesMuteable();
+    auto& tg_cache = state.tg_cache;
+    auto& scorer = state.scorer;
+    auto& transitions = transition_group_detection.getTransitions();
+    auto& transition_group_identification = state.identification;
+    auto& transition_group_identification_decoy = state.identification_decoy;
+    auto& signal_noise_estimators = state.signal_noise_estimators;
+    auto& ms1_signal_noise_estimators = state.ms1_signal_noise_estimators;
+    auto& signal_noise_estimators_identification = state.signal_noise_estimators_identification;
+    auto& signal_noise_estimators_identification_decoy = state.signal_noise_estimators_identification_decoy;
+    const auto& trafo = state.trafo;
+    const auto& swath_maps = state.swath_maps;
+    const auto* pep = state.pep;
+    const bool ms1only = state.ms1only, swath_present = state.swath_present;
+    const auto candidate_scores = state.candidate_scores;
+    const double expected_rt = state.expected_rt, drift_target = state.drift_target;
+    auto& im_range = state.im_range;
+    auto* mobilogram_consumer = state.mobilogram_consumer;
+    const Size idscores_needed_capacity = state.idscores_needed_capacity;
+    const int group_size = state.group_size;
+    const double detection_precursor_mz = state.detection_precursor_mz;
+    const bool defer_feature_output = state.defer_feature_output;
+    auto& pd = state.pd;
+    auto& feature_list = state.feature_list;
+    auto& mrmfeature = mrmfeatures[feature_idx];
+    mrmfeature.ensureUniqueId();
+    std::optional<MRMFeatureOpenMS> imrmfeature_storage;
+    if (ms1only)
+    {
+      imrmfeature_storage.emplace(mrmfeature);
+    }
+    else
+    {
+      imrmfeature_storage.emplace(mrmfeature,
+                                  tg_cache.transition_native_ids,
+                                  tg_cache.precursor_ids,
+                                  tg_cache.transition_native_ids_openms,
+                                  tg_cache.precursor_ids_openms);
+    }
+    MRMFeatureOpenMS& imrmfeature = *imrmfeature_storage;
+
+    // Reuse the large IPF score vectors per worker thread. The pool is
+    // cleared immediately before each target or decoy identification pass.
+    static thread_local MRMFeatureFinderScoring::OpenSwath_Ind_Scores_Pooled idscores_pool;
+    if (su_.use_uis_scores && idscores_pool.ind_transition_names.capacity() < idscores_needed_capacity)
+    {
+      idscores_pool.preallocate(idscores_needed_capacity);
+    }
+    const Int64 feature_id = mrmfeature.hasValidUniqueId() ? static_cast<Int64>(Internal::SqliteHelper::clearSignBit(mrmfeature.getUniqueId())) : -1;
+
+    OPENMS_LOG_DEBUG << "Scoring feature " << (mrmfeature) << " == " << mrmfeature.getMetaValue("PeptideRef") <<
+      " [ expected RT " << PeptideRefMap_.at(mrmfeature.getMetaValue("PeptideRef"))->rt << " / " << expected_rt << " ]" <<
+      " with " << group_size  << " transitions and " <<
+      transition_group_detection.getChromatograms().size() << " chromatograms" << std::endl;
+
+    double xx_lda_prescore;
+    double precursor_mz(-1);
+
+    if (ms1only)
+    {
+      ///////////////////////////////////
+      // Call the scoring for MS1 only
+      ///////////////////////////////////
+
+      OpenSwath_Scores& scores = mrmfeature.getScores();
+      precursor_mz = mrmfeature.getMZ();
+
+      // S/N scores
+      OpenSwath::MRMScoring mrmscore_;
+      scores.sn_ratio = mrmscore_.calcSNScore(&imrmfeature, ms1_signal_noise_estimators);
+      // everything below S/N 1 can be set to zero (and the log safely applied)
+      if (scores.sn_ratio < 1)
+      {
+        scores.log_sn_score = 0;
+      }
+      else
+      {
+        scores.log_sn_score = std::log(scores.sn_ratio);
+      }
+      // RT scores
+      double normalized_experimental_rt = trafo.apply(imrmfeature.getRT());
+      {
+        // rt score is delta iRT
+        double rt_score = mrmscore_.calcRTScore(*pep, normalized_experimental_rt);
+
+        scores.normalized_experimental_rt = normalized_experimental_rt;
+        scores.raw_rt_score = rt_score;
+        scores.norm_rt_score = rt_score / rt_normalization_factor_;
+      }
+      // full spectra scores
+      if (ms1_map_ && ms1_map_->getNrSpectra() > 0 && mrmfeature.getMZ() > 0)
+      {
+        scorer.calculatePrecursorDIAScores(ms1_map_, diascoring_, precursor_mz, imrmfeature.getRT(), *pep, im_range, scores);
+      }
+      xx_lda_prescore = -scores.calculate_lda_prescore(scores);
+      if (scoring_model_ == "single_transition")
+      {
+        xx_lda_prescore = -scores.calculate_lda_single_transition(scores);
+      }
+      mrmfeature.setOverallQuality(xx_lda_prescore);
+    }
+    else //!ms1only
+    {
+
+      ///////////////////////////////////
+      // Call the scoring for fragment ions
+      ///////////////////////////////////
+
+      ///////////////////////////////////
+      // Library and chromatographic scores
+      OpenSwath_Scores& scores = mrmfeature.getScores();
+      scorer.calculateChromatographicScores(&imrmfeature, tg_cache.transition_native_ids, tg_cache.precursor_ids, tg_cache.normalized_library_intensity,
+                    signal_noise_estimators, scores, candidate_scores);
+
+      double normalized_experimental_rt = trafo.apply(imrmfeature.getRT());
+      scorer.calculateLibraryScores(&imrmfeature, transitions, *pep, normalized_experimental_rt, scores);
+
+      ///////////////////////////////////
+      // DIA scores
+      if (swath_present && su_.use_dia_scores_)
+      {
+        thread_local std::vector<double> masserror_ppm;
+        masserror_ppm.clear();
+        scorer.calculateDIAScores(&imrmfeature,
+                                  transitions,
+                                  tg_cache.normalized_library_intensity,
+                                  swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm,
+                                  drift_target, im_range, mobilogram_consumer, feature_id, candidate_scores);
+        mrmfeature.setMetaValue("masserror_ppm", masserror_ppm);
+      }
+
+      double det_intensity_ratio_score = 0;
+      const double total_xic = static_cast<double>(mrmfeature.getMetaValue("total_xic"));
+      if (total_xic > 0)
+      {
+        det_intensity_ratio_score = mrmfeature.getIntensity() / total_xic;
+      }
+
+      ///////////////////////////////////
+      // Mutual Information scores
+      double det_mi_ratio_score = 0;
+      if (su_.use_mi_score_ && su_.use_total_mi_score_)
+      {
+        const double total_mi = static_cast<double>(mrmfeature.getMetaValue("total_mi"));
+        if (total_mi > 0)
+        {
+          det_mi_ratio_score = scores.mi_score / total_mi;
+        }
+      }
+
+      ///////////////////////////////////
+      // Unique Ion Signature (UIS) scores
+      if (su_.use_uis_scores)
+      {
+        if (!transition_group_identification.getTransitions().empty())
+        {
+          idscores_pool.reset();
+          scoreIdentification_(transition_group_identification, transition_group_detection, scorer, feature_idx,
+                              feature_id,
+                              tg_cache.transition_native_ids, signal_noise_estimators_identification, det_intensity_ratio_score,
+                              det_mi_ratio_score, swath_maps, drift_target, im_range, idscores_pool, mobilogram_consumer);
+          mrmfeature.IDScoresAsMetaValue(false, idscores_pool);
+        }
+        if (!transition_group_identification_decoy.getTransitions().empty())
+        {
+          idscores_pool.reset();
+          scoreIdentification_(transition_group_identification_decoy, transition_group_detection, scorer, feature_idx,
+                              feature_id,
+                              tg_cache.transition_native_ids, signal_noise_estimators_identification_decoy, det_intensity_ratio_score,
+                              det_mi_ratio_score, swath_maps, drift_target, im_range, idscores_pool, mobilogram_consumer);
+          mrmfeature.IDScoresAsMetaValue(true, idscores_pool);
+        }
+      }
+
+      // TODO get it working with imrmfeature
+      if (su_.use_elution_model_score_)
+      {
+        //TODO wouldn't a weighted elution model score be much better? lower intensity traces usually will not have
+        // a nice profile
+        scores.elution_model_fit_score = emgscoring_.calcElutionFitScore(mrmfeature, transition_group_detection);
+      }
+      xx_lda_prescore = -scores.calculate_lda_prescore(scores);
+      if (scoring_model_ == "single_transition")
+      {
+        xx_lda_prescore = -scores.calculate_lda_single_transition(scores);
+      }
+      mrmfeature.setOverallQuality(xx_lda_prescore);
+
+      // Add the DIA scores and ion mobility scores
+      if (swath_present && su_.use_dia_scores_)
+      {
+        double xx_swath_prescore = -scores.calculate_swath_lda_prescore(scores);
+        mrmfeature.setOverallQuality(xx_swath_prescore);
+      }
+
+      precursor_mz = detection_precursor_mz;
+
+    }
+
+    if (defer_feature_output)
+    {
+      local_scored_feature_indices->push_back(feature_idx);
+    }
+    else
+    {
+      ///////////////////////////////////////////////////////////////////////////
+      // add the peptide hit information to the feature
+      ///////////////////////////////////////////////////////////////////////////
+      addScoreMetaValues_(mrmfeature, transition_group_detection, signal_noise_estimators, ms1_signal_noise_estimators,
+                          expected_rt, swath_present, ms1only);
+      prepareScoredFeatureOutput_(mrmfeature, *pep, pd, swath_present, precursor_mz, ms1only);
+      if (!state.batch_output)
+      {
+        #ifdef _OPENMP
+        #pragma omp critical (openswath_feature_output_list)
+        #endif
+        {
+          feature_list.push_back(mrmfeature);
+        }
+      }
+    }
+  }
+
+  void MRMFeatureFinderScoring::finalizeScoringGroup_(PreparedScoringGroup& state) const
+  {
+    auto& transition_group = state.transition_group;
+    auto& transition_group_detection = *state.detection;
+    auto& mrmfeatures = transition_group_detection.getFeaturesMuteable();
+    auto& scored_feature_indices = state.scored_feature_indices;
+    auto& feature_list = state.feature_list;
+    auto& tg_cache = state.tg_cache;
+    auto& scorer = state.scorer;
+    auto& transitions = transition_group_detection.getTransitions();
+    auto& signal_noise_estimators = state.signal_noise_estimators;
+    auto& ms1_signal_noise_estimators = state.ms1_signal_noise_estimators;
+    const auto& swath_maps = state.swath_maps;
+    const auto* pep = state.pep;
+    const bool ms1only = state.ms1only, swath_present = state.swath_present;
+    const bool defer_feature_output = state.defer_feature_output, defer_unranked_scores = state.defer_unranked_scores;
+    const double expected_rt = state.expected_rt, drift_target = state.drift_target;
+    const double detection_precursor_mz = state.detection_precursor_mz;
+    auto& im_range = state.im_range;
+    auto* mobilogram_consumer = state.mobilogram_consumer;
+    auto& pd = state.pd;
+    auto& output = state.output;
+    const bool in_parallel = state.in_parallel;
 
     if (defer_feature_output)
     {
@@ -1027,6 +1330,7 @@ namespace OpenMS
         #endif
         for (SignedSize i = 0; i < static_cast<SignedSize>(report_count); ++i)
         {
+          const OpenSwath::SpectrumAccessScope scoring_scope(OpenSwath::SpectrumAccessScope::Purpose::SCORING);
           MRMFeature& selected_feature = mrmfeatures[scored_feature_indices[i]];
           MRMFeatureOpenMS imrmfeature(selected_feature,
                                        tg_cache.transition_native_ids,
@@ -1068,9 +1372,9 @@ namespace OpenMS
     }
 
     // store all data manipulation performed on the features of the transition group
-    if (!all_transitions_detecting)
+    if (!state.all_transitions_detecting)
     {
-      transition_group = std::move(transition_group_detection_subset);
+      transition_group = std::move(state.detection_subset);
     }
   }
 

@@ -8,6 +8,7 @@
 
 #include "OpenDIA.h"
 #include "OpenDIARawAccess.h"
+#include "OpenDIARegionWorkflow.h"
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOnDisc.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
@@ -423,15 +424,22 @@ protected:
     registerFlag_("TargetedDataExtraction:split_file_input", "Interpret the input files as one SWATH window per file.", true);
     registerFlag_("TargetedDataExtraction:use_elution_model_score", "Turn on the CPU-intensive EMG elution model score.", true);
 
-    registerStringOption_("TargetedDataExtraction:readOptions", "<name>", "normal", "Read directly, cache to disk, keep data in memory, or use a bounded numeric cache with tiled indexed mzML input.", false, true);
+    registerStringOption_("TargetedDataExtraction:readOptions", "<name>", "normal", "Read directly, cache to disk, keep data in memory, or use a bounded numeric cache with native Bruker, Thermo or indexed mzML input.", false, true);
     setValidStrings_("TargetedDataExtraction:readOptions", {"normal", "cache", "cacheWorkingInMemory", "workingInMemory", "tiled"});
     registerIntOption_("TargetedDataExtraction:raw_memory_mb", "<MiB>", 256,
       "Raw tile and copy budget for tiled input, including a 64 MiB native allowance. This is not a process memory limit.", false, true);
     setMinInt_("TargetedDataExtraction:raw_memory_mb", 65);
-    registerIntOption_("TargetedDataExtraction:raw_max_scan_kb", "<KiB>", 32768,
-      "Maximum private bytes per raw scan for tiled input. Larger scans fail. Input must be indexed mzML.", false, true);
+    registerIntOption_(
+      "TargetedDataExtraction:raw_max_scan_kb", "<KiB>", 32768,
+      "Maximum private bytes per raw scan for tiled input. Larger scans fail. Supports native Bruker, Thermo and indexed mzML input.", false, true);
     setMinInt_("TargetedDataExtraction:raw_max_scan_kb", 1);
-    registerStringOption_("TargetedDataExtraction:tempDirectory", "<tmp>", "", "Temporary directory used for cached SWATH input files. When left empty, OpenDIA uses out_dir as the base directory and creates protected per-run temporary subdirectories there.", false, true);
+    registerFlag_("TargetedDataExtraction:experimental_native_frame_cache",
+                  "Enable the experimental same-budget Bruker frame cache for tiled input. Disabled by default. It can increase runtime and RSS.",
+                  true);
+    registerStringOption_("TargetedDataExtraction:tempDirectory", "<tmp>", "",
+                          "Temporary directory used for cached SWATH input files. When left empty, OpenDIA uses out_dir as the base directory and "
+                          "creates protected per-run temporary subdirectories there.",
+                          false, true);
     registerFlag_("TargetedDataExtraction:keep_cached_files", "If set, do not remove cached input files created in TargetedDataExtraction:tempDirectory.", false);
 
     registerStringOption_("TargetedDataExtraction:extraction_function", "<name>", "tophat", "Extraction kernel used for signal extraction.", false, true);
@@ -1549,11 +1557,10 @@ protected:
     const bool tiled_input = readoptions == "tiled";
     if (tiled_input)
     {
-      if (split_file || std::any_of(file_list.begin(), file_list.end(), [](const std::string& file)
-        { return FileHandler::getTypeByFileName(file) != FileTypes::MZML; }))
+      if (split_file)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Tiled input needs indexed mzML files. Split-window input is not supported.");
+          "Tiled input does not support split-window input.");
       }
       readoptions = "onDisc";
     }
@@ -1826,15 +1833,33 @@ protected:
       }
       if (raw_cache)
       {
-        for (auto& map : swath_maps)
+        if (swath_map_sources.size() != swath_maps.size())
         {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           "SWATH source names do not match the loaded maps.");
+        }
+        std::unordered_map<std::string, std::vector<std::shared_ptr<OpenDIA::RawAccess>>> batch_groups;
+        for (Size i = 0; i < swath_maps.size(); ++i)
+        {
+          auto& map = swath_maps[i];
           auto source = std::dynamic_pointer_cast<SpectrumAccessOnDisc>(map.sptr);
           if (!source || source->getNrSpectra() == 0)
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              "Tiled input needs nonempty spectrum maps from the indexed reader.");
+                                             "Tiled input needs nonempty spectrum maps from a native random-access reader.");
           }
-          map.sptr = std::make_shared<OpenDIA::RawAccess>(std::move(source), raw_cache);
+          if (&map == &swath_maps.front() && getFlag_("TargetedDataExtraction:experimental_native_frame_cache"))
+          {
+            raw_cache->enableNativeFrames(std::shared_ptr<IMSExperimentRandomAccess>(source->getExperiment().clone()));
+          }
+          auto access = std::make_shared<OpenDIA::RawAccess>(std::move(source), raw_cache);
+          batch_groups[swath_map_sources[i]].push_back(access);
+          map.sptr = std::move(access);
+        }
+        for (const auto& [source_path, accessors] : batch_groups)
+        {
+          static_cast<void>(source_path);
+          raw_cache->registerBatchGroup(accessors);
         }
       }
 
@@ -1989,6 +2014,7 @@ protected:
         }
       }
 
+      if (raw_cache) raw_cache->setCalibration(true);
       TransformationDescription trafo_rtnorm;
       if (!trafo_in.empty())
       {
@@ -2048,6 +2074,7 @@ protected:
         trafo_rtnorm = calibration_result.rt_trafo;
       }
 
+      if (raw_cache) raw_cache->setCalibration(false);
       auto clamp_auto_pasef_im_window = [&](double& window, const char* label, const bool enabled)
       {
         if (!enabled)
@@ -2140,7 +2167,7 @@ protected:
 
         attempt_features.clear();
         const bool store_features_in_feature_file = write_parquet;
-        OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im_current, prm, pasef, mrm_mode, outer_loop_threads);
+        OpenDIA::RegionWorkflow wf(use_ms1_traces, use_ms1_im_current, prm, pasef, mrm_mode, outer_loop_threads);
         wf.setLogType(log_type_);
         wf.performExtraction(swath_maps, trafo_rtnorm, extraction_cp, cp_ms1_current, feature_finder_param_run,
                              transition_exp, attempt_features, store_features_in_feature_file, oswwriter, attempt_chromatogram_consumer,
@@ -2211,6 +2238,22 @@ protected:
                         << " peak_accounted_bytes=" << stats.budget.peak_total_bytes
                         << " usable_bytes=" << stats.budget.usable_bytes
                         << " live_bytes=" << stats.budget.committed_bytes << '\n';
+        const auto& frames = stats.native_frames;
+        OPENMS_LOG_INFO << "Raw native frames: hits=" << frames.hits << " misses=" << frames.misses << " evictions=" << frames.evictions
+                        << " limit_bytes=" << frames.limit_bytes << " peak_retained_bytes=" << frames.peak_retained_bytes
+                        << " live_bytes=" << frames.retained_bytes << '\n';
+        const auto log_work = [](const char* name, const OpenDIA::RawWorkCounters& work) {
+          OPENMS_LOG_INFO << "Raw tile work: phase=" << name
+            << " hits=" << work.hits << " misses=" << work.misses << " evictions=" << work.evictions
+            << " decodes=" << work.decodes << " copies=" << work.copies
+            << " decoded_numeric_bytes=" << work.decoded_numeric_bytes
+            << " copied_numeric_bytes=" << work.copied_numeric_bytes
+            << " read_ns=" << work.read_ns << " decode_ns=" << work.decode_ns << " copy_ns=" << work.copy_ns << '\n';
+        };
+        log_work("total", stats.work);
+        constexpr const char* names[]{"unclassified", "calibration", "ms1_extraction", "ms2_extraction", "scoring"};
+        static_assert(std::size(names) == static_cast<size_t>(OpenDIA::RawPhase::COUNT));
+        for (size_t i = 0; i < stats.phases.size(); ++i) log_work(names[i], stats.phases[i]);
       }
       total_extracted_features += run_feature_count;
       if (write_parquet)

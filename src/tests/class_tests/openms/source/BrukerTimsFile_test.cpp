@@ -10,6 +10,7 @@
 #include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
+#include <OpenMS/KERNEL/IMSExperimentRandomAccess.h>
 #include <OpenMS/FORMAT/RationalScan2ImConverter.h>
 #include <OpenMS/FORMAT/MzCalibrationTof2MzConverter.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
@@ -981,7 +982,168 @@ namespace
   }
 }
 
-START_TEST(BrukerTimsFile, "$Id$")
+// Optional local DIA .d path exercises native access without downloading integration data.
+int main(int argc, char** argv)
+{
+  TEST::mainInit("$Id$", "BrukerTimsFile", argc == 2 ? 1 : argc, argv[0]);
+  try {
+
+START_SECTION(native decoded-frame cache)
+{
+  std::string path;
+  if (argc == 2) path = argv[1];
+#ifdef OPENTIMS_DIA_TEST_DATA
+  if (path.empty()) path = OPENTIMS_DIA_TEST_DATA;
+#endif
+  if (!path.empty())
+  {
+    BrukerTimsFile file;
+    auto native = file.openDIAOnDisc(path);
+    auto clone = native->clone();
+    auto independent = file.openDIAOnDisc(path);
+    auto parity_reference = file.openDIAOnDisc(path);
+    const auto initial = native->getNativeFrameCacheStats();
+    TEST_EQUAL(initial.limit_bytes, 0)
+    TEST_EQUAL(initial.retained_bytes, 0)
+    TEST_EQUAL(initial.misses, 0)
+    Size index = 0;
+    while (index < native->size() && native->getSpectrumMSLevel(index) != 2) ++index;
+    TEST_TRUE(index < native->size())
+    if (index < native->size())
+    {
+      const auto acquisition = native->getAcquisitionBatchId(index);
+      TEST_TRUE(acquisition.has_value())
+      const auto expected = native->getSpectrum(index);
+      TEST_EQUAL(native->getNativeFrameCacheStats().misses, 1)
+      const std::string frame_id = expected.getNativeID().substr(0, expected.getNativeID().find(' '));
+      std::vector<Size> batch_indices;
+      for (Size j = 0; j < native->size(); ++j)
+      {
+        if (native->getSpectrumMSLevel(j) != 2) { continue; }
+        const auto id = native->getSpectrumMetadata(j).getNativeID();
+        if (id.substr(0, id.find(' ')) == frame_id) { batch_indices.push_back(j); }
+      }
+      TEST_TRUE(batch_indices.size() > 1)
+      for (const auto batch_index : batch_indices)
+      {
+        const auto batch_acquisition = native->getAcquisitionBatchId(batch_index);
+        TEST_TRUE(batch_acquisition.has_value())
+        TEST_EQUAL(*batch_acquisition, *acquisition)
+      }
+      batch_indices.push_back(batch_indices.front()); // Repeated indices keep their place in the output.
+      auto batched = file.openDIAOnDisc(path);
+      TEST_TRUE(batched->setNativeFrameCacheSize(64 * 1024 * 1024))
+      const auto before_batch = batched->getNativeFrameCacheStats();
+      std::vector<std::pair<Size, MSSpectrum>> batch_output;
+      batched->forEachSpectrum(batch_indices, [&](Size requested, MSSpectrum&& spectrum)
+      {
+        batch_output.emplace_back(requested, std::move(spectrum));
+      });
+      TEST_EQUAL(batch_output.size(), batch_indices.size())
+      for (Size j = 0; j < batch_output.size(); ++j)
+      {
+        TEST_EQUAL(batch_output[j].first, batch_indices[j])
+        TEST_TRUE(sameSpectrum(parity_reference->getSpectrum(batch_indices[j]), batch_output[j].second))
+      }
+      const auto after_batch = batched->getNativeFrameCacheStats();
+      TEST_EQUAL(after_batch.decoded_frames - before_batch.decoded_frames, 1)
+      TEST_EQUAL(after_batch.sorted_frames - before_batch.sorted_frames, 1)
+      batched->forEachSpectrum(batch_indices, [](Size, MSSpectrum&&) {});
+      const auto after_batch_hit = batched->getNativeFrameCacheStats();
+      TEST_EQUAL(after_batch_hit.decoded_frames, after_batch.decoded_frames)
+      TEST_EQUAL(after_batch_hit.sorted_frames, after_batch.sorted_frames)
+      TEST_EQUAL(after_batch_hit.hits, after_batch.hits + 1)
+
+      TEST_TRUE(native->setNativeFrameCacheSize(64 * 1024 * 1024))
+      TEST_TRUE(sameSpectrum(expected, native->getSpectrum(index)))
+      const auto admitted = native->getNativeFrameCacheStats();
+      TEST_TRUE(admitted.retained_bytes > 0)
+      TEST_TRUE(admitted.retained_bytes <= admitted.limit_bytes)
+      TEST_EQUAL(admitted.misses, 2)
+      TEST_TRUE(clone->setNativeFrameCacheSize(admitted.limit_bytes))
+      TEST_EQUAL(clone->getNativeFrameCacheStats().retained_bytes, admitted.retained_bytes)
+      TEST_TRUE(sameSpectrum(expected, clone->getSpectrum(index)))
+      TEST_EQUAL(native->getNativeFrameCacheStats().hits, 1)
+      Size other_frame = native->size();
+      for (Size j = 0; j < native->size(); ++j)
+      {
+        if (native->getSpectrumMSLevel(j) == 1)
+        {
+          TEST_FALSE(native->getAcquisitionBatchId(j).has_value())
+          const auto before_ms1 = native->getNativeFrameCacheStats();
+          native->getSpectrum(j);
+          TEST_EQUAL(native->getNativeFrameCacheStats().hits, before_ms1.hits)
+          TEST_EQUAL(native->getNativeFrameCacheStats().misses, before_ms1.misses)
+          continue;
+        }
+        const auto id = native->getSpectrumMetadata(j).getNativeID();
+        if (id.substr(0, id.find(' ')) != frame_id)
+        {
+          other_frame = j;
+          break;
+        }
+        if (j != index)
+        {
+          // A different DIA window from the same physical frame is also a cache hit.
+          const auto before_window = native->getNativeFrameCacheStats();
+          clone->getSpectrum(j);
+          TEST_EQUAL(native->getNativeFrameCacheStats().hits, before_window.hits + 1)
+          TEST_EQUAL(native->getNativeFrameCacheStats().misses, before_window.misses)
+        }
+      }
+      auto detached = clone->getSpectrum(index);
+      detached.clear(true);
+      TEST_TRUE(sameSpectrum(expected, native->getSpectrum(index)))
+      const auto before_invalid = native->getNativeFrameCacheStats();
+      TEST_EXCEPTION(std::out_of_range, native->getSpectrum(native->size()))
+      TEST_EQUAL(native->getNativeFrameCacheStats().misses, before_invalid.misses)
+      TEST_EQUAL(native->getNativeFrameCacheStats().hits, before_invalid.hits)
+      TEST_TRUE(clone->setNativeFrameCacheSize(1))
+      TEST_EQUAL(native->getNativeFrameCacheStats().retained_bytes, 0)
+      TEST_EQUAL(native->getNativeFrameCacheStats().evictions, 1)
+      TEST_TRUE(sameSpectrum(expected, native->getSpectrum(index)))
+      TEST_TRUE(sameSpectrum(expected, native->getSpectrum(index)))
+      TEST_EQUAL(native->getNativeFrameCacheStats().retained_bytes, 0)
+      TEST_EQUAL(native->getNativeFrameCacheStats().misses, before_invalid.misses + 2)
+      TEST_TRUE(native->setNativeFrameCacheSize(admitted.retained_bytes))
+      TEST_TRUE(sameSpectrum(expected, native->getSpectrum(index)))
+      TEST_EQUAL(native->getNativeFrameCacheStats().retained_bytes, admitted.retained_bytes)
+      if (other_frame < native->size())
+      {
+        TEST_TRUE(native->setNativeFrameCacheSize(0))
+        TEST_TRUE(native->setNativeFrameCacheSize(admitted.limit_bytes))
+        const auto other_expected = independent->getSpectrum(other_frame);
+        TEST_TRUE(sameSpectrum(other_expected, native->getSpectrum(other_frame)))
+        const Size other_bytes = native->getNativeFrameCacheStats().retained_bytes;
+        const Size one_frame_cap = std::max(other_bytes, admitted.retained_bytes);
+        TEST_TRUE(native->setNativeFrameCacheSize(0))
+        TEST_TRUE(native->setNativeFrameCacheSize(one_frame_cap))
+        TEST_TRUE(sameSpectrum(expected, native->getSpectrum(index)))
+        const auto before_eviction = native->getNativeFrameCacheStats();
+        TEST_TRUE(sameSpectrum(other_expected, native->getSpectrum(other_frame)))
+        TEST_EQUAL(native->getNativeFrameCacheStats().evictions, before_eviction.evictions + 1)
+        TEST_TRUE(native->getNativeFrameCacheStats().retained_bytes <= one_frame_cap)
+        TEST_TRUE(sameSpectrum(expected, clone->getSpectrum(index)))
+        TEST_EQUAL(native->getNativeFrameCacheStats().misses, before_eviction.misses + 2)
+      }
+      const auto before_clear = native->getNativeFrameCacheStats();
+      TEST_TRUE(clone->setNativeFrameCacheSize(0))
+      const auto cleared = native->getNativeFrameCacheStats();
+      TEST_EQUAL(cleared.limit_bytes, 0)
+      TEST_EQUAL(cleared.retained_bytes, 0)
+      TEST_EQUAL(cleared.hits, before_clear.hits)
+      TEST_EQUAL(cleared.misses, before_clear.misses)
+      TEST_EQUAL(cleared.evictions, before_clear.evictions + 1)
+      native.reset();
+      TEST_TRUE(sameSpectrum(expected, clone->getSpectrum(index)))
+      TEST_EQUAL(clone->getNativeFrameCacheStats().retained_bytes, 0)
+      TEST_EQUAL(independent->getNativeFrameCacheStats().limit_bytes, 0)
+      TEST_EQUAL(independent->getNativeFrameCacheStats().hits, 0)
+      TEST_EQUAL(independent->getNativeFrameCacheStats().misses, other_frame < clone->size() ? 1 : 0)
+    }
+  }
+}
+END_SECTION
 
 START_SECTION(void load(const std::string& path, MSExperiment& exp, const Config& config))
 {
@@ -5033,6 +5195,52 @@ START_SECTION(DIA readDIAMetadata test)
 
   STATUS("readDIAMetadata: " << meta.boundaries.size() << " windows, "
          << meta.nr_ms1_spectra << " MS1 spectra");
+}
+END_SECTION
+
+START_SECTION(DIA native random access matches every streamed spectrum)
+{
+  BrukerTimsFile f;
+  ExperimentalSettings settings;
+  const auto meta = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings);
+  InspectableSwathConsumer consumer(meta.boundaries);
+  consumer.setExperimentalSettings(settings);
+  f.loadDIAStreaming(OPENTIMS_DIA_TEST_DATA, consumer);
+  auto native = f.openDIAOnDisc(OPENTIMS_DIA_TEST_DATA);
+  auto clone = native->clone();
+  TEST_TRUE(native->setNativeFrameCacheSize(64 * 1024 * 1024))
+  std::map<std::string, Size> indices;
+  for (Size i = 0; i < native->size(); ++i)
+  {
+    const auto metadata = native->getSpectrumMetadata(i);
+    TEST_TRUE(metadata.empty())
+    TEST_TRUE(metadata.getFloatDataArrays().empty())
+    TEST_TRUE(indices.emplace(metadata.getNativeID(), i).second)
+    TEST_EQUAL(native->getSpectrumRT(i), metadata.getRT())
+    TEST_EQUAL(native->getSpectrumMSLevel(i), metadata.getMSLevel())
+  }
+  Size compared = 0;
+  const auto compare_map = [&](const PeakMap* map)
+  {
+    if (map == nullptr) return;
+    for (const auto& expected : *map)
+    {
+      const auto found = indices.find(expected.getNativeID());
+      TEST_TRUE(found != indices.end())
+      if (found == indices.end()) continue;
+      TEST_TRUE(sameSpectrum(expected, native->getSpectrum(found->second)))
+      TEST_TRUE(sameSpectrum(expected, clone->getSpectrum(found->second)))
+      ++compared;
+    }
+  };
+  compare_map(consumer.ms1Map());
+  for (Size w = 0; w < meta.boundaries.size(); ++w) compare_map(consumer.swathMap(w));
+  // Exact membership matters: empty MS2 windows must not become nearest-RT candidates.
+  TEST_EQUAL(compared, native->size())
+  TEST_TRUE(compared > 0)
+  const auto first = native->getSpectrum(0);
+  native.reset();
+  TEST_TRUE(sameSpectrum(first, clone->getSpectrum(0)))
 }
 END_SECTION
 

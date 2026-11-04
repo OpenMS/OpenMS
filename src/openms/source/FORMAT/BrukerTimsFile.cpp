@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/ZstdCompression.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/KERNEL/IMSExperimentRandomAccess.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -38,6 +39,7 @@
 
 #include <exception>
 #include <memory>
+#include <mutex>
 #include <new>
 #include <algorithm>
 #include <array>
@@ -50,6 +52,7 @@
 #include <cstring>
 #include <fstream>
 #include <limits>
+#include <list>
 #include <map>
 #include <set>
 #include <unordered_map>
@@ -2249,6 +2252,16 @@ namespace OpenMS
       }
     }
 
+    // Discard decoding-only storage before measuring an immutable cache payload.
+    Size retainedBytes()
+    {
+      std::vector<uint32_t>().swap(scan_numbers_);
+      std::vector<uint32_t>().swap(scratch_);
+      return sizeof(DecodedFrame) + sizeof(uint32_t) *
+        (scan_ids.capacity() + tofs.capacity() + intensities.capacity() + mz_order.capacity()) +
+        sizeof(double) * (mzs.capacity() + scan_im.capacity());
+    }
+
   private:
     std::vector<uint32_t> scan_numbers_; // 0, 1, 2, ...
     std::vector<uint32_t> scratch_;
@@ -2947,6 +2960,339 @@ namespace OpenMS
       spec.emplace_back(decoded.mzs[p], static_cast<float>(decoded.intensities[p]));
       im_array.push_back(static_cast<float>(decoded.scan_im[scan]));
     }
+  }
+
+  // Native DIA access keeps metadata only. All clones serialize native decoding, including
+  // converter access, and keep an extracted archive alive until the final clone is destroyed.
+  // ponytail: Shared-handle locking keeps clones safe and cheap, but decoding across clones
+  // is serialized. Independent handles are deferred until parallel throughput warrants them.
+  class NativeBrukerDIAExperiment final : public IMSExperimentRandomAccess
+  {
+  public:
+    struct Entry
+    {
+      uint32_t frame;
+      std::optional<DIAWindow> window;
+      MSSpectrum metadata;
+    };
+    struct Source
+    {
+      struct CachedFrame
+      {
+        uint32_t id;
+        Size bytes;
+        DecodedFrame decoded;
+      };
+      std::shared_ptr<void> archive;
+      std::unique_ptr<TimsDataHandle> handle;
+      BrukerTimsFile::Config config;
+      std::vector<uint32_t> ms1_frames;
+      std::vector<Entry> entries;
+      std::shared_ptr<ExperimentalSettings> settings;
+      std::shared_ptr<FramePolarity> polarity;
+      mutable std::mutex mutex;
+      NativeFrameCacheStats cache_stats;
+      std::list<CachedFrame> cache; // MRU first, no separate lookup allocation
+
+      void evictLast()
+      {
+        cache_stats.retained_bytes -= cache.back().bytes;
+        cache.pop_back();
+        ++cache_stats.evictions;
+      }
+    };
+
+    explicit NativeBrukerDIAExperiment(std::shared_ptr<Source> source) : source_(std::move(source)) {}
+    Size getNrSpectra() const override { return source_->entries.size(); }
+    Size getNrChromatograms() const override { return 0; }
+    MSSpectrum getSpectrumMetadata(Size i) override { return source_->entries.at(i).metadata; }
+
+    std::optional<Size> getAcquisitionBatchId(Size index) const override
+    {
+      if (index >= source_->entries.size()) { throw std::out_of_range("Native Bruker DIA spectrum index"); }
+      const auto& entry = source_->entries[index];
+      if (!entry.window) { return std::nullopt; }
+      return static_cast<Size>(entry.frame);
+    }
+    double getSpectrumRT(Size i) const override { return source_->entries.at(i).metadata.getRT(); }
+    UInt getSpectrumMSLevel(Size i) const override { return source_->entries.at(i).metadata.getMSLevel(); }
+    bool isSortedByRT() const override { return true; }
+    MSChromatogram getChromatogram(Size) override
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bruker DIA has no chromatograms");
+    }
+    std::shared_ptr<const ExperimentalSettings> getExperimentalSettings() const override { return source_->settings; }
+    std::unique_ptr<IMSExperimentRandomAccess> clone() const override
+    {
+      return std::make_unique<NativeBrukerDIAExperiment>(source_);
+    }
+    bool setNativeFrameCacheSize(Size max_bytes) override
+    {
+      std::lock_guard<std::mutex> lock(source_->mutex);
+      source_->cache_stats.limit_bytes = max_bytes;
+      while (source_->cache_stats.retained_bytes > max_bytes) source_->evictLast();
+      return true;
+    }
+    NativeFrameCacheStats getNativeFrameCacheStats() const override
+    {
+      std::lock_guard<std::mutex> lock(source_->mutex);
+      return source_->cache_stats;
+    }
+    MSSpectrum getSpectrum(Size i) override
+    {
+      const auto& entry = source_->entries.at(i);
+      std::lock_guard<std::mutex> lock(source_->mutex);
+      MSSpectrum spec;
+      if (!entry.window)
+      {
+        MS1SpectrumReader reader(*source_->handle, source_->ms1_frames, source_->config);
+        const auto pos = std::lower_bound(source_->ms1_frames.begin(), source_->ms1_frames.end(), entry.frame);
+        reader.read(std::distance(source_->ms1_frames.begin(), pos), spec);
+        source_->polarity->apply(spec);
+      }
+      else
+      {
+        auto& frame = source_->handle->get_frame(entry.frame);
+        DecodedFrame decoded;
+        const DecodedFrame* payload = &decoded;
+        const auto found = std::find_if(source_->cache.begin(), source_->cache.end(),
+          [&](const auto& cached) { return cached.id == entry.frame; });
+        if (found != source_->cache.end())
+        {
+          ++source_->cache_stats.hits;
+          source_->cache.splice(source_->cache.begin(), source_->cache, found);
+          payload = &source_->cache.front().decoded;
+        }
+        else
+        {
+          ++source_->cache_stats.misses;
+          // close() invalidates the opentims decompressed-frame view and releases its
+          // optional back_buffer. The handle's reusable workspace is not cache payload.
+          struct CloseFrame
+          {
+            TimsFrame& frame;
+            ~CloseFrame() { frame.close(); }
+          } close_frame{frame};
+          decoded.decode(*source_->handle, frame, true);
+          ++source_->cache_stats.decoded_frames;
+          ++source_->cache_stats.sorted_frames;
+          const Size bytes = decoded.retainedBytes() + sizeof(Source::CachedFrame) - sizeof(DecodedFrame) + 2 * sizeof(void*);
+          if (bytes <= source_->cache_stats.limit_bytes)
+          {
+            while (source_->cache_stats.retained_bytes > source_->cache_stats.limit_bytes - bytes) source_->evictLast();
+            try
+            {
+              source_->cache.emplace_front();
+              auto& cached = source_->cache.front();
+              cached.id = entry.frame;
+              cached.bytes = bytes;
+              cached.decoded = std::move(decoded);
+              source_->cache_stats.retained_bytes += bytes;
+              source_->cache_stats.peak_retained_bytes = std::max(source_->cache_stats.peak_retained_bytes, source_->cache_stats.retained_bytes);
+              payload = &source_->cache.front().decoded;
+            }
+            catch (const std::bad_alloc&)
+            {
+              // Retention is optional. Decode errors still propagate, but an allocation
+              // failure for the cache node must not prevent returning decoded science.
+            }
+          }
+        }
+        initDIAWindowSpectrum(frame, *entry.window, spec);
+        DataArrays::FloatDataArray im_array;
+        IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+        std::vector<char> in_window;
+        markScansInWindow(*payload, *entry.window, in_window);
+        addWindowPeaksByMZ(*payload, in_window, spec, im_array);
+        spec.getFloatDataArrays().push_back(std::move(im_array));
+        spec.setIMPeakType(IMPeakType::IM_PROFILE);
+        source_->polarity->apply(spec);
+      }
+      spec.sortByPosition();
+      return spec;
+    }
+    void forEachSpectrum(std::span<const Size> indices,
+                         const std::function<void(Size, MSSpectrum&&)>& visitor) override
+    {
+      if (!visitor) { throw std::invalid_argument("Spectrum batch visitor must not be empty"); }
+      for (const Size index : indices)
+      {
+        if (index >= source_->entries.size()) { throw std::out_of_range("Native Bruker DIA spectrum index"); }
+      }
+
+      Size i = 0;
+      while (i < indices.size())
+      {
+        const Size index = indices[i];
+        const auto& entry = source_->entries[index];
+        if (!entry.window)
+        {
+          auto spectrum = getSpectrum(index);
+          visitor(index, std::move(spectrum));
+          ++i;
+          continue;
+        }
+
+        Size end = i + 1;
+        while (end < indices.size())
+        {
+          const auto& next = source_->entries[indices[end]];
+          if (!next.window || next.frame != entry.frame) { break; }
+          ++end;
+        }
+
+        std::lock_guard<std::mutex> lock(source_->mutex);
+        auto& frame = source_->handle->get_frame(entry.frame);
+        struct CloseFrame
+        {
+          TimsFrame* frame = nullptr;
+          ~CloseFrame()
+          {
+            if (frame) { frame->close(); }
+          }
+        } close_frame;
+        close_frame.frame = &frame;
+        DecodedFrame decoded;
+        const DecodedFrame* payload = &decoded;
+        const auto found = std::find_if(source_->cache.begin(), source_->cache.end(),
+          [&](const auto& cached) { return cached.id == entry.frame; });
+        if (found != source_->cache.end())
+        {
+          ++source_->cache_stats.hits;
+          source_->cache.splice(source_->cache.begin(), source_->cache, found);
+          payload = &source_->cache.front().decoded;
+        }
+        else
+        {
+          ++source_->cache_stats.misses;
+          decoded.decode(*source_->handle, frame, true);
+          ++source_->cache_stats.decoded_frames;
+          ++source_->cache_stats.sorted_frames;
+          const Size bytes = decoded.retainedBytes() + sizeof(Source::CachedFrame) - sizeof(DecodedFrame) + 2 * sizeof(void*);
+          if (bytes <= source_->cache_stats.limit_bytes)
+          {
+            while (source_->cache_stats.retained_bytes > source_->cache_stats.limit_bytes - bytes) source_->evictLast();
+            try
+            {
+              source_->cache.emplace_front();
+              auto& cached = source_->cache.front();
+              cached.id = entry.frame;
+              cached.bytes = bytes;
+              cached.decoded = std::move(decoded);
+              source_->cache_stats.retained_bytes += bytes;
+              source_->cache_stats.peak_retained_bytes = std::max(source_->cache_stats.peak_retained_bytes, source_->cache_stats.retained_bytes);
+              payload = &source_->cache.front().decoded;
+            }
+            catch (const std::bad_alloc&)
+            {
+              // Optional cache allocation must not prevent producing the spectra.
+            }
+          }
+        }
+
+        std::vector<char> in_window;
+        for (Size request = i; request < end; ++request)
+        {
+          const Size requested_index = indices[request];
+          const auto& requested_entry = source_->entries[requested_index];
+          MSSpectrum spectrum;
+          initDIAWindowSpectrum(frame, *requested_entry.window, spectrum);
+          DataArrays::FloatDataArray im_array;
+          IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+          markScansInWindow(*payload, *requested_entry.window, in_window);
+          addWindowPeaksByMZ(*payload, in_window, spectrum, im_array);
+          spectrum.getFloatDataArrays().push_back(std::move(im_array));
+          spectrum.setIMPeakType(IMPeakType::IM_PROFILE);
+          source_->polarity->apply(spectrum);
+          spectrum.sortByPosition();
+          visitor(requested_index, std::move(spectrum));
+        }
+        if (close_frame.frame)
+        {
+          close_frame.frame->close();
+          close_frame.frame = nullptr;
+        }
+        i = end;
+      }
+    }
+
+  private:
+    std::shared_ptr<Source> source_;
+  };
+
+  std::shared_ptr<IMSExperimentRandomAccess> BrukerTimsFile::openDIAOnDisc(const std::string& path)
+  {
+    std::shared_ptr<IMSExperimentRandomAccess> result;
+    rethrowAsParseError(path, [&]
+    {
+      auto source = std::make_shared<NativeBrukerDIAExperiment::Source>();
+      const auto archive = takeUnpacked_(path);
+      source->archive = archive;
+      const std::string d_path = archive ? archive->d_path : path;
+      rejectMaldiImaging(path, d_path);
+      source->handle = openTimsDataHandle(d_path, source->config);
+      source->settings = std::make_shared<ExperimentalSettings>();
+      loadExperimentalSettings_(path, d_path, *source->settings);
+      auto& handle = *source->handle;
+      const std::string tdf_path = handle.get_tims_dir_path() + "/analysis.tdf";
+      source->polarity = std::make_shared<FramePolarity>(tdf_path);
+      SQLite::Database db(tdf_path, SQLite::OPEN_READONLY);
+      const auto windows = readDIAWindows(db, *handle.scan2inv_ion_mobility_converter);
+      if (windows.empty())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Native Bruker DIA access requires DIA windows");
+      }
+      warnIfSynchroPASEF(windows);
+      for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
+      {
+        if (handle.has_frame(fid) && handle.get_frame(fid).msms_type == 0)
+        {
+          source->ms1_frames.push_back(fid);
+        }
+      }
+      MS1SpectrumReader reader(handle, source->ms1_frames, source->config);
+      for (Size i = 0; i < source->ms1_frames.size(); ++i)
+      {
+        MSSpectrum spec;
+        reader.read(i, spec);
+        source->polarity->apply(spec);
+        spec.clear(false);
+        spec.shrink_to_fit();
+        source->entries.push_back({source->ms1_frames[i], std::nullopt, std::move(spec)});
+      }
+      // A SQL-only index would include empty windows that streaming deliberately omits.
+      // Decode each MS2 frame once here to build exactly the emitted scan membership.
+      DecodedFrame decoded;
+      std::vector<char> in_window;
+      for (const auto& [group, frames] : readFrameToWindowGroupMapping(db, windows, handle))
+      {
+        for (const auto fid : frames)
+        {
+          auto& frame = handle.get_frame(fid);
+          if (frame.num_peaks == 0) continue;
+          decoded.decode(handle, frame, true);
+          for (const auto& win : windows)
+          {
+            if (win.window_group != group) continue;
+            markScansInWindow(decoded, win, in_window);
+            const bool occupied = std::any_of(decoded.scan_ids.begin(), decoded.scan_ids.end(),
+              [&](uint32_t scan) { return in_window[scan] != 0; });
+            if (!occupied) continue;
+            MSSpectrum spec;
+            initDIAWindowSpectrum(frame, win, spec);
+            spec.setIMPeakType(IMPeakType::IM_PROFILE);
+            source->polarity->apply(spec);
+            source->entries.push_back({fid, win, std::move(spec)});
+          }
+        }
+      }
+      std::stable_sort(source->entries.begin(), source->entries.end(), [](const auto& a, const auto& b)
+      {
+        return a.metadata.getRT() < b.metadata.getRT();
+      });
+      result = std::make_shared<NativeBrukerDIAExperiment>(std::move(source));
+    });
+    return result;
   }
 
   // =====================================================================

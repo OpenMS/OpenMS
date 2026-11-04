@@ -1,0 +1,580 @@
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Justin Sing $
+// $Authors: Justin Sing $
+// --------------------------------------------------------------------------
+
+#include "OpenDIARawAccess.h"
+#include "OpenDIARegionWorkflow.h"
+
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/SwathFile.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <algorithm>
+#include <array>
+#include <filesystem>
+#include <limits>
+#include <map>
+#include <set>
+#include <stdexcept>
+
+using namespace OpenDIA;
+namespace
+{
+constexpr ByteCount MIB = 1024 * 1024;
+using Coordinate = OpenMS::ChromatogramExtractor::ExtractionCoordinates;
+using Chromatograms = std::vector<OpenSwath::ChromatogramPtr>;
+void check(bool condition, const char* message)
+{
+  if (! condition) { throw std::runtime_error(message); }
+}
+template<typename Workflow>
+struct CandidateWorkflow : Workflow
+{
+  using Workflow::Workflow;
+  bool candidateScoring() const { return this->useCandidateRTScoring_(); }
+};
+
+void candidateWorkflowMode()
+{
+  CandidateWorkflow<RegionWorkflow> region(false, false, false, false, false, 1);
+  CandidateWorkflow<OpenMS::OpenSwathWorkflow> core(false, false, false, false, false, 1);
+  check(region.candidateScoring(), "Private workflow did not opt into candidate scoring");
+  check(!core.candidateScoring(), "Default core workflow unexpectedly changed its scoring schedule");
+}
+template<typename F>
+void rejects(F operation)
+{
+  bool rejected = false;
+  try
+  {
+    operation();
+  }
+  catch (const OpenMS::Exception::BaseException&)
+  {
+    rejected = true;
+  }
+  check(rejected, "Expected explicit rejection");
+}
+Chromatograms empty(OpenMS::Size count)
+{
+  Chromatograms result;
+  for (OpenMS::Size i = 0; i < count; ++i)
+  {
+    result.push_back(std::make_shared<OpenSwath::Chromatogram>());
+  }
+  return result;
+}
+OpenSwath::SpectrumAccessPtr transform(OpenSwath::SpectrumAccessPtr input, const std::optional<MZCalibration>& calibration)
+{
+  if (! calibration) { return input; }
+  const auto& c = *calibration;
+  return std::make_shared<OpenMS::SpectrumAccessQuadMZTransforming>(input, c.a, c.b, c.c, c.ppm);
+}
+void equal(const Chromatograms& actual, const Chromatograms& expected)
+{
+  check(actual.size() == expected.size(), "Chromatogram count changed");
+  for (OpenMS::Size i = 0; i < actual.size(); ++i)
+  {
+    check(actual[i]->getTimeArray()->data == expected[i]->getTimeArray()->data, "RT arrays changed");
+    check(actual[i]->getIntensityArray()->data == expected[i]->getIntensityArray()->data, "Intensity arrays changed");
+  }
+}
+void exercise(const std::shared_ptr<OpenMS::SpectrumAccessOnDisc>& source, bool native = false)
+{
+  check(source->getNrSpectra() > 0, "Fixture has no acquisitions");
+  const auto uncalibrated = source->getSpectrumById(0);
+  if (uncalibrated->getMZArray()->data.empty()) { return; }
+  const std::array<std::optional<MZCalibration>, 3> calibrations {
+    {{}, MZCalibration {0.001, 1.00001, 1e-10, false}, MZCalibration {0.1, 0.00001, 1e-10, true}}};
+  RegionWorkflow workflow(false, false, false, false, false, 1);
+  bool signal_observed = false;
+  for (const auto& calibration : calibrations)
+  {
+    if (native && ! calibration) { continue; }
+    auto cache = std::make_shared<RawCache>(256 * MIB, 64 * MIB, 64 * MIB);
+    auto access = std::make_shared<RawAccess>(source, cache);
+    auto input = transform(access, calibration);
+    auto reference = transform(source->lightClone(), calibration);
+    const auto sample = reference->getSpectrumById(0);
+    const auto mz = sample->getMZArray();
+    const auto im = sample->getDriftTimeArray();
+    std::vector<Coordinate> coordinates(16);
+    for (OpenMS::Size q = 0; q < coordinates.size(); ++q)
+    {
+      const auto p = mz->data.size() * q / coordinates.size();
+      coordinates[q].mz = mz->data[p];
+      coordinates[q].ion_mobility = im ? im->data[p] : -1;
+      coordinates[q].rt_start = source->getSpectrumMetaById(0).RT;
+      coordinates[q].rt_end = q % 2 ? coordinates[q].rt_start + 1 : -1;
+    }
+    std::stable_sort(coordinates.begin(), coordinates.end(), [](const auto& a, const auto& b) { return a.mz < b.mz; });
+    for (const bool ppm : {false, true})
+    {
+      for (const bool use_im : {false, true})
+      {
+        if (use_im && ! im) { continue; }
+        OpenMS::ChromExtractParams cp {};
+        cp.mz_extraction_window = ppm ? 20 : 0.05;
+        cp.ppm = ppm;
+        cp.im_extraction_window = use_im ? 0.05 : -1;
+        cp.extraction_function = "tophat";
+        auto expected = empty(coordinates.size()), actual = empty(coordinates.size());
+        OpenMS::ChromatogramExtractor().extractChromatograms(reference, expected, coordinates, cp.mz_extraction_window, cp.ppm,
+                                                             cp.im_extraction_window, cp.extraction_function);
+        workflow.extractChromatograms_(input, actual, coordinates, cp);
+        equal(actual, expected);
+        for (const auto& chromatogram : expected)
+        {
+          signal_observed = signal_observed
+                            || std::any_of(chromatogram->getIntensityArray()->data.begin(), chromatogram->getIntensityArray()->data.end(),
+                                           [](double value) { return value != 0; });
+        }
+        const auto first = cache->snapshot();
+        auto repeated = empty(coordinates.size());
+        workflow.extractChromatograms_(input->lightClone(), repeated, coordinates, cp);
+        equal(repeated, expected);
+        const auto second = cache->snapshot();
+        check(second.work.copies == 0 && second.work.copied_numeric_bytes == 0, "Region extraction made a detached legacy copy");
+        // Small fixtures fit completely. Native samples can exceed the bounded LRU.
+        if (! native) { check(second.work.decodes == first.work.decodes && second.hits > first.hits, "Repeated region extraction decoded again"); }
+        // Scoring must consume the same calibrated columns, not another detached
+        // spectrum or a second application of the acquisition transformation.
+        auto scoring = workflow.spectrumAccessForScoring_(input)->lightClone();
+        for (OpenMS::Size id = 0; id < source->getNrSpectra(); ++id)
+        {
+          const auto expected_spectrum = reference->getSpectrumById(static_cast<int>(id));
+          const auto actual_spectrum = scoring->getSpectrumById(static_cast<int>(id));
+          check(actual_spectrum->getDataArrays().size() == expected_spectrum->getDataArrays().size(), "Scoring lost auxiliary arrays");
+          for (OpenMS::Size column = 0; column < expected_spectrum->getDataArrays().size(); ++column)
+          {
+            check(actual_spectrum->getDataArrays()[column]->data == expected_spectrum->getDataArrays()[column]->data,
+                  "Shared scoring changed calibrated spectrum evidence");
+          }
+        }
+        OpenMS::OpenSwathScoring scorer;
+        const auto rt = source->getSpectrumMetaById(0).RT;
+        const auto expected_spectra = scorer.fetchSpectrumSwath(reference, rt, 3, OpenMS::RangeMobility());
+        const auto actual_spectra = scorer.fetchSpectrumSwath(scoring, rt, 3, OpenMS::RangeMobility());
+        check(actual_spectra.size() == expected_spectra.size(), "Scoring selected different neighboring spectra");
+        for (OpenMS::Size id = 0; id < expected_spectra.size(); ++id)
+        {
+          for (OpenMS::Size column = 0; column < expected_spectra[id]->getDataArrays().size(); ++column)
+          {
+            check(actual_spectra[id]->getDataArrays()[column]->data == expected_spectra[id]->getDataArrays()[column]->data,
+                  "Scoring spectrum selection changed evidence");
+          }
+        }
+        const auto scored = cache->snapshot();
+        if (! native) { check(scored.work.decodes == second.work.decodes, "Scoring decoded resident extraction evidence again"); }
+        check(scored.work.copies == 0, "Read-only scoring made detached spectrum copies");
+        check(second.budget.peak_total_bytes <= second.budget.usable_bytes, "Region extraction exceeded admission");
+        OPENMS_LOG_INFO << "region-consumer scans=" << source->getNrSpectra() << " ppm=" << ppm << " im=" << use_im
+                        << " calibrated=" << calibration.has_value() << " decodes=" << second.work.decodes << " copies=" << second.work.copies
+                        << " peak=" << second.budget.peak_total_bytes << '\n';
+      }
+    }
+    // A changed coefficient under the same namespace cannot reuse calibrated columns.
+    const RecordContext context {0, 4, 9, 1};
+    const auto before = cache->snapshot().work.decodes;
+    auto pinned = access->acquireRegion(0, context, MZCalibration {0, 1, 0, false}).scan(0);
+    auto shifted = access->acquireRegion(0, context, MZCalibration {1, 1, 0, false}).scan(0);
+    check(shifted.mz()[0] == pinned.mz()[0] + 1 && cache->snapshot().work.decodes == before + 2, "Calibration cache key is incomplete");
+    auto legacy = access->acquire(0);
+    check(legacy->array(0).data[0] == pinned.mz()[0], "Legacy cache received calibrated masses");
+    legacy.reset();
+    cache->clear();
+    check(cache->snapshot().budget.committed_bytes > 0 && pinned.mz().size() > 0, "Cache removal revoked a region lease");
+    pinned = {};
+    shifted = {};
+    check(cache->snapshot().budget.committed_bytes == 0 && cache->snapshot().budget.reserved_bytes == 0, "Region consumer retained charges");
+    cache->cancel();
+    rejects([&] { access->acquireRegion(0, context); });
+    check(source->getSpectrumById(0)->getMZArray()->data == uncalibrated->getMZArray()->data, "Calibration mutated the native source");
+  }
+  check(signal_observed, "Consumer comparison contained only zero signal");
+}
+void fixtures()
+{
+  for (const auto* file :
+       {"topp/OpenSwathWorkflow_1_input.mzML", "topp/OpenSwathWorkflow_23_input.mzML", "class_tests/openms/data/IM_FAIMS_test.mzML"})
+  {
+    OpenMS::MSExperiment loaded;
+    OpenMS::MzMLFile().load(std::string(OPENDIA_TEST_DATA_DIR) + "/" + file, loaded);
+    const auto path = (std::filesystem::current_path() / ("OpenDIARegionWorkflow_" + OpenMS::File::getUniqueName(false) + ".mzML")).string();
+    struct Remove
+    {
+      std::string path;
+      ~Remove()
+      {
+        std::error_code error;
+        std::filesystem::remove(path, error);
+      }
+    } cleanup {path};
+    OpenMS::MzMLFile writer;
+    writer.getOptions().setWriteIndex(true);
+    writer.store(path, loaded);
+    auto experiment = std::make_shared<OpenMS::OnDiscMSExperiment>();
+    check(experiment->openFile(path), "Cannot open indexed fixture");
+    auto source = std::make_shared<OpenMS::SpectrumAccessOnDisc>(experiment);
+    exercise(source);
+    auto cache = std::make_shared<RawCache>(16 * MIB, 0, 8 * MIB);
+    check(! experiment->getAcquisitionBatchId(0), "Indexed mzML unexpectedly exposed a native acquisition batch key");
+    check(! cache->enableNativeFrames(std::shared_ptr<OpenMS::IMSExperimentRandomAccess>(experiment->clone())),
+          "Indexed mzML unexpectedly enabled a native frame cache");
+    check(cache->snapshot().budget.committed_bytes == 0, "Unsupported native cache retained admission");
+    auto input = std::make_shared<RawAccess>(source, cache);
+    RegionWorkflow workflow(false, false, false, false, false, 1);
+    check(workflow.spectrumAccessForScoring_(source) == source, "Unknown reader scoring behavior changed");
+    auto stacked = transform(transform(input, MZCalibration {0, 1, 0, false}), MZCalibration {1, 1, 0, false});
+    check(workflow.spectrumAccessForScoring_(stacked) == stacked, "Stacked transforms must keep their original scoring access");
+    std::vector<Coordinate> coordinates(1);
+    coordinates[0].mz = 400;
+    coordinates[0].rt_end = -1;
+    OpenMS::ChromExtractParams cp {};
+    cp.mz_extraction_window = 0.05;
+    cp.im_extraction_window = -1;
+    cp.extraction_function = "tophat";
+    auto output = empty(1);
+    auto invalid_coordinates = coordinates;
+    invalid_coordinates[0].mz = std::numeric_limits<double>::quiet_NaN();
+    rejects([&] { workflow.extractChromatograms_(input, output, invalid_coordinates, cp); });
+    invalid_coordinates[0].mz = std::numeric_limits<double>::max();
+    auto wide = cp;
+    wide.ppm = true;
+    wide.mz_extraction_window = std::numeric_limits<double>::max();
+    rejects([&] { workflow.extractChromatograms_(input, output, invalid_coordinates, wide); });
+    auto invalid_context = RecordContext {};
+    invalid_context.schema_version = 1;
+    rejects([&] { input->acquireRegion(0, invalid_context); });
+    rejects([&] { input->acquireRegion(0, {}, MZCalibration {std::numeric_limits<double>::quiet_NaN(), 1, 0}); });
+    check(output[0]->getTimeArray()->data.empty() && cache->snapshot().work.decodes == 0, "Invalid query reached decoder/output");
+    // Non-native access keeps the shared extractor, including its errors.
+    auto expected = empty(1);
+    OpenMS::ChromatogramExtractor().extractChromatograms(source, expected, coordinates, 0.05, false, -1, "tophat");
+    workflow.extractChromatograms_(source, output, coordinates, cp);
+    equal(output, expected);
+    cp.extraction_function = "not-a-filter";
+    rejects([&] { workflow.extractChromatograms_(input, output, coordinates, cp); });
+  }
+}
+
+void nativeFrames(const std::shared_ptr<OpenMS::SpectrumAccessOnDisc>& source)
+{
+  check(source != nullptr, "Native loader did not return a random-access source");
+  auto native = std::shared_ptr<OpenMS::IMSExperimentRandomAccess>(source->getExperiment().clone());
+  auto cache = std::make_shared<RawCache>(256 * MIB, 64 * MIB, 32 * MIB);
+  if (! cache->enableNativeFrames(native))
+  {
+    check(cache->snapshot().budget.committed_bytes == 0, "Unsupported native cache retained bytes");
+    return;
+  }
+  const auto admitted = cache->snapshot();
+  check(admitted.native_frames.limit_bytes == 32 * MIB && admitted.budget.committed_bytes == 32 * MIB,
+        "Native frame capacity was not admitted from the shared budget");
+  // Two isolation lanes from the same physical frame must share decoded storage.
+  std::map<std::string, OpenMS::Size> frames;
+  bool compared = false;
+  for (OpenMS::Size i = 0; i < native->getNrSpectra(); ++i)
+  {
+    const auto metadata = native->getSpectrumMetadata(i);
+    if (metadata.getMSLevel() != 2) { continue; }
+    const auto& id = metadata.getNativeID();
+    const auto key = id.substr(0, id.find(' '));
+    const auto [previous, inserted] = frames.emplace(key, i);
+    if (inserted) { continue; }
+    for (const auto index : {previous->second, i})
+    {
+      auto lane = std::make_shared<OpenMS::SpectrumAccessOnDisc>(std::shared_ptr<OpenMS::IMSExperimentRandomAccess>(native->clone()),
+                                                                 std::vector<OpenMS::Size> {index});
+      RawAccess access(lane, cache);
+      const auto before_read = cache->snapshot().native_frames;
+      const auto actual = access.acquire(0);
+      if (index == i) { check(cache->snapshot().native_frames.hits > before_read.hits, "The second lane decoded its physical frame again"); }
+      const auto expected = lane->getSpectrumById(0);
+      check(actual->array(0).data == expected->getMZArray()->data, "Frame reuse changed lane masses");
+      check(actual->array(1).data == expected->getIntensityArray()->data, "Frame reuse changed lane intensities");
+      const auto im = expected->getDriftTimeArray();
+      if (im) { check(actual->array(2).data == im->data, "Frame reuse changed point mobility"); }
+    }
+    compared = true;
+    break;
+  }
+  const auto used = cache->snapshot();
+  check(compared && used.native_frames.hits > admitted.native_frames.hits, "No physical-frame reuse across lanes");
+  check(used.native_frames.peak_retained_bytes > 0 && used.native_frames.peak_retained_bytes <= used.native_frames.limit_bytes
+          && used.budget.peak_total_bytes <= used.budget.usable_bytes,
+        "Native frames exceeded shared admission");
+  cache->cancel();
+  check(native->getNativeFrameCacheStats().limit_bytes == 0 && native->getNativeFrameCacheStats().retained_bytes == 0,
+        "Cancellation retained native storage");
+  check(cache->snapshot().budget.committed_bytes == 0 && cache->snapshot().budget.reserved_bytes == 0,
+        "Native frame cancellation retained admission");
+  auto tight = std::make_shared<RawCache>(32 * MIB, 0, 32 * MIB);
+  check(! tight->enableNativeFrames(native) && tight->snapshot().budget.committed_bytes == 0, "Native retention consumed required scan headroom");
+  {
+    RawCache temporary(256 * MIB, 64 * MIB, 32 * MIB);
+    check(temporary.enableNativeFrames(native), "Native cache could not restart after cancellation");
+  }
+  check(native->getNativeFrameCacheStats().limit_bytes == 0, "Cache destruction retained native admission");
+
+  // Optional frames must yield to complete scans before pressure evicts their cache entries.
+  const auto index = frames.begin()->second;
+  const auto expected = native->getSpectrum(index);
+  const auto region_bytes = RawRegion::requiredBytes({1, expected.size()}, expected.getNativeID().size());
+  const auto max_scan = checkedByteMultiply(region_bytes, 2);
+  auto pressure = std::make_shared<RawCache>(checkedByteMultiply(max_scan, 4), 0, max_scan);
+  check(pressure->enableNativeFrames(native), "Cannot enable native frames for pressure check");
+  auto lane = std::make_shared<OpenMS::SpectrumAccessOnDisc>(native, std::vector<OpenMS::Size> {index});
+  std::vector<RawRegion> pinned;
+  const auto acquire = [&]
+  {
+    // A fresh reader must reserve the maximum until it has proved its own scan bound.
+    RawAccess access(lane, pressure);
+    RecordContext context;
+    context.calibration_snapshot_id = pinned.size();
+    return access.acquireRegion(0, context);
+  };
+  while (pinned.size() < 16 && pressure->snapshot().budget.committed_bytes + max_scan <= pressure->snapshot().budget.usable_bytes)
+  {
+    pinned.push_back(acquire());
+  }
+  const auto before_pressure = pressure->snapshot();
+  check(before_pressure.budget.committed_bytes + max_scan > before_pressure.budget.usable_bytes,
+        "Native pressure fixture did not exhaust admission headroom");
+  pinned.push_back(acquire());
+  const auto after_pressure = pressure->snapshot();
+  check(native->getNativeFrameCacheStats().limit_bytes == 0 && native->getNativeFrameCacheStats().retained_bytes == 0,
+        "Scan pressure did not release optional native frames");
+  check(after_pressure.evictions == before_pressure.evictions && after_pressure.cache_entries == pinned.size(),
+        "Optional frames displaced complete scan cache entries");
+  for (const auto& region : pinned)
+  {
+    const auto scan = region.scan(0);
+    check(std::equal(scan.mz().begin(), scan.mz().end(), expected.begin(), expected.end(),
+                     [](double mz, const auto& peak) { return mz == peak.getMZ(); }),
+          "Native frame reclamation changed pinned masses");
+    check(std::equal(scan.intensity().begin(), scan.intensity().end(), expected.begin(), expected.end(),
+                     [](float intensity, const auto& peak) { return intensity == peak.getIntensity(); }),
+          "Native frame reclamation changed pinned intensities");
+    const auto& im = expected.getFloatDataArrays()[expected.getIMData().first];
+    check(std::equal(scan.mobility().begin(), scan.mobility().end(), im.begin(), im.end()),
+          "Native frame reclamation changed pinned mobility");
+  }
+  while (pinned.size() < 16 && pressure->snapshot().budget.committed_bytes + max_scan <= pressure->snapshot().budget.usable_bytes)
+  {
+    pinned.push_back(acquire());
+  }
+  rejects([&] { acquire(); });
+  check(pressure->snapshot().budget.peak_total_bytes <= pressure->snapshot().budget.usable_bytes,
+        "Native frame reclamation exceeded the shared budget");
+  pressure->clear();
+  check(pressure->snapshot().budget.committed_bytes > 0, "Pressure revoked pinned regions");
+  pinned.clear();
+  check(pressure->snapshot().budget.committed_bytes == 0 && pressure->snapshot().budget.reserved_bytes == 0,
+        "Native frame pressure check retained admission");
+  OPENMS_LOG_INFO << "PASS native frame pressure: scan_evictions=" << after_pressure.evictions
+                  << " peak=" << after_pressure.budget.peak_total_bytes << " limit=" << after_pressure.budget.usable_bytes << '\n';
+  OPENMS_LOG_INFO << "PASS native physical-frame lane reuse: hits=" << used.native_frames.hits << " misses=" << used.native_frames.misses
+                  << " peak=" << used.native_frames.peak_retained_bytes << " limit=" << used.native_frames.limit_bytes << '\n';
+}
+
+void nativeBatchWorkflow(const std::vector<OpenSwath::SwathMap>& maps)
+{
+  std::vector<std::shared_ptr<OpenMS::SpectrumAccessOnDisc>> sources;
+  std::vector<std::shared_ptr<RawAccess>> accessors;
+  std::set<OpenMS::Size> acquisition_ids;
+  auto cache = std::make_shared<RawCache>(512 * MIB, 0, 64 * MIB);
+  for (const auto& map : maps)
+  {
+    auto source = std::dynamic_pointer_cast<OpenMS::SpectrumAccessOnDisc>(map.sptr);
+    check(source != nullptr, "Native loader did not return a lane adapter");
+    sources.push_back(source);
+    accessors.push_back(std::make_shared<RawAccess>(source, cache));
+    auto native = std::shared_ptr<OpenMS::IMSExperimentRandomAccess>(source->getExperiment().clone());
+    for (OpenMS::Size id = 0; id < source->getNrSpectra(); ++id)
+    {
+      const auto acquisition = native->getAcquisitionBatchId(source->getExperimentIndex(id));
+      if (acquisition) { acquisition_ids.insert(*acquisition); }
+    }
+  }
+  cache->registerBatchGroup(accessors);
+
+  std::vector<std::vector<Coordinate>> coordinates(maps.size(), std::vector<Coordinate>(1));
+  std::vector<Chromatograms> expected;
+  expected.reserve(maps.size());
+  for (OpenMS::Size lane = 0; lane < sources.size(); ++lane)
+  {
+    check(sources[lane]->getNrSpectra() > 0, "Native lane has no spectra");
+    const auto spectrum = sources[lane]->getSpectrumById(0);
+    check(! spectrum->getMZArray()->data.empty(), "Native lane has no peaks");
+    coordinates[lane][0].mz = spectrum->getMZArray()->data.front();
+    coordinates[lane][0].rt_start = sources[lane]->getSpectrumMetaById(0).RT;
+    coordinates[lane][0].rt_end = -1;
+    coordinates[lane][0].ion_mobility = -1;
+    expected.push_back(empty(1));
+    OpenMS::ChromatogramExtractor().extractChromatograms(
+      sources[lane]->lightClone(), expected.back(), coordinates[lane], 0.05, false, -1, "tophat");
+  }
+
+  const auto native_before = cache->snapshot().native_frames;
+  RegionWorkflow workflow(false, false, false, false, false, 1);
+  OpenMS::ChromExtractParams cp {};
+  cp.mz_extraction_window = 0.05;
+  cp.im_extraction_window = -1;
+  cp.extraction_function = "tophat";
+  bool signal_observed = false;
+  for (OpenMS::Size lane = 0; lane < sources.size(); ++lane)
+  {
+    auto actual = empty(1);
+    workflow.extractChromatograms_(accessors[lane]->lightClone(), actual, coordinates[lane], cp);
+    equal(actual, expected[lane]);
+    const auto& intensities = actual.front()->getIntensityArray()->data;
+    signal_observed = signal_observed || std::any_of(intensities.begin(), intensities.end(), [](double value) { return value != 0; });
+  }
+  const auto extracted = cache->snapshot();
+  for (const auto& access : accessors)
+  {
+    const auto scoring = workflow.spectrumAccessForScoring_(access->lightClone())->lightClone();
+    for (OpenMS::Size id = 0; id < scoring->getNrSpectra(); ++id)
+    {
+      check(scoring->getSpectrumById(static_cast<int>(id)) != nullptr, "Scoring clone lost native batch evidence");
+    }
+  }
+  const auto after = cache->snapshot();
+  check(after.work.decodes == extracted.work.decodes && after.hits > extracted.hits,
+        "Scoring clones decoded resident native extraction evidence again");
+  const auto decoded = after.native_frames.decoded_frames - native_before.decoded_frames;
+  check(signal_observed, "Batched native workflow comparison contained only zero signal");
+  check(decoded == acquisition_ids.size(), "Workflow did not decode each physical Bruker acquisition exactly once");
+  check(after.hits > 0 && after.work.copies == 0, "Sibling lane reads missed staged regions or copied legacy arrays");
+  check(after.native_frames.limit_bytes == 0 && after.native_frames.retained_bytes == 0,
+        "Workflow batching unexpectedly enabled persistent native-frame retention");
+  check(after.budget.peak_total_bytes <= after.budget.usable_bytes, "Batched workflow exceeded shared admission");
+  OPENMS_LOG_INFO << "PASS native multi-lane workflow: lanes=" << sources.size() << " acquisitions=" << acquisition_ids.size()
+                  << " decoded=" << decoded << " raw_hits=" << after.hits << " peak=" << after.budget.peak_total_bytes << '\n';
+}
+
+void edges()
+{
+  OpenMS::MSExperiment experiment;
+  OpenMS::MSSpectrum spectrum;
+  spectrum.setRT(10);
+  spectrum.setMSLevel(2);
+  spectrum.setNativeID("scan=1");
+  const std::array<double, 6> mz {{99, 99.25, 99.5, 100, 100.5, 101}};
+  const std::array<float, 6> intensity {{1000, 1, -1e20f, 1e20f, 4, 2000}};
+  for (OpenMS::Size p = 0; p < mz.size(); ++p)
+  {
+    spectrum.emplace_back(mz[p], intensity[p]);
+  }
+  experiment.addSpectrum(spectrum);
+  const auto path = (std::filesystem::current_path() / ("OpenDIARegionEdges_" + OpenMS::File::getUniqueName(false) + ".mzML")).string();
+  struct Remove
+  {
+    std::string path;
+    ~Remove()
+    {
+      std::error_code error;
+      std::filesystem::remove(path, error);
+    }
+  } cleanup {path};
+  OpenMS::MzMLFile writer;
+  writer.getOptions().setWriteIndex(true);
+  writer.store(path, experiment);
+  auto native = std::make_shared<OpenMS::OnDiscMSExperiment>();
+  check(native->openFile(path), "Cannot open endpoint fixture");
+  auto source = std::make_shared<OpenMS::SpectrumAccessOnDisc>(native);
+  auto cache = std::make_shared<RawCache>(MIB, 0, MIB);
+  auto access = std::make_shared<RawAccess>(source, cache);
+  RegionWorkflow workflow(false, false, false, false, false, 1);
+  std::vector<Coordinate> coordinates(1);
+  coordinates[0].mz = 100;
+  coordinates[0].rt_start = 10;
+  coordinates[0].rt_end = 11;
+  coordinates[0].ion_mobility = -1;
+  OpenMS::ChromExtractParams cp {};
+  cp.mz_extraction_window = 2;
+  cp.im_extraction_window = -1;
+  cp.extraction_function = "tophat";
+  auto actual = empty(1), expected = empty(1);
+  OpenMS::ChromatogramExtractor().extractChromatograms(source, expected, coordinates, 2, false, -1, "tophat");
+  workflow.extractChromatograms_(access, actual, coordinates, cp);
+  equal(actual, expected);
+  check(actual[0]->getIntensityArray()->data == std::vector<double> {5}, "Open endpoints or floating-point addition order changed");
+  auto reversed = transform(access, MZCalibration {200, -1, 0, false});
+  auto reordered = empty(1);
+  workflow.extractChromatograms_(reversed, reordered, coordinates, cp);
+  check(reordered[0]->getIntensityArray()->data == std::vector<double> {1}, "Non-monotonic calibration lost sorted extraction semantics");
+  auto scoring = workflow.spectrumAccessForScoring_(reversed)->getSpectrumById(0);
+  check(scoring->getMZArray()->data == std::vector<double> {101, 100.75, 100.5, 100, 99.5, 99},
+        "Extraction reordered the shared scoring snapshot");
+  cp.im_extraction_window = 0.1;
+  auto absent_im = empty(1);
+  rejects([&] { workflow.extractChromatograms_(access, absent_im, coordinates, cp); });
+  check(absent_im[0]->getTimeArray()->data.empty(), "Missing point IM produced output");
+  auto pinned = access->acquireRegion(0, {}).scan(0);
+  cache->cancel();
+  check(pinned.mz().size() == mz.size(), "Cancellation revoked region lease");
+  pinned = {};
+  check(cache->snapshot().budget.committed_bytes > 0, "Cancellation revoked shared scoring evidence");
+  scoring.reset();
+  check(cache->snapshot().budget.committed_bytes == 0, "Cancelled evidence retained bytes after its final owner");
+  const auto bytes = RawRegion::requiredBytes({1, mz.size()}, spectrum.getNativeID().size());
+  auto tiny_cache = std::make_shared<RawCache>(bytes - 1, 0, bytes - 1);
+  RawAccess tiny(source, tiny_cache);
+  rejects([&] { tiny.acquireRegion(0, {}); });
+  check(tiny_cache->snapshot().budget.committed_bytes == 0 && tiny_cache->snapshot().budget.reserved_bytes == 0,
+        "Failed region admission leaked bytes");
+}
+} // namespace
+int main(int argc, char** argv)
+{
+  try
+  {
+    candidateWorkflowMode();
+    if (argc == 1)
+    {
+      fixtures();
+      edges();
+    }
+    else
+    {
+      for (int argument = 1; argument < argc; ++argument)
+      {
+        std::shared_ptr<OpenMS::ExperimentalSettings> settings;
+        auto maps = OpenMS::SwathFile().loadOnDisc(argv[argument], settings);
+        check(! maps.empty(), "Native loader returned no lanes");
+        nativeBatchWorkflow(maps);
+        nativeFrames(std::dynamic_pointer_cast<OpenMS::SpectrumAccessOnDisc>(maps.front().sptr));
+        for (const auto map_index : {OpenMS::Size {0}, maps.size() / 2, maps.size() - 1})
+        {
+          auto& map = maps[map_index];
+          auto source = std::dynamic_pointer_cast<OpenMS::SpectrumAccessOnDisc>(map.sptr);
+          check(source != nullptr, "Native loader did not return native access");
+          const auto count = source->getNrSpectra();
+          if (! count) { continue; }
+          std::vector<OpenMS::Size> indices {source->getExperimentIndex(0), source->getExperimentIndex(count / 2),
+                                             source->getExperimentIndex(count - 1)};
+          auto sampled = std::make_shared<OpenMS::SpectrumAccessOnDisc>(
+            std::shared_ptr<OpenMS::IMSExperimentRandomAccess>(source->getExperiment().clone()), indices);
+          exercise(sampled, true);
+        }
+      }
+    }
+    OPENMS_LOG_INFO << "PASS calibrated region production consumer, exact chromatograms, cache isolation and lease accounting\n";
+    return 0;
+  }
+  catch (const std::exception& error)
+  {
+    OPENMS_LOG_ERROR << error.what() << '\n';
+    return 1;
+  }
+}

@@ -23,6 +23,28 @@ namespace OpenMS
 }
 namespace OpenSwath
 {
+  /**
+    @brief Tags spectrum reads on the current thread, restoring the previous purpose on exit.
+  */
+  class OPENSWATHALGO_DLLAPI SpectrumAccessScope
+  {
+  public:
+    enum class Purpose { UNSPECIFIED, EXTRACTION, SCORING };
+
+    /// Establish a read purpose for this scope.
+    explicit SpectrumAccessScope(Purpose purpose) noexcept;
+    ~SpectrumAccessScope() noexcept;
+    SpectrumAccessScope(const SpectrumAccessScope&) = delete;
+    SpectrumAccessScope& operator=(const SpectrumAccessScope&) = delete;
+    SpectrumAccessScope(SpectrumAccessScope&&) = delete;
+    SpectrumAccessScope& operator=(SpectrumAccessScope&&) = delete;
+
+    /// Return the current thread's read purpose.
+    static Purpose current() noexcept;
+
+  private:
+    Purpose previous_;
+  };
 
   using SpectrumSequence = OpenMS::SpectrumSequence;
   /**
@@ -50,6 +72,17 @@ public:
 
     /// Return a pointer to a spectrum at the given id
     virtual SpectrumPtr getSpectrumById(int id) = 0;
+
+    /// Read-only numerical arrays. Each array owner keeps its storage alive independently.
+    struct SpectrumView
+    {
+      std::shared_ptr<const BinaryDataArray> mz;
+      std::shared_ptr<const BinaryDataArray> intensity;
+      std::shared_ptr<const BinaryDataArray> ion_mobility; ///< Null when absent.
+    };
+
+    /// Read without requesting a mutable copy. The default preserves existing reader/transform behavior.
+    virtual SpectrumView getSpectrumView(int id);
 
     /// Return pointer to a spectrum at the given id, the spectrum will be filtered by drift time
     SpectrumPtr getSpectrumById(int id, double drift_start, double drift_end );

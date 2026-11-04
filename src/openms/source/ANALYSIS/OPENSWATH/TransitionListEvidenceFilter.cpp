@@ -9,7 +9,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionListEvidenceFilter.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflowScheduler.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -23,7 +22,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <exception>
+#include <optional>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -219,32 +220,41 @@ namespace OpenMS
                 });
     }
 
-    std::vector<PeakEvidence> extractCentroidPeaks_(const OpenSwath::SpectrumPtr& spectrum, Size top_n)
+    using SpectrumView = OpenSwath::ISpectrumAccess::SpectrumView;
+
+    std::vector<PeakEvidence> extractCentroidPeaks_(const SpectrumView& spectrum,
+                                                    Size top_n,
+                                                    double im_lower,
+                                                    double im_upper)
     {
       std::vector<PeakEvidence> peaks;
-      if (!spectrum)
+      if (!spectrum.mz || !spectrum.intensity)
       {
         return peaks;
       }
 
-      OpenSwath::BinaryDataArrayPtr mz_array = spectrum->getMZArray();
-      OpenSwath::BinaryDataArrayPtr intensity_array = spectrum->getIntensityArray();
-      if (!mz_array || !intensity_array)
-      {
-        return peaks;
-      }
-
-      const Size n = std::min(mz_array->data.size(), intensity_array->data.size());
+      const auto& mz_array = spectrum.mz->data;
+      const auto& intensity_array = spectrum.intensity->data;
+      const Size n = std::min(mz_array.size(), intensity_array.size());
       peaks.reserve(top_n == 0 ? n : std::min(n, top_n));
-      OpenSwath::BinaryDataArrayPtr im_array = spectrum->getDriftTimeArray();
+      const auto& im_array = spectrum.ion_mobility;
+      const bool filter_im = im_lower >= 0.0 && im_upper >= 0.0;
+      if (filter_im && (!im_array || mz_array.size() != intensity_array.size() || mz_array.size() != im_array->data.size()))
+      {
+        throw std::invalid_argument("Cannot filter by drift time: missing or unequal m/z, intensity and drift arrays");
+      }
       const bool has_im = im_array && im_array->data.size() >= n;
       for (Size i = 0; i < n; ++i)
       {
-        const double intensity = intensity_array->data[i];
-        if (intensity > 0.0 && std::isfinite(intensity) && std::isfinite(mz_array->data[i]))
+        if (filter_im && (im_array->data[i] < im_lower || im_array->data[i] > im_upper))
+        {
+          continue;
+        }
+        const double intensity = intensity_array[i];
+        if (intensity > 0.0 && std::isfinite(intensity) && std::isfinite(mz_array[i]))
         {
           PeakEvidence peak;
-          peak.mz = mz_array->data[i];
+          peak.mz = mz_array[i];
           peak.intensity = intensity;
           peak.im = has_im ? im_array->data[i] : -1.0;
           peaks.push_back(peak);
@@ -254,19 +264,56 @@ namespace OpenMS
       return peaks;
     }
 
-    std::vector<PeakEvidence> extractPickedPeaks_(const OpenSwath::SpectrumPtr& spectrum,
+    std::vector<PeakEvidence> extractPickedPeaks_(const SpectrumView& spectrum,
                                                   Size top_n,
                                                   const Param& params,
-                                                  bool use_gauss)
+                                                  bool use_gauss,
+                                                  double im_lower,
+                                                  double im_upper)
     {
       std::vector<PeakEvidence> peaks;
-      if (!spectrum)
+      if (!spectrum.mz || !spectrum.intensity)
       {
         return peaks;
       }
 
       MSSpectrum openms_spectrum;
-      OpenSwathDataAccessHelper::convertToOpenMSSpectrum(spectrum, openms_spectrum);
+      const auto& mz = spectrum.mz->data;
+      const auto& intensity = spectrum.intensity->data;
+      const auto& im = spectrum.ion_mobility;
+      const Size n = std::min(mz.size(), intensity.size());
+      const bool filter_im = im_lower >= 0.0 && im_upper >= 0.0;
+      if (filter_im && (!im || mz.size() != intensity.size() || mz.size() != im->data.size()))
+      {
+        throw std::invalid_argument("Cannot filter by drift time: missing or unequal m/z, intensity and drift arrays");
+      }
+      const bool transfer_im = im && mz.size() == intensity.size() && im->data.size() == n;
+      MSSpectrum::FloatDataArray im_array;
+      if (transfer_im)
+      {
+        im_array.setName(im->description);
+        im_array.reserve(n);
+      }
+      openms_spectrum.reserve(n);
+      Peak1D peak;
+      for (Size i = 0; i < n; ++i)
+      {
+        if (filter_im && (im->data[i] < im_lower || im->data[i] > im_upper))
+        {
+          continue;
+        }
+        peak.setMZ(mz[i]);
+        peak.setIntensity(intensity[i]);
+        openms_spectrum.push_back(peak);
+        if (transfer_im)
+        {
+          im_array.push_back(static_cast<float>(im->data[i]));
+        }
+      }
+      if (transfer_im)
+      {
+        openms_spectrum.getFloatDataArrays().push_back(std::move(im_array));
+      }
       if (openms_spectrum.empty())
       {
         return peaks;
@@ -294,30 +341,39 @@ namespace OpenMS
       picker.setParameters(picker_params);
       MSSpectrum picked_spectrum;
       picker.pick(smoothed_spectrum, picked_spectrum);
+      const auto picked_im = picked_spectrum.containsIMData() ?
+        std::optional<Size>(picked_spectrum.getIMData().first) : std::nullopt;
+      const bool has_picked_im = picked_im &&
+        picked_spectrum.getFloatDataArrays()[*picked_im].size() == picked_spectrum.size();
 
       peaks.reserve(top_n == 0 ? picked_spectrum.size() : std::min(static_cast<Size>(picked_spectrum.size()), top_n));
-      for (const auto& peak : picked_spectrum)
+      for (Size i = 0; i < picked_spectrum.size(); ++i)
       {
+        const auto& peak = picked_spectrum[i];
         if (peak.getIntensity() > 0.0 && std::isfinite(peak.getIntensity()) && std::isfinite(peak.getMZ()))
         {
-          peaks.push_back({peak.getMZ(), peak.getIntensity(), -1.0});
+          const double peak_im = has_picked_im ?
+            picked_spectrum.getFloatDataArrays()[*picked_im][i] : -1.0;
+          peaks.push_back({peak.getMZ(), peak.getIntensity(), peak_im});
         }
       }
       keepTopPeaks_(peaks, top_n);
       return peaks;
     }
 
-    std::vector<PeakEvidence> extractPeaks_(const OpenSwath::SpectrumPtr& spectrum,
+    std::vector<PeakEvidence> extractPeaks_(const SpectrumView& spectrum,
                                             Size top_n,
                                             bool peak_picking_enabled,
                                             const Param& picker_params,
-                                            bool use_gauss)
+                                            bool use_gauss,
+                                            double im_lower = -1.0,
+                                            double im_upper = -1.0)
     {
       if (peak_picking_enabled)
       {
-        return extractPickedPeaks_(spectrum, top_n, picker_params, use_gauss);
+        return extractPickedPeaks_(spectrum, top_n, picker_params, use_gauss, im_lower, im_upper);
       }
-      return extractCentroidPeaks_(spectrum, top_n);
+      return extractCentroidPeaks_(spectrum, top_n, im_lower, im_upper);
     }
 
     void updateMS1Evidence_(std::unordered_map<Size, EvidenceAccum>& local_evidence,
@@ -506,20 +562,19 @@ namespace OpenMS
       return true;
     }
 
-    OpenSwath::SpectrumPtr getSpectrumForMap_(const OpenSwath::SpectrumAccessPtr& access,
-                                              const OpenSwath::SwathMap& map,
-                                              Size spectrum_index,
-                                              bool pasef)
+    SpectrumView getSpectrumForMap_(const OpenSwath::SpectrumAccessPtr& access,
+                                    const OpenSwath::SwathMap& map,
+                                    Size spectrum_index,
+                                    bool pasef,
+                                    double& im_lower,
+                                    double& im_upper)
     {
-      if (!access)
-      {
-        return {};
-      }
       if (pasef && map.imLower >= 0.0 && map.imUpper >= 0.0)
       {
-        return access->getSpectrumById(static_cast<int>(spectrum_index), map.imLower, map.imUpper);
+        im_lower = map.imLower;
+        im_upper = map.imUpper;
       }
-      return access->getSpectrumById(static_cast<int>(spectrum_index));
+      return access->getSpectrumView(static_cast<int>(spectrum_index));
     }
 
     Size countPasefWindowMatches_(const std::vector<PrecursorCandidate>& candidates,
@@ -715,7 +770,7 @@ namespace OpenMS
       const Size nr_spectra = map.sptr->getNrSpectra();
       for (Size spectrum_index = 0; spectrum_index < nr_spectra; ++spectrum_index)
       {
-        OpenSwath::SpectrumPtr spectrum = access->getSpectrumById(static_cast<int>(spectrum_index));
+        const auto spectrum = access->getSpectrumView(static_cast<int>(spectrum_index));
         const double rt = access->getSpectrumMetaById(static_cast<int>(spectrum_index)).RT;
         const std::vector<PeakEvidence> peaks = extractPeaks_(
           spectrum, top_peaks_per_spectrum, peak_picking_enabled, picker_params, peak_picking_use_gauss);
@@ -765,10 +820,13 @@ namespace OpenMS
       const Size nr_spectra = map.sptr->getNrSpectra();
       for (Size spectrum_index = 0; spectrum_index < nr_spectra; ++spectrum_index)
       {
-        OpenSwath::SpectrumPtr spectrum = getSpectrumForMap_(access, map, spectrum_index, pasef);
+        double im_lower = -1.0;
+        double im_upper = -1.0;
+        const auto spectrum = getSpectrumForMap_(access, map, spectrum_index, pasef, im_lower, im_upper);
         const double rt = access->getSpectrumMetaById(static_cast<int>(spectrum_index)).RT;
         const std::vector<PeakEvidence> peaks = extractPeaks_(
-          spectrum, top_peaks_per_spectrum, peak_picking_enabled, picker_params, peak_picking_use_gauss);
+          spectrum, top_peaks_per_spectrum, peak_picking_enabled, picker_params, peak_picking_use_gauss,
+          im_lower, im_upper);
         std::unordered_map<Size, SpectrumMS2Hit> spectrum_hits;
         for (const auto& peak : peaks)
         {
@@ -843,7 +901,7 @@ namespace OpenMS
             {
               // Catch clone failures in the same region as read and filter failures.
               if (!access) { access = map.sptr->lightClone(); }
-              OpenSwath::SpectrumPtr spectrum = access->getSpectrumById(static_cast<int>(spectrum_index));
+              const auto spectrum = access->getSpectrumView(static_cast<int>(spectrum_index));
               const double rt = access->getSpectrumMetaById(static_cast<int>(spectrum_index)).RT;
               const std::vector<PeakEvidence> peaks = extractPeaks_(spectrum, top_peaks_per_spectrum, peak_picking_enabled, picker_params, peak_picking_use_gauss);
               for (const auto& peak : peaks)
@@ -931,9 +989,13 @@ namespace OpenMS
             {
               // Catch clone failures in the same region as read and filter failures.
               if (!access) { access = map.sptr->lightClone(); }
-              OpenSwath::SpectrumPtr spectrum = getSpectrumForMap_(access, map, static_cast<Size>(spectrum_index), pasef);
+              double im_lower = -1.0;
+              double im_upper = -1.0;
+              const auto spectrum = getSpectrumForMap_(access, map, static_cast<Size>(spectrum_index), pasef,
+                                                       im_lower, im_upper);
               const double rt = access->getSpectrumMetaById(static_cast<int>(spectrum_index)).RT;
-              const std::vector<PeakEvidence> peaks = extractPeaks_(spectrum, top_peaks_per_spectrum, peak_picking_enabled, picker_params, peak_picking_use_gauss);
+              const std::vector<PeakEvidence> peaks = extractPeaks_(spectrum, top_peaks_per_spectrum,
+                peak_picking_enabled, picker_params, peak_picking_use_gauss, im_lower, im_upper);
               std::unordered_map<Size, SpectrumMS2Hit> spectrum_hits;
               for (const auto& peak : peaks)
               {

@@ -8,8 +8,11 @@
 
 #include "OpenDIARawAccess.h"
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -226,6 +229,175 @@ namespace
     return experiment;
   }
 
+  // A native source with one physical acquisition spanning two logical lanes.
+  // Clones share decode observations, as real native backend handles do.
+  struct BatchSource : OpenMS::IMSExperimentRandomAccess
+  {
+    struct Reads { size_t singles = 0, batches = 0; };
+    OpenMS::MSExperiment experiment = smallRun();
+    std::shared_ptr<Reads> reads = std::make_shared<Reads>();
+    OpenMS::Size getNrSpectra() const override { return experiment.size(); }
+    OpenMS::Size getNrChromatograms() const override { return 0; }
+    OpenMS::MSSpectrum getSpectrum(OpenMS::Size i) override { ++reads->singles; return experiment[i]; }
+    OpenMS::MSSpectrum getSpectrumMetadata(OpenMS::Size i) override
+    {
+      auto spectrum = experiment[i];
+      spectrum.clear(false);
+      return spectrum;
+    }
+    void forEachSpectrum(std::span<const OpenMS::Size> indices,
+      const std::function<void(OpenMS::Size, OpenMS::MSSpectrum&&)>& visitor) override
+    {
+      ++reads->batches;
+      for (auto index : indices) { visitor(index, OpenMS::MSSpectrum(experiment[index])); }
+    }
+    std::optional<OpenMS::Size> getAcquisitionBatchId(OpenMS::Size) const override { return 0; }
+    double getSpectrumRT(OpenMS::Size i) const override { return experiment[i].getRT(); }
+    OpenMS::UInt getSpectrumMSLevel(OpenMS::Size i) const override { return experiment[i].getMSLevel(); }
+    bool isSortedByRT() const override { return true; }
+    OpenMS::MSChromatogram getChromatogram(OpenMS::Size) override { return {}; }
+    std::shared_ptr<const OpenMS::ExperimentalSettings> getExperimentalSettings() const override
+    { return std::make_shared<OpenMS::ExperimentalSettings>(); }
+    std::unique_ptr<OpenMS::IMSExperimentRandomAccess> clone() const override
+    { return std::make_unique<BatchSource>(*this); }
+  };
+
+  void batchedSharedScans()
+  {
+    auto source = std::make_shared<BatchSource>();
+    auto cache = std::make_shared<RawCache>(4 * MIB, 0, MIB);
+    const auto lane = [&](size_t index)
+    {
+      return std::make_shared<RawAccess>(std::make_shared<OpenMS::SpectrumAccessOnDisc>(source,
+        std::vector<OpenMS::Size>{index}), cache);
+    };
+    auto a = lane(0), b = lane(1);
+    cache->registerBatchGroup({a, b});
+    const MZCalibration calibration{1, 1, 0, false};
+    auto extraction_clone = std::dynamic_pointer_cast<RawAccess>(a->lightClone());
+    auto scoring_clone = std::dynamic_pointer_cast<RawAccess>(b->lightClone());
+    auto extraction = extraction_clone->acquire(0, calibration);
+    auto scoring = scoring_clone->spectrumForScoring(0, calibration);
+    check(source->reads->batches == 1 && source->reads->singles == 0,
+      "Shared RawScan acquisition bypassed physical native batching");
+    check(extraction->validateForExtraction() && scoring->getMZArray()->data == extraction->array(0).data,
+      "Batched calibrated scan values or validation changed");
+    auto b_scan = b->acquire(0, calibration);
+    check(&b_scan->array(0) == scoring->getMZArray().get() && cache->snapshot().work.copies == 0,
+      "Batched scoring detached the extraction representation");
+    cache->clear();
+    extraction.reset();
+    scoring.reset();
+    b_scan.reset();
+    check(cache->snapshot().budget.committed_bytes == 0, "Batched scan lease leaked");
+    const auto before_region = source->reads->batches;
+    extraction_clone->acquireRegion(0, {}, calibration);
+    check(source->reads->batches == before_region + 1, "Region light clone lost its physical batch");
+    cache->clear();
+    a.reset();
+    const auto before_orphan = source->reads->batches;
+    extraction_clone->acquire(0, calibration);
+    cache->clear();
+    extraction_clone->acquireRegion(0, {}, calibration);
+    check(source->reads->batches == before_orphan + 2,
+      "Surviving light clone lost batching when its registered adapter expired");
+    cache->clear();
+    const auto before_point = *source->reads;
+    {
+      OpenSwath::SpectrumAccessScope scoring_scope(OpenSwath::SpectrumAccessScope::Purpose::SCORING);
+      extraction_clone->spectrumForScoring(0, calibration);
+    }
+    check(source->reads->batches == before_point.batches && source->reads->singles == before_point.singles + 1,
+      "A scoring miss speculatively materialized unrelated sibling lanes");
+    cache->clear();
+    cache->setCalibration(true);
+    const auto before_calibration = *source->reads;
+    extraction_clone->getSpectrumById(0);
+    check(source->reads->batches == before_calibration.batches && source->reads->singles == before_calibration.singles + 1,
+      "A calibration point read speculatively materialized unrelated sibling lanes");
+    cache->setCalibration(false);
+    cache->clear();
+
+    // A whole physical batch need not fit. Failed staging must release every
+    // lease and then use bounded single-scan admission, not retain partial output.
+    auto probe_access = std::make_shared<RawAccess>(std::make_shared<OpenMS::SpectrumAccessOnDisc>(source), cache);
+    auto probe = probe_access->acquire(0);
+    const auto bytes = cache->snapshot().budget.committed_bytes;
+    const auto singles_before = source->reads->singles;
+    probe.reset();
+    cache->clear();
+    auto tight = std::make_shared<RawCache>(bytes, 0, bytes);
+    a = std::make_shared<RawAccess>(std::make_shared<OpenMS::SpectrumAccessOnDisc>(source,
+      std::vector<OpenMS::Size>{0}), tight);
+    b = std::make_shared<RawAccess>(std::make_shared<OpenMS::SpectrumAccessOnDisc>(source,
+      std::vector<OpenMS::Size>{1}), tight);
+    tight->registerBatchGroup({a, b});
+    auto pinned = a->acquire(0);
+    check(source->reads->singles == singles_before + 1 && tight->snapshot().cache_entries == 1 &&
+      tight->snapshot().budget.reserved_bytes == 0, "Batch fallback leaked partial publication or admission");
+    rejects([&] { b->acquire(0); });
+    tight->cancel();
+    check(pinned->array(0).data[0] == 400, "Cancelled batch fallback revoked a scan");
+    pinned.reset();
+    check(tight->snapshot().budget.committed_bytes == 0, "Batch fallback leaked its last lease");
+  }
+
+  void extractionValidation()
+  {
+    size_t case_index = 0;
+    const auto malformed = [&](const std::function<void(OpenMS::MSSpectrum&)>& change,
+      std::optional<MZCalibration> calibration = {})
+    {
+      auto source = std::make_shared<BatchSource>();
+      change(source->experiment[0]);
+      auto cache = std::make_shared<RawCache>(MIB, 0, MIB);
+      RawAccess access(std::make_shared<OpenMS::SpectrumAccessOnDisc>(source), cache);
+      // Legacy acquire retains the source's permissive conversion behavior.
+      // Strict extraction rejects malformed evidence before binary searching it.
+      auto scan = access.acquire(0, calibration);
+      ++case_index;
+      try { rejects([&] { scan->validateForExtraction(); }); }
+      catch (const std::runtime_error&)
+      {
+        throw std::runtime_error("Malformed extraction case accepted: " + std::to_string(case_index));
+      }
+    };
+    const auto nan = std::numeric_limits<double>::quiet_NaN();
+    malformed([&](auto& spectrum) { spectrum.setRT(nan); });
+    malformed([](auto& spectrum) { spectrum.setMSLevel(0); });
+    malformed([&](auto& spectrum) { spectrum[0].setMZ(nan); });
+    malformed([](auto& spectrum) { spectrum[0].setMZ(-1); }, MZCalibration{500, 0, 0, false});
+    malformed([&](auto& spectrum) { spectrum[0].setIntensity(nan); });
+    malformed([&](auto& spectrum) { spectrum.getFloatDataArrays()[0][0] = nan; });
+    malformed([](auto& spectrum) { spectrum.getFloatDataArrays()[0].pop_back(); });
+    malformed([&](auto& spectrum)
+    {
+      spectrum.setDriftTimeUnit(OpenMS::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+      spectrum.setDriftTime(nan);
+    });
+    malformed([](auto& spectrum) { spectrum.setDriftTimeUnit(static_cast<OpenMS::DriftTimeUnit>(99)); });
+    malformed([](auto& spectrum) { spectrum.getFloatDataArrays()[0].setName("Ion Mobility MS:1002954"); });
+    malformed([](auto&) {}, MZCalibration{-1000, 1, 0, false});
+    malformed([](auto&) {}, MZCalibration{0, 1, std::numeric_limits<double>::max(), false});
+    auto source = std::make_shared<BatchSource>();
+    // Extraction historically ignores unrelated auxiliary column lengths/values.
+    source->experiment[0].getIntegerDataArrays()[0].pop_back();
+    OpenMS::MSSpectrum::FloatDataArray auxiliary;
+    auxiliary.setName("auxiliary");
+    auxiliary.push_back(std::numeric_limits<float>::quiet_NaN());
+    source->experiment[0].getFloatDataArrays().push_back(auxiliary);
+    auto cache = std::make_shared<RawCache>(MIB, 0, MIB);
+    RawAccess access(std::make_shared<OpenMS::SpectrumAccessOnDisc>(source), cache);
+    auto native = access.acquire(0);
+    check(native->validateForExtraction(), "Valid native extraction evidence rejected");
+    const MZCalibration descending{1000, -1, 0, false};
+    auto scan = access.acquire(0, descending);
+    check(!scan->validateForExtraction() && scan->array(0).data.front() == 600 &&
+      scan->array(0).data.back() == 569, "Unsorted extraction compatibility changed shared scoring order");
+    check(access.spectrumForScoring(0, descending)->getMZArray()->data == scan->array(0).data,
+      "Extraction validation sorted borrowed scoring data");
+  }
+
   void queries(const IndexedFile& indexed)
   {
     auto cache = std::make_shared<RawCache>(4 * MIB, MIB, MIB);
@@ -390,6 +562,327 @@ namespace
     check(view->metadata().getNativeID() == "scan=1" && view->array(0).data[0] == 400, "Destroyed cache revoked view");
   }
 
+  void readOnlyExtraction(const IndexedFile& indexed)
+  {
+    auto probe = std::make_shared<RawCache>(MIB, 0, MIB);
+    RawAccess(indexed.source(), probe).acquire(0);
+    const auto bytes = probe->snapshot().budget.committed_bytes;
+    auto cache = std::make_shared<RawCache>(2 * bytes, 0, bytes);
+    auto access = std::make_shared<RawAccess>(indexed.source(), cache);
+    using Extractor = OpenMS::ChromatogramExtractorAlgorithm;
+    std::vector<Extractor::ExtractionCoordinates> coordinates(1);
+    coordinates[0].mz = 401;
+    coordinates[0].ion_mobility = 0.25;
+    coordinates[0].rt_end = -1;
+    const auto extract = [&](const OpenSwath::SpectrumAccessPtr& source, double im_window)
+    {
+      std::vector<OpenSwath::ChromatogramPtr> output{std::make_shared<OpenSwath::Chromatogram>()};
+      Extractor().extractChromatograms(source, output, coordinates, 0.1, false, im_window, "tophat");
+      return output.front();
+    };
+    for (const double im_window : {-1.0, 0.1})
+    {
+      const auto expected = extract(indexed.source(), im_window);
+      const auto actual = extract(access->lightClone(), im_window);
+      check(actual->getTimeArray()->data == expected->getTimeArray()->data &&
+        actual->getIntensityArray()->data == expected->getIntensityArray()->data,
+        "Read-only extraction changed IM or non-IM evidence");
+    }
+    rejects([&] { access->getSpectrumById(0); });
+    cache->clear();
+    check(cache->snapshot().budget.committed_bytes == 0 && cache->snapshot().budget.reserved_bytes == 0,
+      "Read-only extraction retained a scan or reservation");
+
+    for (const int column : {0, 1, 2})
+    {
+      auto retained_cache = std::make_shared<RawCache>(2 * bytes, 0, bytes);
+      auto reader = std::make_shared<RawAccess>(indexed.source(), retained_cache);
+      auto scan = reader->acquire(0);
+      auto view = reader->lightClone()->getSpectrumView(0);
+      check(view.mz.get() == &scan->array(0) && view.intensity.get() == &scan->array(1) &&
+        view.ion_mobility.get() == &scan->array(2), "Read-only view copied cached arrays");
+      check(retained_cache->snapshot().budget.committed_bytes == bytes,
+        "Read-only view added a numeric charge");
+      auto array = column == 0 ? view.mz : column == 1 ? view.intensity : view.ion_mobility;
+      view = {};
+      scan.reset();
+      retained_cache->cancel();
+      rejects([&] { reader->getSpectrumView(0); });
+      reader.reset();
+      check(array->data.size() == 32 && retained_cache->snapshot().budget.committed_bytes == bytes,
+        "Cancellation or reader destruction revoked a live array lease");
+      array.reset();
+      check(retained_cache->snapshot().budget.committed_bytes == 0,
+        "Last read-only array owner leaked its scan charge");
+    }
+
+    // A transforming reader must use its existing mutable path, never the uncalibrated raw view.
+    auto roomy = std::make_shared<RawCache>(4 * MIB, 0, MIB);
+    auto tiled = std::make_shared<RawAccess>(indexed.source(), roomy);
+    for (const bool ppm : {false, true})
+    {
+      auto direct = std::make_shared<OpenMS::SpectrumAccessQuadMZTransforming>(indexed.source(), 0.01, 1, 1e-8, ppm);
+      auto calibrated = std::make_shared<OpenMS::SpectrumAccessQuadMZTransforming>(tiled->lightClone(), 0.01, 1, 1e-8, ppm);
+      const auto expected = direct->getSpectrumById(0);
+      const auto actual = calibrated->lightClone()->getSpectrumView(0);
+      check(actual.mz->data == expected->getMZArray()->data &&
+        actual.mz->data != tiled->acquire(0)->array(0).data,
+        "Spectrum view bypassed quadratic or ppm calibration");
+      const auto expected_chrom = extract(direct, 0.1);
+      const auto actual_chrom = extract(calibrated->lightClone(), 0.1);
+      check(actual_chrom->getTimeArray()->data == expected_chrom->getTimeArray()->data &&
+        actual_chrom->getIntensityArray()->data == expected_chrom->getIntensityArray()->data,
+        "Calibrated view extraction changed evidence");
+    }
+    roomy->clear();
+    check(roomy->snapshot().budget.committed_bytes == 0, "Calibration fallback retained a view charge");
+    OPENMS_LOG_INFO << "WP05 exact IM/non-IM extraction without mutable admission, zero-copy aliases, "
+      "all array leases/cancellation and quadratic/ppm fallback passed\n";
+  }
+
+  void sharedScoringEvidence(const IndexedFile& indexed)
+  {
+    using Scope = OpenSwath::SpectrumAccessScope;
+    auto probe = std::make_shared<RawCache>(MIB, 0, MIB);
+    RawAccess(indexed.source(), probe).acquire(0);
+    const auto bytes = probe->snapshot().budget.committed_bytes;
+    for (const auto& [ppm, retained_column] : std::vector<std::pair<bool, size_t>>{
+      {false, 0}, {false, 1}, {false, 2}, {false, 3},
+      {true, 0}, {true, 1}, {true, 2}, {true, 3}})
+    {
+      // Non-ppm reverses mass order deliberately. Preserve the source point
+      // association exactly, rather than sorting the transformed masses.
+      const MZCalibration calibration{0.01, ppm ? 1.0 : -1.0, 1e-8, ppm};
+      auto cache = std::make_shared<RawCache>(bytes, 0, bytes);
+      auto access = std::make_shared<RawAccess>(indexed.source(), cache);
+      auto clone = std::dynamic_pointer_cast<RawAccess>(access->lightClone());
+      std::shared_ptr<const RawScan> extraction;
+      {
+        Scope scope(Scope::Purpose::EXTRACTION);
+        extraction = access->acquire(0, calibration);
+      }
+      OpenSwath::SpectrumPtr scoring;
+      {
+        Scope scope(Scope::Purpose::SCORING);
+        scoring = clone->spectrumForScoring(0, calibration);
+      }
+      OpenMS::SpectrumAccessQuadMZTransforming reference(indexed.source(),
+        calibration.a, calibration.b, calibration.c, calibration.ppm);
+      const auto expected = reference.getSpectrumById(0);
+      check(scoring->getMZArray()->data == expected->getMZArray()->data,
+        "Borrowed calibration differs from quadratic transforming reader");
+      check(scoring->getDataArrays().size() == extraction->arrayCount(), "Borrowed scoring lost extra columns");
+      for (size_t i = 0; i < extraction->arrayCount(); ++i)
+      {
+        check(scoring->getDataArrays()[i].get() == &extraction->array(i), "Scoring detached a numeric column");
+      }
+      const auto measured = cache->snapshot();
+      check(measured.work.decodes == 1 && measured.work.copies == 0 && measured.hits == 1 &&
+        measured.budget.committed_bytes == bytes && measured.budget.reserved_bytes == 0,
+        "Extraction and scoring did not share one budgeted decode");
+      check(measured.phases[static_cast<size_t>(RawPhase::MS2_EXTRACTION)].decodes == 1 &&
+        measured.phases[static_cast<size_t>(RawPhase::SCORING)].hits == 1,
+        "Shared evidence lost extraction/scoring attribution");
+      // Pinning the shared representation must still enforce ordinary admission.
+      rejects([&] { access->acquire(1, calibration); });
+      check(cache->snapshot().budget.reserved_bytes == 0, "Failed shared admission leaked a reservation");
+      auto only = scoring->getDataArrays()[retained_column];
+      extraction.reset();
+      scoring.reset();
+      cache->clear();
+      access.reset();
+      clone.reset();
+      check(only->data.size() == 32 && cache->snapshot().budget.committed_bytes == bytes,
+        "Array-only scoring owner lost its lease after clear");
+      only.reset();
+      check(cache->snapshot().budget.committed_bytes == 0, "Final scoring array owner leaked its lease");
+    }
+
+    auto cache = std::make_shared<RawCache>(MIB, 0, MIB);
+    RawAccess access(indexed.source(), cache);
+    const MZCalibration first{1, 1, 0, false}, second{2, 1, 0, false};
+    auto native = access.acquire(0);
+    auto a = access.acquire(0, first);
+    auto b = access.acquire(0, second);
+    auto identity = access.acquire(0, MZCalibration{});
+    check(native != a && a != b && identity != native && access.acquire(0, first) == a,
+      "Exact calibration snapshots were conflated");
+    check(native->array(0).data[0] == 400 && a->array(0).data[0] == 401 && b->array(0).data[0] == 402 &&
+      identity->array(0).data == native->array(0).data, "Calibration mutated a published snapshot");
+    auto copy = access.getSpectrumById(0);
+    check(copy->getMZArray()->data == native->array(0).data, "Legacy mutable API returned calibrated data");
+    copy->getMZArray()->data[0] = -1;
+    check(native->array(0).data[0] == 400 && a->array(0).data[0] == 401,
+      "Mutable native copy changed immutable evidence");
+    auto invalid_calibration = first;
+    invalid_calibration.c = std::numeric_limits<double>::quiet_NaN();
+    rejects([&] { access.spectrumForScoring(0, invalid_calibration); });
+    auto borrowed = access.spectrumForScoring(0, first);
+    cache->cancel();
+    rejects([&] { access.spectrumForScoring(0, first); });
+    check(borrowed->getMZArray()->data == a->array(0).data, "Cancellation revoked scoring evidence");
+    borrowed->getDataArrays().clear();
+    copy.reset();
+    native.reset();
+    a.reset();
+    b.reset();
+    identity.reset();
+    check(cache->snapshot().budget.committed_bytes > 0, "Live borrowed container lost its scan lease");
+    borrowed.reset();
+    check(cache->snapshot().budget.committed_bytes == 0, "Final borrowed container leaked its scan lease");
+    OPENMS_LOG_INFO << "PASS calibrated extraction/scoring: one decode, zero copies, exact snapshots and array leases\n";
+  }
+
+  void knownSizeAdmission(const IndexedFile& indexed)
+  {
+    auto probe = std::make_shared<RawCache>(4 * MIB, 0, MIB);
+    RawAccess measure(indexed.source(), probe);
+    measure.acquire(0);
+    const auto a_bytes = probe->snapshot().budget.committed_bytes;
+    probe->clear();
+    measure.acquire(1);
+    const auto b_bytes = probe->snapshot().budget.committed_bytes;
+    probe->clear();
+    // Both actual retained scans fit, but an unknown maximum-sized read cannot
+    // coexist with A. Derive the pressure from real decoder capacities.
+    const auto usable = a_bytes + b_bytes;
+    const auto max_scan = usable;
+    auto cache = std::make_shared<RawCache>(usable, 0, max_scan);
+    RawAccess access(indexed.source(), cache);
+    auto clone = std::dynamic_pointer_cast<RawAccess>(access.lightClone());
+    access.acquire(0);
+    access.acquire(1);
+    cache->clear();
+    const auto before = cache->snapshot();
+    check(before.budget.committed_bytes == 0 && a_bytes > 0 && b_bytes > 0 &&
+      a_bytes + b_bytes <= before.budget.usable_bytes && a_bytes + max_scan > before.budget.usable_bytes,
+      "Known-size fixture did not establish admission pressure");
+    auto direct = indexed.source();
+    auto metadata = direct->getExperiment().clone();
+    {
+      OpenSwath::SpectrumAccessScope scoring(OpenSwath::SpectrumAccessScope::Purpose::SCORING);
+      auto a = access.acquire(0);
+      exact(*a, *direct->getSpectrumById(0), metadata->getSpectrumMetadata(direct->getExperimentIndex(0)));
+      a.reset();
+      auto b = clone->acquire(1);
+      exact(*b, *direct->getSpectrumById(1), metadata->getSpectrumMetadata(direct->getExperimentIndex(1)));
+      b.reset();
+      a = access.acquire(0);
+      exact(*a, *direct->getSpectrumById(0), metadata->getSpectrumMetadata(direct->getExperimentIndex(0)));
+      const auto after = cache->snapshot();
+      check(after.work.decodes - before.work.decodes == 2 && after.hits - before.hits == 1 &&
+        after.misses - before.misses == 2 && after.evictions == before.evictions,
+        "Known-size revisits evicted a fitting scan instead of decoding twice and hitting A");
+      check(after.cache_entries == 2 && after.budget.committed_bytes == usable &&
+        after.budget.reserved_bytes == 0 && after.budget.peak_total_bytes <= usable,
+        "Known-size admission changed retained charges or exceeded the cap");
+      for (auto member : {&RawWorkCounters::hits, &RawWorkCounters::misses, &RawWorkCounters::evictions,
+        &RawWorkCounters::decodes, &RawWorkCounters::copies, &RawWorkCounters::decoded_numeric_bytes,
+        &RawWorkCounters::copied_numeric_bytes, &RawWorkCounters::read_ns, &RawWorkCounters::decode_ns, &RawWorkCounters::copy_ns})
+      {
+        ByteCount sum = 0;
+        for (const auto& row : after.phases) { sum += row.*member; }
+        check(sum == after.work.*member, "Known-size phase totals do not reconcile");
+        const auto scoring_index = static_cast<size_t>(RawPhase::SCORING);
+        check(after.phases[scoring_index].*member - before.phases[scoring_index].*member ==
+          after.work.*member - before.work.*member, "Known-size reads escaped SCORING attribution");
+      }
+      // The same visible ID on another source must still reserve the unknown
+      // maximum. A pinned lease makes inheriting the first source's bound observable.
+      RawAccess unrelated(indexed.source(), cache);
+      rejects([&] { unrelated.acquire(0); });
+      check(cache->snapshot().budget.committed_bytes == a_bytes &&
+        cache->snapshot().budget.reserved_bytes == 0, "Unrelated source inherited a known bound or leaked admission");
+      cache->cancel();
+      rejects([&] { clone->acquire(0); });
+      check(a->array(0).data == direct->getSpectrumById(0)->getMZArray()->data,
+        "Cancellation revoked the known-size scan lease");
+      a.reset();
+      check(cache->snapshot().budget.committed_bytes == 0 && cache->snapshot().budget.reserved_bytes == 0,
+        "Last known-size scan owner leaked its charge");
+    }
+    OPENMS_LOG_INFO << "PASS known-size repeated admission: two decodes, clone-shared hit, source isolation and final release\n";
+  }
+
+  void phaseCounters()
+  {
+    using Scope = OpenSwath::SpectrumAccessScope;
+    using Purpose = Scope::Purpose;
+    check(Scope::current() == Purpose::UNSPECIFIED, "Read purpose leaked into caller");
+    auto experiment = smallRun();
+    experiment[0].setMSLevel(1);
+    IndexedFile indexed(experiment);
+    auto cache = std::make_shared<RawCache>(4 * MIB, 0, MIB);
+    auto access = std::make_shared<RawAccess>(indexed.source(), cache);
+    access->acquire(0);
+    {
+      Scope scoring(Purpose::SCORING);
+      auto child = std::async(std::launch::async, []
+      {
+        check(Scope::current() == Purpose::UNSPECIFIED, "Purpose leaked across threads");
+        Scope extraction(Purpose::EXTRACTION);
+        check(Scope::current() == Purpose::EXTRACTION, "Worker purpose was not set");
+      });
+      child.get();
+      try { Scope extraction(Purpose::EXTRACTION); throw std::runtime_error("scope check"); }
+      catch (const std::runtime_error&) {}
+      check(Scope::current() == Purpose::SCORING, "Nested exception did not restore purpose");
+      cache->setCalibration(true);
+      access->getSpectrumById(0);
+      cache->setCalibration(false);
+      using Extractor = OpenMS::ChromatogramExtractorAlgorithm;
+      std::vector<Extractor::ExtractionCoordinates> coordinates(1);
+      coordinates[0].mz = 401;
+      coordinates[0].rt_end = -1;
+      const auto extract = [&](const OpenSwath::SpectrumAccessPtr& reader)
+      {
+        std::vector<OpenSwath::ChromatogramPtr> output{std::make_shared<OpenSwath::Chromatogram>()};
+        Extractor().extractChromatograms(reader, output, coordinates, 0.1, false, -1, "tophat");
+      };
+      extract(access);
+      extract(std::make_shared<OpenMS::SpectrumAccessQuadMZTransforming>(access, 0, 1, 0, false));
+      check(Scope::current() == Purpose::SCORING, "Actual extractor did not restore caller purpose");
+      access->getSpectrumById(1);
+    }
+    check(Scope::current() == Purpose::UNSPECIFIED, "Purpose leaked after scope exit");
+    const auto stats = cache->snapshot();
+    const auto& phase = stats.phases;
+    check(stats.hits == 7 && stats.misses == 4 && stats.work.decodes == 4 && stats.work.copies == 6,
+      "Read/decode/copy totals changed");
+    check(phase[static_cast<size_t>(RawPhase::UNCLASSIFIED)].misses == 1 &&
+      phase[static_cast<size_t>(RawPhase::CALIBRATION)].copies == 1 &&
+      phase[static_cast<size_t>(RawPhase::MS1_EXTRACTION)].hits == 2 &&
+      phase[static_cast<size_t>(RawPhase::MS1_EXTRACTION)].copies == 1 &&
+      phase[static_cast<size_t>(RawPhase::MS2_EXTRACTION)].misses == 3 &&
+      phase[static_cast<size_t>(RawPhase::MS2_EXTRACTION)].copies == 3 &&
+      phase[static_cast<size_t>(RawPhase::SCORING)].copies == 1,
+      "Calibration, actual extraction or calibrated-wrapper reads were misclassified");
+    check(stats.work.decoded_numeric_bytes == 3072 && stats.work.copied_numeric_bytes == 5120 &&
+      stats.work.read_ns >= stats.work.decode_ns && stats.work.decode_ns > 0 && stats.work.copy_ns > 0,
+      "Numeric payload byte or elapsed counters changed");
+    for (auto member : {&RawWorkCounters::hits, &RawWorkCounters::misses, &RawWorkCounters::evictions,
+      &RawWorkCounters::decodes, &RawWorkCounters::copies, &RawWorkCounters::decoded_numeric_bytes,
+      &RawWorkCounters::copied_numeric_bytes, &RawWorkCounters::read_ns, &RawWorkCounters::decode_ns, &RawWorkCounters::copy_ns})
+    {
+      ByteCount sum = 0;
+      for (const auto& row : phase) sum += row.*member;
+      check(sum == stats.work.*member, "Phase counters do not reconcile with independent totals");
+    }
+    auto pressure = std::make_shared<RawCache>(8192, 0, 8192);
+    RawAccess reader(indexed.source(), pressure);
+    reader.acquire(0);
+    { Scope scoring(Purpose::SCORING); reader.acquire(1); }
+    check(pressure->snapshot().evictions == 1 &&
+      pressure->snapshot().phases[static_cast<size_t>(RawPhase::SCORING)].evictions == 1,
+      "Eviction was not attributed to the consumer causing pressure");
+    cache->clear();
+    pressure->clear();
+    check(cache->snapshot().budget.committed_bytes == 0 && pressure->snapshot().budget.committed_bytes == 0,
+      "Phase counters retained scan ownership");
+    OPENMS_LOG_INFO << "PASS phase counters: nested/thread/exception scopes, actual extractor, calibrated fallback, "
+      "all ten totals, exact bytes, eviction owner and final release\n";
+  }
+
   void concurrent(const IndexedFile& indexed)
   {
     auto cache = std::make_shared<RawCache>(32 * MIB, 0, MIB);
@@ -410,6 +903,92 @@ namespace
     a.get();
     b.get();
     check(cache->snapshot().misses == 4 && cache->snapshot().cache_entries == 4, "Clones duplicated cache");
+  }
+
+  // Optional real-input acceptance path. No conversion and no vendor fixture download.
+  void nativeInput(const std::string& path)
+  {
+    std::shared_ptr<OpenMS::ExperimentalSettings> settings;
+    auto maps = OpenMS::SwathFile().loadOnDisc(path, settings);
+    check(!maps.empty() && settings, "Native input has no spectrum maps or settings");
+    std::vector<OpenSwath::SwathMap> streamed;
+#ifdef WITH_OPENTIMS
+    if (OpenMS::FileHandler::getTypeByFileName(path) == OpenMS::FileTypes::BRUKER_TDF)
+    {
+      streamed = OpenMS::SwathFile().loadBrukerTdf(path, "", settings, "normal");
+      check(streamed.size() == maps.size(), "Native and streaming map membership differs");
+    }
+#endif
+    auto cache = std::make_shared<RawCache>(256 * MIB, 64 * MIB, 32 * MIB);
+    OpenMS::Size checked = 0;
+    for (const auto& map : maps)
+    {
+      auto source = std::dynamic_pointer_cast<OpenMS::SpectrumAccessOnDisc>(map.sptr);
+      check(source && source->getNrSpectra(), "Native map is empty or not random access");
+      const auto reference = std::find_if(streamed.begin(), streamed.end(), [&](const auto& other)
+      { return map.isEqual(other); });
+      check(streamed.empty() || reference != streamed.end(), "Native isolation/IM window differs from streaming");
+      if (reference != streamed.end())
+      {
+        check(reference->sptr->getNrSpectra() == source->getNrSpectra(), "Native scan membership differs from streaming");
+      }
+      auto access = std::make_shared<RawAccess>(source, cache);
+      std::vector<OpenMS::Size> indices;
+      const int count = static_cast<int>(source->getNrSpectra());
+      for (const int i : {0, count / 2, count - 1})
+      {
+        auto experiment = source->getExperiment().clone();
+        const auto index = source->getExperimentIndex(i);
+        const auto expected = reference == streamed.end() ? source->getSpectrumById(i) : reference->sptr->getSpectrumById(i);
+        if (reference != streamed.end())
+        {
+          const auto a = source->getSpectrumMetaById(i), b = reference->sptr->getSpectrumMetaById(i);
+          check(a.RT == b.RT && a.ms_level == b.ms_level, "Native RT/MS level differs from streaming");
+        }
+        exact(*access->acquire(i), *expected, experiment->getSpectrumMetadata(index));
+        const auto view = access->lightClone()->getSpectrumView(i);
+        check(view.mz->data == expected->getMZArray()->data &&
+          view.intensity->data == expected->getIntensityArray()->data,
+          "Native cached view changed numeric data");
+        check(source->getSpectraByRT(source->getSpectrumMetaById(i).RT, 0) ==
+          access->getSpectraByRT(source->getSpectrumMetaById(i).RT, 0), "Native RT lookup changed");
+        indices.push_back(index);
+        ++checked;
+      }
+      auto sample = std::make_shared<OpenMS::SpectrumAccessOnDisc>(
+        std::shared_ptr<OpenMS::IMSExperimentRandomAccess>(source->getExperiment().clone()), indices);
+      const auto first = sample->getSpectrumById(0);
+      if (first->getMZArray()->data.empty()) continue;
+      using Extractor = OpenMS::ChromatogramExtractorAlgorithm;
+      std::vector<Extractor::ExtractionCoordinates> coordinates(1);
+      const auto peak = first->getMZArray()->data.size() / 2;
+      coordinates[0].mz = first->getMZArray()->data[peak];
+      coordinates[0].rt_end = -1;
+      const auto im = first->getDriftTimeArray();
+      coordinates[0].ion_mobility = im && !im->data.empty() ? im->data[peak] : 0;
+      for (const double window : {-1.0, 0.05})
+      {
+        if (window > 0 && (!im || im->data.empty())) continue;
+        const auto extract = [&](const OpenSwath::SpectrumAccessPtr& reader)
+        {
+          std::vector<OpenSwath::ChromatogramPtr> output{std::make_shared<OpenSwath::Chromatogram>()};
+          Extractor().extractChromatograms(reader, output, coordinates, 0.1, false, window, "tophat");
+          return output.front();
+        };
+        const auto expected = extract(sample);
+        const auto actual = extract(std::make_shared<RawAccess>(sample, cache));
+        check(expected->getTimeArray()->data == actual->getTimeArray()->data &&
+          expected->getIntensityArray()->data == actual->getIntensityArray()->data,
+          "Native cached extraction changed IM or non-IM evidence");
+      }
+    }
+    cache->clear();
+    const auto stats = cache->snapshot();
+    check(stats.budget.committed_bytes == 0 && stats.budget.reserved_bytes == 0,
+      "Native input retained a scan charge");
+    OPENMS_LOG_INFO << "PASS native input " << path << " maps=" << maps.size()
+      << " sampled_scans=" << checked << " streaming_maps=" << streamed.size()
+      << " exact_metadata_arrays_views_RT_extraction=1 final_live_bytes=0\n";
   }
 
   void truncated()
@@ -439,15 +1018,26 @@ namespace
   }
 }
 
-int main()
+int main(int argc, char** argv)
 {
   try
   {
-    fixtures();
+    if (argc > 1)
+    {
+      for (int i = 1; i < argc; ++i) nativeInput(argv[i]);
+      return 0;
+    }
     IndexedFile indexed(smallRun());
+    sharedScoringEvidence(indexed);
+    batchedSharedScans();
+    extractionValidation();
+    knownSizeAdmission(indexed);
+    fixtures();
     detachedCopies(indexed);
     queries(indexed);
     leases(indexed);
+    readOnlyExtraction(indexed);
+    phaseCounters();
     concurrent(indexed);
     truncated();
   }
