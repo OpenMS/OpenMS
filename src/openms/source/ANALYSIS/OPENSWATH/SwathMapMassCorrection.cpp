@@ -21,7 +21,9 @@
 
 #include <fstream>
 #include <algorithm>
+#include <atomic>
 #include <cmath>
+#include <exception>
 
 #define SWATHMAPMASSCORRECTION_DEBUG
 
@@ -195,10 +197,13 @@ namespace OpenMS
 
     // Collect MS1 IM pairs across all transition groups
     std::vector<double> exp_im_ms1_all, theo_im_ms1_all;
+    std::exception_ptr reader_exception;
+    std::atomic<bool> reader_failed{false};
 
     #pragma omp parallel for
     for (SignedSize k = 0; k < (SignedSize)trgr_ids.size(); k++)
     {
+      if (reader_failed.load(std::memory_order_relaxed)) { continue; }
       // we need at least one feature to find the best one
       auto transition_group = transition_group_map.at(trgr_ids[k]);
       if (transition_group->getFeatures().empty()) continue;
@@ -238,18 +243,27 @@ namespace OpenMS
 
       #pragma omp critical (fetch_spectrum)
       {
-        RangeMobility im_range;
-        if (ms1_im_)
+        try
         {
-          std::vector<OpenSwath::SpectrumPtr> fetchSpectrumArr = OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, im_range);
-          sp_ms1 = (!fetchSpectrumArr.empty()) ? fetchSpectrumArr[0] : OpenSwath::SpectrumPtr();
+          RangeMobility im_range;
+          if (ms1_im_)
+          {
+            std::vector<OpenSwath::SpectrumPtr> fetchSpectrumArr = OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, im_range);
+            sp_ms1 = (!fetchSpectrumArr.empty()) ? fetchSpectrumArr[0] : OpenSwath::SpectrumPtr();
+          }
+          else
+          {
+            std::vector<OpenSwath::SpectrumPtr> fetchSpectrumArr = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, im_range);
+            sp_ms2 = (!fetchSpectrumArr.empty()) ? fetchSpectrumArr[0] : OpenSwath::SpectrumPtr();
+          }
         }
-        else
+        catch (...)
         {
-          std::vector<OpenSwath::SpectrumPtr> fetchSpectrumArr = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, im_range);
-          sp_ms2 = (!fetchSpectrumArr.empty()) ? fetchSpectrumArr[0] : OpenSwath::SpectrumPtr();
+          if (reader_exception == nullptr) { reader_exception = std::current_exception(); }
+          reader_failed.store(true, std::memory_order_relaxed);
         }
       }
+      if (reader_failed.load(std::memory_order_relaxed)) { continue; }
 
       for (const auto& tr : transition_group->getTransitions())
       {
@@ -301,6 +315,9 @@ namespace OpenMS
         OPENMS_LOG_DEBUG << tr.precursor_mz << "\t" << im << "\t" << drift_target << "\t" << bestRT << "\t" << intensity << '\n';
       }
 
+      // Fragment integration is complete. Release its scan before MS1 admission.
+      sp_ms2.reset();
+
       // Always collect a few MS1 IM points for window estimation (independent of ms1_im_)
       // However, if there are no MS1 Maps, then we have to skip window estimation for MS1
       if (!transition_group->getTransitions().empty() && !ms1_maps.empty())
@@ -319,10 +336,19 @@ namespace OpenMS
         OpenSwath::SpectrumPtr sp_ms1_collect;
         #pragma omp critical (fetch_spectrum)
         {
-          std::vector<OpenSwath::SpectrumPtr> arr_ms1 =
-            OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, im_range_ms1);
-          sp_ms1_collect = (!arr_ms1.empty()) ? arr_ms1[0] : OpenSwath::SpectrumPtr();
+          try
+          {
+            std::vector<OpenSwath::SpectrumPtr> arr_ms1 =
+              OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, im_range_ms1);
+            sp_ms1_collect = (!arr_ms1.empty()) ? arr_ms1[0] : OpenSwath::SpectrumPtr();
+          }
+          catch (...)
+          {
+            if (reader_exception == nullptr) { reader_exception = std::current_exception(); }
+            reader_failed.store(true, std::memory_order_relaxed);
+          }
         }
+        if (reader_failed.load(std::memory_order_relaxed)) { continue; }
 
         if (sp_ms1_collect && sp_ms1_collect->getDriftTimeArray() != nullptr)
         {
@@ -400,6 +426,7 @@ namespace OpenMS
     }
 
     if (!debug_im_file_.empty()) {os_im.close();}
+    if (reader_exception != nullptr) { std::rethrow_exception(reader_exception); }
 
     // Discard whole pairs before sorting: NaNs do not define a strict weak order.
     // Missing or invalid calibrants must not prevent fitting the remaining valid ones.
@@ -600,6 +627,10 @@ namespace OpenMS
         }
         OPENMS_LOG_DEBUG << mz << "\t" << tr.product_mz << "\t" << diff_ppm << "\t" << log(intensity) / log(2.0) << "\t" << bestRT << '\n';
       }
+
+      // Fragment integration is complete. Both owners must release the MS2 scan.
+      sp.reset();
+      spArr.clear();
 
       // MS1 precursor processing for Δppm residuals
       if (!ms1_maps.empty())

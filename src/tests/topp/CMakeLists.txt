@@ -3223,6 +3223,109 @@ if(NOT DISABLE_OPENSWATH)
     bash -c "sqlite=${TESTS_TEMP_DIR}/OpenDIA_success_sqlite_out/${OPENDIA_TRANSITION_LIST_BASENAME}.results.tsv; parquet=${TESTS_TEMP_DIR}/OpenDIA_success_parquet_out/${OPENDIA_TRANSITION_LIST_BASENAME}.results.tsv; awk -F '\\t' 'NR==1 { for (i=1;i<=NF;i++) h[$i]=i; next } { print $h[\"precursor_id\"] \"\\t\" $h[\"decoy\"] \"\\t\" $h[\"Sequence\"] \"\\t\" $h[\"FullPeptideName\"] \"\\t\" $h[\"ProteinName\"] \"\\t\" $h[\"Charge\"] \"\\t\" $h[\"mz\"] \"\\t\" $h[\"aggr_Fragment_Annotation\"] }' $sqlite | sort > ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite.identity.tsv && awk -F '\\t' 'NR==1 { for (i=1;i<=NF;i++) h[$i]=i; next } { print $h[\"precursor_id\"] \"\\t\" $h[\"decoy\"] \"\\t\" $h[\"Sequence\"] \"\\t\" $h[\"FullPeptideName\"] \"\\t\" $h[\"ProteinName\"] \"\\t\" $h[\"Charge\"] \"\\t\" $h[\"mz\"] \"\\t\" $h[\"aggr_Fragment_Annotation\"] }' $parquet | sort > ${TESTS_TEMP_DIR}/OpenDIA_success_parquet.identity.tsv && test $(wc -l < ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite.identity.tsv) -gt 0 && grep -q '[0-9]_' ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite.identity.tsv && grep -q '[0-9]_' ${TESTS_TEMP_DIR}/OpenDIA_success_parquet.identity.tsv && diff -u ${TESTS_TEMP_DIR}/OpenDIA_success_sqlite.identity.tsv ${TESTS_TEMP_DIR}/OpenDIA_success_parquet.identity.tsv")
   set_tests_properties("TOPP_OpenDIA_success_sqlite_parquet_identity" PROPERTIES DEPENDS "TOPP_OpenDIA_success_sqlite_out;TOPP_OpenDIA_success_parquet_out")
 
+  # Run the same engine with direct and tiled raw access.
+  find_package(Python3 QUIET COMPONENTS Interpreter)
+  if(Python3_Interpreter_FOUND)
+    set(_raw_compare ${CMAKE_CURRENT_SOURCE_DIR}/../../topp/OpenDIA/test/compare_results.py)
+    add_test(NAME TOPP_OpenDIA_raw_compare_self_test COMMAND ${Python3_EXECUTABLE} ${_raw_compare} --self-test)
+    add_test(NAME TOPP_OpenDIA_raw_prepare COMMAND ${CMAKE_COMMAND} -E rm -rf
+      ${TESTS_TEMP_DIR}/OpenDIA_raw_direct_out ${TESTS_TEMP_DIR}/OpenDIA_raw_direct_work
+      ${TESTS_TEMP_DIR}/OpenDIA_raw_tiled_out ${TESTS_TEMP_DIR}/OpenDIA_raw_tiled_work
+      ${TESTS_TEMP_DIR}/OpenDIA_raw_small_out ${TESTS_TEMP_DIR}/OpenDIA_raw_small_work
+      ${TESTS_TEMP_DIR}/OpenDIA_raw_oversize_out ${TESTS_TEMP_DIR}/OpenDIA_raw_oversize_work
+      ${TESTS_TEMP_DIR}/OpenDIA_raw_faims_out ${TESTS_TEMP_DIR}/OpenDIA_raw_faims_work)
+    set_tests_properties(TOPP_OpenDIA_raw_prepare PROPERTIES FIXTURES_SETUP OpenDIA_raw_dirs)
+    set_tests_properties(TOPP_OpenDIA_success_prepare PROPERTIES FIXTURES_SETUP OpenDIA_raw_library)
+    foreach(_mode IN ITEMS direct tiled small)
+      if(_mode STREQUAL "direct")
+        set(_reader normal)
+        set(_memory 256)
+      else()
+        set(_reader tiled)
+        if(_mode STREQUAL "small")
+          set(_memory 65)
+        else()
+          set(_memory 256)
+        endif()
+      endif()
+      string(REPLACE "workingInMemory" "${_reader}" _raw_args "${OPENDIA_SUCCESS_COMMON_ARGS}")
+      string(REPLACE "-workflow:keep_intermediate_files;false" "-workflow:keep_intermediate_files;true" _raw_args "${_raw_args}")
+      add_test(NAME TOPP_OpenDIA_raw_${_mode} COMMAND ${TOPP_BIN_PATH}/OpenDIA ${_raw_args}
+        -threads 2 -workflow:working_format sqlite
+        -workflow:intermediate_dir ${TESTS_TEMP_DIR}/OpenDIA_raw_${_mode}_work
+        -out_dir ${TESTS_TEMP_DIR}/OpenDIA_raw_${_mode}_out
+        -TargetedDataExtraction:raw_memory_mb ${_memory}
+        -TargetedDataExtraction:raw_max_scan_kb 64)
+      set_tests_properties(TOPP_OpenDIA_raw_${_mode} PROPERTIES
+        FIXTURES_REQUIRED "OpenDIA_raw_dirs;OpenDIA_raw_library"
+        FIXTURES_SETUP OpenDIA_raw_${_mode})
+      if(NOT _mode STREQUAL "direct")
+        add_test(NAME TOPP_OpenDIA_raw_${_mode}_parity COMMAND ${Python3_EXECUTABLE} ${_raw_compare}
+          ${TESTS_TEMP_DIR}/OpenDIA_raw_direct_out ${TESTS_TEMP_DIR}/OpenDIA_raw_${_mode}_out
+          ${TESTS_TEMP_DIR}/OpenDIA_raw_direct_work ${TESTS_TEMP_DIR}/OpenDIA_raw_${_mode}_work
+          ${OPENDIA_TRANSITION_LIST_BASENAME})
+        set_tests_properties(TOPP_OpenDIA_raw_${_mode}_parity PROPERTIES
+          FIXTURES_REQUIRED "OpenDIA_raw_direct;OpenDIA_raw_${_mode}")
+      endif()
+    endforeach()
+    add_test(NAME TOPP_OpenDIA_raw_oversize_failure COMMAND bash -c
+      "log=\"$1\"; shift; \"$@\" > \"$log\" 2>&1; rc=$?; test $rc -gt 0 && test $rc -lt 128 && grep -q 'exceeds maximum scan bytes' \"$log\" && ! grep -q 'terminate called' \"$log\""
+      _ ${TESTS_TEMP_DIR}/OpenDIA_raw_oversize.log ${TOPP_BIN_PATH}/OpenDIA ${_raw_args}
+      -threads 2 -workflow:working_format sqlite
+      -workflow:intermediate_dir ${TESTS_TEMP_DIR}/OpenDIA_raw_oversize_work
+      -out_dir ${TESTS_TEMP_DIR}/OpenDIA_raw_oversize_out
+      -TargetedDataExtraction:raw_memory_mb 65 -TargetedDataExtraction:raw_max_scan_kb 1)
+    set_tests_properties(TOPP_OpenDIA_raw_oversize_failure PROPERTIES
+      FIXTURES_REQUIRED "OpenDIA_raw_dirs;OpenDIA_raw_library")
+
+    # Exercise the complete engine with the existing PASEF mzML fixture too.
+    add_test(NAME TOPP_OpenDIA_raw_im_prepare COMMAND bash -c
+      "rm -rf ${TESTS_TEMP_DIR}/OpenDIA_raw_im_direct_out ${TESTS_TEMP_DIR}/OpenDIA_raw_im_direct_work ${TESTS_TEMP_DIR}/OpenDIA_raw_im_tiled_out ${TESTS_TEMP_DIR}/OpenDIA_raw_im_tiled_work ${TESTS_TEMP_DIR}/OpenDIA_raw_im_small_out ${TESTS_TEMP_DIR}/OpenDIA_raw_im_small_work ${TESTS_TEMP_DIR}/OpenDIA_raw_im_library.pqp && awk -F '\\t' 'BEGIN { OFS=\"\\t\" } NR==1 { for (i=1; i<=NF; ++i) h[$i]=i; print; next } { print; for (i=1; i<=NF; ++i) f[i]=$i; f[h[\"TransitionGroupId\"]]=\"DECOY_\" f[h[\"TransitionGroupId\"]]; f[h[\"TransitionId\"]]=\"DECOY_\" f[h[\"TransitionId\"]]; f[h[\"Decoy\"]]=1; out=f[1]; for (i=2; i<=NF; ++i) out=out OFS f[i]; print out }' ${OPENDIA_TARGET_LIBRARY} > ${TESTS_TEMP_DIR}/OpenDIA_raw_im_library.tsv && \"${TOPP_BIN_PATH}/TargetedFileConverter\" -test -in ${TESTS_TEMP_DIR}/OpenDIA_raw_im_library.tsv -out ${TESTS_TEMP_DIR}/OpenDIA_raw_im_library.pqp -out_type pqp")
+    set_tests_properties(TOPP_OpenDIA_raw_im_prepare PROPERTIES FIXTURES_SETUP OpenDIA_raw_im_library)
+    foreach(_mode IN ITEMS direct tiled small)
+      set(_reader tiled)
+      set(_memory 256)
+      if(_mode STREQUAL "direct")
+        set(_reader normal)
+      elseif(_mode STREQUAL "small")
+        set(_memory 65)
+      endif()
+      string(REPLACE "workingInMemory" "${_reader}" _raw_im_args "${OPENDIA_SUCCESS_COMMON_ARGS}")
+      string(REPLACE "-workflow:keep_intermediate_files;false" "-workflow:keep_intermediate_files;true" _raw_im_args "${_raw_im_args}")
+      string(REPLACE "${OPENDIA_TRANSITION_LIST_INPUT_MZML}" "${OPENDIA_INPUT_MZML}" _raw_im_args "${_raw_im_args}")
+      string(REPLACE "${TESTS_TEMP_DIR}/OpenDIA_success_library.tmp.pqp" "${TESTS_TEMP_DIR}/OpenDIA_raw_im_library.pqp" _raw_im_args "${_raw_im_args}")
+      add_test(NAME TOPP_OpenDIA_raw_im_${_mode} COMMAND ${TOPP_BIN_PATH}/OpenDIA ${_raw_im_args}
+        -threads 2 -workflow:working_format sqlite -TargetedDataExtraction:pasef
+        -workflow:intermediate_dir ${TESTS_TEMP_DIR}/OpenDIA_raw_im_${_mode}_work
+        -out_dir ${TESTS_TEMP_DIR}/OpenDIA_raw_im_${_mode}_out
+        -TargetedDataExtraction:raw_memory_mb ${_memory}
+        -TargetedDataExtraction:raw_max_scan_kb 256)
+      set_tests_properties(TOPP_OpenDIA_raw_im_${_mode} PROPERTIES
+        FIXTURES_REQUIRED OpenDIA_raw_im_library FIXTURES_SETUP OpenDIA_raw_im_${_mode})
+      if(NOT _mode STREQUAL "direct")
+        add_test(NAME TOPP_OpenDIA_raw_im_${_mode}_parity COMMAND ${Python3_EXECUTABLE} ${_raw_compare}
+          ${TESTS_TEMP_DIR}/OpenDIA_raw_im_direct_out ${TESTS_TEMP_DIR}/OpenDIA_raw_im_${_mode}_out
+          ${TESTS_TEMP_DIR}/OpenDIA_raw_im_direct_work ${TESTS_TEMP_DIR}/OpenDIA_raw_im_${_mode}_work
+          OpenSwathWorkflow_23_input --require-im)
+        set_tests_properties(TOPP_OpenDIA_raw_im_${_mode}_parity PROPERTIES
+          FIXTURES_REQUIRED "OpenDIA_raw_im_direct;OpenDIA_raw_im_${_mode}")
+      endif()
+    endforeach()
+    # The first tiled adapter must not merge different FAIMS CV lanes.
+    add_test(NAME TOPP_OpenDIA_raw_faims_prepare COMMAND ${TOPP_BIN_PATH}/FileConverter -test
+      -in ${OPENMS_HOST_DIRECTORY}/src/tests/class_tests/openms/data/IM_FAIMS_test.mzML
+      -out ${TESTS_TEMP_DIR}/OpenDIA_raw_faims_input.mzML -write_scan_index true)
+    set_tests_properties(TOPP_OpenDIA_raw_faims_prepare PROPERTIES FIXTURES_SETUP OpenDIA_raw_faims_input)
+    string(REPLACE "${OPENDIA_TRANSITION_LIST_INPUT_MZML}" "${TESTS_TEMP_DIR}/OpenDIA_raw_faims_input.mzML" _raw_faims_args "${_raw_args}")
+    add_test(NAME TOPP_OpenDIA_raw_faims_failure COMMAND bash -c
+      "log=\"$1\"; shift; \"$@\" > \"$log\" 2>&1; rc=$?; test $rc -gt 0 && test $rc -lt 128 && grep -q 'does not merge spectra of different CVs' \"$log\" && ! grep -q 'terminate called' \"$log\""
+      _ ${TESTS_TEMP_DIR}/OpenDIA_raw_faims.log ${TOPP_BIN_PATH}/OpenDIA ${_raw_faims_args}
+      -workflow:working_format sqlite
+      -workflow:intermediate_dir ${TESTS_TEMP_DIR}/OpenDIA_raw_faims_work
+      -out_dir ${TESTS_TEMP_DIR}/OpenDIA_raw_faims_out)
+    set_tests_properties(TOPP_OpenDIA_raw_faims_failure PROPERTIES FIXTURES_REQUIRED "OpenDIA_raw_dirs;OpenDIA_raw_library;OpenDIA_raw_faims_input")
+  endif()
+
   # Transfer genuine public CLI scores through the private v0 contracts. This is
   # a boundary check, not a production adapter or a new family/scoring algorithm.
   if(TARGET OpenDIARecordsInterop_test)

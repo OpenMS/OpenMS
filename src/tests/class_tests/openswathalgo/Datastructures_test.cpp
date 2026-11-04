@@ -8,6 +8,7 @@
 
 #include "OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h"
 #include "OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h"
+#include "OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h"
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 using namespace OpenMS;
@@ -114,6 +115,42 @@ START_SECTION(OSSpectrum_data_2)
   // PeakPickerIM output
   s.getDataArrays().back()->description = "Ion Mobility Centroid";
   TEST_EQUAL (s.getDriftTimeArray() == nullptr, false)
+}
+END_SECTION
+
+START_SECTION(ISpectrumAccess_filterByDrift)
+{
+  auto input = std::make_shared<Spectrum>();
+  TEST_EXCEPTION(std::invalid_argument, ISpectrumAccess::filterByDrift({}, 1, 2))
+  TEST_EXCEPTION(std::invalid_argument, ISpectrumAccess::filterByDrift(input, 1, 2))
+  auto mobility = std::make_shared<BinaryDataArray>();
+  mobility->description = "raw inverse reduced ion mobility array";
+  input->getDataArrays().push_back(mobility);
+  TEST_TRUE(ISpectrumAccess::filterByDrift(input, 1, 2)->getMZArray()->data.empty())
+
+  // Keep both interval edges, and do not change the input.
+  input->getMZArray()->data = {400, 500, 600};
+  input->getIntensityArray()->data = {10, 20, 30};
+  mobility->data = {1, 2, 3};
+  const auto output = ISpectrumAccess::filterByDrift(input, 1, 2);
+  TEST_EQUAL(output->getMZArray()->data.size(), 2)
+  TEST_EQUAL(output->getMZArray()->data[0], 400)
+  TEST_EQUAL(output->getMZArray()->data[1], 500)
+  TEST_EQUAL(output->getIntensityArray()->data[1], 20)
+  TEST_EQUAL(output->getDriftTimeArray()->data[1], 2)
+  TEST_EQUAL(input->getMZArray()->data.size(), 3)
+  output->getMZArray()->data[0] = -1;
+  TEST_EQUAL(input->getMZArray()->data[0], 400)
+
+  mobility->data.pop_back();
+  TEST_EXCEPTION(std::invalid_argument, ISpectrumAccess::filterByDrift(input, 1, 2))
+  mobility->data.push_back(3);
+  input->getIntensityArray()->data.clear();
+  TEST_EXCEPTION(std::invalid_argument, ISpectrumAccess::filterByDrift(input, 1, 2))
+  input->getDataArrays()[1].reset();
+  TEST_EXCEPTION(std::invalid_argument, ISpectrumAccess::filterByDrift(input, 1, 2))
+  input->getDataArrays().clear();
+  TEST_EXCEPTION(std::invalid_argument, ISpectrumAccess::filterByDrift(input, 1, 2))
 }
 END_SECTION
 
