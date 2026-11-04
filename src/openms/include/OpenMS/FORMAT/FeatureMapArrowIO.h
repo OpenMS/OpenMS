@@ -76,6 +76,19 @@ public:
     (DocumentIdentifier, DataProcessing) is stored as file-level
     key-value metadata in features.parquet.
 
+    If the map owns identification data (FeatureMap::getIdentificationData()) or
+    features carry native identification links, the bundle also contains the native
+    identification bundle identifications/ (see IdentificationDataFile) and
+    identification_links.parquet, which links features by unique ID. Linked features
+    need distinct valid unique IDs, and every link must resolve.
+
+    The bundle is written to a temporary sibling directory and published only when
+    complete. An existing feature bundle or empty directory is replaced; any other
+    existing file or directory is left untouched and the export fails.
+
+    @throw Exception::InvalidValue for duplicate protein run identifiers or unresolved
+           identification links
+
     @param[in] feature_map The FeatureMap to export
     @param[in] directory Output directory path
     @param[in] config Parquet writing options

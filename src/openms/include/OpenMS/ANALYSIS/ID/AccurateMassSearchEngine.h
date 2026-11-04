@@ -439,15 +439,8 @@ private:
     /// Extract query results from feature
     std::vector<AccurateMassSearchResult> extractQueryResults_(const Feature& feature, const Size& feature_index, const std::string& ion_mode_internal, Size& dummy_count) const;
 
-    /// Add resulting matches to IdentificationData
-    void addMatchesToID_(
-      IdentificationData& id,
-      const std::vector<AccurateMassSearchResult>& amr, 
-      const IdentificationData::InputFileRef& file_ref,
-      const IdentificationData::ScoreTypeRef& mass_error_ppm_score_ref,
-      const IdentificationData::ScoreTypeRef& mass_error_Da_score_ref,
-      const IdentificationData::ProcessingStepRef& step_ref,
-      BaseFeature& f) const;
+    /// Add compound candidate values and stable feature associations to an owning run.
+    void addMatchesToID_(IdentificationData::Run& run, const std::vector<AccurateMassSearchResult>& matches, BaseFeature& feature) const;
 
     /// For two vectors of identical length, compute the cosine of the angle between them.
     /// Since we look at the angle, scaling of the vectors does not change the result (when ignoring numerical instability).

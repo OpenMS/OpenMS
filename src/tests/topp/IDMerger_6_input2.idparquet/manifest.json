@@ -1,0 +1,214 @@
+{
+  "format": "OpenMS.IdentificationData",
+  "schema_version": 1,
+  "score_columns": [
+    "score_q_value"
+  ],
+  "runs": [
+    {
+      "identifier": "OMSSA_2009-11-17T11:11:29_5013881264840086984",
+      "uuid": "fe09e373-d911-4d28-aae4-286cdcda102b",
+      "molecule_kind": 0,
+      "settings": {
+        "software": "OMSSA",
+        "software_version": "2.1.4",
+        "date": "2009-11-17T11:11:29.000",
+        "metadata": [],
+        "search_parameters": {
+          "db": "",
+          "db_version": "",
+          "taxonomy": "",
+          "charges": "+1-+3",
+          "mass_type": 0,
+          "fixed_modifications": [],
+          "variable_modifications": [
+            "Carbamidomethyl (C)",
+            "Oxidation (M)"
+          ],
+          "missed_cleavages": 1,
+          "fragment_tolerance_bits": 4599075939470750515,
+          "fragment_tolerance_ppm": false,
+          "precursor_tolerance_bits": 4587366580439587226,
+          "precursor_tolerance_ppm": false,
+          "specificity": 3,
+          "metadata": [],
+          "enzyme": {
+            "name": "Trypsin",
+            "regex": "(?<=[KRX])(?!P)",
+            "synonyms": [],
+            "description": "Trypsin cleaves following a K or R residue unless the next residue is P.",
+            "n_term_gain": {
+              "composition": "H1",
+              "charge": 0
+            },
+            "c_term_gain": {
+              "composition": "H1O1",
+              "charge": 0
+            },
+            "psi_id": "MS:1001251",
+            "xtandem_id": "[KR]|{P}",
+            "comet_id": 1,
+            "msgf_id": -1,
+            "omssa_id": 0
+          }
+        }
+      },
+      "scores": [
+        {
+          "name": "q-value",
+          "accession": "",
+          "higher_better": false,
+          "scope": 0,
+          "software": "OMSSA",
+          "software_version": "2.1.4",
+          "parameters": [],
+          "calibration": "",
+          "aggregation": ""
+        }
+      ],
+      "sources": [
+        {
+          "identifier": "",
+          "path": "",
+          "metadata": []
+        }
+      ],
+      "databases": [
+        {
+          "path": "18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta",
+          "version": "",
+          "taxonomy": "0",
+          "metadata": []
+        }
+      ],
+      "primary_score": 0,
+      "next_query_id": 43,
+      "next_match_id": 43,
+      "query_count": 42,
+      "match_count": 42,
+      "metadata_descriptors": [
+        {
+          "name": "OMSSA_score",
+          "type": 2,
+          "unit_type": 2,
+          "unit": -1
+        },
+        {
+          "name": "target_decoy",
+          "type": 0,
+          "unit_type": 2,
+          "unit": -1
+        }
+      ],
+      "tables": {
+        "queries": {
+          "path": "queries.parquet",
+          "start": 0,
+          "count": 42,
+          "partition": "fe09e373-d911-4d28-aae4-286cdcda102b"
+        },
+        "matches": {
+          "path": "matches.parquet",
+          "start": 0,
+          "count": 42,
+          "partition": "fe09e373-d911-4d28-aae4-286cdcda102b"
+        },
+        "database_sequences": {
+          "path": "database_sequences.parquet",
+          "start": 0,
+          "count": 12,
+          "partition": "fe09e373-d911-4d28-aae4-286cdcda102b"
+        }
+      }
+    }
+  ],
+  "inference": [
+    {
+      "identifier": "legacy:OMSSA_2009-11-17T11:11:29_5013881264840086984",
+      "processing": {
+        "identifier": "OMSSA_2009-11-17T11:11:29_5013881264840086984",
+        "search_engine": "OMSSA",
+        "search_engine_version": "2.1.4",
+        "date": "2009-11-17T11:11:29.000",
+        "score_type": "FDR",
+        "higher_better": false,
+        "significance_threshold_bits": 0,
+        "metadata": [],
+        "search_parameters": {
+          "db": "18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta",
+          "db_version": "",
+          "taxonomy": "0",
+          "charges": "+1-+3",
+          "mass_type": 0,
+          "fixed_modifications": [],
+          "variable_modifications": [
+            "Carbamidomethyl (C)",
+            "Oxidation (M)"
+          ],
+          "missed_cleavages": 1,
+          "fragment_tolerance_bits": 4599075939470750515,
+          "fragment_tolerance_ppm": false,
+          "precursor_tolerance_bits": 4587366580439587226,
+          "precursor_tolerance_ppm": false,
+          "specificity": 3,
+          "metadata": [],
+          "enzyme": {
+            "name": "Trypsin",
+            "regex": "(?<=[KRX])(?!P)",
+            "synonyms": [],
+            "description": "Trypsin cleaves following a K or R residue unless the next residue is P.",
+            "n_term_gain": {
+              "composition": "H1",
+              "charge": 0
+            },
+            "c_term_gain": {
+              "composition": "H1O1",
+              "charge": 0
+            },
+            "psi_id": "MS:1001251",
+            "xtandem_id": "[KR]|{P}",
+            "comet_id": 1,
+            "msgf_id": -1,
+            "omssa_id": 0
+          }
+        }
+      },
+      "metadata_fields": [
+        {
+          "name": "OMSSA_score",
+          "type": 2,
+          "unit_type": 2,
+          "unit": -1
+        }
+      ],
+      "protein_score": null,
+      "group_score": null,
+      "input_scores": [],
+      "tables": {
+        "inputs": {
+          "path": "inputs.parquet",
+          "start": 0,
+          "count": 1,
+          "partition": "legacy:OMSSA_2009-11-17T11:11:29_5013881264840086984"
+        },
+        "proteins": {
+          "path": "proteins.parquet",
+          "start": 0,
+          "count": 12,
+          "partition": "legacy:OMSSA_2009-11-17T11:11:29_5013881264840086984"
+        },
+        "groups": {
+          "path": "groups.parquet",
+          "start": 0,
+          "count": 0,
+          "partition": "legacy:OMSSA_2009-11-17T11:11:29_5013881264840086984"
+        }
+      },
+      "counts": {
+        "inputs": 1,
+        "proteins": 12,
+        "groups": 0
+      }
+    }
+  ]
+}

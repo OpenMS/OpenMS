@@ -157,6 +157,8 @@ public:
 
     /**
       @brief Adds all feature handles (of the CF) into the consensus feature
+
+      The peptide identifications and the links to identification data of @p cf are added as well.
     */
     void insert(const ConsensusFeature& cf);
     void insert(ConsensusFeature&& cf);
@@ -184,6 +186,10 @@ public:
 
     /**
       @brief Creates a FeatureHandle and adds it
+
+      Copies of the peptide identifications of @p element are added with meta value @c map_index.
+      The links of @p element to identification data are added as well; the identification data
+      itself (and the @c map_index of its identifications) belongs to the map and is up to the caller.
 
       @exception Exception::InvalidValue is thrown if a handle with the same map index and unique
       id already exists.

@@ -478,6 +478,33 @@ START_SECTION((void insert(UInt64 map_index, const BaseFeature &element)))
 END_SECTION
 
 
+START_SECTION(([EXTRA] insert carries the links to identification data))
+{
+  using ID = IdentificationData;
+  Feature identified = tmp_feature;
+  identified.addIDQuery({"run", ID::QueryId {1}});
+  identified.addIDMatch({"run", ID::MatchId {2}});
+  ConsensusFeature from_feature;
+  from_feature.insert(2, identified);
+  TEST_TRUE(from_feature.getIDQueries() == identified.getIDQueries())
+  TEST_TRUE(from_feature.getIDMatches() == identified.getIDMatches())
+
+  ConsensusFeature other;
+  other.insert(FeatureHandle(4, tmp_feature));
+  other.addIDQuery({"run", ID::QueryId {3}});
+  other.addIDMatch({"other run", ID::MatchId {2}});
+  ConsensusFeature copied = from_feature;
+  copied.insert(other);
+  TEST_EQUAL(copied.size(), 2)
+  TEST_EQUAL(copied.getIDQueries().size(), 2)
+  TEST_EQUAL(copied.getIDMatches().size(), 2)
+  ConsensusFeature moved = from_feature;
+  moved.insert(std::move(other));
+  TEST_TRUE(moved.getIDQueries() == copied.getIDQueries())
+  TEST_TRUE(moved.getIDMatches() == copied.getIDMatches())
+}
+END_SECTION
+
 START_SECTION((void computeConsensus()))
   ConsensusFeature cons;
   //one point

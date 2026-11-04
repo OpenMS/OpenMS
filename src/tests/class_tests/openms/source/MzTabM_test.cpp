@@ -11,7 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/MzTabM.h>
-#include <OpenMS/FORMAT/OMSFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 ///////////////////////////
 
@@ -323,7 +323,8 @@ START_SECTION(MzTabM::exportFeatureMapToMzTabM(const FeatureMap& feature_map))
   FeatureMap feature_map;
   MzTabM mztabm;
 
-  OMSFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabMFile_input_1.oms"), feature_map);
+  // AccurateMassSearch result (ID format) with owning identification data
+  FileHandler().loadFeatures(OPENMS_GET_TEST_DATA_PATH("MzTabMFile_input_1.featureparquet"), feature_map, {FileTypes::FEATUREPARQUET});
 
   mztabm = mztabm.exportFeatureMapToMzTabM(feature_map);
 

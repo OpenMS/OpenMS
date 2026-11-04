@@ -19,13 +19,13 @@ In particular, an Arrow table or Python buffer that aliases OpenMS storage is sh
 
 ## GIL-releasing binding inventory
 
-The current bindings contain 83 GIL-releasing sites: 79 `nb::gil_scoped_release` scopes and four `nb::call_guard<nb::gil_scoped_release>()` (`OMSFile.load()`, `OMSFile.store()`, `BedRModFile.store()` and `ThermoRawFile.load()`). Nine of them are only compiled in builds with Thermo RAW support and two only in builds with Bruker timsTOF (opentims) support. Recount with `grep -o gil_scoped_release src/pyOpenMS/bindings/*.cpp | sort | uniq -c`. This is an implementation inventory, not an endorsement of calling the listed operations concurrently.
+The current bindings contain 85 GIL-releasing sites: 83 `nb::gil_scoped_release` scopes and two `nb::call_guard<nb::gil_scoped_release>()` (`BedRModFile.store()` and `ThermoRawFile.load()`). Nine of them are only compiled in builds with Thermo RAW support and two only in builds with Bruker timsTOF (opentims) support. Recount with `grep -o gil_scoped_release src/pyOpenMS/bindings/*.cpp | sort | uniq -c`. This is an implementation inventory, not an endorsement of calling the listed operations concurrently.
 
 | Binding source | Calls | Covered operations |
 | --- | ---: | --- |
-| `bindings/arrow_zerocopy.cpp` | 16 | Arrow import/export, including experimental zero-copy paths |
+| `bindings/arrow_zerocopy.cpp` | 18 | Arrow import/export, including experimental zero-copy paths, and the match table and patches of identification data (`IdentificationData.to_arrow()`, `apply_patch()`) |
 | `bindings/bind_experiment.cpp` | 2 | `MSExperiment.sortSpectra()` and `sortChromatograms()` |
-| `bindings/bind_format.cpp` | 29 | OMS and bedRMod file I/O; `ThermoRawFile.load()`/`transform()` and `OnDiscThermoRawExperiment` access (only in builds with Thermo RAW support); `BrukerTimsFile.transform()` (only in builds with opentims support); FileHandler, imzML, and indexed mzML load/store/validation operations |
+| `bindings/bind_format.cpp` | 29 | bedRMod file I/O; `ThermoRawFile.load()`/`transform()` and `OnDiscThermoRawExperiment` access (only in builds with Thermo RAW support); `BrukerTimsFile.transform()` (only in builds with opentims support); FileHandler (including `loadIdentificationData()`/`storeIdentificationData()`), imzML, and indexed mzML load/store/validation operations |
 | `bindings/bind_misc.cpp` | 36 | File I/O, including the streaming `MzMLFile.transform()` and `MzXMLFile.transform()`, and long-running feature-finding, multiplet resolution (`MultiplexResolverAlgorithm.resolve()`), deconvolution, indexing, search, and transition-list filtering operations |
 
 **Note:** one `bind_misc.cpp` site (`TransitionListEvidenceFilter.filter`) additionally parallelizes internally via a `threads` argument; the active SWATH maps and their spectra, plus derived `candidates`/`precursor_index`, are read by multiple worker threads during the threaded scan. `transition_exp` is read before that phase to build `candidates`.
