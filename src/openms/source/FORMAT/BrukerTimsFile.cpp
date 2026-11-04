@@ -2989,6 +2989,7 @@ namespace OpenMS
       std::vector<uint32_t> ms1_frames;
       std::vector<Entry> entries;
       std::shared_ptr<ExperimentalSettings> settings;
+      std::shared_ptr<FramePolarity> polarity;
       mutable std::mutex mutex;
       NativeFrameCacheStats cache_stats;
       std::list<CachedFrame> cache; // MRU first, no separate lookup allocation
@@ -3047,6 +3048,7 @@ namespace OpenMS
         MS1SpectrumReader reader(*source_->handle, source_->ms1_frames, source_->config);
         const auto pos = std::lower_bound(source_->ms1_frames.begin(), source_->ms1_frames.end(), entry.frame);
         reader.read(std::distance(source_->ms1_frames.begin(), pos), spec);
+        source_->polarity->apply(spec);
       }
       else
       {
@@ -3104,6 +3106,7 @@ namespace OpenMS
         addWindowPeaksByMZ(*payload, in_window, spec, im_array);
         spec.getFloatDataArrays().push_back(std::move(im_array));
         spec.setIMPeakType(IMPeakType::IM_PROFILE);
+        source_->polarity->apply(spec);
       }
       spec.sortByPosition();
       return spec;
@@ -3200,6 +3203,7 @@ namespace OpenMS
           addWindowPeaksByMZ(*payload, in_window, spectrum, im_array);
           spectrum.getFloatDataArrays().push_back(std::move(im_array));
           spectrum.setIMPeakType(IMPeakType::IM_PROFILE);
+          source_->polarity->apply(spectrum);
           spectrum.sortByPosition();
           visitor(requested_index, std::move(spectrum));
         }
@@ -3219,7 +3223,7 @@ namespace OpenMS
   std::shared_ptr<IMSExperimentRandomAccess> BrukerTimsFile::openDIAOnDisc(const std::string& path)
   {
     std::shared_ptr<IMSExperimentRandomAccess> result;
-    rethrowSQLiteErrors(path, [&]
+    rethrowAsParseError(path, [&]
     {
       auto source = std::make_shared<NativeBrukerDIAExperiment::Source>();
       const auto archive = takeUnpacked_(path);
@@ -3230,12 +3234,15 @@ namespace OpenMS
       source->settings = std::make_shared<ExperimentalSettings>();
       loadExperimentalSettings_(path, d_path, *source->settings);
       auto& handle = *source->handle;
-      SQLite::Database db(handle.get_tims_dir_path() + "/analysis.tdf", SQLite::OPEN_READONLY);
+      const std::string tdf_path = handle.get_tims_dir_path() + "/analysis.tdf";
+      source->polarity = std::make_shared<FramePolarity>(tdf_path);
+      SQLite::Database db(tdf_path, SQLite::OPEN_READONLY);
       const auto windows = readDIAWindows(db, *handle.scan2inv_ion_mobility_converter);
       if (windows.empty())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Native Bruker DIA access requires DIA windows");
       }
+      warnIfSynchroPASEF(windows);
       for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
       {
         if (handle.has_frame(fid) && handle.get_frame(fid).msms_type == 0)
@@ -3248,6 +3255,7 @@ namespace OpenMS
       {
         MSSpectrum spec;
         reader.read(i, spec);
+        source->polarity->apply(spec);
         spec.clear(false);
         spec.shrink_to_fit();
         source->entries.push_back({source->ms1_frames[i], std::nullopt, std::move(spec)});
@@ -3256,7 +3264,7 @@ namespace OpenMS
       // Decode each MS2 frame once here to build exactly the emitted scan membership.
       DecodedFrame decoded;
       std::vector<char> in_window;
-      for (const auto& [group, frames] : readFrameToWindowGroupMapping(db, windows))
+      for (const auto& [group, frames] : readFrameToWindowGroupMapping(db, windows, handle))
       {
         for (const auto fid : frames)
         {
@@ -3273,6 +3281,7 @@ namespace OpenMS
             MSSpectrum spec;
             initDIAWindowSpectrum(frame, win, spec);
             spec.setIMPeakType(IMPeakType::IM_PROFILE);
+            source->polarity->apply(spec);
             source->entries.push_back({fid, win, std::move(spec)});
           }
         }
