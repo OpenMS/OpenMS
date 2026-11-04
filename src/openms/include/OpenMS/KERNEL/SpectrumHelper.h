@@ -155,7 +155,13 @@ namespace OpenMS
     p.sortByPosition();
     
     double current_position = p.begin()->getPos();
-    PeakContainerT p_new;
+    // Start from a copy of p so p_new keeps p's metadata (retention time,
+    // native id, MS level, ...), then drop just the peaks we're about to
+    // rebuild. A default-constructed p_new would have none of that, and the
+    // final std::swap(p_new, p) below would leave p with nothing but the
+    // merged peaks, silently discarding the whole non-peak part of the record.
+    PeakContainerT p_new(p);
+    p_new.clear(false);
     double intensity_new(0);
     std::vector<double> intensities_at_same_position;
     for (typename PeakContainerT::PeakType& peak : p)
