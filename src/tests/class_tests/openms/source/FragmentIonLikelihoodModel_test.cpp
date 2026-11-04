@@ -600,6 +600,51 @@ START_SECTION((void matchIons(const PeakLists& peaks, Size index, const MSSpectr
     }
   }
 
+  // a type of no series (Residue::Full, Residue::Internal, ...) or an ordinal of 0 is not an ion: it is skipped, as
+  // an unparseable name is, and the other ions are unchanged (BASIC: the context of an ion does not depend on others)
+  {
+    const Model basic(Model::ContextSet::BASIC);
+    const AASequence peptide = AASequence::fromString("DFPIANGER");
+    Model::PeakLists peaks;
+    peaks.reset(1);
+    peaks.assign(0, observed_(peptide));
+    TheoreticalSpectrumGenerator tsg;
+    Param p = tsg.getParameters();
+    p.setValue("add_first_prefix_ion", "true");
+    p.setValue("add_c_ions", "true");
+    p.setValue("add_zp1_ions", "true");
+    tsg.setParameters(p);
+    MSSpectrum coded;
+    std::vector<uint8_t> series;
+    std::vector<UInt> ordinals;
+    std::vector<Int> charges;
+    std::vector<Residue::ResidueType> types;
+    TEST_EQUAL(tsg.getIonSeriesSpectrum(coded, series, ordinals, charges, types, peptide, 1, 2), true)
+    std::vector<Model::Ion> all, kept;
+    basic.matchIons(peaks, 0, coded, types, ordinals, charges, peptide, 3, 20.0, true, all);
+    TEST_EQUAL(all.size(), coded.size())
+    std::vector<Residue::ResidueType> masked_types = types;
+    std::vector<UInt> masked_ordinals = ordinals;
+    std::vector<Model::Ion> expected;
+    for (Size i = 0; i < coded.size(); ++i)
+    {
+      if (i % 3 == 0) masked_types[i] = Residue::Full;
+      else if (i % 3 == 1) masked_ordinals[i] = 0;
+      else expected.push_back(all[i]);
+    }
+    basic.matchIons(peaks, 0, coded, masked_types, masked_ordinals, charges, peptide, 3, 20.0, true, kept);
+    bool same = kept.size() == expected.size() && !kept.empty();
+    for (Size i = 0; same && i < kept.size(); ++i)
+    {
+      same = kept[i].context == expected[i].context && kept[i].outcome == expected[i].outcome;
+    }
+    TEST_EQUAL(same, true)
+    // no ion at all
+    const std::vector<Residue::ResidueType> internal(coded.size(), Residue::Internal);
+    basic.matchIons(peaks, 0, coded, internal, ordinals, charges, peptide, 3, 20.0, true, kept);
+    TEST_EQUAL(kept.size(), 0)
+  }
+
   // invalid input
   const Model rich;
   const AASequence peptide = AASequence::fromString("DFPIANGER");
