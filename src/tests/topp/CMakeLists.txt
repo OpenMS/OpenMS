@@ -3952,6 +3952,21 @@ add_test("TOPP_IDPosteriorErrorProbability_19" ${TOPP_BIN_PATH}/IDPosteriorError
 add_test("TOPP_IDPosteriorErrorProbability_19_out1" ${DIFF} -absdiff 1e-3 -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_19.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_19_output.idXML)
 set_tests_properties("TOPP_IDPosteriorErrorProbability_19_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_19")
 
+# "fit_level peptide": the model is fitted to the best top hit of each peptide (OMSSA, 3 runs: 779 target and 439 decoy peptides instead
+# of 1088 target and 446 decoy top hits); every PSM gets the PEP of this model at its score
+add_test("TOPP_IDPosteriorErrorProbability_20" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_20.tmp.idXML -fit_level peptide)
+add_test("TOPP_IDPosteriorErrorProbability_20_out1" ${DIFF} -absdiff 0 -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_20.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_20_output.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_20_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_20")
+# "split_run": one model per MS run (the three OMSSA runs have no spectra files, so they are grouped by identification run);
+# same PEPs as fitting each run in a file of its own
+add_test("TOPP_IDPosteriorErrorProbability_21" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_21.tmp.idXML -split_run)
+add_test("TOPP_IDPosteriorErrorProbability_21_out1" ${DIFF} -absdiff 0 -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_21.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_21_output.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_21_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_21")
+# "split_run" with a single MS run: same output as without it (test 10)
+add_test("TOPP_IDPosteriorErrorProbability_22" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_22.tmp.idXML -split_run)
+add_test("TOPP_IDPosteriorErrorProbability_22_out1" ${DIFF} -absdiff 0 -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_22.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_10_output.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_22_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_22")
+
 #------------------------------------------------------------------------------
 # ProteinQuantifier tests
 add_test("TOPP_ProteinQuantifier_1" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_1_output1.tmp.csv -peptide_out ${TESTS_TEMP_DIR}/ProteinQuantifier_1_output2.tmp.csv)
