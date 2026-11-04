@@ -30,6 +30,20 @@ void check(bool condition, const char* message)
 {
   if (! condition) { throw std::runtime_error(message); }
 }
+template<typename Workflow>
+struct CandidateWorkflow : Workflow
+{
+  using Workflow::Workflow;
+  bool candidateScoring() const { return this->useCandidateRTScoring_(); }
+};
+
+void candidateWorkflowMode()
+{
+  CandidateWorkflow<RegionWorkflow> region(false, false, false, false, false, 1);
+  CandidateWorkflow<OpenMS::OpenSwathWorkflow> core(false, false, false, false, false, 1);
+  check(region.candidateScoring(), "Private workflow did not opt into candidate scoring");
+  check(!core.candidateScoring(), "Default core workflow unexpectedly changed its scoring schedule");
+}
 template<typename F>
 void rejects(F operation)
 {
@@ -520,6 +534,7 @@ int main(int argc, char** argv)
 {
   try
   {
+    candidateWorkflowMode();
     if (argc == 1)
     {
       fixtures();

@@ -10,6 +10,8 @@ namespace OpenDIA
 /** @brief OpenDIA extraction and scoring over shared, leased scan columns.
   Peak picking, scores and output conversion retain the shared workflow implementation.
   Evidence can be decoded again after eviction from the bounded raw cache.
+  OSW candidate scoring is ordered by picked apex RT within the existing assay batch.
+  Complete chromatograms are retained until that batch is scored, not across the run.
   Non-native accesses and non-tophat filters retain the shared extractor.
 */
 class RegionWorkflow : public OpenMS::OpenSwathWorkflow
@@ -33,5 +35,9 @@ public:
     @return Shared evidence access, or the unchanged input for unsupported readers.
   */
   OpenSwath::SpectrumAccessPtr spectrumAccessForScoring_(const OpenSwath::SpectrumAccessPtr& input) const override;
+
+protected:
+  /// Score picked candidates in physical RT order within each existing OSW batch.
+  bool useCandidateRTScoring_() const override { return true; }
 };
 } // namespace OpenDIA

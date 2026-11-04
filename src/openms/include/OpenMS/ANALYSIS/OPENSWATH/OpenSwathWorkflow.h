@@ -385,6 +385,9 @@ protected:
 
   protected:
 
+    /// Permit candidate-apex scoring within the existing assay batch (default: disabled).
+    virtual bool useCandidateRTScoring_() const { return false; }
+
 
     /** @brief Write output features and chromatograms
      *
