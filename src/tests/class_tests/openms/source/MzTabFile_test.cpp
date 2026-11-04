@@ -44,7 +44,54 @@ class MzTabFile2 : public MzTabFile
       size_t n_columns = 0;
       return generateMzTabSectionRow_(row, optional_columns, meta, n_columns);
     }
+
+    std::string peptideHeader(Size runs, Size n_scores) const
+    {
+      size_t n_columns = 0;
+      return generateMzTabPeptideHeader_(runs, 0, n_scores, 0, 0, {}, n_columns);
+    }
+
+    std::string smallMoleculeHeader(Size runs, Size n_scores) const
+    {
+      size_t n_columns = 0;
+      return generateMzTabSmallMoleculeHeader_(runs, 0, n_scores, 0, 0, {}, n_columns);
+    }
+
+    std::string nucleicAcidHeader(Size runs, Size n_scores) const
+    {
+      size_t n_columns = 0;
+      return generateMzTabNucleicAcidHeader_(runs, 0, n_scores, {}, n_columns);
+    }
+
+    std::string oligonucleotideHeader(Size runs, Size n_scores) const
+    {
+      size_t n_columns = 0;
+      return generateMzTabOligonucleotideHeader_(runs, 0, n_scores, {}, n_columns);
+    }
+
+    template <typename RowT>
+    std::string sectionRow(const RowT& row) const
+    {
+      size_t n_columns = 0;
+      return generateMzTabSectionRow_(row, {}, MzTabMetaData(), n_columns);
+    }
 };
+
+using ScoreRunMap = std::map<Size, std::map<Size, MzTabDouble>>;
+
+// search_engine_score[s]_ms_run[r] = 10 * s + r, distinct for every (score, run) pair
+ScoreRunMap distinctScores(Size n_scores, Size n_runs)
+{
+  ScoreRunMap m;
+  for (Size s = 1; s <= n_scores; ++s)
+  {
+    for (Size r = 1; r <= n_runs; ++r)
+    {
+      m[s][r] = MzTabDouble(10.0 * s + r);
+    }
+  }
+  return m;
+}
 
 START_TEST(MzTabFile, "$Id$")
 
@@ -309,6 +356,137 @@ START_SECTION([EXTRA] protein section run-level search engine score columns line
   }
 }
 END_SECTION
+
+
+// For each of the other four sections with run-level scores, every
+// search_engine_score[s]_ms_run[r] column of the header must carry the value
+// stored under search_engine_score_ms_run[s][r] (2 scores x 3 runs).
+#define CHECK_SCORE_COLUMNS(HEADER_LINE, ROW_LINE, SCORES) \
+  { \
+    std::vector<std::string> header_cells, row_cells; \
+    StringUtils::split(HEADER_LINE, "\t", header_cells); \
+    StringUtils::split(ROW_LINE, "\t", row_cells); \
+    for (const auto& score : SCORES) \
+    { \
+      for (const auto& run : score.second) \
+      { \
+        std::string label = "search_engine_score[" + StringUtils::toStr(score.first) + "]_ms_run[" + StringUtils::toStr(run.first) + "]"; \
+        auto pos = std::find(header_cells.begin(), header_cells.end(), label); \
+        TEST_EQUAL(pos != header_cells.end(), true) \
+        ABORT_IF(pos == header_cells.end()) \
+        Size idx = static_cast<Size>(std::distance(header_cells.begin(), pos)); \
+        TEST_EQUAL(idx < row_cells.size(), true) \
+        ABORT_IF(idx >= row_cells.size()) \
+        TEST_STRING_EQUAL(row_cells[idx], run.second.toCellString()) \
+      } \
+    } \
+  }
+
+START_SECTION([EXTRA] peptide/small molecule/nucleic acid/oligonucleotide run-level score columns line up with their header labels)
+{
+  MzTabFile2 f;
+  const ScoreRunMap scores = distinctScores(2, 3);
+
+  MzTabPeptideSectionRow pep;
+  pep.search_engine_score_ms_run = scores;
+  CHECK_SCORE_COLUMNS(f.peptideHeader(3, 2), f.sectionRow(pep), scores)
+
+  MzTabSmallMoleculeSectionRow sm;
+  sm.search_engine_score_ms_run = scores;
+  CHECK_SCORE_COLUMNS(f.smallMoleculeHeader(3, 2), f.sectionRow(sm), scores)
+
+  MzTabNucleicAcidSectionRow nuc;
+  nuc.search_engine_score_ms_run = scores;
+  CHECK_SCORE_COLUMNS(f.nucleicAcidHeader(3, 2), f.sectionRow(nuc), scores)
+
+  MzTabOligonucleotideSectionRow oli;
+  oli.search_engine_score_ms_run = scores;
+  CHECK_SCORE_COLUMNS(f.oligonucleotideHeader(3, 2), f.sectionRow(oli), scores)
+}
+END_SECTION
+
+START_SECTION([EXTRA] store() and load() keep every run-level score of a file with two scores and several runs)
+{
+  // MzTabFile_SILAC.mzTab has 6 ms_runs and one search engine score in its
+  // protein and peptide sections. Give every row a second score with a value
+  // distinct for each (row, score, run), store, load and compare.
+  MzTab mztab;
+  MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC.mzTab"), mztab);
+
+  MzTabProteinSectionRows prt = mztab.getProteinSectionRows();
+  MzTabPeptideSectionRows pep = mztab.getPeptideSectionRows();
+  TEST_EQUAL(prt.empty(), false)
+  TEST_EQUAL(pep.empty(), false)
+  ABORT_IF(prt.empty() || pep.empty())
+  const Size n_runs = prt[0].search_engine_score_ms_run.at(1).size();
+  TEST_EQUAL(n_runs, 6)
+
+  for (Size i = 0; i != prt.size(); ++i)
+  {
+    for (Size r = 1; r <= n_runs; ++r)
+    {
+      prt[i].search_engine_score_ms_run[1][r] = MzTabDouble(1000.0 * i + 10 + r);
+      prt[i].search_engine_score_ms_run[2][r] = MzTabDouble(1000.0 * i + 20 + r);
+    }
+  }
+  for (Size i = 0; i != pep.size(); ++i)
+  {
+    for (Size r = 1; r <= n_runs; ++r)
+    {
+      pep[i].search_engine_score_ms_run[1][r] = MzTabDouble(1000.0 * i + 10 + r);
+      pep[i].search_engine_score_ms_run[2][r] = MzTabDouble(1000.0 * i + 20 + r);
+    }
+  }
+  mztab.setProteinSectionRows(prt);
+  mztab.setPeptideSectionRows(pep);
+
+  std::string stored;
+  NEW_TMP_FILE(stored)
+  MzTabFile().store(stored, mztab);
+
+  MzTab reloaded;
+  MzTabFile().load(stored, reloaded);
+  const MzTabProteinSectionRows& prt2 = reloaded.getProteinSectionRows();
+  const MzTabPeptideSectionRows& pep2 = reloaded.getPeptideSectionRows();
+  TEST_EQUAL(prt2.size(), prt.size())
+  TEST_EQUAL(pep2.size(), pep.size())
+  ABORT_IF(prt2.size() != prt.size() || pep2.size() != pep.size())
+
+  Size n_wrong = 0;
+  for (Size i = 0; i != prt.size(); ++i)
+  {
+    for (const auto& score : prt[i].search_engine_score_ms_run)
+    {
+      for (const auto& run : score.second)
+      {
+        auto s_it = prt2[i].search_engine_score_ms_run.find(score.first);
+        if (s_it == prt2[i].search_engine_score_ms_run.end()) { ++n_wrong; continue; }
+        auto r_it = s_it->second.find(run.first);
+        if (r_it == s_it->second.end() || r_it->second.toCellString() != run.second.toCellString()) { ++n_wrong; }
+      }
+    }
+  }
+  TEST_EQUAL(n_wrong, 0)
+
+  n_wrong = 0;
+  for (Size i = 0; i != pep.size(); ++i)
+  {
+    for (const auto& score : pep[i].search_engine_score_ms_run)
+    {
+      for (const auto& run : score.second)
+      {
+        auto s_it = pep2[i].search_engine_score_ms_run.find(score.first);
+        if (s_it == pep2[i].search_engine_score_ms_run.end()) { ++n_wrong; continue; }
+        auto r_it = s_it->second.find(run.first);
+        if (r_it == s_it->second.end() || r_it->second.toCellString() != run.second.toCellString()) { ++n_wrong; }
+      }
+    }
+  }
+  TEST_EQUAL(n_wrong, 0)
+}
+END_SECTION
+
+#undef CHECK_SCORE_COLUMNS
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
