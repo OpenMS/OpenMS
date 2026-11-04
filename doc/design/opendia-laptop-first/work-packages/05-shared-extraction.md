@@ -1,13 +1,19 @@
 # WP-05: Exact-query shared extraction and calibration adapter
 
 - **Track:** data handling.
-- **Status:** in progress. First read-only extraction increment verified 26 October 2026, full sharing/calibration acceptance still open. **Owner / reviewer:** unassigned.
+- **Status:** in progress. Shared calibrated evidence, actual-apex scheduling and context-memory follow-through verified 4 November 2026; full sharing/calibration/native acceptance remains open. **Owner / reviewer:** unassigned.
 - **Parent epic:** [#10661](https://github.com/OpenMS/OpenMS/issues/10661). **Issue:** [#10667](https://github.com/OpenMS/OpenMS/issues/10667).
 - **Shared policies:** [architecture](../architecture.md) and [plan](../README.md).
 
 ## Objective
 
 Provide efficient calibrated evidence access and extraction, including an OpenDIA-owned replacement dataflow where warranted. Existing-engine query sharing is a compatibility experiment, not the final architecture. Follow the [native-region/fused execution experiment](../performance-strategy.md#immediate-experiment-native-regions-through-real-scoring).
+
+## Current engineering increment, 4 November 2026
+
+`fce959ce72` shares calibrated immutable extraction/scoring evidence while preserving detached mutable access. `3c13c15930` scores actual picked apices across assays in stable RT order using a single shared numerical body. Two counterbalanced full native TimSim pairs give median 116.395 to 40.040 s (2.91x), unchanged export/evidence/score/matrix/1%/5% ID results, and about 86.6% fewer scoring decodes, with 17.12% higher median RSS. Follow-through `b539859c3b` lazily prepares and releases scoring contexts: a separate two-pair comparison against the apex scheduler reduces median RSS 1,688,332 to 1,505,442 KiB (10.83%), with both pairs lower, unchanged science and median wall 38.880 to 38.795 s. All 178 affected tests pass. See the [complete current evidence, lifetime checks and memory gate](../scoring-lifetime-20261104.md). Do not combine these separate measurement sessions into a transitive speed/memory claim.
+
+This is active SQLite OSW scheduling within existing batches, not full extraction/picking/scoring fusion, a new scientific model or proof of predicted-library scaling. Historical scoring-copy counts below describe their dated revisions, not the retained current implementation. Keep WP-05 open pending remaining sharing/calibration/native and integration gates.
 
 ## Scope
 

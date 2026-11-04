@@ -1,13 +1,17 @@
 # WP-10: Laptop performance and release gates
 
 - **Track:** output/integration.
-- **Status:** proposed. **Owner / reviewer:** unassigned.
+- **Status:** separate native-fixture engineering speed and memory gates passed; representative scientific/scale/release acceptance remains open. **Owner / reviewer:** unassigned.
 - **Parent epic:** [#10661](https://github.com/OpenMS/OpenMS/issues/10661). **Issue:** [#10671](https://github.com/OpenMS/OpenMS/issues/10671).
 - **Shared policies:** [architecture](../architecture.md) and [plan](../README.md).
 
 ## Objective
 
 Decide adoption from representative end-to-end quality, runtime, memory and disk evidence, not isolated component speedups.
+
+## Current measured increment, 4 November 2026
+
+The [actual-apex scheduler](../scoring-lifetime-20261104.md#measured-native-fixture-outcome) passes two predeclared counterbalanced native TimSim pairs: median wall 116.395 to 40.040 s, unchanged scientific outputs, scoring decodes about 86.6% lower, with 17.12% higher median process peak RSS. The subsequent [memory follow-through](../scoring-lifetime-20261104.md#scoring-context-memory-follow-through), measured against the retained apex scheduler in a separate session, passes its prospective gate: median RSS 1,688,332 to 1,505,442 KiB (10.83% lower), lower RSS in each pair, median wall 38.880 to 38.795 s and all scientific checks passing. This establishes no new runtime speedup or combined earlier-parent result. It closes useful engineering gates, not this package's release gate. Astral/native Thermo, large predicted libraries, cold/warm complete process/child memory/disk and competitive scientific quality remain explicitly unverified. No default adoption or package closure follows from this fixture.
 
 ## Scope
 

@@ -1,5 +1,19 @@
 # OpenDIA: laptop-first implementation plan
 
+**Current status, 4 November 2026:** the retained shared-evidence and actual-candidate-apex scheduler (`fce959ce72`, `3c13c15930`) demonstrates a **2.91x full native TimSim speedup with unchanged scientific outputs**, with a measured **17.12%** median RSS increase in that comparison. The context-lifetime follow-through `b539859c3b` now reduces median process peak RSS **10.83% against the retained apex scheduler**, with lower RSS in both new counterbalanced pairs, essentially unchanged wall time and identical scientific results. All **178 affected tests** pass. These are separate comparisons, not a combined transitive speed/memory claim. See [current evidence, memory acceptance and PR boundary](scoring-lifetime-20261104.md). This is useful engineering progress, not completion of the large predicted-library engine.
+
+| Current package | Verified progress | Next gate / status |
+|---|---|---|
+| WP-02 | Private byte-budget primitives remain tested. | Whole-job pre-materialization admission is open. Lazy context release is not a strict byte cap. Keep open. |
+| WP-03/05 | Native evidence sharing removes scoring copies; actual-apex scheduling reduces scoring decodes about 86.6% on one native fixture. Context-lifetime follow-through passes its process-memory gate. | Full extract-once fusion, cross-lane rereads and native Thermo science remain open. |
+| WP-07 | Existing scorer lifecycle is shared, formulas are unchanged. | New family/localization science is not delivered by this engineering change. Keep independent acceptance lane. |
+| WP-09 | 178 affected workflow/numerical/output regressions and actual native integration pass on the retained memory change. | Combined native execution, reopen/rescore and resource failure acceptance remain open. |
+| WP-10 | Separate counterbalanced native-fixture comparisons pass the declared speed and subsequent memory gates. | Astral/large predicted-library, complete process/child memory, disk and competitive-quality release gates remain open. |
+
+**Execution order:** context-lifetime reduction and its bounded science/memory/speed check are complete and locally ready for scoped review. Notify the owner before opening a PR, keeping planning documents separate and identifying the stacked implementation dependencies. Then continue the fused/indexed dataflow against the frozen representative scopes. The earlier R1 sparse extraction experiment was reverted after its integrated path was slower, so it is not a retained completed milestone. R2/R3/R4 remain open. Do not close packages or merge the stacked engine into `develop` on the strength of one fixture.
+
+## Historical baseline and adapter state
+
 **Status, 27 October 2026:** WP-00 is done. WP-01 and WP-02 passed local checks. WP-03 remains a memory/time tradeoff. WP-05 consumes calibrated native regions and preserves all twelve native Bruker outputs. The next [physical-frame cache experiment](native-region-contract.md#bounded-physical-frame-reuse-27-october-2026) also preserves science but fails promotion: 224.43 versus 211.22 s, with higher RSS. The cache is experimental and disabled by default. No competitive fast-engine claim. Full acquisition, resource and competitive-quality gates remain open. Keep work packages separate from `develop`. [Epic #10661](https://github.com/OpenMS/OpenMS/issues/10661).
 
 This branch and these documents support planning and scratch work only. They are not a pull request and must not merge into `develop`.

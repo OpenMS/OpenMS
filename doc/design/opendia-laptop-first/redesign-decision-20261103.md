@@ -1,5 +1,7 @@
 # OpenDIA system redesign decision, 3 November 2026
 
+**Execution update, 4 November 2026:** the R1 sparse experiment was implemented, measured in an integrated path and reverted after a regression. It is not a retained completed milestone. Shared calibrated evidence and actual-apex RT scheduling are retained engineering groundwork, with a 2.91x native-fixture speedup, unchanged scientific outputs and a 17.12% RSS increase in that comparison. The owner's scoring-context lifetime follow-through is now implemented and locally validated: a separate comparison against the retained apex scheduler reduces median RSS 10.83%, with both pairs lower, unchanged science and essentially unchanged runtime. See [current implementation, evidence and gates](scoring-lifetime-20261104.md). Scoped context-lifetime review is ready, not combined-engine release. The target dataflow below remains the long-term direction; it is not a claim that R1/R2/R3 have shipped or that the full rewrite is PR-ready.
+
 This decision responds to the latest full-workflow A/B result and resets the implementation direction. The objective remains a fast, memory-efficient DIA search engine for large predicted libraries, with native Bruker and Thermo inputs. This is an architecture and sequencing decision, not a claim that the proposed engine is already faster or scientifically equivalent.
 
 ## Decision

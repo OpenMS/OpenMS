@@ -11,6 +11,10 @@
 
 Bound in-flight work with one byte budget and predictable progress rather than a multi-pool resource framework.
 
+## Scoring lifetime follow-through, 4 November 2026
+
+The retained actual-apex scheduler improves native-fixture wall time 2.91x but raises median process peak RSS 17.12% in that comparison. Commit `b539859c3b` now reduces median RSS 10.83% against that scheduler, with both pairs lower, unchanged scientific outputs and essentially unchanged wall time. These are separate comparisons. Its contexts remain bounded by the existing assay batch's count/lifetime, not by this package's byte admission. [Current implementation and acceptance](../scoring-lifetime-20261104.md#scoring-context-memory-follow-through) verify preparation/retention at the real last consumer without truncating chromatograms or candidates. This is WP-05 engineering follow-through, not closure of WP-02 whole-job admission. Decoder/index, complete picked groups, scorer scratch, output and native/runtime allocations must still be accounted before dispatch for a strict process-memory claim.
+
 ## Scope
 
 - Implement byte reservations, release/cancellation and bounded queues using the private v0 interfaces.

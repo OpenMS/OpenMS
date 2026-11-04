@@ -1,13 +1,17 @@
 # WP-09: Early opt-in CLI and final integration
 
 - **Track:** output/integration.
-- **Status:** proposed. **Owner / reviewer:** unassigned.
+- **Status:** existing-path integration checks pass for the current engineering increment; combined-engine acceptance remains open. **Owner / reviewer:** unassigned.
 - **Parent epic:** [#10661](https://github.com/OpenMS/OpenMS/issues/10661). **Issue:** [#10675](https://github.com/OpenMS/OpenMS/issues/10675).
 - **Shared policies:** [architecture](../architecture.md) and [plan](../README.md).
 
 ## Objective
 
 Keep a runnable opt-in path throughout development, then validate the combined bounded single-run family workflow.
+
+## Current integration evidence, 4 November 2026
+
+The [shared-evidence, actual-apex and scoring-context lifetime increments](../scoring-lifetime-20261104.md) pass all 178 affected CTests after building prerequisites, one/eight-thread scorer checks, actual native ownership/pressure integration and full native scientific-output comparisons. Core/MRM/featureXML/Parquet scheduling is unchanged. Final committed memory-change source and executable/three libraries match the measured candidate. The context-lifetime increment is locally ready for scoped review, with stacked prerequisites declared. This is existing-path integration evidence, not combined sparse-family execution or a new installed-consumer replay. Whole-job admission, native Thermo science, reopen/rescore and complete failure/publication gates remain open. Notify the owner, do not automatically open a PR or merge the stacked engine.
 
 ## Scope
 
