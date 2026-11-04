@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Maintainer: Justin Sing $
+// $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
 #include "OpenDIAResourceBudget.h"
@@ -79,6 +79,18 @@ int main()
   CHECK(smallest.tryReserve(1).has_value())
   CHECK(smallest.snapshot().peak_total_bytes == 1)
   CHECK(invalid([&] { smallest.tryReserve(2); }))
+
+  ByteBudget capped(1000, 200, 1);
+  auto fixed_workspace = capped.pin(500);
+  CHECK(fixed_workspace.bytes() == 500)
+  CHECK(invalid([&] { capped.reserve(400); }))
+  auto largest_job = capped.reserve(300);
+  CHECK(largest_job && largest_job->bytes() == 300)
+  CHECK(invalid([&] { capped.pin(100); }))
+  fixed_workspace.reset();
+
+  ByteBudget too_small_after_pin(1000, 200, 301);
+  CHECK(invalid([&] { too_small_after_pin.pin(500); }))
 
   ByteBudget budget(100, 20, 10);
   auto initial = budget.snapshot();
