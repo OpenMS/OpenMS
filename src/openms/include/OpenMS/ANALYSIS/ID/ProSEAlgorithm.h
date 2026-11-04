@@ -197,7 +197,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       bool single_cneg = false;    ///< one Cneg candidate instead of three
       std::string solver = "newton"; ///< Percolator's SVM solver (parameter 'rescore_solver', default 'newton')
       std::string use_pi0 = "true"; ///< pi0 estimate in the q-values and PEPs ('rescoring:use_pi0': true, false (the executable with TDC), auto)
-      bool calc_mass_feature = true; ///< Percolator trains on CalcMass ('rescoring:calc_mass_feature'; OpenMS develop: false)
+      bool calc_mass_feature = false; ///< Percolator trains on CalcMass ('rescoring:calc_mass_feature'; off, as the tool's default and OpenMS develop since #10717)
       bool fixed_enzyme_termini = false; ///< protein termini are enzymatic sites for enzN/enzC ('rescoring:fixed_enzyme_termini'; UNSAFE: breaks FDR control with Met clipping, keep false)
       bool peptide_level = true;   ///< also Percolator's peptide-level q-values and PEPs (parameter 'rescoring:peptide_level', default)
     };
@@ -1301,9 +1301,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                   const std::function<const PeakMap*(Size)>& searched_spectra = {}) const;
 
     /// Whether a single-use context may index only the peptides the searched spectra can reach: not with
-    /// calibration, which may change the precursor windows after the index is built, and not with chimeric search,
-    /// whose co-isolated precursors the index restriction does not know.
-    bool restrictIndexToSpectra_() const { return !calibration_enabled_ && !chimeric_enabled_; }
+    /// calibration, which may change the precursor windows after the index is built, not with chimeric search,
+    /// whose co-isolated precursors the index restriction does not know, and not with precursor:mono_correction,
+    /// which moves the precursors after the index is built (by up to two 13C spacings, beyond the restriction's margin).
+    bool restrictIndexToSpectra_() const { return !calibration_enabled_ && !chimeric_enabled_ && !monoCorrection_(); }
 
     /// Whether co-isolated precursors are searched (chimeric:enabled, which database:chunk_size > 0 does not support).
     /// The file-based searches then also read the survey scans.
