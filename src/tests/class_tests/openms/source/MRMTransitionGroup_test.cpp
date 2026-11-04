@@ -292,6 +292,15 @@ START_SECTION ( inline bool isInternallyConsistent() const)
 {
   MRMTransitionGroupType mrmtrgroup;
   TEST_EQUAL(mrmtrgroup.isInternallyConsistent(), true)
+
+  // a transition with no matching chromatogram is a genuine inconsistency;
+  // isInternallyConsistent() must be able to report it as such (it must not
+  // be an OPENMS_PRECONDITION-only check that is a silent no-op in release
+  // builds and can therefore only ever return true)
+  TransitionType inconsistent_trans;
+  inconsistent_trans.setNativeID("inconsistent_trans");
+  mrmtrgroup.addTransition(inconsistent_trans, "inconsistent_trans");
+  TEST_EQUAL(mrmtrgroup.isInternallyConsistent(), false)
 }
 END_SECTION
 
