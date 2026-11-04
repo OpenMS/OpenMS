@@ -357,12 +357,17 @@ START_SECTION((filter() - peak picking preserves MS1 ion mobility))
   ms1_params.im_extraction_window = 0.05;
   TransitionListEvidenceFilter::Result result = filter.filter(
     swath_maps, transition_exp, ms1_params, makeExtractParams(0.02), false, 1);
+  TransitionListEvidenceFilter::Result threaded_result = filter.filter(
+    swath_maps, transition_exp, ms1_params, makeExtractParams(0.02), false, 2);
 
   TEST_TRUE(result.evidence[0].supported_ms1)
   TEST_FALSE(result.evidence[1].supported_ms1)
   TEST_EQUAL(result.supported_precursors, 1)
   TEST_EQUAL(result.filtered_targets.compounds.size(), 1)
   TEST_EQUAL(result.filtered_targets.compounds[0].id, "PEP_IM_MATCH")
+  TEST_TRUE(threaded_result.evidence[0].supported_ms1)
+  TEST_FALSE(threaded_result.evidence[1].supported_ms1)
+  TEST_EQUAL(threaded_result.supported_precursors, result.supported_precursors)
 }
 END_SECTION
 
