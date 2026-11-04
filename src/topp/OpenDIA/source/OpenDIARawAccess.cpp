@@ -12,14 +12,26 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <algorithm>
 #include <cmath>
+#include <string>
 
 namespace OpenDIA
 {
   namespace
   {
-    void invalid(const char* text)
+    void invalid(const std::string& text)
     {
       throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, text, "raw scan cache");
+    }
+
+    std::string admissionFailure(const char* resource, ByteCount requested, const BudgetSnapshot& budget)
+    {
+      const ByteCount used = checkedByteAdd(budget.reserved_bytes, budget.committed_bytes);
+      const ByteCount available = budget.usable_bytes > used ? budget.usable_bytes - used : 0;
+      return std::string(resource) + " admission failed: requested " + std::to_string(requested) +
+        " bytes, " + std::to_string(available) + " bytes available after cache eviction. " +
+        (budget.cancelled ? "The cache was cancelled." :
+          "Live views may pin memory. Reduce -threads or increase "
+          "TargetedDataExtraction:raw_memory_mb.");
     }
 
     bool lowerClosed(const QueryInterval& q)
@@ -193,7 +205,7 @@ namespace OpenDIA
       // Reserve before native decode. Cache metadata remains independently available.
       reservation = cache_->reserve_(cache_->max_scan_bytes_);
     }
-    if (!reservation) { invalid("Scan admission failed: pinned views or cancellation"); }
+    if (!reservation) { invalid(admissionFailure("Scan", cache_->max_scan_bytes_, cache_->budget_.snapshot())); }
     const auto index = source_->getExperimentIndex(id);
     // Native decode is outside private capacity enforcement. Check before conversion.
     const auto native = metadata_source_->getSpectrumPeaks(index);
@@ -228,7 +240,7 @@ namespace OpenDIA
       std::lock_guard lock(cache_->mutex_);
       reservation = cache_->reserve_(copy_bound);
     }
-    if (!reservation) { invalid("Mutable scan admission failed"); }
+    if (!reservation) { invalid(admissionFailure("Mutable scan", copy_bound, cache_->budget_.snapshot())); }
     auto owner = std::make_shared<MutableColumns>();
     owner->spectrum = std::make_shared<OpenSwath::Spectrum>();
     auto& out = owner->spectrum->getDataArrays();

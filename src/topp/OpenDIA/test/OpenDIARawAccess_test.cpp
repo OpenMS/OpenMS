@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <future>
 #include <limits>
+#include <string>
 #include <stdexcept>
 
 using namespace OpenDIA;
@@ -317,9 +318,11 @@ namespace
     {
       const auto before = cache->snapshot().budget.committed_bytes;
       try { pinned.push_back(access.getSpectrumById(0)); }
-      catch (const OpenMS::Exception::BaseException&)
+      catch (const OpenMS::Exception::BaseException& error)
       {
         rejected = true;
+        check(std::string(error.what()).find("TargetedDataExtraction:raw_memory_mb") != std::string::npos,
+          "Admission failure did not identify the memory setting to adjust");
         check(cache->snapshot().budget.committed_bytes == before, "Rejected copy leaked a charge");
       }
       const auto budget = cache->snapshot().budget;
