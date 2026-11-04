@@ -324,6 +324,48 @@ START_SECTION((filter() - peak picking path))
 }
 END_SECTION
 
+START_SECTION((filter() - peak picking preserves MS1 ion mobility))
+{
+  LightTargetedExperiment transition_exp;
+  LightProtein protein;
+  protein.id = "protein";
+  transition_exp.proteins.push_back(protein);
+  addCompound(transition_exp, "PEP_IM_MATCH", 500.0, {100.0}, false, 0.70);
+  addCompound(transition_exp, "PEP_IM_MISMATCH", 500.0, {110.0}, false, 0.90);
+
+  vector<tuple<double, double, double>> profile_points;
+  const vector<pair<double, double>> profile_shape{
+    {-0.020, 0.005}, {-0.015, 0.030}, {-0.010, 0.120}, {-0.005, 0.450},
+    { 0.000, 1.000}, { 0.005, 0.450}, { 0.010, 0.120}, { 0.015, 0.030}, { 0.020, 0.005}
+  };
+  for (const auto& point : profile_shape)
+  {
+    profile_points.emplace_back(500.0 + point.first, 2000.0 * point.second, 0.70);
+  }
+
+  vector<SwathMap> swath_maps;
+  swath_maps.push_back(makeSwathMap(true, 0.0, 0.0, {makeIMSpectrum(12.0, profile_points)}));
+
+  TransitionListEvidenceFilter filter = makeFilter("ms1");
+  Param params = filter.getParameters();
+  params.setValue("peak_picking:enabled", "true");
+  params.setValue("peak_picking:use_gauss", "false");
+  params.setValue("peak_picking:PeakPickerHiRes:signal_to_noise", 0.0);
+  filter.setParameters(params);
+
+  ChromExtractParams ms1_params = makeExtractParams(0.02);
+  ms1_params.im_extraction_window = 0.05;
+  TransitionListEvidenceFilter::Result result = filter.filter(
+    swath_maps, transition_exp, ms1_params, makeExtractParams(0.02), false, 1);
+
+  TEST_TRUE(result.evidence[0].supported_ms1)
+  TEST_FALSE(result.evidence[1].supported_ms1)
+  TEST_EQUAL(result.supported_precursors, 1)
+  TEST_EQUAL(result.filtered_targets.compounds.size(), 1)
+  TEST_EQUAL(result.filtered_targets.compounds[0].id, "PEP_IM_MATCH")
+}
+END_SECTION
+
 START_SECTION((filter() - PASEF precursor ion mobility auto scale))
 {
   LightTargetedExperiment transition_exp;

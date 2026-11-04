@@ -21,6 +21,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <exception>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -297,6 +298,17 @@ namespace OpenMS
         peak.setIntensity(intensity[i]);
         openms_spectrum.push_back(peak);
       }
+      if (im && mz.size() == intensity.size() && im->data.size() == n)
+      {
+        MSSpectrum::FloatDataArray im_array;
+        im_array.setName(im->description);
+        im_array.reserve(n);
+        for (const double value : im->data)
+        {
+          im_array.push_back(static_cast<float>(value));
+        }
+        openms_spectrum.getFloatDataArrays().push_back(std::move(im_array));
+      }
       if (openms_spectrum.empty())
       {
         return peaks;
@@ -324,13 +336,20 @@ namespace OpenMS
       picker.setParameters(picker_params);
       MSSpectrum picked_spectrum;
       picker.pick(smoothed_spectrum, picked_spectrum);
+      const auto picked_im = picked_spectrum.containsIMData() ?
+        std::optional<Size>(picked_spectrum.getIMData().first) : std::nullopt;
+      const bool has_picked_im = picked_im &&
+        picked_spectrum.getFloatDataArrays()[*picked_im].size() == picked_spectrum.size();
 
       peaks.reserve(top_n == 0 ? picked_spectrum.size() : std::min(static_cast<Size>(picked_spectrum.size()), top_n));
-      for (const auto& peak : picked_spectrum)
+      for (Size i = 0; i < picked_spectrum.size(); ++i)
       {
+        const auto& peak = picked_spectrum[i];
         if (peak.getIntensity() > 0.0 && std::isfinite(peak.getIntensity()) && std::isfinite(peak.getMZ()))
         {
-          peaks.push_back({peak.getMZ(), peak.getIntensity(), -1.0});
+          const double peak_im = has_picked_im ?
+            picked_spectrum.getFloatDataArrays()[*picked_im][i] : -1.0;
+          peaks.push_back({peak.getMZ(), peak.getIntensity(), peak_im});
         }
       }
       keepTopPeaks_(peaks, top_n);
