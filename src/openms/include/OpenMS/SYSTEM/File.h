@@ -207,8 +207,8 @@ public:
     */
     static std::string getUniqueName(bool include_hostname = true);
 
-    /// Returns the OpenMS data path (resolved from the compiled-in path and executable location;
-    /// the OPENMS_DATA_PATH environment variable is only used as a last-resort fallback)
+    /// Returns the OpenMS data path (resolved from the compiled-in path and executable location; the OPENMS_DATA_PATH
+    /// environment variable is only used as a last-resort fallback). @exception Exception::FileNotFound if none is found
     static std::string getOpenMSDataPath();
 
     /**

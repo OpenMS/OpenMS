@@ -270,7 +270,8 @@ namespace OpenMS
      * @brief Adds missing ion mobility information to peptide identifications.
      *
      * This function adds missing ion mobility (IM) information to the peptide identifications.
-     * The missing IM information is retrieved from the MSExperiment.
+     * The missing IM information is retrieved from the MSExperiment. FAIMS compensation voltages are not
+     * ion mobility values and are not annotated here (see addMissingFAIMSToPeptideIDs()).
      *
      * @param[in,out] peptides The vector of peptide identifications to update.
      * @param[in] exp The MSExperiment object representing the raw data file (e.g., mzML) used to look up IM values.

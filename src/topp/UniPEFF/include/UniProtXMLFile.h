@@ -86,7 +86,7 @@ namespace OpenMS
   /**
     @brief Reads UniProtKB XML protein databases (.xml or transparently .xml.gz).
 
-    Streams the document via Xerces SAX. The on-disk format is the UniProtKB
+    Streams the document via libxml2 SAX. The on-disk format is the UniProtKB
     XML release schema. The &lt;comment type="alternative products"&gt; subtree is
     parsed into UniProtIsoform records (isoform sequences themselves are not
     stored in the XML — see UniProtIsoform on how to reconstruct them). Gzip is

@@ -925,7 +925,9 @@ namespace OpenMS
         return 0;
       }
 
-      return sum_model_data / (std::sqrt(sqsum_data) * std::sqrt(sqsum_model));
+      // one square root of the product (as in pearsonCorrelationCoefficient): for ranks without ties both sums are equal,
+      // so the root is exact and e.g. a correlation of exactly 0.5 is returned as 0.5, not as 0.49999999999999989
+      return sum_model_data / std::sqrt(sqsum_data * sqsum_model);
     }
 
     /// Helper class to gather (and dump) some statistics from a e.g. vector<double>.

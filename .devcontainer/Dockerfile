@@ -1,6 +1,6 @@
 # OpenMS development container: Ubuntu 24.04 with the build tools that the
 # vcpkg presets in CMakePresets.json need. vcpkg itself builds the C++
-# dependencies (Boost, Arrow, Xerces-C, COIN-OR, ...) on the first configure;
+# dependencies (Boost, Arrow, libxml2, HiGHS, ...) on the first configure;
 # see .devcontainer/README.md.
 #
 # The build context is the repository root (see devcontainer.json), restricted
@@ -12,8 +12,7 @@ FROM mcr.microsoft.com/devcontainers/cpp:1-ubuntu-24.04
 
 COPY tools/ci/deps-ubuntu.sh tools/ci/install_dotnet_sdk_linux.sh /tmp/openms-setup/
 
-# - deps-ubuntu.sh: compilers, CMake, Ninja, autotools (for the coin-or ports),
-#   pkg-config, Qt 6 (WITH_GUI is ON by default), Doxygen and ccache.
+# - deps-ubuntu.sh: compilers, CMake, Ninja, pkg-config, Qt 6 (WITH_GUI is ON by default), Doxygen and ccache.
 #   It calls add-apt-repository, which needs software-properties-common.
 # - libicu74: needed by the .NET SDK and runtime.
 # - install_dotnet_sdk_linux.sh: the pinned, checksum-verified .NET 8 SDK in

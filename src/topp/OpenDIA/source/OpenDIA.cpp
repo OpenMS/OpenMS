@@ -504,7 +504,7 @@ protected:
     setValidStrings_("PeptideQueryParameters:LibraryPrediction:clip_nterm_methionine", {"true", "false"});
     registerIntOption_("PeptideQueryParameters:LibraryPrediction:prediction_batch_size", "<int>", 500, "Number of precursors predicted per materialization batch.", false);
     setMinInt_("PeptideQueryParameters:LibraryPrediction:prediction_batch_size", 1);
-    registerIntOption_("PeptideQueryParameters:LibraryPrediction:inference_threads", "<int>", 4, "ONNX Runtime intra-op thread count for each PeptDeep predictor.", false);
+    registerIntOption_("PeptideQueryParameters:LibraryPrediction:inference_threads", "<int>", 4, "Threads of each PeptDeep predictor: its ONNX Runtime calls (one per batch of peptides of one length) that run at once, each on one thread.", false);
     setMinInt_("PeptideQueryParameters:LibraryPrediction:inference_threads", 1);
     registerDoubleOption_("PeptideQueryParameters:LibraryPrediction:nce", "<double>", 30.0, "Normalized collision energy supplied to PeptDeep MS2 prediction.", false);
     setMinFloat_("PeptideQueryParameters:LibraryPrediction:nce", 0.0);
@@ -1750,10 +1750,25 @@ protected:
       oswwriter.writeHeader();
     }
 
+    // The calibration corrects the library ion mobilities in 'transition_exp' in place for the run at
+    // hand. Keep the library values, so that each run is corrected starting from them instead of from
+    // the previous run's correction (which made the corrections compound and depend on the run order).
+    std::vector<double> library_drift_times;
+    library_drift_times.reserve(transition_exp.getCompounds().size());
+    for (const auto& compound : transition_exp.getCompounds())
+    {
+      library_drift_times.push_back(compound.drift_time);
+    }
+
     Size run_index = 0;
     for (const auto& current_run_files : run_groups)
     {
       pasef = user_pasef;
+      // start from the library ion mobilities, not from the previous run's corrected ones
+      for (Size i = 0; i < library_drift_times.size(); ++i)
+      {
+        transition_exp.getCompounds()[i].drift_time = library_drift_times[i];
+      }
       ChromExtractParams cp_current = cp;
       ChromExtractParams cp_ms1_current = cp_ms1;
       ChromExtractParams cp_irt_current = cp_irt;
