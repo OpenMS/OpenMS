@@ -94,6 +94,18 @@ namespace
         check(access.getSpectrumMetaById(static_cast<int>(i)).RT == direct->getSpectrumMetaById(static_cast<int>(i)).RT,
           "RT metadata changed");
       }
+      const auto expected_mz = direct->getSpectrumById(0)->getMZArray()->data;
+      const auto concurrent_access = access.lightClone();
+      std::vector<std::future<void>> concurrent_reads;
+      for (int worker = 0; worker < 8; ++worker)
+      {
+        concurrent_reads.push_back(std::async(std::launch::async, [concurrent_access, expected_mz]
+        {
+          const auto spectrum = concurrent_access->getSpectrumById(0);
+          check(spectrum->getMZArray()->data == expected_mz, "Concurrent detached spectrum changed");
+        }));
+      }
+      for (auto& read : concurrent_reads) { read.get(); }
       check(access.getSpectraByRT(0, 0) == direct->getSpectraByRT(0, 0), "Legacy RT semantics changed");
       check(cache->snapshot().budget.peak_total_bytes <= cache->snapshot().budget.usable_bytes, "Budget exceeded");
       // Exercise the public extractor with both scan copies and shared native clones.

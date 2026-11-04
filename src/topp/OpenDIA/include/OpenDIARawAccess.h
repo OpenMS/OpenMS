@@ -57,7 +57,7 @@ namespace OpenDIA
       @param[in] max_scan_bytes Positive scan admission bound, within usable bytes.
     */
     RawCache(ByteCount total_bytes, ByteCount native_reserve, ByteCount max_scan_bytes);
-    /// Read counters and budget state under one lock.
+    /// Read counters and budget state under the cache lock.
     RawCacheSnapshot snapshot() const;
     /// Remove cached scans. Live leases stay valid. This does not undo cancel().
     void clear();
@@ -84,8 +84,8 @@ namespace OpenDIA
   {
   public:
     /** @brief Share one native source and cache.
-      All access to this source must use this cache lock. Do not use the supplied
-      source directly while an adapter call is active.
+      All access to this source must use the adapter's shared source lock. Do not
+      use the supplied source directly while an adapter call is active.
       @param[in] source Non-null native source.
       @param[in] cache Non-null cache shared by all clones.
     */
@@ -113,6 +113,7 @@ namespace OpenDIA
   private:
     std::shared_ptr<OpenMS::SpectrumAccessOnDisc> source_;
     std::shared_ptr<RawCache> cache_;
+    std::shared_ptr<std::mutex> source_mutex_;
     std::shared_ptr<OpenMS::IMSExperimentRandomAccess> metadata_source_;
   };
 }

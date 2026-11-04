@@ -165,32 +165,36 @@ namespace OpenDIA
   }
 
   RawAccess::RawAccess(std::shared_ptr<OpenMS::SpectrumAccessOnDisc> source, std::shared_ptr<RawCache> cache) :
-    source_(std::move(source)), cache_(std::move(cache))
+    source_(std::move(source)), cache_(std::move(cache)), source_mutex_(std::make_shared<std::mutex>())
   {
     if (!source_ || !cache_) { invalid("Null source or cache"); }
-    std::lock_guard lock(cache_->mutex_);
-    // One metadata handle is enough. The cache lock also protects this handle.
+    std::lock_guard lock(*source_mutex_);
+    // One metadata handle is enough. The source lock protects both native handles.
     metadata_source_ = source_->getExperiment().clone();
   }
 
   std::shared_ptr<const RawScan> RawAccess::acquire(int id)
   {
-    std::lock_guard lock(cache_->mutex_);
-    const auto index = source_->getExperimentIndex(id);
-    if (cache_->budget_.snapshot().cancelled) { invalid("Cache is cancelled"); }
-    auto& entries = cache_->entries_;
-    // ponytail: one lock and linear LRU lookup, add an index only if profiling requires it.
-    auto found = std::find_if(entries.begin(), entries.end(), [&](const auto& e) { return e.source == source_ && e.id == id; });
-    if (found != entries.end())
+    std::lock_guard source_lock(*source_mutex_);
+    std::optional<ByteReservation> reservation;
     {
-      ++cache_->hits_;
-      entries.splice(entries.begin(), entries, found);
-      return entries.front().scan;
+      std::lock_guard lock(cache_->mutex_);
+      if (cache_->budget_.snapshot().cancelled) { invalid("Cache is cancelled"); }
+      auto& entries = cache_->entries_;
+      // ponytail: one lock and linear LRU lookup, add an index only if profiling requires it.
+      auto found = std::find_if(entries.begin(), entries.end(), [&](const auto& e) { return e.source == source_ && e.id == id; });
+      if (found != entries.end())
+      {
+        ++cache_->hits_;
+        entries.splice(entries.begin(), entries, found);
+        return entries.front().scan;
+      }
+      ++cache_->misses_;
+      // Reserve before native decode. Cache metadata remains independently available.
+      reservation = cache_->reserve_(cache_->max_scan_bytes_);
     }
-    ++cache_->misses_;
-    // Reserve the full scan bound before the native decoder runs.
-    auto reservation = cache_->reserve_(cache_->max_scan_bytes_);
     if (!reservation) { invalid("Scan admission failed: pinned views or cancellation"); }
+    const auto index = source_->getExperimentIndex(id);
     // Native decode is outside private capacity enforcement. Check before conversion.
     const auto native = metadata_source_->getSpectrumPeaks(index);
     if (scanBytes(native) > cache_->max_scan_bytes_) { invalid("Scan exceeds maximum scan bytes"); }
@@ -204,19 +208,26 @@ namespace OpenDIA
     if (bytes > cache_->max_scan_bytes_) { invalid("Scan exceeds maximum scan bytes"); }
     scan->lease_ = reservation->commit(bytes);
     // Publish only a complete scan whose retained capacities fit the bound.
-    entries.push_front({source_, id, scan});
+    {
+      std::lock_guard cache_lock(cache_->mutex_);
+      if (cache_->budget_.snapshot().cancelled) { invalid("Cache is cancelled"); }
+      cache_->entries_.push_front({source_, id, scan});
+    }
     return scan;
   }
 
   OpenSwath::SpectrumPtr RawAccess::getSpectrumById(int id)
   {
     const auto scan = acquire(id);
-    std::lock_guard lock(cache_->mutex_);
     // Bound the detached copy from the pinned columns, not the maximum scan size.
     const auto copy_bound = checkedByteAdd(checkedByteAdd(charge(*scan->columns_), sizeof(MutableColumns)),
       checkedByteAdd(sizeof(MutableSpectrum), checkedByteMultiply(scan->arrayCount(), sizeof(OpenSwath::BinaryDataArrayPtr))));
     if (copy_bound > cache_->max_scan_bytes_) { invalid("Mutable scan exceeds maximum scan bytes"); }
-    auto reservation = cache_->reserve_(copy_bound);
+    std::optional<ByteReservation> reservation;
+    {
+      std::lock_guard lock(cache_->mutex_);
+      reservation = cache_->reserve_(copy_bound);
+    }
     if (!reservation) { invalid("Mutable scan admission failed"); }
     auto owner = std::make_shared<MutableColumns>();
     owner->spectrum = std::make_shared<OpenSwath::Spectrum>();
@@ -253,7 +264,7 @@ namespace OpenDIA
     validate(rt);
     if (isolation) { validate(*isolation); }
     if (faims && !std::isfinite(*faims)) { invalid("Invalid FAIMS voltage"); }
-    std::lock_guard lock(cache_->mutex_);
+    std::lock_guard lock(*source_mutex_);
     std::vector<std::size_t> result;
     for (std::size_t i = 0; i < source_->getNrSpectra(); ++i)
     {
@@ -280,39 +291,39 @@ namespace OpenDIA
 
   OpenSwath::SpectrumMeta RawAccess::getSpectrumMetaById(int id) const
   {
-    std::lock_guard lock(cache_->mutex_);
+    std::lock_guard lock(*source_mutex_);
     return source_->getSpectrumMetaById(id);
   }
 
   std::vector<std::size_t> RawAccess::getSpectraByRT(double rt, double delta_rt) const
   {
     if (!std::isfinite(rt) || !std::isfinite(delta_rt) || delta_rt < 0) { invalid("Invalid RT lookup"); }
-    std::lock_guard lock(cache_->mutex_);
+    std::lock_guard lock(*source_mutex_);
     return source_->getSpectraByRT(rt, delta_rt);
   }
 
   size_t RawAccess::getNrSpectra() const
   {
-    std::lock_guard lock(cache_->mutex_);
+    std::lock_guard lock(*source_mutex_);
     return source_->getNrSpectra();
   }
 
   OpenSwath::ChromatogramPtr RawAccess::getChromatogramById(int id)
   {
-    std::lock_guard lock(cache_->mutex_);
+    std::lock_guard lock(*source_mutex_);
     if (id < 0 || static_cast<size_t>(id) >= source_->getNrChromatograms()) { invalid("Invalid chromatogram index"); }
     return source_->getChromatogramById(id);
   }
 
   size_t RawAccess::getNrChromatograms() const
   {
-    std::lock_guard lock(cache_->mutex_);
+    std::lock_guard lock(*source_mutex_);
     return source_->getNrChromatograms();
   }
 
   std::string RawAccess::getChromatogramNativeID(int id) const
   {
-    std::lock_guard lock(cache_->mutex_);
+    std::lock_guard lock(*source_mutex_);
     if (id < 0 || static_cast<size_t>(id) >= source_->getNrChromatograms()) { invalid("Invalid chromatogram index"); }
     return source_->getChromatogramNativeID(id);
   }
