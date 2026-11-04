@@ -11,6 +11,7 @@
 
 #include <Quadtree.h>
 #include <Box.h>
+#include <set>
 #include <unordered_set>
 
 #include <cmath>
@@ -114,6 +115,17 @@ namespace OpenMS
     return false;
   }
 
+  /// Sequences (with modifications) of the best hits of the identifications of @p f
+  std::set<std::string> identifiedSequences(const Feature& f)
+  {
+    std::set<std::string> sequences;
+    for (const auto& pep_id : f.getPeptideIdentifications())
+    {
+      if (!pep_id.getHits().empty()) sequences.insert(pep_id.getHits()[0].getSequence().toString());
+    }
+    return sequences;
+  }
+
   bool tracesOverlap(const Feature& a, const Feature& b, const FeatureBoundsMap& feature_bounds)
   {
     auto fbm_it1 = feature_bounds.find(a.getUniqueId());
@@ -207,7 +219,9 @@ namespace OpenMS
       {
         for (auto& overlap : quadtree.query(getBox(&f)))
         {
-          if ((overlap != &f))
+          // a feature removed by an earlier representative must not be passed to the callback again
+          // (e.g. its intensity would be added to a second representative)
+          if (overlap != &f && !removed.contains(overlap))
           {
             bool is_true_overlap = true;
             
@@ -435,27 +449,63 @@ namespace OpenMS
       // Custom callback that only merges features with DIFFERENT FAIMS CV values
       auto merge_callback = [](Feature& best_in_cluster, Feature& f) -> bool
       {
-        // After a merge, FAIMS_CV is removed and replaced with merged_centroid_IMs.
-        // If the best feature was already merged, skip (can't merge again without CV).
-        if (!best_in_cluster.metaValueExists(Constants::UserParam::FAIMS_CV) ||
-            !f.metaValueExists(Constants::UserParam::FAIMS_CV))
+        // f must be an unmerged feature (merged features carry merged_centroid_IMs instead of FAIMS_CV)
+        if (!f.metaValueExists(Constants::UserParam::FAIMS_CV))
         {
           return false;
         }
 
-        // Only merge if FAIMS CVs are DIFFERENT
-        // (same CV features should not be merged - they are different analytes)
-        double best_cv = (double)best_in_cluster.getMetaValue(Constants::UserParam::FAIMS_CV);
-        double f_cv = (double)f.getMetaValue(Constants::UserParam::FAIMS_CV);
-
-        if (best_cv == f_cv)
+        // CVs the cluster covers so far: the representative's own CV, or all CVs merged into it
+        // (after the first merge, FAIMS_CV is replaced by merged_centroid_IMs)
+        std::vector<double> merged_ims;
+        if (best_in_cluster.metaValueExists("merged_centroid_IMs"))
         {
-          return false; // Don't merge features with same CV
+          merged_ims = best_in_cluster.getMetaValue("merged_centroid_IMs").toDoubleList();
+        }
+        else if (best_in_cluster.metaValueExists(Constants::UserParam::FAIMS_CV))
+        {
+          merged_ims.push_back(best_in_cluster.getMetaValue(Constants::UserParam::FAIMS_CV));
+        }
+        else
+        {
+          return false;
+        }
+
+        // Only merge features of a CV the cluster does not cover yet
+        // (same CV features should not be merged - they are different analytes)
+        double f_cv = (double)f.getMetaValue(Constants::UserParam::FAIMS_CV);
+        if (std::find(merged_ims.begin(), merged_ims.end(), f_cv) != merged_ims.end())
+        {
+          return false;
+        }
+
+        // Features identified as different peptides are different analytes, even within the tolerances
+        // (features without identifications, e.g. from untargeted feature finders, are merged by position alone)
+        const std::set<std::string> best_sequences = identifiedSequences(best_in_cluster);
+        const std::set<std::string> f_sequences = identifiedSequences(f);
+        if (!best_sequences.empty() && !f_sequences.empty() &&
+            std::none_of(f_sequences.begin(), f_sequences.end(), [&](const std::string& seq) { return best_sequences.count(seq) > 0; }))
+        {
+          return false;
         }
 
         // Merge features with different CVs - sum intensities
         double best_intensity = best_in_cluster.getIntensity();
         double f_intensity = f.getIntensity();
+
+        // keep the identifications of the merged feature, once: an identification without a FAIMS CV is given to the
+        // features of every CV (FAIMSHelper::filterPeptidesByFAIMSCV), so the features of a cluster can share copies
+        auto& best_ids = best_in_cluster.getPeptideIdentifications();
+        for (const PeptideIdentification& pep_id : f.getPeptideIdentifications())
+        {
+          const bool known = std::any_of(best_ids.begin(), best_ids.end(), [&pep_id](const PeptideIdentification& other)
+          {
+            const auto same = [](double a, double b) { return a == b || (std::isnan(a) && std::isnan(b)); }; // RT and m/z may be unset (NaN)
+            return other.getSpectrumReference() == pep_id.getSpectrumReference() && other.getIdentifier() == pep_id.getIdentifier()
+                   && same(other.getRT(), pep_id.getRT()) && same(other.getMZ(), pep_id.getMZ());
+          });
+          if (!known) best_ids.push_back(pep_id);
+        }
 
         // Collect centroid RT positions
         std::vector<double> merged_rts;
@@ -484,16 +534,7 @@ namespace OpenMS
         best_in_cluster.setMetaValue("merged_centroid_mzs", merged_mzs);
 
         // Collect FAIMS CV values
-        std::vector<double> merged_ims;
-        if (best_in_cluster.metaValueExists("merged_centroid_IMs"))
-        {
-          merged_ims = best_in_cluster.getMetaValue("merged_centroid_IMs").toDoubleList();
-        }
-        else
-        {
-          merged_ims.push_back(best_cv);
-          best_in_cluster.removeMetaValue(Constants::UserParam::FAIMS_CV);
-        }
+        best_in_cluster.removeMetaValue(Constants::UserParam::FAIMS_CV);
         merged_ims.push_back(f_cv);
         best_in_cluster.setMetaValue("merged_centroid_IMs", merged_ims);
         best_in_cluster.setMetaValue("FAIMS_merge_count", static_cast<int>(merged_ims.size()));

@@ -10,9 +10,9 @@
 
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ZipIfstream.h>
-#include <xercesc/util/XMLString.hpp>
+#include <algorithm>
+#include <limits>
 
-using namespace xercesc;
 
 namespace OpenMS
 {
@@ -36,22 +36,19 @@ namespace OpenMS
     return zip_->isOpen();
   }
 
-  XMLSize_t ZipInputStream::readBytes(XMLByte* const to_fill, const XMLSize_t max_to_read)
+  Size ZipInputStream::readBytes(unsigned char* const to_fill, const Size max_to_read)
   {
+    if (max_to_read == 0) { return 0; }
     if (zip_->streamEnd())
     {
       return 0;
     }
 
-    unsigned char* fill_it = static_cast<unsigned char*>(to_fill);
-    XMLSize_t actual_read = (XMLSize_t)zip_->read((char*)fill_it, static_cast<size_t>(max_to_read));
+    const Size limit = std::min(max_to_read, static_cast<Size>(std::numeric_limits<int>::max()));
+    const Size actual_read = zip_->read(reinterpret_cast<char*>(to_fill), limit);
     file_current_index_ += actual_read;
     return actual_read;
   }
 
-  const XMLCh* ZipInputStream::getContentType() const
-  {
-    return nullptr;
-  }
 
 } // namespace OpenMS

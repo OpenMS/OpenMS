@@ -13,6 +13,7 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 
 #include <map>
+#include <set>
 #include <memory>
 #include <optional>
 #include <string>
@@ -320,21 +321,22 @@ public:
   /**
     @brief Write the QPX dataset @p views to @p directory: @p directory/@p prefix.VIEW.parquet per view (VIEW: its name)
 
-    Creates @p directory if needed. Writes the views in the order psm, mz, pg, run, sample, provenance (then any other
-    view, by name), each with its tables concatenated and the footer of ArrowIOHelpers::qpxFileMetadata() of the file
-    type "VIEW_file", its @c config and its @c metadata. A view without tables is not written; a view with a null
-    table fails. The mz view is not written (logged) if a psm view was given and could not be written, as its rows are
-    keyed by the spectra of the PSMs. The mz view is of one run (mzView()): its key @c id, the native ID, is unique
+    Creates @p directory if needed. Writes the views at the same time (each file on a thread of its own), each with
+    its tables concatenated and the footer of ArrowIOHelpers::qpxFileMetadata() of the file type "VIEW_file", its
+    @c config and its @c metadata. A view without tables is not written; a view with a null table fails. The mz view is
+    not kept (logged; its file is removed) if a psm view was given and could not be written, as its rows are keyed by
+    the spectra of the PSMs. The mz view is of one run (mzView()): its key @c id, the native ID, is unique
     only within a run, so an mz view whose tables together have an @c id twice (e.g. "scan=1" of two runs) fails (the
     error names the @c id). A view that fails is logged and the others are still written.
 
     @param[in] directory The folder of the dataset
     @param[in] prefix The common prefix of the files (e.g. "quantms")
     @param[in] views The views by name (e.g. "psm", "run")
+    @param[out] failed If given, receives the names of the views that failed (or were not kept)
     @return true if every view with tables was written; false if the folder could not be created or a view failed
   */
   static bool writeDataset(const std::string& directory, const std::string& prefix,
-                           const std::map<std::string, View>& views);
+                           const std::map<std::string, View>& views, std::set<std::string>* failed = nullptr);
 };
 
 } // namespace OpenMS

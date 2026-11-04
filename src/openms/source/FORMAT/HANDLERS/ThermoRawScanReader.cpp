@@ -392,6 +392,8 @@ namespace
     if (order == "Par") { mode = InstrumentSettings::ScanMode::PRECURSOR; }
     else if (order == "Nl") { mode = InstrumentSettings::ScanMode::CNL; }
     else if (order == "Ng") { mode = InstrumentSettings::ScanMode::CNG; }
+    // triple quadrupoles; FileHandler and FileConverter turn SRM spectra into chromatograms, as msconvert does
+    else if (ThermoRawFileMetadata::isSRM(parsed.filter)) { mode = InstrumentSettings::ScanMode::SRM; }
     spectrum.getInstrumentSettings().setScanMode(mode);
     spectrum.setRT(h.retention_time * 60.0);
     spectrum.setNativeID(parsed.native_id);

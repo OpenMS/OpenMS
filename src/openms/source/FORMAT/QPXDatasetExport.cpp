@@ -35,6 +35,8 @@
 #include <cctype>
 #include <cmath>
 #include <deque>
+#include <exception>
+#include <future>
 #include <iomanip>
 #include <locale>
 #include <map>
@@ -240,6 +242,35 @@ namespace OpenMS
       return static_cast<Int32>(p + 1); // 1-based
     };
 
+    // The score name (empty: no score) and the known orientation of each meta value, by its index, once per name
+    // rather than per PSM (as of the score type of the PSMs)
+    struct MetaScore
+    {
+      bool resolved = false;
+      std::string name;
+      std::optional<bool> higher_better;
+    };
+    std::vector<MetaScore> meta_scores;
+    auto metaScore = [&meta_scores](UInt index) -> const MetaScore&
+    {
+      if (index >= meta_scores.size()) { meta_scores.resize(static_cast<Size>(index) + 1); }
+      MetaScore& entry = meta_scores[index];
+      if (!entry.resolved)
+      {
+        entry.resolved = true;
+        const std::string key = MetaInfoInterface::metaRegistry().getName(index);
+        if (not_scores.count(key) == 0)
+        {
+          entry.name = scoreName(key);
+          if (!entry.name.empty()) { entry.higher_better = higherBetter(entry.name); }
+        }
+      }
+      return entry;
+    };
+    std::string last_score_type, last_score_name; // (the score type of the PSMs: one, usually)
+    const UInt isotope_error_index = MetaInfoInterface::metaRegistry().registerName("isotope_error");
+    const UInt IsotopeError_index = MetaInfoInterface::metaRegistry().registerName("IsotopeError");
+
     for (Size i = 0; i < peptide_ids.size(); ++i)
     {
       const PeptideIdentification& id = peptide_ids[i];
@@ -247,37 +278,38 @@ namespace OpenMS
       const PeptideHit& hit = id.getHits()[0];
 
       std::vector<Column::Score> row_scores;
-      std::set<std::string> seen;
-      auto add = [&](const std::string& key, double value, std::optional<bool> higher_better)
+      auto add = [&](const std::string& name, double value, std::optional<bool> known, std::optional<bool> higher_better)
       {
-        const std::string name = scoreName(key);
-        if (name.empty() || !seen.insert(name).second) { return; }
-        const std::optional<bool> known = higherBetter(name);
+        if (name.empty()) { return; }
+        for (const Column::Score& score : row_scores) { if (score.name == name) { return; } } // (the first of a name)
         if (name == "isotope_error" && value != 0.0) { value *= isotope_sign; } // (no -0)
         row_scores.push_back({name, value, known ? known : higher_better});
       };
-      add(id.getScoreType(), hit.getScore(), id.isHigherScoreBetter());
-      std::vector<std::string> keys;
-      hit.getKeys(keys);
-      for (const std::string& key : keys)
+      if (id.getScoreType() != last_score_type || last_score_type.empty())
       {
-        if (not_scores.count(key) > 0) { continue; }
-        const DataValue& value = hit.getMetaValue(key);
-        if (value.valueType() == DataValue::INT_VALUE || value.valueType() == DataValue::DOUBLE_VALUE)
-        {
-          add(key, static_cast<double>(value), std::nullopt);
-        }
+        last_score_type = id.getScoreType();
+        last_score_name = scoreName(last_score_type);
+      }
+      add(last_score_name, hit.getScore(), last_score_name.empty() ? std::nullopt : higherBetter(last_score_name),
+          id.isHigherScoreBetter());
+      for (auto meta = hit.metaBegin(); meta != hit.metaEnd(); ++meta)
+      {
+        const DataValue& value = meta->second;
+        if (value.valueType() != DataValue::INT_VALUE && value.valueType() != DataValue::DOUBLE_VALUE) { continue; }
+        const MetaScore& score = metaScore(meta->first);
+        add(score.name, static_cast<double>(value), score.higher_better, std::nullopt);
       }
       scores.score_lists.push_back(std::move(row_scores));
 
       // (null: the mz view has no row of its spectrum, or no native ID)
       const bool spectrum = has_spectrum.empty() || has_spectrum[i];
-      reference.utf8_values.push_back(spectrum ? id.getSpectrumReference() : std::string());
-      reference.null_rows.push_back(!spectrum || id.getSpectrumReference().empty());
+      std::string native_id = spectrum ? id.getSpectrumReference() : std::string();
+      reference.null_rows.push_back(native_id.empty());
+      reference.utf8_values.push_back(std::move(native_id));
 
       // an integer, or a double of an integral value (e.g. read back from a pin file); null otherwise (no
       // conversion error: another type, a fraction or a value out of the INT16 range is no isotope error)
-      const std::string isotope_key = hit.metaValueExists("isotope_error") ? "isotope_error" : "IsotopeError";
+      const UInt isotope_key = hit.metaValueExists(isotope_error_index) ? isotope_error_index : IsotopeError_index;
       std::optional<int> isotope_error;
       if (hit.metaValueExists(isotope_key))
       {
@@ -304,7 +336,11 @@ namespace OpenMS
       }
       mappings.struct_lists.push_back(std::move(row_mappings));
     }
-    return {std::move(scores), std::move(reference), std::move(isotope), std::move(mappings)};
+    // (moved into the result: returning an initializer list would copy every column)
+    std::vector<Column> columns;
+    columns.reserve(4);
+    for (Column* c : {&scores, &reference, &isotope, &mappings}) { columns.push_back(std::move(*c)); }
+    return columns;
   }
 
   std::vector<Size> QPXDatasetExport::keptPeaks(const MSSpectrum& spectrum, const std::vector<PeptideHit::PeakAnnotation>& annotations,
@@ -362,17 +398,32 @@ namespace OpenMS
 
     // -- the MS2 spectra of the PSMs (several, if a native ID is not unique), sorted by m/z --
     std::unordered_map<std::string, std::vector<Size>> psms_of_spectrum; // native ID -> PSMs
+    // the native ID of each PSM, once (a meta value lookup each time otherwise)
+    std::vector<std::string> references(peptide_ids.size());
     for (Size i = 0; i < peptide_ids.size(); ++i)
     {
-      if (!peptide_ids[i].getHits().empty()) { psms_of_spectrum[peptide_ids[i].getSpectrumReference()].push_back(i); }
+      if (!peptide_ids[i].getHits().empty()) { references[i] = peptide_ids[i].getSpectrumReference(); }
+    }
+    for (Size i = 0; i < peptide_ids.size(); ++i)
+    {
+      if (!peptide_ids[i].getHits().empty()) { psms_of_spectrum[references[i]].push_back(i); }
+    }
+    // (checked in parallel: 0 not of a PSM, 1 of a PSM and sorted, 2 of a PSM and not sorted)
+    std::vector<char> of_psm(spectra.size(), 0);
+#pragma omp parallel for schedule(dynamic, 256)
+    for (SignedSize k = 0; k < static_cast<SignedSize>(spectra.size()); ++k)
+    {
+      const MSSpectrum& spectrum = spectra[static_cast<Size>(k)];
+      if (spectrum.getMSLevel() != 2 || psms_of_spectrum.count(spectrum.getNativeID()) == 0) { continue; }
+      of_psm[static_cast<Size>(k)] = spectrum.isSorted() ? 1 : 2;
     }
     std::deque<MSSpectrum> sorted; // the sorted copies of unsorted spectra (stable addresses)
     std::vector<const MSSpectrum*> of_psms;
-    for (const MSSpectrum& spectrum : spectra)
+    for (Size k = 0; k < spectra.size(); ++k)
     {
-      if (spectrum.getMSLevel() != 2 || psms_of_spectrum.count(spectrum.getNativeID()) == 0) { continue; }
-      if (spectrum.isSorted()) { of_psms.push_back(&spectrum); continue; }
-      sorted.push_back(spectrum);
+      if (of_psm[k] == 0) { continue; }
+      if (of_psm[k] == 1) { of_psms.push_back(&spectra[k]); continue; }
+      sorted.push_back(spectra[k]);
       sorted.back().sortByPosition();
       of_psms.push_back(&sorted.back());
     }
@@ -381,7 +432,7 @@ namespace OpenMS
     // the spectrum of PSM i: by its native ID, of several the one at its RT; null if none
     auto spectrumOf = [&](Size i) -> const MSSpectrum*
     {
-      const auto found = spectra_of_id.find(peptide_ids[i].getSpectrumReference());
+      const auto found = spectra_of_id.find(references[i]);
       if (found == spectra_of_id.end()) { return nullptr; }
       if (found->second.size() == 1) { return found->second.front(); }
       for (const MSSpectrum* spectrum : found->second)
@@ -423,41 +474,81 @@ namespace OpenMS
     // the spectrum with a row of each native ID: one row per native ID ('id' is the mz view's primary key), of
     // several spectra of one native ID (at other RTs) the first's; the PSMs of the others have none
     std::map<std::string, const MSSpectrum*> written;
+    std::vector<std::pair<const MSSpectrum*, Size>> rows; // the spectrum of each row, and its first PSM
     for (Size i = 0; i < peptide_ids.size(); ++i)
     {
       if (peptide_ids[i].getHits().empty()) { continue; }
       const MSSpectrum* spectrum = spectrumOf(i);
       if (spectrum == nullptr) { continue; }
       if (!written.emplace(spectrum->getNativeID(), spectrum).second) { continue; } // its native ID has a row
-      // its peaks: those the filter keeps for any of its PSMs (each keeps its own annotated peaks), with the
-      // deisotoper's charge cap of the search's preprocessing: the spectrum's recorded precursor charge (0: unknown,
-      // then up to filter.max_charge), not the charge of a PSM (a spectrum of unknown charge was deisotoped up to
-      // that maximum, whatever the charge of its PSMs)
-      const int precursor_charge = spectrum->getPrecursors().empty() ? 0 : spectrum->getPrecursors()[0].getCharge();
-      std::vector<bool> keep(spectrum->size(), false);
-      for (Size j : psms_of_spectrum[peptide_ids[i].getSpectrumReference()])
+      rows.emplace_back(spectrum, i);
+    }
+
+    // The peaks, TIC and centroid flag of each row, independently of each other (in parallel): its peaks are those
+    // the filter keeps for any of its PSMs (each keeps its own annotated peaks), with the deisotoper's charge cap of
+    // the search's preprocessing: the spectrum's recorded precursor charge (0: unknown, then up to filter.max_charge),
+    // not the charge of a PSM (a spectrum of unknown charge was deisotoped up to that maximum, whatever the charge of
+    // its PSMs)
+    struct RowPeaks
+    {
+      std::vector<float> mz, intensity;
+      double tic = 0.0;
+      bool centroid = false;
+    };
+    std::vector<RowPeaks> row_peaks(rows.size());
+    std::exception_ptr failure; // (exceptions must not leave the parallel region)
+#pragma omp parallel for schedule(dynamic, 64)
+    for (SignedSize r = 0; r < static_cast<SignedSize>(rows.size()); ++r)
+    {
+      try
       {
-        if (spectrumOf(j) != spectrum) { continue; }
-        const PeptideHit& hit = peptide_ids[j].getHits()[0];
-        for (Size k : keptPeaks(*spectrum, hit.getPeakAnnotations(), precursor_charge, filter)) { keep[k] = true; }
+        const auto& [spectrum, first_psm] = rows[static_cast<Size>(r)];
+        RowPeaks& peaks = row_peaks[static_cast<Size>(r)];
+        const int precursor_charge = spectrum->getPrecursors().empty() ? 0 : spectrum->getPrecursors()[0].getCharge();
+        std::vector<bool> keep(spectrum->size(), false);
+        for (Size j : psms_of_spectrum.find(references[first_psm])->second)
+        {
+          if (spectrumOf(j) != spectrum) { continue; }
+          const PeptideHit& hit = peptide_ids[j].getHits()[0];
+          for (Size k : keptPeaks(*spectrum, hit.getPeakAnnotations(), precursor_charge, filter)) { keep[k] = true; }
+        }
+        const Size kept = static_cast<Size>(std::count(keep.begin(), keep.end(), true));
+        peaks.mz.reserve(kept);
+        peaks.intensity.reserve(kept);
+        for (Size k = 0; k < keep.size(); ++k)
+        {
+          if (!keep[k]) { continue; }
+          peaks.mz.push_back(static_cast<float>((*spectrum)[k].getMZ()));
+          peaks.intensity.push_back((*spectrum)[k].getIntensity());
+        }
+        peaks.tic = spectrum->calculateTIC();
+        SpectrumSettings::SpectrumType type = spectrum->getType(false);
+        if (type == SpectrumSettings::SpectrumType::UNKNOWN) { type = spectrum->getType(true); }
+        peaks.centroid = type == SpectrumSettings::SpectrumType::CENTROID;
       }
-      std::vector<float> peak_mz, peak_intensity;
-      for (Size k = 0; k < keep.size(); ++k)
+      catch (...)
       {
-        if (!keep[k]) { continue; }
-        peak_mz.push_back(static_cast<float>((*spectrum)[k].getMZ()));
-        peak_intensity.push_back((*spectrum)[k].getIntensity());
+#pragma omp critical (QPXDatasetExport_mzView)
+        if (!failure) { failure = std::current_exception(); }
       }
+    }
+    if (failure) { std::rethrow_exception(failure); }
+    // the columns, row by row
+    id.utf8_values.reserve(rows.size());
+    mz.float_lists.reserve(rows.size());
+    intensity.float_lists.reserve(rows.size());
+    for (Size r = 0; r < rows.size(); ++r)
+    {
+      const MSSpectrum* spectrum = rows[r].first;
+      RowPeaks& peaks = row_peaks[r];
       result.peaks_read += spectrum->size();
-      result.peaks_kept += peak_mz.size();
+      result.peaks_kept += peaks.mz.size();
 
       id.utf8_values.push_back(spectrum->getNativeID());
       run_file.utf8_values.push_back(run_file_name);
       scan.int32_lists.push_back(ArrowIOHelpers::qpxScanComponents(spectrum->getNativeID()));
       ms_level.int64_values.push_back(static_cast<Int64>(spectrum->getMSLevel()));
-      SpectrumSettings::SpectrumType type = spectrum->getType(false);
-      if (type == SpectrumSettings::SpectrumType::UNKNOWN) { type = spectrum->getType(true); }
-      centroid.int64_values.push_back(type == SpectrumSettings::SpectrumType::CENTROID ? 1 : 0);
+      centroid.int64_values.push_back(peaks.centroid ? 1 : 0);
       start_time.double_values.push_back(spectrum->getRT() / 60.0);
       optional_float(mobility, spectrum->getDriftTime(),
                      spectrum->getDriftTimeUnit() == DriftTimeUnit::VSSC && spectrum->getDriftTime() >= 0.0);
@@ -465,7 +556,7 @@ namespace OpenMS
                                  && spectrum->getAcquisitionInfo()[0].metaValueExists("MS:1000927");
       optional_float(injection, has_injection ? static_cast<double>(spectrum->getAcquisitionInfo()[0].getMetaValue("MS:1000927")) : 0.0,
                      has_injection);
-      tic.double_values.push_back(spectrum->calculateTIC());
+      tic.double_values.push_back(peaks.tic);
       std::vector<Column::StructEntry> ions;
       for (const Precursor& p : spectrum->getPrecursors())
       {
@@ -475,14 +566,20 @@ namespace OpenMS
                         p.getIsolationWindowUpperOffset() > 0 ? Value(p.getIsolationWindowUpperOffset()) : Value(), Value()});
       }
       precursors.struct_lists.push_back(std::move(ions));
-      mz.float_lists.push_back(std::move(peak_mz));
-      intensity.float_lists.push_back(std::move(peak_intensity));
+      mz.float_lists.push_back(std::move(peaks.mz));
+      intensity.float_lists.push_back(std::move(peaks.intensity));
       cv_params.struct_lists.emplace_back();
       cv_params.null_rows.push_back(true);
     }
     const Size mz_rows = id.utf8_values.size();
-    result.table = ArrowIOHelpers::tableOfColumns({id, run_file, scan, ms_level, centroid, start_time, mobility, injection, tic,
-                                                   precursors, mz, intensity, cv_params}, mz_rows);
+    // (moved, not copied: an initializer list would copy every peak)
+    std::vector<Column> columns;
+    for (Column* c : {&id, &run_file, &scan, &ms_level, &centroid, &start_time, &mobility, &injection, &tic, &precursors, &mz,
+                      &intensity, &cv_params})
+    {
+      columns.push_back(std::move(*c));
+    }
+    result.table = ArrowIOHelpers::tableOfColumns(columns, mz_rows);
 
     // Each PSM against the rows, once all are made (a later PSM may make the row of a native ID): a PSM has its
     // spectrum's row only if the row of its native ID is that spectrum's. Otherwise (no spectrum of its native ID and
@@ -491,7 +588,7 @@ namespace OpenMS
     for (Size i = 0; i < peptide_ids.size(); ++i)
     {
       if (peptide_ids[i].getHits().empty()) { continue; }
-      const auto row = written.find(peptide_ids[i].getSpectrumReference());
+      const auto row = written.find(references[i]);
       if (row == written.end()) { ++result.without_spectrum; } // no spectrum of its native ID (and RT), and no row to join
       else if (row->second != spectrumOf(i)) { ++result.unresolved; }
       else { result.has_spectrum[i] = result.table != nullptr; }
@@ -631,56 +728,86 @@ namespace OpenMS
   }
 
   bool QPXDatasetExport::writeDataset(const std::string& directory, const std::string& prefix,
-                                      const std::map<std::string, View>& views)
+                                      const std::map<std::string, View>& views, std::set<std::string>* failed)
   {
     if (!File::makeDir(directory))
     {
       OPENMS_LOG_ERROR << "Failed to create the folder of the QPX dataset: " << directory << std::endl;
       return false;
     }
-    // the views in the order psm, mz, pg, run, sample, provenance, then any other by name
-    static const std::vector<std::string> known = {"psm", "mz", "pg", "run", "sample", "provenance"};
+    auto fileOf = [&](const std::string& name) { return directory + "/" + prefix + "." + name + ".parquet"; };
+    // The views to write, checked first; then written at the same time, each file on a thread of its own (the
+    // encoding of a file is mostly single-threaded)
     std::vector<std::string> names;
-    for (const std::string& name : known) { if (views.count(name) > 0) { names.push_back(name); } }
-    for (const auto& entry : views)
+    std::set<std::string> failed_views;
+    for (const auto& [name, view] : views)
     {
-      if (std::find(known.begin(), known.end(), entry.first) == known.end()) { names.push_back(entry.first); }
-    }
-
-    bool ok = true;
-    bool psm_failed = false;
-    for (const std::string& name : names)
-    {
-      const View& view = views.at(name);
       if (view.tables.empty()) { continue; } // (not written)
-      const std::string file = directory + "/" + prefix + "." + name + ".parquet";
-      if (name == "mz" && psm_failed)
-      {
-        // (its rows are keyed by the spectra of the PSMs)
-        OPENMS_LOG_ERROR << "Not writing the QPX mz view, as its psm view failed -> " << file << std::endl;
-        continue;
-      }
-      const bool tables = std::none_of(view.tables.begin(), view.tables.end(),
-                                       [](const std::shared_ptr<arrow::Table>& t) { return t == nullptr; });
-      if (name == "mz" && tables)
+      if (name == "mz" && std::none_of(view.tables.begin(), view.tables.end(), [](const auto& t) { return t == nullptr; }))
       {
         // (one run per mz view: its key 'id', the native ID, is unique only within a run, e.g. "scan=1" of each)
         if (const std::optional<std::string> duplicate = duplicateId(view.tables))
         {
           OPENMS_LOG_ERROR << "Not writing the QPX mz view, as its tables have the id '" << *duplicate
-                           << "' twice (an mz view is of one run) -> " << file << std::endl;
-          ok = false;
+                           << "' twice (an mz view is of one run) -> " << fileOf(name) << std::endl;
+          failed_views.insert(name);
           continue;
         }
       }
-      const auto meta = tables ? ArrowIOHelpers::qpxFileMetadata(name + "_file", view.config, view.metadata) : nullptr;
-      if (!tables || !meta || !ArrowIOHelpers::concatenateAndWriteToParquet(view.tables, file, view.config, meta))
+      names.push_back(name);
+    }
+    // The footers first, here and in the order psm, mz, pg, run, sample, provenance, then any other view by name: each
+    // has a uuid of UniqueIdGenerator, whose sequence is fixed in test mode
+    static const std::vector<std::string> known = {"psm", "mz", "pg", "run", "sample", "provenance"};
+    std::stable_sort(names.begin(), names.end(), [](const std::string& a, const std::string& b)
+    {
+      const auto rank = [](const std::string& name) { return std::find(known.begin(), known.end(), name) - known.begin(); };
+      return rank(a) < rank(b);
+    });
+    std::vector<std::shared_ptr<const arrow::KeyValueMetadata>> metas;
+    for (const std::string& name : names)
+    {
+      const View& view = views.at(name);
+      const bool tables = std::none_of(view.tables.begin(), view.tables.end(),
+                                       [](const std::shared_ptr<arrow::Table>& t) { return t == nullptr; });
+      metas.push_back(tables ? ArrowIOHelpers::qpxFileMetadata(name + "_file", view.config, view.metadata) : nullptr);
+    }
+    auto write = [&](Size k) -> bool
+    {
+      const View& view = views.at(names[k]);
+      return metas[k] && ArrowIOHelpers::concatenateAndWriteToParquet(view.tables, fileOf(names[k]), view.config, metas[k]);
+    };
+    std::vector<std::future<bool>> writes;
+    for (Size k = 1; k < names.size(); ++k) { writes.push_back(std::async(std::launch::async, write, k)); }
+    std::vector<bool> written(names.size(), false);
+    std::exception_ptr error; // (rethrown once every write has ended, e.g. std::bad_alloc)
+    if (!names.empty())
+    {
+      try { written[0] = write(0); } catch (...) { error = std::current_exception(); }
+    }
+    for (Size k = 1; k < names.size(); ++k)
+    {
+      try { written[k] = writes[k - 1].get(); } catch (...) { if (!error) { error = std::current_exception(); } }
+    }
+    if (error) { std::rethrow_exception(error); }
+    for (Size k = 0; k < names.size(); ++k)
+    {
+      if (!written[k])
       {
-        OPENMS_LOG_ERROR << "Failed to write the QPX " << name << " view -> " << file << std::endl;
-        ok = false;
-        if (name == "psm") { psm_failed = true; }
+        OPENMS_LOG_ERROR << "Failed to write the QPX " << names[k] << " view -> " << fileOf(names[k]) << std::endl;
+        failed_views.insert(names[k]);
       }
     }
+    if (failed_views.count("psm") > 0 && views.count("mz") > 0 && failed_views.count("mz") == 0
+        && std::find(names.begin(), names.end(), "mz") != names.end())
+    {
+      // (its rows are keyed by the spectra of the PSMs)
+      OPENMS_LOG_ERROR << "Not keeping the QPX mz view, as its psm view failed -> " << fileOf("mz") << std::endl;
+      File::remove(fileOf("mz"));
+      failed_views.insert("mz");
+    }
+    const bool ok = failed_views.empty();
+    if (failed) { *failed = failed_views; }
     return ok;
   }
 } // namespace OpenMS

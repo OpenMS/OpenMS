@@ -22,16 +22,10 @@
 namespace OpenMS::Internal
 {
   /**
-    @brief Calls xercesc::XMLPlatformUtils::Initialize() under a process-wide lock.
+    @brief Initialize libxml2 once before parsing from concurrent threads.
 
-    Xerces counts its initialisations in a plain integer and requires callers to serialise
-    Initialize() and Terminate() (its threading FAQ). OpenMS initialises Xerces once when the
-    library is loaded; every parser calls this again before parsing, also from several threads
-    at once (e.g. the chunks of a parallel mzML read), so the calls are serialised here.
-    Throws xercesc::XMLException as Initialize() does.
+    OpenMS deliberately never calls xmlCleanupParser: other threads or dependent
+    libraries may still own parser contexts when an OpenMS object is destroyed.
   */
-  OPENMS_DLLAPI void xercesInitialize();
-
-  /// Calls xercesc::XMLPlatformUtils::Terminate() under the lock of xercesInitialize()
-  OPENMS_DLLAPI void xercesTerminate();
+  OPENMS_DLLAPI void libxmlInitialize();
 }

@@ -78,7 +78,7 @@ private:
   {
     registerInputFile_("in", "<file>", "", "Peptide multiplets with assigned sequence information");
     setValidFormats_("in", ListUtils::create<std::string>("consensusXML"));
-    registerInputFile_("in_blacklist", "<file>", "", "Optional input containing spectral peaks blacklisted during feature detection. Needed for generation of dummy features.", false);
+    registerInputFile_("in_blacklist", "<file>", "", "Optional input containing spectral peaks blacklisted during feature detection. Needed for generation of dummy features. If it records which feature reserved each peak (FeatureFinderMultiplex -out_blacklist), 'algorithm:use_blacklist_owners' lets only peaks of other multiplets make a dummy feature not quantifiable; the multiplets then need the feature ids FeatureFinderMultiplex writes (-out_multiplets).", false);
     setValidFormats_("in_blacklist", ListUtils::create<std::string>("mzML"));
     registerOutputFile_("out", "<file>", "", "Complete peptide multiplets.");
     setValidFormats_("out", ListUtils::create<std::string>("consensusXML"));

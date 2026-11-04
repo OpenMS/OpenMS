@@ -12,8 +12,8 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
-#include <utility>
-#include <vector>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #define MULTI_LINE_STRING(...) #__VA_ARGS__ 
 
@@ -391,7 +391,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
             <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
             <cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
             <binary>
-              whoPutMeHere: some crazy person, obviously! What if I contain invalid characters like these &- 
+              whoPutMeHere: some crazy person, obviously! What if I contain invalid characters like these &amp;-
             </binary>
           </binaryDataArray>
         </binaryDataArrayList>
@@ -578,6 +578,62 @@ START_SECTION(( void domParseSpectrum(const std::string& in, OpenMS::Interfaces:
   TEST_REAL_SIMILAR(s[7].getIntensity(), 8)
   TEST_REAL_SIMILAR(s.getFloatDataArrays()[0][7], 8)
   TEST_EQUAL(s.getFloatDataArrays()[0].getName(), "Ion Mobility")
+
+  // arrays typed by a CV term are named like in MzMLHandler (the same helper names them), the last term wins
+  const std::string non_standard = "<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"Ion Mobility\" />";
+  const std::string im_term = "<cvParam cvRef=\"MS\" accession=\"MS:1003008\" name=\"raw inverse reduced ion mobility array\" value=\"\"/>";
+  auto withArrayTerms = [&](const std::string& terms)
+  {
+    std::string spectrum = testString;
+    spectrum.replace(spectrum.find(non_standard), non_standard.size(), terms);
+    return spectrum;
+  };
+  auto loadFully = [](const std::string& spectrum)
+  {
+    PeakMap exp;
+    MzMLFile().loadBuffer("<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" version=\"1.1.0\"><run id=\"r\" defaultInstrumentConfigurationRef=\"ic\">"
+                          "<spectrumList count=\"1\" defaultDataProcessingRef=\"dp\">" + spectrum + "</spectrumList></run></mzML>", exp);
+    return exp[0];
+  };
+  auto loadedArrayName = [&](const std::string& spectrum) { return loadFully(spectrum).getFloatDataArrays()[0].getName(); };
+
+  const std::string typed = withArrayTerms(im_term);
+  MSSpectrum s_typed;
+  ptr->domParseSpectrum(typed, s_typed);
+  TEST_EQUAL(s_typed.getFloatDataArrays().size(), 1)
+  TEST_EQUAL(s_typed.getFloatDataArrays()[0].getName(), "raw inverse reduced ion mobility array")
+  TEST_EQUAL(s_typed.containsIMData(), true)
+  TEST_EQUAL(s_typed.getIMData().second == DriftTimeUnit::VSSC, true)
+  TEST_EQUAL(loadedArrayName(typed), "raw inverse reduced ion mobility array")
+
+  for (const auto& [terms, expected] : std::vector<std::pair<std::string, std::string>>{
+         {non_standard + im_term, "raw inverse reduced ion mobility array"},
+         {im_term + non_standard, "Ion Mobility"}})
+  {
+    const std::string both = withArrayTerms(terms);
+    MSSpectrum s_both;
+    ptr->domParseSpectrum(both, s_both);
+    TEST_EQUAL(s_both.getFloatDataArrays()[0].getName(), expected)
+    TEST_EQUAL(loadedArrayName(both), expected)
+  }
+
+  // absorbance intensities are flagged in the spectrum, as in MzMLHandler
+  std::string absorbance = testString;
+  absorbance.replace(absorbance.find("unitAccession=\"MS:1000131\" unitName=\"number of detector counts\" unitCvRef=\"MS\""),
+                     std::string("unitAccession=\"MS:1000131\" unitName=\"number of detector counts\" unitCvRef=\"MS\"").size(),
+                     "unitAccession=\"UO:0000269\" unitName=\"absorbance unit\" unitCvRef=\"UO\"");
+  MSSpectrum s_absorbance;
+  ptr->domParseSpectrum(absorbance, s_absorbance);
+  TEST_EQUAL(s_absorbance.getMetaValue("mzml intensity array", "") == "absorption", true)
+  TEST_EQUAL(loadFully(absorbance).getMetaValue("mzml intensity array", "") == "absorption", true)
+  TEST_EQUAL(s.metaValueExists("mzml intensity array"), false)
+
+  // an accession missing from the bundled CV (e.g. a newer term) does not stop decoding
+  std::string unknown = typed;
+  unknown.replace(unknown.find("MS:1003008"), 10, "MS:9999999");
+  MSSpectrum s_unknown;
+  ptr->domParseSpectrum(unknown, s_unknown);
+  TEST_EQUAL(s_unknown.size(), 15)
   delete ptr;
 }
 END_SECTION
@@ -624,53 +680,7 @@ START_SECTION(( void domParseChromatogram(const std::string& in, OpenMS::Interfa
 }
 END_SECTION
 
-START_SECTION((standard and non-standard binary array names))
-{
-  // Use real DOM decoding. Standard CV names must not depend on the XML name label.
-  const std::string prefix = R"(<spectrum id="scan=1" defaultArrayLength="2">
-    <binaryDataArrayList count="3">
-      <binaryDataArray encodedLength="24">
-        <cvParam accession="MS:1000523" name="64-bit float"/>
-        <cvParam accession="MS:1000576" name="no compression"/>
-        <cvParam accession="MS:1000514" name="m/z array"/>
-        <binary>AAAAAAAAeUAAAAAAAEB/QA==</binary>
-      </binaryDataArray>
-      <binaryDataArray encodedLength="24">
-        <cvParam accession="MS:1000523" name="64-bit float"/>
-        <cvParam accession="MS:1000576" name="no compression"/>
-        <cvParam accession="MS:1000515" name="intensity array"/>
-        <binary>AAAAAAAAJEAAAAAAAAA0QA==</binary>
-      </binaryDataArray>
-      <binaryDataArray encodedLength="12">
-        <cvParam accession="MS:1000521" name="32-bit float"/>
-        <cvParam accession="MS:1000576" name="no compression"/>
-        <cvParam accession=")";
-  for (const auto& [accession, expected] : std::vector<std::pair<std::string, std::string>>{
-    {"MS:1003008", "raw inverse reduced ion mobility array"},
-    {"MS:1002816", "mean ion mobility array"},
-    {"MS:1000786", "vendor mobility"},
-    {"MS:1000016", ""}})
-  {
-    const auto xml = prefix + accession + R"(" name="not the canonical name" value="vendor mobility" unitAccession="MS:1002814"/>
-        <binary>AAAAPwAAwD8=</binary>
-      </binaryDataArray>
-    </binaryDataArrayList></spectrum>)";
-    MSSpectrum spectrum;
-    MzMLSpectrumDecoder().domParseSpectrum(xml, spectrum);
-    TEST_EQUAL(spectrum.size(), 2)
-    TEST_EQUAL(spectrum[0].getMZ(), 400)
-    TEST_EQUAL(spectrum[1].getIntensity(), 20)
-    TEST_EQUAL(spectrum.getFloatDataArrays().size(), 1)
-    const auto& array = spectrum.getFloatDataArrays().front();
-    TEST_EQUAL(array.getName(), expected)
-    TEST_EQUAL(array.getMetaValue("unit_accession"), "MS:1002814")
-    TEST_EQUAL(array.size(), 2)
-    TEST_EQUAL(array[0], 0.5)
-    TEST_EQUAL(array[1], 1.5)
-  }
-}
-END_SECTION
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+

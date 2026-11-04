@@ -65,6 +65,8 @@ struct GroupRatio
   double normalized = 0.0;
   bool has_normalized = false; ///< the producer normalized; otherwise only the raw ratio is reported
   Int count = 0;
+  Int targeted_count = -1; ///< ratios of targeted quantification among them; -1 = not annotated
+  Int requantified_count = -1; ///< ratios resting on re-quantified channels among them; -1 = not annotated
 };
 
 std::map<std::pair<UInt, UInt>, GroupRatio> fractionGroupRatios(
@@ -75,6 +77,8 @@ std::map<std::pair<UInt, UInt>, GroupRatio> fractionGroupRatios(
   const ProteinIdentification::ProteinGroup::IntegerDataArray* fraction_groups = nullptr;
   const ProteinIdentification::ProteinGroup::IntegerDataArray* labels = nullptr;
   const ProteinIdentification::ProteinGroup::IntegerDataArray* counts = nullptr;
+  const ProteinIdentification::ProteinGroup::IntegerDataArray* targeted_counts = nullptr;
+  const ProteinIdentification::ProteinGroup::IntegerDataArray* requantified_counts = nullptr;
   for (const auto& array : group.getFloatDataArrays())
   {
     if (array.getName() == "fraction_group_level_ratio") { ratios = &array; }
@@ -85,6 +89,8 @@ std::map<std::pair<UInt, UInt>, GroupRatio> fractionGroupRatios(
     if (array.getName() == "fraction_group_level_ratio_fraction_group") { fraction_groups = &array; }
     else if (array.getName() == "fraction_group_level_ratio_label") { labels = &array; }
     else if (array.getName() == "fraction_group_level_ratio_count") { counts = &array; }
+    else if (array.getName() == "fraction_group_level_ratio_targeted_count") { targeted_counts = &array; }
+    else if (array.getName() == "fraction_group_level_ratio_requantified_count") { requantified_counts = &array; }
   }
 
   std::map<std::pair<UInt, UInt>, GroupRatio> result;
@@ -99,6 +105,8 @@ std::map<std::pair<UInt, UInt>, GroupRatio> fractionGroupRatios(
     entry.has_normalized = normalized != nullptr && normalized->size() == n;
     entry.normalized = entry.has_normalized ? (*normalized)[i] : (*ratios)[i];
     entry.count = (counts != nullptr && counts->size() == n) ? (*counts)[i] : 0;
+    entry.targeted_count = (targeted_counts != nullptr && targeted_counts->size() == n) ? (*targeted_counts)[i] : -1;
+    entry.requantified_count = (requantified_counts != nullptr && requantified_counts->size() == n) ? (*requantified_counts)[i] : -1;
     result[{static_cast<UInt>((*fraction_groups)[i]), static_cast<UInt>((*labels)[i])}] = entry;
   }
   return result;
@@ -158,10 +166,13 @@ std::map<std::pair<UInt, UInt>, GroupRatio> fractionGroupRatios(
                          const PeptideIdentificationList& pep_ids,
                          AccessionRuns& acc_runs)
   {
+    std::string last_path, last_run; // (qpxRunFileName() of the path of the PSMs before: mostly one path)
     for (const auto& pid : pep_ids)
     {
       if (pid.getHits().empty()) { continue; }
-      const std::string run = ArrowIOHelpers::qpxRunFileName(mapper.getPrimaryMSRunPath(pid));
+      std::string path = mapper.getPrimaryMSRunPath(pid);
+      if (path != last_path || last_run.empty()) { last_run = ArrowIOHelpers::qpxRunFileName(path); last_path = std::move(path); }
+      const std::string& run = last_run;
       if (run.empty()) { continue; }
       for (const auto& ev : pid.getHits()[0].getPeptideEvidences())
       {
@@ -849,6 +860,14 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
               row_additional_intensities.emplace_back("ratio_normalized", static_cast<float>(ratio->second.normalized));
             }
             row_cv_params.emplace_back("ratio_count", std::to_string(ratio->second.count));
+            if (ratio->second.targeted_count >= 0)
+            {
+              row_cv_params.emplace_back("ratio_targeted_count", std::to_string(ratio->second.targeted_count));
+            }
+            if (ratio->second.requantified_count >= 0)
+            {
+              row_cv_params.emplace_back("ratio_requantified_count", std::to_string(ratio->second.requantified_count));
+            }
           }
           emitRow(group, unit.runs, channel.qpx_label, value->second, row_cv_params, row_additional_intensities);
         }
@@ -1242,11 +1261,14 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
         mapper.validateMergeIndex(*pep_ptr, psm_index);
       }
 
+      std::string last_path, last_run; // (qpxRunFileName() of the path of the PSMs before: mostly one path)
       for (const auto& [psm_index, pep_ptr] : bucket->second)
       {
         const auto& pep_id = *pep_ptr;
         if (pep_id.getHits().empty()) continue;
-        const std::string run = ArrowIOHelpers::qpxRunFileName(mapper.getPrimaryMSRunPath(pep_id));
+        std::string path = mapper.getPrimaryMSRunPath(pep_id);
+        if (path != last_path || last_run.empty()) { last_run = ArrowIOHelpers::qpxRunFileName(path); last_path = std::move(path); }
+        const std::string& run = last_run;
         if (run.empty())
         {
           // The run has files but this PSM resolves to none of them -- e.g. an 'id_merge_index'

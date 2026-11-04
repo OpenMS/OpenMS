@@ -45,11 +45,9 @@ namespace OpenMS
     /// The database is immutable after construction, so a const pointer is returned.
     static const InstanceType* getInstance()
     {
-      static InstanceType* db_ = nullptr;
-      if (db_ == nullptr)
-      {
-        db_ = new InstanceType;
-      }
+      // function-local static: initialization is thread-safe (C++11), so concurrent first calls
+      // (e.g. from an OpenMP loop or another Python thread) construct exactly one database
+      static const InstanceType* db_ = new InstanceType;
       return db_;
     }
 

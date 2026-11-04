@@ -92,6 +92,22 @@ START_SECTION((static std::string filterKey(const std::string& filter)))
 }
 END_SECTION
 
+START_SECTION((static bool isSRM(const std::string& filter)))
+{
+  // TSQ Altis (PXD057351)
+  TEST_TRUE(ThermoRawFileMetadata::isSRM("+ c NSI SRM ms2 549.272 [246.107-246.109, 529.776-529.778, 547.271-547.273]"))
+  TEST_TRUE(ThermoRawFileMetadata::isSRM("+ c ESI sid=10.00 SRM ms2 400.000@cid25.00 [300.000-301.000]"))
+  TEST_TRUE(ThermoRawFileMetadata::isSRM("- c ESI SRM ms2 255.200"))  // no mass range
+  TEST_FALSE(ThermoRawFileMetadata::isSRM("FTMS + c NSI Full ms2 500.00@hcd30.00 [100.0000-1000.0000]"))
+  TEST_FALSE(ThermoRawFileMetadata::isSRM("FTMS + p NSI SIM ms [400.0000-420.0000]"))
+  TEST_FALSE(ThermoRawFileMetadata::isSRM("+ c ESI CRM ms3 500.000@cid30.00 400.000@cid30.00 [300.000-301.000]"))
+  TEST_FALSE(ThermoRawFileMetadata::isSRM("+ c ESI Q1MS [100.000-1000.000]"))
+  TEST_FALSE(ThermoRawFileMetadata::isSRM("+ c ESI SRMx ms2 400.000 [300.000-301.000]")) // whole words only
+  TEST_FALSE(ThermoRawFileMetadata::isSRM("+ c ESI Full ms2 400.000 [SRM]"))             // not in the mass ranges
+  TEST_FALSE(ThermoRawFileMetadata::isSRM(""))
+}
+END_SECTION
+
 START_SECTION([EXTRA] ThermoTrailerIndex learns and re-learns label positions)
 {
   ThermoTrailerIndex index;

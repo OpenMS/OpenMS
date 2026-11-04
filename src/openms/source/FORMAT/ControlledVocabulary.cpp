@@ -15,11 +15,22 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#include <memory>
+#include <string_view>
 
 using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    // StringUtils::hasPrefix() for a string literal, without a std::string made of the literal on each call (the OBO
+    // parser below compares every line with up to 16 literals)
+    bool hasPrefix_(const std::string& s, std::string_view prefix)
+    {
+      return s.size() >= prefix.size() && s.compare(0, prefix.size(), prefix) == 0;
+    }
+  }
 
   ControlledVocabulary::CVTerm::CVTerm() :
     name(),
@@ -139,10 +150,55 @@ namespace OpenMS
 
   ControlledVocabulary::ControlledVocabulary() = default;
 
+  // index_ points into terms_ and is rebuilt for a copy; a move keeps the map nodes it points to.
+  ControlledVocabulary::ControlledVocabulary(const ControlledVocabulary& rhs) :
+    terms_(rhs.terms_),
+    namesToIds_(rhs.namesToIds_),
+    name_(rhs.name_),
+    label_(rhs.label_),
+    version_(rhs.version_),
+    url_(rhs.url_)
+  {
+    rebuildIndex_();
+  }
+
+  ControlledVocabulary::ControlledVocabulary(ControlledVocabulary&& rhs) noexcept = default;
+
+  ControlledVocabulary& ControlledVocabulary::operator=(const ControlledVocabulary& rhs)
+  {
+    if (this != &rhs)
+    {
+      ControlledVocabulary copy(rhs);
+      *this = std::move(copy);
+    }
+    return *this;
+  }
+
+  ControlledVocabulary& ControlledVocabulary::operator=(ControlledVocabulary&& rhs) noexcept = default;
+
+  void ControlledVocabulary::rebuildIndex_()
+  {
+    index_.clear();
+    index_.reserve(terms_.size());
+    for (const auto& [id, term] : terms_) { index_.emplace(id, &term); }
+  }
+
+  const ControlledVocabulary::CVTerm* ControlledVocabulary::findTerm_(std::string_view id) const
+  {
+    const auto it = index_.find(id);
+    return it == index_.end() ? nullptr : it->second;
+  }
+
   ControlledVocabulary::~ControlledVocabulary() = default;
 
   void ControlledVocabulary::loadFromOBO(const std::string& name, const std::string& filename)
   {
+    // keep index_ consistent with terms_ however loading ends
+    struct IndexGuard
+    {
+      ControlledVocabulary& cv;
+      ~IndexGuard() { cv.rebuildIndex_(); }
+    } index_guard{*this};
     bool in_term = false;
     name_ = name;
 
@@ -179,15 +235,15 @@ namespace OpenMS
         continue;
       }
 
-      if (StringUtils::hasPrefix(line_wo_spaces, "data-version:"))
+      if (hasPrefix_(line_wo_spaces, "data-version:"))
       {
         version_ = StringUtils::trimmed(StringUtils::substr(line, line.find(':') + 1));
       }
-      if (StringUtils::hasPrefix(line_wo_spaces, "default-namespace:"))
+      if (hasPrefix_(line_wo_spaces, "default-namespace:"))
       {
         label_ = StringUtils::trimmed(StringUtils::substr(line, line.find(':') + 1));
       }
-      if (StringUtils::hasPrefix(line_wo_spaces, "remark:URL:"))
+      if (hasPrefix_(line_wo_spaces, "remark:URL:"))
       {
         // Find the position of "http://" or "https://"
         size_t httpPos = line.find("http://");
@@ -233,15 +289,15 @@ namespace OpenMS
       //data line
       else if (in_term)
       {
-        if (StringUtils::hasPrefix(line_wo_spaces, "id:"))
+        if (hasPrefix_(line_wo_spaces, "id:"))
         {
           term.id = StringUtils::trimmed(StringUtils::substr(line, line.find(':') + 1));
         }
-        else if (StringUtils::hasPrefix(line_wo_spaces, "name:"))
+        else if (hasPrefix_(line_wo_spaces, "name:"))
         {
           term.name = StringUtils::trimmed(StringUtils::substr(line, line.find(':') + 1));
         }
-        else if (StringUtils::hasPrefix(line_wo_spaces, "is_a:"))
+        else if (hasPrefix_(line_wo_spaces, "is_a:"))
         {
           if (StringUtils::has(line, '!'))
           {
@@ -259,7 +315,7 @@ namespace OpenMS
           }
         }
         // brenda tissue special relationships, DRV (derived and part of)
-        else if (StringUtils::hasPrefix(line_wo_spaces, "relationship:DRV") && name == "brenda")
+        else if (hasPrefix_(line_wo_spaces, "relationship:DRV") && name == "brenda")
         {
           if (StringUtils::has(line, '!'))
           {
@@ -278,7 +334,7 @@ namespace OpenMS
             term.parents.insert(StringUtils::prefix(StringUtils::substr(line, line.find("DRV") + 4), ':') + ":" + StringUtils::trimmed(StringUtils::suffix(line, ':')));
           }
         }
-        else if (StringUtils::hasPrefix(line_wo_spaces, "relationship:part_of") && name == "brenda")
+        else if (hasPrefix_(line_wo_spaces, "relationship:part_of") && name == "brenda")
         {
           if (StringUtils::has(line, '!'))
           {
@@ -297,7 +353,7 @@ namespace OpenMS
             term.parents.insert(StringUtils::prefix(StringUtils::substr(line, line.find("part_of") + 8), ':') + ":" + StringUtils::trimmed(StringUtils::suffix(line, ':')));
           }
         }
-        else if (StringUtils::hasPrefix(line_wo_spaces, "relationship:has_units"))
+        else if (hasPrefix_(line_wo_spaces, "relationship:has_units"))
         {
           if (StringUtils::has(line, '!'))
           {
@@ -316,7 +372,7 @@ namespace OpenMS
             term.units.insert(StringUtils::prefix(StringUtils::substr(line, line.find("has_units") + 10), ':') + ":" + StringUtils::trimmed(StringUtils::suffix(line, ':')));
           }
         }
-        else if (StringUtils::hasPrefix(line_wo_spaces, "def:"))
+        else if (hasPrefix_(line_wo_spaces, "def:"))
         {
           std::string description = StringUtils::substr(line, line.find('"') + 1);
           StringUtils::trim(description);
@@ -324,7 +380,7 @@ namespace OpenMS
           StringUtils::trim(description);
           term.description = description;
         }
-        else if (StringUtils::hasPrefix(line_wo_spaces, "synonym:"))
+        else if (hasPrefix_(line_wo_spaces, "synonym:"))
         {
           std::string synonym = StringUtils::substr(line, line.find('"') + 1);
           StringUtils::trim(synonym);
@@ -336,8 +392,8 @@ namespace OpenMS
         {
           term.obsolete = true;
         }
-        else if (StringUtils::hasPrefix(line_wo_spaces, "xref:value-type") 
-          || StringUtils::hasPrefix(line_wo_spaces, "xref_analog:value-type")
+        else if (hasPrefix_(line_wo_spaces, "xref:value-type") 
+          || hasPrefix_(line_wo_spaces, "xref_analog:value-type")
         )
         {
           StringUtils::remove(line_wo_spaces, '\\');
@@ -395,7 +451,7 @@ namespace OpenMS
           }
           cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << "\n";
         }
-        else if (StringUtils::hasPrefix(line_wo_spaces, "relationship:has_value_type")) // since newer obo type in relationship instead of xref
+        else if (hasPrefix_(line_wo_spaces, "relationship:has_value_type")) // since newer obo type in relationship instead of xref
         {
           if (StringUtils::hasSubstring(line_wo_spaces, "xsd:string"))
           {
@@ -468,7 +524,7 @@ namespace OpenMS
           }
           cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << "\n";
         }       
-        else if (StringUtils::hasPrefix(line_wo_spaces, "xref:binary-data-type") || StringUtils::hasPrefix(line_wo_spaces, "xref_analog:binary-data-type"))
+        else if (hasPrefix_(line_wo_spaces, "xref:binary-data-type") || hasPrefix_(line_wo_spaces, "xref_analog:binary-data-type"))
         {
           StringUtils::remove(line_wo_spaces, '\\');
           //remove description (if present)
@@ -521,14 +577,12 @@ namespace OpenMS
 
   const ControlledVocabulary::CVTerm& ControlledVocabulary::getTerm(const std::string& id) const
   {
-    if (const auto it = terms_.find(id); it == terms_.end())
+    const CVTerm* term = findTerm_(id);
+    if (term == nullptr)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid CV identifier!", id);
     }
-    else
-    {
-      return it->second;
-    }
+    return *term;
   }
 
   const std::map<std::string, ControlledVocabulary::CVTerm>& ControlledVocabulary::getTerms() const
@@ -579,7 +633,7 @@ namespace OpenMS
 
   bool ControlledVocabulary::exists(const std::string& id) const
   {
-    return terms_.contains(id);
+    return findTerm_(id) != nullptr;
   }
 
   const ControlledVocabulary::CVTerm* ControlledVocabulary::checkAndGetTermByName(const std::string& name) const
@@ -656,26 +710,30 @@ namespace OpenMS
 
   const ControlledVocabulary& ControlledVocabulary::getPSIMSCV()
   {
-    static const ControlledVocabulary cv = []() {
-      ControlledVocabulary cv;
-      cv.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
-      cv.loadFromOBO("PATO", File::find("/CV/quality.obo"));
-      cv.loadFromOBO("UO", File::find("/CV/unit.obo"));
-      cv.loadFromOBO("BTO", File::find("/CV/brenda.obo"));
-      cv.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
-      return cv;
+    // never destroyed: freeing its terms one by one at exit took a tool reading mzML about 7 ms (the memory is
+    // released with the process anyway)
+    static const ControlledVocabulary& cv = *[]() {
+      auto cv = std::make_unique<ControlledVocabulary>();
+      cv->loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
+      cv->loadFromOBO("PATO", File::find("/CV/quality.obo"));
+      cv->loadFromOBO("UO", File::find("/CV/unit.obo"));
+      cv->loadFromOBO("BTO", File::find("/CV/brenda.obo"));
+      cv->loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
+      return cv.release();
     }();
     return cv;
   }
 
   bool ControlledVocabulary::checkName_(const std::string& id, const std::string& name, bool ignore_case) const
   {
-    if (!exists(id))
+    // terms_, not index_: loadFromOBO() calls this while it is still filling terms_
+    const auto term = terms_.find(id);
+    if (term == terms_.end())
     {
       return true; //what?!
     }
     std::string parent_name = name;
-    std::string real_parent_name = getTerm(id).name;
+    std::string real_parent_name = term->second.name;
 
     if (ignore_case)
     {

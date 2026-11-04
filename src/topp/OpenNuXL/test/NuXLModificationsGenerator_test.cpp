@@ -43,9 +43,55 @@ START_SECTION(~NuXLModificationsGenerator())
 }
 END_SECTION
 
-START_SECTION((static NuXLModificationMassesResult initModificationMassesNA(StringList target_nucleotides, StringList mappings, StringList restrictions, StringList modifications, std::string sequence_restriction, bool cysteine_adduct, Int max_length=4)))
+START_SECTION((static NuXLModificationMassesResult initModificationMassesNA(const StringList& target_nucleotides, const StringList& nt_groups, const std::set<char>& can_xl, const StringList& mappings, const StringList& modifications, std::string sequence_restriction = "", bool cysteine_adduct = false, Int max_length = 4, const std::set<char>& standalone = {})))
 {
-  // TODO
+  // RNA cross-linker 's' (C5H6O1) that is found with and without nucleotide (e.g., SDA)
+  const StringList target_nucleotides = {"U=C9H13N2O9P", "s=C5H6O1"};
+  const StringList mappings = {"U->U"};
+  const StringList modifications = {"U:+C5H6O1", "s:", "s:+H2O"};
+  const set<char> can_xl = {'U', 's'};
+
+  // all nucleotide formulas of a sum formula ("" if the sum formula is missing)
+  auto labels = [](const NuXLModificationMassesResult& mm, const std::string& formula)
+  {
+    auto it = mm.mod_combinations.find(formula);
+    if (it == mm.mod_combinations.end()) { return std::string(); }
+    std::string s;
+    for (const auto& l : it->second) { s += (s.empty() ? "" : " ") + l; }
+    return s;
+  };
+
+  // standalone 's': never combined with U into an oligo, and kept although not part of the sequence restriction
+  for (const std::string& sequence_restriction : {std::string(), std::string("UU")})
+  {
+    NuXLModificationMassesResult mm = NuXLModificationsGenerator::initModificationMassesNA(
+      target_nucleotides, StringList(), can_xl, mappings, modifications, sequence_restriction, false, 2, {'s'});
+    TEST_EQUAL(mm.formula2mass.size(), 4)
+    TEST_EQUAL(mm.mod_combinations.size(), 4)
+    TEST_STRING_EQUAL(labels(mm, "C5H6O1"), "s")
+    TEST_STRING_EQUAL(labels(mm, "C5H8O2"), "s+H2O1")
+    TEST_STRING_EQUAL(labels(mm, "C14H19N2O10P1"), "U+C5H6O1")
+    TEST_STRING_EQUAL(labels(mm, "C23H30N4O18P2"), "UU+C5H6O1")
+    TEST_EQUAL(mm.formula2mass.count("C5H6O1"), 1)
+    ABORT_IF(mm.formula2mass.count("C5H6O1") != 1)
+    TEST_REAL_SIMILAR(mm.formula2mass.at("C5H6O1"), 82.041865)
+  }
+
+  // not standalone: 's' forms oligos with U ...
+  {
+    NuXLModificationMassesResult mm = NuXLModificationsGenerator::initModificationMassesNA(
+      target_nucleotides, StringList(), can_xl, {"U->U", "s->s"}, modifications, "", false, 2);
+    TEST_STRING_EQUAL(labels(mm, "C14H17N2O9P1"), "Us") // U + s - H2O
+  }
+
+  // ... and is removed by a sequence restriction
+  {
+    NuXLModificationMassesResult mm = NuXLModificationsGenerator::initModificationMassesNA(
+      target_nucleotides, StringList(), can_xl, mappings, modifications, "UU", false, 2);
+    TEST_STRING_EQUAL(labels(mm, "C5H6O1"), "")
+    TEST_STRING_EQUAL(labels(mm, "C5H8O2"), "")
+    TEST_STRING_EQUAL(labels(mm, "C14H19N2O10P1"), "U+C5H6O1")
+  }
 }
 END_SECTION
 

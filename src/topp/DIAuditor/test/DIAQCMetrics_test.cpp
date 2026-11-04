@@ -17,11 +17,14 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include "DIAQCMetrics.h"
 
 #include <nlohmann/json.hpp>
 
 #include <cmath>
+#include <filesystem>
+#include <fstream>
 #include <sstream>
 
 ///////////////////////////
@@ -701,6 +704,26 @@ START_SECTION(static void writeMzQC(const std::vector<RunMetrics>& runs, std::os
   auto si = metricsOf(run_qualities[3]);
   for (const std::string& accession : window_metrics) TEST_EQUAL(si.count(accession), 0)
   TEST_TRUE(si["MS:4000069"]["value"] == nlohmann::json::array({600.0, 650.0}))
+
+#ifdef WITH_OPENTIMS
+  // a Bruker .d directory with TSF data (timsTOF without ion mobility): Bruker TSF format, although its type is BRUKER_TDF
+  {
+    TempDir tmp;
+    const std::string d = tmp.getPath() + "/tsf.d";
+    std::filesystem::create_directories(d);
+    { std::ofstream os_tsf((d + "/analysis.tsf").c_str()); os_tsf << "no data"; }
+    DIAQCMetrics::RunMetrics tsf = no_precursor_metrics.compute();
+    tsf.source_file = "tsf";
+    tsf.input_path = d;
+    tsf.input_type = FileTypes::BRUKER_TDF;
+    std::ostringstream os_tsf_mzqc;
+    DIAQCMetrics::writeMzQC({tsf}, os_tsf_mzqc, "1.2.3", "2026-01-02T03:04:05Z");
+    const nlohmann::json tsf_mzqc = nlohmann::json::parse(os_tsf_mzqc.str());
+    const nlohmann::json& tsf_format = tsf_mzqc["mzQC"]["runQualities"][0]["metadata"]["inputFiles"][0]["fileFormat"];
+    TEST_STRING_EQUAL(tsf_format["accession"].get<std::string>(), "MS:1003282")
+    TEST_STRING_EQUAL(tsf_format["name"].get<std::string>(), "Bruker TSF format")
+  }
+#endif
 }
 END_SECTION
 

@@ -1,0 +1,75 @@
+diff --git a/src/openms/thirdparty/percolator/DataSet.cpp b/src/openms/thirdparty/percolator/DataSet.cpp
+index 12fbdfbac7..5870a4ddce 100644
+--- a/src/openms/thirdparty/percolator/DataSet.cpp
++++ b/src/openms/thirdparty/percolator/DataSet.cpp
+@@ -27,6 +27,7 @@ bool DataSet::decoyWarningTripped_ = false;
+ DataSet::DataSet() {}
+ 
+ DataSet::~DataSet() {
++  if (!ownsPsms_) return;  // OpenMS: owned elsewhere (setOwnsPsms)
+   std::vector<PSMDescription*>::iterator it = psms_.begin();
+   for ( ; it != psms_.end(); ++it) {
+     PSMDescription::deletePtr(*it);
+diff --git a/src/openms/thirdparty/percolator/DataSet.h b/src/openms/thirdparty/percolator/DataSet.h
+index ea22db8fb9..d4f8a719ed 100644
+--- a/src/openms/thirdparty/percolator/DataSet.h
++++ b/src/openms/thirdparty/percolator/DataSet.h
+@@ -80,11 +80,15 @@ class DataSet {
+     PSMDescription*& myPsm, FeatureMemoryPool& featurePool, std::string decoyPrefix);
+   
+   void registerPsm(PSMDescription* myPsm);
++  // OpenMS: room for n PSMs; and whether the destructor deletes the PSMs (default) or their owner is elsewhere
++  void reservePsms(std::size_t n) { psms_.reserve(n); }
++  void setOwnsPsms(bool owns) { ownsPsms_ = owns; }
+   
+  protected:   
+   
+   std::vector<PSMDescription*> psms_;
+   LabelType label_;
++  bool ownsPsms_ = true;  // OpenMS
+   
+   static FeatureNames featureNames_;
+   static bool decoyWarningTripped_;
+diff --git a/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp b/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
+index ed29053644..bda88f3e3c 100644
+--- a/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
++++ b/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
+@@ -93,6 +93,23 @@ void FeatureMemoryPool::reserveRows(std::size_t numRows) {
+   for (std::unique_ptr<double[]>& block : blocks) memStarts_.push_back(block.release());
+ }
+ 
++/**
++ * OpenMS: with no free rows (each allocate() then returns the next initialized row, creating a block when needed),
++ * takes the next numRows rows at once, as numRows calls of allocate() would, and returns their first index (false and
++ * no change if there are free rows or the rows would not fit an unsigned int index). The blocks are created here.
++ */
++bool FeatureMemoryPool::claimRows(std::size_t numRows, std::size_t& first) {
++  if (!freeRows_.empty() || numRowsPerBlock_ == 0 ||
++      initializedRows_ + numRows > std::numeric_limits<unsigned int>::max()) {
++    return false;
++  }
++  reserveRows(initializedRows_ + numRows);
++  while (numRowsPerBlock_ * memStarts_.size() < initializedRows_ + numRows) createNewBlock();
++  first = initializedRows_;
++  initializedRows_ += static_cast<unsigned int>(numRows);
++  return true;
++}
++
+ // OpenMS: the smallest block of rows a task of moveRowsInOrder copies
+ [[maybe_unused]] constexpr std::ptrdiff_t kMinRowsPerTask = 1024;
+ // OpenMS: and at most this many tasks per taskloop (libgomp runs all tasks of a taskloop in the
+diff --git a/src/openms/thirdparty/percolator/FeatureMemoryPool.h b/src/openms/thirdparty/percolator/FeatureMemoryPool.h
+index 8b974ad40c..9bac6d50dc 100644
+--- a/src/openms/thirdparty/percolator/FeatureMemoryPool.h
++++ b/src/openms/thirdparty/percolator/FeatureMemoryPool.h
+@@ -53,6 +53,10 @@ class FeatureMemoryPool {
+   // OpenMS: see FeatureMemoryPool.cpp
+   bool moveRowsInOrder(const std::vector<double**>& rows, std::size_t numFeatures);
+   void reserveRows(std::size_t numRows);
++  // OpenMS: the rows that the next numRows calls of allocate() would return (rows k, k + 1, ... of the pool, see
++  // FeatureMemoryPool.cpp), taken at once; afterwards rowOfClaim(first + i) is the i-th of them
++  bool claimRows(std::size_t numRows, std::size_t& first);
++  double* rowOfClaim(std::size_t k) const { return addressFromIdx(static_cast<unsigned int>(k)); }
+ };
+ 
+ }}}  // namespace OpenMS::Internal::Percolator

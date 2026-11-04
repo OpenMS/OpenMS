@@ -1,0 +1,2210 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<indexedmzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd">
+<mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession="" version="1.1.0">
+	<cvList count="5">
+		<cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
+		<cv id="UO" fullName="Unit Ontology" URI="http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo"/>
+		<cv id="BTO" fullName="BrendaTissue545" version="unknown" URI="http://www.brenda-enzymes.info/ontology/tissue/tree/update/update_files/BrendaTissueOBO"/>
+		<cv id="GO" fullName="Gene Ontology - Slim Versions" version="unknown" URI="http://www.geneontology.org/GO_slims/goslim_goa.obo"/>
+		<cv id="PATO" fullName="Quality ontology" version="unknown" URI="http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/quality.obo"/>
+	</cvList>
+	<fileDescription>
+		<fileContent>
+			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+		</fileContent>
+	</fileDescription>
+	<sampleList count="1">
+		<sample id="sa_0" name="">
+			<cvParam cvRef="MS" accession="MS:1000004" name="sample mass" value="0" unitAccession="UO:0000021" unitName="gram" unitCvRef="UO" />
+			<cvParam cvRef="MS" accession="MS:1000005" name="sample volume" value="0" unitAccession="UO:0000098" unitName="milliliter" unitCvRef="UO" />
+			<cvParam cvRef="MS" accession="MS:1000006" name="sample concentration" value="0" unitAccession="UO:0000175" unitName="gram per liter" unitCvRef="UO" />
+		</sample>
+	</sampleList>
+	<softwareList count="2">
+		<software id="so_in_0" version="" >
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
+		</software>
+		<software id="so_default" version="" >
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
+		</software>
+	</softwareList>
+	<instrumentConfigurationList count="1">
+		<instrumentConfiguration id="ic_0">
+			<cvParam cvRef="MS" accession="MS:1000031" name="instrument model" />
+			<softwareRef ref="so_in_0" />
+		</instrumentConfiguration>
+	</instrumentConfigurationList>
+	<dataProcessingList count="1">
+		<dataProcessing id="dp_sp_0">
+			<processingMethod order="0" softwareRef="so_default">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+			</processingMethod>
+		</dataProcessing>
+	</dataProcessingList>
+	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0">
+		<spectrumList count="78" defaultDataProcessingRef="dp_sp_0">
+			<spectrum id="controllerType=0 controllerNumber=1 scan=1" index="0" defaultArrayLength="14" dataProcessingRef="dp_sp_0">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="48" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJyzqYhziteUdyxuPWzPwHDCCYTFSv2c/34/6nRR64MjTAwdAwAq3BLK</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=2" index="1" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="48.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxLa73uvNdglpNYlq0jA8MJJxAuY2xwtqn56vT7uYgTTAwdAwA0UhJ+</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=3" index="2" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="48.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="40">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADE235Pcp7/gce5+rcWmI8NAwBgnQ6X</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=4" index="3" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="49" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJyrn+7u7HGaz0k9a70DA8MJJxB+bGnp4jxno7NOxXUnmBg6BgAelRH9</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=5" index="4" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="49.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJw7F7zL5Zlvq/Opg8pODAwnwNg+NNZlivUV56Q9DM4wMXQMAFk+Etc=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=6" index="5" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="49.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADEv5+XuBhce+WcXcTnzAAVQ8cAWcYOTA==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=7" index="6" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="50" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJyLtVFwKXZ76lRyuceRgeGEEwi/2iziunNan0v/7zXOMDF0DABashPS</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=8" index="7" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="50.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJx7pDrBtdLRz2VL/F8nBoYTYLzFSts1w2CJy3v9484wMXQMAEe5EtE=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=9" index="8" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="50.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADExyebuXIKrXeJSL7izAAVQ8cAK+kNBg==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=10" index="9" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="51" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJyrsHzmsnrrEmfTMC8nBoYTYJy3/KrrtHs+rr86K1xgYugYAG4JE/0=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=11" index="10" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="51.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJzzm+LuxnCSzzUyfb0zA8MJJxCWFn7rui842dXvSacLTAwdAwAKdhGm</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=12" index="11" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="51.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADEsTM+u8ZNyXQ1W9/rwgAVQ8cARkAN1A==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=13" index="12" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="52" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJzb+X+yq/CRYBc3ISZnBoYTTiC8P6LTTWwzs9u2o/KuMDF0DAAi2BHD</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=14" index="13" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="52.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJzrc/nupvF8g+uJgEgXBoYTTiBccWeS26pLPG7K17VcYWLoGABrOhN8</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=15" index="14" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="52.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADEHzMnusXlc7vJaGi6MkDF0DEAHToMUg==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=16" index="15" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="53" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJyLc9VyC1v02cV56VRnBoYTTiDMzCLnfqZlutvbC9tdYWLoGAAw+RKl</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=17" index="16" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="53.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJzzFux0fynv4rbi7QcXBoYTTiA85aKS+3n5OW6O6XtdYWLoGABQ8RMg</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=18" index="17" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="53.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADEJlHS7qzfp7id3r7FlQEqho4BNssNkg==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=19" index="18" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="54" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJwL817vlnCpyrWUX8qFgeGEEwjnrF3krvJX2t3Q1tYNJoaOAQroETA=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=20" index="19" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="54.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxj/c3usW/iIbd2lnxXBoYTTiDM3r7Q/eYjKffdz6zdYGLoGABBmhLq</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=21" index="20" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="54.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADEDi1T3Fkz+dxljui4MUDF0DEADgYMBQ==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=22" index="21" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="55" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJx7WqPoLib43FXjba8LA8MJJxBOuCvq8WVzv/u00HVuMDF0DABPuhNJ</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=23" index="22" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="55.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJyrzCv0sNul475O/4orA8MJJxAWTeX3OFTf6X7n3DI3mBg6BgA5nBLK</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=24" index="23" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="55.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADEfyT/uacvL3afeXqyGwNUDB0DAGBgDrA=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=25" index="24" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="56" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJw7L9/qXlVt52b//6ULA8MJJxC+IFruIfr2jfuDbfzuMDF0DABmiBO0</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=26" index="25" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="56.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxzO7XfI9Os0/1un4YbA8MJJxAuuZTsUV1yy312E4s7TAwdAwBWBRMZ</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=27" index="26" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="56.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADEjC1OHrNadrlPdXvkxgAVQ8cANuINgg==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=28" index="27" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="57" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJwLTj/iHtfc43Zzjo4rA8MJJxAuddnm8euonocwe4g7TAwdAwA9+RJQ</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=29" index="28" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="57.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJwrDeXwVBE+7F67ON+NgeGEEwiXfFroccdT2mNTso07TAwdAwAX6hHx</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=30" index="29" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="57.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADE6XatHrfa/7vf/y/lzgAVQ8cAXGUOqQ==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=31" index="30" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="58" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJwzXsroodK40+3Mw2RXBoYTTiB8dsEHD849aR45X7vdYWLoGABchBO2</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=32" index="31" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="58.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJwLLtT1VNL54X4vb4YbA8MJJxAWYT/n0dTn6nFzVb47TAwdAwAoWxJJ</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=33" index="32" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="58.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADEipGLPU4ulPF4z2LnzgAVQ8cAK7IM/A==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=34" index="33" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="59" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJzL0JD0OKV62+33rDZXBoYTTiCcoMTnGeTV4VEavtQdJoaOAR49Ea8=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=35" index="34" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="59.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJw7UuTqucWJ1+NJ+1o3BoYTTiAs3P3KI/pZgkdydoc7TAwdAwBRuxMU</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=36" index="35" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="59.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADEjEabPe5c1vYwKwlwZ4CKoWMAJ5UM4g==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=37" index="36" defaultArrayLength="2">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="59.6766666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<precursorList count="1">
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="464.734743003521" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="464.734743003521" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+							</selectedIon>
+						</selectedIonList>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+						</activation>
+					</precursor>
+				</precursorList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="24">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBTAcwdaDIAQAJzgIc</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="20">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYFBwZABiAAKOAMM=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=38" index="37" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="60" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJzzeaHocWjVc7ce7z5XBoYTTiDM4yjm2S48waPj5Dp3mBg6BgBFyxKV</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=39" index="38" defaultArrayLength="2">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="60.01" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<precursorList count="1">
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="464.734743003521" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="464.734743003521" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+							</selectedIon>
+						</selectedIonList>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+						</activation>
+					</precursor>
+				</precursorList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="24">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBTAcwdaDIAQAJzgIc</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="20">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYFBwZABiAAKOAMM=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=40" index="39" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="60.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJzrVPb0nP+M38Py2AY3BoYTTiAc/vadR7VUqofKjy53mBg6BgBJGBMJ</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=41" index="40" defaultArrayLength="2">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="60.3433333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<precursorList count="1">
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="464.734743003521" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="464.734743003521" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+							</selectedIon>
+						</selectedIonList>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+						</activation>
+					</precursor>
+				</precursorList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="24">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBTAcwdaDIAQAJzgIc</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="20">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYFBwZABiAAKOAMM=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=42" index="41" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="60.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADEfi/WexxZo+EhstDHnQEqho4BQ08Npg==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=43" index="42" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="61" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJzL0JD0OKV62+33rDZXBoYTTiCcoMTnGeTV4VEavtQdJoaOAR49Ea8=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=44" index="43" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="61.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJy7H2nueVqH2UNDZaEbA8MJJxDWOXPTY/v1AI9X0bXuMDF0DAAz+xLG</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=45" index="44" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="61.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADE/q2zPB5qiXgoHzB2Z4CKoWMAJwkMyw==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=46" index="45" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="62" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJwzXsroodK40+3Mw2RXBoYTTiB8dsEHD849aR45X7vdYWLoGABchBO2</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=47" index="46" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="62.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJzL7Bf1/Pn/qntvYbMbA8MJJxDuXLHRY2KUlkfdKj93mBg6BgB4vBPG</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=48" index="47" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="62.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADE614XeZx898L9mBevOwNUDB0DAGwEDu4=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=49" index="48" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="63" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJwLTj/iHtfc43Zzjo4rA8MJJxAuddnm8euonocwe4g7TAwdAwA9+RJQ</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=50" index="49" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="63.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJw7F3rLQ9lkjrv1Y3s3BoYTTiActrbR4+yGH+47boq5w8TQMQBosxPp</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=51" index="50" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="63.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADE1+9qecRcX+z+8vAxNwaoGDoGAHEXD0w=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=52" index="51" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="64" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJw7L9/qXlVt52b//6ULA8MJJxC+IFruIfr2jfuDbfzuMDF0DABmiBO0</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=53" index="52" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="64.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJy7M7vPYz2vj7v86l+uDAwnnEB4RZqmx6z8Re7l/EfdYGLoGABUyBL4</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=54" index="53" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="64.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADE88Wvuy+x93P3NKtyY4CKoWMAKYkM3A==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=55" index="54" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="65" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJx7WqPoLib43FXjba8LA8MJJxBOuCvq8WVzv/u00HVuMDF0DABPuhNJ</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=56" index="55" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="65.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJzj3qLmUd/+zm1y0yRXBoYTTiC8mvWYe8xDW/cLUWluMDF0DABKIhL4</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=57" index="56" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="65.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADE3V5F7m4hL9x43vK4MUDF0DEAKncM8g==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=58" index="57" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="66" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJwL817vlnCpyrWUX8qFgeGEEwjnrF3krvJX2t3Q1tYNJoaOAQroETA=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=59" index="58" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="66.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJzzSljnzt9U6fbIQdKVgeGEEwh/UPJ33zTvmBvf1w9wMXQMADoxEvw=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=60" index="59" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="66.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADEcVZf3LbrZ7kV8va5MkDF0DEALn4NCg==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=61" index="60" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="67" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJyLc9VyC1v02cV56VRnBoYTTiDMzCLnfqZlutvbC9tdYWLoGAAw+RKl</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=62" index="61" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="67.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJyrsFB2P9790vV/Ub8LA8MJJxCe/uig2+WXlm4XuhJdYWLoGACTrRTq</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=63" index="62" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="67.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADEW71i3P5ZX3aNUmRwZYCKoWMAMGsNAw==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=64" index="63" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="68" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJzb+X+yq/CRYBc3ISZnBoYTTiC8P6LTTWwzs9u2o/KuMDF0DAAi2BHD</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=65" index="64" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="68.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJyL39bhdmGus+s13w/ODAwnnEB4cqqSm/2O2a5zX+5xgYmhYwB/5RQ8</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=66" index="65" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="68.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADEIec2up6v03ItvebnwgAVQ8cATEkOAg==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=67" index="66" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="69" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJyrsHzmsnrrEmfTMC8nBoYTYJy3/KrrtHs+rr86K1xgYugYAG4JE/0=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=68" index="67" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="69.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJwLeX/G9f7cSS4+MibODAwnnEB4S36xa2LuS5cJ03ldYGLoGABefhMk</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=69" index="68" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="69.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADE7DkMrrM9ylw+J091ZoCKoWMAIRIM1A==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=70" index="69" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="70" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJyLtVFwKXZ76lRyuceRgeGEEwi/2iziunNan0v/7zXOMDF0DABashPS</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=71" index="70" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="70.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJzbVcTpGrz6iPObGYVODAwnwDjIdbHL6T4ZlydvbZ1hYugYAGNGE48=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=72" index="71" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="70.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="40">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADEH/6ruqzXme88WeogmI8NAwBQsQ4W</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=73" index="72" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="71" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJyrn+7u7HGaz0k9a70DA8MJJxB+bGnp4jxno7NOxXUnmBg6BgAelRH9</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=74" index="73" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="71.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJwr+K3iwiv4xin8/wRHBoYTTiDs8euwc91ra+efP5OdYGLoGAB1ChRd</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=75" index="74" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="71.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADEBkwOzrqyO5x+Rt93ZICKoWMAHEUMvg==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=76" index="75" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="72" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-45" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJyzqYhziteUdyxuPWzPwHDCCYTFSv2c/34/6nRR64MjTAwdAwAq3BLK</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=77" index="76" defaultArrayLength="14">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="72.3333333333333" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-55" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="120">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJybuKB8u25xucOidKMC6+Zyh816bzU8J5c7MIBBJYRWqHFIM3zYeJC71uHdFLu4E8K1DuU/Zludl66FyDvUQ2iDRgh9oAlCB7RA6AetELqg3QEA0A8eeg==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="56">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJx7Y2Lo/LLvr+O+vbMdGBhOOIHwtvpLTsI3PJ3i75U4wsTQMQCZ9xSh</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="controllerType=0 controllerNumber=1 scan=78" index="77" defaultArrayLength="11">
+				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan >
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="72.6666666666667" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-65" unitAccession="UO:0000218" unitName="volt" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYACBSgcwpVDjkGb4sPEgd63Duyl2cSeEax3Kf8y2Oi9dC5F3qIfQBo0Q+kAThA5ogdAPWiF0QbsDALgYFBs=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="44">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYDjhxADEa/e4Od2YsM9xi/5zBwaoGDoGAGBdDrM=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+		</spectrumList>
+	</run>
+</mzML>
+<indexList count="1">
+	<index name="spectrum">
+		<offset idRef="controllerType=0 controllerNumber=1 scan=1">3029</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=2">4827</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=3">6611</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=4">8346</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=5">10116</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=6">11900</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=7">13639</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=8">15409</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=9">17193</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=10">18932</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=11">20703</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=12">22489</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=13">24230</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=14">26002</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15">27788</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=16">29529</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=17">31301</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18">33087</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=19">34828</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=20">36600</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=21">38386</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=22">40127</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=23">41899</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=24">43685</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=25">45426</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=26">47198</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=27">48984</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=28">50725</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=29">52497</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=30">54283</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=31">56024</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=32">57796</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=33">59582</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=34">61323</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=35">63095</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=36">64881</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=37">66622</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=38">69044</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=39">70816</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=40">73227</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=41">75013</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=42">77435</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=43">79176</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=44">80948</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=45">82734</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=46">84475</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=47">86247</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=48">88033</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=49">89774</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=50">91546</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=51">93332</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=52">95073</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=53">96845</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=54">98631</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=55">100372</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=56">102144</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=57">103930</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=58">105671</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=59">107443</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=60">109229</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=61">110970</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=62">112742</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=63">114528</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=64">116269</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=65">118041</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=66">119827</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=67">121568</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=68">123340</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=69">125126</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=70">126867</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=71">128639</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=72">130425</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=73">132162</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=74">133934</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=75">135720</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=76">137461</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=77">139233</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=78">141019</offset>
+	</index>
+</indexList>
+<indexListOffset>142790</indexListOffset>
+<fileChecksum>0</fileChecksum>
+</indexedmzML>
