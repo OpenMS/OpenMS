@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Maintainer: Justin Sing $
+// $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -63,6 +63,7 @@ namespace OpenDIA
 
   private:
     friend class ByteReservation;
+    friend class ByteBudget;
     MemoryLease(std::shared_ptr<Detail::BudgetState> state, ByteCount bytes) noexcept;
     std::shared_ptr<Detail::BudgetState> state_;
     ByteCount bytes_ = 0;
@@ -130,13 +131,20 @@ namespace OpenDIA
     ~ByteBudget();
     ByteBudget(const ByteBudget&) = delete;
     ByteBudget& operator=(const ByteBudget&) = delete;
+    /** @brief Account for fixed startup workspace and cap subsequent jobs to the remainder.
+      @param[in] bytes Positive pinned workspace bytes within the usable budget.
+      @return A lease that accounts for the startup workspace.
+      @throws OpenMS::Exception::InvalidValue if called after any other admission, more than once,
+      or if the remaining budget cannot admit the configured minimum job.
+    */
+    MemoryLease pin(ByteCount bytes);
     /** @brief Attempt immediate admission, returning nullopt if full or cancelled.
-      @param[in] bytes Initial request within configured minimum and usable bounds.
+      @param[in] bytes Initial request within configured minimum and maximum bounds.
       @throws OpenMS::Exception::InvalidValue for invalid requests, even after cancellation.
     */
     std::optional<ByteReservation> tryReserve(ByteCount bytes);
     /** @brief Wait for admission, returning nullopt on stop or permanent cancellation.
-      @param[in] bytes Initial request within configured minimum and usable bounds.
+      @param[in] bytes Initial request within configured minimum and maximum bounds.
       @param[in] stop Optional per-call cancellation, which does not cancel other callers.
       @throws OpenMS::Exception::InvalidValue for invalid requests, without waiting.
     */

@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Maintainer: Justin Sing $
+// $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -27,6 +27,7 @@ namespace OpenDIA
   struct QueueSnapshot
   {
     OpenMS::Size capacity{}, size{}, peak_size{}, pushed{}, popped{}, discarded{};
+    OpenMS::Size waiting_pushes{}, waiting_pops{};
     bool closed{}, cancelled{};
   };
 
@@ -59,8 +60,14 @@ namespace OpenDIA
     bool push(T&& value, std::stop_token stop = {})
     {
       std::unique_lock lock(mutex_);
-      if (!changed_.wait(lock, stop, [&] { return state_.closed || state_.size < state_.capacity; }) ||
-          stop.stop_requested() || state_.closed)
+      const auto ready = [&] { return state_.closed || state_.size < state_.capacity; };
+      bool awakened = true;
+      if (!ready())
+      {
+        Waiter waiter(state_.waiting_pushes);
+        awakened = changed_.wait(lock, stop, ready);
+      }
+      if (!awakened || stop.stop_requested() || state_.closed)
       {
         return false;
       }
@@ -78,8 +85,14 @@ namespace OpenDIA
     std::optional<T> pop(std::stop_token stop = {})
     {
       std::unique_lock lock(mutex_);
-      if (!changed_.wait(lock, stop, [&] { return state_.closed || state_.size != 0; }) ||
-          stop.stop_requested() || state_.cancelled || state_.size == 0)
+      const auto ready = [&] { return state_.closed || state_.size != 0; };
+      bool awakened = true;
+      if (!ready())
+      {
+        Waiter waiter(state_.waiting_pops);
+        awakened = changed_.wait(lock, stop, ready);
+      }
+      if (!awakened || stop.stop_requested() || state_.cancelled || state_.size == 0)
       {
         return std::nullopt;
       }
@@ -125,6 +138,13 @@ namespace OpenDIA
     }
 
   private:
+    struct Waiter
+    {
+      OpenMS::Size& count;
+      explicit Waiter(OpenMS::Size& value) : count(value) { ++count; }
+      ~Waiter() { --count; }
+    };
+
     static OpenMS::Size checkedCapacity_(OpenMS::Size capacity)
     {
       if (capacity == 0 || capacity > std::numeric_limits<OpenMS::Size>::max() / sizeof(std::optional<T>) ||

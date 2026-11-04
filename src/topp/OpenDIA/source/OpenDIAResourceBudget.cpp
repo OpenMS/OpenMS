@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Maintainer: Justin Sing $
+// $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
 #include "OpenDIAResourceBudget.h"
@@ -44,10 +44,12 @@ namespace OpenDIA
       std::condition_variable_any changed;
       BudgetSnapshot counts;
       ByteCount minimum;
+      ByteCount maximum;
+      bool startup_workspace_pinned = false;
 
       void validate(ByteCount bytes) const
       {
-        if (bytes < minimum || bytes > counts.usable_bytes) { invalid("Request outside byte budget bounds"); }
+        if (bytes < minimum || bytes > maximum) { invalid("Request outside byte budget bounds"); }
       }
       bool fits(ByteCount bytes) const
       {
@@ -65,17 +67,35 @@ namespace OpenDIA
 
   ByteBudget::ByteBudget(ByteCount total_bytes, ByteCount native_reserve, ByteCount minimum_request)
   {
-    if (native_reserve >= total_bytes || minimum_request == 0 || minimum_request > total_bytes - native_reserve)
+    const ByteCount usable_bytes = native_reserve < total_bytes ? total_bytes - native_reserve : 0;
+    if (native_reserve >= total_bytes || minimum_request == 0 || minimum_request > usable_bytes)
     {
       invalid("Invalid byte budget configuration");
     }
     state_ = std::make_shared<Detail::BudgetState>();
     state_->counts.total_bytes = total_bytes;
     state_->counts.native_reserve = native_reserve;
-    state_->counts.usable_bytes = total_bytes - native_reserve;
+    state_->counts.usable_bytes = usable_bytes;
     state_->minimum = minimum_request;
+    state_->maximum = usable_bytes;
   }
   ByteBudget::~ByteBudget() = default;
+
+  MemoryLease ByteBudget::pin(ByteCount bytes)
+  {
+    std::lock_guard lock(state_->mutex);
+    if (bytes == 0 || state_->startup_workspace_pinned || state_->counts.reserved_bytes != 0 ||
+        state_->counts.committed_bytes != 0 || bytes > state_->counts.usable_bytes ||
+        state_->counts.usable_bytes - bytes < state_->minimum)
+    {
+      invalid("Invalid startup workspace pin");
+    }
+    state_->startup_workspace_pinned = true;
+    state_->maximum = state_->counts.usable_bytes - bytes;
+    state_->counts.committed_bytes = bytes;
+    state_->peaks();
+    return MemoryLease(state_, bytes);
+  }
 
   std::optional<ByteReservation> ByteBudget::tryReserve(ByteCount bytes)
   {

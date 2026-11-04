@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Maintainer: Justin Sing $
+// $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
 #include "OpenDIABoundedQueue.h"
@@ -18,6 +18,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <type_traits>
 #include <utility>
 
@@ -45,6 +46,18 @@ namespace
     try { BoundedQueue<int> queue(capacity); }
     catch (const OpenMS::Exception::InvalidValue&) { return true; }
     return false;
+  }
+
+  template <typename PushValue, typename PopValue>
+  bool waitForWaiters(BoundedQueue<PushValue>& full, BoundedQueue<PopValue>& empty)
+  {
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (full.snapshot().waiting_pushes != 1 || empty.snapshot().waiting_pops != 1)
+    {
+      if (std::chrono::steady_clock::now() >= deadline) return false;
+      std::this_thread::yield();
+    }
+    return true;
   }
 
   struct ReentrantDelete
@@ -90,6 +103,7 @@ int main()
     CHECK(!queue.pop())
     const auto state = queue.snapshot();
     CHECK(state.capacity == 3 && state.size == 0 && state.peak_size == 3)
+    CHECK(state.waiting_pushes == 0 && state.waiting_pops == 0)
     CHECK(state.pushed == 103 && state.popped == 103 && state.discarded == 0)
     CHECK(state.closed && !state.cancelled)
   }
@@ -156,8 +170,9 @@ int main()
       return !empty.pop(stop.get_token());
     });
     entered.wait();
-    CHECK(push.wait_for(std::chrono::seconds(0)) == std::future_status::timeout)
-    CHECK(pop.wait_for(std::chrono::seconds(0)) == std::future_status::timeout)
+    const bool blocked = waitForWaiters(full, empty);
+    if (!blocked) { full.cancel(); empty.cancel(); }
+    CHECK(blocked)
     if (operation == 0) { full.close(); empty.close(); }
     else if (operation == 1) { full.cancel(); empty.cancel(); }
     else { stop.request_stop(); }

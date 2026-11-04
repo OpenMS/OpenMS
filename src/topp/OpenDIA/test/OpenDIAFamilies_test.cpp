@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Maintainer: Justin Sing $
+// $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
 #include "OpenDIARecords.h"
@@ -40,6 +40,9 @@ namespace
   }
   EvidenceBlock support()
   {
+    // Fragment 0 is intentionally absent from the family fragment table. The
+    // v0 validator preserves producer-declared raw evidence without inferring
+    // fragment identity or alternative-localization relationships.
     EvidencePoint missing;
     EvidencePoint zero;
     zero.precursor_id = large;
