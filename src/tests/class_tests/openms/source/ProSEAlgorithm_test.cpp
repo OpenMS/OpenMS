@@ -981,6 +981,15 @@ START_SECTION(([EXTRA] default mass tolerances))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] PercolatorTraining defaults: CalcMass off, as the tool default of rescoring:calc_mass_feature))
+{
+  const ProSEAlgorithm::PercolatorTraining training;
+  TEST_EQUAL(training.calc_mass_feature, false)
+  ProSEAlgorithm algo;
+  TEST_EQUAL(algo.getParameters().getValue("rescoring:calc_mass_feature").toBool(), false)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] resolveDecoyStrategy_ / buildDecoyAugmentedDB_: auto/generate/ignore))
 {
   // Target+decoy database (50% decoys, conventional DECOY_ prefix).
