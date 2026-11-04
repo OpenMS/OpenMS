@@ -23,6 +23,7 @@
 #include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <condition_variable>
 #include <deque>
@@ -812,11 +813,13 @@ namespace OpenMS
         // Report reader failures outside the OpenMP region.
         std::exception_ptr extraction_exception;
         std::mutex extraction_exception_mutex;
+        std::atomic<bool> extraction_failed{false};
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,1)
 #endif
         for (SignedSize wave_pos = 0; wave_pos < checkedCast<SignedSize>(wave.swath_indices.size()); ++wave_pos)
         {
+          if (extraction_failed.load(std::memory_order_relaxed)) { continue; }
           try
           {
             extract_swath(wave_pos);
@@ -828,6 +831,7 @@ namespace OpenMS
             {
               extraction_exception = std::current_exception();
             }
+            extraction_failed.store(true, std::memory_order_relaxed);
           }
         }
         if (extraction_exception != nullptr)
@@ -1126,10 +1130,12 @@ namespace OpenMS
 
     std::exception_ptr reader_exception;
     std::mutex reader_exception_mutex;
+    std::atomic<bool> reader_failed{false};
     const auto save_reader_exception = [&]
     {
       std::lock_guard<std::mutex> lock(reader_exception_mutex);
       if (reader_exception == nullptr) { reader_exception = std::current_exception(); }
+      reader_failed.store(true, std::memory_order_relaxed);
     };
 #ifdef _OPENMP
 #ifdef MT_ENABLE_NESTED_OPENMP
@@ -1149,6 +1155,7 @@ namespace OpenMS
 #endif
     const auto extract_map = [&](SignedSize i)
     {
+      if (reader_failed.load(std::memory_order_relaxed)) { return; }
       if (!swath_maps[i].ms1) // skip MS1
       {
         // Step 1: select which transitions to extract (proceed in batches)
@@ -1331,6 +1338,7 @@ namespace OpenMS
 #endif
           for (SignedSize pep_idx = 0; pep_idx < nr_batches; ++pep_idx)
           {
+            if (reader_failed.load(std::memory_order_relaxed)) { continue; }
             try { extract_batch(pep_idx); }
             catch (...) { save_reader_exception(); }
           }
@@ -1347,6 +1355,7 @@ namespace OpenMS
 #endif
     for (SignedSize i = 0; i < checkedCast<SignedSize>(swath_maps.size()); ++i)
     {
+      if (reader_failed.load(std::memory_order_relaxed)) { continue; }
       try { extract_map(i); }
       catch (...) { save_reader_exception(); }
     }
