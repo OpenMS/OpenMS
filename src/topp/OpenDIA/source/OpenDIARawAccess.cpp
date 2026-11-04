@@ -398,7 +398,8 @@ namespace OpenDIA
       invalid("Invalid scan calibration");
     }
     const auto started = Clock::now();
-    std::lock_guard lock(cache_->mutex_);
+    std::lock_guard source_lock(*source_mutex_);
+    std::unique_lock cache_lock(cache_->mutex_);
     const auto index = source_->getExperimentIndex(id);
     const auto phase_id = phase_(id);
     auto& work = cache_->work_;
@@ -441,6 +442,7 @@ namespace OpenDIA
       std::vector<StagedScan> staged;
       auto admission = cache_->reserve_(cache_->max_scan_bytes_, phase_id);
       const auto decode_started = Clock::now();
+      cache_lock.unlock();
       try
       {
         if (!admission) { throw BatchAdmissionFailure {}; }
@@ -456,6 +458,7 @@ namespace OpenDIA
           staged.push_back({native_index, std::max(native_bound, bytes), std::move(scan)});
           if (--remaining)
           {
+            std::lock_guard lock(cache_->mutex_);
             admission = cache_->reserve_(cache_->max_scan_bytes_, phase_id);
             if (!admission) { throw BatchAdmissionFailure {}; }
           }
@@ -467,6 +470,8 @@ namespace OpenDIA
         // and released before the ordinary one-scan fallback attempts admission.
         staged.clear();
       }
+      cache_lock.lock();
+      if (cache_->budget_.snapshot().cancelled) { invalid("Cache is cancelled"); }
       if (!staged.empty())
       {
         std::shared_ptr<const RawScan> current;
@@ -521,17 +526,20 @@ namespace OpenDIA
     if (!reservation) { invalid(admissionFailure("Scan", scan_bound, cache_->budget_.snapshot())); }
     // Native decode is outside private capacity enforcement. Check before conversion.
     const auto decode_started = Clock::now();
+    cache_lock.unlock();
     const auto native = metadata_source_->getSpectrumPeaks(index);
     const auto decode_ns = elapsed(decode_started);
-    ++work.decodes;
-    ++phase.decodes;
-    work.decode_ns += decode_ns;
-    phase.decode_ns += decode_ns;
     const auto native_bound = scanBytes(native);
     if (native_bound > cache_->max_scan_bytes_) { invalid("Scan exceeds maximum scan bytes"); }
     if (native_bound > scan_bound) { invalid("Scan exceeds previously admitted scan bytes"); }
     auto scan = materialize_(native, index, calibration, std::move(*reservation));
     const auto bytes = charge(*scan->columns_);
+    cache_lock.lock();
+    if (cache_->budget_.snapshot().cancelled) { invalid("Cache is cancelled"); }
+    ++work.decodes;
+    ++phase.decodes;
+    work.decode_ns += decode_ns;
+    phase.decode_ns += decode_ns;
     // Publish only a complete scan whose retained capacities fit the bound.
     entries.push_front({source_, id, scan, {}, {}, calibration});
     known_bound = std::max(native_bound, bytes);
@@ -627,7 +635,8 @@ namespace OpenDIA
       invalid("Invalid region context or calibration");
     }
     const auto started = Clock::now();
-    std::lock_guard lock(cache_->mutex_);
+    std::lock_guard source_lock(*source_mutex_);
+    std::unique_lock cache_lock(cache_->mutex_);
     const auto index = source_->getExperimentIndex(id);
     const auto phase_id = phase_(id);
     auto& work = cache_->work_;
@@ -667,6 +676,7 @@ namespace OpenDIA
       // Admit the first output before the decoder starts. Reserve each next
       // output before returning to forEachSpectrum, which decodes sequentially.
       auto admission = cache_->reserve_(cache_->max_scan_bytes_, phase_id);
+      cache_lock.unlock();
       try
       {
         if (!admission) { throw BatchAdmissionFailure {}; }
@@ -685,6 +695,7 @@ namespace OpenDIA
           if (remaining > 0) { --remaining; }
           if (remaining > 0)
           {
+            std::lock_guard lock(cache_->mutex_);
             admission = cache_->reserve_(cache_->max_scan_bytes_, phase_id);
             if (!admission)
             {
@@ -701,6 +712,8 @@ namespace OpenDIA
         staged.clear();
       }
 
+      cache_lock.lock();
+      if (cache_->budget_.snapshot().cancelled) { invalid("Cache is cancelled"); }
       if (!staged.empty())
       {
         bool current_found = false;
@@ -760,8 +773,11 @@ namespace OpenDIA
     auto reservation = cache_->reserve_(bound, phase_id);
     if (! reservation) { invalid("Region admission failed: pinned views or cancellation"); }
     const auto decode_started = Clock::now();
+    cache_lock.unlock();
     const auto native = metadata_source_->getSpectrum(index);
     const auto decode_ns = elapsed(decode_started);
+    cache_lock.lock();
+    if (cache_->budget_.snapshot().cancelled) { invalid("Cache is cancelled"); }
     ++work.decodes;
     ++phase.decodes;
     work.decode_ns += decode_ns;
@@ -787,9 +803,14 @@ namespace OpenDIA
   OpenSwath::SpectrumPtr RawAccess::getSpectrumById(int id)
   {
     const auto scan = acquire(id);
-    std::lock_guard lock(cache_->mutex_);
+    RawPhase phase_id;
+    {
+      std::lock_guard source_lock(*source_mutex_);
+      std::lock_guard lock(cache_->mutex_);
+      phase_id = phase_(id);
+    }
+    std::unique_lock cache_lock(cache_->mutex_);
     const auto started = Clock::now();
-    const auto phase_id = phase_(id);
     auto& work = cache_->work_;
     auto& phase = cache_->phases_[static_cast<size_t>(phase_id)];
     // Bound the detached copy from the pinned columns, not the maximum scan size.
@@ -798,6 +819,7 @@ namespace OpenDIA
     if (copy_bound > cache_->max_scan_bytes_) { invalid("Mutable scan exceeds maximum scan bytes"); }
     auto reservation = cache_->reserve_(copy_bound, phase_id);
     if (!reservation) { invalid(admissionFailure("Mutable scan", copy_bound, cache_->budget_.snapshot())); }
+    cache_lock.unlock();
     auto owner = std::make_shared<MutableColumns>();
     owner->spectrum = std::make_shared<OpenSwath::Spectrum>();
     auto& out = owner->spectrum->getDataArrays();
@@ -826,6 +848,8 @@ namespace OpenDIA
     result->lease = reservation->commit(result_bytes);
     const auto numeric_bytes = numericBytes(*owner->spectrum);
     const auto ns = elapsed(started);
+    cache_lock.lock();
+    if (cache_->budget_.snapshot().cancelled) { invalid("Cache is cancelled"); }
     ++work.copies;
     ++phase.copies;
     work.copied_numeric_bytes = checkedByteAdd(work.copied_numeric_bytes, numeric_bytes);

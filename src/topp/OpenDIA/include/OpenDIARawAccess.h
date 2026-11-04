@@ -194,6 +194,7 @@ namespace OpenDIA
       OpenMS::Size index, std::optional<MZCalibration> calibration, ByteReservation reservation);
     std::shared_ptr<OpenMS::SpectrumAccessOnDisc> source_;
     std::shared_ptr<RawCache> cache_;
+    std::shared_ptr<std::mutex> source_mutex_;
     std::shared_ptr<OpenMS::IMSExperimentRandomAccess> metadata_source_;
     // Immutable-source sizing metadata, shared by clones under the cache lock.
     // Two ByteCounts per visible scan use the native metadata/control allowance.
