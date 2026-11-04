@@ -289,7 +289,15 @@ namespace OpenDIA
     CandidateCompleteness completeness = CandidateCompleteness::UNKNOWN;
     Provenance provenance;
   };
-  /** @brief Private v0 immutable family lease, with no inferred winner or truth. */
+  /**
+    @brief Private v0 immutable family lease, with no inferred winner or truth.
+
+    Validation checks local shape, unique IDs, alternative membership, and that
+    fragment incidences refer to family members. Fragment IDs and SHARED or
+    DISCRIMINATING roles remain producer declarations. The validator does not
+    infer fragment identity across precursors or require every incidence to
+    match an alternative's members.
+  */
   class FamilyBatch
   {
   public:
@@ -326,7 +334,14 @@ namespace OpenDIA
     std::string scoring_method;
     std::vector<OpenMS::Size> evidence_rows;
   };
-  /** @brief Private v0 immutable raw scores retaining family and evidence leases. */
+  /**
+    @brief Private v0 immutable raw scores retaining family and evidence leases.
+
+    Scores must refer to a declared family and alternative. Evidence rows must
+    belong to that family and one of its members. The score's alternative and
+    the evidence member are not required to be the same because those rows are
+    caller-declared raw evidence, not validator-inferred localization.
+  */
   class ScoreBatch
   {
   public:
