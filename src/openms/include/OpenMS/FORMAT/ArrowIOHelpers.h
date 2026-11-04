@@ -197,6 +197,75 @@ namespace ArrowIOHelpers
     const ParquetWriteConfig& config = ParquetWriteConfig{},
     const std::shared_ptr<const arrow::KeyValueMetadata>& metadata = nullptr);
 
+  /**
+    @brief The QPX value validation of writeTableToParquet() alone (QPXValueValidation of the view the table's
+    @c file_type metadata names; a table without QPX metadata passes)
+
+    For a table that is written more than once (a run's own file and the merged file of a single run): validated
+    here once, with @c config.threads, then written with @c config.validated set. A refused table is logged as by
+    the write.
+
+    @param[in] table The table (must not be null)
+    @param[in] filename The file it is for (in the log)
+    @param[in] config @c qpx_extra_columns and @c threads
+    @param[in] metadata The footer the table is written with (concatenateAndWriteToParquet()): it names the view
+               (@c file_type); a table built by an exporter carries none itself, so without it nothing is checked
+    @return true if the table may be written
+  */
+  OPENMS_DLLAPI bool validateQPXTable(
+    const std::shared_ptr<arrow::Table>& table,
+    const std::string& filename,
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    const std::shared_ptr<const arrow::KeyValueMetadata>& metadata = nullptr);
+
+  /**
+    @brief A Parquet file written table by table: the merged QPX psm file of a multi-file search, appended run by run
+    while the next run is searched
+
+    append() opens the file at the first table, with that table's schema and @p metadata as its footer (built once,
+    e.g. by qpxFileMetadata()), and writes the rows of every table into the row groups writeTableToParquet() would cut
+    for the concatenation of the tables (@c row_group_size rows per group, a group continued across tables), the
+    columns of a group encoded in parallel (as writeTableToParquet() with threads > 1, on a pool of the stream whose
+    size follows the threads of each append()). The later tables must have the schema of the first (metadata aside).
+    A QPX table (the @p metadata names the view) is validated per table by one QPXValueValidation, which keeps the
+    primary keys of the tables before: a key twice across tables is refused as it is in the concatenated table.
+    close() adds @p keys to the footer (keys known only after the last table, e.g. @c scan_format) and ends the
+    file. A failed append() or close() removes the file, logged; the stream is then done (failed()). Without an
+    append(), close() writes nothing. The destructor removes an unfinished file. One thread at a time.
+  */
+  class OPENMS_DLLAPI ParquetTableStream
+  {
+  public:
+    /// The file, the writer configuration (@c threads: of the validation and encoding until an append() says otherwise)
+    /// and the footer (the schema metadata of the first table is replaced by it; null: the first table's own)
+    ParquetTableStream(std::string filename, const ParquetWriteConfig& config,
+                       std::shared_ptr<const arrow::KeyValueMetadata> metadata);
+    ~ParquetTableStream();
+    ParquetTableStream(const ParquetTableStream&) = delete;
+    ParquetTableStream& operator=(const ParquetTableStream&) = delete;
+
+    /// Appends the rows of @p table (validated, encoded with @p threads; 0: the threads of the configuration).
+    /// False (logged) if refused, null, or the write failed (also by an exception, caught here): the file is removed,
+    /// the stream has failed.
+    bool append(const std::shared_ptr<arrow::Table>& table, int threads = 0);
+    /// Ends the file with @p keys added to its footer. False (logged) if that failed (file removed, stream failed).
+    bool close(const std::map<std::string, std::string>& keys = {});
+    /// Ends an unfinished stream as failed and removes its file (nothing after close())
+    void abandon();
+    /// The rows appended so far
+    Size rows() const;
+    /// A write was refused or failed (the file is gone)
+    bool failed() const;
+    /// The file is written (close() succeeded)
+    bool closed() const;
+    /// The file
+    const std::string& filename() const;
+
+  private:
+    struct Impl;
+    std::unique_ptr<Impl> impl_;
+  };
+
   // ---------------------------------------------------------------------------
   // QPX file metadata
   // ---------------------------------------------------------------------------
@@ -247,6 +316,10 @@ namespace ArrowIOHelpers
     guessed at, so an ambiguous export omits @c scan_format instead of mislabeling it.
   */
   OPENMS_DLLAPI std::string qpxScanFormat(const std::vector<std::string>& native_ids);
+
+  /// qpxScanFormat(native_ids) checking the IDs in @p threads ranges in parallel (OpenMP; 1: serial): the same result
+  /// and the same warning (the first pair of conventions in ID order)
+  OPENMS_DLLAPI std::string qpxScanFormat(const std::vector<std::string>& native_ids, int threads);
 
   /**
     @brief Reduce an MS run path to the QPX @c run_file_name form

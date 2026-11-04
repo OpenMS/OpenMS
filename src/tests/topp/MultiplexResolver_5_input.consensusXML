@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<consensusXML version="1.7" id="cm_1" experiment_type="labeled_MS1">
+	<IdentificationRun id="PI_0" date="2026-09-02T00:00:00" search_engine="synthetic" search_engine_version="1.0">
+		<SearchParameters db="x.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="1:4" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="PROT_A" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<mapList count="2">
+		<map id="0" name="x.mzML" label="label 0" size="3"/>
+		<map id="1" name="x.mzML" label="label 1" size="0"/>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_1" quality="1.0" charge="2">
+			<centroid rt="500.0" mz="235.141476244" it="1.0e06"/>
+			<groupedElementList>
+				<element map="0" id="101" rt="500.0" mz="235.141476244" it="1.0e06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q" higher_score_better="false" significance_threshold="0" MZ="235.141476244" RT="500.0" spectrum_reference="scan=1" >
+				<PeptideHit score="0.001" sequence="AAAAR(Label:13C(6)15N(4))" charge="2" protein_refs="PH_0">
+					<UserParam type="string" name="target_decoy" value="target"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_2" quality="1.0" charge="2">
+			<centroid rt="501.0" mz="230.13734194399999" it="1.0e06"/>
+			<groupedElementList>
+				<element map="0" id="201" rt="501.0" mz="230.13734194399999" it="1.0e06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q" higher_score_better="false" significance_threshold="0" MZ="230.13734194399999" RT="501.0" spectrum_reference="scan=2" >
+				<PeptideHit score="0.001" sequence="AAAAR" charge="2" protein_refs="PH_0">
+					<UserParam type="string" name="target_decoy" value="target"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_3" quality="1.0" charge="2">
+			<centroid rt="600.0" mz="207.11017610399998" it="1.0e06"/>
+			<groupedElementList>
+				<element map="0" id="301" rt="600.0" mz="207.11017610399998" it="1.0e06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q" higher_score_better="false" significance_threshold="0" MZ="207.11017610399998" RT="600.0" spectrum_reference="scan=3" >
+				<PeptideHit score="0.001" sequence="GGGGR(Label:13C(6)15N(4))" charge="2" protein_refs="PH_0">
+					<UserParam type="string" name="target_decoy" value="target"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

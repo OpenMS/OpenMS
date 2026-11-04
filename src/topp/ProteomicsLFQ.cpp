@@ -18,6 +18,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/ConsensusElutionWidth.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/DDAWorkflowCommons.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -128,8 +129,8 @@ meta value @p mbr_transfer_qvalues holds the q-values of these transfers, in the
 By default, the second method links the features across runs by QT clustering on their RT and m/z
 (@p Linking:*), without estimating the error rate of the transferred identifications. With @p -pip_echo @p true,
 PIP-ECHO links the features instead and controls the false discovery rate of the transfers. Decoy transfers, which
-look for a peptide at the retention time of an unrelated peptide, estimate the error rate. A support vector machine
-scores each transfer (on intensity, mass error, RT agreement, isotope envelope and, if every run has ion mobility
+look for a peptide at the retention time of an unrelated peptide, estimate the error rate. A linear support vector
+machine, trained semi-supervised as in Percolator, scores each transfer (on intensity, mass error, RT agreement, isotope envelope and, if every run has ion mobility
 data, ion mobility), and the transfers up to @p PipEcho:fdr (default 0.05) are kept.
 @p -pip_echo requires @p -targeted_only @p false (the default).
   - The RT window in which a transfer is searched is local by default: for each peptide, it is predicted from
@@ -143,9 +144,8 @@ data, ion mobility), and the transfers up to @p PipEcho:fdr (default 0.05) are k
     <= 0.001 in at least one run are transferred. Otherwise a false identification in one run would be copied into
     every other run, where no decoy transfer can reveal it; the protein FDR filter removes most of these.
   - @p PipEcho:random_seed selects the decoys; with the same seed (default 0), results are reproducible.
-  - @p PipEcho:max_training_points limits how many transfers the support vector machine is trained on in each
-    cross-validation fold (default 50000, 0 = no limit), which bounds the run time on large data sets. All
-    transfers are scored.
+  - @p PipEcho:max_training_points limits how many transfers the support vector machine is trained on
+    (default 50000, 0 = no limit), which bounds the training time on large data sets. All transfers are scored.
 
 @b Resuming @b and @b distributing @b feature @b detection (@p -feat_dir): @n
 Feature detection is the expensive part of the workflow and each MS run is detected independently
@@ -358,6 +358,12 @@ protected:
 
     registerStringOption_("pip_echo", "<option>", "false", "Perform match between runs (MBR) via PIP-ECHO", false, false);
     setValidStrings_("pip_echo", ListUtils::create<std::string>("true,false"));
+    registerStringOption_("consensus_elution_width", "<option>", "false",
+      "Report every run's feature at one elution width per linked precursor: the median of the fitted Gaussian widths "
+      "of its identified features (carried between runs by the RT alignment), times the run's fitted peak height. "
+      "Removes the run-to-run error of the width fit from the quantities. Needs the symmetric elution model "
+      "(PeptideQuantification:model:type); features without a valid fit keep their intensity.", false, true);
+    setValidStrings_("consensus_elution_width", ListUtils::create<std::string>("true,false"));
 
     registerDoubleOption_(
       "feature_with_id_min_score", "<p-value>", 0.0,
@@ -475,7 +481,9 @@ protected:
   ExitCodes loadAndPreprocess_(const std::string& mz_file, MSExperiment& ms_out, bool& is_im_peak_data)
   {
 #ifdef WITH_OPENTIMS
-    if (FileHandler::getType(mz_file) == FileTypes::BRUKER_TDF)
+    // TSF data (timsTOF without ion mobility) takes the mzML path below: its spectra are centroided, without IM
+    if (FileHandler::getType(mz_file) == FileTypes::BRUKER_TDF
+        && BrukerTimsFile::detectFormat(mz_file) != BrukerTimsFile::DataFormat::TSF)
     {
       // .d path: load with built-in IM centroiding (Sage algorithm, Lazear 2023)
       // This collapses raw IM profiles into single centroided peaks with summed intensity,
@@ -1289,7 +1297,7 @@ protected:
       "feat_dir", "detect_only", "force_recompute",
       "threads", "debug", "log", "no_progress", "test", "force", "version", "write_ini", "ini",
       "proteinFDR", "psmFDR", "picked_proteinFDR", "FDR_type", "protein_inference",
-      "alignment_order"};
+      "alignment_order", "consensus_elution_width"};
     // Every entry above names a parameter this tool actually registers, except the command-line-only
     // ones ('version', 'write_ini', 'ini') and the two prefixes not yet registered as subsections
     // ('Protein Inference:', 'Posterior Error Probability:', both read by the combining half only).
@@ -1929,6 +1937,10 @@ protected:
     // references), so gate on pip_echo.
     const bool pip_echo_enabled = getStringOption_("pip_echo") == "true";
     if (pip_echo_enabled) { keep_meta.insert("masserror_ppm"); keep_meta.insert("pipecho_obs_envelope"); }
+    // The elution model fit, needed (only) by -consensus_elution_width after linking, and removed there in any
+    // case. Kept regardless of that option, which only the combining half applies, so that one set of feature
+    // checkpoints serves both settings.
+    for (const char* k : ConsensusElutionWidth::FIT_META_VALUES) keep_meta.insert(k);
     for (auto & f : fm)
     {
       std::vector<std::string> keys;
@@ -2156,7 +2168,34 @@ protected:
       }
     }
 
+    // The elution model fit is kept through detection (see detectRun_) for -consensus_elution_width only. Remove it
+    // before linking, which can copy feature meta values into the consensus map, and otherwise after it.
+    const bool consensus_elution_width = getStringOption_("consensus_elution_width") == "true";
+    auto remove_fit = [&feature_maps, &consensus_fraction]()
+    {
+      for (auto& fm : feature_maps)
+      {
+        for (auto& f : fm)
+        {
+          for (const char* k : ConsensusElutionWidth::FIT_META_VALUES) f.removeMetaValue(k);
+        }
+      }
+      for (auto& cf : consensus_fraction)
+      {
+        for (const char* k : ConsensusElutionWidth::FIT_META_VALUES) cf.removeMetaValue(k);
+      }
+    };
+    if (! consensus_elution_width) remove_fit();
+
     alignAndLink_(feature_maps, consensus_fraction, transformations, fraction_fwhm);
+
+    if (consensus_elution_width)
+    {
+      const auto stats = ConsensusElutionWidth::apply(consensus_fraction, feature_maps, transformations);
+      OPENMS_LOG_INFO << "Consensus elution width: " << stats.consensus_features << " consensus features, "
+                      << stats.handles_updated << " features re-quantified, " << stats.handles_kept << " kept.\n";
+      remove_fit();
+    }
 
     // Nothing to link is not an error: typically no run of the fraction has a feature because none
     // of its identifications passed the upstream FDR filter, so targeted feature detection had

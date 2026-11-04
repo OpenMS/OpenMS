@@ -375,10 +375,13 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         pi.setRT(spec.getRT());
         pi.setMZ(mz);
 
-        // Annotate ion mobility if spectrum has a single drift time (DDA-PASEF)
+        // Annotate the spectrum's single drift time: a FAIMS compensation voltage as FAIMS_CV (which the
+        // FAIMS-aware tools read), an ion mobility (e.g. DDA-PASEF, 1/K0) as IM
         if (IMTypes::determineIMFormat(spec) == IMFormat::IM_SPECTRUM)
         {
-          pi.setMetaValue(Constants::UserParam::IM, spec.getDriftTime());
+          pi.setMetaValue(spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+                            ? Constants::UserParam::FAIMS_CV : Constants::UserParam::IM,
+                          spec.getDriftTime());
         }
 
         Size charge = spec.getPrecursors()[0].getCharge();

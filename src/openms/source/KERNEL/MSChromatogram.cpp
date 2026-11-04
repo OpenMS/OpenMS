@@ -552,6 +552,16 @@ void MSChromatogram::mergePeaks(MSChromatogram& other, bool add_meta)
   auto new_end = setSumSimilarUnion(begin(), end(), other.begin(), other.end(), temp.begin());
   ContainerType::assign(temp.begin(), new_end);
 
+  // The merged peak count rarely matches either input's, so a peak-parallel
+  // data array from either side would be left the wrong size -- the next
+  // select()/sort(lambda)/permuting sortByIntensity() throws on that
+  // mismatch (checkDataArraySizes_()). They describe the pre-merge peaks
+  // and cannot be meaningfully carried over, so they are cleared here, like
+  // clear() already does for the same reason.
+  float_data_arrays_.clear();
+  string_data_arrays_.clear();
+  integer_data_arrays_.clear();
+
   if (add_meta)
   {
     DoubleList ls;

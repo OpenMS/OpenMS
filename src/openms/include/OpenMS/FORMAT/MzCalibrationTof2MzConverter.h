@@ -122,7 +122,10 @@ namespace OpenMS
   };
 
   /// Try to create a MzCalibrationTof2MzConverter from the MzCalibration and Frames tables of
-  /// the given .d directory. Returns nullptr (and logs why) if the tables or columns are missing,
+  /// the given .d directory: of its analysis.tdf (TDF data), or of its analysis.tsf if it has no
+  /// analysis.tdf (TSF data, timsTOF without ion mobility, which has the same tables). The model gives
+  /// the Bruker SDK's m/z for TSF line spectra as well (checked on three runs: MALDI spot, MALDI
+  /// imaging, LC-MS). Returns nullptr (and logs why) if the tables or columns are missing,
   /// a frame references an unknown or unsupported (not ModelType 1 or 2) calibration, or the
   /// coefficients are unusable. Frames without temperatures use the reference temperatures.
   /// ModelType 2 calibrations without usable correction columns (C5..C14) use the base curve only

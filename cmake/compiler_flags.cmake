@@ -79,7 +79,7 @@ function(openms_add_compiler_flags target_name)
   # Essential preprocessor definitions
   if(MSVC)
     target_compile_definitions(${target_name} PUBLIC
-      NOMINMAX  # coinor windows.h include bug workaround
+      NOMINMAX  # keep windows.h from defining min/max macros
     )
   endif()
   
@@ -149,7 +149,6 @@ function(openms_add_compiler_flags target_name)
       _SCL_SECURE_NO_WARNINGS
       _CRT_SECURE_NO_WARNINGS
       _CRT_SECURE_NO_DEPRECATE
-      OPENMS_XERCESDLL  # xerces bug workaround
     )
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(${target_name} PRIVATE

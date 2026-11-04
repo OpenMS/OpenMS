@@ -101,7 +101,8 @@ namespace OpenMS
 
        This function examines the prefix of the native ID to determine the appropriate
        regular expression pattern:
-       - `scan=`, `controllerType=`, `function=`, `frame=` → `scan=(?<GROUP>\d+)`
+       - `scan=`, `controllerType=`, `function=`, `frame=` with a `scan=` token → `scan=(?<GROUP>\d+)`
+       - `frame=` without a `scan=` token (e.g. `frame=17`) → `frame=(?<GROUP>\d+)`
        - `index=` → `index=(?<GROUP>\d+)`
        - `scanId=`, `scanID=` → `scanId=(?<GROUP>\d+)` or `scanID=(?<GROUP>\d+)`
        - `spectrum=` → `spectrum=(?<GROUP>\d+)`

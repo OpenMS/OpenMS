@@ -27,6 +27,7 @@ bool DataSet::decoyWarningTripped_ = false;
 DataSet::DataSet() {}
 
 DataSet::~DataSet() {
+  if (!ownsPsms_) return;  // OpenMS: owned elsewhere (setOwnsPsms)
   std::vector<PSMDescription*>::iterator it = psms_.begin();
   for ( ; it != psms_.end(); ++it) {
     PSMDescription::deletePtr(*it);

@@ -1,9 +1,11 @@
 // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
+//
 // --------------------------------------------------------------------------
-// $Maintainer: Justin Sing $
-// $Authors: Justin Sing $
+// $Maintainer: Hannes Roest $
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
+
 #include "OpenDIAResourceBudget.h"
 #include <OpenMS/CONCEPT/Exception.h>
 #include <atomic>
