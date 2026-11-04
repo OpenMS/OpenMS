@@ -569,7 +569,6 @@ namespace OpenMS
     return cache.inverse;
   }
 
-  // ponytail: contexts use the existing assay batch, use byte-budgeted batches if retention dominates RSS.
   // Detection/identification subsets keep the complete chromatograms, never RT slices.
   struct MRMFeatureFinderScoring::PreparedScoringGroup
   {
@@ -870,42 +869,110 @@ namespace OpenMS
   std::vector<std::exception_ptr> MRMFeatureFinderScoring::scorePeakgroupsBatch_(
     const std::vector<std::pair<MRMTransitionGroupType*, FeatureMap*>>& groups,
     const TransformationDescription& trafo, const std::vector<OpenSwath::SwathMap>& swath_maps,
-    bool ms1only, MobilogramParquetConsumer* mobilogram_consumer) const
+    bool ms1only, MobilogramParquetConsumer* mobilogram_consumer, Size* peak_live_contexts) const
   {
+    // ponytail: overlapping candidates or deferred raw work can retain the whole
+    // assay batch. Add byte-budgeted admission only if this still dominates RSS.
     std::vector<std::unique_ptr<PreparedScoringGroup>> prepared;
     prepared.resize(groups.size());
     std::vector<std::exception_ptr> errors(groups.size());
     struct Task
     {
-      PreparedScoringGroup* group;
       SignedSize feature_index;
       double rt;
       Size group_index;
     };
     std::vector<Task> tasks;
+    std::vector<Size> remaining(groups.size());
+    std::vector<FeatureMap> outputs(groups.size());
+    if (peak_live_contexts)
+    {
+      *peak_live_contexts = 0;
+    }
     bool finite_rts = true;
     for (Size group_index = 0; group_index < groups.size(); ++group_index)
     {
-      const auto& [group, output] = groups[group_index];
-      try
+      auto* group = groups[group_index].first;
+      // subset() preserves every picked feature's RT and index, even when only
+      // detecting transitions are retained. Scheduling needs no copied traces.
+      const auto& features = group->getFeatures();
+      const bool group_finite = std::all_of(features.begin(), features.end(), [](const auto& feature) { return std::isfinite(feature.getRT()); });
+      if (!group_finite)
       {
-        prepared[group_index] = prepareScoringGroup_(*group, trafo, swath_maps, *output, ms1only, mobilogram_consumer);
+        // Previously preparation failures were excluded before deciding the
+        // whole-batch fallback. Validate exceptional RT groups without keeping
+        // their contexts, so invalid NaNs cannot reorder healthy groups.
+        try
+        {
+          auto validation = prepareScoringGroup_(*group, trafo, swath_maps, outputs[group_index], ms1only, mobilogram_consumer);
+          if (peak_live_contexts)
+          {
+            *peak_live_contexts = std::max(*peak_live_contexts, Size{1});
+          }
+        }
+        catch (...)
+        {
+          errors[group_index] = std::current_exception();
+          continue;
+        }
       }
-      catch (...)
-      {
-        errors[group_index] = std::current_exception();
-        continue;
-      }
-      auto& state = *prepared[group_index];
-      state.batch_output = true;
-      // Batch scoring is serial even outside an enclosing workflow parallel region.
-      state.in_parallel = true;
-      const auto& features = state.detection->getFeatures();
+      remaining[group_index] = features.size();
+      finite_rts = finite_rts && group_finite;
       for (Size i = 0; i < features.size(); ++i)
       {
         const double rt = features[i].getRT();
-        finite_rts = finite_rts && std::isfinite(rt);
-        tasks.push_back({&state, static_cast<SignedSize>(i), rt, group_index});
+        tasks.push_back({static_cast<SignedSize>(i), rt, group_index});
+      }
+    }
+    auto prepare = [&](Size index)
+    {
+      auto& state = prepared[index];
+      state = prepareScoringGroup_(*groups[index].first, trafo, swath_maps, outputs[index], ms1only, mobilogram_consumer);
+      state->batch_output = true;
+      // Batch scoring is serial even outside an enclosing workflow parallel region.
+      state->in_parallel = true;
+      if (peak_live_contexts)
+      {
+        const Size live = std::count_if(prepared.begin(), prepared.end(), [](const auto& context) { return context != nullptr; });
+        *peak_live_contexts = std::max(*peak_live_contexts, live);
+      }
+    };
+    auto finish = [&](Size index)
+    {
+      auto& state = prepared[index];
+      // Restore original candidate order before ranking, including quality ties.
+      const auto& features = state->detection->getFeatures();
+      if (state->defer_feature_output)
+      {
+        auto& indices = state->scored_feature_indices;
+        for (Size i = 0; i < indices.size(); ++i)
+        {
+          indices[i] = static_cast<SignedSize>(i);
+        }
+      }
+      else
+      {
+        state->feature_list.assign(features.begin(), features.end());
+      }
+      finalizeScoringGroup_(*state);
+      state.reset();
+    };
+    // Empty groups still undergo validation and subset replacement, but need
+    // not coexist with any candidate-scoring contexts.
+    for (Size i = 0; i < groups.size(); ++i)
+    {
+      if (remaining[i] == 0 && !errors[i])
+      {
+        try
+        {
+          prepare(i);
+          finish(i);
+        }
+        catch (...)
+        {
+          errors[i] = std::current_exception();
+          prepared[i].reset();
+        }
       }
     }
     // Never pass NaN to the comparator. One nonfinite apex preserves the entire
@@ -920,11 +987,23 @@ namespace OpenMS
       {
         try
         {
-          scoreOneFeature_(*task.group, task.feature_index, &task.group->scored_feature_indices);
+          auto& state = prepared[task.group_index];
+          if (!state)
+          {
+            prepare(task.group_index);
+          }
+          scoreOneFeature_(*state, task.feature_index, &state->scored_feature_indices);
+          if (--remaining[task.group_index] == 0 && (!state->defer_unranked_scores || stop_report_after_feature_ == 0))
+          {
+            // Finalization without REMAINDER cannot issue raw spectrum work.
+            // Release S/N estimators, complete subsets and caches immediately.
+            finish(task.group_index);
+          }
         }
         catch (...)
         {
           errors[task.group_index] = std::current_exception();
+          prepared[task.group_index].reset();
         }
       }
     }
@@ -934,29 +1013,34 @@ namespace OpenMS
       {
         continue;
       }
-      auto& state = prepared[group_index];
       try
       {
-        // Restore original candidate order before ranking so equal-quality ties
-        // and partial_sort selection do not depend on the RT execution schedule.
-        const auto& features = state->detection->getFeatures();
-        if (state->defer_feature_output)
+        if (prepared[group_index])
         {
-          auto& indices = state->scored_feature_indices;
-          for (Size i = 0; i < indices.size(); ++i)
-          {
-            indices[i] = static_cast<SignedSize>(i);
-          }
+          // Deferred raw work stays after all candidates, in input group order.
+          finish(group_index);
         }
-        else
-        {
-          state->feature_list.assign(features.begin(), features.end());
-        }
-        finalizeScoringGroup_(*state);
       }
       catch (...)
       {
         errors[group_index] = std::current_exception();
+        prepared[group_index].reset();
+      }
+    }
+    // Multiple groups may share a FeatureMap. Completion order must not change
+    // their output order, and partial output from a failing finalizer is retained.
+    for (Size i = 0; i < groups.size(); ++i)
+    {
+      try
+      {
+        for (auto& feature : outputs[i])
+        {
+          groups[i].second->push_back(std::move(feature));
+        }
+      }
+      catch (...)
+      {
+        errors[i] = std::current_exception();
       }
     }
     return errors;

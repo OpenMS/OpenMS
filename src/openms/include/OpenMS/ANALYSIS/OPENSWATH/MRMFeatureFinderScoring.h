@@ -234,10 +234,12 @@ private:
   struct PreparedScoringGroup;
 
   /// INTERNAL: score picked candidates across one bounded extraction batch in stable apex RT order.
+  /// Optional test-only peak_live_contexts counts simultaneously retained prepared groups.
   std::vector<std::exception_ptr> scorePeakgroupsBatch_(const std::vector<std::pair<MRMTransitionGroupType*, FeatureMap*>>& groups,
                             const TransformationDescription& trafo,
                             const std::vector<OpenSwath::SwathMap>& swath_maps,
-                            bool ms1only, MobilogramParquetConsumer* mobilogram_consumer) const;
+                            bool ms1only, MobilogramParquetConsumer* mobilogram_consumer,
+                            Size* peak_live_contexts = nullptr) const;
   std::unique_ptr<PreparedScoringGroup> prepareScoringGroup_(MRMTransitionGroupType& transition_group,
                             const TransformationDescription& trafo,
                             const std::vector<OpenSwath::SwathMap>& swath_maps,
