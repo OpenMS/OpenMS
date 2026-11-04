@@ -159,7 +159,7 @@ namespace
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // Canonical → isoform coordinates (-map_canonical_features)
+  // Canonical → isoform coordinates (default; off with -omit_canonical_features)
   // ──────────────────────────────────────────────────────────────────
 
   /// Isoform position of canonical residue @p p under @p edits (sorted N- to C-terminal),
@@ -287,7 +287,7 @@ namespace
   }
 
   /// True if UniProt's own annotation @p own of an isoform contradicts the mapped canonical feature
-  /// @p mapped, so that the isoform's annotation wins (-map_canonical_features): a processed region of
+  /// @p mapped, so that the isoform's annotation wins (canonical mapping): a processed region of
   /// the same type overlapping it, or a bond sharing a residue with it: two disulfide bonds sharing a
   /// cysteine, and otherwise a disulfide bond or cross-link sharing a residue with a cross-link if one of
   /// the two links two residues of the protein (e.g. a disulfide bond on the cysteine of an intrachain
@@ -784,7 +784,7 @@ namespace
     }
 
     // Canonical features mapped onto each isoform through the splice variants it is built from.
-    // UniProt does not assert them for the isoform; this is opt-in.
+    // UniProt does not assert them for the isoform; the tool turns this off with -omit_canonical_features.
     if (map_canonical_features)
     {
       const int canonical_length = static_cast<int>(pe.source.sequence.size());

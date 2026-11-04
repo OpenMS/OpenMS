@@ -264,7 +264,7 @@ START_SECTION(([EXTRA] map_canonical_features: canonical annotations in isoform 
 {
   SkippedIsoformCounts skipped;
 
-  // off (the default): the isoform carries only the variant UniProt annotates on it
+  // off (-omit_canonical_features): the isoform carries only the variant UniProt annotates on it
   PreparedEntry pe = prepare(canonicalFeatures(), true, skipped);
   ABORT_IF(pe.isoforms.size() != 1)
   TEST_EQUAL(pe.isoforms[0].sequence, "MSTLDAPGRSTWEVQLIVKDNACYLRGE")
