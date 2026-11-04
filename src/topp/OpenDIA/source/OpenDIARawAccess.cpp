@@ -14,15 +14,27 @@
 #include <chrono>
 #include <cmath>
 #include <limits>
+#include <string>
 #include <unordered_map>
 
 namespace OpenDIA
 {
   namespace
   {
-    void invalid(const char* text)
+    void invalid(const std::string& text)
     {
       throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, text, "raw scan cache");
+    }
+
+    std::string admissionFailure(const char* resource, ByteCount requested, const BudgetSnapshot& budget)
+    {
+      const ByteCount used = checkedByteAdd(budget.reserved_bytes, budget.committed_bytes);
+      const ByteCount available = budget.usable_bytes > used ? budget.usable_bytes - used : 0;
+      return std::string(resource) + " admission failed: requested " + std::to_string(requested) +
+        " bytes, " + std::to_string(available) + " bytes available after cache eviction. " +
+        (budget.cancelled ? "The cache was cancelled." :
+          "Live views may pin memory. Reduce -threads or increase "
+          "TargetedDataExtraction:raw_memory_mb.");
     }
 
     bool lowerClosed(const QueryInterval& q)
@@ -506,7 +518,7 @@ namespace OpenDIA
     auto& known_bound = scan_bounds_->at(static_cast<size_t>(id));
     const auto scan_bound = known_bound ? known_bound : cache_->max_scan_bytes_;
     auto reservation = cache_->reserve_(scan_bound, phase_id);
-    if (!reservation) { invalid("Scan admission failed: pinned views or cancellation"); }
+    if (!reservation) { invalid(admissionFailure("Scan", scan_bound, cache_->budget_.snapshot())); }
     // Native decode is outside private capacity enforcement. Check before conversion.
     const auto decode_started = Clock::now();
     const auto native = metadata_source_->getSpectrumPeaks(index);
@@ -785,7 +797,7 @@ namespace OpenDIA
       checkedByteAdd(sizeof(MutableSpectrum), checkedByteMultiply(scan->arrayCount(), sizeof(OpenSwath::BinaryDataArrayPtr))));
     if (copy_bound > cache_->max_scan_bytes_) { invalid("Mutable scan exceeds maximum scan bytes"); }
     auto reservation = cache_->reserve_(copy_bound, phase_id);
-    if (!reservation) { invalid("Mutable scan admission failed"); }
+    if (!reservation) { invalid(admissionFailure("Mutable scan", copy_bound, cache_->budget_.snapshot())); }
     auto owner = std::make_shared<MutableColumns>();
     owner->spectrum = std::make_shared<OpenSwath::Spectrum>();
     auto& out = owner->spectrum->getDataArrays();
