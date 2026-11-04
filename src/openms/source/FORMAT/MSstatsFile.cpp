@@ -161,8 +161,11 @@ void MSstatsFile::constructFile_(const std::string& retention_time_summarization
             peptideseq_to_prefix_to_intensities[peptideseq])
     {
       // First, we collect all retention times and intensities
+      // (a multiset for intensities: distinct retention times can carry the
+      // same intensity value, and those are real, separate measurements, not
+      // duplicates to be collapsed)
       set<MSstatsFile::Coordinate> retention_times{};
-      set<MSstatsFile::Intensity> intensities{};
+      multiset<MSstatsFile::Intensity> intensities{};
       for (const auto &p : line.second)
       {
         if (retention_times.contains(get<1>(p)))
