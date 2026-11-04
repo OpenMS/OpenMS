@@ -5836,7 +5836,7 @@ set_tests_properties("TOPP_ProSE_nterm_options_on_recorded" PROPERTIES DEPENDS "
 # trace of a feature move to its monoisotopic m/z before the search (the BSA run has 564 MS1 and 1,120 MS2 spectra)
 add_test(NAME "TOPP_ProSE_mono_correction" COMMAND ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-Search:rescore;false;-in;${DATA_DIR_TOPP}/InternalCalibration_1_BSA1.mzML;-database;${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_mono_correction.tmp.idXML;-Search:precursor:mono_correction;true"
-  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=Precursor correction: [0-9]+ of 1120 MS2 precursors moved to the monoisotopic peak" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=Precursor correction: [1-9][0-9]* of 1120 MS2 precursors moved to the monoisotopic peak" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
 
 add_test("TOPP_ProSE_1" ${TOPP_BIN_PATH}/ProSE -test ${_prose_library_defaults} -Search:rescore false
 -ini ${DATA_DIR_TOPP}/ProSE_1.ini -in

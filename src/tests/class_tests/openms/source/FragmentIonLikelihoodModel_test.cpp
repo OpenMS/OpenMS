@@ -481,6 +481,14 @@ START_SECTION((void matchIons(const PeakLists& peaks, Size index, const MSSpectr
   std::vector<Int> short_charges(charges.begin(), charges.end() - 1);
   TEST_EXCEPTION(Exception::InvalidValue, rich.matchIons(peaks, 0, coded, series, ordinals, short_charges, peptide, 2, 20.0, true, out))
   TEST_EXCEPTION(Exception::InvalidParameter, rich.matchIons(peaks, 0, coded, series, ordinals, charges, peptide, 2, 0.0, true, out))
+
+  // a series code other than 0 (prefix) and 1 (suffix) is not an ion, as for parseIonName() and HyperScore's codeSeries()
+  peaks.assign(0, observed_(peptide));
+  rich.matchIons(peaks, 0, coded, series, ordinals, charges, peptide, 2, 20.0, true, out);
+  TEST_EQUAL(out.empty(), false)
+  const std::vector<uint8_t> other_series(series.size(), 2);
+  rich.matchIons(peaks, 0, coded, other_series, ordinals, charges, peptide, 2, 20.0, true, out);
+  TEST_EQUAL(out.empty(), true)
 }
 END_SECTION
 
