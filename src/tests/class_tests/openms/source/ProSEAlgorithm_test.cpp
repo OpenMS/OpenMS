@@ -13,6 +13,7 @@
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 #include <mutex>
+#include <thread>
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/ID/CoIsolationDetector.h>
@@ -9313,6 +9314,28 @@ START_SECTION(([EXTRA] decoy_method keep_termini: the segments without the regex
     }
     TEST_EQUAL(equal, fasta_db.size())
   }
+}
+END_SECTION
+
+START_SECTION((static bool ompThreadCountIsGlobal()))
+{
+#ifdef _OPENMP
+  const int before = omp_get_max_threads();
+#endif
+  const bool global = ProSEAlgorithm::ompThreadCountIsGlobal();
+  TEST_EQUAL(ProSEAlgorithm::ompThreadCountIsGlobal(), global) // probed once
+#ifdef _OPENMP
+  TEST_EQUAL(omp_get_max_threads(), before) // the probe leaves the caller's number as it was
+  // what it says is what the runtime does: another thread's number reaches this thread only where the number is global
+  std::thread([before]() { omp_set_num_threads(before + 2); }).join();
+  TEST_EQUAL(omp_get_max_threads() != before, global)
+  omp_set_num_threads(before);
+  #if _OPENMP >= 200805
+  TEST_EQUAL(global, false) // OpenMP 3.0 runtimes keep the number per thread
+  #endif
+#else
+  TEST_EQUAL(global, false)
+#endif
 }
 END_SECTION
 

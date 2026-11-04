@@ -572,6 +572,18 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     static std::string pinFeatureEnzyme(const std::string& enzyme, bool fixed_enzyme_termini);
 
     /**
+     * @brief Whether the OpenMP runtime keeps one process-wide number of threads.
+     *
+     * With MSVC's OpenMP 2.0 runtime (vcomp) omp_set_num_threads() by any thread sets the number for every thread;
+     * the OpenMP 3.0 runtimes (libgomp, LLVM's libomp, also MSVC's /openmp:llvm, which defines _OPENMP as 200203 too)
+     * keep one per thread. The searches of this class run their background reads and output on helper threads that
+     * use OpenMP: on a runtime with a global number they never set it, so that the search keeps its threads.
+     * Probed once, on the first call, which must be made on the main thread before a helper thread uses OpenMP: a
+     * thread sets another number and this thread checks its own, then sets it back. Without OpenMP: false.
+     */
+    static bool ompThreadCountIsGlobal();
+
+    /**
      * @brief The MS2 spectra of a spectrum file as the searches of this class read them.
      *
      * Sorted by RT, their peaks by m/z. An mzML file is read in chunks that the OpenMP threads of
