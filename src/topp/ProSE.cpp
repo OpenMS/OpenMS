@@ -390,7 +390,8 @@ quota. Use `jump` for legacy filtering at every resolution, or `jump_full` to al
 the full quota. This changes high-resolution preprocessing, not the scoring formula.
 @note Self-trained fragment ion priors: with `Search:annotate:self_trained_ion_priors` (on by default) each file learns
 how its fragment ions appear: presence, intensity rank among all peaks after deisotoping (before the
-`Search:peaks:window_top` and `Search:peaks:keep_n` filters) and mass error, per ion series, precursor and fragment
+`Search:peaks:window_top` and `Search:peaks:keep_n` filters) and mass error, per ion series (a/b, x/y, c and z apart:
+the c and z+1 ions of electron-activated spectra, see `Search:ions:by_activation`, have statistics of their own), precursor and fragment
 charge, relative cleavage position, residues at the cleavage site (before P, after D or E) and presence of the
 complementary ion (`Search:annotate:ion_prior_model` 'rich'; 'basic' keeps series, charges and position, and the rank
 only). The model learns from the confident target PSMs (target-decoy competition q <= `Search:annotate:ion_prior_train_fdr`

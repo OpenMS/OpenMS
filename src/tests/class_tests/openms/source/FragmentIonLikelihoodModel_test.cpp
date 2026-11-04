@@ -23,6 +23,7 @@
 #include <numeric>
 #include <random>
 #include <string>
+#include <tuple>
 #include <vector>
 
 using namespace OpenMS;
@@ -133,8 +134,8 @@ START_SECTION((explicit FragmentIonLikelihoodModel(ContextSet context_set = Cont
   TEST_EQUAL(ptr->isTrained(), false)
   TEST_EQUAL(ptr->signalPsms(), 0)
   TEST_EQUAL(ptr->noisePsms(), 0)
-  // 2 series x 3 precursor buckets x 2 fragment charges x 10 positions x 3 cleavage sites x 2 complement states
-  TEST_EQUAL(ptr->contexts(), 720)
+  // 4 series x 3 precursor buckets x 2 fragment charges x 10 positions x 3 cleavage sites x 2 complement states
+  TEST_EQUAL(ptr->contexts(), 1440)
   // 7 rank bins x 3 error bins, absent
   TEST_EQUAL(ptr->outcomes(), 22)
   TEST_EQUAL(ptr->absentOutcome(), 21)
@@ -143,7 +144,7 @@ START_SECTION((explicit FragmentIonLikelihoodModel(ContextSet context_set = Cont
   Model basic(Model::ContextSet::BASIC, 5.0);
   TEST_EQUAL(basic.contextSet() == Model::ContextSet::BASIC, true)
   TEST_REAL_SIMILAR(basic.pseudoCount(), 5.0)
-  TEST_EQUAL(basic.contexts(), 120)
+  TEST_EQUAL(basic.contexts(), 240)
   TEST_EQUAL(basic.outcomes(), 8)
   TEST_EQUAL(basic.absentOutcome(), 7)
 
@@ -218,6 +219,54 @@ START_SECTION((static bool parseIonName(const std::string& name, bool& prefix, S
   for (const std::string& name : {"", "b", "b+", "b0+", "[M+H]+", "iP+", "y-H2O+", "Q", "$"})
   {
     TEST_EQUAL(Model::parseIonName(name, prefix, ordinal), false)
+  }
+}
+END_SECTION
+
+START_SECTION((static bool parseIonSeries(const std::string& name, Size& series, Size& ordinal)))
+{
+  Size series = 99;
+  Size ordinal = 0;
+  // a/b 0, x/y 1, c 2, z (z, z+1, z+2) 3
+  for (const auto& [name, expected_series, expected_ordinal] : std::vector<std::tuple<std::string, Size, Size>>{
+         {"a1+", 0, 1}, {"b5+", 0, 5}, {"x2+", 1, 2}, {"y3++", 1, 3}, {"c7+", 2, 7}, {"z4+", 3, 4}, {"z.4+", 3, 4},
+         {"z'12+", 3, 12}, {"b3-H2O1+", 0, 3}, {"PEPTIDE$c6+", 2, 6}})
+  {
+    TEST_EQUAL(Model::parseIonSeries(name, series, ordinal), true)
+    TEST_EQUAL(series, expected_series)
+    TEST_EQUAL(ordinal, expected_ordinal)
+    // even series are the prefix ions
+    bool prefix = false;
+    Model::parseIonName(name, prefix, ordinal);
+    TEST_EQUAL(prefix, series % 2 == 0)
+  }
+  for (const std::string& name : {"", "c", "z.+", "b0+", "[M+H]+", "iP+", "Q", "$"})
+  {
+    TEST_EQUAL(Model::parseIonSeries(name, series, ordinal), false)
+  }
+}
+END_SECTION
+
+START_SECTION((static Size seriesOf(Residue::ResidueType type)))
+{
+  TEST_EQUAL(Model::seriesOf(Residue::AIon), 0)
+  TEST_EQUAL(Model::seriesOf(Residue::BIon), 0)
+  TEST_EQUAL(Model::seriesOf(Residue::XIon), 1)
+  TEST_EQUAL(Model::seriesOf(Residue::YIon), 1)
+  TEST_EQUAL(Model::seriesOf(Residue::CIon), 2)
+  TEST_EQUAL(Model::seriesOf(Residue::ZIon), 3)
+  TEST_EQUAL(Model::seriesOf(Residue::Zp1Ion), 3)
+  TEST_EQUAL(Model::seriesOf(Residue::Zp2Ion), 3)
+  TEST_EQUAL(Model::seriesOf(Residue::Full), Model::SERIES)
+  TEST_EQUAL(Model::seriesOf(Residue::Precursor), Model::SERIES)
+  TEST_EQUAL(Model::seriesOf(Residue::BIonMinusH20), Model::SERIES)
+  // the series of an ion type is the series of its name
+  for (const Residue::ResidueType type : {Residue::AIon, Residue::BIon, Residue::CIon, Residue::XIon, Residue::YIon, Residue::ZIon,
+                                          Residue::Zp1Ion, Residue::Zp2Ion})
+  {
+    Size series = 99, ordinal = 0;
+    TEST_EQUAL(Model::parseIonSeries(Residue::residueTypeToIonLetter(type) + "3+", series, ordinal), true)
+    TEST_EQUAL(series, Model::seriesOf(type))
   }
 }
 END_SECTION
@@ -407,6 +456,82 @@ START_SECTION((void matchIons(const PeakLists& peaks, Size index, const MSSpectr
   }
   TEST_EQUAL(charge2, 16)
 
+  // c and z+1 ions (ETD-type spectra) are series of their own; the b/y ions keep the contexts and outcomes they have
+  // without them, and complements pair b with y and c with z only
+  {
+    auto generator = [](bool by, bool cz) {
+      TheoreticalSpectrumGenerator tsg;
+      Param p = tsg.getParameters();
+      p.setValue("add_metainfo", "true");
+      p.setValue("add_first_prefix_ion", "true");
+      p.setValue("add_b_ions", by ? "true" : "false");
+      p.setValue("add_y_ions", by ? "true" : "false");
+      p.setValue("add_c_ions", cz ? "true" : "false");
+      p.setValue("add_zp1_ions", cz ? "true" : "false");
+      tsg.setParameters(p);
+      return tsg;
+    };
+    MSSpectrum by_theo, all_theo, cz_theo;
+    generator(true, false).getSpectrum(by_theo, peptide, 1, 1);
+    generator(true, true).getSpectrum(all_theo, peptide, 1, 1);
+    generator(false, true).getSpectrum(cz_theo, peptide, 1, 1);
+    // list 0: the b/y pattern of observed_(); list 1: every z+1 ion and nothing else
+    MSSpectrum z_only;
+    for (Size i = 0; i < cz_theo.size(); ++i)
+    {
+      if (cz_theo.getStringDataArrays()[0][i][0] == 'z') z_only.emplace_back(cz_theo[i].getMZ(), 100.0f);
+    }
+    TEST_EQUAL(z_only.size(), 8)
+    Model::PeakLists lists;
+    lists.reset(2);
+    lists.assign(0, observed_(peptide));
+    lists.assign(1, z_only);
+    const auto& all_names = all_theo.getStringDataArrays()[0];
+    for (Size list = 0; list < 2; ++list)
+    {
+      std::vector<Model::Ion> by_ions, all_ions;
+      rich.matchIons(lists, list, by_theo, peptide, 2, 20.0, true, by_ions);
+      rich.matchIons(lists, list, all_theo, peptide, 2, 20.0, true, all_ions);
+      ABORT_IF(all_ions.size() != all_names.size())
+      std::vector<Model::Ion> by_of_all;
+      for (Size i = 0; i < all_ions.size(); ++i)
+      {
+        if (all_names[i][0] == 'b' || all_names[i][0] == 'y') by_of_all.push_back(all_ions[i]);
+      }
+      bool same = by_of_all.size() == by_ions.size() && by_ions.size() == 16;
+      for (Size i = 0; same && i < by_ions.size(); ++i)
+      {
+        same = by_of_all[i].context == by_ions[i].context && by_of_all[i].outcome == by_ions[i].outcome;
+      }
+      TEST_EQUAL(same, true)
+    }
+    std::vector<Model::Ion> all_ions;
+    rich.matchIons(lists, 1, all_theo, peptide, 2, 20.0, true, all_ions);
+    auto ion_of = [&](const std::string& name) -> Model::Ion {
+      for (Size i = 0; i < all_names.size(); ++i) if (all_names[i] == name) return all_ions[i];
+      return {0, 0};
+    };
+    // c2 (F|P: before P), complement z.7 present; missing itself
+    TEST_EQUAL(ion_of("c2+").context, rich_context_(2, 0, 0, 2, 1, 1))
+    TEST_EQUAL(ion_of("c2+").outcome, rich.absentOutcome())
+    // z.7 (F|P), complement c2 missing; present itself
+    TEST_EQUAL(ion_of("z.7+").context, rich_context_(3, 0, 0, 7, 1, 0))
+    TEST_NOT_EQUAL(ion_of("z.7+").outcome, rich.absentOutcome())
+    // b2 (F|P): its complement is y7, which is missing; the z.7 at the same bond does not count
+    TEST_EQUAL(ion_of("b2+").context, rich_context_(0, 0, 0, 2, 1, 0))
+    // BASIC: the series of c and z ions
+    const Model basic(Model::ContextSet::BASIC);
+    std::vector<Model::Ion> basic_ions;
+    basic.matchIons(lists, 1, all_theo, peptide, 2, 20.0, true, basic_ions);
+    ABORT_IF(basic_ions.size() != all_names.size())
+    for (Size i = 0; i < all_names.size(); ++i)
+    {
+      Size series = 0, ordinal = 0;
+      Model::parseIonSeries(all_names[i], series, ordinal);
+      TEST_EQUAL(basic_ions[i].context, basic_context_(series, 0, 0, std::min<Size>(9, 10 * ordinal / 9)))
+    }
+  }
+
   // invalid input
   std::vector<Model::Ion> out;
   MSSpectrum unnamed = theo;
@@ -425,43 +550,51 @@ START_SECTION((void matchIons(const PeakLists& peaks, Size index, const MSSpectr
 }
 END_SECTION
 
-START_SECTION((void matchIons(const PeakLists& peaks, Size index, const MSSpectrum& theoretical, const std::vector<uint8_t>& ion_series, const std::vector<UInt>& ion_ordinals, const std::vector<Int>& ion_charges, const AASequence& peptide, int precursor_charge, double tolerance, bool ppm, std::vector<Ion>& ions) const))
+START_SECTION((void matchIons(const PeakLists& peaks, Size index, const MSSpectrum& theoretical, const std::vector<Residue::ResidueType>& ion_types, const std::vector<UInt>& ion_ordinals, const std::vector<Int>& ion_charges, const AASequence& peptide, int precursor_charge, double tolerance, bool ppm, std::vector<Ion>& ions) const))
 {
-  // the same ions as from the names, for both context sets, charges 1-3, ppm and Da, with modifications
-  TheoreticalSpectrumGenerator tsg;
-  Param p = tsg.getParameters();
-  p.setValue("add_metainfo", "true");
-  p.setValue("add_first_prefix_ion", "true");
-  tsg.setParameters(p);
-  for (const Model::ContextSet context_set : {Model::ContextSet::RICH, Model::ContextSet::BASIC})
+  // the same ions as from the names, for both context sets, charges 1-3, ppm and Da, with modifications; b/y ions
+  // (as for HCD spectra), with c and z+1 ions (as for ETD-type spectra) and all ion series
+  const std::vector<std::vector<std::string>> configurations = {{}, {"add_c_ions", "add_zp1_ions"},
+    {"add_a_ions", "add_c_ions", "add_x_ions", "add_z_ions", "add_zp1_ions", "add_zp2_ions"}};
+  for (const auto& on : configurations)
   {
-    const Model model(context_set);
-    for (const std::string& s : {"DFPIANGER", "C(Carbamidomethyl)PEPM(Oxidation)TIDEK", "HPYFYAPELLFFAK", "AEFVEVTK"})
+    TheoreticalSpectrumGenerator tsg;
+    Param p = tsg.getParameters();
+    p.setValue("add_metainfo", "true");
+    p.setValue("add_first_prefix_ion", "true");
+    for (const std::string& ion : on) p.setValue(ion, "true");
+    tsg.setParameters(p);
+    for (const Model::ContextSet context_set : {Model::ContextSet::RICH, Model::ContextSet::BASIC})
     {
-      const AASequence peptide = AASequence::fromString(s);
-      Model::PeakLists peaks;
-      peaks.reset(1);
-      peaks.assign(0, observed_(peptide));
-      for (int max_charge = 1; max_charge <= 3; ++max_charge)
+      const Model model(context_set);
+      for (const std::string& s : {"DFPIANGER", "C(Carbamidomethyl)PEPM(Oxidation)TIDEK", "HPYFYAPELLFFAK", "AEFVEVTK"})
       {
-        for (const bool ppm : {true, false})
+        const AASequence peptide = AASequence::fromString(s);
+        Model::PeakLists peaks;
+        peaks.reset(1);
+        peaks.assign(0, observed_(peptide));
+        for (int max_charge = 1; max_charge <= 3; ++max_charge)
         {
-          MSSpectrum named;
-          tsg.getSpectrum(named, peptide, 1, max_charge);
-          std::vector<Model::Ion> expected, ions;
-          model.matchIons(peaks, 0, named, peptide, max_charge + 1, ppm ? 20.0 : 0.02, ppm, expected);
-          MSSpectrum coded;
-          std::vector<uint8_t> series;
-          std::vector<UInt> ordinals;
-          std::vector<Int> charges;
-          TEST_EQUAL(tsg.getIonSeriesSpectrum(coded, series, ordinals, charges, peptide, 1, max_charge), true)
-          model.matchIons(peaks, 0, coded, series, ordinals, charges, peptide, max_charge + 1, ppm ? 20.0 : 0.02, ppm, ions);
-          bool same = ions.size() == expected.size() && !ions.empty();
-          for (Size i = 0; same && i < ions.size(); ++i)
+          for (const bool ppm : {true, false})
           {
-            same = ions[i].context == expected[i].context && ions[i].outcome == expected[i].outcome;
+            MSSpectrum named;
+            tsg.getSpectrum(named, peptide, 1, max_charge);
+            std::vector<Model::Ion> expected, ions;
+            model.matchIons(peaks, 0, named, peptide, max_charge + 1, ppm ? 20.0 : 0.02, ppm, expected);
+            MSSpectrum coded;
+            std::vector<uint8_t> series;
+            std::vector<UInt> ordinals;
+            std::vector<Int> charges;
+            std::vector<Residue::ResidueType> types;
+            TEST_EQUAL(tsg.getIonSeriesSpectrum(coded, series, ordinals, charges, types, peptide, 1, max_charge), true)
+            model.matchIons(peaks, 0, coded, types, ordinals, charges, peptide, max_charge + 1, ppm ? 20.0 : 0.02, ppm, ions);
+            bool same = ions.size() == expected.size() && !ions.empty();
+            for (Size i = 0; same && i < ions.size(); ++i)
+            {
+              same = ions[i].context == expected[i].context && ions[i].outcome == expected[i].outcome;
+            }
+            TEST_EQUAL(same, true)
           }
-          TEST_EQUAL(same, true)
         }
       }
     }
@@ -472,15 +605,19 @@ START_SECTION((void matchIons(const PeakLists& peaks, Size index, const MSSpectr
   const AASequence peptide = AASequence::fromString("DFPIANGER");
   Model::PeakLists peaks;
   peaks.reset(1);
+  TheoreticalSpectrumGenerator tsg;
   MSSpectrum coded;
   std::vector<uint8_t> series;
   std::vector<UInt> ordinals;
   std::vector<Int> charges;
-  tsg.getIonSeriesSpectrum(coded, series, ordinals, charges, peptide, 1, 1);
+  std::vector<Residue::ResidueType> types;
+  tsg.getIonSeriesSpectrum(coded, series, ordinals, charges, types, peptide, 1, 1);
   std::vector<Model::Ion> out;
   std::vector<Int> short_charges(charges.begin(), charges.end() - 1);
-  TEST_EXCEPTION(Exception::InvalidValue, rich.matchIons(peaks, 0, coded, series, ordinals, short_charges, peptide, 2, 20.0, true, out))
-  TEST_EXCEPTION(Exception::InvalidParameter, rich.matchIons(peaks, 0, coded, series, ordinals, charges, peptide, 2, 0.0, true, out))
+  std::vector<Residue::ResidueType> short_types(types.begin(), types.end() - 1);
+  TEST_EXCEPTION(Exception::InvalidValue, rich.matchIons(peaks, 0, coded, types, ordinals, short_charges, peptide, 2, 20.0, true, out))
+  TEST_EXCEPTION(Exception::InvalidValue, rich.matchIons(peaks, 0, coded, short_types, ordinals, charges, peptide, 2, 20.0, true, out))
+  TEST_EXCEPTION(Exception::InvalidParameter, rich.matchIons(peaks, 0, coded, types, ordinals, charges, peptide, 2, 0.0, true, out))
 }
 END_SECTION
 
