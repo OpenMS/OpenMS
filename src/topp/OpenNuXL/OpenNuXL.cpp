@@ -738,7 +738,7 @@ struct ImmoniumIonsInPeptide
     1. Input files (-in): centroided mzML, Thermo .raw, Bruker timsTOF .d (DDA-PASEF) or mzPeak
        - Thermo .raw is read natively (with Thermo's peak picking, so profile scans are centroided) if OpenMS was built
          with Thermo RAW support (WITH_THERMO_RAW); no mzML conversion is written next to it. Otherwise it is converted with
-         ThermoRawFileParser (-ThermoRaw_executable, -NET_executable) into '<input>.raw.mzML' next to it, which is reused
+         ThermoRawFileParser (-ThermoRaw_executable, -NET_executable) into '\<input\>.raw.mzML' next to it, which is reused
          by later runs.
        - Bruker timsTOF .d directories (and .d.zip archives) need OpenMS built with OpenTIMS support (WITH_OPENTIMS),
          mzPeak needs mzPeak support (WITH_MZPEAK). Of DDA-PASEF data, the MS2 spectra (one per precursor) are centroided
@@ -746,9 +746,9 @@ struct ImmoniumIonsInPeptide
          features ('IM'). Precursors the instrument assigned no charge to (charge 0) are not searched. The precursor
          purity (and the removal of co-isolated precursor peaks it enables) is not computed for .d input, as its MS1
          frames are not collapsed over ion mobility; the 'precursor_purity' feature is then left out.
-       - Every run writes '<input>.ambiguous_masses.csv' next to the input (all formats).
+       - Every run writes '\<input\>.ambiguous_masses.csv' next to the input (all formats).
        - With the filter 'pcrecalibration', the recalibrated spectra are written as mzML next to the input
-         ('<input without extension>_pc.mzML', e.g. 'run_pc.mzML' for 'run.d' or a natively read 'run.raw'; for a
+         ('\<input without extension\>_pc.mzML', e.g. 'run_pc.mzML' for 'run.d' or a natively read 'run.raw'; for a
          .raw converted with ThermoRawFileParser 'run.raw_pc.mzML', as before) and read from there.
     2. Data preprocessing:
        - (optional, precursor_correction) precursor mass correction
