@@ -27,6 +27,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/SqliteConnector_impl.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 #include <boost/range/adaptor/map.hpp>
 #include <algorithm>
@@ -835,6 +836,7 @@ namespace OpenMS
     #pragma omp parallel if (in_parallel == 0)
     #endif
     {
+      const OpenSwath::SpectrumAccessScope scoring_scope(OpenSwath::SpectrumAccessScope::Purpose::SCORING);
       Size thread_index = 0;
       #ifdef _OPENMP
       thread_index = static_cast<Size>(omp_get_thread_num());
@@ -1328,6 +1330,7 @@ namespace OpenMS
         #endif
         for (SignedSize i = 0; i < static_cast<SignedSize>(report_count); ++i)
         {
+          const OpenSwath::SpectrumAccessScope scoring_scope(OpenSwath::SpectrumAccessScope::Purpose::SCORING);
           MRMFeature& selected_feature = mrmfeatures[scored_feature_indices[i]];
           MRMFeatureOpenMS imrmfeature(selected_feature,
                                        tg_cache.transition_native_ids,
