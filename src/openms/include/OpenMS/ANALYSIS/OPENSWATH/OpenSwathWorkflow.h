@@ -88,6 +88,17 @@ protected:
                                       const std::vector<ChromatogramExtractor::ExtractionCoordinates>& coordinates,
                                       const ChromExtractParams& parameters);
 
+    /** @brief Prepare read-only spectrum access for the scoring consumers.
+      The default preserves the supplied access. Implementations may reuse evidence
+      from extraction because the scoring consumers do not modify source spectra.
+      @param[in] input Final acquisition-lane access, including any mass transformation.
+      @return Access whose spectra remain valid for their owners' lifetime.
+    */
+    virtual OpenSwath::SpectrumAccessPtr spectrumAccessForScoring_(const OpenSwath::SpectrumAccessPtr& input) const
+    {
+      return input;
+    }
+
     /** @brief Default constructor
      *
      *  Will not use any ms1 traces and use all threads in the outer loop.

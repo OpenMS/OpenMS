@@ -7,8 +7,9 @@
 
 namespace OpenDIA
 {
-/** @brief OpenDIA extraction over leased native columns.
-  Scoring and output conversion retain the shared workflow implementation.
+/** @brief OpenDIA extraction and scoring over shared, leased scan columns.
+  Peak picking, scores and output conversion retain the shared workflow implementation.
+  Evidence can be decoded again after eviction from the bounded raw cache.
   Non-native accesses and non-tophat filters retain the shared extractor.
 */
 class RegionWorkflow : public OpenMS::OpenSwathWorkflow
@@ -26,5 +27,11 @@ public:
                              std::vector<OpenSwath::ChromatogramPtr>& output,
                              const std::vector<OpenMS::ChromatogramExtractor::ExtractionCoordinates>& coordinates,
                              const OpenMS::ChromExtractParams& parameters) override;
+
+  /** @brief Reuse budgeted native extraction columns for read-only scoring.
+    @param[in] input Final lane access, optionally wrapped by one mass transformation.
+    @return Shared evidence access, or the unchanged input for unsupported readers.
+  */
+  OpenSwath::SpectrumAccessPtr spectrumAccessForScoring_(const OpenSwath::SpectrumAccessPtr& input) const override;
 };
 } // namespace OpenDIA

@@ -6,10 +6,13 @@
 #include "OpenDIARawAccess.h"
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessTransforming.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <span>
+#include <utility>
 
 namespace OpenDIA
 {
@@ -21,11 +24,35 @@ namespace
     throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
   }
 
-  double integrate(const RawRegion::Scan& scan, const Coordinate& coordinate, const OpenMS::ChromExtractParams& cp, OpenMS::Size& center)
+  // Private to the audited read-only scoring path. Unlike RawAccess's detached
+  // mutable API, this access shares the same admitted columns used for XICs.
+  class ScoringAccess final : public OpenMS::SpectrumAccessTransforming
   {
-    const auto mz = scan.mz();
-    const auto intensity = scan.intensity();
-    const auto im = scan.mobility();
+  public:
+    ScoringAccess(std::shared_ptr<RawAccess> raw, std::optional<MZCalibration> calibration) :
+      SpectrumAccessTransforming(raw), raw_(std::move(raw)), calibration_(calibration)
+    {
+    }
+
+    OpenSwath::SpectrumPtr getSpectrumById(int id) override
+    {
+      return raw_->spectrumForScoring(id, calibration_);
+    }
+
+    std::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const override
+    {
+      return std::make_shared<ScoringAccess>(std::dynamic_pointer_cast<RawAccess>(raw_->lightClone()), calibration_);
+    }
+
+  private:
+    std::shared_ptr<RawAccess> raw_;
+    std::optional<MZCalibration> calibration_;
+  };
+
+  template<typename Intensity>
+  double integrate(std::span<const double> mz, std::span<const Intensity> intensity, std::span<const Intensity> im,
+                   const Coordinate& coordinate, const OpenMS::ChromExtractParams& cp, OpenMS::Size& center)
+  {
     const double half_width = cp.ppm ? coordinate.mz * cp.mz_extraction_window / 2.0 * 1.0e-6 : cp.mz_extraction_window / 2.0;
     const double left = coordinate.mz - half_width, right = coordinate.mz + half_width;
     const bool use_im = cp.im_extraction_window > 0 && coordinate.ion_mobility >= 0;
@@ -52,6 +79,24 @@ namespace
     return total;
   }
 } // namespace
+
+OpenSwath::SpectrumAccessPtr RegionWorkflow::spectrumAccessForScoring_(const OpenSwath::SpectrumAccessPtr& input) const
+{
+  auto source = input;
+  std::optional<MZCalibration> calibration;
+  if (const auto transformed = std::dynamic_pointer_cast<OpenMS::SpectrumAccessQuadMZTransforming>(source))
+  {
+    const auto [a, b, c, ppm] = transformed->getTransformation();
+    calibration = MZCalibration {a, b, c, ppm};
+    source = transformed->getInput();
+  }
+  if (auto raw = std::dynamic_pointer_cast<RawAccess>(source))
+  {
+    return std::make_shared<ScoringAccess>(std::move(raw), calibration);
+  }
+  // Unknown readers or stacked transformations retain their exact behavior.
+  return input;
+}
 
 void RegionWorkflow::extractChromatograms_(const OpenSwath::SpectrumAccessPtr& input,
                                            std::vector<OpenSwath::ChromatogramPtr>& output,
@@ -92,11 +137,12 @@ void RegionWorkflow::extractChromatograms_(const OpenSwath::SpectrumAccessPtr& i
   const auto count = raw->getNrSpectra();
   if (count > static_cast<OpenMS::Size>(std::numeric_limits<int>::max())) { invalid("Too many acquisitions"); }
   // Output arrays and temporary RT metadata retain the workflow's existing allocation policy.
-  // Only native region columns share the raw budget. This is not a process RSS cap.
+  // Only cached scan columns share the raw budget. This is not a process RSS cap.
   std::vector<double> rts(count);
   for (OpenMS::Size i = 0; i < count; ++i)
   {
     rts[i] = raw->getSpectrumMetaById(static_cast<int>(i)).RT;
+    if (! std::isfinite(rts[i])) { invalid("Invalid acquisition RT"); }
   }
   auto sorted_rts = rts;
   std::sort(sorted_rts.begin(), sorted_rts.end());
@@ -112,21 +158,39 @@ void RegionWorkflow::extractChromatograms_(const OpenSwath::SpectrumAccessPtr& i
     intensities.reserve(intensities.size() + points);
   }
   const OpenSwath::SpectrumAccessScope scope(OpenSwath::SpectrumAccessScope::Purpose::EXTRACTION);
-  // The cache keys each region by source, namespace and exact calibration coefficients.
-  const RecordContext context {0, 0, 0, calibration ? 1u : 0u};
+  // Extraction and scoring use one cache key, including the exact calibration.
+  // Once their last owner is gone, the LRU may reclaim these admitted columns.
   for (OpenMS::Size i = 0; i < count; ++i)
   {
-    const auto region = raw->acquireRegion(static_cast<int>(i), context, calibration);
-    const auto scan = region.scan(0);
-    if (scan.mz().empty()) { continue; }
-    if (cp.im_extraction_window > 0 && ! scan.acquisition().point_mobility) { invalid("Requested point mobility is absent"); }
-    OpenMS::Size center = 0;
-    for (OpenMS::Size k = 0; k < coordinates.size(); ++k)
+    auto scan = raw->acquire(static_cast<int>(i), calibration);
+    const bool sorted = scan->validateForExtraction();
+    const auto append = [&]<typename Intensity>(std::span<const double> mz, std::span<const Intensity> intensity,
+                                               std::span<const Intensity> im)
     {
-      const auto& c = coordinates[k];
-      if (c.rt_end - c.rt_start > 0 && (rts[i] < c.rt_start || rts[i] > c.rt_end)) { continue; }
-      output[k]->getTimeArray()->data.push_back(rts[i]);
-      output[k]->getIntensityArray()->data.push_back(integrate(scan, c, cp, center));
+      if (mz.empty()) { return; }
+      if (cp.im_extraction_window > 0 && im.empty()) { invalid("Requested point mobility is absent"); }
+      OpenMS::Size center = 0;
+      for (OpenMS::Size k = 0; k < coordinates.size(); ++k)
+      {
+        const auto& c = coordinates[k];
+        if (c.rt_end - c.rt_start > 0 && (rts[i] < c.rt_start || rts[i] > c.rt_end)) { continue; }
+        output[k]->getTimeArray()->data.push_back(rts[i]);
+        output[k]->getIntensityArray()->data.push_back(integrate(mz, intensity, im, c, cp, center));
+      }
+    };
+    if (sorted)
+    {
+      const auto mobility = scan->mobility();
+      append(std::span<const double>(scan->array(0).data), std::span<const double>(scan->array(1).data),
+             mobility ? std::span<const double>(mobility->data) : std::span<const double>());
+    }
+    else
+    {
+      // Rare non-monotonic transformations retain extraction's stable ordering.
+      // Scoring still sees the original transformed order, as in the legacy API.
+      scan.reset();
+      const auto region = raw->acquireRegion(static_cast<int>(i), {}, calibration).scan(0);
+      append(region.mz(), region.intensity(), region.mobility());
     }
   }
 }

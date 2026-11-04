@@ -1474,12 +1474,20 @@ void OpenSwathWorkflowBase::extractChromatograms_(const OpenSwath::SpectrumAcces
     MRMFeatureFinderScoring featureFinder;
     MRMTransitionGroupPicker trgroup_picker;
 
+    // Share extraction evidence with every spectrum and IM score in this batch.
+    // The default access is unchanged for workflows without retained evidence.
+    auto scoring_swath_maps = swath_maps;
+    for (auto& map : scoring_swath_maps)
+    {
+      map.sptr = spectrumAccessForScoring_(map.sptr);
+    }
+
     // To ensure multi-threading safe access to the individual spectra, we
     // need to use a light clone of the spectrum access (if multiple threads
     // share a single filestream and call seek on it, chaos will ensue).
     if (use_ms1_traces_ && ms1_map_)
     {
-      OpenSwath::SpectrumAccessPtr threadsafe_ms1 = ms1_map_->lightClone();
+      OpenSwath::SpectrumAccessPtr threadsafe_ms1 = spectrumAccessForScoring_(ms1_map_->lightClone());
       featureFinder.setMS1Map( threadsafe_ms1 );
     }
     else if (use_ms1_traces_ && !ms1_map_)
@@ -1702,7 +1710,7 @@ void OpenSwathWorkflowBase::extractChromatograms_(const OpenSwath::SpectrumAcces
 
       try
       {
-        featureFinder.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only, mobilogram_consumer);
+        featureFinder.scorePeakgroups(transition_group, trafo, scoring_swath_maps, output, ms1only, mobilogram_consumer);
       }
       catch (const Exception::InvalidRange & e)
       {

@@ -5,6 +5,7 @@
 #include "OpenDIARegionWorkflow.h"
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -125,6 +126,36 @@ void exercise(const std::shared_ptr<OpenMS::SpectrumAccessOnDisc>& source, bool 
         check(second.work.copies == 0 && second.work.copied_numeric_bytes == 0, "Region extraction made a detached legacy copy");
         // Small fixtures fit completely. Native samples can exceed the bounded LRU.
         if (! native) { check(second.work.decodes == first.work.decodes && second.hits > first.hits, "Repeated region extraction decoded again"); }
+        // Scoring must consume the same calibrated columns, not another detached
+        // spectrum or a second application of the acquisition transformation.
+        auto scoring = workflow.spectrumAccessForScoring_(input)->lightClone();
+        for (OpenMS::Size id = 0; id < source->getNrSpectra(); ++id)
+        {
+          const auto expected_spectrum = reference->getSpectrumById(static_cast<int>(id));
+          const auto actual_spectrum = scoring->getSpectrumById(static_cast<int>(id));
+          check(actual_spectrum->getDataArrays().size() == expected_spectrum->getDataArrays().size(), "Scoring lost auxiliary arrays");
+          for (OpenMS::Size column = 0; column < expected_spectrum->getDataArrays().size(); ++column)
+          {
+            check(actual_spectrum->getDataArrays()[column]->data == expected_spectrum->getDataArrays()[column]->data,
+                  "Shared scoring changed calibrated spectrum evidence");
+          }
+        }
+        OpenMS::OpenSwathScoring scorer;
+        const auto rt = source->getSpectrumMetaById(0).RT;
+        const auto expected_spectra = scorer.fetchSpectrumSwath(reference, rt, 3, OpenMS::RangeMobility());
+        const auto actual_spectra = scorer.fetchSpectrumSwath(scoring, rt, 3, OpenMS::RangeMobility());
+        check(actual_spectra.size() == expected_spectra.size(), "Scoring selected different neighboring spectra");
+        for (OpenMS::Size id = 0; id < expected_spectra.size(); ++id)
+        {
+          for (OpenMS::Size column = 0; column < expected_spectra[id]->getDataArrays().size(); ++column)
+          {
+            check(actual_spectra[id]->getDataArrays()[column]->data == expected_spectra[id]->getDataArrays()[column]->data,
+                  "Scoring spectrum selection changed evidence");
+          }
+        }
+        const auto scored = cache->snapshot();
+        if (! native) { check(scored.work.decodes == second.work.decodes, "Scoring decoded resident extraction evidence again"); }
+        check(scored.work.copies == 0, "Read-only scoring made detached spectrum copies");
         check(second.budget.peak_total_bytes <= second.budget.usable_bytes, "Region extraction exceeded admission");
         OPENMS_LOG_INFO << "region-consumer scans=" << source->getNrSpectra() << " ppm=" << ppm << " im=" << use_im
                         << " calibrated=" << calibration.has_value() << " decodes=" << second.work.decodes << " copies=" << second.work.copies
@@ -182,6 +213,9 @@ void fixtures()
     check(cache->snapshot().budget.committed_bytes == 0, "Unsupported native cache retained admission");
     auto input = std::make_shared<RawAccess>(source, cache);
     RegionWorkflow workflow(false, false, false, false, false, 1);
+    check(workflow.spectrumAccessForScoring_(source) == source, "Unknown reader scoring behavior changed");
+    auto stacked = transform(transform(input, MZCalibration {0, 1, 0, false}), MZCalibration {1, 1, 0, false});
+    check(workflow.spectrumAccessForScoring_(stacked) == stacked, "Stacked transforms must keep their original scoring access");
     std::vector<Coordinate> coordinates(1);
     coordinates[0].mz = 400;
     coordinates[0].rt_end = -1;
@@ -381,12 +415,23 @@ void nativeBatchWorkflow(const std::vector<OpenSwath::SwathMap>& maps)
   for (OpenMS::Size lane = 0; lane < sources.size(); ++lane)
   {
     auto actual = empty(1);
-    workflow.extractChromatograms_(accessors[lane], actual, coordinates[lane], cp);
+    workflow.extractChromatograms_(accessors[lane]->lightClone(), actual, coordinates[lane], cp);
     equal(actual, expected[lane]);
     const auto& intensities = actual.front()->getIntensityArray()->data;
     signal_observed = signal_observed || std::any_of(intensities.begin(), intensities.end(), [](double value) { return value != 0; });
   }
+  const auto extracted = cache->snapshot();
+  for (const auto& access : accessors)
+  {
+    const auto scoring = workflow.spectrumAccessForScoring_(access->lightClone())->lightClone();
+    for (OpenMS::Size id = 0; id < scoring->getNrSpectra(); ++id)
+    {
+      check(scoring->getSpectrumById(static_cast<int>(id)) != nullptr, "Scoring clone lost native batch evidence");
+    }
+  }
   const auto after = cache->snapshot();
+  check(after.work.decodes == extracted.work.decodes && after.hits > extracted.hits,
+        "Scoring clones decoded resident native extraction evidence again");
   const auto decoded = after.native_frames.decoded_frames - native_before.decoded_frames;
   check(signal_observed, "Batched native workflow comparison contained only zero signal");
   check(decoded == acquisition_ids.size(), "Workflow did not decode each physical Bruker acquisition exactly once");
@@ -445,6 +490,13 @@ void edges()
   workflow.extractChromatograms_(access, actual, coordinates, cp);
   equal(actual, expected);
   check(actual[0]->getIntensityArray()->data == std::vector<double> {5}, "Open endpoints or floating-point addition order changed");
+  auto reversed = transform(access, MZCalibration {200, -1, 0, false});
+  auto reordered = empty(1);
+  workflow.extractChromatograms_(reversed, reordered, coordinates, cp);
+  check(reordered[0]->getIntensityArray()->data == std::vector<double> {1}, "Non-monotonic calibration lost sorted extraction semantics");
+  auto scoring = workflow.spectrumAccessForScoring_(reversed)->getSpectrumById(0);
+  check(scoring->getMZArray()->data == std::vector<double> {101, 100.75, 100.5, 100, 99.5, 99},
+        "Extraction reordered the shared scoring snapshot");
   cp.im_extraction_window = 0.1;
   auto absent_im = empty(1);
   rejects([&] { workflow.extractChromatograms_(access, absent_im, coordinates, cp); });
@@ -453,7 +505,9 @@ void edges()
   cache->cancel();
   check(pinned.mz().size() == mz.size(), "Cancellation revoked region lease");
   pinned = {};
-  check(cache->snapshot().budget.committed_bytes == 0, "Cancelled region retained bytes");
+  check(cache->snapshot().budget.committed_bytes > 0, "Cancellation revoked shared scoring evidence");
+  scoring.reset();
+  check(cache->snapshot().budget.committed_bytes == 0, "Cancelled evidence retained bytes after its final owner");
   const auto bytes = RawRegion::requiredBytes({1, mz.size()}, spectrum.getNativeID().size());
   auto tiny_cache = std::make_shared<RawCache>(bytes - 1, 0, bytes - 1);
   RawAccess tiny(source, tiny_cache);

@@ -50,12 +50,21 @@ namespace OpenDIA
       @param[in] index Column index, less than arrayCount().
     */
     const OpenSwath::BinaryDataArray& array(OpenMS::Size index) const;
+    /// Validate finite, aligned, supported-unit evidence before extraction searches.
+    /// Returns whether masses are sorted. False requires the sorted region fallback,
+    /// never reordering the shared scoring columns. Invalid evidence throws.
+    bool validateForExtraction() const;
+    /// Borrow the recognized mobility column, or null. Valid only while this scan is owned.
+    const OpenSwath::BinaryDataArray* mobility() const { return point_mobility_unit_ ? columns_->getDriftTimeArray().get() : nullptr; }
   private:
     friend class RawAccess;
     RawScan() = default;
     MemoryLease lease_;
     OpenMS::MSSpectrum metadata_;
     OpenSwath::SpectrumPtr columns_;
+    bool native_points_valid_ = true;
+    bool masses_sorted_ = true;
+    std::optional<OpenMS::DriftTimeUnit> point_mobility_unit_;
   };
 
   /** @brief Bounded numeric scan storage.
@@ -138,8 +147,20 @@ namespace OpenDIA
     RawAccess(std::shared_ptr<OpenMS::SpectrumAccessOnDisc> source, std::shared_ptr<RawCache> cache);
     /** @brief Lease one complete scan. Fail if admission is not possible.
       @param[in] id Visible scan index.
+      @param[in] calibration Exact snapshot, absent for unchanged native masses.
     */
-    std::shared_ptr<const RawScan> acquire(int id);
+    std::shared_ptr<const RawScan> acquire(int id, std::optional<MZCalibration> calibration = {});
+    /** @brief TOOL-PRIVATE borrowed columns for audited read-only scoring only.
+      The mutable SpectrumPtr type is required by the scoring interface, but callers
+      MUST NOT modify its arrays or pass it to a transforming/mutating consumer.
+      Every array independently retains the immutable scan and its budget lease,
+      including after eviction, clear or cancellation. Only the small spectrum
+      wrapper is new, no numeric columns are copied. Wrapper/control allocations
+      use the declared native allowance. The public getSpectrumById stays detached.
+      @param[in] id Visible scan index.
+      @param[in] calibration Exact snapshot shared with extraction's acquire call.
+    */
+    OpenSwath::SpectrumPtr spectrumForScoring(int id, std::optional<MZCalibration> calibration = {});
     /** @brief Lease calibrated native columns without a detached legacy array copy.
       @param[in] id Visible scan index in this acquisition lane.
       @param[in] context Caller namespace and calibration snapshot identity.
@@ -167,6 +188,8 @@ namespace OpenDIA
   private:
     friend class RawCache;
     RawPhase phase_(int id) const; // cache lock held
+    std::shared_ptr<const RawScan> materialize_(const OpenMS::MSSpectrum& native,
+      OpenMS::Size index, std::optional<MZCalibration> calibration, ByteReservation reservation);
     std::shared_ptr<OpenMS::SpectrumAccessOnDisc> source_;
     std::shared_ptr<RawCache> cache_;
     std::shared_ptr<OpenMS::IMSExperimentRandomAccess> metadata_source_;
