@@ -11,11 +11,17 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/IdentifierMSRunMapper.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <algorithm>
 #include <cmath>
+#include <map>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 using namespace OpenMS;
 using namespace Math; //PosteriorErrorProbabilityModel
@@ -46,7 +52,8 @@ using namespace std;
 
 @experimental This tool has not been tested thoroughly and might behave not as expected!
 
-Posterior error probabilities (PEPs) are estimated separately for each search engine (and charge state, if @p split_charge is set).
+Posterior error probabilities (PEPs) are estimated separately for each search engine (and charge state, if @p split_charge is set,
+and MS run, if @p split_run is set).
 The search engine scores are transformed such that higher scores are better (e.g. -log10 of e-values).
 X! Tandem, Mascot, MyriMatch, OMSSA, MS-GF+, Comet, MSFragger, SpectraST, Sage, SimpleSearchEngine and ProSE have a dedicated score selection.
 For other search engines, the main score of the identifications is used, unless it is already a probability (e.g. a q-value or PEP).
@@ -69,14 +76,29 @@ If a spectrum has several identifications (e.g. results of separate target and d
 With @p split_charge, charge states with fewer than @p fit_algorithm:min_decoys decoys (or without targets, or whose model cannot be fitted,
 or whose targets do not score better than their decoys) use the target-decoy data of all charge states.
 
-<B>Several runs: one model for all of them</B>
+<B>Several runs</B>
 
-All search runs of the input file that stem from the same search engine are modeled together (one PEP curve per search engine),
-with target-decoy competition per spectrum. For a study with many small runs (e.g. fractions, or runs with few identifications),
-fitting one model to all runs is more accurate than fitting each run separately: with few decoys per run, the PEPs of a run
-depend strongly on the chance positions of its decoys. Merge the identification files of the study (@ref TOPP_IDMerger), estimate
-the PEPs once, and split the result by spectra file again (@ref TOPP_IDRipper) if needed. Score types must be comparable across the runs
-(same search engine and settings; e-values are preferable to raw scores).
+By default, all search runs of the input file that stem from the same search engine are modeled together (one PEP curve per search engine),
+with target-decoy competition per spectrum. Score types must be comparable across the runs (same search engine and settings;
+e-values are preferable to raw scores). One model for several runs is more accurate than a model per run if the runs are small
+(e.g. fractions, or runs with few identifications): with few decoys, the PEPs of a run depend strongly on the chance positions of its decoys,
+and the few incorrect targets that score above the best decoy of their run get low PEPs.
+With @p split_run, the PEPs of each MS run are estimated separately, e.g. if the score distributions of the runs differ strongly.
+An MS run is identified by its spectra file, so separate target and decoy searches of the same spectra file still compete per spectrum
+(identifications whose spectra file is unknown are grouped by their identification run). With @p out_plot, the plot files of the MS runs
+are numbered in the order of the runs in the input ('_run_1', '_run_2', ...).
+
+<B>PSM or peptide level</B>
+
+By default (@p fit_level 'psm'), the model is fitted to the PSMs. With @p fit_level 'peptide', it is fitted to the best PSM of each peptide
+(modified sequence; with @p split_charge: of each peptide and charge state): for the target-decoy estimate, the best top hit of each peptide
+after the competition per spectrum, as Percolator and mokapot do at the peptide level. Every PSM gets the PEP of this model at its score,
+so the best PSM of each peptide carries the PEP of the peptide.
+Use the peptide level for protein inference that takes the best PSM of each peptide (e.g. @ref TOPP_Epifany): the best of several PSMs is
+selected by its score, which PSM-level PEPs do not account for, while the decoys go through the same selection at the peptide level.
+For PSM-level analyses (e.g. @ref TOPP_ConsensusID, or the PEPs of all PSMs of a peptide), use the PSM level.
+The parameter @p fit_algorithm:min_decoys counts decoy peptides at the peptide level, and @p fit_algorithm:min_mixture_scores the peptides
+(their best scores) for the mixture model.
 
 <B>Mixture models</B>
 
@@ -139,6 +161,10 @@ protected:
     setValidFormats_("out_plot", ListUtils::create<std::string>("txt"));
 
     registerFlag_("split_charge", "The search engine scores are split by charge if this flag is set. Thus, for each charge state a new model will be computed.");
+    registerFlag_("split_run", "If set, the PEPs of each MS run (spectra file) are estimated separately. By default, one model is fitted to all runs of the input file (per search engine).");
+    registerStringOption_("fit_level", "<level>", "psm", "Fit the model to the PSMs ('psm'), or to the best PSM of each peptide ('peptide'; for protein inference that uses the best PSM per peptide, e.g. Epifany). "
+                          "Every PSM gets the PEP of the model at its score.", false);
+    setValidStrings_("fit_level", ListUtils::create<std::string>("psm,peptide"));
     registerFlag_("top_hits_only", "If set only the top hits of every PeptideIdentification will be used for fitting the mixture model without target/decoy information. (Target-decoy based estimates always use the top hits only.)");
     registerDoubleOption_("fdr_for_targets_smaller", "<value>", 0.05, "Deprecated and ignored. Target and decoy hits are determined by their target/decoy annotation.", false, true);
     registerFlag_("ignore_bad_data", "If set errors will be written but ignored. Useful for pipelines with many datasets where only a few are bad, but the pipeline should run through.");
@@ -169,52 +195,95 @@ protected:
     return static_cast<Size>(std::count_if(scores.begin(), scores.end(), [](double score) { return std::isfinite(score); }));
   }
 
-  ExitCodes main_(int, const char**) override
+  /**
+    @brief groups the identifications by MS run
+
+    An MS run is identified by its spectra file, so that identification runs of the same spectra file (e.g. separate target and decoy
+    searches) belong to the same MS run. Identifications whose spectra file is unknown are grouped by their identification run.
+
+    @return (name of the MS run, indices into @p peptide_ids) in the order of the first identification of each MS run
+  */
+  static std::vector<std::pair<std::string, std::vector<Size>>> groupByMSRun(const vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids)
   {
-    //-------------------------------------------------------------
-    // parsing parameters
-    //-------------------------------------------------------------
+    IdentifierMSRunMapper ms_runs;
+    try
+    {
+      ms_runs.create(protein_ids);
+    }
+    catch (Exception::InvalidValue&)
+    {
+      // several identification runs of the same spectra files: expected here; the mapping from runs to files is complete nevertheless
+    }
+    std::vector<std::pair<std::string, std::vector<Size>>> runs;
+    std::map<std::string, Size> run_index; // name -> index into runs
+    for (Size index = 0; index < peptide_ids.size(); ++index)
+    {
+      const PeptideIdentification& pep = peptide_ids[index];
+      std::string name;
+      try
+      {
+        ms_runs.validateMergeIndex(pep, index); // throws if the run has several spectra files, but the one of this identification is unknown
+        const std::string ms_file = ms_runs.getPrimaryMSRunPath(pep);
+        if (!ms_file.empty())
+        {
+          name = "spectra file '" + ms_file + "'";
+        }
+      }
+      catch (Exception::BaseException&)
+      {
+        // spectra file unknown
+      }
+      if (name.empty())
+      {
+        name = "identification run '" + pep.getIdentifier() + "'";
+      }
+      auto [it, inserted] = run_index.emplace(name, runs.size());
+      if (inserted)
+      {
+        runs.emplace_back(name, std::vector<Size>());
+      }
+      runs[it->second].second.push_back(index);
+    }
+    return runs;
+  }
 
-    std::string inputfile_name = getStringOption_("in");
-    std::string outputfile_name = getStringOption_("out");
-    Param fit_algorithm = getParam_().copy("fit_algorithm:", true);
-    fit_algorithm.setValue("out_plot", getStringOption_("out_plot")); // re-assemble full param (was moved to top-level)
-    bool split_charge = getFlag_("split_charge");
-    bool top_hits_only = getFlag_("top_hits_only");
-    bool ignore_bad_data = getFlag_("ignore_bad_data");
-    bool prob_correct = getFlag_("prob_correct");
-    std::string outlier_handling = fit_algorithm.getValue("outlier_handling").toString();
-    const std::string decoy_handling = fit_algorithm.getValue("decoy_handling").toString();
-    const Size min_decoys = static_cast<Size>(int(fit_algorithm.getValue("min_decoys")));
-    const Size min_mixture_scores = static_cast<Size>(int(fit_algorithm.getValue("min_mixture_scores")));
+  /**
+    @brief estimates the PEPs of the identifications in @p peptide_ids: one model per search engine (and charge state, with split_charge)
 
-    //-------------------------------------------------------------
-    // reading input
-    //-------------------------------------------------------------
-    FileHandler file;
-    vector<ProteinIdentification> protein_ids;
-    PeptideIdentificationList peptide_ids;
-    file.loadIdentifications(inputfile_name, protein_ids, peptide_ids, {FileTypes::IDXML});
+    @param[in,out] protein_ids the identification runs
+    @param[in,out] peptide_ids the identifications; the hits that get a PEP are updated
+    @param[in] run_name name of the MS run in log messages (empty: all runs of the input)
+    @param[in] plot_suffix appended to the name of the plot files
+    @param[in,out] any_data set to true if there are scores to fit
+    @param[in,out] updated_hits the hits that got a PEP (index into @p peptide_ids, index of the hit) are added
+    @return EXECUTION_OK, or the exit code of a failure (only without ignore_bad_data)
+  */
+  ExitCodes estimatePEPs_(vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const std::string& run_name,
+                          const std::string& plot_suffix, bool& any_data, std::set<std::pair<Size, Size>>& updated_hits)
+  {
+    Param fit_algorithm = fit_algorithm_;
+    const std::string out_plot = out_plot_.empty() ? std::string() : out_plot_ + plot_suffix;
+    fit_algorithm.setValue("out_plot", out_plot);
     PosteriorErrorProbabilityModel PEP_model;
     PEP_model.setParameters(fit_algorithm);
-    //-------------------------------------------------------------
-    // calculations
-    //-------------------------------------------------------------
+    const std::string unit = peptide_level_ ? "peptides" : "top hits"; // what the target-decoy estimate counts
+    const std::string run_suffix = run_name.empty() ? std::string() : " of " + run_name;
 
     // map identifier "engine,charge" (if split_charge==true) or "engine"
     // to three extracted score vectors: [0] scores of all considered hits (for the unsupervised model),
-    // [1]/[2] scores of target/decoy top hits (empty if there are no decoys).
+    // [1]/[2] scores of target/decoy top hits (empty if there are no decoys); with fit_level 'peptide', one score per peptide.
     map<std::string, vector<vector<double> > > all_scores = PosteriorErrorProbabilityModel::extractAndTransformScores(
      protein_ids,
      peptide_ids,
-     split_charge,
-     top_hits_only);
+     split_charge_,
+     top_hits_only_,
+     peptide_level_);
 
     // scores of all charge states (fallback for charge states with too few decoys, or too few scores for the mixture model)
     map<std::string, vector<vector<double> > > pooled_scores;
-    if (split_charge)
+    if (split_charge_)
     {
-      pooled_scores = PosteriorErrorProbabilityModel::extractAndTransformScores(protein_ids, peptide_ids, false, top_hits_only);
+      pooled_scores = PosteriorErrorProbabilityModel::extractAndTransformScores(protein_ids, peptide_ids, false, top_hits_only_, peptide_level_);
     }
 
     // something to fit: scores for a mixture model, or target and decoy top hits (even a single one of each is informative)
@@ -222,29 +291,17 @@ protected:
     {
       return !entry.second[0].empty() || (!entry.second[1].empty() && !entry.second[2].empty());
     };
-    const bool any_data = std::any_of(all_scores.begin(), all_scores.end(), has_data) || std::any_of(pooled_scores.begin(), pooled_scores.end(), has_data);
-    if (!any_data)
-    {
-      writeLogWarn_("No data collected. Check whether search engine is supported.");
-      if (!ignore_bad_data)
-      {
-        return INPUT_FILE_EMPTY;
-      }
-    }
+    any_data = any_data || std::any_of(all_scores.begin(), all_scores.end(), has_data) || std::any_of(pooled_scores.begin(), pooled_scores.end(), has_data);
 
-    std::string out_plot = fit_algorithm.getValue("out_plot").toString();
-    StringUtils::trim(out_plot);
-
-    std::set<std::pair<Size, Size>> updated_hits; // (index of identification, index of hit)
     for (auto & score : all_scores)
     {
       vector<std::string> engine_info;
       StringUtils::split(score.first, ',', engine_info);
       std::string engine = engine_info[0];
       Int charge = (engine_info.size() == 2) ? StringUtils::toInt32(engine_info[1]) : -1;
-      const std::string model_name = engine + (split_charge ? " (charge " + StringUtils::toStr(charge) + ")" : std::string());
+      const std::string model_name = engine + (split_charge_ ? " (charge " + StringUtils::toStr(charge) + ")" : std::string()) + run_suffix;
 
-      if (split_charge)
+      if (split_charge_)
       {
         // only adapt plot output if plot is requested (this badly violates the output rules and needs to change!)
         // one way to fix this: plot charges into a single file (no renaming of output file needed) - but this requires major code restructuring
@@ -259,10 +316,10 @@ protected:
       // With split_charge, charge states with fewer than min_decoys decoys (or without targets) use the target-decoy data of all
       // charge states, if other charge states contribute top hits (targets or decoys).
       auto pooled_it = pooled_scores.find(engine);
-      const bool pooled_available = split_charge && pooled_it != pooled_scores.end() && !pooled_it->second[1].empty() && !pooled_it->second[2].empty();
+      const bool pooled_available = split_charge_ && pooled_it != pooled_scores.end() && !pooled_it->second[1].empty() && !pooled_it->second[2].empty();
       const bool pooled_has_more = pooled_available && pooled_it->second[1].size() + pooled_it->second[2].size() > targets->size() + decoys->size();
       // decoys present: target-decoy based estimate (without targets, nothing can be estimated; never model decoys without supervision)
-      const bool use_decoys = (decoy_handling != "ignore") && (!decoys->empty() || pooled_available);
+      const bool use_decoys = (decoy_handling_ != "ignore") && (!decoys->empty() || pooled_available);
       bool use_pooled = false;
       auto switch_to_pooled = [&](const std::string& reason)
       {
@@ -273,25 +330,25 @@ protected:
       };
       // Without target-decoy data, charge states with too few scores for their own mixture model (or whose mixture model cannot be
       // fitted) use the mixture model of all charge states, if other charge states contribute scores.
-      const bool pooled_mixture_available = split_charge && pooled_it != pooled_scores.end() && finiteCount(pooled_it->second[0]) > finiteCount(score.second[0]);
+      const bool pooled_mixture_available = split_charge_ && pooled_it != pooled_scores.end() && finiteCount(pooled_it->second[0]) > finiteCount(score.second[0]);
       auto switch_to_pooled_mixture = [&](const std::string& reason)
       {
         writeLogInfo_(reason + " Using the mixture model of all charge states (" + StringUtils::toStr(finiteCount(pooled_it->second[0])) + " scores) for " + model_name + ".");
         mixture_scores = &pooled_it->second[0];
       };
-      if (use_decoys && pooled_has_more && (decoys->size() < min_decoys || targets->empty()))
+      if (use_decoys && pooled_has_more && (decoys->size() < min_decoys_ || targets->empty()))
       {
-        switch_to_pooled("Only " + StringUtils::toStr(targets->size()) + " target and " + StringUtils::toStr(decoys->size()) + " decoy top hits for " + model_name + ".");
+        switch_to_pooled("Only " + StringUtils::toStr(targets->size()) + " target and " + StringUtils::toStr(decoys->size()) + " decoy " + unit + " for " + model_name + ".");
       }
-      else if (!use_decoys && finiteCount(*mixture_scores) < min_mixture_scores)
+      else if (!use_decoys && finiteCount(*mixture_scores) < min_mixture_scores_)
       {
-        if (pooled_mixture_available && finiteCount(pooled_it->second[0]) >= min_mixture_scores)
+        if (pooled_mixture_available && finiteCount(pooled_it->second[0]) >= min_mixture_scores_)
         {
           switch_to_pooled_mixture("Only " + StringUtils::toStr(finiteCount(*mixture_scores)) + " scores for " + model_name + ".");
         }
         else
         {
-          const bool with_pooled = split_charge && pooled_it != pooled_scores.end();
+          const bool with_pooled = split_charge_ && pooled_it != pooled_scores.end();
           const bool has_targets = !score.second[1].empty() || (with_pooled && !pooled_it->second[1].empty());
           const bool has_decoys = !score.second[2].empty() || (with_pooled && !pooled_it->second[2].empty());
           std::string advice;
@@ -302,7 +359,7 @@ protected:
           else if (!has_targets)
           {
             advice = "The data contain decoy but no target top hits: annotate the target PSMs (meta value 'target_decoy', e.g. with PeptideIndexer)"
-                     + std::string(decoy_handling == "ignore" ? " and use fit_algorithm:decoy_handling 'auto'" : "")
+                     + std::string(decoy_handling_ == "ignore" ? " and use fit_algorithm:decoy_handling 'auto'" : "")
                      + " to use the target-decoy estimate, which also works with few PSMs.";
           }
           else // only reachable with decoy_handling 'ignore' (otherwise the target-decoy estimate is used)
@@ -311,8 +368,8 @@ protected:
           }
           writeLogWarn_("Only " + StringUtils::toStr(finiteCount(*mixture_scores)) + " scores for " + model_name
                         + (with_pooled ? " (all charge states: " + StringUtils::toStr(finiteCount(pooled_it->second[0])) + ")" : std::string())
-                        + ", too few to fit the mixture model (fit_algorithm:min_mixture_scores: " + StringUtils::toStr(min_mixture_scores) + "). " + advice);
-          if (!ignore_bad_data)
+                        + ", too few to fit the mixture model (fit_algorithm:min_mixture_scores: " + StringUtils::toStr(min_mixture_scores_) + "). " + advice);
+          if (!ignore_bad_data_)
           {
             return UNEXPECTED_RESULT;
           }
@@ -324,29 +381,29 @@ protected:
       //TODO choose outlier handling based on search engine? If not set by user?
       //XTandem is prone to accumulation at min values/censoring
       //OMSSA is prone to outliers
-      bool return_value = use_decoys ? PEP_model.fitTargetDecoy(*targets, *decoys, outlier_handling)
-                                     : PEP_model.fit(*mixture_scores, outlier_handling);
+      bool return_value = use_decoys ? PEP_model.fitTargetDecoy(*targets, *decoys, outlier_handling_)
+                                     : PEP_model.fit(*mixture_scores, outlier_handling_);
       if (!return_value && use_decoys && pooled_available && !use_pooled)
       {
         switch_to_pooled("Unable to fit the data of " + model_name + ".");
-        return_value = PEP_model.fitTargetDecoy(*targets, *decoys, outlier_handling);
+        return_value = PEP_model.fitTargetDecoy(*targets, *decoys, outlier_handling_);
       }
       else if (return_value && use_decoys && pooled_has_more && !use_pooled && PEP_model.getTargetDecoyAUC() >= 0.0 && PEP_model.getTargetDecoyAUC() <= 0.5)
       {
         // a charge state whose targets do not score better than its decoys would get (almost) constant PEPs, for decoys as well
         switch_to_pooled("Target PSMs of " + model_name + " do not score better than decoy PSMs (AUC = " + StringUtils::toStr(PEP_model.getTargetDecoyAUC()) + ").");
-        return_value = PEP_model.fitTargetDecoy(*targets, *decoys, outlier_handling);
+        return_value = PEP_model.fitTargetDecoy(*targets, *decoys, outlier_handling_);
       }
       else if (!return_value && !use_decoys && pooled_mixture_available && mixture_scores == &score.second[0])
       {
         switch_to_pooled_mixture("Unable to fit the mixture model of " + model_name + ".");
-        return_value = PEP_model.fit(*mixture_scores, outlier_handling);
+        return_value = PEP_model.fit(*mixture_scores, outlier_handling_);
       }
 
       if (!return_value)
       {
         writeLogWarn_("Unable to fit data. Algorithm did not run through for the following search engine: " + model_name);
-        if (!ignore_bad_data)
+        if (!ignore_bad_data_)
         {
           return UNEXPECTED_RESULT;
         }
@@ -356,11 +413,11 @@ protected:
       std::string summary = "PEP model for " + model_name + ": " + PosteriorErrorProbabilityModel::modelTypeToString(PEP_model.getModelType());
       if (use_decoys)
       {
-        summary += " (" + StringUtils::toStr(targets->size()) + " target and " + StringUtils::toStr(decoys->size()) + " decoy top hits)";
+        summary += " (" + StringUtils::toStr(targets->size()) + " target and " + StringUtils::toStr(decoys->size()) + " decoy " + unit + ")";
       }
       else
       {
-        summary += " (" + StringUtils::toStr(finiteCount(*mixture_scores)) + " scores" + (mixture_scores != &score.second[0] ? " of all charge states" : "") + ")";
+        summary += " (" + StringUtils::toStr(finiteCount(*mixture_scores)) + (peptide_level_ ? " peptide" : "") + " scores" + (mixture_scores != &score.second[0] ? " of all charge states" : "") + ")";
       }
       writeLogInfo_(summary);
 
@@ -376,8 +433,8 @@ protected:
        PEP_model,
        engine,
        charge,
-       prob_correct,
-       split_charge,
+       prob_correct_,
+       split_charge_,
        protein_ids,
        peptide_ids,
        unable_to_fit_data,
@@ -387,7 +444,7 @@ protected:
       if (unable_to_fit_data)
       {
         writeLogWarn_(std::string("Unable to fit data for search engine: ") + model_name);
-        if (!ignore_bad_data)
+        if (!ignore_bad_data_)
         {
           return UNEXPECTED_RESULT;
         }
@@ -397,6 +454,97 @@ protected:
         writeLogWarn_(std::string("Data might not be well fitted for search engine: ") + model_name);
       }
     }
+    return EXECUTION_OK;
+  }
+
+  ExitCodes main_(int, const char**) override
+  {
+    //-------------------------------------------------------------
+    // parsing parameters
+    //-------------------------------------------------------------
+
+    std::string inputfile_name = getStringOption_("in");
+    std::string outputfile_name = getStringOption_("out");
+    fit_algorithm_ = getParam_().copy("fit_algorithm:", true);
+    out_plot_ = getStringOption_("out_plot");
+    StringUtils::trim(out_plot_);
+    split_charge_ = getFlag_("split_charge");
+    const bool split_run = getFlag_("split_run");
+    peptide_level_ = (getStringOption_("fit_level") == "peptide");
+    top_hits_only_ = getFlag_("top_hits_only");
+    ignore_bad_data_ = getFlag_("ignore_bad_data");
+    prob_correct_ = getFlag_("prob_correct");
+    outlier_handling_ = fit_algorithm_.getValue("outlier_handling").toString();
+    decoy_handling_ = fit_algorithm_.getValue("decoy_handling").toString();
+    min_decoys_ = static_cast<Size>(int(fit_algorithm_.getValue("min_decoys")));
+    min_mixture_scores_ = static_cast<Size>(int(fit_algorithm_.getValue("min_mixture_scores")));
+
+    //-------------------------------------------------------------
+    // reading input
+    //-------------------------------------------------------------
+    FileHandler file;
+    vector<ProteinIdentification> protein_ids;
+    PeptideIdentificationList peptide_ids;
+    file.loadIdentifications(inputfile_name, protein_ids, peptide_ids, {FileTypes::IDXML});
+
+    //-------------------------------------------------------------
+    // calculations
+    //-------------------------------------------------------------
+    bool any_data = false;
+    std::set<std::pair<Size, Size>> updated_hits; // (index of identification, index of hit)
+    if (split_run)
+    {
+      const std::vector<std::pair<std::string, std::vector<Size>>> ms_runs = groupByMSRun(protein_ids, peptide_ids);
+      writeLogInfo_("Estimating the PEPs of " + StringUtils::toStr(ms_runs.size()) + " MS run(s) separately.");
+      for (Size run = 0; run < ms_runs.size(); ++run)
+      {
+        const std::string& run_name = ms_runs[run].first;
+        const std::vector<Size>& members = ms_runs[run].second;
+        PeptideIdentificationList run_ids;
+        run_ids.reserve(members.size());
+        for (Size index : members)
+        {
+          run_ids.push_back(peptide_ids[index]);
+        }
+        // plots: one set of files per MS run, numbered in the order of the MS runs in the input
+        const std::string plot_suffix = ms_runs.size() > 1 ? "_run_" + StringUtils::toStr(run + 1) : std::string();
+        if (!out_plot_.empty() && !plot_suffix.empty())
+        {
+          writeLogInfo_("Plots of " + run_name + ": " + out_plot_ + plot_suffix);
+        }
+        std::set<std::pair<Size, Size>> run_updated_hits;
+        const ExitCodes result = estimatePEPs_(protein_ids, run_ids, run_name, plot_suffix, any_data, run_updated_hits);
+        if (result != EXECUTION_OK)
+        {
+          return result;
+        }
+        for (Size k = 0; k < members.size(); ++k)
+        {
+          peptide_ids[members[k]] = std::move(run_ids[k]);
+        }
+        for (const auto& updated : run_updated_hits)
+        {
+          updated_hits.emplace(members[updated.first], updated.second);
+        }
+      }
+    }
+    else
+    {
+      const ExitCodes result = estimatePEPs_(protein_ids, peptide_ids, std::string(), std::string(), any_data, updated_hits);
+      if (result != EXECUTION_OK)
+      {
+        return result;
+      }
+    }
+    if (!any_data)
+    {
+      writeLogWarn_("No data collected. Check whether search engine is supported.");
+      if (!ignore_bad_data_)
+      {
+        return INPUT_FILE_EMPTY;
+      }
+    }
+
     // Unfortunately this cannot go into the algorithm since
     // you would overwrite some score types before they are extracted when you
     // do split_charge
@@ -411,7 +559,7 @@ protected:
     for (Size index = 0; index < peptide_ids.size(); ++index)
     {
       PeptideIdentification& pep = peptide_ids[index];
-      if (!ignore_bad_data && updated_runs.count(pep.getIdentifier()) == 0)
+      if (!ignore_bad_data_ && updated_runs.count(pep.getIdentifier()) == 0)
       {
         n_kept += pep.getHits().size();
         continue;
@@ -423,11 +571,11 @@ protected:
         if (updated_hits.count({index, hit_index}) == 0)
         {
           hits[hit_index].setMetaValue(original_score_type, hits[hit_index].getScore());
-          hits[hit_index].setScore(prob_correct ? 0.0 : 1.0);
+          hits[hit_index].setScore(prob_correct_ ? 0.0 : 1.0);
           ++n_set_to_one;
         }
       }
-      if (prob_correct)
+      if (prob_correct_)
       {
         pep.setScoreType("Posterior Probability");
         pep.setHigherScoreBetter(true);
@@ -454,6 +602,19 @@ protected:
     file.storeIdentifications(outputfile_name, protein_ids, peptide_ids, {FileTypes::IDXML});
     return EXECUTION_OK;
   }
+
+  // options (set in main_)
+  Param fit_algorithm_; ///< parameters of the PEP model
+  std::string out_plot_; ///< base name of the plot files (empty: no plots)
+  bool split_charge_ = false;
+  bool peptide_level_ = false;
+  bool top_hits_only_ = false;
+  bool ignore_bad_data_ = false;
+  bool prob_correct_ = false;
+  std::string outlier_handling_;
+  std::string decoy_handling_;
+  Size min_decoys_ = 0;
+  Size min_mixture_scores_ = 0;
 };
 
 

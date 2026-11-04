@@ -105,6 +105,9 @@ public:
        * @param[in] peptide_ids the peptide identifications
        * @param[in] split_charge whether different charge states should be treated separately
        * @param[in] top_hits_only only consider rank 1 (affects the first vector of the result only)
+       * @param[in] peptide_level report one score per peptide (modified sequence; with @p split_charge: per peptide and charge state)
+       *            instead of one per hit: in [0] the best score of the considered hits of the peptide, in [1] and [2] the best top hit of
+       *            the peptide (after the competition per spectrum). Hits without a sequence are counted individually.
        * @return engine (and optional charge state) id -> vector of three score vectors:
        *         [0] scores of all considered hits (decoys included, no labels used),
        *         [1] scores of the top hits of all spectra that are annotated as target ("target" or "target+decoy"),
@@ -119,7 +122,8 @@ public:
         const std::vector<ProteinIdentification> & protein_ids,
         const PeptideIdentificationList & peptide_ids,
         const bool split_charge,
-        const bool top_hits_only);
+        const bool top_hits_only,
+        const bool peptide_level = false);
 
       /**
        * @brief extract and transform score types to a range and score orientation that the PEP model can handle

@@ -1039,7 +1039,7 @@ START_SECTION(([EXTRA] degenerate input))
 }
 END_SECTION
 
-START_SECTION((static std::map<std::string, std::vector<std::vector<double>>> extractAndTransformScores(const std::vector<ProteinIdentification> & protein_ids, const PeptideIdentificationList & peptide_ids, const bool split_charge, const bool top_hits_only)))
+START_SECTION((static std::map<std::string, std::vector<std::vector<double>>> extractAndTransformScores(const std::vector<ProteinIdentification> & protein_ids, const PeptideIdentificationList & peptide_ids, const bool split_charge, const bool top_hits_only, const bool peptide_level = false)))
 {
   std::vector<ProteinIdentification> proteins(4);
   proteins[0].setIdentifier("xtandem");
@@ -1312,6 +1312,79 @@ START_SECTION((static std::map<std::string, std::vector<std::vector<double>>> ex
     auto not_competed = PosteriorErrorProbabilityModel::extractAndTransformScores(merged, ids, false, true);
     TEST_EQUAL(not_competed["COMET"][1].size(), 10)
     TEST_EQUAL(not_competed["COMET"][2].size(), 10)
+  }
+
+  // peptide level: one score per peptide (modified sequence), the best top hit of each peptide after the competition per spectrum
+  {
+    std::vector<ProteinIdentification> runs(1);
+    runs[0].setIdentifier("comet");
+    runs[0].setSearchEngine("Comet");
+    runs[0].setPrimaryMSRunPath({"/data/sample.mzML"});
+    PeptideIdentificationList ids;
+    auto add = [&ids](const std::string& spectrum, double evalue, Int charge, const std::string& sequence, const std::string& label)
+    {
+      PeptideIdentification pep = makeIdentification("comet", "expect", false, spectrum);
+      PeptideHit hit = makeHit(evalue, charge, label);
+      if (!sequence.empty())
+      {
+        hit.setSequence(AASequence::fromString(sequence));
+      }
+      pep.setHits({hit});
+      ids.push_back(pep);
+    };
+    add("scan=1", 1e-8, 2, "PEPTIDEK", "target");
+    add("scan=2", 1e-5, 2, "PEPTIDEK", "target"); // same peptide
+    add("scan=3", 1e-6, 3, "PEPTIDEK", "target"); // same peptide, other charge state
+    add("scan=4", 1e-4, 2, "PEPTIDEMK", "target");
+    add("scan=5", 1e-3, 2, "PEPTIDEM(Oxidation)K", "target"); // other peptide (modified sequence)
+    add("scan=6", 1e-2, 2, "KEDITPEP", "decoy");
+    add("scan=7", 1e-1, 2, "KEDITPEP", "decoy");
+    add("scan=8", 1e-2, 2, "", "target"); // no sequence: counted individually
+    add("scan=9", 1e-2, 2, "", "target");
+    // separate decoy search of scan=4: the decoy wins the competition, the target PEPTIDEMK is not used
+    {
+      PeptideIdentification pep = makeIdentification("comet", "expect", false, "scan=4");
+      PeptideHit hit = makeHit(1e-5, 2, "decoy");
+      hit.setSequence(AASequence::fromString("KMEDITPEP"));
+      pep.setHits({hit});
+      ids.push_back(pep);
+    }
+    // a second-ranked hit (only used for the unsupervised model, without top_hits_only)
+    {
+      PeptideHit second = makeHit(10.0, 2, "target");
+      second.setSequence(AASequence::fromString("ELVISLIVESK"));
+      ids[0].getHits().push_back(second);
+    }
+
+    auto psm_level = PosteriorErrorProbabilityModel::extractAndTransformScores(runs, ids, false, false);
+    TEST_EQUAL(psm_level["COMET"][0].size(), 11)
+    TEST_EQUAL(psm_level["COMET"][1].size(), 6)
+    TEST_EQUAL(psm_level["COMET"][2].size(), 3)
+
+    auto peptide_level = PosteriorErrorProbabilityModel::extractAndTransformScores(runs, ids, false, false, true);
+    const auto& scores = peptide_level["COMET"];
+    // unsupervised model: all considered hits, independent of the competition per spectrum: PEPTIDEK (best: scan=1), PEPTIDEMK,
+    // PEPTIDEM(Oxidation)K, KEDITPEP, KMEDITPEP, two hits without sequence, ELVISLIVESK (rank 2)
+    TEST_EQUAL(scores[0].size(), 8)
+    TEST_REAL_SIMILAR(*std::max_element(scores[0].begin(), scores[0].end()), 8.0)
+    TEST_REAL_SIMILAR(*std::min_element(scores[0].begin(), scores[0].end()), -1.0)
+    // targets: PEPTIDEK (best e-value 1e-8), PEPTIDEM(Oxidation)K, two hits without sequence (PEPTIDEMK lost the competition for scan=4)
+    TEST_EQUAL(scores[1].size(), 4)
+    TEST_REAL_SIMILAR(*std::max_element(scores[1].begin(), scores[1].end()), 8.0)
+    TEST_REAL_SIMILAR(*std::min_element(scores[1].begin(), scores[1].end()), 2.0)
+    // decoys: KEDITPEP (best e-value 1e-2), KMEDITPEP
+    TEST_EQUAL(scores[2].size(), 2)
+    TEST_REAL_SIMILAR(*std::min_element(scores[2].begin(), scores[2].end()), 2.0)
+    TEST_REAL_SIMILAR(*std::max_element(scores[2].begin(), scores[2].end()), 5.0)
+
+    // with split_charge: peptides per charge state
+    auto by_charge = PosteriorErrorProbabilityModel::extractAndTransformScores(runs, ids, true, true, true);
+    TEST_EQUAL(by_charge["COMET,2"][1].size(), 4) // PEPTIDEK (scan=1), PEPTIDEM(Oxidation)K, two hits without sequence
+    TEST_EQUAL(by_charge["COMET,2"][2].size(), 2)
+    TEST_EQUAL(by_charge["COMET,2"][0].size(), 7) // top hits only: all peptides of charge 2 except ELVISLIVESK (rank 2)
+    TEST_EQUAL(by_charge["COMET,3"][1].size(), 1) // PEPTIDEK (scan=3)
+    TEST_REAL_SIMILAR(by_charge["COMET,3"][1][0], 6.0)
+    TEST_EQUAL(by_charge["COMET,3"][2].size(), 0)
   }
 
 }

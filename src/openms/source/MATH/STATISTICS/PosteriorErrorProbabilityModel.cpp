@@ -1605,7 +1605,8 @@ namespace OpenMS::Math
       const vector<ProteinIdentification> & protein_ids,
       const PeptideIdentificationList & peptide_ids,
       const bool split_charge,
-      const bool top_hits_only)
+      const bool top_hits_only,
+      const bool peptide_level)
     {
       if (split_charge)
       {  // determine different charges in data
@@ -1644,6 +1645,13 @@ namespace OpenMS::Math
       {
         return split_charge ? engine + "," + StringUtils::toStr(charge) : engine;
       };
+      // peptide of a hit (modified sequence) for peptide-level scores; hits without a sequence are counted individually
+      auto peptide_key = [](const PeptideHit& hit, Size pep_index, Size hit_index)
+      {
+        return hit.getSequence().empty() ? "#" + StringUtils::toStr(pep_index) + "," + StringUtils::toStr(hit_index) : hit.getSequence().toString();
+      };
+      // peptide level: best score of the considered hits per group and peptide
+      std::map<std::string, std::map<std::string, double>> best_peptide_scores;
 
       // Top hits (one per spectrum) are used for target-decoy based estimates. If a spectrum has several identifications
       // (e.g. separate target and decoy searches), the best scoring top hit wins (ties: decoy), which reconstructs the
@@ -1653,6 +1661,7 @@ namespace OpenMS::Math
         double score;
         bool is_decoy;
         Int charge;
+        std::string peptide; ///< only set for peptide-level scores
       };
       std::map<std::string, std::map<std::string, TopHit>> top_hits; // engine -> spectrum key -> top hit
       Size n_competitions = 0;
@@ -1710,7 +1719,7 @@ namespace OpenMS::Math
                 // spectra file unknown: no competition
               }
             }
-            const TopHit hit{score, label == TDLabel::DECOY, top.getCharge()};
+            const TopHit hit{score, label == TDLabel::DECOY, top.getCharge(), peptide_level ? peptide_key(top, pep_index, top_index) : std::string()};
             auto [it, inserted] = top_hits[engine].emplace(spectrum_key, hit);
             if (!inserted)
             {
@@ -1731,7 +1740,19 @@ namespace OpenMS::Math
             continue;
           }
           const double score = transformScore_(engine, hits[i], score_type, higher_score_better, score_source);
-          if (!std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
+          if (std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
+          {
+            continue;
+          }
+          if (peptide_level)
+          {
+            auto [it, inserted] = best_peptide_scores[group_key(engine, hits[i].getCharge())].emplace(peptide_key(hits[i], pep_index, i), score);
+            if (!inserted && score > it->second)
+            {
+              it->second = score;
+            }
+          }
+          else
           {
             groups[group_key(engine, hits[i].getCharge())].scores.push_back(score);
           }
@@ -1744,14 +1765,42 @@ namespace OpenMS::Math
                            "Only the best scoring top hit per spectrum is used for target-decoy based estimates." << std::endl;
       }
 
+      for (const auto& [key, peptides] : best_peptide_scores)
+      {
+        std::vector<double>& scores = groups[key].scores;
+        for (const auto& [peptide, score] : peptides)
+        {
+          scores.push_back(score);
+        }
+      }
+
+      // peptide level: the best top hit of each peptide (ties: decoy), after the competition per spectrum (as in Percolator and mokapot)
+      std::map<std::string, std::map<std::string, TopHit>> best_top_hits; // group -> peptide -> top hit
       bool any_decoy = false;
       for (const auto& [engine, spectra] : top_hits)
       {
         for (const auto& [spectrum_key, hit] : spectra)
         {
+          any_decoy = any_decoy || hit.is_decoy;
+          if (peptide_level)
+          {
+            auto [it, inserted] = best_top_hits[group_key(engine, hit.charge)].emplace(hit.peptide, hit);
+            if (!inserted && (hit.score > it->second.score || (hit.score == it->second.score && hit.is_decoy)))
+            {
+              it->second = hit;
+            }
+            continue;
+          }
           ScoreGroup& group = groups[group_key(engine, hit.charge)];
           (hit.is_decoy ? group.decoys : group.targets).push_back(hit.score);
-          any_decoy = any_decoy || hit.is_decoy;
+        }
+      }
+      for (const auto& [key, peptides] : best_top_hits)
+      {
+        ScoreGroup& group = groups[key];
+        for (const auto& [peptide, hit] : peptides)
+        {
+          (hit.is_decoy ? group.decoys : group.targets).push_back(hit.score);
         }
       }
 
