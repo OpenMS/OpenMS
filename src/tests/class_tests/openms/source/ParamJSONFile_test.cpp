@@ -276,6 +276,62 @@ START_SECTION([EXTRA] bool ParamJSONFile::load() reads every JSON shape of a fil
 }
 END_SECTION
 
+START_SECTION((void store(const std::string& filename, const Param& param, const ToolInfo& tool_info) const))
+{
+  // Writing JSON needs only nlohmann::json, not TDL, so it has to work in every build. It used to
+  // throw a std::runtime_error without ENABLE_TDL, which aborted '-write_json'/'-write_nested_json'.
+  Param defaults;
+  defaults.setValue("test:1:in", std::vector<std::string> {}, "input file list", {"input file"});
+  defaults.setValue("test:1:out", std::string {}, "output file", {"output file"});
+  defaults.setValue("test:1:int", 0);
+  defaults.setValue("test:1:flag", "false");
+  defaults.setValidStrings("test:1:flag", {"true", "false"});
+  defaults.setValue("test:1:algorithm:threshold", 0.);
+  defaults.setValue("test:1:algorithm:mode", "a");
+  defaults.setValue("test:1:last", 0);
+
+  Param values = defaults;
+  values.setValue("test:1:in", std::vector<std::string> {"a.mzML", "b.mzML"});
+  values.setValue("test:1:out", "c.mzML");
+  values.setValue("test:1:int", 5);
+  values.setValue("test:1:flag", "true");
+  values.setValue("test:1:algorithm:threshold", 2.5);
+  values.setValue("test:1:algorithm:mode", "b");
+  values.setValue("test:1:last", 7);
+
+  for (bool flat : {false, true})
+  {
+    ParamJSONFile writer;
+    writer.flatHierarchy = flat;
+    std::string filename;
+    NEW_TMP_FILE(filename)
+    writer.store(filename, values, ToolInfo {});
+
+    std::ifstream ifs(filename);
+    std::string content((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+    if (flat)
+    {
+      TEST_TRUE(content.find("\"algorithm__threshold\": 2.5") != std::string::npos)
+    }
+    else
+    {
+      TEST_TRUE(content.find("\"algorithm\": {") != std::string::npos)
+    }
+
+    Param loaded = defaults;
+    TEST_TRUE(ParamJSONFile::load(filename, loaded))
+    TEST_EQUAL(loaded.getValue("test:1:in").toStringVector().size(), 2)
+    TEST_STRING_EQUAL(loaded.getValue("test:1:in").toStringVector()[1], "b.mzML")
+    TEST_STRING_EQUAL(loaded.getValue("test:1:out").toString(), "c.mzML")
+    TEST_EQUAL(int(loaded.getValue("test:1:int")), 5)
+    TEST_TRUE(loaded.getValue("test:1:flag").toBool())
+    TEST_REAL_SIMILAR(double(loaded.getValue("test:1:algorithm:threshold")), 2.5)
+    TEST_STRING_EQUAL(loaded.getValue("test:1:algorithm:mode").toString(), "b")
+    TEST_EQUAL(int(loaded.getValue("test:1:last")), 7)
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

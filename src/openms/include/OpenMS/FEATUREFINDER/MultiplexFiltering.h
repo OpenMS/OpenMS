@@ -27,6 +27,8 @@
 
 namespace OpenMS
 {
+  class IsotopeDistribution;
+
   /**
    * @brief base class for filtering centroided and profile data for peak patterns
    *
@@ -59,9 +61,10 @@ public:
      * which blacklisted peaks are removed is called 'white'. White spectra
      * contain fewer peaks than their corresponding primary spectra. Consequently,
      * their indices are shifted. The type maps a peak index in a 'white'
-     * spectrum back to its original spectrum.
+     * spectrum back to its original spectrum: element [s][i] is the index in spectrum s
+     * of the original experiment of peak i of white spectrum s.
      */
-    typedef std::vector<std::map<int, int> > White2Original;
+    typedef std::vector<std::vector<int> > White2Original;
 
     /**
      * @brief constructor
@@ -89,8 +92,63 @@ public:
     
     /**
      * @brief returns the blacklisted, centroided peaks
+     *
+     * One spectrum per spectrum of the centroided experiment, with the blacklisted peaks in order of m/z. Call it
+     * before swapping the centroided experiment out (getCentroidedExperiment()).
      */
     MSExperiment getBlacklist();
+
+    /**
+     * @brief a filtered peak that blacklisted a peak, and the mass trace of its pattern it reserved the peak for
+     */
+    struct BlacklistWriter
+    {
+      /// index of the pattern, i.e. of its filter result in the list filter() returns
+      unsigned pattern_idx;
+      /// index of the filtered peak in the filter result of the pattern (MultiplexFilteredMSExperiment::getPeak()); it fits
+      /// in an int, since the filtered peaks of all patterns together are limited to INT_MAX (see applyBlacklistEntries_())
+      unsigned peak_idx;
+      /// mass trace of the pattern the peak was reserved for (peptide * isotopes_per_peptide_max + isotope)
+      int mass_trace;
+    };
+
+    /**
+     * @brief who blacklisted a peak: the first and the last filtered peak that reserved it (the same if only one did)
+     */
+    struct BlacklistOwner
+    {
+      /// the first filtered peak that reserved the peak
+      BlacklistWriter first;
+      /// the last one, whose mass trace the blacklist holds
+      BlacklistWriter last;
+    };
+
+    /**
+     * @brief the owners of the blacklisted peaks, aligned with getBlacklist(): one list per spectrum, one entry per peak
+     *
+     * A pattern reserves the peaks of its mass traces over their RT range extended by the RT band, also peaks that
+     * another filtered peak reserved before, so a peak can be reserved several times. The owners are recorded when a
+     * peak passes, in the order in which peaks pass, so they do not depend on the number of threads.
+     *
+     * Only the first and the last writer of a peak are kept. A filtered peak that reserved it in between is lost: if its
+     * multiplet is reported and the clusters of the first and the last writer are dropped, the peak counts as reserved by
+     * no reported feature (FeatureFinderMultiplexAlgorithm::getBlacklist()). That takes at least three writers of one peak,
+     * which in practice requires an RT band > 0 (@em rt_band_, FeatureFinderMultiplex's algorithm:rt_band).
+     *
+     * This copy holds the owners of all blacklisted peaks at once; getBlacklistOwners(Size) returns those of one spectrum.
+     */
+    std::vector<std::vector<BlacklistOwner>> getBlacklistOwners() const;
+
+    /**
+     * @brief the owners of the blacklisted peaks of one spectrum, aligned with that spectrum of getBlacklist()
+     *
+     * The same entries as getBlacklistOwners()[@p spectrum_index], without a copy of the owners of the other spectra.
+     *
+     * @param[in] spectrum_index    index of the spectrum in the centroided experiment (and in getBlacklist())
+     *
+     * @throws Exception::IndexOverflow if @p spectrum_index is not below the number of spectra
+     */
+    std::vector<BlacklistOwner> getBlacklistOwners(Size spectrum_index) const;
 
 protected:
     /**
@@ -101,6 +159,19 @@ protected:
       size_t rt_idx;
       size_t mz_idx;
       int value;
+    };
+
+    /**
+     * @brief the owners of a peak of @em blacklist_ that more than one filtered peak reserved (indices in @em filtered_peaks_)
+     */
+    struct BlacklistOwnerRecord
+    {
+      /// the first filtered peak that reserved the peak
+      int first;
+      /// the value @em first left in @em blacklist_ (read when another filtered peak reserved the peak for the first time)
+      int first_value;
+      /// the last filtered peak that reserved the peak, whose value @em blacklist_ holds
+      int last;
     };
 
     /**
@@ -120,7 +191,8 @@ protected:
      * @param[in] it_rt    pointer to the spectrum
      * @param[in] intensity_first_peak    intensity to compare to
      *
-     * @return -1 (if there is no significant peak), or peak index mz_idx (if there is a significant peak)
+     * @return -1 (if there is no significant peak), or the index of the significant peak in the spectrum @p it_rt points to
+     * (in filterPeakPositions_() a spectrum of @em exp_centroided_white_, see @em exp_centroided_mapping_)
      */
     int checkForSignificantPeak_(double mz, double mz_tolerance, MSExperiment::ConstIterator& it_rt, double intensity_first_peak) const;
 
@@ -131,9 +203,10 @@ protected:
      * and that the primary peak position is not blacklisted.
      *
      * @param[in] mz    m/z of the primary peak
-     * @param[in] it_rt_begin    RT iterator of the very first spectrum of the experiment (needed to determine indices)
-     * @param[in] it_rt_band_begin    RT iterator of the first spectrum in the RT band
-     * @param[in] it_rt_band_end    RT iterator of the spectrum after the last spectrum in the RT band
+     * @param[in] it_rt_begin    RT iterator of the very first spectrum of @em exp_centroided_white_ (needed to determine indices;
+     * peak indices in its spectra are mapped to @em exp_centroided_ with @em exp_centroided_mapping_)
+     * @param[in] it_rt_band_begin    RT iterator of the first spectrum in the RT band (of @em exp_centroided_white_)
+     * @param[in] it_rt_band_end    RT iterator of the spectrum after the last spectrum in the RT band (of @em exp_centroided_white_)
      * @param[in] pattern    m/z pattern to search for
      * @param[out] peak    filter result output
      * @param[out] blacklist_reads    if not null, every entry of @em blacklist_ read is appended to it, with the value read
@@ -145,23 +218,30 @@ protected:
     /**
      * @brief blacklist this peak
      *
-     * Blacklist all satellites associated with this peak.
-     *
-     * @param[in] peak    peak to be blacklisted
-     */
-    void blacklistPeak_(const MultiplexFilteredPeak& peak);
-
-    /**
-     * @brief blacklist this peak
-     *
      * Each of the satellites is associated with a specific mass trace. We blacklist
      * all peaks in these mass traces (even if they are not a satellite) extending them
      * by a margin @em rt_band_.
      *
      * @param[in] peak    peak to be blacklisted
      * @param[in] pattern_idx    index of the pattern in @em patterns_
+     * @param[in] peak_idx    index of @p peak in the filter result of the pattern, recorded as owner of the peaks
      */
-    void blacklistPeak_(const MultiplexFilteredPeak& peak, unsigned pattern_idx);
+    void blacklistPeak_(const MultiplexFilteredPeak& peak, unsigned pattern_idx, size_t peak_idx);
+
+    /**
+     * @brief write @p entries to @em blacklist_, with the filtered peak (@p pattern_idx, @p peak_idx) as their owner
+     *
+     * It becomes the last owner of each peak. As long as a single filtered peak has reserved a peak, @em blacklist_owner_ holds
+     * that owner. When a second filtered peak reserves it, the peak gets a record in @em blacklist_owner_records_ with the first
+     * owner, the value the first owner left in @em blacklist_, and the last owner. Later owners only replace the last owner of
+     * the record, so any owner in between is lost (see getBlacklistOwners()).
+     *
+     * Owners and records are indexed by int, so the filtered peaks of all patterns together, and the peaks reserved by more
+     * than one of them, are limited to INT_MAX each.
+     *
+     * @throws Exception::InvalidSize if this filtered peak, or the records its entries may add, would exceed that limit
+     */
+    void applyBlacklistEntries_(const std::vector<BlacklistEntry>& entries, unsigned pattern_idx, size_t peak_idx);
 
     /**
      * @brief the entries of @em blacklist_ that blacklistPeak_() sets, with their new values, in the order it sets them
@@ -213,6 +293,17 @@ protected:
      * @return boolean if this filter was passed i.e. the correlation coefficient is greater than @em averagine_similarity_
      */
     bool filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak) const;
+
+    /**
+     * @brief averagine isotope distribution (of the type @em averagine_type_, with @em isotopes_per_peptide_max_ isotopes)
+     * of a molecule of @p mass
+     *
+     * The returned reference is valid until the next call on the same thread. Peptide distributions are computed once
+     * per element composition of the averagine model.
+     *
+     * @throw Exception::InvalidParameter for an unknown averagine type
+     */
+    const IsotopeDistribution& averagineDistribution_(double mass) const;
     
     /**
      * @brief check if corresponding satellite peaks of different peptides show a good correlation
@@ -237,6 +328,24 @@ protected:
      * @brief auxiliary structs for blacklisting
      */
     std::vector<std::vector<int> > blacklist_;
+
+    /**
+     * @brief for every peak of @em blacklist_, who reserved it
+     *
+     * -1: nobody (the peak is white); >= 0: the only filtered peak that reserved it so far (index in @em filtered_peaks_);
+     * <= -2: more than one filtered peak reserved it, and -2 - value is the index of its record in @em blacklist_owner_records_.
+     */
+    std::vector<std::vector<int>> blacklist_owner_;
+
+    /**
+     * @brief the first and the last owner of every peak reserved by more than one filtered peak (see @em blacklist_owner_)
+     */
+    std::vector<BlacklistOwnerRecord> blacklist_owner_records_;
+
+    /**
+     * @brief every filtered peak that passed, in the order they passed: index of its pattern and its index in the pattern's filter result
+     */
+    std::vector<std::pair<unsigned, unsigned>> filtered_peaks_;
     
     /**
      * @brief for each peak of the spectrum being filtered, the entries of @em blacklist_ its decision read (see filterSpectrum_())
@@ -249,6 +358,11 @@ protected:
      * @brief for each peak of the spectrum being filtered that passes, the entries of @em blacklist_ it sets (see filterSpectrum_())
      */
     std::vector<std::vector<BlacklistEntry>> blacklist_writes_;
+
+    /**
+     * @brief the decision of filterSpectrum_() on each peak of the spectrum (reused, as blacklist_reads_)
+     */
+    std::vector<std::optional<MultiplexFilteredPeak>> passed_;
 
     /**
      * @brief "white" centroided experimental data

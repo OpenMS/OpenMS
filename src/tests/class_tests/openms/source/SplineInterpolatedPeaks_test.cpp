@@ -16,6 +16,9 @@
 
 #include <OpenMS/PROCESSING/MISC/SplineInterpolatedPeaks.h>
 
+#include <algorithm>
+#include <random>
+
 using namespace OpenMS;
 
 double Gauss1(double x)
@@ -166,6 +169,67 @@ pos4.push_back(407.5);
 intensity4.push_back(10.0);
 START_SECTION(SplineInterpolatedPeaks(const std::vector<double>& pos, const std::vector<double>& intensity))
   TEST_EXCEPTION(Exception::IllegalArgument, new SplineInterpolatedPeaks(pos4,intensity4));
+END_SECTION
+
+// A navigator starts its search at the package it used last. Its results must not depend on that, i.e. on the
+// positions requested before: on many packages, every position (left of, between, on the borders of, inside and right
+// of the packages) gives the same as with a fresh navigator, requested in increasing, decreasing and random order.
+std::vector<double> pos5;
+std::vector<double> intensity5;
+for (int package = 0; package < 40; ++package)
+{
+  const double start = 400.0 + package * 2.0 + 0.1 * (package % 3);
+  for (int i = 0; i < 6 + package % 4; ++i)
+  {
+    pos5.push_back(start + 0.1 * i);
+    intensity5.push_back(1.0 + (i % 3) + 0.01 * package);
+  }
+}
+SplineInterpolatedPeaks spectrum5(pos5, intensity5);
+
+START_SECTION([EXTRA] Navigator results do not depend on the positions requested before)
+  TEST_EQUAL(spectrum5.size(), 40)
+  std::vector<double> queries;
+  for (double q = 398.0; q < spectrum5.getPosMax() + 2.0; q += 0.0137)
+  {
+    queries.push_back(q);
+  }
+  queries.insert(queries.end(), pos5.begin(), pos5.end()); // borders and data points
+  std::vector<double> expected_eval, expected_next;
+  for (double q : queries)
+  {
+    expected_eval.push_back(spectrum5.getNavigator().eval(q));
+    expected_next.push_back(spectrum5.getNavigator().getNextPos(q));
+  }
+  std::vector<size_t> order(queries.size());
+  for (size_t i = 0; i < order.size(); ++i) { order[i] = i; }
+  std::vector<std::vector<size_t>> orders{order, std::vector<size_t>(order.rbegin(), order.rend())};
+  std::mt19937 rng(42);
+  std::shuffle(order.begin(), order.end(), rng);
+  orders.push_back(order);
+  for (const std::vector<size_t>& o : orders)
+  {
+    SplineInterpolatedPeaks::Navigator nav = spectrum5.getNavigator();
+    Size mismatches = 0;
+    for (size_t i : o)
+    {
+      mismatches += (nav.eval(queries[i]) != expected_eval[i]);
+      mismatches += (nav.getNextPos(queries[i]) != expected_next[i]);
+    }
+    TEST_EQUAL(mismatches, 0)
+  }
+  // stepping through all packages, as the profile filter of FeatureFinderMultiplex does, visits every package
+  SplineInterpolatedPeaks::Navigator nav = spectrum5.getNavigator();
+  Size steps = 0, not_increasing = 0;
+  double last = 0.0;
+  for (double q = 398.0; q < spectrum5.getPosMax(); q = nav.getNextPos(q))
+  {
+    not_increasing += !(q > last);
+    last = q;
+    ++steps;
+  }
+  TEST_EQUAL(not_increasing, 0)
+  TEST_EQUAL(steps > pos5.size(), true)
 END_SECTION
 
 END_TEST

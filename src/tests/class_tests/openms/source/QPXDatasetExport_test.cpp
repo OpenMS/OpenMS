@@ -21,6 +21,7 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -226,18 +227,6 @@ namespace
     if (!reader->GetSchema(&schema).ok() || !schema->metadata()) { return out; }
     for (int64_t i = 0; i < schema->metadata()->size(); ++i) { out[schema->metadata()->key(i)] = schema->metadata()->value(i); }
     return out;
-  }
-
-  /// The rows of the Parquet file @p file; -1 if it cannot be read
-  int64_t rowsOf(const string& file)
-  {
-    auto opened = arrow::io::ReadableFile::Open(file);
-    if (!opened.ok()) { return -1; }
-    auto reader = parquet::arrow::OpenFile(opened.ValueOrDie(), arrow::default_memory_pool());
-    if (!reader.ok()) { return -1; }
-    const auto table = reader.ValueOrDie()->ReadTable();
-    if (!table.ok()) { return -1; }
-    return table.ValueOrDie()->num_rows();
   }
 
   /// The mz view of a run @p run_file_name with one MS2 spectrum and PSM per native ID of @p native_ids
@@ -808,7 +797,7 @@ START_SECTION((static std::string paramToJSON(const Param& param)))
 }
 END_SECTION
 
-START_SECTION((static bool writeDataset(const std::string& directory, const std::string& prefix, const std::map<std::string, View>& views)))
+START_SECTION((static bool writeDataset(const std::string& directory, const std::string& prefix, const std::map<std::string, View>& views, std::set<std::string>* failed = nullptr)))
 {
   TempDir temp;
   // the folder does not exist yet
@@ -846,13 +835,19 @@ START_SECTION((static bool writeDataset(const std::string& directory, const std:
   std::map<std::string, QPXDatasetExport::View> broken;
   broken["psm"].tables = {ArrowIOHelpers::tableOfColumns({x}, 1)};
   broken["mz"].tables = {QPXDatasetExport::mzView(mzSpectra(false), mzIds(), "run1", all).table};
-  TEST_EQUAL(QPXDatasetExport::writeDataset(failed_dir, "x", broken), false)
+  // (the views are written at the same time: the mz view is removed again, and both are reported)
+  std::set<std::string> failed;
+  TEST_EQUAL(QPXDatasetExport::writeDataset(failed_dir, "x", broken, &failed), false)
   TEST_EQUAL(File::exists(failed_dir + "/x.psm.parquet"), false)
   TEST_EQUAL(File::exists(failed_dir + "/x.mz.parquet"), false)
+  TEST_EQUAL(failed.size(), 2)
+  TEST_EQUAL(failed.count("psm"), 1)
+  TEST_EQUAL(failed.count("mz"), 1)
   // the mz view alone is written
   broken.erase("psm");
-  TEST_EQUAL(QPXDatasetExport::writeDataset(failed_dir, "x", broken), true)
+  TEST_EQUAL(QPXDatasetExport::writeDataset(failed_dir, "x", broken, &failed), true)
   TEST_EQUAL(File::exists(failed_dir + "/x.mz.parquet"), true)
+  TEST_EQUAL(failed.empty(), true)
   // a null table: false
   std::map<std::string, QPXDatasetExport::View> null_table;
   null_table["run"].tables = {nullptr};
@@ -886,12 +881,12 @@ START_SECTION(writeDataset refuses an mz view with an id twice (one run per mz v
   // one run's mz view is written
   views["mz"].tables = {run1};
   TEST_EQUAL(QPXDatasetExport::writeDataset(dir, "one", views), true)
-  TEST_EQUAL(rowsOf(dir + "/one.mz.parquet"), 2)
+  TEST_EQUAL(ParquetFile::rowCount(dir + "/one.mz.parquet"), 2)
 
   // the mz views of two runs of distinct ids are written, concatenated
   views["mz"].tables = {run1, run3};
   TEST_EQUAL(QPXDatasetExport::writeDataset(dir, "distinct", views), true)
-  TEST_EQUAL(rowsOf(dir + "/distinct.mz.parquet"), 4)
+  TEST_EQUAL(ParquetFile::rowCount(dir + "/distinct.mz.parquet"), 4)
 }
 END_SECTION
 

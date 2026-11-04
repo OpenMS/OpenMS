@@ -33,4 +33,19 @@ double PseudoRandom::lcg_uniform_rand() {
   return (double)PseudoRandom::lcg_rand() / ((double)PseudoRandom::kRandMax + (double)1);
 }
 
+// OpenMS: the state after `draws` calls of lcg_rand(state). The first draw is made as lcg_rand
+// makes it (a state set by setSeed may exceed the modulus); from then on the state is below the
+// modulus, and each draw multiplies it by 279470273 modulo 4294967291 (no product of two numbers
+// below 2^32 overflows 64 bits), so the remaining draws multiply it by 279470273^(draws - 1).
+uint64_t PseudoRandom::advance(uint64_t state, uint64_t draws) {
+  if (draws == 0) return state;
+  PseudoRandom::lcg_rand(state);
+  uint64_t factor = 1u, power = 279470273u;
+  for (uint64_t k = draws - 1; k != 0; k >>= 1) {
+    if (k & 1u) factor = (factor * power) % 4294967291u;
+    power = (power * power) % 4294967291u;
+  }
+  return (state * factor) % 4294967291u;
+}
+
 }}}  // namespace OpenMS::Internal::Percolator

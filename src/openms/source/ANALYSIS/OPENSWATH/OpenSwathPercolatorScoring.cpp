@@ -1832,6 +1832,16 @@ namespace OpenMS
                        "percolator:subset_max_train further peak groups (0: train on all peak groups); the model then "
                        "scores all peak groups. If the score is not among the features, all peak groups are used.");
     defaults_.insert("percolator:", impl_->percolator.getDefaults());
+    // Target and decoy precursors are separate entries: 'post_processing_tdc' keeps the best peak group per precursor,
+    // but a target never competes with a decoy. Keep estimating pi0 here (as before, and as PyProphet does for target
+    // and decoy precursors), although 'post_processing_tdc' is on. Percolator's own 'auto' default decides as upstream
+    // percolator's automatic mode, which would take such input (no precursor with both target and decoy rows) for a
+    // concatenated search and use pi0 = 1.
+    defaults_.setValue("percolator:use_pi0", "true",
+                       "pi0 correction of q-values and PEPs (mix-max): 'true' (default here) estimates pi0, as "
+                       "PyProphet does, since a target precursor never competes with a decoy; 'false': pi0 = 1 "
+                       "(target-decoy FDR); 'auto': Percolator's default, as the percolator executable (pi0 only without "
+                       "'post_processing_tdc', for input from separate target and decoy searches).");
     defaultsToParam_();
     updateMembers_();
   }

@@ -317,6 +317,10 @@ Supports DDA-PASEF, DIA-PASEF, and raw frame-level 4D access.
 Ion mobility data is stored in VSSC (1/K0) units using IM_PEAK format
 for MS1 and DIA MS2, and scalar drift times for DDA MS2.
 
+``load()`` and ``transform()`` also read TSF data (timsTOF without ion
+mobility: MALDI imaging and spot runs, LC-MS with TIMS off), one
+centroided spectrum per frame, MS2 spectra with their precursor.
+
 This class is only available when OpenMS is built with
 ``WITH_OPENTIMS=ON`` (the default). The Bruker SDK
 (``timsdata.dll`` / ``libtimsdata.so``) is not bundled with pyOpenMS;
@@ -365,7 +369,7 @@ runtime.
         .def_static("detectFormat", &OpenMS::BrukerTimsFile::detectFormat, "path"_a,
         "Which Bruker data format a .d directory or '.d.zip' archive holds, told by its file names (nothing is read or extracted)")
         .def_static("checkDataFormat", &OpenMS::BrukerTimsFile::checkDataFormat, "path"_a,
-        "Raises if the path holds Bruker data in a format that cannot be read (TSF, BAF); load() does this check itself")
+        "Raises if the path holds Bruker data in a format that cannot be read (BAF); load() does this check itself")
         ;
     def_ProgressLogger<OpenMS::BrukerTimsFile>(brukertimsfile_class);
 
@@ -899,7 +903,6 @@ Converts a file type name into a Type
         .value("PEPXML", OpenMS::FileTypes::Type::PEPXML)
         .value("PROTXML", OpenMS::FileTypes::Type::PROTXML)
         .value("MZIDENTML", OpenMS::FileTypes::Type::MZIDENTML)
-        .value("QCML", OpenMS::FileTypes::Type::QCML)
         .value("MZQC", OpenMS::FileTypes::Type::MZQC)
         .value("GELML", OpenMS::FileTypes::Type::GELML)
         .value("TRAML", OpenMS::FileTypes::Type::TRAML)
@@ -954,6 +957,7 @@ Converts a file type name into a Type
         .value("OSWPQ", OpenMS::FileTypes::Type::OSWPQ)
         .value("PEFF", OpenMS::FileTypes::Type::PEFF)
         .value("YAML", OpenMS::FileTypes::Type::YAML)
+        .value("MZPEAK", OpenMS::FileTypes::Type::MZPEAK)
         .value("SIZE_OF_TYPE", OpenMS::FileTypes::Type::SIZE_OF_TYPE)
 
         .export_values();
@@ -1517,7 +1521,7 @@ Loads a MsInspect file into the given FeatureMap
         R"doc(
 A class to decode input strings that contain an mzML chromatogram or spectrum tag
 
-It uses xercesc to parse a string containing either a exactly one mzML
+It uses libxml2 to parse a string containing either a exactly one mzML
 spectrum or chromatogram (from <chromatogram> to </chromatogram> or
 <spectrum> to </spectrum> tag). It returns the data contained in the
 binaryDataArray for Intensity / mass-to-charge or Intensity / time

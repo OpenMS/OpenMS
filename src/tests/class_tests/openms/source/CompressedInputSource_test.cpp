@@ -7,6 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <memory>
+#include <utility>
+#include <vector>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -21,11 +24,10 @@ using namespace OpenMS;
 
 START_TEST(CompressedInputSource, "$Id$")
 
-xercesc::XMLPlatformUtils::Initialize();
 CompressedInputSource* ptr = nullptr;
 CompressedInputSource* nullPointer = nullptr;
 
-START_SECTION(CompressedInputSource(const std::string& file_path, const char * header, xercesc::MemoryManager* const manager = xercesc::XMLPlatformUtils::fgMemoryManager))
+START_SECTION(CompressedInputSource(const std::string& file_path, const std::string& header))
   char header[3];
   header[0] = 'B';
   header[1] = 'Z';
@@ -39,20 +41,8 @@ START_SECTION((~CompressedInputSource()))
   delete ptr;
 END_SECTION
 
-START_SECTION(CompressedInputSource(const XMLCh *const file_path, const char *header, xercesc::MemoryManager *const manager=xercesc::XMLPlatformUtils::fgMemoryManager))
-  char header[3];
-  header[0] = 'B';
-  header[1] = 'Z';
-  header[2] = '\0';
-  std::string bz =std::string(header);
-  std::string filename(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
-  ptr = new CompressedInputSource(Internal::StringManager().convert(filename.c_str()).c_str(), bz);
-  TEST_NOT_EQUAL(ptr, nullPointer)
-  delete ptr;
-END_SECTION
 
-
-START_SECTION(virtual xercesc::BinInputStream* makeStream() const)
+START_SECTION(InputStream* makeStream() const)
   char header[3];
   header[0] = 'B';
   header[1] = 'Z';
@@ -64,4 +54,18 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION(Factory streams preserve gzip bzip2 ZIP and short-header fallback)
+  const std::vector<std::pair<std::string, std::string>> inputs{
+    {"Bzip2IfStream_1.bz2", "BZ"}, {"GzipIfStream_1.gz", ""}, {"Deisotoper_input1.mzML.zip", "PK"}};
+  for (const auto& input : inputs)
+  {
+    CompressedInputSource source(std::string(OPENMS_GET_TEST_DATA_PATH("")) + input.first, input.second);
+    std::unique_ptr<InputStream> stream(source.makeStream());
+    TEST_TRUE(stream != nullptr)
+    unsigned char buffer[5]{};
+    TEST_EQUAL(stream->readBytes(buffer, sizeof(buffer)), 5)
+    TEST_EQUAL(stream->curPos(), 5)
+    TEST_STRING_EQUAL(std::string(reinterpret_cast<char*>(buffer), 5), input.second == "PK" ? "<?xml" : "Was d")
+  }
+END_SECTION
 END_TEST

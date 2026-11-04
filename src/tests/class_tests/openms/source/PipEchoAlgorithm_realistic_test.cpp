@@ -533,8 +533,8 @@ START_SECTION([EXTRA] realistic MBR controls the transfer FDR and recovers true 
     }
 
     // ---- Training-point cap: FDR control + sensitivity survive subsampling ----
-    // This dataset produces thousands of acceptors per fold, so a small
-    // max_training_points forces the stratified-subsample path in round().
+    // This dataset produces thousands of acceptors, so a small
+    // max_training_points forces Percolator's training subsample.
     // Because prediction and q-values still use EVERY acceptor, the realised
     // FDR must stay bounded and a useful fraction of true transfers must still
     // be recovered -- the cap may only change the fitted boundary, not the set
@@ -561,7 +561,7 @@ START_SECTION([EXTRA] realistic MBR controls the transfer FDR and recovers true 
       // The q-value filter still respects its own cutoff.
       TEST_TRUE(s.all_q_within_cutoff)
 
-      // Deterministic subsample (uniform stride, no RNG) -> reproducible.
+      // Seeded subsample -> reproducible.
       PipEchoAlgorithm a2;
       Param p2 = a2.getParameters();
       p2.setValue("fdr", 0.05);

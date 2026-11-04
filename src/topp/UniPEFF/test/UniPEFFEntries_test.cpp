@@ -11,6 +11,8 @@
 
 #include "UniPEFFEntries.h"
 
+#include <algorithm>
+
 using namespace OpenMS;
 using namespace OpenMS::UniPEFFEntries;
 
@@ -54,7 +56,122 @@ namespace
     map.emplace("Phosphoserine", PtmEntry{"Phosphoserine", "PTM-0253", "MOD:00046", "21"});
     map.emplace("Phosphothreonine", PtmEntry{"Phosphothreonine", "PTM-0254", "MOD:00047", "21"});
     map.emplace("Half cystine", PtmEntry{"Half cystine", "", "MOD:00798", "374"});
+    map.emplace("N-acetylmethionine", PtmEntry{"N-acetylmethionine", "PTM-0207", "MOD:00069", "1"});
+    map.emplace("N6-acetyllysine", PtmEntry{"N6-acetyllysine", "PTM-0190", "MOD:00064", "1"});
     return map;
+  }
+
+  UniProtFeature splice(const std::string& id, int begin, int end, const std::string& original = "",
+                        const std::string& variation = "")
+  {
+    UniProtFeature f = range("splice variant", "", begin, end, "", variation);
+    f.id = id;
+    f.original = original;
+    return f;
+  }
+
+  /// P66666 (30 aa) with isoform -2: VSP_A deletes 3-6 (EQCK), VSP_B replaces L20 by LIV (28 aa).
+  /// Canonical residues 1-2 keep their positions, 7-19 move by -4, 21-30 by -2.
+  UniProtEntry canonicalFeatures()
+  {
+    UniProtEntry e;
+    e.dataset = "Swiss-Prot";
+    e.accession = "P66666";
+    e.sequence = "MSEQCKTLDAPGRSTWEVQLKDNACYLRGE";
+    e.isoforms = {isoform("P66666-1", "displayed"), isoform("P66666-2", "described", "VSP_A VSP_B")};
+    e.features = {position("initiator methionine", "Removed", 1),
+                  range("chain", "Test protein", 2, 30),
+                  range("propeptide", "", 2, 8),                                  // clipped to 2-4
+                  range("signal peptide", "", 3, 6),                              // deleted
+                  position("modified residue", "Phosphoserine", 2),
+                  position("modified residue", "Phosphoserine", 14),
+                  position("modified residue", "Phosphothreonine", 15),
+                  position("modified residue", "Phosphoserine", 20),              // replaced
+                  position("modified residue", "Phosphoserine", 0),               // unknown position
+                  position("modified residue", "Not in ptmlist", 16),             // no annotation at all
+                  range("disulfide bond", "", 5, 25),                             // half-cystine 5 deleted
+                  position("sequence variant", "In dbSNP.", 24, "", "V"),
+                  range("sequence variant", "In dbSNP.", 18, 21, "", "Q"),       // overlaps VSP_B
+                  position("sequence variant", "In dbSNP.", 13, "", "K"),        // also on the isoform
+                  position("sequence variant", "In dbSNP.", 9, "P66666-2", "K"),
+                  splice("VSP_A", 3, 6),
+                  splice("VSP_B", 20, 20, "L", "LIV")};
+    return e;
+  }
+
+  /// A0AVT1 (UBA6_HUMAN, entry version 163, sequence version 1): canonical sequence, chain, modified residues, natural
+  /// variant and the splice variants of isoforms -2 (VSP_023083), -3 (VSP_023086/7), -4 (VSP_023084/5).
+  UniProtEntry a0avt1()
+  {
+    UniProtEntry e;
+    e.dataset = "Swiss-Prot";
+    e.accession = "A0AVT1";
+    e.sequence = "MEGSEPVAAHQGEEASCSSWGTGSTNKNLPIMSTASVEIDDALYSRQRYVLGDTAMQKMAKSHVFLSGMG"
+                 "GLGLEIAKNLVLAGIKAVTIHDTEKCQAWDLGTNFFLSEDDVVNKRNRAEAVLKHIAELNPYVHVTSSSV"
+                 "PFNETTDLSFLDKYQCVVLTEMKLPLQKKINDFCRSQCPPIKFISADVHGIWSRLFCDFGDEFEVLDTTG"
+                 "EEPKEIFISNITQANPGIVTCLENHPHKLETGQFLTFREINGMTGLNGSIQQITVISPFSFSIGDTTELE"
+                 "PYLHGGIAVQVKTPKTVFFESLERQLKHPKCLIVDFSNPEAPLEIHTAMLALDQFQEKYSRKPNVGCQQD"
+                 "SEELLKLATSISETLEEKPDVNADIVHWLSWTAQGFLSPLAAAVGGVASQEVLKAVTGKFSPLCQWLYLE"
+                 "AADIVESLGKPECEEFLPRGDRYDALRACIGDTLCQKLQNLNIFLVGCGAIGCEMLKNFALLGVGTSKEK"
+                 "GMITVTDPDLIEKSNLNRQFLFRPHHIQKPKSYTAADATLKINSQIKIDAHLNKVCPTTETIYNDEFYTK"
+                 "QDVIITALDNVEARRYVDSRCLANLRPLLDSGTMGTKGHTEVIVPHLTESYNSHRDPPEEEIPFCTLKSF"
+                 "PAAIEHTIQWARDKFESSFSHKPSLFNKFWQTYSSAEEVLQKIQSGHSLEGCFQVIKLLSRRPRNWSQCV"
+                 "ELARLKFEKYFNHKALQLLHCFPLDIRLKDGSLFWQSPKRPPSPIKFDLNEPLHLSFLQNAAKLYATVYC"
+                 "IPFAEEDLSADALLNILSEVKIQEFKPSNKVVQTDETARKPDHVPISSEDERNAIFQLEKAILSNEATKS"
+                 "DLQMAVLSFEKDDDHNGHIDFITAASNLRAKMYSIEPADRFKTKRIAGKIIPAIATTTATVSGLVALEMI"
+                 "KVTGGYPFEAYKNCFLNLAIPIVVFTETTEVRKTKIRNGISFTIWDRWTVHGKEDFTLLDFINAVKEKYG"
+                 "IEPTMVVQGVKMLYVPVMPGHAKRLKLTMHKLVKPTTEKKYVDLTVSFAPDIDGDEDLPGPPVRYYFSHD"
+                 "TD";
+    e.isoforms = {isoform("A0AVT1-1", "displayed"), isoform("A0AVT1-2", "described", "VSP_023083"),
+                  isoform("A0AVT1-3", "described", "VSP_023086 VSP_023087"),
+                  isoform("A0AVT1-4", "described", "VSP_023084 VSP_023085")};
+    e.features = {range("chain", "Ubiquitin-like modifier-activating enzyme 6", 1, 1052),
+                  position("modified residue", "N-acetylmethionine", 1),
+                  position("modified residue", "Phosphothreonine", 54),
+                  position("modified residue", "Phosphoserine", 301),
+                  position("modified residue", "N6-acetyllysine", 544),
+                  position("modified residue", "N6-acetyllysine", 729),
+                  position("modified residue", "Phosphoserine", 737),
+                  splice("VSP_023083", 1, 474),
+                  splice("VSP_023084", 321, 340, "APLEIHTAMLALDQFQEKYS", "VNKHFAGLREAAESEMRISE"),
+                  splice("VSP_023085", 341, 1052),
+                  splice("VSP_023086", 369, 389, "PDVNADIVHWLSWTAQGFLSP", "VTIEIYGCPNICLLIHKCSVY"),
+                  splice("VSP_023087", 390, 1052),
+                  position("sequence variant", "In dbSNP:rs10010188.", 224, "", "T")};
+    return e;
+  }
+
+  /// P77777 (30 aa) with isoform -2: VSP_A deletes 3-6 (26 aa), so canonical residues 7-30 move by -4.
+  /// Each canonical annotation meets an annotation UniProt makes on the isoform at the same residues:
+  /// compatible ones are written side by side, contradicting ones leave the isoform's own.
+  UniProtEntry conflictingFeatures()
+  {
+    const std::string sumo1 = "Glycyl lysine isopeptide (Lys-Gly) (interchain with G-Cter in SUMO1); alternate";
+    const std::string sumo2 = "Glycyl lysine isopeptide (Lys-Gly) (interchain with G-Cter in SUMO2)";
+    UniProtEntry e;
+    e.dataset = "Swiss-Prot";
+    e.accession = "P77777";
+    e.sequence = "MSEQCKTLDAPGRSTWEVQLKDNACYLRGE";
+    e.isoforms = {isoform("P77777-1", "displayed"), isoform("P77777-2", "described", "VSP_A")};
+    e.features = {position("initiator methionine", "Removed", 1),                            // -> 1
+                  range("chain", "Test protein", 2, 30),                                      // -> 2-26, conflicts
+                  range("chain", "Test protein", 2, 20, "P77777-2"),
+                  range("disulfide bond", "", 11, 25),                                        // -> 7-21, conflicts
+                  range("disulfide bond", "", 7, 14, "P77777-2"),                             // shares C7
+                  range("cross-link", "Isoglutamyl lysine isopeptide (Lys-Gln)", 13, 28),     // -> 9-24, conflicts
+                  range("cross-link", "Isoglutamyl lysine isopeptide (Lys-Gln)", 22, 24, "P77777-2"),
+                  position("cross-link", sumo1, 21),                                          // -> 17, compatible
+                  position("cross-link", sumo2, 17, "P77777-2"),
+                  position("cross-link", sumo1, 26),                         // -> 22, in the isoform's 22-24: conflicts
+                  range("disulfide bond", "", 28, 30),                       // -> 24-26, shares 24 with the cross-link
+                  position("modified residue", "Phosphoserine", 14),                          // -> 10, compatible
+                  position("modified residue", "Phosphothreonine", 10, "P77777-2"),
+                  position("glycosylation site", "N-linked (GlcNAc...) (complex) asparagine", 27),  // -> 23, redundant
+                  position("glycosylation site", "N-linked (GlcNAc...) asparagine", 23, "P77777-2"),
+                  position("sequence variant", "In dbSNP.", 24, "", "V"),                     // -> 20, compatible
+                  position("sequence variant", "In dbSNP.", 20, "P77777-2", "I"),
+                  splice("VSP_A", 3, 6)};
+    return e;
   }
 
   /// UniPEFF_5_input_isoform_features.xml: P55555 (30 aa) with a displayed isoform -1, a described isoform -2
@@ -82,15 +199,24 @@ namespace
     return e;
   }
 
-  PreparedEntry prepare(UniProtEntry e, bool record_isoforms, SkippedIsoformCounts& skipped)
+  PreparedEntry prepare(UniProtEntry e, bool record_isoforms, SkippedIsoformCounts& skipped,
+                        bool map_canonical_features = false)
   {
-    return prepareEntry(std::move(e), ptms(), "", false, true, true, true, record_isoforms, skipped);
+    return prepareEntry(std::move(e), ptms(), "", false, true, true, true, record_isoforms,
+                        map_canonical_features, skipped);
+  }
+
+  std::vector<int> modPositions(const EntryAnnotations& a)
+  {
+    std::vector<int> out;
+    for (const ModResItem& m : a.mods) out.push_back(m.position);
+    return out;
   }
 }
 
 START_TEST(UniPEFFEntries, "$Id$")
 
-START_SECTION(PreparedEntry prepareEntry(UniProtEntry&&, const PtmMap&, const std::string&, bool, bool, bool, bool, bool, SkippedIsoformCounts&))
+START_SECTION(PreparedEntry prepareEntry(UniProtEntry&&, const PtmMap&, const std::string&, bool, bool, bool, bool, bool, bool, SkippedIsoformCounts&))
 {
   // features annotated on a written isoform go to its entry, in its coordinates; those on the displayed isoform stay
   // canonical; those on the external and the unreconstructable isoform are not applied, and a sequence conflict
@@ -131,6 +257,192 @@ START_SECTION(PreparedEntry prepareEntry(UniProtEntry&&, const PtmMap&, const st
   TEST_EQUAL(pe.isoforms.size(), 0)
   TEST_EQUAL(skipped.size(), 0)
   TEST_EQUAL(pe.annotations.mods.size(), 2)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] map_canonical_features: canonical annotations in isoform coordinates))
+{
+  SkippedIsoformCounts skipped;
+
+  // off (the default): the isoform carries only the variant UniProt annotates on it
+  PreparedEntry pe = prepare(canonicalFeatures(), true, skipped);
+  ABORT_IF(pe.isoforms.size() != 1)
+  TEST_EQUAL(pe.isoforms[0].sequence, "MSTLDAPGRSTWEVQLIVKDNACYLRGE")
+  TEST_EQUAL(pe.isoforms[0].annotations.mods.size(), 0)
+  TEST_EQUAL(pe.isoforms[0].annotations.processed.size(), 0)
+  TEST_EQUAL(pe.isoforms[0].annotations.simple_variants.size(), 1)
+  TEST_EQUAL(pe.canonical_mapped, 0)
+  TEST_EQUAL(pe.canonical_unmapped, 0)
+
+  // on: of 13 canonical annotations, 7 are mapped, 5 lie in or cross a splice variant (signal peptide 3-6,
+  // phosphoserines 20 and '?', the disulfide bond 5-25, the variant 18-21) and the copy of variant R13K is
+  // already annotated on the isoform (as R9K); the feature missing from the ptmlist is no annotation at all
+  pe = prepare(canonicalFeatures(), true, skipped, true);
+  ABORT_IF(pe.isoforms.size() != 1)
+  const EntryAnnotations& iso = pe.isoforms[0].annotations;
+  TEST_EQUAL(pe.canonical_mapped, 7)
+  TEST_EQUAL(pe.canonical_unmapped, 5)
+  TEST_EQUAL(pe.isoform_scoped_applied, 1)
+  // the canonical entry is unchanged
+  TEST_EQUAL(pe.annotations.processed.size(), 4)
+  TEST_EQUAL(pe.annotations.mods.size(), 7) // 5 phosphorylations and 2 half-cystines
+  // phosphoserine 2, phosphoserine 14 -> 10, phosphothreonine 15 -> 11; no half-cystines
+  TEST_TRUE(modPositions(iso) == std::vector<int>({2, 10, 11}))
+  TEST_EQUAL(iso.disulfides.size(), 0)
+  // initiator methionine 1, chain 2-30 -> 2-28 (still to the C-terminus), propeptide 2-8 clipped to 2-4
+  ABORT_IF(iso.processed.size() != 3)
+  TEST_EQUAL(iso.processed[0].begin, 1)
+  TEST_EQUAL(iso.processed[0].end, 1)
+  TEST_EQUAL(iso.processed[1].begin, 2)
+  TEST_EQUAL(iso.processed[1].end, 28)
+  TEST_EQUAL(iso.processed[2].begin, 2)
+  TEST_EQUAL(iso.processed[2].end, 4)
+  // R9K annotated on the isoform (written once), A24V -> 22
+  ABORT_IF(iso.simple_variants.size() != 2)
+  TEST_EQUAL(iso.simple_variants[0].position, 9)
+  TEST_EQUAL(iso.simple_variants[1].position, 22)
+  TEST_EQUAL(iso.simple_variants[1].new_aa, 'V')
+  TEST_EQUAL(iso.complex_variants.size(), 0)
+
+  // a copy of an isoform annotation is recognized by what is written: a variant's description is not written,
+  // a modification's is (after cleaning, so "; by PKA" does not matter), a position equals a one-residue range
+  // at it (A24V -> 22 and the isoform's 22-22 V); a different modification is kept
+  UniProtEntry described = canonicalFeatures();
+  described.features = {position("sequence variant", "In dbSNP:rs1.", 13, "", "K"),
+                        position("sequence variant", "In dbSNP:rs2.", 9, "P66666-2", "K"),
+                        position("sequence variant", "In dbSNP.", 24, "", "V"),
+                        range("sequence variant", "In dbSNP.", 22, 22, "P66666-2", "V"),
+                        position("modified residue", "Phosphoserine", 14),
+                        position("modified residue", "Phosphoserine; by PKA", 10, "P66666-2"),
+                        position("modified residue", "Phosphothreonine", 15),
+                        position("modified residue", "Phosphoserine", 11, "P66666-2"),
+                        splice("VSP_A", 3, 6), splice("VSP_B", 20, 20, "L", "LIV")};
+  pe = prepare(described, true, skipped, true);
+  ABORT_IF(pe.isoforms.size() != 1)
+  TEST_EQUAL(pe.isoform_scoped_applied, 4)
+  TEST_EQUAL(pe.canonical_mapped, 1)
+  TEST_EQUAL(pe.canonical_unmapped, 0)
+  TEST_EQUAL(pe.isoforms[0].annotations.simple_variants.size(), 1)
+  TEST_EQUAL(pe.isoforms[0].annotations.complex_variants.size(), 1)
+  TEST_TRUE(modPositions(pe.isoforms[0].annotations) == std::vector<int>({10, 11, 11}))
+
+  // the disulfide bond survives when both half-cystines do, whatever lies between them
+  UniProtEntry bonded = canonicalFeatures();
+  bonded.features = {range("disulfide bond", "", 2, 25), splice("VSP_A", 3, 6), splice("VSP_B", 20, 20, "L", "LIV")};
+  pe = prepare(bonded, true, skipped, true);
+  ABORT_IF(pe.isoforms.size() != 1)
+  TEST_TRUE(modPositions(pe.isoforms[0].annotations) == std::vector<int>({2, 23}))
+  ABORT_IF(pe.isoforms[0].annotations.disulfides.size() != 1)
+  TEST_TRUE(pe.isoforms[0].annotations.disulfides[0].valid)
+
+  // nothing to map onto without isoform entries
+  pe = prepare(canonicalFeatures(), false, skipped, true);
+  TEST_EQUAL(pe.isoforms.size(), 0)
+  TEST_EQUAL(pe.canonical_mapped, 0)
+  TEST_EQUAL(pe.canonical_unmapped, 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] map_canonical_features: annotations UniProt makes on the isoform at the same residues))
+{
+  SkippedIsoformCounts skipped;
+  PreparedEntry pe = prepare(conflictingFeatures(), true, skipped, true);
+  ABORT_IF(pe.isoforms.size() != 1)
+  const IsoformEntry& iso = pe.isoforms[0];
+  TEST_EQUAL(iso.sequence, "MSTLDAPGRSTWEVQLKDNACYLRGE")
+  TEST_EQUAL(pe.isoform_scoped_applied, 7)
+  // of 10 canonical annotations: the initiator methionine, the SUMO1 cross-link at 17, the phosphoserine and the
+  // variant are mapped; the chain, the disulfide bond 7-21, the cross-link between two residues, the SUMO1 cross-link
+  // at 22 and the disulfide bond 24-26 (both on residues of the isoform's cross-link 22-24) contradict the isoform's
+  // own and are not; the glycosylation is already on the isoform (described in less detail) and not written again
+  TEST_EQUAL(pe.canonical_mapped, 4)
+  TEST_EQUAL(pe.canonical_unmapped, 5)
+
+  // only the isoform's chain 2-20, plus the mapped initiator methionine
+  ABORT_IF(iso.annotations.processed.size() != 2)
+  TEST_EQUAL(iso.annotations.processed[0].begin, 2)
+  TEST_EQUAL(iso.annotations.processed[0].end, 20)
+  TEST_EQUAL(iso.annotations.processed[1].begin, 1)
+  TEST_EQUAL(iso.annotations.processed[1].end, 1)
+  // half-cystines 7 and 14 of the isoform's bond only (none at 21, 24 or 26); phosphothreonine and phosphoserine at 10;
+  // SUMO2 and SUMO1 at 17; one glycosylation at 23; the isoform's cross-link 22-24 only (none at 9, no SUMO1 at 22)
+  TEST_TRUE(modPositions(iso.annotations) == std::vector<int>({7, 10, 10, 14, 17, 17, 22, 23, 24}))
+  ABORT_IF(iso.annotations.disulfides.size() != 1)
+  TEST_TRUE(iso.annotations.disulfides[0].valid)
+  // R20I annotated on the isoform and the mapped A24V, as two variants of residue 20
+  ABORT_IF(iso.annotations.simple_variants.size() != 2)
+  TEST_EQUAL(iso.annotations.simple_variants[0].position, 20)
+  TEST_EQUAL(iso.annotations.simple_variants[0].new_aa, 'I')
+  TEST_EQUAL(iso.annotations.simple_variants[1].position, 20)
+  TEST_EQUAL(iso.annotations.simple_variants[1].new_aa, 'V')
+
+  // without the isoform's own annotations, all 10 are mapped
+  UniProtEntry plain = conflictingFeatures();
+  plain.features.erase(std::remove_if(plain.features.begin(), plain.features.end(),
+                                      [](const UniProtFeature& f) { return !f.location_sequence.empty(); }),
+                       plain.features.end());
+  pe = prepare(plain, true, skipped, true);
+  TEST_EQUAL(pe.canonical_mapped, 10)
+  TEST_EQUAL(pe.canonical_unmapped, 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] map_canonical_features: A0AVT1 isoforms))
+{
+  SkippedIsoformCounts skipped;
+  PreparedEntry pe = prepare(a0avt1(), true, skipped, true);
+  ABORT_IF(pe.isoforms.size() != 3)
+  const IsoformEntry& iso2 = pe.isoforms[0];
+  const IsoformEntry& iso3 = pe.isoforms[1];
+  const IsoformEntry& iso4 = pe.isoforms[2];
+  TEST_EQUAL(iso2.accession, "A0AVT1-2")
+  TEST_EQUAL(iso3.accession, "A0AVT1-3")
+  TEST_EQUAL(iso4.accession, "A0AVT1-4")
+  // the lengths of UniProt's isoform sequences; isoform 2 starts at the internal Met475
+  TEST_EQUAL(iso2.sequence.size(), 578)
+  TEST_EQUAL(iso3.sequence.size(), 389)
+  TEST_EQUAL(iso4.sequence.size(), 340)
+  TEST_EQUAL(iso2.sequence.substr(0, 12), "MLKNFALLGVGT")
+  TEST_EQUAL(iso3.sequence.substr(377), "NICLLIHKCSVY")
+  TEST_EQUAL(iso4.sequence.substr(328), "REAAESEMRISE")
+
+  // isoform 2 (1-474 deleted): the N6-acetyllysines 544 and 729 and phosphoserine 737 move to 70, 255, 263;
+  // Met1, Thr54, Ser301 and the variant A224T are not in it
+  TEST_TRUE(modPositions(iso2.annotations) == std::vector<int>({70, 255, 263}))
+  TEST_EQUAL(iso2.sequence[69], 'K')
+  TEST_EQUAL(iso2.sequence[254], 'K')
+  TEST_EQUAL(iso2.sequence[262], 'S')
+  TEST_EQUAL(iso2.annotations.simple_variants.size(), 0)
+  ABORT_IF(iso2.annotations.processed.size() != 1)
+  TEST_EQUAL(iso2.annotations.processed[0].begin, 1)
+  TEST_EQUAL(iso2.annotations.processed[0].end, 578)
+
+  // isoforms 3 and 4 keep the N-terminal half: Met1, Thr54, Ser301 and A224T; the chain still spans the
+  // whole isoform, including the replaced C-terminal residues
+  for (const IsoformEntry* iso : {&iso3, &iso4})
+  {
+    // (ABORT_IF would only leave the loop)
+    TEST_TRUE(modPositions(iso->annotations) == std::vector<int>({1, 54, 301}))
+    TEST_EQUAL(iso->annotations.simple_variants.size(), 1)
+    if (iso->annotations.simple_variants.size() == 1)
+    {
+      TEST_EQUAL(iso->annotations.simple_variants[0].position, 224)
+    }
+    TEST_EQUAL(iso->annotations.processed.size(), 1)
+    if (iso->annotations.processed.size() == 1)
+    {
+      TEST_EQUAL(iso->annotations.processed[0].begin, 1)
+      TEST_EQUAL(iso->annotations.processed[0].end, static_cast<int>(iso->sequence.size()))
+    }
+  }
+
+  // 8 canonical annotations per isoform: 4 + 5 + 5 mapped, 4 + 3 + 3 not
+  TEST_EQUAL(pe.canonical_mapped, 14)
+  TEST_EQUAL(pe.canonical_unmapped, 10)
+  IsoformScopedTracker tracker;
+  tracker.add(pe.canonical_mapped, pe.canonical_unmapped);
+  TEST_EQUAL(tracker.applied_entries, 1)
+  TEST_EQUAL(tracker.skipped_entries, 1)
 }
 END_SECTION
 
