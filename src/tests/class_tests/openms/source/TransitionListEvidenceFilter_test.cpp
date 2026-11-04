@@ -465,6 +465,42 @@ START_SECTION((filter() - PASEF MS2 support without precursor ion mobility uses 
 }
 END_SECTION
 
+START_SECTION((filter() - PASEF peak picking keeps filtered IM samples aligned))
+{
+  LightTargetedExperiment transition_exp = makeLibrary();
+  const vector<pair<double, double>> profile_shape{
+    {-0.020, 0.005}, {-0.015, 0.030}, {-0.010, 0.120}, {-0.005, 0.450},
+    { 0.000, 1.000}, { 0.005, 0.450}, { 0.010, 0.120}, { 0.015, 0.030}, { 0.020, 0.005}
+  };
+  vector<tuple<double, double, double>> profile_points;
+  for (const double center_mz : {100.0, 110.0})
+  {
+    for (Size i = 0; i < profile_shape.size(); ++i)
+    {
+      const auto& point = profile_shape[i];
+      const double mobility = i == 0 ? 0.90 : 0.70;
+      profile_points.emplace_back(center_mz + point.first, 2000.0 * point.second, mobility);
+    }
+  }
+
+  vector<SwathMap> swath_maps;
+  swath_maps.push_back(makeSwathMap(false, 400.0, 650.0,
+                                    {makeIMSpectrum(12.0, profile_points)}, 0.65, 0.75));
+
+  TransitionListEvidenceFilter filter = makeFilter("ms2");
+  Param params = filter.getParameters();
+  params.setValue("peak_picking:enabled", "true");
+  params.setValue("peak_picking:use_gauss", "false");
+  params.setValue("peak_picking:PeakPickerHiRes:signal_to_noise", 0.0);
+  filter.setParameters(params);
+
+  TransitionListEvidenceFilter::Result result = filter.filter(
+    swath_maps, transition_exp, makeExtractParams(0.02), makeExtractParams(0.08), true, 1);
+  TEST_EQUAL(result.supported_precursors, 1)
+  TEST_EQUAL(result.evidence[0].ms2_best_fragment_hits, 2)
+}
+END_SECTION
+
 START_SECTION((filter() - too few supported precursors))
 {
   LightTargetedExperiment transition_exp = makeLibrary();

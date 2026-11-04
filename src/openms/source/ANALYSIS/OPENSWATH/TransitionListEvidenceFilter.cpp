@@ -286,6 +286,13 @@ namespace OpenMS
       {
         throw std::invalid_argument("Cannot filter by drift time: missing or unequal m/z, intensity and drift arrays");
       }
+      const bool transfer_im = im && mz.size() == intensity.size() && im->data.size() == n;
+      MSSpectrum::FloatDataArray im_array;
+      if (transfer_im)
+      {
+        im_array.setName(im->description);
+        im_array.reserve(n);
+      }
       openms_spectrum.reserve(n);
       Peak1D peak;
       for (Size i = 0; i < n; ++i)
@@ -297,16 +304,13 @@ namespace OpenMS
         peak.setMZ(mz[i]);
         peak.setIntensity(intensity[i]);
         openms_spectrum.push_back(peak);
-      }
-      if (im && mz.size() == intensity.size() && im->data.size() == n)
-      {
-        MSSpectrum::FloatDataArray im_array;
-        im_array.setName(im->description);
-        im_array.reserve(n);
-        for (const double value : im->data)
+        if (transfer_im)
         {
-          im_array.push_back(static_cast<float>(value));
+          im_array.push_back(static_cast<float>(im->data[i]));
         }
+      }
+      if (transfer_im)
+      {
         openms_spectrum.getFloatDataArrays().push_back(std::move(im_array));
       }
       if (openms_spectrum.empty())
