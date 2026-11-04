@@ -332,16 +332,22 @@ START_SECTION((filter() - peak picking preserves MS1 ion mobility))
   transition_exp.proteins.push_back(protein);
   addCompound(transition_exp, "PEP_IM_MATCH", 500.0, {100.0}, false, 0.70);
   addCompound(transition_exp, "PEP_IM_MISMATCH", 500.0, {110.0}, false, 0.90);
+  addCompound(transition_exp, "PEP_IM_SECOND", 600.0, {120.0}, false, 0.90);
 
   vector<tuple<double, double, double>> profile_points;
   const vector<pair<double, double>> profile_shape{
     {-0.020, 0.005}, {-0.015, 0.030}, {-0.010, 0.120}, {-0.005, 0.450},
     { 0.000, 1.000}, { 0.005, 0.450}, { 0.010, 0.120}, { 0.015, 0.030}, { 0.020, 0.005}
   };
-  for (const auto& point : profile_shape)
+  auto append_profile_peak = [&](double center_mz, double mobility, double apex_intensity)
   {
-    profile_points.emplace_back(500.0 + point.first, 2000.0 * point.second, 0.70);
-  }
+    for (const auto& point : profile_shape)
+    {
+      profile_points.emplace_back(center_mz + point.first, apex_intensity * point.second, mobility);
+    }
+  };
+  append_profile_peak(500.0, 0.70, 2000.0);
+  append_profile_peak(600.0, 0.90, 1800.0);
 
   vector<SwathMap> swath_maps;
   swath_maps.push_back(makeSwathMap(true, 0.0, 0.0, {makeIMSpectrum(12.0, profile_points)}));
@@ -362,11 +368,14 @@ START_SECTION((filter() - peak picking preserves MS1 ion mobility))
 
   TEST_TRUE(result.evidence[0].supported_ms1)
   TEST_FALSE(result.evidence[1].supported_ms1)
-  TEST_EQUAL(result.supported_precursors, 1)
-  TEST_EQUAL(result.filtered_targets.compounds.size(), 1)
+  TEST_TRUE(result.evidence[2].supported_ms1)
+  TEST_EQUAL(result.supported_precursors, 2)
+  TEST_EQUAL(result.filtered_targets.compounds.size(), 2)
   TEST_EQUAL(result.filtered_targets.compounds[0].id, "PEP_IM_MATCH")
+  TEST_EQUAL(result.filtered_targets.compounds[1].id, "PEP_IM_SECOND")
   TEST_TRUE(threaded_result.evidence[0].supported_ms1)
   TEST_FALSE(threaded_result.evidence[1].supported_ms1)
+  TEST_TRUE(threaded_result.evidence[2].supported_ms1)
   TEST_EQUAL(threaded_result.supported_precursors, result.supported_precursors)
 }
 END_SECTION
