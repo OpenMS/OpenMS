@@ -250,7 +250,16 @@ namespace OpenMS
     /*!
       @brief Register database search parameters
 
+      Search-field values define identity. Omitted metadata keys reuse the
+      recorded values unchanged. Every explicitly supplied key must already
+      exist with the same value and type; metadata-only differences do not define
+      a distinct search. Use distinct search-field values for a different physical search.
+
+      @param[in] param Database search parameters to register
       @return Reference to the registered search parameters
+      @throws Exception::InvalidValue The same search fields are already registered
+      with an absent or incompatible explicitly supplied metadata key; the
+      registered record remains unchanged
     */
     SearchParamRef registerDBSearchParam(const DBSearchParam& param);
 

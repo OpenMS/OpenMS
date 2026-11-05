@@ -740,6 +740,19 @@ protected:
     Param const& getParam_() const;
 
     /**
+      @brief Query whether an option occurs in the input providers before tool defaults are applied.
+
+      Checks the command line, tool-instance INI section, tool-specific common
+      section and common section. A supplied value equal to the default still
+      counts as supplied. JSON configuration loading prepopulates its provider
+      with defaults, so those entries conservatively count as configured too.
+
+      @param[in] name Option name without a command-line dash or tool prefix
+      @return True if an input provider contains the option
+    */
+    bool isOptionExplicitlySet_(const std::string& name) const;
+
+    /**
       @brief Checks top-level entries of @p param according to the information during registration
 
       Only top-level entries and allowed subsections are checked.

@@ -510,6 +510,7 @@ namespace OpenMS::Internal
       search_param_keys_[&param] = id;
       ++id;
     }
+    storeMetaInfos_(id_data.getDBSearchParams(), "ID_DBSearchParam", search_param_keys_);
   }
 
 
