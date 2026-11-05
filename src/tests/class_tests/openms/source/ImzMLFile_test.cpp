@@ -20,6 +20,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/IMAGING/MSImagingExperiment.h>
 #include <OpenMS/IMAGING/MSImagingGeometry.h>
+#include <OpenMS/IMAGING/MSImagingRegion.h>
 #include <OpenMS/IMAGING/IonImage.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
@@ -424,6 +425,44 @@ START_SECTION(const MSImagingGeometry& getGeometry() const)
   const auto& e0 = od.getIndex(0);
   TEST_EQUAL(geom.hasPixel(e0.x - 1, e0.y - 1), true)
   TEST_EQUAL(geom.getSpectrumIndex(e0.x - 1, e0.y - 1), 0)
+}
+END_SECTION
+
+
+START_SECTION([EXTRA] OnDiscImzMLExperiment::open resets the geometry in place)
+{
+  // A geometry reference taken before a re-open must stay valid and describe the re-opened dataset.
+  OnDiscImzMLExperiment od;
+  od.open(imzml_path);
+  MSImagingGeometry& geom = od.getGeometry();
+  const Size n_pixels = geom.getNumberOfPixels();
+  geom.addRegion(MSImagingRegion::rectangle(1, "roi", 0, 0, 0, 0));
+  TEST_EQUAL(od.getGeometry().getNumberOfRegions(), 1)
+
+  od.open(imzml_path);
+  TEST_EQUAL(&od.getGeometry() == &geom, true)
+  TEST_EQUAL(geom.getNumberOfPixels(), n_pixels)
+  TEST_EQUAL(geom.getNumberOfRegions(), 0) // user regions belong to the previous open()
+
+  od.close();
+  TEST_EQUAL(&od.getGeometry() == &geom, true)
+  TEST_EQUAL(geom.getNumberOfPixels(), 0)
+}
+END_SECTION
+
+
+START_SECTION([EXTRA] OnDiscImzMLExperiment::open leaves the object closed and empty when it fails)
+{
+  OnDiscImzMLExperiment od;
+  od.open(imzml_path);
+  const MSImagingGeometry& geom = od.getGeometry();
+  TEST_EQUAL(od.getNrSpectra() > 0, true)
+
+  TEST_EXCEPTION(Exception::FileNotFound, od.open(imzml_path, "/nonexistent/missing.ibd"))
+  TEST_EQUAL(od.isOpen(), false)
+  TEST_EQUAL(od.getNrSpectra(), 0)
+  TEST_EQUAL(&od.getGeometry() == &geom, true)
+  TEST_EQUAL(geom.getNumberOfPixels(), 0)
 }
 END_SECTION
 

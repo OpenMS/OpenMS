@@ -39,6 +39,7 @@ NB_MODULE(_pyopenms_experiment, m)
 {
     // index-based value iterators (see index_value_iterator.h)
     pyopenms_iter::bind_index_value_iterator<OpenMS::MSExperiment>(m, "_MSExperimentIter");
+    pyopenms_iter::bind_index_value_iterator<OpenMS::MSImagingExperiment>(m, "_MSImagingExperimentIter");
   m.doc() = "pyOpenMS experiment bindings";
 
   // -----------------------------------------------------------------------
@@ -444,8 +445,9 @@ Usage:
   nb::class_<OpenMS::IonImage>(m, "IonImage", R"doc(
 Dense W x H grid of ion intensities with a per-pixel mask.
 
-Storage is row-major: index = y * W + x. Use get_data() for a zero-copy
-2D numpy view of the intensity grid (shape (H, W), dtype float64).
+Storage is row-major: index = y * W + x. Use data_view() for a zero-copy
+2D numpy view of the intensity grid (shape (H, W), dtype float64), or
+get_data() for an owned copy.
 Pixels are masked-out by default; setIntensity marks them present.
 )doc")
     .def(nb::init<>())
@@ -464,7 +466,7 @@ Pixels are masked-out by default; setIntensity marks them present.
     .def("getMzRange", &OpenMS::IonImage::getMzRange, "m/z window the image was extracted from.")
 
     .def(
-      "get_data",
+      "data_view",
       [](nb::object self_obj) -> nb::object {
         auto& self = nb::cast<OpenMS::IonImage&>(self_obj);
         auto np = nb::module_::import_("numpy");
@@ -483,7 +485,23 @@ Pixels are masked-out by default; setIntensity marks them present.
       R"doc(Zero-copy 2D numpy view (shape (H, W), dtype float64) of the intensity grid.
 
 Writes through the view modify the underlying buffer but do NOT flip the
-mask. Use setIntensity(x, y, val) when correctness of the mask matters.)doc")
+mask. Use setIntensity(x, y, val) when correctness of the mask matters.
+For an owned copy use get_data().)doc")
+
+    .def(
+      "get_data",
+      [](const OpenMS::IonImage& self) -> nb::ndarray<nb::numpy, double, nb::ndim<2>> {
+        const size_t h = self.getHeight();
+        const size_t w = self.getWidth();
+        const size_t n = h * w;
+        std::unique_ptr<double[]> buf_uptr(new double[n ? n : 1]);
+        std::copy(self.getData().begin(), self.getData().end(), buf_uptr.get());
+        double* buf = buf_uptr.release();  // owned by the capsule from here on
+        nb::capsule owner(buf, [](void* p) noexcept { delete[] static_cast<double*>(p); });
+        size_t shape[2] = {h, w};
+        return nb::ndarray<nb::numpy, double, nb::ndim<2>>(buf, 2, shape, owner);
+      },
+      "Returns a 2D float64 numpy array (H, W) copy of the intensity grid. For a zero-copy view use data_view().")
 
     .def(
       "get_mask",
@@ -671,6 +689,15 @@ In-memory model for a 2D imaging mass spectrometry dataset.
 Owns an MSExperiment (spectra) and an MSImagingGeometry (pixel grid +
 pixel -> spectrum index mapping). Provides pixel-based spectrum access
 and a simple sum-based ion image extraction.
+
+A container of pixels: len(), mie[i], iteration and spectrum_view(i) index
+the geometry's pixels, not the spectra. A pixel index differs from a spectrum
+index whenever the geometry skips or reorders spectra; for spectrum index k
+(e.g. from getRegionSpectrumIndices()) use experiment_view()[k].
+
+An experiment without a geometry, e.g. straight after MSImagingExperiment(exp),
+has no pixels: len() is 0, it is falsy and iterates nothing although it may
+hold spectra; check getNumberOfSpectra() for those.
 )doc")
     .def(nb::init<>())
     .def(nb::init<OpenMS::MSExperiment>(), "exp"_a, "Wrap an MSExperiment with an empty geometry.")
@@ -686,9 +713,47 @@ and a simple sum-based ion image extraction.
       "getGeometry", [](const OpenMS::MSImagingExperiment& self) -> OpenMS::MSImagingGeometry { return self.getGeometry(); },
       "Returns a copy of the imaging geometry")
     .def("setGeometry", &OpenMS::MSImagingExperiment::setGeometry, "geom"_a)
+    .def(
+      "experiment_view", [](OpenMS::MSImagingExperiment& self) -> OpenMS::MSExperiment& { return self.getMSExperiment(); },
+      nb::rv_policy::reference_internal,
+      "Returns a live view of the owned MSExperiment. Edits through it are visible immediately, and the parent object is kept alive "
+      "automatically. setMSExperiment() replaces its contents, which invalidates spectrum views taken through it. For an owned copy use getMSExperiment().")
+    .def(
+      "geometry_view", [](OpenMS::MSImagingExperiment& self) -> OpenMS::MSImagingGeometry& { return self.getGeometry(); },
+      nb::rv_policy::reference_internal,
+      "Returns a live view of the owned imaging geometry, e.g. mie.geometry_view().addRegion(region). Edits through it are visible "
+      "immediately, and the parent object is kept alive automatically. For an owned copy use getGeometry().")
     .def("getNumberOfPixels", &OpenMS::MSImagingExperiment::getNumberOfPixels)
     .def("getNumberOfSpectra", &OpenMS::MSImagingExperiment::getNumberOfSpectra)
     .def("hasPixel", &OpenMS::MSImagingExperiment::hasPixel, "x"_a, "y"_a)
+    .def("__iter__", [](nb::object self) -> pyopenms_iter::IndexValueIterator<OpenMS::MSImagingExperiment> {
+        return pyopenms_iter::make_index_value_iterator<OpenMS::MSImagingExperiment>(self);
+      })
+    .def("__len__", [](const OpenMS::MSImagingExperiment& self) -> size_t { return self.size(); },
+      "Number of pixels in the geometry; 0 (and falsy) without a geometry even if spectra are loaded. getNumberOfSpectra() counts the spectra")
+    .def("__getitem__", [](const OpenMS::MSImagingExperiment& self, Py_ssize_t i) -> OpenMS::MSSpectrum {
+        const Py_ssize_t n = static_cast<Py_ssize_t>(self.size());
+        if (i < 0) i += n;
+        if (i < 0 || i >= n) throw nb::index_error();
+        return self[static_cast<size_t>(i)];  // by value: element access yields an owned copy
+      }, "i"_a, "Returns a copy of the spectrum of the i-th pixel (geometry pixel order; negative i counts from the end)")
+    .def("__setitem__", [](OpenMS::MSImagingExperiment& self, Py_ssize_t i, const OpenMS::MSSpectrum& val) -> void {
+        const Py_ssize_t n = static_cast<Py_ssize_t>(self.size());
+        if (i < 0) i += n;
+        if (i < 0 || i >= n) throw nb::index_error();
+        self[static_cast<size_t>(i)] = val;
+      }, "i"_a, "val"_a, "Sets the spectrum of the i-th pixel (geometry pixel order; negative i counts from the end)")
+    .def("spectrum_view", [](OpenMS::MSImagingExperiment& self, Py_ssize_t i) -> OpenMS::MSSpectrum& {
+        const Py_ssize_t n = static_cast<Py_ssize_t>(self.size());
+        if (i < 0) i += n;
+        if (i < 0 || i >= n) throw nb::index_error();
+        return self[static_cast<size_t>(i)];
+      }, nb::rv_policy::reference_internal, "i"_a,
+      "Returns a live view of the spectrum of the i-th pixel (geometry pixel order; negative i counts from the end). The view aliases this object's storage: edits through it are visible immediately, and it stays valid only until the spectrum list is resized or reordered (setMSExperiment and add/set/sort operations through experiment_view() invalidate it). The parent object is kept alive automatically. For an owned, hazard-free copy use mie[i].")
+    .def("spectrum_view", [](OpenMS::MSImagingExperiment& self, OpenMS::UInt x, OpenMS::UInt y) -> OpenMS::MSSpectrum& {
+        return self.getSpectrum(x, y);  // throws for a pixel not in the geometry
+      }, nb::rv_policy::reference_internal, "x"_a, "y"_a,
+      "Returns a live view of the spectrum at pixel (x, y), with the same contract as spectrum_view(i). For an owned copy use getSpectrum(x, y).")
     .def(
       "getSpectrum",
       [](const OpenMS::MSImagingExperiment& self, OpenMS::UInt x, OpenMS::UInt y) -> OpenMS::MSSpectrum {

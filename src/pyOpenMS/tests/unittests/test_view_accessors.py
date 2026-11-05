@@ -200,3 +200,160 @@ def test_mrm_transition_group_views():
     assert len(group.chromatogram_views()) == 1
     with pytest.raises(IndexError):
         group.feature_view(99)
+
+
+def _imaging_experiment(rts: tuple[float, ...] = (1.0, 2.0, 3.0)) -> pyopenms.MSImagingExperiment:
+    """Spectra 0, 1, 2 at pixels (0, 0), (1, 0), (0, 1) of a 2x2 grid."""
+    geom = pyopenms.MSImagingGeometry()
+    geom.setDimensions(2, 2)
+    for idx, (x, y) in enumerate([(0, 0), (1, 0), (0, 1)][:len(rts)]):
+        geom.addPixel(x, y, idx)
+    mie = pyopenms.MSImagingExperiment(_experiment(rts))
+    mie.setGeometry(geom)
+    return mie
+
+
+def _ondisc_imzml(path: str) -> pyopenms.OnDiscImzMLExperiment:
+    od = pyopenms.OnDiscImzMLExperiment()
+    od.open(path)
+    return od
+
+
+def test_imaging_spectrum_view_edit_lands_without_write_back():
+    mie = _imaging_experiment()
+    mie.spectrum_view(0).setRT(50.0)
+    assert mie[0].getRT() == 50.0
+    mie.spectrum_view(0, 1).setRT(60.0)
+    assert mie.getSpectrum(0, 1).getRT() == 60.0
+    assert mie[1].getRT() == 2.0
+
+
+def test_imaging_spectrum_view_identity_is_stable():
+    mie = _imaging_experiment()
+    view = mie.spectrum_view(0)
+    assert mie.spectrum_view(0) is view
+    assert mie.spectrum_view(0, 0) is view
+
+
+def test_imaging_spectrum_view_keeps_parent_alive():
+    mie = _imaging_experiment(rts=(7.0,))
+    view = mie.spectrum_view(0)
+    pixel_view = mie.spectrum_view(0, 0)
+    del mie
+    gc.collect()
+    assert view.getRT() == 7.0
+    assert pixel_view.getRT() == 7.0
+
+
+def test_imaging_spectrum_view_bounds_checked():
+    mie = _imaging_experiment()
+    with pytest.raises(IndexError):
+        mie.spectrum_view(99)
+    assert mie.spectrum_view(-1) is mie.spectrum_view(2)   # negative i counts from the end, as mie[i]
+    with pytest.raises(IndexError):
+        mie.spectrum_view(-4)
+    with pytest.raises(Exception):
+        mie.spectrum_view(1, 1)                      # pixel not in the geometry
+
+
+def test_imaging_spectrum_views_follow_the_pixels():
+    mie = _imaging_experiment()
+    geom = pyopenms.MSImagingGeometry()
+    geom.setDimensions(2, 1)
+    geom.addPixel(0, 0, 2)                           # pixel 0 -> spectrum 2
+    geom.addPixel(1, 0, 0)                           # pixel 1 -> spectrum 0
+    mie.setGeometry(geom)
+
+    assert [view.getRT() for view in mie.spectrum_views()] == [3.0, 1.0]
+    mie.spectrum_view(0).setRT(30.0)
+    assert mie.getMSExperiment().getSpectrum(2).getRT() == 30.0
+    assert mie.spectrum_view(0) is mie.spectrum_view(0, 0)
+    with pytest.raises(IndexError):
+        mie.spectrum_view(2)
+
+
+def test_imaging_spectra_view_and_iterator_edit_all_elements():
+    mie = _imaging_experiment()
+    for view in mie.spectrum_views():
+        view.setRT(view.getRT() + 1.0)
+    assert [mie[i].getRT() for i in range(3)] == [2.0, 3.0, 4.0]
+
+    for view in mie.iter_spectrum_views():
+        view.setRT(0.0)
+    assert [mie[i].getRT() for i in range(3)] == [0.0, 0.0, 0.0]
+
+
+def test_imaging_experiment_and_geometry_views():
+    mie = _imaging_experiment()
+
+    exp = mie.experiment_view()
+    exp.setComment("edited")
+    exp.spectrum_view(0).setRT(50.0)
+    assert mie.getMSExperiment().getComment() == "edited"
+    assert mie[0].getRT() == 50.0
+
+    geom = mie.geometry_view()
+    geom.addRegion(pyopenms.MSImagingRegion.rectangle(1, "roi", 0, 0, 1, 0))
+    assert mie.getGeometry().getNumberOfRegions() == 1
+    assert sorted(mie.getRegionSpectrumIndices(1)) == [0, 1]
+
+    del mie
+    gc.collect()
+    assert exp.getComment() == "edited"
+    assert geom.getNumberOfRegions() == 1
+
+
+def test_imaging_views_do_not_change_the_copy_getters():
+    mie = _imaging_experiment()
+    held = mie[0]
+    held.setRT(999.0)
+    assert mie[0].getRT() == 1.0
+    held = mie.getSpectrum(0, 0)
+    held.setRT(999.0)
+    assert mie.getSpectrum(0, 0).getRT() == 1.0
+    mie.getMSExperiment().setComment("lost")
+    assert mie.getMSExperiment().getComment() == ""
+    mie.getGeometry().addRegion(pyopenms.MSImagingRegion.rectangle(1, "roi", 0, 0, 1, 1))
+    assert mie.getGeometry().getNumberOfRegions() == 0
+
+
+def test_ondisc_imzml_geometry_view(imzml_continuous_path: str):
+    od = _ondisc_imzml(imzml_continuous_path)
+    geom = od.geometry_view()
+    geom.addRegion(pyopenms.MSImagingRegion.rectangle(1, "roi", 0, 0, 1, 1))
+    assert od.getGeometry().getNumberOfRegions() == 1
+    od.extractIonImage(151.0, 100.0, 1)              # the region is visible to the reader
+
+    od.getGeometry().addRegion(pyopenms.MSImagingRegion.rectangle(2, "lost", 2, 2, 2, 2))  # disjoint from "roi"
+    assert od.getGeometry().getNumberOfRegions() == 1
+
+    del od
+    gc.collect()
+    assert geom.getNumberOfRegions() == 1
+
+
+def test_ondisc_imzml_geometry_view_survives_reopen(imzml_continuous_path: str):
+    od = _ondisc_imzml(imzml_continuous_path)
+    geom = od.geometry_view()
+    n_pixels = geom.getNumberOfPixels()
+    geom.addRegion(pyopenms.MSImagingRegion.rectangle(1, "roi", 0, 0, 0, 0))
+
+    od.open(imzml_continuous_path)                   # re-open resets the geometry in place
+    assert geom.getNumberOfPixels() == n_pixels
+    assert geom.getNumberOfRegions() == 0
+
+    od.close()
+    assert geom.getNumberOfPixels() == 0
+
+
+def test_ondisc_imzml_failed_open_leaves_it_empty(imzml_continuous_path: str):
+    od = _ondisc_imzml(imzml_continuous_path)
+    geom = od.geometry_view()
+    assert len(od) > 0
+
+    with pytest.raises(Exception):
+        od.open(imzml_continuous_path, ibd_path="/nonexistent/missing.ibd")
+    assert not od.isOpen()
+    assert od.getNrSpectra() == 0
+    assert len(od) == 0
+    assert geom.getNumberOfPixels() == 0             # the view still points at the (now empty) geometry
