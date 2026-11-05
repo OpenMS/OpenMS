@@ -389,28 +389,41 @@ private:
   */
   std::vector<Hill> detectHills_(const MSExperiment& exp, double htol_ppm, double min_intensity, double min_mz, double max_mz, bool use_im, std::vector<double>* hill_mass_diffs = nullptr) const;
 
-  /**
-    @brief Link peaks in a single scan to existing hills or start new hills.
+  /// the part of linking one scan that depends on that scan alone (filter, intensity order, m/z and IM bins)
+  struct ScanPrep
+  {
+    std::vector<int> ids;                       ///< valid peak indices, by descending intensity
+    std::vector<int> bins;                      ///< their m/z bins (parallel to ids)
+    std::vector<std::pair<int, int>> by_bin;    ///< (m/z bin, position in ids), sorted: the scan's bin lookup
+    int bin_lo = 0;                             ///< lowest bin of by_bin
+    std::vector<int> bin_start;                 ///< bin b's entries: by_bin[bin_start[b - bin_lo] .. bin_start[b - bin_lo + 1])
+    std::vector<int> im_bin_per_peak;           ///< IM bin per peak index (empty without per-peak IM)
+    bool use_im = false;
+  };
 
-    This method implements the core hill-linking logic for one spectrum,
-    updating the running hill list and the state that is carried across
-    scans (previous fast m/z dictionary, ion-mobility bins, and peak-to-hill
-    assignments).
+  /// one peak's hill assignment, recorded by linkScanToHills_ (the hills are built from these afterwards)
+  struct PeakRef { Size hill; Size scan; Size peak; };
+
+  ScanPrep prepareScan_(const MSSpectrum& spectrum, double min_intensity, double min_mz, double max_mz,
+                        double mz_step, bool use_im_global) const;
+
+  /**
+    @brief Link the peaks of one scan to the hills of the previous scan, or start new hills.
+
+    Each peak (in descending intensity) takes the most intense unclaimed previous-scan peak within @p htol_ppm in its
+    own or a neighbouring m/z bin (and IM bin, with ion mobility); the assignments go to @p refs, from which
+    detectHills_ builds the hills. Without a dense bin table in @p prev (bin_start empty: too many bins for the
+    cap), its sorted by_bin list is binary-searched instead, with the same candidates in the same order.
   */
   void linkScanToHills_(const MSSpectrum& spectrum,
                         Size scan_idx,
                         double htol_ppm,
-                        double min_intensity,
-                        double min_mz,
-                        double max_mz,
-                        double mz_step,
-                        bool use_im_global,
-                        std::vector<Hill>& hills,
+                        const ScanPrep& cur,
+                        const ScanPrep* prev,
+                        std::vector<PeakRef>& refs,
                         Size& hill_idx_counter,
                         std::vector<Size>& prev_peak_to_hill,
                         const MSSpectrum*& prev_spectrum_ptr,
-                        std::map<int, std::vector<int>>& prev_fast_dict,
-                        std::vector<int>& prev_im_bins,
                         std::vector<double>* hill_mass_diffs) const;
 
   /**
@@ -420,7 +433,7 @@ private:
     @param[in] min_length Minimum number of scans required for a hill to be retained
     @return Filtered hills with computed statistics (median m/z, apex RT/intensity, etc.)
   */
-  std::vector<Hill> processHills_(const std::vector<Hill>& hills, Size min_length) const;
+  std::vector<Hill> processHills_(std::vector<Hill> hills, Size min_length) const;
 
   /**
     @brief Split hills at valley positions to separate co-eluting species
@@ -433,7 +446,7 @@ private:
     @param[in] min_length Minimum length required for split segments to be retained
     @return Hills after splitting, with valley-separated segments as independent hills
   */
-  std::vector<Hill> splitHills_(const std::vector<Hill>& hills, double hvf, Size min_length) const;
+  std::vector<Hill> splitHills_(std::vector<Hill> hills, double hvf, Size min_length) const;
 
   /**
     @brief Evaluate whether isotope pattern should be truncated at valley positions
@@ -447,26 +460,6 @@ private:
     @return Recommended number of isotopes to retain (may be shorter than input)
   */
   Size checkIsotopeValleySplit_(const std::vector<IsotopeCandidate>& isotopes, const std::vector<Hill>& hills, double ivf) const;
-
-  /**
-    @brief Perform an initial mass calibration for isotope spacings based on raw hills.
-
-    Scans all hills for regularly spaced C13 isotope peaks across a range of charge
-    states and derives per-isotope shift/sigma estimates (in ppm). The results are
-    primarily diagnostic and mirror the behaviour of the reference Biosaur2 code.
-
-    @param[in] hills Input hills sorted by m/z
-    @param[in] itol_ppm Isotope mass tolerance in ppm
-    @param[in] min_charge Minimum charge state to consider
-    @param[in] max_charge Maximum charge state to consider
-    @param[in] enable_isotope_calib Whether isotope calibration is enabled
-    @return Map from isotope index (1..9) to (shift, sigma) in ppm
-  */
-  std::map<int, std::pair<double, double>> performInitialIsotopeCalibration_(const std::vector<Hill>& hills,
-                                                                             double itol_ppm,
-                                                                             int min_charge,
-                                                                             int max_charge,
-                                                                             bool enable_isotope_calib) const;
 
   /**
     @brief Build fast m/z and optional ion-mobility lookup structures for hills.
@@ -511,7 +504,7 @@ private:
                                                            double ivf,
                                                            double mz_step,
                                                            const std::map<int, std::vector<FastHillEntry>>& hills_mz_fast,
-                                                           const std::map<Size, Size>& hill_idx_to_index,
+                                                           const std::vector<Size>& hill_idx_to_index,
                                                            const std::vector<int>& hill_im_bins,
                                                            bool use_im) const;
 
@@ -528,7 +521,7 @@ private:
   */
   std::vector<PatternCandidate> applyRtFiltering_(const std::vector<PatternCandidate>& candidates,
                                                   const std::vector<Hill>& hills,
-                                                  const std::map<Size, Size>& hill_idx_to_index) const;
+                                                  const std::vector<Size>& hill_idx_to_index) const;
 
   /**
     @brief Refine isotope mass calibration based on initial pattern candidates.
@@ -560,7 +553,7 @@ private:
   */
   std::vector<PatternCandidate> filterByCalibration_(const std::vector<PatternCandidate>& candidates,
                                                      const std::vector<Hill>& hills,
-                                                     const std::map<Size, Size>& hill_idx_to_index,
+                                                     const std::vector<Size>& hill_idx_to_index,
                                                      const std::map<int, std::pair<double, double>>& isotope_calib_map_ready,
                                                      bool enable_isotope_calib) const;
 

@@ -158,6 +158,7 @@ public:
   using ProSEAlgorithm::CalibrationResult_;
   using ProSEAlgorithm::MzRecalibration_;
   using ProSEAlgorithm::OBSERVED_PRECURSOR_MZ;
+  using ProSEAlgorithm::calibrationPassWindow_;
   using ProSEAlgorithm::preprocessSpectra_;
   using ProSEAlgorithm::mass_accuracy_score_;
   using ProSEAlgorithm::DeisotopingSettings_;
@@ -3854,9 +3855,38 @@ START_SECTION(([EXTRA] calibration windows are median +/- k sigma of the errors,
   TEST_EQUAL(capped.search(spectra, fasta_db, capped_proteins, capped_peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
   const auto& cap = capped.last_calibration_result_;
   TEST_EQUAL(cap.success, true)
-  TEST_REAL_SIMILAR(cap.precursor_shift, cal.precursor_shift)  // the same PSMs: the pass windows cover the fixture either way
+  // the same PSMs: the pass windows cover the fixture either way, and the single-use index, restricted to the spectra,
+  // holds the peptides of the pass windows (20 ppm), not only those of the configured 3 ppm
+  TEST_REAL_SIMILAR(cap.precursor_shift, cal.precursor_shift)
   TEST_REAL_SIMILAR(cap.cal_lower, std::clamp(cap.precursor_shift + 3.0 * cap.precursor_sigma, 5.0, 10.0))
   TEST_REAL_SIMILAR(cap.cal_upper, 3.0)  // floor 5 is above the configured 3: the configured side wins
+}
+END_SECTION
+
+START_SECTION(([EXTRA] calibration pass windows: at least 20 ppm; in Da twice the configured window, up to 0.5 Da))
+{
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::calibrationPassWindow_(10.0, true), 20.0)
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::calibrationPassWindow_(30.0, true), 30.0)
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::calibrationPassWindow_(0.02, false), 0.04) // high-resolution MS2 in Da
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::calibrationPassWindow_(0.35, false), 0.5)  // ion trap
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::calibrationPassWindow_(1.0, false), 1.0)
+
+  // A Da fragment tolerance on high-resolution MS2 tightens: the floor is 0.02 Da (it was 0.2 Da, above any
+  // high-resolution Da setting), and the pass searches with 0.2 Da instead of 0.5 Da
+  PeakMap spectra = build_calibration_spectra_({0.0, 2.0, 4.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0});
+  auto fasta_db = calibration_fasta_db_();
+  ProSEAlgorithm_test algo;
+  configure_calibration_params_(algo, /*lower_ppm*/ 20.0, /*upper_ppm*/ 30.0, /*min_psms*/ 3);
+  Param p = algo.getParameters();
+  p.setValue("fragment:mass_tolerance", 0.1);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  algo.setParameters(p);
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  const auto& cal = algo.last_calibration_result_;
+  TEST_EQUAL(cal.success, true)
+  TEST_EQUAL(cal.fragment_tolerance >= 0.02 - 1e-9 && cal.fragment_tolerance < 0.1, true)
 }
 END_SECTION
 
