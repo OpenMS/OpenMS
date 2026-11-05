@@ -4762,7 +4762,9 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
                                 Constants::UserParam::HYPERSCORE_ZSCORE,
                                 Constants::UserParam::LN_NUM_CANDIDATES,
                                 Constants::UserParam::MATCHED_ION_CURRENT_FRACTION,
-                                Constants::UserParam::COMPLEMENTARY_IONS_FRACTION}
+                                Constants::UserParam::COMPLEMENTARY_IONS_FRACTION,
+                                // the opt-in rescoring features under evaluation (ProSEAlgorithm.cpp)
+                                "binary_cosine", "sqrt_hyperscore", "sqrt_matched_ion_current_fraction", "xcorr_matched_ion_current"}
     );
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");

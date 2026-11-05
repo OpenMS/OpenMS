@@ -129,6 +129,67 @@ namespace OpenMS
 {
   namespace
   {
+    // Rescoring features under evaluation (annotate:PSM, opt-in; not part of 'ALL'): each experimental peak of the
+    // alignment counts once, as the matched ion current.
+    const std::string BINARY_COSINE_FEATURE = "binary_cosine";
+    const std::string SQRT_HYPERSCORE_FEATURE = "sqrt_hyperscore";
+    const std::string SQRT_MIC_FRACTION_FEATURE = "sqrt_matched_ion_current_fraction";
+    const std::string XCORR_MIC_FEATURE = "xcorr_matched_ion_current";
+
+    /// Comet's xcorr preprocessing of one spectrum, kept sparse (per occupied bin)
+    struct XcorrScratch_
+    {
+      std::vector<int> bin;          ///< the occupied bins, ascending
+      std::vector<float> value;      ///< Comet-scaled intensity per occupied bin
+      std::vector<float> net;        ///< value minus the local background
+      std::vector<Size> bin_of_peak; ///< index into the vectors above of each peak
+      std::vector<double> prefix;    ///< prefix sums of value
+    };
+
+    /// Comet's xcorr preprocessing (CometPreprocess::MakeCorrData) of a spectrum sorted by m/z with intensities relative to
+    /// the base peak: square-root intensities, binned with the maximum per bin (Da tolerances: 1.0005 Da bins with offset
+    /// 0.4; ppm: 0.02 Da bins), the bin range in ten windows each scaled to a maximum of 50 (peaks below 5 % of the
+    /// overall maximum dropped), and the mean of the 75 bins on either side (the fast xcorr background) subtracted.
+    void cometXcorrIntensities(const MSSpectrum& spec, bool ppm, XcorrScratch_& s)
+    {
+      const double bin_width = ppm ? 0.02 : 1.0005, bin_offset = ppm ? 0.0 : 0.4;
+      const Size n = spec.size();
+      s.bin.clear(); s.value.clear(); s.net.clear(); s.prefix.clear(); s.bin_of_peak.resize(n);
+      if (n == 0) return;
+      for (Size i = 0; i < n; ++i)
+      {
+        const int b = static_cast<int>(spec[i].getMZ() / bin_width + bin_offset);
+        const float v = std::sqrt(std::max(0.0f, spec[i].getIntensity()));
+        if (s.bin.empty() || s.bin.back() != b) { s.bin.push_back(b); s.value.push_back(v); }
+        else { s.value.back() = std::max(s.value.back(), v); }
+        s.bin_of_peak[i] = s.bin.size() - 1;
+      }
+      const Size m = s.bin.size();
+      const int window = s.bin.back() / 10 + 1;
+      float overall = 0.0f;
+      for (float v : s.value) overall = std::max(overall, v);
+      for (Size begin = 0; begin < m;)
+      {
+        const int w = s.bin[begin] / window;
+        Size end = begin;
+        float wmax = 0.0f;
+        for (; end < m && s.bin[end] / window == w; ++end) wmax = std::max(wmax, s.value[end]);
+        const float scale = wmax > 0.0f ? 50.0f / wmax : 0.0f;
+        for (Size k = begin; k < end; ++k) s.value[k] = s.value[k] > 0.05f * overall ? s.value[k] * scale : 0.0f;
+        begin = end;
+      }
+      s.prefix.resize(m + 1);
+      s.prefix[0] = 0.0;
+      for (Size k = 0; k < m; ++k) s.prefix[k + 1] = s.prefix[k] + s.value[k];
+      s.net.resize(m);
+      for (Size k = 0; k < m; ++k)
+      {
+        const Size lo = std::lower_bound(s.bin.begin(), s.bin.end(), s.bin[k] - 75) - s.bin.begin();
+        const Size hi = std::upper_bound(s.bin.begin(), s.bin.end(), s.bin[k] + 75) - s.bin.begin();
+        s.net[k] = s.value[k] - static_cast<float>((s.prefix[hi] - s.prefix[lo] - s.value[k]) / 150.0);
+      }
+    }
+
     // Destroys the elements of a large container with the OpenMP threads, then the container itself. Destroying the
     // spectra, hits and identifications of a search one after the other is a serial step of 10 - 100 ms each at the
     // end of a search; the elements own their memory, so they can be destroyed in any order.
@@ -461,7 +522,12 @@ namespace OpenMS
       {"advanced"});
     defaults_.setValidStrings("decoy_parity_report", {"true", "false"});
 
-    defaults_.setValue("annotate:PSM",  std::vector<std::string>{"ALL"}, "Annotations added to each PSM.");
+    defaults_.setValue("annotate:PSM",  std::vector<std::string>{"ALL"}, "Annotations added to each PSM. 'ALL' adds every "
+      "annotation except the opt-in rescoring features under evaluation: binary_cosine (the matched peaks over the geometric "
+      "mean of the experimental and theoretical peak counts), sqrt_hyperscore (the HyperScore of the square-root intensities), "
+      "sqrt_matched_ion_current_fraction (the matched share of the square-root intensities) and xcorr_matched_ion_current "
+      "(the matched sum of Comet's xcorr-preprocessed intensities: square root, ten m/z windows scaled to 50, the mean of "
+      "the 75 bins on either side subtracted). Listed by name, they join the Percolator features.");
     defaults_.setValidStrings("annotate:PSM",
       std::vector<std::string>{
         "ALL",
@@ -478,7 +544,8 @@ namespace OpenMS
         Constants::UserParam::HYPERSCORE_ZSCORE,
         Constants::UserParam::LN_NUM_CANDIDATES,
         Constants::UserParam::MATCHED_ION_CURRENT_FRACTION,
-        Constants::UserParam::COMPLEMENTARY_IONS_FRACTION}
+        Constants::UserParam::COMPLEMENTARY_IONS_FRACTION,
+        BINARY_COSINE_FEATURE, SQRT_HYPERSCORE_FEATURE, SQRT_MIC_FRACTION_FEATURE, XCORR_MIC_FEATURE}
       );
 
     defaults_.setValue("annotate:self_trained_ion_priors", "true",
@@ -723,6 +790,9 @@ namespace OpenMS
                        "behaviour before #10717. The results differ.",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:calc_mass_feature", {"true", "false"});
+    defaults_.setValue("rescoring:seed", 1, "Random seed of Percolator's cross-validation (the fold split and the training "
+                       "sample). The results vary a little with the seed: report the spread over seeds, never the best one.",
+                       {"advanced"});
     defaults_.setValue("rescoring:fixed_enzyme_termini", "false",
                        "A protein terminus counts as an enzymatic site for the enzN/enzC features of the rescoring and of "
                        "'-out_pin' (Percolator's convention). Default 'false' keeps the former features, in which a peptide "
@@ -1298,6 +1368,7 @@ namespace OpenMS
     percolator_training_.fixed_enzyme_termini = param_.getValue("rescoring:fixed_enzyme_termini").toString() == "true";
     percolator_training_.peptide_level = param_.getValue("rescoring:peptide_level").toString() == "true";
     percolator_extra_ = Param();
+    percolator_extra_.setValue("seed", static_cast<int>(param_.getValue("rescoring:seed")));
     if (param_.getValue("rescore_method").toString() == "reset")
     {
       percolator_extra_.setValue("algorithm", "reset");
@@ -2150,6 +2221,12 @@ namespace OpenMS
     bool annotation_ln_num_candidates = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::LN_NUM_CANDIDATES) != annotate_psm_.end();
     bool annotation_matched_ion_current_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::MATCHED_ION_CURRENT_FRACTION) != annotate_psm_.end();
     bool annotation_complementary_ions_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::COMPLEMENTARY_IONS_FRACTION) != annotate_psm_.end();
+    // the rescoring features under evaluation: opt-in by name, not part of "ALL"
+    const bool annotation_binary_cosine = std::find(annotate_psm_.begin(), annotate_psm_.end(), BINARY_COSINE_FEATURE) != annotate_psm_.end();
+    const bool annotation_sqrt_hyperscore = std::find(annotate_psm_.begin(), annotate_psm_.end(), SQRT_HYPERSCORE_FEATURE) != annotate_psm_.end();
+    const bool annotation_sqrt_mic_fraction = std::find(annotate_psm_.begin(), annotate_psm_.end(), SQRT_MIC_FRACTION_FEATURE) != annotate_psm_.end();
+    const bool annotation_xcorr_mic = std::find(annotate_psm_.begin(), annotate_psm_.end(), XCORR_MIC_FEATURE) != annotate_psm_.end();
+    const bool annotation_eval_features = annotation_binary_cosine || annotation_sqrt_hyperscore || annotation_sqrt_mic_fraction || annotation_xcorr_mic;
     const bool annotation_local_evidence = param_.getValue("annotate:local_fragment_evidence").toBool();
     const bool evidence_ppm = fragment_mass_tolerance_unit_ppm == "ppm";
     const Size n_evidence = evidence_spectra != nullptr ? evidence_spectra->size() : 0;
@@ -2184,7 +2261,7 @@ namespace OpenMS
     // (deferred fragment annotations are aligned when they are made)
     const bool need_alignment = annotation_fragment_error_ppm || (annotation_fragment_annotations && !defer_peak_annotations)
       || annotation_longest_ion_run || annotation_matched_ion_current || annotation_matched_ion_current_fraction
-      || annotation_complementary_ions_fraction;
+      || annotation_complementary_ions_fraction || annotation_eval_features;
     // no ion name is written here: the theoretical spectra may come without them
     const bool without_ion_names = !annotation_fragment_annotations || defer_peak_annotations;
 
@@ -2233,7 +2310,8 @@ namespace OpenMS
     UInt mv_scan_index{}, mv_fragment_error{}, mv_precursor_error{}, mv_prefix_fraction{}, mv_suffix_fraction{},
          mv_num_matched_peaks{}, mv_matched_prefix_ions{}, mv_matched_suffix_ions{}, mv_delta_score{},
          mv_hyperscore_zscore{}, mv_ln_num_candidates{}, mv_matched_ion_current{}, mv_matched_ion_current_fraction{},
-         mv_longest_ion_run{}, mv_complementary_ions_fraction{}, mv_chance_match_surprise{},
+         mv_longest_ion_run{}, mv_complementary_ions_fraction{}, mv_binary_cosine{}, mv_sqrt_hyperscore{},
+         mv_sqrt_mic_fraction{}, mv_xcorr_mic{}, mv_chance_match_surprise{},
          mv_mass_competition_evidence{}, mv_isotope_error{}, mv_delta_mass{}, mv_rank{};
     {
       const auto first_with_hits = std::find_if(annotated_hits.begin(), annotated_hits.end(),
@@ -2262,6 +2340,10 @@ namespace OpenMS
         if (annotation_matched_ion_current_fraction) mv_matched_ion_current_fraction = registry.registerName(Constants::UserParam::MATCHED_ION_CURRENT_FRACTION);
         if (annotation_longest_ion_run) mv_longest_ion_run = registry.registerName(Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE);
         if (annotation_complementary_ions_fraction) mv_complementary_ions_fraction = registry.registerName(Constants::UserParam::COMPLEMENTARY_IONS_FRACTION);
+        if (annotation_binary_cosine) mv_binary_cosine = registry.registerName(BINARY_COSINE_FEATURE);
+        if (annotation_sqrt_hyperscore) mv_sqrt_hyperscore = registry.registerName(SQRT_HYPERSCORE_FEATURE);
+        if (annotation_sqrt_mic_fraction) mv_sqrt_mic_fraction = registry.registerName(SQRT_MIC_FRACTION_FEATURE);
+        if (annotation_xcorr_mic) mv_xcorr_mic = registry.registerName(XCORR_MIC_FEATURE);
         if (annotation_local_evidence)
         {
           mv_chance_match_surprise = registry.registerName(Constants::UserParam::CHANCE_MATCH_SURPRISE);
@@ -2284,6 +2366,7 @@ namespace OpenMS
       + annotation_suffix_fraction + annotation_num_matched_peaks + annotation_matched_prefix_ions + annotation_matched_suffix_ions
       + 1 /* delta score */ + annotation_hyperscore_zscore + annotation_ln_num_candidates + annotation_matched_ion_current
       + annotation_matched_ion_current_fraction + annotation_longest_ion_run + annotation_complementary_ions_fraction
+      + annotation_binary_cosine + annotation_sqrt_hyperscore + annotation_sqrt_mic_fraction + annotation_xcorr_mic
       + 2 * Size(annotation_local_evidence) + 1 /* isotope error */ + open_search_mode + 1 /* rank */ + 4;
 
     // With an empty list to start from, every spectrum with hits gets a slot in scan order: the identifications
@@ -2315,6 +2398,7 @@ namespace OpenMS
     std::vector<uint8_t> coded_series;
     std::vector<UInt> coded_ordinals;
     std::vector<Int> coded_charges;
+    XcorrScratch_ xcorr_scratch;
 #pragma omp for schedule(dynamic, 16)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
@@ -2349,6 +2433,9 @@ namespace OpenMS
         // computed once here rather than per hit.
         const double spectrum_tic =
           annotation_matched_ion_current_fraction ? spec.calculateTIC() : 0.0;
+        double sqrt_tic = 0.0;
+        if (annotation_sqrt_mic_fraction) { for (const Peak1D& p : spec) sqrt_tic += std::sqrt(std::max(0.0f, p.getIntensity())); }
+        if (annotation_xcorr_mic) cometXcorrIntensities(spec, fragment_mass_tolerance_unit_ppm == "ppm", xcorr_scratch);
         const MSSpectrum& evidence_spec = !annotation_local_evidence ? spec
           : (*evidence_spectra)[static_cast<Size>(scan_index) < n_evidence ? static_cast<Size>(scan_index)
                                                                            : (*evidence_parent)[scan_index - n_evidence]];
@@ -2462,7 +2549,7 @@ namespace OpenMS
           // Fragment annotations, longest ion run, MIC, normalized MIC, and complementary
           // ion pairs all iterate the alignment + ion names
           if ((annotation_fragment_annotations && !defer_peak_annotations) || annotation_longest_ion_run || annotation_matched_ion_current
-            || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction)
+            || annotation_matched_ion_current_fraction || annotation_complementary_ions_fraction || annotation_eval_features)
           {
             // (the names and charges of getSpectrum(); none for a coded spectrum)
             const auto* ion_names = theoretical_spec.getStringDataArrays().empty() ? nullptr : &theoretical_spec.getStringDataArrays()[0];
@@ -2476,7 +2563,19 @@ namespace OpenMS
             std::vector<PeptideHit::PeakAnnotation> peak_annotations;
             std::vector<int> prefix_ordinals, suffix_ordinals;
             double matched_ion_current = 0.0;
-            const bool need_mic = annotation_matched_ion_current || annotation_matched_ion_current_fraction;
+            const bool need_mic = annotation_matched_ion_current || annotation_matched_ion_current_fraction || annotation_eval_features;
+            // the rescoring features under evaluation (see need_mic for the dedup of the experimental peaks)
+            double sqrt_matched = 0.0, xcorr_matched = 0.0;
+            Size matched_peaks = 0;
+            int sqrt_prefix = 0, sqrt_suffix = 0;
+            std::vector<char> xcorr_counted(annotation_xcorr_mic ? xcorr_scratch.net.size() : 0, 0);
+            auto series_of = [&](Size theo_idx) -> int
+            {
+              if (coded) return coded_series[theo_idx] <= 1 ? int(coded_series[theo_idx]) : -1;
+              const std::string& name = (*ion_names)[theo_idx];
+              const char c = name.empty() ? ' ' : name[0];
+              return (c == 'a' || c == 'b' || c == 'c') ? 0 : (c == 'x' || c == 'y' || c == 'z') ? 1 : -1;
+            };
             const bool need_ordinals = annotation_longest_ion_run || annotation_complementary_ions_fraction;
             // Dedup guard for MIC: in ppm-alignment mode a single experimental
             // peak can match multiple theoretical peaks (e.g. b-ion and near
@@ -2501,6 +2600,19 @@ namespace OpenMS
               {
                 matched_ion_current += spec[exp_idx].getIntensity();
                 counted_exp_peaks[exp_idx] = 1;
+                ++matched_peaks;
+                sqrt_matched += std::sqrt(std::max(0.0f, spec[exp_idx].getIntensity()));
+                if (annotation_xcorr_mic && !xcorr_counted[xcorr_scratch.bin_of_peak[exp_idx]])
+                {
+                  xcorr_counted[xcorr_scratch.bin_of_peak[exp_idx]] = 1;
+                  xcorr_matched += xcorr_scratch.net[xcorr_scratch.bin_of_peak[exp_idx]];
+                }
+              }
+              if (annotation_sqrt_hyperscore)
+              {
+                const int series = series_of(theo_idx);
+                if (series == 0) ++sqrt_prefix;
+                else if (series == 1) ++sqrt_suffix;
               }
 
               if (need_ordinals && coded)
@@ -2590,6 +2702,31 @@ namespace OpenMS
                 }
                 ph.setMetaValue(mv_complementary_ions_fraction, complementary_fraction);
               }
+            }
+
+            if (annotation_binary_cosine)
+            {
+              const double denominator = std::sqrt(static_cast<double>(spec.size()) * static_cast<double>(theo_spec.size()));
+              ph.setMetaValue(mv_binary_cosine, denominator > 0.0 ? static_cast<double>(matched_peaks) / denominator : 0.0);
+            }
+            if (annotation_sqrt_hyperscore)
+            {
+              // HyperScore::computeWithDetail() on the square-root intensities (the same factorial terms)
+              auto logfactorial = [](int x, int base)
+              {
+                base = std::max(base, 2);
+                return x < base - 1 ? 0.0 : std::lgamma(double(x + 1)) - std::lgamma(double(base));
+              };
+              const int i_min = std::min(sqrt_prefix, sqrt_suffix), i_max = std::max(sqrt_prefix, sqrt_suffix);
+              ph.setMetaValue(mv_sqrt_hyperscore, std::log1p(sqrt_matched) + 2 * logfactorial(i_min, 2) + logfactorial(i_max, i_min + 1));
+            }
+            if (annotation_sqrt_mic_fraction)
+            {
+              ph.setMetaValue(mv_sqrt_mic_fraction, sqrt_tic > 0.0 ? sqrt_matched / sqrt_tic : 0.0);
+            }
+            if (annotation_xcorr_mic)
+            {
+              ph.setMetaValue(mv_xcorr_mic, xcorr_matched);
             }
           }
 
@@ -2728,6 +2865,10 @@ namespace OpenMS
     if (annotation_matched_ion_current) feature_set.push_back(Constants::UserParam::MATCHED_ION_CURRENT);
     if (annotation_matched_ion_current_fraction) feature_set.push_back(Constants::UserParam::MATCHED_ION_CURRENT_FRACTION);
     if (annotation_complementary_ions_fraction) feature_set.push_back(Constants::UserParam::COMPLEMENTARY_IONS_FRACTION);
+    if (annotation_binary_cosine) feature_set.push_back(BINARY_COSINE_FEATURE);
+    if (annotation_sqrt_hyperscore) feature_set.push_back(SQRT_HYPERSCORE_FEATURE);
+    if (annotation_sqrt_mic_fraction) feature_set.push_back(SQRT_MIC_FRACTION_FEATURE);
+    if (annotation_xcorr_mic) feature_set.push_back(XCORR_MIC_FEATURE);
     if (annotation_hyperscore_zscore) feature_set.push_back(Constants::UserParam::HYPERSCORE_ZSCORE);
     if (annotation_ln_num_candidates) feature_set.push_back(Constants::UserParam::LN_NUM_CANDIDATES);
     if (annotation_local_evidence)
