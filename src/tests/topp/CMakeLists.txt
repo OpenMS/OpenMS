@@ -3519,6 +3519,72 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
     -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_9_xls.tmp.idXML
     -P ${DATA_DIR_TOPP}/OpenNuXL_9_xl_fdr_groups_test.cmake)
   set_tests_properties("TOPP_OpenNuXL_9_xl_fdr_groups" PROPERTIES DEPENDS "TOPP_OpenNuXL_9")
+
+  # -out_qpx: the QPX mz view of the spectra of the PSMs of -out (runs/<basename>.mz.parquet). The search of
+  # TOPP_OpenNuXL_2 with -out_qpx and a small peak filter: its -out is that of TOPP_OpenNuXL_2 (compared where that one
+  # is), the stale file of an earlier run in the place of the view is replaced, the log has the phase lines, and
+  # OpenNuXL_qpx_test.cmake checks the view against -out and the input (one row per PSM spectrum, the annotated peaks
+  # kept, the peaks filtered, the footer keys of the filter).
+  set(_f OpenNuXL_10)
+  set(_nuxl10_args -test -precursor:mass_tolerance 10.0 -in ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML
+    -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -NuXL:decoys true)
+  set(_nuxl10_view ${TESTS_TEMP_DIR}/${_f}_qpx/runs/OpenNuXL_1_input.mz.parquet)
+  # (fixtures, not DEPENDS: the run needs the stale file also when it is run alone)
+  add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
+  set_tests_properties("TOPP_${_f}_clean" PROPERTIES FIXTURES_SETUP "${_f}_clean")
+  add_test(NAME "TOPP_${_f}_runs" COMMAND ${CMAKE_COMMAND} -E make_directory ${TESTS_TEMP_DIR}/${_f}_qpx/runs)
+  set_tests_properties("TOPP_${_f}_runs" PROPERTIES FIXTURES_REQUIRED "${_f}_clean" FIXTURES_SETUP "${_f}_runs")
+  add_test(NAME "TOPP_${_f}_stale" COMMAND ${CMAKE_COMMAND} -E copy ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta ${_nuxl10_view})
+  set_tests_properties("TOPP_${_f}_stale" PROPERTIES FIXTURES_REQUIRED "${_f}_runs" FIXTURES_SETUP "${_f}_stale")
+  add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND}
+    "-DCOMMAND=${TOPP_BIN_PATH}/OpenNuXL;${_nuxl10_args};-out;${TESTS_TEMP_DIR}/${_f}_output.tmp.idXML;-out_qpx;${TESTS_TEMP_DIR}/${_f}_qpx;-qpx_peak_top;2"
+    -DEXPECTED_CODE=0
+    "-DEXPECTED_OUTPUT_REGEX=-out_qpx: reading spectra.*-out_qpx: writing [^ ]*OpenNuXL_1_input\\.mz\\.parquet.*-out_qpx: wrote [^ ]*OpenNuXL_1_input\\.mz\\.parquet \\([1-9][0-9]* spectra, [1-9][0-9]* of [1-9][0-9]* peaks\\)"
+    -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+  set_tests_properties("TOPP_${_f}" PROPERTIES FIXTURES_REQUIRED "${_f}_stale" FIXTURES_SETUP "${_f}")
+  if (NOT (APPLE AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64"))
+    add_test("TOPP_${_f}_out1" ${DIFF} -whitelist "IdentificationRun date"
+    "db=" -in1 ${TESTS_TEMP_DIR}/${_f}_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_2_output.idXML )
+    set_tests_properties("TOPP_${_f}_out1" PROPERTIES FIXTURES_REQUIRED "${_f}")
+  endif()
+  add_test("TOPP_${_f}_mz_dump" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${_nuxl10_view} -out_tsv ${TESTS_TEMP_DIR}/${_f}_mz.tmp.tsv)
+  set_tests_properties("TOPP_${_f}_mz_dump" PROPERTIES FIXTURES_REQUIRED "${_f}" FIXTURES_SETUP "${_f}_mz_dump")
+  add_test("TOPP_${_f}_mz_out" ${CMAKE_COMMAND} -DIDXML=${TESTS_TEMP_DIR}/${_f}_output.tmp.idXML
+    -DMZ_TSV=${TESTS_TEMP_DIR}/${_f}_mz.tmp.tsv -DMZML=${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -DMZ_PARQUET=${_nuxl10_view}
+    -P ${DATA_DIR_TOPP}/OpenNuXL_qpx_test.cmake)
+  set_tests_properties("TOPP_${_f}_mz_out" PROPERTIES FIXTURES_REQUIRED "${_f}_mz_dump")
+
+  # -qpx_peak_top 0 keeps all peaks of each spectrum
+  set(_f OpenNuXL_10_all_peaks)
+  add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
+  set_tests_properties("TOPP_${_f}_clean" PROPERTIES FIXTURES_SETUP "${_f}_clean")
+  add_test("TOPP_${_f}" ${TOPP_BIN_PATH}/OpenNuXL ${_nuxl10_args} -out ${TESTS_TEMP_DIR}/${_f}_output.tmp.idXML
+    -out_qpx ${TESTS_TEMP_DIR}/${_f}_qpx -qpx_peak_top 0)
+  set_tests_properties("TOPP_${_f}" PROPERTIES FIXTURES_REQUIRED "${_f}_clean" FIXTURES_SETUP "${_f}")
+  add_test("TOPP_${_f}_mz_dump" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/runs/OpenNuXL_1_input.mz.parquet
+    -out_tsv ${TESTS_TEMP_DIR}/${_f}_mz.tmp.tsv)
+  set_tests_properties("TOPP_${_f}_mz_dump" PROPERTIES FIXTURES_REQUIRED "${_f}" FIXTURES_SETUP "${_f}_mz_dump")
+  add_test("TOPP_${_f}_mz_out" ${CMAKE_COMMAND} -DIDXML=${TESTS_TEMP_DIR}/${_f}_output.tmp.idXML
+    -DMZ_TSV=${TESTS_TEMP_DIR}/${_f}_mz.tmp.tsv -DMZML=${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -DALL_PEAKS=ON
+    -P ${DATA_DIR_TOPP}/OpenNuXL_qpx_test.cmake)
+  set_tests_properties("TOPP_${_f}_mz_out" PROPERTIES FIXTURES_REQUIRED "${_f}_mz_dump")
+
+  # A view that cannot be written (a folder in the place of runs/<basename>.mz.parquet) is a warning: OpenNuXL still
+  # exits 0 and writes -out
+  set(_f OpenNuXL_10_write_fails)
+  add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx ${TESTS_TEMP_DIR}/${_f}_output.tmp.idXML)
+  set_tests_properties("TOPP_${_f}_clean" PROPERTIES FIXTURES_SETUP "${_f}_clean")
+  add_test(NAME "TOPP_${_f}_block" COMMAND ${CMAKE_COMMAND} -E make_directory
+    ${TESTS_TEMP_DIR}/${_f}_qpx/runs/OpenNuXL_1_input.mz.parquet)
+  set_tests_properties("TOPP_${_f}_block" PROPERTIES FIXTURES_REQUIRED "${_f}_clean" FIXTURES_SETUP "${_f}_block")
+  add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND}
+    "-DCOMMAND=${TOPP_BIN_PATH}/OpenNuXL;${_nuxl10_args};-out;${TESTS_TEMP_DIR}/${_f}_output.tmp.idXML;-out_qpx;${TESTS_TEMP_DIR}/${_f}_qpx"
+    -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=-out_qpx: cannot write [^ ]*OpenNuXL_1_input\\.mz\\.parquet"
+    -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+  set_tests_properties("TOPP_${_f}" PROPERTIES FIXTURES_REQUIRED "${_f}_block" FIXTURES_SETUP "${_f}")
+  add_test("TOPP_${_f}_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}_output.tmp.idXML
+    "-DEXPECTED=<PeptideIdentification " -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_${_f}_out" PROPERTIES FIXTURES_REQUIRED "${_f}")
 endif(NOT MSVC)
 
 # OpenNuXL writes localized cross-links as named modifications (K(NuXL:U-H2O1)) whose definitions
