@@ -14,6 +14,9 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/openms_data_path.h>
+#ifdef OPENMS_MIMALLOC
+#include <mimalloc-new-delete.h> // C++ new/delete straight to mimalloc; the CRT malloc/free of every DLL are redirected by mimalloc-redirect.dll
+#endif
 #ifdef WITH_ONNX
 #include <OpenMS/ANALYSIS/ID/PeptDeepRescoring.h>
 #include <OpenMS/ML/PEPTDEEP/PeptDeepMS2Inference.h>
