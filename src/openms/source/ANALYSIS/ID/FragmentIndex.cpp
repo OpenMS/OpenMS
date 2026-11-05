@@ -234,7 +234,9 @@ namespace OpenMS
     const int charge = precursor.getCharge();
     if (charge > 0)
     {
-      if (search_outside_range || (charge >= min_charge && charge <= max_charge))
+      // 'search' searches a recorded charge outside of the range, but not beyond the parameters' bound (a corrupt
+      // charge of thousands would yield precursor masses no peptide has, and fragment charges no table holds)
+      if ((search_outside_range && charge <= MAX_PRECURSOR_CHARGE) || (charge >= min_charge && charge <= max_charge))
       {
         charges.push_back(static_cast<uint16_t>(charge));
       }
@@ -4681,7 +4683,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setValue("precursor:max_charge", 5, "max precursor charge (see precursor:min_charge)");
     defaults_.setValue("precursor:recorded_charge_outside_range", "skip",
                        "A spectrum whose recorded precursor charge lies outside of precursor:min_charge..max_charge: 'skip' "
-                       "(default) does not search it; 'search' searches it at its recorded charge (OpenMS 3.5).",
+                       "(default) does not search it; 'search' searches it at its recorded charge (OpenMS 3.5), up to charge 20.",
                        {"advanced"});
     defaults_.setValidStrings("precursor:recorded_charge_outside_range", {"skip", "search"});
 

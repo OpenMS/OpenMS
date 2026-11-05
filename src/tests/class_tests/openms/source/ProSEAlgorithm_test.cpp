@@ -4007,6 +4007,10 @@ START_SECTION(([EXTRA] calibration:recalibrate corrects the precursor m/z and th
   TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("calibration:precursor_error_offset")), cal.precursor_raw_shift)
   TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("calibration:precursor_residual_offset")), cal.precursor_shift)
   TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("calibration:fragment_error_offset")), cal.fragment_raw_shift)
+  TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("calibration:precursor_measured_error")),
+                    std::fabs(cal.precursor_raw_shift) + 4.0 * cal.precursor_raw_sigma)
+  TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("calibration:precursor_residual_measured_error")),
+                    std::fabs(cal.precursor_shift) + 4.0 * cal.precursor_sigma)
   // ... and the run statistics carry them for the summary
   ProSEAlgorithm::RunStatistics stats;
   algo.collectRunStatistics_(spectra, prot_ids, pep_ids, stats);
@@ -4014,7 +4018,7 @@ START_SECTION(([EXTRA] calibration:recalibrate corrects the precursor m/z and th
   TEST_EQUAL(std::any_of(stats.recalibration.begin(), stats.recalibration.end(),
                          [](const auto& r) { return r.first == "recalibrate" && r.second.toString() == "offset"; }), true)
 
-  // mode none (the default): nothing corrected, nothing recorded, and the errors as measured
+  // mode none (the default): nothing corrected, no models recorded, and the errors as measured
   PeakMap untouched = build_calibration_spectra_(ppm_shifts, false, 5.0);
   ProSEAlgorithm_test plain;
   configure_calibration_params_(plain, 20.0, 30.0, 3);
@@ -4032,11 +4036,16 @@ START_SECTION(([EXTRA] calibration:recalibrate corrects the precursor m/z and th
   TEST_REAL_SIMILAR(none.precursor_raw_shift, none.precursor_shift)
   TEST_REAL_SIMILAR(none.precursor_shift, cal.precursor_raw_shift) // the same PSMs: the same measured offset
   TEST_EQUAL(plain_prot_ids[0].getSearchParameters().metaValueExists("calibration:recalibrate"), false)
+  // ... but the measured errors, |offset| + 4 sigma
+  TEST_REAL_SIMILAR(static_cast<double>(plain_prot_ids[0].getSearchParameters().getMetaValue("calibration:precursor_measured_error")),
+                    std::fabs(none.precursor_shift) + 4.0 * none.precursor_sigma)
   TEST_REAL_SIMILAR(untouched[0].getPrecursors()[0].getMZ(), observed[0].getPrecursors()[0].getMZ())
   TEST_EQUAL(untouched[0].getPrecursors()[0].metaValueExists(ProSEAlgorithm_test::OBSERVED_PRECURSOR_MZ), false)
   ProSEAlgorithm::RunStatistics plain_stats;
   plain.collectRunStatistics_(untouched, plain_prot_ids, plain_pep_ids, plain_stats);
-  TEST_EQUAL(plain_stats.recalibration.empty(), true)
+  TEST_EQUAL(plain_stats.recalibration.empty(), false) // the measured errors
+  TEST_EQUAL(std::none_of(plain_stats.recalibration.begin(), plain_stats.recalibration.end(),
+                          [](const auto& r) { return r.first == "recalibrate"; }), true)
 }
 END_SECTION
 
