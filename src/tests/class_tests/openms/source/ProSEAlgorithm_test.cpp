@@ -155,6 +155,7 @@ public:
   using ProSEAlgorithm::scoringMaxCharge_;
   using ProSEAlgorithm::last_mod_match_tolerance_used_;
   using ProSEAlgorithm::CalibrationResult_;
+  using ProSEAlgorithm::calibrationPassWindow_;
   using ProSEAlgorithm::preprocessSpectra_;
   using ProSEAlgorithm::mass_accuracy_score_;
   using ProSEAlgorithm::DeisotopingSettings_;
@@ -461,6 +462,7 @@ static void configure_calibration_params_(ProSEAlgorithm& algo,
   p.setValue("fragment:mass_tolerance_unit", "ppm");
   p.setValue("fragment:min_ion_index", 0);
   p.setValue("calibration:enabled", "true");
+  p.setValue("calibration:precursor_sigma_factor", 4.0); // these sections test the precursor window (off by default)
   p.setValue("calibration:subset_ratio", 1.0);
   // min_psms is chosen per-test. When min_psms > cal_hits/2, the top-50% score
   // crop at ProSEAlgorithm.cpp:1571 is skipped and every collected error reaches the
@@ -970,6 +972,15 @@ START_SECTION(([EXTRA] default mass tolerances))
   TEST_STRING_EQUAL(p.getValue("precursor:mass_tolerance_unit").toString(), "ppm")
   TEST_REAL_SIMILAR((double)p.getValue("fragment:mass_tolerance"), 20.0)
   TEST_STRING_EQUAL(p.getValue("fragment:mass_tolerance_unit").toString(), "ppm")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] PercolatorTraining defaults: CalcMass off, as the tool default of rescoring:calc_mass_feature))
+{
+  const ProSEAlgorithm::PercolatorTraining training;
+  TEST_EQUAL(training.calc_mass_feature, false)
+  ProSEAlgorithm algo;
+  TEST_EQUAL(algo.getParameters().getValue("rescoring:calc_mass_feature").toBool(), false)
 }
 END_SECTION
 
@@ -3728,6 +3739,14 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
   ProSEAlgorithm_test algo;
   configure_calibration_params_(algo, /*lower_ppm*/ 20.0, /*upper_ppm*/ 30.0,
                                 /*min_psms*/ 3);
+  // The windows are median +/- k sigma of the errors: with k = 4 the wide synthetic spread of this fixture (sigma
+  // 3.7 ppm) reaches the configured 20 ppm side; k = 3 keeps both sides tightened, which this section asserts
+  {
+    Param p = algo.getParameters();
+    p.setValue("calibration:sigma_factor", 3.0);
+    p.setValue("calibration:precursor_sigma_factor", 3.0);
+    algo.setParameters(p);
+  }
 
   vector<ProteinIdentification> prot_ids;
   PeptideIdentificationList pep_ids;
@@ -3775,6 +3794,91 @@ START_SECTION(([EXTRA] calibration preserves asymmetric bias - normal case))
   TEST_REAL_SIMILAR(algo.last_calibration_result_.cal_lower, processed_calibration.cal_lower)
   TEST_REAL_SIMILAR(algo.last_calibration_result_.cal_upper, processed_calibration.cal_upper)
   TEST_REAL_SIMILAR(algo.last_calibration_result_.fragment_tolerance, processed_calibration.fragment_tolerance)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] calibration windows are median +/- k sigma of the errors, within the floor and the configured tolerance))
+{
+  // The fixture above: the pass finds four of its twelve spectra (the preprocessing strips the others), so the
+  // expected windows are computed from the offset and sigma the pass reports, with k = 3 and no top-50 % crop
+  // (min_psms 3 > 4 / 2): cal_lower = median + 3 sigma, cal_upper = 3 sigma - median, each within [2.5 ppm, the
+  // configured side]; the fragment tolerance within [10 ppm, the configured 20 ppm].
+  const vector<double> ppm_shifts = {
+    0.0, 2.0, 4.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0
+  };
+  PeakMap spectra = build_calibration_spectra_(ppm_shifts);
+  auto fasta_db = calibration_fasta_db_();
+
+  ProSEAlgorithm_test algo;
+  configure_calibration_params_(algo, /*lower_ppm*/ 20.0, /*upper_ppm*/ 30.0, /*min_psms*/ 3);
+  {
+    Param p = algo.getParameters();
+    p.setValue("calibration:sigma_factor", 3.0);
+    p.setValue("calibration:precursor_sigma_factor", 3.0);
+    algo.setParameters(p);
+  }
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  const auto cal = algo.last_calibration_result_;
+  TEST_EQUAL(cal.success, true)
+  TEST_EQUAL(cal.extreme_bias, false)
+  TEST_EQUAL(cal.psms >= 3, true)
+  TEST_EQUAL(cal.precursor_shift > 0.0 && cal.precursor_sigma > 0.0, true)
+  TEST_REAL_SIMILAR(cal.cal_lower, std::clamp(cal.precursor_shift + 3.0 * cal.precursor_sigma, 2.5, 20.0))
+  TEST_REAL_SIMILAR(cal.cal_upper, std::clamp(3.0 * cal.precursor_sigma - cal.precursor_shift, 2.5, 30.0))
+  TEST_EQUAL(cal.fragment_tolerance >= 10.0 - 1e-9 && cal.fragment_tolerance <= 20.0 + 1e-9, true)
+  TEST_EQUAL(cal.fragment_peaks > 0, true)
+
+  // The caps: a configured side tighter than the measurement is kept (the calibration only tightens; the pass still
+  // searched with 20 ppm), and the floor of 5 ppm holds the lower side up, but never above the configured side
+  ProSEAlgorithm_test capped;
+  configure_calibration_params_(capped, /*lower_ppm*/ 10.0, /*upper_ppm*/ 3.0, /*min_psms*/ 3);
+  {
+    Param p = capped.getParameters();
+    p.setValue("calibration:sigma_factor", 3.0);
+    p.setValue("calibration:precursor_sigma_factor", 3.0);
+    p.setValue("calibration:min_precursor_tolerance", 5.0);
+    capped.setParameters(p);
+  }
+  spectra = build_calibration_spectra_(ppm_shifts);
+  vector<ProteinIdentification> capped_proteins;
+  PeptideIdentificationList capped_peptides;
+  TEST_EQUAL(capped.search(spectra, fasta_db, capped_proteins, capped_peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  const auto& cap = capped.last_calibration_result_;
+  TEST_EQUAL(cap.success, true)
+  // the same PSMs: the pass windows cover the fixture either way, and the single-use index, restricted to the spectra,
+  // holds the peptides of the pass windows (20 ppm), not only those of the configured 3 ppm
+  TEST_REAL_SIMILAR(cap.precursor_shift, cal.precursor_shift)
+  TEST_REAL_SIMILAR(cap.cal_lower, std::clamp(cap.precursor_shift + 3.0 * cap.precursor_sigma, 5.0, 10.0))
+  TEST_REAL_SIMILAR(cap.cal_upper, 3.0)  // floor 5 is above the configured 3: the configured side wins
+}
+END_SECTION
+
+START_SECTION(([EXTRA] calibration pass windows: at least 20 ppm; in Da twice the configured window, up to 0.5 Da))
+{
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::calibrationPassWindow_(10.0, true), 20.0)
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::calibrationPassWindow_(30.0, true), 30.0)
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::calibrationPassWindow_(0.02, false), 0.04) // high-resolution MS2 in Da
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::calibrationPassWindow_(0.35, false), 0.5)  // ion trap
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::calibrationPassWindow_(1.0, false), 1.0)
+
+  // A Da fragment tolerance on high-resolution MS2 tightens: the floor is 0.02 Da (it was 0.2 Da, above any
+  // high-resolution Da setting), and the pass searches with 0.2 Da instead of 0.5 Da
+  PeakMap spectra = build_calibration_spectra_({0.0, 2.0, 4.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0});
+  auto fasta_db = calibration_fasta_db_();
+  ProSEAlgorithm_test algo;
+  configure_calibration_params_(algo, /*lower_ppm*/ 20.0, /*upper_ppm*/ 30.0, /*min_psms*/ 3);
+  Param p = algo.getParameters();
+  p.setValue("fragment:mass_tolerance", 0.1);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  algo.setParameters(p);
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  const auto& cal = algo.last_calibration_result_;
+  TEST_EQUAL(cal.success, true)
+  TEST_EQUAL(cal.fragment_tolerance >= 0.02 - 1e-9 && cal.fragment_tolerance < 0.1, true)
 }
 END_SECTION
 
@@ -4604,6 +4708,7 @@ START_SECTION(([EXTRA] scoring:fragment_charges scores multiply charged fragment
   p.setValue("fragment:mass_tolerance", 0.01);
   p.setValue("fragment:mass_tolerance_unit", "Da");
   p.setValue("calibration:enabled", "true");
+  p.setValue("calibration:precursor_sigma_factor", 4.0); // these sections test the precursor window (off by default)
   p.setValue("calibration:subset_ratio", 1.0);
   p.setValue("calibration:min_psms", 1);
   ProSEAlgorithm_test calibrated;
