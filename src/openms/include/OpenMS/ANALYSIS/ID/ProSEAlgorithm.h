@@ -1297,24 +1297,13 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                   const std::function<const PeakMap*(Size)>& searched_spectra = {}) const;
 
     /// Whether a single-use context may index only the peptides the searched spectra can reach: not with
-    /// calibration, which may change the precursor windows after the index is built, not with chimeric search,
-    /// whose co-isolated precursors the index restriction does not know, and not with precursor:mono_correction,
-    /// which moves the precursors after the index is built (by up to two 13C spacings, beyond the restriction's margin).
-    bool restrictIndexToSpectra_() const { return !calibration_enabled_ && !chimeric_enabled_ && !monoCorrection_(); }
+    /// calibration, which may change the precursor windows after the index is built, and not with chimeric search,
+    /// whose co-isolated precursors the index restriction does not know.
+    bool restrictIndexToSpectra_() const { return !calibration_enabled_ && !chimeric_enabled_; }
 
     /// Whether co-isolated precursors are searched (chimeric:enabled, which database:chunk_size > 0 does not support).
     /// The file-based searches then also read the survey scans.
     bool chimericSearch_() const { return chimeric_enabled_ && database_chunk_size_ == 0; }
-
-    /// precursor:mono_correction, which (like chimeric:enabled) needs the survey scans and the unchunked search
-    bool monoCorrection_() const { return mono_correction_enabled_ && database_chunk_size_ == 0; }
-
-    /// Whether the file-based searches read the survey (MS1) scans with the MS2 spectra
-    bool surveyScans_() const { return chimericSearch_() || monoCorrection_(); }
-
-    /// precursor:mono_correction: moves the precursors of the MS2 spectra of @p spectra (which include the survey scans)
-    /// to the monoisotopic m/z and charge of the MS1 features Biosaur2 finds; returns the number of corrected precursors
-    Size correctPrecursors_(PeakMap& spectra) const;
 
     /// The PSM of a precursor co-isolated with the selected one (chimeric:enabled), until its residual spectrum is built
     struct CoIsolatedPSM_
@@ -1651,7 +1640,6 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     double calibration_precursor_sigma_factor_{0.0}; ///< calibration:precursor_sigma_factor (0: the precursor window is kept)
     double calibration_min_precursor_tol_{0.0};  ///< calibration:min_precursor_tolerance (0: by unit)
     double calibration_min_fragment_tol_{0.0};   ///< calibration:min_fragment_tolerance (0: by unit)
-    bool mono_correction_enabled_{false};        ///< precursor:mono_correction
 
     /**
      * @brief Result of a calibration pass.

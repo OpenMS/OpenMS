@@ -60,8 +60,6 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
-#include <OpenMS/FEATUREFINDER/Biosaur2Algorithm.h>                // precursor:mono_correction
-#include <OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/PROCESSING/FILTERING/NLargest.h>
@@ -315,15 +313,6 @@ namespace OpenMS
                        "searches it at its recorded charge. Spectra without a recorded charge are searched with every charge of the range.",
                        {"advanced"});
     defaults_.setValidStrings("precursor:recorded_charge_outside_range", {"search", "skip"});
-    defaults_.setValue("precursor:mono_correction", "false",
-                       "Correct the precursor m/z of the MS2 spectra from the MS1 features of the run before the search (needs "
-                       "the centroided survey scans in the input; not with database:chunk_size > 0). Biosaur2 detects the isotope "
-                       "patterns of the survey scans; a precursor on the first or second 13C trace of a feature of its recorded "
-                       "charge (within 10 ppm, inside the feature's retention time range) moves to the feature's monoisotopic m/z. "
-                       "For spectra whose precursor was picked on an isotope peak, which precursor:isotope_error_min otherwise "
-                       "has to absorb. Measured on a Q Exactive run (PXD000001, 76,000 features): a fifth of the precursors moved "
-                       "and 7 % fewer PSMs, since the isotope-error search already covers these peaks; off by default.");
-    defaults_.setValidStrings("precursor:mono_correction", {"true", "false"});
 
     defaults_.setSectionDescription("precursor",
       "Precursor (Parent Ion) Options. mass_tolerance_lower/_upper are positive magnitudes "
@@ -1320,7 +1309,6 @@ namespace OpenMS
     calibration_precursor_sigma_factor_ = param_.getValue("calibration:precursor_sigma_factor");
     calibration_min_precursor_tol_ = param_.getValue("calibration:min_precursor_tolerance");
     calibration_min_fragment_tol_ = param_.getValue("calibration:min_fragment_tolerance");
-    mono_correction_enabled_ = param_.getValue("precursor:mono_correction").toBool();
   }
 
   // static
@@ -2784,7 +2772,6 @@ namespace OpenMS
     p.remove("annotate:self_trained_ion_priors");
     p.removeAll("annotate:ion_prior_");
     p.remove("peptide:protein_mapping"); // ProSE's own (FragmentIndex::getProteinOccurrences() serves it)
-    p.remove("precursor:mono_correction"); // ProSE's own (the survey scans, before the search)
     return p;
   }
 
@@ -5275,55 +5262,30 @@ namespace OpenMS
     pre_fdr_peptide_ids_ = PeptideIdentificationList();
     inference_only_peptide_ids_ = PeptideIdentificationList();
 
-    // The survey scans: precursor:mono_correction moves the precursors to the monoisotopic m/z of the MS1 features, and
-    // chimeric:enabled finds the precursors co-isolated with the selected one; the survey scans are not searched themselves
+    // chimeric:enabled: find the precursors co-isolated with the selected one in the survey scans, which are not
+    // searched themselves
     if (chimeric_enabled_ && !chimericSearch_())
     {
       OPENMS_LOG_WARN << "[ProSE] chimeric:enabled is not supported with database:chunk_size > 0 and is ignored." << std::endl;
     }
-    if (mono_correction_enabled_ && !monoCorrection_())
-    {
-      OPENMS_LOG_WARN << "[ProSE] precursor:mono_correction is not supported with database:chunk_size > 0 and is ignored." << std::endl;
-    }
-    if (surveyScans_())
+    if (chimericSearch_())
     {
       std::vector<MSSpectrum>& all = spectra.getSpectra();
       const bool survey_scans = std::any_of(all.begin(), all.end(), [](const MSSpectrum& s) { return s.getMSLevel() == 1; });
       if (survey_scans)
       {
-        if (monoCorrection_())
-        {
-          const Size corrected = correctPrecursors_(spectra);
-          OPENMS_LOG_INFO << "[ProSE] Precursor correction: " << corrected << " of " << countSpectra_(spectra).ms2
-                          << " MS2 precursors moved to the monoisotopic peak of their MS1 feature." << std::endl;
-        }
-        if (chimericSearch_())
-        {
-          const Size found = CoIsolationDetector::annotate(spectra, precursor_min_charge_, precursor_max_charge_,
-                                                           param_.getValue("chimeric:mz_tolerance"), true,
-                                                           param_.getValue("chimeric:max_kl"),
-                                                           static_cast<Size>(static_cast<int>(param_.getValue("chimeric:max_coisolated"))));
-          all.erase(std::remove_if(all.begin(), all.end(), [](const MSSpectrum& s) { return s.getMSLevel() == 1; }), all.end());
-          OPENMS_LOG_INFO << "[ProSE] Chimeric search: " << found << " co-isolated precursors in the isolation windows of "
-                          << spectra.size() << " spectra." << std::endl;
-        }
-        else
-        {
-          all.erase(std::remove_if(all.begin(), all.end(), [](const MSSpectrum& s) { return s.getMSLevel() == 1; }), all.end());
-        }
+        const Size found = CoIsolationDetector::annotate(spectra, precursor_min_charge_, precursor_max_charge_,
+                                                         param_.getValue("chimeric:mz_tolerance"), true,
+                                                         param_.getValue("chimeric:max_kl"),
+                                                         static_cast<Size>(static_cast<int>(param_.getValue("chimeric:max_coisolated"))));
+        all.erase(std::remove_if(all.begin(), all.end(), [](const MSSpectrum& s) { return s.getMSLevel() == 1; }), all.end());
+        OPENMS_LOG_INFO << "[ProSE] Chimeric search: " << found << " co-isolated precursors in the isolation windows of "
+                        << spectra.size() << " spectra." << std::endl;
       }
-      else
+      else if (std::none_of(all.begin(), all.end(), [](const MSSpectrum& s) { return s.metaValueExists(CoIsolationDetector::META_MZ); }))
       {
-        if (monoCorrection_())
-        {
-          OPENMS_LOG_WARN << "[ProSE] precursor:mono_correction needs the survey (MS1) scans, which the spectra do not include;"
-                          << " the precursors are searched as recorded." << std::endl;
-        }
-        if (chimericSearch_() && std::none_of(all.begin(), all.end(), [](const MSSpectrum& s) { return s.metaValueExists(CoIsolationDetector::META_MZ); }))
-        {
-          OPENMS_LOG_WARN << "[ProSE] chimeric:enabled needs the survey (MS1) scans, which the spectra do not include;"
-                          << " no co-isolated precursors are searched." << std::endl;
-        }
+        OPENMS_LOG_WARN << "[ProSE] chimeric:enabled needs the survey (MS1) scans, which the spectra do not include;"
+                        << " no co-isolated precursors are searched." << std::endl;
       }
     }
 
@@ -8392,7 +8354,7 @@ namespace OpenMS
       // they did when the spectra were read first (decoding them was the first parallel region):
       // started next to a busy helper, they more often end up on another NUMA node than this
       // thread, which slows down the index build and the scoring.
-      BackgroundSpectra spectra_ready(in_spectra, false, surveyScans_());
+      BackgroundSpectra spectra_ready(in_spectra, false, chimericSearch_());
 
       // load FASTA
       loadFASTA(in_db, fasta_db);
@@ -8460,7 +8422,7 @@ namespace OpenMS
     }
     else
     {
-      spectra = loadMS2Spectra(in_spectra, readerThreads(false), nullptr, 0, surveyScans_());
+      spectra = loadMS2Spectra(in_spectra, readerThreads(false), nullptr, 0, chimericSearch_());
 
       // load FASTA
       loadFASTA(in_db, fasta_db);
@@ -8659,9 +8621,9 @@ namespace OpenMS
         // start (measured on three Orbitrap files at 16 threads without rescoring: from the end of the scoring on, 3%
         // slower, as more of the read is left for get()). The reader then registers the names of the file's meta values
         // after the protein mapping of the file before (see the registry order above).
-        if (i == 0) { next_spectra.start(in_spectra_files[i], wait_for_first_spectra, 0, surveyScans_()); }
-        else if (rescore_ && threads_started >= 12) { next_spectra.startDeferred(in_spectra_files[i], surveyScans_()); }
-        else { next_spectra.start(in_spectra_files[i], false, readerThreads(true, false), surveyScans_()); }
+        if (i == 0) { next_spectra.start(in_spectra_files[i], wait_for_first_spectra, 0, chimericSearch_()); }
+        else if (rescore_ && threads_started >= 12) { next_spectra.startDeferred(in_spectra_files[i], chimericSearch_()); }
+        else { next_spectra.start(in_spectra_files[i], false, readerThreads(true, false), chimericSearch_()); }
       }
     };
     read_next(0);
@@ -8778,7 +8740,7 @@ namespace OpenMS
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         OPENMS_LOG_INFO << "[ProSE] Loading " << in_spectra_files[i] << std::endl;
-        all_spectra[i] = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra_files[i], readerThreads(false), nullptr, 0, surveyScans_());
+        all_spectra[i] = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra_files[i], readerThreads(false), nullptr, 0, chimericSearch_());
         preprocessSearchedSpectra_(all_spectra[i], in_spectra_files[i], all_ion_evidence[i],
                                    retain_evidence ? &all_evidence_spectra[i] : nullptr,
                                    query_raw_spectrum_ ? &all_query_spectra[i] : nullptr);
@@ -9229,7 +9191,7 @@ namespace OpenMS
         if (i == 0) { build_index_while_first_file_is_read(); }
 
         PeakMap spectra = first_spectra_taken ? std::move(first_spectra)
-                          : next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra, readerThreads(false), nullptr, 0, surveyScans_());
+                          : next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra, readerThreads(false), nullptr, 0, chimericSearch_());
         first_spectra_taken = false;
         read_next(i + 1);
         std::function<const PeakMap*(Size)> searched_spectra;
@@ -10664,74 +10626,6 @@ namespace OpenMS
   // SearchResult::stats is consistent for any caller; leaves achieved FDR and
   // timing fields untouched (captured at well-defined points in the search paths).
   // =====================================================================
-  Size ProSEAlgorithm::correctPrecursors_(PeakMap& spectra) const
-  {
-    // Biosaur2 works on the MS1 spectra of an experiment it owns (and modifies them): a copy of the survey scans
-    MSExperiment ms1;
-    for (const MSSpectrum& s : spectra) { if (s.getMSLevel() == 1) { ms1.addSpectrum(s); } }
-    Biosaur2Algorithm biosaur;
-    // Profile survey scans (as recorded, or as the data look) are centroided by Biosaur2 first: on profile points its
-    // hills explode (600,000 features and 79 GB on a 1,400-scan Q Exactive run)
-    const bool profile = !ms1.empty() && ms1[0].getType(true) == SpectrumSettings::SpectrumType::PROFILE;
-    if (profile)
-    {
-      Param p = biosaur.getParameters();
-      p.setValue("profile", "true");
-      biosaur.setParameters(p);
-      OPENMS_LOG_INFO << "[ProSE] Precursor correction: the survey scans are profile spectra; Biosaur2 centroids them." << std::endl;
-    }
-    biosaur.setMSData(std::move(ms1));
-    FeatureMap features;
-    biosaur.run(features);
-    // A precursor on the first or second 13C trace of a feature of its recorded charge, within 10 ppm and inside the
-    // feature's retention time range, moves to the feature's monoisotopic m/z. Precursors without a charge keep their m/z.
-    // ponytail: fixed 10 ppm and two traces, as HighResPrecursorMassCorrector's defaults; parameters when a data type needs them.
-    std::vector<double> before(spectra.size(), 0.0);
-    for (Size i = 0; i < spectra.size(); ++i)
-    {
-      if (spectra[i].getMSLevel() == 2 && !spectra[i].getPrecursors().empty()) { before[i] = spectra[i].getPrecursors()[0].getMZ(); }
-    }
-    // Two passes. A precursor on the monoisotopic trace of a feature of its charge stays there (refined to the feature's
-    // m/z): the nearest-feature rule alone moved a fifth of a Q Exactive run's precursors, mostly onto the isotope trace
-    // of a co-eluting feature (76,000 features on a 60 min run), and cost 7 % of the PSMs. Only the precursors on no
-    // monoisotopic trace are then moved from the first or second 13C trace of a feature to its monoisotope. The second
-    // pass skips the first pass's precursors by taking their charge away for its duration (believe_charge: no feature
-    // has charge 0).
-    const std::set<Size> on_mono = PrecursorCorrection::correctToNearestFeature(features, spectra, /*rt_tolerance_s*/ 0.0,
-      /*mz_tolerance*/ 10.0, /*ppm*/ true, /*believe_charge*/ true, /*keep_original*/ false, /*all_matching_features*/ false,
-      /*max_trace*/ 0);
-    std::vector<std::pair<Size, int>> charges;
-    charges.reserve(on_mono.size());
-    for (const Size i : on_mono)
-    {
-      charges.emplace_back(i, spectra[i].getPrecursors()[0].getCharge());
-      spectra[i].getPrecursors()[0].setCharge(0);
-    }
-    std::set<Size> corrected;
-    try
-    {
-      corrected = PrecursorCorrection::correctToNearestFeature(features, spectra, /*rt_tolerance_s*/ 0.0,
-        /*mz_tolerance*/ 10.0, /*ppm*/ true, /*believe_charge*/ true, /*keep_original*/ false, /*all_matching_features*/ false,
-        /*max_trace*/ 2);
-    }
-    catch (...)
-    {
-      for (const auto& [i, z] : charges) { spectra[i].getPrecursors()[0].setCharge(z); }
-      throw;
-    }
-    for (const auto& [i, z] : charges) { spectra[i].getPrecursors()[0].setCharge(z); }
-    // The moves to another isotope peak are at least a 13C spacing over the charge apart (0.2 Da at charge 5)
-    Size moved = 0;
-    for (const Size i : corrected)
-    {
-      if (std::fabs(spectra[i].getPrecursors()[0].getMZ() - before[i]) > 0.1) ++moved;
-    }
-    OPENMS_LOG_INFO << "[ProSE] Precursor correction: " << features.size() << " MS1 features (Biosaur2); "
-                    << on_mono.size() << " precursors on the monoisotopic trace of a feature (refined to its m/z), "
-                    << (corrected.size() - moved) << " more refined." << std::endl;
-    return moved;
-  }
-
   ProSEAlgorithm::SpectraCounts_ ProSEAlgorithm::countSpectra_(const PeakMap& spectra) const
   {
     // in parallel: one pass over the spectra of a timsTOF run (600,000) took 0.13 s on one thread (memory bound)
