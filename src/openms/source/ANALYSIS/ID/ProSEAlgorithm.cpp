@@ -60,9 +60,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
-#include <OpenMS/FEATUREFINDER/Biosaur2Algorithm.h>                // precursor:mono_correction
 #include <OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>
-#include <OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/PROCESSING/FILTERING/NLargest.h>
@@ -316,15 +314,6 @@ namespace OpenMS
                        "searches it at its recorded charge. Spectra without a recorded charge are searched with every charge of the range.",
                        {"advanced"});
     defaults_.setValidStrings("precursor:recorded_charge_outside_range", {"search", "skip"});
-    defaults_.setValue("precursor:mono_correction", "false",
-                       "Correct the precursor m/z of the MS2 spectra from the MS1 features of the run before the search (needs "
-                       "the centroided survey scans in the input; not with database:chunk_size > 0). Biosaur2 detects the isotope "
-                       "patterns of the survey scans; a precursor on the first or second 13C trace of a feature of its recorded "
-                       "charge (within 10 ppm, inside the feature's retention time range) moves to the feature's monoisotopic m/z. "
-                       "For spectra whose precursor was picked on an isotope peak, which precursor:isotope_error_min otherwise "
-                       "has to absorb. Measured on a Q Exactive run (PXD000001, 76,000 features): a fifth of the precursors moved "
-                       "and 7 % fewer PSMs, since the isotope-error search already covers these peaks; off by default.");
-    defaults_.setValidStrings("precursor:mono_correction", {"true", "false"});
 
     defaults_.setSectionDescription("precursor",
       "Precursor (Parent Ion) Options. mass_tolerance_lower/_upper are positive magnitudes "
@@ -957,8 +946,8 @@ namespace OpenMS
 
     defaults_.setValue("calibration:enabled", "false",
       "Measure the mass error of the run and search with windows derived from it: a fast calibration pass on the most "
-      "intense spectra (calibration:subset_ratio), searched with at least 20 ppm (0.5 Da) precursor and fragment windows "
-      "(the configured ones if wider) so the error is measured and not censored, takes the offset (median) and the "
+      "intense spectra (calibration:subset_ratio), searched with at least 20 ppm (in Da: twice the configured window, up "
+      "to 0.5 Da) precursor and fragment windows (the configured ones if wider) so the error is measured and not censored, takes the offset (median) and the "
       "spread (robust standard deviation, 1.4826 * MAD) of the signed mass errors of its confident PSMs; the main search "
       "then uses the fragment tolerance |median| + k sigma (calibration:sigma_factor k) within "
       "[calibration:min_fragment_tolerance, the configured tolerance], and the precursor window [median - k sigma, "
@@ -996,7 +985,7 @@ namespace OpenMS
       "The calibrated window never exceeds the configured one.");
     defaults_.setMinFloat("calibration:min_precursor_tolerance", 0.0);
     defaults_.setValue("calibration:min_fragment_tolerance", 0.0,
-      "Smallest calibrated fragment tolerance, in fragment:mass_tolerance_unit (0: 10 ppm or 0.2 Da; 5 ppm or 0.1 Da "
+      "Smallest calibrated fragment tolerance, in fragment:mass_tolerance_unit (0: 10 ppm or 0.02 Da; 5 ppm or 0.01 Da "
       "with calibration:recalibrate). The calibrated tolerance never exceeds the configured one.");
     defaults_.setMinFloat("calibration:min_fragment_tolerance", 0.0);
     defaults_.setValue("calibration:recalibrate", "none",
@@ -1007,7 +996,7 @@ namespace OpenMS
       "peaks of the searched MS2 spectra are corrected in place (the candidate retrieval, the scoring and the PSMs' "
       "mass errors use the corrected values; a PeakMap passed to the library is corrected too); the PSMs report the "
       "observed precursor m/z. The windows are then derived from the residual errors, with a fragment floor of 5 ppm "
-      "(0.1 Da) unless calibration:min_fragment_tolerance is set. The co-isolated precursors of a chimeric search are "
+      "(0.01 Da) unless calibration:min_fragment_tolerance is set. The co-isolated precursors of a chimeric search are "
       "not corrected. 'none' measures only.");
     defaults_.setValidStrings("calibration:recalibrate", {"none", "offset", "linear"});
     defaults_.setValue("calibration:recalibrate_rt_chunks", 1,
@@ -1340,7 +1329,6 @@ namespace OpenMS
     calibration_min_fragment_tol_ = param_.getValue("calibration:min_fragment_tolerance");
     calibration_recalibrate_ = param_.getValue("calibration:recalibrate").toString();
     calibration_recalibrate_rt_chunks_ = static_cast<Size>(static_cast<Int>(param_.getValue("calibration:recalibrate_rt_chunks")));
-    mono_correction_enabled_ = param_.getValue("precursor:mono_correction").toBool();
   }
 
   // static
@@ -2809,7 +2797,6 @@ namespace OpenMS
     p.remove("annotate:self_trained_ion_priors");
     p.removeAll("annotate:ion_prior_");
     p.remove("peptide:protein_mapping"); // ProSE's own (FragmentIndex::getProteinOccurrences() serves it)
-    p.remove("precursor:mono_correction"); // ProSE's own (the survey scans, before the search)
     return p;
   }
 
@@ -3561,14 +3548,47 @@ namespace OpenMS
 
     // build fragment index
     startProgress(0, 1, "Building fragment index...");
-    Param this_params = fragmentIndexParameters_(electron_ions);
-    ctx.fragment_index.setParameters(this_params);
-    ctx.fragment_index.build(ctx.db, searched_spectra);
+    buildFragmentIndex_(ctx, fragmentIndexParameters_(electron_ions), searched_spectra);
     ctx.electron_ions = electron_ions;
     endProgress();
     reportDecoyParity_(ctx);
 
     return ctx;
+  }
+
+  double ProSEAlgorithm::calibrationPassWindow_(double configured, bool ppm)
+  {
+    // At least 20 ppm, which measures an error of up to about 20 ppm without censoring it. In Da at least twice the
+    // configured window, up to 0.5 Da: a fixed 0.5 Da would search high-resolution MS2 configured at 0.02 Da 25 times
+    // wider, with more chance matches among the PSMs the error is measured from; ion-trap windows (0.25 Da or more)
+    // get 0.5 Da as before. The configured window if wider.
+    return std::max(configured, ppm ? 20.0 : std::min(0.5, 2.0 * configured));
+  }
+
+  void ProSEAlgorithm::buildFragmentIndex_(SearchContext& ctx, const Param& params,
+                                           const std::function<const PeakMap*(Size)>& searched_spectra) const
+  {
+    if (!searched_spectra || !calibration_enabled_)
+    {
+      ctx.fragment_index.setParameters(params);
+      ctx.fragment_index.build(ctx.db, searched_spectra);
+      return;
+    }
+    // With calibration, the peptides the calibration pass can reach: it searches with the widest precursor windows, and
+    // the calibrated windows of the main search never exceed the configured ones. With calibration:recalibrate offset
+    // the main search's windows lie around the corrected precursor m/z, moved by a median error of the pass (within its
+    // window on each side): the configured window is added. The tolerances are query-time parameters of the index
+    // (FragmentIndex::updateMembers_()), so the configured ones are set after the build.
+    const bool ppm = precursor_mass_tolerance_unit_ == "ppm";
+    const bool offset = calibration_recalibrate_ == "offset";
+    Param pass = params;
+    pass.setValue("precursor:mass_tolerance_lower", calibrationPassWindow_(precursor_mass_tolerance_lower_, ppm)
+                                                    + (offset ? precursor_mass_tolerance_lower_ : 0.0));
+    pass.setValue("precursor:mass_tolerance_upper", calibrationPassWindow_(precursor_mass_tolerance_upper_, ppm)
+                                                    + (offset ? precursor_mass_tolerance_upper_ : 0.0));
+    ctx.fragment_index.setParameters(pass);
+    ctx.fragment_index.build(ctx.db, searched_spectra);
+    ctx.fragment_index.setParameters(params);
   }
 
   void ProSEAlgorithm::reportDecoyParity_(const SearchContext& ctx) const
@@ -5304,55 +5324,30 @@ namespace OpenMS
     pre_fdr_peptide_ids_ = PeptideIdentificationList();
     inference_only_peptide_ids_ = PeptideIdentificationList();
 
-    // The survey scans: precursor:mono_correction moves the precursors to the monoisotopic m/z of the MS1 features, and
-    // chimeric:enabled finds the precursors co-isolated with the selected one; the survey scans are not searched themselves
+    // chimeric:enabled: find the precursors co-isolated with the selected one in the survey scans, which are not
+    // searched themselves
     if (chimeric_enabled_ && !chimericSearch_())
     {
       OPENMS_LOG_WARN << "[ProSE] chimeric:enabled is not supported with database:chunk_size > 0 and is ignored." << std::endl;
     }
-    if (mono_correction_enabled_ && !monoCorrection_())
-    {
-      OPENMS_LOG_WARN << "[ProSE] precursor:mono_correction is not supported with database:chunk_size > 0 and is ignored." << std::endl;
-    }
-    if (surveyScans_())
+    if (chimericSearch_())
     {
       std::vector<MSSpectrum>& all = spectra.getSpectra();
       const bool survey_scans = std::any_of(all.begin(), all.end(), [](const MSSpectrum& s) { return s.getMSLevel() == 1; });
       if (survey_scans)
       {
-        if (monoCorrection_())
-        {
-          const Size corrected = correctPrecursors_(spectra);
-          OPENMS_LOG_INFO << "[ProSE] Precursor correction: " << corrected << " of " << countSpectra_(spectra).ms2
-                          << " MS2 precursors moved to the monoisotopic peak of their MS1 feature." << std::endl;
-        }
-        if (chimericSearch_())
-        {
-          const Size found = CoIsolationDetector::annotate(spectra, precursor_min_charge_, precursor_max_charge_,
-                                                           param_.getValue("chimeric:mz_tolerance"), true,
-                                                           param_.getValue("chimeric:max_kl"),
-                                                           static_cast<Size>(static_cast<int>(param_.getValue("chimeric:max_coisolated"))));
-          all.erase(std::remove_if(all.begin(), all.end(), [](const MSSpectrum& s) { return s.getMSLevel() == 1; }), all.end());
-          OPENMS_LOG_INFO << "[ProSE] Chimeric search: " << found << " co-isolated precursors in the isolation windows of "
-                          << spectra.size() << " spectra." << std::endl;
-        }
-        else
-        {
-          all.erase(std::remove_if(all.begin(), all.end(), [](const MSSpectrum& s) { return s.getMSLevel() == 1; }), all.end());
-        }
+        const Size found = CoIsolationDetector::annotate(spectra, precursor_min_charge_, precursor_max_charge_,
+                                                         param_.getValue("chimeric:mz_tolerance"), true,
+                                                         param_.getValue("chimeric:max_kl"),
+                                                         static_cast<Size>(static_cast<int>(param_.getValue("chimeric:max_coisolated"))));
+        all.erase(std::remove_if(all.begin(), all.end(), [](const MSSpectrum& s) { return s.getMSLevel() == 1; }), all.end());
+        OPENMS_LOG_INFO << "[ProSE] Chimeric search: " << found << " co-isolated precursors in the isolation windows of "
+                        << spectra.size() << " spectra." << std::endl;
       }
-      else
+      else if (std::none_of(all.begin(), all.end(), [](const MSSpectrum& s) { return s.metaValueExists(CoIsolationDetector::META_MZ); }))
       {
-        if (monoCorrection_())
-        {
-          OPENMS_LOG_WARN << "[ProSE] precursor:mono_correction needs the survey (MS1) scans, which the spectra do not include;"
-                          << " the precursors are searched as recorded." << std::endl;
-        }
-        if (chimericSearch_() && std::none_of(all.begin(), all.end(), [](const MSSpectrum& s) { return s.metaValueExists(CoIsolationDetector::META_MZ); }))
-        {
-          OPENMS_LOG_WARN << "[ProSE] chimeric:enabled needs the survey (MS1) scans, which the spectra do not include;"
-                          << " no co-isolated precursors are searched." << std::endl;
-        }
+        OPENMS_LOG_WARN << "[ProSE] chimeric:enabled needs the survey (MS1) scans, which the spectra do not include;"
+                        << " no co-isolated precursors are searched." << std::endl;
       }
     }
 
@@ -5481,16 +5476,9 @@ namespace OpenMS
         }
         else
         {
-          OPENMS_LOG_WARN << "[ProSE] Calibration: |shift|=" << std::abs(cal.precursor_shift)
-                          << " > spread=" << cal.precursor_spread << " "
-                          << precursor_mass_tolerance_unit_ << " - precursor calibration discarded. "
-                          << "The true signed window ["
-                          << (cal.precursor_shift - cal.precursor_spread) << ", "
-                          << (cal.precursor_shift + cal.precursor_spread)
-                          << "] lies entirely on one side of zero (not representable in the "
-                          << "positive-magnitude schema without loosening). Fragment calibration "
-                          << "still applied. Fix external calibration, or configure "
-                          << "mass_tolerance_lower/_upper manually." << std::endl;
+          OPENMS_LOG_WARN << "[ProSE] Calibration: the precursor errors have (almost) zero spread (sigma="
+                          << cal.precursor_sigma << " " << precursor_mass_tolerance_unit_
+                          << "): the configured precursor window is kept. Fragment calibration is still applied." << std::endl;
           // Precursor bounds unchanged; fragment_tolerance applied above.
         }
 
@@ -8424,7 +8412,7 @@ namespace OpenMS
       // they did when the spectra were read first (decoding them was the first parallel region):
       // started next to a busy helper, they more often end up on another NUMA node than this
       // thread, which slows down the index build and the scoring.
-      BackgroundSpectra spectra_ready(in_spectra, false, surveyScans_());
+      BackgroundSpectra spectra_ready(in_spectra, false, chimericSearch_());
 
       // load FASTA
       loadFASTA(in_db, fasta_db);
@@ -8481,8 +8469,7 @@ namespace OpenMS
         {
           startProgress(0, 1, "Building fragment index with c and z+1 ions...");
           ctx.fragment_index.clear();
-          ctx.fragment_index.setParameters(fragmentIndexParameters_(true));
-          ctx.fragment_index.build(ctx.db, searched_spectra);
+          buildFragmentIndex_(ctx, fragmentIndexParameters_(true), searched_spectra);
           ctx.electron_ions = true;
           endProgress();
         }
@@ -8492,7 +8479,7 @@ namespace OpenMS
     }
     else
     {
-      spectra = loadMS2Spectra(in_spectra, readerThreads(false), nullptr, 0, surveyScans_());
+      spectra = loadMS2Spectra(in_spectra, readerThreads(false), nullptr, 0, chimericSearch_());
 
       // load FASTA
       loadFASTA(in_db, fasta_db);
@@ -8691,9 +8678,9 @@ namespace OpenMS
         // start (measured on three Orbitrap files at 16 threads without rescoring: from the end of the scoring on, 3%
         // slower, as more of the read is left for get()). The reader then registers the names of the file's meta values
         // after the protein mapping of the file before (see the registry order above).
-        if (i == 0) { next_spectra.start(in_spectra_files[i], wait_for_first_spectra, 0, surveyScans_()); }
-        else if (rescore_ && threads_started >= 12) { next_spectra.startDeferred(in_spectra_files[i], surveyScans_()); }
-        else { next_spectra.start(in_spectra_files[i], false, readerThreads(true, false), surveyScans_()); }
+        if (i == 0) { next_spectra.start(in_spectra_files[i], wait_for_first_spectra, 0, chimericSearch_()); }
+        else if (rescore_ && threads_started >= 12) { next_spectra.startDeferred(in_spectra_files[i], chimericSearch_()); }
+        else { next_spectra.start(in_spectra_files[i], false, readerThreads(true, false), chimericSearch_()); }
       }
     };
     read_next(0);
@@ -8811,7 +8798,7 @@ namespace OpenMS
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         OPENMS_LOG_INFO << "[ProSE] Loading " << in_spectra_files[i] << std::endl;
-        all_spectra[i] = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra_files[i], readerThreads(false), nullptr, 0, surveyScans_());
+        all_spectra[i] = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra_files[i], readerThreads(false), nullptr, 0, chimericSearch_());
         preprocessSearchedSpectra_(all_spectra[i], in_spectra_files[i], all_ion_evidence[i],
                                    retain_evidence ? &all_evidence_spectra[i] : nullptr,
                                    query_raw_spectrum_ ? &all_query_spectra[i] : nullptr);
@@ -9159,8 +9146,7 @@ namespace OpenMS
           ctx.decoy_is_prefix = strategy.is_prefix;
           ctx.have_decoys = strategy.have_decoys;
           startProgress(0, 1, "Building fragment index...");
-          ctx.fragment_index.setParameters(fragmentIndexParameters_(electron_ions));
-          ctx.fragment_index.build(ctx.db, searched_spectra);
+          buildFragmentIndex_(ctx, fragmentIndexParameters_(electron_ions), searched_spectra);
           ctx.electron_ions = electron_ions;
           endProgress();
           reportDecoyParity_(ctx);
@@ -9267,7 +9253,7 @@ namespace OpenMS
         if (i == 0) { build_index_while_first_file_is_read(); }
 
         PeakMap spectra = first_spectra_taken ? std::move(first_spectra)
-                          : next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra, readerThreads(false), nullptr, 0, surveyScans_());
+                          : next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra, readerThreads(false), nullptr, 0, chimericSearch_());
         first_spectra_taken = false;
         read_next(i + 1);
         std::function<const PeakMap*(Size)> searched_spectra;
@@ -10702,74 +10688,6 @@ namespace OpenMS
   // SearchResult::stats is consistent for any caller; leaves achieved FDR and
   // timing fields untouched (captured at well-defined points in the search paths).
   // =====================================================================
-  Size ProSEAlgorithm::correctPrecursors_(PeakMap& spectra) const
-  {
-    // Biosaur2 works on the MS1 spectra of an experiment it owns (and modifies them): a copy of the survey scans
-    MSExperiment ms1;
-    for (const MSSpectrum& s : spectra) { if (s.getMSLevel() == 1) { ms1.addSpectrum(s); } }
-    Biosaur2Algorithm biosaur;
-    // Profile survey scans (as recorded, or as the data look) are centroided by Biosaur2 first: on profile points its
-    // hills explode (600,000 features and 79 GB on a 1,400-scan Q Exactive run)
-    const bool profile = !ms1.empty() && ms1[0].getType(true) == SpectrumSettings::SpectrumType::PROFILE;
-    if (profile)
-    {
-      Param p = biosaur.getParameters();
-      p.setValue("profile", "true");
-      biosaur.setParameters(p);
-      OPENMS_LOG_INFO << "[ProSE] Precursor correction: the survey scans are profile spectra; Biosaur2 centroids them." << std::endl;
-    }
-    biosaur.setMSData(std::move(ms1));
-    FeatureMap features;
-    biosaur.run(features);
-    // A precursor on the first or second 13C trace of a feature of its recorded charge, within 10 ppm and inside the
-    // feature's retention time range, moves to the feature's monoisotopic m/z. Precursors without a charge keep their m/z.
-    // ponytail: fixed 10 ppm and two traces, as HighResPrecursorMassCorrector's defaults; parameters when a data type needs them.
-    std::vector<double> before(spectra.size(), 0.0);
-    for (Size i = 0; i < spectra.size(); ++i)
-    {
-      if (spectra[i].getMSLevel() == 2 && !spectra[i].getPrecursors().empty()) { before[i] = spectra[i].getPrecursors()[0].getMZ(); }
-    }
-    // Two passes. A precursor on the monoisotopic trace of a feature of its charge stays there (refined to the feature's
-    // m/z): the nearest-feature rule alone moved a fifth of a Q Exactive run's precursors, mostly onto the isotope trace
-    // of a co-eluting feature (76,000 features on a 60 min run), and cost 7 % of the PSMs. Only the precursors on no
-    // monoisotopic trace are then moved from the first or second 13C trace of a feature to its monoisotope. The second
-    // pass skips the first pass's precursors by taking their charge away for its duration (believe_charge: no feature
-    // has charge 0).
-    const std::set<Size> on_mono = PrecursorCorrection::correctToNearestFeature(features, spectra, /*rt_tolerance_s*/ 0.0,
-      /*mz_tolerance*/ 10.0, /*ppm*/ true, /*believe_charge*/ true, /*keep_original*/ false, /*all_matching_features*/ false,
-      /*max_trace*/ 0);
-    std::vector<std::pair<Size, int>> charges;
-    charges.reserve(on_mono.size());
-    for (const Size i : on_mono)
-    {
-      charges.emplace_back(i, spectra[i].getPrecursors()[0].getCharge());
-      spectra[i].getPrecursors()[0].setCharge(0);
-    }
-    std::set<Size> corrected;
-    try
-    {
-      corrected = PrecursorCorrection::correctToNearestFeature(features, spectra, /*rt_tolerance_s*/ 0.0,
-        /*mz_tolerance*/ 10.0, /*ppm*/ true, /*believe_charge*/ true, /*keep_original*/ false, /*all_matching_features*/ false,
-        /*max_trace*/ 2);
-    }
-    catch (...)
-    {
-      for (const auto& [i, z] : charges) { spectra[i].getPrecursors()[0].setCharge(z); }
-      throw;
-    }
-    for (const auto& [i, z] : charges) { spectra[i].getPrecursors()[0].setCharge(z); }
-    // The moves to another isotope peak are at least a 13C spacing over the charge apart (0.2 Da at charge 5)
-    Size moved = 0;
-    for (const Size i : corrected)
-    {
-      if (std::fabs(spectra[i].getPrecursors()[0].getMZ() - before[i]) > 0.1) ++moved;
-    }
-    OPENMS_LOG_INFO << "[ProSE] Precursor correction: " << features.size() << " MS1 features (Biosaur2); "
-                    << on_mono.size() << " precursors on the monoisotopic trace of a feature (refined to its m/z), "
-                    << (corrected.size() - moved) << " more refined." << std::endl;
-    return moved;
-  }
-
   ProSEAlgorithm::SpectraCounts_ ProSEAlgorithm::countSpectra_(const PeakMap& spectra) const
   {
     // in parallel: one pass over the spectra of a timsTOF run (600,000) took 0.13 s on one thread (memory bound)
@@ -11197,12 +11115,12 @@ namespace OpenMS
     const bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
     const bool precursor_ppm = (precursor_mass_tolerance_unit_ == "ppm");
 
-    // The pass searches with windows wide enough to measure the error: 20 ppm or 0.5 Da, the configured ones if wider
-    // (an error of up to about 20 ppm is measured, not censored; the windows of the main search are derived from the
-    // measurement below and never exceed the configured ones). Query-time parameters of the index only, restored on exit.
-    const double pass_lower = std::max(precursor_mass_tolerance_lower_, precursor_ppm ? 20.0 : 0.5);
-    const double pass_upper = std::max(precursor_mass_tolerance_upper_, precursor_ppm ? 20.0 : 0.5);
-    const double pass_fragment = std::max(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm ? 20.0 : 0.5);
+    // The pass searches with windows wide enough to measure the error (calibrationPassWindow_(); the windows of the main
+    // search are derived from the measurement below and never exceed the configured ones). Query-time parameters of the
+    // index only, restored on exit.
+    const double pass_lower = calibrationPassWindow_(precursor_mass_tolerance_lower_, precursor_ppm);
+    const double pass_upper = calibrationPassWindow_(precursor_mass_tolerance_upper_, precursor_ppm);
+    const double pass_fragment = calibrationPassWindow_(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
     const Param fi_params_saved = fragment_index.getParameters();
     {
       Param p = fi_params_saved;
@@ -11499,7 +11417,7 @@ namespace OpenMS
       const double measured = std::fabs(med) + k * sigma;
       // (recalibrated: the residual errors have no offset, so the floor is half)
       const double floor = calibration_min_fragment_tol_ > 0 ? calibration_min_fragment_tol_
-                         : (fragment_mass_tolerance_unit_ppm ? (recalibrate ? 5.0 : 10.0) : (recalibrate ? 0.1 : 0.2));
+                         : (fragment_mass_tolerance_unit_ppm ? (recalibrate ? 5.0 : 10.0) : (recalibrate ? 0.01 : 0.02));
       result.fragment_tolerance = std::clamp(measured, std::min(floor, fragment_mass_tolerance_), fragment_mass_tolerance_);
       result.fragment_coverage = std::count_if(fragment_errors.begin(), fragment_errors.end(),
                                                [&](double e) { return std::fabs(e) <= result.fragment_tolerance; }) / static_cast<double>(fragment_errors.size());
