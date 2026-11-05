@@ -10,6 +10,8 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <cmath>
+
 using namespace std;
 
 namespace OpenMS
@@ -255,7 +257,8 @@ namespace OpenMS
   * You have to assume that groups will always have the same scores as the ProteinHits
   * Like a hit, a group gets the value of the closest calibrated score that is equal or better
   * (in the direction old_higher_better of its current score). A score better than every calibrated one
-  * gets the best q-value, or the FDR of accepting no group (1) if @p q_value is false.
+  * gets the best q-value, or the FDR of accepting no group (1) if @p q_value is false. A group
+  * without a score (NaN) gets the value of the worst calibrated score.
   */
   void IDScoreGetterSetter::setScores_(const map<double, double> &scores_to_FDR,
                                       vector <ProteinIdentification::ProteinGroup> &grps,
@@ -272,6 +275,14 @@ namespace OpenMS
     }
     for (auto &grp : grps)
     {
+      // A group without a score (NaN) took no part in the competition: it gets the value of the
+      // worst calibrated score. Explicitly, as NaN is outside the ordering of the map: looking it
+      // up is undefined, and libstdc++ and libc++ do return different elements.
+      if (std::isnan(grp.probability))
+      {
+        grp.probability = old_higher_better ? scores_to_FDR.begin()->second : scores_to_FDR.rbegin()->second;
+        continue;
+      }
       auto it = old_higher_better ? scores_to_FDR.lower_bound(grp.probability) : scores_to_FDR.upper_bound(grp.probability);
       if (it == (old_higher_better ? scores_to_FDR.end() : scores_to_FDR.begin())) // better than every calibrated score
       {
@@ -293,26 +304,40 @@ namespace OpenMS
       {
         continue;
       }
-      auto& best_hit = id.getHits()[0];
-      if (!keep_decoys && (best_hit.getMetaValue("target_decoy") == DataValue::EMPTY || best_hit.getMetaValue("target_decoy") == "decoy"))
+      auto is_decoy = [](const PeptideHit& hit)
+      {
+        return hit.getMetaValue("target_decoy") == DataValue::EMPTY || hit.getMetaValue("target_decoy") == "decoy";
+      };
+      const auto& best_hit = id.getHits()[0];
+      if (!keep_decoys && is_decoy(best_hit))
       {
         id.setHits({});
         continue;
       }
       const auto seq = best_hit.getSequence().toUnmodifiedString();
-      auto it = seq_to_fdr.find(seq);
-      const auto& old_score_type = id.getScoreType();
-      if (it != seq_to_fdr.end())
-      {
-        best_hit.setMetaValue(old_score_type, best_hit.getScore());
-        best_hit.setScore(it->second.first);
-        id.setScoreType(score_type);
-      }
-      else
+      if (seq_to_fdr.find(seq) == seq_to_fdr.end())
       {
         OPENMS_LOG_ERROR << "Error: No FDR found for " + seq + "." << std::endl;
         continue;
       }
+      // The best hit gets the FDR/q-value of its peptide, and so does a hit tied with it whose peptide
+      // has one. Remove the other hits: they would keep their search score under the FDR/q-value score
+      // type.
+      const std::string old_score_type = id.getScoreType();
+      const double best_score = best_hit.getScore();
+      std::vector<PeptideHit> scored;
+      for (auto& hit : id.getHits())
+      {
+        if (hit.getScore() != best_score || (!keep_decoys && is_decoy(hit))) { continue; }
+        auto it = seq_to_fdr.find(hit.getSequence().toUnmodifiedString());
+        if (it == seq_to_fdr.end()) { continue; }
+        hit.setMetaValue(old_score_type, hit.getScore());
+        hit.setScore(it->second.first);
+        scored.push_back(std::move(hit));
+      }
+      id.setHits(std::move(scored));
+      id.setScoreType(score_type);
+      id.setHigherScoreBetter(false); // FDRs and q-values, whatever the search score was
     }
   }
 

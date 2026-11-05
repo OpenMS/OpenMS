@@ -191,9 +191,15 @@ protected:
   // output file (before filtering)
   std::string candidates_out_;
 
+  /// If set (FAIMS: one instance per CV group), the candidates are stored here instead of written to candidates_out_
+  FeatureMap* candidates_sink_ = nullptr;
+
   Size debug_level_;
 
   void updateMembers_() override;
+
+  /// Write @p candidates to candidates_out_ (featureXML or featureparquet)
+  void storeCandidates_(const FeatureMap& candidates) const;
 
   /// region in RT in which a peptide elutes:
   struct RTRegion
@@ -369,7 +375,8 @@ protected:
 
   void ensureConvexHulls_(Feature& feature) const;
 
-  void postProcess_(FeatureMap& features);
+  /// Store the candidates (if requested and @p store_candidates), filter them and fit elution models
+  void postProcess_(FeatureMap& features, bool store_candidates = true);
 
   /// Helper functions for run()
   void initializeFeatureFinder_();

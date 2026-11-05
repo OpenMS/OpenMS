@@ -6,11 +6,13 @@ set(sources_list
 AbsoluteQuantitationMethodFile.cpp
 AbsoluteQuantitationStandardsFile.cpp
 Base64.cpp
+BedRModFile.cpp
 Bzip2Ifstream.cpp
 Bzip2InputStream.cpp
 CachedMzML.cpp
 ChromeleonFile.cpp
 CompressedInputSource.cpp
+DecompressingInputStream.cpp
 CVMappingFile.cpp
 ConsensusXMLFile.cpp
 ControlledVocabulary.cpp
@@ -56,6 +58,7 @@ MsInspectFile.cpp
 MzDataFile.cpp
 MzIdentMLFile.cpp
 MzMLFile.cpp
+MzPeakFile.cpp
 MzQCFile.cpp
 MzTab.cpp
 MzTabBase.cpp
@@ -84,7 +87,6 @@ PepXMLFileMascot.cpp
 PercolatorInfile.cpp
 PercolatorOutfile.cpp
 ProtXMLFile.cpp
-QcMLFile.cpp
 SequestInfile.cpp
 SequestOutfile.cpp
 SpecArrayFile.cpp
@@ -125,6 +127,7 @@ list(APPEND sources_list XIPMParquetFile.cpp)
 list(APPEND sources_list ProteinGroupArrowExport.cpp)
 list(APPEND sources_list QPXCollectionExport.cpp)
 list(APPEND sources_list QPXValueValidation.cpp)
+list(APPEND sources_list QPXDatasetExport.cpp)
 list(APPEND sources_list ProteinIdentificationArrowIO.cpp)
 list(APPEND sources_list FeatureMapArrowIO.cpp)
 list(APPEND sources_list ConsensusMapArrowIO.cpp)
@@ -141,7 +144,7 @@ if (WITH_OPENTIMS)
 endif()
 
 if (WITH_THERMO_RAW)
-  list(APPEND sources_list ThermoRawFile.cpp)
+  list(APPEND sources_list OnDiscThermoRawExperiment.cpp ThermoRawFile.cpp)
 endif()
 
 ### add path to the filenames

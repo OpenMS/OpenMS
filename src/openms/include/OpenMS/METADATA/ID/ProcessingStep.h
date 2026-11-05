@@ -16,7 +16,7 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /** @brief Data processing step that is applied to the data (e.g. database search, PEP calculation, filtering, ConsensusID).
+    /** @brief Data processing step that is applied to the data (e.g. database search, PEP calculation, filtering, rescoring).
     */
     struct ProcessingStep: public MetaInfoInterface
     {

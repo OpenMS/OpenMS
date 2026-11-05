@@ -72,7 +72,7 @@ namespace OpenMS
 
      @todo This implementation may benefit from two separate implementations (one considering IDs/annotations
         one without). The current implementation most likely hinders speed/memory of both by trying to do both in one.
-        The ID-based implementation could additionally benefit from ID scores and make use of ConsensusID functions.
+        The ID-based implementation could additionally benefit from ID scores.
 
      @see QTClusterFinder
 

@@ -118,11 +118,11 @@ The following options are of interest:
 
 View the description for each option by calling `ccmake`.
 
-### Can I use another solver other than GLPK?
+### Which LP solver does OpenMS use?
 
-Other solvers can be used, but by default, the build system only links to GLPK (this is how OpenMS binary packages must
-be built). To to use another solver, use `cmake ... -D USE_COINOR=1 ....` and refer to the documentation of the
-`LPWrapper` class.
+OpenMS uses [HiGHS](https://highs.dev) as its LP/MIP solver. It is taken from vcpkg or the system if available (HiGHS 1.11
+or newer), and fetched and linked statically otherwise. Support for COIN-OR and GLPK was removed. Refer to the
+documentation of the `LPWrapper` class for details.
 
 ### How do I switch to debug or release configuration?
 

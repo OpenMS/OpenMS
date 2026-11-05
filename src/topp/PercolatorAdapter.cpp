@@ -92,10 +92,12 @@ idparquet input and computes PSM-level FDRs. PercolatorAdapter runs the percolat
   - @p -doc (other than 0)
   - @p -init_weights
   - an option that only the executable implements: @p -out_pout_target, @p -out_pout_decoy,
-    @p -out_pout_target_proteins, @p -out_pout_decoy_proteins, @p -weights, @p -quick_validation, @p -static,
+    @p -out_pout_target_proteins, @p -out_pout_decoy_proteins, @p -quick_validation, @p -static,
     @p -test_each_iteration or @p -override
 
-Both backends write the pin file of @p -out_pin. @p -verbose sets the verbosity of the executable only.
+Both backends write the pin file of @p -out_pin and the weights of the cross-validation folds of @p -weights (the
+in-process backend in the format of the executable, see Percolator::storeWeights()). @p -verbose sets the verbosity
+of the executable only.
 
 The in-process backend needs enough decoys to train its model, roughly 100 or more. If the training fails,
 PercolatorAdapter stops with an error.
@@ -405,7 +407,7 @@ protected:
         "Run the external 'percolator' binary instead of the in-process OpenMS::Percolator library. "
         "The in-process backend covers idXML/mzid/idparquet input with PSM-level FDRs; "
         "OSW input, protein- or peptide-level FDRs, -doc, -init_weights and the options only the binary implements "
-        "(-out_pout_*, -weights, -quick_validation, -static, -test_each_iteration, -override) run the binary automatically.", false);
+        "(-out_pout_*, -quick_validation, -static, -test_each_iteration, -override) run the binary automatically.", false);
     setValidStrings_("use_subprocess", {"true","false"});
 
     registerInputFile_("percolator_executable", "<executable>",
@@ -439,7 +441,7 @@ protected:
     registerIntOption_("maxiter", "<number>", 10, "Maximal number of iterations", !is_required, is_advanced_option);
     registerIntOption_("nested_xval_bins", "<number>", 1, "Number of nested cross-validation bins in the 3 splits.", !is_required, is_advanced_option);
     registerFlag_("quick_validation", "Quicker execution by reduced internal cross-validation.", is_advanced_option);
-    registerOutputFile_("weights", "<file>", "", "Output final weights to the given file", !is_required, is_advanced_option);
+    registerOutputFile_("weights", "<file>", "", "Output final weights to the given file (the models of the cross-validation folds, in the format of the percolator executable's -w; both backends)", !is_required, is_advanced_option);
     setValidFormats_("weights", ListUtils::create<std::string>("tsv"), !force_openms_format);
 
     registerInputFile_("init_weights", "<file>", "", "Read initial weights to the given file", !is_required, is_advanced_option);
@@ -644,7 +646,7 @@ protected:
             __LINE__,
             OPENMS_PRETTY_FUNCTION,
             "File '" + in + "' has more than one ProteinIDRun. This is currently not correctly handled."
-            "Please use the merge_proteins_add_psms option if you used IDMerger. Alternatively, pass"
+            " Please use the merge_proteins_add_PSMs option if you used IDMerger. Alternatively, pass"
             " all original single-run idXML inputs as list to this tool.",
             "# runs: " + StringUtils::toStr(protein_ids.size()));
       }
@@ -711,7 +713,7 @@ protected:
         if (protein_ids.front().getSearchEngine() != all_protein_ids.front().getSearchEngine())
         {
           writeLogError_("Input files are not all from the same search engine: " + protein_ids.front().getSearchEngine() + " and " + all_protein_ids.front().getSearchEngine() +
-                         ". Use TOPP_ConsensusID to combine results from different search engines if desired. Aborting!");
+                         ". Results from different search engines cannot be rescored together. Aborting!");
           return INCOMPATIBLE_INPUT_DATA;
         }
         
@@ -853,9 +855,9 @@ protected:
     // protein-/peptide-level FDR, description-of-correct, initial weights, or an
     // explicit -use_subprocess true all fall through to the subprocess path.
     // So do the options that only the binary implements: the in-process backend
-    // writes neither the pout files nor the final weights, and has none of these
-    // training switches, so it would otherwise ignore them without a word.
-    // (-out_pin is not among them: both backends write it.)
+    // writes no pout files and has none of these training switches, so it would
+    // otherwise ignore them without a word.
+    // (-out_pin and -weights are not among them: both backends write them.)
     // '-percolator_executable' carries the 'is_executable' tag, so merely reading
     // it resolves it on PATH and aborts when it is missing. Read it only when the
     // subprocess will actually be run, so installations without percolator can
@@ -864,7 +866,6 @@ protected:
                                         || !getStringOption_("out_pout_decoy").empty()
                                         || !getStringOption_("out_pout_target_proteins").empty()
                                         || !getStringOption_("out_pout_decoy_proteins").empty()
-                                        || !getStringOption_("weights").empty()
                                         || getFlag_("quick_validation")
                                         || getFlag_("static")
                                         || getFlag_("test_each_iteration")
@@ -1023,7 +1024,8 @@ protected:
 
         Percolator perc;
         Param pp = perc.getDefaults();
-        if (getDoubleOption_("cpos") > 0.0)   pp.setValue("c_pos",    getDoubleOption_("cpos"));
+        // 0: selected by cross-validation, as the executable does without -p (the library default is 0.1)
+        pp.setValue("c_pos", getDoubleOption_("cpos"));
         if (getDoubleOption_("cneg") > 0.0)   pp.setValue("c_neg",    getDoubleOption_("cneg"));
         pp.setValue("test_fdr",       getDoubleOption_("testFDR"));
         pp.setValue("train_fdr",      getDoubleOption_("trainFDR"));
@@ -1061,6 +1063,12 @@ protected:
           writeLogError_(std::string("No usable PSMs/features for in-process path (") + e.what()
                          + "); use -use_subprocess true.");
           return INCOMPATIBLE_INPUT_DATA;
+        }
+
+        // -weights: the models of the cross-validation folds, as the executable writes them with -w
+        if (!getStringOption_("weights").empty())
+        {
+          perc.storeWeights(getStringOption_("weights"));
         }
 
         // Align with the (single) IdentificationRun so the idXML writer's strict

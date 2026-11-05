@@ -287,6 +287,18 @@ namespace OpenMS
   //merge proteins across fractions and replicates
   void ConsensusMapMergerAlgorithm::mergeAllIDRuns(ConsensusMap& cmap) const
   {
+    // The merged run takes its search settings from the first run, and callers index the
+    // single run left afterwards: without any run, both would read past the end.
+    if (cmap.getProteinIdentifications().empty())
+    {
+      throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "The ConsensusMap has no protein identification runs to merge. An upstream step may have "
+          "dropped them, or the input carries no identifications.");
+    }
+
     if (cmap.getProteinIdentifications().size() == 1)
       return;
 

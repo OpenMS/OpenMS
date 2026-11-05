@@ -8,16 +8,10 @@ AhoCorasickAmbiguous.h
 AScore.h
 BasicProteinInferenceAlgorithm.h
 BayesianProteinInferenceAlgorithm.h
-ConsensusIDAlgorithm.h
-ConsensusIDAlgorithmAverage.h
-ConsensusIDAlgorithmBest.h
-ConsensusIDAlgorithmIdentity.h
-ConsensusIDAlgorithmPEPIons.h
-ConsensusIDAlgorithmPEPMatrix.h
-ConsensusIDAlgorithmRanks.h
-ConsensusIDAlgorithmSimilarity.h
-ConsensusIDAlgorithmWorst.h
+CoIsolationDetector.h
 ConsensusMapMergerAlgorithm.h
+ClassFDR.h
+EntrapmentEvaluation.h
 FalseDiscoveryRate.h
 FIAMSDataProcessor.h
 FIAMSScheduler.h
@@ -39,6 +33,7 @@ OpenSearchModificationAnalysis.h
 PeptideIndexing.h
 PeptideProteinResolution.h
 Percolator.h
+PercolatorReset.h
 PercolatorFeatureSetHelper.h
 PercolatorTypes.h
 PrecursorPurity.h
@@ -48,6 +43,12 @@ SimpleSearchEngineAlgorithm.h
 SiriusExportAlgorithm.h
 SiriusMSConverter.h
 )
+
+if (WITH_ONNX)
+    list(APPEND sources_list_h
+        PeptDeepRescoring.h
+    )
+endif()
 
 ### add path to the filenames
 set(sources_h)

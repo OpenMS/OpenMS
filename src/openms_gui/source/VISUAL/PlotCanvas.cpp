@@ -575,8 +575,13 @@ namespace OpenMS
     {
       layer_range.extend(getLayer(layer_index).getRange());
     }
+    if (layer_range.RangeIntensity::isEmpty())
+    { // no layer has intensities (e.g. only identifications): the intensity range of the canvas is still defined
+      layer_range.extendIntensity(0);
+      layer_range.extendIntensity(1);
+    }
     // set minimum intensity to 0 (avoid negative intensities!)
-    if (layer_range.getMinIntensity() < 0) layer_range.setMinIntensity(0);
+    else if (layer_range.getMinIntensity() < 0) layer_range.setMinIntensity(0);
 
     // add 4% margin (2% left, 2% right) to RT, m/z, IM and intensity
     layer_range.scaleBy(1.04);

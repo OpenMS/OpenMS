@@ -9,6 +9,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include "UniPEFFEntries.h"
 #include "UniProtXMLFile.h"
 #include <OpenMS/SYSTEM/File.h>
 
@@ -96,9 +97,25 @@ canonical sequence and is not emitted again; isoforms typed "external" or
 "not described" have no reconstructable sequence and are reported in the log.
 An isoform entry carries the features UniProt annotates on that isoform
 (<code>\<location sequence="..."\></code>, see above), with ids and
-\\DisulfideBond connectivity as for canonical entries; the canonical entry's
-annotations are not mapped onto the spliced sequence. Disable isoform expansion
-with @c -omit_isoforms.
+\\DisulfideBond connectivity as for canonical entries. By default the canonical
+entry's annotations are not mapped onto the spliced sequence, since UniProt does
+not assert them for the isoform. With @c -map_canonical_features they are: each
+canonical annotation is moved to isoform coordinates through the splice variants
+the isoform is built from. Annotations on a deleted or replaced residue (for a
+disulfide bond or cross-link: on either of its residues) are not mapped, nor are
+regions overlapping a splice variant, except processed regions (chain, propeptide,
+signal and transit peptide): those are clipped to the residues they keep, and one
+reaching the canonical N- or C-terminus reaches the isoform's. A mapped annotation
+that UniProt also annotates on the isoform itself is written once (a glycosylation:
+if the isoform has one on that residue). Other annotations UniProt makes on the
+isoform on the same residues are written side by side with the mapped ones, as in
+canonical entries (e.g. alternative modifications of one residue, or different
+variants), unless they contradict each other: a processed region of the same type
+overlapping it, a disulfide bond sharing a cysteine, or a cross-link sharing a
+residue with a disulfide bond or cross-link if one of the two links two residues of
+the protein. Then the isoform's own annotation wins,
+the mapped one is not written, and a warning names the entry. Disable isoform
+expansion with @c -omit_isoforms.
 
 Both plain @c .xml and @c .xml.gz UniProt inputs are accepted (gzip is
 auto-detected by the underlying parser).
@@ -119,19 +136,11 @@ the input file name contains no such date.
 
 namespace
 {
+  using namespace OpenMS::UniPEFFEntries;
+
   // ──────────────────────────────────────────────────────────────────
   // ptmlist.txt — UniProt PTM controlled vocabulary
   // ──────────────────────────────────────────────────────────────────
-
-  struct PtmEntry
-  {
-    std::string id;               ///< UniProt PTM name (the lookup key from feature/@description)
-    std::string accession;        ///< UniProt internal accession, e.g. "PTM-0253"
-    std::string psi_mod;          ///< "MOD:xxxxx" or empty
-    std::string unimod;           ///< "N" (numeric Unimod id) or empty (NOT prefixed with "UNIMOD:")
-  };
-
-  using PtmMap = std::unordered_map<std::string, PtmEntry>;
 
   /// Parse UniProt's @c ptmlist.txt block format:
   /// @verbatim
@@ -261,12 +270,6 @@ namespace
   // Small format helpers (mirror C# PEFFentry / PEFFmodel)
   // ──────────────────────────────────────────────────────────────────
 
-  /// "TrEMBL" → "tr"; everything else (Swiss-Prot/null/unknown) → "sp".
-  std::string prefixForDataset(const std::string& dataset)
-  {
-    return (dataset == "TrEMBL") ? "tr" : "sp";
-  }
-
   /// UniProt's <proteinExistence type="..."> → PEFF \PE digit ("1".."5") or "".
   std::string proteinExistenceCode(const std::string& type)
   {
@@ -276,35 +279,6 @@ namespace
     if (type == "predicted")                    return "4";
     if (type == "uncertain")                    return "5";
     return std::string();
-  }
-
-  /// PEFF VariantSimple newAA must be an amino-acid letter (or '*').
-  bool isResidueCode(char c)
-  {
-    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '*';
-  }
-
-  /// 0 → "?", else decimal.
-  std::string positionOrUnknown(int p)
-  {
-    return p == 0 ? std::string("?") : std::to_string(p);
-  }
-
-  /// Strip the "(Microbial infection) " prefix and any trailing "; ..." qualifier.
-  /// Matches the C# CleanPtmDescription verbatim.
-  std::string cleanPtmDescription(std::string description)
-  {
-    static const std::string kMicrobialInfection = "(Microbial infection) ";
-    if (description.rfind(kMicrobialInfection, 0) == 0)
-    {
-      description = description.substr(kMicrobialInfection.size());
-    }
-    const auto semi = description.find(';');
-    if (semi != std::string::npos)
-    {
-      description = description.substr(0, semi);
-    }
-    return description;
   }
 
   // ──────────────────────────────────────────────────────────────────
@@ -443,504 +417,9 @@ namespace
   // Isoform reconstruction (UniProt "alternative products")
   // ──────────────────────────────────────────────────────────────────
 
-  /// Isoforms without a reconstructable sequence ("external": stored as its own
-  /// UniProt entry; "not described": sequence unknown), counted per sequence type
-  /// so the run reports them in one summary line instead of one line per isoform.
-  using SkippedIsoformCounts = std::map<std::string, size_t>;
-
-  /// Split a UniProt @c ref attribute ("VSP_1 VSP_2") on whitespace.
-  std::vector<std::string> splitRefs(const std::string& ref)
-  {
-    std::vector<std::string> out;
-    std::string cur;
-    for (char c : ref)
-    {
-      if (std::isspace(static_cast<unsigned char>(c)))
-      {
-        if (!cur.empty()) { out.push_back(cur); cur.clear(); }
-      }
-      else cur.push_back(c);
-    }
-    if (!cur.empty()) out.push_back(cur);
-    return out;
-  }
-
-  /// Apply the splice-variant features referenced by @p iso to @p canonical.
-  /// A referenced range without a <variation> is deleted; one with a <variation>
-  /// is replaced (a longer replacement extends the sequence). Features are
-  /// applied C- to N-terminal so an application cannot shift the coordinates of
-  /// the ones still pending. On any inconsistency (unknown ref, unknown or
-  /// out-of-bounds coordinates, overlapping features, <original> text not
-  /// matching the canonical sequence) @p error is set and "" returned.
-  std::string buildIsoformSequence(const UniProtIsoform& iso, const std::string& canonical,
-                                   const std::unordered_map<std::string, const UniProtFeature*>& vsp_by_id,
-                                   std::string& error)
-  {
-    struct Span { int begin; int end; const UniProtFeature* feature; };
-    std::vector<Span> spans;
-    for (const std::string& r : splitRefs(iso.sequence_ref))
-    {
-      auto it = vsp_by_id.find(r);
-      if (it == vsp_by_id.end())
-      {
-        error = "references unknown splice variant feature '" + r + "'";
-        return {};
-      }
-      const UniProtFeature* f = it->second;
-      const int begin = f->has_range ? f->begin : f->position;
-      const int end = f->has_range ? f->end : f->position;
-      if (begin < 1 || end < begin || end > static_cast<int>(canonical.size()))
-      {
-        error = "splice variant '" + r + "' has invalid range " + std::to_string(begin) + "-" + std::to_string(end);
-        return {};
-      }
-      if (!f->original.empty()
-          && canonical.compare(begin - 1, static_cast<size_t>(end - begin + 1), f->original) != 0)
-      {
-        error = "splice variant '" + r + "' <original> does not match the canonical sequence at "
-                + std::to_string(begin) + "-" + std::to_string(end);
-        return {};
-      }
-      spans.push_back(Span{begin, end, f});
-    }
-    if (spans.empty())
-    {
-      error = "references no splice variant features";
-      return {};
-    }
-    std::sort(spans.begin(), spans.end(), [](const Span& x, const Span& y) { return x.begin > y.begin; });
-    for (size_t i = 1; i < spans.size(); ++i)
-    {
-      if (spans[i].end >= spans[i - 1].begin)
-      {
-        error = "splice variants '" + spans[i].feature->id + "' and '" + spans[i - 1].feature->id + "' overlap";
-        return {};
-      }
-    }
-    std::string seq = canonical;
-    for (const Span& s : spans)
-    {
-      seq.replace(static_cast<size_t>(s.begin - 1), static_cast<size_t>(s.end - s.begin + 1), s.feature->variation);
-    }
-    if (seq.empty())
-    {
-      error = "reconstructed sequence is empty";
-      return {};
-    }
-    return seq;
-  }
-
   // ──────────────────────────────────────────────────────────────────
   // Intermediate annotation structures (built per UniProtEntry)
   // ──────────────────────────────────────────────────────────────────
-
-  /// Sentinel for "no annotation identifier assigned": the tuple is emitted without an id: prefix.
-  constexpr uint32_t kNoId = std::numeric_limits<uint32_t>::max();
-
-  struct ModResItem
-  {
-    int  position{0};        ///< 0 = unknown ('?')
-    bool is_halfcys{false};  ///< for stable tie-break on merge
-    const PtmEntry* ptm{nullptr};  ///< nullptr = generic (no accession), description in name
-    std::string name;        ///< display name (UniProt PTM ID or fallback description)
-    uint32_t annotation_id{kNoId};  ///< 0-based; all tuples in Option B, paired half-cystines in default mode
-  };
-
-  struct VariantSimpleItem
-  {
-    int  position{0};
-    char new_aa{'?'};
-    uint32_t annotation_id{kNoId};  ///< assigned in Option B only
-  };
-
-  struct VariantComplexItem
-  {
-    int begin{0};
-    int end{0};
-    std::string new_seq;
-    uint32_t annotation_id{kNoId};  ///< assigned in Option B only
-  };
-
-  struct ProcessedItem
-  {
-    int begin{0};
-    int end{0};
-    std::string cv;          ///< PEFF CV accession, e.g. "PEFF:0001021"
-    std::string type_name;   ///< human name, e.g. "signal peptide"
-    uint32_t annotation_id{kNoId};  ///< assigned in Option B only
-  };
-
-  struct DisulfidePairItem
-  {
-    /// Indices into EntryAnnotations::mods after merge — resolved to annotation_ids during emission.
-    size_t idx_a{0};
-    size_t idx_b{0};
-    bool valid{false};       ///< true when both endpoints come from a <begin>/<end> location; cleared by invalidateOutOfRangeDisulfides()
-    uint32_t annotation_id{kNoId};  ///< id of the \DisulfideBond tuple itself (kNoId = not emitted)
-  };
-
-  struct EntryAnnotations
-  {
-    std::vector<ModResItem> regular_mods;
-    std::vector<ModResItem> halfcys;
-    std::vector<DisulfidePairItem> disulfides;   ///< indices reference @c halfcys before merge, @c mods after merge
-    std::vector<VariantSimpleItem> simple_variants;
-    std::vector<VariantComplexItem> complex_variants;
-    std::vector<ProcessedItem> processed;
-
-    /// Final merged + sorted list (built by classifyAndMerge).
-    std::vector<ModResItem> mods;
-  };
-
-  /// One reconstructed isoform, ready for emission as its own PEFF entry.
-  struct IsoformEntry
-  {
-    std::string accession;  ///< isoform accession, e.g. "P02768-2"
-    std::string name;       ///< isoform &lt;name&gt;, e.g. "2" or "VEGF121"
-    std::string sequence;   ///< canonical sequence with the referenced splice variants applied
-    EntryAnnotations annotations;  ///< features UniProt annotates on this isoform (&lt;location sequence="..."&gt;)
-  };
-
-  // ──────────────────────────────────────────────────────────────────
-  // Feature classifier — mirrors C# FromUniProtXML feature switch
-  // ──────────────────────────────────────────────────────────────────
-
-  /// Lookup PTM by description in @p ptms, returns nullptr on miss.
-  const PtmEntry* findPtm(const PtmMap& ptms, const std::string& description)
-  {
-    auto it = ptms.find(description);
-    return (it == ptms.end()) ? nullptr : &it->second;
-  }
-
-  /// Classify a single <feature> and append into the right annotation list(s).
-  /// @p record_processing / @p record_aa_mods / @p record_variants gate the three
-  /// categories of -Omit* flags. Returns nothing; updates @p annotations in place.
-  void classifyAndAppend(const UniProtFeature& f, const PtmMap& ptms, EntryAnnotations& a,
-                         bool record_processing, bool record_aa_mods, bool record_variants,
-                         const std::string& accession)
-  {
-    // Single-residue site: prefer <position>, else <begin>; unknown -> 0.
-    const int mod_position = f.has_position ? f.position : (f.has_range ? f.begin : 0);
-
-    if (record_processing)
-    {
-      if (f.type == "chain")
-      {
-        ProcessedItem p{f.has_range ? f.begin : 0, f.has_range ? f.end : 0,
-                        "PEFF:0001020", "mature protein"};
-        a.processed.push_back(std::move(p));
-        return;
-      }
-      if (f.type == "initiator methionine")
-      {
-        const int pos = f.has_position ? f.position : 0;
-        a.processed.push_back(ProcessedItem{pos, pos, "PEFF:0001035", "initiator methionine"});
-        return;
-      }
-      if (f.type == "propeptide")
-      {
-        a.processed.push_back(ProcessedItem{f.has_range ? f.begin : 0, f.has_range ? f.end : 0,
-                                            "PEFF:0001034", "propeptide"});
-        return;
-      }
-      if (f.type == "signal peptide")
-      {
-        a.processed.push_back(ProcessedItem{f.has_range ? f.begin : 0, f.has_range ? f.end : 0,
-                                            "PEFF:0001021", "signal peptide"});
-        return;
-      }
-      if (f.type == "transit peptide")
-      {
-        a.processed.push_back(ProcessedItem{f.has_range ? f.begin : 0, f.has_range ? f.end : 0,
-                                            "PEFF:0001022", "transit peptide"});
-        return;
-      }
-    }
-
-    if (record_aa_mods)
-    {
-      if (f.type == "cross-link")
-      {
-        std::string desc = cleanPtmDescription(f.description);
-        if (desc.empty()) desc = "cross-link";
-        // Generic ModRes (no CV accession) per UniPEFF policy.
-        if (f.has_range)
-        {
-          a.regular_mods.push_back(ModResItem{f.begin, false, nullptr, desc});
-          a.regular_mods.push_back(ModResItem{f.end,   false, nullptr, desc});
-        }
-        else
-        {
-          a.regular_mods.push_back(ModResItem{mod_position, false, nullptr, desc});
-        }
-        return;
-      }
-      if (f.type == "disulfide bond")
-      {
-        const PtmEntry* hc = findPtm(ptms, "Half cystine");
-        if (f.has_range)
-        {
-          a.halfcys.push_back(ModResItem{f.begin, true, hc, hc ? hc->id : "half cystine"});
-          const size_t first_idx = a.halfcys.size() - 1;
-          a.halfcys.push_back(ModResItem{f.end,   true, hc, hc ? hc->id : "half cystine"});
-          const size_t second_idx = a.halfcys.size() - 1;
-          a.disulfides.push_back(DisulfidePairItem{first_idx, second_idx, true});
-        }
-        else
-        {
-          a.halfcys.push_back(ModResItem{mod_position, true, hc, hc ? hc->id : "half cystine"});
-        }
-        return;
-      }
-      if (f.type == "glycosylation site")
-      {
-        std::string desc = cleanPtmDescription(f.description);
-        if (desc.empty()) desc = "glycosylation site";
-        a.regular_mods.push_back(ModResItem{mod_position, false, nullptr, desc});
-        return;
-      }
-      if (f.type == "lipid moiety-binding region")
-      {
-        std::string desc = cleanPtmDescription(f.description);
-        if (desc.empty()) desc = "lipid moiety-binding region";
-        const PtmEntry* p = findPtm(ptms, desc);
-        a.regular_mods.push_back(ModResItem{mod_position, false, p, p ? p->id : desc});
-        return;
-      }
-      if (f.type == "modified residue")
-      {
-        std::string desc = cleanPtmDescription(f.description);
-        const PtmEntry* p = findPtm(ptms, desc);
-        if (p != nullptr)
-        {
-          a.regular_mods.push_back(ModResItem{mod_position, false, p, p->id});
-        }
-        else
-        {
-          // Mirror C# stdout messages so users can sync their ptmlist.txt.
-          OPENMS_LOG_INFO << "UniPEFF: failed to find this modified residue in ptmlist.txt: " << desc << std::endl;
-        }
-        return;
-      }
-    }
-
-    if (record_variants && f.type == "sequence variant")
-    {
-      const std::string new_seq = f.variation;  // may be empty (a deletion)
-      if (f.has_range)
-      {
-        if (f.begin == 0 || f.end == 0)
-        {
-          OPENMS_LOG_WARN << "UniPEFF: " << accession << " sequence variant with unknown range; omitted." << std::endl;
-          return;
-        }
-        a.complex_variants.push_back(VariantComplexItem{f.begin, f.end, new_seq});
-      }
-      else if (f.has_position)
-      {
-        if (f.position == 0)
-        {
-          OPENMS_LOG_WARN << "UniPEFF: " << accession << " sequence variant with unknown position; omitted." << std::endl;
-          return;
-        }
-        if (new_seq.size() == 1 && isResidueCode(new_seq[0]))
-        {
-          a.simple_variants.push_back(VariantSimpleItem{f.position, new_seq[0]});
-        }
-        else
-        {
-          a.complex_variants.push_back(VariantComplexItem{f.position, f.position, new_seq});
-        }
-      }
-    }
-  }
-
-  /// Merge halfcys into regular_mods producing @c a.mods in UniPEFF sort order:
-  /// (position == 0 sorts LAST, then by position ascending, then regular before halfcys on ties).
-  /// Updates @c a.disulfides to reference indices into the merged list.
-  void mergeHalfCystines(EntryAnnotations& a)
-  {
-    struct Indexed { ModResItem m; bool from_halfcys; size_t orig_idx; };
-    std::vector<Indexed> all;
-    all.reserve(a.regular_mods.size() + a.halfcys.size());
-    for (size_t i = 0; i < a.regular_mods.size(); ++i)
-    {
-      all.push_back(Indexed{a.regular_mods[i], false, i});
-    }
-    for (size_t i = 0; i < a.halfcys.size(); ++i)
-    {
-      all.push_back(Indexed{a.halfcys[i], true, i});
-    }
-    // Stable sort with the UniPEFF tie-break.
-    std::stable_sort(all.begin(), all.end(), [](const Indexed& x, const Indexed& y) {
-      const bool xu = (x.m.position == 0);
-      const bool yu = (y.m.position == 0);
-      if (xu != yu) return !xu;  // !unknown < unknown -> known first
-      if (x.m.position != y.m.position) return x.m.position < y.m.position;
-      // Regular mods (is_halfcys=false) sort before halfcys (true).
-      return !x.m.is_halfcys && y.m.is_halfcys;
-    });
-
-    // Build new merged index for each (was_halfcys, orig_idx) so disulfide pairs can be re-pointed.
-    std::vector<size_t> halfcys_new_idx(a.halfcys.size(), 0);
-    a.mods.clear();
-    a.mods.reserve(all.size());
-    for (size_t i = 0; i < all.size(); ++i)
-    {
-      if (all[i].from_halfcys) halfcys_new_idx[all[i].orig_idx] = a.mods.size();
-      a.mods.push_back(all[i].m);
-    }
-    for (auto& d : a.disulfides)
-    {
-      d.idx_a = halfcys_new_idx[d.idx_a];
-      d.idx_b = halfcys_new_idx[d.idx_b];
-    }
-    // After merge the source lists are no longer authoritative.
-    a.regular_mods.clear();
-    a.halfcys.clear();
-  }
-
-  /// Invalidate disulfide pairs with an endpoint beyond the sequence end (malformed
-  /// input): the pair then gets no labels and no \DisulfideBond tuple in either mode,
-  /// matching how out-of-bounds variants and processed regions are omitted. Unknown
-  /// (position 0) endpoints stay valid — UniProt documents such bonds and they are
-  /// emitted as '?'. An in-range half-cystine of such a pair is still written as a plain
-  /// modification; the out-of-range one is omitted by the writer, like any modification
-  /// beyond the sequence end.
-  void invalidateOutOfRangeDisulfides(EntryAnnotations& a, const std::string& base_sequence,
-                                      const std::string& accession)
-  {
-    const int seq_len = static_cast<int>(base_sequence.size());
-    if (seq_len == 0) return;
-    for (auto& d : a.disulfides)
-    {
-      if (!d.valid) continue;
-      if (d.idx_a >= a.mods.size() || d.idx_b >= a.mods.size()) continue;
-      const int pos_a = a.mods[d.idx_a].position;
-      const int pos_b = a.mods[d.idx_b].position;
-      if (pos_a > seq_len || pos_b > seq_len)
-      {
-        OPENMS_LOG_WARN << "UniPEFF: " << accession << " disulfide bond " << positionOrUnknown(pos_a)
-                        << "-" << positionOrUnknown(pos_b) << " exceeds sequence length " << seq_len
-                        << "; connectivity omitted.\n";
-        d.valid = false;
-      }
-    }
-  }
-
-  // ──────────────────────────────────────────────────────────────────
-  // Annotation-ID assignment
-  // ──────────────────────────────────────────────────────────────────
-
-  /// Option B (-annotation_identifiers): walk @p a in UniPEFF's emit order assigning
-  /// monotonically increasing IDs 0, 1, 2, ... to every annotation tuple (ModRes split into
-  /// PSI/Unimod/generic buckets, then VariantSimple, VariantComplex, Processed, finally
-  /// DisulfideBond). The disulfide pair items receive IDs of their own; @c idx_a/@c idx_b
-  /// already point to half-cystine ModRes items whose IDs have just been stamped.
-  /// Tuples skipped here (unknown/out-of-bounds positions) keep @c kNoId — the writer
-  /// skips exactly the same tuples, so every emitted tuple carries an id.
-  void assignAnnotationIds(EntryAnnotations& a, const std::string& base_sequence,
-                           bool emit_processed, bool emit_aa_mods, bool emit_variants)
-  {
-    uint32_t next_id = 0;
-    const int seq_len = static_cast<int>(base_sequence.size());
-    if (emit_aa_mods)
-    {
-      // Modifications beyond the sequence end are not written (see writePeffEntry).
-      auto in_range = [seq_len](const ModResItem& m) { return !(seq_len > 0 && m.position > seq_len); };
-      // PSI-MOD bucket: ModRes whose PTM has a PSI-MOD accession.
-      for (auto& m : a.mods)
-      {
-        if (in_range(m) && m.ptm != nullptr && !m.ptm->psi_mod.empty()) m.annotation_id = next_id++;
-      }
-      // Unimod bucket: ModRes with Unimod but no PSI-MOD.
-      for (auto& m : a.mods)
-      {
-        if (in_range(m) && m.ptm != nullptr && m.ptm->psi_mod.empty() && !m.ptm->unimod.empty()) m.annotation_id = next_id++;
-      }
-      // Generic bucket: ModRes with no CV accession (or no PTM at all).
-      for (auto& m : a.mods)
-      {
-        if (in_range(m) && (m.ptm == nullptr || (m.ptm->psi_mod.empty() && m.ptm->unimod.empty()))) m.annotation_id = next_id++;
-      }
-    }
-
-    if (emit_variants)
-    {
-      // VariantSimple: real simple list, then complex entries that get demoted to simple.
-      for (auto& v : a.simple_variants)
-      {
-        if (v.position == 0) continue;
-        if (seq_len > 0 && v.position > seq_len) continue;
-        v.annotation_id = next_id++;
-      }
-      for (auto& v : a.complex_variants)
-      {
-        if (v.begin != 0 && v.begin == v.end && v.new_seq.size() == 1 && isResidueCode(v.new_seq[0])
-            && !(seq_len > 0 && v.begin > seq_len))
-        {
-          v.annotation_id = next_id++;
-        }
-      }
-      for (auto& v : a.complex_variants)
-      {
-        if (v.begin == 0 || v.end == 0) continue;
-        if (v.begin > v.end || (seq_len > 0 && (v.begin > seq_len || v.end > seq_len))) continue;
-        if (v.begin == v.end && v.new_seq.size() == 1 && isResidueCode(v.new_seq[0])) continue;  // demoted
-        v.annotation_id = next_id++;
-      }
-    }
-
-    if (emit_processed)
-    {
-      for (auto& p : a.processed)
-      {
-        if (p.begin == 0 || p.end == 0) continue;
-        if (p.begin > p.end || (seq_len > 0 && (p.begin > seq_len || p.end > seq_len))) continue;
-        p.annotation_id = next_id++;
-      }
-    }
-
-    if (emit_aa_mods)
-    {
-      // Disulfide tuples continue the id sequence; only valid pairs whose endpoints
-      // exist in the merged mod list get one (same guards as the writer). Valid pairs
-      // have both endpoints in range, so both carry an id from the buckets above.
-      for (auto& d : a.disulfides)
-      {
-        if (!d.valid) continue;
-        if (d.idx_a >= a.mods.size() || d.idx_b >= a.mods.size()) continue;
-        d.annotation_id = next_id++;
-      }
-    }
-  }
-
-  /// Default mode (no -annotation_identifiers): implement the selective labeling scheme
-  /// from issue #9829 — of the K valid disulfide pairs (both half-cystines located in this
-  /// sequence via <begin>/<end>: intrachain, or between chains of one precursor), pair k
-  /// (counting from 0) labels its begin half-cystine 2k and its end half-cystine 2k+1, and
-  /// the \DisulfideBond tuple itself is labeled 2K+k, referencing those two ids. The bonds
-  /// follow the half-cystines so that the ids 0..3K-1 are unique within the entry (PEFF 1.0,
-  /// section 3.4.2). All other annotations (including half-cystines from single-<position>
-  /// features, whose partner lies in another molecule) stay unlabeled.
-  void assignDisulfideLabels(EntryAnnotations& a)
-  {
-    std::vector<DisulfidePairItem*> reported;
-    for (auto& d : a.disulfides)
-    {
-      if (!d.valid) continue;
-      if (d.idx_a >= a.mods.size() || d.idx_b >= a.mods.size()) continue;
-      reported.push_back(&d);
-    }
-    const auto num_bonds = static_cast<uint32_t>(reported.size());
-    for (uint32_t k = 0; k < num_bonds; ++k)
-    {
-      DisulfidePairItem& d = *reported[k];
-      a.mods[d.idx_a].annotation_id = 2 * k;
-      a.mods[d.idx_b].annotation_id = 2 * k + 1;
-      d.annotation_id = 2 * num_bonds + k;
-    }
-  }
 
   /// True when any tuple of @p a carries an annotation identifier; the entry's database
   /// block must then declare HasAnnotationIdentifiers=true (PEFF 1.0, section 3.4.2).
@@ -1036,39 +515,6 @@ namespace
     }
     return m.name;  // UniProt PTM ID
   }
-
-  /// A feature with &lt;location sequence="..."&gt; is annotated on another isoform:
-  /// its coordinates do not refer to the entry's canonical sequence.
-  bool isIsoformScoped(const UniProtFeature& f)
-  {
-    return !f.location_sequence.empty();
-  }
-
-  /// Number of tuples classifyAndAppend() has added to @p a (valid before mergeHalfCystines()).
-  size_t classifiedAnnotationCount(const EntryAnnotations& a)
-  {
-    return a.regular_mods.size() + a.halfcys.size() + a.simple_variants.size()
-           + a.complex_variants.size() + a.processed.size();
-  }
-
-  /// Counts, over all entries, the isoform-scoped features that would become annotations:
-  /// those written to their isoform's entry, and those left out because that isoform is
-  /// not written (external, not described, not reconstructable, or -omit_isoforms).
-  struct IsoformScopedTracker
-  {
-    size_t applied{0};
-    size_t applied_entries{0};
-    size_t skipped{0};
-    size_t skipped_entries{0};
-
-    void add(size_t applied_in_entry, size_t skipped_in_entry)
-    {
-      applied += applied_in_entry;
-      if (applied_in_entry > 0) ++applied_entries;
-      skipped += skipped_in_entry;
-      if (skipped_in_entry > 0) ++skipped_entries;
-    }
-  };
 
   /// Write the annotation tags (\\ModResPsi ... \\DisulfideBond) of one entry, canonical or isoform.
   /// Positions beyond @p seq_len are omitted with a warning naming @p accession. OBO-name
@@ -1302,8 +748,8 @@ namespace
   /// with gene / taxonomy / mnemonic inherited from the parent and no SV/EV/PE
   /// (UniProt versions isoform sequences with the parent entry, not separately).
   /// Its annotations are the features UniProt annotates on this isoform
-  /// (&lt;location sequence="..."&gt;), in the isoform's coordinates; the canonical
-  /// entry's annotations are not mapped onto the spliced sequence.
+  /// (&lt;location sequence="..."&gt;), in the isoform's coordinates, plus, with
+  /// -map_canonical_features, the canonical annotations mapped onto it.
   void writeIsoformPeffEntry(std::ostream& out, const UniProtEntry& parent, const IsoformEntry& iso,
                              const std::string& prefix,
                              const OboNameMap& psi_obo, const OboNameMap& unimod_obo,
@@ -1335,136 +781,6 @@ namespace
   // ──────────────────────────────────────────────────────────────────
   // Whole-file emission orchestration
   // ──────────────────────────────────────────────────────────────────
-
-  struct PreparedEntry
-  {
-    UniProtEntry source;
-    EntryAnnotations annotations;
-    size_t isoform_scoped_applied{0};  ///< isoform-scoped features written to their isoform's entry
-    size_t isoform_scoped_skipped{0};  ///< isoform-scoped features left out (isoform not written) that would otherwise have become annotations
-    std::string prefix;       ///< sp/tr or user override
-    std::vector<IsoformEntry> isoforms;  ///< reconstructed alternative products (emitted after the entry)
-  };
-
-  /// Prepare one entry: reconstruct the emittable isoform sequences ("external" / "not
-  /// described" isoforms are counted in @p skipped_isoforms), classify each feature into the
-  /// canonical entry or, if its &lt;location sequence="..."&gt; names an emitted isoform, into
-  /// that isoform's entry; then, per entry, merge halfcys, drop disulfide pairs with
-  /// out-of-range endpoints and stamp annotation IDs (global in Option B, selective disulfide
-  /// labels otherwise).
-  PreparedEntry prepareEntry(UniProtEntry&& e, const PtmMap& ptms, const std::string& prefix_override,
-                             bool option_b, bool record_processing, bool record_aa_mods,
-                             bool record_variants, bool record_isoforms,
-                             SkippedIsoformCounts& skipped_isoforms)
-  {
-    PreparedEntry pe;
-    pe.source = std::move(e);
-    pe.prefix = prefix_override.empty() ? prefixForDataset(pe.source.dataset) : prefix_override;
-
-    if (record_isoforms && !pe.source.isoforms.empty())
-    {
-      std::unordered_map<std::string, const UniProtFeature*> vsp_by_id;
-      for (const auto& f : pe.source.features)
-      {
-        if (f.type == "splice variant" && !f.id.empty()) vsp_by_id.emplace(f.id, &f);
-      }
-      for (const auto& iso : pe.source.isoforms)
-      {
-        // The "displayed" isoform IS the canonical sequence that was just emitted.
-        if (iso.sequence_type == "displayed") continue;
-        if (iso.sequence_type != "described")
-        {
-          // "external" (sequence lives in another entry) / "not described": nothing to reconstruct.
-          // Counted for the end-of-run summary; the per-isoform detail is debug output.
-          ++skipped_isoforms[iso.sequence_type];
-          OPENMS_LOG_DEBUG << "UniPEFF: " << pe.source.accession << " isoform "
-                           << (iso.id.empty() ? std::string("<no id>") : iso.id)
-                           << " has sequence type '" << iso.sequence_type << "'; not emitted.\n";
-          continue;
-        }
-        if (iso.id.empty())
-        {
-          OPENMS_LOG_WARN << "UniPEFF: " << pe.source.accession
-                          << " described isoform without <id>; omitted.\n";
-          continue;
-        }
-        std::string error;
-        std::string seq = buildIsoformSequence(iso, pe.source.sequence, vsp_by_id, error);
-        if (!error.empty())
-        {
-          OPENMS_LOG_WARN << "UniPEFF: " << pe.source.accession << " isoform " << iso.id << " "
-                          << error << "; omitted.\n";
-          continue;
-        }
-        pe.isoforms.push_back(IsoformEntry{iso.id, iso.name, std::move(seq), {}});
-      }
-    }
-
-    // Isoform-scoped features go to the entry of the isoform they are annotated on. The
-    // "displayed" isoform is the canonical sequence, so its features stay with the canonical entry.
-    std::unordered_map<std::string, size_t> emitted_isoform;  // isoform accession -> index in pe.isoforms
-    for (size_t i = 0; i < pe.isoforms.size(); ++i) emitted_isoform.emplace(pe.isoforms[i].accession, i);
-    std::vector<std::string> displayed_ids;
-    for (const auto& iso : pe.source.isoforms)
-    {
-      if (iso.sequence_type == "displayed" && !iso.id.empty()) displayed_ids.push_back(iso.id);
-    }
-
-    for (const auto& f : pe.source.features)
-    {
-      if (!isIsoformScoped(f)
-          || std::find(displayed_ids.begin(), displayed_ids.end(), f.location_sequence) != displayed_ids.end())
-      {
-        classifyAndAppend(f, ptms, pe.annotations, record_processing, record_aa_mods,
-                          record_variants, pe.source.accession);
-        continue;
-      }
-      auto target = emitted_isoform.find(f.location_sequence);
-      if (target != emitted_isoform.end())
-      {
-        IsoformEntry& iso = pe.isoforms[target->second];
-        const size_t before = classifiedAnnotationCount(iso.annotations);
-        classifyAndAppend(f, ptms, iso.annotations, record_processing, record_aa_mods,
-                          record_variants, iso.accession);
-        if (classifiedAnnotationCount(iso.annotations) > before) ++pe.isoform_scoped_applied;
-        continue;
-      }
-      // The isoform is not written (external, not described, not reconstructable, or
-      // -omit_isoforms). Classifying the feature into a scratch list tells whether it would
-      // otherwise have become an annotation, so the summary counts only those (not e.g.
-      // sequence conflicts, which UniPEFF never writes).
-      EntryAnnotations not_applied;
-      classifyAndAppend(f, ptms, not_applied, record_processing, record_aa_mods,
-                        record_variants, f.location_sequence);
-      if (classifiedAnnotationCount(not_applied) > 0)
-      {
-        ++pe.isoform_scoped_skipped;
-        OPENMS_LOG_DEBUG << "UniPEFF: " << pe.source.accession << " " << f.type << " '" << f.description
-                         << "' is annotated on isoform " << f.location_sequence
-                         << ", which is not written; not applied.\n";
-      }
-    }
-
-    // The canonical entry and each isoform entry are finished against their own sequence.
-    auto finish = [&](EntryAnnotations& a, const std::string& sequence, const std::string& accession)
-    {
-      mergeHalfCystines(a);
-      invalidateOutOfRangeDisulfides(a, sequence, accession);
-      if (option_b)
-      {
-        assignAnnotationIds(a, sequence, record_processing, record_aa_mods, record_variants);
-      }
-      else
-      {
-        // No-op when the entry has no documented disulfide pairs
-        // (including under -omit_amino_acid_modifications).
-        assignDisulfideLabels(a);
-      }
-    };
-    finish(pe.annotations, pe.source.sequence, pe.source.accession);
-    for (IsoformEntry& iso : pe.isoforms) finish(iso.annotations, iso.sequence, iso.accession);
-    return pe;
-  }
 
   bool isWritableEntry(const UniProtEntry& e)
   {
@@ -1527,6 +843,7 @@ protected:
     registerFlag_("omit_amino_acid_modifications", "Skip \\ModResPsi / \\ModResUnimod / \\ModRes and \\DisulfideBond; ptmlist is not read.");
     registerFlag_("omit_sequence_variations", "Skip \\VariantSimple and \\VariantComplex annotations.");
     registerFlag_("omit_isoforms", "Skip the additional PEFF entries for UniProt isoforms (alternative products whose sequences are reconstructed from splice-variant features).");
+    registerFlag_("map_canonical_features", "Also annotate each isoform entry with the canonical entry's annotations, mapped to isoform coordinates through its splice variants (UniProt does not assert them for the isoform). Annotations in a deleted or replaced region are not mapped, nor are regions overlapping one, except processed regions (e.g. chains), which are clipped. UniProt's own annotations of the isoform win over mapped ones they contradict. No effect with -omit_isoforms.");
   }
 
   ExitCodes main_(int, const char**) override
@@ -1540,6 +857,7 @@ protected:
     const bool omit_aa               = getFlag_("omit_amino_acid_modifications");
     const bool omit_var              = getFlag_("omit_sequence_variations");
     const bool omit_iso              = getFlag_("omit_isoforms");
+    const bool map_canonical         = getFlag_("map_canonical_features");
 
     const bool record_processing = !omit_proc;
     const bool record_aa_mods    = !omit_aa;
@@ -1641,6 +959,7 @@ protected:
     std::string spool_open_failed_path;
     OboFallbackTracker fallback_tracker;
     IsoformScopedTracker isoform_scoped_tracker;
+    IsoformScopedTracker canonical_mapped_tracker;
     {
       UniProtXMLFile xml;
       xml.loadStreaming(in_file, [&](UniProtEntry&& entry) {
@@ -1657,7 +976,7 @@ protected:
         }
         PreparedEntry pe = prepareEntry(std::move(entry), ptms, prefix_override, option_b,
                                         record_processing, record_aa_mods, record_variants,
-                                        record_isoforms, skipped_isoforms);
+                                        record_isoforms, map_canonical, skipped_isoforms);
         auto it = spools.find(pe.prefix);
         if (it == spools.end())
         {
@@ -1677,6 +996,7 @@ protected:
           prefixes.push_back(pe.prefix);
         }
         isoform_scoped_tracker.add(pe.isoform_scoped_applied, pe.isoform_scoped_skipped);
+        canonical_mapped_tracker.add(pe.canonical_mapped, pe.canonical_unmapped);
         writePeffEntry(it->second.out, pe.source, pe.annotations, pe.prefix,
                        psi_obo, unimod_obo, fallback_tracker,
                        record_processing, record_aa_mods, record_variants);
@@ -1799,6 +1119,18 @@ protected:
       OPENMS_LOG_INFO << "UniPEFF: " << isoform_scoped_tracker.skipped << " feature(s) annotated on isoforms "
                          "that are not written (location/@sequence) were not applied ("
                       << isoform_scoped_tracker.skipped_entries << " entries affected).\n";
+    }
+    if (canonical_mapped_tracker.applied > 0)
+    {
+      OPENMS_LOG_INFO << "UniPEFF: " << canonical_mapped_tracker.applied << " canonical annotation(s) were mapped "
+                         "onto isoform entries (" << canonical_mapped_tracker.applied_entries << " entries affected).\n";
+    }
+    if (canonical_mapped_tracker.skipped > 0)
+    {
+      OPENMS_LOG_INFO << "UniPEFF: " << canonical_mapped_tracker.skipped << " canonical annotation(s) lie in or "
+                         "cross a splice variant of an isoform, have an unknown position, or contradict an annotation "
+                         "UniProt makes on the isoform, and were not mapped onto it ("
+                      << canonical_mapped_tracker.skipped_entries << " entries affected).\n";
     }
     return EXECUTION_OK;
   }

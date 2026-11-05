@@ -22,25 +22,45 @@ namespace OpenMS
   bool FASTAFile::readEntry_(std::string& id, std::string& description, std::string& seq)
   {
     std::streambuf* sb = infile_.rdbuf();
+    constexpr int eof = std::streambuf::traits_type::eof();
+    // the next character, counting the lines (if known, see setPosition())
+    const auto next = [this, sb]()
+    {
+      const int c = sb->sbumpc();
+      if (c == '\n' && line_ != 0) ++line_;
+      return c;
+    };
+
+    // Skip leading whitespace (including newlines, tabs, spaces)
+    int c;
+    while ((c = sb->sgetc()) != eof && (c == ' ' || c == '\t' || c == '\n' || c == '\r'))
+    {
+      next();
+    }
+
+    entry_line_ = line_;
+    entry_offset_ = infile_.tellg();
+    c = next();
+    if (c != '>')
+    {
+      if (c == eof)
+      {
+        infile_.setstate(std::ios::eofbit);
+        error_ = "no FASTA entry found";
+        return false;
+      }
+      std::string text(1, static_cast<char>(c));
+      while (text.size() < 30 && (c = sb->sgetc()) != eof && c != '\n' && c != '\r') { text += static_cast<char>(next()); }
+      error_ = "expected a header line starting with '>', found '" + text + "'";
+      return false;
+    }
+
+    // reading the ID
     bool keep_reading = true;
     bool description_exists = true;
-    
-  // Skip leading whitespace (including newlines, tabs, spaces)
-  int c;
-  while ((c = sb->sgetc()) != std::streambuf::traits_type::eof() && 
-         (c == ' ' || c == '\t' || c == '\n' || c == '\r')) 
-  {
-    sb->sbumpc(); 
-  }
-
-  if (sb->sbumpc() != '>') 
-  {
-    return false;     
-  }
-
-    while (keep_reading)// reading the ID
+    while (keep_reading)
     {
-      int c = sb->sbumpc();// get and advance to next char
+      c = next();
       switch (c)
       {
         case ' ':
@@ -56,9 +76,11 @@ namespace OpenMS
           break;
         case '\r':
           break;
-        case std::streambuf::traits_type::eof():
+        case eof:                 // a header without sequence at the end of the file
           infile_.setstate(std::ios::eofbit);
-          return false;
+          keep_reading = false;
+          description_exists = false;
+          break;
         default:
           id += (char) c;
       }
@@ -66,19 +88,15 @@ namespace OpenMS
 
     if (id.empty())
     {
+      error_ = "the header line has no identifier after '>'";
       return false;
-    }
-      
-
-    if (description_exists)
-    {
-      keep_reading = true;
     }
 
     // reading the description
-    while (keep_reading)       
+    keep_reading = description_exists;
+    while (keep_reading)
     {
-      int c = sb->sbumpc();    // get and advance to next char
+      c = next();
       switch (c)
       {
         case '\n':             // description finished
@@ -87,19 +105,21 @@ namespace OpenMS
         case '\r': // .. or
         case '\t':
           break;
-        case std::streambuf::traits_type::eof():
+        case eof:              // a header without sequence at the end of the file
           infile_.setstate(std::ios::eofbit);
-          return false;
+          keep_reading = false;
+          break;
         default:
           description += (char) c;
       }
     }
-    
-    // reading the sequence
-    keep_reading = true;
+
+    // reading the sequence, up to a line that starts with '>' (the next entry): a header line directly followed by
+    // the next header is an entry without sequence
+    keep_reading = !infile_.eof() && sb->sgetc() != '>';
     while (keep_reading)
     {
-      int c = sb->sbumpc(); // get and advance to next char
+      c = next();
       switch (c)
       {
         case '\n':
@@ -109,17 +129,24 @@ namespace OpenMS
           }
           break;
         case '\r': // not saving white spaces
-        case ' ': 
+        case ' ':
         case '\t':
           break;
-        case std::streambuf::traits_type::eof():
+        case eof:
           infile_.setstate(std::ios::eofbit);
-          return !seq.empty();
+          keep_reading = false;
+          break;
         default:
           seq += (char) c;
       }
     }
-    return !seq.empty();
+    return true;
+  }
+
+  std::string FASTAFile::errorLocation_() const
+  {
+    return entry_line_ != 0 ? "line " + StringUtils::toStr(entry_line_)
+                            : "at byte " + StringUtils::toStr(static_cast<Size>(static_cast<std::streamoff>(entry_offset_)));
   }
 
   void FASTAFile::readStart(const std::string& filename)
@@ -141,27 +168,39 @@ namespace OpenMS
     infile_.seekg(0, infile_.end);
     fileSize_ = infile_.tellg();
     infile_.seekg(0, infile_.beg);
+    filename_ = filename;
+    line_ = 1;
 
     std::streambuf *sb = infile_.rdbuf();
-   // Skip leading whitespace and PEFF headers
+    // Skip a UTF-8 byte order mark (as written by some Windows editors)
+    {
+      char bom[3] = {0, 0, 0};
+      const std::streamsize n = sb->sgetn(bom, 3);
+      if (!(n == 3 && bom[0] == '\xEF' && bom[1] == '\xBB' && bom[2] == '\xBF'))
+      {
+        sb->pubseekpos(0, std::ios::in);
+      }
+    }
+    // Skip leading whitespace and PEFF headers
     int c;
-    while ((c = sb->sgetc()) != 
-    std::streambuf::traits_type::eof())
-  {
-    if (c == '#') 
+    while ((c = sb->sgetc()) != std::streambuf::traits_type::eof())
     {
-      infile_.ignore(numeric_limits<streamsize>::max(), '\n');
+      if (c == '#')
+      { // through the stream buffer, as the rest: a last line without line break must not set eofbit (readNext()
+        // would then report no error for a file without entries)
+        while ((c = sb->sbumpc()) != std::streambuf::traits_type::eof() && c != '\n') {}
+        if (c == '\n') ++line_;
+      }
+      else if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
+      {
+        if (sb->sbumpc() == '\n') ++line_;
+      }
+      else
+      {
+        break;
+      }
     }
-    else if (c == ' ' || c == '\t' || c == '\n' || c == '\r') 
-    {
-      sb->sbumpc(); 
-    }
-    else 
-    {
-      break;
-    }
-  }
-  entries_read_ = 0;
+    entries_read_ = 0;
   }
 
   void FASTAFile::readStartWithProgress(const std::string& filename, const std::string& progress_label)
@@ -172,44 +211,54 @@ namespace OpenMS
 
   bool FASTAFile::readNext(FASTAEntry &protein)
   {
-    if (infile_.eof())
+    // entries without sequence are skipped (with a warning): callers rely on a non-empty sequence
+    do
     {
-      return false;
-    }
-
-    seq_.clear(); // Note: it is fine to clear() after std::move as it will turn the "valid but unspecified state" into a specified (the empty) one
-    id_.clear();
-    description_.clear();
-
-    if (!readEntry_(id_, description_, seq_))
-    {
-      if (entries_read_ == 0)
+      if (infile_.eof())
       {
-        seq_ = "The first entry could not be read!";
+        return false;
       }
-      else
+
+      seq_.clear(); // Note: it is fine to clear() after std::move as it will turn the "valid but unspecified state" into a specified (the empty) one
+      id_.clear();
+      description_.clear();
+
+      if (!readEntry_(id_, description_, seq_))
       {
-        seq_ = "Only " + StringUtils::toStr(entries_read_) + " proteins could be read. Parsing next record failed.";
+        std::string read = entries_read_ == 0 ? std::string("The first entry could not be read")
+                                              : "Only " + StringUtils::toStr(entries_read_) + " proteins could be read";
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_,
+                                    "Error while parsing FASTA file, " + errorLocation_() + ": " + error_ + ". " + read
+                                    + ". Please check the file!");
       }
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
-                                  "Error while parsing FASTA file! " + seq_ + " Please check the file!");
-    }
+      if (seq_.empty())
+      {
+        OPENMS_LOG_WARN << "Warning: the FASTA entry '" << id_ << "' (" << filename_ << ", " << errorLocation_()
+                        << ") has no sequence and is skipped." << std::endl;
+      }
+    } while (seq_.empty());
     ++entries_read_;
 
     protein.identifier = std::move(id_);
     protein.description = std::move(description_);
     protein.sequence = std::move(seq_);
 
-    setProgress(infile_.tellg());
+    setProgress(progressPosition_());
 
     return true;
+  }
+
+  std::streampos FASTAFile::progressPosition_()
+  {
+    // after the last entry, eofbit is set and tellg() gives -1
+    return infile_.eof() ? fileSize_ : infile_.tellg();
   }
 
   bool FASTAFile::readNextWithProgress(FASTAEntry& protein)
   {
     if (readNext(protein))
     {
-      setProgress(position());
+      setProgress(progressPosition_());
       return true;
     }
     else
@@ -230,6 +279,7 @@ namespace OpenMS
     {
       infile_.clear(); // when end of file is reached, otherwise it gets -1
       infile_.seekg(pos);
+      line_ = 0; // unknown: errors name the byte offset instead
       return true;
     }
     return false;

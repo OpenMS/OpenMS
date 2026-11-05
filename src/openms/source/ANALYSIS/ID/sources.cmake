@@ -8,16 +8,10 @@ AhoCorasickAmbiguous.cpp
 AScore.cpp
 BasicProteinInferenceAlgorithm.cpp
 BayesianProteinInferenceAlgorithm.cpp
-ConsensusIDAlgorithm.cpp
-ConsensusIDAlgorithmAverage.cpp
-ConsensusIDAlgorithmBest.cpp
-ConsensusIDAlgorithmIdentity.cpp
-ConsensusIDAlgorithmPEPIons.cpp
-ConsensusIDAlgorithmPEPMatrix.cpp
-ConsensusIDAlgorithmRanks.cpp
-ConsensusIDAlgorithmSimilarity.cpp
-ConsensusIDAlgorithmWorst.cpp
+CoIsolationDetector.cpp
 ConsensusMapMergerAlgorithm.cpp
+ClassFDR.cpp
+EntrapmentEvaluation.cpp
 FalseDiscoveryRate.cpp
 FIAMSDataProcessor.cpp
 FIAMSScheduler.cpp
@@ -41,6 +35,7 @@ PeptideProteinResolution.cpp
 ProSEAlgorithm.cpp
 PeptideIndexing.cpp
 Percolator.cpp
+PercolatorReset.cpp
 PercolatorFeatureSetHelper.cpp
 PrecursorPurity.cpp
 PScore.cpp

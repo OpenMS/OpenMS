@@ -30,13 +30,9 @@ sudo apt update
 
 # Required dependencies:
 sudo apt-get -qq install -y \
-  autoconf \
-  autoconf-archive \
-  automake \
   build-essential \
   cmake \
   git \
-  libtool \
   ninja-build \
   patch \
   pkg-config

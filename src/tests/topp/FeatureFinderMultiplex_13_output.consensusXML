@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" id="cm_6408859317243173796" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<mapList count="2">
+		<map id="0" name="FeatureFinderMultiplex_13_input.mzML" label="no_label" size="2">
+			<UserParam type="int" name="channel_id" value="0"/>
+		</map>
+		<map id="1" name="FeatureFinderMultiplex_13_input.mzML" label="Arg6" size="2">
+			<UserParam type="int" name="channel_id" value="1"/>
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_4835329514588776807" quality="1.0" charge="3">
+			<centroid rt="100.0" mz="1330.948333411425438" it="6.835732e05"/>
+			<groupedElementList>
+				<element map="0" id="15004869347769368353" rt="100.0" mz="1330.948333411425438" it="6.835732e05" charge="3"/>
+				<element map="1" id="13440783915218733453" rt="100.0" mz="1332.954812157385049" it="7.140865e05" charge="3"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_17749660155506638460" quality="1.0" charge="2">
+			<centroid rt="100.0" mz="1331.068333411425556" it="8.747415e08"/>
+			<groupedElementList>
+				<element map="0" id="3332699010107892018" rt="100.0" mz="1331.068333411425556" it="8.747415e08" charge="2"/>
+				<element map="1" id="15916652588957785155" rt="100.0" mz="1334.078344635899612" it="8.8249984e08" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

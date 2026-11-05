@@ -166,7 +166,12 @@ namespace OpenMS
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
 
-    defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Requires '-decoys' to be set.");
+    defaults_.setValue("FDR:PSM", 0.0,
+                       "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR). Set to 0 to disable PSM-level FDR: no q-values are "
+                       "computed, and every PSM keeps 'ln(hyperscore)' as main score. Above 0, the q-value replaces the main score (the "
+                       "search engine score is kept as meta value 'ln(hyperscore)_score'), only the best hit of each spectrum is kept, "
+                       "and decoy hits are removed. Requires 'decoys' to be 'true'; otherwise a threshold above 0 is skipped with a "
+                       "warning.");
     defaults_.setMinFloat("FDR:PSM", 0.0);
     defaults_.setMaxFloat("FDR:PSM", 1.0);
     defaults_.setSectionDescription("FDR", "False Discovery Rate control (requires decoys)");
@@ -370,10 +375,13 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         pi.setRT(spec.getRT());
         pi.setMZ(mz);
 
-        // Annotate ion mobility if spectrum has a single drift time (DDA-PASEF)
+        // Annotate the spectrum's single drift time: a FAIMS compensation voltage as FAIMS_CV (which the
+        // FAIMS-aware tools read), an ion mobility (e.g. DDA-PASEF, 1/K0) as IM
         if (IMTypes::determineIMFormat(spec) == IMFormat::IM_SPECTRUM)
         {
-          pi.setMetaValue(Constants::UserParam::IM, spec.getDriftTime());
+          pi.setMetaValue(spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+                            ? Constants::UserParam::FAIMS_CV : Constants::UserParam::IM,
+                          spec.getDriftTime());
         }
 
         Size charge = spec.getPrecursors()[0].getCharge();
@@ -681,7 +689,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
+    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW, FileTypes::MZPEAK});
     spectra.sortSpectra(true);
 
     startProgress(0, 1, "Filtering spectra...");

@@ -174,6 +174,23 @@ START_SECTION((const DRange<1>& getPrecursorMZRange() const))
 	TEST_EQUAL(tmp.getPrecursorMZRange(), DRange<1>());
 END_SECTION
 
+START_SECTION((void setIMRange(const DRange<1>& range)))
+	PeakFileOptions tmp;
+	tmp.setIMRange(makeRange(0.8, 1.2));
+	TEST_EQUAL(tmp.hasIMRange(), true);
+	TEST_EQUAL(tmp.getIMRange(), makeRange(0.8, 1.2));
+END_SECTION
+
+START_SECTION((bool hasIMRange() const))
+	PeakFileOptions tmp;
+	TEST_EQUAL(tmp.hasIMRange(), false);
+END_SECTION
+
+START_SECTION((const DRange<1>& getIMRange() const))
+	PeakFileOptions tmp;
+	TEST_EQUAL(tmp.getIMRange(), DRange<1>());
+END_SECTION
+
 START_SECTION((void setMSLevels(const vector<Int>& levels)))
 	PeakFileOptions tmp;
 	vector<Int> levels;
@@ -277,6 +294,11 @@ START_SECTION((hasFilters))
   PeakFileOptions opts3;
   opts3.setPrecursorMZRange(makeRange(400, 1200));
   TEST_TRUE(opts3.hasFilters())
+
+  // the ion mobility range is applied by FileHandler, not by the readers that hasFilters() is for
+  PeakFileOptions opts4;
+  opts4.setIMRange(makeRange(0.8, 1.2));
+  TEST_FALSE(opts4.hasFilters())
 }
 END_SECTION
 

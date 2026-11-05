@@ -135,7 +135,7 @@ namespace OpenSwath
     /// m/z tolerance for isotope deconvolution
     double decon_ms1_mz_tol_;
 
-    /// keeps track of number of spectra passed to getSpectraProcessingFunc()
+    /// number of MS1 spectra passed to getSpectraProcessingFunc() so far, subsampled or not
     size_t ms1_spectra_seen_;
   };
     

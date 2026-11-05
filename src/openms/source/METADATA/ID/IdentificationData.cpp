@@ -10,6 +10,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <numeric>
+#include <tuple>
 
 using namespace std;
 
@@ -294,6 +295,13 @@ namespace OpenMS
         std::string msg = "invalid reference to database search parameters - register those first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
+      }
+      const auto existing = db_search_steps_.find(step_ref);
+      if (existing != db_search_steps_.end() && existing->second != search_ref)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "A processing step is already associated with different database search parameters. Use a distinct processing step.",
+          step.date_time.toString("yyyy-MM-ddThh:mm:ss.zzz"));
       }
       db_search_steps_.insert(make_pair(step_ref, search_ref));
     }
@@ -620,6 +628,24 @@ namespace OpenMS
   }
 
 
+  bool IdentificationData::observationMatchLess(const ObservationMatch& left, const ObservationMatch& right)
+  {
+    // Reference ordering uses memory addresses. Equal scores must instead be
+    // resolved by stable molecule/adduct values, without preferring target status.
+    auto tie_key = [](const ObservationMatch& match)
+    {
+      const auto& molecule = match.identified_molecule_var;
+      const auto& adduct = match.adduct_opt;
+      return std::make_tuple(molecule.getMoleculeType(), molecule.toString(), match.charge,
+                             bool(adduct),
+                             adduct ? (*adduct)->getName() : std::string(),
+                             adduct ? (*adduct)->getEmpiricalFormula().toString() : std::string(),
+                             adduct ? (*adduct)->getCharge() : 0,
+                             adduct ? (*adduct)->getMolMultiplier() : UInt(0));
+    };
+    return tie_key(left) < tie_key(right);
+  }
+
   vector<IdentificationData::ObservationMatchRef>
   IdentificationData::getBestMatchPerObservation(ScoreTypeRef score_ref,
                                                  bool require_score) const
@@ -635,7 +661,9 @@ namespace OpenMS
       pair<double, bool> current_score = ref->getScore(score_ref);
       if (current_score.second && (!best_score.second ||
                                    score_ref->isBetterScore(current_score.first,
-                                                           best_score.first)))
+                                                           best_score.first) ||
+                                   ((current_score.first == best_score.first) &&
+                                    observationMatchLess(*ref, *best_ref))))
       {
         // new best score for the current observation:
         best_score = current_score;

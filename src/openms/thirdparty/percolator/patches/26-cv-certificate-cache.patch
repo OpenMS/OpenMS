@@ -1,0 +1,31 @@
+diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
+index 851c741a1e..3e7ffeb077 100644
+--- a/src/openms/thirdparty/percolator/Scores.cpp
++++ b/src/openms/thirdparty/percolator/Scores.cpp
+@@ -832,7 +832,11 @@ int Scores::calcScores(std::vector<double>& w) {
+ int Scores::sortScoresAndCalcQvals(double fdr, bool skipDecoysPlusOne) {
+   // OpenMS: the sort is skipped where it cannot change what any later step sees (CrossValidation sorts
+   // the training scores that the step before sorted): see sortedUpToInterchangeable
+-  if (VERB > 3 || !comparableScores(scores_.begin(), scores_.end()) || !sortedUpToInterchangeable()) {
++  // (the check is skipped after it has failed once for this set: on tie-heavy sets it costs as much as
++  // part of the sort and does not succeed)
++  if (VERB > 3 || sortCertificateFailed_ || !comparableScores(scores_.begin(), scores_.end()) ||
++      !sortedUpToInterchangeable()) {
++    if (VERB <= 3) sortCertificateFailed_ = true;
+     sortScores();
+   }
+   return calcQvals(fdr, skipDecoysPlusOne);
+diff --git a/src/openms/thirdparty/percolator/Scores.h b/src/openms/thirdparty/percolator/Scores.h
+index 4292ae7e8d..9cbf6d3a25 100644
+--- a/src/openms/thirdparty/percolator/Scores.h
++++ b/src/openms/thirdparty/percolator/Scores.h
+@@ -195,6 +195,9 @@ class Scores {
+ 
+   std::vector<ScoreHolder> scores_;
+   std::map<PSMDescription*, std::vector<PSMDescription*> > peptidePsmMap_;
++  // OpenMS: the certificate of sortScoresAndCalcQvals failed for this set once: later calls sort
++  // without checking (a forced sort is always exact)
++  bool sortCertificateFailed_ = false;
+ 
+   void reorderFeatureRows(
+       FeatureMemoryPool& featurePool,

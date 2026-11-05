@@ -10,6 +10,8 @@
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 
 #include <boost/regex.hpp>
 #include <sstream>
@@ -255,36 +257,31 @@ namespace OpenMS
                               const std::string& filename,
                               const std::string& native_id)
   {
-    // Try to extract scan number from native ID
-    auto scan_num = extractScanNumberFromNativeID(native_id);
-    
-    if (scan_num.has_value())
+    auto usi_index = nativeIdToUSIIndex(native_id);
+    if (usi_index.has_value())
     {
-      return USI(dataset_id, filename, IndexType::SCAN,StringUtils::toStr(scan_num.value()));
+      return USI(dataset_id, filename, usi_index->first, usi_index->second);
     }
-    else
-    {
-      // Fall back to using nativeId index type
-      return USI(dataset_id, filename, IndexType::NATIVEID, native_id);
-    }
+    return USI();
   }
 
   std::optional<int> USI::extractScanNumberFromNativeID(const std::string& native_id)
   {
-    // Use SpectrumNativeIDParser for comprehensive native ID parsing
-    // It handles various vendor formats: Thermo, Waters, Bruker, Agilent, etc.
-    if (SpectrumNativeIDParser::isNativeID(native_id))
+    // USI spec section 3.3.5: "scan" is reserved for the scan number of the
+    // original run.  Only standard Thermo (controllerType=0) and bare "scan=X"
+    // unambiguously map to scan:.
+    if (StringUtils::hasPrefix(native_id, "controllerType=0 controllerNumber=1 "))
     {
-      std::string regex_str = SpectrumNativeIDParser::getRegExFromNativeID(native_id);
-      if (!regex_str.empty())
-      {
-        RegularExpression scan_regexp(regex_str);
-        Int scan = SpectrumNativeIDParser::extractScanNumber(native_id, scan_regexp, true);
-        if (scan >= 0)
-        {
-          return scan;
-        }
-      }
+      RegularExpression re(R"(scan=(?<GROUP>\d+))");
+      Int scan = SpectrumNativeIDParser::extractScanNumber(native_id, re, true);
+      if (scan >= 0) return scan;
+    }
+    else if (StringUtils::hasPrefix(native_id, "scan=") && native_id.find(' ') == std::string::npos)
+    {
+      // Bare "scan=X" with no other tokens (Bruker/Agilent simple format)
+      RegularExpression re(R"(scan=(?<GROUP>\d+))");
+      Int scan = SpectrumNativeIDParser::extractScanNumber(native_id, re, true);
+      if (scan >= 0) return scan;
     }
 
     // Try to parse the entire string as a number (simple case like "12345")
@@ -296,6 +293,66 @@ namespace OpenMS
     {
       return std::nullopt;
     }
+  }
+
+  std::optional<std::pair<USI::IndexType, std::string>> USI::nativeIdToUSIIndex(const std::string& native_id)
+  {
+    if (native_id.empty()) return std::nullopt;
+
+    // Try scan: first (only for unambiguous scan-number formats)
+    auto scan = extractScanNumberFromNativeID(native_id);
+    if (scan.has_value())
+    {
+      return std::make_pair(IndexType::SCAN, StringUtils::toStr(scan.value()));
+    }
+
+    // index=X → index:X
+    if (StringUtils::hasPrefix(native_id, "index="))
+    {
+      RegularExpression re(R"(index=(?<GROUP>\d+))");
+      Int idx = SpectrumNativeIDParser::extractScanNumber(native_id, re, true);
+      if (idx >= 0) return std::make_pair(IndexType::INDEX, StringUtils::toStr(idx));
+    }
+
+    // Bruker TDF uses frame and scan for DIA. DDA can have multiple spectra at
+    // the same frame and scan, so retain precursor as an OpenMS extension.
+    if (StringUtils::hasPrefix(native_id, "frame="))
+    {
+      boost::regex frame_re(R"(frame=(\d+))");
+      boost::regex scan_re(R"(scan=(\d+))");
+      boost::regex precursor_re(R"(precursor=(\d+))");
+      boost::smatch frame_match;
+      boost::smatch scan_match;
+      if (boost::regex_search(native_id, frame_match, frame_re) &&
+          boost::regex_search(native_id, scan_match, scan_re))
+      {
+        std::string index = frame_match[1].str() + "," + scan_match[1].str();
+        boost::smatch precursor_match;
+        if (boost::regex_search(native_id, precursor_match, precursor_re))
+        {
+          index += "," + precursor_match[1].str();
+        }
+        return std::make_pair(IndexType::NATIVEID, index);
+      }
+    }
+
+    // All other key=value native IDs → nativeId: with comma-separated values
+    if (SpectrumNativeIDParser::isNativeID(native_id))
+    {
+      boost::regex val_re(R"(\w+=(\d+))");
+      std::string csv;
+      auto begin = boost::sregex_iterator(native_id.begin(), native_id.end(), val_re);
+      auto end = boost::sregex_iterator();
+      for (auto it = begin; it != end; ++it)
+      {
+        if (!csv.empty()) csv += ",";
+        csv += (*it)[1].str();
+      }
+      if (!csv.empty()) return std::make_pair(IndexType::NATIVEID, csv);
+    }
+
+    // Unknown format — pass through as nativeId
+    return std::make_pair(IndexType::NATIVEID, native_id);
   }
 
   std::string USI::indexTypeToString(IndexType index_type)
@@ -360,18 +417,30 @@ namespace OpenMS
     // Find the last path separator (handle both Unix and Windows)
     size_t last_sep = path.rfind('/');
     size_t last_win_sep = path.rfind('\\');
-    
+
     if (last_win_sep != std::string::npos && (last_sep == std::string::npos || last_win_sep > last_sep))
     {
       last_sep = last_win_sep;
     }
 
+    std::string basename;
     if (last_sep != std::string::npos)
     {
-      return StringUtils::substr(path, last_sep + 1);
+      basename = StringUtils::substr(path, last_sep + 1);
+    }
+    else
+    {
+      basename = path;
     }
 
-    return path;
+    // Strip file extension only for recognized MS types (USI spec 3.3.4).
+    // Unknown dotted suffixes (e.g. run names from pepXML base_name) stay intact.
+    if (FileNameUtils::getTypeByFileName(basename) != FileTypes::UNKNOWN)
+    {
+      basename = FileNameUtils::stripExtension(basename);
+    }
+
+    return basename;
   }
 
   const std::string& USI::getCVAccession()

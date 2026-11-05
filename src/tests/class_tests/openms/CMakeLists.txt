@@ -56,6 +56,16 @@ endforeach(_class_test)
 #------------------------------------------------------------------------------
 # some tests need special treatment
 
+# These tests spell UTF-8 text as narrow string literals. MSVC would encode them in
+# the build machine's code page instead (and read the source as such).
+if (MSVC)
+  foreach(_utf8_test StringManager_test XMLHandler_test XMLParserBackend_test)
+    if (TARGET ${_utf8_test})
+      target_compile_options(${_utf8_test} PRIVATE /utf-8)
+    endif()
+  endforeach()
+endif()
+
 # Class tests of classes that live with a TOPP tool rather than in the library. A tool that
 # has a test/CMakeLists.txt gets it added here, and declares its tests with
 # openms_add_tool_class_test(), which cmake/class_test_macros.cmake defines. Adding a test/
@@ -77,6 +87,17 @@ foreach(_topp_tool ${TOPP_TOOLS})
                      "topp_${_topp_tool}_tests")
   endif()
 endforeach()
+
+# FragmentIndex_test: its main() holds about a hundred FragmentIndex objects of 7 KB each, one or more per section.
+# MSVC does not share the stack slots of the sections, so the frame alone comes close to the 1 MB default stack of
+# Windows (938 KB without slot reuse at the time of writing), and the singletons initialised in the first section
+# overflowed it. Give the test the 8 MB of a Linux main thread.
+# ProSEAlgorithm_test: the same, 834 KB without slot reuse (GCC -O2 -fstack-reuse=none -fstack-usage, 2026-11-02), and the
+# searches of its chimeric section overflowed what was left (an access violation that CTest reports as a SegFault).
+if (MSVC)
+  target_link_options(FragmentIndex_test PRIVATE "/STACK:8388608")
+  target_link_options(ProSEAlgorithm_test PRIVATE "/STACK:8388608")
+endif()
 
 # StopWatch_test needs to be run alone to avoid timing errors
 set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
@@ -133,20 +154,21 @@ endif()
 # 2 - add link dependencies
 target_link_libraries(Base64_test ZLIB::ZLIB)
 target_link_libraries(Libzip_test libzip::zip)
-# Xerces is a PRIVATE dependency of libOpenMS. These tests exercise the internal
-# Xerces InputSource / BinInputStream adapters directly, so they must link Xerces
-# themselves.
-target_link_libraries(ZipInputStream_test XercesC::XercesC)
-target_link_libraries(GzipInputStream_test XercesC::XercesC)
-target_link_libraries(Bzip2InputStream_test XercesC::XercesC)
-target_link_libraries(CompressedInputSource_test XercesC::XercesC)
 target_link_libraries(ZipRandomAccessFile_test libzip::zip)
-target_link_libraries(LPWrapper_test ${LPTARGET})
+target_link_libraries(UniqueIdGenerator_test Threads::Threads)
 target_link_libraries(SpectraSTSimilarityScore_test Eigen3::Eigen)
 target_link_libraries(BinnedSpectrum_test Eigen3::Eigen)
 target_link_libraries(BilinearInterpolation_test Eigen3::Eigen)
 target_link_libraries(MatrixEigen_test Eigen3::Eigen)
 target_link_libraries(MRMScoring_test Eigen3::Eigen)
+# The vendored Percolator is linked PRIVATE into libOpenMS with hidden symbols.
+# These tests call its classes directly, so they link the static library.
+target_link_libraries(PercolatorPosteriorEstimator_test OpenMS_Percolator)
+target_link_libraries(PercolatorTron_test OpenMS_Percolator)
+target_link_libraries(PercolatorNewton_test OpenMS_Percolator)
+target_link_libraries(PercolatorSampler_test OpenMS_Percolator)
+target_link_libraries(PercolatorBestPositive_test OpenMS_Percolator)
+target_link_libraries(PercolatorScores_test OpenMS_Percolator)
 
 
 if (WITH_HDF5)
@@ -172,6 +194,11 @@ target_link_libraries(ProteinGroupArrowExport_test
   ${OPENMS_PARQUET_TARGET}
 )
 target_link_libraries(QPXFile_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+)
+# Reads the mz view's schema and list columns with Arrow itself
+target_link_libraries(QPXDatasetExport_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
 )
@@ -324,10 +351,25 @@ if (TARGET BrukerTimsFile_test AND OPENTIMS_DDA_TEST_DATA)
   set_tests_properties(BrukerTimsFile_test PROPERTIES TIMEOUT 3600)
 endif()
 
-if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
-  target_compile_definitions(ThermoRawFile_test PRIVATE
-    THERMO_RAW_TEST_DATA="${THERMO_RAW_TEST_DATA}")
+# Real Bruker TSF runs (timsTOF without ion mobility), if given: OPENTIMS_TSF_TEST_DATA, the .d directory of an LC-MS run
+# with TIMS off (MassIVE MSV000095813, 'Molecular Networking_OE_timsOFF.d'), and OPENTIMS_TSF_IMAGING_TEST_DATA, that of a
+# MALDI imaging run (MassIVE MSV000088438, 20210920_vc_rugose_1mMTCA_gordon.d). The tests compare with the Bruker SDK.
+if (TARGET BrukerTimsFile_test AND OPENTIMS_TSF_TEST_DATA)
+  target_compile_definitions(BrukerTimsFile_test PRIVATE OPENTIMS_TSF_TEST_DATA="${OPENTIMS_TSF_TEST_DATA}")
 endif()
+if (TARGET BrukerTimsImagingFile_test AND OPENTIMS_TSF_IMAGING_TEST_DATA)
+  target_compile_definitions(BrukerTimsImagingFile_test PRIVATE OPENTIMS_TSF_IMAGING_TEST_DATA="${OPENTIMS_TSF_IMAGING_TEST_DATA}")
+endif()
+
+# Tests reading real Thermo .raw files: ThermoRawFile_test reads both fixtures, the
+# random-access tests only the small one.
+set(_thermo_raw_tests ThermoRawFile_test OnDiscThermoRawExperiment_test SpectrumAccessOnDisc_test)
+foreach(_thermo_test ${_thermo_raw_tests})
+  if (TARGET ${_thermo_test} AND WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
+    target_compile_definitions(${_thermo_test} PRIVATE
+      THERMO_RAW_TEST_DATA="${THERMO_RAW_TEST_DATA}")
+  endif()
+endforeach()
 
 # Optional Thermo FAIMS-DIA integration fixture. It can be supplied explicitly via
 # THERMO_FAIMS_DIA_TEST_DATA or downloaded by ENABLE_THERMO_FAIMS_DIA_TESTS.
@@ -339,19 +381,21 @@ if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_FAIMS_DIA_TEST_DATA
     THERMO_FAIMS_DIA_TEST_DATA="${_thermo_faims_dia_test_data}")
 endif()
 
-if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND
-    (THERMO_RAW_TEST_DATA OR THERMO_FAIMS_DIA_TEST_DATA))
-  set_tests_properties(ThermoRawFile_test PROPERTIES TIMEOUT 1200)
+foreach(_thermo_test ${_thermo_raw_tests})
+  if (TARGET ${_thermo_test} AND WITH_THERMO_RAW AND
+      (THERMO_RAW_TEST_DATA OR (_thermo_test STREQUAL "ThermoRawFile_test" AND THERMO_FAIMS_DIA_TEST_DATA)))
+    set_tests_properties(${_thermo_test} PROPERTIES TIMEOUT 1200)
 
-  # Copy the managed bridge runtime (.dll + .runtimeconfig.json) next to the
-  # test binary. The bridge looks first in the executable's own directory; on
-  # Windows the test exe is in src/tests/class_tests/bin (not next to
-  # libOpenMS), so the OpenMS-target POST_BUILD copy in src/openms/CMakeLists
-  # is in a different directory and would not be found at test runtime.
-  if (COMMAND openms_thermo_bridge_copy_runtime_files)
-    openms_thermo_bridge_copy_runtime_files(TARGET ThermoRawFile_test)
+    # Copy the managed bridge runtime (.dll + .runtimeconfig.json) next to the
+    # test binary. The bridge looks first in the executable's own directory; on
+    # Windows the test exe is in src/tests/class_tests/bin (not next to
+    # libOpenMS), so the OpenMS-target POST_BUILD copy in src/openms/CMakeLists
+    # is in a different directory and would not be found at test runtime.
+    if (COMMAND openms_thermo_bridge_copy_runtime_files)
+      openms_thermo_bridge_copy_runtime_files(TARGET ${_thermo_test})
+    endif()
   endif()
-endif()
+endforeach()
 
 #------------------------------------------------------------------------------
 # restore old compiler flags

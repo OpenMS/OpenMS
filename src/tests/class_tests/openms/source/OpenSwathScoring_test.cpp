@@ -6,6 +6,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 #include <memory>
+#include <numeric>
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
@@ -23,6 +24,8 @@ ThisShouldFailAtCompileTime = 0
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/MockObjects.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -48,6 +51,88 @@ MSSpectrum generateImSpec(int k_min, int k_max, double rt)
 }
 
 
+
+// names of the scores that differ between @p a and @p b
+std::string differingScores(const OpenSwath_Scores& a, const OpenSwath_Scores& b)
+{
+  std::string differing;
+#define CHECK_SCORE(field) if (!(a.field == b.field)) differing += std::string(#field) + " ";
+  CHECK_SCORE(elution_model_fit_score);
+  CHECK_SCORE(library_corr);
+  CHECK_SCORE(library_norm_manhattan);
+  CHECK_SCORE(library_rootmeansquare);
+  CHECK_SCORE(library_sangle);
+  CHECK_SCORE(norm_rt_score);
+  CHECK_SCORE(isotope_correlation);
+  CHECK_SCORE(isotope_overlap);
+  CHECK_SCORE(massdev_score);
+  CHECK_SCORE(xcorr_coelution_score);
+  CHECK_SCORE(xcorr_shape_score);
+  CHECK_SCORE(yseries_score);
+  CHECK_SCORE(bseries_score);
+  CHECK_SCORE(log_sn_score);
+  CHECK_SCORE(weighted_coelution_score);
+  CHECK_SCORE(weighted_xcorr_shape);
+  CHECK_SCORE(weighted_massdev_score);
+  CHECK_SCORE(ms1_xcorr_coelution_score);
+  CHECK_SCORE(ms1_xcorr_coelution_contrast_score);
+  CHECK_SCORE(ms1_xcorr_coelution_combined_score);
+  CHECK_SCORE(ms1_xcorr_shape_score);
+  CHECK_SCORE(ms1_xcorr_shape_contrast_score);
+  CHECK_SCORE(ms1_xcorr_shape_combined_score);
+  CHECK_SCORE(ms1_ppm_score);
+  CHECK_SCORE(ms1_isotope_correlation);
+  CHECK_SCORE(ms1_isotope_overlap);
+  CHECK_SCORE(ms1_mi_score);
+  CHECK_SCORE(ms1_mi_contrast_score);
+  CHECK_SCORE(ms1_mi_combined_score);
+  CHECK_SCORE(im_xcorr_coelution_score);
+  CHECK_SCORE(im_xcorr_shape_score);
+  CHECK_SCORE(im_delta_score);
+  CHECK_SCORE(im_ms1_delta_score);
+  CHECK_SCORE(im_drift);
+  CHECK_SCORE(im_drift_left);
+  CHECK_SCORE(im_drift_right);
+  CHECK_SCORE(im_drift_weighted);
+  CHECK_SCORE(im_delta);
+  CHECK_SCORE(im_log_intensity);
+  CHECK_SCORE(im_ms1_contrast_coelution);
+  CHECK_SCORE(im_ms1_contrast_shape);
+  CHECK_SCORE(im_ms1_sum_contrast_coelution);
+  CHECK_SCORE(im_ms1_sum_contrast_shape);
+  CHECK_SCORE(im_ms1_drift);
+  CHECK_SCORE(im_ms1_delta);
+  CHECK_SCORE(im_ind_contrast_coelution);
+  CHECK_SCORE(im_ind_contrast_shape);
+  CHECK_SCORE(im_ind_sum_contrast_coelution);
+  CHECK_SCORE(im_ind_sum_contrast_shape);
+  CHECK_SCORE(library_manhattan);
+  CHECK_SCORE(library_dotprod);
+  CHECK_SCORE(intensity);
+  CHECK_SCORE(total_xic);
+  CHECK_SCORE(nr_peaks);
+  CHECK_SCORE(sn_ratio);
+  CHECK_SCORE(mi_score);
+  CHECK_SCORE(weighted_mi_score);
+  CHECK_SCORE(rt_difference);
+  CHECK_SCORE(normalized_experimental_rt);
+  CHECK_SCORE(raw_rt_score);
+  CHECK_SCORE(dotprod_score_dia);
+  CHECK_SCORE(manhatt_score_dia);
+#undef CHECK_SCORE
+  return differing;
+}
+
+MSSpectrum peaksSpectrum(double rt, const std::vector<std::pair<double, double>>& peaks)
+{
+  MSSpectrum spectrum;
+  spectrum.setRT(rt);
+  for (const auto& peak : peaks)
+  {
+    spectrum.push_back(Peak1D(peak.first, peak.second));
+  }
+  return spectrum;
+}
 
 START_TEST(OpenSwathScoring, "$Id$")
 
@@ -602,4 +687,121 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
   }
 }
 END_SECTION
+
+START_SECTION([EXTRA] ScoreSubset: RANKING followed by REMAINDER gives the scores of ALL)
+{
+  // a peak group of two transitions (precursor m/z 500, charge 2) with two precursor isotope traces
+  std::vector<double> intensity1 {5.97543668746948, 4.2749171257019, 3.3301842212677, 4.08597040176392, 5.50307035446167, 5.24326848983765,
+                                  8.40812492370605, 2.83419919013977, 6.94378805160522, 7.69957494735718, 4.08597040176392};
+  std::vector<double> intensity2 {15.8951349258423, 41.5446395874023, 76.0746307373047, 109.069435119629, 111.90364074707, 169.79216003418,
+                                  121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108};
+  std::vector<double> ms1intensity1 {0.0, 110.0, 200.0, 270.0, 320.0, 350.0, 360.0, 350.0, 320.0, 270.0, 200.0};
+  std::vector<double> ms1intensity2 {10.0, 115.0, 180.0, 280.0, 330.0, 340.0, 390.0, 320.0, 300.0, 250.0, 100.0};
+  auto trace = [](const std::vector<double>& intensity)
+  {
+    std::shared_ptr<OpenSwath::MockFeature> feature(new OpenSwath::MockFeature());
+    feature->m_intensity_vec = intensity;
+    feature->m_intensity = static_cast<float>(std::accumulate(intensity.begin(), intensity.end(), 0.0));
+    feature->m_rt = 20.0;
+    return feature;
+  };
+  OpenSwath::MockMRMFeature feature;
+  feature.m_features["tr1"] = trace(intensity1);
+  feature.m_features["tr2"] = trace(intensity2);
+  feature.m_precursor_features["prec_0"] = trace(ms1intensity1);
+  feature.m_precursor_features["prec_1"] = trace(ms1intensity2);
+  feature.m_rt = 20.0;
+  feature.m_intensity = feature.m_features["tr1"]->m_intensity + feature.m_features["tr2"]->m_intensity;
+  feature.m_metavalue = 0.0;
+  const std::vector<std::string> native_ids {"tr1", "tr2"};
+  const std::vector<std::string> precursor_ids {"prec_0", "prec_1"};
+  const std::vector<double> library_intensity {0.3, 0.7};
+
+  std::vector<OpenSwath::LightTransition> transitions(2);
+  transitions[0].transition_name = "tr1";
+  transitions[0].product_mz = 400.2;
+  transitions[0].library_intensity = 30;
+  transitions[1].transition_name = "tr2";
+  transitions[1].product_mz = 600.3;
+  transitions[1].library_intensity = 70;
+  for (OpenSwath::LightTransition& transition : transitions)
+  {
+    transition.peptide_ref = "pep";
+    transition.precursor_mz = 500.0;
+    transition.fragment_charge = 1;
+  }
+  OpenSwath::LightCompound compound;
+  compound.id = "pep";
+  compound.sequence = "PEPTIDEK";
+  compound.charge = 2;
+
+  // fragments and precursor with their isotopes
+  std::shared_ptr<PeakMap> swath_map(new PeakMap);
+  std::shared_ptr<PeakMap> ms1_map(new PeakMap);
+  for (double rt : {19.0, 20.0, 21.0})
+  {
+    swath_map->addSpectrum(peaksSpectrum(rt, {{400.2, 1000.0}, {401.2034, 450.0}, {402.2067, 120.0},
+                                              {600.3, 2000.0}, {601.3034, 900.0}, {602.3067, 300.0}}));
+    ms1_map->addSpectrum(peaksSpectrum(rt, {{500.0, 1000.0}, {500.5017, 600.0}, {501.0034, 250.0}}));
+  }
+  std::vector<OpenSwath::SwathMap> swath_maps(1);
+  swath_maps[0].sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+  OpenSwath::SpectrumAccessPtr ms1_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(ms1_map);
+
+  std::vector<OpenSwath::ISignalToNoisePtr> signal_noise;
+  for (Size i = 0; i < native_ids.size(); ++i)
+  {
+    std::shared_ptr<OpenSwath::MockSignalToNoise> sn(new OpenSwath::MockSignalToNoise());
+    sn->m_sn_value = 10.0 + i;
+    signal_noise.push_back(sn);
+  }
+
+  // the scores of MRMFeatureFinderScoring::scorePeakgroups() when it defers the unranked scores
+  OpenSwath_Scores_Usage su;
+  su.use_im_scores = false;
+  su.use_uis_scores = false;
+  OpenSwathScoring sc;
+  sc.initialize(1.0, 1, 0.005, 0.20, 0.0, su, "simple", "fixed", false, false);
+  DIAScoring diascoring;
+  const OpenMS::RangeMobility im_range;
+
+  OpenSwath_Scores all;
+  std::vector<double> masserror_all;
+  sc.calculateChromatographicScores(&feature, native_ids, precursor_ids, library_intensity, signal_noise, all);
+  sc.calculateDIAScores(&feature, transitions, library_intensity, swath_maps, ms1_ptr, diascoring, compound, all, masserror_all,
+                        -1, im_range, nullptr, -1);
+
+  OpenSwath_Scores split;
+  std::vector<double> masserror_ranking;
+  sc.calculateChromatographicScores(&feature, native_ids, precursor_ids, library_intensity, signal_noise, split,
+                                    OpenSwathScoring::ScoreSubset::RANKING);
+  sc.calculateDIAScores(&feature, transitions, library_intensity, swath_maps, ms1_ptr, diascoring, compound, split, masserror_ranking,
+                        -1, im_range, nullptr, -1, OpenSwathScoring::ScoreSubset::RANKING);
+  const OpenSwath_Scores ranking = split;
+  std::vector<double> masserror_remainder;
+  sc.calculateChromatographicScores(&feature, native_ids, precursor_ids, library_intensity, signal_noise, split,
+                                    OpenSwathScoring::ScoreSubset::REMAINDER);
+  sc.calculateDIAScores(&feature, transitions, library_intensity, swath_maps, ms1_ptr, diascoring, compound, split, masserror_remainder,
+                        -1, im_range, nullptr, -1, OpenSwathScoring::ScoreSubset::REMAINDER);
+
+  TEST_EQUAL(differingScores(split, all), "")
+  TEST_EQUAL(masserror_ranking == masserror_all, true)
+  // the ranking scores already give the prescore of all scores
+  TEST_EQUAL(ranking.calculate_swath_lda_prescore(ranking), all.calculate_swath_lda_prescore(all))
+
+  // the test covers the scores of both subsets
+  TEST_NOT_EQUAL(all.xcorr_shape_score, 0)
+  TEST_NOT_EQUAL(all.isotope_correlation, 0)
+  TEST_NOT_EQUAL(all.mi_score, 0)
+  TEST_NOT_EQUAL(all.ms1_xcorr_shape_score, -1)
+  TEST_NOT_EQUAL(all.ms1_mi_score, -1)
+  TEST_NOT_EQUAL(all.dotprod_score_dia, 0)
+  TEST_NOT_EQUAL(all.ms1_isotope_correlation, 0)
+  TEST_EQUAL(ranking.mi_score, 0)
+  TEST_EQUAL(ranking.ms1_xcorr_shape_score, -1)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 END_TEST
