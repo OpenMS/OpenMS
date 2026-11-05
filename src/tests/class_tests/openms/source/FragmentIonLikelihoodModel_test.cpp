@@ -663,6 +663,14 @@ START_SECTION((void matchIons(const PeakLists& peaks, Size index, const MSSpectr
   TEST_EXCEPTION(Exception::InvalidValue, rich.matchIons(peaks, 0, coded, types, ordinals, short_charges, peptide, 2, 20.0, true, out))
   TEST_EXCEPTION(Exception::InvalidValue, rich.matchIons(peaks, 0, coded, short_types, ordinals, charges, peptide, 2, 20.0, true, out))
   TEST_EXCEPTION(Exception::InvalidParameter, rich.matchIons(peaks, 0, coded, types, ordinals, charges, peptide, 2, 0.0, true, out))
+
+  // a type of no ion series (Residue::Full, ...) is not an ion, as for parseIonSeries()
+  peaks.assign(0, observed_(peptide));
+  rich.matchIons(peaks, 0, coded, types, ordinals, charges, peptide, 2, 20.0, true, out);
+  TEST_EQUAL(out.empty(), false)
+  const std::vector<Residue::ResidueType> other_types(types.size(), Residue::Full);
+  rich.matchIons(peaks, 0, coded, other_types, ordinals, charges, peptide, 2, 20.0, true, out);
+  TEST_EQUAL(out.empty(), true)
 }
 END_SECTION
 

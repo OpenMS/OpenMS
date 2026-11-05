@@ -3610,6 +3610,37 @@ add_test("TOPP_OpenNuXL_legacy_mass_delta_check" ${CMAKE_COMMAND}
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_OpenNuXL_legacy_mass_delta_check" PROPERTIES DEPENDS "TOPP_OpenNuXL_legacy_mass_delta")
 
+# OpenNuXL on Thermo .raw input, read natively (no ThermoRawFileParser, no mzML conversion), and on the same run
+# converted to mzML: both have to give the same identifications. OpenNuXL writes '<input>.ambiguous_masses.csv' next to
+# its input, so the .raw is searched as a copy in the temporary directory, not in the fetched fixture's directory. The
+# fixture is Angiotensin I (DRVYIHPFHL), a synthetic standard without cross-links, searched against its own entry plus
+# 41 human proteins (see TOPP_ProSE_raw).
+# The Bruker timsTOF .d test is with the other OpenTIMS tests (TOPP_OpenNuXL_DDA), as it needs their symlinked fixture.
+if (WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
+  set(_nuxl_raw_args -database ${DATA_DIR_TOPP}/ProSE_raw_database.fasta
+    -precursor:mass_tolerance 10 -precursor:mass_tolerance_unit ppm
+    -fragment:mass_tolerance 20 -fragment:mass_tolerance_unit ppm)
+  add_test("TOPP_OpenNuXL_raw_prepare" ${CMAKE_COMMAND} -E copy ${THERMO_RAW_TEST_DATA} ${TESTS_TEMP_DIR}/OpenNuXL_raw.tmp.raw)
+  add_test("TOPP_OpenNuXL_raw" ${TOPP_BIN_PATH}/OpenNuXL -test -in ${TESTS_TEMP_DIR}/OpenNuXL_raw.tmp.raw ${_nuxl_raw_args}
+    -out ${TESTS_TEMP_DIR}/OpenNuXL_raw_out.tmp.idXML)
+  set_tests_properties("TOPP_OpenNuXL_raw" PROPERTIES DEPENDS "TOPP_OpenNuXL_raw_prepare")
+  add_test("TOPP_OpenNuXL_raw_check" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_raw_out.tmp.idXML
+    "-DEXPECTED=sequence=\"DRVYIHPFHL\";spectrum_reference=\"controllerType=0 controllerNumber=1 scan="
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_OpenNuXL_raw_check" PROPERTIES DEPENDS "TOPP_OpenNuXL_raw")
+  # the same run as mzML (own conversion, so the result does not depend on other tests)
+  add_test("TOPP_OpenNuXL_raw_convert" ${TOPP_BIN_PATH}/FileConverter -test -in ${THERMO_RAW_TEST_DATA}
+    -RawToMzML:reader inprocess -no_progress -out ${TESTS_TEMP_DIR}/OpenNuXL_raw_converted.tmp.mzML)
+  add_test("TOPP_OpenNuXL_raw_mzML" ${TOPP_BIN_PATH}/OpenNuXL -test -in ${TESTS_TEMP_DIR}/OpenNuXL_raw_converted.tmp.mzML
+    ${_nuxl_raw_args} -out ${TESTS_TEMP_DIR}/OpenNuXL_raw_mzML_out.tmp.idXML)
+  set_tests_properties("TOPP_OpenNuXL_raw_mzML" PROPERTIES DEPENDS "TOPP_OpenNuXL_raw_convert")
+  # only the date, the database and the name of the spectra file may differ
+  add_test("TOPP_OpenNuXL_raw_out1" ${DIFF} -whitelist "IdentificationRun date" "db=" "db_version=" "spectra_data"
+    -in1 ${TESTS_TEMP_DIR}/OpenNuXL_raw_out.tmp.idXML -in2 ${TESTS_TEMP_DIR}/OpenNuXL_raw_mzML_out.tmp.idXML)
+  set_tests_properties("TOPP_OpenNuXL_raw_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_raw;TOPP_OpenNuXL_raw_mzML")
+endif()
+
 #------------------------------------------------------------------------------
 # SeedListGenerator tests
 add_test("TOPP_SeedListGenerator_1" ${TOPP_BIN_PATH}/SeedListGenerator -test -in ${DATA_DIR_TOPP}/PepXMLFile_test.mzML -out_prefix tmp_path/SeedListGenerator_1_output_tmp)
@@ -3909,36 +3940,98 @@ set_tests_properties("TOPP_FalseDiscoveryRate_8_out1" PROPERTIES DEPENDS "TOPP_F
 #------------------------------------------------------------------------------
 # IDPosteriorErrorProbability
 # Mascot input:
-add_test("TOPP_IDPosteriorErrorProbability_1" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_Mascot_input.idXML -out 	${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_1.tmp.idXML)
+# tests 1-6 and 8: toy inputs without decoys (20-41 PSMs), hence a lower minimum number of scores for the mixture model (default 35)
+add_test("TOPP_IDPosteriorErrorProbability_1" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_Mascot_input.idXML -out 	${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_1.tmp.idXML -fit_algorithm:min_mixture_scores 3)
 add_test("TOPP_IDPosteriorErrorProbability_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_1.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_Mascot_output.idXML)
 set_tests_properties("TOPP_IDPosteriorErrorProbability_1_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_1")
 # X! Tandem input:
-add_test("TOPP_IDPosteriorErrorProbability_2" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_XTandem_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_2.tmp.idXML)
+add_test("TOPP_IDPosteriorErrorProbability_2" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_XTandem_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_2.tmp.idXML -fit_algorithm:min_mixture_scores 3)
 add_test("TOPP_IDPosteriorErrorProbability_2_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_2.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_XTandem_output.idXML)
 set_tests_properties("TOPP_IDPosteriorErrorProbability_2_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_2")
 # OMSSA input:
-add_test("TOPP_IDPosteriorErrorProbability_3" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_OMSSA_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_3.tmp.idXML)
+add_test("TOPP_IDPosteriorErrorProbability_3" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_OMSSA_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_3.tmp.idXML -fit_algorithm:min_mixture_scores 3)
 add_test("TOPP_IDPosteriorErrorProbability_3_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_3.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_OMSSA_output.idXML)
 set_tests_properties("TOPP_IDPosteriorErrorProbability_3_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_3")
 # OMSSA input with "split_charge":
-add_test("TOPP_IDPosteriorErrorProbability_4" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_OMSSA_input2.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_4.tmp.idXML -split_charge)
+add_test("TOPP_IDPosteriorErrorProbability_4" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_OMSSA_input2.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_4.tmp.idXML -split_charge -fit_algorithm:min_mixture_scores 3)
 add_test("TOPP_IDPosteriorErrorProbability_4_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_4.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_OMSSA_output2.idXML)
 set_tests_properties("TOPP_IDPosteriorErrorProbability_4_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_4")
 # X! Tandem input with "split_charge":
-add_test("TOPP_IDPosteriorErrorProbability_5" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_XTandem_input2.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_5.tmp.idXML -split_charge)
+add_test("TOPP_IDPosteriorErrorProbability_5" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_XTandem_input2.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_5.tmp.idXML -split_charge -fit_algorithm:min_mixture_scores 3)
 add_test("TOPP_IDPosteriorErrorProbability_5_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_5.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_XTandem_output2.idXML)
 set_tests_properties("TOPP_IDPosteriorErrorProbability_5_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_5")
 # Mascot input with "split_charge":
-add_test("TOPP_IDPosteriorErrorProbability_6" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_Mascot_input2.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_6.tmp.idXML -split_charge)
+add_test("TOPP_IDPosteriorErrorProbability_6" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_Mascot_input2.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_6.tmp.idXML -split_charge -fit_algorithm:min_mixture_scores 3)
 add_test("TOPP_IDPosteriorErrorProbability_6_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_6.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_Mascot_output2.idXML)
 set_tests_properties("TOPP_IDPosteriorErrorProbability_6_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_6")
 # with "ignore_bad_data" (no check for correctness of output, bc of unresolved platform specific errors):
 add_test("TOPP_IDPosteriorErrorProbability_7" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_bad_data.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_bad_data_output.tmp.idXML -ignore_bad_data)
 # add_test("TOPP_IDPosteriorErrorProbability_7_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_bad_data_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_bad_data_out.idXML)
 # with "prob_correct":
-add_test("TOPP_IDPosteriorErrorProbability_8" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_OMSSA_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_8.tmp.idXML -prob_correct)
+add_test("TOPP_IDPosteriorErrorProbability_8" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_OMSSA_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_8.tmp.idXML -prob_correct -fit_algorithm:min_mixture_scores 3)
 add_test("TOPP_IDPosteriorErrorProbability_8_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_8.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_prob_correct_output.idXML)
 set_tests_properties("TOPP_IDPosteriorErrorProbability_8_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_8")
+# target/decoy annotated inputs (PEPs live in [0,1]: compare with the relative tolerance, without FuzzyDiff.ini's absdiff of 0.01)
+# OMSSA (e-values), 446 decoys: non-parametric target-decoy estimate (default 'auto'):
+add_test("TOPP_IDPosteriorErrorProbability_9" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_9.tmp.idXML)
+add_test("TOPP_IDPosteriorErrorProbability_9_out1" ${DIFF} -absdiff 0 -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_9.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_9_output.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_9_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_9")
+# SimpleSearchEngine (hyperscore, i.e. a raw score), 66 decoys: non-parametric target-decoy estimate
+add_test("TOPP_IDPosteriorErrorProbability_10" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_10.tmp.idXML)
+add_test("TOPP_IDPosteriorErrorProbability_10_out1" ${DIFF} -absdiff 0 -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_10.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_10_output.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_10_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_10")
+# OMSSA with "split_charge": charge state 2 has too few decoys (9), the targets of charge state 1 do not score better than its decoys (AUC 0.22):
+# both use the target-decoy data of all charge states; charge states 3 and 4 get their own models
+add_test("TOPP_IDPosteriorErrorProbability_11" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_11.tmp.idXML -split_charge)
+add_test("TOPP_IDPosteriorErrorProbability_11_out1" ${DIFF} -absdiff 0 -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_11.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_11_output.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_11_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_11")
+# no usable score (main score is a q-value of an unknown search engine): fails, unless "ignore_bad_data" is set (then: PEP 1, original score kept)
+add_test("TOPP_IDPosteriorErrorProbability_12" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_qvalue_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_12.tmp.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_12" PROPERTIES WILL_FAIL 1)
+add_test("TOPP_IDPosteriorErrorProbability_13" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_qvalue_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_13.tmp.idXML -ignore_bad_data)
+add_test("TOPP_IDPosteriorErrorProbability_13_out1" ${DIFF} -absdiff 0 -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_13.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_13_output.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_13_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_13")
+# "split_charge": charge state 2 has 5 targets and the only decoy, charge state 3 has 20 targets and no decoys. Both use the target-decoy data
+# of all charge states (charge state 2 although it holds all decoys: the other charge states add targets)
+add_test("TOPP_IDPosteriorErrorProbability_14" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_split_charge_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_14.tmp.idXML -split_charge)
+add_test("TOPP_IDPosteriorErrorProbability_14_out1" ${DIFF} -absdiff 0 -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_14.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_14_output.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_14_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_14")
+# two X! Tandem runs, only the first with e-values (the score type of the model): its hits without e-value get PEP 1 (original score
+# as meta value), the second run keeps its original scores and score type (without -ignore_bad_data)
+add_test("TOPP_IDPosteriorErrorProbability_15" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_two_runs_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_15.tmp.idXML)
+add_test("TOPP_IDPosteriorErrorProbability_15_out1" ${DIFF} -absdiff 0 -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_15.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_15_output.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_15_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_15")
+# no decoys, "split_charge": charge state 2 (40 PSMs) gets its own mixture model, charge state 3 (12 PSMs, fewer than
+# fit_algorithm:min_mixture_scores) the mixture model of all charge states (EM fit: small absolute tolerance, well below 1% PEP)
+add_test("TOPP_IDPosteriorErrorProbability_16" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_small_charge_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_16.tmp.idXML -split_charge)
+add_test("TOPP_IDPosteriorErrorProbability_16_out1" ${DIFF} -absdiff 1e-3 -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_16.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_16_output.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_16_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_16")
+# no decoys and too few PSMs for the mixture model (20): fails, unless "ignore_bad_data" is set (then: PEP 1, original score kept)
+add_test("TOPP_IDPosteriorErrorProbability_17" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_XTandem_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_17.tmp.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_17" PROPERTIES WILL_FAIL 1)
+add_test("TOPP_IDPosteriorErrorProbability_18" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_XTandem_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_18.tmp.idXML -ignore_bad_data)
+add_test("TOPP_IDPosteriorErrorProbability_18_out1" ${DIFF} -absdiff 0 -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_18.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_18_output.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_18_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_18")
+# no decoys, "split_charge": the mixture model of charge state 3 (36 PSMs, all scores tied) cannot be fitted, so charge state 3 uses the
+# mixture model of all charge states; charge state 2 (60 PSMs) gets its own model (EM fit: small absolute tolerance, well below 1% PEP)
+add_test("TOPP_IDPosteriorErrorProbability_19" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_failed_charge_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_19.tmp.idXML -split_charge)
+add_test("TOPP_IDPosteriorErrorProbability_19_out1" ${DIFF} -absdiff 1e-3 -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_19.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_19_output.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_19_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_19")
+
+# "fit_level peptide": the model is fitted to the best top hit of each peptide (OMSSA, 3 runs: 779 target and 439 decoy peptides instead
+# of 1088 target and 446 decoy top hits); every PSM gets the PEP of this model at its score
+add_test("TOPP_IDPosteriorErrorProbability_20" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_20.tmp.idXML -fit_level peptide)
+add_test("TOPP_IDPosteriorErrorProbability_20_out1" ${DIFF} -absdiff 0 -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_20.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_20_output.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_20_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_20")
+# "split_run": one model per MS run (the three OMSSA runs have no spectra files, so they are grouped by identification run);
+# same PEPs as fitting each run in a file of its own
+add_test("TOPP_IDPosteriorErrorProbability_21" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_21.tmp.idXML -split_run)
+add_test("TOPP_IDPosteriorErrorProbability_21_out1" ${DIFF} -absdiff 0 -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_21.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_21_output.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_21_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_21")
+# "split_run" with a single MS run: same output as without it (test 10)
+add_test("TOPP_IDPosteriorErrorProbability_22" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_input.idXML -out ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_22.tmp.idXML -split_run)
+add_test("TOPP_IDPosteriorErrorProbability_22_out1" ${DIFF} -absdiff 0 -in1 ${TESTS_TEMP_DIR}/IDPosteriorErrorProbability_output_22.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_10_output.idXML)
+set_tests_properties("TOPP_IDPosteriorErrorProbability_22_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_22")
 
 #------------------------------------------------------------------------------
 # ProteinQuantifier tests
@@ -5979,14 +6072,15 @@ set_tests_properties("TOPP_SimpleSearchEngine_2_out" PROPERTIES DEPENDS
 # runs the tool's configuration.
 set(_prose_library_defaults -Search:decoy_method reverse -Search:rescoring:terminal_features false
   -Search:rescoring:stratum_q_values false -Search:rescoring:calc_mass_feature true
-  -Search:precursor:recorded_charge_outside_range search)
-# (the run: exit code 0; the tool's defaults: written with -write_ini and checked, all seven)
+  -Search:precursor:recorded_charge_outside_range search -Search:precursor:isotope_error_min -1)
+# (calibration:enabled, the tool's other default, is skipped on these small inputs and tested by ProSE_4; the run: exit
+# code 0; the tool's defaults: written with -write_ini and checked, all eight)
 add_test(NAME "TOPP_ProSE_tool_defaults" COMMAND ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML;-database;${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_tool_defaults.tmp.idXML"
   -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=decoys=generate" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
 add_test("TOPP_ProSE_tool_defaults_ini" ${TOPP_BIN_PATH}/ProSE -write_ini ${TESTS_TEMP_DIR}/ProSE_tool_defaults.tmp.ini)
 add_test("TOPP_ProSE_tool_defaults_ini_check" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_tool_defaults.tmp.ini
-  "-DEXPECTED=name=\"decoys\" value=\"generate\";name=\"decoy_method\" value=\"keep_termini\";LISTITEM value=\"Acetyl (Protein N-term)\";name=\"terminal_features\" value=\"true\";name=\"stratum_q_values\" value=\"true\";name=\"calc_mass_feature\" value=\"false\";name=\"recorded_charge_outside_range\" value=\"skip\""
+  "-DEXPECTED=name=\"decoys\" value=\"generate\";name=\"decoy_method\" value=\"keep_termini\";LISTITEM value=\"Acetyl (Protein N-term)\";name=\"terminal_features\" value=\"true\";name=\"stratum_q_values\" value=\"true\";name=\"calc_mass_feature\" value=\"false\";name=\"recorded_charge_outside_range\" value=\"skip\";name=\"isotope_error_min\" value=\"-2\""
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_ProSE_tool_defaults_ini_check" PROPERTIES DEPENDS "TOPP_ProSE_tool_defaults_ini")
 # Reused decoys that rarely start with M (whole-protein reversal, decoys 'auto'): the requested terminal features and
@@ -7220,6 +7314,31 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
       ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_fdr.tmp.idXML 4650)
   set_tests_properties("TOPP_FalseDiscoveryRate_ProSEDDA_calibrated_psm_count"
     PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_ProSEDDA_calibrated")
+
+  # OpenNuXL on the DDA-PASEF .d run, read natively. To keep the run time down, the database is reduced to the proteins
+  # ProSE identified (1% PSM FDR, TOPP_FalseDiscoveryRate_ProSEDDA) and only linear peptides are searched (the HeLa run
+  # has no cross-links; -NuXL:length 0). The MS2 spectra carry the ion mobility of their precursor (1/K0), which
+  # OpenNuXL converts to CCS and annotates on every hit (IM); the native IDs are those of the Bruker reader.
+  add_test("TOPP_OpenNuXL_DDA_database" ${TOPP_BIN_PATH}/DatabaseFilter -test
+    -in ${OPENTIMS_TEST_FASTA}
+    -id ${TESTS_TEMP_DIR}/ProSE_DDA_fdr.tmp.idXML
+    -out ${TESTS_TEMP_DIR}/OpenNuXL_DDA_database.tmp.fasta)
+  set_tests_properties("TOPP_OpenNuXL_DDA_database" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_ProSEDDA")
+  add_test("TOPP_OpenNuXL_DDA" ${TOPP_BIN_PATH}/OpenNuXL -test
+    -in ${OPENTIMS_DDA_SYMLINK}
+    -database ${TESTS_TEMP_DIR}/OpenNuXL_DDA_database.tmp.fasta
+    -out ${TESTS_TEMP_DIR}/OpenNuXL_DDA_out.tmp.idXML
+    -precursor:mass_tolerance 20 -precursor:mass_tolerance_unit ppm
+    -fragment:mass_tolerance 20 -fragment:mass_tolerance_unit ppm
+    -NuXL:length 0
+    -threads 4)
+  # TIMEOUT as for the other searches of the full run (TOPP_ProSE_FAIMS_DDA); the run time was not measured yet
+  set_tests_properties("TOPP_OpenNuXL_DDA" PROPERTIES DEPENDS "TOPP_OpenNuXL_DDA_database" TIMEOUT 3600)
+  add_test("TOPP_OpenNuXL_DDA_check" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_DDA_out.tmp.idXML
+    "-DEXPECTED=spectrum_reference=\"frame=;name=\"IM\""
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_OpenNuXL_DDA_check" PROPERTIES DEPENDS "TOPP_OpenNuXL_DDA")
 
   # Chunked + calibration regression guard. Under the pre-#9180 code the chunked
   # calibration path collapsed the asymmetric calibrated window to symmetric max(),

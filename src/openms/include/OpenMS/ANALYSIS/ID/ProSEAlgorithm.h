@@ -1296,10 +1296,17 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     SearchContext prepareContext_(std::vector<FASTAFile::FASTAEntry>&& fasta_db, bool electron_ions,
                                   const std::function<const PeakMap*(Size)>& searched_spectra = {}) const;
 
-    /// Whether a single-use context may index only the peptides the searched spectra can reach: not with
-    /// calibration, which may change the precursor windows after the index is built, and not with chimeric search,
-    /// whose co-isolated precursors the index restriction does not know.
-    bool restrictIndexToSpectra_() const { return !calibration_enabled_ && !chimeric_enabled_; }
+    /// Whether a single-use context may index only the peptides the searched spectra can reach: not with chimeric search,
+    /// whose co-isolated precursors the index restriction does not know. With calibration, the restriction covers the
+    /// windows of the calibration pass (see buildFragmentIndex_()).
+    bool restrictIndexToSpectra_() const { return !chimeric_enabled_; }
+
+    /// Sets @p params on the fragment index of @p ctx and builds it from ctx.db; with @p searched_spectra and calibration,
+    /// restricted to the peptides in the precursor windows of the calibration pass (calibrationPassWindow_())
+    void buildFragmentIndex_(SearchContext& ctx, const Param& params, const std::function<const PeakMap*(Size)>& searched_spectra) const;
+
+    /// The window the calibration pass searches with, from the @p configured one (ppm or Da)
+    static double calibrationPassWindow_(double configured, bool ppm);
 
     /// Whether co-isolated precursors are searched (chimeric:enabled, which database:chunk_size > 0 does not support).
     /// The file-based searches then also read the survey scans.
@@ -1636,6 +1643,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     double calibration_subset_ratio_{0.1};
     bool chimeric_enabled_{false};       ///< chimeric:enabled: also search the precursors co-isolated with the selected one
     Size calibration_min_psms_{50};
+    double calibration_sigma_factor_{4.0};       ///< calibration:sigma_factor (fragment)
+    double calibration_precursor_sigma_factor_{0.0}; ///< calibration:precursor_sigma_factor (0: the precursor window is kept)
+    double calibration_min_precursor_tol_{0.0};  ///< calibration:min_precursor_tolerance (0: by unit)
+    double calibration_min_fragment_tol_{0.0};   ///< calibration:min_fragment_tolerance (0: by unit)
 
     /**
      * @brief Result of a calibration pass.
@@ -1646,13 +1657,19 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      */
     struct CalibrationResult_
     {
-      double precursor_shift{0};     ///< signed median of precursor errors (calibration bias)
-      double precursor_spread{0};    ///< median(|e - shift|) + 3 * MAD(|e - shift|)
+      double precursor_shift{0};     ///< median of the signed precursor errors of the calibration PSMs (the mass offset)
+      double precursor_sigma{0};     ///< their robust standard deviation, 1.4826 * MAD
+      double precursor_spread{0};    ///< the larger side of the window before the caps, max(cal_lower, cal_upper) (diagnostic)
       double cal_lower{0};           ///< calibrated lower magnitude (valid iff !extreme_bias && success)
       double cal_upper{0};           ///< calibrated upper magnitude (valid iff !extreme_bias && success)
       double fragment_tolerance{0};  ///< estimated fragment tolerance (same unit as configured)
-      double fragment_shift{0};      ///< reserved for future fragment m/z shift correction
-      bool extreme_bias{false};      ///< |shift| >= spread — writeback skipped (test observability)
+      double fragment_shift{0};      ///< median of the signed errors of the matched fragment peaks (covered by the window, not corrected)
+      double fragment_sigma{0};      ///< their robust standard deviation, 1.4826 * MAD
+      double precursor_coverage{0};  ///< share of the calibration PSMs inside the precursor window median +/- k sigma
+      double fragment_coverage{0};   ///< share of the matched fragment peaks inside the fragment tolerance
+      Size psms{0};                  ///< calibration PSMs the windows were estimated from
+      Size fragment_peaks{0};        ///< matched fragment peaks the fragment window was estimated from
+      bool extreme_bias{false};      ///< zero spread of the precursor errors: the precursor window is kept (test observability)
       bool success{false};           ///< true if enough PSMs were found for reliable estimation
     };
 

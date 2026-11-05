@@ -47,7 +47,14 @@ public:
         /// scale parameter b
         double b;
 
+        /// log density at @p x. Note: despite its name, the density is fully normalized.
         double log_eval_no_normalize(double x) const;
+
+        /// (normalized) density at @p x
+        double eval(double x) const;
+
+        /// mode of the distribution (equals the location parameter a)
+        double mode() const;
       };
 
       /// Default constructor
@@ -61,13 +68,20 @@ public:
       void setInitialParameters(const GumbelDistributionFitResult & result);
 
       /**
-          @brief Fits a gumbel distribution to the given data x values. Fills a
-          weighted histogram first and generates y values.
+          @brief Fits a Gumbel (maximum) distribution to the data points @p x with weights @p w by weighted maximum likelihood.
+
+          The scale parameter is the unique root of the (monotone) profile score equation, which is solved by
+          safeguarded Newton iterations; the location parameter then follows in closed form.
+          Data points with non-finite values or non-positive weights are ignored.
+          The scale parameter of the initial parameters is the starting point of the iterations (warm start).
+          If no data point remains, the initial parameters are returned.
+          The fitted parameters are used as initial parameters of the next call.
 
           @param[in] x Input x values
-          @param[in] w Input weights
+          @param[in] w Input weights (same length as @p x)
 
-          @exception Exception::UnableToFit is thrown if fitting cannot be performed
+          @exception Exception::InvalidParameter is thrown if @p x and @p w differ in size
+          @exception Exception::UnableToFit is thrown if fitting cannot be performed (e.g. the data have no spread)
       */
       GumbelDistributionFitResult fitWeighted(const std::vector<double> & x, const std::vector<double> & w);
 
