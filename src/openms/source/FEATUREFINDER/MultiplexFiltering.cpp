@@ -342,7 +342,9 @@ namespace OpenMS
         if (mz_idx != -1)
         {
           // So there is a significant peak to the left. This is only a problem, if this peak is not part of the pattern which we currently detect.
-          if (!(peak.checkSatellite(peak.getRTidx(), mz_idx)))
+          // (mz_idx is its index in the white spectrum, the satellites hold indices in exp_centroided_. They differ as soon as
+          // an earlier pattern has blacklisted a peak of lower m/z in this spectrum.)
+          if (!(peak.checkSatellite(peak.getRTidx(), exp_centroided_mapping_.at(peak.getRTidx()).at(mz_idx))))
           {
             return false;
           }
