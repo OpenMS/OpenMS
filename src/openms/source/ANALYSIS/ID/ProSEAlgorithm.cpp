@@ -945,8 +945,8 @@ namespace OpenMS
 
     defaults_.setValue("calibration:enabled", "false",
       "Measure the mass error of the run and search with windows derived from it: a fast calibration pass on the most "
-      "intense spectra (calibration:subset_ratio), searched with at least 20 ppm (0.5 Da) precursor and fragment windows "
-      "(the configured ones if wider) so the error is measured and not censored, takes the offset (median) and the "
+      "intense spectra (calibration:subset_ratio), searched with at least 20 ppm (in Da: twice the configured window, up "
+      "to 0.5 Da) precursor and fragment windows (the configured ones if wider) so the error is measured and not censored, takes the offset (median) and the "
       "spread (robust standard deviation, 1.4826 * MAD) of the signed mass errors of its confident PSMs; the main search "
       "then uses the fragment tolerance |median| + k sigma (calibration:sigma_factor k) within "
       "[calibration:min_fragment_tolerance, the configured tolerance], and the precursor window [median - k sigma, "
@@ -984,7 +984,7 @@ namespace OpenMS
       "The calibrated window never exceeds the configured one.");
     defaults_.setMinFloat("calibration:min_precursor_tolerance", 0.0);
     defaults_.setValue("calibration:min_fragment_tolerance", 0.0,
-      "Smallest calibrated fragment tolerance, in fragment:mass_tolerance_unit (0: 10 ppm or 0.2 Da). "
+      "Smallest calibrated fragment tolerance, in fragment:mass_tolerance_unit (0: 10 ppm or 0.02 Da). "
       "The calibrated tolerance never exceeds the configured one.");
     defaults_.setMinFloat("calibration:min_fragment_tolerance", 0.0);
 
@@ -3523,14 +3523,42 @@ namespace OpenMS
 
     // build fragment index
     startProgress(0, 1, "Building fragment index...");
-    Param this_params = fragmentIndexParameters_(electron_ions);
-    ctx.fragment_index.setParameters(this_params);
-    ctx.fragment_index.build(ctx.db, searched_spectra);
+    buildFragmentIndex_(ctx, fragmentIndexParameters_(electron_ions), searched_spectra);
     ctx.electron_ions = electron_ions;
     endProgress();
     reportDecoyParity_(ctx);
 
     return ctx;
+  }
+
+  double ProSEAlgorithm::calibrationPassWindow_(double configured, bool ppm)
+  {
+    // At least 20 ppm, which measures an error of up to about 20 ppm without censoring it. In Da at least twice the
+    // configured window, up to 0.5 Da: a fixed 0.5 Da would search high-resolution MS2 configured at 0.02 Da 25 times
+    // wider, with more chance matches among the PSMs the error is measured from; ion-trap windows (0.25 Da or more)
+    // get 0.5 Da as before. The configured window if wider.
+    return std::max(configured, ppm ? 20.0 : std::min(0.5, 2.0 * configured));
+  }
+
+  void ProSEAlgorithm::buildFragmentIndex_(SearchContext& ctx, const Param& params,
+                                           const std::function<const PeakMap*(Size)>& searched_spectra) const
+  {
+    if (!searched_spectra || !calibration_enabled_)
+    {
+      ctx.fragment_index.setParameters(params);
+      ctx.fragment_index.build(ctx.db, searched_spectra);
+      return;
+    }
+    // With calibration, the peptides the calibration pass can reach: it searches with the widest precursor windows, and
+    // the calibrated windows of the main search never exceed the configured ones. The tolerances are query-time
+    // parameters of the index (FragmentIndex::updateMembers_()), so the configured ones are set after the build.
+    const bool ppm = precursor_mass_tolerance_unit_ == "ppm";
+    Param pass = params;
+    pass.setValue("precursor:mass_tolerance_lower", calibrationPassWindow_(precursor_mass_tolerance_lower_, ppm));
+    pass.setValue("precursor:mass_tolerance_upper", calibrationPassWindow_(precursor_mass_tolerance_upper_, ppm));
+    ctx.fragment_index.setParameters(pass);
+    ctx.fragment_index.build(ctx.db, searched_spectra);
+    ctx.fragment_index.setParameters(params);
   }
 
   void ProSEAlgorithm::reportDecoyParity_(const SearchContext& ctx) const
@@ -8411,8 +8439,7 @@ namespace OpenMS
         {
           startProgress(0, 1, "Building fragment index with c and z+1 ions...");
           ctx.fragment_index.clear();
-          ctx.fragment_index.setParameters(fragmentIndexParameters_(true));
-          ctx.fragment_index.build(ctx.db, searched_spectra);
+          buildFragmentIndex_(ctx, fragmentIndexParameters_(true), searched_spectra);
           ctx.electron_ions = true;
           endProgress();
         }
@@ -9083,8 +9110,7 @@ namespace OpenMS
           ctx.decoy_is_prefix = strategy.is_prefix;
           ctx.have_decoys = strategy.have_decoys;
           startProgress(0, 1, "Building fragment index...");
-          ctx.fragment_index.setParameters(fragmentIndexParameters_(electron_ions));
-          ctx.fragment_index.build(ctx.db, searched_spectra);
+          buildFragmentIndex_(ctx, fragmentIndexParameters_(electron_ions), searched_spectra);
           ctx.electron_ions = electron_ions;
           endProgress();
           reportDecoyParity_(ctx);
@@ -11037,12 +11063,12 @@ namespace OpenMS
     const bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
     const bool precursor_ppm = (precursor_mass_tolerance_unit_ == "ppm");
 
-    // The pass searches with windows wide enough to measure the error: 20 ppm or 0.5 Da, the configured ones if wider
-    // (an error of up to about 20 ppm is measured, not censored; the windows of the main search are derived from the
-    // measurement below and never exceed the configured ones). Query-time parameters of the index only, restored on exit.
-    const double pass_lower = std::max(precursor_mass_tolerance_lower_, precursor_ppm ? 20.0 : 0.5);
-    const double pass_upper = std::max(precursor_mass_tolerance_upper_, precursor_ppm ? 20.0 : 0.5);
-    const double pass_fragment = std::max(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm ? 20.0 : 0.5);
+    // The pass searches with windows wide enough to measure the error (calibrationPassWindow_(); the windows of the main
+    // search are derived from the measurement below and never exceed the configured ones). Query-time parameters of the
+    // index only, restored on exit.
+    const double pass_lower = calibrationPassWindow_(precursor_mass_tolerance_lower_, precursor_ppm);
+    const double pass_upper = calibrationPassWindow_(precursor_mass_tolerance_upper_, precursor_ppm);
+    const double pass_fragment = calibrationPassWindow_(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
     const Param fi_params_saved = fragment_index.getParameters();
     {
       Param p = fi_params_saved;
@@ -11300,7 +11326,7 @@ namespace OpenMS
       result.fragment_shift = med;
       result.fragment_sigma = sigma;
       const double measured = std::fabs(med) + k * sigma;
-      const double floor = calibration_min_fragment_tol_ > 0 ? calibration_min_fragment_tol_ : (fragment_mass_tolerance_unit_ppm ? 10.0 : 0.2);
+      const double floor = calibration_min_fragment_tol_ > 0 ? calibration_min_fragment_tol_ : (fragment_mass_tolerance_unit_ppm ? 10.0 : 0.02);
       result.fragment_tolerance = std::clamp(measured, std::min(floor, fragment_mass_tolerance_), fragment_mass_tolerance_);
       result.fragment_coverage = std::count_if(fragment_errors.begin(), fragment_errors.end(),
                                                [&](double e) { return std::fabs(e) <= result.fragment_tolerance; }) / static_cast<double>(fragment_errors.size());

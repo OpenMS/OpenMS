@@ -1296,10 +1296,17 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     SearchContext prepareContext_(std::vector<FASTAFile::FASTAEntry>&& fasta_db, bool electron_ions,
                                   const std::function<const PeakMap*(Size)>& searched_spectra = {}) const;
 
-    /// Whether a single-use context may index only the peptides the searched spectra can reach: not with
-    /// calibration, which may change the precursor windows after the index is built, and not with chimeric search,
-    /// whose co-isolated precursors the index restriction does not know.
-    bool restrictIndexToSpectra_() const { return !calibration_enabled_ && !chimeric_enabled_; }
+    /// Whether a single-use context may index only the peptides the searched spectra can reach: not with chimeric search,
+    /// whose co-isolated precursors the index restriction does not know. With calibration, the restriction covers the
+    /// windows of the calibration pass (see buildFragmentIndex_()).
+    bool restrictIndexToSpectra_() const { return !chimeric_enabled_; }
+
+    /// Sets @p params on the fragment index of @p ctx and builds it from ctx.db; with @p searched_spectra and calibration,
+    /// restricted to the peptides in the precursor windows of the calibration pass (calibrationPassWindow_())
+    void buildFragmentIndex_(SearchContext& ctx, const Param& params, const std::function<const PeakMap*(Size)>& searched_spectra) const;
+
+    /// The window the calibration pass searches with, from the @p configured one (ppm or Da)
+    static double calibrationPassWindow_(double configured, bool ppm);
 
     /// Whether co-isolated precursors are searched (chimeric:enabled, which database:chunk_size > 0 does not support).
     /// The file-based searches then also read the survey scans.
