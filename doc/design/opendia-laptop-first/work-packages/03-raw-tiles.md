@@ -18,6 +18,10 @@ Project status is In review, not Done. WP-05 `6423194fc8`, stacked on WP-03 `402
 
 Read raw evidence without keeping all run peaks in memory. Preserve acquisition geometry and observable evidence. Do not merge into `develop` before the combined design passes its correctness, speed and memory checks.
 
+## Redesign direction, 5 November 2026
+
+The external [dia-trace-extract-prototype](https://github.com/okohlbacher/dia-trace-extract-prototype) is a useful grid-extraction reference: organize work by acquisition cycle/isolation lane and join many library queries against a shared observation pass. It is not adopted as an implementation or evidence of OpenDIA performance. Evaluate it against candidate-driven tile queries using the complete workflow cost, including library preparation, retained trace storage, peak-group proposal, scoring and output. Any grid is an index/work partition only: preserve measured RT, m/z, isolation, scan/frame identity, per-centroid IM and missingness exactly, and retain a bounded high-recall recovery query for candidates not found by the fast grid path. Candidate/score acceptance remains with WP-06/07 and full-run resource gates with WP-10.
+
 ## First adapter design, not final architecture constraints
 
 - Reuse the indexed mzML reader and its SWATH-map checks. Do not add a disk-cache format.

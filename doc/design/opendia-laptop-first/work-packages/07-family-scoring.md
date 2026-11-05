@@ -9,6 +9,10 @@
 
 Test the localization null/decoy model before freezing contracts, then implement shared-evidence family scoring informed by that experiment. The 27 October owner clarification also authorizes replacing identification/confidence scoring, including learned models, under the [scoring exploration protocol](../performance-strategy.md#scoring-exploration-is-allowed-including-replacement). This is planned research, not a validated faster model.
 
+## Group proposal and scoring boundary, 5 November 2026
+
+The grouped peak-picker experiment belongs upstream as a candidate/boundary proposal, not as a replacement for transition evidence or the family scorer. Score each retained candidate from its original fragment observations, including missingness, weak and discordant transitions, interference, RT/IM separation and shared/site-discriminating evidence. Test whether early group filtering reduces scoring visits while preserving exhaustive-reference candidate recall and independent identification/localization quality. A faster picker alone, fewer candidates alone, or fewer nominal IDs is not acceptance.
+
 ## Scope
 
 - Start with an exhaustive small-family reference, IPF `PyProphet_inference_test.osw` and known-site data.
@@ -31,6 +35,7 @@ Test the localization null/decoy model before freezing contracts, then implement
 - [ ] A report compares localization and identification errors separately against predeclared thresholds, including unresolved cases and observed failures.
 - [ ] Duplicating references to shared observations does not increase evidence weight, and exhaustive versus sparse scores agree within declared tolerances.
 - [ ] Weak discriminating-ion, no-MS1 and overlapping RT/IM fixtures yield the expected localized, coexisting or unresolved outputs.
+- [ ] Group proposal plus downstream scoring preserves candidate recall and reference quality for weak/missing fragments, a single strong interferer, delayed coelution, overlapping peaks and mobility-separated evidence; report scoring-work reduction separately from scientific quality.
 - [ ] Before contract freeze, review records accepted/rejected model assumptions and required contract revisions, not an unsupported calibration claim.
 - [ ] For the later implementation slice, WP-05/06 adapter tests reproduce reference scores and ambiguity across family page sizes without dropping alternatives.
 

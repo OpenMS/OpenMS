@@ -9,6 +9,10 @@
 
 Retrieve complete local candidate families with high recall, preserving recovery when observed evidence or calibration is weak.
 
+## Grouped peak proposal, 5 November 2026
+
+The current workflow's per-transition peak picks and later consensus/overlap reconciliation motivate a group-level candidate proposal before expensive downstream scoring. A robust group trace may nominate shared RT boundaries, but it must not become a hard filter based on a fixed transition majority: weak or absent fragments, transition-specific delays, interference and partially coeluting groups can otherwise lose true candidates. Treat group support as a cheap proposal/priority signal, retain a broad/recovery route for weak or discordant evidence, and measure candidate recall against an exhaustive small-case oracle before using it to reject work. Keep per-transition evidence available for scoring and explanation. The first implementation is an OpenDIA-scoped opt-in path; other OpenSWATH workflows retain legacy behavior.
+
 ## Scope
 
 - Combine observed proposals with targeted recovery over paged families and full-resolution raw evidence.
@@ -26,6 +30,7 @@ Retrieve complete local candidate families with high recall, preserving recovery
 ## Local merge criteria
 
 - [ ] Candidate IDs and pre-FDR recall match an exhaustive small-case oracle within predeclared thresholds, stratified by abundance and ambiguity.
+- [ ] Group-proposed candidates preserve recall for missing/weak fragments, one-transition interference, delayed transitions, overlapping true peaks and non-identical RT sampling; fallback/recovery reasons are recorded.
 - [ ] Removing MS1/shared anchors or perturbing calibration retains truth through recorded broad/recovery queries.
 - [ ] Peaks spanning more than two tiles preserve full support and competing forms versus an untiled oracle across tile sizes/workers.
 - [ ] IM-separated components, moving isolation windows and discrete FAIMS fixtures retain expected acquisition membership and candidate identities.
