@@ -637,9 +637,9 @@ struct NuXLRTPrediction
   {
     // detect features for accurate (elution profile apex) retention times
     FeatureFinderIdentificationAlgorithm ffid_algo;
-    MzMLFile mzml;
-    mzml.getOptions().addMSLevel(1);
-    mzml.load(spectra_filename, ffid_algo.getMSData());
+    FileHandler fh; // the input of OpenNuXL: mzML, Thermo .raw, Bruker timsTOF .d or mzPeak
+    fh.getOptions().addMSLevel(1);
+    fh.loadExperiment(spectra_filename, ffid_algo.getMSData(), {FileTypes::MZML, FileTypes::RAW, FileTypes::BRUKER_TDF, FileTypes::MZPEAK});
     FeatureMap features;
     ffid_algo.run(peptides, proteins, features, FeatureMap(), spectra_filename);
     
@@ -735,7 +735,21 @@ struct ImmoniumIonsInPeptide
 
     @brief Annotate NA to peptide crosslinks in MS/MS spectra.
 
-    1. Input files: centroided mzML file or Thermo raw file
+    1. Input files (-in): centroided mzML, Thermo .raw, Bruker timsTOF .d (DDA-PASEF) or mzPeak
+       - Thermo .raw is read natively (with Thermo's peak picking, so profile scans are centroided) if OpenMS was built
+         with Thermo RAW support (WITH_THERMO_RAW); no mzML conversion is written next to it. Otherwise it is converted with
+         ThermoRawFileParser (-ThermoRaw_executable, -NET_executable) into '\<input\>.raw.mzML' next to it, which is reused
+         by later runs.
+       - Bruker timsTOF .d directories (and .d.zip archives) need OpenMS built with OpenTIMS support (WITH_OPENTIMS),
+         mzPeak needs mzPeak support (WITH_MZPEAK). Of DDA-PASEF data, the MS2 spectra (one per precursor) are centroided
+         and carry the ion mobility (1/K0) of their precursor, which OpenNuXL converts to CCS and adds to the Percolator
+         features ('IM'). Precursors the instrument assigned no charge to (charge 0) are not searched. The precursor
+         purity (and the removal of co-isolated precursor peaks it enables) is not computed for .d input, as its MS1
+         frames are not collapsed over ion mobility; the 'precursor_purity' feature is then left out.
+       - Every run writes '\<input\>.ambiguous_masses.csv' next to the input (all formats).
+       - With the filter 'pcrecalibration', the recalibrated spectra are written as mzML next to the input
+         ('\<input without extension\>_pc.mzML', e.g. 'run_pc.mzML' for 'run.d' or a natively read 'run.raw'; for a
+         .raw converted with ThermoRawFileParser 'run.raw_pc.mzML', as before) and read from there.
     2. Data preprocessing:
        - (optional, precursor_correction) precursor mass correction
        - (optional, autotune) step determines precursor and fragment mass accuracy
@@ -885,8 +899,24 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<std::string>("mzML,raw"));
+    registerInputFile_("in", "<file>", "", "Input spectra: centroided mzML, Thermo .raw (read natively if OpenMS was built with Thermo RAW support, "
+                                             "otherwise converted to mzML with ThermoRawFileParser, see -ThermoRaw_executable)"
+#ifdef WITH_OPENTIMS
+                                             ", Bruker timsTOF .d (DDA-PASEF)"
+#endif
+#ifdef WITH_MZPEAK
+                                             ", mzPeak"
+#endif
+                                             ".");
+    // .raw is always accepted: without native Thermo RAW support, it is converted with ThermoRawFileParser
+    setValidFormats_("in", {"mzML", "raw",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_MZPEAK
+      "mzpeak",
+#endif
+    });
     registerInputFile_("NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac.", false, true, ListUtils::create<std::string>("skipexists"));
     registerInputFile_("ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable.", false, true, ListUtils::create<std::string>("skipexists"));
 
@@ -1195,12 +1225,39 @@ protected:
     return (plss_Morph < MIN_SHIFTED_IONS && plss_im_MIC < 0.03);
   }
 
-  unordered_map<std::string, PrecursorPurity::PurityScores> calculatePrecursorPurities_(const std::string& in_mzml, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm) const
+  /// The input (-in) without trailing directory separators: a Bruker .d directory may be given with one (shell tab-completion).
+  /// Stripped (as FileHandler::getType() does), so that the names derived from the input (the recalibrated '<input>_pc.mzML',
+  /// '<input>.ambiguous_masses.csv', the primary MS run path) are those of the directory and not of something inside it.
+  std::string inputPath_() const
+  {
+    std::string in = getStringOption_("in");
+    while (in.size() > 1 && (StringUtils::hasSuffix(in, '/') || StringUtils::hasSuffix(in, '\\'))) { in = StringUtils::prefix(in, in.size() - 1); }
+    return in;
+  }
+
+  /// The formats in which OpenNuXL reads its input spectra (-in). Thermo .raw is read here only with native Thermo RAW support
+  /// (WITH_THERMO_RAW): without it, main_() converts it to mzML first. Bruker .d needs WITH_OPENTIMS, mzPeak WITH_MZPEAK
+  /// (FileHandler rejects them otherwise, and so does the format check of -in).
+  static std::vector<FileTypes::Type> spectraFileTypes_()
+  {
+    return {FileTypes::MZML, FileTypes::RAW, FileTypes::BRUKER_TDF, FileTypes::MZPEAK};
+  }
+
+  /// Loads the input spectra @p filename (see spectraFileTypes_()) with the PeakFileOptions @p options
+  static void loadSpectra_(const std::string& filename, PeakMap& spectra, const PeakFileOptions& options = PeakFileOptions(),
+                           ProgressLogger::LogType log = ProgressLogger::NONE)
+  {
+    FileHandler f;
+    f.getOptions() = options;
+    f.loadExperiment(filename, spectra, spectraFileTypes_(), log);
+  }
+
+  unordered_map<std::string, PrecursorPurity::PurityScores> calculatePrecursorPurities_(const std::string& in_spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm) const
   {
     unordered_map<std::string, PrecursorPurity::PurityScores> purities;
     PeakMap tmp_spectra;
     // Important: load both MS1 and MS2 for precursor purity annotation
-    MzMLFile().load(in_mzml, tmp_spectra);
+    loadSpectra_(in_spectra, tmp_spectra);
     int nMS1 = std::count_if(tmp_spectra.begin(), tmp_spectra.end(), [](MSSpectrum& s){ return s.getMSLevel() == 1; });
     OPENMS_LOG_INFO << "Using " << nMS1 << " spectra for precursor purity calculation." << endl;
     if (nMS1 != 0)
@@ -2713,7 +2770,7 @@ protected:
     map<double, size_t> adduct_mass_count;
     map<double, size_t> aa_plus_adduct_mass_count;
     // Output CSV to same directory as input file
-    std::string input_file = getStringOption_("in");
+    std::string input_file = inputPath_();
     std::string dir = File::path(input_file);
     std::string csv_file;
     csv_file = dir;
@@ -2966,7 +3023,7 @@ protected:
 
 #ifdef DEBUG_OpenNuXL
     ofstream dist_file;
-    dist_file.open(getStringOption_("in") + ".fragment_dist.csv");
+    dist_file.open(inputPath_() + ".fragment_dist.csv");
     dist_file << "m/z\tfragments" << "\n";
     for (double mz = 0; mz < 2500.0; mz+=0.03)
     {
@@ -4540,18 +4597,18 @@ protected:
     progresslogger.setLogType(log_type_);
 
     // Parameter: Input
-    FileHandler fh;
-    FileTypes::Type in_type = fh.getType(getStringOption_("in"));
+    const std::string in = inputPath_();
 
-    std::string in_mzml; 
-    if (in_type == FileTypes::MZML)
+    // The spectra read by all steps below: the input itself (mzML, Thermo .raw with native support, Bruker .d, mzPeak), the
+    // mzML that ThermoRawFileParser converts a .raw input into (OpenMS without native Thermo RAW support), or the recalibrated
+    // mzML written by 'pcrecalibration' (see below)
+    std::string in_spectra = in;
+#ifndef WITH_THERMO_RAW
+    if (FileHandler::getType(in) == FileTypes::RAW)
     {
-      in_mzml = getStringOption_("in");
+      in_spectra = convertRawFile_(in);
     }
-    else if (in_type == FileTypes::RAW)
-    {
-      in_mzml = convertRawFile_(getStringOption_("in"));
-    }
+#endif
 
     std::string out_idxml = getStringOption_("out");
     std::string in_db = getStringOption_("database");
@@ -4597,13 +4654,14 @@ protected:
     bool RTpredict = find(filter.begin(), filter.end(), "RTpredict") != filter.end();
 
     if (pcrecalibration) 
-    { // recalibrate data and store in file {input_file_name}_pc.mzML
+    { // recalibrate data and store in file {input_file_name}_pc.mzML, next to the input (whatever its format: for a
+      // natively read Thermo 'run.raw' or a Bruker 'run.d' directory it is 'run_pc.mzML' beside it), which all later steps read
       MSExperiment e;
-      MzMLFile().load(in_mzml, e);
+      loadSpectra_(in_spectra, e);
       correctPrecursors(e);
-      in_mzml = FileHandler::stripExtension(in_mzml) + "_pc.mzML";
-      OPENMS_LOG_INFO << "Writing calibrated file to: " << in_mzml << endl;
-      MzMLFile().store(in_mzml, e);
+      in_spectra = FileHandler::stripExtension(in_spectra) + "_pc.mzML";
+      OPENMS_LOG_INFO << "Writing calibrated file to: " << in_spectra << endl;
+      MzMLFile().store(in_spectra, e);
     }
 
     InternalCalibration ic; // only filled if pcrecalibration is set and there are enough calibrants
@@ -4645,7 +4703,7 @@ protected:
         });
       sse.setParameters(p);
       OPENMS_LOG_INFO << "Running autotune..." << endl;
-      sse.search(in_mzml, in_db, prot_ids, pep_ids);      
+      sse.search(in_spectra, in_db, prot_ids, pep_ids);      
 
       if (RTpredict)
       {
@@ -4655,7 +4713,7 @@ protected:
         IDFilter::filterHitsByScore(peptides, 0.05);
         IDFilter::removeDecoyHits(peptides);
          IDFilter::keepBestPerPeptide(peptides, true, true, 1);
-        rt_pred.train(in_mzml, peptides, prot_ids);
+        rt_pred.train(in_spectra, peptides, prot_ids);
         rt_pred.predict(pep_ids);
 
         // add RT prediction as extra feature for percolator      
@@ -4731,13 +4789,10 @@ protected:
           Size skipped_similar_spectra(0);
           // load MS2 map
           PeakMap spectra;
-          MzMLFile f;
-          f.setLogType(log_type_);
           PeakFileOptions options;
           options.clearMSLevels();
           options.addMSLevel(2);
-          f.getOptions() = options;
-          f.load(in_mzml, spectra);
+          loadSpectra_(in_spectra, spectra, options, log_type_);
           spectra.sortSpectra(true);
           SpectrumLookup lookup;
           lookup.readSpectra(spectra);
@@ -4874,9 +4929,9 @@ protected:
         ic.fillCalibrants(pep_ids, precursor_mass_tolerance);
         if (global_fragment_error != 0)
         {
+          // in_spectra is the recalibrated '<input>_pc.mzML' here (pcrecalibration), never the original input
           PeakMap spectra;
-          MzMLFile f;
-          f.load(in_mzml, spectra);
+          loadSpectra_(in_spectra, spectra);
           spectra.sortSpectra(true);
           for (auto & s : spectra)
           {
@@ -4886,7 +4941,7 @@ protected:
               p.setMZ(p.getMZ() - Math::ppmToMass(global_fragment_error, p.getMZ())); // correct global fragment error
             }
           }
-         f.store(in_mzml, spectra); // TODO: do we really want to overwrite this?
+         MzMLFile().store(in_spectra, spectra); // TODO: do we really want to overwrite this?
         }
       }
     }
@@ -5108,10 +5163,20 @@ protected:
 
     // load MS2 map
     PeakMap spectra;
-    MzMLFile f;
-    f.setLogType(log_type_);
 
-    unordered_map<std::string, PrecursorPurity::PurityScores> purities = calculatePrecursorPurities_(in_mzml, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+    // Not for Bruker timsTOF input: its MS1 frames are not collapsed over ion mobility (one peak per TOF index and IM scan),
+    // which PrecursorPurity does not handle (signal proportion near 0, the precursor's own isotopes counted as interference
+    // and removed from the MS2 by filterPeakInterference_), and holding all of them in memory would take tens of GB for a
+    // full run. Without purities, there is neither the 'precursor_purity' feature nor the interference filtering.
+    unordered_map<std::string, PrecursorPurity::PurityScores> purities;
+    if (FileHandler::getType(in) == FileTypes::BRUKER_TDF)
+    {
+      OPENMS_LOG_INFO << "Bruker timsTOF input: no precursor purity calculation (MS1 not collapsed over ion mobility)." << endl;
+    }
+    else
+    {
+      purities = calculatePrecursorPurities_(in_spectra, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+    }
 
     // define percolator feature set
     StringList data_dependent_features; // percolator features that only exist e.g., if MS1 spectra were present
@@ -5120,8 +5185,7 @@ protected:
     PeakFileOptions options;
     options.clearMSLevels();
     options.addMSLevel(2);
-    f.getOptions() = options;
-    f.load(in_mzml, spectra);
+    loadSpectra_(in_spectra, spectra, options, log_type_);
     spectra.sortSpectra(true);
     for (const auto& s : spectra) { if (!s.getIntegerDataArrays().empty()) throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Input spectra must not contain integer data arrays."); } 
 
@@ -5975,7 +6039,7 @@ protected:
 
     // reload spectra from disc with same settings as before (important to keep same spectrum indices)
     spectra.clear(true);
-    f.load(in_mzml, spectra);
+    loadSpectra_(in_spectra, spectra, options, log_type_);
     spectra.sortSpectra(true);
     //auto [IM_format, IM_unit] = getMS2IMType(spectra);
 
@@ -6048,7 +6112,7 @@ protected:
 
     progresslogger.endProgress();
 
-    protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in_mzml)});
+    protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in_spectra)});
 
     // reindex ids
     PeptideIndexing indexer;
@@ -6359,7 +6423,7 @@ protected:
                              std::make_move_iterator(std::end(xl_pi)));
 
         NuXLRTPrediction rt_pred;
-        rt_pred.train(in_mzml, pep_pi, protein_ids); // train on best XLs and best peptides
+        rt_pred.train(in_spectra, pep_pi, protein_ids); // train on best XLs and best peptides
         rt_pred.predict(peptide_ids); // predict on all
 
         // add RT prediction as extra feature for percolator      
