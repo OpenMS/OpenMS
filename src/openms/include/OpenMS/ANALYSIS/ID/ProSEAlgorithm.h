@@ -1300,25 +1300,22 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     SearchContext prepareContext_(std::vector<FASTAFile::FASTAEntry>&& fasta_db, bool electron_ions,
                                   const std::function<const PeakMap*(Size)>& searched_spectra = {}) const;
 
-    /// Whether a single-use context may index only the peptides the searched spectra can reach: not with
-    /// calibration, which may change the precursor windows after the index is built, not with chimeric search,
-    /// whose co-isolated precursors the index restriction does not know, and not with precursor:mono_correction,
-    /// which moves the precursors after the index is built (by up to two 13C spacings, beyond the restriction's margin).
-    bool restrictIndexToSpectra_() const { return !calibration_enabled_ && !chimeric_enabled_ && !monoCorrection_(); }
+    /// Whether a single-use context may index only the peptides the searched spectra can reach: not with chimeric search,
+    /// whose co-isolated precursors the index restriction does not know, and not with calibration:recalibrate linear,
+    /// whose line in m/z may move a precursor further than any window. With calibration, the restriction covers the
+    /// windows of the calibration pass and the shift of calibration:recalibrate offset (see buildFragmentIndex_()).
+    bool restrictIndexToSpectra_() const { return !chimeric_enabled_ && !(calibration_enabled_ && calibration_recalibrate_ == "linear"); }
+
+    /// Sets @p params on the fragment index of @p ctx and builds it from ctx.db; with @p searched_spectra and calibration,
+    /// restricted to the peptides in the precursor windows of the calibration pass (calibrationPassWindow_())
+    void buildFragmentIndex_(SearchContext& ctx, const Param& params, const std::function<const PeakMap*(Size)>& searched_spectra) const;
+
+    /// The window the calibration pass searches with, from the @p configured one (ppm or Da)
+    static double calibrationPassWindow_(double configured, bool ppm);
 
     /// Whether co-isolated precursors are searched (chimeric:enabled, which database:chunk_size > 0 does not support).
     /// The file-based searches then also read the survey scans.
     bool chimericSearch_() const { return chimeric_enabled_ && database_chunk_size_ == 0; }
-
-    /// precursor:mono_correction, which (like chimeric:enabled) needs the survey scans and the unchunked search
-    bool monoCorrection_() const { return mono_correction_enabled_ && database_chunk_size_ == 0; }
-
-    /// Whether the file-based searches read the survey (MS1) scans with the MS2 spectra
-    bool surveyScans_() const { return chimericSearch_() || monoCorrection_(); }
-
-    /// precursor:mono_correction: moves the precursors of the MS2 spectra of @p spectra (which include the survey scans)
-    /// to the monoisotopic m/z and charge of the MS1 features Biosaur2 finds; returns the number of corrected precursors
-    Size correctPrecursors_(PeakMap& spectra) const;
 
     /// The PSM of a precursor co-isolated with the selected one (chimeric:enabled), until its residual spectrum is built
     struct CoIsolatedPSM_
@@ -1657,7 +1654,6 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     double calibration_min_fragment_tol_{0.0};   ///< calibration:min_fragment_tolerance (0: by unit)
     std::string calibration_recalibrate_{"none"}; ///< calibration:recalibrate: none | offset | linear
     Size calibration_recalibrate_rt_chunks_{1};   ///< calibration:recalibrate_rt_chunks
-    bool mono_correction_enabled_{false};        ///< precursor:mono_correction
 
     /// Meta value of the precursor of a searched spectrum: its m/z as observed, kept by applyRecalibration_() when
     /// calibration:recalibrate corrects the precursor m/z in place; postProcessHits_() reports it as the PSM's m/z
