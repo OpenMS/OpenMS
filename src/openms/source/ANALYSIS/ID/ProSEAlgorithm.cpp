@@ -5441,16 +5441,9 @@ namespace OpenMS
         }
         else
         {
-          OPENMS_LOG_WARN << "[ProSE] Calibration: |shift|=" << std::abs(cal.precursor_shift)
-                          << " > spread=" << cal.precursor_spread << " "
-                          << precursor_mass_tolerance_unit_ << " - precursor calibration discarded. "
-                          << "The true signed window ["
-                          << (cal.precursor_shift - cal.precursor_spread) << ", "
-                          << (cal.precursor_shift + cal.precursor_spread)
-                          << "] lies entirely on one side of zero (not representable in the "
-                          << "positive-magnitude schema without loosening). Fragment calibration "
-                          << "still applied. Fix external calibration, or configure "
-                          << "mass_tolerance_lower/_upper manually." << std::endl;
+          OPENMS_LOG_WARN << "[ProSE] Calibration: the precursor errors have (almost) zero spread (sigma="
+                          << cal.precursor_sigma << " " << precursor_mass_tolerance_unit_
+                          << "): the configured precursor window is kept. Fragment calibration is still applied." << std::endl;
           // Precursor bounds unchanged; fragment_tolerance applied above.
         }
 
