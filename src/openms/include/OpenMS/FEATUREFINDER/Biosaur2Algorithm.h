@@ -384,10 +384,12 @@ private:
     @param[in] min_mz Minimum m/z value to consider
     @param[in] max_mz Maximum m/z value to consider
     @param[in] use_im Whether to use ion-mobility information during hill linking (2D m/z–IM hills)
+    @param[in] min_length Only hills with at least this many peaks are built (they keep their hill_idx); the others
+               are linked but not returned. Size max: none (calibration only needs @p hill_mass_diffs)
     @param[out] hill_mass_diffs Optional output container for mass differences (for calibration)
     @return Vector of detected hills
   */
-  std::vector<Hill> detectHills_(const MSExperiment& exp, double htol_ppm, double min_intensity, double min_mz, double max_mz, bool use_im, std::vector<double>* hill_mass_diffs = nullptr) const;
+  std::vector<Hill> detectHills_(const MSExperiment& exp, double htol_ppm, double min_intensity, double min_mz, double max_mz, bool use_im, Size min_length, std::vector<double>* hill_mass_diffs = nullptr) const;
 
   /// the part of linking one scan that depends on that scan alone (filter, intensity order, m/z and IM bins)
   struct ScanPrep

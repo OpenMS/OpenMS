@@ -30,6 +30,9 @@
 #include <limits>
 #include <exception>
 #include <functional>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace std;
 
@@ -42,11 +45,12 @@ namespace
   inline Size posOf_(const vector<Size>& pos, Size hill_idx) { return hill_idx < pos.size() ? pos[hill_idx] : NO_POS_; }
 
   /// fn(i) for i in [b, e) in parallel (dynamic schedule, `chunk` iterations per grab); an exception may not leave an
-  /// OpenMP region, so the first one is rethrown after it
+  /// OpenMP region, so the one of the lowest i is rethrown after it (the same one at every thread count)
   template <class F>
   void parallelFor_(SignedSize b, SignedSize e, int chunk, F fn)
   {
     std::exception_ptr err;
+    SignedSize err_i = e;
     #pragma omp parallel for schedule(dynamic, chunk)
     for (SignedSize i = b; i < e; ++i)
     {
@@ -54,7 +58,7 @@ namespace
       catch (...)
       {
         #pragma omp critical(b2_err)
-        if (!err) err = std::current_exception();
+        if (i < err_i) { err_i = i; err = std::current_exception(); }
       }
     }
     if (err) std::rethrow_exception(err);
@@ -354,9 +358,24 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
       processFAIMSGroup_(groups[i].first, groups[i].second, original_paseftol, hills_per_group[i], features_per_group[i]);
     };
     // several CVs: one group per thread (the parallel loops inside then run serially, as nested regions); one CV: no
-    // outer region, so those loops get the threads
+    // outer region, so those loops get the threads. Processing the CVs one after another with all threads in the inner
+    // loops was no faster (4 CVs, 2-16 threads): one CV dominates, and its serial parts (linking, final selection) do
     if (n_groups == 1) process_group(0);
-    else parallelFor_(0, static_cast<SignedSize>(n_groups), 1, [&](SignedSize i) { process_group(static_cast<Size>(i)); });
+    else
+    {
+#ifdef _OPENMP
+      const int threads = omp_get_max_threads();
+      // with nested parallelism enabled, the groups running at once share the threads instead of each taking all
+      const int inner = max(1, threads / static_cast<int>(min(n_groups, static_cast<Size>(threads))));
+#endif
+      parallelFor_(0, static_cast<SignedSize>(n_groups), 1, [&](SignedSize i)
+      {
+#ifdef _OPENMP
+        omp_set_num_threads(inner);
+#endif
+        process_group(static_cast<Size>(i));
+      });
+    }
     // the feature maps afterwards, in CV order: their unique ids are then drawn in the same order at every thread count
     for (Size i = 0; i < n_groups; ++i)
     {
@@ -368,13 +387,13 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
 
     for (Size i = 0; i < n_groups; ++i)
     {
-      hills.insert(hills.end(), hills_per_group[i].begin(), hills_per_group[i].end());
-      peptide_features.insert(peptide_features.end(), features_per_group[i].begin(), features_per_group[i].end());
-      FeatureMap& gm = fmap_per_group[i];
-      if (!gm.empty())
-      {
-        feature_map.insert(feature_map.end(), gm.begin(), gm.end());
-      }
+      hills.insert(hills.end(), make_move_iterator(hills_per_group[i].begin()), make_move_iterator(hills_per_group[i].end()));
+      peptide_features.insert(peptide_features.end(), make_move_iterator(features_per_group[i].begin()),
+                              make_move_iterator(features_per_group[i].end()));
+      feature_map.insert(feature_map.end(), make_move_iterator(fmap_per_group[i].begin()), make_move_iterator(fmap_per_group[i].end()));
+      vector<Hill>().swap(hills_per_group[i]);   // free each group's storage as soon as it is merged
+      vector<PeptideFeature>().swap(features_per_group[i]);
+      fmap_per_group[i] = FeatureMap();
     }
 
     // Reassemble ms_data_ from the per-CV groups. Without this, getMSData() would
@@ -1369,8 +1388,8 @@ void Biosaur2Algorithm::processFAIMSGroup_(double faims_cv,
       calib_exp.addSpectrum(group_exp[i]);
     }
 
-    vector<Hill> calib_hills = detectHills_(calib_exp, htol_, mini_, minmz_, maxmz_, /*use_im*/ false, &mass_diffs);
-    (void)calib_hills;
+    // only the linking's mass differences are needed: no hills are built
+    detectHills_(calib_exp, htol_, mini_, minmz_, maxmz_, /*use_im*/ false, numeric_limits<Size>::max(), &mass_diffs);
     if (!mass_diffs.empty())
     {
       auto calib = calibrateMass_(mass_diffs);
@@ -1388,11 +1407,12 @@ void Biosaur2Algorithm::processFAIMSGroup_(double faims_cv,
   // Hill detection and processing for this group.
   StopWatch stage_timer;
   stage_timer.start();
-  vector<Hill> group_hills = detectHills_(group_exp, calibrated_htol, mini_, minmz_, maxmz_, use_im_group);
+  // only the hills processHills_ keeps (>= minlh_ peaks) are built
+  vector<Hill> group_hills = detectHills_(group_exp, calibrated_htol, mini_, minmz_, maxmz_, use_im_group, minlh_);
   stage_timer.stop();
   OPENMS_LOG_INFO << "Hill detection for group (FAIMS CV=" << faims_cv
                   << ") found " << group_hills.size()
-                  << " hills in " << stage_timer.toString() << endl;
+                  << " hills of at least " << minlh_ << " peaks in " << stage_timer.toString() << endl;
   stage_timer.reset();
   stage_timer.start();
   group_hills = processHills_(std::move(group_hills), minlh_);
@@ -1695,6 +1715,7 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills_(const MSExperime
                                                                 double min_mz,
                                                                 double max_mz,
                                                                 bool use_im,
+                                                                Size min_length,
                                                                 vector<double>* hill_mass_diffs) const
 {
   vector<Hill> hills;
@@ -1767,51 +1788,59 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills_(const MSExperime
     vector<Size> fill(start.begin(), start.end() - 1);
     for (Size k = 0; k < refs.size(); ++k) order[fill[refs[k].hill]++] = k;
   }
-  // per-scan constants: the IM array when the scan carries per-peak IM, looked up once per scan instead of per peak
-  // (an inconsistent scan's error is kept and raised when one of its peaks is used, as the per-peak append raised it)
+  // per-scan constants: the IM array when the scan carries per-peak IM, looked up once per scan instead of per peak.
+  // Every linked peak belongs to a hill, so a malformed scan with linked peaks raises its error here, before any hill is
+  // built, and the first such scan's error is the one raised (the hills dropped below would otherwise hide it)
+  vector<Size> peak_end(exp.size(), 0);   // 1 + highest linked peak index per scan (0: none linked)
+  for (const PeakRef& r : refs) peak_end[r.scan] = max(peak_end[r.scan], r.peak + 1);
   vector<const MSSpectrum::FloatDataArray*> im_arr(exp.size(), nullptr);
-  vector<std::exception_ptr> scan_err(exp.size());
   for (Size sc = 0; sc < exp.size(); ++sc)
   {
+    if (peak_end[sc] == 0) continue;
     const MSSpectrum& spectrum = exp[sc];
-    try
+    if (IMTypes::determineIMFormat(spectrum) != IMFormat::IM_PEAK)
     {
-      if (IMTypes::determineIMFormat(spectrum) != IMFormat::IM_PEAK)
+      if (spectrum.getDriftTime() >= 0 && shouldThrowForMissingIM_(spectrum))
       {
-        if (spectrum.getDriftTime() >= 0 && shouldThrowForMissingIM_(spectrum))
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                              "Ion mobility array missing although drift times are present.");
-        }
-        continue;
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Ion mobility array missing although drift times are present.");
       }
-      auto [im_index_local, im_unit_local] = spectrum.getIMData(); // may throw
-      const auto& fda_local = spectrum.getFloatDataArrays();
-      if (im_index_local >= fda_local.size())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Ion mobility array index out of range.",
-                                      StringUtils::toStr(im_index_local));
-      }
-      im_arr[sc] = &fda_local[im_index_local];
+      continue;
     }
-    catch (...)
+    auto [im_index_local, im_unit_local] = spectrum.getIMData(); // may throw
+    const auto& fda_local = spectrum.getFloatDataArrays();
+    if (im_index_local >= fda_local.size())
     {
-      scan_err[sc] = std::current_exception();
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Ion mobility array index out of range.",
+                                    StringUtils::toStr(im_index_local));
+    }
+    im_arr[sc] = &fda_local[im_index_local];
+    if (peak_end[sc] > im_arr[sc]->size())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Ion mobility array shorter than peak list.",
+                                    StringUtils::toStr(peak_end[sc] - 1));
     }
   }
-  hills.resize(hill_idx_counter);
-  parallelFor_(0, static_cast<SignedSize>(hill_idx_counter), 4096, [&](SignedSize hs)
+  // only the hills with at least min_length peaks (the ones processHills_ keeps), with their linking ids
+  vector<Size> keep;
+  for (Size h = 0; h < hill_idx_counter; ++h)
   {
-    Hill& hill = hills[static_cast<Size>(hs)];
-    hill.hill_idx = static_cast<Size>(hs);
-    const Size b = start[static_cast<Size>(hs)], e = start[static_cast<Size>(hs) + 1], m = e - b;
+    if (start[h + 1] - start[h] >= min_length) keep.push_back(h);
+  }
+  hills.resize(keep.size());
+  parallelFor_(0, static_cast<SignedSize>(keep.size()), 4096, [&](SignedSize ki)
+  {
+    const Size hs = keep[static_cast<Size>(ki)];
+    Hill& hill = hills[static_cast<Size>(ki)];
+    hill.hill_idx = hs;
+    const Size b = start[hs], e = start[hs + 1], m = e - b;
     hill.scan_indices.reserve(m); hill.peak_indices.reserve(m); hill.mz_values.reserve(m); hill.intensities.reserve(m);
     hill.rt_values.reserve(m); hill.drift_times.reserve(m); hill.ion_mobilities.reserve(m);
     for (Size k = b; k < e; ++k)
     {
       const PeakRef& r = refs[order[k]];
-      if (scan_err[r.scan]) std::rethrow_exception(scan_err[r.scan]);
       const MSSpectrum& spectrum = exp[r.scan];
       const Peak1D& peak = spectrum[r.peak];
       const double rt = spectrum.getRT(), mz = peak.getMZ(), intensity = peak.getIntensity();
@@ -1821,18 +1850,7 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills_(const MSExperime
       hill.intensities.push_back(intensity);
       hill.rt_values.push_back(rt);
       hill.drift_times.push_back(spectrum.getDriftTime());
-      double ion_mobility = -1.0;
-      if (im_arr[r.scan] != nullptr)
-      {
-        if (r.peak >= im_arr[r.scan]->size())
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Ion mobility array shorter than peak list.",
-                                        StringUtils::toStr(r.peak));
-        }
-        ion_mobility = (*im_arr[r.scan])[r.peak];
-      }
-      hill.ion_mobilities.push_back(ion_mobility);
+      hill.ion_mobilities.push_back(im_arr[r.scan] != nullptr ? double((*im_arr[r.scan])[r.peak]) : -1.0);
       hill.length = hill.scan_indices.size();
       hill.rt_end = rt;
       if (hill.length == 1)
@@ -1856,7 +1874,7 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills_(const MSExperime
 vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::processHills_(vector<Hill> hills, Size min_length) const
 {
   vector<Hill> processed;
-  orderedParallel_(hills.size(), 2048, processed, [&](Size hi, vector<Hill>& processed)
+  orderedParallel_(hills.size(), 2048, processed, [&](Size hi, vector<Hill>& part)
   {
     if (hills[hi].length >= min_length)
     {
@@ -1905,7 +1923,7 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::processHills_(vector<Hill> hi
       {
         processed_hill.ion_mobility_median = calculateMedian_(hill.ion_mobilities);
       }
-      processed.push_back(std::move(processed_hill));
+      part.push_back(std::move(processed_hill));
     }
   });
   return processed;
@@ -1926,14 +1944,14 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::splitHills_(vector<Hill> hill
 
   // each hill's segments in parallel (hill order kept); a segment s > 0 needs a fresh id, which the serial pass
   // below hands out in the same order as the sequential loop did (marked by hill_idx = max meanwhile)
-  orderedParallel_(hills.size(), 1024, split_hills, [&](Size hi, vector<Hill>& split_hills)
+  orderedParallel_(hills.size(), 1024, split_hills, [&](Size hi, vector<Hill>& part)
   {
     Hill& hill = hills[hi];
     // Only attempt splitting for sufficiently long hills, mirroring the
     // reference implementation (length >= 2 * min_length).
     if (hill.length < 2 * min_length)
     {
-      split_hills.push_back(std::move(hill));
+      part.push_back(std::move(hill));
       return;
     }
 
@@ -2053,11 +2071,16 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::splitHills_(vector<Hill> hill
     if (final_splits.empty())
     {
       // No valleys detected: keep original hill unchanged.
-      split_hills.push_back(std::move(hill));
+      part.push_back(std::move(hill));
       return;
     }
 
-    // Construct segments defined by split positions.
+    // Construct segments defined by split positions: each gets the hill's scalar fields and its own slice of the
+    // arrays (sized to the segment, not to the whole hill), which are moved out of the hill first
+    Hill src;
+    src.scan_indices.swap(hill.scan_indices); src.peak_indices.swap(hill.peak_indices); src.mz_values.swap(hill.mz_values);
+    src.intensities.swap(hill.intensities); src.rt_values.swap(hill.rt_values); src.drift_times.swap(hill.drift_times);
+    src.ion_mobilities.swap(hill.ion_mobilities);
     vector<Size> boundaries;
     boundaries.push_back(0);
     for (Size pos : final_splits)
@@ -2075,34 +2098,25 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::splitHills_(vector<Hill> hill
       Size seg_len = seg_end - seg_start;
       if (seg_len < min_length) continue;
 
-      Hill new_hill = hill;
-      new_hill.scan_indices.clear();
-      new_hill.peak_indices.clear();
-      new_hill.mz_values.clear();
-      new_hill.intensities.clear();
-      new_hill.rt_values.clear();
-      new_hill.drift_times.clear();
-      new_hill.ion_mobilities.clear();
-
-      for (Size k = seg_start; k < seg_end; ++k)
+      Hill new_hill = hill;   // scalars only: the arrays were moved to src
+      // the segment's part of v ([seg_start, seg_end), clipped to v's size)
+      auto slice = [seg_start, seg_end](const auto& v)
       {
-        new_hill.scan_indices.push_back(hill.scan_indices.at(k));
-        new_hill.peak_indices.push_back(hill.peak_indices.at(k));
-        new_hill.mz_values.push_back(hill.mz_values.at(k));
-        new_hill.intensities.push_back(hill.intensities.at(k));
-        new_hill.rt_values.push_back(hill.rt_values.at(k));
-        if (k < hill.drift_times.size())
-        {
-          new_hill.drift_times.push_back(hill.drift_times.at(k));
-        }
-        if (k < hill.ion_mobilities.size())
-        {
-          new_hill.ion_mobilities.push_back(hill.ion_mobilities.at(k));
-        }
-      }
+        const Size e = min(seg_end, v.size());
+        return std::decay_t<decltype(v)>(v.begin() + static_cast<std::ptrdiff_t>(min(seg_start, e)), v.begin() + static_cast<std::ptrdiff_t>(e));
+      };
+      new_hill.scan_indices = slice(src.scan_indices);
+      new_hill.peak_indices = slice(src.peak_indices);
+      new_hill.mz_values = slice(src.mz_values);
+      new_hill.intensities = slice(src.intensities);
+      new_hill.rt_values = slice(src.rt_values);
+      new_hill.drift_times = slice(src.drift_times);
+      new_hill.ion_mobilities = slice(src.ion_mobilities);
 
-      if (new_hill.drift_times.size() != new_hill.scan_indices.size() ||
-          new_hill.ion_mobilities.size() != new_hill.scan_indices.size())
+      const Size n_seg = new_hill.scan_indices.size();
+      if (n_seg != seg_len || new_hill.peak_indices.size() != n_seg || new_hill.mz_values.size() != n_seg ||
+          new_hill.intensities.size() != n_seg || new_hill.rt_values.size() != n_seg ||
+          new_hill.drift_times.size() != n_seg || new_hill.ion_mobilities.size() != n_seg)
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Split hill meta data arrays are inconsistent.",
@@ -2145,7 +2159,7 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::splitHills_(vector<Hill> hill
 	        new_hill.hill_idx = NO_POS_;
 	      }
 
-      split_hills.push_back(std::move(new_hill));
+      part.push_back(std::move(new_hill));
     }
   });
   for (Hill& h : split_hills)
@@ -2273,7 +2287,7 @@ vector<Biosaur2Algorithm::PatternCandidate> Biosaur2Algorithm::generateIsotopeCa
   reverse(charges.begin(), charges.end());
 
   // Charge ban map as in the Python reference.
-  map<int, vector<int>> charge_ban_map = {
+  static const map<int, vector<int>> charge_ban_map = {
     {8, {1, 2, 4}},
     {7, {1}},
     {6, {1, 2, 3}},
@@ -2287,7 +2301,7 @@ vector<Biosaur2Algorithm::PatternCandidate> Biosaur2Algorithm::generateIsotopeCa
   // Initial isotope candidate generation (analogous to get_initial_isotopes).
   // In parallel over contiguous chunks of mono hills; the chunks are concatenated in order, so the candidate
   // list equals the sequential one (each mono hill's candidates depend only on read-only data)
-  orderedParallel_(hills.size(), 2048, ready, [&](Size i, vector<PatternCandidate>& ready)
+  orderedParallel_(hills.size(), 2048, ready, [&](Size i, vector<PatternCandidate>& part)
   {
     const Hill& mono_hill = hills[i];
     if (mono_hill.scan_indices.empty()) return;
@@ -2473,7 +2487,7 @@ vector<Biosaur2Algorithm::PatternCandidate> Biosaur2Algorithm::generateIsotopeCa
 
               if (!pc.isotopes.empty())
               {
-                ready.push_back(pc);
+                part.push_back(pc);
 
                 const auto ban_it = charge_ban_map.find(charge);   // charges above 8 (cmax >= 9) ban nothing
                 if (ban_it != charge_ban_map.end())
@@ -2523,9 +2537,8 @@ vector<Biosaur2Algorithm::PatternCandidate> Biosaur2Algorithm::applyRtFiltering_
   }
 
   vector<PatternCandidate> rt_filtered;
-  rt_filtered.reserve(candidates.size());
 
-  orderedParallel_(candidates.size(), 4096, rt_filtered, [&](Size ci, vector<PatternCandidate>& rt_filtered)
+  orderedParallel_(candidates.size(), 4096, rt_filtered, [&](Size ci, vector<PatternCandidate>& part)
   {
     PatternCandidate pc = candidates[ci];
     const Hill& mono_hill = hills[pc.mono_index];
@@ -2552,7 +2565,7 @@ vector<Biosaur2Algorithm::PatternCandidate> Biosaur2Algorithm::applyRtFiltering_
     if (!kept.empty())
     {
       pc.isotopes.swap(kept);
-      rt_filtered.push_back(std::move(pc));
+      part.push_back(std::move(pc));
     }
   });
 
@@ -2631,9 +2644,8 @@ vector<Biosaur2Algorithm::PatternCandidate> Biosaur2Algorithm::filterByCalibrati
   bool enable_isotope_calib) const
 {
   vector<PatternCandidate> filtered_ready;
-  filtered_ready.reserve(candidates.size());
 
-  orderedParallel_(candidates.size(), 4096, filtered_ready, [&](Size ci, vector<PatternCandidate>& filtered_ready)
+  orderedParallel_(candidates.size(), 4096, filtered_ready, [&](Size ci, vector<PatternCandidate>& part)
   {
     PatternCandidate pc = candidates[ci];
     if (enable_isotope_calib)
@@ -2706,7 +2718,7 @@ vector<Biosaur2Algorithm::PatternCandidate> Biosaur2Algorithm::filterByCalibrati
 
     if (!pc.isotopes.empty())
     {
-      filtered_ready.push_back(std::move(pc));
+      part.push_back(std::move(pc));
     }
   });
 
@@ -3018,7 +3030,7 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>&
     MetaInfoInterface::metaRegistry().registerName(name);
   }
   vector<Feature> built;
-  orderedParallel_(features.size(), 1024, built, [&](Size fi, vector<Feature>& built)
+  orderedParallel_(features.size(), 1024, built, [&](Size fi, vector<Feature>& part)
   {
     const PeptideFeature& f = features[fi];
     const Hill* mono_hill_ptr = hillOf(f.mono_hill_idx);
@@ -3177,7 +3189,7 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>&
       feature.setMetaValue("IM_max", im_max);
     }
 
-    built.push_back(std::move(feature));
+    part.push_back(std::move(feature));
   });
   feature_map.reserve(built.size());
   for (Feature& feature : built)
