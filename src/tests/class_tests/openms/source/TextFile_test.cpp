@@ -12,6 +12,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <iostream>
 #include <vector>
 
@@ -155,6 +156,21 @@ START_SECTION((void store(const std::string& filename) ))
   TEST_EQUAL(StringUtils::trimmed(std::string(*file_it)) == "line3",true);
 END_SECTION
 
+
+START_SECTION([EXTRA] Stores and reloads UTF - 8 filenames)
+{
+  TempDir workspace;
+  const std::string filename = workspace.getPath() + "/\xE4\xB8\xAD\xE6\x96\x87 \xC3\xA4.txt";
+  TextFile file;
+  file.addLine("first line");
+  file.addLine("second line");
+  file.store(filename);
+  TextFile loaded(filename);
+  TEST_EQUAL(loaded.end() - loaded.begin(), 2)
+  TEST_EQUAL(*loaded.begin(), "first line")
+  TEST_EQUAL(*(loaded.begin() + 1), "second line")
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

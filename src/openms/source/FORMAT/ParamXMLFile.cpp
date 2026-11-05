@@ -9,6 +9,8 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 
 #include <iostream>
 #include <fstream>
@@ -17,9 +19,36 @@
 namespace OpenMS
 {
 
+  namespace
+  {
+    /// OpenMS strings are UTF-8, but some legacy values are in a native code page (e.g.
+    /// Windows ANSI paths). Convert those, so the file is valid UTF-8 as declared.
+    std::string toUTF8(const std::string& text)
+    {
+      if (StringUtils::isValidUTF8(text)) { return text; }
+#ifdef _WIN32
+      const auto utf8 = to_path(text).u8string(); // to_path() falls back to the ANSI code page
+      return {utf8.begin(), utf8.end()};
+#else
+      // Latin-1, as the historical ISO-8859-1 declaration of these files implied
+      std::string result;
+      for (const unsigned char c : text)
+      {
+        if (c < 0x80) { result += static_cast<char>(c); }
+        else
+        {
+          result += static_cast<char>(0xC0 | (c >> 6));
+          result += static_cast<char>(0x80 | (c & 0x3F));
+        }
+      }
+      return result;
+#endif
+    }
+  } // namespace
+
   std::string writeXMLEscape(const std::string& to_escape)
   {
-    return Internal::XMLHandler::writeXMLEscape(to_escape);
+    return Internal::XMLHandler::writeXMLEscape(toUTF8(to_escape));
   }
 
   ParamXMLFile::ParamXMLFile() :
@@ -34,7 +63,7 @@ namespace OpenMS
     std::ostream* os_ptr;
     if (filename != "-")
     {
-      os_.open(filename.c_str(), std::ofstream::out);
+      os_.open(to_path(filename), std::ofstream::out);
       if (!os_)
       {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
@@ -63,7 +92,8 @@ namespace OpenMS
 
     os.precision(writtenDigits<double>(0.0));
 
-    os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
+    // OpenMS strings contain UTF-8, including workflow paths bound through INI files.
+    os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     os << "<PARAMETERS version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
     std::string indentation = "  ";
     Param::ParamIterator it = param.begin();

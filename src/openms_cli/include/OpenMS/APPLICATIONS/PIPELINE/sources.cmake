@@ -1,0 +1,5 @@
+set(directory include/OpenMS/APPLICATIONS/PIPELINE)
+set(sources_list_h PipelineGraph.h PipelineFile.h PipelineExecutor.h)
+foreach(header ${sources_list_h})
+  list(APPEND OpenMS_CLI_sources_h ${directory}/${header})
+endforeach()

@@ -98,6 +98,13 @@ namespace OpenMS
     return full_dir;
   }
 
+  void TOPPASOutputVertex::setOutputProgress(Size written, Size total)
+  {
+    files_written_ = static_cast<int>(written);
+    files_total_ = static_cast<int>(total);
+    update(boundingRect());
+  }
+
   void TOPPASOutputVertex::setTopoNr(UInt nr)
   {
     if (topo_nr_ != nr)

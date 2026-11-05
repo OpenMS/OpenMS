@@ -7,9 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/TextFile.h>
-
 #include <OpenMS/SYSTEM/File.h>
-
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <fstream>
 
 using namespace std;
@@ -30,7 +29,7 @@ namespace OpenMS
   {
     // stream in binary mode prevents interpretation and merging of \r on Windows & MacOS
     // .. so we can deal with it ourselves in a consistent way
-    ifstream is(filename.c_str(), ios_base::in | ios_base::binary);
+    ifstream is(to_path(filename), ios_base::in | ios_base::binary);
     if (!is)
     {
       if (!File::exists(filename))
@@ -80,7 +79,7 @@ namespace OpenMS
   {
     ofstream os;
     // stream not opened in binary mode, thus "\n" will be evaluated platform dependent (e.g. resolve to \r\n on Windows)
-    os.open(filename.c_str(), ofstream::out);
+    os.open(to_path(filename), ofstream::out);
 
     if (!os)
     {

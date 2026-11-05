@@ -29,6 +29,7 @@ public:
     /// The returned path is either just an EMPTY string if the call to system subroutines failed
     /// or the complete path including a trailing "/", to enable usage of this function as
     /// File::getExecutablePath() + "mytool"
+    /// The path is UTF-8 on all platforms; open files below it with to_path() (OpenMS/SYSTEM/PathUtils.h).
     static std::string getExecutablePath();
 
     /// Method used to test if a @p file exists.
@@ -208,7 +209,8 @@ public:
     static std::string getUniqueName(bool include_hostname = true);
 
     /// Returns the OpenMS data path (resolved from the compiled-in path and executable location; the OPENMS_DATA_PATH
-    /// environment variable is only used as a last-resort fallback). @exception Exception::FileNotFound if none is found
+    /// environment variable is only used as a last-resort fallback). Like getExecutablePath(), the path is UTF-8.
+    /// @exception Exception::FileNotFound if none is found
     static std::string getOpenMSDataPath();
 
     /**

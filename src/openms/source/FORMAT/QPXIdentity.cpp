@@ -8,6 +8,8 @@
 
 #include <OpenMS/FORMAT/QPXIdentity.h>
 
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+
 #include <algorithm>
 #include <array>
 #include <charconv>
@@ -147,34 +149,6 @@ namespace
     out += HEX[cp & 0xF];
   }
 
-  /// Decode one UTF-8 sequence at @p pos; false (and @p length untouched) if it is malformed
-  bool decodeUtf8(const std::string& text, size_t pos, UInt32& cp, size_t& length)
-  {
-    const auto byte = [&](size_t i) { return static_cast<Byte>(text[i]); };
-    const Byte lead = byte(pos);
-    size_t needed;
-    if (lead < 0x80)         { cp = lead;         needed = 0; }
-    else if (lead < 0xC2)    { return false; }    // continuation byte, or an overlong 2-byte lead
-    else if (lead < 0xE0)    { cp = lead & 0x1F;  needed = 1; }
-    else if (lead < 0xF0)    { cp = lead & 0x0F;  needed = 2; }
-    else if (lead < 0xF5)    { cp = lead & 0x07;  needed = 3; }
-    else                     { return false; }
-
-    if (pos + needed >= text.size()) { return false; }
-    for (size_t i = 1; i <= needed; ++i)
-    {
-      const Byte continuation = byte(pos + i);
-      if ((continuation & 0xC0) != 0x80) { return false; }
-      cp = (cp << 6) | (continuation & 0x3F);
-    }
-    // Reject overlong forms and surrogates, which would encode differently than Python does.
-    if ((needed == 2 && cp < 0x800) || (needed == 3 && cp < 0x10000)) { return false; }
-    if (cp >= 0xD800 && cp <= 0xDFFF) { return false; }
-    if (cp > 0x10FFFF) { return false; }
-    length = needed + 1;
-    return true;
-  }
-
   void encodeString(const std::string& text, std::string& out)
   {
     out += '"';
@@ -207,7 +181,7 @@ namespace
       {
         UInt32 cp = 0;
         size_t length = 0;
-        if (decodeUtf8(text, i, cp, length))
+        if (StringUtils::decodeUTF8(text, i, cp, length))
         {
           if (cp <= 0xFFFF)
           {

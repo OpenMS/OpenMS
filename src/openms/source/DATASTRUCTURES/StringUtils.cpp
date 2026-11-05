@@ -455,6 +455,43 @@ namespace OpenMS
 
   namespace StringUtils
   {
+    bool decodeUTF8(std::string_view text, Size pos, UInt32& code_point, Size& length)
+    {
+      const auto byte = [&](Size i) { return static_cast<unsigned char>(text[i]); };
+      const unsigned char lead = byte(pos);
+      Size needed;
+      if (lead < 0x80)         { code_point = lead;         needed = 0; }
+      else if (lead < 0xC2)    { return false; }            // continuation byte, or an overlong 2-byte lead
+      else if (lead < 0xE0)    { code_point = lead & 0x1F;  needed = 1; }
+      else if (lead < 0xF0)    { code_point = lead & 0x0F;  needed = 2; }
+      else if (lead < 0xF5)    { code_point = lead & 0x07;  needed = 3; }
+      else                     { return false; }
+
+      if (pos + needed >= text.size()) { return false; }
+      for (Size i = 1; i <= needed; ++i)
+      {
+        const unsigned char continuation = byte(pos + i);
+        if ((continuation & 0xC0) != 0x80) { return false; }
+        code_point = (code_point << 6) | (continuation & 0x3F);
+      }
+      // Reject overlong forms and surrogates.
+      if ((needed == 2 && code_point < 0x800) || (needed == 3 && code_point < 0x10000)) { return false; }
+      if (code_point >= 0xD800 && code_point <= 0xDFFF) { return false; }
+      if (code_point > 0x10FFFF) { return false; }
+      length = needed + 1;
+      return true;
+    }
+
+    bool isValidUTF8(std::string_view text)
+    {
+      UInt32 code_point;
+      for (Size pos = 0, length = 0; pos < text.size(); pos += length)
+      {
+        if (! decodeUTF8(text, pos, code_point, length)) { return false; }
+      }
+      return true;
+    }
+
     // Integer overloads
     void appendToStr(int i, std::string& target)
     {
