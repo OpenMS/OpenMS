@@ -3,7 +3,8 @@ File Formats
 
 OpenMS reads spectra from {term}`mzML` and stores its results in its own XML formats: featureXML for features,
 consensusXML for features linked across runs, and idXML for identifications. This page describes three additions of
-OpenMS 3.6: compressed input and output, Parquet versions of the result formats, and imaging data. For Thermo `.raw`
+OpenMS 3.6: compressed input and output, Parquet versions of the result formats, and imaging data. It also covers
+mzPeak and reading XML files from a URL, new in OpenMS 3.7. For Thermo `.raw`
 files and Bruker `.d` directories, see [Vendor formats](vendor-formats.md).
 
 ## Compressed files
@@ -91,3 +92,27 @@ changes.
 
 OpenMS 3.6 reads and writes imzML, the standard format for mass spectrometry imaging, in its library and in pyOpenMS.
 The TOPP tools and TOPPView do not accept imzML files yet.
+
+## mzPeak
+
+OpenMS 3.7 reads and writes [mzPeak](https://github.com/HUPO-PSI/mzPeak) (HUPO-PSI, version 0.9.0), a spectrum format
+that stores the data as Parquet tables. An mzPeak run is a ZIP archive (`.mzpeak`) of Parquet tables, or a directory
+with the same members. It is a raw-data format like mzML: FileConverter converts to and from it, and FileHandler,
+FileInfo and the tools that read spectra through FileHandler recognise it:
+
+```bash
+FileConverter -in sample.mzML -out sample.mzpeak
+FileConverter -in sample.mzpeak -out sample.mzML
+```
+
+mzPeak support is a build option, `OPENMS_ENABLE_MZPEAK`. It is left out of a build whose compiler and Boost lack
+what the vendored mzPeak library needs, and the format is then not available. In pyOpenMS the format is
+`FileType.MZPEAK`; the library class is `MzPeakFile`.
+
+## Reading XML from a URL
+
+OpenMS 3.7 reads XML files, mzML for example, from `http://`, `https://` and `ftp://` URLs with libcurl, instead of
+from a local file. The data is streamed while it is parsed, and gzip and bzip2 content is decompressed on the fly.
+Redirects are followed, but only to HTTP(S) and FTP. An HTTP error such as 404 is reported as a missing file, and a
+transfer slower than 1 byte per second for two minutes fails. Credentials in a URL are removed from log and error
+messages.
