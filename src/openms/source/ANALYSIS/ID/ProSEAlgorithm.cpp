@@ -129,8 +129,21 @@ namespace OpenMS
 {
   namespace
   {
-    // Rescoring features under evaluation (annotate:PSM, opt-in; not part of 'ALL'): each experimental peak of the
-    // alignment counts once, as the matched ion current.
+    /**
+     * @brief Rescoring features under evaluation (annotate:PSM, opt-in; not part of 'ALL')
+     *
+     * Computed per hit from the annotation alignment; each experimental peak counts once, as the matched ion current.
+     * - binary_cosine: the matched peaks over the geometric mean of the experimental and theoretical peak counts,
+     *   M / sqrt(|E| |P|): the "binary cosine" of Gautam, Mottaghipisheh and Ahrens, "COSine: An Open, GUI-Based Tool for
+     *   Robust Cosine-Similarity Scoring and Mirror Plotting of High-Resolution Mass Spectra Matching", Analytica 2026, 7(4),
+     *   87, https://www.mdpi.com/2673-4532/7/4/87 (doi 10.3390/analytica7040087, published 28 October 2026). Of the paper's
+     *   five cosine variants (standard, square-root, Stein-Scott weighted, binary, reverse) only the binary one applies
+     *   without a predicted intensity spectrum; for a PSM it is the renormalised matched-ion fraction.
+     * - sqrt_hyperscore, sqrt_matched_ion_current_fraction: the HyperScore and the explained-intensity fraction of the
+     *   square-root intensities; they follow Comet's square-root preprocessing (CometPreprocess.cpp), not the paper.
+     * - xcorr_matched_ion_current: the matched sum of Comet's xcorr-preprocessed intensities (cometXcorrIntensities());
+     *   it follows Comet, not the paper.
+     */
     const std::string BINARY_COSINE_FEATURE = "binary_cosine";
     const std::string SQRT_HYPERSCORE_FEATURE = "sqrt_hyperscore";
     const std::string SQRT_MIC_FRACTION_FEATURE = "sqrt_matched_ion_current_fraction";
@@ -524,10 +537,12 @@ namespace OpenMS
 
     defaults_.setValue("annotate:PSM",  std::vector<std::string>{"ALL"}, "Annotations added to each PSM. 'ALL' adds every "
       "annotation except the opt-in rescoring features under evaluation: binary_cosine (the matched peaks over the geometric "
-      "mean of the experimental and theoretical peak counts), sqrt_hyperscore (the HyperScore of the square-root intensities), "
-      "sqrt_matched_ion_current_fraction (the matched share of the square-root intensities) and xcorr_matched_ion_current "
-      "(the matched sum of Comet's xcorr-preprocessed intensities: square root, ten m/z windows scaled to 50, the mean of "
-      "the 75 bins on either side subtracted). Listed by name, they join the Percolator features.");
+      "mean of the experimental and theoretical peak counts; the binary cosine of Gautam, Mottaghipisheh and Ahrens, COSine, "
+      "Analytica 2026, 7(4), 87, doi 10.3390/analytica7040087), sqrt_hyperscore (the HyperScore of the square-root "
+      "intensities, after Comet), sqrt_matched_ion_current_fraction (the matched share of the square-root intensities, after "
+      "Comet) and xcorr_matched_ion_current (the matched sum of Comet's xcorr-preprocessed intensities: square root, ten m/z "
+      "windows scaled to 50, the mean of the 75 bins on either side subtracted). Listed by name, they join the Percolator "
+      "features.");
     defaults_.setValidStrings("annotate:PSM",
       std::vector<std::string>{
         "ALL",
