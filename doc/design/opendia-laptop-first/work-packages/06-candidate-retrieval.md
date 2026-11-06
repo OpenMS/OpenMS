@@ -13,6 +13,10 @@ Retrieve complete local candidate families with high recall, preserving recovery
 
 The current workflow's per-transition peak picks and later consensus/overlap reconciliation motivate a group-level candidate proposal before expensive downstream scoring. A robust group trace may nominate shared RT boundaries, but it must not become a hard filter based on a fixed transition majority: weak or absent fragments, transition-specific delays, interference and partially coeluting groups can otherwise lose true candidates. Treat group support as a cheap proposal/priority signal, retain a broad/recovery route for weak or discordant evidence, and measure candidate recall against an exhaustive small-case oracle before using it to reject work. Keep per-transition evidence available for scoring and explanation. The first implementation is an OpenDIA-scoped opt-in path; other OpenSWATH workflows retain legacy behavior.
 
+## Initial grouped-picker benchmark, 6 November 2026
+
+A single matched prepared-PQP run on Astral RAW 01 with 32 threads completed end to end. Relative to the active-RT repeat-2 baseline, full wall time was 13:49.15 versus 13:17.69 (+31.46 s, about 4.0% slower); the candidate RT scoring stage was 9:45 versus 9:22 (+23 s). Peak RSS was essentially unchanged (8,355 versus 8,361 MiB). The export contained 1,511 rows versus 1,501. Matching by precursor ID, 1,487 rows were shared, 14 baseline-only and 24 grouped-picker-only. Several shared-row quantities and RT boundaries changed, so this is not output parity and does not establish improved candidate recall. This is one run per mode, not a robust timing study. Keep `robust_consensus` opt-in, not the OpenDIA default, and do not use it to reject downstream candidates until exhaustive-oracle recall and stratified scientific validation pass. This bridge did not demonstrate a speed improvement on this workflow.
+
 ## Scope
 
 - Combine observed proposals with targeted recovery over paged families and full-resolution raw evidence.
