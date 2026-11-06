@@ -3519,6 +3519,87 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
     -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_9_xls.tmp.idXML
     -P ${DATA_DIR_TOPP}/OpenNuXL_9_xl_fdr_groups_test.cmake)
   set_tests_properties("TOPP_OpenNuXL_9_xl_fdr_groups" PROPERTIES DEPENDS "TOPP_OpenNuXL_9")
+
+  # -out_qpx: the QPX mz view of the spectra of the PSMs of -out (runs/<basename>.mz.parquet). The search of
+  # TOPP_OpenNuXL_2 with -out_qpx and a small peak filter: its -out is that of TOPP_OpenNuXL_2 (compared where that one
+  # is), the stale file of an earlier run in the place of the view is replaced, the log has the phase lines, and
+  # OpenNuXL_qpx_test.cmake checks the view against -out and the input (one row per PSM spectrum, the annotated peaks
+  # kept, the peaks filtered, the footer keys of the filter).
+  set(_f OpenNuXL_10)
+  set(_nuxl10_args -test -precursor:mass_tolerance 10.0 -in ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML
+    -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -NuXL:decoys true)
+  set(_nuxl10_view ${TESTS_TEMP_DIR}/${_f}_qpx/runs/OpenNuXL_1_input.mz.parquet)
+  # (fixtures, not DEPENDS: the run needs the stale file also when it is run alone)
+  add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
+  set_tests_properties("TOPP_${_f}_clean" PROPERTIES FIXTURES_SETUP "${_f}_clean")
+  add_test(NAME "TOPP_${_f}_runs" COMMAND ${CMAKE_COMMAND} -E make_directory ${TESTS_TEMP_DIR}/${_f}_qpx/runs)
+  set_tests_properties("TOPP_${_f}_runs" PROPERTIES FIXTURES_REQUIRED "${_f}_clean" FIXTURES_SETUP "${_f}_runs")
+  add_test(NAME "TOPP_${_f}_stale" COMMAND ${CMAKE_COMMAND} -E copy ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta ${_nuxl10_view})
+  set_tests_properties("TOPP_${_f}_stale" PROPERTIES FIXTURES_REQUIRED "${_f}_runs" FIXTURES_SETUP "${_f}_stale")
+  add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND}
+    "-DCOMMAND=${TOPP_BIN_PATH}/OpenNuXL;${_nuxl10_args};-out;${TESTS_TEMP_DIR}/${_f}_output.tmp.idXML;-out_qpx;${TESTS_TEMP_DIR}/${_f}_qpx;-qpx_peak_top;2"
+    -DEXPECTED_CODE=0
+    "-DEXPECTED_OUTPUT_REGEX=-out_qpx: reading spectra.*-out_qpx: writing [^ ]*OpenNuXL_1_input\\.mz\\.parquet.*-out_qpx: wrote [^ ]*OpenNuXL_1_input\\.mz\\.parquet \\([1-9][0-9]* spectra, [1-9][0-9]* of [1-9][0-9]* peaks\\)"
+    -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+  set_tests_properties("TOPP_${_f}" PROPERTIES FIXTURES_REQUIRED "${_f}_stale" FIXTURES_SETUP "${_f}")
+  if (NOT APPLE) # (as TOPP_OpenNuXL_2)
+    add_test("TOPP_${_f}_out1" ${DIFF} -whitelist "IdentificationRun date"
+    "db=" -in1 ${TESTS_TEMP_DIR}/${_f}_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_2_output.idXML )
+    set_tests_properties("TOPP_${_f}_out1" PROPERTIES FIXTURES_REQUIRED "${_f}")
+  endif()
+  add_test("TOPP_${_f}_mz_dump" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${_nuxl10_view} -out_tsv ${TESTS_TEMP_DIR}/${_f}_mz.tmp.tsv)
+  set_tests_properties("TOPP_${_f}_mz_dump" PROPERTIES FIXTURES_REQUIRED "${_f}" FIXTURES_SETUP "${_f}_mz_dump")
+  add_test("TOPP_${_f}_mz_out" ${CMAKE_COMMAND} -DIDXML=${TESTS_TEMP_DIR}/${_f}_output.tmp.idXML
+    -DMZ_TSV=${TESTS_TEMP_DIR}/${_f}_mz.tmp.tsv -DMZML=${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -DMZ_PARQUET=${_nuxl10_view}
+    -P ${DATA_DIR_TOPP}/OpenNuXL_qpx_test.cmake)
+  set_tests_properties("TOPP_${_f}_mz_out" PROPERTIES FIXTURES_REQUIRED "${_f}_mz_dump")
+
+  # Several hits per spectrum: the view keeps the annotated peaks of every hit rank written, not only the first's
+  set(_f OpenNuXL_10_ranks)
+  add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
+  set_tests_properties("TOPP_${_f}_clean" PROPERTIES FIXTURES_SETUP "${_f}_clean")
+  add_test("TOPP_${_f}" ${TOPP_BIN_PATH}/OpenNuXL ${_nuxl10_args} -report:top_hits 3
+    -out ${TESTS_TEMP_DIR}/${_f}_output.tmp.idXML -out_qpx ${TESTS_TEMP_DIR}/${_f}_qpx -qpx_peak_top 2)
+  set_tests_properties("TOPP_${_f}" PROPERTIES FIXTURES_REQUIRED "${_f}_clean" FIXTURES_SETUP "${_f}")
+  add_test("TOPP_${_f}_mz_dump" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/runs/OpenNuXL_1_input.mz.parquet
+    -out_tsv ${TESTS_TEMP_DIR}/${_f}_mz.tmp.tsv)
+  set_tests_properties("TOPP_${_f}_mz_dump" PROPERTIES FIXTURES_REQUIRED "${_f}" FIXTURES_SETUP "${_f}_mz_dump")
+  add_test("TOPP_${_f}_mz_out" ${CMAKE_COMMAND} -DIDXML=${TESTS_TEMP_DIR}/${_f}_output.tmp.idXML
+    -DMZ_TSV=${TESTS_TEMP_DIR}/${_f}_mz.tmp.tsv -DMZML=${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML
+    -P ${DATA_DIR_TOPP}/OpenNuXL_qpx_test.cmake)
+  set_tests_properties("TOPP_${_f}_mz_out" PROPERTIES FIXTURES_REQUIRED "${_f}_mz_dump")
+
+  # -qpx_peak_top 0 keeps all peaks of each spectrum
+  set(_f OpenNuXL_10_all_peaks)
+  add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
+  set_tests_properties("TOPP_${_f}_clean" PROPERTIES FIXTURES_SETUP "${_f}_clean")
+  add_test("TOPP_${_f}" ${TOPP_BIN_PATH}/OpenNuXL ${_nuxl10_args} -out ${TESTS_TEMP_DIR}/${_f}_output.tmp.idXML
+    -out_qpx ${TESTS_TEMP_DIR}/${_f}_qpx -qpx_peak_top 0)
+  set_tests_properties("TOPP_${_f}" PROPERTIES FIXTURES_REQUIRED "${_f}_clean" FIXTURES_SETUP "${_f}")
+  add_test("TOPP_${_f}_mz_dump" ${TOPP_BIN_PATH}/ParquetDiff -in1 ${TESTS_TEMP_DIR}/${_f}_qpx/runs/OpenNuXL_1_input.mz.parquet
+    -out_tsv ${TESTS_TEMP_DIR}/${_f}_mz.tmp.tsv)
+  set_tests_properties("TOPP_${_f}_mz_dump" PROPERTIES FIXTURES_REQUIRED "${_f}" FIXTURES_SETUP "${_f}_mz_dump")
+  add_test("TOPP_${_f}_mz_out" ${CMAKE_COMMAND} -DIDXML=${TESTS_TEMP_DIR}/${_f}_output.tmp.idXML
+    -DMZ_TSV=${TESTS_TEMP_DIR}/${_f}_mz.tmp.tsv -DMZML=${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -DALL_PEAKS=ON
+    -P ${DATA_DIR_TOPP}/OpenNuXL_qpx_test.cmake)
+  set_tests_properties("TOPP_${_f}_mz_out" PROPERTIES FIXTURES_REQUIRED "${_f}_mz_dump")
+
+  # A view that cannot be written (a folder in the place of runs/<basename>.mz.parquet) is a warning: OpenNuXL still
+  # exits 0 and writes -out
+  set(_f OpenNuXL_10_write_fails)
+  add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx ${TESTS_TEMP_DIR}/${_f}_output.tmp.idXML)
+  set_tests_properties("TOPP_${_f}_clean" PROPERTIES FIXTURES_SETUP "${_f}_clean")
+  add_test(NAME "TOPP_${_f}_block" COMMAND ${CMAKE_COMMAND} -E make_directory
+    ${TESTS_TEMP_DIR}/${_f}_qpx/runs/OpenNuXL_1_input.mz.parquet)
+  set_tests_properties("TOPP_${_f}_block" PROPERTIES FIXTURES_REQUIRED "${_f}_clean" FIXTURES_SETUP "${_f}_block")
+  add_test(NAME "TOPP_${_f}" COMMAND ${CMAKE_COMMAND}
+    "-DCOMMAND=${TOPP_BIN_PATH}/OpenNuXL;${_nuxl10_args};-out;${TESTS_TEMP_DIR}/${_f}_output.tmp.idXML;-out_qpx;${TESTS_TEMP_DIR}/${_f}_qpx"
+    -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=-out_qpx: cannot write [^ ]*OpenNuXL_1_input\\.mz\\.parquet"
+    -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+  set_tests_properties("TOPP_${_f}" PROPERTIES FIXTURES_REQUIRED "${_f}_block" FIXTURES_SETUP "${_f}")
+  add_test("TOPP_${_f}_out" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/${_f}_output.tmp.idXML
+    "-DEXPECTED=<PeptideIdentification " -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_${_f}_out" PROPERTIES FIXTURES_REQUIRED "${_f}")
 endif(NOT MSVC)
 
 # OpenNuXL writes localized cross-links as named modifications (K(NuXL:U-H2O1)) whose definitions
@@ -6072,14 +6153,17 @@ set_tests_properties("TOPP_SimpleSearchEngine_2_out" PROPERTIES DEPENDS
 # runs the tool's configuration.
 set(_prose_library_defaults -Search:decoy_method reverse -Search:rescoring:terminal_features false
   -Search:rescoring:stratum_q_values false -Search:rescoring:calc_mass_feature true
-  -Search:precursor:recorded_charge_outside_range search)
-# (the run: exit code 0; the tool's defaults: written with -write_ini and checked, all seven)
+  -Search:precursor:recorded_charge_outside_range search -Search:precursor:isotope_error_min -1
+  -Search:calibration:recalibrate none)
+# (calibration:enabled, the tool's other default, is skipped on these small inputs and tested by ProSE_4, with the
+# recalibration by ProSE_4_recalibrate; the run: exit code 0; the tool's defaults: written with -write_ini and checked,
+# all ten)
 add_test(NAME "TOPP_ProSE_tool_defaults" COMMAND ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML;-database;${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_tool_defaults.tmp.idXML"
   -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=decoys=generate" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
 add_test("TOPP_ProSE_tool_defaults_ini" ${TOPP_BIN_PATH}/ProSE -write_ini ${TESTS_TEMP_DIR}/ProSE_tool_defaults.tmp.ini)
 add_test("TOPP_ProSE_tool_defaults_ini_check" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_tool_defaults.tmp.ini
-  "-DEXPECTED=name=\"decoys\" value=\"generate\";name=\"decoy_method\" value=\"keep_termini\";LISTITEM value=\"Acetyl (Protein N-term)\";name=\"terminal_features\" value=\"true\";name=\"stratum_q_values\" value=\"true\";name=\"calc_mass_feature\" value=\"false\";name=\"recorded_charge_outside_range\" value=\"skip\""
+  "-DEXPECTED=name=\"decoys\" value=\"generate\";name=\"decoy_method\" value=\"keep_termini\";LISTITEM value=\"Acetyl (Protein N-term)\";name=\"terminal_features\" value=\"true\";name=\"stratum_q_values\" value=\"true\";name=\"calc_mass_feature\" value=\"false\";name=\"recorded_charge_outside_range\" value=\"skip\";name=\"isotope_error_min\" value=\"-2\";name=\"recalibrate\" value=\"offset\";name=\"recalibrate_rt_chunks\" value=\"10\""
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_ProSE_tool_defaults_ini_check" PROPERTIES DEPENDS "TOPP_ProSE_tool_defaults_ini")
 # Reused decoys that rarely start with M (whole-protein reversal, decoys 'auto'): the requested terminal features and
@@ -6236,6 +6320,37 @@ add_test("TOPP_ProSE_4_out" ${DIFF}
   -ratio 1.2 -absdiff 2.0)
 set_tests_properties("TOPP_ProSE_4_out" PROPERTIES DEPENDS
   "TOPP_ProSE_4")
+# The same with the tool's m/z recalibration (calibration:recalibrate offset; the other tests pin none, and the last
+# occurrence of an option counts): the +7 ppm offset is taken off the m/z the search uses, the models are recorded in
+# the search parameters, and the PSMs report the precursor m/z as observed (those of ProSE_4_out.idXML)
+add_test("TOPP_ProSE_4_recalibrate" ${TOPP_BIN_PATH}/ProSE -test ${_prose_library_defaults} -Search:rescore false
+  -ini ${DATA_DIR_TOPP}/ProSE_4.ini -Search:calibration:recalibrate offset
+  -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1_shifted_7ppm.mzML
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_4_recalibrate.tmp.idXML
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
+add_test("TOPP_ProSE_4_recalibrate_check" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_4_recalibrate.tmp.idXML
+  "-DEXPECTED=name=\"calibration:recalibrate\" value=\"offset\";name=\"calibration:precursor_model\" value=\"ppm;name=\"calibration:fragment_model\";MZ=\"520.266459222533967\";MZ=\"1063.217281336060068\";MZ=\"775.392634741698998\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_ProSE_4_recalibrate_check" PROPERTIES DEPENDS "TOPP_ProSE_4_recalibrate")
+# ProSE_4's errors (offset ~ +7.5 ppm, sigma ~ 2.5) exceed its lower tolerance of 15 ppm on the high side: the calibration
+# warns, and names the parameter of that side (an error observed - theoretical > 0 needs mass_tolerance_lower)
+add_test(NAME "TOPP_ProSE_4_window_warning" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;${_prose_library_defaults};-Search:rescore;false;-ini;${DATA_DIR_TOPP}/ProSE_4.ini;-in;${DATA_DIR_TOPP}/SimpleSearchEngine_1_shifted_7ppm.mzML;-out_idxml;${TESTS_TEMP_DIR}/ProSE_4_window_warning.tmp.idXML;-database;${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta"
+  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=precursor:mass_tolerance_lower 15\\.000 ppm is below the measured \\+1[5-9]\\."
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+# ProSE_4_out's FuzzyDiff (-absdiff 2.0) cannot tell the fragment errors (~0.001-0.004 Da) from zero: their leading
+# digits, and whether each measurement is trusted (3 PSMs; precursor errors 5.58, 7.53, 9.25 ppm all within
+# 7.53 +/- 4 x 2.55; the fragment error covers less than 95 % of the peaks)
+add_test("TOPP_ProSE_4_calibration_records" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_4_out.tmp.idXML
+  "-DEXPECTED=name=\"calibration:precursor_error_offset\" value=\"7.53;name=\"calibration:precursor_error_sigma\" value=\"2.54;name=\"calibration:precursor_measured_error\" value=\"17.72;name=\"calibration:fragment_error_offset\" value=\"4.19;name=\"calibration:fragment_error_sigma\" value=\"9.57;name=\"calibration:fragment_measured_error\" value=\"4.24;name=\"calibration:psms\" value=\"3\";name=\"calibration:precursor_measurement_trusted\" value=\"true\";name=\"calibration:fragment_measurement_trusted\" value=\"false\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_ProSE_4_calibration_records" PROPERTIES DEPENDS "TOPP_ProSE_4")
+# The fragment side: a fragment tolerance of 0.003 Da, below ProSE_4's measured fragment error (|offset| + 4 sigma
+# about 0.004 Da), warns
+add_test(NAME "TOPP_ProSE_4_fragment_window_warning" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;${_prose_library_defaults};-Search:rescore;false;-ini;${DATA_DIR_TOPP}/ProSE_4.ini;-Search:fragment:mass_tolerance;0.003;-in;${DATA_DIR_TOPP}/SimpleSearchEngine_1_shifted_7ppm.mzML;-out_idxml;${TESTS_TEMP_DIR}/ProSE_4_fragment_window_warning.tmp.idXML;-database;${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta"
+  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=the fragment tolerance 0\\.003 Da is tighter than the errors the search sees"
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
 
 # Test 5: Database chunking — same inputs as test 1 but with chunk_size=5.
 # 11 proteins (decoys=false in ProSE_1.ini) → 3 chunks (5+5+1). Output
