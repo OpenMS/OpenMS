@@ -1021,9 +1021,10 @@ namespace OpenMS
       "(calibration:recalibrate_rt_chunks) and interpolated between the chunks. The precursor m/z and the fragment "
       "peaks of the searched MS2 spectra are corrected in place (the candidate retrieval, the scoring and the PSMs' "
       "mass errors use the corrected values; a PeakMap passed to the library is corrected too); the PSMs report the "
-      "observed precursor m/z. The windows are then derived from the residual errors, with a fragment floor of 5 ppm "
-      "(0.01 Da) unless calibration:min_fragment_tolerance is set. The co-isolated precursors of a chimeric search are "
-      "not corrected. 'none' measures only.");
+      "observed precursor m/z and their fragment annotations the observed peak m/z. The windows are then derived from "
+      "the residual errors, with a fragment floor of 5 ppm (0.01 Da) unless calibration:min_fragment_tolerance is set. "
+      "The co-isolated precursors of a chimeric search, from the same survey scans, are corrected by the precursor "
+      "model. 'none' measures only.");
     defaults_.setValidStrings("calibration:recalibrate", {"none", "offset", "linear"});
     defaults_.setValue("calibration:recalibrate_rt_chunks", 1,
       "Retention-time chunks of the recalibration models (calibration:recalibrate): the calibration PSMs are split in "
@@ -2098,7 +2099,8 @@ namespace OpenMS
         const std::string& database_name,
         const PeakMap* evidence_spectra,
         const std::vector<Size>* evidence_parent,
-        bool defer_peak_annotations) const
+        bool defer_peak_annotations,
+        const MzRecalibration_* fragment_recalibration) const
   {
     // Candidate-pool features (delta score, z-score, candidate count) are derived
     // from @p pool_stats rather than from @p annotated_hits: scoreSpectraAgainstIndex_
@@ -2490,7 +2492,9 @@ namespace OpenMS
               if (annotation_fragment_annotations && !defer_peak_annotations)
               {
                 PeptideHit::PeakAnnotation pa;
-                pa.mz = spec[exp_idx].getMZ();
+                // the m/z as observed (calibration:recalibrate corrected the peak in place), as the PSM's precursor m/z
+                pa.mz = fragment_recalibration != nullptr ? fragment_recalibration->uncorrect(spec[exp_idx].getMZ(), spec.getRT())
+                                                          : spec[exp_idx].getMZ();
                 pa.intensity = spec[exp_idx].getIntensity();
                 pa.annotation = (*ion_names)[theo_idx];
                 pa.charge = (*ion_charges)[theo_idx];
@@ -3713,7 +3717,8 @@ namespace OpenMS
   // =====================================================================
   void ProSEAlgorithm::annotateFragmentPeaks_(const PeakMap& exp, PeptideIdentificationList& peptide_ids,
                                               double fragment_mass_tolerance,
-                                              const std::string& fragment_mass_tolerance_unit_ppm) const
+                                              const std::string& fragment_mass_tolerance_unit_ppm,
+                                              const MzRecalibration_* fragment_recalibration) const
   {
     bool annotation_fragment_annotations = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM) != annotate_psm_.end()
       || std::find(annotate_psm_.begin(), annotate_psm_.end(), "ALL") != annotate_psm_.end();
@@ -3768,7 +3773,9 @@ namespace OpenMS
           for (const auto& [theo_idx, exp_idx] : alignment)
           {
             PeptideHit::PeakAnnotation pa;
-            pa.mz = spec[exp_idx].getMZ();
+            // the m/z as observed, as in postProcessHits_()
+            pa.mz = fragment_recalibration != nullptr ? fragment_recalibration->uncorrect(spec[exp_idx].getMZ(), spec.getRT())
+                                                      : spec[exp_idx].getMZ();
             pa.intensity = spec[exp_idx].getIntensity();
             pa.annotation = ion_names[theo_idx];
             pa.charge = ion_charges[theo_idx];
@@ -4105,6 +4112,7 @@ namespace OpenMS
     residual.select(kept);
     residual.removeMetaValue(CoIsolationDetector::META_MZ);
     residual.removeMetaValue(CoIsolationDetector::META_CHARGE);
+    residual.removeMetaValue(OBSERVED_COISOLATED_MZ);
     residual.setPrecursors({precursor});
     return residual;
   }
@@ -4133,6 +4141,7 @@ namespace OpenMS
     {
       Size spectrum = 0;
       DoubleList mzs;
+      DoubleList observed_mzs; // the mzs as observed (OBSERVED_COISOLATED_MZ), if calibration:recalibrate corrected them
       IntList charges;
       const AnnotatedHit_* primary = nullptr;
       std::vector<UInt32> claimed;
@@ -4150,6 +4159,7 @@ namespace OpenMS
       Scan scan;
       scan.spectrum = i;
       scan.mzs = spectrum.getMetaValue(CoIsolationDetector::META_MZ);
+      if (spectrum.metaValueExists(OBSERVED_COISOLATED_MZ)) { scan.observed_mzs = spectrum.getMetaValue(OBSERVED_COISOLATED_MZ); }
       scan.charges = spectrum.getMetaValue(CoIsolationDetector::META_CHARGE);
       const Size n = std::min({scan.mzs.size(), scan.charges.size(), max_n});
       scan.mzs.resize(n);
@@ -4205,7 +4215,9 @@ namespace OpenMS
           psm.parent = scan.spectrum;
           psm.precursor = spectrum.getPrecursors()[0];
           psm.precursor.setMZ(scan.mzs[k]);
-          psm.precursor.removeMetaValue(OBSERVED_PRECURSOR_MZ); // (the parent's; co-isolated precursors are not recalibrated)
+          // the m/z as observed, which postProcessHits_() reports (not the parent's; none if it was not corrected)
+          if (k < scan.observed_mzs.size()) { psm.precursor.setMetaValue(OBSERVED_PRECURSOR_MZ, scan.observed_mzs[k]); }
+          else { psm.precursor.removeMetaValue(OBSERVED_PRECURSOR_MZ); }
           psm.precursor.setCharge(scan.charges[k]);
           psm.removed = scan.claimed;
           residuals.addSpectrum(residualSpectrum_(spectrum, psm.removed, psm.precursor));
@@ -4530,7 +4542,10 @@ namespace OpenMS
       precursor_max_charge_,
       enzyme_,
       "", // no database filename for in-memory search
-      evidence_ptr
+      evidence_ptr,
+      nullptr,
+      false,
+      cal.appliedFragmentRecalibration()
       );
     recordRecalibration_(cal, protein_ids);
     // Release the hits and the additional peak list before PeptideIndexing.
@@ -5654,7 +5669,8 @@ namespace OpenMS
       "", // no database filename for in-memory search
       evidence_ptr,
       &coisolated_parent, // the residual spectra use the peak lists of their spectra
-      defer_peak_annotations
+      defer_peak_annotations,
+      last_calibration_result_.appliedFragmentRecalibration()
       );
     recordRecalibration_(last_calibration_result_, protein_ids);
     // Release the hits and the additional peak list before PeptideIndexing.
@@ -5720,7 +5736,8 @@ namespace OpenMS
         (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
     {
       // (the hits returned with the error carry their fragment annotations, as before the deferral)
-      if (defer_peak_annotations) annotateFragmentPeaks_(spectra, peptide_ids, effective_fragment_tol, fragment_mass_tolerance_unit_);
+      if (defer_peak_annotations) annotateFragmentPeaks_(spectra, peptide_ids, effective_fragment_tol, fragment_mass_tolerance_unit_,
+                                                     last_calibration_result_.appliedFragmentRecalibration());
       restore_fi_params();
       if (indexer_exit == PeptideIndexing::ExitCodes::DATABASE_EMPTY)
       {
@@ -5763,12 +5780,14 @@ namespace OpenMS
       // (counted as search time, as when postProcessHits_ made them)
       StopWatch sw_annotations;
       sw_annotations.start();
-      annotateFragmentPeaks_(spectra, peptide_ids, effective_fragment_tol, fragment_mass_tolerance_unit_);
+      annotateFragmentPeaks_(spectra, peptide_ids, effective_fragment_tol, fragment_mass_tolerance_unit_,
+                             last_calibration_result_.appliedFragmentRecalibration());
       // A file that Percolator did not rescore on its own may end with its PSMs of before the rescoring
       // (rescoreFilesTogether_()): they get theirs too.
       if (pool_rescoring_ && !last_percolator_.applied)
       {
-        annotateFragmentPeaks_(spectra, pre_fdr_peptide_ids_, effective_fragment_tol, fragment_mass_tolerance_unit_);
+        annotateFragmentPeaks_(spectra, pre_fdr_peptide_ids_, effective_fragment_tol, fragment_mass_tolerance_unit_,
+                               last_calibration_result_.appliedFragmentRecalibration());
       }
       sw_annotations.stop();
       last_run_stats_.seconds_search += sw_annotations.getClockTime();
@@ -9074,7 +9093,8 @@ namespace OpenMS
           per_file_cal[i].effective_fragment_tol,
           precursor_mass_tolerance_unit_, fragment_mass_tolerance_unit_,
           precursor_min_charge_, precursor_max_charge_, enzyme_, "",
-          retain_evidence ? &all_evidence_spectra[i] : nullptr);
+          retain_evidence ? &all_evidence_spectra[i] : nullptr, nullptr, false,
+          per_file_result[i].appliedFragmentRecalibration());
         recordRecalibration_(per_file_result[i], result.protein_ids);
         if (retain_evidence) all_evidence_spectra[i].clear(true);
 
@@ -11612,6 +11632,23 @@ namespace OpenMS
     return at(rt).correct(mz);
   }
 
+  double ProSEAlgorithm::MzRecalibration_::uncorrect(double corrected, double rt) const
+  {
+    if (chunks.empty()) return corrected;
+    // correct() maps mz to mz (1 - e(mz) 1e-6), or mz - e(mz) in Da: iterate mz = corrected / (1 - e(mz) 1e-6). Exact
+    // after one step for 'offset' (its error does not depend on m/z); for a line in m/z each step shrinks the
+    // remaining difference by a factor of about slope * mz * 1e-6, so three steps suffice.
+    double mz = corrected;
+    for (int step = 0; step < 3; ++step)
+    {
+      const double e = error(mz, rt);
+      const double next = ppm ? corrected / (1.0 - e * 1e-6) : corrected + e;
+      if (next == mz) break; // converged
+      mz = next;
+    }
+    return mz;
+  }
+
   std::string ProSEAlgorithm::MzRecalibration_::toString() const
   {
     if (chunks.empty()) return "";
@@ -11673,15 +11710,20 @@ namespace OpenMS
     if (!cal.success || !cal.recalibrated()) return;
     const MzRecalibration_& precursor_model = cal.precursor_recalibration;
     const MzRecalibration_& fragment_model = cal.fragment_recalibration;
-    const UInt observed_key = MetaInfoInterface::metaRegistry().registerName(OBSERVED_PRECURSOR_MZ);
+    MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
+    const UInt observed_key = registry.registerName(OBSERVED_PRECURSOR_MZ);
+    // the co-isolated precursors of a chimeric search (CoIsolationDetector::annotate(); UInt(-1): none annotated in this
+    // process), from the same survey scans as the selected precursor: corrected by its model
+    const UInt coisolated_key = registry.getIndex(CoIsolationDetector::META_MZ);
+    const UInt observed_coisolated_key = coisolated_key != UInt(-1) ? registry.registerName(OBSERVED_COISOLATED_MZ) : UInt(-1);
     // The model at the spectrum's RT once, per peak only its arithmetic (the chunk lookup per peak was a third of the
     // time of this function in stack samples of a 27-run search)
     const auto correct_peaks = [](MSSpectrum& s, const MzRecalibration_::AtRT& model)
     {
       for (Peak1D& p : s) { p.setMZ(model.correct(p.getMZ())); } // (monotone for any sane model: the order stays)
     };
-    Size precursors = 0, peaks = 0;
-#pragma omp parallel for schedule(static) reduction(+: precursors, peaks)
+    Size precursors = 0, coisolated = 0, peaks = 0;
+#pragma omp parallel for schedule(static) reduction(+: precursors, coisolated, peaks)
     for (SignedSize i = 0; i < static_cast<SignedSize>(spectra.size()); ++i)
     {
       MSSpectrum& s = spectra[i];
@@ -11696,6 +11738,14 @@ namespace OpenMS
         if (query_spectra != nullptr && !(*query_spectra)[i].getPrecursors().empty()) { (*query_spectra)[i].getPrecursors()[0].setMZ(corrected); }
         ++precursors;
       }
+      if (precursor_model.active() && coisolated_key != UInt(-1) && s.metaValueExists(coisolated_key))
+      {
+        DoubleList mzs = s.getMetaValue(coisolated_key);
+        if (!s.metaValueExists(observed_coisolated_key)) { s.setMetaValue(observed_coisolated_key, mzs); } // (as above)
+        for (double& mz : mzs) { mz = precursor_model.correct(mz, rt); }
+        coisolated += mzs.size();
+        s.setMetaValue(coisolated_key, std::move(mzs));
+      }
       if (fragment_model.active())
       {
         const MzRecalibration_::AtRT model = fragment_model.at(rt);
@@ -11706,7 +11756,8 @@ namespace OpenMS
       }
     }
     OPENMS_LOG_INFO << "[ProSE] Recalibration (" << calibration_recalibrate_ << "): corrected the precursor m/z of " << precursors
-                    << " spectra and " << peaks << " fragment peaks in place (the PSMs report the observed precursor m/z)" << std::endl;
+                    << " spectra" << (coisolated > 0 ? " and of " + std::to_string(coisolated) + " co-isolated precursors" : std::string())
+                    << " and " << peaks << " fragment peaks in place (the PSMs report the observed m/z)" << std::endl;
   }
 
   void ProSEAlgorithm::recordRecalibration_(const CalibrationResult_& cal, std::vector<ProteinIdentification>& protein_ids) const
