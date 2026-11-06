@@ -589,7 +589,10 @@ namespace OpenMS{
       StringUtils::ensureLastChar(loc, '/');
       loc = loc + filename_new;
 
-      if (exists(loc))
+      // A candidate directory that cannot be checked does not hold the file (callers pass paths compiled in on the
+      // build machine first, e.g. OPENMS_BINARY_PATH for the PeptDeep models; see isOpenMSDataPath_()).
+      std::error_code ec;
+      if (fs::exists(to_path(loc), ec) && !ec)
       {
         return to_path(loc).lexically_normal().generic_string();
       }
@@ -923,7 +926,10 @@ namespace OpenMS{
     if (!install_data_path.empty())
     {
       exec = install_data_path + "/../../bin/" + toolName;
-      if (File::exists(exec) && !File::isDirectory(exec)) return exec;
+      // (a compiled-in path: one that cannot be checked does not hold it, see isOpenMSDataPath_())
+      std::error_code ec;
+      const fs::file_status st = fs::status(to_path(exec), ec);
+      if (!ec && fs::exists(st) && !fs::is_directory(st)) return exec;
     }
 #endif
     // TODO(aiche): probe in PATH
