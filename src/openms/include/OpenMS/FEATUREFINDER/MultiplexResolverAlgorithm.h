@@ -128,8 +128,12 @@ namespace OpenMS
     /**
       @brief As expectedChannelMZs() above, and the labels of the peptide in every channel.
 
+      @param[in] sequence Identified peptidoform, with its labels
+      @param[in] charge Charge state (non-zero)
+      @param[out] position Position (channel) of @p sequence itself within the returned m/z values
       @param[out] label_sets The label set per channel (pattern position) of the theoretical pattern, e.g. {Lys4, Lys4}
                   for a peptide with two lysines in the Lys4 channel; empty if no theoretical pattern fits @p sequence
+      @return The m/z per channel (pattern position), empty if no theoretical pattern fits @p sequence
     */
     std::vector<double> expectedChannelMZs(const AASequence& sequence, int charge, Size& position,
                                            std::vector<MultiplexDeltaMasses::LabelSet>& label_sets) const;
