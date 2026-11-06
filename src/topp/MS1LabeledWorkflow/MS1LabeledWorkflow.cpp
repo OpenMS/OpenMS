@@ -39,6 +39,7 @@
 #include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/FEATUREFINDER/MultiplexResolverAlgorithm.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
@@ -381,7 +382,8 @@ protected:
       "two spectra there. Otherwise it is not quantifiable if those traces are seen only on peaks reserved for other features or channels,\n"
       "or if fewer than two spectra paired with the most intense detected channel show its isotope pattern (both traces, and no peak one\n"
       "isotope lower that exceeds 30 % of its monoisotopic peak, unless that position lies within twice 'algorithm:mz_tolerance' of isotope\n"
-      "M+0 to M+n of another channel, with n + 1 the upper bound of 'algorithm:isotopes_per_peptide').\n"
+      "M+0 to M+n of another channel, with n + 1 the upper bound of 'algorithm:isotopes_per_peptide'; for a deuterium-labelled channel\n"
+      "30 % plus the part its own molecules one 2H short are expected to make there, see 'algorithm:deuterium_enrichment_silac').\n"
       "The number of ratios that rest on re-quantified channels is reported ('MS1Label:peptide_ratio_requantified_count',\n"
       "'fraction_group_level_ratio_requantified_count', QPX 'ratio_requantified_count'); see also 'requantify_min_correlation'.\n"
       "false: such channels are reported as absent.", false);
@@ -1199,6 +1201,7 @@ protected:
       Size own = 0;
       const vector<double> mzs = expected_mzs(*best, own);
       if (mzs.empty()) { continue; }
+      const vector<double> lower_bounds = lowerIsotopeBounds_(resolver, best->getHits()[0]);
       const int charge = best->getHits()[0].getCharge();
       const double rt = best->getRT();
       const AASequence peptide = unlabelled_(best->getHits()[0]);
@@ -1296,9 +1299,11 @@ protected:
           const Feature* channel = channel_of.at(handle.getUniqueId());
           const DBoundingBox<2> box = channel->getConvexHull().getBoundingBox();
           const Size traces = std::min(channel->getConvexHulls().size(), reference_channel->getConvexHulls().size());
+          const std::optional<Size> j = channel_at(mzs, handle.getMZ());
           const Requantified_ result = requantifyChannel_(centroided, blacklist, skip_reserved, cv, std::min(box.minX(), reference_box.minX()),
                                                           std::max(box.maxX(), reference_box.maxX()), handle.getMZ(), handle.getCharge(), channel_mzs,
-                                                          traces, reference->first.getMZ(), reference->first.getIntensity());
+                                                          traces, reference->first.getMZ(), reference->first.getIntensity(),
+                                                          j ? lowerIsotopeBound_(lower_bounds, *j) : lower_isotope_fraction_);
           if (!(result.intensity > 0.0) || result.paired < min_join_paired_spectra_)
           {
             failed = group;
@@ -1657,8 +1662,9 @@ protected:
     +3.006-3.008 Da instead of +3.010), so another channel's isotope centroid can be read at the M-1 while its theoretical position
     lies just outside the window: in [][Lys4,Arg6][Lys8,Arg10], the medium M+3 at the heavy M-1 for peptides of about 1.7-2.1 kDa, where
     a heavy channel weaker than about the medium is then not quantifiable. Conversely, inside the window any peak at the M-1 is exempt,
-    also an unrelated one. The lower isotopologue that a deuterium label (Lys4, Leu3, Dimethyl4/6/8, ICPL4/10) carries itself is not
-    modelled either, as in MultiplexFiltering: the 2H3 form of a Lys4 (2H4) channel lies 1.0063/z Th below its M0, inside the window.
+    also an unrelated one. The lower isotopologue that a deuterium label (Lys4, Leu3, Dimethyl4/6/8, ICPL4/10) carries itself (the
+    2H3 form of a Lys4 (2H4) channel, 1.0063/z Th below its M0, inside the window) is not an isotope of another channel: it raises
+    the bound for the peak at the M-1 instead (lowerIsotopeBounds_()).
   */
   bool lowerIsChannel_(double lower_mz, int charge, const vector<double>& mzs, Size self) const
   {
@@ -1682,6 +1688,50 @@ protected:
     return index >= 0 ? static_cast<double>(spectrum[index].getIntensity()) : 0.0;
   }
 
+  /**
+    @brief Per channel of the peptide of @p hit: the bound, relative to the channel's monoisotopic peak, above which the peak one
+    isotope below it belongs to another envelope
+
+    lower_isotope_fraction_, plus for a channel whose labels carry deuterium the part that its own molecules one 2H short are
+    expected to make there, capped below the ratio a pattern one isotope too high would show (MultiplexFiltering::deuteriumAllowance()
+    at 'algorithm:deuterium_enrichment_silac' or '_chemical', with the isotope distribution of the identified peptidoform), as in the
+    detection (MultiplexFiltering::setDeuteriumLabels()). The channels
+    and their labels are those of the theoretical pattern of @p hit (MultiplexResolverAlgorithm::expectedChannelMZs()); empty
+    if its labels fit no pattern.
+  */
+  vector<double> lowerIsotopeBounds_(const MultiplexResolverAlgorithm& resolver, const PeptideHit& hit) const
+  {
+    if (hit.getCharge() == 0) { return {}; }
+    Size own = 0;
+    vector<MultiplexDeltaMasses::LabelSet> label_sets;
+    if (resolver.expectedChannelMZs(hit.getSequence(), hit.getCharge(), own, label_sets).empty()) { return {}; }
+    vector<double> bounds(label_sets.size(), lower_isotope_fraction_);
+    std::optional<IsotopeDistribution> isotopes;
+    for (Size c = 0; c < label_sets.size(); ++c)
+    {
+      // as MultiplexFiltering::setDeuteriumLabels(): the 2H atoms of the channel's labels add up, the lowest enrichment counts
+      MultiplexFiltering::DeuteriumLabel channel;
+      for (const std::string& label : label_sets[c])
+      {
+        if (const auto it = label_deuterium_.find(label); it != label_deuterium_.end())
+        {
+          channel.deuterium += it->second.deuterium;
+          channel.enrichment = std::min(channel.enrichment, it->second.enrichment);
+        }
+      }
+      if (channel.deuterium == 0) { continue; }
+      if (!isotopes) { isotopes = hit.getSequence().getFormula().getIsotopeDistribution(CoarseIsotopePatternGenerator(maxIsotope_() + 1)); }
+      bounds[c] += MultiplexFiltering::deuteriumAllowance(channel.deuterium, channel.enrichment, *isotopes);
+    }
+    return bounds;
+  }
+
+  /// lowerIsotopeBounds_(), bound @p c, or lower_isotope_fraction_ if @p bounds has none for it
+  static double lowerIsotopeBound_(const vector<double>& bounds, Size c)
+  {
+    return c < bounds.size() ? bounds[c] : lower_isotope_fraction_;
+  }
+
   /// The result of pairedIntensity_
   struct PairedIntensity_
   {
@@ -1702,13 +1752,13 @@ protected:
 
     Also counted are the spectra in which at least one peak of the channel was paired with the reference, and of them the
     <em>pattern spectra</em>, which show the channel's isotope pattern: its first two isotopes (one if there is only one), and no
-    peak one isotope lower that exceeds lower_isotope_fraction_ of its monoisotopic peak (else its peaks are the isotopes of
-    another envelope, as in the detection). The callers accept the intensity only with at least min_pattern_spectra_ pattern
+    peak one isotope lower that exceeds @p lower_bound times its monoisotopic peak (else its peaks are the isotopes of another
+    envelope, as in the detection; lowerIsotopeBounds_()). The callers accept the intensity only with at least min_pattern_spectra_ pattern
     spectra; with fewer, a channel with an intensity is not quantifiable, not absent. The intensity itself stays the one over all
     paired peaks: taken over the pattern spectra only, it was less accurate on real data (1:1 mixtures).
   */
   static PairedIntensity_ pairedIntensity_(const vector<vector<double>>& channel, const vector<vector<double>>& reference, const vector<double>& lower,
-                                           Size first, Size last, double reference_intensity)
+                                           Size first, Size last, double reference_intensity, double lower_bound)
   {
     PairedIntensity_ result;
     const Size traces = std::min(channel.size(), reference.size());
@@ -1731,7 +1781,7 @@ protected:
       }
       if (found == required) { ++together; }
       result.paired += pair_seen;
-      if (found == required && pair_seen && !(lower[i] > lower_isotope_fraction_ * channel[0][i])) { ++result.pattern; }
+      if (found == required && pair_seen && !(lower[i] > lower_bound * channel[0][i])) { ++result.pattern; }
     }
     if (together >= 2 && reference_sum > 0.0) { result.intensity = reference_intensity * channel_sum / reference_sum; }
     return result;
@@ -1779,13 +1829,14 @@ protected:
     reserved (@p blacklist) is not used for the channel if @p skip_reserved says so (it gets the blacklist spectrum and the index of
     the peak in it). The intensity is accepted if the channel's peaks show its isotope pattern paired with the reference in at
     least min_pattern_spectra_ spectra (the peak one isotope below it is read unless it is an isotope of another channel of
-    @p channel_mzs, lowerIsChannel_()); otherwise the channel is not quantifiable (NaN, Requantified_::no_pattern), e.g. when
+    @p channel_mzs, lowerIsChannel_(), and is another envelope above @p lower_bound times the channel's monoisotopic peak,
+    lowerIsotopeBounds_()); otherwise the channel is not quantifiable (NaN, Requantified_::no_pattern), e.g. when
     its peaks are the isotopes of another envelope one isotope below it. Without an intensity, it is NaN (not quantifiable)
     instead of 0 if it would have one with the skipped peaks: they occupy its position, so its absence cannot be told.
   */
   Requantified_ requantifyChannel_(const MSExperiment& spectra, const MSExperiment& blacklist, const std::function<bool(const MSSpectrum&, Size)>& skip_reserved,
                                    const std::optional<double>& cv, double rt_lo, double rt_hi, double mz, int charge, const vector<double>& channel_mzs,
-                                   Size traces, double reference_mz, double reference_intensity, bool check_coelution = false) const
+                                   Size traces, double reference_mz, double reference_intensity, double lower_bound, bool check_coelution = false) const
   {
     Requantified_ result;
     if (charge == 0 || traces == 0 || !(reference_intensity > 0.0)) { return result; }
@@ -1824,7 +1875,7 @@ protected:
     }
     if (channel[0].empty()) { return result; }
     const Size last = channel[0].size() - 1;
-    const PairedIntensity_ paired = pairedIntensity_(channel, reference, lower, 0, last, reference_intensity);
+    const PairedIntensity_ paired = pairedIntensity_(channel, reference, lower, 0, last, reference_intensity, lower_bound);
     result.paired = paired.paired;
     if (paired.intensity > 0.0 && paired.pattern >= min_pattern_spectra_)
     {
@@ -1842,7 +1893,7 @@ protected:
       result.intensity = std::numeric_limits<double>::quiet_NaN();
       result.no_pattern = true;
     }
-    else if (skipped && pairedIntensity_(occupied, reference, lower, 0, last, reference_intensity).intensity > 0.0)
+    else if (skipped && pairedIntensity_(occupied, reference, lower, 0, last, reference_intensity, lower_bound).intensity > 0.0)
     {
       result.intensity = std::numeric_limits<double>::quiet_NaN();
     }
@@ -1867,7 +1918,7 @@ protected:
     (lowerIsChannel_(), with the m/z of all its channels).
   */
   void requantifyMissingChannels_(ConsensusMap& resolved, const FeatureMap& channels, const MSExperiment& centroided,
-                                  const MSExperiment& blacklist, bool owners) const
+                                  const MSExperiment& blacklist, bool owners, const MultiplexResolverAlgorithm& resolver) const
   {
     std::unordered_map<UInt64, const Feature*> channel_of;
     for (const Feature& channel : channels) { channel_of.emplace(channel.getUniqueId(), &channel); }
@@ -1906,6 +1957,9 @@ protected:
       };
       vector<double> channel_mzs; // all channels of the multiplet, the missing ones included
       for (const FeatureHandle& handle : cf.getFeatures()) { channel_mzs.push_back(handle.getMZ()); }
+      // the channels are the positions of the pattern the resolver completed the multiplet with (map index), for its identification
+      const vector<double> lower_bounds = cf.getPeptideIdentifications().empty() || cf.getPeptideIdentifications()[0].getHits().empty()
+        ? vector<double>() : lowerIsotopeBounds_(resolver, cf.getPeptideIdentifications()[0].getHits()[0]);
       ConsensusFeature::HandleSetType handles;
       IntList requantified_channels; // channel indices (the columns of this run's map) that got a value
       for (FeatureHandle handle : cf.getFeatures())
@@ -1913,7 +1967,8 @@ protected:
         if (handle.getIntensity() == 0.0 && !channel_of.contains(handle.getUniqueId()))
         {
           const Requantified_ result = requantifyChannel_(centroided, blacklist, skip_reserved, cv, rt_lo, rt_hi, handle.getMZ(), handle.getCharge(),
-                                                          channel_mzs, traces, reference_mz, reference_intensity, true);
+                                                          channel_mzs, traces, reference_mz, reference_intensity,
+                                                          lowerIsotopeBound_(lower_bounds, handle.getMapIndex()), true);
           const double intensity = result.intensity;
           if (intensity > 0.0 || std::isnan(intensity)) { handle.setIntensity(intensity); }
           requantified += intensity > 0.0;
@@ -1941,7 +1996,8 @@ protected:
     if (no_pattern > 0)
     {
       OPENMS_LOG_INFO << no_pattern << " re-quantified channel(s) are not quantifiable: their peaks do not show the channel's isotope pattern (both "
-                      << "of its first two isotopes, and no peak one isotope lower that exceeds 30 % of its monoisotopic peak) in at least "
+                      << "of its first two isotopes, and no peak one isotope lower that exceeds 30 % of its monoisotopic peak, plus the "
+                      << "expected lower isotopologue of deuterium labels) in at least "
                       << min_pattern_spectra_ << " spectra paired with the reference." << endl;
     }
     if (not_coeluting > 0)
@@ -1974,6 +2030,7 @@ protected:
     double rt = 0.0;
     std::optional<double> cv;
     vector<char> on_other_multiplet; ///< per channel: lies on a channel of another peptide's multiplet (not quantifiable)
+    vector<double> lower_bounds; ///< per channel: the bound for the peak one isotope below it (lowerIsotopeBounds_())
   };
 
   /// One elution peak measured by the targeted quantification
@@ -2146,7 +2203,7 @@ protected:
       mostly_own = 0;
       for (Size i = first; i <= last; ++i)
       {
-        if (!(peaks[0][i] > 0.0) || !(peaks[1][i] > 0.0) || lower_peaks[own][i] > lower_isotope_fraction_ * peaks[0][i]) { continue; }
+        if (!(peaks[0][i] > 0.0) || !(peaks[1][i] > 0.0) || lower_peaks[own][i] > lowerIsotopeBound_(candidate.lower_bounds, own) * peaks[0][i]) { continue; }
         ++clean;
         mostly_own += !own_mostly_other[i];
         for (Size k = 0; k < targeted_isotopes_; ++k) { reference[k][i] = peaks[k][i]; }
@@ -2211,7 +2268,8 @@ protected:
         peak.intensities[c] = std::numeric_limits<double>::quiet_NaN();
         continue;
       }
-      const PairedIntensity_ paired = pairedIntensity_(intensity[c], reference, lower_peaks[c], first, last, reference_intensity);
+      const PairedIntensity_ paired = pairedIntensity_(intensity[c], reference, lower_peaks[c], first, last, reference_intensity,
+                                                       lowerIsotopeBound_(candidate.lower_bounds, c));
       const vector<double> channel_profile = profile(intensity[c]);
       const double correlation = Math::pearsonCorrelationCoefficient(channel_profile.begin(), channel_profile.end(), reference_profile.begin(), reference_profile.end());
       if (paired.intensity > 0.0 && paired.pattern >= min_pattern_spectra_ && correlation >= peptide_similarity)
@@ -2355,6 +2413,7 @@ protected:
       TargetedCandidate_ candidate;
       candidate.mzs = resolver.expectedChannelMZs(hit.getSequence(), hit.getCharge(), candidate.own);
       if (candidate.mzs.empty()) { ++no_pattern; continue; }
+      candidate.lower_bounds = lowerIsotopeBounds_(resolver, hit);
       candidate.index = i;
       candidate.charge = hit.getCharge();
       candidate.rt = id.getRT();
@@ -2804,7 +2863,7 @@ protected:
     if (requantify_ || targeted_quantification_)
     {
       const bool owners = MultiplexResolverAlgorithm::hasBlacklistOwners(blacklist);
-      if (requantify_) { requantifyMissingChannels_(resolved, channels, centroided, blacklist, owners); }
+      if (requantify_) { requantifyMissingChannels_(resolved, channels, centroided, blacklist, owners, resolver); }
       // identified peptides without a multiplet are measured where they are expected (while the handles still name their channels)
       if (targeted_quantification_)
       {
@@ -3426,6 +3485,7 @@ protected:
 
     channel_labels_.clear();
     channel_label_sets_.clear();
+    label_deuterium_.clear();
     channel_descriptions_.clear();
     required_label_mods_.clear();
     label_long_to_shorts_.clear();
@@ -3434,6 +3494,14 @@ protected:
     {
       channel_labels_.push_back(channelLabel_(sample));
       channel_label_sets_.emplace_back(sample.begin(), sample.end());
+      for (const std::string& short_name : sample)
+      {
+        if (const unsigned deuterium = generator.getDeuteriumCount(short_name); deuterium > 0)
+        {
+          label_deuterium_[short_name] = {deuterium, static_cast<double>(getParam_().getValue(MultiplexDeltaMassesGenerator::isChemicalLabel(short_name)
+                                                       ? "algorithm:deuterium_enrichment_chemical" : "algorithm:deuterium_enrichment_silac"))};
+        }
+      }
       vector<std::string> description;
       for (const std::string& short_name : sample)
       {
@@ -3941,6 +4009,7 @@ private:
   vector<std::string> channel_labels_; ///< column header label per channel, e.g. "no_label", "Lys8Arg10"
   vector<std::pair<std::string, std::string>> required_label_mods_; ///< (short, PSI-MS name) of every label the search must contain
   vector<set<std::string>> channel_label_sets_;  ///< per channel: its labels' short names ({"no_label"} for the light channel)
+  std::map<std::string, MultiplexFiltering::DeuteriumLabel> label_deuterium_; ///< the labels with 2H atoms (short names) and their enrichment, see lowerIsotopeBounds_()
   vector<std::string> channel_descriptions_;     ///< per channel: PSI-MS names of its labels, for the column header
   std::map<std::string, vector<std::string>> label_long_to_shorts_; ///< PSI-MS name -> short names of '-labels' using it
   bool match_between_runs_ = false;    ///< keep unidentified multiplets so that linking can identify them from other runs

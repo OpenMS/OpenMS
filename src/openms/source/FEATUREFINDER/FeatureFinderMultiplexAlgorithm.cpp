@@ -289,6 +289,19 @@ namespace OpenMS
     defaults_.setValidStrings("algorithm:averagine_type", {"peptide","RNA","DNA"});
     defaults_.setValue("algorithm:knock_out", "false", "Is it likely that knock-outs are present? (Supported for doublex, triplex and quadruplex experiments only.)", {"advanced"});
     defaults_.setValidStrings("algorithm:knock_out", {"true","false"});
+    defaults_.setValue("algorithm:deuterium_enrichment_silac", 0.96, "2H atom fraction of the deuterium SILAC labels (Lys4, Leu3; "
+      "96-98 % for commercial Lys-d4, 0.96 measured for the Lys4 channel of PXD003327). The molecules one 2H short (about n(1-p)/p of the fully "
+      "labelled ones for n 2H atoms) have a peak 1.0063/z below the monoisotopic peak, within the m/z tolerance of its M-1. A peak there that "
+      "exceeds 30 % of the monoisotopic peak means that the peak pattern belongs to another envelope one isotope lower, so for deuterium-labelled "
+      "peptides the part that their own lower isotopologue is expected to make is added to the 30 % (at most half the way to the ratio M0/M+1, "
+      "which a pattern one isotope too high would show). 1 ignores the isotopologue.", {"advanced"});
+    defaults_.setMinFloat("algorithm:deuterium_enrichment_silac", 0.5);
+    defaults_.setMaxFloat("algorithm:deuterium_enrichment_silac", 1.0);
+    defaults_.setValue("algorithm:deuterium_enrichment_chemical", 0.99, "2H atom fraction of the deuterium chemical tags (Dimethyl4/6/8, "
+      "ICPL4/10; 0.993-0.999 measured for the dimethyl channels of PXD000714, catalogue values 97-98 % for CD2O and NaBD3CN). As "
+      "'deuterium_enrichment_silac', for the chemical tags, which label the N-terminus and every K, so that a peptide carries up to 18 2H atoms.", {"advanced"});
+    defaults_.setMinFloat("algorithm:deuterium_enrichment_chemical", 0.5);
+    defaults_.setMaxFloat("algorithm:deuterium_enrichment_chemical", 1.0);
 
     defaults_.setSectionDescription("algorithm", "algorithmic parameters");
 
@@ -1151,6 +1164,20 @@ namespace OpenMS
     std::vector<MultiplexDeltaMasses> masses = generator.getDeltaMassesList();
     std::vector<MultiplexIsotopicPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
 
+    // the 2H atoms of the labels, for the check for a peak one isotope below a peptide (MultiplexFiltering::setDeuteriumLabels())
+    std::map<std::string, MultiplexFiltering::DeuteriumLabel> deuterium_labels;
+    for (const std::vector<std::string>& sample : generator.getSamplesLabelsList())
+    {
+      for (const std::string& label : sample)
+      {
+        if (const unsigned deuterium = generator.getDeuteriumCount(label); deuterium > 0)
+        {
+          deuterium_labels[label] = {deuterium, static_cast<double>(param_.getValue(MultiplexDeltaMassesGenerator::isChemicalLabel(label)
+                                                                  ? "algorithm:deuterium_enrichment_chemical" : "algorithm:deuterium_enrichment_silac"))};
+        }
+      }
+    }
+
     // Switch off averagine_similarity_scaling if we search for single peptide features only.
     // (This scaling parameter is only relevant if we search for multiplets and (!) singlets.)
     double averagine_similarity_scaling;
@@ -1178,6 +1205,7 @@ namespace OpenMS
        */
       MultiplexFilteringCentroided filtering(exp_centroid_, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), averagine_similarity_scaling, param_.getValue("algorithm:averagine_type").toString());
       filtering.setLogType(getLogType());
+      filtering.setDeuteriumLabels(deuterium_labels);
       std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
 
       /**
@@ -1205,6 +1233,7 @@ namespace OpenMS
        */
       MultiplexFilteringProfile filtering(exp_profile_, exp_centroid_, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), averagine_similarity_scaling, param_.getValue("algorithm:averagine_type").toString());
       filtering.setLogType(getLogType());
+      filtering.setDeuteriumLabels(deuterium_labels);
       std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
       exp_blacklist_ = filtering.getBlacklist();
 
