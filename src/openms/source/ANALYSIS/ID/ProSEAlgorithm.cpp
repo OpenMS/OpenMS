@@ -127,23 +127,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  bool ProSEAlgorithm::ompThreadCountIsGlobal()
-  {
-#ifdef _OPENMP
-    static const bool global = []()
-    {
-      const int own = omp_get_max_threads();
-      std::thread([own]() { omp_set_num_threads(own + 1); }).join();
-      const bool changed = omp_get_max_threads() != own;
-      omp_set_num_threads(own); // back (where the other thread's call reached this thread, for every thread)
-      return changed;
-    }();
-    return global;
-#else
-    return false;
-#endif
-  }
-
   namespace
   {
     // Destroys the elements of a large container with the OpenMP threads, then the container itself. Destroying the
@@ -8035,10 +8018,10 @@ namespace OpenMS
       // took 0.29 s on one thread for the 619,000 spectra of a timsTOF HeLa run, which are not in retention time order:
       // 0.2 s to move them along the cycles of the permutation.)
 #ifdef _OPENMP
-      // Not on a runtime with one number of threads for the process (ProSEAlgorithm::ompThreadCountIsGlobal()): set
+      // Not on a runtime with one number of threads for the process (SysInfo::ompThreadCountIsGlobal()): set
       // here, it would be the number of the thread that waits for the spectra, too. The regions below then run with
       // the process's number next to that thread, for the fraction of a second they take.
-      const int own_threads = ProSEAlgorithm::ompThreadCountIsGlobal() ? 0 : omp_get_max_threads();
+      const int own_threads = SysInfo::ompThreadCountIsGlobal() ? 0 : omp_get_max_threads();
       if (own_threads > 0) { omp_set_num_threads(help != nullptr ? help->joinThreads(threads) : threads); }
       const OnScopeExit restore([own_threads]() { if (own_threads > 0) { omp_set_num_threads(own_threads); } });
 #endif
@@ -8190,13 +8173,13 @@ namespace OpenMS
     // as cores, or more, the reader runs next to them with threads of its own (chunkThreads()), as before the budget
     // (measured on 64 cores, 20 files: at 64 and 128 threads 1-2% more wall time and 1-7% more CPU time than with the
     // budget; at 16 threads unchanged). Never on a runtime that keeps one number of threads for the whole process
-    // (ProSEAlgorithm::ompThreadCountIsGlobal(), MSVC's vcomp): the loans are per-thread numbers, and a helper thread
+    // (SysInfo::ompThreadCountIsGlobal(), MSVC's vcomp): the loans are per-thread numbers, and a helper thread
     // that set its own would set this thread's (a search of three HeLa files with -threads 12 ran on 3 threads: the
     // reader's quarter, which nothing set back; 128 s instead of about 45 s).
     bool readBorrowsThreads()
     {
 #ifdef _OPENMP
-      if (ProSEAlgorithm::ompThreadCountIsGlobal()) { return false; }
+      if (SysInfo::ompThreadCountIsGlobal()) { return false; }
       static const int cores = static_cast<int>(SysInfo::getAvailablePhysicalCores());
       return threadsGiven() < cores || helpersOversubscribe(); // (or the reader's own threads would exceed the CPUs)
 #else
@@ -8258,7 +8241,7 @@ namespace OpenMS
           const OnScopeExit done([&help]() { help->close(); }); // get() waits no longer for chunks to parse
 #ifdef _OPENMP
           // the regions of the read take their threads from their clauses; a global number stays the process's
-          if (!ProSEAlgorithm::ompThreadCountIsGlobal()) { omp_set_num_threads(threads); }
+          if (!SysInfo::ompThreadCountIsGlobal()) { omp_set_num_threads(threads); }
 #endif
           return loadMS2Spectra(filename, threads, help.get(), chunk_threads, survey_scans);
         });
@@ -8340,7 +8323,7 @@ namespace OpenMS
     // (takeBackThreadsOfEndedRead()), when it starts the next consumer, or at the end (finish(), destruction). Only if a read in the background never takes threads from
     // this thread (readBorrowsThreads() false): this thread's number of threads is then changed here only, so it can be
     // set back as it was. Otherwise, or with a single thread, or outside of the top level, the consumer runs here. On a
-    // runtime that keeps one number of threads for the process (ProSEAlgorithm::ompThreadCountIsGlobal()) the helper
+    // runtime that keeps one number of threads for the process (SysInfo::ompThreadCountIsGlobal()) the helper
     // does not set its number with omp_set_num_threads() (that would set this thread's) but with
     // SysInfo::setOmpThreadsOfThisThread(), which the idXML writer and the QPX export size their teams by.
     class BackgroundConsumer;
@@ -8385,7 +8368,7 @@ namespace OpenMS
             {
 #ifdef _OPENMP
               SysInfo::setOmpThreadsOfThisThread(helper_threads); // (see above; also where the runtime keeps a number per thread)
-              if (!ProSEAlgorithm::ompThreadCountIsGlobal()) { omp_set_num_threads(helper_threads); }
+              if (!SysInfo::ompThreadCountIsGlobal()) { omp_set_num_threads(helper_threads); }
 #endif
               try { consumer(index, result); } catch (...) {} // (the consumer handles its errors)
               done_.store(true, std::memory_order_release);

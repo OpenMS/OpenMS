@@ -921,7 +921,7 @@ class ProSE :
 #endif
         {
 #ifdef _OPENMP
-          if (!ProSEAlgorithm::ompThreadCountIsGlobal()) { omp_set_num_threads(threads); } // (global: the process's number, this one)
+          if (!SysInfo::ompThreadCountIsGlobal()) { omp_set_num_threads(threads); } // (global: the process's number, this one)
 #endif
           MzOfFile built;
           built.mz = QPXDatasetExport::mzView(spectra, peptide_ids, ArrowIOHelpers::qpxRunFileName(in_file), filter);

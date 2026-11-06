@@ -302,6 +302,23 @@ namespace OpenMS
     omp_threads_of_this_thread = std::max(0, threads);
   }
 
+  bool SysInfo::ompThreadCountIsGlobal()
+  {
+#ifdef _OPENMP
+    static const bool global = []()
+    {
+      const int own = omp_get_max_threads();
+      std::thread([own]() { omp_set_num_threads(own + 1); }).join();
+      const bool changed = omp_get_max_threads() != own;
+      omp_set_num_threads(own); // back (where the other thread's call reached this thread, for every thread)
+      return changed;
+    }();
+    return global;
+#else
+    return false;
+#endif
+  }
+
   UInt SysInfo::getAvailablePhysicalCores([[maybe_unused]] const std::vector<int>& cpus)
   {
     const UInt hardware_threads = std::max(1u, std::thread::hardware_concurrency());

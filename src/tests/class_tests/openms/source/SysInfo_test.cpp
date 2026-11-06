@@ -15,6 +15,9 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <iostream>
 #include <thread>
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 
 ///////////////////////////
 
@@ -96,6 +99,28 @@ START_SECTION(static void setOmpThreadsOfThisThread(int threads))
   TEST_EQUAL(SysInfo::ompThreadsOfThisThread(), threads)
   SysInfo::setOmpThreadsOfThisThread(-5); // like 0
   TEST_EQUAL(SysInfo::ompThreadsOfThisThread(), threads)
+}
+END_SECTION
+
+START_SECTION(static bool ompThreadCountIsGlobal())
+{
+#ifdef _OPENMP
+  const int before = omp_get_max_threads();
+#endif
+  const bool global = SysInfo::ompThreadCountIsGlobal();
+  TEST_EQUAL(SysInfo::ompThreadCountIsGlobal(), global) // probed once
+#ifdef _OPENMP
+  TEST_EQUAL(omp_get_max_threads(), before) // the probe leaves the caller's number as it was
+  // what it says is what the runtime does: another thread's number reaches this thread only where the number is global
+  std::thread([before]() { omp_set_num_threads(before + 2); }).join();
+  TEST_EQUAL(omp_get_max_threads() != before, global)
+  omp_set_num_threads(before);
+  #if _OPENMP >= 200805
+  TEST_EQUAL(global, false) // OpenMP 3.0 runtimes keep the number per thread
+  #endif
+#else
+  TEST_EQUAL(global, false)
+#endif
 }
 END_SECTION
 

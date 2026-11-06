@@ -91,6 +91,18 @@ namespace OpenMS
         @brief Sets the OpenMP threads that ompThreadsOfThisThread() reports for the calling thread (0: omp_get_max_threads() again)
       */
       static void setOmpThreadsOfThisThread(int threads);
+
+      /**
+        @brief Whether the OpenMP runtime keeps one process-wide number of threads
+
+        With MSVC's OpenMP 2.0 runtime (vcomp) omp_set_num_threads() by any thread sets the number for every thread;
+        the OpenMP 3.0 runtimes (libgomp, LLVM's libomp, also MSVC's /openmp:llvm) keep one per thread. Code that runs
+        OpenMP on helper threads must not call omp_set_num_threads() there on such a runtime (it would change the
+        number of the main thread too); it sets its share with setOmpThreadsOfThisThread() instead.
+        Probed once, on the first call: a thread sets another number and the caller checks its own, then sets it back.
+        Without OpenMP: false.
+      */
+      static bool ompThreadCountIsGlobal();
       /**
         @brief A convenience class to report either absolute or delta (between two timepoints) RAM usage
 

@@ -14,6 +14,7 @@
 #include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 #include <mutex>
 #include <thread>
+#include <OpenMS/SYSTEM/SysInfo.h>
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/ID/CoIsolationDetector.h>
@@ -6354,12 +6355,25 @@ START_SECTION(([EXTRA] rescore: the searches rescore every run with Percolator b
       // rescoring is deferred ('joint': all; 'static': the training file); the same as the search returns
       std::mutex consumed_mutex;
       std::vector<std::pair<Size, PeptideIdentificationList>> consumed;
+      std::vector<int> consumer_threads; // SysInfo::ompThreadsOfThisThread() in the consumer
+      // The reader and the consumer run on helper threads that lend threads of the search: afterwards the caller's
+      // number of OpenMP threads must be the one it had. (MSVC's vcomp keeps one number for the process: a helper that
+      // set its own share left it there, and the rest of the run used the reader's quarter of the threads.)
+      ScopedOpenMPThreads scoped_threads(4);
+#ifdef _OPENMP
+      const int threads_before = omp_get_max_threads();
+#endif
       algo.setFileResultConsumer([&](Size index, const ProSEAlgorithm::SearchResult& r)
       {
         std::lock_guard<std::mutex> lock(consumed_mutex);
         consumed.emplace_back(index, r.peptide_ids);
+        consumer_threads.push_back(SysInfo::ompThreadsOfThisThread());
       });
       ProSEAlgorithm::MultiFileSearchResult mfres = algo.searchWithModificationAnalysis(files, database_file);
+#ifdef _OPENMP
+      TEST_EQUAL(omp_get_max_threads(), threads_before)
+      for (const int t : consumer_threads) { TEST_EQUAL(t >= 1 && t <= threads_before, true) }
+#endif
       ABORT_IF(mfres.per_file.size() != 3)
       {
         const std::vector<Size> expected = mode == "joint" ? std::vector<Size>{} : mode == "static" ? std::vector<Size>{1}
@@ -9344,28 +9358,6 @@ START_SECTION(([EXTRA] decoy_method keep_termini: the segments without the regex
     }
     TEST_EQUAL(equal, fasta_db.size())
   }
-}
-END_SECTION
-
-START_SECTION((static bool ompThreadCountIsGlobal()))
-{
-#ifdef _OPENMP
-  const int before = omp_get_max_threads();
-#endif
-  const bool global = ProSEAlgorithm::ompThreadCountIsGlobal();
-  TEST_EQUAL(ProSEAlgorithm::ompThreadCountIsGlobal(), global) // probed once
-#ifdef _OPENMP
-  TEST_EQUAL(omp_get_max_threads(), before) // the probe leaves the caller's number as it was
-  // what it says is what the runtime does: another thread's number reaches this thread only where the number is global
-  std::thread([before]() { omp_set_num_threads(before + 2); }).join();
-  TEST_EQUAL(omp_get_max_threads() != before, global)
-  omp_set_num_threads(before);
-  #if _OPENMP >= 200805
-  TEST_EQUAL(global, false) // OpenMP 3.0 runtimes keep the number per thread
-  #endif
-#else
-  TEST_EQUAL(global, false)
-#endif
 }
 END_SECTION
 
