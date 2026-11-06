@@ -11833,8 +11833,9 @@ namespace OpenMS
   {
     if (errors.empty()) return 0.0;
     std::vector<double> values = errors; // reordered by the selection
-    const auto [med, mad] = medianAndMADBySelection(values);
-    const double sigma = 1.4826 * mad;
+    const std::pair<double, double> med_mad = medianAndMADBySelection(values);
+    const double med = med_mad.first; // (no structured binding: clang cannot capture one in a lambda with OpenMP)
+    const double sigma = 1.4826 * med_mad.second;
     const double measured = measuredError_(med, sigma);
     const auto covered = [&](double e) { return fragment ? std::fabs(e) <= measured : (e >= med - 4.0 * sigma && e <= med + 4.0 * sigma); };
     return std::count_if(errors.begin(), errors.end(), covered) / static_cast<double>(errors.size());
