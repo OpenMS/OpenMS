@@ -11552,10 +11552,24 @@ namespace OpenMS
     const double prec_hi = result.precursor_shift + 4.0 * result.precursor_sigma, prec_lo = result.precursor_shift - 4.0 * result.precursor_sigma;
     if (prec_hi > precursor_mass_tolerance_lower_ || -prec_lo > precursor_mass_tolerance_upper_)
     {
-      OPENMS_LOG_WARN << "[ProSE] Calibration: the precursor window [-" << precursor_mass_tolerance_upper_ << ", +"
-                      << precursor_mass_tolerance_lower_ << "] " << precursor_mass_tolerance_unit_ << " is tighter than the errors the "
-                      << "search sees (offset +/- 4 sigma = [" << prec_lo << ", " << prec_hi << "]) and loses correct matches; ProSE "
-                      << "gains from wide precursor windows, e.g. 20 ppm" << (recalibrate ? "" : " (or calibration:recalibrate offset)")
+      // In the parameters' terms: an error e = observed - theoretical > 0 needs mass_tolerance_lower >= e (the mass-space
+      // window is [observed - lower, observed + upper]), e < 0 needs mass_tolerance_upper >= -e
+      std::ostringstream sides;
+      sides << std::fixed << std::setprecision(3);
+      if (prec_hi > precursor_mass_tolerance_lower_)
+      {
+        sides << " precursor:mass_tolerance_lower " << precursor_mass_tolerance_lower_ << " " << precursor_mass_tolerance_unit_
+              << " is below the measured +" << prec_hi << ";";
+      }
+      if (-prec_lo > precursor_mass_tolerance_upper_)
+      {
+        sides << " precursor:mass_tolerance_upper " << precursor_mass_tolerance_upper_ << " " << precursor_mass_tolerance_unit_
+              << " is below the measured " << -prec_lo << ";";
+      }
+      OPENMS_LOG_WARN << "[ProSE] Calibration: the precursor window is tighter than the errors the search sees (observed - "
+                      << "theoretical from " << std::fixed << std::setprecision(3) << prec_lo << " to " << prec_hi << " "
+                      << precursor_mass_tolerance_unit_ << ", offset +/- 4 sigma):" << sides.str() << " this loses correct matches; "
+                      << "ProSE gains from wide precursor windows, e.g. 20 ppm" << (recalibrate ? "" : " (or calibration:recalibrate offset)")
                       << "." << std::endl;
     }
     if (fragment_errors.size() >= calibration_min_psms_ && measuredError_(result.fragment_shift, result.fragment_sigma) > fragment_mass_tolerance_)

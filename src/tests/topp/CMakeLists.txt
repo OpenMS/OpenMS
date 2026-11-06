@@ -5971,6 +5971,12 @@ add_test("TOPP_ProSE_4_out" ${DIFF}
   -ratio 1.2 -absdiff 2.0)
 set_tests_properties("TOPP_ProSE_4_out" PROPERTIES DEPENDS
   "TOPP_ProSE_4")
+# ProSE_4's errors (offset ~ +7.5 ppm, sigma ~ 2.5) exceed its lower tolerance of 15 ppm on the high side: the calibration
+# warns, and names the parameter of that side (an error observed - theoretical > 0 needs mass_tolerance_lower)
+add_test(NAME "TOPP_ProSE_4_window_warning" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;${_prose_library_defaults};-Search:rescore;false;-ini;${DATA_DIR_TOPP}/ProSE_4.ini;-in;${DATA_DIR_TOPP}/SimpleSearchEngine_1_shifted_7ppm.mzML;-out_idxml;${TESTS_TEMP_DIR}/ProSE_4_window_warning.tmp.idXML;-database;${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta"
+  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=precursor:mass_tolerance_lower 15\\.000 ppm is below the measured \\+1[0-9]\\."
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
 
 # Test 5: Database chunking — same inputs as test 1 but with chunk_size=5.
 # 11 proteins (decoys=false in ProSE_1.ini) → 3 chunks (5+5+1). Output
