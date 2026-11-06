@@ -11561,9 +11561,20 @@ namespace OpenMS
     }
     result.psms = precursor_errors.size();
     result.fragment_peaks = fragment_errors.size();
-    result.precursor_measurement_trusted = result.precursor_measured_coverage >= min_coverage_precursor;
-    result.fragment_measurement_trusted = fragment_errors.size() >= calibration_min_psms_
-                                          && result.fragment_measured_coverage >= min_coverage_fragment;
+    // Trusted: the measured error covers the errors (one mode, no heavy tails), and it lies inside the window the
+    // calibration pass searched with. A measured range that reaches that window was censored (errors beyond it were not
+    // matched, so the median and MAD come from a truncated sample) and is a lower bound, not a tolerance to adopt.
+    {
+      const double p_off = recalibrate ? result.precursor_raw_shift : result.precursor_shift;
+      const double p_sigma = recalibrate ? result.precursor_raw_sigma : result.precursor_sigma;
+      const bool p_censored = p_off + 4.0 * p_sigma >= pass_lower || p_off - 4.0 * p_sigma <= -pass_upper;
+      result.precursor_measurement_trusted = !p_censored && result.precursor_measured_coverage >= min_coverage_precursor;
+      const double f_off = recalibrate ? result.fragment_raw_shift : result.fragment_shift;
+      const double f_sigma = recalibrate ? result.fragment_raw_sigma : result.fragment_sigma;
+      const bool f_censored = measuredError_(f_off, f_sigma) >= pass_fragment;
+      result.fragment_measurement_trusted = fragment_errors.size() >= calibration_min_psms_ && !f_censored
+                                            && result.fragment_measured_coverage >= min_coverage_fragment;
+    }
     if (fragment_errors.size() >= calibration_min_psms_)
     {
       const auto [med, mad] = medianAndMADBySelection(fragment_errors);
@@ -11860,8 +11871,9 @@ namespace OpenMS
       sp.setMetaValue("calibration:fragment_measured_error", measuredError_(cal.fragment_raw_shift, cal.fragment_raw_sigma));
     }
     // Whether a measurement describes the run: it covers at least 98 % (precursor) or 95 % (fragment peaks) of the
-    // calibration PSMs, and the fragments come from calibration:min_psms peaks or more. A pipeline that takes the
-    // measured error as a tolerance should not take an untrusted one.
+    // calibration PSMs, lies inside the calibration pass's window (not censored), and the fragments come from
+    // calibration:min_psms peaks or more. A pipeline that takes the measured error as a tolerance should not take an
+    // untrusted one.
     sp.setMetaValue("calibration:psms", static_cast<Int>(cal.psms));
     sp.setMetaValue("calibration:precursor_measurement_trusted", cal.precursor_measurement_trusted ? "true" : "false");
     sp.setMetaValue("calibration:fragment_measurement_trusted", cal.fragment_measurement_trusted ? "true" : "false");
