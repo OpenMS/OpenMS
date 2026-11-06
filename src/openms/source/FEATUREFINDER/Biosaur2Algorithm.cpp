@@ -363,18 +363,9 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
     if (n_groups == 1) process_group(0);
     else
     {
-#ifdef _OPENMP
-      const int threads = omp_get_max_threads();
-      // with nested parallelism enabled, the groups running at once share the threads instead of each taking all
-      const int inner = max(1, threads / static_cast<int>(min(n_groups, static_cast<Size>(threads))));
-#endif
-      parallelFor_(0, static_cast<SignedSize>(n_groups), 1, [&](SignedSize i)
-      {
-#ifdef _OPENMP
-        omp_set_num_threads(inner);
-#endif
-        process_group(static_cast<Size>(i));
-      });
+      // no omp_set_num_threads() for the inner loops here: on MSVC's vcomp it would set the number for the whole
+      // process, and nothing would set it back
+      parallelFor_(0, static_cast<SignedSize>(n_groups), 1, [&](SignedSize i) { process_group(static_cast<Size>(i)); });
     }
     // the feature maps afterwards, in CV order: their unique ids are then drawn in the same order at every thread count
     for (Size i = 0; i < n_groups; ++i)
