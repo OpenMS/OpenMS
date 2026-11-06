@@ -1322,6 +1322,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// The measured mass error |offset| + 4 sigma: the range that holds practically all correct matches
     static double measuredError_(double offset, double sigma);
 
+    /// The share of @p errors that their measured error covers (median and 1.4826 * MAD of @p errors): within median
+    /// +/- 4 sigma (precursor), or |error| <= measuredError_() (@p fragment). 0 for no errors.
+    static double measuredCoverage_(const std::vector<double>& errors, bool fragment);
+
     /// Whether co-isolated precursors are searched (chimeric:enabled, which database:chunk_size > 0 does not support).
     /// The file-based searches then also read the survey scans.
     bool chimericSearch_() const { return chimeric_enabled_ && database_chunk_size_ == 0; }

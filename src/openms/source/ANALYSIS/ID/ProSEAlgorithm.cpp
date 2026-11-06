@@ -11467,21 +11467,8 @@ namespace OpenMS
     // The share of the errors as measured (before a recalibration) that the measured error recordRecalibration_()
     // reports covers: precursor offset +/- 4 sigma, fragment |offset| + 4 sigma. A measurement that misses more than the
     // windows below accept (two error modes, heavy tails) is recorded as not trusted.
-    {
-      std::vector<double> errs = precursor_errors;
-      const auto [med, mad] = medianAndMADBySelection(errs);
-      const double range = 4.0 * 1.4826 * mad;
-      result.precursor_measured_coverage = std::count_if(precursor_errors.begin(), precursor_errors.end(),
-        [&](double e) { return e >= med - range && e <= med + range; }) / static_cast<double>(precursor_errors.size());
-      if (fragment_errors.size() >= calibration_min_psms_)
-      {
-        errs = fragment_errors;
-        const auto [f_med, f_mad] = medianAndMADBySelection(errs);
-        const double measured = measuredError_(f_med, 1.4826 * f_mad);
-        result.fragment_measured_coverage = std::count_if(fragment_errors.begin(), fragment_errors.end(),
-          [&](double e) { return std::fabs(e) <= measured; }) / static_cast<double>(fragment_errors.size());
-      }
-    }
+    result.precursor_measured_coverage = measuredCoverage_(precursor_errors, false);
+    if (fragment_errors.size() >= calibration_min_psms_) result.fragment_measured_coverage = measuredCoverage_(fragment_errors, true);
 
     // --- calibration:recalibrate: the error models, which applyRecalibration_() subtracts from the spectra. The
     //     windows below are then derived from the residual errors, the errors the main search sees. ---
@@ -11842,6 +11829,17 @@ namespace OpenMS
                     << " and " << peaks << " fragment peaks in place (the PSMs report the observed m/z)" << std::endl;
   }
 
+  double ProSEAlgorithm::measuredCoverage_(const std::vector<double>& errors, bool fragment)
+  {
+    if (errors.empty()) return 0.0;
+    std::vector<double> values = errors; // reordered by the selection
+    const auto [med, mad] = medianAndMADBySelection(values);
+    const double sigma = 1.4826 * mad;
+    const double measured = measuredError_(med, sigma);
+    const auto covered = [&](double e) { return fragment ? std::fabs(e) <= measured : (e >= med - 4.0 * sigma && e <= med + 4.0 * sigma); };
+    return std::count_if(errors.begin(), errors.end(), covered) / static_cast<double>(errors.size());
+  }
+
   void ProSEAlgorithm::recordRecalibration_(const CalibrationResult_& cal, std::vector<ProteinIdentification>& protein_ids) const
   {
     if (protein_ids.empty() || !cal.success) return;
@@ -11851,9 +11849,15 @@ namespace OpenMS
     sp.setMetaValue("calibration:precursor_error_offset", cal.precursor_raw_shift);
     sp.setMetaValue("calibration:precursor_error_sigma", cal.precursor_raw_sigma);
     sp.setMetaValue("calibration:precursor_measured_error", measuredError_(cal.precursor_raw_shift, cal.precursor_raw_sigma));
-    sp.setMetaValue("calibration:fragment_error_offset", cal.fragment_raw_shift);
-    sp.setMetaValue("calibration:fragment_error_sigma", cal.fragment_raw_sigma);
-    sp.setMetaValue("calibration:fragment_measured_error", measuredError_(cal.fragment_raw_shift, cal.fragment_raw_sigma));
+    // (no fragment records without a fragment measurement, fewer than calibration:min_psms matched peaks: their zeros
+    // would read as a perfect fragment calibration)
+    const bool fragments_measured = cal.fragment_peaks >= calibration_min_psms_;
+    if (fragments_measured)
+    {
+      sp.setMetaValue("calibration:fragment_error_offset", cal.fragment_raw_shift);
+      sp.setMetaValue("calibration:fragment_error_sigma", cal.fragment_raw_sigma);
+      sp.setMetaValue("calibration:fragment_measured_error", measuredError_(cal.fragment_raw_shift, cal.fragment_raw_sigma));
+    }
     // Whether a measurement describes the run: it covers at least 98 % (precursor) or 95 % (fragment peaks) of the
     // calibration PSMs, and the fragments come from calibration:min_psms peaks or more. A pipeline that takes the
     // measured error as a tolerance should not take an untrusted one.
@@ -11868,10 +11872,13 @@ namespace OpenMS
       sp.setMetaValue("calibration:precursor_residual_offset", cal.precursor_shift);
       sp.setMetaValue("calibration:precursor_residual_sigma", cal.precursor_sigma);
       sp.setMetaValue("calibration:precursor_residual_measured_error", measuredError_(cal.precursor_shift, cal.precursor_sigma));
-      sp.setMetaValue("calibration:fragment_model", cal.fragment_recalibration.toString());
-      sp.setMetaValue("calibration:fragment_residual_offset", cal.fragment_shift);
-      sp.setMetaValue("calibration:fragment_residual_sigma", cal.fragment_sigma);
-      sp.setMetaValue("calibration:fragment_residual_measured_error", measuredError_(cal.fragment_shift, cal.fragment_sigma));
+      if (fragments_measured)
+      {
+        sp.setMetaValue("calibration:fragment_model", cal.fragment_recalibration.toString());
+        sp.setMetaValue("calibration:fragment_residual_offset", cal.fragment_shift);
+        sp.setMetaValue("calibration:fragment_residual_sigma", cal.fragment_sigma);
+        sp.setMetaValue("calibration:fragment_residual_measured_error", measuredError_(cal.fragment_shift, cal.fragment_sigma));
+      }
     }
     protein_ids[0].setSearchParameters(std::move(sp));
   }

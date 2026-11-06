@@ -182,6 +182,7 @@ public:
   using ProSEAlgorithm::transferSample_;
   using ProSEAlgorithm::tdcQValues_;
   using ProSEAlgorithm::collectRunStatistics_;
+  using ProSEAlgorithm::measuredCoverage_;
 };
 
 // A progress display that counts how often a progress display starts and ends, and throws when one with the label
@@ -4086,6 +4087,16 @@ START_SECTION(([EXTRA] calibration:recalibrate corrects the precursor m/z and th
   TEST_EQUAL(static_cast<int>(plain_sp.getMetaValue("calibration:psms")), static_cast<int>(none.psms))
   // with the recalibration the coverage is of the errors as measured, before the correction: the same PSMs, the same value
   TEST_REAL_SIMILAR(cal.precursor_measured_coverage, none.precursor_measured_coverage)
+  // the coverage itself: one error mode is covered; a second mode (a lock mass that drops out) is not, and is below
+  // the 98 % (precursor) / 95 % (fragment) a trusted measurement needs
+  const vector<double> one_mode = {6.8, 7.0, 7.1, 6.9, 7.2, 7.0, 6.95, 7.05, 7.0, 6.9};
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::measuredCoverage_(one_mode, false), 1.0)
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::measuredCoverage_(one_mode, true), 1.0)
+  const vector<double> two_modes = {0.1, -0.1, 0.0, 0.05, -0.05, 0.2, -0.2, 0.0, 10.0, 10.2};
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::measuredCoverage_(two_modes, false), 0.8)
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::measuredCoverage_(two_modes, true), 0.8)
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::measuredCoverage_({}, false), 0.0)
+  // (an untrusted measurement end to end, recorded as false: TOPP_ProSE_4_calibration_records)
   TEST_REAL_SIMILAR(untouched[0].getPrecursors()[0].getMZ(), observed[0].getPrecursors()[0].getMZ())
   TEST_EQUAL(untouched[0].getPrecursors()[0].metaValueExists(ProSEAlgorithm_test::OBSERVED_PRECURSOR_MZ), false)
   ProSEAlgorithm::RunStatistics plain_stats;
