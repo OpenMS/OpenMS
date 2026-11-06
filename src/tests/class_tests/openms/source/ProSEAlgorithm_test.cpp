@@ -157,6 +157,8 @@ public:
   using ProSEAlgorithm::CalibrationResult_;
   using ProSEAlgorithm::MzRecalibration_;
   using ProSEAlgorithm::OBSERVED_PRECURSOR_MZ;
+  using ProSEAlgorithm::OBSERVED_COISOLATED_MZ;
+  using ProSEAlgorithm::applyRecalibration_;
   using ProSEAlgorithm::calibrationPassWindow_;
   using ProSEAlgorithm::preprocessSpectra_;
   using ProSEAlgorithm::mass_accuracy_score_;
@@ -3940,11 +3942,19 @@ START_SECTION(([EXTRA] MzRecalibration_::fit models the error per RT chunk, the 
   TEST_REAL_SIMILAR(da.correct(500.0, 1.0), 499.9)
   TEST_EQUAL(da.toString().substr(0, 2), "Da")
 
+  // uncorrect() inverts correct() (the fragment annotations report the observed m/z): exactly for an offset, to within
+  // 1e-9 for a line in m/z
+  TEST_EQUAL(std::fabs(offset.uncorrect(offset.correct(1000.0, 50.0), 50.0) - 1000.0) < 1e-9, true)
+  TEST_EQUAL(std::fabs(linear.uncorrect(linear.correct(1500.0, 100.0), 100.0) - 1500.0) < 1e-9, true)
+  TEST_EQUAL(std::fabs(linear.uncorrect(linear.correct(300.0, 0.0), 0.0) - 300.0) < 1e-9, true)
+  TEST_EQUAL(std::fabs(da.uncorrect(da.correct(500.0, 1.0), 1.0) - 500.0) < 1e-9, true)
+
   // nothing to fit: inactive
   const Model none = Model::fit({}, {}, {}, 1, 1, true, true);
   TEST_EQUAL(none.active(), false)
   TEST_REAL_SIMILAR(none.error(500.0, 1.0), 0.0)
   TEST_REAL_SIMILAR(none.correct(500.0, 1.0), 500.0)
+  TEST_REAL_SIMILAR(none.uncorrect(500.0, 1.0), 500.0)
   TEST_STRING_EQUAL(none.toString(), "")
 }
 END_SECTION
@@ -3981,15 +3991,22 @@ START_SECTION(([EXTRA] calibration:recalibrate corrects the precursor m/z and th
   TEST_EQUAL(cal.fragment_raw_shift > 4.0 && cal.fragment_raw_shift < 6.0, true)
   TEST_EQUAL(std::fabs(cal.fragment_shift) < 0.5, true)
   TEST_EQUAL(cal.fragment_tolerance >= 5.0 - 1e-9 && cal.fragment_tolerance <= 20.0 + 1e-9, true)
-  // the spectra: corrected in place, the observed precursor m/z kept; the PSMs: the observed m/z, the residual error
-  Size psms = 0;
+  // the spectra: corrected in place, the observed precursor m/z kept; the PSMs: the observed m/z, the residual error,
+  // and fragment annotations of the peaks' observed m/z (5 ppm away from the corrected ones)
+  Size psms = 0, annotations = 0;
   for (const auto& pid : pep_ids)
   {
     if (pid.getHits().empty()) continue;
     const Size scan = static_cast<Size>(static_cast<int>(pid.getMetaValue("scan_index")));
     const double observed_mz = observed[scan].getPrecursors()[0].getMZ();
     const Precursor& precursor = spectra[scan].getPrecursors()[0];
-    TEST_REAL_SIMILAR(pid.getMZ(), observed_mz)
+    TEST_EQUAL(std::fabs(pid.getMZ() - observed_mz) < 1e-9, true)
+    for (const PeptideHit::PeakAnnotation& pa : pid.getHits()[0].getPeakAnnotations())
+    {
+      const Int nearest = observed[scan].findNearest(pa.mz);
+      TEST_EQUAL(nearest >= 0 && std::fabs(observed[scan][nearest].getMZ() - pa.mz) < 1e-6, true)
+      ++annotations;
+    }
     TEST_REAL_SIMILAR(static_cast<double>(precursor.getMetaValue(ProSEAlgorithm_test::OBSERVED_PRECURSOR_MZ)), observed_mz)
     TEST_REAL_SIMILAR(precursor.getMZ(), observed_mz * (1.0 - cal.precursor_raw_shift * 1e-6))
     TEST_REAL_SIMILAR(spectra[scan][0].getMZ(), observed[scan][0].getMZ() * (1.0 - cal.fragment_recalibration.chunks[0].intercept * 1e-6))
@@ -3998,6 +4015,7 @@ START_SECTION(([EXTRA] calibration:recalibrate corrects the precursor m/z and th
     ++psms;
   }
   TEST_EQUAL(psms >= 3, true)
+  TEST_EQUAL(annotations > 0, true)
   // the search parameters record the mode, the models and the errors before and after
   const ProteinIdentification::SearchParameters& sp = prot_ids[0].getSearchParameters();
   TEST_STRING_EQUAL(sp.getMetaValue("calibration:recalibrate").toString(), "offset")
@@ -4013,6 +4031,13 @@ START_SECTION(([EXTRA] calibration:recalibrate corrects the precursor m/z and th
   TEST_EQUAL(stats.recalibration.empty(), false)
   TEST_EQUAL(std::any_of(stats.recalibration.begin(), stats.recalibration.end(),
                          [](const auto& r) { return r.first == "recalibrate" && r.second.toString() == "offset"; }), true)
+  // ... whose tolerance estimate has the errors as observed on both sides: of the PSMs' precursor m/z and of their
+  // fragment annotations (the residual errors are the calibration:*_residual_* records); with at least 10 PSMs
+  if (stats.prec_tol_valid && stats.frag_tol_valid)
+  {
+    TEST_EQUAL(stats.prec_err_median > 5.0 && stats.prec_err_median < 9.0, true)
+    TEST_EQUAL(stats.frag_err_median > 4.0 && stats.frag_err_median < 6.0, true)
+  }
 
   // mode none (the default): nothing corrected, nothing recorded, and the errors as measured
   PeakMap untouched = build_calibration_spectra_(ppm_shifts, false, 5.0);
@@ -4037,6 +4062,60 @@ START_SECTION(([EXTRA] calibration:recalibrate corrects the precursor m/z and th
   ProSEAlgorithm::RunStatistics plain_stats;
   plain.collectRunStatistics_(untouched, plain_prot_ids, plain_pep_ids, plain_stats);
   TEST_EQUAL(plain_stats.recalibration.empty(), true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] calibration:recalibrate corrects the co-isolated precursors by the precursor model, keeping their observed m/z))
+{
+  ProSEAlgorithm_test algo;
+  ProSEAlgorithm_test::CalibrationResult_ cal;
+  cal.success = true;
+  cal.precursor_recalibration.chunks.push_back({100.0, 7.0, 0.0, 10}); // +7 ppm
+  cal.fragment_recalibration.chunks.push_back({100.0, 5.0, 0.0, 10});  // +5 ppm
+  MSSpectrum spectrum;
+  spectrum.setMSLevel(2);
+  spectrum.setRT(100.0);
+  Precursor precursor;
+  precursor.setMZ(700.0);
+  precursor.setCharge(2);
+  spectrum.setPrecursors({precursor});
+  spectrum.push_back(Peak1D(400.0, 1.0f));
+  spectrum.setMetaValue(CoIsolationDetector::META_MZ, DoubleList{500.0, 600.0});
+  spectrum.setMetaValue(CoIsolationDetector::META_CHARGE, IntList{2, 3});
+  PeakMap spectra;
+  spectra.addSpectrum(spectrum);
+  const auto close = [](double a, double b) { return std::fabs(a - b) < 1e-9; };
+
+  algo.applyRecalibration_(cal, spectra, nullptr, nullptr);
+  TEST_EQUAL(close(spectra[0].getPrecursors()[0].getMZ(), 700.0 * (1.0 - 7e-6)), true)
+  TEST_EQUAL(close(spectra[0][0].getMZ(), 400.0 * (1.0 - 5e-6)), true)
+  DoubleList mzs = spectra[0].getMetaValue(CoIsolationDetector::META_MZ);
+  TEST_EQUAL(mzs.size(), 2)
+  TEST_EQUAL(close(mzs[0], 500.0 * (1.0 - 7e-6)) && close(mzs[1], 600.0 * (1.0 - 7e-6)), true)
+  DoubleList observed = spectra[0].getMetaValue(ProSEAlgorithm_test::OBSERVED_COISOLATED_MZ);
+  TEST_EQUAL(observed.size(), 2)
+  TEST_EQUAL(observed[0] == 500.0 && observed[1] == 600.0, true)
+  // the fragment annotations undo the fragment model: the peak as observed
+  TEST_EQUAL(close(cal.fragment_recalibration.uncorrect(spectra[0][0].getMZ(), 100.0), 400.0), true)
+
+  // a second correction keeps the first observation
+  algo.applyRecalibration_(cal, spectra, nullptr, nullptr);
+  observed = spectra[0].getMetaValue(ProSEAlgorithm_test::OBSERVED_COISOLATED_MZ);
+  TEST_EQUAL(observed.size() == 2 && observed[0] == 500.0 && observed[1] == 600.0, true)
+  TEST_EQUAL(static_cast<double>(spectra[0].getPrecursors()[0].getMetaValue(ProSEAlgorithm_test::OBSERVED_PRECURSOR_MZ)) == 700.0, true)
+
+  // the residual spectrum of a co-isolated precursor carries neither list
+  const MSSpectrum residual = ProSEAlgorithm_test::residualSpectrum_(spectra[0], {}, precursor);
+  TEST_EQUAL(residual.metaValueExists(CoIsolationDetector::META_MZ), false)
+  TEST_EQUAL(residual.metaValueExists(ProSEAlgorithm_test::OBSERVED_COISOLATED_MZ), false)
+
+  // without a successful calibration nothing is corrected
+  PeakMap untouched;
+  untouched.addSpectrum(spectrum);
+  cal.success = false;
+  algo.applyRecalibration_(cal, untouched, nullptr, nullptr);
+  TEST_EQUAL(untouched[0].getPrecursors()[0].getMZ() == 700.0 && untouched[0][0].getMZ() == 400.0, true)
+  TEST_EQUAL(untouched[0].metaValueExists(ProSEAlgorithm_test::OBSERVED_COISOLATED_MZ), false)
 }
 END_SECTION
 
