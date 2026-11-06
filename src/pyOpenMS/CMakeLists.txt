@@ -137,9 +137,8 @@ endif()
 # <prefix>/lib (ARCHIVE), so a list that names only lib/ can never find a DLL of
 # a shared dependency; OpenMS.dll then fails to load with the loader's
 # unhelpful "The specified module could not be found". Hence every dependency
-# prefix contributes both directories. QT_INSTALL_BINS is not used: it is never
-# defined here (cmake/knime_package_support.cmake sets it, and the root project
-# includes that after add_subdirectory(src), only for KNIME packaging).
+# prefix contributes both directories. QT_INSTALL_BINS is not used: nothing in
+# the build defines it.
 function(_pyopenms_windows_dll_dirs out_var)
   # Caller-supplied directories come first: the environment is the only way an
   # enclosing build or a CI job can point at something CMake cannot know about.
