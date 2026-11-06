@@ -80,6 +80,26 @@ START_SECTION(std::string MultiplexDeltaMassesGenerator::getLabelLong(std::strin
   TEST_EQUAL(list.getLabelLong("Dimethyl8"), "Dimethyl:2H(6)13C(2)");
 END_SECTION
 
+START_SECTION(unsigned getDeuteriumCount(const std::string& label) const)
+  // from the elemental composition of the labels' UniMod modifications
+  TEST_EQUAL(list.getDeuteriumCount("Lys4"), 4);
+  TEST_EQUAL(list.getDeuteriumCount("Leu3"), 3);
+  TEST_EQUAL(list.getDeuteriumCount("Dimethyl4"), 4);
+  TEST_EQUAL(list.getDeuteriumCount("Dimethyl6"), 4);
+  TEST_EQUAL(list.getDeuteriumCount("Dimethyl8"), 6);
+  TEST_EQUAL(list.getDeuteriumCount("ICPL4"), 4);
+  TEST_EQUAL(list.getDeuteriumCount("ICPL10"), 4);
+  // 13C/15N labels, the light channel, the knock-out singlet and unknown names have no 2H
+  TEST_EQUAL(list.getDeuteriumCount("Lys8"), 0);
+  TEST_EQUAL(list.getDeuteriumCount("Arg6"), 0);
+  TEST_EQUAL(list.getDeuteriumCount("Dimethyl0"), 0);
+  TEST_EQUAL(list.getDeuteriumCount("no_label"), 0);
+  TEST_EQUAL(list.getDeuteriumCount("any_label_set"), 0);
+  TEST_EQUAL(list.getDeuteriumCount("Lys42"), 0);
+  // also with the default constructor
+  TEST_EQUAL(MultiplexDeltaMassesGenerator().getDeuteriumCount("Lys4"), 4);
+END_SECTION
+
 START_SECTION(MultiplexDeltaMasses::LabelSet MultiplexDeltaMassesGenerator::extractLabelSet(AASequence sequence))
   AASequence sequence = AASequence::fromString("LAPITSDPTEAAAVGAVEASFK(Label:13C(6)15N(2))");
   MultiplexDeltaMasses::LabelSet label_set = list.extractLabelSet(sequence);

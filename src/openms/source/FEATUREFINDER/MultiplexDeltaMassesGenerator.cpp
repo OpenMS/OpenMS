@@ -8,6 +8,9 @@
 
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
+#include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -15,7 +18,9 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <algorithm>
 #include <initializer_list>
+#include <set>
 #include <iostream>
 #include <ostream>
 #include <sstream>
@@ -524,6 +529,25 @@ namespace OpenMS
   std::string MultiplexDeltaMassesGenerator::getLabelLong(const std::string& label)
   {
     return label_short_long_[label];
+  }
+
+  unsigned MultiplexDeltaMassesGenerator::getDeuteriumCount(const std::string& label) const
+  {
+    const auto it = std::find_if(label_master_list_.begin(), label_master_list_.end(), [&](const Label& l) { return l.short_name == label; });
+    if (it == label_master_list_.end()) { return 0; }
+    // a label can be defined for several residues (e.g. Label:2H(4)), all of the same composition
+    std::set<const ResidueModification*> modifications;
+    try
+    {
+      ModificationsDB::getInstance()->searchModifications(modifications, it->long_name);
+    }
+    catch (const Exception::BaseException&)
+    {
+      return 0;
+    }
+    if (modifications.empty()) { return 0; }
+    const SignedSize deuterium = (*modifications.begin())->getDiffFormula().getNumberOf(ElementDB::getInstance()->getElement("(2)H"));
+    return deuterium > 0 ? static_cast<unsigned>(deuterium) : 0;
   }
 
   MultiplexDeltaMasses::LabelSet MultiplexDeltaMassesGenerator::extractLabelSet(const AASequence& sequence)

@@ -140,7 +140,17 @@ namespace OpenMS
      * @param[in] label    short label, as it appears in the "labels" parameter, e.g. "Arg10"
      */
     std::string getLabelLong(const std::string& label);
-    
+
+    /**
+     * @brief returns the number of deuterium (2H) atoms of a label, from the elemental composition of its UniMod modification
+     *
+     * For example 4 for Lys4 (Label:2H(4)), 6 for Dimethyl8 (Dimethyl:2H(6)13C(2)) and 0 for Lys8 (Label:13C(6)15N(2)).
+     * Labels without a modification (no_label, any_label_set, plain mass shifts, unknown names) have none.
+     *
+     * @param[in] label    short label, as it appears in the "labels" parameter, e.g. "Lys4"
+     */
+    unsigned getDeuteriumCount(const std::string& label) const;
+
     /**
      * @brief extract the label set from the sequence
      *

@@ -19,7 +19,9 @@
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <functional>
+#include <map>
 #include <optional>
+#include <string>
 #include <vector>
 #include <algorithm>
 #include <iostream>
@@ -150,6 +152,42 @@ public:
      */
     std::vector<BlacklistOwner> getBlacklistOwners(Size spectrum_index) const;
 
+    /**
+     * @brief take the lower isotopologue of deuterium labels into account where a peak one isotope below a peptide is checked
+     *
+     * A label with n deuterium (2H) atoms of atom fraction p < 1 leaves molecules that lack one 2H. Their monoisotopic peak
+     * lies 1.0063/z below the peptide's, 0.0029/z from its M-1, so within the m/z tolerance in which the filter looks for a
+     * significant peak one isotope below the peptide (which would make the peptide's peaks the isotopes of another envelope).
+     * For one Lys4 at p = 0.96 it is about 15 % of the monoisotopic peak, for two about 28 % (at 2 kDa), against the 30 % above
+     * which such a peak is significant. With this setting, a peak there is significant only above 30 % plus that expected part
+     * (deuteriumLowerFraction() of the averagine distribution at the peptide's mass). Peptides whose labels have no 2H keep 30 %.
+     *
+     * Call it after the construction, before filter().
+     *
+     * @param[in] deuterium_per_label    number of 2H atoms per label of the patterns' label sets (short names, e.g. Lys4 -> 4,
+     *                                   see MultiplexDeltaMassesGenerator::getDeuteriumCount()); labels that are not listed have none
+     * @param[in] enrichment    2H atom fraction of the labels, in (0, 1]; 1 (the default) ignores the lower isotopologue
+     *
+     * @throw Exception::InvalidValue if @p enrichment is not in (0, 1]
+     */
+    void setDeuteriumLabels(const std::map<std::string, unsigned>& deuterium_per_label, double enrichment);
+
+    /**
+     * @brief the peak one isotope below a deuterium-labelled peptide that its own label isotopologues produce, relative to its monoisotopic peak
+     *
+     * The molecules that lack j of the @p deuterium 2H atoms of the label (binomial in the 2H atom fraction @p enrichment,
+     * q_j = C(n, j) ((1 - p) / p)^j relative to the fully labelled ones) have the peptide's isotope distribution I shifted
+     * by -j * 1.0063 Da: their isotope j - 1 coincides with the peptide's M-1 within 0.0029 Da per 2H, their isotope j
+     * with its M+0. The result is sum_{j>=1} q_j I_{j-1} / sum_{j>=0} q_j I_j, about r / (1 + r I_1/I_0) for r = n (1 - p) / p.
+     *
+     * @param[in] deuterium    number of 2H atoms of the peptide's labels
+     * @param[in] enrichment    2H atom fraction of the labels, in (0, 1]
+     * @param[in] isotopes    the peptide's isotope distribution without the labels' 2H (e.g. averagine)
+     *
+     * @return 0 if @p deuterium is 0, @p enrichment is not below 1 or @p isotopes has fewer than two isotopes
+     */
+    static double deuteriumLowerFraction(unsigned deuterium, double enrichment, const IsotopeDistribution& isotopes);
+
 protected:
     /**
      * @brief an entry of @em blacklist_ (spectrum index and peak index in @em exp_centroided_) and a value read from or written to it
@@ -190,11 +228,19 @@ protected:
      * @param[in] mz_tolerance    m/z tolerance within the peak may lie
      * @param[in] it_rt    pointer to the spectrum
      * @param[in] intensity_first_peak    intensity to compare to
+     * @param[in] fraction    a peak is significant if its intensity exceeds this fraction of @p intensity_first_peak
      *
      * @return -1 (if there is no significant peak), or the index of the significant peak in the spectrum @p it_rt points to
      * (in filterPeakPositions_() a spectrum of @em exp_centroided_white_, see @em exp_centroided_mapping_)
      */
-    int checkForSignificantPeak_(double mz, double mz_tolerance, MSExperiment::ConstIterator& it_rt, double intensity_first_peak) const;
+    int checkForSignificantPeak_(double mz, double mz_tolerance, MSExperiment::ConstIterator& it_rt, double intensity_first_peak,
+                                 double fraction = 0.3) const;
+
+    /**
+     * @brief the part of the peak one isotope below peptide @p peptide of @p pattern (monoisotopic m/z @p mz) that its own
+     * deuterium labels produce, relative to its monoisotopic peak (see setDeuteriumLabels()); 0 without 2H
+     */
+    double deuteriumLowerFraction_(const MultiplexIsotopicPeakPattern& pattern, size_t peptide, double mz) const;
 
     /**
      * @brief check if there are enough peaks in the RT band to form the pattern
@@ -431,6 +477,17 @@ protected:
      */
 
     std::string averagine_type_;
+
+    /**
+     * @brief number of 2H atoms of the labels of each peptide of each mass shift pattern (index: MultiplexIsotopicPeakPattern::getMassShiftIndex()),
+     * empty for a pattern without 2H (setDeuteriumLabels())
+     */
+    std::vector<std::vector<unsigned>> deuterium_;
+
+    /**
+     * @brief 2H atom fraction of the deuterium labels (setDeuteriumLabels()); 1: their lower isotopologue is ignored
+     */
+    double deuterium_enrichment_ = 1.0;
 
   };
 
