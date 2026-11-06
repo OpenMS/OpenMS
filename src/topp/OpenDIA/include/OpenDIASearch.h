@@ -14,6 +14,7 @@
 
 #include <cstddef>
 #include <iosfwd>
+#include <map>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -45,10 +46,9 @@ namespace OpenMS::OpenDIA
   /**
     @brief Stream DIA spectra and report fragment-group peak candidates.
 
-    Queries are sorted once by product m/z. Each centroided MS2 peak visits only
-    nearby library queries. Candidate state is constant-size per precursor and
-    completed groups are written immediately, so raw scans and chromatograms are
-    never retained.
+    Each MS2 spectrum is an m/z-sorted grid cell assigned to its isolation
+    window lane. Lane-local fragment queries are merge-joined against the cell
+    and candidate state is updated in scan order without retaining the run.
   */
   class StreamSearch final : public Interfaces::IMSDataConsumer
   {
@@ -92,23 +92,54 @@ namespace OpenMS::OpenDIA
       std::size_t candidate = 0;
     };
 
+    struct GridPoint
+    {
+      double mz = 0.0;
+      double intensity = 0.0;
+      float ion_mobility = -1.0f;
+    };
+
+    struct GridCell
+    {
+      double rt = 0.0;
+      double scalar_im = 0.0;
+      std::size_t lane = 0;
+      std::size_t point_begin = 0;
+      std::size_t point_end = 0;
+      bool has_per_peak_im = false;
+      bool has_scalar_im = false;
+    };
+
+    struct GridLane
+    {
+      std::vector<std::pair<double, double>> isolation_windows;
+      std::vector<std::size_t> query_indices;
+    };
+
     void consumeSpectrum_(const MSSpectrum& spectrum);
+    void prepareLaneQueries_(GridLane& lane);
+    void extractCell_(const GridCell& cell, const GridLane& lane);
     void updateCandidate_(std::size_t candidate, double rt, double intensity, std::size_t transition_support);
     void writeCandidate_(const Candidate& candidate);
-    bool queryMatches_(const Query& query, double rt, double peak_im, bool has_peak_im) const;
+    bool queryMatches_(const Query& query, double rt, double peak_im, bool has_peak_im,
+                       const std::vector<std::pair<double, double>>& isolation_windows) const;
 
     SearchOptions options_;
     std::ostream& output_;
     std::vector<Candidate> candidates_;
     std::vector<Query> queries_;
+    std::vector<std::size_t> candidate_query_offsets_;
+    std::vector<std::size_t> candidate_query_indices_;
+    std::vector<std::size_t> candidates_by_mz_;
+    std::vector<GridPoint> grid_points_;
+    std::vector<GridLane> grid_lanes_;
+    std::map<std::vector<std::pair<double, double>>, std::size_t> lane_indices_;
     std::vector<double> query_intensity_;
-    std::vector<std::size_t> query_generation_;
     std::vector<std::size_t> query_touched_;
     std::vector<double> candidate_scan_intensity_;
     std::vector<std::size_t> candidate_scan_support_;
     std::vector<std::size_t> candidate_generation_;
     std::vector<std::size_t> candidate_touched_;
-    std::vector<std::pair<double, double>> isolation_windows_;
     std::size_t generation_ = 0;
     bool finished_ = false;
     bool has_library_im_candidates_ = false;

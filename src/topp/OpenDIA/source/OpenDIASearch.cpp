@@ -17,7 +17,9 @@
 #include <cmath>
 #include <iomanip>
 #include <iterator>
+#include <limits>
 #include <map>
+#include <numeric>
 #include <ostream>
 #include <string_view>
 #include <utility>
@@ -79,8 +81,28 @@ namespace OpenMS::OpenDIA
     {
       return lhs.fragment_mz < rhs.fragment_mz;
     });
+    // Keep each candidate's fragment-query range compact and m/z sorted.
+    candidate_query_offsets_.assign(candidates_.size() + 1, 0);
+    for (const Query& query : queries_)
+    {
+      ++candidate_query_offsets_[query.candidate + 1];
+    }
+    std::partial_sum(candidate_query_offsets_.begin(), candidate_query_offsets_.end(), candidate_query_offsets_.begin());
+    candidate_query_indices_.resize(queries_.size());
+    std::vector<std::size_t> next_query(candidate_query_offsets_.begin(), candidate_query_offsets_.end() - 1);
+    for (std::size_t query_index = 0; query_index < queries_.size(); ++query_index)
+    {
+      candidate_query_indices_[next_query[queries_[query_index].candidate]++] = query_index;
+    }
+
+    candidates_by_mz_.resize(candidates_.size());
+    std::iota(candidates_by_mz_.begin(), candidates_by_mz_.end(), 0);
+    std::sort(candidates_by_mz_.begin(), candidates_by_mz_.end(), [this](std::size_t lhs, std::size_t rhs)
+    {
+      return candidates_[lhs].precursor_mz < candidates_[rhs].precursor_mz;
+    });
+
     query_intensity_.resize(queries_.size());
-    query_generation_.resize(queries_.size());
     candidate_scan_intensity_.resize(candidates_.size());
     candidate_scan_support_.resize(candidates_.size());
     candidate_generation_.resize(candidates_.size());
@@ -119,7 +141,7 @@ namespace OpenMS::OpenDIA
       return;
     }
 
-    isolation_windows_.clear();
+    std::vector<std::pair<double, double>> isolation_windows;
     for (const Precursor& precursor : spectrum.getPrecursors())
     {
       const double center = precursor.getMZ();
@@ -132,31 +154,31 @@ namespace OpenMS::OpenDIA
       {
         continue;
       }
-      isolation_windows_.emplace_back(center - lower_offset, center + upper_offset);
+      isolation_windows.emplace_back(center - lower_offset, center + upper_offset);
     }
-    if (isolation_windows_.empty())
+    if (isolation_windows.empty())
     {
       return;
     }
 
     // Merge overlapping isolation windows so a candidate is counted once per scan.
-    if (isolation_windows_.size() > 1)
+    if (isolation_windows.size() > 1)
     {
-      std::sort(isolation_windows_.begin(), isolation_windows_.end());
+      std::sort(isolation_windows.begin(), isolation_windows.end());
       std::size_t merged_count = 0;
-      for (std::size_t i = 1; i < isolation_windows_.size(); ++i)
+      for (std::size_t i = 1; i < isolation_windows.size(); ++i)
       {
-        if (isolation_windows_[i].first <= isolation_windows_[merged_count].second)
+        if (isolation_windows[i].first <= isolation_windows[merged_count].second)
         {
-          isolation_windows_[merged_count].second =
-            std::max(isolation_windows_[merged_count].second, isolation_windows_[i].second);
+          isolation_windows[merged_count].second =
+            std::max(isolation_windows[merged_count].second, isolation_windows[i].second);
         }
         else
         {
-          isolation_windows_[++merged_count] = isolation_windows_[i];
+          isolation_windows[++merged_count] = isolation_windows[i];
         }
       }
-      isolation_windows_.resize(merged_count + 1);
+      isolation_windows.resize(merged_count + 1);
     }
 
     // Bruker TDF exposes one calibrated VSSC mobility value per peak. Other
@@ -183,50 +205,121 @@ namespace OpenMS::OpenDIA
     const bool has_raw_im = im_values != nullptr || has_scalar_im;
     ion_mobility_filtering_used_ = ion_mobility_filtering_used_ || (has_raw_im && has_library_im_candidates_);
 
+    // TDF spectra commonly repeat one mobility value for every centroid. Store
+    // that once per cell; keep a sidecar only when peak mobilities vary.
+    bool uniform_per_peak_im = im_values != nullptr && !im_values->empty() &&
+                               std::isfinite((*im_values)[0]) && (*im_values)[0] > 0.0f;
+    if (uniform_per_peak_im)
+    {
+      const float first_im = (*im_values)[0];
+      uniform_per_peak_im = std::all_of(im_values->begin(), im_values->end(),
+                                        [first_im](float value) { return value == first_im; });
+      if (uniform_per_peak_im)
+      {
+        scalar_im = first_im;
+        has_scalar_im = true;
+      }
+    }
+
+    auto [lane_it, inserted] = lane_indices_.try_emplace(isolation_windows, grid_lanes_.size());
+    const std::size_t lane_index = lane_it->second;
+    if (inserted)
+    {
+      grid_lanes_.push_back({isolation_windows, {}});
+      prepareLaneQueries_(grid_lanes_.back());
+    }
+
+    GridCell cell;
+    cell.rt = rt;
+    cell.scalar_im = scalar_im;
+    cell.lane = lane_index;
+    cell.has_per_peak_im = im_values != nullptr && !uniform_per_peak_im;
+    cell.has_scalar_im = has_scalar_im;
+
+    // Sort only this spectrum's cell. Doubles preserve legacy m/z boundaries
+    // and intensity integration while the reusable grid scratch stays bounded.
+    grid_points_.clear();
+    grid_points_.reserve(spectrum.size());
+    for (std::size_t peak_index = 0; peak_index < spectrum.size(); ++peak_index)
+    {
+      const auto& peak = spectrum[peak_index];
+      const double peak_mz = peak.getMZ();
+      const double peak_intensity = peak.getIntensity();
+      if (!std::isfinite(peak_mz) || peak_mz < 0.0 || !std::isfinite(peak_intensity))
+      {
+        continue;
+      }
+      const float peak_im = im_values != nullptr ? (*im_values)[peak_index] : -1.0f;
+      grid_points_.push_back({peak_mz, peak_intensity, cell.has_per_peak_im ? peak_im : -1.0f});
+    }
+    std::sort(grid_points_.begin(), grid_points_.end(),
+              [](const GridPoint& lhs, const GridPoint& rhs) { return lhs.mz < rhs.mz; });
+    cell.point_begin = 0;
+    cell.point_end = grid_points_.size();
+    extractCell_(cell, grid_lanes_[lane_index]);
+  }
+
+  void StreamSearch::prepareLaneQueries_(GridLane& lane)
+  {
+    for (const auto& [low_mz, high_mz] : lane.isolation_windows)
+    {
+      auto candidate = std::lower_bound(candidates_by_mz_.begin(), candidates_by_mz_.end(), low_mz,
+                                        [this](std::size_t index, double mz)
+                                        { return candidates_[index].precursor_mz < mz; });
+      for (; candidate != candidates_by_mz_.end() && candidates_[*candidate].precursor_mz <= high_mz; ++candidate)
+      {
+        const std::size_t candidate_index = *candidate;
+        lane.query_indices.insert(lane.query_indices.end(),
+                                  candidate_query_indices_.begin() + static_cast<std::ptrdiff_t>(candidate_query_offsets_[candidate_index]),
+                                  candidate_query_indices_.begin() + static_cast<std::ptrdiff_t>(candidate_query_offsets_[candidate_index + 1]));
+      }
+    }
+    std::sort(lane.query_indices.begin(), lane.query_indices.end(), [this](std::size_t lhs, std::size_t rhs)
+    {
+      return queries_[lhs].fragment_mz < queries_[rhs].fragment_mz;
+    });
+  }
+
+  void StreamSearch::extractCell_(const GridCell& cell, const GridLane& lane)
+  {
     if (++generation_ == 0)
     {
-      std::fill(query_generation_.begin(), query_generation_.end(), 0);
       std::fill(candidate_generation_.begin(), candidate_generation_.end(), 0);
       generation_ = 1;
     }
     query_touched_.clear();
     candidate_touched_.clear();
 
-    // Visit only library fragments in the tolerance interval around each raw peak.
-    for (std::size_t peak_index = 0; peak_index < spectrum.size(); ++peak_index)
+    std::size_t point_cursor = cell.point_begin;
+    for (const std::size_t query_index : lane.query_indices)
     {
-      const auto& peak = spectrum[peak_index];
-      const double peak_mz = peak.getMZ();
-      const double peak_intensity = peak.getIntensity();
-      if (!std::isfinite(peak_mz) || !std::isfinite(peak_intensity))
+      const Query& query = queries_[query_index];
+      const double low_mz = query.fragment_mz - options_.fragment_tolerance_da;
+      const double high_mz = query.fragment_mz + options_.fragment_tolerance_da;
+      while (point_cursor < cell.point_end && grid_points_[point_cursor].mz < low_mz)
       {
-        continue;
+        ++point_cursor;
       }
-      const double low_mz = peak_mz - options_.fragment_tolerance_da;
-      const double high_mz = peak_mz + options_.fragment_tolerance_da;
-      auto first = std::lower_bound(queries_.begin(), queries_.end(), low_mz,
-                                    [](const Query& query, double mz) { return query.fragment_mz < mz; });
-      const auto last = std::upper_bound(first, queries_.end(), high_mz,
-                                         [](double mz, const Query& query) { return mz < query.fragment_mz; });
-      const double peak_im = im_values != nullptr ? static_cast<double>((*im_values)[peak_index]) : scalar_im;
-      const bool has_peak_im = im_values != nullptr || has_scalar_im;
-      for (auto it = first; it != last; ++it)
+
+      double intensity = 0.0;
+      bool matched = false;
+      for (std::size_t point = point_cursor; point < cell.point_end && grid_points_[point].mz <= high_mz; ++point)
       {
-        const std::size_t query_index = static_cast<std::size_t>(it - queries_.begin());
-        if (!queryMatches_(*it, rt, peak_im, has_peak_im))
+        const GridPoint& raw_point = grid_points_[point];
+        const bool has_peak_im = cell.has_per_peak_im || cell.has_scalar_im;
+        const double peak_im = cell.has_per_peak_im ? raw_point.ion_mobility : cell.scalar_im;
+        if (!queryMatches_(query, cell.rt, peak_im, has_peak_im, lane.isolation_windows))
         {
           continue;
         }
-        if (query_generation_[query_index] != generation_)
-        {
-          query_generation_[query_index] = generation_;
-          query_intensity_[query_index] = peak_intensity;
-          query_touched_.push_back(query_index);
-        }
-        else
-        {
-          query_intensity_[query_index] = std::max(query_intensity_[query_index], peak_intensity);
-        }
+        const double peak_intensity = raw_point.intensity;
+        intensity = matched ? std::max(intensity, peak_intensity) : peak_intensity;
+        matched = true;
+      }
+      if (matched)
+      {
+        query_intensity_[query_index] = intensity;
+        query_touched_.push_back(query_index);
       }
     }
 
@@ -244,20 +337,20 @@ namespace OpenMS::OpenDIA
       candidate_scan_intensity_[candidate_index] += query_intensity_[query_index];
       ++candidate_scan_support_[candidate_index];
     }
-
     for (const std::size_t candidate_index : candidate_touched_)
     {
-      updateCandidate_(candidate_index, rt, candidate_scan_intensity_[candidate_index],
+      updateCandidate_(candidate_index, cell.rt, candidate_scan_intensity_[candidate_index],
                        candidate_scan_support_[candidate_index]);
     }
   }
 
-  bool StreamSearch::queryMatches_(const Query& query, double rt, double peak_im, bool has_peak_im) const
+  bool StreamSearch::queryMatches_(const Query& query, double rt, double peak_im, bool has_peak_im,
+                                  const std::vector<std::pair<double, double>>& isolation_windows) const
   {
     const Candidate& candidate = candidates_[query.candidate];
-    const auto window = std::upper_bound(isolation_windows_.begin(), isolation_windows_.end(), candidate.precursor_mz,
+    const auto window = std::upper_bound(isolation_windows.begin(), isolation_windows.end(), candidate.precursor_mz,
                                          [](double mz, const auto& interval) { return mz < interval.first; });
-    if (window == isolation_windows_.begin() || std::prev(window)->second < candidate.precursor_mz)
+    if (window == isolation_windows.begin() || std::prev(window)->second < candidate.precursor_mz)
     {
       return false;
     }

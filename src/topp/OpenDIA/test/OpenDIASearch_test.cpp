@@ -122,6 +122,28 @@ int main()
   require(multi_window_output.str().find("other\t700\t10\t10\t10\t9\t1\t1") != std::string::npos,
           "multiple or overlapping isolation windows were not handled as one scan");
 
+  // Interleaved lanes and skipped lanes preserve each candidate's ordered trace.
+  std::vector<OpenDIA::TransitionQuery> cycle_queries = {
+    {"lane_a", 500.0, 100.0, 0.0, false},
+    {"lane_b", 700.0, 100.0, 0.0, false}
+  };
+  OpenDIA::SearchOptions cycle_options;
+  cycle_options.fragment_tolerance_da = 0.01;
+  cycle_options.peak_gap_seconds = 30.0;
+  std::ostringstream cycle_output;
+  OpenDIA::StreamSearch cycle_search(cycle_queries, cycle_options, cycle_output);
+  MSSpectrum lane_a_first = spectrum(10.0, 500.0, {Peak1D(100.0, 2.0)});
+  MSSpectrum lane_b_first = spectrum(20.0, 700.0, {Peak1D(100.0, 5.0)});
+  MSSpectrum lane_a_second = spectrum(30.0, 500.0, {Peak1D(100.0, 4.0)});
+  cycle_search.consumeSpectrum(lane_a_first);
+  cycle_search.consumeSpectrum(lane_b_first);
+  cycle_search.consumeSpectrum(lane_a_second);
+  cycle_search.finish();
+  require(cycle_output.str().find("lane_a\t500\t10\t30\t30\t60\t1\t2") != std::string::npos,
+          "grid cycle boundary or sparse missing-lane trace changed");
+  require(cycle_output.str().find("lane_b\t700\t20\t20\t20\t5\t1\t1") != std::string::npos,
+          "window-lane query was assigned to the wrong grid row");
+
   const std::vector<OpenDIA::TransitionQuery> im_queries = {
     {"target", 500.0, 100.0, 0.0, false, 0.80, true},
     {"mobility_interferer", 500.0, 100.0, 0.0, false, 0.95, true}
@@ -142,6 +164,20 @@ int main()
           "mobility-matched candidate was lost");
   require(im_output.str().find("mobility_interferer") == std::string::npos,
           "mobility-separated interferer was not rejected");
+
+  // Sorting the cell by m/z must keep nonuniform mobility values paired with
+  // their original centroids in the compact IM sidecar.
+  std::ostringstream sorted_im_output;
+  OpenDIA::StreamSearch sorted_im_search(im_queries, im_options, sorted_im_output);
+  MSSpectrum unsorted_im = spectrumWithIM(10.0, 500.0,
+                                          {Peak1D(100.005, 50.0), Peak1D(100.0, 10.0)},
+                                          {0.95f, 0.80f});
+  sorted_im_search.consumeSpectrum(unsorted_im);
+  sorted_im_search.finish();
+  require(sorted_im_output.str().find("target\t500\t10\t10\t10\t10\t1\t1") != std::string::npos,
+          "m/z sorting detached the target mobility from its centroid");
+  require(sorted_im_output.str().find("mobility_interferer\t500\t10\t10\t10\t50\t1\t1") != std::string::npos,
+          "m/z sorting detached the interferer mobility from its centroid");
 
   // Missing raw mobility automatically falls back to the m/z-only path.
   std::ostringstream no_im_output;
