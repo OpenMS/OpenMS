@@ -80,6 +80,35 @@ int main()
           "peak-group area, apex, or unique transition support changed");
   require(rows.find("other") == std::string::npos, "precursor outside isolation window was reported");
 
+  std::vector<OpenDIA::TransitionQuery> window_queries = { {"analyte", 500.0, 100.0, 0.0, false} };
+  std::ostringstream window_output;
+  OpenDIA::StreamSearch window_search(std::move(window_queries), OpenDIA::SearchOptions{}, window_output);
+  MSSpectrum missing_window = spectrum(10.0, 500.0, {Peak1D(100.0, 10.0)});
+  missing_window.getPrecursors().front().setIsolationWindowLowerOffset(0.0);
+  missing_window.getPrecursors().front().setIsolationWindowUpperOffset(0.0);
+  window_search.consumeSpectrum(missing_window);
+  window_search.finish();
+  require(window_output.str().empty(), "spectrum with no isolation-width metadata was matched");
+
+  std::vector<OpenDIA::TransitionQuery> multi_window_queries = { {"other", 700.0, 300.0, 0.0, false} };
+  std::ostringstream multi_window_output;
+  OpenDIA::StreamSearch multi_window_search(std::move(multi_window_queries), OpenDIA::SearchOptions{}, multi_window_output);
+  MSSpectrum multi_window = spectrum(10.0, 500.0, {Peak1D(300.0, 9.0)});
+  Precursor second_window;
+  second_window.setMZ(700.0);
+  second_window.setIsolationWindowLowerOffset(50.0);
+  second_window.setIsolationWindowUpperOffset(50.0);
+  Precursor overlapping_window;
+  overlapping_window.setMZ(710.0);
+  overlapping_window.setIsolationWindowLowerOffset(50.0);
+  overlapping_window.setIsolationWindowUpperOffset(50.0);
+  multi_window.getPrecursors().push_back(second_window);
+  multi_window.getPrecursors().push_back(overlapping_window);
+  multi_window_search.consumeSpectrum(multi_window);
+  multi_window_search.finish();
+  require(multi_window_output.str().find("other\t700\t10\t10\t10\t9\t1\t1") != std::string::npos,
+          "multiple or overlapping isolation windows were not handled as one scan");
+
   std::vector<OpenDIA::TransitionQuery> invalid_queries = {{"analyte", 500.0, 100.0, 0.0, false}};
   OpenDIA::SearchOptions invalid_options;
   invalid_options.fragment_tolerance_da = 0.0;

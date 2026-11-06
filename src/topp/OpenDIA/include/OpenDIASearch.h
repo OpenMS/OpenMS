@@ -15,6 +15,7 @@
 #include <iosfwd>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace OpenMS::OpenDIA
@@ -84,7 +85,7 @@ namespace OpenMS::OpenDIA
     void consumeSpectrum_(const MSSpectrum& spectrum);
     void updateCandidate_(std::size_t candidate, double rt, double intensity, std::size_t transition_support);
     void writeCandidate_(const Candidate& candidate);
-    bool queryMatches_(const Query& query, double rt, double isolation_low, double isolation_high) const;
+    bool queryMatches_(const Query& query, double rt) const;
 
     SearchOptions options_;
     std::ostream& output_;
@@ -97,6 +98,7 @@ namespace OpenMS::OpenDIA
     std::vector<std::size_t> candidate_scan_support_;
     std::vector<std::size_t> candidate_generation_;
     std::vector<std::size_t> candidate_touched_;
+    std::vector<std::pair<double, double>> isolation_windows_;
     std::size_t generation_ = 0;
     bool finished_ = false;
   };

@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iomanip>
+#include <iterator>
 #include <map>
 #include <ostream>
 #include <string_view>
@@ -107,15 +108,51 @@ namespace OpenMS::OpenDIA
       return;
     }
 
-    const Precursor& precursor = spectrum.getPrecursors().front();
-    const double isolation_center = precursor.getMZ();
-    if (!(isolation_center > 0.0))
+    const double rt = spectrum.getRT();
+    if (!std::isfinite(rt))
     {
       return;
     }
-    const double isolation_low = isolation_center - precursor.getIsolationWindowLowerOffset();
-    const double isolation_high = isolation_center + precursor.getIsolationWindowUpperOffset();
-    const double rt = spectrum.getRT();
+
+    isolation_windows_.clear();
+    for (const Precursor& precursor : spectrum.getPrecursors())
+    {
+      const double center = precursor.getMZ();
+      const double lower_offset = precursor.getIsolationWindowLowerOffset();
+      const double upper_offset = precursor.getIsolationWindowUpperOffset();
+      if (!std::isfinite(center) || !(center > 0.0) ||
+          !std::isfinite(lower_offset) || lower_offset < 0.0 ||
+          !std::isfinite(upper_offset) || upper_offset < 0.0 ||
+          lower_offset + upper_offset <= 0.0)
+      {
+        continue;
+      }
+      isolation_windows_.emplace_back(center - lower_offset, center + upper_offset);
+    }
+    if (isolation_windows_.empty())
+    {
+      return;
+    }
+
+    // Merge overlapping isolation windows so a candidate is counted once per scan.
+    if (isolation_windows_.size() > 1)
+    {
+      std::sort(isolation_windows_.begin(), isolation_windows_.end());
+      std::size_t merged_count = 0;
+      for (std::size_t i = 1; i < isolation_windows_.size(); ++i)
+      {
+        if (isolation_windows_[i].first <= isolation_windows_[merged_count].second)
+        {
+          isolation_windows_[merged_count].second =
+            std::max(isolation_windows_[merged_count].second, isolation_windows_[i].second);
+        }
+        else
+        {
+          isolation_windows_[++merged_count] = isolation_windows_[i];
+        }
+      }
+      isolation_windows_.resize(merged_count + 1);
+    }
 
     if (++generation_ == 0)
     {
@@ -129,8 +166,14 @@ namespace OpenMS::OpenDIA
     // Visit only library fragments in the tolerance interval around each raw peak.
     for (const auto& peak : spectrum)
     {
-      const double low_mz = peak.getMZ() - options_.fragment_tolerance_da;
-      const double high_mz = peak.getMZ() + options_.fragment_tolerance_da;
+      const double peak_mz = peak.getMZ();
+      const double peak_intensity = peak.getIntensity();
+      if (!std::isfinite(peak_mz) || !std::isfinite(peak_intensity))
+      {
+        continue;
+      }
+      const double low_mz = peak_mz - options_.fragment_tolerance_da;
+      const double high_mz = peak_mz + options_.fragment_tolerance_da;
       auto first = std::lower_bound(queries_.begin(), queries_.end(), low_mz,
                                     [](const Query& query, double mz) { return query.fragment_mz < mz; });
       const auto last = std::upper_bound(first, queries_.end(), high_mz,
@@ -138,19 +181,19 @@ namespace OpenMS::OpenDIA
       for (auto it = first; it != last; ++it)
       {
         const std::size_t query_index = static_cast<std::size_t>(it - queries_.begin());
-        if (!queryMatches_(*it, rt, isolation_low, isolation_high))
+        if (!queryMatches_(*it, rt))
         {
           continue;
         }
         if (query_generation_[query_index] != generation_)
         {
           query_generation_[query_index] = generation_;
-          query_intensity_[query_index] = peak.getIntensity();
+          query_intensity_[query_index] = peak_intensity;
           query_touched_.push_back(query_index);
         }
         else
         {
-          query_intensity_[query_index] = std::max(query_intensity_[query_index], static_cast<double>(peak.getIntensity()));
+          query_intensity_[query_index] = std::max(query_intensity_[query_index], peak_intensity);
         }
       }
     }
@@ -177,10 +220,12 @@ namespace OpenMS::OpenDIA
     }
   }
 
-  bool StreamSearch::queryMatches_(const Query& query, double rt, double isolation_low, double isolation_high) const
+  bool StreamSearch::queryMatches_(const Query& query, double rt) const
   {
     const Candidate& candidate = candidates_[query.candidate];
-    if (candidate.precursor_mz < isolation_low || candidate.precursor_mz > isolation_high)
+    const auto window = std::upper_bound(isolation_windows_.begin(), isolation_windows_.end(), candidate.precursor_mz,
+                                         [](double mz, const auto& interval) { return mz < interval.first; });
+    if (window == isolation_windows_.begin() || std::prev(window)->second < candidate.precursor_mz)
     {
       return false;
     }
