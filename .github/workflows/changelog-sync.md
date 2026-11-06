@@ -40,7 +40,7 @@ Major additions:
 Major changes:
   - <changed behavior, defaults, performance, packaging>; BREAKING: <what users must change> (#PR)
 Removed:
-  - <removed tools, classes, parameters or pyOpenMS API>, and what replaces them (#PR)
+  - <removed tools, classes or pyOpenMS API>, and what replaces them (#PR)
 ```
 
 The details belong in the pull requests, which the bullets link by number. Do not copy them into the `CHANGELOG`.
@@ -59,9 +59,9 @@ git log --since="8 days ago" --name-only --pretty=format: \
   | grep -E '\.(cpp|c|h|hpp|py|cmake)$|CMakeLists\.txt$|CHANGELOG_PARAMS$'
 ```
 
-If there are no recent code changes, output a brief summary and stop — there is nothing to update.
+Then list the merged pull requests of the same period (`git log --since="8 days ago" --oneline`; most subjects end with `(#<number>)`) and read the description of each one that touched those files. The filter leaves out packaging, so also read the pull requests that change only `vcpkg.json`, `vcpkg-overlays/`, `dockerfiles/`, `.github/workflows/release.yml` or the packaging scripts in `tools/` (dependency bumps, installer and SDK contents).
 
-Then list the merged pull requests of the same period (`git log --since="8 days ago" --oneline`; most subjects end with `(#<number>)`) and read the description of each one that touched those files.
+If no pull request of either kind was merged, output a brief summary and stop — there is nothing to update.
 
 ### 2. Review the Current Changelog
 
@@ -73,17 +73,17 @@ Only changes a user or packager notices before reading any pull request belong i
 
 - **Major additions**: a new TOPP tool, a new file format or data source, a new workflow or algorithm a user can select, a new developer deliverable (SDK, package).
 - **Major changes**: changed defaults or behavior of a tool, large speed or memory improvements, packaging and dependency changes that matter to users or packagers, notable pyOpenMS changes. Prefix everything users must act on (renamed or removed parameters, changed file contents, stricter validation) with `BREAKING:`.
-- **Removed**: every removed TOPP tool, every removed public class or pyOpenMS class, every removed tool parameter, each by its exact name. The release checks compare the shipped tools and the pyOpenMS API with this block, so a name that is missing here fails them.
+- **Removed**: every removed TOPP tool, every removed public class or pyOpenMS class or function, each by its exact name. Take the names from the diff (deleted tools, headers, pyOpenMS bindings), not only from the pull request description, which may abbreviate them. The release checks compare the shipped tools and the pyOpenMS API with the section, so a name that is missing fails them. Removed or renamed tool parameters are not listed here: name them in the `BREAKING:` part of the tool's bullet.
 
 Do **not** add entries for bug fixes, small improvements, parameter tweaks, internal refactorings, test-only changes, comment-only changes, or maintenance work. They stay in their pull requests. A bug fix only earns a bullet when it changes results users have published or relied on (for example, wrong scores or quantities); then it goes under Major changes.
 
-Before proposing an update, check whether the change is already covered by a bullet in the current `under development` section, possibly under another name. Do not duplicate it.
+Before proposing an update, check whether the change is already covered by a bullet in the current `under development` section, possibly under another name. Do not duplicate it. A removed tool, class or pyOpenMS name goes under `Removed:` even when another block already has a bullet for the feature.
 
 ### 4. Update the Changelog
 
 If you find missing changelog-worthy updates:
 
-- Edit only the current `under development` section of the top-level `CHANGELOG` file, and only its three blocks.
+- Edit only the current `under development` section of the top-level `CHANGELOG` file, and only its three blocks. A new release section starts empty: create a block that is missing, in the order shown above, before adding its first bullet.
 - A change to a feature that already has a bullet extends that bullet: add the new pull request number, and change its wording only if the summary would otherwise be wrong. Do not add a second bullet for the same tool or feature.
 - A new bullet is at most three lines of about 115 characters, starts with the name of the tool, format or feature, says what the user gets, and ends with the pull request numbers in parentheses, e.g. `(#10629)`.
 - Write for users: name tools, file formats and parameters as users see them (`ToolName -parameter`), not internal function names, and do not describe how something is implemented.
@@ -108,4 +108,4 @@ If you find no missing changelog entries, do **not** create a pull request. Simp
 - Do not rewrite or reorganize bullets of unrelated features.
 - Avoid duplicate bullets that restate existing changelog content.
 - Prefer accuracy and minimal diffs over completeness for speculative changes.
-- Removed tools, classes, parameters and pyOpenMS API are never too small: each must be named under `Removed:`.
+- Removed tools, classes and pyOpenMS API are never too small: each must be named under `Removed:`. Removed or renamed tool parameters are never too small either: each is named in a `BREAKING:` note.
