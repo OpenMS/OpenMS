@@ -2,8 +2,8 @@ File Formats
 ============
 
 OpenMS reads spectra from {term}`mzML` and stores its results in its own XML formats: featureXML for features,
-consensusXML for features linked across runs, and idXML for identifications. This page describes three additions of
-OpenMS 3.6: compressed input and output, Parquet versions of the result formats, and imaging data. For Thermo `.raw`
+consensusXML for features linked across runs, and idXML for identifications. This page describes four additions of
+OpenMS 3.6: compressed input and output, Parquet versions of the result formats, imaging data, and mzPeak. For Thermo `.raw`
 files and Bruker `.d` directories, see [Vendor formats](vendor-formats.md).
 
 ## Compressed files
@@ -91,3 +91,16 @@ changes.
 
 OpenMS 3.6 reads and writes imzML, the standard format for mass spectrometry imaging, in its library and in pyOpenMS.
 The TOPP tools and TOPPView do not accept imzML files yet.
+
+## mzPeak
+
+OpenMS reads and writes [mzPeak](https://github.com/HUPO-PSI/mzPeak) (HUPO-PSI, version 0.9.0), a Parquet-based format
+for raw mass spectrometry data. An mzPeak run is a ZIP archive (`.mzpeak`) or a directory with the same contents.
+FileConverter converts between mzPeak and the other spectra formats, and FileInfo and the other tools read it:
+
+```bash
+FileConverter -in sample.mzML -out sample.mzpeak
+```
+
+mzPeak support is optional at build time (CMake option `OPENMS_ENABLE_MZPEAK`); builds without it cannot read or write
+the format.
