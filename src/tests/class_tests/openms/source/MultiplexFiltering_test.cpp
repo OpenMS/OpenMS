@@ -101,6 +101,33 @@ START_SECTION((static double deuteriumLowerFraction(unsigned deuterium, double e
 }
 END_SECTION
 
+START_SECTION((static double deuteriumEnrichmentFromLowerFraction(unsigned deuterium, double fraction, const IsotopeDistribution& isotopes, double min_enrichment = 0.5)))
+{
+  IsotopeDistribution isotopes;
+  isotopes.set(IsotopeDistribution::ContainerType{Peak1D(1000.0, 0.5f), Peak1D(1001.0, 0.3f), Peak1D(1002.0, 0.2f)});
+  // the inverse of deuteriumLowerFraction() in the enrichment
+  TOLERANCE_ABSOLUTE(1e-6)
+  for (double p : {0.9, 0.96, 0.99})
+  {
+    for (unsigned n : {3u, 4u, 8u})
+    {
+      TEST_REAL_SIMILAR(MultiplexFiltering::deuteriumEnrichmentFromLowerFraction(n, MultiplexFiltering::deuteriumLowerFraction(n, p, isotopes), isotopes), p)
+    }
+  }
+  TEST_REAL_SIMILAR(MultiplexFiltering::deuteriumEnrichmentFromLowerFraction(4, 0.156708595, isotopes), 0.96)
+  // clamped: no lower peak is complete enrichment, a larger one than at the lower bound is the lower bound
+  TEST_REAL_SIMILAR(MultiplexFiltering::deuteriumEnrichmentFromLowerFraction(4, 0.0, isotopes), 1.0)
+  TEST_REAL_SIMILAR(MultiplexFiltering::deuteriumEnrichmentFromLowerFraction(4, -0.1, isotopes), 1.0)
+  TEST_REAL_SIMILAR(MultiplexFiltering::deuteriumEnrichmentFromLowerFraction(4, 100.0, isotopes), 0.5)
+  TEST_REAL_SIMILAR(MultiplexFiltering::deuteriumEnrichmentFromLowerFraction(4, 100.0, isotopes, 0.8), 0.8)
+  // undefined without 2H or an isotope distribution
+  TEST_EQUAL(std::isnan(MultiplexFiltering::deuteriumEnrichmentFromLowerFraction(0, 0.1, isotopes)), true)
+  IsotopeDistribution single;
+  single.set(IsotopeDistribution::ContainerType{Peak1D(1000.0, 1.0f)});
+  TEST_EQUAL(std::isnan(MultiplexFiltering::deuteriumEnrichmentFromLowerFraction(4, 0.1, single)), true)
+}
+END_SECTION
+
 START_SECTION((void setDeuteriumLabels(const std::map<std::string, unsigned>& deuterium_per_label, double enrichment)))
 {
   MultiplexFiltering filtering(exp_picked, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type);

@@ -58,6 +58,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -72,6 +73,7 @@
 #include <numeric>
 #include <optional>
 #include <set>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <unordered_map>
@@ -433,6 +435,16 @@ protected:
       "measured from, so that run gets the targeted value instead of the one linking would have given that multiplet.\n"
       "false: such identifications are kept for protein inference only.", false);
     setValidStrings_("targeted_quantification", {"true", "false"});
+
+    registerStringOption_("estimate_deuterium_enrichment", "<option>", "true",
+      "true: the 2H enrichment of the deuterium labels (Lys4, Leu3, Dimethyl4/6/8, ICPL4/10) is estimated per run from its identified peptides:\n"
+      "the molecules one 2H short put a peak one isotope below a deuterium-labelled channel, which the detection and the re-quantification take\n"
+      "for another envelope above 30 % of the channel's monoisotopic peak plus the part they expect from the enrichment (see\n"
+      "'algorithm:deuterium_enrichment'). For every deuterium-labelled channel of an identified peptide, that peak relative to the monoisotopic\n"
+      "peak (summed over the MS1 spectra around the identification, less the isotopes of the peptide's other channels) gives an enrichment, and\n"
+      "the median over the channels is used for the run. With fewer than 20 such channels, 'algorithm:deuterium_enrichment' is used.\n"
+      "false: 'algorithm:deuterium_enrichment' is used.", false);
+    setValidStrings_("estimate_deuterium_enrichment", {"true", "false"});
 
     // feature detection: the FeatureFinderMultiplex parameters, minus the two that are set at tool level
     Param ffm_defaults = FeatureFinderMultiplexAlgorithm().getDefaults();
@@ -857,6 +869,7 @@ protected:
     ffm_param.setValue("algorithm:labels", labels_);
     ffm_param.setValue("algorithm:max_nr_labelled_aas", max_nr_labelled_aas_);
     ffm_param.setValue("algorithm:knock_out", knock_out_ ? "true" : "false");
+    ffm_param.setValue("algorithm:deuterium_enrichment", deuterium_enrichment_);
     ffm_param.insert("labels:", getParam_().copy("label_mass_shifts:", true));
     writeDebug_("Parameters passed to FeatureFinderMultiplexAlgorithm", ffm_param, 3);
 
@@ -1693,7 +1706,7 @@ protected:
     isotope below it belongs to another envelope
 
     lower_isotope_fraction_, plus for a channel whose labels carry deuterium the part that its own molecules one 2H short are
-    expected to make there (MultiplexFiltering::deuteriumLowerFraction() at 'algorithm:deuterium_enrichment', with the isotope
+    expected to make there (MultiplexFiltering::deuteriumLowerFraction() at the run's enrichment, deuterium_enrichment_, with the isotope
     distribution of the identified peptidoform), as in the detection (MultiplexFiltering::setDeuteriumLabels()). The channels
     and their labels are those of the theoretical pattern of @p hit (MultiplexResolverAlgorithm::expectedChannelMZs()); empty
     if its labels fit no pattern.
@@ -1704,7 +1717,7 @@ protected:
     Size own = 0;
     vector<MultiplexDeltaMasses::LabelSet> label_sets;
     if (resolver.expectedChannelMZs(hit.getSequence(), hit.getCharge(), own, label_sets).empty()) { return {}; }
-    const double enrichment = getParam_().getValue("algorithm:deuterium_enrichment");
+    const double enrichment = deuterium_enrichment_;
     vector<double> bounds(label_sets.size(), lower_isotope_fraction_);
     std::optional<IsotopeDistribution> isotopes;
     for (Size c = 0; c < label_sets.size(); ++c)
@@ -1725,6 +1738,137 @@ protected:
   static double lowerIsotopeBound_(const vector<double>& bounds, Size c)
   {
     return c < bounds.size() ? bounds[c] : lower_isotope_fraction_;
+  }
+
+  /// Deuterium-labelled channels of identified peptides needed for an estimate of the 2H enrichment (estimateDeuteriumEnrichment_())
+  static constexpr Size min_enrichment_channels_ = 20;
+  /// MS1 spectra in which a channel needs its first two isotopes to contribute to the estimate of the 2H enrichment
+  static constexpr Size min_enrichment_spectra_ = 3;
+
+  /**
+    @brief The 2H enrichment of the deuterium labels, estimated from the identified peptides of a run (@p run names it in the log)
+
+    For the best hit of every target identification (one per peptide, charge and CV) and every channel of its theoretical pattern
+    (MultiplexResolverAlgorithm::expectedChannelMZs()) whose labels carry deuterium: in the MS1 spectra within half of
+    'algorithm:rt_typical' of the identification in which the channel's first two isotopes are found (detection m/z tolerance),
+    the peak one isotope below the channel (the nearest within twice the tolerance, as in the detection) is summed, less the
+    isotopes that the peptide's other channels have in the same centroid (their monoisotopic peak in that spectrum times the
+    isotope ratio of the identified peptidoform), and divided by the summed monoisotopic peaks. The enrichment at which
+    MultiplexFiltering::deuteriumLowerFraction() gives that ratio, with the isotope distribution of the identified peptidoform,
+    is the channel's estimate; the median over the channels (at least min_enrichment_spectra_ spectra each) the run's.
+
+    The identifications sample the peptides independently of the size of that peak, unlike the detected multiplets (which a large
+    one rejects). With fewer than min_enrichment_channels_ channels, the result is 'algorithm:deuterium_enrichment'.
+    Profile spectra are centroided as by the detection (FeatureFinderMultiplexAlgorithm).
+  */
+  double estimateDeuteriumEnrichment_(const MSExperiment& ms1, const PeptideIdentificationList& peptide_ids, const MultiplexResolverAlgorithm& resolver,
+                                      const std::string& run) const
+  {
+    const double fallback = getParam_().getValue("algorithm:deuterium_enrichment");
+    if (label_deuterium_.empty()) { return fallback; }
+
+    MSExperiment picked;
+    const MSExperiment* spectra = &ms1;
+    const std::string spectrum_type = getParam_().getValue("algorithm:spectrum_type").toString();
+    const bool centroided = spectrum_type == "centroid"
+      || (spectrum_type == "automatic" && !ms1.empty() && ms1[0].getType(true) == SpectrumSettings::SpectrumType::CENTROID);
+    if (!centroided)
+    {
+      PeakPickerHiRes picker;
+      Param picker_param = picker.getParameters();
+      picker_param.setValue("ms_levels", ListUtils::create<Int>("1"));
+      picker_param.setValue("signal_to_noise", 0.0);
+      picker.setParameters(picker_param);
+      picker.pickExperiment(ms1, picked);
+      picked.updateRanges();
+      spectra = &picked;
+    }
+
+    const double half_window = 0.5 * static_cast<double>(getParam_().getValue("algorithm:rt_typical"));
+    const Size max_isotope = maxIsotope_();
+    std::map<unsigned, vector<double>> by_deuterium; // per number of 2H atoms of a channel: the estimates
+    vector<double> estimates;
+    set<std::pair<std::string, std::optional<double>>> seen;
+    for (const PeptideIdentification& id : peptide_ids)
+    {
+      if (id.getHits().empty()) { continue; }
+      const PeptideHit& hit = id.getHits()[0];
+      const int charge = hit.getCharge();
+      if (charge == 0 || hit.isDecoy()) { continue; }
+      Size own = 0;
+      vector<MultiplexDeltaMasses::LabelSet> label_sets;
+      const vector<double> mzs = resolver.expectedChannelMZs(hit.getSequence(), charge, own, label_sets);
+      if (mzs.empty()) { continue; }
+      vector<unsigned> deuterium(mzs.size(), 0);
+      for (Size c = 0; c < mzs.size(); ++c)
+      {
+        for (const std::string& label : label_sets[c])
+        {
+          if (const auto it = label_deuterium_.find(label); it != label_deuterium_.end()) { deuterium[c] += it->second; }
+        }
+      }
+      if (std::all_of(deuterium.begin(), deuterium.end(), [](unsigned n) { return n == 0; })) { continue; }
+      const std::optional<double> cv = compensationVoltage_(id);
+      if (!seen.emplace(resolver.peptideKey(hit, charge), cv).second) { continue; }
+      const IsotopeDistribution isotopes = hit.getSequence().getFormula().getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope + 1));
+      if (isotopes.size() < 2 || !(isotopes[0].getIntensity() > 0.0)) { continue; }
+
+      const double spacing = Constants::C13C12_MASSDIFF_U / std::abs(charge);
+      vector<double> lower_sum(mzs.size(), 0.0), monoisotopic_sum(mzs.size(), 0.0), monoisotopic(mzs.size(), 0.0);
+      vector<Size> used(mzs.size(), 0);
+      for (auto it = spectra->RTBegin(id.getRT() - half_window); it != spectra->RTEnd(id.getRT() + half_window); ++it)
+      {
+        if (it->getMSLevel() != 1 || compensationVoltage_(*it) != cv) { continue; }
+        for (Size o = 0; o < mzs.size(); ++o)
+        {
+          const Int index = it->findNearest(mzs[o], detectionMZTolerance_(mzs[o]));
+          monoisotopic[o] = index >= 0 ? static_cast<double>((*it)[index].getIntensity()) : 0.0;
+        }
+        for (Size c = 0; c < mzs.size(); ++c)
+        {
+          if (deuterium[c] == 0 || !(monoisotopic[c] > 0.0) || it->findNearest(mzs[c] + spacing, detectionMZTolerance_(mzs[c] + spacing)) < 0) { continue; }
+          const double lower_mz = mzs[c] - spacing;
+          const Int lower_index = it->findNearest(lower_mz, 2.0 * detectionMZTolerance_(lower_mz));
+          double lower = lower_index >= 0 ? static_cast<double>((*it)[lower_index].getIntensity()) : 0.0;
+          for (Size o = 0; lower_index >= 0 && o < mzs.size(); ++o)
+          {
+            const double k = std::round((lower_mz - mzs[o]) / spacing);
+            if (o == c || !(monoisotopic[o] > 0.0) || k < 0.0 || k > static_cast<double>(max_isotope) || static_cast<Size>(k) >= isotopes.size()) { continue; }
+            const double isotope_mz = mzs[o] + k * spacing;
+            if (it->findNearest(isotope_mz, 2.0 * detectionMZTolerance_(isotope_mz)) != lower_index) { continue; }
+            lower -= monoisotopic[o] * isotopes[static_cast<Size>(k)].getIntensity() / isotopes[0].getIntensity();
+          }
+          lower_sum[c] += std::max(0.0, lower);
+          monoisotopic_sum[c] += monoisotopic[c];
+          ++used[c];
+        }
+      }
+      for (Size c = 0; c < mzs.size(); ++c)
+      {
+        if (deuterium[c] == 0 || used[c] < min_enrichment_spectra_) { continue; }
+        const double enrichment = MultiplexFiltering::deuteriumEnrichmentFromLowerFraction(deuterium[c], lower_sum[c] / monoisotopic_sum[c], isotopes);
+        if (std::isnan(enrichment)) { continue; }
+        estimates.push_back(enrichment);
+        by_deuterium[deuterium[c]].push_back(enrichment);
+      }
+    }
+
+    if (estimates.size() < min_enrichment_channels_)
+    {
+      OPENMS_LOG_INFO << "2H enrichment of the deuterium labels in " << run << ": " << estimates.size() << " identified deuterium-labelled channel(s) "
+                      << "with their isotope pattern, fewer than " << min_enrichment_channels_ << " for an estimate; using 'algorithm:deuterium_enrichment' ("
+                      << fallback << ")." << endl;
+      return fallback;
+    }
+    const double enrichment = Math::median(estimates.begin(), estimates.end());
+    std::stringstream groups;
+    for (auto& [n, values] : by_deuterium)
+    {
+      groups << (groups.tellp() > 0 ? ", " : "") << n << " 2H: " << Math::median(values.begin(), values.end()) << " (" << values.size() << ")";
+    }
+    OPENMS_LOG_INFO << "2H enrichment of the deuterium labels in " << run << ", estimated from " << estimates.size() << " identified deuterium-labelled channel(s): "
+                    << enrichment << " (median; by number of 2H atoms per channel: " << groups.str() << ")." << endl;
+    return enrichment;
   }
 
   /// The result of pairedIntensity_
@@ -2750,6 +2894,23 @@ protected:
                                         fixed_modifications, variable_modifications, ms1);
     if (e != EXECUTION_OK) { return e; }
 
+    MultiplexResolverAlgorithm resolver;
+    {
+      Param res_param;
+      res_param.insert("algorithm:", getParam_().copy("resolver:", true));
+      res_param.setValue("algorithm:labels", labels_);
+      res_param.setValue("algorithm:max_nr_labelled_aas", max_nr_labelled_aas_);
+      // a missing channel that only the multiplet's own isotopes or dropped patterns occupy is left at 0 for the re-quantification
+      res_param.setValue("algorithm:use_blacklist_owners", requantify_ ? "true" : "false");
+      res_param.insert("labels:", getParam_().copy("label_mass_shifts:", true));
+      writeDebug_("Parameters passed to MultiplexResolverAlgorithm", res_param, 3);
+      resolver.setParameters(res_param);
+    }
+
+    // the 2H enrichment of the deuterium labels, for the check for a peak one isotope below a channel in this run
+    deuterium_enrichment_ = getParam_().getValue("algorithm:deuterium_enrichment");
+    if (estimate_deuterium_enrichment_) { deuterium_enrichment_ = estimateDeuteriumEnrichment_(ms1, peptide_ids, resolver, File::basename(mz_file)); }
+
     ConsensusMap multiplets;
     MSExperiment blacklist, centroided;
     FeatureMap channels;
@@ -2772,19 +2933,6 @@ protected:
       writeDebug_("Parameters passed to IDMapper", idm_param, 3);
       mapper.setParameters(idm_param);
       MS1LabeledFAIMS::annotate(mapper, multiplets, channels, peptide_ids, protein_ids);
-    }
-
-    MultiplexResolverAlgorithm resolver;
-    {
-      Param res_param;
-      res_param.insert("algorithm:", getParam_().copy("resolver:", true));
-      res_param.setValue("algorithm:labels", labels_);
-      res_param.setValue("algorithm:max_nr_labelled_aas", max_nr_labelled_aas_);
-      // a missing channel that only the multiplet's own isotopes or dropped patterns occupy is left at 0 for the re-quantification
-      res_param.setValue("algorithm:use_blacklist_owners", requantify_ ? "true" : "false");
-      res_param.insert("labels:", getParam_().copy("label_mass_shifts:", true));
-      writeDebug_("Parameters passed to MultiplexResolverAlgorithm", res_param, 3);
-      resolver.setParameters(res_param);
     }
 
     if (knock_out_)
@@ -3689,6 +3837,7 @@ protected:
     requantify_min_correlation_ = getDoubleOption_("requantify_min_correlation");
     requantify_correlation_ratio_ = getDoubleOption_("requantify_correlation_ratio");
     targeted_quantification_ = getStringOption_("targeted_quantification") == "true";
+    estimate_deuterium_enrichment_ = getStringOption_("estimate_deuterium_enrichment") == "true";
     knock_out_ = getParam_().getValue("algorithm:knock_out").toString() == "true";
     if (knock_out_ && multiplicity_ > 4)
     {
@@ -4010,6 +4159,8 @@ private:
   double requantify_min_correlation_ = 0.5; ///< minimum elution correlation of a re-quantified channel with its reference ('-requantify_min_correlation')
   double requantify_correlation_ratio_ = 0.3; ///< the correlation is checked below this fraction of the reference's intensity ('-requantify_correlation_ratio')
   bool targeted_quantification_ = true; ///< quantify identified peptides without a multiplet from their MS1 peaks ('-targeted_quantification')
+  bool estimate_deuterium_enrichment_ = true; ///< estimate the 2H enrichment of deuterium labels per run ('-estimate_deuterium_enrichment')
+  double deuterium_enrichment_ = 1.0; ///< the 2H enrichment of deuterium labels in the run being quantified (estimateDeuteriumEnrichment_())
   ExperimentalDesign design_;
   std::string picked_decoy_string_;
   bool picked_decoy_prefix_ = true;

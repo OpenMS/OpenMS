@@ -188,6 +188,23 @@ public:
      */
     static double deuteriumLowerFraction(unsigned deuterium, double enrichment, const IsotopeDistribution& isotopes);
 
+    /**
+     * @brief the 2H enrichment at which deuteriumLowerFraction() gives @p fraction (its inverse in the enrichment)
+     *
+     * The fraction decreases monotonically with the enrichment, from its value at @p min_enrichment to 0 at 1. The result is
+     * found by bisection and clamped to [@p min_enrichment, 1]: 1 for a fraction of at most 0, @p min_enrichment for a
+     * fraction at least as large as at @p min_enrichment.
+     *
+     * @param[in] deuterium    number of 2H atoms of the peptide's labels (> 0)
+     * @param[in] fraction    the peak one isotope below the peptide relative to its monoisotopic peak, e.g. measured
+     * @param[in] isotopes    the peptide's isotope distribution without the labels' 2H (at least two isotopes)
+     * @param[in] min_enrichment    lower bound of the enrichment, in (0, 1)
+     *
+     * @return the enrichment, or NaN if @p deuterium is 0 or @p isotopes has fewer than two isotopes
+     */
+    static double deuteriumEnrichmentFromLowerFraction(unsigned deuterium, double fraction, const IsotopeDistribution& isotopes,
+                                                       double min_enrichment = 0.5);
+
 protected:
     /**
      * @brief an entry of @em blacklist_ (spectrum index and peak index in @em exp_centroided_) and a value read from or written to it

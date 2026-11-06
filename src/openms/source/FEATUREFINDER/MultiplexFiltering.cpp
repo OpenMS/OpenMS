@@ -751,6 +751,23 @@ namespace OpenMS
     return monoisotopic > 0.0 ? lower / monoisotopic : 0.0;
   }
 
+  double MultiplexFiltering::deuteriumEnrichmentFromLowerFraction(unsigned deuterium, double fraction, const IsotopeDistribution& isotopes,
+                                                                  double min_enrichment)
+  {
+    if (deuterium == 0 || isotopes.size() < 2) { return std::numeric_limits<double>::quiet_NaN(); }
+    if (!(fraction > 0.0)) { return 1.0; }
+    if (!(fraction < deuteriumLowerFraction(deuterium, min_enrichment, isotopes))) { return min_enrichment; }
+    // the fraction decreases with the enrichment: bisect [lo, hi] with fraction(lo) > fraction > fraction(hi)
+    double lo = min_enrichment, hi = 1.0;
+    for (int iteration = 0; iteration < 50; ++iteration)
+    {
+      const double mid = 0.5 * (lo + hi);
+      if (deuteriumLowerFraction(deuterium, mid, isotopes) > fraction) { lo = mid; }
+      else { hi = mid; }
+    }
+    return 0.5 * (lo + hi);
+  }
+
   double MultiplexFiltering::deuteriumLowerFraction_(const MultiplexIsotopicPeakPattern& pattern, size_t peptide, double mz) const
   {
     const int index = pattern.getMassShiftIndex();
