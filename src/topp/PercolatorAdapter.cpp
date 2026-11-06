@@ -1013,50 +1013,36 @@ protected:
       // init_weights, etc.).
       if (in_process_ok)
       {
-        // -out_pin: the same pin file the subprocess path writes below, from the
-        // hits before the PIN meta values are stamped on them. Asking for it must
-        // not switch the backend, or the debug output would change the results.
+        // The options as the executable gets them (Percolator::rescorePSMsAsExecutable(), which OpenNuXL uses as
+        // well). -out_pin is the same pin file the subprocess path writes below, from the hits before they are
+        // rescored: asking for it must not switch the backend, or the debug output would change the results.
+        Percolator::ExecutableOptions options;
+        options.score_type = getStringOption_("score_type");
+        options.c_pos = getDoubleOption_("cpos");
+        options.c_neg = getDoubleOption_("cneg");
+        options.test_fdr = getDoubleOption_("testFDR");
+        options.train_fdr = getDoubleOption_("trainFDR");
+        options.max_iterations = getIntOption_("maxiter");
+        options.seed = getIntOption_("seed");
+        options.unit_norm = getFlag_("unitnorm");
+        options.train_best_positive = getFlag_("train_best_positive");
+        options.post_processing_tdc = getFlag_("post_processing_tdc");
+        options.nested_xval_bins = getIntOption_("nested_xval_bins");
+        options.subset_max_train = getIntOption_("subset_max_train");
+        options.default_direction = getStringOption_("default_direction");
+        options.threads = getIntOption_("threads");
         if (!getStringOption_("out_pin").empty())
         {
           OPENMS_LOG_DEBUG << "Writing percolator input file." << endl;
-          PercolatorInfile::store(pin_file, all_peptide_ids, feature_set, enz_str, min_charge, max_charge);
+          options.pin_file = pin_file;
         }
 
+        // Trains on the PIN features of the hits and transfers Percolator's results into the canonical score
+        // fields and PSI-MS CV meta values downstream idXML/mzid consumers expect.
         Percolator perc;
-        Param pp = perc.getDefaults();
-        // 0: selected by cross-validation, as the executable does without -p (the library default is 0.1)
-        pp.setValue("c_pos", getDoubleOption_("cpos"));
-        if (getDoubleOption_("cneg") > 0.0)   pp.setValue("c_neg",    getDoubleOption_("cneg"));
-        pp.setValue("test_fdr",       getDoubleOption_("testFDR"));
-        pp.setValue("train_fdr",      getDoubleOption_("trainFDR"));
-        pp.setValue("num_iterations", getIntOption_("maxiter"));
-        pp.setValue("seed",           getIntOption_("seed"));
-        pp.setValue("normalizer",     getFlag_("unitnorm") ? "uni" : "stdv");
-        pp.setValue("train_best_positive",
-                    getFlag_("train_best_positive") ? "true" : "false");
-        pp.setValue("post_processing_tdc",
-                    getFlag_("post_processing_tdc") ? "true" : "false");
-        pp.setValue("nested_xval_bins", getIntOption_("nested_xval_bins"));
-        pp.setValue("subset_max_train", getIntOption_("subset_max_train"));
-        pp.setValue("initial_direction", getStringOption_("default_direction"));
-        pp.setValue("pep_method", "nonparametric");  // match external percolator binary's PEP algorithm
-        {
-          // Percolator trains one model per cross-validation fold, so more than 3
-          // threads do not help. -threads 0 ("all cores") gets 3, which is also what
-          // the executable uses when it is not told otherwise.
-          const int threads = getIntOption_("threads");
-          const int in_process_threads = threads <= 0 ? 3 : std::min(threads, 3);
-          pp.setValue("num_threads", in_process_threads);  // mirror subprocess --num-threads
-        }
-        perc.setParameters(pp);
-
-        // Stamps the PIN features on the hits (as the subprocess path does when writing the .pin
-        // file), trains on them and transfers Percolator's results into the canonical score fields
-        // and PSI-MS CV meta values downstream idXML/mzid consumers expect.
         try
         {
-          perc.rescorePSMs(all_peptide_ids, feature_set, enz_str, min_charge, max_charge,
-                           getStringOption_("score_type"));
+          perc.rescorePSMsAsExecutable(all_peptide_ids, feature_set, enz_str, min_charge, max_charge, options);
         }
         catch (const Exception::MissingInformation& e)
         {

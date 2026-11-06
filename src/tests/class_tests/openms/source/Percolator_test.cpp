@@ -2852,6 +2852,115 @@ START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const St
 }
 END_SECTION
 
+START_SECTION((Size rescorePSMsAsExecutable(PeptideIdentificationList& peptide_ids, const StringList& feature_set, const std::string& enzyme, int min_charge, int max_charge, const ExecutableOptions& options)))
+{
+  // The options as PercolatorAdapter's in-process backend set them before (and OpenNuXL passes them): the same results
+  // as rescorePSMs() with the parameters set by hand, the parameters as the executable reads its options, and the .pin
+  // file of the PSMs as they were.
+  const std::string aas = "ACDEFGHILMNPQSTVWY";
+  auto makeIds = [&]()
+  {
+    PeptideIdentificationList ids;
+    for (int i = 0; i < 600; ++i)
+    {
+      const bool decoy = i % 2 == 1;
+      std::string seq;
+      for (int k = 0; k < 8 + i % 5; ++k) seq += aas[(i * 7 + k * 13) % aas.size()];
+      seq += 'K';
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString(seq));
+      hit.setCharge(2);
+      hit.setScore((decoy ? 0.0 : 2.0) + 2.0 * std::fmod(i * 0.6180339887498949, 1.0) - 1.0);
+      hit.setMetaValue("target_decoy", decoy ? "decoy" : "target");
+      PeptideEvidence ev(decoy ? "DECOY_P" + std::to_string(i) : "P" + std::to_string(i), 0, 0, 'K', 'A');
+      hit.setPeptideEvidences({ev});
+      PeptideIdentification pid;
+      pid.setScoreType("hyperscore");
+      pid.setHigherScoreBetter(true);
+      pid.setMZ(hit.getSequence().getMZ(2));
+      pid.setRT(10.0 * i);
+      pid.setMetaValue("spectrum_reference", "scan=" + std::to_string(i + 1));
+      pid.setHits({hit});
+      ids.push_back(pid);
+    }
+    return ids;
+  };
+  StringList feature_set = PercolatorInfile::getStandardFeatureSet(2, 2);
+  feature_set.push_back("score");
+  feature_set.push_back("Peptide");
+  feature_set.push_back("Proteins");
+
+  std::string pin;
+  NEW_TMP_FILE(pin);
+  Percolator::ExecutableOptions options;
+  options.score_type = "svm";
+  options.unit_norm = true;
+  options.train_best_positive = true;
+  options.post_processing_tdc = true;
+  options.threads = 8;  // more than 3: 3
+  options.pin_file = pin;
+  PeptideIdentificationList ids = makeIds();
+  Percolator perc;
+  TEST_EQUAL(perc.rescorePSMsAsExecutable(ids, feature_set, "trypsin", 2, 2, options), 600)
+
+  const Param used = perc.getParameters();
+  TEST_REAL_SIMILAR(static_cast<double>(used.getValue("c_pos")), 0.0)
+  TEST_EQUAL(static_cast<int>(used.getValue("subset_max_train")), 0)
+  TEST_EQUAL(static_cast<int>(used.getValue("num_threads")), 3)
+  TEST_EQUAL(used.getValue("normalizer").toString(), "uni")
+  TEST_EQUAL(used.getValue("pep_method").toString(), "nonparametric")
+  TEST_EQUAL(used.getValue("train_best_positive").toString(), "true")
+  TEST_EQUAL(used.getValue("post_processing_tdc").toString(), "true")
+
+  // the .pin file: a header and one row per PSM
+  {
+    std::ifstream in(pin);
+    std::string line;
+    std::getline(in, line);
+    TEST_EQUAL(line.rfind("SpecId", 0) == 0, true)
+    Size rows = 0;
+    while (std::getline(in, line)) { if (!line.empty()) ++rows; }
+    TEST_EQUAL(rows, 600)
+  }
+
+  // the same as the parameters set by hand and rescorePSMs()
+  PeptideIdentificationList by_hand = makeIds();
+  Percolator manual;
+  Param pp = manual.getDefaults();
+  pp.setValue("c_pos", 0.0);
+  pp.setValue("test_fdr", 0.01);
+  pp.setValue("train_fdr", 0.01);
+  pp.setValue("num_iterations", 10);
+  pp.setValue("seed", 1);
+  pp.setValue("normalizer", "uni");
+  pp.setValue("train_best_positive", "true");
+  pp.setValue("post_processing_tdc", "true");
+  pp.setValue("nested_xval_bins", 1);
+  pp.setValue("subset_max_train", 0);
+  pp.setValue("initial_direction", "");
+  pp.setValue("pep_method", "nonparametric");
+  pp.setValue("num_threads", 3);
+  manual.setParameters(pp);
+  TEST_EQUAL(manual.rescorePSMs(by_hand, feature_set, "trypsin", 2, 2, "svm"), 600)
+  TOLERANCE_ABSOLUTE(1e-12)
+  for (Size i = 0; i < ids.size(); ++i)
+  {
+    TEST_EQUAL(ids[i].getScoreType(), by_hand[i].getScoreType())
+    TEST_REAL_SIMILAR(ids[i].getHits()[0].getScore(), by_hand[i].getHits()[0].getScore())
+    TEST_REAL_SIMILAR(static_cast<double>(ids[i].getHits()[0].getMetaValue("MS:1001491")),
+                      static_cast<double>(by_hand[i].getHits()[0].getMetaValue("MS:1001491")))
+  }
+
+  // threads 0 ("all cores"): 3
+  options.threads = 0;
+  options.pin_file.clear();
+  PeptideIdentificationList again = makeIds();
+  Percolator perc0;
+  perc0.rescorePSMsAsExecutable(again, feature_set, "trypsin", 2, 2, options);
+  TEST_EQUAL(static_cast<int>(perc0.getParameters().getValue("num_threads")), 3)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] rescorePSMs: meta values as when the PIN features were stamped and removed again))
 {
   // 300 target and 300 decoy PSMs with the old score type "score", a PIN column name: the original score that the

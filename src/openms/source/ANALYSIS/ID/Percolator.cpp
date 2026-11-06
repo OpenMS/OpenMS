@@ -2772,6 +2772,42 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
                                best_hit_only);
 }
 
+Size Percolator::rescorePSMsAsExecutable(PeptideIdentificationList& peptide_ids,
+                                         const StringList& feature_set,
+                                         const std::string& enzyme,
+                                         int min_charge,
+                                         int max_charge,
+                                         const ExecutableOptions& options)
+{
+  // the .pin file of the PSMs as they are, before the rescoring changes their scores (as the executable reads it)
+  if (!options.pin_file.empty())
+  {
+    PercolatorInfile::store(options.pin_file, peptide_ids, feature_set, enzyme, min_charge, max_charge);
+  }
+
+  Param pp = getParameters();
+  // 0: selected by cross-validation, as the executable does without -p and -n (the default c_pos of this class is 0.1)
+  pp.setValue("c_pos", options.c_pos);
+  pp.setValue("c_neg", options.c_neg > 0.0 ? options.c_neg : 0.0);
+  pp.setValue("test_fdr", options.test_fdr);
+  pp.setValue("train_fdr", options.train_fdr);
+  pp.setValue("num_iterations", options.max_iterations);
+  pp.setValue("seed", options.seed);
+  pp.setValue("normalizer", options.unit_norm ? "uni" : "stdv");
+  pp.setValue("train_best_positive", options.train_best_positive ? "true" : "false");
+  pp.setValue("post_processing_tdc", options.post_processing_tdc ? "true" : "false");
+  pp.setValue("nested_xval_bins", options.nested_xval_bins);
+  pp.setValue("subset_max_train", options.subset_max_train);
+  pp.setValue("initial_direction", options.default_direction);
+  pp.setValue("pep_method", "nonparametric"); // the executable's PEP algorithm
+  // Percolator trains one model per cross-validation fold, so more than 3 threads do not help. 0 or less ("all
+  // cores") gets 3, which is also what the executable uses when it is not told otherwise.
+  pp.setValue("num_threads", options.threads <= 0 ? 3 : std::min(options.threads, 3));
+  setParameters(pp);
+
+  return rescorePSMs(peptide_ids, feature_set, enzyme, min_charge, max_charge, options.score_type);
+}
+
 Size Percolator::rescorePSMsWithScorer(PeptideIdentificationList& peptide_ids,
                                        const StringList& feature_set,
                                        const std::string& enzyme,

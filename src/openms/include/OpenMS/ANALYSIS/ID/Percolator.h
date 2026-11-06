@@ -189,6 +189,54 @@ namespace OpenMS
                      const std::string& score_type = "q-value",
                      bool best_hit_only = false);
 
+    /**
+      @brief The options of the percolator executable that rescorePSMsAsExecutable() applies, with the defaults of
+             PercolatorAdapter's options (which pass them to the executable or to this class)
+
+      Some defaults differ from this class's own parameters: c_pos 0 (selected by cross-validation, as the executable
+      without -p, instead of 0.1), subset_max_train 0 (all PSMs), and train_best_positive and post_processing_tdc off.
+    */
+    struct ExecutableOptions
+    {
+      std::string score_type = "q-value"; ///< the new main score: "q-value", "pep" or "svm" (PercolatorAdapter -score_type)
+      double c_pos = 0.0;                 ///< penalty for mistakes on positive examples; 0: by cross-validation (-cpos, the executable's -p)
+      double c_neg = 0.0;                 ///< penalty for mistakes on negative examples; 0: by cross-validation (-cneg, -n)
+      double test_fdr = 0.01;             ///< FDR of the evaluation of the cross-validation and of the result (-testFDR, -t)
+      double train_fdr = 0.01;            ///< FDR of the positive training examples (-trainFDR, -F)
+      int max_iterations = 10;            ///< iterations of the training (-maxiter, -i)
+      int seed = 1;                       ///< of the random number generator (-seed, -S)
+      bool unit_norm = false;             ///< unit normalization [0-1] instead of standard deviation normalization (-unitnorm, -U)
+      bool train_best_positive = false;   ///< at most one PSM per spectrum among the positive examples (-train_best_positive)
+      bool post_processing_tdc = false;   ///< target-decoy competition for the q-values and PEPs (-post_processing_tdc, -Y)
+      int nested_xval_bins = 1;           ///< nested cross-validation bins in the 3 splits (-nested_xval_bins)
+      int subset_max_train = 0;           ///< train on at most this many PSMs, score all; 0: all (-subset_max_train, -N)
+      std::string default_direction;      ///< the most informative feature ('-' in front: lower is better); empty: chosen (-default_direction, -V)
+      int threads = 3;                    ///< <= 0: 3; more than 3 use 3: Percolator trains one model per fold (-threads, --num-threads)
+      std::string pin_file;               ///< if not empty, the .pin file of the PSMs is written to it, as they are before rescoring (-out_pin)
+    };
+
+    /**
+      @brief Rescore search engine PSMs in place as the percolator executable does with @p options: PercolatorAdapter's
+             in-process backend, for tools that rescore their PSMs without running PercolatorAdapter (OpenNuXL)
+
+      1. with @p options.pin_file: writes the .pin file of @p peptide_ids (PercolatorInfile::store), as they are
+      2. sets the parameters of this instance from @p options as the executable reads its options (the parameters not
+         in ExecutableOptions keep their values), with the executable's nonparametric PEPs (pep_method)
+      3. rescorePSMs(@p peptide_ids, @p feature_set, @p enzyme, @p min_charge, @p max_charge, @p options.score_type)
+
+      What PercolatorAdapter does around it is the caller's: reading and checking its inputs, the feature set, the
+      weights (storeWeights(), the executable's -w), marking the runs as post-processed by Percolator, its filters.
+
+      @return The number of rescored hits
+      @throws as rescorePSMs(), and as PercolatorInfile::store() for the .pin file
+    */
+    Size rescorePSMsAsExecutable(PeptideIdentificationList& peptide_ids,
+                                 const StringList& feature_set,
+                                 const std::string& enzyme,
+                                 int min_charge,
+                                 int max_charge,
+                                 const ExecutableOptions& options);
+
     /// The hit of every feature row of a PSM RescoreInput (buildPSMRescoreInput(), rescorePSMs()):
     /// (index of its PeptideIdentification, index of the hit in it)
     using PSMRowLocations = std::vector<std::pair<size_t, size_t>>;
