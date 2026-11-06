@@ -805,8 +805,13 @@ namespace OpenMS{
 
   bool File::isOpenMSDataPath_(const std::string& path)
   {
-    bool found = exists(path + "/CHEMISTRY/unimod.xml");
-    return found;
+    // Not File::exists(), which throws for any error but "not found". The candidates include paths compiled in on the
+    // build machine (OPENMS_DATA_PATH, the source tree: D:/a/... on a GitHub Windows runner). On a user's machine that
+    // path's drive may be one Windows cannot read (an empty DVD drive: ERROR_NOT_READY, "The device is not ready"), or
+    // a folder on the way one the user may not enter (EACCES); the exception would end every tool in TOPPBase's
+    // constructor, before the next candidate (the tool's own ../share/OpenMS) is tried. Such a candidate is not it.
+    std::error_code ec;
+    return fs::exists(to_path(path + "/CHEMISTRY/unimod.xml"), ec) && !ec;
   }
 
   bool File::isDirectory(const std::string& path)
