@@ -6153,15 +6153,17 @@ set_tests_properties("TOPP_SimpleSearchEngine_2_out" PROPERTIES DEPENDS
 # runs the tool's configuration.
 set(_prose_library_defaults -Search:decoy_method reverse -Search:rescoring:terminal_features false
   -Search:rescoring:stratum_q_values false -Search:rescoring:calc_mass_feature true
-  -Search:precursor:recorded_charge_outside_range search -Search:precursor:isotope_error_min -1)
-# (calibration:enabled, the tool's other default, is skipped on these small inputs and tested by ProSE_4; the run: exit
-# code 0; the tool's defaults: written with -write_ini and checked, all eight)
+  -Search:precursor:recorded_charge_outside_range search -Search:precursor:isotope_error_min -1
+  -Search:calibration:recalibrate none)
+# (calibration:enabled, the tool's other default, is skipped on these small inputs and tested by ProSE_4, with the
+# recalibration by ProSE_4_recalibrate; the run: exit code 0; the tool's defaults: written with -write_ini and checked,
+# all ten)
 add_test(NAME "TOPP_ProSE_tool_defaults" COMMAND ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;-in;${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML;-database;${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta;-out_idxml;${TESTS_TEMP_DIR}/ProSE_tool_defaults.tmp.idXML"
   -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=decoys=generate" -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
 add_test("TOPP_ProSE_tool_defaults_ini" ${TOPP_BIN_PATH}/ProSE -write_ini ${TESTS_TEMP_DIR}/ProSE_tool_defaults.tmp.ini)
 add_test("TOPP_ProSE_tool_defaults_ini_check" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_tool_defaults.tmp.ini
-  "-DEXPECTED=name=\"decoys\" value=\"generate\";name=\"decoy_method\" value=\"keep_termini\";LISTITEM value=\"Acetyl (Protein N-term)\";name=\"terminal_features\" value=\"true\";name=\"stratum_q_values\" value=\"true\";name=\"calc_mass_feature\" value=\"false\";name=\"recorded_charge_outside_range\" value=\"skip\";name=\"isotope_error_min\" value=\"-2\""
+  "-DEXPECTED=name=\"decoys\" value=\"generate\";name=\"decoy_method\" value=\"keep_termini\";LISTITEM value=\"Acetyl (Protein N-term)\";name=\"terminal_features\" value=\"true\";name=\"stratum_q_values\" value=\"true\";name=\"calc_mass_feature\" value=\"false\";name=\"recorded_charge_outside_range\" value=\"skip\";name=\"isotope_error_min\" value=\"-2\";name=\"recalibrate\" value=\"offset\";name=\"recalibrate_rt_chunks\" value=\"10\""
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_ProSE_tool_defaults_ini_check" PROPERTIES DEPENDS "TOPP_ProSE_tool_defaults_ini")
 # Reused decoys that rarely start with M (whole-protein reversal, decoys 'auto'): the requested terminal features and
@@ -6318,6 +6320,18 @@ add_test("TOPP_ProSE_4_out" ${DIFF}
   -ratio 1.2 -absdiff 2.0)
 set_tests_properties("TOPP_ProSE_4_out" PROPERTIES DEPENDS
   "TOPP_ProSE_4")
+# The same with the tool's m/z recalibration (calibration:recalibrate offset; the other tests pin none, and the last
+# occurrence of an option counts): the +7 ppm offset is taken off the m/z the search uses, the models are recorded in
+# the search parameters, and the PSMs report the precursor m/z as observed (those of ProSE_4_out.idXML)
+add_test("TOPP_ProSE_4_recalibrate" ${TOPP_BIN_PATH}/ProSE -test ${_prose_library_defaults} -Search:rescore false
+  -ini ${DATA_DIR_TOPP}/ProSE_4.ini -Search:calibration:recalibrate offset
+  -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1_shifted_7ppm.mzML
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_4_recalibrate.tmp.idXML
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
+add_test("TOPP_ProSE_4_recalibrate_check" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_4_recalibrate.tmp.idXML
+  "-DEXPECTED=name=\"calibration:recalibrate\" value=\"offset\";name=\"calibration:precursor_model\" value=\"ppm;name=\"calibration:fragment_model\";MZ=\"520.266459222533967\";MZ=\"1063.217281336060068\";MZ=\"775.392634741698998\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_ProSE_4_recalibrate_check" PROPERTIES DEPENDS "TOPP_ProSE_4_recalibrate")
 
 # Test 5: Database chunking — same inputs as test 1 but with chunk_size=5.
 # 11 proteins (decoys=false in ProSE_1.ini) → 3 chunks (5+5+1). Output
