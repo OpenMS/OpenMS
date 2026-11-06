@@ -19,6 +19,9 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/KERNEL/FeatureUniqueIds.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
+
+#include <filesystem>
 
 #include <utility>
 
@@ -241,11 +244,18 @@ START_SECTION(([EXTRA] write_debug writes the debug files and finds the same fea
   param = param.copy("FeatureFinder:1:algorithm:", true);
   param.setValue("write_debug", "true");
   FeatureMap output;
-  FFPP ffpp;
-  ffpp.run(std::move(input), output, param, FeatureMap());
+  // write_debug writes to "debug/" relative to the working directory: run in a temporary directory the test owns,
+  // so an existing "debug" folder is never touched and a stale log.txt cannot satisfy the check below.
+  TempDir tmp_dir;
+  const std::filesystem::path old_cwd = std::filesystem::current_path();
+  std::filesystem::current_path(tmp_dir.getPath());
+  {
+    FFPP ffpp; // inner scope: the destructor closes debug/log.txt before the directory is removed (Windows)
+    ffpp.run(std::move(input), output, param, FeatureMap());
+  }
   TEST_EQUAL(output.size(), 8)
   TEST_EQUAL(File::exists("debug/log.txt"), true)
-  File::removeDirRecursively("debug");
+  std::filesystem::current_path(old_cwd);
 }
 END_SECTION
 
