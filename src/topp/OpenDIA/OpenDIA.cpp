@@ -14,6 +14,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 
+#include <cmath>
 #include <fstream>
 #include <unordered_map>
 #include <utility>
@@ -27,12 +28,15 @@ using namespace OpenMS;
 
   This first implementation reads a prepared PQP transition library and streams
   MS2 spectra through OpenMS file handlers. It reports gap-segmented groups of
-  co-observed library fragments to a TSV file.
+  co-observed library fragments to a TSV file. When both the library and raw
+  spectra provide inverse reduced ion mobility, it automatically uses per-peak
+  mobility to reject out-of-mobility fragment matches. If either side lacks
+  compatible mobility metadata, matching falls back to m/z and isolation windows.
 
   This is a minimal extraction and candidate-generation path, not a complete
   identification workflow. It does not perform library generation, machine
-  learning scoring, FDR estimation, protein inference, or ion-mobility-native
-  scoring. Input spectra are expected to contain precursor isolation metadata.
+  learning scoring, FDR estimation, or protein inference. Input spectra are
+  expected to contain precursor isolation metadata.
 */
 /// @cond TOPPCLASSES
 class TOPPOpenDIA final : public TOPPBase
@@ -51,6 +55,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Streamed fragment-group peak table");
     setValidFormats_("out", {"tsv"});
     registerDoubleOption_("mz_tolerance", "<Da>", 0.02, "Absolute fragment m/z matching tolerance in Da", false);
+    registerDoubleOption_("im_tolerance", "<1/K0>", 0.03, "Automatic inverse reduced ion-mobility matching tolerance", false);
     registerDoubleOption_("rt_window", "<seconds>", 0.0, "Optional window around library RT; zero disables RT filtering", false);
     registerDoubleOption_("peak_gap", "<seconds>", 30.0, "Maximum gap between matched scans in one peak group", false);
     registerIntOption_("min_transitions", "<n>", 1, "Minimum co-observed fragments required in a peak group", false);
@@ -64,13 +69,15 @@ protected:
 
     OpenDIA::SearchOptions options;
     options.fragment_tolerance_da = getDoubleOption_("mz_tolerance");
+    options.ion_mobility_tolerance_vssc = getDoubleOption_("im_tolerance");
     options.rt_window_seconds = getDoubleOption_("rt_window");
     options.peak_gap_seconds = getDoubleOption_("peak_gap");
     const Int min_transitions = getIntOption_("min_transitions");
-    if (min_transitions < 1 || options.fragment_tolerance_da <= 0.0 ||
+    if (min_transitions < 1 || !std::isfinite(options.fragment_tolerance_da) || options.fragment_tolerance_da <= 0.0 ||
+        !std::isfinite(options.ion_mobility_tolerance_vssc) || options.ion_mobility_tolerance_vssc <= 0.0 ||
         options.rt_window_seconds < 0.0 || options.peak_gap_seconds <= 0.0)
     {
-      writeLogError_("m/z tolerance and peak gap must be positive; RT window must be non-negative; min_transitions must be at least 1.");
+      writeLogError_("m/z and ion-mobility tolerances and peak gap must be positive; RT window must be non-negative; min_transitions must be at least 1.");
       return ILLEGAL_PARAMETERS;
     }
     options.min_transitions = static_cast<std::size_t>(min_transitions);
@@ -99,23 +106,28 @@ protected:
     reader.setOptions(read_options);
     reader.transformExperiment(input, &consumer, {}, log_type_);
     consumer.finish();
+    writeLogInfo_(consumer.ionMobilityFilteringUsed()
+                    ? "Ion-mobility filtering: active"
+                    : "Ion-mobility filtering: not available; using m/z-only matching");
     return output ? EXECUTION_OK : CANNOT_WRITE_OUTPUT_FILE;
   }
 
 private:
   static std::vector<OpenDIA::TransitionQuery> makeQueries_(const TargetedExperiment& targeted)
   {
-    struct RTValue
+    struct LibraryCoordinates
     {
       double seconds = 0.0;
-      bool available = false;
+      bool has_rt = false;
+      double precursor_im = 0.0;
+      bool has_precursor_im = false;
     };
-    std::unordered_map<std::string, RTValue> retention_times;
-    retention_times.reserve(targeted.getPeptides().size() + targeted.getCompounds().size());
+    std::unordered_map<std::string, LibraryCoordinates> coordinates;
+    coordinates.reserve(targeted.getPeptides().size() + targeted.getCompounds().size());
 
-    const auto add_rt = [&retention_times](const auto& analyte)
+    const auto add_coordinates = [&coordinates](const auto& analyte)
     {
-      RTValue value;
+      LibraryCoordinates value;
       if (analyte.hasRetentionTime())
       {
         const auto unit = analyte.getRetentionTimeUnit();
@@ -124,28 +136,32 @@ private:
         {
           value.seconds = analyte.getRetentionTime() *
             (unit == TargetedExperiment::RetentionTime::RTUnit::MINUTE ? 60.0 : 1.0);
-          value.available = true;
+          value.has_rt = true;
         }
       }
-      retention_times.emplace(analyte.id, value);
+      value.precursor_im = analyte.getDriftTime();
+      value.has_precursor_im = std::isfinite(value.precursor_im) && value.precursor_im > 0.0;
+      coordinates.emplace(analyte.id, value);
     };
-    for (const auto& peptide : targeted.getPeptides()) add_rt(peptide);
-    for (const auto& compound : targeted.getCompounds()) add_rt(compound);
+    for (const auto& peptide : targeted.getPeptides()) add_coordinates(peptide);
+    for (const auto& compound : targeted.getCompounds()) add_coordinates(compound);
 
     std::vector<OpenDIA::TransitionQuery> queries;
     queries.reserve(targeted.getTransitions().size());
     for (const auto& transition : targeted.getTransitions())
     {
       const std::string& id = transition.getPeptideRef().empty() ? transition.getCompoundRef() : transition.getPeptideRef();
-      const auto rt_it = retention_times.find(id);
+      const auto coordinate_it = coordinates.find(id);
       OpenDIA::TransitionQuery query;
       query.precursor_id = id;
       query.precursor_mz = transition.getPrecursorMZ();
       query.fragment_mz = transition.getProductMZ();
-      if (rt_it != retention_times.end())
+      if (coordinate_it != coordinates.end())
       {
-        query.library_rt = rt_it->second.seconds;
-        query.has_library_rt = rt_it->second.available;
+        query.library_rt = coordinate_it->second.seconds;
+        query.has_library_rt = coordinate_it->second.has_rt;
+        query.precursor_im = coordinate_it->second.precursor_im;
+        query.has_precursor_im = coordinate_it->second.has_precursor_im;
       }
       queries.push_back(std::move(query));
     }

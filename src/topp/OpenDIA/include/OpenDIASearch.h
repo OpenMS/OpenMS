@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <cstddef>
@@ -27,11 +28,15 @@ namespace OpenMS::OpenDIA
     double fragment_mz = 0.0;
     double library_rt = 0.0;
     bool has_library_rt = false;
+    /// Library precursor mobility in inverse reduced mobility (1/K0).
+    double precursor_im = 0.0;
+    bool has_precursor_im = false;
   };
 
   struct SearchOptions
   {
     double fragment_tolerance_da = 0.02;
+    double ion_mobility_tolerance_vssc = 0.03;
     double rt_window_seconds = 0.0;
     double peak_gap_seconds = 30.0;
     std::size_t min_transitions = 1;
@@ -58,6 +63,9 @@ namespace OpenMS::OpenDIA
     /// Flush active groups at end of input.
     void finish();
 
+    /// Whether compatible raw and library mobility metadata activated filtering.
+    bool ionMobilityFilteringUsed() const;
+
   private:
     struct Candidate
     {
@@ -65,6 +73,8 @@ namespace OpenMS::OpenDIA
       double precursor_mz = 0.0;
       double library_rt = 0.0;
       bool has_library_rt = false;
+      double precursor_im = 0.0;
+      bool has_precursor_im = false;
       bool active = false;
       double start_rt = 0.0;
       double apex_rt = 0.0;
@@ -85,7 +95,7 @@ namespace OpenMS::OpenDIA
     void consumeSpectrum_(const MSSpectrum& spectrum);
     void updateCandidate_(std::size_t candidate, double rt, double intensity, std::size_t transition_support);
     void writeCandidate_(const Candidate& candidate);
-    bool queryMatches_(const Query& query, double rt) const;
+    bool queryMatches_(const Query& query, double rt, double peak_im, bool has_peak_im) const;
 
     SearchOptions options_;
     std::ostream& output_;
@@ -101,5 +111,7 @@ namespace OpenMS::OpenDIA
     std::vector<std::pair<double, double>> isolation_windows_;
     std::size_t generation_ = 0;
     bool finished_ = false;
+    bool has_library_im_candidates_ = false;
+    bool ion_mobility_filtering_used_ = false;
   };
 }

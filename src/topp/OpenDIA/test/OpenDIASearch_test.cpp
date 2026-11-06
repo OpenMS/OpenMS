@@ -9,6 +9,7 @@
 #include "OpenDIASearch.h"
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/Precursor.h>
@@ -48,6 +49,18 @@ namespace
     {
       throw std::runtime_error(message);
     }
+  }
+
+  MSSpectrum spectrumWithIM(double rt, double isolation_mz, std::initializer_list<Peak1D> peaks,
+                            std::initializer_list<float> mobilities)
+  {
+    MSSpectrum result = spectrum(rt, isolation_mz, peaks);
+    require(peaks.size() == mobilities.size(), "test spectrum peak and IM array lengths differ");
+    DataArrays::FloatDataArray im_array;
+    IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+    im_array.assign(mobilities.begin(), mobilities.end());
+    result.getFloatDataArrays().push_back(std::move(im_array));
+    return result;
   }
 }
 
@@ -109,6 +122,64 @@ int main()
   require(multi_window_output.str().find("other\t700\t10\t10\t10\t9\t1\t1") != std::string::npos,
           "multiple or overlapping isolation windows were not handled as one scan");
 
+  const std::vector<OpenDIA::TransitionQuery> im_queries = {
+    {"target", 500.0, 100.0, 0.0, false, 0.80, true},
+    {"mobility_interferer", 500.0, 100.0, 0.0, false, 0.95, true}
+  };
+  OpenDIA::SearchOptions im_options;
+  im_options.fragment_tolerance_da = 0.01;
+  im_options.ion_mobility_tolerance_vssc = 0.02;
+  im_options.peak_gap_seconds = 15.0;
+  std::ostringstream im_output;
+  OpenDIA::StreamSearch im_search(im_queries, im_options, im_output);
+  MSSpectrum im_first = spectrumWithIM(10.0, 500.0, {Peak1D(100.0, 10.0)}, {0.801f});
+  MSSpectrum im_second = spectrumWithIM(20.0, 500.0, {Peak1D(100.0, 20.0)}, {0.799f});
+  im_search.consumeSpectrum(im_first);
+  im_search.consumeSpectrum(im_second);
+  im_search.finish();
+  require(im_search.ionMobilityFilteringUsed(), "compatible library and raw mobility did not activate filtering");
+  require(im_output.str().find("target\t500\t") != std::string::npos,
+          "mobility-matched candidate was lost");
+  require(im_output.str().find("mobility_interferer") == std::string::npos,
+          "mobility-separated interferer was not rejected");
+
+  // Missing raw mobility automatically falls back to the m/z-only path.
+  std::ostringstream no_im_output;
+  OpenDIA::StreamSearch no_im_search(im_queries, im_options, no_im_output);
+  MSSpectrum no_im_spectrum = spectrum(10.0, 500.0, {Peak1D(100.0, 10.0)});
+  no_im_search.consumeSpectrum(no_im_spectrum);
+  no_im_search.finish();
+  require(!no_im_search.ionMobilityFilteringUsed(), "mobility filtering reported active without raw mobility");
+  require(no_im_output.str().find("target\t500\t") != std::string::npos &&
+          no_im_output.str().find("mobility_interferer\t500\t") != std::string::npos,
+          "m/z-only fallback changed when raw mobility was absent");
+
+  // Raw mobility without library coordinates also keeps m/z-only matching.
+  std::vector<OpenDIA::TransitionQuery> no_library_im_queries = {
+    {"unannotated", 500.0, 100.0, 0.0, false}
+  };
+  std::ostringstream no_library_im_output;
+  OpenDIA::StreamSearch no_library_im_search(no_library_im_queries, im_options, no_library_im_output);
+  MSSpectrum unannotated_spectrum = spectrumWithIM(10.0, 500.0, {Peak1D(100.0, 10.0)}, {0.95f});
+  no_library_im_search.consumeSpectrum(unannotated_spectrum);
+  no_library_im_search.finish();
+  require(!no_library_im_search.ionMobilityFilteringUsed(), "filtering reported active without library mobility");
+  require(no_library_im_output.str().find("unannotated\t500\t") != std::string::npos,
+          "m/z-only fallback changed when library mobility was absent");
+
+  // A scalar VSSC drift time is also detected without a CLI mode switch.
+  MSSpectrum scalar_im = spectrum(10.0, 500.0, {Peak1D(100.0, 10.0)});
+  scalar_im.setDriftTime(0.95);
+  scalar_im.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  std::ostringstream scalar_im_output;
+  OpenDIA::StreamSearch scalar_im_search(im_queries, im_options, scalar_im_output);
+  scalar_im_search.consumeSpectrum(scalar_im);
+  scalar_im_search.finish();
+  require(scalar_im_search.ionMobilityFilteringUsed(), "scalar VSSC mobility was not detected");
+  require(scalar_im_output.str().find("mobility_interferer\t500\t") != std::string::npos &&
+          scalar_im_output.str().find("target\t500\t") == std::string::npos,
+          "scalar VSSC mobility did not select the matching candidate");
+
   std::vector<OpenDIA::TransitionQuery> invalid_queries = {{"analyte", 500.0, 100.0, 0.0, false}};
   OpenDIA::SearchOptions invalid_options;
   invalid_options.fragment_tolerance_da = 0.0;
@@ -123,5 +194,18 @@ int main()
     rejected = true;
   }
   require(rejected, "non-positive m/z tolerance was accepted");
+
+  invalid_options = OpenDIA::SearchOptions{};
+  invalid_options.ion_mobility_tolerance_vssc = 0.0;
+  rejected = false;
+  try
+  {
+    OpenDIA::StreamSearch invalid_search(std::move(invalid_queries), invalid_options, unused_output);
+  }
+  catch (const Exception::InvalidParameter&)
+  {
+    rejected = true;
+  }
+  require(rejected, "non-positive ion-mobility tolerance was accepted");
   return 0;
 }

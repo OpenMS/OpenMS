@@ -9,6 +9,7 @@
 #include "OpenDIASearch.h"
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/METADATA/Precursor.h>
 
@@ -28,6 +29,7 @@ namespace OpenMS::OpenDIA
     output_(output)
   {
     if (!std::isfinite(options_.fragment_tolerance_da) || !(options_.fragment_tolerance_da > 0.0) ||
+        !std::isfinite(options_.ion_mobility_tolerance_vssc) || !(options_.ion_mobility_tolerance_vssc > 0.0) ||
         !std::isfinite(options_.rt_window_seconds) || options_.rt_window_seconds < 0.0 ||
         !std::isfinite(options_.peak_gap_seconds) || !(options_.peak_gap_seconds > 0.0) || options_.min_transitions == 0)
     {
@@ -59,6 +61,9 @@ namespace OpenMS::OpenDIA
         candidate.precursor_mz = query.precursor_mz;
         candidate.library_rt = query.library_rt;
         candidate.has_library_rt = query.has_library_rt;
+        candidate.precursor_im = query.precursor_im;
+        candidate.has_precursor_im = query.has_precursor_im && std::isfinite(query.precursor_im) && query.precursor_im > 0.0;
+        has_library_im_candidates_ = has_library_im_candidates_ || candidate.has_precursor_im;
         candidates_.push_back(std::move(candidate));
       }
       queries_.push_back({query.fragment_mz, candidate_index});
@@ -154,6 +159,30 @@ namespace OpenMS::OpenDIA
       isolation_windows_.resize(merged_count + 1);
     }
 
+    // Bruker TDF exposes one calibrated VSSC mobility value per peak. Other
+    // compatible OpenMS readers may expose a scalar VSSC drift time per spectrum.
+    // Unsupported/missing units leave the existing m/z-only path unchanged.
+    const DataArrays::FloatDataArray* im_values = nullptr;
+    double scalar_im = 0.0;
+    bool has_scalar_im = false;
+    if (spectrum.containsIMData())
+    {
+      const auto [im_index, im_unit] = spectrum.getIMData();
+      const auto& arrays = spectrum.getFloatDataArrays();
+      if (im_unit == DriftTimeUnit::VSSC && im_index < arrays.size() && arrays[im_index].size() == spectrum.size())
+      {
+        im_values = &arrays[im_index];
+      }
+    }
+    if (im_values == nullptr && spectrum.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET &&
+        spectrum.getDriftTimeUnit() == DriftTimeUnit::VSSC)
+    {
+      scalar_im = spectrum.getDriftTime();
+      has_scalar_im = std::isfinite(scalar_im) && scalar_im > 0.0;
+    }
+    const bool has_raw_im = im_values != nullptr || has_scalar_im;
+    ion_mobility_filtering_used_ = ion_mobility_filtering_used_ || (has_raw_im && has_library_im_candidates_);
+
     if (++generation_ == 0)
     {
       std::fill(query_generation_.begin(), query_generation_.end(), 0);
@@ -164,8 +193,9 @@ namespace OpenMS::OpenDIA
     candidate_touched_.clear();
 
     // Visit only library fragments in the tolerance interval around each raw peak.
-    for (const auto& peak : spectrum)
+    for (std::size_t peak_index = 0; peak_index < spectrum.size(); ++peak_index)
     {
+      const auto& peak = spectrum[peak_index];
       const double peak_mz = peak.getMZ();
       const double peak_intensity = peak.getIntensity();
       if (!std::isfinite(peak_mz) || !std::isfinite(peak_intensity))
@@ -178,10 +208,12 @@ namespace OpenMS::OpenDIA
                                     [](const Query& query, double mz) { return query.fragment_mz < mz; });
       const auto last = std::upper_bound(first, queries_.end(), high_mz,
                                          [](double mz, const Query& query) { return mz < query.fragment_mz; });
+      const double peak_im = im_values != nullptr ? static_cast<double>((*im_values)[peak_index]) : scalar_im;
+      const bool has_peak_im = im_values != nullptr || has_scalar_im;
       for (auto it = first; it != last; ++it)
       {
         const std::size_t query_index = static_cast<std::size_t>(it - queries_.begin());
-        if (!queryMatches_(*it, rt))
+        if (!queryMatches_(*it, rt, peak_im, has_peak_im))
         {
           continue;
         }
@@ -220,7 +252,7 @@ namespace OpenMS::OpenDIA
     }
   }
 
-  bool StreamSearch::queryMatches_(const Query& query, double rt) const
+  bool StreamSearch::queryMatches_(const Query& query, double rt, double peak_im, bool has_peak_im) const
   {
     const Candidate& candidate = candidates_[query.candidate];
     const auto window = std::upper_bound(isolation_windows_.begin(), isolation_windows_.end(), candidate.precursor_mz,
@@ -229,8 +261,15 @@ namespace OpenMS::OpenDIA
     {
       return false;
     }
-    return options_.rt_window_seconds == 0.0 || !candidate.has_library_rt ||
-           std::abs(rt - candidate.library_rt) <= options_.rt_window_seconds;
+    if (options_.rt_window_seconds != 0.0 && candidate.has_library_rt &&
+        std::abs(rt - candidate.library_rt) > options_.rt_window_seconds)
+    {
+      return false;
+    }
+    // OpenSWATH PQP precursor mobility values use inverse reduced mobility
+    // (VSSC). Apply the extra coordinate only when both sides provide it.
+    return !candidate.has_precursor_im || !has_peak_im ||
+           (std::isfinite(peak_im) && std::abs(peak_im - candidate.precursor_im) <= options_.ion_mobility_tolerance_vssc);
   }
 
   void StreamSearch::updateCandidate_(std::size_t candidate_index, double rt, double intensity,
@@ -295,5 +334,10 @@ namespace OpenMS::OpenDIA
       }
     }
     finished_ = true;
+  }
+
+  bool StreamSearch::ionMobilityFilteringUsed() const
+  {
+    return ion_mobility_filtering_used_;
   }
 }
