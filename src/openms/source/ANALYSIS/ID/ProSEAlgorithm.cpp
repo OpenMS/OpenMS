@@ -197,6 +197,32 @@ namespace OpenMS
       spectra.clear(true);
     }
 
+    // IDFilter::filterHitsByScore(ids, threshold), spectrum by spectrum in parallel: the same hits remain in the same
+    // order, and the hits that fail the threshold are destroyed on the thread that removes them. On one thread,
+    // destroying the hits of the ~140,000 spectra of a timsTOF run that fail FDR:PSM (each with its meta values and peak
+    // annotations) took about a second per run while the other threads waited (5 of 44 stack samples of a 27-run search).
+    void filterHitsByScoreInParallel(PeptideIdentificationList& ids, double threshold)
+    {
+      const SignedSize n = static_cast<SignedSize>(ids.size());
+      std::exception_ptr error; // (an allocation failure in a move; must not leave the parallel region)
+#pragma omp parallel for schedule(dynamic, 256) if (n >= 1024)
+      for (SignedSize i = 0; i < n; ++i)
+      {
+        try
+        {
+          IDFilter::filterHitsByScore(ids[i], threshold);
+        }
+        catch (...)
+        {
+#pragma omp critical (ProSEAlgorithm_filter_hits_error)
+          {
+            if (!error) error = std::current_exception();
+          }
+        }
+      }
+      if (error) std::rethrow_exception(error);
+    }
+
     // Resizes @p v to @p n elements as resize() does; on Linux, the pages of the storage that it allocates for them are
     // first faulted in by the OpenMP threads (madvise(MADV_POPULATE_WRITE) on parts of the range, Linux 5.14 or later; no
     // access to the storage itself), so that the serial construction of the elements does not take the page faults of
@@ -1510,6 +1536,12 @@ namespace OpenMS
     void takeBackThreadsOfEndedRead();
     void startDeferredRead();
     bool readLendsThreads();
+    // helpersOversubscribe(): whether helper threads next to the OpenMP threads of this thread (a reader of its own,
+    // a release of dropped hits or spectra) would exceed the logical CPUs of the process. With as many threads as CPUs,
+    // the threads that spin at a barrier take the CPUs of the threads that work: at 128 threads on 64 cores with SMT
+    // the 8,000-spectrum runs of the benchmark took twice the wall of 64 threads (1.9 s with OMP_WAIT_POLICY=passive,
+    // 3.1 s with the default spinning, 1.5 s at 64 threads). The helpers then take threads of this thread instead.
+    bool helpersOversubscribe();
 
     // Keeps the peaks WindowMower::filterPeakSpectrumForTopNInJumpingWindow() keeps: the peak_count most intense peaks of
     // each m/z window of window_size that starts at a peak (of the last window a share of peak_count by its width), and
@@ -3914,6 +3946,7 @@ namespace OpenMS
           // next candidate; getSpectrum appends to whatever is there. clear(false) keeps the capacity of the
           // peak vector (clear(true) would shrink it); the data arrays are emptied either way.
           theo_spectrum.clear(false);
+          theo_spectrum.getPrecursors().clear(); // (clear(false) keeps the meta data; getSpectrum() appends a precursor per call)
           spectrum_generator.getSpectrum(theo_spectrum, mod_candidate, 1, scoringMaxCharge_(sms.precursor_charge_));
           // Note: TSG emits sorted output when add_metainfo=true (see the
           // sortByPositionPresorted() call at the tail of getSpectrum_); the extra
@@ -7175,7 +7208,7 @@ namespace OpenMS
       // The PSMs the filter removes but the protein inference uses (FDR:protein_inference_PSM), on the same q-values.
       if (inference_only_psms != nullptr) { collectInferenceOnlyPsms_(peptide_ids, fdr_psm_, *inference_only_psms); }
       // Filters target and decoy PSMs alike by q-value; decoy removal is the protein FDR's finalization.
-      IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
+      filterHitsByScoreInParallel(peptide_ids, fdr_psm_);
       stats.fdr_applied = true;
       stats.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
       sw_fdr.stop();
@@ -7403,7 +7436,7 @@ namespace OpenMS
 #ifdef OPENMS_WINDOWSPLATFORM
       constexpr bool release_later = false;
 #else
-      const bool release_later = threads > 1;
+      const bool release_later = threads > 1 && !helpersOversubscribe(); // (inline, in parallel, when a helper's team would exceed the CPUs)
 #endif
       std::vector<std::vector<PeptideHit>> dropped;
       // rescore_method 'reset' with a directory as reset:stem_table: one table per run, named after its spectra file
@@ -7502,7 +7535,7 @@ namespace OpenMS
       StopWatch sw_fdr; sw_fdr.start();
       if (!rescoring.applied && !peptide_ids.empty()) { annotatePsmQValues(peptide_ids); }
       if (inference_only != nullptr) { collectInferenceOnlyPsms_(peptide_ids, fdr_psm_, *inference_only); }
-      IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
+      filterHitsByScoreInParallel(peptide_ids, fdr_psm_);
       stats.fdr_applied = true;
       stats.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
       sw_fdr.stop();
@@ -8089,12 +8122,13 @@ namespace OpenMS
     // The threads that a BackgroundConsumer (below) lends from this thread while it runs: the read policies below count
     // them as this thread's (the threads this thread was given), so that a read decides as without the consumer.
     thread_local int consumer_lent_threads = 0;
+    thread_local int reader_lent_threads = 0;   // lent to a background reader (BackgroundSpectra::start()), until taken back
 
     // The OpenMP threads of this thread, with those that a BackgroundConsumer has lent
     [[maybe_unused]] int threadsGiven()
     {
 #ifdef _OPENMP
-      return omp_get_max_threads() + consumer_lent_threads;
+      return omp_get_max_threads() + consumer_lent_threads + reader_lent_threads; // (the budget, loans included)
 #else
       return 1;
 #endif
@@ -8151,7 +8185,17 @@ namespace OpenMS
     {
 #ifdef _OPENMP
       static const int cores = static_cast<int>(SysInfo::getAvailablePhysicalCores());
-      return threadsGiven() < cores;
+      return threadsGiven() < cores || helpersOversubscribe(); // (or the reader's own threads would exceed the CPUs)
+#else
+      return false;
+#endif
+    }
+
+    bool helpersOversubscribe()
+    {
+#ifdef _OPENMP
+      static const int cpus = omp_get_num_procs(); // the logical CPUs available to the process
+      return threadsGiven() >= cpus;
 #else
       return false;
 #endif
@@ -8208,6 +8252,7 @@ namespace OpenMS
         if (!borrow) { return; }
         own_threads_ = omp_get_max_threads();
         omp_set_num_threads(std::max(1, own_threads_ - threads));
+        reader_lent_threads = own_threads_ - std::max(1, own_threads_ - threads);
         // taken back early (takeBackThreadsOfEndedRead()) only outside of parallel regions, where this thread runs a
         // single task, whose ICV this is
         if (parallelLevel() == 0) { lending_read = this; }
@@ -8262,7 +8307,7 @@ namespace OpenMS
       void restoreThreads_() noexcept
       {
 #ifdef _OPENMP
-        if (own_threads_ > 0) { omp_set_num_threads(own_threads_); }
+        if (own_threads_ > 0) { omp_set_num_threads(own_threads_); reader_lent_threads = 0; }
 #endif
         own_threads_ = 0;
         if (lending_read == this) { lending_read = nullptr; }
@@ -8307,7 +8352,12 @@ namespace OpenMS
         // about 2.5 s instead of 1.5 s, still during the search of the next one). The next consumer waits for the one
         // before, so searches shorter than that write wait for it: that run followed by two small ones (0.4 GB) took
         // 17.4 instead of 15.4 s (4 / 8 helper threads: 15.9 / 15.6 s, and less of the memory saved).
+        bool lend = true; // the helper's threads are taken from this thread's team
         if (parallelLevel() == 0 && threads > 1 && !readBorrowsThreads()) { helper_threads = std::min(2, std::max(1, threads / 4)); }
+        // With as many threads as CPUs the reader borrows threads of this thread (see helpersOversubscribe()), and the
+        // two loans cannot be juggled at once: the consumer then gets one thread of its own (the idXML writer is serial),
+        // one more than the CPUs, so that the write still overlaps the search of the next file instead of running here.
+        else if (parallelLevel() == 0 && threads > 1 && helpersOversubscribe()) { helper_threads = 1; lend = false; }
 #endif
         if (helper_threads > 0)
         {
@@ -8323,10 +8373,13 @@ namespace OpenMS
               done_.store(true, std::memory_order_release);
             });
 #ifdef _OPENMP
-            own_threads_ = threads;
-            omp_set_num_threads(threads - helper_threads);
-            consumer_lent_threads = helper_threads;
-            lending_consumer = this;
+            if (lend)
+            {
+              own_threads_ = threads;
+              omp_set_num_threads(threads - helper_threads);
+              consumer_lent_threads = helper_threads;
+              lending_consumer = this;
+            }
 #endif
             return;
           }
@@ -9328,7 +9381,7 @@ namespace OpenMS
         // memory); the holder joins it like the hits that the rescoring dropped (see released_hits_). Otherwise here.
         bool released_later = false;
 #if !defined(OPENMS_WINDOWSPLATFORM) && defined(_OPENMP) // Windows: the holder may go under the loader lock (a static object of a DLL), where joining deadlocks
-        if (i + 1 == in_spectra_files.size() && spectra.size() >= 1024 && omp_get_max_threads() > 1)
+        if (i + 1 == in_spectra_files.size() && spectra.size() >= 1024 && omp_get_max_threads() > 1 && !helpersOversubscribe())
         {
           try
           {
@@ -10845,9 +10898,14 @@ namespace OpenMS
     // hypothesis shares composition, mass and enzymatic C-terminus with the peptide.
     const Size n = sequence.size();
     if (n < 3) return sequence;
-    AASequence reversed;
-    for (Size i = n - 1; i-- > 0;) { reversed += &sequence[i]; }
-    reversed += &sequence[n - 1];
+    // The residues are those of the sequence: fromResidues() takes them as they are, where operator+=(const Residue*)
+    // looks every residue up in the ResidueDB under a critical section (the threads of annotateIonPriors_() spent
+    // a third of their time in that section in stack samples of a 27-run search).
+    std::vector<const Residue*> residues;
+    residues.reserve(n);
+    for (Size i = n - 1; i-- > 0;) { residues.push_back(&sequence[i]); }
+    residues.push_back(&sequence[n - 1]);
+    AASequence reversed = AASequence::fromResidues(std::move(residues));
     if (sequence.hasNTerminalModification()) { reversed.setNTerminalModification(sequence.getNTerminalModification()); }
     if (sequence.hasCTerminalModification()) { reversed.setCTerminalModification(sequence.getCTerminalModification()); }
     return reversed;
@@ -11157,13 +11215,13 @@ namespace OpenMS
 
     // The subset: the spectra of the highest TIC (the best-measured ones), taken per tenth of the run (the spectra are in
     // acquisition order) so that a mass offset that changes over the run is represented in the sample
-    vector<pair<double, Size>> tic_index;
-    tic_index.reserve(spectra.size());
-    for (Size i = 0; i < spectra.size(); ++i)
+    vector<pair<double, Size>> tic_index(spectra.size());
+#pragma omp parallel for schedule(static) if (spectra.size() >= 4096)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(spectra.size()); ++i)
     {
       double tic = 0;
       for (const auto& p : spectra[i]) { tic += p.getIntensity(); }
-      tic_index.emplace_back(tic, i);
+      tic_index[i] = {tic, static_cast<Size>(i)};
     }
     vector<Size> subset;
     {
@@ -11178,6 +11236,21 @@ namespace OpenMS
       }
     }
     const Size subset_size = subset.size();
+    // Scored in the order of the precursor mass, as the main search (scoringOrder_()): neighbouring iterations probe the
+    // same precursor-window slices of the fragment index, which stay in the caches. The hits are collected in the order
+    // of the subset (per tenth of the run, by TIC), as one thread scored them before: the sort by score below is not
+    // stable, so this order decides which of two hits with the same score at the cut survives; it depends neither on
+    // the threads nor on the chunks.
+    std::vector<Size> order; // positions in subset, by precursor mass
+    {
+      std::vector<SignedSize> position_in_subset(spectra.size(), -1);
+      for (Size k = 0; k < subset_size; ++k) position_in_subset[subset[k]] = static_cast<SignedSize>(k);
+      order.reserve(subset_size);
+      for (SignedSize i : scoringOrder_(spectra, query_spectra))
+      {
+        if (position_in_subset[i] >= 0) order.push_back(static_cast<Size>(position_in_subset[i]));
+      }
+    }
 
     OPENMS_LOG_INFO << "[ProSE] Calibration: scoring " << subset_size << " / " << spectra.size()
                     << " spectra (top TIC per tenth of the run)..." << std::endl;
@@ -11189,11 +11262,10 @@ namespace OpenMS
     // Collect per-spectrum best hits with scores and errors
     // (rt, prec_mz [theoretical] and frag_mzs [theoretical, aligned with frag_errors] feed the models of calibration:recalibrate)
     struct CalHit { double score; double prec_error; std::vector<float> frag_errors; double rt; double prec_mz; std::vector<float> frag_mzs; };
-    vector<CalHit> cal_hits;
-    // At most one hit per spectrum of the subset: the push_back() in the critical section below never reallocates, so
-    // it cannot throw there (an exception must not leave an OpenMP critical section; the catch of the loop body is
-    // outside it).
-    cal_hits.reserve(subset_size);
+    // At most one hit per spectrum of the subset, in its slot (written by one iteration only): collected in subset order
+    // after the loop
+    vector<CalHit> slots(subset_size);
+    std::vector<unsigned char> filled(subset_size, 0);
 
     // Parallelize over the calibration subset, mirroring the main scoring loop
     // (scoreSpectraAgainstIndex_). Each iteration is independent: querySpectrum and
@@ -11209,17 +11281,30 @@ namespace OpenMS
     // leave the parallel region, which would terminate the process: the first one is rethrown after the loop.
     std::exception_ptr calibration_error;
     std::atomic<bool> calibration_failed{false};
-#pragma omp parallel for schedule(dynamic)
-    for (SignedSize si = 0; si < (SignedSize)subset_size; ++si)
+    // Runs of neighbouring masses per core, at least 8 chunks per thread; one spectrum per chunk in peptide-mass mode
+    // (as the main loop)
+#ifdef _OPENMP
+    const int cal_chunk = fragment_index.isPeptideMassMode() ? 1 : static_cast<int>(std::clamp<SignedSize>(
+      static_cast<SignedSize>(subset_size) / (SignedSize(8) * std::max(1, omp_get_max_threads())), 1, 64));
+#else
+    [[maybe_unused]] const int cal_chunk = 1; // (only the OpenMP directive uses it)
+#endif
+#pragma omp parallel for schedule(dynamic, cal_chunk)
+    for (SignedSize oi = 0; oi < (SignedSize)subset_size; ++oi)
     {
       if (calibration_failed.load(std::memory_order_relaxed)) continue;
       try
       {
+      const Size si = order[oi];
       const Size scan_idx = subset[si];
       const MSSpectrum& spec = spectra[scan_idx];
       const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spec);
 
-      FragmentIndex::SpectrumMatchesTopN top_sms;
+      // The per-thread containers of the main loop (scoreSpectraAgainstIndex_()): the candidates and the theoretical
+      // spectrum keep the capacity the thread's largest spectrum needed instead of taking fresh buffers per spectrum
+      ScoringScratch_& scratch = scoringScratch_();
+      FragmentIndex::SpectrumMatchesTopN& top_sms = scratch.top_sms;
+      top_sms.clear();
       const MSSpectrum& query = query_spectra != nullptr ? (*query_spectra)[scan_idx] : spec;
       fragment_index.querySpectrum(query, db, top_sms, generators.electronIons(spec));
 
@@ -11229,10 +11314,8 @@ namespace OpenMS
       int best_isotope_error = 0;
       uint16_t best_charge = 0;
 
-      // Reused across this spectrum's candidates — same rationale as the main
-      // scoring loop: a fresh PeakSpectrum per candidate churns its DataArrays
-      // (ion names / charges filled by add_metainfo) on the heap.
-      PeakSpectrum theo;
+      PeakSpectrum& theo = scratch.theo_spectrum;
+      std::vector<uint8_t>& theo_ion_series = scratch.theo_ion_series;
 
       for (const auto& sms : top_sms.hits_)
       {
@@ -11240,19 +11323,30 @@ namespace OpenMS
         AASequence seq = fragment_index.isPeptideMassMode()
           ? fragment_index.reconstructRealizedSubSequence(peptide, db, sms.realized_length_, sms.subset_bitmask_)
           : fragment_index.reconstructModifiedSequence(peptide, db);
-        // Clear peaks + data arrays before refilling; getSpectrum appends to
-        // whatever is there. Its output is already sorted with add_metainfo=true.
-        theo.clear(true);
-        tsg.getSpectrum(theo, seq, 1, scoringMaxCharge_(sms.precursor_charge_));
 
         // The calibration PSMs are selected with the search's own score (upstream 825c33bb). The mass-accuracy score
         // favours PSMs with small fragment errors, so it narrows the fragment tolerance estimated from them below
         // (2-10% narrower than with HyperScore on 12 of 14 ppm runs); selecting by HyperScore instead did not
         // change the yield measurably.
+        // The peaks of getSpectrum() with the ion series per peak instead of the ion names (no strings, no data
+        // arrays), as the main loop: the same scores. The string path only when the generator cannot (losses, ...).
         HyperScore::PSMDetail detail;
-        double score = mass_accuracy_score_
-          ? HyperScore::computeMassAccuracy(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, mass_error_sd_ppm_, detail)
-          : HyperScore::computeWithDetail(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, detail);
+        double score;
+        if (tsg.getIonSeriesSpectrum(theo, theo_ion_series, seq, 1, scoringMaxCharge_(sms.precursor_charge_)))
+        {
+          score = mass_accuracy_score_
+            ? HyperScore::computeMassAccuracy(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, theo_ion_series, mass_error_sd_ppm_, detail)
+            : HyperScore::computeWithDetail(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, theo_ion_series, detail);
+        }
+        else
+        {
+          theo.clear(false); // peaks and data arrays; getSpectrum appends, its output is sorted with add_metainfo=true
+          theo.getPrecursors().clear(); // (clear(false) keeps the meta data; getSpectrum() appends a precursor per call)
+          tsg.getSpectrum(theo, seq, 1, scoringMaxCharge_(sms.precursor_charge_));
+          score = mass_accuracy_score_
+            ? HyperScore::computeMassAccuracy(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, mass_error_sd_ppm_, detail)
+            : HyperScore::computeWithDetail(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, detail);
+        }
 
         if (score > best_score)
         {
@@ -11286,12 +11380,16 @@ namespace OpenMS
 
       // The signed errors of the fragment peaks the best hit explains, within the pass window
       std::vector<float> frag_errors, frag_mzs;
-      theo.clear(true);
-      tsg.getSpectrum(theo, best_seq, 1, scoringMaxCharge_(best_charge));
+      if (!tsg.getIonSeriesSpectrum(theo, theo_ion_series, best_seq, 1, scoringMaxCharge_(best_charge))) // (the same peaks)
+      {
+        theo.clear(false);
+        theo.getPrecursors().clear();
+        tsg.getSpectrum(theo, best_seq, 1, scoringMaxCharge_(best_charge));
+      }
       matchedFragmentErrors(spec, theo, pass_fragment, fragment_mass_tolerance_unit_ppm, frag_errors, &frag_mzs);
 
-#pragma omp critical (prose_calibration_hits)
-      cal_hits.push_back({best_score, prec_err, std::move(frag_errors), spec.getRT(), theo_mz, std::move(frag_mzs)});
+      slots[si] = CalHit{best_score, prec_err, std::move(frag_errors), spec.getRT(), theo_mz, std::move(frag_mzs)};
+      filled[si] = 1;
       }
       catch (...)
       {
@@ -11303,6 +11401,10 @@ namespace OpenMS
       }
     }
     if (calibration_error) std::rethrow_exception(calibration_error);
+    vector<CalHit> cal_hits;
+    cal_hits.reserve(static_cast<Size>(std::count(filled.begin(), filled.end(), 1)));
+    for (Size k = 0; k < subset_size; ++k) { if (filled[k]) cal_hits.push_back(std::move(slots[k])); }
+    vector<CalHit>().swap(slots);
 
     // The confident half: the top 50 % by score (random matches inflate the tails), if that leaves calibration_min_psms_
     Size cal_hits_total = cal_hits.size();
@@ -11504,23 +11606,30 @@ namespace OpenMS
   // =====================================================================
   // calibration:recalibrate: the m/z error models and their application to the spectra
   // =====================================================================
-  double ProSEAlgorithm::MzRecalibration_::error(double mz, double rt) const
+  ProSEAlgorithm::MzRecalibration_::AtRT ProSEAlgorithm::MzRecalibration_::at(double rt) const
   {
-    if (chunks.empty()) return 0.0;
-    const auto at = [mz](const Chunk& c) { return c.intercept + c.slope * mz; };
-    if (chunks.size() == 1 || rt <= chunks.front().rt) return at(chunks.front());
-    if (rt >= chunks.back().rt) return at(chunks.back());
+    AtRT model;
+    model.ppm = ppm;
+    if (chunks.empty()) return model;
+    if (chunks.size() == 1 || rt <= chunks.front().rt) { model.lo = &chunks.front(); return model; }
+    if (rt >= chunks.back().rt) { model.lo = &chunks.back(); return model; }
     // the chunks around rt: lo->rt <= rt < hi->rt
     const auto hi = std::upper_bound(chunks.begin(), chunks.end(), rt, [](double r, const Chunk& c) { return r < c.rt; });
     const auto lo = hi - 1;
-    const double w = (rt - lo->rt) / (hi->rt - lo->rt);
-    return (1.0 - w) * at(*lo) + w * at(*hi);
+    model.lo = &*lo;
+    model.hi = &*hi;
+    model.w = (rt - lo->rt) / (hi->rt - lo->rt);
+    return model;
+  }
+
+  double ProSEAlgorithm::MzRecalibration_::error(double mz, double rt) const
+  {
+    return at(rt).error(mz);
   }
 
   double ProSEAlgorithm::MzRecalibration_::correct(double mz, double rt) const
   {
-    const double e = error(mz, rt);
-    return ppm ? mz - e * 1e-6 * mz : mz - e;
+    return at(rt).correct(mz);
   }
 
   double ProSEAlgorithm::MzRecalibration_::uncorrect(double corrected, double rt) const
@@ -11607,9 +11716,11 @@ namespace OpenMS
     // process), from the same survey scans as the selected precursor: corrected by its model
     const UInt coisolated_key = registry.getIndex(CoIsolationDetector::META_MZ);
     const UInt observed_coisolated_key = coisolated_key != UInt(-1) ? registry.registerName(OBSERVED_COISOLATED_MZ) : UInt(-1);
-    const auto correct_peaks = [&fragment_model](MSSpectrum& s, double rt)
+    // The model at the spectrum's RT once, per peak only its arithmetic (the chunk lookup per peak was a third of the
+    // time of this function in stack samples of a 27-run search)
+    const auto correct_peaks = [](MSSpectrum& s, const MzRecalibration_::AtRT& model)
     {
-      for (Peak1D& p : s) { p.setMZ(fragment_model.correct(p.getMZ(), rt)); } // (monotone for any sane model: the order stays)
+      for (Peak1D& p : s) { p.setMZ(model.correct(p.getMZ())); } // (monotone for any sane model: the order stays)
     };
     Size precursors = 0, coisolated = 0, peaks = 0;
 #pragma omp parallel for schedule(static) reduction(+: precursors, coisolated, peaks)
@@ -11637,9 +11748,10 @@ namespace OpenMS
       }
       if (fragment_model.active())
       {
-        correct_peaks(s, rt);
-        if (query_spectra != nullptr) { correct_peaks((*query_spectra)[i], rt); }
-        if (evidence_spectra != nullptr) { correct_peaks((*evidence_spectra)[i], rt); }
+        const MzRecalibration_::AtRT model = fragment_model.at(rt);
+        correct_peaks(s, model);
+        if (query_spectra != nullptr) { correct_peaks((*query_spectra)[i], model); }
+        if (evidence_spectra != nullptr) { correct_peaks((*evidence_spectra)[i], model); }
         peaks += s.size();
       }
     }

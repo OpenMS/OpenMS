@@ -1691,6 +1691,30 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       double error(double mz, double rt) const;   ///< the modelled error at (mz, rt)
       double correct(double mz, double rt) const; ///< @p mz without the modelled error
       double uncorrect(double corrected, double rt) const; ///< the inverse of correct(): the m/z it maps to @p corrected
+      /**
+       * The model at one retention time, for the peaks of a spectrum: the chunk lookup of error(mz, rt) once per
+       * spectrum, the same arithmetic per peak (the values of error() and correct(), bit for bit).
+       */
+      struct OPENMS_DLLAPI AtRT // (exported like its parent: MSVC links nothing of a nested struct without it)
+      {
+        const Chunk* lo{nullptr}; ///< null: no correction (error 0)
+        const Chunk* hi{nullptr}; ///< null: the model of lo alone; else interpolated between lo and hi with weight w
+        double w{0.0};
+        bool ppm{true};
+        double error(double mz) const
+        {
+          if (lo == nullptr) return 0.0;
+          const double e_lo = lo->intercept + lo->slope * mz;
+          if (hi == nullptr) return e_lo;
+          return (1.0 - w) * e_lo + w * (hi->intercept + hi->slope * mz);
+        }
+        double correct(double mz) const
+        {
+          const double e = error(mz);
+          return ppm ? mz - e * 1e-6 * mz : mz - e;
+        }
+      };
+      AtRT at(double rt) const; ///< the model at @p rt (the chunks must not change while the result is used)
       std::string toString() const;               ///< "ppm; rt <s>: <intercept> + <slope> mz (<points>) | ..." (empty: inactive)
       /**
        * Fit the model: the points (error, m/z, RT) are split in RT order into @p n_chunks groups of equal size (fewer
