@@ -1638,38 +1638,15 @@ namespace OpenMS
 
   namespace
   {
-    // Cleavage rule of the form "(?<=[KRX])" or "(?<=[KRX])(?!P)" (Trypsin/P, Trypsin, Lys-C, Arg-C, ...):
-    // cleave after a residue of the first set unless the next residue is the blocking one.
-    struct SimpleCleavageRule
-    {
-      std::array<bool, 256> after{};      ///< residues N-terminal of a cleavage site
-      std::array<bool, 256> not_before{}; ///< residues C-terminal of a site that prevent the cleavage
-    };
-
-    // True (and @p rule filled) if the enzyme regex is exactly "(?<=[" + A-Z letters + "])", optionally followed
-    // by "(?!" + one A-Z letter + ")". Everything else is left to the regex-based library digest.
-    bool parseSimpleCleavageRule(const std::string& regex, SimpleCleavageRule& rule)
-    {
-      const auto is_letter = [](char c) { return c >= 'A' && c <= 'Z'; };
-      if (regex.compare(0, 5, "(?<=[") != 0) return false;
-      size_t i = 5;
-      for (; i < regex.size() && is_letter(regex[i]); ++i) rule.after[static_cast<unsigned char>(regex[i])] = true;
-      if (i == 5 || regex.compare(i, 2, "])") != 0) return false;
-      i += 2;
-      if (i == regex.size()) return true;
-      if (regex.size() != i + 5 || regex.compare(i, 3, "(?!") != 0 || !is_letter(regex[i + 3]) || regex[i + 4] != ')') return false;
-      rule.not_before[static_cast<unsigned char>(regex[i + 3])] = true;
-      return true;
-    }
-
-    // Fully specific digest of a non-empty @p seq with a SimpleCleavageRule, without regex, substr copy or std::set.
+    // Fully specific digest of a non-empty @p seq with an EnzymaticDigestion::SimpleCleavageRule, without regex, substr
+    // copy or std::set.
     // Appends to @p out exactly the (start, length) spans, in the same order, that generatePeptides() otherwise gets
     // from EnzymaticDigestion::digestUnmodified() followed by its initial-Met-loss block:
     //  - tokenize_() yields 0 and every position 0 < p < size matched by the (zero-width) regex,
     //  - digestAfterTokenize_() emits the products with 0, then 1, 2, ... missed cleavages, each from N- to C-terminus,
     //  - the Met-loss block appends the N-terminal products of seq.substr(1) not yet present as (1, length).
     // @p sites is scratch space (kept by the caller to avoid an allocation per protein).
-    void digestSimpleCleavage(const SimpleCleavageRule& rule, const std::string& seq, size_t missed_cleavages,
+    void digestSimpleCleavage(const EnzymaticDigestion::SimpleCleavageRule& rule, const std::string& seq, size_t missed_cleavages,
                               size_t min_length, size_t max_length, bool clip_nterm_methionine,
                               std::vector<size_t>& sites, std::vector<std::pair<size_t, size_t>>& out)
     {
@@ -1678,7 +1655,7 @@ namespace OpenMS
       sites.push_back(0);
       for (size_t p = 1; p < n; ++p)
       {
-        if (rule.after[static_cast<unsigned char>(seq[p - 1])] && !rule.not_before[static_cast<unsigned char>(seq[p])]) sites.push_back(p);
+        if (rule.cleavesBetween(seq[p - 1], seq[p])) sites.push_back(p);
       }
       const size_t count = sites.size();
       sites.push_back(n); // sentinel: the last product of every missed-cleavage level ends at the sequence end
@@ -1765,10 +1742,10 @@ namespace OpenMS
 
       // Regex-free digest for fully specific searches with a simple cleavage rule (same spans, same order);
       // every other enzyme / specificity keeps using the library digest.
-      SimpleCleavageRule cleavage_rule;
-      const bool simple_digest = enzyme_specificity_ == EnzymaticDigestion::SPEC_FULL
-                                 && digestor.getEnzymeName() != EnzymaticDigestion::UnspecificCleavage
-                                 && parseSimpleCleavageRule(ProteaseDB::getInstance()->getEnzyme(digestion_enzyme_)->getRegEx(), cleavage_rule);
+      const std::optional<EnzymaticDigestion::SimpleCleavageRule> cleavage_rule =
+        (enzyme_specificity_ == EnzymaticDigestion::SPEC_FULL && digestor.getEnzymeName() != EnzymaticDigestion::UnspecificCleavage)
+          ? EnzymaticDigestion::SimpleCleavageRule::parse(ProteaseDB::getInstance()->getEnzyme(digestion_enzyme_)->getRegEx())
+          : std::nullopt;
 
       OPENMS_LOG_INFO << "Generating peptides..." << std::endl;
 
@@ -1808,9 +1785,9 @@ namespace OpenMS
 #endif
         digested_peptides.clear();
         const FASTAFile::FASTAEntry& protein = fasta_entries[protein_idx];
-        if (simple_digest && !protein.sequence.empty())
+        if (cleavage_rule && !protein.sequence.empty())
         {
-          digestSimpleCleavage(cleavage_rule, protein.sequence, missed_cleavages_, peptide_min_length_, peptide_max_length_,
+          digestSimpleCleavage(*cleavage_rule, protein.sequence, missed_cleavages_, peptide_min_length_, peptide_max_length_,
                                clip_nterm_methionine_, cleavage_sites, digested_peptides);
         }
         else

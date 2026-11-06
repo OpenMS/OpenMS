@@ -78,6 +78,8 @@
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include <OpenMS/FORMAT/QPXDatasetExport.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
 #include <OpenMS/MATH/MathFunctions.h>
@@ -102,6 +104,7 @@
 
 
 #include <map>
+#include <unordered_set>
 #include <algorithm>
 #include <iterator>
 #include <cmath>
@@ -637,9 +640,9 @@ struct NuXLRTPrediction
   {
     // detect features for accurate (elution profile apex) retention times
     FeatureFinderIdentificationAlgorithm ffid_algo;
-    MzMLFile mzml;
-    mzml.getOptions().addMSLevel(1);
-    mzml.load(spectra_filename, ffid_algo.getMSData());
+    FileHandler fh; // the input of OpenNuXL: mzML, Thermo .raw, Bruker timsTOF .d or mzPeak
+    fh.getOptions().addMSLevel(1);
+    fh.loadExperiment(spectra_filename, ffid_algo.getMSData(), {FileTypes::MZML, FileTypes::RAW, FileTypes::BRUKER_TDF, FileTypes::MZPEAK});
     FeatureMap features;
     ffid_algo.run(peptides, proteins, features, FeatureMap(), spectra_filename);
     
@@ -735,7 +738,21 @@ struct ImmoniumIonsInPeptide
 
     @brief Annotate NA to peptide crosslinks in MS/MS spectra.
 
-    1. Input files: centroided mzML file or Thermo raw file
+    1. Input files (-in): centroided mzML, Thermo .raw, Bruker timsTOF .d (DDA-PASEF) or mzPeak
+       - Thermo .raw is read natively (with Thermo's peak picking, so profile scans are centroided) if OpenMS was built
+         with Thermo RAW support (WITH_THERMO_RAW); no mzML conversion is written next to it. Otherwise it is converted with
+         ThermoRawFileParser (-ThermoRaw_executable, -NET_executable) into '\<input\>.raw.mzML' next to it, which is reused
+         by later runs.
+       - Bruker timsTOF .d directories (and .d.zip archives) need OpenMS built with OpenTIMS support (WITH_OPENTIMS),
+         mzPeak needs mzPeak support (WITH_MZPEAK). Of DDA-PASEF data, the MS2 spectra (one per precursor) are centroided
+         and carry the ion mobility (1/K0) of their precursor, which OpenNuXL converts to CCS and adds to the Percolator
+         features ('IM'). Precursors the instrument assigned no charge to (charge 0) are not searched. The precursor
+         purity (and the removal of co-isolated precursor peaks it enables) is not computed for .d input, as its MS1
+         frames are not collapsed over ion mobility; the 'precursor_purity' feature is then left out.
+       - Every run writes '\<input\>.ambiguous_masses.csv' next to the input (all formats).
+       - With the filter 'pcrecalibration', the recalibrated spectra are written as mzML next to the input
+         ('\<input without extension\>_pc.mzML', e.g. 'run_pc.mzML' for 'run.d' or a natively read 'run.raw'; for a
+         .raw converted with ThermoRawFileParser 'run.raw_pc.mzML', as before) and read from there.
     2. Data preprocessing:
        - (optional, precursor_correction) precursor mass correction
        - (optional, autotune) step determines precursor and fragment mass accuracy
@@ -785,6 +802,37 @@ struct ImmoniumIonsInPeptide
     built into OpenMS, so the percolator executable doesn't have to be installed. '-percolator_backend executable'
     runs the percolator executable (-percolator_executable) instead; '-percolator_backend none' disables score
     recalibration.
+
+    @note QPX mz view (-out_qpx): with '-out_qpx DIR' OpenNuXL writes, once all its other outputs are written, the QPX
+    mz view of the MS2 spectra of the PSMs of -out to 'DIR/runs/BASENAME.mz.parquet', so that a viewer can show the
+    spectrum of each PSM without the input. BASENAME is the name of -in without its folder and extension, as ProSE
+    derives it ('run' for 'run.mzML', 'run.raw' or 'run.mzpeak', and for a Bruker 'run.d' folder 'run'). Only the mz
+    view is written: no psm, pg, run or other QPX views. An earlier 'BASENAME.mz.parquet' in 'DIR/runs/' is replaced
+    (removed before the spectra are read, so that a failure leaves none behind). Without -out_qpx nothing of this is
+    done and all outputs are unchanged.
+    - Rows: one per spectrum of the PeptideIdentifications with hits of -out (targets and decoys, all hit ranks
+      written), so that every PSM of -out and of the files derived from it (the FDR-filtered '_XLs'/'_peptides' idXMLs,
+      Percolator's) has its spectrum; in the order of the first PSM of each spectrum. A PSM's spectrum is the row whose
+      'id' (the key of the view) is its native ID (spectrum_reference). The columns, in this order, are those of the QPX
+      mz view (QPXDatasetExport::mzView()): 'id' (the native ID), 'run_file_name' (BASENAME), 'scan', 'ms_level',
+      'centroid', 'scan_start_time' (minutes), 'inverse_ion_mobility', 'ion_injection_time', 'total_ion_current' (of
+      all its peaks), 'precursors', 'mz', 'intensity', 'cv_params'.
+    - Peaks: the MS2 spectra as the input file has them (read again after the search; not OpenNuXL's preprocessed
+      peaks), filtered: the '-qpx_peak_top' most intense peaks of each '-qpx_peak_window' Th window (jumping windows:
+      each starts at its first peak; the last one too keeps '-qpx_peak_top' peaks) and the peaks of the fragment
+      annotations of all hits of each spectrum ('-qpx_peak_top 0' keeps all peaks). OpenNuXL's deisotoping removes the
+      isotope peaks but keeps every fragment's monoisotopic peak at its observed m/z (it does not move fragments of
+      higher charge to their 1+ m/z), and the fragment annotations are at the m/z of these peaks, so each annotated
+      fragment keeps the peak nearest to its m/z (within 0.01 Th). With the filter 'pcrecalibration', the search
+      annotated fragment m/z corrected by the global fragment mass error; the annotations are moved back to the m/z of
+      the input for the peak filter.
+    - The file: zstd, 256 rows per row group (a viewer decodes the row group of one spectrum), the footer keys of the
+      QPX views and 'nuxl_peak_window', 'nuxl_peak_top', 'nuxl_peak_annotated' (kept) that record the peak filter.
+    - Log lines: "-out_qpx: reading spectra" before the spectra are read again, "-out_qpx: writing PATH" before the file
+      is written, and "-out_qpx: wrote PATH (N spectra, K of M peaks)" after it.
+    - Failure: if the input cannot be read again or the view cannot be built or written, OpenNuXL warns (a line that
+      starts with "-out_qpx:" and says why), leaves no mz view behind and still exits successfully with all its other
+      outputs.
 
 
     <B>The command line parameters of this tool are:</B>
@@ -885,8 +933,24 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<std::string>("mzML,raw"));
+    registerInputFile_("in", "<file>", "", "Input spectra: centroided mzML, Thermo .raw (read natively if OpenMS was built with Thermo RAW support, "
+                                             "otherwise converted to mzML with ThermoRawFileParser, see -ThermoRaw_executable)"
+#ifdef WITH_OPENTIMS
+                                             ", Bruker timsTOF .d (DDA-PASEF)"
+#endif
+#ifdef WITH_MZPEAK
+                                             ", mzPeak"
+#endif
+                                             ".");
+    // .raw is always accepted: without native Thermo RAW support, it is converted with ThermoRawFileParser
+    setValidFormats_("in", {"mzML", "raw",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_MZPEAK
+      "mzpeak",
+#endif
+    });
     registerInputFile_("NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac.", false, true, ListUtils::create<std::string>("skipexists"));
     registerInputFile_("ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable.", false, true, ListUtils::create<std::string>("skipexists"));
 
@@ -901,6 +965,12 @@ protected:
 
     registerOutputFile_("out_xls", "<file>", "", "XL output file with group q-values calculated at the XL PSM-level. Generated for the highest FDR threshold in report:xlFDR.", false);
     setValidFormats_("out_xls", ListUtils::create<std::string>("idXML"));
+
+    registerOutputDir_("out_qpx", "<dir>", "", "Output directory for the QPX mz view of the MS2 spectra of the PSMs of -out (filtered peaks, see -qpx_peak_top): writes <dir>/runs/<basename>.mz.parquet, basename the name of -in without folder and extension (e.g. 'run' for run.mzML or run.raw, and for a Bruker run.d folder 'run'). Only the mz view is written (no psm, pg, run or other QPX views). An earlier <basename>.mz.parquet in <dir>/runs/ is replaced. See the tool documentation.", false);
+    registerDoubleOption_("qpx_peak_window", "<Th>", 100.0, "-out_qpx: the m/z window of the peak filter of the mz view.", false, true);
+    setMinFloat_("qpx_peak_window", 1.0);
+    registerIntOption_("qpx_peak_top", "<n>", 100, "-out_qpx: the most intense peaks kept per -qpx_peak_window (with every annotated peak); 0 keeps all peaks.", false, true);
+    setMinInt_("qpx_peak_top", 0);
 
     registerStringOption_("output_folder", "<folder>", "", "Store intermediate files (and final result) also in this output folder. Convenient for workflow users because these files are otherwise only stored in tmp folders.", false, false);
 
@@ -1195,12 +1265,200 @@ protected:
     return (plss_Morph < MIN_SHIFTED_IONS && plss_im_MIC < 0.03);
   }
 
-  unordered_map<std::string, PrecursorPurity::PurityScores> calculatePrecursorPurities_(const std::string& in_mzml, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm) const
+  /// The input (-in) without trailing directory separators: a Bruker .d directory may be given with one (shell tab-completion).
+  /// Stripped (as FileHandler::getType() does), so that the names derived from the input (the recalibrated '<input>_pc.mzML',
+  /// '<input>.ambiguous_masses.csv', the primary MS run path) are those of the directory and not of something inside it.
+  std::string inputPath_() const
+  {
+    std::string in = getStringOption_("in");
+    while (in.size() > 1 && (StringUtils::hasSuffix(in, '/') || StringUtils::hasSuffix(in, '\\'))) { in = StringUtils::prefix(in, in.size() - 1); }
+    return in;
+  }
+
+  /// The formats in which OpenNuXL reads its input spectra (-in). Thermo .raw is read here only with native Thermo RAW support
+  /// (WITH_THERMO_RAW): without it, main_() converts it to mzML first. Bruker .d needs WITH_OPENTIMS, mzPeak WITH_MZPEAK
+  /// (FileHandler rejects them otherwise, and so does the format check of -in).
+  static std::vector<FileTypes::Type> spectraFileTypes_()
+  {
+    return {FileTypes::MZML, FileTypes::RAW, FileTypes::BRUKER_TDF, FileTypes::MZPEAK};
+  }
+
+  /// Loads the input spectra @p filename (see spectraFileTypes_()) with the PeakFileOptions @p options
+  static void loadSpectra_(const std::string& filename, PeakMap& spectra, const PeakFileOptions& options = PeakFileOptions(),
+                           ProgressLogger::LogType log = ProgressLogger::NONE)
+  {
+    FileHandler f;
+    f.getOptions() = options;
+    f.loadExperiment(filename, spectra, spectraFileTypes_(), log);
+  }
+
+  /// The rows per row group of the QPX mz view of -out_qpx (as ProSE's): a viewer reads the peaks of one PSM by decoding
+  /// its row group
+  static constexpr Int64 QPX_SPECTRA_ROW_GROUP = 256;
+
+  /**
+    @brief The PSMs of -out for the QPX mz view of -out_qpx
+
+    One PeptideIdentification per element of @p peptide_ids with hits (native ID, RT and m/z), with one hit that has the
+    fragment annotations of all its hits: QPXDatasetExport::mzView() keeps the annotated peaks of the first hit of each
+    identification, and the view has to keep those of every hit rank written. With 'pcrecalibration' the search
+    annotated the m/z of spectra that were corrected by the global fragment mass error (@p fragment_shift_ppm, mz * (1 -
+    shift * 1e-6)); the annotations are moved back to the m/z of the input.
+  */
+  static PeptideIdentificationList qpxPSMs_(const PeptideIdentificationList& peptide_ids, double fragment_shift_ppm)
+  {
+    PeptideIdentificationList psms;
+    psms.reserve(peptide_ids.size());
+    const double factor = 1.0 / (1.0 - fragment_shift_ppm * 1e-6);
+    for (const PeptideIdentification& id : peptide_ids)
+    {
+      if (id.getHits().empty()) { continue; }
+      std::vector<PeptideHit::PeakAnnotation> annotations;
+      for (const PeptideHit& hit : id.getHits())
+      {
+        for (PeptideHit::PeakAnnotation annotation : hit.getPeakAnnotations())
+        {
+          if (fragment_shift_ppm != 0.0) { annotation.mz *= factor; }
+          annotations.push_back(std::move(annotation));
+        }
+      }
+      PeptideHit hit;
+      hit.setPeakAnnotations(std::move(annotations));
+      PeptideIdentification psm;
+      psm.setSpectrumReference(id.getSpectrumReference());
+      psm.setRT(id.getRT());
+      psm.setMZ(id.getMZ());
+      psm.insertHit(std::move(hit));
+      psms.push_back(std::move(psm));
+    }
+    return psms;
+  }
+
+  /// The footer keys of the mz view of -out_qpx: its peak filter (ProSE's keys, with the prefix nuxl_)
+  static std::map<std::string, std::string> qpxPeakMetadata_(const QPXDatasetExport::PeakFilter& filter)
+  {
+    return {{"nuxl_peak_window", QPXDatasetExport::formatNumber(filter.window, "0")}, {"nuxl_peak_top", std::to_string(filter.top)},
+            {"nuxl_peak_annotated", "kept"}};
+  }
+
+  /**
+    @brief Writes the QPX mz view of the MS2 spectra of the PSMs @p psms (qpxPSMs_()) of the input @p in to
+    @p out_qpx_dir/runs/<basename>.mz.parquet (-out_qpx; see the tool documentation)
+
+    The spectra are read again from @p spectra_file (the input, or the mzML that ThermoRawFileParser converted it to),
+    MS2 only, as the file has them; the basename and the view's run_file_name are those of @p in. Never fails the run: a
+    failure is logged as a warning ("-out_qpx: ...") and leaves no mz view of @p in behind (an earlier one is removed
+    first).
+  */
+  void writeQPXMzView_(const std::string& out_qpx_dir, const std::string& in, const std::string& spectra_file,
+                       const PeptideIdentificationList& psms) const
+  {
+    QPXDatasetExport::PeakFilter filter;
+    filter.window = getDoubleOption_("qpx_peak_window");
+    filter.top = static_cast<Size>(getIntOption_("qpx_peak_top"));
+    // OpenNuXL's deisotoping (preprocessSpectra_()) keeps the monoisotopic peak of each fragment at its observed m/z
+    // (no single charging), and the fragment annotations are at the m/z of these peaks: each is a peak of the spectrum
+    // as the file has it, at every charge
+    filter.deisotoped = false;
+
+    const std::string runs_dir = out_qpx_dir + "/runs";
+    const std::string basename = File::stemName(in);
+    const std::string file = runs_dir + "/" + basename + ".mz.parquet";
+    const auto removeView = [&file]() -> bool // (a folder of that name is no view of ours)
+    {
+      return !File::exists(file) || File::isDirectory(file) || File::remove(file);
+    };
+    try
+    {
+      // an earlier mz view of this basename is of another search: removed first, so that a failure leaves none behind
+      if (!removeView())
+      {
+        OPENMS_LOG_WARN << "-out_qpx: cannot replace the earlier " << file << "; no mz view is written." << endl;
+        return;
+      }
+      std::unordered_set<std::string> native_ids; // of the PSMs
+      for (const PeptideIdentification& psm : psms) { native_ids.insert(psm.getSpectrumReference()); }
+
+      OPENMS_LOG_INFO << "-out_qpx: reading spectra" << endl;
+      PeakMap spectra;
+      try
+      {
+        PeakFileOptions options;
+        options.clearMSLevels();
+        options.addMSLevel(2);
+        loadSpectra_(spectra_file, spectra, options);
+      }
+      catch (const std::exception& e)
+      {
+        OPENMS_LOG_WARN << "-out_qpx: cannot read the spectra of " << spectra_file << " again (" << e.what()
+                        << "); no mz view is written." << endl;
+        return;
+      }
+      // only the MS2 spectra of the PSMs
+      std::vector<MSSpectrum>& all = spectra.getSpectra();
+      all.erase(std::remove_if(all.begin(), all.end(), [&native_ids](const MSSpectrum& spectrum)
+      {
+        return spectrum.getMSLevel() != 2 || native_ids.count(spectrum.getNativeID()) == 0;
+      }), all.end());
+
+      QPXDatasetExport::MzView mz = QPXDatasetExport::mzView(spectra, psms, ArrowIOHelpers::qpxRunFileName(in), filter);
+      spectra.clear(true);
+      if (!mz.table)
+      {
+        OPENMS_LOG_WARN << "-out_qpx: the mz view of " << in << " could not be built (see the error above); no mz view is written." << endl;
+        return;
+      }
+      if (mz.without_spectrum > 0)
+      {
+        OPENMS_LOG_WARN << "-out_qpx: " << mz.without_spectrum << " PSM(s) have no MS2 spectrum of their native ID (and RT) in "
+                        << spectra_file << "; the mz view has none for them." << endl;
+      }
+      if (mz.unresolved > 0)
+      {
+        OPENMS_LOG_WARN << "-out_qpx: " << mz.unresolved << " PSM(s) are of a spectrum that shares its native ID with another"
+                        << " spectrum (at another RT), which has the mz row of that native ID: the mz view has none for them." << endl;
+      }
+
+      ParquetWriteConfig config;
+      config.row_group_size = QPX_SPECTRA_ROW_GROUP;
+      // m/z and intensities are mostly distinct: a dictionary per row group would make the file larger
+      config.plain_columns = {"mz", "intensity"};
+      std::map<std::string, std::string> keys = qpxPeakMetadata_(filter);
+      std::vector<std::string> references;
+      references.reserve(psms.size());
+      for (const PeptideIdentification& psm : psms)
+      {
+        if (!psm.getSpectrumReference().empty()) { references.push_back(psm.getSpectrumReference()); }
+      }
+      const std::string scan_format = ArrowIOHelpers::qpxScanFormat(references);
+      if (!scan_format.empty()) { keys["scan_format"] = scan_format; }
+
+      const Size rows = ArrowIOHelpers::tableRowCount(mz.table);
+      OPENMS_LOG_INFO << "-out_qpx: writing " << file << endl;
+      // (writeDataset() logs a failure)
+      if (!QPXDatasetExport::writeDataset(runs_dir, basename, {{"mz", {{mz.table}, config, keys}}}))
+      {
+        removeView();
+        OPENMS_LOG_WARN << "-out_qpx: cannot write " << file << " (see the error above); no mz view is written." << endl;
+        return;
+      }
+      OPENMS_LOG_INFO << "-out_qpx: wrote " << file << " (" << rows << " spectra, " << mz.peaks_kept << " of "
+                      << mz.peaks_read << " peaks)" << endl;
+    }
+    catch (const std::exception& e)
+    {
+      removeView();
+      OPENMS_LOG_WARN << "-out_qpx: the mz view of " << in << " could not be written (" << e.what()
+                      << "); no mz view is written." << endl;
+    }
+  }
+
+  unordered_map<std::string, PrecursorPurity::PurityScores> calculatePrecursorPurities_(const std::string& in_spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm) const
   {
     unordered_map<std::string, PrecursorPurity::PurityScores> purities;
     PeakMap tmp_spectra;
     // Important: load both MS1 and MS2 for precursor purity annotation
-    MzMLFile().load(in_mzml, tmp_spectra);
+    loadSpectra_(in_spectra, tmp_spectra);
     int nMS1 = std::count_if(tmp_spectra.begin(), tmp_spectra.end(), [](MSSpectrum& s){ return s.getMSLevel() == 1; });
     OPENMS_LOG_INFO << "Using " << nMS1 << " spectra for precursor purity calculation." << endl;
     if (nMS1 != 0)
@@ -2713,7 +2971,7 @@ protected:
     map<double, size_t> adduct_mass_count;
     map<double, size_t> aa_plus_adduct_mass_count;
     // Output CSV to same directory as input file
-    std::string input_file = getStringOption_("in");
+    std::string input_file = inputPath_();
     std::string dir = File::path(input_file);
     std::string csv_file;
     csv_file = dir;
@@ -2966,7 +3224,7 @@ protected:
 
 #ifdef DEBUG_OpenNuXL
     ofstream dist_file;
-    dist_file.open(getStringOption_("in") + ".fragment_dist.csv");
+    dist_file.open(inputPath_() + ".fragment_dist.csv");
     dist_file << "m/z\tfragments" << "\n";
     for (double mz = 0; mz < 2500.0; mz+=0.03)
     {
@@ -4540,18 +4798,21 @@ protected:
     progresslogger.setLogType(log_type_);
 
     // Parameter: Input
-    FileHandler fh;
-    FileTypes::Type in_type = fh.getType(getStringOption_("in"));
+    const std::string in = inputPath_();
 
-    std::string in_mzml; 
-    if (in_type == FileTypes::MZML)
+    // The spectra read by all steps below: the input itself (mzML, Thermo .raw with native support, Bruker .d, mzPeak), the
+    // mzML that ThermoRawFileParser converts a .raw input into (OpenMS without native Thermo RAW support), or the recalibrated
+    // mzML written by 'pcrecalibration' (see below)
+    std::string in_spectra = in;
+#ifndef WITH_THERMO_RAW
+    if (FileHandler::getType(in) == FileTypes::RAW)
     {
-      in_mzml = getStringOption_("in");
+      in_spectra = convertRawFile_(in);
     }
-    else if (in_type == FileTypes::RAW)
-    {
-      in_mzml = convertRawFile_(getStringOption_("in"));
-    }
+#endif
+    // -out_qpx: the QPX mz view of the PSMs' spectra, read again from this file (before 'pcrecalibration' replaces it)
+    const std::string qpx_spectra_file = in_spectra;
+    const std::string out_qpx_dir = getOutputDirOption("out_qpx"); // (empty if not set)
 
     std::string out_idxml = getStringOption_("out");
     std::string in_db = getStringOption_("database");
@@ -4597,13 +4858,14 @@ protected:
     bool RTpredict = find(filter.begin(), filter.end(), "RTpredict") != filter.end();
 
     if (pcrecalibration) 
-    { // recalibrate data and store in file {input_file_name}_pc.mzML
+    { // recalibrate data and store in file {input_file_name}_pc.mzML, next to the input (whatever its format: for a
+      // natively read Thermo 'run.raw' or a Bruker 'run.d' directory it is 'run_pc.mzML' beside it), which all later steps read
       MSExperiment e;
-      MzMLFile().load(in_mzml, e);
+      loadSpectra_(in_spectra, e);
       correctPrecursors(e);
-      in_mzml = FileHandler::stripExtension(in_mzml) + "_pc.mzML";
-      OPENMS_LOG_INFO << "Writing calibrated file to: " << in_mzml << endl;
-      MzMLFile().store(in_mzml, e);
+      in_spectra = FileHandler::stripExtension(in_spectra) + "_pc.mzML";
+      OPENMS_LOG_INFO << "Writing calibrated file to: " << in_spectra << endl;
+      MzMLFile().store(in_spectra, e);
     }
 
     InternalCalibration ic; // only filled if pcrecalibration is set and there are enough calibrants
@@ -4611,6 +4873,7 @@ protected:
     // autotune (only works if non-XL peptides present)
     set<std::string> skip_peptide_spectrum;
     double global_fragment_error(0);
+    double qpx_fragment_shift_ppm(0); // the global fragment error 'pcrecalibration' corrected the searched spectra by (-out_qpx)
 
     if (autotune || idfilter)
     {
@@ -4645,7 +4908,7 @@ protected:
         });
       sse.setParameters(p);
       OPENMS_LOG_INFO << "Running autotune..." << endl;
-      sse.search(in_mzml, in_db, prot_ids, pep_ids);      
+      sse.search(in_spectra, in_db, prot_ids, pep_ids);      
 
       if (RTpredict)
       {
@@ -4655,7 +4918,7 @@ protected:
         IDFilter::filterHitsByScore(peptides, 0.05);
         IDFilter::removeDecoyHits(peptides);
          IDFilter::keepBestPerPeptide(peptides, true, true, 1);
-        rt_pred.train(in_mzml, peptides, prot_ids);
+        rt_pred.train(in_spectra, peptides, prot_ids);
         rt_pred.predict(pep_ids);
 
         // add RT prediction as extra feature for percolator      
@@ -4731,13 +4994,10 @@ protected:
           Size skipped_similar_spectra(0);
           // load MS2 map
           PeakMap spectra;
-          MzMLFile f;
-          f.setLogType(log_type_);
           PeakFileOptions options;
           options.clearMSLevels();
           options.addMSLevel(2);
-          f.getOptions() = options;
-          f.load(in_mzml, spectra);
+          loadSpectra_(in_spectra, spectra, options, log_type_);
           spectra.sortSpectra(true);
           SpectrumLookup lookup;
           lookup.readSpectra(spectra);
@@ -4874,9 +5134,9 @@ protected:
         ic.fillCalibrants(pep_ids, precursor_mass_tolerance);
         if (global_fragment_error != 0)
         {
+          // in_spectra is the recalibrated '<input>_pc.mzML' here (pcrecalibration), never the original input
           PeakMap spectra;
-          MzMLFile f;
-          f.load(in_mzml, spectra);
+          loadSpectra_(in_spectra, spectra);
           spectra.sortSpectra(true);
           for (auto & s : spectra)
           {
@@ -4886,7 +5146,8 @@ protected:
               p.setMZ(p.getMZ() - Math::ppmToMass(global_fragment_error, p.getMZ())); // correct global fragment error
             }
           }
-         f.store(in_mzml, spectra); // TODO: do we really want to overwrite this?
+          qpx_fragment_shift_ppm = global_fragment_error;
+         MzMLFile().store(in_spectra, spectra); // TODO: do we really want to overwrite this?
         }
       }
     }
@@ -5108,10 +5369,20 @@ protected:
 
     // load MS2 map
     PeakMap spectra;
-    MzMLFile f;
-    f.setLogType(log_type_);
 
-    unordered_map<std::string, PrecursorPurity::PurityScores> purities = calculatePrecursorPurities_(in_mzml, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+    // Not for Bruker timsTOF input: its MS1 frames are not collapsed over ion mobility (one peak per TOF index and IM scan),
+    // which PrecursorPurity does not handle (signal proportion near 0, the precursor's own isotopes counted as interference
+    // and removed from the MS2 by filterPeakInterference_), and holding all of them in memory would take tens of GB for a
+    // full run. Without purities, there is neither the 'precursor_purity' feature nor the interference filtering.
+    unordered_map<std::string, PrecursorPurity::PurityScores> purities;
+    if (FileHandler::getType(in) == FileTypes::BRUKER_TDF)
+    {
+      OPENMS_LOG_INFO << "Bruker timsTOF input: no precursor purity calculation (MS1 not collapsed over ion mobility)." << endl;
+    }
+    else
+    {
+      purities = calculatePrecursorPurities_(in_spectra, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+    }
 
     // define percolator feature set
     StringList data_dependent_features; // percolator features that only exist e.g., if MS1 spectra were present
@@ -5120,8 +5391,7 @@ protected:
     PeakFileOptions options;
     options.clearMSLevels();
     options.addMSLevel(2);
-    f.getOptions() = options;
-    f.load(in_mzml, spectra);
+    loadSpectra_(in_spectra, spectra, options, log_type_);
     spectra.sortSpectra(true);
     for (const auto& s : spectra) { if (!s.getIntegerDataArrays().empty()) throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Input spectra must not contain integer data arrays."); } 
 
@@ -5975,7 +6245,7 @@ protected:
 
     // reload spectra from disc with same settings as before (important to keep same spectrum indices)
     spectra.clear(true);
-    f.load(in_mzml, spectra);
+    loadSpectra_(in_spectra, spectra, options, log_type_);
     spectra.sortSpectra(true);
     //auto [IM_format, IM_unit] = getMS2IMType(spectra);
 
@@ -6048,7 +6318,7 @@ protected:
 
     progresslogger.endProgress();
 
-    protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in_mzml)});
+    protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in_spectra)});
 
     // reindex ids
     PeptideIndexing indexer;
@@ -6108,6 +6378,8 @@ protected:
     // annotate NuXL related information to hits and create report
     vector<NuXLReportRow> csv_rows = NuXLReport::annotate(spectra, peptide_ids, meta_values_to_export, marker_ions_tolerance);
 
+  // -out_qpx: the PSMs of -out (taken when it is written), whose spectra the QPX mz view has
+  PeptideIdentificationList qpx_psms;
   if (generate_decoys) 
   {
       map<double, double, std::greater<double>> map_score2ppm;
@@ -6359,7 +6631,7 @@ protected:
                              std::make_move_iterator(std::end(xl_pi)));
 
         NuXLRTPrediction rt_pred;
-        rt_pred.train(in_mzml, pep_pi, protein_ids); // train on best XLs and best peptides
+        rt_pred.train(in_spectra, pep_pi, protein_ids); // train on best XLs and best peptides
         rt_pred.predict(peptide_ids); // predict on all
 
         // add RT prediction as extra feature for percolator      
@@ -6371,6 +6643,7 @@ protected:
 
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
+      if (!out_qpx_dir.empty()) { qpx_psms = qpxPSMs_(peptide_ids, qpx_fragment_shift_ppm); }
 
       // generate filtered results
       IDFilter::keepNBestHits(peptide_ids, 1);
@@ -6548,6 +6821,7 @@ protected:
     {
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
+      if (!out_qpx_dir.empty()) { qpx_psms = qpxPSMs_(peptide_ids, qpx_fragment_shift_ppm); }
       // TODO: probably not supported / wrong at this point
     }
 
@@ -6570,6 +6844,12 @@ protected:
     for (size_t i = 0; i != annotated_XLs_lock.size(); i++) { omp_destroy_lock(&(annotated_XLs_lock[i])); }
     for (size_t i = 0; i != annotated_peptides_lock.size(); i++) { omp_destroy_lock(&(annotated_peptides_lock[i])); }
  #endif
+
+    // -out_qpx: the QPX mz view of the spectra of the PSMs of -out, once all other outputs are written (never fails the run)
+    if (!out_qpx_dir.empty())
+    {
+      writeQPXMzView_(out_qpx_dir, in, qpx_spectra_file, qpx_psms);
+    }
 
     return EXECUTION_OK;
   }
