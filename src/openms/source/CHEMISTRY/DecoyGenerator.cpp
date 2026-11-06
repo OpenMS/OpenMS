@@ -3,16 +3,19 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, kg290 $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
 #include <chrono>
 #include <algorithm>
+#include <map>
+#include <random>
 
 using namespace OpenMS;
 
@@ -25,6 +28,143 @@ DecoyGenerator::DecoyGenerator()
 void DecoyGenerator::setSeed(UInt64 seed)
 {
   shuffler_.seed(seed);
+}
+
+void DecoyGenerator::startDeBruijn(Size k, UInt64 seed, const std::string& keep_residues)
+{
+  if (k == 0)
+  {
+    throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The de Bruijn k-mer size must be positive.");
+  }
+  debruijn_k_ = k;
+  debruijn_seed_ = seed;
+  debruijn_keep_residues_ = keep_residues;
+  debruijn_edge_counts_.clear();
+  debruijn_residue_counts_.clear();
+  debruijn_edge_labels_.clear();
+  debruijn_ready_ = false;
+}
+
+void DecoyGenerator::addProteinToDeBruijn(const AASequence& protein)
+{
+  if (debruijn_k_ == 0 || debruijn_ready_)
+  {
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Call startDeBruijn() before adding target proteins and finalize only after all proteins are added.");
+  }
+  if (protein.isModified())
+  {
+    throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "De Bruijn decoy generation only supports unmodified proteins.");
+  }
+
+  const std::string sequence = protein.toUnmodifiedString();
+  const std::string padded = std::string(debruijn_k_, '-') + sequence;
+  for (Size i = 0; i < sequence.size(); ++i)
+  {
+    ++debruijn_edge_counts_[padded.substr(i, debruijn_k_ + 1)];
+    ++debruijn_residue_counts_[sequence[i]];
+  }
+}
+
+void DecoyGenerator::finalizeDeBruijn()
+{
+  if (debruijn_k_ == 0 || debruijn_ready_)
+  {
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Call startDeBruijn() once before finalizing de Bruijn decoys.");
+  }
+
+  // Stable edge order keeps seeded decoys reproducible across standard-library hash implementations.
+  std::vector<std::pair<std::string, Size>> edges(debruijn_edge_counts_.begin(), debruijn_edge_counts_.end());
+  std::sort(edges.begin(), edges.end());
+
+  std::map<char, Size> mutable_residue_counts;
+  for (const auto& [residue, count] : debruijn_residue_counts_)
+  {
+    mutable_residue_counts[residue] = count;
+  }
+  for (const auto& [edge, count] : edges)
+  {
+    if (debruijn_keep_residues_.find(edge.back()) != std::string::npos)
+    {
+      mutable_residue_counts[edge.back()] -= count;
+      debruijn_edge_labels_[edge] = edge.back();
+    }
+  }
+
+  std::vector<char> alphabet;
+  std::vector<UInt64> weights;
+  UInt64 total_weight = 0;
+  for (const auto& [residue, count] : mutable_residue_counts)
+  {
+    if (count > 0)
+    {
+      alphabet.push_back(residue);
+      weights.push_back(static_cast<UInt64>(count));
+      total_weight += static_cast<UInt64>(count);
+    }
+  }
+  std::mt19937_64 rng(debruijn_seed_);
+  if (alphabet.empty())
+  {
+    if (debruijn_edge_labels_.size() != edges.size())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No replacement residues are available for the de Bruijn decoy.");
+    }
+  }
+  else
+  {
+    // Rejection sampling avoids the implementation-defined mapping used by
+    // std::uniform_int_distribution while retaining an unbiased weighted draw.
+    const UInt64 rejection_threshold = (UInt64{0} - total_weight) % total_weight;
+    for (const auto& [edge, count] : edges)
+    {
+      if (debruijn_edge_labels_.contains(edge)) continue;
+
+      // The mt19937_64 engine output is standardized across implementations.
+      UInt64 sample = 0;
+      do
+      {
+        sample = rng();
+      }
+      while (sample < rejection_threshold);
+      sample %= total_weight;
+
+      Size residue_index = 0;
+      while (sample >= weights[residue_index])
+      {
+        sample -= weights[residue_index];
+        ++residue_index;
+      }
+      debruijn_edge_labels_[edge] = alphabet[residue_index];
+    }
+  }
+  debruijn_ready_ = true;
+}
+
+AASequence DecoyGenerator::deBruijn(const AASequence& protein) const
+{
+  if (!debruijn_ready_)
+  {
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Call finalizeDeBruijn() before generating a de Bruijn decoy.");
+  }
+  if (protein.isModified())
+  {
+    throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "De Bruijn decoy generation only supports unmodified proteins.");
+  }
+
+  const std::string sequence = protein.toUnmodifiedString();
+  const std::string padded = std::string(debruijn_k_, '-') + sequence;
+  std::string decoy;
+  decoy.reserve(sequence.size());
+  for (Size i = 0; i < sequence.size(); ++i)
+  {
+    const auto it = debruijn_edge_labels_.find(padded.substr(i, debruijn_k_ + 1));
+    if (it == debruijn_edge_labels_.end())
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The protein was not included when preparing the de Bruijn decoy database.");
+    }
+    decoy.push_back(it->second);
+  }
+  return AASequence::fromString(decoy);
 }
 
 AASequence DecoyGenerator::reverseProtein(const AASequence& protein) const
