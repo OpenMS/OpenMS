@@ -259,6 +259,7 @@ namespace OpenMS
     // for computing average position and intensity
     double rt = 0.0;
     double m = 0.0;
+    double m_electrons = 0.0; // (weighted) sum of electron mass corrections
     double intensity = 0.0;
 
     double proton_mass = Constants::PROTON_MASS_U;
@@ -283,17 +284,22 @@ namespace OpenMS
         OPENMS_LOG_WARN << "ConsensusFeature::computeDechargeConsensus() WARNING: Feature's charge is 0! This will lead to M=0!\n";
       }
       double adduct_mass;
+      // electrons are missing (positive charge) or surplus (negative charge) on the observed ion.
+      // Correcting for them yields the same neutral mass convention as AdductInfo::getNeutralMass()
+      // (used by AccurateMassSearchEngine).
+      double electron_correction = 0.0;
       Size index = fm.uniqueIdToIndex(it->getUniqueId());
       if (index > fm.size())
       {
         throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, fm.size());
       }
       if (fm[index].metaValueExists("dc_charge_adduct_mass"))
-      {
+      { // mass of the *neutral* adduct (e.g. mass of 'H' for [M+H]+) --> electrons need to be accounted for
         adduct_mass = (double)fm[index].getMetaValue("dc_charge_adduct_mass");
+        electron_correction = q * Constants::ELECTRON_MASS_U;
       }
       else
-      {
+      { // assume protonation, i.e. |q| protons (which are charged already, i.e. no electron correction required)
         adduct_mass = q * proton_mass;
       }
 
@@ -303,11 +309,12 @@ namespace OpenMS
       }
       rt += it->getRT() * weighting_factor;
       m += (it->getMZ() * abs(q) - adduct_mass) * weighting_factor;
+      m_electrons += electron_correction * weighting_factor;
     }
 
     // compute the average position and intensity
     setRT(rt);
-    setMZ(m);
+    setMZ(m + m_electrons);
     setIntensity(intensity);
     setCharge(0);
     return;

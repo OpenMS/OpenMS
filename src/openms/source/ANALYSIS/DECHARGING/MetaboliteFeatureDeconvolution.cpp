@@ -1072,9 +1072,11 @@ namespace OpenMS
       //adduct mass can already be negative, will be multiplied in consensusfeature method with absolute charge
       if (f_single.getCharge() != 0)
       {
-        EmpiricalFormula default_ef(default_adduct.getFormula());
-        f_single.setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, (default_ef  * abs(f_single.getCharge())).toString());
-        f_single.setMetaValue("dc_charge_adduct_mass", (default_adduct.getSingleMass() * abs(f_single.getCharge())));
+        const EmpiricalFormula default_ef = EmpiricalFormula(default_adduct.getFormula()) * abs(f_single.getCharge());
+        f_single.setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, default_ef.toString());
+        // 'dc_charge_adduct_mass' holds the mass of the *neutral* adduct (as for grouped features above), i.e. the
+        // missing/surplus electrons are accounted for by the consumer (e.g. ConsensusFeature::computeDechargeConsensus())
+        f_single.setMetaValue("dc_charge_adduct_mass", default_ef.getMonoWeight());
       }
 
       fm_out[i] = f_single; // overwrite whatever DC has done to this feature!

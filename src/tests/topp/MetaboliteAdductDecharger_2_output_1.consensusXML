@@ -12,7 +12,7 @@
 	</mapList>
 	<consensusElementList>
 		<consensusElement id="e_3019959988858701180" quality="0.0">
-			<centroid rt="100.0" mz="299.998900014846186" it="1300.0"/>
+			<centroid rt="100.0" mz="299.999997174654766" it="1300.0"/>
 			<groupedElementList>
 				<element map="0" id="1" rt="100.0" mz="318.033822999999984" it="100.0" charge="1"/>
 				<element map="0" id="2" rt="100.0" mz="322.989217999999994" it="100.0" charge="1"/>
@@ -46,7 +46,7 @@
 			<UserParam type="int" name="pure_proton_features" value="3"/>
 		</consensusElement>
 		<consensusElement id="e_4365550908806163045" quality="0.0">
-			<centroid rt="102.0" mz="295.987746628100013" it="200.0"/>
+			<centroid rt="102.0" mz="295.988569497956462" it="200.0"/>
 			<groupedElementList>
 				<element map="0" id="101" rt="102.0" mz="148.99272400000001" it="100.0" charge="2"/>
 				<element map="0" id="104" rt="102.0" mz="334.969402000000002" it="100.0" charge="1"/>
@@ -58,7 +58,7 @@
 			<UserParam type="string" name="104" value="K1"/>
 		</consensusElement>
 		<consensusElement id="e_10087491015453642716" quality="0.0">
-			<centroid rt="102.0" mz="297.984761259774984" it="400.0"/>
+			<centroid rt="102.0" mz="297.985309839679303" it="400.0"/>
 			<groupedElementList>
 				<element map="0" id="100" rt="102.0" mz="298.99272400000001" it="100.0" charge="1"/>
 				<element map="0" id="102" rt="102.0" mz="280.981609999999989" it="100.0" charge="1"/>

@@ -7,7 +7,7 @@
 	</mapList>
 	<consensusElementList>
 		<consensusElement id="e_5544180789932800495" quality="0">
-			<centroid rt="102" mz="300.000670404656" it="900"/>
+			<centroid rt="102" mz="299.99993896478355" it="900"/>
 			<groupedElementList>
 				<element map="0" id="100" rt="102" mz="298.992724" it="100" charge="-1"/>
 				<element map="0" id="101" rt="102" mz="148.992724" it="100" charge="-2"/>
