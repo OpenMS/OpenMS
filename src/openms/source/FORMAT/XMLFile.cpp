@@ -18,6 +18,7 @@
 #include <OpenMS/FORMAT/DATAACCESS/S3InputSource.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/PathUtils.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
 #include <OpenMS/FORMAT/CompressedInputSource.h>
@@ -188,7 +189,9 @@ private:
       workers spin-wait for the next region and, using all cores, would starve the
       decompression thread. A thread count below the core count (e.g. a tool's
       -threads) already leaves a core free and is kept. Affects only parallel
-      regions started by this thread.
+      regions started by this thread. A no-op where the OpenMP runtime keeps one number of threads for the process
+      (SysInfo::ompThreadCountIsGlobal(), MSVC's vcomp): there the reader thread would change the number of every
+      thread, and its restore could undo a change another thread made meanwhile.
     */
     class OpenMPThreadReservation_
     {
@@ -197,7 +200,7 @@ public:
       {
 #ifdef _OPENMP
         const int threads = omp_get_max_threads();
-        if (threads > 1 && threads >= omp_get_num_procs())
+        if (threads > 1 && threads >= omp_get_num_procs() && !SysInfo::ompThreadCountIsGlobal())
         {
           previous_ = threads;
           omp_set_num_threads(threads - 1);

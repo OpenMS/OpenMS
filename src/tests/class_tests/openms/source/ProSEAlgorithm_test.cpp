@@ -13,6 +13,8 @@
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 #include <mutex>
+#include <thread>
+#include <OpenMS/SYSTEM/SysInfo.h>
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/ID/CoIsolationDetector.h>
@@ -6439,12 +6441,25 @@ START_SECTION(([EXTRA] rescore: the searches rescore every run with Percolator b
       // rescoring is deferred ('joint': all; 'static': the training file); the same as the search returns
       std::mutex consumed_mutex;
       std::vector<std::pair<Size, PeptideIdentificationList>> consumed;
+      std::vector<int> consumer_threads; // SysInfo::ompThreadsOfThisThread() in the consumer
+      // The reader and the consumer run on helper threads that lend threads of the search: afterwards the caller's
+      // number of OpenMP threads must be the one it had. (MSVC's vcomp keeps one number for the process: a helper that
+      // set its own share left it there, and the rest of the run used the reader's quarter of the threads.)
+      ScopedOpenMPThreads scoped_threads(4);
+#ifdef _OPENMP
+      const int threads_before = omp_get_max_threads();
+#endif
       algo.setFileResultConsumer([&](Size index, const ProSEAlgorithm::SearchResult& r)
       {
         std::lock_guard<std::mutex> lock(consumed_mutex);
         consumed.emplace_back(index, r.peptide_ids);
+        consumer_threads.push_back(SysInfo::ompThreadsOfThisThread());
       });
       ProSEAlgorithm::MultiFileSearchResult mfres = algo.searchWithModificationAnalysis(files, database_file);
+#ifdef _OPENMP
+      TEST_EQUAL(omp_get_max_threads(), threads_before)
+      for (const int t : consumer_threads) { TEST_EQUAL(t >= 1 && t <= threads_before, true) }
+#endif
       ABORT_IF(mfres.per_file.size() != 3)
       {
         const std::vector<Size> expected = mode == "joint" ? std::vector<Size>{} : mode == "static" ? std::vector<Size>{1}
