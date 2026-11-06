@@ -4071,6 +4071,19 @@ START_SECTION(([EXTRA] calibration:recalibrate corrects the precursor m/z and th
   // ... but the measured errors, |offset| + 4 sigma
   TEST_REAL_SIMILAR(static_cast<double>(plain_prot_ids[0].getSearchParameters().getMetaValue("calibration:precursor_measured_error")),
                     std::fabs(none.precursor_shift) + 4.0 * none.precursor_sigma)
+  // ... whether they describe the run (the coverage of the measured error; the untrusted case: TOPP_ProSE_4, whose
+  // fragment error comes from three PSMs and covers less than 95 % of their peaks), and the PSMs they come from
+  const ProteinIdentification::SearchParameters& plain_sp = plain_prot_ids[0].getSearchParameters();
+  TEST_EQUAL(none.precursor_measured_coverage > 0.0 && none.precursor_measured_coverage <= 1.0, true)
+  TEST_EQUAL(none.precursor_measurement_trusted, none.precursor_measured_coverage >= 0.98)
+  TEST_EQUAL(none.fragment_measurement_trusted, none.fragment_peaks >= 3 && none.fragment_measured_coverage >= 0.95)
+  TEST_STRING_EQUAL(plain_sp.getMetaValue("calibration:precursor_measurement_trusted").toString(),
+                    none.precursor_measurement_trusted ? "true" : "false")
+  TEST_STRING_EQUAL(plain_sp.getMetaValue("calibration:fragment_measurement_trusted").toString(),
+                    none.fragment_measurement_trusted ? "true" : "false")
+  TEST_EQUAL(static_cast<int>(plain_sp.getMetaValue("calibration:psms")), static_cast<int>(none.psms))
+  // with the recalibration the coverage is of the errors as measured, before the correction: the same PSMs, the same value
+  TEST_REAL_SIMILAR(cal.precursor_measured_coverage, none.precursor_measured_coverage)
   TEST_REAL_SIMILAR(untouched[0].getPrecursors()[0].getMZ(), observed[0].getPrecursors()[0].getMZ())
   TEST_EQUAL(untouched[0].getPrecursors()[0].metaValueExists(ProSEAlgorithm_test::OBSERVED_PRECURSOR_MZ), false)
   ProSEAlgorithm::RunStatistics plain_stats;

@@ -1760,6 +1760,14 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       double precursor_coverage{0};  ///< share of the calibration PSMs inside the precursor window median +/- k sigma
       double fragment_coverage{0};   ///< share of the matched fragment peaks inside the fragment tolerance
       Size psms{0};                  ///< calibration PSMs the windows were estimated from
+      /// share of the calibration PSMs whose precursor error (as measured, before a recalibration) lies within offset +/- 4 sigma
+      double precursor_measured_coverage{0};
+      /// share of the matched fragment peaks whose error (as measured) lies within |offset| + 4 sigma
+      double fragment_measured_coverage{0};
+      /// whether the measured precursor error describes the run: it covers at least 98 % of the calibration PSMs
+      bool precursor_measurement_trusted{false};
+      /// whether the measured fragment error describes the run: from calibration:min_psms peaks or more, covering at least 95 % of them
+      bool fragment_measurement_trusted{false};
       Size fragment_peaks{0};        ///< matched fragment peaks the fragment window was estimated from
       bool extreme_bias{false};      ///< zero spread of the precursor errors: the precursor window is kept (test observability)
       bool success{false};           ///< true if enough PSMs were found for reliable estimation

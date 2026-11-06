@@ -11444,6 +11444,25 @@ namespace OpenMS
       return result; // success=false
     }
 
+    // The share of the errors as measured (before a recalibration) that the measured error recordRecalibration_()
+    // reports covers: precursor offset +/- 4 sigma, fragment |offset| + 4 sigma. A measurement that misses more than the
+    // windows below accept (two error modes, heavy tails) is recorded as not trusted.
+    {
+      std::vector<double> errs = precursor_errors;
+      const auto [med, mad] = medianAndMADBySelection(errs);
+      const double range = 4.0 * 1.4826 * mad;
+      result.precursor_measured_coverage = std::count_if(precursor_errors.begin(), precursor_errors.end(),
+        [&](double e) { return e >= med - range && e <= med + range; }) / static_cast<double>(precursor_errors.size());
+      if (fragment_errors.size() >= calibration_min_psms_)
+      {
+        errs = fragment_errors;
+        const auto [f_med, f_mad] = medianAndMADBySelection(errs);
+        const double measured = measuredError_(f_med, 1.4826 * f_mad);
+        result.fragment_measured_coverage = std::count_if(fragment_errors.begin(), fragment_errors.end(),
+          [&](double e) { return std::fabs(e) <= measured; }) / static_cast<double>(fragment_errors.size());
+      }
+    }
+
     // --- calibration:recalibrate: the error models, which applyRecalibration_() subtracts from the spectra. The
     //     windows below are then derived from the residual errors, the errors the main search sees. ---
     const bool recalibrate = calibration_recalibrate_ != "none";
@@ -11535,6 +11554,9 @@ namespace OpenMS
     }
     result.psms = precursor_errors.size();
     result.fragment_peaks = fragment_errors.size();
+    result.precursor_measurement_trusted = result.precursor_measured_coverage >= min_coverage_precursor;
+    result.fragment_measurement_trusted = fragment_errors.size() >= calibration_min_psms_
+                                          && result.fragment_measured_coverage >= min_coverage_fragment;
     if (fragment_errors.size() >= calibration_min_psms_)
     {
       const auto [med, mad] = medianAndMADBySelection(fragment_errors);
@@ -11812,6 +11834,12 @@ namespace OpenMS
     sp.setMetaValue("calibration:fragment_error_offset", cal.fragment_raw_shift);
     sp.setMetaValue("calibration:fragment_error_sigma", cal.fragment_raw_sigma);
     sp.setMetaValue("calibration:fragment_measured_error", measuredError_(cal.fragment_raw_shift, cal.fragment_raw_sigma));
+    // Whether a measurement describes the run: it covers at least 98 % (precursor) or 95 % (fragment peaks) of the
+    // calibration PSMs, and the fragments come from calibration:min_psms peaks or more. A pipeline that takes the
+    // measured error as a tolerance should not take an untrusted one.
+    sp.setMetaValue("calibration:psms", static_cast<Int>(cal.psms));
+    sp.setMetaValue("calibration:precursor_measurement_trusted", cal.precursor_measurement_trusted ? "true" : "false");
+    sp.setMetaValue("calibration:fragment_measurement_trusted", cal.fragment_measurement_trusted ? "true" : "false");
     if (cal.recalibrated())
     {
       sp.setMetaValue("calibration:recalibrate", calibration_recalibrate_);
