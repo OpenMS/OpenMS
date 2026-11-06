@@ -1107,9 +1107,6 @@ TOPP tools:
         rewrote 'J' to 'I' before the cleavage sites were determined (#1793).
 
 Build System:
-  - New option WITH_MIMALLOC (default OFF; Windows with MSVC only): the TOPP tools allocate through mimalloc 3.6.1
-    (fetched and built during configuration; mimalloc.dll and mimalloc-redirect.dll next to the executables) instead
-    of the NT heap. ProSE at 12 threads: 26 % less wall time, identical results. Ignored on other platforms.
   - Installing with WITH_ONNX=ON also installs the versioned files and symlinks of ONNX Runtime
     (libonnxruntime.so.1, libonnxruntime.1.dylib, ...) next to libonnxruntime.so/.dylib. Before, a
     non-vcpkg ONNX Runtime left a dangling unversioned symlink and no SONAME file, so an installed

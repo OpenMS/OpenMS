@@ -524,6 +524,11 @@ function(openms_install_vendored_licenses)
   if(DEFINED highs_SOURCE_DIR)
     _openms_install_vendored_license(HiGHS "${highs_SOURCE_DIR}/LICENSE.txt")
   endif()
+  ## mimalloc fetched for WITH_MIMALLOC (cmake/mimalloc.cmake); its DLLs ship with the TOPP tools.
+  get_property(_mimalloc_active GLOBAL PROPERTY OPENMS_MIMALLOC_ACTIVE)
+  if(_mimalloc_active)
+    _openms_install_vendored_license(mimalloc "${mimalloc_SOURCE_DIR}/LICENSE")
+  endif()
 
   ## <directory in src/openms/extern>/<its license file>
   set(_extern_licenses evergreen/LICENSE GTE/LICENSE Quadtree/LICENSE)

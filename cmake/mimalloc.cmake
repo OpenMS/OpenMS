@@ -20,25 +20,29 @@
 # override in the triplet would change the ABI hash of every cached package. pyOpenMS keeps the NT
 # heap: the override needs the executable's import table.
 
-option(WITH_MIMALLOC "Windows/MSVC only: the TOPP tools allocate through mimalloc (mimalloc.dll and mimalloc-redirect.dll next to the executables)." OFF)
+option(WITH_MIMALLOC "Windows/MSVC x64 only: the TOPP tools allocate through mimalloc (mimalloc.dll and mimalloc-redirect.dll next to the executables)." OFF)
 
-## openms_link_mimalloc(<executable>): a no-op unless WITH_MIMALLOC is in effect.
+## openms_link_mimalloc(<executable>): a no-op unless WITH_MIMALLOC is in effect. Tested through a global
+## property, not `TARGET mimalloc`: other packages (e.g. vcpkg's mimalloc wrapper, pulled in by arrow) may
+## define a target of that name.
 function(openms_link_mimalloc target)
-  if(NOT TARGET mimalloc)
+  get_property(_active GLOBAL PROPERTY OPENMS_MIMALLOC_ACTIVE)
+  if(NOT _active)
     return()
   endif()
-  target_link_libraries(${target} mimalloc) # include directory (mimalloc-new-delete.h), build order
+  target_link_libraries(${target} mimalloc) # build order
   ## Link options precede the libraries on the link line, so mimalloc.dll becomes the first import of
   ## the executable, as the override requires (check with mimalloc's minject -l <exe>).
   target_link_options(${target} PRIVATE /INCLUDE:mi_version $<TARGET_LINKER_FILE:mimalloc>)
-  target_compile_definitions(${target} PRIVATE OPENMS_MIMALLOC)
 endfunction()
 
 if(NOT WITH_MIMALLOC)
   return()
 endif()
-if(NOT (WIN32 AND MSVC))
-  message(STATUS "WITH_MIMALLOC is Windows/MSVC-only; ignored on this platform.")
+## x64 only: the redirect DLL name and the undecorated /INCLUDE:mi_version symbol are x64-specific
+## (mimalloc-redirect-arm64.dll, mimalloc-redirect32.dll, _mi_version on x86).
+if(NOT (WIN32 AND MSVC AND CMAKE_CXX_COMPILER_ARCHITECTURE_ID STREQUAL "x64"))
+  message(STATUS "WITH_MIMALLOC is Windows/MSVC x64-only; ignored on this platform.")
   return()
 endif()
 if(NOT BUILD_TOPP_TOOLS)
@@ -55,6 +59,18 @@ FetchContent_Declare(mimalloc
   ## (headers, import library, CMake package); OpenMS installs the two DLLs and the license itself.
   SOURCE_SUBDIR cmake
 )
+if(TARGET mimalloc)
+  message(FATAL_ERROR "WITH_MIMALLOC: a target 'mimalloc' already exists (e.g. from vcpkg's mimalloc wrapper); "
+                      "the fetched mimalloc cannot be added next to it.")
+endif()
+## Settings for the mimalloc subproject only: normal variables in the top-level scope, restored afterwards
+## (same pattern as HiGHS in cmake_findExternalLibs.cmake).
+set(_openms_mimalloc_vars MI_BUILD_SHARED MI_BUILD_STATIC MI_BUILD_OBJECT MI_BUILD_TESTS MI_OVERRIDE MI_WIN_REDIRECT)
+foreach(_var IN LISTS _openms_mimalloc_vars)
+  if(DEFINED ${_var})
+    set(_openms_mimalloc_saved_${_var} "${${_var}}")
+  endif()
+endforeach()
 set(MI_BUILD_SHARED ON)
 set(MI_BUILD_STATIC OFF)
 set(MI_BUILD_OBJECT OFF)
@@ -63,12 +79,19 @@ set(MI_OVERRIDE ON)
 set(MI_WIN_REDIRECT ON)
 FetchContent_MakeAvailable(mimalloc)
 add_subdirectory(${mimalloc_SOURCE_DIR} ${mimalloc_BINARY_DIR} EXCLUDE_FROM_ALL)
+foreach(_var IN LISTS _openms_mimalloc_vars)
+  if(DEFINED _openms_mimalloc_saved_${_var})
+    set(${_var} "${_openms_mimalloc_saved_${_var}}")
+    unset(_openms_mimalloc_saved_${_var})
+  else()
+    unset(${_var})
+  endif()
+endforeach()
+set_property(GLOBAL PROPERTY OPENMS_MIMALLOC_ACTIVE TRUE)
 
 ## mimalloc.dll is built into CMAKE_RUNTIME_OUTPUT_DIRECTORY next to the TOPP tools, and mimalloc's own
-## post-build step copies mimalloc-redirect.dll (x64) there. Installed next to OpenMS.dll.
+## post-build step copies mimalloc-redirect.dll (x64) there. Installed next to the executables; the license
+## goes to LICENSES/vendored/mimalloc (openms_install_vendored_licenses()).
 install(FILES $<TARGET_FILE:mimalloc> $<TARGET_FILE_DIR:mimalloc>/mimalloc-redirect.dll
-        DESTINATION ${INSTALL_LIB_DIR} COMPONENT library)
-install(FILES "${mimalloc_SOURCE_DIR}/LICENSE"
-        DESTINATION "${INSTALL_SHARE_DIR}/LICENSES" RENAME "mimalloc-LICENSE.txt" COMPONENT share)
-openms_add_third_party_notice("LICENSES/mimalloc-LICENSE.txt" "${mimalloc_SOURCE_DIR}/LICENSE")
+        DESTINATION ${INSTALL_BIN_DIR} COMPONENT library)
 message(STATUS "WITH_MIMALLOC: the TOPP tools allocate through mimalloc 3.6.1 (${mimalloc_SOURCE_DIR})")
