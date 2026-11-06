@@ -6336,8 +6336,15 @@ set_tests_properties("TOPP_ProSE_4_recalibrate_check" PROPERTIES DEPENDS "TOPP_P
 # warns, and names the parameter of that side (an error observed - theoretical > 0 needs mass_tolerance_lower)
 add_test(NAME "TOPP_ProSE_4_window_warning" COMMAND ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/ProSE;-test;${_prose_library_defaults};-Search:rescore;false;-ini;${DATA_DIR_TOPP}/ProSE_4.ini;-in;${DATA_DIR_TOPP}/SimpleSearchEngine_1_shifted_7ppm.mzML;-out_idxml;${TESTS_TEMP_DIR}/ProSE_4_window_warning.tmp.idXML;-database;${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta"
-  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=precursor:mass_tolerance_lower 15\\.000 ppm is below the measured \\+1[0-9]\\."
+  -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=precursor:mass_tolerance_lower 15\\.000 ppm is below the measured \\+1[5-9]\\."
   -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+# ProSE_4_out's FuzzyDiff (-absdiff 2.0) cannot tell the fragment errors (~0.001-0.004 Da) from zero: their leading
+# digits, and whether each measurement is trusted (3 PSMs; precursor errors 5.58, 7.53, 9.25 ppm all within
+# 7.53 +/- 4 x 2.55; the fragment error covers less than 95 % of the peaks)
+add_test("TOPP_ProSE_4_calibration_records" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_4_out.tmp.idXML
+  "-DEXPECTED=name=\"calibration:precursor_error_offset\" value=\"7.53;name=\"calibration:precursor_error_sigma\" value=\"2.54;name=\"calibration:precursor_measured_error\" value=\"17.72;name=\"calibration:fragment_error_offset\" value=\"4.19;name=\"calibration:fragment_error_sigma\" value=\"9.57;name=\"calibration:fragment_measured_error\" value=\"4.24;name=\"calibration:psms\" value=\"3\";name=\"calibration:precursor_measurement_trusted\" value=\"true\";name=\"calibration:fragment_measurement_trusted\" value=\"false\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_ProSE_4_calibration_records" PROPERTIES DEPENDS "TOPP_ProSE_4")
 
 # Test 5: Database chunking — same inputs as test 1 but with chunk_size=5.
 # 11 proteins (decoys=false in ProSE_1.ini) → 3 chunks (5+5+1). Output
