@@ -337,7 +337,7 @@ namespace OpenMS
     defaults_.setValue("precursor:recorded_charge_outside_range", "skip",
                        "A spectrum whose recorded precursor charge lies outside of precursor:min_charge..max_charge: 'skip' "
                        "(the default, as OpenMS develop since #10713) does not search it; 'search' (the behaviour before #10713) "
-                       "searches it at its recorded charge. Spectra without a recorded charge are searched with every charge of the range.",
+                       "searches it at its recorded charge, up to charge 20. Spectra without a recorded charge are searched with every charge of the range.",
                        {"advanced"});
     defaults_.setValidStrings("precursor:recorded_charge_outside_range", {"search", "skip"});
 
@@ -3590,6 +3590,11 @@ namespace OpenMS
     reportDecoyParity_(ctx);
 
     return ctx;
+  }
+
+  double ProSEAlgorithm::measuredError_(double offset, double sigma)
+  {
+    return std::fabs(offset) + 4.0 * sigma;
   }
 
   double ProSEAlgorithm::calibrationPassWindow_(double configured, bool ppm)
@@ -10892,9 +10897,9 @@ namespace OpenMS
       stats.frag_tol_valid = true;
     }
 
-    // -- calibration:recalibrate: the records of recordRecalibration_(), for the run summary --
+    // -- calibration: the records of recordRecalibration_() (measured errors; recalibration), for the run summary --
     stats.recalibration.clear();
-    if (!protein_ids.empty() && protein_ids[0].getSearchParameters().metaValueExists("calibration:recalibrate"))
+    if (!protein_ids.empty() && protein_ids[0].getSearchParameters().metaValueExists("calibration:precursor_error_offset"))
     {
       const ProteinIdentification::SearchParameters& sp = protein_ids[0].getSearchParameters();
       std::vector<std::string> keys;
@@ -11459,6 +11464,12 @@ namespace OpenMS
       return result; // success=false
     }
 
+    // The share of the errors as measured (before a recalibration) that the measured error recordRecalibration_()
+    // reports covers: precursor offset +/- 4 sigma, fragment |offset| + 4 sigma. A measurement that misses more than the
+    // windows below accept (two error modes, heavy tails) is recorded as not trusted.
+    result.precursor_measured_coverage = measuredCoverage_(precursor_errors, false);
+    if (fragment_errors.size() >= calibration_min_psms_) result.fragment_measured_coverage = measuredCoverage_(fragment_errors, true);
+
     // --- calibration:recalibrate: the error models, which applyRecalibration_() subtracts from the spectra. The
     //     windows below are then derived from the residual errors, the errors the main search sees. ---
     const bool recalibrate = calibration_recalibrate_ != "none";
@@ -11582,6 +11593,54 @@ namespace OpenMS
       result.fragment_tolerance = fragment_mass_tolerance_;
     }
 
+    // Trusted (after the precursor and fragment fits above): the measured error covers the errors (one mode, no heavy
+    // tails), and it lies inside the window the calibration pass searched with. A measured range that reaches that window
+    // was censored (errors beyond it were not matched, so the median and MAD come from a truncated sample) and is a lower
+    // bound, not a tolerance to adopt.
+    {
+      const double p_off = recalibrate ? result.precursor_raw_shift : result.precursor_shift;
+      const double p_sigma = recalibrate ? result.precursor_raw_sigma : result.precursor_sigma;
+      const bool p_censored = p_off + 4.0 * p_sigma >= pass_lower || p_off - 4.0 * p_sigma <= -pass_upper;
+      result.precursor_measurement_trusted = !p_censored && result.precursor_measured_coverage >= min_coverage_precursor;
+      const double f_off = recalibrate ? result.fragment_raw_shift : result.fragment_shift;
+      const double f_sigma = recalibrate ? result.fragment_raw_sigma : result.fragment_sigma;
+      const bool f_censored = measuredError_(f_off, f_sigma) >= pass_fragment;
+      result.fragment_measurement_trusted = fragment_errors.size() >= calibration_min_psms_ && !f_censored
+                                            && result.fragment_measured_coverage >= min_coverage_fragment;
+    }
+
+    // A configured window tighter than the error of the run cuts correct matches; the calibration only tightens, so it is
+    // reported (a precursor window of 4.5-5 ppm from a methods text or an SDRF is usually a post-recalibration value)
+    const double prec_hi = result.precursor_shift + 4.0 * result.precursor_sigma, prec_lo = result.precursor_shift - 4.0 * result.precursor_sigma;
+    if (prec_hi > precursor_mass_tolerance_lower_ || -prec_lo > precursor_mass_tolerance_upper_)
+    {
+      // In the parameters' terms: an error e = observed - theoretical > 0 needs mass_tolerance_lower >= e (the mass-space
+      // window is [observed - lower, observed + upper]), e < 0 needs mass_tolerance_upper >= -e
+      std::ostringstream sides;
+      sides << std::fixed << std::setprecision(3);
+      if (prec_hi > precursor_mass_tolerance_lower_)
+      {
+        sides << " precursor:mass_tolerance_lower " << precursor_mass_tolerance_lower_ << " " << precursor_mass_tolerance_unit_
+              << " is below the measured +" << prec_hi << ";";
+      }
+      if (-prec_lo > precursor_mass_tolerance_upper_)
+      {
+        sides << " precursor:mass_tolerance_upper " << precursor_mass_tolerance_upper_ << " " << precursor_mass_tolerance_unit_
+              << " is below the measured " << -prec_lo << ";";
+      }
+      OPENMS_LOG_WARN << "[ProSE] Calibration: the precursor window is tighter than the errors the search sees (observed - "
+                      << "theoretical from " << std::fixed << std::setprecision(3) << prec_lo << " to " << prec_hi << " "
+                      << precursor_mass_tolerance_unit_ << ", offset +/- 4 sigma):" << sides.str() << " this loses correct matches; "
+                      << "ProSE gains from wide precursor windows, e.g. 20 ppm" << (recalibrate ? "" : " (or calibration:recalibrate offset)")
+                      << "." << std::endl;
+    }
+    if (fragment_errors.size() >= calibration_min_psms_ && measuredError_(result.fragment_shift, result.fragment_sigma) > fragment_mass_tolerance_)
+    {
+      OPENMS_LOG_WARN << "[ProSE] Calibration: the fragment tolerance " << fragment_mass_tolerance_ << " " << fragment_mass_tolerance_unit_
+                      << " is tighter than the errors the search sees (|offset| + 4 sigma = "
+                      << measuredError_(result.fragment_shift, result.fragment_sigma) << ") and loses matched fragments." << std::endl;
+    }
+
     if (!recalibrate)
     {
       result.precursor_raw_shift = result.precursor_shift;
@@ -11596,13 +11655,15 @@ namespace OpenMS
       OPENMS_LOG_INFO << "[ProSE]   Recalibration (" << calibration_recalibrate_ << "): precursor offset " << std::fixed
                       << std::setprecision(2) << result.precursor_raw_shift << ", sigma " << result.precursor_raw_sigma
                       << " -> residual offset " << result.precursor_shift << ", sigma " << result.precursor_sigma << " "
-                      << precursor_mass_tolerance_unit_ << "; model: " << result.precursor_recalibration.toString() << std::endl;
+                      << precursor_mass_tolerance_unit_ << " (|offset| + 4 sigma " << measuredError_(result.precursor_raw_shift, result.precursor_raw_sigma)
+                      << " -> " << measuredError_(result.precursor_shift, result.precursor_sigma) << "); model: " << result.precursor_recalibration.toString() << std::endl;
       if (result.fragment_recalibration.active())
       {
         OPENMS_LOG_INFO << "[ProSE]   Recalibration (" << calibration_recalibrate_ << "): fragment offset " << std::fixed
                         << std::setprecision(2) << result.fragment_raw_shift << ", sigma " << result.fragment_raw_sigma
                         << " -> residual offset " << result.fragment_shift << ", sigma " << result.fragment_sigma << " "
-                        << fragment_mass_tolerance_unit_ << "; model: " << result.fragment_recalibration.toString() << std::endl;
+                        << fragment_mass_tolerance_unit_ << " (|offset| + 4 sigma " << measuredError_(result.fragment_raw_shift, result.fragment_raw_sigma)
+                        << " -> " << measuredError_(result.fragment_shift, result.fragment_sigma) << "); model: " << result.fragment_recalibration.toString() << std::endl;
       }
     }
     OPENMS_LOG_INFO << "[ProSE] Calibration: " << precursor_errors.size() << " PSMs used (top "
@@ -11611,12 +11672,13 @@ namespace OpenMS
                     << pass_fragment << " " << fragment_mass_tolerance_unit_ << std::endl;
     OPENMS_LOG_INFO << "[ProSE]   Precursor: offset " << std::fixed << std::setprecision(2) << result.precursor_shift
                     << ", sigma " << result.precursor_sigma << " " << precursor_mass_tolerance_unit_
-                    << " -> window [-" << result.cal_lower << ", +" << result.cal_upper << "]"
+                    << " (|offset| + 4 sigma " << measuredError_(result.precursor_shift, result.precursor_sigma) << ") -> window [-" << result.cal_lower << ", +" << result.cal_upper << "]"
                     << " (covers " << static_cast<int>(100.0 * result.precursor_coverage) << " % of the PSMs)"
                     << (kp <= 0 ? " (the configured window, calibration:precursor_sigma_factor 0)" : "")
                     << (result.extreme_bias ? " (zero spread: the configured window is kept)" : "") << std::endl;
     OPENMS_LOG_INFO << "[ProSE]   Fragment:  offset " << result.fragment_shift << ", sigma " << result.fragment_sigma
-                    << " " << fragment_mass_tolerance_unit_ << " (" << result.fragment_peaks << " peaks) -> tolerance "
+                    << " " << fragment_mass_tolerance_unit_ << " (|offset| + 4 sigma " << measuredError_(result.fragment_shift, result.fragment_sigma)
+                    << "; " << result.fragment_peaks << " peaks) -> tolerance "
                     << fragment_mass_tolerance_ << " -> " << result.fragment_tolerance << " " << fragment_mass_tolerance_unit_
                     << " (covers " << static_cast<int>(100.0 * result.fragment_coverage) << " % of the peaks)" << std::endl;
 
@@ -11780,22 +11842,59 @@ namespace OpenMS
                     << " and " << peaks << " fragment peaks in place (the PSMs report the observed m/z)" << std::endl;
   }
 
+  double ProSEAlgorithm::measuredCoverage_(const std::vector<double>& errors, bool fragment)
+  {
+    if (errors.empty()) return 0.0;
+    std::vector<double> values = errors; // reordered by the selection
+    const std::pair<double, double> med_mad = medianAndMADBySelection(values);
+    const double med = med_mad.first; // (no structured binding: clang cannot capture one in a lambda with OpenMP)
+    const double sigma = 1.4826 * med_mad.second;
+    const double measured = measuredError_(med, sigma);
+    const auto covered = [&](double e) { return fragment ? std::fabs(e) <= measured : (e >= med - 4.0 * sigma && e <= med + 4.0 * sigma); };
+    return std::count_if(errors.begin(), errors.end(), covered) / static_cast<double>(errors.size());
+  }
+
   void ProSEAlgorithm::recordRecalibration_(const CalibrationResult_& cal, std::vector<ProteinIdentification>& protein_ids) const
   {
-    if (protein_ids.empty() || !cal.success || !cal.recalibrated()) return;
+    if (protein_ids.empty() || !cal.success) return;
     ProteinIdentification::SearchParameters sp = protein_ids[0].getSearchParameters();
-    sp.setMetaValue("calibration:recalibrate", calibration_recalibrate_);
-    sp.setMetaValue("calibration:recalibrate_rt_chunks", static_cast<Int>(calibration_recalibrate_rt_chunks_));
-    sp.setMetaValue("calibration:precursor_model", cal.precursor_recalibration.toString());
+    // The mass errors the calibration pass measured: offset (median), sigma (1.4826 * MAD) and the measured error
+    // |offset| + 4 sigma, the range that holds practically all correct matches (in the tolerance units)
     sp.setMetaValue("calibration:precursor_error_offset", cal.precursor_raw_shift);
     sp.setMetaValue("calibration:precursor_error_sigma", cal.precursor_raw_sigma);
-    sp.setMetaValue("calibration:precursor_residual_offset", cal.precursor_shift);
-    sp.setMetaValue("calibration:precursor_residual_sigma", cal.precursor_sigma);
-    sp.setMetaValue("calibration:fragment_model", cal.fragment_recalibration.toString());
-    sp.setMetaValue("calibration:fragment_error_offset", cal.fragment_raw_shift);
-    sp.setMetaValue("calibration:fragment_error_sigma", cal.fragment_raw_sigma);
-    sp.setMetaValue("calibration:fragment_residual_offset", cal.fragment_shift);
-    sp.setMetaValue("calibration:fragment_residual_sigma", cal.fragment_sigma);
+    sp.setMetaValue("calibration:precursor_measured_error", measuredError_(cal.precursor_raw_shift, cal.precursor_raw_sigma));
+    // (no fragment records without a fragment measurement, fewer than calibration:min_psms matched peaks: their zeros
+    // would read as a perfect fragment calibration)
+    const bool fragments_measured = cal.fragment_peaks >= calibration_min_psms_;
+    if (fragments_measured)
+    {
+      sp.setMetaValue("calibration:fragment_error_offset", cal.fragment_raw_shift);
+      sp.setMetaValue("calibration:fragment_error_sigma", cal.fragment_raw_sigma);
+      sp.setMetaValue("calibration:fragment_measured_error", measuredError_(cal.fragment_raw_shift, cal.fragment_raw_sigma));
+    }
+    // Whether a measurement describes the run: it covers at least 98 % (precursor) or 95 % (fragment peaks) of the
+    // calibration PSMs, lies inside the calibration pass's window (not censored), and the fragments come from
+    // calibration:min_psms peaks or more. A pipeline that takes the measured error as a tolerance should not take an
+    // untrusted one.
+    sp.setMetaValue("calibration:psms", static_cast<Int>(cal.psms));
+    sp.setMetaValue("calibration:precursor_measurement_trusted", cal.precursor_measurement_trusted ? "true" : "false");
+    sp.setMetaValue("calibration:fragment_measurement_trusted", cal.fragment_measurement_trusted ? "true" : "false");
+    if (cal.recalibrated())
+    {
+      sp.setMetaValue("calibration:recalibrate", calibration_recalibrate_);
+      sp.setMetaValue("calibration:recalibrate_rt_chunks", static_cast<Int>(calibration_recalibrate_rt_chunks_));
+      sp.setMetaValue("calibration:precursor_model", cal.precursor_recalibration.toString());
+      sp.setMetaValue("calibration:precursor_residual_offset", cal.precursor_shift);
+      sp.setMetaValue("calibration:precursor_residual_sigma", cal.precursor_sigma);
+      sp.setMetaValue("calibration:precursor_residual_measured_error", measuredError_(cal.precursor_shift, cal.precursor_sigma));
+      if (fragments_measured)
+      {
+        sp.setMetaValue("calibration:fragment_model", cal.fragment_recalibration.toString());
+        sp.setMetaValue("calibration:fragment_residual_offset", cal.fragment_shift);
+        sp.setMetaValue("calibration:fragment_residual_sigma", cal.fragment_sigma);
+        sp.setMetaValue("calibration:fragment_residual_measured_error", measuredError_(cal.fragment_shift, cal.fragment_sigma));
+      }
+    }
     protein_ids[0].setSearchParameters(std::move(sp));
   }
 
@@ -11933,9 +12032,9 @@ namespace OpenMS
         y << "      calibration: " << num(st.seconds_calibration) << "\n";
         y << "      search: " << num(st.seconds_search) << "\n";
         y << "      fdr: " << num(st.seconds_fdr) << "\n";
-        if (!st.recalibration.empty()) // calibration:recalibrate: the mode, the models and the errors before and after
+        if (!st.recalibration.empty()) // calibration: the measured errors; with recalibrate the mode, models and residuals
         {
-          y << "    recalibration:\n";
+          y << "    calibration:\n";
           for (const auto& [name, value] : st.recalibration)
           {
             y << "      " << name << ": ";

@@ -121,8 +121,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       double seconds_search = 0.0;             ///< scoring + post-processing wall time
       double seconds_calibration = 0.0;        ///< calibration pass wall time (0 if disabled)
       double seconds_fdr = 0.0;                ///< FDR filtering wall time (0 if not applied)
-      /// calibration:recalibrate: the 'calibration:*' records of the search parameters (the mode, the models, the
-      /// errors before and after), as name without the prefix and value; empty when the spectra were not corrected
+      /// calibration: the 'calibration:*' records of the search parameters (the measured errors; with calibration:recalibrate
+      /// the mode, the models and the residual errors), as name without the prefix and value; empty without a calibration
       std::vector<std::pair<std::string, DataValue>> recalibration;
     };
 
@@ -1319,6 +1319,13 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// The window the calibration pass searches with, from the @p configured one (ppm or Da)
     static double calibrationPassWindow_(double configured, bool ppm);
 
+    /// The measured mass error |offset| + 4 sigma: the range that holds practically all correct matches
+    static double measuredError_(double offset, double sigma);
+
+    /// The share of @p errors that their measured error covers (median and 1.4826 * MAD of @p errors): within median
+    /// +/- 4 sigma (precursor), or |error| <= measuredError_() (@p fragment). 0 for no errors.
+    static double measuredCoverage_(const std::vector<double>& errors, bool fragment);
+
     /// Whether co-isolated precursors are searched (chimeric:enabled, which database:chunk_size > 0 does not support).
     /// The file-based searches then also read the survey scans.
     bool chimericSearch_() const { return chimeric_enabled_ && database_chunk_size_ == 0; }
@@ -1757,6 +1764,14 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       double precursor_coverage{0};  ///< share of the calibration PSMs inside the precursor window median +/- k sigma
       double fragment_coverage{0};   ///< share of the matched fragment peaks inside the fragment tolerance
       Size psms{0};                  ///< calibration PSMs the windows were estimated from
+      /// share of the calibration PSMs whose precursor error (as measured, before a recalibration) lies within offset +/- 4 sigma
+      double precursor_measured_coverage{0};
+      /// share of the matched fragment peaks whose error (as measured) lies within |offset| + 4 sigma
+      double fragment_measured_coverage{0};
+      /// whether the measured precursor error describes the run: it covers at least 98 % of the calibration PSMs
+      bool precursor_measurement_trusted{false};
+      /// whether the measured fragment error describes the run: from calibration:min_psms peaks or more, covering at least 95 % of them
+      bool fragment_measurement_trusted{false};
       Size fragment_peaks{0};        ///< matched fragment peaks the fragment window was estimated from
       bool extreme_bias{false};      ///< zero spread of the precursor errors: the precursor window is kept (test observability)
       bool success{false};           ///< true if enough PSMs were found for reliable estimation
@@ -1930,8 +1945,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     void applyRecalibration_(const CalibrationResult_& cal, PeakMap& spectra, PeakMap* query_spectra,
                              PeakMap* evidence_spectra) const;
 
-    /// Record the recalibration of @p cal (if any) in the search parameters of @p protein_ids[0]: the mode, the models
-    /// and the errors before and after ('calibration:*')
+    /// Record a successful calibration @p cal in the search parameters of @p protein_ids[0] ('calibration:*'): the measured
+    /// errors (offset, sigma, |offset| + 4 sigma), and with calibration:recalibrate the mode, the models and the residual errors
     void recordRecalibration_(const CalibrationResult_& cal, std::vector<ProteinIdentification>& protein_ids) const;
 
     /**

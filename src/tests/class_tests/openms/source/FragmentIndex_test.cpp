@@ -5188,6 +5188,12 @@ START_SECTION((static void precursorCharges(const Precursor& precursor, int min_
   precursor.setCharge(1);
   FragmentIndex::precursorCharges(precursor, 2, 5, charges, true);
   TEST_TRUE(charges == std::vector<uint16_t>({1}))
+  precursor.setCharge(20); // ... up to the bound of precursor:max_charge, 20; a larger (corrupt) charge is not searched
+  FragmentIndex::precursorCharges(precursor, 2, 5, charges, true);
+  TEST_TRUE(charges == std::vector<uint16_t>({20}))
+  precursor.setCharge(21);
+  FragmentIndex::precursorCharges(precursor, 2, 5, charges, true);
+  TEST_TRUE(charges.empty())
   precursor.setCharge(0); // unknown: the range, as without the flag
   FragmentIndex::precursorCharges(precursor, 2, 4, charges, true);
   TEST_TRUE(charges == std::vector<uint16_t>({2, 3, 4}))

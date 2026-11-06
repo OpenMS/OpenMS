@@ -182,6 +182,7 @@ public:
   using ProSEAlgorithm::transferSample_;
   using ProSEAlgorithm::tdcQValues_;
   using ProSEAlgorithm::collectRunStatistics_;
+  using ProSEAlgorithm::measuredCoverage_;
 };
 
 // A progress display that counts how often a progress display starts and ends, and throws when one with the label
@@ -4027,6 +4028,10 @@ START_SECTION(([EXTRA] calibration:recalibrate corrects the precursor m/z and th
   TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("calibration:precursor_error_offset")), cal.precursor_raw_shift)
   TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("calibration:precursor_residual_offset")), cal.precursor_shift)
   TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("calibration:fragment_error_offset")), cal.fragment_raw_shift)
+  TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("calibration:precursor_measured_error")),
+                    std::fabs(cal.precursor_raw_shift) + 4.0 * cal.precursor_raw_sigma)
+  TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("calibration:precursor_residual_measured_error")),
+                    std::fabs(cal.precursor_shift) + 4.0 * cal.precursor_sigma)
   // ... and the run statistics carry them for the summary
   ProSEAlgorithm::RunStatistics stats;
   algo.collectRunStatistics_(spectra, prot_ids, pep_ids, stats);
@@ -4048,7 +4053,7 @@ START_SECTION(([EXTRA] calibration:recalibrate corrects the precursor m/z and th
   TEST_EQUAL(repeated_stats.prec_err_median > 5.0 && repeated_stats.prec_err_median < 9.0, true)
   TEST_EQUAL(repeated_stats.frag_err_median > 4.0 && repeated_stats.frag_err_median < 6.0, true)
 
-  // mode none (the default): nothing corrected, nothing recorded, and the errors as measured
+  // mode none (the default): nothing corrected, no models recorded, and the errors as measured
   PeakMap untouched = build_calibration_spectra_(ppm_shifts, false, 5.0);
   ProSEAlgorithm_test plain;
   configure_calibration_params_(plain, 20.0, 30.0, 3);
@@ -4066,11 +4071,39 @@ START_SECTION(([EXTRA] calibration:recalibrate corrects the precursor m/z and th
   TEST_REAL_SIMILAR(none.precursor_raw_shift, none.precursor_shift)
   TEST_REAL_SIMILAR(none.precursor_shift, cal.precursor_raw_shift) // the same PSMs: the same measured offset
   TEST_EQUAL(plain_prot_ids[0].getSearchParameters().metaValueExists("calibration:recalibrate"), false)
+  // ... but the measured errors, |offset| + 4 sigma
+  TEST_REAL_SIMILAR(static_cast<double>(plain_prot_ids[0].getSearchParameters().getMetaValue("calibration:precursor_measured_error")),
+                    std::fabs(none.precursor_shift) + 4.0 * none.precursor_sigma)
+  // ... whether they describe the run (the coverage of the measured error; the untrusted case: TOPP_ProSE_4, whose
+  // fragment error comes from three PSMs and covers less than 95 % of their peaks), and the PSMs they come from
+  const ProteinIdentification::SearchParameters& plain_sp = plain_prot_ids[0].getSearchParameters();
+  TEST_EQUAL(none.precursor_measured_coverage > 0.0 && none.precursor_measured_coverage <= 1.0, true)
+  TEST_EQUAL(none.precursor_measurement_trusted, none.precursor_measured_coverage >= 0.98)
+  TEST_EQUAL(none.fragment_measurement_trusted, none.fragment_peaks >= 3 && none.fragment_measured_coverage >= 0.95)
+  TEST_STRING_EQUAL(plain_sp.getMetaValue("calibration:precursor_measurement_trusted").toString(),
+                    none.precursor_measurement_trusted ? "true" : "false")
+  TEST_STRING_EQUAL(plain_sp.getMetaValue("calibration:fragment_measurement_trusted").toString(),
+                    none.fragment_measurement_trusted ? "true" : "false")
+  TEST_EQUAL(static_cast<int>(plain_sp.getMetaValue("calibration:psms")), static_cast<int>(none.psms))
+  // with the recalibration the coverage is of the errors as measured, before the correction: the same PSMs, the same value
+  TEST_REAL_SIMILAR(cal.precursor_measured_coverage, none.precursor_measured_coverage)
+  // the coverage itself: one error mode is covered; a second mode (a lock mass that drops out) is not, and is below
+  // the 98 % (precursor) / 95 % (fragment) a trusted measurement needs
+  const vector<double> one_mode = {6.8, 7.0, 7.1, 6.9, 7.2, 7.0, 6.95, 7.05, 7.0, 6.9};
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::measuredCoverage_(one_mode, false), 1.0)
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::measuredCoverage_(one_mode, true), 1.0)
+  const vector<double> two_modes = {0.1, -0.1, 0.0, 0.05, -0.05, 0.2, -0.2, 0.0, 10.0, 10.2};
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::measuredCoverage_(two_modes, false), 0.8)
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::measuredCoverage_(two_modes, true), 0.8)
+  TEST_REAL_SIMILAR(ProSEAlgorithm_test::measuredCoverage_({}, false), 0.0)
+  // (an untrusted measurement end to end, recorded as false: TOPP_ProSE_4_calibration_records)
   TEST_REAL_SIMILAR(untouched[0].getPrecursors()[0].getMZ(), observed[0].getPrecursors()[0].getMZ())
   TEST_EQUAL(untouched[0].getPrecursors()[0].metaValueExists(ProSEAlgorithm_test::OBSERVED_PRECURSOR_MZ), false)
   ProSEAlgorithm::RunStatistics plain_stats;
   plain.collectRunStatistics_(untouched, plain_prot_ids, plain_pep_ids, plain_stats);
-  TEST_EQUAL(plain_stats.recalibration.empty(), true)
+  TEST_EQUAL(plain_stats.recalibration.empty(), false) // the measured errors
+  TEST_EQUAL(std::none_of(plain_stats.recalibration.begin(), plain_stats.recalibration.end(),
+                          [](const auto& r) { return r.first == "recalibrate"; }), true)
 }
 END_SECTION
 
