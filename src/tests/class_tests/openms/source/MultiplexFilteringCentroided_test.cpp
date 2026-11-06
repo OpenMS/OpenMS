@@ -341,7 +341,7 @@ START_SECTION([EXTRA] zeroth peak check: the lower isotopologue of a deuterium l
   for (Size i = 0; i < 6; ++i) { isotopes.push_back(distribution[i].getIntensity()); }
   // the number of spectra in which the doublet is found, with a peak of @p lower x the Lys4 M0 at its 2H3 position (and
   // @p light_lower x the light M0 one isotope below the light M0)
-  auto filter = [&](double lower, double light_lower, const std::map<std::string, unsigned>& deuterium, double enrichment)
+  auto filter = [&](double lower, double light_lower, const std::map<std::string, MultiplexFiltering::DeuteriumLabel>& labels)
   {
     MSExperiment experiment;
     for (int s = 0; s < 3; ++s)
@@ -362,21 +362,25 @@ START_SECTION([EXTRA] zeroth peak check: the lower isotopologue of a deuterium l
     std::vector<MultiplexIsotopicPeakPattern> doublet_patterns{MultiplexIsotopicPeakPattern(2, 6, doublet, 0)};
     MultiplexFilteringCentroided f(experiment, doublet_patterns, 3, 6, 1.0, 0.0, 10, true, 0.8, 0.75, 0.75, "peptide");
     f.setLogType(ProgressLogger::NONE);
-    f.setDeuteriumLabels(deuterium, enrichment);
+    f.setDeuteriumLabels(labels);
     const std::vector<double> mzs = f.filter()[0].getMZ();
     return std::count_if(mzs.begin(), mzs.end(), [](double mz) { return std::fabs(mz - 700.0) < 1e-6; });
   };
-  const std::map<std::string, unsigned> lys4_deuterium{{"Lys4", 4}};
+  auto lys4_labels = [](double enrichment) { return std::map<std::string, MultiplexFiltering::DeuteriumLabel>{{"Lys4", {4, enrichment}}}; };
   // at 96 % 2H, the expected 2H3 peak of one Lys4 at 1.4 kDa is about 0.15 x the M0
-  TEST_EQUAL(filter(0.0, 0.0, {}, 1.0), 3)
+  TEST_EQUAL(filter(0.0, 0.0, {}), 3)
   // 0.4 x the M0 at the Lys4 M-1 exceeds 30 %: without the labels' 2H, or at complete enrichment, the doublet is rejected
-  TEST_EQUAL(filter(0.4, 0.0, {}, 1.0), 0)
-  TEST_EQUAL(filter(0.4, 0.0, lys4_deuterium, 1.0), 0)
+  TEST_EQUAL(filter(0.4, 0.0, {}), 0)
+  TEST_EQUAL(filter(0.4, 0.0, lys4_labels(1.0)), 0)
   // with them, the bound is about 0.45
-  TEST_EQUAL(filter(0.4, 0.0, lys4_deuterium, 0.96), 3)
-  TEST_EQUAL(filter(0.6, 0.0, lys4_deuterium, 0.96), 0)
+  TEST_EQUAL(filter(0.4, 0.0, lys4_labels(0.96)), 3)
+  TEST_EQUAL(filter(0.6, 0.0, lys4_labels(0.96)), 0)
   // the light peptide has no 2H: a peak of 0.4 x its M0 one isotope below it still rejects the doublet
-  TEST_EQUAL(filter(0.0, 0.4, lys4_deuterium, 0.96), 0)
+  TEST_EQUAL(filter(0.0, 0.4, lys4_labels(0.96)), 0)
+  // At 60 % 2H the expected 2H3 peak (about 1.3 x the M0) would be as large as what a pattern one isotope too high shows
+  // (I_0/I_1 = 1.3): the allowance is capped halfway (about 0.5), so that 1.0 x the M0 there is still another envelope.
+  TEST_EQUAL(filter(0.7, 0.0, lys4_labels(0.6)), 3)
+  TEST_EQUAL(filter(1.0, 0.0, lys4_labels(0.6)), 0)
 }
 END_SECTION
 

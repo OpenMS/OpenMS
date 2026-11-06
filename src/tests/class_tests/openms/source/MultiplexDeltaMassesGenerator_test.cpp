@@ -100,6 +100,15 @@ START_SECTION(unsigned getDeuteriumCount(const std::string& label) const)
   TEST_EQUAL(MultiplexDeltaMassesGenerator().getDeuteriumCount("Lys4"), 4);
 END_SECTION
 
+START_SECTION(static bool isChemicalLabel(const std::string& label))
+  TEST_EQUAL(MultiplexDeltaMassesGenerator::isChemicalLabel("Dimethyl0"), true);
+  TEST_EQUAL(MultiplexDeltaMassesGenerator::isChemicalLabel("Dimethyl8"), true);
+  TEST_EQUAL(MultiplexDeltaMassesGenerator::isChemicalLabel("ICPL10"), true);
+  TEST_EQUAL(MultiplexDeltaMassesGenerator::isChemicalLabel("Lys4"), false);
+  TEST_EQUAL(MultiplexDeltaMassesGenerator::isChemicalLabel("Leu3"), false);
+  TEST_EQUAL(MultiplexDeltaMassesGenerator::isChemicalLabel("no_label"), false);
+END_SECTION
+
 START_SECTION(MultiplexDeltaMasses::LabelSet MultiplexDeltaMassesGenerator::extractLabelSet(AASequence sequence))
   AASequence sequence = AASequence::fromString("LAPITSDPTEAAAVGAVEASFK(Label:13C(6)15N(2))");
   MultiplexDeltaMasses::LabelSet label_set = list.extractLabelSet(sequence);

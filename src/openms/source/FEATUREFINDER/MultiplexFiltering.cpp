@@ -337,7 +337,7 @@ namespace OpenMS
         
         // Check if there is a zeroth peak. The lower isotopologue of a deuterium label lies there, too (setDeuteriumLabels()).
         mz = peak.getMZ() + 2 * pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_) - pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1);
-        int mz_idx = checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak, 0.3 + deuteriumLowerFraction_(pattern, peptide, mz_first_peak));
+        int mz_idx = checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak, 0.3 + deuteriumAllowance_(pattern, peptide, mz_first_peak));
         if (mz_idx != -1)
         {
           // So there is a significant peak to the left. This is only a problem, if this peak is not part of the pattern which we currently detect.
@@ -703,32 +703,36 @@ namespace OpenMS
     return distribution;
   }
 
-  void MultiplexFiltering::setDeuteriumLabels(const std::map<std::string, unsigned>& deuterium_per_label, double enrichment)
+  void MultiplexFiltering::setDeuteriumLabels(const std::map<std::string, DeuteriumLabel>& labels)
   {
-    if (!(enrichment > 0.0 && enrichment <= 1.0))
+    for (const auto& [name, label] : labels)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The 2H enrichment of deuterium labels must lie in (0, 1].",
-                                    std::to_string(enrichment));
+      if (!(label.enrichment > 0.0 && label.enrichment <= 1.0))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The 2H enrichment of deuterium label " + name + " must lie in (0, 1].",
+                                      std::to_string(label.enrichment));
+      }
     }
-    deuterium_enrichment_ = enrichment;
     deuterium_.clear();
     for (const MultiplexIsotopicPeakPattern& pattern : patterns_)
     {
       const int index = pattern.getMassShiftIndex();
       if (index < 0) { continue; }
-      std::vector<unsigned> deuterium;
+      std::vector<DeuteriumLabel> deuterium;
       bool any = false;
       const MultiplexDeltaMasses mass_shifts = pattern.getMassShifts(); // a copy: getDeltaMasses() refers into it
       for (const MultiplexDeltaMasses::DeltaMass& delta_mass : mass_shifts.getDeltaMasses())
       {
-        unsigned n = 0;
-        for (const std::string& label : delta_mass.label_set)
+        DeuteriumLabel peptide;
+        for (const std::string& name : delta_mass.label_set)
         {
-          const auto it = deuterium_per_label.find(label);
-          if (it != deuterium_per_label.end()) { n += it->second; }
+          const auto it = labels.find(name);
+          if (it == labels.end() || it->second.deuterium == 0) { continue; }
+          peptide.deuterium += it->second.deuterium;
+          peptide.enrichment = std::min(peptide.enrichment, it->second.enrichment);
         }
-        deuterium.push_back(n);
-        any = any || n > 0;
+        deuterium.push_back(peptide);
+        any = any || peptide.deuterium > 0;
       }
       if (!any) { continue; }
       if (deuterium_.size() <= static_cast<size_t>(index)) { deuterium_.resize(index + 1); }
@@ -751,14 +755,24 @@ namespace OpenMS
     return monoisotopic > 0.0 ? lower / monoisotopic : 0.0;
   }
 
-  double MultiplexFiltering::deuteriumLowerFraction_(const MultiplexIsotopicPeakPattern& pattern, size_t peptide, double mz) const
+  double MultiplexFiltering::deuteriumAllowance(unsigned deuterium, double enrichment, const IsotopeDistribution& isotopes)
+  {
+    const double fraction = deuteriumLowerFraction(deuterium, enrichment, isotopes);
+    if (!(fraction > 0.0) || !(isotopes[1].getIntensity() > 0.0)) { return 0.0; }
+    // a pattern one isotope too high has about I_0/I_1 below its "monoisotopic" peak: keep the bound halfway below that
+    const double cap = 0.5 * (isotopes[0].getIntensity() / isotopes[1].getIntensity() - 0.3);
+    return std::max(0.0, std::min(fraction, cap));
+  }
+
+  double MultiplexFiltering::deuteriumAllowance_(const MultiplexIsotopicPeakPattern& pattern, size_t peptide, double mz) const
   {
     const int index = pattern.getMassShiftIndex();
-    if (index < 0 || static_cast<size_t>(index) >= deuterium_.size() || peptide >= deuterium_[index].size() || deuterium_[index][peptide] == 0)
+    if (index < 0 || static_cast<size_t>(index) >= deuterium_.size() || peptide >= deuterium_[index].size() || deuterium_[index][peptide].deuterium == 0)
     {
       return 0.0;
     }
-    return deuteriumLowerFraction(deuterium_[index][peptide], deuterium_enrichment_, averagineDistribution_(mz * pattern.getCharge()));
+    const DeuteriumLabel& labels = deuterium_[index][peptide];
+    return deuteriumAllowance(labels.deuterium, labels.enrichment, averagineDistribution_(mz * pattern.getCharge()));
   }
 
   bool MultiplexFiltering::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak) const

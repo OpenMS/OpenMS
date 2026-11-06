@@ -383,7 +383,7 @@ protected:
       "or if fewer than two spectra paired with the most intense detected channel show its isotope pattern (both traces, and no peak one\n"
       "isotope lower that exceeds 30 % of its monoisotopic peak, unless that position lies within twice 'algorithm:mz_tolerance' of isotope\n"
       "M+0 to M+n of another channel, with n + 1 the upper bound of 'algorithm:isotopes_per_peptide'; for a deuterium-labelled channel\n"
-      "30 % plus the part its own molecules one 2H short are expected to make there, see 'algorithm:deuterium_enrichment').\n"
+      "30 % plus the part its own molecules one 2H short are expected to make there, see 'algorithm:deuterium_enrichment_silac').\n"
       "The number of ratios that rest on re-quantified channels is reported ('MS1Label:peptide_ratio_requantified_count',\n"
       "'fraction_group_level_ratio_requantified_count', QPX 'ratio_requantified_count'); see also 'requantify_min_correlation'.\n"
       "false: such channels are reported as absent.", false);
@@ -1693,8 +1693,9 @@ protected:
     isotope below it belongs to another envelope
 
     lower_isotope_fraction_, plus for a channel whose labels carry deuterium the part that its own molecules one 2H short are
-    expected to make there (MultiplexFiltering::deuteriumLowerFraction() at 'algorithm:deuterium_enrichment', with the isotope
-    distribution of the identified peptidoform), as in the detection (MultiplexFiltering::setDeuteriumLabels()). The channels
+    expected to make there, capped below the ratio a pattern one isotope too high would show (MultiplexFiltering::deuteriumAllowance()
+    at 'algorithm:deuterium_enrichment_silac' or '_chemical', with the isotope distribution of the identified peptidoform), as in the
+    detection (MultiplexFiltering::setDeuteriumLabels()). The channels
     and their labels are those of the theoretical pattern of @p hit (MultiplexResolverAlgorithm::expectedChannelMZs()); empty
     if its labels fit no pattern.
   */
@@ -1704,19 +1705,23 @@ protected:
     Size own = 0;
     vector<MultiplexDeltaMasses::LabelSet> label_sets;
     if (resolver.expectedChannelMZs(hit.getSequence(), hit.getCharge(), own, label_sets).empty()) { return {}; }
-    const double enrichment = getParam_().getValue("algorithm:deuterium_enrichment");
     vector<double> bounds(label_sets.size(), lower_isotope_fraction_);
     std::optional<IsotopeDistribution> isotopes;
     for (Size c = 0; c < label_sets.size(); ++c)
     {
-      unsigned deuterium = 0;
+      // as MultiplexFiltering::setDeuteriumLabels(): the 2H atoms of the channel's labels add up, the lowest enrichment counts
+      MultiplexFiltering::DeuteriumLabel channel;
       for (const std::string& label : label_sets[c])
       {
-        if (const auto it = label_deuterium_.find(label); it != label_deuterium_.end()) { deuterium += it->second; }
+        if (const auto it = label_deuterium_.find(label); it != label_deuterium_.end())
+        {
+          channel.deuterium += it->second.deuterium;
+          channel.enrichment = std::min(channel.enrichment, it->second.enrichment);
+        }
       }
-      if (deuterium == 0) { continue; }
+      if (channel.deuterium == 0) { continue; }
       if (!isotopes) { isotopes = hit.getSequence().getFormula().getIsotopeDistribution(CoarseIsotopePatternGenerator(maxIsotope_() + 1)); }
-      bounds[c] += MultiplexFiltering::deuteriumLowerFraction(deuterium, enrichment, *isotopes);
+      bounds[c] += MultiplexFiltering::deuteriumAllowance(channel.deuterium, channel.enrichment, *isotopes);
     }
     return bounds;
   }
@@ -3491,7 +3496,11 @@ protected:
       channel_label_sets_.emplace_back(sample.begin(), sample.end());
       for (const std::string& short_name : sample)
       {
-        if (const unsigned deuterium = generator.getDeuteriumCount(short_name); deuterium > 0) { label_deuterium_[short_name] = deuterium; }
+        if (const unsigned deuterium = generator.getDeuteriumCount(short_name); deuterium > 0)
+        {
+          label_deuterium_[short_name] = {deuterium, static_cast<double>(getParam_().getValue(MultiplexDeltaMassesGenerator::isChemicalLabel(short_name)
+                                                       ? "algorithm:deuterium_enrichment_chemical" : "algorithm:deuterium_enrichment_silac"))};
+        }
       }
       vector<std::string> description;
       for (const std::string& short_name : sample)
@@ -4000,7 +4009,7 @@ private:
   vector<std::string> channel_labels_; ///< column header label per channel, e.g. "no_label", "Lys8Arg10"
   vector<std::pair<std::string, std::string>> required_label_mods_; ///< (short, PSI-MS name) of every label the search must contain
   vector<set<std::string>> channel_label_sets_;  ///< per channel: its labels' short names ({"no_label"} for the light channel)
-  std::map<std::string, unsigned> label_deuterium_; ///< the 2H atoms of the labels that have any (short names), see lowerIsotopeBounds_()
+  std::map<std::string, MultiplexFiltering::DeuteriumLabel> label_deuterium_; ///< the labels with 2H atoms (short names) and their enrichment, see lowerIsotopeBounds_()
   vector<std::string> channel_descriptions_;     ///< per channel: PSI-MS names of its labels, for the column header
   std::map<std::string, vector<std::string>> label_long_to_shorts_; ///< PSI-MS name -> short names of '-labels' using it
   bool match_between_runs_ = false;    ///< keep unidentified multiplets so that linking can identify them from other runs

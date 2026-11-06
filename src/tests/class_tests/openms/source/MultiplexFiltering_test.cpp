@@ -101,13 +101,31 @@ START_SECTION((static double deuteriumLowerFraction(unsigned deuterium, double e
 }
 END_SECTION
 
-START_SECTION((void setDeuteriumLabels(const std::map<std::string, unsigned>& deuterium_per_label, double enrichment)))
+START_SECTION((static double deuteriumAllowance(unsigned deuterium, double enrichment, const IsotopeDistribution& isotopes)))
+{
+  IsotopeDistribution isotopes;
+  isotopes.set(IsotopeDistribution::ContainerType{Peak1D(1000.0, 0.5f), Peak1D(1001.0, 0.3f), Peak1D(1002.0, 0.2f)});
+  // below the cap, the expected lower isotopologue
+  TEST_REAL_SIMILAR(MultiplexFiltering::deuteriumAllowance(4, 0.96, isotopes), MultiplexFiltering::deuteriumLowerFraction(4, 0.96, isotopes))
+  // at most half the way from 0.3 to I_0/I_1 = 5/3, which a pattern one isotope too high would show
+  TEST_EQUAL(MultiplexFiltering::deuteriumLowerFraction(18, 0.6, isotopes) > 0.5 * (0.5 / 0.3 - 0.3), true)
+  TEST_REAL_SIMILAR(MultiplexFiltering::deuteriumAllowance(18, 0.6, isotopes), 0.5 * (0.5 / 0.3 - 0.3))
+  // none where I_0/I_1 is not above 0.3, without 2H or at complete enrichment
+  IsotopeDistribution heavy;
+  heavy.set(IsotopeDistribution::ContainerType{Peak1D(1000.0, 0.1f), Peak1D(1001.0, 0.5f), Peak1D(1002.0, 0.4f)});
+  TEST_EQUAL(MultiplexFiltering::deuteriumAllowance(4, 0.96, heavy), 0.0)
+  TEST_EQUAL(MultiplexFiltering::deuteriumAllowance(0, 0.96, isotopes), 0.0)
+  TEST_EQUAL(MultiplexFiltering::deuteriumAllowance(4, 1.0, isotopes), 0.0)
+}
+END_SECTION
+
+START_SECTION((void setDeuteriumLabels(const std::map<std::string, DeuteriumLabel>& labels)))
 {
   MultiplexFiltering filtering(exp_picked, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type);
-  filtering.setDeuteriumLabels({{"Arg8", 8}}, 0.97);
-  filtering.setDeuteriumLabels({}, 1.0);
-  TEST_EXCEPTION(Exception::InvalidValue, filtering.setDeuteriumLabels({{"Arg8", 8}}, 0.0))
-  TEST_EXCEPTION(Exception::InvalidValue, filtering.setDeuteriumLabels({{"Arg8", 8}}, 1.1))
+  filtering.setDeuteriumLabels({{"Arg8", {8, 0.97}}});
+  filtering.setDeuteriumLabels({});
+  TEST_EXCEPTION(Exception::InvalidValue, filtering.setDeuteriumLabels({{"Arg8", {8, 0.0}}}))
+  TEST_EXCEPTION(Exception::InvalidValue, filtering.setDeuteriumLabels({{"Arg8", {8, 1.1}}}))
 }
 END_SECTION
 

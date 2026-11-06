@@ -550,6 +550,11 @@ namespace OpenMS
     return deuterium > 0 ? static_cast<unsigned>(deuterium) : 0;
   }
 
+  bool MultiplexDeltaMassesGenerator::isChemicalLabel(const std::string& label)
+  {
+    return StringUtils::hasPrefix(label, "Dimethyl") || StringUtils::hasPrefix(label, "ICPL");
+  }
+
   MultiplexDeltaMasses::LabelSet MultiplexDeltaMassesGenerator::extractLabelSet(const AASequence& sequence)
   {
     std::string s(sequence.toString());

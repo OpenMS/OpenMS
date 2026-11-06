@@ -153,24 +153,36 @@ public:
     std::vector<BlacklistOwner> getBlacklistOwners(Size spectrum_index) const;
 
     /**
+     * @brief a deuterium label (setDeuteriumLabels()), or the deuterium labels of a peptide
+     */
+    struct DeuteriumLabel
+    {
+      unsigned deuterium = 0;  ///< number of 2H atoms
+      double enrichment = 1.0; ///< their 2H atom fraction, in (0, 1]
+    };
+
+    /**
      * @brief take the lower isotopologue of deuterium labels into account where a peak one isotope below a peptide is checked
      *
      * A label with n deuterium (2H) atoms of atom fraction p < 1 leaves molecules that lack one 2H. Their monoisotopic peak
      * lies 1.0063/z below the peptide's, 0.0029/z from its M-1, so within the m/z tolerance in which the filter looks for a
      * significant peak one isotope below the peptide (which would make the peptide's peaks the isotopes of another envelope).
      * For one Lys4 at p = 0.96 it is about 15 % of the monoisotopic peak, for two about 28 % (at 2 kDa), against the 30 % above
-     * which such a peak is significant. With this setting, a peak there is significant only above 30 % plus that expected part
-     * (deuteriumLowerFraction() of the averagine distribution at the peptide's mass). Peptides whose labels have no 2H keep 30 %.
+     * which such a peak is significant. With this setting, a peak there is significant only above 30 % plus that expected part,
+     * capped so that a pattern one isotope too high is still rejected (deuteriumAllowance(), with the averagine distribution at
+     * the peptide's mass). Peptides whose labels have no 2H keep 30 %.
+     *
+     * The labels of a peptide add up their 2H atoms (e.g. 8 for {Lys4, Lys4}, or for Dimethyl4 at the N-terminus and one K);
+     * if they differ in enrichment, the lowest one is used.
      *
      * Call it after the construction, before filter().
      *
-     * @param[in] deuterium_per_label    number of 2H atoms per label of the patterns' label sets (short names, e.g. Lys4 -> 4,
-     *                                   see MultiplexDeltaMassesGenerator::getDeuteriumCount()); labels that are not listed have none
-     * @param[in] enrichment    2H atom fraction of the labels, in (0, 1]; 1 (the default) ignores the lower isotopologue
+     * @param[in] labels    the deuterium labels of the patterns' label sets (short names, e.g. Lys4 -> {4, 0.96}; see
+     *                      MultiplexDeltaMassesGenerator::getDeuteriumCount()); labels that are not listed have no 2H
      *
-     * @throw Exception::InvalidValue if @p enrichment is not in (0, 1]
+     * @throw Exception::InvalidValue if an enrichment is not in (0, 1]
      */
-    void setDeuteriumLabels(const std::map<std::string, unsigned>& deuterium_per_label, double enrichment);
+    void setDeuteriumLabels(const std::map<std::string, DeuteriumLabel>& labels);
 
     /**
      * @brief the peak one isotope below a deuterium-labelled peptide that its own label isotopologues produce, relative to its monoisotopic peak
@@ -187,6 +199,22 @@ public:
      * @return 0 if @p deuterium is 0, @p enrichment is not below 1 or @p isotopes has fewer than two isotopes
      */
     static double deuteriumLowerFraction(unsigned deuterium, double enrichment, const IsotopeDistribution& isotopes);
+
+    /**
+     * @brief the part of the peak one isotope below a deuterium-labelled peptide that the check for another envelope allows,
+     * relative to its monoisotopic peak
+     *
+     * deuteriumLowerFraction(), but at most half the distance from 0.3 to I_0/I_1 of @p isotopes. If the peptide's peaks were
+     * really the isotopes of an envelope one isotope lower (its "monoisotopic" peak the M+1 of that envelope), the peak below
+     * would be about I_0/I_1 of it; with the cap, the bound 0.3 + allowance stays at least halfway between 30 % and that
+     * ratio, whatever the number of 2H atoms and the enrichment. 0 where I_0/I_1 is at most 0.3 (large peptides, for which
+     * the 30 % cannot tell either).
+     *
+     * @param[in] deuterium    number of 2H atoms of the peptide's labels
+     * @param[in] enrichment    2H atom fraction of the labels, in (0, 1]
+     * @param[in] isotopes    the peptide's isotope distribution without the labels' 2H (e.g. averagine)
+     */
+    static double deuteriumAllowance(unsigned deuterium, double enrichment, const IsotopeDistribution& isotopes);
 
 protected:
     /**
@@ -237,10 +265,10 @@ protected:
                                  double fraction = 0.3) const;
 
     /**
-     * @brief the part of the peak one isotope below peptide @p peptide of @p pattern (monoisotopic m/z @p mz) that its own
-     * deuterium labels produce, relative to its monoisotopic peak (see setDeuteriumLabels()); 0 without 2H
+     * @brief deuteriumAllowance() for peptide @p peptide of @p pattern (monoisotopic m/z @p mz), with its deuterium labels
+     * (setDeuteriumLabels()); 0 without 2H
      */
-    double deuteriumLowerFraction_(const MultiplexIsotopicPeakPattern& pattern, size_t peptide, double mz) const;
+    double deuteriumAllowance_(const MultiplexIsotopicPeakPattern& pattern, size_t peptide, double mz) const;
 
     /**
      * @brief check if there are enough peaks in the RT band to form the pattern
@@ -479,15 +507,10 @@ protected:
     std::string averagine_type_;
 
     /**
-     * @brief number of 2H atoms of the labels of each peptide of each mass shift pattern (index: MultiplexIsotopicPeakPattern::getMassShiftIndex()),
+     * @brief the deuterium labels of each peptide of each mass shift pattern (index: MultiplexIsotopicPeakPattern::getMassShiftIndex()),
      * empty for a pattern without 2H (setDeuteriumLabels())
      */
-    std::vector<std::vector<unsigned>> deuterium_;
-
-    /**
-     * @brief 2H atom fraction of the deuterium labels (setDeuteriumLabels()); 1: their lower isotopologue is ignored
-     */
-    double deuterium_enrichment_ = 1.0;
+    std::vector<std::vector<DeuteriumLabel>> deuterium_;
 
   };
 

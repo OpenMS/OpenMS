@@ -152,6 +152,16 @@ namespace OpenMS
     unsigned getDeuteriumCount(const std::string& label) const;
 
     /**
+     * @brief whether a label is a chemical tag (Dimethyl..., ICPL...) rather than a metabolic (SILAC) label
+     *
+     * The two kinds differ in how their deuterium is enriched: SILAC amino acids (Lys4, Leu3) and the reagents of chemical
+     * tags (formaldehyde, cyanoborodeuteride, ICPL reagents) are made and sold with different 2H atom fractions.
+     *
+     * @param[in] label    short label, as it appears in the "labels" parameter, e.g. "Dimethyl4"
+     */
+    static bool isChemicalLabel(const std::string& label);
+
+    /**
      * @brief extract the label set from the sequence
      *
      * @param[in] sequence    amino acid sequence
