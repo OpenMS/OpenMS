@@ -346,13 +346,13 @@ namespace OpenMS
       @brief Marks search runs as post-processed by Percolator, so that downstream tools see that their PSMs were rescored
 
       Sets on every run of @p runs: the search engine "Percolator" with version @p version, the meta value
-      'percolator' = @p tool, and the meta values 'Percolator:<name>' of its search parameters from @p settings, in
+      'percolator' = @p tool, and the meta values 'Percolator:\<name\>' of its search parameters from @p settings, in
       their order. PercolatorAdapter, ProSE and OpenNuXL mark the runs whose PSMs they rescored with it; @p settings
       are the options each ran Percolator with.
 
       @param[in,out] runs The runs whose PSMs were rescored
       @param[in] tool The tool that rescored them, e.g. "PercolatorAdapter"
-      @param[in] settings (name, value) of the search parameter meta values 'Percolator:<name>'. An empty value
+      @param[in] settings (name, value) of the search parameter meta values 'Percolator:\<name\>'. An empty value
                  (DataValue::EMPTY) removes that meta value, for a setting that does not apply.
       @param[in] version The search engine version, e.g. that of the percolator executable
     */
