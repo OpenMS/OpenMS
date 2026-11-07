@@ -40,12 +40,13 @@ OpenDIACNN crossfit   raw XIC/XIM trace tensors → CNN, family cross-fitting,
 | Rewrite, ID-free calibration filters candidates after extraction | 10679 | 9146 |
 | **Rewrite, calibrate then extract (current)** | **11830** | **10158** |
 | **Rewrite, teacher-free: panel-40000 calibration anchors + `-ss_iterations 1`** | **13611** | **11533** |
+| **Rewrite, teacher-free end to end from one panel-40000 calibration (frozen design)** | **13253** | **11275** |
 
 The current pipeline extracts 198,915 candidates in 40 s and runs CNN crossfit in 1.2 min with a 2.1 GB peak.
 
 **Limits:**
 - These are decoy-count estimates on the run used to design the pipeline. They are not a calibrated FDR.
-- Every row except the last uses CNN seeds from the same-run OpenSWATH teacher. The last row uses no OpenSWATH input; it exceeds the teacher-seeded count and is unverified by entrapment.
+- Every row except the last two uses CNN seeds from the same-run OpenSWATH teacher. The last two use no OpenSWATH input and exceed the teacher-seeded count. Neither has been checked by entrapment.
 - On the independent 500 pg run, the CNN alone gave 0 IDs at 1%, paired TDC gave 230, and the calibration failed closed with 0 anchors.
 - The rewrite is about 5,500 to 6,100 precursors short of the reference. Closing that gap is R-WP5.
 
