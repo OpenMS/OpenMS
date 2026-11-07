@@ -170,6 +170,9 @@ function(openms_add_library)
   
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
+  if(OPENMS_PACKAGE_VERSION)
+    set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES SOVERSION "${OPENMS_PACKAGE_VERSION}")
+  endif()
 
   #------------------------------------------------------------------------------
   # Generate export header if requested
