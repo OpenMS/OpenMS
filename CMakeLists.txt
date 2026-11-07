@@ -465,6 +465,11 @@ if(ENABLE_IPO)
 endif()
 
 #------------------------------------------------------------------------------
+# Linker choice (lld/mold when available; see cmake/linker.cmake)
+#------------------------------------------------------------------------------
+include(cmake/linker.cmake)
+
+#------------------------------------------------------------------------------
 # Enable clang compile time profiling
 #------------------------------------------------------------------------------
 option(CLANG_TIME_TRACE "[Clang 9+ only] Enable clang compile time profiling." OFF)
