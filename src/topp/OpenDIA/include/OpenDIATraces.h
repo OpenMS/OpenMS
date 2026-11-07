@@ -78,6 +78,8 @@ namespace OpenMS::OpenDIA
     const std::array<double, FRAGMENTS>& libraryIntensities(std::size_t i) const { return samples_.at(i).library_intensity; }
     /// Fragment m/z in tensor channel order, with zero denoting padding.
     const std::array<double, FRAGMENTS>& fragmentMZ(std::size_t i) const { return samples_.at(i).fragment_mz; }
+    /// Treat a spectrum ion-mobility array with a non-CCS unit as 1/K0 (VSSC).
+    void setIonMobilityArrayAsVSSC(bool value) { ion_mobility_array_as_vssc_ = value; }
 
   private:
     struct Sample
@@ -97,6 +99,7 @@ namespace OpenMS::OpenDIA
     double mz_tolerance_;
     double rt_half_width_;
     double im_half_width_;
+    bool ion_mobility_array_as_vssc_ = false;
   };
 
   /** @brief Read explicitly selected windows from a TSV, rejecting missing grouping/labels.

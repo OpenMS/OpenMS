@@ -172,7 +172,8 @@ namespace OpenMS::OpenDIA
     if (spectrum.containsIMData())
     {
       const auto [index, unit] = spectrum.getIMData();
-      if (unit == DriftTimeUnit::VSSC && spectrum.getFloatDataArrays()[index].size() == spectrum.size())
+      if (spectrum.getFloatDataArrays()[index].size() == spectrum.size() &&
+          (unit == DriftTimeUnit::VSSC || (ion_mobility_array_as_vssc_ && unit != DriftTimeUnit::CCS)))
       {
         mobilities = &spectrum.getFloatDataArrays()[index];
       }

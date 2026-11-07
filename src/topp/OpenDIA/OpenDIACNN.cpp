@@ -67,6 +67,7 @@ namespace OpenMS
       registerDoubleOption_("rt_half_width", "<seconds>", 15.0, "RT half width around each candidate apex", false);
       registerDoubleOption_("im_half_width", "<1/K0>", 0.03, "Mobility half width around library precursor mobility", false);
       registerFlag_("allow_training_overlap", "Diagnostic scoring only: permit train-family rows, retaining their train provenance");
+      registerFlag_("im_array_as_vssc", "Interpret a spectrum ion-mobility array whose unit is not CCS as 1/K0, e.g. unitless mzML 'Ion Mobility' arrays");
       registerInputFile_("seeds", "<file>", "", "Crossfit only: explicit sampled training windows; labels in -windows are ignored", false);
       setValidFormats_("seeds", {"tsv"});
       registerIntOption_("folds", "<n>", 3, "Crossfit outer family folds; each excludes fitting and early stopping families", false);
@@ -171,6 +172,7 @@ namespace OpenMS
         OpenDIA::TraceCollector collector(std::move(windows), library, geometry.mz_tolerance,
                                          geometry.rt_half_width, geometry.im_half_width, max_samples,
                                          static_cast<std::size_t>(getIntOption_("max_tensor_gib")) << 30);
+        collector.setIonMobilityArrayAsVSSC(getFlag_("im_array_as_vssc"));
         FileHandler reader;
         PeakFileOptions options;
         options.setMSLevels({2});

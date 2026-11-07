@@ -38,6 +38,7 @@ namespace OpenMS
       registerDoubleOption_("mz_tolerance", "<Da>", 0.02, "Fragment m/z half width", false);
       registerDoubleOption_("rt_half_width", "<seconds>", 15.0, "RT half width around each candidate apex", false);
       registerDoubleOption_("im_half_width", "<1/K0>", 0.03, "Mobility half width around library precursor mobility", false);
+      registerFlag_("im_array_as_vssc", "Interpret a spectrum ion-mobility array whose unit is not CCS as 1/K0, e.g. unitless mzML 'Ion Mobility' arrays");
     }
 
     ExitCodes main_(int, const char**) override
@@ -64,6 +65,7 @@ namespace OpenMS
       OpenDIA::TraceCollector collector(std::move(windows), library, getDoubleOption_("mz_tolerance"),
                                        getDoubleOption_("rt_half_width"), getDoubleOption_("im_half_width"), max_samples,
                                        static_cast<std::size_t>(getIntOption_("max_tensor_gib")) << 30);
+      collector.setIonMobilityArrayAsVSSC(getFlag_("im_array_as_vssc"));
       FileHandler reader;
       PeakFileOptions options;
       options.setMSLevels({2});

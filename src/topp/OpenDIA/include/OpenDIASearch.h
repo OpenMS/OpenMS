@@ -49,6 +49,9 @@ namespace OpenMS::OpenDIA
     std::size_t max_apexes_per_group = 1;
     /// Minimum RT distance between reported apexes of one peak group.
     double min_apex_separation_seconds = 10.0;
+    /// Treat a spectrum ion-mobility array with a non-CCS unit as 1/K0 (VSSC).
+    /// For mzML files whose unitless "Ion Mobility" array actually stores 1/K0.
+    bool ion_mobility_array_as_vssc = false;
   };
 
   /**

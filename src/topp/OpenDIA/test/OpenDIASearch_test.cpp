@@ -362,6 +362,32 @@ int main()
           "m/z sorting detached the interferer mobility from its centroid");
 
   // Missing raw mobility automatically falls back to the m/z-only path.
+  // A unitless mzML "Ion Mobility" array parses as milliseconds: ignored by
+  // default, used as 1/K0 only with the explicit opt-in.
+  const auto unitlessIM = [](double rt, float mobility)
+  {
+    MSSpectrum result = spectrum(rt, 500.0, {Peak1D(100.0, 10.0)});
+    DataArrays::FloatDataArray im_array;
+    im_array.setName("Ion Mobility");
+    im_array.push_back(mobility);
+    result.getFloatDataArrays().push_back(std::move(im_array));
+    return result;
+  };
+  for (const bool opt_in : {false, true})
+  {
+    OpenDIA::SearchOptions unitless_options = im_options;
+    unitless_options.ion_mobility_array_as_vssc = opt_in;
+    std::ostringstream unitless_output;
+    OpenDIA::StreamSearch unitless_search(im_queries, unitless_options, unitless_output);
+    MSSpectrum unitless = unitlessIM(10.0, 0.80f);
+    require(unitless.getIMData().second == DriftTimeUnit::MILLISECOND, "unitless Ion Mobility array no longer parses as ms");
+    unitless_search.consumeSpectrum(unitless);
+    unitless_search.finish();
+    require(unitless_search.ionMobilityFilteringUsed() == opt_in, "unitless IM opt-in changed filtering activation");
+    require((unitless_output.str().find("mobility_interferer") == std::string::npos) == opt_in,
+            "unitless IM opt-in did not control interferer rejection");
+  }
+
   std::ostringstream no_im_output;
   OpenDIA::StreamSearch no_im_search(im_queries, im_options, no_im_output);
   MSSpectrum no_im_spectrum = spectrum(10.0, 500.0, {Peak1D(100.0, 10.0)});

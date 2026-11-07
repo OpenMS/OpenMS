@@ -108,6 +108,7 @@ int main(int argc, char** argv)
   const std::size_t time_offset = 16 * 8;
   require(data[time_offset + 5] == 20.0f && data[32 * 8 + time_offset + 2] == 15.0f,
           "RT / IM bin coordinates or per-peak IM sorting alignment wrong.");
+  const std::vector<float> data_first_scan = data;
   auto wrong_rt = scan(50);
   collector.consumeSpectrum(wrong_rt);
   require(std::accumulate(data.begin(), data.end(), 0.0f) == 35.0f, "Out-of-window RT contaminated tensor.");
@@ -130,6 +131,21 @@ int main(int argc, char** argv)
   auto without_im = scan(10, false);
   no_im.consumeSpectrum(without_im);
   require(!no_im.hasIM(0), "Missing raw mobility reported as present.");
+  // Unitless "Ion Mobility" arrays are ignored unless explicitly treated as 1/K0.
+  for (const bool opt_in : {false, true})
+  {
+    OpenDIA::TraceCollector unitless(windows, library);
+    unitless.setIonMobilityArrayAsVSSC(opt_in);
+    auto unitless_scan = scan(10, false);
+    DataArrays::FloatDataArray unitless_values;
+    unitless_values.setName("Ion Mobility");
+    unitless_values.assign({1.01f, 0.99f, 0.99f, 1.5f, 1.0f});
+    unitless_scan.getFloatDataArrays().push_back(std::move(unitless_values));
+    unitless.consumeSpectrum(unitless_scan);
+    require(unitless.hasIM(0) == opt_in, "Unitless IM opt-in did not control mobility use.");
+    require(opt_in ? unitless.intensities() == data_first_scan : !unitless.hasIM(0),
+            "Opt-in unitless IM tensor differs from the annotated 1/K0 tensor.");
+  }
   require(no_im.intensities()[32 * 8 + time_offset + 4] == 1015.0f,
           "Missing mobility did not preserve raw XIC intensity in central IM bin.");
   auto mixed = scan(10, false);

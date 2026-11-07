@@ -66,6 +66,7 @@ protected:
     registerDoubleOption_("peak_gap", "<seconds>", 30.0, "Maximum gap between matched scans in one peak group", false);
     registerIntOption_("min_transitions", "<n>", 1, "Minimum co-observed fragments required in a peak group", false);
     registerFlag_("local_peak_split", "Split a group after two low scans and a signal recovery; experimental candidate generation");
+    registerFlag_("im_array_as_vssc", "Interpret a spectrum ion-mobility array whose unit is not CCS as 1/K0, e.g. unitless mzML 'Ion Mobility' arrays");
     registerDoubleOption_("peak_valley_fraction", "<fraction>", 0.1, "Local-peak valley/recovery threshold as a fraction of the previous apex", false);
     setMinFloat_("peak_valley_fraction", 0.001);
     setMaxFloat_("peak_valley_fraction", 0.999);
@@ -90,6 +91,7 @@ protected:
     options.rt_window_seconds = getDoubleOption_("rt_window");
     options.peak_gap_seconds = getDoubleOption_("peak_gap");
     options.split_local_peaks = getFlag_("local_peak_split");
+    options.ion_mobility_array_as_vssc = getFlag_("im_array_as_vssc");
     options.peak_valley_fraction = getDoubleOption_("peak_valley_fraction");
     options.max_apexes_per_group = static_cast<std::size_t>(std::max(1, getIntOption_("max_apexes_per_group")));
     options.min_apex_separation_seconds = getDoubleOption_("min_apex_separation");

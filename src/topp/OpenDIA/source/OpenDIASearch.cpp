@@ -210,7 +210,8 @@ namespace OpenMS::OpenDIA
     {
       const auto [im_index, im_unit] = spectrum.getIMData();
       const auto& arrays = spectrum.getFloatDataArrays();
-      if (im_unit == DriftTimeUnit::VSSC && im_index < arrays.size() && arrays[im_index].size() == spectrum.size())
+      if (im_index < arrays.size() && arrays[im_index].size() == spectrum.size() &&
+          (im_unit == DriftTimeUnit::VSSC || (options_.ion_mobility_array_as_vssc && im_unit != DriftTimeUnit::CCS)))
       {
         im_values = &arrays[im_index];
       }
