@@ -126,6 +126,27 @@ int main()
   require(multi_window_output.str().find("other\t700\t10\t10\t10\t9\t1\t1") != std::string::npos,
           "multiple or overlapping isolation windows were not handled as one scan");
 
+  // Lane prefiltering is inclusive at both isolation-window boundaries.
+  const std::vector<OpenDIA::TransitionQuery> boundary_queries = {
+    {"lower_edge", 450.0, 100.0, 0.0, false},
+    {"upper_edge", 550.0, 101.0, 0.0, false},
+    {"below_edge", 449.999, 102.0, 0.0, false},
+    {"above_edge", 550.001, 103.0, 0.0, false}
+  };
+  std::ostringstream boundary_output;
+  OpenDIA::StreamSearch boundary_search(boundary_queries, OpenDIA::SearchOptions{}, boundary_output);
+  MSSpectrum boundary_spectrum = spectrum(10.0, 500.0,
+                                          {Peak1D(100.0, 10.0), Peak1D(101.0, 10.0),
+                                           Peak1D(102.0, 10.0), Peak1D(103.0, 10.0)});
+  boundary_search.consumeSpectrum(boundary_spectrum);
+  boundary_search.finish();
+  require(boundary_output.str().find("lower_edge\t450\t") != std::string::npos &&
+          boundary_output.str().find("upper_edge\t550\t") != std::string::npos,
+          "inclusive isolation-window boundary candidates were lost");
+  require(boundary_output.str().find("below_edge") == std::string::npos &&
+          boundary_output.str().find("above_edge") == std::string::npos,
+          "candidate outside isolation-window boundaries was reported");
+
   // Interleaved lanes and skipped lanes preserve each candidate's ordered trace.
   std::vector<OpenDIA::TransitionQuery> cycle_queries = {
     {"lane_a", 500.0, 100.0, 0.0, false},
