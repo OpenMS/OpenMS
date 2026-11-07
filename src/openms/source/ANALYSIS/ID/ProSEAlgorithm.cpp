@@ -492,7 +492,8 @@ namespace OpenMS
       "are unchanged. Independent of annotate:PSM.", {"advanced"});
     defaults_.setValidStrings("annotate:self_trained_ion_priors", {"true", "false"});
     defaults_.setValue("annotate:ion_prior_model", "rich",
-      "Contexts and outcomes of the ion priors. 'rich': ion series, precursor charge, fragment charge, relative position, "
+      "Contexts and outcomes of the ion priors. Both keep the ion series a/b, x/y, c and z apart (c and z ions are scored "
+      "for electron-activated spectra, see ions:by_activation). 'rich': ion series, precursor charge, fragment charge, relative position, "
       "the residues at the cleavage site (bond before P, bond after D or E) and whether the complementary singly charged "
       "ion matched; outcome: intensity rank x mass error (|error| / tolerance below 0.25, below 0.5, up to 1). 'basic': "
       "ion series, precursor charge, fragment charge and relative position; outcome: intensity rank.", {"advanced"});
@@ -10930,7 +10931,7 @@ namespace OpenMS
       return std::max(1, std::min(max_fragment_charge, precursor_charge - 1));
     };
     // The ions of @p sequence (charge 1 to fragment_charges(charge)) matched against peak list @p scan: from the
-    // series, ordinals and charges of getIonSeriesSpectrum() if the generator supports it (no ion names to write and
+    // ion types, ordinals and charges of getIonSeriesSpectrum() if the generator supports it (no ion names to write and
     // parse back: the same ions), else from getSpectrum() with the names.
     struct IonScratch
     {
@@ -10938,13 +10939,15 @@ namespace OpenMS
       std::vector<uint8_t> series;
       std::vector<UInt> ordinals;
       std::vector<Int> charges;
+      std::vector<Residue::ResidueType> types;
     };
     const auto match_ions = [&](const FragmentIonLikelihoodModel& model, const TheoreticalSpectrumGenerator& tsg, Size scan,
                                 const AASequence& sequence, int charge, IonScratch& scratch, std::vector<FragmentIonLikelihoodModel::Ion>& ions)
     {
-      if (tsg.getIonSeriesSpectrum(scratch.theo, scratch.series, scratch.ordinals, scratch.charges, sequence, 1, fragment_charges(charge)))
+      if (tsg.getIonSeriesSpectrum(scratch.theo, scratch.series, scratch.ordinals, scratch.charges, scratch.types, sequence, 1,
+                                   fragment_charges(charge)))
       {
-        model.matchIons(evidence, scan, scratch.theo, scratch.series, scratch.ordinals, scratch.charges, sequence, charge, tolerance, ppm, ions);
+        model.matchIons(evidence, scan, scratch.theo, scratch.types, scratch.ordinals, scratch.charges, sequence, charge, tolerance, ppm, ions);
         return;
       }
       scratch.theo.clear(true);

@@ -248,18 +248,27 @@ namespace OpenMS
   bool TheoreticalSpectrumGenerator::getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series,
                                                           const AASequence& peptide, Int min_charge, Int max_charge) const
   {
-    return getIonSeriesSpectrum_(spectrum, ion_series, nullptr, nullptr, peptide, min_charge, max_charge);
+    return getIonSeriesSpectrum_(spectrum, ion_series, nullptr, nullptr, nullptr, peptide, min_charge, max_charge);
   }
 
   bool TheoreticalSpectrumGenerator::getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series,
                                                           std::vector<UInt>& ion_ordinals, std::vector<Int>& ion_charges,
                                                           const AASequence& peptide, Int min_charge, Int max_charge) const
   {
-    return getIonSeriesSpectrum_(spectrum, ion_series, &ion_ordinals, &ion_charges, peptide, min_charge, max_charge);
+    return getIonSeriesSpectrum_(spectrum, ion_series, &ion_ordinals, &ion_charges, nullptr, peptide, min_charge, max_charge);
+  }
+
+  bool TheoreticalSpectrumGenerator::getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series,
+                                                          std::vector<UInt>& ion_ordinals, std::vector<Int>& ion_charges,
+                                                          std::vector<Residue::ResidueType>& ion_types, const AASequence& peptide,
+                                                          Int min_charge, Int max_charge) const
+  {
+    return getIonSeriesSpectrum_(spectrum, ion_series, &ion_ordinals, &ion_charges, &ion_types, peptide, min_charge, max_charge);
   }
 
   bool TheoreticalSpectrumGenerator::getIonSeriesSpectrum_(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series,
                                                            std::vector<UInt>* ion_ordinals, std::vector<Int>* ion_charges,
+                                                           std::vector<Residue::ResidueType>* ion_types,
                                                            const AASequence& peptide, Int min_charge, Int max_charge) const
   {
     if (add_isotopes_ || add_losses_ || add_internal_fragments_ || add_precursor_peaks_ || add_abundant_immonium_ions_
@@ -274,6 +283,7 @@ namespace OpenMS
       bool prefix;
       double offset;
       double intensity;
+      Residue::ResidueType type;
     };
     static const double stat_a = Residue::getInternalToAIon().getMonoWeight();
     static const double stat_b = Residue::getInternalToBIon().getMonoWeight();
@@ -284,19 +294,20 @@ namespace OpenMS
     static const double stat_zp1 = Residue::getInternalToZp1Ion().getMonoWeight();
     static const double stat_zp2 = Residue::getInternalToZp2Ion().getMonoWeight();
     const Series series[] = {
-      {add_b_ions_, true, stat_b, b_intensity_},     {add_y_ions_, false, stat_y, y_intensity_},
-      {add_a_ions_, true, stat_a, a_intensity_},     {add_c_ions_, true, stat_c, c_intensity_},
-      {add_x_ions_, false, stat_x, x_intensity_},    {add_z_ions_, false, stat_z, z_intensity_},
-      {add_zp1_ions_, false, stat_zp1, z_intensity_}, {add_zp2_ions_, false, stat_zp2, z_intensity_}};
+      {add_b_ions_, true, stat_b, b_intensity_, Residue::BIon},       {add_y_ions_, false, stat_y, y_intensity_, Residue::YIon},
+      {add_a_ions_, true, stat_a, a_intensity_, Residue::AIon},       {add_c_ions_, true, stat_c, c_intensity_, Residue::CIon},
+      {add_x_ions_, false, stat_x, x_intensity_, Residue::XIon},      {add_z_ions_, false, stat_z, z_intensity_, Residue::ZIon},
+      {add_zp1_ions_, false, stat_zp1, z_intensity_, Residue::Zp1Ion}, {add_zp2_ions_, false, stat_zp2, z_intensity_, Residue::Zp2Ion}};
 
     const Size n = peptide.size();
-    // per peak: the peak, its series (0 prefix, 1 suffix), its ordinal (the number of its ion name) and charge
+    // per peak: the peak, its series (0 prefix, 1 suffix), its ordinal (the number of its ion name), charge and ion type
     struct Ion
     {
       Peak1D first;
       uint8_t second;
       UInt ordinal;
       Int charge;
+      Residue::ResidueType type;
     };
     // The scratch of this thread in one object: each thread_local of a shared library costs a __tls_get_addr call and
     // an initialisation check per access, and this function runs once per candidate (26 of 1727 busy stack samples of
@@ -335,7 +346,7 @@ namespace OpenMS
           for (; i < n - 1; ++i)
           {
             mono_weight += residue_weights[i];
-            chunk.push_back({Peak1D((mono_weight + s.offset) / charge, intensity), uint8_t(0), static_cast<UInt>(i + 1), charge});
+            chunk.push_back({Peak1D((mono_weight + s.offset) / charge, intensity), uint8_t(0), static_cast<UInt>(i + 1), charge, s.type});
           }
         }
         else
@@ -344,7 +355,7 @@ namespace OpenMS
           for (Size i = n - 1; i > 0; --i)
           {
             mono_weight += residue_weights[i];
-            chunk.push_back({Peak1D((mono_weight + s.offset) / charge, intensity), uint8_t(1), static_cast<UInt>(n - i), charge});
+            chunk.push_back({Peak1D((mono_weight + s.offset) / charge, intensity), uint8_t(1), static_cast<UInt>(n - i), charge, s.type});
           }
         }
         for (Size k = 1; k < chunk.size(); ++k)
@@ -383,6 +394,11 @@ namespace OpenMS
     {
       ion_charges->resize(merged.size());
       for (Size k = 0; k < merged.size(); ++k) (*ion_charges)[k] = merged[k].charge;
+    }
+    if (ion_types != nullptr)
+    {
+      ion_types->resize(merged.size());
+      for (Size k = 0; k < merged.size(); ++k) (*ion_types)[k] = merged[k].type;
     }
     return true;
   }
