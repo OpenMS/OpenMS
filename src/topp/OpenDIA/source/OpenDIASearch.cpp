@@ -430,7 +430,7 @@ namespace OpenMS::OpenDIA
 #ifdef _OPENMP
     const bool use_parallel = active_block_count > 1 && batch_query_work >= 4096 &&
                               (batch_cells_.size() > 1 || batch_query_work >= 32768);
-#pragma omp parallel for schedule(dynamic, 1) if(use_parallel)
+#pragma omp parallel for schedule(dynamic, 8) if(use_parallel)
     for (std::ptrdiff_t block = 0; block < static_cast<std::ptrdiff_t>(block_count); ++block)
     {
       if (active_blocks[static_cast<std::size_t>(block)])
