@@ -582,3 +582,16 @@ Seeding the CNN from the panel-40000 anchors (3000 pairs) followed by `-ss_itera
 For comparison, panel-10000 anchors gave 11118 and teacher seeds gave 11830 (`raw-trace-cnn-hela/anchor-seeds-p40000-20261107/GATE.md`).
 84.7% of these are in the SVM baseline, against 85.9% for the teacher-seeded run, and the 2445 gained are 73.4% in SVM.
 Candidates and the RT window still come from the panel-10000 calibration. This is the design run, a decoy-count estimate, with no independent run or entrapment check.
+
+End-to-end teacher-free run (`raw-trace-cnn-hela/teacher-free-e2e-20261107/`, gate ≥ 10647, declared before the run). One panel-40000 calibration drives the search, the seeds and the CNN window:
+
+| Step | Wall time | Peak RSS |
+|---|---|---|
+| `OpenDIACalibrate -panel_targets 40000 -out_anchors` | 57 s | 3.95 GB |
+| `OpenDIA -calibration` (k5 settings), 206115 candidates | 1:21 | 0.81 GB |
+| `prepare_trace_windows.py --anchors` | seconds | n/a |
+| `OpenDIACNN -mode crossfit -paired_tdc -rt_calibration -apply_calibration_coordinates -ss_iterations 1` | 2:19 | 2.1 GB |
+
+Result: **13253** targets at paired q ≤ 0.01 (folds 4469/4436/4348; round 0 gave 12906). 85.1% are in the SVM baseline.
+This configuration is frozen for the first independent evaluation.
+It is a design-run decoy-count estimate: no independent run, no entrapment check, and the anchors are selected with the same decoys used in the final competition.
