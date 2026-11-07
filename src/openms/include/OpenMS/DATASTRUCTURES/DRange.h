@@ -177,6 +177,13 @@ public:
     /// Returns the smallest range containing this range and @p other_range
     DRange united(const DRange<D>& other_range) const
     {
+      // An empty range's corners are the +/-infinity sentinel used by Base::empty.
+      // Folding it into the elementwise min/max below and then normalizing would
+      // swap that sentinel into the universal range instead of leaving it empty,
+      // so empty operands are handled directly instead.
+      if (this->isEmpty()) return other_range;
+      if (other_range.isEmpty()) return *this;
+
       PositionType united_min;
       PositionType united_max;
       DRange<D> united_range = DRange<D>::empty;
