@@ -141,7 +141,11 @@ namespace OpenMS
       static bool isSubsetOf_(const std::vector< std::string> &first, const std::vector< std::string > &second);
       static void warnOnSubsetFiles_(const std::vector<std::string>& spectra_paths, const std::vector<std::string>& design_filenames);
 
-      OpenMS::Peak2D::IntensityType sumIntensity_(const std::set< OpenMS::Peak2D::IntensityType > &intensities) const
+      // Note: a multiset, not a set -- callers collect one intensity per distinct
+      // retention time, and unrelated peaks can legitimately share the same
+      // intensity value. A set would silently drop those as "duplicates" and
+      // undercount sum()/mean() over the retention times actually observed.
+      OpenMS::Peak2D::IntensityType sumIntensity_(const std::multiset< OpenMS::Peak2D::IntensityType > &intensities) const
       {
         OpenMS::Peak2D::IntensityType result = 0;
         for (const OpenMS::Peak2D::IntensityType &intensity : intensities)
@@ -151,7 +155,7 @@ namespace OpenMS
         return result;
       }
 
-      OpenMS::Peak2D::IntensityType meanIntensity_(const std::set< OpenMS::Peak2D::IntensityType > &intensities) const
+      OpenMS::Peak2D::IntensityType meanIntensity_(const std::multiset< OpenMS::Peak2D::IntensityType > &intensities) const
       {
         return sumIntensity_(intensities) / intensities.size();
       }
