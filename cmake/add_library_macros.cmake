@@ -145,8 +145,6 @@ function(openms_add_library)
 
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
-  # AUTOMOC is chosen by the library's own CMakeLists.txt. Merely finding Qt
-  # elsewhere must not enable Qt code generation for non-GUI libraries.
 
   #------------------------------------------------------------------------------
   # Include directories
@@ -245,7 +243,6 @@ function(openms_add_library)
   copy_dll_to_extern_bin(${openms_add_library_TARGET_NAME})
   # Copy dependencies
   if(WIN32)
-    # with newer CMakes we can also easily copy dependencies like Qt
     # This stores the command as a list
     set(has_dll_dep
             $<BOOL:$<TARGET_RUNTIME_DLLS:${openms_add_library_TARGET_NAME}>>
@@ -305,8 +302,6 @@ function(openms_add_library)
     if(APPLECLANG)
       if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "15.0.0")
           target_link_options(${openms_add_library_TARGET_NAME} PRIVATE -ld_classic)
-          set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES
-              QT_NO_DISABLE_WARN_DUPLICATE_LIBRARIES TRUE)
       endif()
     endif()
   endif()

@@ -338,9 +338,6 @@ target_sources(OpenMS PRIVATE FILE_SET private_headers TYPE HEADERS
   BASE_DIRS source include
   FILES ${OpenMS_private_headers})
 
-# The core library has no QObject classes, including in builds that also find Qt.
-set_target_properties(OpenMS PROPERTIES AUTOMOC OFF)
-
 ## When an in-tree executable links libOpenMS.so, the linker has to locate the
 ## private shared dependencies of libOpenMS by soname. CMake passes -rpath-link
 ## for them only when the imported target is typed SHARED; find modules such as

@@ -47,14 +47,13 @@ START_SECTION((static ToolListType getTOPPToolList()))
   // the key and the description's own name are the same thing: the name the registry entry declares
   TEST_EQUAL(list.find("DecoyDatabase")->second.name, "DecoyDatabase")
   TEST_EQUAL(list.find("QCCalculator")->second.name, "QCCalculator")
+  // the TOPP tools of the GUI layer (ImageCreator, ExecutePipeline) are built and registered by
+  // OpenMS-TOPP-GUI in a registry file of its own, never by this build
+  TEST_TRUE(list.find("ImageCreator") == list.end())
+  TEST_TRUE(list.find("ExecutePipeline") == list.end())
   // a tool behind a build option is listed only by a build that has the option: the
   // openms_topp_tool() declaration is inside that option's if(), so a build without it
   // neither builds the tool nor writes it to the generated registry
-#ifdef WITH_GUI
-  TEST_TRUE(list.find("ImageCreator") != list.end())
-#else
-  TEST_TRUE(list.find("ImageCreator") == list.end())
-#endif
 #ifdef WITH_WNETALIGN
   TEST_TRUE(list.find("FeatureLinkerWNet") != list.end())
 #else

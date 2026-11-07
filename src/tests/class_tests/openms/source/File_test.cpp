@@ -23,6 +23,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <atomic>
+#include <cstdlib>
 #include <ctime>
 #include <fstream>
 #include <filesystem>
@@ -559,14 +560,55 @@ START_SECTION(static std::string findSiblingTOPPExecutable(const std::string& to
   TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable("executable_does_not_exist"))
   TEST_EQUAL(File::path(File::findSiblingTOPPExecutable("File_test")) + "/", File::getExecutablePath())
 
-  // Sibling resolution looks next to the running executable only; it does NOT fall back to a
-  // PATH lookup. A binary that exists only on PATH (e.g. the "echo"/"cmd" resolved by findExecutable
-  // above) is therefore reported as not found here. This pins the current "siblings only" contract.
+  // the last place searched is the PATH (absolute entries only), so a tool of another layer
+  // of a split installation in a prefix of its own is found as well
+  {
+    const std::string unique = File::getUniqueName(false);
+    const std::string tool = "OpenMS_File_test_PATH_tool_" + unique;
 #ifdef OPENMS_WINDOWSPLATFORM
-  TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable("cmd"))
+    const std::string tool_file = tool + ".exe"; // the name given without .exe is completed
+    const char separator = ';';
 #else
-  TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable("echo"))
+    const std::string tool_file = tool;
+    const char separator = ':';
 #endif
+    TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable(tool))
+
+    const std::filesystem::path dir = std::filesystem::temp_directory_path() / ("OpenMS_File_test_PATH_" + unique);
+    std::filesystem::create_directories(dir);
+    std::ofstream(dir / tool_file) << "dummy";
+    // a relative PATH entry resolves against the working directory and is skipped
+    const std::string relative_dir = "OpenMS_File_test_relative_PATH_" + unique;
+    std::filesystem::create_directories(relative_dir);
+    std::ofstream(std::filesystem::path(relative_dir) / tool_file) << "dummy";
+
+    const char* old_path_ptr = std::getenv("PATH");
+    const std::string old_path = old_path_ptr == nullptr ? "" : old_path_ptr;
+    auto set_path = [](const std::string& value)
+    {
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv_s("PATH", value.c_str());
+#else
+      setenv("PATH", value.c_str(), 1);
+#endif
+    };
+
+    set_path(relative_dir + separator + old_path);
+    TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable(tool))
+
+    // a directory of the tool's name does not count, the first file further down the PATH does
+    const std::filesystem::path shadow = std::filesystem::temp_directory_path() / ("OpenMS_File_test_PATH_shadow_" + unique);
+    std::filesystem::create_directories(shadow / tool_file);
+    set_path(relative_dir + separator + shadow.string() + separator + dir.string() + separator + old_path);
+    std::string found = File::findSiblingTOPPExecutable(tool);
+    TEST_EQUAL(std::filesystem::equivalent(found, dir / tool_file), true)
+
+    set_path(old_path);
+    TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable(tool))
+    std::filesystem::remove_all(dir);
+    std::filesystem::remove_all(shadow);
+    std::filesystem::remove_all(relative_dir);
+  }
 }
 END_SECTION
 

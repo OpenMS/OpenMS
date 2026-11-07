@@ -932,7 +932,33 @@ namespace OpenMS{
       if (!ec && fs::exists(st) && !fs::is_directory(st)) return exec;
     }
 #endif
-    // TODO(aiche): probe in PATH
+    // finally the PATH, e.g. for an executable of another layer of a split installation
+    // that lives in a prefix of its own. Only absolute entries: a relative (or empty) one
+    // would resolve against the current working directory.
+    const char* env_path = std::getenv("PATH");
+    if (env_path != nullptr)
+    {
+      StringList names = {toolName};
+#if OPENMS_WINDOWSPLATFORM
+      if (!StringUtils::hasSuffix(toolName, ".exe")) names.insert(names.begin(), toolName + ".exe");
+      const char separator = ';';
+#else
+      const char separator = ':';
+#endif
+      StringList dirs;
+      StringUtils::split(std::string(env_path), separator, dirs);
+      for (std::string dir : dirs)
+      {
+        if (dir.empty() || !to_path(dir).is_absolute()) continue;
+        StringUtils::substitute(dir, '\\', '/');
+        StringUtils::ensureLastChar(dir, '/');
+        for (const std::string& name : names)
+        {
+          exec = dir + name;
+          if (File::exists(exec) && !File::isDirectory(exec)) return exec;
+        }
+      }
+    }
 
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, toolName);
   }
