@@ -158,6 +158,11 @@ int main(int argc, char** argv)
   rejects([&] { overflow.consumeSpectrum(without_im); });
 
   rejects([&] { OpenDIA::TraceCollector too_many(windows, library, 0.02, 15, 0.03, 0); });
+  // A budget below one window's tensor rejects; exactly one window per sample fits.
+  rejects([&] { OpenDIA::TraceCollector over_budget(windows, library, 0.02, 15, 0.03, 16384,
+                                                    windows.size() * OpenDIA::TraceCollector::SAMPLE_SIZE * sizeof(float) - 1); });
+  OpenDIA::TraceCollector exact_budget(windows, library, 0.02, 15, 0.03, 16384,
+                                       windows.size() * OpenDIA::TraceCollector::SAMPLE_SIZE * sizeof(float));
   rejects([&] { OpenDIA::TraceCollector bad_tolerance(windows, library, 0); });
   auto bad_windows = windows;
   bad_windows[0].label = 2;

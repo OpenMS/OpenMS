@@ -39,6 +39,8 @@ namespace OpenMS::OpenDIA
     static constexpr std::size_t RT_BINS = 32;
     static constexpr std::size_t IM_BINS = 8;
     static constexpr std::size_t SAMPLE_SIZE = FRAGMENTS * RT_BINS * IM_BINS;
+    /// Default raw tensor budget (2 GiB).
+    static constexpr std::size_t DEFAULT_MAX_TENSOR_BYTES = std::size_t{2} << 30;
 
     /** @brief Construct a bounded candidate tensor collector.
       @param[in] windows Explicit candidate windows, labels and related-peptide group IDs.
@@ -47,10 +49,12 @@ namespace OpenMS::OpenDIA
       @param[in] rt_half_width RT half width in seconds.
       @param[in] im_half_width Mobility half width in 1/K0.
       @param[in] max_samples Maximum allowed sample count.
+      @param[in] max_tensor_bytes Hard cap on the retained raw tensor size in bytes.
     */
     TraceCollector(std::vector<TraceWindow> windows, const OpenSwath::LightTargetedExperiment& library,
                    double mz_tolerance = 0.02, double rt_half_width = 15.0,
-                   double im_half_width = 0.03, std::size_t max_samples = 16384);
+                   double im_half_width = 0.03, std::size_t max_samples = 16384,
+                   std::size_t max_tensor_bytes = DEFAULT_MAX_TENSOR_BYTES);
 
     void consumeSpectrum(MSSpectrum& spectrum) override;
     void consumeChromatogram(MSChromatogram&) override;

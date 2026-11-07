@@ -32,6 +32,9 @@ namespace OpenMS
       registerStringOption_("out_prefix", "<prefix>", "", "Output prefix for .traces.npy, .samples.tsv and .geometry.json", true);
       registerIntOption_("max_samples", "<n>", 16384, "Reject larger input samples rather than silently truncating", false);
       setMinInt_("max_samples", 1);
+      registerIntOption_("max_tensor_gib", "<GiB>", 2, "Hard cap on the in-memory raw trace tensor (6 KiB per window)", false);
+      setMinInt_("max_tensor_gib", 1);
+      setMaxInt_("max_tensor_gib", 1024);
       registerDoubleOption_("mz_tolerance", "<Da>", 0.02, "Fragment m/z half width", false);
       registerDoubleOption_("rt_half_width", "<seconds>", 15.0, "RT half width around each candidate apex", false);
       registerDoubleOption_("im_half_width", "<1/K0>", 0.03, "Mobility half width around library precursor mobility", false);
@@ -59,7 +62,8 @@ namespace OpenMS
       OpenSwath::LightTargetedExperiment library;
       TransitionPQPFile().convertPQPToTargetedExperiment(getStringOption_("lib").c_str(), library);
       OpenDIA::TraceCollector collector(std::move(windows), library, getDoubleOption_("mz_tolerance"),
-                                       getDoubleOption_("rt_half_width"), getDoubleOption_("im_half_width"), max_samples);
+                                       getDoubleOption_("rt_half_width"), getDoubleOption_("im_half_width"), max_samples,
+                                       static_cast<std::size_t>(getIntOption_("max_tensor_gib")) << 30);
       FileHandler reader;
       PeakFileOptions options;
       options.setMSLevels({2});

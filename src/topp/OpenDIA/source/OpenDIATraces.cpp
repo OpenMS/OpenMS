@@ -79,17 +79,17 @@ namespace OpenMS::OpenDIA
 
   TraceCollector::TraceCollector(std::vector<TraceWindow> windows, const OpenSwath::LightTargetedExperiment& library,
                                  double mz_tolerance, double rt_half_width, double im_half_width,
-                                 std::size_t max_samples) :
+                                 std::size_t max_samples, std::size_t max_tensor_bytes) :
     mz_tolerance_(mz_tolerance), rt_half_width_(rt_half_width), im_half_width_(im_half_width)
   {
     require(std::isfinite(mz_tolerance_) && mz_tolerance_ > 0.0 &&
             std::isfinite(rt_half_width_) && rt_half_width_ > 0.0 &&
             std::isfinite(im_half_width_) && im_half_width_ > 0.0, "Trace tolerances must be finite and positive.");
-    // ponytail: sampled tensors are retained, capped at 2 GiB. Disk-backed tiled
-    // accumulation is only needed if full-run exports cannot fit this budget.
+    // ponytail: sampled tensors are retained under an explicit byte budget.
+    // Disk-backed tiled accumulation is only needed if a run cannot fit in RAM.
     require(!windows.empty() && windows.size() <= max_samples &&
-            windows.size() <= (std::size_t{2} << 30) / (SAMPLE_SIZE * sizeof(float)),
-            "Trace sample count is empty or exceeds max_samples / the 2 GiB tensor budget.");
+            windows.size() <= max_tensor_bytes / (SAMPLE_SIZE * sizeof(float)),
+            "Trace sample count is empty or exceeds max_samples / the raw tensor byte budget.");
     std::map<std::string, std::vector<const OpenSwath::LightTransition*>> transitions;
     std::map<std::string, double> mobilities;
     for (const auto& compound : library.getCompounds())

@@ -46,8 +46,11 @@ namespace OpenMS
       registerStringOption_("model", "<file>", "", "Checkpoint in train/score mode; new checkpoint prefix in crossfit mode", true);
       registerOutputFile_("out", "<file>", "", "Candidate logits and provenance; crossfit adds experimental fold-wise precursor q-values");
       setValidFormats_("out", {"tsv"});
-      registerIntOption_("max_samples", "<n>", 16384, "Reject larger window manifests rather than silently truncating; raw tensor cap is 2 GiB", false);
+      registerIntOption_("max_samples", "<n>", 16384, "Reject larger window manifests rather than silently truncating; see max_tensor_gib for the raw tensor cap", false);
       setMinInt_("max_samples", 1);
+      registerIntOption_("max_tensor_gib", "<GiB>", 2, "Hard cap on the in-memory raw trace tensor (6 KiB per window)", false);
+      setMinInt_("max_tensor_gib", 1);
+      setMaxInt_("max_tensor_gib", 1024);
       registerIntOption_("threads", "<n>", 5, "LibTorch CPU threads", false);
       setMinInt_("threads", 1);
       registerIntOption_("seed", "<n>", 42, "Training and family-partition random seed", false);
@@ -166,7 +169,8 @@ namespace OpenMS
         OpenSwath::LightTargetedExperiment library;
         TransitionPQPFile().convertPQPToTargetedExperiment(getStringOption_("lib").c_str(), library);
         OpenDIA::TraceCollector collector(std::move(windows), library, geometry.mz_tolerance,
-                                         geometry.rt_half_width, geometry.im_half_width, max_samples);
+                                         geometry.rt_half_width, geometry.im_half_width, max_samples,
+                                         static_cast<std::size_t>(getIntOption_("max_tensor_gib")) << 30);
         FileHandler reader;
         PeakFileOptions options;
         options.setMSLevels({2});

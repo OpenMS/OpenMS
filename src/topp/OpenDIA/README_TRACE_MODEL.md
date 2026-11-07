@@ -27,7 +27,7 @@ Native family assignment uses a versioned, deterministic FNV-1a hash rather than
 uv run --offline --with torch --with numpy --python 3.12 python src/topp/OpenDIA/test/check_native_trace_parity.py --native-test ../OpenMS-build/src/tests/class_tests/bin/OpenDIACNN_test
 ```
 
-Training normalization and inference allocate only tensor batches, not a second full normalized tensor. The collector still stores the raw tensor, subject to its hard **2 GiB** cap, plus O(N) metadata and logits. More than this needs acquisition tiling, not a larger sample limit. No calibrated probabilities, end-to-end peak boundary learning or unbiased precursor identification counts are claimed.
+Training normalization and inference allocate only tensor batches, not a second full normalized tensor. The collector still stores the raw tensor, subject to a hard cap set by `-max_tensor_gib` (default **2 GiB**, 6 KiB per window), plus O(N) metadata and logits. Runs that do not fit in RAM need acquisition tiling, not a larger cap. No calibrated probabilities, end-to-end peak boundary learning or unbiased precursor identification counts are claimed.
 
 ### Native outer-family cross-fitting
 
@@ -113,7 +113,7 @@ python3 src/topp/OpenDIA/prepare_trace_windows.py --library library.pqp --teache
 ../OpenMS-build/bin/OpenDIATraces -in run.mzML -lib library.pqp -windows all_windows.tsv -out_prefix all_traces -max_samples 271792 -rt_half_width 15 -im_half_width 0.03 -mz_tolerance 0.02
 ```
 
-The full export's `max_samples` must cover the actual window count. Export currently allocates its raw tensors with a hard 2 GiB tensor cap, independently of the Python scorer's mmap behavior. Larger exports need tiling before they can use this pilot. Local `OpenDIATraces` is an experimental companion tool, not a stable TOPP registry entry. Build it with `cmake --build ../OpenMS-build --target OpenDIATraces`. Use distinct output prefixes.
+The full export's `max_samples` must cover the actual window count. Export currently allocates its raw tensors under the `-max_tensor_gib` cap (default 2 GiB), independently of the Python scorer's mmap behavior. Local `OpenDIATraces` is an experimental companion tool, not a stable TOPP registry entry. Build it with `cmake --build ../OpenMS-build --target OpenDIATraces`. Use distinct output prefixes.
 
 Train/score using only cached dependencies:
 
