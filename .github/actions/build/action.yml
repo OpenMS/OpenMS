@@ -147,20 +147,6 @@ runs:
         } >>"$GITHUB_ENV"
 
     ############################################################################
-    # These are variables that don't need to be set for normal
-    # (non-CI) builds.
-    - name: Set CI-specific Environment Variables
-      shell: bash
-      run: |
-        {
-          # During building and testing several Qt apps are run.  This
-          # is needed so they can start without having a graphical
-          # environment:
-          echo "QT_QPA_PLATFORM=offscreen"
-
-        } >>"$GITHUB_ENV"
-
-    ############################################################################
     # This is only really needed so we can set cache keys.
     - name: Extract the PR Number or Branch Name
       id: pr
@@ -271,8 +257,7 @@ runs:
         # Official variables that need to be set to build OpenMS:
         CMAKE_PREFIX_PATH: ${{ steps.deps.outputs.cmake_prefix }}
         SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
-        # Also sets LSMinimumSystemVersion of the GUI apps (src/openms_gui/add_mac_bundle.cmake)
-        # and the installer's minimum macOS (cmake/package_mac_productbuild.cmake).
+        # Also sets the installer's minimum macOS (cmake/package_mac_productbuild.cmake).
         MACOSX_DEPLOYMENT_TARGET: "${{ inputs.macosx_deployment_target }}"
         # -DPYOPENMS is not passed since pyOpenMS is not built in this workflow.
 

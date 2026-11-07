@@ -7,6 +7,8 @@ The known issues of a release are listed at the end of its section in the [CHANG
 Please check if your OpenMS version matches the current version and if the bug has already been reported.
 
 In order to report a new bug, please create a [GitHub issue](manual/contribute.md#Write and Label GitHub Issues) or [contact us](/about/communication.md).
+Bugs of the graphical tools (TOPPView, TOPPAS, INIFileEditor) go to the
+[OpenMS-TOPP-GUI issue tracker](https://github.com/OpenMS/OpenMS-TOPP-GUI/issues).
 
 Include the following information in your bug report:
 

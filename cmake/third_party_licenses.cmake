@@ -22,12 +22,8 @@
 ##
 ## openms_install_third_party_licenses() installs the texts of what only the packages bundle;
 ## cmake/package_general.cmake calls it:
-## - Qt/: Qt is not a vcpkg port. The Windows and macOS packages bundle it; the DEB depends
-##   on the distribution's Qt instead. OpenMS uses Qt under the LGPL version 3, which
-##   requires its text, the text of the GPL version 3 that it supplements, and a note on
-##   where to get the source code of the bundled Qt.
-## - homebrew/<formula>/: on macOS, Qt and the libraries it needs (glib, ICU, freetype, ...)
-##   and the OpenMP runtime libomp come from Homebrew, and the package bundles them. Homebrew
+## - homebrew/<formula>/: on macOS, the OpenMP runtime libomp comes from Homebrew, and the
+##   package bundles it. Homebrew
 ##   installs the license files of a formula into its keg, and these are installed for the
 ##   given formulae and every installed formula they depend on.
 ##
@@ -123,42 +119,13 @@ function(openms_install_vcpkg_licenses)
   endif()
 endfunction()
 
-## openms_install_third_party_licenses([QT_VERSION <version>]
-##                                     [HOMEBREW_PREFIX <prefix> HOMEBREW_FORMULAE <formula>...])
-##   QT_VERSION         the version of the Qt the package bundles; empty if it bundles none
+## openms_install_third_party_licenses([HOMEBREW_PREFIX <prefix> HOMEBREW_FORMULAE <formula>...])
 ##   HOMEBREW_PREFIX    the prefix of the Homebrew installation the formulae come from
 ##   HOMEBREW_FORMULAE  the Homebrew formulae the package bundles libraries of; their
 ##                      dependencies are added
 function(openms_install_third_party_licenses)
-  cmake_parse_arguments(PARSE_ARGV 0 arg "" "QT_VERSION;HOMEBREW_PREFIX" "HOMEBREW_FORMULAE")
+  cmake_parse_arguments(PARSE_ARGV 0 arg "" "HOMEBREW_PREFIX" "HOMEBREW_FORMULAE")
   set(_licenses_dir "${INSTALL_SHARE_DIR}/LICENSES")
-
-  if(arg_QT_VERSION)
-    set(_qt_licenses "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/third_party_licenses/Qt")
-    ## The variables README.txt.in refers to.
-    set(QT_LICENSE_VERSION "${arg_QT_VERSION}")
-    string(REGEX MATCH "^[0-9]+\\.[0-9]+" QT_LICENSE_MAJOR_MINOR "${arg_QT_VERSION}")
-    set(QT_LICENSE_HOMEBREW_NOTE "")
-    if(arg_HOMEBREW_FORMULAE)
-      string(CONCAT QT_LICENSE_HOMEBREW_NOTE
-             "\nOn macOS, Qt comes from Homebrew. The Homebrew formulae, including any patches\n"
-             "Homebrew applies to Qt, are at https://github.com/Homebrew/homebrew-core; ../homebrew\n"
-             "holds the license files of the formulae whose libraries this package bundles.\n")
-    endif()
-    configure_file("${_qt_licenses}/README.txt.in"
-                   "${PROJECT_BINARY_DIR}/third_party_licenses/Qt/README.txt" @ONLY)
-    set(_qt_files "${_qt_licenses}/LGPL-3.0-only.txt"
-                  "${_qt_licenses}/GPL-3.0-only.txt"
-                  "${PROJECT_BINARY_DIR}/third_party_licenses/Qt/README.txt")
-    install(FILES ${_qt_files}
-            DESTINATION "${_licenses_dir}/Qt"
-            COMPONENT share)
-    foreach(_file IN LISTS _qt_files)
-      get_filename_component(_name "${_file}" NAME)
-      openms_add_third_party_notice("LICENSES/Qt/${_name}" "${_file}")
-    endforeach()
-    message(STATUS "Packaging the Qt ${arg_QT_VERSION} licenses")
-  endif()
 
   if(arg_HOMEBREW_FORMULAE)
     ## The package bundles libraries of these formulae and their dependencies, so configuring
@@ -175,8 +142,8 @@ function(openms_install_third_party_licenses)
     ## Both the dependencies recorded in the installed kegs (--installed) and those the
     ## formulae declare are collected. The recorded ones alone miss formulae: in the Release
     ## run of 2026-10-08, 'brew deps --installed' left out exactly the dependencies that
-    ## 'brew install qtbase' had upgraded in the same run (glib, harfbuzz, pcre2, libpng,
-    ## cairo, ...), although the package bundles their libraries. homebrew-core's CI checks
+    ## another 'brew install' had upgraded in the same run (glib, harfbuzz, pcre2, libpng,
+    ## cairo, ...), although the package bundled their libraries. homebrew-core's CI checks
     ## that a formula declares every formula it links against, so the declared ones cover
     ## what is bundled.
     set(_dependencies)
@@ -254,8 +221,6 @@ function(openms_install_third_party_licenses)
       message(STATUS "Declared Homebrew dependencies that are not installed: ${_not_installed}")
     endif()
     if(_without_license)
-      ## Expected for Qt's own formulae, whose keg holds its licenses only in a LICENSES
-      ## directory; the Qt licenses are installed above.
       message(STATUS "No license file in the Homebrew kegs of: ${_without_license}")
     endif()
   endif()
@@ -282,7 +247,7 @@ endfunction()
 ##                    through each other, is followed
 ##   EXCLUDE_REGEXES  paths of libraries the package does not bundle, the
 ##                    POST_EXCLUDE_REGEXES of its runtime dependency set (the C and C++
-##                    runtime, Qt, ...)
+##                    runtime, ...)
 ## The libraries the roots need that neither another root provides nor an exclusion drops
 ## come from the build machine's distribution, and the package bundles them (none at the
 ## moment; it was the GCC Fortran runtime libgfortran for the LAPACK of the removed COIN-OR

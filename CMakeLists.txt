@@ -75,9 +75,6 @@ if(OPENMS_USE_VCPKG AND NOT VCPKG_TOOLCHAIN)
     "-DOPENMS_USE_VCPKG=OFF to take the dependencies from system packages or CMAKE_PREFIX_PATH.")
 endif()
 
-# required for cmake < 3.13 if ccache is used
-set(CMAKE_AUTOMOC_COMPILER_PREDEFINES OFF)
-
 #------------------------------------------------------------------------------
 # General CMake definitions & helper
 #------------------------------------------------------------------------------
@@ -116,12 +113,10 @@ enable_testing()
 #------------------------------------------------------------------------------
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(MT_REQUIRE_OPENMP "With MT_ENABLE_OPENMP, fail the configuration if no OpenMP runtime is found, instead of falling back to -fopenmp-simd (no parallel regions). The CI presets set it." OFF)
-option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will disable certain tests and the doc target." ON)
+option(HAS_XSERVER "Build the full documentation with the default target (OFF: only a minimal documentation)." ON)
 option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
 option(BUILD_TOPP_TOOLS "Build the TOPP command-line applications." ON)
 option(INSTALL_OPENMS_EXAMPLES "Install the OpenMS example data." ON)
-option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." ON)
-option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
 option(OPENMS_ENABLE_MZPEAK "Build with mzPeak (HUPO-PSI Parquet-based raw data format) support via the vendored mzPeak library (needs Arrow/Parquet, which OpenMS requires anyway)" ON)
@@ -136,12 +131,12 @@ option(ENABLE_FAIMS_DDA_TESTS "Download FAIMS-DDA test data (mzML) for integrati
 option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." OFF)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
 
-## Build only the applications (TOPP tools and/or the GUI) against an installed OpenMS
-## library of the same version instead of building the libraries, e.g. to package OpenMS in
-## layers (see cmake/find_installed_openms.cmake). Point OpenMS_DIR or CMAKE_PREFIX_PATH at
-## the installation. Tests, documentation and pyOpenMS need the library targets of this build
-## and are not built in this mode.
-option(OPENMS_USE_INSTALLED_LIBRARY "Build the TOPP tools and/or the GUI against an installed OpenMS library instead of building the libraries." OFF)
+## Build only the TOPP tools against an installed OpenMS library of the same version
+## instead of building the libraries, e.g. to package OpenMS in layers (see
+## cmake/find_installed_openms.cmake). Point OpenMS_DIR or CMAKE_PREFIX_PATH at the
+## installation. Tests, documentation and pyOpenMS need the library targets of this build
+## and are not built in this mode. The GUI layer is built by OpenMS-TOPP-GUI.
+option(OPENMS_USE_INSTALLED_LIBRARY "Build the TOPP tools against an installed OpenMS library instead of building the libraries." OFF)
 if(OPENMS_USE_INSTALLED_LIBRARY AND ENABLE_CWL_GENERATION)
   message(FATAL_ERROR "ENABLE_CWL_GENERATION is not supported together with OPENMS_USE_INSTALLED_LIBRARY.")
 endif()
@@ -555,19 +550,6 @@ set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_T
 message(STATUS "Package type is '${PACKAGE_TYPE}'")
 is_valid_package(${PACKAGE_TYPE})
 
-## The install component of the GUI applications (TOPPView, TOPPAS, ..., and the TOPP tools
-## that need the GUI library, ExecutePipeline and ImageCreator), separate from the TOPP tools
-## (component Applications) so the two can be installed and packaged independently (see
-## OPENMS_USE_INSTALLED_LIBRARY). The macOS productbuild installer keeps them in
-## Applications: it stages every component in a prefix of its own, and fixing up and
-## signing bin/ (cmake/package_mac_productbuild.cmake) addresses the staging prefix of
-## Applications.
-if("${PACKAGE_TYPE}" STREQUAL "pkg")
-  set(OPENMS_GUI_APPLICATIONS_COMPONENT Applications)
-else()
-  set(OPENMS_GUI_APPLICATIONS_COMPONENT GUIApplications)
-endif()
-
 ## macOS code signing and notarization configuration
 ## Required for code signing:
 ##   SIGNING_IDENTITY - Developer ID Application certificate identity (e.g., "Developer ID Application: Your Name (TEAMID)")
@@ -630,10 +612,7 @@ endif()
 
 set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
 set(INSTALL_LIB_DIR ${DEF_INSTALL_LIB_DIR} CACHE PATH "Installation directory for libraries")
-set(INSTALL_PLUGIN_SUBDIR plugins CACHE PATH "Installation subdirectory under the lib dir for QT plugins")
-set(INSTALL_PLUGIN_DIR ${INSTALL_LIB_DIR}/${INSTALL_PLUGIN_SUBDIR})
 file(RELATIVE_PATH INSTALL_LIB_PATH_REL_TO_BIN /${INSTALL_BIN_DIR} /${INSTALL_LIB_DIR})
-set(QT_PLUGIN_PATH_REL_TO_BIN ${INSTALL_LIB_PATH_REL_TO_BIN}/${INSTALL_PLUGIN_SUBDIR})
 
 
 if(UNIX)
@@ -659,8 +638,8 @@ if(UNIX)
   # and run without LD_LIBRARY_PATH; the linker also uses this RPATH to resolve
   # the private dependencies of libOpenMS. System directories and directories
   # below the build tree are never added by CMake (see the vcpkg case below).
-  # On macOS this also covers dependencies built with @rpath install names (e.g.
-  # Qt). Packages that relocate dependencies (deb, macOS pkg) skip or override it.
+  # On macOS this also covers dependencies built with @rpath install names.
+  # Packages that relocate dependencies (deb, macOS pkg) skip or override it.
   if (NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
     if (APPLE)
       if (NOT "${PACKAGE_TYPE}" STREQUAL "pkg")

@@ -12,7 +12,7 @@ FROM mcr.microsoft.com/devcontainers/cpp:1-ubuntu-24.04
 
 COPY tools/ci/deps-ubuntu.sh tools/ci/install_dotnet_sdk_linux.sh /tmp/openms-setup/
 
-# - deps-ubuntu.sh: compilers, CMake, Ninja, pkg-config, Qt 6 (WITH_GUI is ON by default), Doxygen and ccache.
+# - deps-ubuntu.sh: compilers, CMake, Ninja, pkg-config, Doxygen and ccache.
 #   It calls add-apt-repository, which needs software-properties-common.
 # - libicu74: needed by the .NET SDK and runtime.
 # - install_dotnet_sdk_linux.sh: the pinned, checksum-verified .NET 8 SDK in

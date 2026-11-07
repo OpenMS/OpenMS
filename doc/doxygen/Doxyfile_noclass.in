@@ -2,6 +2,10 @@
 
 GENERATE_TODOLIST      = YES
 
+# no tag file: OpenMS.tag (installed for projects that link to the class documentation)
+# is written only by the full documentation
+GENERATE_TAGFILE       =
+
 # issue all possible warnings
 QUIET                  = NO
 WARNINGS               = YES

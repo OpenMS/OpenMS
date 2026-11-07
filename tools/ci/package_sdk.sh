@@ -17,7 +17,7 @@
 # package files, the shared data and the runtime dependencies of those libraries
 # (from the component Dependencies, which exists when the tree was configured
 # with a PACKAGE_TYPE, as for the installers, reduced by sdk_prune_dependencies.cmake
-# to what the SDK loads). The GUI layer is left out, so the SDK needs no Qt. It is written
+# to what the SDK loads). The GUI layer is built by OpenMS-TOPP-GUI against it. It is written
 # as <output dir>/OpenMS-SDK-<version>-<platform>.tar.gz (.zip on Windows) with a
 # single top-level directory of the same name. A tree built in a configuration
 # other than Release names the archive after it, OpenMS-SDK-<version>-<platform>-Debug:
@@ -188,8 +188,8 @@ installed_library() { # <target name> <export set: OpenMSTargets or OpenMSCLITar
   ' "$stage/$cmake_dir/$2-${config_lower}.cmake"
 }
 
-# Keep only the bundled libraries the SDK libraries load (no Qt, nothing only the
-# GUI library or the applications need). The loader environment of this job must
+# Keep only the bundled libraries the SDK libraries load (nothing only the
+# applications need). The loader environment of this job must
 # not decide where a dependency resolves to.
 roots=()
 for library in OpenMS:OpenMSTargets OpenSwathAlgo:OpenMSTargets OpenMS_CLI:OpenMSCLITargets; do

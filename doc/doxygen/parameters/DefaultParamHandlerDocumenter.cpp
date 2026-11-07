@@ -129,19 +129,6 @@
 
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
-// those are only added if GUI is enabled
-#ifdef WITH_GUI
-#include <QApplication>
-
-#include <OpenMS/VISUAL/PlotCanvas.h>
-#include <OpenMS/VISUAL/Plot1DCanvas.h>
-#include <OpenMS/VISUAL/Plot2DCanvas.h>
-#include <OpenMS/VISUAL/Plot3DCanvas.h>
-#include <OpenMS/VISUAL/SpectraIDViewTab.h>
-#include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
-#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
-#endif
-
 
 #include <fstream>
 
@@ -329,7 +316,7 @@ void writeParameters(const std::string& class_name, const Param& param, bool tab
 //**********************************************************************************
 //Main method - add your class here
 //**********************************************************************************
-int main(int argc, char** argv)
+int main()
 {
   //////////////////////////////////
   // Simple cases
@@ -458,23 +445,6 @@ int main(int argc, char** argv)
   DOCME2(IsobaricChannelExtractor, (IsobaricChannelExtractor(&itraq4)))
   DOCME2(IsobaricQuantifier, (IsobaricQuantifier(&itraq4)))
   DOCME2(PosteriorErrorProbabilityModel, Math::PosteriorErrorProbabilityModel());
-  
-
-  // handle GUI documentation separately
-#ifdef WITH_GUI
-  // some classes require a QApplication
-  QApplication app(argc, argv);
-
-  DOCME(TOPPASBase);
-
-  DOCME2(TOPPViewBase, TOPPViewBase(TOPPViewBase::TOOL_SCAN::SKIP_SCAN));
-  DOCME2(PlotCanvas, Plot1DCanvas(Param()));
-  DOCME2(Plot1DCanvas, Plot1DCanvas(Param()));
-  DOCME2(Plot2DCanvas, Plot2DCanvas(Param()));
-  DOCME2(Plot3DCanvas, Plot3DCanvas(Param()));
-  DOCME2(SpectraIDViewTab, SpectraIDViewTab(Param()));
-
-#endif
 
   return 0;
 }

@@ -15,6 +15,8 @@ You most likely came here to:
   - request new features
 
 To do so, open a [new issue](https://github.com/OpenMS/OpenMS/issues/new/choose) describing the bug, your question, etc.
+Issues and pull requests for the graphical tools (TOPPView, TOPPAS, INIFileEditor) and the GUI library go to
+[OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI).
 
 If you found a bug, e.g. an OpenMS tool crashes during data processing, it is essential to provide some basic information:
   - the OpenMS version you are running

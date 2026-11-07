@@ -13,8 +13,6 @@ option(ARROW_USE_STATIC "Use Arrow/Parquet static libraries." ON)
 #------------------------------------------------------------------------------
 ## Wraps the common find boost code into a single call
 ## @param .. simply add all required components to the call
-## @note This macro will define BOOST_MOC_ARGS that should be added to all moc
-##       calls (see https://bugreports.qt-project.org/browse/QTBUG-22829)
 macro(find_boost)
   set(Boost_USE_MULTITHREADED  ON)
   set(Boost_USE_STATIC_RUNTIME OFF)

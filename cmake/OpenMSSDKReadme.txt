@@ -44,8 +44,8 @@ Requirements of your project
 
   * @BOOST_REQUIREMENT@
   * No Qt: the SDK holds the core and CLI layers, which do not use it. The GUI
-    library (OpenMS::OpenMS_GUI) is not part of the SDK; build OpenMS from source
-    if you need it.
+    library (OpenMS::OpenMS_GUI) is built by the separate repository
+    OpenMS-TOPP-GUI (https://github.com/OpenMS/OpenMS-TOPP-GUI) against this SDK.
   * The same compiler family the SDK was built with:
       - @MSVC_REQUIREMENT@
       - macOS: Apple Clang, arm64@MACOS_MINIMUM@.

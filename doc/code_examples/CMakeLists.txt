@@ -35,13 +35,3 @@ set_tests_properties(Tutorial_Template PROPERTIES WILL_FAIL TRUE)
 # add collection target
 add_custom_target(Tutorials_build)
 add_dependencies(Tutorials_build ${EXAMPLES_executables})
-
-if(WITH_GUI)
-  # add the GUI tutorials -- no tests
-  foreach(i ${GUI_EXAMPLES_executables})
-    add_executable(${i} ${CMAKE_CURRENT_LIST_DIR}/${i}.cpp)
-    target_link_libraries(${i} OpenMS OpenMS_GUI)
-  endforeach(i)
-
-  add_dependencies(Tutorials_build ${GUI_EXAMPLES_executables})
-endif()

@@ -546,11 +546,6 @@ find_package (Threads REQUIRED)
 
 
 #------------------------------------------------------------------------------
-# QT (only needed for GUI)
-#------------------------------------------------------------------------------
-include(${OPENMS_HOST_DIRECTORY}/cmake/cmake_findQt.cmake)
-
-#------------------------------------------------------------------------------
 # opentims (Bruker TimsTOF .d file reading)
 if (WITH_OPENTIMS)
   find_package(Opentims QUIET)
