@@ -25,15 +25,17 @@ Each run was a single variable change against the 11830 teacher-seeded crossfit.
 | Teacher (OpenSWATH SVM q ≤ 0.001) | 3000 | 11830 | 85.9% |
 | Calibration anchors (q ≤ 0.01) | 1186 | 9627 (fail) | 88.3% |
 | Round 2: self-training on round-1 q ≤ 0.001 | 2251 | 7093 (fail) | n/a |
+| **Round 2b: PyProphet-style, round-1 q ≤ 0.01 targets vs best decoy windows** | 6000 | **11332 (pass)** | 86.6% |
 
 Crossfit took 1.5 min at 2.0 GB.
 
 Interpretation:
-- Teacher-free per-run training works, at 81% of the teacher-seeded count.
-- Naive self-training makes it worse. The model's most confident targets are the easy peaks.
-- The anchors are fewer than the teacher seeds and biased toward strong peaks.
+- Anchors alone reach 81% of the teacher-seeded count.
+- Round 2 retrained on only the model's most confident targets and used easy decoy windows as negatives; it got worse.
+- Round 2b iterates the way PyProphet does: targets at q ≤ 0.01 against each decoy's best-scoring window. That reaches 95.8% of the teacher-seeded count with no OpenSWATH input.
+- Both rounds were native OpenDIACNN crossfit runs, with the seeds rebuilt between them by a script. The loop is not yet inside the tool. Only this design run was used; an independent run is open.
 
-Next candidates, each needing its own gate:
-- More anchors, from a looser stage-3 cut or a larger panel.
-- A PyProphet-style semi-supervised loop on the score itself rather than on reseeding.
-- Running anchor extraction and CNN training inside OpenDIACalibrate.
+Next, each with its own gate:
+- Fold the loop into the tool.
+- More anchors when the calibration finds few (500 pg).
+- Cross-run global model (R-WP4).
