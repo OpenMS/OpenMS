@@ -1656,12 +1656,12 @@ namespace OpenMS
         if (!found)
         {
           // It was not registered in the pepXML header. Search it in DB by massdiff = mod_nterm_mass - orig_nterm_mass.
+          // searchModificationsByDiffMonoMass() never throws (it just leaves `mods`
+          // empty when nothing matches), so a try/catch around it to fall back from
+          // N_TERM to PROTEIN_N_TERM never actually falls back; check emptiness instead.
           std::vector<const ResidueModification*> mods;
-          try
-          {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass - Residue::getInternalToNTerm().getMonoWeight(), mod_tol_, "", ResidueModification::N_TERM);
-          }
-          catch(...)
+          ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass - Residue::getInternalToNTerm().getMonoWeight(), mod_tol_, "", ResidueModification::N_TERM);
+          if (mods.empty())
           {
             ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass - Residue::getInternalToNTerm().getMonoWeight(), mod_tol_, "", ResidueModification::PROTEIN_N_TERM);
           }
@@ -1709,12 +1709,12 @@ namespace OpenMS
         if (!found)
         {
           // It was not registered in the pepXML header. Search it in DB.
+          // searchModificationsByDiffMonoMass() never throws (it just leaves `mods`
+          // empty when nothing matches), so a try/catch around it to fall back from
+          // C_TERM to PROTEIN_C_TERM never actually falls back; check emptiness instead.
           std::vector<const ResidueModification*> mods;
-          try
-          {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_cterm_mass - Residue::getInternalToCTerm().getMonoWeight(), mod_tol_, "", ResidueModification::C_TERM);
-          }
-          catch(...)
+          ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_cterm_mass - Residue::getInternalToCTerm().getMonoWeight(), mod_tol_, "", ResidueModification::C_TERM);
+          if (mods.empty())
           {
             ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_cterm_mass - Residue::getInternalToCTerm().getMonoWeight(), mod_tol_, "", ResidueModification::PROTEIN_C_TERM);
           }
@@ -1725,7 +1725,7 @@ namespace OpenMS
           }
           else
           {
-            error(LOAD,std::string("Cannot find N-terminal modification with mass " + StringUtils::toStr(mod_nterm_mass) + "."));
+            error(LOAD,std::string("Cannot find C-terminal modification with mass " + StringUtils::toStr(mod_cterm_mass) + "."));
           }
           //TODO we should create and register a mod here
         }
