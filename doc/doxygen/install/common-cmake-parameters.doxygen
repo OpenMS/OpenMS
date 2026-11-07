@@ -43,8 +43,7 @@ The most important CMake variables are:
     <th valign="top">BUILD_TOPP_TOOLS=On/Off</td>
     <td>Build the TOPP command-line applications (src/topp). Set to "Off" to build only
     the core OpenMS library, e.g. for a standalone SDK consumed by an external application.
-    <code>ENABLE_TOPP_TESTING</code> and <code>ENABLE_PIPELINE_TESTING</code> default to
-    following this flag, and <code>ENABLE_CWL_GENERATION</code> requires it to be
+    <code>ENABLE_TOPP_TESTING</code> defaults to following this flag, and <code>ENABLE_CWL_GENERATION</code> requires it to be
     "On". (Default: On)</td>
   </tr>
   <tr>
