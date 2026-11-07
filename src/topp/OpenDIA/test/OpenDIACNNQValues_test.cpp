@@ -195,6 +195,53 @@ int main()
     bad = rows;
     bad.erase(bad.begin() + 7); // Fold 7 lacks targets.
     invalid(bad);
+
+    // Paired competition: pair "a" target wins, pair "b" decoy wins (tie goes to decoy),
+    // pair "c" target wins, unpaired target "u" competes alone.
+    // Two target windows for precursor ta check that only the best window competes.
+    const std::vector<CNNQValueInput> paired_rows = {
+      {"ta1", "ta", "fa", false, 0, 9.0, "a"}, {"ta2", "ta", "fa", false, 0, 1.0, "a"},
+      {"da", "dA", "fa", true, 0, 8.0, "a"},
+      {"tb", "tb", "fb", false, 0, 5.0, "b"}, {"db", "dB", "fb", true, 0, 5.0, "b"},
+      {"tc", "tc", "fc", false, 0, 4.0, "c"}, {"dc", "dC", "fc", true, 0, 0.5, "c"},
+      {"tu", "tu", "fu", false, 0, 3.0, ""}};
+    const auto paired = keyed(aggregatePairedCNNQValues(paired_rows));
+    // Competitors by score: ta 9 (T), db 5 (D), tc 4 (T), tu 3 (T).
+    // FDR: ta (0+1)/1 = 1, db (1+1)/1 -> 1, tc (1+1)/2 = 1, tu (1+1)/3 = 2/3.
+    near(paired.at("ta1").second, 2.0 / 3.0);
+    check(paired.at("ta1").first && !paired.at("ta2").first);
+    near(paired.at("ta2").second, 1.0);
+    near(paired.at("tb").second, 1.0); // Lost its tied pair.
+    near(paired.at("da").second, 1.0); // Lost to its target.
+    near(paired.at("tc").second, 2.0 / 3.0);
+    near(paired.at("tu").second, 2.0 / 3.0);
+    // Input order does not change paired results.
+    auto reversed_rows = paired_rows;
+    std::reverse(reversed_rows.begin(), reversed_rows.end());
+    check(keyed(aggregatePairedCNNQValues(reversed_rows)) == paired);
+    // Pairing rejects duplicate classes in one key and split folds.
+    const auto paired_invalid = [](const std::vector<CNNQValueInput>& rows)
+    {
+      try
+      {
+        aggregatePairedCNNQValues(rows);
+      }
+      catch (const std::invalid_argument&)
+      {
+        return;
+      }
+      throw std::runtime_error("Expected paired invalid_argument");
+    };
+    paired_invalid({{"t1", "t1", "f1", false, 0, 1.0, "k"}, {"t2", "t2", "f2", false, 0, 2.0, "k"}});
+    paired_invalid({{"t1", "t1", "f1", false, 0, 1.0, "k"}, {"d1", "d1", "f2", true, 1, 2.0, "k"}});
+    paired_invalid({{"t1", "t1", "f1", false, 0, 1.0, "k"}, {"t1b", "t1", "f1", false, 0, 2.0, "other"}});
+    // Without pair keys, every winner competes alone like the unpaired estimator at ratio 1.
+    auto unkeyed = paired_rows;
+    for (auto& row : unkeyed)
+    {
+      row.pair_key.clear();
+    }
+    check(keyed(aggregatePairedCNNQValues(unkeyed)) == keyed(aggregateCNNQValues(unkeyed, 1.0)));
     std::cout << "OpenDIACNNQValues tests passed\n";
     return 0;
   }

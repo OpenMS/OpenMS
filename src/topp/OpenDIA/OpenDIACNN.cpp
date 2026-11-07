@@ -75,6 +75,7 @@ namespace OpenMS
       setMaxInt_("folds", 10);
       registerDoubleOption_("target_decoy_ratio", "<ratio>", 1.0, "Crossfit decoy-count correction: searched library target/decoy ratio, never observed winner ratio", false);
       setMinFloat_("target_decoy_ratio", 0.0);
+      registerFlag_("paired_tdc", "Crossfit only, experimental: paired target-decoy competition. A decoy precursor TRAML_ID 'DECOY_<X>' competes with target <X>; q=(D+1)/T per fold, so target_decoy_ratio must stay 1");
     }
 
     ExitCodes main_(int, const char**) override
@@ -139,6 +140,11 @@ namespace OpenMS
         if (!std::isfinite(target_decoy_ratio) || target_decoy_ratio <= 0)
         {
           throw std::invalid_argument("target_decoy_ratio must be finite and positive.");
+        }
+        const bool paired_tdc = getFlag_("paired_tdc");
+        if (paired_tdc && (!crossfit || target_decoy_ratio != 1.0))
+        {
+          throw std::invalid_argument("paired_tdc requires crossfit mode and target_decoy_ratio 1 (pairing balances the classes).");
         }
 
         const auto max_samples = static_cast<std::size_t>(getIntOption_("max_samples"));
@@ -237,6 +243,20 @@ namespace OpenMS
             crossfit_rows.push_back({data.samples[i].sample_id, collector.window(i).precursor_id, data.samples[i].group_id,
               data.samples[i].is_decoy, OpenDIA::traceCNNFold(data.samples[i].group_id, settings.seed, settings.outer_folds), result.logits[i]});
           }
+          if (paired_tdc)
+          {
+            // Pair key: target TRAML_ID, or a decoy TRAML_ID without its DECOY_ prefix.
+            const auto traml_ids = TransitionPQPFile().getPQPCurrentIDToTraMLIDMap(getStringOption_("lib").c_str(), "PRECURSOR");
+            const std::string prefix = "DECOY_";
+            for (auto& row : crossfit_rows)
+            {
+              const auto found = traml_ids.find(row.precursor_id);
+              if (found == traml_ids.end()) { throw std::invalid_argument("Precursor " + row.precursor_id + " is missing from the PQP PRECURSOR table."); }
+              const std::string& name = found->second;
+              if (!row.is_decoy) { row.pair_key = name; }
+              else if (name.starts_with(prefix)) { row.pair_key = name.substr(prefix.size()); }
+            }
+          }
         }
         else if (training)
         {
@@ -250,7 +270,8 @@ namespace OpenMS
           result = OpenDIA::scoreTraceCNN(data, geometry, checkpoint, getIntOption_("threads"), getFlag_("allow_training_overlap"));
         }
         // Finish validation/statistics before opening the score output.
-        const auto evaluated = crossfit ? OpenDIA::aggregateCNNQValues(crossfit_rows, target_decoy_ratio) : std::vector<OpenDIA::CNNQValueResult>{};
+        const auto evaluated = !crossfit ? std::vector<OpenDIA::CNNQValueResult>{} :
+          paired_tdc ? OpenDIA::aggregatePairedCNNQValues(crossfit_rows) : OpenDIA::aggregateCNNQValues(crossfit_rows, target_decoy_ratio);
         std::ofstream scores(output);
         if (crossfit)
         {
@@ -266,7 +287,8 @@ namespace OpenMS
             scores << '\n';
             targets_at_one_percent += row.precursor_best && !row.input.is_decoy && row.q_value <= 0.01;
           }
-          writeLogInfo_("Experimental fold-wise decoy-count estimate: target_decoy_ratio=" + std::to_string(target_decoy_ratio) +
+          writeLogInfo_(std::string(paired_tdc ? "Experimental fold-wise paired target-decoy estimate:" : "Experimental fold-wise decoy-count estimate:") +
+                        " target_decoy_ratio=" + std::to_string(target_decoy_ratio) +
                         " target_precursors_q01=" + std::to_string(targets_at_one_percent) +
                         ". Teacher-seeded, not independently validated FDR control.");
         }

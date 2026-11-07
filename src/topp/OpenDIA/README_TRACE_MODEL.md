@@ -70,6 +70,17 @@ from separately trained models are never pooled**, so independently changing a
 fold's score scale cannot change its q-values. This is separate-assay decoy-count
 estimation, not paired target-versus-decoy competition.
 
+`-paired_tdc` (crossfit only, off by default) switches to paired competition.
+It requires `target_decoy_ratio` 1 because pairing balances the classes. A decoy
+precursor whose PQP `TRAML_ID` is `DECOY_<X>` pairs with the target whose
+`TRAML_ID` is `<X>`. After per-precursor best-window selection, only the stronger
+member of each pair competes (exact ties go to the decoy). Unpaired precursors
+compete alone, and within each fold `q = min(1, (D + 1) / T)` with the same tie
+grouping and reverse minima. Pair losers keep `precursor_best = 1` but get
+`q_value = 1`. A pair split across folds or a key shared by two targets is
+rejected. Paired members share a family, so they share a fold. This is also an
+experimental estimate, with the same caveats as below.
+
 Cross-fitting removes CNN fitting/early-stopping family overlap. It does **not**
 remove dependence introduced by a teacher trained on the whole acquisition,
 teacher-selected positive windows, candidate generation, correlated peptides or
@@ -308,3 +319,35 @@ much higher than on HeLa. The estimator also differs from PyProphet's, so 0 vs
 without tuning on the evaluation run would mean making decoy and target
 best-of-window selection comparable (paired target-decoy competition or
 per-precursor window normalization) and validating that on HeLa first.
+
+### Paired target-decoy competition
+
+Design gate: HeLa only. On the frozen n = 5 HeLa crossfit (same seeds, folds and
+hyperparameters, so logits are byte-identical to the separate run), `-paired_tdc`
+was compared against the separate `(D + 1) * 1.0145 / T` estimator. 2674 of the
+precursor winners had no partner winner and competed alone.
+
+| HeLa n = 5, targets at experimental fold-wise q <= 0.01 | Separate | Paired |
+|---|---:|---:|
+| Fold 0 / 1 / 2 | 2101 / 2196 / 1965 | 2103 / 2309 / 2119 |
+| Total | 6262 | 6531 |
+| Overlap with SVM 19132 / XGBoost 19725 | 5611 / 5587 | 5846 / 5816 |
+| Native CLI run (4.7 min wall, 7.0 GB peak) | | 6531 |
+
+Paired was at least as high in every fold, so the rule was then applied once,
+unchanged, to the existing independent 500 pg crossfit logits:
+
+| 500 pg, targets at experimental fold-wise q <= 0.01 | Separate | Paired |
+|---|---:|---:|
+| Fold 0 / 1 / 2 | 0 / 0 / 0 | 0 / 110 / 120 |
+| Total (SVM 3008 / XGBoost 3514 baseline) | 0 | 230 |
+| Overlap with SVM / XGBoost | 0 / 0 | 211 / 213 |
+
+Pairing removes the library-ratio penalty (1.27 on 500 pg) and cancels decoys
+that lose to their own target. It does not fix the main 500 pg problem: with
+about 24 windows per precursor, decoy best-of-window maxima still compete with
+real targets, and fold 0 stays at 0. Paired TDC is a different experimental
+estimator, not evidence of calibration. Both numbers carry the same-run teacher
+caveats above, and baseline agreement is not ground truth. The next HeLa-gated
+step is to make best-of-window selection comparable across precursors with
+different window counts.

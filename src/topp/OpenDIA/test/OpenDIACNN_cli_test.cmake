@@ -59,3 +59,13 @@ file(SHA256 "${WORK}/existing.fold0.pt" after)
 if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "refuses to overwrite" OR NOT before STREQUAL after)
   message(FATAL_ERROR "Crossfit overwrote or failed to reject an existing fold checkpoint")
 endif()
+
+# Paired competition is crossfit-only and balances the classes itself (ratio must stay 1).
+foreach(arguments IN ITEMS "-mode;train;-model;${WORK}/paired.pt" "-mode;crossfit;-seeds;${WORK}/seeds.tsv;-model;${WORK}/paired;-target_decoy_ratio;1.5")
+  execute_process(COMMAND "${BINARY}" ${arguments} -paired_tdc -in "${WORK}/input.d"
+    -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+    RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+  if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "paired_tdc requires crossfit" OR EXISTS "${WORK}/scores.tsv")
+    message(FATAL_ERROR "paired_tdc misuse was not rejected before extraction: ${arguments}\n${output}\n${error}")
+  endif()
+endforeach()

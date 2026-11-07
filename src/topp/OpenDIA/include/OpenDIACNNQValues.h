@@ -22,6 +22,8 @@ namespace OpenMS::OpenDIA
     bool is_decoy = false;
     int fold = 0; ///< Identity of the held-out fold and its trained model.
     double score = 0.0; ///< Larger scores indicate stronger evidence.
+    /// Optional target-decoy pair key for paired competition; empty means unpaired.
+    std::string pair_key;
   };
 
   /** @brief Original window and its precursor-level selection and q-value. */
@@ -56,4 +58,22 @@ namespace OpenMS::OpenDIA
   */
   std::vector<CNNQValueResult> aggregateCNNQValues(
     const std::vector<CNNQValueInput>& inputs, double target_decoy_ratio = 1.0);
+
+  /**
+    @brief Paired (picked-precursor) target-decoy competition q-values per fold.
+
+    Precursor winners are selected as in aggregateCNNQValues(). Winners sharing a
+    nonempty pair_key form one target-decoy pair. Only the higher-scoring member
+    competes (exact ties go to the decoy). Unpaired winners compete alone. Within
+    each fold, competing entries use min(1, (D+1)/T) with exact-tie grouping and
+    reverse cumulative minima. Pair members that lose keep q = 1.
+
+    This is an experimental estimate, not guaranteed FDR control.
+
+    @param[in] inputs As for aggregateCNNQValues(). A pair key may join at most one
+      target and one decoy precursor, both in the same fold.
+    @return One result per input window, in original order.
+    @throws std::invalid_argument If input or pairing validation fails.
+  */
+  std::vector<CNNQValueResult> aggregatePairedCNNQValues(const std::vector<CNNQValueInput>& inputs);
 }
