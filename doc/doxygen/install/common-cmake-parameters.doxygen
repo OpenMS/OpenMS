@@ -241,6 +241,27 @@ The most important CMake variables are:
     and without effect on pyOpenMS. (Default: Off)</td>
   </tr>
   <tr>
+    <th valign="top">OPENMS_LINKER</td>
+    <td>[ELF platforms, GCC or Clang] Linker used for libOpenMS and the executables. <code>auto</code> uses
+    <code>lld</code> (or <code>mold</code> for GCC with <code>ENABLE_IPO</code>, since lld cannot read GCC LTO objects)
+    and falls back to the toolchain default if neither works. <code>lld</code>, <code>mold</code>, <code>gold</code>
+    or <code>bfd</code> force that linker (configuration fails if it does not work); <code>default</code> keeps the
+    toolchain default. A linker already chosen via <code>CMAKE_LINKER_TYPE</code> or <code>-fuse-ld=</code> is
+    respected. Relinking all targets of a Release build is about 6x faster with lld or mold than with GNU ld.
+    (Default: <code>auto</code>)</td>
+  </tr>
+  <tr>
+    <th valign="top">ENABLE_UNITYBUILD=Off/On</td>
+    <td>Build the libraries as unity builds: batches of <code>OPENMS_UNITY_BUILD_BATCH_SIZE</code> source files are
+    compiled as one translation unit (CMake <code>UNITY_BUILD</code>), so shared headers are parsed once per batch.
+    Files whose file-local names collide are excluded via <code>SKIP_UNITY_BUILD_INCLUSION</code>. (Default: Off)</td>
+  </tr>
+  <tr>
+    <th valign="top">OPENMS_UNITY_BUILD_BATCH_SIZE</td>
+    <td>[with <code>ENABLE_UNITYBUILD</code>] Number of source files combined into one translation unit
+    (0: all files of a library). Small batches keep incremental builds and parallelism. (Default: 8)</td>
+  </tr>
+  <tr>
     <th valign="top">CMAKE_INSTALL_PREFIX</td>
     <td>the path where the bin/ and lib/ directories should be installed to
         (when <pre>sudo make install</pre> is wished for a system-wide
