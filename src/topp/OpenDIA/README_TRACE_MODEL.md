@@ -351,3 +351,12 @@ estimator, not evidence of calibration. Both numbers carry the same-run teacher
 caveats above, and baseline agreement is not ground truth. The next HeLa-gated
 step is to make best-of-window selection comparable across precursors with
 different window counts.
+
+A window-count correction was then tested offline on HeLa only, with the rule
+and gate fixed in advance: precursor score `best_logit - log(n_windows)` (the
+max-of-n tail shift for a logistic null), with paired TDC. It had to beat
+uncorrected paired TDC in every fold. Folds went 2103 / 2309 / 2119 to
+2241 / 2290 / 2220 (total 6531 to 6751, SVM overlap 5846 to 6034). Fold 1
+dropped, so the gate failed, and the correction was **not** applied to the
+500 pg run or implemented. HeLa has almost equal target and decoy window counts
+(7.12 / 7.15 per precursor), so this run cannot strongly test the correction.
