@@ -42,8 +42,6 @@ if(ENABLE_DOCS)
   #------------------------------------------------------------------------------
   # doc programs
   #------------------------------------------------------------------------------
-  # TODO switch to target based linking and avoid re-searching Qt.
-  # At least reuse the COMPONENT variables
   set(OpenMS_doc_executables)
   include(doxygen/parameters/executables.cmake)
 
@@ -55,14 +53,7 @@ if(ENABLE_DOCS)
   # build doc executables
   foreach(i ${OpenMS_doc_executables})
     add_executable(${i} EXCLUDE_FROM_ALL doxygen/parameters/${i}.cpp)
-    
-    # let the doc progs decide how to handle a missing OpenMS_GUI library
-    if(WITH_GUI)
-      set_target_properties(${i} PROPERTIES COMPILE_DEFINITIONS "WITH_GUI=1")
-      target_link_libraries(${i} OpenMS OpenMS_CLI OpenMS_GUI)
-    else()
-      target_link_libraries(${i} OpenMS OpenMS_CLI)
-    endif()
+    target_link_libraries(${i} OpenMS OpenMS_CLI)
   endforeach(i)
 
   # collection target
@@ -70,10 +61,6 @@ if(ENABLE_DOCS)
   add_dependencies(doc_progs ${OpenMS_doc_executables})
   if(TARGET TOPP)
     add_dependencies(doc_progs TOPP)
-  endif()
-
-  if(WITH_GUI)
-    add_dependencies(doc_progs GUI)
   endif()
 
   #------------------------------------------------------------------------------
@@ -118,17 +105,13 @@ if(ENABLE_DOCS)
       set(CF_DOXYGEN_DOT_EXECUTABLE "")
     endif()
 
-    ## Conditional documentation, for doxygen's @if <label> ... @endif. WITH_GUI marks what only a
-    ## build with the GUI can document: the GUI tools' command line help and INI documentation,
-    ## which TOPPDocumenter captures by running the tools. Without the GUI their pages are still
-    ## generated, just without that section, so the references to them from doc/doxygen/public
-    ## still resolve. WITH_WNETALIGN does the same for FeatureLinkerWNet and for the parameter
+    ## Conditional documentation, for doxygen's @if <label> ... @endif. WITH_WNETALIGN marks what
+    ## only a build with the WNet alignment can document: FeatureLinkerWNet and the parameter
     ## documentation of FeatureGroupingAlgorithmWNet, which DefaultParamHandlerDocumenter only
-    ## writes when the WNet alignment is built.
+    ## writes when the WNet alignment is built. Without it the pages are still generated, just
+    ## without that section, so references to them still resolve.
+    ## (The GUI tools and their documentation live in the OpenMS-TOPP-GUI repository.)
     set(_doxygen_enabled_sections "")
-    if (WITH_GUI)
-      list(APPEND _doxygen_enabled_sections "WITH_GUI")
-    endif()
     if (WITH_WNETALIGN)
       list(APPEND _doxygen_enabled_sections "WITH_WNETALIGN")
     endif()
@@ -184,8 +167,8 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                       COMMAND ${CMAKE_COMMAND} -E echo "Creating the algorithm parameter and TOPP parameter documentation"
                       COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "Note: A functioning OpenMS/TOPP installation and a running X-server (Unix) is required for this step!"
-                      COMMAND ${CMAKE_COMMAND} -E echo "      Windows only: OpenMS and Open_GUI.dll's need to be accessible by the Documenter executables in"
+                      COMMAND ${CMAKE_COMMAND} -E echo "Note: A functioning OpenMS/TOPP installation is required for this step!"
+                      COMMAND ${CMAKE_COMMAND} -E echo "      Windows only: the OpenMS DLLs need to be accessible by the Documenter executables in"
                       COMMAND ${CMAKE_COMMAND} -E echo "      doxygen/parameters/. If the automatic CMake post build copy step did not work, try to add them"
                       COMMAND ${CMAKE_COMMAND} -E echo "      to your Path variable."
                       COMMAND ${CMAKE_COMMAND} -E echo "      If this step fails, use the target 'doc_minimal'."
@@ -207,8 +190,8 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                       COMMAND ${CMAKE_COMMAND} -E echo "Creating the algorithm parameter and TOPP parameter documentation"
                       COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "Note: A functioning OpenMS/TOPP installation and a running X-server (Unix) is required for this step!"
-                      COMMAND ${CMAKE_COMMAND} -E echo "      Windows only: OpenMS and Open_GUI.dll's need to be accessible by the Documenter executables in"
+                      COMMAND ${CMAKE_COMMAND} -E echo "Note: A functioning OpenMS/TOPP installation is required for this step!"
+                      COMMAND ${CMAKE_COMMAND} -E echo "      Windows only: the OpenMS DLLs need to be accessible by the Documenter executables in"
                       COMMAND ${CMAKE_COMMAND} -E echo "      doxygen/parameters/. If the automatic CMake post build copy step did not work, try to add them"
                       COMMAND ${CMAKE_COMMAND} -E echo "      to your Path variable."
                       COMMAND ${CMAKE_COMMAND} -E echo "      If this step fails, use the target 'doc_minimal'."
@@ -353,6 +336,14 @@ if(ENABLE_DOCS)
       REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
       REGEX ".*\\.map\$" EXCLUDE ## Exclude temporary map files
       REGEX ".*\\.md5\$" EXCLUDE ## Exclude temporary md5 files
+    )
+    # doxygen tag file of this documentation (GENERATE_TAGFILE in Doxyfile.in); other projects
+    # (e.g. OpenMS-TOPP-GUI) link to the OpenMS documentation with it (doxygen TAGFILES)
+    install(FILES ${PROJECT_BINARY_DIR}/OpenMS.tag
+      DESTINATION ${INSTALL_DOC_DIR}
+      COMPONENT doc
+      OPTIONAL
+      PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
     )
     # TODO would be cool to somehow have documentation optional
     #install_file(${PROJECT_BINARY_DIR}/index.html ${INSTALL_DOC_DIR} doc)

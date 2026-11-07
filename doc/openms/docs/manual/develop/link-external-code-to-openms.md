@@ -24,21 +24,25 @@ your code needs:
   `OpenMS::OpenMS` when your program derives from `TOPPBase` (it carries `OpenMS::OpenMS` transitively), and request
   the `CLI` component (`find_package(OpenMS CONFIG REQUIRED COMPONENTS CLI)`) so that an installation without the
   framework is rejected when your project is configured
-- `OpenMS::OpenMS_GUI`: the GUI library of an OpenMS built with `WITH_GUI=ON` whose installation includes it;
-  request the `GUI` component (`find_package(OpenMS CONFIG REQUIRED COMPONENTS GUI)`) to also find the Qt6 modules
-  it was built against, otherwise a project linking it has to find those Qt6 modules itself
+- `OpenMS::OpenMS_GUI`: the Qt-based GUI library. It is not built by OpenMS itself but by
+  [OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI), which installs it with a CMake package of its own,
+  `OpenMSGUI` (`find_package(OpenMSGUI CONFIG)`). When the GUI layer of the same version is installed into the same
+  prefix as OpenMS (`cmake --install` of OpenMS-TOPP-GUI with the `CMAKE_INSTALL_PREFIX` of OpenMS),
+  `find_package(OpenMS CONFIG REQUIRED COMPONENTS GUI)` finds it as well, together with the Qt6 modules it links.
 
 The installed package is layered. The core layer (the install components `library`, `OpenMS_headers`,
 `OpenSwathAlgo_headers`, `thirdparty_headers`, `share` and `cmake`) is always present; the TOPP tool framework
-(`library_cli`, `cmake_cli` and `OpenMS_CLI_headers`) and the GUI library (`library_gui`, `cmake_gui` and
-`OpenMS_GUI_headers`) are optional layers on top of it, each linking the layer below. `cmake --install <build>`
+(`library_cli`, `cmake_cli` and `OpenMS_CLI_headers`) is an optional layer on top of it, linking the layer below; the
+GUI library of OpenMS-TOPP-GUI is a further layer on top of that. `cmake --install <build>`
 installs everything, `cmake --install <build> --component <name>` one component at a time; the pyOpenMS wheels, for
 instance, are built against a core-only installation. `OpenMSConfig.cmake` provides the targets of the layers an
-installation contains and reports them with `OpenMS_CLI_FOUND` and `OpenMS_WITH_GUI`.
+installation contains and reports them with `OpenMS_CLI_FOUND` and, when the `GUI` component is requested,
+`OpenMS_GUI_FOUND` / `OpenMS_WITH_GUI`.
 
 The un-namespaced names `OpenMS` and `OpenSwathAlgo` remain available as aliases for projects written against earlier
-releases, as do `OpenMS_CLI` and `OpenMS_GUI` when their layers are installed. The package also reports the version of the installation (`OpenMS_VERSION`), its layers
-(`OpenMS_CLI_FOUND`, `OpenMS_WITH_GUI`), its build options (`OpenMS_WITH_HDF5`, `OpenMS_WITH_OPENTIMS`,
+releases, as do `OpenMS_CLI` and `OpenMS_GUI` when their layers are installed. The package also reports the version of the installation (`OpenMS_VERSION`, and `OpenMS_VERSION_FULLSTRING` as used
+in the package names), its layers
+(`OpenMS_CLI_FOUND`, and `OpenMS_WITH_GUI` when the `GUI` component is requested), its build options (`OpenMS_WITH_HDF5`, `OpenMS_WITH_OPENTIMS`,
 `OpenMS_WITH_THERMO_RAW`, `OpenMS_WITH_ONNX`, `OpenMS_WITH_OPENMP`, `OpenMS_BUILD_TOPP_TOOLS`) and its directories (`OPENMS_DATA_DIR`,
 `OPENMS_LIB_DIR`, `OPENMS_BIN_DIR`, `OPENMS_DOC_DIR`). Whether an installation is shared or static is not a
 separate variable: ask the imported target with `get_target_property(<var> OpenMS::OpenMS TYPE)`.
@@ -133,8 +137,8 @@ In short:
 - copy the `OpenMS/share/OpenMS` directory to the client machine (e.g `<client/my_dir>/share`) and set the environment
   variable `OPENMS_DATA_PATH` to this directory
 - copy the OpenMS library (`OpenMS.dll` for Windows or `OpenMS.so/.dylib` for Linux/macOS) to `<client/my_dir>/bin`.
-- copy all Qt6 libraries to the client `<client/my_dir>/bin` or on Linux/macOS make sure you have installed the Qt6
-  package.
+- only if your code uses the GUI library of OpenMS-TOPP-GUI: copy it and the Qt6 libraries to the client
+  `<client/my_dir>/bin`, or on Linux/macOS make sure you have installed the Qt6 package.
 - copy the shared libraries OpenMS depends on, if any: an OpenMS built with vcpkg links them statically on Windows, and
   on Linux/macOS they are in `<OpenMS source>/build/<preset>/vcpkg_installed/<triplet>/lib`. A build without vcpkg uses
   the system's libraries, so install the same packages on the client machine.

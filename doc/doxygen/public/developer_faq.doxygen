@@ -45,8 +45,7 @@
  <code>CMAKE_PREFIX_PATH</code>, which is where <code>CMake</code> will search for additional libraries if they are not found in the default system paths.
 
  If you configure with one of the CMake presets (e.g. `cmake --preset linux-x64-release`), vcpkg provides the third-party libraries and
- you do not need to set <code>CMAKE_PREFIX_PATH</code> for them; see @ref install_vcpkg. Qt on Windows is the exception: it is installed separately,
- so pass its location with the <code>-D</code> switch, e.g. `cmake --preset windows-x64-debug -D CMAKE_PREFIX_PATH="C:\dev\qt6\6.7.1\msvc2022_64\lib\cmake\Qt6"`.
+ you do not need to set <code>CMAKE_PREFIX_PATH</code> for them; see @ref install_vcpkg.
  If you build without vcpkg against libraries installed elsewhere than the default system paths, add their installation prefixes to <code>CMAKE_PREFIX_PATH</code>.
 
  Everything else can be edited using <code>ccmake</code> afterwards.
@@ -69,16 +68,6 @@
  @warning If you delete the `CMakeCache.txt`, all other custom settings will be lost.
 
  The most useful targets will be shown to you by calling the targets target, i.e. make targets.
-
- <h2><a class="anchor" id="cmake_cant_find_qt_library"></a><code>CMake</code> can't seem to find a Qt library (usually <code>QtCore</code>).</h2>
-
- <code>CMake</code> finds <code>QT</code> by looking for <code>qmake</code> in your <code>PATH</code> or for the Environment Variable <code>QTDIR</code>. Set these accordingly.
-
- Make sure there is no second installation of Qt (especially the MinGW version) in your local environment.
- @warning This might lead <code>CMake</code> to the wrong path (it's searching for the <code>Qt*.lib</code> files).
- You should only move or delete the offending <code>Qt</code> version if you know what you are doing.
-
- A save workaround is to edit the <code>CMakeCache</code> file (e.g. via <code>ccmake</code>) and set all paths relating to <code>QT</code> (e.g. <code>QT_LIBRARY_DIR</code>) manually.
 
  @subsection windows_what_version_of_visual_studio (Windows) What version of Visual Studio should I use?
 
@@ -209,15 +198,7 @@
 
  Look at existing test files in <code>src/tests/class_tests/openms/source/</code> for more examples.
 
- @subsection how_to_add_a_new_gui_test How to add a new GUI test for a class
-
- Suppose you want to create a GUI class for the class called <code>MyClass</code>.
- To add a new GUI test:
- <ol>
- <li>Create the <code>MyClass_test.cpp</code> in <code>src/tests/class_tests/openms_gui/source</code>.</li>
- <li>Add it to <code>src/tests/class_tests/openms_gui/CMakeLists.txt</code> in the GUI section.</li>
- <li>Have a look at existing GUI tests, as they use the QT TestLib framework and not the OpenMS macros.</li>
- </ol>
+ Tests of the GUI classes (Qt TestLib based) live in the <a href="https://github.com/OpenMS/OpenMS-TOPP-GUI">OpenMS-TOPP-GUI</a> repository.
 
  <h2><a class="anchor" id="when_executing_make_test_all_tests_fail"></a>All tests fail when executing <code>make_test</code></h2>
 
@@ -254,14 +235,10 @@
  
  <ol>
  <LI>
- <B>Starting a (GUI) TOPP executable (like TOPPView or FeatureFinderCentroided) gives "The application was unable to start correctly (0xc0000005). Click OK to close the application"</B><BR>
-          When you run the tool in Debug mode and look where it crashes, you might actually find it to be a very weird place - e.g. when passing an OpenMS path string to a Qt API in GUI code:
-@code
-  QFileInfo fi(QString::fromStdString(file));
-  return fi.path()
-@endcode          
+ <B>Starting a TOPP executable (like FeatureFinderCentroided) gives "The application was unable to start correctly (0xc0000005). Click OK to close the application"</B><BR>
+          When you run the tool in Debug mode and look where it crashes, you might actually find it to be a very weird place, e.g. when passing a string to a third-party library.
     The reason this happens is usually: you've mixed DLL's from multiple runtimes (e.g. compiled with VS10 and VS9). This can easily happen,
-    if you use your Qt (build with VS9) to link against your %OpenMS (build with VS10). The loader will load VS9 and VS10 runtimes and will NOT
+    if you link a third-party library (built with VS9) against your %OpenMS (built with VS10). The loader will load VS9 and VS10 runtimes and will NOT
     tell you that they conflict. Instead, very weird things are going to happen.
     You can identify if you are affected by looking at the DLL's that are loaded via daisy-chaining - see either DependencyWalker's output or the 'output'
     window in VS when running the app from inside VS. It might read:
@@ -270,14 +247,14 @@
 'MSSimulator.exe': Loaded 'C:\Windows\winsxs\amd64_microsoft.vc90.debugcrt_1fc8b3b9a1e18e3b_9.0.21022.8_none_4ec74c6b3093419c\msvcr90d.dll', Symbols loaded.
 'MSSimulator.exe': Loaded 'C:\dev\qt-everywhere-opensource-src-4.7.1\bin\QtSqld4.dll', Symbols loaded.
 @endcode
-          As this was a VS10 build, the vc90 DLL's have no place here, but got loaded from the Qt4 DLL's.<br>
-          <b>Solution</b>: recompile Qt (in this case) using VS10 and link against the new Qt.
+          As this was a VS10 build, the vc90 DLL's have no place here, but got loaded from a third-party DLL (here: Qt4).<br>
+          <b>Solution</b>: recompile the third-party library using VS10 and link against the new build.
   </LI>
-  <LI><B>Starting a (GUI) TOPP executable (like TOPPView or FeatureFinderCentroided) gives "Entry point not found"</B><BR>
+  <LI><B>Starting a TOPP executable (like FeatureFinderCentroided) gives "Entry point not found"</B><BR>
     This usually happens when your PATH contains multiple versions of DLL's on which TOPP/%OpenMS depends.
-    Candidates are all QT (QtGui4.dll, QtCore4.dll, ...) or libxml2 (libxml2.dll) libraries.
+    Candidates are third-party libraries like libxml2 (libxml2.dll).
     Usually other external programs (Miktex, Mendeley etc) put their own binary directory (which contains these incompatible DLL's) before 
-    the directory holding the DLL's your build needs (e.g. the <tt>bin</tt> directory of your Qt installation) in your %PATH%.<br>
+    the directory holding the DLL's your build needs (e.g. the <tt>bin</tt> directory of your dependencies) in your %PATH%.<br>
     <b>Solution</b>: put that directory at the very beginning of your %PATH%. The other tools should be unaffected as DLL's are first searched in the path of the executable (where their DLL's should be as well). We do that for %OpenMS as well, but only in the binary installer packages, not for the developer version.</li>
  </ol>
 

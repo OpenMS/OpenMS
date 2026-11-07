@@ -12,19 +12,8 @@
 
   \include{doc} "../doxygen/install/install-testing-openms.doxygen"
 
-  @section build_linux_qt_issues Common Issues with Qt
-
-  If the graphical TOPP tools fail to start or exit with an error
-  message related to Qt you may need to set the `QT_QPA_PLATFORM`
-  environment variable.  This is especially true if you are executing
-  the graphical tools remotely over a SSH-forwarded X11 connection.
-
-  Setting the `QT_QPA_PLATFORM` environment variable to `minimal`
-  before running a TOPP tool should help.  For example:
-
-  \code
-  export QT_QPA_PLATFORM=minimal
-  $OPENMS_DIR/openms_build/bin/TOPPView
-  \endcode
+  The graphical tools (TOPPView, TOPPAS, INIFileEditor) are not part of this source tree; see
+  <a href="https://github.com/OpenMS/OpenMS-TOPP-GUI">OpenMS-TOPP-GUI</a> for building them and for
+  Qt-related issues.
 
 */

@@ -30,14 +30,24 @@ For Debian-based Linux users, it is suggested to use the Debian package attached
 It is built on Ubuntu 24.04 and installs there, on Ubuntu 26.04 and on Debian 13. It needs glibc 2.38 or newer, so it
 does not install on Ubuntu 22.04 or Debian 12. On older distributions, use conda (see above) or a container (see below).
 
-Install it with `apt`, which resolves its dependencies, such as Qt 6, from your distribution's repositories:
+Install it with `apt`, which resolves its dependencies from your distribution's repositories:
 
 ```bash
 sudo apt install ./OpenMS-<version>-Debian-Linux-<architecture>.deb
 ```
+
+The graphical tools (TOPPView, TOPPAS, INIFileEditor) are in a separate package, `openms-gui`, from
+[OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI). Download `OpenMS-GUI-<version>-Debian-Linux-<architecture>.deb`
+of the **same version** from the [OpenMS-TOPP-GUI releases](https://github.com/OpenMS/OpenMS-TOPP-GUI/releases) and install it after OpenMS; `apt` also installs Qt 6 from your
+distribution's repositories:
+
+```bash
+sudo apt install ./OpenMS-GUI-<version>-Debian-Linux-<architecture>.deb
+```
+
 If you encounter errors, troubleshoot using the following steps.
 
-1. Packages are missing, for example the Qt 6 libraries.
+1. Packages are missing, for example the Qt 6 libraries needed by the graphical tools.
 
    The package depends on the libraries of current distributions. Older distributions do not provide them; see the
    requirements above.
@@ -85,3 +95,5 @@ export DOTNET_ROOT=/usr/share/dotnet
 ## Build OpenMS from source
 
 To build OpenMS from source, follow the build instructions for [Linux](https://archive.openms.de/openms/Documentation/release/latest/html/install_linux.html).
+The graphical tools are built from [OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI) against the installed
+OpenMS (see its README).

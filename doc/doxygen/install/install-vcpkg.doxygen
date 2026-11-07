@@ -10,7 +10,9 @@
 
     @section install_vcpkg_prereqs System Prerequisites
 
-    OpenMS need an underlying compiler, build generator, and (because `WITH_GUI` is on by default) the GUI/OpenGL prerequisites below.
+    OpenMS needs an underlying compiler and build generator, see below. %OpenMS itself does not use Qt: the graphical tools
+    (TOPPView, TOPPAS, INIFileEditor) are built from the separate [OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI)
+    repository against an installed %OpenMS, see "Building OpenMS in layers" in @ref install_vcpkg_cmake_flags.
 
     @subsection install_vcpkg_prereqs_linux Linux
 
