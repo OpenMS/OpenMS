@@ -2651,6 +2651,20 @@ three comment lines, then per cross-validation fold the feature names and "m0" (
 the weights of the normalized features and those of the raw features (tab-separated).
 Raises an exception if nothing has been trained yet, or after rescorePSMs() with RESET.
 )doc")
+        .def_static("markRescoredRuns",
+             [](std::vector<OpenMS::ProteinIdentification> runs, const std::string& tool,
+                const std::vector<std::pair<std::string, OpenMS::DataValue>>& settings, const std::string& version)
+             {
+               OpenMS::Percolator::markRescoredRuns(runs, tool, settings, version);
+               return runs;
+             },
+             "runs"_a, "tool"_a, "settings"_a, "version"_a = std::string(OpenMS::Percolator::VENDORED_VERSION),
+             R"doc(
+Mark search runs as post-processed by Percolator and return them: search engine "Percolator"
+with the given version, the meta value 'percolator' = tool, and the search parameters' meta
+values 'Percolator:<name>' of settings, a list of (name, value) in this order. A value None
+removes that meta value.
+)doc")
         ;
     def_DefaultParamHandler<OpenMS::Percolator>(percolator_class);
 

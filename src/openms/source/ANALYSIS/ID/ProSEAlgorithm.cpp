@@ -492,7 +492,8 @@ namespace OpenMS
       "are unchanged. Independent of annotate:PSM.", {"advanced"});
     defaults_.setValidStrings("annotate:self_trained_ion_priors", {"true", "false"});
     defaults_.setValue("annotate:ion_prior_model", "rich",
-      "Contexts and outcomes of the ion priors. 'rich': ion series, precursor charge, fragment charge, relative position, "
+      "Contexts and outcomes of the ion priors. Both keep the ion series a/b, x/y, c and z apart (c and z ions are scored "
+      "for electron-activated spectra, see ions:by_activation). 'rich': ion series, precursor charge, fragment charge, relative position, "
       "the residues at the cleavage site (bond before P, bond after D or E) and whether the complementary singly charged "
       "ion matched; outcome: intensity rank x mass error (|error| / tolerance below 0.25, below 0.5, up to 1). 'basic': "
       "ion series, precursor charge, fragment charge and relative position; outcome: intensity rank.", {"advanced"});
@@ -6321,24 +6322,6 @@ namespace OpenMS
       return ProSEAlgorithm::pinFeatureEnzyme(enzyme, training.fixed_enzyme_termini);
     }
 
-    // The standard PIN features, the search engine's own features, and the bookkeeping columns.
-    StringList rescoringFeatureSet(const ProteinIdentification::SearchParameters& sp, int min_charge, int max_charge)
-    {
-      StringList feature_set = PercolatorInfile::getStandardFeatureSet(min_charge, max_charge);
-      if (sp.metaValueExists("extra_features"))
-      {
-        StringList extra = ListUtils::create<std::string>(sp.getMetaValue("extra_features").toString());
-        feature_set.insert(feature_set.end(), extra.begin(), extra.end());
-      }
-      else
-      {
-        feature_set.push_back("score");
-      }
-      feature_set.push_back("Peptide");
-      feature_set.push_back("Proteins");
-      return feature_set;
-    }
-
     // Training PSMs kept for the domain-shift check, and PSMs of a file compared with them
     constexpr Size REUSE_SHIFT_PSMS = 20000;
     // The spectra of a half whose uniform draw is at least this are calibration spectra: never trained on
@@ -6447,7 +6430,7 @@ namespace OpenMS
     model->min_charge = min_charge;
     model->max_charge = max_charge;
     const ProteinIdentification::SearchParameters& sp = used.front()->protein_ids->front().getSearchParameters();
-    const StringList feature_set = rescoringFeatureSet(sp, min_charge, max_charge);
+    const StringList feature_set = PercolatorInfile::getFeatureSet(sp, min_charge, max_charge);
     const std::string enzyme = rescoringEnzyme(sp.digestion_enzyme.getName(), percolator_training_);
 
     // The training PSMs of a half: max_train shared equally by the files, a file with fewer PSMs gives all of them (the
@@ -6806,7 +6789,7 @@ namespace OpenMS
       max_charge = reuse->max_charge;
     }
     const ProteinIdentification::SearchParameters& sp = protein_ids.front().getSearchParameters();
-    const StringList feature_set = rescoringFeatureSet(sp, min_charge, max_charge);
+    const StringList feature_set = PercolatorInfile::getFeatureSet(sp, min_charge, max_charge);
 
     Percolator perc;
     Param pp = rescoringPercolatorParameters(perc.getDefaults(), threads, training, extra);
@@ -6899,62 +6882,57 @@ namespace OpenMS
                                                  const PercolatorTraining& training, const Percolator* perc,
                                                  const ReuseScoring_* reuse)
   {
-    // Mark the runs as post-processed by Percolator, as PercolatorAdapter does.
+    // Mark the runs as post-processed by Percolator, as PercolatorAdapter does. Percolator's settings, in the order of
+    // the existing output (flags as "true"/"false"); an empty value removes a setting that does not apply.
+    std::vector<std::pair<std::string, DataValue>> settings = {
+      {"peptide_level_fdrs", "false"},
+      {"protein_level_fdrs", "false"},
+      {"testFDR", static_cast<double>(pp.getValue("test_fdr"))},
+      {"trainFDR", static_cast<double>(pp.getValue("train_fdr"))},
+      {"maxiter", static_cast<int>(pp.getValue("num_iterations"))},
+      {"subset_max_train", static_cast<int>(pp.getValue("subset_max_train"))}};
+    // (only with a cap and an out-of-fold mode, or the learning curve: the output without a cap, or in_sample, stays
+    // as it was)
+    const std::string subset_mode = pp.getValue("subset_mode").toString();
+    const bool record_subset_mode = subset_mode == "learning_curve" ||
+                                    (static_cast<int>(pp.getValue("subset_max_train")) > 0 && subset_mode != "in_sample");
+    settings.emplace_back("subset_mode", record_subset_mode ? DataValue(subset_mode) : DataValue::EMPTY);
+    // the learning curve: "validation=<rows>; <sample rows>:<validation targets per fold>; ...; chosen=<rows per fold>"
+    std::string curve;
+    if (subset_mode == "learning_curve" && perc != nullptr && !perc->getCappedTrainingInfo().curve_sizes.empty())
+    {
+      const Percolator::CappedTrainingInfo& capped = perc->getCappedTrainingInfo();
+      curve = "validation=" + std::to_string(capped.validation_rows);
+      for (size_t k = 0; k < capped.curve_sizes.size(); ++k)
+      {
+        curve += "; " + std::to_string(capped.curve_sizes[k]) + ":";
+        for (size_t f = 0; f < capped.curve_counts[k].size(); ++f)
+        {
+          curve += (f ? "/" : "") + std::to_string(capped.curve_counts[k][f]);
+        }
+      }
+      curve += "; chosen=";
+      for (size_t f = 0; f < capped.chosen_size.size(); ++f) curve += (f ? "/" : "") + std::to_string(capped.chosen_size[f]);
+    }
+    settings.emplace_back("subset_curve", curve.empty() ? DataValue::EMPTY : DataValue(curve));
+    settings.emplace_back("seed", static_cast<int>(pp.getValue("seed")));
+    settings.emplace_back("post_processing_tdc", "true");
+    settings.emplace_back("train_best_positive", "true");
+    settings.emplace_back("solver", training.solver != "tron" ? DataValue(training.solver) : DataValue::EMPTY);
+    const auto rr = perc != nullptr ? perc->getResetOutput() : nullptr;
+    const bool peptide_q_values = training.peptide_level && reuse == nullptr && perc != nullptr && !rr;
+    settings.emplace_back("peptide_q_values", peptide_q_values ? DataValue("percolator_peptide_q_value, percolator_peptide_pep")
+                                                               : DataValue::EMPTY);
+    if (rr) { settings.emplace_back("algorithm", "reset"); }
+    Percolator::markRescoredRuns(protein_ids, "ProSE", settings);
+
+    // what RESET and rescore_reuse did, after them
+    if (!rr && reuse == nullptr) { return; }
     for (ProteinIdentification& run : protein_ids)
     {
-      run.setSearchEngine("Percolator");
-      run.setSearchEngineVersion("3.08-vendored");
-      run.setMetaValue("percolator", "ProSE");
-      ProteinIdentification::SearchParameters run_sp = run.getSearchParameters();
-      run_sp.setMetaValue("Percolator:peptide_level_fdrs", "false");
-      run_sp.setMetaValue("Percolator:protein_level_fdrs", "false");
-      run_sp.setMetaValue("Percolator:testFDR", static_cast<double>(pp.getValue("test_fdr")));
-      run_sp.setMetaValue("Percolator:trainFDR", static_cast<double>(pp.getValue("train_fdr")));
-      run_sp.setMetaValue("Percolator:maxiter", static_cast<int>(pp.getValue("num_iterations")));
-      run_sp.setMetaValue("Percolator:subset_max_train", static_cast<int>(pp.getValue("subset_max_train")));
-      // (only with a cap and an out-of-fold mode, or the learning curve: the output without a cap, or in_sample, stays
-      // as it was)
-      const std::string subset_mode = pp.getValue("subset_mode").toString();
-      if (subset_mode == "learning_curve" ||
-          (static_cast<int>(pp.getValue("subset_max_train")) > 0 && subset_mode != "in_sample"))
+      ProteinIdentification::SearchParameters& run_sp = run.getSearchParameters();
+      if (rr)
       {
-        run_sp.setMetaValue("Percolator:subset_mode", subset_mode);
-      }
-      else run_sp.removeMetaValue("Percolator:subset_mode");
-      // the learning curve: "validation=<rows>; <sample rows>:<validation targets per fold>; ...; chosen=<rows per fold>"
-      if (subset_mode == "learning_curve" && perc != nullptr && !perc->getCappedTrainingInfo().curve_sizes.empty())
-      {
-        const Percolator::CappedTrainingInfo& capped = perc->getCappedTrainingInfo();
-        std::string curve = "validation=" + std::to_string(capped.validation_rows);
-        for (size_t k = 0; k < capped.curve_sizes.size(); ++k)
-        {
-          curve += "; " + std::to_string(capped.curve_sizes[k]) + ":";
-          for (size_t f = 0; f < capped.curve_counts[k].size(); ++f)
-          {
-            curve += (f ? "/" : "") + std::to_string(capped.curve_counts[k][f]);
-          }
-        }
-        curve += "; chosen=";
-        for (size_t f = 0; f < capped.chosen_size.size(); ++f) curve += (f ? "/" : "") + std::to_string(capped.chosen_size[f]);
-        run_sp.setMetaValue("Percolator:subset_curve", curve);
-      }
-      else run_sp.removeMetaValue("Percolator:subset_curve");
-      run_sp.setMetaValue("Percolator:seed", static_cast<int>(pp.getValue("seed")));
-      run_sp.setMetaValue("Percolator:post_processing_tdc", "true");
-      run_sp.setMetaValue("Percolator:train_best_positive", "true");
-      if (training.solver != "tron") run_sp.setMetaValue("Percolator:solver", training.solver);
-      else run_sp.removeMetaValue("Percolator:solver");
-      if (training.peptide_level && reuse == nullptr && perc != nullptr && !perc->getResetOutput())
-      {
-        run_sp.setMetaValue("Percolator:peptide_q_values", "percolator_peptide_q_value, percolator_peptide_pep");
-      }
-      else
-      {
-        run_sp.removeMetaValue("Percolator:peptide_q_values");
-      }
-      if (const auto rr = perc != nullptr ? perc->getResetOutput() : nullptr)
-      {
-        run_sp.setMetaValue("Percolator:algorithm", "reset");
         run_sp.setMetaValue("RESET:salt", StringUtils::toStr(rr->salt));
         run_sp.setMetaValue("RESET:protocol", "PSM-only");
         run_sp.setMetaValue("RESET:learner", rr->learner);
@@ -6977,7 +6955,6 @@ namespace OpenMS
         run_sp.setMetaValue("Percolator:rescore_reuse_seed", static_cast<int>(reuse->seed));
         if (reuse->note->shift >= 0.0) { run_sp.setMetaValue("Percolator:rescore_reuse_shift", reuse->note->shift); }
       }
-      run.setSearchParameters(run_sp);
     }
   }
 
@@ -9841,7 +9818,7 @@ namespace OpenMS
       }
     }
     const ProteinIdentification& first_run = mfres.per_file[searched[0]].protein_ids[0];
-    const StringList feature_set = rescoringFeatureSet(first_run.getSearchParameters(), min_charge, max_charge);
+    const StringList feature_set = PercolatorInfile::getFeatureSet(first_run.getSearchParameters(), min_charge, max_charge);
     const std::string enzyme = rescoringEnzyme(first_run.getSearchParameters().digestion_enzyme.getName(), percolator_training_);
 
     // rescore_method 'reset' has no transfer of a model (Percolator::trainPSMs()/scorePSMs() are plain Percolator): the
@@ -10954,7 +10931,7 @@ namespace OpenMS
       return std::max(1, std::min(max_fragment_charge, precursor_charge - 1));
     };
     // The ions of @p sequence (charge 1 to fragment_charges(charge)) matched against peak list @p scan: from the
-    // series, ordinals and charges of getIonSeriesSpectrum() if the generator supports it (no ion names to write and
+    // ion types, ordinals and charges of getIonSeriesSpectrum() if the generator supports it (no ion names to write and
     // parse back: the same ions), else from getSpectrum() with the names.
     struct IonScratch
     {
@@ -10962,13 +10939,15 @@ namespace OpenMS
       std::vector<uint8_t> series;
       std::vector<UInt> ordinals;
       std::vector<Int> charges;
+      std::vector<Residue::ResidueType> types;
     };
     const auto match_ions = [&](const FragmentIonLikelihoodModel& model, const TheoreticalSpectrumGenerator& tsg, Size scan,
                                 const AASequence& sequence, int charge, IonScratch& scratch, std::vector<FragmentIonLikelihoodModel::Ion>& ions)
     {
-      if (tsg.getIonSeriesSpectrum(scratch.theo, scratch.series, scratch.ordinals, scratch.charges, sequence, 1, fragment_charges(charge)))
+      if (tsg.getIonSeriesSpectrum(scratch.theo, scratch.series, scratch.ordinals, scratch.charges, scratch.types, sequence, 1,
+                                   fragment_charges(charge)))
       {
-        model.matchIons(evidence, scan, scratch.theo, scratch.series, scratch.ordinals, scratch.charges, sequence, charge, tolerance, ppm, ions);
+        model.matchIons(evidence, scan, scratch.theo, scratch.types, scratch.ordinals, scratch.charges, sequence, charge, tolerance, ppm, ions);
         return;
       }
       scratch.theo.clear(true);

@@ -293,6 +293,7 @@ endif()
 
 # Determine Arrow Compute target (may be bundled into Arrow::arrow_* on some distros).
 # We need compute kernels (e.g., "equal") for filter expression binding.
+unset(OPENMS_ARROW_COMPUTE_TARGET)
 if(ARROW_USE_STATIC AND TARGET Arrow::arrow_compute_static)
   set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_static)
 elseif(NOT ARROW_USE_STATIC AND TARGET Arrow::arrow_compute_shared)
@@ -301,6 +302,25 @@ elseif(TARGET Arrow::arrow_compute_static)
   set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_static)
 elseif(TARGET Arrow::arrow_compute_shared)
   set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_shared)
+else()
+  # Since Arrow 20, compute is a package of its own (ArrowCompute). Pick its static/shared target
+  # by the same preference as the other Arrow targets: falling through to find_library() below
+  # can return libarrow_compute.so next to static Arrow archives (installations with both, e.g.
+  # Apache's apt packages). The shared library then loads a second copy of Arrow at run time,
+  # which aborts in protobuf's descriptor registration; whether the linker records it depends on
+  # link order (GNU ld drops it with --as-needed, lld keeps it).
+  find_package(ArrowCompute CONFIG QUIET)
+endif()
+if(OPENMS_ARROW_COMPUTE_TARGET)
+  # found above
+elseif(ARROW_USE_STATIC AND TARGET ArrowCompute::arrow_compute_static)
+  set(OPENMS_ARROW_COMPUTE_TARGET ArrowCompute::arrow_compute_static)
+elseif(NOT ARROW_USE_STATIC AND TARGET ArrowCompute::arrow_compute_shared)
+  set(OPENMS_ARROW_COMPUTE_TARGET ArrowCompute::arrow_compute_shared)
+elseif(TARGET ArrowCompute::arrow_compute_static)
+  set(OPENMS_ARROW_COMPUTE_TARGET ArrowCompute::arrow_compute_static)
+elseif(TARGET ArrowCompute::arrow_compute_shared)
+  set(OPENMS_ARROW_COMPUTE_TARGET ArrowCompute::arrow_compute_shared)
 else()
   # Fallback: compute might be a plain library without a CMake target.
   # Use platform-neutral search with optional hints.

@@ -230,11 +230,12 @@ protected:
   };
 
   /// Stamp "this run was post-processed by Percolator via PercolatorAdapter"
-  /// metadata on every ProteinIdentification: search_engine, version, the
-  /// "percolator" marker UserParam, and the 23 Percolator:* SearchParameter
-  /// UserParams recording the adapter's CLI configuration. Both backends
-  /// (in-process and subprocess) must produce equivalent metadata so that
-  /// downstream tools see the same provenance regardless of which path ran.
+  /// metadata on every ProteinIdentification (Percolator::markRescoredRuns()):
+  /// search_engine, version, the "percolator" marker UserParam, and the 23
+  /// Percolator:* SearchParameter UserParams recording the adapter's CLI
+  /// configuration. Both backends (in-process and subprocess) must produce
+  /// equivalent metadata so that downstream tools see the same provenance
+  /// regardless of which path ran.
   ///
   /// @param prot_ids       all ProteinIdentifications from the input
   /// @param peptide_level_fdrs / @param protein_level_fdrs  CLI flag values
@@ -259,11 +260,6 @@ protected:
 
     for (ProteinIdentification& prot_id_run : prot_ids)
     {
-      // It is not a real search engine but we set it so downstream tools
-      // can see that scores were post-processed.
-      prot_id_run.setSearchEngine("Percolator");
-      prot_id_run.setSearchEngineVersion(version_string);
-
       if (protein_level_fdrs && protein_map)
       {
         // Map Percolator protein-level qvalue/PEP back onto each ProteinHit
@@ -309,34 +305,34 @@ protected:
             prot_ids[0].getIndistinguishableProteins(), prot_ids[0].getHits());
         }
       }
-
-      prot_id_run.setMetaValue("percolator", "PercolatorAdapter");
-      ProteinIdentification::SearchParameters sp = prot_id_run.getSearchParameters();
-      sp.setMetaValue("Percolator:peptide_level_fdrs",   peptide_level_fdrs);
-      sp.setMetaValue("Percolator:protein_level_fdrs",   protein_level_fdrs);
-      sp.setMetaValue("Percolator:generic_feature_set",  getFlag_("generic_feature_set"));
-      sp.setMetaValue("Percolator:testFDR",              getDoubleOption_("testFDR"));
-      sp.setMetaValue("Percolator:trainFDR",             getDoubleOption_("trainFDR"));
-      sp.setMetaValue("Percolator:maxiter",              getIntOption_("maxiter"));
-      sp.setMetaValue("Percolator:subset_max_train",     getIntOption_("subset_max_train"));
-      sp.setMetaValue("Percolator:quick_validation",     getFlag_("quick_validation"));
-      sp.setMetaValue("Percolator:static",               getFlag_("static"));
-      sp.setMetaValue("Percolator:weights",              getStringOption_("weights"));
-      sp.setMetaValue("Percolator:init_weights",         getStringOption_("init_weights"));
-      sp.setMetaValue("Percolator:default_direction",    getStringOption_("default_direction"));
-      sp.setMetaValue("Percolator:cpos",                 getDoubleOption_("cpos"));
-      sp.setMetaValue("Percolator:cneg",                 getDoubleOption_("cneg"));
-      sp.setMetaValue("Percolator:unitnorm",             getFlag_("unitnorm"));
-      sp.setMetaValue("Percolator:override",             getFlag_("override"));
-      sp.setMetaValue("Percolator:seed",                 getIntOption_("seed"));
-      sp.setMetaValue("Percolator:doc",                  getIntOption_("doc"));
-      sp.setMetaValue("Percolator:klammer",              getFlag_("klammer"));
-      sp.setMetaValue("Percolator:fasta",                getStringOption_("fasta"));
-      sp.setMetaValue("Percolator:decoy_pattern",        getStringOption_("decoy_pattern"));
-      sp.setMetaValue("Percolator:post_processing_tdc",  getFlag_("post_processing_tdc"));
-      sp.setMetaValue("Percolator:train_best_positive",  getFlag_("train_best_positive"));
-      prot_id_run.setSearchParameters(sp);
     }
+
+    // The options as given (flags as int 0/1, as before: the order and the types are those of the existing output)
+    const std::vector<std::pair<std::string, DataValue>> settings = {
+      {"peptide_level_fdrs",  static_cast<int>(peptide_level_fdrs)},
+      {"protein_level_fdrs",  static_cast<int>(protein_level_fdrs)},
+      {"generic_feature_set", static_cast<int>(getFlag_("generic_feature_set"))},
+      {"testFDR",             getDoubleOption_("testFDR")},
+      {"trainFDR",            getDoubleOption_("trainFDR")},
+      {"maxiter",             getIntOption_("maxiter")},
+      {"subset_max_train",    getIntOption_("subset_max_train")},
+      {"quick_validation",    static_cast<int>(getFlag_("quick_validation"))},
+      {"static",              static_cast<int>(getFlag_("static"))},
+      {"weights",             getStringOption_("weights")},
+      {"init_weights",        getStringOption_("init_weights")},
+      {"default_direction",   getStringOption_("default_direction")},
+      {"cpos",                getDoubleOption_("cpos")},
+      {"cneg",                getDoubleOption_("cneg")},
+      {"unitnorm",            static_cast<int>(getFlag_("unitnorm"))},
+      {"override",            static_cast<int>(getFlag_("override"))},
+      {"seed",                getIntOption_("seed")},
+      {"doc",                 getIntOption_("doc")},
+      {"klammer",             static_cast<int>(getFlag_("klammer"))},
+      {"fasta",               getStringOption_("fasta")},
+      {"decoy_pattern",       getStringOption_("decoy_pattern")},
+      {"post_processing_tdc", static_cast<int>(getFlag_("post_processing_tdc"))},
+      {"train_best_positive", static_cast<int>(getFlag_("train_best_positive"))}};
+    Percolator::markRescoredRuns(prot_ids, "PercolatorAdapter", settings, version_string);
   }
 
   /// Apply the user-facing post-filters (-score:fdr, -best_per_spectrum_only)
@@ -979,32 +975,21 @@ protected:
       // prepare pin
       //-------------------------------------------------------------
       
-      StringList feature_set = PercolatorInfile::getStandardFeatureSet(min_charge, max_charge);
-      if (description_of_correct != 0)
-      {
-        feature_set.push_back("retentiontime");
-        feature_set.push_back("deltamass");
-      }
-
-      ProteinIdentification::SearchParameters search_parameters = all_protein_ids.front().getSearchParameters();
-      if (search_parameters.metaValueExists("extra_features"))
-      {
-        StringList extra_feature_set = ListUtils::create<std::string>(search_parameters.getMetaValue("extra_features").toString());
-        feature_set.insert(feature_set.end(), extra_feature_set.begin(), extra_feature_set.end());
-      }
-      else if (getFlag_("generic_feature_set")) 
-      {
-        feature_set.push_back("score");
-      } 
-      else 
+      const ProteinIdentification::SearchParameters& search_parameters = all_protein_ids.front().getSearchParameters();
+      if (!search_parameters.metaValueExists("extra_features") && !getFlag_("generic_feature_set"))
       {
         writeLogError_("No search engine specific features found. Generate search engine specific features using PSMFeatureExtractor or set the -generic-features-set flag to override. Aborting!");
         printUsage_();
         return INCOMPATIBLE_INPUT_DATA;
       }
-      
-      feature_set.push_back("Peptide");
-      feature_set.push_back("Proteins");
+      // the standard features, the search engine's (the main score with -generic_feature_set), Peptide and Proteins
+      StringList feature_set = PercolatorInfile::getFeatureSet(search_parameters, min_charge, max_charge);
+      if (description_of_correct != 0)
+      {
+        // after the standard features
+        const auto standard_end = feature_set.begin() + PercolatorInfile::getStandardFeatureSet(min_charge, max_charge).size();
+        feature_set.insert(standard_end, {"retentiontime", "deltamass"});
+      }
 
       // In-process path: handle the simple idXML/mzid + PSM-level FDR case
       // without spawning the external 'percolator' binary (in_process_ok was

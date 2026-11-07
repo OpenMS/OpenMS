@@ -321,6 +321,29 @@ if (WITH_CRAWDAD) ## TODO check if still necessary
   list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
 endif()
 
+# Files that cannot share a unity-build translation unit (ENABLE_UNITYBUILD) with their
+# neighbours: file-local helpers (anonymous namespace / static) with the same names as in
+# another file, or headers that cannot be combined (boost/sort/spreadsort next to
+# boost/range/algorithm/sort.hpp; the vendored mzPeak headers next to a file-scope
+# "using namespace std"). They are compiled on their own.
+set_source_files_properties(
+  source/ANALYSIS/ID/FragmentIndex.cpp
+  source/ANALYSIS/ID/PercolatorReset.cpp
+  source/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.cpp
+  source/ANALYSIS/QUANTITATION/TMTThirtyFivePlexQuantitationMethod.cpp
+  source/CHEMISTRY/SimpleTSGXLMS.cpp
+  source/DATASTRUCTURES/DateTime.cpp
+  source/FORMAT/ConsensusMapArrowIO.cpp
+  source/FORMAT/DATAACCESS/MobilogramParquetConsumer.cpp
+  source/FORMAT/DATAACCESS/XIPMParquetConsumer.cpp
+  source/FORMAT/FeatureMapArrowIO.cpp
+  source/FORMAT/MzPeakFile.cpp
+  source/FORMAT/ParamJSONFile.cpp
+  source/FORMAT/QPXFile.cpp
+  source/FORMAT/XIMParquetFile.cpp
+  source/FORMAT/XIPMParquetFile.cpp
+  PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+
 openms_add_library(TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}
                    HEADER_FILES  ${OpenMS_sources_h}
