@@ -1,3 +1,5 @@
+> **Archived 7 November 2026.** This laptop-first WP-00 to WP-10 plan is closed and superseded by the [OpenDIA rewrite master plan](../../../README.md). It is kept unchanged for provenance. Its native-input policy, read-only inputs and gate discipline carry over.
+
 # WP-04: Bounded hypothesis preparation and indexed family store
 
 - **Track:** library.

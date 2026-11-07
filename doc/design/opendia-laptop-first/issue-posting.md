@@ -1,27 +1,23 @@
 # OpenDIA issue map
 
-[Master plan](README.md) · [Shared architecture](architecture.md)
+[Master plan](README.md)
 
-Epic: [OpenMS/OpenMS#10661](https://github.com/OpenMS/OpenMS/issues/10661). Existing WP IDs are retained under five tracks. WP-09 was transferred from OpenMS-TimSim-Fixture#11 to OpenMS#10675, preserving its epic relationship.
+Epic: [OpenMS/OpenMS#10661](https://github.com/OpenMS/OpenMS/issues/10661).
 
-| WP | Issue | Completion blockers |
-|---|---|---|
-| 00 Baseline | [#10662](https://github.com/OpenMS/OpenMS/issues/10662) | None |
-| 01 Contracts | [#10663](https://github.com/OpenMS/OpenMS/issues/10663) | None |
-| 02 Memory budget | [#10664](https://github.com/OpenMS/OpenMS/issues/10664) | 01 |
-| 03 Raw tiles | [#10665](https://github.com/OpenMS/OpenMS/issues/10665) | 01 |
-| 04 Library store | [#10666](https://github.com/OpenMS/OpenMS/issues/10666) | 01 |
-| 05 Extraction/calibration adapter | [#10667](https://github.com/OpenMS/OpenMS/issues/10667) | 01 |
-| 06 Retrieval | [#10668](https://github.com/OpenMS/OpenMS/issues/10668) | 03, 04, 05 |
-| 07 Family scoring | [#10669](https://github.com/OpenMS/OpenMS/issues/10669) | 05, 06 for final scoring, none for early null/decoy experiment |
-| 08 Output/FDR | [#10670](https://github.com/OpenMS/OpenMS/issues/10670) | 01 |
-| 09 Integration | [#10675](https://github.com/OpenMS/OpenMS/issues/10675) | 02 through 08 for completion, starts on 01 |
-| 10 Release gates | [#10671](https://github.com/OpenMS/OpenMS/issues/10671) | 00, 09 |
+## Legacy packages (closed 7 November 2026, superseded by the rewrite)
 
-## Keeping docs and issues aligned
+#10662 WP-00 (closed earlier), #10663 WP-01, #10664 WP-02, #10665 WP-03, #10666 WP-04, #10667 WP-05, #10668 WP-06, #10669 WP-07, #10670 WP-08, #10675 WP-09, #10671 WP-10.
+Each closing comment links the archived package document and states what carries over. The archive is [archive/legacy-wp-plan-20261107](archive/legacy-wp-plan-20261107/README.md).
 
-- Use these implementation dependencies for GitHub's native **blocked by** relationships. They do not prevent early experiments or adapter work on stacked branches. WP-01's local contract checks do not depend on scientific freeze, so WP-07's review creates no dependency cycle. Per the 26 October 2026 owner decision, local readiness does not authorize issue closure or a merge into `develop`: first validate the combined refactor's correctness, speed and memory efficiency.
-- Keep the master short. Each WP has objective, scope, dependencies and 3–6 local merge checks. Shared policies live in architecture, whole-workflow gates in WP-09/10.
-- Update existing issue bodies, not new duplicate issues. Preserve discussion, assignment and unchecked implementation status. Published issue links must be absolute issue URLs or pinned blob URLs, never pasted repository-relative links.
-- Publish planning documentation on `OpenMS/OpenMS:docs/opendia-wp00-design-plan` before linking its new revision. Use the resulting commit SHA for issue documentation links, so readers see exactly the reviewed version. Keep these planning documents out of implementation PRs.
-- Record local readiness with commands, pinned inputs/build and observed results, while keeping packages open and stacked. WP-09/10 retain whole-workflow scientific/resource/performance acceptance. Close and integrate individual packages only after the owner-approved combined-design decision.
+## Rewrite packages
+
+| WP | Issue |
+|---|---|
+| R-WP1 Streaming search | see epic |
+| R-WP2 Calibration | see epic |
+| R-WP3 Trace CNN | see epic |
+| R-WP4 Error control | see epic |
+| R-WP5 ID gap | see epic |
+| R-WP6 Acceptance | see epic |
+
+Issue numbers are filled in when the issues are created. Link documents with pinned commit URLs.

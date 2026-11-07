@@ -1,305 +1,75 @@
-# OpenDIA: laptop-first implementation plan
+# OpenDIA rewrite: master plan
 
-**Current status, 4 November 2026:** the retained shared-evidence and actual-candidate-apex scheduler (`fce959ce72`, `3c13c15930`) demonstrates a **2.91x full native TimSim speedup with unchanged scientific outputs**, with a measured **17.12%** median RSS increase in that comparison. The context-lifetime follow-through `b539859c3b` now reduces median process peak RSS **10.83% against the retained apex scheduler**, with lower RSS in both new counterbalanced pairs, essentially unchanged wall time and identical scientific results. All **178 affected tests** pass. These are separate comparisons, not a combined transitive speed/memory claim. See [current evidence, memory acceptance and PR boundary](scoring-lifetime-20261104.md). This is useful engineering progress, not completion of the large predicted-library engine.
+**Status, 7 November 2026.** This replaces the laptop-first WP-00 to WP-10 plan, which is now closed and kept unchanged under [archive/legacy-wp-plan-20261107](archive/legacy-wp-plan-20261107/README.md).
 
-**Execution update, 5 November 2026:** the retained active-RT sweep (`2d406a894e`) skips chromatogram extraction for inactive RT windows and keeps the original fallback for non-monotonic or dense windows. One matched prepared-library Astral comparison plus a second repeat retained all 1,501 output rows and selected-result parity. Baseline versus optimized wall times were 13:17.04, 13:00.20 and 13:17.69; extraction/scoring stage times were 9:38, 9:16 and 9:22. This suggests a small stage-level improvement, but the full-run change is within run variability and is not an established overall speedup. The evidence is in the local `OpenMS-r1-benchmark-20261105/astral-focus-raw01-*` run records. Do not combine it with the separate TimSim or context-memory comparisons.
+The rewrite lives on [`OpenMS/OpenMS:feature/opendia-clean-rewrite`](https://github.com/OpenMS/OpenMS/tree/feature/opendia-clean-rewrite).
+That is 30 commits on `develop`, all under `src/topp/OpenDIA/`, with no shared OpenMS API changes.
+It is an experimental branch, not a pull request, and it must not merge into `develop` until the acceptance gates of R-WP6 pass.
+Detailed evidence lives in the branch's [`src/topp/OpenDIA/README_TRACE_MODEL.md`](https://github.com/OpenMS/OpenMS/blob/feature/opendia-clean-rewrite/src/topp/OpenDIA/README_TRACE_MODEL.md).
 
-The next design increment is a **group-level candidate picker**: normalize detecting-transition traces on an identical RT grid, use a robust group signal to propose candidate boundaries once, then retain the original per-transition integration and scoring evidence. A discordant or weak minority must not drive a candidate, while missing transitions, interference, delayed coelution and overlapping true peaks remain explicit recall tests. Candidate rejection is a high-recall proposal/filtering gate, not a new irreversible identification decision. Separately evaluate two library-scale extraction layouts: query candidates directly against acquisition tiles, or materialize/cache reusable traces for a compiled library. The external [dia-trace-extract-prototype](https://github.com/okohlbacher/dia-trace-extract-prototype) is a grid-extraction reference, not a drop-in replacement or validated OpenDIA engine; preserve exact acquisition/IM coordinates and missingness, and compare complete search cost including preparation, storage, peak picking, scoring and output before choosing. See [the redesign decision](redesign-decision-20261103.md).
+## Why the direction changed
 
-| Current package | Verified progress | Next gate / status |
+The legacy plan kept OpenSWATH's chromatogram and feature-scoring path and tried to make it cheaper with caches, tiles and admission control.
+Its own experiments showed that this did not change the cost structure: the frame cache, tiled extraction and scorer micro-optimisations did not give a faster engine.
+See the archived [redesign decision](archive/legacy-wp-plan-20261107/redesign-decision-20261103.md).
+
+The rewrite replaces the whole dataflow:
+
+```
+raw run (.d / mzML)
+   │
+   ▼
+OpenDIACalibrate      identification-free RT, fragment m/z and 1/K0 calibration (no iRT kit, no IDs)
+   │  calibration.json
+   ▼
+OpenDIA -calibration  streaming sparse-grid search of the full library inside calibrated windows
+   │  candidate peak groups (multi-apex)
+   ▼
+OpenDIACNN crossfit   raw XIC/XIM trace tensors → CNN, family cross-fitting,
+                      paired target-decoy competition → precursor q-values
+```
+
+## Current HeLa result (design run, not independent evidence)
+
+| HeLa 200 ng diaPASEF, paired TDC, experimental q ≤ 0.01 | Targets | SVM-baseline overlap |
 |---|---|---|
-| WP-02 | Private byte-budget primitives remain tested. | Whole-job pre-materialization admission is open. Lazy context release is not a strict byte cap. Keep open. |
-| WP-03/05 | Native evidence sharing removes scoring copies; actual-apex scheduling reduces scoring decodes about 86.6% on one native fixture. Context-lifetime follow-through passes its process-memory gate. | Full extract-once fusion, cross-lane rereads and native Thermo science remain open. |
-| WP-07 | Existing scorer lifecycle is shared, formulas are unchanged. | New family/localization science is not delivered by this engineering change. Keep independent acceptance lane. |
-| WP-09 | 178 affected workflow/numerical/output regressions and actual native integration pass on the retained memory change. | Combined native execution, reopen/rescore and resource failure acceptance remain open. |
-| WP-10 | Separate counterbalanced native-fixture comparisons pass the declared speed and subsequent memory gates. | Astral/large predicted-library, complete process/child memory, disk and competitive-quality release gates remain open. |
+| OpenSWATH + PyProphet SVM (reference) | 19132 | n/a |
+| OpenSWATH + PyProphet XGBoost (reference) | 19725 | n/a |
+| Rewrite, no RT prior | 6531 | 5846 |
+| Rewrite, CNN-anchor RT window | 8554 | 7502 |
+| Rewrite, ID-free calibration filters candidates after extraction | 10679 | 9146 |
+| **Rewrite, calibrate then extract (current)** | **11830** | **10158** |
 
-**Execution order:** context-lifetime reduction and its bounded science/memory/speed check are complete, and the commit is ready for scoped code review. The implementation checkout, however, still contains its full stacked OpenDIA history: comparison against local `develop` spans 266 files, so it is not a standalone PR branch targeting `develop`. Before opening a PR, agree the dependency-aware base or split/rebase plan with the owner. Keep planning documents separate. Then continue the fused/indexed dataflow against the frozen representative scopes. The earlier R1 sparse extraction experiment was reverted after its integrated path was slower, so it is not a retained completed milestone. R2/R3/R4 remain open. Do not close packages or merge the stacked engine into `develop` on the strength of one fixture.
+The current pipeline extracts 198,915 candidates in 40 s and runs CNN crossfit in 1.2 min with a 2.1 GB peak.
 
-## Historical baseline and adapter state
+**Limits:**
+- These are decoy-count estimates on the run used to design the pipeline. They are not a calibrated FDR.
+- The CNN seeds come from the same-run OpenSWATH teacher.
+- On the independent 500 pg run, the CNN alone gave 0 IDs at 1%, paired TDC gave 230, and the calibration failed closed with 0 anchors.
+- The rewrite is about 7,300 to 7,900 precursors short of the reference. Closing that gap is R-WP5.
 
-**Status, 27 October 2026:** WP-00 is done. WP-01 and WP-02 passed local checks. WP-03 remains a memory/time tradeoff. WP-05 consumes calibrated native regions and preserves all twelve native Bruker outputs. The next [physical-frame cache experiment](native-region-contract.md#bounded-physical-frame-reuse-27-october-2026) also preserves science but fails promotion: 224.43 versus 211.22 s, with higher RSS. The cache is experimental and disabled by default. No competitive fast-engine claim. Full acquisition, resource and competitive-quality gates remain open. Keep work packages separate from `develop`. [Epic #10661](https://github.com/OpenMS/OpenMS/issues/10661).
+## Work packages
 
-This branch and these documents support planning and scratch work only. They are not a pull request and must not merge into `develop`.
-
-## Current state and next actions
-
-| Package | Verified current state | Remaining gate / project status |
-| --- | --- | --- |
-| WP-00 | Baseline complete. | Done. Do not reopen or alter frozen inputs. |
-| WP-01 | Local contracts and boundary checks passed. | In review, open and stacked pending combined acceptance. |
-| WP-02 | Byte admission, ownership, queues and cancellation primitives verified. | In review. Whole-job admission and native workspace accounting are not complete. |
-| WP-03 | Full TimSim outputs preserved. Tiled256 median RSS 982,188 versus 1,834,100 KiB normal, but 374.40 versus 162.44 s. Explicit outer-one at 128 MiB completes, automatic scheduling still fails. | In review. This is a memory/time tradeoff, not a faster or globally bounded engine. |
-| WP-05 | Calibrated regions drive tiled MS1/MS2 extraction with zero extraction copies. Bounded native-frame reuse preserves all twelve outputs but has only 128 hits / 7,260 misses in the complete experiment. | In progress. Cache is opt-in, not promoted. Wall 211.22 to 224.43 s, RSS 1,182,964 to 1,382,348 KiB. Scoring copies remain 9,432. Full Thermo science, packaging and competitive quality remain open. |
-
-**Native input policy:** OpenDIA validation and distribution builds must enable `WITH_OPENTIMS=ON` and `WITH_THERMO_RAW=ON`. Read Bruker TDF DIA `.d` / `.d.zip` and Thermo `.raw` directly. Do not require or silently perform intermediate indexed-mzML conversion. Indexed mzML remains an optional input, not an internal canonical format. Unpacking a `.d.zip` archive is not format conversion.
-
-The native extension is committed as `8743497d0b` and `3e5852085f` on WP-05. Six vendor-enabled Release tests pass. Real Bruker input passes 25 maps / 75 sampled scans against the streaming reader; real Thermo input passes 301 maps / 903 sampled scans. The complete native Bruker tiled workflow matches all twelve outputs of the same-input native normal workflow. The older converted-mzML reference does **not** match: 4,688 versus 4,699 export rows. That failed comparison is retained, not normalized away. See [native evidence and limits](work-packages/05-shared-extraction.md#native-vendor-input-increment).
-
-**Specific follow-up gates:** Thermo's nonstandard local .NET installation required `DOTNET_ROOT`; clean-machine runtime packaging is not verified. Its read-only acceptance check reached 4,352,800 KiB RSS despite final private live bytes zero. Before claiming release readiness or low memory, verify installed runtime discovery and attribute native index/handle/workspace memory. These are not reasons to add conversion.
-
-**Optimization mandate, 27 October 2026:** recent increments established compatibility, not the best random-access architecture or a competitive fast engine. The owner explicitly authorizes substantial rewrites under `src/topp/OpenDIA/`, including replacing scoring. Existing accessors and exact old scores are not constraints on a new scientific engine. The [performance strategy](performance-strategy.md) records the failed bounded frame-cache experiment. Do not repeat it with a larger cache or call it a speed improvement. The calibrated extraction consumer is integrated, but zero copies did not produce a runtime win. Test a learned scorer where justified. Correctness, native inputs, independent error control and quantitative quality remain constraints. The calibration fix has one observed runtime gain, not a portable benchmark or DIA-NN/Spectronaut parity claim.
-
-**Redesign decision, 3 November 2026:** the three-run full-workflow scorer micro-optimization A/B did not establish a meaningful speedup. Stop the sequence of isolated cache/scorer tweaks. The new [system redesign decision](redesign-decision-20261103.md) sets an implementation-led path: compile an indexed compact hypothesis store, process bounded native acquisition tiles, join observations to candidate hypotheses, retain sparse evidence, then score complete local families and finalize statistics. The first implementation milestone is indexed sparse extraction with exact reference checks and deterministic work counters. Existing WP-00 evidence remains frozen; no new general benchmark campaign precedes that implementation.
-
-The earlier numbered **Next implementation** list below records the prior WP-05 sequence. For current execution priorities, follow the redesign decision linked above.
-
-**Previous WP-05 follow-up sequence (historical; superseded by the 3 November redesign decision):**
-
-1. **Raw-work attribution complete, exclusive compute attribution still needed.** Scoped counters `357128a7b2` preserve all twelve scientific outputs in one unchanged full-input native Bruker tiled256 run with both readers enabled. Reads requested during scoring account for 7,978 / 11,390 decodes (70.04%), 84.98% of decoded numeric bytes and 82.06% of measured decoder time. All ten counter fields reconcile across phases, with zero unclassified reads. See [phase evidence and limits](work-packages/05-shared-extraction.md#phase-attribution-increment). This identifies raw-work ownership, not proof that scoring formulas or the classifier dominate CPU/wall time. The targeted CPU profile is now complete: calibration shared-owner churn dominates before `c64e647997`; after that fix native sorting is the largest self user-CPU symbol. Off-CPU lock waits and cold native-index costs are not yet isolated. See the [observed profile and unchanged-output comparison](work-packages/05-shared-extraction.md#native-region-contract-and-calibration-hotspot), rather than repeating a baseline campaign.
-2. **Known-size admission complete, modest benefit only.** `9e24325e29` reuses a proven immutable source/scan capacity bound instead of reserving the full 32 MiB maximum on every miss. The native regression avoids one unnecessary decode in A/B/A and verifies clone/source isolation, exact arrays and lease/cap behavior. One unchanged full native workflow preserves all twelve outputs. Observed scoring decodes fall 2.93% and decoded numeric bytes 4.79%, but all 9,432 scoring copies remain. Wall time is 312.19 versus 291.96 s in the prior single observation, so this does **not** establish a faster tool. See [acceptance and limits](work-packages/05-shared-extraction.md#known-size-admission-increment).
-3. **Physical-frame cache tested and not promoted.** The [same-budget experiment](native-region-contract.md#bounded-physical-frame-reuse-27-october-2026) shares decoded/sorted frames across source clones, but current lane-major execution provides little reuse. Wall and RSS both rise, so the feature stays disabled by default. Next implement one acquisition-local batch producer under `src/topp/OpenDIA/`: decode one frame, answer its overlapping isolation/IM requests before eviction, and emit leased regions in original acquisition identity/order. Preserve calibration and complete wider-IM scoring support. Do not enlarge caps or add another cache tier. Require fewer physical decodes and lower complete workflow cost with all twelve unchanged outputs before default integration. Scoring-copy removal remains separate.
-4. **Explore alternative scoring and harden admission with the chosen dataflow.** WP-07 may replace handcrafted scoring or confidence models, including a compact neural model, under the [separate scientific acceptance lane](performance-strategy.md#scoring-exploration-is-allowed-including-replacement). Preserve calibration, complete candidates and independent identification/localization/quantification validation, not identical old scores for a deliberately new model. WP-02/03 must reserve decoder/evidence/model/writer work before dispatch, using the automatic-128-MiB failure as a real regression. A successful explicit outer-one workaround is not proof of automatic admission or a process-memory bound. WP-10 owns quality-matched DIA-NN/Spectronaut comparisons.
-
-WP-04 preparation, WP-08 storage and the WP-07 null/decoy experiment remain separate backlog work. WP-09/10 still own broader acquisition coverage, actual reopening/rescoring, whole-process/child memory, disk, scientific quality and final release acceptance. No package closure or merge into `develop` is authorized by the checks above.
-
-## Baseline complete, implementation started
-
-WP-00 is done: the current baseline, repeatability checks and reproducible benchmark
-scripts are established. Its memory use is descriptive. The 4 GiB process and
-2 GiB low-memory goals apply to the rewritten engine, not to WP-00 closure.
-Evidence sanitization/publication remains a follow-up, not a prerequisite for
-refactoring. WP-07 owns localization truth/experiment work, and WP-09/10 own
-candidate workflow and release acceptance.
-
-WP-01 starts with a behavior-preserving tool-private executable/library boundary,
-then small v0 records, complete query keys, and a producer/consumer fixture.
-See the [WP-01 roadmap](work-packages/01-contracts.md#implementation-roadmap).
-The boundary starter is pushed as [e7e67276ce](https://github.com/OpenMS/OpenMS/commit/e7e67276ce099a92e08780b9f7235863d0f9b891):
-standalone Debug build, shared-entry test and all 28 existing OpenDIA TOPP regressions
-passed. Deeper checks also built the native core/tool/private test and passed all
-32 selected native CTests plus the 12-step installed-SDK consumer fixture, including
-six nested consumer tests. They exposed and fixed a stale single-file source path
-in the SDK fixture, committed as [094bf09ef8](https://github.com/OpenMS/OpenMS/commit/094bf09ef8).
-The step-2 owning-coordinate increment is now implemented in
-[919681d30b](https://github.com/OpenMS/OpenMS/commit/919681d30b) and
-[6d4801f95a](https://github.com/OpenMS/OpenMS/commit/6d4801f95a): private raw tiles,
-sparse hypothesis/evidence records, explicit units/identities, missingness,
-schema rejection and safe ownership. Real-loader producer/consumer checks
-preserve all 513 non-IM, 32,750 IM and 44,354 FAIMS points, plus retained sparse
-evidence after producer destruction. All **34 selected native CTests**, standalone
-**3/3**, final NDEBUG record **2/2**, and the repeated installed-SDK **12-step / six
-nested-consumer** checks pass. These are count-bounded v0 boundary contracts,
-not production streaming adapters or a memory/performance improvement claim.
-Step 3 is also implemented in
-[b71ce465a7](https://github.com/OpenMS/OpenMS/commit/b71ce465a7): one checked,
-complete extraction-query value, with exact equality and no cache or extractor.
-Real public-interface checks are in [cfbb419390](https://github.com/OpenMS/OpenMS/commit/cfbb419390).
-Tests retain **33 distinct payloads despite one constant hash**, and an actual
-public extractor round trip preserves **59 chromatogram samples exactly**.
-The complete result passes **35 native tests**, all **12 installed-SDK fixture
-steps / six nested consumers**, **4 standalone** and **3 NDEBUG** tests, including
-all 28 existing public OpenDIA workflows. Step 4 is now implemented in
-[3a8b2a64db](https://github.com/OpenMS/OpenMS/commit/3a8b2a64db9ad9b311a327f0f3d60eb5deeea307)
-and [49deb7c5c5](https://github.com/OpenMS/OpenMS/commit/49deb7c5c58e03b92445c73e22ff0a37e28a3cfd):
-minimal owning families/scores, explicit null/competing/coexisting alternatives,
-candidate completeness, independent identification/localization/quantity and the
-complete non-IM/IM/FAIMS v0 handoff. Actual public SQLite and Parquet CLI exports
-each retain four genuine scored rows, including two decoys, through the records
-with exact d_score/intensity and no invented localization confidence.
-The final whole-result replay passes **38 native plus 12 actual installed-SDK
-tests, 50/50 combined**, **six nested consumers**, **5 standalone** and **4 NDEBUG**
-tests, plus both genuine public-output handoffs under NDEBUG. All **28 existing**
-public workflows and **two new** score handoffs pass. All **five local WP-01 merge
-criteria are satisfied**. The final adversarial review found no blocking production
-defect. Focused multi-family reference and cumulative-cap checks were added in
-[7dcbcea35e](https://github.com/OpenMS/OpenMS/commit/7dcbcea35e85c10e3c6291c6a7134668e83a2207).
-The complete result was rebuilt and replayed on 25 October 2026 at 14:26 UTC with
-the same passing totals above. A separate ASan/UBSan build of the actual private
-implementation passed **5/5 tests** and both genuine CLI export handoffs without
-diagnostics. The full parameter/INI comparison matches the baseline using the
-same SDK, normalizing only unordered enzyme choices. WP-01 is locally reviewed,
-not accepted as the final efficient design. Its issue remains open. The 26 October
-owner decision supersedes the earlier immediate-integration recommendation:
-**keep implementation work stacked, with no merge into `develop` until the combined
-refactor has demonstrated the required correctness, speed and memory efficiency.**
-The [v0 contract narrative](contracts-v0.md) stays on this planning branch only,
-outside implementation branches and their future pull requests. WP-01 remains
-an unstable foundation for downstream experiments, not a frozen physical layout.
-Downstream WP-02/03/04/05/08 and early WP-09 can use unstable v0 now.
-[WP-02](work-packages/02-resource-budget.md) is implemented on
-`feature/opendia-wp02-resource-budget`, based directly on WP-01
-`3cd24a25026615b26671a46596b3eeae7de89986`, with final implementation
-`338ba2c569` and test-observation correction `4b2c8e1d33`. A follow-up
-reproduced and fixed a transient backpressure observation race, then passed
-**50 native and 50 NDEBUG pipeline executions**. Its byte admission, fixed queues
-and shared-record charges pass
-**84 native/SDK tests**, **6 nested consumers**, **8 standalone**, **8 NDEBUG**
-and **3 instrumented resource tests**. The real-loader stalled-writer test preserves
-all non-IM/IM/FAIMS rows, enforces its declared accounting/queue bounds and cancels
-without leaked charges. This is **not** a globally budgeted CLI or whole-engine
-speed/memory result. Adapter integration and representative acceptance remain open.
-
-[WP-03](work-packages/03-raw-tiles.md) now has an opt-in indexed mzML adapter on
-`feature/opendia-wp03-raw-tiles`, stacked on WP-02. Implementation
-[3a460113a3](https://github.com/OpenMS/OpenMS/commit/3a460113a391a63178d0a6da7da32a24ef63e2c5)
-uses one scan per tile, shared byte charges and separate mutable engine copies.
-Direct and tiled CLI outputs match non-IM and PASEF mzML identities, evidence,
-scores and quantities at two cache limits. The IM check requires nonzero scores
-and forces eviction at the smaller limit. [Eight follow-up CLI checks](https://github.com/OpenMS/OpenMS/commit/1c46042570cf83a21d92c4968b5b935d5bee5bb4)
-bring the native/SDK total to **106**. Earlier checks passed **10 standalone**,
-**10 NDEBUG** and **2 instrumented raw tests**, plus the installed OpenDIA consumer.
-The raw adapter preserves all 513/32,750/44,354 fixture points. Native metadata,
-decoding and downstream workspaces are not fully bounded. Full diaPASEF/FAIMS
-engine coverage and representative speed/RSS checks remain open. The original
-WP-03 benchmark build had both vendor readers disabled and used a separate
-conversion solely to prepare that historical benchmark representation. The WP-05
-native extension now enables both readers in the actual Release build and removes
-the tiled-path mzML-only restriction. Conversion is not a product requirement.
-These small fixtures do not establish scientific score calibration. No package
-is merged into `develop`.
-
-The [query-scale test](https://github.com/OpenMS/OpenMS/commit/57381c0213c86e08a6c5ded49f64bf3024ed1d5d)
-keeps raw cache peaks and scan misses equal at 1/16/4,096 public extraction queries.
-Output arrays still grow. Nine fresh complete PASEF CLI runs show **no process
-peak RSS reduction** at the smaller cache limit. A separate heap profile confirms
-native allocations outside private enforcement. See the [measured results and
-limits](work-packages/03-raw-tiles.md#small-fixture-process-measurement). Representative
-speed/RSS and native-memory acceptance remain open.
-
-The full converted TimSim run exposed indexed IM-name, copy-admission and
-scan-owner faults. Shared decoder, parallel error, checked-copy, calibration and
-[scoring-owner repairs](work-packages/03-raw-tiles.md#release-completed-scoring-scans)
-now pass 204 native/CLI/SDK checks, six installed consumers, 10 standalone and
-10 NDEBUG checks. The latest nine-process Release matrix completes every search.
-All 4,688 result rows, feature/score tables, nonzero IM evidence and matrices match.
-
-At 256 MiB, median RSS is **982,188 KiB**, against **1,834,100 KiB** for normal.
-Median wall time is **374.40 seconds**, against **162.44 seconds**. This saves
-memory but takes about 2.3 times as long. The 1,024 MiB setting has no clear
-speed or RSS gain. These are warm-cache checks on one converted input and a
-shared host. The original failed matrix is retained. A current 128 MiB check
-completes calibration but fails decoder admission during extraction, with no
-final output. A separate [single-outer-job counterfactual](work-packages/03-raw-tiles.md#scheduling-counterfactual-at-128-mib)
-keeps global eight threads, science and cap unchanged and completes the native engine
-with full output parity. Its first wrapper times out, so that recovered observation
-is not a clean timing trial. A fresh independently supervised repeat completes with
-engine and wrapper exit 0, all outputs equal, **1,034.77 s / 857,292 KiB RSS**.
-This unbalanced explicit-scheduling repeat does not accept automatic scheduling.
-Next, reduce repeated reads with WP-05 and test whole-job admission.
-Native acquisition, broader input coverage and whole-process bounds remain open.
-Keep all packages stacked. The [requirement-to-observation map](VALIDATION.md)
-records fresh actual native/CLI/installed-consumer checks, every changed output
-and the explicit unmet WP-02/WP-03 gates.
-
-Family/null/decoy scientific freeze remains a separate WP-07 milestone. Detailed
-observations and optional-platform/runtime limits are recorded in
-[WP-01](work-packages/01-contracts.md#final-adversarial-review-25-october-2026).
-
-## Raw-point layout experiment
-
-The [measured AoS/SoA comparison](experiments/layout/RESULTS.md) completed 105
-randomized fresh-process runs against real loaders and extraction interfaces.
-Metadata factoring reduced retained layout allocation by 70-92% in the tested large
-cases. SoA improved dense streaming, but IM extraction and sparse/full-row results
-were mixed. This experiment alone is not a whole-engine speedup claim or a new
-WP-01 completion gate. WP-03 now has an opt-in columnar scan adapter, but has not
-established a whole-workflow speedup or a universal RSS benefit. The full-input
-matrix above records a scoped RSS/runtime tradeoff.
-
-## Current verification status
-
-Full fresh workstation A/B output comparisons passed at selected clean merged source
-`3e47bc7e7468656d0d53237f11fc4f049d278efe`, including #10698 (merged
-23 October 2026), with independently pinned harness `5a804f5e7c92f5c7e541050123a66f2978d23368`.
-TimSim target-only, mixed and all-three Astral comparisons passed all 12 files
-with zero changed numeric cells or scientific identities. Raw rows per repeat
-are 11,484 / 6,783 / 6,274 and standard accepted counts 6,000 / 5,919 / 4,343.
-Independent provenance review, comprehensive candidate resource/stage acceptance, and owner-approved candidate gates remain separate from completed baseline collection. The separate profiling branch builds and passes its profile fixture plus all 29 OpenDIA TOPP checks. The branch is for refactoring work and is not planned for integration. Four instrumented cold/warm followups passed frozen-output equivalence and produced stage summaries. Standalone TimSim rescoring processed 16,441 rows and wrote 13,421,129 apparent bytes. Astral standalone rescoring completed on a disposable copy of the frozen SQLite database and its WAL/SHM sidecars. It exited successfully in about 9m09s with 10,515 MiB (about 10.27 GiB) peak RSS; recorded sizes and modification times of the frozen source database and sidecars were unchanged. No before/after content hashes were captured for those files. This single rescore is descriptive, not a baseline or acceptance result. Both local evidence archives passed clean-extraction verification, but a safety scan found workstation-specific paths, so neither archive is ready for public release. These separate-binary results are not same-binary repeat or candidate-acceptance evidence.
-
-The two measured full Astral baseline searches used 13,876 MiB and 13,859 MiB
-single-process peak RSS.
-The 4 GiB process and 2 GiB low-memory targets apply to the rewritten engine.
-These higher baseline observations establish the reference to improve. Their
-dedicated-scope cgroup peaks were about 20.5 GiB and 22.4 GiB. The 2 GiB low-memory
-mode was not tested. Sampled disk values are lower bounds, so they do not prove
-peak-disk compliance. These measurements describe the current baseline, not a
-candidate implementation or an approved release decision.
-
-PXD004573's 579 published strings are authenticated, but raw retrieval, site
-mapping, purity and blank interpretation remain unresolved. See WP-00 for the
-requirement-specific map. Earlier failed repeats remain historical evidence; the
-22 October same-binary repeat checks passed on a premerge build, not on this
-selected source. The corrected Parquet scores are not interchangeable with
-affected historical scores.
-
-The declared workstation protocol uses 17 OpenDIA threads, with independently
-captured engine/harness provenance and actual subprocess/affinity settings.
-Historical four-thread laptop timings are not a matched baseline. The
-[resource measurement contract](https://github.com/singjc/OpenMS/blob/9abc264f4c95cb550d67490030dcac649750060c/tools/scripts/opendia_benchmark/README.md#dedicated-workload-accounting-and-limitations)
-distinguishes verified final dedicated-scope kernel peaks, diagnostic samples,
-inner/outer timing and sampled disk lower bounds. Four successful instrumented
-followups additionally provide stage timing and aligned sampled-resource summaries,
-but these are descriptive observations, not exact peaks or acceptance evidence.
-
-[WP-00](work-packages/00-acceptance-baseline.md) records the frozen existing
-repeat-comparator policy, baseline handoff and future owner/reviewer decision
-matrix. Proposed candidate no-regression/runtime/footprint gates are not approved
-thresholds. WP-07/09/10 must freeze the applicable gates before candidate evaluation.
-Scientific accuracy margins and known-site localization truth remain future work,
-not reasons to reopen baseline collection.
-
-Build a CPU-first DIA engine for large predicted libraries on a 16 GiB laptop. Target 4 GiB process memory and a 2 GiB low-memory mode, with compact output and preserved scientific quality. These are acceptance targets, not demonstrated capabilities.
-
-## Approach and v1 scope
-
-Replace or redesign data access, extraction, scheduling and scoring inside the tool-private engine when the measured end-to-end result justifies it. The existing pipeline is a reference and compatibility path, not a mandatory sequence of internal APIs. Behavior-preserving changes retain identical/tolerance-equal results; explicitly new scoring/retrieval/family models use independent scientific quality gates. The [performance strategy](performance-strategy.md) defines the bounded native-region experiment and scorer comparisons. Mobility and peptidoform families belong in contracts from day one, but do not block the first runnable increment.
-
-- Tool-private code in `src/topp/OpenDIA/`, following DIAuditor/OpenSwathInfer. Move the current entry point first, then extract orchestration into a private library shared by tool and tests. Promote code to core only for a real second consumer. Shared core bugs are fixed in core directly.
-- One memory byte budget, bounded queues and fixed stage order. Harden admission in parallel rather than blocking data handling.
-- v1 output: compact `results` and optional `rescore`. Keep the statistical population until confidence is finalized. Reduce `FEATURE_TRANSITION` fan-out and measure rescoring early.
-- Disk safety: check free space, write temporary output then rename on success, fail explicitly and clean up owned intermediates. Measure final and peak disk use. Defer quota frameworks, diagnostic profiles and elaborate capability manifests.
-- **New family-search science is single-run in v1.** Preserve existing multi-input and matrix-export behavior in the compatibility path. Cross-run alignment, experiment-wide FDR and merging new per-run artifacts are deferred, not implied by “global confidence”. WP-08 must derive future retained evidence from those operations before claiming support.
-
-## Five tracks, existing WP IDs
-
-Numbers identify packages, not a serial implementation order. Local readiness checks live in each WP. They do not authorize individual merges. Whole-workflow gates live in WP-09/10, and the combined design must be validated before integration into `develop`.
-
-| Track | Work packages | Start / integration dependencies |
+| WP | Scope | State |
 |---|---|---|
-| Baseline | [WP-00](work-packages/00-acceptance-baseline.md) | Done, 25 October 2026. Pinned current pipeline and representative TimSim/Astral baseline, reproducible scripts and frozen repeat checks. |
-| Data handling | [WP-01](work-packages/01-contracts.md), [WP-02](work-packages/02-resource-budget.md), [WP-03](work-packages/03-raw-tiles.md), [WP-05](work-packages/05-shared-extraction.md) | WP-01 starts independently of baseline. Others start on v0 contracts, without waiting for hardened admission. WP-05 owns the existing-calibration adapter. |
-| Library preparation | [WP-04](work-packages/04-hypothesis-store.md) | Start on WP-01 contracts. Integrate streamed preparation into the private engine or compatibility path as appropriate. |
-| Science | [WP-06](work-packages/06-candidate-retrieval.md), [WP-07](work-packages/07-family-scoring.md) | Start WP-07 null/decoy experiment now. Retrieval integrates WP-03/04/05. Final family scoring integrates extraction/retrieval. |
-| Output, integration and benchmarks | [WP-08](work-packages/08-storage-confidence.md), [WP-09](work-packages/09-cli-integration.md), [WP-10](work-packages/10-performance-release.md) | WP-08 and WP-09 start on v0 contracts, not after science. WP-09 completes integration, then WP-10 assesses release. |
+| [R-WP1](work-packages/R1-streaming-search.md) | Streaming sparse-grid candidate search | Delivered, open for recall gates |
+| [R-WP2](work-packages/R2-calibration.md) | ID-free run calibration (RT, m/z, 1/K0, tolerances) | Delivered on HeLa; fails on 500 pg |
+| [R-WP3](work-packages/R3-trace-cnn.md) | Raw-trace CNN scorer and native training | Delivered |
+| [R-WP4](work-packages/R4-error-control.md) | Cross-fitting, paired TDC, independent error control | Partial: same-run teacher, no entrapment |
+| [R-WP5](work-packages/R5-id-gap.md) | Close the gap to OpenSWATH + PyProphet | **Active** |
+| [R-WP6](work-packages/R6-acceptance.md) | Independent runs, native Thermo, packaging, merge | Open |
 
-See [issue map](issue-posting.md) for live tickets and native dependency relationships.
+Dependency order: R-WP5 uses R-WP1 to R-WP4. R-WP6 needs R-WP4 and R-WP5.
 
-## Established benchmark inputs and tooling
+## Rules carried over
 
-- **TimSim `validation_3x3`:** six diaPASEF inputs, three controls and three treatments, with target-only and target-plus-entrapment transition-library searches and packaged identification/abundance truth.
-- **Astral:** three HeLa 50 ng, 15 min technical replicates. The current FASTA is a randomly sampled 100k-peptide database. This is exploratory, not official full ProteoBench global precursor validation. Current exports lack global precursor q-values and the exact modified-peptide pair mapping needed for paired FDP. Global peptide/protein scores do not fill those gaps.
-- [Benchmark scripts](https://github.com/singjc/OpenMS/blob/9abc264f4c95cb550d67490030dcac649750060c/tools/scripts/opendia_benchmark/README.md) establish build, runners, metrics and report generation. System-resource monitoring records machine, RAM, logical threads and available RAM/idle CPU during each search. Fresh full TimSim and three-file Astral runs completed successfully on 21 October 2026 at source `d3b00d382efc`, with a regenerated report/PDF. See [WP-00 #10662](https://github.com/OpenMS/OpenMS/issues/10662) for results. This is a measured current-pipeline baseline, not completion of acceptance gates.
+- Defaults stay byte-identical; new behaviour is opt-in until accepted.
+- Fix a gate rule before running. Design on HeLa, then apply once and unchanged to an independent run, with no tuning on evaluation runs.
+- Never report a calibrated FDR from same-run teacher-seeded estimates. Agreement with OpenSWATH is not truth.
+- Native Bruker and Thermo input, with no mandatory conversion (carried over from the legacy plan).
+- Inputs and baseline OSW files are read-only.
 
-Neither dataset supplies known-site localization truth. WP-07 owns the separate known-site dataset and null/decoy experiment, with WP-10 owning final acceptance.
+## Issues
 
-Reproducibility packaging and strict repeat-comparison tools are now established.
-Historically, the 21 October independent TimSim target repeat preserved all 6,000 accepted precursor
-identities but failed frozen score/quantity and raw-identity checks. The mixed
-TimSim and three-file Astral repeats also completed successfully as searches,
-but failed strict scientific comparisons. Their standard-filter accepted identity
-totals changed from 5,949 to 5,935 and 4,337 to 4,291 respectively. Final evidence
-and provenance gaps are tracked in [WP-00](work-packages/00-acceptance-baseline.md).
-A verified bundle is not proof that the scientific repeat gate passes.
-
-## Sequence
-
-1. **Baseline and early experiments:** profile the representative current pipeline, establish tool-private v0 contracts, and test the localization null/decoy model against exhaustive and IPF references. Shared extractor edge bugs were fixed separately on develop in #10673; retain their mathematical edge checks.
-2. **Stacked engine experiments:** compare existing adapters against OpenDIA-owned native-region access and fused extraction/scoring, alongside streamed preparation and compact output. Use dependent work-package branches and prioritize measured total time/RSS, including preparation/rescoring/inference/export. Compatibility adapters are controls, not compulsory interfaces. Test each selected slice locally, but defer individual `develop` merges until the combined design is validated.
-3. **New science:** evaluate alternative numerical/confidence scoring, including compact learned models, under held-out error-control and quantitative-quality gates. Review the localization experiment before freezing family/score contracts. Integrate high-recall retrieval and joint family scoring with mobility, ambiguity and calibrated confidence.
-4. **Release decision:** exercise the public raw-to-export path on representative data, then decide whether to change defaults. A runnable early increment is not acceptance of the final scientific slice.
-
-## Shared acceptance rules
-
-- WP-00 supplies pinned provenance, representative reference outputs, observed resources and frozen repeat tolerances. It is complete. WP-07/09/10 agree prospective scientific and performance/size gates before candidate evaluation. Current baseline memory is not required to meet rewrite targets.
-- Every implementation PR builds locally out of tree and runs relevant tests. Use stacked branches/PR bases for dependent packages. Local checks establish experimental readiness only: keep issues open and do not merge work-package PRs into `develop` until the finalized combined refactor demonstrates correctness, speed and memory efficiency. Review and integrate individual packages only after that decision.
-- Scheduling/storage changes preserve results. Science changes require measured retrieval recall, separate identification/localization error, ambiguity and quantitative quality. Never truncate hypotheses to meet a resource target.
-- WP-09 owns integration, real artifact reopening/rescoring and failure paths. WP-10 owns representative cold/warm timing, whole-process memory, peak disk/output size and release compatibility. No default switch before those gates pass.
-
-## Decisions still requiring review
-
-- WP-07 with WP-01/08: family partition, localization nulls/decoys and confidence model, before freezing contracts.
-- WP-03/07/08/10: initial acquisition coverage, storage format and numerical quality/runtime/size gates, using the completed WP-00 baseline.
-- Multi-run extension: experiment-level inference and its retained population must be designed before extending the new single-run path.
-
-[Shared architecture and invariants](architecture.md) · [Historical measurements](evidence.md)
+The epic is [#10661](https://github.com/OpenMS/OpenMS/issues/10661). The legacy WP issues #10663 to #10671 and #10675 are closed, each pointing to this plan; #10662 (WP-00) was already closed.
+See [issue-posting.md](issue-posting.md) for the new mapping.
