@@ -785,7 +785,7 @@ namespace OpenMS
 
       Constraining @p Container to types with begin()/end() keeps this from competing with the
       iterator overloads. (A requires-expression instead of std::ranges::range: this header is
-      included by nearly every translation unit, and <ranges> is expensive to parse.)
+      included by nearly every translation unit, and the ranges header is expensive to parse.)
     */
     template <typename Container>
       requires requires(const Container& c) { c.begin(); c.end(); }
