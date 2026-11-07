@@ -26,6 +26,7 @@ Each run was a single variable change against the 11830 teacher-seeded crossfit.
 | Calibration anchors (q ≤ 0.01) | 1186 | 9627 (fail) | 88.3% |
 | Round 2: self-training on round-1 q ≤ 0.001 | 2251 | 7093 (fail) | n/a |
 | **Round 2b: PyProphet-style, round-1 q ≤ 0.01 targets vs best decoy windows** | 6000 | **11332 (pass)** | 86.6% |
+| **Native `OpenDIACNN -ss_iterations 1`** (`6d02e94ac6`) | 6000 | **11118 (pass)** | n/a |
 
 Crossfit took 1.5 min at 2.0 GB.
 
@@ -33,9 +34,11 @@ Interpretation:
 - Anchors alone reach 81% of the teacher-seeded count.
 - Round 2 retrained on only the model's most confident targets and used easy decoy windows as negatives; it got worse.
 - Round 2b iterates the way PyProphet does: targets at q ≤ 0.01 against each decoy's best-scoring window. That reaches 95.8% of the teacher-seeded count with no OpenSWATH input.
-- Both rounds were native OpenDIACNN crossfit runs, with the seeds rebuilt between them by a script. The loop is not yet inside the tool. Only this design run was used; an independent run is open.
+- Rounds 1, 2 and 2b were native crossfit runs with seeds rebuilt by a script in between.
+- The loop is now in the tool as opt-in `-ss_iterations` (default off, byte-identical). Its subset order differs from the script's, giving 11118 against 11332.
+- Only this design run was used; an independent run is open.
 
 Next, each with its own gate:
-- Fold the loop into the tool.
 - More anchors when the calibration finds few (500 pg).
+- Move anchor training into OpenDIACalibrate.
 - Cross-run global model (R-WP4).
