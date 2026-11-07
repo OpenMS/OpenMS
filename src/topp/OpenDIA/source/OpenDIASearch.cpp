@@ -22,6 +22,7 @@
 #include <numeric>
 #include <ostream>
 #include <string_view>
+#include <tuple>
 #include <utility>
 
 namespace OpenMS::OpenDIA
@@ -102,10 +103,12 @@ namespace OpenMS::OpenDIA
       return candidates_[lhs].precursor_mz < candidates_[rhs].precursor_mz;
     });
 
-    query_intensity_.resize(queries_.size());
+    batch_cells_.reserve(MAX_BATCH_CELLS);
+    grid_points_.reserve(65536);
     candidate_scan_intensity_.resize(candidates_.size());
     candidate_scan_support_.resize(candidates_.size());
     candidate_generation_.resize(candidates_.size());
+    candidate_first_match_order_.resize(candidates_.size());
   }
 
   void StreamSearch::consumeSpectrum(MSSpectrum& spectrum)
@@ -236,10 +239,15 @@ namespace OpenMS::OpenDIA
     cell.has_per_peak_im = im_values != nullptr && !uniform_per_peak_im;
     cell.has_scalar_im = has_scalar_im;
 
-    // Sort only this spectrum's cell. Doubles preserve legacy m/z boundaries
-    // and intensity integration while the reusable grid scratch stays bounded.
-    grid_points_.clear();
-    grid_points_.reserve(spectrum.size());
+    // Pack sorted cells into a bounded batch so candidate blocks can reuse one
+    // worker team across several scans without retaining the run.
+    if (!batch_cells_.empty() &&
+        (batch_cells_.size() >= MAX_BATCH_CELLS || grid_points_.size() >= MAX_BATCH_POINTS))
+    {
+      flushBatch_();
+    }
+    cell.point_begin = grid_points_.size();
+    grid_points_.reserve(grid_points_.size() + spectrum.size());
     for (std::size_t peak_index = 0; peak_index < spectrum.size(); ++peak_index)
     {
       const auto& peak = spectrum[peak_index];
@@ -252,15 +260,21 @@ namespace OpenMS::OpenDIA
       const float peak_im = im_values != nullptr ? (*im_values)[peak_index] : -1.0f;
       grid_points_.push_back({peak_mz, peak_intensity, cell.has_per_peak_im ? peak_im : -1.0f});
     }
-    std::sort(grid_points_.begin(), grid_points_.end(),
-              [](const GridPoint& lhs, const GridPoint& rhs) { return lhs.mz < rhs.mz; });
-    cell.point_begin = 0;
     cell.point_end = grid_points_.size();
-    extractCell_(cell, grid_lanes_[lane_index]);
+    auto cell_points_begin = grid_points_.begin() + static_cast<std::ptrdiff_t>(cell.point_begin);
+    auto cell_points_end = grid_points_.begin() + static_cast<std::ptrdiff_t>(cell.point_end);
+    std::sort(cell_points_begin, cell_points_end,
+              [](const GridPoint& lhs, const GridPoint& rhs) { return lhs.mz < rhs.mz; });
+    batch_cells_.push_back(cell);
+    if (batch_cells_.size() >= MAX_BATCH_CELLS || grid_points_.size() >= MAX_BATCH_POINTS)
+    {
+      flushBatch_();
+    }
   }
 
   void StreamSearch::prepareLaneQueries_(GridLane& lane)
   {
+    std::vector<std::size_t> lane_query_indices;
     for (const auto& [low_mz, high_mz] : lane.isolation_windows)
     {
       auto candidate = std::lower_bound(candidates_by_mz_.begin(), candidates_by_mz_.end(), low_mz,
@@ -269,79 +283,188 @@ namespace OpenMS::OpenDIA
       for (; candidate != candidates_by_mz_.end() && candidates_[*candidate].precursor_mz <= high_mz; ++candidate)
       {
         const std::size_t candidate_index = *candidate;
-        lane.query_indices.insert(lane.query_indices.end(),
+        lane_query_indices.insert(lane_query_indices.end(),
                                   candidate_query_indices_.begin() + static_cast<std::ptrdiff_t>(candidate_query_offsets_[candidate_index]),
                                   candidate_query_indices_.begin() + static_cast<std::ptrdiff_t>(candidate_query_offsets_[candidate_index + 1]));
       }
     }
-    std::sort(lane.query_indices.begin(), lane.query_indices.end(), [this](std::size_t lhs, std::size_t rhs)
+    std::sort(lane_query_indices.begin(), lane_query_indices.end(), [this](std::size_t lhs, std::size_t rhs)
     {
       return queries_[lhs].fragment_mz < queries_[rhs].fragment_mz;
     });
+
+    const std::size_t block_count = (candidates_.size() + CANDIDATES_PER_BLOCK - 1) / CANDIDATES_PER_BLOCK;
+    lane.candidate_blocks.resize(block_count);
+    for (std::size_t order = 0; order < lane_query_indices.size(); ++order)
+    {
+      const std::size_t query_index = lane_query_indices[order];
+      const std::size_t block = queries_[query_index].candidate / CANDIDATES_PER_BLOCK;
+      lane.candidate_blocks[block].push_back({query_index, order});
+    }
   }
 
-  void StreamSearch::extractCell_(const GridCell& cell, const GridLane& lane)
+  void StreamSearch::flushBatch_()
   {
-    if (++generation_ == 0)
+    if (batch_cells_.empty())
     {
-      std::fill(candidate_generation_.begin(), candidate_generation_.end(), 0);
-      generation_ = 1;
+      return;
     }
-    query_touched_.clear();
-    candidate_touched_.clear();
 
-    std::size_t point_cursor = cell.point_begin;
-    for (const std::size_t query_index : lane.query_indices)
+    std::vector<std::size_t> cell_generations(batch_cells_.size());
+    const std::size_t block_count = (candidates_.size() + CANDIDATES_PER_BLOCK - 1) / CANDIDATES_PER_BLOCK;
+    std::vector<bool> active_blocks(block_count, false);
+    std::size_t active_block_count = 0;
+    std::size_t batch_query_work = 0;
+    for (std::size_t cell_order = 0; cell_order < batch_cells_.size(); ++cell_order)
     {
-      const Query& query = queries_[query_index];
-      const double low_mz = query.fragment_mz - options_.fragment_tolerance_da;
-      const double high_mz = query.fragment_mz + options_.fragment_tolerance_da;
-      while (point_cursor < cell.point_end && grid_points_[point_cursor].mz < low_mz)
+      if (++generation_ == 0)
       {
-        ++point_cursor;
+        std::fill(candidate_generation_.begin(), candidate_generation_.end(), 0);
+        generation_ = 1;
       }
+      cell_generations[cell_order] = generation_;
 
-      double intensity = 0.0;
-      bool matched = false;
-      for (std::size_t point = point_cursor; point < cell.point_end && grid_points_[point].mz <= high_mz; ++point)
+      const GridLane& lane = grid_lanes_[batch_cells_[cell_order].lane];
+      for (std::size_t block = 0; block < lane.candidate_blocks.size(); ++block)
       {
-        const GridPoint& raw_point = grid_points_[point];
-        const bool has_peak_im = cell.has_per_peak_im || cell.has_scalar_im;
-        const double peak_im = cell.has_per_peak_im ? raw_point.ion_mobility : cell.scalar_im;
-        if (!queryMatches_(query, cell.rt, peak_im, has_peak_im, lane.isolation_windows))
+        const std::vector<LaneQuery>& block_queries = lane.candidate_blocks[block];
+        if (block_queries.empty())
         {
           continue;
         }
-        const double peak_intensity = raw_point.intensity;
-        intensity = matched ? std::max(intensity, peak_intensity) : peak_intensity;
-        matched = true;
-      }
-      if (matched)
-      {
-        query_intensity_[query_index] = intensity;
-        query_touched_.push_back(query_index);
+        if (!active_blocks[block])
+        {
+          active_blocks[block] = true;
+          ++active_block_count;
+        }
+        if (batch_query_work <= std::numeric_limits<std::size_t>::max() - block_queries.size())
+        {
+          batch_query_work += block_queries.size();
+        }
+        else
+        {
+          batch_query_work = std::numeric_limits<std::size_t>::max();
+        }
       }
     }
 
-    // Sum each transition once per scan, regardless of how many centroids fall in tolerance.
-    for (const std::size_t query_index : query_touched_)
+    std::vector<std::vector<CompletedCandidate>> completed_by_block(block_count);
+    const auto processBlock = [this, &cell_generations, &completed_by_block](std::size_t block)
     {
-      const std::size_t candidate_index = queries_[query_index].candidate;
-      if (candidate_generation_[candidate_index] != generation_)
+      std::vector<std::size_t> touched;
+      touched.reserve(std::min(CANDIDATES_PER_BLOCK, candidates_.size()));
+      std::vector<CompletedCandidate>& completed = completed_by_block[block];
+
+      for (std::size_t cell_order = 0; cell_order < batch_cells_.size(); ++cell_order)
       {
-        candidate_generation_[candidate_index] = generation_;
-        candidate_scan_intensity_[candidate_index] = 0.0;
-        candidate_scan_support_[candidate_index] = 0;
-        candidate_touched_.push_back(candidate_index);
+        const GridCell& cell = batch_cells_[cell_order];
+        const GridLane& lane = grid_lanes_[cell.lane];
+        if (block >= lane.candidate_blocks.size())
+        {
+          continue;
+        }
+        const std::vector<LaneQuery>& block_queries = lane.candidate_blocks[block];
+        if (block_queries.empty())
+        {
+          continue;
+        }
+
+        touched.clear();
+        const std::size_t cell_generation = cell_generations[cell_order];
+        const auto point_end = grid_points_.begin() + static_cast<std::ptrdiff_t>(cell.point_end);
+        const double first_low_mz = queries_[block_queries.front().query_index].fragment_mz - options_.fragment_tolerance_da;
+        auto point_cursor = std::lower_bound(grid_points_.begin() + static_cast<std::ptrdiff_t>(cell.point_begin),
+                                             point_end, first_low_mz,
+                                             [](const GridPoint& point, double mz) { return point.mz < mz; });
+        for (const LaneQuery& lane_query : block_queries)
+        {
+          const std::size_t query_index = lane_query.query_index;
+          const Query& query = queries_[query_index];
+          const double low_mz = query.fragment_mz - options_.fragment_tolerance_da;
+          const double high_mz = query.fragment_mz + options_.fragment_tolerance_da;
+          while (point_cursor != point_end && point_cursor->mz < low_mz)
+          {
+            ++point_cursor;
+          }
+
+          double intensity = 0.0;
+          bool matched = false;
+          for (auto point = point_cursor; point != point_end && point->mz <= high_mz; ++point)
+          {
+            const bool has_peak_im = cell.has_per_peak_im || cell.has_scalar_im;
+            const double peak_im = cell.has_per_peak_im ? point->ion_mobility : cell.scalar_im;
+            if (!queryMatches_(query, cell.rt, peak_im, has_peak_im, lane.isolation_windows))
+            {
+              continue;
+            }
+            intensity = matched ? std::max(intensity, point->intensity) : point->intensity;
+            matched = true;
+          }
+          if (!matched)
+          {
+            continue;
+          }
+
+          const std::size_t candidate_index = query.candidate;
+          if (candidate_generation_[candidate_index] != cell_generation)
+          {
+            candidate_generation_[candidate_index] = cell_generation;
+            candidate_scan_intensity_[candidate_index] = 0.0;
+            candidate_scan_support_[candidate_index] = 0;
+            candidate_first_match_order_[candidate_index] = lane_query.order;
+            touched.push_back(candidate_index);
+          }
+          candidate_scan_intensity_[candidate_index] += intensity;
+          ++candidate_scan_support_[candidate_index];
+        }
+
+        for (const std::size_t candidate_index : touched)
+        {
+          updateCandidate_(candidate_index, cell.rt, candidate_scan_intensity_[candidate_index],
+                           candidate_scan_support_[candidate_index], cell_order,
+                           candidate_first_match_order_[candidate_index], completed);
+        }
       }
-      candidate_scan_intensity_[candidate_index] += query_intensity_[query_index];
-      ++candidate_scan_support_[candidate_index];
-    }
-    for (const std::size_t candidate_index : candidate_touched_)
+    };
+
+#ifdef _OPENMP
+    const bool use_parallel = active_block_count > 1 && batch_query_work >= 4096 &&
+                              (batch_cells_.size() > 1 || batch_query_work >= 32768);
+#pragma omp parallel for schedule(dynamic, 1) if(use_parallel)
+    for (std::ptrdiff_t block = 0; block < static_cast<std::ptrdiff_t>(block_count); ++block)
     {
-      updateCandidate_(candidate_index, cell.rt, candidate_scan_intensity_[candidate_index],
-                       candidate_scan_support_[candidate_index]);
+      if (active_blocks[static_cast<std::size_t>(block)])
+      {
+        processBlock(static_cast<std::size_t>(block));
+      }
     }
+#else
+    for (std::size_t block = 0; block < block_count; ++block)
+    {
+      if (active_blocks[block])
+      {
+        processBlock(block);
+      }
+    }
+#endif
+
+    std::vector<CompletedCandidate> completed;
+    for (auto& block_events : completed_by_block)
+    {
+      completed.insert(completed.end(), std::make_move_iterator(block_events.begin()),
+                       std::make_move_iterator(block_events.end()));
+    }
+    std::sort(completed.begin(), completed.end(), [](const CompletedCandidate& lhs, const CompletedCandidate& rhs)
+    {
+      return std::tie(lhs.cell_order, lhs.query_order) < std::tie(rhs.cell_order, rhs.query_order);
+    });
+    for (const CompletedCandidate& candidate : completed)
+    {
+      writeCandidate_(candidate);
+    }
+
+    batch_cells_.clear();
+    grid_points_.clear();
   }
 
   bool StreamSearch::queryMatches_(const Query& query, double rt, double peak_im, bool has_peak_im,
@@ -366,12 +489,15 @@ namespace OpenMS::OpenDIA
   }
 
   void StreamSearch::updateCandidate_(std::size_t candidate_index, double rt, double intensity,
-                                      std::size_t transition_support)
+                                      std::size_t transition_support, std::size_t cell_order,
+                                      std::size_t query_order, std::vector<CompletedCandidate>& completed)
   {
     Candidate& candidate = candidates_[candidate_index];
     if (candidate.active && (rt < candidate.last_rt || rt - candidate.last_rt > options_.peak_gap_seconds))
     {
-      writeCandidate_(candidate);
+      completed.push_back({candidate_index, cell_order, query_order, candidate.start_rt, candidate.apex_rt,
+                           candidate.last_rt, candidate.area, candidate.apex_intensity, candidate.points,
+                           candidate.max_transition_support});
       candidate.active = false;
     }
 
@@ -413,12 +539,26 @@ namespace OpenMS::OpenDIA
             << score << '\t' << candidate.max_transition_support << '\t' << candidate.points << '\n';
   }
 
+  void StreamSearch::writeCandidate_(const CompletedCandidate& completed)
+  {
+    if (completed.transition_support < options_.min_transitions)
+    {
+      return;
+    }
+    const Candidate& candidate = candidates_[completed.candidate_index];
+    const double score = completed.area > 0.0 ? completed.area : completed.apex_intensity;
+    output_ << candidate.id << '\t' << std::setprecision(10) << candidate.precursor_mz << '\t'
+            << completed.start_rt << '\t' << completed.apex_rt << '\t' << completed.last_rt << '\t'
+            << score << '\t' << completed.transition_support << '\t' << completed.points << '\n';
+  }
+
   void StreamSearch::finish()
   {
     if (finished_)
     {
       return;
     }
+    flushBatch_();
     for (const Candidate& candidate : candidates_)
     {
       if (candidate.active)

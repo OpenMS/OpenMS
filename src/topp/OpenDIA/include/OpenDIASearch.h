@@ -46,9 +46,9 @@ namespace OpenMS::OpenDIA
   /**
     @brief Stream DIA spectra and report fragment-group peak candidates.
 
-    Each MS2 spectrum is an m/z-sorted grid cell assigned to its isolation
-    window lane. Lane-local fragment queries are merge-joined against the cell
-    and candidate state is updated in scan order without retaining the run.
+    MS2 spectra are packed into bounded m/z-sorted grid batches by isolation
+    window lane. Candidate blocks scan each batch in order, updating their
+    owned candidate state without retaining the run.
   */
   class StreamSearch final : public Interfaces::IMSDataConsumer
   {
@@ -92,6 +92,12 @@ namespace OpenMS::OpenDIA
       std::size_t candidate = 0;
     };
 
+    struct LaneQuery
+    {
+      std::size_t query_index = 0;
+      std::size_t order = 0;
+    };
+
     struct GridPoint
     {
       double mz = 0.0;
@@ -113,14 +119,35 @@ namespace OpenMS::OpenDIA
     struct GridLane
     {
       std::vector<std::pair<double, double>> isolation_windows;
-      std::vector<std::size_t> query_indices;
+      std::vector<std::vector<LaneQuery>> candidate_blocks;
     };
+
+    struct CompletedCandidate
+    {
+      std::size_t candidate_index = 0;
+      std::size_t cell_order = 0;
+      std::size_t query_order = 0;
+      double start_rt = 0.0;
+      double apex_rt = 0.0;
+      double last_rt = 0.0;
+      double area = 0.0;
+      double apex_intensity = 0.0;
+      std::size_t points = 0;
+      std::size_t transition_support = 0;
+    };
+
+    static constexpr std::size_t CANDIDATES_PER_BLOCK = 256;
+    static constexpr std::size_t MAX_BATCH_CELLS = 32;
+    static constexpr std::size_t MAX_BATCH_POINTS = 1'000'000;
 
     void consumeSpectrum_(const MSSpectrum& spectrum);
     void prepareLaneQueries_(GridLane& lane);
-    void extractCell_(const GridCell& cell, const GridLane& lane);
-    void updateCandidate_(std::size_t candidate, double rt, double intensity, std::size_t transition_support);
+    void flushBatch_();
+    void updateCandidate_(std::size_t candidate, double rt, double intensity, std::size_t transition_support,
+                          std::size_t cell_order, std::size_t query_order,
+                          std::vector<CompletedCandidate>& completed);
     void writeCandidate_(const Candidate& candidate);
+    void writeCandidate_(const CompletedCandidate& candidate);
     bool queryMatches_(const Query& query, double rt, double peak_im, bool has_peak_im,
                        const std::vector<std::pair<double, double>>& isolation_windows) const;
 
@@ -131,15 +158,14 @@ namespace OpenMS::OpenDIA
     std::vector<std::size_t> candidate_query_offsets_;
     std::vector<std::size_t> candidate_query_indices_;
     std::vector<std::size_t> candidates_by_mz_;
+    std::vector<GridCell> batch_cells_;
     std::vector<GridPoint> grid_points_;
     std::vector<GridLane> grid_lanes_;
     std::map<std::vector<std::pair<double, double>>, std::size_t> lane_indices_;
-    std::vector<double> query_intensity_;
-    std::vector<std::size_t> query_touched_;
     std::vector<double> candidate_scan_intensity_;
     std::vector<std::size_t> candidate_scan_support_;
     std::vector<std::size_t> candidate_generation_;
-    std::vector<std::size_t> candidate_touched_;
+    std::vector<std::size_t> candidate_first_match_order_;
     std::size_t generation_ = 0;
     bool finished_ = false;
     bool has_library_im_candidates_ = false;

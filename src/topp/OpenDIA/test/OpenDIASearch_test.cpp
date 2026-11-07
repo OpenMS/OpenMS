@@ -22,6 +22,10 @@
 #include <utility>
 #include <vector>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 using namespace OpenMS;
 
 namespace
@@ -215,6 +219,65 @@ int main()
   require(scalar_im_output.str().find("mobility_interferer\t500\t") != std::string::npos &&
           scalar_im_output.str().find("target\t500\t") == std::string::npos,
           "scalar VSSC mobility did not select the matching candidate");
+
+#ifdef _OPENMP
+  // More than one candidate block and more than one scan batch must produce
+  // byte-identical output when the worker count changes.
+  std::vector<std::string> parallel_ids;
+  parallel_ids.reserve(300);
+  for (std::size_t candidate = 0; candidate < 300; ++candidate)
+  {
+    parallel_ids.push_back("parallel_" + std::to_string(candidate));
+  }
+  const auto run_candidate_blocks = [&parallel_ids](int thread_count)
+  {
+    omp_set_num_threads(thread_count);
+    std::vector<OpenDIA::TransitionQuery> candidate_queries;
+    candidate_queries.reserve(parallel_ids.size() * 2);
+    for (std::size_t candidate = 0; candidate < parallel_ids.size(); ++candidate)
+    {
+      const double precursor_mz = 450.0 + static_cast<double>(candidate) * 0.3;
+      for (std::size_t transition = 0; transition < 2; ++transition)
+      {
+        const double fragment_mz = 100.0 + static_cast<double>(candidate % 256) * 0.02 +
+                                   static_cast<double>(transition) * 0.005;
+        candidate_queries.push_back({parallel_ids[candidate], precursor_mz, fragment_mz, 0.0, false});
+      }
+    }
+
+    OpenDIA::SearchOptions candidate_options;
+    candidate_options.fragment_tolerance_da = 0.001;
+    candidate_options.peak_gap_seconds = 15.0;
+    candidate_options.min_transitions = 2;
+    std::ostringstream candidate_output;
+    OpenDIA::StreamSearch candidate_search(std::move(candidate_queries), candidate_options, candidate_output);
+    for (std::size_t scan = 0; scan < 40; ++scan)
+    {
+      const double rt = scan < 20 ? 10.0 + static_cast<double>(scan) : 110.0 + static_cast<double>(scan);
+      MSSpectrum scan_spectrum = spectrum(rt, 500.0, {});
+      for (std::size_t candidate = 0; candidate < parallel_ids.size(); ++candidate)
+      {
+        const double fragment_mz = 100.0 + static_cast<double>(candidate % 256) * 0.02;
+        scan_spectrum.push_back(Peak1D(fragment_mz, 1.0));
+        scan_spectrum.push_back(Peak1D(fragment_mz + 0.005, 2.0));
+      }
+      candidate_search.consumeSpectrum(scan_spectrum);
+    }
+    candidate_search.finish();
+    return candidate_output.str();
+  };
+
+  const int original_threads = omp_get_max_threads();
+  const std::string serial_output = run_candidate_blocks(1);
+  const std::string parallel_output = run_candidate_blocks(4);
+  omp_set_num_threads(original_threads);
+  require(serial_output == parallel_output, "candidate-block extraction changed exact TSV output");
+  require(std::count(serial_output.begin(), serial_output.end(), '\n') == 600,
+          "candidate-block extraction lost completed groups across scan batches");
+  require(serial_output.find("parallel_0\t450\t10\t10\t29\t57\t2\t20") != std::string::npos &&
+          serial_output.find("parallel_0\t450\t130\t130\t149\t57\t2\t20") != std::string::npos,
+          "candidate-block extraction changed completed or active peak-group values");
+#endif
 
   std::vector<OpenDIA::TransitionQuery> invalid_queries = {{"analyte", 500.0, 100.0, 0.0, false}};
   OpenDIA::SearchOptions invalid_options;
