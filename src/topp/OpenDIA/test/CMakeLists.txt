@@ -9,6 +9,10 @@ add_executable(OpenDIASearch_test OpenDIASearch_test.cpp)
 target_link_libraries(OpenDIASearch_test PRIVATE OpenDIA_impl)
 add_test(NAME OpenDIASearch_test COMMAND OpenDIASearch_test)
 
+add_executable(OpenDIARerank_test OpenDIARerank_test.cpp)
+target_link_libraries(OpenDIARerank_test PRIVATE OpenDIA_impl)
+add_test(NAME OpenDIARerank_test COMMAND OpenDIARerank_test)
+
 if(EXISTS "${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML" AND
    EXISTS "${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp")
   add_test(NAME OpenDIA_streaming_smoke

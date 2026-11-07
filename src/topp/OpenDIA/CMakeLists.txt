@@ -16,7 +16,9 @@ endif()
 
 add_library(OpenDIA_impl STATIC
   source/OpenDIASearch.cpp
-  include/OpenDIASearch.h)
+  source/OpenDIARerank.cpp
+  include/OpenDIASearch.h
+  include/OpenDIARerank.h)
 target_include_directories(OpenDIA_impl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(OpenDIA_impl PUBLIC OpenMS::OpenMS_CLI)
 if(COMMAND openms_add_library_compiler_flags)
@@ -27,6 +29,12 @@ add_executable(OpenDIA OpenDIA.cpp)
 target_link_libraries(OpenDIA PRIVATE OpenDIA_impl)
 if(COMMAND openms_add_executable_compiler_flags)
   openms_add_executable_compiler_flags(OpenDIA)
+endif()
+
+add_executable(OpenDIARerank OpenDIARerank.cpp)
+target_link_libraries(OpenDIARerank PRIVATE OpenDIA_impl)
+if(COMMAND openms_add_executable_compiler_flags)
+  openms_add_executable_compiler_flags(OpenDIARerank)
 endif()
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
