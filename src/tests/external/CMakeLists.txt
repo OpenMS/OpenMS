@@ -177,14 +177,14 @@ target_link_libraries(TestExternalCodeCLI OpenMS::OpenMS_CLI)
 add_test(TestExternalCodeCLI TestExternalCodeCLI -greeting "hello from OpenMS_CLI")
 set_tests_properties(TestExternalCodeCLI PROPERTIES PASS_REGULAR_EXPRESSION "hello from OpenMS_CLI")
 
-## OSWPQ storage and the real OpenDIA source must build against installed public
-## headers, with no Arrow target or source-tree include directory.
+## OSWPQ storage and the real OpenDIA tool must build against installed public
+## OpenMS headers, without an Arrow target or core source-tree include directory.
 add_executable(TestExternalCodeOSWParquet TestExternalCodeOSWParquet.cpp)
 target_link_libraries(TestExternalCodeOSWParquet OpenMS::OpenMS)
 add_test(TestExternalCodeOSWParquet TestExternalCodeOSWParquet)
-add_executable(TestExternalOpenDIA ../../topp/OpenDIA.cpp)
-target_link_libraries(TestExternalOpenDIA OpenMS::OpenMS_CLI)
-add_test(TestExternalOpenDIA TestExternalOpenDIA -test -write_ini "${CMAKE_CURRENT_BINARY_DIR}/external_opendia.ini")
+# Use the production tool target graph, including its private implementation.
+add_subdirectory("../../topp/OpenDIA" "${CMAKE_CURRENT_BINARY_DIR}/OpenDIA")
+add_test(NAME TestExternalOpenDIA COMMAND OpenDIA -test -write_ini "${CMAKE_CURRENT_BINARY_DIR}/external_opendia.ini")
 
 ## Enable testing - for Nightly Build log
 add_test(TestExternalCode TestExternalCode)
