@@ -5,10 +5,12 @@
 # $Authors: Justin Sing $
 """Sample raw-trace training windows with external seed labels, not engineered inputs.
 
-This pilot requires the identical PQP used by OpenDIA and the scored teacher OSW.
+This pilot requires the identical PQP used by OpenDIA and one seed source: either a scored
+teacher OSW, or an identification-free OpenDIACalibrate anchor TSV (-out_anchors), whose
+paired target-decoy anchors label the target window containing the anchor run RT.
 Decoy TRAML_ID must be DECOY_<target TRAML_ID>. Group by the parent target's
 unmodified sequence, keeping charge states, modifications and decoys together.
-Teacher identifications only label windows. Their scores are never model inputs.
+Seed sources only label windows. Their scores are never model inputs.
 """
 import argparse
 from contextlib import ExitStack
@@ -19,10 +21,12 @@ from pathlib import Path
 import sqlite3
 
 
-def prepare(library, teacher, candidates, output, max_samples=6000, seed_q=0.001, all_windows=None):
-    if max_samples < 6 or not 0 < seed_q <= 0.01:
+def prepare(library, teacher, candidates, output, max_samples=6000, seed_q=0.001, all_windows=None, anchors=None, anchor_q=0.01):
+    if max_samples < 6 or not 0 < seed_q <= 0.01 or not 0 < anchor_q <= 0.05:
         raise ValueError("Need at least six samples and a seed q threshold in (0, 0.01].")
-    inputs = {Path(path).resolve() for path in (library, teacher, candidates)}
+    if (teacher is None) == (anchors is None):
+        raise ValueError("Give exactly one seed source: a teacher OSW or a calibration anchor TSV.")
+    inputs = {Path(path).resolve() for path in (library, teacher or anchors, candidates)}
     if Path(output).resolve() in inputs or (all_windows and
             (Path(all_windows).resolve() in inputs or Path(all_windows).resolve() == Path(output).resolve())):
         raise ValueError("Window outputs must be distinct from inputs and each other.")
@@ -44,20 +48,32 @@ def prepare(library, teacher, candidates, output, max_samples=6000, seed_q=0.001
         if not sequence or (key in identity and identity[key] != value):
             raise ValueError("Ambiguous or missing parent peptide identity.")
         identity[key] = value
-    with sqlite3.connect(f"file:{teacher}?mode=ro", uri=True) as connection:
-        # Reject identity remapping rather than silently assigning the wrong labels.
-        for precursor_id, name, decoy in connection.execute("SELECT ID,TRAML_ID,DECOY FROM PRECURSOR"):
-            if str(precursor_id) not in identity or identity[str(precursor_id)][1:] != (int(decoy), name):
-                raise ValueError("Teacher OSW and PQP precursor IDs differ.")
-        seeds = {}
-        for precursor_id, left, right, apex in connection.execute(
-            "SELECT f.PRECURSOR_ID,f.LEFT_WIDTH,f.RIGHT_WIDTH,f.EXP_RT FROM FEATURE f "
-            "JOIN SCORE_MS2 s ON f.ID=s.FEATURE_ID JOIN PRECURSOR p ON p.ID=f.PRECURSOR_ID "
-            "WHERE p.DECOY=0 AND s.RANK=1 AND s.QVALUE<=?", (seed_q,)
-        ):
-            if not all(math.isfinite(x) for x in (left, right, apex)) or left > right:
-                raise ValueError("Non-finite or reversed teacher RT boundaries.")
-            seeds.setdefault(str(precursor_id), []).append((left, right, apex))
+    seeds = {}
+    anchor_rt = {}
+    if anchors is not None:
+        # Identification-free anchors: the target window whose bounds contain the anchor run RT.
+        with open(anchors, newline="") as handle:
+            for row in csv.DictReader(handle, delimiter="\t"):
+                if float(row["q_value"]) > anchor_q:
+                    continue
+                key, run_rt = row["precursor_id"], float(row["run_rt"])
+                if key not in identity or identity[key][1] or not math.isfinite(run_rt):
+                    raise ValueError("Anchor precursor is not a library target or has a non-finite run RT.")
+                anchor_rt[key] = run_rt
+    else:
+        with sqlite3.connect(f"file:{teacher}?mode=ro", uri=True) as connection:
+            # Reject identity remapping rather than silently assigning the wrong labels.
+            for precursor_id, name, decoy in connection.execute("SELECT ID,TRAML_ID,DECOY FROM PRECURSOR"):
+                if str(precursor_id) not in identity or identity[str(precursor_id)][1:] != (int(decoy), name):
+                    raise ValueError("Teacher OSW and PQP precursor IDs differ.")
+            for precursor_id, left, right, apex in connection.execute(
+                "SELECT f.PRECURSOR_ID,f.LEFT_WIDTH,f.RIGHT_WIDTH,f.EXP_RT FROM FEATURE f "
+                "JOIN SCORE_MS2 s ON f.ID=s.FEATURE_ID JOIN PRECURSOR p ON p.ID=f.PRECURSOR_ID "
+                "WHERE p.DECOY=0 AND s.RANK=1 AND s.QVALUE<=?", (seed_q,)
+            ):
+                if not all(math.isfinite(x) for x in (left, right, apex)) or left > right:
+                    raise ValueError("Non-finite or reversed teacher RT boundaries.")
+                seeds.setdefault(str(precursor_id), []).append((left, right, apex))
     best = {}
     with ExitStack() as stack:
         handle = stack.enter_context(open(candidates, newline=""))
@@ -76,6 +92,9 @@ def prepare(library, teacher, candidates, output, max_samples=6000, seed_q=0.001
             label = 0 if decoy else -1
             if decoy:
                 rank = -area
+            elif anchors is not None:
+                if precursor_id in anchor_rt and float(row["rt_start"]) <= anchor_rt[precursor_id] <= float(row["rt_end"]):
+                    label, rank = 1, abs(apex - anchor_rt[precursor_id])
             else:
                 distances = [abs(apex - seed_apex) for left, right, seed_apex in seeds.get(precursor_id, [])
                              if left <= apex <= right]
@@ -103,13 +122,17 @@ def prepare(library, teacher, candidates, output, max_samples=6000, seed_q=0.001
         writer.writerows((row_id, precursor_id, group, label, apex)
                          for _, row_id, precursor_id, group, label, apex in selected)
     return {"positive_seeds": count, "decoys": count,
-            "peptide_families": len({row[3] for row in selected}), "seed_q": seed_q}
+            "peptide_families": len({row[3] for row in selected}),
+            **({"anchor_q": anchor_q} if anchors is not None else {"seed_q": seed_q})}
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--library", required=True)
-    parser.add_argument("--teacher", required=True)
+    sources = parser.add_mutually_exclusive_group(required=True)
+    sources.add_argument("--teacher", help="Scored OSW whose q-value IDs label target windows")
+    sources.add_argument("--anchors", help="Identification-free OpenDIACalibrate -out_anchors TSV")
+    parser.add_argument("--anchor-q", type=float, default=0.01, help="Anchor paired q-value cut")
     parser.add_argument("--candidates", required=True)
     parser.add_argument("--output", required=True)
     parser.add_argument("--max-samples", type=int, default=6000)

@@ -541,7 +541,14 @@ Outputs and checkpoints come from the last round. With the default of 0, output 
 
 The HeLa gates were declared before each run (`raw-trace-cnn-hela/anchor-seeds-20261107/GATE.md`), with a pass mark of ≥ 10647, which is 90% of the teacher-seeded count.
 Round-0 seeds are the OpenDIACalibrate anchors at q ≤ 0.01 with a containing candidate window (1186), plus equal numbers of decoy windows.
-No OpenSWATH output enters training or scoring. The scoring manifest `cal.all_windows.tsv` lists all 198914 candidates; it was written by `prepare_trace_windows.py --teacher`, so its label column holds teacher labels, but crossfit resets every manifest label to -1 and uses only `-seeds`. A teacher-free manifest writer is still needed for a clean pipeline.
+No OpenSWATH output enters training or scoring. The scoring manifest `cal.all_windows.tsv` lists all 198914 candidates; it was written by `prepare_trace_windows.py --teacher`, so its label column holds teacher labels, but crossfit resets every manifest label to -1 and uses only `-seeds`.
+`prepare_trace_windows.py --anchors <OpenDIACalibrate -out_anchors TSV>` (with `--anchor-q`, default 0.01) now writes both seeds and manifest without a teacher.
+- The positive is the target window whose bounds contain the anchor run RT, preferring the apex closest to it.
+- Decoys follow the existing rule.
+- The panel-40000 seeds are reproduced byte-for-byte, and the manifest identities match the teacher-written one.
+- The `--teacher` output is unchanged (`cmp`).
+
+A teacher-free pipeline is therefore: `OpenDIACalibrate -out_anchors` → `OpenDIA -calibration` → `prepare_trace_windows.py --anchors` → `OpenDIACNN -mode crossfit -ss_iterations 1`.
 
 | Seeds | Targets at paired q ≤ 0.01 | Folds |
 |---|---|---|

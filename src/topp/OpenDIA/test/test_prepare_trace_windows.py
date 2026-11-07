@@ -66,6 +66,43 @@ class PrepareTraceWindowsTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "resolve decoy parent"):
                 m.prepare(str(library), str(teacher), str(candidates), str(output), 6)
 
+    def test_identification_free_anchor_seeds(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            library = root / "lib.pqp"
+            with sqlite3.connect(library) as c:
+                c.executescript("CREATE TABLE PRECURSOR(ID,TRAML_ID,DECOY);"
+                                "CREATE TABLE PEPTIDE(ID,UNMODIFIED_SEQUENCE);"
+                                "CREATE TABLE PRECURSOR_PEPTIDE_MAPPING(PRECURSOR_ID,PEPTIDE_ID);")
+                for i in range(8):
+                    decoy = i >= 4
+                    c.execute("INSERT INTO PRECURSOR VALUES (?,?,?)", (i, f"DECOY_t{i - 4}" if decoy else f"t{i}", int(decoy)))
+                    c.execute("INSERT INTO PEPTIDE VALUES (?,?)", (i, "SHUFFLED" if decoy else f"PEPTIDE{i}"))
+                    c.execute("INSERT INTO PRECURSOR_PEPTIDE_MAPPING VALUES (?,?)", (i, i))
+            candidates = root / "features.tsv"
+            with candidates.open("w", newline="") as handle:
+                writer = csv.writer(handle, delimiter="\t")
+                writer.writerow(["candidate_row", "precursor_id", "is_decoy", "rt_start", "rt_apex", "rt_end", "area"])
+                writer.writerows((i, i, int(i >= 4), 9, 10, 11, 100) for i in range(8))
+                writer.writerow([8, 0, 0, 40, 41, 42, 1e6])  # Does not contain the anchor RT: unknown.
+            anchors = root / "anchors.tsv"
+            with anchors.open("w", newline="") as handle:
+                writer = csv.writer(handle, delimiter="\t")
+                writer.writerow(["precursor_id", "library_rt", "run_rt", "q_value"])
+                writer.writerows([(0, 1, 10.2, 0.001), (1, 2, 10.5, 0.005), (2, 2, 9.5, 0.01), (3, 3, 10.0, 0.5)])  # 3 fails the cut.
+            output, all_windows = root / "sample.tsv", root / "all.tsv"
+            result = m.prepare(str(library), None, str(candidates), str(output), 6, all_windows=str(all_windows), anchors=str(anchors))
+            self.assertEqual((result["positive_seeds"], result["decoys"], result["anchor_q"]), (3, 3, 0.01))
+            with all_windows.open() as handle:
+                labels = [row["label"] for row in csv.DictReader(handle, delimiter="\t")]
+            self.assertEqual(labels, ["1", "1", "1", "-1", "0", "0", "0", "0", "-1"])
+            with self.assertRaisesRegex(ValueError, "exactly one seed source"):
+                m.prepare(str(library), None, str(candidates), str(output), 6)
+            with anchors.open("a") as handle:
+                handle.write("4\t1\t10\t0.001\n")  # A decoy can never be an anchor.
+            with self.assertRaisesRegex(ValueError, "not a library target"):
+                m.prepare(str(library), None, str(candidates), str(output), 6, anchors=str(anchors))
+
 
 if __name__ == "__main__":
     unittest.main()
