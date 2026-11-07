@@ -8,6 +8,7 @@
 
 #include "OpenDIACNN.h"
 #include "OpenDIACNNQValues.h"
+#include "OpenDIACNNRTWindow.h"
 #include "OpenDIATraces.h"
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
@@ -76,6 +77,7 @@ namespace OpenMS
       registerDoubleOption_("target_decoy_ratio", "<ratio>", 1.0, "Crossfit decoy-count correction: searched library target/decoy ratio, never observed winner ratio", false);
       setMinFloat_("target_decoy_ratio", 0.0);
       registerFlag_("paired_tdc", "Crossfit only, experimental: paired target-decoy competition. A decoy precursor TRAML_ID 'DECOY_<X>' competes with target <X>; q=(D+1)/T per fold, so target_decoy_ratio must stay 1");
+      registerFlag_("rt_window_calibration", "Crossfit only, experimental: fit a library-RT to run-RT map per fold from the other folds' top 500 target precursors by CNN score (no teacher IDs) and keep only windows within max(4 sigma, 30 s) of the map before precursor q-values");
     }
 
     ExitCodes main_(int, const char**) override
@@ -145,6 +147,12 @@ namespace OpenMS
         if (paired_tdc && (!crossfit || target_decoy_ratio != 1.0))
         {
           throw std::invalid_argument("paired_tdc requires crossfit mode and target_decoy_ratio 1 (pairing balances the classes).");
+        }
+
+        const bool rt_window_calibration = getFlag_("rt_window_calibration");
+        if (rt_window_calibration && !crossfit)
+        {
+          throw std::invalid_argument("rt_window_calibration requires crossfit mode.");
         }
 
         const auto max_samples = static_cast<std::size_t>(getIntOption_("max_samples"));
@@ -241,7 +249,7 @@ namespace OpenMS
           {
             if (!covered[i]) { throw std::runtime_error("Missing outer-fold prediction."); }
             crossfit_rows.push_back({data.samples[i].sample_id, collector.window(i).precursor_id, data.samples[i].group_id,
-              data.samples[i].is_decoy, OpenDIA::traceCNNFold(data.samples[i].group_id, settings.seed, settings.outer_folds), result.logits[i]});
+              data.samples[i].is_decoy, OpenDIA::traceCNNFold(data.samples[i].group_id, settings.seed, settings.outer_folds), result.logits[i], ""});
           }
           if (paired_tdc)
           {
@@ -270,20 +278,61 @@ namespace OpenMS
           result = OpenDIA::scoreTraceCNN(data, geometry, checkpoint, getIntOption_("threads"), getFlag_("allow_training_overlap"));
         }
         // Finish validation/statistics before opening the score output.
-        const auto evaluated = !crossfit ? std::vector<OpenDIA::CNNQValueResult>{} :
-          paired_tdc ? OpenDIA::aggregatePairedCNNQValues(crossfit_rows) : OpenDIA::aggregateCNNQValues(crossfit_rows, target_decoy_ratio);
+        // Optional RT window: precursor winners and q-values use only in-window rows.
+        std::vector<bool> in_rt_window(crossfit_rows.size(), true);
+        if (rt_window_calibration)
+        {
+          std::map<std::string, double> library_rts;
+          for (const auto& compound : library.getCompounds()) { library_rts[compound.id] = compound.rt; }
+          std::vector<double> apex_rt, library_rt;
+          for (std::size_t i = 0; i < crossfit_rows.size(); ++i)
+          {
+            const auto found = library_rts.find(crossfit_rows[i].precursor_id);
+            if (found == library_rts.end() || !std::isfinite(found->second))
+            {
+              throw std::invalid_argument("rt_window_calibration needs a finite library RT for precursor " + crossfit_rows[i].precursor_id);
+            }
+            apex_rt.push_back(collector.window(i).apex_rt);
+            library_rt.push_back(found->second);
+          }
+          std::vector<OpenDIA::RTWindowFold> report;
+          in_rt_window = OpenDIA::crossfitRTWindowMask(crossfit_rows, apex_rt, library_rt, report);
+          for (const auto& fold : report)
+          {
+            writeLogInfo_("Experimental RT window fold=" + std::to_string(fold.fold) + " anchors=" + std::to_string(fold.map.anchors) +
+                          " sigma_s=" + std::to_string(fold.map.sigma) + " half_window_s=" + std::to_string(fold.half_window) +
+                          " precursors_in_window=" + std::to_string(fold.kept_precursors) + "/" + std::to_string(fold.precursors));
+          }
+        }
+        std::vector<OpenDIA::CNNQValueInput> kept_rows;
+        std::vector<std::size_t> kept_index(crossfit_rows.size(), SIZE_MAX);
+        for (std::size_t i = 0; i < crossfit_rows.size(); ++i)
+        {
+          if (!in_rt_window[i]) { continue; }
+          kept_index[i] = kept_rows.size();
+          kept_rows.push_back(crossfit_rows[i]);
+        }
+        const auto kept_evaluated = !crossfit ? std::vector<OpenDIA::CNNQValueResult>{} :
+          paired_tdc ? OpenDIA::aggregatePairedCNNQValues(kept_rows) : OpenDIA::aggregateCNNQValues(kept_rows, target_decoy_ratio);
+        std::vector<OpenDIA::CNNQValueResult> evaluated;
+        for (std::size_t i = 0; i < crossfit_rows.size(); ++i)
+        {
+          evaluated.push_back(kept_index[i] == SIZE_MAX ? OpenDIA::CNNQValueResult{crossfit_rows[i], false, 1.0} : kept_evaluated[kept_index[i]]);
+        }
         std::ofstream scores(output);
         if (crossfit)
         {
-          scores << "sample_id\tprecursor_id\tgroup_id\tis_decoy\tfold\tlogit\tprecursor_best\tq_value\n"
-                 << std::setprecision(std::numeric_limits<double>::max_digits10);
+          scores << "sample_id\tprecursor_id\tgroup_id\tis_decoy\tfold\tlogit\tprecursor_best\tq_value"
+                 << (rt_window_calibration ? "\tin_rt_window\n" : "\n") << std::setprecision(std::numeric_limits<double>::max_digits10);
           std::size_t targets_at_one_percent = 0;
-          for (const auto& row : evaluated)
+          for (std::size_t i = 0; i < evaluated.size(); ++i)
           {
+            const auto& row = evaluated[i];
             scores << row.input.sample_id << '\t' << row.input.precursor_id << '\t' << row.input.group_id << '\t'
                    << row.input.is_decoy << '\t' << row.input.fold << '\t' << row.input.score << '\t' << row.precursor_best << '\t';
             if (row.precursor_best) { scores << row.q_value; }
             else { scores << "NA"; }
+            if (rt_window_calibration) { scores << '\t' << in_rt_window[i]; }
             scores << '\n';
             targets_at_one_percent += row.precursor_best && !row.input.is_decoy && row.q_value <= 0.01;
           }

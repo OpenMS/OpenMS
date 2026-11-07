@@ -81,6 +81,18 @@ grouping and reverse minima. Pair losers keep `precursor_best = 1` but get
 rejected. Paired members share a family, so they share a fold. This is also an
 experimental estimate, with the same caveats as below.
 
+`-rt_window_calibration` (crossfit only, off by default) adds a signal-derived RT
+window before precursor selection. For each fold, the 500 target precursors with
+the highest best-window logit are anchors at their best window's apex. Fold k's
+map is fitted only on the other folds' anchors: 20 equal-count library-RT bins,
+median per bin, piecewise linear, constant outside the knots, up to 3 refits that
+drop anchors beyond max(3 sigma, 3 s), sigma = 1.4826 x median absolute residual.
+Windows with `|apex - map(library RT)| > max(4 sigma, 30 s)` are excluded from
+winner selection and q-values and are written with `precursor_best = 0` and an
+extra `in_rt_window = 0` column. The log reports each fold's sigma and window.
+No teacher identifications enter the map, but the anchors come from the same
+teacher-seeded CNN scores.
+
 Cross-fitting removes CNN fitting/early-stopping family overlap. It does **not**
 remove dependence introduced by a teacher trained on the whole acquisition,
 teacher-selected positive windows, candidate generation, correlated peptides or
@@ -383,7 +395,9 @@ then paired TDC. Script: `rt_window_gate.py` (benchmark directory).
 | 500 pg folds (sigma 50-58 s, half window 198-232 s), applied once | 0 / 110 / 120 | 144 / 173 / 162 |
 | 500 pg total, overlap SVM / XGBoost | 230, 211 / 213 | 479, 440 / 447 |
 
-The HeLa gate passed in every fold. On 500 pg the window helps but stays wide:
+The HeLa gate passed in every fold. The native `-paired_tdc
+-rt_window_calibration` crossfit reproduces 8554 exactly, with identical per-fold
+in-window counts (4.2 min wall, 7.1 GB peak). On 500 pg the window helps but stays wide:
 the same piecewise fit on the teacher's own SVM q <= 0.001 IDs gives sigma
 46.8 s (HeLa: 2.4 s), so this library's RTs predict this run poorly and the
 CNN-anchor map is already close to the achievable precision. The CNN anchors

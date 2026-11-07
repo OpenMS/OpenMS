@@ -54,7 +54,8 @@ if(OPENDIA_WITH_TORCH)
   endif()
   separate_arguments(_opendia_torch_flags NATIVE_COMMAND "${TORCH_CXX_FLAGS}")
   add_library(OpenDIA_cnn STATIC source/OpenDIACNN.cpp include/OpenDIACNN.h
-    source/OpenDIACNNQValues.cpp include/OpenDIACNNQValues.h)
+    source/OpenDIACNNQValues.cpp include/OpenDIACNNQValues.h
+    source/OpenDIACNNRTWindow.cpp include/OpenDIACNNRTWindow.h)
   target_compile_features(OpenDIA_cnn PUBLIC cxx_std_17)
   target_include_directories(OpenDIA_cnn PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
   target_compile_options(OpenDIA_cnn PRIVATE ${_opendia_torch_flags})

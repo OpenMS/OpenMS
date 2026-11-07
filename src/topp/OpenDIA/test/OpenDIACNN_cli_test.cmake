@@ -69,3 +69,11 @@ foreach(arguments IN ITEMS "-mode;train;-model;${WORK}/paired.pt" "-mode;crossfi
     message(FATAL_ERROR "paired_tdc misuse was not rejected before extraction: ${arguments}\n${output}\n${error}")
   endif()
 endforeach()
+
+# The experimental RT window is crossfit-only and is rejected before extraction.
+execute_process(COMMAND "${BINARY}" -mode train -rt_window_calibration -in "${WORK}/input.d"
+  -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -model "${WORK}/rt.pt" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "rt_window_calibration requires crossfit" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "rt_window_calibration outside crossfit was not rejected: ${status}\n${output}\n${error}")
+endif()
