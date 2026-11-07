@@ -221,3 +221,30 @@ synthetic prediction parity remains exact. The real result table, three native
 checkpoints and developer-only audit are retained in the local
 `raw-trace-cnn-hela/native-crossfit-20261107` benchmark directory. The analysis
 command itself ran directly in C++ without Python.
+
+### Multi-apex candidate proposals
+
+Diagnosis of the `-local_peak_split` HeLa candidates showed the coverage loss was
+not missing signal. Candidate groups are long (median span 125.6 s, against a
+mean baseline peak width of 7.8 s), and 11269 of 19132 SVM IDs had a candidate
+group spanning the baseline apex while the single reported global apex lay
+elsewhere. Only 13 IDs had no group covering the baseline apex.
+
+`OpenDIA -max_apexes_per_group <n> -min_apex_separation <s>` now reports up to n
+separated local maxima of the summed fragment trace per group, strongest first.
+Each row shares the group's boundaries, area and support. Separation uses
+streaming non-maximum suppression with O(n) state per precursor. The default
+`n = 1` is byte-identical to the previous peak and feature tables on this run.
+
+| `-local_peak_split`, separation 10 s | n = 1 | n = 3 | n = 5 |
+|---|---:|---:|---:|
+| Candidate rows | 271792 | 677810 | 988075 |
+| SVM IDs with a candidate apex inside baseline bounds | 6308 | 11280 | 13508 |
+| Wall time (s), single observation | 104.9 | 104.7 | 107.2 |
+| Peak RSS (KiB) | 811856 | 818632 | 827504 |
+
+These are agreement-with-baseline counts on the same acquisition used to choose
+n, not truth labels or an identification result. More rows per precursor also
+gives the downstream best-window selection more chances to find a decoy max, so
+the CNN must be re-evaluated (new seeds, traces and crossfit) before any change
+in accepted precursors is claimed.

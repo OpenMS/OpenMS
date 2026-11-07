@@ -39,7 +39,9 @@ namespace OpenMS::OpenDIA
         !std::isfinite(options_.peak_gap_seconds) || !(options_.peak_gap_seconds > 0.0) || options_.min_transitions == 0 ||
         (options_.split_local_peaks &&
          (!std::isfinite(options_.peak_valley_fraction) || !(options_.peak_valley_fraction > 0.0) ||
-          !(options_.peak_valley_fraction < 1.0) || options_.min_peak_scans < 2)))
+          !(options_.peak_valley_fraction < 1.0) || options_.min_peak_scans < 2)) ||
+        options_.max_apexes_per_group == 0 || !std::isfinite(options_.min_apex_separation_seconds) ||
+        options_.min_apex_separation_seconds < 0.0)
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "Search tolerances and minimum transition count must be positive.");
@@ -530,7 +532,7 @@ namespace OpenMS::OpenDIA
       completed.push_back({candidate_index, cell_order, query_order, candidate.start_rt, candidate.apex_rt,
                            candidate.last_rt, candidate.area, candidate.apex_intensity, candidate.points,
                            candidate.max_transition_support, candidate.mobility_error_sum,
-                           candidate.mobility_match_count});
+                           candidate.mobility_match_count, closeApexes_(candidate)});
       candidate.active = false;
       candidate.below_peak_scans = 0;
     }
@@ -553,6 +555,8 @@ namespace OpenMS::OpenDIA
       candidate.max_transition_support = transition_support;
       candidate.mobility_error_sum = mobility_error_sum;
       candidate.mobility_match_count = mobility_match_count;
+      candidate.rising = true;
+      candidate.apexes.clear();
       return;
     }
 
@@ -565,7 +569,7 @@ namespace OpenMS::OpenDIA
         completed.push_back({candidate_index, cell_order, query_order, candidate.start_rt, candidate.apex_rt,
                              candidate.last_rt, candidate.area, candidate.apex_intensity, candidate.points,
                              candidate.max_transition_support, candidate.mobility_error_sum,
-                             candidate.mobility_match_count});
+                             candidate.mobility_match_count, closeApexes_(candidate)});
         candidate.active = false;
         candidate.awaiting_peak = true;
         // ponytail: fixed fractional recovery keeps state O(1) per candidate.
@@ -578,6 +582,20 @@ namespace OpenMS::OpenDIA
     else
     {
       candidate.below_peak_scans = 0;
+    }
+
+    // A rise followed by a drop marks the previous scan as a local apex.
+    if (options_.max_apexes_per_group > 1)
+    {
+      if (intensity > candidate.last_intensity)
+      {
+        candidate.rising = true;
+      }
+      else if (intensity < candidate.last_intensity && candidate.rising)
+      {
+        offerApex_(candidate, candidate.last_rt, candidate.last_intensity);
+        candidate.rising = false;
+      }
     }
 
     candidate.area += 0.5 * (candidate.last_intensity + intensity) * (rt - candidate.last_rt);
@@ -594,39 +612,105 @@ namespace OpenMS::OpenDIA
     }
   }
 
-  void StreamSearch::writeCandidate_(std::size_t candidate_index, const Candidate& candidate)
+  void StreamSearch::offerApex_(Candidate& candidate, double rt, double intensity) const
   {
-    if (candidate.max_transition_support < options_.min_transitions ||
-        (options_.split_local_peaks && candidate.points < options_.min_peak_scans))
+    // Streaming non-maximum suppression: a new apex replaces every kept apex
+    // within the separation only if it is stronger than all of them.
+    auto& apexes = candidate.apexes;
+    bool stronger_than_neighbours = true;
+    for (const auto& [kept_rt, kept_intensity] : apexes)
+    {
+      if (std::abs(kept_rt - rt) < options_.min_apex_separation_seconds && kept_intensity >= intensity)
+      {
+        stronger_than_neighbours = false;
+        break;
+      }
+    }
+    if (!stronger_than_neighbours)
     {
       return;
     }
-    const double score = candidate.area > 0.0 ? candidate.area : candidate.apex_intensity;
-    output_ << candidate.id << '\t' << std::setprecision(10) << candidate.precursor_mz << '\t'
-            << candidate.start_rt << '\t' << candidate.apex_rt << '\t' << candidate.last_rt << '\t'
-            << score << '\t' << candidate.max_transition_support << '\t' << candidate.points << '\n';
-    writeCandidateFeatures_(candidate_index, candidate.start_rt, candidate.apex_rt, candidate.last_rt,
-                            candidate.area, candidate.apex_intensity, candidate.points,
-                            candidate.max_transition_support, candidate.mobility_error_sum,
-                            candidate.mobility_match_count);
+    apexes.erase(std::remove_if(apexes.begin(), apexes.end(), [this, rt](const auto& apex)
+                                { return std::abs(apex.first - rt) < options_.min_apex_separation_seconds; }),
+                 apexes.end());
+    apexes.emplace_back(rt, intensity);
+    if (apexes.size() > options_.max_apexes_per_group)
+    {
+      // Drop the weakest; the earliest wins exact ties for determinism.
+      auto weakest = std::min_element(apexes.begin(), apexes.end(), [](const auto& lhs, const auto& rhs)
+      {
+        return lhs.second != rhs.second ? lhs.second < rhs.second : lhs.first > rhs.first;
+      });
+      apexes.erase(weakest);
+    }
+  }
+
+  std::vector<std::pair<double, double>> StreamSearch::closeApexes_(Candidate& candidate) const
+  {
+    if (options_.max_apexes_per_group <= 1)
+    {
+      return {};
+    }
+    if (candidate.rising)
+    {
+      offerApex_(candidate, candidate.last_rt, candidate.last_intensity);
+    }
+    std::vector<std::pair<double, double>> apexes = std::move(candidate.apexes);
+    candidate.apexes.clear();
+    // Strongest apex first, then RT, so the first row matches the global apex intensity.
+    std::sort(apexes.begin(), apexes.end(), [](const auto& lhs, const auto& rhs)
+    {
+      return lhs.second != rhs.second ? lhs.second > rhs.second : lhs.first < rhs.first;
+    });
+    return apexes;
+  }
+
+  void StreamSearch::writeCandidateRows_(std::size_t candidate_index, double start_rt, double apex_rt, double end_rt,
+                                         double area, double apex_intensity, std::size_t points,
+                                         std::size_t transition_support, double mobility_error_sum,
+                                         std::size_t mobility_match_count,
+                                         const std::vector<std::pair<double, double>>& apexes)
+  {
+    if (transition_support < options_.min_transitions ||
+        (options_.split_local_peaks && points < options_.min_peak_scans))
+    {
+      return;
+    }
+    const Candidate& candidate = candidates_[candidate_index];
+    const double score = area > 0.0 ? area : apex_intensity;
+    const auto writeRow = [&](double row_apex_rt, double row_apex_intensity)
+    {
+      output_ << candidate.id << '\t' << std::setprecision(10) << candidate.precursor_mz << '\t'
+              << start_rt << '\t' << row_apex_rt << '\t' << end_rt << '\t'
+              << score << '\t' << transition_support << '\t' << points << '\n';
+      writeCandidateFeatures_(candidate_index, start_rt, row_apex_rt, end_rt, area, row_apex_intensity, points,
+                              transition_support, mobility_error_sum, mobility_match_count);
+    };
+    if (apexes.empty())
+    {
+      writeRow(apex_rt, apex_intensity);
+      return;
+    }
+    // Each local apex shares the group's boundaries, area and support evidence.
+    for (const auto& [row_apex_rt, row_apex_intensity] : apexes)
+    {
+      writeRow(row_apex_rt, row_apex_intensity);
+    }
+  }
+
+  void StreamSearch::writeCandidate_(std::size_t candidate_index, Candidate& candidate)
+  {
+    const auto apexes = closeApexes_(candidate);
+    writeCandidateRows_(candidate_index, candidate.start_rt, candidate.apex_rt, candidate.last_rt, candidate.area,
+                        candidate.apex_intensity, candidate.points, candidate.max_transition_support,
+                        candidate.mobility_error_sum, candidate.mobility_match_count, apexes);
   }
 
   void StreamSearch::writeCandidate_(const CompletedCandidate& completed)
   {
-    if (completed.transition_support < options_.min_transitions ||
-        (options_.split_local_peaks && completed.points < options_.min_peak_scans))
-    {
-      return;
-    }
-    const Candidate& candidate = candidates_[completed.candidate_index];
-    const double score = completed.area > 0.0 ? completed.area : completed.apex_intensity;
-    output_ << candidate.id << '\t' << std::setprecision(10) << candidate.precursor_mz << '\t'
-            << completed.start_rt << '\t' << completed.apex_rt << '\t' << completed.last_rt << '\t'
-            << score << '\t' << completed.transition_support << '\t' << completed.points << '\n';
-    writeCandidateFeatures_(completed.candidate_index, completed.start_rt, completed.apex_rt, completed.last_rt,
-                            completed.area, completed.apex_intensity, completed.points,
-                            completed.transition_support, completed.mobility_error_sum,
-                            completed.mobility_match_count);
+    writeCandidateRows_(completed.candidate_index, completed.start_rt, completed.apex_rt, completed.last_rt,
+                        completed.area, completed.apex_intensity, completed.points, completed.transition_support,
+                        completed.mobility_error_sum, completed.mobility_match_count, completed.apexes);
   }
 
   void StreamSearch::writeCandidateFeatures_(std::size_t candidate_index, double start_rt, double apex_rt,
@@ -659,7 +743,7 @@ namespace OpenMS::OpenDIA
     flushBatch_();
     for (std::size_t candidate_index = 0; candidate_index < candidates_.size(); ++candidate_index)
     {
-      const Candidate& candidate = candidates_[candidate_index];
+      Candidate& candidate = candidates_[candidate_index];
       if (candidate.active)
       {
         writeCandidate_(candidate_index, candidate);

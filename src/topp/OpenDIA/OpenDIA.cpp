@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 
+#include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <unordered_map>
@@ -70,6 +71,10 @@ protected:
     setMaxFloat_("peak_valley_fraction", 0.999);
     registerIntOption_("min_peak_scans", "<n>", 3, "Minimum matched scans in an experimental local-peak candidate", false);
     setMinInt_("min_peak_scans", 2);
+    registerIntOption_("max_apexes_per_group", "<n>", 1, "Report up to n separated local apexes per peak group as separate rows sharing the group's boundaries; 1 keeps one global apex", false);
+    setMinInt_("max_apexes_per_group", 1);
+    registerDoubleOption_("min_apex_separation", "<seconds>", 10.0, "Minimum RT distance between reported apexes of one peak group", false);
+    setMinFloat_("min_apex_separation", 0.0);
   }
 
   ExitCodes main_(int, const char**) override
@@ -86,6 +91,8 @@ protected:
     options.peak_gap_seconds = getDoubleOption_("peak_gap");
     options.split_local_peaks = getFlag_("local_peak_split");
     options.peak_valley_fraction = getDoubleOption_("peak_valley_fraction");
+    options.max_apexes_per_group = static_cast<std::size_t>(std::max(1, getIntOption_("max_apexes_per_group")));
+    options.min_apex_separation_seconds = getDoubleOption_("min_apex_separation");
     const Int min_peak_scans = getIntOption_("min_peak_scans");
     const Int min_transitions = getIntOption_("min_transitions");
     if (min_transitions < 1 || !std::isfinite(options.fragment_tolerance_da) || options.fragment_tolerance_da <= 0.0 ||

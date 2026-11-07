@@ -45,6 +45,10 @@ namespace OpenMS::OpenDIA
     bool split_local_peaks = false;
     double peak_valley_fraction = 0.1;
     std::size_t min_peak_scans = 3;
+    /// Report up to this many separated local apexes per peak group (1 keeps the single global apex).
+    std::size_t max_apexes_per_group = 1;
+    /// Minimum RT distance between reported apexes of one peak group.
+    double min_apex_separation_seconds = 10.0;
   };
 
   /**
@@ -95,6 +99,9 @@ namespace OpenMS::OpenDIA
       std::size_t max_transition_support = 0;
       double mobility_error_sum = 0.0;
       std::size_t mobility_match_count = 0;
+      // Local-apex tracking, used only when max_apexes_per_group > 1.
+      bool rising = false;
+      std::vector<std::pair<double, double>> apexes;
     };
 
     struct Query
@@ -147,6 +154,7 @@ namespace OpenMS::OpenDIA
       std::size_t transition_support = 0;
       double mobility_error_sum = 0.0;
       std::size_t mobility_match_count = 0;
+      std::vector<std::pair<double, double>> apexes;
     };
 
     static constexpr std::size_t CANDIDATES_PER_BLOCK = 256;
@@ -160,7 +168,14 @@ namespace OpenMS::OpenDIA
                           double mobility_error_sum, std::size_t mobility_match_count,
                           std::size_t cell_order, std::size_t query_order,
                           std::vector<CompletedCandidate>& completed);
-    void writeCandidate_(std::size_t candidate_index, const Candidate& candidate);
+    void offerApex_(Candidate& candidate, double rt, double intensity) const;
+    std::vector<std::pair<double, double>> closeApexes_(Candidate& candidate) const;
+    void writeCandidateRows_(std::size_t candidate_index, double start_rt, double apex_rt, double end_rt,
+                             double area, double apex_intensity, std::size_t points,
+                             std::size_t transition_support, double mobility_error_sum,
+                             std::size_t mobility_match_count,
+                             const std::vector<std::pair<double, double>>& apexes);
+    void writeCandidate_(std::size_t candidate_index, Candidate& candidate);
     void writeCandidate_(const CompletedCandidate& candidate);
     void writeCandidateFeatures_(std::size_t candidate_index, double start_rt, double apex_rt, double end_rt,
                                 double area, double apex_intensity, std::size_t points,

@@ -141,6 +141,57 @@ int main()
   require(std::count(weak_recovery_rows.begin(), weak_recovery_rows.end(), '\n') == 1,
           "weak sub-threshold recovery was split into an extra candidate");
 
+  // One gap-merged group with three bumps at 3s (60), 13s (100) and 22s (40) plus
+  // a shoulder at 15s (90) that lies within the separation of the 13s apex.
+  const std::vector<std::pair<double, double>> bumps = {
+    {1.0, 10.0}, {2.0, 30.0}, {3.0, 60.0}, {4.0, 30.0}, {5.0, 20.0}, {11.0, 40.0}, {13.0, 100.0},
+    {14.0, 50.0}, {15.0, 90.0}, {16.0, 30.0}, {20.0, 20.0}, {22.0, 40.0}, {23.0, 10.0}};
+  const auto runBumps = [&](std::size_t max_apexes, double separation)
+  {
+    OpenDIA::SearchOptions bump_options;
+    bump_options.max_apexes_per_group = max_apexes;
+    bump_options.min_apex_separation_seconds = separation;
+    std::ostringstream bump_output;
+    OpenDIA::StreamSearch bump_search(local_peak_queries, bump_options, bump_output);
+    for (const auto& [rt, intensity] : bumps)
+    {
+      MSSpectrum point = spectrum(rt, 500.0, {Peak1D(100.0, intensity)});
+      bump_search.consumeSpectrum(point);
+    }
+    bump_search.finish();
+    return bump_output.str();
+  };
+  const std::string single_apex = runBumps(1, 5.0);
+  require(single_apex == "double_peak\t500\t1\t13\t23\t845\t1\t13\n",
+          "default single-apex output changed");
+  const std::string three_apexes = runBumps(3, 5.0);
+  require(three_apexes == "double_peak\t500\t1\t13\t23\t845\t1\t13\n"
+                          "double_peak\t500\t1\t3\t23\t845\t1\t13\n"
+                          "double_peak\t500\t1\t22\t23\t845\t1\t13\n",
+          "multi-apex mode did not report the three separated apexes strongest first");
+  const std::string two_apexes = runBumps(2, 5.0);
+  require(two_apexes == "double_peak\t500\t1\t13\t23\t845\t1\t13\n"
+                        "double_peak\t500\t1\t3\t23\t845\t1\t13\n",
+          "multi-apex cap did not keep the strongest apexes");
+  const std::string unsuppressed = runBumps(4, 1.0);
+  require(unsuppressed.find("\t15\t23\t") != std::string::npos,
+          "shoulder apex beyond the separation was suppressed");
+  require(three_apexes.find("\t15\t23\t") == std::string::npos,
+          "shoulder apex within the separation was not suppressed");
+  bool rejected_zero_apexes = false;
+  try
+  {
+    OpenDIA::SearchOptions invalid_options;
+    invalid_options.max_apexes_per_group = 0;
+    std::ostringstream invalid_output;
+    OpenDIA::StreamSearch invalid_search(local_peak_queries, invalid_options, invalid_output);
+  }
+  catch (const Exception::InvalidParameter&)
+  {
+    rejected_zero_apexes = true;
+  }
+  require(rejected_zero_apexes, "zero apexes per group was accepted");
+
   const std::vector<OpenDIA::TransitionQuery> labeled_queries = {
     {"target", 500.0, 100.0, 9.0, true, 0.0, false, false},
     {"decoy", 500.0, 100.0, 0.0, false, 0.0, false, true}
