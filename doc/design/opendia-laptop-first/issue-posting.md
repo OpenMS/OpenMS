@@ -9,6 +9,8 @@ Epic: [OpenMS/OpenMS#10661](https://github.com/OpenMS/OpenMS/issues/10661).
 #10662 WP-00 (closed earlier), #10663 WP-01, #10664 WP-02, #10665 WP-03, #10666 WP-04, #10667 WP-05, #10668 WP-06, #10669 WP-07, #10670 WP-08, #10675 WP-09, #10671 WP-10.
 Each closing comment links the archived package document and states what carries over. The archive is [archive/legacy-wp-plan-20261107](archive/legacy-wp-plan-20261107/README.md).
 
+Legacy stacked PRs, closed unmerged on 7 November 2026 as superseded, with branches kept: #10820 (WP-01), #10821 (WP-02), #10822 (WP-03), #10823 (WP-05). Earlier experiments #10559 and #10716 were already closed.
+
 ## Rewrite packages
 
 | WP | Issue |
