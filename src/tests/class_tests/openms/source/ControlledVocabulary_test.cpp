@@ -301,7 +301,7 @@ START_SECTION(([ControlledVocabulary::CVTerm] std::string ControlledVocabulary::
 }
 END_SECTION
 
-START_SECTION(([ControlledVocabulary::CVTerm] toXMLString(const std::string& ref, const OpenMS::DataValue& value) writes the value's own unit, not just any unit the term allows))
+START_SECTION(([ControlledVocabulary::CVTerm] toXMLString(const std::string& ref, const OpenMS::DataValue& value) writes the unit of the given value, not just any unit the term allows))
 {
   // A term that allows several different units (e.g. both minute and second
   // for a retention time); unitAccession must reflect which one the value
