@@ -18,9 +18,13 @@ add_library(OpenDIA_impl STATIC
   source/OpenDIASearch.cpp
   source/OpenDIARerank.cpp
   source/OpenDIATraces.cpp
+  source/OpenDIARTMap.cpp
+  source/OpenDIACalibration.cpp
   include/OpenDIASearch.h
   include/OpenDIARerank.h
-  include/OpenDIATraces.h)
+  include/OpenDIATraces.h
+  include/OpenDIARTMap.h
+  include/OpenDIACalibration.h)
 target_include_directories(OpenDIA_impl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(OpenDIA_impl PUBLIC OpenMS::OpenMS_CLI)
 if(COMMAND openms_add_library_compiler_flags)
@@ -45,6 +49,12 @@ if(COMMAND openms_add_executable_compiler_flags)
   openms_add_executable_compiler_flags(OpenDIATraces)
 endif()
 
+add_executable(OpenDIACalibrate OpenDIACalibrate.cpp)
+target_link_libraries(OpenDIACalibrate PRIVATE OpenDIA_impl)
+if(COMMAND openms_add_executable_compiler_flags)
+  openms_add_executable_compiler_flags(OpenDIACalibrate)
+endif()
+
 option(OPENDIA_WITH_TORCH "Build experimental native OpenDIACNN training and scoring (requires CPU LibTorch)" OFF)
 if(OPENDIA_WITH_TORCH)
   find_package(Torch CONFIG REQUIRED)
@@ -59,7 +69,7 @@ if(OPENDIA_WITH_TORCH)
   target_compile_features(OpenDIA_cnn PUBLIC cxx_std_17)
   target_include_directories(OpenDIA_cnn PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
   target_compile_options(OpenDIA_cnn PRIVATE ${_opendia_torch_flags})
-  target_link_libraries(OpenDIA_cnn PUBLIC ${TORCH_LIBRARIES})
+  target_link_libraries(OpenDIA_cnn PUBLIC ${TORCH_LIBRARIES} OpenDIA_impl)
   add_executable(OpenDIACNN OpenDIACNN.cpp)
   target_link_libraries(OpenDIACNN PRIVATE OpenDIA_impl OpenDIA_cnn)
   if(COMMAND openms_add_executable_compiler_flags)

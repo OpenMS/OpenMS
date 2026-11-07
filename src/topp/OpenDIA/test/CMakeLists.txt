@@ -17,6 +17,10 @@ add_executable(OpenDIATraces_test OpenDIATraces_test.cpp)
 target_link_libraries(OpenDIATraces_test PRIVATE OpenDIA_impl)
 add_test(NAME OpenDIATraces_test COMMAND OpenDIATraces_test ${CMAKE_CURRENT_BINARY_DIR}/OpenDIATraces_test)
 
+add_executable(OpenDIACalibration_test OpenDIACalibration_test.cpp)
+target_link_libraries(OpenDIACalibration_test PRIVATE OpenDIA_impl)
+add_test(NAME OpenDIACalibration_test COMMAND OpenDIACalibration_test)
+
 if(TARGET OpenDIA_cnn)
   add_executable(OpenDIACNN_test OpenDIACNN_test.cpp)
   target_link_libraries(OpenDIACNN_test PRIVATE OpenDIA_cnn)
@@ -38,6 +42,20 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML" A
         -DWORK=${CMAKE_CURRENT_BINARY_DIR}/OpenDIACNN_cli_safety
         -P ${CMAKE_CURRENT_SOURCE_DIR}/OpenDIACNN_cli_test.cmake)
   endif()
+  # OpenDIACalibrate refuses to overwrite its inputs, and fails closed (no silent fallback) when the tiny
+  # fixture library has too few target-decoy pairs to calibrate.
+  add_test(NAME OpenDIACalibrate_refuses_input_overwrite
+    COMMAND $<TARGET_FILE:OpenDIACalibrate>
+      -in ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML
+      -lib ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
+      -out ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp)
+  set_tests_properties(OpenDIACalibrate_refuses_input_overwrite PROPERTIES WILL_FAIL TRUE)
+  add_test(NAME OpenDIACalibrate_fails_closed_on_tiny_library
+    COMMAND $<TARGET_FILE:OpenDIACalibrate>
+      -in ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML
+      -lib ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
+      -out ${CMAKE_CURRENT_BINARY_DIR}/OpenDIACalibrate_tiny.json)
+  set_tests_properties(OpenDIACalibrate_fails_closed_on_tiny_library PROPERTIES WILL_FAIL TRUE)
   add_test(NAME OpenDIA_streaming_smoke
     COMMAND $<TARGET_FILE:OpenDIA>
       -in ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML
