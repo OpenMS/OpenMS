@@ -101,3 +101,11 @@ execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -m
 if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "apply_calibration_coordinates requires -rt_calibration" OR EXISTS "${WORK}/scores.tsv")
   message(FATAL_ERROR "apply_calibration_coordinates without a calibration was not rejected: ${status}\n${output}\n${error}")
 endif()
+
+# Score iterations are crossfit-only and are rejected before extraction.
+execute_process(COMMAND "${BINARY}" -mode train -ss_iterations 1 -model "${WORK}/ss.pt"
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "ss_iterations requires crossfit" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "ss_iterations outside crossfit was not rejected: ${status}\n${output}\n${error}")
+endif()

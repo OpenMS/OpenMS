@@ -528,3 +528,29 @@ The pipeline was otherwise unchanged: same seed recipe, crossfit settings and CN
 The gate passed. Fold 2 fell from 3615 to 3383, although the rule only required a higher total, so this is a mixed result per fold.
 The seeds were re-derived from the calibrated candidates with the same recipe, so the CNN training data changed as well as the candidates.
 This is still the design run, with the same-run teacher. It is a decoy-count estimate, not a calibrated FDR, and there is no independent-run result: the 500 pg calibration failed closed.
+
+### Teacher-free seeds: calibration anchors plus score iteration
+
+`-ss_iterations <n>` (crossfit only, default 0, off) adds PyProphet-style score iterations after the `-seeds` round.
+Each iteration relabels from the previous round's held-out scores and retrains every fold:
+- positives: target precursor winners at paired q ≤ `-ss_fdr` (0.01);
+- negatives: each decoy precursor's best window;
+- capped at `-ss_max_seeds` (6000) per class, in deterministic FNV-1a order.
+
+Outputs and checkpoints come from the last round. With the default of 0, output is byte-identical: `cmp` matched the earlier run with the same seeds.
+
+The HeLa gates were declared before each run (`raw-trace-cnn-hela/anchor-seeds-20261107/GATE.md`), with a pass mark of ≥ 10647, which is 90% of the teacher-seeded count.
+Round-0 seeds are the OpenDIACalibrate anchors at q ≤ 0.01 with a containing candidate window (1186), plus equal numbers of decoy windows.
+No OpenSWATH output is read at any point.
+
+| Seeds | Targets at paired q ≤ 0.01 | Folds |
+|---|---|---|
+| OpenSWATH SVM q ≤ 0.001 (teacher) | 11830 | 4104 / 4343 / 3383 |
+| Calibration anchors only | 9627 (fail) | 3748 / 3146 / 2733 |
+| Script round 2: round-1 q ≤ 0.001 targets vs largest-area decoy windows | 7093 (fail) | 2676 / 2291 / 2126 |
+| Script round 2b: round-1 q ≤ 0.01 targets vs best decoy windows | 11332 (pass) | 3629 / 3998 / 3705 |
+| **Native `-ss_iterations 1`** | **11118 (pass)** | 3221 / 4164 / 3733 |
+
+The native run (2:42, 2.0 GB) uses the same rule as script round 2b but a different deterministic subset order. The difference from 11332 (−214) is its sampling variability.
+The model is trained on the HeLa design run. Like PyProphet's semi-supervised loop, an iteration's labels for fold k come from models that were trained on fold k.
+It is a decoy-count estimate, not a calibrated FDR, and there is no independent run yet.

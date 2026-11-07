@@ -84,6 +84,14 @@ namespace OpenMS
       registerInputFile_("rt_calibration", "<file>", "", "Crossfit only, experimental: OpenDIACalibrate JSON (identification-free, CNN-independent). Keep only windows whose apex lies within the calibrated RT tolerance of the calibrated map before precursor q-values", false);
       setValidFormats_("rt_calibration", {"json"});
       registerFlag_("apply_calibration_coordinates", "With -rt_calibration, experimental: shift library fragment m/z by the calibrated ppm offset and precursor 1/K0 by the calibrated line before trace extraction (tolerances unchanged)");
+      registerIntOption_("ss_iterations", "<n>", 0, "Crossfit only, experimental: PyProphet-style score iterations after the -seeds round. Each retrains every fold on target precursor winners at q <= ss_fdr against each decoy precursor's best window; 0 disables", false);
+      setMinInt_("ss_iterations", 0);
+      setMaxInt_("ss_iterations", 10);
+      registerDoubleOption_("ss_fdr", "<q>", 0.01, "Score-iteration positive q-value cut", false);
+      setMinFloat_("ss_fdr", 0.0001);
+      setMaxFloat_("ss_fdr", 0.1);
+      registerIntOption_("ss_max_seeds", "<n>", 6000, "Score-iteration cap per class (deterministic FNV-1a order)", false);
+      setMinInt_("ss_max_seeds", 3);
     }
 
     ExitCodes main_(int, const char**) override
@@ -153,6 +161,11 @@ namespace OpenMS
         if (paired_tdc && (!crossfit || target_decoy_ratio != 1.0))
         {
           throw std::invalid_argument("paired_tdc requires crossfit mode and target_decoy_ratio 1 (pairing balances the classes).");
+        }
+        const int ss_iterations = getIntOption_("ss_iterations");
+        if (ss_iterations > 0 && !crossfit)
+        {
+          throw std::invalid_argument("ss_iterations requires crossfit mode.");
         }
 
         const bool rt_window_calibration = getFlag_("rt_window_calibration");
@@ -264,6 +277,62 @@ namespace OpenMS
         settings.patience = getIntOption_("patience");
         settings.batch_size = getIntOption_("batch_size");
         std::vector<OpenDIA::CNNQValueInput> crossfit_rows;
+        // Pair key: target TRAML_ID, or a decoy TRAML_ID without its DECOY_ prefix.
+        std::vector<std::string> pair_keys(count);
+        if (crossfit && paired_tdc)
+        {
+          const auto traml_ids = TransitionPQPFile().getPQPCurrentIDToTraMLIDMap(getStringOption_("lib").c_str(), "PRECURSOR");
+          const std::string prefix = "DECOY_";
+          for (std::size_t i = 0; i < count; ++i)
+          {
+            const auto& precursor_id = collector.window(i).precursor_id;
+            const auto found = traml_ids.find(precursor_id);
+            if (found == traml_ids.end()) { throw std::invalid_argument("Precursor " + precursor_id + " is missing from the PQP PRECURSOR table."); }
+            const std::string& name = found->second;
+            if (!data.samples[i].is_decoy) { pair_keys[i] = name; }
+            else if (name.starts_with(prefix)) { pair_keys[i] = name.substr(prefix.size()); }
+          }
+        }
+        std::vector<bool> in_rt_window;
+        std::vector<OpenDIA::CNNQValueResult> evaluated;
+        const double ss_fdr = getDoubleOption_("ss_fdr");
+        const auto ss_max_seeds = static_cast<std::size_t>(getIntOption_("ss_max_seeds"));
+        // Round 0 trains on -seeds. Each score iteration (PyProphet-style semi-supervised learning) relabels from the
+        // previous round's held-out scores and retrains every fold; outputs and checkpoints are from the last round.
+        for (int iteration = 0; iteration <= (crossfit ? ss_iterations : 0); ++iteration)
+        {
+        if (iteration > 0)
+        {
+          // Positives: target precursor winners at q <= ss_fdr. Negatives: every decoy precursor's best window.
+          std::vector<std::size_t> positives, negatives;
+          for (std::size_t i = 0; i < count; ++i)
+          {
+            data.samples[i].label = -1;
+            if (!evaluated[i].precursor_best) { continue; }
+            if (data.samples[i].is_decoy) { negatives.push_back(i); }
+            else if (evaluated[i].q_value <= ss_fdr) { positives.push_back(i); }
+          }
+          // Deterministic, label-blind subset order: FNV-1a64 over precursor and sample identity.
+          const auto order = [&](std::size_t i)
+          {
+            std::uint64_t hash = UINT64_C(14695981039346656037);
+            for (unsigned char c : collector.window(i).precursor_id + ":" + data.samples[i].sample_id) { hash = (hash ^ c) * UINT64_C(1099511628211); }
+            return std::make_pair(hash, i);
+          };
+          const auto by_order = [&](std::size_t a, std::size_t b) { return order(a) < order(b); };
+          std::sort(positives.begin(), positives.end(), by_order);
+          std::sort(negatives.begin(), negatives.end(), by_order);
+          const std::size_t n = std::min({positives.size(), negatives.size(), ss_max_seeds});
+          if (n < 3) { throw std::runtime_error("Score iteration found fewer than three positive or negative seeds."); }
+          for (std::size_t j = 0; j < n; ++j)
+          {
+            data.samples[positives[j]].label = 1;
+            data.samples[negatives[j]].label = 0;
+          }
+          writeLogInfo_("Experimental score iteration=" + std::to_string(iteration) + " positives_available=" + std::to_string(positives.size()) +
+                        " negatives_available=" + std::to_string(negatives.size()) + " seeds_per_class=" + std::to_string(n));
+        }
+        crossfit_rows.clear();
         if (crossfit)
         {
           settings.outer_folds = getIntOption_("folds");
@@ -291,21 +360,7 @@ namespace OpenMS
           {
             if (!covered[i]) { throw std::runtime_error("Missing outer-fold prediction."); }
             crossfit_rows.push_back({data.samples[i].sample_id, collector.window(i).precursor_id, data.samples[i].group_id,
-              data.samples[i].is_decoy, OpenDIA::traceCNNFold(data.samples[i].group_id, settings.seed, settings.outer_folds), result.logits[i], ""});
-          }
-          if (paired_tdc)
-          {
-            // Pair key: target TRAML_ID, or a decoy TRAML_ID without its DECOY_ prefix.
-            const auto traml_ids = TransitionPQPFile().getPQPCurrentIDToTraMLIDMap(getStringOption_("lib").c_str(), "PRECURSOR");
-            const std::string prefix = "DECOY_";
-            for (auto& row : crossfit_rows)
-            {
-              const auto found = traml_ids.find(row.precursor_id);
-              if (found == traml_ids.end()) { throw std::invalid_argument("Precursor " + row.precursor_id + " is missing from the PQP PRECURSOR table."); }
-              const std::string& name = found->second;
-              if (!row.is_decoy) { row.pair_key = name; }
-              else if (name.starts_with(prefix)) { row.pair_key = name.substr(prefix.size()); }
-            }
+              data.samples[i].is_decoy, OpenDIA::traceCNNFold(data.samples[i].group_id, settings.seed, settings.outer_folds), result.logits[i], pair_keys[i]});
           }
         }
         else if (training)
@@ -321,7 +376,7 @@ namespace OpenMS
         }
         // Finish validation/statistics before opening the score output.
         // Optional RT window: precursor winners and q-values use only in-window rows.
-        std::vector<bool> in_rt_window(crossfit_rows.size(), true);
+        in_rt_window.assign(crossfit_rows.size(), true);
         if (rt_filter)
         {
           std::map<std::string, double> library_rts;
@@ -369,10 +424,17 @@ namespace OpenMS
         }
         const auto kept_evaluated = !crossfit ? std::vector<OpenDIA::CNNQValueResult>{} :
           paired_tdc ? OpenDIA::aggregatePairedCNNQValues(kept_rows) : OpenDIA::aggregateCNNQValues(kept_rows, target_decoy_ratio);
-        std::vector<OpenDIA::CNNQValueResult> evaluated;
+        evaluated.clear();
         for (std::size_t i = 0; i < crossfit_rows.size(); ++i)
         {
           evaluated.push_back(kept_index[i] == SIZE_MAX ? OpenDIA::CNNQValueResult{crossfit_rows[i], false, 1.0} : kept_evaluated[kept_index[i]]);
+        }
+        if (ss_iterations > 0)
+        {
+          std::size_t targets = 0;
+          for (const auto& row : evaluated) { targets += row.precursor_best && !row.input.is_decoy && row.q_value <= 0.01; }
+          writeLogInfo_("Experimental score iteration=" + std::to_string(iteration) + " target_precursors_q01=" + std::to_string(targets));
+        }
         }
         std::ofstream scores(output);
         if (crossfit)
@@ -394,7 +456,7 @@ namespace OpenMS
           writeLogInfo_(std::string(paired_tdc ? "Experimental fold-wise paired target-decoy estimate:" : "Experimental fold-wise decoy-count estimate:") +
                         " target_decoy_ratio=" + std::to_string(target_decoy_ratio) +
                         " target_precursors_q01=" + std::to_string(targets_at_one_percent) +
-                        ". Teacher-seeded, not independently validated FDR control.");
+                        ". Seed-derived, not independently validated FDR control.");
         }
         else
         {
