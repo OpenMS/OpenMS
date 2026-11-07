@@ -78,6 +78,9 @@
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/PercolatorInfile.h>
+#include <OpenMS/ANALYSIS/ID/Percolator.h>
+#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/FORMAT/QPXDatasetExport.h>
 #include <OpenMS/FORMAT/TextFile.h>
@@ -797,11 +800,12 @@ struct ImmoniumIonsInPeptide
            -
            - For peptides with methionine try to also score plain precursors - CH4S (NM and DEB related methionie cross-link)
 
-    @note Score recalibration: PercolatorAdapter rescores the PSMs (given decoys and about 1000 PSMs or more) and
-    writes the model weights next to the output. By default ('-percolator_backend builtin') it uses the Percolator
-    built into OpenMS, so the percolator executable doesn't have to be installed. '-percolator_backend executable'
-    runs the percolator executable (-percolator_executable) instead; '-percolator_backend none' disables score
-    recalibration.
+    @note Score recalibration: Percolator rescores the PSMs (given decoys and about 1000 PSMs or more) and writes the
+    model weights next to the output. By default ('-percolator_backend builtin') OpenNuXL rescores them itself with the
+    Percolator built into OpenMS, with the options it gave PercolatorAdapter's in-process backend before, so neither
+    PercolatorAdapter nor the percolator executable is needed. '-percolator_backend executable' runs the
+    percolator executable (-percolator_executable) through PercolatorAdapter (beside OpenNuXL, else on the PATH)
+    instead; '-percolator_backend none' disables score recalibration.
 
     @note QPX mz view (-out_qpx): with '-out_qpx DIR' OpenNuXL writes, once all its other outputs are written, the QPX
     mz view of the MS2 spectra of the PSMs of -out to 'DIR/runs/BASENAME.mz.parquet', so that a viewer can show the
@@ -870,37 +874,169 @@ protected:
   /// percolator feature set
   StringList feature_set_;
 
+  /// How Percolator recalibrates the scores (option @p percolator_backend), see recalibration_()
+  enum class Recalibration_
+  {
+    NONE,      ///< not at all
+    BUILTIN,   ///< in this process, with the Percolator built into OpenMS (rescoreInProcess_())
+    EXECUTABLE ///< the percolator executable, run by PercolatorAdapter
+  };
+
   /**
-    @brief Chooses the Percolator backend for score recalibration with PercolatorAdapter (option @p percolator_backend).
+    @brief The Percolator backend for score recalibration (option @p percolator_backend).
 
-    'builtin' (the default) rescores with the Percolator built into OpenMS, which needs no installation.
-    'executable' runs the percolator executable (option @p percolator_executable); if it isn't found, the built-in
-    Percolator rescores instead. Both write the model weights to @p weights_out, in the same format.
-    PercolatorAdapter gets the number of threads of this tool.
+    'builtin' (the default) rescores in this process with the Percolator built into OpenMS, which needs no
+    installation. 'executable' runs the percolator executable (option @p percolator_executable) through
+    PercolatorAdapter; if it isn't found, the built-in Percolator rescores instead. Both write the model weights in
+    the same format.
 
-    @param[in,out] process_params PercolatorAdapter parameters, extended by the backend
-    @param[in] weights_out file for the model weights
-    @return false if score recalibration is disabled ('none', or an empty @p percolator_executable)
+    @param[out] executable With EXECUTABLE: the percolator executable, as found
+    @return NONE if score recalibration is disabled ('none', or an empty @p percolator_executable)
   */
-  bool addPercolatorBackend_(std::vector<std::string>& process_params, const std::string& weights_out) const
+  Recalibration_ recalibration_(std::string& executable) const
   {
     const std::string backend = getStringOption_("percolator_backend");
-    std::string executable = getStringOption_("percolator_executable");
+    executable = getStringOption_("percolator_executable");
     // an empty executable disabled score recalibration before there was a choice of backend
-    if (backend == "none" || executable.empty()) { return false; }
+    if (backend == "none" || executable.empty()) { return Recalibration_::NONE; }
     if (backend == "executable")
     {
-      if (findExecutable_(executable))
+      if (findExecutable_(executable)) { return Recalibration_::EXECUTABLE; }
+      OPENMS_LOG_WARN << "Percolator executable '" << executable
+                      << "' not found: rescoring with the Percolator built into OpenMS." << endl;
+    }
+    return Recalibration_::BUILTIN;
+  }
+
+  /// The PercolatorAdapter parameters of the percolator executable @p executable: the executable, the model weights
+  /// (@p weights_out) and the threads of this tool
+  std::vector<std::string> percolatorExecutableParams_(const std::string& executable, const std::string& weights_out) const
+  {
+    return {"-use_subprocess", "true", "-percolator_executable", executable,
+            "-weights", weights_out, "-threads", std::to_string(getIntOption_("threads"))};
+  }
+
+  /**
+    @brief Rescores PSMs in this process with the Percolator built into OpenMS ('-percolator_backend builtin'), with the
+           options that OpenNuXL gave PercolatorAdapter's in-process backend before ('-train_best_positive
+           -post_processing_tdc', and the adapter's defaults otherwise).
+
+    What PercolatorAdapter does around its rescoring is done here as well:
+    - the run is merged into a new one, as PercolatorAdapter merges its input runs
+      (PercolatorFeatureSetHelper::mergeMULTISEProteinIds()): it keeps the search engine and its settings as the
+      search parameters 'SE:' + engine and engine + ':' + setting (ProteinIdentification::getOriginalSearchEngineName(),
+      the mzTab export), with the protein hits sorted by accession;
+    - a hit without target/decoy annotation counts as a target; without a decoy nothing is rescored;
+    - the feature set of the run (PercolatorInfile::getFeatureSet()) for the charges of the hits; the search's
+      'extra_features' are required (OpenNuXL doesn't pass -generic_feature_set);
+    - the enzyme of the enzN/enzC/enzInt features: lys-c for Lys-C, else trypsin (as OpenNuXL ran PercolatorAdapter);
+    - the model weights are written to @p weights_out, and with @p pin_file the .pin file of the PSMs as they were;
+    - the PSMs refer to the (one) run, and the runs are marked as rescored by Percolator (Percolator::markRescoredRuns()).
+
+    @param[in,out] prot_ids The run of the PSMs (the first one gives the search's extra features)
+    @param[in,out] pep_ids Target and decoy PSMs, rescored in place
+    @param[in] score_type The new main score: "q-value", "pep" or "svm" (PercolatorAdapter's -score_type)
+    @param[in] unit_norm Unit normalization of the features [0-1] instead of standard deviation normalization (-unitnorm)
+    @param[in] weights_out File for the model weights (-weights)
+    @param[in] pin_file If not empty, the .pin file of the PSMs is written to it, before they are rescored (-out_pin)
+    @return false (with a warning) if they were not rescored. Then @p prot_ids and @p pep_ids may be changed in part:
+            pass copies to keep the originals.
+  */
+  bool rescoreInProcess_(vector<ProteinIdentification>& prot_ids,
+                         PeptideIdentificationList& pep_ids,
+                         const std::string& score_type,
+                         bool unit_norm,
+                         const std::string& weights_out,
+                         const std::string& pin_file = "") const
+  {
+    if (prot_ids.empty() || pep_ids.empty())
+    {
+      OPENMS_LOG_WARN << "Percolator: no PSMs." << endl;
+      return false;
+    }
+    // as PercolatorAdapter reads its input: each run is merged into a new one, which keeps the original search engine
+    // and its settings (SE:OpenNuXL, OpenNuXL:...)
+    vector<ProteinIdentification> merged;
+    for (ProteinIdentification& run : prot_ids)
+    {
+      vector<ProteinIdentification> one;
+      one.push_back(std::move(run));
+      PercolatorFeatureSetHelper::mergeMULTISEProteinIds(merged, one);
+    }
+    prot_ids.swap(merged);
+    // the charge range of the charge<N> features, and the target/decoy annotations, as PercolatorAdapter reads its input
+    int min_charge = 10;
+    int max_charge = 0;
+    bool found_decoys = false;
+    for (PeptideIdentification& pi : pep_ids)
+    {
+      for (PeptideHit& ph : pi.getHits())
       {
-        process_params.insert(process_params.end(), {"-use_subprocess", "true", "-percolator_executable", executable});
-      }
-      else
-      {
-        OPENMS_LOG_WARN << "Percolator executable '" << executable
-                        << "' not found: rescoring with the Percolator built into OpenMS." << endl;
+        if (!ph.metaValueExists("target_decoy")) { ph.setMetaValue("target_decoy", "target"); }
+        else if (ph.isDecoy()) { found_decoys = true; }
+        min_charge = std::min(min_charge, ph.getCharge());
+        max_charge = std::max(max_charge, ph.getCharge());
       }
     }
-    process_params.insert(process_params.end(), {"-weights", weights_out, "-threads", std::to_string(getIntOption_("threads"))});
+    if (!found_decoys)
+    {
+      OPENMS_LOG_WARN << "Percolator: no decoy PSMs." << endl;
+      return false;
+    }
+    const ProteinIdentification::SearchParameters& search_parameters = prot_ids.front().getSearchParameters();
+    if (!search_parameters.metaValueExists("extra_features"))
+    {
+      OPENMS_LOG_WARN << "Percolator: the search has no 'extra_features'." << endl;
+      return false;
+    }
+    const StringList feature_set = PercolatorInfile::getFeatureSet(search_parameters, min_charge, max_charge);
+    const std::string enzyme = getStringOption_("peptide:enzyme") == "Lys-C" ? "lys-c" : "trypsin";
+
+    // Where PercolatorAdapter's defaults (those of the percolator executable) differ from Percolator's: c_pos chosen by
+    // cross-validation, training on all PSMs, the executable's PEPs. Percolator trains one model per cross-validation
+    // fold, so more than 3 threads do not help (0 or less, "all cores": 3, as the adapter).
+    Percolator percolator;
+    Param p = percolator.getParameters();
+    p.setValue("c_pos", 0.0);
+    p.setValue("subset_max_train", 0);
+    p.setValue("pep_method", "nonparametric");
+    p.setValue("normalizer", unit_norm ? "uni" : "stdv");
+    p.setValue("train_best_positive", "true");
+    p.setValue("post_processing_tdc", "true");
+    const int threads = getIntOption_("threads");
+    p.setValue("num_threads", threads <= 0 ? 3 : std::min(threads, 3));
+    percolator.setParameters(p);
+    try
+    {
+      if (!pin_file.empty())
+      {
+        PercolatorInfile::store(pin_file, pep_ids, feature_set, enzyme, min_charge, max_charge);
+      }
+      percolator.rescorePSMs(pep_ids, feature_set, enzyme, min_charge, max_charge, score_type);
+      percolator.storeWeights(weights_out);
+    }
+    catch (const std::exception& e)
+    {
+      OPENMS_LOG_WARN << "Percolator: " << e.what() << endl;
+      return false;
+    }
+
+    // as PercolatorAdapter's output: the PSMs refer to the run, which is marked as rescored by Percolator
+    const std::string run_identifier = prot_ids.front().getIdentifier();
+    for (PeptideIdentification& pi : pep_ids) { pi.setIdentifier(run_identifier); }
+    Percolator::markRescoredRuns(prot_ids, "OpenNuXL", {
+      {"peptide_level_fdrs", "false"},
+      {"protein_level_fdrs", "false"},
+      {"testFDR", static_cast<double>(p.getValue("test_fdr"))},
+      {"trainFDR", static_cast<double>(p.getValue("train_fdr"))},
+      {"maxiter", static_cast<int>(p.getValue("num_iterations"))},
+      {"subset_max_train", static_cast<int>(p.getValue("subset_max_train"))},
+      {"weights", weights_out},
+      {"cpos", static_cast<double>(p.getValue("c_pos"))},
+      {"unitnorm", unit_norm ? "true" : "false"},
+      {"seed", static_cast<int>(p.getValue("seed"))},
+      {"post_processing_tdc", p.getValue("post_processing_tdc").toString()},
+      {"train_best_positive", p.getValue("train_best_positive").toString()}});
     return true;
   }
 
@@ -4934,12 +5070,34 @@ protected:
         PeptideIdentificationList perc_pep_ids;
 
         bool sufficient_PSMs_for_score_recalibration = pep_ids.size() > 1000;
-        std::vector<std::string> process_params;
         // (not by replacing ".idXML": with another spelling of the extension, e.g. ".idxml", it would be the
         // PercolatorAdapter input and output)
         const std::string weights_out = FileHandler::stripExtension(out_idxml) + "_sse_perc.weights";
-        if (sufficient_PSMs_for_score_recalibration && addPercolatorBackend_(process_params, weights_out)) // only try to call percolator if we have some PSMs
+        std::string percolator_executable;
+        // only try to call percolator if we have some PSMs
+        const Recalibration_ recalibration = sufficient_PSMs_for_score_recalibration ? recalibration_(percolator_executable)
+                                                                                     : Recalibration_::NONE;
+        if (recalibration == Recalibration_::BUILTIN)
         {
+          // in this process, on copies: the search's PSMs stay as they are
+          perc_prot_ids = prot_ids;
+          perc_pep_ids = pep_ids;
+          if (rescoreInProcess_(perc_prot_ids, perc_pep_ids, "q-value", false, weights_out))
+          {
+            // generate filtered results
+            IDFilter::keepNBestHits(perc_pep_ids, 1);
+            IDFilter::removeUnreferencedProteins(perc_prot_ids, perc_pep_ids);
+          }
+          else
+          {
+            OPENMS_LOG_WARN << "Score recalibration failed in IDFilter. Using original results." << endl;
+            perc_prot_ids.clear();
+            perc_pep_ids.clear();
+          }
+        }
+        else if (recalibration == Recalibration_::EXECUTABLE)
+        {
+          std::vector<std::string> process_params = percolatorExecutableParams_(percolator_executable, weights_out);
           std::string perc_in = out_idxml;
           StringUtils::substitute(perc_in, ".idXML", "_sse_perc_in.idXML");
           IdXMLFile().store(perc_in, prot_ids, pep_ids);
@@ -6701,10 +6859,10 @@ protected:
       // score recalibration with percolator
 
       bool sufficient_PSMs_for_score_recalibration = (xl_pi.size() + pep_pi.size()) >= 1000;
-      std::vector<std::string> process_params;
       const std::string weights_out = FileHandler::stripExtension(out_idxml) + ".weights"; // (see the autotune step)
-      const bool recalibrate = addPercolatorBackend_(process_params, weights_out);
-      if (recalibrate && sufficient_PSMs_for_score_recalibration) // only try to call percolator if we have some PSMs
+      std::string percolator_executable;
+      const Recalibration_ recalibration = recalibration_(percolator_executable);
+      if (recalibration != Recalibration_::NONE && sufficient_PSMs_for_score_recalibration) // only try to call percolator if we have some PSMs
       {
         // run percolator on idXML
         std::string perc_out = out_idxml;
@@ -6712,31 +6870,54 @@ protected:
         std::string pin = out_idxml;
         StringUtils::substitute(pin, ".idXML", ".tsv");
 
-        process_params.insert(process_params.end(), {"-in", out_idxml, "-out", perc_out,
-                       "-train_best_positive",
-                       "-score_type", "svm",
-                       "-unitnorm",
-                       "-post_processing_tdc",
-                       "-out_pin", pin});
-
-        if (getStringOption_("peptide:enzyme") == "Lys-C")
-        {
-          process_params.push_back("-enzyme"); process_params.push_back("lys-c");
-        }
-
+        bool recalibrated = false;
         OPENMS_LOG_INFO << "Running percolator." << endl;
-        TOPPBase::ExitCodes exit_code = runExternalProcess_(percolatorAdapterExecutable_(), process_params);
+        if (recalibration == Recalibration_::BUILTIN)
+        {
+          // In this process. The PSMs are those of out_idxml, with all their hits, as PercolatorAdapter read them
+          // (protein_ids and peptide_ids are filtered by now).
+          vector<ProteinIdentification> perc_protein_ids;
+          PeptideIdentificationList perc_peptide_ids;
+          IdXMLFile().load(out_idxml, perc_protein_ids, perc_peptide_ids);
+          if (rescoreInProcess_(perc_protein_ids, perc_peptide_ids, "svm", true, weights_out, pin))
+          {
+            // the rescored PSMs, as PercolatorAdapter wrote them
+            IdXMLFile().store(perc_out, perc_protein_ids, perc_peptide_ids);
+            protein_ids = std::move(perc_protein_ids);
+            peptide_ids = std::move(perc_peptide_ids);
+            recalibrated = true;
+          }
+        }
+        else
+        {
+          std::vector<std::string> process_params = percolatorExecutableParams_(percolator_executable, weights_out);
+          process_params.insert(process_params.end(), {"-in", out_idxml, "-out", perc_out,
+                         "-train_best_positive",
+                         "-score_type", "svm",
+                         "-unitnorm",
+                         "-post_processing_tdc",
+                         "-out_pin", pin});
+
+          if (getStringOption_("peptide:enzyme") == "Lys-C")
+          {
+            process_params.push_back("-enzyme"); process_params.push_back("lys-c");
+          }
+
+          if (runExternalProcess_(percolatorAdapterExecutable_(), process_params) == EXECUTION_OK)
+          {
+            // load back idXML
+            IdXMLFile().load(perc_out, protein_ids, peptide_ids);
+            recalibrated = true;
+          }
+        }
         OPENMS_LOG_INFO << "done." << endl;
 
-        if (exit_code != EXECUTION_OK) 
+        if (!recalibrated)
         { 
           OPENMS_LOG_WARN << "Score recalibration failed." << endl; 
         }
         else
         { 
-          // load back idXML
-          IdXMLFile().load(perc_out, protein_ids, peptide_ids);
- 
           // generate filtered results
           IDFilter::keepNBestHits(peptide_ids, 1);
           IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);

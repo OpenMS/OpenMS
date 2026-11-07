@@ -613,6 +613,27 @@ void Percolator::storeWeights(const std::string& filename) const
   }
 }
 
+void Percolator::markRescoredRuns(std::vector<ProteinIdentification>& runs,
+                                  const std::string& tool,
+                                  const std::vector<std::pair<std::string, DataValue>>& settings,
+                                  const std::string& version)
+{
+  for (ProteinIdentification& run : runs)
+  {
+    // not a search engine, but downstream tools see from it that the scores were post-processed
+    run.setSearchEngine("Percolator");
+    run.setSearchEngineVersion(version);
+    run.setMetaValue("percolator", tool);
+    // (in the order given: the order of new meta values in the output files)
+    ProteinIdentification::SearchParameters& search_parameters = run.getSearchParameters();
+    for (const auto& [name, value] : settings)
+    {
+      if (value.isEmpty()) { search_parameters.removeMetaValue("Percolator:" + name); }
+      else { search_parameters.setMetaValue("Percolator:" + name, value); }
+    }
+  }
+}
+
 const Percolator::CappedTrainingInfo& Percolator::getCappedTrainingInfo() const
 {
   return impl_->capped_info;
