@@ -406,3 +406,59 @@ with the same teacher caveats. The ID-free v0.13 latent-mixture calibration was
 not used: its own handoff marks it NO-GO for narrowing windows, and on the
 Astral run01 retrospective proxy the anchor ("auto") calibration was closer for
 1018 of 1462 precursors.
+
+### Identification-free run calibration (`OpenDIACalibrate`, experimental)
+
+`OpenDIACalibrate` maps library RT, fragment m/z and 1/K0 to one run and estimates extraction tolerances.
+Modern runs often have no iRT peptides, so it uses no IDs, iRT kits or external RTs.
+
+```
+OpenDIACalibrate -in run.d -lib lib.pqp -out calibration.json -out_anchors anchors.tsv [-im_array_as_vssc]
+```
+
+One streaming pass extracts a panel of 10000 targets (stratified over library RT) and their `DECOY_` partners:
+top six fragments, summed within ±15 ppm and ±0.05 1/K0 of the library mobility.
+
+1. **Stage 1, after DIATraceExtractor.** Candidate peaks come from the whole run.
+   - Score: mean of the four best fragment-vs-rest correlations × sqrt library cosine. No RT term.
+   - Anchors: paired target-decoy competition at q ≤ 0.05, an RT-mode filter, then a binned RT map.
+2. **Stage 2, v0.13 latent peak/no-peak mixture.** It runs over every target candidate.
+   - Fixed π 0.3, β 0.8, σ = 0.07 × run duration, 11 equally spaced knots.
+   - Penalties: the stage-1 map is the prior, plus curvature. The map is monotone with a 0.002 minimum step.
+   - **Difference from v0.13:** the source uses SLSQP. This port solves the normal equations, then makes the knots monotone with an isotonic fit, so numerical parity with v0.13 is not shown.
+   - The v0.13 prior is a fixed linear map. Here the prior is the stage-1 map instead.
+3. **Stage 3.** Targets and paired decoys are rescored within max(4 σ_stage1, 30 s) of the stage-2 map. Anchors are kept at paired q ≤ 0.01.
+4. **Stage 4.** On the anchors it fits:
+   - the RT map, with tolerance 4 σ;
+   - the median MS2 ppm offset, with tolerance 5 robust σ (per-fragment ppm is intensity-weighted over mobility scans);
+   - a robust 1/K0 line, with tolerance 4 σ.
+
+The design was set on HeLa diaPASEF only and frozen in `f5ffc1f578`, before the 500 pg run.
+
+HeLa-only design steps:
+- **Search windows.** ±50 ppm / ±0.1 1/K0 left only 11 strict anchors. Wide windows admit interference.
+- **Correlation score.** All-pair Pearson failed under interference.
+- **Stage 1 selection.** Fixed correlation and cosine thresholds were replaced by decoy competition.
+- **Panel size.** 2000 to 20000 was checked. 10000 runs in 15 s and uses 1.5 GB.
+
+Teacher files were read only after the freeze, for the post-hoc audit (`calibration-frozen-f5ffc1f578/audit.py`).
+The audit compares against same-run OpenSWATH+PyProphet SVM IDs at q ≤ 0.01. Those IDs are a proxy, not truth.
+
+| HeLa 200 ng (design run) | Value |
+|---|---|
+| Stage 1 anchors (decoys above cut) | 1526 (75) |
+| Final anchors (q ≤ 0.01) | 1278; 1130 are teacher IDs, 1115 of those within 10 s of the teacher apex |
+| RT map vs 19132 teacher EXP_RT | \|error\| p50 1.8 s, p95 7.3 s; 96.3% within the ±8.8 s tolerance |
+| Stage-2 EM map alone | \|error\| p50 6.5 s, p95 19.1 s |
+| 1/K0 offset | +0.0216 (teacher median EXP_IM − library: +0.0203); tolerance ±0.033 |
+| MS2 | +0.35 ppm, tolerance ±10.7 ppm (no teacher reference) |
+
+**Independent 500 pg run, applied once and unchanged: no calibration.** The run failed closed with 0 anchors at q ≤ 0.01.
+- Stage 1 kept only 36 anchors (σ 11.3 s), and stage 3 then had 26 decoys among the top 100.
+- This matches the earlier finding: that run's library RTs predict poorly (teacher fit σ 46.8 s), and its signal is weak.
+- The tool writes nothing and leaves downstream behaviour unchanged. No setting was changed after this result.
+
+**Limits.**
+- Anchor q-values only control the anchor set. They are not an identification FDR.
+- The tolerances are fixed multiples of the anchor spread, and on HeLa that spread was measured on the design run itself.
+- Nothing downstream consumes this calibration yet.
