@@ -1704,6 +1704,19 @@ protected:
       OPENMS_LOG_INFO << "Using default FWHM of " << median_fwhm << " s for .d input (no seed-based estimate available).\n";
     }
 
+    // Too little MS1 data (e.g. very few MS1 spectra, as can happen in small/constructed test
+    // files) can leave MassTraceDetection without a single trace to estimate a width from, so
+    // estimateMedianChromatographicFWHM() returns 0. Feeding that further (as "detect:peak_width"
+    // or "algorithm:rt_typical") makes downstream algorithms either degenerate or loop forever
+    // trying to build an RT grid with a zero step (see MultiplexClustering, OpenMS issue #10770).
+    // Fall back to the same default used for the analogous .d/IM_PEAK case above.
+    if (!is_im_peak_data && median_fwhm == 0.0)
+    {
+      median_fwhm = 30.0;
+      OPENMS_LOG_WARN << "Warning: Could not estimate a chromatographic FWHM from the MS1 data "
+                      << "(too few MS1 spectra/mass traces?). Using default FWHM of " << median_fwhm << " s.\n";
+    }
+
     StringList id_msfile_ref;
     protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
     out.id_ms_run_ref = id_msfile_ref[0];

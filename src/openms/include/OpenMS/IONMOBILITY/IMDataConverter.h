@@ -44,7 +44,11 @@ namespace OpenMS
           returns a vector of (CV, MSExperiment) pairs, one per unique FAIMS CV. Each experiment
           contains all spectra assigned to that CV.
         - MS2+ spectra without an explicit FAIMS CV are assigned to the last seen FAIMS CV
-          (based on run order). Spectra without a prior FAIMS CV context are skipped with a warning.
+          (based on run order). MS2+ spectra without a prior FAIMS CV context are skipped with a
+          warning.
+        - MS1 spectra without an explicit FAIMS CV (e.g. a survey scan shared by all compensation
+          voltages) are copied into every CV group, the same way FAIMSHelper treats identifications
+          and features that carry no FAIMS_CV: they apply to every group rather than being dropped.
         - If the dataset contains no FAIMS spectra at all, an informational message is logged and a
           single-element vector is returned. This element contains the original PeakMap (i.e. no
           splitting took place) under a synthetic key (NaN). Callers that specifically work on

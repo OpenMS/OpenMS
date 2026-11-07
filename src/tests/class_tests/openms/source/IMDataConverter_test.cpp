@@ -253,6 +253,56 @@ START_SECTION((std::vector<std::pair<double, MSExperiment>> splitByFAIMSCV assig
 }
 END_SECTION
 
+START_SECTION((std::vector<std::pair<double, MSExperiment>> splitByFAIMSCV shares MS1 spectra without a FAIMS CV across every CV group))
+{
+  // Layout from OpenMS issue #10770: MS2 spectra carry a FAIMS CV, MS1 spectra don't.
+  // Such MS1 spectra must end up in every CV group instead of being dropped (which used to
+  // leave every CV group without any MS1 spectrum at all).
+  PeakMap exp_synth;
+
+  MSSpectrum ms1a;
+  ms1a.setMSLevel(1);
+  ms1a.setDriftTimeUnit(DriftTimeUnit::NONE); // no FAIMS CV on MS1
+
+  MSSpectrum ms2a;
+  ms2a.setMSLevel(2);
+  ms2a.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  ms2a.setDriftTime(-55.0);
+
+  MSSpectrum ms2b;
+  ms2b.setMSLevel(2);
+  ms2b.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  ms2b.setDriftTime(-45.0);
+
+  MSSpectrum ms1b;
+  ms1b.setMSLevel(1);
+  ms1b.setDriftTimeUnit(DriftTimeUnit::NONE); // no FAIMS CV on MS1 either
+
+  exp_synth.addSpectrum(ms1a);
+  exp_synth.addSpectrum(ms2a);
+  exp_synth.addSpectrum(ms2b);
+  exp_synth.addSpectrum(ms1b);
+
+  auto bins = IMDataConverter::splitByFAIMSCV(std::move(exp_synth));
+  TEST_EQUAL(bins.size(), 2)
+  TEST_EQUAL(bins[0].first, -55.0)
+  TEST_EQUAL(bins[1].first, -45.0)
+
+  // every group must contain both CV-less MS1 spectra plus its own MS2 spectrum
+  const auto& bin_minus55 = bins[0].second;
+  const auto& bin_minus45 = bins[1].second;
+  TEST_EQUAL(bin_minus55.size(), 3)
+  TEST_EQUAL(bin_minus45.size(), 3)
+
+  Size ms1_bin0 = 0, ms1_bin1 = 0;
+  for (const auto& s : bin_minus55) if (s.getMSLevel() == 1) ++ms1_bin0;
+  for (const auto& s : bin_minus45) if (s.getMSLevel() == 1) ++ms1_bin1;
+  TEST_EQUAL(ms1_bin0, 2) // ms1a and ms1b, both shared
+  TEST_EQUAL(ms1_bin1, 2)
+}
+END_SECTION
+
+
 START_SECTION((std::vector<std::pair<double, MSExperiment>> splitByFAIMSCV returns single-element group for non-FAIMS dataset))
 {
   PeakMap exp_nonfaims;

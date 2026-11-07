@@ -6,6 +6,7 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -50,7 +51,17 @@ namespace OpenMS
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
     }
-    
+
+    // The RT grid below is built by repeatedly adding rt_typical to rt_min. A zero or negative
+    // rt_typical (e.g. derived from a chromatographic peak width estimate of 0, when too little
+    // MS1 data was available to estimate one) would leave rt_min unchanged forever, looping until
+    // the grid vector exhausts memory (std::bad_alloc) instead of failing with a clear message
+    // (OpenMS issue #10770).
+    if (rt_typical <= 0.0)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "rt_typical must be greater than 0 (got " + StringUtils::toStr(rt_typical) + "). A value of 0 usually means the chromatographic peak width could not be estimated from the data.");
+    }
+
     // ranges of the experiment
     double mz_min = exp_profile.spectrumRanges().getMinMZ();
     double mz_max = exp_profile.spectrumRanges().getMaxMZ();
@@ -101,7 +112,17 @@ namespace OpenMS
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MinMZ,MaxMZ,MinRT,MaxRT values outside of sensible value ranges. Are they uninitialized? (" + StringUtils::toStr(mz_min) + "/" + StringUtils::toStr(mz_max) + "/" + StringUtils::toStr(rt_min) + "/" + StringUtils::toStr(rt_max));
     }
-    
+
+    // The RT grid below is built by repeatedly adding rt_typical to rt_min. A zero or negative
+    // rt_typical (e.g. derived from a chromatographic peak width estimate of 0, when too little
+    // MS1 data was available to estimate one) would leave rt_min unchanged forever, looping until
+    // the grid vector exhausts memory (std::bad_alloc) instead of failing with a clear message
+    // (OpenMS issue #10770).
+    if (rt_typical <= 0.0)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "rt_typical must be greater than 0 (got " + StringUtils::toStr(rt_typical) + "). A value of 0 usually means the chromatographic peak width could not be estimated from the data.");
+    }
+
     // extend the grid by a small absolute margin
     double mz_margin = 1e-2;
     double rt_margin = 1e-2;

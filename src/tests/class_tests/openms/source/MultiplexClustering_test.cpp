@@ -184,4 +184,17 @@ START_SECTION(([EXTRA] cluster() of groups of points equals the clustering of al
 }
 END_SECTION
 
+START_SECTION(([EXTRA] constructors reject a non-positive rt_typical instead of looping forever))
+{
+  // rt_typical <= 0 used to leave the "rt = rt + rt_typical" grid-building loop stuck forever,
+  // growing its vector until std::bad_alloc (OpenMS issue #10770, seen when a chromatographic
+  // FWHM estimate of 0 was passed down as rt_typical). Both constructors must now reject it
+  // with a clear exception instead.
+  TEST_EXCEPTION(Exception::IllegalArgument, MultiplexClustering(exp, exp_picked, boundaries_exp_s, 0.0))
+  TEST_EXCEPTION(Exception::IllegalArgument, MultiplexClustering(exp, exp_picked, boundaries_exp_s, -1.0))
+  TEST_EXCEPTION(Exception::IllegalArgument, MultiplexClustering(exp, 40.0, true, 0.0))
+  TEST_EXCEPTION(Exception::IllegalArgument, MultiplexClustering(exp, 40.0, true, -1.0))
+}
+END_SECTION
+
 END_TEST

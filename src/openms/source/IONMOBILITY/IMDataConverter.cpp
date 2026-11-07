@@ -78,6 +78,21 @@ namespace OpenMS
         }
       }
 
+      // MS1 without a FAIMS CV: such a spectrum (e.g. a survey scan shared by all compensation
+      // voltages) cannot be assigned to a single CV group, so it is copied into every group instead
+      // of being dropped -- the same convention FAIMSHelper already uses for identifications and
+      // features that carry no FAIMS_CV (see inFAIMSCVGroup() in FAIMSHelper.cpp). Without this, a
+      // dataset whose MS1 spectra never carry a FAIMS CV would lose all of its MS1 data, leaving
+      // every CV group with MS2 spectra only (OpenMS issue #10770).
+      if (spec.getMSLevel() == 1)
+      {
+        for (auto& kv : split_peakmap)
+        {
+          kv.second.addSpectrum(spec); // copied, since the same spectrum is shared by every group
+        }
+        continue;
+      }
+
       // Otherwise skip with a warning
       OPENMS_LOG_WARN << "Skipping spectrum without FAIMS CV (no prior FAIMS CV context or unexpected layout)." << std::endl;
     }
