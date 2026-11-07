@@ -13,11 +13,11 @@ Each closing comment links the archived package document and states what carries
 
 | WP | Issue |
 |---|---|
-| R-WP1 Streaming search | see epic |
-| R-WP2 Calibration | see epic |
-| R-WP3 Trace CNN | see epic |
-| R-WP4 Error control | see epic |
-| R-WP5 ID gap | see epic |
-| R-WP6 Acceptance | see epic |
+| R-WP1 Streaming search | [#10848](https://github.com/OpenMS/OpenMS/issues/10848) |
+| R-WP2 Calibration | [#10849](https://github.com/OpenMS/OpenMS/issues/10849) |
+| R-WP3 Trace CNN | [#10850](https://github.com/OpenMS/OpenMS/issues/10850) |
+| R-WP4 Error control | [#10851](https://github.com/OpenMS/OpenMS/issues/10851) |
+| R-WP5 ID gap | [#10852](https://github.com/OpenMS/OpenMS/issues/10852) |
+| R-WP6 Acceptance | [#10853](https://github.com/OpenMS/OpenMS/issues/10853) |
 
-Issue numbers are filled in when the issues are created. Link documents with pinned commit URLs.
+Link documents with pinned commit URLs.
