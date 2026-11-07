@@ -206,11 +206,15 @@ namespace OpenMS::OpenDIA
   /// Write anchors as TSV to @p out.
   void writeCalibrationAnchors(const CalibrationResult& result, std::ostream& out);
 
-  /** @brief RT part of a calibration JSON written by writeCalibrationJSON(). */
+  /** @brief Models read back from a calibration JSON written by writeCalibrationJSON(). */
   struct CalibrationRT
   {
     RTMap map; ///< Library RT to run RT (s).
     double tolerance_s = 0.0; ///< Half width of the RT window.
+    double ms2_offset_ppm = 0.0; ///< Run fragment m/z = library m/z x (1 + offset x 1e-6).
+    bool has_ms2 = false; ///< False when too few fragment errors were measured.
+    bool has_im = false; ///< False without mobility data or too few anchors.
+    double im_intercept = 0.0, im_slope = 1.0; ///< Run 1/K0 = intercept + slope x library 1/K0.
   };
 
   /**

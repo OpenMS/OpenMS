@@ -95,3 +95,9 @@ execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -m
 if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "invalid RT map" OR EXISTS "${WORK}/scores.tsv")
   message(FATAL_ERROR "An invalid calibration file was not rejected before extraction: ${status}\n${output}\n${error}")
 endif()
+execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/cal" -apply_calibration_coordinates
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "apply_calibration_coordinates requires -rt_calibration" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "apply_calibration_coordinates without a calibration was not rejected: ${status}\n${output}\n${error}")
+endif()

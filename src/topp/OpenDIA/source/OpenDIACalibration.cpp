@@ -1159,6 +1159,17 @@ namespace OpenMS::OpenDIA
     {
       throw std::invalid_argument("Calibration file " + path + " has an invalid RT map or tolerance");
     }
+    const auto& ms2 = json.at("ms2_mz");
+    result.ms2_offset_ppm = ms2.at("offset_ppm").get<double>();
+    result.has_ms2 = ms2.at("tolerance_half_width_ppm").get<double>() > 0.0 && std::isfinite(result.ms2_offset_ppm);
+    const auto& im = json.at("im");
+    result.has_im = im.at("available").get<bool>();
+    result.im_intercept = im.at("intercept_vssc").get<double>();
+    result.im_slope = im.at("slope").get<double>();
+    if (result.has_im && !(std::isfinite(result.im_intercept) && std::isfinite(result.im_slope) && result.im_slope > 0.0))
+    {
+      throw std::invalid_argument("Calibration file " + path + " has an invalid 1/K0 model");
+    }
     return result;
   }
 }

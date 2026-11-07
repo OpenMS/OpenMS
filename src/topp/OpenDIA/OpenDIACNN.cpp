@@ -83,6 +83,7 @@ namespace OpenMS
       registerFlag_("rt_window_calibration", "Crossfit only, experimental: fit a library-RT to run-RT map per fold from the other folds' top 500 target precursors by CNN score (no teacher IDs) and keep only windows within max(4 sigma, 30 s) of the map before precursor q-values");
       registerInputFile_("rt_calibration", "<file>", "", "Crossfit only, experimental: OpenDIACalibrate JSON (identification-free, CNN-independent). Keep only windows whose apex lies within the calibrated RT tolerance of the calibrated map before precursor q-values", false);
       setValidFormats_("rt_calibration", {"json"});
+      registerFlag_("apply_calibration_coordinates", "With -rt_calibration, experimental: shift library fragment m/z by the calibrated ppm offset and precursor 1/K0 by the calibrated line before trace extraction (tolerances unchanged)");
     }
 
     ExitCodes main_(int, const char**) override
@@ -168,6 +169,11 @@ namespace OpenMS
         std::optional<OpenDIA::CalibrationRT> rt_calibration;
         if (!rt_calibration_path.empty()) { rt_calibration = OpenDIA::readCalibrationRT(rt_calibration_path); }
         const bool rt_filter = rt_window_calibration || rt_calibration.has_value();
+        const bool apply_coordinates = getFlag_("apply_calibration_coordinates");
+        if (apply_coordinates && !rt_calibration)
+        {
+          throw std::invalid_argument("apply_calibration_coordinates requires -rt_calibration.");
+        }
 
         const auto max_samples = static_cast<std::size_t>(getIntOption_("max_samples"));
         auto windows = OpenDIA::readTraceWindows(getStringOption_("windows"), max_samples);
@@ -197,6 +203,28 @@ namespace OpenMS
         const OpenDIA::CNNGeometry geometry{getDoubleOption_("mz_tolerance"), getDoubleOption_("rt_half_width"), getDoubleOption_("im_half_width")};
         OpenSwath::LightTargetedExperiment library;
         TransitionPQPFile().convertPQPToTargetedExperiment(getStringOption_("lib").c_str(), library);
+        if (apply_coordinates)
+        {
+          // Library to run coordinates, before extraction; RT stays library RT (the window uses the map).
+          if (rt_calibration->has_ms2)
+          {
+            for (auto& transition : library.transitions) { transition.product_mz *= 1.0 + rt_calibration->ms2_offset_ppm * 1e-6; }
+          }
+          if (rt_calibration->has_im)
+          {
+            for (auto& compound : library.compounds)
+            {
+              if (std::isfinite(compound.drift_time) && compound.drift_time > 0.0)
+              {
+                compound.drift_time = rt_calibration->im_intercept + rt_calibration->im_slope * compound.drift_time;
+              }
+            }
+          }
+          writeLogInfo_("Experimental calibrated coordinates: ms2_offset_ppm=" +
+                        (rt_calibration->has_ms2 ? std::to_string(rt_calibration->ms2_offset_ppm) : std::string("unavailable")) +
+                        " im=" + (rt_calibration->has_im ? std::to_string(rt_calibration->im_intercept) + "+" + std::to_string(rt_calibration->im_slope) + "x"
+                                                          : std::string("unavailable")));
+        }
         OpenDIA::TraceCollector collector(std::move(windows), library, geometry.mz_tolerance,
                                          geometry.rt_half_width, geometry.im_half_width, max_samples,
                                          static_cast<std::size_t>(getIntOption_("max_tensor_gib")) << 30);

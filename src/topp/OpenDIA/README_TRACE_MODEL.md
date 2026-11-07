@@ -481,3 +481,20 @@ The offline rule was fixed before running (`coverage-20261107/idfree_window_gate
 The native `OpenDIACNN` crossfit run reproduces this exactly: 10340 targets and 73084 / 138542 precursors in window.
 This is a decoy-count estimate on the run used to design the calibration, not a calibrated FDR.
 There is no independent-run result: the 500 pg calibration failed closed, so there is no map to apply there.
+
+#### Calibrated m/z and 1/K0 coordinates (`-apply_calibration_coordinates`)
+
+With `-rt_calibration`, this flag shifts library coordinates before trace extraction. Tolerances do not change.
+- Fragment m/z is multiplied by (1 + calibrated ppm offset × 1e-6).
+- Precursor 1/K0 is mapped through the calibrated line, so the ±0.03 mobility window centres on the run's 1/K0.
+
+The HeLa gate rule was fixed before running: accept only if the paired-TDC total exceeds 10340 and no fold drops below 3355 / 3536 / 3449.
+
+The rule passed: total 10679, folds 3358 / 3706 / 3615. Run: 0.35 ppm, 1/K0 −0.0327 + 1.0543 × library.
+
+| HeLa n = 5, paired TDC, experimental q ≤ 0.01 | Targets | SVM-baseline overlap |
+|---|---|---|
+| ID-free RT window only | 10340 | 8875 |
+| plus calibrated m/z and 1/K0 coordinates | **10679** | **9146** |
+
+Both use the design run's own calibration. There is no independent-run evidence: the 500 pg calibration failed closed.
