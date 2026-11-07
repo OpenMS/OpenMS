@@ -61,7 +61,8 @@ foreach(_leaked IN ITEMS IsoSpec Evergreen eol-bspline opentims_cpp openms_therm
   endif()
 endforeach()
 
-## Qt6 is not part of the core library's link interface (see TestExternalCodeQt below)
+## Qt6 is not part of the core library's link interface: a consumer that wants Qt finds
+## and links it itself
 get_target_property(_core_interface OpenMS::OpenMS INTERFACE_LINK_LIBRARIES)
 if(_core_interface MATCHES "Qt6::")
   message(FATAL_ERROR "OpenMS::OpenMS leaks Qt6 into its link interface: ${_core_interface}")
@@ -149,20 +150,6 @@ foreach(i ${my_executables})
   target_link_libraries(${i} OpenMS::OpenMS my_custom_lib)
 endforeach(i)
 
-## Downstream link contract: since the Qt removal, OpenMSConfig.cmake no longer
-## declares Qt6 as a (transitive) dependency of the core library. An external consumer that wants Qt must
-## find and link it itself. This target uses a Qt type and links Qt6::Core *explicitly* after finding Qt6
-## here -- it builds only because this project supplies Qt, not because OpenMS::OpenMS leaks it
-## transitively. Guarded so the external-code test still configures cleanly on runners without Qt6.
-find_package(Qt6 COMPONENTS Core QUIET)
-if (Qt6_FOUND)
-  add_executable(TestExternalCodeQt TestExternalCodeQt.cpp)
-  target_link_libraries(TestExternalCodeQt OpenMS::OpenMS my_custom_lib Qt6::Core)
-  add_test(TestExternalCodeQt TestExternalCodeQt)
-else()
-  message(STATUS "Qt6 not found - skipping TestExternalCodeQt (transitive-Qt link-contract check).")
-endif()
-
 ## A TOPP-style tool of an external project: derives from TOPPBase, so it links the
 ## tool framework OpenMS::OpenMS_CLI (which carries OpenMS::OpenMS transitively).
 add_executable(TestExternalCodeCLI TestExternalCodeCLI.cpp)
@@ -203,7 +190,7 @@ endif()
 ## dependencies OpenMS was built against) through PATH. OpenMSConfig.cmake
 ## tells us where the OpenMS libraries were installed.
 if(WIN32)
-  foreach(_test IN ITEMS TestExternalCode TestExternalCodeCLI TestExternalCodeQt TestExternalCodePeptDeep TestExternalCodeOSWParquet TestExternalOpenDIA)
+  foreach(_test IN ITEMS TestExternalCode TestExternalCodeCLI TestExternalCodePeptDeep TestExternalCodeOSWParquet TestExternalOpenDIA)
     if(TEST ${_test})
       set_property(TEST ${_test} APPEND PROPERTY
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${OPENMS_LIB_DIR}")

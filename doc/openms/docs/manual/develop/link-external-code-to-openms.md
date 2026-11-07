@@ -29,6 +29,9 @@ your code needs:
   `OpenMSGUI` (`find_package(OpenMSGUI CONFIG)`). When the GUI layer of the same version is installed into the same
   prefix as OpenMS (`cmake --install` of OpenMS-TOPP-GUI with the `CMAKE_INSTALL_PREFIX` of OpenMS),
   `find_package(OpenMS CONFIG REQUIRED COMPONENTS GUI)` finds it as well, together with the Qt6 modules it links.
+  As in earlier releases, `find_package(OpenMS CONFIG)` without the `GUI` component also provides
+  `OpenMS::OpenMS_GUI` of such an installation, but does not search Qt6: a project that links it then finds Qt6
+  itself. Set `OpenMS_IGNORE_GUI_LAYER` to `TRUE` before `find_package(OpenMS)` to leave the GUI layer out.
 
 The installed package is layered. The core layer (the install components `library`, `OpenMS_headers`,
 `OpenSwathAlgo_headers`, `thirdparty_headers`, `share` and `cmake`) is always present; the TOPP tool framework
@@ -36,13 +39,13 @@ The installed package is layered. The core layer (the install components `librar
 GUI library of OpenMS-TOPP-GUI is a further layer on top of that. `cmake --install <build>`
 installs everything, `cmake --install <build> --component <name>` one component at a time; the pyOpenMS wheels, for
 instance, are built against a core-only installation. `OpenMSConfig.cmake` provides the targets of the layers an
-installation contains and reports them with `OpenMS_CLI_FOUND` and, when the `GUI` component is requested,
-`OpenMS_GUI_FOUND` / `OpenMS_WITH_GUI`.
+installation contains and reports them with `OpenMS_CLI_FOUND` and `OpenMS_WITH_GUI` and, when the `GUI`
+component is requested, `OpenMS_GUI_FOUND`.
 
 The un-namespaced names `OpenMS` and `OpenSwathAlgo` remain available as aliases for projects written against earlier
 releases, as do `OpenMS_CLI` and `OpenMS_GUI` when their layers are installed. The package also reports the version of the installation (`OpenMS_VERSION`, and `OpenMS_VERSION_FULLSTRING` as used
 in the package names), its layers
-(`OpenMS_CLI_FOUND`, and `OpenMS_WITH_GUI` when the `GUI` component is requested), its build options (`OpenMS_WITH_HDF5`, `OpenMS_WITH_OPENTIMS`,
+(`OpenMS_CLI_FOUND`, `OpenMS_WITH_GUI`), its build options (`OpenMS_WITH_HDF5`, `OpenMS_WITH_OPENTIMS`,
 `OpenMS_WITH_THERMO_RAW`, `OpenMS_WITH_ONNX`, `OpenMS_WITH_OPENMP`, `OpenMS_BUILD_TOPP_TOOLS`) and its directories (`OPENMS_DATA_DIR`,
 `OPENMS_LIB_DIR`, `OPENMS_BIN_DIR`, `OPENMS_DOC_DIR`). Whether an installation is shared or static is not a
 separate variable: ask the imported target with `get_target_property(<var> OpenMS::OpenMS TYPE)`.

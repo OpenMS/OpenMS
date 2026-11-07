@@ -580,12 +580,14 @@ perf report
   may stop at any layer (the pyOpenMS wheels install the core layer only); `OpenMSConfig.cmake` includes the
   target files that exist and sets `OpenMS_CLI_FOUND`. The GUI layer (`OpenMS::OpenMS_GUI`) comes from
   OpenMS-TOPP-GUI with a CMake package of its own (`OpenMSGUI`, export set `OpenMSGUITargets`); installed into
-  the same prefix, `COMPONENTS GUI` delegates to it and sets `OpenMS_GUI_FOUND`/`OpenMS_WITH_GUI`. Keep the
+  the same prefix, `COMPONENTS GUI` delegates to it and sets `OpenMS_GUI_FOUND`/`OpenMS_WITH_GUI`; without
+  that component, the GUI layer's `OpenMSGUITargets.cmake` (of the same version) is included directly, without
+  a Qt lookup, and sets `OpenMS_WITH_GUI` (as before the split; `OpenMS_IGNORE_GUI_LAYER` opts out). Keep the
   version and install directories of both repositories in step. When adding a library or an install component,
   keep the layer's library and cmake components together, and update `CPACK_COMPONENTS_ALL` in
   `cmake/package_deb.cmake`/`package_rpm.cmake` and the consumer fixture in `src/tests/CMakeLists.txt`.
   `src/tests/package_layers` exercises the macros and the package template with stub libraries
-  (including a stub OpenMSGUI package for `COMPONENTS GUI`) in seconds.
+  (including a stub OpenMSGUI package, with and without `COMPONENTS GUI`) in seconds.
 
 ## CI, Packaging, and Containers
 

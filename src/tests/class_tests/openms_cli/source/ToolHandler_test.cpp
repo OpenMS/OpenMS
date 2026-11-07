@@ -13,10 +13,24 @@
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 ///////////////////////////
 
+#include <cstdlib>
+
 using namespace OpenMS;
 using namespace std;
 
 START_TEST(ToolHandler, "$Id$")
+
+// The registry is read once per process, on the first lookup, and also from the directories
+// named by these environment variables. Remove them before that, so registry files of a
+// developer's environment (e.g. those of the GUI layer) do not change what this test sees.
+for (const char* var : {"OPENMS_TOOL_REGISTRY_PATH", "OPENMS_TTD_INTERNAL_PATH"})
+{
+#ifdef OPENMS_WINDOWSPLATFORM
+  _putenv_s(var, "");
+#else
+  unsetenv(var);
+#endif
+}
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

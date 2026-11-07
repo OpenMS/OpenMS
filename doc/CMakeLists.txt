@@ -259,6 +259,8 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation without class documentation"
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E remove_directory html
+                      ## the tag file of an earlier full documentation would point into class pages this one lacks
+                      COMMAND ${CMAKE_COMMAND} -E rm -f ${PROJECT_BINARY_DIR}/OpenMS.tag
                       COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} $<TARGET_FILE:Doxygen::doxygen> doxygen/Doxyfile_noclass
                       COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
                       COMMAND ${CMAKE_COMMAND} -E echo ""
@@ -278,6 +280,8 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation without class/TOPP documentation"
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E remove_directory html
+                      ## the tag file of an earlier full documentation would point into class pages this one lacks
+                      COMMAND ${CMAKE_COMMAND} -E rm -f ${PROJECT_BINARY_DIR}/OpenMS.tag
                       COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} $<TARGET_FILE:Doxygen::doxygen> doxygen/Doxyfile_noclass
                       COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
                       COMMAND ${CMAKE_COMMAND} -E echo ""
@@ -338,7 +342,9 @@ if(ENABLE_DOCS)
       REGEX ".*\\.md5\$" EXCLUDE ## Exclude temporary md5 files
     )
     # doxygen tag file of this documentation (GENERATE_TAGFILE in Doxyfile.in); other projects
-    # (e.g. OpenMS-TOPP-GUI) link to the OpenMS documentation with it (doxygen TAGFILES)
+    # (e.g. OpenMS-TOPP-GUI) link to the OpenMS documentation with it (doxygen TAGFILES). Only
+    # the full documentation (doc, doc_class_only) writes it; doc_noclass and doc_minimal remove
+    # it, so it is installed only with the class documentation it refers to.
     install(FILES ${PROJECT_BINARY_DIR}/OpenMS.tag
       DESTINATION ${INSTALL_DOC_DIR}
       COMPONENT doc

@@ -574,11 +574,22 @@ Section "-Uninstall"
     ## The GUI add-on (OpenMS-TOPP-GUI) installed into this folder: remove it first, with its
     ## own uninstaller, silently and in the mode of this installation. _?= keeps the
     ## uninstaller in place (so ExecWait waits for it), so it is deleted afterwards.
+    ## An interactive uninstall asks first (a silent one goes ahead), and nothing is
+    ## removed here if the add-on could not be removed.
     ${If} ${FileExists} "$INSTDIR\${GUI_UNINSTALL_FILENAME}"
+        MessageBox MB_OKCANCEL|MB_ICONINFORMATION "The OpenMS GUI add-on (TOPPView, TOPPAS, ...) installed in $INSTDIR is removed as well." /SD IDOK IDOK gui_uninstall
+            Abort "Uninstallation cancelled."
+        gui_uninstall:
+        ClearErrors
         ${If} $MultiUser.InstallMode == "AllUsers"
-            ExecWait '"$INSTDIR\${GUI_UNINSTALL_FILENAME}" /S /allusers _?=$INSTDIR'
+            ExecWait '"$INSTDIR\${GUI_UNINSTALL_FILENAME}" /S /allusers _?=$INSTDIR' $0
         ${Else}
-            ExecWait '"$INSTDIR\${GUI_UNINSTALL_FILENAME}" /S /currentuser _?=$INSTDIR'
+            ExecWait '"$INSTDIR\${GUI_UNINSTALL_FILENAME}" /S /currentuser _?=$INSTDIR' $0
+        ${EndIf}
+        ${If} ${Errors}
+        ${OrIf} $0 != 0
+            MessageBox MB_OK|MB_ICONSTOP "The OpenMS GUI add-on in $INSTDIR could not be removed (${GUI_UNINSTALL_FILENAME}, exit code $0). OpenMS was not uninstalled; remove the add-on first, then uninstall OpenMS again." /SD IDOK
+            Abort "Uninstalling the OpenMS GUI add-on failed."
         ${EndIf}
         Delete "$INSTDIR\${GUI_UNINSTALL_FILENAME}"
     ${EndIf}

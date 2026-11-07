@@ -637,6 +637,8 @@ namespace OpenMS{
     // source path is host/openms so doc is ../doc
     search_dirs.push_back(std::string(OPENMS_SOURCE_PATH) + "/../../doc/");
     search_dirs.push_back(getOpenMSDataPath() + "/../../doc/");
+    // <prefix>/share/doc of an installation (next to its share/OpenMS)
+    search_dirs.push_back(getOpenMSDataPath() + "/../doc/");
     search_dirs.push_back(OPENMS_DOC_PATH);
     search_dirs.push_back(installPath_(OPENMS_INSTALL_DOC_PATH));
 
@@ -856,7 +858,8 @@ namespace OpenMS{
 #else
     StringUtils::split(path, ':', paths);
 #endif
-    // ensure it ends with '/'
+    // skip empty entries (they do not name a directory), ensure the others end with '/'
+    paths.erase(std::remove(paths.begin(), paths.end(), std::string()), paths.end());
     for (std::string& p : paths) { StringUtils::substitute(p, '\\', '/'); StringUtils::ensureLastChar(p, '/'); }
     return paths;
   }
@@ -933,30 +936,19 @@ namespace OpenMS{
     }
 #endif
     // finally the PATH, e.g. for an executable of another layer of a split installation
-    // that lives in a prefix of its own. Only absolute entries: a relative (or empty) one
-    // would resolve against the current working directory.
-    const char* env_path = std::getenv("PATH");
-    if (env_path != nullptr)
-    {
-      StringList names = {toolName};
+    // that lives in a prefix of its own. Only absolute entries: a relative one would
+    // resolve against the current working directory.
+    StringList names = {toolName};
 #if OPENMS_WINDOWSPLATFORM
-      if (!StringUtils::hasSuffix(toolName, ".exe")) names.insert(names.begin(), toolName + ".exe");
-      const char separator = ';';
-#else
-      const char separator = ':';
+    if (!StringUtils::hasSuffix(toolName, ".exe")) names.insert(names.begin(), toolName + ".exe");
 #endif
-      StringList dirs;
-      StringUtils::split(std::string(env_path), separator, dirs);
-      for (std::string dir : dirs)
+    for (const std::string& dir : getPathLocations())
+    {
+      if (!to_path(dir).is_absolute()) continue;
+      for (const std::string& name : names)
       {
-        if (dir.empty() || !to_path(dir).is_absolute()) continue;
-        StringUtils::substitute(dir, '\\', '/');
-        StringUtils::ensureLastChar(dir, '/');
-        for (const std::string& name : names)
-        {
-          exec = dir + name;
-          if (File::exists(exec) && !File::isDirectory(exec)) return exec;
-        }
+        exec = dir + name;
+        if (File::executable(exec) && !File::isDirectory(exec)) return exec;
       }
     }
 

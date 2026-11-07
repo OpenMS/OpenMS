@@ -22,15 +22,20 @@
 ###   OpenMS::OpenMS_CLI     the TOPP tool framework (TOPPBase, ToolHandler, ...); a
 ###                          TOPP-style tool links this            (component CLI; install
 ###                          components library_cli and cmake_cli)
-###   OpenMS::OpenMS_GUI     the GUI library of OpenMS-TOPP-GUI    (component GUI, on request;
-###                          found through the OpenMSGUI package, which also finds the
-###                          Qt6 modules the GUI library links)
+###   OpenMS::OpenMS_GUI     the GUI library of OpenMS-TOPP-GUI    (component GUI; when its
+###                          OpenMSGUI package of this version is installed next to this
+###                          file, also without requesting the component)
 ### and, for projects written against earlier releases, the un-namespaced aliases
 ### OpenMS and OpenSwathAlgo, plus OpenMS_CLI and OpenMS_GUI when those layers are
 ### present. A core-only installation (install
 ### components library, OpenMS_headers, OpenSwathAlgo_headers, thirdparty_headers,
 ### share and cmake, e.g. what the pyOpenMS wheels are built against) provides the
-### first two targets; requesting COMPONENTS CLI fails on it.
+### first two targets; requesting COMPONENTS CLI fails on it. Requesting COMPONENTS GUI
+### (or OPTIONAL_COMPONENTS GUI) loads the OpenMSGUI package, which also finds the Qt6
+### modules the GUI library links. Without it, the GUI layer's targets are included
+### without a Qt lookup, and a consumer that links OpenMS::OpenMS_GUI finds Qt6 itself
+### (set OpenMS_IGNORE_GUI_LAYER to TRUE before find_package to leave them out, e.g. in
+### OpenMS-TOPP-GUI itself, which builds that target).
 ###
 ### Variables:
 ###   OpenMS_VERSION                        version of this installation (X.Y.Z)
@@ -42,7 +47,8 @@
 ###   OpenMS_CLI_FOUND                      the CLI layer is part of this installation
 ###   OpenMS_GUI_FOUND                      the GUI component was requested and the
 ###                                         OpenMSGUI package was found
-###   OpenMS_WITH_GUI                       same as OpenMS_GUI_FOUND (OpenMS::OpenMS_GUI exists)
+###   OpenMS_WITH_GUI                       the GUI layer is part of this installation
+###                                         (OpenMS::OpenMS_GUI exists)
 ###   OpenMS_WITH_HDF5, OpenMS_WITH_OPENTIMS, OpenMS_WITH_THERMO_RAW, OpenMS_WITH_ONNX,
 ###   OpenMS_WITH_OPENMP, OpenMS_WITH_WNETALIGN, OpenMS_BUILD_TOPP_TOOLS
 ###                                         build options of this installation
@@ -228,6 +234,38 @@ if("GUI" IN_LIST OpenMS_FIND_COMPONENTS AND OpenMS_CLI_FOUND)
   endif()
 endif()
 set(OpenMS_WITH_GUI ${OpenMS_GUI_FOUND})
+## Not requested: as before the GUI moved to OpenMS-TOPP-GUI, the targets of an
+## installed GUI layer are provided anyway, without a Qt lookup. Only a GUI layer of
+## exactly this version is included (read from its package version file).
+if(NOT "GUI" IN_LIST OpenMS_FIND_COMPONENTS AND OpenMS_CLI_FOUND AND NOT OpenMS_IGNORE_GUI_LAYER)
+  function(_openms_gui_layer_version _dir _result)
+    set(PACKAGE_FIND_VERSION "${OpenMS_VERSION}")
+    set(PACKAGE_FIND_VERSION_MAJOR "${OpenMS_VERSION_MAJOR}")
+    set(PACKAGE_FIND_VERSION_MINOR "${OpenMS_VERSION_MINOR}")
+    set(PACKAGE_FIND_VERSION_PATCH "${OpenMS_VERSION_PATCH}")
+    set(PACKAGE_FIND_VERSION_COUNT 3)
+    include("${_dir}/OpenMSGUIConfigVersion.cmake")
+    if(PACKAGE_VERSION_UNSUITABLE)
+      set(PACKAGE_VERSION "")
+    endif()
+    set(${_result} "${PACKAGE_VERSION}" PARENT_SCOPE)
+  endfunction()
+  foreach(_openms_gui_dir IN ITEMS "${CMAKE_CURRENT_LIST_DIR}/../OpenMSGUI" "${CMAKE_CURRENT_LIST_DIR}")
+    if(EXISTS "${_openms_gui_dir}/OpenMSGUITargets.cmake"
+       AND EXISTS "${_openms_gui_dir}/OpenMSGUIConfigVersion.cmake")
+      _openms_gui_layer_version("${_openms_gui_dir}" _openms_gui_version)
+      if(_openms_gui_version VERSION_EQUAL OpenMS_VERSION)
+        if(NOT TARGET OpenMS::OpenMS_GUI)
+          include("${_openms_gui_dir}/OpenMSGUITargets.cmake")
+        endif()
+        set(OpenMS_WITH_GUI TRUE)
+        break()
+      endif()
+    endif()
+  endforeach()
+  unset(_openms_gui_dir)
+  unset(_openms_gui_version)
+endif()
 if("GUI" IN_LIST OpenMS_FIND_COMPONENTS AND NOT OpenMS_GUI_FOUND AND OpenMS_FIND_REQUIRED_GUI)
   if(NOT OpenMS_CLI_FOUND)
     set(OpenMS_NOT_FOUND_MESSAGE
@@ -270,6 +308,9 @@ if(NOT TARGET OpenSwathAlgo)
 endif()
 if(TARGET OpenMS::OpenMS_CLI AND NOT TARGET OpenMS_CLI)
   add_library(OpenMS_CLI ALIAS OpenMS::OpenMS_CLI)
+endif()
+if(TARGET OpenMS::OpenMS_GUI AND NOT TARGET OpenMS_GUI)
+  add_library(OpenMS_GUI ALIAS OpenMS::OpenMS_GUI)
 endif()
 
 check_required_components(OpenMS)
