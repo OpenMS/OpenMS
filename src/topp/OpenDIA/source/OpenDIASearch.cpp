@@ -34,6 +34,7 @@ namespace OpenMS::OpenDIA
     candidate_features_(candidate_features)
   {
     if (!std::isfinite(options_.fragment_tolerance_da) || !(options_.fragment_tolerance_da > 0.0) ||
+        !std::isfinite(options_.fragment_tolerance_ppm) || options_.fragment_tolerance_ppm < 0.0 ||
         !std::isfinite(options_.ion_mobility_tolerance_vssc) || !(options_.ion_mobility_tolerance_vssc > 0.0) ||
         !std::isfinite(options_.rt_window_seconds) || options_.rt_window_seconds < 0.0 ||
         !std::isfinite(options_.peak_gap_seconds) || !(options_.peak_gap_seconds > 0.0) || options_.min_transitions == 0 ||
@@ -389,7 +390,13 @@ namespace OpenMS::OpenDIA
         touched.clear();
         const std::size_t cell_generation = cell_generations[cell_order];
         const auto point_end = grid_points_.begin() + static_cast<std::ptrdiff_t>(cell.point_end);
-        const double first_low_mz = queries_[block_queries.front().query_index].fragment_mz - options_.fragment_tolerance_da;
+        // A ppm half width grows with m/z, so the lower bound stays monotone over the m/z-sorted block.
+        const auto half_width = [this](double mz)
+        {
+          return options_.fragment_tolerance_ppm > 0.0 ? mz * options_.fragment_tolerance_ppm * 1e-6 : options_.fragment_tolerance_da;
+        };
+        const double first_low_mz = queries_[block_queries.front().query_index].fragment_mz -
+                                    half_width(queries_[block_queries.front().query_index].fragment_mz);
         auto point_cursor = std::lower_bound(grid_points_.begin() + static_cast<std::ptrdiff_t>(cell.point_begin),
                                              point_end, first_low_mz,
                                              [](const GridPoint& point, double mz) { return point.mz < mz; });
@@ -397,8 +404,8 @@ namespace OpenMS::OpenDIA
         {
           const std::size_t query_index = lane_query.query_index;
           const Query& query = queries_[query_index];
-          const double low_mz = query.fragment_mz - options_.fragment_tolerance_da;
-          const double high_mz = query.fragment_mz + options_.fragment_tolerance_da;
+          const double low_mz = query.fragment_mz - half_width(query.fragment_mz);
+          const double high_mz = query.fragment_mz + half_width(query.fragment_mz);
           while (point_cursor != point_end && point_cursor->mz < low_mz)
           {
             ++point_cursor;

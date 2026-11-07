@@ -498,6 +498,21 @@ int main()
   }
   require(rejected, "non-positive m/z tolerance was accepted");
 
+  // A ppm fragment tolerance scales with m/z: 10 ppm keeps a 0.008 Da error at 1000 but rejects it at 100.
+  const std::vector<OpenDIA::TransitionQuery> ppm_queries = {
+    {"low_mz", 500.0, 100.0, 0.0, false},
+    {"high_mz", 500.0, 1000.0, 0.0, false}
+  };
+  OpenDIA::SearchOptions ppm_options;
+  ppm_options.fragment_tolerance_ppm = 10.0;
+  std::ostringstream ppm_output;
+  OpenDIA::StreamSearch ppm_search(ppm_queries, ppm_options, ppm_output);
+  MSSpectrum ppm_spectrum = spectrum(10.0, 500.0, {Peak1D(100.008, 10.0), Peak1D(1000.008, 10.0)});
+  ppm_search.consumeSpectrum(ppm_spectrum);
+  ppm_search.finish();
+  require(ppm_output.str().find("high_mz") != std::string::npos, "ppm tolerance rejected an in-tolerance high-m/z fragment");
+  require(ppm_output.str().find("low_mz") == std::string::npos, "ppm tolerance accepted an out-of-tolerance low-m/z fragment");
+
   invalid_options = OpenDIA::SearchOptions{};
   invalid_options.ion_mobility_tolerance_vssc = 0.0;
   rejected = false;

@@ -6,6 +6,7 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
+#include "OpenDIACalibration.h"
 #include "OpenDIASearch.h"
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
@@ -16,6 +17,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <optional>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -63,6 +65,8 @@ protected:
     registerDoubleOption_("mz_tolerance", "<Da>", 0.02, "Absolute fragment m/z matching tolerance in Da", false);
     registerDoubleOption_("im_tolerance", "<1/K0>", 0.03, "Automatic inverse reduced ion-mobility matching tolerance", false);
     registerDoubleOption_("rt_window", "<seconds>", 0.0, "Optional window around library RT; zero disables RT filtering", false);
+    registerInputFile_("calibration", "<file>", "", "Experimental: OpenDIACalibrate JSON. Before extraction, library RT, fragment m/z and precursor 1/K0 are mapped to run coordinates, and the RT window, fragment ppm and 1/K0 tolerances are set from the calibration (replacing -rt_window, -mz_tolerance and -im_tolerance)", false);
+    setValidFormats_("calibration", {"json"});
     registerDoubleOption_("peak_gap", "<seconds>", 30.0, "Maximum gap between matched scans in one peak group", false);
     registerIntOption_("min_transitions", "<n>", 1, "Minimum co-observed fragments required in a peak group", false);
     registerFlag_("local_peak_split", "Split a group after two low scans and a signal recovery; experimental candidate generation");
@@ -109,8 +113,61 @@ protected:
     options.min_transitions = static_cast<std::size_t>(min_transitions);
     options.min_peak_scans = static_cast<std::size_t>(min_peak_scans);
 
+    // Optional identification-free calibration (OpenSwath order: calibrate, then extract the whole library).
+    const std::string calibration_path = getStringOption_("calibration");
+    std::optional<OpenDIA::CalibrationRT> calibration;
+    if (!calibration_path.empty())
+    {
+      try
+      {
+        calibration = OpenDIA::readCalibrationRT(calibration_path);
+      }
+      catch (const std::exception& error)
+      {
+        writeLogError_(std::string("Invalid calibration: ") + error.what());
+        return ILLEGAL_PARAMETERS;
+      }
+      if (!calibration->has_ms2)
+      {
+        writeLogError_("The calibration has no fragment mass model; refusing a partial calibration.");
+        return ILLEGAL_PARAMETERS;
+      }
+      options.rt_window_seconds = calibration->tolerance_s;
+      options.fragment_tolerance_ppm = calibration->ms2_tolerance_ppm;
+      if (calibration->has_im)
+      {
+        options.ion_mobility_tolerance_vssc = calibration->im_tolerance;
+      }
+    }
+
     OpenSwath::LightTargetedExperiment targeted;
     TransitionPQPFile().convertPQPToTargetedExperiment(library.c_str(), targeted);
+    if (calibration)
+    {
+      // Library to run coordinates. The RT field then holds the predicted run RT, so the RT window and the
+      // reported apex_rt_error_seconds are relative to the calibrated position.
+      for (auto& compound : targeted.compounds)
+      {
+        if (std::isfinite(compound.rt))
+        {
+          compound.rt = calibration->map(compound.rt);
+        }
+        if (calibration->has_im && std::isfinite(compound.drift_time) && compound.drift_time > 0.0)
+        {
+          compound.drift_time = calibration->im_intercept + calibration->im_slope * compound.drift_time;
+        }
+      }
+      for (auto& transition : targeted.transitions)
+      {
+        transition.product_mz *= 1.0 + calibration->ms2_offset_ppm * 1e-6;
+      }
+      writeLogInfo_("Experimental calibrated extraction: rt_window_s=" + std::to_string(options.rt_window_seconds) +
+                    " ms2_offset_ppm=" + std::to_string(calibration->ms2_offset_ppm) +
+                    " ms2_tolerance_ppm=" + std::to_string(options.fragment_tolerance_ppm) +
+                    (calibration->has_im ? " im=" + std::to_string(calibration->im_intercept) + "+" + std::to_string(calibration->im_slope) +
+                                             "x im_tolerance=" + std::to_string(options.ion_mobility_tolerance_vssc)
+                                         : std::string(" im=unavailable (library 1/K0 and -im_tolerance kept)")));
+    }
     auto queries = makeQueries_(targeted);
     if (queries.empty())
     {

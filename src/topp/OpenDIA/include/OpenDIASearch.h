@@ -38,6 +38,8 @@ namespace OpenMS::OpenDIA
   struct SearchOptions
   {
     double fragment_tolerance_da = 0.02;
+    /// When > 0, the fragment half width is this many ppm of each fragment m/z, replacing fragment_tolerance_da.
+    double fragment_tolerance_ppm = 0.0;
     double ion_mobility_tolerance_vssc = 0.03;
     double rt_window_seconds = 0.0;
     double peak_gap_seconds = 30.0;

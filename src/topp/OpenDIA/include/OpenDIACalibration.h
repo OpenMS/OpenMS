@@ -213,8 +213,10 @@ namespace OpenMS::OpenDIA
     double tolerance_s = 0.0; ///< Half width of the RT window.
     double ms2_offset_ppm = 0.0; ///< Run fragment m/z = library m/z x (1 + offset x 1e-6).
     bool has_ms2 = false; ///< False when too few fragment errors were measured.
+    double ms2_tolerance_ppm = 0.0; ///< Half width around the calibrated fragment m/z.
     bool has_im = false; ///< False without mobility data or too few anchors.
     double im_intercept = 0.0, im_slope = 1.0; ///< Run 1/K0 = intercept + slope x library 1/K0.
+    double im_tolerance = 0.0; ///< Half width around the calibrated 1/K0.
   };
 
   /**

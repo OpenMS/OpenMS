@@ -498,3 +498,33 @@ The rule passed: total 10679, folds 3358 / 3706 / 3615. Run: 0.35 ppm, 1/K0 −0
 | plus calibrated m/z and 1/K0 coordinates | **10679** | **9146** |
 
 Both use the design run's own calibration. There is no independent-run evidence: the 500 pg calibration failed closed.
+
+#### Calibrate first, then extract the full library (`OpenDIA -calibration`)
+
+The order above was wrong. The full library was extracted over the whole gradient with fixed tolerances, and the calibration only filtered the candidates afterwards.
+OpenSwath calibrates first and then extracts the full library inside the calibrated windows.
+
+`OpenDIA -calibration calibration.json` does that. Before extraction it maps library RT through the calibrated map, fragment m/z by the ppm offset, and precursor 1/K0 through the calibrated line.
+It also sets the extraction tolerances from the calibration:
+- RT: ±8.76 s around the predicted run RT.
+- Fragments: ±10.67 ppm, using the new `SearchOptions::fragment_tolerance_ppm`.
+- 1/K0: ±0.033.
+
+These replace `-rt_window`, `-mz_tolerance` and `-im_tolerance`.
+`apex_rt_error_seconds` is then relative to the predicted run RT. An invalid or partial calibration file is rejected and no output is written.
+Without `-calibration` the output is byte-identical: the default k5 run reproduces `k5.tsv`, `k5.features.tsv` and the seed manifests exactly.
+
+The HeLa gate was declared before running (`raw-trace-cnn-hela/calibrated-extraction-20261107/GATE.md`): accept if the total exceeds 10679.
+The pipeline was otherwise unchanged: same seed recipe, crossfit settings and CNN trace geometry, plus `-rt_calibration -apply_calibration_coordinates`.
+
+| HeLa n = 5, paired TDC, experimental q ≤ 0.01 | Calibrate after extraction | Calibrate first |
+|---|---|---|
+| Candidate rows | 988075 | 198915 |
+| OpenDIA extraction wall time | 107 s | 40 s |
+| CNN crossfit wall time / peak RSS | 4.1 min / 7.1 GB | 1.2 min / 2.1 GB |
+| Targets (folds) | 10679 (3358 / 3706 / 3615) | **11830** (4104 / 4343 / 3383) |
+| SVM / XGBoost baseline overlap | 9146 / 9114 | **10158 / 10121** |
+
+The gate passed. Fold 2 fell from 3615 to 3383, although the rule only required a higher total, so this is a mixed result per fold.
+The seeds were re-derived from the calibrated candidates with the same recipe, so the CNN training data changed as well as the candidates.
+This is still the design run, with the same-run teacher. It is a decoy-count estimate, not a calibrated FDR, and there is no independent-run result: the 500 pg calibration failed closed.
