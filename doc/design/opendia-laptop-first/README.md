@@ -48,6 +48,7 @@ The current pipeline extracts 198,915 candidates in 40 s and runs CNN crossfit i
 - These are decoy-count estimates on the run used to design the pipeline. They are not a calibrated FDR.
 - Every row except the last two uses CNN seeds from the same-run OpenSWATH teacher. The last two use no OpenSWATH input and exceed the teacher-seeded count. Neither has been checked by entrapment.
 - On the independent 500 pg run, the CNN alone gave 0 IDs at 1%, paired TDC gave 230, and the calibration failed closed with 0 anchors.
+- On the independent ProteoBench Astral entrapment run (raw 01, frozen teacher-free design applied once), the calibration also failed closed with 0 anchors, so no IDs and no entrapment FDP. The HeLa design does not yet transfer to weak or no-1/K0 runs.
 - The rewrite is about 5,500 to 6,100 precursors short of the reference. Closing that gap is R-WP5.
 
 ## Work packages

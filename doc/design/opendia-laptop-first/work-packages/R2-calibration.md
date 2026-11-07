@@ -27,6 +27,17 @@
 2. A v0.13 parity fixture for stage 2.
 3. MS1 calibration, which has not been started.
 
+## Independent run 2: ProteoBench Astral entrapment, raw 01 (7 November 2026)
+
+The frozen teacher-free design (`4cbd7701bb`, panel 40000) was applied once, under a gate written before the run: `astral-entrapment-20261107/GATE.md`, with its sha256 recorded.
+- The Thermo `.raw` streamed natively; OpenDIACalibrate took 2:04 at 10.4 GB.
+- Calibration **failed closed with 0 anchors**: stage 1 kept 95, with σ 18.8 s. The stage-3 window was ±75 s, and 19 decoys were in the top 100.
+- No IDs were produced, so the entrapment FDP could not be measured. The gate is not passed.
+
+This is the second independent run, after 500 pg, on which the calibration finds too few separable anchors. The HeLa design does not transfer.
+Both runs have low identifiable populations: about 1500 OpenSWATH result rows per raw on Astral, and a low-load 500 pg sample. The Astral run also has no 1/K0 and uses predicted, normalised library RTs.
+Calibration robustness on weak runs is now the blocking problem for the whole teacher-free path. It needs a new design, on a design run that is not an evaluation run.
+
 ## Panel scaling and escalation, 7 November 2026 (HeLa)
 
 Anchors grow linearly with the panel, at about 0.13 per target. Panel 2500 gives 316, 10000 gives 1278 and 40000 gives 5479, and 95.8 to 96.9% of teacher IDs fall within the RT tolerance.
