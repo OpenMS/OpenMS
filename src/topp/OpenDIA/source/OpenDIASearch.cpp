@@ -36,7 +36,10 @@ namespace OpenMS::OpenDIA
     if (!std::isfinite(options_.fragment_tolerance_da) || !(options_.fragment_tolerance_da > 0.0) ||
         !std::isfinite(options_.ion_mobility_tolerance_vssc) || !(options_.ion_mobility_tolerance_vssc > 0.0) ||
         !std::isfinite(options_.rt_window_seconds) || options_.rt_window_seconds < 0.0 ||
-        !std::isfinite(options_.peak_gap_seconds) || !(options_.peak_gap_seconds > 0.0) || options_.min_transitions == 0)
+        !std::isfinite(options_.peak_gap_seconds) || !(options_.peak_gap_seconds > 0.0) || options_.min_transitions == 0 ||
+        (options_.split_local_peaks &&
+         (!std::isfinite(options_.peak_valley_fraction) || !(options_.peak_valley_fraction > 0.0) ||
+          !(options_.peak_valley_fraction < 1.0) || options_.min_peak_scans < 2)))
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "Search tolerances and minimum transition count must be positive.");
@@ -508,10 +511,16 @@ namespace OpenMS::OpenDIA
                            candidate.last_rt, candidate.area, candidate.apex_intensity, candidate.points,
                            candidate.max_transition_support});
       candidate.active = false;
+      candidate.below_peak_scans = 0;
     }
 
     if (!candidate.active)
     {
+      if (candidate.awaiting_peak && intensity < candidate.reopen_threshold)
+      {
+        return;
+      }
+      candidate.awaiting_peak = false;
       candidate.active = true;
       candidate.start_rt = rt;
       candidate.apex_rt = rt;
@@ -522,6 +531,29 @@ namespace OpenMS::OpenDIA
       candidate.points = 1;
       candidate.max_transition_support = transition_support;
       return;
+    }
+
+    if (options_.split_local_peaks && candidate.apex_intensity > 0.0 &&
+        intensity < candidate.apex_intensity * options_.peak_valley_fraction)
+    {
+      ++candidate.below_peak_scans;
+      if (candidate.below_peak_scans >= 2)
+      {
+        completed.push_back({candidate_index, cell_order, query_order, candidate.start_rt, candidate.apex_rt,
+                             candidate.last_rt, candidate.area, candidate.apex_intensity, candidate.points,
+                             candidate.max_transition_support});
+        candidate.active = false;
+        candidate.awaiting_peak = true;
+        // ponytail: fixed fractional recovery keeps state O(1) per candidate.
+        // Use adaptive prominence only if held-out traces show lost weak peaks.
+        candidate.reopen_threshold = candidate.apex_intensity * options_.peak_valley_fraction;
+        candidate.below_peak_scans = 0;
+        return;
+      }
+    }
+    else
+    {
+      candidate.below_peak_scans = 0;
     }
 
     candidate.area += 0.5 * (candidate.last_intensity + intensity) * (rt - candidate.last_rt);
@@ -538,7 +570,8 @@ namespace OpenMS::OpenDIA
 
   void StreamSearch::writeCandidate_(std::size_t candidate_index, const Candidate& candidate)
   {
-    if (candidate.max_transition_support < options_.min_transitions)
+    if (candidate.max_transition_support < options_.min_transitions ||
+        (options_.split_local_peaks && candidate.points < options_.min_peak_scans))
     {
       return;
     }
@@ -553,7 +586,8 @@ namespace OpenMS::OpenDIA
 
   void StreamSearch::writeCandidate_(const CompletedCandidate& completed)
   {
-    if (completed.transition_support < options_.min_transitions)
+    if (completed.transition_support < options_.min_transitions ||
+        (options_.split_local_peaks && completed.points < options_.min_peak_scans))
     {
       return;
     }

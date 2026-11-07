@@ -42,6 +42,9 @@ namespace OpenMS::OpenDIA
     double rt_window_seconds = 0.0;
     double peak_gap_seconds = 30.0;
     std::size_t min_transitions = 1;
+    bool split_local_peaks = false;
+    double peak_valley_fraction = 0.1;
+    std::size_t min_peak_scans = 3;
   };
 
   /**
@@ -79,6 +82,9 @@ namespace OpenMS::OpenDIA
       bool has_precursor_im = false;
       bool is_decoy = false;
       bool active = false;
+      bool awaiting_peak = false;
+      double reopen_threshold = 0.0;
+      std::size_t below_peak_scans = 0;
       double start_rt = 0.0;
       double apex_rt = 0.0;
       double last_rt = 0.0;

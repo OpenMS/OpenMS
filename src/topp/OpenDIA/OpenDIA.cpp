@@ -25,19 +25,20 @@ using namespace OpenMS;
   @page TOPP_OpenDIA OpenDIA
   @brief Stream DIA spectra and report targeted fragment-group peak candidates.
 
-  This first implementation reads a prepared PQP transition library and streams
-  MS2 spectra through OpenMS file handlers. It reports gap-segmented groups of
-  co-observed library fragments to a TSV file. When both the library and raw
-  spectra provide inverse reduced ion mobility, it automatically uses per-peak
-  mobility to reject out-of-mobility fragment matches. If either side lacks
+  This implementation reads a prepared PQP transition library and streams
+  MS2 spectra through OpenMS file handlers. By default, it reports gap-segmented
+  groups of co-observed library fragments to a TSV file. An opt-in experimental
+  mode can split a group after a deep valley and recovery. When both the library
+  and raw spectra provide inverse reduced ion mobility, it automatically uses
+  per-peak mobility to reject out-of-mobility fragment matches. If either side lacks
   compatible mobility metadata, matching falls back to m/z and isolation windows.
 
   This is a minimal extraction and candidate-generation path, not a complete
   identification workflow. It does not perform library generation, machine
   learning scoring, FDR estimation, or protein inference. An optional feature
   table can preserve candidate-level target/decoy labels and numeric evidence
-  for later rescoring. Input spectra are expected to contain precursor isolation
-  metadata.
+  for the separate experimental OpenDIARerank tool. Input spectra are expected
+  to contain precursor isolation metadata.
 */
 /// @cond TOPPCLASSES
 class TOPPOpenDIA final : public TOPPBase
@@ -62,6 +63,12 @@ protected:
     registerDoubleOption_("rt_window", "<seconds>", 0.0, "Optional window around library RT; zero disables RT filtering", false);
     registerDoubleOption_("peak_gap", "<seconds>", 30.0, "Maximum gap between matched scans in one peak group", false);
     registerIntOption_("min_transitions", "<n>", 1, "Minimum co-observed fragments required in a peak group", false);
+    registerFlag_("local_peak_split", "Split a group after two low scans and a signal recovery; experimental candidate generation");
+    registerDoubleOption_("peak_valley_fraction", "<fraction>", 0.1, "Local-peak valley/recovery threshold as a fraction of the previous apex", false);
+    setMinFloat_("peak_valley_fraction", 0.001);
+    setMaxFloat_("peak_valley_fraction", 0.999);
+    registerIntOption_("min_peak_scans", "<n>", 3, "Minimum matched scans in an experimental local-peak candidate", false);
+    setMinInt_("min_peak_scans", 2);
   }
 
   ExitCodes main_(int, const char**) override
@@ -76,15 +83,21 @@ protected:
     options.ion_mobility_tolerance_vssc = getDoubleOption_("im_tolerance");
     options.rt_window_seconds = getDoubleOption_("rt_window");
     options.peak_gap_seconds = getDoubleOption_("peak_gap");
+    options.split_local_peaks = getFlag_("local_peak_split");
+    options.peak_valley_fraction = getDoubleOption_("peak_valley_fraction");
+    const Int min_peak_scans = getIntOption_("min_peak_scans");
     const Int min_transitions = getIntOption_("min_transitions");
     if (min_transitions < 1 || !std::isfinite(options.fragment_tolerance_da) || options.fragment_tolerance_da <= 0.0 ||
         !std::isfinite(options.ion_mobility_tolerance_vssc) || options.ion_mobility_tolerance_vssc <= 0.0 ||
-        options.rt_window_seconds < 0.0 || options.peak_gap_seconds <= 0.0)
+        options.rt_window_seconds < 0.0 || options.peak_gap_seconds <= 0.0 || min_peak_scans < 2 ||
+        !std::isfinite(options.peak_valley_fraction) || options.peak_valley_fraction <= 0.0 ||
+        options.peak_valley_fraction >= 1.0)
     {
       writeLogError_("m/z and ion-mobility tolerances and peak gap must be positive; RT window must be non-negative; min_transitions must be at least 1.");
       return ILLEGAL_PARAMETERS;
     }
     options.min_transitions = static_cast<std::size_t>(min_transitions);
+    options.min_peak_scans = static_cast<std::size_t>(min_peak_scans);
 
     OpenSwath::LightTargetedExperiment targeted;
     TransitionPQPFile().convertPQPToTargetedExperiment(library.c_str(), targeted);

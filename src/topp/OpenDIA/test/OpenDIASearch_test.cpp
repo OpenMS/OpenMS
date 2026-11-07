@@ -97,6 +97,50 @@ int main()
           "peak-group area, apex, or unique transition support changed");
   require(rows.find("other") == std::string::npos, "precursor outside isolation window was reported");
 
+  const std::vector<OpenDIA::TransitionQuery> local_peak_queries = {
+    {"double_peak", 500.0, 100.0, 0.0, false}
+  };
+  OpenDIA::SearchOptions local_peak_options;
+  local_peak_options.split_local_peaks = true;
+  local_peak_options.min_peak_scans = 3;
+  std::ostringstream local_peak_output;
+  OpenDIA::StreamSearch local_peak_search(local_peak_queries, local_peak_options, local_peak_output);
+  for (const auto& [rt, intensity] : std::vector<std::pair<double, double>>{
+         {1.0, 10.0}, {2.0, 100.0}, {3.0, 5.0}, {4.0, 5.0},
+         {5.0, 50.0}, {6.0, 100.0}, {7.0, 20.0}, {8.0, 5.0}, {9.0, 5.0}})
+  {
+    MSSpectrum point = spectrum(rt, 500.0, {Peak1D(100.0, intensity)});
+    local_peak_search.consumeSpectrum(point);
+  }
+  local_peak_search.finish();
+  const std::string local_peak_rows = local_peak_output.str();
+  require(std::count(local_peak_rows.begin(), local_peak_rows.end(), '\n') == 2,
+          "opt-in local peak splitter did not emit two supported peak candidates");
+
+  OpenDIA::SearchOptions singleton_options;
+  singleton_options.split_local_peaks = true;
+  singleton_options.min_peak_scans = 3;
+  std::ostringstream singleton_output;
+  OpenDIA::StreamSearch singleton_search(local_peak_queries, singleton_options, singleton_output);
+  MSSpectrum singleton = spectrum(1.0, 500.0, {Peak1D(100.0, 100.0)});
+  singleton_search.consumeSpectrum(singleton);
+  singleton_search.finish();
+  require(singleton_output.str().empty(), "local peak mode retained a one-scan noise candidate");
+
+  std::ostringstream weak_recovery_output;
+  OpenDIA::StreamSearch weak_recovery_search(local_peak_queries, local_peak_options, weak_recovery_output);
+  for (const auto& [rt, intensity] : std::vector<std::pair<double, double>>{
+         {1.0, 10.0}, {2.0, 100.0}, {3.0, 5.0}, {4.0, 5.0},
+         {5.0, 8.0}, {6.0, 9.0}, {7.0, 7.0}, {8.0, 5.0}})
+  {
+    MSSpectrum point = spectrum(rt, 500.0, {Peak1D(100.0, intensity)});
+    weak_recovery_search.consumeSpectrum(point);
+  }
+  weak_recovery_search.finish();
+  const std::string weak_recovery_rows = weak_recovery_output.str();
+  require(std::count(weak_recovery_rows.begin(), weak_recovery_rows.end(), '\n') == 1,
+          "weak sub-threshold recovery was split into an extra candidate");
+
   const std::vector<OpenDIA::TransitionQuery> labeled_queries = {
     {"target", 500.0, 100.0, 9.0, true, 0.0, false, false},
     {"decoy", 500.0, 100.0, 0.0, false, 0.0, false, true}
