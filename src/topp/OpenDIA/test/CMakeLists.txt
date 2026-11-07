@@ -56,6 +56,21 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML" A
       -lib ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
       -out ${CMAKE_CURRENT_BINARY_DIR}/OpenDIACalibrate_tiny.json)
   set_tests_properties(OpenDIACalibrate_fails_closed_on_tiny_library PROPERTIES WILL_FAIL TRUE)
+  # Panel escalation stays fail-closed when the library cannot supply a larger panel, and rejects a cap below the start.
+  add_test(NAME OpenDIACalibrate_escalation_fails_closed_on_tiny_library
+    COMMAND $<TARGET_FILE:OpenDIACalibrate>
+      -in ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML
+      -lib ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
+      -max_panel_targets 40000
+      -out ${CMAKE_CURRENT_BINARY_DIR}/OpenDIACalibrate_tiny_escalation.json)
+  set_tests_properties(OpenDIACalibrate_escalation_fails_closed_on_tiny_library PROPERTIES WILL_FAIL TRUE)
+  add_test(NAME OpenDIACalibrate_rejects_small_escalation_cap
+    COMMAND $<TARGET_FILE:OpenDIACalibrate>
+      -in ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML
+      -lib ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
+      -max_panel_targets 100
+      -out ${CMAKE_CURRENT_BINARY_DIR}/OpenDIACalibrate_small_cap.json)
+  set_tests_properties(OpenDIACalibrate_rejects_small_escalation_cap PROPERTIES WILL_FAIL TRUE)
   # OpenDIA -calibration rejects an invalid calibration file instead of silently extracting uncalibrated.
   file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_invalid_calibration.json "{\"version\": 1, \"rt\": {}}\n")
   add_test(NAME OpenDIA_rejects_invalid_calibration

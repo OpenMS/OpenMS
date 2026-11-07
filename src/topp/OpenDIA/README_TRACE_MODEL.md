@@ -554,3 +554,24 @@ No OpenSWATH output is read at any point.
 The native run (2:42, 2.0 GB) uses the same rule as script round 2b but a different deterministic subset order. The difference from 11332 (−214) is its sampling variability.
 The model is trained on the HeLa design run. Like PyProphet's semi-supervised loop, an iteration's labels for fold k come from models that were trained on fold k.
 It is a decoy-count estimate, not a calibrated FDR, and there is no independent run yet.
+
+### More calibration anchors: panel scaling and opt-in escalation
+
+On HeLa, the anchor count grows linearly with the calibration panel, at about 0.13 anchors per panel target, and the map stays accurate (`calibration-panel-scaling-20261107/GATE.md`).
+
+| Panel targets | Anchors | Teacher IDs within RT tolerance | Wall time / RSS |
+|---|---|---|---|
+| 500 / 1000 | fail (0) | n/a | 16 s / 0.8 GB |
+| 2500 | 316 | 95.8% | 19 s / 0.9 GB |
+| 10000 (default) | 1278 | 96.3% | 27 s / 1.5 GB |
+| 40000 | 5479 | 96.9% | 57 s / 4.0 GB |
+
+Small panels fail on the (D+1)/T floor: q ≤ 0.01 needs at least 100 winning targets.
+`OpenDIACalibrate -max_panel_targets <n>` (default 0, off) retries a failed calibration with a 4× panel, up to `n`. Each retry is one more raw pass, and memory grows by about 75 KB per pair.
+With the default of 0, output is byte-identical. On HeLa, `-panel_targets 1000 -max_panel_targets 40000` escalated to 4000 and calibrated (477 anchors, 97.6% of teacher IDs within tolerance).
+This addresses runs that fail for lack of anchors. It does not address the 500 pg failure mode (26 decoys in the top 100), which has not been retried, by design.
+
+Seeding the CNN from the panel-40000 anchors (3000 pairs) followed by `-ss_iterations 1` gave **13611** targets at paired q ≤ 0.01 (folds 4546/4729/4336), with no OpenSWATH input.
+For comparison, panel-10000 anchors gave 11118 and teacher seeds gave 11830 (`raw-trace-cnn-hela/anchor-seeds-p40000-20261107/GATE.md`).
+84.7% of these are in the SVM baseline, against 85.9% for the teacher-seeded run, and the 2445 gained are 73.4% in SVM.
+Candidates and the RT window still come from the panel-10000 calibration. This is the design run, a decoy-count estimate, with no independent run or entrapment check.

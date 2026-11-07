@@ -14,6 +14,7 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <optional>
 
 namespace OpenMS
 {
@@ -36,6 +37,8 @@ namespace OpenMS
       registerOutputFile_("out_anchors", "<file>", "", "Optional anchor TSV", false);
       registerIntOption_("panel_targets", "<n>", 10000, "Targets sampled evenly over library RT; each brings its paired decoy", false);
       setMinInt_("panel_targets", 50);
+      registerIntOption_("max_panel_targets", "<n>", 0, "Experimental: if calibration fails for too few anchors, retry with a 4x larger panel up to this many targets (one more raw pass per retry; memory grows ~75 KB per pair). 0 disables", false);
+      setMinInt_("max_panel_targets", 0);
       registerDoubleOption_("search_ppm", "<ppm>", 15.0, "Uncalibrated fragment search half width", false);
       registerDoubleOption_("search_im", "<1/K0>", 0.05, "Uncalibrated 1/K0 search half width around the library mobility", false);
       registerDoubleOption_("anchor_fdr", "<fraction>", 0.01, "Paired target-decoy q-value cut for anchors", false);
@@ -75,14 +78,40 @@ namespace OpenMS
       const std::vector<std::pair<std::string, std::string>> traml_ids(traml_map.begin(), traml_map.end());
 
       const auto start = std::chrono::steady_clock::now();
-      OpenDIA::CalibrationCollector collector(library, traml_ids, options);
-      collector.setIonMobilityArrayAsVSSC(getFlag_("im_array_as_vssc"));
-      FileHandler reader;
-      PeakFileOptions read_options;
-      read_options.setMSLevels({2});
-      reader.setOptions(read_options);
-      reader.transformExperiment(getStringOption_("in"), &collector, {}, log_type_);
-      const auto result = collector.calibrate();
+      const auto max_panel = static_cast<std::size_t>(getIntOption_("max_panel_targets"));
+      if (max_panel != 0 && max_panel <= options.panel_targets)
+      {
+        writeLogError_("max_panel_targets must exceed panel_targets (or be 0).");
+        return ILLEGAL_PARAMETERS;
+      }
+      std::optional<OpenDIA::CalibrationResult> calibrated;
+      while (!calibrated)
+      {
+        OpenDIA::CalibrationCollector collector(library, traml_ids, options);
+        collector.setIonMobilityArrayAsVSSC(getFlag_("im_array_as_vssc"));
+        FileHandler reader;
+        PeakFileOptions read_options;
+        read_options.setMSLevels({2});
+        reader.setOptions(read_options);
+        reader.transformExperiment(getStringOption_("in"), &collector, {}, log_type_);
+        try
+        {
+          calibrated = collector.calibrate();
+        }
+        catch (const std::runtime_error& error)
+        {
+          // Escalate only the panel size; every other setting stays fixed. The library limits the panel size.
+          const std::size_t panel_pairs = collector.panelSize() / 2;
+          if (max_panel == 0 || options.panel_targets >= max_panel || panel_pairs < options.panel_targets)
+          {
+            throw;
+          }
+          writeLogWarn_("Calibration with panel_targets=" + std::to_string(options.panel_targets) + " failed (" + error.what() +
+                        "); retrying with a larger panel.");
+          options.panel_targets = std::min(max_panel, 4 * options.panel_targets);
+        }
+      }
+      const auto& result = *calibrated;
 
       std::ofstream json(out);
       OpenDIA::writeCalibrationJSON(result, options, json);
