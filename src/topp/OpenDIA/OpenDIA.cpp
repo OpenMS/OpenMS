@@ -9,7 +9,6 @@
 #include "OpenDIASearch.h"
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
-#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
@@ -82,7 +81,7 @@ protected:
     }
     options.min_transitions = static_cast<std::size_t>(min_transitions);
 
-    TargetedExperiment targeted;
+    OpenSwath::LightTargetedExperiment targeted;
     TransitionPQPFile().convertPQPToTargetedExperiment(library.c_str(), targeted);
     auto queries = makeQueries_(targeted);
     if (queries.empty())
@@ -113,7 +112,7 @@ protected:
   }
 
 private:
-  static std::vector<OpenDIA::TransitionQuery> makeQueries_(const TargetedExperiment& targeted)
+  static std::vector<OpenDIA::TransitionQuery> makeQueries_(OpenSwath::LightTargetedExperiment& targeted)
   {
     struct LibraryCoordinates
     {
@@ -123,39 +122,47 @@ private:
       bool has_precursor_im = false;
     };
     std::unordered_map<std::string, LibraryCoordinates> coordinates;
-    coordinates.reserve(targeted.getPeptides().size() + targeted.getCompounds().size());
+    coordinates.reserve(targeted.getCompounds().size());
 
-    const auto add_coordinates = [&coordinates](const auto& analyte)
+    for (const auto& compound : targeted.getCompounds())
     {
       LibraryCoordinates value;
-      if (analyte.hasRetentionTime())
-      {
-        const auto unit = analyte.getRetentionTimeUnit();
-        if (unit == TargetedExperiment::RetentionTime::RTUnit::SECOND ||
-            unit == TargetedExperiment::RetentionTime::RTUnit::MINUTE)
-        {
-          value.seconds = analyte.getRetentionTime() *
-            (unit == TargetedExperiment::RetentionTime::RTUnit::MINUTE ? 60.0 : 1.0);
-          value.has_rt = true;
-        }
-      }
-      value.precursor_im = analyte.getDriftTime();
+      value.seconds = compound.rt;
+      value.has_rt = std::isfinite(value.seconds);
+      value.precursor_im = compound.drift_time;
       value.has_precursor_im = std::isfinite(value.precursor_im) && value.precursor_im > 0.0;
-      coordinates.emplace(analyte.id, value);
-    };
-    for (const auto& peptide : targeted.getPeptides()) add_coordinates(peptide);
-    for (const auto& compound : targeted.getCompounds()) add_coordinates(compound);
+      coordinates.emplace(compound.id, value);
+    }
+
+    // The lightweight reader skips its global SQL sort for large libraries.
+    // Restore the heavy reader's transition order before assigning candidate indices.
+    std::stable_sort(targeted.transitions.begin(), targeted.transitions.end(), [&coordinates](const auto& lhs, const auto& rhs)
+    {
+      if (lhs.precursor_mz != rhs.precursor_mz) return lhs.precursor_mz < rhs.precursor_mz;
+      if (lhs.product_mz != rhs.product_mz) return lhs.product_mz < rhs.product_mz;
+      const auto lhs_coordinates = coordinates.find(lhs.peptide_ref);
+      const auto rhs_coordinates = coordinates.find(rhs.peptide_ref);
+      const bool lhs_has_rt = lhs_coordinates != coordinates.end() && lhs_coordinates->second.has_rt;
+      const bool rhs_has_rt = rhs_coordinates != coordinates.end() && rhs_coordinates->second.has_rt;
+      if (lhs_has_rt != rhs_has_rt) return !lhs_has_rt;
+      if (lhs_has_rt && lhs_coordinates->second.seconds != rhs_coordinates->second.seconds)
+      {
+        return lhs_coordinates->second.seconds < rhs_coordinates->second.seconds;
+      }
+      if (lhs.transition_name != rhs.transition_name) return lhs.transition_name < rhs.transition_name;
+      return lhs.peptide_ref < rhs.peptide_ref;
+    });
 
     std::vector<OpenDIA::TransitionQuery> queries;
     queries.reserve(targeted.getTransitions().size());
     for (const auto& transition : targeted.getTransitions())
     {
-      const std::string& id = transition.getPeptideRef().empty() ? transition.getCompoundRef() : transition.getPeptideRef();
+      const std::string& id = transition.peptide_ref;
       const auto coordinate_it = coordinates.find(id);
       OpenDIA::TransitionQuery query;
       query.precursor_id = id;
-      query.precursor_mz = transition.getPrecursorMZ();
-      query.fragment_mz = transition.getProductMZ();
+      query.precursor_mz = transition.precursor_mz;
+      query.fragment_mz = transition.product_mz;
       if (coordinate_it != coordinates.end())
       {
         query.library_rt = coordinate_it->second.seconds;
