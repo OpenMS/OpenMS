@@ -80,6 +80,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
+#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/FORMAT/QPXDatasetExport.h>
 #include <OpenMS/FORMAT/TextFile.h>
@@ -921,6 +922,10 @@ protected:
            -post_processing_tdc', and the adapter's defaults otherwise).
 
     What PercolatorAdapter does around its rescoring is done here as well:
+    - the run is merged into a new one, as PercolatorAdapter merges its input runs
+      (PercolatorFeatureSetHelper::mergeMULTISEProteinIds()): it keeps the search engine and its settings as the
+      search parameters 'SE:' + engine and engine + ':' + setting (ProteinIdentification::getOriginalSearchEngineName(),
+      the mzTab export), with the protein hits sorted by accession;
     - a hit without target/decoy annotation counts as a target; without a decoy nothing is rescored;
     - the feature set of the run (PercolatorInfile::getFeatureSet()) for the charges of the hits; the search's
       'extra_features' are required (OpenNuXL doesn't pass -generic_feature_set);
@@ -949,6 +954,16 @@ protected:
       OPENMS_LOG_WARN << "Percolator: no PSMs." << endl;
       return false;
     }
+    // as PercolatorAdapter reads its input: each run is merged into a new one, which keeps the original search engine
+    // and its settings (SE:OpenNuXL, OpenNuXL:...)
+    vector<ProteinIdentification> merged;
+    for (ProteinIdentification& run : prot_ids)
+    {
+      vector<ProteinIdentification> one;
+      one.push_back(std::move(run));
+      PercolatorFeatureSetHelper::mergeMULTISEProteinIds(merged, one);
+    }
+    prot_ids.swap(merged);
     // the charge range of the charge<N> features, and the target/decoy annotations, as PercolatorAdapter reads its input
     int min_charge = 10;
     int max_charge = 0;
