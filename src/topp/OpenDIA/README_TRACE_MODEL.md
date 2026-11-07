@@ -541,7 +541,7 @@ Outputs and checkpoints come from the last round. With the default of 0, output 
 
 The HeLa gates were declared before each run (`raw-trace-cnn-hela/anchor-seeds-20261107/GATE.md`), with a pass mark of ≥ 10647, which is 90% of the teacher-seeded count.
 Round-0 seeds are the OpenDIACalibrate anchors at q ≤ 0.01 with a containing candidate window (1186), plus equal numbers of decoy windows.
-No OpenSWATH output is read at any point.
+No OpenSWATH output enters training or scoring. The scoring manifest `cal.all_windows.tsv` lists all 198914 candidates; it was written by `prepare_trace_windows.py --teacher`, so its label column holds teacher labels, but crossfit resets every manifest label to -1 and uses only `-seeds`. A teacher-free manifest writer is still needed for a clean pipeline.
 
 | Seeds | Targets at paired q ≤ 0.01 | Folds |
 |---|---|---|
@@ -571,7 +571,7 @@ Small panels fail on the (D+1)/T floor: q ≤ 0.01 needs at least 100 winning ta
 With the default of 0, output is byte-identical. On HeLa, `-panel_targets 1000 -max_panel_targets 40000` escalated to 4000 and calibrated (477 anchors, 97.6% of teacher IDs within tolerance).
 This addresses runs that fail for lack of anchors. It does not address the 500 pg failure mode (26 decoys in the top 100), which has not been retried, by design.
 
-Seeding the CNN from the panel-40000 anchors (3000 pairs) followed by `-ss_iterations 1` gave **13611** targets at paired q ≤ 0.01 (folds 4546/4729/4336), with no OpenSWATH input.
+Seeding the CNN from the panel-40000 anchors (3000 pairs) followed by `-ss_iterations 1` gave **13611** targets at paired q ≤ 0.01 (folds 4546/4729/4336), with no OpenSWATH input to training or scoring (manifest labels are ignored, as above).
 For comparison, panel-10000 anchors gave 11118 and teacher seeds gave 11830 (`raw-trace-cnn-hela/anchor-seeds-p40000-20261107/GATE.md`).
 84.7% of these are in the SVM baseline, against 85.9% for the teacher-seeded run, and the 2445 gained are 73.4% in SVM.
 Candidates and the RT window still come from the panel-10000 calibration. This is the design run, a decoy-count estimate, with no independent run or entrapment check.
