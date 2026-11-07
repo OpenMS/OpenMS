@@ -97,6 +97,46 @@ int main()
           "peak-group area, apex, or unique transition support changed");
   require(rows.find("other") == std::string::npos, "precursor outside isolation window was reported");
 
+  const std::vector<OpenDIA::TransitionQuery> labeled_queries = {
+    {"target", 500.0, 100.0, 9.0, true, 0.0, false, false},
+    {"decoy", 500.0, 100.0, 0.0, false, 0.0, false, true}
+  };
+  std::ostringstream labeled_output;
+  std::ostringstream feature_output;
+  OpenDIA::StreamSearch labeled_search(labeled_queries, OpenDIA::SearchOptions{}, labeled_output, &feature_output);
+  MSSpectrum labeled_first = spectrum(10.0, 500.0, {Peak1D(100.0, 7.0)});
+  MSSpectrum labeled_second = spectrum(50.0, 500.0, {Peak1D(100.0, 5.0)});
+  labeled_search.consumeSpectrum(labeled_first);
+  labeled_search.consumeSpectrum(labeled_second);
+  labeled_search.finish();
+  const std::string labeled_rows = labeled_output.str();
+  require(std::count(labeled_rows.begin(), labeled_rows.end(), '\n') == 4,
+          "optional feature output changed the legacy candidate rows");
+  const std::string feature_rows = feature_output.str();
+  require(std::count(feature_rows.begin(), feature_rows.end(), '\n') == 4,
+          "expected one optional feature row for each completed and active candidate");
+  require(feature_rows.find("target\t500\t0\t10\t10\t10\t0\t0\t7\t1\t1\t1\t1\t0") != std::string::npos,
+          "target feature row did not preserve decoy label and numeric peak features");
+  require(feature_rows.find("decoy\t500\t1\t10\t10\t10\t0\t0\t7\t1\t1\t0\t0\t0") != std::string::npos,
+          "decoy feature row did not preserve its label and explicit missing-RT indicator");
+
+  bool mixed_decoy_labels_rejected = false;
+  try
+  {
+    const std::vector<OpenDIA::TransitionQuery> inconsistent_queries = {
+      {"mixed", 500.0, 100.0, 0.0, false, 0.0, false, false},
+      {"mixed", 500.0, 101.0, 0.0, false, 0.0, false, true}
+    };
+    std::ostringstream inconsistent_output;
+    OpenDIA::StreamSearch inconsistent_search(inconsistent_queries, OpenDIA::SearchOptions{}, inconsistent_output);
+    static_cast<void>(inconsistent_search);
+  }
+  catch (const Exception::InvalidValue&)
+  {
+    mixed_decoy_labels_rejected = true;
+  }
+  require(mixed_decoy_labels_rejected, "transitions with inconsistent target/decoy labels were accepted");
+
   std::vector<OpenDIA::TransitionQuery> window_queries = { {"analyte", 500.0, 100.0, 0.0, false} };
   std::ostringstream window_output;
   OpenDIA::StreamSearch window_search(std::move(window_queries), OpenDIA::SearchOptions{}, window_output);

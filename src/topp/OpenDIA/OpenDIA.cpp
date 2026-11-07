@@ -34,8 +34,10 @@ using namespace OpenMS;
 
   This is a minimal extraction and candidate-generation path, not a complete
   identification workflow. It does not perform library generation, machine
-  learning scoring, FDR estimation, or protein inference. Input spectra are
-  expected to contain precursor isolation metadata.
+  learning scoring, FDR estimation, or protein inference. An optional feature
+  table can preserve candidate-level target/decoy labels and numeric evidence
+  for later rescoring. Input spectra are expected to contain precursor isolation
+  metadata.
 */
 /// @cond TOPPCLASSES
 class TOPPOpenDIA final : public TOPPBase
@@ -53,6 +55,8 @@ protected:
     setValidFormats_("lib", {"pqp"});
     registerOutputFile_("out", "<file>", "", "Streamed fragment-group peak table");
     setValidFormats_("out", {"tsv"});
+    registerOutputFile_("features_out", "<file>", "", "Optional candidate-level numeric feature table for rescoring", false);
+    setValidFormats_("features_out", {"tsv"});
     registerDoubleOption_("mz_tolerance", "<Da>", 0.02, "Absolute fragment m/z matching tolerance in Da", false);
     registerDoubleOption_("im_tolerance", "<1/K0>", 0.03, "Automatic inverse reduced ion-mobility matching tolerance", false);
     registerDoubleOption_("rt_window", "<seconds>", 0.0, "Optional window around library RT; zero disables RT filtering", false);
@@ -65,6 +69,7 @@ protected:
     const std::string input = getStringOption_("in");
     const std::string library = getStringOption_("lib");
     const std::string output_path = getStringOption_("out");
+    const std::string features_path = getStringOption_("features_out");
 
     OpenDIA::SearchOptions options;
     options.fragment_tolerance_da = getDoubleOption_("mz_tolerance");
@@ -90,6 +95,12 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
+    if (!features_path.empty() && features_path == output_path)
+    {
+      writeLogError_("The candidate feature table must use a different path from the peak table.");
+      return ILLEGAL_PARAMETERS;
+    }
+
     std::ofstream output(output_path);
     if (!output)
     {
@@ -98,7 +109,23 @@ protected:
     }
     output << "precursor_id\tprecursor_mz\trt_start\trt_apex\trt_end\tarea_score\ttransition_support\tmatched_scans\n";
 
-    OpenDIA::StreamSearch consumer(std::move(queries), options, output);
+    std::ofstream features;
+    std::ostream* feature_stream = nullptr;
+    if (!features_path.empty())
+    {
+      features.open(features_path);
+      if (!features)
+      {
+        writeLogError_("Could not open candidate feature output file: " + features_path);
+        return CANNOT_WRITE_OUTPUT_FILE;
+      }
+      features << "candidate_row\tprecursor_id\tprecursor_mz\tis_decoy\trt_start\trt_apex\trt_end\t"
+                  "peak_width_seconds\tarea\tapex_intensity\ttransition_support\tmatched_scans\t"
+                  "has_library_rt\tapex_rt_error_seconds\thas_library_im\n";
+      feature_stream = &features;
+    }
+
+    OpenDIA::StreamSearch consumer(std::move(queries), options, output, feature_stream);
     FileHandler reader;
     PeakFileOptions read_options;
     read_options.setMSLevels({2});
@@ -108,7 +135,12 @@ protected:
     writeLogInfo_(consumer.ionMobilityFilteringUsed()
                     ? "Ion-mobility filtering: active"
                     : "Ion-mobility filtering: not available; using m/z-only matching");
-    return output ? EXECUTION_OK : CANNOT_WRITE_OUTPUT_FILE;
+    output.flush();
+    if (feature_stream != nullptr)
+    {
+      features.flush();
+    }
+    return output && (feature_stream == nullptr || features) ? EXECUTION_OK : CANNOT_WRITE_OUTPUT_FILE;
   }
 
 private:
@@ -170,6 +202,7 @@ private:
         query.precursor_im = coordinate_it->second.precursor_im;
         query.has_precursor_im = coordinate_it->second.has_precursor_im;
       }
+      query.is_decoy = transition.getDecoy();
       queries.push_back(std::move(query));
     }
     return queries;

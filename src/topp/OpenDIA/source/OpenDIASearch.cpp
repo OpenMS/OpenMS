@@ -27,9 +27,11 @@
 
 namespace OpenMS::OpenDIA
 {
-  StreamSearch::StreamSearch(std::vector<TransitionQuery> queries, SearchOptions options, std::ostream& output) :
+  StreamSearch::StreamSearch(std::vector<TransitionQuery> queries, SearchOptions options, std::ostream& output,
+                             std::ostream* candidate_features) :
     options_(options),
-    output_(output)
+    output_(output),
+    candidate_features_(candidate_features)
   {
     if (!std::isfinite(options_.fragment_tolerance_da) || !(options_.fragment_tolerance_da > 0.0) ||
         !std::isfinite(options_.ion_mobility_tolerance_vssc) || !(options_.ion_mobility_tolerance_vssc > 0.0) ||
@@ -66,8 +68,15 @@ namespace OpenMS::OpenDIA
         candidate.has_library_rt = query.has_library_rt;
         candidate.precursor_im = query.precursor_im;
         candidate.has_precursor_im = query.has_precursor_im && std::isfinite(query.precursor_im) && query.precursor_im > 0.0;
+        candidate.is_decoy = query.is_decoy;
         has_library_im_candidates_ = has_library_im_candidates_ || candidate.has_precursor_im;
         candidates_.push_back(std::move(candidate));
+      }
+      else if (candidates_[candidate_index].is_decoy != query.is_decoy)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Transitions grouped under one precursor have inconsistent target/decoy labels.",
+                                      candidates_[candidate_index].id);
       }
       queries_.push_back({query.fragment_mz, candidate_index});
     }
@@ -527,7 +536,7 @@ namespace OpenMS::OpenDIA
     }
   }
 
-  void StreamSearch::writeCandidate_(const Candidate& candidate)
+  void StreamSearch::writeCandidate_(std::size_t candidate_index, const Candidate& candidate)
   {
     if (candidate.max_transition_support < options_.min_transitions)
     {
@@ -537,6 +546,9 @@ namespace OpenMS::OpenDIA
     output_ << candidate.id << '\t' << std::setprecision(10) << candidate.precursor_mz << '\t'
             << candidate.start_rt << '\t' << candidate.apex_rt << '\t' << candidate.last_rt << '\t'
             << score << '\t' << candidate.max_transition_support << '\t' << candidate.points << '\n';
+    writeCandidateFeatures_(candidate_index, candidate.start_rt, candidate.apex_rt, candidate.last_rt,
+                            candidate.area, candidate.apex_intensity, candidate.points,
+                            candidate.max_transition_support);
   }
 
   void StreamSearch::writeCandidate_(const CompletedCandidate& completed)
@@ -550,6 +562,28 @@ namespace OpenMS::OpenDIA
     output_ << candidate.id << '\t' << std::setprecision(10) << candidate.precursor_mz << '\t'
             << completed.start_rt << '\t' << completed.apex_rt << '\t' << completed.last_rt << '\t'
             << score << '\t' << completed.transition_support << '\t' << completed.points << '\n';
+    writeCandidateFeatures_(completed.candidate_index, completed.start_rt, completed.apex_rt, completed.last_rt,
+                            completed.area, completed.apex_intensity, completed.points,
+                            completed.transition_support);
+  }
+
+  void StreamSearch::writeCandidateFeatures_(std::size_t candidate_index, double start_rt, double apex_rt,
+                                             double end_rt, double area, double apex_intensity,
+                                             std::size_t points, std::size_t transition_support)
+  {
+    if (candidate_features_ == nullptr)
+    {
+      return;
+    }
+    const Candidate& candidate = candidates_[candidate_index];
+    const double apex_rt_error = candidate.has_library_rt ? apex_rt - candidate.library_rt : 0.0;
+    *candidate_features_ << std::setprecision(17) << candidate_feature_row_++ << '\t' << candidate.id << '\t'
+                         << candidate.precursor_mz << '\t' << (candidate.is_decoy ? 1 : 0) << '\t'
+                         << start_rt << '\t' << apex_rt << '\t' << end_rt << '\t'
+                         << end_rt - start_rt << '\t' << area << '\t' << apex_intensity << '\t'
+                         << transition_support << '\t' << points << '\t'
+                         << (candidate.has_library_rt ? 1 : 0) << '\t' << apex_rt_error << '\t'
+                         << (candidate.has_precursor_im ? 1 : 0) << '\n';
   }
 
   void StreamSearch::finish()
@@ -559,11 +593,12 @@ namespace OpenMS::OpenDIA
       return;
     }
     flushBatch_();
-    for (const Candidate& candidate : candidates_)
+    for (std::size_t candidate_index = 0; candidate_index < candidates_.size(); ++candidate_index)
     {
+      const Candidate& candidate = candidates_[candidate_index];
       if (candidate.active)
       {
-        writeCandidate_(candidate);
+        writeCandidate_(candidate_index, candidate);
       }
     }
     finished_ = true;

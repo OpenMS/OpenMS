@@ -32,6 +32,7 @@ namespace OpenMS::OpenDIA
     /// Library precursor mobility in inverse reduced mobility (1/K0).
     double precursor_im = 0.0;
     bool has_precursor_im = false;
+    bool is_decoy = false;
   };
 
   struct SearchOptions
@@ -53,7 +54,8 @@ namespace OpenMS::OpenDIA
   class StreamSearch final : public Interfaces::IMSDataConsumer
   {
   public:
-    StreamSearch(std::vector<TransitionQuery> queries, SearchOptions options, std::ostream& output);
+    StreamSearch(std::vector<TransitionQuery> queries, SearchOptions options, std::ostream& output,
+                 std::ostream* candidate_features = nullptr);
 
     void consumeSpectrum(MSSpectrum& spectrum) override;
     void consumeChromatogram(MSChromatogram&) override;
@@ -75,6 +77,7 @@ namespace OpenMS::OpenDIA
       bool has_library_rt = false;
       double precursor_im = 0.0;
       bool has_precursor_im = false;
+      bool is_decoy = false;
       bool active = false;
       double start_rt = 0.0;
       double apex_rt = 0.0;
@@ -146,13 +149,18 @@ namespace OpenMS::OpenDIA
     void updateCandidate_(std::size_t candidate, double rt, double intensity, std::size_t transition_support,
                           std::size_t cell_order, std::size_t query_order,
                           std::vector<CompletedCandidate>& completed);
-    void writeCandidate_(const Candidate& candidate);
+    void writeCandidate_(std::size_t candidate_index, const Candidate& candidate);
     void writeCandidate_(const CompletedCandidate& candidate);
+    void writeCandidateFeatures_(std::size_t candidate_index, double start_rt, double apex_rt, double end_rt,
+                                double area, double apex_intensity, std::size_t points,
+                                std::size_t transition_support);
     bool queryMatches_(const Query& query, double rt, double peak_im, bool has_peak_im,
                        const std::vector<std::pair<double, double>>& isolation_windows) const;
 
     SearchOptions options_;
     std::ostream& output_;
+    std::ostream* candidate_features_ = nullptr;
+    std::size_t candidate_feature_row_ = 0;
     std::vector<Candidate> candidates_;
     std::vector<Query> queries_;
     std::vector<std::size_t> candidate_query_offsets_;

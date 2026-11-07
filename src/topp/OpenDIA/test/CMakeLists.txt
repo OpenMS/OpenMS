@@ -17,4 +17,11 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML" A
       -lib ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
       -out ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_streaming_smoke.tsv
       -min_transitions 1)
+  add_test(NAME OpenDIA_feature_table_smoke
+    COMMAND $<TARGET_FILE:OpenDIA>
+      -in ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML
+      -lib ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
+      -out ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_feature_table_smoke.tsv
+      -features_out ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_feature_table_smoke.features.tsv
+      -min_transitions 1)
 endif()
