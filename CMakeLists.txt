@@ -758,6 +758,9 @@ if(WITH_ONNX AND NOT OPENMS_USE_INSTALLED_LIBRARY)
 endif()
 
 
+## WITH_MIMALLOC (Windows, MSVC): the TOPP tools allocate through mimalloc; defines openms_link_mimalloc().
+include(cmake/mimalloc.cmake)
+
 #------------------------------------------------------------------------------
 # The actual OpenMS code (headers and source files)
 #------------------------------------------------------------------------------

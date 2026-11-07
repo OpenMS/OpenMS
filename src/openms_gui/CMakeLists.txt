@@ -110,6 +110,7 @@ endforeach()
 set(GUI_TOPP_TOOLS ExecutePipeline ImageCreator)
 foreach(_gui_topp_tool ${GUI_TOPP_TOOLS})
   openms_topp_tool(${_gui_topp_tool} "Misc")
+  openms_link_mimalloc(${_gui_topp_tool}) # WITH_MIMALLOC on Windows x64, otherwise a no-op
 endforeach()
 
 # Make the TOPP collection target depend on GUI TOPP tools
