@@ -248,3 +248,28 @@ n, not truth labels or an identification result. More rows per precursor also
 gives the downstream best-window selection more chances to find a decoy max, so
 the CNN must be re-evaluated (new seeds, traces and crossfit) before any change
 in accepted precursors is claimed.
+
+#### Re-evaluation on n = 5 candidates
+
+The unchanged seed recipe, which reproduces the original seed and scoring
+manifests byte-exactly on `n = 1`, was applied to the `n = 5` candidates: 3000
+positive seeds, 3000 decoys, 988075 scoring windows. The crossfit protocol was
+frozen (seed 42, 3 folds, 40 epochs, patience 6, batch 32, same ratio), with only
+`-max_tensor_gib 8` added. The independent audit (family roles, PQP parents,
+winner selection, exact q-values, OSW identities) passed.
+
+| Native CNN crossfit | n = 1 | n = 5 |
+|---|---:|---:|
+| Target precursors at experimental q <= 0.01 | 4535 | 6262 |
+| Per fold | 1656 / 1566 / 1313 | 2101 / 2196 / 1965 |
+| Overlap with SVM / XGBoost IDs | 3959 / 3942 | 5611 / 5587 |
+| CNN-only vs SVM / XGBoost (unvalidated) | 576 / 593 | 651 / 675 |
+| SVM IDs whose CNN-selected apex is in baseline bounds (any q) | 6240 | 12060 |
+| Wall time (s) / peak RSS (KiB) | 115.6 / 2549020 | 377.9 / 7090904 |
+
+Accepted targets went up 38%, but this is still well below the 19132 (SVM) and
+19725 (XGBoost) baseline IDs. The bottleneck has moved: the CNN now selects an
+in-bound apex for 12060 baseline IDs but accepts only 5611 of them at 1%.
+Separation between targets and the best-of-more-windows decoys is now the
+limiting factor, not proposal coverage. n was chosen on this acquisition, so
+this is still not independent evidence.
