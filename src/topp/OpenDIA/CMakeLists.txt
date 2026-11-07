@@ -27,6 +27,11 @@ add_library(OpenDIA_impl STATIC
   include/OpenDIACalibration.h)
 target_include_directories(OpenDIA_impl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(OpenDIA_impl PUBLIC OpenMS::OpenMS_CLI)
+# OpenDIACalibration reads its JSON with nlohmann::json, a PRIVATE dependency of libOpenMS.
+if(NOT TARGET nlohmann_json::nlohmann_json)
+  find_package(nlohmann_json CONFIG REQUIRED)
+endif()
+target_link_libraries(OpenDIA_impl PRIVATE nlohmann_json::nlohmann_json)
 if(COMMAND openms_add_library_compiler_flags)
   openms_add_library_compiler_flags(OpenDIA_impl)
 endif()

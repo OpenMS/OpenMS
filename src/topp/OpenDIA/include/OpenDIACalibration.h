@@ -205,4 +205,17 @@ namespace OpenMS::OpenDIA
 
   /// Write anchors as TSV to @p out.
   void writeCalibrationAnchors(const CalibrationResult& result, std::ostream& out);
+
+  /** @brief RT part of a calibration JSON written by writeCalibrationJSON(). */
+  struct CalibrationRT
+  {
+    RTMap map; ///< Library RT to run RT (s).
+    double tolerance_s = 0.0; ///< Half width of the RT window.
+  };
+
+  /**
+    @brief Read the RT map and tolerance from a calibration JSON file.
+    @throws std::invalid_argument If the file is missing, not version 1, or the map or tolerance is invalid.
+  */
+  CalibrationRT readCalibrationRT(const std::string& path);
 }

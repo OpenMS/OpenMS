@@ -10,8 +10,11 @@
 
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 
+#include <nlohmann/json.hpp>
+
 #include <algorithm>
 #include <cmath>
+#include <fstream>
 #include <iomanip>
 #include <limits>
 #include <map>
@@ -1124,5 +1127,38 @@ namespace OpenMS::OpenDIA
       out << a.precursor_id << '\t' << a.library_rt << '\t' << a.run_rt << '\t' << a.library_im << '\t' << a.observed_im << '\t'
           << a.correlation << '\t' << a.cosine << '\t' << a.fragments << '\t' << a.q_value << '\t' << a.used << '\n';
     }
+  }
+
+  CalibrationRT readCalibrationRT(const std::string& path)
+  {
+    std::ifstream in(path);
+    if (!in)
+    {
+      throw std::invalid_argument("Cannot read calibration file " + path);
+    }
+    const nlohmann::json json = nlohmann::json::parse(in);
+    if (json.at("version").get<int>() != 1)
+    {
+      throw std::invalid_argument("Unsupported calibration file version in " + path);
+    }
+    const auto& rt = json.at("rt");
+    CalibrationRT result;
+    result.map.library_rt = rt.at("knots_library_rt").get<std::vector<double>>();
+    result.map.run_rt = rt.at("knots_run_rt_s").get<std::vector<double>>();
+    result.map.sigma = rt.at("sigma_s").get<double>();
+    result.map.anchors = rt.at("anchors_used").get<std::size_t>();
+    result.tolerance_s = rt.at("tolerance_half_width_s").get<double>();
+    const auto& x = result.map.library_rt;
+    const auto& y = result.map.run_rt;
+    bool valid = x.size() >= 2 && x.size() == y.size() && std::isfinite(result.tolerance_s) && result.tolerance_s > 0.0;
+    for (std::size_t i = 0; valid && i < x.size(); ++i)
+    {
+      valid = std::isfinite(x[i]) && std::isfinite(y[i]) && (i == 0 || x[i] >= x[i - 1]);
+    }
+    if (!valid)
+    {
+      throw std::invalid_argument("Calibration file " + path + " has an invalid RT map or tolerance");
+    }
+    return result;
   }
 }

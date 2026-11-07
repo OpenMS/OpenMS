@@ -6,6 +6,7 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
+#include "OpenDIACalibration.h"
 #include "OpenDIACNN.h"
 #include "OpenDIACNNQValues.h"
 #include "OpenDIACNNRTWindow.h"
@@ -23,6 +24,8 @@
 #include <iomanip>
 #include <limits>
 #include <map>
+#include <optional>
+#include <set>
 #include <stdexcept>
 #include <utility>
 
@@ -78,6 +81,8 @@ namespace OpenMS
       setMinFloat_("target_decoy_ratio", 0.0);
       registerFlag_("paired_tdc", "Crossfit only, experimental: paired target-decoy competition. A decoy precursor TRAML_ID 'DECOY_<X>' competes with target <X>; q=(D+1)/T per fold, so target_decoy_ratio must stay 1");
       registerFlag_("rt_window_calibration", "Crossfit only, experimental: fit a library-RT to run-RT map per fold from the other folds' top 500 target precursors by CNN score (no teacher IDs) and keep only windows within max(4 sigma, 30 s) of the map before precursor q-values");
+      registerInputFile_("rt_calibration", "<file>", "", "Crossfit only, experimental: OpenDIACalibrate JSON (identification-free, CNN-independent). Keep only windows whose apex lies within the calibrated RT tolerance of the calibrated map before precursor q-values", false);
+      setValidFormats_("rt_calibration", {"json"});
     }
 
     ExitCodes main_(int, const char**) override
@@ -154,6 +159,15 @@ namespace OpenMS
         {
           throw std::invalid_argument("rt_window_calibration requires crossfit mode.");
         }
+        const std::string rt_calibration_path = getStringOption_("rt_calibration");
+        if (!rt_calibration_path.empty() && (!crossfit || rt_window_calibration))
+        {
+          throw std::invalid_argument("rt_calibration requires crossfit mode and excludes rt_window_calibration.");
+        }
+        // Read before extraction so an invalid file fails before any expensive work.
+        std::optional<OpenDIA::CalibrationRT> rt_calibration;
+        if (!rt_calibration_path.empty()) { rt_calibration = OpenDIA::readCalibrationRT(rt_calibration_path); }
+        const bool rt_filter = rt_window_calibration || rt_calibration.has_value();
 
         const auto max_samples = static_cast<std::size_t>(getIntOption_("max_samples"));
         auto windows = OpenDIA::readTraceWindows(getStringOption_("windows"), max_samples);
@@ -280,7 +294,7 @@ namespace OpenMS
         // Finish validation/statistics before opening the score output.
         // Optional RT window: precursor winners and q-values use only in-window rows.
         std::vector<bool> in_rt_window(crossfit_rows.size(), true);
-        if (rt_window_calibration)
+        if (rt_filter)
         {
           std::map<std::string, double> library_rts;
           for (const auto& compound : library.getCompounds()) { library_rts[compound.id] = compound.rt; }
@@ -290,13 +304,26 @@ namespace OpenMS
             const auto found = library_rts.find(crossfit_rows[i].precursor_id);
             if (found == library_rts.end() || !std::isfinite(found->second))
             {
-              throw std::invalid_argument("rt_window_calibration needs a finite library RT for precursor " + crossfit_rows[i].precursor_id);
+              throw std::invalid_argument("The RT window needs a finite library RT for precursor " + crossfit_rows[i].precursor_id);
             }
             apex_rt.push_back(collector.window(i).apex_rt);
             library_rt.push_back(found->second);
           }
+          if (rt_calibration)
+          {
+            std::set<std::string> precursors, kept;
+            for (std::size_t i = 0; i < crossfit_rows.size(); ++i)
+            {
+              in_rt_window[i] = std::abs(apex_rt[i] - rt_calibration->map(library_rt[i])) <= rt_calibration->tolerance_s;
+              precursors.insert(crossfit_rows[i].precursor_id);
+              if (in_rt_window[i]) { kept.insert(crossfit_rows[i].precursor_id); }
+            }
+            writeLogInfo_("Experimental identification-free RT calibration: anchors=" + std::to_string(rt_calibration->map.anchors) +
+                          " sigma_s=" + std::to_string(rt_calibration->map.sigma) + " half_window_s=" + std::to_string(rt_calibration->tolerance_s) +
+                          " precursors_in_window=" + std::to_string(kept.size()) + "/" + std::to_string(precursors.size()));
+          }
           std::vector<OpenDIA::RTWindowFold> report;
-          in_rt_window = OpenDIA::crossfitRTWindowMask(crossfit_rows, apex_rt, library_rt, report);
+          if (rt_window_calibration) { in_rt_window = OpenDIA::crossfitRTWindowMask(crossfit_rows, apex_rt, library_rt, report); }
           for (const auto& fold : report)
           {
             writeLogInfo_("Experimental RT window fold=" + std::to_string(fold.fold) + " anchors=" + std::to_string(fold.map.anchors) +
@@ -323,7 +350,7 @@ namespace OpenMS
         if (crossfit)
         {
           scores << "sample_id\tprecursor_id\tgroup_id\tis_decoy\tfold\tlogit\tprecursor_best\tq_value"
-                 << (rt_window_calibration ? "\tin_rt_window\n" : "\n") << std::setprecision(std::numeric_limits<double>::max_digits10);
+                 << (rt_filter ? "\tin_rt_window\n" : "\n") << std::setprecision(std::numeric_limits<double>::max_digits10);
           std::size_t targets_at_one_percent = 0;
           for (std::size_t i = 0; i < evaluated.size(); ++i)
           {
@@ -332,7 +359,7 @@ namespace OpenMS
                    << row.input.is_decoy << '\t' << row.input.fold << '\t' << row.input.score << '\t' << row.precursor_best << '\t';
             if (row.precursor_best) { scores << row.q_value; }
             else { scores << "NA"; }
-            if (rt_window_calibration) { scores << '\t' << in_rt_window[i]; }
+            if (rt_filter) { scores << '\t' << in_rt_window[i]; }
             scores << '\n';
             targets_at_one_percent += row.precursor_best && !row.input.is_decoy && row.q_value <= 0.01;
           }

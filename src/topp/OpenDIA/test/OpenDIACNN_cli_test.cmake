@@ -77,3 +77,21 @@ execute_process(COMMAND "${BINARY}" -mode train -rt_window_calibration -in "${WO
 if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "rt_window_calibration requires crossfit" OR EXISTS "${WORK}/scores.tsv")
   message(FATAL_ERROR "rt_window_calibration outside crossfit was not rejected: ${status}\n${output}\n${error}")
 endif()
+
+# The identification-free calibration file is crossfit-only, excludes the CNN-anchor window, and an invalid
+# file fails before extraction.
+file(WRITE "${WORK}/calibration.json" "{\"version\": 1, \"rt\": {\"knots_library_rt\": [0], \"knots_run_rt_s\": [10], \"sigma_s\": 1, \"anchors_used\": 20, \"tolerance_half_width_s\": 4}}\n")
+foreach(arguments IN ITEMS "-mode;train;-model;${WORK}/cal.pt" "-mode;crossfit;-seeds;${WORK}/seeds.tsv;-model;${WORK}/cal;-rt_window_calibration")
+  execute_process(COMMAND "${BINARY}" ${arguments} -rt_calibration "${WORK}/calibration.json" -in "${WORK}/input.d"
+    -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+    RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+  if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "rt_calibration requires crossfit" OR EXISTS "${WORK}/scores.tsv")
+    message(FATAL_ERROR "rt_calibration misuse was not rejected before extraction: ${arguments}\n${output}\n${error}")
+  endif()
+endforeach()
+execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/cal" -rt_calibration "${WORK}/calibration.json"
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "invalid RT map" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "An invalid calibration file was not rejected before extraction: ${status}\n${output}\n${error}")
+endif()
