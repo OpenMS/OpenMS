@@ -36,8 +36,9 @@ using namespace OpenMS;
   This is a minimal extraction and candidate-generation path, not a complete
   identification workflow. It does not perform library generation, machine
   learning scoring, FDR estimation, or protein inference. An optional feature
-  table can preserve candidate-level target/decoy labels and numeric evidence
-  for the separate experimental OpenDIARerank tool. Input spectra are expected
+  table can preserve candidate-level target/decoy labels and numeric evidence,
+  including measured mobility fit when both sides provide it, for the separate
+  experimental OpenDIARerank tool. Input spectra are expected
   to contain precursor isolation metadata.
 */
 /// @cond TOPPCLASSES
@@ -134,7 +135,8 @@ protected:
       }
       features << "candidate_row\tprecursor_id\tprecursor_mz\tis_decoy\trt_start\trt_apex\trt_end\t"
                   "peak_width_seconds\tarea\tapex_intensity\ttransition_support\tmatched_scans\t"
-                  "has_library_rt\tapex_rt_error_seconds\thas_library_im\n";
+                  "has_library_rt\tapex_rt_error_seconds\thas_library_im\t"
+                  "has_im_match_evidence\tmean_abs_im_error_vssc\n";
       feature_stream = &features;
     }
 

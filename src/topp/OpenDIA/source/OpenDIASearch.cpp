@@ -118,7 +118,9 @@ namespace OpenMS::OpenDIA
     batch_cells_.reserve(MAX_BATCH_CELLS);
     grid_points_.reserve(65536);
     candidate_scan_intensity_.resize(candidates_.size());
+    candidate_scan_mobility_error_sum_.resize(candidates_.size());
     candidate_scan_support_.resize(candidates_.size());
+    candidate_scan_mobility_match_count_.resize(candidates_.size());
     candidate_generation_.resize(candidates_.size());
     candidate_first_match_order_.resize(candidates_.size());
   }
@@ -400,6 +402,8 @@ namespace OpenMS::OpenDIA
           }
 
           double intensity = 0.0;
+          double mobility_error = 0.0;
+          bool has_mobility_evidence = false;
           bool matched = false;
           for (auto point = point_cursor; point != point_end && point->mz <= high_mz; ++point)
           {
@@ -409,7 +413,13 @@ namespace OpenMS::OpenDIA
             {
               continue;
             }
-            intensity = matched ? std::max(intensity, point->intensity) : point->intensity;
+            if (!matched || point->intensity > intensity)
+            {
+              intensity = point->intensity;
+              const Candidate& candidate = candidates_[query.candidate];
+              has_mobility_evidence = candidate.has_precursor_im && has_peak_im && std::isfinite(peak_im);
+              mobility_error = has_mobility_evidence ? std::abs(peak_im - candidate.precursor_im) : 0.0;
+            }
             matched = true;
           }
           if (!matched)
@@ -422,18 +432,27 @@ namespace OpenMS::OpenDIA
           {
             candidate_generation_[candidate_index] = cell_generation;
             candidate_scan_intensity_[candidate_index] = 0.0;
+            candidate_scan_mobility_error_sum_[candidate_index] = 0.0;
             candidate_scan_support_[candidate_index] = 0;
+            candidate_scan_mobility_match_count_[candidate_index] = 0;
             candidate_first_match_order_[candidate_index] = lane_query.order;
             touched.push_back(candidate_index);
           }
           candidate_scan_intensity_[candidate_index] += intensity;
           ++candidate_scan_support_[candidate_index];
+          if (has_mobility_evidence)
+          {
+            candidate_scan_mobility_error_sum_[candidate_index] += mobility_error;
+            ++candidate_scan_mobility_match_count_[candidate_index];
+          }
         }
 
         for (const std::size_t candidate_index : touched)
         {
           updateCandidate_(candidate_index, cell.rt, candidate_scan_intensity_[candidate_index],
-                           candidate_scan_support_[candidate_index], cell_order,
+                           candidate_scan_support_[candidate_index],
+                           candidate_scan_mobility_error_sum_[candidate_index],
+                           candidate_scan_mobility_match_count_[candidate_index], cell_order,
                            candidate_first_match_order_[candidate_index], completed);
         }
       }
@@ -501,7 +520,8 @@ namespace OpenMS::OpenDIA
   }
 
   void StreamSearch::updateCandidate_(std::size_t candidate_index, double rt, double intensity,
-                                      std::size_t transition_support, std::size_t cell_order,
+                                      std::size_t transition_support, double mobility_error_sum,
+                                      std::size_t mobility_match_count, std::size_t cell_order,
                                       std::size_t query_order, std::vector<CompletedCandidate>& completed)
   {
     Candidate& candidate = candidates_[candidate_index];
@@ -509,7 +529,8 @@ namespace OpenMS::OpenDIA
     {
       completed.push_back({candidate_index, cell_order, query_order, candidate.start_rt, candidate.apex_rt,
                            candidate.last_rt, candidate.area, candidate.apex_intensity, candidate.points,
-                           candidate.max_transition_support});
+                           candidate.max_transition_support, candidate.mobility_error_sum,
+                           candidate.mobility_match_count});
       candidate.active = false;
       candidate.below_peak_scans = 0;
     }
@@ -530,6 +551,8 @@ namespace OpenMS::OpenDIA
       candidate.area = 0.0;
       candidate.points = 1;
       candidate.max_transition_support = transition_support;
+      candidate.mobility_error_sum = mobility_error_sum;
+      candidate.mobility_match_count = mobility_match_count;
       return;
     }
 
@@ -541,7 +564,8 @@ namespace OpenMS::OpenDIA
       {
         completed.push_back({candidate_index, cell_order, query_order, candidate.start_rt, candidate.apex_rt,
                              candidate.last_rt, candidate.area, candidate.apex_intensity, candidate.points,
-                             candidate.max_transition_support});
+                             candidate.max_transition_support, candidate.mobility_error_sum,
+                             candidate.mobility_match_count});
         candidate.active = false;
         candidate.awaiting_peak = true;
         // ponytail: fixed fractional recovery keeps state O(1) per candidate.
@@ -561,6 +585,8 @@ namespace OpenMS::OpenDIA
     candidate.last_intensity = intensity;
     ++candidate.points;
     candidate.max_transition_support = std::max(candidate.max_transition_support, transition_support);
+    candidate.mobility_error_sum += mobility_error_sum;
+    candidate.mobility_match_count += mobility_match_count;
     if (intensity > candidate.apex_intensity)
     {
       candidate.apex_intensity = intensity;
@@ -581,7 +607,8 @@ namespace OpenMS::OpenDIA
             << score << '\t' << candidate.max_transition_support << '\t' << candidate.points << '\n';
     writeCandidateFeatures_(candidate_index, candidate.start_rt, candidate.apex_rt, candidate.last_rt,
                             candidate.area, candidate.apex_intensity, candidate.points,
-                            candidate.max_transition_support);
+                            candidate.max_transition_support, candidate.mobility_error_sum,
+                            candidate.mobility_match_count);
   }
 
   void StreamSearch::writeCandidate_(const CompletedCandidate& completed)
@@ -598,12 +625,14 @@ namespace OpenMS::OpenDIA
             << score << '\t' << completed.transition_support << '\t' << completed.points << '\n';
     writeCandidateFeatures_(completed.candidate_index, completed.start_rt, completed.apex_rt, completed.last_rt,
                             completed.area, completed.apex_intensity, completed.points,
-                            completed.transition_support);
+                            completed.transition_support, completed.mobility_error_sum,
+                            completed.mobility_match_count);
   }
 
   void StreamSearch::writeCandidateFeatures_(std::size_t candidate_index, double start_rt, double apex_rt,
                                              double end_rt, double area, double apex_intensity,
-                                             std::size_t points, std::size_t transition_support)
+                                             std::size_t points, std::size_t transition_support,
+                                             double mobility_error_sum, std::size_t mobility_match_count)
   {
     if (candidate_features_ == nullptr)
     {
@@ -617,7 +646,8 @@ namespace OpenMS::OpenDIA
                          << end_rt - start_rt << '\t' << area << '\t' << apex_intensity << '\t'
                          << transition_support << '\t' << points << '\t'
                          << (candidate.has_library_rt ? 1 : 0) << '\t' << apex_rt_error << '\t'
-                         << (candidate.has_precursor_im ? 1 : 0) << '\n';
+                         << (candidate.has_precursor_im ? 1 : 0) << '\t' << (mobility_match_count > 0 ? 1 : 0) << '\t'
+                         << (mobility_match_count > 0 ? mobility_error_sum / mobility_match_count : 0.0) << '\n';
   }
 
   void StreamSearch::finish()

@@ -161,8 +161,30 @@ int main()
           "expected one optional feature row for each completed and active candidate");
   require(feature_rows.find("target\t500\t0\t10\t10\t10\t0\t0\t7\t1\t1\t1\t1\t0") != std::string::npos,
           "target feature row did not preserve decoy label and numeric peak features");
-  require(feature_rows.find("decoy\t500\t1\t10\t10\t10\t0\t0\t7\t1\t1\t0\t0\t0") != std::string::npos,
+  require(feature_rows.find("target\t500\t0\t10\t10\t10\t0\t0\t7\t1\t1\t1\t1\t0\t0\t0") != std::string::npos,
+          "candidate without raw mobility reported mobility evidence");
+  require(feature_rows.find("decoy\t500\t1\t10\t10\t10\t0\t0\t7\t1\t1\t0\t0\t0\t0\t0") != std::string::npos,
           "decoy feature row did not preserve its label and explicit missing-RT indicator");
+
+  const std::vector<OpenDIA::TransitionQuery> mobility_query = {
+    {"mobility", 500.0, 100.0, 0.0, false, 0.8, true, false}
+  };
+  std::ostringstream mobility_output;
+  std::ostringstream mobility_features;
+  OpenDIA::StreamSearch mobility_search(mobility_query, OpenDIA::SearchOptions{}, mobility_output,
+                                         &mobility_features);
+  MSSpectrum mobility_first = spectrumWithIM(1.0, 500.0, {Peak1D(100.0, 10.0)}, {0.79f});
+  MSSpectrum mobility_second = spectrumWithIM(2.0, 500.0, {Peak1D(100.0, 20.0)}, {0.82f});
+  mobility_search.consumeSpectrum(mobility_first);
+  mobility_search.consumeSpectrum(mobility_second);
+  mobility_search.finish();
+  const std::string mobility_row = mobility_features.str();
+  const std::size_t mobility_last_tab = mobility_row.rfind('\t');
+  const std::size_t mobility_flag_tab = mobility_row.rfind('\t', mobility_last_tab - 1);
+  require(mobility_flag_tab != std::string::npos &&
+          mobility_row.substr(mobility_flag_tab + 1, mobility_last_tab - mobility_flag_tab - 1) == "1" &&
+          std::abs(std::stod(mobility_row.substr(mobility_last_tab + 1)) - 0.015) < 1e-6,
+          "mean absolute mobility residual did not summarize accepted fragment matches");
 
   bool mixed_decoy_labels_rejected = false;
   try

@@ -81,10 +81,13 @@ namespace OpenMS::OpenDIA
       if (!std::isfinite(candidate.area) || candidate.area < 0.0 ||
           !std::isfinite(candidate.apex_intensity) || candidate.apex_intensity < 0.0 ||
           !std::isfinite(candidate.peak_width_seconds) || candidate.peak_width_seconds < 0.0 ||
-          !std::isfinite(candidate.apex_rt_error_seconds))
+          !std::isfinite(candidate.apex_rt_error_seconds) ||
+          !std::isfinite(candidate.mean_abs_im_error_vssc) || candidate.mean_abs_im_error_vssc < 0.0 ||
+          (!candidate.has_im_match_evidence && candidate.mean_abs_im_error_vssc != 0.0))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Area, apex intensity, and peak width must be finite and non-negative; RT error must be finite.",
+                                      "Area, apex intensity, and peak width must be finite and non-negative; "
+                                      "RT error and mobility residual must be finite and valid.",
                                       candidate.precursor_id);
       }
     }
@@ -108,7 +111,9 @@ namespace OpenMS::OpenDIA
         std::log1p(static_cast<double>(candidate.matched_scans)),
         candidate.has_library_rt ? 1.0 : 0.0,
         candidate.has_library_rt ? candidate.apex_rt_error_seconds : 0.0,
-        candidate.has_library_im ? 1.0 : 0.0
+        candidate.has_library_im ? 1.0 : 0.0,
+        candidate.has_im_match_evidence ? 1.0 : 0.0,
+        candidate.has_im_match_evidence ? candidate.mean_abs_im_error_vssc : 0.0
       };
     }
 
@@ -246,6 +251,14 @@ namespace OpenMS::OpenDIA
                                       "Required candidate feature column is missing: " + name, name);
       }
     }
+    const bool has_im_evidence_column = columns.find("has_im_match_evidence") != columns.end();
+    const bool has_im_error_column = columns.find("mean_abs_im_error_vssc") != columns.end();
+    if (has_im_evidence_column != has_im_error_column)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "Candidate mobility evidence and residual columns must be present together.",
+                                    "mobility feature columns");
+    }
 
     std::vector<CandidateFeatures> candidates;
     while (std::getline(input, line))
@@ -274,6 +287,11 @@ namespace OpenMS::OpenDIA
       candidate.has_library_rt = parseBool_(get("has_library_rt"), "has_library_rt");
       candidate.apex_rt_error_seconds = parseDouble_(get("apex_rt_error_seconds"), "apex_rt_error_seconds");
       candidate.has_library_im = parseBool_(get("has_library_im"), "has_library_im");
+      if (has_im_evidence_column)
+      {
+        candidate.has_im_match_evidence = parseBool_(get("has_im_match_evidence"), "has_im_match_evidence");
+        candidate.mean_abs_im_error_vssc = parseDouble_(get("mean_abs_im_error_vssc"), "mean_abs_im_error_vssc");
+      }
       validateCandidate_(candidate);
       candidates.push_back(std::move(candidate));
     }
@@ -308,7 +326,7 @@ namespace OpenMS::OpenDIA
     RescoreInput train_input;
     train_input.feature_names = StringList{
       "log_area", "log_apex_intensity", "log_peak_width", "transition_support", "log_matched_scans",
-      "has_library_rt", "apex_rt_error_seconds", "has_library_im"
+      "has_library_rt", "apex_rt_error_seconds", "has_library_im", "has_im_match_evidence", "mean_abs_im_error_vssc"
     };
     train_input.features.reserve(training_best.size());
     train_input.is_decoy.reserve(training_best.size());

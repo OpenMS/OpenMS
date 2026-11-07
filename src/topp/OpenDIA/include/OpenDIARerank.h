@@ -30,6 +30,8 @@ namespace OpenMS::OpenDIA
     bool has_library_rt = false;
     double apex_rt_error_seconds = 0.0;
     bool has_library_im = false;
+    bool has_im_match_evidence = false;
+    double mean_abs_im_error_vssc = 0.0;
   };
 
   struct ScoredCandidate

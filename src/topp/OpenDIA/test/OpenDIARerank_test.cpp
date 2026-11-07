@@ -53,6 +53,10 @@ namespace
           candidate.has_library_rt = i % 4 != 0;
           candidate.apex_rt_error_seconds = candidate.has_library_rt ? noise(rng) * 10.0 : 0.0;
           candidate.has_library_im = i % 3 != 0;
+          candidate.has_im_match_evidence = i % 5 != 0;
+          candidate.mean_abs_im_error_vssc = candidate.has_im_match_evidence
+                                                ? (decoy ? 0.02 : 0.006) + std::abs(noise(rng)) * 0.001
+                                                : 0.0;
           rows.push_back(std::move(candidate));
         }
       }
@@ -74,6 +78,19 @@ int main()
     const auto parsed = readCandidateFeatures(parsed_input);
     require_(parsed.size() == 1 && parsed[0].precursor_id == "assayA" && parsed[0].area == 10.0,
              "candidate feature TSV parser changed column mapping");
+    require_(!parsed[0].has_im_match_evidence && parsed[0].mean_abs_im_error_vssc == 0.0,
+             "legacy candidate feature TSV did not default missing mobility evidence");
+
+    const std::string mobility_table =
+      "candidate_row\tprecursor_id\tprecursor_mz\tis_decoy\trt_start\trt_apex\trt_end\t"
+      "peak_width_seconds\tarea\tapex_intensity\ttransition_support\tmatched_scans\t"
+      "has_library_rt\tapex_rt_error_seconds\thas_library_im\thas_im_match_evidence\tmean_abs_im_error_vssc\n"
+      "0\tassayA\t500\t0\t1\t2\t3\t2\t10\t7\t4\t6\t1\t-0.5\t1\t1\t0.0125\n";
+    std::istringstream mobility_input(mobility_table);
+    const auto mobility_parsed = readCandidateFeatures(mobility_input);
+    require_(mobility_parsed.size() == 1 && mobility_parsed[0].has_im_match_evidence &&
+             std::abs(mobility_parsed[0].mean_abs_im_error_vssc - 0.0125) < 1e-12,
+             "mobility evidence columns were not parsed");
 
     const std::string negative_count_table =
       "candidate_row\tprecursor_id\tprecursor_mz\tis_decoy\trt_start\trt_apex\trt_end\t"

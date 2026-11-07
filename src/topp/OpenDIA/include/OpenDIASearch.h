@@ -93,6 +93,8 @@ namespace OpenMS::OpenDIA
       double area = 0.0;
       std::size_t points = 0;
       std::size_t max_transition_support = 0;
+      double mobility_error_sum = 0.0;
+      std::size_t mobility_match_count = 0;
     };
 
     struct Query
@@ -143,6 +145,8 @@ namespace OpenMS::OpenDIA
       double apex_intensity = 0.0;
       std::size_t points = 0;
       std::size_t transition_support = 0;
+      double mobility_error_sum = 0.0;
+      std::size_t mobility_match_count = 0;
     };
 
     static constexpr std::size_t CANDIDATES_PER_BLOCK = 256;
@@ -153,13 +157,15 @@ namespace OpenMS::OpenDIA
     void prepareLaneQueries_(GridLane& lane);
     void flushBatch_();
     void updateCandidate_(std::size_t candidate, double rt, double intensity, std::size_t transition_support,
+                          double mobility_error_sum, std::size_t mobility_match_count,
                           std::size_t cell_order, std::size_t query_order,
                           std::vector<CompletedCandidate>& completed);
     void writeCandidate_(std::size_t candidate_index, const Candidate& candidate);
     void writeCandidate_(const CompletedCandidate& candidate);
     void writeCandidateFeatures_(std::size_t candidate_index, double start_rt, double apex_rt, double end_rt,
                                 double area, double apex_intensity, std::size_t points,
-                                std::size_t transition_support);
+                                std::size_t transition_support, double mobility_error_sum,
+                                std::size_t mobility_match_count);
     bool queryMatches_(const Query& query, double rt, double peak_im, bool has_peak_im,
                        const std::vector<std::pair<double, double>>& isolation_windows) const;
 
@@ -177,7 +183,9 @@ namespace OpenMS::OpenDIA
     std::vector<GridLane> grid_lanes_;
     std::map<std::vector<std::pair<double, double>>, std::size_t> lane_indices_;
     std::vector<double> candidate_scan_intensity_;
+    std::vector<double> candidate_scan_mobility_error_sum_;
     std::vector<std::size_t> candidate_scan_support_;
+    std::vector<std::size_t> candidate_scan_mobility_match_count_;
     std::vector<std::size_t> candidate_generation_;
     std::vector<std::size_t> candidate_first_match_order_;
     std::size_t generation_ = 0;
