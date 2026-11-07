@@ -461,7 +461,7 @@ The audit compares against same-run OpenSWATH+PyProphet SVM IDs at q ≤ 0.01. T
 **Limits.**
 - Anchor q-values only control the anchor set. They are not an identification FDR.
 - The tolerances are fixed multiples of the anchor spread, and on HeLa that spread was measured on the design run itself.
-- OpenMS m/z and 1/K0 tolerances downstream are still the fixed defaults. Only the RT map is consumed, by `OpenDIACNN -rt_calibration` below.
+- Downstream m/z and 1/K0 tolerances (OpenDIA, OpenDIATraces, OpenDIACNN) are still the fixed defaults, and the calibrated m/z and 1/K0 offsets are not applied yet. Only the RT map is consumed, by `OpenDIACNN -rt_calibration` below.
 
 #### Downstream RT window from the ID-free calibration (`OpenDIACNN -rt_calibration`)
 
@@ -478,5 +478,6 @@ The offline rule was fixed before running (`coverage-20261107/idfree_window_gate
 | ID-free map, calibrated ±8.76 s | **10340** (3355 / 3536 / 3449) | **8875** |
 | ID-free map, max(tolerance, 30 s) | 8991 | 7900 |
 
+The native `OpenDIACNN` crossfit run reproduces this exactly: 10340 targets and 73084 / 138542 precursors in window.
 This is a decoy-count estimate on the run used to design the calibration, not a calibrated FDR.
 There is no independent-run result: the 500 pg calibration failed closed, so there is no map to apply there.
