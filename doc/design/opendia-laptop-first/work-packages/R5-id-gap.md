@@ -38,4 +38,17 @@ Its 1/K0 error is a little larger: median 0.0146 against 0.0126.
 A cross-fitted, decoy-negative logistic model was fitted on the CNN logit plus seven window features the CNN does not see: |RT error|, |1/K0 error|, apex intensity, area, transition support, matched scans and width.
 It gave 14695 targets at paired q ≤ 0.01. The logit-only control gave 11830. That is +2865, so the rule is met.
 Next step: add these features to the native scorer, opt-in and behind a gate.
-Not yet checked: baseline overlap of the gained IDs and an entrapment check. This is a same-run, teacher-seeded diagnostic, not a result.
+
+**Baseline overlap of the rescored IDs** (agreement with OpenSWATH is not truth):
+
+| Set | Targets | In SVM | In neither SVM nor XGBoost |
+|---|---|---|---|
+| CNN only | 11830 | 85.9% | 1524 |
+| CNN + window features | 14695 | 81.6% | 2407 |
+| Gained by the features | 3051 | 63.9% | 943 |
+| Dropped by the features | 186 | 64.0% | 60 |
+
+The gained IDs agree with the baseline less often than the CNN IDs do. That could mean the features are less specific than the decoy count suggests, or it could be real rewrite-only signal.
+An entrapment check is required before any native change is accepted.
+The largest weights are support, |RT error| and area. Decoys have a larger median |RT error| than targets: 4.7 s against 3.1 s.
+This is a same-run, teacher-seeded diagnostic, not a result.
