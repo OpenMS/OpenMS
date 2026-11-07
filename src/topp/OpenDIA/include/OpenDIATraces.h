@@ -62,10 +62,18 @@ namespace OpenMS::OpenDIA
     */
     void store(const std::string& prefix) const;
 
-    /// Raw tensor in sample, fragment, RT, mobility order, exposed for parity tests.
+    /// Raw tensor in sample, fragment, RT, mobility order, also consumed directly by the native CNN.
     const std::vector<float>& intensities() const { return intensities_; }
     /// Whether sample i contains compatible, library-centred mobility measurements.
     bool hasIM(std::size_t i) const { return samples_.at(i).has_im; }
+    /// Candidate identity and explicit seed label, never network inputs.
+    const TraceWindow& window(std::size_t i) const { return samples_.at(i).window; }
+    /// Library decoy status, used only for validating seed labels.
+    bool isDecoy(std::size_t i) const { return samples_.at(i).is_decoy; }
+    /// Unnormalized library fragment intensities in tensor channel order.
+    const std::array<double, FRAGMENTS>& libraryIntensities(std::size_t i) const { return samples_.at(i).library_intensity; }
+    /// Fragment m/z in tensor channel order, with zero denoting padding.
+    const std::array<double, FRAGMENTS>& fragmentMZ(std::size_t i) const { return samples_.at(i).fragment_mz; }
 
   private:
     struct Sample

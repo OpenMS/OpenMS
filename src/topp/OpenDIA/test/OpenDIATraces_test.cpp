@@ -93,6 +93,12 @@ int main(int argc, char** argv)
   auto spectrum = scan(10);
   collector.consumeSpectrum(spectrum);
   require(collector.hasIM(0), "Compatible mobility was not detected.");
+  require(collector.window(0).sample_id == "s0" && collector.window(0).group_id == "peptide_family" &&
+          collector.window(0).label == 1 && !collector.isDecoy(0), "Native metadata bridge changed candidate identity or label.");
+  require(collector.fragmentMZ(0)[0] == 200 && collector.libraryIntensities(0)[0] == 3 &&
+          collector.fragmentMZ(0)[1] == 100 && collector.libraryIntensities(0)[1] == 1 &&
+          collector.fragmentMZ(0)[2] == 0 && collector.libraryIntensities(0)[2] == 0,
+          "Native metadata bridge disagrees with tensor channel ordering or padding.");
   const auto& data = collector.intensities();
   require(data.size() == 6 * 32 * 8, "Tensor dimensions changed.");
   require(std::accumulate(data.begin(), data.begin() + 32 * 8, 0.0f) == 20.0f,

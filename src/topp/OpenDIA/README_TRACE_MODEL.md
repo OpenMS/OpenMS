@@ -1,6 +1,33 @@
 # Local raw trace CNN pilot
 
-This is an offline, CPU-only supervised experiment, not a production identification or FDR pipeline. It emits **logits**, not q-values or calibrated correct-ID probabilities. Only numpy and torch are required. No model or data uploads are performed.
+This is an offline, CPU-only supervised experiment, not a production identification or FDR pipeline. It emits **logits**, not q-values or calibrated correct-ID probabilities. Native C++ training and inference use optional CPU LibTorch, with no Python or NumPy at analysis time. The original Python implementation remains a developer reference. No model or data uploads are performed.
+
+## Native C++ training and scoring
+
+`OpenDIACNN` implements the same 6141-parameter network and preprocessing using LibTorch's native convolution, autograd and Adam. It streams the acquisition through the existing C++ `TraceCollector`, then passes its raw tensor directly to the native model. No `.npy` export, Python subprocess or Python environment is needed for training or scoring. LibTorch is a native runtime dependency, not a dependency-free handwritten neural framework.
+
+Build this experimental companion explicitly using a compatible CPU LibTorch distribution. It is **off by default**. Other OpenDIA executables do not link LibTorch:
+
+```bash
+cmake -S . -B ../OpenMS-build -DOPENDIA_WITH_TORCH=ON -DTorch_DIR=/path/to/libtorch/share/cmake/Torch
+cmake --build ../OpenMS-build --target OpenDIACNN OpenDIACNN_test -j1
+ctest --test-dir ../OpenMS-build -R '^OpenDIACNN_test$' --output-on-failure
+
+../OpenMS-build/bin/OpenDIACNN -mode train -in run.mzML -lib library.pqp -windows seed_windows.tsv -model native.pt -out seed_native_logits.tsv -max_samples 6000 -threads 5
+../OpenMS-build/bin/OpenDIACNN -mode score -in another_run.mzML -lib library.pqp -windows independent_windows.tsv -model native.pt -out independent_logits.tsv -max_samples 300000 -threads 5
+# Diagnostic same-run full scoring must explicitly preserve train-group provenance:
+../OpenMS-build/bin/OpenDIACNN -mode score -in run.mzML -lib library.pqp -windows all_windows.tsv -model native.pt -out all_native_logits.tsv -max_samples 300000 -threads 5 -allow_training_overlap
+```
+
+The window TSV is an explicit input manifest with `sample_id`, `precursor_id`, `group_id`, `label` and `rt_apex`. Use an existing labelled manifest or prepare one separately. Automatic teacher-label generation is not part of this native command. Do not label every target positive. `-mode train` splits related families into train/validation/heldout, fits only labelled training rows, stops using validation loss, restores the best model, and writes a native checkpoint and logits. `-mode score` reads that frozen native checkpoint. Geometry, preprocessing, LibTorch version and family provenance are checked. Checkpoints also record the seed, thread count, epoch cap, patience and batch size. Geometry options default to the export contract below and must match between training and scoring.
+
+Native family assignment uses a versioned, deterministic FNV-1a hash rather than Python's SHA-256 partitioner. Both keep families disjoint, but their particular train/validation/heldout memberships differ. Native and Python training are therefore not expected to produce identical fitted weights. Their checkpoints are separate formats. The developer-only identical-weight parity check loads native parameters into the Python reference:
+
+```bash
+uv run --offline --with torch --with numpy --python 3.12 python src/topp/OpenDIA/test/check_native_trace_parity.py --native-test ../OpenMS-build/src/tests/class_tests/bin/OpenDIACNN_test
+```
+
+Training normalization and inference allocate only tensor batches, not a second full normalized tensor. The collector still stores the raw tensor, subject to its hard **2 GiB** cap, plus O(N) metadata and logits. More than this needs acquisition tiling, not a larger sample limit. No calibrated probabilities, q-values, end-to-end peak boundary learning or unbiased precursor identification counts are claimed.
 
 ## Export contract and labels
 
@@ -24,7 +51,7 @@ Labels are explicitly supplied seed annotations: `1` positive, `0` negative, `-1
 
 Version and dimensions must match, and all tolerances must be finite positive JSON numbers (not strings). The complete geometry is saved in the checkpoint. Scoring requires exact geometry equality, including numeric RT, IM and m/z tolerances. Do not edit a sidecar to conceal incompatible extraction settings.
 
-## Run locally
+## Python reference workflow
 
 From the repository root, first prepare explicit teacher-derived seed windows using the **identical PQP** used by OpenDIA and the scored teacher OSW. `prepare_trace_windows.py` pairs `DECOY_<target TRAML_ID>` with its parent unmodified peptide, grouping charge states/modifications/decoys together. It selects seed-positive targets only inside a rank-one teacher identification's RT bounds at the requested seed threshold. Unconfirmed targets remain unknown. Teacher scores and candidate area can select seed windows, but are never CNN inputs.
 
@@ -82,3 +109,18 @@ The published Evosep diaPASEF HeLa run completed the preparation, raw export, tr
 All 6000 sampled tensors match the full export exactly. Sample/full frozen logits agree within 2.9e-6. Full scores preserve 20390 training-group, 6664 validation-group, 6679 heldout-group and 238059 previously unseen-family window labels. Do not pool these partitions into an identification count. Raw-zero intervention demonstrates input dependence, not a separately trained auxiliary-only baseline.
 
 Positive seeds came from the existing OpenSWATH/PyProphet SVM baseline at q<=0.001, with candidate apices inside teacher peak boundaries. The reported AUC is agreement with these selected seeds versus decoys, not proof of calibrated 1% precursor FDR or superiority to OpenSWATH. The next scientific gate is independent-run or cross-fitted, family-grouped target-decoy competition with an entrapment/truth check before reporting IDs. No such result is claimed here.
+
+### Native C++ HeLa validation
+
+The same 6000-window manifest and raw acquisition completed native training and full scoring with CPU LibTorch 2.12.1 and five threads, without invoking Python. Single-run observations, not a controlled speed comparison:
+
+| Stage | Observation |
+|---|---|
+| Native training | 8.53 seconds model work, 23.82 seconds including acquisition, 20 epochs, peak RSS 843 MiB |
+| Group-disjoint seed evaluation | 1224 heldout windows, seed-versus-decoy AUC 0.9936 |
+| Raw-zero intervention | Heldout AUC 0.4806 with raw inputs zeroed and library/mask unchanged |
+| Native full scoring | 271792 windows, 13.98 seconds model/output work, 44.21 seconds including acquisition, peak RSS 2548980 KiB |
+| Identical-weight parity | Maximum native/Python logit difference 1.92e-6 across all 6000 sampled real tensors |
+| Sample/full parity | Maximum logit difference 2.8e-6, preserving all sample IDs and family partitions |
+
+Full native scores retain 20283 training-family, 6658 validation-family, 6792 heldout-family and 238059 external-family rows. Native family assignments differ from the Python reference, so the AUC difference is not evidence of a better model. All seven focused native/OpenDIA CTests and eleven Python reference tests passed. A separate Torch-disabled OpenDIA build completed the streaming smoke test with byte-identical output. The synthetic identical-weight parity fixture produced exactly matching logits. These checks establish the native port and input dependence, not precursor FDR or identification performance.

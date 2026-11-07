@@ -17,8 +17,21 @@ add_executable(OpenDIATraces_test OpenDIATraces_test.cpp)
 target_link_libraries(OpenDIATraces_test PRIVATE OpenDIA_impl)
 add_test(NAME OpenDIATraces_test COMMAND OpenDIATraces_test ${CMAKE_CURRENT_BINARY_DIR}/OpenDIATraces_test)
 
+if(TARGET OpenDIA_cnn)
+  add_executable(OpenDIACNN_test OpenDIACNN_test.cpp)
+  target_link_libraries(OpenDIACNN_test PRIVATE OpenDIA_cnn)
+  add_test(NAME OpenDIACNN_test COMMAND OpenDIACNN_test)
+endif()
+
 if(EXISTS "${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML" AND
    EXISTS "${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp")
+  if(TARGET OpenDIACNN)
+    add_test(NAME OpenDIACNN_cli_safety
+      COMMAND ${CMAKE_COMMAND} -DBINARY=$<TARGET_FILE:OpenDIACNN>
+        -DLIBRARY=${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
+        -DWORK=${CMAKE_CURRENT_BINARY_DIR}/OpenDIACNN_cli_safety
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/OpenDIACNN_cli_test.cmake)
+  endif()
   add_test(NAME OpenDIA_streaming_smoke
     COMMAND $<TARGET_FILE:OpenDIA>
       -in ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML
