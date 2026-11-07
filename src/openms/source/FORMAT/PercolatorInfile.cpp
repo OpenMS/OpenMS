@@ -72,6 +72,24 @@ namespace OpenMS
     return fs;
   }
 
+  StringList PercolatorInfile::getFeatureSet(const ProteinIdentification::SearchParameters& search_parameters,
+                                             int min_charge, int max_charge)
+  {
+    StringList feature_set = getStandardFeatureSet(min_charge, max_charge);
+    if (search_parameters.metaValueExists("extra_features"))
+    {
+      const StringList extra_features = ListUtils::create<std::string>(search_parameters.getMetaValue("extra_features").toString());
+      feature_set.insert(feature_set.end(), extra_features.begin(), extra_features.end());
+    }
+    else
+    {
+      feature_set.push_back("score");
+    }
+    feature_set.push_back("Peptide");
+    feature_set.push_back("Proteins");
+    return feature_set;
+  }
+
   // uses spectrum_reference, if empty uses spectrum_id, if also empty fall back to using index
   std::string PercolatorInfile::getScanIdentifier(
     const PeptideIdentification& pid, size_t index)
