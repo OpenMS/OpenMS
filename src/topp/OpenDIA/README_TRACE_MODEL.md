@@ -360,3 +360,35 @@ uncorrected paired TDC in every fold. Folds went 2103 / 2309 / 2119 to
 dropped, so the gate failed, and the correction was **not** applied to the
 500 pg run or implemented. HeLa has almost equal target and decoy window counts
 (7.12 / 7.15 per precursor), so this run cannot strongly test the correction.
+
+### Signal-derived RT window (offline feasibility gate)
+
+Diagnosis: the candidate search ran without an RT prior (`-rt_window 0`), and the
+CNN sees only +-15 s of traces, so high-scoring decoys sat far from their
+expected RT (HeLa median 43-55 s from a library-RT fit vs 8 s for targets; 500 pg
+267-286 s vs about 100 s).
+
+Rule fixed before running, after DIATraceExtractor's anchor calibration and
+without teacher IDs: anchors are the top 500 target precursor winners by CNN
+logit in each fold; the map for fold k is fitted only on the other folds'
+anchors (20 equal-count library-RT bins, median per bin, piecewise linear,
+3 rejection rounds at max(3 sigma, 3 s), sigma = 1.4826 MAD). Each precursor
+keeps its best window inside `|apex - map(library RT)| <= max(4 sigma, 30 s)`,
+then paired TDC. Script: `rt_window_gate.py` (benchmark directory).
+
+| Targets at experimental fold-wise q <= 0.01 | Paired | Paired + RT window |
+|---|---:|---:|
+| HeLa folds (sigma 2.6-2.7 s, half window 30 s) | 2103 / 2309 / 2119 | 2946 / 2978 / 2630 |
+| HeLa total, overlap SVM / XGBoost | 6531, 5846 / 5816 | 8554, 7502 / 7434 |
+| 500 pg folds (sigma 50-58 s, half window 198-232 s), applied once | 0 / 110 / 120 | 144 / 173 / 162 |
+| 500 pg total, overlap SVM / XGBoost | 230, 211 / 213 | 479, 440 / 447 |
+
+The HeLa gate passed in every fold. On 500 pg the window helps but stays wide:
+the same piecewise fit on the teacher's own SVM q <= 0.001 IDs gives sigma
+46.8 s (HeLa: 2.4 s), so this library's RTs predict this run poorly and the
+CNN-anchor map is already close to the achievable precision. The CNN anchors
+come from the same out-of-fold scores, so this is an experimental estimate
+with the same teacher caveats. The ID-free v0.13 latent-mixture calibration was
+not used: its own handoff marks it NO-GO for narrowing windows, and on the
+Astral run01 retrospective proxy the anchor ("auto") calibration was closer for
+1018 of 1462 precursors.
