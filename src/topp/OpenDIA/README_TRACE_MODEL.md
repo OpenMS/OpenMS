@@ -273,3 +273,38 @@ in-bound apex for 12060 baseline IDs but accepts only 5611 of them at 1%.
 Separation between targets and the best-of-more-windows decoys is now the
 limiting factor, not proposal coverage. n was chosen on this acquisition, so
 this is still not independent evidence.
+
+### Independent acquisition (500 pg HeLa diaPASEF)
+
+Nothing was tuned on this run: n = 5, separation 10 s, the seed recipe and the
+crossfit settings are the HeLa ones. Inputs were the
+`HeLa02DDM_500pg_5x3_PyDIA` mzML and the IP2 Bruker Human library, subsampled
+by a rule fixed before any result (keep peptide family F iff
+`fnv1a64("7\0" + F) % 5 == 0`, decoys follow parents): 74261 targets, 58571
+decoys. The original 7176-target sampled library was dropped as too small
+(SVM 341 / XGBoost 287 IDs at 1%, none at q <= 0.001 for seeds). This mzML stores
+1/K0 in a unitless `Ion Mobility` array, so all OpenDIA tools ran with
+`-im_array_as_vssc`. Without it, they silently fall back to m/z-only matching.
+OpenSwath reads the array either way. The teacher is still same-run.
+
+| Result | Value |
+|---|---:|
+| OpenSwath + PyProphet SVM / XGBoost, targets at q <= 0.01 | 3008 / 3514 |
+| OpenDIA n = 5 candidate rows, mean windows per precursor | 2447410, 23.9 (HeLa: 7.1) |
+| SVM IDs with a candidate apex in bounds / CNN-selected apex in bounds | 2820 / 2587 |
+| Seeds (SVM q <= 0.001), heldout seed-vs-decoy AUC per fold | 1525 + 1525, 0.997 / 0.992 / 0.993 |
+| **Native CNN targets at experimental fold-wise q <= 0.01** | **0** |
+| Same at q <= 0.02 / 0.05 / 0.1 | 383 / 656 / 1136 |
+| OpenSwath / CNN crossfit wall time, peak RSS | 19.6 min, 19.9 GB / 9.6 min, 17.0 GB |
+
+Proposal coverage carried over (94% of SVM IDs have an in-bound apex), and the
+CNN still separates seeds from decoys. It fails the 1% gate. Fold 0's top 25
+precursors contain no decoys (24 are SVM IDs), but with fold sizes of about
+19000 targets and ratio 1.27, the conservative `(D + 1) * ratio / T` estimate
+needs about 127 decoy-free targets before any q reaches 0.01. Decoys enter by
+rank 100. With about 24 windows per precursor, best-of-windows decoy maxima are
+much higher than on HeLa. The estimator also differs from PyProphet's, so 0 vs
+3008 is an upper bound on the gap, not a calibrated comparison. Fixing this
+without tuning on the evaluation run would mean making decoy and target
+best-of-window selection comparable (paired target-decoy competition or
+per-precursor window normalization) and validating that on HeLa first.
