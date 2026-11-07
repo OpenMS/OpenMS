@@ -27,6 +27,7 @@ Each run was a single variable change against the 11830 teacher-seeded crossfit.
 | Round 2: self-training on round-1 q ≤ 0.001 | 2251 | 7093 (fail) | n/a |
 | **Round 2b: PyProphet-style, round-1 q ≤ 0.01 targets vs best decoy windows** | 6000 | **11332 (pass)** | 86.6% |
 | **Native `OpenDIACNN -ss_iterations 1`** (`6d02e94ac6`) | 6000 | **11118 (pass)** | n/a |
+| **Panel-40000 anchors (3000 pairs) + `-ss_iterations 1`** (`da5b13983b`) | 3000 then 6000 | **13611 (pass)** | 84.7% |
 
 Crossfit took 1.5 min at 2.0 GB.
 
@@ -39,6 +40,6 @@ Interpretation:
 - Only this design run was used; an independent run is open.
 
 Next, each with its own gate:
-- More anchors when the calibration finds few (500 pg).
+- Entrapment check for the teacher-free path; 13611 exceeds the teacher-seeded count, which needs independent evidence.
 - Move anchor training into OpenDIACalibrate.
 - Cross-run global model (R-WP4).

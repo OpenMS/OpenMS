@@ -26,3 +26,17 @@
 1. Recover a calibration on low-input runs without tuning on an evaluation run. This needs a new held-out acquisition.
 2. A v0.13 parity fixture for stage 2.
 3. MS1 calibration, which has not been started.
+
+## Panel scaling and escalation, 7 November 2026 (HeLa)
+
+Anchors grow linearly with the panel, at about 0.13 per target. Panel 2500 gives 316, 10000 gives 1278 and 40000 gives 5479, and 95.8 to 96.9% of teacher IDs fall within the RT tolerance.
+Panels of 500 and 1000 fail on the (D+1)/T floor, since q ≤ 0.01 needs at least 100 winning targets.
+Memory grows by about 75 KB per pair: 4.0 GB and 57 s at 40000.
+
+`-max_panel_targets <n>` (`da5b13983b`, default off, byte-identical) retries a failed calibration with a 4× panel.
+The gate passed: 1000 → 4000, 477 anchors, 97.6% coverage.
+This fixes failures caused by too few anchors. It does not fix weak target-decoy separation (500 pg: 26 decoys in the top 100), which has not been retried, by design.
+A full-library panel needs streaming or a two-pass panel to bound memory.
+
+The stage-2 EM already runs over every candidate peak of every panel target, but it is seeded by the stage-1 map.
+A seed-free EM over many local starts would remove the stage-1 dependency. It is not yet designed, and needs a low-signal design run that is not 500 pg.
