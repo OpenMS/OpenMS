@@ -24,3 +24,38 @@ foreach(model IN ITEMS "${WORK}/library.pqp" "${WORK}/input.d/analysis.tdf")
     message(FATAL_ERROR "Native CLI changed input or opened score output before validation")
   endif()
 endforeach()
+
+# Crossfit errors must be detected before touching raw data or score outputs.
+file(WRITE "${WORK}/all.tsv" "sample_id\tprecursor_id\tgroup_id\tlabel\trt_apex\none\t1\tfamily\t-1\t10\n")
+file(WRITE "${WORK}/seeds.tsv" "sample_id\tprecursor_id\tgroup_id\tlabel\trt_apex\none\t1\tfamily\t1\t11\n")
+execute_process(COMMAND "${BINARY}" -mode crossfit -in "${WORK}/input.d"
+  -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -seeds "${WORK}/seeds.tsv"
+  -model "${WORK}/crossfit" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "RT coordinates must match exactly" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "Crossfit did not reject mismatched seed geometry before extraction: ${status}\n${output}\n${error}")
+endif()
+execute_process(COMMAND "${BINARY}" -mode crossfit -in "${WORK}/input.d"
+  -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv"
+  -model "${WORK}/crossfit" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "Crossfit requires -seeds" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "Crossfit did not require an explicit seed manifest: ${status}\n${output}\n${error}")
+endif()
+execute_process(COMMAND "${BINARY}" -mode crossfit -in "${WORK}/input.d"
+  -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -seeds "${WORK}/seeds.tsv"
+  -model "${WORK}/input.d/checkpoint" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "must not overwrite" OR EXISTS "${WORK}/input.d/checkpoint.fold0.pt")
+  message(FATAL_ERROR "Crossfit did not protect the raw directory from derived checkpoint paths")
+endif()
+file(WRITE "${WORK}/existing.fold0.pt" "checkpoint sentinel\n")
+file(SHA256 "${WORK}/existing.fold0.pt" before)
+execute_process(COMMAND "${BINARY}" -mode crossfit -in "${WORK}/input.d"
+  -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -seeds "${WORK}/seeds.tsv"
+  -model "${WORK}/existing" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+file(SHA256 "${WORK}/existing.fold0.pt" after)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "refuses to overwrite" OR NOT before STREQUAL after)
+  message(FATAL_ERROR "Crossfit overwrote or failed to reject an existing fold checkpoint")
+endif()

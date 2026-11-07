@@ -96,15 +96,25 @@ namespace OpenMS::OpenDIA
         }
       }
     }
-    std::string split(const std::string& group, int seed)
+    std::uint64_t hashGroup(const std::string& group, int seed)
     {
       std::string key = std::to_string(seed);
       key.push_back('\0');
       key += group;
       std::uint64_t hash = UINT64_C(14695981039346656037);
       for (unsigned char c : key) { hash = (hash ^ c) * UINT64_C(1099511628211); }
-      const auto bucket = hash % 10;
+      return hash;
+    }
+    std::string split(const std::string& group, int seed)
+    {
+      const auto bucket = hashGroup(group, seed) % 10;
       return bucket < 6 ? "train" : bucket < 8 ? "validation" : "heldout";
+    }
+    std::string partition(const std::string& group, const CNNOptions& options)
+    {
+      if (options.outer_folds == 0) { return split(group, options.seed); }
+      if (traceCNNFold(group, options.seed, options.outer_folds) == options.heldout_fold) { return "heldout"; }
+      return split(group, options.seed) == "train" ? "train" : "validation";
     }
     struct Batch
     {
@@ -195,11 +205,20 @@ namespace OpenMS::OpenDIA
     }
   }
 
+  int traceCNNFold(const std::string& group_id, int seed, int folds)
+  {
+    require(validID(group_id) && seed >= 0 && folds >= 2 && folds <= 10, "invalid outer family fold contract");
+    // Domain separation avoids reusing the inner train/validation hash buckets.
+    return static_cast<int>(hashGroup("outer\t" + group_id, seed) % static_cast<std::uint64_t>(folds));
+  }
+
   CNNResult trainTraceCNN(const CNNData& data, const CNNGeometry& geometry, const CNNOptions& options, const std::string& checkpoint)
   {
     std::lock_guard<std::mutex> lock(execution_mutex);
     validate(data, geometry);
-    require(options.threads > 0 && options.epochs >= 1 && options.epochs <= 100 && options.patience >= 1 && options.patience <= 20 && options.batch_size > 0,
+    require(options.seed >= 0 && options.threads > 0 && options.epochs >= 1 && options.epochs <= 100 && options.patience >= 1 && options.patience <= 20 && options.batch_size > 0 &&
+            ((options.outer_folds == 0 && options.heldout_fold == -1) ||
+             (options.outer_folds >= 2 && options.outer_folds <= 10 && options.heldout_fold >= 0 && options.heldout_fold < options.outer_folds)),
             "invalid threads, epochs, patience or batch size");
     at::set_num_threads(options.threads);
     torch::manual_seed(options.seed);
@@ -211,17 +230,17 @@ namespace OpenMS::OpenDIA
     for (std::size_t i = 0; i < data.samples.size(); ++i)
     {
       const auto& s = data.samples[i];
-      const auto partition = split(s.group_id, options.seed);
-      provenance[s.group_id] = partition;
-      result.splits.push_back(partition);
+      const auto role = partition(s.group_id, options);
+      provenance[s.group_id] = role;
+      result.splits.push_back(role);
       if (s.label < 0) { continue; }
-      if (partition == "train")
+      if (role == "train")
       {
         train.push_back(i);
         positive |= s.label == 1;
         negative |= s.label == 0;
       }
-      if (partition == "validation") { validation.push_back(i); }
+      if (role == "validation") { validation.push_back(i); }
     }
     require(positive && negative && !validation.empty(), "training requires both classes and labeled validation families");
     Model model;
@@ -288,6 +307,8 @@ namespace OpenMS::OpenDIA
     archive.write("training_options", torch::tensor({static_cast<int64_t>(options.seed), static_cast<int64_t>(options.threads),
                   static_cast<int64_t>(options.epochs), static_cast<int64_t>(options.patience), static_cast<int64_t>(options.batch_size)}, torch::kInt64), true);
     archive.write("torch_version", textTensor(TORCH_VERSION), true);
+    archive.write("outer_partition", torch::tensor({static_cast<int64_t>(options.outer_folds),
+                  static_cast<int64_t>(options.heldout_fold)}, torch::kInt64), true);
     archive.save_to(checkpoint);
     return result;
   }
@@ -321,6 +342,20 @@ namespace OpenMS::OpenDIA
     require(saved_geometry.scalar_type() == torch::kFloat64 && saved_geometry.dim() == 1 && saved_geometry.numel() == 3, "invalid checkpoint geometry");
     require(saved_geometry[0].item<double>() == geometry.mz_tolerance && saved_geometry[1].item<double>() == geometry.rt_half_width &&
             saved_geometry[2].item<double>() == geometry.im_half_width, "checkpoint sampling geometry mismatch");
+    CNNOptions saved_options;
+    saved_options.seed = static_cast<int>(seed);
+    torch::Tensor outer_partition;
+    if (archive.try_read("outer_partition", outer_partition, true))
+    {
+      require(outer_partition.scalar_type() == torch::kInt64 && outer_partition.dim() == 1 && outer_partition.numel() == 2,
+              "invalid checkpoint outer partition");
+      const auto folds = outer_partition[0].item<int64_t>();
+      const auto heldout_fold = outer_partition[1].item<int64_t>();
+      require((folds == 0 && heldout_fold == -1) || (folds >= 2 && folds <= 10 && heldout_fold >= 0 && heldout_fold < folds),
+              "invalid checkpoint outer fold values");
+      saved_options.outer_folds = static_cast<int>(folds);
+      saved_options.heldout_fold = static_cast<int>(heldout_fold);
+    }
     const auto text = tensorText(metadata);
     const std::string version = VERSION;
     require(text.compare(0, version.size(), version) == 0, "checkpoint version/preprocessing/split mismatch");
@@ -331,9 +366,9 @@ namespace OpenMS::OpenDIA
     {
       const auto tab = line.find('\t');
       require(tab != std::string::npos, "invalid checkpoint provenance");
-      const auto partition = line.substr(0, tab), group = line.substr(tab + 1);
-      require((partition == "train" || partition == "validation" || partition == "heldout") && validID(group) &&
-              partition == split(group, static_cast<int>(seed)) && provenance.emplace(group, partition).second,
+      const auto role = line.substr(0, tab), group = line.substr(tab + 1);
+      require((role == "train" || role == "validation" || role == "heldout") && validID(group) &&
+              role == partition(group, saved_options) && provenance.emplace(group, role).second,
               "invalid checkpoint family provenance");
     }
     require(!provenance.empty(), "checkpoint provenance is empty");

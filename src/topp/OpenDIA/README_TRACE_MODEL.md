@@ -1,6 +1,6 @@
 # Local raw trace CNN pilot
 
-This is an offline, CPU-only supervised experiment, not a production identification or FDR pipeline. It emits **logits**, not q-values or calibrated correct-ID probabilities. Native C++ training and inference use optional CPU LibTorch, with no Python or NumPy at analysis time. The original Python implementation remains a developer reference. No model or data uploads are performed.
+This is an offline, CPU-only supervised experiment, not a production identification or FDR pipeline. Training and frozen scoring emit **logits**, not calibrated correct-ID probabilities. Native cross-fitting additionally provides experimental fold-wise decoy-count q-value estimates, not independently validated FDR control. Native C++ training and inference use optional CPU LibTorch, with no Python or NumPy at analysis time. The original Python implementation remains a developer reference. No model or data uploads are performed.
 
 ## Native C++ training and scoring
 
@@ -27,7 +27,58 @@ Native family assignment uses a versioned, deterministic FNV-1a hash rather than
 uv run --offline --with torch --with numpy --python 3.12 python src/topp/OpenDIA/test/check_native_trace_parity.py --native-test ../OpenMS-build/src/tests/class_tests/bin/OpenDIACNN_test
 ```
 
-Training normalization and inference allocate only tensor batches, not a second full normalized tensor. The collector still stores the raw tensor, subject to its hard **2 GiB** cap, plus O(N) metadata and logits. More than this needs acquisition tiling, not a larger sample limit. No calibrated probabilities, q-values, end-to-end peak boundary learning or unbiased precursor identification counts are claimed.
+Training normalization and inference allocate only tensor batches, not a second full normalized tensor. The collector still stores the raw tensor, subject to its hard **2 GiB** cap, plus O(N) metadata and logits. More than this needs acquisition tiling, not a larger sample limit. No calibrated probabilities, end-to-end peak boundary learning or unbiased precursor identification counts are claimed.
+
+### Native outer-family cross-fitting
+
+Use `crossfit` to give every scoring window a prediction from a model that excluded
+its entire peptide/related-decoy family from **both fitting and early stopping**:
+
+```bash
+../OpenMS-build/bin/OpenDIACNN -mode crossfit -in run.mzML -lib library.pqp \
+  -windows all_windows.tsv -seeds seed_windows.tsv -max_samples 300000 \
+  -model new_crossfit_model -out crossfit.tsv -folds 3 -seed 42 -threads 5 \
+  -target_decoy_ratio 1.0
+```
+
+Use the searched PQP's target/decoy precursor count ratio, not the observed
+candidate or accepted-ID ratio, for `target_decoy_ratio`. For a balanced library it
+is 1. All labels in `-windows` are ignored. Only the explicitly sampled `-seeds`
+labels enter fitting or early stopping. Each seed must occur in `-windows` with
+exactly matching sample ID, precursor ID, family and RT coordinate. Do not label
+all target windows positive or change seeds/hyperparameters after inspecting
+outer-fold results. The caller still owns correct peptide/decoy family mapping.
+
+The acquisition is streamed once, then three models are fitted sequentially with
+the same bounded raw tensor and batch preprocessing. Outer folds use FNV1a64 over
+decimal seed, NUL, `outer`, tab and family ID, modulo `folds`. Within each remaining
+family set, the original hash's buckets below 6 are training and all other buckets
+are validation. The native checkpoints save the outer-fold count/index and every
+family's train/validation/heldout role. The command writes
+`new_crossfit_model.fold0.pt`, `.fold1.pt`, etc. Existing fold checkpoints are
+refused. Full-window inference currently visits all rows per model, but only that
+model's outer-heldout predictions enter the final table.
+
+Output contains `sample_id`, `precursor_id`, `group_id`, `is_decoy`, `fold`,
+`logit`, `precursor_best`, `q_value`. The maximum-logit window wins independently
+for each target or decoy precursor, with lexical sample-ID tie breaking. Within
+each fold, exact score ties are processed together and the cumulative estimate is
+`min(1, (decoys + 1) * target_decoy_ratio / targets)`. Reverse cumulative minima
+give q-values; zero target counts receive 1 and nonwinning windows receive `NA`.
+Both target and decoy precursor winners are required in each fold. **Raw logits
+from separately trained models are never pooled**, so independently changing a
+fold's score scale cannot change its q-values. This is separate-assay decoy-count
+estimation, not paired target-versus-decoy competition.
+
+Cross-fitting removes CNN fitting/early-stopping family overlap. It does **not**
+remove dependence introduced by a teacher trained on the whole acquisition,
+teacher-selected positive windows, candidate generation, correlated peptides or
+unequal decoy detectability. Combining fold-wise discovery sets is not a proof of
+global FDR control. These estimates differ from PyProphet's statistical model.
+Report them as experimental same-run teacher-seeded results, alongside baseline
+overlap and candidate coverage, not as independently validated 1% FDR IDs. A fully
+nested teacher or independent-run/entrapment test is still needed. The CNN still
+uses fragment traces, without the baseline's MS1 feature evidence.
 
 ## Export contract and labels
 
@@ -91,7 +142,7 @@ Source validation/heldout group membership is preserved, genuinely new groups sa
 
 Raw tensors are opened read-only with numpy memory mapping. Validation scans at most 128 windows at once. Normalization and inference use batches of at most 128 windows, not a whole-dataset `log1p` copy. Training and validation loss are also batched. Metadata, seven-value auxiliary arrays, group provenance and one logit per sample remain in memory with O(N) size, so this is bounded tensor working memory, not constant total memory. OS-managed mapped pages may remain cached. This supports scoring large exports such as 271792 windows without allocating a full normalized tensor.
 
-Heldout AUC measures discrimination of the supplied **seed labels only**. Teacher-selected positives and decoy negatives are a selected subset, not ground truth for all candidate windows. Full same-run scores, including diagnostic overlapping groups, cannot be treated as an unbiased identification benchmark. This pilot does not mine labels, cross-fit, tune hyperparameters, estimate FDR, calibrate probabilities, validate real identification accuracy, or train on a GPU. The checkpoint binds numeric extraction geometry but does not encode instrument identity or exporter software provenance. Synthetic tests establish shape learning with identical total intensities and auxiliary inputs, not transfer to experimental DIA data. Candidate apices still come from the existing window generator. This model ranks windows, it does not yet learn peak boundaries or replace candidate generation.
+Heldout AUC measures discrimination of the supplied **seed labels only**. Teacher-selected positives and decoy negatives are a selected subset, not ground truth for all candidate windows. Full same-run scores, including diagnostic overlapping groups, cannot be treated as an unbiased identification benchmark. The Python reference does not cross-fit or estimate q-values. Neither implementation mines labels, tunes hyperparameters automatically, calibrates probabilities, validates real identification accuracy, or trains on a GPU. The checkpoint binds numeric extraction geometry but does not encode instrument identity or exporter software provenance. Synthetic tests establish shape learning with identical total intensities and auxiliary inputs, not transfer to experimental DIA data. Candidate apices still come from the existing window generator. This model ranks windows, it does not yet learn peak boundaries or replace candidate generation.
 
 ## Local HeLa pilot, November 7, 2026
 
@@ -124,3 +175,49 @@ The same 6000-window manifest and raw acquisition completed native training and 
 | Sample/full parity | Maximum logit difference 2.8e-6, preserving all sample IDs and family partitions |
 
 Full native scores retain 20283 training-family, 6658 validation-family, 6792 heldout-family and 238059 external-family rows. Native family assignments differ from the Python reference, so the AUC difference is not evidence of a better model. All seven focused native/OpenDIA CTests and eleven Python reference tests passed. A separate Torch-disabled OpenDIA build completed the streaming smoke test with byte-identical output. The synthetic identical-weight parity fixture produced exactly matching logits. These checks establish the native port and input dependence, not precursor FDR or identification performance.
+
+### Native crossfit HeLa evaluation
+
+The frozen protocol used the existing 6000 seed windows, seed 42, three outer
+family folds, five threads, at most 40 epochs, patience 6 and batch size 32. No
+hyperparameters or seed membership were changed after inspecting outer results.
+The PQP contained 73922 target and 72866 decoy precursors, giving the explicitly
+supplied ratio 1.014492355831252. All 271792 windows received exactly one
+outer-heldout prediction, yielding 138542 precursor winners, including 70003
+targets. Independent post-run checks matched every family to its PQP parent and
+verified that its scoring checkpoint marked it heldout, never train/validation.
+All q-values and winner selections were independently recomputed.
+
+| Method on the same HeLa acquisition/library | Target precursors at q <= 0.01 |
+|---|---:|
+| OpenSWATH + PyProphet SVM, MS1+MS2 | 19132 |
+| OpenSWATH + PyProphet XGBoost, MS1+MS2 | 19725 |
+| Native fragment-trace CNN, experimental fold-wise decoy counts | 4535 |
+
+The CNN count is **not equivalent evidence of calibrated FDR** to the baseline
+q-value model. Fold-specific accepted counts were 1656, 1566 and 1313. CNN overlap
+was 3959 precursors with SVM and 3942 with XGBoost; the 576/593 CNN-only precursors
+are unvalidated, not demonstrated additional correct IDs. The complete native
+crossfit command took 115.63 seconds with peak RSS 2549020 KiB, excluding candidate
+generation and teacher/seed preparation. This is one observation, not a timing
+median or an equivalent end-to-end baseline speed comparison.
+
+There is a concrete proposal-coverage limitation before scoring: although every
+SVM baseline ID had some candidate window, only **6308 of 19132** had a proposed
+apex inside that baseline identification's RT boundaries. The CNN selected an
+in-bound apex for 6240 of these baseline precursors before the q-value filter.
+The corresponding XGBoost numbers were 6270 proposed and 6199 selected. Even the
+baseline apex falls inside any candidate tensor's RT extent for only 7850 (SVM)
+and 7891 (XGBoost) precursors. These
+are agreement-with-baseline diagnostics, not truth labels. The next design gate
+is improving fixed-window/apex coverage, then reevaluating raw-trace learning on
+an independent or nested-heldout experiment, rather than enlarging the network
+and tuning repeatedly on these outer-fold results.
+
+Eight focused CTests now cover outer-family raw/label perturbation invariance,
+checkpoint roundtrips, fold-specific score-scale invariance, exact ties, invalid
+IDs/classes and CLI input/checkpoint protection. Identical-weight native/Python
+synthetic prediction parity remains exact. The real result table, three native
+checkpoints and developer-only audit are retained in the local
+`raw-trace-cnn-hela/native-crossfit-20261107` benchmark directory. The analysis
+command itself ran directly in C++ without Python.

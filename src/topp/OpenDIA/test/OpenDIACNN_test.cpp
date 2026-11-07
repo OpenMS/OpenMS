@@ -185,6 +185,65 @@ int main(int argc, char** argv)
     for (auto& s : unknown.samples) { s.group_id = "unseen-family"; }
     const auto external = scoreTraceCNN(unknown, geometry, checkpoint, 1);
     check(external.logits == result.logits && std::all_of(external.splits.begin(), external.splits.end(), [](const auto& s) { return s == "external"; }), "external scoring failed");
+    // Outer evaluation families must affect neither fitted weights nor the
+    // validation loss used to select an epoch, even when their labels/raw change.
+    CNNData outer_data;
+    std::vector<float> outer_raw;
+    for (int family = 0; family < 60; ++family)
+    {
+      for (int label : {0, 1})
+      {
+        auto sample = data.samples.at(static_cast<std::size_t>(label));
+        sample.group_id = "outer-family-" + std::to_string(family);
+        sample.sample_id = sample.group_id + "-" + std::to_string(label);
+        sample.label = label;
+        outer_data.samples.push_back(sample);
+        outer_raw.insert(outer_raw.end(), raw.begin() + label * WINDOW, raw.begin() + (label + 1) * WINDOW);
+      }
+    }
+    outer_data.intensities = outer_raw.data();
+    outer_data.intensity_count = outer_raw.size();
+    auto outer_options = options;
+    outer_options.outer_folds = 3;
+    outer_options.epochs = 3;
+    for (int fold = 0; fold < 3; ++fold)
+    {
+      outer_options.heldout_fold = fold;
+      const auto path = (directory / ("outer-" + std::to_string(fold) + ".pt")).string();
+      const auto fitted = trainTraceCNN(outer_data, geometry, outer_options, path);
+      auto perturbed = outer_data;
+      auto perturbed_raw = outer_raw;
+      std::size_t heldout_count = 0;
+      for (std::size_t i = 0; i < outer_data.samples.size(); ++i)
+      {
+        const bool heldout = traceCNNFold(outer_data.samples[i].group_id, 42, 3) == fold;
+        check((fitted.splits[i] == "heldout") == heldout, "outer family entered train or validation partition");
+        if (heldout)
+        {
+          ++heldout_count;
+          perturbed.samples[i].label = 1 - perturbed.samples[i].label;
+          std::fill(perturbed_raw.begin() + i * WINDOW, perturbed_raw.begin() + (i + 1) * WINDOW, 3.f);
+        }
+      }
+      check(heldout_count > 0, "outer fixture has no evaluation families");
+      perturbed.intensities = perturbed_raw.data();
+      const auto repeated_outer = trainTraceCNN(perturbed, geometry, outer_options, repeat_checkpoint);
+      check(fitted.validation_loss == repeated_outer.validation_loss && fitted.epochs_run == repeated_outer.epochs_run,
+            "outer-heldout data influenced early stopping");
+      for (std::size_t i = 0; i < outer_data.samples.size(); ++i)
+      {
+        if (fitted.splits[i] != "heldout") { check(fitted.logits[i] == repeated_outer.logits[i], "outer-heldout data influenced fitting"); }
+      }
+      const auto roundtrip = scoreTraceCNN(outer_data, geometry, path, 1, true);
+      check(roundtrip.splits == fitted.splits && roundtrip.logits == fitted.logits, "outer checkpoint lost partition or weights");
+      std::filesystem::remove(path);
+    }
+    std::filesystem::remove(repeat_checkpoint);
+    rejects([&] { traceCNNFold("family", -1, 3); });
+    rejects([&] { traceCNNFold("family", 42, 1); });
+    rejects([&] { traceCNNFold("bad\tfamily", 42, 3); });
+    outer_options.heldout_fold = 3;
+    rejects([&] { trainTraceCNN(outer_data, geometry, outer_options, repeat_checkpoint); });
     if (parity)
     {
       CNNData fixture;

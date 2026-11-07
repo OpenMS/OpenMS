@@ -66,7 +66,20 @@ namespace OpenMS::OpenDIA
     int epochs = 40; ///< Valid range: 1..100.
     int patience = 6; ///< Valid range: 1..20.
     int batch_size = 32;
+    int outer_folds = 0; ///< Zero for the original split, otherwise 2..10 outer family folds.
+    int heldout_fold = -1; ///< Outer fold excluded from both fitting and early stopping.
   };
+
+  /**
+    @brief Deterministic outer fold shared by all windows of a peptide/decoy family.
+
+    @param[in] group_id Nonempty peptide-family identifier.
+    @param[in] seed Nonnegative partition seed.
+    @param[in] folds Number of outer folds, from 2 to 10.
+    @return Zero-based outer fold, independent of labels and raw intensities.
+    @throws std::invalid_argument If an identifier, seed or fold count is invalid.
+  */
+  int traceCNNFold(const std::string& group_id, int seed, int folds);
 
   /**
     @brief Raw model logits, family partitions and diagnostic training metrics.
@@ -90,6 +103,9 @@ namespace OpenMS::OpenDIA
     group ID. Unknown labels are excluded from loss but retained in provenance.
     The checkpoint records the split algorithm, preprocessing, geometry, training
     options and LibTorch version. Loading requires the same LibTorch version.
+    With outer_folds enabled, the heldout family fold is excluded from fitting
+    and early stopping. Remaining families use the original 60/40 train/validation
+    partition. The checkpoint preserves this outer partition contract.
 
     @param[in] data Raw windows and metadata, retained by the caller.
     @param[in] geometry Positive finite acquisition sampling geometry.

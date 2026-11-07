@@ -21,6 +21,9 @@ if(TARGET OpenDIA_cnn)
   add_executable(OpenDIACNN_test OpenDIACNN_test.cpp)
   target_link_libraries(OpenDIACNN_test PRIVATE OpenDIA_cnn)
   add_test(NAME OpenDIACNN_test COMMAND OpenDIACNN_test)
+  add_executable(OpenDIACNNQValues_test OpenDIACNNQValues_test.cpp)
+  target_link_libraries(OpenDIACNNQValues_test PRIVATE OpenDIA_cnn)
+  add_test(NAME OpenDIACNNQValues_test COMMAND OpenDIACNNQValues_test)
 endif()
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML" AND
