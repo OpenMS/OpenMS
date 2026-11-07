@@ -47,11 +47,16 @@ namespace OpenMS
     }
     sqlite3* db = nullptr;
     int rc = sqlite3_open_v2(filename.c_str(), &db, flags, nullptr);
-    db_ = db;
     if (rc)
     {
+      // Per SQLite's own docs, sqlite3_open_v2 still allocates a connection handle even
+      // when it returns an error, and that handle must be passed to sqlite3_close() to
+      // release its resources. Since this throws, the destructor never runs for this
+      // (not yet constructed) object, so the handle has to be closed here instead.
+      sqlite3_close_v2(db);
       throw Exception::SqlOperationFailed(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not open sqlite db '" + filename + "' in mode " + StringUtils::toStr(int(mode)));
     }
+    db_ = db;
   }
 
   bool SqliteConnector::tableExists(const std::string& tablename)
