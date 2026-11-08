@@ -1,0 +1,8 @@
+OSW-like LDA, all 20 subscores               q<=0.01: 1114 (conf-right 1055, FDP_c 0.027) | q<=0.05: 1444 (conf-right 1290, FDP_c 0.074) | N at FDP_c<=0.5/1/1.5/2%: [614, 894, 955, 1073]
+  minus xcorr                                q<=0.01: 0 (conf-right 0, FDP_c 0.000) | q<=0.05: 0 (conf-right 0, FDP_c 0.000) | N at FDP_c<=0.5/1/1.5/2%: [6, 6, 6, 6]
+  minus library                              q<=0.01: 570 (conf-right 544, FDP_c 0.021) | q<=0.05: 1091 (conf-right 979, FDP_c 0.063) | N at FDP_c<=0.5/1/1.5/2%: [487, 495, 502, 551]
+  minus signal                               q<=0.01: 1024 (conf-right 969, FDP_c 0.022) | q<=0.05: 1273 (conf-right 1140, FDP_c 0.085) | N at FDP_c<=0.5/1/1.5/2%: [649, 850, 863, 1015]
+  minus shape/rt                             q<=0.01: 1109 (conf-right 1049, FDP_c 0.027) | q<=0.05: 1442 (conf-right 1288, FDP_c 0.075) | N at FDP_c<=0.5/1/1.5/2%: [597, 860, 946, 1064]
+  minus ms1                                  q<=0.01: 1132 (conf-right 1067, FDP_c 0.028) | q<=0.05: 1432 (conf-right 1284, FDP_c 0.072) | N at FDP_c<=0.5/1/1.5/2%: [611, 870, 942, 1076]
+OSW-like MLP (SS loop), all 20               q<=0.01: 1266 (conf-right 1202, FDP_c 0.014) | q<=0.05: 1645 (conf-right 1464, FDP_c 0.061) | N at FDP_c<=0.5/1/1.5/2%: [887, 1170, 1288, 1333]
+OSW-like MLP (SS loop), all 20, seed 1       q<=0.01: 1103 (conf-right 1045, FDP_c 0.016) | q<=0.05: 1545 (conf-right 1386, FDP_c 0.060) | N at FDP_c<=0.5/1/1.5/2%: [919, 947, 1030, 1268]

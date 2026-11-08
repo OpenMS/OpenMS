@@ -1,4 +1,4 @@
-# A teacher-free OSW-like scorer on the shared XICs (raw 01; raw 02 replication pending)
+# A teacher-free OSW-like scorer on the shared XICs (raw 01, replicated on raw 02)
 
 This is our own implementation, not OSW code. It runs on the same OSW-extracted traces OSW+Percolator scored (`../gap2/build_xic.py`). The scripts are `oswlike_feats.py`, `oswlike_score.py`, `oswlike_followup.py` and `oswlike_single.py`.
 
@@ -53,7 +53,7 @@ Ablations (LDA, one group dropped at a time), N at FDP_c 1%:
 
 ## Reading
 
-1. **The gap closes with a teacher-free scorer on the same traces.** A small MLP on 20 OSW-style subscores, with decoy-only labels, gives 1214–1221 at a true FDP_c of 1%. That is above OSW+Percolator (1151), with decoy-estimated q ≤ 0.01 calibrated to FDP_c 0.012. The LDA alone gives 1011. So the 757 → 1151 gap is not missing information and not extraction. It is **which subscores we compute plus a non-linear combiner.**
+1. **The gap closes on raw 01 with a teacher-free scorer on the same traces** (raw 02: mostly; see the replication below). A small MLP on 20 OSW-style subscores, with decoy-only labels, gives 1214–1221 at a true FDP_c of 1%. That is above OSW+Percolator (1151), with decoy-estimated q ≤ 0.01 calibrated to FDP_c 0.012. The LDA alone gives 1011. So most of the 757 → 1151 gap is not missing information and not extraction. It is **which subscores we compute plus a non-linear combiner.**
 2. **Our candidate generator is not the main problem either.** The same subscores on our streaming search's apexes give 1023 (LDA) and 1110 (MLP) at FDP_c 1%, against 1011 and about 1215 on the XIC maxima. Coverage of the right peak is 2424 of 2754 (88%) against 2528 (92%). This costs at most about 9% with the MLP and nothing with the LDA.
 3. **The subscores that matter, compared with what OpenDIA uses today:**
    - **Library agreement is the largest single group.** Dropping it loses 40%. We have library correlation, but not dot product, Manhattan, RMSD or spectral angle on the integrated fragment areas.
@@ -61,9 +61,40 @@ Ablations (LDA, one group dropped at a time), N at FDP_c 1%:
    - **MS1 adds nothing here,** and signal and shape/RT add about 3–4% each.
 4. **Peak boundaries and baseline subtraction are not the lever** (see `GAP2.md`). The valley/5% boundaries used here give a median width of about 11 s, close to OSW's 13 s and DIA-NN's 9.8 s. Our search groups' 46 s spans should still not feed features.
 
+## Raw 02 replication (`raw02_score.txt`; same code and settings, XIC cap raised to 144 points)
+
+The first raw 02 pass truncated the traces at 128 of about 134 points. That pass is kept in `trunc128/`; its results are similar.
+
+The right peak is among the candidates for 2504 of 2745 confirmed precursors (91%).
+
+| scorer, raw 02 | N at FDP_c ≤ 0.5 / 1 / 1.5 / 2% | q ≤ 0.01 (FDP_c) |
+|---|---|---|
+| **OSW+Percolator (reference)** | **1159 / 1287 / 1351 / 1389** | – |
+| OpenDIA tool, stage-2 re-score (`astral-raw02-stage2-check`; optimistic, see its RESULT.md) | 169 / 298 / 454 / 494 | 518 (0.012) |
+| OSW-like LDA, 20 subscores | 613 / 885 / 954 / 1071 | 1115 (**0.023**) |
+| OSW-like MLP, seed 0 | 907 / 1040 / 1093 / 1232 | 1231 (**0.020**) |
+| OSW-like MLP, seed 1 | 910 / 1119 / 1158 / 1178 | 1221 (**0.025**) |
+
+Ablations reproduce on raw 02. Measured as N at FDP_c 1%, from 885 with all groups:
+
+| dropped | N |
+|---|---|
+| library | 481 |
+| signal | 841 |
+| shape/RT | 852 |
+| MS1 | 868 |
+| xcorr | 6 (bootstrap failure) |
+
+**Reading of the replication:**
+
+1. **The direction holds.** The OSW-like scorer is far above the current tool on both runs (raw 02: 1040–1119 against 298 at FDP_c 1%). Library agreement and lagged xcorr are again the carrying families.
+2. **It does not beat OSW+Percolator on raw 02.** The MLP reaches 81–87% of OSW's 1287, and the LDA 69%. The raw 01 "above OSW" result does not replicate. The honest summary across both runs is **about 85–105% of OSW+Percolator at matched true error.**
+3. **Decoy-estimated q is anti-conservative on raw 02** (FDP_c 0.020–0.025 at q ≤ 0.01, against 0.010–0.012 on raw 01). OSW+Percolator itself runs at about 3.3% at its nominal 1%, so this run is harder for decoy-based control in general. It still fails our gate rule (1.5×). For this scorer, calibrating q against entrapment remains an open requirement.
+4. Seed variance at 1% is about 8% (1040 against 1119).
+
 ## Caveats
 
-- Raw 01 only so far; a raw 02 replication is running (`raw02_*.txt`). The OSW reference on raw 02 is 1159 / 1287 / 1351 / 1389.
+- Two runs. Raw 01 is heavily reused and raw 02 is spent, so both are design runs. The OSW reference on raw 02 is 1159 / 1287 / 1351 / 1389.
 - XIC extraction is OSW's (about 34 ppm, ±97 s, 1.6 s cycle). Our native extraction must reproduce it. Bright-peak agreement is shown; weak-peak agreement is not.
 - The MLP's FDP_c at q ≤ 0.01 is 0.012. This is mildly anti-conservative, as with the earlier stage-2 MLP (0.018) but less so, and within the 1.5× gate rule. It is a single run, with only about 8 entrapment hits behind it.
 - Two seeds agree at 1%; the 0.5% and 5% points vary more.

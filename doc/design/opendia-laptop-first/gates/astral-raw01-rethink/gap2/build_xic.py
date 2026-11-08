@@ -9,7 +9,7 @@ RUN = os.environ.get('OPENDIA_RUN', '01')
 X = f'/home/singjc/Documents/datasets/proteobench-astral-entrapment/100K_sampled_fasta/opendia_results/LFQ_Astral_DIA_15min_50ng_Human_{RUN}_extracted.chrom.xic'
 LIB = '/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-entrapment-20261107/lib/library.pqp'
 OUT = os.environ['JCODE_SCRATCH_DIR'] + '/xic' + RUN
-T = 128
+T = 144  # raw 01 has ~120 points, raw 02 ~134; 128 truncated raw 02
 def dec(b, lin):
     c = po.MSNumpressCoder(); cfg = po.NumpressConfig(); out = []
     cfg.np_compression = po.MSNumpressCoder.NumpressCompression.LINEAR if lin else po.MSNumpressCoder.NumpressCompression.SLOF
