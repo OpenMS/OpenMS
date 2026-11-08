@@ -11,13 +11,17 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/SourceFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
+#include <fstream>
 #include <string>
 
 ///////////////////////////
@@ -738,6 +742,47 @@ START_SECTION([EXTRA] ExposedVector Ctor)
   FeatureMap fm2(10, f4);
   TEST_EQUAL(fm2.size(), 10)
   TEST_EQUAL(fm2[6].getPosition()[0], 5.25)
+END_SECTION
+
+START_SECTION((void setPrimaryMSRunPath(const StringList& s, MSExperiment& e)))
+  // The mzML's own recorded primary run (its sourceFile) must be preferred over
+  // the caller's fallback list when that run is actually present on disk.
+  // MSExperiment::getPrimaryMSRunPath() hands back that location as a file://
+  // URI; before this fix, the URI was passed straight to File::exists(), which
+  // can never resolve it against the filesystem, so the fallback was used
+  // unconditionally, even though the real run was right there.
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  { std::ofstream os(tmp.c_str()); os << "dummy mzML content"; }
+  const std::string abs_path = File::absolutePath(tmp);
+  const std::string dir = File::path(abs_path);
+  const std::string filename = File::basename(abs_path);
+
+  SourceFile sf;
+  sf.setPathToFile(File::toFileURI(dir));
+  sf.setNameOfFile(filename);
+  MSExperiment exp;
+  exp.setSourceFiles(std::vector<SourceFile>{sf});
+
+  FeatureMap fm3;
+  fm3.setPrimaryMSRunPath(StringList({"fallback.mzML"}), exp);
+  StringList result;
+  fm3.getPrimaryMSRunPath(result);
+  TEST_EQUAL(result.size(), 1)
+  TEST_EQUAL(result.size() > 0 && result[0] == abs_path, true)
+
+  // if the recorded run does not exist on disk, the fallback is used, as before
+  SourceFile missing_sf;
+  missing_sf.setPathToFile(File::toFileURI(dir));
+  missing_sf.setNameOfFile("does_not_exist.mzML");
+  MSExperiment exp_missing;
+  exp_missing.setSourceFiles(std::vector<SourceFile>{missing_sf});
+
+  FeatureMap fm4;
+  fm4.setPrimaryMSRunPath(StringList({"fallback.mzML"}), exp_missing);
+  StringList result_missing;
+  fm4.getPrimaryMSRunPath(result_missing);
+  TEST_EQUAL(result_missing == StringList({"fallback.mzML"}), true)
 END_SECTION
 
 /////////////////////////////////////////////////////////////
