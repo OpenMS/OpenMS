@@ -62,3 +62,10 @@ The frozen teacher-free design with `-pooled_tdc` was evaluated once against a h
 
   - The CNN rewards fragments that carry signal individually, without requiring them to co-elute or to match the library pattern.
 - **Next design direction:** a second-stage score that adds co-elution, library correlation and MS1 mass error to the CNN logit (PyProphet-style). It must be tested on a new design run and gate.
+
+### Stage-2 feasibility on raw 01 (design run, target/decoy only; `gates/astral-raw01-stage2-feasibility/`)
+
+- **Separation below the 1% cut:** with the frozen iteration-0 scores, co-elution, library correlation and MS1 mass error still separate targets from decoys in CNN z 6 to 10. That band lies just below the current 1% cut.
+  - MS1 ppm error is the strongest single feature: 1.3 ppm for targets against 7.1 ppm for decoys above z 10.
+- **Hand rule:** about 690 targets against about 3 decoys above z 6, extrapolated from 60-sample bands. The CNN-only result is 321. This is a feasibility signal only.
+- **Next:** a native, opt-in second-stage discriminant over CNN logit plus extraction features, designed on raw 01. Evaluating it needs raw 03 and a new gate.

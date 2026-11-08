@@ -1,0 +1,33 @@
+Median extraction features by CNN z band (iteration 0, frozen design), raw 01, T=0 D=1
+         frac_sig  coelution  lib_corr  abs_frag_ppm  abs_ms1_ppm  ms1_coelution
+10-99 0      1.00       0.89      0.93          0.29         1.26           0.61
+      1      1.00       0.90      0.74          0.66         7.10           0.55
+8-10  0      1.00       0.74      0.85          0.42         2.06           0.47
+      1      0.83       0.28      0.52          1.70         7.28           0.46
+6-8   0      0.83       0.32      0.63          1.30         4.70           0.35
+      1      0.83       0.17      0.40          0.96         7.72           0.33
+4-6   0      0.83       0.09      0.17          2.24         7.18           0.23
+      1      0.67       0.05      0.21          1.96         6.42           0.26
+0-2   0      0.67      -0.07     -0.07          3.27         6.09           0.32
+      1      0.58      -0.04     -0.08          2.50         5.40          -0.01
+
+share passing coelution>0.6 & lib_corr>0.6:
+is_decoy     0     1
+band                
+10-99     0.75  0.62
+8-10      0.48  0.07
+6-8       0.18  0.02
+4-6       0.03  0.03
+0-2       0.02  0.00
+
+band population and rule-pass extrapolation (sampled rates x population):
+  z 10-99: T 451 x 0.75 = 338   D 8 x 0.62 = 5.0   cumulative T 338 D 5.0
+  z 8-10: T 508 x 0.48 = 246   D 113 x 0.07 = 7.5   cumulative T 584 D 12.5
+  z 6-8: T 1734 x 0.18 = 318   D 1013 x 0.02 = 16.9   cumulative T 902 D 29.4
+  z 4-6: T 8587 x 0.03 = 286   D 6965 x 0.03 = 232.2   cumulative T 1188 D 261.6
+
+with MS1 |ppm| < 4 added:
+  z 10-99: T pass 44/60  D pass 3/8   cumulative est T 331 D 3.0
+  z 8-10: T pass 25/60  D pass 0/60   cumulative est T 542 D 3.0
+  z 6-8: T pass 5/60  D pass 0/60   cumulative est T 687 D 3.0
+  z 4-6: T pass 2/60  D pass 1/60   cumulative est T 973 D 119.1
