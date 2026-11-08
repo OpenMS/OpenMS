@@ -244,6 +244,123 @@ int main(int argc, char** argv)
     rejects([&] { traceCNNFold("bad\tfamily", 42, 3); });
     outer_options.heldout_fold = 3;
     rejects([&] { trainTraceCNN(outer_data, geometry, outer_options, repeat_checkpoint); });
+
+    // TOPAZ architecture. Positives co-elute in all six fragments; negatives have the same per-channel
+    // intensity but at a different RT per fragment, so only co-elution separates them.
+    {
+      CNNData topaz;
+      std::vector<float> topaz_raw;
+      for (int family = 0; family < 80; ++family)
+      {
+        for (int label : {0, 1})
+        {
+          CNNSample s;
+          s.group_id = "topaz-family-" + std::to_string(family);
+          s.sample_id = s.group_id + "-" + std::to_string(label);
+          s.label = label;
+          s.is_decoy = label == 0;
+          s.bag_id = s.sample_id;
+          s.library_intensities = {6, 5, 4, 3, 2, 1};
+          s.fragment_mz = {400, 500, 600, 700, 800, 900};
+          topaz.samples.push_back(s);
+          const auto offset = topaz_raw.size();
+          topaz_raw.resize(offset + WINDOW, 0);
+          for (std::size_t c = 0; c < 6; ++c)
+          {
+            const std::size_t apex = label == 1 ? 16 : 4 + 4 * c + family % 3;
+            for (std::size_t rt = apex - 2; rt <= apex + 2; ++rt)
+            {
+              topaz_raw[offset + c * 256 + rt * 8 + 4] = 100.f * (3 - std::abs(static_cast<int>(rt) - static_cast<int>(apex)));
+            }
+          }
+        }
+      }
+      topaz.intensities = topaz_raw.data();
+      topaz.intensity_count = topaz_raw.size();
+      CNNOptions topaz_options;
+      topaz_options.threads = 1;
+      topaz_options.epochs = 15;
+      topaz_options.architecture = CNNArchitecture::TOPAZ;
+      const auto topaz_path = (directory / "topaz.pt").string();
+      const auto fitted = trainTraceCNN(topaz, geometry, topaz_options, topaz_path);
+      check(fitted.heldout_auc > 0.99, "TOPAZ did not learn co-elution");
+      const auto reloaded = scoreTraceCNN(topaz, geometry, topaz_path, 1, true);
+      check(reloaded.logits == fitted.logits && reloaded.splits == fitted.splits, "TOPAZ checkpoint roundtrip changed output");
+      // Absent modalities: with has_ms1 = has_im = false, MS1 traces and the IM distribution must not change any logit.
+      std::vector<float> ms1(topaz.samples.size() * 96, 0.f);
+      auto with_ms1 = topaz;
+      with_ms1.ms1 = ms1.data();
+      with_ms1.ms1_count = ms1.size();
+      std::vector<float> noisy_ms1(ms1.size());
+      for (std::size_t j = 0; j < noisy_ms1.size(); ++j) { noisy_ms1[j] = static_cast<float>((j * 7919) % 97); }
+      auto with_noise = with_ms1;
+      with_noise.ms1 = noisy_ms1.data();
+      check(scoreTraceCNN(with_noise, geometry, topaz_path, 1, true).logits == fitted.logits, "masked MS1 traces changed logits");
+      auto spread_raw = topaz_raw;
+      for (std::size_t j = 0; j < spread_raw.size(); j += 8)
+      {
+        // Move the signal to another IM bin: the XIC (IM sum) is unchanged, only the mobilogram differs.
+        std::swap(spread_raw[j + 4], spread_raw[j + 1]);
+      }
+      auto spread = topaz;
+      spread.intensities = spread_raw.data();
+      check(scoreTraceCNN(spread, geometry, topaz_path, 1, true).logits == fitted.logits, "masked mobilogram changed logits");
+      for (auto& s : spread.samples) { s.has_im = true; }
+      auto unmoved = topaz;
+      for (auto& s : unmoved.samples) { s.has_im = true; }
+      check(scoreTraceCNN(spread, geometry, topaz_path, 1, true).logits != scoreTraceCNN(unmoved, geometry, topaz_path, 1, true).logits,
+            "present mobilogram did not reach the network");
+      auto bad_ms1 = with_ms1;
+      bad_ms1.ms1_count -= 1;
+      rejects([&] { scoreTraceCNN(bad_ms1, geometry, topaz_path, 1, true); });
+      auto claims_ms1 = topaz;
+      claims_ms1.samples[0].has_ms1 = true;
+      rejects([&] { scoreTraceCNN(claims_ms1, geometry, topaz_path, 1, true); });
+      // A grid2d checkpoint still scores the same windows (it ignores MS1, bags and has_ms1).
+      check(scoreTraceCNN(topaz, geometry, checkpoint, 1, true).logits.size() == topaz.samples.size(), "grid2d checkpoint failed on new data");
+      // MIL: bags of two windows (the positive and a scrambled copy) per target; decoy bags hold scrambled windows only.
+      auto bags = topaz;
+      for (std::size_t i = 0; i < bags.samples.size(); ++i)
+      {
+        bags.samples[i].label = -1;
+        bags.samples[i].bag_id = bags.samples[i].group_id + (bags.samples[i].is_decoy ? "-decoy" : "-target");
+      }
+      // Pair each target bag with a scrambled member: reuse the decoy window as a second target candidate.
+      CNNData mil_data = bags;
+      std::vector<float> mil_raw = topaz_raw;
+      for (std::size_t i = 0; i < bags.samples.size(); ++i)
+      {
+        if (!bags.samples[i].is_decoy) { continue; }
+        auto extra = bags.samples[i];
+        extra.is_decoy = false;
+        extra.sample_id += "-target-candidate";
+        extra.bag_id = extra.group_id + "-target";
+        mil_data.samples.push_back(extra);
+        mil_raw.insert(mil_raw.end(), topaz_raw.begin() + i * WINDOW, topaz_raw.begin() + (i + 1) * WINDOW);
+      }
+      mil_data.intensities = mil_raw.data();
+      mil_data.intensity_count = mil_raw.size();
+      auto mil_options = topaz_options;
+      mil_options.mil = true;
+      mil_options.mil_bags_per_epoch = 64;
+      const auto mil_path = (directory / "topaz-mil.pt").string();
+      const auto mil_fit = trainTraceCNN(mil_data, geometry, mil_options, mil_path);
+      // Score windows: co-eluting target windows must outrank scrambled windows in held-out families.
+      std::vector<float> good, scrambled;
+      for (std::size_t i = 0; i < mil_data.samples.size(); ++i)
+      {
+        if (mil_fit.splits[i] != "heldout") { continue; }
+        (mil_data.samples[i].sample_id.ends_with("-1") ? good : scrambled).push_back(mil_fit.logits[i]);
+      }
+      check(!good.empty() && !scrambled.empty() && *std::min_element(good.begin(), good.end()) > *std::max_element(scrambled.begin(), scrambled.end()),
+            "MIL did not rank co-eluting candidates first");
+      auto grid_mil = mil_options;
+      grid_mil.architecture = CNNArchitecture::GRID2D;
+      rejects([&] { trainTraceCNN(mil_data, geometry, grid_mil, mil_path + ".grid"); });
+      auto mixed = mil_data;
+      mixed.samples.back().is_decoy = true;
+      rejects([&] { trainTraceCNN(mixed, geometry, mil_options, mil_path + ".mixed"); });
+    }
     if (parity)
     {
       CNNData fixture;

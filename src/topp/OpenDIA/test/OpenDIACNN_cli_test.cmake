@@ -154,3 +154,22 @@ execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -m
 if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "exactly one column candidate_row" OR EXISTS "${WORK}/scores.tsv")
   message(FATAL_ERROR "malformed search table was not rejected before extraction: ${status}\n${output}\n${error}")
 endif()
+# Multiple-instance training needs -cnn_arch topaz and an identification-free calibration; both fail before extraction.
+execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/mil" -cnn_training mil
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "cnn_training mil requires" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "cnn_training mil without topaz was not rejected: ${status}\n${output}\n${error}")
+endif()
+execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/mil2" -cnn_arch topaz -cnn_training mil
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "cnn_training mil requires" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "cnn_training mil without rt_calibration was not rejected: ${status}\n${output}\n${error}")
+endif()
+execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/arch" -cnn_arch resnet
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "unknown cnn_arch was not rejected: ${status}\n${output}\n${error}")
+endif()

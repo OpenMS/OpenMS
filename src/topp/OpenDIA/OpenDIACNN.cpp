@@ -117,6 +117,16 @@ namespace OpenMS
       registerInputFile_("stage2_search_features", "<file>", "", "With -stage2: the OpenDIA -features_out table the windows were drawn from "
                          "(candidate_row = window sample_id): transition support, matched scans, peak width and |library RT error| per window", false);
       setValidFormats_("stage2_search_features", {"tsv"});
+      registerStringOption_("cnn_arch", "<name>", "grid2d", "Experimental network architecture. 'grid2d' = original 2D CNN over the fragment RT x IM grid. "
+                            "'topaz' = redeem TOPAZ-style scorer: 1D conv branches over the fragment XIC, the MS1 M+0..M+2 traces and the fragment "
+                            "mobilogram with co-elution heads; MS1 and mobility branches are masked out when absent (reads MS1; uses -stage2_ms1_ppm)", false);
+      setValidStrings_("cnn_arch", {"grid2d", "topaz"});
+      registerStringOption_("cnn_training", "<mode>", "seeds", "Crossfit only, experimental. 'seeds' = train on the -seeds windows. 'mil' (needs -cnn_arch topaz and "
+                            "-rt_calibration, excludes -ss_iterations) = masked-max multiple-instance training on every training-fold precursor: "
+                            "its in-RT-window candidates form one bag, labelled target 1 / decoy 0", false);
+      setValidStrings_("cnn_training", {"seeds", "mil"});
+      registerIntOption_("mil_bags_per_epoch", "<n>", 40000, "With -cnn_training mil: training bags drawn per epoch, also the fixed validation subsample size", false);
+      setMinInt_("mil_bags_per_epoch", 1);
     }
 
     ExitCodes main_(int, const char**) override
@@ -239,6 +249,12 @@ namespace OpenMS
         {
           throw std::invalid_argument("apply_calibration_coordinates requires -rt_calibration.");
         }
+        const bool topaz = getStringOption_("cnn_arch") == "topaz";
+        const bool mil = getStringOption_("cnn_training") == "mil";
+        if (mil && (!crossfit || !topaz || !rt_calibration || ss_iterations > 0))
+        {
+          throw std::invalid_argument("cnn_training mil requires crossfit mode, -cnn_arch topaz and -rt_calibration, and excludes -ss_iterations.");
+        }
 
         const auto max_samples = static_cast<std::size_t>(getIntOption_("max_samples"));
         auto windows = OpenDIA::readTraceWindows(getStringOption_("windows"), max_samples);
@@ -294,14 +310,14 @@ namespace OpenMS
                                          geometry.rt_half_width, geometry.im_half_width, max_samples,
                                          static_cast<std::size_t>(getIntOption_("max_tensor_gib")) << 30);
         collector.setIonMobilityArrayAsVSSC(getFlag_("im_array_as_vssc"));
-        if (stage2)
+        if (stage2 || topaz)
         {
           collector.enableEvidence(getDoubleOption_("stage2_ms1_ppm"), getDoubleOption_("stage2_core_half_width"));
         }
         FileHandler reader;
         PeakFileOptions options;
-        // MS1 is read only for the second-stage evidence; without -stage2 the collector sees MS2 only, as before.
-        options.setMSLevels(stage2 ? std::vector<Int>{1, 2} : std::vector<Int>{2});
+        // MS1 is read only for the second-stage evidence or the TOPAZ MS1 branch; otherwise the collector sees MS2 only, as before.
+        options.setMSLevels(stage2 || topaz ? std::vector<Int>{1, 2} : std::vector<Int>{2});
         reader.setOptions(options);
         reader.transformExperiment(getStringOption_("in"), &collector, {}, log_type_);
 
@@ -324,6 +340,41 @@ namespace OpenMS
           sample.fragment_mz = collector.fragmentMZ(i);
           data.samples.push_back(std::move(sample));
         }
+        // TOPAZ MS1 branch input: M+0, M+1, M+2 traces over the tensor RT bins.
+        std::vector<float> ms1_traces;
+        if (topaz)
+        {
+          ms1_traces.resize(count * 3 * OpenDIA::TraceCollector::RT_BINS);
+          for (std::size_t i = 0; i < count; ++i)
+          {
+            const auto& e = collector.evidence(i);
+            float* out = ms1_traces.data() + i * 3 * OpenDIA::TraceCollector::RT_BINS;
+            std::copy(e.ms1.begin(), e.ms1.end(), out);
+            std::copy(e.ms1_isotope_traces[0].begin(), e.ms1_isotope_traces[0].end(), out + OpenDIA::TraceCollector::RT_BINS);
+            std::copy(e.ms1_isotope_traces[1].begin(), e.ms1_isotope_traces[1].end(), out + 2 * OpenDIA::TraceCollector::RT_BINS);
+            data.samples[i].has_ms1 = e.ms1_mask != 0;
+          }
+          data.ms1 = ms1_traces.data();
+          data.ms1_count = ms1_traces.size();
+        }
+        if (mil)
+        {
+          // Bags: a precursor's candidates inside the identification-free calibrated RT window (CNN-independent).
+          std::map<std::string, double> library_rts;
+          for (const auto& compound : library.getCompounds()) { library_rts[compound.id] = compound.rt; }
+          std::size_t bagged = 0;
+          for (std::size_t i = 0; i < count; ++i)
+          {
+            const auto found = library_rts.find(collector.window(i).precursor_id);
+            if (found == library_rts.end() || !std::isfinite(found->second)) { continue; }
+            if (std::abs(collector.window(i).apex_rt - rt_calibration->map(found->second)) <= rt_calibration->tolerance_s)
+            {
+              data.samples[i].bag_id = collector.window(i).precursor_id;
+              ++bagged;
+            }
+          }
+          writeLogInfo_("Experimental MIL training: bagged_windows=" + std::to_string(bagged) + "/" + std::to_string(count));
+        }
 
         const auto start = std::chrono::steady_clock::now();
         OpenDIA::CNNResult result;
@@ -333,6 +384,9 @@ namespace OpenMS
         settings.epochs = getIntOption_("epochs");
         settings.patience = getIntOption_("patience");
         settings.batch_size = getIntOption_("batch_size");
+        settings.architecture = topaz ? OpenDIA::CNNArchitecture::TOPAZ : OpenDIA::CNNArchitecture::GRID2D;
+        settings.mil = mil;
+        settings.mil_bags_per_epoch = getIntOption_("mil_bags_per_epoch");
         std::vector<OpenDIA::CNNQValueInput> crossfit_rows;
         // Pair key: target TRAML_ID, or a decoy TRAML_ID without its DECOY_ prefix.
         std::vector<std::string> pair_keys(count);

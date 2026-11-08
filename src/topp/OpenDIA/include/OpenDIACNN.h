@@ -41,6 +41,10 @@ namespace OpenMS::OpenDIA
     bool has_im = false;
     std::array<double, 6> library_intensities{};
     std::array<double, 6> fragment_mz{};
+    /// TOPAZ only: whether the MS1 traces of this sample were observed (any MS1 spectrum in its RT window).
+    bool has_ms1 = false;
+    /// TOPAZ multiple-instance training only: candidates sharing a bag ID (precursor) form one bag with one label.
+    std::string bag_id;
   };
 
   /**
@@ -54,7 +58,21 @@ namespace OpenMS::OpenDIA
     const float* intensities = nullptr;
     std::size_t intensity_count = 0;
     std::vector<CNNSample> samples;
+    /// TOPAZ only, optional: non-owning float32 [samples,3,32] MS1 traces (M+0, M+1, M+2) over the same RT bins.
+    const float* ms1 = nullptr;
+    std::size_t ms1_count = 0;
   };
+
+  /**
+    @brief Network architecture.
+
+    GRID2D is the original 6141-parameter 2D CNN over the [6,32,8] RT x IM grid.
+    TOPAZ follows redeem's TOPAZ scorer: 1D convolutional branches over the fragment XIC
+    (IM summed), the MS1 isotope traces and the fragment mobilogram (core RT bins summed),
+    each with an explicit co-elution head, fused by an MLP. The MS1 and mobilogram branch
+    outputs are multiplied by has_ms1 and has_im, so a run without them adds exactly zero.
+  */
+  enum class CNNArchitecture { GRID2D, TOPAZ };
 
   /**
     @brief Deterministic CPU training options for the fixed 6141-parameter CNN.
@@ -68,6 +86,10 @@ namespace OpenMS::OpenDIA
     int batch_size = 32;
     int outer_folds = 0; ///< Zero for the original split, otherwise 2..10 outer family folds.
     int heldout_fold = -1; ///< Outer fold excluded from both fitting and early stopping.
+    CNNArchitecture architecture = CNNArchitecture::GRID2D;
+    /// TOPAZ only: masked-max multiple-instance training over bag_id bags instead of per-window labels.
+    bool mil = false;
+    int mil_bags_per_epoch = 40000; ///< MIL: training bags drawn per epoch; also the fixed validation subsample size.
   };
 
   /**
@@ -106,6 +128,9 @@ namespace OpenMS::OpenDIA
     With outer_folds enabled, the heldout family fold is excluded from fitting
     and early stopping. Remaining families use the original 60/40 train/validation
     partition. The checkpoint preserves this outer partition contract.
+    With the TOPAZ architecture and outer folds, only held-out rows are scored and
+    the other logits are NaN. MIL training (options.mil) ignores labels and fits
+    one bag per nonempty bag_id (target 1, decoy 0), scored by its best candidate.
 
     @param[in] data Raw windows and metadata, retained by the caller.
     @param[in] geometry Positive finite acquisition sampling geometry.
