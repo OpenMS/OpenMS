@@ -6,6 +6,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ParamJSONFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <fstream>

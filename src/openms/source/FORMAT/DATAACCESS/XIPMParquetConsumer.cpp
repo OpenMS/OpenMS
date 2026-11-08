@@ -41,7 +41,7 @@ namespace OpenMS
     using Internal::ParquetConsumerHelpers::appendOptionalInt;
     using Internal::ParquetConsumerHelpers::appendOptionalString;
     using Internal::ParquetConsumerHelpers::appendBinary;
-    using Internal::ParquetConsumerHelpers::parseOrAssignId;
+    using Internal::ParquetConsumerHelpers::IdAssigner;
     using Internal::ParquetConsumerHelpers::buildAnnotation;
     using Internal::ParquetConsumerHelpers::buildPrecursorAnnotation;
     using Internal::ParquetConsumerHelpers::CompoundInfo;
@@ -296,10 +296,8 @@ namespace OpenMS
 
     void buildTransitionMaps_(const OpenSwath::LightTargetedExperiment& transition_exp)
     {
-      int64_t next_precursor_id = 1;
-      int64_t next_transition_id = 1;
-      std::unordered_set<int64_t> used_precursor_ids;
-      std::unordered_set<int64_t> used_transition_ids;
+      IdAssigner precursor_id_assigner;
+      IdAssigner transition_id_assigner;
 
       std::unordered_map<std::string, bool> precursor_has_target_transition;
       std::unordered_map<std::string, bool> precursor_has_decoy_transition;
@@ -327,13 +325,25 @@ namespace OpenMS
         return (!has_target && has_decoy) ? 1 : 0;
       };
 
+      // Claim every explicit ID first: a fresh ID handed out below must not take a value that an
+      // entry later in the list carries itself.
+      for (const auto& compound : transition_exp.getCompounds())
+      {
+        precursor_id_assigner.reserve(compound.id);
+      }
+      for (const auto& transition : transition_exp.getTransitions())
+      {
+        transition_id_assigner.reserve(transition.transition_name);
+        precursor_id_assigner.reserve(transition.peptide_ref);
+      }
+
       std::unordered_map<std::string, int64_t> precursor_ids;
       precursor_ids.reserve(transition_exp.getCompounds().size());
 
       for (const auto& compound : transition_exp.getCompounds())
       {
         const std::string compound_id = compound.id;
-        const int64_t precursor_id = parseOrAssignId(compound_id, next_precursor_id, used_precursor_ids);
+        const int64_t precursor_id = precursor_id_assigner.assign(compound_id);
         precursor_ids[compound_id] = precursor_id;
 
         CompoundInfo info;
@@ -353,7 +363,7 @@ namespace OpenMS
         auto id_it = transition_ids_.find(transition_name);
         if (id_it == transition_ids_.end())
         {
-          transition_id = parseOrAssignId(transition_name, next_transition_id, used_transition_ids);
+          transition_id = transition_id_assigner.assign(transition_name);
           transition_ids_[transition_name] = transition_id;
         }
         else
@@ -364,7 +374,7 @@ namespace OpenMS
         auto precursor_it = precursor_ids.find(peptide_ref);
         if (precursor_it == precursor_ids.end())
         {
-          const int64_t precursor_id = parseOrAssignId(peptide_ref, next_precursor_id, used_precursor_ids);
+          const int64_t precursor_id = precursor_id_assigner.assign(peptide_ref);
           precursor_ids[peptide_ref] = precursor_id;
 
           CompoundInfo info;

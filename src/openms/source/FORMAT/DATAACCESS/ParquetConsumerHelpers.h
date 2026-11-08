@@ -119,50 +119,88 @@ namespace OpenMS
       };
 
       /**
-        @brief The numeric ID for @p text: its value if it is a non-negative integer not used yet,
-        otherwise the next free ID (from @p next_id).
+        @brief Assigns the numeric PRECURSOR_ID / TRANSITION_ID values of a writer from the string
+        IDs of a transition list.
 
+        A string that is a non-negative integer keeps that value; anything else (non-numeric
+        strings, negative numbers, a value already taken by an earlier entry) gets a fresh ID.
         Negative values are "unset" sentinels elsewhere (the readers take a negative ID as "no
-        filter") and are never kept as IDs; the first one replaced in a process is logged as a
-        warning. OpenSWATH's own library loading validates IDs as non-negative, so only callers that
-        pass a non-canonical LightTargetedExperiment get here.
+        filter"); the first one replaced in a process is logged as a warning. OpenSWATH's own
+        library loading validates IDs as non-negative, so only callers that pass a non-canonical
+        LightTargetedExperiment see replacements at all.
+
+        Call reserve() for every string ID before the first assign(): fresh IDs then never take a
+        value that an entry later in the list carries explicitly, so explicit IDs are kept even when
+        replaced or non-numeric IDs come first.
       */
-      inline int64_t parseOrAssignId(const std::string& text, int64_t& next_id, std::unordered_set<int64_t>& used_ids)
+      class IdAssigner
       {
-        try
+      public:
+        explicit IdAssigner(int64_t first_fresh_id = 1) : next_id_(first_fresh_id) {}
+
+        /// Claim the explicit ID in @p text (if it is a non-negative integer) for its first assign().
+        void reserve(const std::string& text)
         {
-          const int64_t value = StringUtils::toInt64(text);
-          if (value < 0)
+          int64_t value = 0;
+          if (parse_(text, value) && value >= 0)
           {
-            static std::atomic<bool> warned{false};
-            if (!warned.exchange(true))
+            reserved_.insert(value);
+            if (value >= next_id_ && value < std::numeric_limits<int64_t>::max())
             {
-              OPENMS_LOG_WARN << "Parquet output: negative ID '" << text
-                              << "' in the transition list replaced by a newly assigned ID (negative IDs mean"
-                                 " 'unset' in OpenSWATH Parquet files). Further negative IDs are replaced without"
-                                 " a warning." << std::endl;
+              next_id_ = value + 1;
             }
           }
-          else if (used_ids.insert(value).second)
+        }
+
+        /// The ID for @p text: its own value if that is a non-negative integer not assigned yet,
+        /// otherwise the next free ID that is neither assigned nor reserved.
+        int64_t assign(const std::string& text)
+        {
+          int64_t value = 0;
+          if (parse_(text, value))
           {
-            if (value >= next_id)
+            if (value < 0)
             {
-              next_id = value + 1;
+              static std::atomic<bool> warned{false};
+              if (!warned.exchange(true))
+              {
+                OPENMS_LOG_WARN << "Parquet output: negative ID '" << text
+                                << "' in the transition list replaced by a newly assigned ID (negative IDs mean"
+                                   " 'unset' in OpenSWATH Parquet files). Further negative IDs are replaced without"
+                                   " a warning." << std::endl;
+              }
             }
-            return value;
+            else if (assigned_.insert(value).second)
+            {
+              return value;
+            }
+          }
+          while (assigned_.contains(next_id_) || reserved_.contains(next_id_))
+          {
+            ++next_id_;
+          }
+          assigned_.insert(next_id_);
+          return next_id_++;
+        }
+
+      private:
+        static bool parse_(const std::string& text, int64_t& value)
+        {
+          try
+          {
+            value = StringUtils::toInt64(text);
+            return true;
+          }
+          catch (Exception::ConversionError&)
+          {
+            return false;
           }
         }
-        catch (Exception::ConversionError&)
-        {
-          // fall through to auto-assigned ID
-        }
-        while (used_ids.contains(next_id))
-        {
-          ++next_id;
-        }
-        used_ids.insert(next_id);
-        return next_id++;
-      }
+
+        int64_t next_id_;
+        std::unordered_set<int64_t> reserved_;
+        std::unordered_set<int64_t> assigned_;
+      };
 
       /// Fragment annotation such as "y7^2" (empty if the type is unknown or the ordinal negative).
       inline std::string buildAnnotation(const std::string& transition_type, int64_t ordinal, int64_t charge)

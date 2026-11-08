@@ -383,6 +383,78 @@ START_SECTION(MSChromatogramParquetConsumer_negative_ids_are_not_kept)
 }
 END_SECTION
 
+START_SECTION(MSChromatogramParquetConsumer_replaced_ids_do_not_take_later_explicit_ids)
+{
+  // The fresh ID for the negative transition "-1" (listed first) must not be 1, which the
+  // transition "1" listed after it carries explicitly.
+  OpenSwath::LightTargetedExperiment light_exp;
+
+  OpenSwath::LightCompound compound;
+  compound.id = "7";
+  compound.sequence = "PEPTIDEK";
+  compound.charge = 2;
+  light_exp.compounds.push_back(compound);
+
+  OpenSwath::LightTransition negative;
+  negative.transition_name = "-1";
+  negative.peptide_ref = "7";
+  negative.precursor_mz = 500.0;
+  negative.product_mz = 600.0;
+  negative.fragment_charge = 1;
+  negative.fragment_nr = 3;
+  negative.setFragmentType("y");
+  negative.setDetectingTransition(true);
+  light_exp.transitions.push_back(negative);
+
+  OpenSwath::LightTransition explicit_one = negative;
+  explicit_one.transition_name = "1";
+  explicit_one.product_mz = 700.0;
+  explicit_one.fragment_nr = 4;
+  light_exp.transitions.push_back(explicit_one);
+
+  ChromatogramPeak peak;
+  peak.setRT(100.0);
+  peak.setIntensity(1000.0);
+  MSChromatogram chrom_negative;
+  chrom_negative.setNativeID("-1");
+  chrom_negative.push_back(peak);
+  MSChromatogram chrom_one;
+  chrom_one.setNativeID("1");
+  chrom_one.push_back(peak);
+
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  std::string out = tmp + ".xic";
+  {
+    MSChromatogramParquetConsumer consumer(out, 1, "test_source", light_exp);
+    consumer.consumeChromatogram(chrom_negative);
+    consumer.consumeChromatogram(chrom_one);
+  }
+
+  XICParquetFile xic(out);
+  std::vector<XICChromatogram> chroms;
+  xic.load(chroms);
+  TEST_EQUAL(chroms.size(), 2)
+  ABORT_IF(chroms.size() != 2)
+  for (const auto& chrom : chroms)
+  {
+    TEST_EQUAL(chrom.has_transition_id, true)
+    TEST_EQUAL(chrom.has_precursor_id, true)
+    TEST_EQUAL(chrom.precursor_id, 7)
+    if (chrom.transition_ordinal == 4) // transition "1"
+    {
+      TEST_EQUAL(chrom.transition_id, 1)
+    }
+    else // transition "-1"
+    {
+      TEST_EQUAL(chrom.transition_ordinal, 3)
+      TEST_EQUAL(chrom.transition_id >= 0, true)
+      TEST_NOT_EQUAL(chrom.transition_id, 1)
+    }
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

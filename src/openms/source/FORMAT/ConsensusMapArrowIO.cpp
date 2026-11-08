@@ -15,6 +15,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include "ArrowFileIOHelpers.h"
+#include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 #include <OpenMS/FORMAT/ModificationDefinitionIO.h>
@@ -50,8 +51,8 @@ namespace // anonymous
     {
       if (!first) json += ",";
       json += "{\"map_index\":" + std::to_string(map_index)
-            + ",\"filename\":\"" + Internal::ArrowFileIO::escapeJsonString(header.filename) + "\""
-            + ",\"label\":\"" + Internal::ArrowFileIO::escapeJsonString(header.label) + "\""
+            + ",\"filename\":\"" + ParquetFile::jsonEscape(header.filename) + "\""
+            + ",\"label\":\"" + ParquetFile::jsonEscape(header.label) + "\""
             + ",\"size\":" + std::to_string(header.size)
             + ",\"unique_id\":" + std::to_string(header.unique_id)
             + ",\"metavalues\":" + Internal::ArrowFileIO::serializeMetaValues(header)
@@ -90,7 +91,9 @@ namespace // anonymous
         if (pos >= json.size() || json[pos] == '}') { ++pos; break; }
         if (json[pos] == ',') { ++pos; continue; }
 
+        const size_t key_start = pos;
         std::string key = Internal::ArrowFileIO::parseJsonString(json, pos);
+        if (pos == key_start) { pos = json.size(); break; } // no string key: malformed, give up
         Internal::ArrowFileIO::skipWhitespace(json, pos);
         if (pos < json.size() && json[pos] == ':') ++pos;
         Internal::ArrowFileIO::skipWhitespace(json, pos);
@@ -108,27 +111,19 @@ namespace // anonymous
         }
         else if (key == "metavalues")
         {
-          // Parse the nested metavalues array inline
-          // Find the matching ']' to extract the substring for ArrowFileIO::deserializeMetaValues
-          if (pos < json.size() && json[pos] == '[')
-          {
-            size_t start = pos;
-            int depth = 0;
-            while (pos < json.size())
-            {
-              if (json[pos] == '[') ++depth;
-              else if (json[pos] == ']') { --depth; if (depth == 0) { ++pos; break; } }
-              else if (json[pos] == '"') { ++pos; while (pos < json.size() && json[pos] != '"') { if (json[pos] == '\\') ++pos; ++pos; } }
-              ++pos;
-            }
-            Internal::ArrowFileIO::deserializeMetaValues(StringUtils::substr(json, start, pos - start), header);
-          }
+          Internal::ArrowFileIO::parseMetaValueArray(json, pos, header);
+        }
+        else if (key == "filename")
+        {
+          header.filename = Internal::ArrowFileIO::parseJsonString(json, pos);
+        }
+        else if (key == "label")
+        {
+          header.label = Internal::ArrowFileIO::parseJsonString(json, pos);
         }
         else
         {
-          std::string val = Internal::ArrowFileIO::parseJsonString(json, pos);
-          if (key == "filename") header.filename = val;
-          else if (key == "label") header.label = val;
+          Internal::ArrowFileIO::skipJsonValue(json, pos); // unknown key: ignore its value
         }
       }
       result[map_index] = header;

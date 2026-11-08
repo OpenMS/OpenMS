@@ -12,6 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <arrow/api.h>
@@ -62,37 +63,7 @@ void appendMetaValues(
 
 // ==================== JSON helpers for DataProcessing metadata ====================
 
-/// Escape a string for JSON (handles quotes, backslashes, and control characters).
-std::string escapeJsonString(const std::string& s)
-{
-  std::string result;
-  result.reserve(s.size() + 8);
-  for (char c : s)
-  {
-    switch (c)
-    {
-      case '"':  result += "\\\""; break;
-      case '\\': result += "\\\\"; break;
-      case '\n': result += "\\n"; break;
-      case '\r': result += "\\r"; break;
-      case '\t': result += "\\t"; break;
-      default:
-        if (static_cast<unsigned char>(c) < 0x20)
-        {
-          char buf[8];
-          std::snprintf(buf, sizeof(buf), "\\u%04x", static_cast<unsigned char>(c));
-          result += buf;
-        }
-        else
-        {
-          result += c;
-        }
-    }
-  }
-  return result;
-}
-
-/// Unescape a JSON string (reverse of escapeJsonString).
+/// Unescape a JSON string (reverse of ParquetFile::jsonEscape()).
 std::string unescapeJsonString(const std::string& s)
 {
   std::string result;
@@ -162,10 +133,10 @@ std::string serializeDataProcessing(const std::vector<DataProcessing>& dps)
     json += "{";
 
     // software_name
-    json += "\"software_name\":\"" + escapeJsonString(dp.getSoftware().getName()) + "\"";
+    json += "\"software_name\":\"" + ParquetFile::jsonEscape(dp.getSoftware().getName()) + "\"";
 
     // software_version
-    json += ",\"software_version\":\"" + escapeJsonString(dp.getSoftware().getVersion()) + "\"";
+    json += ",\"software_version\":\"" + ParquetFile::jsonEscape(dp.getSoftware().getVersion()) + "\"";
 
     // completion_time
     std::string time_str;
@@ -173,7 +144,7 @@ std::string serializeDataProcessing(const std::vector<DataProcessing>& dps)
     {
       time_str = dp.getCompletionTime().toString("yyyy-MM-ddThh:mm:ss");
     }
-    json += ",\"completion_time\":\"" + escapeJsonString(time_str) + "\"";
+    json += ",\"completion_time\":\"" + ParquetFile::jsonEscape(time_str) + "\"";
 
     // actions
     json += ",\"actions\":[";
@@ -182,37 +153,13 @@ std::string serializeDataProcessing(const std::vector<DataProcessing>& dps)
     for (const auto& action : actions)
     {
       if (!first_action) json += ",";
-      json += "\"" + escapeJsonString(DataProcessing::processingActionToString(action)) + "\"";
+      json += "\"" + ParquetFile::jsonEscape(DataProcessing::processingActionToString(action)) + "\"";
       first_action = false;
     }
     json += "]";
 
     // metavalues
-    json += ",\"metavalues\":[";
-    std::vector<std::string> keys;
-    dp.getKeys(keys);
-    bool first_mv = true;
-    for (const auto& key : keys)
-    {
-      if (!first_mv) json += ",";
-      const DataValue& val = dp.getMetaValue(key);
-      std::string type_str;
-      switch (val.valueType())
-      {
-        case DataValue::INT_VALUE: type_str = "int"; break;
-        case DataValue::DOUBLE_VALUE: type_str = "double"; break;
-        case DataValue::STRING_VALUE: type_str = "string"; break;
-        case DataValue::INT_LIST: type_str = "int_list"; break;
-        case DataValue::DOUBLE_LIST: type_str = "double_list"; break;
-        case DataValue::STRING_LIST: type_str = "string_list"; break;
-        default: type_str = "string"; break;
-      }
-      json += "{\"name\":\"" + escapeJsonString(std::string(key))
-            + "\",\"value\":\"" + escapeJsonString(ArrowIOHelpers::metaValueString(val))
-            + "\",\"type\":\"" + type_str + "\"}";
-      first_mv = false;
-    }
-    json += "]";
+    json += ",\"metavalues\":" + serializeMetaValues(dp);
 
     json += "}";
   }
@@ -262,6 +209,36 @@ std::string parseJsonString(const std::string& s, size_t& pos)
   return unescapeJsonString(raw);
 }
 
+void skipJsonValue(const std::string& s, size_t& pos)
+{
+  skipWhitespace(s, pos);
+  if (pos >= s.size()) return;
+  if (s[pos] == '"')
+  {
+    parseJsonString(s, pos);
+    return;
+  }
+  if (s[pos] == '[' || s[pos] == '{')
+  {
+    // skip the nested array/object, honouring strings (which may contain brackets)
+    int depth = 0;
+    while (pos < s.size())
+    {
+      const char c = s[pos];
+      if (c == '"') { parseJsonString(s, pos); continue; }
+      if (c == '[' || c == '{') ++depth;
+      else if (c == ']' || c == '}')
+      {
+        if (--depth == 0) { ++pos; return; }
+      }
+      ++pos;
+    }
+    return;
+  }
+  // number, true, false, null: up to the next separator
+  while (pos < s.size() && s[pos] != ',' && s[pos] != '}' && s[pos] != ']') ++pos;
+}
+
 /// Deserialize a JSON string into a vector of DataProcessing.
 std::vector<DataProcessing> deserializeDataProcessing(const std::string& json, const char* context)
 {
@@ -293,7 +270,9 @@ std::vector<DataProcessing> deserializeDataProcessing(const std::string& json, c
       if (json[pos] == ',') { ++pos; continue; }
 
       // Parse key
+      const size_t key_start = pos;
       std::string key = parseJsonString(json, pos);
+      if (pos == key_start) { pos = json.size(); break; } // no string key: malformed, give up
       skipWhitespace(json, pos);
       if (pos < json.size() && json[pos] == ':') ++pos; // skip ':'
       skipWhitespace(json, pos);
@@ -321,98 +300,18 @@ std::vector<DataProcessing> deserializeDataProcessing(const std::string& json, c
             skipWhitespace(json, pos);
             if (pos >= json.size() || json[pos] == ']') { ++pos; break; }
             if (json[pos] == ',') { ++pos; continue; }
-            action_names.push_back(parseJsonString(json, pos));
+            if (json[pos] == '"') { action_names.push_back(parseJsonString(json, pos)); }
+            else { skipJsonValue(json, pos); } // not a string: ignore
           }
         }
       }
       else if (key == "metavalues")
       {
-        // Parse array of {name, value, type} objects
-        if (pos < json.size() && json[pos] == '[')
-        {
-          ++pos; // skip '['
-          while (pos < json.size())
-          {
-            skipWhitespace(json, pos);
-            if (pos >= json.size() || json[pos] == ']') { ++pos; break; }
-            if (json[pos] == ',') { ++pos; continue; }
-            if (json[pos] != '{') break;
-            ++pos; // skip '{'
-
-            std::string mv_name, mv_value, mv_type;
-            while (pos < json.size())
-            {
-              skipWhitespace(json, pos);
-              if (pos >= json.size() || json[pos] == '}') { ++pos; break; }
-              if (json[pos] == ',') { ++pos; continue; }
-
-              std::string mk = parseJsonString(json, pos);
-              skipWhitespace(json, pos);
-              if (pos < json.size() && json[pos] == ':') ++pos;
-              skipWhitespace(json, pos);
-
-              if (mk == "name") mv_name = parseJsonString(json, pos);
-              else if (mk == "value") mv_value = parseJsonString(json, pos);
-              else if (mk == "type") mv_type = parseJsonString(json, pos);
-              else parseJsonString(json, pos); // skip unknown value
-            }
-
-            if (!mv_name.empty())
-            {
-              if (mv_type == "int")
-              {
-                try { dp.setMetaValue(mv_name, DataValue(std::stoi(mv_value))); }
-                catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
-              }
-              else if (mv_type == "double" || mv_type == "float")
-              {
-                try { dp.setMetaValue(mv_name, DataValue(StringUtils::toDouble(mv_value))); }
-                catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
-              }
-              else if (mv_type == "int_list")
-              {
-                try
-                {
-                  std::string s(mv_value);
-                  if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = StringUtils::substr(s, 1, s.size() - 2); }
-                  dp.setMetaValue(mv_name, DataValue(ListUtils::create<Int>(s)));
-                }
-                catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
-              }
-              else if (mv_type == "double_list")
-              {
-                try
-                {
-                  std::string s(mv_value);
-                  if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = StringUtils::substr(s, 1, s.size() - 2); }
-                  dp.setMetaValue(mv_name, DataValue(ListUtils::create<double>(s)));
-                }
-                catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
-              }
-              else if (mv_type == "string_list")
-              {
-                try
-                {
-                  std::string s(mv_value);
-                  if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = StringUtils::substr(s, 1, s.size() - 2); }
-                  auto sl = ListUtils::create<std::string>(s);
-                  for (auto& e : sl) { e = StringUtils::trim(e); }
-                  dp.setMetaValue(mv_name, DataValue(sl));
-                }
-                catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
-              }
-              else
-              {
-                dp.setMetaValue(mv_name, DataValue(mv_value));
-              }
-            }
-          }
-        }
+        parseMetaValueArray(json, pos, dp);
       }
       else
       {
-        // Skip unknown value (string)
-        parseJsonString(json, pos);
+        skipJsonValue(json, pos);
       }
     }
 
@@ -445,7 +344,6 @@ std::vector<DataProcessing> deserializeDataProcessing(const std::string& json, c
 
 /// Serialize all MetaValues of a MetaInfoInterface to a JSON array string
 /// (shape: `[{"name":..., "value":..., "type":...}, ...]`).
-/// Mirrors ConsensusMapArrowIO::serializeMetaValues — kept in sync.
 std::string serializeMetaValues(const MetaInfoInterface& mii)
 {
   std::string json = "[";
@@ -467,8 +365,8 @@ std::string serializeMetaValues(const MetaInfoInterface& mii)
       case DataValue::STRING_LIST: type_str = "string_list"; break;
       default: type_str = "string"; break;
     }
-    json += "{\"name\":\"" + escapeJsonString(std::string(key))
-          + "\",\"value\":\"" + escapeJsonString(ArrowIOHelpers::metaValueString(val))
+    json += "{\"name\":\"" + ParquetFile::jsonEscape(std::string(key))
+          + "\",\"value\":\"" + ParquetFile::jsonEscape(ArrowIOHelpers::metaValueString(val))
           + "\",\"type\":\"" + type_str + "\"}";
     first = false;
   }
@@ -476,16 +374,11 @@ std::string serializeMetaValues(const MetaInfoInterface& mii)
   return json;
 }
 
-/// Deserialize a JSON array of {name, value, type} objects into a MetaInfoInterface.
-/// Mirrors ConsensusMapArrowIO::deserializeMetaValues. On malformed JSON, the
-/// shape mismatch causes an early return with no meta-values restored (WARN-equivalent
-/// is the parent caller's responsibility — here we follow the existing helper's
-/// silent-skip pattern). Per-entry type mismatches fall back to the raw string value.
-void deserializeMetaValues(const std::string& json, MetaInfoInterface& target)
+/// Parse the JSON array of {name, value, type} objects that starts at @p pos (at its '[') into
+/// @p target and advance @p pos past it. Per-entry type mismatches fall back to the raw string
+/// value; unknown keys are skipped whatever their value; malformed input stops the parse.
+void parseMetaValueArray(const std::string& json, size_t& pos, MetaInfoInterface& target)
 {
-  if (json.empty()) return;
-
-  size_t pos = 0;
   skipWhitespace(json, pos);
   if (pos >= json.size() || json[pos] != '[') return;
   ++pos;
@@ -493,7 +386,7 @@ void deserializeMetaValues(const std::string& json, MetaInfoInterface& target)
   while (pos < json.size())
   {
     skipWhitespace(json, pos);
-    if (pos >= json.size() || json[pos] == ']') break;
+    if (pos >= json.size() || json[pos] == ']') { ++pos; break; }
     if (json[pos] == ',') { ++pos; continue; }
     if (json[pos] != '{') break;
     ++pos;
@@ -505,7 +398,9 @@ void deserializeMetaValues(const std::string& json, MetaInfoInterface& target)
       if (pos >= json.size() || json[pos] == '}') { ++pos; break; }
       if (json[pos] == ',') { ++pos; continue; }
 
+      const size_t key_start = pos;
       std::string mk = parseJsonString(json, pos);
+      if (pos == key_start) { pos = json.size(); break; } // no string key: malformed, give up
       skipWhitespace(json, pos);
       if (pos < json.size() && json[pos] == ':') ++pos;
       skipWhitespace(json, pos);
@@ -513,14 +408,14 @@ void deserializeMetaValues(const std::string& json, MetaInfoInterface& target)
       if (mk == "name") mv_name = parseJsonString(json, pos);
       else if (mk == "value") mv_value = parseJsonString(json, pos);
       else if (mk == "type") mv_type = parseJsonString(json, pos);
-      else parseJsonString(json, pos);
+      else skipJsonValue(json, pos);
     }
 
     if (!mv_name.empty())
     {
       if (mv_type == "int")
       {
-        try { target.setMetaValue(mv_name, DataValue(std::stoi(mv_value))); }
+        try { target.setMetaValue(mv_name, DataValue(std::stoll(mv_value))); }
         catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
       }
       else if (mv_type == "double" || mv_type == "float")
@@ -566,6 +461,12 @@ void deserializeMetaValues(const std::string& json, MetaInfoInterface& target)
       }
     }
   }
+}
+
+void deserializeMetaValues(const std::string& json, MetaInfoInterface& target)
+{
+  size_t pos = 0;
+  parseMetaValueArray(json, pos, target);
 }
 
 

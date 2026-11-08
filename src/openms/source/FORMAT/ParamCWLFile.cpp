@@ -6,6 +6,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/ParamTags.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/ParamCWLFile.h>

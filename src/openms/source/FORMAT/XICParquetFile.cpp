@@ -50,7 +50,8 @@ namespace OpenMS
       if (ms_level >= 0) builder.eq("MS_LEVEL", ms_level);
       if (run_id >= 0) builder.eq("RUN_ID", run_id);
       return builder.expression();
-    }  } // namespace
+    }
+  } // namespace
 
   XICParquetFile::XICParquetFile(const std::string& filename)
     : filename_(filename)
