@@ -2,7 +2,7 @@
 
 This is a design diagnostic. Entrapment is used here only to diagnose. Any choice made from it must be confirmed on an untouched run (raw 03).
 
-The scripts are `calib.py`, `calib_curve.py`, `calib_tail.py`, `calib_borrow.py`, `calib_hits.py`, `calib_il.py`, `calib_mitig.py` and `matched_fdp02.py`. Each writes a matching `.txt` output.
+The scripts are `calib.py`, `calib_curve.py`, `calib_tail.py`, `calib_borrow.py`, `calib_hits.py`, `calib_il.py`, `calib_shift.py`, `calib_mitig.py` and `matched_fdp02.py`. Each writes a matching `.txt` output.
 
 ## 1. Size and shape (`calib_curve.txt`)
 
@@ -16,6 +16,15 @@ Decoy-estimated FDR against entrapment FDP_c along the accepted list. The 90% in
 | 02 MLP | 1231, 0.020 [0.011, 0.032] | 1573, 0.072 [0.057, 0.090] |
 
 **The excess is systematic, not noise.** At q ≤ 0.05 every interval lies above 0.05 on both runs, for both learners. At q ≤ 0.01 it is significant on raw 02 only. OSW+Percolator's own m_score ≤ 0.01 export has FDP_c 0.032 (raw 01) and 0.034 (raw 02) on the same library and decoys (`matched_fdp02.txt`).
+
+**Bound caveat.** FDP_c is the *combined* entrapment estimate, which is an estimated upper bound (Wen et al., Nat Methods 2025). With r ≈ 1 it is about twice the *lower bound* N_e/N. The paired bound cannot be used here: entrapment peptides are not shuffles of this library's human peptides, and only 4.2% share a human precursor's composition. Lower bounds at q ≤ 0.01:
+
+| run | LDA | MLP | OSW export |
+|---|---|---|---|
+| raw 01 | 5/993 = 0.005 | 7/1222 = 0.006 | 23/1462 = 0.016 |
+| raw 02 | 13/1115 = 0.012 | 12/1231 = 0.010 | 25/1491 = 0.017 |
+
+At 1% our scorer is therefore *inconclusive* in Wen et al.'s sense: the upper bound is above the line and the lower bound is at or below it. OSW's export is invalid even by the lower bound. DIA-NN 2.3.1, with its own different library, reports FDP_c 0.007 at 1% on all three runs (lower bound 0.0036). So valid control is achievable on these raw files. The direct evidence of a real excess comes from section 2, not from FDP_c > 1% alone.
 
 ## 2. Where it comes from (`calib_tail.txt`)
 
@@ -51,10 +60,15 @@ Before competition, let S_e be the share of entrapment target winners above a sc
 
 ## Reading
 
-1. The anti-conservativeness is a property of **decoy winners under-representing false targets in the score tail**, by about 1.1–1.6×. The pipeline's ranker only adds to it. OSW+Percolator, with the same decoys, shows the same direction at a larger size (FDP_c about 3.3% at nominal 1%). No ranker change alone has fixed it.
-2. **The library's decoys are pseudo-reversed with a precursor mass shift** of ±12, ±28 or ±44 Da (99.9% of pairs; checked in the PQP). The entrapment targets are composition-preserving shuffles at the target's own mass. The shift moves a decoy to a different precursor m/z, possibly a different isolation window, and so to a different local interference background from its target. A false target is scored against the real background at its own m/z, so it competes on equal footing. This is the leading untested hypothesis.
+1. The anti-conservativeness is a property of **decoy winners under-representing false targets in the score tail**, by about 1.1–1.6×. The pipeline's ranker only adds to it. OSW+Percolator, with the same decoys, is worse: invalid even by the lower bound. No ranker change alone has fixed it. At 1% our scorer sits in the inconclusive zone between the entrapment bounds (section 1).
+2. **The decoy precursor mass shift is not supported as the cause.** The library's decoys are pseudo-reversed with a precursor mass shift of ±12, ±28 or ±44 Da (99.9% of pairs; checked in the PQP). The entrapment peptides carry no shift; they are scored at their own m/z. If the shift caused the excess, tail survival should vary with the sign or size of the shift (`calib_shift.py`). It does not vary consistently:
+   - for negative against positive shifts, S_e/S_d at the 5% cut is 1.13 against 1.10 (raw 01 LDA) and 1.35 against 1.83 (raw 02 LDA);
+   - the |12| and |44| groups hold only 0–7 decoys above the cut.
+
+   The hypothesis is not excluded, but there is no in-data support. A clean test would need regenerated decoys at the target's own m/z.
 3. **Levers, in order of how directly they hit the cause:**
-   - (a) A **decoy test without the mass shift**: regenerate decoys as pseudo-reverse at the target's precursor m/z, extract and rescore, then repeat the tail test. This needs a new library and an extraction run on raws 01 and 02. Native OpenDIA extraction is the natural vehicle, since OSW's XICs are fixed to these decoys.
-   - (b) Report **a decoy-count estimate corrected by a measured tail factor** only as a diagnostic, never in production. Entrapment-based calibration would not be available on real data.
-   - (c) Keep the **5-seed ensemble** as the ranker. It is the best N at matched true error on both runs.
+   - (a) A **decoy-generation test**: regenerate decoys without the mass shift (and, separately, as shuffles instead of pseudo-reverse), extract and rescore, then repeat the tail test. This needs a new library and an extraction run on raws 01 and 02. Native OpenDIA extraction is the natural vehicle, since OSW's XICs are fixed to these decoys. The in-data shift test above found no support, so the expected effect is uncertain.
+   - (b) **More decoys per target** (for example two decoy families, with q computed from their mean). This lowers the variance of the tail estimate but does not remove a bias.
+   - (c) Report **a decoy-count estimate corrected by a measured tail factor** only as a diagnostic, never in production. Entrapment-based calibration would not be available on real data.
+   - (d) Keep the **5-seed ensemble** as the ranker. It is the best N at matched true error on both runs.
 4. The pass rules stay as they are: q ≤ 0.01 must hold at FDP_c ≤ 0.015, and on raw 02 nothing so far meets that.
