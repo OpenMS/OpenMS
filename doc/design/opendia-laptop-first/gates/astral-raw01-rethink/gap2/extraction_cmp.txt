@@ -1,0 +1,12 @@
+anchors compared 512 fragment traces 3072
+   pearson  ratio  ...  ours_nonzero  osw_nonzero
+f                  ...                           
+0      1.0 -0.006  ...         0.278        0.410
+1      1.0 -0.006  ...         0.269        0.413
+2      1.0 -0.006  ...         0.238        0.375
+3      1.0 -0.008  ...         0.226        0.366
+4      1.0 -0.007  ...         0.203        0.336
+5      1.0 -0.005  ...         0.195        0.323
+
+[6 rows x 6 columns]
+overall median pearson 1.0 | q10 0.981 | median log2(ours/osw) -0.01

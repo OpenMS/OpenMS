@@ -1,0 +1,12 @@
+OSW-accepted precursors with XIC 1462 | also accepted by us 710
+ours             False   True 
+apex             4.276   4.907
+nsig             6.000   6.000
+corr             0.636   0.929
+frac_in          0.327   0.553
+width           13.112  13.114
+frag_min_share   0.035   0.058
+
+our recall of OSW IDs by OSW-peak apex intensity quintile: {0: 0.04, 1: 0.28, 2: 0.51, 3: 0.72, 4: 0.88}
+our recall by fragment-correlation quintile (inside OSW bounds): {0: 0.06, 1: 0.26, 2: 0.46, 3: 0.74, 4: 0.91}
+our recall by in-peak signal fraction quintile (low = more background/interference): {0: 0.2, 1: 0.37, 2: 0.5, 3: 0.57, 4: 0.78}

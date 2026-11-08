@@ -1,0 +1,20 @@
+
+== wide 45s: peak groups 1608749 | confirmed precursors with the right peak among candidates 2264
+   q<=0.01: 733 (confirmed-right 382, FDP_c 0.0165) | q<=0.05: 1263 (confirmed-right 675, FDP_c 0.0638)
+   AUC confirmed-right vs decoy winners: coelution=0.98 shape_to_sum=0.96 lib_corr=0.80 apex_agree=0.81 n_frag_signal=0.89 ms1_coelution=0.68 ms1_isotope=0.59 log_snr=0.40 log_width=0.55 log_area=0.81 abs_rt_err=0.36
+   width of confirmed-right winners: median 42.6 s
+
+== picker: peak groups 1608749 | confirmed precursors with the right peak among candidates 2264
+   q<=0.01: 110 (confirmed-right 108, FDP_c 0.0183) | q<=0.05: 981 (confirmed-right 911, FDP_c 0.0555)
+   AUC confirmed-right vs decoy winners: coelution=0.98 shape_to_sum=0.98 lib_corr=0.86 apex_agree=0.78 n_frag_signal=0.98 ms1_coelution=0.72 ms1_isotope=0.59 log_snr=0.41 log_width=0.75 log_area=0.87 abs_rt_err=0.34
+   width of confirmed-right winners: median 11.4 s
+
+== baseline: peak groups 1608755 | confirmed precursors with the right peak among candidates 2266
+   q<=0.01: 118 (confirmed-right 116, FDP_c 0.0171) | q<=0.05: 949 (confirmed-right 887, FDP_c 0.0446)
+   AUC confirmed-right vs decoy winners: coelution=0.98 shape_to_sum=0.98 lib_corr=0.86 apex_agree=0.78 n_frag_signal=0.98 ms1_coelution=0.72 ms1_isotope=0.60 log_snr=0.41 log_width=0.75 log_area=0.88 abs_rt_err=0.35
+   width of confirmed-right winners: median 11.4 s
+
+== robust: peak groups 1608755 | confirmed precursors with the right peak among candidates 2266
+   q<=0.01: 0 (confirmed-right 0, FDP_c 0.0000) | q<=0.05: 0 (confirmed-right 0, FDP_c 0.0000)
+   AUC confirmed-right vs decoy winners: coelution=0.93 shape_to_sum=0.91 lib_corr=0.80 apex_agree=0.75 n_frag_signal=0.94 ms1_coelution=0.70 ms1_isotope=0.60 log_snr=0.42 log_width=0.69 log_area=0.84 abs_rt_err=0.33
+   width of confirmed-right winners: median 9.9 s

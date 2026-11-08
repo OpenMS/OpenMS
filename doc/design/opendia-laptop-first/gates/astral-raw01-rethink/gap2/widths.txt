@@ -1,0 +1,10 @@
+precursors confirmed by DIA-NN and OSW, with our candidate at the DIA-NN apex: 1303
+DIA-NN  base width  (RT.Stop-RT.Start) s: median   9.8  IQR   8.2- 11.5
+DIA-NN  FWHM                         s: median   3.6  IQR   2.9-  4.0
+OSW     base width  (right-left)     s: median  13.1  IQR  13.1- 14.7
+ours    search group (end-start)     s: median  45.8  IQR  19.7- 76.9
+ours    boundary picker base width   s: median  15.1  IQR  12.2- 17.9
+ours    boundary picker FWHM         s: median   5.4  IQR   5.1-  6.0
+ours    matched scans in group        : median  15.0  IQR   9.0- 21.0
+apex offset ours - DIA-NN s: median  -0.0  IQR  -0.0-  0.0 | OSW - DIA-NN median   0.4  IQR  -0.1-  1.0
+fraction of our group inside DIA-NN span: median   0.2  IQR   0.1-  0.4

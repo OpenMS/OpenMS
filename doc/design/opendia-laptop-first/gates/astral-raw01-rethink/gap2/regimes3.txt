@@ -1,0 +1,21 @@
+
+== wide 45s: groups 1608749
+   AUC xcorr feats (confirmed-right vs all decoy groups): xcorr_coelution=0.04 xcorr_shape=0.98 xcorr_shape_w=0.98 lib_dotprod=0.94 lib_manhattan=0.05 ms1_xcorr_shape=0.66
+   oracle lda simple       : q<=0.01 / 0.05 = 665 (conf-right 579, FDP_c 0.015) | 1283 (conf-right 1013, FDP_c 0.069)
+   oracle mlp simple       : q<=0.01 / 0.05 = 961 (conf-right 885, FDP_c 0.025) | 1448 (conf-right 1229, FDP_c 0.078)
+   oracle lda simple+xcorr : q<=0.01 / 0.05 = 638 (conf-right 552, FDP_c 0.016) | 1312 (conf-right 1030, FDP_c 0.066)
+   oracle mlp simple+xcorr : q<=0.01 / 0.05 = 806 (conf-right 718, FDP_c 0.038) | 1606 (conf-right 1313, FDP_c 0.085)
+
+== picker: groups 1608749
+   AUC xcorr feats (confirmed-right vs all decoy groups): xcorr_coelution=0.05 xcorr_shape=0.95 xcorr_shape_w=0.95 lib_dotprod=0.94 lib_manhattan=0.05 ms1_xcorr_shape=0.71
+   oracle lda simple       : q<=0.01 / 0.05 = 0 (conf-right 0, FDP_c 0.000) | 994 (conf-right 924, FDP_c 0.055)
+   oracle mlp simple       : q<=0.01 / 0.05 = 1021 (conf-right 965, FDP_c 0.030) | 1432 (conf-right 1267, FDP_c 0.073)
+   oracle lda simple+xcorr : q<=0.01 / 0.05 = 414 (conf-right 406, FDP_c 0.010) | 1140 (conf-right 1049, FDP_c 0.053)
+   oracle mlp simple+xcorr : q<=0.01 / 0.05 = 432 (conf-right 401, FDP_c 0.023) | 564 (conf-right 490, FDP_c 0.050)
+
+== baseline: groups 1608755
+   AUC xcorr feats (confirmed-right vs all decoy groups): xcorr_coelution=0.04 xcorr_shape=0.95 xcorr_shape_w=0.95 lib_dotprod=0.94 lib_manhattan=0.05 ms1_xcorr_shape=0.71
+   oracle lda simple       : q<=0.01 / 0.05 = 0 (conf-right 0, FDP_c 0.000) | 971 (conf-right 907, FDP_c 0.050)
+   oracle mlp simple       : q<=0.01 / 0.05 = 1013 (conf-right 970, FDP_c 0.020) | 1494 (conf-right 1325, FDP_c 0.063)
+   oracle lda simple+xcorr : q<=0.01 / 0.05 = 417 (conf-right 409, FDP_c 0.010) | 1119 (conf-right 1031, FDP_c 0.049)
+   oracle mlp simple+xcorr : q<=0.01 / 0.05 = 844 (conf-right 786, FDP_c 0.024) | 1804 (conf-right 1523, FDP_c 0.099)

@@ -1,0 +1,8 @@
+windows (1608749, 9, 33) 13 s
+confirmed-right candidates 2822 | decoy groups 792784
+(a) hand MLP     seed 0: q<=0.01 / 0.05 = 1018 (conf-right 983, FDP_c 0.014) | 1600 (conf-right 1402, FDP_c 0.072)  [10 s]
+(a) hand MLP     seed 1: q<=0.01 / 0.05 = 808 (conf-right 779, FDP_c 0.017) | 1521 (conf-right 1343, FDP_c 0.074)  [14 s]
+(b) trace CNN    seed 0: q<=0.01 / 0.05 = 464 (conf-right 306, FDP_c 0.004) | 1340 (conf-right 844, FDP_c 0.080)  [176 s]
+(b) trace CNN    seed 1: q<=0.01 / 0.05 = 658 (conf-right 438, FDP_c 0.021) | 1201 (conf-right 772, FDP_c 0.060)  [167 s]
+(c) CNN + hand   seed 0: q<=0.01 / 0.05 = 1021 (conf-right 938, FDP_c 0.018) | 1694 (conf-right 1432, FDP_c 0.077)  [173 s]
+(c) CNN + hand   seed 1: q<=0.01 / 0.05 = 838 (conf-right 764, FDP_c 0.012) | 1551 (conf-right 1308, FDP_c 0.077)  [182 s]
