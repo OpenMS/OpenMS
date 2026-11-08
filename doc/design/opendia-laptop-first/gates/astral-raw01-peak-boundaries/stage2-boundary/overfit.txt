@@ -1,0 +1,7 @@
+pairs spanning >1 fold: 0 of 287010
+memorisation AUC(held-out decoys vs trained decoys), per fold:
+  lda [0.503 0.495 0.505]   mlp [0.598 0.548 0.565]
+tool stage2 (search+boundary LDA)  q<=0.01: N=746 Nh=743 Ne=3 FDPc=0.0081 | q<=0.05: N=1441 Nh=1391 Ne=50 FDPc=0.0699
+LDA search+boundary (python)       q<=0.01: N=745 Nh=742 Ne=3 FDPc=0.0081 | q<=0.05: N=1440 Nh=1390 Ne=50 FDPc=0.0700
+MLP ens5 search+boundary           q<=0.01: N=1009 Nh=1000 Ne=9 FDPc=0.0180 | q<=0.05: N=1534 Nh=1481 Ne=53 FDPc=0.0696
+MLP ens5 search only (CNN+4)       q<=0.01: N=654 Nh=652 Ne=2 FDPc=0.0062 | q<=0.05: N=1526 Nh=1476 Ne=50 FDPc=0.0660

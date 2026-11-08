@@ -1,0 +1,3 @@
+pairs spanning >1 fold: 0 of 287010
+memorisation (regularised mlp) [0.627 0.575 0.648]
+MLP-reg ens5 search+boundary       q<=0.01: N=935 Nh=929 Ne=6 FDPc=0.0129 | q<=0.05: N=1524 Nh=1454 Ne=70 FDPc=0.0926

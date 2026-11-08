@@ -1,0 +1,2 @@
+pairs spanning >1 fold: 0 of 287010
+MLP nested-select ens5 s+b         q<=0.01: N=1111 Nh=1101 Ne=10 FDPc=0.0181 | q<=0.05: N=1602 Nh=1544 Ne=58 FDPc=0.0730 | R 0.980
