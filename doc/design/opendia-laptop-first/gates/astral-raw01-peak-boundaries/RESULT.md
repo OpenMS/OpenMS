@@ -53,19 +53,22 @@ Each anchor is assigned to one of 3 folds by a hash of its precursor ID. The pea
 - 7.6K parameters, inputs normalised to their window maximum then log-scaled;
 - AdamW, one-cycle LR schedule, gradient clipping at 5, 12 epochs.
 
-Training takes 59 s for all 3 folds and inference 44 µs per window (Python, 4 threads). It is scored on anchors from the held-out fold only.
+Training takes 62 s for all 3 folds and inference 53 µs per window (Python, 4 threads). It is scored on anchors from the held-out fold only.
+
+The rule picker runs only on the bins that received a scan, as stage 2 does. The 0.94 s bins and the 1.64 s scan cycle leave about 14 of the 32 bins empty (median 18 with a scan). Run naively on all 32 bins, the rule breaks at the first empty bin. That naive comparison (rule IoU 0.52 at high SNR) was reported first and is withdrawn.
 
 | held-out, log10 SNR | n | IoU model | IoU rule | start within 1 bin, model / rule | end within 1 bin, model / rule |
 |---|---|---|---|---|---|
-| < 0 | 1483 | **0.66** | 0.34 | 45% / 18% | 26% / 12% |
-| 0 to 0.5 | 1313 | **0.75** | 0.35 | 65% / 21% | 26% / 12% |
-| 0.5 to 1 | 1373 | **0.80** | 0.40 | 73% / 27% | 33% / 12% |
-| ≥ 1 | 21983 | **0.84** | 0.52 | 80% / 42% | 37% / 15% |
+| < 0 | 1483 | **0.66** | 0.43 | 45% / 20% | 26% / 13% |
+| 0 to 0.5 | 1313 | **0.75** | 0.47 | 65% / 26% | 26% / 13% |
+| 0.5 to 1 | 1373 | **0.80** | 0.55 | 73% / 32% | 33% / 17% |
+| ≥ 1 | 21983 | **0.84** | 0.72 | 80% / 58% | 37% / 39% |
 
 - **Peak detection:** the model finds 97% of held-out positives and calls 66% of background-only windows "no peak". The rule picker always returns a peak.
 
 ## Limits
-- **The labels are a rule's output.** The model learns to reproduce the rule on raw scans from noisier, binned inputs. That is why it beats the rule applied to the same bins, but it is not ground truth.
+- **The model's advantage is at low SNR.** At high SNR the rule is close (IoU 0.72 against 0.84) and the end boundary is a tie. The first step to measure on real windows is therefore the rule picker on scan bins, which costs no training. The model is only worth porting if the rule boundaries already show value.
+- **The labels are a rule's output.** The model learns to reproduce the rule on raw scans from noisier, binned inputs. It is not ground truth.
 - **The augmented windows are synthetic.** On real candidate windows the gap may be smaller.
 - **The end boundary is the weak point:** tailing makes the right edge diffuse, and only 37% of ends are within 1 bin.
 - **Negative rejection is modest** (66%).

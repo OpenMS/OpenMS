@@ -1,7 +1,8 @@
-Segmenter 7647 params | train 59 s for 3 folds | inference 43.7 us/window (batch, 4 threads)
+bins with a scan per window, median 18 of 32
+Segmenter 7647 params | train 62 s for 3 folds | inference 53.3 us/window (batch, 4 threads)
 held-out negatives: model says no peak 66.28% (rule picker always returns a peak)
-held-out positives n=26152: IoU model 0.820 vs rule 0.496 | detected by model 97.30%
-  log10 SNR [-9.0,+0.0) n  1483: IoU model 0.663 rule 0.340 | start<=1 bin model 45% rule 18% | end<=1 bin model 26% rule 12%
-  log10 SNR [+0.0,+0.5) n  1313: IoU model 0.745 rule 0.350 | start<=1 bin model 65% rule 21% | end<=1 bin model 26% rule 12%
-  log10 SNR [+0.5,+1.0) n  1373: IoU model 0.796 rule 0.400 | start<=1 bin model 73% rule 27% | end<=1 bin model 33% rule 12%
-  log10 SNR [+1.0,+9.0) n 21983: IoU model 0.837 rule 0.521 | start<=1 bin model 80% rule 42% | end<=1 bin model 37% rule 15%
+held-out positives n=26152: IoU model 0.820 vs rule 0.684 | detected by model 97.30%
+  log10 SNR [-9.0,+0.0) n  1483: IoU model 0.663 rule 0.427 | start<=1 bin model 45% rule 20% | end<=1 bin model 26% rule 13%
+  log10 SNR [+0.0,+0.5) n  1313: IoU model 0.745 rule 0.472 | start<=1 bin model 65% rule 26% | end<=1 bin model 26% rule 13%
+  log10 SNR [+0.5,+1.0) n  1373: IoU model 0.796 rule 0.549 | start<=1 bin model 73% rule 32% | end<=1 bin model 33% rule 17%
+  log10 SNR [+1.0,+9.0) n 21983: IoU model 0.837 rule 0.723 | start<=1 bin model 80% rule 58% | end<=1 bin model 37% rule 39%

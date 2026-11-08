@@ -32,7 +32,9 @@ Evidence: [`gates/astral-raw01-peak-boundaries`](../gates/astral-raw01-peak-boun
 
 **Results:**
 - All 512 raw 01 anchors give clean labels: FWHM 4.4 s, base width 14.7 s, right tail twice the left. These match OpenSWATH's widths, although OpenSWATH was not used to make them.
-- A 7.6K-parameter 1D segmentation model was trained on augmented anchors in 59 s for 3 folds. On held-out anchors it beats the rule picker on the same binned windows at every SNR (IoU 0.84 against 0.52 at high SNR, 0.66 against 0.34 at SNR < 1).
+- A 7.6K-parameter 1D segmentation model was trained on augmented anchors in about 1 min for 3 folds. On held-out anchors it beats the rule picker on the same binned windows, mainly at low SNR. IoU is 0.84 against 0.72 at high SNR and 0.66 against 0.43 at SNR < 1, with the rule run on scan bins only.
+  - A first comparison ran the rule over empty bins and overstated the gap (0.84 against 0.52); it is withdrawn.
+  - The windows are synthetic, so this is not evidence on real candidates.
 
 **Not yet shown:** any gain in IDs.
 

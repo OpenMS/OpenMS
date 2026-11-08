@@ -11,6 +11,8 @@ Y = torch.tensor(d['y'])          # N x 3 x 32 (inside, start, end)
 fold = d['fold']
 neg = d['negative'].astype(bool)
 snr = d['log_snr']
+scan_mask = d['scan_mask']
+print('bins with a scan per window, median', int(np.median(scan_mask.sum(1))), 'of 32')
 
 
 def norm(x):
@@ -49,15 +51,21 @@ def decode(logits):
     return present, start, end
 
 
-def rule(x, lo=10, hi=22):
-    """Rule picker (OpenDIAPeakPicker defaults); hint = strongest consensus bin within +-6 bins of the centre."""
+def rule(x, masks, lo=10, hi=22):
+    """Rule picker (OpenDIAPeakPicker defaults) on the bins that received a scan (TraceCollector ms2_mask), as stage 2
+    does; boundaries map back to bin indices. hint = strongest consensus scan bin within +-6 bins of the centre."""
     out = []
-    for w in x.numpy():
-        s = w.sum(0).astype(np.float64)
+    for w, mask in zip(x.numpy(), masks):
+        idx = np.where(mask)[0]
+        if len(idx) < 3:
+            out.append((-1, -1)); continue
+        s = w[:, idx].sum(0).astype(np.float64)
         t = s.copy()
         t[1:-1] = 0.25 * s[:-2] + 0.5 * s[1:-1] + 0.25 * s[2:]
-        hint = lo + int(np.argmax(s[lo:hi + 1]))
-        apex = max(range(max(0, hint - 2), min(31, hint + 2) + 1), key=lambda i: t[i])
+        cand = np.where((idx >= lo) & (idx <= hi))[0]
+        hint = int(cand[np.argmax(s[cand])]) if len(cand) else int(np.argmax(s))
+        n = len(idx) - 1
+        apex = max(range(max(0, hint - 2), min(n, hint + 2) + 1), key=lambda i: t[i])
         if t[apex] <= 0:
             out.append((-1, -1)); continue
         l = apex
@@ -65,10 +73,10 @@ def rule(x, lo=10, hi=22):
             l -= 1
             if t[l] <= 0.05 * t[apex]: break
         r = apex
-        while r < 31 and not t[r + 1] > t[r]:
+        while r < n and not t[r + 1] > t[r]:
             r += 1
             if t[r] <= 0.05 * t[apex]: break
-        out.append((l, r))
+        out.append((idx[l], idx[r]))
     return np.array(out)
 
 
@@ -109,7 +117,7 @@ for k in sorted(set(fold.tolist())):
         t_inf += time.time() - start
     present, s, e = (v.numpy() for v in decode(logits))
     ts, tee = Y[te, 1].argmax(1).numpy(), Y[te, 2].argmax(1).numpy()
-    rb = rule(X[te])
+    rb = rule(X[te], d['scan_mask'][te])
     for j, i in enumerate(te):
         results.append((k, neg[i], snr[i], present[j], s[j], e[j], rb[j, 0], rb[j, 1], ts[j], tee[j]))
 r = np.array(results, dtype=float)
