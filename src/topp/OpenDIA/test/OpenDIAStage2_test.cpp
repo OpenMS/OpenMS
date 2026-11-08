@@ -8,10 +8,14 @@
 
 #include "OpenDIAStage2.h"
 
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Precursor.h>
 
+#include <algorithm>
 #include <cmath>
+#include <cstdio>
+#include <fstream>
 #include <iostream>
 #include <random>
 #include <stdexcept>
@@ -122,6 +126,7 @@ int main()
       const bool decoy = k % 2 == 1;
       const bool real = !decoy && k % 4 == 0;  // half the targets are true
       OpenDIA::Stage2Row row;
+      row.features.assign(OpenDIA::STAGE2_FEATURES, 0.0);
       row.precursor_id = "p" + std::to_string(k);
       row.is_decoy = decoy;
       row.fold = k % 3;
@@ -161,6 +166,7 @@ int main()
     std::vector<OpenDIA::Stage2Row> rows(30);
     for (std::size_t i = 0; i < rows.size(); ++i)
     {
+      rows[i].features.assign(OpenDIA::STAGE2_FEATURES, 0.0);
       rows[i].precursor_id = "q" + std::to_string(i);
       rows[i].is_decoy = i % 2;
       rows[i].fold = static_cast<int>(i % 3);
@@ -175,6 +181,90 @@ int main()
     try { OpenDIA::crossfitStage2LDA(rows, 3, OpenDIA::Stage2Options{}, report); }
     catch (const std::invalid_argument&) { threw = true; }
     require(threw, "non-finite features are rejected");
+    rows[0].features.assign(OpenDIA::STAGE2_FEATURES, 0.0);
+    rows[1].features.resize(3);
+    threw = false;
+    try { OpenDIA::crossfitStage2LDA(rows, 3, OpenDIA::Stage2Options{}, report); }
+    catch (const std::invalid_argument&) { threw = true; }
+    require(threw, "rows with differing feature counts are rejected");
+  }
+
+  // 7. Feature sets and search peak-group features.
+  {
+    require(OpenDIA::stage2FeatureSetNames(OpenDIA::parseStage2FeatureSet("extraction")).size() == OpenDIA::STAGE2_FEATURES, "extraction set is the original 8");
+    const auto search = OpenDIA::stage2FeatureSetNames(OpenDIA::parseStage2FeatureSet("search"));
+    require(search.size() == 5 && search[0] == "cnn_z" && search[4] == "abs_library_rt_error", "search set = cnn_z + 4");
+    require(OpenDIA::stage2FeatureSetNames(OpenDIA::parseStage2FeatureSet("extraction_search")).size() == 12, "combined set = 8 + 4");
+    const auto all = OpenDIA::stage2FeatureSetNames(OpenDIA::parseStage2FeatureSet("search+isotope"));
+    require(all.size() == 8 && all[5] == "ms1_isotope_correlation" && all[7] == "ms1_isotope_coelution", "search+isotope = cnn_z + 4 + 3");
+    bool threw = false;
+    try { OpenDIA::parseStage2FeatureSet("other"); }
+    catch (const std::invalid_argument&) { threw = true; }
+    require(threw, "unknown feature set rejected");
+    threw = false;
+    try { OpenDIA::parseStage2FeatureSet("search+search"); }
+    catch (const std::invalid_argument&) { threw = true; }
+    require(threw, "repeated group rejected");
+
+    const std::string path = "OpenDIAStage2_test_search.tsv";
+    {
+      std::ofstream out(path);
+      out << "candidate_row\tprecursor_id\tis_decoy\trt_apex\tpeak_width_seconds\ttransition_support\tmatched_scans\thas_library_rt\tapex_rt_error_seconds\n"
+          << "0\t11\t0\t100.5\t20\t4\t9\t1\t-12.5\n"
+          << "1\t12\t1\t200\t0\t1\t0\t0\t33\n";
+    }
+    const auto peaks = OpenDIA::readSearchPeakFeatures(path);
+    require(peaks.size() == 2 && peaks.at("0").precursor_id == "11" && peaks.at("0").rt_apex == 100.5, "rows keyed by candidate_row");
+    const auto f = OpenDIA::stage2SearchFeatures(peaks.at("0"));
+    require(f[0] == 4.0 && std::abs(f[1] - std::log1p(9.0)) < 1e-12 && std::abs(f[2] - std::log1p(20.0)) < 1e-12 && f[3] == 12.5,
+            "support, log scans, log width, |RT error|");
+    require(OpenDIA::stage2SearchFeatures(peaks.at("1"))[3] == 0.0, "no library RT gives zero RT error");
+    {
+      std::ofstream out(path);
+      out << "candidate_row\tprecursor_id\trt_apex\tpeak_width_seconds\ttransition_support\tmatched_scans\thas_library_rt\tapex_rt_error_seconds\n"
+          << "0\t11\t100\t20\t4\t9\t1\tnan\n";
+    }
+    threw = false;
+    try { OpenDIA::readSearchPeakFeatures(path); }
+    catch (const std::invalid_argument&) { threw = true; }
+    require(threw, "non-finite search value rejected");
+    {
+      std::ofstream out(path);
+      out << "candidate_row\tprecursor_id\trt_apex\n0\t11\t100\n";
+    }
+    threw = false;
+    try { OpenDIA::readSearchPeakFeatures(path); }
+    catch (const std::invalid_argument&) { threw = true; }
+    require(threw, "missing search column rejected");
+    std::remove(path.c_str());
+  }
+
+  // 8. Isotope-envelope features: averagine-shaped co-eluting isotopes score high, a dominant M-1 peak is flagged.
+  {
+    OpenDIA::Stage2ExtractionOptions options;
+    const double mz = 600.0;
+    const int charge = 2;
+    const auto& averagine = DIAHelpers::averagineIsotopeDistribution(mz * charge, 4);
+    OpenDIA::TraceEvidence e;
+    const auto shape = gaussian(1.0, 15.5, 2.0);
+    for (std::size_t b = 12; b <= 19; ++b)
+    {
+      e.ms1_mask |= 1u << b;
+      e.ms1[b] = static_cast<float>(1000.0 * shape[b] * averagine[0].getIntensity());
+      e.ms1_isotope_traces[0][b] = static_cast<float>(1000.0 * shape[b] * averagine[1].getIntensity());
+      e.ms1_isotope_traces[1][b] = static_cast<float>(1000.0 * shape[b] * averagine[2].getIntensity());
+    }
+    for (std::size_t k = 0; k < 4; ++k) e.ms1_isotope_core[k + 1] = static_cast<float>(1000.0 * averagine[k].getIntensity());
+    auto f = OpenDIA::stage2IsotopeFeatures(e, mz, charge, options);
+    require(f[0] > 0.99, "averagine-shaped envelope correlates");
+    require(f[1] == 0.0, "no M-1 signal, no overlap");
+    require(f[2] > 0.99, "co-eluting isotope traces correlate");
+    e.ms1_isotope_core[0] = 3000.0f * static_cast<float>(averagine[0].getIntensity());
+    std::reverse(e.ms1_isotope_core.begin() + 1, e.ms1_isotope_core.end());
+    f = OpenDIA::stage2IsotopeFeatures(e, mz, charge, options);
+    require(f[0] < 0.0, "reversed envelope anti-correlates");
+    require(f[1] > 1.0, "larger M-1 peak gives overlap above 1");
+    require(OpenDIA::stage2IsotopeFeatures(e, mz, 0, options)[0] == 0.0, "unknown charge gives zero features");
   }
 
   // 6. TraceCollector evidence: MS1 trace, mass errors and isotope; tensor unchanged by enabling evidence.
@@ -228,6 +318,11 @@ int main()
     require(std::abs(e.ms1_ppm_sum / e.ms1_weight - 2.0) < 1e-3, "MS1 error +2 ppm");
     require(std::abs(e.ms2_ppm_sum / e.ms2_weight + 0.5) < 1e-3, "fragment error is the intensity mean of 0 and -1 ppm");
     require(e.ms1_isotope > 0.0f, "first isotope recorded");
+    require(std::abs(e.ms1_isotope_core[2] - e.ms1_isotope) < 1e-3f, "core M+1 equals the first-isotope sum");
+    require(e.ms1_isotope_core[1] > 0.0f && e.ms1_isotope_core[0] == 0.0f && e.ms1_isotope_core[3] == 0.0f, "M+0 present, M-1 and M+2 absent");
+    float m1_trace = 0.0f;
+    for (float v : e.ms1_isotope_traces[0]) m1_trace += v;
+    require(m1_trace >= e.ms1_isotope, "M+1 trace covers at least the core");
   }
 
   std::cout << "OpenDIAStage2_test passed\n";

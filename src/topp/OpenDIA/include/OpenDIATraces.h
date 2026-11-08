@@ -43,6 +43,10 @@ namespace OpenMS::OpenDIA
     double ms1_weight = 0.0;           ///< Sum of MS1 monoisotope intensity, core window.
     double ms2_ppm_sum = 0.0;          ///< Sum of intensity x signed ppm over fragments, core window.
     double ms2_weight = 0.0;           ///< Sum of fragment intensity, core window.
+    /// MS1 intensity summed over the core window at M-1/z (index 0, overlap probe) and M+0..M+3 (indices 1..4).
+    std::array<float, 5> ms1_isotope_core{};
+    /// MS1 trace per RT bin of the first and second isotope (M+1, M+2).
+    std::array<std::array<float, RT_BINS>, 2> ms1_isotope_traces{};
   };
 
   /**
@@ -98,6 +102,10 @@ namespace OpenMS::OpenDIA
     const std::array<double, FRAGMENTS>& libraryIntensities(std::size_t i) const { return samples_.at(i).library_intensity; }
     /// Fragment m/z in tensor channel order, with zero denoting padding.
     const std::array<double, FRAGMENTS>& fragmentMZ(std::size_t i) const { return samples_.at(i).fragment_mz; }
+    /// Library precursor m/z of sample i.
+    double precursorMZ(std::size_t i) const { return samples_.at(i).precursor_mz; }
+    /// Library precursor charge of sample i (0 if unknown).
+    int precursorCharge(std::size_t i) const { return samples_.at(i).precursor_charge; }
     /// Treat a spectrum ion-mobility array with a non-CCS unit as 1/K0 (VSSC).
     void setIonMobilityArrayAsVSSC(bool value) { ion_mobility_array_as_vssc_ = value; }
 

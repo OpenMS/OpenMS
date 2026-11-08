@@ -132,3 +132,25 @@ execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -m
 if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "stage2_features_out requires -stage2" OR EXISTS "${WORK}/scores.tsv")
   message(FATAL_ERROR "stage2_features_out without stage2 was not rejected: ${status}\n${output}\n${error}")
 endif()
+# Search peak-group features need -stage2 and a matching feature set; both fail before extraction.
+execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/stage2s" -paired_tdc -pooled_tdc -stage2
+  -stage2_feature_set search
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "stage2_search_features is required by" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "stage2_feature_set search without a search table was not rejected: ${status}\n${output}\n${error}")
+endif()
+execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/stage2t" -paired_tdc -pooled_tdc
+  -stage2_search_features "${WORK}/all.tsv"
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "require -stage2" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "stage2_search_features without stage2 was not rejected: ${status}\n${output}\n${error}")
+endif()
+execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/stage2u" -paired_tdc -pooled_tdc -stage2
+  -stage2_feature_set search -stage2_search_features "${WORK}/all.tsv"
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "exactly one column candidate_row" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "malformed search table was not rejected before extraction: ${status}\n${output}\n${error}")
+endif()

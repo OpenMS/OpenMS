@@ -111,6 +111,12 @@ namespace OpenMS
       registerDoubleOption_("stage2_ms1_ppm", "<ppm>", 20.0, "Half width of the MS1 m/z windows for the second-stage features", false);
       setMinFloat_("stage2_ms1_ppm", 0.1);
       registerOutputFile_("stage2_features_out", "<file>", "", "With -stage2: per-window feature table (after the RT window) for inspection", false);
+      registerStringOption_("stage2_feature_set", "<groups>", "extraction", "With -stage2: '+'-separated feature groups after the CNN logit. "
+                            "'extraction' = the seven tensor/MS1 features; 'search' = search peak-group features (needs -stage2_search_features); "
+                            "'isotope' = MS1 M+0..M+3 averagine correlation, M-1 overlap and isotope co-elution. 'extraction_search' = extraction+search", false);
+      registerInputFile_("stage2_search_features", "<file>", "", "With -stage2: the OpenDIA -features_out table the windows were drawn from "
+                         "(candidate_row = window sample_id): transition support, matched scans, peak width and |library RT error| per window", false);
+      setValidFormats_("stage2_search_features", {"tsv"});
     }
 
     ExitCodes main_(int, const char**) override
@@ -200,6 +206,19 @@ namespace OpenMS
         {
           throw std::invalid_argument("stage2_features_out requires -stage2.");
         }
+        const auto stage2_set = OpenDIA::parseStage2FeatureSet(getStringOption_("stage2_feature_set"));
+        const bool stage2_needs_search = stage2_set.search;
+        if (!stage2 && (getStringOption_("stage2_feature_set") != "extraction" || !getStringOption_("stage2_search_features").empty()))
+        {
+          throw std::invalid_argument("stage2_feature_set and stage2_search_features require -stage2.");
+        }
+        if (stage2_needs_search != !getStringOption_("stage2_search_features").empty())
+        {
+          throw std::invalid_argument("stage2_search_features is required by, and only accepted with, a stage2_feature_set containing search.");
+        }
+        // Read before extraction so a missing or malformed table fails before any expensive work.
+        std::unordered_map<std::string, OpenDIA::SearchPeakFeatures> search_peaks;
+        if (stage2_needs_search) { search_peaks = OpenDIA::readSearchPeakFeatures(getStringOption_("stage2_search_features")); }
 
         const bool rt_window_calibration = getFlag_("rt_window_calibration");
         if (rt_window_calibration && !crossfit)
@@ -549,10 +568,37 @@ namespace OpenMS
             row.precursor_id = crossfit_rows[i].precursor_id;
             row.is_decoy = crossfit_rows[i].is_decoy;
             row.fold = crossfit_rows[i].fold;
-            row.features = OpenDIA::stage2Features(collector.intensities().data() + i * OpenDIA::TraceCollector::SAMPLE_SIZE,
-                                                   collector.libraryIntensities(i), collector.fragmentMZ(i), collector.evidence(i), extraction);
             const auto& s = scale.at(row.fold);
-            row.features[0] = (crossfit_rows[i].score - s.first) / s.second;
+            const double cnn_z = (crossfit_rows[i].score - s.first) / s.second;
+            if (!stage2_set.extraction)
+            {
+              row.features.push_back(cnn_z);
+            }
+            else
+            {
+              const auto extracted = OpenDIA::stage2Features(collector.intensities().data() + i * OpenDIA::TraceCollector::SAMPLE_SIZE,
+                                                             collector.libraryIntensities(i), collector.fragmentMZ(i), collector.evidence(i), extraction);
+              row.features.assign(extracted.begin(), extracted.end());
+              row.features[0] = cnn_z;
+            }
+            if (stage2_needs_search)
+            {
+              // Search peak-group evidence of the candidate this window was drawn from; identity and apex must agree.
+              const auto& window = collector.window(i);
+              const auto found = search_peaks.find(window.sample_id);
+              if (found == search_peaks.end() || found->second.precursor_id != window.precursor_id ||
+                  std::abs(found->second.rt_apex - window.apex_rt) > 1e-3)
+              {
+                throw std::invalid_argument("stage2_search_features has no matching candidate_row, precursor and apex for window " + window.sample_id);
+              }
+              const auto search = OpenDIA::stage2SearchFeatures(found->second);
+              row.features.insert(row.features.end(), search.begin(), search.end());
+            }
+            if (stage2_set.isotope)
+            {
+              const auto isotope = OpenDIA::stage2IsotopeFeatures(collector.evidence(i), collector.precursorMZ(i), collector.precursorCharge(i), extraction);
+              row.features.insert(row.features.end(), isotope.begin(), isotope.end());
+            }
             rows.push_back(row);
             row_window.push_back(i);
           }
@@ -562,13 +608,13 @@ namespace OpenMS
           stage2_options.iteration_fdr = getDoubleOption_("stage2_iteration_fdr");
           std::vector<OpenDIA::Stage2FoldReport> report;
           const auto lda = OpenDIA::crossfitStage2LDA(rows, getIntOption_("folds"), stage2_options, report);
-          const auto& names = OpenDIA::stage2FeatureNames();
+          const auto names = OpenDIA::stage2FeatureSetNames(stage2_set);
           writeLogInfo_("Experimental second stage: ms1_offset_ppm=" + std::to_string(extraction.ms1_offset_ppm) +
                         " ms2_offset_ppm=" + std::to_string(extraction.ms2_offset_ppm) + " windows=" + std::to_string(rows.size()));
           for (const auto& fold : report)
           {
             std::string weights;
-            for (std::size_t p = 0; p < OpenDIA::STAGE2_FEATURES; ++p) { weights += " " + names[p] + "=" + std::to_string(fold.weights[p]); }
+            for (std::size_t p = 0; p < names.size(); ++p) { weights += " " + names[p] + "=" + std::to_string(fold.weights[p]); }
             writeLogInfo_("Experimental second stage fold=" + std::to_string(fold.fold) + " iterations=" + std::to_string(fold.iterations) +
                           " positives=" + std::to_string(fold.positives) + " negatives=" + std::to_string(fold.negatives) + weights);
           }

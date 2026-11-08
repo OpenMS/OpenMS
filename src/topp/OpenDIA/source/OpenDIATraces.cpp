@@ -206,16 +206,26 @@ namespace OpenMS::OpenDIA
       double ppm_sum = 0.0, weight = 0.0;
       const double mono = sum_window(sample.precursor_mz, ppm_sum, weight);
       evidence.ms1[bin] += static_cast<float>(mono);
+      // Isotope envelope at the precursor charge: M+1 and M+2 traces over the window, M-1 and M+0..M+3 in the core.
+      std::array<double, 5> envelope{};
+      if (sample.precursor_charge > 0)
+      {
+        const double spacing = 1.0033548 / sample.precursor_charge;
+        for (int k = -1; k <= 3; ++k)
+        {
+          if (k == 0) { envelope[1] = mono; continue; }
+          double unused_sum = 0.0, unused_weight = 0.0;
+          envelope[k + 1] = sum_window(sample.precursor_mz + k * spacing, unused_sum, unused_weight);
+        }
+        evidence.ms1_isotope_traces[0][bin] += static_cast<float>(envelope[2]);
+        evidence.ms1_isotope_traces[1][bin] += static_cast<float>(envelope[3]);
+      }
       if (core)
       {
         evidence.ms1_ppm_sum += ppm_sum;
         evidence.ms1_weight += weight;
-        if (sample.precursor_charge > 0)
-        {
-          double unused_sum = 0.0, unused_weight = 0.0;
-          evidence.ms1_isotope += static_cast<float>(
-            sum_window(sample.precursor_mz + 1.0033548 / sample.precursor_charge, unused_sum, unused_weight));
-        }
+        evidence.ms1_isotope += static_cast<float>(envelope[2]);
+        for (std::size_t k = 0; k < envelope.size(); ++k) { evidence.ms1_isotope_core[k] += static_cast<float>(envelope[k]); }
       }
     }
   }

@@ -8,8 +8,12 @@
 
 #include "OpenDIAStage2.h"
 
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+
 #include <algorithm>
 #include <cmath>
+#include <fstream>
 #include <map>
 #include <numeric>
 #include <stdexcept>
@@ -227,10 +231,159 @@ namespace OpenMS::OpenDIA
     return f;
   }
 
+  Stage2FeatureSet parseStage2FeatureSet(const std::string& name)
+  {
+    Stage2FeatureSet set{false, false, false};
+    const std::string spec = name == "extraction_search" ? std::string("extraction+search") : name;
+    std::size_t start = 0;
+    while (true)
+    {
+      const std::size_t plus = spec.find('+', start);
+      const std::string group = spec.substr(start, plus == std::string::npos ? std::string::npos : plus - start);
+      bool* flag = group == "extraction" ? &set.extraction : group == "search" ? &set.search : group == "isotope" ? &set.isotope : nullptr;
+      if (flag == nullptr || *flag) throw std::invalid_argument("Unknown or repeated second-stage feature group '" + group + "' in " + name);
+      *flag = true;
+      if (plus == std::string::npos) break;
+      start = plus + 1;
+    }
+    return set;
+  }
+
+  const std::array<std::string, STAGE2_SEARCH_FEATURES>& stage2SearchFeatureNames()
+  {
+    static const std::array<std::string, STAGE2_SEARCH_FEATURES> names = {
+      "transition_support", "log_matched_scans", "log_peak_width", "abs_library_rt_error"};
+    return names;
+  }
+
+  std::vector<std::string> stage2FeatureSetNames(const Stage2FeatureSet& set)
+  {
+    std::vector<std::string> names;
+    if (set.extraction)
+    {
+      names.assign(stage2FeatureNames().begin(), stage2FeatureNames().end());
+    }
+    else
+    {
+      names.push_back(stage2FeatureNames()[0]);
+    }
+    if (set.search)
+    {
+      names.insert(names.end(), stage2SearchFeatureNames().begin(), stage2SearchFeatureNames().end());
+    }
+    if (set.isotope)
+    {
+      names.insert(names.end(), stage2IsotopeFeatureNames().begin(), stage2IsotopeFeatureNames().end());
+    }
+    return names;
+  }
+
+  const std::array<std::string, STAGE2_ISOTOPE_FEATURES>& stage2IsotopeFeatureNames()
+  {
+    static const std::array<std::string, STAGE2_ISOTOPE_FEATURES> names = {"ms1_isotope_correlation", "ms1_isotope_overlap", "ms1_isotope_coelution"};
+    return names;
+  }
+
+  std::array<double, STAGE2_ISOTOPE_FEATURES> stage2IsotopeFeatures(const TraceEvidence& evidence, double precursor_mz, int charge,
+                                                                    const Stage2ExtractionOptions& options)
+  {
+    std::array<double, STAGE2_ISOTOPE_FEATURES> f{};
+    if (charge <= 0 || !(precursor_mz > 0.0)) return f;
+    // Averagine pattern at the precursor mass (OpenSWATH uses the same model for its MS1 isotope scores).
+    const auto& averagine = DIAHelpers::averagineIsotopeDistribution(precursor_mz * charge, 4);
+    std::vector<double> observed, expected;
+    for (std::size_t k = 0; k < 4; ++k)
+    {
+      observed.push_back(evidence.ms1_isotope_core[k + 1]);
+      expected.push_back(k < averagine.size() ? averagine[k].getIntensity() : 0.0);
+    }
+    f[0] = observed[0] > 0.0 ? pearson(observed, expected) : 0.0;
+    const double mono = evidence.ms1_isotope_core[1];
+    f[1] = mono > 0.0 ? std::min(10.0, evidence.ms1_isotope_core[0] / mono) : (evidence.ms1_isotope_core[0] > 0.0 ? 10.0 : 0.0);
+    // M+1 and M+2 traces against M+0 over the core bins that had an MS1 scan.
+    const double width = 2.0 * options.rt_half_width / RT_BINS;
+    std::vector<double> m0, m1, m2;
+    for (std::size_t b = 0; b < RT_BINS; ++b)
+    {
+      const double centre = -options.rt_half_width + (b + 0.5) * width;
+      if (std::abs(centre) > options.core_half_width || !(evidence.ms1_mask >> b & 1u)) continue;
+      m0.push_back(evidence.ms1[b]);
+      m1.push_back(evidence.ms1_isotope_traces[0][b]);
+      m2.push_back(evidence.ms1_isotope_traces[1][b]);
+    }
+    if (m0.size() >= 3) f[2] = 0.5 * (pearson(m0, m1) + pearson(m0, m2));
+    return f;
+  }
+
+  std::array<double, STAGE2_SEARCH_FEATURES> stage2SearchFeatures(const SearchPeakFeatures& peak)
+  {
+    return {peak.transition_support, std::log1p(peak.matched_scans), std::log1p(peak.peak_width_seconds), peak.abs_rt_error_seconds};
+  }
+
+  std::unordered_map<std::string, SearchPeakFeatures> readSearchPeakFeatures(const std::string& path)
+  {
+    std::ifstream input(path);
+    if (!input.good()) throw std::invalid_argument("Could not open search features: " + path);
+    std::string line;
+    if (!std::getline(input, line)) throw std::invalid_argument("Search feature table is empty: " + path);
+    const auto split = [](std::string text)
+    {
+      if (!text.empty() && text.back() == '\r') text.pop_back();
+      std::vector<std::string> out;
+      std::size_t start = 0;
+      for (std::size_t tab; (tab = text.find('\t', start)) != std::string::npos; start = tab + 1) out.push_back(text.substr(start, tab - start));
+      out.push_back(text.substr(start));
+      return out;
+    };
+    const auto header = split(line);
+    const std::array<std::string, 8> names = {"candidate_row", "precursor_id", "rt_apex", "peak_width_seconds", "transition_support",
+                                             "matched_scans", "has_library_rt", "apex_rt_error_seconds"};
+    std::array<std::size_t, 8> at{};
+    for (std::size_t k = 0; k < names.size(); ++k)
+    {
+      const auto found = std::find(header.begin(), header.end(), names[k]);
+      if (found == header.end() || std::count(header.begin(), header.end(), names[k]) != 1)
+      {
+        throw std::invalid_argument("Search feature table needs exactly one column " + names[k]);
+      }
+      at[k] = static_cast<std::size_t>(found - header.begin());
+    }
+    const auto number = [](const std::string& text)
+    {
+      std::size_t used = 0;
+      const double value = std::stod(text, &used);
+      if (used != text.size() || !std::isfinite(value)) throw std::invalid_argument("Search feature value is not a finite number: " + text);
+      return value;
+    };
+    std::unordered_map<std::string, SearchPeakFeatures> out;
+    while (std::getline(input, line))
+    {
+      const auto values = split(line);
+      if (values.size() != header.size()) throw std::invalid_argument("Search feature row has a different column count than the header.");
+      SearchPeakFeatures peak;
+      peak.precursor_id = values[at[1]];
+      peak.rt_apex = number(values[at[2]]);
+      peak.peak_width_seconds = number(values[at[3]]);
+      peak.transition_support = number(values[at[4]]);
+      peak.matched_scans = number(values[at[5]]);
+      peak.abs_rt_error_seconds = number(values[at[6]]) != 0.0 ? std::abs(number(values[at[7]])) : 0.0;
+      if (peak.peak_width_seconds < 0.0 || peak.transition_support < 0.0 || peak.matched_scans < 0.0)
+      {
+        throw std::invalid_argument("Search feature counts and widths must be non-negative.");
+      }
+      if (!out.emplace(values[at[0]], std::move(peak)).second) throw std::invalid_argument("Duplicate candidate_row in search features: " + values[at[0]]);
+    }
+    return out;
+  }
+
   std::vector<double> crossfitStage2LDA(const std::vector<Stage2Row>& rows, int folds, const Stage2Options& options,
                                         std::vector<Stage2FoldReport>& report)
   {
-    constexpr std::size_t P = STAGE2_FEATURES;
+    if (rows.empty() || rows.front().features.empty())
+    {
+      throw std::invalid_argument("Second-stage LDA needs rows with at least one feature.");
+    }
+    const std::size_t P = rows.front().features.size();
     if (folds < 2 || options.iterations < 1 || !(options.initial_fdr > 0.0) || !(options.iteration_fdr > 0.0) ||
         !(options.ridge >= 0.0) || options.min_positives < 2)
     {
@@ -238,9 +391,9 @@ namespace OpenMS::OpenDIA
     }
     for (const auto& row : rows)
     {
-      if (row.fold < 0 || row.fold >= folds || row.precursor_id.empty())
+      if (row.fold < 0 || row.fold >= folds || row.precursor_id.empty() || row.features.size() != P)
       {
-        throw std::invalid_argument("Second-stage rows need a precursor id and a fold in 0..folds-1.");
+        throw std::invalid_argument("Second-stage rows need a precursor id, a fold in 0..folds-1 and the same feature count.");
       }
       for (double v : row.features)
       {
@@ -256,7 +409,7 @@ namespace OpenMS::OpenDIA
       if (train.empty() || test.empty()) throw std::invalid_argument("Every second-stage fold needs training and held-out rows.");
 
       // Standardise with the training rows' mean and SD (a constant feature keeps SD 1).
-      std::array<double, P> mean{}, sd{};
+      std::vector<double> mean(P, 0.0), sd(P, 0.0);
       for (std::size_t i : train) for (std::size_t p = 0; p < P; ++p) mean[p] += rows[i].features[p];
       for (std::size_t p = 0; p < P; ++p) mean[p] /= train.size();
       for (std::size_t i : train)
@@ -272,7 +425,7 @@ namespace OpenMS::OpenDIA
       for (std::size_t i : train) score[i] = rows[i].features[0];
       Stage2FoldReport fold_report;
       fold_report.fold = fold;
-      std::array<double, P> weights{};
+      std::vector<double> weights(P, 0.0);
       for (int iteration = 0; iteration < options.iterations; ++iteration)
       {
         std::vector<std::size_t> positives, negatives;
@@ -285,7 +438,7 @@ namespace OpenMS::OpenDIA
                                       std::to_string(negatives.size()) + " negatives; too few to fit.");
         }
         // Ridge LDA: w = (S_within + ridge I)^-1 (mu_pos - mu_neg) on standardised features.
-        std::array<double, P> mp{}, mn{};
+        std::vector<double> mp(P, 0.0), mn(P, 0.0);
         for (std::size_t i : positives) for (std::size_t p = 0; p < P; ++p) mp[p] += z(i, p);
         for (std::size_t i : negatives) for (std::size_t p = 0; p < P; ++p) mn[p] += z(i, p);
         for (std::size_t p = 0; p < P; ++p)
@@ -294,11 +447,11 @@ namespace OpenMS::OpenDIA
           mn[p] /= negatives.size();
         }
         std::vector<double> s(P * P, 0.0);
-        const auto add = [&](const std::vector<std::size_t>& set, const std::array<double, P>& mu)
+        const auto add = [&](const std::vector<std::size_t>& set, const std::vector<double>& mu)
         {
+          std::vector<double> d(P);
           for (std::size_t i : set)
           {
-            std::array<double, P> d{};
             for (std::size_t p = 0; p < P; ++p) d[p] = z(i, p) - mu[p];
             for (std::size_t p = 0; p < P; ++p) for (std::size_t q = 0; q < P; ++q) s[p * P + q] += d[p] * d[q];
           }
@@ -310,8 +463,7 @@ namespace OpenMS::OpenDIA
         for (std::size_t p = 0; p < P; ++p) s[p * P + p] += options.ridge;
         std::vector<double> diff(P);
         for (std::size_t p = 0; p < P; ++p) diff[p] = mp[p] - mn[p];
-        const auto w = solveSPD(s, diff, P);
-        std::copy(w.begin(), w.end(), weights.begin());
+        weights = solveSPD(s, diff, P);
         for (std::size_t i : train)
         {
           double v = 0.0;
