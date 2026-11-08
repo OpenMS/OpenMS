@@ -82,3 +82,8 @@ Code: `07ed9580e4` and `edc775d6bc`. Every option is opt-in, and the HeLa defaul
 **Decision:** grid2d plus stage 2 `search` stays frozen, and TOPAZ stays experimental. Raw 01 has now been used for four TOPAZ arms, so the next step should not be another raw 01 tweak. Options:
 1. A second design run, or a fresh Astral replicate, for MIL with a symmetry guard at the 0.05 cut.
 2. Feeding MIL-scale positives into seeds training (PyProphet-style iteration with a compact model).
+
+**Port fidelity** ([`FIDELITY.md`](../gates/astral-raw01-cnn-topaz/FIDELITY.md))
+- **Architecture: faithful.** A Rust-vs-C++ harness on identical inputs reproduces TOPAZ's co-elution head and MS1/MS2 agreement features to within 1e-6, with identical parameter counts per block.
+- **Training regime: not faithful.** TOPAZ max-normalises each trace block before the dual view (`normalize_max: true`). It also uses cosine LR warm-up, gradient clipping and auxiliary pairwise and in-bag ranking losses. The OpenDIACNN arms had none of these.
+- **Reading:** the failures on raw 01 tested this port's training regime, not TOPAZ as specified. The next TOPAZ variant should adopt these defaults as one declared change, on an unspent design run.
