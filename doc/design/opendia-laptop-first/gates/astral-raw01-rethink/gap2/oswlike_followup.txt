@@ -1,0 +1,95 @@
+  avg = a.mean(axis, **keepdims_kw)
+  ret = um.true_divide(
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+  c *= np.true_divide(1, fact)
+  c *= np.true_divide(1, fact)
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+  avg = a.mean(axis, **keepdims_kw)
+  ret = um.true_divide(
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+  c *= np.true_divide(1, fact)
+  c *= np.true_divide(1, fact)
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+  avg = a.mean(axis, **keepdims_kw)
+  ret = um.true_divide(
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+  c *= np.true_divide(1, fact)
+  c *= np.true_divide(1, fact)
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+  avg = a.mean(axis, **keepdims_kw)
+  ret = um.true_divide(
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+  c *= np.true_divide(1, fact)
+  c *= np.true_divide(1, fact)
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+  avg = a.mean(axis, **keepdims_kw)
+  ret = um.true_divide(
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+  c *= np.true_divide(1, fact)
+  c *= np.true_divide(1, fact)
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+  avg = a.mean(axis, **keepdims_kw)
+  ret = um.true_divide(
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+  c *= np.true_divide(1, fact)
+  c *= np.true_divide(1, fact)
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+  avg = a.mean(axis, **keepdims_kw)
+  ret = um.true_divide(
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+  c *= np.true_divide(1, fact)
+  c *= np.true_divide(1, fact)
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+  avg = a.mean(axis, **keepdims_kw)
+  ret = um.true_divide(
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+  c *= np.true_divide(1, fact)
+  c *= np.true_divide(1, fact)
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+  avg = a.mean(axis, **keepdims_kw)
+  ret = um.true_divide(
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+  c *= np.true_divide(1, fact)
+  c *= np.true_divide(1, fact)
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+  avg = a.mean(axis, **keepdims_kw)
+  ret = um.true_divide(
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+  c *= np.true_divide(1, fact)
+  c *= np.true_divide(1, fact)
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+  avg = a.mean(axis, **keepdims_kw)
+  ret = um.true_divide(
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+  c *= np.true_divide(1, fact)
+  c *= np.true_divide(1, fact)
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+  avg = a.mean(axis, **keepdims_kw)
+  ret = um.true_divide(
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+  c *= np.true_divide(1, fact)
+  c *= np.true_divide(1, fact)
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+  avg = a.mean(axis, **keepdims_kw)
+  ret = um.true_divide(
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+  c *= np.true_divide(1, fact)
+  c *= np.true_divide(1, fact)
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+  avg = a.mean(axis, **keepdims_kw)
+  ret = um.true_divide(
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+  c *= np.true_divide(1, fact)
+  c *= np.true_divide(1, fact)
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+  avg = a.mean(axis, **keepdims_kw)
+  ret = um.true_divide(
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+  c *= np.true_divide(1, fact)
+  c *= np.true_divide(1, fact)
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+A. minus xcorr, SS initialised on lib_dotprod
+  LDA minus xcorr (init lib_dotprod)         q<=0.01: 0 (conf-right 0, FDP_c 0.000) | q<=0.05: 0 (conf-right 0, FDP_c 0.000) | N at FDP_c<=0.5/1/1.5/2%: [7, 7, 7, 7]
+B. our search candidates: 2228333 | confirmed precursors with the right peak among them 2424 of 2754
+  LDA all 20 on our search candidates        q<=0.01: 1023 (conf-right 984, FDP_c 0.010) | q<=0.05: 1402 (conf-right 1251, FDP_c 0.069) | N at FDP_c<=0.5/1/1.5/2%: [962, 1023, 1028, 1080]
+  MLP all 20 on our search candidates        q<=0.01: 1092 (conf-right 1047, FDP_c 0.009) | q<=0.05: 1460 (conf-right 1314, FDP_c 0.054) | N at FDP_c<=0.5/1/1.5/2%: [920, 1110, 1196, 1242]
