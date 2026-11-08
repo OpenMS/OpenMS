@@ -41,6 +41,10 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 #include <arrow/api.h>
+#include <arrow/io/file.h>
+#include <parquet/arrow/reader.h>
+#include <parquet/arrow/writer.h>
+#include <parquet/properties.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -1176,6 +1180,64 @@ START_SECTION([EXTRA] importFromParquet - definitions are registered from search
   TEST_TRUE(ConsensusMapArrowIO::importFromParquet(dir, in))
   TEST_TRUE(db->hasDefinedModification("TestCMap:Fresh"))
   File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION([EXTRA] importFromParquet - column header JSON with unexpected value types)
+{
+  // "size" is a number and "metavalues" an array when OpenMS writes them. Other values must be
+  // skipped: no std::invalid_argument from std::stoull, and the fields and column headers after
+  // them are still read.
+  ConsensusMap cmap;
+  ConsensusFeature cf;
+  cf.setRT(100.0);
+  cf.setMZ(500.0);
+  cf.setUniqueId(5);
+  cmap.push_back(cf);
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_1");
+  cmap.setProteinIdentifications({prot_id});
+  ConsensusMap::ColumnHeader ch;
+  ch.filename = "a.mzML";
+  ch.size = 1;
+  cmap.getColumnHeaders()[0] = ch;
+  ch.filename = "b.mzML";
+  cmap.getColumnHeaders()[1] = ch;
+
+  std::string tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".cmd";
+  TEST_EQUAL(ConsensusMapArrowIO::exportToParquet(cmap, tmp_dir), true)
+
+  const std::string features_file = tmp_dir + "/consensus_features.parquet";
+  std::shared_ptr<arrow::Table> table;
+  {
+    auto infile = arrow::io::ReadableFile::Open(features_file).ValueOrDie();
+    auto reader = parquet::arrow::OpenFile(infile, arrow::default_memory_pool()).ValueOrDie();
+    TEST_EQUAL(reader->ReadTable(&table).ok(), true)
+  }
+  const std::string column_headers =
+    std::string("[{\"map_index\":0,\"filename\":\"a.mzML\",\"size\":null,\"metavalues\":null,\"label\":\"L0\"},")
+    + "{\"map_index\":1,\"filename\":\"b.mzML\",\"label\":\"L1\",\"size\":1,\"metavalues\":[]}]";
+  auto md = table->schema()->metadata() ? table->schema()->metadata()->Copy() : std::make_shared<arrow::KeyValueMetadata>();
+  TEST_EQUAL(md->Set("column_headers", column_headers).ok(), true)
+  table = table->ReplaceSchemaMetadata(md);
+  {
+    auto outfile = arrow::io::FileOutputStream::Open(features_file).ValueOrDie();
+    auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
+    TEST_EQUAL(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024,
+                                          parquet::default_writer_properties(), arrow_props).ok(), true)
+    TEST_EQUAL(outfile->Close().ok(), true)
+  }
+
+  ConsensusMap imported;
+  TEST_EQUAL(ConsensusMapArrowIO::importFromParquet(tmp_dir, imported), true)
+  const ConsensusMap::ColumnHeaders& headers = imported.getColumnHeaders();
+  TEST_EQUAL(headers.size(), 2)
+  ABORT_IF(headers.size() != 2)
+  TEST_EQUAL(headers.at(0).label, "L0")
+  TEST_EQUAL(headers.at(1).filename, "b.mzML")
+  TEST_EQUAL(headers.at(1).label, "L1")
 }
 END_SECTION
 

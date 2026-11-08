@@ -314,6 +314,10 @@ std::vector<DataProcessing> deserializeDataProcessing(const std::string& json, c
             if (pos == value_start) { pos = json.size(); break; } // stray '}' or similar: malformed, give up
           }
         }
+        else
+        {
+          skipJsonValue(json, pos); // not an array: ignore, keep parsing
+        }
       }
       else if (key == "metavalues")
       {
@@ -386,11 +390,13 @@ std::string serializeMetaValues(const MetaInfoInterface& mii)
 
 /// Parse the JSON array of {name, value, type} objects that starts at @p pos (at its '[') into
 /// @p target and advance @p pos past it. Per-entry type mismatches fall back to the raw string
-/// value; unknown keys are skipped whatever their value; malformed input stops the parse.
+/// value; unknown keys, a non-array value and entries that are not objects are skipped;
+/// malformed input stops the parse.
 void parseMetaValueArray(const std::string& json, size_t& pos, MetaInfoInterface& target)
 {
   skipWhitespace(json, pos);
-  if (pos >= json.size() || json[pos] != '[') return;
+  if (pos >= json.size()) return;
+  if (json[pos] != '[') { skipJsonValue(json, pos); return; } // not an array: ignore, keep parsing
   ++pos;
 
   while (pos < json.size())
@@ -398,7 +404,13 @@ void parseMetaValueArray(const std::string& json, size_t& pos, MetaInfoInterface
     skipWhitespace(json, pos);
     if (pos >= json.size() || json[pos] == ']') { ++pos; break; }
     if (json[pos] == ',') { ++pos; continue; }
-    if (json[pos] != '{') break;
+    if (json[pos] != '{')
+    {
+      const size_t value_start = pos;
+      skipJsonValue(json, pos); // an entry that is not an object: ignore it
+      if (pos == value_start) { pos = json.size(); break; } // stray '}' or similar: malformed, give up
+      continue;
+    }
     ++pos;
 
     std::string mv_name, mv_value, mv_type;

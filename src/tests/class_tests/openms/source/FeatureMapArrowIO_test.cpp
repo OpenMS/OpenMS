@@ -1244,6 +1244,61 @@ START_SECTION([EXTRA] importFromParquet - metadata JSON with non-string fields f
 }
 END_SECTION
 
+START_SECTION([EXTRA] importFromParquet - metadata JSON with non-array values of array fields)
+{
+  // "actions" and "metavalues" are arrays when OpenMS writes them. Another value (null, an object)
+  // or a metavalue entry that is not an object must be skipped, like a non-string value of a string
+  // field, without dropping the fields and DataProcessing entries after it.
+  FeatureMap fm;
+  Feature f;
+  f.setRT(100.0);
+  f.setMZ(500.0);
+  f.setUniqueId(7);
+  fm.push_back(f);
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_1");
+  fm.setProteinIdentifications({prot_id});
+
+  std::string tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".fmd";
+  TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm, tmp_dir), true)
+
+  const std::string features_file = tmp_dir + "/features.parquet";
+  std::shared_ptr<arrow::Table> table;
+  {
+    auto infile = arrow::io::ReadableFile::Open(features_file).ValueOrDie();
+    auto reader = parquet::arrow::OpenFile(infile, arrow::default_memory_pool()).ValueOrDie();
+    TEST_EQUAL(reader->ReadTable(&table).ok(), true)
+  }
+  const std::string data_processing =
+    std::string("[{\"software_name\":\"A\",\"actions\":null,\"software_version\":\"1.0\"},")
+    + "{\"software_name\":\"B\",\"metavalues\":{},\"software_version\":\"2.0\"},"
+    + "{\"software_name\":\"C\",\"metavalues\":[7,{\"name\":\"x\",\"value\":\"1\",\"type\":\"int\"}],"
+    + "\"software_version\":\"3.0\"}]";
+  auto md = table->schema()->metadata() ? table->schema()->metadata()->Copy() : std::make_shared<arrow::KeyValueMetadata>();
+  TEST_EQUAL(md->Set("data_processing", data_processing).ok(), true)
+  table = table->ReplaceSchemaMetadata(md);
+  {
+    auto outfile = arrow::io::FileOutputStream::Open(features_file).ValueOrDie();
+    auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
+    TEST_EQUAL(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024,
+                                          parquet::default_writer_properties(), arrow_props).ok(), true)
+    TEST_EQUAL(outfile->Close().ok(), true)
+  }
+
+  FeatureMap imported;
+  TEST_EQUAL(FeatureMapArrowIO::importFromParquet(tmp_dir, imported), true)
+  const std::vector<DataProcessing>& dps = imported.getDataProcessing();
+  TEST_EQUAL(dps.size(), 3)
+  ABORT_IF(dps.size() != 3)
+  TEST_EQUAL(dps[0].getSoftware().getVersion(), "1.0")
+  TEST_EQUAL(dps[1].getSoftware().getVersion(), "2.0")
+  TEST_EQUAL(dps[2].getSoftware().getVersion(), "3.0")
+  TEST_TRUE(dps[2].metaValueExists("x"))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 // PSM completeness round-trip test
 /////////////////////////////////////////////////////////////

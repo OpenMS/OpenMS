@@ -105,9 +105,19 @@ namespace // anonymous
           {
             num_str += json[pos++];
           }
-          if (key == "map_index") map_index = std::stoull(num_str);
-          else if (key == "size") header.size = std::stoull(num_str);
-          else if (key == "unique_id") header.unique_id = std::stoull(num_str);
+          if (num_str.empty()) // not a number (null, string, ...): ignore, keep parsing
+          {
+            Internal::ArrowFileIO::skipJsonValue(json, pos);
+            continue;
+          }
+          try
+          {
+            if (key == "map_index") map_index = std::stoull(num_str);
+            else if (key == "size") header.size = std::stoull(num_str);
+            else if (key == "unique_id") header.unique_id = std::stoull(num_str);
+          }
+          catch (...) {} // out of range or just "-": ignore
+          Internal::ArrowFileIO::skipJsonValue(json, pos); // rest of a non-integer number such as 1.5
         }
         else if (key == "metavalues")
         {
