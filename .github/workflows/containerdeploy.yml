@@ -263,28 +263,30 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      # SingularityCE is archived (final release 4.6.0) and does not build with GCC 15;
-      # Apptainer is its maintained successor and builds/pushes the same .sif images.
+      # SingularityCE has reached end of life at Sylabs (4.6.0 is the last planned release) and
+      # 3.x does not build with GCC 15; Apptainer builds/pushes the same .sif images.
+      # setup-apptainer v3 installs unprivileged into the tool cache and only adds it to the
+      # step PATH, so the builds below must run without sudo (sudo resets PATH via secure_path).
       - name: Install Apptainer
-        uses: eWaterCycle/setup-apptainer@v2
+        uses: eWaterCycle/setup-apptainer@v3
         with:
-          apptainer-version: 1.4.4
+          apptainer-version: latest
       - name: Build Singularity library image
         shell: bash
         run: |
-            sudo apptainer build library.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-library:${{ needs.deploy-docker.outputs.tag_name }}
+            apptainer build library.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-library:${{ needs.deploy-docker.outputs.tag_name }}
       - name: Build Singularity tools image
         shell: bash
         run: |
-            sudo apptainer build executables.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-executables:${{ needs.deploy-docker.outputs.tag_name }}
+            apptainer build executables.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-executables:${{ needs.deploy-docker.outputs.tag_name }}
       - name: Build Singularity tools + thirdparty image
         shell: bash
         run: |
-            sudo apptainer build executables-thirdparty.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-tools-thirdparty:${{ needs.deploy-docker.outputs.tag_name }}
+            apptainer build executables-thirdparty.sif docker://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-tools-thirdparty:${{ needs.deploy-docker.outputs.tag_name }}
       - name: Upload Singularity images to ghcr.io
         shell: bash
         run: |
-            echo ${{ secrets.GITHUB_TOKEN }} | apptainer remote login -u jpfeuffer --password-stdin oras://ghcr.io
+            echo ${{ secrets.GITHUB_TOKEN }} | apptainer registry login -u jpfeuffer --password-stdin oras://ghcr.io
             apptainer push library.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-library-sif:${{ needs.deploy-docker.outputs.tag_name }}
             apptainer push executables.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-executables-sif:${{ needs.deploy-docker.outputs.tag_name }}
             apptainer push executables-thirdparty.sif oras://ghcr.io/${{ needs.deploy-docker.outputs.downcase_repo }}-tools-thirdparty-sif:${{ needs.deploy-docker.outputs.tag_name }}
