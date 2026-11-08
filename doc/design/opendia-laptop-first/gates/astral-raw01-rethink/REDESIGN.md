@@ -44,6 +44,43 @@ Even with perfect labels, the current features recover about 1100 of the 2449 fi
 - **Teacher-free refit, first try** (`rtrefit.py`): our 746 accepted IDs, ridge on sequence composition and a calibrated-RT cubic, cross-fitted. σ went from 29.4 to 25.7 s on held-out confirmed precursors. A composition model is too weak. The remaining error is per-peptide error in the library prediction, and a global map cannot remove it.
 - **Pretrained redeem `rt_cnn_tf`** on the same precursors gives σ 137 s against 25.6 s for the library RT, with correlation 0.78 to the library RT. This is probably an input-format or normalisation mismatch and has not been investigated. Fine-tuning on our 614 IDs crashed in redeem at epoch 0: `save_epoch_checkpoint` computes `epoch - 1`, which underflows in a debug build.
 
+## Validation of the two levers (follow-up, raw 01)
+
+### RT lever with a teacher-free score (`rtlever_tf.py`)
+
+The base score here is the tool's own stage-2 score (search+boundary LDA, no DIA-NN information), standardised by the decoy-winner median and MAD. The same optimistic asymmetry applies: only confirmed targets get a better RT centre.
+
+| predictor noise | 24 s (current) | 12 s | 6 s | 3 s |
+|---|---|---|---|---|
+| Gaussian, 3 seeds | 757 | 1115–1142 | 1209–1216 | 1406–1414 |
+| Student-t 3 dof (heavy tails), 3 seeds | 757 | 658–1025 | 1051–1086 | 1275–1308 |
+
+The base without an RT term gives 746.
+
+**Control:** narrowing the window with library RT centres for everyone collapses the result (12 s gives 404, 6 s gives 131). The gain comes from better centres, not from a narrower window, and a too-narrow prior around a bad centre is harmful.
+
+**Reading:**
+
+- The RT lever holds without oracle labels. It is about +50% at 12 s and about +60% at 6 s on the teacher-free score.
+- Heavy tails cost 10–20% and make one seed unstable at 12 s. So an RT term needs a robust (heavy-tailed) likelihood, plus a σ estimated in-run from the residuals of confident IDs.
+- Both simulations still overstate the gain, because only confirmed precursors get the better centre. The absolute numbers are upper bounds. The direction and the ranking of levers hold.
+
+### Fragment count (`frag_compare.py`, `frag4_run.sh`)
+
+The search was run identically on a copy of the library reduced to the top-4 transitions per precursor. The CNN and stage 2 were not run. The oracle uses search-level features only (support, scans, width, |RT error|, apex and area), fully supervised, 2 seeds.
+
+| library | candidates | confirmed with a candidate within 10 s | oracle q ≤ 0.01 | oracle q ≤ 0.05 |
+|---|---|---|---|---|
+| 6 transitions | 2.82M | 2449 | 630 / 822 | 1562–1597 |
+| top-4 | 2.10M | 2441 | 0 / 0 | 415–526 |
+
+- Finding the peak barely depends on fragment count (2441 against 2449).
+- Discrimination depends on it very strongly: at 5%, going from 6 to 4 loses about 70%, and at 1% nothing survives.
+- This is consistent with fragment count being a major evidence lever. Going from 6 to 12 should add a lot, but this is extrapolation and has not been measured. It needs a regenerated library with 12 predicted transitions (and decoys).
+- The 1% oracle on search features alone is seed-unstable (630 against 822). The 5% numbers are the stable comparison.
+
+**Updated lever ranking:** RT centre precision and fragment count are both large and independent. Combiner flexibility is smaller (730 to about 1000). The redesign therefore moves the 12-transition library from step 4 ("if plateau") to run in parallel with the RT loop.
+
 ## Redesign
 
 The redesign makes one pipeline, iterative like DIA-NN, with no opt-in stages:
@@ -64,7 +101,8 @@ The redesign makes one pipeline, iterative like DIA-NN, with no opt-in stages:
 
 ## Experiment order (each one predeclared, design on raws 01 and 02, raw 03 for the gate)
 
-1. **RT predictor sanity:** fix the redeem input or normalisation and the epoch-0 crash, then measure pretrained and fine-tuned σ on held-out confirmed precursors. Pass: σ ≤ 12 s.
+1. **RT predictor sanity:** fix the redeem input or normalisation and the epoch-0 crash, then measure pretrained and fine-tuned σ on held-out confirmed precursors. Pass: σ ≤ 12 s with a robust (Student-t) RT likelihood.
+1b. **In parallel:** regenerate the library with 12 predicted transitions per precursor (same peptides, same decoy method), then measure the search funnel and the search-feature oracle against 6 transitions.
 2. **Offline end-to-end:** current features plus the RT term from the fine-tuned predictor, one MLP scorer, entrapment FDP_c on raws 01 and 02.
 3. **Native implementation** of the unified scorer and the RT loop, removing the stage-2 opt-ins.
-4. **Fragments and MS1 isotopes**, if steps 1–3 plateau below target.
+4. **MS1 isotope traces in the CNN**, if steps 1–3 plateau below target.

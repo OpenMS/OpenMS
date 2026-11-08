@@ -1,0 +1,6 @@
+6 transitions: candidates 2815555 | confirmed with any candidate 2741 | within 10 s 2449
+   oracle(search features) seed 0: q<=0.01 / 0.05 (accepted, confirmed-right) = [(630, 606), (1597, 1377)]
+   oracle(search features) seed 1: q<=0.01 / 0.05 (accepted, confirmed-right) = [(822, 789), (1562, 1367)]
+top-4 transitions: candidates 2104757 | confirmed with any candidate 2726 | within 10 s 2441
+   oracle(search features) seed 0: q<=0.01 / 0.05 (accepted, confirmed-right) = [(0, 0), (415, 379)]
+   oracle(search features) seed 1: q<=0.01 / 0.05 (accepted, confirmed-right) = [(0, 0), (526, 478)]

@@ -1,0 +1,11 @@
+base teacher-free (in_rt_window only, no RT term): (746, 730)
+gauss sigma 24.0: (accepted, confirmed-right) per seed [(757, 738)]
+gauss sigma 12.0: (accepted, confirmed-right) per seed [(1142, 1101), (1130, 1091), (1115, 1075)]
+gauss sigma  6.0: (accepted, confirmed-right) per seed [(1216, 1191), (1211, 1187), (1209, 1186)]
+gauss sigma  3.0: (accepted, confirmed-right) per seed [(1414, 1390), (1406, 1382), (1408, 1384)]
+t3    sigma 24.0: (accepted, confirmed-right) per seed [(757, 738)]
+t3    sigma 12.0: (accepted, confirmed-right) per seed [(1002, 971), (658, 650), (1025, 991)]
+t3    sigma  6.0: (accepted, confirmed-right) per seed [(1064, 1046), (1051, 1032), (1086, 1067)]
+t3    sigma  3.0: (accepted, confirmed-right) per seed [(1302, 1278), (1275, 1254), (1308, 1285)]
+control library centres, sigma 12.0: (404, 401)
+control library centres, sigma 6.0: (131, 130)
