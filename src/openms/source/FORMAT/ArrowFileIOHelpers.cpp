@@ -239,6 +239,14 @@ void skipJsonValue(const std::string& s, size_t& pos)
   while (pos < s.size() && s[pos] != ',' && s[pos] != '}' && s[pos] != ']') ++pos;
 }
 
+std::string parseJsonStringOrSkip(const std::string& s, size_t& pos)
+{
+  skipWhitespace(s, pos);
+  if (pos < s.size() && s[pos] == '"') return parseJsonString(s, pos);
+  skipJsonValue(s, pos); // not a string (number, literal, array, object): ignore, keep parsing
+  return {};
+}
+
 /// Deserialize a JSON string into a vector of DataProcessing.
 std::vector<DataProcessing> deserializeDataProcessing(const std::string& json, const char* context)
 {
@@ -279,15 +287,15 @@ std::vector<DataProcessing> deserializeDataProcessing(const std::string& json, c
 
       if (key == "software_name")
       {
-        software_name = parseJsonString(json, pos);
+        software_name = parseJsonStringOrSkip(json, pos);
       }
       else if (key == "software_version")
       {
-        software_version = parseJsonString(json, pos);
+        software_version = parseJsonStringOrSkip(json, pos);
       }
       else if (key == "completion_time")
       {
-        completion_time = parseJsonString(json, pos);
+        completion_time = parseJsonStringOrSkip(json, pos);
       }
       else if (key == "actions")
       {
@@ -300,8 +308,10 @@ std::vector<DataProcessing> deserializeDataProcessing(const std::string& json, c
             skipWhitespace(json, pos);
             if (pos >= json.size() || json[pos] == ']') { ++pos; break; }
             if (json[pos] == ',') { ++pos; continue; }
-            if (json[pos] == '"') { action_names.push_back(parseJsonString(json, pos)); }
-            else { skipJsonValue(json, pos); } // not a string: ignore
+            if (json[pos] == '"') { action_names.push_back(parseJsonString(json, pos)); continue; }
+            const size_t value_start = pos;
+            skipJsonValue(json, pos); // not a string: ignore
+            if (pos == value_start) { pos = json.size(); break; } // stray '}' or similar: malformed, give up
           }
         }
       }
@@ -405,9 +415,9 @@ void parseMetaValueArray(const std::string& json, size_t& pos, MetaInfoInterface
       if (pos < json.size() && json[pos] == ':') ++pos;
       skipWhitespace(json, pos);
 
-      if (mk == "name") mv_name = parseJsonString(json, pos);
-      else if (mk == "value") mv_value = parseJsonString(json, pos);
-      else if (mk == "type") mv_type = parseJsonString(json, pos);
+      if (mk == "name") mv_name = parseJsonStringOrSkip(json, pos);
+      else if (mk == "value") mv_value = parseJsonStringOrSkip(json, pos);
+      else if (mk == "type") mv_type = parseJsonStringOrSkip(json, pos);
       else skipJsonValue(json, pos);
     }
 

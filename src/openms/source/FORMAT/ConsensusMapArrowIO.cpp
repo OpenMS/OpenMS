@@ -115,11 +115,11 @@ namespace // anonymous
         }
         else if (key == "filename")
         {
-          header.filename = Internal::ArrowFileIO::parseJsonString(json, pos);
+          header.filename = Internal::ArrowFileIO::parseJsonStringOrSkip(json, pos);
         }
         else if (key == "label")
         {
-          header.label = Internal::ArrowFileIO::parseJsonString(json, pos);
+          header.label = Internal::ArrowFileIO::parseJsonStringOrSkip(json, pos);
         }
         else
         {

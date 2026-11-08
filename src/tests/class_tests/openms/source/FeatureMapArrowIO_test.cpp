@@ -1206,8 +1206,11 @@ START_SECTION([EXTRA] importFromParquet - metadata JSON with non-string fields f
     std::string("[{\"schema\":2,\"software_name\":\"Tool\",\"flags\":[1,true,null],")
     + "\"actions\":[\"" + peak_picking + "\",3],"
     + "\"nested\":{\"a\":[\"]\",\"}\"],\"b\":{}},"
-    + "\"metavalues\":[{\"name\":\"big\",\"value\":\"5000000000\",\"type\":\"int\",\"extra\":{\"x\":[1,2]}}],"
-    + "\"software_version\":\"1.0\"}]";
+    + "\"metavalues\":[{\"name\":\"num\",\"value\":5,\"type\":\"string\"},"
+    + "{\"name\":\"big\",\"value\":\"5000000000\",\"type\":\"int\",\"extra\":{\"x\":[1,2]}}],"
+    + "\"software_version\":\"1.0\"},"
+    // malformed: a stray '}' in the actions array must not hang the import either
+    + "{\"software_name\":\"Bad\",\"actions\":[}]}]";
   const std::string fmap_metavalues =
     "[{\"note\":null,\"name\":\"spectra_count\",\"value\":\"6000000000\",\"type\":\"int\",\"w\":-1.5e3}]";
   auto md = table->schema()->metadata() ? table->schema()->metadata()->Copy() : std::make_shared<arrow::KeyValueMetadata>();
@@ -1225,12 +1228,13 @@ START_SECTION([EXTRA] importFromParquet - metadata JSON with non-string fields f
   FeatureMap imported;
   TEST_EQUAL(FeatureMapArrowIO::importFromParquet(tmp_dir, imported), true)
   TEST_EQUAL(imported.size(), 1)
-  ABORT_IF(imported.getDataProcessing().size() != 1)
+  ABORT_IF(imported.getDataProcessing().empty())
   const DataProcessing& dp = imported.getDataProcessing()[0];
   TEST_EQUAL(dp.getSoftware().getName(), "Tool")
   TEST_EQUAL(dp.getSoftware().getVersion(), "1.0") // after all the skipped values
   TEST_EQUAL(dp.getProcessingActions().size(), 1)
   TEST_EQUAL(dp.getProcessingActions().count(DataProcessing::PEAK_PICKING), 1)
+  TEST_EQUAL(dp.metaValueExists("num"), true) // non-string value of a known key: skipped, not fatal
   TEST_EQUAL(dp.metaValueExists("big"), true)
   TEST_EQUAL(dp.getMetaValue("big").valueType(), DataValue::INT_VALUE)
   TEST_EQUAL(static_cast<Int64>(dp.getMetaValue("big")), 5000000000LL)

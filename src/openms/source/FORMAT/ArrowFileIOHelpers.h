@@ -66,6 +66,10 @@ namespace OpenMS
       /// Used for unknown keys, so that fields added by other writers are ignored.
       void skipJsonValue(const std::string& s, size_t& pos);
 
+      /// The JSON string at @p pos, advancing past it; for any other kind of value, skip it and
+      /// return "". For known keys whose value another writer may have written as a non-string.
+      std::string parseJsonStringOrSkip(const std::string& s, size_t& pos);
+
       /// Serialize DataProcessing entries to a JSON array.
       std::string serializeDataProcessing(const std::vector<DataProcessing>& dps);
 
