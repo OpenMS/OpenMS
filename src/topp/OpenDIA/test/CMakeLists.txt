@@ -21,6 +21,10 @@ add_executable(OpenDIACalibration_test OpenDIACalibration_test.cpp)
 target_link_libraries(OpenDIACalibration_test PRIVATE OpenDIA_impl)
 add_test(NAME OpenDIACalibration_test COMMAND OpenDIACalibration_test)
 
+add_executable(OpenDIAPeakMaps_test OpenDIAPeakMaps_test.cpp)
+target_link_libraries(OpenDIAPeakMaps_test PRIVATE OpenDIA_impl)
+add_test(NAME OpenDIAPeakMaps_test COMMAND OpenDIAPeakMaps_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
 if(TARGET OpenDIA_cnn)
   add_executable(OpenDIACNN_test OpenDIACNN_test.cpp)
   target_link_libraries(OpenDIACNN_test PRIVATE OpenDIA_cnn)
@@ -109,4 +113,20 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML" A
       -out ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_feature_table_smoke.tsv
       -features_out ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_feature_table_smoke.features.tsv
       -min_transitions 1)
+  # -out_xipm writes the OpenSWATH peak-map Parquet file and refuses to share a path with -out.
+  add_test(NAME OpenDIA_xipm_smoke
+    COMMAND $<TARGET_FILE:OpenDIA>
+      -in ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML
+      -lib ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
+      -out ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_xipm_smoke.tsv
+      -out_xipm ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_xipm_smoke.xipm
+      -min_transitions 1)
+  add_test(NAME OpenDIA_xipm_rejects_shared_path
+    COMMAND $<TARGET_FILE:OpenDIA>
+      -in ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML
+      -lib ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
+      -out ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_xipm_shared.xipm
+      -out_xipm ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_xipm_shared.xipm
+      -min_transitions 1)
+  set_tests_properties(OpenDIA_xipm_rejects_shared_path PROPERTIES WILL_FAIL TRUE)
 endif()

@@ -7,11 +7,14 @@
 // --------------------------------------------------------------------------
 
 #include "OpenDIACalibration.h"
+#include "OpenDIAPeakMaps.h"
 #include "OpenDIASearch.h"
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/DATAACCESS/XIPMParquetConsumer.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 
 #include <algorithm>
@@ -19,6 +22,7 @@
 #include <fstream>
 #include <optional>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -80,6 +84,23 @@ protected:
     setMinInt_("max_apexes_per_group", 1);
     registerDoubleOption_("min_apex_separation", "<seconds>", 10.0, "Minimum RT distance between reported apexes of one peak group", false);
     setMinFloat_("min_apex_separation", 0.0);
+
+    // Inspection side channel: raw targeted peak maps in the OpenSWATH .xipm Parquet schema. Off by default;
+    // the search output does not depend on it.
+    registerOutputFile_("out_xipm", "<file>", "", "Optional: raw MS1 and MS2 m/z, RT, 1/K0 and intensity points of selected precursors "
+                        "as an OpenSWATH peak-map Parquet file (.xipm), for inspecting extractions. Does not change -out.", false);
+    setValidFormats_("out_xipm", {"xipm"});
+    registerInputFile_("xipm_precursors", "<file>", "", "Text file of PQP precursor IDs (one per line, '#' comments) to export with -out_xipm. "
+                       "Empty exports every precursor, which can need tens of GB on a full library.", false);
+    registerDoubleOption_("xipm_rt_window", "<seconds>", -1.0, "Half width of the exported RT range around the (calibrated) library RT. "
+                          "-1 uses the search RT window plus 30 s; 0 exports the whole run.", false);
+    setMinFloat_("xipm_rt_window", -1.0);
+    registerDoubleOption_("xipm_mz_tolerance", "<ppm>", 20.0, "Half width of every exported m/z window in ppm", false);
+    setMinFloat_("xipm_mz_tolerance", 0.0);
+    registerDoubleOption_("xipm_im_window", "<1/K0>", 0.0, "Half width of the exported 1/K0 range around the library mobility; 0 keeps every mobility", false);
+    setMinFloat_("xipm_im_window", 0.0);
+    registerIntOption_("xipm_ms1_isotopes", "<n>", 2, "MS1 isotopes exported after the monoisotope", false);
+    setMinInt_("xipm_ms1_isotopes", 0);
   }
 
   ExitCodes main_(int, const char**) override
@@ -206,13 +227,124 @@ protected:
       feature_stream = &features;
     }
 
+    // Optional peak-map export, built before the search consumes the queries.
+    const std::string xipm_path = getStringOption_("out_xipm");
+    std::unique_ptr<XIPMParquetConsumer> xipm_writer;
+    std::unique_ptr<OpenDIA::PeakMapCollector> peak_maps;
+    if (!xipm_path.empty())
+    {
+      if (xipm_path == output_path || xipm_path == features_path)
+      {
+        writeLogError_("-out_xipm must use a different path from the other outputs.");
+        return ILLEGAL_PARAMETERS;
+      }
+      std::optional<std::unordered_set<std::string>> selected;
+      const std::string selection_path = getStringOption_("xipm_precursors");
+      if (!selection_path.empty())
+      {
+        std::ifstream selection(selection_path);
+        if (!selection)
+        {
+          writeLogError_("Could not read -xipm_precursors: " + selection_path);
+          return INPUT_FILE_NOT_READABLE;
+        }
+        selected.emplace();
+        for (std::string line; std::getline(selection, line);)
+        {
+          const auto first = line.find_first_not_of(" \t\r");
+          if (first == std::string::npos || line[first] == '#') continue;
+          const auto last = line.find_last_not_of(" \t\r");
+          selected->insert(line.substr(first, last - first + 1));
+        }
+      }
+      double rt_half_window = getDoubleOption_("xipm_rt_window");
+      if (rt_half_window < 0.0)
+      {
+        rt_half_window = options.rt_window_seconds > 0.0 ? options.rt_window_seconds + 30.0 : 0.0;
+      }
+      OpenDIA::PeakMapOptions map_options;
+      map_options.mz_tolerance_ppm = getDoubleOption_("xipm_mz_tolerance");
+      map_options.rt_half_window_s = rt_half_window;
+      map_options.im_half_window = getDoubleOption_("xipm_im_window");
+      map_options.ms1_isotopes = static_cast<std::size_t>(getIntOption_("xipm_ms1_isotopes"));
+      map_options.ion_mobility_array_as_vssc = options.ion_mobility_array_as_vssc;
+      if (!(map_options.mz_tolerance_ppm > 0.0))
+      {
+        writeLogError_("-xipm_mz_tolerance must be positive.");
+        return ILLEGAL_PARAMETERS;
+      }
+
+      // Library subset for the writer's row metadata; ids and (calibrated) coordinates are copied unchanged.
+      OpenSwath::LightTargetedExperiment subset;
+      std::unordered_map<std::string, std::size_t> target_index;
+      std::vector<OpenDIA::PeakMapTarget> targets;
+      for (const auto& compound : targeted.getCompounds())
+      {
+        if (selected && !selected->contains(compound.id)) continue;
+        OpenDIA::PeakMapTarget target;
+        target.precursor_id = compound.id;
+        target.charge = compound.charge;
+        target.center_rt = compound.rt;
+        target.has_rt = std::isfinite(compound.rt);
+        target.precursor_im = compound.drift_time;
+        target.has_im = std::isfinite(compound.drift_time) && compound.drift_time > 0.0;
+        target_index.emplace(compound.id, targets.size());
+        targets.push_back(std::move(target));
+        subset.compounds.push_back(compound);
+      }
+      for (const auto& transition : targeted.getTransitions())
+      {
+        const auto it = target_index.find(transition.peptide_ref);
+        if (it == target_index.end()) continue;
+        targets[it->second].precursor_mz = transition.precursor_mz;
+        targets[it->second].fragments.emplace_back(transition.transition_name, transition.product_mz);
+        subset.transitions.push_back(transition);
+      }
+      if (selected && targets.size() != selected->size())
+      {
+        writeLogWarn_("-xipm_precursors: " + std::to_string(selected->size() - targets.size()) + " of " +
+                      std::to_string(selected->size()) + " ids are not library precursors and are skipped.");
+      }
+      if (targets.empty())
+      {
+        writeLogError_("-out_xipm: no library precursor selected.");
+        return ILLEGAL_PARAMETERS;
+      }
+      xipm_writer = std::make_unique<XIPMParquetConsumer>(xipm_path, subset);
+      const std::string source_file = File::basename(input);
+      XIPMParquetConsumer* writer = xipm_writer.get();
+      peak_maps = std::make_unique<OpenDIA::PeakMapCollector>(
+        std::move(targets), map_options,
+        [writer, source_file](const PeakMapExtractor::ExtractedPeakMap& map, int ms_level)
+        { writer->consumePeakMap(map, 0, source_file, ms_level); });
+      writeLogInfo_("Peak-map export: " + std::to_string(subset.compounds.size()) + " precursors, rt_half_window_s=" +
+                    std::to_string(rt_half_window) + " mz_tolerance_ppm=" + std::to_string(map_options.mz_tolerance_ppm));
+    }
+
     OpenDIA::StreamSearch consumer(std::move(queries), options, output, feature_stream);
     FileHandler reader;
     PeakFileOptions read_options;
-    read_options.setMSLevels({2});
+    // MS1 is read only for the peak-map export; StreamSearch ignores MS1 spectra.
+    read_options.setMSLevels(peak_maps ? std::vector<Int>{1, 2} : std::vector<Int>{2});
     reader.setOptions(read_options);
-    reader.transformExperiment(input, &consumer, {}, log_type_);
+    if (peak_maps)
+    {
+      OpenDIA::TeeConsumer tee(consumer, *peak_maps);
+      reader.transformExperiment(input, &tee, {}, log_type_);
+    }
+    else
+    {
+      reader.transformExperiment(input, &consumer, {}, log_type_);
+    }
     consumer.finish();
+    if (peak_maps)
+    {
+      peak_maps->finish();
+      xipm_writer->finalize();
+      writeLogInfo_("Peak-map export: " + std::to_string(peak_maps->peakMapsWritten()) + " peak maps, " +
+                    std::to_string(peak_maps->pointsWritten()) + " points, " +
+                    std::to_string(peak_maps->outOfOrderSpectra()) + " out-of-order spectra -> " + xipm_path);
+    }
     writeLogInfo_(consumer.ionMobilityFilteringUsed()
                     ? "Ion-mobility filtering: active"
                     : "Ion-mobility filtering: not available; using m/z-only matching");
