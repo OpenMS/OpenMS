@@ -578,6 +578,21 @@ Small panels fail on the (D+1)/T floor: q ≤ 0.01 needs at least 100 winning ta
 With the default of 0, output is byte-identical. On HeLa, `-panel_targets 1000 -max_panel_targets 40000` escalated to 4000 and calibrated (477 anchors, 97.6% of teacher IDs within tolerance).
 This addresses runs that fail for lack of anchors. It does not address the 500 pg failure mode (26 decoys in the top 100), which has not been retried, by design.
 
+**Weak-run calibration, Astral raw 01 as the design run** (`astral-design-raw01-20261107/`, Option B, no entrapment labels joined). The frozen panel-40000 calibration fails closed with 0 anchors.
+- `-out_diagnostics <tsv>` writes per panel member the best RT, score and q of stages 1 and 3, and both stage maps. It is written also on failure.
+- The diagnosis is a power problem:
+  - Only 11264 of 40000 targets have a peak, and the best q is above 0.01 in every stage.
+  - The stage-2 EM map is nearly flat (776 to 903 s against 578 to 1042 s for the stage-1 map). Its median distance to the stage-1 anchors is 109 s, against 20 s for the stage-1 map.
+- `-window_panel_targets <n>` (default 0, off): if stage 1 succeeds but stage 3 finds fewer than 20 anchors, one more raw pass collects a panel of up to `n` targets.
+  - It stores only spectra inside each member's stage-3 window around the **stage-1 map**, plus a margin.
+  - Stages 3 and 4 then run unchanged on that panel, and stage 2 is not used.
+  - The JSON stage-3 block then carries `"windowed_second_pass": true`.
+- On raw 01 with `-panel_targets 40000 -window_panel_targets 300000` (the full library): **512 anchors** at q ≤ 0.01, with 4 decoys above the cut.
+  - RT σ 21 s, |residual| p50 14 s and p95 40 s, MS2 offset −3.2 ppm.
+  - 3:37 wall time, 16.5 GB peak RSS.
+- The default output is byte-identical on HeLa p40000 (checked with `cmp`).
+- This is the design run. The evaluation is a single, predeclared raw 02 entrapment run.
+
 Seeding the CNN from the panel-40000 anchors (3000 pairs) followed by `-ss_iterations 1` gave **13611** targets at paired q ≤ 0.01 (folds 4546/4729/4336), with no OpenSWATH input to training or scoring (manifest labels are ignored, as above).
 For comparison, panel-10000 anchors gave 11118 and teacher seeds gave 11830 (`raw-trace-cnn-hela/anchor-seeds-p40000-20261107/GATE.md`).
 84.7% of these are in the SVM baseline, against 85.9% for the teacher-seeded run, and the 2445 gained are 73.4% in SVM.

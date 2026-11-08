@@ -160,6 +160,94 @@ int main()
   OpenDIA::writeCalibrationAnchors(result, anchors);
   require(json.str().find("\"offset_ppm\"") != std::string::npos, "JSON output");
 
+  // Diagnostics do not change the result and record every panel member's stage values.
+  OpenDIA::CalibrationDiagnostics diagnostics;
+  const auto diagnosed = collector.calibrate(&diagnostics);
+  std::ostringstream json_diagnosed;
+  OpenDIA::writeCalibrationJSON(diagnosed, options, json_diagnosed);
+  require(json_diagnosed.str() == json.str(), "diagnostics change the calibration");
+  require(diagnostics.rows.size() == collector.panelSize() && diagnostics.failure.empty(), "diagnostic rows");
+  std::size_t stage3_accepted = 0;
+  for (const auto& row : diagnostics.rows)
+  {
+    require(std::isfinite(row.em_rt) && std::isfinite(row.stage1_map_rt), "stage maps in diagnostics");
+    stage3_accepted += !row.is_decoy && row.stage3_q <= options.anchor_fdr;
+  }
+  require(stage3_accepted == result.anchor_targets, "diagnostic stage-3 q-values match the anchors");
+  std::ostringstream diagnostic_table;
+  OpenDIA::writeCalibrationDiagnostics(diagnostics, diagnostic_table);
+  require(diagnostic_table.str().find("stage3_q") != std::string::npos, "diagnostic TSV");
+
+  // Windowed second pass: collect only inside +-60 s of a supplied stage-1 map, skip stages 1 and 2.
+  {
+    OpenDIA::CalibrationWindow window;
+    for (double library_rt = 0.0; library_rt <= 100.0; library_rt += 2.0)
+    {
+      window.map.library_rt.push_back(library_rt);
+      window.map.run_rt.push_back(trueRT(library_rt));
+    }
+    window.half_window_s = 60.0;
+    window.half_window_spectra = result.half_window_spectra;
+    window.stage1_kept = result.stage1_kept;
+    window.stage1_sigma_s = result.stage1_sigma_s;
+    window.peak_fwhm_s = result.peak_fwhm_s;
+    OpenDIA::CalibrationCollector windowed(library, traml_ids, options, window);
+    std::mt19937 rng2(11);
+    for (double rt = run_start; rt <= run_end; rt += 1.0)
+    {
+      MSSpectrum spectrum;
+      spectrum.setMSLevel(2);
+      spectrum.setRT(rt);
+      Precursor precursor;
+      precursor.setMZ(500.0);
+      precursor.setIsolationWindowLowerOffset(60.0);
+      precursor.setIsolationWindowUpperOffset(60.0);
+      spectrum.setPrecursors({precursor});
+      for (const auto& t : truth)
+      {
+        const double shape = std::exp(-0.5 * std::pow((rt - t.run_rt) / 4.0, 2));
+        if (!t.present || shape < 1e-3)
+        {
+          continue;
+        }
+        for (std::size_t f = 0; f < 6; ++f)
+        {
+          spectrum.emplace_back(t.fragments[f] * (1.0 + PPM_SHIFT * 1e-6), static_cast<float>(t.intensities[f] * shape));
+        }
+      }
+      for (int k = 0; k < 400; ++k)
+      {
+        spectrum.emplace_back(200.0 + 710.0 * uniform(rng2), static_cast<float>(50.0 * uniform(rng2)));
+      }
+      spectrum.sortByPosition();
+      windowed.consumeSpectrum(spectrum);
+    }
+    OpenDIA::CalibrationDiagnostics window_diagnostics;
+    const auto windowed_result = windowed.calibrate(&window_diagnostics);
+    require(windowed_result.windowed, "windowed flag");
+    require(windowed_result.anchor_targets >= 150, "windowed anchor count " + std::to_string(windowed_result.anchor_targets));
+    require(windowed_result.anchor_decoys <= 3, "windowed decoy anchors " + std::to_string(windowed_result.anchor_decoys));
+    for (double library_rt : {10.0, 50.0, 90.0})
+    {
+      require(std::fabs(windowed_result.runRT(library_rt) - trueRT(library_rt)) < 5.0,
+              "windowed RT map at " + std::to_string(library_rt) + ": " + std::to_string(windowed_result.runRT(library_rt)) + " vs " +
+                std::to_string(trueRT(library_rt)) + " (window map " + std::to_string(window.map(library_rt)) + ", anchors " +
+                std::to_string(windowed_result.anchor_targets) + ")");
+    }
+    // Each member keeps only spectra inside its window plus margin, far fewer than the whole run.
+    std::size_t max_spectra = 0;
+    for (const auto& row : window_diagnostics.rows)
+    {
+      max_spectra = std::max(max_spectra, row.spectra);
+    }
+    const double collected_span = 2.0 * (window.half_window_s + 30.0 + 2.0 * window.peak_fwhm_s) + 1.0;
+    require(static_cast<double>(max_spectra) <= collected_span, "windowed collection range " + std::to_string(max_spectra));
+    std::ostringstream windowed_json;
+    OpenDIA::writeCalibrationJSON(windowed_result, options, windowed_json);
+    require(windowed_json.str().find("\"windowed_second_pass\": true") != std::string::npos, "windowed JSON marker");
+    require(json.str().find("windowed_second_pass") == std::string::npos, "default JSON has no windowed marker");
+  }
+
   // Out-of-order spectra are rejected rather than silently mis-ordered.
   OpenDIA::CalibrationCollector unordered(library, traml_ids, options);
   bool threw = false;

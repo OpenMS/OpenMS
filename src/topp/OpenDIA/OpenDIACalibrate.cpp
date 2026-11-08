@@ -35,6 +35,7 @@ namespace OpenMS
       setValidFormats_("lib", {"pqp"});
       registerOutputFile_("out", "<file>", "", "Calibration JSON: RT map, mass offset, 1/K0 model and tolerances");
       registerOutputFile_("out_anchors", "<file>", "", "Optional anchor TSV", false);
+      registerOutputFile_("out_diagnostics", "<file>", "", "Optional per panel member stage TSV (best RT, score, q per stage and the stage maps), written also when calibration fails", false);
       registerIntOption_("panel_targets", "<n>", 10000, "Targets sampled evenly over library RT; each brings its paired decoy", false);
       setMinInt_("panel_targets", 50);
       registerIntOption_("max_panel_targets", "<n>", 0, "Experimental: if calibration fails for too few anchors, retry with a 4x larger panel up to this many targets (one more raw pass per retry; memory grows ~75 KB per pair). 0 disables", false);
@@ -42,6 +43,10 @@ namespace OpenMS
       registerDoubleOption_("search_ppm", "<ppm>", 15.0, "Uncalibrated fragment search half width", false);
       registerDoubleOption_("search_im", "<1/K0>", 0.05, "Uncalibrated 1/K0 search half width around the library mobility", false);
       registerDoubleOption_("anchor_fdr", "<fraction>", 0.01, "Paired target-decoy q-value cut for anchors", false);
+      registerIntOption_("window_panel_targets", "<n>", 0, "Experimental: if stage 1 succeeds but stage 3 finds too few anchors, make one more raw pass with a panel of up to this many targets, "
+                         "collected only inside the stage-3 windows around the stage-1 map, and repeat stages 3 and 4 on it (stage 2 is not used). "
+                         "Runs after any -max_panel_targets escalation. Memory ~10 KB per pair on a short gradient. 0 disables", false);
+      setMinInt_("window_panel_targets", 0);
       registerFlag_("im_array_as_vssc", "Interpret a spectrum ion-mobility array whose unit is not CCS as 1/K0, e.g. unitless mzML 'Ion Mobility' arrays");
     }
 
@@ -49,7 +54,8 @@ namespace OpenMS
     {
       const std::string out = getStringOption_("out");
       const std::string anchors = getStringOption_("out_anchors");
-      for (const auto& output : {out, anchors})
+      const std::string diagnostics_path = getStringOption_("out_diagnostics");
+      for (const auto& output : {out, anchors, diagnostics_path})
       {
         if (output.empty())
         {
@@ -70,6 +76,12 @@ namespace OpenMS
       options.search_ppm = getDoubleOption_("search_ppm");
       options.search_im = getDoubleOption_("search_im");
       options.anchor_fdr = getDoubleOption_("anchor_fdr");
+      const auto window_panel = static_cast<std::size_t>(getIntOption_("window_panel_targets"));
+      if (window_panel != 0 && window_panel <= options.panel_targets)
+      {
+        writeLogError_("window_panel_targets must exceed panel_targets (or be 0).");
+        return ILLEGAL_PARAMETERS;
+      }
 
       const std::string library_path = getStringOption_("lib");
       OpenSwath::LightTargetedExperiment library;
@@ -85,30 +97,63 @@ namespace OpenMS
         return ILLEGAL_PARAMETERS;
       }
       std::optional<OpenDIA::CalibrationResult> calibrated;
+      // Set after a whole-run failure with a usable stage-1 map, when the windowed pass is enabled.
+      std::optional<OpenDIA::CalibrationWindow> window;
       while (!calibrated)
       {
-        OpenDIA::CalibrationCollector collector(library, traml_ids, options);
+        OpenDIA::CalibrationCollector collector(library, traml_ids, options, window);
         collector.setIonMobilityArrayAsVSSC(getFlag_("im_array_as_vssc"));
         FileHandler reader;
         PeakFileOptions read_options;
         read_options.setMSLevels({2});
         reader.setOptions(read_options);
         reader.transformExperiment(getStringOption_("in"), &collector, {}, log_type_);
+        OpenDIA::CalibrationDiagnostics diagnostics;
+        const auto write_diagnostics = [&]()
+        {
+          if (diagnostics_path.empty())
+          {
+            return true;
+          }
+          std::ofstream table(diagnostics_path);
+          OpenDIA::writeCalibrationDiagnostics(diagnostics, table);
+          table.close();
+          return static_cast<bool>(table);
+        };
         try
         {
-          calibrated = collector.calibrate();
+          calibrated = collector.calibrate(diagnostics_path.empty() && window_panel == 0 ? nullptr : &diagnostics);
         }
         catch (const std::runtime_error& error)
         {
+          diagnostics.failure = error.what();
+          if (!write_diagnostics())
+          {
+            return CANNOT_WRITE_OUTPUT_FILE;
+          }
           // Escalate only the panel size; every other setting stays fixed. The library limits the panel size.
           const std::size_t panel_pairs = collector.panelSize() / 2;
-          if (max_panel == 0 || options.panel_targets >= max_panel || panel_pairs < options.panel_targets)
+          if (!window && max_panel != 0 && options.panel_targets < max_panel && panel_pairs >= options.panel_targets)
           {
-            throw;
+            writeLogWarn_("Calibration with panel_targets=" + std::to_string(options.panel_targets) + " failed (" + error.what() +
+                          "); retrying with a larger panel.");
+            options.panel_targets = std::min(max_panel, 4 * options.panel_targets);
+            continue;
           }
-          writeLogWarn_("Calibration with panel_targets=" + std::to_string(options.panel_targets) + " failed (" + error.what() +
-                        "); retrying with a larger panel.");
-          options.panel_targets = std::min(max_panel, 4 * options.panel_targets);
+          if (!window && window_panel > options.panel_targets && diagnostics.window)
+          {
+            writeLogWarn_("Calibration with panel_targets=" + std::to_string(options.panel_targets) + " failed (" + error.what() +
+                          "); retrying stage 3 once on a panel of up to " + std::to_string(window_panel) +
+                          " targets collected inside the stage-3 windows around the stage-1 map.");
+            window = diagnostics.window;
+            options.panel_targets = window_panel;
+            continue;
+          }
+          throw;
+        }
+        if (!write_diagnostics())
+        {
+          return CANNOT_WRITE_OUTPUT_FILE;
         }
       }
       const auto& result = *calibrated;

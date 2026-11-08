@@ -16,12 +16,31 @@
 
 #include <array>
 #include <cstddef>
+#include <functional>
 #include <iosfwd>
+#include <limits>
+#include <optional>
 #include <string>
 #include <vector>
 
 namespace OpenMS::OpenDIA
 {
+  /**
+    @brief Stage-1 map and windows of a calibration whose stage 3 had too few anchors.
+
+    Used for an experimental windowed second pass: a larger panel is collected only inside these
+    windows around the stage-1 map, and stage 3 and 4 are repeated on it unchanged.
+  */
+  struct CalibrationWindow
+  {
+    RTMap map; ///< Stage-1 library RT to run RT map.
+    double half_window_s = 0.0; ///< Stage-3 RT half window.
+    std::size_t half_window_spectra = 0; ///< Co-elution half window in spectra.
+    std::size_t stage1_kept = 0;
+    double stage1_sigma_s = 0.0;
+    double peak_fwhm_s = 0.0;
+  };
+
   /** @brief Fixed settings of the identification-free run calibration. */
   struct CalibrationOptions
   {
@@ -79,6 +98,7 @@ namespace OpenMS::OpenDIA
     double em_presence = 0.0; ///< Mean peak responsibility per hypothesis at convergence (diagnostic).
     std::vector<double> em_knots_library, em_knots_run;
     double stage3_half_window_s = 0.0;
+    bool windowed = false; ///< Experimental windowed second pass: stages 1 and 2 were skipped, stage 3 centred on the stage-1 map.
     std::size_t half_window_spectra = 0;
     double peak_fwhm_s = 0.0;
     std::size_t anchor_targets = 0, anchor_decoys = 0;
@@ -101,6 +121,40 @@ namespace OpenMS::OpenDIA
     /// Library m/z to calibrated MS2 m/z.
     double runMZ(double library_mz) const { return library_mz * (1.0 + ms2_offset_ppm * 1e-6); }
   };
+
+  /**
+    @brief Per panel member stage values, for diagnosing a calibration (also filled when it fails).
+
+    Rows are in panel order. Values of a stage that was not reached stay NaN (q-values 1).
+  */
+  struct CalibrationDiagnostics
+  {
+    struct Row
+    {
+      std::string precursor_id;
+      bool is_decoy = false;
+      double library_rt = 0.0;
+      std::size_t spectra = 0; ///< Isolating MS2 spectra collected.
+      double stage1_rt = std::numeric_limits<double>::quiet_NaN(), stage1_score = std::numeric_limits<double>::quiet_NaN();
+      double stage1_q = 1.0;
+      double stage1_map_rt = std::numeric_limits<double>::quiet_NaN(); ///< Stage-1 map at the target library RT.
+      double em_rt = std::numeric_limits<double>::quiet_NaN(); ///< Stage-2 map at the target library RT.
+      double stage3_centre_rt = std::numeric_limits<double>::quiet_NaN(); ///< Centre of the stage-3 window.
+      double stage3_rt = std::numeric_limits<double>::quiet_NaN(), stage3_score = std::numeric_limits<double>::quiet_NaN();
+      double stage3_q = 1.0;
+    };
+    std::vector<Row> rows;
+    double first_rt = 0.0, last_rt = 0.0;
+    double cycle_s = 0.0; ///< Median spectrum spacing per precursor.
+    double peak_fwhm_s = 0.0; ///< Median stage-1 anchor FWHM (0 if stage 1 failed).
+    std::size_t half_window_spectra = 0; ///< Stage-2/3 co-elution half window (0 if stage 1 failed).
+    std::string failure; ///< Empty if calibration succeeded.
+    /// Set when stage 1 succeeded but stage 3 found too few anchors (seed for a windowed second pass).
+    std::optional<CalibrationWindow> window;
+  };
+
+  /// Write @p diagnostics as TSV to @p out (header comment carries the run RT range and any failure).
+  void writeCalibrationDiagnostics(const CalibrationDiagnostics& diagnostics, std::ostream& out);
 
   /**
     @brief Identification-free calibration of RT, fragment m/z and 1/K0 from the run itself.
@@ -137,11 +191,13 @@ namespace OpenMS::OpenDIA
       @param[in] library Prepared library with library RT and DECOY_ naming available through @p traml_ids.
       @param[in] traml_ids PQP precursor ID to TRAML_ID map, used to pair decoys with targets.
       @param[in] options Fixed calibration settings.
+      @param[in] window If set, collect each member only inside its stage-3 window around this stage-1 map
+                        (plus a 30 s margin), and let calibrate() skip stages 1 and 2. Experimental.
       @throws std::invalid_argument If no eligible target-decoy pairs exist or options are invalid.
     */
     CalibrationCollector(const OpenSwath::LightTargetedExperiment& library,
                          const std::vector<std::pair<std::string, std::string>>& traml_ids,
-                         CalibrationOptions options = {});
+                         CalibrationOptions options = {}, std::optional<CalibrationWindow> window = std::nullopt);
 
     void consumeSpectrum(MSSpectrum& spectrum) override;
     void consumeChromatogram(MSChromatogram&) override {}
@@ -153,9 +209,10 @@ namespace OpenMS::OpenDIA
 
     /**
       @brief Run stages 1-4 on the collected traces.
+      @param[out] diagnostics Optional per-member stage values; filled up to the stage reached, also on failure.
       @throws std::runtime_error If a stage has too few anchors to fit.
     */
-    CalibrationResult calibrate() const;
+    CalibrationResult calibrate(CalibrationDiagnostics* diagnostics = nullptr) const;
 
     /// Number of panel precursors (targets plus decoys).
     std::size_t panelSize() const { return panel_.size(); }
@@ -170,6 +227,8 @@ namespace OpenMS::OpenDIA
       bool is_decoy = false;
       std::size_t partner = 0; ///< Index of the paired decoy/target.
       std::size_t fragment_count = 0;
+      double window_low = -std::numeric_limits<double>::infinity(); ///< Collected run RT range (windowed pass only).
+      double window_high = std::numeric_limits<double>::infinity();
       std::array<double, FRAGMENTS> fragment_mz{};
       std::array<double, FRAGMENTS> library_intensity{};
       // One entry per isolating spectrum, in RT order.
@@ -191,7 +250,12 @@ namespace OpenMS::OpenDIA
     std::vector<Candidate> candidates_(std::size_t member, std::size_t half_window, double rt_low, double rt_high,
                                        std::size_t max_candidates, std::size_t min_fragments) const;
 
+    /// Stages 3 and 4 around @p centre (library RT to run RT); throws if too few anchors.
+    void finish_(CalibrationResult& result, const std::function<double(double)>& centre, std::size_t half_window,
+                 CalibrationDiagnostics* diagnostics) const;
+
     CalibrationOptions options_;
+    std::optional<CalibrationWindow> window_;
     std::vector<Member> panel_;
     std::vector<std::size_t> by_mz_;
     bool ion_mobility_array_as_vssc_ = false;
