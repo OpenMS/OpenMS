@@ -63,7 +63,7 @@ The current pipeline extracts 198,915 candidates in 40 s and runs CNN crossfit i
 
 | WP | Scope | State |
 |---|---|---|
-| [R-WP1](work-packages/R1-streaming-search.md) | Streaming sparse-grid candidate search | Delivered, open for recall gates |
+| [R-WP1](work-packages/R1-streaming-search.md) | Streaming sparse-grid candidate search | Delivered, open for recall gates; experimental peak-group boundaries (anchor labels, boundary model prototype) |
 | [R-WP2](work-packages/R2-calibration.md) | ID-free run calibration (RT, m/z, 1/K0, tolerances) | Delivered on HeLa; fails on 500 pg |
 | [R-WP3](work-packages/R3-trace-cnn.md) | Raw-trace CNN scorer and native training (TOPAZ-style variant experimental) | Delivered |
 | [R-WP4](work-packages/R4-error-control.md) | Cross-fitting, paired TDC, independent error control | Partial: same-run teacher, no entrapment |

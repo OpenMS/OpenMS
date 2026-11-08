@@ -1,0 +1,6 @@
+rule picker on 26152 augmented positive windows (bins of 0.94 s):
+  mean IoU 0.406 | median |start err| 3 bins, |end err| 6 | apex inside true peak 71.03%
+  log10 SNR [-9.0,+0.0): n  1475 IoU 0.206 start<=1 bin 8.68% end<=1 bin 9.90% apex-in 42.03%
+  log10 SNR [+0.0,+0.5): n  1315 IoU 0.234 start<=1 bin 11.33% end<=1 bin 11.10% apex-in 48.29%
+  log10 SNR [+0.5,+1.0): n  1377 IoU 0.274 start<=1 bin 15.03% end<=1 bin 10.89% apex-in 56.14%
+  log10 SNR [+1.0,+9.0): n 21985 IoU 0.438 start<=1 bin 34.29% end<=1 bin 13.56% apex-in 75.27%

@@ -1,0 +1,73 @@
+references run 01: DIA-NN exact 2754 | OSW+Percolator in library 1462 both 1361
+our accepted at q<=0.01 717 | decoy winners 266566
+
+== funnel vs DIA-NN 1% exact
+  reference precursors                       2754  (100%)
+  any candidate window                       2741  (100%)
+  a candidate within 10 s of ref RT          2449  (89%)
+  winner at ref RT                           2292  (83%)
+  accepted q<=0.01                            702  (25%)
+  accepted q<=0.01 and at ref RT              701  (25%)
+  accepted q<=0.05                           1285  (47%)
+  loss: no candidate at ref RT 305, right candidate lost winner slot 157, right winner not accepted 1591
+
+== funnel vs OSW+Percolator 1%
+  reference precursors                       1462  (100%)
+  any candidate window                       1459  (100%)
+  a candidate within 10 s of ref RT          1394  (95%)
+  winner at ref RT                           1377  (94%)
+  accepted q<=0.01                            680  (47%)
+  accepted q<=0.01 and at ref RT              677  (46%)
+  accepted q<=0.05                           1106  (76%)
+  loss: no candidate at ref RT 68, right candidate lost winner slot 17, right winner not accepted 700
+
+== feature medians (winners)
+                             cnn_z  stage2_score  transition_support  matched_scans  peak_width_seconds  abs_drt  log_apex  n_candidates  fragment_coelution  library_correlation  ms1_abs_ppm  ms1_coelution  ms1_isotope  ms2_abs_ppm       n
+accepted (ours)              10.46         78.63                 6.0           13.0               39.29    15.39      4.88           5.0                0.88                 0.93         0.62           0.80          1.0         0.57     717
+OSW-acc, right peak, missed   6.19         57.03                 5.0           15.0               45.87    15.87      4.28           6.0                0.54                 0.85         1.57           0.55          1.0         0.90     700
+DIA-NN, right peak, missed    4.85         47.69                 5.0           16.0               50.71    16.19      4.07           7.0                0.38                 0.66         2.69           0.39          1.0         1.29    1591
+OSW-acc, wrong winner         0.98         12.40                 2.0           14.5               54.95    37.51      3.74           5.0                0.06                 0.08         6.41           0.01          1.0         3.32      82
+top 1% decoy winners          5.04         35.84                 4.0           14.0               34.36    28.44      4.33           8.0                0.14                 0.17         7.17           0.02          1.0         2.89    2665
+all decoy winners            -0.22          6.16                 2.0           12.0               62.23    25.18      3.23           5.0                0.00                 0.00        13.55           0.00          0.0         4.63  266566
+
+== missed right-peak (OSW ref): q-value distribution of the winner
+{'count': 700.0, 'mean': 0.107, 'std': 0.167, 'min': 0.011, '10%': 0.015, '25%': 0.018, '50%': 0.036, '75%': 0.104, '90%': 0.296, 'max': 1.0}
+stage2 z of 1% cut (lowest accepted target): 68.02 | missed OSW right-peak median 57.03
+
+== where they differ: share of group by transition_support (of 6)
+  accepted (ours)                {5: 0.03, 6: 0.97}
+  OSW-acc, right peak, missed    {2: 0.0, 3: 0.04, 4: 0.14, 5: 0.42, 6: 0.39}
+  top 1% decoy winners           {1: 0.0, 2: 0.05, 3: 0.27, 4: 0.45, 5: 0.2, 6: 0.02}
+
+== charge breakdown: OSW-accepted vs ours accepted
+  OSW acc {1: 22, 2: 1150, 3: 267, 4: 20, 5: 3} 
+  ours acc {1: 9, 2: 560, 3: 138, 4: 10} 
+  OSW right-peak missed {1: 14, 2: 552, 3: 122, 4: 9, 5: 3}
+
+== OSW intensity tertiles: recall of OSW-accepted precursors by us (q<=0.01)
+{'low': 0.13, 'mid': 0.49, 'high': 0.77} | overall 0.47
+by OSW d_score quartile {'q1(weak)': 0.12, 'q2': 0.3, 'q3': 0.6, 'q4(strong)': 0.84}
+
+== wrong winners (OSW ref): |our winner RT - ref RT| quantiles (s), and was right candidate present?
+{0.25: 43.0, 0.5: 100.0, 0.75: 146.0, 0.9: 181.0}
+  right candidate present for 17 of 82 | winner-minus-right stage2 median 7.44 | right candidate in RT window share 1.0
+
+== no candidate at ref RT (OSW ref): what is the closest candidate?
+  with any candidate 65 of 68 | closest |dRT| quantiles {0.25: 31.0, 0.5: 49.0, 0.75: 90.0}
+  ref RT - library-calibrated window? share of these refs whose lib dRT>75 s not computable here; n no candidate at all 3
+
+== separability inside the decision band: OSW right-peak missed vs top 1% decoys (AUC per feature)
+  cnn_z                  0.64
+  stage2_score           0.88
+  transition_support     0.84
+  matched_scans          0.50
+  peak_width_seconds     0.57
+  abs_drt                0.35
+  log_apex               0.47
+  n_candidates           0.37
+  fragment_coelution     0.82
+  library_correlation    0.86
+  ms1_abs_ppm            0.25
+  ms1_coelution          0.66
+  ms1_isotope            0.60
+  ms2_abs_ppm            0.29

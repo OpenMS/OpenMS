@@ -1,0 +1,24 @@
+decision band q 0.01..0.05: stage2 53.6..68.0, targets 698, decoys 66
+within-band target-vs-decoy AUC (incremental information over stage2_score):
+  cnn_z                  0.37   target med 7.03  decoy med 7.82
+  stage2_score           0.62   target med 60.13  decoy med 57.58
+  transition_support     0.63   target med 6.00  decoy med 5.00
+  matched_scans          0.58   target med 14.00  decoy med 10.50
+  peak_width_seconds     0.65   target med 36.05  decoy med 19.67
+  abs_drt                0.34   target med 16.18  decoy med 31.75
+  log_apex               0.22   target med 4.39  decoy med 4.91
+  n_candidates           0.44   target med 7.00  decoy med 8.00
+  fragment_coelution     0.66   target med 0.56  decoy med 0.40
+  library_correlation    0.77   target med 0.78  decoy med 0.32
+  ms1_abs_ppm            0.32   target med 1.73  decoy med 5.56
+  ms1_coelution          0.54   target med 0.57  decoy med 0.54
+  ms1_isotope            0.57   target med 1.00  decoy med 1.00
+  ms2_abs_ppm            0.49   target med 0.92  decoy med 0.97
+  ms2_abs_ppm            0.49   target med 0.92  decoy med 0.97
+  mz                     0.79   target med 545.69  decoy med 431.99
+  charge                 0.47   target med 2.00  decoy med 2.00
+band rows with coelution>0.6 and libcorr>0.6: targets 237/698, decoys 3/66
+
+peak boundaries on OSW-accepted precursors, right winner (seconds):
+  ours {0.25: 19.6, 0.5: 44.2, 0.75: 73.8} | OSW {0.25: 13.1, 0.5: 13.1, 0.75: 14.7} | ratio median 3.15
+  matched_scans per second of our width, median 0.39

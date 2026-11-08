@@ -1,0 +1,12 @@
+anchors 512 | found 512 | clean 512 (100%)
+boundary reasons left {'floor': 471, 'valley': 41} right {'floor': 358, 'valley': 154}
+agreeing fragments {4: 4, 5: 38, 6: 470}
+clean FWHM s {0.1: 4.09, 0.25: 4.25, 0.5: 4.41, 0.75: 4.66, 0.9: 4.97} | stage-1 FWHM (cal.json) 3.29
+clean base width s {0.1: 9.85, 0.25: 11.58, 0.5: 14.72, 0.75: 16.37, 0.9: 18.04}
+clean scans in peak {0.1: 7.0, 0.25: 8.0, 0.5: 10.0, 0.75: 11.0, 0.9: 12.0}
+apex shift vs calibration apex (s) {0.5: 0.0, 0.9: 0.0, 0.99: 1.65}
+asymmetry (right-apex)/(apex-left) median 2.0
+
+same peak in search output: 511 | search width median 37.7 s vs picked base width 14.7 s
+same peak in OSW output: 495 | OSW width median 13.1 s vs picked base width 14.7 s, FWHM 4.4 s
+  |left diff| s {0.5: 1.6, 0.9: 1.6} |right diff| s {0.5: 3.3, 0.9: 4.9}
