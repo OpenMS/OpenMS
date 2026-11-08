@@ -22,9 +22,15 @@ set(CPACK_PRODUCTBUILD_BACKGROUND ${OPENMS_LOGOSMALL_NAME})
 set(CPACK_PRODUCTBUILD_BACKGROUND_ALIGNMENT "bottomleft")
 set(CPACK_PRODUCTBUILD_BACKGROUND_SCALING "none")
 
-# Allow installing to every Domain (https://gitlab.kitware.com/cmake/cmake/-/merge_requests/6825).
-set(CPACK_PRODUCTBUILD_DOMAINS TRUE) # system-wide
-set(CPACK_PRODUCTBUILD_DOMAINS_USER TRUE) # user folder
+# Installation domains (https://gitlab.kitware.com/cmake/cmake/-/merge_requests/6825):
+# system-wide or on another volume, not in the user's home folder. The installer of the
+# OpenMS GUI (OpenMS-TOPP-GUI) installs into this installation's folder and allows the same
+# domains, so the two packages always meet; a per-user OpenMS in ~/Applications could not
+# get the GUI.
+set(CPACK_PRODUCTBUILD_DOMAINS TRUE)
+set(CPACK_PRODUCTBUILD_DOMAINS_ANYWHERE TRUE)
+set(CPACK_PRODUCTBUILD_DOMAINS_ROOT TRUE)
+set(CPACK_PRODUCTBUILD_DOMAINS_USER FALSE)
 
 # The installer refuses a macOS older than the deployment target, which package builds set
 # through MACOSX_DEPLOYMENT_TARGET (.github/actions/build/action.yml). The Distribution file
