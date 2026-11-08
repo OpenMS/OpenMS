@@ -189,6 +189,31 @@ def test_rescore_psms():
     assert hit.metaValueExists("hyperscore")
 
 
+def test_feature_set_and_mark_rescored_runs():
+    sp = oms.SearchParameters()
+    sp.setMetaValue("extra_features", "hyperscore,delta_score")
+    standard = list(oms.PercolatorInfile.getStandardFeatureSet(2, 3))
+    assert list(oms.PercolatorInfile.getFeatureSet(sp, 2, 3)) == standard + ["hyperscore", "delta_score", "Peptide", "Proteins"]
+    # without extra_features: the main score
+    assert list(oms.PercolatorInfile.getFeatureSet(oms.SearchParameters(), 2, 3)) == standard + ["score", "Peptide", "Proteins"]
+
+    run = oms.ProteinIdentification()
+    sp = run.getSearchParameters()
+    sp.setMetaValue("Percolator:solver", "lda")
+    run.setSearchParameters(sp)
+    runs = oms.Percolator.markRescoredRuns([run], "MyTool", [("testFDR", 0.05), ("unitnorm", "true"), ("solver", None)])
+    assert len(runs) == 1
+    marked = runs[0]
+    assert marked.getSearchEngine() == "Percolator"
+    assert marked.getSearchEngineVersion() == "3.08-vendored"
+    assert marked.getMetaValue("percolator") == "MyTool"
+    sp = marked.getSearchParameters()
+    assert sp.getMetaValue("Percolator:testFDR") == 0.05
+    assert sp.getMetaValue("Percolator:unitnorm") == "true"
+    assert not sp.metaValueExists("Percolator:solver")
+    assert oms.Percolator.markRescoredRuns([run], "MyTool", [], "3.07")[0].getSearchEngineVersion() == "3.07"
+
+
 if __name__ == "__main__":
     test_import_percolator()
     print("test_import_percolator: passed")
@@ -202,4 +227,6 @@ if __name__ == "__main__":
     print("test_store_weights: passed")
     test_rescore_psms()
     print("test_rescore_psms: passed")
+    test_feature_set_and_mark_rescored_runs()
+    print("test_feature_set_and_mark_rescored_runs: passed")
     print("\nAll Percolator pyOpenMS tests passed.")

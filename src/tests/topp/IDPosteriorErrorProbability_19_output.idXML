@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+				<UserParam type="string" name="ScoreSoftware:Posterior Error Probability" value="IDPosteriorErrorProbability"/>
+				<UserParam type="string" name="ScoreSoftwareVersion:Posterior Error Probability" value="version_string"/>
+	</SearchParameters>
+	<IdentificationRun date="0000-00-00T00:00:00" search_engine="OMSSA" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
+			<ProteinHit id="PH_0" accession="PROT1" score="0.0" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="400.0" RT="0.0" spectrum_reference="scan=1" >
+			<PeptideHit score="0.999946664258764" sequence="CFIMQTYK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.1694592"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="401.0" RT="10.0" spectrum_reference="scan=2" >
+			<PeptideHit score="0.999680995424228" sequence="HLPSWCFK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.09794274"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="402.0" RT="20.0" spectrum_reference="scan=3" >
+			<PeptideHit score="0.999992068499566" sequence="NRVAEHLK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.3068557"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="403.0" RT="30.0" spectrum_reference="scan=4" >
+			<PeptideHit score="0.999992780991137" sequence="TYDGKNRK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.3162842"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="404.0" RT="40.0" spectrum_reference="scan=5" >
+			<PeptideHit score="0.999997675613078" sequence="CFIMQTYK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.4624908"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="405.0" RT="50.0" spectrum_reference="scan=6" >
+			<PeptideHit score="6.841101431099457e-03" sequence="HLPSWCFK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="6.696396e-04"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="406.0" RT="60.0" spectrum_reference="scan=7" >
+			<PeptideHit score="0.999999059773102" sequence="NRVAEHLK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.6420702"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="407.0" RT="70.0" spectrum_reference="scan=8" >
+			<PeptideHit score="0.999999772786334" sequence="TYDGKNRK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="1.054957"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="408.0" RT="80.0" spectrum_reference="scan=9" >
+			<PeptideHit score="0.999999272632095" sequence="CFIMQTYK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.7037661"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="409.0" RT="90.0" spectrum_reference="scan=10" >
+			<PeptideHit score="0.99999927692868" sequence="HLPSWCFK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.7052503"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="410.0" RT="100.0" spectrum_reference="scan=11" >
+			<PeptideHit score="0.999998687395896" sequence="NRVAEHLK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.5690849"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="411.0" RT="110.0" spectrum_reference="scan=12" >
+			<PeptideHit score="0.999999225486267" sequence="TYDGKNRK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.688203"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="412.0" RT="120.0" spectrum_reference="scan=13" >
+			<PeptideHit score="0.999999866145486" sequence="CFIMQTYK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="1.26113"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="413.0" RT="130.0" spectrum_reference="scan=14" >
+			<PeptideHit score="0.999998708438378" sequence="HLPSWCFK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.5724424"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="414.0" RT="140.0" spectrum_reference="scan=15" >
+			<PeptideHit score="0.999998860966358" sequence="NRVAEHLK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.5991572"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="415.0" RT="150.0" spectrum_reference="scan=16" >
+			<PeptideHit score="0.999986450200208" sequence="TYDGKNRK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.2589193"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="416.0" RT="160.0" spectrum_reference="scan=17" >
+			<PeptideHit score="0.99999959111327" sequence="CFIMQTYK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.8618129"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="417.0" RT="170.0" spectrum_reference="scan=18" >
+			<PeptideHit score="0.999999926507435" sequence="HLPSWCFK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="1.537855"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="418.0" RT="180.0" spectrum_reference="scan=19" >
+			<PeptideHit score="0.999999587238878" sequence="NRVAEHLK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.8589894"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="419.0" RT="190.0" spectrum_reference="scan=20" >
+			<PeptideHit score="0.999989956607884" sequence="TYDGKNRK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.2845911"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="420.0" RT="200.0" spectrum_reference="scan=21" >
+			<PeptideHit score="0.99999777577848" sequence="CFIMQTYK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.469759"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="421.0" RT="210.0" spectrum_reference="scan=22" >
+			<PeptideHit score="0.999873583044291" sequence="HLPSWCFK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.1301237"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="422.0" RT="220.0" spectrum_reference="scan=23" >
+			<PeptideHit score="0.999538358593459" sequence="NRVAEHLK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.08737817"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="423.0" RT="230.0" spectrum_reference="scan=24" >
+			<PeptideHit score="0.999997194313645" sequence="TYDGKNRK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.4330682"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="424.0" RT="240.0" spectrum_reference="scan=25" >
+			<PeptideHit score="0.999999881501692" sequence="CFIMQTYK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="1.313445"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="425.0" RT="250.0" spectrum_reference="scan=26" >
+			<PeptideHit score="0.999884447584596" sequence="HLPSWCFK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.133752"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="426.0" RT="260.0" spectrum_reference="scan=27" >
+			<PeptideHit score="0.999815144512318" sequence="NRVAEHLK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.1158249"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="427.0" RT="270.0" spectrum_reference="scan=28" >
+			<PeptideHit score="0.999997622712453" sequence="TYDGKNRK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.4588358"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="428.0" RT="280.0" spectrum_reference="scan=29" >
+			<PeptideHit score="0.999958964683821" sequence="CFIMQTYK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.183652"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="429.0" RT="290.0" spectrum_reference="scan=30" >
+			<PeptideHit score="0.999998975242609" sequence="HLPSWCFK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.6224834"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="430.0" RT="300.0" spectrum_reference="scan=31" >
+			<PeptideHit score="0.988171276127244" sequence="NRVAEHLK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.03091337"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="431.0" RT="310.0" spectrum_reference="scan=32" >
+			<PeptideHit score="0.999074840258779" sequence="TYDGKNRK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.07037979"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="432.0" RT="320.0" spectrum_reference="scan=33" >
+			<PeptideHit score="0.99963288243139" sequence="CFIMQTYK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.09379023"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="433.0" RT="330.0" spectrum_reference="scan=34" >
+			<PeptideHit score="0.908738684609883" sequence="HLPSWCFK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.01489755"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="434.0" RT="340.0" spectrum_reference="scan=35" >
+			<PeptideHit score="0.999999442609494" sequence="NRVAEHLK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.7732615"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="435.0" RT="350.0" spectrum_reference="scan=36" >
+			<PeptideHit score="0.999989642706992" sequence="TYDGKNRK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.2818258"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="436.0" RT="360.0" spectrum_reference="scan=37" >
+			<PeptideHit score="0.999877873353732" sequence="CFIMQTYK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.1315061"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="437.0" RT="370.0" spectrum_reference="scan=38" >
+			<PeptideHit score="0.999553507192752" sequence="HLPSWCFK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.08828512"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="438.0" RT="380.0" spectrum_reference="scan=39" >
+			<PeptideHit score="0.999997741734921" sequence="NRVAEHLK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="0.4672354"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="439.0" RT="390.0" spectrum_reference="scan=40" >
+			<PeptideHit score="0.999999798121742" sequence="TYDGKNRK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="1.098201"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="440.0" RT="400.0" spectrum_reference="scan=41" >
+			<PeptideHit score="9.92080601657629e-04" sequence="CFIMQTYK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="2.136484e-04"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="441.0" RT="410.0" spectrum_reference="scan=42" >
+			<PeptideHit score="1.0113719938761407e-03" sequence="HLPSWCFK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="2.16373e-04"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="442.0" RT="420.0" spectrum_reference="scan=43" >
+			<PeptideHit score="3.774646935189923e-04" sequence="NRVAEHLK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="1.078214e-04"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="443.0" RT="430.0" spectrum_reference="scan=44" >
+			<PeptideHit score="4.8407352837301576e-04" sequence="TYDGKNRK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="1.29876e-04"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="444.0" RT="440.0" spectrum_reference="scan=45" >
+			<PeptideHit score="0.022964914496403" sequence="CFIMQTYK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="1.249687e-03"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="445.0" RT="450.0" spectrum_reference="scan=46" >
+			<PeptideHit score="1.3853707004017965e-04" sequence="HLPSWCFK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="4.76002e-05"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="446.0" RT="460.0" spectrum_reference="scan=47" >
+			<PeptideHit score="3.342919482888118e-05" sequence="NRVAEHLK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="1.462563e-05"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="447.0" RT="470.0" spectrum_reference="scan=48" >
+			<PeptideHit score="3.870911530707757e-05" sequence="TYDGKNRK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="1.651866e-05"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="448.0" RT="480.0" spectrum_reference="scan=49" >
+			<PeptideHit score="0.012293456791534" sequence="CFIMQTYK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="9.114918e-04"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="449.0" RT="490.0" spectrum_reference="scan=50" >
+			<PeptideHit score="3.4275875383988724e-04" sequence="HLPSWCFK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="1.000921e-04"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="450.0" RT="500.0" spectrum_reference="scan=51" >
+			<PeptideHit score="4.066783820133984e-06" sequence="NRVAEHLK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="2.545602e-06"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="451.0" RT="510.0" spectrum_reference="scan=52" >
+			<PeptideHit score="0.040262008364963" sequence="TYDGKNRK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="1.645491e-03"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="452.0" RT="520.0" spectrum_reference="scan=53" >
+			<PeptideHit score="6.796515303940284e-05" sequence="CFIMQTYK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="2.635664e-05"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="453.0" RT="530.0" spectrum_reference="scan=54" >
+			<PeptideHit score="1.6819721584283578e-03" sequence="HLPSWCFK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="2.990978e-04"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="454.0" RT="540.0" spectrum_reference="scan=55" >
+			<PeptideHit score="2.3666833314594286e-05" sequence="NRVAEHLK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="1.098065e-05"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="455.0" RT="550.0" spectrum_reference="scan=56" >
+			<PeptideHit score="2.1893392737230586e-04" sequence="TYDGKNRK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="6.959746e-05"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="456.0" RT="560.0" spectrum_reference="scan=57" >
+			<PeptideHit score="1.2792338901839486e-05" sequence="CFIMQTYK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="6.589701e-06"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="457.0" RT="570.0" spectrum_reference="scan=58" >
+			<PeptideHit score="1.9796307860514654e-05" sequence="HLPSWCFK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="9.467993e-06"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="458.0" RT="580.0" spectrum_reference="scan=59" >
+			<PeptideHit score="3.888761220188563e-04" sequence="NRVAEHLK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="1.102979e-04"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="459.0" RT="590.0" spectrum_reference="scan=60" >
+			<PeptideHit score="7.952375195710675e-05" sequence="TYDGKNRK" charge="2" >
+				<UserParam type="float" name="OMSSA_score" value="3.002665e-05"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="460.0" RT="600.0" spectrum_reference="scan=61" >
+			<PeptideHit score="0.999999999976156" sequence="CFIMQTYK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="461.0" RT="610.0" spectrum_reference="scan=62" >
+			<PeptideHit score="0.999999999976156" sequence="HLPSWCFK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="462.0" RT="620.0" spectrum_reference="scan=63" >
+			<PeptideHit score="0.999999999976156" sequence="NRVAEHLK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="463.0" RT="630.0" spectrum_reference="scan=64" >
+			<PeptideHit score="0.999999999976156" sequence="TYDGKNRK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="464.0" RT="640.0" spectrum_reference="scan=65" >
+			<PeptideHit score="0.999999999976156" sequence="CFIMQTYK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="465.0" RT="650.0" spectrum_reference="scan=66" >
+			<PeptideHit score="0.999999999976156" sequence="HLPSWCFK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="466.0" RT="660.0" spectrum_reference="scan=67" >
+			<PeptideHit score="0.999999999976156" sequence="NRVAEHLK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="467.0" RT="670.0" spectrum_reference="scan=68" >
+			<PeptideHit score="0.999999999976156" sequence="TYDGKNRK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="468.0" RT="680.0" spectrum_reference="scan=69" >
+			<PeptideHit score="0.999999999976156" sequence="CFIMQTYK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="469.0" RT="690.0" spectrum_reference="scan=70" >
+			<PeptideHit score="0.999999999976156" sequence="HLPSWCFK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="470.0" RT="700.0" spectrum_reference="scan=71" >
+			<PeptideHit score="0.999999999976156" sequence="NRVAEHLK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="471.0" RT="710.0" spectrum_reference="scan=72" >
+			<PeptideHit score="0.999999999976156" sequence="TYDGKNRK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="472.0" RT="720.0" spectrum_reference="scan=73" >
+			<PeptideHit score="0.999999999976156" sequence="CFIMQTYK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="473.0" RT="730.0" spectrum_reference="scan=74" >
+			<PeptideHit score="0.999999999976156" sequence="HLPSWCFK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="474.0" RT="740.0" spectrum_reference="scan=75" >
+			<PeptideHit score="0.999999999976156" sequence="NRVAEHLK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="475.0" RT="750.0" spectrum_reference="scan=76" >
+			<PeptideHit score="0.999999999976156" sequence="TYDGKNRK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="476.0" RT="760.0" spectrum_reference="scan=77" >
+			<PeptideHit score="0.999999999976156" sequence="CFIMQTYK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="477.0" RT="770.0" spectrum_reference="scan=78" >
+			<PeptideHit score="0.999999999976156" sequence="HLPSWCFK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="478.0" RT="780.0" spectrum_reference="scan=79" >
+			<PeptideHit score="0.999999999976156" sequence="NRVAEHLK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="479.0" RT="790.0" spectrum_reference="scan=80" >
+			<PeptideHit score="0.999999999976156" sequence="TYDGKNRK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="480.0" RT="800.0" spectrum_reference="scan=81" >
+			<PeptideHit score="0.999999999976156" sequence="CFIMQTYK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="481.0" RT="810.0" spectrum_reference="scan=82" >
+			<PeptideHit score="0.999999999976156" sequence="HLPSWCFK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="482.0" RT="820.0" spectrum_reference="scan=83" >
+			<PeptideHit score="0.999999999976156" sequence="NRVAEHLK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="483.0" RT="830.0" spectrum_reference="scan=84" >
+			<PeptideHit score="0.999999999976156" sequence="TYDGKNRK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="484.0" RT="840.0" spectrum_reference="scan=85" >
+			<PeptideHit score="0.999999999976156" sequence="CFIMQTYK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="485.0" RT="850.0" spectrum_reference="scan=86" >
+			<PeptideHit score="0.999999999976156" sequence="HLPSWCFK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="486.0" RT="860.0" spectrum_reference="scan=87" >
+			<PeptideHit score="0.999999999976156" sequence="NRVAEHLK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="487.0" RT="870.0" spectrum_reference="scan=88" >
+			<PeptideHit score="0.999999999976156" sequence="TYDGKNRK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="488.0" RT="880.0" spectrum_reference="scan=89" >
+			<PeptideHit score="0.999999999976156" sequence="CFIMQTYK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="489.0" RT="890.0" spectrum_reference="scan=90" >
+			<PeptideHit score="0.999999999976156" sequence="HLPSWCFK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="490.0" RT="900.0" spectrum_reference="scan=91" >
+			<PeptideHit score="0.999999999976156" sequence="NRVAEHLK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="491.0" RT="910.0" spectrum_reference="scan=92" >
+			<PeptideHit score="0.999999999976156" sequence="TYDGKNRK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="492.0" RT="920.0" spectrum_reference="scan=93" >
+			<PeptideHit score="0.999999999976156" sequence="CFIMQTYK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="493.0" RT="930.0" spectrum_reference="scan=94" >
+			<PeptideHit score="0.999999999976156" sequence="HLPSWCFK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="494.0" RT="940.0" spectrum_reference="scan=95" >
+			<PeptideHit score="0.999999999976156" sequence="NRVAEHLK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="495.0" RT="950.0" spectrum_reference="scan=96" >
+			<PeptideHit score="0.999999999976156" sequence="TYDGKNRK" charge="3" >
+				<UserParam type="float" name="OMSSA_score" value="10.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

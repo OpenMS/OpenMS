@@ -19,6 +19,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <algorithm>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -28,6 +29,18 @@ class MzTabFile2 : public MzTabFile
 {
   public:
     std::string generateMzTabPSMSectionRow2_(const MzTabPSMSectionRow& row, const vector<std::string>& optional_columns, const MzTabMetaData& meta) const
+    {
+      size_t n_columns = 0;
+      return generateMzTabSectionRow_(row, optional_columns, meta, n_columns);
+    }
+
+    std::string generateMzTabProteinHeader2_(const MzTabProteinSectionRow& reference_row, Size n_best_search_engine_scores, const vector<std::string>& optional_columns, const MzTabMetaData& meta) const
+    {
+      size_t n_columns = 0;
+      return generateMzTabProteinHeader_(reference_row, n_best_search_engine_scores, optional_columns, meta, n_columns);
+    }
+
+    std::string generateMzTabProteinSectionRow2_(const MzTabProteinSectionRow& row, const vector<std::string>& optional_columns, const MzTabMetaData& meta) const
     {
       size_t n_columns = 0;
       return generateMzTabSectionRow_(row, optional_columns, meta, n_columns);
@@ -254,6 +267,47 @@ START_SECTION([EXTRA] optional PSM columns are read back)
     ABORT_IF(reloaded_psms[i].opt_.size() != 1)
     TEST_STRING_EQUAL(reloaded_psms[i].opt_[0].first, "opt_global_q-value")
     TEST_STRING_EQUAL(reloaded_psms[i].opt_[0].second.toCellString(), StringUtils::toStr(0.001 * (i + 1)))
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] protein section run-level search engine score columns line up with their header labels)
+{
+  // Two ms_runs and two search engine scores: search_engine_score_ms_run is
+  // keyed [score_index][run_index]. Each value is distinct so a column/value
+  // swap is easy to spot.
+  MzTabProteinSectionRow row;
+  row.search_engine_score_ms_run[1][1] = MzTabDouble(11.0); // score 1, run 1
+  row.search_engine_score_ms_run[1][2] = MzTabDouble(12.0); // score 1, run 2
+  row.search_engine_score_ms_run[2][1] = MzTabDouble(21.0); // score 2, run 1
+  row.search_engine_score_ms_run[2][2] = MzTabDouble(22.0); // score 2, run 2
+
+  MzTabFile2 f;
+  MzTabMetaData meta;
+  vector<std::string> optional_columns;
+
+  std::string header_line = f.generateMzTabProteinHeader2_(row, 0, optional_columns, meta);
+  std::string row_line = f.generateMzTabProteinSectionRow2_(row, optional_columns, meta);
+
+  std::vector<std::string> header_cells;
+  std::vector<std::string> row_cells;
+  StringUtils::split(header_line, "\t", header_cells);
+  StringUtils::split(row_line, "\t", row_cells);
+  TEST_EQUAL(header_cells.size(), row_cells.size())
+  ABORT_IF(header_cells.size() != row_cells.size())
+
+  // every "search_engine_score[s]_ms_run[r]" column must carry exactly the
+  // value that was stored under search_engine_score_ms_run[s][r]
+  for (Size score = 1; score <= 2; ++score)
+  {
+    for (Size run = 1; run <= 2; ++run)
+    {
+      std::string label = "search_engine_score[" + StringUtils::toStr(score) + "]_ms_run[" + StringUtils::toStr(run) + "]";
+      std::vector<std::string>::iterator pos = std::find(header_cells.begin(), header_cells.end(), label);
+      ABORT_IF(pos == header_cells.end())
+      Size idx = static_cast<Size>(std::distance(header_cells.begin(), pos));
+      TEST_STRING_EQUAL(row_cells[idx], row.search_engine_score_ms_run[score][run].toCellString())
+    }
   }
 }
 END_SECTION

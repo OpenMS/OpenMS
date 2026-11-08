@@ -10,6 +10,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/test_config.h>
 
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteringCentroided.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 
@@ -17,6 +19,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
 #include <tuple>
 
 #ifdef _OPENMP
@@ -220,6 +223,164 @@ START_SECTION([EXTRA] filter() gives the same result for any number of threads)
     TEST_EQUAL(parallel.first == serial.first, true)
     TEST_EQUAL(parallel.second == serial.second, true)
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA] zeroth peak check: a satellite at the M-1 of a heavier peptide is found after an earlier pattern blacklisted peaks)
+{
+  // Three spectra with peptide A (3+, m/z 400, six peaks) and the doublet B (2+, light m/z 1500). Pattern 0 (3+ singlet)
+  // finds A and blacklists its six peaks, so in the white spectra of pattern 1 (the 2+ doublet) every peak of B has an
+  // index six lower than in the experiment. The zeroth peak check of B's heavy peptide finds the peak at its M-1 in the
+  // white spectrum; whether it is a satellite has to be decided with its index in the experiment.
+  const double c13 = Constants::C13C12_MASSDIFF_U;
+  auto averagine = [](double mass)
+  {
+    std::vector<double> intensities;
+    IsotopeDistribution distribution = CoarseIsotopePatternGenerator(6).estimateFromPeptideWeight(mass);
+    for (Size i = 0; i < 6; ++i) { intensities.push_back(distribution[i].getIntensity()); }
+    return intensities;
+  };
+  const std::vector<double> isotopes_b = averagine(2 * 1500.0);
+  // heavy / light, the mass shift of the heavy peptide, whether a peak that is no satellite lies at the heavy M-1, the m/z of
+  // A, the RT band, and the first spectrum that contains A
+  auto filter = [&](double ratio, double shift, bool interferer, double mz_a = 400.0, double rt_band = 0.0, int first_a = 0)
+  {
+    const std::vector<double> isotopes_a = averagine(3 * mz_a);
+    MSExperiment experiment;
+    for (int s = 0; s < 3; ++s)
+    {
+      MSSpectrum spectrum;
+      spectrum.setRT(10.0 + s);
+      for (int i = 0; i < 6 && s >= first_a; ++i) { spectrum.push_back(Peak1D(mz_a + i * c13 / 3, float(1e6 * isotopes_a[i]))); }
+      for (int i = 0; i < 6; ++i) { spectrum.push_back(Peak1D(1500.0 + i * c13 / 2, float(1e6 * isotopes_b[i]))); }
+      for (int i = 0; i < 6; ++i) { spectrum.push_back(Peak1D(1500.0 + (shift + i * c13) / 2, float(1e6 * ratio * isotopes_b[i]))); }
+      if (interferer) { spectrum.push_back(Peak1D(1500.0 + (shift - c13) / 2, float(0.8e6 * ratio * isotopes_b[0]))); }
+      spectrum.sortByPosition();
+      experiment.addSpectrum(spectrum);
+    }
+    experiment.updateRanges();
+    MultiplexDeltaMasses singlet;
+    singlet.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
+    MultiplexDeltaMasses doublet;
+    doublet.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
+    doublet.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(shift, "heavy"));
+    std::vector<MultiplexIsotopicPeakPattern> two_patterns{MultiplexIsotopicPeakPattern(3, 6, singlet, 0), MultiplexIsotopicPeakPattern(2, 6, doublet, 1)};
+    MultiplexFilteringCentroided f(experiment, two_patterns, 3, 6, 1.0, rt_band, 10, true, 0.8, 0.75, 0.75, "peptide");
+    f.setLogType(ProgressLogger::NONE);
+    std::vector<MultiplexFilteredMSExperiment> results = f.filter();
+    TEST_EQUAL(results[0].size(), 3 - first_a) // A in every spectrum that contains it
+    return results[1].size();
+  };
+  // heavy shifted by six 13C: its M-1 is the light M+5, a satellite (mass trace 5). At heavy / light = 1 / 4 the light M+5
+  // is 0.75 x the heavy M0, so above the 0.3 threshold. (Before: compared with index 5, B was missed in every spectrum.)
+  TEST_EQUAL(filter(0.25, 6 * c13, false), 3)
+  // At heavy / light = 1 the light M+5 is below the threshold either way.
+  TEST_EQUAL(filter(1.0, 6 * c13, false), 3)
+  // Lys8: the heavy M-1 is no light isotope position; a peak there of 0.8 x the heavy M0 rejects B. (Before: its white
+  // index 6 was the index of B's light M0 in the experiment, a satellite, so B was taken.)
+  TEST_EQUAL(filter(1.0, 8.0141988132, true), 0)
+  // The same with A (m/z 1501.6) between B's light M0 and the heavy M-1: its six peaks lie between B's light M+3 and the
+  // interferer, so the white index has to be mapped, not offset by the index of the primary peak (that would give B's light M+4).
+  TEST_EQUAL(filter(1.0, 8.0141988132, true, 1501.6), 0)
+  // Arg6 at 1 / 4 with an RT band of 3 s and A only in the second and third spectrum: in the second spectrum, the band begins
+  // with the first, which has no blacklisted peak. The M-1 is mapped with the mapping of the spectrum it was found in.
+  TEST_EQUAL(filter(0.25, 6 * c13, false, 400.0, 3.0, 1), 3)
+}
+END_SECTION
+
+START_SECTION([EXTRA] zeroth peak check: a peak an earlier pattern has blacklisted does not reject a later pattern)
+{
+  // Three spectra with peptide A (3+, m/z 1000, six peaks) and peptide B (2+), whose M-1 is A's M+4. No peak of B is a peak
+  // of A. A's M+4 is above 0.3 x B's M0, a significant peak at B's M-1 that is no satellite of B.
+  const double c13 = Constants::C13C12_MASSDIFF_U;
+  const double mz_a = 1000.0, mz_b = mz_a + 4 * c13 / 3 + c13 / 2;
+  auto averagine = [](double mass)
+  {
+    std::vector<double> intensities;
+    IsotopeDistribution distribution = CoarseIsotopePatternGenerator(6).estimateFromPeptideWeight(mass);
+    for (Size i = 0; i < 6; ++i) { intensities.push_back(distribution[i].getIntensity()); }
+    return intensities;
+  };
+  const std::vector<double> isotopes_a = averagine(3 * mz_a), isotopes_b = averagine(2 * mz_b);
+  MSExperiment experiment;
+  for (int s = 0; s < 3; ++s)
+  {
+    MSSpectrum spectrum;
+    spectrum.setRT(10.0 + s);
+    for (int i = 0; i < 6; ++i) { spectrum.push_back(Peak1D(mz_a + i * c13 / 3, float(1e6 * isotopes_a[i]))); }
+    for (int i = 0; i < 6; ++i) { spectrum.push_back(Peak1D(mz_b + i * c13 / 2, float(1e5 * isotopes_b[i]))); }
+    spectrum.sortByPosition();
+    experiment.addSpectrum(spectrum);
+  }
+  experiment.updateRanges();
+  MultiplexDeltaMasses singlet;
+  singlet.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
+  const MultiplexIsotopicPeakPattern pattern_a(3, 6, singlet, 0), pattern_b(2, 6, singlet, 1);
+  // the number of filtered peaks of the last pattern at B's M0
+  auto filter = [&](const std::vector<MultiplexIsotopicPeakPattern>& patterns)
+  {
+    MultiplexFilteringCentroided f(experiment, patterns, 3, 6, 1.0, 0.0, 10, true, 0.8, 0.75, 0.75, "peptide");
+    f.setLogType(ProgressLogger::NONE);
+    const std::vector<double> mzs = f.filter().back().getMZ();
+    return std::count_if(mzs.begin(), mzs.end(), [&](double mz) { return std::fabs(mz - mz_b) < 1e-6; });
+  };
+  // B alone: A's M+4 rejects B in every spectrum.
+  TEST_EQUAL(filter({pattern_b}), 0)
+  // A first: its peaks are blacklisted, and the zeroth peak check of B looks in the white spectra, so B is found.
+  TEST_EQUAL(filter({pattern_a, pattern_b}), 3)
+}
+END_SECTION
+
+START_SECTION([EXTRA] zeroth peak check: the lower isotopologue of a deuterium label (setDeuteriumLabels()))
+{
+  // Three spectra with a light / Lys4 doublet (2+, light m/z 700, 1:1). The Lys4 molecules one 2H short have a peak
+  // 1.0063 Da below the Lys4 M0, within twice the m/z tolerance of its M-1 (and nearer to it than the light M+3).
+  const double c13 = Constants::C13C12_MASSDIFF_U, lys4 = 4.0251069836, h2h1 = 1.0062767;
+  IsotopeDistribution distribution = CoarseIsotopePatternGenerator(6).estimateFromPeptideWeight(1400.0);
+  std::vector<double> isotopes;
+  for (Size i = 0; i < 6; ++i) { isotopes.push_back(distribution[i].getIntensity()); }
+  // the number of spectra in which the doublet is found, with a peak of @p lower x the Lys4 M0 at its 2H3 position (and
+  // @p light_lower x the light M0 one isotope below the light M0)
+  auto filter = [&](double lower, double light_lower, const std::map<std::string, MultiplexFiltering::DeuteriumLabel>& labels)
+  {
+    MSExperiment experiment;
+    for (int s = 0; s < 3; ++s)
+    {
+      MSSpectrum spectrum;
+      spectrum.setRT(10.0 + s);
+      for (int i = 0; i < 6; ++i) { spectrum.push_back(Peak1D(700.0 + i * c13 / 2, float(1e6 * isotopes[i]))); }
+      for (int i = 0; i < 6; ++i) { spectrum.push_back(Peak1D(700.0 + (lys4 + i * c13) / 2, float(1e6 * isotopes[i]))); }
+      if (lower > 0.0) { spectrum.push_back(Peak1D(700.0 + (lys4 - h2h1) / 2, float(1e6 * lower * isotopes[0]))); }
+      if (light_lower > 0.0) { spectrum.push_back(Peak1D(700.0 - c13 / 2, float(1e6 * light_lower * isotopes[0]))); }
+      spectrum.sortByPosition();
+      experiment.addSpectrum(spectrum);
+    }
+    experiment.updateRanges();
+    MultiplexDeltaMasses doublet;
+    doublet.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
+    doublet.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(lys4, "Lys4"));
+    std::vector<MultiplexIsotopicPeakPattern> doublet_patterns{MultiplexIsotopicPeakPattern(2, 6, doublet, 0)};
+    MultiplexFilteringCentroided f(experiment, doublet_patterns, 3, 6, 1.0, 0.0, 10, true, 0.8, 0.75, 0.75, "peptide");
+    f.setLogType(ProgressLogger::NONE);
+    f.setDeuteriumLabels(labels);
+    const std::vector<double> mzs = f.filter()[0].getMZ();
+    return std::count_if(mzs.begin(), mzs.end(), [](double mz) { return std::fabs(mz - 700.0) < 1e-6; });
+  };
+  auto lys4_labels = [](double enrichment) { return std::map<std::string, MultiplexFiltering::DeuteriumLabel>{{"Lys4", {4, enrichment}}}; };
+  // at 96 % 2H, the expected 2H3 peak of one Lys4 at 1.4 kDa is about 0.15 x the M0
+  TEST_EQUAL(filter(0.0, 0.0, {}), 3)
+  // 0.4 x the M0 at the Lys4 M-1 exceeds 30 %: without the labels' 2H, or at complete enrichment, the doublet is rejected
+  TEST_EQUAL(filter(0.4, 0.0, {}), 0)
+  TEST_EQUAL(filter(0.4, 0.0, lys4_labels(1.0)), 0)
+  // with them, the bound is about 0.45
+  TEST_EQUAL(filter(0.4, 0.0, lys4_labels(0.96)), 3)
+  TEST_EQUAL(filter(0.6, 0.0, lys4_labels(0.96)), 0)
+  // the light peptide has no 2H: a peak of 0.4 x its M0 one isotope below it still rejects the doublet
+  TEST_EQUAL(filter(0.0, 0.4, lys4_labels(0.96)), 0)
+  // At 60 % 2H the expected 2H3 peak (about 1.3 x the M0) would be as large as what a pattern one isotope too high shows
+  // (I_0/I_1 = 1.3): the allowance is capped halfway (about 0.5), so that 1.0 x the M0 there is still another envelope.
+  TEST_EQUAL(filter(0.7, 0.0, lys4_labels(0.6)), 3)
+  TEST_EQUAL(filter(1.0, 0.0, lys4_labels(0.6)), 0)
 }
 END_SECTION
 

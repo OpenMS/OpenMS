@@ -73,7 +73,7 @@ START_SECTION(void removeAllClusters())
     TEST_EQUAL(grid.getCellCount(), 0);
 END_SECTION
 
-START_SECTION(std::list<int> getClusters(const CellIndex &cell_index) const)
+START_SECTION(const std::list<int>& getClusters(const CellIndex &cell_index) const)
     grid.addCluster(index1,1);
     grid.addCluster(index2,2);
     TEST_EQUAL(grid.getClusters(index1).front(), 1);

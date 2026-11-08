@@ -202,6 +202,26 @@ std::map<MS1LabeledFAIMS::CV, std::vector<ConsensusMap>> MS1LabeledFAIMS::split_
   return result;
 }
 
+void MS1LabeledFAIMS::append(ConsensusMap& result, ConsensusMap&& part)
+{
+  if (result.getColumnHeaders().empty())
+  {
+    result = std::move(part);
+    return;
+  }
+  // The two maps were linked from maps with the same columns, protein runs and identification data (see the workflow): only
+  // the feature rows and the column sizes are concatenated. The features of part link identifications that result has as well
+  // (as unassigned ones until now), with the same map index.
+  for (const auto& [index, header] : part.getColumnHeaders())
+  {
+    result.getColumnHeaders().at(index).size += header.size;
+  }
+  for (auto& feature : part)
+  {
+    result.push_back(std::move(feature));
+  }
+}
+
 void MS1LabeledFAIMS::annotate(const IDMapper& mapper, ConsensusMap& map, const FeatureMap& channels, const IdentificationData& ids)
 {
   using ID = IdentificationData;

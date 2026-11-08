@@ -135,8 +135,8 @@ void parse_index(std::shared_ptr<MzPeak::IO::Archive>& archive,
   // Reject a future, potentially incompatible MAJOR version (the spec is a
   // pre-1.0 living standard; all 0.x are accepted).
   if (!version.empty()) {
-    std::string major(version.substr(0, version.find('.')));
-    if (major != "0") {
+    std::string major_version(version.substr(0, version.find('.')));  // not "major": glibc defines a major() macro
+    if (major_version != "0") {
       throw MzPeak::JsonError("unsupported mzPeak format version '" + version +
                               "' (this reader supports 0.x)");
     }

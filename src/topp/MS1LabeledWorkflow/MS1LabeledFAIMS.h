@@ -45,6 +45,14 @@ public:
   /// Link only within a CV, preserving the input maps' channel subelements.
   static void group(FeatureGroupingAlgorithmQT& linker, const std::vector<ConsensusMap>& maps, ConsensusMap& result);
 
+  /**
+    @brief Append the rows of @p part to @p result
+
+    Both were linked from maps with the same columns, protein runs and identification data (e.g. the targeted and the
+    detected features of the same runs), so that @p result has the identifications that the features of @p part link.
+  */
+  static void append(ConsensusMap& result, ConsensusMap&& part);
+
 private:
   static CV getCV_(const MetaInfoInterface& value);
   static std::map<CV, std::vector<ConsensusMap>> split_(const std::vector<ConsensusMap>& maps);

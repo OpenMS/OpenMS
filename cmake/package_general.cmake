@@ -180,9 +180,9 @@ openms_install_third_party_licenses(QT_VERSION "${_openms_bundled_qt_version}"
                                     HOMEBREW_PREFIX "${_openms_homebrew_prefix}"
                                     HOMEBREW_FORMULAE ${_openms_homebrew_formulae})
 ## On Linux, the runtime dependency set also bundles the libraries of the build machine that
-## vcpkg's libraries need and the exclusions above keep (libgfortran, which vcpkg's LAPACK
-## needs). Their licenses come from the Debian packages that installed them, so only the DEB
-## does this.
+## vcpkg's libraries need and the exclusions above keep (currently none: libgfortran, which
+## the LAPACK of the removed COIN-OR solver needed, was the only one). Their licenses come
+## from the Debian packages that installed them, so only the DEB does this.
 if("${PACKAGE_TYPE}" STREQUAL "deb"
    AND OPENMS_USE_VCPKG AND VCPKG_INSTALLED_DIR AND VCPKG_TARGET_TRIPLET)
   file(GLOB _openms_vcpkg_shared_libraries LIST_DIRECTORIES false

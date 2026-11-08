@@ -402,6 +402,9 @@ class TestPosteriorErrorProbabilityModel:
         from pyopenms import PosteriorErrorProbabilityModel
 
         model = PosteriorErrorProbabilityModel()
+        params = model.getParameters()
+        params.setValue("min_mixture_scores", 3)  # toy data (default: at least 35 scores)
+        model.setParameters(params)
         scores = [5.0, 1.0, 3.0, 2.0, 4.0, 0.5, 6.0, 7.0, 8.0, 9.0, 10.0]
         result = model.fit(scores, "")
         assert isinstance(result, tuple), f"Expected tuple, got {type(result)}"
@@ -418,6 +421,9 @@ class TestPosteriorErrorProbabilityModel:
         from pyopenms import PosteriorErrorProbabilityModel
 
         model = PosteriorErrorProbabilityModel()
+        params = model.getParameters()
+        params.setValue("min_mixture_scores", 3)  # toy data (default: at least 35 scores)
+        model.setParameters(params)
         scores = [5.0, 1.0, 3.0, 2.0, 4.0, 0.5, 6.0, 7.0, 8.0, 9.0, 10.0]
         result = model.fit(scores, [], "")
         assert isinstance(result, tuple), f"Expected tuple, got {type(result)}"

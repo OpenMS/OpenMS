@@ -20,6 +20,7 @@
 #include <OpenMS/ANALYSIS/ID/PercolatorTypes.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -1727,6 +1728,47 @@ START_SECTION((void storeWeights(const std::string& filename) const))
   TEST_TRUE(hash_header)
 
   TEST_EXCEPTION(Exception::UnableToCreateFile, p.storeWeights(file + "_no_such_dir/x.weights"))
+}
+END_SECTION
+
+START_SECTION((static void markRescoredRuns(std::vector<ProteinIdentification>& runs, const std::string& tool, const std::vector<std::pair<std::string, DataValue>>& settings, const std::string& version = VENDORED_VERSION)))
+{
+  std::vector<ProteinIdentification> runs(2);
+  runs[0].setSearchEngine("SearchEngineX");
+  runs[0].getSearchParameters().setMetaValue("Percolator:markRescoredRuns_test_stale", "from an earlier rescoring");
+  runs[1].getSearchParameters().setMetaValue("extra_features", "hyperscore");
+  runs[1].setScoreSoftware("Posterior Error Probability", "IDPosteriorErrorProbability", "3.7.0");
+  Percolator::markRescoredRuns(runs, "SomeTool",
+                               {{"markRescoredRuns_test_b", 0.05},
+                                {"markRescoredRuns_test_a", "true"},
+                                {"markRescoredRuns_test_c", 3},
+                                {"markRescoredRuns_test_stale", DataValue::EMPTY}});
+  for (const ProteinIdentification& run : runs)
+  {
+    TEST_EQUAL(run.getSearchEngine(), "Percolator")
+    TEST_EQUAL(run.getSearchEngineVersion(), "3.08-vendored")
+    TEST_EQUAL(run.getMetaValue("percolator").toString(), "SomeTool")
+    const ProteinIdentification::SearchParameters& sp = run.getSearchParameters();
+    TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("Percolator:markRescoredRuns_test_b")), 0.05)
+    TEST_EQUAL(sp.getMetaValue("Percolator:markRescoredRuns_test_a").valueType(), DataValue::STRING_VALUE)
+    TEST_EQUAL(sp.getMetaValue("Percolator:markRescoredRuns_test_a").toString(), "true")
+    TEST_EQUAL(sp.getMetaValue("Percolator:markRescoredRuns_test_c").valueType(), DataValue::INT_VALUE)
+    TEST_EQUAL(static_cast<int>(sp.getMetaValue("Percolator:markRescoredRuns_test_c")), 3)
+    // an empty value removes the meta value
+    TEST_FALSE(sp.metaValueExists("Percolator:markRescoredRuns_test_stale"))
+  }
+  // other search parameters stay; the producers of derived scores recorded before go
+  TEST_EQUAL(runs[1].getSearchParameters().getMetaValue("extra_features").toString(), "hyperscore")
+  TEST_EQUAL(runs[1].getScoreSoftware("Posterior Error Probability").first, "Percolator") // the search engine, as without a record
+  // new meta values in the order given (the order of the output files)
+  std::vector<std::string> keys;
+  runs[0].getSearchParameters().getKeys(keys);
+  TEST_EQUAL(ListUtils::concatenate(keys, ","),
+             "Percolator:markRescoredRuns_test_b,Percolator:markRescoredRuns_test_a,Percolator:markRescoredRuns_test_c")
+
+  // another version, e.g. of the percolator executable
+  Percolator::markRescoredRuns(runs, "SomeTool", {}, "3.07");
+  TEST_EQUAL(runs[0].getSearchEngineVersion(), "3.07")
 }
 END_SECTION
 

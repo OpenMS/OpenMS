@@ -118,15 +118,34 @@ namespace OpenMS
     bool getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series, std::vector<UInt>& ion_ordinals,
                               std::vector<Int>& ion_charges, const AASequence& peptide, Int min_charge, Int max_charge) const;
 
+    /**
+      @brief getIonSeriesSpectrum() with ordinals and charges that also returns the ion type of each peak (Residue::AIon,
+      BIon, CIon, XIon, YIon, ZIon, Zp1Ion or Zp2Ion): the letter of its ion name, and for z the variant ("z", "z.", "z'").
+
+      @param[out] spectrum Its peaks and data arrays are replaced (the meta data is kept)
+      @param[out] ion_series One entry per peak of @p spectrum
+      @param[out] ion_ordinals The ordinal of each peak's ion (the number of residues of the fragment)
+      @param[out] ion_charges The charge of each peak's ion
+      @param[out] ion_types The ion type of each peak's ion
+      @param[in] peptide The input peptide
+      @param[in] min_charge Lowest fragment charge
+      @param[in] max_charge Highest fragment charge
+      @return as getIonSeriesSpectrum()
+    */
+    bool getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series, std::vector<UInt>& ion_ordinals,
+                              std::vector<Int>& ion_charges, std::vector<Residue::ResidueType>& ion_types, const AASequence& peptide,
+                              Int min_charge, Int max_charge) const;
+
 
     /// overwrite
     void updateMembers_() override;
     //@}
 
     protected:
-    /// getIonSeriesSpectrum(), the ordinals and charges optional (nullptr: not written)
+    /// getIonSeriesSpectrum(), the ordinals, charges and ion types optional (nullptr: not written)
     bool getIonSeriesSpectrum_(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series, std::vector<UInt>* ion_ordinals,
-                               std::vector<Int>* ion_charges, const AASequence& peptide, Int min_charge, Int max_charge) const;
+                               std::vector<Int>* ion_charges, std::vector<Residue::ResidueType>* ion_types, const AASequence& peptide,
+                               Int min_charge, Int max_charge) const;
 
 
     /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true

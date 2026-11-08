@@ -425,7 +425,9 @@ Percolator::Percolator()
   defaults_.setValue("num_threads",       3,
                      "Maximum number of OpenMP threads for cross-validation; never more than the "
                      "threads the tool may use (-threads). With the default settings, cross-validation "
-                     "trains 9 models (3 folds x 3 Cneg values) in parallel. Default and range match upstream.");
+                     "trains 9 models (3 folds x 3 Cneg values) in parallel. Default and range match upstream. "
+                     "A build without OpenMP tasks (cl.exe) runs the models of each fold as a nested loop and may "
+                     "use up to two threads more than this.");
   defaults_.setMinInt("num_threads",      1);
   defaults_.setMaxInt("num_threads",      128);
 
@@ -608,6 +610,29 @@ void Percolator::storeWeights(const std::string& filename) const
   if (!os)
   {
     throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+  }
+}
+
+void Percolator::markRescoredRuns(std::vector<ProteinIdentification>& runs,
+                                  const std::string& tool,
+                                  const std::vector<std::pair<std::string, DataValue>>& settings,
+                                  const std::string& version)
+{
+  for (ProteinIdentification& run : runs)
+  {
+    // not a search engine, but downstream tools see from it that the scores were post-processed
+    run.setSearchEngine("Percolator");
+    run.setSearchEngineVersion(version);
+    // Percolator produces the PSM scores now: drop the producers of derived scores that earlier tools recorded
+    run.clearScoreSoftware();
+    run.setMetaValue("percolator", tool);
+    // (in the order given: the order of new meta values in the output files)
+    ProteinIdentification::SearchParameters& search_parameters = run.getSearchParameters();
+    for (const auto& [name, value] : settings)
+    {
+      if (value.isEmpty()) { search_parameters.removeMetaValue("Percolator:" + name); }
+      else { search_parameters.setMetaValue("Percolator:" + name, value); }
+    }
   }
 }
 

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+				<UserParam type="string" name="ScoreSoftware:Posterior Error Probability" value="IDPosteriorErrorProbability"/>
+				<UserParam type="string" name="ScoreSoftwareVersion:Posterior Error Probability" value="version_string"/>
+	</SearchParameters>
+	<IdentificationRun date="0000-00-00T00:00:00" search_engine="SomeRescorer" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
+			<ProteinHit id="PH_0" accession="PROT1" score="0.0" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="500.0" RT="100.0" spectrum_reference="scan=1" >
+			<PeptideHit score="1.0" sequence="PEPTIDEK" charge="2" >
+				<UserParam type="int" name="rank" value="1"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="q-value_score" value="1.0e-03"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="501.0" RT="110.0" spectrum_reference="scan=2" >
+			<PeptideHit score="1.0" sequence="SAMPLER" charge="2" >
+				<UserParam type="int" name="rank" value="1"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="q-value_score" value="2.0e-03"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="502.0" RT="120.0" spectrum_reference="scan=3" >
+			<PeptideHit score="1.0" sequence="TESTPEPK" charge="2" >
+				<UserParam type="int" name="rank" value="1"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="q-value_score" value="3.0e-03"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="503.0" RT="130.0" spectrum_reference="scan=4" >
+			<PeptideHit score="1.0" sequence="LIGHTR" charge="2" >
+				<UserParam type="int" name="rank" value="1"/>
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="q-value_score" value="4.0e-03"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="504.0" RT="140.0" spectrum_reference="scan=5" >
+			<PeptideHit score="1.0" sequence="QUANTK" charge="2" >
+				<UserParam type="int" name="rank" value="1"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="q-value_score" value="5.0e-03"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="505.0" RT="150.0" spectrum_reference="scan=6" >
+			<PeptideHit score="1.0" sequence="ANALYTEK" charge="2" >
+				<UserParam type="int" name="rank" value="1"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="q-value_score" value="6.0e-03"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="506.0" RT="160.0" spectrum_reference="scan=7" >
+			<PeptideHit score="1.0" sequence="MASSSPECR" charge="2" >
+				<UserParam type="int" name="rank" value="1"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="q-value_score" value="7.0e-03"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="507.0" RT="170.0" spectrum_reference="scan=8" >
+			<PeptideHit score="1.0" sequence="IONK" charge="2" >
+				<UserParam type="int" name="rank" value="1"/>
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="q-value_score" value="8.0e-03"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="508.0" RT="180.0" spectrum_reference="scan=9" >
+			<PeptideHit score="1.0" sequence="SCANR" charge="2" >
+				<UserParam type="int" name="rank" value="1"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="q-value_score" value="9.000000000000001e-03"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="509.0" RT="190.0" spectrum_reference="scan=10" >
+			<PeptideHit score="1.0" sequence="PEAKK" charge="2" >
+				<UserParam type="int" name="rank" value="1"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="q-value_score" value="0.01"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

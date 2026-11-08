@@ -106,6 +106,139 @@ namespace OpenMS
     return hyperScore;
   }
 
+  namespace
+  {
+    /// 0 for N-terminal (a, b, c), 1 for C-terminal (x, y, z) ions, -1 otherwise: the ion type is the first letter of
+    /// the name, else the letter after a '$' (fragment annotations in XL-MS data)
+    int leadingSeries(const std::string& name)
+    {
+      const char c = name[0];
+      if (c == 'a' || c == 'b' || c == 'c') return 0;
+      if (c == 'x' || c == 'y' || c == 'z') return 1;
+      if (auto p = name.find('$'); p != std::string::npos && p + 1 < name.size())
+      {
+        const char d = name[p + 1];
+        if (d == 'a' || d == 'b' || d == 'c') return 0;
+        if (d == 'x' || d == 'y' || d == 'z') return 1;
+      }
+      return -1;
+    }
+
+    /// 0 for N-terminal (a, b, c), 1 for C-terminal (x, y, z) ions, -1 otherwise; honours a '$' prefix of the ion name
+    int terminalSeries(const std::string& name)
+    {
+      if (name.empty()) return -1;
+      const Size pos = name.find('$');
+      const char c = pos != std::string::npos && pos + 1 < name.size() ? name[pos + 1] : name[0];
+      if (c == 'a' || c == 'b' || c == 'c') return 0;
+      if (c == 'x' || c == 'y' || c == 'z') return 1;
+      return -1;
+    }
+
+    /// The series code of getIonSeriesSpectrum() as 0, 1 or -1
+    int codeSeries(uint8_t code)
+    {
+      return code <= 1 ? int(code) : -1;
+    }
+
+    /// The matching of computeWithDetail() after its input checks: fills @p d, @p dot_product and the ion counts;
+    /// @p series_of(i) is the terminal series of theoretical peak i
+    template <typename SeriesOf>
+    void hyperScoreWithDetail(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum,
+                                const PeakSpectrum& theo_spectrum, const SeriesOf& series_of, HyperScore::PSMDetail& d, double& dot_product,
+                                int& prefix_ion_count, int& suffix_ion_count)
+    {
+      prefix_ion_count = 0;  // N-terminal: a, b, c
+      suffix_ion_count = 0;  // C-terminal: x, y, z (incl. z., z')
+      dot_product = 0.0;
+      double abs_error = 0.0;
+
+      auto count = [&](size_t index)
+      {
+        const int series = series_of(index);
+        if (series == 0) ++prefix_ion_count;
+        else if (series == 1) ++suffix_ion_count;
+      };
+      if (fragment_mass_tolerance_unit_ppm)
+      {
+        MatchedIterator<PeakSpectrum, PpmTrait, true> it(theo_spectrum, exp_spectrum, fragment_mass_tolerance);
+        for (; it != it.end(); ++it)
+        {
+          abs_error += Math::getPPMAbs((*it).getMZ(), it.ref().getMZ());
+          dot_product += (*it).getIntensity() * it.ref().getIntensity();
+          count(it.refIdx());
+        }
+      }
+      else
+      {
+        MatchedIterator<PeakSpectrum, DaTrait, true> it(theo_spectrum, exp_spectrum, fragment_mass_tolerance);
+        for (; it != it.end(); ++it)
+        {
+          abs_error += std::abs((*it).getMZ() - it.ref().getMZ());
+          dot_product += (*it).getIntensity() * it.ref().getIntensity();
+          count(it.refIdx());
+        }
+      }
+      d.matched_prefix_ions = prefix_ion_count;
+      d.matched_suffix_ions = suffix_ion_count;
+      d.mean_error = (prefix_ion_count + suffix_ion_count) > 0 ? abs_error / (double)(prefix_ion_count + suffix_ion_count) : 0.0;
+    }
+
+    /// computeMassAccuracy() after its input checks; @p series_of(i) is the terminal series of theoretical peak i
+    template <typename SeriesOf>
+    double massAccuracyScore(double tolerance, bool ppm, const PeakSpectrum& exp, const PeakSpectrum& theo, const SeriesOf& series_of,
+                             double mass_error_sd_ppm, HyperScore::PSMDetail& detail)
+    {
+      double weighted_prefix = 0.0, weighted_suffix = 0.0, dot_product = 0.0, abs_error = 0.0;
+      auto add_match = [&](Size index, const Peak1D& observed) {
+        const auto& predicted = theo[index];
+        const double error_ppm = Math::getPPM(observed.getMZ(), predicted.getMZ());
+        const double scaled = error_ppm / mass_error_sd_ppm;
+        const double weight = std::exp(-0.5 * scaled * scaled);
+        dot_product += weight * observed.getIntensity() * predicted.getIntensity();
+        abs_error += ppm ? std::abs(error_ppm) : std::abs(observed.getMZ() - predicted.getMZ());
+        const int series = series_of(index);
+        if (series == 0)
+        {
+          weighted_prefix += weight;
+          ++detail.matched_prefix_ions;
+        }
+        else if (series == 1)
+        {
+          weighted_suffix += weight;
+          ++detail.matched_suffix_ions;
+        }
+      };
+      if (ppm)
+      {
+        for (MatchedIterator<PeakSpectrum, PpmTrait, true> it(theo, exp, tolerance); it != it.end(); ++it)
+        {
+          add_match(it.refIdx(), *it);
+        }
+      }
+      else
+      {
+        for (MatchedIterator<PeakSpectrum, DaTrait, true> it(theo, exp, tolerance); it != it.end(); ++it)
+        {
+          add_match(it.refIdx(), *it);
+        }
+      }
+      const Size matched = detail.matched_prefix_ions + detail.matched_suffix_ions;
+      detail.mean_error = matched > 0 ? abs_error / matched : 0.0;
+      // lgamma(1+x) is negative for 0<x<1; partial evidence must not become a penalty.
+      return std::log1p(dot_product) + std::max(0.0, std::lgamma(weighted_prefix + 1.0)) + std::max(0.0, std::lgamma(weighted_suffix + 1.0));
+    }
+
+    void checkMassAccuracyParameters(double tolerance, double mass_error_sd_ppm)
+    {
+      if (! std::isfinite(tolerance) || tolerance <= 0.0 || ! std::isfinite(mass_error_sd_ppm) || mass_error_sd_ppm <= 0.0)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Matching tolerance and mass-error SD must be finite and positive.");
+      }
+    }
+  }
+
   double HyperScore::computeWithDetail(double fragment_mass_tolerance, 
     bool fragment_mass_tolerance_unit_ppm, 
     const PeakSpectrum& exp_spectrum, 
@@ -130,71 +263,40 @@ namespace OpenMS
       return 0.0;
     }
 
-    int prefix_ion_count = 0;  // N-terminal: a, b, c
-    int suffix_ion_count = 0;  // C-terminal: x, y, z (incl. z., z')
-    double dot_product = 0.0;
-    double abs_error = 0.0;
-
-    if (fragment_mass_tolerance_unit_ppm)
-    {
-      MatchedIterator<PeakSpectrum, PpmTrait, true> it(theo_spectrum, exp_spectrum, fragment_mass_tolerance);
-      for (; it != it.end(); ++it)
-      {
-        abs_error += Math::getPPMAbs((*it).getMZ(), it.ref().getMZ());
-        dot_product += (*it).getIntensity() * it.ref().getIntensity();
-        const std::string& name = (*ion_names)[it.refIdx()];
-        const char c = name[0];
-        if (c == 'a' || c == 'b' || c == 'c') ++prefix_ion_count;
-        else if (c == 'x' || c == 'y' || c == 'z') ++suffix_ion_count;
-        else if (auto p = name.find('$'); p != std::string::npos && p + 1 < name.size())
-        {
-          const char d = name[p + 1];
-          if (d == 'a' || d == 'b' || d == 'c') ++prefix_ion_count;
-          else if (d == 'x' || d == 'y' || d == 'z') ++suffix_ion_count;
-        }
-      }
-    }
-    else
-    {
-      MatchedIterator<PeakSpectrum, DaTrait, true> it(theo_spectrum, exp_spectrum, fragment_mass_tolerance);
-      for (; it != it.end(); ++it)
-      {
-        abs_error += std::abs((*it).getMZ() - it.ref().getMZ());
-        dot_product += (*it).getIntensity() * it.ref().getIntensity();
-        const std::string& name = (*ion_names)[it.refIdx()];
-        const char c = name[0];
-        if (c == 'a' || c == 'b' || c == 'c') ++prefix_ion_count;
-        else if (c == 'x' || c == 'y' || c == 'z') ++suffix_ion_count;
-        else if (auto p = name.find('$'); p != std::string::npos && p + 1 < name.size())
-        {
-          const char d = name[p + 1];
-          if (d == 'a' || d == 'b' || d == 'c') ++prefix_ion_count;
-          else if (d == 'x' || d == 'y' || d == 'z') ++suffix_ion_count;
-        }
-      }
-    }
-
+    double dot_product;
+    int prefix_ion_count, suffix_ion_count;
+    hyperScoreWithDetail(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum,
+                         [ion_names](size_t i) { return leadingSeries((*ion_names)[i]); }, d, dot_product, prefix_ion_count, suffix_ion_count);
     const int i_min = std::min(suffix_ion_count, prefix_ion_count);
     const int i_max = std::max(suffix_ion_count, prefix_ion_count);
-    const double hyperScore = log1p(dot_product) + 2*logfactorial_(i_min) + logfactorial_(i_max, i_min + 1);
-    d.matched_prefix_ions = prefix_ion_count;
-    d.matched_suffix_ions = suffix_ion_count;
-    d.mean_error = (prefix_ion_count + suffix_ion_count) > 0 ? abs_error / (double)(prefix_ion_count + suffix_ion_count) : 0.0;
-    return hyperScore;
+    return log1p(dot_product) + 2*logfactorial_(i_min) + logfactorial_(i_max, i_min + 1);
   }
 
-  namespace
+  double HyperScore::computeWithDetail(double fragment_mass_tolerance,
+                                       bool fragment_mass_tolerance_unit_ppm,
+                                       const PeakSpectrum& exp_spectrum,
+                                       const PeakSpectrum& theo_spectrum,
+                                       const std::vector<uint8_t>& theo_ion_series,
+                                       PSMDetail& d)
   {
-    /// 0 for N-terminal (a, b, c), 1 for C-terminal (x, y, z) ions, -1 otherwise; honours a '$' prefix of the ion name
-    int terminalSeries(const std::string& name)
+    if (exp_spectrum.empty() || theo_spectrum.empty())
     {
-      if (name.empty()) return -1;
-      const Size pos = name.find('$');
-      const char c = pos != std::string::npos && pos + 1 < name.size() ? name[pos + 1] : name[0];
-      if (c == 'a' || c == 'b' || c == 'c') return 0;
-      if (c == 'x' || c == 'y' || c == 'z') return 1;
-      return -1;
+      std::cout << "Warning: HyperScore: One of the given spectra is empty." << std::endl;
+      return 0.0;
     }
+    if (theo_ion_series.size() != theo_spectrum.size())
+    {
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, theo_ion_series.size(),
+                                   "The ion series must hold one entry per theoretical peak.");
+    }
+    double dot_product;
+    int prefix_ion_count, suffix_ion_count;
+    const uint8_t* codes = theo_ion_series.data();
+    hyperScoreWithDetail(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum,
+                         [codes](size_t i) { return codeSeries(codes[i]); }, d, dot_product, prefix_ion_count, suffix_ion_count);
+    const int i_min = std::min(suffix_ion_count, prefix_ion_count);
+    const int i_max = std::max(suffix_ion_count, prefix_ion_count);
+    return log1p(dot_product) + 2*logfactorial_(i_min) + logfactorial_(i_max, i_min + 1);
   }
 
   double HyperScore::computeMassAccuracy(double tolerance,
@@ -205,55 +307,34 @@ namespace OpenMS
                                          PSMDetail& detail)
   {
     detail = PSMDetail {};
-    if (! std::isfinite(tolerance) || tolerance <= 0.0 || ! std::isfinite(mass_error_sd_ppm) || mass_error_sd_ppm <= 0.0)
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Matching tolerance and mass-error SD must be finite and positive.");
-    }
+    checkMassAccuracyParameters(tolerance, mass_error_sd_ppm);
     if (exp.empty() || theo.empty()) { return 0.0; }
     if (theo.getStringDataArrays().empty() || theo.getStringDataArrays()[0].size() != theo.size())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Theoretical spectrum needs one ion name per peak", "IonNames");
     }
     const auto& names = theo.getStringDataArrays()[0];
-    double weighted_prefix = 0.0, weighted_suffix = 0.0, dot_product = 0.0, abs_error = 0.0;
-    auto add_match = [&](Size index, const Peak1D& observed) {
-      const auto& predicted = theo[index];
-      const double error_ppm = Math::getPPM(observed.getMZ(), predicted.getMZ());
-      const double scaled = error_ppm / mass_error_sd_ppm;
-      const double weight = std::exp(-0.5 * scaled * scaled);
-      dot_product += weight * observed.getIntensity() * predicted.getIntensity();
-      abs_error += ppm ? std::abs(error_ppm) : std::abs(observed.getMZ() - predicted.getMZ());
-      const int series = terminalSeries(names[index]);
-      if (series == 0)
-      {
-        weighted_prefix += weight;
-        ++detail.matched_prefix_ions;
-      }
-      else if (series == 1)
-      {
-        weighted_suffix += weight;
-        ++detail.matched_suffix_ions;
-      }
-    };
-    if (ppm)
+    return massAccuracyScore(tolerance, ppm, exp, theo, [&names](size_t i) { return terminalSeries(names[i]); }, mass_error_sd_ppm, detail);
+  }
+
+  double HyperScore::computeMassAccuracy(double tolerance,
+                                         bool ppm,
+                                         const PeakSpectrum& exp,
+                                         const PeakSpectrum& theo,
+                                         const std::vector<uint8_t>& theo_ion_series,
+                                         double mass_error_sd_ppm,
+                                         PSMDetail& detail)
+  {
+    detail = PSMDetail {};
+    checkMassAccuracyParameters(tolerance, mass_error_sd_ppm);
+    if (exp.empty() || theo.empty()) { return 0.0; }
+    if (theo_ion_series.size() != theo.size())
     {
-      for (MatchedIterator<PeakSpectrum, PpmTrait, true> it(theo, exp, tolerance); it != it.end(); ++it)
-      {
-        add_match(it.refIdx(), *it);
-      }
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, theo_ion_series.size(),
+                                   "The ion series must hold one entry per theoretical peak.");
     }
-    else
-    {
-      for (MatchedIterator<PeakSpectrum, DaTrait, true> it(theo, exp, tolerance); it != it.end(); ++it)
-      {
-        add_match(it.refIdx(), *it);
-      }
-    }
-    const Size matched = detail.matched_prefix_ions + detail.matched_suffix_ions;
-    detail.mean_error = matched > 0 ? abs_error / matched : 0.0;
-    // lgamma(1+x) is negative for 0<x<1; partial evidence must not become a penalty.
-    return std::log1p(dot_product) + std::max(0.0, std::lgamma(weighted_prefix + 1.0)) + std::max(0.0, std::lgamma(weighted_suffix + 1.0));
+    const uint8_t* codes = theo_ion_series.data();
+    return massAccuracyScore(tolerance, ppm, exp, theo, [codes](size_t i) { return codeSeries(codes[i]); }, mass_error_sd_ppm, detail);
   }
 
   double HyperScore::compute(double fragment_mass_tolerance, 

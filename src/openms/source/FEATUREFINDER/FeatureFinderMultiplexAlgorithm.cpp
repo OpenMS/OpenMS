@@ -25,6 +25,7 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/ML/REGRESSION/LinearRegressionWithoutIntercept.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
@@ -33,6 +34,9 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <unordered_map>
+#include <unordered_set>
+#include <exception>
+#include <tuple>
 #include <vector>
 #include <numeric>
 #include <fstream>
@@ -53,6 +57,147 @@ namespace OpenMS
 {
   namespace
   {
+    /// the integrator of the mass traces (trapezoid rule; 'simpson' may lead to a negative area under the curve).
+    /// It is set up once: integratePeak() is const and does not change it, so all threads can share it.
+    const PeakIntegrator& traceIntegrator()
+    {
+      static const PeakIntegrator integrator = []
+      {
+        PeakIntegrator pi;
+        Param param = pi.getDefaults();
+        param.setValue("integration_type", "trapezoid");
+        pi.setParameters(param);
+        return pi;
+      }();
+      return integrator;
+    }
+
+    /// a peptide multiplet as reported in the feature and consensus maps, before its features get their (provisional) ids
+    struct Multiplet
+    {
+      bool reported = false;          ///< false if no reliable intensity was found, or a feature did not elute long enough
+      std::vector<Feature> features;  ///< the features of the peptides (channels), in channel order
+      std::vector<size_t> channels;   ///< the channel of each feature (some channels may have none)
+    };
+
+    /**
+      Appends a reported multiplet to the maps. Its features get a provisional id (their position in the feature map,
+      from 1), which the handles carry as well; run() replaces both by the features' final unique ids.
+      If @p channel_ids is not null, it receives the provisional id of the feature of each of the @p n_channels channels
+      (0 if the channel has none).
+    */
+    void appendMultiplet(Multiplet& multiplet, FeatureMap& feature_map, ConsensusMap& consensus_map,
+                         Size n_channels, std::vector<UInt64>* channel_ids)
+    {
+      if (channel_ids != nullptr) { channel_ids->assign(n_channels, 0); }
+      ConsensusFeature consensus;
+      for (Size k = 0; k < multiplet.features.size(); ++k)
+      {
+        Feature& feature = multiplet.features[k];
+        feature.setUniqueId(feature_map.size() + k + 1);
+        if (channel_ids != nullptr) { (*channel_ids)[multiplet.channels[k]] = feature.getUniqueId(); }
+
+        if (multiplet.channels[k] == 0)
+        {
+          // The first/lightest peptide acts as anchor of the peptide multiplet consensus.
+          // All peptide feature handles are connected to this point.
+          consensus.setRT(feature.getRT());
+          consensus.setMZ(feature.getMZ());
+          consensus.setIntensity(feature.getIntensity());
+          consensus.setCharge(feature.getCharge());
+          consensus.setQuality(1.0);
+        }
+
+        FeatureHandle feature_handle;
+        feature_handle.setRT(feature.getRT());
+        feature_handle.setMZ(feature.getMZ());
+        feature_handle.setIntensity(feature.getIntensity());
+        feature_handle.setCharge(feature.getCharge());
+        feature_handle.setMapIndex(multiplet.channels[k]);
+        feature_handle.setUniqueId(feature.getUniqueId());
+        consensus.insert(feature_handle);
+      }
+
+      // count the channels of reported multiplets only (a later channel can still abort the multiplet above)
+      for (const FeatureHandle& handle : consensus.getFeatures())
+      {
+        consensus_map.getColumnHeaders()[handle.getMapIndex()].size++;
+      }
+      consensus_map.push_back(consensus);
+      for (Feature& feature : multiplet.features)
+      {
+        feature_map.push_back(std::move(feature));
+      }
+    }
+
+    /**
+      Builds the multiplets of the clusters of a pattern (@p build_multiplet: cluster -> multiplet) on several threads,
+      and appends the reported ones to the maps in the order of the clusters. The clusters are processed in blocks, so
+      that only the multiplets of one block are held at once. An exception is rethrown after the multiplets of all
+      clusters before the one that threw were appended, as on one thread.
+      If @p multiplet_ids is not null, it receives for every reported multiplet (by cluster id) the provisional id of the
+      feature of each of the @p n_channels channels (0 if the channel has none).
+    */
+    template <typename BuildMultiplet>
+    void buildAndAppendMultiplets(const std::map<int, GridBasedCluster>& clusters, const BuildMultiplet& build_multiplet,
+                                  FeatureMap& feature_map, ConsensusMap& consensus_map,
+                                  Size n_channels, std::map<int, std::vector<UInt64>>* multiplet_ids)
+    {
+      std::vector<const std::pair<const int, GridBasedCluster>*> cluster_list;
+      cluster_list.reserve(clusters.size());
+      for (const auto& cluster_pair : clusters)
+      {
+        cluster_list.push_back(&cluster_pair);
+      }
+
+      const SignedSize block_size = 4096;
+      std::vector<Multiplet> multiplets;
+      std::vector<std::exception_ptr> errors;
+      for (SignedSize block_start = 0; block_start < static_cast<SignedSize>(cluster_list.size()); block_start += block_size)
+      {
+        const SignedSize block_end = std::min(block_start + block_size, static_cast<SignedSize>(cluster_list.size()));
+        multiplets.assign(block_end - block_start, Multiplet());
+        errors.assign(block_end - block_start, nullptr);
+
+        #pragma omp parallel for schedule(dynamic, 16)
+        for (SignedSize c = block_start; c < block_end; ++c)
+        {
+          try
+          {
+            multiplets[c - block_start] = build_multiplet(cluster_list[c]->second);
+          }
+          catch (...)
+          {
+            errors[c - block_start] = std::current_exception();
+          }
+        }
+
+        for (SignedSize c = 0; c < block_end - block_start; ++c)
+        {
+          if (errors[c])
+          {
+            std::rethrow_exception(errors[c]);
+          }
+          if (multiplets[c].reported)
+          {
+            std::vector<UInt64>* channel_ids = multiplet_ids != nullptr ? &(*multiplet_ids)[cluster_list[block_start + c]->first] : nullptr;
+            appendMultiplet(multiplets[c], feature_map, consensus_map, n_channels, channel_ids);
+          }
+        }
+      }
+    }
+
+    /// hash of the (spectrum, peak) indices of a satellite
+    struct SatelliteIndexHash
+    {
+      size_t operator()(const std::pair<size_t, size_t>& indices) const noexcept
+      {
+        size_t seed = hash_int(indices.first);
+        hash_combine(seed, hash_int(indices.second));
+        return seed;
+      }
+    };
+
     /*
       The provisional id of the feature each blacklisted peak was reserved for (0: none), aligned with the blacklist: the
       feature of the channel of the peak's mass trace, in the multiplet of the cluster of the filtered peak that reserved it.
@@ -144,6 +289,19 @@ namespace OpenMS
     defaults_.setValidStrings("algorithm:averagine_type", {"peptide","RNA","DNA"});
     defaults_.setValue("algorithm:knock_out", "false", "Is it likely that knock-outs are present? (Supported for doublex, triplex and quadruplex experiments only.)", {"advanced"});
     defaults_.setValidStrings("algorithm:knock_out", {"true","false"});
+    defaults_.setValue("algorithm:deuterium_enrichment_silac", 0.96, "2H atom fraction of the deuterium SILAC labels (Lys4, Leu3; "
+      "96-98 % for commercial Lys-d4, 0.96 measured for the Lys4 channel of PXD003327). The molecules one 2H short (about n(1-p)/p of the fully "
+      "labelled ones for n 2H atoms) have a peak 1.0063/z below the monoisotopic peak, within the m/z tolerance of its M-1. A peak there that "
+      "exceeds 30 % of the monoisotopic peak means that the peak pattern belongs to another envelope one isotope lower, so for deuterium-labelled "
+      "peptides the part that their own lower isotopologue is expected to make is added to the 30 % (at most half the way to the ratio M0/M+1, "
+      "which a pattern one isotope too high would show). 1 ignores the isotopologue.", {"advanced"});
+    defaults_.setMinFloat("algorithm:deuterium_enrichment_silac", 0.5);
+    defaults_.setMaxFloat("algorithm:deuterium_enrichment_silac", 1.0);
+    defaults_.setValue("algorithm:deuterium_enrichment_chemical", 0.99, "2H atom fraction of the deuterium chemical tags (Dimethyl4/6/8, "
+      "ICPL4/10; 0.993-0.999 measured for the dimethyl channels of PXD000714, catalogue values 97-98 % for CD2O and NaBD3CN). As "
+      "'deuterium_enrichment_silac', for the chemical tags, which label the N-terminus and every K, so that a peptide carries up to 18 2H atoms.", {"advanced"});
+    defaults_.setMinFloat("algorithm:deuterium_enrichment_chemical", 0.5);
+    defaults_.setMaxFloat("algorithm:deuterium_enrichment_chemical", 1.0);
 
     defaults_.setSectionDescription("algorithm", "algorithmic parameters");
 
@@ -366,12 +524,10 @@ namespace OpenMS
     std::vector<double> rt_peptide;
     std::vector<double> intensity_peptide;
 
-    std::map<size_t, SplinePackage> spline_chromatograms;
+    // the mass traces (index, RT, intensity) to interpolate if the intensities are corrected
+    std::vector<std::tuple<size_t, std::vector<double>, std::vector<double>>> traces_for_splines;
 
-    PeakIntegrator pi;
-    Param param = pi.getDefaults();
-    param.setValue("integration_type","trapezoid");    // intensity_sum, simpson, trapezoid (Note that 'simpson' may lead to negative area-under-the-curve.)
-    pi.setParameters(param);
+    const PeakIntegrator& pi = traceIntegrator();
 
     // loop over peptides
     for (size_t peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
@@ -421,18 +577,20 @@ namespace OpenMS
 
         chromatogram.sortByPosition();
 
-        // construct spline interpolations for later use
+        // keep the mass trace for the spline interpolation in correctPeptideIntensities_()
         // Reliable spline interpolation only for 5 or more data points in chromatogram.
         if (chromatogram.size() > 5)
         {
           std::vector<double> rt;
           std::vector<double> intensity;
+          rt.reserve(chromatogram.size());
+          intensity.reserve(chromatogram.size());
           for (const auto &it : chromatogram)
           {
             rt.push_back(it.getRT());
             intensity.push_back(it.getIntensity());
           }
-          spline_chromatograms.insert(std::make_pair(idx, SplinePackage(rt, intensity)));
+          traces_for_splines.emplace_back(idx, std::move(rt), std::move(intensity));
         }
 
         if (chromatogram.size() > 1)
@@ -470,6 +628,13 @@ namespace OpenMS
       return intensity_peptide;
     }
 
+    // construct spline interpolations of the mass traces (only now that they are needed)
+    std::map<size_t, SplinePackage> spline_chromatograms;
+    for (auto& [idx, rt, intensity] : traces_for_splines)
+    {
+      spline_chromatograms.insert(std::make_pair(idx, SplinePackage(std::move(rt), intensity)));
+    }
+
     correctPeptideIntensities_(pattern, spline_chromatograms, rt_peptide, intensity_peptide);
 
     return intensity_peptide;
@@ -482,12 +647,10 @@ namespace OpenMS
     std::vector<double> rt_peptide;
     std::vector<double> intensity_peptide;
 
-    std::map<size_t, SplinePackage> spline_chromatograms;
+    // the mass traces (index, RT, intensity) to interpolate if the intensities are corrected
+    std::vector<std::tuple<size_t, std::vector<double>, std::vector<double>>> traces_for_splines;
 
-    PeakIntegrator pi;
-    Param param = pi.getDefaults();
-    param.setValue("integration_type","trapezoid");    // intensity_sum, simpson, trapezoid (Note that 'simpson' may lead to negative area-under-the-curve.)
-    pi.setParameters(param);
+    const PeakIntegrator& pi = traceIntegrator();
 
     // loop over peptides
     for (size_t peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
@@ -527,18 +690,20 @@ namespace OpenMS
 
         makePeakPositionUnique(chromatogram, IntensityAveragingMethod::MEDIAN);
 
-        // construct spline interpolations for later use
+        // keep the mass trace for the spline interpolation in correctPeptideIntensities_()
         // Reliable spline interpolation only for 5 or more data points in chromatogram.
         if (chromatogram.size() > 5)
         {
           std::vector<double> rt;
           std::vector<double> intensity;
+          rt.reserve(chromatogram.size());
+          intensity.reserve(chromatogram.size());
           for (const auto &it : chromatogram)
           {
             rt.push_back(it.getRT());
             intensity.push_back(it.getIntensity());
           }
-          spline_chromatograms.insert(std::make_pair(idx, SplinePackage(rt, intensity)));
+          traces_for_splines.emplace_back(idx, std::move(rt), std::move(intensity));
         }
 
         if (chromatogram.size() > 1)
@@ -578,6 +743,13 @@ namespace OpenMS
       return intensity_peptide;
     }
 
+    // construct spline interpolations of the mass traces (only now that they are needed)
+    std::map<size_t, SplinePackage> spline_chromatograms;
+    for (auto& [idx, rt, intensity] : traces_for_splines)
+    {
+      spline_chromatograms.insert(std::make_pair(idx, SplinePackage(std::move(rt), intensity)));
+    }
+
     correctPeptideIntensities_(pattern, spline_chromatograms, rt_peptide, intensity_peptide);
 
     return intensity_peptide;
@@ -587,36 +759,31 @@ namespace OpenMS
                                                                std::vector<std::map<int, std::vector<UInt64>>>* multiplet_ids)
   {
     if (multiplet_ids != nullptr) { multiplet_ids->assign(patterns.size(), {}); }
+    const double rt_min = param_.getValue("algorithm:rt_min");
+
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
     {
-      // loop over clusters
-      for (const auto& cluster_pair : cluster_results[pattern])
+      // build the multiplet of a cluster (on several threads: it only reads the filter results and exp_centroid_)
+      auto build_multiplet = [&](const GridBasedCluster& cluster) -> Multiplet
       {
-        GridBasedCluster cluster = cluster_pair.second;
-        std::vector<int> points = cluster.getPoints();
+        Multiplet multiplet;
+        const std::vector<int>& points = cluster.getPoints();
 
         // Construct a satellite set for the complete peptide multiplet
         // Make sure there are no duplicates, i.e. the same satellite from different filtered peaks.
         std::multimap<size_t, MultiplexSatelliteCentroided > satellites;
+        // the (spectrum, peak) indices of the satellites in the set
+        std::unordered_set<std::pair<size_t, size_t>, SatelliteIndexHash> satellites_in_set;
         // loop over points in cluster
         for (const auto& point : points)
         {
-          MultiplexFilteredPeak peak = filter_results[pattern].getPeak(point);
+          const MultiplexFilteredPeak& peak = filter_results[pattern].getPeak(point);
           // loop over satellites of the peak
           for (const auto& satellite : peak.getSatellites())
           {
             // check if this satellite (i.e. these indices) are already in the set
-            bool satellite_in_set = false;
-            for (const auto& existing_satellite : satellites)
-            {
-              if ((existing_satellite.second.getRTidx() == satellite.second.getRTidx()) && (existing_satellite.second.getMZidx() == satellite.second.getMZidx()))
-              {
-                satellite_in_set = true;
-                break;
-              }
-            }
-            if (satellite_in_set)
+            if (!satellites_in_set.emplace(satellite.second.getRTidx(), satellite.second.getMZidx()).second)
             {
               // skip only this satellite: the remaining ones of the peak may still be new
               continue;
@@ -632,12 +799,9 @@ namespace OpenMS
         // If no reliable peptide intensity can be determined, we do not report the peptide multiplet.
         if (std::find(peptide_intensities.begin(), peptide_intensities.end(), -1.0) != peptide_intensities.end())
         {
-          continue;
+          return multiplet;
         }
 
-        std::vector<Feature> features;
-        std::vector<UInt64> channel_ids(patterns[pattern].getMassShiftCount(), 0); // provisional feature id per channel (not features[k]: a channel may have none)
-        ConsensusFeature consensus;
         bool abort = false;
 
         // construct the feature and consensus maps
@@ -721,56 +885,23 @@ namespace OpenMS
           // Check that the feature eluted long enough.
           // DBoundingBox<2> box = feature.getConvexHull().getBoundingBox();    // convex hull of the entire peptide feature
           DBoundingBox<2> box = feature.getConvexHulls()[0].getBoundingBox();    // convex hull of the mono-isotopic mass trace
-          if (box.maxX() - box.minX() < static_cast<double>(param_.getValue("algorithm:rt_min")))
+          if (box.maxX() - box.minX() < rt_min)
           {
             abort = true;
             break;
           }
 
-          // A provisional id (the feature's position in the feature map, from 1), which the handle below
-          // carries as well; run() replaces both by the feature's final unique id.
-          feature.setUniqueId(feature_map_.size() + features.size() + 1);
-          channel_ids[peptide] = feature.getUniqueId();
-          features.push_back(feature);
-
-          if (peptide == 0)
-          {
-            // The first/lightest peptide acts as anchor of the peptide multiplet consensus.
-            // All peptide feature handles are connected to this point.
-            consensus.setRT(rt);
-            consensus.setMZ(mz);
-            consensus.setIntensity(peptide_intensities[peptide]);
-            consensus.setCharge(patterns[pattern].getCharge());
-            consensus.setQuality(1.0);
-          }
-
-          FeatureHandle feature_handle;
-          feature_handle.setRT(rt);
-          feature_handle.setMZ(mz);
-          feature_handle.setIntensity(peptide_intensities[peptide]);
-          feature_handle.setCharge(patterns[pattern].getCharge());
-          feature_handle.setMapIndex(peptide);
-          feature_handle.setUniqueId(feature.getUniqueId());
-          consensus.insert(feature_handle);
+          // (its id, consensus feature and handle follow when it is appended to the maps, see appendMultiplet())
+          multiplet.features.push_back(std::move(feature));
+          multiplet.channels.push_back(peptide);
         }
 
-        if (!abort)
-        {
-          // count the channels of reported multiplets only (a later channel can still abort the multiplet above)
-          for (const FeatureHandle& handle : consensus.getFeatures())
-          {
-            consensus_map_.getColumnHeaders()[handle.getMapIndex()].size++;
-          }
-          consensus_map_.push_back(consensus);
-          for (Feature& feat : features)
-          {
-            feature_map_.push_back(feat);
-          }
-          // the provisional ids are unique among reported multiplets only (an aborted one reuses its ids for the next)
-          if (multiplet_ids != nullptr) { (*multiplet_ids)[pattern][cluster_pair.first] = std::move(channel_ids); }
-        }
+        multiplet.reported = !abort;
+        return multiplet;
+      };
 
-      }
+      buildAndAppendMultiplets(cluster_results[pattern], build_multiplet, feature_map_, consensus_map_, patterns[pattern].getMassShiftCount(),
+                               multiplet_ids != nullptr ? &(*multiplet_ids)[pattern] : nullptr);
 
     }
 
@@ -784,16 +915,18 @@ namespace OpenMS
     unsigned progress = 0;
     startProgress(0, patterns.size(), "constructing maps");
 
+    const double rt_min = param_.getValue("algorithm:rt_min");
+
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
     {
       setProgress(++progress);
 
-      // loop over clusters
-      for (const auto& cluster_pair : cluster_results[pattern])
+      // build the multiplet of a cluster (on several threads: it only reads the filter results)
+      auto build_multiplet = [&](const GridBasedCluster& cluster) -> Multiplet
       {
-        GridBasedCluster cluster = cluster_pair.second;
-        std::vector<int> points = cluster.getPoints();
+        Multiplet multiplet;
+        const std::vector<int>& points = cluster.getPoints();
 
         // Construct a satellite set for the complete peptide multiplet
         // Make sure there are no duplicates, i.e. the same satellite from different filtered peaks.
@@ -801,7 +934,7 @@ namespace OpenMS
         // loop over points in cluster
         for (const auto& point : points)
         {
-          MultiplexFilteredPeak peak = filter_results[pattern].getPeak(point);
+          const MultiplexFilteredPeak& peak = filter_results[pattern].getPeak(point);
           // loop over satellites of the peak
           for (const auto& satellite : peak.getSatellitesProfile())
           {
@@ -815,12 +948,9 @@ namespace OpenMS
         // If no reliable peptide intensity can be determined for one of the peptides, we do not report the peptide multiplet.
         if (std::find(peptide_intensities.begin(), peptide_intensities.end(), -1.0) != peptide_intensities.end())
         {
-          continue;
+          return multiplet;
         }
 
-        std::vector<Feature> features;
-        std::vector<UInt64> channel_ids(patterns[pattern].getMassShiftCount(), 0); // provisional feature id per channel (not features[k]: a channel may have none)
-        ConsensusFeature consensus;
         bool abort = false;
 
         // construct the feature and consensus maps
@@ -893,56 +1023,23 @@ namespace OpenMS
           // Check that the feature eluted long enough.
           // DBoundingBox<2> box = feature.getConvexHull().getBoundingBox();    // convex hull of the entire peptide feature
           DBoundingBox<2> box = feature.getConvexHulls()[0].getBoundingBox();    // convex hull of the mono-isotopic mass trace
-          if (box.maxX() - box.minX() < static_cast<double>(param_.getValue("algorithm:rt_min")))
+          if (box.maxX() - box.minX() < rt_min)
           {
             abort = true;
             break;
           }
 
-          // A provisional id (the feature's position in the feature map, from 1), which the handle below
-          // carries as well; run() replaces both by the feature's final unique id.
-          feature.setUniqueId(feature_map_.size() + features.size() + 1);
-          channel_ids[peptide] = feature.getUniqueId();
-          features.push_back(feature);
-
-          if (peptide == 0)
-          {
-            // The first/lightest peptide acts as anchor of the peptide multiplet consensus.
-            // All peptide feature handles are connected to this point.
-            consensus.setRT(rt);
-            consensus.setMZ(mz);
-            consensus.setIntensity(peptide_intensities[peptide]);
-            consensus.setCharge(patterns[pattern].getCharge());
-            consensus.setQuality(1.0);
-          }
-
-          FeatureHandle feature_handle;
-          feature_handle.setRT(rt);
-          feature_handle.setMZ(mz);
-          feature_handle.setIntensity(peptide_intensities[peptide]);
-          feature_handle.setCharge(patterns[pattern].getCharge());
-          feature_handle.setMapIndex(peptide);
-          feature_handle.setUniqueId(feature.getUniqueId());
-          consensus.insert(feature_handle);
+          // (its id, consensus feature and handle follow when it is appended to the maps, see appendMultiplet())
+          multiplet.features.push_back(std::move(feature));
+          multiplet.channels.push_back(peptide);
         }
 
-        if (!abort)
-        {
-          // count the channels of reported multiplets only (a later channel can still abort the multiplet above)
-          for (const FeatureHandle& handle : consensus.getFeatures())
-          {
-            consensus_map_.getColumnHeaders()[handle.getMapIndex()].size++;
-          }
-          consensus_map_.push_back(consensus);
-          for (Feature& feat : features)
-          {
-            feature_map_.push_back(feat);
-          }
-          // the provisional ids are unique among reported multiplets only (an aborted one reuses its ids for the next)
-          if (multiplet_ids != nullptr) { (*multiplet_ids)[pattern][cluster_pair.first] = std::move(channel_ids); }
-        }
+        multiplet.reported = !abort;
+        return multiplet;
+      };
 
-      }
+      buildAndAppendMultiplets(cluster_results[pattern], build_multiplet, feature_map_, consensus_map_, patterns[pattern].getMassShiftCount(),
+                               multiplet_ids != nullptr ? &(*multiplet_ids)[pattern] : nullptr);
 
     }
 
@@ -1067,6 +1164,20 @@ namespace OpenMS
     std::vector<MultiplexDeltaMasses> masses = generator.getDeltaMassesList();
     std::vector<MultiplexIsotopicPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
 
+    // the 2H atoms of the labels, for the check for a peak one isotope below a peptide (MultiplexFiltering::setDeuteriumLabels())
+    std::map<std::string, MultiplexFiltering::DeuteriumLabel> deuterium_labels;
+    for (const std::vector<std::string>& sample : generator.getSamplesLabelsList())
+    {
+      for (const std::string& label : sample)
+      {
+        if (const unsigned deuterium = generator.getDeuteriumCount(label); deuterium > 0)
+        {
+          deuterium_labels[label] = {deuterium, static_cast<double>(param_.getValue(MultiplexDeltaMassesGenerator::isChemicalLabel(label)
+                                                                  ? "algorithm:deuterium_enrichment_chemical" : "algorithm:deuterium_enrichment_silac"))};
+        }
+      }
+    }
+
     // Switch off averagine_similarity_scaling if we search for single peptide features only.
     // (This scaling parameter is only relevant if we search for multiplets and (!) singlets.)
     double averagine_similarity_scaling;
@@ -1094,6 +1205,7 @@ namespace OpenMS
        */
       MultiplexFilteringCentroided filtering(exp_centroid_, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), averagine_similarity_scaling, param_.getValue("algorithm:averagine_type").toString());
       filtering.setLogType(getLogType());
+      filtering.setDeuteriumLabels(deuterium_labels);
       std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
 
       /**
@@ -1121,6 +1233,7 @@ namespace OpenMS
        */
       MultiplexFilteringProfile filtering(exp_profile_, exp_centroid_, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), averagine_similarity_scaling, param_.getValue("algorithm:averagine_type").toString());
       filtering.setLogType(getLogType());
+      filtering.setDeuteriumLabels(deuterium_labels);
       std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
       exp_blacklist_ = filtering.getBlacklist();
 

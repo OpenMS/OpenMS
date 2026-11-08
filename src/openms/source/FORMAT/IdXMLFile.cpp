@@ -19,6 +19,7 @@
 #include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ProteinRunReferences.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -378,11 +379,12 @@ namespace OpenMS
         std::atomic<bool> failed(false);
 
         // at most one thread per block and at most 16: with more, the formatting outruns the serial write into the file
-        // and the threads only wait. Declared without OpenMP, too: with the -fopenmp-simd fallback the compiler still
-        // parses the clauses of the parallel pragma below.
+        // and the threads only wait. The threads of this thread (SysInfo::ompThreadsOfThisThread(): a tool's helper
+        // thread sets its share there where the OpenMP runtime has no number per thread). Declared without OpenMP, too:
+        // with the -fopenmp-simd fallback the compiler still parses the clauses of the parallel pragma below.
         [[maybe_unused]] int team_size = 1;
 #ifdef _OPENMP
-        team_size = static_cast<int>(std::min<SignedSize>({omp_get_max_threads(), 16, std::max<SignedSize>(num_blocks, 1)}));
+        team_size = static_cast<int>(std::min<SignedSize>({SysInfo::ompThreadsOfThisThread(), 16, std::max<SignedSize>(num_blocks, 1)}));
 #endif
 #pragma omp parallel if (num_blocks > 1) num_threads(team_size)
         {

@@ -29,6 +29,7 @@
 #include <OpenMS/FORMAT/QPXIdentity.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -1593,7 +1594,8 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   // order: the rows are those of one serial pass
   size_t unattributable = 0;
 #ifdef _OPENMP
-  const int threads = omp_in_parallel() ? 1 : std::max(1, omp_get_max_threads());
+  // the threads of this thread: a tool's helper thread sets its share there where the runtime has no number per thread
+  const int threads = omp_in_parallel() ? 1 : SysInfo::ompThreadsOfThisThread();
 #else
   const int threads = 1;
 #endif
