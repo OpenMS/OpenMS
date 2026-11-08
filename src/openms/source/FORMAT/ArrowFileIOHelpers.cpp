@@ -402,6 +402,7 @@ void parseMetaValueArray(const std::string& json, size_t& pos, MetaInfoInterface
     ++pos;
 
     std::string mv_name, mv_value, mv_type;
+    bool value_is_string = false; // an entry without a JSON-string value is dropped, not stored as ""
     while (pos < json.size())
     {
       skipWhitespace(json, pos);
@@ -416,12 +417,16 @@ void parseMetaValueArray(const std::string& json, size_t& pos, MetaInfoInterface
       skipWhitespace(json, pos);
 
       if (mk == "name") mv_name = parseJsonStringOrSkip(json, pos);
-      else if (mk == "value") mv_value = parseJsonStringOrSkip(json, pos);
+      else if (mk == "value")
+      {
+        value_is_string = pos < json.size() && json[pos] == '"';
+        mv_value = parseJsonStringOrSkip(json, pos);
+      }
       else if (mk == "type") mv_type = parseJsonStringOrSkip(json, pos);
       else skipJsonValue(json, pos);
     }
 
-    if (!mv_name.empty())
+    if (!mv_name.empty() && value_is_string)
     {
       if (mv_type == "int")
       {
