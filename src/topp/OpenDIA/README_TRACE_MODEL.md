@@ -593,6 +593,19 @@ This addresses runs that fail for lack of anchors. It does not address the 500 p
 - The default output is byte-identical on HeLa p40000 (checked with `cmp`).
 - This is the design run. The evaluation is a single, predeclared raw 02 entrapment run.
 
+On the same design run, the frozen CNN step works on those anchors: 509 seed pairs, 2815555 windows, 22 GB.
+- It needs `-max_tensor_gib 20`, a resource cap only.
+- Held-out seed AUC is above 0.998.
+- Per-fold paired TDC gives **122** targets at q ≤ 0.01, all from one outer fold. The other two folds sit on the (D+1)/T floor, at a minimum q of about 0.0105.
+- That made `-ss_iterations 1` crash ("training requires both classes"). It now fails with a clear message instead.
+- `-pooled_tdc` (with `-paired_tdc`, default off): each fold's logits are standardised by its decoy winners' median and MAD, then one paired competition runs over all folds.
+  - Winners and logits are unchanged; only q-values change.
+  - An offline check of the same idea on the iteration-0 scores gave 321.
+  - Natively, iteration 0 gives **321**, the same as the offline check.
+- With a few hundred positives, one score iteration overfits on this run: `-ss_iterations 1` gives 0 at both `-ss_fdr 0.01` and `0.05`, from 321 and 634 positives.
+  - By the rule declared before the 0.05 run, the frozen weak-run design uses `-ss_iterations 0 -pooled_tdc`.
+- HeLa crossfit output with the frozen flags is byte-identical (checked with `cmp`).
+
 Seeding the CNN from the panel-40000 anchors (3000 pairs) followed by `-ss_iterations 1` gave **13611** targets at paired q ≤ 0.01 (folds 4546/4729/4336), with no OpenSWATH input to training or scoring (manifest labels are ignored, as above).
 For comparison, panel-10000 anchors gave 11118 and teacher seeds gave 11830 (`raw-trace-cnn-hela/anchor-seeds-p40000-20261107/GATE.md`).
 84.7% of these are in the SVM baseline, against 85.9% for the teacher-seeded run, and the 2445 gained are 73.4% in SVM.
