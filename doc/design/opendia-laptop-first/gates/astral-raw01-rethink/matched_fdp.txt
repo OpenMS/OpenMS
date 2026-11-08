@@ -1,0 +1,3 @@
+OSW+Percolator (m_score<=0.01 export)  N at FDP_c <= 0.5% / 1% / 1.5% / 2% / 3.3%: [1015, 1151, 1251, 1286, 1462]
+ours: tool stage-2 search+boundary     N at FDP_c <= 0.5% / 1% / 1.5% / 2% / 3.3%: [641, 757, 923, 950, 1115]
+OSW exported 1462 entrap 23
