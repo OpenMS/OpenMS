@@ -15,7 +15,7 @@ Run: 2026-11-08 02:05:46Z to 02:27Z, once. `GATE.md`, `run.sh` and `evaluate.py`
 - FDP_c 95% interval (Clopper-Pearson on N_e / 360, times 1 + 1/r): 0.009 to 0.065.
   - If the true FDP_c were exactly 0.015, there is a 13% chance of 5 or more entrapment hits in 360.
   - So the excess is not conclusive. The pass rule was fixed in advance, however, and it fails.
-- At q ≤ 0.05 the estimate (0.044, 14 hits) is also near 1.9 times the nominal level in the same direction. The experimental q underestimates the entrapment FDP at both cuts.
+- At q ≤ 0.05 the estimate is 0.044 (14 hits), which is below q. The experimental q is anti-conservative only in the shallow tail, roughly q ≤ 0.03, where it rests on 2 to 3 decoys. This line was corrected on 2026-11-08 after the result was first recorded (see `../astral-raw02-postmortem-20261108/POSTMORTEM.md`).
 
 ## Other recorded quantities (not part of the rule)
 

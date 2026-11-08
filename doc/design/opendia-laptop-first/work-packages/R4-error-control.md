@@ -46,3 +46,19 @@ The frozen teacher-free design with `-pooled_tdc` was evaluated once against a h
   2. The pooled MAD standardisation over small decoy-winner sets.
   3. The best-of-many window choice per precursor inflating target scores beyond what paired competition corrects.
 - Until one of these is settled, the CNN q on weak runs is a decoy-count estimate that this run shows to be anti-conservative.
+
+### Post-mortem (`gates/astral-raw02-20261108/postmortem/POSTMORTEM.md`, descriptive only)
+
+- **Tail behaviour:** entrapment winners outnumber their decoys about 1.2 to 1.7 times in the score tail. Decoys of entrapment and decoys of human behave alike.
+  - The anti-conservative part is the shallow tail, q ≤ 0.03, which rests on 2 to 3 decoys.
+  - At q ≤ 0.05, FDP_c is 0.044, below q. This corrects the first RESULT.md wording.
+- **`OpenDIA -out_xipm` extraction review:**
+
+  | | co-elution | library intensity correlation |
+  |---|---|---|
+  | accepted human IDs | 0.91 | 0.94 |
+  | accepted entrapment hits | 0.29 | 0.29 |
+  | top decoys | 0.20 | 0.28 |
+
+  - The CNN rewards fragments that carry signal individually, without requiring them to co-elute or to match the library pattern.
+- **Next design direction:** a second-stage score that adds co-elution, library correlation and MS1 mass error to the CNN logit (PyProphet-style). It must be tested on a new design run and gate.
