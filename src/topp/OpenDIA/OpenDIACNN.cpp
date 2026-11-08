@@ -132,6 +132,8 @@ namespace OpenMS
       setMaxInt_("topaz_width", 64);
       registerDoubleOption_("weight_decay", "<value>", 0.0, "With -cnn_arch topaz: decoupled (AdamW) weight decay; 0 is plain Adam", false);
       setMinFloat_("weight_decay", 0.0);
+      registerFlag_("topaz_faithful", "With -cnn_arch topaz, experimental: redeem-topaz training defaults (per-sample block max normalisation, cosine "
+                    "warm-up LR, gradient clipping at 5, 0.1 x pairwise and, with MIL, 0.1 x in-bag ranking losses). Combine with -weight_decay 0.01 for TOPAZ's AdamW default");
     }
 
     ExitCodes main_(int, const char**) override
@@ -260,9 +262,9 @@ namespace OpenMS
         {
           throw std::invalid_argument("cnn_training mil requires crossfit mode, -cnn_arch topaz and -rt_calibration, and excludes -ss_iterations.");
         }
-        if (!topaz && (getIntOption_("topaz_width") != 32 || getDoubleOption_("weight_decay") != 0.0))
+        if (!topaz && (getIntOption_("topaz_width") != 32 || getDoubleOption_("weight_decay") != 0.0 || getFlag_("topaz_faithful")))
         {
-          throw std::invalid_argument("topaz_width and weight_decay require -cnn_arch topaz.");
+          throw std::invalid_argument("topaz_width, weight_decay and topaz_faithful require -cnn_arch topaz.");
         }
 
         const auto max_samples = static_cast<std::size_t>(getIntOption_("max_samples"));
@@ -398,6 +400,7 @@ namespace OpenMS
         settings.mil_bags_per_epoch = getIntOption_("mil_bags_per_epoch");
         settings.topaz_width = getIntOption_("topaz_width");
         settings.weight_decay = getDoubleOption_("weight_decay");
+        settings.topaz_faithful = getFlag_("topaz_faithful");
         std::vector<OpenDIA::CNNQValueInput> crossfit_rows;
         // Pair key: target TRAML_ID, or a decoy TRAML_ID without its DECOY_ prefix.
         std::vector<std::string> pair_keys(count);

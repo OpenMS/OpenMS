@@ -92,6 +92,10 @@ namespace OpenMS::OpenDIA
     int mil_bags_per_epoch = 40000; ///< MIL: training bags drawn per epoch; also the fixed validation subsample size.
     int topaz_width = 32; ///< TOPAZ only: base width w (conv w-2w-2w, embeddings 2w, MLP 4w-2w); 32 is the TOPAZ layout.
     double weight_decay = 0.0; ///< TOPAZ only: decoupled (AdamW) weight decay; 0 is plain Adam.
+    /// TOPAZ only: redeem-topaz training defaults. Per-sample block max normalisation of each trace block
+    /// (normalize_max), cosine warm-up LR (5%, floor 0.05), gradient clipping at norm 5, and auxiliary losses
+    /// 0.1 x pairwise positive-negative softplus and, with MIL, 0.1 x in-bag ranking (margin 1). Saved in the checkpoint.
+    bool topaz_faithful = false;
   };
 
   /**

@@ -374,6 +374,40 @@ int main(int argc, char** argv)
       auto grid_decay = options;
       grid_decay.weight_decay = 0.01;
       rejects([&] { trainTraceCNN(data, geometry, grid_decay, compact_path + ".grid"); });
+      // TOPAZ-faithful regime: learns co-elution, roundtrips, and (block max normalisation) is invariant to per-window scale.
+      auto faithful_options = compact_options;
+      faithful_options.topaz_faithful = true;
+      const auto faithful_path = (directory / "topaz-faithful.pt").string();
+      const auto faithful = trainTraceCNN(topaz, geometry, faithful_options, faithful_path);
+      check(faithful.heldout_auc > 0.99, "faithful TOPAZ did not learn co-elution");
+      const auto faithful_scored = scoreTraceCNN(topaz, geometry, faithful_path, 1, true);
+      check(faithful_scored.logits == faithful.logits, "faithful TOPAZ checkpoint roundtrip changed output");
+      auto scaled_raw = topaz_raw;
+      for (std::size_t i = 0; i < topaz.samples.size(); ++i)
+      {
+        for (std::size_t j = 0; j < WINDOW; ++j) { scaled_raw[i * WINDOW + j] *= static_cast<float>(1 << (i % 8)); }
+      }
+      auto scaled = topaz;
+      scaled.intensities = scaled_raw.data();
+      const auto scaled_scored = scoreTraceCNN(scaled, geometry, faithful_path, 1, true);
+      double worst = 0;
+      for (std::size_t i = 0; i < scaled_scored.logits.size(); ++i) { worst = std::max(worst, std::abs(double(scaled_scored.logits[i]) - faithful.logits[i])); }
+      check(worst < 1e-3, "faithful TOPAZ is not invariant to per-window intensity scale");
+      check(scoreTraceCNN(scaled, geometry, compact_path, 1, true).logits != compact.logits, "raw-scale TOPAZ unexpectedly scale invariant");
+      auto grid_faithful = options;
+      grid_faithful.topaz_faithful = true;
+      rejects([&] { trainTraceCNN(data, geometry, grid_faithful, faithful_path + ".grid"); });
+      auto faithful_mil = mil_options;
+      faithful_mil.topaz_faithful = true;
+      const auto faithful_mil_fit = trainTraceCNN(mil_data, geometry, faithful_mil, faithful_path + ".mil");
+      std::vector<float> fgood, fscrambled;
+      for (std::size_t i = 0; i < mil_data.samples.size(); ++i)
+      {
+        if (faithful_mil_fit.splits[i] != "heldout") { continue; }
+        (mil_data.samples[i].sample_id.ends_with("-1") ? fgood : fscrambled).push_back(faithful_mil_fit.logits[i]);
+      }
+      check(*std::min_element(fgood.begin(), fgood.end()) > *std::max_element(fscrambled.begin(), fscrambled.end()),
+            "faithful MIL did not rank co-eluting candidates first");
     }
     if (parity)
     {

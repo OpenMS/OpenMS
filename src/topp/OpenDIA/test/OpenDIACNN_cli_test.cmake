@@ -176,6 +176,12 @@ endif()
 execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/width" -topaz_width 8
   -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
   RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
-if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "topaz_width and weight_decay require -cnn_arch topaz" OR EXISTS "${WORK}/scores.tsv")
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "topaz_width, weight_decay and topaz_faithful require -cnn_arch topaz" OR EXISTS "${WORK}/scores.tsv")
   message(FATAL_ERROR "topaz_width without topaz was not rejected: ${status}\n${output}\n${error}")
+endif()
+execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/faithful" -topaz_faithful
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "topaz_faithful require -cnn_arch topaz" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "topaz_faithful without topaz was not rejected: ${status}\n${output}\n${error}")
 endif()

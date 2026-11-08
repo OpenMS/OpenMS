@@ -17,6 +17,8 @@
 #include <torch/nn/functional/loss.h>
 #include <torch/optim/adam.h>
 #include <torch/optim/adamw.h>
+#include <torch/nn/utils/clip_grad.h>
+#include <torch/nn/functional/activation.h>
 #include <torch/serialize/archive.h>
 #include <ATen/Parallel.h>
 #include <ATen/Context.h>
@@ -223,7 +225,7 @@ namespace OpenMS::OpenDIA
       }
     };
 
-    TopazBatch topazBatch(const CNNData& data, const std::vector<std::size_t>& ids, std::size_t begin, std::size_t end)
+    TopazBatch topazBatch(const CNNData& data, const std::vector<std::size_t>& ids, std::size_t begin, std::size_t end, bool block_max = false)
     {
       const auto n = static_cast<int64_t>(end - begin);
       TopazBatch b{torch::zeros({n, FRAGMENTS, RT_BINS}), torch::zeros({n, ISOTOPES, RT_BINS}), torch::zeros({n, FRAGMENTS, IM_BINS}),
@@ -256,6 +258,14 @@ namespace OpenMS::OpenDIA
         aux[row * (FRAGMENTS + 2) + FRAGMENTS] = s.has_ms1 ? 1.f : 0.f;
         aux[row * (FRAGMENTS + 2) + FRAGMENTS + 1] = s.has_im ? 1.f : 0.f;
         y[row] = static_cast<float>(s.label);
+      }
+      if (block_max)
+      {
+        // TOPAZ normalize_max: divide each sample's [C,L] block by its global maximum (scale-free input).
+        const auto scale = [](torch::Tensor& t) { t.div_(t.flatten(1).amax(1).clamp_min(1e-30).view({-1, 1, 1})); };
+        scale(b.xic);
+        scale(b.ms1);
+        scale(b.xim);
       }
       return b;
     }
@@ -413,7 +423,7 @@ namespace OpenMS::OpenDIA
         require(std::isfinite(data.ms1[j]) && data.ms1[j] >= 0, "invalid MS1 trace intensity");
       }
     }
-    void predictTopaz(TopazModel& model, const CNNData& data, CNNResult& result, bool heldout_only = false)
+    void predictTopaz(TopazModel& model, const CNNData& data, CNNResult& result, bool heldout_only = false, bool block_max = false)
     {
       torch::NoGradGuard guard;
       model.eval();
@@ -426,7 +436,7 @@ namespace OpenMS::OpenDIA
       for (std::size_t start = 0; start < ids.size(); start += 512)
       {
         const auto end = std::min(start + 512, ids.size());
-        auto out = model.forward(topazBatch(data, ids, start, end)).contiguous();
+        auto out = model.forward(topazBatch(data, ids, start, end, block_max)).contiguous();
         const auto* p = out.data_ptr<float>();
         for (std::size_t k = start; k < end; ++k) { result.logits[ids[k]] = p[k - start]; }
       }
@@ -457,9 +467,11 @@ namespace OpenMS::OpenDIA
       Indices members;
       float label = 0;
     };
-    /// Masked-max bag logits: each bag scores as its best candidate (TOPAZ forward_bags).
+    /// Masked-max bag logits: each bag scores as its best candidate (TOPAZ forward_bags). Optionally returns the
+    /// candidate logits and their bag index for TOPAZ's in-bag ranking loss.
     torch::Tensor bagLogits(TopazModel& model, const CNNData& data, const std::vector<Bag>& bags, const Indices& order, std::size_t begin,
-                            std::size_t end, torch::Tensor& labels)
+                            std::size_t end, torch::Tensor& labels, bool block_max = false, torch::Tensor* candidates = nullptr,
+                            torch::Tensor* owners = nullptr)
     {
       Indices windows;
       std::vector<int64_t> owner;
@@ -471,9 +483,41 @@ namespace OpenMS::OpenDIA
         owner.insert(owner.end(), bag.members.size(), static_cast<int64_t>(k - begin));
         labels[static_cast<int64_t>(k - begin)] = bag.label;
       }
-      const auto logits = model.forward(topazBatch(data, windows, 0, windows.size()));
+      const auto logits = model.forward(topazBatch(data, windows, 0, windows.size(), block_max));
       const auto index = torch::tensor(owner, torch::kInt64);
+      if (candidates != nullptr) { *candidates = logits; }
+      if (owners != nullptr) { *owners = index; }
       return torch::full({static_cast<int64_t>(end - begin)}, -1e9f).scatter_reduce(0, index, logits, "amax", true);
+    }
+    torch::Tensor softplusLoss(const torch::Tensor& x) { return torch::nn::functional::softplus(x); }
+    /// TOPAZ pairwise_pos_neg_softplus: mean softplus(-(s_pos - s_neg)) over all positive/negative pairs in the batch.
+    torch::Tensor pairwiseLoss(const torch::Tensor& scores, const torch::Tensor& labels)
+    {
+      const auto pos = labels > 0.5, neg = labels <= 0.5;
+      if (pos.sum().item<int64_t>() == 0 || neg.sum().item<int64_t>() == 0) { return torch::zeros({}); }
+      const auto diff = scores.index({pos}).unsqueeze(1) - scores.index({neg}).unsqueeze(0);
+      return softplusLoss(-diff).mean();
+    }
+    /// TOPAZ inbag_ranking_loss: in target bags, mean softplus(margin - (s_best - s_other)) over the non-winning candidates.
+    torch::Tensor inbagLoss(const torch::Tensor& candidates, const torch::Tensor& owners, const torch::Tensor& bag_scores,
+                            const torch::Tensor& labels, double margin)
+    {
+      const auto best = bag_scores.index_select(0, owners);
+      const auto target = labels.index_select(0, owners) > 0.5;
+      const auto other = target & (candidates < best);
+      if (other.sum().item<int64_t>() == 0) { return torch::zeros({}); }
+      return softplusLoss(margin - (best - candidates).index({other})).mean();
+    }
+    /// TOPAZ CosineWarmupScheduler::lr_at_step.
+    double cosineWarmup(double base, std::size_t step, std::size_t total, double warmup_frac, double min_ratio)
+    {
+      total = std::max<std::size_t>(total, 1);
+      const std::size_t warmup = std::min(total, std::max<std::size_t>(1, static_cast<std::size_t>(std::llround(warmup_frac * total))));
+      step = std::min(step, total - 1);
+      if (step < warmup) { return (step + 1.0) / warmup * base; }
+      if (total <= warmup) { return base; }
+      const double progress = std::clamp(static_cast<double>(step - warmup) / (total - warmup), 0.0, 1.0);
+      return base * (min_ratio + (1.0 - min_ratio) * 0.5 * (1.0 + std::cos(M_PI * progress)));
     }
 
     CNNResult trainTopaz(const CNNData& data, const CNNGeometry& geometry, const CNNOptions& options, const std::string& checkpoint)
@@ -534,6 +578,10 @@ namespace OpenMS::OpenDIA
       double best = std::numeric_limits<double>::infinity();
       int stale = 0;
       std::string best_state;
+      const bool faithful = options.topaz_faithful;
+      const std::size_t per_epoch = options.mil ? std::min(fit_bags.size(), static_cast<std::size_t>(options.mil_bags_per_epoch)) : train.size();
+      const std::size_t total_steps = static_cast<std::size_t>(options.epochs) * ((per_epoch + options.batch_size - 1) / options.batch_size);
+      std::size_t step = 0;
       for (int epoch = 0; epoch < options.epochs; ++epoch)
       {
         model.train();
@@ -551,18 +599,32 @@ namespace OpenMS::OpenDIA
           const auto end = std::min(start + options.batch_size, order.size());
           optimizer.zero_grad();
           torch::Tensor value;
+          if (faithful)
+          {
+            // TOPAZ CosineWarmupScheduler defaults: warmup_frac 0.05, min_lr_ratio 0.05.
+            const double lr = cosineWarmup(1e-3, step, total_steps, 0.05, 0.05);
+            for (auto& group : optimizer.param_groups()) { static_cast<torch::optim::AdamWOptions&>(group.options()).lr(lr); }
+          }
+          ++step;
           if (options.mil)
           {
-            torch::Tensor labels;
-            value = torch::nn::functional::binary_cross_entropy_with_logits(bagLogits(model, data, fit_bags, order, start, end, labels), labels);
+            torch::Tensor labels, candidates, owners;
+            const auto bags_scored = bagLogits(model, data, fit_bags, order, start, end, labels, faithful, &candidates, &owners);
+            value = torch::nn::functional::binary_cross_entropy_with_logits(bags_scored, labels);
+            // TOPAZ TrainConfig defaults: lambda_pair 0.1, lambda_inbag 0.1, inbag_margin 1.
+            if (faithful) { value = value + 0.1 * pairwiseLoss(bags_scored, labels) + 0.1 * inbagLoss(candidates, owners, bags_scored, labels, 1.0); }
           }
           else
           {
-            const auto b = topazBatch(data, order, start, end);
-            value = torch::nn::functional::binary_cross_entropy_with_logits(model.forward(b), b.labels);
+            const auto b = topazBatch(data, order, start, end, faithful);
+            const auto scores = model.forward(b);
+            value = torch::nn::functional::binary_cross_entropy_with_logits(scores, b.labels);
+            if (faithful) { value = value + 0.1 * pairwiseLoss(scores, b.labels); }
           }
           require(std::isfinite(value.item<double>()), "nonfinite training loss");
           value.backward();
+          // TOPAZ max_grad_norm 5.
+          if (faithful) { torch::nn::utils::clip_grad_norm_(model.parameters(), 5.0); }
           optimizer.step();
         }
         model.eval();
@@ -576,12 +638,12 @@ namespace OpenMS::OpenDIA
             if (options.mil)
             {
               torch::Tensor labels;
-              value += torch::nn::functional::binary_cross_entropy_with_logits(bagLogits(model, data, check_bags, check_order, start, end, labels), labels)
+              value += torch::nn::functional::binary_cross_entropy_with_logits(bagLogits(model, data, check_bags, check_order, start, end, labels, faithful), labels)
                          .item<double>() * (end - start);
             }
             else
             {
-              const auto b = topazBatch(data, validation, start, end);
+              const auto b = topazBatch(data, validation, start, end, faithful);
               value += torch::nn::functional::binary_cross_entropy_with_logits(model.forward(b), b.labels).item<double>() * (end - start);
             }
           }
@@ -608,7 +670,7 @@ namespace OpenMS::OpenDIA
       model.load(snapshot);
       result.validation_loss = best;
       // Outer-fold models score only their held-out families (the only rows crossfit uses); others stay NaN.
-      predictTopaz(model, data, result, options.outer_folds > 0);
+      predictTopaz(model, data, result, options.outer_folds > 0, faithful);
       torch::serialize::OutputArchive archive, model_archive;
       model.save(model_archive);
       archive.write("model", model_archive);
@@ -617,6 +679,7 @@ namespace OpenMS::OpenDIA
       archive.write("metadata", textTensor(metadata), true);
       archive.write("architecture", textTensor(options.mil ? "topaz-mil" : "topaz"), true);
       archive.write("topaz_width", torch::tensor({static_cast<int64_t>(options.topaz_width)}, torch::kInt64), true);
+      if (faithful) { archive.write("topaz_input", textTensor("block-max"), true); }
       archive.write("geometry", torch::tensor({geometry.mz_tolerance, geometry.rt_half_width, geometry.im_half_width}, torch::kFloat64), true);
       archive.write("training", torch::tensor({static_cast<double>(result.epochs_run), result.validation_loss}, torch::kFloat64), true);
       archive.write("training_options", torch::tensor({static_cast<int64_t>(options.seed), static_cast<int64_t>(options.threads),
@@ -648,8 +711,8 @@ namespace OpenMS::OpenDIA
     require(!options.mil || (options.architecture == CNNArchitecture::TOPAZ && options.mil_bags_per_epoch > 0),
             "multiple-instance training requires the TOPAZ architecture and a positive bag count");
     require(options.topaz_width >= 2 && options.topaz_width <= 64 && std::isfinite(options.weight_decay) && options.weight_decay >= 0 &&
-            (options.architecture == CNNArchitecture::TOPAZ || (options.topaz_width == 32 && options.weight_decay == 0)),
-            "invalid TOPAZ width or weight decay");
+            (options.architecture == CNNArchitecture::TOPAZ || (options.topaz_width == 32 && options.weight_decay == 0 && !options.topaz_faithful)),
+            "invalid TOPAZ width, weight decay or training regime");
     at::set_num_threads(options.threads);
     torch::manual_seed(options.seed);
     at::globalContext().setDeterministicAlgorithms(true, false);
@@ -837,8 +900,11 @@ namespace OpenMS::OpenDIA
         require(saved_width >= 2 && saved_width <= 64, "invalid checkpoint TOPAZ width");
       }
       TopazModel model(saved_width);
+      torch::Tensor input_mode;
+      const bool block_max = archive.try_read("topaz_input", input_mode, true);
+      require(!block_max || tensorText(input_mode) == "block-max", "unknown checkpoint TOPAZ input mode");
       model.load(model_archive);
-      predictTopaz(model, data, result);
+      predictTopaz(model, data, result, false, block_max);
       return result;
     }
     Model model;
