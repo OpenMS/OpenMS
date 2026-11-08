@@ -1,0 +1,9 @@
+Experimental MIL training: bagged_windows=2815555/2815555
+Native CNN fold=0 heldout_windows=945003 epochs=10 validation_loss=0.691103 heldout_seed_decoy_auc=0.999677
+Native CNN fold=1 heldout_windows=931700 epochs=10 validation_loss=0.690799 heldout_seed_decoy_auc=0.999746
+Native CNN fold=2 heldout_windows=938852 epochs=10 validation_loss=0.689469 heldout_seed_decoy_auc=1.000000
+Experimental second stage: ms1_offset_ppm=1.128064 ms2_offset_ppm=0.333052 windows=2815555
+Experimental second stage fold=0 iterations=3 positives=1076 negatives=177386 cnn_z=4.783736 transition_support=6.205760 log_matched_scans=-6.645700 log_peak_width=2.562907 abs_library_rt_error=-1.852771
+Experimental second stage fold=1 iterations=3 positives=994 negatives=178240 cnn_z=4.783190 transition_support=6.534657 log_matched_scans=-6.922299 log_peak_width=2.809017 abs_library_rt_error=-1.974798
+Experimental second stage fold=2 iterations=3 positives=961 negatives=177506 cnn_z=4.576961 transition_support=6.400961 log_matched_scans=-7.002697 log_peak_width=2.820696 abs_library_rt_error=-1.915212
+Native CNN crossfit seconds=252.994890 windows=2815555

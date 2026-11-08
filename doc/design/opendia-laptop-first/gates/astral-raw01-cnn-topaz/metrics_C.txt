@@ -1,0 +1,20 @@
+logit_q0.005	0
+logit_q0.01	0
+logit_q0.02	225
+logit_q0.05	623
+logit_q0.01_per_fold	{}
+stage2_score_q0.005	0
+stage2_score_q0.01	473
+stage2_score_q0.02	733
+stage2_score_q0.05	1177
+stage2_score_q0.01_per_fold	{0: 137, 1: 136, 2: 200}
+decoy_z999_fold0	7.51
+decoy_z999_fold1	8.67
+decoy_z999_fold2	8.88
+T_low	126319
+D_low	133283
+N_T	273948
+N_D	266566
+R	0.9222
+R_q05	0.8711
+guard_R_median_ge_0.83	True

@@ -1,0 +1,8 @@
+Native CNN fold=0 heldout_windows=945003 epochs=12 validation_loss=0.019187 heldout_seed_decoy_auc=1.000000
+Native CNN fold=1 heldout_windows=931700 epochs=18 validation_loss=0.000474 heldout_seed_decoy_auc=0.999746
+Native CNN fold=2 heldout_windows=938852 epochs=12 validation_loss=0.040575 heldout_seed_decoy_auc=1.000000
+Experimental second stage: ms1_offset_ppm=1.128064 ms2_offset_ppm=0.333052 windows=2815555
+Experimental second stage fold=0 iterations=3 positives=422 negatives=177386 cnn_z=8.555972 transition_support=6.649940 log_matched_scans=-6.111797 log_peak_width=2.495873 abs_library_rt_error=-2.183032
+Experimental second stage fold=1 iterations=3 positives=596 negatives=178240 cnn_z=9.098221 transition_support=7.232425 log_matched_scans=-5.553563 log_peak_width=2.007445 abs_library_rt_error=-1.863204
+Experimental second stage fold=2 iterations=3 positives=630 negatives=177506 cnn_z=7.935398 transition_support=7.320806 log_matched_scans=-5.979515 log_peak_width=2.255236 abs_library_rt_error=-1.940729
+Native CNN crossfit seconds=227.631061 windows=2815555

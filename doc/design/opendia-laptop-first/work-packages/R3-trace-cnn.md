@@ -43,3 +43,42 @@ Next, each with its own gate:
 - Entrapment check for the teacher-free path; 13611 exceeds the teacher-seeded count, which needs independent evidence.
 - Move anchor training into OpenDIACalibrate.
 - Cross-run global model (R-WP4).
+
+## TOPAZ-style modality-flexible scorer, 8 November 2026 (raw 01 design, target/decoy labels only)
+
+Code: `07ed9580e4` and `edc775d6bc`. Every option is opt-in, and the HeLa default `crossfit.tsv` is byte-identical after each rebuild. Gate record: [`gates/astral-raw01-cnn-topaz/`](../gates/astral-raw01-cnn-topaz/RESULT.md).
+
+**The design** follows redeem TOPAZ (`add/topaz`: `conv_encoder.rs`, `coelution.rs`, `trace_input.rs`, `topaz.rs`).
+- **Inputs:** 1D conv branches over a dual input view (max-normalised plus log1p) of:
+  - the fragment XIC, with IM summed;
+  - MS1 M+0, M+1 and M+2;
+  - the fragment mobilogram over the core RT bins.
+- **Co-elution head per branch:** lag-tolerant pairwise cosines, soft-apex spread, entropy and peakiness, plus a learned similarity embedding.
+- **Scorer inputs:** MS1-vs-MS2 agreement, library fit, and an MLP.
+- **Absent modalities:** MS1 and IM branch outputs are multiplied by `has_ms1` and `has_im`, so absent modalities add exact zeros (unit tested). One network serves Astral (no IM) and timsTOF.
+- **Options:**
+  - `-cnn_arch topaz`;
+  - `-topaz_width` (32 is the TOPAZ layout);
+  - `-weight_decay` (AdamW);
+  - `-cnn_training mil`: masked-max MIL over each precursor's in-RT-window candidates, bag label target/decoy, with sampled bags per epoch.
+
+**Raw 01, under the rule fixed in advance:** at least 732 targets at stage-2 q ≤ 0.01 (the reference is 717), plus a null-symmetry guard. Round 2 also had a compute budget of CNN time ≤ 1.5× grid2d.
+
+| Arm | Stage-2 q ≤ 0.01 / 0.05 | CNN s | Outcome |
+|---|---|---|---|
+| grid2d reference | 717 / 1412 | 243 | frozen |
+| A: topaz w32, seeds (about 100K params) | 0 / 853 | 228 | fail (overfits 600 seeds, heavy decoy tail) |
+| B: A + MIL, 40000 bags × 40 epochs | not run | est. ≥ 1 h | stopped: too slow for OpenDIA |
+| C: topaz w8, weight decay 0.01, seeds | 473 / 1177 | 146 | fail |
+| D: C + MIL, 4000 bags × 10 epochs | 653 / **1539** | 253 | fail at 1%; best at 5%; decoy tail z 4 vs 7 |
+
+**HeLa timsTOF diagnostic** (topaz w32, `-ss_iterations 1`; not a gate): **15119** targets at q ≤ 0.01, against 13253 for grid2d (+14%). CNN time was 342 s against about 145 s.
+
+**Interpretation**
+- The architecture is not slower than grid2d and does learn. On a strong IM run with 6000 seeds it clearly beats grid2d.
+- On the weak Astral run, a few hundred seeds is too little supervision for it.
+- MIL over all precursors fixes the overconfident decoy tail. Its lower R at the 0.05 cut (0.71 against a π0 estimate of 0.86) is a warning: with bag labels, part of the gain may be a target/decoy shift rather than peptide evidence.
+
+**Decision:** grid2d plus stage 2 `search` stays frozen, and TOPAZ stays experimental. Raw 01 has now been used for four TOPAZ arms, so the next step should not be another raw 01 tweak. Options:
+1. A second design run, or a fresh Astral replicate, for MIL with a symmetry guard at the 0.05 cut.
+2. Feeding MIL-scale positives into seeds training (PyProphet-style iteration with a compact model).

@@ -1,0 +1,10 @@
+Native CNN fold=0 heldout_windows=69673 epochs=13 validation_loss=0.097906 heldout_seed_decoy_auc=0.996069
+Native CNN fold=1 heldout_windows=68304 epochs=16 validation_loss=0.082517 heldout_seed_decoy_auc=0.994061
+Native CNN fold=2 heldout_windows=68138 epochs=13 validation_loss=0.099712 heldout_seed_decoy_auc=0.993424
+Experimental score iteration=0 target_precursors_q01=13882
+Native CNN fold=0 heldout_windows=69673 epochs=12 validation_loss=0.019522 heldout_seed_decoy_auc=0.999214
+Native CNN fold=1 heldout_windows=68304 epochs=13 validation_loss=0.021509 heldout_seed_decoy_auc=0.999585
+Native CNN fold=2 heldout_windows=68138 epochs=13 validation_loss=0.011350 heldout_seed_decoy_auc=0.999600
+Experimental score iteration=1 target_precursors_q01=15119
+Experimental fold-wise paired target-decoy estimate: target_decoy_ratio=1.000000 target_precursors_q01=15119. Seed-derived, not independently validated FDR control.
+Native CNN crossfit seconds=342.067935 windows=206115
