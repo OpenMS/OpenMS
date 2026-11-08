@@ -360,6 +360,20 @@ int main(int argc, char** argv)
       auto mixed = mil_data;
       mixed.samples.back().is_decoy = true;
       rejects([&] { trainTraceCNN(mixed, geometry, mil_options, mil_path + ".mixed"); });
+      // Compact width with weight decay still learns co-elution and roundtrips with its saved width.
+      auto compact_options = topaz_options;
+      compact_options.topaz_width = 8;
+      compact_options.weight_decay = 0.01;
+      const auto compact_path = (directory / "topaz-compact.pt").string();
+      const auto compact = trainTraceCNN(topaz, geometry, compact_options, compact_path);
+      check(compact.heldout_auc > 0.99, "compact TOPAZ did not learn co-elution");
+      check(scoreTraceCNN(topaz, geometry, compact_path, 1, true).logits == compact.logits, "compact TOPAZ checkpoint roundtrip changed output");
+      auto bad_width = compact_options;
+      bad_width.topaz_width = 1;
+      rejects([&] { trainTraceCNN(topaz, geometry, bad_width, compact_path + ".bad"); });
+      auto grid_decay = options;
+      grid_decay.weight_decay = 0.01;
+      rejects([&] { trainTraceCNN(data, geometry, grid_decay, compact_path + ".grid"); });
     }
     if (parity)
     {

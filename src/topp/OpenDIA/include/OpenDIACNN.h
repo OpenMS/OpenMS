@@ -90,6 +90,8 @@ namespace OpenMS::OpenDIA
     /// TOPAZ only: masked-max multiple-instance training over bag_id bags instead of per-window labels.
     bool mil = false;
     int mil_bags_per_epoch = 40000; ///< MIL: training bags drawn per epoch; also the fixed validation subsample size.
+    int topaz_width = 32; ///< TOPAZ only: base width w (conv w-2w-2w, embeddings 2w, MLP 4w-2w); 32 is the TOPAZ layout.
+    double weight_decay = 0.0; ///< TOPAZ only: decoupled (AdamW) weight decay; 0 is plain Adam.
   };
 
   /**

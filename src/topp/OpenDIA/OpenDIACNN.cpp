@@ -127,6 +127,11 @@ namespace OpenMS
       setValidStrings_("cnn_training", {"seeds", "mil"});
       registerIntOption_("mil_bags_per_epoch", "<n>", 40000, "With -cnn_training mil: training bags drawn per epoch, also the fixed validation subsample size", false);
       setMinInt_("mil_bags_per_epoch", 1);
+      registerIntOption_("topaz_width", "<w>", 32, "With -cnn_arch topaz: base width w (conv w-2w-2w, embeddings 2w, MLP 4w-2w); 32 is the TOPAZ layout", false);
+      setMinInt_("topaz_width", 2);
+      setMaxInt_("topaz_width", 64);
+      registerDoubleOption_("weight_decay", "<value>", 0.0, "With -cnn_arch topaz: decoupled (AdamW) weight decay; 0 is plain Adam", false);
+      setMinFloat_("weight_decay", 0.0);
     }
 
     ExitCodes main_(int, const char**) override
@@ -254,6 +259,10 @@ namespace OpenMS
         if (mil && (!crossfit || !topaz || !rt_calibration || ss_iterations > 0))
         {
           throw std::invalid_argument("cnn_training mil requires crossfit mode, -cnn_arch topaz and -rt_calibration, and excludes -ss_iterations.");
+        }
+        if (!topaz && (getIntOption_("topaz_width") != 32 || getDoubleOption_("weight_decay") != 0.0))
+        {
+          throw std::invalid_argument("topaz_width and weight_decay require -cnn_arch topaz.");
         }
 
         const auto max_samples = static_cast<std::size_t>(getIntOption_("max_samples"));
@@ -387,6 +396,8 @@ namespace OpenMS
         settings.architecture = topaz ? OpenDIA::CNNArchitecture::TOPAZ : OpenDIA::CNNArchitecture::GRID2D;
         settings.mil = mil;
         settings.mil_bags_per_epoch = getIntOption_("mil_bags_per_epoch");
+        settings.topaz_width = getIntOption_("topaz_width");
+        settings.weight_decay = getDoubleOption_("weight_decay");
         std::vector<OpenDIA::CNNQValueInput> crossfit_rows;
         // Pair key: target TRAML_ID, or a decoy TRAML_ID without its DECOY_ prefix.
         std::vector<std::string> pair_keys(count);

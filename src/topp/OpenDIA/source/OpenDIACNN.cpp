@@ -16,6 +16,7 @@
 #include <torch/nn/modules/dropout.h>
 #include <torch/nn/functional/loss.h>
 #include <torch/optim/adam.h>
+#include <torch/optim/adamw.h>
 #include <torch/serialize/archive.h>
 #include <ATen/Parallel.h>
 #include <ATen/Context.h>
@@ -97,17 +98,17 @@ namespace OpenMS::OpenDIA
       return torch::sqrt((x - x.mean(1, true)).pow(2).sum(1) / static_cast<double>(x.size(1) - 1) + 1e-12);
     }
 
-    /// One 1D convolutional branch over a trace axis (TOPAZ ConvBranch): [n,C,L] -> [n,64].
+    /// One 1D convolutional branch over a trace axis (TOPAZ ConvBranch): [n,C,L] -> [n,2w]. TOPAZ uses w = 32.
     struct BranchImpl : torch::nn::Module
     {
       torch::nn::Conv1d conv0{nullptr}, conv1{nullptr}, conv2{nullptr};
       torch::nn::Linear proj{nullptr};
-      explicit BranchImpl(int64_t channels)
+      BranchImpl(int64_t channels, int64_t width)
       {
-        conv0 = register_module("conv0", torch::nn::Conv1d(torch::nn::Conv1dOptions(2 * channels, 32, 1)));
-        conv1 = register_module("conv1", torch::nn::Conv1d(torch::nn::Conv1dOptions(32, 64, 3).padding(1)));
-        conv2 = register_module("conv2", torch::nn::Conv1d(torch::nn::Conv1dOptions(64, 64, 3).padding(1)));
-        proj = register_module("proj", torch::nn::Linear(128, 64));
+        conv0 = register_module("conv0", torch::nn::Conv1d(torch::nn::Conv1dOptions(2 * channels, width, 1)));
+        conv1 = register_module("conv1", torch::nn::Conv1d(torch::nn::Conv1dOptions(width, 2 * width, 3).padding(1)));
+        conv2 = register_module("conv2", torch::nn::Conv1d(torch::nn::Conv1dOptions(2 * width, 2 * width, 3).padding(1)));
+        proj = register_module("proj", torch::nn::Linear(4 * width, 2 * width));
       }
       torch::Tensor forward(const torch::Tensor& x)
       {
@@ -187,20 +188,23 @@ namespace OpenMS::OpenDIA
 
     struct TopazModel : torch::nn::Module
     {
-      static constexpr int64_t FEATURES = 64 + 18 + (64 + 18 + 4) + (64 + 18) + 2 + 8;
+      int64_t embedding;
       Branch xic{nullptr}, ms1{nullptr}, xim{nullptr};
       Coelution xic_coelution{nullptr}, ms1_coelution{nullptr}, xim_coelution{nullptr};
       torch::nn::Sequential head{nullptr};
-      TopazModel()
+      /// width 32 is the TOPAZ layout (conv 32-64-64, embeddings 64, MLP 128-64); smaller widths scale every learned layer.
+      explicit TopazModel(int64_t width) : embedding(2 * width)
       {
-        xic = register_module("xic", Branch(FRAGMENTS));
-        ms1 = register_module("ms1", Branch(ISOTOPES));
-        xim = register_module("xim", Branch(FRAGMENTS));
+        xic = register_module("xic", Branch(FRAGMENTS, width));
+        ms1 = register_module("ms1", Branch(ISOTOPES, width));
+        xim = register_module("xim", Branch(FRAGMENTS, width));
         xic_coelution = register_module("xic_coelution", Coelution(FRAGMENTS));
         ms1_coelution = register_module("ms1_coelution", Coelution(ISOTOPES));
         xim_coelution = register_module("xim_coelution", Coelution(FRAGMENTS));
-        head = register_module("head", torch::nn::Sequential(torch::nn::Linear(FEATURES, 128), torch::nn::ReLU(), torch::nn::Dropout(0.1),
-                                                             torch::nn::Linear(128, 64), torch::nn::ReLU(), torch::nn::Dropout(0.1), torch::nn::Linear(64, 1)));
+        const int64_t features = embedding + 18 + (embedding + 18 + 4) + (embedding + 18) + 2 + 8;
+        head = register_module("head", torch::nn::Sequential(torch::nn::Linear(features, 4 * width), torch::nn::ReLU(), torch::nn::Dropout(0.1),
+                                                             torch::nn::Linear(4 * width, 2 * width), torch::nn::ReLU(), torch::nn::Dropout(0.1),
+                                                             torch::nn::Linear(2 * width, 1)));
       }
       torch::Tensor forward(const TopazBatch& b)
       {
@@ -209,9 +213,9 @@ namespace OpenMS::OpenDIA
         // Absent modalities contribute exact zeros, not learned biases on zero-filled input. A batch without any
         // sample of a modality skips its branch (same zeros, no compute).
         const auto n = b.xic.size(0);
-        const auto ms1_part = has_ms1.max().item<float>() == 0.f ? torch::zeros({n, 64 + 18 + 4})
+        const auto ms1_part = has_ms1.max().item<float>() == 0.f ? torch::zeros({n, embedding + 18 + 4})
           : torch::cat({ms1(b.ms1), ms1_coelution(b.ms1), crossModal(b.ms1, b.xic)}, 1) * has_ms1;
-        const auto xim_part = has_im.max().item<float>() == 0.f ? torch::zeros({n, 64 + 18})
+        const auto xim_part = has_im.max().item<float>() == 0.f ? torch::zeros({n, embedding + 18})
           : torch::cat({xim(b.xim), xim_coelution(b.xim)}, 1) * has_im;
         const auto core = b.xic.narrow(2, CORE_BEGIN, CORE_END - CORE_BEGIN).sum(2);
         const auto library_fit = torch::stack({rowCosine(torch::sqrt(core), torch::sqrt(library)), rowCosine(core, library)}, 1);
@@ -517,8 +521,9 @@ namespace OpenMS::OpenDIA
       // Fixed validation subsample (MIL): the first bags of one seeded permutation.
       Indices check_order(check_bags.size());
       std::iota(check_order.begin(), check_order.end(), 0);
-      TopazModel model;
-      torch::optim::Adam optimizer(model.parameters(), torch::optim::AdamOptions(1e-3));
+      TopazModel model(options.topaz_width);
+      // Weight decay (AdamW) is the compact-variant regulariser; zero keeps plain Adam behaviour.
+      torch::optim::AdamW optimizer(model.parameters(), torch::optim::AdamWOptions(1e-3).weight_decay(options.weight_decay));
       if (options.mil && check_order.size() > static_cast<std::size_t>(options.mil_bags_per_epoch))
       {
         auto permutation = torch::randperm(static_cast<int64_t>(check_order.size()), torch::kInt64);
@@ -611,6 +616,7 @@ namespace OpenMS::OpenDIA
       for (const auto& [group, role] : provenance) { metadata += role + "\t" + group + "\n"; }
       archive.write("metadata", textTensor(metadata), true);
       archive.write("architecture", textTensor(options.mil ? "topaz-mil" : "topaz"), true);
+      archive.write("topaz_width", torch::tensor({static_cast<int64_t>(options.topaz_width)}, torch::kInt64), true);
       archive.write("geometry", torch::tensor({geometry.mz_tolerance, geometry.rt_half_width, geometry.im_half_width}, torch::kFloat64), true);
       archive.write("training", torch::tensor({static_cast<double>(result.epochs_run), result.validation_loss}, torch::kFloat64), true);
       archive.write("training_options", torch::tensor({static_cast<int64_t>(options.seed), static_cast<int64_t>(options.threads),
@@ -641,6 +647,9 @@ namespace OpenMS::OpenDIA
             "invalid threads, epochs, patience or batch size");
     require(!options.mil || (options.architecture == CNNArchitecture::TOPAZ && options.mil_bags_per_epoch > 0),
             "multiple-instance training requires the TOPAZ architecture and a positive bag count");
+    require(options.topaz_width >= 2 && options.topaz_width <= 64 && std::isfinite(options.weight_decay) && options.weight_decay >= 0 &&
+            (options.architecture == CNNArchitecture::TOPAZ || (options.topaz_width == 32 && options.weight_decay == 0)),
+            "invalid TOPAZ width or weight decay");
     at::set_num_threads(options.threads);
     torch::manual_seed(options.seed);
     at::globalContext().setDeterministicAlgorithms(true, false);
@@ -819,7 +828,15 @@ namespace OpenMS::OpenDIA
     archive.read("model", model_archive);
     if (topaz)
     {
-      TopazModel model;
+      torch::Tensor width;
+      int64_t saved_width = 32;
+      if (archive.try_read("topaz_width", width, true))
+      {
+        require(width.scalar_type() == torch::kInt64 && width.numel() == 1, "invalid checkpoint TOPAZ width");
+        saved_width = width.item<int64_t>();
+        require(saved_width >= 2 && saved_width <= 64, "invalid checkpoint TOPAZ width");
+      }
+      TopazModel model(saved_width);
       model.load(model_archive);
       predictTopaz(model, data, result);
       return result;
