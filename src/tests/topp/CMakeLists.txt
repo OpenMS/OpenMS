@@ -8355,6 +8355,12 @@ set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_pipecho_combine" PROPERTIES
 add_test(NAME "TOPP_ProteomicsLFQ_feat_dir_pipecho_eq_msstats" COMMAND ${CMAKE_COMMAND} -E compare_files
          ${TESTS_TEMP_DIR}/BSA_pipecho_ref.tmp.csv ${TESTS_TEMP_DIR}/BSA_pipecho_split.tmp.csv)
 set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_pipecho_eq_msstats" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_feat_dir_pipecho_combine")
+# PIP-ECHO transfers identifications to runs without one; those rows are "transferred" and carry
+# the transfer's q-value in match_qvalue. 12 of the 79 rows here.
+add_test("TOPP_ProteomicsLFQ_feat_dir_pipecho_qpx_features" ${TOPP_BIN_PATH}/ParquetDiff
+         -in1 ${TESTS_TEMP_DIR}/BSA_pipecho_qpx_ref/quantms.feature.parquet -schema feature -min_rows 59
+         -min_non_null identification_type=59 match_qvalue=9)
+set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_pipecho_qpx_features" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_feat_dir_pipecho_ref")
 foreach(view feature psm pg)
   add_test("TOPP_ProteomicsLFQ_feat_dir_pipecho_eq_${view}" ${TOPP_BIN_PATH}/ParquetDiff
            -in1 ${TESTS_TEMP_DIR}/BSA_pipecho_qpx_ref/quantms.${view}.parquet
@@ -8514,8 +8520,12 @@ set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_requires_design" PROPERTIES
   # the observed count. The floor's job is to catch collapse, which is what an existence check
   # could not do at all; pinning the count is the job of a value reference, deliberately a
   # later phase.
+  # identification_type says whether a row's run identified it (direct) or not (transferred), and
+  # consensus_rt groups the rows of one consensus feature; both are nullable. All 60 rows are
+  # identified in their own run here.
   add_test("TOPP_ProteomicsLFQ_qpx_features" ${TOPP_BIN_PATH}/ParquetDiff
-    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.feature.parquet -schema feature -min_rows 45)
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.feature.parquet -schema feature -min_rows 45
+    -min_non_null identification_type=45 consensus_rt=45)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_features" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
   # psm.feature_id links a PSM to its feature. It is nullable, so the schema check passes when it
   # is never filled; 74 of the 104 PSMs are linked here. Linking only the identification

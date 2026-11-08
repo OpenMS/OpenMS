@@ -56,9 +56,10 @@ public:
     identification_type is "direct". A row whose run has no such identification is
     "transferred" and has no PSM-level values; PIP-ECHO's q-value for the transfer goes to
     match_qvalue. When no identification resolves to a run, identification_type is null and the
-    PSM-level columns describe the consensus feature's identification. consensus_rt, the
-    ConsensusFeature's RT, together with peptidoform and charge groups the rows of one
-    consensus feature.
+    PSM-level columns describe the consensus feature's identification. An identification of a
+    merged run without a usable @c id_merge_index cannot be placed in a run and is ignored.
+    consensus_rt, the ConsensusFeature's RT, together with peptidoform and charge groups the
+    rows of one consensus feature.
 
     @param[in] cmap The ConsensusMap to export
     @param[out] out_links Optional feature&harr;PSM linkage, collected while the rows are built.
@@ -67,10 +68,11 @@ public:
                 validates that a PSM pointing at a feature is listed back by that feature's
                 @c psm_ids. The export refuses a @c psm_id claimed by two different feature
                 rows instead of silently choosing one owner. A row links the identifications of
-                its run attached to the consensus feature, and the unassigned ones that
-                IDConflictResolverAlgorithm moved off it or off one of its features (meta value
-                "feature_id") if they name the peptide and charge the feature kept and no
-                attached identification or other feature names their PSM.
+                its run whose top hit names the feature's peptide and charge -- the ones its
+                PSM-level columns are picked from: those attached to the consensus feature, and
+                the unassigned ones that IDConflictResolverAlgorithm moved off it or off one of
+                its features (meta value "feature_id") if no attached identification or other
+                feature names their PSM.
     @return Shared pointer to Arrow Table, or nullptr on error
     @throws Exception::InvalidValue if one PSM identity is claimed by different feature rows
   */
@@ -109,9 +111,10 @@ public:
     run's @c spectra_data. Without a usable index every PSM of a merged run resolves to the
     run's FIRST file, so @c run_file_name would be wrong rather than missing.
 
-    Only the identification the exported row actually uses is validated -- validating every
-    attached one refuses a feature whose winning hit resolves perfectly because a sibling,
-    hitless or simply not selected, lacks an index that is never read.
+    Only the consensus feature's identification, which names the peptide of all its rows, is
+    validated -- validating every attached one refuses a feature whose winning hit resolves
+    perfectly because a sibling, hitless or simply not selected, lacks an index. Such a sibling
+    is left out instead: no row takes PSM-level values from it or links its PSM.
 
     @note Same preflight constraint as requireUnambiguousIdentities(): call before any OpenMP
           region and before the output file is opened.

@@ -322,7 +322,7 @@ namespace OpenMS
     static std::shared_ptr<arrow::DataType> pgAccessionsType();
     /// @brief Arrow type for protein group positions: list<struct{protein_accession, start, end}>
     static std::shared_ptr<arrow::DataType> pgPositionsType();
-    /// @brief Complete Arrow schema for QPX feature table (33 fields)
+    /// @brief Complete Arrow schema for QPX feature table (36 fields)
     static std::shared_ptr<arrow::Schema> schema();
   };
 

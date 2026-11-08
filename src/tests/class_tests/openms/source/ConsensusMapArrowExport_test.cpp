@@ -1378,9 +1378,10 @@ END_SECTION
 
 START_SECTION(([EXTRA] only the selected identification must be resolvable))
 {
-  // The row draws every identification-derived value from the winning hit, so a sibling
-  // identification that carries no hit cannot affect the output and must not be able to refuse
-  // the export. Validating every attached identification rejected input that exports correctly.
+  // A sibling identification whose run cannot be determined must not be able to refuse the
+  // export: validating every attached identification rejected input that exports correctly. It
+  // is left out instead -- a hitless one has nothing to give, and one with a hit but no
+  // id_merge_index cannot be placed in a run, so it neither identifies runA nor gets linked.
   ConsensusMap cmap;
   cmap.setExperimentType("label-free");
   ConsensusMap::ColumnHeader ch;
@@ -1412,22 +1413,30 @@ START_SECTION(([EXTRA] only the selected identification must be resolvable))
   hit.setCharge(2);
   winner.setHits({hit});
 
+  PeptideIdentification unplaced = winner;   // same peptide, but no usable index: run unknown
+  unplaced.removeMetaValue(Constants::UserParam::ID_MERGE_INDEX);
+  unplaced.setSpectrumReference("scan=7");
+  unplaced.getHits()[0].setScore(0.5);        // worse than the winner, so never the feature's identity
+
   ConsensusFeature cf;
   cf.setMZ(500.0); cf.setRT(100.0); cf.setCharge(2);
   BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0); bf.setCharge(2);
   cf.insert(0, bf);
   bf.setRT(101.0);
   cf.insert(1, bf);
-  cf.setPeptideIdentifications({hitless, winner});
+  cf.setPeptideIdentifications({hitless, winner, unplaced});
   cmap.push_back(cf);
 
-  auto t = ConsensusMapArrowExport::exportToArrow(cmap);
+  QPXIdentity::FeatureLinks links;
+  auto t = ConsensusMapArrowExport::exportToArrow(cmap, &links);
   TEST_NOT_EQUAL(t, nullptr)
   ABORT_IF(t == nullptr)
   const auto by_run = identificationByRun(t);
   TEST_STRING_EQUAL(by_run.at("runB").first, "runB")
   TEST_STRING_EQUAL(by_run.at("runB").second, "direct")
+  TEST_STRING_EQUAL(by_run.at("runA").first, "<null>")
   TEST_STRING_EQUAL(by_run.at("runA").second, "transferred")
+  TEST_EQUAL(links.size(), 1) // the winner's PSM only
 }
 END_SECTION
 
@@ -1842,18 +1851,20 @@ START_SECTION(([EXTRA] the PSM-level columns come from the run of the row, and a
   prot.setHits({ph});
   cmap.setProteinIdentifications({prot});
 
-  const auto make_id = [](Size run, int scan, double pep)
+  const auto make_id = [](Size run, int scan, double pep, int charge = 2)
   {
     PeptideIdentification pid;
     pid.setIdentifier("PI_0");
     pid.setSpectrumReference("scan=" + std::to_string(scan));
     pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, static_cast<int>(run));
+    pid.setMetaValue("ion_mobility", 1.0 + scan / 10.0);
     pid.setScoreType("Posterior Error Probability");
     pid.setHigherScoreBetter(false);
     PeptideHit hit;
     hit.setSequence(AASequence::fromString("PEPTIDE"));
-    hit.setCharge(2);
+    hit.setCharge(charge);
     hit.setScore(pep);
+    hit.setMetaValue("q-value", pep / 10.0);
     pid.setHits({hit});
     return pid;
   };
@@ -1873,7 +1884,9 @@ START_SECTION(([EXTRA] the PSM-level columns come from the run of the row, and a
     bf.setCharge(2);
     cf.insert(run, bf);
   }
-  cf.setPeptideIdentifications({make_id(0, 1, 0.01)});
+  // runB's best identification is of another charge: it is no evidence for this charge-2
+  // feature, so it neither gives runB's row its PSM-level values nor is linked to it.
+  cf.setPeptideIdentifications({make_id(0, 1, 0.01), make_id(1, 9, 0.015, 3)});
   // PIP-ECHO transferred the identification to runC and runD; runD has a PSM of its own.
   cf.setMetaValue(Constants::UserParam::MBR_TRANSFER_MAP_INDICES, IntList{2, 3});
   cf.setMetaValue(Constants::UserParam::MBR_TRANSFER_QVALUES, DoubleList{0.003, 0.004});
@@ -1905,6 +1918,10 @@ START_SECTION(([EXTRA] the PSM-level columns come from the run of the row, and a
   auto fid = std::static_pointer_cast<arrow::Int64Array>(t->GetColumnByName("feature_id")->chunk(0));
   auto scan = std::static_pointer_cast<arrow::ListArray>(t->GetColumnByName("scan")->chunk(0));
   auto scan_values = std::static_pointer_cast<arrow::Int32Array>(scan->values());
+  auto im = std::static_pointer_cast<arrow::FloatArray>(t->GetColumnByName("ion_mobility")->chunk(0));
+  auto scores = std::static_pointer_cast<arrow::ListArray>(t->GetColumnByName("additional_scores")->chunk(0));
+  auto score_values = std::static_pointer_cast<arrow::DoubleArray>(
+    std::static_pointer_cast<arrow::StructArray>(scores->values())->GetFieldByName("score_value"));
 
   const std::map<std::string, int> own_scan = {{"runA", 1}, {"runB", 2}, {"runD", 7}};
   const std::map<std::string, double> own_pep = {{"runA", 0.01}, {"runB", 0.02}, {"runD", 0.05}};
@@ -1919,6 +1936,8 @@ START_SECTION(([EXTRA] the PSM-level columns come from the run of the row, and a
       TEST_TRUE(idrun->IsNull(r))
       TEST_TRUE(pep->IsNull(r))
       TEST_EQUAL(scan->value_length(r), 0)
+      TEST_TRUE(im->IsNull(r))
+      TEST_EQUAL(scores->value_length(r), 0)
       TEST_FALSE(mq->IsNull(r))
       TEST_REAL_SIMILAR(mq->Value(r), 0.003)
       continue;
@@ -1928,12 +1947,19 @@ START_SECTION(([EXTRA] the PSM-level columns come from the run of the row, and a
     TEST_REAL_SIMILAR(pep->Value(r), own_pep.at(r_run))
     TEST_EQUAL(scan->value_length(r), 1)
     TEST_EQUAL(scan_values->Value(scan->value_offset(r)), own_scan.at(r_run))
+    // every PSM-level column comes from that one PSM
+    TEST_REAL_SIMILAR(im->Value(r), 1.0 + own_scan.at(r_run) / 10.0)
+    TEST_EQUAL(scores->value_length(r), 1)
+    TEST_REAL_SIMILAR(score_values->Value(scores->value_offset(r)), own_pep.at(r_run) / 10.0)
     TEST_TRUE(mq->IsNull(r))  // runD is in PIP-ECHO's list but identified by its own PSM
     // The row's PSM is linked to it.
     const Int64 psm_id = QPXIdentity::psmId(r_run, {own_scan.at(r_run)}, "PEPTIDE", 2);
     TEST_EQUAL(links.count(psm_id), 1)
     if (links.count(psm_id) == 1) { TEST_EQUAL(links.at(psm_id), fid->Value(r)) }
   }
+  // runA, both of runB's charge-2 PSMs and runD's; not the charge-3 PSM of runB
+  TEST_EQUAL(links.size(), 4)
+  TEST_EQUAL(links.count(QPXIdentity::psmId("runB", {9}, "PEPTIDE", 3)), 0)
 
   // When no identification resolves to a run, nothing can be said about the row's run: the
   // identification type is null and the PSM-level columns describe the consensus feature's
@@ -1954,6 +1980,109 @@ START_SECTION(([EXTRA] the PSM-level columns come from the run of the row, and a
     TEST_REAL_SIMILAR(u_pep->Value(r), 0.01)
     TEST_EQUAL(u_scan->value_length(r), 1)
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] a resolver stamp naming several features is matched by run, peptide and charge))
+{
+  // Unique ids of different maps can coincide (in -test mode every process draws them from the
+  // same seed), so the "feature_id" an IDConflictResolver stamp names can be both a consensus
+  // feature's and another consensus feature's handle. The stamp's PSM belongs to the one feature
+  // it can have been moved off: a handle of the PSM's run, of the PSM's peptide and charge.
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  StringList paths;
+  for (Size run = 0; run < 2; ++run)
+  {
+    ConsensusMap::ColumnHeader ch;
+    ch.filename = "/data/run" + std::string(1, static_cast<char>('A' + run)) + ".mzML";
+    ch.label = "label-free";
+    cmap.getColumnHeaders()[run] = ch;
+    paths.push_back(ch.filename);
+  }
+  ProteinIdentification prot;
+  prot.setIdentifier("PI_0");
+  prot.setPrimaryMSRunPath(paths);
+  cmap.setProteinIdentifications({prot});
+
+  const auto make_id = [](Size run, int scan, const std::string& seq)
+  {
+    PeptideIdentification pid;
+    pid.setIdentifier("PI_0");
+    pid.setSpectrumReference("scan=" + std::to_string(scan));
+    pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, static_cast<int>(run));
+    pid.setScoreType("Posterior Error Probability");
+    pid.setHigherScoreBetter(false);
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(seq));
+    hit.setCharge(2);
+    hit.setScore(0.01);
+    pid.setHits({hit});
+    return pid;
+  };
+  const auto make_feature = [](UInt64 uid, UInt64 handle_a, UInt64 handle_b, double rt)
+  {
+    ConsensusFeature cf;
+    cf.setUniqueId(uid);
+    cf.setMZ(500.0);
+    cf.setRT(rt);
+    cf.setCharge(2);
+    for (Size run = 0; run < 2; ++run)
+    {
+      BaseFeature bf;
+      bf.setUniqueId(run == 0 ? handle_a : handle_b);
+      bf.setIntensity(1000.0f);
+      bf.setMZ(500.0);
+      bf.setRT(rt);
+      bf.setCharge(2);
+      cf.insert(run, bf);
+    }
+    return cf;
+  };
+
+  // Feature 0 (PEPTIDE) and feature 1 (ELVISK) both carry the unique id 7: feature 0 as a
+  // consensus feature, feature 1 as its runB handle.
+  ConsensusFeature first = make_feature(7, 70, 71, 100.0);
+  first.setPeptideIdentifications({make_id(0, 1, "PEPTIDE")});
+  ConsensusFeature second = make_feature(8, 80, 7, 200.0);
+  second.setPeptideIdentifications({make_id(0, 2, "ELVISK")});
+  cmap.push_back(first);
+  cmap.push_back(second);
+
+  auto& unassigned = cmap.getUnassignedPeptideIdentifications();
+  const auto moved = [&unassigned](PeptideIdentification pid)
+  {
+    pid.setMetaValue("feature_id", "7");
+    unassigned.push_back(pid);
+  };
+  moved(make_id(1, 3, "PEPTIDE")); // runB, PEPTIDE: only feature 0 reports it
+  moved(make_id(1, 4, "ELVISK"));  // runB, ELVISK: feature 1's runB handle
+  moved(make_id(0, 5, "ELVISK"));  // runA, ELVISK: not of feature 1's runB handle, nor PEPTIDE
+
+  QPXIdentity::FeatureLinks links;
+  const auto t = ConsensusMapArrowExport::exportToArrow(cmap, &links);
+  TEST_NOT_EQUAL(t, nullptr)
+  ABORT_IF(t == nullptr)
+  TEST_EQUAL(t->num_rows(), 4)
+
+  auto run = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("run_file_name")->chunk(0));
+  auto pf = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("peptidoform")->chunk(0));
+  auto fid = std::static_pointer_cast<arrow::Int64Array>(t->GetColumnByName("feature_id")->chunk(0));
+  auto idtype = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("identification_type")->chunk(0));
+  std::map<std::pair<std::string, std::string>, Int64> row_feature;
+  for (int64_t r = 0; r < t->num_rows(); ++r)
+  {
+    row_feature[{pf->GetString(r), run->GetString(r)}] = fid->Value(r);
+    TEST_STRING_EQUAL(idtype->GetString(r), "direct") // every row has a PSM of its own run
+  }
+  const Int64 peptide_b = QPXIdentity::psmId("runB", {3}, "PEPTIDE", 2);
+  const Int64 elvisk_b = QPXIdentity::psmId("runB", {4}, "ELVISK", 2);
+  TEST_EQUAL(links.count(peptide_b), 1)
+  if (links.count(peptide_b) == 1) { TEST_EQUAL(links.at(peptide_b), row_feature.at({"PEPTIDE", "runB"})) }
+  TEST_EQUAL(links.count(elvisk_b), 1)
+  if (links.count(elvisk_b) == 1) { TEST_EQUAL(links.at(elvisk_b), row_feature.at({"ELVISK", "runB"})) }
+  TEST_EQUAL(links.count(QPXIdentity::psmId("runA", {5}, "ELVISK", 2)), 0)
+  TEST_EQUAL(links.size(), 4) // the two attached PSMs and the two moved ones above
 }
 END_SECTION
 

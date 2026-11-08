@@ -382,6 +382,22 @@ std::string insertFeatureLink(QPXIdentity::FeatureLinks& links, Int64 psm_id, In
          + std::to_string(existing->second) + " and feature_id " + std::to_string(feature_id);
 }
 
+/// The run an identification's psm row names and its psm_id (see topHitPsmIdentity()), or false
+/// when it has no hit or its run cannot be determined: getPrimaryMSRunPath() resolves an
+/// identification of a merged run without a usable id_merge_index to the run's first file, which
+/// would attribute its PSM to a row of a run it does not come from.
+bool attributablePsm(const PeptideIdentification& pid,
+                     const IdentifierMSRunMapper& mapper,
+                     const ArrowIOHelpers::QPXRunFileNameKeys& run_file_name_keys,
+                     const MS1LabelState::Keys& label_state_keys,
+                     std::string& run,
+                     Int64& psm_id)
+{
+  try { mapper.validateMergeIndex(pid, 0); }
+  catch (const Exception::BaseException&) { return false; }
+  return topHitPsmIdentity(pid, mapper, run_file_name_keys, label_state_keys, run, psm_id) && !run.empty();
+}
+
 /// Fills FeatureIdLookups::resolved_away.
 ///
 /// IDConflictResolverAlgorithm keeps one identification per feature and moves the others to the
@@ -414,19 +430,24 @@ void addResolvedAway(const ConsensusMap& cmap, FeatureIdLookups& id_lut)
   }
   if (removed.empty()) { return; }
 
-  // Consensus feature or handle unique id -> the features it names. Unique ids of different
-  // maps can coincide: in -test mode every process draws them from the same seed, so a consensus
-  // feature of one run can share the id of another one's feature handle. A stamp is therefore
-  // matched against every feature it may name and kept only if exactly one reports its peptide.
-  std::unordered_map<UInt64, std::vector<Size>> owners;
+  // Consensus feature or handle unique id -> the features it names, and for a handle its map.
+  // Unique ids of different maps can coincide: in -test mode every process draws them from the
+  // same seed, so a consensus feature of one run can share the id of another one's feature
+  // handle. A stamp is therefore matched against every feature it may name: a handle only if it
+  // is of the PSM's run, any of them only if it reports the PSM's peptide and charge, and the
+  // stamp is kept only if exactly one feature remains.
+  struct Owner
+  {
+    Size feature_index;
+    std::optional<UInt64> map_index; ///< set when the id is a handle's
+  };
+  std::unordered_multimap<UInt64, Owner> owners;
   for (Size i = 0; i < cmap.size(); ++i)
   {
-    if (cmap[i].hasValidUniqueId()) { owners[cmap[i].getUniqueId()].push_back(i); }
+    if (cmap[i].hasValidUniqueId()) { owners.emplace(cmap[i].getUniqueId(), Owner{i, std::nullopt}); }
     for (const auto& handle : cmap[i].getFeatures())
     {
-      if (!handle.hasValidUniqueId()) { continue; }
-      auto& named = owners[handle.getUniqueId()];
-      if (named.empty() || named.back() != i) { named.push_back(i); }
+      if (handle.hasValidUniqueId()) { owners.emplace(handle.getUniqueId(), Owner{i, handle.getMapIndex()}); }
     }
   }
 
@@ -450,28 +471,33 @@ void addResolvedAway(const ConsensusMap& cmap, FeatureIdLookups& id_lut)
   std::vector<std::tuple<Size, const PeptideIdentification*, Int64>> candidates;
   for (const auto& [pid, uid] : removed)
   {
-    const auto it = owners.find(uid);
-    if (it == owners.end()) { continue; }
+    if (!attributablePsm(*pid, id_lut.run_mapper, run_file_name_keys, label_state_keys, run, psm_id)) { continue; }
+    if (attached.count(psm_id) > 0) { continue; }
     const PeptideHit& hit = pid->getHits().front();
-    // One of another peptide or charge was moved off because it conflicts with the one kept.
     std::optional<Size> owner;
     bool several = false;
-    for (const Size feature_index : it->second)
+    const auto [first, last] = owners.equal_range(uid);
+    for (auto it = first; it != last; ++it)
     {
+      const Owner& named = it->second;
+      // A handle is a feature of one run, so it can only have held a PSM of that run.
+      if (named.map_index)
+      {
+        const auto column = id_lut.run_columns.find(*named.map_index);
+        if (column == id_lut.run_columns.end() || column->second.run_name != run) { continue; }
+      }
+      // One of another peptide or charge was moved off because it conflicts with the one kept.
       Size best_id_index = 0;
       bool inconsistent_scores = false;
-      const PeptideHit* kept = selectFeatureIdentity(cmap[feature_index].getPeptideIdentifications(), best_id_index, inconsistent_scores);
+      const PeptideHit* kept = selectFeatureIdentity(cmap[named.feature_index].getPeptideIdentifications(), best_id_index, inconsistent_scores);
       if (kept == nullptr || hit.getSequence() != kept->getSequence() || hit.getCharge() != kept->getCharge()) { continue; }
-      several = several || (owner && *owner != feature_index);
-      owner = feature_index;
+      several = several || (owner && *owner != named.feature_index);
+      owner = named.feature_index;
     }
     if (!owner || several) { continue; }
-    const Size feature_index = *owner;
-    if (!topHitPsmIdentity(*pid, id_lut.run_mapper, run_file_name_keys, label_state_keys, run, psm_id)) { continue; }
-    if (attached.count(psm_id) > 0) { continue; }
-    const auto [claim, inserted] = claimed.emplace(psm_id, feature_index);
-    if (!inserted && claim->second != feature_index) { ambiguous.insert(psm_id); }
-    candidates.emplace_back(feature_index, pid, psm_id);
+    const auto [claim, inserted] = claimed.emplace(psm_id, *owner);
+    if (!inserted && claim->second != *owner) { ambiguous.insert(psm_id); }
+    candidates.emplace_back(*owner, pid, psm_id);
   }
   for (const auto& [feature_index, pid, id] : candidates)
   {
@@ -479,10 +505,52 @@ void addResolvedAway(const ConsensusMap& cmap, FeatureIdLookups& id_lut)
   }
 }
 
+/// An identification that is evidence for a consensus feature, with the run and psm_id of its psm row.
+struct FeatureEvidence
+{
+  const PeptideIdentification* pid = nullptr;
+  std::string run;
+  Int64 psm_id = 0;
+};
+
+/// The identifications that are evidence for a consensus feature: those attached to it and those
+/// IDConflictResolver moved off it (FeatureIdLookups::resolved_away), whose top hit -- the hit
+/// the psm view writes -- names the peptide and charge the feature reports (@p identity), and
+/// whose run can be determined. Another peptide's or charge's identification is not evidence for
+/// the feature, just as a lower-ranked hit is not (see topHitPsmIdentity()). A row of the feature
+/// links the evidence of its own run (psm_ids, psm.feature_id) and takes its PSM-level columns
+/// from the best of it, so links and columns describe the same PSMs. Attached ones come first.
+/// Resolved once per consensus feature, as every one of its rows needs the same set.
+std::vector<FeatureEvidence> featureEvidence(const PeptideIdentificationList& attached,
+                                             const std::vector<const PeptideIdentification*>* removed,
+                                             const PeptideHit* identity,
+                                             const IdentifierMSRunMapper& mapper,
+                                             const ArrowIOHelpers::QPXRunFileNameKeys& run_file_name_keys,
+                                             const MS1LabelState::Keys& label_state_keys)
+{
+  std::vector<FeatureEvidence> evidence;
+  if (identity == nullptr) { return evidence; }
+  const auto add = [&](const PeptideIdentification& pid)
+  {
+    if (pid.getHits().empty()) { return; }
+    const PeptideHit& top = pid.getHits().front();
+    if (top.getSequence() != identity->getSequence() || top.getCharge() != identity->getCharge()) { return; }
+    FeatureEvidence item;
+    item.pid = &pid;
+    if (attributablePsm(pid, mapper, run_file_name_keys, label_state_keys, item.run, item.psm_id)) { evidence.push_back(std::move(item)); }
+  };
+  for (const auto& pid : attached) { add(pid); }
+  if (removed != nullptr)
+  {
+    for (const PeptideIdentification* pid : *removed) { add(*pid); }
+  }
+  return evidence;
+}
+
 /// How a feature row was identified in its run (QPX identification_type).
 enum class RowOrigin
 {
-  UNKNOWN,     ///< no identification of the feature resolves to a run
+  UNKNOWN,     ///< none of the feature's identifications can be attributed to a run
   DIRECT,      ///< a PSM of the row's own run
   TRANSFERRED  ///< identified in another run only
 };
@@ -494,55 +562,35 @@ struct RowIdentification
   RowOrigin origin = RowOrigin::UNKNOWN;
 };
 
-/// Selects the identification a feature row's PSM-level columns come from: the best one of the
-/// row's own run among those attached to the consensus feature and those IDConflictResolver moved
-/// off it (FeatureIdLookups::resolved_away), restricted to the peptide and charge the feature
-/// reports. The QPX spec defines scan and id_run_file_name as those of the PSM that identified
-/// the row, which a row of another run does not have: a consensus feature is identified once,
-/// but quantified in every run it was linked across.
+/// Selects the identification a feature row's PSM-level columns come from: the best of the
+/// feature's @p evidence (featureEvidence()) in the row's own @p run. The QPX spec defines scan and
+/// id_run_file_name as those of the PSM that identified the row, which a row of another run does
+/// not have: a consensus feature is identified once, but quantified in every run it was linked
+/// across.
 ///
 /// Scores are compared as in selectFeatureIdentity(), keeping the first on a tie, so the attached
-/// identification (the resolver's pick) wins ties in its run. A row whose run has none of these
-/// identifications was identified through another run (TRANSFERRED). When none of them resolves
-/// to a run at all, nothing can be said about the row's run (UNKNOWN).
-RowIdentification selectRowIdentification(const PeptideIdentificationList& attached,
-                                          const std::vector<const PeptideIdentification*>* removed,
-                                          const PeptideHit& identity,
-                                          const std::string& run,
-                                          const IdentifierMSRunMapper& mapper,
-                                          const ArrowIOHelpers::QPXRunFileNameKeys& run_file_name_keys,
-                                          const MS1LabelState::Keys& label_state_keys)
+/// identification (the resolver's pick) wins ties in its run. A row whose run has no evidence was
+/// identified through another run (TRANSFERRED). Without any evidence, nothing can be said about
+/// the row's run (UNKNOWN).
+RowIdentification selectRowIdentification(const std::vector<FeatureEvidence>& evidence, const std::string& run)
 {
   RowIdentification result;
-  bool some_run_known = false;
+  if (evidence.empty()) { return result; }
   std::function<bool(const PeptideHit&, const PeptideHit&)> better;
-  std::string psm_run;
-  Int64 psm_id = 0;
-  const auto consider = [&](const PeptideIdentification& pid)
+  for (const auto& item : evidence)
   {
-    if (pid.getHits().empty()) { return; }
-    const PeptideHit& top = pid.getHits().front(); // the hit the psm view writes
-    if (top.getSequence() != identity.getSequence() || top.getCharge() != identity.getCharge()) { return; }
-    if (!topHitPsmIdentity(pid, mapper, run_file_name_keys, label_state_keys, psm_run, psm_id) || psm_run.empty()) { return; }
-    some_run_known = true;
-    if (psm_run != run) { return; }
+    if (item.run != run) { continue; }
     if (result.pid == nullptr)
     {
-      better = PeptideIdentification::getScoreComparator(pid.isHigherScoreBetter());
-      result.pid = &pid;
+      better = PeptideIdentification::getScoreComparator(item.pid->isHigherScoreBetter());
+      result.pid = item.pid;
     }
-    else if (better(top, result.pid->getHits().front()))
+    else if (better(item.pid->getHits().front(), result.pid->getHits().front()))
     {
-      result.pid = &pid;
+      result.pid = item.pid;
     }
-  };
-  for (const auto& pid : attached) { consider(pid); }
-  if (removed != nullptr)
-  {
-    for (const PeptideIdentification* pid : *removed) { consider(*pid); }
   }
-  if (result.pid != nullptr) { result.origin = RowOrigin::DIRECT; }
-  else if (some_run_known)   { result.origin = RowOrigin::TRANSFERRED; }
+  result.origin = result.pid != nullptr ? RowOrigin::DIRECT : RowOrigin::TRANSFERRED;
   return result;
 }
 
@@ -861,6 +909,8 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
   { return idx != static_cast<UInt>(-1) && m.metaValueExists(idx); };
 
   bool warned_mixed_scores = false;
+  size_t evidence_feat_idx = std::numeric_limits<size_t>::max();
+  std::vector<FeatureEvidence> evidence; // of the consensus feature of evidence_feat_idx
   for (const auto& row : rows)
   {
     const auto& cf = cmap[row.feat_idx];
@@ -914,13 +964,14 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     // identification resolves to a run, the origin is unknown and the feature's identification is
     // reported. EVERY PSM-level column must come from the one identification picked here; mixing
     // identifications would put one PSM's scan next to another's ion mobility.
-    const auto removed_it = id_lut.resolved_away.find(row.feat_idx);
-    const std::vector<const PeptideIdentification*>* removed_pids =
-      removed_it != id_lut.resolved_away.end() ? &removed_it->second : nullptr;
-    const RowIdentification row_id = best_hit
-      ? selectRowIdentification(pep_ids, removed_pids, *best_hit, row.run, id_lut.run_mapper,
-                                run_file_name_keys, label_state_keys)
-      : RowIdentification{};
+    if (row.feat_idx != evidence_feat_idx) // the rows of one consensus feature are consecutive
+    {
+      const auto removed_it = id_lut.resolved_away.find(row.feat_idx);
+      evidence = featureEvidence(pep_ids, removed_it != id_lut.resolved_away.end() ? &removed_it->second : nullptr,
+                                 best_hit, id_lut.run_mapper, run_file_name_keys, label_state_keys);
+      evidence_feat_idx = row.feat_idx;
+    }
+    const RowIdentification row_id = best_hit ? selectRowIdentification(evidence, row.run) : RowIdentification{};
     const bool unknown_origin = best_hit != nullptr && row_id.origin == RowOrigin::UNKNOWN;
     const PeptideIdentification* psm_pid = row_id.pid ? row_id.pid : (unknown_origin ? best_pid : nullptr);
     const PeptideHit* psm_hit = row_id.pid ? &row_id.pid->getHits().front() : (unknown_origin ? best_hit : nullptr);
@@ -1207,37 +1258,31 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
       // A consensus feature spans runs but emits one row per run, so its identifications have to
       // be distributed to the row of their OWN run -- listing all of them on every row would
       // claim a PSM as evidence for a quantity measured in a different file.
+      // The feature's evidence of this run (featureEvidence()): attached identifications and
+      // those the resolver moved off it, of the feature's peptide and charge -- the same set the
+      // row's PSM-level columns are picked from.
       (void)psm_ids_builder.Append();
       std::vector<Int64> linked;
-      auto link = [&](const PeptideIdentification& pid)
+      for (const auto& item : evidence)
       {
-        std::string psm_run;
-        Int64 psm_id = 0;
-        if (!topHitPsmIdentity(pid, id_lut.run_mapper, run_file_name_keys, label_state_keys, psm_run, psm_id)) { return; }
-        if (psm_run != row.run) { return; }
+        if (item.run != row.run) { continue; }
         // Two identifications of one feature can agree on all four key columns; the psm view
         // stores one row for them, so this must list it once.
-        if (std::find(linked.begin(), linked.end(), psm_id) != linked.end()) { return; }
-        linked.push_back(psm_id);
-        (void)psm_ids_val_b->Append(psm_id);
+        if (std::find(linked.begin(), linked.end(), item.psm_id) != linked.end()) { continue; }
+        linked.push_back(item.psm_id);
+        (void)psm_ids_val_b->Append(item.psm_id);
         // Both directions come from this one loop, which is what keeps them reciprocal: qpx
         // validates that a psm pointing at a feature is listed back by it.
         if (out_links != nullptr)
         {
-          const std::string conflict = insertFeatureLink(*out_links, psm_id, feature_id);
+          const std::string conflict = insertFeatureLink(*out_links, item.psm_id, feature_id);
           if (!conflict.empty())
           {
             throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               "ConsensusMapArrowExport: " + conflict
-              + ". A QPX PSM can reference only one feature row.", std::to_string(psm_id));
+              + ". A QPX PSM can reference only one feature row.", std::to_string(item.psm_id));
           }
         }
-      };
-      for (const auto& pid : pep_ids) { link(pid); }
-      // Identifications the resolver moved off this feature that name its peptide and charge.
-      if (removed_pids != nullptr)
-      {
-        for (const PeptideIdentification* pid : *removed_pids) { link(*pid); }
       }
     }
 
@@ -1346,7 +1391,9 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     // (MBR_TRANSFER_QVALUES, in the order of MBR_TRANSFER_MAP_INDICES).
     {
       std::optional<double> match_qvalue;
-      if (row_id.origin == RowOrigin::TRANSFERRED && metaHas(cf, idx_mbr_maps) && metaHas(cf, idx_mbr_qvalues))
+      if (row_id.origin == RowOrigin::TRANSFERRED && metaHas(cf, idx_mbr_maps) && metaHas(cf, idx_mbr_qvalues)
+          && cf.getMetaValue(idx_mbr_maps).valueType() == DataValue::INT_LIST
+          && cf.getMetaValue(idx_mbr_qvalues).valueType() == DataValue::DOUBLE_LIST) // else not PIP-ECHO's
       {
         const IntList maps = cf.getMetaValue(idx_mbr_maps);
         const DoubleList qvalues = cf.getMetaValue(idx_mbr_qvalues);
@@ -1687,9 +1734,11 @@ void requireResolvableIdRunsWith(const ConsensusMap& cmap, const IdentifierMSRun
 {
   for (Size i = 0; i < cmap.size(); ++i)
   {
-    // Only the identification the row actually uses. Validating every attached one refused a
-    // feature whose winning hit resolves perfectly, because a sibling identification -- hitless,
-    // or simply not selected -- lacked an index that is never asked for.
+    // Only the feature's identification, which names the peptide of all its rows. Validating every
+    // attached one refused a feature whose winning hit resolves perfectly, because a sibling
+    // identification -- hitless, or simply not selected -- lacked an index. Such a sibling is
+    // not refused but left out: its PSM cannot be placed in a run, so no row takes PSM-level
+    // values from it or links it (attributablePsm()).
     const auto& pep_ids = cmap[i].getPeptideIdentifications();
     Size best_id_index = 0;
     bool inconsistent_scores = false;
