@@ -1,0 +1,20 @@
+raw 01 LDA: decoy winners 266541, entrapment winners 136122
+  t(q<=0.005)=  31.71  entrapment above    3  decoys above    3  S_e/S_d 1.96 [0.10, 4.11]
+  t(q<=0.01 )=  29.33  entrapment above    5  decoys above    8  S_e/S_d 1.22 [0.32, 2.21]
+  t(q<=0.02 )=  26.85  entrapment above   12  decoys above   21  S_e/S_d 1.12 [0.59, 1.67]
+  t(q<=0.05 )=  22.40  entrapment above   41  decoys above   72  S_e/S_d 1.12 [0.83, 1.40]
+raw 01 MLP seed 0: decoy winners 266541, entrapment winners 136122
+  t(q<=0.005)=  11.74  entrapment above    1  decoys above    3  S_e/S_d 0.65 [0.00, 2.17]
+  t(q<=0.01 )=  10.08  entrapment above    7  decoys above   12  S_e/S_d 1.14 [0.43, 1.90]
+  t(q<=0.02 )=   9.02  entrapment above   23  decoys above   27  S_e/S_d 1.67 [1.10, 2.25]
+  t(q<=0.05 )=   7.33  entrapment above   66  decoys above   85  S_e/S_d 1.52 [1.21, 1.83]
+raw 02 LDA: decoy winners 266647, entrapment winners 136125
+  t(q<=0.005)=  33.93  entrapment above    4  decoys above    3  S_e/S_d 2.61 [0.46, 5.01]
+  t(q<=0.01 )=  28.63  entrapment above   13  decoys above   10  S_e/S_d 2.55 [1.38, 3.75]
+  t(q<=0.02 )=  27.57  entrapment above   18  decoys above   22  S_e/S_d 1.60 [0.98, 2.24]
+  t(q<=0.05 )=  23.68  entrapment above   57  decoys above   72  S_e/S_d 1.55 [1.21, 1.89]
+raw 02 MLP seed 0: decoy winners 266647, entrapment winners 136125
+  t(q<=0.005)=  13.64  entrapment above    0  decoys above    2  S_e/S_d 0.00 [0.00, 1.61]
+  t(q<=0.01 )=   9.83  entrapment above   12  decoys above   11  S_e/S_d 2.14 [1.12, 3.19]
+  t(q<=0.02 )=   9.27  entrapment above   21  decoys above   25  S_e/S_d 1.65 [1.05, 2.25]
+  t(q<=0.05 )=   7.85  entrapment above   56  decoys above   78  S_e/S_d 1.41 [1.10, 1.72]

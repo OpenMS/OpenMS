@@ -1,0 +1,23 @@
+raw 02: decoy winners 266647, entrapment target winners 136125, 1% cut 28.63, band [1.67, 30.63]
+  score AUC entrapment vs decoy winners: all 0.494 | band 0.512 (n 14213 vs 26658)
+       subscore  auc_all  auc_band  dev_all
+      log_width    0.524     0.530    0.024
+  lib_manhattan    0.478     0.465    0.022
+     lib_sangle    0.522     0.530    0.022
+    lib_dotprod    0.522     0.530    0.022
+       lib_rmsd    0.480     0.466    0.020
+       lib_corr    0.520     0.527    0.020
+   xcorr_coel_w    0.481     0.464    0.019
+  xcorr_shape_w    0.519     0.535    0.019
+     xcorr_coel    0.482     0.466    0.018
+          n_sig    0.518     0.532    0.018
+    xcorr_shape    0.516     0.532    0.016
+ms1_xcorr_shape    0.494     0.489    0.006
+      intensity    0.494     0.485    0.006
+ ms1_xcorr_coel    0.504     0.505    0.004
+        norm_rt    0.503     0.506    0.003
+ frag_min_share    0.502     0.513    0.002
+         log_sn    0.502     0.521    0.002
+     ms1_log_sn    0.498     0.495    0.002
+  frag_corr_min    0.498     0.505    0.002
+   ms1_iso_corr    0.501     0.504    0.001

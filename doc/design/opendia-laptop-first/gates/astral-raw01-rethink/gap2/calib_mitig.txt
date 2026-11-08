@@ -1,0 +1,18 @@
+raw 01
+A LDA                                        q<=0.01: 993 (conf-right 958, FDP_c 0.010) | q<=0.05: 1429 (conf-right 1292, FDP_c 0.058) | N at FDP_c<=0.5/1/1.5/2%: [850, 1011, 1096, 1124]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: 1.22/1.12/1.12
+B MLP seed 0                                 q<=0.01: 1222 (conf-right 1161, FDP_c 0.012) | q<=0.05: 1691 (conf-right 1467, FDP_c 0.077) | N at FDP_c<=0.5/1/1.5/2%: [1116, 1221, 1256, 1326]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: 1.14/1.67/1.52
+C MLP 5-seed ensemble                        q<=0.01: 1171 (conf-right 1124, FDP_c 0.010) | q<=0.05: 1610 (conf-right 1414, FDP_c 0.071) | N at FDP_c<=0.5/1/1.5/2%: [1017, 1234, 1247, 1294]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: 1.07/1.16/1.38
+D rank avg LDA+ens                           q<=0.01: 1138 (conf-right 1094, FDP_c 0.012) | q<=0.05: 1633 (conf-right 1431, FDP_c 0.074) | N at FDP_c<=0.5/1/1.5/2%: [911, 1099, 1156, 1272]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: 1.37/1.10/1.43
+raw 02
+A LDA                                        q<=0.01: 1115 (conf-right 1054, FDP_c 0.023) | q<=0.05: 1463 (conf-right 1300, FDP_c 0.079) | N at FDP_c<=0.5/1/1.5/2%: [613, 885, 954, 1071]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: 2.55/1.60/1.55
+B MLP seed 0                                 q<=0.01: 1231 (conf-right 1166, FDP_c 0.020) | q<=0.05: 1573 (conf-right 1393, FDP_c 0.072) | N at FDP_c<=0.5/1/1.5/2%: [907, 1040, 1093, 1232]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: 2.14/1.65/1.41
+C MLP 5-seed ensemble                        q<=0.01: 1251 (conf-right 1184, FDP_c 0.024) | q<=0.05: 1634 (conf-right 1458, FDP_c 0.062) | N at FDP_c<=0.5/1/1.5/2%: [991, 1136, 1162, 1186]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: 2.67/1.66/1.22
+D rank avg LDA+ens                           q<=0.01: 1208 (conf-right 1144, FDP_c 0.027) | q<=0.05: 1592 (conf-right 1416, FDP_c 0.076) | N at FDP_c<=0.5/1/1.5/2%: [859, 1009, 1133, 1159]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: 2.85/1.72/1.49

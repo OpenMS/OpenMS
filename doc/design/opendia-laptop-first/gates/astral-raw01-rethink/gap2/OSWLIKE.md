@@ -89,14 +89,14 @@ Ablations reproduce on raw 02. Measured as N at FDP_c 1%, from 885 with all grou
 
 1. **The direction holds.** The OSW-like scorer is far above the current tool on both runs (raw 02: 1040–1119 against 298 at FDP_c 1%). Library agreement and lagged xcorr are again the carrying families.
 2. **It does not beat OSW+Percolator on raw 02.** The MLP reaches 81–87% of OSW's 1287, and the LDA 69%. The raw 01 "above OSW" result does not replicate. The honest summary across both runs is **about 85–105% of OSW+Percolator at matched true error.**
-3. **Decoy-estimated q is anti-conservative on raw 02** (FDP_c 0.020–0.025 at q ≤ 0.01, against 0.010–0.012 on raw 01). OSW+Percolator itself runs at about 3.3% at its nominal 1%, so this run is harder for decoy-based control in general. It still fails our gate rule (1.5×). For this scorer, calibrating q against entrapment remains an open requirement.
+3. **Decoy-estimated q is anti-conservative on raw 02** (FDP_c 0.020–0.025 at q ≤ 0.01, against 0.010–0.012 on raw 01). For reference, OSW+Percolator's own m_score ≤ 0.01 export runs at FDP_c 0.032 on raw 01 and 0.034 on raw 02 (`matched_fdp02.txt`). Anti-conservative decoy q is therefore common to both pipelines on this data, and is not a raw 02 peculiarity of OSW. It still fails our gate rule (1.5×). Diagnosis is in `CALIB.md`.
 4. Seed variance at 1% is about 8% (1040 against 1119).
 
 ## Caveats
 
 - Two runs. Raw 01 is heavily reused and raw 02 is spent, so both are design runs. The OSW reference on raw 02 is 1159 / 1287 / 1351 / 1389.
 - XIC extraction is OSW's (about 34 ppm, ±97 s, 1.6 s cycle). Our native extraction must reproduce it. Bright-peak agreement is shown; weak-peak agreement is not.
-- The MLP's FDP_c at q ≤ 0.01 is 0.012. This is mildly anti-conservative, as with the earlier stage-2 MLP (0.018) but less so, and within the 1.5× gate rule. It is a single run, with only about 8 entrapment hits behind it.
+- The MLP's FDP_c at q ≤ 0.01 is 0.012 on raw 01, within the 1.5× gate rule, but 0.020–0.025 on raw 02, which fails it. Only about 8–15 entrapment hits lie behind each number.
 - Two seeds agree at 1%; the 0.5% and 5% points vary more.
 
 ## Implication for the design (the user's single-model direction)
@@ -109,4 +109,4 @@ The richer learned model should **take these subscore families as inputs alongsi
 
 It should be computed per candidate on valley-bounded peaks from a per-precursor XIC.
 
-Section 5 of `GAP2.md` showed that a small trace CNN alone does not recover them. A single cross-fitted MLP head over [CNN embedding + these about 20 subscores], with decoy-only semi-supervised labels, is the minimum design this evidence supports. It replaces stage 2 and its opt-in feature sets.
+Section 5 of `GAP2.md` showed that a small trace CNN alone does not recover them. A single cross-fitted MLP head over [CNN embedding + these about 20 subscores], with decoy-only semi-supervised labels, is the minimum design this evidence supports. It replaces stage 2 and its opt-in feature sets. **It is not sufficient on its own:** decoy-estimated q was anti-conservative on raw 02 for both LDA and MLP, so the error-control path needs its own fix (`CALIB.md`).

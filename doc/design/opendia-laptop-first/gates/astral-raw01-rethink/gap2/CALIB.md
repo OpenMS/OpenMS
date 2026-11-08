@@ -1,0 +1,60 @@
+# Why decoy-estimated q is anti-conservative (raws 01 and 02, OSW-like scorer)
+
+This is a design diagnostic. Entrapment is used here only to diagnose. Any choice made from it must be confirmed on an untouched run (raw 03).
+
+The scripts are `calib.py`, `calib_curve.py`, `calib_tail.py`, `calib_borrow.py`, `calib_hits.py`, `calib_il.py`, `calib_mitig.py` and `matched_fdp02.py`. Each writes a matching `.txt` output.
+
+## 1. Size and shape (`calib_curve.txt`)
+
+Decoy-estimated FDR against entrapment FDP_c along the accepted list. The 90% intervals are exact Poisson.
+
+| run, scorer | q ≤ 0.01: N, FDP_c [90% CI] | q ≤ 0.05: N, FDP_c [90% CI] |
+|---|---|---|
+| 01 LDA | 993, 0.010 [0.004, 0.021] | 1429, 0.058 [0.044, 0.075] |
+| 01 MLP | 1222, 0.012 [0.005, 0.022] | 1691, 0.078 [0.062, 0.095] |
+| 02 LDA | 1115, 0.024 [0.014, 0.037] | 1463, 0.079 [0.062, 0.098] |
+| 02 MLP | 1231, 0.020 [0.011, 0.032] | 1573, 0.072 [0.057, 0.090] |
+
+**The excess is systematic, not noise.** At q ≤ 0.05 every interval lies above 0.05 on both runs, for both learners. At q ≤ 0.01 it is significant on raw 02 only. OSW+Percolator's own m_score ≤ 0.01 export has FDP_c 0.032 (raw 01) and 0.034 (raw 02) on the same library and decoys (`matched_fdp02.txt`).
+
+## 2. Where it comes from (`calib_tail.txt`)
+
+Before competition, let S_e be the share of entrapment target winners above a score cut, and S_d the same share for decoy winners. Valid target-decoy competition needs S_e/S_d ≤ about 1. The 90% Poisson band is in brackets.
+
+| run, scorer | cut at q ≤ 0.01 | cut at q ≤ 0.02 | cut at q ≤ 0.05 |
+|---|---|---|---|
+| 01 LDA | 1.22 [0.32, 2.21] | 1.12 | 1.12 [0.83, 1.40] |
+| 01 MLP | 1.14 | 1.67 [1.10, 2.25] | 1.52 [1.21, 1.83] |
+| 02 LDA | 2.55 [1.38, 3.75] | 1.60 | 1.55 [1.21, 1.89] |
+| 02 MLP | 2.14 [1.12, 3.19] | 1.65 | 1.41 [1.10, 1.72] |
+
+**In the score tail, false targets beat decoys by about 1.1–1.6×, and by up to 2.5× near the 1% cut on raw 02.** The LDA shows it too, so this is mainly not MLP overfitting. It is a mismatch between the decoy model and false targets. The MLP adds to it at the 2–5% cuts on raw 01.
+
+## 3. What it is not
+
+- **Not a single feature.** Over all winners, every subscore has an entrapment-vs-decoy AUC within 0.48–0.53 (`calib_auc_raw0*.tsv`). Among the winners above the 5% cut, no subscore differs at p < 0.02 (`calib_hits.txt`, n = 41–85). The closest is MS1 shape on raw 02 (p 0.02–0.08), and MS1 adds nothing to N. So dropping a feature is not a supported fix.
+- **Not true peptides in disguise.** No library entrapment sequence equals a human one under I = L or Q/K, N/D swaps (`calib_il.txt`). Only 1 of the tail hits on raw 02 was reported by DIA-NN at 1%.
+- **Borrowed signal: not shown on raw 01, weakly suggested on raw 02.** Here neighbour overlap means the number of top-6 fragments shared with a human precursor within ±1 Th and ±30 s (`calib_borrow.txt`). On raw 02 the MLP's 1% entrapment hits share ≥ 2 fragments with a co-eluting human precursor in 2 of 12 cases, and the 5% hits in 6 of 56. The decoys above the same cuts show 0 of 11 and 2 of 78. Across random precursors the rates are 6.0% (entrapment) and 4.9% (decoys). On raw 01 there is no enrichment: 0 of 5 and 0 of 41 for the LDA. With these counts this is a hypothesis, not a finding.
+
+## 4. Mitigation test (predeclared, `calib_mitig.txt`)
+
+**Pass rule:** q ≤ 0.01 FDP_c ≤ 0.015 on **both** runs, with N at FDP_c 1% within 3% of the single-seed MLP or better.
+
+| variant | raw 01: q ≤ 0.01 N (FDP_c), N at FDP_c 1% | raw 02: q ≤ 0.01 N (FDP_c), N at FDP_c 1% |
+|---|---|---|
+| A LDA | 993 (0.010), 1011 | 1115 (0.023), 885 |
+| B MLP seed 0 | 1222 (0.012), 1221 | 1231 (0.020), 1040 |
+| C MLP 5-seed ensemble | 1171 (0.010), **1234** | 1251 (0.024), **1136** |
+| D rank average of A and C | 1138 (0.012), 1099 | 1208 (0.027), 1009 |
+
+**The test fails.** The ensemble is the better ranker: N at matched true error goes up on both runs (1234 against 1221, and 1136 against 1040), and it calibrates raw 01 better at 2–5%. It does not fix raw 02 at 1% (FDP_c 0.024). On raw 02 the ensemble still reaches only 88% of OSW+Percolator's 1287.
+
+## Reading
+
+1. The anti-conservativeness is a property of **decoy winners under-representing false targets in the score tail**, by about 1.1–1.6×. The pipeline's ranker only adds to it. OSW+Percolator, with the same decoys, shows the same direction at a larger size (FDP_c about 3.3% at nominal 1%). No ranker change alone has fixed it.
+2. **The library's decoys are pseudo-reversed with a precursor mass shift** of ±12, ±28 or ±44 Da (99.9% of pairs; checked in the PQP). The entrapment targets are composition-preserving shuffles at the target's own mass. The shift moves a decoy to a different precursor m/z, possibly a different isolation window, and so to a different local interference background from its target. A false target is scored against the real background at its own m/z, so it competes on equal footing. This is the leading untested hypothesis.
+3. **Levers, in order of how directly they hit the cause:**
+   - (a) A **decoy test without the mass shift**: regenerate decoys as pseudo-reverse at the target's precursor m/z, extract and rescore, then repeat the tail test. This needs a new library and an extraction run on raws 01 and 02. Native OpenDIA extraction is the natural vehicle, since OSW's XICs are fixed to these decoys.
+   - (b) Report **a decoy-count estimate corrected by a measured tail factor** only as a diagnostic, never in production. Entrapment-based calibration would not be available on real data.
+   - (c) Keep the **5-seed ensemble** as the ranker. It is the best N at matched true error on both runs.
+4. The pass rules stay as they are: q ≤ 0.01 must hold at FDP_c ≤ 0.015, and on raw 02 nothing so far meets that.

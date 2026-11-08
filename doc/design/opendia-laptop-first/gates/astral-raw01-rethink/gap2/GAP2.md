@@ -109,3 +109,5 @@ The question "why do we lag OSW" is now narrower. It is about how many weak, par
 3. **Fix the search grouping anyway** (cheap): close a group on a gap of 2–3 cycles rather than 30 s, so stage-2 features use real peaks. Expected gain is small.
 
 The next measurable step is to compute OSW's own subscores for these exact candidates from the XICs and see which ones close the gap from about 1000 to 1151. That is an information question, not reuse of OSW's code.
+
+**Update:** this was done in `OSWLIKE.md`. Our own 20 OSW-style subscores with a semi-supervised MLP give 1214–1221 at FDP_c 1% on raw 01 (OSW 1151) and 1040–1119 on raw 02 (OSW 1287). Library agreement and lagged xcorr carry it. Decoy q is anti-conservative on raw 02.

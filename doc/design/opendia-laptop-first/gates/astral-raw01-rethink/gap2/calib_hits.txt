@@ -1,0 +1,32 @@
+raw 01 LDA above q<=0.05 cut: entrapment 41, decoys 72
+     subscore  entr_med  decoy_med      p
+      norm_rt   43.2354    33.4007 0.1961
+    log_width    2.4423     2.4336 0.2882
+xcorr_shape_w    0.7912     0.8260 0.3981
+ ms1_iso_corr    0.0350     0.0000 0.4598
+  xcorr_shape    0.8036     0.8221 0.4645
+lib_manhattan    0.2277     0.2105 0.4718
+raw 01 MLP above q<=0.05 cut: entrapment 66, decoys 85
+       subscore  entr_med  decoy_med      p
+ms1_xcorr_shape    0.6905     0.7291 0.0814
+      log_width    2.6378     2.5726 0.1786
+  frag_corr_min    0.4465     0.5001 0.2307
+    xcorr_shape    0.7503     0.7579 0.3532
+ ms1_xcorr_coel    1.0000     1.0000 0.3897
+          n_sig    6.0000     6.0000 0.4211
+raw 02 LDA above q<=0.05 cut: entrapment 57, decoys 72
+       subscore  entr_med  decoy_med      p
+ms1_xcorr_shape    0.6693     0.5531 0.0754
+  xcorr_shape_w    0.8411     0.8564 0.1371
+    xcorr_shape    0.8267     0.8530 0.1474
+     ms1_log_sn    1.2228     0.7052 0.1521
+ ms1_xcorr_coel    1.0000     2.0000 0.1534
+ frag_min_share    0.0694     0.0766 0.1597
+raw 02 MLP above q<=0.05 cut: entrapment 56, decoys 78
+       subscore  entr_med  decoy_med      p
+ms1_xcorr_shape    0.7584     0.5920 0.0245
+ ms1_xcorr_coel    1.0000     1.0000 0.1186
+   xcorr_coel_w    0.8380     0.9322 0.1546
+     xcorr_coel    0.9333     1.0000 0.1554
+     ms1_log_sn    1.9682     1.2409 0.1602
+       lib_rmsd    0.0545     0.0569 0.1840

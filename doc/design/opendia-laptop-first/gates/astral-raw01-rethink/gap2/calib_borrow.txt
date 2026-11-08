@@ -1,0 +1,22 @@
+raw 01
+  random entrapment precursors               n  3000  mean 0.65  share>=2 0.067  share>=3 0.007
+  random decoy precursors                    n  2680  mean 0.56  share>=2 0.047  share>=3 0.003
+  LDA entrapment winners above q<=0.01 cut   n     5  mean 0.20  share>=2 0.000  share>=3 0.000
+  LDA decoy winners above q<=0.01 cut        n     8  mean 0.62  share>=2 0.125  share>=3 0.000
+  LDA entrapment winners above q<=0.05 cut   n    41  mean 0.29  share>=2 0.000  share>=3 0.000
+  LDA decoy winners above q<=0.05 cut        n    72  mean 0.62  share>=2 0.097  share>=3 0.000
+  MLP entrapment winners above q<=0.01 cut   n     7  mean 0.14  share>=2 0.000  share>=3 0.000
+  MLP decoy winners above q<=0.01 cut        n    12  mean 0.67  share>=2 0.083  share>=3 0.000
+  MLP entrapment winners above q<=0.05 cut   n    66  mean 0.56  share>=2 0.076  share>=3 0.000
+  MLP decoy winners above q<=0.05 cut        n    85  mean 0.74  share>=2 0.094  share>=3 0.024
+raw 02
+  random entrapment precursors               n  3000  mean 0.65  share>=2 0.060  share>=3 0.009
+  random decoy precursors                    n  2670  mean 0.56  share>=2 0.049  share>=3 0.003
+  LDA entrapment winners above q<=0.01 cut   n    13  mean 0.46  share>=2 0.077  share>=3 0.000
+  LDA decoy winners above q<=0.01 cut        n    10  mean 0.40  share>=2 0.000  share>=3 0.000
+  LDA entrapment winners above q<=0.05 cut   n    57  mean 0.60  share>=2 0.070  share>=3 0.018
+  LDA decoy winners above q<=0.05 cut        n    72  mean 0.53  share>=2 0.028  share>=3 0.000
+  MLP entrapment winners above q<=0.01 cut   n    12  mean 0.92  share>=2 0.167  share>=3 0.083
+  MLP decoy winners above q<=0.01 cut        n    11  mean 0.55  share>=2 0.000  share>=3 0.000
+  MLP entrapment winners above q<=0.05 cut   n    56  mean 0.80  share>=2 0.107  share>=3 0.036
+  MLP decoy winners above q<=0.05 cut        n    78  mean 0.55  share>=2 0.026  share>=3 0.000

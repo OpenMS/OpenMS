@@ -1,0 +1,10 @@
+raw 01: library entrapment precursors 148983; I/L-equal to human 0.0000; +Q/K,N/D 0.0000
+  LDA q<=0.01: entrapment hits 5  I/L-equal 0  +QK/ND 0  in DIA-NN 1% 0
+  LDA q<=0.05: entrapment hits 41  I/L-equal 0  +QK/ND 0  in DIA-NN 1% 0
+  MLP q<=0.01: entrapment hits 7  I/L-equal 0  +QK/ND 0  in DIA-NN 1% 0
+  MLP q<=0.05: entrapment hits 66  I/L-equal 0  +QK/ND 0  in DIA-NN 1% 0
+raw 02: library entrapment precursors 148983; I/L-equal to human 0.0000; +Q/K,N/D 0.0000
+  LDA q<=0.01: entrapment hits 13  I/L-equal 0  +QK/ND 0  in DIA-NN 1% 1
+  LDA q<=0.05: entrapment hits 57  I/L-equal 0  +QK/ND 0  in DIA-NN 1% 1
+  MLP q<=0.01: entrapment hits 12  I/L-equal 0  +QK/ND 0  in DIA-NN 1% 1
+  MLP q<=0.05: entrapment hits 56  I/L-equal 0  +QK/ND 0  in DIA-NN 1% 1

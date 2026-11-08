@@ -1,0 +1,24 @@
+raw 01 LDA
+  q<=0.005 N   875  decoy FDR 0.0046  entrapment   3  FDP_c 0.0069  90% CI [0.0019, 0.0179]
+  q<=0.01  N   993  decoy FDR 0.0091  entrapment   5  FDP_c 0.0101  90% CI [0.0040, 0.0213]
+  q<=0.02  N  1126  decoy FDR 0.0195  entrapment  12  FDP_c 0.0215  90% CI [0.0124, 0.0348]
+  q<=0.03  N  1273  decoy FDR 0.0299  entrapment  19  FDP_c 0.0301  90% CI [0.0197, 0.0441]
+  q<=0.05  N  1429  decoy FDR 0.0497  entrapment  41  FDP_c 0.0578  90% CI [0.0438, 0.0750]
+raw 01 MLP seed 0
+  q<=0.005 N   939  decoy FDR 0.0043  entrapment   1  FDP_c 0.0021  90% CI [0.0001, 0.0102]
+  q<=0.01  N  1222  decoy FDR 0.0098  entrapment   7  FDP_c 0.0115  90% CI [0.0054, 0.0217]
+  q<=0.02  N  1390  decoy FDR 0.0194  entrapment  23  FDP_c 0.0333  90% CI [0.0228, 0.0472]
+  q<=0.03  N  1541  decoy FDR 0.0299  entrapment  37  FDP_c 0.0484  90% CI [0.0361, 0.0637]
+  q<=0.05  N  1691  decoy FDR 0.0497  entrapment  65  FDP_c 0.0775  90% CI [0.0624, 0.0952]
+raw 02 LDA
+  q<=0.005 N   829  decoy FDR 0.0048  entrapment   4  FDP_c 0.0097  90% CI [0.0033, 0.0223]
+  q<=0.01  N  1115  decoy FDR 0.0099  entrapment  13  FDP_c 0.0235  90% CI [0.0139, 0.0374]
+  q<=0.02  N  1170  decoy FDR 0.0197  entrapment  18  FDP_c 0.0310  90% CI [0.0200, 0.0460]
+  q<=0.03  N  1282  decoy FDR 0.0296  entrapment  29  FDP_c 0.0456  90% CI [0.0326, 0.0622]
+  q<=0.05  N  1463  decoy FDR 0.0499  entrapment  57  FDP_c 0.0785  90% CI [0.0622, 0.0979]
+raw 02 MLP seed 0
+  q<=0.005 N   631  decoy FDR 0.0048  entrapment   0  FDP_c 0.0000  90% CI [0.0000, 0.0096]
+  q<=0.01  N  1231  decoy FDR 0.0097  entrapment  12  FDP_c 0.0196  90% CI [0.0113, 0.0318]
+  q<=0.02  N  1322  decoy FDR 0.0197  entrapment  21  FDP_c 0.0320  90% CI [0.0215, 0.0461]
+  q<=0.03  N  1451  decoy FDR 0.0289  entrapment  37  FDP_c 0.0514  90% CI [0.0383, 0.0676]
+  q<=0.05  N  1573  decoy FDR 0.0496  entrapment  56  FDP_c 0.0717  90% CI [0.0567, 0.0896]

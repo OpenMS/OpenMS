@@ -1,0 +1,5 @@
+raw 01 OSW+Percolator                                N at FDP_c <= 0.5/1/1.5/2%: [1015, 1151, 1251, 1286]
+   raw 01 OSW m_score<=0.01 export: N 1462, entrapment 23, FDP_c 0.0317
+raw 02 OSW+Percolator                                N at FDP_c <= 0.5/1/1.5/2%: [1159, 1287, 1351, 1389]
+   raw 02 OSW m_score<=0.01 export: N 1491, entrapment 25, FDP_c 0.0338
+raw 02 OpenDIA tool stage-2 re-score (filters: precursor_best,in_rt_window) N at FDP_c <= 0.5/1/1.5/2%: [169, 298, 454, 494]
