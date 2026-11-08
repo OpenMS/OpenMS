@@ -25,7 +25,7 @@ namespace OpenMS
   {
     namespace PRH = Internal::ParquetReaderHelpers;
 
-    const PRH::FilterPruningOptions& filterPruningOptions_()
+    const PRH::FilterPruningOptions& ximFilterPruningOptions_()
     {
       static const PRH::FilterPruningOptions options{
         {"MOBILITY", "INTENSITY", "FEATURE_RT"},
@@ -165,7 +165,7 @@ namespace OpenMS
       try
       {
         // Prefer dataset pushdown when available; fall back to compute filtering on failure.
-        table = PRH::readParquetTableDataset(filenames_, combined_filter, filter_context, filterPruningOptions_());
+        table = PRH::readParquetTableDataset(filenames_, combined_filter, filter_context, ximFilterPruningOptions_());
         used_dataset = true;
       }
       catch (const std::exception& e)
@@ -189,7 +189,7 @@ namespace OpenMS
     }
     if (!used_dataset)
     {
-      table = PRH::applyArrowFilter(table, combined_filter, filter_context, filterPruningOptions_());
+      table = PRH::applyArrowFilter(table, combined_filter, filter_context, ximFilterPruningOptions_());
     }
 
     auto run_id_col = PRH::getColumn(table, "RUN_ID");
