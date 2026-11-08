@@ -325,6 +325,38 @@ int main()
     require(m1_trace >= e.ms1_isotope, "M+1 trace covers at least the core");
   }
 
+  // 9. Boundary features: picked on scan bins only; a narrow co-eluting peak in library ratios scores high, and a
+  //    neighbouring peak outside the picked boundaries does not dilute co-elution or library correlation.
+  {
+    require(OpenDIA::stage2FeatureSetNames(OpenDIA::parseStage2FeatureSet("search+boundary")).size() == 10, "search+boundary = cnn_z + 4 + 5");
+    std::vector<std::vector<double>> p;
+    for (std::size_t c = 0; c < 6; ++c)
+    {
+      auto v = gaussian(library[c], 16.0, 1.5);
+      // A second species at bin 26 with a reversed fragment pattern.
+      const auto other = gaussian(library[5 - c], 26.0, 1.5);
+      for (std::size_t b = 0; b < RT; ++b) v[b] += other[b];
+      p.push_back(v);
+    }
+    const auto t = tensor(p);
+    auto e = fullEvidence();
+    const auto f = OpenDIA::stage2BoundaryFeatures(t.data(), library, mz, e, options);
+    // FWHM of sigma 1.5 bins after one smoothing pass: 2.355 * sqrt(2.25 + 0.5) bins * 0.9375 s = 3.66 s.
+    require(std::abs(std::expm1(f[0]) - 3.66) < 0.3, "boundary FWHM off");
+    require(std::expm1(f[1]) < 12.0, "boundary width should stop before the neighbour");
+    require(f[2] > 0.95 && f[3] > 0.95 && f[4] == 1.0, "co-eluting library-ratio peak should score high");
+    // Every other bin without a scan: the picker sees only the scan bins, so the peak is still found and narrow.
+    e.ms2_mask = 0x55555555u;
+    const auto g = OpenDIA::stage2BoundaryFeatures(t.data(), library, mz, e, options);
+    require(std::expm1(g[1]) < 12.0 && g[3] > 0.9, "sparse scan bins break the boundary features");
+    // Fewer than 3 scan bins or no signal: all zero.
+    e.ms2_mask = 0x3u;
+    const auto z = OpenDIA::stage2BoundaryFeatures(t.data(), library, mz, e, options);
+    require(z[0] == 0.0 && z[2] == 0.0 && z[4] == 0.0, "too few scan bins must give zero features");
+    const std::vector<float> empty(TraceCollector::SAMPLE_SIZE, 0.0f);
+    require(OpenDIA::stage2BoundaryFeatures(empty.data(), library, mz, fullEvidence(), options)[4] == 0.0, "empty window gives zero features");
+  }
+
   std::cout << "OpenDIAStage2_test passed\n";
   return 0;
 }

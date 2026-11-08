@@ -113,7 +113,9 @@ namespace OpenMS
       registerOutputFile_("stage2_features_out", "<file>", "", "With -stage2: per-window feature table (after the RT window) for inspection", false);
       registerStringOption_("stage2_feature_set", "<groups>", "extraction", "With -stage2: '+'-separated feature groups after the CNN logit. "
                             "'extraction' = the seven tensor/MS1 features; 'search' = search peak-group features (needs -stage2_search_features); "
-                            "'isotope' = MS1 M+0..M+3 averagine correlation, M-1 overlap and isotope co-elution. 'extraction_search' = extraction+search", false);
+                            "'isotope' = MS1 M+0..M+3 averagine correlation, M-1 overlap and isotope co-elution; 'boundary' (experimental) = each window re-picked "
+                            "with the consensus peak-group picker on its scan bins, with FWHM, base width, co-elution, library correlation and fragment apex agreement "
+                            "over the picked boundaries. 'extraction_search' = extraction+search", false);
       registerInputFile_("stage2_search_features", "<file>", "", "With -stage2: the OpenDIA -features_out table the windows were drawn from "
                          "(candidate_row = window sample_id): transition support, matched scans, peak width and |library RT error| per window", false);
       setValidFormats_("stage2_search_features", {"tsv"});
@@ -666,6 +668,12 @@ namespace OpenMS
             {
               const auto isotope = OpenDIA::stage2IsotopeFeatures(collector.evidence(i), collector.precursorMZ(i), collector.precursorCharge(i), extraction);
               row.features.insert(row.features.end(), isotope.begin(), isotope.end());
+            }
+            if (stage2_set.boundary)
+            {
+              const auto boundary = OpenDIA::stage2BoundaryFeatures(collector.intensities().data() + i * OpenDIA::TraceCollector::SAMPLE_SIZE,
+                                                                    collector.libraryIntensities(i), collector.fragmentMZ(i), collector.evidence(i), extraction);
+              row.features.insert(row.features.end(), boundary.begin(), boundary.end());
             }
             rows.push_back(row);
             row_window.push_back(i);

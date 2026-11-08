@@ -36,6 +36,15 @@ def bin_trace(rt, inten, centre):
     return out
 
 
+def bin_mask(rt, centre):
+    """Bins that received at least one raw scan (TraceCollector's ms2_mask)."""
+    keep = np.abs(rt - centre) <= HALF
+    b = np.minimum(BINS - 1, np.maximum(0.0, (rt[keep] - centre + HALF) / (2 * HALF)) * BINS).astype(int)
+    m = np.zeros(BINS, np.int8)
+    m[b] = 1
+    return m
+
+
 def bin_of(t, centre):
     return int(np.clip((t - centre + HALF) / (2 * HALF) * BINS, 0, BINS - 1))
 
@@ -65,7 +74,7 @@ def main():
     tr = pd.read_csv(a.traces, sep='\t')
     groups = {k: g.sort_values('scan') for k, g in tr.groupby('precursor_id')}
     cols = [f'i{f}' for f in range(6)]
-    X, Y, meta = [], [], []
+    X, Y, M, meta = [], [], [], []
     for p in peaks.itertuples():
         g = groups[p.precursor_id]
         rt = g.rt.to_numpy()
@@ -112,9 +121,10 @@ def main():
                 y = np.stack(targets(p.left_rt, p.right_rt, centre))
             X.append(x)
             Y.append(y)
+            M.append(bin_mask(rt, centre))
             meta.append((p.precursor_id, fold, int(negative), shift, np.log10(scale), np.log10(snr)))
     m = np.array(meta)
-    np.savez_compressed(a.out, x=np.stack(X), y=np.stack(Y), precursor_id=m[:, 0].astype(np.int64), fold=m[:, 1].astype(np.int8),
+    np.savez_compressed(a.out, x=np.stack(X), y=np.stack(Y), scan_mask=np.stack(M), precursor_id=m[:, 0].astype(np.int64), fold=m[:, 1].astype(np.int8),
                         negative=m[:, 2].astype(np.int8), shift=m[:, 3].astype(np.float32), log_scale=m[:, 4].astype(np.float32),
                         log_snr=m[:, 5].astype(np.float32))
     print(f'{len(X)} examples from {len(peaks)} clean anchors; negatives {int(m[:, 2].sum())}; folds {np.bincount(m[:, 1].astype(int)).tolist()}')

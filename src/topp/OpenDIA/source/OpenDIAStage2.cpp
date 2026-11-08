@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include "OpenDIAStage2.h"
+#include "OpenDIAPeakPicker.h"
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
@@ -240,7 +241,8 @@ namespace OpenMS::OpenDIA
     {
       const std::size_t plus = spec.find('+', start);
       const std::string group = spec.substr(start, plus == std::string::npos ? std::string::npos : plus - start);
-      bool* flag = group == "extraction" ? &set.extraction : group == "search" ? &set.search : group == "isotope" ? &set.isotope : nullptr;
+      bool* flag = group == "extraction" ? &set.extraction : group == "search" ? &set.search : group == "isotope" ? &set.isotope
+                   : group == "boundary" ? &set.boundary : nullptr;
       if (flag == nullptr || *flag) throw std::invalid_argument("Unknown or repeated second-stage feature group '" + group + "' in " + name);
       *flag = true;
       if (plus == std::string::npos) break;
@@ -275,7 +277,93 @@ namespace OpenMS::OpenDIA
     {
       names.insert(names.end(), stage2IsotopeFeatureNames().begin(), stage2IsotopeFeatureNames().end());
     }
+    if (set.boundary)
+    {
+      names.insert(names.end(), stage2BoundaryFeatureNames().begin(), stage2BoundaryFeatureNames().end());
+    }
     return names;
+  }
+
+  const std::array<std::string, STAGE2_BOUNDARY_FEATURES>& stage2BoundaryFeatureNames()
+  {
+    static const std::array<std::string, STAGE2_BOUNDARY_FEATURES> names = {
+      "boundary_log_fwhm", "boundary_log_width", "boundary_coelution", "boundary_library_correlation", "boundary_apex_agreement"};
+    return names;
+  }
+
+  std::array<double, STAGE2_BOUNDARY_FEATURES> stage2BoundaryFeatures(const float* tensor, const std::array<double, 6>& library_intensities,
+                                                                      const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence,
+                                                                      const Stage2ExtractionOptions& options)
+  {
+    std::array<double, STAGE2_BOUNDARY_FEATURES> f{};
+    const double width = 2.0 * options.rt_half_width / RT_BINS;
+    // Scan bins only: a bin without an isolating scan carries no information, not zero intensity.
+    std::vector<std::size_t> bins;
+    for (std::size_t b = 0; b < RT_BINS; ++b)
+    {
+      if (evidence.ms2_mask >> b & 1u) bins.push_back(b);
+    }
+    std::vector<std::size_t> channels;
+    for (std::size_t c = 0; c < FRAGMENTS; ++c)
+    {
+      if (fragment_mz[c] != 0.0) channels.push_back(c);
+    }
+    const std::size_t n = bins.size();
+    if (n < 3 || channels.empty()) return f;
+    // Compact fragment-major traces (IM summed) over the scan bins.
+    std::vector<float> traces(channels.size() * n, 0.0f);
+    for (std::size_t k = 0; k < channels.size(); ++k)
+    {
+      for (std::size_t s = 0; s < n; ++s)
+      {
+        float v = 0.0f;
+        for (std::size_t m = 0; m < IM_BINS; ++m) v += tensor[(channels[k] * RT_BINS + bins[s]) * IM_BINS + m];
+        traces[k * n + s] = v;
+      }
+    }
+    // The window is centred on the candidate apex: hint = the scan bin nearest the centre bin.
+    std::size_t hint = 0;
+    for (std::size_t s = 1; s < n; ++s)
+    {
+      const auto distance = [&](std::size_t b) { return b > RT_BINS / 2 ? b - RT_BINS / 2 : RT_BINS / 2 - b; };
+      if (distance(bins[s]) < distance(bins[hint])) hint = s;
+    }
+    std::vector<double> scratch;
+    const PickedPeak peak = pickPeakGroup(traces.data(), channels.size(), n, n, 1, hint, PeakPickerOptions{}, scratch);
+    if (!peak.found) return f;
+    // Positions in seconds: bin centres of the scan bins, linearly interpolated at fractional indices.
+    std::vector<double> centres(n);
+    for (std::size_t s = 0; s < n; ++s) centres[s] = -options.rt_half_width + (bins[s] + 0.5) * width;
+    f[0] = std::log1p(std::max(0.0, interpolateAt(centres, peak.half_right) - interpolateAt(centres, peak.half_left)));
+    f[1] = std::log1p(std::max(0.0, centres[peak.right] - centres[peak.left]));
+    const std::size_t span = peak.right - peak.left + 1;
+    std::vector<std::vector<double>> inside;
+    std::vector<double> areas, library;
+    for (std::size_t k = 0; k < channels.size(); ++k)
+    {
+      std::vector<double> trace(traces.begin() + k * n + peak.left, traces.begin() + k * n + peak.right + 1);
+      const double area = std::accumulate(trace.begin(), trace.end(), 0.0);
+      areas.push_back(std::sqrt(area));
+      library.push_back(std::sqrt(std::max(0.0, library_intensities[channels[k]])));
+      if (area > 0.0) inside.push_back(std::move(trace));
+    }
+    if (inside.size() >= 2 && span >= 3)
+    {
+      double sum = 0.0;
+      std::size_t pairs = 0;
+      for (std::size_t i = 0; i < inside.size(); ++i)
+      {
+        for (std::size_t j = i + 1; j < inside.size(); ++j)
+        {
+          sum += pearson(inside[i], inside[j]);
+          ++pairs;
+        }
+      }
+      f[2] = sum / pairs;
+    }
+    if (channels.size() >= 3 && inside.size() >= 2) f[3] = pearson(areas, library);
+    f[4] = static_cast<double>(peak.agreeing_fragments) / static_cast<double>(channels.size());
+    return f;
   }
 
   const std::array<std::string, STAGE2_ISOTOPE_FEATURES>& stage2IsotopeFeatureNames()

@@ -61,14 +61,15 @@ namespace OpenMS::OpenDIA
   /**
     @brief Which feature groups enter the second-stage discriminant. Feature 0 is always the standardised CNN logit.
 
-    Row order: cnn_z, then the seven extraction features, then the search features, then the isotope features,
-    each group only if selected.
+    Row order: cnn_z, then the seven extraction features, then the search features, then the isotope features, then the
+    boundary features, each group only if selected.
   */
   struct Stage2FeatureSet
   {
     bool extraction = true;   ///< Stage2Feature columns 1..7 (tensor and MS1 evidence; the original -stage2 set).
     bool search = false;      ///< The four search peak-group features (needs the OpenDIA -features_out table).
     bool isotope = false;     ///< The MS1 isotope-envelope features (Stage2IsotopeFeature).
+    bool boundary = false;    ///< Experimental peak-group boundary features (Stage2BoundaryFeature).
   };
   /**
     @brief Parse a '+'-separated list of groups, e.g. "extraction", "search+isotope"; "extraction_search" means "extraction+search".
@@ -100,6 +101,37 @@ namespace OpenMS::OpenDIA
   */
   std::array<double, STAGE2_ISOTOPE_FEATURES> stage2IsotopeFeatures(const TraceEvidence& evidence, double precursor_mz, int charge,
                                                                     const Stage2ExtractionOptions& options);
+
+  /// Experimental peak-group boundary features: the window is re-picked with pickPeakGroup and scored over [left, right].
+  enum class Stage2BoundaryFeature : std::size_t
+  {
+    LOG_FWHM = 0,          ///< log1p of the interpolated full width at half maximum in seconds.
+    LOG_WIDTH,             ///< log1p of the picked base width in seconds.
+    BOUNDARY_COELUTION,    ///< Mean pairwise Pearson of fragment traces over the picked peak (0 if fewer than 3 scans).
+    BOUNDARY_LIBRARY_CORRELATION, ///< Pearson of sqrt fragment areas over the picked peak and sqrt library intensities.
+    APEX_AGREEMENT,        ///< Share of library fragments whose maximum in the peak is within one scan of the consensus apex.
+    COUNT
+  };
+  constexpr std::size_t STAGE2_BOUNDARY_FEATURES = static_cast<std::size_t>(Stage2BoundaryFeature::COUNT);
+  /// Boundary column names, in Stage2BoundaryFeature order.
+  const std::array<std::string, STAGE2_BOUNDARY_FEATURES>& stage2BoundaryFeatureNames();
+  /**
+    @brief Boundary features of one window, identical for targets and decoys and free of training.
+
+    The ion-mobility-summed fragment traces are restricted to the RT bins that received an isolating MS2 scan (bins without a
+    scan are not zero signal), the peak group around the window apex (centre bin) is picked with pickPeakGroup defaults, and
+    width, co-elution, library correlation and apex agreement are measured over the picked boundaries.
+
+    @param[in] tensor One window of TraceCollector::SAMPLE_SIZE floats, fragment-major as in the collector.
+    @param[in] library_intensities Library intensity per fragment channel.
+    @param[in] fragment_mz Fragment m/z per channel; zero marks padding.
+    @param[in] evidence Window evidence (only ms2_mask is used).
+    @param[in] options Window geometry (only rt_half_width is used).
+    @return Features in Stage2BoundaryFeature order; all zero if fewer than 3 scan bins or no signal.
+  */
+  std::array<double, STAGE2_BOUNDARY_FEATURES> stage2BoundaryFeatures(const float* tensor, const std::array<double, 6>& library_intensities,
+                                                                      const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence,
+                                                                      const Stage2ExtractionOptions& options);
 
   /**
     @brief Peak-group evidence of one search candidate, read from the OpenDIA -features_out table.
