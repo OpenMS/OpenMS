@@ -153,8 +153,34 @@
 		<UserParam type="string" name="feature_id" value="not mapped"/>
 		<UserParam type="int" name="id_merge_index" value="0"/>
 	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="465.754753035421" RT="162.5" spectrum_reference="scan=63" >
+		<PeptideHit score="0.0625" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="G" start="3" end="10" protein_refs="PH_6">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="int" name="map_index" value="1"/>
+			<UserParam type="string" name="MS1Label:labeled_sequence" value="AEFVEVTK(Label:13C(6)15N(2))"/>
+			<UserParam type="string" name="MS1Label:removed_labels" value="Lys8"/>
+			<UserParam type="int" name="MS1Label:channel" value="2"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="3.0e-03"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="1"/>
+		<UserParam type="string" name="feature_id" value="7539502987715517688"/>
+		<UserParam type="string" name="quantification_method" value="targeted"/>
+		<UserParam type="int" name="id_merge_index" value="0"/>
+	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="587.309138306571" RT="190.5" spectrum_reference="scan=91" >
 		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="id_merge_index" value="1"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="573.282923178971" RT="130.5" spectrum_reference="scan=31" >
+		<PeptideHit score="0.0625" sequence="YVNDLAGHEK" charge="2" aa_before="K" aa_after="G" start="3" end="12" protein_refs="PH_0">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="string" name="MS1Label:labeled_sequence" value="YVNDLAGHEK"/>
+			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
+			<UserParam type="int" name="MS1Label:channel" value="1"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="1.0e-03"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="string" name="feature_id" value="17569764383250687096"/>
 		<UserParam type="int" name="id_merge_index" value="1"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="577.290023178971" RT="133.5" spectrum_reference="scan=34" >
@@ -179,46 +205,6 @@
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="not mapped"/>
 		<UserParam type="int" name="id_merge_index" value="1"/>
-	</UnassignedPeptideIdentification>
-	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="569.274764178971" RT="129.5" spectrum_reference="scan=30" >
-		<PeptideHit score="0.0625" sequence="QDILDDYQK" charge="2" aa_before="K" aa_after="G" start="3" end="11" protein_refs="PH_3">
-			<UserParam type="string" name="target_decoy" value="target"/>
-			<UserParam type="int" name="map_index" value="0"/>
-			<UserParam type="string" name="MS1Label:labeled_sequence" value="QDILDDYQK"/>
-			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
-			<UserParam type="int" name="MS1Label:channel" value="1"/>
-			<UserParam type="float" name="Posterior Error Probability_score" value="2.0e-03"/>
-		</PeptideHit>
-		<UserParam type="int" name="map_index" value="2"/>
-		<UserParam type="string" name="feature_id" value="1196373166564353753"/>
-		<UserParam type="string" name="quantification_method" value="targeted"/>
-		<UserParam type="int" name="id_merge_index" value="1"/>
-	</UnassignedPeptideIdentification>
-	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="573.282923178971" RT="130.5" spectrum_reference="scan=31" >
-		<PeptideHit score="0.0625" sequence="YVNDLAGHEK" charge="2" aa_before="K" aa_after="G" start="3" end="12" protein_refs="PH_0">
-			<UserParam type="string" name="target_decoy" value="target"/>
-			<UserParam type="string" name="MS1Label:labeled_sequence" value="YVNDLAGHEK"/>
-			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
-			<UserParam type="int" name="MS1Label:channel" value="1"/>
-			<UserParam type="float" name="Posterior Error Probability_score" value="1.0e-03"/>
-		</PeptideHit>
-		<UserParam type="int" name="map_index" value="2"/>
-		<UserParam type="string" name="feature_id" value="17569764383250687096"/>
-		<UserParam type="int" name="id_merge_index" value="1"/>
-	</UnassignedPeptideIdentification>
-	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="465.754753035421" RT="162.5" spectrum_reference="scan=63" >
-		<PeptideHit score="0.0625" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="G" start="3" end="10" protein_refs="PH_6">
-			<UserParam type="string" name="target_decoy" value="target"/>
-			<UserParam type="int" name="map_index" value="1"/>
-			<UserParam type="string" name="MS1Label:labeled_sequence" value="AEFVEVTK(Label:13C(6)15N(2))"/>
-			<UserParam type="string" name="MS1Label:removed_labels" value="Lys8"/>
-			<UserParam type="int" name="MS1Label:channel" value="2"/>
-			<UserParam type="float" name="Posterior Error Probability_score" value="3.0e-03"/>
-		</PeptideHit>
-		<UserParam type="int" name="map_index" value="1"/>
-		<UserParam type="string" name="feature_id" value="7539502987715517688"/>
-		<UserParam type="string" name="quantification_method" value="targeted"/>
-		<UserParam type="int" name="id_merge_index" value="0"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="461.747653035421" RT="158.5" spectrum_reference="scan=59" >
 		<PeptideHit score="0.0625" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="G" start="3" end="10" protein_refs="PH_6">
@@ -273,6 +259,20 @@
 		</PeptideHit>
 		<UserParam type="int" name="map_index" value="2"/>
 		<UserParam type="string" name="feature_id" value="7316644956366259183"/>
+		<UserParam type="string" name="quantification_method" value="targeted"/>
+		<UserParam type="int" name="id_merge_index" value="1"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="569.274764178971" RT="129.5" spectrum_reference="scan=30" >
+		<PeptideHit score="0.0625" sequence="QDILDDYQK" charge="2" aa_before="K" aa_after="G" start="3" end="11" protein_refs="PH_3">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="int" name="map_index" value="0"/>
+			<UserParam type="string" name="MS1Label:labeled_sequence" value="QDILDDYQK"/>
+			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
+			<UserParam type="int" name="MS1Label:channel" value="1"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="2.0e-03"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="string" name="feature_id" value="1196373166564353753"/>
 		<UserParam type="string" name="quantification_method" value="targeted"/>
 		<UserParam type="int" name="id_merge_index" value="1"/>
 	</UnassignedPeptideIdentification>
