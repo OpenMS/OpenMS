@@ -50,6 +50,20 @@ Raw 01 is now the design run. Entrapment labels are never joined to its outputs.
   - Stages 3 and 4 then repeat unchanged.
   - On raw 01 at n = 300000: 512 anchors, 4 decoys above the cut, RT σ 21 s, 3:37 and 16.5 GB.
   - HeLa p40000 output is byte-identical with and without the option.
+- **Rest of the raw 01 design run** (no entrapment labels, `pipeline/RESULT.md`):
+  - Seeds: 509 positive and 509 decoy.
+  - Per-fold paired TDC: 122 targets at q ≤ 0.01, all from one fold. The other folds sit on the (D+1)/T floor.
+  - `-pooled_tdc` (`0eccb5f039`, opt-in) standardises each fold's logits by its decoy winners' median and MAD, then runs one competition over all folds: 321 targets.
+  - `-ss_iterations 1` gives 0, with 321 or 634 positives (overfit).
+  - Frozen design: `-ss_iterations 0 -pooled_tdc` at `46be19510d`.
+- **Raw 02 single evaluation** (`astral-entrapment-raw02-20261108/GATE.md` and `RESULT.md`, gate hashed and pushed in `914ad5e14e` before the run): **FAIL**.
+  - Calibration transfers: 604 anchors, 0.99% of them entrapment.
+  - 360 targets at q ≤ 0.01, of which 5 are entrapment.
+  - FDP_c = 0.028 > 0.015 (95% interval 0.009 to 0.065). The lower bound is 0.014.
+  - At q ≤ 0.05: 635 targets and FDP_c 0.044.
+  - All 5 entrapment hits score high, not at the margin. The experimental q underestimates the entrapment FDP on this run.
+  - The failure is in score separation and error control (R-WP4), not in calibration.
+  - Raw 02 is spent, and raw 03 is still held back.
 
 ## Panel scaling and escalation, 7 November 2026 (HeLa)
 

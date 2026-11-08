@@ -49,6 +49,10 @@ The current pipeline extracts 198,915 candidates in 40 s and runs CNN crossfit i
 - Every row except the last two uses CNN seeds from the same-run OpenSWATH teacher. The last two use no OpenSWATH input and exceed the teacher-seeded count. Neither has been checked by entrapment.
 - On the independent 500 pg run, the CNN alone gave 0 IDs at 1%, paired TDC gave 230, and the calibration failed closed with 0 anchors.
 - On the independent ProteoBench Astral entrapment run (raw 01, frozen teacher-free design applied once), the calibration also failed closed with 0 anchors, so no IDs and no entrapment FDP. The HeLa design does not yet transfer to weak or no-1/K0 runs.
+- Option B then used raw 01 as a design run, adding a windowed second calibration pass and pooled paired TDC (both opt-in). The frozen result was evaluated once on raw 02 against a hashed gate, and it **failed**.
+  - It gave 604 anchors and 360 targets at q ≤ 0.01, with 5 entrapment hits.
+  - Combined entrapment FDP estimate 0.028 against a 0.015 limit (95% interval 0.009 to 0.065).
+  - On this weak Astral run the experimental q is not conservative enough. See R-WP2 and R-WP4.
 - The rewrite is about 5,500 to 6,100 precursors short of the reference. Closing that gap is R-WP5.
 
 ## Work packages

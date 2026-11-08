@@ -35,3 +35,14 @@ A without B still needs per-run q-values. B can use per-run models, but then it 
 Gates:
 - Run-specific counts with A must not fall on any run, compared with per-run models.
 - B must be validated by entrapment on a multi-run set. The ProteoBench Astral entrapment runs 01–03 are a candidate, once the rewrite reads Thermo `.raw` with no 1/K0.
+
+## First entrapment result: Astral raw 02, 8 November 2026 (FAIL)
+
+The frozen teacher-free design with `-pooled_tdc` was evaluated once against a hashed gate (`gates/astral-raw02-20261108`).
+- Result: 360 targets at pooled paired q ≤ 0.01, of which 5 are entrapment. FDP_c = 0.028, against a limit of 0.015 (95% interval 0.009 to 0.065). At q ≤ 0.05: FDP_c 0.044.
+- The seed task is nearly trivial: held-out seed-decoy AUC is at least 0.9995 per fold. The entrapment hits have high logits, and decoys do not model them.
+- Candidate causes, each needing a new design run and gate:
+  1. Decoy windows that are easier than false targets. Shuffled-decoy traces lack co-eluting interference.
+  2. The pooled MAD standardisation over small decoy-winner sets.
+  3. The best-of-many window choice per precursor inflating target scores beyond what paired competition corrects.
+- Until one of these is settled, the CNN q on weak runs is a decoy-count estimate that this run shows to be anti-conservative.
