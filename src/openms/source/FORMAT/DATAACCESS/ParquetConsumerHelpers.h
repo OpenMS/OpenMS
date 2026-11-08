@@ -9,11 +9,13 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <arrow/api.h>
 
+#include <atomic>
 #include <cstdint>
 #include <limits>
 #include <string>
@@ -120,14 +122,28 @@ namespace OpenMS
         @brief The numeric ID for @p text: its value if it is a non-negative integer not used yet,
         otherwise the next free ID (from @p next_id).
 
-        Negative values are "unset" sentinels elsewhere and are never kept as IDs.
+        Negative values are "unset" sentinels elsewhere (the readers take a negative ID as "no
+        filter") and are never kept as IDs; the first one replaced in a process is logged as a
+        warning. OpenSWATH's own library loading validates IDs as non-negative, so only callers that
+        pass a non-canonical LightTargetedExperiment get here.
       */
       inline int64_t parseOrAssignId(const std::string& text, int64_t& next_id, std::unordered_set<int64_t>& used_ids)
       {
         try
         {
           const int64_t value = StringUtils::toInt64(text);
-          if (value >= 0 && used_ids.insert(value).second)
+          if (value < 0)
+          {
+            static std::atomic<bool> warned{false};
+            if (!warned.exchange(true))
+            {
+              OPENMS_LOG_WARN << "Parquet output: negative ID '" << text
+                              << "' in the transition list replaced by a newly assigned ID (negative IDs mean"
+                                 " 'unset' in OpenSWATH Parquet files). Further negative IDs are replaced without"
+                                 " a warning." << std::endl;
+            }
+          }
+          else if (used_ids.insert(value).second)
           {
             if (value >= next_id)
             {
