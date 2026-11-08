@@ -1,0 +1,5 @@
+DIA-NN confirmed in-library precursors raw 01: 2754 entrap 11
+funnel: any candidate 2741 | candidate within 10 s 2449 | winner within 10 s 2290 | accepted q<=0.01 730 | q<=0.05 1297
+recall at q<=0.01 by intensity tertile: {'low': 0.01, 'mid': 0.23, 'high': 0.71}
+oracle LDA: confirmed recovered at decoy/target ratio 0.1% / 1% / 5% = [np.int64(351), np.int64(893), np.int64(1336)] of 2449
+oracle MLP: confirmed recovered at decoy/target ratio 0.1% / 1% / 5% = [np.int64(351), np.int64(1091), np.int64(1580)] of 2449

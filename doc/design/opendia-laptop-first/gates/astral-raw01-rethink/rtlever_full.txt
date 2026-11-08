@@ -1,0 +1,5 @@
+oracle, no RT term (all candidates)      q<=0.01: all 1134 confirmed-right 1088 | q<=0.05: all 1873 confirmed-right 1577
+oracle + RT sigma 24.0 s (current)       q<=0.01: all 1219 confirmed-right 1157 | q<=0.05: all 1846 confirmed-right 1580
+oracle + RT sigma 12.0 s (confirmed only) q<=0.01: all 1358 confirmed-right 1304 | q<=0.05: all 2028 confirmed-right 1743
+oracle + RT sigma  6.0 s (confirmed only) q<=0.01: all 1527 confirmed-right 1475 | q<=0.05: all 2078 confirmed-right 1836
+oracle + RT sigma  3.0 s (confirmed only) q<=0.01: all 1627 confirmed-right 1587 | q<=0.05: all 2153 confirmed-right 1935
