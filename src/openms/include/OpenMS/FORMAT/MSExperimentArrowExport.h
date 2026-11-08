@@ -153,9 +153,10 @@ struct OPENMS_DLLAPI ParquetWriteConfig
   /// LZ4/SNAPPY: ignored
   int compression_level = 3;
 
-  /// Target row group size in bytes (default: 128MB)
-  /// Smaller = more parallelism for readers, larger = better compression
-  /// For MS data with millions of peaks, 128MB typically gives 1-2M rows per group
+  /// Maximum number of ROWS per row group (not bytes). Every writer passes it to Arrow as a row
+  /// count, which Arrow caps at parquet::WriterProperties::max_row_group_length() (by default
+  /// 1024 * 1024 rows), so the default writes groups of about 1M rows.
+  /// Smaller = more parallelism and selective reads for readers, larger = better compression
   int64_t row_group_size = 128 * 1024 * 1024;
 
   /// Write column statistics (min/max/null_count) for each row group
