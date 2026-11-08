@@ -1,0 +1,7 @@
+library target precursors: entrapment=148983 human=151240 (expected 148983 / 151240)
+r = 0.9851
+q<=0.001: accepted=0 N_h=0 N_e=0 FDP_combined=nan FDP_lower_bound=nan
+q<=0.01: accepted=360 N_h=355 N_e=5 FDP_combined=0.0280 FDP_lower_bound=0.0139  <- gate quantity
+q<=0.05: accepted=635 N_h=621 N_e=14 FDP_combined=0.0444 FDP_lower_bound=0.0220
+GATE: FAIL (FDP_combined 0.0280 vs 0.015)
+calibration anchors: 604 entrapment share=0.0099 (purity lower bound 0.9801)
