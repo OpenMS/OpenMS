@@ -518,15 +518,15 @@ bool ConsensusMapArrowIO::importFeaturesFromArrow(
     return false;
   }
 
-  auto col_unique_id = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::UNIQUE_ID);
-  auto col_rt = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::RT);
-  auto col_mz = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::MZ);
-  auto col_intensity = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::INTENSITY);
-  auto col_charge = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::CHARGE);
-  auto col_quality = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::QUALITY);
-  auto col_width = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::WIDTH, /*required=*/false);
-  auto col_handles = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::HANDLES, /*required=*/false);
-  auto col_metavalues = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::METAVALUES, /*required=*/false);
+  auto col_unique_id = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::UNIQUE_ID, true, "ConsensusMapArrowIO");
+  auto col_rt = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::RT, true, "ConsensusMapArrowIO");
+  auto col_mz = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::MZ, true, "ConsensusMapArrowIO");
+  auto col_intensity = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::INTENSITY, true, "ConsensusMapArrowIO");
+  auto col_charge = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::CHARGE, true, "ConsensusMapArrowIO");
+  auto col_quality = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::QUALITY, true, "ConsensusMapArrowIO");
+  auto col_width = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::WIDTH, /*required=*/false, "ConsensusMapArrowIO");
+  auto col_handles = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::HANDLES, /*required=*/false, "ConsensusMapArrowIO");
+  auto col_metavalues = ArrowIOHelpers::getColumn(tbl, ConsensusFeatureSchema::METAVALUES, /*required=*/false, "ConsensusMapArrowIO");
 
   if (!col_unique_id || !col_rt || !col_mz || !col_intensity || !col_charge || !col_quality)
   {
@@ -582,8 +582,8 @@ bool ConsensusMapArrowIO::importPSMsFromArrow(
 
   // Read consensus_feature_unique_id and PEPTIDE_IDENTIFICATION_INDEX side-by-side
   // so we can route each constructed PeptideIdentification to the right ConsensusFeature.
-  auto col_feature_id = ArrowIOHelpers::getColumn(tbl, "consensus_feature_unique_id");
-  auto col_p_id = ArrowIOHelpers::getColumn(tbl, PSMSchema::PEPTIDE_IDENTIFICATION_INDEX);
+  auto col_feature_id = ArrowIOHelpers::getColumn(tbl, "consensus_feature_unique_id", true, "ConsensusMapArrowIO");
+  auto col_p_id = ArrowIOHelpers::getColumn(tbl, PSMSchema::PEPTIDE_IDENTIFICATION_INDEX, true, "ConsensusMapArrowIO");
   if (!col_feature_id || !col_p_id)
   {
     OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Missing required columns for PSM import" << std::endl;

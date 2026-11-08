@@ -547,19 +547,19 @@ bool FeatureMapArrowIO::importFeaturesFromArrow(
   }
 
   // Get all columns
-  auto col_unique_id = ArrowIOHelpers::getColumn(tbl, FeatureSchema::UNIQUE_ID);
-  auto col_parent_id = ArrowIOHelpers::getColumn(tbl, FeatureSchema::PARENT_FEATURE_ID);
-  auto col_depth = ArrowIOHelpers::getColumn(tbl, FeatureSchema::DEPTH);
-  auto col_rt = ArrowIOHelpers::getColumn(tbl, FeatureSchema::RT);
-  auto col_mz = ArrowIOHelpers::getColumn(tbl, FeatureSchema::MZ);
-  auto col_intensity = ArrowIOHelpers::getColumn(tbl, FeatureSchema::INTENSITY);
-  auto col_charge = ArrowIOHelpers::getColumn(tbl, FeatureSchema::CHARGE);
-  auto col_overall_quality = ArrowIOHelpers::getColumn(tbl, FeatureSchema::QUALITY);
-  auto col_quality_rt = ArrowIOHelpers::getColumn(tbl, FeatureSchema::QUALITY_RT);
-  auto col_quality_mz = ArrowIOHelpers::getColumn(tbl, FeatureSchema::QUALITY_MZ);
-  auto col_width = ArrowIOHelpers::getColumn(tbl, FeatureSchema::WIDTH, /*required=*/false);
-  auto col_convex_hulls = ArrowIOHelpers::getColumn(tbl, FeatureSchema::CONVEX_HULLS, /*required=*/false);
-  auto col_metavalues = ArrowIOHelpers::getColumn(tbl, FeatureSchema::METAVALUES, /*required=*/false);
+  auto col_unique_id = ArrowIOHelpers::getColumn(tbl, FeatureSchema::UNIQUE_ID, true, "FeatureMapArrowIO");
+  auto col_parent_id = ArrowIOHelpers::getColumn(tbl, FeatureSchema::PARENT_FEATURE_ID, true, "FeatureMapArrowIO");
+  auto col_depth = ArrowIOHelpers::getColumn(tbl, FeatureSchema::DEPTH, true, "FeatureMapArrowIO");
+  auto col_rt = ArrowIOHelpers::getColumn(tbl, FeatureSchema::RT, true, "FeatureMapArrowIO");
+  auto col_mz = ArrowIOHelpers::getColumn(tbl, FeatureSchema::MZ, true, "FeatureMapArrowIO");
+  auto col_intensity = ArrowIOHelpers::getColumn(tbl, FeatureSchema::INTENSITY, true, "FeatureMapArrowIO");
+  auto col_charge = ArrowIOHelpers::getColumn(tbl, FeatureSchema::CHARGE, true, "FeatureMapArrowIO");
+  auto col_overall_quality = ArrowIOHelpers::getColumn(tbl, FeatureSchema::QUALITY, true, "FeatureMapArrowIO");
+  auto col_quality_rt = ArrowIOHelpers::getColumn(tbl, FeatureSchema::QUALITY_RT, true, "FeatureMapArrowIO");
+  auto col_quality_mz = ArrowIOHelpers::getColumn(tbl, FeatureSchema::QUALITY_MZ, true, "FeatureMapArrowIO");
+  auto col_width = ArrowIOHelpers::getColumn(tbl, FeatureSchema::WIDTH, /*required=*/false, "FeatureMapArrowIO");
+  auto col_convex_hulls = ArrowIOHelpers::getColumn(tbl, FeatureSchema::CONVEX_HULLS, /*required=*/false, "FeatureMapArrowIO");
+  auto col_metavalues = ArrowIOHelpers::getColumn(tbl, FeatureSchema::METAVALUES, /*required=*/false, "FeatureMapArrowIO");
 
   if (!col_unique_id || !col_parent_id || !col_depth || !col_rt || !col_mz ||
       !col_intensity || !col_charge || !col_overall_quality ||
@@ -720,28 +720,28 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
   }
 
   // Read columns
-  auto col_feature_id = ArrowIOHelpers::getColumn(tbl, "feature_unique_id");
-  auto col_p_id = ArrowIOHelpers::getColumn(tbl, PSMSchema::PEPTIDE_IDENTIFICATION_INDEX);
-  auto col_peptidoform = ArrowIOHelpers::getColumn(tbl, PSMSchema::PEPTIDOFORM, /*required=*/false);
-  auto col_sequence = ArrowIOHelpers::getColumn(tbl, PSMSchema::SEQUENCE, /*required=*/false);
-  auto col_charge = ArrowIOHelpers::getColumn(tbl, PSMSchema::PRECURSOR_CHARGE);
-  auto col_score = ArrowIOHelpers::getColumn(tbl, PSMSchema::SCORE);
-  auto col_score_type = ArrowIOHelpers::getColumn(tbl, PSMSchema::SCORE_TYPE);
+  auto col_feature_id = ArrowIOHelpers::getColumn(tbl, "feature_unique_id", true, "FeatureMapArrowIO");
+  auto col_p_id = ArrowIOHelpers::getColumn(tbl, PSMSchema::PEPTIDE_IDENTIFICATION_INDEX, true, "FeatureMapArrowIO");
+  auto col_peptidoform = ArrowIOHelpers::getColumn(tbl, PSMSchema::PEPTIDOFORM, /*required=*/false, "FeatureMapArrowIO");
+  auto col_sequence = ArrowIOHelpers::getColumn(tbl, PSMSchema::SEQUENCE, /*required=*/false, "FeatureMapArrowIO");
+  auto col_charge = ArrowIOHelpers::getColumn(tbl, PSMSchema::PRECURSOR_CHARGE, true, "FeatureMapArrowIO");
+  auto col_score = ArrowIOHelpers::getColumn(tbl, PSMSchema::SCORE, true, "FeatureMapArrowIO");
+  auto col_score_type = ArrowIOHelpers::getColumn(tbl, PSMSchema::SCORE_TYPE, true, "FeatureMapArrowIO");
   // hit_index is positional (analytics view); rank semantics travel via psm_metavalues.
-  auto col_rt = ArrowIOHelpers::getColumn(tbl, PSMSchema::RT, /*required=*/false);
-  auto col_mz = ArrowIOHelpers::getColumn(tbl, PSMSchema::OBSERVED_MZ, /*required=*/false);
-  auto col_spec_ref = ArrowIOHelpers::getColumn(tbl, PSMSchema::SPECTRUM_REFERENCE, /*required=*/false);
-  auto col_run_id = ArrowIOHelpers::getColumn(tbl, PSMSchema::RUN_IDENTIFIER, /*required=*/false);
-  auto col_is_decoy = ArrowIOHelpers::getColumn(tbl, PSMSchema::IS_DECOY, /*required=*/false);
-  auto col_protein_accs = ArrowIOHelpers::getColumn(tbl, PSMSchema::PROTEIN_ACCESSIONS, /*required=*/false);
-  auto col_additional_scores = ArrowIOHelpers::getColumn(tbl, PSMSchema::ADDITIONAL_SCORES, /*required=*/false);
-  auto col_psm_metavalues = ArrowIOHelpers::getColumn(tbl, PSMSchema::PSM_METAVALUES, /*required=*/false);
-  auto col_spectrum_metavalues = ArrowIOHelpers::getColumn(tbl, PSMSchema::SPECTRUM_METAVALUES, /*required=*/false);
-  auto col_predicted_rt = ArrowIOHelpers::getColumn(tbl, PSMSchema::PREDICTED_RT, /*required=*/false);
-  auto col_ion_mobility = ArrowIOHelpers::getColumn(tbl, PSMSchema::ION_MOBILITY, /*required=*/false);
-  auto col_hsb = ArrowIOHelpers::getColumn(tbl, PSMSchema::HIGHER_SCORE_BETTER, /*required=*/false);
-  auto col_scan = ArrowIOHelpers::getColumn(tbl, PSMSchema::SCAN, /*required=*/false);
-  auto col_ref_file = ArrowIOHelpers::getColumn(tbl, PSMSchema::REFERENCE_FILE_NAME, /*required=*/false);
+  auto col_rt = ArrowIOHelpers::getColumn(tbl, PSMSchema::RT, /*required=*/false, "FeatureMapArrowIO");
+  auto col_mz = ArrowIOHelpers::getColumn(tbl, PSMSchema::OBSERVED_MZ, /*required=*/false, "FeatureMapArrowIO");
+  auto col_spec_ref = ArrowIOHelpers::getColumn(tbl, PSMSchema::SPECTRUM_REFERENCE, /*required=*/false, "FeatureMapArrowIO");
+  auto col_run_id = ArrowIOHelpers::getColumn(tbl, PSMSchema::RUN_IDENTIFIER, /*required=*/false, "FeatureMapArrowIO");
+  auto col_is_decoy = ArrowIOHelpers::getColumn(tbl, PSMSchema::IS_DECOY, /*required=*/false, "FeatureMapArrowIO");
+  auto col_protein_accs = ArrowIOHelpers::getColumn(tbl, PSMSchema::PROTEIN_ACCESSIONS, /*required=*/false, "FeatureMapArrowIO");
+  auto col_additional_scores = ArrowIOHelpers::getColumn(tbl, PSMSchema::ADDITIONAL_SCORES, /*required=*/false, "FeatureMapArrowIO");
+  auto col_psm_metavalues = ArrowIOHelpers::getColumn(tbl, PSMSchema::PSM_METAVALUES, /*required=*/false, "FeatureMapArrowIO");
+  auto col_spectrum_metavalues = ArrowIOHelpers::getColumn(tbl, PSMSchema::SPECTRUM_METAVALUES, /*required=*/false, "FeatureMapArrowIO");
+  auto col_predicted_rt = ArrowIOHelpers::getColumn(tbl, PSMSchema::PREDICTED_RT, /*required=*/false, "FeatureMapArrowIO");
+  auto col_ion_mobility = ArrowIOHelpers::getColumn(tbl, PSMSchema::ION_MOBILITY, /*required=*/false, "FeatureMapArrowIO");
+  auto col_hsb = ArrowIOHelpers::getColumn(tbl, PSMSchema::HIGHER_SCORE_BETTER, /*required=*/false, "FeatureMapArrowIO");
+  auto col_scan = ArrowIOHelpers::getColumn(tbl, PSMSchema::SCAN, /*required=*/false, "FeatureMapArrowIO");
+  auto col_ref_file = ArrowIOHelpers::getColumn(tbl, PSMSchema::REFERENCE_FILE_NAME, /*required=*/false, "FeatureMapArrowIO");
 
   if (!col_feature_id || !col_p_id || !col_charge || !col_score || !col_score_type)
   {

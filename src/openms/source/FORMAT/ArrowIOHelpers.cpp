@@ -1402,20 +1402,21 @@ const std::string& ParquetTableStream::filename() const { return impl_->filename
 std::shared_ptr<arrow::Array> getColumn(
   const std::shared_ptr<arrow::Table>& table,
   const std::string& name,
-  bool required)
+  bool required,
+  const char* context)
 {
   auto column = table->GetColumnByName(name);
   if (!column)
   {
     if (required)
     {
-      OPENMS_LOG_ERROR << "ArrowIOHelpers: Missing required column '" << name << "'" << std::endl;
+      OPENMS_LOG_ERROR << context << ": Missing required column '" << name << "'" << std::endl;
     }
     return nullptr;
   }
   if (column->num_chunks() == 0)
   {
-    OPENMS_LOG_ERROR << "ArrowIOHelpers: Column '" << name << "' has no chunks" << std::endl;
+    OPENMS_LOG_ERROR << context << ": Column '" << name << "' has no chunks" << std::endl;
     return nullptr;
   }
   if (column->num_chunks() == 1)
@@ -1425,7 +1426,7 @@ std::shared_ptr<arrow::Array> getColumn(
   auto combined = arrow::Concatenate(column->chunks(), arrow::default_memory_pool());
   if (!combined.ok())
   {
-    OPENMS_LOG_ERROR << "ArrowIOHelpers: Failed to combine chunks for column '" << name << "'" << std::endl;
+    OPENMS_LOG_ERROR << context << ": Failed to combine chunks for column '" << name << "'" << std::endl;
     return nullptr;
   }
   return *combined;

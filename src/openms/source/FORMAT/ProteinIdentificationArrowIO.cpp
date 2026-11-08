@@ -983,32 +983,32 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
   }
 
   // Get all columns
-  auto col_run_id = ArrowIOHelpers::getColumn(table, SearchParamsSchema::RUN_IDENTIFIER);
-  auto col_search_engine = ArrowIOHelpers::getColumn(table, SearchParamsSchema::SEARCH_ENGINE);
-  auto col_se_version = ArrowIOHelpers::getColumn(table, SearchParamsSchema::SEARCH_ENGINE_VERSION, false);
-  auto col_inf_engine = ArrowIOHelpers::getColumn(table, SearchParamsSchema::INFERENCE_ENGINE, false);
-  auto col_inf_version = ArrowIOHelpers::getColumn(table, SearchParamsSchema::INFERENCE_ENGINE_VERSION, false);
-  auto col_date = ArrowIOHelpers::getColumn(table, SearchParamsSchema::DATE, false);
-  auto col_score_type = ArrowIOHelpers::getColumn(table, SearchParamsSchema::SCORE_TYPE);
-  auto col_higher_better = ArrowIOHelpers::getColumn(table, SearchParamsSchema::HIGHER_SCORE_BETTER);
-  auto col_sig_threshold = ArrowIOHelpers::getColumn(table, SearchParamsSchema::SIGNIFICANCE_THRESHOLD, false);
-  auto col_db = ArrowIOHelpers::getColumn(table, SearchParamsSchema::DB, false);
-  auto col_db_version = ArrowIOHelpers::getColumn(table, SearchParamsSchema::DB_VERSION, false);
-  auto col_taxonomy = ArrowIOHelpers::getColumn(table, SearchParamsSchema::TAXONOMY, false);
-  auto col_charges = ArrowIOHelpers::getColumn(table, SearchParamsSchema::CHARGES, false);
-  auto col_mass_type = ArrowIOHelpers::getColumn(table, SearchParamsSchema::MASS_TYPE);
-  auto col_precursor_tol = ArrowIOHelpers::getColumn(table, SearchParamsSchema::PRECURSOR_MASS_TOLERANCE);
-  auto col_precursor_ppm = ArrowIOHelpers::getColumn(table, SearchParamsSchema::PRECURSOR_MASS_TOLERANCE_PPM);
-  auto col_fragment_tol = ArrowIOHelpers::getColumn(table, SearchParamsSchema::FRAGMENT_MASS_TOLERANCE);
-  auto col_fragment_ppm = ArrowIOHelpers::getColumn(table, SearchParamsSchema::FRAGMENT_MASS_TOLERANCE_PPM);
-  auto col_enzyme = ArrowIOHelpers::getColumn(table, SearchParamsSchema::DIGESTION_ENZYME, false);
-  auto col_enzyme_spec = ArrowIOHelpers::getColumn(table, SearchParamsSchema::ENZYME_TERM_SPECIFICITY, false);
-  auto col_missed_cleavages = ArrowIOHelpers::getColumn(table, SearchParamsSchema::MISSED_CLEAVAGES);
-  auto col_fixed_mods = ArrowIOHelpers::getColumn(table, SearchParamsSchema::FIXED_MODIFICATIONS, false);
-  auto col_var_mods = ArrowIOHelpers::getColumn(table, SearchParamsSchema::VARIABLE_MODIFICATIONS, false);
-  auto col_ms_run_paths = ArrowIOHelpers::getColumn(table, SearchParamsSchema::PRIMARY_MS_RUN_PATHS, false);
-  auto col_metavalues = ArrowIOHelpers::getColumn(table, SearchParamsSchema::METAVALUES, false);
-  auto col_sp_metavalues = ArrowIOHelpers::getColumn(table, SearchParamsSchema::SP_METAVALUES, false);
+  auto col_run_id = ArrowIOHelpers::getColumn(table, SearchParamsSchema::RUN_IDENTIFIER, true, "ProteinIdentificationArrowIO");
+  auto col_search_engine = ArrowIOHelpers::getColumn(table, SearchParamsSchema::SEARCH_ENGINE, true, "ProteinIdentificationArrowIO");
+  auto col_se_version = ArrowIOHelpers::getColumn(table, SearchParamsSchema::SEARCH_ENGINE_VERSION, false, "ProteinIdentificationArrowIO");
+  auto col_inf_engine = ArrowIOHelpers::getColumn(table, SearchParamsSchema::INFERENCE_ENGINE, false, "ProteinIdentificationArrowIO");
+  auto col_inf_version = ArrowIOHelpers::getColumn(table, SearchParamsSchema::INFERENCE_ENGINE_VERSION, false, "ProteinIdentificationArrowIO");
+  auto col_date = ArrowIOHelpers::getColumn(table, SearchParamsSchema::DATE, false, "ProteinIdentificationArrowIO");
+  auto col_score_type = ArrowIOHelpers::getColumn(table, SearchParamsSchema::SCORE_TYPE, true, "ProteinIdentificationArrowIO");
+  auto col_higher_better = ArrowIOHelpers::getColumn(table, SearchParamsSchema::HIGHER_SCORE_BETTER, true, "ProteinIdentificationArrowIO");
+  auto col_sig_threshold = ArrowIOHelpers::getColumn(table, SearchParamsSchema::SIGNIFICANCE_THRESHOLD, false, "ProteinIdentificationArrowIO");
+  auto col_db = ArrowIOHelpers::getColumn(table, SearchParamsSchema::DB, false, "ProteinIdentificationArrowIO");
+  auto col_db_version = ArrowIOHelpers::getColumn(table, SearchParamsSchema::DB_VERSION, false, "ProteinIdentificationArrowIO");
+  auto col_taxonomy = ArrowIOHelpers::getColumn(table, SearchParamsSchema::TAXONOMY, false, "ProteinIdentificationArrowIO");
+  auto col_charges = ArrowIOHelpers::getColumn(table, SearchParamsSchema::CHARGES, false, "ProteinIdentificationArrowIO");
+  auto col_mass_type = ArrowIOHelpers::getColumn(table, SearchParamsSchema::MASS_TYPE, true, "ProteinIdentificationArrowIO");
+  auto col_precursor_tol = ArrowIOHelpers::getColumn(table, SearchParamsSchema::PRECURSOR_MASS_TOLERANCE, true, "ProteinIdentificationArrowIO");
+  auto col_precursor_ppm = ArrowIOHelpers::getColumn(table, SearchParamsSchema::PRECURSOR_MASS_TOLERANCE_PPM, true, "ProteinIdentificationArrowIO");
+  auto col_fragment_tol = ArrowIOHelpers::getColumn(table, SearchParamsSchema::FRAGMENT_MASS_TOLERANCE, true, "ProteinIdentificationArrowIO");
+  auto col_fragment_ppm = ArrowIOHelpers::getColumn(table, SearchParamsSchema::FRAGMENT_MASS_TOLERANCE_PPM, true, "ProteinIdentificationArrowIO");
+  auto col_enzyme = ArrowIOHelpers::getColumn(table, SearchParamsSchema::DIGESTION_ENZYME, false, "ProteinIdentificationArrowIO");
+  auto col_enzyme_spec = ArrowIOHelpers::getColumn(table, SearchParamsSchema::ENZYME_TERM_SPECIFICITY, false, "ProteinIdentificationArrowIO");
+  auto col_missed_cleavages = ArrowIOHelpers::getColumn(table, SearchParamsSchema::MISSED_CLEAVAGES, true, "ProteinIdentificationArrowIO");
+  auto col_fixed_mods = ArrowIOHelpers::getColumn(table, SearchParamsSchema::FIXED_MODIFICATIONS, false, "ProteinIdentificationArrowIO");
+  auto col_var_mods = ArrowIOHelpers::getColumn(table, SearchParamsSchema::VARIABLE_MODIFICATIONS, false, "ProteinIdentificationArrowIO");
+  auto col_ms_run_paths = ArrowIOHelpers::getColumn(table, SearchParamsSchema::PRIMARY_MS_RUN_PATHS, false, "ProteinIdentificationArrowIO");
+  auto col_metavalues = ArrowIOHelpers::getColumn(table, SearchParamsSchema::METAVALUES, false, "ProteinIdentificationArrowIO");
+  auto col_sp_metavalues = ArrowIOHelpers::getColumn(table, SearchParamsSchema::SP_METAVALUES, false, "ProteinIdentificationArrowIO");
 
   if (!col_run_id || !col_search_engine || !col_score_type || !col_higher_better ||
       !col_mass_type || !col_precursor_tol || !col_precursor_ppm ||
@@ -1186,16 +1186,16 @@ bool ProteinIdentificationArrowIO::importProteinsFromArrow(
   }
 
   // Get all columns
-  auto col_accession = ArrowIOHelpers::getColumn(table, ProteinSchema::ACCESSION);
-  auto col_score = ArrowIOHelpers::getColumn(table, ProteinSchema::SCORE);
-  auto col_rank = ArrowIOHelpers::getColumn(table, ProteinSchema::RANK, false);
-  auto col_coverage = ArrowIOHelpers::getColumn(table, ProteinSchema::COVERAGE, false);
-  auto col_sequence = ArrowIOHelpers::getColumn(table, ProteinSchema::SEQUENCE, false);
-  auto col_description = ArrowIOHelpers::getColumn(table, ProteinSchema::DESCRIPTION, false);
-  auto col_is_decoy = ArrowIOHelpers::getColumn(table, ProteinSchema::IS_DECOY, false);
-  auto col_run_id = ArrowIOHelpers::getColumn(table, ProteinSchema::RUN_IDENTIFIER);
-  auto col_modifications = ArrowIOHelpers::getColumn(table, ProteinSchema::MODIFICATIONS, false);
-  auto col_metavalues = ArrowIOHelpers::getColumn(table, ProteinSchema::METAVALUES, false);
+  auto col_accession = ArrowIOHelpers::getColumn(table, ProteinSchema::ACCESSION, true, "ProteinIdentificationArrowIO");
+  auto col_score = ArrowIOHelpers::getColumn(table, ProteinSchema::SCORE, true, "ProteinIdentificationArrowIO");
+  auto col_rank = ArrowIOHelpers::getColumn(table, ProteinSchema::RANK, false, "ProteinIdentificationArrowIO");
+  auto col_coverage = ArrowIOHelpers::getColumn(table, ProteinSchema::COVERAGE, false, "ProteinIdentificationArrowIO");
+  auto col_sequence = ArrowIOHelpers::getColumn(table, ProteinSchema::SEQUENCE, false, "ProteinIdentificationArrowIO");
+  auto col_description = ArrowIOHelpers::getColumn(table, ProteinSchema::DESCRIPTION, false, "ProteinIdentificationArrowIO");
+  auto col_is_decoy = ArrowIOHelpers::getColumn(table, ProteinSchema::IS_DECOY, false, "ProteinIdentificationArrowIO");
+  auto col_run_id = ArrowIOHelpers::getColumn(table, ProteinSchema::RUN_IDENTIFIER, true, "ProteinIdentificationArrowIO");
+  auto col_modifications = ArrowIOHelpers::getColumn(table, ProteinSchema::MODIFICATIONS, false, "ProteinIdentificationArrowIO");
+  auto col_metavalues = ArrowIOHelpers::getColumn(table, ProteinSchema::METAVALUES, false, "ProteinIdentificationArrowIO");
 
   if (!col_accession || !col_score || !col_run_id)
   {
@@ -1321,14 +1321,14 @@ bool ProteinIdentificationArrowIO::importProteinGroupsFromArrow(
   }
 
   // Get all columns
-  auto col_group_type = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::GROUP_TYPE);
-  auto col_probability = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::PROBABILITY);
-  auto col_accessions = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::ACCESSIONS);
-  auto col_run_id = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::RUN_IDENTIFIER);
-  auto col_group_index = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::GROUP_INDEX, false); // informational, not needed for reconstruction
-  auto col_float_data = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::FLOAT_DATA, false);
-  auto col_string_data = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::STRING_DATA, false);
-  auto col_integer_data = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::INTEGER_DATA, false);
+  auto col_group_type = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::GROUP_TYPE, true, "ProteinIdentificationArrowIO");
+  auto col_probability = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::PROBABILITY, true, "ProteinIdentificationArrowIO");
+  auto col_accessions = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::ACCESSIONS, true, "ProteinIdentificationArrowIO");
+  auto col_run_id = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::RUN_IDENTIFIER, true, "ProteinIdentificationArrowIO");
+  auto col_group_index = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::GROUP_INDEX, false, "ProteinIdentificationArrowIO"); // informational, not needed for reconstruction
+  auto col_float_data = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::FLOAT_DATA, false, "ProteinIdentificationArrowIO");
+  auto col_string_data = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::STRING_DATA, false, "ProteinIdentificationArrowIO");
+  auto col_integer_data = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::INTEGER_DATA, false, "ProteinIdentificationArrowIO");
 
   if (!col_group_type || !col_probability || !col_accessions || !col_run_id)
   {
