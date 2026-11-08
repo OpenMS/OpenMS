@@ -31,7 +31,9 @@ On the 512 anchors, our raw-scan traces against OSW's XIC interpolated onto our 
 - intensity ratio log2 −0.01;
 - no scans where OSW is zero and we are not.
 
-We are zero on about 12% of scans where OSW has small signal: our 15 ppm calibration-search window against OSW's 34 ppm. This catches the faint tail only. **Extraction is not the gap.**
+We are zero on about 12% of scans where OSW has small signal, because our calibration-search window is 15 ppm against OSW's 34 ppm. This catches the faint tail only.
+
+**Limit of this check:** the anchors are bright, clean peaks, and the trace export uses the 15 ppm calibration window. The CNN and stage-2 traces use 0.02 Da (about 20–40 ppm), and the streaming search uses the calibrated 5 ppm tolerance. The weak, interfered precursors we miss were not compared. **On bright peaks, extraction is not the gap. For weak peaks this is untested.**
 
 ## 3. Which OSW IDs we miss (`ours_vs_xic.txt`)
 
@@ -55,7 +57,7 @@ Candidates are the top-3 local maxima of the summed fragment trace within ±60 s
 
 The right peak is among the candidates for 2264 of 2731 confirmed precursors. The decoy-free check (AUC of confirmed right peaks against decoy groups) is high for co-elution (0.98) and shape (0.96–0.98) in every regime.
 
-| supervised oracle (upper bound), q ≤ 0.01 / 0.05 (FDP_c at 1%) | wide 45 s | picker | baseline |
+| supervised reference (bounded by 83% candidate coverage), q ≤ 0.01 / 0.05 (FDP_c at 1%) | wide 45 s | picker | baseline |
 |---|---|---|---|
 | MLP, 11 simple features | 961 / 1448 (0.025) | 1021 / 1432 (0.030) | 1013 / 1494 (0.020) |
 | MLP, + 6 OSW-style xcorr / dot-product features | 806 / 1606 (0.038) | 432 / 564 | 844 / 1804 (0.024) |
@@ -78,13 +80,21 @@ With fully supervised labels, a small trace CNN does not beat 11 hand features, 
 
 ## Reading: where the gap is
 
-1. **Not extraction, not peak finding, not the apex.** The extraction is identical to OSW's, and the right apex is a candidate for about 83% of confirmed precursors (95% in our search).
+1. **Not peak finding or the apex, and extraction matches on bright peaks.** Our search has the right apex for 95% of confirmed precursors. The extraction on weak peaks is untested (section 2).
 2. **Peak width is a symptom, not the main cause.** Our 45–67 s groups come from the 30 s gap rule over sparse single-fragment matches. Fixing them helps width-dependent features, but the oracle bound barely changes.
 3. **Baseline subtraction is not a lever.** Interference matters a lot, though: the OSW IDs we miss are the low-correlation, low in-peak-share, low-intensity ones.
-4. **The upper bound with perfect labels is about 1000 at 1% for every representation tried here.** OSW reaches 1151 at FDP_c 1% with decoy-only labels. So OSW's advantage is not information we fail to extract. It is how its scores are formed and used:
-   - A per-candidate score from about 20 interference-aware subscores. OSW has explicit interference handling (S/N, `var_xcorr_*` weighted by library, isotope overlap, MI). Our simple versions of those did not match it.
-   - **The prior that the peak group must be the best within the precursor's window,** with the rank-1 group chosen by the score. Our oracles score candidates independently, and paired TDC then competes target against decoy.
-   - PyProphet's iterative semi-supervised training on the main score, which turns many weak, partly correlated subscores into a strong one.
+4. **The supervised reference on this harness reaches about 800–1000 at q ≤ 0.01, at FDP_c 1.4–3%.** At a true 1% that is below OSW's 1151, which OSW gets with decoy-only labels.
+
+   This is **not an upper bound**. It is limited by the harness:
+   - the candidates (top-3 summed-trace maxima, ±60 s) contain the right peak for only 83% of confirmed precursors, against 95% for our search;
+   - the features are simple.
+
+   The raw data are shared, so the gap must lie in what is computed from them: candidate generation, features, and score formation. Candidates that remain untested:
+   - a per-candidate score from about 20 interference-aware subscores (S/N, library-weighted `var_xcorr_*`, isotope overlap, intensity share);
+   - choosing the rank-1 peak group within a precursor by that score;
+   - PyProphet- or Percolator-style iterative semi-supervised training.
+
+   Which of these matters is tested next (`OSWLIKE.md`).
 5. **Caveats:**
    - The supervised oracle uses DIA-NN-confirmed positives. Those are biased towards what DIA-NN can see and are a subset of true IDs.
    - OSW's 1151 includes precursors DIA-NN does not confirm, so the "confirmed-right" counts are not directly comparable with OSW's total.
@@ -94,7 +104,7 @@ With fully supervised labels, a small trace CNN does not beat 11 hand features, 
 
 The question "why do we lag OSW" is now narrower. It is about how many weak, partly interfered right peaks a score can lift above the decoy tail. The candidate levers, in order of evidence:
 
-1. **Interference-aware evidence per fragment, not per group.** Score each fragment's agreement with the consensus elution profile (per-fragment co-elution, shape and library-ratio residuals), then let the model down-weight interfered fragments. The XICs show the misses have one or two fragments off. A model that sees a 6×6 correlation matrix gets this only partly.
+1. **Interference-aware evidence per fragment, not per group** (hypothesis). The misses have lower in-peak correlation and in-peak signal share. Their weakest fragment's share is 0.035 against 0.058. Whether one or two bad fragments explain this has not been shown.
 2. **More labelled positives for the learned model.** In-run semi-supervised labels give about 700 positives; a cross-run model (raws 01 + 02) roughly doubles that.
 3. **Fix the search grouping anyway** (cheap): close a group on a gap of 2–3 cycles rather than 30 s, so stage-2 features use real peaks. Expected gain is small.
 
