@@ -1,0 +1,10 @@
+share of precursors whose top-1 fragment is a y ion starting at P (among peptides with an internal P):
+{'decoy': 0.096, 'entrapment': 0.471, 'human': 0.473}
+raw 01: S_e/S_d at q<=0.01 / 0.02 / 0.05 cuts (entrapment/decoys above cut)
+  all 20                             1.22 (5/8) | 1.12 (12/21) | 1.12 (41/72) | q<=0.05 N 1429 FDP_c 0.058
+  minus library                      1.57 (4/5) | 0.98 (8/16) | 1.22 (33/53) | q<=0.05 N 1067 FDP_c 0.062
+  minus library and weighted xcorr   1.96 (5/5) | 1.17 (9/15) | 1.15 (31/53) | q<=0.05 N 1043 FDP_c 0.060
+raw 02: S_e/S_d at q<=0.01 / 0.02 / 0.05 cuts (entrapment/decoys above cut)
+  all 20                             2.55 (13/10) | 1.60 (18/22) | 1.55 (57/72) | q<=0.05 N 1463 FDP_c 0.079
+  minus library                      2.45 (5/4) | 1.96 (15/15) | 1.23 (34/54) | q<=0.05 N 1100 FDP_c 0.062
+  minus library and weighted xcorr   1.96 (4/4) | 1.96 (15/15) | 1.22 (33/53) | q<=0.05 N 1092 FDP_c 0.061
