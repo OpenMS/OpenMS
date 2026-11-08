@@ -55,6 +55,21 @@ void addSearchRun(ConsensusMap& cmap)
 // Helper function to create a test ConsensusMap
 /////////////////////////////////////////////////////////////
 
+/// run_file_name -> (id_run_file_name, identification_type) of a feature table; "<null>" for null.
+std::map<std::string, std::pair<std::string, std::string>> identificationByRun(const std::shared_ptr<arrow::Table>& t)
+{
+  auto run = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("run_file_name")->chunk(0));
+  auto idrun = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("id_run_file_name")->chunk(0));
+  auto idtype = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("identification_type")->chunk(0));
+  std::map<std::string, std::pair<std::string, std::string>> by_run;
+  for (int64_t r = 0; r < t->num_rows(); ++r)
+  {
+    by_run[run->GetString(r)] = {idrun->IsNull(r) ? "<null>" : idrun->GetString(r),
+                                 idtype->IsNull(r) ? "<null>" : idtype->GetString(r)};
+  }
+  return by_run;
+}
+
 ConsensusMap createTestConsensusMap()
 {
   ConsensusMap cmap;
@@ -1315,6 +1330,8 @@ START_SECTION(([EXTRA] a merged run without id_merge_index is refused, not resol
   ch.filename = "/data/runA.mzML";
   ch.label = "label-free";
   cmap.getColumnHeaders()[0] = ch;
+  ch.filename = "/data/runB.mzML";
+  cmap.getColumnHeaders()[1] = ch;
 
   ProteinIdentification prot;
   prot.setIdentifier("merged");
@@ -1336,17 +1353,26 @@ START_SECTION(([EXTRA] a merged run without id_merge_index is refused, not resol
   cf.setMZ(500.0); cf.setRT(100.0); cf.setCharge(2);
   BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0); bf.setCharge(2);
   cf.insert(0, bf);
+  bf.setRT(101.0);
+  cf.insert(1, bf);
   cf.setPeptideIdentifications({pid});
   cmap.push_back(cf);
 
   TEST_EXCEPTION(Exception::MissingInformation, ConsensusMapArrowExport::exportToArrow(cmap))
 
-  // With the index present the same input exports and names the right run.
+  // With the index present the same input exports and names the right run: the identification
+  // is runB's, so runB's row is direct and runA's transferred. Falling back to file 0 would
+  // have made runA's row direct instead.
   cmap[0].getPeptideIdentifications()[0].setMetaValue(Constants::UserParam::ID_MERGE_INDEX, 1);
   auto t = ConsensusMapArrowExport::exportToArrow(cmap);
   TEST_NOT_EQUAL(t, nullptr)
-  auto idrun = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("id_run_file_name")->chunk(0));
-  TEST_STRING_EQUAL(idrun->GetString(0), "runB")
+  ABORT_IF(t == nullptr)
+  const auto by_run = identificationByRun(t);
+  TEST_EQUAL(by_run.size(), 2)
+  TEST_STRING_EQUAL(by_run.at("runB").first, "runB")
+  TEST_STRING_EQUAL(by_run.at("runB").second, "direct")
+  TEST_STRING_EQUAL(by_run.at("runA").first, "<null>")
+  TEST_STRING_EQUAL(by_run.at("runA").second, "transferred")
 }
 END_SECTION
 
@@ -1361,6 +1387,8 @@ START_SECTION(([EXTRA] only the selected identification must be resolvable))
   ch.filename = "/data/runA.mzML";
   ch.label = "label-free";
   cmap.getColumnHeaders()[0] = ch;
+  ch.filename = "/data/runB.mzML";
+  cmap.getColumnHeaders()[1] = ch;
 
   ProteinIdentification prot;
   prot.setIdentifier("merged");
@@ -1388,13 +1416,18 @@ START_SECTION(([EXTRA] only the selected identification must be resolvable))
   cf.setMZ(500.0); cf.setRT(100.0); cf.setCharge(2);
   BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0); bf.setCharge(2);
   cf.insert(0, bf);
+  bf.setRT(101.0);
+  cf.insert(1, bf);
   cf.setPeptideIdentifications({hitless, winner});
   cmap.push_back(cf);
 
   auto t = ConsensusMapArrowExport::exportToArrow(cmap);
   TEST_NOT_EQUAL(t, nullptr)
-  auto idrun = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("id_run_file_name")->chunk(0));
-  TEST_STRING_EQUAL(idrun->GetString(0), "runB")
+  ABORT_IF(t == nullptr)
+  const auto by_run = identificationByRun(t);
+  TEST_STRING_EQUAL(by_run.at("runB").first, "runB")
+  TEST_STRING_EQUAL(by_run.at("runB").second, "direct")
+  TEST_STRING_EQUAL(by_run.at("runA").second, "transferred")
 }
 END_SECTION
 
@@ -1777,6 +1810,150 @@ START_SECTION(([EXTRA] identifications the resolver moved off a feature are link
   TEST_NOT_EQUAL(ConsensusMapArrowExport::exportToArrow(cmap, &ambiguous_links), nullptr)
   TEST_EQUAL(ambiguous_links.count(QPXIdentity::psmId("runB", {2}, "PEPTIDE", 2)), 0)
   TEST_EQUAL(ambiguous_links.count(QPXIdentity::psmId("runC", {3}, "PEPTIDE", 2)), 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the PSM-level columns come from the run of the row, and a run without a PSM is transferred))
+{
+  // A consensus feature is identified once but quantified in every run it was linked across.
+  // scan, PEP, scores and id_run_file_name name the PSM that identified the feature in the row's
+  // OWN run, attached or moved off by IDConflictResolver; a run without one is transferred.
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  const std::vector<std::string> runs = {"runA", "runB", "runC", "runD"};
+  StringList paths;
+  for (Size run = 0; run < runs.size(); ++run)
+  {
+    ConsensusMap::ColumnHeader ch;
+    ch.filename = "/data/" + runs[run] + ".mzML";
+    ch.label = "label-free";
+    cmap.getColumnHeaders()[run] = ch;
+    paths.push_back(ch.filename);
+  }
+  ProteinIdentification prot;
+  prot.setIdentifier("PI_0");
+  prot.setPrimaryMSRunPath(paths);
+  ProteinIdentification::ProteinGroup group;
+  group.probability = 0.01;
+  group.accessions = {"PROT_A"};
+  prot.insertProteinGroup(group);
+  ProteinHit ph;
+  ph.setAccession("PROT_A");
+  prot.setHits({ph});
+  cmap.setProteinIdentifications({prot});
+
+  const auto make_id = [](Size run, int scan, double pep)
+  {
+    PeptideIdentification pid;
+    pid.setIdentifier("PI_0");
+    pid.setSpectrumReference("scan=" + std::to_string(scan));
+    pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, static_cast<int>(run));
+    pid.setScoreType("Posterior Error Probability");
+    pid.setHigherScoreBetter(false);
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("PEPTIDE"));
+    hit.setCharge(2);
+    hit.setScore(pep);
+    pid.setHits({hit});
+    return pid;
+  };
+
+  ConsensusFeature cf;
+  cf.setUniqueId(22);
+  cf.setMZ(500.0);
+  cf.setRT(100.0);
+  cf.setCharge(2);
+  for (Size run = 0; run < runs.size(); ++run)
+  {
+    BaseFeature bf;
+    bf.setUniqueId(100 + run);
+    bf.setIntensity(1000.0f);
+    bf.setMZ(500.0);
+    bf.setRT(100.0 + run);
+    bf.setCharge(2);
+    cf.insert(run, bf);
+  }
+  cf.setPeptideIdentifications({make_id(0, 1, 0.01)});
+  // PIP-ECHO transferred the identification to runC and runD; runD has a PSM of its own.
+  cf.setMetaValue(Constants::UserParam::MBR_TRANSFER_MAP_INDICES, IntList{2, 3});
+  cf.setMetaValue(Constants::UserParam::MBR_TRANSFER_QVALUES, DoubleList{0.003, 0.004});
+  cmap.push_back(cf);
+
+  auto& unassigned = cmap.getUnassignedPeptideIdentifications();
+  const auto moved = [&unassigned](PeptideIdentification pid, const std::string& feature_id)
+  {
+    pid.setMetaValue("feature_id", feature_id);
+    unassigned.push_back(pid);
+  };
+  moved(make_id(1, 5, 0.04), "22");  // runB, the worse of its two
+  moved(make_id(1, 2, 0.02), "22");  // runB, the better: its row's PSM
+  moved(make_id(3, 7, 0.05), "103"); // runD, moved off runD's feature before linking
+
+  QPXIdentity::FeatureLinks links;
+  const auto t = ConsensusMapArrowExport::exportToArrow(cmap, &links);
+  TEST_NOT_EQUAL(t, nullptr)
+  ABORT_IF(t == nullptr)
+  TEST_EQUAL(t->num_rows(), 4)
+
+  auto run = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("run_file_name")->chunk(0));
+  auto pf = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("peptidoform")->chunk(0));
+  auto idrun = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("id_run_file_name")->chunk(0));
+  auto idtype = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("identification_type")->chunk(0));
+  auto pep = std::static_pointer_cast<arrow::DoubleArray>(t->GetColumnByName("posterior_error_probability")->chunk(0));
+  auto crt = std::static_pointer_cast<arrow::FloatArray>(t->GetColumnByName("consensus_rt")->chunk(0));
+  auto mq = std::static_pointer_cast<arrow::FloatArray>(t->GetColumnByName("match_qvalue")->chunk(0));
+  auto fid = std::static_pointer_cast<arrow::Int64Array>(t->GetColumnByName("feature_id")->chunk(0));
+  auto scan = std::static_pointer_cast<arrow::ListArray>(t->GetColumnByName("scan")->chunk(0));
+  auto scan_values = std::static_pointer_cast<arrow::Int32Array>(scan->values());
+
+  const std::map<std::string, int> own_scan = {{"runA", 1}, {"runB", 2}, {"runD", 7}};
+  const std::map<std::string, double> own_pep = {{"runA", 0.01}, {"runB", 0.02}, {"runD", 0.05}};
+  for (int64_t r = 0; r < t->num_rows(); ++r)
+  {
+    const std::string r_run = run->GetString(r);
+    TEST_STRING_EQUAL(pf->GetString(r), "PEPTIDE")  // the peptide is the consensus feature's
+    TEST_REAL_SIMILAR(crt->Value(r), 100.0)         // groups the rows of one consensus feature
+    if (r_run == "runC")
+    {
+      TEST_STRING_EQUAL(idtype->GetString(r), "transferred")
+      TEST_TRUE(idrun->IsNull(r))
+      TEST_TRUE(pep->IsNull(r))
+      TEST_EQUAL(scan->value_length(r), 0)
+      TEST_FALSE(mq->IsNull(r))
+      TEST_REAL_SIMILAR(mq->Value(r), 0.003)
+      continue;
+    }
+    TEST_STRING_EQUAL(idtype->GetString(r), "direct")
+    TEST_STRING_EQUAL(idrun->GetString(r), r_run)
+    TEST_REAL_SIMILAR(pep->Value(r), own_pep.at(r_run))
+    TEST_EQUAL(scan->value_length(r), 1)
+    TEST_EQUAL(scan_values->Value(scan->value_offset(r)), own_scan.at(r_run))
+    TEST_TRUE(mq->IsNull(r))  // runD is in PIP-ECHO's list but identified by its own PSM
+    // The row's PSM is linked to it.
+    const Int64 psm_id = QPXIdentity::psmId(r_run, {own_scan.at(r_run)}, "PEPTIDE", 2);
+    TEST_EQUAL(links.count(psm_id), 1)
+    if (links.count(psm_id) == 1) { TEST_EQUAL(links.at(psm_id), fid->Value(r)) }
+  }
+
+  // When no identification resolves to a run, nothing can be said about the row's run: the
+  // identification type is null and the PSM-level columns describe the consensus feature's
+  // identification, as before.
+  ConsensusMap no_runs = cmap;
+  no_runs.getProteinIdentifications()[0].setPrimaryMSRunPath(StringList{});
+  no_runs.getUnassignedPeptideIdentifications().clear();
+  for (auto& pid : no_runs[0].getPeptideIdentifications()) { pid.removeMetaValue(Constants::UserParam::ID_MERGE_INDEX); }
+  const auto u = ConsensusMapArrowExport::exportToArrow(no_runs);
+  TEST_NOT_EQUAL(u, nullptr)
+  ABORT_IF(u == nullptr)
+  auto u_idtype = std::static_pointer_cast<arrow::StringArray>(u->GetColumnByName("identification_type")->chunk(0));
+  auto u_pep = std::static_pointer_cast<arrow::DoubleArray>(u->GetColumnByName("posterior_error_probability")->chunk(0));
+  auto u_scan = std::static_pointer_cast<arrow::ListArray>(u->GetColumnByName("scan")->chunk(0));
+  for (int64_t r = 0; r < u->num_rows(); ++r)
+  {
+    TEST_TRUE(u_idtype->IsNull(r))
+    TEST_REAL_SIMILAR(u_pep->Value(r), 0.01)
+    TEST_EQUAL(u_scan->value_length(r), 1)
+  }
 }
 END_SECTION
 

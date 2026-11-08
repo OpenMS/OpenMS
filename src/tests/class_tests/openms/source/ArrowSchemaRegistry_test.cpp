@@ -1206,12 +1206,13 @@ END_SECTION
 
 // ========== QPXFeatureSchema ==========
 
-START_SECTION(QPXFeatureSchema::schema() returns non-null with 33 fields)
+START_SECTION(QPXFeatureSchema::schema() returns non-null with 36 fields)
 {
   auto s = QPXFeatureSchema::schema();
   TEST_NOT_EQUAL(s, nullptr)
-  // 31 + the mandatory feature_id and the optional psm_ids cross-reference
-  TEST_EQUAL(s->num_fields(), 33)
+  // 31 + consensus_rt, identification_type and match_qvalue + the mandatory feature_id and the
+  // optional psm_ids cross-reference
+  TEST_EQUAL(s->num_fields(), 36)
 }
 END_SECTION
 
@@ -1250,6 +1251,9 @@ START_SECTION(QPXFeatureSchema column name constants)
   TEST_STRING_EQUAL(QPXFeatureSchema::ID_RUN_FILE_NAME, "id_run_file_name")
   TEST_STRING_EQUAL(QPXFeatureSchema::RT_START, "rt_start")
   TEST_STRING_EQUAL(QPXFeatureSchema::RT_STOP, "rt_stop")
+  TEST_STRING_EQUAL(QPXFeatureSchema::CONSENSUS_RT, "consensus_rt")
+  TEST_STRING_EQUAL(QPXFeatureSchema::IDENTIFICATION_TYPE, "identification_type")
+  TEST_STRING_EQUAL(QPXFeatureSchema::MATCH_QVALUE, "match_qvalue")
 }
 END_SECTION
 
@@ -1393,11 +1397,23 @@ START_SECTION(QPXFeatureSchema field types and nullability)
   TEST_EQUAL(s->field(31)->name(), "rt_stop")
   TEST_EQUAL(s->field(31)->type()->id(), arrow::Type::FLOAT)
   TEST_EQUAL(s->field(31)->nullable(), true)
-  // psm_ids: list<int64>, nullable -- an unidentified feature has no PSMs to point at.
-  TEST_EQUAL(s->field(32)->name(), "psm_ids")
-  TEST_EQUAL(s->field(32)->type()->id(), arrow::Type::LIST)
+  // consensus_rt: float32, nullable
+  TEST_EQUAL(s->field(32)->name(), "consensus_rt")
+  TEST_EQUAL(s->field(32)->type()->id(), arrow::Type::FLOAT)
   TEST_EQUAL(s->field(32)->nullable(), true)
-  TEST_EQUAL(s->field(32)->type()->Equals(*arrow::list(arrow::int64())), true)
+  // identification_type: utf8, nullable -- null when nothing says how the row was identified.
+  TEST_EQUAL(s->field(33)->name(), "identification_type")
+  TEST_EQUAL(s->field(33)->type()->id(), arrow::Type::STRING)
+  TEST_EQUAL(s->field(33)->nullable(), true)
+  // match_qvalue: float32, nullable
+  TEST_EQUAL(s->field(34)->name(), "match_qvalue")
+  TEST_EQUAL(s->field(34)->type()->id(), arrow::Type::FLOAT)
+  TEST_EQUAL(s->field(34)->nullable(), true)
+  // psm_ids: list<int64>, nullable -- an unidentified feature has no PSMs to point at.
+  TEST_EQUAL(s->field(35)->name(), "psm_ids")
+  TEST_EQUAL(s->field(35)->type()->id(), arrow::Type::LIST)
+  TEST_EQUAL(s->field(35)->nullable(), true)
+  TEST_EQUAL(s->field(35)->type()->Equals(*arrow::list(arrow::int64())), true)
 }
 END_SECTION
 

@@ -691,6 +691,9 @@ namespace OpenMS
       arrow::field(ID_RUN_FILE_NAME, arrow::utf8()),
       arrow::field(RT_START, arrow::float32()),
       arrow::field(RT_STOP, arrow::float32()),
+      arrow::field(CONSENSUS_RT, arrow::float32()),
+      arrow::field(IDENTIFICATION_TYPE, arrow::utf8()),
+      arrow::field(MATCH_QVALUE, arrow::float32()),
       // Optional cross-reference: the PSMs this feature was quantified from. Null for an
       // unidentified feature, which has no identifications to point at.
       arrow::field(PSM_IDS, arrow::list(arrow::int64())),

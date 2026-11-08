@@ -45,8 +45,20 @@ public:
     @brief Export ConsensusMap to Apache Arrow Table
 
     Exports consensus features following the QPX feature schema. Each
-    ConsensusFeature becomes one row with identification, quantification,
-    and protein group information.
+    ConsensusFeature becomes one row per run it was quantified in, with identification,
+    quantification, and protein group information.
+
+    The peptide (peptidoform, sequence, modifications, protein mapping) is the consensus
+    feature's best-scoring identification and is the same on all of its rows. The PSM-level
+    columns (posterior_error_probability, additional_scores, scan, ion_mobility, cv_params,
+    id_run_file_name) come from the best identification of that peptide and charge in the row's
+    own run, attached or moved off the feature by IDConflictResolverAlgorithm, and
+    identification_type is "direct". A row whose run has no such identification is
+    "transferred" and has no PSM-level values; PIP-ECHO's q-value for the transfer goes to
+    match_qvalue. When no identification resolves to a run, identification_type is null and the
+    PSM-level columns describe the consensus feature's identification. consensus_rt, the
+    ConsensusFeature's RT, together with peptidoform and charge groups the rows of one
+    consensus feature.
 
     @param[in] cmap The ConsensusMap to export
     @param[out] out_links Optional feature&harr;PSM linkage, collected while the rows are built.

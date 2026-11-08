@@ -12,6 +12,7 @@
 #include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/QPXValueValidation.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/Scores.h>
@@ -39,6 +40,7 @@
 #include <functional>
 #include <limits>
 #include <map>
+#include <optional>
 #include <stdexcept>
 #include <tuple>
 #include <unordered_map>
@@ -412,13 +414,19 @@ void addResolvedAway(const ConsensusMap& cmap, FeatureIdLookups& id_lut)
   }
   if (removed.empty()) { return; }
 
-  std::unordered_map<UInt64, Size> owner; // consensus feature or handle unique id -> feature index
+  // Consensus feature or handle unique id -> the features it names. Unique ids of different
+  // maps can coincide: in -test mode every process draws them from the same seed, so a consensus
+  // feature of one run can share the id of another one's feature handle. A stamp is therefore
+  // matched against every feature it may name and kept only if exactly one reports its peptide.
+  std::unordered_map<UInt64, std::vector<Size>> owners;
   for (Size i = 0; i < cmap.size(); ++i)
   {
-    if (cmap[i].hasValidUniqueId()) { owner.emplace(cmap[i].getUniqueId(), i); }
+    if (cmap[i].hasValidUniqueId()) { owners[cmap[i].getUniqueId()].push_back(i); }
     for (const auto& handle : cmap[i].getFeatures())
     {
-      if (handle.hasValidUniqueId()) { owner.emplace(handle.getUniqueId(), i); }
+      if (!handle.hasValidUniqueId()) { continue; }
+      auto& named = owners[handle.getUniqueId()];
+      if (named.empty() || named.back() != i) { named.push_back(i); }
     }
   }
 
@@ -442,15 +450,23 @@ void addResolvedAway(const ConsensusMap& cmap, FeatureIdLookups& id_lut)
   std::vector<std::tuple<Size, const PeptideIdentification*, Int64>> candidates;
   for (const auto& [pid, uid] : removed)
   {
-    const auto it = owner.find(uid);
-    if (it == owner.end()) { continue; }
-    const Size feature_index = it->second;
-    Size best_id_index = 0;
-    bool inconsistent_scores = false;
-    const PeptideHit* kept = selectFeatureIdentity(cmap[feature_index].getPeptideIdentifications(), best_id_index, inconsistent_scores);
+    const auto it = owners.find(uid);
+    if (it == owners.end()) { continue; }
     const PeptideHit& hit = pid->getHits().front();
     // One of another peptide or charge was moved off because it conflicts with the one kept.
-    if (kept == nullptr || hit.getSequence() != kept->getSequence() || hit.getCharge() != kept->getCharge()) { continue; }
+    std::optional<Size> owner;
+    bool several = false;
+    for (const Size feature_index : it->second)
+    {
+      Size best_id_index = 0;
+      bool inconsistent_scores = false;
+      const PeptideHit* kept = selectFeatureIdentity(cmap[feature_index].getPeptideIdentifications(), best_id_index, inconsistent_scores);
+      if (kept == nullptr || hit.getSequence() != kept->getSequence() || hit.getCharge() != kept->getCharge()) { continue; }
+      several = several || (owner && *owner != feature_index);
+      owner = feature_index;
+    }
+    if (!owner || several) { continue; }
+    const Size feature_index = *owner;
     if (!topHitPsmIdentity(*pid, id_lut.run_mapper, run_file_name_keys, label_state_keys, run, psm_id)) { continue; }
     if (attached.count(psm_id) > 0) { continue; }
     const auto [claim, inserted] = claimed.emplace(psm_id, feature_index);
@@ -461,6 +477,73 @@ void addResolvedAway(const ConsensusMap& cmap, FeatureIdLookups& id_lut)
   {
     if (ambiguous.count(id) == 0) { id_lut.resolved_away[feature_index].push_back(pid); }
   }
+}
+
+/// How a feature row was identified in its run (QPX identification_type).
+enum class RowOrigin
+{
+  UNKNOWN,     ///< no identification of the feature resolves to a run
+  DIRECT,      ///< a PSM of the row's own run
+  TRANSFERRED  ///< identified in another run only
+};
+
+/// The identification a feature row's PSM-level columns come from.
+struct RowIdentification
+{
+  const PeptideIdentification* pid = nullptr; ///< the best one of the row's own run; null unless DIRECT
+  RowOrigin origin = RowOrigin::UNKNOWN;
+};
+
+/// Selects the identification a feature row's PSM-level columns come from: the best one of the
+/// row's own run among those attached to the consensus feature and those IDConflictResolver moved
+/// off it (FeatureIdLookups::resolved_away), restricted to the peptide and charge the feature
+/// reports. The QPX spec defines scan and id_run_file_name as those of the PSM that identified
+/// the row, which a row of another run does not have: a consensus feature is identified once,
+/// but quantified in every run it was linked across.
+///
+/// Scores are compared as in selectFeatureIdentity(), keeping the first on a tie, so the attached
+/// identification (the resolver's pick) wins ties in its run. A row whose run has none of these
+/// identifications was identified through another run (TRANSFERRED). When none of them resolves
+/// to a run at all, nothing can be said about the row's run (UNKNOWN).
+RowIdentification selectRowIdentification(const PeptideIdentificationList& attached,
+                                          const std::vector<const PeptideIdentification*>* removed,
+                                          const PeptideHit& identity,
+                                          const std::string& run,
+                                          const IdentifierMSRunMapper& mapper,
+                                          const ArrowIOHelpers::QPXRunFileNameKeys& run_file_name_keys,
+                                          const MS1LabelState::Keys& label_state_keys)
+{
+  RowIdentification result;
+  bool some_run_known = false;
+  std::function<bool(const PeptideHit&, const PeptideHit&)> better;
+  std::string psm_run;
+  Int64 psm_id = 0;
+  const auto consider = [&](const PeptideIdentification& pid)
+  {
+    if (pid.getHits().empty()) { return; }
+    const PeptideHit& top = pid.getHits().front(); // the hit the psm view writes
+    if (top.getSequence() != identity.getSequence() || top.getCharge() != identity.getCharge()) { return; }
+    if (!topHitPsmIdentity(pid, mapper, run_file_name_keys, label_state_keys, psm_run, psm_id) || psm_run.empty()) { return; }
+    some_run_known = true;
+    if (psm_run != run) { return; }
+    if (result.pid == nullptr)
+    {
+      better = PeptideIdentification::getScoreComparator(pid.isHigherScoreBetter());
+      result.pid = &pid;
+    }
+    else if (better(top, result.pid->getHits().front()))
+    {
+      result.pid = &pid;
+    }
+  };
+  for (const auto& pid : attached) { consider(pid); }
+  if (removed != nullptr)
+  {
+    for (const PeptideIdentification* pid : *removed) { consider(*pid); }
+  }
+  if (result.pid != nullptr) { result.origin = RowOrigin::DIRECT; }
+  else if (some_run_known)   { result.origin = RowOrigin::TRANSFERRED; }
+  return result;
 }
 
 /// Build a QPXFeatureSchema Arrow table for the half-open feature range
@@ -495,6 +578,8 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
   arrow::FloatBuilder ion_mobility_builder, predicted_rt_builder;
   arrow::FloatBuilder im_start_builder, im_stop_builder;
   arrow::DoubleBuilder pep_builder, pg_qvalue_builder;
+  arrow::FloatBuilder consensus_rt_builder, match_qvalue_builder;
+  arrow::StringBuilder identification_type_builder;
 
   // -- List<utf8> builders for gg_accessions, gg_names --
   auto gg_acc_vb = std::make_shared<arrow::StringBuilder>();
@@ -724,6 +809,9 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
   RESERVE_OR_FAIL(im_stop_builder)
   RESERVE_OR_FAIL(pep_builder)
   RESERVE_OR_FAIL(pg_qvalue_builder)
+  RESERVE_OR_FAIL(consensus_rt_builder)
+  RESERVE_OR_FAIL(match_qvalue_builder)
+  RESERVE_OR_FAIL(identification_type_builder)
 
   #undef RESERVE_OR_FAIL
 
@@ -761,6 +849,8 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
   const UInt idx_stop_ion_mobility  = mreg.getIndex("stop_ion_mobility");
   const UInt idx_rt_start           = mreg.getIndex("rt_start");
   const UInt idx_rt_stop            = mreg.getIndex("rt_stop");
+  const UInt idx_mbr_maps           = mreg.getIndex(Constants::UserParam::MBR_TRANSFER_MAP_INDICES);
+  const UInt idx_mbr_qvalues        = mreg.getIndex(Constants::UserParam::MBR_TRANSFER_QVALUES);
   // Same reason as the indices above: resolving a metavalue key by name takes the
   // MetaInfoRegistry's `omp critical` lock, and the psm identities are derived per row.
   const ArrowIOHelpers::QPXRunFileNameKeys run_file_name_keys;
@@ -811,11 +901,29 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     const double row_width  = coord ? coord->getWidth()  : cf.getWidth();
     const int    row_charge = coord ? coord->getCharge() : cf.getCharge();
 
-    // EVERY identification-level column must come from this one identification. Reading some
-    // columns from pep_ids[0] and others from the winner would emit a row describing one
-    // peptide's sequence next to another's scan number and ion mobility.
+    // The peptide-level columns (sequence, peptidoform, modifications, calculated_mz, is_decoy,
+    // predicted_rt, missed_cleavages and the protein mapping) come from this one identification,
+    // so every run row of a consensus feature names the same peptide.
     const PeptideIdentification* best_pid =
       (has_id && best_id_index < pep_ids.size()) ? &pep_ids[best_id_index] : nullptr;
+
+    // The PSM-level columns (PEP, additional_scores, scan, ion_mobility, cv_params and
+    // id_run_file_name) come from the PSM that identified the feature in the row's OWN run, so
+    // that they and the row's psm.feature_id links describe the same spectrum. A row whose run has
+    // no such PSM was identified through another run: transferred, with no PSM-level values. If no
+    // identification resolves to a run, the origin is unknown and the feature's identification is
+    // reported. EVERY PSM-level column must come from the one identification picked here; mixing
+    // identifications would put one PSM's scan next to another's ion mobility.
+    const auto removed_it = id_lut.resolved_away.find(row.feat_idx);
+    const std::vector<const PeptideIdentification*>* removed_pids =
+      removed_it != id_lut.resolved_away.end() ? &removed_it->second : nullptr;
+    const RowIdentification row_id = best_hit
+      ? selectRowIdentification(pep_ids, removed_pids, *best_hit, row.run, id_lut.run_mapper,
+                                run_file_name_keys, label_state_keys)
+      : RowIdentification{};
+    const bool unknown_origin = best_hit != nullptr && row_id.origin == RowOrigin::UNKNOWN;
+    const PeptideIdentification* psm_pid = row_id.pid ? row_id.pid : (unknown_origin ? best_pid : nullptr);
+    const PeptideHit* psm_hit = row_id.pid ? &row_id.pid->getHits().front() : (unknown_origin ? best_hit : nullptr);
 
     // === sequence / peptidoform ===
     if (best_hit)
@@ -975,21 +1083,21 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     (void)observed_mz_builder.Append(row_mz32);
     (void)rt_builder.Append(row_rt32);
 
-    // === PEP ===
-    if (has_id)
+    // === PEP (of the row's PSM) ===
+    if (psm_pid)
     {
-      auto result = idsa.findScoreType(*best_pid, IDScoreSwitcherAlgorithm::ScoreType::PEP);
+      auto result = idsa.findScoreType(*psm_pid, IDScoreSwitcherAlgorithm::ScoreType::PEP);
       // Resolve the (dynamic) PEP score name to an index once per feature (lock-free use below).
       const UInt idx_pep = result.score_name.empty() ? static_cast<UInt>(-1) : mreg.getIndex(result.score_name);
-      if (!result.score_name.empty() && best_hit)
+      if (!result.score_name.empty() && psm_hit)
       {
         if (result.is_main_score_type)
         {
-          (void)pep_builder.Append(best_hit->getScore());
+          (void)pep_builder.Append(psm_hit->getScore());
         }
-        else if (metaHas(*best_hit, idx_pep))
+        else if (metaHas(*psm_hit, idx_pep))
         {
-          (void)pep_builder.Append(static_cast<double>(best_hit->getMetaValue(idx_pep)));
+          (void)pep_builder.Append(static_cast<double>(psm_hit->getMetaValue(idx_pep)));
         }
         else
         {
@@ -1017,14 +1125,14 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
       (void)is_decoy_builder.Append(false);
     }
 
-    // === additional_scores from best hit ===
+    // === additional_scores of the row's PSM ===
     (void)additional_scores_builder.Append();
-    if (best_hit)
+    if (psm_hit)
     {
       // Single index-based pass over the hit's metavalues (avoids getKeys()/getMetaValue(string),
       // which take the MetaInfoRegistry lock per key); names resolved via the shared cache. Same
       // iteration order (by index) and same filtering as the previous getKeys() loop.
-      for (auto mv_it = best_hit->metaBegin(); mv_it != best_hit->metaEnd(); ++mv_it)
+      for (auto mv_it = psm_hit->metaBegin(); mv_it != psm_hit->metaEnd(); ++mv_it)
       {
         const std::string& key = cachedMetaName_(mv_it->first, meta_name_cache);
         if (excluded_hit_mvs.contains(key)) continue;
@@ -1074,13 +1182,13 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     // === scan (list<int32>) ===
     {
       std::string spec_ref;
-      if (best_pid)   // NOT !pep_ids.empty(): all of them may be hitless
+      if (psm_pid)   // empty for a transferred or unidentified row
       {
         // Prefer the dedicated member, fall back to metavalue
-        spec_ref = best_pid->getSpectrumReference();
-        if (spec_ref.empty() && metaHas(*best_pid, idx_spectrum_reference))
+        spec_ref = psm_pid->getSpectrumReference();
+        if (spec_ref.empty() && metaHas(*psm_pid, idx_spectrum_reference))
         {
-          spec_ref = best_pid->getMetaValue(idx_spectrum_reference).toString();
+          spec_ref = psm_pid->getMetaValue(idx_spectrum_reference).toString();
         }
       }
 
@@ -1127,9 +1235,9 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
       };
       for (const auto& pid : pep_ids) { link(pid); }
       // Identifications the resolver moved off this feature that name its peptide and charge.
-      if (const auto removed = id_lut.resolved_away.find(row.feat_idx); removed != id_lut.resolved_away.end())
+      if (removed_pids != nullptr)
       {
-        for (const PeptideIdentification* pid : removed->second) { link(*pid); }
+        for (const PeptideIdentification* pid : *removed_pids) { link(*pid); }
       }
     }
 
@@ -1137,8 +1245,8 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     // The label state of an MS1-labeled identification (see ArrowIOHelpers::qpxCvParams); null
     // for every other identification, as before.
     {
-      const auto cv_params = best_hit ? ArrowIOHelpers::qpxCvParams(*best_hit, label_state_keys)
-                                      : std::vector<std::pair<std::string, std::string>>{};
+      const auto cv_params = psm_hit ? ArrowIOHelpers::qpxCvParams(*psm_hit, label_state_keys)
+                                     : std::vector<std::pair<std::string, std::string>>{};
       if (cv_params.empty())
       {
         (void)cv_params_builder.AppendNull();
@@ -1156,13 +1264,13 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     }
 
     // === ion_mobility, start/stop ===
-    if (best_pid && metaHas(*best_pid, idx_ion_mobility))
+    if (psm_pid && metaHas(*psm_pid, idx_ion_mobility))
     {
-      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(best_pid->getMetaValue(idx_ion_mobility))));
+      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(psm_pid->getMetaValue(idx_ion_mobility))));
     }
-    else if (best_pid && metaHas(*best_pid, idx_IM))
+    else if (psm_pid && metaHas(*psm_pid, idx_IM))
     {
-      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(best_pid->getMetaValue(idx_IM))));
+      (void)ion_mobility_builder.Append(static_cast<float>(static_cast<double>(psm_pid->getMetaValue(idx_IM))));
     }
     else
     {
@@ -1200,13 +1308,16 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     // === additional_intensities (empty list for now) ===
     (void)additional_intensities_builder.AppendNull();
 
-    // === id_run_file_name ===
-    // Spec: "run file containing best PSM". This may legitimately differ from run_file_name
-    // — a match-between-runs feature is quantified in one run but identified in another, and
-    // that divergence is exactly what this column records.
-    // Resolved from the identification that actually holds the best hit, not pep_ids[0] --
-    // a feature's identifications can come from different runs, which is the whole point.
-    if (best_pid)
+    // === id_run_file_name / identification_type ===
+    // Spec: the run file containing the PSM that identified the feature, null for a transferred
+    // row. A direct row's PSM is of the row's own run by construction (selectRowIdentification).
+    // With an unknown origin the feature's identification is resolved as before, which leaves the
+    // column null when its run cannot be named either.
+    if (row_id.origin == RowOrigin::DIRECT)
+    {
+      (void)id_run_file_name_builder.Append(row.run);
+    }
+    else if (unknown_origin && best_pid)
     {
       const std::string id_run =
         ArrowIOHelpers::qpxRunFileName(id_lut.run_mapper.getPrimaryMSRunPath(*best_pid));
@@ -1216,6 +1327,39 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     else
     {
       (void)id_run_file_name_builder.AppendNull();
+    }
+    switch (row_id.origin)
+    {
+      case RowOrigin::DIRECT:      (void)identification_type_builder.Append("direct"); break;
+      case RowOrigin::TRANSFERRED: (void)identification_type_builder.Append("transferred"); break;
+      case RowOrigin::UNKNOWN:     (void)identification_type_builder.AppendNull(); break;
+    }
+
+    // === consensus_rt ===
+    // The ConsensusFeature's RT on every row it was melted into: with peptidoform and charge it
+    // groups the run rows of one consensus feature, which the per-run identification columns
+    // above no longer do.
+    (void)consensus_rt_builder.Append(static_cast<float>(cf.getRT()));
+
+    // === match_qvalue ===
+    // PIP-ECHO records the q-value of each run it transferred the identification to
+    // (MBR_TRANSFER_QVALUES, in the order of MBR_TRANSFER_MAP_INDICES).
+    {
+      std::optional<double> match_qvalue;
+      if (row_id.origin == RowOrigin::TRANSFERRED && metaHas(cf, idx_mbr_maps) && metaHas(cf, idx_mbr_qvalues))
+      {
+        const IntList maps = cf.getMetaValue(idx_mbr_maps);
+        const DoubleList qvalues = cf.getMetaValue(idx_mbr_qvalues);
+        for (Size i = 0; i < maps.size() && i < qvalues.size() && !match_qvalue; ++i)
+        {
+          for (const auto* fh : row.handles)
+          {
+            if (maps[i] >= 0 && static_cast<UInt64>(maps[i]) == fh->getMapIndex()) { match_qvalue = qvalues[i]; break; }
+          }
+        }
+      }
+      if (match_qvalue) { (void)match_qvalue_builder.Append(static_cast<float>(*match_qvalue)); }
+      else              { (void)match_qvalue_builder.AppendNull(); }
     }
 
     // === Protein accessions (now list<struct>) ===
@@ -1423,6 +1567,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
   std::shared_ptr<arrow::Array> arr_gg_acc, arr_gg_names;
   std::shared_ptr<arrow::Array> arr_id_run_file;
   std::shared_ptr<arrow::Array> arr_rt_start, arr_rt_stop;
+  std::shared_ptr<arrow::Array> arr_consensus_rt, arr_identification_type, arr_match_qvalue;
 
   FINISH_OR_FAIL(sequence_builder, arr_sequence)
   FINISH_OR_FAIL(peptidoform_builder, arr_peptidoform)
@@ -1455,6 +1600,9 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
   FINISH_OR_FAIL(id_run_file_name_builder, arr_id_run_file)
   FINISH_OR_FAIL(rt_start_builder, arr_rt_start)
   FINISH_OR_FAIL(rt_stop_builder, arr_rt_stop)
+  FINISH_OR_FAIL(consensus_rt_builder, arr_consensus_rt)
+  FINISH_OR_FAIL(identification_type_builder, arr_identification_type)
+  FINISH_OR_FAIL(match_qvalue_builder, arr_match_qvalue)
   std::shared_ptr<arrow::Array> arr_feature_id, arr_psm_ids;
   FINISH_OR_FAIL(feature_id_builder, arr_feature_id)
   FINISH_OR_FAIL(psm_ids_builder, arr_psm_ids)
@@ -1477,6 +1625,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
     arr_pg_positions, arr_im_start, arr_im_stop,
     arr_gg_acc, arr_gg_names, arr_id_run_file,
     arr_rt_start, arr_rt_stop,
+    arr_consensus_rt, arr_identification_type, arr_match_qvalue,
     arr_psm_ids,
   });
 

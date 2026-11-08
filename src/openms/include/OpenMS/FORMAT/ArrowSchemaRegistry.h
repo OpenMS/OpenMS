@@ -300,6 +300,13 @@ namespace OpenMS
     static constexpr const char* ID_RUN_FILE_NAME = "id_run_file_name";
     static constexpr const char* RT_START = "rt_start";
     static constexpr const char* RT_STOP = "rt_stop";
+    /// Retention time of the ConsensusFeature the row was melted from; with peptidoform and charge
+    /// it groups the run rows of one consensus feature
+    static constexpr const char* CONSENSUS_RT = "consensus_rt";
+    /// How the feature was identified in the row's run: "direct" (a PSM of that run) or "transferred"
+    static constexpr const char* IDENTIFICATION_TYPE = "identification_type";
+    /// The q-value of a transferred identification's match (PIP-ECHO)
+    static constexpr const char* MATCH_QVALUE = "match_qvalue";
 
     /// @brief Arrow type for modifications (delegates to QPXPSMSchema::modificationsType)
     static std::shared_ptr<arrow::DataType> modificationsType();
