@@ -1234,7 +1234,7 @@ START_SECTION([EXTRA] importFromParquet - metadata JSON with non-string fields f
   TEST_EQUAL(dp.getSoftware().getVersion(), "1.0") // after all the skipped values
   TEST_EQUAL(dp.getProcessingActions().size(), 1)
   TEST_EQUAL(dp.getProcessingActions().count(DataProcessing::PEAK_PICKING), 1)
-  TEST_EQUAL(dp.metaValueExists("num"), false) // non-string value: entry dropped, parsing goes on
+  TEST_FALSE(dp.metaValueExists("num")) // non-string value: entry dropped, parsing goes on
   TEST_EQUAL(dp.metaValueExists("big"), true)
   TEST_EQUAL(dp.getMetaValue("big").valueType(), DataValue::INT_VALUE)
   TEST_EQUAL(static_cast<Int64>(dp.getMetaValue("big")), 5000000000LL)
