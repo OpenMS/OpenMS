@@ -36,6 +36,10 @@ public:
     The the filtered identifications are added to the vector of unassigned peptides
     and also reduced to a single best hit.
 
+    Each identification moved to the unassigned peptides gets the meta value "feature_id": the unique id of the
+    feature it was removed from. Unassigned identifications without one get "not mapped"; those that an earlier
+    call (e.g. on the feature maps a consensus map was linked from) moved keep their "feature_id".
+
     @note If @p keep_matching is true and every identification attached to a feature has an empty hit list,
     the identifications remain attached in their original order with unchanged metadata, so a nonempty
     identification list does not imply an identified peptide.
@@ -49,7 +53,11 @@ public:
   /** @brief Resolves ambiguous annotations of consensus features with peptide identifications.
     The the filtered identifications are added to the vector of unassigned peptides
     and also reduced to a single best hit.
-    
+
+    The meta value "feature_id" is set as for resolve(FeatureMap&, bool). An identification moved off a feature
+    of one of the linked feature maps keeps that feature's unique id, which is also the unique id of its feature
+    handle if the feature was linked into a consensus feature.
+
     @note If @p keep_matching is true and every identification attached to a feature has an empty hit list,
     the identifications remain attached in their original order with unchanged metadata, so a nonempty
     identification list does not imply an identified peptide.
@@ -175,14 +183,22 @@ public:
 
 protected:
 
+  /// Marks the unassigned identifications that were never mapped to a feature as "not mapped" (meta value
+  /// "feature_id"). One that an earlier call moved off a feature keeps the "feature_id" it got there, the unique
+  /// id of that feature: workflows call the resolver once per level (features, then consensus features), and
+  /// overwriting it would lose which feature the identification belonged to.
+  static void markUnmapped_(PeptideIdentificationList& unassigned)
+  {
+    for (PeptideIdentification& p : unassigned)
+    {
+      if (!p.metaValueExists("feature_id")) { p.setMetaValue("feature_id", "not mapped"); }
+    }
+  }
+
   template<class T>
   static void resolveConflict_(T& map, bool keep_matching)
   {
-    // annotate as not part of the resolution
-    for (PeptideIdentification& p : map.getUnassignedPeptideIdentifications())
-    {
-      p.setMetaValue("feature_id", "not mapped"); // not mapped to a feature
-    }
+    markUnmapped_(map.getUnassignedPeptideIdentifications());
 
     for (auto& c : map)
     {
@@ -226,11 +242,7 @@ protected:
   template<class T>
   static void rankAggregation_(T& map)
   {
-    // annotate unassigned IDs as not part of the resolution
-    for (PeptideIdentification& p : map.getUnassignedPeptideIdentifications())
-    {
-      p.setMetaValue("feature_id", "not mapped"); // not mapped to a feature
-    }
+    markUnmapped_(map.getUnassignedPeptideIdentifications());
 
     for (auto& c : map)
     {

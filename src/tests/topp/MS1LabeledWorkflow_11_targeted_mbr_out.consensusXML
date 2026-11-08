@@ -139,7 +139,7 @@
 			<UserParam type="float" name="Posterior Error Probability_score" value="5.0e-03"/>
 		</PeptideHit>
 		<UserParam type="int" name="map_index" value="1"/>
-		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="string" name="feature_id" value="17749660155506638460"/>
 		<UserParam type="int" name="id_merge_index" value="0"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="509.271826615171" RT="220.5" spectrum_reference="scan=121" >
@@ -150,7 +150,7 @@
 			<UserParam type="int" name="MS1Label:channel" value="1"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="2.0e-03"/>
 		</PeptideHit>
-		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="string" name="feature_id" value="15004869347769368353"/>
 		<UserParam type="int" name="id_merge_index" value="0"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="587.309138306571" RT="190.5" spectrum_reference="scan=91" >
@@ -166,7 +166,7 @@
 			<UserParam type="float" name="Posterior Error Probability_score" value="5.0e-03"/>
 		</PeptideHit>
 		<UserParam type="int" name="map_index" value="3"/>
-		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="string" name="feature_id" value="1147219038608936718"/>
 		<UserParam type="int" name="id_merge_index" value="1"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="509.271826615171" RT="220.5" spectrum_reference="scan=121" >
@@ -177,7 +177,7 @@
 			<UserParam type="int" name="MS1Label:channel" value="1"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="2.0e-03"/>
 		</PeptideHit>
-		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="string" name="feature_id" value="14509930621887606273"/>
 		<UserParam type="int" name="id_merge_index" value="1"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="569.274764178971" RT="129.5" spectrum_reference="scan=30" >

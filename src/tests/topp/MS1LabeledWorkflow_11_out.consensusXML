@@ -145,7 +145,7 @@
 			<UserParam type="float" name="Posterior Error Probability_score" value="5.0e-03"/>
 		</PeptideHit>
 		<UserParam type="int" name="map_index" value="1"/>
-		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="string" name="feature_id" value="17749660155506638460"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="509.271826615171" RT="220.5" spectrum_reference="scan=121" >
 		<PeptideHit score="0.111111111111111" sequence="SLHTLFGDK" charge="2" aa_before="K" aa_after="G" start="3" end="11" protein_refs="PH_5">
@@ -155,7 +155,7 @@
 			<UserParam type="int" name="MS1Label:channel" value="1"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="2.0e-03"/>
 		</PeptideHit>
-		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="string" name="feature_id" value="15004869347769368353"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="465.754753035421" RT="162.5" spectrum_reference="scan=63" >
 		<PeptideHit score="0.111111111111111" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="G" start="3" end="10" protein_refs="PH_6">

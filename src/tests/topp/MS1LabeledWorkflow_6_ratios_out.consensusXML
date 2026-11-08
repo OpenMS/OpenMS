@@ -93,7 +93,7 @@
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.01"/>
 		</PeptideHit>
 		<UserParam type="int" name="map_index" value="1"/>
-		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="string" name="feature_id" value="15157403601844400700"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="849.492650832" RT="1792.499605" spectrum_reference="controllerType=0 controllerNumber=1 scan=11884" >
 		<PeptideHit score="0.166666666666667" sequence="TTTLLHR" charge="1" aa_before="[" aa_after="G" start="0" end="6" protein_refs="PH_2">
@@ -103,7 +103,7 @@
 			<UserParam type="int" name="MS1Label:channel" value="2"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="4.0e-03"/>
 		</PeptideHit>
-		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="string" name="feature_id" value="6408859317243173796"/>
 	</UnassignedPeptideIdentification>
 	<mapList count="2">
 		<map id="0" name="FeatureFinderMultiplex_2_input.mzML" label="no_label" size="3">

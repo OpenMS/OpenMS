@@ -208,7 +208,7 @@
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 		</PeptideHit>
 		<UserParam type="string" name="FFId_category" value="internal"/>
-		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="string" name="feature_id" value="11513186574425272818"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="554.260375976562" RT="2058.83471679688" spectrum_reference="spectrum=3029" >
 		<PeptideHit score="0.0476190476190476" sequence="EAC(Carbamidomethyl)FAVEGPK" charge="2" aa_before="K" aa_after="L" start="587" end="596" protein_refs="PH_0">
@@ -217,7 +217,7 @@
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.045454545454545"/>
 		</PeptideHit>
 		<UserParam type="string" name="FFId_category" value="internal"/>
-		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="string" name="feature_id" value="6748518772549940365"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="464.250030517578" RT="2357.07421875" spectrum_reference="spectrum=3375" >
 		<PeptideHit score="0.0476190476190476" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" start="160" end="166" protein_refs="PH_0">
@@ -226,7 +226,7 @@
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 		</PeptideHit>
 		<UserParam type="string" name="FFId_category" value="internal"/>
-		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="string" name="feature_id" value="2897592749236539531"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="464.250335693359" RT="2398.77709960938" spectrum_reference="spectrum=3445" >
 		<PeptideHit score="0.0476190476190476" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" start="160" end="166" protein_refs="PH_0">
@@ -235,7 +235,7 @@
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 		</PeptideHit>
 		<UserParam type="string" name="FFId_category" value="internal"/>
-		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="string" name="feature_id" value="2897592749236539531"/>
 	</UnassignedPeptideIdentification>
 	<mapList count="1">
 		<map id="0" name="/home/user/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML" unique_id="18148742099053868226" label="label-free" size="57">

@@ -94,7 +94,7 @@
 			<UserParam type="float" name="Posterior Error Probability_score" value="4.0e-03"/>
 		</PeptideHit>
 		<UserParam type="int" name="map_index" value="1"/>
-		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="string" name="feature_id" value="3332699010107892018"/>
 	</UnassignedPeptideIdentification>
 	<mapList count="2">
 		<map id="0" name="MS1LabeledWorkflow_9_input.mzML" label="no_label" size="3">

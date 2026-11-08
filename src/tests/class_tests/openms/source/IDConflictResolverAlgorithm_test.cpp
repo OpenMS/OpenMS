@@ -106,6 +106,60 @@ START_SECTION((resolve with keep_matching and only hitless identifications))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] resolve keeps the feature_id of identifications an earlier call moved))
+{
+  // Workflows resolve the feature maps, link them and resolve the consensus map again
+  // (ProteomicsLFQ). The second call overwrote the feature_id the first one recorded with
+  // "not mapped", so nothing downstream could tell which feature such an identification was on.
+  FeatureMap features;
+  Feature feature;
+  feature.setUniqueId(11);
+  PeptideIdentificationList ids;
+  ids.push_back(makePepID_("scan=1", "PEPTIDEK", 2, 0.01));
+  ids.push_back(makePepID_("scan=2", "PEPTIDEK", 2, 0.05));
+  feature.setPeptideIdentifications(ids);
+  features.push_back(feature);
+  features.getUnassignedPeptideIdentifications().push_back(makePepID_("scan=3", "PEPTIDER", 2, 0.01));
+  IDConflictResolverAlgorithm::resolve(features);
+
+  // The linker carries the unassigned identifications of the feature maps into the consensus map.
+  ConsensusMap consensus;
+  ConsensusFeature cf;
+  cf.setUniqueId(22);
+  PeptideIdentificationList cf_ids;
+  cf_ids.push_back(makePepID_("scan=4", "PEPTIDEK", 2, 0.01));
+  cf_ids.push_back(makePepID_("scan=5", "PEPTIDEK", 2, 0.02));
+  cf.setPeptideIdentifications(cf_ids);
+  consensus.push_back(cf);
+  consensus.setUnassignedPeptideIdentifications(features.getUnassignedPeptideIdentifications());
+
+  const auto feature_ids = [](const PeptideIdentificationList& unassigned)
+  {
+    std::map<std::string, std::string> feature_id_of; // spectrum reference -> meta value "feature_id"
+    for (const auto& pid : unassigned)
+    {
+      feature_id_of[pid.getSpectrumReference()] = pid.getMetaValue("feature_id").toString();
+    }
+    return feature_id_of;
+  };
+
+  ConsensusMap resolved = consensus;
+  IDConflictResolverAlgorithm::resolve(resolved);
+  auto feature_id_of = feature_ids(resolved.getUnassignedPeptideIdentifications());
+  TEST_EQUAL(feature_id_of.size(), 3)
+  TEST_EQUAL(feature_id_of["scan=2"], "11")         // moved off the feature, kept through the second call
+  TEST_EQUAL(feature_id_of["scan=3"], "not mapped") // never on a feature
+  TEST_EQUAL(feature_id_of["scan=5"], "22")         // moved off the consensus feature
+
+  // Rank aggregation annotates the unassigned identifications the same way.
+  ConsensusMap aggregated = consensus;
+  IDConflictResolverAlgorithm::resolveAllHitRankAggregation(aggregated);
+  feature_id_of = feature_ids(aggregated.getUnassignedPeptideIdentifications());
+  TEST_EQUAL(feature_id_of["scan=2"], "11")
+  TEST_EQUAL(feature_id_of["scan=3"], "not mapped")
+}
+END_SECTION
+
 START_SECTION((static void annotateTransfers(ConsensusMap& features)))
 {
   const std::string& key = Constants::UserParam::MBR_TRANSFER_MAP_INDICES;
