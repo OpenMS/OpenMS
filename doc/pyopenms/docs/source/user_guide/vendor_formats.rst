@@ -115,6 +115,11 @@ forces the per-precursor layout and ``FRAME`` returns the raw frames. Other fiel
 recalibration, frame aggregation and centroiding along the ion mobility axis.
 :py:class:`~.FileHandler` reads ``.d`` directories with the default configuration.
 
+``.d`` directories with TSF data (``analysis.tsf``, timsTOF without ion mobility separation, such as
+MALDI imaging runs) are read as one centroided spectrum per frame without ion mobility. Options that
+need ion mobility or DDA-PASEF precursors raise an error for TSF data. BAF data (QTOF instruments)
+cannot be read.
+
 Bruker's SDK is not needed: m/z and ion mobility are computed from the calibration stored in the
 file. If Bruker's SDK library (``timsdata.dll`` or ``libtimsdata.so``) is installed, set
 ``config.bruker_sdk_path``, or the environment variable ``OPENMS_BRUKER_SDK_PATH``, to its path
