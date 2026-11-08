@@ -10,6 +10,7 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <array>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -23,6 +24,25 @@ namespace OpenMS::OpenDIA
     std::string group_id;
     int label = -1;
     double apex_rt = 0.0;
+  };
+
+  /**
+    @brief Optional per-window extraction evidence for the experimental second-stage score.
+
+    Collected only after TraceCollector::enableEvidence(). RT bins match the raw tensor.
+    Mass errors are intensity-weighted signed ppm sums over points within the core window around the apex.
+  */
+  struct TraceEvidence
+  {
+    static constexpr std::size_t RT_BINS = 32;
+    std::array<float, RT_BINS> ms1{};  ///< MS1 monoisotope intensity per RT bin.
+    std::uint32_t ms1_mask = 0;        ///< RT bins that received an MS1 spectrum.
+    std::uint32_t ms2_mask = 0;        ///< RT bins that received an MS2 spectrum isolating the precursor.
+    float ms1_isotope = 0.0f;          ///< MS1 first-isotope intensity in the core window.
+    double ms1_ppm_sum = 0.0;          ///< Sum of intensity x signed ppm, MS1 monoisotope, core window.
+    double ms1_weight = 0.0;           ///< Sum of MS1 monoisotope intensity, core window.
+    double ms2_ppm_sum = 0.0;          ///< Sum of intensity x signed ppm over fragments, core window.
+    double ms2_weight = 0.0;           ///< Sum of fragment intensity, core window.
   };
 
   /**
@@ -81,12 +101,28 @@ namespace OpenMS::OpenDIA
     /// Treat a spectrum ion-mobility array with a non-CCS unit as 1/K0 (VSSC).
     void setIonMobilityArrayAsVSSC(bool value) { ion_mobility_array_as_vssc_ = value; }
 
+    /**
+      @brief Also collect TraceEvidence (MS1 traces and m/z errors). Off by default; the tensor is unchanged.
+
+      MS1 spectra must then be passed to consumeSpectrum(); without this call they are ignored.
+      @param[in] ms1_ppm Half width of the MS1 m/z windows in ppm.
+      @param[in] core_half_width_s Half width around the apex used for the mass errors and the isotope.
+    */
+    void enableEvidence(double ms1_ppm, double core_half_width_s);
+    /// Whether enableEvidence() was called.
+    bool evidenceEnabled() const { return !evidence_.empty(); }
+    /// Evidence of sample i; requires evidenceEnabled().
+    const TraceEvidence& evidence(std::size_t i) const { return evidence_.at(i); }
+    /// RT half width of the tensor in seconds.
+    double rtHalfWidth() const { return rt_half_width_; }
+
   private:
     struct Sample
     {
       TraceWindow window;
       double precursor_mz = 0.0;
       double precursor_im = 0.0;
+      int precursor_charge = 0;
       bool is_decoy = false;
       bool has_im = false;
       bool saw_missing_im = false;
@@ -100,6 +136,12 @@ namespace OpenMS::OpenDIA
     double rt_half_width_;
     double im_half_width_;
     bool ion_mobility_array_as_vssc_ = false;
+    std::vector<TraceEvidence> evidence_;
+    double ms1_ppm_ = 0.0;
+    double core_half_width_ = 0.0;
+
+    void consumeMS1_(MSSpectrum& spectrum);
+    std::size_t rtBin_(double rt, double apex_rt) const;
   };
 
   /** @brief Read explicitly selected windows from a TSV, rejecting missing grouping/labels.

@@ -117,3 +117,18 @@ execute_process(COMMAND "${BINARY}" -mode train -ss_iterations 1 -model "${WORK}
 if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "ss_iterations requires crossfit" OR EXISTS "${WORK}/scores.tsv")
   message(FATAL_ERROR "ss_iterations outside crossfit was not rejected: ${status}\n${output}\n${error}")
 endif()
+
+# The second-stage score needs pooled paired competition, and its feature table needs -stage2; both fail before extraction.
+execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/stage2" -paired_tdc -stage2
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "stage2 requires crossfit mode with -paired_tdc and -pooled_tdc" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "stage2 without pooled_tdc was not rejected: ${status}\n${output}\n${error}")
+endif()
+execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/stage2f" -paired_tdc -pooled_tdc
+  -stage2_features_out "${WORK}/features.tsv"
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "stage2_features_out requires -stage2" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "stage2_features_out without stage2 was not rejected: ${status}\n${output}\n${error}")
+endif()

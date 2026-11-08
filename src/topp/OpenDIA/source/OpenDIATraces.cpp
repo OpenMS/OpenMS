@@ -92,9 +92,11 @@ namespace OpenMS::OpenDIA
             "Trace sample count is empty or exceeds max_samples / the raw tensor byte budget.");
     std::map<std::string, std::vector<const OpenSwath::LightTransition*>> transitions;
     std::map<std::string, double> mobilities;
+    std::map<std::string, int> charges;
     for (const auto& compound : library.getCompounds())
     {
       mobilities[compound.id] = compound.drift_time;
+      charges[compound.id] = compound.charge;
     }
     for (const auto& transition : library.getTransitions())
     {
@@ -135,6 +137,8 @@ namespace OpenMS::OpenDIA
       {
         sample.precursor_im = mobility->second;
       }
+      const auto charge = charges.find(sample.window.precursor_id);
+      sample.precursor_charge = charge != charges.end() ? charge->second : 0;
       for (std::size_t i = 0; i < std::min(FRAGMENTS, fragments.size()); ++i)
       {
         sample.fragment_mz[i] = fragments[i]->product_mz;
@@ -149,8 +153,80 @@ namespace OpenMS::OpenDIA
     { return samples_[a].window.apex_rt < samples_[b].window.apex_rt; });
   }
 
+  void TraceCollector::enableEvidence(double ms1_ppm, double core_half_width_s)
+  {
+    require(std::isfinite(ms1_ppm) && ms1_ppm > 0.0 && std::isfinite(core_half_width_s) && core_half_width_s > 0.0,
+            "Evidence tolerances must be finite and positive.");
+    ms1_ppm_ = ms1_ppm;
+    core_half_width_ = core_half_width_s;
+    evidence_.assign(samples_.size(), TraceEvidence{});
+  }
+
+  std::size_t TraceCollector::rtBin_(double rt, double apex_rt) const
+  {
+    return std::min(RT_BINS - 1, static_cast<std::size_t>(
+      std::max(0.0, (rt - apex_rt + rt_half_width_) / (2.0 * rt_half_width_)) * RT_BINS));
+  }
+
+  void TraceCollector::consumeMS1_(MSSpectrum& spectrum)
+  {
+    const double rt = spectrum.getRT();
+    auto first = std::lower_bound(by_rt_.begin(), by_rt_.end(), rt - rt_half_width_,
+                                  [this](std::size_t i, double value) { return samples_[i].window.apex_rt < value; });
+    if (first == by_rt_.end() || samples_[*first].window.apex_rt > rt + rt_half_width_)
+    {
+      return;
+    }
+    if (!spectrum.isSorted())
+    {
+      spectrum.sortByPosition();
+    }
+    // MS1 points are summed over ion mobility; the precursor m/z window is narrow enough for that on DIA data.
+    const auto sum_window = [&](double target, double& ppm_sum, double& weight)
+    {
+      const double half = target * ms1_ppm_ * 1e-6;
+      double total = 0.0;
+      for (auto point = spectrum.MZBegin(target - half); point != spectrum.end() && point->getMZ() <= target + half; ++point)
+      {
+        const double intensity = point->getIntensity();
+        if (!std::isfinite(intensity) || intensity <= 0.0) continue;
+        total += intensity;
+        ppm_sum += intensity * (point->getMZ() - target) / target * 1e6;
+        weight += intensity;
+      }
+      return total;
+    };
+    for (auto active = first; active != by_rt_.end() && samples_[*active].window.apex_rt <= rt + rt_half_width_; ++active)
+    {
+      const Sample& sample = samples_[*active];
+      TraceEvidence& evidence = evidence_[*active];
+      const std::size_t bin = rtBin_(rt, sample.window.apex_rt);
+      evidence.ms1_mask |= std::uint32_t{1} << bin;
+      const bool core = std::abs(rt - sample.window.apex_rt) <= core_half_width_;
+      double ppm_sum = 0.0, weight = 0.0;
+      const double mono = sum_window(sample.precursor_mz, ppm_sum, weight);
+      evidence.ms1[bin] += static_cast<float>(mono);
+      if (core)
+      {
+        evidence.ms1_ppm_sum += ppm_sum;
+        evidence.ms1_weight += weight;
+        if (sample.precursor_charge > 0)
+        {
+          double unused_sum = 0.0, unused_weight = 0.0;
+          evidence.ms1_isotope += static_cast<float>(
+            sum_window(sample.precursor_mz + 1.0033548 / sample.precursor_charge, unused_sum, unused_weight));
+        }
+      }
+    }
+  }
+
   void TraceCollector::consumeSpectrum(MSSpectrum& spectrum)
   {
+    if (spectrum.getMSLevel() == 1 && !evidence_.empty() && !spectrum.empty() && std::isfinite(spectrum.getRT()))
+    {
+      consumeMS1_(spectrum);
+      return;
+    }
     if (spectrum.getMSLevel() != 2 || spectrum.empty() || spectrum.getPrecursors().empty() ||
         !std::isfinite(spectrum.getRT()))
     {
@@ -222,6 +298,12 @@ namespace OpenMS::OpenDIA
       }
       const auto rt_bin = std::min(RT_BINS - 1, static_cast<std::size_t>(
         std::max(0.0, (rt - sample.window.apex_rt + rt_half_width_) / (2.0 * rt_half_width_)) * RT_BINS));
+      TraceEvidence* evidence = evidence_.empty() ? nullptr : &evidence_[index];
+      const bool core = evidence != nullptr && std::abs(rt - sample.window.apex_rt) <= core_half_width_;
+      if (evidence != nullptr)
+      {
+        evidence->ms2_mask |= std::uint32_t{1} << rt_bin;
+      }
       for (std::size_t fragment = 0; fragment < FRAGMENTS; ++fragment)
       {
         const double mz = sample.fragment_mz[fragment];
@@ -254,6 +336,11 @@ namespace OpenMS::OpenDIA
           float& value = intensities_[((index * FRAGMENTS + fragment) * RT_BINS + rt_bin) * IM_BINS + im_bin];
           require(intensity <= std::numeric_limits<float>::max() - static_cast<double>(value), "Trace intensity overflow.");
           value += static_cast<float>(intensity);
+          if (core)
+          {
+            evidence->ms2_ppm_sum += intensity * (point->getMZ() - mz) / mz * 1e6;
+            evidence->ms2_weight += intensity;
+          }
         }
       }
     }

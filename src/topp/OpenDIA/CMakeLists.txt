@@ -21,12 +21,14 @@ add_library(OpenDIA_impl STATIC
   source/OpenDIARTMap.cpp
   source/OpenDIACalibration.cpp
   source/OpenDIAPeakMaps.cpp
+  source/OpenDIAStage2.cpp
   include/OpenDIASearch.h
   include/OpenDIARerank.h
   include/OpenDIATraces.h
   include/OpenDIARTMap.h
   include/OpenDIACalibration.h
-  include/OpenDIAPeakMaps.h)
+  include/OpenDIAPeakMaps.h
+  include/OpenDIAStage2.h)
 target_include_directories(OpenDIA_impl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(OpenDIA_impl PUBLIC OpenMS::OpenMS_CLI)
 # OpenDIACalibration reads its JSON with nlohmann::json, a PRIVATE dependency of libOpenMS.

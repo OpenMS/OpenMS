@@ -10,6 +10,7 @@
 #include "OpenDIACNN.h"
 #include "OpenDIACNNQValues.h"
 #include "OpenDIACNNRTWindow.h"
+#include "OpenDIAStage2.h"
 #include "OpenDIATraces.h"
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
@@ -93,6 +94,23 @@ namespace OpenMS
       setMaxFloat_("ss_fdr", 0.1);
       registerIntOption_("ss_max_seeds", "<n>", 6000, "Score-iteration cap per class (deterministic FNV-1a order)", false);
       setMinInt_("ss_max_seeds", 3);
+      registerFlag_("stage2", "Crossfit with -paired_tdc -pooled_tdc, experimental: second-stage score. Reads MS1 as well, computes fragment co-elution, "
+                    "library intensity correlation, fragment and MS1 mass error, MS1 co-elution and isotope presence per window, and combines them "
+                    "with the fold-standardised CNN logit by a cross-fitted semi-supervised LDA (PyProphet-style). q-values then come from that score.");
+      registerIntOption_("stage2_iterations", "<n>", 3, "Second-stage semi-supervised LDA rounds", false);
+      setMinInt_("stage2_iterations", 1);
+      setMaxInt_("stage2_iterations", 10);
+      registerDoubleOption_("stage2_initial_fdr", "<q>", 0.15, "Second-stage round-1 positive cut, ranked by the CNN score", false);
+      setMinFloat_("stage2_initial_fdr", 0.001);
+      setMaxFloat_("stage2_initial_fdr", 0.5);
+      registerDoubleOption_("stage2_iteration_fdr", "<q>", 0.05, "Second-stage positive cut in later rounds", false);
+      setMinFloat_("stage2_iteration_fdr", 0.001);
+      setMaxFloat_("stage2_iteration_fdr", 0.5);
+      registerDoubleOption_("stage2_core_half_width", "<seconds>", 4.0, "Half width around each apex used by the second-stage features", false);
+      setMinFloat_("stage2_core_half_width", 0.5);
+      registerDoubleOption_("stage2_ms1_ppm", "<ppm>", 20.0, "Half width of the MS1 m/z windows for the second-stage features", false);
+      setMinFloat_("stage2_ms1_ppm", 0.1);
+      registerOutputFile_("stage2_features_out", "<file>", "", "With -stage2: per-window feature table (after the RT window) for inspection", false);
     }
 
     ExitCodes main_(int, const char**) override
@@ -173,6 +191,15 @@ namespace OpenMS
         {
           throw std::invalid_argument("ss_iterations requires crossfit mode.");
         }
+        const bool stage2 = getFlag_("stage2");
+        if (stage2 && !pooled_tdc)
+        {
+          throw std::invalid_argument("stage2 requires crossfit mode with -paired_tdc and -pooled_tdc (fold LDA scores are pooled after decoy standardisation).");
+        }
+        if (!stage2 && !getStringOption_("stage2_features_out").empty())
+        {
+          throw std::invalid_argument("stage2_features_out requires -stage2.");
+        }
 
         const bool rt_window_calibration = getFlag_("rt_window_calibration");
         if (rt_window_calibration && !crossfit)
@@ -248,9 +275,14 @@ namespace OpenMS
                                          geometry.rt_half_width, geometry.im_half_width, max_samples,
                                          static_cast<std::size_t>(getIntOption_("max_tensor_gib")) << 30);
         collector.setIonMobilityArrayAsVSSC(getFlag_("im_array_as_vssc"));
+        if (stage2)
+        {
+          collector.enableEvidence(getDoubleOption_("stage2_ms1_ppm"), getDoubleOption_("stage2_core_half_width"));
+        }
         FileHandler reader;
         PeakFileOptions options;
-        options.setMSLevels({2});
+        // MS1 is read only for the second-stage evidence; without -stage2 the collector sees MS2 only, as before.
+        options.setMSLevels(stage2 ? std::vector<Int>{1, 2} : std::vector<Int>{2});
         reader.setOptions(options);
         reader.transformExperiment(getStringOption_("in"), &collector, {}, log_type_);
 
@@ -455,11 +487,133 @@ namespace OpenMS
           writeLogInfo_("Experimental score iteration=" + std::to_string(iteration) + " target_precursors_q01=" + std::to_string(targets));
         }
         }
+        std::vector<double> stage2_score;
+        if (stage2)
+        {
+          // CNN logit standardised per fold by that fold's decoy precursor winners, as in -pooled_tdc.
+          std::map<int, std::vector<double>> decoy_logits;
+          for (const auto& row : evaluated)
+          {
+            if (row.precursor_best && row.input.is_decoy) { decoy_logits[row.input.fold].push_back(row.input.score); }
+          }
+          std::map<int, std::pair<double, double>> scale;
+          for (auto& [fold, values] : decoy_logits)
+          {
+            const auto median_of = [](std::vector<double> v)
+            {
+              std::sort(v.begin(), v.end());
+              const std::size_t n = v.size();
+              return n % 2 ? v[n / 2] : 0.5 * (v[n / 2 - 1] + v[n / 2]);
+            };
+            const double centre = median_of(values);
+            std::vector<double> deviation;
+            for (double v : values) { deviation.push_back(std::abs(v - centre)); }
+            const double spread = 1.4826 * median_of(deviation);
+            if (!(spread > 0.0)) { throw std::invalid_argument("stage2: zero decoy logit spread in fold " + std::to_string(fold)); }
+            scale[fold] = {centre, spread};
+          }
+          // Run mass offsets, identification-free: intensity-weighted median signed error of the positive seed windows.
+          const auto seed_offset = [&](bool ms1)
+          {
+            std::vector<std::pair<double, double>> values;
+            for (std::size_t i = 0; i < count; ++i)
+            {
+              if (collector.window(i).label != 1) { continue; }
+              const auto& e = collector.evidence(i);
+              const double w = ms1 ? e.ms1_weight : e.ms2_weight;
+              if (w > 0.0) { values.emplace_back((ms1 ? e.ms1_ppm_sum : e.ms2_ppm_sum) / w, w); }
+            }
+            if (values.empty()) { return 0.0; }
+            std::sort(values.begin(), values.end());
+            double total = 0.0;
+            for (const auto& v : values) { total += v.second; }
+            double cumulative = 0.0;
+            for (const auto& v : values)
+            {
+              cumulative += v.second;
+              if (cumulative >= 0.5 * total) { return v.first; }
+            }
+            return values.back().first;
+          };
+          OpenDIA::Stage2ExtractionOptions extraction;
+          extraction.rt_half_width = geometry.rt_half_width;
+          extraction.core_half_width = getDoubleOption_("stage2_core_half_width");
+          extraction.ms1_offset_ppm = seed_offset(true);
+          extraction.ms2_offset_ppm = seed_offset(false);
+          std::vector<OpenDIA::Stage2Row> rows;
+          std::vector<std::size_t> row_window;
+          for (std::size_t i = 0; i < count; ++i)
+          {
+            if (!in_rt_window[i]) { continue; }
+            OpenDIA::Stage2Row row;
+            row.precursor_id = crossfit_rows[i].precursor_id;
+            row.is_decoy = crossfit_rows[i].is_decoy;
+            row.fold = crossfit_rows[i].fold;
+            row.features = OpenDIA::stage2Features(collector.intensities().data() + i * OpenDIA::TraceCollector::SAMPLE_SIZE,
+                                                   collector.libraryIntensities(i), collector.fragmentMZ(i), collector.evidence(i), extraction);
+            const auto& s = scale.at(row.fold);
+            row.features[0] = (crossfit_rows[i].score - s.first) / s.second;
+            rows.push_back(row);
+            row_window.push_back(i);
+          }
+          OpenDIA::Stage2Options stage2_options;
+          stage2_options.iterations = getIntOption_("stage2_iterations");
+          stage2_options.initial_fdr = getDoubleOption_("stage2_initial_fdr");
+          stage2_options.iteration_fdr = getDoubleOption_("stage2_iteration_fdr");
+          std::vector<OpenDIA::Stage2FoldReport> report;
+          const auto lda = OpenDIA::crossfitStage2LDA(rows, getIntOption_("folds"), stage2_options, report);
+          const auto& names = OpenDIA::stage2FeatureNames();
+          writeLogInfo_("Experimental second stage: ms1_offset_ppm=" + std::to_string(extraction.ms1_offset_ppm) +
+                        " ms2_offset_ppm=" + std::to_string(extraction.ms2_offset_ppm) + " windows=" + std::to_string(rows.size()));
+          for (const auto& fold : report)
+          {
+            std::string weights;
+            for (std::size_t p = 0; p < OpenDIA::STAGE2_FEATURES; ++p) { weights += " " + names[p] + "=" + std::to_string(fold.weights[p]); }
+            writeLogInfo_("Experimental second stage fold=" + std::to_string(fold.fold) + " iterations=" + std::to_string(fold.iterations) +
+                          " positives=" + std::to_string(fold.positives) + " negatives=" + std::to_string(fold.negatives) + weights);
+          }
+          // Paired, pooled q-values from the second-stage score over the in-window rows.
+          std::vector<OpenDIA::CNNQValueInput> stage2_rows;
+          for (std::size_t r = 0; r < rows.size(); ++r)
+          {
+            auto input = crossfit_rows[row_window[r]];
+            input.score = lda[r];
+            stage2_rows.push_back(std::move(input));
+          }
+          const auto stage2_evaluated = OpenDIA::aggregatePairedCNNQValues(stage2_rows, true);
+          stage2_score.assign(count, std::numeric_limits<double>::quiet_NaN());
+          for (std::size_t i = 0; i < count; ++i) { evaluated[i] = OpenDIA::CNNQValueResult{crossfit_rows[i], false, 1.0}; }
+          for (std::size_t r = 0; r < rows.size(); ++r)
+          {
+            const std::size_t i = row_window[r];
+            stage2_score[i] = lda[r];
+            evaluated[i] = stage2_evaluated[r];
+            evaluated[i].input.score = crossfit_rows[i].score;  // the logit column keeps the CNN logit
+          }
+          const std::string features_path = getStringOption_("stage2_features_out");
+          if (!features_path.empty())
+          {
+            std::ofstream features(features_path);
+            features << "sample_id\tprecursor_id\tis_decoy\tfold";
+            for (const auto& name : names) { features << '\t' << name; }
+            features << "\tstage2_score\n" << std::setprecision(8);
+            for (std::size_t r = 0; r < rows.size(); ++r)
+            {
+              const auto& input = crossfit_rows[row_window[r]];
+              features << input.sample_id << '\t' << input.precursor_id << '\t' << input.is_decoy << '\t' << input.fold;
+              for (double v : rows[r].features) { features << '\t' << v; }
+              features << '\t' << lda[r] << '\n';
+            }
+            features.close();
+            if (!features) { throw std::runtime_error("Could not write -stage2_features_out."); }
+          }
+        }
         std::ofstream scores(output);
         if (crossfit)
         {
           scores << "sample_id\tprecursor_id\tgroup_id\tis_decoy\tfold\tlogit\tprecursor_best\tq_value"
-                 << (rt_filter ? "\tin_rt_window\n" : "\n") << std::setprecision(std::numeric_limits<double>::max_digits10);
+                 << (rt_filter ? "\tin_rt_window" : "") << (stage2 ? "\tstage2_score\n" : "\n")
+                 << std::setprecision(std::numeric_limits<double>::max_digits10);
           std::size_t targets_at_one_percent = 0;
           for (std::size_t i = 0; i < evaluated.size(); ++i)
           {
@@ -469,10 +623,17 @@ namespace OpenMS
             if (row.precursor_best) { scores << row.q_value; }
             else { scores << "NA"; }
             if (rt_filter) { scores << '\t' << in_rt_window[i]; }
+            if (stage2)
+            {
+              scores << '\t';
+              if (std::isfinite(stage2_score[i])) { scores << stage2_score[i]; }
+              else { scores << "NA"; }
+            }
             scores << '\n';
             targets_at_one_percent += row.precursor_best && !row.input.is_decoy && row.q_value <= 0.01;
           }
-          writeLogInfo_(std::string(pooled_tdc ? "Experimental pooled paired target-decoy estimate (per-fold decoy-standardised logits):"
+          writeLogInfo_(std::string(stage2 ? "Experimental second-stage pooled paired target-decoy estimate (cross-fitted LDA over CNN logit and extraction features):"
+                                    : pooled_tdc ? "Experimental pooled paired target-decoy estimate (per-fold decoy-standardised logits):"
                                     : paired_tdc ? "Experimental fold-wise paired target-decoy estimate:" : "Experimental fold-wise decoy-count estimate:") +
                         " target_decoy_ratio=" + std::to_string(target_decoy_ratio) +
                         " target_precursors_q01=" + std::to_string(targets_at_one_percent) +

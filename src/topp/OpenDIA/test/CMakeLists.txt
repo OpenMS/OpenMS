@@ -25,6 +25,10 @@ add_executable(OpenDIAPeakMaps_test OpenDIAPeakMaps_test.cpp)
 target_link_libraries(OpenDIAPeakMaps_test PRIVATE OpenDIA_impl)
 add_test(NAME OpenDIAPeakMaps_test COMMAND OpenDIAPeakMaps_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
+add_executable(OpenDIAStage2_test OpenDIAStage2_test.cpp)
+target_link_libraries(OpenDIAStage2_test PRIVATE OpenDIA_impl)
+add_test(NAME OpenDIAStage2_test COMMAND OpenDIAStage2_test)
+
 if(TARGET OpenDIA_cnn)
   add_executable(OpenDIACNN_test OpenDIACNN_test.cpp)
   target_link_libraries(OpenDIACNN_test PRIVATE OpenDIA_cnn)
