@@ -625,5 +625,23 @@ START_SECTION(([EXTRA] dumpToTsv escapes the backslash, so an escape cannot be f
 }
 END_SECTION
 
+START_SECTION((static Int64 countNonNull(const std::string& file, const std::string& column)))
+{
+  arrow::Int64Builder ids;
+  TEST_TRUE(ids.Append(7).ok())
+  TEST_TRUE(ids.AppendNull().ok())
+  TEST_TRUE(ids.Append(9).ok())
+  std::shared_ptr<arrow::Array> values;
+  TEST_TRUE(ids.Finish(&values).ok())
+  const auto table = arrow::Table::Make(arrow::schema({arrow::field("feature_id", arrow::int64())}), {values});
+  std::string a;
+  NEW_TMP_FILE_EXT(a, "parquet")
+  TEST_TRUE(writeTo(table, a))
+  TEST_EQUAL(ParquetTableComparator::countNonNull(a, "feature_id"), 2)
+  TEST_EQUAL(ParquetTableComparator::countNonNull(a, "psm_id"), -1)                // no such column
+  TEST_EQUAL(ParquetTableComparator::countNonNull(a + ".missing", "feature_id"), -1) // no such file
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -11,6 +11,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/ParquetTableComparator.h>
 
+#include <algorithm>
+#include <cctype>
 #include <iostream>
 
 using namespace OpenMS;
@@ -49,6 +51,11 @@ satisfies any schema, so a producer that wrote a correctly shaped nothing passes
 @p schema with @p min_rows therefore asserts something about a single file without needing a
 reference at all - useful where a reference would only add churn. '0' is accepted and always
 passes; use it to record deliberately that a table is expected to be empty.
+
+'min_non_null' does the same for single columns: each entry @c column=count requires at least
+@c count non-null values in that column of every input. A schema accepts a nullable column that
+is null on every row, so this is what notices a producer that stopped filling an optional column,
+such as the @c feature_id of a QPX psm file, which links a PSM to its feature.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_ParquetDiff.cli
@@ -108,6 +115,10 @@ protected:
                        "correctly shaped nothing'. '0' is accepted and always passes: use it to "
                        "record that a table is expected to be empty.", false, false);
     setMinInt_("min_rows", -1);
+    registerStringList_("min_non_null", "<column=count list>", ListUtils::create<std::string>(""),
+                        "require every input to hold at least 'count' non-null values in 'column', "
+                        "e.g. 'feature_id=40'. A schema check accepts a nullable column that is null "
+                        "on every row.", false, false);
     addEmptyLine_();
 
     registerStringList_("ignore", "<string list>", ListUtils::create<std::string>(""),
@@ -207,6 +218,41 @@ protected:
       if (view.empty()) { report(in2, result.rows_2); }
     }
 
+    // Non-null floors of single columns, for the same reason as the row-count floor.
+    bool too_few_values = false;
+    for (const auto& entry : getStringList_("min_non_null"))
+    {
+      if (entry.empty()) { continue; }
+      const auto eq = entry.rfind('=');
+      Int64 required = -1;
+      if (eq != std::string::npos && eq > 0 && eq + 1 < entry.size()
+          && std::all_of(entry.begin() + eq + 1, entry.end(), [](unsigned char c) { return std::isdigit(c); }))
+      {
+        required = std::stoll(entry.substr(eq + 1));
+      }
+      if (required < 0)
+      {
+        writeLogError_("Error: 'min_non_null' entries are 'column=count', got '" + entry + "'.");
+        return ILLEGAL_PARAMETERS;
+      }
+      const std::string column = entry.substr(0, eq);
+      std::vector<std::string> files = {in1};
+      if (view.empty()) { files.push_back(in2); }
+      for (const auto& file : files)
+      {
+        const Int64 found = ParquetTableComparator::countNonNull(file, column);
+        if (found >= required) { continue; }
+        too_few_values = true;
+        if (verbose >= 1)
+        {
+          std::cout << "Non-null values: '" << file << "' "
+                    << (found < 0 ? "has no column '" + column + "'"
+                                  : "holds " + std::to_string(found) + " in '" + column + "'")
+                    << ", at least " << required << " required" << std::endl;
+        }
+      }
+    }
+
     if (!result.equal || verbose >= 2)
     {
       printSection_(verbose, "Schema differences", result.schema_errors);
@@ -238,11 +284,11 @@ protected:
         std::cout << "  " << result.suppressed
                   << " further difference(s) not shown (see 'max_reported')" << std::endl;
       }
-      std::cout << ((result.equal && !too_few_rows) ? "  RESULT: equal" : "  RESULT: differ")
+      std::cout << ((result.equal && !too_few_rows && !too_few_values) ? "  RESULT: equal" : "  RESULT: differ")
                 << std::endl;
     }
 
-    return (result.equal && !too_few_rows) ? EXECUTION_OK : INCOMPATIBLE_INPUT_DATA;
+    return (result.equal && !too_few_rows && !too_few_values) ? EXECUTION_OK : INCOMPATIBLE_INPUT_DATA;
   }
 
 };

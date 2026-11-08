@@ -934,6 +934,15 @@ namespace OpenMS
     return result;
   }
 
+  Int64 ParquetTableComparator::countNonNull(const std::string& file, const std::string& column)
+  {
+    const auto table = readTable_(file);
+    if (!table) { return -1; }
+    const auto values = table->GetColumnByName(column);
+    if (!values) { return -1; }
+    return static_cast<Int64>(values->length() - values->null_count());
+  }
+
   bool ParquetTableComparator::dumpToTsv(const std::string& file,
                                          const std::string& out_file,
                                          const ParquetDiffSettings& settings)

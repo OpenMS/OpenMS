@@ -8517,8 +8517,12 @@ set_tests_properties("TOPP_ProteomicsLFQ_feat_dir_requires_design" PROPERTIES
   add_test("TOPP_ProteomicsLFQ_qpx_features" ${TOPP_BIN_PATH}/ParquetDiff
     -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.feature.parquet -schema feature -min_rows 45)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_features" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
+  # psm.feature_id links a PSM to its feature. It is nullable, so the schema check passes when it
+  # is never filled; 74 of the 104 PSMs are linked here. Linking only the identification
+  # IDConflictResolver kept on each consensus feature gave 40.
   add_test("TOPP_ProteomicsLFQ_qpx_psms" ${TOPP_BIN_PATH}/ParquetDiff
-    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.psm.parquet -schema psm -min_rows 80)
+    -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.psm.parquet -schema psm -min_rows 80
+    -min_non_null feature_id=55)
   set_tests_properties("TOPP_ProteomicsLFQ_qpx_psms" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_qpx")
   add_test("TOPP_ProteomicsLFQ_qpx_pg" ${TOPP_BIN_PATH}/ParquetDiff
     -in1 ${TESTS_TEMP_DIR}/BSA_qpx_dir/quantms.pg.parquet -schema pg -min_rows 28)

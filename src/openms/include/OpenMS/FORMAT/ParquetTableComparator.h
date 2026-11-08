@@ -167,6 +167,18 @@ namespace OpenMS
                           const ParquetDiffSettings& settings);
 
     /**
+      @brief Number of non-null values in one column of a Parquet file.
+
+      A schema check accepts a nullable column that is null on every row, so a producer that stops
+      filling an optional column (e.g. a cross-reference such as QPX @c psm.feature_id) passes it.
+
+      @param[in] file Parquet file to read
+      @param[in] column top-level column name
+      @return the number of non-null values, or -1 when the file cannot be read or has no such column
+    */
+    static Int64 countNonNull(const std::string& file, const std::string& column);
+
+    /**
       @brief The primary key of a QPX view.
 
       @param[in] view one of @c psm, @c feature, @c pg
