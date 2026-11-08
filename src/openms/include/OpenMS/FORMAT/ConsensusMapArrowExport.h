@@ -54,7 +54,11 @@ public:
                 than in a second pass is what keeps the two directions reciprocal -- qpx
                 validates that a PSM pointing at a feature is listed back by that feature's
                 @c psm_ids. The export refuses a @c psm_id claimed by two different feature
-                rows instead of silently choosing one owner.
+                rows instead of silently choosing one owner. A row links the identifications of
+                its run attached to the consensus feature, and the unassigned ones that
+                IDConflictResolverAlgorithm moved off it or off one of its features (meta value
+                "feature_id") if they name the peptide and charge the feature kept and no
+                attached identification or other feature names their PSM.
     @return Shared pointer to Arrow Table, or nullptr on error
     @throws Exception::InvalidValue if one PSM identity is claimed by different feature rows
   */

@@ -33,11 +33,14 @@
 #include <parquet/properties.h>
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <exception>
 #include <functional>
 #include <limits>
 #include <map>
+#include <stdexcept>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -105,6 +108,11 @@ struct FeatureIdLookups
   /// label of its own. Decides whether mass_error_ppm can be computed against a sequence that
   /// was reduced to its label-free identity; see the note at the mass_error_ppm call site.
   bool reference_channel_is_labeled = false;
+  /// Per consensus feature index: unassigned identifications IDConflictResolver moved off that
+  /// feature, which name the peptide and charge it kept (see addResolvedAway()). Their PSMs are
+  /// linked like those of the identifications still attached. Pointers into the map's unassigned
+  /// identifications, which the export does not modify.
+  std::unordered_map<Size, std::vector<const PeptideIdentification*>> resolved_away;
 };
 
 /// Build the per-map protein-group q-value and gene-info lookups from the
@@ -370,6 +378,89 @@ std::string insertFeatureLink(QPXIdentity::FeatureLinks& links, Int64 psm_id, In
 
   return "QPX psm_id " + std::to_string(psm_id) + " is claimed by feature_id "
          + std::to_string(existing->second) + " and feature_id " + std::to_string(feature_id);
+}
+
+/// Fills FeatureIdLookups::resolved_away.
+///
+/// IDConflictResolverAlgorithm keeps one identification per feature and moves the others to the
+/// unassigned identifications, with the unique id of the feature in their meta value "feature_id":
+/// that of a consensus feature, or of a feature of a linked map (the unique id of its handle). One
+/// that names the peptide and charge the feature kept identified the feature's signal too, so its
+/// PSM is linked to the feature row of its own run. Without this, ProteomicsLFQ, which keeps one
+/// identification per consensus feature, linked one PSM per peptide across all runs.
+///
+/// A QPX PSM references one feature row, so a PSM that an attached identification already names,
+/// or that removed identifications of two features name, is not linked here. Runs single-threaded,
+/// before the OpenMP batch build, so the links do not depend on how the rows are split.
+void addResolvedAway(const ConsensusMap& cmap, FeatureIdLookups& id_lut)
+{
+  const UInt idx_feature_id = MetaInfoInterface::metaRegistry().getIndex("feature_id");
+  if (idx_feature_id == static_cast<UInt>(-1)) { return; } // no identification was ever resolved
+
+  // The feature an identification was removed from, by the unique id the resolver recorded.
+  std::vector<std::pair<const PeptideIdentification*, UInt64>> removed;
+  for (const auto& pid : cmap.getUnassignedPeptideIdentifications())
+  {
+    if (pid.getHits().empty() || !pid.metaValueExists(idx_feature_id)) { continue; }
+    const std::string uid = pid.getMetaValue(idx_feature_id).toString();
+    if (uid.empty() || uid.size() > 20 || !std::all_of(uid.begin(), uid.end(), [](unsigned char c) { return std::isdigit(c); }))
+    {
+      continue; // "not mapped"
+    }
+    try { removed.emplace_back(&pid, std::stoull(uid)); }
+    catch (const std::out_of_range&) { continue; } // not a 64-bit unique id
+  }
+  if (removed.empty()) { return; }
+
+  std::unordered_map<UInt64, Size> owner; // consensus feature or handle unique id -> feature index
+  for (Size i = 0; i < cmap.size(); ++i)
+  {
+    if (cmap[i].hasValidUniqueId()) { owner.emplace(cmap[i].getUniqueId(), i); }
+    for (const auto& handle : cmap[i].getFeatures())
+    {
+      if (handle.hasValidUniqueId()) { owner.emplace(handle.getUniqueId(), i); }
+    }
+  }
+
+  const ArrowIOHelpers::QPXRunFileNameKeys run_file_name_keys;
+  const MS1LabelState::Keys label_state_keys;
+  std::string run;
+  Int64 psm_id = 0;
+
+  // PSM rows already named by an attached identification
+  std::unordered_set<Int64> attached;
+  for (const auto& cf : cmap)
+  {
+    for (const auto& pid : cf.getPeptideIdentifications())
+    {
+      if (topHitPsmIdentity(pid, id_lut.run_mapper, run_file_name_keys, label_state_keys, run, psm_id)) { attached.insert(psm_id); }
+    }
+  }
+
+  std::unordered_map<Int64, Size> claimed; // psm_id -> feature index
+  std::unordered_set<Int64> ambiguous;
+  std::vector<std::tuple<Size, const PeptideIdentification*, Int64>> candidates;
+  for (const auto& [pid, uid] : removed)
+  {
+    const auto it = owner.find(uid);
+    if (it == owner.end()) { continue; }
+    const Size feature_index = it->second;
+    Size best_id_index = 0;
+    bool inconsistent_scores = false;
+    const PeptideHit* kept = selectFeatureIdentity(cmap[feature_index].getPeptideIdentifications(), best_id_index, inconsistent_scores);
+    const PeptideHit& hit = pid->getHits().front();
+    // One of another peptide or charge was moved off because it conflicts with the one kept.
+    if (kept == nullptr || hit.getSequence() != kept->getSequence() || hit.getCharge() != kept->getCharge()) { continue; }
+    if (!topHitPsmIdentity(*pid, id_lut.run_mapper, run_file_name_keys, label_state_keys, run, psm_id)) { continue; }
+    if (attached.count(psm_id) > 0) { continue; }
+    const auto [claim, inserted] = claimed.emplace(psm_id, feature_index);
+    if (!inserted && claim->second != feature_index) { ambiguous.insert(psm_id); }
+    candidates.emplace_back(feature_index, pid, psm_id);
+  }
+  for (const auto& [feature_index, pid, id] : candidates)
+  {
+    if (ambiguous.count(id) == 0) { id_lut.resolved_away[feature_index].push_back(pid); }
+  }
 }
 
 /// Build a QPXFeatureSchema Arrow table for the half-open feature range
@@ -1010,15 +1101,15 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
       // claim a PSM as evidence for a quantity measured in a different file.
       (void)psm_ids_builder.Append();
       std::vector<Int64> linked;
-      for (const auto& pid : pep_ids)
+      auto link = [&](const PeptideIdentification& pid)
       {
         std::string psm_run;
         Int64 psm_id = 0;
-        if (!topHitPsmIdentity(pid, id_lut.run_mapper, run_file_name_keys, label_state_keys, psm_run, psm_id)) { continue; }
-        if (psm_run != row.run) { continue; }
+        if (!topHitPsmIdentity(pid, id_lut.run_mapper, run_file_name_keys, label_state_keys, psm_run, psm_id)) { return; }
+        if (psm_run != row.run) { return; }
         // Two identifications of one feature can agree on all four key columns; the psm view
         // stores one row for them, so this must list it once.
-        if (std::find(linked.begin(), linked.end(), psm_id) != linked.end()) { continue; }
+        if (std::find(linked.begin(), linked.end(), psm_id) != linked.end()) { return; }
         linked.push_back(psm_id);
         (void)psm_ids_val_b->Append(psm_id);
         // Both directions come from this one loop, which is what keeps them reciprocal: qpx
@@ -1033,6 +1124,12 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
               + ". A QPX PSM can reference only one feature row.", std::to_string(psm_id));
           }
         }
+      };
+      for (const auto& pid : pep_ids) { link(pid); }
+      // Identifications the resolver moved off this feature that name its peptide and charge.
+      if (const auto removed = id_lut.resolved_away.find(row.feat_idx); removed != id_lut.resolved_away.end())
+      {
+        for (const PeptideIdentification* pid : removed->second) { link(*pid); }
       }
     }
 
@@ -1501,7 +1598,8 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
 {
   requireUnambiguousIdentities(cmap);   // preflight: single-threaded, before any OpenMP region
   ProteinRunReferences::check(cmap);    // every peptide identification needs its protein identification run
-  const auto id_lut = buildFeatureIdLookups(cmap);
+  auto id_lut = buildFeatureIdLookups(cmap);
+  addResolvedAway(cmap, id_lut); // single-threaded, before the batch build
   requireResolvableIdRunsWith(cmap, id_lut.run_mapper);
   // A channel QPX cannot name would be written into intensities[].label, a documented join
   // key. Refuse rather than emit a guessed or empty token (the pg exporter does the same).
@@ -1611,7 +1709,8 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
   requireUnambiguousIdentities(cmap);
   ProteinRunReferences::check(cmap); // every peptide identification needs its protein identification run
 
-  const auto id_lut = buildFeatureIdLookups(cmap);
+  auto id_lut = buildFeatureIdLookups(cmap);
+  addResolvedAway(cmap, id_lut); // single-threaded, before the batch build
   requireResolvableIdRunsWith(cmap, id_lut.run_mapper); // preflight, before the OpenMP region below
   if (id_lut.has_unlabelable_channel) { return false; } // already logged
 

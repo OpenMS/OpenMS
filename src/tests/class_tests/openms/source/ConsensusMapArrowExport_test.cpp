@@ -1641,4 +1641,143 @@ START_SECTION(([EXTRA] a PSM claimed by two feature rows is refused during link 
 }
 END_SECTION
 
+START_SECTION(([EXTRA] identifications the resolver moved off a feature are linked to the row of their run))
+{
+  // ProteomicsLFQ keeps one identification per consensus feature and moves the others to the
+  // unassigned identifications, recording the feature in their meta value "feature_id". Linking
+  // only the attached one left the PSMs of every other run without a feature.
+  ConsensusMap cmap;
+  cmap.setExperimentType("label-free");
+  const std::vector<std::string> runs = {"runA", "runB", "runC"};
+  StringList paths;
+  for (Size run = 0; run < runs.size(); ++run)
+  {
+    ConsensusMap::ColumnHeader ch;
+    ch.filename = "/data/" + runs[run] + ".mzML";
+    ch.label = "label-free";
+    cmap.getColumnHeaders()[run] = ch;
+    paths.push_back(ch.filename);
+  }
+  ProteinIdentification prot;
+  prot.setIdentifier("PI_0");
+  prot.setPrimaryMSRunPath(paths);
+  ProteinIdentification::ProteinGroup group;
+  group.probability = 0.01;
+  group.accessions = {"PROT_A"};
+  prot.insertProteinGroup(group);
+  ProteinHit ph;
+  ph.setAccession("PROT_A");
+  prot.setHits({ph});
+  cmap.setProteinIdentifications({prot});
+
+  const auto make_id = [](Size run, int scan, const std::string& sequence, int charge, double score)
+  {
+    PeptideIdentification pid;
+    pid.setIdentifier("PI_0");
+    pid.setSpectrumReference("scan=" + std::to_string(scan));
+    pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, static_cast<int>(run));
+    pid.setScoreType("Posterior Error Probability");
+    pid.setHigherScoreBetter(false);
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(sequence));
+    hit.setCharge(charge);
+    hit.setScore(score);
+    pid.setHits({hit});
+    return pid;
+  };
+
+  ConsensusFeature cf;
+  cf.setUniqueId(22);
+  cf.setMZ(500.0);
+  cf.setRT(100.0);
+  cf.setCharge(2);
+  for (Size run = 0; run < runs.size(); ++run)
+  {
+    BaseFeature bf;
+    bf.setUniqueId(100 + run);
+    bf.setIntensity(1000.0f);
+    bf.setMZ(500.0);
+    bf.setRT(100.0 + run);
+    bf.setCharge(2);
+    cf.insert(run, bf);
+  }
+  cf.setPeptideIdentifications({make_id(0, 1, "PEPTIDE", 2, 0.01)});
+  cmap.push_back(cf);
+
+  auto& unassigned = cmap.getUnassignedPeptideIdentifications();
+  const auto moved = [&unassigned](PeptideIdentification pid, const std::string& feature_id)
+  {
+    pid.setMetaValue("feature_id", feature_id);
+    unassigned.push_back(pid);
+  };
+  moved(make_id(1, 2, "PEPTIDE", 2, 0.02), "22");         // off the consensus feature: linked in run B
+  moved(make_id(2, 3, "PEPTIDE", 2, 0.03), "102");        // off run C's feature before linking: linked
+  moved(make_id(1, 4, "PEPTIDER", 2, 0.01), "22");        // another peptide conflicted with the kept one
+  moved(make_id(1, 5, "PEPTIDE", 3, 0.01), "22");         // another charge
+  moved(make_id(2, 6, "PEPTIDE", 2, 0.01), "not mapped"); // never on a feature
+  moved(make_id(2, 7, "PEPTIDE", 2, 0.01), "99");         // a feature this map does not have
+  unassigned.push_back(make_id(2, 8, "PEPTIDE", 2, 0.01)); // no meta value at all
+
+  const std::map<std::string, std::vector<Int64>> expected = {
+    {"runA", {QPXIdentity::psmId("runA", {1}, "PEPTIDE", 2)}},
+    {"runB", {QPXIdentity::psmId("runB", {2}, "PEPTIDE", 2)}},
+    {"runC", {QPXIdentity::psmId("runC", {3}, "PEPTIDE", 2)}}};
+
+  QPXIdentity::FeatureLinks links;
+  const auto table = ConsensusMapArrowExport::exportToArrow(cmap, &links);
+  TEST_NOT_EQUAL(table, nullptr)
+  ABORT_IF(table == nullptr)
+  auto run_col = std::static_pointer_cast<arrow::StringArray>(table->GetColumnByName("run_file_name")->chunk(0));
+  auto feature_id_col = std::static_pointer_cast<arrow::Int64Array>(table->GetColumnByName("feature_id")->chunk(0));
+  auto psm_ids_col = std::static_pointer_cast<arrow::ListArray>(table->GetColumnByName("psm_ids")->chunk(0));
+  auto psm_ids_values = std::static_pointer_cast<arrow::Int64Array>(psm_ids_col->values());
+  std::map<std::string, std::vector<Int64>> listed;
+  for (int64_t r = 0; r < table->num_rows(); ++r)
+  {
+    auto& ids = listed[run_col->GetString(r)];
+    for (int64_t i = 0; i < psm_ids_col->value_length(r); ++i)
+    {
+      const Int64 psm_id = psm_ids_values->Value(psm_ids_col->value_offset(r) + i);
+      ids.push_back(psm_id);
+      TEST_EQUAL(links.count(psm_id), 1)
+      if (links.count(psm_id) == 1) { TEST_EQUAL(links.at(psm_id), feature_id_col->Value(r)) }
+    }
+  }
+  TEST_EQUAL(table->num_rows(), 3)
+  TEST_TRUE(listed == expected)
+  TEST_EQUAL(links.size(), 3)
+
+  // The streaming path, with one row per batch, links the same PSMs.
+  std::string tmp_file;
+  NEW_TMP_FILE(tmp_file)
+  QPXIdentity::FeatureLinks streaming_links;
+  TEST_TRUE(ConsensusMapArrowExport::exportToParquetStreaming(cmap, tmp_file, 1, ParquetWriteConfig{}, 2, &streaming_links))
+  TEST_TRUE(streaming_links == links)
+
+  // A PSM that removed identifications of two features name is linked to neither.
+  ConsensusFeature other;
+  other.setUniqueId(33);
+  other.setMZ(500.0);
+  other.setRT(300.0);
+  other.setCharge(2);
+  for (Size run = 0; run < runs.size(); ++run)
+  {
+    BaseFeature bf;
+    bf.setUniqueId(200 + run);
+    bf.setIntensity(1000.0f);
+    bf.setMZ(500.0);
+    bf.setRT(300.0 + run);
+    bf.setCharge(2);
+    other.insert(run, bf);
+  }
+  other.setPeptideIdentifications({make_id(0, 9, "PEPTIDE", 2, 0.01)});
+  cmap.push_back(other);
+  moved(make_id(1, 2, "PEPTIDE", 2, 0.02), "33"); // the run B PSM above, now claimed by both features
+  QPXIdentity::FeatureLinks ambiguous_links;
+  TEST_NOT_EQUAL(ConsensusMapArrowExport::exportToArrow(cmap, &ambiguous_links), nullptr)
+  TEST_EQUAL(ambiguous_links.count(QPXIdentity::psmId("runB", {2}, "PEPTIDE", 2)), 0)
+  TEST_EQUAL(ambiguous_links.count(QPXIdentity::psmId("runC", {3}, "PEPTIDE", 2)), 1)
+}
+END_SECTION
+
 END_TEST
