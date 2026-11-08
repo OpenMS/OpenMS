@@ -189,6 +189,7 @@
 #include <nanobind/operators.h>
 #include <nanobind/stl/map.h>
 #include <nanobind/stl/optional.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/set.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/vector.h>
@@ -2183,12 +2184,32 @@ Optional protein inference information can be supplied via proteins.
     // -----------------------------------------------------------------------
     // PosteriorErrorProbabilityModel
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Math::PosteriorErrorProbabilityModel, OpenMS::DefaultParamHandler>(m, "PosteriorErrorProbabilityModel", 
+    auto pep_model_class = nb::class_<OpenMS::Math::PosteriorErrorProbabilityModel, OpenMS::DefaultParamHandler>(m, "PosteriorErrorProbabilityModel",
         R"doc(
-Implements a mixture model of the inverse gumbel and the gauss
-distribution or a gaussian mixture
+Estimates posterior error probabilities (PEPs) of peptide-spectrum matches from search engine scores:
+with an (unsupervised) mixture model of a Gumbel (or Gauss) and a Gauss distribution, or using
+target/decoy information (non-parametric target-decoy estimate, see fitTargetDecoy)
 )doc")
         .def(nb::init<>())
+        .def("fitTargetDecoy", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, const std::vector<double>& target_scores, const std::vector<double>& decoy_scores, const std::string& outlier_handling) { return self.fitTargetDecoy(target_scores, decoy_scores, outlier_handling); }, "target_scores"_a, "decoy_scores"_a, "outlier_handling"_a,
+            R"doc(
+Estimates the PEP model from scores of target and decoy PSMs (higher scores must be better; one top hit per spectrum,
+search against a concatenated target+decoy database). With at least one decoy, the non-parametric target-decoy
+estimate is used; without decoys (or with decoy_handling 'ignore'), the mixture model.
+computeProbability can be used afterwards.
+
+:param target_scores: Scores of target PSMs
+:param decoy_scores: Scores of decoy PSMs
+:param outlier_handling: Outlier handling strategy (only used for the mixture model)
+:return: True if a model could be estimated
+)doc")
+        .def("getModelType", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getModelType(); }, "Returns the kind of model estimated by the last fit")
+        .def_static("modelTypeToString", [](OpenMS::Math::PosteriorErrorProbabilityModel::ModelType type) { return OpenMS::Math::PosteriorErrorProbabilityModel::modelTypeToString(type); }, "type"_a, "Human-readable name of a ModelType")
+        .def("getTargetDecoyIncorrectFraction", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getTargetDecoyIncorrectFraction(); }, "Returns the target-decoy estimate of the fraction of incorrect targets (#decoys / #targets / decoy_ratio) of the last call to fitTargetDecoy, or -1")
+        .def("hasCalibrationWarning", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.hasCalibrationWarning(); }, "Returns True if the last call to fitTargetDecoy found targets not scoring better than decoys (AUC <= 0.5), or significantly too few decoys among the lowest-scoring PSMs (one-sided binomial test, PEP below 0.8 there), i.e. the target-decoy assumptions are violated at low scores and the PEPs stay well below 1 (only checked with enough decoys and decoy_handling auto)")
+        .def("getTargetDecoyAUC", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getTargetDecoyAUC(); }, "Returns the area under the ROC curve of target vs. decoy PSMs of the last call to fitTargetDecoy (0.5 or below: targets do not score better than decoys), or -1")
+        .def("getIsotonicPEPCurve", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getIsotonicPEPCurve(); }, "Returns the PEP curve of the non-parametric target-decoy estimate as list of (score, PEP) tuples, sorted by score")
+        .def("getIncorrectlyAssignedGumbelFitResult", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { auto r = self.getIncorrectlyAssignedGumbelFitResult(); return nb::make_tuple(r.a, r.b); }, "Returns the location and scale of the Gumbel distribution of incorrectly assigned sequences as tuple (a, b)")
         .def("fit", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double> search_engine_scores, const std::string& outlier_handling) { bool result = self.fit(search_engine_scores, outlier_handling); return nb::make_tuple(result, search_engine_scores); }, "search_engine_scores"_a, "outlier_handling"_a,
             R"doc(
 Fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables.
@@ -2199,9 +2220,10 @@ computeProbability can be used afterwards.
 )doc")
         .def("fit", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double> search_engine_scores, std::vector<double> probabilities, const std::string& outlier_handling) { bool result = self.fit(search_engine_scores, probabilities, outlier_handling); return nb::make_tuple(result, search_engine_scores, probabilities); }, "search_engine_scores"_a, "probabilities"_a, "outlier_handling"_a,
             R"doc(
-Fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables
+Fits the distributions to the data points(search_engine_scores) and computes the probabilities. Estimated parameters for the distributions are saved in member variables
 computeProbability can be used afterwards
-Uses two Gaussians to fit. And Gauss+Gauss or Gumbel+Gauss to plot and calculate final probabilities
+Fits a Gumbel (or Gauss, parameter incorrectly_assigned) and a Gauss distribution with the EM algorithm; the same distributions give the probabilities.
+With fewer than min_mixture_scores scores (default 35), no model is fitted
 
 :param search_engine_scores: A vector which holds the data points
 :param probabilities: Output vector for computed probabilities
@@ -2216,6 +2238,7 @@ Uses two Gaussians to fit. And Gauss+Gauss or Gumbel+Gauss to plot and calculate
         .def("getIncorrectlyAssignedFitResult", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getIncorrectlyAssignedFitResult(); }, "Returns estimated parameters for correctly assigned sequences. Fit should be used before")
         .def("getNegativePrior", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getNegativePrior(); }, "Returns the estimated negative prior probability")
         .def("computeProbability", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self, double score) { return self.computeProbability(score); }, "score"_a, "Returns the computed posterior error probability for a given score")
+        .def("computeDecoyProbability", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self, double score) { return self.computeDecoyProbability(score); }, "score"_a, "Returns the posterior error probability of a decoy PSM with the given score: for the target-decoy estimate, the PEP the decoy would get as a target (label swap), so that decoys and incorrect targets are exchangeable; for the mixture model, the same as computeProbability")
         .def("initPlots", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double> x_scores) { auto text_file = self.initPlots(x_scores); return nb::make_tuple(text_file, x_scores); }, "x_scores"_a, "Initializes the plots. Returns (TextFile, sorted_scores)")
         .def("getGumbelGnuplotFormula", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self, const OpenMS::Math::GaussFitter::GaussFitResult& params) { return self.getGumbelGnuplotFormula(params); }, "params"_a, "Returns the gnuplot formula of the fitted gumbel distribution")
         .def("getGaussGnuplotFormula", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self, const OpenMS::Math::GaussFitter::GaussFitResult& params) { return self.getGaussGnuplotFormula(params); }, "params"_a, "Returns the gnuplot formula of the fitted gauss distribution")
@@ -2223,6 +2246,12 @@ Uses two Gaussians to fit. And Gauss+Gauss or Gumbel+Gauss to plot and calculate
         .def("plotTargetDecoyEstimation", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double> target, std::vector<double> decoy) { self.plotTargetDecoyEstimation(target, decoy); }, "target"_a, "decoy"_a, "Plots the estimated distribution against target and decoy hits")
         .def("getSmallestScore", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getSmallestScore(); }, "Returns the smallest score used in the last fit")
         .def("tryGnuplot", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, const std::string& gp_file) { return self.tryGnuplot(gp_file); }, "gp_file"_a)
+        ;
+    // ModelType enum nested under PosteriorErrorProbabilityModel
+    nb::enum_<OpenMS::Math::PosteriorErrorProbabilityModel::ModelType>(pep_model_class, "ModelType", "Kind of model estimated by the last fit")
+        .value("NONE", OpenMS::Math::PosteriorErrorProbabilityModel::ModelType::NONE)
+        .value("MIXTURE", OpenMS::Math::PosteriorErrorProbabilityModel::ModelType::MIXTURE)
+        .value("TARGET_DECOY_ISOTONIC", OpenMS::Math::PosteriorErrorProbabilityModel::ModelType::TARGET_DECOY_ISOTONIC)
         ;
 
     // -----------------------------------------------------------------------

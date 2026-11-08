@@ -644,6 +644,14 @@ namespace OpenMS
 
   std::vector<double> MultiplexResolverAlgorithm::expectedChannelMZs(const AASequence& sequence, int charge, Size& position) const
   {
+    std::vector<MultiplexDeltaMasses::LabelSet> label_sets;
+    return expectedChannelMZs(sequence, charge, position, label_sets);
+  }
+
+  std::vector<double> MultiplexResolverAlgorithm::expectedChannelMZs(const AASequence& sequence, int charge, Size& position,
+                                                                     std::vector<MultiplexDeltaMasses::LabelSet>& label_sets) const
+  {
+    label_sets.clear();
     if (charge == 0) { return {}; }
     MultiplexDeltaMassesGenerator generator = createGenerator_();
     const MultiplexDeltaMasses::LabelSet label_set = generator.extractLabelSet(sequence);
@@ -660,6 +668,7 @@ namespace OpenMS
       for (const MultiplexDeltaMasses::DeltaMass& delta_mass : pattern)
       {
         mzs.push_back(mz + (delta_mass.delta_mass - shift) / std::abs(charge));
+        label_sets.push_back(delta_mass.label_set);
       }
       position = static_cast<Size>(index_label_set);
       return mzs;

@@ -9,11 +9,18 @@
 
 #include <OpenMS/ML/CLUSTERING/GridBasedCluster.h>
 
+#include <utility>
+
 namespace OpenMS
 {
 
 GridBasedCluster::GridBasedCluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices, const int &property_A, const std::vector<int> &properties_B)
 : centre_(centre), bounding_box_(bounding_box), point_indices_(point_indices), property_A_(property_A), properties_B_(properties_B)
+{
+}
+
+GridBasedCluster::GridBasedCluster(const Point &centre, const Rectangle &bounding_box, std::vector<int> &&point_indices, const int &property_A, std::vector<int> &&properties_B)
+: centre_(centre), bounding_box_(bounding_box), point_indices_(std::move(point_indices)), property_A_(property_A), properties_B_(std::move(properties_B))
 {
 }
 

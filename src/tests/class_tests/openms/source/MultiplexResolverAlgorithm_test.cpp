@@ -441,6 +441,21 @@ START_SECTION((std::vector<double> expectedChannelMZs(const AASequence& sequence
   TEST_REAL_SIMILAR(mzs[1] - mzs[0], (LYS4 + ARG6) / 2)
   TEST_REAL_SIMILAR(mzs[2] - mzs[0], (LYS8 + ARG10) / 2)
 
+  // the overload also gives the labels of every channel, one entry per labelled residue
+  std::vector<MultiplexDeltaMasses::LabelSet> label_sets;
+  mzs = resolver.expectedChannelMZs(AASequence::fromString("PEK(Label:2H(4))PTIDEK(Label:2H(4))"), 2, position, label_sets);
+  TEST_EQUAL(mzs.size(), 3)
+  TEST_EQUAL(position, 1)
+  TEST_EQUAL(label_sets.size(), 3)
+  TEST_EQUAL(MultiplexDeltaMasses::labelSetToString(label_sets[0]), "no_label")
+  TEST_EQUAL(label_sets[1].count("Lys4"), 2)
+  TEST_EQUAL(label_sets[1].size(), 2)
+  TEST_EQUAL(label_sets[2].count("Lys8"), 2)
+  TEST_REAL_SIMILAR(mzs[1] - mzs[0], 2 * LYS4 / 2)
+  // no pattern: no label sets either
+  TEST_EQUAL(resolver.expectedChannelMZs(AASequence::fromString("PEPTIDE"), 2, position, label_sets).size(), 0)
+  TEST_EQUAL(label_sets.size(), 0)
+
   // the sample of a channel is found by its labels, not by its position (implicit light sample)
   p.setValue("algorithm:labels", "[Lys8,Arg10]");
   resolver.setParameters(p);

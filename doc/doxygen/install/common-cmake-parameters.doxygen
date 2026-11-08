@@ -231,6 +231,16 @@ The most important CMake variables are:
     (Default: <code>http://archive.openms.de/openms/models</code>)</td>
   </tr>
   <tr>
+    <th valign="top">WITH_MIMALLOC=Off/On</td>
+    <td>[Windows, MSVC, x64] The TOPP tools allocate through <a href="https://github.com/microsoft/mimalloc">mimalloc</a>
+    instead of the NT heap. mimalloc 3.6.1 is fetched from GitHub at configure time (FetchContent, pinned by
+    hash) and built with OpenMS as <code>mimalloc.dll</code>; every TOPP tool imports it first, and
+    <code>mimalloc-redirect.dll</code> is placed next to the executables in the build tree and the installation,
+    so the allocations of the OpenMS libraries go through mimalloc as well. Measured with ProSE on a 12-core
+    machine: 26 % less wall time at 12 threads, 5 % at one thread, identical results. Ignored on other platforms
+    and without effect on pyOpenMS. (Default: Off)</td>
+  </tr>
+  <tr>
     <th valign="top">CMAKE_INSTALL_PREFIX</td>
     <td>the path where the bin/ and lib/ directories should be installed to
         (when <pre>sudo make install</pre> is wished for a system-wide

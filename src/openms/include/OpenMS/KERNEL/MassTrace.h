@@ -19,7 +19,6 @@
 namespace OpenMS
 {
   typedef Peak2D PeakType;
-  class string;
 
   /** @brief A container type that gathers peaks similar in m/z and moving along retention time.
 

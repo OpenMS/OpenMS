@@ -92,8 +92,11 @@ endforeach()
 # MSVC does not share the stack slots of the sections, so the frame alone comes close to the 1 MB default stack of
 # Windows (938 KB without slot reuse at the time of writing), and the singletons initialised in the first section
 # overflowed it. Give the test the 8 MB of a Linux main thread.
+# ProSEAlgorithm_test: the same, 834 KB without slot reuse (GCC -O2 -fstack-reuse=none -fstack-usage, 2026-11-02), and the
+# searches of its chimeric section overflowed what was left (an access violation that CTest reports as a SegFault).
 if (MSVC)
   target_link_options(FragmentIndex_test PRIVATE "/STACK:8388608")
+  target_link_options(ProSEAlgorithm_test PRIVATE "/STACK:8388608")
 endif()
 
 # StopWatch_test needs to be run alone to avoid timing errors

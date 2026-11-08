@@ -170,6 +170,23 @@ START_SECTION((static StringList getStandardFeatureSet(int min_charge, int max_c
 }
 END_SECTION
 
+START_SECTION((static StringList getFeatureSet(const ProteinIdentification::SearchParameters& search_parameters, int min_charge, int max_charge)))
+{
+  // the standard features, the search engine's features of the run, then Peptide and Proteins
+  ProteinIdentification::SearchParameters sp;
+  sp.setMetaValue("extra_features", "hyperscore,isotope_error,NuXL:score");
+  StringList expected = PercolatorInfile::getStandardFeatureSet(2, 4);
+  expected.insert(expected.end(), {"hyperscore", "isotope_error", "NuXL:score", "Peptide", "Proteins"});
+  TEST_EQUAL(ListUtils::concatenate(PercolatorInfile::getFeatureSet(sp, 2, 4), ","), ListUtils::concatenate(expected, ","))
+
+  // without extra_features: the main score
+  ProteinIdentification::SearchParameters no_extra;
+  expected = PercolatorInfile::getStandardFeatureSet(3, 3);
+  expected.insert(expected.end(), {"score", "Peptide", "Proteins"});
+  TEST_EQUAL(ListUtils::concatenate(PercolatorInfile::getFeatureSet(no_extra, 3, 3), ","), ListUtils::concatenate(expected, ","))
+}
+END_SECTION
+
 START_SECTION((static void store(const std::string& pin_file, const PeptideIdentificationList& peptide_ids, const StringList& feature_set, const std::string& enz, int min_charge, int max_charge)))
 {
   // Validates the -out_pin output that PercolatorAdapter/ProSE/OpenNuXL emit:

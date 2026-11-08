@@ -301,6 +301,26 @@ START_SECTION(([ControlledVocabulary::CVTerm] std::string ControlledVocabulary::
 }
 END_SECTION
 
+START_SECTION(([ControlledVocabulary::CVTerm] toXMLString(const std::string& ref, const OpenMS::DataValue& value) writes the unit of the given value, not just any unit the term allows))
+{
+  // A term that allows several different units (e.g. both minute and second
+  // for a retention time); unitAccession must reflect which one the value
+  // being written actually carries, not just the first one in CVTerm::units.
+  ControlledVocabulary::CVTerm term;
+  term.id = "MS:1000894";
+  term.name = "retention time";
+  term.units = {"UO:0000031"}; // minute -- deliberately NOT what val below is
+
+  OpenMS::DataValue val("123.4");
+  val.setUnit(10); // UO:0000010 ("second")
+  val.setUnitType(OpenMS::DataValue::UnitType::UNIT_ONTOLOGY);
+
+  std::string xml = term.toXMLString("MS", val);
+  TEST_EQUAL(xml.find("unitAccession=\"UO:0000010\"") != std::string::npos, true)
+  TEST_EQUAL(xml.find("unitAccession=\"UO:0000031\"") != std::string::npos, false)
+}
+END_SECTION
+
 START_SECTION(([ControlledVocabulary::CVTerm] CVTerm(const CVTerm &rhs)))
 {
   ControlledVocabulary::CVTerm a;

@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/ID/PercolatorTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
 #include <map>
@@ -108,17 +109,38 @@ namespace OpenMS
       static std::string getFileIdentifier(const PeptideIdentification& pid);
 
       /**
+       * @brief getFileIdentifier() with the registry indices of 'file_origin' and 'id_merge_index' looked up once
+       * (MetaInfoRegistry::getIndex(); UInt(-1): not registered, so no PSM carries it): for loops over many PSMs, where
+       * the lookups by name take the registry's lock per call. Look the indices up after the PSMs are loaded: a name
+       * registered later (setMetaValue() by name) is not seen through an index cached as UInt(-1).
+       */
+      static std::string getFileIdentifier(const PeptideIdentification& pid, UInt file_origin_index, UInt id_merge_index_index);
+
+      /**
        * @brief Returns the standard Percolator feature columns every .pin file should declare.
        *
        * The list contains the three mandatory header columns (SpecId, Label, ScanNr)
        * followed by the standard per-PSM features that @ref preparePin_ computes and
        * sets on every hit: ExpMass, CalcMass, mass, peplen, charge{min..max}, enzN,
        * enzC, enzInt, dm, absdm. Callers should append their search-engine-specific
-       * extra_features (and finally Peptide, Proteins) to this list before calling @ref store.
+       * extra_features (and finally Peptide, Proteins) to this list before calling @ref store,
+       * as getFeatureSet() does.
        * This is the single source of truth used by PercolatorAdapter and any other
        * tool that emits .pin for external percolator consumption.
        */
       static StringList getStandardFeatureSet(int min_charge, int max_charge);
+
+      /**
+       * @brief The feature columns of the .pin file of the PSMs of a search run: getStandardFeatureSet(), the search
+       *        engine's own features, then Peptide and Proteins.
+       *
+       * The search engine's features are the meta value 'extra_features' of @p search_parameters (a comma-separated
+       * list of meta values of the hits, as the search engines and PSMFeatureExtractor annotate them); without it, the
+       * main score ("score"). PercolatorAdapter, ProSE and OpenNuXL rescore their PSMs on this feature set (store(),
+       * Percolator::rescorePSMs()).
+       */
+      static StringList getFeatureSet(const ProteinIdentification::SearchParameters& search_parameters,
+                                      int min_charge, int max_charge);
 
       /**
        * @brief The names of all PIN columns (meta values) that @ref stampPinFeaturesOnHits sets on a hit.

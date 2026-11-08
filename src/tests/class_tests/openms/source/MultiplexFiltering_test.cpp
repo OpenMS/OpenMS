@@ -11,8 +11,11 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/FEATUREFINDER/MultiplexFiltering.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
+
+#include <cmath>
 
 using namespace OpenMS;
 
@@ -76,6 +79,54 @@ START_SECTION(MultiplexFiltering(const MSExperiment& exp_picked, const std::vect
   ptr = new MultiplexFiltering(exp_picked, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type);
   TEST_NOT_EQUAL(ptr, nullPointer);
   delete ptr;
+END_SECTION
+
+START_SECTION((static double deuteriumLowerFraction(unsigned deuterium, double enrichment, const IsotopeDistribution& isotopes)))
+{
+  IsotopeDistribution isotopes;
+  isotopes.set(IsotopeDistribution::ContainerType{Peak1D(1000.0, 0.5f), Peak1D(1001.0, 0.3f), Peak1D(1002.0, 0.2f)});
+  // four 2H at 96 %: q_1 = 4 (0.04/0.96), q_2 = 6 (0.04/0.96)^2, q_3 = 4 (0.04/0.96)^3;
+  // (q_1 I_0 + q_2 I_1 + q_3 I_2) / (I_0 + q_1 I_1 + q_2 I_2)
+  TEST_REAL_SIMILAR(MultiplexFiltering::deuteriumLowerFraction(4, 0.96, isotopes), 0.156708595)
+  // about r / (1 + r I_1/I_0) with r = n (1 - p) / p
+  TEST_EQUAL(std::fabs(MultiplexFiltering::deuteriumLowerFraction(4, 0.96, isotopes) - (1.0 / 6) / (1 + 0.6 / 6)) < 0.01, true)
+  // more 2H atoms (two Lys4), more of it
+  TEST_EQUAL(MultiplexFiltering::deuteriumLowerFraction(8, 0.96, isotopes) > MultiplexFiltering::deuteriumLowerFraction(4, 0.96, isotopes), true)
+  // none without 2H, at complete enrichment, or without an isotope distribution to place it
+  TEST_EQUAL(MultiplexFiltering::deuteriumLowerFraction(0, 0.96, isotopes), 0.0)
+  TEST_EQUAL(MultiplexFiltering::deuteriumLowerFraction(4, 1.0, isotopes), 0.0)
+  IsotopeDistribution single;
+  single.set(IsotopeDistribution::ContainerType{Peak1D(1000.0, 1.0f)});
+  TEST_EQUAL(MultiplexFiltering::deuteriumLowerFraction(4, 0.96, single), 0.0)
+}
+END_SECTION
+
+START_SECTION((static double deuteriumAllowance(unsigned deuterium, double enrichment, const IsotopeDistribution& isotopes)))
+{
+  IsotopeDistribution isotopes;
+  isotopes.set(IsotopeDistribution::ContainerType{Peak1D(1000.0, 0.5f), Peak1D(1001.0, 0.3f), Peak1D(1002.0, 0.2f)});
+  // below the cap, the expected lower isotopologue
+  TEST_REAL_SIMILAR(MultiplexFiltering::deuteriumAllowance(4, 0.96, isotopes), MultiplexFiltering::deuteriumLowerFraction(4, 0.96, isotopes))
+  // at most half the way from 0.3 to I_0/I_1 = 5/3, which a pattern one isotope too high would show
+  TEST_EQUAL(MultiplexFiltering::deuteriumLowerFraction(18, 0.6, isotopes) > 0.5 * (0.5 / 0.3 - 0.3), true)
+  TEST_REAL_SIMILAR(MultiplexFiltering::deuteriumAllowance(18, 0.6, isotopes), 0.5 * (0.5 / 0.3 - 0.3))
+  // none where I_0/I_1 is not above 0.3, without 2H or at complete enrichment
+  IsotopeDistribution heavy;
+  heavy.set(IsotopeDistribution::ContainerType{Peak1D(1000.0, 0.1f), Peak1D(1001.0, 0.5f), Peak1D(1002.0, 0.4f)});
+  TEST_EQUAL(MultiplexFiltering::deuteriumAllowance(4, 0.96, heavy), 0.0)
+  TEST_EQUAL(MultiplexFiltering::deuteriumAllowance(0, 0.96, isotopes), 0.0)
+  TEST_EQUAL(MultiplexFiltering::deuteriumAllowance(4, 1.0, isotopes), 0.0)
+}
+END_SECTION
+
+START_SECTION((void setDeuteriumLabels(const std::map<std::string, DeuteriumLabel>& labels)))
+{
+  MultiplexFiltering filtering(exp_picked, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type);
+  filtering.setDeuteriumLabels({{"Arg8", {8, 0.97}}});
+  filtering.setDeuteriumLabels({});
+  TEST_EXCEPTION(Exception::InvalidValue, filtering.setDeuteriumLabels({{"Arg8", {8, 0.0}}}))
+  TEST_EXCEPTION(Exception::InvalidValue, filtering.setDeuteriumLabels({{"Arg8", {8, 1.1}}}))
+}
 END_SECTION
 
 END_TEST

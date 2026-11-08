@@ -465,6 +465,11 @@ if(ENABLE_IPO)
 endif()
 
 #------------------------------------------------------------------------------
+# Linker choice (lld/mold when available; see cmake/linker.cmake)
+#------------------------------------------------------------------------------
+include(cmake/linker.cmake)
+
+#------------------------------------------------------------------------------
 # Enable clang compile time profiling
 #------------------------------------------------------------------------------
 option(CLANG_TIME_TRACE "[Clang 9+ only] Enable clang compile time profiling." OFF)
@@ -757,6 +762,9 @@ if(WITH_ONNX AND NOT OPENMS_USE_INSTALLED_LIBRARY)
   endif() 
 endif()
 
+
+## WITH_MIMALLOC (Windows, MSVC): the TOPP tools allocate through mimalloc; defines openms_link_mimalloc().
+include(cmake/mimalloc.cmake)
 
 #------------------------------------------------------------------------------
 # The actual OpenMS code (headers and source files)

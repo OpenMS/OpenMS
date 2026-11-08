@@ -589,7 +589,10 @@ namespace OpenMS{
       StringUtils::ensureLastChar(loc, '/');
       loc = loc + filename_new;
 
-      if (exists(loc))
+      // A candidate directory that cannot be checked does not hold the file (callers pass paths compiled in on the
+      // build machine first, e.g. OPENMS_BINARY_PATH for the PeptDeep models; see isOpenMSDataPath_()).
+      std::error_code ec;
+      if (fs::exists(to_path(loc), ec) && !ec)
       {
         return to_path(loc).lexically_normal().generic_string();
       }
@@ -805,8 +808,13 @@ namespace OpenMS{
 
   bool File::isOpenMSDataPath_(const std::string& path)
   {
-    bool found = exists(path + "/CHEMISTRY/unimod.xml");
-    return found;
+    // Not File::exists(), which throws for any error but "not found". The candidates include paths compiled in on the
+    // build machine (OPENMS_DATA_PATH, the source tree: D:/a/... on a GitHub Windows runner). On a user's machine that
+    // path's drive may be one Windows cannot read (an empty DVD drive: ERROR_NOT_READY, "The device is not ready"), or
+    // a folder on the way one the user may not enter (EACCES); the exception would end every tool in TOPPBase's
+    // constructor, before the next candidate (the tool's own ../share/OpenMS) is tried. Such a candidate is not it.
+    std::error_code ec;
+    return fs::exists(to_path(path + "/CHEMISTRY/unimod.xml"), ec) && !ec;
   }
 
   bool File::isDirectory(const std::string& path)
@@ -918,7 +926,10 @@ namespace OpenMS{
     if (!install_data_path.empty())
     {
       exec = install_data_path + "/../../bin/" + toolName;
-      if (File::exists(exec) && !File::isDirectory(exec)) return exec;
+      // (a compiled-in path: one that cannot be checked does not hold it, see isOpenMSDataPath_())
+      std::error_code ec;
+      const fs::file_status st = fs::status(to_path(exec), ec);
+      if (!ec && fs::exists(st) && !fs::is_directory(st)) return exec;
     }
 #endif
     // TODO(aiche): probe in PATH

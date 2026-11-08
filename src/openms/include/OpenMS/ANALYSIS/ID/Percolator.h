@@ -13,6 +13,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <functional>
 #include <memory>
@@ -337,6 +338,29 @@ namespace OpenMS
       @throws Exception::UnableToCreateFile if @p filename can't be written
     */
     void storeWeights(const std::string& filename) const;
+
+    /// The search engine version that markRescoredRuns() records for the Percolator built into OpenMS
+    static constexpr const char* VENDORED_VERSION = "3.08-vendored";
+
+    /**
+      @brief Marks search runs as post-processed by Percolator, so that downstream tools see that their PSMs were rescored
+
+      Sets on every run of @p runs: the search engine "Percolator" with version @p version, the meta value
+      'percolator' = @p tool, and the meta values 'Percolator:\<name\>' of its search parameters from @p settings, in
+      their order. The producers of derived scores that earlier tools recorded (ProteinIdentification::setScoreSoftware())
+      are removed, since Percolator produces the PSM scores now. PercolatorAdapter, ProSE and OpenNuXL mark the runs
+      whose PSMs they rescored with it; @p settings are the options each ran Percolator with.
+
+      @param[in,out] runs The runs whose PSMs were rescored
+      @param[in] tool The tool that rescored them, e.g. "PercolatorAdapter"
+      @param[in] settings (name, value) of the search parameter meta values 'Percolator:\<name\>'. An empty value
+                 (DataValue::EMPTY) removes that meta value, for a setting that does not apply.
+      @param[in] version The search engine version, e.g. that of the percolator executable
+    */
+    static void markRescoredRuns(std::vector<ProteinIdentification>& runs,
+                                 const std::string& tool,
+                                 const std::vector<std::pair<std::string, DataValue>>& settings,
+                                 const std::string& version = VENDORED_VERSION);
 
     /// @brief The out-of-fold capped training of the last rescore() (subset_mode 'out_of_fold', 'out_of_fold_avg' or
     ///        'learning_curve', active).

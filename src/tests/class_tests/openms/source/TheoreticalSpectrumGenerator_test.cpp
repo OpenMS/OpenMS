@@ -1127,6 +1127,22 @@ START_SECTION(bool getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint
                     && name.substr(pos) == charge_str && std::memcmp(&mz, &expected_mz, sizeof(double)) == 0;
           }
           TEST_EQUAL(same2, true)
+
+          // the ion types of the ion names ("z." is Zp1Ion, "z'" Zp2Ion); the other outputs as without them
+          PeakSpectrum spectrum3;
+          std::vector<uint8_t> series3;
+          std::vector<UInt> ordinals3;
+          std::vector<Int> charges3;
+          std::vector<Residue::ResidueType> types;
+          TEST_EQUAL(generator.getIonSeriesSpectrum(spectrum3, series3, ordinals3, charges3, types, peptide, 1, max_charge), true)
+          bool same3 = spectrum3 == spectrum2 && series3 == series && ordinals3 == ordinals && charges3 == charges
+                       && types.size() == expected.size();
+          for (Size i = 0; same3 && i < expected.size(); ++i)
+          {
+            const std::string& name = expected.getStringDataArrays()[0][i];
+            same3 = name.substr(0, name.find_first_of("0123456789")) == Residue::residueTypeToIonLetter(types[i]);
+          }
+          TEST_EQUAL(same3, true)
         }
       }
     }
@@ -1153,6 +1169,19 @@ START_SECTION(bool getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint
   std::vector<UInt> ordinals;
   std::vector<Int> charges;
   TEST_EQUAL(generator.getIonSeriesSpectrum(spectrum, series, ordinals, charges, AASequence::fromString("K"), 1, 2), false)
+}
+END_SECTION
+
+START_SECTION(bool getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series, std::vector<UInt>& ion_ordinals, std::vector<Int>& ion_charges, std::vector<Residue::ResidueType>& ion_types, const AASequence& peptide, Int min_charge, Int max_charge) const)
+{
+  // tested with the first overload; unsupported configurations
+  TheoreticalSpectrumGenerator generator;
+  PeakSpectrum spectrum;
+  std::vector<uint8_t> series;
+  std::vector<UInt> ordinals;
+  std::vector<Int> charges;
+  std::vector<Residue::ResidueType> types;
+  TEST_EQUAL(generator.getIonSeriesSpectrum(spectrum, series, ordinals, charges, types, AASequence::fromString("K"), 1, 2), false)
 }
 END_SECTION
 
