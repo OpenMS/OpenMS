@@ -1,0 +1,6 @@
+accepted search 717, boundary 746, both 700, gained 46, lost 17
+        log_apex  peak_width_seconds    n
+grp                                      
+both        4.90               39.28  700
+gained      4.82               44.23   46
+lost        4.09               49.15   17

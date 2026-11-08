@@ -38,4 +38,14 @@ Evidence: [`gates/astral-raw01-peak-boundaries`](../gates/astral-raw01-peak-boun
 
 **Not yet shown:** any gain in IDs.
 
-**Next gate:** recompute peak features over the new [left, right], as one opt-in stage-2 group, with cross-fitted boundary models. Predeclare the rule and run it on an unused design run.
+**Stage-2 `boundary` group (raw 01, descriptive; plan written before the run; [`stage2-boundary/RESULT.md`](../gates/astral-raw01-peak-boundaries/stage2-boundary/RESULT.md); commit `5e23606c15`):**
+- **What it is:** each window is re-picked on its scan bins, adding five features (log FWHM, log base width, co-elution and library correlation over the picked peak, apex agreement). No training is involved.
+- **Counts:** `search+boundary` gives 360 / **746** / 1000 / 1441 at q ≤ 0.005 / 0.01 / 0.02 / 0.05, against 331 / 717 / 1015 / 1412 for the frozen `search`. That is +4.0% at 1%, below the pre-set +5%.
+- **Checks:**
+  - weights are stable in sign across folds;
+  - null bands are symmetric;
+  - the gain is on bright peaks, not weak ones;
+  - CNN columns and HeLa defaults are byte-identical.
+- **Decision:** no gate is proposed and the learned segmenter is not ported. The group stays opt-in. Better boundaries alone are not the main lever on this run.
+
+**Next:** the boundary track is paused. The candidate levers from the miss analysis are the CNN's bias towards bright interference (the `-topaz_faithful` normalisation) and a non-linear stage-2 combiner. Each needs its own predeclared rule and an unused design run.

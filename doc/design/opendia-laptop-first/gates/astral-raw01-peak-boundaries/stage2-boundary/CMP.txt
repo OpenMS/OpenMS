@@ -1,0 +1,2 @@
+sample/logit/fold/window columns IDENTICAL (precursor_best and stage2 columns differ by design)
+features columns 1-9 (ids, cnn_z, search) IDENTICAL

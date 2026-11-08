@@ -1,0 +1,26 @@
+search (frozen)    q<=0.005: 331 q<=0.01: 717 q<=0.02: 1015 q<=0.05: 1412
+search+boundary    q<=0.005: 360 q<=0.01: 746 q<=0.02: 1000 q<=0.05: 1441
+  second stage fold=0 iterations=3 positives=961 negatives=177386 cnn_z=5.513070 transition_support=6.256196 log_matched_scans=-6.652018 log_peak_width=2.774198 abs_library_rt_error=-2.047836 boundary_log_fwhm=-1.574666 boundary_log_width=-0.274397 boundary_coelution=1.894039 boundary_library_correlation=1.047024 boundary_apex_agreement=-0.868301
+  second stage fold=1 iterations=3 positives=925 negatives=178240 cnn_z=5.466369 transition_support=6.307892 log_matched_scans=-7.016454 log_peak_width=3.090180 abs_library_rt_error=-1.969291 boundary_log_fwhm=-1.617753 boundary_log_width=-0.031121 boundary_coelution=1.937005 boundary_library_correlation=0.823605 boundary_apex_agreement=-0.752752
+  second stage fold=2 iterations=3 positives=946 negatives=177506 cnn_z=5.572166 transition_support=6.231272 log_matched_scans=-6.697168 log_peak_width=2.802275 abs_library_rt_error=-1.945323 boundary_log_fwhm=-1.558907 boundary_log_width=-0.302486 boundary_coelution=1.871844 boundary_library_correlation=1.212151 boundary_apex_agreement=-1.058811
+
+CNN z in (-99,0] winners: targets 152300, decoys 156869 (median target / decoy)
+  boundary_log_fwhm                 1.608    1.603
+  boundary_log_width                2.245    2.245
+  boundary_coelution                0.066    0.053
+  boundary_library_correlation      0.000    0.000
+  boundary_apex_agreement           0.333    0.333
+
+CNN z in (4,6] winners: targets 7881, decoys 6409 (median target / decoy)
+  boundary_log_fwhm                 1.856    1.874
+  boundary_log_width                2.648    2.648
+  boundary_coelution                0.179    0.166
+  boundary_library_correlation      0.223    0.150
+  boundary_apex_agreement           0.667    0.667
+
+CNN z in (6,99] winners: targets 2620, decoys 1096 (median target / decoy)
+  boundary_log_fwhm                 1.765    1.843
+  boundary_log_width                2.773    2.773
+  boundary_coelution                0.477    0.267
+  boundary_library_correlation      0.641    0.242
+  boundary_apex_agreement           0.833    0.667
