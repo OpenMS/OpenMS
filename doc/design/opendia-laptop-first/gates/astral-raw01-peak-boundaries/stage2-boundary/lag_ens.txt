@@ -1,0 +1,26 @@
+
+OSW 1% IDs 1462 | our winner at OSW RT 1379 | accepted 710 | right peak not accepted 672
+missed right-peak q quantiles {0.25: 0.017, 0.5: 0.032, 0.75: 0.11, 0.9: 0.314}
+
+within the score band where the misses sit (stage2 38.4..73.5): missed OSW targets 604, decoy winners 1146
+  per-feature AUC missed-target vs decoy (0.5 = no information left; <0.5 means decoys look better):
+    cnn_z                          0.57   target med     6.272  decoy med     5.769
+    transition_support             0.84   target med     5.000  decoy med     4.000
+    log_matched_scans              0.49   target med     2.708  decoy med     2.708
+    log_peak_width                 0.58   target med     3.846  decoy med     3.472
+    abs_library_rt_error           0.34   target med    15.626  decoy med    28.864
+    boundary_log_fwhm              0.39   target med     1.702  decoy med     1.773
+    boundary_log_width             0.43   target med     2.648  decoy med     2.773
+    boundary_coelution             0.81   target med     0.581  decoy med     0.270
+    boundary_library_correlation   0.81   target med     0.832  decoy med     0.317
+    boundary_apex_agreement        0.80   target med     0.833  decoy med     0.667
+    fragment_fraction              0.60   target med     1.000  decoy med     1.000
+    fragment_coelution             0.77   target med     0.550  decoy med     0.228
+    library_correlation            0.82   target med     0.855  decoy med     0.330
+    ms2_abs_ppm                    0.32   target med     0.881  decoy med     2.365
+    ms1_abs_ppm                    0.26   target med     1.568  decoy med     6.440
+    ms1_coelution                  0.62   target med     0.562  decoy med     0.139
+    ms1_isotope                    0.59   target med     1.000  decoy med     1.000
+    apex_intensity                 0.36   target med 19447.409  decoy med 33832.448
+ens A: q<=0.005/0.01/0.02/0.05 = [309, 1009, 1258, 1534] | OSW IDs among 1% 919 | R 0.984
+ens B: q<=0.005/0.01/0.02/0.05 = [353, 935, 1174, 1544] | OSW IDs among 1% 858 | R 0.980

@@ -48,4 +48,4 @@ Evidence: [`gates/astral-raw01-peak-boundaries`](../gates/astral-raw01-peak-boun
   - CNN columns and HeLa defaults are byte-identical.
 - **Decision:** no gate is proposed and the learned segmenter is not ported. The group stays opt-in. Better boundaries alone are not the main lever on this run.
 
-**Next:** the boundary track is paused. The candidate levers from the miss analysis are the CNN's bias towards bright interference (the `-topaz_faithful` normalisation) and a non-linear stage-2 combiner. Each needs its own predeclared rule and an unused design run.
+**Next:** the boundary track is paused. The candidate levers from the miss analysis are the CNN's bias towards bright interference (the `-topaz_faithful` normalisation) and a non-linear stage-2 combiner. Each needs its own predeclared rule and an unused design run. A post-hoc raw 01 diagnostic ([LAG.md](../gates/astral-raw01-peak-boundaries/stage2-boundary/LAG.md)) ranks the combiner first. On the same search+boundary features, a 5-seed MLP ensemble reaches 935–1009 at q ≤ 0.01 against 745 for LDA, and 1534–1544 against 1440 at q ≤ 0.05, with R 0.98. Single-seed 1% counts are unstable (761–1131).
