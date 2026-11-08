@@ -29,6 +29,10 @@ add_executable(OpenDIAStage2_test OpenDIAStage2_test.cpp)
 target_link_libraries(OpenDIAStage2_test PRIVATE OpenDIA_impl)
 add_test(NAME OpenDIAStage2_test COMMAND OpenDIAStage2_test)
 
+add_executable(OpenDIAPeakPicker_test OpenDIAPeakPicker_test.cpp)
+target_link_libraries(OpenDIAPeakPicker_test PRIVATE OpenDIA_impl)
+add_test(NAME OpenDIAPeakPicker_test COMMAND OpenDIAPeakPicker_test)
+
 if(TARGET OpenDIA_cnn)
   add_executable(OpenDIACNN_test OpenDIACNN_test.cpp)
   target_link_libraries(OpenDIACNN_test PRIVATE OpenDIA_cnn)
@@ -95,6 +99,14 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML" A
       -window_panel_targets 100
       -out ${CMAKE_CURRENT_BINARY_DIR}/OpenDIACalibrate_small_window_panel.json)
   set_tests_properties(OpenDIACalibrate_rejects_small_window_panel PROPERTIES WILL_FAIL TRUE)
+  # The experimental anchor peak output is also guarded against overwriting an input.
+  add_test(NAME OpenDIACalibrate_anchor_peaks_refuse_input_overwrite
+    COMMAND $<TARGET_FILE:OpenDIACalibrate>
+      -in ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML
+      -lib ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
+      -out ${CMAKE_CURRENT_BINARY_DIR}/OpenDIACalibrate_anchor_peaks.json
+      -out_anchor_peaks ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp)
+  set_tests_properties(OpenDIACalibrate_anchor_peaks_refuse_input_overwrite PROPERTIES WILL_FAIL TRUE)
   # OpenDIA -calibration rejects an invalid calibration file instead of silently extracting uncalibrated.
   file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_invalid_calibration.json "{\"version\": 1, \"rt\": {}}\n")
   add_test(NAME OpenDIA_rejects_invalid_calibration

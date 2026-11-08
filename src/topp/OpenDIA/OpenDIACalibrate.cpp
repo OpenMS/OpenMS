@@ -35,6 +35,8 @@ namespace OpenMS
       setValidFormats_("lib", {"pqp"});
       registerOutputFile_("out", "<file>", "", "Calibration JSON: RT map, mass offset, 1/K0 model and tolerances");
       registerOutputFile_("out_anchors", "<file>", "", "Optional anchor TSV", false);
+      registerOutputFile_("out_anchor_peaks", "<file>", "", "Experimental: optional TSV of picked peak-group boundaries per anchor (simple consensus picker on raw-scan traces; candidate boundary labels)", false);
+      registerOutputFile_("out_anchor_traces", "<file>", "", "Experimental: optional long TSV of each anchor's raw-scan fragment traces (+-64 spectra) with the picked in-peak flag", false);
       registerOutputFile_("out_diagnostics", "<file>", "", "Optional per panel member stage TSV (best RT, score, q per stage and the stage maps), written also when calibration fails", false);
       registerIntOption_("panel_targets", "<n>", 10000, "Targets sampled evenly over library RT; each brings its paired decoy", false);
       setMinInt_("panel_targets", 50);
@@ -55,7 +57,9 @@ namespace OpenMS
       const std::string out = getStringOption_("out");
       const std::string anchors = getStringOption_("out_anchors");
       const std::string diagnostics_path = getStringOption_("out_diagnostics");
-      for (const auto& output : {out, anchors, diagnostics_path})
+      const std::string anchor_peaks = getStringOption_("out_anchor_peaks");
+      const std::string anchor_traces = getStringOption_("out_anchor_traces");
+      for (const auto& output : {out, anchors, diagnostics_path, anchor_peaks, anchor_traces})
       {
         if (output.empty())
         {
@@ -169,6 +173,26 @@ namespace OpenMS
       {
         std::ofstream table(anchors);
         OpenDIA::writeCalibrationAnchors(result, table);
+        table.close();
+        if (!table)
+        {
+          return CANNOT_WRITE_OUTPUT_FILE;
+        }
+      }
+      if (!anchor_peaks.empty())
+      {
+        std::ofstream table(anchor_peaks);
+        OpenDIA::writeCalibrationAnchorPeaks(result, table);
+        table.close();
+        if (!table)
+        {
+          return CANNOT_WRITE_OUTPUT_FILE;
+        }
+      }
+      if (!anchor_traces.empty())
+      {
+        std::ofstream table(anchor_traces);
+        OpenDIA::writeCalibrationAnchorTraces(result, table);
         table.close();
         if (!table)
         {

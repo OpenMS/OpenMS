@@ -1079,6 +1079,18 @@ namespace OpenMS::OpenDIA
         }
       }
       anchor.observed_im = median_(ims);
+      {
+        // Experimental boundary label: pick the peak group on a +-64 spectrum slice of the raw-scan traces.
+        const std::size_t apex = best[m].apex;
+        const std::size_t first = apex > 64 ? apex - 64 : 0;
+        const std::size_t last = std::min(member.rt.size() - 1, apex + 64);
+        anchor.anchor_scan = apex - first;
+        anchor.trace_rt.assign(member.rt.begin() + first, member.rt.begin() + last + 1);
+        anchor.trace.assign(member.intensity.begin() + first, member.intensity.begin() + last + 1);
+        std::vector<double> scratch;
+        anchor.peak = pickPeakGroup(anchor.trace.front().data(), member.fragment_count, anchor.trace.size(), 1, FRAGMENTS,
+                                    anchor.anchor_scan, PeakPickerOptions{}, scratch);
+      }
       result.anchors.push_back(anchor);
       anchor_points.emplace_back(anchor.library_rt, anchor.run_rt);
     }
@@ -1287,6 +1299,51 @@ namespace OpenMS::OpenDIA
     {
       out << a.precursor_id << '\t' << a.library_rt << '\t' << a.run_rt << '\t' << a.library_im << '\t' << a.observed_im << '\t'
           << a.correlation << '\t' << a.cosine << '\t' << a.fragments << '\t' << a.q_value << '\t' << a.used << '\n';
+    }
+  }
+
+  void writeCalibrationAnchorPeaks(const CalibrationResult& r, std::ostream& out)
+  {
+    out << "precursor_id\tused\tq_value\tcalibration_rt\tfound\tapex_rt\tleft_rt\tright_rt\thalf_left_rt\thalf_right_rt\t"
+           "width_s\tfwhm_s\tscans\tfragments_with_signal\tagreeing_fragments\tleft_reason\tright_reason\tclean\n"
+        << std::setprecision(10);
+    for (const auto& a : r.anchors)
+    {
+      const auto& p = a.peak;
+      const auto at = [&](double index) { return interpolateAt(a.trace_rt, index); };
+      const std::size_t shift = p.apex > a.anchor_scan ? p.apex - a.anchor_scan : a.anchor_scan - p.apex;
+      const bool clean = p.found && shift <= 1 && p.agreeing_fragments >= 4 && p.left_reason != PeakBoundary::EDGE &&
+                         p.right_reason != PeakBoundary::EDGE;
+      out << a.precursor_id << '\t' << a.used << '\t' << a.q_value << '\t' << a.run_rt << '\t' << p.found << '\t';
+      if (p.found)
+      {
+        out << at(p.apex) << '\t' << at(p.left) << '\t' << at(p.right) << '\t' << at(p.half_left) << '\t' << at(p.half_right) << '\t'
+            << at(p.right) - at(p.left) << '\t' << at(p.half_right) - at(p.half_left) << '\t' << p.right - p.left + 1 << '\t';
+      }
+      else
+      {
+        out << "NA\tNA\tNA\tNA\tNA\tNA\tNA\t0\t";
+      }
+      out << p.fragments_with_signal << '\t' << p.agreeing_fragments << '\t' << peakBoundaryName(p.left_reason) << '\t'
+          << peakBoundaryName(p.right_reason) << '\t' << clean << '\n';
+    }
+  }
+
+  void writeCalibrationAnchorTraces(const CalibrationResult& r, std::ostream& out)
+  {
+    out << "precursor_id\tscan\trt\tinside\ti0\ti1\ti2\ti3\ti4\ti5\n" << std::setprecision(10);
+    for (const auto& a : r.anchors)
+    {
+      for (std::size_t s = 0; s < a.trace.size(); ++s)
+      {
+        const bool inside = a.peak.found && s >= a.peak.left && s <= a.peak.right;
+        out << a.precursor_id << '\t' << s << '\t' << a.trace_rt[s] << '\t' << inside;
+        for (float value : a.trace[s])
+        {
+          out << '\t' << value;
+        }
+        out << '\n';
+      }
     }
   }
 

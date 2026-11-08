@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenDIARTMap.h>
+#include <OpenDIAPeakPicker.h>
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -83,6 +84,11 @@ namespace OpenMS::OpenDIA
     double q_value = 1.0;
     std::size_t fragments = 0;
     bool used = false; ///< Survived RT outlier rejection.
+    // Experimental peak-group boundaries (pickPeakGroup on the anchor's raw-scan fragment traces); not used by the calibration.
+    PickedPeak peak;         ///< Indices refer to trace_rt / trace.
+    std::size_t anchor_scan = 0; ///< Index of the calibration apex in trace_rt.
+    std::vector<double> trace_rt; ///< Spectrum RTs of the stored trace slice (at most +-64 spectra around the apex).
+    std::vector<std::array<float, 6>> trace; ///< Fragment intensities per stored spectrum (unused fragments are 0).
   };
 
   /** @brief Calibrated library-to-run coordinates and extraction tolerances. */
@@ -269,6 +275,17 @@ namespace OpenMS::OpenDIA
 
   /// Write anchors as TSV to @p out.
   void writeCalibrationAnchors(const CalibrationResult& result, std::ostream& out);
+
+  /**
+    @brief Write the experimental picked peak-group boundary of every anchor as TSV to @p out (one row per anchor).
+
+    A row is clean when the picker found a peak whose apex is within one spectrum of the calibration apex, at least four
+    fragments peak there, and neither boundary hit the stored trace edge. Clean rows are candidate boundary labels.
+  */
+  void writeCalibrationAnchorPeaks(const CalibrationResult& result, std::ostream& out);
+
+  /// Write the stored raw-scan fragment traces of every anchor as long TSV (one row per spectrum) to @p out.
+  void writeCalibrationAnchorTraces(const CalibrationResult& result, std::ostream& out);
 
   /** @brief Models read back from a calibration JSON written by writeCalibrationJSON(). */
   struct CalibrationRT
