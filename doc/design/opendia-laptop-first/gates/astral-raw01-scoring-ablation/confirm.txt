@@ -1,0 +1,8 @@
+base                   q<=0.01: accepted 333, DIA-NN-confirmed at same RT 325 (0.976), in DIA-NN at all 326
+base                   q<=0.05: accepted 770, DIA-NN-confirmed at same RT 698 (0.906), in DIA-NN at all 701
++support/scans/width   q<=0.01: accepted 623, DIA-NN-confirmed at same RT 610 (0.979), in DIA-NN at all 611
++support/scans/width   q<=0.05: accepted 1316, DIA-NN-confirmed at same RT 1190 (0.904), in DIA-NN at all 1196
++delta_rt              q<=0.01: accepted 363, DIA-NN-confirmed at same RT 352 (0.970), in DIA-NN at all 354
++delta_rt              q<=0.05: accepted 784, DIA-NN-confirmed at same RT 716 (0.913), in DIA-NN at all 718
++both                  q<=0.01: accepted 646, DIA-NN-confirmed at same RT 631 (0.977), in DIA-NN at all 632
++both                  q<=0.05: accepted 1343, DIA-NN-confirmed at same RT 1210 (0.901), in DIA-NN at all 1216
