@@ -1,0 +1,5 @@
+search {0.005: 331, 0.01: 717, 0.02: 1015, 0.05: 1412}
+search+isotope {0.005: 402, 0.01: 650, 0.02: 910, 0.05: 1354}
+cnn_z (-99,0] {0: {'ms1_isotope_correlation': 0.0, 'ms1_isotope_overlap': 0.41, 'ms1_isotope_coelution': 0.0}, 1: {'ms1_isotope_correlation': 0.0, 'ms1_isotope_overlap': 0.466, 'ms1_isotope_coelution': 0.0}}
+cnn_z (4,6] {0: {'ms1_isotope_correlation': 0.07, 'ms1_isotope_overlap': 0.955, 'ms1_isotope_coelution': 0.145}, 1: {'ms1_isotope_correlation': 0.031, 'ms1_isotope_overlap': 1.078, 'ms1_isotope_coelution': 0.131}}
+cnn_z (6,99] {0: {'ms1_isotope_correlation': 0.731, 'ms1_isotope_overlap': 0.379, 'ms1_isotope_coelution': 0.466}, 1: {'ms1_isotope_correlation': 0.26, 'ms1_isotope_overlap': 0.922, 'ms1_isotope_coelution': 0.255}}

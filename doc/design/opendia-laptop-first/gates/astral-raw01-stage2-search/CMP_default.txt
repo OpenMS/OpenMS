@@ -1,0 +1,1 @@
+default -stage2 output IDENTICAL to stage2-design

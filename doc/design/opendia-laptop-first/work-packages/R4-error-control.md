@@ -90,3 +90,16 @@ The frozen teacher-free design with `-pooled_tdc` was evaluated once against a h
   - FDP_c 0.0117, with a 95% CP interval of 0.002 to 0.034. The CNN-only figures were 360, 5 and 0.028.
   - Above q 0.02 the estimate is still anti-conservative: FDP_c 0.054 at q ≤ 0.05.
 - **Open item:** an independent check needs raw 03, the last held-back replicate, under a new hashed gate. It waits for the user's go-ahead.
+
+### Stage-2 feature groups: search peak evidence and MS1 isotopes (commit `48e40f4d35`; `gates/astral-raw01-stage2-search/`, `gates/astral-raw01-stage2-isotope/`)
+
+- **Option:** `-stage2_feature_set` takes `+`-separated groups after the CNN logit.
+  - `extraction`: the default, with output byte-identical to before.
+  - `search`: transition support, log matched scans, log peak width and |library RT error|, read from the OpenDIA `-features_out` table via `-stage2_search_features`.
+  - `isotope`: MS1 M+0..M+3 averagine correlation, M−1 overlap and M+1/M+2 co-elution.
+- **Raw 01 design runs** (target/decoy only, rules written before each run):
+  - `search`: **717** targets at q ≤ 0.01 (1412 at 0.05). The extraction set gives 333 and CNN-only gives 321. The native run reproduces the offline ablation exactly. PASS; this is the frozen design candidate.
+  - `search+isotope`: 650 at q ≤ 0.01. FAIL under the +2% rule, so the group stays off.
+    - The isotope features separate targets from decoys above CNN z 6.
+    - They are near noise in z 4–6, where the 1% cut is decided.
+- **Context:** OpenSWATH+Percolator on the same library gives 1441 on raw 01, so the remaining gap is about 2×. This has not been entrapment-checked.

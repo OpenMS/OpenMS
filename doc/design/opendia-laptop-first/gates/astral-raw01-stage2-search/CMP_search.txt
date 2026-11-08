@@ -1,0 +1,1 @@
+search: logit/fold/window columns IDENTICAL
