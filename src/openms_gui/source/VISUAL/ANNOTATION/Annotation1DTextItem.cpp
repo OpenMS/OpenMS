@@ -13,7 +13,7 @@ namespace OpenMS
 {
   namespace
   {
-    Annotation1DTextItem p({0, 0}, "test");
+    Annotation1DTextItem compile_check_text_item({0, 0}, "test");
   }
 
   void Annotation1DTextItem::ensureWithinDataRange(Plot1DCanvas* const canvas, const int layer_index)

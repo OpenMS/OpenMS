@@ -20,19 +20,6 @@
 
 using json = nlohmann::json;
 
-// replaces the substrings inside a string
-// This method is 'static' so no external linkage occurs
-static std::string replaceAll(std::string str, const std::string& pattern, const std::string& replacement)
-{
-  size_t pos {0};
-  while ((pos = str.find(pattern, pos)) != std::string::npos)
-  {
-    str.replace(pos, pattern.size(), replacement);
-    pos += replacement.size();
-  }
-  return str;
-}
-
 namespace OpenMS
 {
   bool ParamCWLFile::isSupported()
@@ -273,7 +260,7 @@ namespace OpenMS
 
       if (flatHierarchy) {
         // replace all ':' with '__'
-        name = replaceAll(name, ":", "__");
+        name = StringUtils::substituted(name, ":", "__");
       } else {
         if (auto pos = name.rfind(':'); pos != std::string::npos) {
             name = StringUtils::substr(name, pos+1);

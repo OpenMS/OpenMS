@@ -18,6 +18,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include "ArrowFileIOHelpers.h"
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 
@@ -28,9 +29,6 @@
 #include <parquet/arrow/writer.h>
 #include <parquet/properties.h>
 
-#include <cstdio>
-#include <cstring>
-#include <random>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -40,285 +38,6 @@ namespace OpenMS
 
 namespace // anonymous
 {
-  // ==================== Export helpers ====================
-
-  /// Append all MetaValues (excluding specified keys) from a MetaInfoInterface to the struct builders.
-  /// @param mii The MetaInfoInterface to read keys from
-  /// @param name_b StringBuilder for the name field
-  /// @param value_b StringBuilder for the value field (toString)
-  /// @param type_b StringBuilder for the value_type field
-  /// @param struct_b StructBuilder for the list element struct
-  /// @param excluded_keys Set of key names to skip
-  void appendMetaValues_(
-    const MetaInfoInterface& mii,
-    std::shared_ptr<arrow::StringBuilder>& name_b,
-    std::shared_ptr<arrow::StringBuilder>& value_b,
-    std::shared_ptr<arrow::StringBuilder>& type_b,
-    std::shared_ptr<arrow::StructBuilder>& struct_b,
-    const std::unordered_set<std::string>& excluded_keys)
-  {
-    std::vector<std::string> keys;
-    mii.getKeys(keys);
-    for (const auto& key : keys)
-    {
-      if (excluded_keys.contains(key)) continue;
-      const DataValue& val = mii.getMetaValue(key);
-      (void)struct_b->Append();
-      (void)name_b->Append(key);
-      (void)value_b->Append(ArrowIOHelpers::metaValueString(val));
-      switch (val.valueType())
-      {
-        case DataValue::INT_VALUE: (void)type_b->Append("int"); break;
-        case DataValue::DOUBLE_VALUE: (void)type_b->Append("double"); break;
-        case DataValue::STRING_VALUE: (void)type_b->Append("string"); break;
-        case DataValue::INT_LIST: (void)type_b->Append("int_list"); break;
-        case DataValue::DOUBLE_LIST: (void)type_b->Append("double_list"); break;
-        case DataValue::STRING_LIST: (void)type_b->Append("string_list"); break;
-        default: (void)type_b->Append("string"); break;
-      }
-    }
-  }
-
-  /// Write an Arrow table to a Parquet file with QPX-style metadata.
-  /// @param table The Arrow table to write
-  /// @param filename Output file path
-  /// @param file_type The file_type metadata value (e.g. "proteins", "protein_groups", "search_params")
-  /// @param config Parquet writing options
-  /// @return true on success, false on error
-  bool writeArrowTableToParquet_(
-    std::shared_ptr<arrow::Table> table,
-    const std::string& filename,
-    const std::string& file_type,
-    const ParquetWriteConfig& config)
-  {
-    if (!table)
-    {
-      OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: null table passed to writeArrowTableToParquet_" << std::endl;
-      return false;
-    }
-
-    // Generate RFC 4122 version-4 UUID
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<uint32_t> dist;
-    uint8_t bytes[16];
-    for (int i = 0; i < 4; ++i)
-    {
-      uint32_t r = dist(gen);
-      std::memcpy(bytes + i * 4, &r, 4);
-    }
-    bytes[6] = (bytes[6] & 0x0F) | 0x40; // version 4
-    bytes[8] = (bytes[8] & 0x3F) | 0x80; // variant 1
-    char buf[37];
-    std::snprintf(buf, sizeof(buf),
-      "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-      bytes[0], bytes[1], bytes[2], bytes[3],
-      bytes[4], bytes[5], bytes[6], bytes[7],
-      bytes[8], bytes[9], bytes[10], bytes[11],
-      bytes[12], bytes[13], bytes[14], bytes[15]);
-    std::string uuid_str(buf);
-
-    auto metadata = arrow::key_value_metadata({
-      {"creator", "OpenMS"},
-      {"file_type", file_type},
-      {"creation_date", DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ")},
-      {"uuid", uuid_str},
-      {"software_provider", "OpenMS"}
-    });
-    table = table->ReplaceSchemaMetadata(metadata);
-
-    // Open output file
-    auto result = arrow::io::FileOutputStream::Open(filename);
-    if (!result.ok())
-    {
-      OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: Failed to open file: " << filename << std::endl;
-      return false;
-    }
-    const auto& outfile = *result;
-
-    // Configure Parquet writer
-    auto builder = parquet::WriterProperties::Builder();
-
-    switch (config.compression)
-    {
-      case ParquetWriteConfig::Compression::NONE:
-        builder.compression(arrow::Compression::UNCOMPRESSED);
-        break;
-      case ParquetWriteConfig::Compression::SNAPPY:
-        builder.compression(arrow::Compression::SNAPPY);
-        break;
-      case ParquetWriteConfig::Compression::GZIP:
-        builder.compression(arrow::Compression::GZIP);
-        builder.compression_level(config.compression_level);
-        break;
-      case ParquetWriteConfig::Compression::LZ4:
-        builder.compression(arrow::Compression::LZ4);
-        break;
-      case ParquetWriteConfig::Compression::ZSTD:
-        builder.compression(arrow::Compression::ZSTD);
-        builder.compression_level(config.compression_level);
-        break;
-    }
-
-    builder.data_pagesize(config.data_page_size);
-
-    if (config.write_statistics)
-    {
-      builder.enable_statistics();
-    }
-    else
-    {
-      builder.disable_statistics();
-    }
-
-    auto writer_props = builder.build();
-    auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
-
-    // Write
-    auto write_status = parquet::arrow::WriteTable(
-      *table, arrow::default_memory_pool(), outfile,
-      config.row_group_size, writer_props, arrow_props);
-
-    // FileOutputStream::Open above already created (and truncated) the file, so any failure from
-    // here on leaves a partial .parquet behind -- and a truncated Parquet file has no footer, so a
-    // reader reports it as corrupt rather than as the smaller table it looks like. Close before
-    // removing: on Windows an open handle blocks the unlink.
-    const auto abandon = [&](const std::string& what)
-    {
-      OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: " << what << std::endl;
-      (void)outfile->Close();
-      if (!File::remove(filename))
-      {
-        OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: Failed to remove incomplete output "
-                         << filename << std::endl;
-      }
-      return false;
-    };
-
-    if (!write_status.ok())
-    {
-      return abandon("Failed to write Parquet: " + write_status.ToString());
-    }
-
-    // Close explicitly rather than leaving it to the destructor, which swallows the error: the
-    // final flush is where a full disk surfaces, and reporting success there would hand back a
-    // truncated file.
-    auto close_status = outfile->Close();
-    if (!close_status.ok())
-    {
-      return abandon("Failed to close " + filename + ": " + close_status.ToString());
-    }
-
-    return true;
-  }
-
-  // ==================== Import helpers ====================
-
-  /// Read a single Parquet file into an Arrow table.
-  std::shared_ptr<arrow::Table> readParquetTable_(const std::string& filename)
-  {
-    auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
-    if (!infile_result.ok())
-    {
-      OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: Failed to open file: " << filename << std::endl;
-      return nullptr;
-    }
-    const auto& infile = *infile_result;
-
-    auto reader_result = parquet::arrow::OpenFile(infile, arrow::default_memory_pool());
-    if (!reader_result.ok())
-    {
-      OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: Failed to create Parquet reader for: " << filename << std::endl;
-      return nullptr;
-    }
-    auto reader = std::move(reader_result.ValueOrDie());
-
-    std::shared_ptr<arrow::Table> table;
-    auto read_status = reader->ReadTable(&table);
-    if (!read_status.ok())
-    {
-      OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: Failed to read table: " << read_status.ToString() << std::endl;
-      return nullptr;
-    }
-
-    auto combined = table->CombineChunks(arrow::default_memory_pool());
-    if (!combined.ok())
-    {
-      OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: Failed to combine chunks" << std::endl;
-      return nullptr;
-    }
-
-    return *combined;
-  }
-
-  /// Fetch a named column from a table, combining chunks if needed.
-  /// Returns nullptr if column not found (logs error if required).
-  std::shared_ptr<arrow::Array> getColumn_(
-    const std::shared_ptr<arrow::Table>& table,
-    const std::string& name,
-    bool required = true)
-  {
-    auto column = table->GetColumnByName(name);
-    if (!column)
-    {
-      if (required)
-      {
-        OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: Missing required column '" << name << "'" << std::endl;
-      }
-      return nullptr;
-    }
-    if (column->num_chunks() == 0)
-    {
-      OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: Column '" << name << "' has no chunks" << std::endl;
-      return nullptr;
-    }
-    if (column->num_chunks() == 1)
-    {
-      return column->chunk(0);
-    }
-    auto combined = arrow::Concatenate(column->chunks(), arrow::default_memory_pool());
-    if (!combined.ok())
-    {
-      OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: Failed to combine chunks for column '" << name << "'" << std::endl;
-      return nullptr;
-    }
-    return *combined;
-  }
-
-  /// Get string value at a row, returning empty string if null.
-  std::string getStringValue_(const std::shared_ptr<arrow::Array>& array, int64_t row)
-  {
-    if (!array || array->IsNull(row)) return "";
-    return std::static_pointer_cast<arrow::StringArray>(array)->GetString(row);
-  }
-
-  /// Get double value at a row, returning default_val if null.
-  double getDoubleValue_(const std::shared_ptr<arrow::Array>& array, int64_t row, double default_val = 0.0)
-  {
-    if (!array || array->IsNull(row)) return default_val;
-    return std::static_pointer_cast<arrow::DoubleArray>(array)->Value(row);
-  }
-
-  /// Get int32 value at a row, returning default_val if null.
-  int32_t getInt32Value_(const std::shared_ptr<arrow::Array>& array, int64_t row, int32_t default_val = 0)
-  {
-    if (!array || array->IsNull(row)) return default_val;
-    return std::static_pointer_cast<arrow::Int32Array>(array)->Value(row);
-  }
-
-  /// Get boolean value at a row, returning default_val if null.
-  bool getBoolValue_(const std::shared_ptr<arrow::Array>& array, int64_t row, bool default_val = false)
-  {
-    if (!array || array->IsNull(row)) return default_val;
-    return std::static_pointer_cast<arrow::BooleanArray>(array)->Value(row);
-  }
-
-  /// Check if value at row is null.
-  bool isNull_(const std::shared_ptr<arrow::Array>& array, int64_t row)
-  {
-    return !array || array->IsNull(row);
-  }
-
   /// Read a list<utf8> column at a given row into a vector of Strings.
   std::vector<std::string> readStringList_(const std::shared_ptr<arrow::Array>& array, int64_t row)
   {
@@ -509,7 +228,7 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportProteinsToArro
 
       // === metavalues (not nullable) ===
       (void)metavalues_builder.Append();
-      appendMetaValues_(hit, mv_name_b, mv_value_b, mv_type_b, mv_struct_b, excluded_hit_mvs);
+      Internal::ArrowFileIO::appendMetaValues(hit, mv_name_b, mv_value_b, mv_type_b, mv_struct_b, excluded_hit_mvs);
 
     } // end hit loop
   } // end protein identification loop
@@ -576,7 +295,7 @@ bool ProteinIdentificationArrowIO::exportProteinsToParquet(
     OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: Failed to create Arrow table for proteins" << std::endl;
     return false;
   }
-  return writeArrowTableToParquet_(table, filename, "proteins", config);
+  return Internal::ArrowFileIO::writeParquetTable(table, filename, "proteins", config, "ProteinIdentificationArrowIO");
 }
 
 
@@ -797,7 +516,7 @@ bool ProteinIdentificationArrowIO::exportProteinGroupsToParquet(
     OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: Failed to create Arrow table for protein groups" << std::endl;
     return false;
   }
-  return writeArrowTableToParquet_(table, filename, "protein_groups", config);
+  return Internal::ArrowFileIO::writeParquetTable(table, filename, "protein_groups", config, "ProteinIdentificationArrowIO");
 }
 
 
@@ -1110,19 +829,19 @@ std::shared_ptr<arrow::Table> ProteinIdentificationArrowIO::exportSearchParamsTo
 
     // === metavalues (not nullable) - from ProteinIdentification ===
     (void)metavalues_builder.Append();
-    appendMetaValues_(prot_id, mv_name_b, mv_value_b, mv_type_b, mv_struct_b, no_exclusions);
+    Internal::ArrowFileIO::appendMetaValues(prot_id, mv_name_b, mv_value_b, mv_type_b, mv_struct_b, no_exclusions);
 
     // === sp_metavalues (not nullable) - from SearchParameters ===
     (void)sp_metavalues_builder.Append();
     const auto defs_it = definitions_by_run.find(prot_id.getIdentifier());
     if (defs_it == definitions_by_run.end())
     {
-      appendMetaValues_(sp, sp_mv_name_b, sp_mv_value_b, sp_mv_type_b, sp_mv_struct_b, no_exclusions);
+      Internal::ArrowFileIO::appendMetaValues(sp, sp_mv_name_b, sp_mv_value_b, sp_mv_type_b, sp_mv_struct_b, no_exclusions);
     }
     else
     { // the freshly collected modification definitions replace an inbound value
       static const std::unordered_set<std::string> exclude_definitions{Constants::UserParam::MODIFICATION_DEFINITIONS};
-      appendMetaValues_(sp, sp_mv_name_b, sp_mv_value_b, sp_mv_type_b, sp_mv_struct_b, exclude_definitions);
+      Internal::ArrowFileIO::appendMetaValues(sp, sp_mv_name_b, sp_mv_value_b, sp_mv_type_b, sp_mv_struct_b, exclude_definitions);
       (void)sp_mv_struct_b->Append();
       (void)sp_mv_name_b->Append(Constants::UserParam::MODIFICATION_DEFINITIONS);
       (void)sp_mv_value_b->Append(defs_it->second);
@@ -1243,7 +962,7 @@ bool ProteinIdentificationArrowIO::exportSearchParamsToParquet(
     OPENMS_LOG_ERROR << "ProteinIdentificationArrowIO: Failed to create Arrow table for search params" << std::endl;
     return false;
   }
-  return writeArrowTableToParquet_(table, filename, "search_params", config);
+  return Internal::ArrowFileIO::writeParquetTable(table, filename, "search_params", config, "ProteinIdentificationArrowIO");
 }
 
 
@@ -1264,32 +983,32 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
   }
 
   // Get all columns
-  auto col_run_id = getColumn_(table, SearchParamsSchema::RUN_IDENTIFIER);
-  auto col_search_engine = getColumn_(table, SearchParamsSchema::SEARCH_ENGINE);
-  auto col_se_version = getColumn_(table, SearchParamsSchema::SEARCH_ENGINE_VERSION, false);
-  auto col_inf_engine = getColumn_(table, SearchParamsSchema::INFERENCE_ENGINE, false);
-  auto col_inf_version = getColumn_(table, SearchParamsSchema::INFERENCE_ENGINE_VERSION, false);
-  auto col_date = getColumn_(table, SearchParamsSchema::DATE, false);
-  auto col_score_type = getColumn_(table, SearchParamsSchema::SCORE_TYPE);
-  auto col_higher_better = getColumn_(table, SearchParamsSchema::HIGHER_SCORE_BETTER);
-  auto col_sig_threshold = getColumn_(table, SearchParamsSchema::SIGNIFICANCE_THRESHOLD, false);
-  auto col_db = getColumn_(table, SearchParamsSchema::DB, false);
-  auto col_db_version = getColumn_(table, SearchParamsSchema::DB_VERSION, false);
-  auto col_taxonomy = getColumn_(table, SearchParamsSchema::TAXONOMY, false);
-  auto col_charges = getColumn_(table, SearchParamsSchema::CHARGES, false);
-  auto col_mass_type = getColumn_(table, SearchParamsSchema::MASS_TYPE);
-  auto col_precursor_tol = getColumn_(table, SearchParamsSchema::PRECURSOR_MASS_TOLERANCE);
-  auto col_precursor_ppm = getColumn_(table, SearchParamsSchema::PRECURSOR_MASS_TOLERANCE_PPM);
-  auto col_fragment_tol = getColumn_(table, SearchParamsSchema::FRAGMENT_MASS_TOLERANCE);
-  auto col_fragment_ppm = getColumn_(table, SearchParamsSchema::FRAGMENT_MASS_TOLERANCE_PPM);
-  auto col_enzyme = getColumn_(table, SearchParamsSchema::DIGESTION_ENZYME, false);
-  auto col_enzyme_spec = getColumn_(table, SearchParamsSchema::ENZYME_TERM_SPECIFICITY, false);
-  auto col_missed_cleavages = getColumn_(table, SearchParamsSchema::MISSED_CLEAVAGES);
-  auto col_fixed_mods = getColumn_(table, SearchParamsSchema::FIXED_MODIFICATIONS, false);
-  auto col_var_mods = getColumn_(table, SearchParamsSchema::VARIABLE_MODIFICATIONS, false);
-  auto col_ms_run_paths = getColumn_(table, SearchParamsSchema::PRIMARY_MS_RUN_PATHS, false);
-  auto col_metavalues = getColumn_(table, SearchParamsSchema::METAVALUES, false);
-  auto col_sp_metavalues = getColumn_(table, SearchParamsSchema::SP_METAVALUES, false);
+  auto col_run_id = ArrowIOHelpers::getColumn(table, SearchParamsSchema::RUN_IDENTIFIER);
+  auto col_search_engine = ArrowIOHelpers::getColumn(table, SearchParamsSchema::SEARCH_ENGINE);
+  auto col_se_version = ArrowIOHelpers::getColumn(table, SearchParamsSchema::SEARCH_ENGINE_VERSION, false);
+  auto col_inf_engine = ArrowIOHelpers::getColumn(table, SearchParamsSchema::INFERENCE_ENGINE, false);
+  auto col_inf_version = ArrowIOHelpers::getColumn(table, SearchParamsSchema::INFERENCE_ENGINE_VERSION, false);
+  auto col_date = ArrowIOHelpers::getColumn(table, SearchParamsSchema::DATE, false);
+  auto col_score_type = ArrowIOHelpers::getColumn(table, SearchParamsSchema::SCORE_TYPE);
+  auto col_higher_better = ArrowIOHelpers::getColumn(table, SearchParamsSchema::HIGHER_SCORE_BETTER);
+  auto col_sig_threshold = ArrowIOHelpers::getColumn(table, SearchParamsSchema::SIGNIFICANCE_THRESHOLD, false);
+  auto col_db = ArrowIOHelpers::getColumn(table, SearchParamsSchema::DB, false);
+  auto col_db_version = ArrowIOHelpers::getColumn(table, SearchParamsSchema::DB_VERSION, false);
+  auto col_taxonomy = ArrowIOHelpers::getColumn(table, SearchParamsSchema::TAXONOMY, false);
+  auto col_charges = ArrowIOHelpers::getColumn(table, SearchParamsSchema::CHARGES, false);
+  auto col_mass_type = ArrowIOHelpers::getColumn(table, SearchParamsSchema::MASS_TYPE);
+  auto col_precursor_tol = ArrowIOHelpers::getColumn(table, SearchParamsSchema::PRECURSOR_MASS_TOLERANCE);
+  auto col_precursor_ppm = ArrowIOHelpers::getColumn(table, SearchParamsSchema::PRECURSOR_MASS_TOLERANCE_PPM);
+  auto col_fragment_tol = ArrowIOHelpers::getColumn(table, SearchParamsSchema::FRAGMENT_MASS_TOLERANCE);
+  auto col_fragment_ppm = ArrowIOHelpers::getColumn(table, SearchParamsSchema::FRAGMENT_MASS_TOLERANCE_PPM);
+  auto col_enzyme = ArrowIOHelpers::getColumn(table, SearchParamsSchema::DIGESTION_ENZYME, false);
+  auto col_enzyme_spec = ArrowIOHelpers::getColumn(table, SearchParamsSchema::ENZYME_TERM_SPECIFICITY, false);
+  auto col_missed_cleavages = ArrowIOHelpers::getColumn(table, SearchParamsSchema::MISSED_CLEAVAGES);
+  auto col_fixed_mods = ArrowIOHelpers::getColumn(table, SearchParamsSchema::FIXED_MODIFICATIONS, false);
+  auto col_var_mods = ArrowIOHelpers::getColumn(table, SearchParamsSchema::VARIABLE_MODIFICATIONS, false);
+  auto col_ms_run_paths = ArrowIOHelpers::getColumn(table, SearchParamsSchema::PRIMARY_MS_RUN_PATHS, false);
+  auto col_metavalues = ArrowIOHelpers::getColumn(table, SearchParamsSchema::METAVALUES, false);
+  auto col_sp_metavalues = ArrowIOHelpers::getColumn(table, SearchParamsSchema::SP_METAVALUES, false);
 
   if (!col_run_id || !col_search_engine || !col_score_type || !col_higher_better ||
       !col_mass_type || !col_precursor_tol || !col_precursor_ppm ||
@@ -1304,17 +1023,17 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     ProteinIdentification prot_id;
 
     // Run-level metadata
-    prot_id.setIdentifier(getStringValue_(col_run_id, row));
-    prot_id.setSearchEngine(getStringValue_(col_search_engine, row));
-    prot_id.setSearchEngineVersion(getStringValue_(col_se_version, row));
-    prot_id.setScoreType(getStringValue_(col_score_type, row));
-    prot_id.setHigherScoreBetter(getBoolValue_(col_higher_better, row));
-    prot_id.setSignificanceThreshold(getDoubleValue_(col_sig_threshold, row));
+    prot_id.setIdentifier(ArrowIOHelpers::getStringValue(col_run_id, row));
+    prot_id.setSearchEngine(ArrowIOHelpers::getStringValue(col_search_engine, row));
+    prot_id.setSearchEngineVersion(ArrowIOHelpers::getStringValue(col_se_version, row));
+    prot_id.setScoreType(ArrowIOHelpers::getStringValue(col_score_type, row));
+    prot_id.setHigherScoreBetter(ArrowIOHelpers::getBoolValue(col_higher_better, row));
+    prot_id.setSignificanceThreshold(ArrowIOHelpers::getDoubleValue(col_sig_threshold, row));
 
     // Date (timestamp; normalize to seconds based on the column's actual time unit).
     // The schema declares timestamp(SECOND), but Parquet may persist/restore the column
     // as nanoseconds, so we have to inspect the runtime unit rather than assume seconds.
-    if (!isNull_(col_date, row))
+    if (!ArrowIOHelpers::isNull(col_date, row))
     {
       auto ts_arr = std::static_pointer_cast<arrow::TimestampArray>(col_date);
       auto ts_type = std::static_pointer_cast<arrow::TimestampType>(ts_arr->type());
@@ -1371,24 +1090,24 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
 
     // SearchParameters
     ProteinIdentification::SearchParameters sp;
-    sp.db = getStringValue_(col_db, row);
-    sp.db_version = getStringValue_(col_db_version, row);
-    sp.taxonomy = getStringValue_(col_taxonomy, row);
-    sp.charges = getStringValue_(col_charges, row);
+    sp.db = ArrowIOHelpers::getStringValue(col_db, row);
+    sp.db_version = ArrowIOHelpers::getStringValue(col_db_version, row);
+    sp.taxonomy = ArrowIOHelpers::getStringValue(col_taxonomy, row);
+    sp.charges = ArrowIOHelpers::getStringValue(col_charges, row);
 
-    std::string mass_type_str = getStringValue_(col_mass_type, row);
+    std::string mass_type_str = ArrowIOHelpers::getStringValue(col_mass_type, row);
     sp.mass_type = (mass_type_str == "AVERAGE") ?
       ProteinIdentification::PeakMassType::AVERAGE :
       ProteinIdentification::PeakMassType::MONOISOTOPIC;
 
-    sp.precursor_mass_tolerance = getDoubleValue_(col_precursor_tol, row);
-    sp.precursor_mass_tolerance_ppm = getBoolValue_(col_precursor_ppm, row);
-    sp.fragment_mass_tolerance = getDoubleValue_(col_fragment_tol, row);
-    sp.fragment_mass_tolerance_ppm = getBoolValue_(col_fragment_ppm, row);
-    sp.missed_cleavages = static_cast<UInt>(getInt32Value_(col_missed_cleavages, row));
+    sp.precursor_mass_tolerance = ArrowIOHelpers::getDoubleValue(col_precursor_tol, row);
+    sp.precursor_mass_tolerance_ppm = ArrowIOHelpers::getBoolValue(col_precursor_ppm, row);
+    sp.fragment_mass_tolerance = ArrowIOHelpers::getDoubleValue(col_fragment_tol, row);
+    sp.fragment_mass_tolerance_ppm = ArrowIOHelpers::getBoolValue(col_fragment_ppm, row);
+    sp.missed_cleavages = static_cast<UInt>(ArrowIOHelpers::getInt32Value(col_missed_cleavages, row));
 
     // Enzyme
-    std::string enzyme_name = getStringValue_(col_enzyme, row);
+    std::string enzyme_name = ArrowIOHelpers::getStringValue(col_enzyme, row);
     if (!enzyme_name.empty())
     {
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_name))
@@ -1402,7 +1121,7 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     }
 
     // Enzyme term specificity
-    std::string spec_str = getStringValue_(col_enzyme_spec, row);
+    std::string spec_str = ArrowIOHelpers::getStringValue(col_enzyme_spec, row);
     if (spec_str == "FULL") sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
     else if (spec_str == "SEMI") sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_SEMI;
     else if (spec_str == "NONE") sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_NONE;
@@ -1425,11 +1144,11 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     prot_id.setSearchParameters(sp);
 
     // Inference engine (must be set after setSearchParameters)
-    std::string inf_engine = getStringValue_(col_inf_engine, row);
+    std::string inf_engine = ArrowIOHelpers::getStringValue(col_inf_engine, row);
     if (!inf_engine.empty())
     {
       prot_id.setInferenceEngine(inf_engine);
-      std::string inf_version = getStringValue_(col_inf_version, row);
+      std::string inf_version = ArrowIOHelpers::getStringValue(col_inf_version, row);
       if (!inf_version.empty())
       {
         prot_id.setInferenceEngineVersion(inf_version);
@@ -1467,16 +1186,16 @@ bool ProteinIdentificationArrowIO::importProteinsFromArrow(
   }
 
   // Get all columns
-  auto col_accession = getColumn_(table, ProteinSchema::ACCESSION);
-  auto col_score = getColumn_(table, ProteinSchema::SCORE);
-  auto col_rank = getColumn_(table, ProteinSchema::RANK, false);
-  auto col_coverage = getColumn_(table, ProteinSchema::COVERAGE, false);
-  auto col_sequence = getColumn_(table, ProteinSchema::SEQUENCE, false);
-  auto col_description = getColumn_(table, ProteinSchema::DESCRIPTION, false);
-  auto col_is_decoy = getColumn_(table, ProteinSchema::IS_DECOY, false);
-  auto col_run_id = getColumn_(table, ProteinSchema::RUN_IDENTIFIER);
-  auto col_modifications = getColumn_(table, ProteinSchema::MODIFICATIONS, false);
-  auto col_metavalues = getColumn_(table, ProteinSchema::METAVALUES, false);
+  auto col_accession = ArrowIOHelpers::getColumn(table, ProteinSchema::ACCESSION);
+  auto col_score = ArrowIOHelpers::getColumn(table, ProteinSchema::SCORE);
+  auto col_rank = ArrowIOHelpers::getColumn(table, ProteinSchema::RANK, false);
+  auto col_coverage = ArrowIOHelpers::getColumn(table, ProteinSchema::COVERAGE, false);
+  auto col_sequence = ArrowIOHelpers::getColumn(table, ProteinSchema::SEQUENCE, false);
+  auto col_description = ArrowIOHelpers::getColumn(table, ProteinSchema::DESCRIPTION, false);
+  auto col_is_decoy = ArrowIOHelpers::getColumn(table, ProteinSchema::IS_DECOY, false);
+  auto col_run_id = ArrowIOHelpers::getColumn(table, ProteinSchema::RUN_IDENTIFIER);
+  auto col_modifications = ArrowIOHelpers::getColumn(table, ProteinSchema::MODIFICATIONS, false);
+  auto col_metavalues = ArrowIOHelpers::getColumn(table, ProteinSchema::METAVALUES, false);
 
   if (!col_accession || !col_score || !col_run_id)
   {
@@ -1494,7 +1213,7 @@ bool ProteinIdentificationArrowIO::importProteinsFromArrow(
 
   for (int64_t row = 0; row < table->num_rows(); ++row)
   {
-    std::string run_id = getStringValue_(col_run_id, row);
+    std::string run_id = ArrowIOHelpers::getStringValue(col_run_id, row);
 
     // Find or create matching ProteinIdentification
     auto it = run_id_map.find(run_id);
@@ -1518,33 +1237,33 @@ bool ProteinIdentificationArrowIO::importProteinsFromArrow(
 
     // Build ProteinHit
     ProteinHit hit;
-    hit.setAccession(getStringValue_(col_accession, row));
-    hit.setScore(getDoubleValue_(col_score, row));
+    hit.setAccession(ArrowIOHelpers::getStringValue(col_accession, row));
+    hit.setScore(ArrowIOHelpers::getDoubleValue(col_score, row));
 
-    if (!isNull_(col_rank, row))
+    if (!ArrowIOHelpers::isNull(col_rank, row))
     {
-      hit.setRank(static_cast<UInt>(getInt32Value_(col_rank, row)));
+      hit.setRank(static_cast<UInt>(ArrowIOHelpers::getInt32Value(col_rank, row)));
     }
 
-    if (!isNull_(col_coverage, row))
+    if (!ArrowIOHelpers::isNull(col_coverage, row))
     {
-      hit.setCoverage(getDoubleValue_(col_coverage, row));
+      hit.setCoverage(ArrowIOHelpers::getDoubleValue(col_coverage, row));
     }
 
-    if (!isNull_(col_sequence, row))
+    if (!ArrowIOHelpers::isNull(col_sequence, row))
     {
-      hit.setSequence(getStringValue_(col_sequence, row));
+      hit.setSequence(ArrowIOHelpers::getStringValue(col_sequence, row));
     }
 
-    if (!isNull_(col_description, row))
+    if (!ArrowIOHelpers::isNull(col_description, row))
     {
-      hit.setDescription(getStringValue_(col_description, row));
+      hit.setDescription(ArrowIOHelpers::getStringValue(col_description, row));
     }
 
     // is_decoy -> target_decoy metavalue
-    if (!isNull_(col_is_decoy, row))
+    if (!ArrowIOHelpers::isNull(col_is_decoy, row))
     {
-      bool is_decoy = getBoolValue_(col_is_decoy, row);
+      bool is_decoy = ArrowIOHelpers::getBoolValue(col_is_decoy, row);
       hit.setMetaValue("target_decoy", is_decoy ? "decoy" : "target");
     }
 
@@ -1602,14 +1321,14 @@ bool ProteinIdentificationArrowIO::importProteinGroupsFromArrow(
   }
 
   // Get all columns
-  auto col_group_type = getColumn_(table, ProteinGroupSchema::GROUP_TYPE);
-  auto col_probability = getColumn_(table, ProteinGroupSchema::PROBABILITY);
-  auto col_accessions = getColumn_(table, ProteinGroupSchema::ACCESSIONS);
-  auto col_run_id = getColumn_(table, ProteinGroupSchema::RUN_IDENTIFIER);
-  auto col_group_index = getColumn_(table, ProteinGroupSchema::GROUP_INDEX, false); // informational, not needed for reconstruction
-  auto col_float_data = getColumn_(table, ProteinGroupSchema::FLOAT_DATA, false);
-  auto col_string_data = getColumn_(table, ProteinGroupSchema::STRING_DATA, false);
-  auto col_integer_data = getColumn_(table, ProteinGroupSchema::INTEGER_DATA, false);
+  auto col_group_type = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::GROUP_TYPE);
+  auto col_probability = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::PROBABILITY);
+  auto col_accessions = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::ACCESSIONS);
+  auto col_run_id = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::RUN_IDENTIFIER);
+  auto col_group_index = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::GROUP_INDEX, false); // informational, not needed for reconstruction
+  auto col_float_data = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::FLOAT_DATA, false);
+  auto col_string_data = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::STRING_DATA, false);
+  auto col_integer_data = ArrowIOHelpers::getColumn(table, ProteinGroupSchema::INTEGER_DATA, false);
 
   if (!col_group_type || !col_probability || !col_accessions || !col_run_id)
   {
@@ -1694,7 +1413,7 @@ bool ProteinIdentificationArrowIO::importProteinGroupsFromArrow(
 
   for (int64_t row = 0; row < table->num_rows(); ++row)
   {
-    std::string run_id = getStringValue_(col_run_id, row);
+    std::string run_id = ArrowIOHelpers::getStringValue(col_run_id, row);
 
     // Find or create matching ProteinIdentification
     auto it = run_id_map.find(run_id);
@@ -1714,7 +1433,7 @@ bool ProteinIdentificationArrowIO::importProteinGroupsFromArrow(
 
     // Build ProteinGroup
     ProteinIdentification::ProteinGroup group;
-    group.probability = getDoubleValue_(col_probability, row);
+    group.probability = ArrowIOHelpers::getDoubleValue(col_probability, row);
     auto accessions = readStringList_(col_accessions, row);
     group.accessions.assign(accessions.begin(), accessions.end());
 
@@ -1724,7 +1443,7 @@ bool ProteinIdentificationArrowIO::importProteinGroupsFromArrow(
     readIntegerDataArrays(col_integer_data, row, group);
 
     // Insert into appropriate vector
-    std::string group_type = getStringValue_(col_group_type, row);
+    std::string group_type = ArrowIOHelpers::getStringValue(col_group_type, row);
     if (group_type == "indistinguishable")
     {
       protein_identifications[prot_id_idx].insertIndistinguishableProteins(std::move(group));
@@ -1743,7 +1462,7 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromParquet(
   const std::string& filename,
   std::vector<ProteinIdentification>& protein_identifications)
 {
-  auto table = readParquetTable_(filename);
+  auto table = Internal::ArrowFileIO::readParquetTable(filename, "ProteinIdentificationArrowIO");
   if (!table) return false;
   return importSearchParamsFromArrow(table, protein_identifications);
 }
@@ -1753,7 +1472,7 @@ bool ProteinIdentificationArrowIO::importProteinsFromParquet(
   const std::string& filename,
   std::vector<ProteinIdentification>& protein_identifications)
 {
-  auto table = readParquetTable_(filename);
+  auto table = Internal::ArrowFileIO::readParquetTable(filename, "ProteinIdentificationArrowIO");
   if (!table) return false;
   return importProteinsFromArrow(table, protein_identifications);
 }
@@ -1763,7 +1482,7 @@ bool ProteinIdentificationArrowIO::importProteinGroupsFromParquet(
   const std::string& filename,
   std::vector<ProteinIdentification>& protein_identifications)
 {
-  auto table = readParquetTable_(filename);
+  auto table = Internal::ArrowFileIO::readParquetTable(filename, "ProteinIdentificationArrowIO");
   if (!table) return false;
   return importProteinGroupsFromArrow(table, protein_identifications);
 }

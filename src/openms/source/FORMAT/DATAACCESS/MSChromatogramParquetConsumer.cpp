@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
+#include "ParquetConsumerHelpers.h"
+#include <OpenMS/FORMAT/ParquetFile.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -35,97 +37,17 @@ namespace OpenMS
 {
   namespace
   {
-    void appendOrThrow_(const arrow::Status& status, const char* column)
-    {
-      if (!status.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      std::string("Failed to append value for ") + column, status.ToString());
-      }
-    }
+    using Internal::ParquetConsumerHelpers::appendOrThrow;
+    using Internal::ParquetConsumerHelpers::reserveOrThrow;
+    using Internal::ParquetConsumerHelpers::appendOptionalInt;
+    using Internal::ParquetConsumerHelpers::appendOptionalString;
+    using Internal::ParquetConsumerHelpers::appendBinary;
+    using Internal::ParquetConsumerHelpers::parseOrAssignId;
+    using Internal::ParquetConsumerHelpers::buildAnnotation;
+    using Internal::ParquetConsumerHelpers::buildPrecursorAnnotation;
+    using Internal::ParquetConsumerHelpers::CompoundInfo;
+    using Internal::ParquetConsumerHelpers::TransitionInfo;
 
-    void reserveOrThrow_(const arrow::Status& status, const char* column)
-    {
-      if (!status.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      std::string("Failed to reserve capacity for ") + column, status.ToString());
-      }
-    }
-
-    template <typename Builder>
-    std::shared_ptr<arrow::Array> finishArray_(Builder& builder, const char* name)
-    {
-      std::shared_ptr<arrow::Array> array;
-      auto status = builder.Finish(&array);
-      if (!status.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      std::string("Failed to finish array for ") + name, status.ToString());
-      }
-      return array;
-    }
-
-    void appendOptionalInt_(arrow::Int64Builder& builder, bool has_value, int64_t value, const char* column)
-    {
-      if (!has_value)
-      {
-        appendOrThrow_(builder.AppendNull(), column);
-      }
-      else
-      {
-        appendOrThrow_(builder.Append(value), column);
-      }
-    }
-
-    void appendOptionalString_(arrow::StringBuilder& builder, const std::string& value, const char* column)
-    {
-      if (value.empty())
-      {
-        appendOrThrow_(builder.AppendNull(), column);
-      }
-      else
-      {
-        appendOrThrow_(builder.Append(std::string(value)), column);
-      }
-    }
-
-    void appendBinary_(arrow::BinaryBuilder& builder, const std::string& value, const char* column)
-    {
-      if (value.size() > static_cast<size_t>(std::numeric_limits<int32_t>::max()))
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      std::string("Binary value for column ") + column + " exceeds Arrow int32 size limit (2 GB).",
-                                      StringUtils::toStr(value.size()));
-      }
-      appendOrThrow_(builder.Append(reinterpret_cast<const uint8_t*>(value.c_str()),
-                                    static_cast<int32_t>(value.size())), column);
-    }
-
-    struct CompoundInfo
-    {
-      int64_t precursor_id = 0;
-      std::string modified_sequence;
-      int64_t precursor_charge = 0;
-      int64_t precursor_decoy = 0;
-    };
-
-    struct TransitionInfo
-    {
-      int64_t transition_id = 0;
-      int64_t precursor_id = 0;
-      std::string modified_sequence;
-      int64_t precursor_charge = 0;
-      int64_t product_charge = 0;
-      int64_t detecting_transition = 0;
-      int64_t precursor_decoy = 0;
-      int64_t product_decoy = 0;
-      int64_t transition_ordinal = 0;
-      std::string transition_type;
-      std::string annotation;
-    };
-
-    /// One encoded chromatogram: what consumeChromatogram() computes before it touches the builders.
     /// The metadata pointers refer to the maps of the consumer that encoded the row.
     struct EncodedRow
     {
@@ -136,56 +58,6 @@ namespace OpenMS
       std::string intensity_data;                 ///< encoded intensity array
     };
 
-    int64_t parseOrAssignId_(const std::string& text, int64_t& next_id, std::unordered_set<int64_t>& used_ids)
-    {
-      try
-      {
-        int64_t value = StringUtils::toInt64(text);
-        if (used_ids.insert(value).second)
-        {
-          if (value >= next_id)
-          {
-            next_id = value + 1;
-          }
-          return value;
-        }
-      }
-      catch (Exception::ConversionError&)
-      {
-        // fall through to auto-assigned ID
-      }
-      while (used_ids.contains(next_id))
-      {
-        ++next_id;
-      }
-      used_ids.insert(next_id);
-      return next_id++;
-    }
-
-    std::string buildAnnotation_(const std::string& transition_type, int64_t ordinal, int64_t charge)
-    {
-      if (transition_type.empty() || ordinal < 0)
-      {
-        return "";
-      }
-      std::string annotation = transition_type + StringUtils::toStr(ordinal);
-      if (charge > 0)
-      {
-        annotation += "^" + StringUtils::toStr(charge);
-      }
-      return annotation;
-    }
-
-    std::string buildPrecursorAnnotation_(const std::string& native_id)
-    {
-      const std::string tag = "_Precursor_i";
-      const Size pos = native_id.rfind(tag);
-      if (pos != std::string::npos)
-      {
-        return StringUtils::substr(native_id, pos + 1);
-      }
-      return "";
-    }
   } // namespace
 
   class MSChromatogramParquetConsumerImpl
@@ -249,7 +121,7 @@ namespace OpenMS
       const bool is_precursor = StringUtils::hasSubstring(native_id, "_Precursor_i");
       if (is_precursor)
       {
-        row.precursor_annotation = buildPrecursorAnnotation_(native_id);
+        row.precursor_annotation = buildPrecursorAnnotation(native_id);
         const std::string group_id = OpenSwathHelper::computeTransitionGroupId(native_id);
         auto comp_it = compound_info_.find(group_id);
         if (comp_it == compound_info_.end())
@@ -289,24 +161,24 @@ namespace OpenMS
     {
       if (expectedChromatograms > 0)
       {
-        reserveOrThrow_(run_id_builder_.Reserve(expectedChromatograms), "RUN_ID");
-        reserveOrThrow_(source_file_builder_.Reserve(expectedChromatograms), "SOURCE_FILE");
-        reserveOrThrow_(ms_level_builder_.Reserve(expectedChromatograms), "MS_LEVEL");
-        reserveOrThrow_(precursor_id_builder_.Reserve(expectedChromatograms), "PRECURSOR_ID");
-        reserveOrThrow_(transition_id_builder_.Reserve(expectedChromatograms), "TRANSITION_ID");
-        reserveOrThrow_(modified_sequence_builder_.Reserve(expectedChromatograms), "MODIFIED_SEQUENCE");
-        reserveOrThrow_(precursor_charge_builder_.Reserve(expectedChromatograms), "PRECURSOR_CHARGE");
-        reserveOrThrow_(product_charge_builder_.Reserve(expectedChromatograms), "PRODUCT_CHARGE");
-        reserveOrThrow_(detecting_transition_builder_.Reserve(expectedChromatograms), "DETECTING_TRANSITION");
-        reserveOrThrow_(precursor_decoy_builder_.Reserve(expectedChromatograms), "PRECURSOR_DECOY");
-        reserveOrThrow_(product_decoy_builder_.Reserve(expectedChromatograms), "PRODUCT_DECOY");
-        reserveOrThrow_(transition_ordinal_builder_.Reserve(expectedChromatograms), "TRANSITION_ORDINAL");
-        reserveOrThrow_(transition_type_builder_.Reserve(expectedChromatograms), "TRANSITION_TYPE");
-        reserveOrThrow_(annotation_builder_.Reserve(expectedChromatograms), "ANNOTATION");
-        reserveOrThrow_(rt_data_builder_.Reserve(expectedChromatograms), "RT_DATA");
-        reserveOrThrow_(intensity_data_builder_.Reserve(expectedChromatograms), "INTENSITY_DATA");
-        reserveOrThrow_(rt_compression_builder_.Reserve(expectedChromatograms), "RT_COMPRESSION");
-        reserveOrThrow_(intensity_compression_builder_.Reserve(expectedChromatograms), "INTENSITY_COMPRESSION");
+        reserveOrThrow(run_id_builder_.Reserve(expectedChromatograms), "RUN_ID");
+        reserveOrThrow(source_file_builder_.Reserve(expectedChromatograms), "SOURCE_FILE");
+        reserveOrThrow(ms_level_builder_.Reserve(expectedChromatograms), "MS_LEVEL");
+        reserveOrThrow(precursor_id_builder_.Reserve(expectedChromatograms), "PRECURSOR_ID");
+        reserveOrThrow(transition_id_builder_.Reserve(expectedChromatograms), "TRANSITION_ID");
+        reserveOrThrow(modified_sequence_builder_.Reserve(expectedChromatograms), "MODIFIED_SEQUENCE");
+        reserveOrThrow(precursor_charge_builder_.Reserve(expectedChromatograms), "PRECURSOR_CHARGE");
+        reserveOrThrow(product_charge_builder_.Reserve(expectedChromatograms), "PRODUCT_CHARGE");
+        reserveOrThrow(detecting_transition_builder_.Reserve(expectedChromatograms), "DETECTING_TRANSITION");
+        reserveOrThrow(precursor_decoy_builder_.Reserve(expectedChromatograms), "PRECURSOR_DECOY");
+        reserveOrThrow(product_decoy_builder_.Reserve(expectedChromatograms), "PRODUCT_DECOY");
+        reserveOrThrow(transition_ordinal_builder_.Reserve(expectedChromatograms), "TRANSITION_ORDINAL");
+        reserveOrThrow(transition_type_builder_.Reserve(expectedChromatograms), "TRANSITION_TYPE");
+        reserveOrThrow(annotation_builder_.Reserve(expectedChromatograms), "ANNOTATION");
+        reserveOrThrow(rt_data_builder_.Reserve(expectedChromatograms), "RT_DATA");
+        reserveOrThrow(intensity_data_builder_.Reserve(expectedChromatograms), "INTENSITY_DATA");
+        reserveOrThrow(rt_compression_builder_.Reserve(expectedChromatograms), "RT_COMPRESSION");
+        reserveOrThrow(intensity_compression_builder_.Reserve(expectedChromatograms), "INTENSITY_COMPRESSION");
       }
     }
 
@@ -363,7 +235,7 @@ namespace OpenMS
       for (const auto& compound : transition_exp.getCompounds())
       {
         const std::string compound_id = compound.id;
-        const int64_t precursor_id = parseOrAssignId_(compound_id, next_precursor_id_, used_precursor_ids_);
+        const int64_t precursor_id = parseOrAssignId(compound_id, next_precursor_id_, used_precursor_ids_);
         precursor_ids[compound_id] = precursor_id;
 
         CompoundInfo info;
@@ -383,7 +255,7 @@ namespace OpenMS
         auto it = transition_ids_.find(transition_name);
         if (it == transition_ids_.end())
         {
-          transition_id = parseOrAssignId_(transition_name, next_transition_id_, used_transition_ids_);
+          transition_id = parseOrAssignId(transition_name, next_transition_id_, used_transition_ids_);
           transition_ids_[transition_name] = transition_id;
         }
         else
@@ -394,7 +266,7 @@ namespace OpenMS
         auto precursor_it = precursor_ids.find(peptide_ref);
         if (precursor_it == precursor_ids.end())
         {
-          const int64_t precursor_id = parseOrAssignId_(peptide_ref, next_precursor_id_, used_precursor_ids_);
+          const int64_t precursor_id = parseOrAssignId(peptide_ref, next_precursor_id_, used_precursor_ids_);
           precursor_ids[peptide_ref] = precursor_id;
 
           CompoundInfo info;
@@ -423,7 +295,7 @@ namespace OpenMS
         info.product_decoy = is_decoy ? 1 : 0;
         info.transition_ordinal = transition.fragment_nr;
         info.transition_type = transition.getFragmentType();
-        info.annotation = buildAnnotation_(info.transition_type, info.transition_ordinal, info.product_charge);
+        info.annotation = buildAnnotation(info.transition_type, info.transition_ordinal, info.product_charge);
 
         transition_info_.emplace(transition_name, std::move(info));
       }
@@ -431,45 +303,45 @@ namespace OpenMS
 
     void appendRow_(const EncodedRow& row)
     {
-      appendOrThrow_(run_id_builder_.Append(static_cast<int64_t>(run_id_)), "RUN_ID");
-      appendOptionalString_(source_file_builder_, source_file_, "SOURCE_FILE");
-      appendOrThrow_(ms_level_builder_.Append(static_cast<int64_t>(row.compound != nullptr ? 1 : 2)), "MS_LEVEL");
+      appendOrThrow(run_id_builder_.Append(static_cast<int64_t>(run_id_)), "RUN_ID");
+      appendOptionalString(source_file_builder_, source_file_, "SOURCE_FILE");
+      appendOrThrow(ms_level_builder_.Append(static_cast<int64_t>(row.compound != nullptr ? 1 : 2)), "MS_LEVEL");
       if (row.compound != nullptr)
       {
         const CompoundInfo& comp = *row.compound;
-        appendOptionalInt_(precursor_id_builder_, true, comp.precursor_id, "PRECURSOR_ID");
-        appendOptionalString_(modified_sequence_builder_, comp.modified_sequence, "MODIFIED_SEQUENCE");
-        appendOptionalInt_(precursor_charge_builder_, comp.precursor_charge > 0, comp.precursor_charge, "PRECURSOR_CHARGE");
-        appendOptionalInt_(precursor_decoy_builder_, true, comp.precursor_decoy, "PRECURSOR_DECOY");
+        appendOptionalInt(precursor_id_builder_, true, comp.precursor_id, "PRECURSOR_ID");
+        appendOptionalString(modified_sequence_builder_, comp.modified_sequence, "MODIFIED_SEQUENCE");
+        appendOptionalInt(precursor_charge_builder_, comp.precursor_charge > 0, comp.precursor_charge, "PRECURSOR_CHARGE");
+        appendOptionalInt(precursor_decoy_builder_, true, comp.precursor_decoy, "PRECURSOR_DECOY");
 
-        appendOrThrow_(transition_id_builder_.AppendNull(), "TRANSITION_ID");
-        appendOrThrow_(product_charge_builder_.AppendNull(), "PRODUCT_CHARGE");
-        appendOrThrow_(detecting_transition_builder_.AppendNull(), "DETECTING_TRANSITION");
-        appendOrThrow_(product_decoy_builder_.AppendNull(), "PRODUCT_DECOY");
-        appendOrThrow_(transition_ordinal_builder_.AppendNull(), "TRANSITION_ORDINAL");
-        appendOrThrow_(transition_type_builder_.AppendNull(), "TRANSITION_TYPE");
-        appendOptionalString_(annotation_builder_, row.precursor_annotation, "ANNOTATION");
+        appendOrThrow(transition_id_builder_.AppendNull(), "TRANSITION_ID");
+        appendOrThrow(product_charge_builder_.AppendNull(), "PRODUCT_CHARGE");
+        appendOrThrow(detecting_transition_builder_.AppendNull(), "DETECTING_TRANSITION");
+        appendOrThrow(product_decoy_builder_.AppendNull(), "PRODUCT_DECOY");
+        appendOrThrow(transition_ordinal_builder_.AppendNull(), "TRANSITION_ORDINAL");
+        appendOrThrow(transition_type_builder_.AppendNull(), "TRANSITION_TYPE");
+        appendOptionalString(annotation_builder_, row.precursor_annotation, "ANNOTATION");
       }
       else
       {
         const TransitionInfo& tr = *row.transition;
-        appendOptionalInt_(precursor_id_builder_, true, tr.precursor_id, "PRECURSOR_ID");
-        appendOptionalInt_(transition_id_builder_, true, tr.transition_id, "TRANSITION_ID");
-        appendOptionalString_(modified_sequence_builder_, tr.modified_sequence, "MODIFIED_SEQUENCE");
-        appendOptionalInt_(precursor_charge_builder_, tr.precursor_charge > 0, tr.precursor_charge, "PRECURSOR_CHARGE");
-        appendOptionalInt_(product_charge_builder_, tr.product_charge > 0, tr.product_charge, "PRODUCT_CHARGE");
-        appendOptionalInt_(detecting_transition_builder_, true, tr.detecting_transition, "DETECTING_TRANSITION");
-        appendOptionalInt_(precursor_decoy_builder_, true, tr.precursor_decoy, "PRECURSOR_DECOY");
-        appendOptionalInt_(product_decoy_builder_, true, tr.product_decoy, "PRODUCT_DECOY");
-        appendOptionalInt_(transition_ordinal_builder_, tr.transition_ordinal >= 0, tr.transition_ordinal, "TRANSITION_ORDINAL");
-        appendOptionalString_(transition_type_builder_, tr.transition_type, "TRANSITION_TYPE");
-        appendOptionalString_(annotation_builder_, tr.annotation, "ANNOTATION");
+        appendOptionalInt(precursor_id_builder_, true, tr.precursor_id, "PRECURSOR_ID");
+        appendOptionalInt(transition_id_builder_, true, tr.transition_id, "TRANSITION_ID");
+        appendOptionalString(modified_sequence_builder_, tr.modified_sequence, "MODIFIED_SEQUENCE");
+        appendOptionalInt(precursor_charge_builder_, tr.precursor_charge > 0, tr.precursor_charge, "PRECURSOR_CHARGE");
+        appendOptionalInt(product_charge_builder_, tr.product_charge > 0, tr.product_charge, "PRODUCT_CHARGE");
+        appendOptionalInt(detecting_transition_builder_, true, tr.detecting_transition, "DETECTING_TRANSITION");
+        appendOptionalInt(precursor_decoy_builder_, true, tr.precursor_decoy, "PRECURSOR_DECOY");
+        appendOptionalInt(product_decoy_builder_, true, tr.product_decoy, "PRODUCT_DECOY");
+        appendOptionalInt(transition_ordinal_builder_, tr.transition_ordinal >= 0, tr.transition_ordinal, "TRANSITION_ORDINAL");
+        appendOptionalString(transition_type_builder_, tr.transition_type, "TRANSITION_TYPE");
+        appendOptionalString(annotation_builder_, tr.annotation, "ANNOTATION");
       }
 
-      appendBinary_(rt_data_builder_, row.rt_data, "RT_DATA");
-      appendBinary_(intensity_data_builder_, row.intensity_data, "INTENSITY_DATA");
-      appendOrThrow_(rt_compression_builder_.Append(rt_compression_), "RT_COMPRESSION");
-      appendOrThrow_(intensity_compression_builder_.Append(intensity_compression_), "INTENSITY_COMPRESSION");
+      appendBinary(rt_data_builder_, row.rt_data, "RT_DATA");
+      appendBinary(intensity_data_builder_, row.intensity_data, "INTENSITY_DATA");
+      appendOrThrow(rt_compression_builder_.Append(rt_compression_), "RT_COMPRESSION");
+      appendOrThrow(intensity_compression_builder_.Append(intensity_compression_), "INTENSITY_COMPRESSION");
 
       // Track accumulated binary size and row count for both populated and
       // empty chromatograms so trailing empty rows are flushed as well.
@@ -604,24 +476,24 @@ namespace OpenMS
       // Finish arrays from the current builders, then immediately reset the
       // builders so they are fresh for the next batch regardless of whether
       // WriteTable succeeds or throws.
-      auto arr_run_id         = finishArray_(run_id_builder_,                "RUN_ID");
-      auto arr_source_file    = finishArray_(source_file_builder_,           "SOURCE_FILE");
-      auto arr_ms_level       = finishArray_(ms_level_builder_,              "MS_LEVEL");
-      auto arr_prec_id        = finishArray_(precursor_id_builder_,          "PRECURSOR_ID");
-      auto arr_tr_id          = finishArray_(transition_id_builder_,         "TRANSITION_ID");
-      auto arr_mod_seq        = finishArray_(modified_sequence_builder_,     "MODIFIED_SEQUENCE");
-      auto arr_prec_charge    = finishArray_(precursor_charge_builder_,      "PRECURSOR_CHARGE");
-      auto arr_prod_charge    = finishArray_(product_charge_builder_,        "PRODUCT_CHARGE");
-      auto arr_detecting      = finishArray_(detecting_transition_builder_,  "DETECTING_TRANSITION");
-      auto arr_prec_decoy     = finishArray_(precursor_decoy_builder_,       "PRECURSOR_DECOY");
-      auto arr_prod_decoy     = finishArray_(product_decoy_builder_,         "PRODUCT_DECOY");
-      auto arr_tr_ordinal     = finishArray_(transition_ordinal_builder_,    "TRANSITION_ORDINAL");
-      auto arr_tr_type        = finishArray_(transition_type_builder_,       "TRANSITION_TYPE");
-      auto arr_annotation     = finishArray_(annotation_builder_,            "ANNOTATION");
-      auto arr_rt_data        = finishArray_(rt_data_builder_,               "RT_DATA");
-      auto arr_int_data       = finishArray_(intensity_data_builder_,        "INTENSITY_DATA");
-      auto arr_rt_comp        = finishArray_(rt_compression_builder_,        "RT_COMPRESSION");
-      auto arr_int_comp       = finishArray_(intensity_compression_builder_, "INTENSITY_COMPRESSION");
+      auto arr_run_id         = ParquetFile::finishArray(run_id_builder_,                "RUN_ID");
+      auto arr_source_file    = ParquetFile::finishArray(source_file_builder_,           "SOURCE_FILE");
+      auto arr_ms_level       = ParquetFile::finishArray(ms_level_builder_,              "MS_LEVEL");
+      auto arr_prec_id        = ParquetFile::finishArray(precursor_id_builder_,          "PRECURSOR_ID");
+      auto arr_tr_id          = ParquetFile::finishArray(transition_id_builder_,         "TRANSITION_ID");
+      auto arr_mod_seq        = ParquetFile::finishArray(modified_sequence_builder_,     "MODIFIED_SEQUENCE");
+      auto arr_prec_charge    = ParquetFile::finishArray(precursor_charge_builder_,      "PRECURSOR_CHARGE");
+      auto arr_prod_charge    = ParquetFile::finishArray(product_charge_builder_,        "PRODUCT_CHARGE");
+      auto arr_detecting      = ParquetFile::finishArray(detecting_transition_builder_,  "DETECTING_TRANSITION");
+      auto arr_prec_decoy     = ParquetFile::finishArray(precursor_decoy_builder_,       "PRECURSOR_DECOY");
+      auto arr_prod_decoy     = ParquetFile::finishArray(product_decoy_builder_,         "PRODUCT_DECOY");
+      auto arr_tr_ordinal     = ParquetFile::finishArray(transition_ordinal_builder_,    "TRANSITION_ORDINAL");
+      auto arr_tr_type        = ParquetFile::finishArray(transition_type_builder_,       "TRANSITION_TYPE");
+      auto arr_annotation     = ParquetFile::finishArray(annotation_builder_,            "ANNOTATION");
+      auto arr_rt_data        = ParquetFile::finishArray(rt_data_builder_,               "RT_DATA");
+      auto arr_int_data       = ParquetFile::finishArray(intensity_data_builder_,        "INTENSITY_DATA");
+      auto arr_rt_comp        = ParquetFile::finishArray(rt_compression_builder_,        "RT_COMPRESSION");
+      auto arr_int_comp       = ParquetFile::finishArray(intensity_compression_builder_, "INTENSITY_COMPRESSION");
 
       // Reset builders and counters immediately — before WriteTable — so the
       // destructor's retry path always finds builders in a usable state.

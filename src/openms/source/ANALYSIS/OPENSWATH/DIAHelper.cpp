@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
@@ -41,18 +42,13 @@ namespace OpenMS::DIAHelpers
         }
       };
 
-      void hashCombine(std::size_t& seed, std::size_t value)
-      {
-        seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-      }
-
       struct AveragineDistributionKeyHash
       {
         std::size_t operator()(const AveragineDistributionKey& key) const
         {
           std::size_t seed = std::hash<double>{}(key.product_mz);
-          hashCombine(seed, std::hash<int>{}(key.charge));
-          hashCombine(seed, std::hash<int>{}(key.nr_isotopes));
+          hash_combine(seed, std::hash<int>{}(key.charge));
+          hash_combine(seed, std::hash<int>{}(key.nr_isotopes));
           return seed;
         }
       };
@@ -100,7 +96,7 @@ namespace OpenMS::DIAHelpers
         std::size_t operator()(const std::pair<EmpiricalFormula, int>& key) const
         {
           std::size_t seed = std::hash<EmpiricalFormula>{}(key.first);
-          hashCombine(seed, std::hash<int>{}(key.second));
+          hash_combine(seed, std::hash<int>{}(key.second));
           return seed;
         }
       };

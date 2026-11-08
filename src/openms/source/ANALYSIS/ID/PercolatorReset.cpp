@@ -88,7 +88,7 @@ namespace
   // ---------------------------------------------------------------------------------------------
   // Learners on standardized feature rows
   // ---------------------------------------------------------------------------------------------
-  struct Matrix
+  struct RowMajorMatrix
   {
     Size rows = 0, cols = 0;
     std::vector<double> v; // row-major
@@ -196,7 +196,7 @@ namespace
   // Linear L2-SVM (squared hinge, regularized bias) with per-class costs, via Percolator's TRON solver:
   // minimizes 0.5 ||w||^2 + sum_i C_{y_i} max(0, 1 - y_i w.x_i)^2, the bias (a constant 1.0 column that the solver
   // appends itself) regularized as in liblinear / LinearSVC with intercept_scaling 1.
-  Model trainSvm(const Matrix& X, const std::vector<Size>& rows, const std::vector<double>& y, double c_pos, double c_neg)
+  Model trainSvm(const RowMajorMatrix& X, const std::vector<Size>& rows, const std::vector<double>& y, double c_pos, double c_neg)
   {
     const int m = static_cast<int>(rows.size());
     const int n = static_cast<int>(X.cols) + 1;
@@ -374,7 +374,7 @@ namespace
   }
 
   // Ridge logistic regression by Newton steps; returns w (cols + 1, bias last)
-  std::vector<double> fitLogistic(const Matrix& X, const std::vector<Size>& rows, const std::vector<double>& y01)
+  std::vector<double> fitLogistic(const RowMajorMatrix& X, const std::vector<Size>& rows, const std::vector<double>& y01)
   {
     const Size d = X.cols + 1;
     Eigen::VectorXd w = Eigen::VectorXd::Zero(static_cast<Eigen::Index>(d));
@@ -720,7 +720,7 @@ PercolatorReset::Output PercolatorReset::run(const Input& in, const Options& opt
   {
     for (Size u = 0; u < used.size(); ++u) dst[u] = (raw[used[u]] - mean[used[u]]) / sd[used[u]];
   };
-  Matrix X;
+  RowMajorMatrix X;
   X.rows = m;
   X.cols = used.size();
   X.v.resize(m * used.size());

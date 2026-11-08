@@ -25,13 +25,6 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 # add the library: the GUI layer of the installed package (export set
 # OpenMSGUITargets, install components library_gui and cmake_gui, headers in
 # OpenMS_GUI_headers); it links the CLI layer, which links the core layer.
-# Files that cannot share a unity-build translation unit (ENABLE_UNITYBUILD): each defines a
-# file-local dummy object of the same name.
-set_source_files_properties(
-  source/VISUAL/ANNOTATION/Annotation1DPeakItem.cpp
-  source/VISUAL/ANNOTATION/Annotation1DTextItem.cpp
-  PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
-
 openms_add_library(TARGET_NAME OpenMS_GUI
                    SOURCE_FILES ${OpenMSVisual_sources}
                    HEADER_FILES ${OpenMSVisual_sources_h}

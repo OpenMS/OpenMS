@@ -9,13 +9,9 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include "DATAACCESS/ParquetReaderHelpers.h"
-#include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/XICParquetFile.h>
-#include <OpenMS/FORMAT/ZlibCompression.h>
 #include <OpenMS/SYSTEM/File.h>
 
-
-#include <cstring>
 #include <cctype>
 #include <exception>
 #include <sstream>
@@ -37,103 +33,6 @@ namespace OpenMS
       };
       return options;
     }
-
-    /// Decode RT/intensity arrays stored as compressed binary blobs.
-    void decodeBinary_(const std::string& data, Int64 compression, std::vector<double>& output)
-    {
-      output.clear();
-      if (data.empty())
-      {
-        return;
-      }
-
-      auto decodeNumpress = [&](MSNumpressCoder::NumpressCompression type, const std::string& input)
-      {
-        MSNumpressCoder::NumpressConfig config;
-        config.np_compression = type;
-        MSNumpressCoder().decodeNPRaw(input, output, config);
-      };
-
-      switch (compression)
-      {
-        case 0: // no compression
-        {
-          if (data.size() % sizeof(double) != 0)
-          {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Invalid RT/intensity data size (not divisible by 8)", StringUtils::toStr(data.size()));
-          }
-          const size_t count = data.size() / sizeof(double);
-          output.resize(count);
-          std::memcpy(output.data(), data.c_str(), count * sizeof(double));
-          break;
-        }
-        case 1: // zlib only
-        {
-          std::string decoded;
-          ZlibCompression::uncompressString(data, decoded);
-          if (decoded.size() % sizeof(double) != 0)
-          {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Invalid decompressed RT/intensity data size", StringUtils::toStr(decoded.size()));
-          }
-          const size_t count = decoded.size() / sizeof(double);
-          output.resize(count);
-          std::memcpy(output.data(), decoded.c_str(), count * sizeof(double));
-          break;
-        }
-        case 2: // np-linear
-        {
-          decodeNumpress(MSNumpressCoder::LINEAR, data);
-          break;
-        }
-        case 3: // np-slof
-        {
-          decodeNumpress(MSNumpressCoder::SLOF, data);
-          break;
-        }
-        case 4: // np-pic
-        {
-          decodeNumpress(MSNumpressCoder::PIC, data);
-          break;
-        }
-        case 5: // np-linear + zlib
-        {
-          std::string decoded;
-          ZlibCompression::uncompressString(data, decoded);
-          decodeNumpress(MSNumpressCoder::LINEAR, decoded);
-          break;
-        }
-        case 6: // np-slof + zlib
-        {
-          std::string decoded;
-          ZlibCompression::uncompressString(data, decoded);
-          decodeNumpress(MSNumpressCoder::SLOF, decoded);
-          break;
-        }
-        case 7: // np-pic + zlib
-        {
-          std::string decoded;
-          ZlibCompression::uncompressString(data, decoded);
-          decodeNumpress(MSNumpressCoder::PIC, decoded);
-          break;
-        }
-        default:
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Unsupported compression type", StringUtils::toStr(compression));
-      }
-    }
-
-    std::string upper_(const std::string& input)
-    {
-      std::string out = input;
-      for (Size i = 0; i < out.size(); ++i)
-      {
-        out[i] = static_cast<char>(std::toupper(static_cast<unsigned char>(out[i])));
-      }
-      return out;
-    }
-
     FilterExpression buildFilterFromArgs_(Int64 precursor_id,
                                           Int64 transition_id,
                                           const std::string& modified_sequence,
@@ -151,26 +50,7 @@ namespace OpenMS
       if (ms_level >= 0) builder.eq("MS_LEVEL", ms_level);
       if (run_id >= 0) builder.eq("RUN_ID", run_id);
       return builder.expression();
-    }
-
-    void appendKeyPart_(std::ostringstream& oss, bool has_value, Int64 value)
-    {
-      if (has_value)
-      {
-        oss << value;
-      }
-      else
-      {
-        oss << "NULL";
-      }
-      oss << '|';
-    }
-
-    void appendKeyPart_(std::ostringstream& oss, const std::string& value)
-    {
-      oss << value << '|';
-    }
-  } // namespace
+    }  } // namespace
 
   XICParquetFile::XICParquetFile(const std::string& filename)
     : filename_(filename)
@@ -365,8 +245,8 @@ namespace OpenMS
       const std::string rt_data = PRH::getBinaryView(rt_data_col, row);
       const std::string intensity_data = PRH::getBinaryView(intensity_data_col, row);
 
-      decodeBinary_(rt_data, rt_compression, chrom.rt);
-      decodeBinary_(intensity_data, intensity_compression, chrom.intensity);
+      PRH::decodeBinary(rt_data, rt_compression, chrom.rt, "RT/intensity");
+      PRH::decodeBinary(intensity_data, intensity_compression, chrom.intensity, "RT/intensity");
       if (chrom.rt.size() != chrom.intensity.size())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -402,8 +282,8 @@ namespace OpenMS
       PRH::getOptionalString(source_file_col, row, info.source_file);
 
       std::ostringstream oss;
-      appendKeyPart_(oss, true, info.run_id);
-      appendKeyPart_(oss, info.source_file);
+      PRH::appendKeyPart(oss, true, info.run_id);
+      PRH::appendKeyPart(oss, info.source_file);
       if (seen.insert(oss.str()).second)
       {
         output.push_back(std::move(info));
@@ -464,7 +344,7 @@ namespace OpenMS
     schema_columns.reserve(schema->num_fields());
     for (const auto& field : schema->fields())
     {
-      schema_columns.insert(upper_(std::string(field->name())));
+      schema_columns.insert(StringUtils::toUppered(std::string(field->name())));
     }
 
     std::unordered_set<std::string> allowed_columns = {
@@ -485,7 +365,7 @@ namespace OpenMS
     normalized_columns.reserve(requested_columns.size());
     for (const auto& name : requested_columns)
     {
-      const std::string upper_name = upper_(name);
+      const std::string upper_name = StringUtils::toUppered(name);
       if (!allowed_columns.contains(upper_name))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -584,47 +464,47 @@ namespace OpenMS
         std::ostringstream oss;
         if (want("PRECURSOR_ID"))
         {
-          appendKeyPart_(oss, analyte.has_precursor_id, analyte.precursor_id);
+          PRH::appendKeyPart(oss, analyte.has_precursor_id, analyte.precursor_id);
         }
         if (want("MODIFIED_SEQUENCE"))
         {
-          appendKeyPart_(oss, analyte.modified_sequence);
+          PRH::appendKeyPart(oss, analyte.modified_sequence);
         }
         if (want("PRECURSOR_CHARGE"))
         {
-          appendKeyPart_(oss, analyte.has_precursor_charge, analyte.precursor_charge);
+          PRH::appendKeyPart(oss, analyte.has_precursor_charge, analyte.precursor_charge);
         }
         if (want("PRECURSOR_DECOY"))
         {
-          appendKeyPart_(oss, analyte.has_precursor_decoy, analyte.precursor_decoy);
+          PRH::appendKeyPart(oss, analyte.has_precursor_decoy, analyte.precursor_decoy);
         }
         if (want("TRANSITION_ID"))
         {
-          appendKeyPart_(oss, analyte.has_transition_id, analyte.transition_id);
+          PRH::appendKeyPart(oss, analyte.has_transition_id, analyte.transition_id);
         }
         if (want("PRODUCT_CHARGE"))
         {
-          appendKeyPart_(oss, analyte.has_product_charge, analyte.product_charge);
+          PRH::appendKeyPart(oss, analyte.has_product_charge, analyte.product_charge);
         }
         if (want("TRANSITION_ORDINAL"))
         {
-          appendKeyPart_(oss, analyte.has_transition_ordinal, analyte.transition_ordinal);
+          PRH::appendKeyPart(oss, analyte.has_transition_ordinal, analyte.transition_ordinal);
         }
         if (want("DETECTING_TRANSITION"))
         {
-          appendKeyPart_(oss, analyte.has_detecting_transition, analyte.detecting_transition);
+          PRH::appendKeyPart(oss, analyte.has_detecting_transition, analyte.detecting_transition);
         }
         if (want("PRODUCT_DECOY"))
         {
-          appendKeyPart_(oss, analyte.has_product_decoy, analyte.product_decoy);
+          PRH::appendKeyPart(oss, analyte.has_product_decoy, analyte.product_decoy);
         }
         if (want("TRANSITION_TYPE"))
         {
-          appendKeyPart_(oss, analyte.transition_type);
+          PRH::appendKeyPart(oss, analyte.transition_type);
         }
         if (want("ANNOTATION"))
         {
-          appendKeyPart_(oss, analyte.annotation);
+          PRH::appendKeyPart(oss, analyte.annotation);
         }
 
         if (seen.insert(oss.str()).second)
@@ -649,19 +529,19 @@ namespace OpenMS
       std::ostringstream precursor_key;
       if (want("PRECURSOR_ID"))
       {
-        appendKeyPart_(precursor_key, analyte.has_precursor_id, analyte.precursor_id);
+        PRH::appendKeyPart(precursor_key, analyte.has_precursor_id, analyte.precursor_id);
       }
       if (want("MODIFIED_SEQUENCE"))
       {
-        appendKeyPart_(precursor_key, analyte.modified_sequence);
+        PRH::appendKeyPart(precursor_key, analyte.modified_sequence);
       }
       if (want("PRECURSOR_CHARGE"))
       {
-        appendKeyPart_(precursor_key, analyte.has_precursor_charge, analyte.precursor_charge);
+        PRH::appendKeyPart(precursor_key, analyte.has_precursor_charge, analyte.precursor_charge);
       }
       if (want("PRECURSOR_DECOY"))
       {
-        appendKeyPart_(precursor_key, analyte.has_precursor_decoy, analyte.precursor_decoy);
+        PRH::appendKeyPart(precursor_key, analyte.has_precursor_decoy, analyte.precursor_decoy);
       }
       const std::string precursor_key_str = precursor_key.str();
 
@@ -723,31 +603,31 @@ namespace OpenMS
       std::ostringstream transition_key;
       if (want("TRANSITION_ID"))
       {
-        appendKeyPart_(transition_key, has_transition_id, transition_id);
+        PRH::appendKeyPart(transition_key, has_transition_id, transition_id);
       }
       if (want("PRODUCT_CHARGE"))
       {
-        appendKeyPart_(transition_key, has_product_charge, product_charge);
+        PRH::appendKeyPart(transition_key, has_product_charge, product_charge);
       }
       if (want("TRANSITION_ORDINAL"))
       {
-        appendKeyPart_(transition_key, has_transition_ordinal, transition_ordinal);
+        PRH::appendKeyPart(transition_key, has_transition_ordinal, transition_ordinal);
       }
       if (want("DETECTING_TRANSITION"))
       {
-        appendKeyPart_(transition_key, has_detecting_transition, detecting_transition);
+        PRH::appendKeyPart(transition_key, has_detecting_transition, detecting_transition);
       }
       if (want("PRODUCT_DECOY"))
       {
-        appendKeyPart_(transition_key, has_product_decoy, product_decoy);
+        PRH::appendKeyPart(transition_key, has_product_decoy, product_decoy);
       }
       if (want("TRANSITION_TYPE"))
       {
-        appendKeyPart_(transition_key, transition_type);
+        PRH::appendKeyPart(transition_key, transition_type);
       }
       if (want("ANNOTATION"))
       {
-        appendKeyPart_(transition_key, annotation);
+        PRH::appendKeyPart(transition_key, annotation);
       }
       const std::string transition_key_str = transition_key.str();
 

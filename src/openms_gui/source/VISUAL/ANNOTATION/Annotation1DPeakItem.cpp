@@ -15,7 +15,7 @@ namespace OpenMS
 {
   namespace
   {
-    Annotation1DPeakItem<Peak1D> p(Peak1D(0, 0), "test", QColor());
+    Annotation1DPeakItem<Peak1D> compile_check_peak_item(Peak1D(0, 0), "test", QColor());
   }
 }
 

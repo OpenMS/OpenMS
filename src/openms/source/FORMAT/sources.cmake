@@ -135,6 +135,7 @@ list(APPEND sources_list PSMArrowIO.cpp)
 list(APPEND sources_list ModificationDefinitionIO.cpp)
 list(APPEND sources_list ArrowSchemaRegistry.cpp)
 list(APPEND sources_list ArrowIOHelpers.cpp)
+list(APPEND sources_list ArrowFileIOHelpers.cpp)
 
 if (WITH_OPENTIMS)
   list(APPEND sources_list BrukerTimsFile.cpp)
