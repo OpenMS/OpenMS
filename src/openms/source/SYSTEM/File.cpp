@@ -24,6 +24,7 @@
 #include <OpenMS/FORMAT/FileNameUtils.h>
 #include <algorithm>
 #include <atomic>
+#include <cctype>
 #include <cerrno>
 #include <filesystem>
 #include <fstream>
@@ -370,6 +371,20 @@ namespace OpenMS{
     }
 #endif
     return StringUtils::hasPrefix(path, "/") ? "file://" + path : "file:///" + path;
+  }
+
+  std::string File::localPath(const std::string& file)
+  {
+    if (!StringUtils::hasPrefix(file, "file://")) return file; // not a file:// URI, leave untouched
+
+    std::string path = StringUtils::substr(file, 7); // strip the "file://" scheme
+    // Windows drive paths are encoded with one extra slash before the drive letter
+    // (toFileURI() builds them as "file:///" + "C:/..."), so undo that here.
+    if (path.size() >= 3 && path[0] == '/' && std::isalpha(static_cast<unsigned char>(path[1])) && path[2] == ':')
+    {
+      path = StringUtils::substr(path, 1);
+    }
+    return path;
   }
 
   std::string File::basename(const std::string& file)

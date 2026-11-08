@@ -124,6 +124,19 @@ public:
     */
     static std::string toFileURI(const std::string& file);
 
+    /**
+      @brief Convert a @p file:// URI (as produced by toFileURI()) back to a local path.
+
+      Strips the `file://` scheme and, for the three-slash Windows drive form
+      (`file:///C:/data/run.mzML`), the extra slash before the drive letter, so the
+      result can be passed to filesystem functions such as exists(). Inputs that are
+      not `file://` URIs (plain local paths) are returned unchanged.
+
+      @param[in] file A path, optionally given as a file:// URI
+      @return The local filesystem path
+    */
+    static std::string localPath(const std::string& file);
+
     /// Returns the basename of the file (without the path).
     /// No checking is done on the filesystem, i.e. '/path/some_entity' will return 'some_entity', irrespective of 'some_entity' is a file or a directory.
     /// However, '/path/some_entity/' will return ''.
