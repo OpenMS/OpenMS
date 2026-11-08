@@ -69,3 +69,24 @@ The frozen teacher-free design with `-pooled_tdc` was evaluated once against a h
   - MS1 ppm error is the strongest single feature: 1.3 ppm for targets against 7.1 ppm for decoys above z 10.
 - **Hand rule:** about 690 targets against about 3 decoys above z 6, extrapolated from 60-sample bands. The CNN-only result is 321. This is a feasibility signal only.
 - **Next:** a native, opt-in second-stage discriminant over CNN logit plus extraction features, designed on raw 01. Evaluating it needs raw 03 and a new gate.
+
+### Stage-2 score: native implementation and raw 01 design (`gates/astral-raw01-stage2-design/`)
+
+- **Code:** `OpenDIACNN -stage2`, commit `014cb0dbf1`. It is opt-in and requires `-paired_tdc -pooled_tdc`. Without `-stage2`, the HeLa crossfit output and the fold checkpoints are byte-identical.
+- **Inputs to the score:** per window, the fold-decoy-standardised CNN logit, plus seven extraction features from a core window of ±4 s:
+  - fragment fraction;
+  - fragment co-elution;
+  - library intensity correlation;
+  - absolute fragment ppm and absolute MS1 ppm, each relative to the offset of the seed windows;
+  - MS1-to-fragment co-elution;
+  - first-isotope presence.
+- **Fitting:** a PyProphet-style semi-supervised ridge LDA, cross-fitted so that each fold's weights come only from the other folds. It runs 3 rounds, with positives first at q ≤ 0.15 and then at 0.05. Pooled paired TDC follows.
+- **Raw 01 design run (T/D only):**
+  - The rule was written before the run. It passed with 333 targets at q ≤ 0.01, against 321 for CNN-only.
+  - Weights were stable and `cnn_z` was positive in all folds.
+  - At q ≤ 0.05 the count is 770 against 634. The defaults are frozen.
+- **Raw 02 re-score (`gates/astral-raw02-stage2-diagnostic/`):** a diagnostic only, because raw 02 is spent and the features came from its post-mortem.
+  - 518 accepted at q ≤ 0.01, 3 of them entrapment.
+  - FDP_c 0.0117, with a 95% CP interval of 0.002 to 0.034. The CNN-only figures were 360, 5 and 0.028.
+  - Above q 0.02 the estimate is still anti-conservative: FDP_c 0.054 at q ≤ 0.05.
+- **Open item:** an independent check needs raw 03, the last held-back replicate, under a new hashed gate. It waits for the user's go-ahead.

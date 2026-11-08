@@ -1,0 +1,10 @@
+Native CNN fold=0 heldout_windows=938586 epochs=32 validation_loss=0.004547 heldout_seed_decoy_auc=0.999974
+Native CNN fold=1 heldout_windows=926079 epochs=40 validation_loss=0.004635 heldout_seed_decoy_auc=0.999467
+Native CNN fold=2 heldout_windows=933724 epochs=40 validation_loss=0.003805 heldout_seed_decoy_auc=0.999952
+Experimental second stage: ms1_offset_ppm=1.025415 ms2_offset_ppm=0.347869 windows=2798389
+Experimental second stage fold=0 iterations=3 positives=606 negatives=177291 cnn_z=7.637692 fragment_fraction=-3.584798 fragment_coelution=1.870747 library_correlation=-0.549793 ms2_abs_ppm=-1.714719 ms1_abs_ppm=-1.070111 ms1_coelution=1.863898 ms1_isotope=-0.182054
+Experimental second stage fold=1 iterations=3 positives=732 negatives=178403 cnn_z=7.621680 fragment_fraction=-3.710940 fragment_coelution=1.775569 library_correlation=-0.342307 ms2_abs_ppm=-1.723780 ms1_abs_ppm=-1.061868 ms1_coelution=1.904286 ms1_isotope=-0.086021
+Experimental second stage fold=2 iterations=3 positives=492 negatives=177626 cnn_z=8.880819 fragment_fraction=-5.384094 fragment_coelution=1.860139 library_correlation=0.128258 ms2_abs_ppm=-1.613953 ms1_abs_ppm=-1.096939 ms1_coelution=1.875934 ms1_isotope=-0.361838
+Experimental second-stage pooled paired target-decoy estimate (cross-fitted LDA over CNN logit and extraction features): target_decoy_ratio=1.000000 target_precursors_q01=518. Seed-derived, not independently validated FDR control.
+Native CNN crossfit seconds=270.683411 windows=2798389
+OpenDIACNN took 13:04 m (wall), 16:53 m (CPU), 35.32 s (system), 16:17 m (user); Peak Memory Usage: 22629 MB.

@@ -53,6 +53,10 @@ The current pipeline extracts 198,915 candidates in 40 s and runs CNN crossfit i
   - It gave 604 anchors and 360 targets at q ≤ 0.01, with 5 entrapment hits.
   - Combined entrapment FDP estimate 0.028 against a 0.015 limit (95% interval 0.009 to 0.065).
   - On this weak Astral run the experimental q is not conservative enough. See R-WP2 and R-WP4.
+- An opt-in second-stage LDA (`OpenDIACNN -stage2`) combines the CNN score with co-elution, library correlation and MS1 evidence.
+  - Raw 01 design run: 333 targets at q ≤ 0.01, against 321 for CNN-only.
+  - Spent raw 02 re-score (a diagnostic, not a gate): 518 targets, FDP_c 0.012.
+  - It has not been evaluated independently. Raw 03 is held back for that.
 - The rewrite is about 5,500 to 6,100 precursors short of the reference. Closing that gap is R-WP5.
 
 ## Work packages
