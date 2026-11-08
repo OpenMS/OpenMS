@@ -2112,11 +2112,22 @@ namespace OpenMS
     s.push_back(it->second.toCellString());
   }
 
-  for (std::map<Size, std::map<Size, MzTabDouble> >::const_iterator it = row.search_engine_score_ms_run.begin(); it != row.search_engine_score_ms_run.end(); ++it)
+  // Write run-major (every score for run 1, then every score for run 2, ...),
+  // matching the column order generateMzTabProteinHeader_() builds the header
+  // in. Iterating score-major here (as before) walks the same values but in a
+  // different order, so column N's header and column N's value silently came
+  // from different (score, run) pairs whenever more than one run and more
+  // than one search engine score were present.
+  if (!row.search_engine_score_ms_run.empty())
   {
-    for (std::map<Size, MzTabDouble>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
+    const std::map<Size, MzTabDouble>& first_score_runs = row.search_engine_score_ms_run.begin()->second;
+    for (std::map<Size, MzTabDouble>::const_iterator run_it = first_score_runs.begin(); run_it != first_score_runs.end(); ++run_it)
     {
-      s.push_back(sit->second.toCellString());
+      for (std::map<Size, std::map<Size, MzTabDouble> >::const_iterator it = row.search_engine_score_ms_run.begin(); it != row.search_engine_score_ms_run.end(); ++it)
+      {
+        std::map<Size, MzTabDouble>::const_iterator val_it = it->second.find(run_it->first);
+        s.push_back(val_it != it->second.end() ? val_it->second.toCellString() : MzTabDouble().toCellString());
+      }
     }
   }
 
@@ -2326,10 +2337,22 @@ namespace OpenMS
   // best score(s)
   for (auto const & bs : row.best_search_engine_score) { s.push_back(bs.second.toCellString()); }
 
-  // run-level best score(s)
-  for (auto const & bsrun : row.search_engine_score_ms_run)
+  // run-level best score(s), written run-major to match the column order
+  // generateMzTabPeptideHeader_() builds the header in (see the protein
+  // section row writer above for why score-major, as this used to be, puts
+  // values under the wrong column once there is more than one run and more
+  // than one search engine score)
+  if (!row.search_engine_score_ms_run.empty())
   {
-    for (auto const & bs : bsrun.second) { s.push_back(bs.second.toCellString()); }
+    const auto& first_score_runs = row.search_engine_score_ms_run.begin()->second;
+    for (auto const & run : first_score_runs)
+    {
+      for (auto const & bsrun : row.search_engine_score_ms_run)
+      {
+        auto val_it = bsrun.second.find(run.first);
+        s.push_back(val_it != bsrun.second.end() ? val_it->second.toCellString() : MzTabDouble().toCellString());
+      }
+    }
   }
 
   if (store_peptide_reliability_)
@@ -2533,11 +2556,19 @@ namespace OpenMS
     s.push_back(it->second.toCellString());
   }
 
-  for (auto it = row.search_engine_score_ms_run.begin(); it != row.search_engine_score_ms_run.end(); ++it)
+  // run-major, matching generateMzTabSmallMoleculeHeader_()'s column order
+  // (see the protein section row writer above for why score-major, as this
+  // used to be, misaligns values with run >= 2 and score >= 2)
+  if (!row.search_engine_score_ms_run.empty())
   {
-    for (auto sit = it->second.begin(); sit != it->second.end(); ++sit)
+    const auto& first_score_runs = row.search_engine_score_ms_run.begin()->second;
+    for (auto run_it = first_score_runs.begin(); run_it != first_score_runs.end(); ++run_it)
     {
-      s.push_back(sit->second.toCellString());
+      for (auto it = row.search_engine_score_ms_run.begin(); it != row.search_engine_score_ms_run.end(); ++it)
+      {
+        auto val_it = it->second.find(run_it->first);
+        s.push_back(val_it != it->second.end() ? val_it->second.toCellString() : MzTabDouble().toCellString());
+      }
     }
   }
 
@@ -2649,11 +2680,19 @@ namespace OpenMS
       s.push_back(it->second.toCellString());
     }
 
-    for (std::map<Size, std::map<Size, MzTabDouble> >::const_iterator it = row.search_engine_score_ms_run.begin(); it != row.search_engine_score_ms_run.end(); ++it)
+    // run-major, matching generateMzTabNucleicAcidHeader_()'s column order
+    // (see the protein section row writer above for why score-major, as this
+    // used to be, misaligns values with run >= 2 and score >= 2)
+    if (!row.search_engine_score_ms_run.empty())
     {
-      for (std::map<Size, MzTabDouble>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
+      const std::map<Size, MzTabDouble>& first_score_runs = row.search_engine_score_ms_run.begin()->second;
+      for (std::map<Size, MzTabDouble>::const_iterator run_it = first_score_runs.begin(); run_it != first_score_runs.end(); ++run_it)
       {
-        s.push_back(sit->second.toCellString());
+        for (std::map<Size, std::map<Size, MzTabDouble> >::const_iterator it = row.search_engine_score_ms_run.begin(); it != row.search_engine_score_ms_run.end(); ++it)
+        {
+          std::map<Size, MzTabDouble>::const_iterator val_it = it->second.find(run_it->first);
+          s.push_back(val_it != it->second.end() ? val_it->second.toCellString() : MzTabDouble().toCellString());
+        }
       }
     }
 
@@ -2760,11 +2799,19 @@ namespace OpenMS
       s.push_back(it->second.toCellString());
     }
 
-    for (map<Size, map<Size, MzTabDouble> >::const_iterator it = row.search_engine_score_ms_run.begin(); it != row.search_engine_score_ms_run.end(); ++it)
+    // run-major, matching generateMzTabOligonucleotideHeader_()'s column
+    // order (see the protein section row writer above for why score-major,
+    // as this used to be, misaligns values with run >= 2 and score >= 2)
+    if (!row.search_engine_score_ms_run.empty())
     {
-      for (map<Size, MzTabDouble>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
+      const map<Size, MzTabDouble>& first_score_runs = row.search_engine_score_ms_run.begin()->second;
+      for (map<Size, MzTabDouble>::const_iterator run_it = first_score_runs.begin(); run_it != first_score_runs.end(); ++run_it)
       {
-        s.push_back(sit->second.toCellString());
+        for (map<Size, map<Size, MzTabDouble> >::const_iterator it = row.search_engine_score_ms_run.begin(); it != row.search_engine_score_ms_run.end(); ++it)
+        {
+          map<Size, MzTabDouble>::const_iterator val_it = it->second.find(run_it->first);
+          s.push_back(val_it != it->second.end() ? val_it->second.toCellString() : MzTabDouble().toCellString());
+        }
       }
     }
 

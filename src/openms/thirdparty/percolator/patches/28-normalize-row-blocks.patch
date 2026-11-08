@@ -1,0 +1,24 @@
+diff --git a/src/openms/thirdparty/percolator/Normalizer.cpp b/src/openms/thirdparty/percolator/Normalizer.cpp
+index 9003995608..d9086fc43e 100644
+--- a/src/openms/thirdparty/percolator/Normalizer.cpp
++++ b/src/openms/thirdparty/percolator/Normalizer.cpp
+@@ -78,12 +78,14 @@ void Normalizer::normalizeRowsByFeature(vector<double*>& featuresV,
+     if (omp_get_num_threads() > 1) {
+ #pragma omp single
+       byFeature = true;
++      // OpenMS: by blocks of rows (each row's features in a row: one pass over the rows, all threads), the same
++      // expression for every value as by feature
++      const std::ptrdiff_t numRows = static_cast<std::ptrdiff_t>(featuresV.size());
+ #pragma omp for schedule(static)
+-      for (std::ptrdiff_t ix = 0; ix < nf; ++ix) {
+-        const double s = sub[static_cast<std::size_t>(ix)];
+-        const double d = div[static_cast<std::size_t>(ix)];
+-        for (double* features : featuresV) {
+-          features[ix] = (features[ix] - s) / d;
++      for (std::ptrdiff_t r = 0; r < numRows; ++r) {
++        double* features = featuresV[static_cast<std::size_t>(r)];
++        for (std::ptrdiff_t ix = 0; ix < nf; ++ix) {
++          features[ix] = (features[ix] - sub[static_cast<std::size_t>(ix)]) / div[static_cast<std::size_t>(ix)];
+         }
+       }
+     }

@@ -23,7 +23,7 @@ namespace OpenMS
     /*!
       A processing step that was applied to a data item, possibly with associated scores.
     */
-    struct AppliedProcessingStep
+    struct OPENMS_DLLAPI AppliedProcessingStep
     {
       /*!
         @brief (Optional) reference to the processing step
@@ -45,11 +45,7 @@ namespace OpenMS
       }
 
       /// Equality operator (needed for multi-index container)
-      bool operator==(const AppliedProcessingStep& other) const
-      {
-        return ((processing_step_opt == other.processing_step_opt) &&
-                (scores == other.scores));
-      }
+      bool operator==(const AppliedProcessingStep& other) const;
 
       /*!
         @brief Return scores in order of priority (primary first).
@@ -60,35 +56,7 @@ namespace OpenMS
         @param[in] primary_only Only return the primary score (ignoring any others)?
       */
       std::vector<std::pair<ScoreTypeRef, double>>
-      getScoresInOrder(bool primary_only = false) const
-      {
-        std::vector<std::pair<ScoreTypeRef, double>> result;
-        std::set<ScoreTypeRef> scores_done;
-
-        if (processing_step_opt)
-        {
-          ProcessingSoftwareRef sw_ref = (*processing_step_opt)->software_ref;
-          for (ScoreTypeRef score_ref : sw_ref->assigned_scores)
-          {
-            auto pos = scores.find(score_ref);
-            if (pos != scores.end())
-            {
-              result.push_back(*pos);
-              if (primary_only) return result;
-              scores_done.insert(score_ref);
-            }
-          }
-        }
-        for (const auto& pair: scores)
-        {
-          if (!scores_done.contains(pair.first))
-          {
-            result.push_back(pair);
-            if (primary_only) return result;
-          }
-        }
-        return result;
-      }
+      getScoresInOrder(bool primary_only = false) const;
     };
 
     // we want to keep track of the processing steps in sequence (order of

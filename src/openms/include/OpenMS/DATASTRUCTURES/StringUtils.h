@@ -21,7 +21,6 @@
 #include <cstdio>
 #include <cstring>
 #include <limits>
-#include <ranges>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -806,9 +805,12 @@ namespace OpenMS
       instead of the iterator form
       @code std::string s; s = StringUtils::concatenate(container, ", "); @endcode
 
-      Constraining @p Container to a range keeps this from competing with the iterator overloads.
+      Constraining @p Container to types with begin()/end() keeps this from competing with the
+      iterator overloads. (A requires-expression instead of std::ranges::range: this header is
+      included by nearly every translation unit, and the ranges header is expensive to parse.)
     */
-    template <std::ranges::range Container>
+    template <typename Container>
+      requires requires(const Container& c) { c.begin(); c.end(); }
     inline std::string concatenate(const Container& container, const std::string& glue = "")
     {
       return concatenate(container.begin(), container.end(), glue);

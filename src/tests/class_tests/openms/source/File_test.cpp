@@ -301,6 +301,26 @@ START_SECTION((static std::string find(const std::string &filename, StringList d
     TEST_EQUAL(msg.find("OPENMS_DATA_PATH") != std::string::npos, true)
     TEST_EQUAL(msg.find(File::getOpenMSDataPath()) != std::string::npos, true)
   }
+
+  // A candidate directory that cannot be checked does not hold the file: the search goes on to the next one
+  // (here: the data path) instead of throwing std::filesystem::filesystem_error. Callers pass compiled-in
+  // build-machine paths first (the PeptDeep models: OPENMS_BINARY_PATH), which may be unreadable on a user's
+  // machine. EACCES from a folder without permissions; skipped where the mode is not enforced (root, Windows).
+  {
+    std::string locked;
+    NEW_TMP_FILE(locked);
+    std::filesystem::create_directory(locked);
+    std::filesystem::permissions(locked, std::filesystem::perms::none);
+    std::error_code ec;
+    (void)std::filesystem::status(std::filesystem::path(locked) / "probe", ec);
+    if (ec == std::errc::permission_denied)
+    {
+      TEST_EQUAL(File::find("CV/psi-ms.obo", {locked + "/share/OpenMS"}), s_obo)
+      TEST_EXCEPTION(Exception::FileNotFound, File::find("CV/does_not_exist.obo", {locked + "/share/OpenMS"}))
+    }
+    std::filesystem::permissions(locked, std::filesystem::perms::owner_all);
+    std::filesystem::remove(locked);
+  }
 END_SECTION
 
 #ifdef ENABLE_DOCS

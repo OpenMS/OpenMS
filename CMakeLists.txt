@@ -124,6 +124,7 @@ option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." 
 option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
+option(OPENMS_ENABLE_MZPEAK "Build with mzPeak (HUPO-PSI Parquet-based raw data format) support via the vendored mzPeak library (needs Arrow/Parquet, which OpenMS requires anyway)" ON)
 option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
 option(ENABLE_OPENTIMS_TESTS "Download Bruker test data for opentims integration tests" OFF)
 # Every platform we build for reads RAW files: the Thermo CommonCore assemblies are
@@ -464,6 +465,11 @@ if(ENABLE_IPO)
 endif()
 
 #------------------------------------------------------------------------------
+# Linker choice (lld/mold when available; see cmake/linker.cmake)
+#------------------------------------------------------------------------------
+include(cmake/linker.cmake)
+
+#------------------------------------------------------------------------------
 # Enable clang compile time profiling
 #------------------------------------------------------------------------------
 option(CLANG_TIME_TRACE "[Clang 9+ only] Enable clang compile time profiling." OFF)
@@ -756,6 +762,9 @@ if(WITH_ONNX AND NOT OPENMS_USE_INSTALLED_LIBRARY)
   endif() 
 endif()
 
+
+## WITH_MIMALLOC (Windows, MSVC): the TOPP tools allocate through mimalloc; defines openms_link_mimalloc().
+include(cmake/mimalloc.cmake)
 
 #------------------------------------------------------------------------------
 # The actual OpenMS code (headers and source files)

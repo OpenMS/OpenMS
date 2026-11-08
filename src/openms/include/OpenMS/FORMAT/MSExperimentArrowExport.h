@@ -174,6 +174,16 @@ struct OPENMS_DLLAPI ParquetWriteConfig
   /// Top-level columns whose values are written without dictionary encoding (all their leaves): columns of
   /// mostly distinct values, e.g. peak m/z, which with small row groups would each get a dictionary page
   std::vector<std::string> plain_columns;
+
+  /// Threads of one write (default 1: as before, serial). More than one: the QPX value validation checks the rows
+  /// in parallel (OpenMP), and the row groups are encoded column by column in parallel on a thread pool of this size
+  /// owned by the write (not Arrow's global CPU pool). The file is the same: one row group per @p row_group_size
+  /// rows, the same encodings and compression; only its uuid and creation_date differ between two writes.
+  int threads = 1;
+
+  /// The table passed the QPX value validation already (ArrowIOHelpers::validateQPXTable() of the same table): the
+  /// write does not check it again. For a table written twice, e.g. as a run's file and as the merged file of one run.
+  bool validated = false;
 };
 
 

@@ -63,6 +63,7 @@ MascotXMLFile.h
 MsInspectFile.h
 MzDataFile.h
 MzMLFile.h
+MzPeakFile.h
 MzQCFile.h
 MzTab.h
 MzTabBase.h

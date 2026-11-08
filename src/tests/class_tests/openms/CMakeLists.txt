@@ -92,8 +92,11 @@ endforeach()
 # MSVC does not share the stack slots of the sections, so the frame alone comes close to the 1 MB default stack of
 # Windows (938 KB without slot reuse at the time of writing), and the singletons initialised in the first section
 # overflowed it. Give the test the 8 MB of a Linux main thread.
+# ProSEAlgorithm_test: the same, 834 KB without slot reuse (GCC -O2 -fstack-reuse=none -fstack-usage, 2026-11-02), and the
+# searches of its chimeric section overflowed what was left (an access violation that CTest reports as a SegFault).
 if (MSVC)
   target_link_options(FragmentIndex_test PRIVATE "/STACK:8388608")
+  target_link_options(ProSEAlgorithm_test PRIVATE "/STACK:8388608")
 endif()
 
 # StopWatch_test needs to be run alone to avoid timing errors
@@ -161,6 +164,10 @@ target_link_libraries(MRMScoring_test Eigen3::Eigen)
 # The vendored Percolator is linked PRIVATE into libOpenMS with hidden symbols.
 # These tests call its classes directly, so they link the static library.
 target_link_libraries(PercolatorPosteriorEstimator_test OpenMS_Percolator)
+target_link_libraries(PercolatorTron_test OpenMS_Percolator)
+target_link_libraries(PercolatorNewton_test OpenMS_Percolator)
+target_link_libraries(PercolatorSampler_test OpenMS_Percolator)
+target_link_libraries(PercolatorBestPositive_test OpenMS_Percolator)
 target_link_libraries(PercolatorScores_test OpenMS_Percolator)
 
 
@@ -342,6 +349,16 @@ if (TARGET BrukerTimsFile_test AND OPENTIMS_DDA_TEST_DATA)
   # a peptide search engine run, and three-way (greedy vs. hill) centroiding
   # comparisons (which add 4 extra full-fixture loads), so it needs a generous timeout.
   set_tests_properties(BrukerTimsFile_test PROPERTIES TIMEOUT 3600)
+endif()
+
+# Real Bruker TSF runs (timsTOF without ion mobility), if given: OPENTIMS_TSF_TEST_DATA, the .d directory of an LC-MS run
+# with TIMS off (MassIVE MSV000095813, 'Molecular Networking_OE_timsOFF.d'), and OPENTIMS_TSF_IMAGING_TEST_DATA, that of a
+# MALDI imaging run (MassIVE MSV000088438, 20210920_vc_rugose_1mMTCA_gordon.d). The tests compare with the Bruker SDK.
+if (TARGET BrukerTimsFile_test AND OPENTIMS_TSF_TEST_DATA)
+  target_compile_definitions(BrukerTimsFile_test PRIVATE OPENTIMS_TSF_TEST_DATA="${OPENTIMS_TSF_TEST_DATA}")
+endif()
+if (TARGET BrukerTimsImagingFile_test AND OPENTIMS_TSF_IMAGING_TEST_DATA)
+  target_compile_definitions(BrukerTimsImagingFile_test PRIVATE OPENTIMS_TSF_IMAGING_TEST_DATA="${OPENTIMS_TSF_IMAGING_TEST_DATA}")
 endif()
 
 # Tests reading real Thermo .raw files: ThermoRawFile_test reads both fixtures, the

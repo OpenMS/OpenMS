@@ -104,7 +104,7 @@ namespace OpenMS
       }
       
       // add results of this pattern to list
-      filter_results.push_back(result);
+      filter_results.push_back(std::move(result));
     }
     
     endProgress();
