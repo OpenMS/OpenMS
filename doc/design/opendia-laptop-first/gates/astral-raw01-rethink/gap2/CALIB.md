@@ -64,7 +64,7 @@ Before competition, let S_e be the share of entrapment target winners above a sc
 - **An out-of-scan-range artefact in the library.** No signal exists below 150.06 Th in these XICs, which is the acquisition's lower limit. Yet the library's top-6 fragments include ions below 150 Th:
   - in 9.7% of decoys, against 5.7% of entrapment and 5.2% of human precursors;
   - the decoy set even includes transitions at 55–100 Th, below the 100 Th assay limit;
-  - the y1 of a K-terminal peptide is 147.11 Th, and pseudo-reversal moves the decoy's terminal residue around, so more decoys carry a dead y1.
+  - the y1 of a K-terminal peptide is 147.11 Th. Decoy generation swaps the terminal K and R (`switchKR`, the default). An R-terminal target's y1 at 175.12 Th is intense and often in the top 6 (21,905 slots), and its decoy inherits a dead 147.11 Th y1 in the same slot. The reverse case (11,396 K-target slots at 147.11 Th) is rarer, so the dead slots fall unevenly on the decoys.
 
   A decoy with a dead slot never reaches the score tail (0 of 23,446 above the 5% cut), which explains why decoys show more empty traces. **It is a real defect, but it does not explain the excess.** Dropping every pair with a slot below 150 Th changes S_e/S_d at the 1%/5% cuts only slightly: LDA raw 01 1.22/1.12 → 1.22/1.07, LDA raw 02 2.55/1.55 → 2.82/1.56, ensemble raw 02 2.67/1.22 → 2.66/1.20. FDP_c at q ≤ 0.01 is unchanged.
   - **Fix for the native pipeline:** pick the top-N fragments only within the acquired scan range, and apply the same rule to targets and decoys. This also returns a dead slot to 5.2% of human targets, a sensitivity gain.
