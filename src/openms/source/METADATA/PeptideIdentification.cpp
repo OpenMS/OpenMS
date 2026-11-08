@@ -11,6 +11,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
+#include <iterator>
 
 
 using namespace std;
