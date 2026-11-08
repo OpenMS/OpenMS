@@ -38,6 +38,19 @@ This is the second independent run, after 500 pg, on which the calibration finds
 Both runs have low identifiable populations: about 1500 OpenSWATH result rows per raw on Astral, and a low-load 500 pg sample. The Astral run also has no 1/K0 and uses predicted, normalised library RTs.
 Calibration robustness on weak runs is now the blocking problem for the whole teacher-free path. It needs a new design, on a design run that is not an evaluation run.
 
+### Option B: raw 01 as the design run (user decision, 7 November 2026)
+
+Raw 01 is now the design run. Entrapment labels are never joined to its outputs. Raw 02 is the single evaluation and raw 03 is held back. See `astral-design-raw01-20261107/PROTOCOL.md` and `DIAGNOSIS.md`.
+- **Diagnosis** (new `-out_diagnostics`): a power problem.
+  - Only 11264 of 40000 panel targets have a peak, and no stage reaches q ≤ 0.01.
+  - The stage-2 EM map is nearly flat: 109 s median distance to the stage-1 anchors, against 20 s for the stage-1 map.
+  - Centring stage 3 on the stage-1 map alone gives 105 targets at q ≤ 0.05 but still 0 at q ≤ 0.01.
+- **Fix** (`290051546d`, opt-in `-window_panel_targets <n>`): when stage 3 fails after a successful stage 1, one more raw pass collects up to `n` targets.
+  - It stores only spectra inside the stage-3 windows around the stage-1 map.
+  - Stages 3 and 4 then repeat unchanged.
+  - On raw 01 at n = 300000: 512 anchors, 4 decoys above the cut, RT σ 21 s, 3:37 and 16.5 GB.
+  - HeLa p40000 output is byte-identical with and without the option.
+
 ## Panel scaling and escalation, 7 November 2026 (HeLa)
 
 Anchors grow linearly with the panel, at about 0.13 per target. Panel 2500 gives 316, 10000 gives 1278 and 40000 gives 5479, and 95.8 to 96.9% of teacher IDs fall within the RT tolerance.
