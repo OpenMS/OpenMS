@@ -156,10 +156,69 @@ namespace OpenMS::OpenDIA
     return results;
   }
 
-  std::vector<CNNQValueResult> aggregatePairedCNNQValues(const std::vector<CNNQValueInput>& inputs)
+  std::vector<CNNQValueResult> aggregatePairedCNNQValues(const std::vector<CNNQValueInput>& raw_inputs, bool pooled)
   {
     std::vector<CNNQValueResult> results;
-    const auto winners = selectWinners_(inputs, results);
+    const auto winners = selectWinners_(raw_inputs, results);
+    // Pooled mode competes on per-fold decoy-standardised scores; a monotone map per fold keeps every
+    // within-fold choice (precursor winner, pair winner) unchanged.
+    std::vector<CNNQValueInput> standardised;
+    if (pooled)
+    {
+      std::map<int, std::vector<double>> decoy_scores;
+      for (const auto& entry : winners)
+      {
+        const auto& row = raw_inputs[entry.second];
+        if (row.is_decoy)
+        {
+          decoy_scores[row.fold].push_back(row.score);
+        }
+      }
+      const auto median = [](std::vector<double> values)
+      {
+        const std::size_t mid = values.size() / 2;
+        std::nth_element(values.begin(), values.begin() + mid, values.end());
+        const double upper = values[mid];
+        if (values.size() % 2 == 1)
+        {
+          return upper;
+        }
+        return (*std::max_element(values.begin(), values.begin() + mid) + upper) / 2.0;
+      };
+      std::map<int, std::pair<double, double>> scale; // fold -> (centre, spread)
+      for (const auto& entry : winners)
+      {
+        const int fold = raw_inputs[entry.second].fold;
+        if (scale.count(fold) != 0)
+        {
+          continue;
+        }
+        const auto found = decoy_scores.find(fold);
+        if (found == decoy_scores.end())
+        {
+          throw std::invalid_argument("Pooled paired competition needs decoy precursor winners in every fold");
+        }
+        const double centre = median(found->second);
+        std::vector<double> deviations;
+        for (double value : found->second)
+        {
+          deviations.push_back(std::fabs(value - centre));
+        }
+        const double spread = 1.4826 * median(std::move(deviations));
+        if (!(spread > 0.0) || !std::isfinite(spread))
+        {
+          throw std::invalid_argument("Pooled paired competition needs a positive decoy score spread in every fold");
+        }
+        scale[fold] = {centre, spread};
+      }
+      standardised = raw_inputs;
+      for (auto& row : standardised)
+      {
+        const auto& [centre, spread] = scale.at(row.fold);
+        row.score = (row.score - centre) / spread;
+      }
+    }
+    const auto& inputs = pooled ? standardised : raw_inputs;
 
     // Group winners by pair key; each pair holds at most one target and one decoy in one fold.
     struct Pair
@@ -201,7 +260,18 @@ namespace OpenMS::OpenDIA
       }
       // Exact ties go to the decoy, the conservative choice.
       const std::size_t competitor = inputs[pair.target].score > inputs[pair.decoy].score ? pair.target : pair.decoy;
-      folds[inputs[competitor].fold].push_back(competitor);
+      folds[pooled ? 0 : inputs[competitor].fold].push_back(competitor);
+    }
+    if (pooled)
+    {
+      // Unpaired winners were filed under their own fold; pool them too.
+      std::vector<std::size_t> all;
+      for (auto& entry : folds)
+      {
+        all.insert(all.end(), entry.second.begin(), entry.second.end());
+      }
+      folds.clear();
+      folds[0] = std::move(all);
     }
     for (auto& entry : folds)
     {

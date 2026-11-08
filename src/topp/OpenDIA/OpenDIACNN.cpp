@@ -80,6 +80,7 @@ namespace OpenMS
       registerDoubleOption_("target_decoy_ratio", "<ratio>", 1.0, "Crossfit decoy-count correction: searched library target/decoy ratio, never observed winner ratio", false);
       setMinFloat_("target_decoy_ratio", 0.0);
       registerFlag_("paired_tdc", "Crossfit only, experimental: paired target-decoy competition. A decoy precursor TRAML_ID 'DECOY_<X>' competes with target <X>; q=(D+1)/T per fold, so target_decoy_ratio must stay 1");
+      registerFlag_("pooled_tdc", "With -paired_tdc, experimental: standardise each fold's logits by the median and MAD of its decoy precursor winners and run one paired competition over all folds instead of per fold (output logits unchanged)");
       registerFlag_("rt_window_calibration", "Crossfit only, experimental: fit a library-RT to run-RT map per fold from the other folds' top 500 target precursors by CNN score (no teacher IDs) and keep only windows within max(4 sigma, 30 s) of the map before precursor q-values");
       registerInputFile_("rt_calibration", "<file>", "", "Crossfit only, experimental: OpenDIACalibrate JSON (identification-free, CNN-independent). Keep only windows whose apex lies within the calibrated RT tolerance of the calibrated map before precursor q-values", false);
       setValidFormats_("rt_calibration", {"json"});
@@ -161,6 +162,11 @@ namespace OpenMS
         if (paired_tdc && (!crossfit || target_decoy_ratio != 1.0))
         {
           throw std::invalid_argument("paired_tdc requires crossfit mode and target_decoy_ratio 1 (pairing balances the classes).");
+        }
+        const bool pooled_tdc = getFlag_("pooled_tdc");
+        if (pooled_tdc && !paired_tdc)
+        {
+          throw std::invalid_argument("pooled_tdc requires paired_tdc.");
         }
         const int ss_iterations = getIntOption_("ss_iterations");
         if (ss_iterations > 0 && !crossfit)
@@ -324,6 +330,19 @@ namespace OpenMS
           std::sort(negatives.begin(), negatives.end(), by_order);
           const std::size_t n = std::min({positives.size(), negatives.size(), ss_max_seeds});
           if (n < 3) { throw std::runtime_error("Score iteration found fewer than three positive or negative seeds."); }
+          // Every fold trains on the other folds' families; each needs positives outside its own held-out fold.
+          for (int fold = 0; fold < getIntOption_("folds"); ++fold)
+          {
+            const bool usable = std::any_of(positives.begin(), positives.begin() + static_cast<std::ptrdiff_t>(n), [&](std::size_t i)
+            {
+              return OpenDIA::traceCNNFold(data.samples[i].group_id, settings.seed, getIntOption_("folds")) != fold;
+            });
+            if (!usable)
+            {
+              throw std::runtime_error("Score iteration has no positive seeds outside held-out fold " + std::to_string(fold) +
+                                       ", so that fold cannot be retrained; all positives come from one fold (see -pooled_tdc).");
+            }
+          }
           for (std::size_t j = 0; j < n; ++j)
           {
             data.samples[positives[j]].label = 1;
@@ -423,7 +442,7 @@ namespace OpenMS
           kept_rows.push_back(crossfit_rows[i]);
         }
         const auto kept_evaluated = !crossfit ? std::vector<OpenDIA::CNNQValueResult>{} :
-          paired_tdc ? OpenDIA::aggregatePairedCNNQValues(kept_rows) : OpenDIA::aggregateCNNQValues(kept_rows, target_decoy_ratio);
+          paired_tdc ? OpenDIA::aggregatePairedCNNQValues(kept_rows, pooled_tdc) : OpenDIA::aggregateCNNQValues(kept_rows, target_decoy_ratio);
         evaluated.clear();
         for (std::size_t i = 0; i < crossfit_rows.size(); ++i)
         {
@@ -453,7 +472,8 @@ namespace OpenMS
             scores << '\n';
             targets_at_one_percent += row.precursor_best && !row.input.is_decoy && row.q_value <= 0.01;
           }
-          writeLogInfo_(std::string(paired_tdc ? "Experimental fold-wise paired target-decoy estimate:" : "Experimental fold-wise decoy-count estimate:") +
+          writeLogInfo_(std::string(pooled_tdc ? "Experimental pooled paired target-decoy estimate (per-fold decoy-standardised logits):"
+                                    : paired_tdc ? "Experimental fold-wise paired target-decoy estimate:" : "Experimental fold-wise decoy-count estimate:") +
                         " target_decoy_ratio=" + std::to_string(target_decoy_ratio) +
                         " target_precursors_q01=" + std::to_string(targets_at_one_percent) +
                         ". Seed-derived, not independently validated FDR control.");

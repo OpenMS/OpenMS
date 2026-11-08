@@ -72,8 +72,12 @@ namespace OpenMS::OpenDIA
 
     @param[in] inputs As for aggregateCNNQValues(). A pair key may join at most one
       target and one decoy precursor, both in the same fold.
+    @param[in] pooled Experimental: standardise each fold's scores by the median and
+      1.4826 x MAD of its decoy precursor winners, then compete all folds in one list
+      instead of per fold. Reported scores stay unchanged.
     @return One result per input window, in original order.
-    @throws std::invalid_argument If input or pairing validation fails.
+    @throws std::invalid_argument If input or pairing validation fails, or (pooled) a fold
+      has no decoy winners or a zero decoy spread.
   */
-  std::vector<CNNQValueResult> aggregatePairedCNNQValues(const std::vector<CNNQValueInput>& inputs);
+  std::vector<CNNQValueResult> aggregatePairedCNNQValues(const std::vector<CNNQValueInput>& inputs, bool pooled = false);
 }

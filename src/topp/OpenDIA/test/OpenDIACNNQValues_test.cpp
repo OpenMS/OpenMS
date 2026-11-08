@@ -45,6 +45,19 @@ namespace
     throw std::runtime_error("Expected invalid_argument");
   }
 
+  void paired_invalid_pooled_(const std::vector<CNNQValueInput>& rows)
+  {
+    try
+    {
+      aggregatePairedCNNQValues(rows, true);
+    }
+    catch (const std::invalid_argument&)
+    {
+      return;
+    }
+    throw std::runtime_error("Expected pooled paired invalid_argument");
+  }
+
   std::map<std::string, std::pair<bool, double>> keyed(const std::vector<CNNQValueResult>& rows)
   {
     std::map<std::string, std::pair<bool, double>> result;
@@ -219,6 +232,44 @@ int main()
     auto reversed_rows = paired_rows;
     std::reverse(reversed_rows.begin(), reversed_rows.end());
     check(keyed(aggregatePairedCNNQValues(reversed_rows)) == paired);
+
+    // Pooled paired competition: fold 1 logits are fold 0 logits x 10 + 100, so after per-fold decoy
+    // standardisation both folds coincide and one pooled list doubles every count.
+    {
+      std::vector<CNNQValueInput> pooled_rows;
+      const std::vector<double> target_scores = {9.0, 7.0, 6.0, 1.0}, decoy_scores = {8.0, 2.0, 0.0, -1.0};
+      for (int fold = 0; fold < 2; ++fold)
+      {
+        for (std::size_t k = 0; k < target_scores.size(); ++k)
+        {
+          const std::string key = std::to_string(fold) + "p" + std::to_string(k);
+          const auto shift = [&](double s) { return fold == 0 ? s : 10.0 * s + 100.0; };
+          pooled_rows.push_back({"t" + key, "t" + key, "f" + key, false, fold, shift(target_scores[k]), key});
+          pooled_rows.push_back({"d" + key, "d" + key, "f" + key, true, fold, shift(decoy_scores[k]), key});
+        }
+      }
+      const auto per_fold = keyed(aggregatePairedCNNQValues(pooled_rows));
+      const auto pooled = keyed(aggregatePairedCNNQValues(pooled_rows, true));
+      // Per fold: competitors 9 T, 7 T, 6 T, 1 T (all targets win) -> q = 1/4 at the bottom, (0+1)/1 at the top.
+      near(per_fold.at("t0p0").second, 0.25);
+      near(per_fold.at("t1p0").second, 0.25);
+      // Pooled: 8 target competitors, no decoy winners -> (0+1)/8.
+      near(pooled.at("t0p0").second, 0.125);
+      near(pooled.at("t1p3").second, 0.125);
+      // Winner selection and reported scores are unchanged.
+      for (const auto& [id, value] : per_fold)
+      {
+        check(pooled.at(id).first == value.first);
+      }
+      const auto raw = aggregatePairedCNNQValues(pooled_rows, true);
+      for (std::size_t i = 0; i < raw.size(); ++i)
+      {
+        near(raw[i].input.score, pooled_rows[i].score);
+      }
+      // A fold without decoy winners cannot be standardised.
+      paired_invalid_pooled_({{"t1", "t1", "f1", false, 0, 1.0, "k1"}, {"d1", "d1", "f1", true, 0, 0.0, "k1"},
+                              {"t2", "t2", "f2", false, 1, 1.0, ""}});
+    }
     // Pairing rejects duplicate classes in one key and split folds.
     const auto paired_invalid = [](const std::vector<CNNQValueInput>& rows)
     {

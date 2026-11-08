@@ -70,6 +70,14 @@ foreach(arguments IN ITEMS "-mode;train;-model;${WORK}/paired.pt" "-mode;crossfi
   endif()
 endforeach()
 
+# Pooled competition only refines paired competition.
+execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/pooled" -pooled_tdc
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "pooled_tdc requires paired_tdc" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "pooled_tdc without paired_tdc was not rejected before extraction\n${output}\n${error}")
+endif()
+
 # The experimental RT window is crossfit-only and is rejected before extraction.
 execute_process(COMMAND "${BINARY}" -mode train -rt_window_calibration -in "${WORK}/input.d"
   -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -model "${WORK}/rt.pt" -out "${WORK}/scores.tsv"
