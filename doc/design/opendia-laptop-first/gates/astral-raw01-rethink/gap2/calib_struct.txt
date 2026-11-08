@@ -1,0 +1,20 @@
+raw 01: precursors per group {'decoy': 294104, 'human': 158664, 'entrapment': 136122}
+grp                        decoy  entrapment       human
+slots           mean    5.978000    5.988000    5.970000
+lib_entropy     mean    1.595000    1.597000    1.594000
+npts            mean  120.055000  120.065000  120.047000
+rt_span         mean  195.393005  195.393997  195.393005
+n_cand          mean    4.519000    4.989000    4.335000
+zero_trace_frac mean    0.141000    0.107000    0.141000
+share with <6 slots: {'decoy': 0.0048, 'entrapment': 0.0026, 'human': 0.0064}
+share with <5 candidates: {'decoy': 0.1015, 'entrapment': 0.0068, 'human': 0.1364}
+raw 02: precursors per group {'decoy': 294104, 'human': 158661, 'entrapment': 136125}
+grp                        decoy  entrapment       human
+slots           mean    5.978000    5.988000    5.971000
+lib_entropy     mean    1.595000    1.597000    1.594000
+npts            mean  133.736000  133.749000  133.726000
+rt_span         mean  217.936996  217.938004  217.936996
+n_cand          mean    4.526000    4.994000    4.341000
+zero_trace_frac mean    0.133000    0.100000    0.133000
+share with <6 slots: {'decoy': 0.0048, 'entrapment': 0.0027, 'human': 0.0063}
+share with <5 candidates: {'decoy': 0.0979, 'entrapment': 0.0039, 'human': 0.1341}

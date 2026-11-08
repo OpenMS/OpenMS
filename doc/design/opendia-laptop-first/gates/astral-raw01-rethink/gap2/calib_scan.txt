@@ -1,0 +1,14 @@
+raw 01: pairs dropped 36507; candidates kept 0.867
+  LDA                  all pairs            q<=0.01   993 (FDP_c 0.010, lower 0.005) | q<=0.05  1429 (FDP_c 0.058) | N at FDP_c 1% 1011 | S_e/S_d at 1%/5% cuts 1.22/1.12
+  LDA                  in-range pairs only  q<=0.01   958 (FDP_c 0.011, lower 0.005) | q<=0.05  1392 (FDP_c 0.056) | N at FDP_c 1% 949 | S_e/S_d at 1%/5% cuts 1.22/1.07
+  MLP seed 0           all pairs            q<=0.01  1222 (FDP_c 0.012, lower 0.006) | q<=0.05  1691 (FDP_c 0.077) | N at FDP_c 1% 1221 | S_e/S_d at 1%/5% cuts 1.14/1.52
+  MLP seed 0           in-range pairs only  q<=0.01  1177 (FDP_c 0.010, lower 0.005) | q<=0.05  1680 (FDP_c 0.086) | N at FDP_c 1% 1143 | S_e/S_d at 1%/5% cuts 1.06/1.66
+  MLP 5-seed ensemble  all pairs            q<=0.01  1171 (FDP_c 0.010, lower 0.005) | q<=0.05  1610 (FDP_c 0.071) | N at FDP_c 1% 1234 | S_e/S_d at 1%/5% cuts 1.07/1.38
+  MLP 5-seed ensemble  in-range pairs only  q<=0.01  1161 (FDP_c 0.010, lower 0.005) | q<=0.05  1569 (FDP_c 0.077) | N at FDP_c 1% 1131 | S_e/S_d at 1%/5% cuts 1.06/1.52
+raw 02: pairs dropped 36575; candidates kept 0.867
+  LDA                  all pairs            q<=0.01  1115 (FDP_c 0.023, lower 0.012) | q<=0.05  1463 (FDP_c 0.079) | N at FDP_c 1% 885 | S_e/S_d at 1%/5% cuts 2.55/1.55
+  LDA                  in-range pairs only  q<=0.01  1071 (FDP_c 0.024, lower 0.012) | q<=0.05  1412 (FDP_c 0.078) | N at FDP_c 1% 860 | S_e/S_d at 1%/5% cuts 2.82/1.56
+  MLP seed 0           all pairs            q<=0.01  1231 (FDP_c 0.020, lower 0.010) | q<=0.05  1573 (FDP_c 0.072) | N at FDP_c 1% 1040 | S_e/S_d at 1%/5% cuts 2.14/1.41
+  MLP seed 0           in-range pairs only  q<=0.01  1176 (FDP_c 0.019, lower 0.009) | q<=0.05  1533 (FDP_c 0.074) | N at FDP_c 1% 1010 | S_e/S_d at 1%/5% cuts 2.15/1.44
+  MLP 5-seed ensemble  all pairs            q<=0.01  1251 (FDP_c 0.024, lower 0.012) | q<=0.05  1634 (FDP_c 0.062) | N at FDP_c 1% 1136 | S_e/S_d at 1%/5% cuts 2.67/1.22
+  MLP 5-seed ensemble  in-range pairs only  q<=0.01  1229 (FDP_c 0.025, lower 0.012) | q<=0.05  1588 (FDP_c 0.061) | N at FDP_c 1% 1101 | S_e/S_d at 1%/5% cuts 2.66/1.20

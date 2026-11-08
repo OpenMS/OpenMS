@@ -1,0 +1,80 @@
+raw 01: zero-trace rate (and slot count) by fragment m/z, 5 Th bins below 200
+      mean                       size                    
+grp  decoy entrapment  human    decoy entrapment    human
+bin                                                      
+55   1.000        NaN    NaN    229.0        NaN      NaN
+70   1.000        NaN    NaN    219.0        NaN      NaN
+75   1.000        NaN    NaN    125.0        NaN      NaN
+85   1.000        NaN    NaN    306.0        NaN      NaN
+90   1.000        NaN    NaN    114.0        NaN      NaN
+95   1.000        NaN    NaN    197.0        NaN      NaN
+100  1.000        NaN    NaN    372.0        NaN      NaN
+105  1.000      1.000  1.000    148.0      100.0    118.0
+110  1.000        NaN    NaN    493.0        NaN      NaN
+115  1.000      1.000  1.000    891.0      243.0     99.0
+120  1.000      1.000  1.000    219.0       49.0     67.0
+125  1.000      1.000  1.000   1000.0     1211.0   1491.0
+130  1.000      1.000  1.000    863.0      302.0    282.0
+135  1.000      1.000  1.000    144.0       37.0     38.0
+140  1.000      1.000  1.000    612.0      236.0    252.0
+145  1.000      1.000  1.000  23463.0     5834.0   6176.0
+150  0.044      0.023  0.000    160.0       43.0     33.0
+155  0.004      0.001  0.002   3556.0     1578.0   1319.0
+160  0.126      0.067  0.238    262.0       30.0     21.0
+165  0.034      0.030  0.033    892.0      429.0    422.0
+170  0.015      0.000  0.001   4691.0     1867.0   1898.0
+175  0.002      0.000  0.000  12306.0    10786.0  10919.0
+180  0.290      0.106  0.029    207.0       66.0     69.0
+185  0.014      0.004  0.004   8771.0     4054.0   3996.0
+190  0.463      0.209  0.200    134.0      110.0    130.0
+195  0.035      0.005  0.014   2714.0     1144.0   1150.0
+min nonzero fragment m/z seen: 150.058
+share of precursors with a top-6 slot < 150 Th: {'human': 0.0521, 'entrapment': 0.0571, 'decoy': 0.0966}
+LDA: share with slot<150 Th - all decoy winners 0.088, decoys above 5% cut 0.000; all entrapment winners 0.057, above cut 0.000
+   tail survival decoys WITHOUT slot<150: 2.96e-4 (n 243095)
+   tail survival decoys WITH slot<150: 0.00e-4 (n 23446)
+   tail survival entrapment: 3.01e-4
+MLP: share with slot<150 Th - all decoy winners 0.088, decoys above 5% cut 0.000; all entrapment winners 0.057, above cut 0.000
+   tail survival decoys WITHOUT slot<150: 3.50e-4 (n 243095)
+   tail survival decoys WITH slot<150: 0.00e-4 (n 23446)
+   tail survival entrapment: 4.85e-4
+raw 02: zero-trace rate (and slot count) by fragment m/z, 5 Th bins below 200
+      mean                       size                    
+grp  decoy entrapment  human    decoy entrapment    human
+bin                                                      
+55   1.000        NaN    NaN    229.0        NaN      NaN
+70   1.000        NaN    NaN    219.0        NaN      NaN
+75   1.000        NaN    NaN    125.0        NaN      NaN
+85   1.000        NaN    NaN    306.0        NaN      NaN
+90   1.000        NaN    NaN    114.0        NaN      NaN
+95   1.000        NaN    NaN    197.0        NaN      NaN
+100  1.000        NaN    NaN    372.0        NaN      NaN
+105  1.000      1.000  1.000    148.0      102.0    116.0
+110  1.000        NaN    NaN    493.0        NaN      NaN
+115  1.000      1.000  1.000    891.0      243.0     99.0
+120  1.000      1.000  1.000    219.0       51.0     65.0
+125  1.000      1.000  1.000   1000.0     1247.0   1455.0
+130  1.000      1.000  1.000    863.0      297.0    287.0
+135  1.000      1.000  1.000    144.0       38.0     37.0
+140  1.000      1.000  1.000    612.0      245.0    243.0
+145  1.000      1.000  1.000  23463.0     5848.0   6162.0
+150  0.038      0.000  0.000    160.0       43.0     33.0
+155  0.004      0.002  0.001   3556.0     1579.0   1318.0
+160  0.099      0.129  0.150    262.0       31.0     20.0
+165  0.028      0.033  0.026    892.0      424.0    427.0
+170  0.013      0.000  0.002   4691.0     1867.0   1898.0
+175  0.002      0.000  0.000  12306.0    10789.0  10916.0
+180  0.319      0.121  0.101    207.0       66.0     69.0
+185  0.011      0.004  0.004   8771.0     4052.0   3998.0
+190  0.433      0.161  0.242    134.0      112.0    128.0
+195  0.035      0.004  0.016   2714.0     1142.0   1152.0
+min nonzero fragment m/z seen: 150.058
+share of precursors with a top-6 slot < 150 Th: {'human': 0.0517, 'entrapment': 0.0575, 'decoy': 0.0966}
+LDA: share with slot<150 Th - all decoy winners 0.088, decoys above 5% cut 0.000; all entrapment winners 0.057, above cut 0.000
+   tail survival decoys WITHOUT slot<150: 2.96e-4 (n 243199)
+   tail survival decoys WITH slot<150: 0.00e-4 (n 23448)
+   tail survival entrapment: 4.19e-4
+MLP: share with slot<150 Th - all decoy winners 0.088, decoys above 5% cut 0.000; all entrapment winners 0.057, above cut 0.000
+   tail survival decoys WITHOUT slot<150: 3.21e-4 (n 243199)
+   tail survival decoys WITH slot<150: 0.00e-4 (n 23448)
+   tail survival entrapment: 4.11e-4

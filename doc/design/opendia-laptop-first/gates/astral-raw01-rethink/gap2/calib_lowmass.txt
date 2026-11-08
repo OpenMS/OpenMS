@@ -1,0 +1,72 @@
+  print(pd.crosstab(tr.ion, tr.grp, normalize='columns').round(4).loc[lambda x: x.max(1) > 0.003].to_string())
+  print(tr.pivot_table(index='ion', columns='grp', values='zero', observed=True).round(3).loc[lambda x: x.index.isin(pd.crosstab(tr.ion, tr.grp).loc[lambda y: y.min(1) > 2000].index)].to_string())
+  print(nzt.pivot_table(index='ion', columns='grp', values='la', aggfunc='median', observed=True).round(2).loc[lambda x: x.index.isin(pd.crosstab(tr.ion, tr.grp).loc[lambda y: y.min(1) > 2000].index)].to_string())
+raw 01: C-terminal residue share (top 6)
+  decoy      {'K': 0.5, 'R': 0.487, 'I': 0.001, 'Q': 0.001, 'S': 0.001, 'C': 0.001}
+  entrapment {'R': 0.497, 'K': 0.488, 'L': 0.002, 'S': 0.002, 'P': 0.002, 'Q': 0.001}
+  human      {'K': 0.498, 'R': 0.489, 'L': 0.002, 'S': 0.002, 'V': 0.001, 'A': 0.001}
+share of top-6 slots by ion (ordinal<=3):
+grp     decoy  entrapment   human
+ion                              
+b2^1   0.0587      0.0614  0.0562
+b3^1   0.0289      0.0295  0.0284
+other  0.8261      0.8181  0.8334
+y1^1   0.0200      0.0210  0.0184
+y2^1   0.0273      0.0296  0.0253
+y3^1   0.0367      0.0380  0.0359
+zero-trace rate by ion:
+grp    decoy  entrapment  human
+ion                            
+b2^1   0.045       0.018  0.029
+b3^1   0.053       0.033  0.062
+other  0.142       0.114  0.150
+y1^1   0.660       0.371  0.377
+y2^1   0.025       0.016  0.029
+y3^1   0.083       0.046  0.079
+median log10 area (nonzero) by ion:
+grp    decoy  entrapment  human
+ion                            
+b2^1    4.52        4.65   4.61
+b3^1    3.83        3.89   3.85
+other   3.57        3.63   3.56
+y1^1    5.66        5.05   5.04
+y2^1    4.22        4.43   4.38
+y3^1    3.80        3.91   3.86
+LDA above q<=0.05 cut: share carrying a y1/y2 slot: entrapment 0.146 (n 41), decoys 0.278 (n 72); all entrapment 0.255, all decoys 0.243
+MLP above q<=0.05 cut: share carrying a y1/y2 slot: entrapment 0.212 (n 66), decoys 0.329 (n 85); all entrapment 0.255, all decoys 0.243
+  print(pd.crosstab(tr.ion, tr.grp, normalize='columns').round(4).loc[lambda x: x.max(1) > 0.003].to_string())
+  print(tr.pivot_table(index='ion', columns='grp', values='zero', observed=True).round(3).loc[lambda x: x.index.isin(pd.crosstab(tr.ion, tr.grp).loc[lambda y: y.min(1) > 2000].index)].to_string())
+  print(nzt.pivot_table(index='ion', columns='grp', values='la', aggfunc='median', observed=True).round(2).loc[lambda x: x.index.isin(pd.crosstab(tr.ion, tr.grp).loc[lambda y: y.min(1) > 2000].index)].to_string())
+raw 02: C-terminal residue share (top 6)
+  decoy      {'K': 0.5, 'R': 0.487, 'I': 0.001, 'Q': 0.001, 'S': 0.001, 'C': 0.001}
+  entrapment {'R': 0.497, 'K': 0.488, 'L': 0.002, 'S': 0.002, 'P': 0.002, 'Q': 0.001}
+  human      {'K': 0.498, 'R': 0.489, 'L': 0.002, 'S': 0.002, 'V': 0.001, 'D': 0.001}
+share of top-6 slots by ion (ordinal<=3):
+grp     decoy  entrapment   human
+ion                              
+b2^1   0.0587      0.0615  0.0562
+b3^1   0.0289      0.0295  0.0284
+other  0.8261      0.8181  0.8334
+y1^1   0.0200      0.0210  0.0184
+y2^1   0.0273      0.0296  0.0254
+y3^1   0.0367      0.0379  0.0360
+zero-trace rate by ion:
+grp    decoy  entrapment  human
+ion                            
+b2^1   0.042       0.017  0.026
+b3^1   0.047       0.029  0.056
+other  0.133       0.106  0.141
+y1^1   0.660       0.372  0.376
+y2^1   0.021       0.012  0.024
+y3^1   0.072       0.038  0.069
+median log10 area (nonzero) by ion:
+grp    decoy  entrapment  human
+ion                            
+b2^1    4.58        4.71   4.67
+b3^1    3.87        3.94   3.90
+other   3.59        3.65   3.58
+y1^1    5.73        5.11   5.11
+y2^1    4.28        4.49   4.44
+y3^1    3.83        3.95   3.90
+LDA above q<=0.05 cut: share carrying a y1/y2 slot: entrapment 0.193 (n 57), decoys 0.278 (n 72); all entrapment 0.255, all decoys 0.243
+MLP above q<=0.05 cut: share carrying a y1/y2 slot: entrapment 0.232 (n 56), decoys 0.231 (n 78); all entrapment 0.255, all decoys 0.243

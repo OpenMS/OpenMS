@@ -2,7 +2,7 @@
 
 This is a design diagnostic. Entrapment is used here only to diagnose. Any choice made from it must be confirmed on an untouched run (raw 03).
 
-The scripts are `calib.py`, `calib_curve.py`, `calib_tail.py`, `calib_borrow.py`, `calib_hits.py`, `calib_il.py`, `calib_shift.py`, `calib_mitig.py` and `matched_fdp02.py`. Each writes a matching `.txt` output.
+The scripts are `calib.py`, `calib_curve.py`, `calib_tail.py`, `calib_borrow.py`, `calib_hits.py`, `calib_il.py`, `calib_shift.py`, `calib_struct.py`, `calib_entr.py`, `calib_entr2.py`, `calib_lowmass.py`, `calib_y1.py`, `calib_scan.py`, `calib_mitig.py` and `matched_fdp02.py`. Each writes a matching `.txt` output.
 
 ## 1. Size and shape (`calib_curve.txt`)
 
@@ -58,9 +58,21 @@ Before competition, let S_e be the share of entrapment target winners above a sc
 
 **The test fails.** The ensemble is the better ranker: N at matched true error goes up on both runs (1234 against 1221, and 1136 against 1040), and it calibrates raw 01 better at 2–5%. It does not fix raw 02 at 1% (FDP_c 0.024). On raw 02 the ensemble still reaches only 88% of OSW+Percolator's 1287.
 
+## 5. Structural checks (`calib_struct.txt`, `calib_entr*.txt`, `calib_lowmass.txt`, `calib_y1.txt`, `calib_scan.txt`)
+
+- **Groups match on precursor m/z, charge, length, library RT, oxidation, C content, fragment type and ordinal, XIC points and RT span.**
+- **An out-of-scan-range artefact in the library.** No signal exists below 150.06 Th in these XICs, which is the acquisition's lower limit. Yet the library's top-6 fragments include ions below 150 Th:
+  - in 9.7% of decoys, against 5.7% of entrapment and 5.2% of human precursors;
+  - the decoy set even includes transitions at 55–100 Th, below the 100 Th assay limit;
+  - the y1 of a K-terminal peptide is 147.11 Th, and pseudo-reversal moves the decoy's terminal residue around, so more decoys carry a dead y1.
+
+  A decoy with a dead slot never reaches the score tail (0 of 23,446 above the 5% cut), which explains why decoys show more empty traces. **It is a real defect, but it does not explain the excess.** Dropping every pair with a slot below 150 Th changes S_e/S_d at the 1%/5% cuts only slightly: LDA raw 01 1.22/1.12 → 1.22/1.07, LDA raw 02 2.55/1.55 → 2.82/1.56, ensemble raw 02 2.67/1.22 → 2.66/1.20. FDP_c at q ≤ 0.01 is unchanged.
+  - **Fix for the native pipeline:** pick the top-N fragments only within the acquired scan range, and apply the same rule to targets and decoys. This also returns a dead slot to 5.2% of human targets, a sensitivity gain.
+- **Entrapment traces are less often empty than both human and decoy traces at the same fragment m/z** (for example, 300–500 Th: entrapment 0.069, human 0.099, decoy 0.091). Re-weighting entrapment winners to the decoys' strata (empty-trace count × candidate count) lowers S_e/S_d by only about 5% (`calib_entr2.txt`). Entrapment is therefore slightly more signal-prone than human false targets, which biases FDP_c a little upward, but not enough to explain the excess.
+
 ## Reading
 
-1. The anti-conservativeness is a property of **decoy winners under-representing false targets in the score tail**, by about 1.1–1.6×. The pipeline's ranker only adds to it. OSW+Percolator, with the same decoys, is worse: invalid even by the lower bound. No ranker change alone has fixed it. At 1% our scorer sits in the inconclusive zone between the entrapment bounds (section 1).
+1. The anti-conservativeness is a property of **decoy winners under-representing false targets in the score tail**, by about 1.1–1.6×. The pipeline's ranker only adds to it. OSW+Percolator, with the same decoys, is worse: invalid even by the lower bound. No ranker change alone has fixed it. At 1% our scorer sits in the inconclusive zone between the entrapment bounds (section 1). The cause is still unidentified. These have been checked and are not it: single features, I/L, the precursor mass shift, borrowed signal (weak), dead low-m/z slots, and entrapment stratum mismatch (each about 5% at most).
 2. **The decoy precursor mass shift is not supported as the cause.** The library's decoys are pseudo-reversed with a precursor mass shift of ±12, ±28 or ±44 Da (99.9% of pairs; checked in the PQP). The entrapment peptides carry no shift; they are scored at their own m/z. If the shift caused the excess, tail survival should vary with the sign or size of the shift (`calib_shift.py`). It does not vary consistently:
    - for negative against positive shifts, S_e/S_d at the 5% cut is 1.13 against 1.10 (raw 01 LDA) and 1.35 against 1.83 (raw 02 LDA);
    - the |12| and |44| groups hold only 0–7 decoys above the cut.

@@ -1,0 +1,42 @@
+raw 01
+                 mz      z     len    lrt    oxM      C
+grp                                                    
+decoy       640.375  3.225  17.568  0.536  0.259  0.287
+entrapment  628.391  3.252  17.430  0.537  0.258  0.282
+human       651.625  3.196  17.654  0.535  0.259  0.290
+charge share:
+z               1      2      3      4      5
+grp                                          
+decoy       0.056  0.258  0.268  0.241  0.177
+entrapment  0.047  0.258  0.271  0.243  0.181
+human       0.066  0.257  0.265  0.238  0.174
+fragments:
+                fmz  y_share    ord    fz2
+grp                                       
+decoy       650.147    0.712  7.748  0.358
+entrapment  639.943    0.711  7.589  0.351
+human       658.168    0.710  7.881  0.362
+zero-trace fraction by precursor m/z bin:
+grp          decoy  entrapment  human
+mzbin                                
+(400, 500]   0.105       0.096  0.109
+(500, 600]   0.089       0.076  0.084
+(600, 700]   0.108       0.087  0.097
+(700, 800]   0.150       0.114  0.141
+(800, 1000]  0.257       0.176  0.255
+zero-trace fraction by length bin:
+grp       decoy  entrapment  human
+lbin                              
+(6, 10]   0.168       0.112  0.168
+(10, 14]  0.106       0.079  0.097
+(14, 18]  0.130       0.098  0.131
+(18, 24]  0.137       0.116  0.139
+(24, 36]  0.169       0.135  0.176
+zero-trace fraction by charge:
+grp  decoy  entrapment  human
+z                            
+1    0.355       0.221  0.329
+2    0.135       0.095  0.127
+3    0.110       0.085  0.114
+4    0.129       0.107  0.133
+5    0.144       0.128  0.145

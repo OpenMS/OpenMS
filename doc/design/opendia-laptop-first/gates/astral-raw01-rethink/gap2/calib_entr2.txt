@@ -1,0 +1,40 @@
+raw 01: per-fragment zero-trace rate by fragment m/z
+grp           decoy  entrapment  human
+fbin                                  
+(100, 300]    0.174       0.101  0.112
+(300, 500]    0.091       0.069  0.099
+(500, 700]    0.105       0.084  0.115
+(700, 900]    0.135       0.113  0.142
+(900, 1200]   0.212       0.173  0.220
+(1200, 1800]  0.324       0.266  0.322
+fragment count share by bin:
+grp           decoy  entrapment  human
+fbin                                  
+(100, 300]    0.112       0.118  0.105
+(300, 500]    0.185       0.184  0.175
+(500, 700]    0.291       0.300  0.295
+(700, 900]    0.233       0.237  0.242
+(900, 1200]   0.148       0.138  0.154
+(1200, 1800]  0.030       0.023  0.029
+LDA S_e/S_d q<=0.01: raw 1.22 -> reweighted 1.17 | q<=0.02: raw 1.12 -> reweighted 1.07 | q<=0.05: raw 1.12 -> reweighted 1.07
+MLP S_e/S_d q<=0.01: raw 1.14 -> reweighted 1.09 | q<=0.02: raw 1.67 -> reweighted 1.59 | q<=0.05: raw 1.52 -> reweighted 1.45
+raw 02: per-fragment zero-trace rate by fragment m/z
+grp           decoy  entrapment  human
+fbin                                  
+(100, 300]    0.171       0.100  0.109
+(300, 500]    0.083       0.062  0.091
+(500, 700]    0.098       0.077  0.107
+(700, 900]    0.126       0.105  0.131
+(900, 1200]   0.201       0.164  0.211
+(1200, 1800]  0.310       0.249  0.307
+fragment count share by bin:
+grp           decoy  entrapment  human
+fbin                                  
+(100, 300]    0.112       0.118  0.105
+(300, 500]    0.185       0.183  0.175
+(500, 700]    0.291       0.300  0.295
+(700, 900]    0.233       0.237  0.242
+(900, 1200]   0.148       0.139  0.153
+(1200, 1800]  0.030       0.023  0.029
+LDA S_e/S_d q<=0.01: raw 2.55 -> reweighted 2.43 | q<=0.02: raw 1.60 -> reweighted 1.53 | q<=0.05: raw 1.55 -> reweighted 1.48
+MLP S_e/S_d q<=0.01: raw 2.14 -> reweighted 2.04 | q<=0.02: raw 1.65 -> reweighted 1.57 | q<=0.05: raw 1.41 -> reweighted 1.34
