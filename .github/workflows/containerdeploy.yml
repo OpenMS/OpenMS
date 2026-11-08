@@ -270,6 +270,11 @@ jobs:
           sudo apt-get install -y libglib2.0-dev
       - name: Singularity install with defaults
         uses: singularityhub/install-singularity@main
+        env:
+          # Singularity 3.11.5 declares `enum { false, true } bool;` in starter.h, which is
+          # invalid since GCC 15 defaults to C23 (bool/true/false are keywords).
+          # Build it with the C standard it was written for.
+          CGO_CFLAGS: -std=gnu17
         with:
           singularity-version: '3.11.5'
       - name: Build Singularity library image
