@@ -59,6 +59,9 @@ Removed:
   - The COIN-OR and GLPK LP solver backends: HiGHS is the only one (#10563, #10565)
   - MapConversion::convert(PeakMap -> ConsensusMap), also from pyOpenMS; FileConverter no longer converts spectra to
     consensusXML (#10561)
+  - The graphical applications TOPPView, TOPPAS and INIFileEditor and the tools ExecutePipeline and ImageCreator:
+    they moved to OpenMS-TOPP-GUI, an add-on installed on top of OpenMS of the same version; OpenMS no longer uses
+    Qt. BREAKING for builds: WITH_GUI and NO_WEBENGINE_WIDGETS are gone (#10844)
 
 
 ------------------------------------------------------------------------------------------
