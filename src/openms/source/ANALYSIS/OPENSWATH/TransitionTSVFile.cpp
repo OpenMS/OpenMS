@@ -190,17 +190,8 @@ namespace OpenMS
     }
   }
 
-  void TransitionTSVFile::readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list)
+  void TransitionTSVFile::readTSVHeader_(std::istream& data, FileTypes::Type filetype, char& delimiter, std::map<std::string, int>& header_dict) const
   {
-    std::ifstream data(filename);
-    std::string   line;
-    std::string   tmp;
-
-    // read header
-    std::vector<std::string>   tmp_line;
-    std::map<std::string, int> header_dict;
-    char delimiter = ',';
-
     // SpectraST MRM Files do not have a header
     if (filetype == FileTypes::MRM)
     {
@@ -223,210 +214,236 @@ namespace OpenMS
     // Read header for TSV input
     else
     {
+      std::string line;
       TextFile::getLine(data, line);
       getTSVHeader_(line, delimiter, header_dict);
     }
+  }
+
+  bool TransitionTSVFile::parseTSVLine_(std::string& line, char delimiter, FileTypes::Type filetype, int cnt,
+                                        std::map<std::string, int>& header_dict, std::vector<std::string>& tmp_line,
+                                        TSVTransition& mytransition, bool& spectrast_legacy)
+  {
+    line.push_back(delimiter); // avoid losing last column if it is empty
+    std::stringstream lineStream(line);
+
+    tmp_line.clear();
+    std::string tmp;
+    while (std::getline(lineStream, tmp, delimiter)) // default getline is fine here, we only want to split the line
+    {
+      tmp_line.push_back(tmp);
+    }
+
+#ifdef TRANSITIONTSVREADER_TESTING
+    for (Size i = 0; i < tmp_line.size(); i++)
+    {
+      std::cout << "line " << i << " " << tmp_line[i] << '\n';
+    }
+
+    for (const auto& iter : header_dict)
+    {
+      std::cout << "header " << iter.first << " " << iter.second << '\n';
+    }
+#endif
+
+    if (tmp_line.size() != header_dict.size())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Error reading the file on line " + StringUtils::toStr(cnt) + ": length of the header and length of the line" +
+                                       " do not match: " + StringUtils::toStr(tmp_line.size()) + " != " + StringUtils::toStr(header_dict.size()));
+    }
+
+    mytransition = TSVTransition(); // reset to defaults
+    bool skip_transition = false; // skip unannotated transitions in SpectraST MRM files
+
+    //// Required columns (they are guaranteed to be present, see getTSVHeader_)
+    // PrecursorMz
+    mytransition.precursor =StringUtils::toDouble(tmp_line[header_dict["PrecursorMz"]]);
+
+    // ProductMz
+    if (!extractName<double>(mytransition.product, "ProductMz", tmp_line, header_dict) &&
+        !extractName<double>(mytransition.product, "FragmentMz", tmp_line, header_dict)) // Spectronaut
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Expected a header named ProductMz or FragmentMz but found none");
+    }
+
+    // LibraryIntensity
+    if (!extractName<double>(mytransition.library_intensity, "LibraryIntensity", tmp_line, header_dict) &&
+        !extractName<double>(mytransition.library_intensity, "RelativeIntensity", tmp_line, header_dict) && // Spectronaut
+        !extractName<double>(mytransition.library_intensity, "RelativeFragmentIntensity", tmp_line, header_dict)) // Spectronaut
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Expected a header named LibraryIntensity or RelativeFragmentIntensity but found none");
+    }
+
+    //// Additional columns for both proteomics and metabolomics
+    // NormalizedRetentionTime
+    if (!extractName<double>(mytransition.rt_calibrated, "RetentionTimeCalculatorScore", tmp_line, header_dict) && // Skyline
+        !extractName<double>(mytransition.rt_calibrated, "iRT", tmp_line, header_dict) && // Spectronaut
+        !extractName<double>(mytransition.rt_calibrated, "NormalizedRetentionTime", tmp_line, header_dict) &&
+        !extractName<double>(mytransition.rt_calibrated, "RetentionTime", tmp_line, header_dict) &&
+        !extractName<double>(mytransition.rt_calibrated, "Tr_recalibrated", tmp_line, header_dict))
+    {
+      if (header_dict.contains("SpectraSTRetentionTime"))
+      {
+        spectrastRTExtract(tmp_line[header_dict["SpectraSTRetentionTime"]], mytransition.rt_calibrated, spectrast_legacy);
+      }
+      else
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "Expected a header named RetentionTime, NormalizedRetentionTime, iRT, RetentionTimeCalculatorScore, Tr_recalibrated or SpectraSTRetentionTime but found none");
+      }
+    }
+
+    // PrecursorCharge
+    void(!extractName(mytransition.precursor_charge, "PrecursorCharge", tmp_line, header_dict) &&
+    !extractName(mytransition.precursor_charge, "Charge", tmp_line, header_dict)); // charge is assumed to be the charge of the precursor
+
+    void(!extractName(mytransition.fragment_type, "FragmentType", tmp_line, header_dict) &&
+    !extractName(mytransition.fragment_type, "FragmentIonType", tmp_line, header_dict)); // Skyline
+
+    void(!extractName(mytransition.fragment_charge, "FragmentCharge", tmp_line, header_dict) &&
+    !extractName(mytransition.fragment_charge, "ProductCharge", tmp_line, header_dict));
+
+    void(!extractName<int>(mytransition.fragment_nr, "FragmentSeriesNumber", tmp_line, header_dict) &&
+    !extractName<int>(mytransition.fragment_nr, "FragmentNumber", tmp_line, header_dict) &&
+    !extractName<int>(mytransition.fragment_nr, "FragmentIonOrdinal", tmp_line, header_dict));
+
+    void(extractName<double>(mytransition.drift_time, "PrecursorIonMobility", tmp_line, header_dict));
+    void(extractName<double>(mytransition.fragment_mzdelta, "FragmentMzDelta", tmp_line, header_dict));
+    void(extractName<int>(mytransition.fragment_modification, "FragmentModification", tmp_line, header_dict));
+
+    //// Proteomics
+    extractName(mytransition.GeneName, "GeneName", tmp_line, header_dict);
+
+    std::string proteins;
+    void(!extractName(proteins, "ProteinName", tmp_line, header_dict) &&
+    !extractName(proteins, "ProteinId", tmp_line, header_dict)); // Spectronaut
+    if (proteins != "NA" && !proteins.empty())
+    {
+      StringUtils::split(proteins, ';', mytransition.ProteinName);
+    }
+
+    void(extractName(mytransition.peptide_group_label, "PeptideGroupLabel", tmp_line, header_dict));
+
+    void(extractName(mytransition.label_type, "LabelType", tmp_line, header_dict));
+
+    void(!extractName(mytransition.PeptideSequence, "PeptideSequence", tmp_line, header_dict) &&
+    !extractName(mytransition.PeptideSequence, "Sequence", tmp_line, header_dict) && // Skyline
+    !extractName(mytransition.PeptideSequence, "StrippedSequence", tmp_line, header_dict)); // Spectronaut
+
+    void(!extractName(mytransition.FullPeptideName, "FullUniModPeptideName", tmp_line, header_dict) &&
+    !extractName(mytransition.FullPeptideName, "FullPeptideName", tmp_line, header_dict) &&
+    !extractName(mytransition.FullPeptideName, "ModifiedSequence", tmp_line, header_dict) && // Spectronaut
+    !extractName(mytransition.FullPeptideName, "ModifiedPeptideSequence", tmp_line, header_dict));
+
+    //// IPF
+    std::string peptidoforms;
+    void(!extractName<bool>(mytransition.detecting_transition, "detecting_transition", tmp_line, header_dict) &&
+    !extractName<bool>(mytransition.detecting_transition, "DetectingTransition", tmp_line, header_dict));
+
+    void(!extractName<bool>(mytransition.identifying_transition, "identifying_transition", tmp_line, header_dict) &&
+    !extractName<bool>(mytransition.identifying_transition, "IdentifyingTransition", tmp_line, header_dict));
+
+    void(!extractName<bool>(mytransition.quantifying_transition, "quantifying_transition", tmp_line, header_dict) &&
+    !extractName<bool>(mytransition.quantifying_transition, "QuantifyingTransition", tmp_line, header_dict) &&
+    !extractName<bool>(mytransition.quantifying_transition, "Quantitative", tmp_line, header_dict)); // Skyline
+
+    void(extractName(peptidoforms, "Peptidoforms", tmp_line, header_dict));
+    StringUtils::split(peptidoforms, '|', mytransition.peptidoforms);
+
+    //// Targeted Metabolomics
+    void(extractName(mytransition.CompoundName, "CompoundName", tmp_line, header_dict));
+    void(extractName(mytransition.SumFormula, "SumFormula", tmp_line, header_dict));
+    void(extractName(mytransition.SMILES, "SMILES", tmp_line, header_dict));
+    void(extractName(mytransition.Adducts, "Adducts", tmp_line, header_dict));
+
+    //// Meta
+    void(extractName(mytransition.Annotation, "Annotation", tmp_line, header_dict));
+    
+    // UniprotId
+    std::string uniprot_ids;
+    void(!extractName(uniprot_ids, "UniprotId", tmp_line, header_dict) &&
+    !extractName(uniprot_ids, "UniprotID", tmp_line, header_dict));
+    if (uniprot_ids != "NA" && !uniprot_ids.empty())
+    {
+      StringUtils::split(uniprot_ids, ';', mytransition.uniprot_id);
+    }
+
+    void(!extractName<double>(mytransition.CE, "CE", tmp_line, header_dict) &&
+    !extractName<double>(mytransition.CE, "CollisionEnergy", tmp_line, header_dict));
+
+    // Decoy
+    void(!extractName<bool>(mytransition.decoy, "decoy", tmp_line, header_dict) &&
+    !extractName<bool>(mytransition.decoy, "Decoy", tmp_line, header_dict) &&
+    !extractName<bool>(mytransition.decoy, "IsDecoy", tmp_line, header_dict));
+
+    if (header_dict.contains("SpectraSTAnnotation"))
+    {
+      skip_transition = spectrastAnnotationExtract(tmp_line[header_dict["SpectraSTAnnotation"]], mytransition);
+    }
+
+    //// Generate Group IDs
+    // SpectraST
+    if (filetype == FileTypes::MRM)
+    {
+      std::vector<std::string> substrings;
+      StringUtils::split(std::string(tmp_line[header_dict["SpectraSTFullPeptideName"]]), "/", substrings);
+      AASequence peptide = AASequence::fromString(substrings[0]);
+
+      mytransition.FullPeptideName = peptide.toString();
+      mytransition.PeptideSequence = peptide.toUnmodifiedString();
+      mytransition.precursor_charge = substrings[1];
+
+      mytransition.transition_name =StringUtils::toStr(cnt);
+
+      mytransition.group_id = mytransition.FullPeptideName + std::string("_") + std::string(mytransition.precursor_charge);
+    }
+    // Generate transition_group_id and transition_name if not defined
+    else
+    {
+      // Use TransitionId if available, else generate from attributes
+      if (!extractName(mytransition.transition_name, "transition_name", tmp_line, header_dict) &&
+          !extractName(mytransition.transition_name, "TransitionName", tmp_line, header_dict) &&
+          !extractName(mytransition.transition_name, "TransitionId", tmp_line, header_dict))
+      {
+        mytransition.transition_name =StringUtils::toStr(cnt);
+      }
+
+      // Use TransitionGroupId if available, else generate from attributes
+      if (!extractName(mytransition.group_id, "transition_group_id", tmp_line, header_dict) &&
+          !extractName(mytransition.group_id, "TransitionGroupId", tmp_line, header_dict) &&
+          !extractName(mytransition.group_id, "TransitionGroupName", tmp_line, header_dict))
+      {
+        mytransition.group_id = AASequence::fromString(mytransition.FullPeptideName).toString() + std::string("_") + std::string(mytransition.precursor_charge);
+      }
+    }
+
+    cleanupTransitions_(mytransition);
+
+    return skip_transition;
+  }
+
+  void TransitionTSVFile::readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list)
+  {
+    std::ifstream data(filename);
+    std::string   line;
+
+    // read header
+    std::vector<std::string>   tmp_line;
+    std::map<std::string, int> header_dict;
+    char delimiter = ',';
+
+    readTSVHeader_(data, filetype, delimiter, header_dict);
 
     bool spectrast_legacy = false; // we will check below if SpectraST was run in legacy (<5.0) mode or if the RT normalization was forgotten.
     int cnt = 0;
+    TSVTransition mytransition; // buffer, reset for each line
     while (TextFile::getLine(data, line)) // make sure line endings are handled correctly
     {
-      line.push_back(delimiter); // avoid losing last column if it is empty
-      std::stringstream lineStream(line);
-
-      while (std::getline(lineStream, tmp, delimiter)) // default getline is fine here, we only want to split the line
-      {
-        tmp_line.push_back(tmp);
-      }
       cnt++;
-
-#ifdef TRANSITIONTSVREADER_TESTING
-      for (Size i = 0; i < tmp_line.size(); i++)
-      {
-        std::cout << "line " << i << " " << tmp_line[i] << '\n';
-      }
-
-      for (const auto& iter : header_dict)
-      {
-        std::cout << "header " << iter.first << " " << iter.second << '\n';
-      }
-#endif
-
-      if (tmp_line.size() != header_dict.size())
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Error reading the file on line " + StringUtils::toStr(cnt) + ": length of the header and length of the line" +
-                                         " do not match: " + StringUtils::toStr(tmp_line.size()) + " != " + StringUtils::toStr(header_dict.size()));
-      }
-
-      TSVTransition mytransition;
-      bool skip_transition = false; // skip unannotated transitions in SpectraST MRM files
-
-      //// Required columns (they are guaranteed to be present, see getTSVHeader_)
-      // PrecursorMz
-      mytransition.precursor =StringUtils::toDouble(tmp_line[header_dict["PrecursorMz"]]);
-
-      // ProductMz
-      if (!extractName<double>(mytransition.product, "ProductMz", tmp_line, header_dict) &&
-          !extractName<double>(mytransition.product, "FragmentMz", tmp_line, header_dict)) // Spectronaut
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Expected a header named ProductMz or FragmentMz but found none");
-      }
-
-      // LibraryIntensity
-      if (!extractName<double>(mytransition.library_intensity, "LibraryIntensity", tmp_line, header_dict) &&
-          !extractName<double>(mytransition.library_intensity, "RelativeIntensity", tmp_line, header_dict) && // Spectronaut
-          !extractName<double>(mytransition.library_intensity, "RelativeFragmentIntensity", tmp_line, header_dict)) // Spectronaut
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Expected a header named LibraryIntensity or RelativeFragmentIntensity but found none");
-      }
-
-      //// Additional columns for both proteomics and metabolomics
-      // NormalizedRetentionTime
-      if (!extractName<double>(mytransition.rt_calibrated, "RetentionTimeCalculatorScore", tmp_line, header_dict) && // Skyline
-          !extractName<double>(mytransition.rt_calibrated, "iRT", tmp_line, header_dict) && // Spectronaut
-          !extractName<double>(mytransition.rt_calibrated, "NormalizedRetentionTime", tmp_line, header_dict) &&
-          !extractName<double>(mytransition.rt_calibrated, "RetentionTime", tmp_line, header_dict) &&
-          !extractName<double>(mytransition.rt_calibrated, "Tr_recalibrated", tmp_line, header_dict))
-      {
-        if (header_dict.contains("SpectraSTRetentionTime"))
-        {
-          spectrastRTExtract(tmp_line[header_dict["SpectraSTRetentionTime"]], mytransition.rt_calibrated, spectrast_legacy);
-        }
-        else
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                           "Expected a header named RetentionTime, NormalizedRetentionTime, iRT, RetentionTimeCalculatorScore, Tr_recalibrated or SpectraSTRetentionTime but found none");
-        }
-      }
-
-      // PrecursorCharge
-      void(!extractName(mytransition.precursor_charge, "PrecursorCharge", tmp_line, header_dict) &&
-      !extractName(mytransition.precursor_charge, "Charge", tmp_line, header_dict)); // charge is assumed to be the charge of the precursor
-
-      void(!extractName(mytransition.fragment_type, "FragmentType", tmp_line, header_dict) &&
-      !extractName(mytransition.fragment_type, "FragmentIonType", tmp_line, header_dict)); // Skyline
-
-      void(!extractName(mytransition.fragment_charge, "FragmentCharge", tmp_line, header_dict) &&
-      !extractName(mytransition.fragment_charge, "ProductCharge", tmp_line, header_dict));
-
-      void(!extractName<int>(mytransition.fragment_nr, "FragmentSeriesNumber", tmp_line, header_dict) &&
-      !extractName<int>(mytransition.fragment_nr, "FragmentNumber", tmp_line, header_dict) &&
-      !extractName<int>(mytransition.fragment_nr, "FragmentIonOrdinal", tmp_line, header_dict));
-
-      void(extractName<double>(mytransition.drift_time, "PrecursorIonMobility", tmp_line, header_dict));
-      void(extractName<double>(mytransition.fragment_mzdelta, "FragmentMzDelta", tmp_line, header_dict));
-      void(extractName<int>(mytransition.fragment_modification, "FragmentModification", tmp_line, header_dict));
-
-      //// Proteomics
-      extractName(mytransition.GeneName, "GeneName", tmp_line, header_dict);
-
-      std::string proteins;
-      void(!extractName(proteins, "ProteinName", tmp_line, header_dict) &&
-      !extractName(proteins, "ProteinId", tmp_line, header_dict)); // Spectronaut
-      if (proteins != "NA" && !proteins.empty())
-      {
-        StringUtils::split(proteins, ';', mytransition.ProteinName);
-      }
-
-      void(extractName(mytransition.peptide_group_label, "PeptideGroupLabel", tmp_line, header_dict));
-
-      void(extractName(mytransition.label_type, "LabelType", tmp_line, header_dict));
-
-      void(!extractName(mytransition.PeptideSequence, "PeptideSequence", tmp_line, header_dict) &&
-      !extractName(mytransition.PeptideSequence, "Sequence", tmp_line, header_dict) && // Skyline
-      !extractName(mytransition.PeptideSequence, "StrippedSequence", tmp_line, header_dict)); // Spectronaut
-
-      void(!extractName(mytransition.FullPeptideName, "FullUniModPeptideName", tmp_line, header_dict) &&
-      !extractName(mytransition.FullPeptideName, "FullPeptideName", tmp_line, header_dict) &&
-      !extractName(mytransition.FullPeptideName, "ModifiedSequence", tmp_line, header_dict) && // Spectronaut
-      !extractName(mytransition.FullPeptideName, "ModifiedPeptideSequence", tmp_line, header_dict));
-
-      //// IPF
-      std::string peptidoforms;
-      void(!extractName<bool>(mytransition.detecting_transition, "detecting_transition", tmp_line, header_dict) &&
-      !extractName<bool>(mytransition.detecting_transition, "DetectingTransition", tmp_line, header_dict));
-
-      void(!extractName<bool>(mytransition.identifying_transition, "identifying_transition", tmp_line, header_dict) &&
-      !extractName<bool>(mytransition.identifying_transition, "IdentifyingTransition", tmp_line, header_dict));
-
-      void(!extractName<bool>(mytransition.quantifying_transition, "quantifying_transition", tmp_line, header_dict) &&
-      !extractName<bool>(mytransition.quantifying_transition, "QuantifyingTransition", tmp_line, header_dict) &&
-      !extractName<bool>(mytransition.quantifying_transition, "Quantitative", tmp_line, header_dict)); // Skyline
-
-      void(extractName(peptidoforms, "Peptidoforms", tmp_line, header_dict));
-      StringUtils::split(peptidoforms, '|', mytransition.peptidoforms);
-
-      //// Targeted Metabolomics
-      void(extractName(mytransition.CompoundName, "CompoundName", tmp_line, header_dict));
-      void(extractName(mytransition.SumFormula, "SumFormula", tmp_line, header_dict));
-      void(extractName(mytransition.SMILES, "SMILES", tmp_line, header_dict));
-      void(extractName(mytransition.Adducts, "Adducts", tmp_line, header_dict));
-
-      //// Meta
-      void(extractName(mytransition.Annotation, "Annotation", tmp_line, header_dict));
-      
-      // UniprotId
-      std::string uniprot_ids;
-      void(!extractName(uniprot_ids, "UniprotId", tmp_line, header_dict) &&
-      !extractName(uniprot_ids, "UniprotID", tmp_line, header_dict));
-      if (uniprot_ids != "NA" && !uniprot_ids.empty())
-      {
-        StringUtils::split(uniprot_ids, ';', mytransition.uniprot_id);
-      }
-
-      void(!extractName<double>(mytransition.CE, "CE", tmp_line, header_dict) &&
-      !extractName<double>(mytransition.CE, "CollisionEnergy", tmp_line, header_dict));
-
-      // Decoy
-      void(!extractName<bool>(mytransition.decoy, "decoy", tmp_line, header_dict) &&
-      !extractName<bool>(mytransition.decoy, "Decoy", tmp_line, header_dict) &&
-      !extractName<bool>(mytransition.decoy, "IsDecoy", tmp_line, header_dict));
-
-      if (header_dict.contains("SpectraSTAnnotation"))
-      {
-        skip_transition = spectrastAnnotationExtract(tmp_line[header_dict["SpectraSTAnnotation"]], mytransition);
-      }
-
-      //// Generate Group IDs
-      // SpectraST
-      if (filetype == FileTypes::MRM)
-      {
-        std::vector<std::string> substrings;
-        StringUtils::split(std::string(tmp_line[header_dict["SpectraSTFullPeptideName"]]), "/", substrings);
-        AASequence peptide = AASequence::fromString(substrings[0]);
-
-        mytransition.FullPeptideName = peptide.toString();
-        mytransition.PeptideSequence = peptide.toUnmodifiedString();
-        mytransition.precursor_charge = substrings[1];
-
-        mytransition.transition_name =StringUtils::toStr(cnt);
-
-        mytransition.group_id = mytransition.FullPeptideName + std::string("_") + std::string(mytransition.precursor_charge);
-      }
-      // Generate transition_group_id and transition_name if not defined
-      else
-      {
-        // Use TransitionId if available, else generate from attributes
-        if (!extractName(mytransition.transition_name, "transition_name", tmp_line, header_dict) &&
-            !extractName(mytransition.transition_name, "TransitionName", tmp_line, header_dict) &&
-            !extractName(mytransition.transition_name, "TransitionId", tmp_line, header_dict))
-        {
-          mytransition.transition_name =StringUtils::toStr(cnt);
-        }
-
-        // Use TransitionGroupId if available, else generate from attributes
-        if (!extractName(mytransition.group_id, "transition_group_id", tmp_line, header_dict) &&
-            !extractName(mytransition.group_id, "TransitionGroupId", tmp_line, header_dict) &&
-            !extractName(mytransition.group_id, "TransitionGroupName", tmp_line, header_dict))
-        {
-          mytransition.group_id = AASequence::fromString(mytransition.FullPeptideName).toString() + std::string("_") + std::string(mytransition.precursor_charge);
-        }
-      }
-
-      cleanupTransitions_(mytransition);
+      const bool skip_transition = parseTSVLine_(line, delimiter, filetype, cnt, header_dict, tmp_line, mytransition, spectrast_legacy);
 
       if (!skip_transition)
       {
@@ -455,8 +472,6 @@ namespace OpenMS
       std::cout << mytransition.fragment_type << '\n';
       std::cout << mytransition.uniprot_id << '\n';
 #endif
-
-      tmp_line.clear();
     }
 
     if (spectrast_legacy && retentionTimeInterpretation_ == "iRT")
@@ -658,37 +673,13 @@ namespace OpenMS
 
     std::ifstream data(filename);
     std::string line;
-    std::string tmp;
 
     // Parse header
     std::vector<std::string> tmp_line;
     std::map<std::string, int> header_dict;
     char delimiter = ',';
 
-    // SpectraST MRM Files do not have a header
-    if (filetype == FileTypes::MRM)
-    {
-      delimiter = '\t';
-
-      header_dict["SpectraSTBestSample"] = 0;
-      header_dict["SpectraSTmaxNumUsed/totNumUsed"] = 1;
-      header_dict["SpectraSTpI"] = 2;
-      header_dict["PrecursorMz"] = 3;
-      header_dict["SpectraSTRetentionTime"] = 4;
-      header_dict["ProductMz"] = 5;
-      header_dict["LibraryIntensity"] = 6;
-      header_dict["SpectraSTAnnotation"] = 7;
-      header_dict["FragmentCharge"] = 8;
-      header_dict["SpectraSTFullPeptideName"] = 9;
-      header_dict["SpectraSTUnknown"] = 10;
-      header_dict["SpectraSTNumberOfProteinsMappedTo"] = 11;
-      header_dict["ProteinName"] = 12;
-    }
-    else
-    {
-      TextFile::getLine(data, line);
-      getTSVHeader_(line, delimiter, header_dict);
-    }
+    readTSVHeader_(data, filetype, delimiter, header_dict);
 
     bool spectrast_legacy = false;
     int cnt = 0;
@@ -709,180 +700,8 @@ namespace OpenMS
 
     while (TextFile::getLine(data, line))
     {
-      line.push_back(delimiter); // avoid losing last column if it is empty
-      std::stringstream lineStream(line);
-
-      tmp_line.clear();
-      while (std::getline(lineStream, tmp, delimiter))
-      {
-        tmp_line.push_back(tmp);
-      }
       cnt++;
-
-      if (tmp_line.size() != header_dict.size())
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Error reading the file on line " + StringUtils::toStr(cnt) + ": length of the header and length of the line" +
-                                         " do not match: " + StringUtils::toStr(tmp_line.size()) + " != " + StringUtils::toStr(header_dict.size()));
-      }
-
-      // Reset mytransition to defaults
-      mytransition = TSVTransition();
-      bool skip_transition = false;
-
-      //// Required columns
-      mytransition.precursor =StringUtils::toDouble(tmp_line[header_dict["PrecursorMz"]]);
-
-      if (!extractName<double>(mytransition.product, "ProductMz", tmp_line, header_dict) &&
-          !extractName<double>(mytransition.product, "FragmentMz", tmp_line, header_dict))
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Expected a header named ProductMz or FragmentMz but found none");
-      }
-
-      if (!extractName<double>(mytransition.library_intensity, "LibraryIntensity", tmp_line, header_dict) &&
-          !extractName<double>(mytransition.library_intensity, "RelativeIntensity", tmp_line, header_dict) &&
-          !extractName<double>(mytransition.library_intensity, "RelativeFragmentIntensity", tmp_line, header_dict))
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Expected a header named LibraryIntensity or RelativeFragmentIntensity but found none");
-      }
-
-      //// Additional columns
-      if (!extractName<double>(mytransition.rt_calibrated, "RetentionTimeCalculatorScore", tmp_line, header_dict) &&
-          !extractName<double>(mytransition.rt_calibrated, "iRT", tmp_line, header_dict) &&
-          !extractName<double>(mytransition.rt_calibrated, "NormalizedRetentionTime", tmp_line, header_dict) &&
-          !extractName<double>(mytransition.rt_calibrated, "RetentionTime", tmp_line, header_dict) &&
-          !extractName<double>(mytransition.rt_calibrated, "Tr_recalibrated", tmp_line, header_dict))
-      {
-        if (header_dict.contains("SpectraSTRetentionTime"))
-        {
-          spectrastRTExtract(tmp_line[header_dict["SpectraSTRetentionTime"]], mytransition.rt_calibrated, spectrast_legacy);
-        }
-        else
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                           "Expected a header named RetentionTime, NormalizedRetentionTime, iRT, RetentionTimeCalculatorScore, Tr_recalibrated or SpectraSTRetentionTime but found none");
-        }
-      }
-
-      void(!extractName(mytransition.precursor_charge, "PrecursorCharge", tmp_line, header_dict) &&
-           !extractName(mytransition.precursor_charge, "Charge", tmp_line, header_dict));
-
-      void(!extractName(mytransition.fragment_type, "FragmentType", tmp_line, header_dict) &&
-           !extractName(mytransition.fragment_type, "FragmentIonType", tmp_line, header_dict));
-
-      void(!extractName(mytransition.fragment_charge, "FragmentCharge", tmp_line, header_dict) &&
-           !extractName(mytransition.fragment_charge, "ProductCharge", tmp_line, header_dict));
-
-      void(!extractName<int>(mytransition.fragment_nr, "FragmentSeriesNumber", tmp_line, header_dict) &&
-           !extractName<int>(mytransition.fragment_nr, "FragmentNumber", tmp_line, header_dict) &&
-           !extractName<int>(mytransition.fragment_nr, "FragmentIonOrdinal", tmp_line, header_dict));
-
-      void(extractName<double>(mytransition.drift_time, "PrecursorIonMobility", tmp_line, header_dict));
-      void(extractName<double>(mytransition.fragment_mzdelta, "FragmentMzDelta", tmp_line, header_dict));
-      void(extractName<int>(mytransition.fragment_modification, "FragmentModification", tmp_line, header_dict));
-
-      //// Proteomics
-      extractName(mytransition.GeneName, "GeneName", tmp_line, header_dict);
-
-      std::string proteins;
-      void(!extractName(proteins, "ProteinName", tmp_line, header_dict) &&
-           !extractName(proteins, "ProteinId", tmp_line, header_dict));
-      if (proteins != "NA" && !proteins.empty())
-      {
-        StringUtils::split(proteins, ';', mytransition.ProteinName);
-      }
-
-      void(extractName(mytransition.peptide_group_label, "PeptideGroupLabel", tmp_line, header_dict));
-      void(extractName(mytransition.label_type, "LabelType", tmp_line, header_dict));
-
-      void(!extractName(mytransition.PeptideSequence, "PeptideSequence", tmp_line, header_dict) &&
-           !extractName(mytransition.PeptideSequence, "Sequence", tmp_line, header_dict) &&
-           !extractName(mytransition.PeptideSequence, "StrippedSequence", tmp_line, header_dict));
-
-      void(!extractName(mytransition.FullPeptideName, "FullUniModPeptideName", tmp_line, header_dict) &&
-           !extractName(mytransition.FullPeptideName, "FullPeptideName", tmp_line, header_dict) &&
-           !extractName(mytransition.FullPeptideName, "ModifiedSequence", tmp_line, header_dict) &&
-           !extractName(mytransition.FullPeptideName, "ModifiedPeptideSequence", tmp_line, header_dict));
-
-      //// IPF
-      std::string peptidoforms;
-      void(!extractName<bool>(mytransition.detecting_transition, "detecting_transition", tmp_line, header_dict) &&
-           !extractName<bool>(mytransition.detecting_transition, "DetectingTransition", tmp_line, header_dict));
-
-      void(!extractName<bool>(mytransition.identifying_transition, "identifying_transition", tmp_line, header_dict) &&
-           !extractName<bool>(mytransition.identifying_transition, "IdentifyingTransition", tmp_line, header_dict));
-
-      void(!extractName<bool>(mytransition.quantifying_transition, "quantifying_transition", tmp_line, header_dict) &&
-           !extractName<bool>(mytransition.quantifying_transition, "QuantifyingTransition", tmp_line, header_dict) &&
-           !extractName<bool>(mytransition.quantifying_transition, "Quantitative", tmp_line, header_dict));
-
-      void(extractName(peptidoforms, "Peptidoforms", tmp_line, header_dict));
-      StringUtils::split(peptidoforms, '|', mytransition.peptidoforms);
-
-      //// Targeted Metabolomics
-      void(extractName(mytransition.CompoundName, "CompoundName", tmp_line, header_dict));
-      void(extractName(mytransition.SumFormula, "SumFormula", tmp_line, header_dict));
-      void(extractName(mytransition.SMILES, "SMILES", tmp_line, header_dict));
-      void(extractName(mytransition.Adducts, "Adducts", tmp_line, header_dict));
-
-      //// Meta
-      void(extractName(mytransition.Annotation, "Annotation", tmp_line, header_dict));
-
-      std::string uniprot_ids;
-      void(!extractName(uniprot_ids, "UniprotId", tmp_line, header_dict) &&
-           !extractName(uniprot_ids, "UniprotID", tmp_line, header_dict));
-      if (uniprot_ids != "NA" && !uniprot_ids.empty())
-      {
-        StringUtils::split(uniprot_ids, ';', mytransition.uniprot_id);
-      }
-
-      void(!extractName<double>(mytransition.CE, "CE", tmp_line, header_dict) &&
-           !extractName<double>(mytransition.CE, "CollisionEnergy", tmp_line, header_dict));
-
-      void(!extractName<bool>(mytransition.decoy, "decoy", tmp_line, header_dict) &&
-           !extractName<bool>(mytransition.decoy, "Decoy", tmp_line, header_dict) &&
-           !extractName<bool>(mytransition.decoy, "IsDecoy", tmp_line, header_dict));
-
-      if (header_dict.contains("SpectraSTAnnotation"))
-      {
-        skip_transition = spectrastAnnotationExtract(tmp_line[header_dict["SpectraSTAnnotation"]], mytransition);
-      }
-
-      //// Generate Group IDs
-      if (filetype == FileTypes::MRM)
-      {
-        std::vector<std::string> substrings;
-        StringUtils::split(std::string(tmp_line[header_dict["SpectraSTFullPeptideName"]]), "/", substrings);
-        AASequence peptide = AASequence::fromString(substrings[0]);
-
-        mytransition.FullPeptideName = peptide.toString();
-        mytransition.PeptideSequence = peptide.toUnmodifiedString();
-        mytransition.precursor_charge = substrings[1];
-
-        mytransition.transition_name =StringUtils::toStr(cnt);
-
-        mytransition.group_id = mytransition.FullPeptideName + std::string("_") + std::string(mytransition.precursor_charge);
-      }
-      else
-      {
-        if (!extractName(mytransition.transition_name, "transition_name", tmp_line, header_dict) &&
-            !extractName(mytransition.transition_name, "TransitionName", tmp_line, header_dict) &&
-            !extractName(mytransition.transition_name, "TransitionId", tmp_line, header_dict))
-        {
-          mytransition.transition_name =StringUtils::toStr(cnt);
-        }
-
-        if (!extractName(mytransition.group_id, "transition_group_id", tmp_line, header_dict) &&
-            !extractName(mytransition.group_id, "TransitionGroupId", tmp_line, header_dict) &&
-            !extractName(mytransition.group_id, "TransitionGroupName", tmp_line, header_dict))
-        {
-          mytransition.group_id = AASequence::fromString(mytransition.FullPeptideName).toString() + std::string("_") + std::string(mytransition.precursor_charge);
-        }
-      }
-
-      cleanupTransitions_(mytransition);
+      const bool skip_transition = parseTSVLine_(line, delimiter, filetype, cnt, header_dict, tmp_line, mytransition, spectrast_legacy);
 
       if (skip_transition)
       {
