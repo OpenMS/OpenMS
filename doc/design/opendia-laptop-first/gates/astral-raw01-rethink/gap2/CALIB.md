@@ -336,3 +336,13 @@ Augmentation removed C0's few top-ranked entrapment hits but made the decoy tail
 Next directions:
 - more training signal, such as MIL with the features;
 - a low-capacity, linear-like head.
+
+**Round 3 (`PLAN3.md`, `-topaz_decoy_negatives 20000`): FAIL, but the ranking changed a lot.**
+- N@1%: 950 on raw 01 (C0 had 13; the base has 1029), 893 on raw 02 (base 1298).
+- q-calibration is broken in both directions:
+  - raw 01 q ≤ 0.01 is overly conservative (340 IDs at FDP_c 0.000);
+  - raw 01 q ≤ 0.05 is anti-conservative (FDP_c 0.091);
+  - raw 02 q ≤ 0.01 is just over the limit (FDP_c 0.016).
+- The predeclared effect criterion (q ≤ 0.01 ≥ 694) was not met.
+
+Training on decoy windows as negatives fixes the target ranking. The TOPAZ logit still does not give calibrated decoy-based q.

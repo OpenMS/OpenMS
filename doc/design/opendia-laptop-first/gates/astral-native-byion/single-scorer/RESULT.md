@@ -42,10 +42,38 @@ There were no score iterations, so q comes from the round-0 TOPAZ logit.
 - The mixed windows (s × target + decoy) are labelled positive, so the head learns that decoy-like window content can be positive. That plausibly raises the top decoy scores.
 - So augmentation helps at the very top but not overall. A stronger version of the same augmentation is not expected to fix the decoy tail.
 
-## Decision
+## Round 3 (`PLAN3.md`, sha256 18f58e92): N1 decoy negatives FAIL on both raws (`EVALUATION3.txt`)
 
-The single TOPAZ scorer fails on raws 01 and 02, with and without augmentation and with and without score iterations. CNN + LDA stays the native design. `-topaz_features` and `-augment_*` stay opt-in and experimental.
-- The shared failure is a saturated fit on about 600 seeds per fold (held-out seed AUC 1.0 in every arm) plus a heavy held-out decoy tail.
+HeLa default `crossfit.tsv` IDENTICAL (`hela-default-cmp3/`).
+
+| | raw 01 N1 | raw 01 C0 (no negatives) | raw 02 N1 | base raw 01 / 02 |
+|---|---|---|---|---|
+| N at FDP_c 0.5 / 1 / 1.5 / 2% | 739 / **950** / 1003 / 1047 | 13 / 13 / 13 / 110 | 784 / **893** / 1002 / 1085 | 1029 / 1298 at 1% |
+| q ≤ 0.01: N, FDP_c | 340, 0.000 | 347, 0.012 | 859, **0.016** | |
+| q ≤ 0.05: N, FDP_c | 1420, **0.091** | 830, 0.044 | 1460, 0.073 | FDP_c 0.065 / 0.074 |
+| R per fold | 0.95 / 0.93 / 0.95 | 0.93 / 0.92 / 0.92 | 0.92 / 0.95 / 0.93 | |
+| Time, peak RSS | 18.6 min, 24.1 GB | 12.7 min | 21.5 min, 23.4 GB | |
+
+**Rule check:**
+- Rule 1 (N@1%) fails on both raws.
+- Rule 3 fails on raw 01 (0.091 > 0.070).
+- Rule 2 fails on raw 02 (0.016 > 0.015).
+- Rule 4 passes.
+
+**Predeclared effect criterion (q ≤ 0.01 ≥ 694 on raw 01): not met** (340 against C0's 347). By that criterion, the hypothesis is not supported.
+
+The ranking still changed a lot. N@1% went from 13 to 950 on raw 01, and to 893 on raw 02. That is 92% / 69% of the LDA base, far above every earlier single-scorer arm. The decoy negatives fixed the target ranking (entrapment at the top) but not the q calibration:
+- Raw 01 q ≤ 0.05 is anti-conservative (FDP_c 0.091).
+- At q ≤ 0.01, raw 01 is overly conservative (340 with FDP_c 0.000, against 950 truly at FDP_c 1%).
+- The decoy winners and false targets in the upper tail are still scored differently.
+- Held-out seed AUC is still 1.0.
+
+The single scorer is closer, but it is not yet a replacement. CNN + LDA stays the native design.
+
+## Decision (rounds 1–3)
+
+CNN + LDA stays the native design. `-topaz_features`, `-augment_*` and `-topaz_decoy_negatives` stay opt-in and experimental.
+- Every arm fits its about 600 seeds per fold perfectly (held-out seed AUC 1.0). Decoy negatives fixed the ranking; the q calibration from the TOPAZ logit is still broken.
 - Next options:
   - more training signal, for example MIL over all precursors with the heuristic features (bounded by the arm D budget);
   - a strictly regularised head, for example a linear head on the features plus the TOPAZ embedding, to keep the LDA's low capacity.
