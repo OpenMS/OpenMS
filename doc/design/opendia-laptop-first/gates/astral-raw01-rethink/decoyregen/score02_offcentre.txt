@@ -1,0 +1,493 @@
+run R02: candidates by family {'T': 1370036, 'P': 1368337, 'S': 1366741, 'O': 1359962}
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+O original pseudo-reverse+switchKR (control) LDA q<=0.01: 247 (conf-right 238, FDP_c 0.016) | q<=0.05: 401 (conf-right 359, FDP_c 0.090) | N at FDP_c<=0.5/1/1.5/2%: [183, 243, 301, 305]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: 14691946.61 [0.00,35622266.96] (2/0) | 4.67 [2.62,6.80] (14/6) | 1.90 [1.16,2.65] (18/19)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+O original pseudo-reverse+switchKR (control) MLP q<=0.01: 352 (conf-right 338, FDP_c 0.011) | q<=0.05: 493 (conf-right 435, FDP_c 0.069) | N at FDP_c<=0.5/1/1.5/2%: [122, 330, 357, 368]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: 2.00 [0.00,4.85] (2/2) | 2.00 [0.76,3.33] (7/7) | 1.48 [0.89,2.09] (17/23)
+P pseudo-reverse, no switchKR LDA            q<=0.01: 808 (conf-right 780, FDP_c 0.015) | q<=0.05: 1115 (conf-right 1021, FDP_c 0.065) | N at FDP_c<=0.5/1/1.5/2%: [558, 737, 826, 892]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: 1.73 [0.57,2.98] (6/7) | 1.30 [0.66,1.98] (11/17) | 1.39 [1.01,1.78] (36/52)
+P pseudo-reverse, no switchKR MLP            q<=0.01: 935 (conf-right 902, FDP_c 0.011) | q<=0.05: 1369 (conf-right 1215, FDP_c 0.066) | N at FDP_c<=0.5/1/1.5/2%: [819, 870, 1031, 1089]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: 1.26 [0.33,2.27] (5/8) | 0.86 [0.39,1.36] (9/21) | 1.33 [1.01,1.66] (45/68)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+S shuffle, no switchKR LDA                   q<=0.01: 0 (conf-right 0, FDP_c 0.000) | q<=0.05: 364 (conf-right 334, FDP_c 0.072) | N at FDP_c<=0.5/1/1.5/2%: [181, 242, 295, 305]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: n/a | 1.44 [0.38,2.59] (5/7) | 1.45 [0.79,2.14] (13/18)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:588: RuntimeWarning: Mean of empty slice
+  avg = a.mean(axis, **keepdims_kw)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:44: RuntimeWarning: Degrees of freedom <= 0 for slice
+  Sw = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-4 * np.eye(Z.shape[1])
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: divide by zero encountered in divide
+  c *= np.true_divide(1, fact)
+/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:2902: RuntimeWarning: invalid value encountered in multiply
+  c *= np.true_divide(1, fact)
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-design-raw01-20261107/rethink/decoyregen/../gap2/oswlike_score.py:45: RuntimeWarning: Mean of empty slice
+  return np.linalg.solve(Sw, a.mean(0) - b.mean(0))
+S shuffle, no switchKR MLP                   q<=0.01: 0 (conf-right 0, FDP_c 0.000) | q<=0.05: 379 (conf-right 358, FDP_c 0.016) | N at FDP_c<=0.5/1/1.5/2%: [144, 324, 417, 419]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: n/a | 0.29 [0.00,0.95] (1/7) | 0.29 [0.01,0.60] (3/21)

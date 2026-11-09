@@ -74,6 +74,22 @@ Before competition, let S_e be the share of entrapment target winners above a sc
   It is **not shown to carry the excess**. Removing the library-intensity features, and then also the library-weighted xcorr, still leaves S_e/S_d at the 5% cut at 1.15–1.22 (raw 01) and 1.22–1.23 (raw 02), against 1.12 and 1.55 with all features. The q ≤ 0.05 FDP_c stays at 0.060–0.062. On raw 02 the 5% excess shrinks, from 1.55 to 1.23. On raw 01 it does not, and the counts at 1–2% are too small to tell.
   - **Fix for the native pipeline:** predict decoy fragment intensities with the same model used for targets, rather than inheriting them by ordinal.
 
+## 6. Decoy-family regeneration test (in progress; scripts in `../decoyregen/`)
+
+**Setup.** The library's targets are kept, and three decoy families are generated from them with `OpenSwathDecoyGenerator`. All three are merged into one PQP, so a single extraction serves every family:
+
+- **O**: pseudo-reverse with `switchKR`. This is the control: it reproduces the library's decoys exactly (100% sequence overlap).
+- **P**: pseudo-reverse without `switchKR`, so no terminal K/R swap and no precursor mass shift.
+- **S**: shuffle without `switchKR`.
+
+OSW is used for XIC extraction only, locally, with `onDisc` reading and a 26 GB memory cap, at 34 ppm MS2 and 55 ppm MS1 with a ±100 s RT window. Our own scorer is then run with each family in turn as the decoy set (`score2.py`).
+
+**Pass rule, set before running:** a family fixes calibration if, on both runs, its q ≤ 0.01 FDP_c is ≤ 0.015 and its S_e/S_d at the 5% cut lies within the 90% band of 1. At the same time, family O on the same extraction must reproduce the excess; otherwise the test is inconclusive.
+
+**First attempt: invalid, not used** (`score02_offcentre.txt`). OSW's own auto-iRT gave a linear fit with rsq 0.78 (the default gate is 0.95). The RT windows came out off-centre: the median |DIA-NN RT − window centre| was 50 s, against 19 s for the reference XICs, and only 77% of confirmed peaks fell inside, against 95%. As a result, even the control family O found only 243 IDs at FDP_c 1%, against 885 on the reference XICs. Calibration comparisons from that extraction are not meaningful. For the record, family P gave 737 (LDA) and 870 (MLP) against the control's 243 and 330, which is an unexplained difference in itself.
+
+**Second attempt (running).** Each run gets its own library copy, whose library RT is replaced by the run-calibrated RT used by the reference analysis (`calib_lib.py`; this RT is a monotone function of library RT). OSW calibration is switched off. One remaining difference from the reference: no m/z correction is applied.
+
 ## Reading
 
 1. The anti-conservativeness is a property of **decoy winners under-representing false targets in the score tail**, by about 1.1–1.6×. The pipeline's ranker only adds to it. OSW+Percolator, with the same decoys, is worse: invalid even by the lower bound. No ranker change alone has fixed it. At 1% our scorer sits in the inconclusive zone between the entrapment bounds (section 1). The cause is still unidentified. These have been checked and are not it: single features, I/L, the precursor mass shift, borrowed signal (weak), dead low-m/z slots, entrapment stratum mismatch (each about 5% at most), and library-intensity features (raw 02 partly, raw 01 not).
