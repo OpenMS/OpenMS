@@ -274,3 +274,14 @@ The rule passes on both runs. Entrapment-matched N at FDP_c 1% is 1101 (raw 01) 
    - (c) Report **a decoy-count estimate corrected by a measured tail factor** only as a diagnostic, never in production. Entrapment-based calibration would not be available on real data.
    - (d) Keep the **5-seed ensemble** as the ranker. It is the best N at matched true error on both runs.
 4. The pass rules stay as they are: q ≤ 0.01 must hold at FDP_c ≤ 0.015, and on raw 02 nothing so far meets that.
+
+## 10. Native bulk-null: classifier choice (`astral-native-byion/raw02/ratio_classifier.txt`)
+
+On the native search+boundary+byion score, only a full HGB density ratio reproduces the section 9 correction.
+- Boosted stumps and depth-2 trees leave raw 02 at q ≤ 0.05 FDP_c 0.068.
+- Logistic weights make it worse, 0.092.
+- HGB itself gives 0.062, just above the 0.06 bar.
+
+Plain pooled TDC is within the 1% rule on both raws (0.013 / 0.007).
+
+Decision: do not port a GBDT into OpenDIA now. The tool's primary q is plain pooled TDC at 1%. The 5% calibration remains an open, decoy-side problem.

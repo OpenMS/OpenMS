@@ -32,3 +32,24 @@ Entrapment-matched N at FDP_c 1%, then bulk-null q≤0.05 FDP_c:
 - The native LDA stays the head.
 - **Sensitivity of the 5% calibration on raw 02.** The same LDA score passed through this script gives bulk-null q≤0.05 FDP_c 0.060. `bulknull_native.py` gives 0.062–0.063; it differs by per-fold decoy standardisation and by classifier seed. Raw 02 5% calibration therefore sits at the bar: it is neither a clear pass nor a clear fail.
 - q ≤ 0.01 is conservative under every variant (0.002–0.009).
+
+## h15: density-ratio classifier for a native bulk-null q (`ratio_classifier.py`, `ratio_classifier.txt`)
+
+FDP_c at q ≤ 0.01 / 0.05 on the native byion score:
+
+| classifier | raw 01 | raw 02 |
+|---|---|---|
+| none (plain TDC) | 0.013 / 0.065 | 0.007 / 0.074 |
+| logistic | 0.014 / 0.077 | 0.011 / 0.092 |
+| boosted stumps | 0.011 / 0.056 | 0.007 / 0.068 |
+| boosted depth-2 | 0.010 / 0.054 | 0.007 / 0.068 |
+| HGB, 31 leaves | 0.006 / 0.050 | 0.002 / 0.062 |
+
+- **Decision under the predeclared rule:** only HGB qualifies, and it still sits above 0.06 at 5% on raw 02.
+- A native port would need a full histogram gradient-boosting learner of about 31 leaves and 200 rounds. That is a large new component, for a correction that is borderline at 5% and unnecessary at 1%.
+- Plain pooled TDC already meets the 1% gate rule (≤ 0.015) on both raws.
+- **So no native bulk-null for now:**
+  - Report plain q at 1% as the primary q.
+  - Do not report a q ≤ 0.05 list as calibrated.
+  - Keep bulk-null as an offline diagnostic.
+- Revisit if a decoy-side fix narrows the 5% tail mismatch (CALIB).
