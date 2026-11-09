@@ -264,6 +264,7 @@ namespace
     size_t pos = 0;
     size_t skipped = 0;     ///< values of an unexpected type, and entries dropped because of them
     bool malformed = false; ///< the parse stopped early
+    size_t stopped_at = 0;  ///< where it stopped (for the warning)
 
     void skipWhitespace()
     {
@@ -276,15 +277,23 @@ namespace
       return pos < s.size() && s[pos] == c;
     }
 
+    /// Stop reading: mark the document malformed at the current position.
     void stop()
     {
-      malformed = true;
+      markMalformed();
       pos = s.size();
+    }
+
+    void markMalformed()
+    {
+      if (!malformed) stopped_at = pos;
+      malformed = true;
     }
 
     /// The string at pos (which must be at its opening quote), advancing past it.
     std::string string()
     {
+      const size_t start = pos;
       ++pos; // opening quote
       std::string raw;
       while (pos < s.size() && s[pos] != '"')
@@ -297,7 +306,8 @@ namespace
       }
       if (pos >= s.size())
       {
-        stop(); // unterminated string
+        pos = start;
+        stop(); // unterminated string: report where it starts
         return unescapeJsonString(raw);
       }
       ++pos; // closing quote
@@ -316,6 +326,7 @@ namespace
       }
       if (s[pos] == '[' || s[pos] == '{')
       {
+        const size_t start = pos;
         int depth = 0;
         while (pos < s.size())
         {
@@ -328,7 +339,8 @@ namespace
           }
           ++pos;
         }
-        stop(); // unbalanced
+        pos = start;
+        stop(); // unbalanced: report where the value starts
         return;
       }
       // number, true, false, null: up to the next separator
@@ -374,7 +386,7 @@ namespace
       while (true)
       {
         skipWhitespace();
-        if (pos >= s.size()) { malformed = true; return; }
+        if (pos >= s.size()) { markMalformed(); return; } // unterminated object
         if (s[pos] == '}') { ++pos; return; }
         if (s[pos] == ',') { ++pos; continue; }
         if (s[pos] != '"') { stop(); return; } // key is not a string
@@ -399,7 +411,7 @@ namespace
       while (true)
       {
         skipWhitespace();
-        if (pos >= s.size()) { malformed = true; return; }
+        if (pos >= s.size()) { markMalformed(); return; } // unterminated array
         if (s[pos] == ']') { ++pos; return; }
         if (s[pos] == ',') { ++pos; continue; }
         const size_t value_start = pos;
@@ -422,7 +434,7 @@ namespace
       if (malformed)
       {
         OPENMS_LOG_WARN << (skipped > 0 ? "; " : "") << "malformed JSON, reading stopped at character "
-                        << pos << ", later entries not read";
+                        << stopped_at << ", later entries not read";
       }
       OPENMS_LOG_WARN << std::endl;
     }
