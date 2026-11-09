@@ -376,7 +376,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          bash tools/ci/deps-macos.sh --skip-doc-deps --skip-gui-deps
+          bash tools/ci/deps-macos.sh --skip-doc-deps
 
           # These dependencies are need only in this workflow:
           brew install \
@@ -436,7 +436,6 @@ jobs:
             -DOpenMP_ROOT=$(brew --prefix libomp) \
             -DARROW_USE_STATIC=OFF \
             -DPYOPENMS=OFF \
-            -DWITH_GUI=OFF \
             -DBUILD_TOPP_TOOLS=OFF \
             -DINSTALL_OPENMS_EXAMPLES=OFF \
             -DWITH_THERMO_RAW=ON \
@@ -598,7 +597,6 @@ jobs:
             -DUSE_EXTERNAL_SQLITECPP=ON \
             -DCMAKE_REQUIRE_FIND_PACKAGE_OpenMSThermoBridge=ON \
             -DPYOPENMS=OFF \
-            -DWITH_GUI=OFF \
             -DBUILD_TOPP_TOOLS=OFF \
             -DINSTALL_OPENMS_EXAMPLES=OFF \
             -DWITH_THERMO_RAW=ON \

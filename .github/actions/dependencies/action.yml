@@ -53,16 +53,6 @@ runs:
             fi
           done
 
-    - name: Install Qt (Windows)
-      if: runner.os == 'Windows'
-      uses: jurplel/install-qt-action@v4
-      with:
-        version: '6.8.3'    ## Qt 6.8.3 ships no msvc2026 build; the win64_msvc2022_64 binaries are
-                            ## ABI-compatible with the VS2026 (v145) toolchain (shared v14x ABI).
-        arch: 'win64_msvc2022_64'
-        cache: 'false'
-        archives: 'qtsvg qtimageformats qtbase'
-
     - name: "Dependencies: Windows"
       id: deps-windows
       if: runner.os == 'Windows'

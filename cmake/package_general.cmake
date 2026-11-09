@@ -31,10 +31,8 @@ set(OPENMS_LOGOSMALL_NAME openms_logo_corner_small.png) ## The filename of the l
 set(OPENMS_LOGOSMALL ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGOSMALL_NAME}) ## The logo to be used for the OpenMS folder e.g. on the PKG
 
 ########################################################### Fixing dynamic dependencies
-## Qt Plugins needed for the CL tools should have been installed before (such as QSqliteDriverPlugin)
-## This currently works because our libs and TOPP tools include all dependencies. For macOS,
-##  the app bundles need to have a different RUNTIME_DEPENDENCY_SET (TOPPView_DEPS, ...) due
-##  to CMake assuming you want standalone bundles. But we want to share libs between them.
+## Our libs and TOPP tools are installed with RUNTIME_DEPENDENCY_SET OPENMS_DEPS, which
+## collects all their shared dependencies.
 
 # Add CMAKE_PREFIX_PATH directories to search for runtime dependencies.
 # We need this because TARGET_RUNTIME_DLLS (used during build stage copy) has limitations:
@@ -88,7 +86,7 @@ endforeach()
 if(WIN32)
   # exclude dll's which are system dll's and should not be shipped (bloats installer and leads to incompatibilities)
   set(PRE_EXCLUDE
-                  ## these two are direct systems deps of TOPPView etc. Exclude to save time
+                  ## API sets, resolved by Windows itself. Exclude to save time
                   "api-ms" "ext-ms"
                   ## "HvsiFileTrust" "PdmUtilities" are detected as a dependency by CMake which cannot be resolved (and would lead to errors), so ignore it
                   "hvsi" "pdmutilities"  ## make all lower case, since this is what CMake extracts from the targets and the regex is case sensitive
@@ -110,13 +108,13 @@ elseif(APPLE)
   set(POST_EXCLUDE "")
 else()
   set(PRE_EXCLUDE "")
-  set(POST_EXCLUDE ".*/ld-linux-.*" ".*/linux-vdso.*" ".*/libm\\..*" ".*/libc\\..*" ".*/libpthread\\..*" ".*/libdl\\..*" ".*/libstdc\\+\\+\\..*" ".*/libgcc_s.*" ".*/libgomp\\..*" ".*/libQt6.*")
+  set(POST_EXCLUDE ".*/ld-linux-.*" ".*/linux-vdso.*" ".*/libm\\..*" ".*/libc\\..*" ".*/libpthread\\..*" ".*/libdl\\..*" ".*/libstdc\\+\\+\\..*" ".*/libgcc_s.*" ".*/libgomp\\..*")
 endif()
 
 ## The bundled libraries are writable by their owner only (0755), like any installed
 ## library. With GROUP_WRITE and WORLD_WRITE they were world-writable: the DEB's in
 ## /usr/lib, where any local user could replace code that the OpenMS tools load, also when
-## root runs them, and the files of the Qt frameworks in the macOS package. The packaging
+## root runs them. The packaging
 ## steps that modify the staged libraries (code signing on macOS, the RUNPATH clean-up of
 ## the DEB) run as their owner.
 install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
@@ -129,10 +127,6 @@ install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
         PRE_EXCLUDE_REGEXES ${PRE_EXCLUDE}
         POST_EXCLUDE_REGEXES ${POST_EXCLUDE}
         DIRECTORIES ${RUNTIME_DEP_SEARCH_DIRS})
-
-#install(RUNTIME_DEPENDENCY_SET TOPPView_DEPS) # I think without giving DESTINATION and COMPONENT it will be inferred
-#install(RUNTIME_DEPENDENCY_SET TOPPAS_DEPS)
-#...
 
 ########################################################### OpenMP runtime (macOS)
 ## Apple's Clang ships no OpenMP runtime, so the build takes libomp from Homebrew
@@ -155,29 +149,16 @@ if(APPLE AND OPENMP_FOUND)
 endif()
 
 ########################################################### Third-party licenses
-## The license texts of what only the packages bundle: Qt and, on macOS, the Homebrew
-## formulae (cmake/third_party_licenses.cmake). Those of the vcpkg ports are installed for
-## every installation (CMakeLists.txt). The DEB depends on the distribution's Qt (libQt6 is
-## excluded above); the Windows and macOS packages bundle theirs.
-set(_openms_bundled_qt_version "")
-## On macOS Qt and libomp come from Homebrew (tools/ci/deps-macos.sh): the formulae of Qt are
-## the kegs that hold its CMake packages, that of libomp the keg that holds the library.
-set(_openms_homebrew_paths ${_openms_omp_libraries})
-if(WITH_GUI AND Qt6Core_FOUND AND (WIN32 OR APPLE))
-  set(_openms_bundled_qt_version "${Qt6Core_VERSION}")
-  if(APPLE)
-    foreach(_openms_qt_component IN ITEMS Core ${OpenMS_GUI_QT_COMPONENTS})
-      list(APPEND _openms_homebrew_paths "${Qt6${_openms_qt_component}_DIR}")
-    endforeach()
-  endif()
-endif()
+## The license texts of what only the packages bundle: on macOS, the Homebrew formulae
+## (cmake/third_party_licenses.cmake). Those of the vcpkg ports are installed for every
+## installation (CMakeLists.txt). On macOS libomp comes from Homebrew
+## (tools/ci/deps-macos.sh): its formula is the keg that holds the library.
 set(_openms_homebrew_formulae "")
 set(_openms_homebrew_prefix "")
 if(APPLE)
-  openms_homebrew_formulae_of(_openms_homebrew_formulae _openms_homebrew_prefix ${_openms_homebrew_paths})
+  openms_homebrew_formulae_of(_openms_homebrew_formulae _openms_homebrew_prefix ${_openms_omp_libraries})
 endif()
-openms_install_third_party_licenses(QT_VERSION "${_openms_bundled_qt_version}"
-                                    HOMEBREW_PREFIX "${_openms_homebrew_prefix}"
+openms_install_third_party_licenses(HOMEBREW_PREFIX "${_openms_homebrew_prefix}"
                                     HOMEBREW_FORMULAE ${_openms_homebrew_formulae})
 ## On Linux, the runtime dependency set also bundles the libraries of the build machine that
 ## vcpkg's libraries need and the exclusions above keep (currently none: libgfortran, which

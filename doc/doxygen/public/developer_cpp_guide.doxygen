@@ -138,26 +138,23 @@ Reasons for includes in header files are:
 An example class could look like this:
 
 @code{.cpp}
-#include <QtGui/QMainWindow>
-#include <QtGui/QPainter>
-// Forward declaration in main namespace
-class QLabel;
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 namespace OpenMS
 {
-  // Forward declaration in OpenMS namespace
-  class Spectrum1DWidget;
+  // Forward declarations in OpenMS namespace
+  class FeatureMap;
+  class ProgressLogger;
   class Dummy
-    : public QMainWindow
+    : public DefaultParamHandler
   {
     ...
     protected:
-      Spectrum1DWidget* parent_;
-      QLabel* label_;
-      QPainter painter_;
+      FeatureMap* features_;
+      ProgressLogger& logger_;
+      MSSpectrum spectrum_;
   }
 }
 @endcode
-
-@note In %OpenMS, Qt headers have to be included with the Qt-library prefix.
 
 */

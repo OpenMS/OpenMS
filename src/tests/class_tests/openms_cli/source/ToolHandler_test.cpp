@@ -13,10 +13,24 @@
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 ///////////////////////////
 
+#include <cstdlib>
+
 using namespace OpenMS;
 using namespace std;
 
 START_TEST(ToolHandler, "$Id$")
+
+// The registry is read once per process, on the first lookup, and also from the directories
+// named by these environment variables. Remove them before that, so registry files of a
+// developer's environment (e.g. those of the GUI layer) do not change what this test sees.
+for (const char* var : {"OPENMS_TOOL_REGISTRY_PATH", "OPENMS_TTD_INTERNAL_PATH"})
+{
+#ifdef OPENMS_WINDOWSPLATFORM
+  _putenv_s(var, "");
+#else
+  unsetenv(var);
+#endif
+}
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -47,14 +61,13 @@ START_SECTION((static ToolListType getTOPPToolList()))
   // the key and the description's own name are the same thing: the name the registry entry declares
   TEST_EQUAL(list.find("DecoyDatabase")->second.name, "DecoyDatabase")
   TEST_EQUAL(list.find("QCCalculator")->second.name, "QCCalculator")
+  // the TOPP tools of the GUI layer (ImageCreator, ExecutePipeline) are built and registered by
+  // OpenMS-TOPP-GUI in a registry file of its own, never by this build
+  TEST_TRUE(list.find("ImageCreator") == list.end())
+  TEST_TRUE(list.find("ExecutePipeline") == list.end())
   // a tool behind a build option is listed only by a build that has the option: the
   // openms_topp_tool() declaration is inside that option's if(), so a build without it
   // neither builds the tool nor writes it to the generated registry
-#ifdef WITH_GUI
-  TEST_TRUE(list.find("ImageCreator") != list.end())
-#else
-  TEST_TRUE(list.find("ImageCreator") == list.end())
-#endif
 #ifdef WITH_WNETALIGN
   TEST_TRUE(list.find("FeatureLinkerWNet") != list.end())
 #else
