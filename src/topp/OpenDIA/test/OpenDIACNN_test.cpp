@@ -491,6 +491,45 @@ int main(int argc, char** argv)
         auto grid_augmented = options;
         grid_augmented.augment_probability = 0.5;
         rejects([&] { trainTraceCNN(data, geometry, grid_augmented, augmented_path + ".grid"); });
+
+        // Decoy negatives: extra unlabeled decoy windows (label -1) become negatives with class balancing. Seed
+        // labels are unchanged, it still learns co-elution, it reports the count, and it is deterministic.
+        CNNData extra = topaz;
+        std::vector<float> extra_raw = topaz_raw;
+        for (std::size_t i = 0; i < topaz.samples.size(); ++i)
+        {
+          if (topaz.samples[i].label != 0) { continue; }
+          for (int copy = 0; copy < 2; ++copy)
+          {
+            CNNSample s = topaz.samples[i];
+            s.sample_id += "-unlabeled-" + std::to_string(copy);
+            s.bag_id = s.sample_id;
+            s.label = -1;
+            extra.samples.push_back(s);
+            extra_raw.insert(extra_raw.end(), topaz_raw.begin() + i * WINDOW, topaz_raw.begin() + (i + 1) * WINDOW);
+          }
+        }
+        extra.intensities = extra_raw.data();
+        extra.intensity_count = extra_raw.size();
+        auto negatives = topaz_options;
+        negatives.topaz_width = 8;
+        negatives.decoy_negatives = 50;
+        const auto negatives_path = (directory / "topaz-negatives.pt").string();
+        const auto neg = trainTraceCNN(extra, geometry, negatives, negatives_path);
+        check(neg.heldout_auc > 0.99, "decoy-negative TOPAZ did not learn co-elution");
+        check(neg.decoy_negatives_first_epoch == 50, "decoy negatives were not drawn");
+        check(trainTraceCNN(extra, geometry, negatives, negatives_path + ".again").logits == neg.logits, "decoy-negative training is not deterministic");
+        check(scoreTraceCNN(extra, geometry, negatives_path, 1, true).logits == neg.logits, "decoy-negative checkpoint roundtrip changed output");
+        auto no_negatives = negatives;
+        no_negatives.decoy_negatives = 0;
+        check(trainTraceCNN(extra, geometry, no_negatives, negatives_path + ".off").decoy_negatives_first_epoch == 0, "disabled decoy negatives drew windows");
+        rejects([&] { trainTraceCNN(topaz, geometry, negatives, negatives_path + ".none"); });
+        auto grid_negatives = options;
+        grid_negatives.decoy_negatives = 10;
+        rejects([&] { trainTraceCNN(data, geometry, grid_negatives, negatives_path + ".grid"); });
+        auto mil_negatives = mil_options;
+        mil_negatives.decoy_negatives = 10;
+        rejects([&] { trainTraceCNN(mil_data, geometry, mil_negatives, negatives_path + ".mil"); });
       }
     }
     if (parity)

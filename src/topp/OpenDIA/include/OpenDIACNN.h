@@ -113,6 +113,12 @@ namespace OpenMS::OpenDIA
     /// so the augmentation carries no label; it simulates weaker, interfered signal. 0 disables (the default).
     double augment_probability = 0.0;
     double augment_scale_min = 0.1;
+    /// TOPAZ seed training only, experimental: each epoch also trains on this many random unlabeled decoy windows of
+    /// training families as negatives, and validation adds up to as many fixed validation-family decoy windows. The
+    /// positive class is up-weighted (BCE pos_weight = negatives / positives) so the logit scale stays balanced. Decoys
+    /// carry no target evidence, so this uses no extra label information; it exposes the scorer to the decoy tail that
+    /// q depends on. 0 disables (the default).
+    int decoy_negatives = 0;
   };
 
   /**
@@ -140,6 +146,7 @@ namespace OpenMS::OpenDIA
     double validation_loss = 0;
     double heldout_auc = -1;
     std::size_t augmented_first_epoch = 0; ///< TOPAZ augmentation: windows augmented in the first epoch.
+    std::size_t decoy_negatives_first_epoch = 0; ///< TOPAZ decoy negatives: extra decoy windows in the first epoch.
   };
 
   /**

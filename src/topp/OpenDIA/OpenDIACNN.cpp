@@ -155,6 +155,11 @@ namespace OpenMS
       registerDoubleOption_("augment_scale_min", "<s>", 0.1, "Smallest signal scale of an augmented window", false);
       setMinFloat_("augment_scale_min", 0.001);
       setMaxFloat_("augment_scale_min", 1.0);
+      registerIntOption_("topaz_decoy_negatives", "<n>", 0, "With -cnn_arch topaz and seed training, experimental: per epoch, also train on n random "
+                         "unlabeled training-family decoy windows as negatives (validation adds up to n fixed validation-family decoys; the positive "
+                         "class is up-weighted to balance). Exposes the scorer to the decoy tail that q depends on. 0 disables", false);
+      setMinInt_("topaz_decoy_negatives", 0);
+      setMaxInt_("topaz_decoy_negatives", 1000000);
     }
 
     ExitCodes main_(int, const char**) override
@@ -303,6 +308,10 @@ namespace OpenMS
         if (getDoubleOption_("augment_probability") > 0.0 && (!topaz || mil))
         {
           throw std::invalid_argument("augment_probability requires -cnn_arch topaz with seed training (not -cnn_training mil).");
+        }
+        if (getIntOption_("topaz_decoy_negatives") > 0 && (!topaz || mil))
+        {
+          throw std::invalid_argument("topaz_decoy_negatives requires -cnn_arch topaz with seed training (not -cnn_training mil).");
         }
 
         const auto max_samples = static_cast<std::size_t>(getIntOption_("max_samples"));
@@ -543,6 +552,7 @@ namespace OpenMS
         settings.topaz_faithful = getFlag_("topaz_faithful");
         settings.augment_probability = getDoubleOption_("augment_probability");
         settings.augment_scale_min = getDoubleOption_("augment_scale_min");
+        settings.decoy_negatives = getIntOption_("topaz_decoy_negatives");
         std::vector<OpenDIA::CNNQValueInput> crossfit_rows;
         // Pair key: target TRAML_ID, or a decoy TRAML_ID without its DECOY_ prefix.
         std::vector<std::string> pair_keys(count);
@@ -634,6 +644,7 @@ namespace OpenMS
             }
             writeLogInfo_("Native CNN fold=" + std::to_string(fold) + " heldout_windows=" + std::to_string(heldout_count) +
                           " augmented_first_epoch=" + std::to_string(fitted.augmented_first_epoch) +
+                          " decoy_negatives_first_epoch=" + std::to_string(fitted.decoy_negatives_first_epoch) +
                           " epochs=" + std::to_string(fitted.epochs_run) + " validation_loss=" + std::to_string(fitted.validation_loss) +
                           " heldout_seed_decoy_auc=" + std::to_string(fitted.heldout_auc));
           }

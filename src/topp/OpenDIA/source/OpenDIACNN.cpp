@@ -233,7 +233,9 @@ namespace OpenMS::OpenDIA
       }
     };
 
-    TopazBatch topazBatch(const CNNData& data, const std::vector<std::size_t>& ids, std::size_t begin, std::size_t end, bool block_max = false)
+    /// decoys_negative: unlabeled decoy windows get label 0 (CNNOptions::decoy_negatives).
+    TopazBatch topazBatch(const CNNData& data, const std::vector<std::size_t>& ids, std::size_t begin, std::size_t end, bool block_max = false,
+                          bool decoys_negative = false)
     {
       const auto n = static_cast<int64_t>(end - begin);
       TopazBatch b{torch::zeros({n, FRAGMENTS, RT_BINS}), torch::zeros({n, ISOTOPES, RT_BINS}), torch::zeros({n, FRAGMENTS, IM_BINS}),
@@ -266,7 +268,7 @@ namespace OpenMS::OpenDIA
         for (int64_t c = 0; c < FRAGMENTS; ++c) { aux[row * (FRAGMENTS + 2) + c] = static_cast<float>(s.library_intensities[c] / lib_max); }
         aux[row * (FRAGMENTS + 2) + FRAGMENTS] = s.has_ms1 ? 1.f : 0.f;
         aux[row * (FRAGMENTS + 2) + FRAGMENTS + 1] = s.has_im ? 1.f : 0.f;
-        y[row] = static_cast<float>(s.label);
+        y[row] = decoys_negative && s.label < 0 && s.is_decoy ? 0.f : static_cast<float>(s.label);
         if (features != nullptr) { std::copy_n(data.features + index * data.feature_dim, data.feature_dim, features + row * data.feature_dim); }
       }
       if (block_max)
@@ -694,6 +696,41 @@ namespace OpenMS::OpenDIA
       const bool augment = !options.mil && options.augment_probability > 0.0;
       require(!augment || !partners.empty(), "augmentation needs at least one training-family decoy window");
       std::mt19937_64 augment_rng(static_cast<std::uint64_t>(options.seed) * 1000003u + static_cast<std::uint64_t>(options.heldout_fold + 1));
+      // Decoy negatives (CNNOptions::decoy_negatives): unlabeled decoy windows of training families are drawn each epoch;
+      // validation gets a fixed subset of unlabeled validation-family decoys. Own RNG so augmentation draws are unchanged.
+      const bool decoy_negatives = !options.mil && options.decoy_negatives > 0;
+      Indices negative_pool, negative_check;
+      std::mt19937_64 negative_rng(static_cast<std::uint64_t>(options.seed) * 2000003u + static_cast<std::uint64_t>(options.heldout_fold + 1));
+      torch::Tensor train_pos_weight, check_pos_weight;
+      if (decoy_negatives)
+      {
+        for (std::size_t i = 0; i < data.samples.size(); ++i)
+        {
+          const auto& s = data.samples[i];
+          if (!s.is_decoy || s.label >= 0) { continue; }
+          const auto& role = result.splits[i];
+          if (role == "train") { negative_pool.push_back(i); }
+          else if (role == "validation") { negative_check.push_back(i); }
+        }
+        require(!negative_pool.empty() && !negative_check.empty(), "decoy negatives need unlabeled decoy windows in training and validation families");
+        std::shuffle(negative_check.begin(), negative_check.end(), negative_rng);
+        negative_check.resize(std::min(negative_check.size(), static_cast<std::size_t>(options.decoy_negatives)));
+        const auto weight = [&](const Indices& labelled, std::size_t extra)
+        {
+          double positives = 0, negatives = static_cast<double>(extra);
+          for (auto i : labelled) { (data.samples[i].label == 1 ? positives : negatives) += 1; }
+          return torch::tensor({static_cast<float>(negatives / std::max(positives, 1.0))});
+        };
+        train_pos_weight = weight(train, static_cast<std::size_t>(options.decoy_negatives));
+        check_pos_weight = weight(validation, negative_check.size());
+        validation.insert(validation.end(), negative_check.begin(), negative_check.end());
+      }
+      const auto topaz_loss = [&](const torch::Tensor& scores, const torch::Tensor& labels, const torch::Tensor& pos_weight)
+      {
+        if (!decoy_negatives) { return torch::nn::functional::binary_cross_entropy_with_logits(scores, labels); }
+        return torch::nn::functional::binary_cross_entropy_with_logits(scores, labels,
+          torch::nn::functional::BinaryCrossEntropyWithLogitsFuncOptions().pos_weight(pos_weight));
+      };
       EpochData epoch_data;
       for (int epoch = 0; epoch < options.epochs; ++epoch)
       {
@@ -706,6 +743,13 @@ namespace OpenMS::OpenDIA
         {
           const auto picked = static_cast<std::size_t>(permutation.data_ptr<int64_t>()[j]);
           order.push_back(options.mil ? picked : train[picked]);
+        }
+        if (decoy_negatives)
+        {
+          std::uniform_int_distribution<std::size_t> pick(0, negative_pool.size() - 1);
+          for (int j = 0; j < options.decoy_negatives; ++j) { order.push_back(negative_pool[pick(negative_rng)]); }
+          std::shuffle(order.begin(), order.end(), negative_rng);
+          if (epoch == 0) { result.decoy_negatives_first_epoch = static_cast<std::size_t>(options.decoy_negatives); }
         }
         // Augmented epochs train on a fresh copy in epoch order; the batch indices then run 0..n-1.
         const CNNData* epoch_source = &data;
@@ -738,9 +782,9 @@ namespace OpenMS::OpenDIA
           }
           else
           {
-            const auto b = topazBatch(*epoch_source, order, start, end, faithful);
+            const auto b = topazBatch(*epoch_source, order, start, end, faithful, decoy_negatives);
             const auto scores = model.forward(b);
-            value = torch::nn::functional::binary_cross_entropy_with_logits(scores, b.labels);
+            value = topaz_loss(scores, b.labels, train_pos_weight);
             if (faithful) { value = value + 0.1 * pairwiseLoss(scores, b.labels); }
           }
           require(std::isfinite(value.item<double>()), "nonfinite training loss");
@@ -765,8 +809,8 @@ namespace OpenMS::OpenDIA
             }
             else
             {
-              const auto b = topazBatch(data, validation, start, end, faithful);
-              value += torch::nn::functional::binary_cross_entropy_with_logits(model.forward(b), b.labels).item<double>() * (end - start);
+              const auto b = topazBatch(data, validation, start, end, faithful, decoy_negatives);
+              value += topaz_loss(model.forward(b), b.labels, check_pos_weight).item<double>() * (end - start);
             }
           }
         }
@@ -806,6 +850,7 @@ namespace OpenMS::OpenDIA
       {
         archive.write("augmentation", torch::tensor({options.augment_probability, options.augment_scale_min}, torch::kFloat64), true);
       }
+      if (decoy_negatives) { archive.write("decoy_negatives", torch::tensor({static_cast<int64_t>(options.decoy_negatives)}, torch::kInt64), true); }
       if (faithful) { archive.write("topaz_input", textTensor("block-max"), true); }
       archive.write("geometry", torch::tensor({geometry.mz_tolerance, geometry.rt_half_width, geometry.im_half_width}, torch::kFloat64), true);
       archive.write("training", torch::tensor({static_cast<double>(result.epochs_run), result.validation_loss}, torch::kFloat64), true);
@@ -844,6 +889,9 @@ namespace OpenMS::OpenDIA
             std::isfinite(options.augment_scale_min) && options.augment_scale_min > 0 && options.augment_scale_min <= 1 &&
             (options.augment_probability == 0 || (options.architecture == CNNArchitecture::TOPAZ && !options.mil)),
             "augmentation needs a probability in [0,1], a scale minimum in (0,1], the TOPAZ architecture and seed training");
+    require(options.decoy_negatives >= 0 && options.decoy_negatives <= 1000000 &&
+            (options.decoy_negatives == 0 || (options.architecture == CNNArchitecture::TOPAZ && !options.mil)),
+            "decoy negatives need a count in [0,1000000], the TOPAZ architecture and seed training");
     require((data.feature_dim == 0 && data.features == nullptr) || options.architecture == CNNArchitecture::TOPAZ,
             "heuristic features require the TOPAZ architecture");
     at::set_num_threads(options.threads);
