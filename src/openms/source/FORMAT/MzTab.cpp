@@ -2383,97 +2383,115 @@ Not sure how to handle these:
     return psm_optional_column_names_;
   }
 
+  /// Implementation details shared by MzTab::IDMzTabStream and MzTab::CMMzTabStream (friend of both).
+  struct Internal::MzTabStreamHelper
+  {
+    /**
+      @brief The PRT row state machine of the streams: writes 1. all proteins, 2. all general groups and
+      3. all indistinguishable groups of each protein identification run.
+
+      @p on_indist_group_row(row, group) is called on each indistinguishable group row before it is returned.
+    */
+    template <class Stream, class OnIndistGroupRow>
+    static bool nextPRTRow(Stream& s, MzTabProteinSectionRow& row, OnIndistGroupRow on_indist_group_row)
+    {
+      if (s.prot_ids_.empty()) return false;
+
+      // simple state machine to write out 1. all proteins, 2. all general groups and 3. all indistinguishable groups
+state0:
+      // done if all protein information is contained in run zero and we enter run 1
+      if (s.first_run_inference_ && s.prt_run_id_ > 0) return false; // done
+      if (s.prt_run_id_ >= s.prot_ids_.size()) return false; // done for the first_run_inference_ == false case
+
+      const ProteinIdentification& pid = *s.prot_ids_[s.prt_run_id_];
+      const std::vector<ProteinHit>& protein_hits = pid.getHits();
+
+      // We only report quantitative data for indistinguishable groups (which may be composed of single proteins).
+      // We skip the more extensive reporting of general groups with complex shared peptide relations.
+      const std::vector<ProteinIdentification::ProteinGroup>& protein_groups2 = s.quant_study_variables_ == 0 ? pid.getProteinGroups() : std::vector<ProteinIdentification::ProteinGroup>();
+      const std::vector<ProteinIdentification::ProteinGroup>& indist_groups2 = pid.getIndistinguishableProteins();
+
+      if (s.prt_hit_id_ == 0 && s.PRT_STATE_ == 0) 
+      { // Processing new protein identification run?
+        // Map (indist.)protein groups to their protein hits (by index) in this run.
+        s.ind2prot_ = MzTab::mapGroupsToProteins_(pid.getIndistinguishableProteins(), protein_hits);
+        s.pg2prot_ = MzTab::mapGroupsToProteins_(pid.getProteinGroups(), protein_hits);
+      }
+
+      if (s.PRT_STATE_ == 0) // write protein hits
+      {
+        if (s.prt_hit_id_ >= protein_hits.size())
+        {
+          s.prt_hit_id_ = 0;
+          s.PRT_STATE_ = 1; // continue with next state (!)
+        }
+        else
+        {
+          const ProteinHit& protein = protein_hits[s.prt_hit_id_];
+          auto prt_row = MzTab::proteinSectionRowFromProteinHit_(
+            protein,
+            s.db_,
+            s.db_version_,
+            s.protein_hit_user_value_keys_);
+          ++s.prt_hit_id_;
+          std::swap(row, prt_row);
+          return true;
+        }
+      } 
+
+      if (s.PRT_STATE_ == 1) // write general groups
+      {
+        if (s.prt_group_id_ >= protein_groups2.size())
+        {
+           s.prt_group_id_ = 0;
+           s.PRT_STATE_ = 2;
+        }
+        else
+        {
+          const ProteinIdentification::ProteinGroup& group = protein_groups2[s.prt_group_id_];
+          auto prt_row = MzTab::nextProteinSectionRowFromProteinGroup_(
+            group,
+            s.db_,
+            s.db_version_);
+          ++s.prt_group_id_;
+          std::swap(row, prt_row);
+          return true;
+        }      
+      }
+
+      // PRT_STATE_ == 2
+      if (s.prt_indistgroup_id_ >= indist_groups2.size()) 
+      {
+        s.prt_indistgroup_id_ = 0;
+        s.prt_hit_id_ = 0;
+        s.PRT_STATE_ = 0;
+        ++s.prt_run_id_; // next protein run
+        goto state0;
+      }
+      else
+      {
+        const ProteinIdentification::ProteinGroup& group = indist_groups2[s.prt_indistgroup_id_];
+        auto prt_row = MzTab::nextProteinSectionRowFromIndistinguishableGroup_(
+          protein_hits,
+          group,
+          s.prt_indistgroup_id_,
+          s.ind2prot_,
+          s.db_,
+          s.db_version_);
+        on_indist_group_row(prt_row, group);
+        ++s.prt_indistgroup_id_;
+
+        std::swap(row, prt_row);
+        return true;
+      }
+      return false; // should not be reached
+    }
+  };
+
   bool MzTab::IDMzTabStream::nextPRTRow(MzTabProteinSectionRow& row)
   {
-    if (prot_ids_.empty()) return false;
-
-    // simple state machine to write out 1. all proteins, 2. all general groups and 3. all indistinguishable groups
-state0:
-    // done if all protein information is contained in run zero and we enter run 1
-    if (first_run_inference_ && prt_run_id_ > 0) return false; // done
-    if (prt_run_id_ >= prot_ids_.size()) return false; // done for the first_run_inference_ == false case
-
-    const ProteinIdentification& pid = *prot_ids_[prt_run_id_];
-    const std::vector<ProteinHit>& protein_hits = pid.getHits();
-
-    // We only report quantitative data for indistinguishable groups (which may be composed of single proteins).
-    // We skip the more extensive reporting of general groups with complex shared peptide relations.
-    const std::vector<ProteinIdentification::ProteinGroup>& protein_groups2 = quant_study_variables_ == 0 ? pid.getProteinGroups() : std::vector<ProteinIdentification::ProteinGroup>();
-    const std::vector<ProteinIdentification::ProteinGroup>& indist_groups2 = pid.getIndistinguishableProteins();
-
-    if (prt_hit_id_ == 0 && PRT_STATE_ == 0) 
-    { // Processing new protein identification run?
-      // Map (indist.)protein groups to their protein hits (by index) in this run.
-      ind2prot_ = MzTab::mapGroupsToProteins_(pid.getIndistinguishableProteins(), protein_hits);
-      pg2prot_ = MzTab::mapGroupsToProteins_(pid.getProteinGroups(), protein_hits);
-    }
-
-    if (PRT_STATE_ == 0) // write protein hits
-    {
-      if (prt_hit_id_ >= protein_hits.size())
-      {
-        prt_hit_id_ = 0;
-        PRT_STATE_ = 1; // continue with next state (!)
-      }
-      else
-      {
-        const ProteinHit& protein = protein_hits[prt_hit_id_];
-        auto prt_row = MzTab::proteinSectionRowFromProteinHit_(
-          protein,
-          db_,
-          db_version_,
-          protein_hit_user_value_keys_);
-        ++prt_hit_id_;
-        std::swap(row, prt_row);
-        return true;
-      }
-    } 
-
-    if (PRT_STATE_ == 1) // write general groups
-    {
-      if (prt_group_id_ >= protein_groups2.size())
-      {
-         prt_group_id_ = 0;
-         PRT_STATE_ = 2;
-      }
-      else
-      {
-        const ProteinIdentification::ProteinGroup& group = protein_groups2[prt_group_id_];
-        auto prt_row = MzTab::nextProteinSectionRowFromProteinGroup_(
-          group,
-          db_,
-          db_version_);
-        ++prt_group_id_;
-        std::swap(row, prt_row);
-        return true;
-      }      
-    }
-
-    // PRT_STATE_ == 2
-    if (prt_indistgroup_id_ >= indist_groups2.size()) 
-    {
-      prt_indistgroup_id_ = 0;
-      prt_hit_id_ = 0;
-      PRT_STATE_ = 0;
-      ++prt_run_id_; // next protein run
-      goto state0;
-    }
-    else
-    {
-      const ProteinIdentification::ProteinGroup& group = indist_groups2[prt_indistgroup_id_];
-      auto prt_row = MzTab::nextProteinSectionRowFromIndistinguishableGroup_(
-        protein_hits,
-        group,
-        prt_indistgroup_id_,
-        ind2prot_,
-        db_,
-        db_version_);
-      ++prt_indistgroup_id_;
-
-      std::swap(row, prt_row);
-      return true;
-    }
-    return false; // should not be reached
+    return Internal::MzTabStreamHelper::nextPRTRow(*this, row,
+      [](MzTabProteinSectionRow&, const ProteinIdentification::ProteinGroup&) {});
   }
 
   bool MzTab::IDMzTabStream::nextPEPRow(MzTabPeptideSectionRow&)
@@ -3217,100 +3235,15 @@ state0:
 
   bool MzTab::CMMzTabStream::nextPRTRow(MzTabProteinSectionRow& row)
   {
-    if (prot_ids_.empty()) return false;
-
-    // simple state machine to write out 1. all proteins, 2. all general groups and 3. all indistinguishable groups
-state0:
-    // done if all protein information is contained in run zero and we enter run 1
-    if (first_run_inference_ && prt_run_id_ > 0) return false; // done
-    if (prt_run_id_ >= prot_ids_.size()) return false; // done for the first_run_inference_ == false case
-
-    const ProteinIdentification& pid = *prot_ids_[prt_run_id_];
-    const std::vector<ProteinHit>& protein_hits = pid.getHits();
-
-    // We only report quantitative data for indistinguishable groups (which may be composed of single proteins).
-    // We skip the more extensive reporting of general groups with complex shared peptide relations.
-    const std::vector<ProteinIdentification::ProteinGroup>& protein_groups2 = quant_study_variables_ == 0 ? pid.getProteinGroups() : std::vector<ProteinIdentification::ProteinGroup>();
-    const std::vector<ProteinIdentification::ProteinGroup>& indist_groups2 = pid.getIndistinguishableProteins();
-
-    if (prt_hit_id_ == 0 && PRT_STATE_ == 0) 
-    { // Processing new protein identification run?
-      // Map (indist.)protein groups to their protein hits (by index) in this run.
-      ind2prot_ = MzTab::mapGroupsToProteins_(pid.getIndistinguishableProteins(), protein_hits);
-      pg2prot_ = MzTab::mapGroupsToProteins_(pid.getProteinGroups(), protein_hits);
-    }
-
-    if (PRT_STATE_ == 0) // write protein hits
-    {
-      if (prt_hit_id_ >= protein_hits.size())
+    return Internal::MzTabStreamHelper::nextPRTRow(*this, row,
+      [this](MzTabProteinSectionRow& prt_row, const ProteinIdentification::ProteinGroup& group)
       {
-        prt_hit_id_ = 0;
-        PRT_STATE_ = 1; // continue with next state (!)
-      }
-      else
-      {
-        const ProteinHit& protein = protein_hits[prt_hit_id_];
-        auto prt_row = MzTab::proteinSectionRowFromProteinHit_(
-          protein,
-          db_,
-          db_version_,
-          protein_hit_user_value_keys_);
-        ++prt_hit_id_;
-        std::swap(row, prt_row);
-        return true;
-      }
-    } 
-
-    if (PRT_STATE_ == 1) // write general groups
-    {
-      if (prt_group_id_ >= protein_groups2.size())
-      {
-         prt_group_id_ = 0;
-         PRT_STATE_ = 2;
-      }
-      else
-      {
-        const ProteinIdentification::ProteinGroup& group = protein_groups2[prt_group_id_];
-        auto prt_row = MzTab::nextProteinSectionRowFromProteinGroup_(
+        applyAssayProteinQuantification(
+          prt_row,
           group,
-          db_,
-          db_version_);
-        ++prt_group_id_;
-        std::swap(row, prt_row);
-        return true;
-      }      
-    }
-
-    // PRT_STATE_ == 2
-    if (prt_indistgroup_id_ >= indist_groups2.size()) 
-    {
-      prt_indistgroup_id_ = 0;
-      prt_hit_id_ = 0;
-      PRT_STATE_ = 0;
-      ++prt_run_id_; // next protein run
-      goto state0;
-    }
-    else
-    {
-      const ProteinIdentification::ProteinGroup& group = indist_groups2[prt_indistgroup_id_];
-      auto prt_row = MzTab::nextProteinSectionRowFromIndistinguishableGroup_(
-        protein_hits,
-        group,
-        prt_indistgroup_id_,
-        ind2prot_,
-        db_,
-        db_version_);
-      applyAssayProteinQuantification(
-        prt_row,
-        group,
-        assay_keys_,
-        study_variable_to_assays_);
-      ++prt_indistgroup_id_;
-
-      std::swap(row, prt_row);
-      return true;
-    }
-    return false; // should not be reached
+          assay_keys_,
+          study_variable_to_assays_);
+      });
   }
 
   bool MzTab::CMMzTabStream::nextPEPRow(MzTabPeptideSectionRow& row)

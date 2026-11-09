@@ -89,6 +89,8 @@ PercolatorOutfile.cpp
 ProtXMLFile.cpp
 SequestInfile.cpp
 SequestOutfile.cpp
+SearchEngineFileHelpers.cpp
+Sha1Helpers.cpp
 SpecArrayFile.cpp
 SqliteConnector.cpp
 SqMassFile.cpp
@@ -161,3 +163,5 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 source_group("Source Files\\FORMAT" FILES ${sources})
 
 list(APPEND OpenMS_private_headers ${directory}/ArrowFileIOHelpers.h)
+list(APPEND OpenMS_private_headers ${directory}/SearchEngineFileHelpers.h)
+list(APPEND OpenMS_private_headers ${directory}/Sha1Helpers.h)

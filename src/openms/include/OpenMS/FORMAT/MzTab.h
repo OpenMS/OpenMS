@@ -444,6 +444,10 @@ public:
   typedef std::vector<MzTabOligonucleotideSectionRow> MzTabOligonucleotideSectionRows;
   typedef std::vector<MzTabOSMSectionRow> MzTabOSMSectionRows;
 
+  namespace Internal
+  {
+    struct MzTabStreamHelper; ///< implementation details shared by MzTab::IDMzTabStream and MzTab::CMMzTabStream
+  }
 
   /**
       @brief Data model of MzTab files.
@@ -453,6 +457,8 @@ public:
  */
   class OPENMS_DLLAPI MzTab : public MzTabBase
   {
+    friend struct Internal::MzTabStreamHelper;
+
   public:
     /// Default constructor
     MzTab() = default;
@@ -617,6 +623,8 @@ public:
          bool nextPEPRow(MzTabPeptideSectionRow& row);
          bool nextPSMRow(MzTabPSMSectionRow& row);
        private:
+         friend struct Internal::MzTabStreamHelper;
+
          std::set<std::string> protein_hit_user_value_keys_;
          std::set<std::string> peptide_id_user_value_keys_;
          std::set<std::string> peptide_hit_user_value_keys_;
@@ -686,6 +694,8 @@ public:
          bool nextPSMRow(MzTabPSMSectionRow& row);
 
        private:
+         friend struct Internal::MzTabStreamHelper;
+
          const ConsensusMap& consensus_map_;
          std::set<std::string> protein_hit_user_value_keys_;
          std::set<std::string> consensus_feature_user_value_keys_;
