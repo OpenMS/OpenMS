@@ -201,6 +201,66 @@ int main(int argc, char** argv)
   require(OpenDIA::readTraceWindows(prefix + ".windows.tsv", 1).front().group_id == "peptide_family",
           "Window parser lost explicit grouping.");
   rejects([&] { OpenDIA::readTraceWindows(prefix + ".windows.tsv", 0); });
+
+  // b/y ion counts: PEPTIDEK singly charged b2..b7 / y1..y7 inside 150.06-2000 Th, nearest isolating spectrum in the core only.
+  {
+    OpenSwath::LightTargetedExperiment by_library;
+    OpenSwath::LightCompound peptide;
+    peptide.id = "pep";
+    peptide.sequence = "PEPTIDEK";
+    by_library.compounds.push_back(peptide);
+    OpenSwath::LightTransition t;
+    t.peptide_ref = "pep";
+    t.precursor_mz = 500;
+    t.product_mz = 300;
+    t.library_intensity = 1;
+    by_library.transitions.push_back(t);
+    const std::vector<OpenDIA::TraceWindow> by_windows = {{"w0", "pep", "g", 0, 100}};
+    OpenDIA::TraceCollector by(by_windows, by_library);
+    rejects([&] { by.enableByIonCounts(by_library, 10, 300); });  // evidence first
+    by.enableEvidence(20, 4);
+    rejects([&] { by.enableByIonCounts(by_library, 0, 300); });
+    by.enableByIonCounts(by_library, 10, 300);
+    const auto ms2 = [](double rt, std::vector<std::pair<double, float>> peaks)
+    {
+      MSSpectrum s = scan(rt, false);
+      s.clear(false);
+      for (const auto& p : peaks) s.emplace_back(p.first, p.second);
+      s.sortByPosition();
+      return s;
+    };
+    // b2 = 227.1026, b3 = 324.1554, y1 = 147.1128 (below 150.06, never counted), y2 = 276.1554, y3 = 391.1823.
+    // Far spectrum (3 s off apex): every listed ion would match; it is replaced by the nearer one.
+    auto far = ms2(97, {{227.1026, 1000}, {324.1554, 1000}, {276.1554, 1000}, {391.1823, 1000}});
+    by.consumeSpectrum(far);
+    require(by.evidence(0).byion_b == 2 && by.evidence(0).byion_y == 2, "b/y counts of the only core spectrum wrong");
+    // Near spectrum (0.5 s): b2 at 2 ppm, b3 at 40 ppm (outside 10 ppm), y2 too weak, y3 matched; y1 never in range.
+    auto near = ms2(100.5, {{147.1128, 5000}, {227.1026 * (1 + 2e-6), 1000}, {324.1554 * (1 + 40e-6), 1000}, {276.1554, 100}, {391.1823, 900}});
+    by.consumeSpectrum(near);
+    require(by.evidence(0).byion_b == 1 && by.evidence(0).byion_y == 1, "nearest spectrum, ppm or intensity rule wrong");
+    // Outside the 4 s core: ignored even though it is more intense everywhere.
+    auto outside = ms2(105, {{227.1026, 1e6}, {324.1554, 1e6}});
+    by.consumeSpectrum(outside);
+    require(by.evidence(0).byion_b == 1 && std::abs(by.evidence(0).byion_apex_dt - 0.5f) < 1e-6f, "spectrum outside the core was used");
+    // The nearest peak decides: a weak exact peak next to a strong one 8 ppm away does not match.
+    OpenDIA::TraceCollector nearest(by_windows, by_library);
+    nearest.enableEvidence(20, 4);
+    nearest.enableByIonCounts(by_library, 10, 300);
+    auto pair = ms2(100, {{227.1026, 100}, {227.1026 * (1 + 8e-6), 1e5}});
+    nearest.consumeSpectrum(pair);
+    require(nearest.evidence(0).byion_b == 0, "intensity must be taken from the nearest peak");
+    // Without enableByIonCounts the counts stay zero (default path unchanged).
+    OpenDIA::TraceCollector plain(by_windows, by_library);
+    plain.enableEvidence(20, 4);
+    auto again = ms2(100, {{227.1026, 1000}});
+    plain.consumeSpectrum(again);
+    require(plain.evidence(0).byion_b == 0 && std::isinf(plain.evidence(0).byion_apex_dt), "counts collected without opt-in");
+    OpenSwath::LightTargetedExperiment no_sequence = by_library;
+    no_sequence.compounds[0].sequence.clear();
+    OpenDIA::TraceCollector missing(by_windows, no_sequence);
+    missing.enableEvidence(20, 4);
+    rejects([&] { missing.enableByIonCounts(no_sequence, 10, 300); });
+  }
   // Retain the tiny .npy/metadata fixture for a real NumPy interoperability check.
   return 0;
 }

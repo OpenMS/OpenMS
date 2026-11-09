@@ -115,7 +115,12 @@ namespace OpenMS
                             "'extraction' = the seven tensor/MS1 features; 'search' = search peak-group features (needs -stage2_search_features); "
                             "'isotope' = MS1 M+0..M+3 averagine correlation, M-1 overlap and isotope co-elution; 'boundary' (experimental) = each window re-picked "
                             "with the consensus peak-group picker on its scan bins, with FWHM, base width, co-elution, library correlation and fragment apex agreement "
-                            "over the picked boundaries. 'extraction_search' = extraction+search", false);
+                            "over the picked boundaries; 'byion' (experimental) = numbers of singly charged b and y ions of the library sequence matched "
+                            "in the isolating MS2 spectrum nearest the apex (-stage2_byion_ppm, -stage2_byion_intensity_min). 'extraction_search' = extraction+search", false);
+      registerDoubleOption_("stage2_byion_ppm", "<ppm>", 10.0, "With a stage2_feature_set containing byion: matching half width of the b/y ions", false);
+      setMinFloat_("stage2_byion_ppm", 0.1);
+      registerDoubleOption_("stage2_byion_intensity_min", "<intensity>", 300.0, "With a stage2_feature_set containing byion: matched peaks must be more intense", false);
+      setMinFloat_("stage2_byion_intensity_min", 0.0);
       registerInputFile_("stage2_search_features", "<file>", "", "With -stage2: the OpenDIA -features_out table the windows were drawn from "
                          "(candidate_row = window sample_id): transition support, matched scans, peak width and |library RT error| per window", false);
       setValidFormats_("stage2_search_features", {"tsv"});
@@ -326,6 +331,10 @@ namespace OpenMS
         if (stage2 || topaz)
         {
           collector.enableEvidence(getDoubleOption_("stage2_ms1_ppm"), getDoubleOption_("stage2_core_half_width"));
+          if (stage2 && stage2_set.byion)
+          {
+            collector.enableByIonCounts(library, getDoubleOption_("stage2_byion_ppm"), getDoubleOption_("stage2_byion_intensity_min"));
+          }
         }
         FileHandler reader;
         PeakFileOptions options;
@@ -674,6 +683,11 @@ namespace OpenMS
               const auto boundary = OpenDIA::stage2BoundaryFeatures(collector.intensities().data() + i * OpenDIA::TraceCollector::SAMPLE_SIZE,
                                                                     collector.libraryIntensities(i), collector.fragmentMZ(i), collector.evidence(i), extraction);
               row.features.insert(row.features.end(), boundary.begin(), boundary.end());
+            }
+            if (stage2_set.byion)
+            {
+              const auto byion = OpenDIA::stage2ByIonFeatures(collector.evidence(i));
+              row.features.insert(row.features.end(), byion.begin(), byion.end());
             }
             rows.push_back(row);
             row_window.push_back(i);

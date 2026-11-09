@@ -62,7 +62,7 @@ namespace OpenMS::OpenDIA
     @brief Which feature groups enter the second-stage discriminant. Feature 0 is always the standardised CNN logit.
 
     Row order: cnn_z, then the seven extraction features, then the search features, then the isotope features, then the
-    boundary features, each group only if selected.
+    boundary features, then the b/y ion counts, each group only if selected.
   */
   struct Stage2FeatureSet
   {
@@ -70,6 +70,7 @@ namespace OpenMS::OpenDIA
     bool search = false;      ///< The four search peak-group features (needs the OpenDIA -features_out table).
     bool isotope = false;     ///< The MS1 isotope-envelope features (Stage2IsotopeFeature).
     bool boundary = false;    ///< Experimental peak-group boundary features (Stage2BoundaryFeature).
+    bool byion = false;       ///< Experimental apex-spectrum b/y ion counts (Stage2ByIonFeature; needs TraceCollector::enableByIonCounts()).
   };
   /**
     @brief Parse a '+'-separated list of groups, e.g. "extraction", "search+isotope"; "extraction_search" means "extraction+search".
@@ -132,6 +133,23 @@ namespace OpenMS::OpenDIA
   std::array<double, STAGE2_BOUNDARY_FEATURES> stage2BoundaryFeatures(const float* tensor, const std::array<double, 6>& library_intensities,
                                                                       const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence,
                                                                       const Stage2ExtractionOptions& options);
+
+  /// Experimental b/y ion evidence of the isolating MS2 spectrum nearest the window apex (all theoretical ions, not only the library's six).
+  enum class Stage2ByIonFeature : std::size_t
+  {
+    BYION_B = 0,  ///< Number of matched singly charged b ions (TraceEvidence::byion_b).
+    BYION_Y,      ///< Number of matched singly charged y ions (TraceEvidence::byion_y).
+    COUNT
+  };
+  constexpr std::size_t STAGE2_BYION_FEATURES = static_cast<std::size_t>(Stage2ByIonFeature::COUNT);
+  /// b/y ion column names, in Stage2ByIonFeature order.
+  const std::array<std::string, STAGE2_BYION_FEATURES>& stage2ByIonFeatureNames();
+  /**
+    @brief b/y ion count features of one window; zero if no isolating MS2 spectrum fell inside the core window.
+    @param[in] evidence Window evidence collected with TraceCollector::enableByIonCounts().
+    @return Features in Stage2ByIonFeature order.
+  */
+  std::array<double, STAGE2_BYION_FEATURES> stage2ByIonFeatures(const TraceEvidence& evidence);
 
   /**
     @brief Peak-group evidence of one search candidate, read from the OpenDIA -features_out table.

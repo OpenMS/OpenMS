@@ -6,6 +6,7 @@
 // --------------------------------------------------------------------------
 #include "OpenDIATraces.h"
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
@@ -168,6 +169,87 @@ namespace OpenMS::OpenDIA
       std::max(0.0, (rt - apex_rt + rt_half_width_) / (2.0 * rt_half_width_)) * RT_BINS));
   }
 
+  void TraceCollector::enableByIonCounts(const OpenSwath::LightTargetedExperiment& library, double ppm, double intensity_min)
+  {
+    require(!evidence_.empty(), "b/y ion counts require enableEvidence() first.");
+    require(std::isfinite(ppm) && ppm > 0.0 && std::isfinite(intensity_min) && intensity_min >= 0.0,
+            "b/y ion tolerance must be positive and the intensity floor non-negative.");
+    byion_ppm_ = ppm;
+    byion_intensity_min_ = intensity_min;
+    std::map<std::string, const std::string*> sequences;
+    for (const auto& compound : library.getCompounds())
+    {
+      sequences[compound.id] = &compound.sequence;
+    }
+    // Ions are generated once per precursor; windows of the same precursor share the range.
+    std::map<std::string, std::array<std::uint32_t, 3>> ranges;
+    byion_mz_.clear();
+    byion_range_.assign(samples_.size(), {0, 0, 0});
+    for (std::size_t i = 0; i < samples_.size(); ++i)
+    {
+      const std::string& id = samples_[i].window.precursor_id;
+      auto found = ranges.find(id);
+      if (found == ranges.end())
+      {
+        const auto sequence = sequences.find(id);
+        require(sequence != sequences.end() && !sequence->second->empty(), "No library sequence for precursor: " + id);
+        AASequence peptide;
+        try
+        {
+          peptide = AASequence::fromString(*sequence->second);
+        }
+        catch (const Exception::BaseException&)
+        {
+          require(false, "Could not parse library sequence: " + *sequence->second);
+        }
+        std::array<std::uint32_t, 3> range{};
+        // Singly charged b_k and y_k for k = 1..n-1, kept inside the scan range used for the design study.
+        for (int series = 0; series < 2; ++series)
+        {
+          range[series] = static_cast<std::uint32_t>(byion_mz_.size());
+          for (Size k = 1; k < peptide.size(); ++k)
+          {
+            const double mz = series == 0 ? peptide.getPrefix(k).getMonoWeight(Residue::BIon, 1)
+                                          : peptide.getSuffix(k).getMonoWeight(Residue::YIon, 1);
+            if (mz >= 150.06 && mz <= 2000.0) { byion_mz_.push_back(static_cast<float>(mz)); }
+          }
+        }
+        range[2] = static_cast<std::uint32_t>(byion_mz_.size());
+        found = ranges.emplace(id, range).first;
+      }
+      byion_range_[i] = found->second;
+    }
+  }
+
+  void TraceCollector::countByIons_(const MSSpectrum& spectrum, std::size_t index, double dt)
+  {
+    TraceEvidence& evidence = evidence_[index];
+    // Spectra arrive in RT order, so the nearest isolating spectrum to the apex replaces any earlier one.
+    if (!(dt < evidence.byion_apex_dt)) { return; }
+    const auto& range = byion_range_[index];
+    std::uint16_t counts[2] = {0, 0};
+    for (std::uint32_t t = range[0]; t < range[2]; ++t)
+    {
+      const double mz = byion_mz_[t];
+      const double half = mz * byion_ppm_ * 1e-6;
+      double best = std::numeric_limits<double>::infinity();
+      double best_intensity = 0.0;
+      for (auto point = spectrum.MZBegin(mz - half); point != spectrum.end() && point->getMZ() <= mz + half; ++point)
+      {
+        const double distance = std::abs(point->getMZ() - mz);
+        if (distance < best)
+        {
+          best = distance;
+          best_intensity = point->getIntensity();
+        }
+      }
+      if (std::isfinite(best) && best_intensity > byion_intensity_min_) { ++counts[t >= range[1] ? 1 : 0]; }
+    }
+    evidence.byion_apex_dt = static_cast<float>(dt);
+    evidence.byion_b = counts[0];
+    evidence.byion_y = counts[1];
+  }
+
   void TraceCollector::consumeMS1_(MSSpectrum& spectrum)
   {
     const double rt = spectrum.getRT();
@@ -313,6 +395,7 @@ namespace OpenMS::OpenDIA
       if (evidence != nullptr)
       {
         evidence->ms2_mask |= std::uint32_t{1} << rt_bin;
+        if (core && !byion_range_.empty()) { countByIons_(spectrum, index, std::abs(rt - sample.window.apex_rt)); }
       }
       for (std::size_t fragment = 0; fragment < FRAGMENTS; ++fragment)
       {

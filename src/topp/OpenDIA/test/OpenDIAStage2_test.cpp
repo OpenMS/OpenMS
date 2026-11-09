@@ -357,6 +357,20 @@ int main()
     require(OpenDIA::stage2BoundaryFeatures(empty.data(), library, mz, fullEvidence(), options)[4] == 0.0, "empty window gives zero features");
   }
 
+  // 10. b/y ion group: appended last, counts copied from the evidence.
+  {
+    const auto names = OpenDIA::stage2FeatureSetNames(OpenDIA::parseStage2FeatureSet("search+boundary+byion"));
+    require(names.size() == 12 && names[10] == "byion_b" && names[11] == "byion_y", "byion columns come last");
+    auto e = fullEvidence();
+    e.byion_b = 7;
+    e.byion_y = 9;
+    const auto f = OpenDIA::stage2ByIonFeatures(e);
+    require(f[0] == 7.0 && f[1] == 9.0, "byion features copy the counts");
+    bool repeated = false;
+    try { OpenDIA::parseStage2FeatureSet("byion+byion"); } catch (const std::invalid_argument&) { repeated = true; }
+    require(repeated, "repeated byion group accepted");
+  }
+
   std::cout << "OpenDIAStage2_test passed\n";
   return 0;
 }

@@ -11,6 +11,7 @@
 
 #include <array>
 #include <cstdint>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -47,6 +48,10 @@ namespace OpenMS::OpenDIA
     std::array<float, 5> ms1_isotope_core{};
     /// MS1 trace per RT bin of the first and second isotope (M+1, M+2).
     std::array<std::array<float, RT_BINS>, 2> ms1_isotope_traces{};
+    /// With TraceCollector::enableByIonCounts(): |RT - apex| of the isolating MS2 spectrum the counts below come from.
+    float byion_apex_dt = std::numeric_limits<float>::infinity();
+    std::uint16_t byion_b = 0;         ///< Matched singly charged b ions in the isolating MS2 spectrum nearest the apex.
+    std::uint16_t byion_y = 0;         ///< Matched singly charged y ions in the same spectrum.
   };
 
   /**
@@ -119,6 +124,20 @@ namespace OpenMS::OpenDIA
     void enableEvidence(double ms1_ppm, double core_half_width_s);
     /// Whether enableEvidence() was called.
     bool evidenceEnabled() const { return !evidence_.empty(); }
+    /**
+      @brief Also count matched b and y ions (fragment charge 1) in the isolating MS2 spectrum nearest each window apex.
+
+      Requires enableEvidence() first; only spectra within its core half width of the apex are considered. For every
+      theoretical singly charged b and y ion of the library sequence (modifications included) between 150.06 and 2000 Th,
+      the nearest spectrum peak within @p ppm counts as a match if its intensity exceeds @p intensity_min. Ion mobility is
+      ignored (points are pooled). Targets and decoys are treated identically. Results are in TraceEvidence::byion_b/_y.
+
+      @param[in] library The library passed to the constructor (sequences are read from its compounds).
+      @param[in] ppm Matching half width in ppm.
+      @param[in] intensity_min Minimum intensity of the matched peak.
+      @throws Exception::InvalidParameter If evidence is not enabled, a tolerance is not positive or a sequence cannot be parsed.
+    */
+    void enableByIonCounts(const OpenSwath::LightTargetedExperiment& library, double ppm, double intensity_min);
     /// Evidence of sample i; requires evidenceEnabled().
     const TraceEvidence& evidence(std::size_t i) const { return evidence_.at(i); }
     /// RT half width of the tensor in seconds.
@@ -147,8 +166,13 @@ namespace OpenMS::OpenDIA
     std::vector<TraceEvidence> evidence_;
     double ms1_ppm_ = 0.0;
     double core_half_width_ = 0.0;
+    std::vector<float> byion_mz_;                           ///< Pooled ion m/z: per sample, b ions then y ions.
+    std::vector<std::array<std::uint32_t, 3>> byion_range_; ///< Per sample: first b, first y, end in byion_mz_.
+    double byion_ppm_ = 0.0;
+    double byion_intensity_min_ = 0.0;
 
     void consumeMS1_(MSSpectrum& spectrum);
+    void countByIons_(const MSSpectrum& spectrum, std::size_t index, double dt);
     std::size_t rtBin_(double rt, double apex_rt) const;
   };
 

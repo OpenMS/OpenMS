@@ -242,7 +242,7 @@ namespace OpenMS::OpenDIA
       const std::size_t plus = spec.find('+', start);
       const std::string group = spec.substr(start, plus == std::string::npos ? std::string::npos : plus - start);
       bool* flag = group == "extraction" ? &set.extraction : group == "search" ? &set.search : group == "isotope" ? &set.isotope
-                   : group == "boundary" ? &set.boundary : nullptr;
+                   : group == "boundary" ? &set.boundary : group == "byion" ? &set.byion : nullptr;
       if (flag == nullptr || *flag) throw std::invalid_argument("Unknown or repeated second-stage feature group '" + group + "' in " + name);
       *flag = true;
       if (plus == std::string::npos) break;
@@ -281,7 +281,22 @@ namespace OpenMS::OpenDIA
     {
       names.insert(names.end(), stage2BoundaryFeatureNames().begin(), stage2BoundaryFeatureNames().end());
     }
+    if (set.byion)
+    {
+      names.insert(names.end(), stage2ByIonFeatureNames().begin(), stage2ByIonFeatureNames().end());
+    }
     return names;
+  }
+
+  const std::array<std::string, STAGE2_BYION_FEATURES>& stage2ByIonFeatureNames()
+  {
+    static const std::array<std::string, STAGE2_BYION_FEATURES> names = {"byion_b", "byion_y"};
+    return names;
+  }
+
+  std::array<double, STAGE2_BYION_FEATURES> stage2ByIonFeatures(const TraceEvidence& evidence)
+  {
+    return {static_cast<double>(evidence.byion_b), static_cast<double>(evidence.byion_y)};
   }
 
   const std::array<std::string, STAGE2_BOUNDARY_FEATURES>& stage2BoundaryFeatureNames()
