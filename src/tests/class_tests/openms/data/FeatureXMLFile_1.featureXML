@@ -18,6 +18,7 @@
 			<VariableModification name="M+15.9949" />
 			<VariableModification name="Q-17.0265" />
 				<UserParam type="string" name="test" value="test"/>
+				<UserParam type="string" name="ScoreSoftware:Posterior Error Probability" value="IDPosteriorErrorProbability"/>
 		</SearchParameters>
 		<ProteinIdentification score_type="score_type" higher_score_better="true" significance_threshold="56.7643013000488">
 			<ProteinHit id="PH_0" accession="urn:lsid:ach0du1schreck2wo3iss4er5denn" score="70.3000030517578" sequence="ABCDEFG">
@@ -34,18 +35,19 @@
 			<FixedModification name="C+1234.5678" />
 			<VariableModification name="C-1700" />
 			<VariableModification name="Q-1700" />
+				<UserParam type="string" name="ScoreSoftware:Posterior Error Probability" value="IDPosteriorErrorProbability"/>
 		</SearchParameters>
 		<ProteinIdentification score_type="score_type" higher_score_better="true" significance_threshold="56.7643013000488">
 			<ProteinHit id="PH_2" accession="a1" score="70.3000030517578" sequence="OPQREST">
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
-	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="42.2999992370605" >
 		<PeptideHit score="4324.433" sequence="F" charge="23" aa_after="Y" protein_refs="PH_1">
 		</PeptideHit>
 		<UserParam type="int" name="label" value="17"/>
 	</UnassignedPeptideIdentification>
-	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="42.2999992370605" >
 		<PeptideHit score="4324.433" sequence="G" charge="23" aa_after="Y" protein_refs="PH_2">
 			<UserParam type="int" name="label" value="19"/>
 		</PeptideHit>
@@ -82,12 +84,12 @@
 					<charge>2</charge>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="42.2999992370605" >
 				<PeptideHit score="4324.433" sequence="A" charge="23" aa_after="Y" protein_refs="PH_1">
 				</PeptideHit>
 				<UserParam type="int" name="label" value="17"/>
 			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_1" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="42.2999992370605" >
 				<PeptideHit score="4324.433" sequence="C" charge="23" aa_after="Y" protein_refs="PH_2">
 					<UserParam type="int" name="label" value="19"/>
 				</PeptideHit>
@@ -114,7 +116,7 @@
 				<pt x="1.5" y="1.8" />
 				<pt x="2.5" y="2.8" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="42.2999992370605" >
 				<PeptideHit score="4324.433" sequence="E" charge="23" aa_after="Y" protein_refs="PH_1">
 				</PeptideHit>
 			</PeptideIdentification>

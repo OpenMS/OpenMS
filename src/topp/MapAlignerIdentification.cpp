@@ -17,7 +17,9 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
-#include <OpenMS/FORMAT/OMSFile.h>
+#include <OpenMS/FORMAT/IdentificationDataFile.h>
+
+#include <algorithm>
 
 using namespace OpenMS;
 using namespace std;
@@ -210,6 +212,57 @@ private:
     }
   }
 
+  /// Align native identification bundles in the owning model and write native bundles.
+  void alignNativeIdentifications_(MapAlignmentAlgorithmIdentification& algorithm,
+                                   const StringList& input_files,
+                                   const StringList& output_files,
+                                   vector<TransformationDescription>& transformations,
+                                   Int reference_index)
+  {
+    vector<IdentificationData> id_data(input_files.size());
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(log_type_);
+    progresslogger.startProgress(0, input_files.size(), "loading input files");
+    for (Size i = 0; i < input_files.size(); ++i)
+    {
+      progresslogger.setProgress(i);
+      FileHandler().loadIdentifications(input_files[i], id_data[i], {FileTypes::IDPARQUET}, log_type_);
+    }
+    progresslogger.endProgress();
+
+    // Alignment provenance is run metadata; the score contract is unchanged.
+    const auto processing_time = DateTime::now();
+    const auto reference_file = getStringOption_("reference:file");
+    for (auto& data : id_data)
+    {
+      for (const auto& current : data.getRuns())
+      {
+        auto& run = data.getRun(current.getIdentifier());
+        auto settings = run.getSettings();
+        settings.setMetaValue("alignment:software", toolName_());
+        settings.setMetaValue("alignment:version", test_mode_ ? "test" : version_);
+        settings.setMetaValue("alignment:time", processing_time.get());
+        settings.setMetaValue("alignment:inputs", input_files);
+        if (! reference_file.empty()) settings.setMetaValue("alignment:reference", reference_file);
+        run.setSettings(settings);
+      }
+    }
+
+    performAlignment_(algorithm, id_data, transformations, reference_index);
+    applyTransformations_(id_data, transformations);
+
+    if (! output_files.empty())
+    {
+      progresslogger.startProgress(0, output_files.size(), "writing output files");
+      for (Size i = 0; i < output_files.size(); ++i)
+      {
+        progresslogger.setProgress(i);
+        FileHandler().storeIdentifications(output_files[i], id_data[i], {FileTypes::IDPARQUET}, log_type_);
+      }
+      progresslogger.endProgress();
+    }
+  }
+
   void storeTransformationDescriptions_(const vector<TransformationDescription>&
                                         transformations, StringList& trafos)
   {
@@ -263,19 +316,19 @@ private:
       case FileTypes::IDXML:
       case FileTypes::IDPARQUET:
       {
+        if (filetype == FileTypes::IDPARQUET && IdentificationDataFile::isNativeFile(reference_file))
+        {
+          IdentificationData id_data;
+          FileHandler().loadIdentifications(reference_file, id_data, {FileTypes::IDPARQUET}, log_type_);
+          algorithm.setReference(id_data);
+          break;
+        }
         vector<ProteinIdentification> proteins;
         PeptideIdentificationList peptides;
         FileHandler().loadIdentifications(reference_file, proteins, peptides,
                                           {FileTypes::IDXML, FileTypes::IDPARQUET},
                                           log_type_);
         algorithm.setReference(peptides);
-      }
-      break;
-      case FileTypes::OMS:
-      {
-        IdentificationData id_data;
-        OMSFile().load(reference_file, id_data);
-        algorithm.setReference(id_data);
       }
       break;
       default: // to avoid compiler warnings
@@ -290,7 +343,7 @@ private:
 
   void registerOptionsAndFlags_() override
   {
-    std::string formats = "featureXML,featureparquet,consensusXML,consensusparquet,idXML,idparquet,oms";
+    std::string formats = "featureXML,featureparquet,consensusXML,consensusparquet,idXML,idparquet";
     TOPPMapAlignerBase::registerOptionsAndFlagsMapAligners_(formats, REF_FLEXIBLE);
     // TODO: potentially move to base class so every aligner has to support design
     registerInputFile_("design", "<file>", "", "Input file containing the experimental design", false);
@@ -475,6 +528,13 @@ private:
     case FileTypes::IDXML:
     case FileTypes::IDPARQUET:
     {
+      // Native identification bundles are aligned in the owning model.
+      if (in_type == FileTypes::IDPARQUET
+          && std::all_of(input_files.begin(), input_files.end(), [](const std::string& name) { return IdentificationDataFile::isNativeFile(name); }))
+      {
+        alignNativeIdentifications_(algorithm, input_files, output_files, transformations, reference_index);
+        break;
+      }
       vector<vector<ProteinIdentification>> protein_ids(input_files.size());
       vector<PeptideIdentificationList> peptide_ids(input_files.size());
       FileHandler idxml_file;
@@ -506,68 +566,6 @@ private:
           progresslogger.setProgress(i);
           idxml_file.storeIdentifications(output_files[i], protein_ids[i], peptide_ids[i],
                                           {out_type}, log_type_);
-        }
-        progresslogger.endProgress();
-      }
-    }
-    break;
-
-    //-------------------------------------------------------------
-    // perform spectrum match alignment
-    //-------------------------------------------------------------
-    case FileTypes::OMS:
-    {
-      vector<IdentificationData> id_data(input_files.size());
-      OMSFile oms_file;
-      ProgressLogger progresslogger;
-      progresslogger.setLogType(log_type_);
-      progresslogger.startProgress(0, input_files.size(),
-                                   "loading input files");
-      for (Size i = 0; i < input_files.size(); ++i)
-      {
-        progresslogger.setProgress(i);
-        oms_file.load(input_files[i], id_data[i]);
-      }
-      progresslogger.endProgress();
-
-      // add data processing information:
-      DateTime processing_time = DateTime::now(); // use same for each file
-      IdentificationData::ProcessingSoftware sw(toolName_(), version_);
-      if (test_mode_) sw.setVersion("test");
-      std::string reference_file = getStringOption_("reference:file");
-      for (IdentificationData& id : id_data)
-      {
-        IdentificationData::ProcessingSoftwareRef sw_ref =
-          id.registerProcessingSoftware(sw);
-        IdentificationData::ProcessingStep step(sw_ref);
-        for (const std::string& input_file : input_files)
-        {
-          IdentificationData::InputFileRef ref =
-            id.registerInputFile(IdentificationData::InputFile(input_file));
-          step.input_file_refs.push_back(ref);
-        }
-        if (!reference_file.empty())
-        {
-          IdentificationData::InputFileRef ref =
-            id.registerInputFile(IdentificationData::InputFile(reference_file));
-          step.input_file_refs.push_back(ref);
-        }
-        step.date_time = processing_time;
-        step.actions.insert(DataProcessing::ALIGNMENT);
-        id.registerProcessingStep(step);
-      }
-
-      performAlignment_(algorithm, id_data, transformations, reference_index);
-      applyTransformations_(id_data, transformations);
-
-      if (!output_files.empty())
-      {
-        progresslogger.startProgress(0, output_files.size(),
-                                     "writing output files");
-        for (Size i = 0; i < output_files.size(); ++i)
-        {
-          progresslogger.setProgress(i);
-          oms_file.store(output_files[i], id_data[i]);
         }
         progresslogger.endProgress();
       }

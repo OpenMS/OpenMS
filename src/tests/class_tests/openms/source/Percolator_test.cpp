@@ -1737,6 +1737,7 @@ START_SECTION((static void markRescoredRuns(std::vector<ProteinIdentification>& 
   runs[0].setSearchEngine("SearchEngineX");
   runs[0].getSearchParameters().setMetaValue("Percolator:markRescoredRuns_test_stale", "from an earlier rescoring");
   runs[1].getSearchParameters().setMetaValue("extra_features", "hyperscore");
+  runs[1].setScoreSoftware("Posterior Error Probability", "IDPosteriorErrorProbability", "3.7.0");
   Percolator::markRescoredRuns(runs, "SomeTool",
                                {{"markRescoredRuns_test_b", 0.05},
                                 {"markRescoredRuns_test_a", "true"},
@@ -1756,8 +1757,9 @@ START_SECTION((static void markRescoredRuns(std::vector<ProteinIdentification>& 
     // an empty value removes the meta value
     TEST_FALSE(sp.metaValueExists("Percolator:markRescoredRuns_test_stale"))
   }
-  // other search parameters stay
+  // other search parameters stay; the producers of derived scores recorded before go
   TEST_EQUAL(runs[1].getSearchParameters().getMetaValue("extra_features").toString(), "hyperscore")
+  TEST_EQUAL(runs[1].getScoreSoftware("Posterior Error Probability").first, "Percolator") // the search engine, as without a record
   // new meta values in the order given (the order of the output files)
   std::vector<std::string> keys;
   runs[0].getSearchParameters().getKeys(keys);

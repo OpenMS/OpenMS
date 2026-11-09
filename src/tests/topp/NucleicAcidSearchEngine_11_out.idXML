@@ -2,14 +2,18 @@
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="./NucleicAcidSearchEngine_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="-14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2" enzyme="unknown_enzyme" missed_cleavages="22" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="5" peak_mass_tolerance_ppm="true" >
+				<UserParam type="int" name="rna_min_length" value="5"/>
+				<UserParam type="int" name="rna_max_length" value="0"/>
+				<UserParam type="string" name="rna_enzyme" value="no cleavage"/>
 	</SearchParameters>
 	<IdentificationRun date="2019-04-18T16:00:33" search_engine="NucleicAcidSearchEngine" search_engine_version="test" search_parameters_ref="SP_0" >
-		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+		<ProteinIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="dme-let-7-5p" score="0.0" coverage="100.0" sequence="UGAGGUAGUAGGUUGUAUAGU" >
+				<UserParam type="string" name="Description" value="MIMAT0000396 Drosophila melanogaster let-7-5p"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[NucleicAcidSearchEngine_1.mzML]"/>
 			<UserParam type="stringList" name="spectra_data_raw" value="[file:///U:\Byron\DATA\20180522_Let7-+Um_mixture_ramp_02\minimal_01a.raw]"/>
+			<UserParam type="stringList" name="spectra_data" value="[NucleicAcidSearchEngine_1.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="2263.620361328119998" RT="14.104380000000001" spectrum_reference="controllerType=0 controllerNumber=1 scan=88" >
 			<PeptideHit score="50.529285659036816" sequence="" charge="-3" aa_before="[" aa_after="]" start="0" end="20" protein_refs="PH_0" >
@@ -17,7 +21,10 @@
 				<UserParam type="string" name="label" value="UGAGGUAGUAGGUUGUAUAGU"/>
 				<UserParam type="float" name="precursor_mz_error_ppm" value="-1.851164946914477"/>
 				<UserParam type="int" name="isotope_offset" value="2"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="molecule_type" value="RNA"/>
+				<UserParam type="int" name="identification:encoding" value="1"/>
+				<UserParam type="float" name="identification:calculated_mz" value="2262.955649086504764"/>
 				<UserParam type="float" name="PSM-level q-value" value="0.0"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="0"/>

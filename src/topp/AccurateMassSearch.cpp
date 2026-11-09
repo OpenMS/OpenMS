@@ -16,7 +16,6 @@
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTabMFile.h>
-#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 using namespace OpenMS;
@@ -77,7 +76,7 @@ protected:
     setValidFormats_("out", ListUtils::create<std::string>("mzTab"));
 
     registerOutputFile_("out_annotation", "<file>", "", "A copy of the input file, annotated with matching hits from the database.", false);
-    setValidFormats_("out_annotation", {"featureXML", "consensusXML", "oms"});
+    setValidFormats_("out_annotation", {"featureXML", "featureparquet", "consensusXML"});
 
     // move some params from algorithm section to top level (to support input file functionality)
     Param p = AccurateMassSearchEngine().getDefaults();
@@ -122,9 +121,9 @@ protected:
     ams_param.setValue("positive_adducts", getStringOption_("positive_adducts"));
     ams_param.setValue("negative_adducts", getStringOption_("negative_adducts"));
 
-    if (StringUtils::hasSuffix(file_ann, "oms"))
+    if (StringUtils::hasSuffix(file_ann, "featureparquet"))
     {
-      ams_param.setValue("id_format", "ID"); // use IdentificationData to store id results
+      ams_param.setValue("id_format", "ID"); // the Parquet bundle stores the owning identification data
     }
 
     writeDebug_("Parameters passed to AccurateMassSearch", ams_param, 3);
@@ -167,9 +166,9 @@ protected:
       {
         FileHandler().storeFeatures(file_ann, ms_feat_map, {FileTypes::FEATUREXML});
       }
-      else if (StringUtils::hasSuffix(file_ann, "oms"))
+      else if (StringUtils::hasSuffix(file_ann, "featureparquet"))
       {
-        OMSFile().store(file_ann, ms_feat_map);
+        FileHandler().storeFeatures(file_ann, ms_feat_map, {FileTypes::FEATUREPARQUET});
       }
     }
     else if (filetype == FileTypes::CONSENSUSXML && id_format)

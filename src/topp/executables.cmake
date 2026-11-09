@@ -69,7 +69,6 @@ openms_topp_tool(InternalCalibration              "Mass Correction and Calibrati
 openms_topp_tool(IonMobilityBinning               "File Filtering, Extraction and Merging")
 openms_topp_tool(IsobaricAnalyzer                 "Quantitation")
 openms_topp_tool(IsobaricWorkflow                 "Quantitation")
-openms_topp_tool(JSONExporter                     "[for Developers]")
 openms_topp_tool(LuciphorAdapter                  "Identification of Proteins and Peptides (SearchEngines)")
 openms_topp_tool(MapAlignerIdentification         "Map Alignment")
 openms_topp_tool(MapAlignerPoseClustering         "Map Alignment")

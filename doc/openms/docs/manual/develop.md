@@ -72,6 +72,8 @@ Consider the following resources for further information:
 - **Developer FAQ**: Visit the [Developer FAQ](/manual/develop/developer-faq.md) to get answers to frequently asked questions.
 - **Migrating from OpenMS::String**: OpenMS 3.6 replaced its string class with `std::string`. See
   [Migrating from OpenMS::String](/manual/develop/string-migration.md) to adapt code written for earlier versions.
+- **Identification data**: OpenMS 3.7 replaced the IdentificationData reference graph and the `.oms` format.
+  See [Identification data model and native persistence](/manual/develop/identification-data.md).
 
 ```{toctree}
 :maxdepth: 1
@@ -82,5 +84,6 @@ develop/developer-guidelines-for-adding-new-dependent-libraries.md
 develop/link-external-code-to-openms.md
 develop/developer-faq.md
 develop/string-migration.md
+develop/identification-data.md
 
 ```

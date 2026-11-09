@@ -3,13 +3,9 @@ set(directory source/METADATA/ID)
 
 ### list all filenames of the directory here
 set(sources_list
-AppliedProcessingStep.cpp
-DBSearchParam.cpp
 IdentificationData.cpp
+IdentificationDataAdapter.cpp
 IdentificationDataConverter.cpp
-IdentifiedMolecule.cpp
-ProcessingStep.cpp
-ScoredProcessingResult.cpp
 )
 
 ### add path to the filenames

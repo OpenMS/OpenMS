@@ -11,11 +11,13 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 ///////////////////////////
 
@@ -377,5 +379,83 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION([EXTRA] compound assays are written as compound identifications)
+{
+  MRMFeatureFinderScoring ff;
+  FeatureMap features;
+  TransformationDescription trafo;
+  std::shared_ptr<PeakMap> swath_map(new PeakMap);
+  TransitionGroupMapType transition_group_map;
+  std::shared_ptr<PeakMap> exp(new PeakMap);
+  OpenSwath::LightTargetedExperiment transitions;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OpenSwath_generic_input.mzML"), *exp);
+  {
+    TargetedExperiment transition_exp_;
+    TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("OpenSwath_generic_input.TraML"), transition_exp_);
+    OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transitions);
+  }
+  // A compound name makes an assay a metabolite; the first one also has a SMILES.
+  ABORT_IF(transitions.compounds.size() < 2)
+  for (auto& compound : transitions.compounds)
+  {
+    compound.compound_name = "compound " + compound.id;
+    compound.sum_formula = "C6H12O6";
+  }
+  transitions.compounds[0].smiles = "OCC1OC(O)C(O)C(O)C1O";
+#ifdef USE_SP_INTERFACE
+  OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+  OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
+  std::vector< OpenSwath::SwathMap > swath_maps(1);
+  swath_maps[0].sptr = swath_ptr;
+  ff.pickExperiment(chromatogram_ptr, features, transitions, trafo, swath_maps, transition_group_map);
+#else
+  ff.pickExperiment(exp, features, transitions, trafo, *swath_map, transition_group_map);
+#endif
+  Size hits = 0;
+  for (const auto& feature : features)
+  {
+    const auto reference = feature.getMetaValue("PeptideRef").toString();
+    const auto compound = std::find_if(transitions.compounds.begin(), transitions.compounds.end(), [&](const auto& c) { return c.id == reference; });
+    ABORT_IF(compound == transitions.compounds.end())
+    for (const auto& id : feature.getPeptideIdentifications())
+    {
+      TEST_EQUAL(id.getScoreType(), "xx_lda_prelim_score")
+      for (const auto& hit : id.getHits())
+      {
+        ++hits;
+        const bool smiles = !compound->smiles.empty();
+        TEST_EQUAL(hit.getSequence().toString(), "")
+        TEST_EQUAL(hit.getMetaValue("molecule_type").toString(), "compound")
+        TEST_EQUAL(hit.getMetaValue("label").toString(), smiles ? compound->smiles : compound->id)
+        TEST_EQUAL(static_cast<int>(hit.getMetaValue("identification:encoding")),
+                   static_cast<int>(smiles ? IdentificationData::Encoding::SMILES : IdentificationData::Encoding::DATABASE_ID))
+        TEST_EQUAL(hit.getMetaValue("identification:name").toString(), "compound " + compound->id)
+        TEST_EQUAL(hit.getMetaValue("identification:formula").toString(), "C6H12O6")
+        // The assay's protein references are the compound's identifiers, not sequence evidence.
+        TEST_EQUAL(hit.getPeptideEvidences().size(), 0)
+        const auto references = std::count_if(compound->protein_refs.begin(), compound->protein_refs.end(), [](const auto& r) { return !r.empty(); });
+        TEST_EQUAL(hit.metaValueExists("identification:identifier_accessions") ? hit.getMetaValue("identification:identifier_accessions").toStringList().size() : 0,
+                   static_cast<Size>(references))
+      }
+    }
+  }
+  TEST_EQUAL(hits > 1, true)
+  // The features import into the owning identification model as compounds, also after a featureXML round trip.
+  std::string file;
+  NEW_TMP_FILE(file)
+  FeatureXMLFile().store(file, features);
+  FeatureMap loaded;
+  FeatureXMLFile().load(file, loaded);
+  for (auto* map : {&features, &loaded})
+  {
+    IdentificationDataConverter::importFeatureIDs(*map);
+    ABORT_IF(map->getIdentificationData().getRuns().size() != 1)
+    const auto& run = map->getIdentificationData().getRuns()[0];
+    TEST_EQUAL(run.getMoleculeKind() == IdentificationData::MoleculeKind::COMPOUND, true)
+    TEST_EQUAL(run.getNumberOfMatches(), hits)
+  }
+}
+END_SECTION
+
 END_TEST
 

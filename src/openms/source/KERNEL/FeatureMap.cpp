@@ -88,31 +88,25 @@ namespace OpenMS
   {
   }
 
-  FeatureMap::FeatureMap(const FeatureMap& source) :
-    MetaInfoInterface(source),
-    RangeManagerContainerType(source),
-    DocumentIdentifier(source),
-    ExposedVector<Feature>(source),
-    UniqueIdInterface(source),
-    UniqueIdIndexer<FeatureMap>(source),
-    protein_identifications_(source.protein_identifications_),
-    unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
-    data_processing_(source.data_processing_),
-    id_data_() // updated below
+  FeatureMap::FeatureMap(const FeatureMap& source):
+      MetaInfoInterface(source),
+      RangeManagerContainerType(source),
+      DocumentIdentifier(source),
+      ExposedVector<Feature>(source),
+      UniqueIdInterface(source),
+      UniqueIdIndexer<FeatureMap>(source),
+      protein_identifications_(source.protein_identifications_),
+      unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
+      data_processing_(source.data_processing_),
+      id_data_(source.id_data_)
   {
-    // copy ID data and update references in features:
-    IdentificationData::RefTranslator trans = id_data_.merge(source.id_data_);
-    for (Feature& feature : *this)
-    {
-      feature.updateAllIDReferences(trans);
-    }
   }
 
   FeatureMap::FeatureMap(FeatureMap&& source) = default;
 
   FeatureMap::~FeatureMap() = default;
 
-  FeatureMap& FeatureMap::operator=(const FeatureMap& rhs)  // TODO: cannot be defaulted since OpenMS::IdentificationData is missing operator=
+  FeatureMap& FeatureMap::operator=(const FeatureMap& rhs) // TODO: cannot be defaulted since OpenMS::IdentificationData is missing operator=
   {
     if (&rhs == this)
     {
@@ -127,35 +121,20 @@ namespace OpenMS
     unassigned_peptide_identifications_ = rhs.unassigned_peptide_identifications_;
     data_processing_ = rhs.data_processing_;
 
-    // copy ID data and update references in features:
-    id_data_.clear();
-    IdentificationData::RefTranslator trans = id_data_.merge(rhs.id_data_);
-    for (Feature& feature : *this)
-    {
-      feature.updateAllIDReferences(trans);
-    }
+    id_data_ = rhs.id_data_;
 
     return *this;
   }
 
-  // Can be defaulted: moving preserves the addresses of the IdentificationData
-  // objects referenced by the contained features, so (unlike the copy assignment
-  // above) no ID-reference translation is required. This mirrors the defaulted
-  // move constructor.
   FeatureMap& FeatureMap::operator=(FeatureMap&&) = default;
 
 
   bool FeatureMap::operator==(const FeatureMap& rhs) const
   {
-    return data_ == rhs.data_ &&
-           MetaInfoInterface::operator==(rhs) &&
-           RangeManagerType::operator==(rhs) &&
-           DocumentIdentifier::operator==(rhs) &&
-           UniqueIdInterface::operator==(rhs) &&
-           protein_identifications_ == rhs.protein_identifications_ &&
-           unassigned_peptide_identifications_ == rhs.unassigned_peptide_identifications_ &&
-           data_processing_ == rhs.data_processing_;
-    // @TODO: implement "operator==" for IdentificationData?
+    return data_ == rhs.data_ && MetaInfoInterface::operator==(rhs) && RangeManagerType::operator==(rhs) && DocumentIdentifier::operator==(rhs)
+           && UniqueIdInterface::operator==(rhs) && protein_identifications_ == rhs.protein_identifications_
+           && unassigned_peptide_identifications_ == rhs.unassigned_peptide_identifications_ && data_processing_ == rhs.data_processing_
+           && id_data_ == rhs.id_data_;
   }
 
   bool FeatureMap::operator!=(const FeatureMap& rhs) const
@@ -172,6 +151,9 @@ namespace OpenMS
 
   FeatureMap& FeatureMap::operator+=(const FeatureMap& rhs)
   {
+    // Check identification compatibility before changing measurements or annotations.
+    id_data_.merge(rhs.id_data_);
+
     FeatureMap empty_map;
     // reset these:
     RangeManagerType::operator=(empty_map);
@@ -189,20 +171,12 @@ namespace OpenMS
     unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(), rhs.unassigned_peptide_identifications_.begin(), rhs.unassigned_peptide_identifications_.end());
     data_processing_.insert(data_processing_.end(), rhs.data_processing_.begin(), rhs.data_processing_.end());
 
-    Size n_old_features = size();
     // append features:
     this->insert(this->end(), rhs.begin(), rhs.end());
 
     // todo: check for double entries
     // features, unassignedpeptides, proteins...
 
-    // merge IDs (new format):
-    IdentificationData::RefTranslator trans = id_data_.merge(rhs.id_data_);
-    // update ID references of new features:
-    for (Size i = n_old_features; i < size(); ++i)
-    {
-      operator[](i).updateAllIDReferences(trans);
-    }
 
     // consistency
     try
@@ -485,33 +459,45 @@ namespace OpenMS
     AnnotationStatistics result;
     for (ConstIterator iter = this->begin(); iter != this->end(); ++iter)
     {
-      result += iter->getAnnotationState();
+      result += iter->getAnnotationState(id_data_);
     }
     return result;
   }
 
 
-  std::set<IdentificationDataInternal::ObservationMatchRef> FeatureMap::getUnassignedIDMatches() const
+  std::set<IdentificationData::MatchReference> FeatureMap::getUnassignedIDMatches() const
   {
-    std::set<IdentificationData::ObservationMatchRef> all_matches;
-    for (auto it = id_data_.getObservationMatches().begin();
-         it != id_data_.getObservationMatches().end(); ++it)
-    {
-      all_matches.insert(it);
-    }
-    std::set<IdentificationData::ObservationMatchRef> assigned_matches;
-    for (const Feature& feat : *this)
-    {
-      assigned_matches.insert(feat.getIDMatches().begin(), feat.getIDMatches().end());
-      // @TODO: consider subordinate features? - probably not
-    }
-    std::set<IdentificationData::ObservationMatchRef> result;
-    std::set_difference(all_matches.begin(), all_matches.end(),
-                        assigned_matches.begin(), assigned_matches.end(),
-                        inserter(result, result.end()));
+    std::set<IdentificationData::MatchReference> all, assigned, result;
+    for (const auto& run : id_data_.getRuns())
+      for (const auto& source : run.getSources())
+        for (const auto& query : source.identifications)
+          for (const auto& match : query.getMatches())
+            all.insert({run.getUuid(), match.getId()});
+    const auto collect = [&](const auto& self, const Feature& feature) -> void {
+      assigned.insert(feature.getIDMatches().begin(), feature.getIDMatches().end());
+      for (const auto& subordinate : feature.getSubordinates())
+        self(self, subordinate);
+    };
+    for (const auto& feature : *this)
+      collect(collect, feature);
+    std::set_difference(all.begin(), all.end(), assigned.begin(), assigned.end(), std::inserter(result, result.end()));
     return result;
   }
 
+  std::vector<IdentificationData::QueryMatches> FeatureMap::getUnassignedIdentifications() const
+  {
+    std::set<IdentificationData::QueryReference> queries;
+    std::set<IdentificationData::MatchReference> matches;
+    const auto collect = [&](const auto& self, const Feature& feature) -> void {
+      queries.insert(feature.getIDQueries().begin(), feature.getIDQueries().end());
+      matches.insert(feature.getIDMatches().begin(), feature.getIDMatches().end());
+      for (const auto& subordinate : feature.getSubordinates())
+        self(self, subordinate);
+    };
+    for (const auto& feature : *this)
+      collect(collect, feature);
+    return id_data_.getUnlinked(queries, matches);
+  }
 
   const IdentificationData& FeatureMap::getIdentificationData() const
   {

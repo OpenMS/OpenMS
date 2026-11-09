@@ -623,6 +623,8 @@ void Percolator::markRescoredRuns(std::vector<ProteinIdentification>& runs,
     // not a search engine, but downstream tools see from it that the scores were post-processed
     run.setSearchEngine("Percolator");
     run.setSearchEngineVersion(version);
+    // Percolator produces the PSM scores now: drop the producers of derived scores that earlier tools recorded
+    run.clearScoreSoftware();
     run.setMetaValue("percolator", tool);
     // (in the order given: the order of new meta values in the output files)
     ProteinIdentification::SearchParameters& search_parameters = run.getSearchParameters();

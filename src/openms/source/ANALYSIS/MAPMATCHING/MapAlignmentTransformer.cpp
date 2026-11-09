@@ -81,6 +81,12 @@ namespace OpenMS
       transformRetentionTimes(fmap.getUnassignedPeptideIdentifications(), trafo,
                               store_original_rt);
     }
+
+    // and of the identification data the features link to:
+    if (!fmap.getIdentificationData().empty())
+    {
+      transformRetentionTimes(fmap.getIdentificationData(), trafo, store_original_rt);
+    }
   }
 
 
@@ -149,6 +155,12 @@ namespace OpenMS
       transformRetentionTimes(cmap.getUnassignedPeptideIdentifications(), trafo,
                               store_original_rt);
     }
+
+    // and of the identification data the features link to:
+    if (!cmap.getIdentificationData().empty())
+    {
+      transformRetentionTimes(cmap.getIdentificationData(), trafo, store_original_rt);
+    }
   }
 
 
@@ -186,19 +198,23 @@ namespace OpenMS
   }
 
 
-  void MapAlignmentTransformer::transformRetentionTimes(
-    IdentificationData& id_data, const TransformationDescription& trafo,
-    bool store_original_rt)
+  void MapAlignmentTransformer::transformRetentionTimes(IdentificationData& data, const TransformationDescription& trafo, bool store_original_rt)
   {
-    // update RTs in-place:
-    id_data.applyToObservations([&](IdentificationData::Observation& obs)
-      {
-        if (store_original_rt)
+    IdentificationData replacement(data);
+    for (const auto& current : replacement.getRuns())
+    {
+      auto& run = replacement.getRun(current.getIdentifier());
+      for (const auto& source : run.getSources())
+        for (const auto& query : source.identifications)
         {
-          storeOriginalRT_(obs, obs.rt);
+          if (! query.rt) continue;
+          IdentificationData::Observation observation = query;
+          if (store_original_rt) storeOriginalRT_(observation, *observation.rt);
+          observation.rt = trafo.apply(*observation.rt);
+          run.replaceObservation(query.getId(), observation);
         }
-        obs.rt = trafo.apply(obs.rt);
-      });
+    }
+    replacement.validate();
+    data.swap(replacement);
   }
-
 }

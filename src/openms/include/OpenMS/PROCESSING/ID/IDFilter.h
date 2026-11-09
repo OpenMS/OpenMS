@@ -8,18 +8,18 @@
 
 #pragma once
 
+#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
-#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/config.h>
 #include <algorithm>
@@ -1440,45 +1440,19 @@ namespace OpenMS
     ///@}
 
 
-    /// @name Filter functions for class IdentificationData
-    ///@{
-    /*!
-      @brief Filter IdentificationData to keep only the best match (e.g. PSM) for each observation (e.g. spectrum)
-
-      The data structure will be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
-
-      @see IdentificationData::getBestMatchPerObservation
-
-      @param[in] id_data Data to be filtered
-      @param[in] score_ref Reference to the score type defining "best" matches
-    */
-    static void keepBestMatchPerObservation(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref);
-
+    /// Retain one best candidate per observation; inference is explicitly preserved.
+    static void keepBestMatchPerObservation(IdentificationData& data, const IdentificationData::ScoreDefinition& score);
     /**
-      @brief Filter observation matches (e.g. PSMs) in IdentificationData by score
+      @brief Remove matches without a value of @p score or with a value worse than the inclusive @p cutoff
 
-      Matches with scores of the required type that are worse than the cut-off are removed.
-      Matches without a score of the required type are also removed.
-      Stored scores must be finite. PSM-level and distinct peptide-level q-values
-      (MS:1002354 and MS:1001868) must additionally lie in [0, 1]. Other score types
-      may have valid negative scores. All stored scores of the required type across
-      every processing step are validated before filtering; invalid scores cause an exception and leave the data unchanged.
-      The data structure will be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
+      Stored values must be finite, and PSM-level and distinct peptide-level q-values (accessions MS:1002354 and
+      MS:1001868) must lie in [0, 1]; other scores may be negative. All values are checked before anything is removed.
 
-      @param[in,out] id_data Data to be filtered
-      @param[in] score_ref Reference to the score type used for filtering
-      @param[in] cutoff Inclusive score cut-off for filtering
-      @throws Exception::InvalidValue A stored score is non-finite or a q-value lies outside [0, 1]
+      @throws Exception::InvalidValue A stored value is not finite or a q-value lies outside [0, 1] (the data is unchanged)
     */
-    static void filterObservationMatchesByScore(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref, double cutoff);
-
-    /*!
-      @brief Filter IdentificationData to remove parent sequences annotated as decoys
-
-      If any were removed, the data structure will be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
-    */
-    static void removeDecoys(IdentificationData& id_data);
-    ///@}
+    static void filterObservationMatchesByScore(IdentificationData& data, const IdentificationData::ScoreDefinition& score, double cutoff);
+    /// Remove decoy-only matches, decoy database sequences and the evidence that refers to them; preserve inference.
+    static void removeDecoys(IdentificationData& data);
 
     // Specific overloads for PeptideIdentificationList to ensure correct template resolution
     static void removeDecoyHits(PeptideIdentificationList& ids)

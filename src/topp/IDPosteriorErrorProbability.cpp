@@ -596,6 +596,15 @@ protected:
       writeLogWarn_("Warning: " + StringUtils::toStr(n_kept) + " hit(s) of search runs without a PEP model keep their original scores and score types"
                     " (use -ignore_bad_data to assign them a PEP of 1).");
     }
+    // The search engine stays the original engine (the PEP model relies on it); the derived score records its own
+    // producer in the runs it was assigned in, so runs from different engines share one definition.
+    const std::string score_type = prob_correct_ ? "Posterior Probability" : "Posterior Error Probability";
+    const std::string version = getProcessingInfo_(std::set<DataProcessing::ProcessingAction>{}).getSoftware().getVersion();
+    for (auto& run : protein_ids)
+    {
+      if (ignore_bad_data_ || updated_runs.count(run.getIdentifier()) > 0) run.setScoreSoftware(score_type, toolName_(), version);
+    }
+
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
