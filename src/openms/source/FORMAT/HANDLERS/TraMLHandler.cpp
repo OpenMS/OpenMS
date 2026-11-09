@@ -1138,8 +1138,13 @@ namespace OpenMS::Internal
           {
             if (term.xref_type == ControlledVocabulary::CVTerm::XRefType::NONE)
             {
-              //Quality CV does not state value type :(
-              if (!StringUtils::hasPrefix(accession, "PATO:"))
+              // Quality CV does not state value type :(
+              // This handler writes (and reads back) values for three terms that the CV gives no
+              // value type: the product ion intensity of a transition and the H-PINS/iRT normalized
+              // retention times.
+              const bool value_used_here = (parent_tag == "Transition" && accession == "MS:1001226") ||
+                                           (parent_tag == "RetentionTime" && (accession == "MS:1000902" || accession == "MS:1002005"));
+              if (!StringUtils::hasPrefix(accession, "PATO:") && !value_used_here)
               {
                 warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
               }
@@ -1745,7 +1750,7 @@ namespace OpenMS::Internal
           os << std::string(2 * indent, ' ') << "<cvParam cvRef=\"" << cit.getCVIdentifierRef() << "\" accession=\"" << cit.getAccession() << "\" name=\"" << cit.getName() << "\"";
           if (cit.hasValue() && !cit.getValue().isEmpty() && !cit.getValue().toString().empty())
           {
-            os << " value=\"" << cit.getValue().toString() << "\"";
+            os << " value=\"" << writeXMLEscape(cit.getValue().toString()) << "\"";
           }
 
           if (cit.hasUnit())

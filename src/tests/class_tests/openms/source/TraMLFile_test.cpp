@@ -205,4 +205,28 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION([EXTRA] store escapes XML special characters in CV term values)
+{
+  // A CV value with '&', '<' and '"' must be written escaped, or the stored file cannot be read.
+  TargetedExperiment exp_original;
+  TargetedExperiment::Contact contact;
+  contact.id = "contact_1";
+  CVTerm name_term("MS:1000586", "contact name", "MS", "A & B <lab> \"C\"", CVTerm::Unit());
+  contact.addCVTerm(name_term);
+  exp_original.addContact(contact);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  TraMLFile file;
+  file.store(tmp_filename, exp_original);
+
+  TargetedExperiment exp;
+  file.load(tmp_filename, exp);
+  ABORT_IF(exp.getContacts().size() != 1)
+  const auto& terms = exp.getContacts()[0].getCVTerms();
+  ABORT_IF(terms.count("MS:1000586") != 1)
+  TEST_EQUAL(terms.at("MS:1000586")[0].getValue().toString(), "A & B <lab> \"C\"")
+}
+END_SECTION
+
 END_TEST
