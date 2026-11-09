@@ -359,3 +359,10 @@ A single TOPAZ logit traded ranking (MLP head) against 5% calibration (linear he
 The TOPAZ network learns a decoy artefact. This is consistent with its anti-conservative q at 1%. The global AUC does not resolve the tail: the LDA is at 0.50 and still has the 5% excess. A fold-crossed LDA refit on the N1 logit plus the heuristics restores AUC 0.50 (`lda_on_n1.txt`). It gives N@1% 959 / 1218, which is below the grid2d base of 1029 / 1298.
 
 A single deep scorer therefore needs a training objective or decoys that stop it learning decoy-ness.
+
+**Round 5 (`PLAN5.md`, extra negatives drawn from target windows (T1) or mixed (M1)): FAIL.**
+- N@1%: 837 / 903 (T1) and 813 / 774 (M1).
+- q ≤ 0.05 FDP_c on raw 01: 0.093 / 0.082.
+- The entrapment-vs-decoy AUC stays at 0.514–0.523. The mechanism check was not met.
+
+The decoy separation does not come from the training negatives, since C0 without extra negatives was also at 0.52. It comes from the TOPAZ inputs, so changing only the training objective does not remove it.

@@ -11,7 +11,7 @@ ent = pd.read_sql("""select pp.PRECURSOR_ID precursor_id, min(case when pr.PROTE
 RUNS = {'raw01': {'LDA': (B + '/astral-design-raw01-20261107/stage2-byion-design/byion/crossfit.tsv', 'stage2_score')},
         'raw02': {'LDA': (B + '/astral-raw02-byion-design-20261109/byion/crossfit.tsv', 'stage2_score')}}
 for raw in RUNS:
-    for arm in ('C0', 'N1', 'L1', 'A1'):
+    for arm in ('C0', 'N1', 'L1', 'A1', 'T1', 'M1'):
         RUNS[raw][arm] = (f'{raw}/{arm}/crossfit.tsv', 'logit')
 for raw, arms in RUNS.items():
     for arm, (path, col) in arms.items():

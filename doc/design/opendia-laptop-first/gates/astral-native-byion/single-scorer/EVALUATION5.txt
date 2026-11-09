@@ -1,0 +1,18 @@
+raw01 T1: N@FDP_c 0.5/1/1.5/2% [659, 837, 876, 937] (base N@1% 1029, need 1050) | q<=0.01 400 FDP_c 0.000 | q<=0.05 1284 FDP_c 0.093 (limit 0.070) | R 0.950 0.938 0.951 | 29.1 min 24.0 GB | checks [False, np.True_, np.False_, True]
+    Native CNN fold=0 heldout_windows=945003 augmented_first_epoch=0 decoy_negatives_first_epoch=20000 epochs=15 validation_loss=0.006383 heldout_seed_decoy_auc=1.000000
+    Native CNN fold=1 heldout_windows=931700 augmented_first_epoch=0 decoy_negatives_first_epoch=20000 epochs=13 validation_loss=0.004064 heldout_seed_decoy_auc=1.000000
+    Native CNN fold=2 heldout_windows=938852 augmented_first_epoch=0 decoy_negatives_first_epoch=20000 epochs=12 validation_loss=0.005513 heldout_seed_decoy_auc=1.000000
+raw02 T1: N@FDP_c 0.5/1/1.5/2% [752, 903, 972, 1013] (base N@1% 1298, need 1324) | q<=0.01 438 FDP_c 0.018 | q<=0.05 1069 FDP_c 0.074 (limit 0.079) | R 0.939 0.938 0.942 | 17.9 min 23.9 GB | checks [False, np.False_, np.True_, True]
+    Native CNN fold=0 heldout_windows=938586 augmented_first_epoch=0 decoy_negatives_first_epoch=20000 epochs=16 validation_loss=0.004562 heldout_seed_decoy_auc=0.999714
+    Native CNN fold=1 heldout_windows=926079 augmented_first_epoch=0 decoy_negatives_first_epoch=20000 epochs=18 validation_loss=0.008023 heldout_seed_decoy_auc=1.000000
+    Native CNN fold=2 heldout_windows=933724 augmented_first_epoch=0 decoy_negatives_first_epoch=20000 epochs=12 validation_loss=0.006149 heldout_seed_decoy_auc=1.000000
+raw01 M1: N@FDP_c 0.5/1/1.5/2% [552, 813, 887, 961] (base N@1% 1029, need 1050) | q<=0.01 745 FDP_c 0.016 | q<=0.05 1298 FDP_c 0.082 (limit 0.070) | R 0.959 0.939 0.951 | 22.2 min 24.1 GB | checks [False, np.False_, np.False_, True]
+    Native CNN fold=0 heldout_windows=945003 augmented_first_epoch=0 decoy_negatives_first_epoch=20000 epochs=16 validation_loss=0.003205 heldout_seed_decoy_auc=1.000000
+    Native CNN fold=1 heldout_windows=931700 augmented_first_epoch=0 decoy_negatives_first_epoch=20000 epochs=17 validation_loss=0.001744 heldout_seed_decoy_auc=1.000000
+    Native CNN fold=2 heldout_windows=938852 augmented_first_epoch=0 decoy_negatives_first_epoch=20000 epochs=12 validation_loss=0.004171 heldout_seed_decoy_auc=1.000000
+raw02 M1: N@FDP_c 0.5/1/1.5/2% [642, 774, 840, 948] (base N@1% 1298, need 1324) | q<=0.01 569 FDP_c 0.007 | q<=0.05 1342 FDP_c 0.077 (limit 0.079) | R 0.933 0.942 0.932 | 16.3 min 23.9 GB | checks [False, np.True_, np.True_, True]
+    Native CNN fold=0 heldout_windows=938586 augmented_first_epoch=0 decoy_negatives_first_epoch=20000 epochs=14 validation_loss=0.004659 heldout_seed_decoy_auc=0.999896
+    Native CNN fold=1 heldout_windows=926079 augmented_first_epoch=0 decoy_negatives_first_epoch=20000 epochs=19 validation_loss=0.005436 heldout_seed_decoy_auc=0.999949
+    Native CNN fold=2 heldout_windows=933724 augmented_first_epoch=0 decoy_negatives_first_epoch=20000 epochs=10 validation_loss=0.007774 heldout_seed_decoy_auc=1.000000
+T1: FAIL
+M1: FAIL

@@ -93,6 +93,29 @@ The cost is ranking power. N@1% fell by 42% (raw 01) and 45% (raw 02), and raw 0
 
 The trade-off between ranking (MLP head) and calibration (linear head) is inside one TOPAZ logit. Neither head gets both. The held-out seed AUC of 1.0 in every arm means the seed labels never limit the fit, so the limit is in the score scale that the training objective produces, not in the head width.
 
+## Round 5 (`PLAN5.md`, sha256 5a6aa339): T1 and M1 FAIL on both raws (`EVALUATION5.txt`, `decoyness5.txt`)
+
+HeLa default `crossfit.tsv` IDENTICAL (`hela-default-cmp5/`).
+
+| | raw 01 T1 (target neg.) | raw 01 M1 (mixed) | raw 02 T1 | raw 02 M1 | N1 (decoy neg.) raw 01 / 02 | base raw 01 / 02 |
+|---|---|---|---|---|---|---|
+| N@FDP_c 1% | **837** | **813** | **903** | **774** | 950 / 893 | 1029 / 1298 |
+| q ≤ 0.01: N, FDP_c | 400, 0.000 | 745, **0.016** | 438, **0.018** | 569, 0.007 | | |
+| q ≤ 0.05: N, FDP_c | 1284, **0.093** | 1298, **0.082** | 1069, 0.074 | 1342, 0.077 | | 0.065 / 0.074 |
+| Entrapment-vs-decoy AUC, per fold | 0.517 / 0.519 / 0.519 | 0.514 / 0.517 / 0.518 | 0.521 / 0.519 / 0.521 | 0.523 / 0.519 / 0.523 | 0.519 / 0.521 | LDA 0.500 |
+| Time | 29.1 min | 22.2 min | 17.9 min | 16.3 min | | |
+
+**Rule check:**
+- Rule 1 fails for both arms on both raws.
+- Rules 2 and 3 fail in three of the four runs.
+- Rule 4 passes.
+
+**Mechanism check (T1 mean AUC ≤ 0.51 on both raws): not met** (0.518 / 0.520).
+
+Changing where the extra negatives come from barely moves the decoy separation. C0 (no extra negatives) was already at 0.52. So the separation does not come from the training negatives. It comes from what the TOPAZ input (traces, library intensities, heuristics) shows about entrapment targets compared with decoys.
+
+One possibility, not tested here: entrapment peptides share real-peptide fragment and co-elution patterns more often than decoys, as in the commonness finding of §12. The linear LDA reaches a global AUC of 0.50 on largely the same evidence. Still, the LDA too is anti-conservative at 5%.
+
 ## Fold diagnostic (`fold_diag.py`, reported only, no rule)
 
 Pooled TDC standardises each fold by its decoy-winner median and MAD.
@@ -147,10 +170,11 @@ Offline check: a fold-crossed 3-round LDA on the N1 logit plus the 11 native heu
 
 **Reading:** the TOPAZ trace network learns a decoy artefact that a linear stage over decoy winners removes. With that stage, TOPAZ N1 is still not better than grid2d. The remaining single-scorer route has to stop the network from learning decoy-ness, for example by making the decoy generator match more target features (§12) or by an adversarial or decoy-matched training objective. That is a design choice for the user.
 
-## Decision (rounds 1–4)
+## Decision (rounds 1–5)
 
-CNN + LDA stays the native design. `-topaz_features`, `-augment_*`, `-topaz_decoy_negatives` and `-topaz_linear_head` stay opt-in and experimental.
-- Every arm fits its about 600 seeds per fold perfectly (held-out seed AUC 1.0).
+CNN + LDA stays the native design. `-topaz_features`, `-augment_*`, `-topaz_decoy_negatives`, `-topaz_negative_source` and `-topaz_linear_head` stay opt-in and experimental.
+- Seven arms (S0, A1, C0, N1, L1, T1, M1) fail the predeclared rule. Every one fits its about 600 seeds per fold perfectly (held-out seed AUC 1.0).
+- Every TOPAZ logit separates entrapment from decoy winners at an AUC of about 0.52, whatever the negatives are.
 - Decoy negatives (N1) fixed the ranking. The linear head (L1) fixed the calibration at 5% but lost about 40% of N. No single TOPAZ logit gave both.
 - The LDA reaches both by refitting a linear score on about 177k decoy winners per fold, with semi-supervised target positives. Its features include the CNN logit.
 - Next options:
