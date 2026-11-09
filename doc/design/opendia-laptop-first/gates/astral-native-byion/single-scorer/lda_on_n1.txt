@@ -1,0 +1,2 @@
+raw01 LDA(N1 logit + 11 heuristics): N@1% 959 | q<=0.01 1106 FDP_c 0.018 | q<=0.05 1720 FDP_c 0.091 | entrapment-vs-decoy AUC 0.499 0.503 0.496
+raw02 LDA(N1 logit + 11 heuristics): N@1% 1218 | q<=0.01 1200 FDP_c 0.010 | q<=0.05 1709 FDP_c 0.066 | entrapment-vs-decoy AUC 0.506 0.497 0.501

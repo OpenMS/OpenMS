@@ -93,6 +93,60 @@ The cost is ranking power. N@1% fell by 42% (raw 01) and 45% (raw 02), and raw 0
 
 The trade-off between ranking (MLP head) and calibration (linear head) is inside one TOPAZ logit. Neither head gets both. The held-out seed AUC of 1.0 in every arm means the seed labels never limit the fit, so the limit is in the score scale that the training objective produces, not in the head width.
 
+## Fold diagnostic (`fold_diag.py`, reported only, no rule)
+
+Pooled TDC standardises each fold by its decoy-winner median and MAD.
+
+Target winners at pooled q ≤ 0.01, per fold:
+
+| Arm | Raw 01 | Raw 02 |
+|---|---|---|
+| N1 | 296 / 1 / 43 | 208 / 359 / 292 |
+| L1 | 107 / 128 / 0 | 252 / 217 / 42 |
+
+The folds are badly unbalanced: raw 01 N1 has 1 in fold 1. Median/MAD scaling does not align the per-fold upper tails of the TOPAZ logit.
+
+Fold-wise TDC on the raw logit does not fix this either:
+
+| Arm | q ≤ 0.01 (N, FDP_c) raw 01 | raw 02 | q ≤ 0.05 FDP_c raw 01 | raw 02 |
+|---|---|---|---|---|
+| N1 | 822, 0.022 | 652, 0.019 | 0.090 | 0.076 |
+| L1 | 337, 0.018 | 331, 0.024 | 0.064 | 0.053 |
+
+So there are two problems:
+- between folds, the score scales differ;
+- within each fold, the false targets outscore the decoy tail. This is anti-conservative at 1% for every arm.
+
+A per-fold rescaling alone does not fix it.
+
+## Decoy-ness diagnostic (`decoyness.py`, `lda_on_n1.py`; reported only)
+
+This measures whether a score separates two kinds of false winners: entrapment targets and decoys (in-window precursor winners, per fold). TDC is only valid when the AUC is about 0.5.
+
+| Scorer | raw 01 AUC per fold | raw 02 AUC per fold |
+|---|---|---|
+| Stage-2 LDA (native base) | 0.501 / 0.498 / 0.500 | 0.501 / 0.500 / 0.500 |
+| TOPAZ C0 | 0.519 / 0.526 / 0.525 | |
+| TOPAZ N1 | 0.518 / 0.521 / 0.518 | 0.525 / 0.515 / 0.524 |
+| TOPAZ L1 | 0.524 / 0.524 / 0.523 | 0.519 / 0.524 / 0.525 |
+| TOPAZ A1 | 0.523 / 0.525 / 0.525 | 0.523 / 0.527 / 0.528 |
+
+**Every TOPAZ logit scores false targets above decoys** (AUC 0.52). It has learned decoy-specific features, which explains the anti-conservative q in every arm.
+
+The LDA is at 0.50, even though one of its inputs is the CNN logit. A linear refit on decoy winners is what removes the decoy-ness.
+
+Offline check: a fold-crossed 3-round LDA on the N1 logit plus the 11 native heuristics gives AUC 0.50 again:
+
+| Raw | N@1% | q ≤ 0.01 (N, FDP_c) | q ≤ 0.05 (N, FDP_c) |
+|---|---|---|---|
+| raw 01 | 959 (base 1029) | 1106, 0.018 | 1720, 0.091 |
+| raw 02 | 1218 (base 1298) | 1200, 0.010 | 1709, 0.066 |
+
+- It is below the grid2d CNN + LDA base on both raws.
+- The q ≤ 0.05 miscalibration of raw 01 stays. It is the known stage-2 excess (CALIB §1–12), not TOPAZ-specific.
+
+**Reading:** the TOPAZ trace network learns a decoy artefact that a linear stage over decoy winners removes. With that stage, TOPAZ N1 is still not better than grid2d. The remaining single-scorer route has to stop the network from learning decoy-ness, for example by making the decoy generator match more target features (§12) or by an adversarial or decoy-matched training objective. That is a design choice for the user.
+
 ## Decision (rounds 1–4)
 
 CNN + LDA stays the native design. `-topaz_features`, `-augment_*`, `-topaz_decoy_negatives` and `-topaz_linear_head` stay opt-in and experimental.

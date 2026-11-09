@@ -353,3 +353,9 @@ Training on decoy windows as negatives fixes the target ranking. The TOPAZ logit
 - Raw 02 q ≤ 0.01 FDP_c is 0.020.
 
 A single TOPAZ logit traded ranking (MLP head) against 5% calibration (linear head). No arm got both. Held-out seed AUC was 1.0 in every arm.
+
+**Root cause (`single-scorer/decoyness.txt`):** every TOPAZ logit separates entrapment winners from decoy winners. Both are false, yet the AUC is 0.52 per fold in every arm. The stage-2 LDA is at 0.500.
+
+The TOPAZ network learns a decoy artefact, so decoy-based q is anti-conservative for it. A fold-crossed LDA refit on the N1 logit plus the heuristics restores AUC 0.50 (`lda_on_n1.txt`). It gives N@1% 959 / 1218, which is below the grid2d base of 1029 / 1298.
+
+A single deep scorer therefore needs a training objective or decoys that stop it learning decoy-ness.

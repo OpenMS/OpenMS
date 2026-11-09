@@ -1,0 +1,4 @@
+raw01 N1: pooled per-fold targets q<=0.01 [296, 1, 43] q<=0.05 [559, 458, 403] | fold-wise TDC q<=0.01 N 822 FDP_c 0.022 | q<=0.05 N 1477 FDP_c 0.090
+raw02 N1: pooled per-fold targets q<=0.01 [208, 359, 292] q<=0.05 [398, 575, 487] | fold-wise TDC q<=0.01 N 652 FDP_c 0.019 | q<=0.05 N 1504 FDP_c 0.076
+raw01 L1: pooled per-fold targets q<=0.01 [107, 128] q<=0.05 [355, 172, 382] | fold-wise TDC q<=0.01 N 337 FDP_c 0.018 | q<=0.05 N 1006 FDP_c 0.064
+raw02 L1: pooled per-fold targets q<=0.01 [252, 217, 42] q<=0.05 [357, 329, 175] | fold-wise TDC q<=0.01 N 331 FDP_c 0.024 | q<=0.05 N 990 FDP_c 0.053
