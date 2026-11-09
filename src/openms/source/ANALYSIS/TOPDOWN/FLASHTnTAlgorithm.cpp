@@ -492,11 +492,11 @@ void FLASHTnTAlgorithm::setDefaultParams_()
   const auto aparam = FLASHAnnotatorAlgorithm().getDefaults();
   defaults_.setValue("raw:tol", aparam.getValue("tol"), aparam.getDescription("tol"));
   defaults_.setMinFloat("raw:tol", 0.0);
-  defaults_.setValue("scoring_model", "default",
+  defaults_.setValue("scoring_model", "none",
                      "Learned PrSM scoring (needs -in_raw): a model whose linear choice score picks each spectrum's PrSM among its candidates and "
                      "whose gradient-boosted trees give the chosen PrSM's confidence, which replaces its score in the FDR (the combined score is kept "
                      "as CombinedScore). 'default': the model shipped with OpenMS (share/OpenMS/TOPDOWN/FLASHTnT_scoring_model.txt; not used with "
-                     "-native); 'none': the best combined score (determined PrSM first), as before; otherwise a model file.",
+                     "-native); 'none' (default): no model, the PrSM by the combined score (the determined one unless the undetermined one scores over 3x); otherwise a model file.",
                      {"advanced"});
   defaults_.setValue("protein_open_terminus_model", "false",
                      "Protein q-values: score an undetermined PrSM with an open terminus with the model of the class \"undetermined, both "
@@ -504,16 +504,16 @@ void FLASHTnTAlgorithm::setDefaultParams_()
                      "that are not the whole protein already are. PrSM and proteoform q-values are unchanged.",
                      {"advanced"});
   defaults_.setValidStrings("protein_open_terminus_model", {"true", "false"});
-  defaults_.setValue("protein_ranking", "model",
-                     "Protein q-values (without -native): 'model' (with the learned scoring) ranks a protein by its best PrSM's confidence and "
+  defaults_.setValue("protein_ranking", "best_score",
+                     "Protein q-values (without -native): 'best_score' ranks a protein by the score of its best proteoform, targets and decoys in one list; 'model' (with the learned scoring) ranks a protein by its best PrSM's confidence and "
                      "takes the FDR at a cut as the mean chance, from that confidence, that the proteins above it are wrong (no decoy counting: a "
                      "run's few decoy proteins never reached the top of the ranking); without the learned scoring it falls back to 'proteoform'. "
                      "'proteoform' ranks a protein by its best proteoform (the lowest proteoform q-value, then its best score); 'top_two_prsms' by "
                      "the sum of the scores of its two best PrSMs (one PrSM per spectrum; a protein seen in one spectrum keeps that spectrum's "
                      "score; with scoring_model, softplus of the confidence, -log P(wrong), is what is summed), targets and decoys in one ranking.",
                      {"advanced"});
-  defaults_.setValidStrings("protein_ranking", {"model", "proteoform", "top_two_prsms"});
-  defaults_.setValue("shift_penalty", 0.5,
+  defaults_.setValidStrings("protein_ranking", {"best_score", "model", "proteoform", "top_two_prsms"});
+  defaults_.setValue("shift_penalty", 0.0,
                      "With scoring_model: a determined PrSM with a blind shift loses this weight times log10 of the candidates the shift opens "
                      "(the protein's windows within max_mod_mass of its mass) from its confidence, without a floor: the multiple-testing burden "
                      "of the free shift, as TopPIC's E-value charges it. 0: off.",
@@ -648,6 +648,7 @@ void FLASHTnTAlgorithm::updateMembers_()
   gapped_mode_ = param_.getValue("gapped_tags").toString();
   protein_open_terminus_model_ = param_.getValue("protein_open_terminus_model").toString() == "true";
   protein_top_two_ = param_.getValue("protein_ranking").toString() == "top_two_prsms";
+  protein_best_score_ = param_.getValue("protein_ranking").toString() == "best_score";
   protein_model_fdr_ = param_.getValue("protein_ranking").toString() == "model";
   // scoring_model: 'default' is the model shipped in share/OpenMS/TOPDOWN (trained on denatured HCD and ETD lysates; not with -native, which
   // keeps the previous scoring), 'none' or empty switches it off, anything else is a model file
@@ -4253,6 +4254,46 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
       hit.setMetaValue("ProteinQvalue", it == protein_q.end() ? 1.0 : it->second);
     }
   }
+  else if (use_fdr && protein_best_score_)
+  {
+    // Protein q-values by the rule of the PrSMs and proteoforms (protein_ranking best_score): a protein's score is the score of its best
+    // proteoform, and the proteins, targets and decoys alike, are target-decoy counted in one ranking. A decoy precursor of a target and a
+    // proteoform of the open-terminus class (not counted, proteoformQvalues) rank no protein.
+    std::map<std::string, double> best_score;
+    for (const auto& members : clusters)
+    {
+      const auto& rep = proteoform_hits_[members[0]];
+      if (rep.metaValueExists("DecoyPrecursor") && ! StringUtils::hasPrefix(rep.getAccession(), "DECOY")) continue;
+      if (rep.metaValueExists("ProteoformEvidenceClass") && (int)rep.getMetaValue("ProteoformEvidenceClass") == pf_class_open_terminus) continue;
+      double score = std::numeric_limits<double>::lowest();
+      for (Size i : members) score = std::max(score, proteoform_hits_[i].getScore());
+      auto [it, fresh] = best_score.try_emplace(rep.getAccession(), score);
+      if (! fresh) it->second = std::max(it->second, score);
+    }
+    std::vector<std::pair<double, std::string>> ranked_proteins; // -score, accession
+    for (const auto& [acc, score] : best_score) ranked_proteins.emplace_back(-score, acc);
+    std::sort(ranked_proteins.begin(), ranked_proteins.end());
+    const double protein_decoy_weight = 1.0 / std::max(decoy_factor_, 1e-9);
+    std::vector<RankedItem<double>> items;
+    items.reserve(ranked_proteins.size());
+    for (const auto& [key, acc] : ranked_proteins) items.push_back({key, StringUtils::hasPrefix(acc, "DECOY"), protein_decoy_weight});
+    const auto protein_qvalues = targetDecoyQvalues(items);
+    std::map<std::string, double> protein_q;
+    Size targets = 0, decoy_count = 0, passing = 0;
+    for (Size k = 0; k < ranked_proteins.size(); k++)
+    {
+      protein_q[ranked_proteins[k].second] = protein_qvalues[k];
+      if (items[k].decoy) decoy_count++;
+      else { targets++; passing += protein_qvalues[k] <= rep_q; }
+    }
+    OPENMS_LOG_INFO << "Proteins by the score of their best proteoform: " << targets << " target and " << decoy_count << " decoy proteins, " << passing
+                    << " targets at q <= " << rep_q << std::endl;
+    for (auto& hit : proteoform_hits_)
+    {
+      const auto it = protein_q.find(hit.getAccession());
+      hit.setMetaValue("ProteinQvalue", it == protein_q.end() ? 1.0 : it->second);
+    }
+  }
   else if (use_fdr && protein_top_two_)
   {
     // Protein q-values from the two best PrSMs of each protein (protein_ranking top_two_prsms): a protein's score is the sum of the scores
@@ -5447,25 +5488,34 @@ void FLASHTnTAlgorithm::traceCandidates_(const std::vector<ProteinHit>& hits, co
 
 void FLASHTnTAlgorithm::keepBestPerSpectrum_(std::vector<ProteinHit>& hits, const std::string& label, const std::string& score_name)
 {
-  // A PrSM whose proteoform fits the precursor mass (determined) is kept before one that does not, whatever their scores, as TopPIC
-  // reports only the former: a free blind shift on a PrSM without a mass took up the sequence differences of a similar protein and outscored
-  // the right one (B. theta entrapment, Eclip_1480 scan 9171: KPRS_ECOLI 243-315 at the MS1 mass 78, Q8A535_BACTN 1-799 without a mass 112).
-  const auto better = [](const ProteinHit& a, const ProteinHit& b) {
-    if (isDetermined(a) != isDetermined(b)) return isDetermined(a);
-    return isBetterPrSM(a, b);
-  };
-  std::map<int, Size> best;
+  // Of a spectrum's PrSMs, the best one whose proteoform fits the precursor mass (determined) is reported, unless the best one without a
+  // mass scores more than three times higher; a PrSM without a mass that wins is then replaced by the best determined PrSM of its protein,
+  // if there is one (the protein by the fragments, the proteoform by the mass).
+  // A higher score without a mass is weak evidence: the terminal paths are scored apart, so the b and y ions of one bond count twice there
+  // and once on the precursor-mass path, which is also penalised for an internal end (Eclip_1480: RL3 180-209 at the right MS1 mass scored
+  // 116, the same range without a mass 169). And a blind shift on a PrSM without a mass can take up the sequence differences of a similar
+  // protein (B. theta entrapment, Eclip_1480 scan 9171: KPRS_ECOLI 243-315 at the MS1 mass 78, Q8A535_BACTN 1-799 without a mass 112).
+  // A mass is no strong evidence for its protein either: one blind shift fits any precursor mass, and a weak PrSM with one (Eclip_1479
+  // scan 10849: Q8A047_BACTN 44) was reported instead of the right protein without a mass (AHPC_ECOLI 449); as the spectrum then counted
+  // as identified, the gapped tags of the search cascade did not see it. Where the protein changed against always keeping the determined
+  // PrSM (B. theta entrapment of the Eclip lysates), the PrSM without a mass was more often a B. theta or decoy protein than the determined
+  // one below three times its score, and less often above.
+  constexpr double undetermined_score_factor = 3.0;
+  std::map<int, Size> best_determined, best_undetermined;
   for (Size i = 0; i < hits.size(); i++)
   {
+    auto& best_of_kind = isDetermined(hits[i]) ? best_determined : best_undetermined;
     const int scan = hits[i].getMetaValue(tntKey("Scan"));
-    auto it = best.find(scan);
-    if (it == best.end()) best[scan] = i;
-    else if (better(hits[i], hits[it->second])) it->second = i;
+    auto it = best_of_kind.find(scan);
+    if (it == best_of_kind.end()) best_of_kind[scan] = i;
+    else if (isBetterPrSM(hits[i], hits[it->second])) it->second = i;
   }
-  // A PrSM without a mass is replaced by the best PrSM of the same spectrum and protein that has a mass and the same known termini: it is
-  // the same proteoform, and the precursor mass confirms it. Its higher score is no evidence against it: the terminal paths are scored
-  // apart, so the b and y ions of one bond count twice there and once on the precursor-mass path, which is also penalised for an internal
-  // end (Eclip_1480: RL3 180-209 at the right MS1 mass scored 116, the same range without a mass 169, and the latter was reported).
+  std::map<int, Size> best = best_determined;
+  for (const auto& [scan, u] : best_undetermined)
+  {
+    auto it = best.find(scan);
+    if (it == best.end() || hits[u].getScore() > undetermined_score_factor * hits[it->second].getScore()) best[scan] = u;
+  }
   {
     std::map<int, Size> best_with_mass;
     for (Size i = 0; i < hits.size(); i++)
@@ -5473,16 +5523,13 @@ void FLASHTnTAlgorithm::keepBestPerSpectrum_(std::vector<ProteinHit>& hits, cons
       const auto& h = hits[i];
       const int scan = h.getMetaValue(tntKey("Scan"));
       const auto& b = hits[best[scan]];
-      if ((double)b.getMetaValue(tntKey("Mass")) > 0 || (double)h.getMetaValue(tntKey("Mass")) <= 0 || ! isDetermined(h)) continue;
-      if (h.getAccession() != b.getAccession() || h.metaValueExists(tntKey("DecoyPrecursor")) != b.metaValueExists(tntKey("DecoyPrecursor"))) continue;
-      const int bs = b.getMetaValue(tntKey("StartPosition")), be = b.getMetaValue(tntKey("EndPosition"));
-      if ((bs >= 0 && bs != (int)h.getMetaValue(tntKey("StartPosition"))) || (be >= 0 && be != (int)h.getMetaValue(tntKey("EndPosition")))) continue;
+      if (isDetermined(b) || ! isDetermined(h) || h.getAccession() != b.getAccession()) continue;
       auto it = best_with_mass.find(scan);
       if (it == best_with_mass.end() || isBetterPrSM(h, hits[it->second])) best_with_mass[scan] = i;
     }
     for (const auto& [scan, i] : best_with_mass) best[scan] = i;
     if (! best_with_mass.empty())
-      OPENMS_LOG_INFO << "PrSMs" << label << ": " << best_with_mass.size() << " spectra report the PrSM with a mass instead of the same proteoform without one"
+      OPENMS_LOG_INFO << "PrSMs" << label << ": " << best_with_mass.size() << " spectra report the protein's PrSM with a mass instead of the one without"
                       << std::endl;
   }
   std::vector<ProteinHit> kept;

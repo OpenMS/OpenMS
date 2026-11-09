@@ -173,6 +173,8 @@ private:
   bool protein_open_terminus_model_ = false;
   /// protein q-values from the two best PrSMs of each protein (protein_ranking top_two_prsms) instead of its best proteoform
   bool protein_top_two_ = false;
+  /// protein_ranking best_score: a protein ranked by the score of its best proteoform, targets and decoys in one list
+  bool protein_best_score_ = false;
   /// protein_ranking model: protein q-values from the learned confidence of each protein's best PrSM (with the learned scoring)
   bool protein_model_fdr_ = false;
   /// with scoring_model_: weight of the free shift's search space (log10 shiftedCandidateCount) taken from a determined blind-shift PrSM's confidence
