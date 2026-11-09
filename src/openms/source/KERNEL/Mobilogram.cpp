@@ -20,6 +20,8 @@
 #include <algorithm>
 #include <numeric>
 
+#include "PeakContainerHelpers.h"
+
 namespace OpenMS
 {
   bool Mobilogram::RTLess::operator()(const Mobilogram& a, const Mobilogram& b) const
@@ -173,104 +175,19 @@ namespace OpenMS
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one peak to determine the nearest peak!");
     }
-    // search for position for inserting
-    ConstIterator it = MBBegin(mb);
-    // border cases
-    if (it == cbegin())
-    {
-      return 0;
-    }
-    if (it == cend())
-    {
-      return size() - 1;
-    }
-    // the peak before or the current peak are closest
-    auto it2 = it;
-    --it2;
-    if (std::fabs(it->getMobility() - mb) < std::fabs(it2->getMobility() - mb))
-    {
-      return Size(it - cbegin());
-    }
-    else
-    {
-      return Size(it2 - cbegin());
-    }
+    // search for position for inserting, then pick the closer of its two neighbours
+    return Internal::PeakContainerHelpers::nearestIndex(cbegin(), cend(), MBBegin(mb), mb, [](const PeakType& p) { return p.getMobility(); });
   }
 
   Int Mobilogram::findNearest(CoordinateType mb, CoordinateType tolerance) const
   {
-    if (empty())
-    {
-      return -1;
-    }
-    Size i = findNearest(mb);
-    const double found_mb = this->operator[](i).getMobility();
-    if (found_mb >= mb - tolerance && found_mb <= mb + tolerance)
-    {
-      return static_cast<Int>(i);
-    }
-    else
-    {
-      return -1;
-    }
+    return Internal::PeakContainerHelpers::nearestIndexInTolerance(*this, mb, tolerance, [](const PeakType& p) { return p.getMobility(); });
   }
 
   Int Mobilogram::findNearest(CoordinateType mb, CoordinateType tolerance_left, CoordinateType tolerance_right) const
   {
-    if (empty())
-    {
-      return -1;
-    }
-    // do a binary search for nearest peak first
-    Size i = findNearest(mb);
-
-    const double nearest_mb = data_[i].getMobility();
-
-    if (nearest_mb < mb)
-    {
-      if (nearest_mb >= mb - tolerance_left)
-      {
-        return i; // success: nearest peak is in left tolerance window
-      }
-      else
-      {
-        if (i == this->size() - 1)
-        {
-          return -1; // we are at the last peak which is too far left
-        }
-        // Nearest peak is too far left so there can't be a closer peak in the left window.
-        // There still might be a peak to the right of mz that falls in the right window
-        ++i; // now we are at a peak exactly on or to the right of mz
-        const double next_mz = data_[i].getMobility();
-        if (next_mz <= mb + tolerance_right)
-        {
-          return i;
-        }
-      }
-    }
-    else
-    {
-      if (nearest_mb <= mb + tolerance_right)
-      {
-        return i; // success: nearest peak is in right tolerance window
-      }
-      else
-      {
-        if (i == 0)
-        {
-          return -1; // we are at the first peak which is too far right
-        }
-        --i; // now we are at a peak exactly on or to the right of mz
-        const double next_mz = data_[i].getMobility();
-        if (next_mz >= mb - tolerance_left)
-        {
-          return i;
-        }
-      }
-    }
-
-    // neither in the left nor the right tolerance window
-    return -1;
+    return Internal::PeakContainerHelpers::nearestIndexInWindow(*this, mb, tolerance_left, tolerance_right,
+                                                                [](const PeakType& p) { return p.getMobility(); });
   }
 
   Int Mobilogram::findHighestInWindow(CoordinateType mb, CoordinateType tolerance_left, CoordinateType tolerance_right) const
@@ -279,19 +196,8 @@ namespace OpenMS
     {
       return -1;
     }
-    // get left/right iterator
-    auto left = this->MBBegin(mb - tolerance_left);
-    auto right = this->MBEnd(mb + tolerance_right);
-
-    if (left == right)
-    {
-      return -1;
-    }
-
-    auto max_intensity_it = std::max_element(left, right, MobilityPeak1D::IntensityLess());
-
-    // find peak (index) with highest intensity to expected position
-    return max_intensity_it - this->begin();
+    // most intense peak in [mb - tolerance_left, mb + tolerance_right], -1 if there is none
+    return Internal::PeakContainerHelpers::highestIndexInRange(cbegin(), MBBegin(mb - tolerance_left), MBEnd(mb + tolerance_right));
   }
 
   Mobilogram::Iterator Mobilogram::MBBegin(CoordinateType mb)
@@ -404,22 +310,8 @@ namespace OpenMS
 
   void Mobilogram::checkDataArraySizes_() const
   {
-    const Size peaks = data_.size();
-    auto check = [peaks](const auto& arrays, const char* what)
-    {
-      for (Size i = 0; i < arrays.size(); ++i)
-      {
-        if (!arrays[i].empty() && arrays[i].size() != peaks)
-        {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        std::string(what) + "[" + StringUtils::toStr(i) + "] size (" + StringUtils::toStr(arrays[i].size()) +
-                                          ") does not match mobilogram size (" + StringUtils::toStr(peaks) + ")");
-        }
-      }
-    };
-    check(float_data_arrays_, "FloatDataArray");
-    check(string_data_arrays_, "StringDataArray");
-    check(integer_data_arrays_, "IntegerDataArray");
+    Internal::PeakContainerHelpers::checkDataArraySizes(data_.size(), float_data_arrays_, string_data_arrays_, integer_data_arrays_,
+                                                        "mobilogram", OPENMS_PRETTY_FUNCTION);
   }
 
   Mobilogram& Mobilogram::select(const std::vector<Size>& indices)
@@ -427,117 +319,24 @@ namespace OpenMS
     // The range check is the guarantee of this entry point: an out-of-range index is rejected before
     // any storage is touched, so the mobilogram is left unchanged. selectUnchecked() then performs the
     // actual reordering.
-    const Size peaks_old = data_.size();
-    for (Size i = 0; i < indices.size(); ++i)
-    {
-      if (indices[i] >= peaks_old)
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Index " + StringUtils::toStr(indices[i]) + " is out of range for a mobilogram of size " +
-                                        StringUtils::toStr(peaks_old));
-      }
-    }
+    Internal::PeakContainerHelpers::checkSelectIndices(indices, data_.size(), "mobilogram", OPENMS_PRETTY_FUNCTION);
     return selectUnchecked(indices);
   }
 
   Mobilogram& Mobilogram::selectUnchecked(const std::vector<Size>& indices)
   {
-    const Size snew = indices.size();
-
     // Cheap and independent of the indices: guards a mis-sized data array from being indexed out of
     // bounds during the reorder below.
     checkDataArraySizes_();
 
-    // Duplicate indices are undefined behaviour: every element is moved, so a repeated index would
-    // read a moved-from value. Assert uniqueness (and in-range) in debug builds only.
-#ifdef OPENMS_ASSERTIONS
-    {
-      std::vector<bool> seen(data_.size(), false);
-      for (Size i = 0; i < snew; ++i)
-      {
-        OPENMS_PRECONDITION(indices[i] < seen.size() && !seen[indices[i]],
-                            "selectUnchecked(): indices must be in range and duplicate-free");
-        seen[indices[i]] = true;
-      }
-    }
-#endif
-
-    std::vector<MobilityPeak1D> tmp;
-    tmp.reserve(snew);
-    for (Size i = 0; i < snew; ++i)
-    {
-      tmp.push_back(std::move(data_[indices[i]]));
-    }
-    data_.swap(tmp);
-
-    std::vector<float> mda_tmp_float;
-    for (Size i = 0; i < float_data_arrays_.size(); ++i)
-    {
-      if (float_data_arrays_[i].empty())
-      {
-        continue;
-      }
-      mda_tmp_float.clear();
-      mda_tmp_float.reserve(snew);
-      for (Size j = 0; j < snew; ++j)
-      {
-        mda_tmp_float.push_back(std::move(float_data_arrays_[i][indices[j]]));
-      }
-      std::swap(float_data_arrays_[i], mda_tmp_float);
-    }
-
-    std::vector<std::string> mda_tmp_str;
-    for (Size i = 0; i < string_data_arrays_.size(); ++i)
-    {
-      if (string_data_arrays_[i].empty())
-      {
-        continue;
-      }
-      mda_tmp_str.clear();
-      mda_tmp_str.reserve(snew);
-      for (Size j = 0; j < snew; ++j)
-      {
-        mda_tmp_str.push_back(std::move(string_data_arrays_[i][indices[j]]));
-      }
-      std::swap(string_data_arrays_[i], mda_tmp_str);
-    }
-
-    std::vector<Int> mda_tmp_int;
-    for (Size i = 0; i < integer_data_arrays_.size(); ++i)
-    {
-      if (integer_data_arrays_[i].empty())
-      {
-        continue;
-      }
-      mda_tmp_int.clear();
-      mda_tmp_int.reserve(snew);
-      for (Size j = 0; j < snew; ++j)
-      {
-        mda_tmp_int.push_back(std::move(integer_data_arrays_[i][indices[j]]));
-      }
-      std::swap(integer_data_arrays_[i], mda_tmp_int);
-    }
-
+    // Duplicate indices are undefined behaviour (asserted in debug builds only).
+    Internal::PeakContainerHelpers::selectByIndices(data_, float_data_arrays_, string_data_arrays_, integer_data_arrays_, indices);
     return *this;
   }
 
   Mobilogram::ConstIterator Mobilogram::getBasePeak() const
   {
-    ConstIterator largest = cbegin();
-    if (empty())
-    {
-      return largest;
-    }
-    ConstIterator current = cbegin();
-    ++current;
-    for (; current != cend(); ++current)
-    {
-      if (largest->getIntensity() < current->getIntensity())
-      {
-        largest = current;
-      }
-    }
-    return largest;
+    return Internal::PeakContainerHelpers::basePeak(cbegin(), cend());
   }
 
   Mobilogram::Iterator Mobilogram::getBasePeak()

@@ -51,3 +51,4 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\KERNEL" FILES ${sources})
+list(APPEND OpenMS_private_headers ${directory}/PeakContainerHelpers.h)
