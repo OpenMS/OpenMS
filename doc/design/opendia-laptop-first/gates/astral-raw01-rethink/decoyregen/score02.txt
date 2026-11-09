@@ -1,0 +1,13 @@
+run R02: candidates by family {'T': 1369747, 'P': 1366578, 'S': 1365433, 'O': 1355456}
+O original pseudo-reverse+switchKR (control) LDA q<=0.01: 1029 (conf-right 981, FDP_c 0.029) | q<=0.05: 1445 (conf-right 1271, FDP_c 0.103) | N at FDP_c<=0.5/1/1.5/2%: [636, 838, 891, 965]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: 3.34 [1.92,4.80] (15/9) | 2.18 [1.45,2.93] (24/22) | 2.09 [1.69,2.49] (74/71)
+O original pseudo-reverse+switchKR (control) MLP q<=0.01: 1115 (conf-right 1062, FDP_c 0.023) | q<=0.05: 1583 (conf-right 1402, FDP_c 0.076) | N at FDP_c<=0.5/1/1.5/2%: [722, 808, 835, 930]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: 2.60 [1.41,3.83] (13/10) | 1.42 [0.85,2.00] (17/24) | 1.54 [1.21,1.87] (60/78)
+P pseudo-reverse, no switchKR LDA            q<=0.01: 924 (conf-right 889, FDP_c 0.017) | q<=0.05: 1441 (conf-right 1270, FDP_c 0.098) | N at FDP_c<=0.5/1/1.5/2%: [652, 865, 894, 955]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: 2.01 [0.84,3.25] (8/8) | 1.92 [1.21,2.64] (20/21) | 1.98 [1.59,2.38] (70/71)
+P pseudo-reverse, no switchKR MLP            q<=0.01: 1218 (conf-right 1162, FDP_c 0.018) | q<=0.05: 1563 (conf-right 1406, FDP_c 0.062) | N at FDP_c<=0.5/1/1.5/2%: [1067, 1114, 1136, 1250]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: 2.01 [1.01,3.05] (11/11) | 1.49 [0.94,2.05] (20/27) | 1.22 [0.93,1.52] (48/79)
+S shuffle, no switchKR LDA                   q<=0.01: 0 (conf-right 0, FDP_c 0.000) | q<=0.05: 0 (conf-right 0, FDP_c 0.000) | N at FDP_c<=0.5/1/1.5/2%: [0, 0, 0, 0]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: n/a | n/a | n/a
+S shuffle, no switchKR MLP                   q<=0.01: 0 (conf-right 0, FDP_c 0.000) | q<=0.05: 0 (conf-right 0, FDP_c 0.000) | N at FDP_c<=0.5/1/1.5/2%: [0, 0, 0, 0]
+                                             S_e/S_d at q<=0.01/0.02/0.05 cuts: n/a | n/a | n/a

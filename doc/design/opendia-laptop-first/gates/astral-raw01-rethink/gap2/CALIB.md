@@ -88,7 +88,45 @@ OSW is used for XIC extraction only, locally, with `onDisc` reading and a 26 GB 
 
 **First attempt: invalid, not used** (`score02_offcentre.txt`). OSW's own auto-iRT gave a linear fit with rsq 0.78 (the default gate is 0.95). The RT windows came out off-centre: the median |DIA-NN RT − window centre| was 50 s, against 19 s for the reference XICs, and only 77% of confirmed peaks fell inside, against 95%. As a result, even the control family O found only 243 IDs at FDP_c 1%, against 885 on the reference XICs. Calibration comparisons from that extraction are not meaningful. For the record, family P gave 737 (LDA) and 870 (MLP) against the control's 243 and 330, which is an unexplained difference in itself.
 
-**Second attempt (running).** Each run gets its own library copy, whose library RT is replaced by the run-calibrated RT used by the reference analysis (`calib_lib.py`; this RT is a monotone function of library RT). OSW calibration is switched off. One remaining difference from the reference: no m/z correction is applied.
+**Second attempt.** Each run gets its own library copy, whose library RT is replaced by the run-calibrated RT used by the reference analysis (`calib_lib.py`; this RT is a monotone function of library RT). OSW calibration is switched off. One remaining difference from the reference: no m/z correction is applied.
+
+### Raw 02 results (raw 01 pending)
+
+**Control reproduces.** With family O, the MLP gives 1055 IDs at FDP_c 1%, against 1040 to 1119 on the reference XICs. The LDA gives 842, against 885. At q ≤ 0.01 the decoy-count estimate is again anti-conservative: FDP_c is 0.019 for the MLP and 0.029 for the LDA, and the S_e/S_d band at the 5% cut lies above 1 (1.46 [1.15, 1.77] for the MLP).
+
+**The predeclared scorer is undefined for family S.** Under `score2.py` the shuffle family gives 0 IDs. Its iteration-0 ranking puts no target winner at q ≤ 0.15, so the semi-supervised loop has no positives. A post-hoc fallback seeds with the top 200 target winners when fewer pass the cut. It is applied to every family alike (`score2_seed.py`), and O and P barely change under it.
+
+| Family, raw 02 (seed fallback) | q ≤ 0.01 N (FDP_c) | q ≤ 0.05 FDP_c | S_e/S_d at the 5% cut | N at FDP_c 1% |
+|---|---|---|---|---|
+| O LDA | 1031 (0.029) | 0.104 | 2.11 [1.71, 2.52] | 842 |
+| O MLP | 1137 (0.019) | 0.073 | 1.46 [1.15, 1.77] | 1055 |
+| P LDA | 933 (0.017) | 0.099 | 2.01 [1.62, 2.41] | 856 |
+| P MLP | 1008 (0.010) | 0.062 | 1.23 [0.93, 1.53] | 1035 |
+| S LDA | 912 (0.018) | 0.077 | 1.49 [1.15, 1.84] | 865 |
+| S MLP | 797 (0.003) | 0.038 | 0.81 [0.57, 1.05] | 1130 |
+
+**Family S calibrates partly by borrowing its own target's signal.** Shuffled decoys keep the target's precursor m/z (97.8% within 0.01 Th). Many also keep fragments: 9.5% share at least 3 of their top-6 fragments (within 34 ppm) with their own target, against 1.3% for P and 0.1% for O (`family_overlap.txt`). In the decoy tail this is enriched. Among S decoy winners above the q ≤ 0.05 cut, 36% share at least 3 fragments, against 9.7% of all S decoy winners (`s_tail02.txt`). A decoy that reads its target's own XICs is not a model of a false target. It also lowers q for the wrong reason: it raises the decoy score where the target is real.
+
+**Clean-pair set (`score3.py`, reading declared before running).** All pairs whose S decoy shares at least 2 of its top-6 fragments with its target are dropped, for every family. That removes 20% of candidates and leaves the same targets in all three. Each family is then scored with the MLP at 3 seeds:
+
+| Family, clean, raw 02 | MLP q ≤ 0.01 FDP_c (seeds 0/1/2) | q ≤ 0.05 FDP_c | S_e/S_d at the 5% cut |
+|---|---|---|---|
+| O | 0.008 / 0.011 / 0.010 | 0.063 / 0.066 / 0.065 | 1.29 / 1.34 / 1.30, every band reaching just below 1 (0.92 to 0.98) |
+| P | 0.005 / 0.009 / 0.013 | 0.046 / 0.049 / 0.045 | 0.92 / 0.99 / 0.90 |
+| S | 0.005 / 0.003 / 0.010 | 0.040 / 0.044 / 0.041 | 0.82 / 0.88 / 0.83 |
+
+On the clean set, the P and S families meet the per-run rule (q ≤ 0.01 FDP_c ≤ 0.015, and the 5% band includes 1). The control condition fails on this subset, though: O's 5% bands all reach just below 1. The O–P/S contrast at q ≤ 0.05 is consistent across seeds (FDP_c 0.063–0.066 against 0.040–0.049). By the declared reading, this run is inconclusive.
+
+**Where O's excess sits (`score4.py` (a), declared before running).** On the full set, at the q ≤ 0.05 cut, O's S_e/S_d is split by stratum. In the 20% of pairs that drop out of the clean set it is 2.44, 1.87 and 2.41 (bands lie above 1). In the remaining 80% it is 1.19, 1.51 and 1.10. The excess is therefore concentrated in that stratum (2 of 3 seeds clearly). Those targets are short: median length 10 against 18, 34% at 8 residues or fewer against 5%, and 55% at charge 2 against 18%. Entrapment share is equal (0.50; `strat_char.txt`). Short peptides have few distinct b/y ions, so any rearrangement collides with them. For O this means its pseudo-reverse decoys (no fragment overlap) are easier to tell from these targets than false targets are.
+
+**MS1 borrowing is not the explanation (`score4.py` (b)).** P and S decoys sit at the target's precursor m/z, so their MS1 subscores read the target's precursor trace. Without the MS1 group on the clean set, P and S still sit below O at q ≤ 0.05: median FDP_c 0.043 (P) and 0.041 (S), against 0.060 (O). That is not within 0.01 of O, so P/S calibration is not attributed to MS1 borrowing on this run.
+
+**Interim reading (raw 02 only, post-hoc beyond `score2`):**
+- Decoys without the precursor mass shift (P, and S on clean pairs) track false targets better than the library's `switchKR` decoys.
+- The library decoys' excess is concentrated in short, low-diversity peptides.
+- Shuffling borrows target signal on short peptides and needs an overlap filter. OpenSwathDecoyGenerator has a similarity check against the target, and the native generator should enforce one.
+- This is not yet a confirmed fix. It needs raw 01, and the control fails on the clean subset.
+- **Confound for P:** without `switchKR`, the pseudo-reverse keeps the C-terminal residue, so a P decoy shares its target's y1 and sits at the same precursor m/z. P therefore also borrows some target signal (mean 0.30 shared top-6 fragments, against 0.15 for O). The clean-pair filter is defined by S overlap, not P's. P calibrating better may thus partly be the same borrowing that S shows, not better modelling of false targets. This tension with section 4 (the mass shift sign/size showed no dose response) is unresolved.
 
 ## Reading
 

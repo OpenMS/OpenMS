@@ -1,0 +1,3 @@
+DECOY_   n 20000 shared top-6 fragments with own target: mean 0.15, share>=3 0.001, share>=4 0.000 | precursor |dmz| median 9.335, share <0.01 Th 0.001
+DECOYP_  n 20000 shared top-6 fragments with own target: mean 0.30, share>=3 0.013, share>=4 0.004 | precursor |dmz| median 0.000, share <0.01 Th 1.000
+DECOYS_  n 20000 shared top-6 fragments with own target: mean 0.76, share>=3 0.095, share>=4 0.037 | precursor |dmz| median 0.000, share <0.01 Th 0.978

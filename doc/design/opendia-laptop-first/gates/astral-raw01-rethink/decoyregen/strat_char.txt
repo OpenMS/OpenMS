@@ -1,0 +1,2 @@
+shufshare=False: n 237963 | entrapment 0.495 | length median 18 (<=8: 0.046) | charge2 0.183 | distinct-residue frac 0.596 | max single-residue frac 0.217 | Cterm K 0.498 R 0.490
+shufshare=True: n 61873 | entrapment 0.500 | length median 10 (<=8: 0.336) | charge2 0.546 | distinct-residue frac 0.717 | max single-residue frac 0.247 | Cterm K 0.477 R 0.503

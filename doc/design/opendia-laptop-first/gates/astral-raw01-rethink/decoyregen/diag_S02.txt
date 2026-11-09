@@ -1,0 +1,6 @@
+O iter0 pos at q<=0.15: 111 at 0.5: 542 min q 0.12 decoy winners 181789 of 364630
+   AUC T vs D winners: xcorr_shape_w 0.54, n_sig 0.53, xcorr_shape 0.53, log_width 0.53, lib_dotprod 0.53, lib_sangle 0.53
+P iter0 pos at q<=0.15: 56 at 0.5: 292 min q 0.137 decoy winners 182776 of 365617
+   AUC T vs D winners: xcorr_shape_w 0.53, n_sig 0.53, xcorr_shape 0.53, lib_dotprod 0.52, lib_sangle 0.52, log_width 0.52
+S iter0 pos at q<=0.15: 0 at 0.5: 340 min q 0.16 decoy winners 182519 of 365360
+   AUC T vs D winners: xcorr_shape_w 0.52, xcorr_shape 0.52, n_sig 0.52, lib_sangle 0.52, lib_dotprod 0.52, log_sn 0.51

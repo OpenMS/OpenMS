@@ -1,0 +1,14 @@
+(a) O full set, stratified 5% tail
+  seed0: shufshare (pairs share 0.205): 2.44 [1.56,3.33] (21/17) | clean (pairs share 0.795): 1.19 [0.87,1.51] (38/64)
+  seed1: shufshare (pairs share 0.205): 1.87 [1.14,2.61] (18/19) | clean (pairs share 0.795): 1.51 [1.14,1.88] (45/60)
+  seed2: shufshare (pairs share 0.205): 2.41 [1.57,3.28] (22/18) | clean (pairs share 0.795): 1.10 [0.79,1.43] (33/60)
+(b) clean set without MS1 group
+O clean noMS1 MLP seed0                      q<=0.01: 804 (conf-right 780, FDP_c 0.008) | q<=0.05: 1254 (conf-right 1118, FDP_c 0.064) | N at FDP_c<=0.5/1/1.5/2%: [677, 851, 980, 1026]
+O clean noMS1 MLP seed1                      q<=0.01: 823 (conf-right 791, FDP_c 0.012) | q<=0.05: 1213 (conf-right 1089, FDP_c 0.060) | N at FDP_c<=0.5/1/1.5/2%: [648, 763, 872, 970]
+O clean noMS1 MLP seed2                      q<=0.01: 831 (conf-right 801, FDP_c 0.005) | q<=0.05: 1129 (conf-right 1011, FDP_c 0.055) | N at FDP_c<=0.5/1/1.5/2%: [855, 881, 909, 963]
+P clean noMS1 MLP seed0                      q<=0.01: 962 (conf-right 918, FDP_c 0.015) | q<=0.05: 1185 (conf-right 1087, FDP_c 0.043) | N at FDP_c<=0.5/1/1.5/2%: [852, 925, 992, 1053]
+P clean noMS1 MLP seed1                      q<=0.01: 834 (conf-right 806, FDP_c 0.007) | q<=0.05: 1180 (conf-right 1065, FDP_c 0.060) | N at FDP_c<=0.5/1/1.5/2%: [733, 871, 944, 952]
+P clean noMS1 MLP seed2                      q<=0.01: 804 (conf-right 777, FDP_c 0.010) | q<=0.05: 1049 (conf-right 971, FDP_c 0.035) | N at FDP_c<=0.5/1/1.5/2%: [711, 892, 958, 968]
+S clean noMS1 MLP seed0                      q<=0.01: 801 (conf-right 773, FDP_c 0.005) | q<=0.05: 1137 (conf-right 1046, FDP_c 0.039) | N at FDP_c<=0.5/1/1.5/2%: [852, 930, 978, 1002]
+S clean noMS1 MLP seed1                      q<=0.01: 738 (conf-right 717, FDP_c 0.005) | q<=0.05: 1167 (conf-right 1066, FDP_c 0.041) | N at FDP_c<=0.5/1/1.5/2%: [679, 799, 855, 1021]
+S clean noMS1 MLP seed2                      q<=0.01: 685 (conf-right 667, FDP_c 0.006) | q<=0.05: 1003 (conf-right 922, FDP_c 0.050) | N at FDP_c<=0.5/1/1.5/2%: [526, 852, 877, 912]
