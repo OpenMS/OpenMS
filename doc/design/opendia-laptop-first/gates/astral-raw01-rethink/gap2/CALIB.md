@@ -320,3 +320,19 @@ Results on raw 01 S0 (no augmentation):
 Validation loss went down to about 2e-5 and held-out seed AUC was 1.0. With the heuristics, the about 600 seeds per fold are trivially separable. The network saturates, and the held-out decoy tail sets q. Semi-supervised rounds made this worse, as in earlier ss runs. S1 (augmentation) and raw 02 did not run.
 
 CNN + LDA stays the native design. The new options stay opt-in and experimental.
+
+**Round 2 (`PLAN2.md`, without score iterations): FAIL.**
+
+| Arm | N@1% | q ≤ 0.01 | q ≤ 0.05 (N, FDP_c) |
+|---|---|---|---|
+| A1, augmented (p 0.5, s_min 0.1), raw 01 | 488 | 0 | 425, 0.043 |
+| A1, raw 02 | 449 | 0 | 566, 0.053 |
+| C0 control, raw 01 | 13 | 347 | 830, 0.044 |
+
+Base N@1% is 1029 (raw 01) and 1298 (raw 02).
+
+Augmentation removed C0's few top-ranked entrapment hits but made the decoy tail heavier, so it gains at the top and loses overall. Held-out seed AUC was 1.0 in every arm, so the fit on about 600 seeds per fold is saturated in every case.
+
+Next directions:
+- more training signal, such as MIL with the features;
+- a low-capacity, linear-like head.

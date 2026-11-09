@@ -1,0 +1,14 @@
+raw01 A1: N@FDP_c 0.5/1/1.5/2% [426, 488, 552, 609] (base N@1% 1029, need 1050) | q<=0.01 0 FDP_c 0.000 | q<=0.05 425 FDP_c 0.043 (limit 0.070) | R 0.919 0.912 0.919 | 10.8 min 24.1 GB | checks [False, np.True_, np.True_, True]
+    Native CNN fold=0 heldout_windows=945003 augmented_first_epoch=175 epochs=22 validation_loss=0.002632 heldout_seed_decoy_auc=1.000000
+    Native CNN fold=1 heldout_windows=931700 augmented_first_epoch=188 epochs=15 validation_loss=0.001849 heldout_seed_decoy_auc=1.000000
+    Native CNN fold=2 heldout_windows=938852 augmented_first_epoch=188 epochs=14 validation_loss=0.008452 heldout_seed_decoy_auc=1.000000
+raw02 A1: N@FDP_c 0.5/1/1.5/2% [434, 449, 684, 736] (base N@1% 1298, need 1324) | q<=0.01 0 FDP_c 0.000 | q<=0.05 566 FDP_c 0.053 (limit 0.079) | R 0.920 0.914 0.915 | 13.5 min 23.9 GB | checks [False, np.True_, np.True_, True]
+    Native CNN fold=0 heldout_windows=938586 augmented_first_epoch=222 epochs=27 validation_loss=0.001033 heldout_seed_decoy_auc=0.999922
+    Native CNN fold=1 heldout_windows=926079 augmented_first_epoch=222 epochs=18 validation_loss=0.004670 heldout_seed_decoy_auc=1.000000
+    Native CNN fold=2 heldout_windows=933724 augmented_first_epoch=230 epochs=19 validation_loss=0.002714 heldout_seed_decoy_auc=1.000000
+raw01 C0: N@FDP_c 0.5/1/1.5/2% [13, 13, 13, 110] (base N@1% 1029, need 1050) | q<=0.01 347 FDP_c 0.012 | q<=0.05 830 FDP_c 0.044 (limit 0.070) | R 0.931 0.917 0.922 | 12.7 min 24.1 GB | checks [False, np.True_, np.True_, True]
+    Native CNN fold=0 heldout_windows=945003 augmented_first_epoch=0 epochs=26 validation_loss=0.003733 heldout_seed_decoy_auc=1.000000
+    Native CNN fold=1 heldout_windows=931700 augmented_first_epoch=0 epochs=40 validation_loss=0.000227 heldout_seed_decoy_auc=1.000000
+    Native CNN fold=2 heldout_windows=938852 augmented_first_epoch=0 epochs=16 validation_loss=0.004381 heldout_seed_decoy_auc=1.000000
+A1: FAIL
+C0: FAIL

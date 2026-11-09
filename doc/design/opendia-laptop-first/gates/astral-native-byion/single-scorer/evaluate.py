@@ -23,8 +23,10 @@ def usage(path):
     minutes = sum(v * 60 ** (len(parts) - 1 - i) for i, v in enumerate(parts)) / 60
     return minutes, (int(rss.group(1)) / 1024 ** 2 if rss else float('nan'))
 verdict = {}
-for arm in ('S0', 'S1'):
-    for raw in ('raw01', 'raw02'):
+# Usage: evaluate.py [arm:raw01,raw02 ...]; default is PLAN.md's S0 and S1 on both raws.
+JOBS = [(a.split(':')[0], a.split(':')[1].split(',')) for a in sys.argv[1:]] or [('S0', ['raw01', 'raw02']), ('S1', ['raw01', 'raw02'])]
+for arm, raws in JOBS:
+    for raw in raws:
         d = f'{O}/{raw}/{arm}'
         if not os.path.exists(d + '/crossfit.tsv'):
             print(f'{raw} {arm}: missing'); verdict.setdefault(arm, []).append(False); continue
