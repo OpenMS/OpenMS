@@ -160,6 +160,10 @@ namespace OpenMS
                          "class is up-weighted to balance). Exposes the scorer to the decoy tail that q depends on. 0 disables", false);
       setMinInt_("topaz_decoy_negatives", 0);
       setMaxInt_("topaz_decoy_negatives", 1000000);
+      registerStringOption_("topaz_negative_source", "<source>", "decoy", "With -topaz_decoy_negatives, experimental: draw the extra negatives from unlabeled "
+                            "decoy windows, target windows (absent peptides and non-winning candidates), or both. Target windows keep the scorer "
+                            "from learning decoy-specific features", false);
+      setValidStrings_("topaz_negative_source", {"decoy", "target", "mixed"});
       registerFlag_("topaz_linear_head", "With -cnn_arch topaz, experimental: score with Dropout + one linear layer instead of the 2-hidden-layer MLP "
                     "(LDA-like head capacity over the embeddings, co-elution statistics and heuristic features)", false);
     }
@@ -318,6 +322,10 @@ namespace OpenMS
         if (getFlag_("topaz_linear_head") && !topaz)
         {
           throw std::invalid_argument("topaz_linear_head requires -cnn_arch topaz.");
+        }
+        if (getStringOption_("topaz_negative_source") != "decoy" && getIntOption_("topaz_decoy_negatives") == 0)
+        {
+          throw std::invalid_argument("topaz_negative_source requires -topaz_decoy_negatives > 0.");
         }
 
         const auto max_samples = static_cast<std::size_t>(getIntOption_("max_samples"));
@@ -559,6 +567,7 @@ namespace OpenMS
         settings.augment_probability = getDoubleOption_("augment_probability");
         settings.augment_scale_min = getDoubleOption_("augment_scale_min");
         settings.decoy_negatives = getIntOption_("topaz_decoy_negatives");
+        settings.negative_source = getStringOption_("topaz_negative_source") == "target" ? 1 : getStringOption_("topaz_negative_source") == "mixed" ? 2 : 0;
         settings.topaz_linear_head = getFlag_("topaz_linear_head");
         std::vector<OpenDIA::CNNQValueInput> crossfit_rows;
         // Pair key: target TRAML_ID, or a decoy TRAML_ID without its DECOY_ prefix.

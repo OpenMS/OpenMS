@@ -119,6 +119,11 @@ namespace OpenMS::OpenDIA
     /// carry no target evidence, so this uses no extra label information; it exposes the scorer to the decoy tail that
     /// q depends on. 0 disables (the default).
     int decoy_negatives = 0;
+    /// With decoy_negatives > 0, experimental: where the extra unlabeled negatives come from. 0 = decoy windows (the
+    /// default), 1 = target windows (absent peptides and non-winning candidates; about 0.1% are true peaks), 2 = both.
+    /// Target-window negatives keep decoy-specific features from separating negatives and positives, so the scorer
+    /// cannot learn decoy-ness that would make decoy-based q anti-conservative.
+    int negative_source = 0;
     /// TOPAZ only, experimental: replace the 2-hidden-layer scoring MLP by Dropout(0.1) + one linear layer over the
     /// embeddings, co-elution statistics and heuristic features (LDA-like head capacity). Recorded in the checkpoint.
     bool topaz_linear_head = false;

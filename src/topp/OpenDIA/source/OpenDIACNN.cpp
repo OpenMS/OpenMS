@@ -239,7 +239,7 @@ namespace OpenMS::OpenDIA
       }
     };
 
-    /// decoys_negative: unlabeled decoy windows get label 0 (CNNOptions::decoy_negatives).
+    /// decoys_negative: unlabeled windows (decoy or target, CNNOptions::negative_source) get label 0 (CNNOptions::decoy_negatives).
     TopazBatch topazBatch(const CNNData& data, const std::vector<std::size_t>& ids, std::size_t begin, std::size_t end, bool block_max = false,
                           bool decoys_negative = false)
     {
@@ -274,7 +274,7 @@ namespace OpenMS::OpenDIA
         for (int64_t c = 0; c < FRAGMENTS; ++c) { aux[row * (FRAGMENTS + 2) + c] = static_cast<float>(s.library_intensities[c] / lib_max); }
         aux[row * (FRAGMENTS + 2) + FRAGMENTS] = s.has_ms1 ? 1.f : 0.f;
         aux[row * (FRAGMENTS + 2) + FRAGMENTS + 1] = s.has_im ? 1.f : 0.f;
-        y[row] = decoys_negative && s.label < 0 && s.is_decoy ? 0.f : static_cast<float>(s.label);
+        y[row] = decoys_negative && s.label < 0 ? 0.f : static_cast<float>(s.label);
         if (features != nullptr) { std::copy_n(data.features + index * data.feature_dim, data.feature_dim, features + row * data.feature_dim); }
       }
       if (block_max)
@@ -710,15 +710,21 @@ namespace OpenMS::OpenDIA
       torch::Tensor train_pos_weight, check_pos_weight;
       if (decoy_negatives)
       {
+        // negative_source: 0 = decoy windows, 1 = target windows, 2 = both (CNNOptions::negative_source).
+        const auto eligible = [&](const CNNSample& s)
+        {
+          if (s.label >= 0) { return false; }
+          return options.negative_source == 2 || (options.negative_source == 1) != s.is_decoy;
+        };
         for (std::size_t i = 0; i < data.samples.size(); ++i)
         {
           const auto& s = data.samples[i];
-          if (!s.is_decoy || s.label >= 0) { continue; }
+          if (!eligible(s)) { continue; }
           const auto& role = result.splits[i];
           if (role == "train") { negative_pool.push_back(i); }
           else if (role == "validation") { negative_check.push_back(i); }
         }
-        require(!negative_pool.empty() && !negative_check.empty(), "decoy negatives need unlabeled decoy windows in training and validation families");
+        require(!negative_pool.empty() && !negative_check.empty(), "decoy negatives need unlabeled windows of the chosen source in training and validation families");
         std::shuffle(negative_check.begin(), negative_check.end(), negative_rng);
         negative_check.resize(std::min(negative_check.size(), static_cast<std::size_t>(options.decoy_negatives)));
         const auto weight = [&](const Indices& labelled, std::size_t extra)
@@ -857,6 +863,10 @@ namespace OpenMS::OpenDIA
         archive.write("augmentation", torch::tensor({options.augment_probability, options.augment_scale_min}, torch::kFloat64), true);
       }
       if (decoy_negatives) { archive.write("decoy_negatives", torch::tensor({static_cast<int64_t>(options.decoy_negatives)}, torch::kInt64), true); }
+      if (decoy_negatives && options.negative_source != 0)
+      {
+        archive.write("negative_source", torch::tensor({static_cast<int64_t>(options.negative_source)}, torch::kInt64), true);
+      }
       if (options.topaz_linear_head) { archive.write("topaz_head", textTensor("linear"), true); }
       if (faithful) { archive.write("topaz_input", textTensor("block-max"), true); }
       archive.write("geometry", torch::tensor({geometry.mz_tolerance, geometry.rt_half_width, geometry.im_half_width}, torch::kFloat64), true);
@@ -899,6 +909,8 @@ namespace OpenMS::OpenDIA
     require(options.decoy_negatives >= 0 && options.decoy_negatives <= 1000000 &&
             (options.decoy_negatives == 0 || (options.architecture == CNNArchitecture::TOPAZ && !options.mil)),
             "decoy negatives need a count in [0,1000000], the TOPAZ architecture and seed training");
+    require(options.negative_source >= 0 && options.negative_source <= 2 && (options.negative_source == 0 || options.decoy_negatives > 0),
+            "a negative source other than decoys needs decoy_negatives > 0");
     require(!options.topaz_linear_head || options.architecture == CNNArchitecture::TOPAZ, "a linear head requires the TOPAZ architecture");
     require((data.feature_dim == 0 && data.features == nullptr) || options.architecture == CNNArchitecture::TOPAZ,
             "heuristic features require the TOPAZ architecture");

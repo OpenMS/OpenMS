@@ -531,6 +531,37 @@ int main(int argc, char** argv)
         mil_negatives.decoy_negatives = 10;
         rejects([&] { trainTraceCNN(mil_data, geometry, mil_negatives, negatives_path + ".mil"); });
 
+        // Negative source: target-window negatives need unlabeled target windows; with only decoy extras, "target" is
+        // rejected, "mixed" runs and differs from "decoy". A non-decoy source without decoy_negatives is rejected.
+        auto target_source = negatives;
+        target_source.negative_source = 1;
+        rejects([&] { trainTraceCNN(extra, geometry, target_source, negatives_path + ".target"); });
+        CNNData both = extra;
+        std::vector<float> both_raw = extra_raw;
+        for (std::size_t i = 0; i < topaz.samples.size(); ++i)
+        {
+          if (topaz.samples[i].label != 0) { continue; }
+          CNNSample s = topaz.samples[i];
+          s.sample_id += "-unlabeled-target";
+          s.bag_id = s.sample_id;
+          s.label = -1;
+          s.is_decoy = false;
+          both.samples.push_back(s);
+          both_raw.insert(both_raw.end(), topaz_raw.begin() + i * WINDOW, topaz_raw.begin() + (i + 1) * WINDOW);
+        }
+        both.intensities = both_raw.data();
+        both.intensity_count = both_raw.size();
+        const auto target_fit = trainTraceCNN(both, geometry, target_source, negatives_path + ".target2");
+        check(target_fit.heldout_auc > 0.99 && target_fit.decoy_negatives_first_epoch == 50, "target-source negatives did not train");
+        check(scoreTraceCNN(both, geometry, negatives_path + ".target2", 1, true).logits == target_fit.logits, "target-source checkpoint roundtrip changed output");
+        auto mixed_source = negatives;
+        mixed_source.negative_source = 2;
+        check(trainTraceCNN(both, geometry, mixed_source, negatives_path + ".mixed").logits != trainTraceCNN(both, geometry, negatives, negatives_path + ".decoy").logits,
+              "mixed negative source did not change training");
+        auto orphan_source = topaz_options;
+        orphan_source.negative_source = 1;
+        rejects([&] { trainTraceCNN(both, geometry, orphan_source, negatives_path + ".orphan"); });
+
         // Linear head: learns co-elution, roundtrips (the checkpoint records the head), differs from the MLP head.
         auto linear = negatives;
         linear.topaz_linear_head = true;
