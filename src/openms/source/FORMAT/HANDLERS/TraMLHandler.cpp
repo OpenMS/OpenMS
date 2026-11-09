@@ -1131,10 +1131,8 @@ namespace OpenMS::Internal
         {
           warning(LOAD,std::string("Name of CV term not correct: '") + term.id + " - " + parsed_name + "' should be '" + correct_name + "'");
         }
-        if (term.obsolete)
+        // values used in wrong places and wrong value types (only warnings: the term is kept)
         {
-          warning(LOAD,std::string("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
-          //values used in wrong places and wrong value types
           std::string value = cv_term.getValue().toString();
           if (!value.empty())
           {
@@ -1167,7 +1165,6 @@ namespace OpenMS::Internal
                 catch (Exception::ConversionError&)
                 {
                   warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
-                  return;
                 }
                 break;
 
@@ -1180,7 +1177,6 @@ namespace OpenMS::Internal
                 catch (Exception::ConversionError&)
                 {
                   warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
-                  return;
                 }
                 break;
 
@@ -1194,7 +1190,6 @@ namespace OpenMS::Internal
                 catch (Exception::ParseError&)
                 {
                   warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
-                  return;
                 }
                 break;
 
@@ -1208,7 +1203,6 @@ namespace OpenMS::Internal
           else if (term.xref_type != ControlledVocabulary::CVTerm::XRefType::NONE && term.xref_type != ControlledVocabulary::CVTerm::XRefType::XSD_STRING)
           {
             warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
-            return;
           }
         }
       }
