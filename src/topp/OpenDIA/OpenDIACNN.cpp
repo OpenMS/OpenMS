@@ -116,7 +116,9 @@ namespace OpenMS
                             "'isotope' = MS1 M+0..M+3 averagine correlation, M-1 overlap and isotope co-elution; 'boundary' (experimental) = each window re-picked "
                             "with the consensus peak-group picker on its scan bins, with FWHM, base width, co-elution, library correlation and fragment apex agreement "
                             "over the picked boundaries; 'byion' (experimental) = numbers of singly charged b and y ions of the library sequence matched "
-                            "in the isolating MS2 spectrum nearest the apex (-stage2_byion_ppm, -stage2_byion_intensity_min). 'extraction_search' = extraction+search", false);
+                            "in the isolating MS2 spectrum nearest the apex (-stage2_byion_ppm, -stage2_byion_intensity_min); 'shape' (experimental) = lagged "
+                            "fragment cross-correlation, library dot product / Manhattan / RMSD / spectral angle and signal-to-noise over the boundary-group peak. "
+                            "'extraction_search' = extraction+search", false);
       registerDoubleOption_("stage2_byion_ppm", "<ppm>", 10.0, "With a stage2_feature_set containing byion: matching half width of the b/y ions", false);
       setMinFloat_("stage2_byion_ppm", 0.1);
       registerDoubleOption_("stage2_byion_intensity_min", "<intensity>", 300.0, "With a stage2_feature_set containing byion: matched peaks must be more intense", false);
@@ -688,6 +690,12 @@ namespace OpenMS
             {
               const auto byion = OpenDIA::stage2ByIonFeatures(collector.evidence(i));
               row.features.insert(row.features.end(), byion.begin(), byion.end());
+            }
+            if (stage2_set.shape)
+            {
+              const auto shape = OpenDIA::stage2ShapeFeatures(collector.intensities().data() + i * OpenDIA::TraceCollector::SAMPLE_SIZE,
+                                                              collector.libraryIntensities(i), collector.fragmentMZ(i), collector.evidence(i));
+              row.features.insert(row.features.end(), shape.begin(), shape.end());
             }
             rows.push_back(row);
             row_window.push_back(i);

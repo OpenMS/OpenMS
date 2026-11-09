@@ -371,6 +371,29 @@ int main()
     require(repeated, "repeated byion group accepted");
   }
 
+  // 11. Shape group: a co-eluting library-ratio peak scores near-perfect; a shifted fragment raises the lag; empty is zero.
+  {
+    const auto names = OpenDIA::stage2FeatureSetNames(OpenDIA::parseStage2FeatureSet("search+byion+shape"));
+    require(names.size() == 20 && names[7] == "shape_xcorr_coelution" && names.back() == "shape_min_fragment_share", "shape columns come last");
+    std::vector<std::vector<double>> p;
+    for (double l : library) p.push_back(gaussian(l, 16.0, 2.0));  // area proportional to library intensity
+    for (auto& v : p) for (auto& x : v) x += 0.01;                         // small flat background, so the window median is the noise
+    const auto t = tensor(p);
+    const auto f = OpenDIA::stage2ShapeFeatures(t.data(), library, mz, fullEvidence());
+    require(f[0] < 0.01 && f[1] > 0.99 && f[4] > 0.99, "co-eluting peak: zero lag and shape ~1");
+    require(f[5] > 0.99 && f[8] > 0.9 && f[6] < 0.05 && f[7] < 0.02, "library-ratio peak: dot product ~1, small distances");
+    require(f[9] > 3.0 && f[11] == 6.0 && f[10] > 0.5 && f[12] > 0.0, "signal features of a strong peak");
+    auto shifted = p;
+    shifted[5] = gaussian(library[5], 18.0, 2.0);
+    for (auto& x : shifted[5]) x += 0.01;
+    const auto t2 = tensor(shifted);
+    const auto g = OpenDIA::stage2ShapeFeatures(t2.data(), library, mz, fullEvidence());
+    require(g[0] > f[0] && g[4] < f[4], "a shifted fragment must raise the lag and lower the worst shape");
+    const std::vector<float> empty(TraceCollector::SAMPLE_SIZE, 0.0f);
+    const auto z = OpenDIA::stage2ShapeFeatures(empty.data(), library, mz, fullEvidence());
+    require(z[1] == 0.0 && z[5] == 0.0 && z[11] == 0.0, "empty window gives zero shape features");
+  }
+
   std::cout << "OpenDIAStage2_test passed\n";
   return 0;
 }

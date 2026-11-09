@@ -62,7 +62,7 @@ namespace OpenMS::OpenDIA
     @brief Which feature groups enter the second-stage discriminant. Feature 0 is always the standardised CNN logit.
 
     Row order: cnn_z, then the seven extraction features, then the search features, then the isotope features, then the
-    boundary features, then the b/y ion counts, each group only if selected.
+    boundary features, then the b/y ion counts, then the shape features, each group only if selected.
   */
   struct Stage2FeatureSet
   {
@@ -71,6 +71,7 @@ namespace OpenMS::OpenDIA
     bool isotope = false;     ///< The MS1 isotope-envelope features (Stage2IsotopeFeature).
     bool boundary = false;    ///< Experimental peak-group boundary features (Stage2BoundaryFeature).
     bool byion = false;       ///< Experimental apex-spectrum b/y ion counts (Stage2ByIonFeature; needs TraceCollector::enableByIonCounts()).
+    bool shape = false;       ///< Experimental lagged cross-correlation, library agreement and signal features over the picked peak (Stage2ShapeFeature).
   };
   /**
     @brief Parse a '+'-separated list of groups, e.g. "extraction", "search+isotope"; "extraction_search" means "extraction+search".
@@ -150,6 +151,43 @@ namespace OpenMS::OpenDIA
     @return Features in Stage2ByIonFeature order.
   */
   std::array<double, STAGE2_BYION_FEATURES> stage2ByIonFeatures(const TraceEvidence& evidence);
+
+  /**
+    @brief Experimental peak-shape and library-agreement features over the peak group picked as for the boundary group.
+
+    Pairs are all pairs of library fragments; the lagged cross-correlation uses lags up to 3 scan bins on mean-centred
+    traces normalised by their zero-lag norms. Library weights are sqrt(library intensity), normalised to sum 1.
+  */
+  enum class Stage2ShapeFeature : std::size_t
+  {
+    XCORR_COELUTION = 0,   ///< Mean |lag| of the best cross-correlation over fragment pairs (scan bins).
+    XCORR_SHAPE,           ///< Mean best cross-correlation over fragment pairs.
+    XCORR_COELUTION_W,     ///< As XCORR_COELUTION, pairs weighted by the product of library weights.
+    XCORR_SHAPE_W,         ///< As XCORR_SHAPE, pairs weighted by the product of library weights.
+    XCORR_SHAPE_MIN,       ///< Worst best cross-correlation over fragment pairs.
+    LIBRARY_DOTPRODUCT,    ///< Cosine of sqrt fragment areas and sqrt library intensities.
+    LIBRARY_MANHATTAN,     ///< L1 distance of the sum-normalised sqrt areas and sqrt library intensities.
+    LIBRARY_RMSD,          ///< RMS difference of the same normalised vectors.
+    LIBRARY_SPECTRAL_ANGLE,///< 1 - 2 arccos(dot product) / pi.
+    LOG_SN,                ///< Mean over fragments of log1p(apex intensity / median scan-bin intensity of the window).
+    INTENSITY_SHARE,       ///< Summed fragment area inside the peak over the summed fragment signal of the window.
+    SIGNAL_FRAGMENTS,      ///< Fragments whose maximum inside the peak exceeds 3 x their window median.
+    MIN_FRAGMENT_SHARE,    ///< Smallest fragment area over the summed area inside the peak.
+    COUNT
+  };
+  constexpr std::size_t STAGE2_SHAPE_FEATURES = static_cast<std::size_t>(Stage2ShapeFeature::COUNT);
+  /// Shape column names, in Stage2ShapeFeature order.
+  const std::array<std::string, STAGE2_SHAPE_FEATURES>& stage2ShapeFeatureNames();
+  /**
+    @brief Shape features of one window, identical for targets and decoys and free of training.
+    @param[in] tensor One window of TraceCollector::SAMPLE_SIZE floats.
+    @param[in] library_intensities Library intensity per fragment channel.
+    @param[in] fragment_mz Fragment m/z per channel; zero marks padding.
+    @param[in] evidence Window evidence (only ms2_mask is used).
+    @return Features in Stage2ShapeFeature order; all zero if no peak is picked or fewer than two fragments are present.
+  */
+  std::array<double, STAGE2_SHAPE_FEATURES> stage2ShapeFeatures(const float* tensor, const std::array<double, 6>& library_intensities,
+                                                                const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence);
 
   /**
     @brief Peak-group evidence of one search candidate, read from the OpenDIA -features_out table.
