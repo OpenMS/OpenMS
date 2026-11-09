@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/SourceFile.h>
+#include <OpenMS/CONCEPT/EnumHelpers.h>
 
 using namespace std;
 
@@ -125,13 +126,7 @@ namespace OpenMS
 
   StringList SourceFile::getAllNamesOfChecksumType()
   {
-    StringList names;
-    names.reserve(static_cast<size_t>(ChecksumType::SIZE_OF_CHECKSUMTYPE));
-    for (size_t i = 0; i < static_cast<size_t>(ChecksumType::SIZE_OF_CHECKSUMTYPE); ++i)
-    {
-      names.push_back(NamesOfChecksumType[i]);
-    }
-    return names;
+    return Helpers::enumNames(NamesOfChecksumType, ChecksumType::SIZE_OF_CHECKSUMTYPE);
   }
 
 }
