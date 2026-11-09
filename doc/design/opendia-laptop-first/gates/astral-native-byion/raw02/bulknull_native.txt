@@ -1,0 +1,5 @@
+winners 540691, bulk targets 135969, bulk decoys 133329, features ['cnn_z', 'transition_support', 'log_matched_scans', 'log_peak_width', 'abs_library_rt_error', 'boundary_log_fwhm', 'boundary_log_width', 'boundary_coelution', 'boundary_library_correlation', 'boundary_apex_agreement', 'byion_b', 'byion_y']
+plain     q<=0.01: 1236 FDP_c 0.007 | q<=0.05: 1788 FDP_c 0.074
+weighted seed 0 q<=0.01: 1115 FDP_c 0.002 | q<=0.05: 1675 FDP_c 0.063
+weighted seed 1 q<=0.01: 1125 FDP_c 0.002 | q<=0.05: 1677 FDP_c 0.062
+weighted seed 2 q<=0.01: 1115 FDP_c 0.002 | q<=0.05: 1658 FDP_c 0.062

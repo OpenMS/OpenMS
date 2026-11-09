@@ -211,3 +211,17 @@ Next: our own count-based variant (charge 1, 10 ppm, intensity floor, apex spect
 - Lesson: for the ranking head, the information is in **absolute counts at a tight tolerance on the apex spectrum**. Length-normalised fractions with charge-2 ions and a wider tolerance dilute it.
 
 Native recommendation: add apex-spectrum b/y count subscores (fragment charge 1, 10 ppm, intensity floor) to OpenDIA's scoring as part of the single model.
+
+**Native implementation (OpenDIACNN `-stage2_feature_set ...+byion`, commit `8c49a5bbb2`; `gates/astral-native-byion/`).** The counts are collected in the existing streaming pass: charge-1 b and y ions, nearest peak within 10 ppm and above 300, in the isolating MS2 spectrum nearest the apex inside the core. Results are entrapment-matched N at FDP_c 1%:
+
+| run | search+boundary | +byion | OSW+Percolator |
+|---|---|---|---|
+| raw 01 | 757 | **1029 (+36%)** | 1151 |
+| raw 02 | 1030 | **1298 (+26%)** | 1287 |
+
+- Cost: +0 to 1.3 min wall time and +0.2 GB peak RSS per run. The CNN columns are byte-identical.
+- **Calibration (bulk-null weighted, 3 seeds):**
+  - q ≤ 0.01 FDP_c 0.006 / 0.002;
+  - q ≤ 0.05 FDP_c 0.048 / **0.062**. Raw 02 misses the 0.06 bar narrowly.
+  - Plain pooled q ≤ 0.05 gives 0.065 / 0.074.
+- So the ID gain is robust, while native 5% calibration remains open: the native LDA score's bulk shift is less well corrected than the offline MLP's.

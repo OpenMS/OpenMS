@@ -1,0 +1,4 @@
+/dev/fd/63 /dev/fd/62 differ: byte 1156, line 24
+/dev/fd/63 /dev/fd/62 differ: byte 226, line 1
+features cols 1-14 (ids, cnn_z, search, boundary) IDENTICAL
+crossfit cols 1-6,9 IDENTICAL (precursor_best col 7 differs by design; run.sh compared 1-7,9)
