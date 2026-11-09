@@ -48,11 +48,6 @@ RUN apt-get update \
     libeigen3-dev \
     # Boost headers only: OpenMS links no compiled Boost library
     libboost-dev \
-    qt6-base-dev \
-    libglx-dev \
-    libgl1-mesa-dev \
-    libqt6opengl6-dev \
-    libqt6svg6-dev \
   && rm -rf /var/lib/apt/lists/* \
   && update-ca-certificates \
   && apt-get update && apt-get install -y --no-install-recommends wget \
@@ -209,17 +204,9 @@ EOF
 ENV PATH="${THIRDPARTY_DIR}/LuciPHOr2:${THIRDPARTY_DIR}/MSGFPlus:${THIRDPARTY_DIR}/ThermoRawFileParser:${THIRDPARTY_DIR}/Comet:${THIRDPARTY_DIR}/Fido:${THIRDPARTY_DIR}/MaRaCluster:${THIRDPARTY_DIR}/Percolator:${THIRDPARTY_DIR}/SpectraST:${THIRDPARTY_DIR}/Sage:${PATH}"
 RUN <<-EOF
     set -eux
-    # Map Docker's TARGETARCH to Debian multiarch tuple
-    case "${TARGETARCH}" in
-        amd64) DEB_ARCH="x86_64-linux-gnu" ;;
-        arm64) DEB_ARCH="aarch64-linux-gnu" ;;
-        *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;;
-    esac
-    
     # dependencies from the apt packages above, not from vcpkg
     cmake \
         -DOPENMS_USE_VCPKG=OFF \
-        -DQt6_DIR="/usr/lib/${DEB_ARCH}/cmake/Qt6" \
         -DCMAKE_BUILD_TYPE='Release' \
         -DCMAKE_PREFIX_PATH="/opt/libxml2;/usr/;/usr/local;${ONNXRUNTIME_DIR}" \
         -DLIBXML2_INCLUDE_DIR=/opt/libxml2/include/libxml2 \
@@ -271,8 +258,6 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends --no-install-suggests \
     ca-certificates \
     wget \
-    qt6-base-dev \
-    libqt6opengl6 \
     libsvm3 \
     libzip4 \
     zlib1g \
@@ -280,7 +265,6 @@ RUN apt-get update \
     libbz2-1.0 \
     libcurl4 \
     libgomp1 \
-    libqt6svg6 \
     # ICU is required by the .NET runtime that hosts the openms-thermo-bridge
     libicu74 \
   && wget https://packages.apache.org/artifactory/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb \
@@ -383,10 +367,6 @@ ARG TARGETARCH
 
 RUN apt-get update \ 
     && apt-get install -y --no-install-recommends --no-install-suggests \
-    # we need Xvfb to run a small subset of GUI tests (eg. TOPPView_test)
-    xvfb \
-    # needed for TSGDialog_test and TOPPView_test
-    libqt6test6 \
     wget \
   && rm -rf /var/lib/apt/lists/*
 
@@ -415,4 +395,4 @@ ARG ONNXRUNTIME_DIR
 COPY --from=build ${ONNXRUNTIME_DIR} ${ONNXRUNTIME_DIR}
 
 WORKDIR ${BUILD_DIR}
-RUN xvfb-run -a ctest --output-on-failure -j${NUM_BUILD_CORES}
+RUN ctest --output-on-failure -j${NUM_BUILD_CORES}

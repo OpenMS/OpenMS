@@ -14,7 +14,9 @@
 
   Most third-party libraries required by %OpenMS (Boost, Eigen, libxml2, Apache Arrow, ...) are obtained automatically through vcpkg
   when you configure %OpenMS with one of its CMake presets; see @ref install_vcpkg for the general guide.
-  This page covers the Windows-specific parts: the compiler, Qt (which you install yourself) and building in Visual Studio.
+  This page covers the Windows-specific parts: the compiler and building in Visual Studio.
+  The graphical tools (TOPPView, TOPPAS, INIFileEditor), which need Qt, are built from the separate
+  <a href="https://github.com/OpenMS/OpenMS-TOPP-GUI">OpenMS-TOPP-GUI</a> repository against an installed %OpenMS.
   <br>
   If you encounter errors during configuring/compiling our software,
   search in our <a href="https://github.com/OpenMS/OpenMS/issues">issue tracker</a>,
@@ -50,33 +52,6 @@
       <li><b>Git</b>: Needed to clone %OpenMS and its submodules, including the vcpkg submodule (see https://gitforwindows.org/).
     </ul>
 
-  @section install_win_required Installing required dependency libraries
-
-	@subsection install_qt QT installation
-
-    Qt comes in two flavors: commercial or non-commercial - choose whatever is applicable to you: read more on the Qt website.
-    For several recent Qt6 versions, there are binary development versions available for the most recent compilers. 
-
-    <b>Installation of Qt6 via the Qt6 installer (requires an admin account)</b>:<br>
-    Go to https://www.qt.io/download and find the download for the Qt binaries installer, download it and run the Qt binary installer.
-    You will need to create a free user account with Qt, and log into that account during installation.
-    The installer will ask for an installation directory, choose, e.g. `c:\dev\qt6`.
-    From the components choose a matching version, e.g. Qt 6.7.1 and pick the MSVC binaries (e.g. `MSVC 2019 64-bit`), the `Sources` (for Qt headers) and `Qt Debug Information files` (optional).
-    
-    @image html qt6_windows_installer.png
-    @image latex qt6_windows_installer.png "" width=10cm
-    
-    If your Visual Studio version is more recent than the VS offered by the Qt installer, choose the closest available -- they should be compatible.
-    Resulting files appear under `c:\dev\qt6\$VERSION` (if you chose `c:\dev\qt6` as installation directory).
-
-    <b>Alternatively (no admin account required)</b>, compile Qt from sources. We cannot cover all the details here. See https://wiki.qt.io/Building_Qt_6_from_Git for details.
-    
-    Finally, add the Qt bin directory (i.e the location of <b>Qt6Core.dll</b>, e.g. `C:\dev\qt6\6.7.1\msvc2022_64\bin`)to your Windows PATH Environment variable.
-    If you forget this, starting any %OpenMS executable will result in an error such as `The program can't start because Qt6Cored.dll is missing from your computer.`
-    
-    In addition, to run any of %OpenMS' GUI apps (such as TOPPView), you need set the `QT_PLUGIN_PATH` environment variable to the `plugins` subdir of your Qt installation.
-    E.g. set `QT_PLUGIN_PATH` to `c:\dev\qt6_2\6.7.3\msvc2022_64\plugins`.
-
   @subsection correct_cmd_line Using the correct command line
   
   For most of the steps below you need a command prompt which is aware of where components of Visual Studio (compiler, linker etc) are installed.
@@ -109,7 +84,7 @@
     \endcode
     Releases before %OpenMS 3.6.0 do not use vcpkg; follow the build instructions in the documentation of that release instead.
 
-    You do not need to build the third-party libraries (except Qt, see above) yourself: vcpkg builds them the first time you configure %OpenMS (see below).
+    You do not need to build the third-party libraries yourself: vcpkg builds them the first time you configure %OpenMS (see below).
 
   @section create_doc Building the documentation (optional)
 
@@ -146,11 +121,11 @@
 
   @section install_win_openms Installing OpenMS
 
-    This part assumes sections @ref install_win_source and @ref install_qt have been completed!
+    This part assumes section @ref install_win_source has been completed!
     I.e. we assume you have the %OpenMS source code and will now build the %OpenMS library, TOPP tools, class tests etc.
 
     %OpenMS is configured with one of the <tt>windows-x64-*</tt> CMake presets, as described in @ref install_vcpkg_build.
-    The presets set <tt>OPENMS_USE_VCPKG=ON</tt> and point CMake to the vcpkg toolchain, so all third-party libraries except Qt are built by vcpkg.
+    The presets set <tt>OPENMS_USE_VCPKG=ON</tt> and point CMake to the vcpkg toolchain, so all third-party libraries are built by vcpkg.
 
     To create the build system:
     <ol>
@@ -160,11 +135,8 @@
       <li>Call CMake with a preset to create the build system. For a Visual Studio solution that can build both Debug and Release, use the debug preset together with a Visual Studio generator:
         \code
         cd <path_to_OpenMS>
-        cmake --preset windows-x64-debug -G "<generator>" -A x64 -D CMAKE_PREFIX_PATH=<path_to_QT6_prefix>
+        cmake --preset windows-x64-debug -G "<generator>" -A x64
         \endcode
-
-        The CMAKE_PREFIX_PATH should hold the path to your Qt6 build/binary directory where `Qt6Config.cmake` resides (see example below). Note that it is NOT the main Qt6 directory,
-        but the subfolder which is named after the toolchain it was build with (e.g. `CMAKE_PREFIX_PATH=C:\dev\qt6_2\6.7.3\msvc2022_64\lib\cmake\Qt6`).
 
         The <tt>&lt;generator&gt;</tt> must be a Visual Studio generator if you want a solution file. Type `cmake --help` to see a list of available generators.
         Without <tt>-G</tt>, the presets use Ninja and you build from the command line with `cmake --build --preset <preset>` instead (see @ref install_vcpkg_generator).
@@ -179,7 +151,7 @@
 
         \code
         cd c:\dev\OpenMS
-        cmake --preset windows-x64-debug -G "Visual Studio 17 2022" -A x64 -D CMAKE_PREFIX_PATH=C:\dev\qt6_2\6.7.3\msvc2022_64\lib\cmake\Qt6
+        cmake --preset windows-x64-debug -G "Visual Studio 17 2022" -A x64
         \endcode
 
     </ol>
@@ -187,13 +159,13 @@
     \include{doc} "../doxygen/install/common-cmake-parameters.doxygen"
 
     With a Visual Studio generator, there should now be a <tt>OpenMS_host.sln</tt> file in your build directory (<tt>build/windows-x64-debug</tt> in the example above), which you can open using Visual Studio.
-    If you want to work on only a subset of %OpenMS (e.g., OpenMS_GUI) you can open the specific solution that you will find in the `src/` folder of your
-    build folder and below (e.g. `src/openms_gui/OpenMS_GUI.sln`).
+    If you want to work on only a subset of %OpenMS (e.g., the TOPP tools) you can open the specific solution that you will find in the `src/` folder of your
+    build folder and below (e.g. `src/topp/OpenMS_TOPP.sln`).
 
 
     Try to build the %OpenMS library - the target is called '%OpenMS'. This will create the %OpenMS Dll library. If you used the debug configuration it will be called
     `OpenMSd.dll`, in release mode its called `OpenMS.dll`.<br>
-    As a last step you should add the location of the binaries (dll's and executables) to your PATH environment. This makes calling TOPPView and TOPP tools more convenient if you are working the command line.
+    As a last step you should add the location of the binaries (dll's and executables) to your PATH environment. This makes calling TOPP tools more convenient if you are working the command line.
     Also, external projects (see @subpage external_code) require the %OpenMS dll (OpenMS.dll or OpenMSd.dll) to be in the PATH. Depending on the generator and
     configuration used you will find the dll in [OpenMS_build]/bin/Release or [OpenMS_build]/bin/Debug (for VS) or just [OpenMS_build]/bin (Ninja). In the same folder the
     TOPP tools will reside once build (see next section).
@@ -237,7 +209,7 @@
     @note Since the call can be a bit lengthy, there is a batch file in
     <tt>OpenMS/tools/build.bat</tt> and in the root of your build tree (copied
     there by cmake for convenience), which allows to build the most important
-    targets (TOPP, Gui, Tests, Doc) in Release or Debug using very short
+    targets (TOPP, Tests, Doc) in Release or Debug using very short
     notation. Call it without arguments to see its usage help text. For example
     to build only the %OpenMS library in release mode, call
 
@@ -250,18 +222,11 @@
     This section is for users that already have a little experience with IDEs like VS Code or JetBrains CLion.
     Especially the first step requires to read through the beginning of this documentation.
     <ol>
-      <li> Download and install requirements (Git, CMake, Ninja, VS Build Tools, Qt) and make sure they are in your PATH
+      <li> Download and install requirements (Git, CMake, Ninja, VS Build Tools) and make sure they are in your PATH
       <li> Download and install VS Code
       <li> Install C++ Extension Pack, CMake Tools, CMake Test Explorer and potentially some GitHub extensions
       <li> Ctrl+Shift+P and find <code>Git: clone</code>, then type and search for OpenMS/OpenMS. Select a folder. Wait for clone to finish. Open clone. Trust authors.
       <li> If you cloned without submodules, open a Terminal from within VS Code and type `git submodule update --init vcpkg`
-      <li> Adapt (to your paths) and add
-        \code
-        "cmake.configureArgs": [
-          "-DCMAKE_PREFIX_PATH=C:\\dev\\qt6_2\\6.7.3\\msvc2022_64\\lib\\cmake\\Qt6"
-        ]
-        \endcode
-        to your settings or configure manually in your user-config.yml or via the VS Code command runner.
       <li> Ctrl+Shift+P and find <code>\> CMake: Select Configure Preset</code>, select a <tt>windows-x64-*</tt> preset (e.g. "Windows x64 Debug").
         Start VS Code from a Developer Command Prompt for x64 (see @ref correct_cmd_line), so that the compiler and Ninja are found.
       <li> Ctrl+Shift+P and find <code>\> CMake: Configure</code>. The first configure builds the third-party libraries through vcpkg and takes a while.
@@ -288,7 +253,7 @@
       cmake ... -DSEARCH_ENGINES_DIRECTORY=C:\dev\THIRDPARTY\Windows\64bit -DPACKAGE_TYPE="nsis" <path-to-source-tree>
       \endcode
       
-      <li> Build all targets (incl. 'doc' and 'doc_tutorials') in Release mode (copy the Qt6 plugin to the <code>[OpenMS_build]/bin/Release</code> and <code>[OpenMS_build]/doc/doxygen/parameters/Release/</code> directories first)
+      <li> Build all targets (incl. 'doc' and 'doc_tutorials') in Release mode
       \code
       cd <build-tree>
       build.bat - r

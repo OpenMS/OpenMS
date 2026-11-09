@@ -25,15 +25,10 @@ The most important CMake variables are:
     </td>
   </tr>
   <tr>
-    <th valign="top">Qt6_DIR</td>
-    <td>Additional search path for the Qt6 CMake files. Use <code>/PATH/TO/QT_INSTALLATION/lib/cmake/Qt6</code> as value, e.g. <code>C:\\dev\\qt6\\6.7.1\\msvc2019_64\\lib\\cmake\\Qt6</code></td>
-  </tr>
-  <tr>
     <th valign="top">HAS_XSERVER=On/Off</td>
-    <td>[Linux/MacOS only] Defines if a running X Server is available when building OpenMS.
-    As building parts of the documentation and running certain tests requires
-    a running X Server, this flag can be used to disable those parts of the
-    documentation and the tests that need an X Server. (Default: On)</td>
+    <td>[Linux/MacOS only] Defines if the full documentation is part of the default build target.
+    If set to "Off", only a minimal documentation is built by default (the target
+    <code>doc</code> still builds the full one). (Default: On)</td>
   </tr>
   <tr>
     <th valign="top">ADDRESS_SANITIZER=On/Off</td>
@@ -45,23 +40,16 @@ The most important CMake variables are:
     explicitly; see @ref verifying_public_headers. (Default: Off)</td>
   </tr>
   <tr>
-    <th valign="top">WITH_GUI=On/Off</td>
-    <td>Defines if the OpenMS GUI tools (TOPPView, TOPPAS) should be built or
-    not. If you plan to use OpenMS without a GUI, set this flag to "Off" (Default: On)</td>
-  </tr>
-  <tr>
     <th valign="top">BUILD_TOPP_TOOLS=On/Off</td>
     <td>Build the TOPP command-line applications (src/topp). Set to "Off" to build only
     the core OpenMS library, e.g. for a standalone SDK consumed by an external application.
-    <code>ENABLE_TOPP_TESTING</code> and <code>ENABLE_PIPELINE_TESTING</code> default to
-    following this flag, and <code>ENABLE_CWL_GENERATION</code> requires it to be
+    <code>ENABLE_TOPP_TESTING</code> defaults to following this flag, and <code>ENABLE_CWL_GENERATION</code> requires it to be
     "On". (Default: On)</td>
   </tr>
   <tr>
     <th valign="top">OPENMS_USE_INSTALLED_LIBRARY=On/Off</td>
-    <td>Build only the applications -- the TOPP tools (<code>BUILD_TOPP_TOOLS</code>) and/or the
-    GUI library with TOPPView, TOPPAS and the other GUI applications (<code>WITH_GUI</code>) --
-    against an installed OpenMS library of the same version, instead of building the libraries.
+    <td>Build only the TOPP tools (<code>BUILD_TOPP_TOOLS</code>) against an installed OpenMS
+    library of the same version, instead of building the libraries.
     Point <code>OpenMS_DIR</code> (or <code>CMAKE_PREFIX_PATH</code>) at that installation. Tests,
     documentation and pyOpenMS are not built in this mode. See "Building OpenMS in layers" below. (Default: Off)</td>
   </tr>
@@ -256,39 +244,41 @@ The most important CMake variables are:
 
 <b>Building OpenMS in layers</b>
 
-The same source tree can be built and installed as three layers, e.g. to package them separately:
+%OpenMS can be built and installed as three layers, e.g. to package them separately. The first
+two come from this source tree, the third from the
+<a href="https://github.com/OpenMS/OpenMS-TOPP-GUI">OpenMS-TOPP-GUI</a> repository:
 
 \code
 # 1. the libraries (OpenSwathAlgo, OpenMS, OpenMS_CLI), headers, CMake package and share/OpenMS
-cmake -S OpenMS -B build-lib -DBUILD_TOPP_TOOLS=OFF -DWITH_GUI=OFF -DCMAKE_INSTALL_PREFIX=<lib-prefix> \
+cmake -S OpenMS -B build-lib -DBUILD_TOPP_TOOLS=OFF -DCMAKE_INSTALL_PREFIX=<prefix> \
       -DOPENMS_INSTALL_DATA_PATH=<shared-prefix>/share/OpenMS   # only if the layers are merged elsewhere
 cmake --build build-lib && cmake --install build-lib
 
 # 2. the TOPP tools, against the installed libraries
-cmake -S OpenMS -B build-topp -DOPENMS_USE_INSTALLED_LIBRARY=ON -DBUILD_TOPP_TOOLS=ON -DWITH_GUI=OFF \
-      -DOpenMS_DIR=<lib-prefix>/lib/cmake/OpenMS -DCMAKE_INSTALL_PREFIX=<topp-prefix>
+cmake -S OpenMS -B build-topp -DOPENMS_USE_INSTALLED_LIBRARY=ON -DBUILD_TOPP_TOOLS=ON \
+      -DOpenMS_DIR=<prefix>/lib/cmake/OpenMS -DCMAKE_INSTALL_PREFIX=<topp-prefix>
 cmake --build build-topp && cmake --install build-topp
 
-# 3. the GUI library and applications, against the installed libraries
-cmake -S OpenMS -B build-gui -DOPENMS_USE_INSTALLED_LIBRARY=ON -DBUILD_TOPP_TOOLS=OFF -DWITH_GUI=ON \
-      -DOpenMS_DIR=<lib-prefix>/lib/cmake/OpenMS -DCMAKE_INSTALL_PREFIX=<gui-prefix>
+# 3. the GUI library and applications (needs Qt 6), from OpenMS-TOPP-GUI of the same version,
+#    against the installed libraries and installed into the same prefix
+cmake -S OpenMS-TOPP-GUI -B build-gui -DCMAKE_PREFIX_PATH="<prefix>;<Qt prefix>" \
+      -DCMAKE_INSTALL_PREFIX=<prefix>
 cmake --build build-gui && cmake --install build-gui
 \endcode
 
 Each application layer installs the registry of the tools it builds into
 <code>share/OpenMS/TOOLS</code>: <code>OpenMS-TOPP.tsv</code> (install component
-<code>Applications</code>) and <code>OpenMS-GUI.tsv</code> (for ExecutePipeline and ImageCreator,
-install component <code>GUIApplications</code>). A tool finds the registries in the shared data
-directory of the library (see <code>OPENMS_INSTALL_DATA_PATH</code>) or, failing that, in
-<code>../share/OpenMS/TOOLS</code> next to its executable; <code>OPENMS_TOOL_REGISTRY_PATH</code>
-names an additional directory. Installed into one prefix, or linked into one tree, all layers
-meet in the same directory. TOPPView and TOPPAS look for the tool executables next to themselves
-and in the <code>bin</code> directory next to the <code>share/OpenMS</code> of
-<code>OPENMS_INSTALL_DATA_PATH</code>, so that they find the tools of another layer in the merged
-tree. The GUI layer does not install a CMake package of its own:
-<code>find_package(OpenMS COMPONENTS GUI)</code> needs a build of the libraries with
-<code>WITH_GUI=ON</code>. Conversely, the GUI layer has to be built against an installation without the
-GUI library.
+<code>Applications</code>) and, from OpenMS-TOPP-GUI, <code>OpenMS-GUI.tsv</code> (for ExecutePipeline
+and ImageCreator). A tool finds the registries in the shared data directory of the library (see
+<code>OPENMS_INSTALL_DATA_PATH</code>) or, failing that, in <code>../share/OpenMS/TOOLS</code> next to
+its executable; <code>OPENMS_TOOL_REGISTRY_PATH</code> names an additional directory. Installed into one
+prefix, or linked into one tree, all layers meet in the same directory. The GUI tools (TOPPView,
+TOPPAS) look for the TOPP tool executables next to themselves, in the <code>bin</code> directory next
+to the <code>share/OpenMS</code> of <code>OPENMS_INSTALL_DATA_PATH</code> and finally in the
+<code>PATH</code>, so that they find the tools of another layer. The GUI layer installs its own CMake
+package (<code>OpenMSGUI</code>, target <code>OpenMS::OpenMS_GUI</code>); installed into the prefix of
+the libraries, <code>find_package(OpenMS COMPONENTS GUI)</code> finds it as well. See the
+<a href="https://github.com/OpenMS/OpenMS-TOPP-GUI">OpenMS-TOPP-GUI</a> README for its build options.
 
 A full list of the CMake variables is shown when you execute:
 

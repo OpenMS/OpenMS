@@ -37,9 +37,6 @@ openms_add_library(TARGET_NAME OpenMS_CLI
                    DLL_EXPORT_PATH "OpenMS/APPLICATIONS/"
                    EXPORT_SET ${OPENMS_CLI_EXPORT_SET})
 
-# No QObject classes here; finding Qt for the GUI must not enable moc for this library.
-set_target_properties(OpenMS_CLI PROPERTIES AUTOMOC OFF)
-
 if (MSVC)
   ## same strictness as libOpenMS: unused parameters and locals are errors
   target_compile_options(OpenMS_CLI PRIVATE "/we4100" "/we4189")

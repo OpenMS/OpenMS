@@ -137,8 +137,7 @@ endif()
 # <prefix>/lib (ARCHIVE), so a list that names only lib/ can never find a DLL of
 # a shared dependency; OpenMS.dll then fails to load with the loader's
 # unhelpful "The specified module could not be found". Hence every dependency
-# prefix contributes both directories. QT_INSTALL_BINS is not used: nothing in
-# the build defines it.
+# prefix contributes both directories.
 function(_pyopenms_windows_dll_dirs out_var)
   # Caller-supplied directories come first: the environment is the only way an
   # enclosing build or a CI job can point at something CMake cannot know about.
@@ -166,8 +165,7 @@ function(_pyopenms_windows_dll_dirs out_var)
   # name it. CMAKE_PREFIX_PATH is read as both a CMake variable and an
   # environment variable: find_package() consults both, but only the variable
   # is visible to ordinary script code, and the wheel workflow supplies the
-  # environment one. (No Qt entry: the core library does not link Qt, and a Qt
-  # prefix that is on CMAKE_PREFIX_PATH is already covered here.)
+  # environment one.
   set(_prefixes ${CMAKE_PREFIX_PATH})
   if(NOT "$ENV{CMAKE_PREFIX_PATH}" STREQUAL "")
     list(APPEND _prefixes "$ENV{CMAKE_PREFIX_PATH}")
@@ -863,7 +861,6 @@ else()
     if(APPLE)
       add_custom_target(pyopenms_fix_deps ALL
         COMMAND ${PROJECT_SOURCE_DIR}/mac_fix_dependencies.rb -l "${PYOPENMS_BUILD_DIR}/pyopenms" -e "@rpath/" -r "@loader_path/" -f -v
-        COMMAND codesign --force --sign - ${PYOPENMS_BUILD_DIR}/pyopenms/Qt* || true
         COMMAND codesign --force --sign - ${PYOPENMS_BUILD_DIR}/pyopenms/*.dylib || true
         COMMENT "Fixing deps and codesigning pyopenms binaries in build dir"
       )
@@ -929,7 +926,6 @@ else()
     PATTERN "*.py"
     PATTERN "*.pyi"
     PATTERN "py.typed"
-    PATTERN "Qt*"
     PATTERN "__pycache__" EXCLUDE
   )
 endif() # PYOPENMS_USE_PREBUILT
@@ -948,7 +944,6 @@ if(PYOPENMS_USE_PREBUILT)
     PATTERN "*.so"
     PATTERN "*.dylib"
     PATTERN "*.pyd"
-    PATTERN "Qt*"
     PATTERN "__pycache__" EXCLUDE
   )
 endif()

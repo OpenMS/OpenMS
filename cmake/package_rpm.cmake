@@ -21,14 +21,10 @@ set(CPACK_RPM_PACKAGE_DEBUG ON)
 
 ## TODO also install headers? make a dev package configuration?
 ## The libraries come in layers (cmake/install_macros.cmake): library (core),
-## library_cli (TOPP tool framework, needed by the TOPP tools) and library_gui.
+## library_cli (TOPP tool framework, needed by the TOPP tools).
 ## 'Applications' as install_tool() registers it: CPack installs a component by
 ## name and a mismatch would package none of the TOPP tools.
 set(CPACK_COMPONENTS_ALL Applications doc library library_cli share ${THIRDPARTY_COMPONENT_GROUP})
-if(WITH_GUI)
-  ## the GUI applications (install_tool() in src/openms_gui/CMakeLists.txt)
-  list(APPEND CPACK_COMPONENTS_ALL library_gui ${OPENMS_GUI_APPLICATIONS_COMPONENT})
-endif()
 
 SET(CPACK_RPM_PACKAGE_LICENSE "BSD clause 3")
 #SET(CPACK_RPM_PACKAGE_AUTOREQ ON)
@@ -40,8 +36,8 @@ SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "package for LC/MS data management and ana
 SET(CPACK_PACKAGE_DESCRIPTION "
  OpenMS is a package for LC/MS data management and analysis. OpenMS
  offers an infrastructure for the development of mass
- spectrometry-related software and powerful 2D and 3D visualization
- solutions.
+ spectrometry-related software. The graphical applications (TOPPView,
+ TOPPAS, ...) are packaged separately (openms-gui).
  .
  TOPP (the OpenMS PiPeline) is a pipeline for the analysis
  of HPLC/MS data. It consists of a set of numerous small applications

@@ -7,9 +7,9 @@
 // --------------------------------------------------------------------------
 
 // If you add a new (or update an existing) tool below, make sure its openms_topp_tool()
-// declaration uses a matching category. Tools are declared in 'src/topp/executables.cmake',
-// except those needing the GUI library (ExecutePipeline, ImageCreator), which are declared
-// in 'src/openms_gui/CMakeLists.txt'.
+// declaration uses a matching category. Tools are declared in 'src/topp/executables.cmake'.
+// The graphical tools (TOPPView, TOPPAS, INIFileEditor) and the GUI-based TOPP tools
+// (ExecutePipeline, ImageCreator) are documented in the OpenMS-TOPP-GUI repository.
 
 /**
   @page TOPP_documentation TOPP documentation
@@ -19,9 +19,12 @@
 
  	The TOPP tools are divided into several subgroups:
   <b>Graphical Tools</b>
-  - @subpage TOPP_TOPPView - A viewer for mass spectrometry data.
-  - @subpage TOPP_TOPPAS - An assistant for GUI-driven TOPP workflow design.
-  - @subpage TOPP_INIFileEditor - An editor for %OpenMS configuration files.
+
+  The graphical tools TOPPView (viewer for mass spectrometry data), TOPPAS (GUI-driven workflow
+  design), INIFileEditor (editor for %OpenMS configuration files) and the GUI-based tools
+  ExecutePipeline (runs TOPPAS workflows) and ImageCreator are developed, documented and
+  distributed separately in <a href="https://github.com/OpenMS/OpenMS-TOPP-GUI">OpenMS-TOPP-GUI</a>.
+  They are installed on top of an %OpenMS installation of the same version.
 
   <b>File Converter</b>
   - @subpage TOPP_FileConverter - Converts between different MS file formats.
@@ -201,8 +204,6 @@
   <b>Misc / Helpers</b>
   - @subpage TOPP_ClusterMassTraces - Cluster mass traces occurring in the same map together.
   - @subpage TOPP_DeMeanderize - Orders the spectra of MALDI spotting plates correctly.
-  - @subpage TOPP_ExecutePipeline - Executes workflows created by TOPPAS.
-  - @subpage TOPP_ImageCreator - Creates images from MS1 data (with MS2 data points indicated as dots).
   - @subpage TOPP_INIUpdater - Updates INI and TOPPAS files from previous versions of %OpenMS as parameters and storage method might have change
   - @subpage TOPP_MassCalculator - Calculates masses and mass-to-charge ratios of peptide sequences.
   - @subpage TOPP_OpenMSInfo - Print system information.

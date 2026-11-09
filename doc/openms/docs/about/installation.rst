@@ -62,6 +62,10 @@ Graphical and Command-Line Tools
 For instructions on how to install the OpenMS graphical and command-line tools, choose your operating system
 from the items below.
 
+The graphical tools (TOPPView, TOPPAS, INIFileEditor) are developed in the separate
+`OpenMS-TOPP-GUI <https://github.com/OpenMS/OpenMS-TOPP-GUI>`_ repository and come with their own installer. Install
+OpenMS first and then the GUI installer of the **same version** on top of it; the pages below describe both steps.
+
 
 .. grid::
     :gutter: 4

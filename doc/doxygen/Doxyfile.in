@@ -2172,8 +2172,7 @@ INCLUDE_FILE_PATTERNS  =
 # recursively expanded use the := operator instead of the = operator.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-PREDEFINED             = "OPENMS_DLLAPI:=" \
-                         "OPENMS_GUI_DLLAPI:="
+PREDEFINED             = "OPENMS_DLLAPI:="
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The
@@ -2216,8 +2215,10 @@ TAGFILES               =
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create a
 # tag file that is based on the input files it reads. See section "Linking to
 # external documentation" for more information about the usage of tag files.
+# OpenMS.tag is installed into share/doc (doc/CMakeLists.txt), so other projects
+# (e.g. OpenMS-TOPP-GUI) can link to the OpenMS classes and TOPP tool pages.
 
-GENERATE_TAGFILE       =
+GENERATE_TAGFILE       = "@CF_OPENMS_BIN_PATH@/OpenMS.tag"
 
 # If the ALLEXTERNALS tag is set to YES, all external class will be listed in
 # the class index. If set to NO, only the inherited external classes will be
