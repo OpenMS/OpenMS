@@ -252,7 +252,7 @@ START_SECTION([EXTRA] void load(const std::string& filename, TargetedExperiment&
   const ReactionMonitoringTransition& tr = exp.getTransitions()[0];
   TEST_REAL_SIMILAR(tr.getLibraryIntensity(), 100.0)
   TEST_EQUAL(tr.getCVTerms().count("MS:1000045"), 1) // current term, invalid value
-  TEST_EQUAL(tr.getCVTerms().count("MS:1000023"), 1) // obsolete term, invalid value: was dropped
+  TEST_EQUAL(tr.getCVTerms().count("MS:1000023"), 1) // obsolete term, invalid value: kept
   TEST_EQUAL(exp.getPeptides().size(), 1)
   ABORT_IF(exp.getPeptides().size() != 1)
   TEST_REAL_SIMILAR(exp.getPeptides()[0].getRetentionTime(), 44.5)
@@ -261,6 +261,8 @@ START_SECTION([EXTRA] void load(const std::string& filename, TargetedExperiment&
   TEST_TRUE(msg.find("'MS:1000023 - isolation width' used in tag 'Transition' must have a floating-point value") != std::string::npos)
   TEST_TRUE(msg.find("Obsolete CV term 'MS:1000023 - isolation width' used in tag 'Transition'") != std::string::npos)
   TEST_EQUAL(msg.find("must not have a value"), std::string::npos) // product ion intensity, iRT
+  TEST_EQUAL(msg.find("MS:1002217"), std::string::npos) // boolean '1'
+  TEST_EQUAL(msg.find("MS:1002031"), std::string::npos) // URI
 }
 END_SECTION
 

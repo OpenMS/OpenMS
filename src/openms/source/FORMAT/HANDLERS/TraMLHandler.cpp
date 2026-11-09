@@ -1196,14 +1196,23 @@ namespace OpenMS::Internal
                 }
                 break;
 
-              // boolean value => only 'true' or 'false' (any case)
+              // boolean value => xsd:boolean allows 'true', 'false', '1' and '0' (like SemanticValidator)
               case ControlledVocabulary::CVTerm::XRefType::XSD_BOOLEAN:
                 {
-                  const std::string lowered = StringUtils::toLowered(value);
-                  if (lowered != "true" && lowered != "false")
+                  std::string lowered = StringUtils::toLowered(value);
+                  StringUtils::trim(lowered);
+                  if (lowered != "true" && lowered != "false" && lowered != "1" && lowered != "0")
                   {
-                    warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have a boolean value (true/false). The value is '" + value + "'.");
+                    warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have a boolean value (true/false/1/0). The value is '" + value + "'.");
                   }
+                }
+                break;
+
+              // URI => at least a scheme separator is needed (like SemanticValidator)
+              case ControlledVocabulary::CVTerm::XRefType::XSD_ANYURI:
+                if (!StringUtils::has(value, ':'))
+                {
+                  warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have a URI value. The value is '" + value + "'.");
                 }
                 break;
 
