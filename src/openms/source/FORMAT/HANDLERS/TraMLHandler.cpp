@@ -1138,13 +1138,11 @@ namespace OpenMS::Internal
           {
             if (term.xref_type == ControlledVocabulary::CVTerm::XRefType::NONE)
             {
-              // Quality CV does not state value type :(
-              // This handler writes (and reads back) values for three terms that the CV gives no
-              // value type: the product ion intensity of a transition and the H-PINS/iRT normalized
-              // retention times.
-              const bool value_used_here = (parent_tag == "Transition" && accession == "MS:1001226") ||
-                                           (parent_tag == "RetentionTime" && (accession == "MS:1000902" || accession == "MS:1002005"));
-              if (!StringUtils::hasPrefix(accession, "PATO:") && !value_used_here)
+              // The CV states no value type for some terms that carry a value in TraML: terms with units
+              // (e.g. product ion intensity, product ion m/z delta) and the RT standards whose value is
+              // the RT (read below). The Quality CV does not state value types at all :(
+              const bool value_expected = !term.units.empty() || accession == "MS:1002005" || accession == "MS:1000902";
+              if (!value_expected && !StringUtils::hasPrefix(accession, "PATO:"))
               {
                 warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
               }
@@ -1195,6 +1193,17 @@ namespace OpenMS::Internal
                 catch (Exception::ParseError&)
                 {
                   warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
+                }
+                break;
+
+              // boolean value => only 'true' or 'false' (any case)
+              case ControlledVocabulary::CVTerm::XRefType::XSD_BOOLEAN:
+                {
+                  const std::string lowered = StringUtils::toLowered(value);
+                  if (lowered != "true" && lowered != "false")
+                  {
+                    warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have a boolean value (true/false). The value is '" + value + "'.");
+                  }
                 }
                 break;
 
