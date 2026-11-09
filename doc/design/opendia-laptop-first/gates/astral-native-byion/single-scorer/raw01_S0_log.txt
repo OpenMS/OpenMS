@@ -1,0 +1,9 @@
+Native CNN fold=0 heldout_windows=945003 augmented_first_epoch=0 epochs=26 validation_loss=0.003733 heldout_seed_decoy_auc=1.000000
+Native CNN fold=1 heldout_windows=931700 augmented_first_epoch=0 epochs=40 validation_loss=0.000227 heldout_seed_decoy_auc=1.000000
+Native CNN fold=2 heldout_windows=938852 augmented_first_epoch=0 epochs=16 validation_loss=0.004381 heldout_seed_decoy_auc=1.000000
+Experimental score iteration=0 target_precursors_q01=347
+Experimental score iteration=1 positives_available=347 negatives_available=266566 seeds_per_class=347
+Native CNN fold=0 heldout_windows=945003 augmented_first_epoch=0 epochs=29 validation_loss=0.000173 heldout_seed_decoy_auc=1.000000
+Native CNN fold=1 heldout_windows=931700 augmented_first_epoch=0 epochs=40 validation_loss=0.000054 heldout_seed_decoy_auc=1.000000
+Native CNN fold=2 heldout_windows=938852 augmented_first_epoch=0 epochs=40 validation_loss=0.000013 heldout_seed_decoy_auc=1.000000
+Experimental score iteration=1 target_precursors_q01=149

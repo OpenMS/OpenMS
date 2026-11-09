@@ -307,3 +307,16 @@ Native OpenDIA results, with only the decoys changed:
 - N at FDP_c 1%: 1029 → 1101, 1298 → 1210.
 
 The rule fails: the 5% drop is ≥ 0.01 on raw 02 only, and raw 02 loses 7% of N. Commonness is a real but partial lever. It is not a fix on its own.
+
+## 13. Single TOPAZ scorer instead of CNN + LDA: FAIL on raw 01 S0 (`astral-native-byion/single-scorer/`)
+
+Setup: TOPAZ width 8 with `-topaz_features search+boundary+byion` (11 standardised heuristics in the head), `-ss_iterations 2`, and q from the TOPAZ logit (code `33d687b330`). The plan was predeclared (sha256 7737c2a7). The HeLa default output stayed byte-identical.
+
+Results on raw 01 S0 (no augmentation):
+- Round 0: 347 targets at q ≤ 0.01.
+- Round 1: 149 targets at q ≤ 0.01. The base CNN + LDA gives 1236.
+- Round 2 crashed, because all of round 1's positives were in one fold. That breaks rule 4 (the run must complete).
+
+Validation loss went down to about 2e-5 and held-out seed AUC was 1.0. With the heuristics, the about 600 seeds per fold are trivially separable. The network saturates, and the held-out decoy tail sets q. Semi-supervised rounds made this worse, as in earlier ss runs. S1 (augmentation) and raw 02 did not run.
+
+CNN + LDA stays the native design. The new options stay opt-in and experimental.
