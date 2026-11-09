@@ -71,4 +71,5 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 ### source group definition
 source_group("Source Files\\ANALYSIS\\OPENSWATH" FILES ${sources})
 set_source_files_properties(${directory}/sources.cmake PROPERTIES HEADER_FILE_ONLY TRUE)
+list(APPEND OpenMS_private_headers ${directory}/PeakPickerHelpers.h)
 list(APPEND OpenMS_private_headers ${directory}/OSWParquetArchiveHelpers.h)

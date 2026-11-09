@@ -9,6 +9,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include "PeakPickerHelpers.h"
+
 namespace OpenMS
 {
   PeakPickerChromatogram::PeakPickerChromatogram() :
@@ -272,106 +274,24 @@ namespace OpenMS
 
   void PeakPickerChromatogram::removeOverlappingPeaks_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
-    if (picked_chrom.empty()) {return; }
-    OPENMS_LOG_DEBUG << "Remove overlapping peaks now (size " << picked_chrom.size() << ")\n";
-    Size current_peak = 0;
-    // Find overlapping peaks
-    for (Size i = 0; i < picked_chrom.size() - 1; i++)
-    {
-      // Check whether the current right overlaps with the next left
-      // See whether we can correct this and find some border between the two
-      // features ...
-      if (right_width_[i] > left_width_[i + 1])
+    Internal::PeakPickerHelpers::removeOverlappingPeaks(chromatogram, picked_chrom, left_width_, right_width_, integrated_intensities_,
+      [](const ChromatogramPeak& peak) { return peak.getPos(); },
+      [](Size new_left_border, Size new_right_border)
       {
-        const int current_left_idx = left_width_[i];
-        const int current_right_idx = right_width_[i];
-        const int next_left_idx = left_width_[i + 1];
-        const int next_right_idx = right_width_[i + 1];
-        OPENMS_LOG_DEBUG << " Found overlapping " << i << " : " << current_left_idx << " " << current_right_idx << '\n';
-        OPENMS_LOG_DEBUG << "                   -- with  " << i + 1 << " : " << next_left_idx << " " << next_right_idx << '\n';
-
-        // Find the peak width and best RT
-        double central_peak_rt = picked_chrom[i].getPos();
-        double next_peak_rt = picked_chrom[i + 1].getPos();
-        current_peak = findClosestPeak_(chromatogram, central_peak_rt, current_peak);
-        Size next_peak = findClosestPeak_(chromatogram, next_peak_rt, current_peak);
-
-        // adjust the right border of the current and left border of next
-        Size k = 1;
-        while ((current_peak + k) < chromatogram.size()
-              && (chromatogram[current_peak + k].getIntensity() < chromatogram[current_peak + k - 1].getIntensity()))
-        {
-          ++k;
-        }
-        Size new_right_border = current_peak + k - 1;
-        k = 1;
-        while ((next_peak - k + 1) > 0
-              && (chromatogram[next_peak - k].getIntensity() < chromatogram[next_peak - k + 1].getIntensity()))
-        {
-          ++k;
-        }
-        Size new_left_border = next_peak - k + 1;
-
-        // assert that the peaks are now not overlapping any more ...
-        if (new_left_border < new_right_border)
-        {
-          OPENMS_LOG_ERROR << "Something went wrong, peaks are still overlapping!" << " - new left border " << new_left_border << " vs " << new_right_border << " -- will take the mean\n";
-          new_left_border = (new_left_border + new_right_border) / 2;
-          new_right_border = (new_left_border + new_right_border) / 2;
-
-        }
-
-        OPENMS_LOG_DEBUG << "New peak l: " << chromatogram[current_left_idx].getPos() 
-          << " " << chromatogram[new_right_border].getPos() 
-          << " int " << integrated_intensities_[i] << '\n';
-        OPENMS_LOG_DEBUG << "New peak r: " << chromatogram[new_left_border].getPos() 
-          << " " << chromatogram[next_right_idx].getPos() 
-          << " int " << integrated_intensities_[i + 1] << '\n';
-
-
-        right_width_[i] = new_right_border;
-        left_width_[i + 1] = new_left_border;
-
-      }
-    }
+        OPENMS_LOG_ERROR << "Something went wrong, peaks are still overlapping!" << " - new left border " << new_left_border << " vs " << new_right_border << " -- will take the mean\n";
+      },
+      '\n');
   }
 
   Size PeakPickerChromatogram::findClosestPeak_(const MSChromatogram& chromatogram, double target_rt, Size current_peak)
   {
-    while (current_peak < chromatogram.size())
-    {
-      // check if we have walked past the RT of the peak
-      if (target_rt < chromatogram[current_peak].getRT())
-      {
-        // see which one is closer, the current one or the one before
-        if (current_peak > 0 &&
-            std::fabs(target_rt - chromatogram[current_peak - 1].getRT()) <
-            std::fabs(target_rt - chromatogram[current_peak].getRT()))
-        {
-          current_peak--;
-        }
-
-        return current_peak;
-      }
-      current_peak++;
-    }
-    return current_peak;
+    return Internal::PeakPickerHelpers::findClosestPeak(chromatogram, target_rt, current_peak,
+                                                        [](const ChromatogramPeak& peak) { return peak.getRT(); });
   }
 
   void PeakPickerChromatogram::integratePeaks_(const MSChromatogram& chromatogram)
   {
-    for (Size i = 0; i < left_width_.size(); i++)
-    {
-      const int current_left_idx = left_width_[i];
-      const int current_right_idx = right_width_[i];
-
-      // Also integrate the intensities
-      integrated_intensities_[i] = 0;
-      for (int k = current_left_idx; k <= current_right_idx; k++)
-      {
-        integrated_intensities_[i] += chromatogram[k].getIntensity();
-      }
-    }
+    Internal::PeakPickerHelpers::integratePeaks(chromatogram, left_width_, right_width_, integrated_intensities_);
   }
 
   void PeakPickerChromatogram::updateMembers_()
