@@ -1057,13 +1057,16 @@ namespace OpenMS
     }
 
     const PeptideIdentificationList& curr_pep_ids = c.getPeptideIdentifications();
-    if (!curr_pep_ids.empty())
+    // peptide identifications without hits (unidentified spectra) carry no sequence: ignore them
+    const auto first_with_hits = std::find_if(curr_pep_ids.begin(), curr_pep_ids.end(),
+                                              [](const PeptideIdentification& pep) { return !pep.getHits().empty(); });
+    if (first_with_hits != curr_pep_ids.end())
     {
       checkSequenceUniqueness_(curr_pep_ids);
 
       // Overall information for this feature in PEP section
       // Features need to be resolved for this. First is not necessarily the best since ids were resorted by map_index.
-      const PeptideIdentification& best_id = curr_pep_ids[0];
+      const PeptideIdentification& best_id = *first_with_hits;
       const PeptideHit& best_ph = best_id.getHits()[0];
       const AASequence& aas = best_ph.getSequence();
       row.sequence = MzTabString(aas.toUnmodifiedString());
@@ -1136,6 +1139,7 @@ namespace OpenMS
       double best_score = best_ph.getScore();
       for (const auto& pep : curr_pep_ids)
       {
+        if (pep.getHits().empty()) continue; // unidentified: no score to report
         size_t spec_run_index = idrun_2_run_index.at(pep.getIdentifier());
         StringList filenames;
         prot_id[spec_run_index].getPrimaryMSRunPath(filenames);
@@ -1330,8 +1334,14 @@ namespace OpenMS
     MzTabParameterList search_engines;
 
     //TODO support columns for multiple search engines/scores    
-    pair<std::string, std::string> name_version = *run_to_search_engines[run_index].begin();
-    search_engines.fromCellString("[,," + name_version.first + "," + name_version.second + "]");
+    // A run can have no search engine entry: with first_run_inference_only, the first protein ID
+    // run (the inference result) is skipped when the runs are mapped, but PSMs may refer to it.
+    const auto se_it = run_to_search_engines.find(run_index);
+    if (se_it != run_to_search_engines.end() && !se_it->second.empty())
+    {
+      const pair<std::string, std::string>& name_version = se_it->second.front();
+      search_engines.fromCellString("[,," + name_version.first + "," + name_version.second + "]");
+    }
     row.search_engine = search_engines;
 
     row.search_engine_score[1] = MzTabDouble(current_ph.getScore());
@@ -2237,14 +2247,23 @@ Not sure how to handle these:
       OPENMS_LOG_INFO << "MzTab: Inference data provided. Considering first run only for inference data." << std::endl;
     }
 
+    // The first run is left out of the MS run and search engine mappings only if no exported PSM refers to it.
+    // Otherwise it is a search run as well (e.g. a single run with search and inference results),
+    // and its PSMs need its MS files and search engine.
+    const bool skip_first_run = first_run_inference_ && std::none_of(peptide_ids_.begin(), peptide_ids_.end(),
+      [this](const PeptideIdentification* pep)
+      {
+        return (export_empty_pep_ids_ || !pep->getHits().empty()) && pep->getIdentifier() == prot_ids_[0]->getIdentifier();
+      });
+
     map<std::string, size_t> msfilename_2_msrunindex;
     map<size_t, std::string> msrunindex_2_msfilename;
-    MzTab::mapBetweenMSFileNameAndMSRunIndex_(prot_ids_, first_run_inference_, msfilename_2_msrunindex, msrunindex_2_msfilename);
+    MzTab::mapBetweenMSFileNameAndMSRunIndex_(prot_ids_, skip_first_run, msfilename_2_msrunindex, msrunindex_2_msfilename);
 
     // MS runs of a peptide identification object is stored in
     // the protein identification object with the same "identifier".
     // Thus, we build a map from psm_idx->run_index (aka index of PeptideHit -> run index)
-    MzTab::mapIDRunFileIndex2MSFileIndex_(prot_ids_, msfilename_2_msrunindex, first_run_inference_, map_id_run_fileidx_2_msfileidx_);
+    MzTab::mapIDRunFileIndex2MSFileIndex_(prot_ids_, msfilename_2_msrunindex, skip_first_run, map_id_run_fileidx_2_msfileidx_);
 
     // collect variable and fixed modifications from different runs
     StringList var_mods;
@@ -2258,7 +2277,7 @@ Not sure how to handle these:
     MzTab::mapBetweenRunAndSearchEngines_(
       prot_ids_,
       peptide_ids_,
-      first_run_inference_,
+      skip_first_run,
       search_engine_to_runs,
       run_to_search_engines_,
       run_to_search_engines_settings_,
@@ -2896,14 +2915,23 @@ state0:
       OPENMS_LOG_INFO << "MzTab: Inference data provided. Considering first run only for inference data." << std::endl;
     }
 
+    // The first run is left out of the MS run and search engine mappings only if no exported PSM refers to it.
+    // Otherwise it is a search run as well (e.g. a single run with search and inference results),
+    // and its PSMs need its MS files and search engine.
+    const bool skip_first_run = first_run_inference_ && std::none_of(peptide_ids_.begin(), peptide_ids_.end(),
+      [this](const PeptideIdentification* pep)
+      {
+        return (export_empty_pep_ids_ || !pep->getHits().empty()) && pep->getIdentifier() == prot_ids_[0]->getIdentifier();
+      });
+
     map<std::string, size_t> msfilename_2_msrunindex;
     map<size_t, std::string> msrunindex_2_msfilename;
-    MzTab::mapBetweenMSFileNameAndMSRunIndex_(prot_ids_, first_run_inference_, msfilename_2_msrunindex, msrunindex_2_msfilename);
+    MzTab::mapBetweenMSFileNameAndMSRunIndex_(prot_ids_, skip_first_run, msfilename_2_msrunindex, msrunindex_2_msfilename);
 
     // MS runs of a peptide identification object is stored in
     // the protein identification object with the same "identifier".
     // Thus, we build a map from psm_idx->run_index (aka index of PeptideHit -> run index)
-    MzTab::mapIDRunFileIndex2MSFileIndex_(prot_ids_, msfilename_2_msrunindex, first_run_inference_, map_id_run_fileidx_2_msfileidx_);
+    MzTab::mapIDRunFileIndex2MSFileIndex_(prot_ids_, msfilename_2_msrunindex, skip_first_run, map_id_run_fileidx_2_msfileidx_);
 
     // collect variable and fixed modifications from different runs
     StringList var_mods;
@@ -2920,7 +2948,7 @@ state0:
     MzTab::mapBetweenRunAndSearchEngines_(
       prot_ids_,
       peptide_ids_,
-      first_run_inference_,
+      skip_first_run,
       search_engine_to_runs,
       run_to_search_engines_,
       run_to_search_engines_settings_,
@@ -3385,10 +3413,17 @@ state0:
 
   void MzTab::checkSequenceUniqueness_(const PeptideIdentificationList& curr_pep_ids)
   {
-    const auto& refseq = curr_pep_ids[0].getHits()[0].getSequence();
+    // peptide identifications without hits are ignored; the caller guarantees at least one with hits
+    const AASequence* refseq = nullptr;
     for (const auto& pep : curr_pep_ids)
     {
-      if (pep.getHits()[0].getSequence() != refseq)
+      if (pep.getHits().empty()) continue;
+      if (refseq == nullptr)
+      {
+        refseq = &pep.getHits()[0].getSequence();
+        continue;
+      }
+      if (pep.getHits()[0].getSequence() != *refseq)
       {
         throw OpenMS::Exception::IllegalArgument(
             __FILE__

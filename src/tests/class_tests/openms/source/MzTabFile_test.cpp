@@ -312,4 +312,66 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION([EXTRA] load - metadata keys with fewer fields than expected)
+{
+  // "assay[1]" without a "-..." suffix: the parser used to read meta_key_fields[1] past the end.
+  TextFile original;
+  original.load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC.mzTab"));
+  std::vector<std::string> lines(original.begin(), original.end());
+  lines.insert(lines.begin() + 1, "MTD\tassay[1]\tsomething");
+  lines.insert(lines.begin() + 1, "MTD\tsample[1]\tsomething");
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  TextFile modified;
+  for (const auto& line : lines) modified.addLine(line);
+  modified.store(tmp);
+
+  MzTab mz_tab;
+  MzTabFile().load(tmp, mz_tab);
+  TEST_EQUAL(mz_tab.getProteinSectionRows().size() > 0 || mz_tab.getPeptideSectionRows().size() > 0, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] store - first_run_inference_only with PSMs that refer to the first run)
+{
+  // A single run that carries both the search and the inference result (e.g. ProteinInference or
+  // Epifany output). With first_run_inference_only, its PSMs still need the run's MS file and search engine.
+  ProteinIdentification run;
+  run.setIdentifier("run");
+  run.setSearchEngine("Comet");
+  run.setInferenceEngine("Epifany");
+  run.setScoreType("Posterior Probability");
+  run.setPrimaryMSRunPath(StringList{"file.mzML"});
+  ProteinHit protein;
+  protein.setAccession("P1");
+  protein.setScore(0.9);
+  run.setHits({protein});
+  std::vector<ProteinIdentification> runs{run};
+
+  PeptideIdentificationList peptides(1);
+  peptides[0].setIdentifier("run");
+  peptides[0].setScoreType("q-value");
+  peptides[0].setRT(100.0);
+  peptides[0].setMZ(400.69);
+  peptides[0].setSpectrumReference("scan=1");
+  PeptideHit hit(0.01, 1, 2, AASequence::fromString("PEPTIDE"));
+  PeptideEvidence evidence;
+  evidence.setProteinAccession("P1");
+  hit.addPeptideEvidence(evidence);
+  peptides[0].insertHit(hit);
+
+  std::string file;
+  NEW_TMP_FILE_EXT(file, ".mzTab")
+  MzTabFile().store(file, runs, peptides, true);
+
+  MzTab reloaded;
+  MzTabFile().load(file, reloaded);
+  ABORT_IF(reloaded.getPSMSectionRows().size() != 1)
+  const MzTabPSMSectionRow& psm = reloaded.getPSMSectionRows()[0];
+  TEST_STRING_EQUAL(psm.spectra_ref.toCellString(), "ms_run[1]:scan=1")
+  TEST_STRING_EQUAL(psm.search_engine.toCellString(), "[, , Comet, ]")
+  TEST_EQUAL(reloaded.getMetaData().ms_run.size(), 1)
+}
+END_SECTION
+
 END_TEST
