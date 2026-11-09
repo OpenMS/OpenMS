@@ -1,0 +1,10 @@
+R01 2815555
+tool stage2_score                  N at FDP_c 0.5/1/1.5/2%: [925, 1010, 1248, 1335] | plain q<=0.01: 1068 FDP_c 0.013 | plain q<=0.05: 1638 FDP_c 0.065 | bulk-null q<=0.01: 939 FDP_c 0.006 | bulk-null q<=0.05: 1540 FDP_c 0.050
+replica byion                      N at FDP_c 0.5/1/1.5/2%: [925, 1010, 1248, 1335] | plain q<=0.01: 1068 FDP_c 0.013 | plain q<=0.05: 1638 FDP_c 0.065 | bulk-null q<=0.01: 939 FDP_c 0.006 | bulk-null q<=0.05: 1540 FDP_c 0.050
+byion+extraction                   N at FDP_c 0.5/1/1.5/2%: [861, 1023, 1156, 1218] | plain q<=0.01: 1098 FDP_c 0.011 | plain q<=0.05: 1563 FDP_c 0.058 | bulk-null q<=0.01: 938 FDP_c 0.009 | bulk-null q<=0.05: 1495 FDP_c 0.051
+byion+extraction-const             N at FDP_c 0.5/1/1.5/2%: [868, 916, 1212, 1259] | plain q<=0.01: 1032 FDP_c 0.012 | plain q<=0.05: 1629 FDP_c 0.066 | bulk-null q<=0.01: 917 FDP_c 0.011 | bulk-null q<=0.05: 1525 FDP_c 0.049
+R02 2798389
+tool stage2_score                  N at FDP_c 0.5/1/1.5/2%: [1221, 1296, 1377, 1426] | plain q<=0.01: 1236 FDP_c 0.007 | plain q<=0.05: 1788 FDP_c 0.074 | bulk-null q<=0.01: 1115 FDP_c 0.002 | bulk-null q<=0.05: 1663 FDP_c 0.062
+replica byion                      N at FDP_c 0.5/1/1.5/2%: [1221, 1296, 1377, 1426] | plain q<=0.01: 1236 FDP_c 0.007 | plain q<=0.05: 1788 FDP_c 0.074 | bulk-null q<=0.01: 1115 FDP_c 0.002 | bulk-null q<=0.05: 1663 FDP_c 0.062
+byion+extraction                   N at FDP_c 0.5/1/1.5/2%: [1224, 1297, 1345, 1379] | plain q<=0.01: 1237 FDP_c 0.007 | plain q<=0.05: 1743 FDP_c 0.068 | bulk-null q<=0.01: 1067 FDP_c 0.002 | bulk-null q<=0.05: 1680 FDP_c 0.062
+byion+extraction-const             N at FDP_c 0.5/1/1.5/2%: [1164, 1295, 1378, 1395] | plain q<=0.01: 1250 FDP_c 0.008 | plain q<=0.05: 1768 FDP_c 0.072 | bulk-null q<=0.01: 1065 FDP_c 0.002 | bulk-null q<=0.05: 1640 FDP_c 0.058

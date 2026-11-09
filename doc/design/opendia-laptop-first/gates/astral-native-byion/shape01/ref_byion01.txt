@@ -1,0 +1,6 @@
+../stage2-byion-design/byion
+N at FDP_c 0.5/1/1.5/2%: [925, 1010, 1248, 1335]
+plain q<=0.01: 1068 FDP_c 0.013 q<=0.05: 1638 FDP_c 0.065
+bulk-null s0 q<=0.01: 939 FDP_c 0.006 q<=0.05: 1540 FDP_c 0.050
+bulk-null s1 q<=0.01: 939 FDP_c 0.006 q<=0.05: 1520 FDP_c 0.048
+bulk-null s2 q<=0.01: 939 FDP_c 0.006 q<=0.05: 1520 FDP_c 0.048

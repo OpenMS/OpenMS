@@ -233,3 +233,19 @@ The raw 02 bulk-null q≤0.05 FDP_c is 0.060–0.063 depending on standardisatio
 Remaining gaps:
 - **Raw 01 IDs:** 1029 against OSW 1151 at FDP_c 1%.
 - **Native 5% calibration:** borderline on raw 02. Native bulk-null q is not yet in the tool.
+
+**Native shape group (`-stage2_feature_set ...+shape`, commit `f98c0dca2c`): FAIL; it stays implemented and off (`gates/astral-native-byion/shape01`, `shape02`).** The group adds lagged xcorr, library dot product, Manhattan, RMSD and spectral angle, and S/N and signal shares over the boundary-group peak.
+
+Entrapment-matched N at FDP_c 1% against the byion base:
+- raw 01: 1010 → 1233;
+- raw 02: 1296 → **1222**.
+
+Calibration:
+- q ≤ 0.01 FDP_c rises to 0.020 on raw 02;
+- bulk-null q ≤ 0.05 is 0.068 / 0.073.
+
+The subgroup ablation pins this on **library agreement**. On raw 02 it moves q ≤ 0.01 to FDP_c 0.021, which bulk-null cannot repair. This is the CALIB section 8 mechanism: entrapment false targets are more library-like than decoys. Library-agreement scores mostly separate false targets from decoys, which a decoy-based error estimate cannot see.
+
+This also qualifies the earlier offline finding that library agreement is "the largest single group" (dropping it lost 40% of IDs). Part of that gain was this artefact.
+
+The extraction features add nothing either (`raw02/feature_union.txt`). **The native design stays at search+boundary+byion.**
