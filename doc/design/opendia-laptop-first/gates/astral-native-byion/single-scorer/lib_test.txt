@@ -1,0 +1,4 @@
+raw01 base entrapment-vs-decoy: log_matched_scans=0.531 transition_support=0.526 boundary_library_correlation=0.519 cnn_z=0.518 byion_b=0.491 stage2_score=0.500 | all-target-vs-decoy stage2=0.503 log_matched_scans=0.530
+raw01 k11  entrapment-vs-decoy: log_matched_scans=0.517 transition_support=0.512 boundary_library_correlation=0.516 cnn_z=0.513 byion_b=0.492 stage2_score=0.499 | all-target-vs-decoy stage2=0.502 log_matched_scans=0.517
+raw02 base entrapment-vs-decoy: log_matched_scans=0.531 transition_support=0.525 boundary_library_correlation=0.520 cnn_z=0.519 byion_b=0.490 stage2_score=0.500 | all-target-vs-decoy stage2=0.504 log_matched_scans=0.530
+raw02 k11  entrapment-vs-decoy: log_matched_scans=0.518 transition_support=0.511 boundary_library_correlation=0.517 cnn_z=0.513 byion_b=0.493 stage2_score=0.497 | all-target-vs-decoy stage2=0.501 log_matched_scans=0.517
