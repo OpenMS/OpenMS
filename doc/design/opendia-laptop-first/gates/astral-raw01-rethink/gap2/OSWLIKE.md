@@ -126,3 +126,23 @@ The decoy-family test re-extracted both runs with library RT calibrated per run 
 Trees are still the right model for the **bulk-null calibration weights** (`CALIB.md` section 9), where they are trained on about 180k bulk winners per class. With the MLP ensemble plus bulk-null weighted TDC, the q ≤ 0.01 FDP_c is 0.006 (raw 01) and 0.004 (raw 02), and the q ≤ 0.05 FDP_c is 0.050 and 0.055. Plain TDC gave 0.016/0.013 and 0.067/0.082.
 
 The raw 02 count gap to OSW+Percolator (1083 against 1287 at FDP_c 1%) is unchanged by this. It sits in ranking, not calibration.
+
+### Where the remaining count gap sits (`../decoyregen/gap_osw.py`, both runs, re-extracted XICs)
+
+This covers the human targets that OSW+Percolator exports at m_score ≤ 0.01 but our 5-seed MLP does not accept at entrapment FDP_c 1%. OSW's own export is about 3% anti-conservative (section 1 of `CALIB.md`), so part of this set is false.
+
+| Category | raw 02 | raw 01 | DIA-NN also IDs |
+|---|---|---|---|
+| Accepted by both | 954 | 961 | 0.98 |
+| Our winner is OSW's peak, scored below our cut | 398 | 354 | 0.92 |
+| OSW's peak is a candidate, but we pick another peak | 58 | 64 | 0.72–0.90 |
+| No candidate within 10 s of OSW's RT | 54 | 58 | 0.81–0.86 |
+| Not extracted | 2 | 2 | 0 |
+
+**Reading.**
+- About 75% of the misses (74–78%) have OSW's peak as our rank-1 candidate. They sit a median 3.5 decoy-MAD below our cut, and only 11–15% are within 1 MAD of it.
+- Most of these are real: 92% are DIA-NN IDs.
+- So the gap is in **score formation on the right peak**, not in candidate generation (about 11%) or peak choice (about 12%).
+- The 20 subscores, or how the model combines them, do not separate these peaks from decoys as well as OSW's scores do.
+
+**Next.** A diagnostic re-extraction of raw 02 that keeps OSW's feature table (`extract_feat02.sh`). It will compare OSW's subscores with ours on these 398 peaks, to locate the missing information. OSW's scores are used only to diagnose, never in our model.

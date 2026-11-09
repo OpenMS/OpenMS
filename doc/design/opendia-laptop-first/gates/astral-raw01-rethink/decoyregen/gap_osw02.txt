@@ -1,0 +1,9 @@
+run R02: our N at FDP_c 1% 1083; OSW human m_score<=0.01 1466, mapped 1.000
+                            n  dn_share  rank_med    gap_med
+cat                                                         
+accepted                  954  0.975891       1.0  -3.870416
+no candidate near OSW RT   54  0.814815       NaN        NaN
+not extracted               2  0.000000       NaN        NaN
+right winner, below cut   398  0.919598       1.0   3.503041
+wrong winner               58  0.896552       2.0  12.125217
+missed OSW human IDs: 512; of these with the OSW peak at our rank 1: 0.777; within 1 MAD of the cut: 0.148
