@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/MassAnalyzer.h>
+#include <OpenMS/CONCEPT/EnumHelpers.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <algorithm>
@@ -228,194 +229,92 @@ namespace OpenMS
 
   StringList MassAnalyzer::getAllNamesOfAnalyzerType()
   {
-    StringList names;
-    names.reserve(static_cast<size_t>(AnalyzerType::SIZE_OF_ANALYZERTYPE));
-    for (size_t i = 0; i < static_cast<size_t>(AnalyzerType::SIZE_OF_ANALYZERTYPE); ++i)
-    {
-      names.push_back(NamesOfAnalyzerType[i]);
-    }
-    return names;
+    return Helpers::enumNames(NamesOfAnalyzerType, AnalyzerType::SIZE_OF_ANALYZERTYPE);
   }
 
   StringList MassAnalyzer::getAllNamesOfResolutionMethod()
   {
-    StringList names;
-    names.reserve(static_cast<size_t>(ResolutionMethod::SIZE_OF_RESOLUTIONMETHOD));
-    for (size_t i = 0; i < static_cast<size_t>(ResolutionMethod::SIZE_OF_RESOLUTIONMETHOD); ++i)
-    {
-      names.push_back(NamesOfResolutionMethod[i]);
-    }
-    return names;
+    return Helpers::enumNames(NamesOfResolutionMethod, ResolutionMethod::SIZE_OF_RESOLUTIONMETHOD);
   }
 
   StringList MassAnalyzer::getAllNamesOfResolutionType()
   {
-    StringList names;
-    names.reserve(static_cast<size_t>(ResolutionType::SIZE_OF_RESOLUTIONTYPE));
-    for (size_t i = 0; i < static_cast<size_t>(ResolutionType::SIZE_OF_RESOLUTIONTYPE); ++i)
-    {
-      names.push_back(NamesOfResolutionType[i]);
-    }
-    return names;
+    return Helpers::enumNames(NamesOfResolutionType, ResolutionType::SIZE_OF_RESOLUTIONTYPE);
   }
 
   StringList MassAnalyzer::getAllNamesOfScanDirection()
   {
-    StringList names;
-    names.reserve(static_cast<size_t>(ScanDirection::SIZE_OF_SCANDIRECTION));
-    for (size_t i = 0; i < static_cast<size_t>(ScanDirection::SIZE_OF_SCANDIRECTION); ++i)
-    {
-      names.push_back(NamesOfScanDirection[i]);
-    }
-    return names;
+    return Helpers::enumNames(NamesOfScanDirection, ScanDirection::SIZE_OF_SCANDIRECTION);
   }
 
   StringList MassAnalyzer::getAllNamesOfScanLaw()
   {
-    StringList names;
-    names.reserve(static_cast<size_t>(ScanLaw::SIZE_OF_SCANLAW));
-    for (size_t i = 0; i < static_cast<size_t>(ScanLaw::SIZE_OF_SCANLAW); ++i)
-    {
-      names.push_back(NamesOfScanLaw[i]);
-    }
-    return names;
+    return Helpers::enumNames(NamesOfScanLaw, ScanLaw::SIZE_OF_SCANLAW);
   }
 
   StringList MassAnalyzer::getAllNamesOfReflectronState()
   {
-    StringList names;
-    names.reserve(static_cast<size_t>(ReflectronState::SIZE_OF_REFLECTRONSTATE));
-    for (size_t i = 0; i < static_cast<size_t>(ReflectronState::SIZE_OF_REFLECTRONSTATE); ++i)
-    {
-      names.push_back(NamesOfReflectronState[i]);
-    }
-    return names;
+    return Helpers::enumNames(NamesOfReflectronState, ReflectronState::SIZE_OF_REFLECTRONSTATE);
   }
 
   const std::string& MassAnalyzer::analyzerTypeToString(AnalyzerType type)
   {
-    if (type == AnalyzerType::SIZE_OF_ANALYZERTYPE)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_ANALYZERTYPE");
-    }
-    return NamesOfAnalyzerType[static_cast<size_t>(type)];
+    return Helpers::enumToName(NamesOfAnalyzerType, type, AnalyzerType::SIZE_OF_ANALYZERTYPE, "SIZE_OF_ANALYZERTYPE", OPENMS_PRETTY_FUNCTION);
   }
 
   MassAnalyzer::AnalyzerType MassAnalyzer::toAnalyzerType(const std::string& name)
   {
-    auto first = &NamesOfAnalyzerType[0];
-    auto last = &NamesOfAnalyzerType[static_cast<size_t>(AnalyzerType::SIZE_OF_ANALYZERTYPE)];
-    const auto it = std::find(first, last, name);
-    if (it == last)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
-    }
-    return static_cast<AnalyzerType>(it - first);
+    return Helpers::enumFromName(NamesOfAnalyzerType, AnalyzerType::SIZE_OF_ANALYZERTYPE, name, "Value unknown", OPENMS_PRETTY_FUNCTION);
   }
 
   const std::string& MassAnalyzer::resolutionMethodToString(ResolutionMethod method)
   {
-    if (method == ResolutionMethod::SIZE_OF_RESOLUTIONMETHOD)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_RESOLUTIONMETHOD");
-    }
-    return NamesOfResolutionMethod[static_cast<size_t>(method)];
+    return Helpers::enumToName(NamesOfResolutionMethod, method, ResolutionMethod::SIZE_OF_RESOLUTIONMETHOD, "SIZE_OF_RESOLUTIONMETHOD", OPENMS_PRETTY_FUNCTION);
   }
 
   MassAnalyzer::ResolutionMethod MassAnalyzer::toResolutionMethod(const std::string& name)
   {
-    auto first = &NamesOfResolutionMethod[0];
-    auto last = &NamesOfResolutionMethod[static_cast<size_t>(ResolutionMethod::SIZE_OF_RESOLUTIONMETHOD)];
-    const auto it = std::find(first, last, name);
-    if (it == last)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
-    }
-    return static_cast<ResolutionMethod>(it - first);
+    return Helpers::enumFromName(NamesOfResolutionMethod, ResolutionMethod::SIZE_OF_RESOLUTIONMETHOD, name, "Value unknown", OPENMS_PRETTY_FUNCTION);
   }
 
   const std::string& MassAnalyzer::resolutionTypeToString(ResolutionType type)
   {
-    if (type == ResolutionType::SIZE_OF_RESOLUTIONTYPE)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_RESOLUTIONTYPE");
-    }
-    return NamesOfResolutionType[static_cast<size_t>(type)];
+    return Helpers::enumToName(NamesOfResolutionType, type, ResolutionType::SIZE_OF_RESOLUTIONTYPE, "SIZE_OF_RESOLUTIONTYPE", OPENMS_PRETTY_FUNCTION);
   }
 
   MassAnalyzer::ResolutionType MassAnalyzer::toResolutionType(const std::string& name)
   {
-    auto first = &NamesOfResolutionType[0];
-    auto last = &NamesOfResolutionType[static_cast<size_t>(ResolutionType::SIZE_OF_RESOLUTIONTYPE)];
-    const auto it = std::find(first, last, name);
-    if (it == last)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
-    }
-    return static_cast<ResolutionType>(it - first);
+    return Helpers::enumFromName(NamesOfResolutionType, ResolutionType::SIZE_OF_RESOLUTIONTYPE, name, "Value unknown", OPENMS_PRETTY_FUNCTION);
   }
 
   const std::string& MassAnalyzer::scanDirectionToString(ScanDirection direction)
   {
-    if (direction == ScanDirection::SIZE_OF_SCANDIRECTION)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_SCANDIRECTION");
-    }
-    return NamesOfScanDirection[static_cast<size_t>(direction)];
+    return Helpers::enumToName(NamesOfScanDirection, direction, ScanDirection::SIZE_OF_SCANDIRECTION, "SIZE_OF_SCANDIRECTION", OPENMS_PRETTY_FUNCTION);
   }
 
   MassAnalyzer::ScanDirection MassAnalyzer::toScanDirection(const std::string& name)
   {
-    auto first = &NamesOfScanDirection[0];
-    auto last = &NamesOfScanDirection[static_cast<size_t>(ScanDirection::SIZE_OF_SCANDIRECTION)];
-    const auto it = std::find(first, last, name);
-    if (it == last)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
-    }
-    return static_cast<ScanDirection>(it - first);
+    return Helpers::enumFromName(NamesOfScanDirection, ScanDirection::SIZE_OF_SCANDIRECTION, name, "Value unknown", OPENMS_PRETTY_FUNCTION);
   }
 
   const std::string& MassAnalyzer::scanLawToString(ScanLaw law)
   {
-    if (law == ScanLaw::SIZE_OF_SCANLAW)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_SCANLAW");
-    }
-    return NamesOfScanLaw[static_cast<size_t>(law)];
+    return Helpers::enumToName(NamesOfScanLaw, law, ScanLaw::SIZE_OF_SCANLAW, "SIZE_OF_SCANLAW", OPENMS_PRETTY_FUNCTION);
   }
 
   MassAnalyzer::ScanLaw MassAnalyzer::toScanLaw(const std::string& name)
   {
-    auto first = &NamesOfScanLaw[0];
-    auto last = &NamesOfScanLaw[static_cast<size_t>(ScanLaw::SIZE_OF_SCANLAW)];
-    const auto it = std::find(first, last, name);
-    if (it == last)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
-    }
-    return static_cast<ScanLaw>(it - first);
+    return Helpers::enumFromName(NamesOfScanLaw, ScanLaw::SIZE_OF_SCANLAW, name, "Value unknown", OPENMS_PRETTY_FUNCTION);
   }
 
   const std::string& MassAnalyzer::reflectronStateToString(ReflectronState state)
   {
-    if (state == ReflectronState::SIZE_OF_REFLECTRONSTATE)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_REFLECTRONSTATE");
-    }
-    return NamesOfReflectronState[static_cast<size_t>(state)];
+    return Helpers::enumToName(NamesOfReflectronState, state, ReflectronState::SIZE_OF_REFLECTRONSTATE, "SIZE_OF_REFLECTRONSTATE", OPENMS_PRETTY_FUNCTION);
   }
 
   MassAnalyzer::ReflectronState MassAnalyzer::toReflectronState(const std::string& name)
   {
-    auto first = &NamesOfReflectronState[0];
-    auto last = &NamesOfReflectronState[static_cast<size_t>(ReflectronState::SIZE_OF_REFLECTRONSTATE)];
-    const auto it = std::find(first, last, name);
-    if (it == last)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
-    }
-    return static_cast<ReflectronState>(it - first);
+    return Helpers::enumFromName(NamesOfReflectronState, ReflectronState::SIZE_OF_REFLECTRONSTATE, name, "Value unknown", OPENMS_PRETTY_FUNCTION);
   }
 
 }
