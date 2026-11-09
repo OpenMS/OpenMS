@@ -117,6 +117,15 @@ option(HAS_XSERVER "Build the full documentation with the default target (OFF: o
 option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
 option(BUILD_TOPP_TOOLS "Build the TOPP command-line applications." ON)
 option(INSTALL_OPENMS_EXAMPLES "Install the OpenMS example data." ON)
+## WITH_GUI was removed when the Qt GUI moved to OpenMS-TOPP-GUI. Stop instead of
+## ignoring it: a build that asked for the GUI would otherwise succeed without it.
+## OFF is accepted, so callers that switch the GUI off keep working.
+if(WITH_GUI)
+  message(FATAL_ERROR
+    "WITH_GUI was removed: TOPPView, TOPPAS, INIFileEditor, ExecutePipeline and ImageCreator "
+    "are built by https://github.com/OpenMS/OpenMS-TOPP-GUI against an installed OpenMS. "
+    "Drop -DWITH_GUI=ON. A build directory that still has the option cached needs 'cmake -U WITH_GUI'.")
+endif()
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
 option(OPENMS_ENABLE_MZPEAK "Build with mzPeak (HUPO-PSI Parquet-based raw data format) support via the vendored mzPeak library (needs Arrow/Parquet, which OpenMS requires anyway)" ON)

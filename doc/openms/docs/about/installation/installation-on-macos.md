@@ -10,6 +10,10 @@ macOS
 The installer needs macOS 15 (Sequoia) or newer on a Mac with Apple silicon. OpenMS 3.5 was the
 last release for Macs with Intel processors.
 
+The installer installs OpenMS for all users into `/Applications` (or onto another volume), so it
+needs an administrator account. Installing only for the current user (`~/Applications`) is not
+offered: the installer of the graphical tools installs into the same folder.
+
 To install OpenMS on macOS, run the following steps:
 
 1. Download and install the macOS drag-and-drop installer from the [archive](https://archive.openms.de/openms/OpenMSInstaller/release/latest/).
