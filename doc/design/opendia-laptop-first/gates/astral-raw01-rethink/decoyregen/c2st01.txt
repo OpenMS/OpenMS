@@ -1,0 +1,4 @@
+run R01: C2ST AUC entrapment vs decoy winners 0.5561 (n e 136132, d 272327)
+  permutation AUC drop: log_width 0.0182, lib_corr 0.0093, log_sn 0.0091, intensity 0.0055, lib_manhattan 0.0048, xcorr_coel_w 0.0038, lib_rmsd 0.0032, xcorr_shape_w 0.0030
+  5% S_e/S_d raw 1.66 [1.32,2.01] -> density-ratio reweighted 1.28 [1.02,1.54] | weight max 11.4, ESS 256902
+  C2ST AUC within winners above the q<=0.20 cut: 0.515 (n e 354, d 495)

@@ -1,0 +1,9 @@
+ion mix of top-6 (share):
+ion            b1     b2     b3    b4+    y1     y2     y3    y4+
+row_0                                                            
+decoy       0.002  0.058  0.029  0.200  0.02  0.027  0.037  0.626
+entrapment  0.002  0.058  0.029  0.201  0.02  0.028  0.037  0.625
+human       0.002  0.059  0.030  0.199  0.02  0.026  0.037  0.627
+seed0: commonness mean e 0.513 d 0.438 AUC 0.562 | frac<300Th e 0.118 d 0.118 | 5% S_e/S_d 1.66 [1.32,2.01] -> reweighted 1.49 [1.18,1.80] | excess removed 0.26
+seed1: commonness mean e 0.513 d 0.438 AUC 0.562 | frac<300Th e 0.118 d 0.118 | 5% S_e/S_d 1.50 [1.17,1.83] -> reweighted 1.37 [1.07,1.67] | excess removed 0.27
+seed2: commonness mean e 0.513 d 0.438 AUC 0.562 | frac<300Th e 0.118 d 0.118 | 5% S_e/S_d 1.41 [1.10,1.73] -> reweighted 1.26 [0.98,1.54] | excess removed 0.37

@@ -1,0 +1,4 @@
+run R02: library commonness mean target 0.792 decoy O 0.668 | bin weights [0.59, 0.76, 0.83, 0.85, 0.92, 1.0, 1.12, 1.27, 1.48, 1.54]
+seed0: plain q<=0.01: 1137 FDP_c 0.019, q<=0.05: 1638 FDP_c 0.073 | weighted q<=0.01: 1137 FDP_c 0.019, q<=0.05: 1608 FDP_c 0.068
+seed1: plain q<=0.01: 1017 FDP_c 0.008, q<=0.05: 1607 FDP_c 0.079 | weighted q<=0.01: 939 FDP_c 0.006, q<=0.05: 1586 FDP_c 0.075
+seed2: plain q<=0.01: 1048 FDP_c 0.010, q<=0.05: 1577 FDP_c 0.070 | weighted q<=0.01: 1041 FDP_c 0.010, q<=0.05: 1524 FDP_c 0.067

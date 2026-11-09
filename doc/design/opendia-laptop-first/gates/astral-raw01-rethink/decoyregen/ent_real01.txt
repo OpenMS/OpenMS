@@ -1,0 +1,4 @@
+run R01: DIA-NN 1% IDs 82360, entrapment 297 (0.0036)
+seed0: entrapment tail 64 | DIA-NN ID: tail 0.000 bulk 0.0001 | same RT (10 s): tail 0.000 (0) bulk 0.0000 | 5% S_e/S_d 1.66 [1.32,2.01] -> without same-RT DIA-NN entrapment 1.66 [1.32,2.01]
+seed1: entrapment tail 57 | DIA-NN ID: tail 0.000 bulk 0.0001 | same RT (10 s): tail 0.000 (0) bulk 0.0000 | 5% S_e/S_d 1.50 [1.17,1.83] -> without same-RT DIA-NN entrapment 1.50 [1.17,1.83]
+seed2: entrapment tail 55 | DIA-NN ID: tail 0.000 bulk 0.0001 | same RT (10 s): tail 0.000 (0) bulk 0.0000 | 5% S_e/S_d 1.41 [1.10,1.73] -> without same-RT DIA-NN entrapment 1.41 [1.10,1.73]

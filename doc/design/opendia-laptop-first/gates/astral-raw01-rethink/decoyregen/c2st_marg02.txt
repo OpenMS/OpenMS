@@ -1,0 +1,9 @@
+run R02
+  log_width      median e 2.4336 d 2.2925 AUC 0.532 | above q<=0.20: e 2.4423 d 2.4423
+  lib_corr       median e -0.1261 d -0.1591 AUC 0.522 | above q<=0.20: e 0.5635 d 0.5290
+  log_sn         median e 1.6399 d 1.5697 AUC 0.506 | above q<=0.20: e 4.1376 d 4.1685
+  intensity      median e 0.1114 d 0.1144 AUC 0.490 | above q<=0.20: e 0.1275 d 0.1374
+  xcorr_coel_w   median e 2.7547 d 2.7837 AUC 0.471 | above q<=0.20: e 1.0860 d 1.1232
+  lib_manhattan  median e 1.2094 d 1.2380 AUC 0.473 | above q<=0.20: e 0.3266 d 0.3445
+  norm_rt        median e 38.2118 d 37.6118 AUC 0.504 | above q<=0.20: e 25.9757 d 28.6959
+  low-S/N winners: log_width median e 2.4423 d 2.2925 AUC 0.550

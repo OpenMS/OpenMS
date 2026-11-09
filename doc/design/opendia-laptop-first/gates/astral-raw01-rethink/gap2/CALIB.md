@@ -165,6 +165,67 @@ The raw 01 outputs are `score01_seed.txt`, `s_tail01.txt`, `score3_01.txt` and `
 - The seed fallback and the clean-pair, stratum and MS1 analyses are post-hoc (each reading was declared before its own run).
 - S_e/S_d counts in the tail are small (tens of entrapment winners).
 
+## 7. Co-eluting real signal (chimera) test: rejected (`../decoyregen/chimera.py`)
+
+**Hypothesis.** False targets (entrapment) pick up fragment signal from co-eluting real peptides more often than decoys do.
+
+**Measure.** For every winner (family O, full set, MLP seeds 0/1/2), k is the number of its top-6 library fragments within ±17 ppm of a theoretical b/y ion of a co-eluting real precursor. The real precursors are the DIA-NN Q ≤ 0.01 IDs of that run: about 82k, used as a diagnostic map only. Co-eluting means the same 2 Th isolation window, with the winner's apex inside that precursor's RT.Start to RT.Stop ± 5 s. The decoy winners are then reweighted to the entrapment k distribution, and S_e/S_d is recomputed at the q ≤ 0.05 cut. The reading was declared before running: the hypothesis is supported if the reweighting removes at least half the excess, with its band including 1, for ≥ 2 of 3 seeds on both runs.
+
+| | k ≥ 1 share, entrapment / decoy | 5% S_e/S_d pooled → reweighted (seeds 0/1/2) | excess removed |
+|---|---|---|---|
+| raw 01 | 0.356–0.369 / 0.319–0.331 | 1.66→1.60, 1.50→1.45, 1.41→1.36 | 0.10–0.11 |
+| raw 02 | 0.364–0.370 / 0.327–0.334 | 1.46→1.40, 1.60→1.54, 1.41→1.35 | 0.10–0.15 |
+
+**Result.** A small mechanism exists: entrapment winners overlap co-eluting real peptides 3.7 points more often than decoys, consistently. But it explains only 10–15% of the excess, and every reweighted band stays above 1. On raw 02 the excess is largest in the k = 0 stratum (1.75–1.93), the winners with no overlap at all. **Rejected on both runs.**
+
+**Limits.**
+- Only DIA-NN-identified peptides are mapped. Unidentified co-eluting signal and non-b/y ions are not.
+- The window grid is approximate.
+- Fragments come from theory, not observed spectra.
+
+### Where this leaves the diagnosis
+
+Rejected or minor (each at most about 15% of the excess):
+- single features;
+- I/L;
+- the precursor mass shift and decoy sequence rule (section 6);
+- borrowed signal;
+- dead low-m/z slots;
+- entrapment stratum mismatch;
+- library-intensity features;
+- chimeric co-elution with identified peptides.
+
+What remains:
+- The excess (decoy-count estimate about 1.4–1.7× too optimistic in the 5% tail) is robust over the decoy family, the ranker (LDA and MLP) and both runs.
+- DIA-NN, on the same raws and with its own library and decoys, reaches FDP_c 0.007 at its 1% cut.
+
+Untested candidates:
+1. **The library itself.** Entrapment and human targets share the same predicted RT/intensity model. Decoys inherit their target's RT and ordinal intensities, though, so their norm_rt and library-match features follow the target's prediction quality, not that of a random sequence. The library-feature ablation (section 5) moved the excess only on raw 02.
+2. **Entrapment that is not false.** S_e/S_d is computed on precursor winners before any target-decoy competition, so the pairing in the TDC cannot explain it. If a few entrapment peptides are actually present in the sample, or match real peptides, they would inflate the small entrapment tail counts (tens) directly. Examples are sequences identical to human peptides under a modification or isobaric substitution, and contaminants. Test: do the tail entrapment winners coincide with DIA-NN entrapment IDs at the same RT more often than the bulk do?
+
+Candidate 2 is tested in section 8.
+
+## 8. Entrapment truth, feature-space separability and fragment commonness (`../decoyregen/`)
+
+**Entrapment that is not false: rejected (`ent_real.py`).** DIA-NN reports 297 entrapment IDs per run at Q ≤ 0.01, a rate of 0.0036. Of our 55–64 tail entrapment winners, DIA-NN also reports at most 1 (0–1.8%). Removing those moves the 5% S_e/S_d by 0.00–0.03, and every band stays above 1 on both runs.
+
+**Classifier two-sample test (`c2st.py`, diagnostic, uses entrapment labels).** A gradient-boosted classifier tells entrapment winners from decoy winners on the 20 subscores with out-of-fold AUC **0.556 on both runs**. The features carrying it are log_width, lib_corr, log_sn, intensity and xcorr_coel_w. Entrapment winners are wider (median log_width 2.43 against 2.29) and have slightly higher library correlation. Reweighting decoy winners by the out-of-fold density ratio brings the 5% S_e/S_d from 1.46 to 1.10 [0.87, 1.34] on raw 02, and from 1.66 to 1.28 [1.02, 1.54] on raw 01. Within winners above the q ≤ 0.20 cut, though, the AUC is 0.50–0.52. So most of the difference is a weak, bulk shift in what false targets look like, not something visible only in the tail. Entrapment winners look like broader, more library-like background than decoy winners do.
+
+**Fragment commonness (`commonness.py`, reading declared before running).** Commonness is the mean log count of human-library top-6 fragments (same 2 Th window, ±17 ppm) matching a precursor's top-6 fragments. Entrapment top-6 fragments are more common than decoy fragments: 0.513 against 0.438, AUC 0.562 on both runs. Ion-type mix and the share below 300 Th are identical (0.118). Reweighting decoy winners to the entrapment commonness distribution removes 15–29% (raw 02) and 26–37% (raw 01) of the 5% excess. Only one band out of six reaches 1. The declared rule needed half, so it is **not supported as the main cause, but it is the largest single label-free factor found so far.** The reason for the difference is not resolved here. Real tryptic peptides share sub-sequences, and so b/y ions, with other real peptides more than reversed sequences do; this fits the result but is not tested.
+
+**Label-free mitigation, commonness-weighted TDC (`com_tdc.py`, rule declared before running): FAIL.** Each decoy is counted with weight P_target(bin)/P_decoy(bin) over the library's commonness distribution. This uses no run data and no entrapment labels: library mean 0.792 for targets against 0.668 for decoys, with weights 0.59–1.54. Results:
+- q ≤ 0.05 FDP_c: 0.068 / 0.075 / 0.067 (raw 02) and 0.066 / 0.070 / 0.060 (raw 01), against 0.070–0.081 unweighted.
+- q ≤ 0.01 FDP_c: 0.019 / 0.006 / 0.010 and 0.007 / 0.008 / 0.013.
+
+The rule needed q ≤ 0.05 FDP_c ≤ 0.06 for ≥ 2 of 3 seeds on both runs. It moves in the right direction, with a cost of 0–8% of IDs at q ≤ 0.01.
+
+**Where this leaves it.** The anti-conservativeness is a weak, broad difference between false targets and decoys. False targets look more like real peptides: more common fragments, wider and more library-like background peaks. No single library or run property tested explains more than about a third of it, and the decoy sequence rule does not explain it. A label-free correction based on fragment commonness recovers about a quarter. For the native pipeline, the honest options are:
+1. Decoys that match target fragment commonness: generate candidate decoys and select or weight them by commonness against the target library. This is the direct form of the weighting above.
+2. A calibration margin in the reported q, validated by entrapment on design runs.
+3. Accept the decoy-count estimate as anti-conservative at 5% and report entrapment FDP_c beside it.
+
+None of these is implemented.
+
 ## Reading
 
 1. The anti-conservativeness is a property of **decoy winners under-representing false targets in the score tail**, by about 1.1–1.6×. The pipeline's ranker only adds to it. OSW+Percolator, with the same decoys, is worse: invalid even by the lower bound. No ranker change alone has fixed it. At 1% our scorer sits in the inconclusive zone between the entrapment bounds (section 1). The cause is still unidentified. These have been checked and are not it: single features, I/L, the precursor mass shift, borrowed signal (weak), dead low-m/z slots, entrapment stratum mismatch (each about 5% at most), and library-intensity features (raw 02 partly, raw 01 not).
