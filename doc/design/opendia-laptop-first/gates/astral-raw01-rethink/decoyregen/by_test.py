@@ -14,7 +14,8 @@ def select(idx, score, fdr):
         w = S.winners(idx, score); tw = w[~S.dec[w]]; pos = tw[np.argsort(-score[tw], kind='stable')[:200]]
     return pos, neg
 S.select = select
-BY = np.load(os.environ['JCODE_SCRATCH_DIR'] + '/xic' + os.environ['OPENDIA_RUN'] + '/by_feats.npy')
+BYSET = os.environ.get('BY_SET', 'feats')  # 'feats' (v1 fractions) or 'counts' (v2 integer counts, declared after by_vs_osw02.txt)
+BY = np.load(os.environ['JCODE_SCRATCH_DIR'] + '/xic' + os.environ['OPENDIA_RUN'] + ('/by_feats.npy' if BYSET == 'feats' else '/by_counts.npy'))
 meta = S.m; fam = meta.family.values; keep = (fam == 'T') | (fam == 'O')
 for k_, v in {k: getattr(S, k).copy() for k in ('X0', 'prec', 'dec', 'fold', 'pair', 'entr', 'right')}.items(): setattr(S, k_, v[keep])
 BY = BY[keep]; X0, N0 = S.X0.copy(), list(S.NAMES)
@@ -45,6 +46,6 @@ def qreport(sc, X):
     return ' | '.join(out)
 print(f'run {os.environ["OPENDIA_RUN"]}', flush=True)
 s0 = ens(X0, N0); print(f'ours            matched N {matched(s0)}', flush=True)
-BN = ['by_nb', 'by_ny', 'by_run', 'by_int']
+BN = ['by_nb', 'by_ny', 'by_run', 'by_int'] if BYSET == 'feats' else ['by_count_b', 'by_count_y']
 s1 = ens(np.c_[X0, BY], N0 + BN); print(f'ours + own b/y  matched N {matched(s1)}', flush=True)
 print(f'ours + own b/y  {qreport(s1, np.c_[X0, BY])}', flush=True)

@@ -1,0 +1,4 @@
+run R01
+ours            matched N [1035, 1101, 1136, 1296]
+ours + own b/y  matched N [1000, 1269, 1375, 1439]
+ours + own b/y  plain q<=0.01: 1308 FDP_c 0.014, q<=0.05: 1655 FDP_c 0.057 | bulk-null q<=0.01: 1226 FDP_c 0.007, q<=0.05: 1568 FDP_c 0.040

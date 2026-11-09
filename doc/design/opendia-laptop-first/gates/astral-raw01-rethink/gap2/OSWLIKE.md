@@ -195,3 +195,19 @@ The reading passes on both runs. With series plus flag, bulk-null TDC q ≤ 0.05
 - A raw count grows with peptide length when the match is real. Charge-2 ions and the wider tolerance add random matches.
 
 Next: our own count-based variant (charge 1, 10 ppm, intensity floor, apex spectrum only). The information is the same as OSW's; the implementation is our own.
+
+**Own b/y count features, v2: PASS (`by_feats.py` v2, `BY_SET=counts by_test.py`, `by_cnt01.txt`, `by_cnt02.txt`).** Two features: integer counts of matched b and y ions, fragment charge 1 only, nearest peak within 10 ppm, intensity > 300, apex spectrum only. They are computed by our own numba code from the mzML. No OSW scores are used.
+
+| run | ours, FDP_c 1% | + own counts | OSW series (diagnostic) | bulk-null q≤0.05 FDP_c | bulk-null q≤0.01 N / FDP_c |
+|---|---|---|---|---|---|
+| raw 02 | 1083 | **1338 (+23.5%)** | 1291 | 0.054 | 1248 / 0.005 |
+| raw 01 | 1101 | **1269 (+15.3%)** | 1242 | 0.040 | 1226 / 0.007 |
+
+- The predeclared rule (≥ 5% on both runs, bulk-null q ≤ 0.05 FDP_c ≤ 0.06) passes.
+- On both runs, our counts beat both OSW's series features and OSW itself (1287 on raw 02).
+- Honest limit: at FDP_c 0.5%, raw 01 drops slightly (1035 → 1000) while raw 02 rises (1008 → 1286).
+- Plain TDC stays anti-conservative at q ≤ 0.05 (0.070 / 0.057), so bulk-null stays the primary q.
+- Cost: about 2.5 min per run to stream the mzML.
+- Lesson: for the ranking head, the information is in **absolute counts at a tight tolerance on the apex spectrum**. Length-normalised fractions with charge-2 ions and a wider tolerance dilute it.
+
+Native recommendation: add apex-spectrum b/y count subscores (fragment charge 1, 10 ppm, intensity floor) to OpenDIA's scoring as part of the single model.

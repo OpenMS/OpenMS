@@ -7,6 +7,8 @@ nearest to the apex and its two neighbours (apex +- 1 cycle). In each, match all
   by_int: matched-ion intensity / total spectrum intensity (TIC share).
 Spectra are streamed from mzML once; candidates are bucketed by isolation window.
 Output: $JCODE_SCRATCH_DIR/xicR{RUN}/by_feats.npy, aligned with oswlike_X.npy rows.
+v2 also writes by_counts.npy: integer counts of matched b and y ions, fragment charge 1 only, nearest peak within 10 ppm
+and intensity > 300, in the apex spectrum only (count variant; by_vs_osw02.txt motivates it).
 Usage: OPENDIA_RUN=R02."""
 import os, re, sys, base64, sqlite3, time, numpy as np, pandas as pd, numba as nb
 RUN = os.environ['OPENDIA_RUN']; S = os.environ['JCODE_SCRATCH_DIR'] + '/xic' + RUN
@@ -32,7 +34,7 @@ for k, p in enumerate(up):
     b = np.cumsum(r)[:-1]; y = np.cumsum(r[::-1])[:-1] + H2O; idx = np.arange(1, n)
     rows = []
     for z in (1, 2):
-        rows.append(np.c_[(b + z * PROTON) / z, np.zeros(n - 1), idx]); rows.append(np.c_[(y + z * PROTON) / z, np.ones(n - 1), n - idx])
+        rows.append(np.c_[(b + z * PROTON) / z, np.zeros(n - 1), idx, np.full(n - 1, z)]); rows.append(np.c_[(y + z * PROTON) / z, np.ones(n - 1), n - idx, np.full(n - 1, z)])
     a = np.vstack(rows); a = a[(a[:, 0] >= 150.06) & (a[:, 0] <= 2000)]
     ions.append(a); ION_OFF[k + 1] = ION_OFF[k] + len(a)
 ION = np.vstack(ions); kof = np.searchsorted(up, pid)
@@ -71,32 +73,41 @@ for w in range(len(wins)):
     j = np.where(np.abs(spec_rt[so][j - 1] - apex[cand]) < np.abs(spec_rt[so][j] - apex[cand]), j - 1, j)
     for d in (-1, 0, 1):
         jj = np.clip(j + d, 0, len(so) - 1)
-        for ci, s in zip(cand, so[jj]): need.setdefault(int(s), []).append(int(ci))
+        for ci, s in zip(cand, so[jj]): need.setdefault(int(s), []).append((int(ci), d == 0))
 print(f'spectra needed {len(need)}', flush=True)
 
 @nb.njit(cache=True)
-def score_spec(mz, inten, cands, kof, ION, ION_OFF, LEN, acc):
+def score_spec(mz, inten, cands, kof, ION, ION_OFF, LEN, acc, centre, cnt):
     tic = inten.sum() + 1e-9
-    for ci in cands:
+    for q in range(len(cands)):
+        ci = cands[q]
         k = kof[ci]; a, b = ION_OFF[k], ION_OFF[k + 1]; n = LEN[k]
-        covered = np.zeros(n + 1, np.bool_); nb_ = 0; ny_ = 0; tb = 0; ty = 0; mi = 0.0
+        covered = np.zeros(n + 1, np.bool_); nb_ = 0; ny_ = 0; tb = 0; ty = 0; mi = 0.0; cb = 0; cy = 0
         for t in range(a, b):
             f = ION[t, 0]; tol = 17e-6 * f
-            j = np.searchsorted(mz, f - tol); hit = False; best = 0.0
+            j = np.searchsorted(mz, f - tol); hit = False; best = 0.0; bestppm = 1e9; bestint = 0.0
             while j < len(mz) and mz[j] <= f + tol:
-                hit = True; best = max(best, inten[j]); j += 1
+                hit = True; best = max(best, inten[j])
+                pp = abs(mz[j] - f) / f * 1e6
+                if pp < bestppm: bestppm = pp; bestint = inten[j]
+                j += 1
             if ION[t, 1] == 0: tb += 1
             else: ty += 1
             if hit:
                 if ION[t, 1] == 0: nb_ += 1
                 else: ny_ += 1
                 covered[int(ION[t, 2])] = True; mi += best
+                # count variant: fragment charge 1 only (ION[t, 3]), nearest peak within 10 ppm, intensity floor
+                if centre[q] and ION[t, 3] == 1 and bestppm <= 10.0 and bestint > 300.0:
+                    if ION[t, 1] == 0: cb += 1
+                    else: cy += 1
         run = 0; br = 0
         for i in range(1, n):
             if covered[i]: run += 1; br = max(br, run)
             else: run = 0
         acc[ci, 0] += nb_ / max(tb, 1); acc[ci, 1] += ny_ / max(ty, 1); acc[ci, 2] += br / max(n - 1, 1); acc[ci, 3] += mi / tic; acc[ci, 4] += 1
-acc = np.zeros((len(pid), 5)); t0 = time.time(); ordn = -1
+        if centre[q]: cnt[ci, 0] = cb; cnt[ci, 1] = cy
+acc = np.zeros((len(pid), 5)); cnt = np.zeros((len(pid), 2)); t0 = time.time(); ordn = -1
 def decode(s, tag):
     blk = re.search(rb'name="' + tag + rb' array".*?name="(64|32)-bit float".*?<binary>([^<]*)</binary>', s, re.S)
     return np.frombuffer(base64.b64decode(blk.group(2)), dtype=np.float64 if blk.group(1) == b'64' else np.float32).astype(np.float64)
@@ -115,9 +126,9 @@ with open(MZML, 'rb') as fh:
             cl = need.get(ordn)
             if cl is None: continue
             mz = decode(s, b'm/z'); it = decode(s, b'intensity'); o = np.argsort(mz)
-            score_spec(mz[o], it[o], np.array(cl, np.int64), kof, ION, ION_OFF, LEN, acc)
+            score_spec(mz[o], it[o], np.array([x[0] for x in cl], np.int64), kof, ION, ION_OFF, LEN, acc, np.array([x[1] for x in cl], np.bool_), cnt)
         buf = buf[last + 11:]
 F = acc[:, :4] / np.maximum(acc[:, 4:5], 1)
-np.save(S + '/by_feats.npy', F.astype(np.float32))
+np.save(S + '/by_feats.npy', F.astype(np.float32)); np.save(S + '/by_counts.npy', cnt.astype(np.float32))
 dec = m.decoy.values.astype(bool); right = m.right.values
 print(f'done in {time.time() - t0:.0f} s | mean by_ny: right {F[right, 1].mean():.3f}, other targets {F[(~dec) & (~right), 1].mean():.3f}, decoys {F[dec, 1].mean():.3f}', flush=True)
