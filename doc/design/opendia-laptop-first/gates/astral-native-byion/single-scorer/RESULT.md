@@ -131,7 +131,7 @@ This measures whether a score separates two kinds of false winners: entrapment t
 | TOPAZ L1 | 0.524 / 0.524 / 0.523 | 0.519 / 0.524 / 0.525 |
 | TOPAZ A1 | 0.523 / 0.525 / 0.525 | 0.523 / 0.527 / 0.528 |
 
-**Every TOPAZ logit scores false targets above decoys** (AUC 0.52). It has learned decoy-specific features, which explains the anti-conservative q in every arm.
+**Every TOPAZ logit scores false targets above decoys** (AUC 0.52). It has learned decoy-specific features. This is consistent with its anti-conservative q at 1%, but it is not a full explanation: the LDA has a global AUC of 0.50 and is still anti-conservative at 5% (FDP_c 0.065 / 0.074). The global AUC does not resolve the upper tail.
 
 The LDA is at 0.50, even though one of its inputs is the CNN logit. A linear refit on decoy winners is what removes the decoy-ness.
 
