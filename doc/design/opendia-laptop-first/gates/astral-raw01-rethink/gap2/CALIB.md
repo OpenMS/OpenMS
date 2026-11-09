@@ -346,3 +346,10 @@ Next directions:
 - The predeclared effect criterion (q ≤ 0.01 ≥ 694) was not met.
 
 Training on decoy windows as negatives fixes the target ranking. The TOPAZ logit still does not give calibrated decoy-based q.
+
+**Round 4 (`PLAN4.md`, N1 + `-topaz_linear_head`): FAIL.**
+- N@1%: 553 / 495 (N1 had 950 / 893).
+- q ≤ 0.05 FDP_c: 0.064 / 0.037. This is closer to 0.05 on both raws, so the predeclared calibration criterion is met.
+- Raw 02 q ≤ 0.01 FDP_c is 0.020.
+
+A single TOPAZ logit traded ranking (MLP head) against 5% calibration (linear head). No arm got both. Held-out seed AUC was 1.0 in every arm.

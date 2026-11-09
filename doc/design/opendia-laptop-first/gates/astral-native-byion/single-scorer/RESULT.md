@@ -70,10 +70,35 @@ The ranking still changed a lot. N@1% went from 13 to 950 on raw 01, and to 893 
 
 The single scorer is closer, but it is not yet a replacement. CNN + LDA stays the native design.
 
-## Decision (rounds 1–3)
+## Round 4 (`PLAN4.md`, sha256 8d164e55): L1 linear head FAIL on both raws (`EVALUATION4.txt`)
 
-CNN + LDA stays the native design. `-topaz_features`, `-augment_*` and `-topaz_decoy_negatives` stay opt-in and experimental.
-- Every arm fits its about 600 seeds per fold perfectly (held-out seed AUC 1.0). Decoy negatives fixed the ranking; the q calibration from the TOPAZ logit is still broken.
+HeLa default `crossfit.tsv` IDENTICAL (`hela-default-cmp4/`).
+
+| | raw 01 L1 | raw 01 N1 | raw 02 L1 | raw 02 N1 | base raw 01 / 02 |
+|---|---|---|---|---|---|
+| N at FDP_c 0.5 / 1 / 1.5 / 2% | 498 / **553** / 660 / 692 | 739 / 950 / 1003 / 1047 | 485 / **495** / 564 / 668 | 784 / 893 / 1002 / 1085 | 1029 / 1298 at 1% |
+| q ≤ 0.01: N, FDP_c | 235, 0.000 | 340, 0.000 | 511, **0.020** | 859, 0.016 | |
+| q ≤ 0.05: N, FDP_c | 909, 0.064 | 1420, 0.091 | 861, 0.037 | 1460, 0.073 | 0.065 / 0.074 |
+| Held-out seed AUC | 1.0 | 1.0 | 1.0 | 1.0 | |
+| Time | 19.8 min | 18.6 min | 17.4 min | 21.5 min | |
+
+**Rule check:**
+- Rule 1 fails on both raws.
+- Rule 2 fails on raw 02 (0.020).
+- Rules 3 and 4 pass.
+
+**Predeclared calibration criterion:** |FDP_c at q ≤ 0.05 − 0.05| shrank on both raws: 0.041 → 0.014 on raw 01, 0.023 → 0.013 on raw 02. So it is **met**.
+
+The cost is ranking power. N@1% fell by 42% (raw 01) and 45% (raw 02), and raw 02 q ≤ 0.01 is still anti-conservative.
+
+The trade-off between ranking (MLP head) and calibration (linear head) is inside one TOPAZ logit. Neither head gets both. The held-out seed AUC of 1.0 in every arm means the seed labels never limit the fit, so the limit is in the score scale that the training objective produces, not in the head width.
+
+## Decision (rounds 1–4)
+
+CNN + LDA stays the native design. `-topaz_features`, `-augment_*`, `-topaz_decoy_negatives` and `-topaz_linear_head` stay opt-in and experimental.
+- Every arm fits its about 600 seeds per fold perfectly (held-out seed AUC 1.0).
+- Decoy negatives (N1) fixed the ranking. The linear head (L1) fixed the calibration at 5% but lost about 40% of N. No single TOPAZ logit gave both.
+- The LDA reaches both by refitting a linear score on about 177k decoy winners per fold, with semi-supervised target positives. Its features include the CNN logit.
 - Next options:
   - more training signal, for example MIL over all precursors with the heuristic features (bounded by the arm D budget);
   - a strictly regularised head, for example a linear head on the features plus the TOPAZ embedding, to keep the LDA's low capacity.
