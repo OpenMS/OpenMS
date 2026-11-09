@@ -1,0 +1,4 @@
+run R01: candidates 5455419, precursors 1093604, theoretical ions 60611116
+MS2 spectra 292883 in 141 s
+spectra needed 134951
+done in 304 s | mean by_ny: right 0.368, other targets 0.109, decoys 0.108

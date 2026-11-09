@@ -176,3 +176,22 @@ Both arms meet the ≥ 5% reading **on raw 02**. With b/y series plus the flag, 
 - Own implementation: at the candidate apex (and ±1 scan), match all theoretical b/y ions (charge 1 and 2, inside the scan range) against the centroided MS2 spectrum within the extraction tolerance.
 - Features: matched count per series, longest consecutive run, matched intensity share, and decoys scored the same way.
 - This is the next native change to test, once raw 01 confirms.
+
+**Raw 01 replication (`series01.txt`).** OSW's b/y series scores also add information on raw 01:
+- Without the flag: 1101 → **1242** (+13%).
+- Restricted to OSW-matched candidates: 1130 → 1241 (+10%).
+
+The reading passes on both runs. With series plus flag, bulk-null TDC q ≤ 0.05 FDP_c is 0.063 on raw 01 (0.040 on raw 02). Raw 01 thus sits just above the 0.06 bar with these features.
+
+**Our own b/y features, first version: FAIL (`by_feats.py`, `by_test.py`).** The features are fractions of theoretical b and y ions (charge 1 and 2) matched within 17 ppm, longest covered run, and matched-intensity share, averaged over the apex spectrum and its two neighbours.
+- They separate on their own: by_ny is 0.374 for confirmed right peaks against 0.109 for decoys.
+- Added to the 20 subscores, N at FDP_c 1% moves 1083 → 1069 (raw 02) and 1101 → 1028 (raw 01). The rule (≥ 5% on both runs) fails.
+- Bulk-null q ≤ 0.05 FDP_c stays valid (0.042 and 0.043).
+
+**Why our version adds less (`by_vs_osw.py`, raw 02).**
+- On matched candidates, our fractions correlate only moderately with OSW's counts (Spearman 0.53–0.54).
+- Conditional on our score, OSW's y-series reaches AUC 0.530 against at most 0.523 for ours.
+- From OpenSwath's documented behaviour, its score is an **integer count** of charge-1 b or y ions at ≤ 10 ppm above an intensity floor (300) in the apex spectrum. Ours is a length-normalised fraction over charge 1 and 2 at 17 ppm, averaged over 3 spectra.
+- A raw count grows with peptide length when the match is real. Charge-2 ions and the wider tolerance add random matches.
+
+Next: our own count-based variant (charge 1, 10 ppm, intensity floor, apex spectrum only). The information is the same as OSW's; the implementation is our own.

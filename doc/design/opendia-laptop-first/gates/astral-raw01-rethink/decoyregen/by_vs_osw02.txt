@@ -1,0 +1,10 @@
+OSW series value range: b 0.0..13.0, integer share 1.000
+Spearman (matched candidates): ours by_nb vs OSW b 0.525, ours by_ny vs OSW y 0.544
+winners above the cut: 30488, OSW-matched 23598 (0.774); matched share targets 0.783 decoys 0.762
+  conditional AUC on matched winners: ours by_nb   0.497
+  conditional AUC on matched winners: ours by_ny   0.518
+  conditional AUC on matched winners: ours by_run  0.523
+  conditional AUC on matched winners: ours by_int  0.520
+  conditional AUC on matched winners: OSW bseries  0.510
+  conditional AUC on matched winners: OSW yseries  0.530
+  conditional AUC on all winners: OSW-matched flag 0.502, ours by_ny 0.517
