@@ -2247,11 +2247,14 @@ Not sure how to handle these:
       OPENMS_LOG_INFO << "MzTab: Inference data provided. Considering first run only for inference data." << std::endl;
     }
 
-    // The first run is left out of the MS run and search engine mappings only if no PSM refers to it.
+    // The first run is left out of the MS run and search engine mappings only if no exported PSM refers to it.
     // Otherwise it is a search run as well (e.g. a single run with search and inference results),
     // and its PSMs need its MS files and search engine.
     const bool skip_first_run = first_run_inference_ && std::none_of(peptide_ids_.begin(), peptide_ids_.end(),
-      [this](const PeptideIdentification* pep) { return pep->getIdentifier() == prot_ids_[0]->getIdentifier(); });
+      [this](const PeptideIdentification* pep)
+      {
+        return (export_empty_pep_ids_ || !pep->getHits().empty()) && pep->getIdentifier() == prot_ids_[0]->getIdentifier();
+      });
 
     map<std::string, size_t> msfilename_2_msrunindex;
     map<size_t, std::string> msrunindex_2_msfilename;
@@ -2894,11 +2897,14 @@ state0:
       OPENMS_LOG_INFO << "MzTab: Inference data provided. Considering first run only for inference data." << std::endl;
     }
 
-    // The first run is left out of the MS run and search engine mappings only if no PSM refers to it.
+    // The first run is left out of the MS run and search engine mappings only if no exported PSM refers to it.
     // Otherwise it is a search run as well (e.g. a single run with search and inference results),
     // and its PSMs need its MS files and search engine.
     const bool skip_first_run = first_run_inference_ && std::none_of(peptide_ids_.begin(), peptide_ids_.end(),
-      [this](const PeptideIdentification* pep) { return pep->getIdentifier() == prot_ids_[0]->getIdentifier(); });
+      [this](const PeptideIdentification* pep)
+      {
+        return (export_empty_pep_ids_ || !pep->getHits().empty()) && pep->getIdentifier() == prot_ids_[0]->getIdentifier();
+      });
 
     map<std::string, size_t> msfilename_2_msrunindex;
     map<size_t, std::string> msrunindex_2_msfilename;
