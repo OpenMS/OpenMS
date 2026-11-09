@@ -327,7 +327,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       Size topn = top_hits > annotated_hits[scan_index].size() ? annotated_hits[scan_index].size() : top_hits;
       std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + topn, annotated_hits[scan_index].end(), AnnotatedHit_::hasBetterScore);
       annotated_hits[scan_index].resize(topn);
-      annotated_hits.shrink_to_fit();
+      annotated_hits[scan_index].shrink_to_fit(); // this scan's hits only: the outer vector is shared by all threads
     }
 
     bool annotation_precursor_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM) != annotate_psm_.end();
