@@ -121,7 +121,7 @@ On the clean set, the P and S families meet the per-run rule (q ≤ 0.01 FDP_c �
 
 **MS1 borrowing is not the explanation (`score4.py` (b)).** P and S decoys sit at the target's precursor m/z, so their MS1 subscores read the target's precursor trace. Without the MS1 group on the clean set, P and S still sit below O at q ≤ 0.05: median FDP_c 0.043 (P) and 0.041 (S), against 0.060 (O). That is not within 0.01 of O, so P/S calibration is not attributed to MS1 borrowing on this run.
 
-**Interim reading (raw 02 only, post-hoc beyond `score2`):**
+**Interim reading (raw 02 only; superseded by the raw 01 section below, where P, the short-peptide concentration and the MS1 result do not replicate):**
 - Decoys without the precursor mass shift (P, and S on clean pairs) track false targets better than the library's `switchKR` decoys.
 - The library decoys' excess is concentrated in short, low-diversity peptides.
 - Shuffling borrows target signal on short peptides and needs an overlap filter. OpenSwathDecoyGenerator has a similarity check against the target, and the native generator should enforce one.
