@@ -20,7 +20,7 @@ using namespace std;
 namespace OpenMS
 {
   // helper: validate date fields
-  static bool isValidDate_(int year, int month, int day)
+  bool Date::isValidDate(int year, int month, int day)
   {
     if (month < 1 || month > 12 || day < 1 || year < 1)
     {
@@ -89,7 +89,7 @@ namespace OpenMS
       }
     }
 
-    if (!parsed || !isValidDate_(year, month, day))
+    if (!parsed || !isValidDate(year, month, day))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, date, "Is no valid german, english or iso date");
     }
@@ -102,7 +102,7 @@ namespace OpenMS
 
   void Date::set(UInt month, UInt day, UInt year)
   {
-    if (!isValidDate_((int)year, (int)month, (int)day))
+    if (!isValidDate((int)year, (int)month, (int)day))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   StringUtils::toStr(year) + "-" + StringUtils::toStr(month) + "-" + StringUtils::toStr(day), "Invalid date");

@@ -73,11 +73,6 @@ namespace
     std::map<int, Size> transition_charge_counts_decoy;
   };
 
-  std::string jsonEscape_(const std::string& input)
-  {
-    return OpenMS::ParquetFile::jsonEscape(input);
-  }
-
   std::string jsonMapByClass_(const std::map<int, Size>& target, const std::map<int, Size>& decoy)
   {
     std::ostringstream oss;
@@ -126,9 +121,9 @@ namespace
         << "  \"openms\": {\n"
         << "    \"schema_version\": 1,\n"
         << "    \"generator\": \"TransitionParquetFile\",\n"
-      << "    \"openms_version\": \"" << jsonEscape_(OpenMS::VersionInfo::getVersion()) << "\",\n"
-        << "    \"build_time\": \"" << jsonEscape_(OpenMS::VersionInfo::getTime()) << "\",\n"
-        << "    \"tool\": {\"name\": \"OpenSwathWorkflow\", \"version\": \"" << jsonEscape_(OpenMS::VersionInfo::getVersion()) << "\"},\n"
+      << "    \"openms_version\": \"" << OpenMS::ParquetFile::jsonEscape(OpenMS::VersionInfo::getVersion()) << "\",\n"
+        << "    \"build_time\": \"" << OpenMS::ParquetFile::jsonEscape(OpenMS::VersionInfo::getTime()) << "\",\n"
+        << "    \"tool\": {\"name\": \"OpenSwathWorkflow\", \"version\": \"" << OpenMS::ParquetFile::jsonEscape(OpenMS::VersionInfo::getVersion()) << "\"},\n"
         << "    \"counts\": {\n"
         << "      \"proteins\": {\"total\": " << stats.proteins_total << ", \"target\": " << proteins_target << ", \"decoy\": " << stats.proteins_decoy << "},\n"
         << "      \"peptides\": {\"total\": " << stats.peptides_total << ", \"target\": " << peptides_target << ", \"decoy\": " << stats.peptides_decoy << "},\n"

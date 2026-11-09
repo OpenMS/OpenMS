@@ -14,6 +14,7 @@
 #include <arrow/api.h>
 #include <arrow/compute/api.h>
 
+#include <iosfwd>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -212,6 +213,27 @@ namespace OpenMS
                                                      const FilterExpression& parsed,
                                                      const std::string& filter_context,
                                                      const FilterPruningOptions& pruning_options);
+
+      /**
+        @brief Decode a binary data array (RT, mobility or intensity values) of an OpenSWATH
+        Parquet file.
+
+        @param[in] data The stored bytes.
+        @param[in] compression The compression code of the file format: 0 none, 1 zlib, 2/3/4
+          numpress linear/slof/pic, 5/6/7 the same numpress codecs followed by zlib.
+        @param[out] output The decoded values (cleared first).
+        @param[in] what Name of the data in error messages, e.g. "RT/intensity".
+
+        @throws Exception::InvalidValue on a size that is no multiple of 8 bytes or an unknown
+          compression code.
+      */
+      void decodeBinary(const std::string& data, Int64 compression, std::vector<double>& output, const char* what);
+
+      /// Append @p value (or "NULL" if @p has_value is false) and a '|' separator to a row key.
+      void appendKeyPart(std::ostringstream& oss, bool has_value, Int64 value);
+
+      /// Append @p value and a '|' separator to a row key.
+      void appendKeyPart(std::ostringstream& oss, const std::string& value);
     } // namespace ParquetReaderHelpers
   } // namespace Internal
 } // namespace OpenMS

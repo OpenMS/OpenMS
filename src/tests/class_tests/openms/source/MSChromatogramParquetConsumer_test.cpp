@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <limits>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/test_config.h>
 
@@ -333,6 +334,179 @@ START_SECTION(MSChromatogramParquetConsumer_mixed_target_and_decoy_identifying_t
 }
 END_SECTION
 
+START_SECTION(MSChromatogramParquetConsumer_negative_ids_are_not_kept)
+{
+  // Negative numbers are "unset" sentinels: a compound or transition whose ID parses as a
+  // negative integer gets a fresh (non-negative) ID instead, as in the mobilogram/XIPM writers.
+  OpenSwath::LightTargetedExperiment light_exp;
+
+  OpenSwath::LightCompound compound;
+  compound.id = "-5";
+  compound.sequence = "PEPTIDEK";
+  compound.charge = 2;
+  light_exp.compounds.push_back(compound);
+
+  OpenSwath::LightTransition transition;
+  transition.transition_name = "-3";
+  transition.peptide_ref = "-5";
+  transition.precursor_mz = 500.0;
+  transition.product_mz = 600.0;
+  transition.fragment_charge = 1;
+  transition.fragment_nr = 4;
+  transition.setFragmentType("y");
+  transition.setDetectingTransition(true);
+  light_exp.transitions.push_back(transition);
+
+  MSChromatogram chrom;
+  chrom.setNativeID("-3");
+  ChromatogramPeak peak;
+  peak.setRT(100.0);
+  peak.setIntensity(1000.0);
+  chrom.push_back(peak);
+
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  std::string out = tmp + ".xic";
+  {
+    MSChromatogramParquetConsumer consumer(out, 1, "test_source", light_exp);
+    consumer.consumeChromatogram(chrom);
+  }
+
+  XICParquetFile xic(out);
+  std::vector<XICChromatogram> chroms;
+  xic.load(chroms);
+  TEST_EQUAL(chroms.size(), 1)
+  ABORT_IF(chroms.size() != 1)
+  TEST_EQUAL(chroms[0].has_precursor_id, true)
+  TEST_EQUAL(chroms[0].precursor_id >= 0, true)
+  TEST_EQUAL(chroms[0].has_transition_id, true)
+  TEST_EQUAL(chroms[0].transition_id >= 0, true)
+}
+END_SECTION
+
+START_SECTION(MSChromatogramParquetConsumer_replaced_ids_do_not_take_later_explicit_ids)
+{
+  // The fresh ID for the negative transition "-1" (listed first) must not be 1, which the
+  // transition "1" listed after it carries explicitly.
+  OpenSwath::LightTargetedExperiment light_exp;
+
+  OpenSwath::LightCompound compound;
+  compound.id = "7";
+  compound.sequence = "PEPTIDEK";
+  compound.charge = 2;
+  light_exp.compounds.push_back(compound);
+
+  OpenSwath::LightTransition negative;
+  negative.transition_name = "-1";
+  negative.peptide_ref = "7";
+  negative.precursor_mz = 500.0;
+  negative.product_mz = 600.0;
+  negative.fragment_charge = 1;
+  negative.fragment_nr = 3;
+  negative.setFragmentType("y");
+  negative.setDetectingTransition(true);
+  light_exp.transitions.push_back(negative);
+
+  OpenSwath::LightTransition explicit_one = negative;
+  explicit_one.transition_name = "1";
+  explicit_one.product_mz = 700.0;
+  explicit_one.fragment_nr = 4;
+  light_exp.transitions.push_back(explicit_one);
+
+  ChromatogramPeak peak;
+  peak.setRT(100.0);
+  peak.setIntensity(1000.0);
+  MSChromatogram chrom_negative;
+  chrom_negative.setNativeID("-1");
+  chrom_negative.push_back(peak);
+  MSChromatogram chrom_one;
+  chrom_one.setNativeID("1");
+  chrom_one.push_back(peak);
+
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  std::string out = tmp + ".xic";
+  {
+    MSChromatogramParquetConsumer consumer(out, 1, "test_source", light_exp);
+    consumer.consumeChromatogram(chrom_negative);
+    consumer.consumeChromatogram(chrom_one);
+  }
+
+  XICParquetFile xic(out);
+  std::vector<XICChromatogram> chroms;
+  xic.load(chroms);
+  TEST_EQUAL(chroms.size(), 2)
+  ABORT_IF(chroms.size() != 2)
+  for (const auto& chrom : chroms)
+  {
+    TEST_EQUAL(chrom.has_transition_id, true)
+    TEST_EQUAL(chrom.has_precursor_id, true)
+    TEST_EQUAL(chrom.precursor_id, 7)
+    if (chrom.transition_ordinal == 4) // transition "1"
+    {
+      TEST_EQUAL(chrom.transition_id, 1)
+    }
+    else // transition "-1"
+    {
+      TEST_EQUAL(chrom.transition_ordinal, 3)
+      TEST_EQUAL(chrom.transition_id >= 0, true)
+      TEST_NOT_EQUAL(chrom.transition_id, 1)
+    }
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION(MSChromatogramParquetConsumer_fresh_ids_never_overflow)
+{
+  // The explicit ID INT64_MAX - 1 moves the next fresh ID to INT64_MAX. The first negative ID gets
+  // INT64_MAX; for the second, no ID is left: an exception, not a wrap to a negative ID.
+  OpenSwath::LightTargetedExperiment light_exp;
+
+  OpenSwath::LightCompound compound;
+  compound.id = "7";
+  compound.sequence = "PEPTIDEK";
+  compound.charge = 2;
+  light_exp.compounds.push_back(compound);
+
+  OpenSwath::LightTransition transition;
+  transition.peptide_ref = "7";
+  transition.precursor_mz = 500.0;
+  transition.product_mz = 600.0;
+  transition.fragment_charge = 1;
+  transition.fragment_nr = 3;
+  transition.setFragmentType("y");
+  transition.setDetectingTransition(true);
+  for (const char* name : {"9223372036854775806", "-1", "-2"})
+  {
+    transition.transition_name = name;
+    light_exp.transitions.push_back(transition);
+  }
+
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  const std::string out = tmp + ".xic";
+  TEST_EXCEPTION(Exception::InvalidValue, MSChromatogramParquetConsumer(out, 1, "test_source", light_exp))
+
+  light_exp.transitions.pop_back(); // without "-2", INT64_MAX is still free
+  MSChromatogram chrom;
+  chrom.setNativeID("-1");
+  ChromatogramPeak peak;
+  peak.setRT(100.0);
+  peak.setIntensity(1000.0);
+  chrom.push_back(peak);
+  {
+    MSChromatogramParquetConsumer consumer(out, 1, "test_source", light_exp);
+    consumer.consumeChromatogram(chrom);
+  }
+  XICParquetFile xic(out);
+  std::vector<XICChromatogram> chroms;
+  xic.load(chroms);
+  TEST_EQUAL(chroms.size(), 1)
+  ABORT_IF(chroms.size() != 1)
+  TEST_EQUAL(chroms[0].transition_id, std::numeric_limits<Int64>::max())
+}
+END_SECTION
+
 END_TEST
