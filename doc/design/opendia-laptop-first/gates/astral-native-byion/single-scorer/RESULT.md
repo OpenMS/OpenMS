@@ -131,7 +131,7 @@ Per-feature AUC of entrapment winners against decoy winners. The pattern is the 
 
 Even in the absence of the peptide, entrapment target windows match more scans and more transitions than decoy windows. This is a library-side property: entrapment sequences are real-proteome-like, and their fragments co-occur more often in real spectra (fragment commonness, §12).
 
-The LDA's AUC of exactly 0.500 is a cancellation. Its negative log_matched_scans weight and its positive transition-support weight offset each other, and byion_b runs the other way. That balance is not a designed property and does not hold in the upper tail (the 5% excess). The deep TOPAZ head has no such constraint and keeps a net +0.02.
+The LDA's AUC of exactly 0.500 is most likely a cancellation (not tested directly). Its negative log_matched_scans weight and its positive transition-support weight offset each other, and byion_b runs the other way. That balance is not a designed property and does not hold in the upper tail (the 5% excess). The deep TOPAZ head has no such constraint and keeps a net +0.02.
 
 **So the concrete lever for a single deep scorer is decoy generation that matches targets on matched-scan count and transition support**, an extension of §12 from library commonness to these run-level match statistics.
 

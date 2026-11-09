@@ -373,4 +373,4 @@ The decoy separation does not come from the training negatives, since C0 without
 - boundary_library_correlation: 0.52;
 - byion_b: 0.490, the opposite direction.
 
-The LDA's 0.500 is a cancellation of opposite-signed weights. The deep head keeps a net +0.02. The concrete lever for a single deep scorer is decoy generation matched to targets on these run-level match statistics, which extends §12.
+The LDA's 0.500 is most likely a cancellation of opposite-signed weights (not tested directly). The deep head keeps a net +0.02. The concrete lever for a single deep scorer is decoy generation matched to targets on these run-level match statistics, which extends §12.
