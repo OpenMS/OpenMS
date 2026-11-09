@@ -128,6 +128,43 @@ On the clean set, the P and S families meet the per-run rule (q ≤ 0.01 FDP_c �
 - This is not yet a confirmed fix. It needs raw 01, and the control fails on the clean subset.
 - **Confound for P:** without `switchKR`, the pseudo-reverse keeps the C-terminal residue, so a P decoy shares its target's y1 and sits at the same precursor m/z. P therefore also borrows some target signal (mean 0.30 shared top-6 fragments, against 0.15 for O). The clean-pair filter is defined by S overlap, not P's. P calibrating better may thus partly be the same borrowing that S shows, not better modelling of false targets. This tension with section 4 (the mass shift sign/size showed no dose response) is unresolved.
 
+### Raw 01 replication and verdict
+
+The raw 01 outputs are `score01_seed.txt`, `s_tail01.txt`, `score3_01.txt` and `score4_01.txt`.
+
+**Control:** O MLP gives 1113 IDs at FDP_c 1%, against 1222 at q ≤ 0.01 on the reference XICs. Its q ≤ 0.01 FDP_c is 0.011, and its q ≤ 0.05 FDP_c is 0.081, with the 5% band at 1.66 [1.32, 2.01]. The excess shows at 5% and not at 1%, as on the reference XICs.
+
+| Clean pairs, MLP, seeds 0/1/2 | raw 01 q ≤ 0.01 FDP_c | raw 01 q ≤ 0.05 FDP_c | raw 01 5% S_e/S_d | raw 02 q ≤ 0.05 FDP_c |
+|---|---|---|---|---|
+| O | 0.009 / 0.000 / 0.012 | 0.078 / 0.074 / 0.062 | 1.64 / 1.51 / 1.26 (2 of 3 bands above 1) | 0.063 / 0.066 / 0.065 |
+| P | 0.013 / 0.012 / 0.015 | 0.086 / 0.086 / 0.077 | 1.73 / 1.76 / 1.59 (all above 1) | 0.046 / 0.049 / 0.045 |
+| S | 0.010 / 0.011 / 0.014 | 0.056 / 0.051 / 0.064 | 1.15 / 1.02 / 1.28 (all include 1) | 0.040 / 0.044 / 0.041 |
+| S without MS1 | 0.023 / 0.022 / 0.013 | 0.063 / 0.063 / 0.067 | – | 0.039 / 0.041 / 0.050 |
+| O without MS1 | 0.002 / 0.007 / 0.010 | 0.073 / 0.070 / 0.078 | – | 0.064 / 0.060 / 0.055 |
+
+**What does not replicate:**
+- **P (pseudo-reverse without `switchKR`)** is worse than the control on raw 01. Removing the precursor mass shift is not a fix, which agrees with section 4.
+- **The short-peptide stratum.** On raw 01, O's 5% excess is as large in the clean 80% of pairs (1.73 / 1.41 / 1.41) as in the short-peptide 20% (1.48 / 1.84 / 1.39). The raw 02 concentration was not robust.
+- **"MS1 borrowing is not the explanation."** On raw 01, removing the MS1 group moves S's median q ≤ 0.05 FDP_c to 0.063, within 0.01 of O's 0.073. By the declared reading, S's advantage on raw 01 is attributed to MS1 borrowing: S decoys sit at their target's precursor m/z and read its MS1 trace. Without MS1, S also loses q ≤ 0.01 validity (0.022–0.023).
+
+**Verdict against the predeclared rule.**
+- **S on clean pairs** meets the per-run calibration rule on both runs. But the control condition holds only on raw 01 (on raw 02 O's bands reach just below 1), so the formal result is inconclusive.
+- **S's improvement is confounded** by signal borrowing: fragment overlap on the full set, and the MS1 trace on raw 01.
+- **No decoy family tested is shown to fix the calibration.**
+- **Without any borrowing channel** (O on clean pairs, and S without MS1), every family sits at about the same excess: q ≤ 0.05 FDP_c 0.055–0.078 over both runs. This points away from the decoy sequence rule as the cause. Decoys that share no signal with any real peptide under-represent false targets in the tail, whichever rearrangement makes them. The likely candidate is that false targets (entrapment) pick up chimeric signal from co-eluting real peptides more often than decoys do. That is untested.
+
+**For the native pipeline:**
+- A decoy at the target's precursor m/z must not read the target's MS1 trace. Use a shifted decoy MS1 m/z, or keep MS1 features out of the decoy comparison.
+- Shuffled decoys need a fragment-overlap filter against their own target.
+- Neither change is expected to remove the excess on its own.
+
+**Limits:**
+- Decoy intensities are inherited.
+- There is no scan-range fragment filter and no m/z correction.
+- Extraction is OSW's.
+- The seed fallback and the clean-pair, stratum and MS1 analyses are post-hoc (each reading was declared before its own run).
+- S_e/S_d counts in the tail are small (tens of entrapment winners).
+
 ## Reading
 
 1. The anti-conservativeness is a property of **decoy winners under-representing false targets in the score tail**, by about 1.1–1.6×. The pipeline's ranker only adds to it. OSW+Percolator, with the same decoys, is worse: invalid even by the lower bound. No ranker change alone has fixed it. At 1% our scorer sits in the inconclusive zone between the entrapment bounds (section 1). The cause is still unidentified. These have been checked and are not it: single features, I/L, the precursor mass shift, borrowed signal (weak), dead low-m/z slots, entrapment stratum mismatch (each about 5% at most), and library-intensity features (raw 02 partly, raw 01 not).
