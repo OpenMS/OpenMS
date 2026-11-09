@@ -116,6 +116,25 @@ Changing where the extra negatives come from barely moves the decoy separation. 
 
 One possibility, not tested here: entrapment peptides share real-peptide fragment and co-elution patterns more often than decoys, as in the commonness finding of §12. The linear LDA reaches a global AUC of 0.50 on largely the same evidence. Still, the LDA too is anti-conservative at 5%.
 
+## Input-level decoy separation (`input_decoyness.py`, reported only)
+
+Per-feature AUC of entrapment winners against decoy winners. The pattern is the same on both raws and for both winner rules (N1 and LDA):
+
+| Feature | AUC | LDA weight sign (§ stage-2 weights) |
+|---|---|---|
+| log_matched_scans | **0.531** | − (about −6) |
+| transition_support | **0.523–0.526** | + (about +5) |
+| boundary_library_correlation | 0.519–0.521 | + |
+| cnn_z (grid2d logit) | 0.512–0.519 | + |
+| byion_b | **0.490** | + |
+| others | 0.50–0.51 | |
+
+Even in the absence of the peptide, entrapment target windows match more scans and more transitions than decoy windows. This is a library-side property: entrapment sequences are real-proteome-like, and their fragments co-occur more often in real spectra (fragment commonness, §12).
+
+The LDA's AUC of exactly 0.500 is a cancellation. Its negative log_matched_scans weight and its positive transition-support weight offset each other, and byion_b runs the other way. That balance is not a designed property and does not hold in the upper tail (the 5% excess). The deep TOPAZ head has no such constraint and keeps a net +0.02.
+
+**So the concrete lever for a single deep scorer is decoy generation that matches targets on matched-scan count and transition support**, an extension of §12 from library commonness to these run-level match statistics.
+
 ## Fold diagnostic (`fold_diag.py`, reported only, no rule)
 
 Pooled TDC standardises each fold by its decoy-winner median and MAD.

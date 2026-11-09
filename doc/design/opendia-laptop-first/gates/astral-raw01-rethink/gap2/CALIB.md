@@ -366,3 +366,11 @@ A single deep scorer therefore needs a training objective or decoys that stop it
 - The entrapment-vs-decoy AUC stays at 0.514–0.523. The mechanism check was not met.
 
 The decoy separation does not come from the training negatives, since C0 without extra negatives was also at 0.52. It comes from the TOPAZ inputs, so changing only the training objective does not remove it.
+
+**Input-level source (`single-scorer/input_decoyness.txt`):** entrapment winners have more matched scans and more transition support than decoy winners:
+- log_matched_scans: AUC 0.531;
+- transition_support: 0.523–0.526;
+- boundary_library_correlation: 0.52;
+- byion_b: 0.490, the opposite direction.
+
+The LDA's 0.500 is a cancellation of opposite-signed weights. The deep head keeps a net +0.02. The concrete lever for a single deep scorer is decoy generation matched to targets on these run-level match statistics, which extends §12.
