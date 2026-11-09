@@ -1,0 +1,7 @@
+run R02
+MLP 5-seed                                   q<=0.01: 1112 (conf-right 1066, FDP_c 0.013) | q<=0.05: 1637 (conf-right 1442, FDP_c 0.082) | N at FDP_c<=0.5/1/1.5/2%: [1008, 1083, 1132, 1223]
+                                             matched N at FDP_c 0.5/1/1.5/2%: [1008, 1083, 1132, 1223]
+HGB 3-seed                                   q<=0.01: 403 (conf-right 375, FDP_c 0.020) | q<=0.05: 1087 (conf-right 953, FDP_c 0.087) | N at FDP_c<=0.5/1/1.5/2%: [257, 297, 329, 405]
+                                             matched N at FDP_c 0.5/1/1.5/2%: [257, 297, 329, 405]
+mean of both (rank)                          q<=0.01: 1041 (conf-right 992, FDP_c 0.021) | q<=0.05: 1562 (conf-right 1398, FDP_c 0.067) | N at FDP_c<=0.5/1/1.5/2%: [559, 591, 683, 1027]
+                                             matched N at FDP_c 0.5/1/1.5/2%: [559, 591, 683, 1027]

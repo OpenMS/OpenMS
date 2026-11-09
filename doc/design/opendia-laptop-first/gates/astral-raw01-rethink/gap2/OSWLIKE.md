@@ -110,3 +110,19 @@ The richer learned model should **take these subscore families as inputs alongsi
 It should be computed per candidate on valley-bounded peaks from a per-precursor XIC.
 
 Section 5 of `GAP2.md` showed that a small trace CNN alone does not recover them. A single cross-fitted MLP head over [CNN embedding + these about 20 subscores], with decoy-only semi-supervised labels, is the minimum design this evidence supports. It replaces stage 2 and its opt-in feature sets. **It is not sufficient on its own:** decoy-estimated q was anti-conservative on raw 02 for both LDA and MLP, so the error-control path needs its own fix (`CALIB.md`).
+
+## Update (2026-11-09): head choice and error control, on the re-extracted XICs (`../decoyregen/`)
+
+The decoy-family test re-extracted both runs with library RT calibrated per run (`CALIB.md` section 6). On those XICs, family O (the library decoys), entrapment-matched N at FDP_c 0.5 / 1 / 1.5 / 2% is:
+
+| Head | raw 01 | raw 02 |
+|---|---|---|
+| MLP, 5-seed ensemble | 1035 / 1101 / 1136 / 1296 | 1008 / 1083 / 1132 / 1223 |
+| Boosted trees as final head, 3 seeds (`head_hgb.py`) | 287 / 419 / 432 / 436 | 257 / 297 / 329 / 405 |
+| Rank mean of both | 817 / 908 / 1126 / 1160 | 559 / 591 / 683 / 1027 |
+
+**Boosted trees as the ranking head fail** the predeclared rule (≥ 3% better on both runs) by a wide margin. They overfit the semi-supervised positives, which are noisy and few (about 1000 per fold). The MLP stays the ranking head.
+
+Trees are still the right model for the **bulk-null calibration weights** (`CALIB.md` section 9), where they are trained on about 180k bulk winners per class. With the MLP ensemble plus bulk-null weighted TDC, the q ≤ 0.01 FDP_c is 0.006 (raw 01) and 0.004 (raw 02), and the q ≤ 0.05 FDP_c is 0.050 and 0.055. Plain TDC gave 0.016/0.013 and 0.067/0.082.
+
+The raw 02 count gap to OSW+Percolator (1083 against 1287 at FDP_c 1%) is unchanged by this. It sits in ranking, not calibration.
