@@ -285,3 +285,12 @@ On the native search+boundary+byion score, only a full HGB density ratio reprodu
 Plain pooled TDC is within the 1% rule on both raws (0.013 / 0.007).
 
 Decision: do not port a GBDT into OpenDIA now. The tool's primary q is plain pooled TDC at 1%. The 5% calibration remains an open, decoy-side problem.
+
+## 11. Pipeline-side carriers of the 5% excess: none (`astral-native-byion/raw02/{lib_drop,cnn_drop,multiplicity}.txt`)
+
+Three label-free hypotheses on the native score, each with a rule declared in its script:
+- **Library-agreement features (k7): rejected.** Dropping them moves raw 02 q ≤ 0.05 FDP_c by at most 0.004 (0.074 → 0.073–0.077).
+- **The CNN logit (k9): rejected.** Without it, raw 01 rises to 0.086, and raw 02 q ≤ 0.01 breaks (0.022).
+- **Candidate multiplicity (k10): rejected.** False targets have marginally more candidate windows than decoys (AUC 0.535). Weighting decoys by count stratum gives 0.060 / 0.068.
+
+With sections 3–8, the excess is not carried by any single input feature, feature group, ranker or candidate count. It looks like a diffuse property of how decoy and false-target signal differ. Section 9's density-ratio correction captures it only with a flexible classifier (section 10).

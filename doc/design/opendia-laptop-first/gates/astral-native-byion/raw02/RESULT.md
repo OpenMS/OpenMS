@@ -53,3 +53,21 @@ FDP_c at q ≤ 0.01 / 0.05 on the native byion score:
   - Do not report a q ≤ 0.05 list as calibrated.
   - Keep bulk-null as an offline diagnostic.
 - Revisit if a decoy-side fix narrows the 5% tail mismatch (CALIB).
+
+## k7, k9, k10: what carries the 5% excess? (`lib_drop.py`, `cnn_drop.py`, `multiplicity.py`; rules in each docstring)
+
+Exact tool-LDA replica on the native search+boundary+byion features. Plain pooled paired TDC. FDP_c at q ≤ 0.01 / 0.05, and N at FDP_c 1%.
+
+| arm | raw 01 | raw 02 |
+|---|---|---|
+| base | 1010; 0.013 / 0.065 | 1296; 0.007 / 0.074 |
+| k7 −library correlation | 958; 0.012 / 0.064 | 1303; 0.006 / 0.077 |
+| k7 −library correlation −apex agreement | 1047; 0.012 / 0.060 | 1303; 0.005 / 0.073 |
+| k7 −all library features (control) | 971; 0.014 / 0.059 | 1304; 0.002 / 0.070 |
+| k9 −CNN logit | 1185; 0.011 / 0.086 | 1196; 0.022 / 0.063 |
+| k9 CNN logit alone | 118; 0.025 / 0.067 | 194; 0.028 / 0.044 |
+| k10 candidate-count weighted decoys | 1010; 0.013 / 0.060 | 1296; 0.007 / 0.068 |
+
+- **k7 REJECTED.** Library-agreement features do not carry the excess: raw 02 moves by at most 0.004 at 5%.
+- **k9 REJECTED.** Dropping the CNN logit raises raw 01 to 0.086 and breaks raw 02 at 1% (0.022). The excess is not carried by one input.
+- **k10 REJECTED.** Entrapment winners have slightly more candidate windows than decoys (mean 5.37 vs 5.06; AUC 0.535 on both raws, below the 0.55 bar). Label-free count weighting passes raw 01 (0.060) and fails raw 02 (0.068). Within count strata the tail ratio is largest at 2–7 candidates (1.3–2.2) and near 1 at 8+ (0.87 / 1.07), but those strata hold only 6–34 decoys above the cut.

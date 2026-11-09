@@ -1,0 +1,24 @@
+== raw01: winners 540514
+  decoy   n=266566 ncand mean 5.06 quantiles [3.0, 5.0, 7.0, 10.0] strata [0.065, 0.224, 0.524, 0.187]
+  entrap  n=136132 ncand mean 5.37 quantiles [4.0, 5.0, 7.0, 10.0] strata [0.053, 0.195, 0.526, 0.225]
+  human   n=137816 ncand mean 5.35 quantiles [4.0, 5.0, 7.0, 10.0] strata [0.053, 0.197, 0.528, 0.222]
+  AUC entrapment vs decoy ncand: 0.535
+  overall S_e/S_d at q<=0.05 cut: 1.22 (entrap 53, decoy 85)
+    stratum 1   : S_e/S_d 1.19 (entrap 1, decoy 2)
+    stratum 2-3 : S_e/S_d 1.97 (entrap 7, decoy 8)
+    stratum 4-7 : S_e/S_d 1.32 (entrap 23, decoy 34)
+    stratum 8+  : S_e/S_d 0.87 (entrap 22, decoy 41)
+  weights {'1': 0.823, '2-3': 0.873, '4-7': 1.006, '8+': 1.196}
+  plain q<=0.01: 1068 FDP_c 0.013 | plain q<=0.05: 1638 FDP_c 0.065 | count-weighted q<=0.01: 1068 FDP_c 0.013 | count-weighted q<=0.05: 1607 FDP_c 0.060
+== raw02: winners 540691
+  decoy   n=266660 ncand mean 5.03 quantiles [3.0, 5.0, 7.0, 9.0] strata [0.065, 0.225, 0.528, 0.182]
+  entrap  n=136129 ncand mean 5.33 quantiles [3.0, 5.0, 7.0, 10.0] strata [0.054, 0.197, 0.529, 0.22]
+  human   n=137902 ncand mean 5.31 quantiles [3.0, 5.0, 7.0, 10.0] strata [0.055, 0.196, 0.534, 0.215]
+  AUC entrapment vs decoy ncand: 0.535
+  overall S_e/S_d at q<=0.05 cut: 1.46 (entrap 67, decoy 90)
+    stratum 1   : S_e/S_d 136202669.57 (entrap 1, decoy 0)
+    stratum 2-3 : S_e/S_d 2.24 (entrap 6, decoy 6)
+    stratum 4-7 : S_e/S_d 1.55 (entrap 27, decoy 34)
+    stratum 8+  : S_e/S_d 1.07 (entrap 33, decoy 50)
+  weights {'1': 0.834, '2-3': 0.873, '4-7': 1.007, '8+': 1.198}
+  plain q<=0.01: 1236 FDP_c 0.007 | plain q<=0.05: 1788 FDP_c 0.074 | count-weighted q<=0.01: 1236 FDP_c 0.007 | count-weighted q<=0.05: 1729 FDP_c 0.068

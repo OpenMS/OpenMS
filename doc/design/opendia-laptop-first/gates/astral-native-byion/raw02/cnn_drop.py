@@ -1,0 +1,51 @@
+"""k9: is the 5% decoy-q excess carried by the CNN logit? (declared before running)
+Hypothesis: the CNN is trained with decoys as negatives, so it can learn decoy-vs-target-like trace properties (e.g. how often
+fragment m/z coincide with random signal) that also lift entrapment (false) targets above decoys.
+Exact tool-LDA replica on native search+boundary+byion features, raws 01/02. Arms:
+  base        : all 12 features, seeded by cnn_z (= tool)
+  no-cnn      : drop cnn_z, seed round 1 by byion_y + transition_support (sum of z-scores)
+  cnn-only    : cnn_z alone (no LDA)
+Rule: SUPPORTED if no-cnn gives plain q<=0.05 FDP_c <= 0.06 on BOTH raws or lowers it by >= 0.01 on both vs base.
+REJECTED if it moves by < 0.005 on either raw, or rises. Also reported: q<=0.01 FDP_c and N at FDP_c 1%."""
+import sqlite3, numpy as np, pandas as pd
+B = '/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107'; R = 148983 / 151239
+ARMS = {'raw01': B + '/astral-design-raw01-20261107/stage2-byion-design/byion', 'raw02': B + '/astral-raw02-byion-design-20261109/byion'}
+c = sqlite3.connect('file:' + B + '/astral-entrapment-20261107/lib/library.pqp?mode=ro', uri=True)
+p = pd.read_sql('select ID precursor_id, TRAML_ID, DECOY from PRECURSOR', c)
+p['pair_key'] = np.where(p.DECOY == 1, p.TRAML_ID.str.replace('^DECOY_', '', regex=True), p.TRAML_ID)
+ent = pd.read_sql("""select pp.PRECURSOR_ID precursor_id, min(case when pr.PROTEIN_ACCESSION like '%_p_target%' then 1 else 0 end) e
+  from PRECURSOR_PEPTIDE_MAPPING pp join PEPTIDE_PROTEIN_MAPPING m on m.PEPTIDE_ID=pp.PEPTIDE_ID join PROTEIN pr on pr.ID=m.PROTEIN_ID group by pp.PRECURSOR_ID""", c)
+BASE = ['cnn_z', 'transition_support', 'log_matched_scans', 'log_peak_width', 'abs_library_rt_error', 'boundary_log_fwhm',
+        'boundary_log_width', 'boundary_coelution', 'boundary_library_correlation', 'boundary_apex_agreement', 'byion_b', 'byion_y']
+for run, arm in ARMS.items():
+    f = pd.read_csv(arm + '/features.tsv', sep='\t').merge(p[['precursor_id', 'pair_key']], on='precursor_id').merge(ent, on='precursor_id', how='left')
+    prec = pd.factorize(f.precursor_id)[0]; pair = pd.factorize(f.pair_key)[0]; dec = f.is_decoy.values == 1; fold = f.fold.values
+    entr = f.e.fillna(0).values.astype(bool)
+    def winners(idx, s):
+        o = idx[np.lexsort((idx, -s[idx]))]; _, first = np.unique(prec[o], return_index=True); return o[first]
+    def lda(cols, seed_cols):
+        X = f[cols].values.astype(np.float64); out = np.zeros(len(f))
+        for k in np.unique(fold):
+            tr = np.where(fold != k)[0]; te = np.where(fold == k)[0]
+            mu = X[tr].mean(0); sd = X[tr].std(0); sd[~(sd > 0)] = 1; Z = (X - mu) / sd
+            s = Z[:, [cols.index(x) for x in seed_cols]].sum(1)
+            for fdr in (0.15, 0.05, 0.05):
+                w = winners(tr, s); w = w[np.lexsort((w, -s[w]))]; d = dec[w]
+                q = np.minimum.accumulate(np.minimum(1, (np.cumsum(d) + 1) / np.maximum(np.cumsum(~d), 1))[::-1])[::-1]
+                a, b = Z[w[(~d) & (q <= fdr)]], Z[w[d]]
+                S = (np.cov(a.T) * (len(a) - 1) + np.cov(b.T) * (len(b) - 1)) / (len(a) + len(b) - 2) + 1e-3 * np.eye(len(cols))
+                s = Z @ np.linalg.solve(S, a.mean(0) - b.mean(0))
+            out[te] = s[te]
+        return out
+    for name, s in (('base', lda(BASE, ['cnn_z'])), ('no-cnn', lda(BASE[1:], ['byion_y', 'transition_support'])), ('cnn-only', f.cnn_z.values.astype(np.float64))):
+        w = winners(np.arange(len(s)), s); z = s.copy()
+        for k in np.unique(fold):
+            dk = w[dec[w] & (fold[w] == k)]; med = np.median(s[dk]); z[fold == k] = (s[fold == k] - med) / (1.4826 * np.median(np.abs(s[dk] - med)))
+        w = winners(np.arange(len(z)), z); tg = w[~dec[w]]; o = tg[np.argsort(-z[tg], kind='stable')]
+        fd = np.cumsum(entr[o]) * (1 + 1 / R) / np.arange(1, len(o) + 1); n1 = int(np.where(fd <= 0.01)[0].max() + 1) if (fd <= 0.01).any() else 0
+        d0 = pd.DataFrame({'i': w, 'p': pair[w], 's': z[w], 'd': dec[w]}).sort_values(['s', 'd'], ascending=[False, False]).drop_duplicates('p').sort_values('s', ascending=False)
+        dd = d0.d.values; q = np.minimum.accumulate(np.minimum(1, (np.cumsum(dd) + 1) / np.maximum(np.cumsum(~dd), 1))[::-1])[::-1]; kept = d0.i.values
+        qs = []
+        for qq in (0.01, 0.05):
+            a = kept[(~dec[kept]) & (q <= qq)]; qs.append(f'q<={qq}: {len(a)} FDP_c {entr[a].sum() * (1 + 1 / R) / max(1, len(a)):.3f}')
+        print(f'{run} {name:9s} N@FDP_c1% {n1} | ' + ' | '.join(qs), flush=True)
