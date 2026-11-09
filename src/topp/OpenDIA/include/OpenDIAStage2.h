@@ -62,7 +62,7 @@ namespace OpenMS::OpenDIA
     @brief Which feature groups enter the second-stage discriminant. Feature 0 is always the standardised CNN logit.
 
     Row order: cnn_z, then the seven extraction features, then the search features, then the isotope features, then the
-    boundary features, then the b/y ion counts, then the shape features, each group only if selected.
+    boundary features, then the b/y ion counts, then the shape features, then the refine features, each group only if selected.
   */
   struct Stage2FeatureSet
   {
@@ -72,6 +72,7 @@ namespace OpenMS::OpenDIA
     bool boundary = false;    ///< Experimental peak-group boundary features (Stage2BoundaryFeature).
     bool byion = false;       ///< Experimental apex-spectrum b/y ion counts (Stage2ByIonFeature; needs TraceCollector::enableByIonCounts()).
     bool shape = false;       ///< Experimental lagged cross-correlation, library agreement and signal features over the picked peak (Stage2ShapeFeature).
+    bool refine = false;      ///< Experimental interference-robust transition refinement features (Stage2RefineFeature).
   };
   /**
     @brief Parse a '+'-separated list of groups, e.g. "extraction", "search+isotope"; "extraction_search" means "extraction+search".
@@ -188,6 +189,66 @@ namespace OpenMS::OpenDIA
   */
   std::array<double, STAGE2_SHAPE_FEATURES> stage2ShapeFeatures(const float* tensor, const std::array<double, 6>& library_intensities,
                                                                 const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence);
+
+  /**
+    @brief Experimental interference-robust features from automated transition refinement.
+
+    After EncyclopeDIA (Searle et al., Nat Commun 9:5128, 2018, Supplementary Figure 4): over the peak group picked as
+    for the boundary group, widened by REFINE_PAD_BINS scan bins on each side, every fragment trace is smoothed once with
+    [1 2 1]/4 and normalised to unit area. The consensus peak shape is the median normalised intensity at every scan bin
+    over the fragments with signal. A fragment whose normalised trace has Pearson r >= 0.9 with the consensus is
+    'quantitative', r >= 0.75 is 'usable', lower r is treated as interfered. The median is robust to a minority of
+    interfered fragments, so these features count only fragments that share one elution shape, not all signal at the
+    fragment m/z values. The best-reference correlation follows the DIA-NN idea of one reference elution profile: the
+    fragment with the highest summed correlation to the others is the reference.
+  */
+  enum class Stage2RefineFeature : std::size_t
+  {
+    QUANTITATIVE = 0,      ///< Library fragments with r >= 0.9 against the consensus.
+    USABLE,                ///< Library fragments with r >= 0.75 against the consensus.
+    MEAN_R,                ///< Mean r against the consensus over library fragments (no signal counts as 0).
+    LIBRARY_WEIGHT,        ///< sqrt(library intensity) share of the quantitative fragments.
+    QUANT_AREA_SHARE,      ///< Smoothed area of the quantitative fragments over the smoothed area of all fragments.
+    BEST_REFERENCE_R,      ///< Mean r of the other fragments with the best reference fragment (no signal counts as 0).
+    COUNT
+  };
+  constexpr std::size_t STAGE2_REFINE_FEATURES = static_cast<std::size_t>(Stage2RefineFeature::COUNT);
+  /// Scan bins added on each side of the picked peak for the refinement correlations.
+  constexpr std::size_t REFINE_PAD_BINS = 2;
+  /// Refine column names, in Stage2RefineFeature order.
+  const std::array<std::string, STAGE2_REFINE_FEATURES>& stage2RefineFeatureNames();
+  /**
+    @brief Per-fragment Pearson r against the median consensus shape, in tensor channel order.
+
+    @param[in] tensor One window of TraceCollector::SAMPLE_SIZE floats.
+    @param[in] fragment_mz Fragment m/z per channel; zero marks padding.
+    @param[in] evidence Window evidence (only ms2_mask is used).
+    @return r per channel; padding channels, fragments without signal, and windows with no picked peak, fewer than 5
+      scan bins in the range or fewer than 3 fragments with signal give 0 for every channel.
+  */
+  std::array<double, 6> refineFragmentCorrelations(const float* tensor, const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence);
+  /**
+    @brief Experimental interference mask: zero every fragment channel whose refinement r is below @p min_r.
+
+    Uses refineFragmentCorrelations(); a window it cannot refine is left unchanged. A masked channel keeps its m/z, so
+    later features count it as a library fragment without signal.
+    @param[in,out] tensor One window of TraceCollector::SAMPLE_SIZE floats.
+    @param[in] fragment_mz Fragment m/z per channel; zero marks padding.
+    @param[in] evidence Window evidence (only ms2_mask is used).
+    @param[in] min_r Channels with signal and r < min_r are zeroed.
+    @return Number of channels zeroed.
+  */
+  std::size_t maskInterferedFragments(float* tensor, const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence, double min_r);
+  /**
+    @brief Refine features of one window, identical for targets and decoys and free of training.
+    @param[in] tensor One window of TraceCollector::SAMPLE_SIZE floats.
+    @param[in] library_intensities Library intensity per fragment channel.
+    @param[in] fragment_mz Fragment m/z per channel; zero marks padding.
+    @param[in] evidence Window evidence (only ms2_mask is used).
+    @return Features in Stage2RefineFeature order; all zero under the conditions of refineFragmentCorrelations().
+  */
+  std::array<double, STAGE2_REFINE_FEATURES> stage2RefineFeatures(const float* tensor, const std::array<double, 6>& library_intensities,
+                                                                  const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence);
 
   /**
     @brief Peak-group evidence of one search candidate, read from the OpenDIA -features_out table.

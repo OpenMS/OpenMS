@@ -118,11 +118,18 @@ namespace OpenMS
                             "over the picked boundaries; 'byion' (experimental) = numbers of singly charged b and y ions of the library sequence matched "
                             "in the isolating MS2 spectrum nearest the apex (-stage2_byion_ppm, -stage2_byion_intensity_min); 'shape' (experimental) = lagged "
                             "fragment cross-correlation, library dot product / Manhattan / RMSD / spectral angle and signal-to-noise over the boundary-group peak. "
+                            "'refine' (experimental) = EncyclopeDIA-style automated transition refinement: fragments correlated (r >= 0.9 / 0.75) with the "
+                            "median unit-area consensus shape, mean r, their library and area shares, and the best-reference-fragment correlation. "
                             "'extraction_search' = extraction+search", false);
       registerDoubleOption_("stage2_byion_ppm", "<ppm>", 10.0, "With a stage2_feature_set containing byion: matching half width of the b/y ions", false);
       setMinFloat_("stage2_byion_ppm", 0.1);
       registerDoubleOption_("stage2_byion_intensity_min", "<intensity>", 300.0, "With a stage2_feature_set containing byion: matched peaks must be more intense", false);
       setMinFloat_("stage2_byion_intensity_min", 0.0);
+      registerDoubleOption_("trace_refinement_min_r", "<r>", 0.0, "With -stage2 or -cnn_arch topaz, experimental interference correction: before "
+                            "the network and every feature, zero each fragment channel whose EncyclopeDIA-style refinement correlation with the median "
+                            "unit-area consensus shape is below this value (0.75 = the 'usable' cut). Applied identically to targets and decoys. 0 disables", false);
+      setMinFloat_("trace_refinement_min_r", 0.0);
+      setMaxFloat_("trace_refinement_min_r", 1.0);
       registerInputFile_("stage2_search_features", "<file>", "", "With -stage2: the OpenDIA -features_out table the windows were drawn from "
                          "(candidate_row = window sample_id): transition support, matched scans, peak width and |library RT error| per window", false);
       setValidFormats_("stage2_search_features", {"tsv"});
@@ -144,7 +151,7 @@ namespace OpenMS
       registerFlag_("topaz_faithful", "With -cnn_arch topaz, experimental: redeem-topaz training defaults (per-sample block max normalisation, cosine "
                     "warm-up LR, gradient clipping at 5, 0.1 x pairwise and, with MIL, 0.1 x in-bag ranking losses). Combine with -weight_decay 0.01 for TOPAZ's AdamW default");
       registerStringOption_("topaz_features", "<groups>", "", "With -cnn_arch topaz, experimental single scorer: '+'-separated heuristic feature groups fed to the "
-                            "TOPAZ head next to the trace embeddings (groups as in -stage2_feature_set: extraction, search, isotope, boundary, byion, shape; "
+                            "TOPAZ head next to the trace embeddings (groups as in -stage2_feature_set: extraction, search, isotope, boundary, byion, shape, refine; "
                             "no CNN logit). Columns are standardised over all windows (label-free) and clipped at +-8. q-values then come from the TOPAZ "
                             "logit itself (use -paired_tdc -pooled_tdc, optionally -ss_iterations); excludes -stage2. Empty disables", false);
       registerDoubleOption_("augment_probability", "<p>", 0.0, "With -cnn_arch topaz and seed training, experimental: per epoch, replace each training window "
@@ -302,6 +309,10 @@ namespace OpenMS
           throw std::invalid_argument("apply_calibration_coordinates requires -rt_calibration.");
         }
         const bool topaz = getStringOption_("cnn_arch") == "topaz";
+        if (getDoubleOption_("trace_refinement_min_r") > 0.0 && !(stage2 || topaz))
+        {
+          throw std::invalid_argument("trace_refinement_min_r requires -stage2 or -cnn_arch topaz (it needs the window scan mask).");
+        }
         const bool mil = getStringOption_("cnn_training") == "mil";
         if (mil && (!crossfit || !topaz || !rt_calibration || ss_iterations > 0))
         {
@@ -396,6 +407,23 @@ namespace OpenMS
         options.setMSLevels(stage2 || topaz ? std::vector<Int>{1, 2} : std::vector<Int>{2});
         reader.setOptions(options);
         reader.transformExperiment(getStringOption_("in"), &collector, {}, log_type_);
+        const double trace_refinement_min_r = getDoubleOption_("trace_refinement_min_r");
+        if (trace_refinement_min_r > 0.0)
+        {
+          // In place on the collector's tensor (no copy); every later consumer (network, features, augmentation) sees the masked traces.
+          float* tensors = collector.mutableIntensities().data();
+          const std::size_t windows_total = collector.intensities().size() / OpenDIA::TraceCollector::SAMPLE_SIZE;
+          std::size_t masked_channels = 0, masked_windows = 0;
+          for (std::size_t i = 0; i < windows_total; ++i)
+          {
+            const std::size_t m = OpenDIA::maskInterferedFragments(tensors + i * OpenDIA::TraceCollector::SAMPLE_SIZE, collector.fragmentMZ(i),
+                                                                   collector.evidence(i), trace_refinement_min_r);
+            masked_channels += m;
+            masked_windows += m > 0 ? 1 : 0;
+          }
+          writeLogInfo_("Experimental trace refinement: min_r=" + std::to_string(trace_refinement_min_r) + " masked_channels=" +
+                        std::to_string(masked_channels) + " masked_windows=" + std::to_string(masked_windows) + " of " + std::to_string(windows_total));
+        }
 
         // Borrow the collector's contiguous tensor. No NumPy, intermediate tensor file or Python process.
         OpenDIA::CNNData data;
@@ -490,6 +518,11 @@ namespace OpenMS
               const auto v = OpenDIA::stage2ShapeFeatures(window, collector.libraryIntensities(i), collector.fragmentMZ(i), collector.evidence(i));
               out.insert(out.end(), v.begin(), v.end());
             }
+            if (topaz_set.refine)
+            {
+              const auto v = OpenDIA::stage2RefineFeatures(window, collector.libraryIntensities(i), collector.fragmentMZ(i), collector.evidence(i));
+              out.insert(out.end(), v.begin(), v.end());
+            }
             return out;
           };
           const std::size_t F = heuristic_names.size();
@@ -524,6 +557,7 @@ namespace OpenMS
           if (topaz_set.boundary) { mark(OpenDIA::STAGE2_BOUNDARY_FEATURES, true); }
           if (topaz_set.byion) { mark(OpenDIA::STAGE2_BYION_FEATURES, false); }
           if (topaz_set.shape) { mark(OpenDIA::STAGE2_SHAPE_FEATURES, true); }
+          if (topaz_set.refine) { mark(OpenDIA::STAGE2_REFINE_FEATURES, true); }
           data.recompute_features = [row_of, F, standardise](const float* window, std::size_t i, float* out)
           {
             const auto row = row_of(window, i, true);
@@ -853,6 +887,12 @@ namespace OpenMS
               const auto shape = OpenDIA::stage2ShapeFeatures(collector.intensities().data() + i * OpenDIA::TraceCollector::SAMPLE_SIZE,
                                                               collector.libraryIntensities(i), collector.fragmentMZ(i), collector.evidence(i));
               row.features.insert(row.features.end(), shape.begin(), shape.end());
+            }
+            if (stage2_set.refine)
+            {
+              const auto refine = OpenDIA::stage2RefineFeatures(collector.intensities().data() + i * OpenDIA::TraceCollector::SAMPLE_SIZE,
+                                                                collector.libraryIntensities(i), collector.fragmentMZ(i), collector.evidence(i));
+              row.features.insert(row.features.end(), refine.begin(), refine.end());
             }
             rows.push_back(row);
             row_window.push_back(i);

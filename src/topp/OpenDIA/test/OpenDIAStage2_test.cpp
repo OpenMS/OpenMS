@@ -394,6 +394,54 @@ int main()
     require(z[1] == 0.0 && z[5] == 0.0 && z[11] == 0.0, "empty window gives zero shape features");
   }
 
+  // 12. Refine group: clean co-elution is all quantitative; one interfered fragment is flagged and the median keeps the rest.
+  {
+    const auto names = OpenDIA::stage2FeatureSetNames(OpenDIA::parseStage2FeatureSet("search+refine"));
+    require(names.size() == 11 && names[5] == "refine_quantitative" && names.back() == "refine_best_reference_r", "refine columns come last");
+    std::vector<std::vector<double>> p;
+    for (double l : library) p.push_back(gaussian(l, 16.0, 2.0));
+    const auto t = tensor(p);
+    const auto f = OpenDIA::stage2RefineFeatures(t.data(), library, mz, fullEvidence());
+    require(f[0] == 6.0 && f[1] == 6.0 && f[2] > 0.99 && std::abs(f[3] - 1.0) < 1e-12 && std::abs(f[4] - 1.0) < 1e-12 && f[5] > 0.99,
+            "co-eluting peak: all six fragments quantitative");
+    // Fragment 1 (second most intense) carries a co-eluting peak plus a stronger interfering peak four bins later.
+    auto interfered = p;
+    const auto other = gaussian(2.0 * library[1], 20.0, 1.5);
+    for (std::size_t b = 0; b < RT; ++b) interfered[1][b] += other[b];
+    const auto t2 = tensor(interfered);
+    const auto r = OpenDIA::refineFragmentCorrelations(t2.data(), mz, fullEvidence());
+    require(r[1] < 0.75, "interfered fragment falls below the usable cut");
+    require(r[0] >= 0.9 && r[2] >= 0.9 && r[3] >= 0.9 && r[4] >= 0.9 && r[5] >= 0.9, "clean fragments stay quantitative");
+    const auto g = OpenDIA::stage2RefineFeatures(t2.data(), library, mz, fullEvidence());
+    require(g[0] == 5.0 && g[1] == 5.0 && g[3] < 1.0 && g[4] < 0.75 && g[5] < f[5], "one interfered fragment: 5 quantitative, lower shares");
+    // Six unrelated peaks (no shared elution): few or no fragments match the median shape.
+    std::vector<std::vector<double>> scattered;
+    for (std::size_t c = 0; c < 6; ++c) scattered.push_back(gaussian(library[c], 8.0 + 3.0 * c, 1.2));
+    const auto t3 = tensor(scattered);
+    const auto s = OpenDIA::stage2RefineFeatures(t3.data(), library, mz, fullEvidence());
+    require(s[0] < f[0] && s[2] < 0.75 && s[5] < 0.75, "scattered fragments: low refinement scores");
+    const std::vector<float> empty(TraceCollector::SAMPLE_SIZE, 0.0f);
+    const auto z = OpenDIA::stage2RefineFeatures(empty.data(), library, mz, fullEvidence());
+    require(z[0] == 0.0 && z[2] == 0.0 && z[5] == 0.0, "empty window gives zero refine features");
+    auto e = fullEvidence();
+    e.ms2_mask = 0b11u;
+    require(OpenDIA::stage2RefineFeatures(t.data(), library, mz, e)[0] == 0.0, "fewer than 5 scan bins gives zero refine features");
+    // Mask: only the interfered channel is zeroed; a clean window and an unrefinable window are untouched.
+    auto masked = t2;
+    require(OpenDIA::maskInterferedFragments(masked.data(), mz, fullEvidence(), 0.75) == 1, "one channel masked");
+    const std::size_t block = RT * IM;
+    for (std::size_t c = 0; c < 6; ++c)
+    {
+      const bool zero = std::all_of(masked.begin() + c * block, masked.begin() + (c + 1) * block, [](float v) { return v == 0.0f; });
+      const bool same = std::equal(masked.begin() + c * block, masked.begin() + (c + 1) * block, t2.begin() + c * block);
+      require(c == 1 ? zero : same, "mask zeroes only the interfered channel");
+    }
+    auto clean = t;
+    require(OpenDIA::maskInterferedFragments(clean.data(), mz, fullEvidence(), 0.75) == 0 && clean == t, "clean window unchanged");
+    auto unrefinable = t2;
+    require(OpenDIA::maskInterferedFragments(unrefinable.data(), mz, e, 0.75) == 0 && unrefinable == t2, "unrefinable window unchanged");
+  }
+
   std::cout << "OpenDIAStage2_test passed\n";
   return 0;
 }

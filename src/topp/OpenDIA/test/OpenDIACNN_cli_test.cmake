@@ -186,6 +186,12 @@ if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "topaz_faithful requir
   message(FATAL_ERROR "topaz_faithful without topaz was not rejected: ${status}\n${output}\n${error}")
 endif()
 # Single-scorer TOPAZ heuristic features and augmentation fail before extraction when misused.
+execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/tr1" -trace_refinement_min_r 0.75
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "trace_refinement_min_r requires -stage2" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "trace_refinement_min_r without stage2/topaz was not rejected: ${status}\n${output}\n${error}")
+endif()
 execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/tf1" -topaz_features byion
   -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
   RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)

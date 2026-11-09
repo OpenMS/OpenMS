@@ -288,7 +288,7 @@ namespace OpenMS::OpenDIA
       const std::size_t plus = spec.find('+', start);
       const std::string group = spec.substr(start, plus == std::string::npos ? std::string::npos : plus - start);
       bool* flag = group == "extraction" ? &set.extraction : group == "search" ? &set.search : group == "isotope" ? &set.isotope
-                   : group == "boundary" ? &set.boundary : group == "byion" ? &set.byion : group == "shape" ? &set.shape : nullptr;
+                   : group == "boundary" ? &set.boundary : group == "byion" ? &set.byion : group == "shape" ? &set.shape : group == "refine" ? &set.refine : nullptr;
       if (flag == nullptr || *flag) throw std::invalid_argument("Unknown or repeated second-stage feature group '" + group + "' in " + name);
       *flag = true;
       if (plus == std::string::npos) break;
@@ -335,7 +335,151 @@ namespace OpenMS::OpenDIA
     {
       names.insert(names.end(), stage2ShapeFeatureNames().begin(), stage2ShapeFeatureNames().end());
     }
+    if (set.refine)
+    {
+      names.insert(names.end(), stage2RefineFeatureNames().begin(), stage2RefineFeatureNames().end());
+    }
     return names;
+  }
+
+  namespace
+  {
+    /// Automated transition refinement of one window (see Stage2RefineFeature).
+    struct Refinement
+    {
+      bool ok = false;
+      std::vector<std::size_t> channels;  ///< Non-padding fragment channels.
+      std::vector<double> r;              ///< Pearson r with the median consensus; 0 without signal.
+      std::vector<double> area;           ///< Smoothed area over the refinement range.
+      double best_reference_r = 0.0;      ///< Mean r of the other fragments with the best reference fragment.
+    };
+
+    Refinement refineWindow(const float* tensor, const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence)
+    {
+      Refinement out;
+      const PickedWindow picked = pickWindow(tensor, fragment_mz, evidence);
+      if (!picked.peak.found) return out;
+      const std::size_t c = picked.channels.size(), n = picked.n;
+      const std::size_t lo = picked.peak.left >= REFINE_PAD_BINS ? picked.peak.left - REFINE_PAD_BINS : 0;
+      const std::size_t hi = std::min(n - 1, picked.peak.right + REFINE_PAD_BINS);
+      const std::size_t span = hi - lo + 1;
+      if (span < 5) return out;
+      // One [1 2 1]/4 smoothing pass over the full scan-bin trace (edges replicated), then unit area over [lo, hi].
+      std::vector<std::vector<double>> norm(c, std::vector<double>(span, 0.0));
+      std::vector<double> area(c, 0.0);
+      std::vector<std::size_t> signal;
+      for (std::size_t k = 0; k < c; ++k)
+      {
+        const float* t = picked.traces.data() + k * n;
+        for (std::size_t s = lo; s <= hi; ++s)
+        {
+          const double prev = t[s > 0 ? s - 1 : s], next = t[s + 1 < n ? s + 1 : s];
+          norm[k][s - lo] = 0.25 * prev + 0.5 * t[s] + 0.25 * next;
+          area[k] += norm[k][s - lo];
+        }
+        if (area[k] > 0.0)
+        {
+          for (auto& v : norm[k]) v /= area[k];
+          signal.push_back(k);
+        }
+      }
+      if (signal.size() < 3) return out;
+      // Consensus shape: the median normalised intensity at every scan bin, robust to a minority of interfered fragments.
+      std::vector<double> consensus(span), column(signal.size());
+      for (std::size_t s = 0; s < span; ++s)
+      {
+        for (std::size_t j = 0; j < signal.size(); ++j) column[j] = norm[signal[j]][s];
+        std::sort(column.begin(), column.end());
+        const std::size_t m = column.size() / 2;
+        consensus[s] = column.size() % 2 ? column[m] : 0.5 * (column[m - 1] + column[m]);
+      }
+      out.r.assign(c, 0.0);
+      for (std::size_t k : signal) out.r[k] = pearson(norm[k], consensus);
+      // Best reference fragment: highest summed correlation with the other fragments with signal (DIA-NN style).
+      std::vector<double> pair(c * c, 0.0);
+      for (std::size_t a = 0; a < signal.size(); ++a)
+      {
+        for (std::size_t b = a + 1; b < signal.size(); ++b)
+        {
+          const double v = pearson(norm[signal[a]], norm[signal[b]]);
+          pair[signal[a] * c + signal[b]] = pair[signal[b] * c + signal[a]] = v;
+        }
+      }
+      double best_sum = -std::numeric_limits<double>::infinity();
+      for (std::size_t k : signal)
+      {
+        double sum = 0.0;
+        for (std::size_t j = 0; j < c; ++j) sum += pair[k * c + j];
+        best_sum = std::max(best_sum, sum);
+      }
+      out.best_reference_r = c > 1 ? best_sum / static_cast<double>(c - 1) : 0.0;
+      out.channels = picked.channels;
+      out.area = std::move(area);
+      out.ok = true;
+      return out;
+    }
+  }
+
+  const std::array<std::string, STAGE2_REFINE_FEATURES>& stage2RefineFeatureNames()
+  {
+    static const std::array<std::string, STAGE2_REFINE_FEATURES> names = {
+      "refine_quantitative", "refine_usable", "refine_mean_r", "refine_library_weight", "refine_quant_area_share", "refine_best_reference_r"};
+    return names;
+  }
+
+  std::array<double, 6> refineFragmentCorrelations(const float* tensor, const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence)
+  {
+    std::array<double, 6> r{};
+    const Refinement refined = refineWindow(tensor, fragment_mz, evidence);
+    if (!refined.ok) return r;
+    for (std::size_t k = 0; k < refined.channels.size(); ++k) r[refined.channels[k]] = refined.r[k];
+    return r;
+  }
+
+  std::size_t maskInterferedFragments(float* tensor, const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence, double min_r)
+  {
+    const Refinement refined = refineWindow(tensor, fragment_mz, evidence);
+    if (!refined.ok) return 0;
+    std::size_t masked = 0;
+    for (std::size_t k = 0; k < refined.channels.size(); ++k)
+    {
+      // Only channels with signal: a channel without signal (r = 0, area 0) is already empty.
+      if (refined.area[k] > 0.0 && refined.r[k] < min_r)
+      {
+        std::fill_n(tensor + refined.channels[k] * RT_BINS * IM_BINS, RT_BINS * IM_BINS, 0.0f);
+        ++masked;
+      }
+    }
+    return masked;
+  }
+
+  std::array<double, STAGE2_REFINE_FEATURES> stage2RefineFeatures(const float* tensor, const std::array<double, 6>& library_intensities,
+                                                                  const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence)
+  {
+    std::array<double, STAGE2_REFINE_FEATURES> f{};
+    const Refinement refined = refineWindow(tensor, fragment_mz, evidence);
+    if (!refined.ok) return f;
+    const std::size_t c = refined.channels.size();
+    double lib_total = 0.0, lib_quant = 0.0, area_total = 0.0, area_quant = 0.0, r_sum = 0.0;
+    for (std::size_t k = 0; k < c; ++k)
+    {
+      const double lib = std::sqrt(std::max(0.0, library_intensities[refined.channels[k]]));
+      lib_total += lib;
+      area_total += refined.area[k];
+      r_sum += refined.r[k];
+      if (refined.r[k] >= 0.9)
+      {
+        f[0] += 1.0;
+        lib_quant += lib;
+        area_quant += refined.area[k];
+      }
+      if (refined.r[k] >= 0.75) f[1] += 1.0;
+    }
+    f[2] = r_sum / static_cast<double>(c);
+    f[3] = lib_total > 0.0 ? lib_quant / lib_total : 0.0;
+    f[4] = area_total > 0.0 ? area_quant / area_total : 0.0;
+    f[5] = refined.best_reference_r;
+    return f;
   }
 
   const std::array<std::string, STAGE2_SHAPE_FEATURES>& stage2ShapeFeatureNames()

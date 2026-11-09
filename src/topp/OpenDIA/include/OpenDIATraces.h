@@ -97,6 +97,8 @@ namespace OpenMS::OpenDIA
 
     /// Raw tensor in sample, fragment, RT, mobility order, also consumed directly by the native CNN.
     const std::vector<float>& intensities() const { return intensities_; }
+    /// Mutable raw tensor, only for in-place experimental corrections after the read (the size must not change).
+    std::vector<float>& mutableIntensities() { return intensities_; }
     /// Whether sample i contains compatible, library-centred mobility measurements.
     bool hasIM(std::size_t i) const { return samples_.at(i).has_im; }
     /// Candidate identity and explicit seed label, never network inputs.
