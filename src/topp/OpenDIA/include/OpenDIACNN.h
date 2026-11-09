@@ -10,6 +10,7 @@
 
 #include <array>
 #include <cstddef>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -61,6 +62,14 @@ namespace OpenMS::OpenDIA
     /// TOPAZ only, optional: non-owning float32 [samples,3,32] MS1 traces (M+0, M+1, M+2) over the same RT bins.
     const float* ms1 = nullptr;
     std::size_t ms1_count = 0;
+    /// TOPAZ only, optional: non-owning float32 [samples, feature_dim] heuristic features, standardised by the caller.
+    /// They enter the TOPAZ head next to the trace embeddings (as in redeem's CandidateScorer).
+    const float* features = nullptr;
+    std::size_t feature_dim = 0;
+    /// TOPAZ augmentation only, optional: writes all feature_dim standardised columns for an augmented [6,32,8] window
+    /// built from sample `sample`. Only the columns marked in `recomputable` are kept; the others are set to 0.
+    std::function<void(const float* window, std::size_t sample, float* features)> recompute_features;
+    std::vector<bool> recomputable; ///< Size feature_dim when recompute_features is set.
   };
 
   /**
@@ -96,6 +105,14 @@ namespace OpenMS::OpenDIA
     /// (normalize_max), cosine warm-up LR (5%, floor 0.05), gradient clipping at norm 5, and auxiliary losses
     /// 0.1 x pairwise positive-negative softplus and, with MIL, 0.1 x in-bag ranking (margin 1). Saved in the checkpoint.
     bool topaz_faithful = false;
+    /// TOPAZ seed training only (not MIL): each epoch, every training window is replaced with this probability by an
+    /// augmented copy s x window + partner, where the partner is a random decoy window of a training family (real
+    /// background and interference) and s is log-uniform in [augment_scale_min, 1]. MS1 traces are mixed alike. Heuristic
+    /// features are recomputed where recomputable and set to 0 otherwise; with the same probability, unaugmented windows
+    /// get the same feature dropout, so missing features do not mark augmented windows. Both classes are treated alike,
+    /// so the augmentation carries no label; it simulates weaker, interfered signal. 0 disables (the default).
+    double augment_probability = 0.0;
+    double augment_scale_min = 0.1;
   };
 
   /**
@@ -122,6 +139,7 @@ namespace OpenMS::OpenDIA
     int epochs_run = 0;
     double validation_loss = 0;
     double heldout_auc = -1;
+    std::size_t augmented_first_epoch = 0; ///< TOPAZ augmentation: windows augmented in the first epoch.
   };
 
   /**

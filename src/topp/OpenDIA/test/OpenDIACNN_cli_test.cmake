@@ -185,3 +185,35 @@ execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -m
 if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "topaz_faithful require -cnn_arch topaz" OR EXISTS "${WORK}/scores.tsv")
   message(FATAL_ERROR "topaz_faithful without topaz was not rejected: ${status}\n${output}\n${error}")
 endif()
+# Single-scorer TOPAZ heuristic features and augmentation fail before extraction when misused.
+execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/tf1" -topaz_features byion
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "topaz_features requires -cnn_arch topaz" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "topaz_features without topaz was not rejected: ${status}\n${output}\n${error}")
+endif()
+execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/tf2" -cnn_arch topaz -topaz_features byion
+  -paired_tdc -pooled_tdc -stage2
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "excludes -stage2" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "topaz_features with stage2 was not rejected: ${status}\n${output}\n${error}")
+endif()
+execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/tf3" -cnn_arch topaz -topaz_features search
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "stage2_search_features is required by" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "topaz_features search without a search table was not rejected: ${status}\n${output}\n${error}")
+endif()
+execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/tf4" -cnn_arch topaz -topaz_features nonsense
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "Unknown or repeated" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "unknown topaz_features group was not rejected: ${status}\n${output}\n${error}")
+endif()
+execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/aug1" -augment_probability 0.5
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "augment_probability requires -cnn_arch topaz" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "augment_probability without topaz was not rejected: ${status}\n${output}\n${error}")
+endif()

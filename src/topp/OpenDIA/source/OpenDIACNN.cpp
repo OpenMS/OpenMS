@@ -31,6 +31,7 @@
 #include <map>
 #include <mutex>
 #include <numeric>
+#include <random>
 #include <set>
 #include <sstream>
 #include <stdexcept>
@@ -182,20 +183,23 @@ namespace OpenMS::OpenDIA
     }
 
     /// Raw-intensity inputs: fragment XIC [n,6,32] (IM summed), MS1 M+0..M+2 [n,3,32], fragment mobilogram over the
-    /// core RT bins [n,6,8], aux [n,8] = library intensities / max, has_ms1, has_im.
+    /// core RT bins [n,6,8], aux [n,8] = library intensities / max, has_ms1, has_im, and the optional caller-standardised
+    /// heuristic features [n,F] (F = 0 gives an empty tensor that never enters the head).
     struct TopazBatch
     {
-      torch::Tensor xic, ms1, xim, aux, labels;
+      torch::Tensor xic, ms1, xim, aux, labels, features;
     };
 
     struct TopazModel : torch::nn::Module
     {
       int64_t embedding;
+      int64_t feature_dim;
       Branch xic{nullptr}, ms1{nullptr}, xim{nullptr};
       Coelution xic_coelution{nullptr}, ms1_coelution{nullptr}, xim_coelution{nullptr};
       torch::nn::Sequential head{nullptr};
       /// width 32 is the TOPAZ layout (conv 32-64-64, embeddings 64, MLP 128-64); smaller widths scale every learned layer.
-      explicit TopazModel(int64_t width) : embedding(2 * width)
+      /// feature_dim heuristic features join the head input next to the trace embeddings (redeem CandidateScorer).
+      explicit TopazModel(int64_t width, int64_t features_in = 0) : embedding(2 * width), feature_dim(features_in)
       {
         xic = register_module("xic", Branch(FRAGMENTS, width));
         ms1 = register_module("ms1", Branch(ISOTOPES, width));
@@ -203,7 +207,7 @@ namespace OpenMS::OpenDIA
         xic_coelution = register_module("xic_coelution", Coelution(FRAGMENTS));
         ms1_coelution = register_module("ms1_coelution", Coelution(ISOTOPES));
         xim_coelution = register_module("xim_coelution", Coelution(FRAGMENTS));
-        const int64_t features = embedding + 18 + (embedding + 18 + 4) + (embedding + 18) + 2 + 8;
+        const int64_t features = embedding + 18 + (embedding + 18 + 4) + (embedding + 18) + 2 + 8 + feature_dim;
         head = register_module("head", torch::nn::Sequential(torch::nn::Linear(features, 4 * width), torch::nn::ReLU(), torch::nn::Dropout(0.1),
                                                              torch::nn::Linear(4 * width, 2 * width), torch::nn::ReLU(), torch::nn::Dropout(0.1),
                                                              torch::nn::Linear(2 * width, 1)));
@@ -221,6 +225,10 @@ namespace OpenMS::OpenDIA
           : torch::cat({xim(b.xim), xim_coelution(b.xim)}, 1) * has_im;
         const auto core = b.xic.narrow(2, CORE_BEGIN, CORE_END - CORE_BEGIN).sum(2);
         const auto library_fit = torch::stack({rowCosine(torch::sqrt(core), torch::sqrt(library)), rowCosine(core, library)}, 1);
+        if (feature_dim > 0)
+        {
+          return head->forward(torch::cat({xic(b.xic), xic_coelution(b.xic), ms1_part, xim_part, library_fit, b.aux, b.features}, 1)).squeeze(1);
+        }
         return head->forward(torch::cat({xic(b.xic), xic_coelution(b.xic), ms1_part, xim_part, library_fit, b.aux}, 1)).squeeze(1);
       }
     };
@@ -229,12 +237,13 @@ namespace OpenMS::OpenDIA
     {
       const auto n = static_cast<int64_t>(end - begin);
       TopazBatch b{torch::zeros({n, FRAGMENTS, RT_BINS}), torch::zeros({n, ISOTOPES, RT_BINS}), torch::zeros({n, FRAGMENTS, IM_BINS}),
-                   torch::empty({n, FRAGMENTS + 2}), torch::empty({n})};
+                   torch::empty({n, FRAGMENTS + 2}), torch::empty({n}), torch::empty({n, static_cast<int64_t>(data.feature_dim)})};
       float* xic = b.xic.data_ptr<float>();
       float* ms1 = b.ms1.data_ptr<float>();
       float* xim = b.xim.data_ptr<float>();
       float* aux = b.aux.data_ptr<float>();
       float* y = b.labels.data_ptr<float>();
+      float* features = data.feature_dim > 0 ? b.features.data_ptr<float>() : nullptr;
       for (std::size_t k = begin; k < end; ++k)
       {
         const auto index = ids[k], row = k - begin;
@@ -258,6 +267,7 @@ namespace OpenMS::OpenDIA
         aux[row * (FRAGMENTS + 2) + FRAGMENTS] = s.has_ms1 ? 1.f : 0.f;
         aux[row * (FRAGMENTS + 2) + FRAGMENTS + 1] = s.has_im ? 1.f : 0.f;
         y[row] = static_cast<float>(s.label);
+        if (features != nullptr) { std::copy_n(data.features + index * data.feature_dim, data.feature_dim, features + row * data.feature_dim); }
       }
       if (block_max)
       {
@@ -423,6 +433,102 @@ namespace OpenMS::OpenDIA
         require(std::isfinite(data.ms1[j]) && data.ms1[j] >= 0, "invalid MS1 trace intensity");
       }
     }
+    /// Heuristic feature block: [N,F] finite floats, present exactly when F > 0.
+    void validateFeatures(const CNNData& data)
+    {
+      require(data.feature_dim == 0 ? data.features == nullptr : data.features != nullptr && data.feature_dim <= 256,
+              "heuristic features must be [N,F] with 0 < F <= 256, or absent");
+      for (std::size_t j = 0; j < data.samples.size() * data.feature_dim; ++j)
+      {
+        require(std::isfinite(data.features[j]), "invalid heuristic feature value");
+      }
+      require(!data.recompute_features || data.recomputable.size() == data.feature_dim, "recomputable must have one flag per feature");
+    }
+
+    /// One augmented training epoch (CNNOptions::augment_probability). Sample k copies data sample order[k]; with
+    /// probability p it becomes s x window + partner (a training-family decoy window), s log-uniform in [scale_min, 1].
+    struct EpochData
+    {
+      std::vector<float> raw, ms1, features;
+      CNNData data;
+      std::size_t augmented = 0;
+    };
+    void augmentEpoch(const CNNData& data, const Indices& order, const Indices& partners, const CNNOptions& options,
+                      std::mt19937_64& rng, EpochData& out)
+    {
+      constexpr std::size_t CHANNEL = WINDOW / FRAGMENTS;
+      const std::size_t n = order.size(), F = data.feature_dim;
+      out.raw.assign(n * WINDOW, 0.f);
+      out.ms1.assign(data.ms1 != nullptr ? n * MS1_WINDOW : 0, 0.f);
+      out.features.assign(n * F, 0.f);
+      out.data = CNNData{};
+      out.data.samples.reserve(n);
+      out.augmented = 0;
+      std::uniform_real_distribution<double> unit(0.0, 1.0);
+      std::uniform_int_distribution<std::size_t> pick(0, partners.size() - 1);
+      const double log_min = std::log(options.augment_scale_min);
+      std::vector<float> recomputed(F);
+      for (std::size_t k = 0; k < n; ++k)
+      {
+        const std::size_t i = order[k];
+        const auto& sample = data.samples[i];
+        const float* source = data.intensities + i * WINDOW;
+        float* raw = out.raw.data() + k * WINDOW;
+        float* ms1 = data.ms1 != nullptr ? out.ms1.data() + k * MS1_WINDOW : nullptr;
+        float* features = out.features.data() + k * F;
+        if (F > 0) { std::copy_n(data.features + i * F, F, features); }
+        const bool augment = unit(rng) < options.augment_probability;
+        // The same feature dropout also hits unaugmented windows, so zeroed features do not reveal an augmentation.
+        const bool drop = augment || unit(rng) < options.augment_probability;
+        if (!augment)
+        {
+          std::copy_n(source, WINDOW, raw);
+          if (ms1 != nullptr) { std::copy_n(data.ms1 + i * MS1_WINDOW, MS1_WINDOW, ms1); }
+        }
+        else
+        {
+          // u in (0,1]: exp(u log s_min) is log-uniform in [s_min, 1].
+          const double scale = std::exp(log_min * (1.0 - unit(rng)));
+          const std::size_t j = partners[pick(rng)];
+          const float* partner = data.intensities + j * WINDOW;
+          for (std::size_t c = 0; c < FRAGMENTS; ++c)
+          {
+            // Padded channels stay empty.
+            if (sample.fragment_mz[c] == 0) { continue; }
+            for (std::size_t v = 0; v < CHANNEL; ++v)
+            {
+              raw[c * CHANNEL + v] = static_cast<float>(scale * source[c * CHANNEL + v] + partner[c * CHANNEL + v]);
+            }
+          }
+          if (ms1 != nullptr && sample.has_ms1)
+          {
+            const bool mix = data.samples[j].has_ms1;
+            for (std::size_t v = 0; v < MS1_WINDOW; ++v)
+            {
+              ms1[v] = static_cast<float>(scale * data.ms1[i * MS1_WINDOW + v] + (mix ? data.ms1[j * MS1_WINDOW + v] : 0.f));
+            }
+          }
+          if (F > 0 && data.recompute_features) { data.recompute_features(raw, i, recomputed.data()); }
+          ++out.augmented;
+        }
+        if (drop)
+        {
+          for (std::size_t f = 0; f < F; ++f)
+          {
+            const bool keep = data.recompute_features && data.recomputable[f];
+            if (!keep) { features[f] = 0.f; }
+            else if (augment) { features[f] = recomputed[f]; }
+          }
+        }
+        out.data.samples.push_back(sample);
+      }
+      out.data.intensities = out.raw.data();
+      out.data.intensity_count = out.raw.size();
+      out.data.ms1 = data.ms1 != nullptr ? out.ms1.data() : nullptr;
+      out.data.ms1_count = out.ms1.size();
+      out.data.features = F > 0 ? out.features.data() : nullptr;
+      out.data.feature_dim = F;
+    }
     void predictTopaz(TopazModel& model, const CNNData& data, CNNResult& result, bool heldout_only = false, bool block_max = false)
     {
       torch::NoGradGuard guard;
@@ -523,8 +629,9 @@ namespace OpenMS::OpenDIA
     CNNResult trainTopaz(const CNNData& data, const CNNGeometry& geometry, const CNNOptions& options, const std::string& checkpoint)
     {
       validateMS1(data);
+      validateFeatures(data);
       CNNResult result;
-      Indices train, validation;
+      Indices train, validation, partners;
       std::map<std::string, std::string> provenance;
       bool positive = false, negative = false;
       std::map<std::string, Bag> train_bags, validation_bags;
@@ -535,6 +642,8 @@ namespace OpenMS::OpenDIA
         const auto role = partition(s.group_id, options);
         provenance[s.group_id] = role;
         result.splits.push_back(role);
+        // Augmentation partners: any decoy window of a training family (never held-out or validation data).
+        if (role == "train" && s.is_decoy) { partners.push_back(i); }
         if (options.mil)
         {
           if (s.bag_id.empty()) { continue; }
@@ -565,7 +674,7 @@ namespace OpenMS::OpenDIA
       // Fixed validation subsample (MIL): the first bags of one seeded permutation.
       Indices check_order(check_bags.size());
       std::iota(check_order.begin(), check_order.end(), 0);
-      TopazModel model(options.topaz_width);
+      TopazModel model(options.topaz_width, static_cast<int64_t>(data.feature_dim));
       // Weight decay (AdamW) is the compact-variant regulariser; zero keeps plain Adam behaviour.
       torch::optim::AdamW optimizer(model.parameters(), torch::optim::AdamWOptions(1e-3).weight_decay(options.weight_decay));
       if (options.mil && check_order.size() > static_cast<std::size_t>(options.mil_bags_per_epoch))
@@ -582,6 +691,10 @@ namespace OpenMS::OpenDIA
       const std::size_t per_epoch = options.mil ? std::min(fit_bags.size(), static_cast<std::size_t>(options.mil_bags_per_epoch)) : train.size();
       const std::size_t total_steps = static_cast<std::size_t>(options.epochs) * ((per_epoch + options.batch_size - 1) / options.batch_size);
       std::size_t step = 0;
+      const bool augment = !options.mil && options.augment_probability > 0.0;
+      require(!augment || !partners.empty(), "augmentation needs at least one training-family decoy window");
+      std::mt19937_64 augment_rng(static_cast<std::uint64_t>(options.seed) * 1000003u + static_cast<std::uint64_t>(options.heldout_fold + 1));
+      EpochData epoch_data;
       for (int epoch = 0; epoch < options.epochs; ++epoch)
       {
         model.train();
@@ -593,6 +706,15 @@ namespace OpenMS::OpenDIA
         {
           const auto picked = static_cast<std::size_t>(permutation.data_ptr<int64_t>()[j]);
           order.push_back(options.mil ? picked : train[picked]);
+        }
+        // Augmented epochs train on a fresh copy in epoch order; the batch indices then run 0..n-1.
+        const CNNData* epoch_source = &data;
+        if (augment)
+        {
+          augmentEpoch(data, order, partners, options, augment_rng, epoch_data);
+          epoch_source = &epoch_data.data;
+          std::iota(order.begin(), order.end(), 0);
+          if (epoch == 0) { result.augmented_first_epoch = epoch_data.augmented; }
         }
         for (std::size_t start = 0; start < order.size(); start += options.batch_size)
         {
@@ -616,7 +738,7 @@ namespace OpenMS::OpenDIA
           }
           else
           {
-            const auto b = topazBatch(data, order, start, end, faithful);
+            const auto b = topazBatch(*epoch_source, order, start, end, faithful);
             const auto scores = model.forward(b);
             value = torch::nn::functional::binary_cross_entropy_with_logits(scores, b.labels);
             if (faithful) { value = value + 0.1 * pairwiseLoss(scores, b.labels); }
@@ -679,6 +801,11 @@ namespace OpenMS::OpenDIA
       archive.write("metadata", textTensor(metadata), true);
       archive.write("architecture", textTensor(options.mil ? "topaz-mil" : "topaz"), true);
       archive.write("topaz_width", torch::tensor({static_cast<int64_t>(options.topaz_width)}, torch::kInt64), true);
+      if (data.feature_dim > 0) { archive.write("topaz_features", torch::tensor({static_cast<int64_t>(data.feature_dim)}, torch::kInt64), true); }
+      if (augment)
+      {
+        archive.write("augmentation", torch::tensor({options.augment_probability, options.augment_scale_min}, torch::kFloat64), true);
+      }
       if (faithful) { archive.write("topaz_input", textTensor("block-max"), true); }
       archive.write("geometry", torch::tensor({geometry.mz_tolerance, geometry.rt_half_width, geometry.im_half_width}, torch::kFloat64), true);
       archive.write("training", torch::tensor({static_cast<double>(result.epochs_run), result.validation_loss}, torch::kFloat64), true);
@@ -713,6 +840,12 @@ namespace OpenMS::OpenDIA
     require(options.topaz_width >= 2 && options.topaz_width <= 64 && std::isfinite(options.weight_decay) && options.weight_decay >= 0 &&
             (options.architecture == CNNArchitecture::TOPAZ || (options.topaz_width == 32 && options.weight_decay == 0 && !options.topaz_faithful)),
             "invalid TOPAZ width, weight decay or training regime");
+    require(std::isfinite(options.augment_probability) && options.augment_probability >= 0 && options.augment_probability <= 1 &&
+            std::isfinite(options.augment_scale_min) && options.augment_scale_min > 0 && options.augment_scale_min <= 1 &&
+            (options.augment_probability == 0 || (options.architecture == CNNArchitecture::TOPAZ && !options.mil)),
+            "augmentation needs a probability in [0,1], a scale minimum in (0,1], the TOPAZ architecture and seed training");
+    require((data.feature_dim == 0 && data.features == nullptr) || options.architecture == CNNArchitecture::TOPAZ,
+            "heuristic features require the TOPAZ architecture");
     at::set_num_threads(options.threads);
     torch::manual_seed(options.seed);
     at::globalContext().setDeterministicAlgorithms(true, false);
@@ -899,7 +1032,16 @@ namespace OpenMS::OpenDIA
         saved_width = width.item<int64_t>();
         require(saved_width >= 2 && saved_width <= 64, "invalid checkpoint TOPAZ width");
       }
-      TopazModel model(saved_width);
+      torch::Tensor saved_features;
+      int64_t feature_count = 0;
+      if (archive.try_read("topaz_features", saved_features, true))
+      {
+        require(saved_features.scalar_type() == torch::kInt64 && saved_features.numel() == 1, "invalid checkpoint feature count");
+        feature_count = saved_features.item<int64_t>();
+      }
+      require(static_cast<int64_t>(data.feature_dim) == feature_count, "checkpoint heuristic feature count mismatch");
+      TopazModel model(saved_width, feature_count);
+      validateFeatures(data);
       torch::Tensor input_mode;
       const bool block_max = archive.try_read("topaz_input", input_mode, true);
       require(!block_max || tensorText(input_mode) == "block-max", "unknown checkpoint TOPAZ input mode");
@@ -908,6 +1050,7 @@ namespace OpenMS::OpenDIA
       return result;
     }
     Model model;
+    require(data.feature_dim == 0 && data.features == nullptr, "heuristic features require a TOPAZ checkpoint");
     model.load(model_archive);
     predict(model, data, result);
     return result;

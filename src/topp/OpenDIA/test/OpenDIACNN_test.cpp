@@ -408,6 +408,90 @@ int main(int argc, char** argv)
       }
       check(*std::min_element(fgood.begin(), fgood.end()) > *std::max_element(fscrambled.begin(), fscrambled.end()),
             "faithful MIL did not rank co-eluting candidates first");
+
+      // Heuristic features in the TOPAZ head. The traces carry no class signal (every window co-elutes); feature 1
+      // carries it. The single scorer must learn from the features, roundtrip, and refuse a mismatched feature count.
+      {
+        CNNData blind = topaz;
+        std::vector<float> blind_raw = topaz_raw;
+        for (std::size_t i = 0; i < blind.samples.size(); ++i)
+        {
+          if (blind.samples[i].label == 1) { continue; }
+          // Copy the co-eluting window of the same family over the scrambled one.
+          std::copy_n(topaz_raw.begin() + (i + 1) * WINDOW, WINDOW, blind_raw.begin() + i * WINDOW);
+        }
+        blind.intensities = blind_raw.data();
+        std::vector<float> features;
+        for (const auto& s : blind.samples)
+        {
+          features.push_back(0.5f);
+          features.push_back(s.label == 1 ? 1.f : -1.f);
+        }
+        auto plain = topaz_options;
+        plain.topaz_width = 8;
+        const auto blind_path = (directory / "topaz-blind.pt").string();
+        check(trainTraceCNN(blind, geometry, plain, blind_path).heldout_auc < 0.9, "label-free traces separated classes");
+        blind.features = features.data();
+        blind.feature_dim = 2;
+        const auto featured_path = (directory / "topaz-features.pt").string();
+        const auto featured = trainTraceCNN(blind, geometry, plain, featured_path);
+        check(featured.heldout_auc > 0.99, "TOPAZ did not learn from heuristic features");
+        check(scoreTraceCNN(blind, geometry, featured_path, 1, true).logits == featured.logits, "featured TOPAZ checkpoint roundtrip changed output");
+        auto fewer = blind;
+        fewer.feature_dim = 1;
+        rejects([&] { scoreTraceCNN(fewer, geometry, featured_path, 1, true); });
+        auto none = blind;
+        none.features = nullptr;
+        none.feature_dim = 0;
+        rejects([&] { scoreTraceCNN(none, geometry, featured_path, 1, true); });
+        auto nonfinite = features;
+        nonfinite[3] = std::numeric_limits<float>::quiet_NaN();
+        auto bad_features = blind;
+        bad_features.features = nonfinite.data();
+        rejects([&] { trainTraceCNN(bad_features, geometry, plain, featured_path + ".nan"); });
+        auto grid_features = options;
+        CNNData grid_blind = blind;
+        rejects([&] { trainTraceCNN(grid_blind, geometry, grid_features, featured_path + ".grid"); });
+        rejects([&] { scoreTraceCNN(blind, geometry, checkpoint, 1, true); });
+
+        // Augmentation: every window is mixed with a decoy window at a reduced scale. It still learns co-elution, it
+        // reports the augmented count, it is deterministic, and the recomputable feature column reaches the callback.
+        auto augmented = topaz_options;
+        augmented.topaz_width = 8;
+        augmented.augment_probability = 1.0;
+        augmented.augment_scale_min = 0.5;
+        CNNData mixed = topaz;
+        std::vector<float> mixed_features(topaz.samples.size() * 2, 0.f);
+        mixed.features = mixed_features.data();
+        mixed.feature_dim = 2;
+        mixed.recomputable = {true, false};
+        std::size_t calls = 0;
+        mixed.recompute_features = [&](const float* window, std::size_t, float* out)
+        {
+          ++calls;
+          out[0] = window[16 * 8 + 4] > 0.f ? 1.f : 0.f;
+          out[1] = 7.f; // not recomputable: must be zeroed
+        };
+        const auto augmented_path = (directory / "topaz-augmented.pt").string();
+        const auto aug = trainTraceCNN(mixed, geometry, augmented, augmented_path);
+        check(aug.heldout_auc > 0.95, "augmented TOPAZ did not learn co-elution");
+        check(aug.augmented_first_epoch > 0 && calls >= aug.augmented_first_epoch, "augmentation did not run or skipped feature recomputation");
+        const auto aug_again = trainTraceCNN(mixed, geometry, augmented, augmented_path + ".again");
+        check(aug_again.logits == aug.logits, "augmented training is not deterministic");
+        check(scoreTraceCNN(mixed, geometry, augmented_path, 1, true).logits == aug.logits, "augmented checkpoint roundtrip changed output");
+        auto bad_probability = augmented;
+        bad_probability.augment_probability = 1.5;
+        rejects([&] { trainTraceCNN(mixed, geometry, bad_probability, augmented_path + ".p"); });
+        auto bad_scale = augmented;
+        bad_scale.augment_scale_min = 0.0;
+        rejects([&] { trainTraceCNN(mixed, geometry, bad_scale, augmented_path + ".s"); });
+        auto mil_augmented = mil_options;
+        mil_augmented.augment_probability = 0.5;
+        rejects([&] { trainTraceCNN(mil_data, geometry, mil_augmented, augmented_path + ".mil"); });
+        auto grid_augmented = options;
+        grid_augmented.augment_probability = 0.5;
+        rejects([&] { trainTraceCNN(data, geometry, grid_augmented, augmented_path + ".grid"); });
+      }
     }
     if (parity)
     {

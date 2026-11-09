@@ -143,6 +143,18 @@ namespace OpenMS
       setMinFloat_("weight_decay", 0.0);
       registerFlag_("topaz_faithful", "With -cnn_arch topaz, experimental: redeem-topaz training defaults (per-sample block max normalisation, cosine "
                     "warm-up LR, gradient clipping at 5, 0.1 x pairwise and, with MIL, 0.1 x in-bag ranking losses). Combine with -weight_decay 0.01 for TOPAZ's AdamW default");
+      registerStringOption_("topaz_features", "<groups>", "", "With -cnn_arch topaz, experimental single scorer: '+'-separated heuristic feature groups fed to the "
+                            "TOPAZ head next to the trace embeddings (groups as in -stage2_feature_set: extraction, search, isotope, boundary, byion, shape; "
+                            "no CNN logit). Columns are standardised over all windows (label-free) and clipped at +-8. q-values then come from the TOPAZ "
+                            "logit itself (use -paired_tdc -pooled_tdc, optionally -ss_iterations); excludes -stage2. Empty disables", false);
+      registerDoubleOption_("augment_probability", "<p>", 0.0, "With -cnn_arch topaz and seed training, experimental: per epoch, replace each training window "
+                            "with probability p by s x window + a random training-family decoy window (s log-uniform in [augment_scale_min, 1]); "
+                            "tensor-derived heuristic features are recomputed, the others zeroed (with matching dropout on unaugmented windows). 0 disables", false);
+      setMinFloat_("augment_probability", 0.0);
+      setMaxFloat_("augment_probability", 1.0);
+      registerDoubleOption_("augment_scale_min", "<s>", 0.1, "Smallest signal scale of an augmented window", false);
+      setMinFloat_("augment_scale_min", 0.001);
+      setMaxFloat_("augment_scale_min", 1.0);
     }
 
     ExitCodes main_(int, const char**) override
@@ -234,17 +246,30 @@ namespace OpenMS
         }
         const auto stage2_set = OpenDIA::parseStage2FeatureSet(getStringOption_("stage2_feature_set"));
         const bool stage2_needs_search = stage2_set.search;
-        if (!stage2 && (getStringOption_("stage2_feature_set") != "extraction" || !getStringOption_("stage2_search_features").empty()))
+        // Single-scorer TOPAZ heuristic features (no CNN logit, no second stage).
+        const std::string topaz_feature_spec = getStringOption_("topaz_features");
+        const bool topaz_heuristics = !topaz_feature_spec.empty();
+        OpenDIA::Stage2FeatureSet topaz_set{false, false, false};
+        if (topaz_heuristics)
+        {
+          if (getStringOption_("cnn_arch") != "topaz" || stage2)
+          {
+            throw std::invalid_argument("topaz_features requires -cnn_arch topaz and excludes -stage2.");
+          }
+          topaz_set = OpenDIA::parseStage2FeatureSet(topaz_feature_spec);
+        }
+        const bool needs_search = (stage2 && stage2_needs_search) || topaz_set.search;
+        if (!stage2 && (getStringOption_("stage2_feature_set") != "extraction" || (!topaz_set.search && !getStringOption_("stage2_search_features").empty())))
         {
           throw std::invalid_argument("stage2_feature_set and stage2_search_features require -stage2.");
         }
-        if (stage2_needs_search != !getStringOption_("stage2_search_features").empty())
+        if (needs_search != !getStringOption_("stage2_search_features").empty())
         {
           throw std::invalid_argument("stage2_search_features is required by, and only accepted with, a stage2_feature_set containing search.");
         }
         // Read before extraction so a missing or malformed table fails before any expensive work.
         std::unordered_map<std::string, OpenDIA::SearchPeakFeatures> search_peaks;
-        if (stage2_needs_search) { search_peaks = OpenDIA::readSearchPeakFeatures(getStringOption_("stage2_search_features")); }
+        if (needs_search) { search_peaks = OpenDIA::readSearchPeakFeatures(getStringOption_("stage2_search_features")); }
 
         const bool rt_window_calibration = getFlag_("rt_window_calibration");
         if (rt_window_calibration && !crossfit)
@@ -274,6 +299,10 @@ namespace OpenMS
         if (!topaz && (getIntOption_("topaz_width") != 32 || getDoubleOption_("weight_decay") != 0.0 || getFlag_("topaz_faithful")))
         {
           throw std::invalid_argument("topaz_width, weight_decay and topaz_faithful require -cnn_arch topaz.");
+        }
+        if (getDoubleOption_("augment_probability") > 0.0 && (!topaz || mil))
+        {
+          throw std::invalid_argument("augment_probability requires -cnn_arch topaz with seed training (not -cnn_training mil).");
         }
 
         const auto max_samples = static_cast<std::size_t>(getIntOption_("max_samples"));
@@ -333,7 +362,7 @@ namespace OpenMS
         if (stage2 || topaz)
         {
           collector.enableEvidence(getDoubleOption_("stage2_ms1_ppm"), getDoubleOption_("stage2_core_half_width"));
-          if (stage2 && stage2_set.byion)
+          if ((stage2 && stage2_set.byion) || topaz_set.byion)
           {
             collector.enableByIonCounts(library, getDoubleOption_("stage2_byion_ppm"), getDoubleOption_("stage2_byion_intensity_min"));
           }
@@ -381,6 +410,104 @@ namespace OpenMS
           data.ms1 = ms1_traces.data();
           data.ms1_count = ms1_traces.size();
         }
+        // Single-scorer heuristic features: the stage-2 groups without the CNN logit, standardised over all windows
+        // (label-free mean/sd, clipped at +-8). Tensor-only groups (boundary, shape) are recomputable for augmented windows.
+        std::vector<float> heuristics;
+        std::vector<std::string> heuristic_names;
+        OpenDIA::Stage2ExtractionOptions heuristic_geometry;
+        heuristic_geometry.rt_half_width = geometry.rt_half_width;
+        heuristic_geometry.core_half_width = getDoubleOption_("stage2_core_half_width");
+        std::vector<double> heuristic_mean, heuristic_sd;
+        if (topaz_heuristics)
+        {
+          for (const auto& name : OpenDIA::stage2FeatureSetNames(topaz_set)) { if (name != "cnn_z") { heuristic_names.push_back(name); } }
+          // Row order matches stage2FeatureSetNames: extraction, search, isotope, boundary, byion, shape.
+          // tensor_only (augmented windows) leaves the search columns at zero; non-recomputable columns are zeroed later anyway.
+          const auto row_of = [&collector, &search_peaks, topaz_set, heuristic_geometry](const float* window, std::size_t i, bool tensor_only)
+          {
+            std::vector<double> out;
+            if (topaz_set.extraction)
+            {
+              const auto v = OpenDIA::stage2Features(window, collector.libraryIntensities(i), collector.fragmentMZ(i), collector.evidence(i), heuristic_geometry);
+              out.insert(out.end(), v.begin() + 1, v.end());
+            }
+            if (topaz_set.search)
+            {
+              std::array<double, OpenDIA::STAGE2_SEARCH_FEATURES> v{};
+              if (!tensor_only)
+              {
+                const auto& window_meta = collector.window(i);
+                const auto found = search_peaks.find(window_meta.sample_id);
+                if (found == search_peaks.end() || found->second.precursor_id != window_meta.precursor_id ||
+                    std::abs(found->second.rt_apex - window_meta.apex_rt) > 1e-3)
+                {
+                  throw std::invalid_argument("stage2_search_features has no matching candidate_row, precursor and apex for window " + window_meta.sample_id);
+                }
+                v = OpenDIA::stage2SearchFeatures(found->second);
+              }
+              out.insert(out.end(), v.begin(), v.end());
+            }
+            if (topaz_set.isotope)
+            {
+              const auto v = OpenDIA::stage2IsotopeFeatures(collector.evidence(i), collector.precursorMZ(i), collector.precursorCharge(i), heuristic_geometry);
+              out.insert(out.end(), v.begin(), v.end());
+            }
+            if (topaz_set.boundary)
+            {
+              const auto v = OpenDIA::stage2BoundaryFeatures(window, collector.libraryIntensities(i), collector.fragmentMZ(i), collector.evidence(i), heuristic_geometry);
+              out.insert(out.end(), v.begin(), v.end());
+            }
+            if (topaz_set.byion)
+            {
+              const auto v = OpenDIA::stage2ByIonFeatures(collector.evidence(i));
+              out.insert(out.end(), v.begin(), v.end());
+            }
+            if (topaz_set.shape)
+            {
+              const auto v = OpenDIA::stage2ShapeFeatures(window, collector.libraryIntensities(i), collector.fragmentMZ(i), collector.evidence(i));
+              out.insert(out.end(), v.begin(), v.end());
+            }
+            return out;
+          };
+          const std::size_t F = heuristic_names.size();
+          std::vector<double> raw(count * F);
+          for (std::size_t i = 0; i < count; ++i)
+          {
+            const auto row = row_of(collector.intensities().data() + i * OpenDIA::TraceCollector::SAMPLE_SIZE, i, false);
+            if (row.size() != F) { throw std::logic_error("topaz_features row width mismatch"); }
+            std::copy(row.begin(), row.end(), raw.begin() + i * F);
+          }
+          heuristic_mean.assign(F, 0.0);
+          heuristic_sd.assign(F, 0.0);
+          for (std::size_t i = 0; i < count; ++i) { for (std::size_t f = 0; f < F; ++f) { heuristic_mean[f] += raw[i * F + f]; } }
+          for (auto& m : heuristic_mean) { m /= std::max<std::size_t>(count, 1); }
+          for (std::size_t i = 0; i < count; ++i) { for (std::size_t f = 0; f < F; ++f) { heuristic_sd[f] += std::pow(raw[i * F + f] - heuristic_mean[f], 2); } }
+          for (auto& s : heuristic_sd) { s = std::sqrt(s / std::max<std::size_t>(count, 1)); if (!(s > 0.0)) { s = 1.0; } }
+          const auto standardise = [mean = heuristic_mean, sd = heuristic_sd](double v, std::size_t f)
+          {
+            return static_cast<float>(std::clamp((v - mean[f]) / sd[f], -8.0, 8.0));
+          };
+          heuristics.resize(count * F);
+          for (std::size_t j = 0; j < raw.size(); ++j) { heuristics[j] = standardise(raw[j], j % F); }
+          data.features = heuristics.data();
+          data.feature_dim = F;
+          // Recomputable: columns that depend only on the window tensor and the library (boundary, shape).
+          data.recomputable.assign(F, false);
+          std::size_t offset = 0;
+          const auto mark = [&](std::size_t width, bool on) { for (std::size_t f = 0; f < width; ++f) { data.recomputable[offset + f] = on; } offset += width; };
+          if (topaz_set.extraction) { mark(OpenDIA::STAGE2_FEATURES - 1, false); }
+          if (topaz_set.search) { mark(OpenDIA::STAGE2_SEARCH_FEATURES, false); }
+          if (topaz_set.isotope) { mark(OpenDIA::STAGE2_ISOTOPE_FEATURES, false); }
+          if (topaz_set.boundary) { mark(OpenDIA::STAGE2_BOUNDARY_FEATURES, true); }
+          if (topaz_set.byion) { mark(OpenDIA::STAGE2_BYION_FEATURES, false); }
+          if (topaz_set.shape) { mark(OpenDIA::STAGE2_SHAPE_FEATURES, true); }
+          data.recompute_features = [row_of, F, standardise](const float* window, std::size_t i, float* out)
+          {
+            const auto row = row_of(window, i, true);
+            for (std::size_t f = 0; f < F; ++f) { out[f] = standardise(row[f], f); }
+          };
+          writeLogInfo_("Experimental TOPAZ single scorer: heuristic_features=" + std::to_string(F) + " (" + topaz_feature_spec + ")");
+        }
         if (mil)
         {
           // Bags: a precursor's candidates inside the identification-free calibrated RT window (CNN-independent).
@@ -414,6 +541,8 @@ namespace OpenMS
         settings.topaz_width = getIntOption_("topaz_width");
         settings.weight_decay = getDoubleOption_("weight_decay");
         settings.topaz_faithful = getFlag_("topaz_faithful");
+        settings.augment_probability = getDoubleOption_("augment_probability");
+        settings.augment_scale_min = getDoubleOption_("augment_scale_min");
         std::vector<OpenDIA::CNNQValueInput> crossfit_rows;
         // Pair key: target TRAML_ID, or a decoy TRAML_ID without its DECOY_ prefix.
         std::vector<std::string> pair_keys(count);
@@ -504,6 +633,7 @@ namespace OpenMS
               result.logits[i] = fitted.logits.at(i);
             }
             writeLogInfo_("Native CNN fold=" + std::to_string(fold) + " heldout_windows=" + std::to_string(heldout_count) +
+                          " augmented_first_epoch=" + std::to_string(fitted.augmented_first_epoch) +
                           " epochs=" + std::to_string(fitted.epochs_run) + " validation_loss=" + std::to_string(fitted.validation_loss) +
                           " heldout_seed_decoy_auc=" + std::to_string(fitted.heldout_auc));
           }
