@@ -61,7 +61,7 @@ git log --since="8 days ago" --first-parent --diff-merges=first-parent --name-on
 
 `--first-parent --diff-merges=first-parent` lists what each commit on `develop` brought in, so the files of a pull request merged with a merge commit count even when its own commits are older than 8 days.
 
-Then list the merged pull requests of the same period (`git log --since="8 days ago" --first-parent --oneline`; a squash merge ends with `(#<number>)`, a merge commit reads `Merge pull request #<number>`) and read the description of each one that touched those files. The filter leaves out packaging, so also read the pull requests that change only `vcpkg.json`, `vcpkg-overlays/`, `dockerfiles/`, `.github/workflows/release.yml` or the packaging scripts in `tools/` (dependency bumps, installer and SDK contents).
+Then list the merged pull requests of the same period (`git log --since="8 days ago" --first-parent --oneline`; a squash merge ends with `(#<number>)`, a merge commit reads `Merge pull request #<number>`). A commit with neither form came from a rebase merge or a direct push: search pull requests for its SHA (`repo:OpenMS/OpenMS is:pr is:merged <sha>`) and take the one merged in this period. Read the description of each pull request that touched those files. The filter leaves out packaging, so also read the pull requests that change only `vcpkg.json`, `vcpkg-overlays/`, `dockerfiles/`, `.github/workflows/release.yml` or the packaging scripts in `tools/` (dependency bumps, installer and SDK contents).
 
 If no pull request of either kind was merged, output a brief summary and stop — there is nothing to update.
 
