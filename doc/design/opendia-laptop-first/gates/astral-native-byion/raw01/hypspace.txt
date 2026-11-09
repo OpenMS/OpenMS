@@ -1,0 +1,9 @@
+RT window half width 84.2 s (OSW: +-300 s). Native in-window candidates per target precursor: mean 5.36
+OSW       all       n= 1439 | in our RT window 0.995 | candidate within 10 s 0.953 | our winner is it 0.948
+OSW       we accept n=  932 | in our RT window 0.998 | candidate within 10 s 0.999 | our winner is it 0.999
+OSW       we miss   n=  507 | in our RT window 0.990 | candidate within 10 s 0.870 | our winner is it 0.854
+OSW       misses split: outside window 5, in window but no candidate 62, candidate but other winner 8, right winner below cut 433
+DIA-NN    all       n= 2743 | in our RT window 0.954 | candidate within 10 s 0.890 | our winner is it 0.843
+DIA-NN    we accept n= 1004 | in our RT window 0.998 | candidate within 10 s 1.000 | our winner is it 0.999
+DIA-NN    we miss   n= 1739 | in our RT window 0.929 | candidate within 10 s 0.827 | our winner is it 0.753
+DIA-NN    misses split: outside window 124, in window but no candidate 181, candidate but other winner 128, right winner below cut 1310
