@@ -146,3 +146,33 @@ This covers the human targets that OSW+Percolator exports at m_score ≤ 0.01 bu
 - The 20 subscores, or how the model combines them, do not separate these peaks from decoys as well as OSW's scores do.
 
 **Next.** A diagnostic re-extraction of raw 02 that keeps OSW's feature table (`extract_feat02.sh`). It will compare OSW's subscores with ours on these 398 peaks, to locate the missing information. OSW's scores are used only to diagnose, never in our model.
+
+### Which information is missing: b/y ion series in the apex spectrum (raw 02; raw 01 running)
+
+**Setup.** This uses a diagnostic re-extraction of raw 02 that keeps OSW's feature table (`extract_feat02.sh`). Each of our candidates is matched to OSW's nearest peak group of the same precursor, within 5 s; 47% match. OSW's subscores are used here only to find which *information* our features lack. Nothing from OSW's scoring code goes into our model.
+
+**Conditional separation (`osw_info.py`).** Within bins of our score, over the top 5% of decoy winners and above, no single OSW subscore separates targets from decoys by more than AUC 0.54. Library-match variants, MI, mass deviation and b/y series lead.
+
+**Augmentation**, 5-seed MLP ensemble on raw 02. Entrapment-matched N at FDP_c 0.5 / 1 / 1.5 / 2%, against our 20 subscores at 1008 / 1083 / 1132 / 1223:
+
+| Added | N at FDP_c 0.5 / 1 / 1.5 / 2% |
+|---|---|
+| mass deviation (3 columns) | 1048 / 1119 / 1152 / 1324 |
+| MI (4) | 731 / 944 / 1056 / 1125 |
+| isotope (4) | 974 / 1119 / 1135 / 1176 |
+| **b/y series (2)** | **1053 / 1281 / 1316 / 1377** |
+| all 30 | 971 / 1295 / 1329 / 1416 |
+
+**Confound check (`series_check.py`, reading declared before running).** The first run also added a flag for "OSW reported a peak group here". Results:
+- The flag alone does not help: 1068.
+- b/y series without the flag: **1291** (+19%). That matches OSW+Percolator's 1287 at FDP_c 1% on this run.
+- Restricted to the candidates that match an OSW feature: 1028 → 1165 (+13%).
+
+Both arms meet the ≥ 5% reading **on raw 02**. With b/y series plus the flag, plain TDC gives q ≤ 0.01 FDP_c 0.007 and q ≤ 0.05 FDP_c 0.076. Bulk-null TDC gives 0.006 and **0.040**, so calibration holds with the new features.
+
+**Interpretation.** OSW's b/y series scores count how many theoretical b and y ions of the precursor are present in the apex MS2 spectrum. This uses the full theoretical ion ladder, not just the 6 library fragments that our XIC features see. That evidence is **outside the top-6 XICs**, which explains why no XIC-derived feature, CNN or ranker change recovered it.
+
+**For the native pipeline:**
+- Own implementation: at the candidate apex (and ±1 scan), match all theoretical b/y ions (charge 1 and 2, inside the scan range) against the centroided MS2 spectrum within the extraction tolerance.
+- Features: matched count per series, longest consecutive run, matched intensity share, and decoys scored the same way.
+- This is the next native change to test, once raw 01 confirms.

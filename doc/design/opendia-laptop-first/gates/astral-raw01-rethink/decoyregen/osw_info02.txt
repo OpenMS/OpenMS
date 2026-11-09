@@ -1,0 +1,25 @@
+OSW features 5829970, precursors 1176905, usable columns 30
+candidates matched to an OSW feature: 0.474 (targets 0.467, decoys 0.482)
+conditional AUC beyond our score (top 5% of decoy winners and above; max(a, 1-a)):
+  var_library_dotprod                0.540
+  var_library_rmsd                   0.540
+  var_library_rootmeansquare         0.539
+  var_mi_score                       0.538
+  var_library_manhattan              0.537
+  var_library_sangle                 0.537
+  var_dotprod_score                  0.537
+  var_massdev_score                  0.536
+  var_mi_weighted_score              0.535
+  var_manhattan_score                0.531
+  var_yseries_score                  0.531
+  var_xcorr_coelution_weighted       0.530
+  ms1_mi_comb                        0.530
+  var_xcorr_coelution                0.529
+  var_bseries_score                  0.528
+groups: massdev: ['var_massdev_score', 'var_massdev_score_weighted', 'ms1_massdev']; mi: ['var_mi_score', 'var_mi_weighted_score', 'ms1_mi', 'ms1_mi_comb']; series: ['var_bseries_score', 'var_yseries_score']; elution: []; iso: ['var_isotope_correlation_score', 'var_isotope_overlap_score', 'ms1_isocorr', 'ms1_isoovl']
+ours (20 subscores): matched N [1008, 1083, 1132, 1223]
+ours + massdev (3 cols): matched N [1048, 1119, 1152, 1324]
+ours + mi (4 cols): matched N [731, 944, 1056, 1125]
+ours + series (2 cols): matched N [1053, 1281, 1316, 1377]
+ours + iso (4 cols): matched N [974, 1119, 1135, 1176]
+ours + all (30 cols): matched N [971, 1295, 1329, 1416]

@@ -1,0 +1,9 @@
+run R02: candidates matched 0.474
+ours                         matched N [1008, 1083, 1132, 1223]
+ours + hit flag              matched N [900, 1068, 1112, 1160]
+ours + series (no flag)      matched N [974, 1291, 1319, 1352]
+ours + series + flag         matched N [1053, 1281, 1316, 1377]
+restricted: ours             matched N [707, 1028, 1054, 1120]
+restricted: ours + series    matched N [977, 1165, 1292, 1313]
+ours + series + flag, plain TDC: q<=0.01: 1214 FDP_c 0.007, q<=0.05: 1701 FDP_c 0.076
+ours + series + flag, bulk-null TDC: q<=0.01: 1091 FDP_c 0.006, q<=0.05: 1548 FDP_c 0.040
