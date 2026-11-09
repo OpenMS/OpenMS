@@ -688,8 +688,8 @@ namespace OpenMS
     std::unordered_map<std::string, TransitionInfo> transition_info_;
     std::unordered_map<std::string, int64_t> transition_ids_;
     // Auto-assignment state for when no transition experiment is provided.
-    IdAssigner precursor_id_assigner_;
-    IdAssigner transition_id_assigner_;
+    IdAssigner precursor_id_assigner_{"MSChromatogramParquetConsumer", "PRECURSOR_ID"};
+    IdAssigner transition_id_assigner_{"MSChromatogramParquetConsumer", "TRANSITION_ID"};
 
     arrow::Int64Builder run_id_builder_;
     arrow::StringBuilder source_file_builder_;

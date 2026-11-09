@@ -260,8 +260,8 @@ namespace OpenMS
 
     void buildTransitionMaps_(const OpenSwath::LightTargetedExperiment& transition_exp)
     {
-      IdAssigner precursor_id_assigner;
-      IdAssigner transition_id_assigner;
+      IdAssigner precursor_id_assigner("MobilogramParquetConsumer", "PRECURSOR_ID");
+      IdAssigner transition_id_assigner("MobilogramParquetConsumer", "TRANSITION_ID");
 
       std::unordered_map<std::string, bool> precursor_has_target_transition;
       std::unordered_map<std::string, bool> precursor_has_decoy_transition;

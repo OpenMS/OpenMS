@@ -1432,6 +1432,14 @@ std::shared_ptr<arrow::Array> getColumn(
   return *combined;
 }
 
+std::shared_ptr<arrow::Array> getColumn(
+  const std::shared_ptr<arrow::Table>& table,
+  const std::string& name,
+  bool required)
+{
+  return getColumn(table, name, required, "ArrowIOHelpers");
+}
+
 std::string getStringValue(const std::shared_ptr<arrow::Array>& array, int64_t row)
 {
   if (!array || array->IsNull(row)) return "";

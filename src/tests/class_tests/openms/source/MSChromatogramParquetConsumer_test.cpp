@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <limits>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/test_config.h>
 
@@ -457,4 +458,55 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION(MSChromatogramParquetConsumer_fresh_ids_never_overflow)
+{
+  // The explicit ID INT64_MAX - 1 moves the next fresh ID to INT64_MAX. The first negative ID gets
+  // INT64_MAX; for the second, no ID is left: an exception, not a wrap to a negative ID.
+  OpenSwath::LightTargetedExperiment light_exp;
+
+  OpenSwath::LightCompound compound;
+  compound.id = "7";
+  compound.sequence = "PEPTIDEK";
+  compound.charge = 2;
+  light_exp.compounds.push_back(compound);
+
+  OpenSwath::LightTransition transition;
+  transition.peptide_ref = "7";
+  transition.precursor_mz = 500.0;
+  transition.product_mz = 600.0;
+  transition.fragment_charge = 1;
+  transition.fragment_nr = 3;
+  transition.setFragmentType("y");
+  transition.setDetectingTransition(true);
+  for (const char* name : {"9223372036854775806", "-1", "-2"})
+  {
+    transition.transition_name = name;
+    light_exp.transitions.push_back(transition);
+  }
+
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  const std::string out = tmp + ".xic";
+  TEST_EXCEPTION(Exception::InvalidValue, MSChromatogramParquetConsumer(out, 1, "test_source", light_exp))
+
+  light_exp.transitions.pop_back(); // without "-2", INT64_MAX is still free
+  MSChromatogram chrom;
+  chrom.setNativeID("-1");
+  ChromatogramPeak peak;
+  peak.setRT(100.0);
+  peak.setIntensity(1000.0);
+  chrom.push_back(peak);
+  {
+    MSChromatogramParquetConsumer consumer(out, 1, "test_source", light_exp);
+    consumer.consumeChromatogram(chrom);
+  }
+  XICParquetFile xic(out);
+  std::vector<XICChromatogram> chroms;
+  xic.load(chroms);
+  TEST_EQUAL(chroms.size(), 1)
+  ABORT_IF(chroms.size() != 1)
+  TEST_EQUAL(chroms[0].transition_id, std::numeric_limits<Int64>::max())
+}
+END_SECTION
+
 END_TEST

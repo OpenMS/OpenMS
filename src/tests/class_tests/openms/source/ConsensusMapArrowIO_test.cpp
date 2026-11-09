@@ -1216,9 +1216,14 @@ START_SECTION([EXTRA] importFromParquet - column header JSON with unexpected val
     auto reader = parquet::arrow::OpenFile(infile, arrow::default_memory_pool()).ValueOrDie();
     TEST_EQUAL(reader->ReadTable(&table).ok(), true)
   }
+  // headers that cannot be placed are dropped: a negative or fractional map_index (no longer
+  // UINT64_MAX or 1), and a missing one (no longer stored as header 0, replacing the real one)
   const std::string column_headers =
     std::string("[{\"map_index\":0,\"filename\":\"a.mzML\",\"size\":null,\"metavalues\":null,\"label\":\"L0\"},")
-    + "{\"map_index\":1,\"filename\":\"b.mzML\",\"label\":\"L1\",\"size\":1,\"metavalues\":[]}]";
+    + "{\"map_index\":-1,\"filename\":\"neg.mzML\"},"
+    + "{\"map_index\":1.5,\"filename\":\"frac.mzML\"},"
+    + "{\"filename\":\"no_index.mzML\"},"
+    + "{\"map_index\":1,\"filename\":\"b.mzML\",\"label\":\"L1\",\"size\":-3,\"unique_id\":-1,\"metavalues\":[]}]";
   auto md = table->schema()->metadata() ? table->schema()->metadata()->Copy() : std::make_shared<arrow::KeyValueMetadata>();
   TEST_EQUAL(md->Set("column_headers", column_headers).ok(), true)
   table = table->ReplaceSchemaMetadata(md);
@@ -1235,9 +1240,12 @@ START_SECTION([EXTRA] importFromParquet - column header JSON with unexpected val
   const ConsensusMap::ColumnHeaders& headers = imported.getColumnHeaders();
   TEST_EQUAL(headers.size(), 2)
   ABORT_IF(headers.size() != 2)
+  TEST_EQUAL(headers.at(0).filename, "a.mzML")
   TEST_EQUAL(headers.at(0).label, "L0")
   TEST_EQUAL(headers.at(1).filename, "b.mzML")
   TEST_EQUAL(headers.at(1).label, "L1")
+  TEST_EQUAL(headers.at(1).size, 0)      // "size":-3 skipped
+  TEST_EQUAL(headers.at(1).unique_id, 0) // "unique_id":-1 skipped
 }
 END_SECTION
 

@@ -22,6 +22,7 @@
 #include <parquet/arrow/writer.h>
 #include <parquet/properties.h>
 
+#include <charconv>
 #include <cstdio>
 #include <cstring>
 #include <random>
@@ -61,66 +62,7 @@ void appendMetaValues(
   }
 }
 
-// ==================== JSON helpers for DataProcessing metadata ====================
-
-/// Unescape a JSON string (reverse of ParquetFile::jsonEscape()).
-std::string unescapeJsonString(const std::string& s)
-{
-  std::string result;
-  result.reserve(s.size());
-  for (size_t i = 0; i < s.size(); ++i)
-  {
-    if (s[i] == '\\' && i + 1 < s.size())
-    {
-      ++i;
-      switch (s[i])
-      {
-        case '"':  result += '"'; break;
-        case '\\': result += '\\'; break;
-        case 'n':  result += '\n'; break;
-        case 'r':  result += '\r'; break;
-        case 't':  result += '\t'; break;
-        case 'u':
-          if (i + 4 < s.size())
-          {
-            unsigned int cp = 0;
-            for (int j = 0; j < 4; ++j) // parse 4 hex digits
-            {
-              char ch = s[i + 1 + j];
-              cp <<= 4;
-              if (ch >= '0' && ch <= '9') cp |= (ch - '0');
-              else if (ch >= 'a' && ch <= 'f') cp |= (ch - 'a' + 10);
-              else if (ch >= 'A' && ch <= 'F') cp |= (ch - 'A' + 10);
-            }
-            // Encode as UTF-8
-            if (cp < 0x80)
-            {
-              result += static_cast<char>(cp);
-            }
-            else if (cp < 0x800)
-            {
-              result += static_cast<char>(0xC0 | (cp >> 6));
-              result += static_cast<char>(0x80 | (cp & 0x3F));
-            }
-            else
-            {
-              result += static_cast<char>(0xE0 | (cp >> 12));
-              result += static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
-              result += static_cast<char>(0x80 | (cp & 0x3F));
-            }
-            i += 4;
-          }
-          break;
-        default: result += s[i]; break;
-      }
-    }
-    else
-    {
-      result += s[i];
-    }
-  }
-  return result;
-}
+// ==================== JSON writing ====================
 
 /// Serialize a vector of DataProcessing to a JSON string.
 std::string serializeDataProcessing(const std::vector<DataProcessing>& dps)
@@ -167,195 +109,6 @@ std::string serializeDataProcessing(const std::vector<DataProcessing>& dps)
   return json;
 }
 
-/// Skip whitespace in a JSON string starting at position pos.
-void skipWhitespace(const std::string& s, size_t& pos)
-{
-  while (pos < s.size() && (s[pos] == ' ' || s[pos] == '\t' || s[pos] == '\n' || s[pos] == '\r'))
-  {
-    ++pos;
-  }
-}
-
-/// Parse a JSON string value starting at position pos (must point to opening quote).
-/// Returns the unescaped string value and advances pos past the closing quote.
-std::string parseJsonString(const std::string& s, size_t& pos)
-{
-  if (pos >= s.size() || s[pos] != '"') return "";
-  ++pos; // skip opening quote
-  std::string raw;
-  while (pos < s.size() && s[pos] != '"')
-  {
-    if (s[pos] == '\\' && pos + 1 < s.size())
-    {
-      raw += s[pos];
-      raw += s[pos + 1];
-      if (s[pos + 1] == 'u' && pos + 5 < s.size())
-      {
-        raw += StringUtils::substr(s, pos + 2, 4);
-        pos += 6;
-      }
-      else
-      {
-        pos += 2;
-      }
-    }
-    else
-    {
-      raw += s[pos];
-      ++pos;
-    }
-  }
-  if (pos < s.size()) ++pos; // skip closing quote
-  return unescapeJsonString(raw);
-}
-
-void skipJsonValue(const std::string& s, size_t& pos)
-{
-  skipWhitespace(s, pos);
-  if (pos >= s.size()) return;
-  if (s[pos] == '"')
-  {
-    parseJsonString(s, pos);
-    return;
-  }
-  if (s[pos] == '[' || s[pos] == '{')
-  {
-    // skip the nested array/object, honouring strings (which may contain brackets)
-    int depth = 0;
-    while (pos < s.size())
-    {
-      const char c = s[pos];
-      if (c == '"') { parseJsonString(s, pos); continue; }
-      if (c == '[' || c == '{') ++depth;
-      else if (c == ']' || c == '}')
-      {
-        if (--depth == 0) { ++pos; return; }
-      }
-      ++pos;
-    }
-    return;
-  }
-  // number, true, false, null: up to the next separator
-  while (pos < s.size() && s[pos] != ',' && s[pos] != '}' && s[pos] != ']') ++pos;
-}
-
-std::string parseJsonStringOrSkip(const std::string& s, size_t& pos)
-{
-  skipWhitespace(s, pos);
-  if (pos < s.size() && s[pos] == '"') return parseJsonString(s, pos);
-  skipJsonValue(s, pos); // not a string (number, literal, array, object): ignore, keep parsing
-  return {};
-}
-
-/// Deserialize a JSON string into a vector of DataProcessing.
-std::vector<DataProcessing> deserializeDataProcessing(const std::string& json, const char* context)
-{
-  std::vector<DataProcessing> result;
-  if (json.empty()) return result;
-
-  size_t pos = 0;
-  skipWhitespace(json, pos);
-  if (pos >= json.size() || json[pos] != '[') return result;
-  ++pos; // skip '['
-
-  while (pos < json.size())
-  {
-    skipWhitespace(json, pos);
-    if (pos >= json.size() || json[pos] == ']') break;
-    if (json[pos] == ',') { ++pos; continue; }
-    if (json[pos] != '{') break;
-    ++pos; // skip '{'
-
-    DataProcessing dp;
-    std::string software_name, software_version, completion_time;
-    std::vector<std::string> action_names;
-
-    // Parse key-value pairs in the object
-    while (pos < json.size())
-    {
-      skipWhitespace(json, pos);
-      if (pos >= json.size() || json[pos] == '}') { ++pos; break; }
-      if (json[pos] == ',') { ++pos; continue; }
-
-      // Parse key
-      const size_t key_start = pos;
-      std::string key = parseJsonString(json, pos);
-      if (pos == key_start) { pos = json.size(); break; } // no string key: malformed, give up
-      skipWhitespace(json, pos);
-      if (pos < json.size() && json[pos] == ':') ++pos; // skip ':'
-      skipWhitespace(json, pos);
-
-      if (key == "software_name")
-      {
-        software_name = parseJsonStringOrSkip(json, pos);
-      }
-      else if (key == "software_version")
-      {
-        software_version = parseJsonStringOrSkip(json, pos);
-      }
-      else if (key == "completion_time")
-      {
-        completion_time = parseJsonStringOrSkip(json, pos);
-      }
-      else if (key == "actions")
-      {
-        // Parse array of strings
-        if (pos < json.size() && json[pos] == '[')
-        {
-          ++pos; // skip '['
-          while (pos < json.size())
-          {
-            skipWhitespace(json, pos);
-            if (pos >= json.size() || json[pos] == ']') { ++pos; break; }
-            if (json[pos] == ',') { ++pos; continue; }
-            if (json[pos] == '"') { action_names.push_back(parseJsonString(json, pos)); continue; }
-            const size_t value_start = pos;
-            skipJsonValue(json, pos); // not a string: ignore
-            if (pos == value_start) { pos = json.size(); break; } // stray '}' or similar: malformed, give up
-          }
-        }
-        else
-        {
-          skipJsonValue(json, pos); // not an array: ignore, keep parsing
-        }
-      }
-      else if (key == "metavalues")
-      {
-        parseMetaValueArray(json, pos, dp);
-      }
-      else
-      {
-        skipJsonValue(json, pos);
-      }
-    }
-
-    // Apply parsed fields to DataProcessing
-    dp.getSoftware().setName(software_name);
-    dp.getSoftware().setVersion(software_version);
-    if (!completion_time.empty())
-    {
-      dp.setCompletionTime(DateTime::fromString(completion_time, "yyyy-MM-ddThh:mm:ss"));
-    }
-    for (const auto& action_name : action_names)
-    {
-      try
-      {
-        dp.getProcessingActions().insert(DataProcessing::toProcessingAction(action_name));
-      }
-      catch (...)
-      {
-        OPENMS_LOG_WARN << context << ": Unknown processing action: " << action_name << std::endl;
-      }
-    }
-
-    result.push_back(std::move(dp));
-  }
-
-  return result;
-}
-
-// ==================== MetaInfoInterface JSON helpers ====================
-
 /// Serialize all MetaValues of a MetaInfoInterface to a JSON array string
 /// (shape: `[{"name":..., "value":..., "type":...}, ...]`).
 std::string serializeMetaValues(const MetaInfoInterface& mii)
@@ -388,112 +141,534 @@ std::string serializeMetaValues(const MetaInfoInterface& mii)
   return json;
 }
 
-/// Parse the JSON array of {name, value, type} objects that starts at @p pos (at its '[') into
-/// @p target and advance @p pos past it. Per-entry type mismatches fall back to the raw string
-/// value; unknown keys, a non-array value and entries that are not objects are skipped;
-/// malformed input stops the parse.
-void parseMetaValueArray(const std::string& json, size_t& pos, MetaInfoInterface& target)
+// ==================== JSON reading ====================
+//
+// The metadata JSON of these files is small, so a strict parser is not worth its failure mode:
+// nlohmann::json rejects the whole document for a single byte that is not valid UTF-8, which
+// ParquetFile::jsonEscape() passes through unchanged. This reader is lenient instead: values of
+// an unexpected JSON type are skipped (and counted), unknown keys are ignored, and malformed
+// input stops the parse instead of hanging. Callers log one warning per document.
+
+namespace
 {
-  skipWhitespace(json, pos);
-  if (pos >= json.size()) return;
-  if (json[pos] != '[') { skipJsonValue(json, pos); return; } // not an array: ignore, keep parsing
-  ++pos;
-
-  while (pos < json.size())
+  void appendUtf8(std::string& out, unsigned int cp)
   {
-    skipWhitespace(json, pos);
-    if (pos >= json.size() || json[pos] == ']') { ++pos; break; }
-    if (json[pos] == ',') { ++pos; continue; }
-    if (json[pos] != '{')
+    if (cp < 0x80)
     {
-      const size_t value_start = pos;
-      skipJsonValue(json, pos); // an entry that is not an object: ignore it
-      if (pos == value_start) { pos = json.size(); break; } // stray '}' or similar: malformed, give up
-      continue;
+      out += static_cast<char>(cp);
     }
-    ++pos;
-
-    std::string mv_name, mv_value, mv_type;
-    bool value_is_string = false; // an entry without a JSON-string value is dropped, not stored as ""
-    while (pos < json.size())
+    else if (cp < 0x800)
     {
-      skipWhitespace(json, pos);
-      if (pos >= json.size() || json[pos] == '}') { ++pos; break; }
-      if (json[pos] == ',') { ++pos; continue; }
+      out += static_cast<char>(0xC0 | (cp >> 6));
+      out += static_cast<char>(0x80 | (cp & 0x3F));
+    }
+    else if (cp < 0x10000)
+    {
+      out += static_cast<char>(0xE0 | (cp >> 12));
+      out += static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
+      out += static_cast<char>(0x80 | (cp & 0x3F));
+    }
+    else
+    {
+      out += static_cast<char>(0xF0 | (cp >> 18));
+      out += static_cast<char>(0x80 | ((cp >> 12) & 0x3F));
+      out += static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
+      out += static_cast<char>(0x80 | (cp & 0x3F));
+    }
+  }
 
-      const size_t key_start = pos;
-      std::string mk = parseJsonString(json, pos);
-      if (pos == key_start) { pos = json.size(); break; } // no string key: malformed, give up
-      skipWhitespace(json, pos);
-      if (pos < json.size() && json[pos] == ':') ++pos;
-      skipWhitespace(json, pos);
+  /// The 4 hex digits at @p s[i..i+3] as a code unit, or false if they are not 4 hex digits.
+  bool parseHex4(const std::string& s, size_t i, unsigned int& cu)
+  {
+    if (i + 4 > s.size()) return false;
+    cu = 0;
+    for (size_t j = i; j < i + 4; ++j)
+    {
+      const char ch = s[j];
+      cu <<= 4;
+      if (ch >= '0' && ch <= '9') cu |= static_cast<unsigned int>(ch - '0');
+      else if (ch >= 'a' && ch <= 'f') cu |= static_cast<unsigned int>(ch - 'a' + 10);
+      else if (ch >= 'A' && ch <= 'F') cu |= static_cast<unsigned int>(ch - 'A' + 10);
+      else return false;
+    }
+    return true;
+  }
 
-      if (mk == "name") mv_name = parseJsonStringOrSkip(json, pos);
-      else if (mk == "value")
+  /// Resolve the escapes of a JSON string body. \uXXXX surrogate pairs become one code point; a
+  /// lone surrogate becomes U+FFFD; an escape with invalid hex digits is kept as written.
+  std::string unescapeJsonString(const std::string& s)
+  {
+    std::string result;
+    result.reserve(s.size());
+    for (size_t i = 0; i < s.size(); ++i)
+    {
+      if (s[i] != '\\' || i + 1 >= s.size())
       {
-        value_is_string = pos < json.size() && json[pos] == '"';
-        mv_value = parseJsonStringOrSkip(json, pos);
+        result += s[i];
+        continue;
       }
-      else if (mk == "type") mv_type = parseJsonStringOrSkip(json, pos);
-      else skipJsonValue(json, pos);
+      const char c = s[++i];
+      switch (c)
+      {
+        case '"':  result += '"'; break;
+        case '\\': result += '\\'; break;
+        case '/':  result += '/'; break;
+        case 'b':  result += '\b'; break;
+        case 'f':  result += '\f'; break;
+        case 'n':  result += '\n'; break;
+        case 'r':  result += '\r'; break;
+        case 't':  result += '\t'; break;
+        case 'u':
+        {
+          unsigned int cu = 0;
+          if (!parseHex4(s, i + 1, cu))
+          {
+            result += "\\u"; // not an escape we understand: keep it as written
+            break;
+          }
+          i += 4;
+          if (cu >= 0xD800 && cu <= 0xDBFF) // high surrogate: needs a following \uDC00-\uDFFF
+          {
+            unsigned int low = 0;
+            if (i + 2 < s.size() && s[i + 1] == '\\' && s[i + 2] == 'u' && parseHex4(s, i + 3, low)
+                && low >= 0xDC00 && low <= 0xDFFF)
+            {
+              appendUtf8(result, 0x10000 + ((cu - 0xD800) << 10) + (low - 0xDC00));
+              i += 6;
+            }
+            else
+            {
+              appendUtf8(result, 0xFFFD);
+            }
+          }
+          else if (cu >= 0xDC00 && cu <= 0xDFFF) // lone low surrogate
+          {
+            appendUtf8(result, 0xFFFD);
+          }
+          else
+          {
+            appendUtf8(result, cu);
+          }
+          break;
+        }
+        default: result += c; break; // not valid JSON; keep the character
+      }
+    }
+    return result;
+  }
+
+  /// Lenient reader over one JSON document (see the comment above).
+  struct JsonReader
+  {
+    const std::string& s;
+    size_t pos = 0;
+    size_t skipped = 0;     ///< values of an unexpected type, and entries dropped because of them
+    bool malformed = false; ///< the parse stopped early
+
+    void skipWhitespace()
+    {
+      while (pos < s.size() && (s[pos] == ' ' || s[pos] == '\t' || s[pos] == '\n' || s[pos] == '\r')) ++pos;
     }
 
-    if (!mv_name.empty() && value_is_string)
+    bool at(char c)
     {
-      if (mv_type == "int")
+      skipWhitespace();
+      return pos < s.size() && s[pos] == c;
+    }
+
+    void stop()
+    {
+      malformed = true;
+      pos = s.size();
+    }
+
+    /// The string at pos (which must be at its opening quote), advancing past it.
+    std::string string()
+    {
+      ++pos; // opening quote
+      std::string raw;
+      while (pos < s.size() && s[pos] != '"')
       {
-        try { target.setMetaValue(mv_name, DataValue(std::stoll(mv_value))); }
-        catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
-      }
-      else if (mv_type == "double" || mv_type == "float")
-      {
-        try { target.setMetaValue(mv_name, DataValue(StringUtils::toDouble(mv_value))); }
-        catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
-      }
-      else if (mv_type == "int_list")
-      {
-        try
+        if (s[pos] == '\\' && pos + 1 < s.size())
         {
-          std::string s(mv_value);
-          if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = s.substr(1, s.size() - 2); }
-          target.setMetaValue(mv_name, DataValue(ListUtils::create<Int>(s)));
+          raw += s[pos++];
         }
-        catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
+        raw += s[pos++];
       }
-      else if (mv_type == "double_list")
+      if (pos >= s.size())
       {
-        try
-        {
-          std::string s(mv_value);
-          if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = s.substr(1, s.size() - 2); }
-          target.setMetaValue(mv_name, DataValue(ListUtils::create<double>(s)));
-        }
-        catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
+        stop(); // unterminated string
+        return unescapeJsonString(raw);
       }
-      else if (mv_type == "string_list")
+      ++pos; // closing quote
+      return unescapeJsonString(raw);
+    }
+
+    /// Skip the value of any kind at pos. Does not advance at ',', ']' or '}'.
+    void skipValue()
+    {
+      skipWhitespace();
+      if (pos >= s.size()) return;
+      if (s[pos] == '"')
       {
-        try
+        string();
+        return;
+      }
+      if (s[pos] == '[' || s[pos] == '{')
+      {
+        int depth = 0;
+        while (pos < s.size())
         {
-          std::string s(mv_value);
-          if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = s.substr(1, s.size() - 2); }
-          auto sl = ListUtils::create<std::string>(s);
-          for (auto& e : sl) { StringUtils::trim(e); }
-          target.setMetaValue(mv_name, DataValue(sl));
+          const char c = s[pos];
+          if (c == '"') { string(); continue; }
+          if (c == '[' || c == '{') ++depth;
+          else if (c == ']' || c == '}')
+          {
+            if (--depth == 0) { ++pos; return; }
+          }
+          ++pos;
         }
-        catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
+        stop(); // unbalanced
+        return;
+      }
+      // number, true, false, null: up to the next separator
+      while (pos < s.size() && s[pos] != ',' && s[pos] != '}' && s[pos] != ']') ++pos;
+    }
+
+    /// The string value at pos into @p out; for any other kind of value, skip it and return false.
+    bool stringOrSkip(std::string& out)
+    {
+      if (at('"'))
+      {
+        out = string();
+        return true;
+      }
+      skipValue();
+      return false;
+    }
+
+    /// A non-negative integer value at pos into @p out; for anything else (negative, fractional,
+    /// out of range, not a number), skip it and return false.
+    bool unsignedOrSkip(UInt64& out)
+    {
+      skipWhitespace();
+      if (pos < s.size() && s[pos] >= '0' && s[pos] <= '9')
+      {
+        const char* first = s.data() + pos;
+        const char* last = s.data() + s.size();
+        const auto [ptr, ec] = std::from_chars(first, last, out);
+        pos += static_cast<size_t>(ptr - first);
+        const bool integer_ends = pos >= s.size() || (s[pos] != '.' && s[pos] != 'e' && s[pos] != 'E');
+        if (ec == std::errc() && integer_ends) return true;
+      }
+      skipValue();
+      return false;
+    }
+
+    /// Call @p member(key) for each member of the object at pos (which must be at its '{'). A
+    /// value that @p member leaves unread is skipped.
+    template <typename F>
+    void forEachMember(F member)
+    {
+      ++pos; // '{'
+      while (true)
+      {
+        skipWhitespace();
+        if (pos >= s.size()) { malformed = true; return; }
+        if (s[pos] == '}') { ++pos; return; }
+        if (s[pos] == ',') { ++pos; continue; }
+        if (s[pos] != '"') { stop(); return; } // key is not a string
+        const std::string key = string();
+        if (!at(':')) { stop(); return; }
+        ++pos;
+        skipWhitespace();
+        const size_t value_start = pos;
+        member(key);
+        if (malformed) return;
+        if (pos == value_start) skipValue();
+        if (pos == value_start) { stop(); return; } // e.g. a stray '}' or ']' as the value
+      }
+    }
+
+    /// Call @p element() for each element of the array at pos (which must be at its '['). An
+    /// element that @p element leaves unread is skipped.
+    template <typename F>
+    void forEachElement(F element)
+    {
+      ++pos; // '['
+      while (true)
+      {
+        skipWhitespace();
+        if (pos >= s.size()) { malformed = true; return; }
+        if (s[pos] == ']') { ++pos; return; }
+        if (s[pos] == ',') { ++pos; continue; }
+        const size_t value_start = pos;
+        element();
+        if (malformed) return;
+        if (pos == value_start) skipValue();
+        if (pos == value_start) { stop(); return; } // e.g. a stray '}'
+      }
+    }
+
+    /// Log one warning for this document if anything was skipped or the parse stopped early.
+    void report(const char* context, const char* key) const
+    {
+      if (skipped == 0 && !malformed) return;
+      OPENMS_LOG_WARN << context << ": '" << key << "' metadata JSON: ";
+      if (skipped > 0)
+      {
+        OPENMS_LOG_WARN << skipped << " value(s) of an unexpected type (and the entries that needed them) ignored";
+      }
+      if (malformed)
+      {
+        OPENMS_LOG_WARN << (skipped > 0 ? "; " : "") << "malformed JSON, reading stopped at character "
+                        << pos << ", later entries not read";
+      }
+      OPENMS_LOG_WARN << std::endl;
+    }
+  };
+
+  /// Store metavalue @p name = @p value of declared @p type in @p target. A value that does not
+  /// parse as its declared type is stored as the raw string.
+  void setMetaValueFromStrings(const std::string& name, const std::string& value, const std::string& type,
+                               MetaInfoInterface& target)
+  {
+    const auto unbracketed = [&value]()
+    {
+      std::string s(value);
+      if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = s.substr(1, s.size() - 2); }
+      return s;
+    };
+    try
+    {
+      if (type == "int")
+      {
+        target.setMetaValue(name, DataValue(std::stoll(value)));
+      }
+      else if (type == "double" || type == "float")
+      {
+        target.setMetaValue(name, DataValue(StringUtils::toDouble(value)));
+      }
+      else if (type == "int_list")
+      {
+        target.setMetaValue(name, DataValue(ListUtils::create<Int>(unbracketed())));
+      }
+      else if (type == "double_list")
+      {
+        target.setMetaValue(name, DataValue(ListUtils::create<double>(unbracketed())));
+      }
+      else if (type == "string_list")
+      {
+        auto sl = ListUtils::create<std::string>(unbracketed());
+        for (auto& e : sl) { StringUtils::trim(e); }
+        target.setMetaValue(name, DataValue(sl));
       }
       else
       {
-        target.setMetaValue(mv_name, DataValue(mv_value));
+        target.setMetaValue(name, DataValue(value));
       }
     }
+    catch (...)
+    {
+      target.setMetaValue(name, DataValue(value));
+    }
   }
+
+  /// Read the metavalue array at pos (as written by serializeMetaValues()) into @p target. An entry
+  /// without a string "name" and a string "value" is dropped.
+  void readMetaValueArray(JsonReader& r, MetaInfoInterface& target)
+  {
+    if (!r.at('['))
+    {
+      r.skipValue();
+      ++r.skipped;
+      return;
+    }
+    r.forEachElement([&]()
+    {
+      if (!r.at('{'))
+      {
+        r.skipValue();
+        ++r.skipped;
+        return;
+      }
+      std::string name, value, type;
+      bool name_ok = false, value_ok = false;
+      r.forEachMember([&](const std::string& key)
+      {
+        if (key == "name") name_ok = r.stringOrSkip(name);
+        else if (key == "value") value_ok = r.stringOrSkip(value);
+        else if (key == "type" && !r.stringOrSkip(type)) ++r.skipped;
+      });
+      if (!name_ok || name.empty() || !value_ok)
+      {
+        ++r.skipped;
+        return;
+      }
+      setMetaValueFromStrings(name, value, type, target);
+    });
+  }
+} // namespace
+
+std::vector<DataProcessing> deserializeDataProcessing(const std::string& json, const char* context)
+{
+  std::vector<DataProcessing> result;
+  JsonReader r{json};
+  r.skipWhitespace();
+  if (r.pos >= json.size()) return result; // empty
+  if (!r.at('['))
+  {
+    r.stop();
+    r.report(context, "data_processing");
+    return result;
+  }
+
+  r.forEachElement([&]()
+  {
+    if (!r.at('{'))
+    {
+      r.skipValue();
+      ++r.skipped;
+      return;
+    }
+    DataProcessing dp;
+    std::string software_name, software_version, completion_time;
+    std::vector<std::string> action_names;
+    r.forEachMember([&](const std::string& key)
+    {
+      if (key == "software_name")
+      {
+        if (!r.stringOrSkip(software_name)) ++r.skipped;
+      }
+      else if (key == "software_version")
+      {
+        if (!r.stringOrSkip(software_version)) ++r.skipped;
+      }
+      else if (key == "completion_time")
+      {
+        if (!r.stringOrSkip(completion_time)) ++r.skipped;
+      }
+      else if (key == "actions")
+      {
+        if (!r.at('['))
+        {
+          r.skipValue();
+          ++r.skipped;
+          return;
+        }
+        r.forEachElement([&]()
+        {
+          std::string name;
+          if (r.stringOrSkip(name)) action_names.push_back(std::move(name));
+          else ++r.skipped;
+        });
+      }
+      else if (key == "metavalues")
+      {
+        readMetaValueArray(r, dp);
+      }
+    });
+
+    // a record cut short by malformed input keeps what was read before that spot
+    dp.getSoftware().setName(software_name);
+    dp.getSoftware().setVersion(software_version);
+    if (!completion_time.empty())
+    {
+      dp.setCompletionTime(DateTime::fromString(completion_time, "yyyy-MM-ddThh:mm:ss"));
+    }
+    for (const auto& action_name : action_names)
+    {
+      try
+      {
+        dp.getProcessingActions().insert(DataProcessing::toProcessingAction(action_name));
+      }
+      catch (...)
+      {
+        OPENMS_LOG_WARN << context << ": Unknown processing action: " << action_name << std::endl;
+      }
+    }
+    result.push_back(std::move(dp));
+  });
+
+  r.report(context, "data_processing");
+  return result;
 }
 
-void deserializeMetaValues(const std::string& json, MetaInfoInterface& target)
+void deserializeMetaValues(const std::string& json, MetaInfoInterface& target, const char* context, const char* key)
 {
-  size_t pos = 0;
-  parseMetaValueArray(json, pos, target);
+  JsonReader r{json};
+  r.skipWhitespace();
+  if (r.pos >= json.size()) return; // empty
+  readMetaValueArray(r, target);
+  r.report(context, key);
+}
+
+ConsensusMap::ColumnHeaders deserializeColumnHeaders(const std::string& json, const char* context)
+{
+  ConsensusMap::ColumnHeaders result;
+  JsonReader r{json};
+  r.skipWhitespace();
+  if (r.pos >= json.size()) return result; // empty
+  if (!r.at('['))
+  {
+    r.stop();
+    r.report(context, "column_headers");
+    return result;
+  }
+
+  r.forEachElement([&]()
+  {
+    if (!r.at('{'))
+    {
+      r.skipValue();
+      ++r.skipped;
+      return;
+    }
+    ConsensusMap::ColumnHeader header;
+    UInt64 map_index = 0;
+    bool has_map_index = false;
+    r.forEachMember([&](const std::string& key)
+    {
+      if (key == "map_index")
+      {
+        has_map_index = r.unsignedOrSkip(map_index);
+        if (!has_map_index) ++r.skipped;
+      }
+      else if (key == "size")
+      {
+        UInt64 v = 0;
+        if (r.unsignedOrSkip(v)) header.size = v;
+        else ++r.skipped;
+      }
+      else if (key == "unique_id")
+      {
+        UInt64 v = 0;
+        if (r.unsignedOrSkip(v)) header.unique_id = v;
+        else ++r.skipped;
+      }
+      else if (key == "filename")
+      {
+        if (!r.stringOrSkip(header.filename)) ++r.skipped;
+      }
+      else if (key == "label")
+      {
+        if (!r.stringOrSkip(header.label)) ++r.skipped;
+      }
+      else if (key == "metavalues")
+      {
+        readMetaValueArray(r, header);
+      }
+    });
+    if (!has_map_index)
+    {
+      ++r.skipped; // without its index, the header cannot be placed: drop it
+      return;
+    }
+    result[map_index] = std::move(header);
+  });
+
+  r.report(context, "column_headers");
+  return result;
 }
 
 

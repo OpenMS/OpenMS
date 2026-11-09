@@ -1244,6 +1244,57 @@ START_SECTION([EXTRA] importFromParquet - metadata JSON with non-string fields f
 }
 END_SECTION
 
+START_SECTION([EXTRA] importFromParquet - JSON escapes written by other writers)
+{
+  // Python's json.dumps writes non-BMP characters as surrogate pairs; other writers also use
+  // \b, \f and \/, which ParquetFile::jsonEscape() never writes.
+  FeatureMap fm;
+  Feature f;
+  f.setRT(100.0);
+  f.setMZ(500.0);
+  f.setUniqueId(7);
+  fm.push_back(f);
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_1");
+  fm.setProteinIdentifications({prot_id});
+
+  std::string tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".fmd";
+  TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm, tmp_dir), true)
+
+  const std::string features_file = tmp_dir + "/features.parquet";
+  std::shared_ptr<arrow::Table> table;
+  {
+    auto infile = arrow::io::ReadableFile::Open(features_file).ValueOrDie();
+    auto reader = parquet::arrow::OpenFile(infile, arrow::default_memory_pool()).ValueOrDie();
+    TEST_EQUAL(reader->ReadTable(&table).ok(), true)
+  }
+  const std::string fmap_metavalues =
+    "[{\"name\":\"emoji\",\"value\":\"\\ud83d\\ude00\",\"type\":\"string\"},"
+    "{\"name\":\"controls\",\"value\":\"a\\bb\\fc\\/d\",\"type\":\"string\"},"
+    "{\"name\":\"lone\",\"value\":\"x\\ud83dy\",\"type\":\"string\"},"
+    "{\"name\":\"e_acute\",\"value\":\"\\u00e9\",\"type\":\"string\"}]";
+  auto md = table->schema()->metadata() ? table->schema()->metadata()->Copy() : std::make_shared<arrow::KeyValueMetadata>();
+  TEST_EQUAL(md->Set("fmap_metavalues", fmap_metavalues).ok(), true)
+  table = table->ReplaceSchemaMetadata(md);
+  {
+    auto outfile = arrow::io::FileOutputStream::Open(features_file).ValueOrDie();
+    auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
+    TEST_EQUAL(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024,
+                                          parquet::default_writer_properties(), arrow_props).ok(), true)
+    TEST_EQUAL(outfile->Close().ok(), true)
+  }
+
+  FeatureMap imported;
+  TEST_EQUAL(FeatureMapArrowIO::importFromParquet(tmp_dir, imported), true)
+  TEST_EQUAL(imported.getMetaValue("emoji").toString(), "\xF0\x9F\x98\x80") // U+1F600 as 4-byte UTF-8
+  TEST_EQUAL(imported.getMetaValue("controls").toString(), "a\bb\fc/d")
+  TEST_EQUAL(imported.getMetaValue("lone").toString(), "x\xEF\xBF\xBDy") // lone surrogate: U+FFFD
+  TEST_EQUAL(imported.getMetaValue("e_acute").toString(), "\xC3\xA9")
+}
+END_SECTION
+
 START_SECTION([EXTRA] importFromParquet - metadata JSON with non-array values of array fields)
 {
   // "actions" and "metavalues" are arrays when OpenMS writes them. Another value (null, an object)

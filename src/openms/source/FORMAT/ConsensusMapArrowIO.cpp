@@ -63,84 +63,6 @@ namespace // anonymous
     return json;
   }
 
-  /// Deserialize a JSON string into ConsensusMap column headers.
-  ConsensusMap::ColumnHeaders deserializeColumnHeaders_(const std::string& json)
-  {
-    ConsensusMap::ColumnHeaders result;
-    if (json.empty()) return result;
-
-    size_t pos = 0;
-    Internal::ArrowFileIO::skipWhitespace(json, pos);
-    if (pos >= json.size() || json[pos] != '[') return result;
-    ++pos;
-
-    while (pos < json.size())
-    {
-      Internal::ArrowFileIO::skipWhitespace(json, pos);
-      if (pos >= json.size() || json[pos] == ']') break;
-      if (json[pos] == ',') { ++pos; continue; }
-      if (json[pos] != '{') break;
-      ++pos;
-
-      ConsensusMap::ColumnHeader header;
-      UInt64 map_index = 0;
-
-      while (pos < json.size())
-      {
-        Internal::ArrowFileIO::skipWhitespace(json, pos);
-        if (pos >= json.size() || json[pos] == '}') { ++pos; break; }
-        if (json[pos] == ',') { ++pos; continue; }
-
-        const size_t key_start = pos;
-        std::string key = Internal::ArrowFileIO::parseJsonString(json, pos);
-        if (pos == key_start) { pos = json.size(); break; } // no string key: malformed, give up
-        Internal::ArrowFileIO::skipWhitespace(json, pos);
-        if (pos < json.size() && json[pos] == ':') ++pos;
-        Internal::ArrowFileIO::skipWhitespace(json, pos);
-
-        if (key == "map_index" || key == "size" || key == "unique_id")
-        {
-          std::string num_str;
-          while (pos < json.size() && (std::isdigit(json[pos]) || json[pos] == '-'))
-          {
-            num_str += json[pos++];
-          }
-          if (num_str.empty()) // not a number (null, string, ...): ignore, keep parsing
-          {
-            Internal::ArrowFileIO::skipJsonValue(json, pos);
-            continue;
-          }
-          try
-          {
-            if (key == "map_index") map_index = std::stoull(num_str);
-            else if (key == "size") header.size = std::stoull(num_str);
-            else if (key == "unique_id") header.unique_id = std::stoull(num_str);
-          }
-          catch (...) {} // out of range or just "-": ignore
-          Internal::ArrowFileIO::skipJsonValue(json, pos); // rest of a non-integer number such as 1.5
-        }
-        else if (key == "metavalues")
-        {
-          Internal::ArrowFileIO::parseMetaValueArray(json, pos, header);
-        }
-        else if (key == "filename")
-        {
-          header.filename = Internal::ArrowFileIO::parseJsonStringOrSkip(json, pos);
-        }
-        else if (key == "label")
-        {
-          header.label = Internal::ArrowFileIO::parseJsonStringOrSkip(json, pos);
-        }
-        else
-        {
-          Internal::ArrowFileIO::skipJsonValue(json, pos); // unknown key: ignore its value
-        }
-      }
-      result[map_index] = header;
-    }
-    return result;
-  }
-
   /// Read FeatureHandles from a list<struct{...}> column at a given row into a ConsensusFeature.
   void readHandles_(
     const std::shared_ptr<arrow::Array>& array,
@@ -712,7 +634,7 @@ bool ConsensusMapArrowIO::importFromParquet(
   if (schema_md)
   {
     int idx = schema_md->FindKey("column_headers");
-    if (idx >= 0) cmap.setColumnHeaders(deserializeColumnHeaders_(schema_md->value(idx)));
+    if (idx >= 0) cmap.setColumnHeaders(Internal::ArrowFileIO::deserializeColumnHeaders(schema_md->value(idx), "ConsensusMapArrowIO"));
 
     idx = schema_md->FindKey("experiment_type");
     if (idx >= 0) cmap.setExperimentType(schema_md->value(idx));
@@ -739,7 +661,7 @@ bool ConsensusMapArrowIO::importFromParquet(
     idx = schema_md->FindKey("cmap_metavalues");
     if (idx >= 0)
     {
-      Internal::ArrowFileIO::deserializeMetaValues(schema_md->value(idx), cmap);
+      Internal::ArrowFileIO::deserializeMetaValues(schema_md->value(idx), cmap, "ConsensusMapArrowIO", "cmap_metavalues");
     }
   }
 

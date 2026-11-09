@@ -32,6 +32,10 @@ option(OPENMS_VERIFY_INTERFACE_HEADER_SETS
 ## Files cannot be combined if their file-local names (anonymous namespaces, static
 ## functions, macros) collide; such files are excluded with the source file property
 ## SKIP_UNITY_BUILD_INCLUSION in the library's CMakeLists.txt.
+##
+## No CI job builds with ENABLE_UNITYBUILD. The exclusion list was checked with batch size 8 and
+## the default feature options; other batch sizes or options form other batches, and new files can
+## add new collisions.
 
 #------------------------------------------------------------------------------
 ## Copy the dll produced by the given target to the test/doc binary path.

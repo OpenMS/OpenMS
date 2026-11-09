@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
@@ -36,7 +37,7 @@ namespace OpenMS
 
       Writing and reading the Parquet files of these classes (with their file-level metadata),
       the list<struct{name,value,type}> metavalue columns and the JSON encoding of
-      DataProcessing and metavalues in the file metadata. Not installed; Arrow types stay out of
+      DataProcessing, metavalues and ConsensusMap column headers in the file metadata. Not installed; Arrow types stay out of
       the public headers.
 
       @p context is the name of the calling class; it prefixes the log messages.
@@ -52,40 +53,34 @@ namespace OpenMS
                             std::shared_ptr<arrow::StructBuilder>& struct_b,
                             const std::unordered_set<std::string>& excluded_keys);
 
-      /// Undo the JSON escaping of ParquetFile::jsonEscape() (which writes these files' strings).
-      std::string unescapeJsonString(const std::string& s);
-
-      /// Skip JSON whitespace at @p pos.
-      void skipWhitespace(const std::string& s, size_t& pos);
-
-      /// Parse the JSON string starting at @p pos (which must point at the opening quote) and
-      /// advance @p pos past it.
-      std::string parseJsonString(const std::string& s, size_t& pos);
-
-      /// Skip the JSON value of any kind (string, number, literal, array, object) at @p pos.
-      /// Used for unknown keys, so that fields added by other writers are ignored.
-      void skipJsonValue(const std::string& s, size_t& pos);
-
-      /// The JSON string at @p pos, advancing past it; for any other kind of value, skip it and
-      /// return "". For known keys whose value another writer may have written as a non-string.
-      std::string parseJsonStringOrSkip(const std::string& s, size_t& pos);
-
       /// Serialize DataProcessing entries to a JSON array.
       std::string serializeDataProcessing(const std::vector<DataProcessing>& dps);
-
-      /// Parse the JSON array written by serializeDataProcessing(). Unknown processing actions
-      /// are logged (prefixed with @p context) and skipped.
-      std::vector<DataProcessing> deserializeDataProcessing(const std::string& json, const char* context);
 
       /// Serialize all metavalues of @p mii to a JSON array of {name, value, type} objects.
       std::string serializeMetaValues(const MetaInfoInterface& mii);
 
-      /// Parse the JSON written by serializeMetaValues() into @p target.
-      void deserializeMetaValues(const std::string& json, MetaInfoInterface& target);
+      /**
+        @name Reading the metadata JSON
 
-      /// Parse the metavalue array (as written by serializeMetaValues()) that starts at @p pos into
-      /// @p target and advance @p pos past it; for arrays nested in other JSON.
-      void parseMetaValueArray(const std::string& json, size_t& pos, MetaInfoInterface& target);
+        Lenient, for files from other writers too: unknown keys are ignored, a value of an
+        unexpected JSON type is skipped (an entry that cannot do without it, such as a metavalue
+        without a string "value" or a column header without a "map_index", is dropped), and
+        malformed input stops reading at that spot. Each call logs at most one warning (prefixed
+        with @p context) that says how much was skipped.
+      */
+      ///@{
+      /// Parse the JSON array written by serializeDataProcessing(). Unknown processing actions
+      /// are logged and skipped.
+      std::vector<DataProcessing> deserializeDataProcessing(const std::string& json, const char* context);
+
+      /// Parse the JSON written by serializeMetaValues() into @p target. @p key names the metadata
+      /// entry in the warning.
+      void deserializeMetaValues(const std::string& json, MetaInfoInterface& target, const char* context,
+                                 const char* key);
+
+      /// Parse the "column_headers" JSON of a ConsensusMap Parquet file.
+      ConsensusMap::ColumnHeaders deserializeColumnHeaders(const std::string& json, const char* context);
+      ///@}
 
       /**
         @brief Write @p table to @p filename with the file-level metadata of these formats

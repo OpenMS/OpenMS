@@ -15,7 +15,7 @@
 
 #include <arrow/api.h>
 
-#include <atomic>
+#include <charconv>
 #include <cstdint>
 #include <limits>
 #include <string>
@@ -125,18 +125,24 @@ namespace OpenMS
         A string that is a non-negative integer keeps that value; anything else (non-numeric
         strings, negative numbers, a value already taken by an earlier entry) gets a fresh ID.
         Negative values are "unset" sentinels elsewhere (the readers take a negative ID as "no
-        filter"); the first one replaced in a process is logged as a warning. OpenSWATH's own
-        library loading validates IDs as non-negative, so only callers that pass a non-canonical
-        LightTargetedExperiment see replacements at all.
+        filter"); the first one this assigner replaces is logged as a warning naming @p context and
+        @p column. OpenSWATH's own library loading validates IDs as non-negative, so only callers
+        that pass a non-canonical LightTargetedExperiment see replacements at all.
 
         Call reserve() for every string ID before the first assign(): fresh IDs then never take a
         value that an entry later in the list carries explicitly, so explicit IDs are kept even when
         replaced or non-numeric IDs come first.
+
+        Throws Exception::InvalidValue if no fresh ID is left below INT64_MAX (it never wraps to a
+        negative value).
       */
       class IdAssigner
       {
       public:
-        explicit IdAssigner(int64_t first_fresh_id = 1) : next_id_(first_fresh_id) {}
+        IdAssigner(const char* context, const char* column, int64_t first_fresh_id = 1) :
+          context_(context), column_(column), next_id_(first_fresh_id)
+        {
+        }
 
         /// Claim the explicit ID in @p text (if it is a non-negative integer) for its first assign().
         void reserve(const std::string& text)
@@ -147,7 +153,7 @@ namespace OpenMS
             reserved_.insert(value);
             if (value >= next_id_ && value < std::numeric_limits<int64_t>::max())
             {
-              next_id_ = value + 1;
+              next_id_ = value + 1; // fresh IDs start above the explicit ones
             }
           }
         }
@@ -161,13 +167,13 @@ namespace OpenMS
           {
             if (value < 0)
             {
-              static std::atomic<bool> warned{false};
-              if (!warned.exchange(true))
+              if (!warned_)
               {
-                OPENMS_LOG_WARN << "Parquet output: negative ID '" << text
+                warned_ = true;
+                OPENMS_LOG_WARN << context_ << ": negative " << column_ << " '" << text
                                 << "' in the transition list replaced by a newly assigned ID (negative IDs mean"
-                                   " 'unset' in OpenSWATH Parquet files). Further negative IDs are replaced without"
-                                   " a warning." << std::endl;
+                                   " 'unset' in OpenSWATH Parquet files). Further negative IDs in this file are"
+                                   " replaced without a warning." << std::endl;
               }
             }
             else if (assigned_.insert(value).second)
@@ -177,26 +183,47 @@ namespace OpenMS
           }
           while (assigned_.contains(next_id_) || reserved_.contains(next_id_))
           {
-            ++next_id_;
+            advance_();
           }
-          assigned_.insert(next_id_);
-          return next_id_++;
+          const int64_t id = next_id_;
+          assigned_.insert(id);
+          if (id < std::numeric_limits<int64_t>::max())
+          {
+            ++next_id_; // at INT64_MAX, the next fresh request fails in advance_() instead
+          }
+          return id;
         }
 
       private:
-        static bool parse_(const std::string& text, int64_t& value)
+        void advance_()
         {
-          try
+          if (next_id_ == std::numeric_limits<int64_t>::max())
           {
-            value = StringUtils::toInt64(text);
-            return true;
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          std::string(context_) + ": no free " + column_ + " left below INT64_MAX",
+                                          StringUtils::toStr(next_id_));
           }
-          catch (Exception::ConversionError&)
-          {
-            return false;
-          }
+          ++next_id_;
         }
 
+        /// Same accepted forms as StringUtils::toInt64() (surrounding whitespace, a leading '+'), but
+        /// without throwing for the non-numeric IDs that are normal here.
+        static bool parse_(const std::string& text, int64_t& value)
+        {
+          const auto is_ws = [](char c) { return c == ' ' || c == '\t' || c == '\n' || c == '\r'; };
+          const char* first = text.data();
+          const char* last = first + text.size();
+          while (first != last && is_ws(*first)) ++first;
+          while (last != first && is_ws(*(last - 1))) --last;
+          if (first != last && *first == '+') ++first;
+          if (first == last) return false;
+          const auto [ptr, ec] = std::from_chars(first, last, value);
+          return ec == std::errc() && ptr == last;
+        }
+
+        const char* context_;
+        const char* column_;
+        bool warned_ = false;
         int64_t next_id_;
         std::unordered_set<int64_t> reserved_;
         std::unordered_set<int64_t> assigned_;

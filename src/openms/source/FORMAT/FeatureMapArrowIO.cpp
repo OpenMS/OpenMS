@@ -1055,7 +1055,7 @@ bool FeatureMapArrowIO::importFromParquet(
     idx = schema_md->FindKey("fmap_metavalues");
     if (idx >= 0)
     {
-      Internal::ArrowFileIO::deserializeMetaValues(schema_md->value(idx), feature_map);
+      Internal::ArrowFileIO::deserializeMetaValues(schema_md->value(idx), feature_map, "FeatureMapArrowIO", "fmap_metavalues");
     }
 
     // The map's own unique id. Absent in files written before it was stored, which then keep

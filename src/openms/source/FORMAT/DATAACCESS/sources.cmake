@@ -33,3 +33,5 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\FORMAT\\DATACCESS" FILES ${sources})
+
+list(APPEND OpenMS_private_headers ${directory}/ParquetConsumerHelpers.h ${directory}/ParquetReaderHelpers.h)

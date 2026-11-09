@@ -500,8 +500,14 @@ namespace ArrowIOHelpers
   OPENMS_DLLAPI std::shared_ptr<arrow::Array> getColumn(
     const std::shared_ptr<arrow::Table>& table,
     const std::string& name,
-    bool required = true,
-    const char* context = "ArrowIOHelpers");
+    bool required,
+    const char* context);
+
+  /// getColumn() with "ArrowIOHelpers" as the log context
+  OPENMS_DLLAPI std::shared_ptr<arrow::Array> getColumn(
+    const std::shared_ptr<arrow::Table>& table,
+    const std::string& name,
+    bool required = true);
 
   /// Read a string at @p row, or "" if null/out-of-bounds
   OPENMS_DLLAPI std::string getStringValue(
