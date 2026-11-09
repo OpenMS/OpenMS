@@ -225,3 +225,11 @@ Native recommendation: add apex-spectrum b/y count subscores (fragment charge 1,
   - q ≤ 0.05 FDP_c 0.048 / **0.062**. Raw 02 misses the 0.06 bar narrowly.
   - Plain pooled q ≤ 0.05 gives 0.065 / 0.074.
 - So the ID gain is robust, while native 5% calibration remains open: the native LDA score's bulk shift is less well corrected than the offline MLP's.
+
+**MLP head on the native features: FAIL (`astral-native-byion/raw02/`).** It loses IDs on raw 02 (1220 against 1298 at FDP_c 1%), so the native LDA stays the head.
+
+The raw 02 bulk-null q≤0.05 FDP_c is 0.060–0.063 depending on standardisation and classifier seed. It sits at the 0.06 bar, not clearly below it.
+
+Remaining gaps:
+- **Raw 01 IDs:** 1029 against OSW 1151 at FDP_c 1%.
+- **Native 5% calibration:** borderline on raw 02. Native bulk-null q is not yet in the tool.

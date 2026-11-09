@@ -1,0 +1,4 @@
+/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-raw02-byion-design-20261109/byion 2798389 ['cnn_z', 'transition_support', 'log_matched_scans', 'log_peak_width', 'abs_library_rt_error', 'boundary_log_fwhm', 'boundary_log_width', 'boundary_coelution', 'boundary_library_correlation', 'boundary_apex_agreement', 'byion_b', 'byion_y']
+tool LDA         N at FDP_c 0.5/1/1.5/2%: [1230, 1298, 1331, 1372] | plain q<=0.01: 1253 FDP_c 0.010 | plain q<=0.05: 1765 FDP_c 0.070 | bulk-null q<=0.01: 1130 FDP_c 0.002 | bulk-null q<=0.05: 1667 FDP_c 0.060
+MLP seed 0       N at FDP_c 0.5/1/1.5/2%: [1070, 1185, 1273, 1328] | plain q<=0.01: 960 FDP_c 0.002 | plain q<=0.05: 1760 FDP_c 0.086 | bulk-null q<=0.01: 934 FDP_c 0.002 | bulk-null q<=0.05: 1511 FDP_c 0.035
+MLP ens5         N at FDP_c 0.5/1/1.5/2%: [1188, 1220, 1352, 1374] | plain q<=0.01: 1105 FDP_c 0.004 | plain q<=0.05: 1746 FDP_c 0.069 | bulk-null q<=0.01: 974 FDP_c 0.002 | bulk-null q<=0.05: 1629 FDP_c 0.053
