@@ -125,8 +125,11 @@ namespace OpenMS
   bool BinnedSpectrum::operator==(const BinnedSpectrum& rhs) const
   {
     // first compare bin layout and precursors
-    if (std::tie(unit_ppm_, bin_size_, bin_spread_, precursors_)
-        != std::tie(rhs.unit_ppm_, rhs.bin_size_, rhs.bin_spread_, rhs.precursors_))
+    // offset_ shifts what m/z range each bin index covers (see getBinLowerMZ), so two
+    // spectra with the same bin_size_ but a different offset_ are not actually binned
+    // the same way, even if their bin contents happen to match numerically.
+    if (std::tie(unit_ppm_, bin_size_, bin_spread_, offset_, precursors_)
+        != std::tie(rhs.unit_ppm_, rhs.bin_size_, rhs.bin_spread_, rhs.offset_, rhs.precursors_))
     {
       return false;
     }
