@@ -2247,14 +2247,20 @@ Not sure how to handle these:
       OPENMS_LOG_INFO << "MzTab: Inference data provided. Considering first run only for inference data." << std::endl;
     }
 
+    // The first run is left out of the MS run and search engine mappings only if no PSM refers to it.
+    // Otherwise it is a search run as well (e.g. a single run with search and inference results),
+    // and its PSMs need its MS files and search engine.
+    const bool skip_first_run = first_run_inference_ && std::none_of(peptide_ids_.begin(), peptide_ids_.end(),
+      [this](const PeptideIdentification* pep) { return pep->getIdentifier() == prot_ids_[0]->getIdentifier(); });
+
     map<std::string, size_t> msfilename_2_msrunindex;
     map<size_t, std::string> msrunindex_2_msfilename;
-    MzTab::mapBetweenMSFileNameAndMSRunIndex_(prot_ids_, first_run_inference_, msfilename_2_msrunindex, msrunindex_2_msfilename);
+    MzTab::mapBetweenMSFileNameAndMSRunIndex_(prot_ids_, skip_first_run, msfilename_2_msrunindex, msrunindex_2_msfilename);
 
     // MS runs of a peptide identification object is stored in
     // the protein identification object with the same "identifier".
     // Thus, we build a map from psm_idx->run_index (aka index of PeptideHit -> run index)
-    MzTab::mapIDRunFileIndex2MSFileIndex_(prot_ids_, msfilename_2_msrunindex, first_run_inference_, map_id_run_fileidx_2_msfileidx_);
+    MzTab::mapIDRunFileIndex2MSFileIndex_(prot_ids_, msfilename_2_msrunindex, skip_first_run, map_id_run_fileidx_2_msfileidx_);
 
     // collect variable and fixed modifications from different runs
     StringList var_mods;
@@ -2268,7 +2274,7 @@ Not sure how to handle these:
     MzTab::mapBetweenRunAndSearchEngines_(
       prot_ids_,
       peptide_ids_,
-      first_run_inference_,
+      skip_first_run,
       search_engine_to_runs,
       run_to_search_engines_,
       run_to_search_engines_settings_,
@@ -2888,14 +2894,20 @@ state0:
       OPENMS_LOG_INFO << "MzTab: Inference data provided. Considering first run only for inference data." << std::endl;
     }
 
+    // The first run is left out of the MS run and search engine mappings only if no PSM refers to it.
+    // Otherwise it is a search run as well (e.g. a single run with search and inference results),
+    // and its PSMs need its MS files and search engine.
+    const bool skip_first_run = first_run_inference_ && std::none_of(peptide_ids_.begin(), peptide_ids_.end(),
+      [this](const PeptideIdentification* pep) { return pep->getIdentifier() == prot_ids_[0]->getIdentifier(); });
+
     map<std::string, size_t> msfilename_2_msrunindex;
     map<size_t, std::string> msrunindex_2_msfilename;
-    MzTab::mapBetweenMSFileNameAndMSRunIndex_(prot_ids_, first_run_inference_, msfilename_2_msrunindex, msrunindex_2_msfilename);
+    MzTab::mapBetweenMSFileNameAndMSRunIndex_(prot_ids_, skip_first_run, msfilename_2_msrunindex, msrunindex_2_msfilename);
 
     // MS runs of a peptide identification object is stored in
     // the protein identification object with the same "identifier".
     // Thus, we build a map from psm_idx->run_index (aka index of PeptideHit -> run index)
-    MzTab::mapIDRunFileIndex2MSFileIndex_(prot_ids_, msfilename_2_msrunindex, first_run_inference_, map_id_run_fileidx_2_msfileidx_);
+    MzTab::mapIDRunFileIndex2MSFileIndex_(prot_ids_, msfilename_2_msrunindex, skip_first_run, map_id_run_fileidx_2_msfileidx_);
 
     // collect variable and fixed modifications from different runs
     StringList var_mods;
@@ -2912,7 +2924,7 @@ state0:
     MzTab::mapBetweenRunAndSearchEngines_(
       prot_ids_,
       peptide_ids_,
-      first_run_inference_,
+      skip_first_run,
       search_engine_to_runs,
       run_to_search_engines_,
       run_to_search_engines_settings_,

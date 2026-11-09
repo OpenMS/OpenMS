@@ -139,12 +139,9 @@ namespace OpenMS
             }
             else
             {
-              std::string value = param_it->value.toString();
-              if (value.contains('\t'))
-              {
-                replace(value, '\t', "&#x9;");
-              }
-              os << escapeXML(value) << R"(" type="string")";
+              std::string value = escapeXML(param_it->value.toString());
+              replace(value, '\t', "&#x9;"); // after escapeXML, which would escape the '&'
+              os << value << R"(" type="string")";
             }
             break;
           case ParamValue::STRING_LIST:
@@ -293,13 +290,11 @@ namespace OpenMS
         switch (value_type)
         {
           case ParamValue::STRING_LIST:
-            for (auto item : static_cast<const std::vector<std::string>&>(param_it->value))
+            for (const std::string& list_item : static_cast<const std::vector<std::string>&>(param_it->value))
             {
-              if (item.contains('\t'))
-              {
-                replace(item, '\t', "&#x9;");
-              }
-              os << std::string(indentations + 2, ' ') << "<LISTITEM value=\"" << escapeXML(item) << "\"/>\n";
+              std::string item = escapeXML(list_item);
+              replace(item, '\t', "&#x9;"); // after escapeXML, which would escape the '&'
+              os << std::string(indentations + 2, ' ') << "<LISTITEM value=\"" << item << "\"/>\n";
             }
             break;
           case ParamValue::INT_LIST:

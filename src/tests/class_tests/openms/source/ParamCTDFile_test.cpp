@@ -410,6 +410,27 @@ START_SECTION([EXTRA] escaping of adjacent special characters)
 }
 END_SECTION
 
+START_SECTION([EXTRA] tabs in string values and string lists)
+{
+  // Tabs were replaced by "&#x9;" before escapeXML(), which then escaped the '&': they came back as "&#x9;".
+  Param p_tab;
+  p_tab.setValue("value", "a\t\tb&&c", "");
+  p_tab.setValue("list", std::vector<std::string>{"x\ty", "<\t>"}, "");
+  ToolInfo info = {"a", "a", "a", "a", "a", std::vector<std::string>()};
+  std::string filename;
+  NEW_TMP_FILE(filename);
+  ParamCTDFile().store(filename, p_tab, info);
+
+  Param loaded;
+  ParamXMLFile().load(filename, loaded);
+  TEST_EQUAL(loaded.getValue("value").toString(), "a\t\tb&&c")
+  const std::vector<std::string> list = loaded.getValue("list");
+  ABORT_IF(list.size() != 2)
+  TEST_EQUAL(list[0], "x\ty")
+  TEST_EQUAL(list[1], "<\t>")
+}
+END_SECTION
+
 END_TEST
 
 #ifdef __clang__
