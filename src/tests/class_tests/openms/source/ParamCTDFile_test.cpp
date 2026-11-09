@@ -392,6 +392,24 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION([EXTRA] escaping of adjacent special characters)
+{
+  // The replacement used to skip the character right after each replaced one, so "&&" became "&amp;&"
+  // (invalid XML) and "\n\n" lost its second #br#.
+  Param p_adj;
+  p_adj.setValue("value", "a&&b<<c\"\"d''e>>f", "two\n\nnewlines");
+  ToolInfo info = {"a", "a", "a", "a", "a", std::vector<std::string>()};
+  std::string filename;
+  NEW_TMP_FILE(filename);
+  ParamCTDFile().store(filename, p_adj, info);
+
+  Param loaded;
+  ParamXMLFile().load(filename, loaded);
+  TEST_EQUAL(loaded.getValue("value").toString(), "a&&b<<c\"\"d''e>>f")
+  TEST_EQUAL(loaded.getDescription("value"), "two\n\nnewlines")
+}
+END_SECTION
+
 END_TEST
 
 #ifdef __clang__

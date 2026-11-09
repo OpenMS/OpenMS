@@ -1057,13 +1057,16 @@ namespace OpenMS
     }
 
     const PeptideIdentificationList& curr_pep_ids = c.getPeptideIdentifications();
-    if (!curr_pep_ids.empty())
+    // peptide identifications without hits (unidentified spectra) carry no sequence: ignore them
+    const auto first_with_hits = std::find_if(curr_pep_ids.begin(), curr_pep_ids.end(),
+                                              [](const PeptideIdentification& pep) { return !pep.getHits().empty(); });
+    if (first_with_hits != curr_pep_ids.end())
     {
       checkSequenceUniqueness_(curr_pep_ids);
 
       // Overall information for this feature in PEP section
       // Features need to be resolved for this. First is not necessarily the best since ids were resorted by map_index.
-      const PeptideIdentification& best_id = curr_pep_ids[0];
+      const PeptideIdentification& best_id = *first_with_hits;
       const PeptideHit& best_ph = best_id.getHits()[0];
       const AASequence& aas = best_ph.getSequence();
       row.sequence = MzTabString(aas.toUnmodifiedString());
@@ -1136,6 +1139,7 @@ namespace OpenMS
       double best_score = best_ph.getScore();
       for (const auto& pep : curr_pep_ids)
       {
+        if (pep.getHits().empty()) continue; // unidentified: no score to report
         size_t spec_run_index = idrun_2_run_index.at(pep.getIdentifier());
         StringList filenames;
         prot_id[spec_run_index].getPrimaryMSRunPath(filenames);
@@ -1330,8 +1334,14 @@ namespace OpenMS
     MzTabParameterList search_engines;
 
     //TODO support columns for multiple search engines/scores    
-    pair<std::string, std::string> name_version = *run_to_search_engines[run_index].begin();
-    search_engines.fromCellString("[,," + name_version.first + "," + name_version.second + "]");
+    // A run can have no search engine entry: with first_run_inference_only, the first protein ID
+    // run (the inference result) is skipped when the runs are mapped, but PSMs may refer to it.
+    const auto se_it = run_to_search_engines.find(run_index);
+    if (se_it != run_to_search_engines.end() && !se_it->second.empty())
+    {
+      const pair<std::string, std::string>& name_version = se_it->second.front();
+      search_engines.fromCellString("[,," + name_version.first + "," + name_version.second + "]");
+    }
     row.search_engine = search_engines;
 
     row.search_engine_score[1] = MzTabDouble(current_ph.getScore());
@@ -3452,10 +3462,17 @@ state0:
 
   void MzTab::checkSequenceUniqueness_(const PeptideIdentificationList& curr_pep_ids)
   {
-    const auto& refseq = curr_pep_ids[0].getHits()[0].getSequence();
+    // peptide identifications without hits are ignored; the caller guarantees at least one with hits
+    const AASequence* refseq = nullptr;
     for (const auto& pep : curr_pep_ids)
     {
-      if (pep.getHits()[0].getSequence() != refseq)
+      if (pep.getHits().empty()) continue;
+      if (refseq == nullptr)
+      {
+        refseq = &pep.getHits()[0].getSequence();
+        continue;
+      }
+      if (pep.getHits()[0].getSequence() != *refseq)
       {
         throw OpenMS::Exception::IllegalArgument(
             __FILE__

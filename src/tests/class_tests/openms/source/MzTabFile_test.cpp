@@ -312,4 +312,24 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION([EXTRA] load - metadata keys with fewer fields than expected)
+{
+  // "assay[1]" without a "-..." suffix: the parser used to read meta_key_fields[1] past the end.
+  TextFile original;
+  original.load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC.mzTab"));
+  std::vector<std::string> lines(original.begin(), original.end());
+  lines.insert(lines.begin() + 1, "MTD\tassay[1]\tsomething");
+  lines.insert(lines.begin() + 1, "MTD\tsample[1]\tsomething");
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  TextFile modified;
+  for (const auto& line : lines) modified.addLine(line);
+  modified.store(tmp);
+
+  MzTab mz_tab;
+  MzTabFile().load(tmp, mz_tab);
+  TEST_EQUAL(mz_tab.getProteinSectionRows().size() > 0 || mz_tab.getPeptideSectionRows().size() > 0, true)
+}
+END_SECTION
+
 END_TEST

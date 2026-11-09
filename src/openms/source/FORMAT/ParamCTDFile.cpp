@@ -357,13 +357,13 @@ namespace OpenMS
 
   void ParamCTDFile::replace(std::string& replace_in, char to_replace, const std::string& replace_with)
   {
-    for (size_t i = 0; i < replace_in.size(); ++i)
+    // continue right after the inserted text: every occurrence is replaced, also directly adjacent
+    // ones (the previous loop skipped the character following each replacement)
+    size_t pos = 0;
+    while ((pos = replace_in.find(to_replace, pos)) != std::string::npos)
     {
-      if (replace_in[i] == to_replace)
-      {
-        replace_in = StringUtils::substr(replace_in, 0, i) + replace_with + StringUtils::substr(replace_in, i + 1);
-        i += replace_with.size();
-      }
+      replace_in.replace(pos, 1, replace_with);
+      pos += replace_with.size();
     }
   }
 } // namespace OpenMS
