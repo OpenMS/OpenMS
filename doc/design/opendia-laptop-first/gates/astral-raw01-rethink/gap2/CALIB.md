@@ -374,3 +374,20 @@ The decoy separation does not come from the training negatives, since C0 without
 - byion_b: 0.490, the opposite direction.
 
 The LDA's 0.500 is most likely a cancellation of opposite-signed weights (not tested directly). The deep head keeps a net +0.02. The concrete lever for a single deep scorer is decoy generation matched to targets on these run-level match statistics, which extends §12.
+
+## 14. Interference correction by transition refinement: PENDING (`astral-native-byion/single-scorer/PLAN6.md`)
+
+Code `6bca00e7a9` adds two opt-in options. Defaults are unchanged.
+
+- **`refine` feature group.** This follows EncyclopeDIA's automated transition refinement (Searle et al. 2018, Supplementary Figure 4). Over the picked peak plus 2 scan bins on each side, the fragment traces are smoothed once with [1 2 1]/4 and normalised to unit area. The consensus shape is the median at each bin. Each fragment gets a Pearson r against that consensus. The group outputs:
+  - the number of fragments with r ≥ 0.9, and with r ≥ 0.75;
+  - the mean r;
+  - the library share and the area share of the r ≥ 0.9 fragments;
+  - a DIA-NN-style best-reference-fragment mean r.
+- **`-trace_refinement_min_r`.** This zeroes fragment channels with r below the cut in the tensor, before the CNN and every feature. The change is in place, with no copy.
+
+The plan was written before any run. It has two arms on the native CNN + LDA:
+- R1: base + `refine`;
+- R2: R1 + mask at 0.75.
+
+The decision rule is the same as before. The mechanism is checked by the entrapment-vs-decoy winner AUC of the refine columns against `transition_support`. The evaluator reproduces the base readings (1029 / 1298, AUC 0.526 / 0.525 for `transition_support`).
