@@ -199,7 +199,8 @@ namespace OpenMS::OpenDIA
       torch::nn::Sequential head{nullptr};
       /// width 32 is the TOPAZ layout (conv 32-64-64, embeddings 64, MLP 128-64); smaller widths scale every learned layer.
       /// feature_dim heuristic features join the head input next to the trace embeddings (redeem CandidateScorer).
-      explicit TopazModel(int64_t width, int64_t features_in = 0) : embedding(2 * width), feature_dim(features_in)
+      /// linear_head: Dropout(0.1) + one Linear layer instead of the MLP (CNNOptions::topaz_linear_head).
+      explicit TopazModel(int64_t width, int64_t features_in = 0, bool linear_head = false) : embedding(2 * width), feature_dim(features_in)
       {
         xic = register_module("xic", Branch(FRAGMENTS, width));
         ms1 = register_module("ms1", Branch(ISOTOPES, width));
@@ -208,6 +209,11 @@ namespace OpenMS::OpenDIA
         ms1_coelution = register_module("ms1_coelution", Coelution(ISOTOPES));
         xim_coelution = register_module("xim_coelution", Coelution(FRAGMENTS));
         const int64_t features = embedding + 18 + (embedding + 18 + 4) + (embedding + 18) + 2 + 8 + feature_dim;
+        if (linear_head)
+        {
+          head = register_module("head", torch::nn::Sequential(torch::nn::Dropout(0.1), torch::nn::Linear(features, 1)));
+          return;
+        }
         head = register_module("head", torch::nn::Sequential(torch::nn::Linear(features, 4 * width), torch::nn::ReLU(), torch::nn::Dropout(0.1),
                                                              torch::nn::Linear(4 * width, 2 * width), torch::nn::ReLU(), torch::nn::Dropout(0.1),
                                                              torch::nn::Linear(2 * width, 1)));
@@ -676,7 +682,7 @@ namespace OpenMS::OpenDIA
       // Fixed validation subsample (MIL): the first bags of one seeded permutation.
       Indices check_order(check_bags.size());
       std::iota(check_order.begin(), check_order.end(), 0);
-      TopazModel model(options.topaz_width, static_cast<int64_t>(data.feature_dim));
+      TopazModel model(options.topaz_width, static_cast<int64_t>(data.feature_dim), options.topaz_linear_head);
       // Weight decay (AdamW) is the compact-variant regulariser; zero keeps plain Adam behaviour.
       torch::optim::AdamW optimizer(model.parameters(), torch::optim::AdamWOptions(1e-3).weight_decay(options.weight_decay));
       if (options.mil && check_order.size() > static_cast<std::size_t>(options.mil_bags_per_epoch))
@@ -851,6 +857,7 @@ namespace OpenMS::OpenDIA
         archive.write("augmentation", torch::tensor({options.augment_probability, options.augment_scale_min}, torch::kFloat64), true);
       }
       if (decoy_negatives) { archive.write("decoy_negatives", torch::tensor({static_cast<int64_t>(options.decoy_negatives)}, torch::kInt64), true); }
+      if (options.topaz_linear_head) { archive.write("topaz_head", textTensor("linear"), true); }
       if (faithful) { archive.write("topaz_input", textTensor("block-max"), true); }
       archive.write("geometry", torch::tensor({geometry.mz_tolerance, geometry.rt_half_width, geometry.im_half_width}, torch::kFloat64), true);
       archive.write("training", torch::tensor({static_cast<double>(result.epochs_run), result.validation_loss}, torch::kFloat64), true);
@@ -892,6 +899,7 @@ namespace OpenMS::OpenDIA
     require(options.decoy_negatives >= 0 && options.decoy_negatives <= 1000000 &&
             (options.decoy_negatives == 0 || (options.architecture == CNNArchitecture::TOPAZ && !options.mil)),
             "decoy negatives need a count in [0,1000000], the TOPAZ architecture and seed training");
+    require(!options.topaz_linear_head || options.architecture == CNNArchitecture::TOPAZ, "a linear head requires the TOPAZ architecture");
     require((data.feature_dim == 0 && data.features == nullptr) || options.architecture == CNNArchitecture::TOPAZ,
             "heuristic features require the TOPAZ architecture");
     at::set_num_threads(options.threads);
@@ -1088,7 +1096,10 @@ namespace OpenMS::OpenDIA
         feature_count = saved_features.item<int64_t>();
       }
       require(static_cast<int64_t>(data.feature_dim) == feature_count, "checkpoint heuristic feature count mismatch");
-      TopazModel model(saved_width, feature_count);
+      torch::Tensor head_mode;
+      const bool linear_head = archive.try_read("topaz_head", head_mode, true);
+      require(!linear_head || tensorText(head_mode) == "linear", "unknown checkpoint TOPAZ head");
+      TopazModel model(saved_width, feature_count, linear_head);
       validateFeatures(data);
       torch::Tensor input_mode;
       const bool block_max = archive.try_read("topaz_input", input_mode, true);

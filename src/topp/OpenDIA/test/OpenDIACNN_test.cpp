@@ -530,6 +530,18 @@ int main(int argc, char** argv)
         auto mil_negatives = mil_options;
         mil_negatives.decoy_negatives = 10;
         rejects([&] { trainTraceCNN(mil_data, geometry, mil_negatives, negatives_path + ".mil"); });
+
+        // Linear head: learns co-elution, roundtrips (the checkpoint records the head), differs from the MLP head.
+        auto linear = negatives;
+        linear.topaz_linear_head = true;
+        const auto linear_path = (directory / "topaz-linear.pt").string();
+        const auto lin = trainTraceCNN(extra, geometry, linear, linear_path);
+        check(lin.heldout_auc > 0.99, "linear-head TOPAZ did not learn co-elution");
+        check(scoreTraceCNN(extra, geometry, linear_path, 1, true).logits == lin.logits, "linear-head checkpoint roundtrip changed output");
+        check(lin.logits != neg.logits, "linear head did not change the model");
+        auto grid_linear = options;
+        grid_linear.topaz_linear_head = true;
+        rejects([&] { trainTraceCNN(data, geometry, grid_linear, linear_path + ".grid"); });
       }
     }
     if (parity)

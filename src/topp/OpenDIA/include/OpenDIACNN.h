@@ -119,6 +119,9 @@ namespace OpenMS::OpenDIA
     /// carry no target evidence, so this uses no extra label information; it exposes the scorer to the decoy tail that
     /// q depends on. 0 disables (the default).
     int decoy_negatives = 0;
+    /// TOPAZ only, experimental: replace the 2-hidden-layer scoring MLP by Dropout(0.1) + one linear layer over the
+    /// embeddings, co-elution statistics and heuristic features (LDA-like head capacity). Recorded in the checkpoint.
+    bool topaz_linear_head = false;
   };
 
   /**

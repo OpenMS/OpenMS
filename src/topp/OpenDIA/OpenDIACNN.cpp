@@ -160,6 +160,8 @@ namespace OpenMS
                          "class is up-weighted to balance). Exposes the scorer to the decoy tail that q depends on. 0 disables", false);
       setMinInt_("topaz_decoy_negatives", 0);
       setMaxInt_("topaz_decoy_negatives", 1000000);
+      registerFlag_("topaz_linear_head", "With -cnn_arch topaz, experimental: score with Dropout + one linear layer instead of the 2-hidden-layer MLP "
+                    "(LDA-like head capacity over the embeddings, co-elution statistics and heuristic features)", false);
     }
 
     ExitCodes main_(int, const char**) override
@@ -312,6 +314,10 @@ namespace OpenMS
         if (getIntOption_("topaz_decoy_negatives") > 0 && (!topaz || mil))
         {
           throw std::invalid_argument("topaz_decoy_negatives requires -cnn_arch topaz with seed training (not -cnn_training mil).");
+        }
+        if (getFlag_("topaz_linear_head") && !topaz)
+        {
+          throw std::invalid_argument("topaz_linear_head requires -cnn_arch topaz.");
         }
 
         const auto max_samples = static_cast<std::size_t>(getIntOption_("max_samples"));
@@ -553,6 +559,7 @@ namespace OpenMS
         settings.augment_probability = getDoubleOption_("augment_probability");
         settings.augment_scale_min = getDoubleOption_("augment_scale_min");
         settings.decoy_negatives = getIntOption_("topaz_decoy_negatives");
+        settings.topaz_linear_head = getFlag_("topaz_linear_head");
         std::vector<OpenDIA::CNNQValueInput> crossfit_rows;
         // Pair key: target TRAML_ID, or a decoy TRAML_ID without its DECOY_ prefix.
         std::vector<std::string> pair_keys(count);

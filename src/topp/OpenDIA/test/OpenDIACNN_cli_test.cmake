@@ -223,3 +223,9 @@ execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -m
 if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "topaz_decoy_negatives requires -cnn_arch topaz" OR EXISTS "${WORK}/scores.tsv")
   message(FATAL_ERROR "topaz_decoy_negatives without topaz was not rejected: ${status}\n${output}\n${error}")
 endif()
+execute_process(COMMAND "${BINARY}" -mode crossfit -seeds "${WORK}/seeds.tsv" -model "${WORK}/lh1" -topaz_linear_head
+  -in "${WORK}/input.d" -lib "${WORK}/library.pqp" -windows "${WORK}/all.tsv" -out "${WORK}/scores.tsv"
+  RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+if(status STREQUAL "0" OR NOT "${output}${error}" MATCHES "topaz_linear_head requires -cnn_arch topaz" OR EXISTS "${WORK}/scores.tsv")
+  message(FATAL_ERROR "topaz_linear_head without topaz was not rejected: ${status}\n${output}\n${error}")
+endif()
