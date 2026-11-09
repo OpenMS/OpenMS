@@ -1,0 +1,4 @@
+run R02
+seed0: bulk T-vs-D AUC 0.566 | tail decoy weight mean 1.38 | 5% S_e/S_d 1.46 [1.15,1.77] -> weighted 1.07 [0.84,1.30] | plain q<=0.01: 1137 FDP_c 0.019, q<=0.05: 1638 FDP_c 0.073 | weighted q<=0.01: 1075 FDP_c 0.011, q<=0.05: 1543 FDP_c 0.059
+seed1: bulk T-vs-D AUC 0.561 | tail decoy weight mean 1.50 | 5% S_e/S_d 1.60 [1.27,1.93] -> weighted 1.08 [0.86,1.31] | plain q<=0.01: 1017 FDP_c 0.008, q<=0.05: 1607 FDP_c 0.079 | weighted q<=0.01: 888 FDP_c 0.002, q<=0.05: 1455 FDP_c 0.047
+seed2: bulk T-vs-D AUC 0.571 | tail decoy weight mean 1.31 | 5% S_e/S_d 1.41 [1.10,1.73] -> weighted 1.11 [0.86,1.36] | plain q<=0.01: 1048 FDP_c 0.010, q<=0.05: 1577 FDP_c 0.070 | weighted q<=0.01: 1029 FDP_c 0.010, q<=0.05: 1482 FDP_c 0.067

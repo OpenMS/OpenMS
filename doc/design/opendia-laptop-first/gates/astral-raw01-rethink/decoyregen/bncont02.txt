@@ -1,0 +1,3 @@
+run R02: bulk targets that are DIA-NN IDs 0.003
+  primary      q<=0.01: 996 FDP_c 0.004, q<=0.05: 1489 FDP_c 0.055 | tail decoy weight 1.31
+  IDs dropped  q<=0.01: 1029 FDP_c 0.006, q<=0.05: 1510 FDP_c 0.061 | tail decoy weight 1.26 | Spearman(decoy weights) 0.943

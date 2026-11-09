@@ -226,6 +226,40 @@ The rule needed q ≤ 0.05 FDP_c ≤ 0.06 for ≥ 2 of 3 seeds on both runs. It 
 
 None of these is implemented.
 
+## 9. Label-free bulk-null density-ratio TDC: PASS on both design runs (`../decoyregen/bulknull*.py`)
+
+**Idea.** Section 8 found that false targets differ from decoys by a weak, broad shift, not one confined to the tail. Low-scoring target winners are almost all false (DIA-NN-identified precursors are 0.3% of them), so that shift can be learnt without entrapment labels.
+
+**Method.**
+1. A gradient-boosted classifier is trained on target winners against decoy winners. It uses only the bulk: winners scoring below the median decoy-winner score. It is cross-fitted by pair fold on the 20 subscores.
+2. Each decoy winner gets the weight w = p/(1−p) · n_d/n_t. This is clipped to [0.2, 5], applied out-of-fold, and normalised to mean 1 over the bulk decoys.
+3. The paired TDC counts decoys by weight: q = (Σ w over kept decoys + 1) / kept targets.
+
+The ranking is unchanged, so the N at each entrapment FDP_c is unchanged. Only q moves. Bulk AUC is 0.56–0.57. The mean decoy weight in the tail is 1.2–1.5, so decoys that look like false targets count more.
+
+**Exploratory (`bulknull.py`, rule declared before running).** With single MLP seeds 0/1/2, the 5% S_e/S_d goes from 1.41–1.66 to 1.02–1.26, and every band includes 1. The rule needed q ≤ 0.01 FDP_c ≤ 0.015 and q ≤ 0.05 FDP_c ≤ 0.06. That held for 2 of 3 seeds on each run (seed 2 on raw 02 and seed 1 on raw 01 fail at 5%: 0.067 and 0.069).
+
+**Confirmation (`bulknull_confirm.py`, fixed configuration and rule declared before running).** Score: the 5-seed MLP ensemble. Primary: median threshold, boosting, clip [0.2, 5].
+
+| | plain TDC q ≤ 0.01: N (FDP_c, lower) | q ≤ 0.05 FDP_c | **bulk-null q ≤ 0.01: N (FDP_c, lower)** | **q ≤ 0.05 FDP_c** |
+|---|---|---|---|---|
+| raw 01 | 1143 (0.016, 0.008) | 0.067 | **1038 (0.006, 0.003)** | **0.050** |
+| raw 02 | 1112 (0.013, 0.006) | 0.082 | **996 (0.004, 0.002)** | **0.055** |
+
+The rule passes on both runs. Entrapment-matched N at FDP_c 1% is 1101 (raw 01) and 1083 (raw 02); the ranking is untouched. At q ≤ 0.01 the weighted estimate is now conservative (FDP_c 0.004–0.006), and it reports 9–10% fewer IDs than plain TDC. Most of that is IDs that plain TDC reported above its nominal rate.
+
+**Sensitivity (no rule).** Bulk threshold at the 30th or 70th percentile, or clip [0.1, 10]: q ≤ 0.05 FDP_c 0.049–0.058, all pass. **Logistic-regression weights do not correct** (0.064 and 0.083), so the shift is nonlinear in the subscores.
+
+**Contamination (`bulknull_contam.py`, reading declared before running).** True targets in the bulk could teach the classifier "looks like a real peptide" and over-correct. Dropping every DIA-NN-identified target from the bulk training set changes q ≤ 0.05 FDP_c by +0.006 (raw 02, to 0.061) and +0.002 (raw 01). The decoy-weight Spearman correlation is 0.94. So contamination is not driving it. On raw 02, the cleaner version lands just above the 0.06 bar.
+
+**Status and limits.**
+- This is a design-run result on two runs (raw 03 is held). It is the first label-free mitigation to pass a predeclared rule, but it is not a guarantee.
+- The weights estimate a density ratio from about 180k bulk winners per class, at AUC 0.57. They correct a weak shift, and if the shift changes with score the correction is extrapolated into the tail. The p30/p70 sensitivity is reassuring, but that remains the assumption.
+- The 1% statements rest on small entrapment counts. The lower bound at q ≤ 0.01 is 0.002–0.003 on both runs.
+- It uses OSW extraction and the OSW-like subscores. Before the native scorer adopts it, it must be re-validated on native features.
+
+**For the native pipeline.** After the cross-fitted scorer, fit the bulk-null classifier on the same features (a boosted-tree or small-MLP head) and report the weighted q. Keep plain TDC q as a secondary column. This adds one model fit per run and needs no new data.
+
 ## Reading
 
 1. The anti-conservativeness is a property of **decoy winners under-representing false targets in the score tail**, by about 1.1–1.6×. The pipeline's ranker only adds to it. OSW+Percolator, with the same decoys, is worse: invalid even by the lower bound. No ranker change alone has fixed it. At 1% our scorer sits in the inconclusive zone between the entrapment bounds (section 1). The cause is still unidentified. These have been checked and are not it: single features, I/L, the precursor mass shift, borrowed signal (weak), dead low-m/z slots, entrapment stratum mismatch (each about 5% at most), and library-intensity features (raw 02 partly, raw 01 not).

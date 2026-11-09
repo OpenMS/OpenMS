@@ -1,0 +1,7 @@
+run R02: 5-seed ensemble, entrapment-matched N at FDP_c 1%: 1083
+plain TDC                      q<=0.01: 1112 FDP_c 0.013 (lower 0.006) | q<=0.05: 1637 FDP_c 0.082 (lower 0.041)
+PRIMARY bulk-null (AUC 0.572)  q<=0.01: 996 FDP_c 0.004 (lower 0.002) | q<=0.05: 1489 FDP_c 0.055 (lower 0.028) | tail decoy weight 1.31
+bulk p30 (AUC 0.583)           q<=0.01: 950 FDP_c 0.004 (lower 0.002) | q<=0.05: 1454 FDP_c 0.049 (lower 0.024)
+bulk p70 (AUC 0.565)           q<=0.01: 996 FDP_c 0.004 (lower 0.002) | q<=0.05: 1497 FDP_c 0.058 (lower 0.029)
+clip [0.1,10] (AUC 0.572)      q<=0.01: 996 FDP_c 0.004 (lower 0.002) | q<=0.05: 1489 FDP_c 0.055 (lower 0.028)
+logistic (AUC 0.557)           q<=0.01: 1113 FDP_c 0.013 (lower 0.006) | q<=0.05: 1642 FDP_c 0.083 (lower 0.041)
