@@ -1,0 +1,12 @@
+targets 300223
+scored S1 299636
+scored S2 299664
+scored S3 299682
+scored S4 299638
+decoys chosen 300006 shares {'PR': 0.257, 'S1': 0.212, 'S2': 0.191, 'S3': 0.176, 'S4': 0.164}
+commonness mean: targets 0.792 | old pseudo-reverse 0.668 | chosen 0.730
+AUC target vs old decoy commonness: 0.580
+AUC target vs chosen decoy commonness: 0.536
+own-target overlap of chosen: share >=2 0.0029
+rows 3601374 decoy groups 300006 duplicate transition ids 0
+done

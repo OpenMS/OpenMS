@@ -294,3 +294,16 @@ Three label-free hypotheses on the native score, each with a rule declared in it
 - **Candidate multiplicity (k10): rejected.** False targets have marginally more candidate windows than decoys (AUC 0.535). Weighting decoys by count stratum gives 0.060 / 0.068.
 
 With sections 3–8, the excess is not carried by any single input feature, feature group, ranker or candidate count. It looks like a diffuse property of how decoy and false-target signal differ. Section 9's density-ratio correction captures it only with a flexible classifier (section 10).
+
+## 12. Commonness-matched decoys, native: FAIL (`astral-native-byion/commatched/`)
+
+A label-free gate first re-weighted the existing decoys to the target commonness marginal (`com_gate.txt`). It lowered q ≤ 0.05 FDP_c to 0.050 / 0.062, so a regenerated library was tested.
+
+Per target, the decoy was chosen from the pseudo-reverse and four shuffles: the closest in commonness with at most one fragment shared with its own target. Decoy commonness rose from 0.668 to 0.730 (targets 0.792).
+
+Native OpenDIA results, with only the decoys changed:
+- q ≤ 0.05 FDP_c: 0.065 → 0.061 (raw 01), 0.074 → 0.060 (raw 02);
+- q ≤ 0.01 FDP_c: 0.006 / 0.002;
+- N at FDP_c 1%: 1029 → 1101, 1298 → 1210.
+
+The rule fails: the 5% drop is ≥ 0.01 on raw 02 only, and raw 02 loses 7% of N. Commonness is a real but partial lever. It is not a fix on its own.
