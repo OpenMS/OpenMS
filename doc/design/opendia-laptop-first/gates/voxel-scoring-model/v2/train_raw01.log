@@ -1,0 +1,16 @@
+raw01 V0 fold 0: r0 4671 rows 18 ep vl 0.0001
+raw01 V0 fold 1: r0 4626 rows 12 ep vl 0.0004
+raw01 V0 fold 2: r0 4707 rows 15 ep vl 0.0001
+raw01 V0 done in 120 s
+raw01 F0 fold 0: r0 4671 rows 17 ep vl 0.0003
+raw01 F0 fold 1: r0 4626 rows 17 ep vl 0.0002
+raw01 F0 fold 2: r0 4707 rows 10 ep vl 0.0002
+raw01 F0 done in 123 s
+raw01 S0 fold 0: r0 4671 rows 18 ep vl 0.0001 | r1 pos 1160 neg 6000 18 ep vl 0.0245 | r2 pos 773 neg 6000 9 ep vl 0.0032
+raw01 S0 fold 1: r0 4626 rows 12 ep vl 0.0004 | r1 pos 1190 neg 6000 10 ep vl 0.0363 | r2 pos 676 neg 6000 11 ep vl 0.0008
+raw01 S0 fold 2: r0 4707 rows 15 ep vl 0.0001 | r1 pos 1356 neg 6000 15 ep vl 0.0200 | r2 pos 853 neg 6000 14 ep vl 0.0111
+raw01 S0 done in 544 s
+raw01 FS fold 0: r0 4671 rows 17 ep vl 0.0003 | r1 pos 1445 neg 6000 8 ep vl 0.0248 | r2 pos 1013 neg 6000 12 ep vl 0.0027
+raw01 FS fold 1: r0 4626 rows 17 ep vl 0.0002 | r1 pos 1523 neg 6092 11 ep vl 0.0249 | r2 pos 1140 neg 6000 15 ep vl 0.0030
+raw01 FS fold 2: r0 4707 rows 10 ep vl 0.0002 | r1 pos 1415 neg 6000 16 ep vl 0.0132 | r2 pos 1026 neg 6000 9 ep vl 0.0150
+raw01 FS done in 554 s
