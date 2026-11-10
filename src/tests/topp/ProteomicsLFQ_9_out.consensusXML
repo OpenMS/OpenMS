@@ -23,67 +23,67 @@
 				<UserParam type="int" name="TOPPProteinInference:treat_modification_variants_separately" value="1"/>
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
-			<ProteinHit id="PH_0" accession="P02769|ALBU_BOVIN" score="0.0833333333333333" coverage="12.1911037891269" sequence="MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPFDEHVKLVNELTEFAKTCVADESHAGCEKSLHTLFGDELCKVASLRETYGDMADCCEKQEPERNECFLSHKDDSPDLPKLKPDPNTLCDEFKADEKKFWGKYLYEIARRHPYFYAPELLYYANKYNGVFQECCQAEDKGACLLPKIETMREKVLASSARQRLRCASIQKFGERALKAWSVARLSQKFPKAEFVEVTKLVTDLTKVHKECCHGDLLECADDRADLAKYICDNQDTISSKLKECCDKPLLEKSHCIAEVEKDAIPENLPPLTADFAEDKDVCKNYQEAKDAFLGSFLYEYSRRHPEYAVSVLLRLAKEYEATLEECCAKDDPHACYSTVFDKLKHLVDEPQNLIKQNCDQFEKLGEYGFQNALIVRYTRKVPQVSTPTLVEVSRSLGKVGTRCCTKPESERMPCTEDYLSLILNRLCVLHEKTPVSEKVTKCCTESLVNRRPCFSALTPDETYVPKAFDEKLFTFHADICTLPDTEKQIKKQTALVELLKHKPKATEEQLKTVMENFVAFVDKCCAADDKEACFAVEGPKLVVSTQTALA">
+			<ProteinHit id="PH_0" accession="P02769|ALBU_BOVIN" score="0.0909090909090909" coverage="12.1911037891269" sequence="MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPFDEHVKLVNELTEFAKTCVADESHAGCEKSLHTLFGDELCKVASLRETYGDMADCCEKQEPERNECFLSHKDDSPDLPKLKPDPNTLCDEFKADEKKFWGKYLYEIARRHPYFYAPELLYYANKYNGVFQECCQAEDKGACLLPKIETMREKVLASSARQRLRCASIQKFGERALKAWSVARLSQKFPKAEFVEVTKLVTDLTKVHKECCHGDLLECADDRADLAKYICDNQDTISSKLKECCDKPLLEKSHCIAEVEKDAIPENLPPLTADFAEDKDVCKNYQEAKDAFLGSFLYEYSRRHPEYAVSVLLRLAKEYEATLEECCAKDDPHACYSTVFDKLKHLVDEPQNLIKQNCDQFEKLGEYGFQNALIVRYTRKVPQVSTPTLVEVSRSLGKVGTRCCTKPESERMPCTEDYLSLILNRLCVLHEKTPVSEKVTKCCTESLVNRRPCFSALTPDETYVPKAFDEKLFTFHADICTLPDTEKQIKKQTALVELLKHKPKATEEQLKTVMENFVAFVDKCCAADDKEACFAVEGPKLVVSTQTALA">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value="Serum albumin - Bos taurus (Bovine)."/>
 				<UserParam type="int" name="nr_found_peptides" value="9"/>
 				<UserParam type="float" name="Posterior Probability_score" value="1.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="P00761|TRYP_PIG" score="0.0833333333333333" coverage="3.46320346320346" sequence="FPTDDDDKIVGGYTCAANSIPYQVSLNSGSHFCGGSLINSQWVVSAAHCYKSRIQVRLGEHNIDVLEGNEQFINAAKIITHPNFNGNTLDNDIMLIKLSSPATLNSRVATVSLPRSCAAAGTECLISGWGNTKSSGSSYPSLLQCLKAPVLSDSSCKSSYPGQITGNMICVGFLEGGKDSCQGDSGGPVVCNGQLQGIVSWGYGCAQKNKPGVYTKVCNYVNWIQQTIAAN">
+			<ProteinHit id="PH_1" accession="P00761|TRYP_PIG" score="0.0909090909090909" coverage="3.46320346320346" sequence="FPTDDDDKIVGGYTCAANSIPYQVSLNSGSHFCGGSLINSQWVVSAAHCYKSRIQVRLGEHNIDVLEGNEQFINAAKIITHPNFNGNTLDNDIMLIKLSSPATLNSRVATVSLPRSCAAAGTECLISGWGNTKSSGSSYPSLLQCLKAPVLSDSSCKSSYPGQITGNMICVGFLEGGKDSCQGDSGGPVVCNGQLQGIVSWGYGCAQKNKPGVYTKVCNYVNWIQQTIAAN">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value="Trypsin - Sus scrofa (Pig)."/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="Posterior Probability_score" value="0.96551724137931"/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="tr|A9G0B6|A9G0B6_SORC5" score="0.0833333333333333" coverage="11.2676056338028" sequence="MPVVLDACRAGAFSLPKDLGMEHDHSERIGGRHREVERCRDGGGCAAAACRREGRARERRLALGRPRVRSG">
+			<ProteinHit id="PH_2" accession="tr|A9G0B6|A9G0B6_SORC5" score="0.0909090909090909" coverage="11.2676056338028" sequence="MPVVLDACRAGAFSLPKDLGMEHDHSERIGGRHREVERCRDGGGCAAAACRREGRARERRLALGRPRVRSG">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value="Putative uncharacterized protein OS=Sorangium cellulosum (strain So ce56) GN=sce8672 PE=4 SV=1"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="Posterior Probability_score" value="0.954545454545454"/>
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="tr|A9FUD7|A9FUD7_SORC5" score="0.0833333333333333" coverage="0.404040404040404" sequence="MANDKGKARFGDGKWSAPFGRYENPDAAEWPANEFLVARVEQRRRFLNLLLTHGRRGAYLITGQRGSGKTSFVNYCLNEYRQDVFGRFLNGKVGRSIYDRAGLVTVICIFGVIAFTGKGLLHFIIHEWHPRPNENLRFVLAAPLLLAFLYPIIVARGLLEVATDFGLEKVRSGKPTEERRFRDWLYERRGFLAVVVVMLLVVRGALILYSGGSWSDRLREAISTPATVVAFLIASTSILGHACALRLTEVDQNRRHNKIARFLRILMIIGLLPALLNWAASLGLEHLPVLSSVTQWKPNVESPLLKRLSNSLAHILEAPSIQAVKTPLIIAALGWMGDLIAGFFGRSSRLDDWAGKPGGDSNDAGRNRPPRFVRQRVILVTKAVCLVVFSAIFILDAVVSRFSTTGVEIKDEITLLATLVILSISIARLEYNWIIRPHLRAKSGVVIDMARKDHQDVTVENYMRRLDNHTSFAFLYRWWIPSLVVRVNLGVEALDHRRVIDAMLTGLRDAYERTFLNWRSPLANAGWIVRLMLLVTATTLVADHFFVSSVNNAYMCNEMCALRPKINRILCPAGGIGESIARGLQFELISPRGDDSLWDEPCYVDPEAPWPRGASRQTIAQLVLPTSIRDFGQNGNHDYRHSIDLRLYHLLIFLVLLVAARIIERRWPIFAYRQTLRNIDDTIASLSSTLKQEHGIQLRLGKEILTIGDNRKQETAPLDPRTVELMFLRLLHQIDEAALRLPFVAGAHVSVPVPDVFFVFDELDKLGTRKGPASPAPGSDEGPAVSNSPGRERAVLLKNLLSDLKNVLSSAPARFIFVGGRNLHDEWLADQTSRQPLLTRLFVAEIYLPSLLTDRYDMDRLESGVEEFIRAQLNRANIIYGAWMRSRTLRWMRHAPREYLAPSFVPHENLPEFRLPFHSITDSASSSAAHQGKTASDPNDPNAQSVLRPSDVAEQLSILARSCRIPQDGRDDGWRKVLYGRLVSLANVILLAKDNSSVTSRMDTLDRDLIAFLTYRSMGNVKRLKEILDGTIEQVASGAVLPSMNNKGQPAAGGIDPHTHAIILRDADVHRIQLIADIYRGLVRMFGAGTWQDDKLAPAVFYMADFLLKFHRRAFTWSNLERIDELVHVHRAPELRKMLYTIVGAWTGNMLHPIRNGMFDFRFRIDTALELRLASRRSDEEMVALNFTLDEAQEIKEMYRRRLAMTTDPATFEFEAALGEHHDLDEEYDLARYHYRRAIRLLDDQVANDLIGTRPGQTMDAKDGSILHQLITRDPKTIETIRRHPHWAVGRIRLMLQIALTYERIRDFESAALGYRSARSLAEVLLESVPLSEVKLTSKEDSYELLKHANLLFQPAFAEAWVGEKEGTLVDASVALVERAIADSRKRLPFVNKPFERRRVATSPTSVHHALFALTLAELHDKAGDLLFFKGKPSSTHREDEGGAHRGYLDRSHFHYASSLHELRSYNRYRRCSSGPKLGFDQRTTTLPEGAAPDFVLQIAAGSLADLAEAMLAGMSLRATLNSGGPDGARVKKNIVLGVSIGKGPRTGAVPQMVECMIDWIGAVGGAERKFASEWIKIFGHSDGGDLSIWLGSVAMRRADFMGTRANVIPRSPSFEHGERGGRAQFAASLVCSMASARILKRDGRLEDAARESLQVAETVARWLLARHFWLSLDGRHMEEHLDEAWKNLLGLIAAYSVQKAQLWWRLSRRSLHPGGPGHENAGEATCRDVGSEKKNGIQVVTPRAVERIVTLLNHLYSGPGGASQELRDMLKDLIGPCGLRKDNLISQLEESLKYNMYPMTHQIYGRKILVDVRAIELFRRLEGPSEADVRALSDGLNSLWNDVETLMQADGEYDGRHRFTHSDIGLTLGFACFVANRVYGKHPGMSSAFAPDKVEQVRSNAITHLDRAEESFTLRRSYQLWIEDLYYLYDDFNDRRLHYNRAAEMAVSELIAAMLKKLREQARSCSSAGRSPPVQGEAG">
+			<ProteinHit id="PH_3" accession="tr|A9FUD7|A9FUD7_SORC5" score="0.0909090909090909" coverage="0.404040404040404" sequence="MANDKGKARFGDGKWSAPFGRYENPDAAEWPANEFLVARVEQRRRFLNLLLTHGRRGAYLITGQRGSGKTSFVNYCLNEYRQDVFGRFLNGKVGRSIYDRAGLVTVICIFGVIAFTGKGLLHFIIHEWHPRPNENLRFVLAAPLLLAFLYPIIVARGLLEVATDFGLEKVRSGKPTEERRFRDWLYERRGFLAVVVVMLLVVRGALILYSGGSWSDRLREAISTPATVVAFLIASTSILGHACALRLTEVDQNRRHNKIARFLRILMIIGLLPALLNWAASLGLEHLPVLSSVTQWKPNVESPLLKRLSNSLAHILEAPSIQAVKTPLIIAALGWMGDLIAGFFGRSSRLDDWAGKPGGDSNDAGRNRPPRFVRQRVILVTKAVCLVVFSAIFILDAVVSRFSTTGVEIKDEITLLATLVILSISIARLEYNWIIRPHLRAKSGVVIDMARKDHQDVTVENYMRRLDNHTSFAFLYRWWIPSLVVRVNLGVEALDHRRVIDAMLTGLRDAYERTFLNWRSPLANAGWIVRLMLLVTATTLVADHFFVSSVNNAYMCNEMCALRPKINRILCPAGGIGESIARGLQFELISPRGDDSLWDEPCYVDPEAPWPRGASRQTIAQLVLPTSIRDFGQNGNHDYRHSIDLRLYHLLIFLVLLVAARIIERRWPIFAYRQTLRNIDDTIASLSSTLKQEHGIQLRLGKEILTIGDNRKQETAPLDPRTVELMFLRLLHQIDEAALRLPFVAGAHVSVPVPDVFFVFDELDKLGTRKGPASPAPGSDEGPAVSNSPGRERAVLLKNLLSDLKNVLSSAPARFIFVGGRNLHDEWLADQTSRQPLLTRLFVAEIYLPSLLTDRYDMDRLESGVEEFIRAQLNRANIIYGAWMRSRTLRWMRHAPREYLAPSFVPHENLPEFRLPFHSITDSASSSAAHQGKTASDPNDPNAQSVLRPSDVAEQLSILARSCRIPQDGRDDGWRKVLYGRLVSLANVILLAKDNSSVTSRMDTLDRDLIAFLTYRSMGNVKRLKEILDGTIEQVASGAVLPSMNNKGQPAAGGIDPHTHAIILRDADVHRIQLIADIYRGLVRMFGAGTWQDDKLAPAVFYMADFLLKFHRRAFTWSNLERIDELVHVHRAPELRKMLYTIVGAWTGNMLHPIRNGMFDFRFRIDTALELRLASRRSDEEMVALNFTLDEAQEIKEMYRRRLAMTTDPATFEFEAALGEHHDLDEEYDLARYHYRRAIRLLDDQVANDLIGTRPGQTMDAKDGSILHQLITRDPKTIETIRRHPHWAVGRIRLMLQIALTYERIRDFESAALGYRSARSLAEVLLESVPLSEVKLTSKEDSYELLKHANLLFQPAFAEAWVGEKEGTLVDASVALVERAIADSRKRLPFVNKPFERRRVATSPTSVHHALFALTLAELHDKAGDLLFFKGKPSSTHREDEGGAHRGYLDRSHFHYASSLHELRSYNRYRRCSSGPKLGFDQRTTTLPEGAAPDFVLQIAAGSLADLAEAMLAGMSLRATLNSGGPDGARVKKNIVLGVSIGKGPRTGAVPQMVECMIDWIGAVGGAERKFASEWIKIFGHSDGGDLSIWLGSVAMRRADFMGTRANVIPRSPSFEHGERGGRAQFAASLVCSMASARILKRDGRLEDAARESLQVAETVARWLLARHFWLSLDGRHMEEHLDEAWKNLLGLIAAYSVQKAQLWWRLSRRSLHPGGPGHENAGEATCRDVGSEKKNGIQVVTPRAVERIVTLLNHLYSGPGGASQELRDMLKDLIGPCGLRKDNLISQLEESLKYNMYPMTHQIYGRKILVDVRAIELFRRLEGPSEADVRALSDGLNSLWNDVETLMQADGEYDGRHRFTHSDIGLTLGFACFVANRVYGKHPGMSSAFAPDKVEQVRSNAITHLDRAEESFTLRRSYQLWIEDLYYLYDDFNDRRLHYNRAAEMAVSELIAAMLKKLREQARSCSSAGRSPPVQGEAG">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value="Putative membrane protein OS=Sorangium cellulosum (strain So ce56) GN=sce8452 PE=4 SV=1"/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="Posterior Probability_score" value="0.954545454545454"/>
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="Q92764|KRT35_HUMAN" score="0.0833333333333333" coverage="1.64705882352941" sequence="MYSSSSCKLPSLSPVARSFSACSVGLGRSSYRATSCLPALCLPAGGFATSYSGGGGWFGEGILTGNEKETMQSLNDRLAGYLEKVRHVEQENASLESRIREWCEQQVPYMCPDYQSYFRTIEELQKKTLCSKAENARLVVEIDNAKLAADDFRTKYETEVSLRQLVESDINGLRRILDDLTLCKSDLEAQVESLKEELLCLKKNHEEEVNSLRCQLGDRLNVEVDAAPPVDLNRVLEEMRCQYETLVENNRRDAEDWLDTQSEELNQQVVSSSEQLQSCQAEIIELRRTVNALEIELQAQHSMRDALESTLAETEARYSSQLAQMQCMITNVEAQLAEIRADLERQNQEYQVLLDVRARLECEINTYRGLLESEDSKLPCNPCAPDYSPSKSCLPCLPAASCGPSAARTNCSPRPICVPCPGGRF">
+			<ProteinHit id="PH_4" accession="Q92764|KRT35_HUMAN" score="0.0909090909090909" coverage="1.64705882352941" sequence="MYSSSSCKLPSLSPVARSFSACSVGLGRSSYRATSCLPALCLPAGGFATSYSGGGGWFGEGILTGNEKETMQSLNDRLAGYLEKVRHVEQENASLESRIREWCEQQVPYMCPDYQSYFRTIEELQKKTLCSKAENARLVVEIDNAKLAADDFRTKYETEVSLRQLVESDINGLRRILDDLTLCKSDLEAQVESLKEELLCLKKNHEEEVNSLRCQLGDRLNVEVDAAPPVDLNRVLEEMRCQYETLVENNRRDAEDWLDTQSEELNQQVVSSSEQLQSCQAEIIELRRTVNALEIELQAQHSMRDALESTLAETEARYSSQLAQMQCMITNVEAQLAEIRADLERQNQEYQVLLDVRARLECEINTYRGLLESEDSKLPCNPCAPDYSPSKSCLPCLPAASCGPSAARTNCSPRPICVPCPGGRF">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value="Keratin, type I cuticular Ha5 - Homo sapiens (Human)."/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="Posterior Probability_score" value="0.954545454545454"/>
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="Q15323|K1H1_HUMAN" score="0.0833333333333333" coverage="1.68269230769231" sequence="MPYNFCLPSLSCRTSCSSRPCVPPSCHSCTLPGACNIPANVSNCNWFCEGSFNGSEKETMQFLNDRLASYLEKVRQLERDNAELENLIRERSQQQEPLLCPSYQSYFKTIEELQQKILCTKSENARLVVQIDNAKLAADDFRTKYQTELSLRHVVESDINGLRRILDELTLCKSDLEAQVESLKEELLCLKSNHEQEVNTLRCQLGDRLNVEVDAAPTVDLNRVLNETRSQYEALVETNRREVEQWFTTQTEELNKQVVSSSEQLQSYQAEIIELRRTVNALEIELQAQHNLRDSLENTLTESEARYSSQLSQVQSLITNVESQLAEIRSDLERQNQEYQVLLDVRARLECEINTYRSLLESEDCNLPSNPCATTNACSKPIGPCLSNPCTSCVPPAPCTPCAPRPRCGPCNSFVR">
+			<ProteinHit id="PH_5" accession="Q15323|K1H1_HUMAN" score="0.0909090909090909" coverage="1.68269230769231" sequence="MPYNFCLPSLSCRTSCSSRPCVPPSCHSCTLPGACNIPANVSNCNWFCEGSFNGSEKETMQFLNDRLASYLEKVRQLERDNAELENLIRERSQQQEPLLCPSYQSYFKTIEELQQKILCTKSENARLVVQIDNAKLAADDFRTKYQTELSLRHVVESDINGLRRILDELTLCKSDLEAQVESLKEELLCLKSNHEQEVNTLRCQLGDRLNVEVDAAPTVDLNRVLNETRSQYEALVETNRREVEQWFTTQTEELNKQVVSSSEQLQSYQAEIIELRRTVNALEIELQAQHNLRDSLENTLTESEARYSSQLSQVQSLITNVESQLAEIRSDLERQNQEYQVLLDVRARLECEINTYRSLLESEDCNLPSNPCATTNACSKPIGPCLSNPCTSCVPPAPCTPCAPRPRCGPCNSFVR">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value="Keratin, type I cuticular Ha1 - Homo sapiens (Human)."/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="Posterior Probability_score" value="0.954545454545454"/>
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="Q14532|K1H2_HUMAN" score="0.0833333333333333" coverage="1.5625" sequence="MTSSCCVTNNLQASLKSCPRPASVCSSGVNCRPELCLGYVCQPMACLPSVCLPTTFRPASCLSKTYLSSSCQAASGISGSMGPGSWYSEGAFNGNEKETMQFLNDRLASYLTRVRQLEQENAELESRIQEASHSQVLTMTPDYQSHFRTIDQLQQKILCTKAENARMVVNIDNAKLAADDFRAKYEAELAMRQLVEADINGLRRILDDLTLCKADLEAQVESLKEELMCLKKNHEEEVGSLRCQLGDRLNIEVDAAPPVDLTRVLEEMRCQYEAMVEANRRDVEEWFNMQMEELNQQVATSSEQLQNYQSDIIDLRRTVNTLEIELQAQHSLRDSLENTLTESEARYSSQLAQMQCMITNVEAQLAEIRAELERQNQEYQVLLDVRARLEGEINTYRSLLESEDCKLPCNPCSTPSCTTCVPSPCVTRTVCVPRTVGMPCSPCPQGRY">
+			<ProteinHit id="PH_6" accession="Q14532|K1H2_HUMAN" score="0.0909090909090909" coverage="1.5625" sequence="MTSSCCVTNNLQASLKSCPRPASVCSSGVNCRPELCLGYVCQPMACLPSVCLPTTFRPASCLSKTYLSSSCQAASGISGSMGPGSWYSEGAFNGNEKETMQFLNDRLASYLTRVRQLEQENAELESRIQEASHSQVLTMTPDYQSHFRTIDQLQQKILCTKAENARMVVNIDNAKLAADDFRAKYEAELAMRQLVEADINGLRRILDDLTLCKADLEAQVESLKEELMCLKKNHEEEVGSLRCQLGDRLNIEVDAAPPVDLTRVLEEMRCQYEAMVEANRRDVEEWFNMQMEELNQQVATSSEQLQNYQSDIIDLRRTVNTLEIELQAQHSLRDSLENTLTESEARYSSQLAQMQCMITNVEAQLAEIRAELERQNQEYQVLLDVRARLEGEINTYRSLLESEDCKLPCNPCSTPSCTTCVPSPCVTRTVCVPRTVGMPCSPCPQGRY">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value="Keratin, type I cuticular Ha2 - Homo sapiens (Human)."/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="Posterior Probability_score" value="0.954545454545454"/>
 			</ProteinHit>
-			<ProteinHit id="PH_7" accession="Q14525|KT33B_HUMAN" score="0.0833333333333333" coverage="1.73267326732673" sequence="MPYNFCLPSLSCRTSCSSRPCVPPSCHGYTLPGACNIPANVSNCNWFCEGSFNGSEKETMQFLNDRLASYLEKVRQLERDNAELENLIRERSQQQEPLLCPSYQSYFKTIEELQQKILCSKSENARLVVQIDNAKLAADDFRTKYQTEQSLRQLVESDINSLRRILDELTLCRSDLEAQMESLKEELLSLKQNHEQEVNTLRCQLGDRLNVEVDAAPAVDLNQVLNETRNQYEALVETNRREVEQWFATQTEELNKQVVSSSEQLQSYQAEIIELRRTVNALEIELQAQHNLRYSLENTLTESEARYSSQLSQVQSLITNVESQLAEIRSDLERQNQEYQVLLDVRARLECEINTYRSLLESEDCKLPSNPCATTNACEKPIGSCVTNPCGPRSRCGPCNTFGY">
+			<ProteinHit id="PH_7" accession="Q14525|KT33B_HUMAN" score="0.0909090909090909" coverage="1.73267326732673" sequence="MPYNFCLPSLSCRTSCSSRPCVPPSCHGYTLPGACNIPANVSNCNWFCEGSFNGSEKETMQFLNDRLASYLEKVRQLERDNAELENLIRERSQQQEPLLCPSYQSYFKTIEELQQKILCSKSENARLVVQIDNAKLAADDFRTKYQTEQSLRQLVESDINSLRRILDELTLCRSDLEAQMESLKEELLSLKQNHEQEVNTLRCQLGDRLNVEVDAAPAVDLNQVLNETRNQYEALVETNRREVEQWFATQTEELNKQVVSSSEQLQSYQAEIIELRRTVNALEIELQAQHNLRYSLENTLTESEARYSSQLSQVQSLITNVESQLAEIRSDLERQNQEYQVLLDVRARLECEINTYRSLLESEDCKLPSNPCATTNACEKPIGSCVTNPCGPRSRCGPCNTFGY">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value="Keratin, type I cuticular Ha3-II - Homo sapiens (Human)."/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="Posterior Probability_score" value="0.954545454545454"/>
 			</ProteinHit>
-			<ProteinHit id="PH_8" accession="O76015|KRT38_HUMAN" score="0.0833333333333333" coverage="1.53508771929825" sequence="MTSSYSSSSCPLGCTMAPGARNVSVSPIDIGCQPGAEANIAPMCLLANVAHANRVRVGSTPLGRPSLCLPPTCHTACPLPGTCHIPGNIGICGAYGENTLNGHEKETMQFLNDRLANYLEKVRQLEQENAELEATLLERSKCHESTVCPDYQSYFHTIEELQQKILCSKAENARLIVQIDNAKLAADDFRIKLESERSLRQLVEADKCGTQKLLDDATLAKADLEAQQESLKEEQLSLKSNHEQEVKILRSQLGEKLRIELDIEPTIDLNRVLGEMRAQYEAMLETNRQDVEQWFQAQSEGISLQDMSCSEELQCCQSEILELRCTVNALEVERQAQHTLKDCLQNSLCEAEDRFGTELAQMQSLISNVEEQLSEIRADLERQNQEYQVLLDVKTRLENEIATYRNLLESEDCKLPCNPCSTPPSCVTAPCAPRPSCGPCTTCGPTCGASTTGSRF">
+			<ProteinHit id="PH_8" accession="O76015|KRT38_HUMAN" score="0.0909090909090909" coverage="1.53508771929825" sequence="MTSSYSSSSCPLGCTMAPGARNVSVSPIDIGCQPGAEANIAPMCLLANVAHANRVRVGSTPLGRPSLCLPPTCHTACPLPGTCHIPGNIGICGAYGENTLNGHEKETMQFLNDRLANYLEKVRQLEQENAELEATLLERSKCHESTVCPDYQSYFHTIEELQQKILCSKAENARLIVQIDNAKLAADDFRIKLESERSLRQLVEADKCGTQKLLDDATLAKADLEAQQESLKEEQLSLKSNHEQEVKILRSQLGEKLRIELDIEPTIDLNRVLGEMRAQYEAMLETNRQDVEQWFQAQSEGISLQDMSCSEELQCCQSEILELRCTVNALEVERQAQHTLKDCLQNSLCEAEDRFGTELAQMQSLISNVEEQLSEIRADLERQNQEYQVLLDVKTRLENEIATYRNLLESEDCKLPCNPCSTPPSCVTAPCAPRPSCGPCTTCGPTCGASTTGSRF">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value="Keratin, type I cuticular Ha8 - Homo sapiens (Human)."/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="Posterior Probability_score" value="0.954545454545454"/>
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="O76014|KRT37_HUMAN" score="0.0833333333333333" coverage="1.55902004454343" sequence="MTSFYSTSSCPLGCTMAPGARNVFVSPIDVGCQPVAEANAASMCLLANVAHANRVRVGSTPLGRPSLCLPPTSHTACPLPGTCHIPGNIGICGAYGKNTLNGHEKETMKFLNDRLANYLEKVRQLEQENAELETTLLERSKCHESTVCPDYQSYFRTIEELQQKILCSKAENARLIVQIDNAKLAADDFRIKLESERSLHQLVEADKCGTQKLLDDATLAKADLEAQQESLKEEQLSLKSNHEQEVKILRSQLGEKFRIELDIEPTIDLNRVLGEMRAQYEAMVETNHQDVEQWFQAQSEGISLQAMSCSEELQCCQSEILELRCTVNALEVERQAQHTLKDCLQNSLCEAEDRYGTELAQMQSLISNLEEQLSEIRADLERQNQEYQVLLDVKARLENEIATYRNLLESEDCKLPCNPCSTPASCTSCPSCGPVTGGSPSGHGASMGR">
+			<ProteinHit id="PH_9" accession="O76014|KRT37_HUMAN" score="0.0909090909090909" coverage="1.55902004454343" sequence="MTSFYSTSSCPLGCTMAPGARNVFVSPIDVGCQPVAEANAASMCLLANVAHANRVRVGSTPLGRPSLCLPPTSHTACPLPGTCHIPGNIGICGAYGKNTLNGHEKETMKFLNDRLANYLEKVRQLEQENAELETTLLERSKCHESTVCPDYQSYFRTIEELQQKILCSKAENARLIVQIDNAKLAADDFRIKLESERSLHQLVEADKCGTQKLLDDATLAKADLEAQQESLKEEQLSLKSNHEQEVKILRSQLGEKFRIELDIEPTIDLNRVLGEMRAQYEAMVETNHQDVEQWFQAQSEGISLQAMSCSEELQCCQSEILELRCTVNALEVERQAQHTLKDCLQNSLCEAEDRYGTELAQMQSLISNLEEQLSEIRADLERQNQEYQVLLDVKARLENEIATYRNLLESEDCKLPCNPCSTPASCTSCPSCGPVTGGSPSGHGASMGR">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value="Keratin, type I cuticular Ha7 - Homo sapiens (Human)."/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="Posterior Probability_score" value="0.954545454545454"/>
 			</ProteinHit>
-			<ProteinHit id="PH_10" accession="O76013|KRT36_HUMAN" score="0.0833333333333333" coverage="1.49892933618844" sequence="MATQTCTPTFSTGSIKGLCGTAGGISRVSSIRSVGSCRVPSLAGAAGYISSARSGLSGLGSCLPGSYLSSECHTSGFVGSGGWFCEGSFNGSEKETMQFLNDRLANYLEKVRQLERENAELESRIQEWYEFQIPYICPDYQSYFKTIEDFQQKILLTKSENARLVLQIDNAKLAADDFRTKYETELSLRQLVEADINGLRRILDELTLCKADLEAQVESLKEELMCLKKNHEEEVSVLRCQLGDRLNVEVDAAPPVDLNKILEDMRCQYEALVENNRRDVEAWFNTQTEELNQQVVSSSEQLQCCQTEIIELRRTVNALEIELQAQHSMRNSLESTLAETEARYSSQLAQMQCLISNVEAQLSEIRCDLERQNQEYQVLLDVKARLEGEIATYRHLLEGEDCKLPPQPCATACKPVIRVPSVPPVPCVPSVPCTPAPQVGTQIRTITEEIRDGKVISSREHVQSRPL">
+			<ProteinHit id="PH_10" accession="O76013|KRT36_HUMAN" score="0.0909090909090909" coverage="1.49892933618844" sequence="MATQTCTPTFSTGSIKGLCGTAGGISRVSSIRSVGSCRVPSLAGAAGYISSARSGLSGLGSCLPGSYLSSECHTSGFVGSGGWFCEGSFNGSEKETMQFLNDRLANYLEKVRQLERENAELESRIQEWYEFQIPYICPDYQSYFKTIEDFQQKILLTKSENARLVLQIDNAKLAADDFRTKYETELSLRQLVEADINGLRRILDELTLCKADLEAQVESLKEELMCLKKNHEEEVSVLRCQLGDRLNVEVDAAPPVDLNKILEDMRCQYEALVENNRRDVEAWFNTQTEELNQQVVSSSEQLQCCQTEIIELRRTVNALEIELQAQHSMRNSLESTLAETEARYSSQLAQMQCLISNVEAQLSEIRCDLERQNQEYQVLLDVKARLEGEIATYRHLLEGEDCKLPPQPCATACKPVIRVPSVPPVPCVPSVPCTPAPQVGTQIRTITEEIRDGKVISSREHVQSRPL">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value="Keratin, type I cuticular Ha6 - Homo sapiens (Human)."/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
@@ -92,7 +92,7 @@
 			<UserParam type="stringList" name="spectra_data" value="[/home/user/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML]"/>
 			<UserParam type="int" name="fraction_group" value="1"/>
 			<UserParam type="int" name="fraction" value="1"/>
-			<UserParam type="string" name="indistinguishable_proteins_0" value="0.166666666666667,PH_0"/>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0.2,PH_0"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_0_file_channel_level_abundance" value="[1.54640976e08]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_0_fraction_group_level_abundance" value="[1.54640976e08]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_0_file_channel_level_channel" value="[1]"/>
@@ -100,7 +100,7 @@
 			<UserParam type="intList" name="indistinguishable_proteins_0_fraction_group_level_label" value="[1]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_0_file_channel_level_filename" value="[BSA1_F2]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_0_quantified_proteins" value="[P02769|ALBU_BOVIN]"/>
-			<UserParam type="string" name="indistinguishable_proteins_1" value="0.166666666666667,PH_1"/>
+			<UserParam type="string" name="indistinguishable_proteins_1" value="0.2,PH_1"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_1_file_channel_level_abundance" value="[2.089026e07]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_1_fraction_group_level_abundance" value="[2.089026e07]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_1_file_channel_level_channel" value="[1]"/>
@@ -108,8 +108,8 @@
 			<UserParam type="intList" name="indistinguishable_proteins_1_fraction_group_level_label" value="[1]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_1_file_channel_level_filename" value="[BSA1_F2]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_1_quantified_proteins" value="[P00761|TRYP_PIG]"/>
-			<UserParam type="string" name="indistinguishable_proteins_2" value="0.166666666666667,PH_3"/>
-			<UserParam type="string" name="indistinguishable_proteins_3" value="0.166666666666667,PH_2"/>
+			<UserParam type="string" name="indistinguishable_proteins_2" value="0.2,PH_3"/>
+			<UserParam type="string" name="indistinguishable_proteins_3" value="0.2,PH_2"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_3_file_channel_level_abundance" value="[8167.83251953125]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_3_fraction_group_level_abundance" value="[8167.83251953125]"/>
 			<UserParam type="intList" name="indistinguishable_proteins_3_file_channel_level_channel" value="[1]"/>
@@ -117,11 +117,11 @@
 			<UserParam type="intList" name="indistinguishable_proteins_3_fraction_group_level_label" value="[1]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_3_file_channel_level_filename" value="[BSA1_F2]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_3_quantified_proteins" value="[tr|A9G0B6|A9G0B6_SORC5]"/>
-			<UserParam type="string" name="indistinguishable_proteins_4" value="0.166666666666667,PH_10,PH_9,PH_8,PH_7,PH_6,PH_5,PH_4"/>
+			<UserParam type="string" name="indistinguishable_proteins_4" value="0.2,PH_10,PH_9,PH_8,PH_7,PH_6,PH_5,PH_4"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="455.713287353516" RT="2155.63891601562" spectrum_reference="spectrum=3173" >
-		<PeptideHit score="0.0476190476190476" sequence="AGDLLFFK" charge="2" aa_before="K" aa_after="G" start="1422" end="1429" protein_refs="PH_3">
+		<PeptideHit score="0.05" sequence="AGDLLFFK" charge="2" aa_before="K" aa_after="G" start="1422" end="1429" protein_refs="PH_3">
 			<UserParam type="float" name="OMSSA_score" value="0.067676940044902"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.045454545454545"/>
@@ -130,7 +130,7 @@
 		<UserParam type="string" name="feature_id" value="not mapped"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="487.732208251953" RT="2013.36364746094" spectrum_reference="spectrum=2946" >
-		<PeptideHit score="0.0476190476190476" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" start="36" end="43" protein_refs="PH_0">
+		<PeptideHit score="0.05" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" start="36" end="43" protein_refs="PH_0">
 			<UserParam type="float" name="OMSSA_score" value="0.212602001856198"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.045454545454545"/>
@@ -139,7 +139,7 @@
 		<UserParam type="string" name="feature_id" value="not mapped"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="379.71484375" RT="2010.87902832031" spectrum_reference="spectrum=2941" >
-		<PeptideHit score="0.0476190476190476" sequence="GAC(Carbamidomethyl)LLPK" charge="2" aa_before="K" aa_after="I" start="197" end="203" protein_refs="PH_0">
+		<PeptideHit score="0.05" sequence="GAC(Carbamidomethyl)LLPK" charge="2" aa_before="K" aa_after="I" start="197" end="203" protein_refs="PH_0">
 			<UserParam type="float" name="OMSSA_score" value="1.67901373867858e-03"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
@@ -148,7 +148,7 @@
 		<UserParam type="string" name="feature_id" value="not mapped"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="379.715118408203" RT="2032.04125976562" spectrum_reference="spectrum=2981" >
-		<PeptideHit score="0.0476190476190476" sequence="GAC(Carbamidomethyl)LLPK" charge="2" aa_before="K" aa_after="I" start="197" end="203" protein_refs="PH_0">
+		<PeptideHit score="0.05" sequence="GAC(Carbamidomethyl)LLPK" charge="2" aa_before="K" aa_after="I" start="197" end="203" protein_refs="PH_0">
 			<UserParam type="float" name="OMSSA_score" value="1.15485160103966e-03"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
@@ -157,7 +157,7 @@
 		<UserParam type="string" name="feature_id" value="not mapped"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="379.715393066406" RT="2069.04321289062" spectrum_reference="spectrum=3047" >
-		<PeptideHit score="0.0476190476190476" sequence="GAC(Carbamidomethyl)LLPK" charge="2" aa_before="K" aa_after="I" start="197" end="203" protein_refs="PH_0">
+		<PeptideHit score="0.05" sequence="GAC(Carbamidomethyl)LLPK" charge="2" aa_before="K" aa_after="I" start="197" end="203" protein_refs="PH_0">
 			<UserParam type="float" name="OMSSA_score" value="9.37487962378574e-03"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.03448275862069"/>
@@ -166,7 +166,7 @@
 		<UserParam type="string" name="feature_id" value="not mapped"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="653.361755371094" RT="2490.31689453125" spectrum_reference="spectrum=3546" >
-		<PeptideHit score="0.0476190476190476" sequence="HLVDEPQNLIK" charge="2" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_0">
+		<PeptideHit score="0.05" sequence="HLVDEPQNLIK" charge="2" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_0">
 			<UserParam type="float" name="OMSSA_score" value="0.01175757198192"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.03448275862069"/>
@@ -175,7 +175,7 @@
 		<UserParam type="string" name="feature_id" value="not mapped"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="435.910125732422" RT="2488.0380859375" spectrum_reference="spectrum=3542" >
-		<PeptideHit score="0.0476190476190476" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_0">
+		<PeptideHit score="0.05" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_0">
 			<UserParam type="float" name="OMSSA_score" value="3.09620313351901e-07"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
@@ -184,7 +184,7 @@
 		<UserParam type="string" name="feature_id" value="not mapped"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="404.203002929688" RT="2003.33984375" spectrum_reference="spectrum=2927" >
-		<PeptideHit score="0.0476190476190476" sequence="LAADDFR" charge="2" aa_before="K K K K K K K" aa_after="T A T T I I T" start="135 175 146 172 183 183 135" end="141 181 152 178 189 189 141" protein_refs="PH_5 PH_6 PH_4 PH_10 PH_9 PH_8 PH_7">
+		<PeptideHit score="0.05" sequence="LAADDFR" charge="2" aa_before="K K K K K K K" aa_after="T A T T I I T" start="135 175 146 172 183 183 135" end="141 181 152 178 189 189 141" protein_refs="PH_5 PH_6 PH_4 PH_10 PH_9 PH_8 PH_7">
 			<UserParam type="float" name="OMSSA_score" value="0.060731076753908"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.045454545454545"/>
@@ -193,7 +193,7 @@
 		<UserParam type="string" name="feature_id" value="not mapped"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="526.261108398438" RT="2495.662109375" spectrum_reference="spectrum=3554" >
-		<PeptideHit score="0.0476190476190476" sequence="LKPDPNTLC(Carbamidomethyl)DEFK" charge="3" aa_before="K" aa_after="A" start="138" end="150" protein_refs="PH_0">
+		<PeptideHit score="0.05" sequence="LKPDPNTLC(Carbamidomethyl)DEFK" charge="3" aa_before="K" aa_after="A" start="138" end="150" protein_refs="PH_0">
 			<UserParam type="float" name="OMSSA_score" value="2.6056879779557e-04"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
@@ -202,7 +202,7 @@
 		<UserParam type="string" name="feature_id" value="not mapped"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="461.74755859375" RT="2038.95886230469" spectrum_reference="spectrum=2993" >
-		<PeptideHit score="0.0476190476190476" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="L" start="248" end="255" protein_refs="PH_0">
+		<PeptideHit score="0.05" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="L" start="248" end="255" protein_refs="PH_0">
 			<UserParam type="float" name="OMSSA_score" value="1.2753925040404e-04"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
@@ -211,7 +211,7 @@
 		<UserParam type="string" name="feature_id" value="not mapped"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="554.260375976562" RT="2058.83471679688" spectrum_reference="spectrum=3029" >
-		<PeptideHit score="0.0476190476190476" sequence="EAC(Carbamidomethyl)FAVEGPK" charge="2" aa_before="K" aa_after="L" start="587" end="596" protein_refs="PH_0">
+		<PeptideHit score="0.05" sequence="EAC(Carbamidomethyl)FAVEGPK" charge="2" aa_before="K" aa_after="L" start="587" end="596" protein_refs="PH_0">
 			<UserParam type="float" name="OMSSA_score" value="0.054859533530342"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.045454545454545"/>
@@ -220,7 +220,7 @@
 		<UserParam type="string" name="feature_id" value="not mapped"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="464.250030517578" RT="2357.07421875" spectrum_reference="spectrum=3375" >
-		<PeptideHit score="0.0476190476190476" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" start="160" end="166" protein_refs="PH_0">
+		<PeptideHit score="0.05" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" start="160" end="166" protein_refs="PH_0">
 			<UserParam type="float" name="OMSSA_score" value="9.1724848717909e-05"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
@@ -229,7 +229,7 @@
 		<UserParam type="string" name="feature_id" value="not mapped"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="464.250335693359" RT="2398.77709960938" spectrum_reference="spectrum=3445" >
-		<PeptideHit score="0.0476190476190476" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" start="160" end="166" protein_refs="PH_0">
+		<PeptideHit score="0.05" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" start="160" end="166" protein_refs="PH_0">
 			<UserParam type="float" name="OMSSA_score" value="4.18055390056644e-05"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
@@ -265,7 +265,7 @@
 				<element map="0" id="11513186574425272818" rt="2023.886383519172796" mz="461.747653035420967" it="1.5464098e08" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="461.747497558594" RT="2015.59265136719" spectrum_reference="spectrum=2950" >
-				<PeptideHit score="0.0476190476190476" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="L" start="248" end="255" protein_refs="PH_0">
+				<PeptideHit score="0.05" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="L" start="248" end="255" protein_refs="PH_0">
 					<UserParam type="float" name="OMSSA_score" value="2.96258184030238e-04"/>
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
@@ -324,7 +324,7 @@
 				<element map="0" id="276808963686810837" rt="2072.094739644497167" mz="395.726522907820936" it="8167.83252" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="395.700897216797" RT="2085.73901367188" spectrum_reference="spectrum=3077" >
-				<PeptideHit score="0.0476190476190476" sequence="AGAFSLPK" charge="2" aa_before="R" aa_after="D" start="9" end="16" protein_refs="PH_2">
+				<PeptideHit score="0.05" sequence="AGAFSLPK" charge="2" aa_before="R" aa_after="D" start="9" end="16" protein_refs="PH_2">
 					<UserParam type="float" name="OMSSA_score" value="0.06319601345927"/>
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.045454545454545"/>
@@ -341,7 +341,7 @@
 				<element map="0" id="6748518772549940365" rt="2074.397144070057948" mz="554.26060201207099" it="3.174104e07" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="554.260559082031" RT="2098.17504882812" spectrum_reference="spectrum=3097" >
-				<PeptideHit score="0.0476190476190476" sequence="EAC(Carbamidomethyl)FAVEGPK" charge="2" aa_before="K" aa_after="L" start="587" end="596" protein_refs="PH_0">
+				<PeptideHit score="0.05" sequence="EAC(Carbamidomethyl)FAVEGPK" charge="2" aa_before="K" aa_after="L" start="587" end="596" protein_refs="PH_0">
 					<UserParam type="float" name="OMSSA_score" value="4.91092752369064e-05"/>
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
@@ -372,7 +372,7 @@
 				<element map="0" id="4870109536405501088" rt="2089.545291095813809" mz="421.758354535420949" it="2.089026e07" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="421.758056640625" RT="2091.08642578125" spectrum_reference="spectrum=3087" >
-				<PeptideHit score="0.0476190476190476" sequence="VATVSLPR" charge="2" aa_before="R" aa_after="S" start="107" end="114" protein_refs="PH_1">
+				<PeptideHit score="0.05" sequence="VATVSLPR" charge="2" aa_before="R" aa_after="S" start="107" end="114" protein_refs="PH_1">
 					<UserParam type="float" name="OMSSA_score" value="3.02546175573277e-03"/>
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.03448275862069"/>
@@ -564,7 +564,7 @@
 				<element map="0" id="13663761038749696507" rt="2298.177860719876662" mz="435.910228820904251" it="2.26047e05" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="435.909851074219" RT="2295.90209960938" spectrum_reference="spectrum=3307" >
-				<PeptideHit score="0.0476190476190476" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_0">
+				<PeptideHit score="0.05" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_0">
 					<UserParam type="float" name="OMSSA_score" value="0.013745856995003"/>
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.03448275862069"/>
@@ -623,7 +623,7 @@
 				<element map="0" id="2897592749236539531" rt="2334.575496276142076" mz="464.250362519471025" it="2.2599325e08" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="464.250213623047" RT="2321.49926757812" spectrum_reference="spectrum=3328" >
-				<PeptideHit score="0.0476190476190476" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" start="160" end="166" protein_refs="PH_0">
+				<PeptideHit score="0.05" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" start="160" end="166" protein_refs="PH_0">
 					<UserParam type="float" name="OMSSA_score" value="5.28980302830806e-04"/>
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
@@ -696,7 +696,7 @@
 				<element map="0" id="15137961832517596447" rt="2391.711976196807882" mz="501.795134726820947" it="7.702177e07" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="501.794891357422" RT="2431.52172851562" spectrum_reference="spectrum=3482" >
-				<PeptideHit score="0.0476190476190476" sequence="LVVSTQTALA" charge="2" aa_before="K" aa_after="]" start="597" end="606" protein_refs="PH_0">
+				<PeptideHit score="0.05" sequence="LVVSTQTALA" charge="2" aa_before="K" aa_after="]" start="597" end="606" protein_refs="PH_0">
 					<UserParam type="float" name="OMSSA_score" value="0.128894553541144"/>
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.045454545454545"/>

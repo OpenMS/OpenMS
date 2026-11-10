@@ -33,7 +33,7 @@
 				<UserParam type="int" name="TOPPProteinInference:treat_modification_variants_separately" value="1"/>
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
-			<ProteinHit id="PH_0" accession="PROT_B" score="0.5" coverage="54.1666666666667" sequence="MKSLTGYPNVFEADRGGSGGSGGR">
+			<ProteinHit id="PH_0" accession="PROT_B" score="1" coverage="54.1666666666667" sequence="MKSLTGYPNVFEADRGGSGGSGGR">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value=""/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
@@ -42,7 +42,7 @@
 			<UserParam type="stringList" name="spectra_data" value="[src/tests/topp/MS1LabeledWorkflow_21_dimethyl_input.mzML]"/>
 			<UserParam type="int" name="fraction_group" value="1"/>
 			<UserParam type="int" name="fraction" value="1"/>
-			<UserParam type="string" name="indistinguishable_proteins_0" value="0.5,PH_0"/>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="1.0,PH_0"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_0_file_channel_level_abundance" value="[3.4940068e07, 8.735017e06]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_0_fraction_group_level_abundance" value="[3.4940068e07, 8.735017e06]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_0_fraction_group_level_ratio" value="[1.0, 0.25]"/>
@@ -81,7 +81,7 @@
 				<element map="1" id="0" rt="110.0" mz="750.885183942306867" it="8.735017e06" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="748.87263" RT="111.5" spectrum_reference="scan=17" >
-				<PeptideHit score="0.5" sequence="SLTGYPNVFEADR" charge="2" aa_before="K" aa_after="G" start="2" end="14" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="SLTGYPNVFEADR" charge="2" aa_before="K" aa_after="G" start="2" end="14" protein_refs="PH_0">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="string" name="MS1Label:labeled_sequence" value=".(Dimethyl)SLTGYPNVFEADR"/>
 					<UserParam type="string" name="MS1Label:removed_labels" value="Dimethyl0"/>

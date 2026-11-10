@@ -1707,25 +1707,26 @@ namespace OpenMS
     double decoys = 0.; // double to account for "partial" decoys
     double last_score = scores_labels[0].first;
 
+    // The FDR of accepting the 'accepted' hits with a score at least as good as 'score', of which 'decoys' are
+    // decoys (partial decoy labels count as fractions) and the rest targets T: (D+1)/T if conservative (the
+    // target-decoy competition estimate), else (D+1)/(T+D), the decoy fraction of all accepted hits. An estimate
+    // above 1, also for T = 0, is set to 1.
+    auto record = [&](double score, double accepted)
+    {
+      const double denominator = conservative ? accepted - decoys : accepted;
+      scores_to_FDR[score] = denominator > 0.0 ? std::min(1.0, (decoys + 1.0) / denominator) : 1.0;
+      #ifdef FALSE_DISCOVERY_RATE_DEBUG
+      OPENMS_LOG_DEBUG << "Recording score: " << score << " with " << decoys << " decoys among " << accepted << " hits -> fdr: " << scores_to_FDR[score] << '\n';
+      #endif
+    };
+
     size_t j = 0;
     for (; j < scores_labels.size(); ++j)
     {
       //Although we do not really care about equality we compare with tolerance to make it (more?) compiler independent.
       if (std::abs(scores_labels[j].first - last_score) > 1e-12)
       {
-        #ifdef FALSE_DISCOVERY_RATE_DEBUG
-        OPENMS_LOG_DEBUG << "Recording score: " << last_score << " with " << decoys << " decoys at index+1 = " << (j+1) << " -> fdr: " << decoys/(j+1.0) << '\n';
-        #endif
-        //we are using the conservative formula (Decoy + 1) / (Tgts)
-        if (conservative)
-        {
-          scores_to_FDR[last_score] = (decoys+1.0)/(double(j)+1.0-decoys);
-        }
-        else
-        {
-          scores_to_FDR[last_score] = (decoys+1.0)/(double(j)+1.0);
-        }
-
+        record(last_score, double(j)); // the j hits before this one are those at least as good as last_score
         last_score = scores_labels[j].first;
       }
 
@@ -1739,15 +1740,8 @@ namespace OpenMS
       */
     }
 
-    // in case there is only one score and generally to include the last score, I guess we need to do this
-    if (conservative)
-    {
-      scores_to_FDR[last_score] = (decoys+1.0)/(double(j)+1.0-decoys);
-    }
-    else
-    {
-      scores_to_FDR[last_score] = (decoys+1.0)/(double(j)+1.0);
-    }
+    // the last (worst) score: all hits are at least as good as it
+    record(last_score, double(scores_labels.size()));
 
     if (qvalue) //apply a cumulative minimum on the map (from low to high fdrs)
     {
