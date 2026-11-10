@@ -752,7 +752,11 @@ START_SECTION((void setPrimaryMSRunPath(const StringList& s, MSExperiment& e)))
   // can never resolve it against the filesystem, so the fallback was used
   // unconditionally, even though the real run was right there.
   std::string tmp;
-  NEW_TMP_FILE(tmp);
+  // setPrimaryMSRunPath(s, e)'s existing, unchanged-by-this-fix guard only
+  // engages for a recorded run whose name ends in "mzML" -- use that real
+  // extension here so the test actually reaches the branch it means to
+  // exercise, instead of always falling through to the fallback.
+  NEW_TMP_FILE_EXT(tmp, ".mzML");
   { std::ofstream os(tmp.c_str()); os << "dummy mzML content"; }
   const std::string abs_path = File::absolutePath(tmp);
   const std::string dir = File::path(abs_path);
