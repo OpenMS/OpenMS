@@ -6495,10 +6495,11 @@ add_test("TOPP_ProSE_11_rescore_info" ${TOPP_BIN_PATH}/FileInfo -test
   -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_out.tmp.idXML)
 set_tests_properties("TOPP_ProSE_11_rescore_info" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore"
   PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
-# The protein inference ranked the proteins by the best PEP of their PSMs (as posterior probability), not by the PSM q-values.
+# The protein inference ranked the proteins by the best PEP of their PSMs (as posterior probability), not by the PSM q-values;
+# the PSMs carry Percolator's peptide-level q-values also as 'peptide q-value' (the name EntrapmentEvaluator reads).
 add_test("TOPP_ProSE_11_rescore_structure" ${CMAKE_COMMAND}
   -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_11_rescore_out.tmp.idXML
-  "-DEXPECTED=<ProteinIdentification score_type=\"q-value\";name=\"Posterior Probability_score\""
+  "-DEXPECTED=<ProteinIdentification score_type=\"q-value\";name=\"Posterior Probability_score\";name=\"peptide q-value\""
   "-DFORBIDDEN=name=\"q-value_score\""
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_ProSE_11_rescore_structure" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore")
@@ -6529,8 +6530,9 @@ add_test(NAME "TOPP_ProSE_11_rescore_mixed" COMMAND ${CMAKE_COMMAND}
   -DEXPECTED_CODE=0 "-DEXPECTED_OUTPUT_REGEX=Percolator could not rescore 1 of 2 input files on their own: ProSE_18_small.mzML \\(Only [0-9]+ PSMs[^\n]*Scoring them with a model trained on.*protein score PEP"
   -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
 set_tests_properties("TOPP_ProSE_11_rescore_mixed" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed_clean;TOPP_ProSE_18_inputs")
+# (both inputs were rescored, so the merged PSMs carry peptide-level q-values across them)
 add_test("TOPP_ProSE_11_rescore_mixed_merged" ${CMAKE_COMMAND} -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML
-  "-DEXPECTED=search_engine=\"Percolator\";name=\"Posterior Probability_score\""
+  "-DEXPECTED=search_engine=\"Percolator\";name=\"Posterior Probability_score\";name=\"peptide q-value\""
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_ProSE_11_rescore_mixed_merged" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed")
 add_test("TOPP_ProSE_11_rescore_mixed_run" ${TOPP_BIN_PATH}/ParquetDiff
