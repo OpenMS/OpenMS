@@ -1,0 +1,52 @@
+
+===================== raw01
+  check A: 504 anchors, R 10080, M 10080 decoy windows
+    BASE       AUC anchor>R 1.0000  anchor>M 0.9999  drop +0.0001
+    cnn_z      AUC anchor>R 0.9997  anchor>M 0.9982  drop +0.0016
+    V0         AUC anchor>R 0.9999  anchor>M 0.9987  drop +0.0011
+    FS         AUC anchor>R 1.0000  anchor>M 0.9999  drop +0.0001
+    brightness AUC anchor>R 0.9422  anchor>M 0.5030  drop +0.4392
+    weaker view: 601 non-anchor base hits vs 12020 matched decoys: BASE 1.0000 cnn_z 0.9979 V0 0.9960 FS 1.0000 brightness 0.5306
+    shortcut rule V0: drop +0.0011 >= 0.01 and >= 2x BASE drop (+0.0003): False
+    shortcut rule FS: drop +0.0001 >= 0.01 and >= 2x BASE drop (+0.0003): False
+    B0:
+      fold 0: positives 1171 negatives 61783 weights +3.11 +3.64 -4.74 +3.18 -1.67 -0.32 -0.33 +2.41 +1.02 -0.43 +2.48 +3.15
+      fold 1: positives 1146 negatives 62386 weights +3.02 +3.73 -4.97 +3.43 -1.46 -0.36 -0.24 +2.38 +0.92 -0.45 +2.51 +3.37
+      fold 2: positives 1093 negatives 61825 weights +3.16 +3.71 -4.88 +3.31 -1.58 -0.42 -0.22 +2.44 +1.18 -0.59 +2.55 +3.31
+    B0 N@FDP_c 0.5/1/1.5/2%: [984, 1181, 1356, 1385] | q<=0.01 1232 FDP_c 0.013 | q<=0.05 1763 FDP_c 0.071 | AUC 0.5265
+    B1:
+      fold 0: positives 965 negatives 61783 weights +2.64 +2.76 -3.08 +1.77 -1.73 +0.22 -0.59 +2.23 -0.02 -0.50 +2.80 +3.29 +6.47
+      fold 1: positives 1000 negatives 62386 weights +2.31 +2.93 -3.14 +1.93 -1.37 +0.07 -0.45 +2.06 -0.06 -0.46 +2.71 +3.35 +6.41
+      fold 2: positives 916 negatives 61825 weights +2.62 +2.82 -3.18 +1.88 -1.55 +0.17 -0.43 +2.24 +0.08 -0.66 +2.76 +3.37 +6.50
+    B1 N@FDP_c 0.5/1/1.5/2%: [944, 976, 1026, 1095] | q<=0.01 874 FDP_c 0.002 | q<=0.05 1447 FDP_c 0.057 | AUC 0.5231 | vs B0 90%: @1% -358..-41 @2% -399..-135
+    B2:
+      fold 0: positives 1220 negatives 61783 weights +2.68 +2.61 -3.58 +2.65 -1.09 -0.03 -0.64 +1.49 -0.00 -1.05 +1.73 +2.13 +4.66
+      fold 1: positives 1153 negatives 62386 weights +2.69 +2.66 -3.83 +2.92 -0.85 -0.12 -0.51 +1.51 -0.11 -1.14 +1.90 +2.46 +4.66
+      fold 2: positives 1071 negatives 61825 weights +2.95 +2.66 -3.85 +2.88 -1.01 -0.09 -0.61 +1.63 +0.14 -1.35 +1.99 +2.46 +4.63
+    B2 N@FDP_c 0.5/1/1.5/2%: [965, 1120, 1296, 1366] | q<=0.01 1250 FDP_c 0.013 | q<=0.05 1780 FDP_c 0.075 | AUC 0.5250 | vs B0 90%: @1% -87..+83 @2% -100..+56
+
+===================== raw02
+  check A: 593 anchors, R 11860, M 11860 decoy windows
+    BASE       AUC anchor>R 1.0000  anchor>M 0.9998  drop +0.0002
+    cnn_z      AUC anchor>R 0.9993  anchor>M 0.9978  drop +0.0015
+    V0         AUC anchor>R 0.9999  anchor>M 0.9991  drop +0.0007
+    FS         AUC anchor>R 1.0000  anchor>M 0.9998  drop +0.0002
+    brightness AUC anchor>R 0.9246  anchor>M 0.5011  drop +0.4236
+    weaker view: 681 non-anchor base hits vs 13620 matched decoys: BASE 1.0000 cnn_z 0.9975 V0 0.9980 FS 0.9999 brightness 0.5185
+    shortcut rule V0: drop +0.0007 >= 0.01 and >= 2x BASE drop (+0.0004): False
+    shortcut rule FS: drop +0.0002 >= 0.01 and >= 2x BASE drop (+0.0004): False
+    B0:
+      fold 0: positives 1226 negatives 62861 weights +2.59 +3.72 -4.24 +2.79 -1.68 -0.97 +0.20 +2.21 +0.55 -0.25 +2.34 +3.22
+      fold 1: positives 1243 negatives 63101 weights +2.76 +3.63 -4.18 +2.80 -1.55 -1.05 -0.04 +2.14 +0.53 -0.41 +2.37 +3.27
+      fold 2: positives 1082 negatives 62808 weights +2.78 +3.69 -4.62 +3.15 -1.65 -1.01 +0.16 +2.35 +0.77 -0.57 +2.58 +3.43
+    B0 N@FDP_c 0.5/1/1.5/2%: [1315, 1345, 1409, 1463] | q<=0.01 1309 FDP_c 0.005 | q<=0.05 1830 FDP_c 0.066 | AUC 0.5293
+    B1:
+      fold 0: positives 1151 negatives 62861 weights +1.47 +2.68 -2.28 +1.19 -1.74 -0.13 +0.04 +1.88 -0.56 -0.42 +2.40 +3.14 +6.27
+      fold 1: positives 1111 negatives 63101 weights +1.66 +2.64 -2.24 +1.25 -1.68 -0.07 -0.21 +1.90 -0.64 -0.56 +2.54 +3.31 +6.33
+      fold 2: positives 1044 negatives 62808 weights +1.77 +2.67 -2.45 +1.39 -1.73 -0.18 -0.13 +1.93 -0.52 -0.83 +2.57 +3.31 +6.31
+    B1 N@FDP_c 0.5/1/1.5/2%: [1121, 1217, 1231, 1264] | q<=0.01 1116 FDP_c 0.004 | q<=0.05 1674 FDP_c 0.069 | AUC 0.5265 | vs B0 90%: @1% -236..-84 @2% -317..-107
+    B2:
+      fold 0: positives 1291 negatives 62861 weights +2.22 +2.81 -3.13 +2.31 -1.07 -0.79 +0.15 +1.51 -0.17 -0.73 +1.77 +2.47 +3.65
+      fold 1: positives 1242 negatives 63101 weights +2.49 +2.74 -3.19 +2.40 -1.00 -0.86 -0.15 +1.53 -0.16 -0.87 +1.93 +2.68 +3.49
+      fold 2: positives 1135 negatives 62808 weights +2.47 +2.78 -3.49 +2.65 -1.05 -0.81 +0.11 +1.66 -0.03 -1.02 +2.00 +2.70 +3.59
+    B2 N@FDP_c 0.5/1/1.5/2%: [1248, 1286, 1410, 1468] | q<=0.01 1281 FDP_c 0.009 | q<=0.05 1852 FDP_c 0.064 | AUC 0.5284 | vs B0 90%: @1% -111..+60 @2% -96..+38
