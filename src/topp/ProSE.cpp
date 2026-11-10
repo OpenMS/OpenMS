@@ -326,6 +326,7 @@ It lacks behind in speed and/or quality of results when compared to state-of-the
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 @note Open-search mode is automatically determined by the precursor mass tolerance: enabled when tolerance exceeds 1 Da or 1000 ppm. No explicit open-search parameter is needed. This is logged at runtime and recorded in the output search parameters as UserParam 'open_search'.
 @note Mass tolerances are measured by default ('-Search:calibration:enabled', on in this tool; the library's ProSEAlgorithm default is off). A calibration pass over the 10 % most intense spectra, searched with at least 20 ppm precursor and fragment windows (in Da twice the configured window, up to 0.5 Da; the configured ones if wider), takes the offset (median) and the spread (robust standard deviation, 1.4826 * MAD) of the signed mass errors of its confident PSMs. The main search then uses the fragment tolerance |median| + 4 sigma ('-Search:calibration:sigma_factor'), never wider than '-Search:fragment:mass_tolerance' and never below 10 ppm (0.02 Da; 5 ppm or 0.01 Da with the m/z correction below); the precursor window stays as configured by default ('-Search:calibration:precursor_sigma_factor' 0: the precursor errors are measured and reported; a value such as 4 tightens the window to median +/- 4 sigma, asymmetric about zero when the run has an offset, within 2.5 ppm per side and the configured window). The configured tolerances are therefore the widest windows searched, and a stated window stays an upper bound. The pass takes its spectra per tenth of the run, and a fragment tolerance that covers less than 95 % of the matched peaks of the calibration PSMs (or a precursor window less than 98 % of the PSMs) is not trusted: the configured tolerance is kept, with a warning. On the 20-run benchmark at equal entrapment-estimated FDP the fragment window gains on Astral (+6 %) and ion-trap CID data (+1 %) and is neutral elsewhere, while a tightened precursor window cost 2-3 % on every Orbitrap HCD set, which is why it is off. The measured errors are also corrected: '-Search:calibration:recalibrate offset' with '-Search:calibration:recalibrate_rt_chunks 10' (the tool's defaults; the library's: none) subtracts the median error of each tenth of the run (interpolated between them) from the precursor and fragment m/z the search uses, before the windows are set around zero; 'linear' subtracts a line in m/z per chunk instead, and 'none' only measures. The windows then follow the residual errors, with the fragment floor of 5 ppm (0.01 Da). The PSMs report the observed precursor m/z and the residual precursor error, their fragment annotations the observed peak m/z, and the models and the errors before and after the correction are recorded in the search parameters and the run summary. At equal entrapment FDP the correction adds +0.6 % on the 20 DDA runs, +6.5 % on HeLa diaPASEF (the fragment window can tighten once the offset is gone) and +1.6 % on the Astral runs; 'linear' adds nothing over 'offset'. Set '-Search:calibration:enabled false' to search with the configured tolerances as given. The measured errors (offset, sigma and |offset| + 4 sigma, before and after the correction) are logged and recorded in the search parameters ('calibration:*') and the run summary, with a warning when a configured window is tighter than them ('calibration:precursor_measurement_trusted' / 'calibration:fragment_measurement_trusted' are false when the measured error covers less than 98 % of the calibration PSMs or 95 % of their fragment peaks, e.g. two error modes or too few peaks, or reaches the window of the calibration pass, where the errors beyond it were cut off and the value is a lower bound: such a value should not be taken as a tolerance); the errors of the final PSMs, of the m/z as observed, are reported in the run summary and the QPX provenance ('precursor_error_*', 'fragment_error_*'). '-Search:precursor:isotope_error_min' is -2 in this tool (the library: -1): a precursor may have been picked on the first or second 13C peak of its peptide, which holds for 2-4 % of the identifications of DIA pseudo-spectra and for some of DDA.
+@note Remote input: an mzML file (also .mzML.gz or .mzML.bz2) can be read from Amazon S3 or an S3-compatible server ('-in s3://bucket/run.mzML') or from an HTTP(S) or FTP server ('-in https://host/run.mzML'). It is read as one stream, without a copy on disk, so more slowly than a local file (whose parts are parsed in parallel); '-qpx_extended' reads it again. S3 needs OpenMS built with an Arrow library that has S3 support (as in the vcpkg build); the credentials and the region are those of the AWS default credential chain (e.g. the environment variables AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_DEFAULT_REGION, or ~/.aws), and the query of the URI can set the region or the endpoint, e.g. 's3://bucket/run.mzML?region=eu-central-1' or 's3://bucket/run.mzML?endpoint_override=localhost:9000&scheme=http'. The outputs and the log name such an input without its user info and query (e.g. 's3://bucket/run.mzML'), as these can hold credentials; prefer the environment to credentials in the URI all the same, as the command line and an INI file hold the URI as given. The database ('-database'), Bruker .d, Thermo .raw and mzPeak inputs and all outputs are local files.
 @note Search settings from a run: prose-auto (https://github.com/okohlbacher/prose-auto) proposes ProSE settings from an mzML file (label, protease, modifications, organism and mass tolerances measured from the spectra, optionally with the dataset's records and methods text), each with its source and evidence.
 @note Decoy handling is controlled by '-Search:decoys'. The default 'generate' always builds the decoys from the targets (prefixing accessions with '-Search:decoy_prefix', default "DECOY_"; decoys in the FASTA are removed first), with '-Search:decoy_method' keep_termini (default; for a fully specific digestion with an enzyme whose cleavage sites are fixed by K, R and P, e.g. Trypsin, Trypsin/P, Lys-C, Arg-C; semi- or non-specific digestion as 'reverse', other enzymes with a warning): every target peptide, also every protein N-terminal and Met-clipped one, has a decoy of the same start, length, mass and cleavage sites, so the protein N-terminal classes are controlled by target-decoy competition like the others (with 'Acetyl (Protein N-term)' among the default variable modifications, '-Search:rescoring:terminal_features' and '-Search:rescoring:stratum_q_values', also defaults). 'auto' reuses decoys already present in the FASTA (the marker is auto-detected, prefix or suffix, e.g. from DecoyDatabase) or generates them if none are found; it reuses supplied decoys only at 0.5 to 2 decoys per target protein (target-decoy FDR needs about one decoy per target: a database with far fewer, e.g. a few 'DECOY_' entries, or far more decoys is refused with an error before the search); with reversed-protein decoys the protein N-terminal classes have almost no decoys (set '-Search:rescoring:terminal_features false' and '-Search:rescoring:stratum_q_values false' then). 'ignore' searches the targets only.
 @note Repeated database entries: an entry whose accession and sequence an entry before it has (e.g. a FASTA file or the contaminants added twice) is searched once, with a warning; two entries of one accession with different sequences are refused with an error naming the accession and the file, before the search.
@@ -577,7 +578,9 @@ class ProSE :
 
     void registerOptionsAndFlags_() override
     {
-      registerInputFileList_("in", "<files>", StringList(), "Input spectrum file(s). Multiple files are searched against the same database; the fragment index is built once and reused.");
+      registerInputFileList_("in", "<files>", StringList(), "Input spectrum file(s). Multiple files are searched against the same database; the fragment index is built once and reused. "
+                             "An mzML file may also be given as a remote location (s3://bucket/run.mzML, http://, https:// or ftp://): it is streamed, not downloaded to disk.",
+                             true, false, {"remote"});
       setValidFormats_("in", { "mzML",
 #ifdef WITH_MZPEAK
         "mzpeak",
@@ -857,7 +860,8 @@ class ProSE :
       logged as a warning and leaves no mz view or null prediction columns; the search result of the file is not
       affected. Only std::bad_alloc propagates: out of memory is not taken for an unreadable file.
 
-      The spectra are read again from @p in_file, as the search reads them (ProSEAlgorithm::loadSpectra(): one pass,
+      The spectra are read again from @p in_location (the input as given; @p in_file is its name, which differs for a
+      remote location with credentials or a query, see FileHandler::displayName()), as the search reads them (ProSEAlgorithm::loadSpectra(): one pass,
       parsed in parallel), keeping only the MS2 spectra of the PSMs' native IDs; the mz view is QPXDatasetExport::mzView()
       of them, with @p filter, built and written to @p mz_target while the predictions are made (on a thread of its
       own): the caller removes its file if the psm file of the input cannot be written. After a failed re-read no PSM
@@ -866,7 +870,7 @@ class ProSE :
       'peptdeep:nce' if set, else the one PeptDeepRescoring::selectNCE() selects for @p peptide_ids (as
       PeptDeepRescoring::annotate() would); the NCE is then stored on the run.
     */
-    SpectraOfFile_ collectPSMSpectra_(const std::string& in_file, const Param& search_params,
+    SpectraOfFile_ collectPSMSpectra_(const std::string& in_file, const std::string& in_location, const Param& search_params,
                                       std::vector<ProteinIdentification>& protein_ids,
                                       const PeptideIdentificationList& peptide_ids, const QPXDatasetExport::PeakFilter& filter,
                                       const MzTarget_& mz_target)
@@ -885,7 +889,7 @@ class ProSE :
       logPhase_(in_file, "reading spectra");
       try
       {
-        spectra = ProSEAlgorithm::loadSpectra(in_file, [&native_ids](const MSSpectrum& spectrum)
+        spectra = ProSEAlgorithm::loadSpectra(in_location, [&native_ids](const MSSpectrum& spectrum)
         {
           return spectrum.getMSLevel() == 2 && native_ids.count(spectrum.getNativeID()) > 0;
         });
@@ -1412,8 +1416,19 @@ class ProSE :
       };
       std::vector<QPXDatasetExport::ProvenanceStep> steps;
 
+      // The parameters of the tool, with remote inputs by their names: a location may hold credentials (see main_())
+      Param tool_params = getParam_();
+      if (tool_params.exists("in"))
+      {
+        std::vector<std::string> inputs = tool_params.getValue("in").toStringVector();
+        if (std::any_of(inputs.begin(), inputs.end(), [](const std::string& in) { return FileHandler::isRemote(in); }))
+        {
+          for (std::string& in : inputs) { in = FileHandler::displayName(in); }
+          tool_params.setValue("in", inputs);
+        }
+      }
       QPXDatasetExport::ProvenanceStep search{"database_search", "peptide_search", "ProSE", {},
-                                              QPXDatasetExport::paramToJSON(getParam_()), {"psm"}};
+                                              QPXDatasetExport::paramToJSON(tool_params), {"psm"}};
       auto& p = search.parameters;
       p.emplace_back("database_file", sh.database_file);
       p.emplace_back("enzyme", sh.enzyme);
@@ -1514,7 +1529,24 @@ class ProSE :
 
     ExitCodes main_(int, const char**) override
     {
-      const StringList in_list = getStringList_("in");
+      // The inputs as given (what is read), and their names (what is logged, stored and used to name the outputs): a
+      // remote location (e.g. s3://bucket/run.mzML?region=...) is named without its credentials and query.
+      const StringList in_locations = getStringList_("in");
+      StringList in_list;
+      in_list.reserve(in_locations.size());
+      for (const std::string& location : in_locations)
+      {
+        in_list.push_back(FileHandler::displayName(location));
+        // Only the mzML reader streams remote data (a file whose name does not end in .mzML, .mzML.gz or .mzML.bz2
+        // cannot be recognized as mzML: the type of a remote location is that of its name).
+        if (FileHandler::isRemote(location) && FileHandler::getTypeByFileName(in_list.back()) != FileTypes::MZML)
+        {
+          OPENMS_LOG_ERROR << "Remote input '" << in_list.back() << "' (-in) is not named as an mzML file (.mzML, .mzML.gz or .mzML.bz2). "
+                           << "Only mzML files can be read from a remote location (s3://, http://, https://, ftp://); "
+                           << "download other files first." << endl;
+          return ILLEGAL_PARAMETERS;
+        }
+      }
       const std::string database = getStringOption_("database");
       // -out_idxml is the deprecated alias of -out
       const StringList out_new_list = getStringList_("out");
@@ -1916,7 +1948,7 @@ class ProSE :
         });
       }
       ProSEAlgorithm::MultiFileSearchResult mfres =
-        sse.searchWithModificationAnalysis(in_list, database, mod_analysis_base_names, aggregate_base_name,
+        sse.searchWithModificationAnalysis(in_locations, database, mod_analysis_base_names, aggregate_base_name,
                                            build_pooled_aggregate);
       sse.setFileResultConsumer({});
       if (cv_load.thread.joinable()) { cv_load.thread.join(); }
@@ -2314,7 +2346,7 @@ class ProSE :
             const std::string scan_format = ArrowIOHelpers::qpxScanFormat(spectrumReferences_(result.peptide_ids));
             if (!scan_format.empty()) { mz_target.keys["scan_format"] = scan_format; }
             mz_file = mz_target.file();
-            spectra_of_file = collectPSMSpectra_(in_file, search_params, result.protein_ids, result.peptide_ids, peak_filter,
+            spectra_of_file = collectPSMSpectra_(in_file, in_locations[i], search_params, result.protein_ids, result.peptide_ids, peak_filter,
                                                  mz_target);
             mz_written = spectra_of_file.mz_rows > 0 && !spectra_of_file.mz_write_failed;
             if (spectra_of_file.mz_write_failed) { input_failed = true; } // (logged)

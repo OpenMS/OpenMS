@@ -372,6 +372,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * and search engine annotations. Parameters are taken from this instance (DefaultParamHandler).
      *
      * @param[in] in_spectra Input path to the spectra file (mzML or Bruker .d) containing MS/MS spectra to search.
+     *                    An mzML file may also be a remote location (http://, https://, ftp:// or s3://, see
+     *                    FileHandler::isRemote()): it is streamed, and logged and stored (e.g. as primary MS run
+     *                    path) by its name without credentials and query (FileHandler::displayName()).
      * @param[in] in_db   Input path to the protein sequence database in FASTA format.
      * @param[out] prot_ids Output container receiving search meta data and protein-level information.
      * @param[out] pep_ids  Output container receiving spectrum-level peptide identifications (PSMs).
@@ -578,9 +581,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * this thread (at most 16) parse in parallel, in one pass over the file; other files (Bruker .d,
      * Thermo .raw), or an mzML file whose layout the chunks do not support (e.g. compressed), with
      * FileHandler::loadExperiment(). For a second look at the spectra of a search, e.g. those of its
-     * PSMs (ProSE's -qpx_extended).
+     * PSMs (ProSE's -qpx_extended). A remote mzML file (http://, https://, ftp:// or s3://, see
+     * FileHandler::isRemote()) is streamed by MzMLFile.
      *
-     * @param[in] filename The spectrum file (mzML, mzPeak, Bruker .d or Thermo .raw)
+     * @param[in] filename The spectrum file (mzML, mzPeak, Bruker .d or Thermo .raw), or the remote location of an mzML file
      * @param[in] keep If set, only the spectra it accepts are kept, so that the result holds only
      *                 those in memory. It is called on several threads at once.
      * @return The spectra
@@ -798,7 +802,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * with a database of more proteins, decoys included, than the chunk size)
      * emit no per-file step.
      *
-     * @param[in] in_spectra_files Spectrum file paths (mzML or Bruker .d).
+     * @param[in] in_spectra_files Spectrum file paths (mzML or Bruker .d). An mzML file may also be a remote
+     *            location (http://, https://, ftp:// or s3://, see FileHandler::isRemote()): it is streamed, and
+     *            logged and stored (e.g. as primary MS run path) by its name without credentials and query
+     *            (FileHandler::displayName()).
      * @param[in] fasta_db Protein sequence database as FASTA entries.
      * @param[in] output_base_names Optional per-file base names for
      *            modification-analysis TSV outputs. Must be empty or have the
@@ -893,6 +900,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *                       evaluation changed them (at most only the best hit of each, and q-values as above); their
      *                       PSMs between FDR:PSM and FDR:protein_inference_PSM are gone.
      * @param[in] in_spectra_files The input files of the search, in its order: one per entry of @c result.per_file.
+     *                             They are stored as primary MS run paths as given: for a remote location, pass its
+     *                             FileHandler::displayName().
      * @param[in] remove_decoys Whether the finalization of the protein FDR removes the decoy PSMs and proteins (default,
      *                          as in the ProSE tool's -out_merged). False keeps those that pass, e.g. to show them;
      *                          @c protein_fdr_applied of the result still tells whether the FDR was applied. No effect

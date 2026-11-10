@@ -8073,6 +8073,9 @@ namespace OpenMS
                            bool survey_scans = false, const std::function<bool(const MSSpectrum&)>& keep = {})
     {
       PeakMap spectra;
+      // (of a remote location, e.g. s3://bucket/run.mzML?region=..., by its name without the query; such a file is
+      // streamed by MzMLFile below, as loadMzMLChunked() reads local files only)
+      const FileTypes::Type type = FileHandler::getTypeByFileName(FileHandler::displayName(filename));
       FileHandler f;
       f.getOptions().clearMSLevels();
       f.getOptions().addMSLevel(2);
@@ -8080,7 +8083,7 @@ namespace OpenMS
       // MzMLHandler decodes the spectra in a parallel region every maxDataPoolSize spectra (100 by
       // default): with several threads, fewer and larger regions
       if (threads > 1) { f.getOptions().setMaxDataPoolSize(1000); }
-      const bool chunked = (threads > 1 || (help != nullptr && chunk_threads > 1)) && FileHandler::getTypeByFileName(filename) == FileTypes::MZML
+      const bool chunked = (threads > 1 || (help != nullptr && chunk_threads > 1)) && type == FileTypes::MZML && !FileHandler::isRemote(filename)
                            && loadMzMLChunked(filename, f.getOptions(), threads, spectra, help, chunk_threads, keep);
       if (chunked)
       {
@@ -8089,7 +8092,7 @@ namespace OpenMS
         // stay with the process. Returning them cost 5-6 % wall time on 20 small files at 64 threads (int14: 0.744 vs
         // 0.700 of int12-c2, 3 rounds) for 0.20 GiB less max RSS.
       }
-      else if (keep && (FileHandler::getTypeByFileName(filename) == FileTypes::MZML || FileHandler::getTypeByFileName(filename) == FileTypes::MZPEAK))
+      else if (keep && (type == FileTypes::MZML || type == FileTypes::MZPEAK))
       {
         // streamed, so that only the kept spectra are held
         spectra.clear(true);
@@ -8460,10 +8463,13 @@ namespace OpenMS
   // File-based search: thin I/O wrapper that delegates to in-memory search
   // =====================================================================
   ProSEAlgorithm::ExitCodes ProSEAlgorithm::search(
-      const std::string& in_spectra, const std::string& in_db,
+      const std::string& in_spectra_location, const std::string& in_db,
       vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids) const
   {
+    // The name of the spectrum file, as it is logged and stored: of a remote location (e.g. s3://...) without its
+    // credentials and query (FileHandler::displayName()). in_spectra_location is what the readers are given.
+    const std::string in_spectra = FileHandler::displayName(in_spectra_location);
     reset_run_name_ = in_spectra; // names the RESET stem table of the run (reset:stem_table a directory)
     // load MS2 map
     PeakMap spectra;
@@ -8486,7 +8492,7 @@ namespace OpenMS
       // they did when the spectra were read first (decoding them was the first parallel region):
       // started next to a busy helper, they more often end up on another NUMA node than this
       // thread, which slows down the index build and the scoring.
-      BackgroundSpectra spectra_ready(in_spectra, false, chimericSearch_());
+      BackgroundSpectra spectra_ready(in_spectra_location, false, chimericSearch_());
 
       // load FASTA
       loadFASTA(in_db, fasta_db);
@@ -8553,7 +8559,7 @@ namespace OpenMS
     }
     else
     {
-      spectra = loadMS2Spectra(in_spectra, readerThreads(false), nullptr, 0, chimericSearch_());
+      spectra = loadMS2Spectra(in_spectra_location, readerThreads(false), nullptr, 0, chimericSearch_());
 
       // load FASTA
       loadFASTA(in_db, fasta_db);
@@ -8686,13 +8692,18 @@ namespace OpenMS
 
   ProSEAlgorithm::MultiFileSearchResult
   ProSEAlgorithm::searchWithModificationAnalysis_(
-      const std::vector<std::string>& in_spectra_files,
+      const std::vector<std::string>& in_spectra_locations,
       const std::vector<FASTAFile::FASTAEntry>& fasta_db_given,
       const std::string* in_db,
       const std::vector<std::string>& output_base_names,
       const std::string& aggregate_base_name,
       bool build_pooled_aggregate) const
   {
+    // The names of the spectrum files, as they are logged and stored: of a remote location (e.g. s3://...) without
+    // its credentials and query (FileHandler::displayName()). in_spectra_locations is what the readers are given.
+    std::vector<std::string> in_spectra_files;
+    in_spectra_files.reserve(in_spectra_locations.size());
+    for (const std::string& location : in_spectra_locations) { in_spectra_files.push_back(FileHandler::displayName(location)); }
     // The database: fasta_db_given, or read from *in_db below, once the first spectrum file is read in the background.
     std::vector<FASTAFile::FASTAEntry> fasta_db_read;
     const std::vector<FASTAFile::FASTAEntry>& fasta_db = in_db == nullptr ? fasta_db_given : fasta_db_read;
@@ -8752,9 +8763,9 @@ namespace OpenMS
         // start (measured on three Orbitrap files at 16 threads without rescoring: from the end of the scoring on, 3%
         // slower, as more of the read is left for get()). The reader then registers the names of the file's meta values
         // after the protein mapping of the file before (see the registry order above).
-        if (i == 0) { next_spectra.start(in_spectra_files[i], wait_for_first_spectra, 0, chimericSearch_()); }
-        else if (rescore_ && threads_started >= 12) { next_spectra.startDeferred(in_spectra_files[i], chimericSearch_()); }
-        else { next_spectra.start(in_spectra_files[i], false, readerThreads(true, false), chimericSearch_()); }
+        if (i == 0) { next_spectra.start(in_spectra_locations[i], wait_for_first_spectra, 0, chimericSearch_()); }
+        else if (rescore_ && threads_started >= 12) { next_spectra.startDeferred(in_spectra_locations[i], chimericSearch_()); }
+        else { next_spectra.start(in_spectra_locations[i], false, readerThreads(true, false), chimericSearch_()); }
       }
     };
     read_next(0);
@@ -8872,7 +8883,7 @@ namespace OpenMS
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         OPENMS_LOG_INFO << "[ProSE] Loading " << in_spectra_files[i] << std::endl;
-        all_spectra[i] = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra_files[i], readerThreads(false), nullptr, 0, chimericSearch_());
+        all_spectra[i] = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra_locations[i], readerThreads(false), nullptr, 0, chimericSearch_());
         preprocessSearchedSpectra_(all_spectra[i], in_spectra_files[i], all_ion_evidence[i],
                                    retain_evidence ? &all_evidence_spectra[i] : nullptr,
                                    query_raw_spectrum_ ? &all_query_spectra[i] : nullptr);
@@ -9328,7 +9339,7 @@ namespace OpenMS
         if (i == 0) { build_index_while_first_file_is_read(); }
 
         PeakMap spectra = first_spectra_taken ? std::move(first_spectra)
-                          : next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra, readerThreads(false), nullptr, 0, chimericSearch_());
+                          : next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra_locations[i], readerThreads(false), nullptr, 0, chimericSearch_());
         first_spectra_taken = false;
         read_next(i + 1);
         std::function<const PeakMap*(Size)> searched_spectra;

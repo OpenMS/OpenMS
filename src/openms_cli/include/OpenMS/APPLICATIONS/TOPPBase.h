@@ -427,6 +427,7 @@ protected:
       @param[in] tags A list of tags, extending/omitting automated checks on the input file (e.g. when its an executable)
                       Valid tags: @em 'skipexists' - will prevent checking if the given file really exists (useful for partial paths, e.g. in OpenMS/share/... which will be resolved by the TOPP tool internally)
                                   @em 'is_executable' - checks existence of the file first using its actual value, and upon failure also using the PATH environment (and common exe file endings on Windows, e.g. .exe and .bat).
+                                  @em 'remote' - a remote location (http://, https://, ftp:// or s3://, see FileHandler::isRemote()) is accepted in place of a file: it is not checked for existence, and its format is taken from its name. For tools whose reader streams remote data (e.g. MzMLFile).
     */
     void registerInputFile_(const std::string& name, const std::string& argument, const std::string& default_value, const std::string& description, bool required = true, bool advanced = false, const StringList& tags = StringList());
 
@@ -600,6 +601,7 @@ protected:
        @param[in] tags A list of tags, extending/omitting automated checks on the input file (e.g. when its an executable)
                        Valid tags: 'skipexists' - will prevent checking if the given file really exists (useful for partial paths, e.g. in OpenMS/share/... which will be resolved by the TOPP tool internally)
                                    'is_executable' - checks existence of the file using the PATH environment (and common exe file endings on Windows, e.g. .exe and .bat).
+                                   'remote' - a remote location (http://, https://, ftp:// or s3://, see FileHandler::isRemote()) is accepted in place of a file: it is not checked for existence, and its format is taken from its name. For tools whose reader streams remote data (e.g. MzMLFile).
        */
     void registerInputFileList_(const std::string& name, const std::string& argument, const StringList& default_value, const std::string& description, bool required = true, bool advanced = false, const StringList& tags = StringList());
 
