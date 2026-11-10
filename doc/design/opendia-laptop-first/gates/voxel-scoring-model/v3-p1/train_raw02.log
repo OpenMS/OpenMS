@@ -1,0 +1,12 @@
+raw02 L11 fold 0: r0 4814 | r1 pos 1669 neg 62992 | r2 pos 1251 neg 62992
+raw02 L11 fold 1: r0 4760 | r1 pos 1749 neg 62894 | r2 pos 1214 neg 62894
+raw02 L11 fold 2: r0 4770 | r1 pos 1763 neg 62884 | r2 pos 1283 neg 62884
+raw02 L11 done in 5 s
+raw02 N11 fold 0: r0 4814 | r1 pos 1472 neg 6000 | r2 pos 1126 neg 6000
+raw02 N11 fold 1: r0 4760 | r1 pos 1432 neg 6000 | r2 pos 1073 neg 6000
+raw02 N11 fold 2: r0 4770 | r1 pos 1568 neg 6272 | r2 pos 1205 neg 6000
+raw02 N11 done in 34 s
+raw02 N11a fold 0: r0 4814 | r1 pos 1472 neg 62992 | r2 pos 1163 neg 62992
+raw02 N11a fold 1: r0 4760 | r1 pos 1432 neg 62894 | r2 pos 1141 neg 62894
+raw02 N11a fold 2: r0 4770 | r1 pos 1568 neg 62884 | r2 pos 1232 neg 62884
+raw02 N11a done in 167 s

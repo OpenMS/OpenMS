@@ -23,7 +23,8 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 | Next direction for the voxel model | R-WP3 | Done: user chose heuristic features + semi-supervised rounds (10 November 2026) | [RESULT_PILOT.md](gates/voxel-scoring-model/RESULT_PILOT.md) |
 | Voxel v2: 4 arms on raws 01/02: no arm passes. Best arm FS 921 / 1040 at 1 % (base 1024 / 1288), entrapment AUC above base | R-WP3 | Done (fail) | [RESULT_V2.md](gates/voxel-scoring-model/v2/RESULT_V2.md) |
 | Voxel v3 step 0: brightness check not confirmed (drop ≤ 0.0011), voxel score as LDA feature does not help (V0 −; FS ±0) | R-WP3 | Done (fail) | [RESULT_STEP0.md](gates/voxel-scoring-model/v3-step0/RESULT_STEP0.md) |
-| Voxel v3 steps 1–3 (brightness-free input, matched symmetric negatives) | R-WP3 | Blocked: needs user decision after step 0 | [RESULT_STEP0.md](gates/voxel-scoring-model/v3-step0/RESULT_STEP0.md) |
+| Voxel v3 phase 1: heuristic-only controls. LDA 1267 / 1261, MLP+BCE 1094 / 1100, linear+BCE 1300 / 1146. Any BCE model prefers entrapment (AUC 0.554–0.558 against 0.531): the objective is the bottleneck | R-WP3 | Done | [RESULT_P1.md](gates/voxel-scoring-model/v3-p1/RESULT_P1.md) |
+| Voxel v3 phase 2: one network with a new objective (Fisher / paired ranking), then the voxel encoder | R-WP3 | Blocked: needs user decision | [RESULT_P1.md](gates/voxel-scoring-model/v3-p1/RESULT_P1.md) |
 | C++ `OpenDIAScoringModel.{h,cpp}` and its own tool | R-WP3 | Blocked: needs a pilot cell that passes | [DESIGN.md](gates/voxel-scoring-model/DESIGN.md) |
 | Full gate of `OpenDIAScoringModel` on raws 01/02 against the base (1029 / 1298) | R-WP3, R-WP5 | Blocked: needs the C++ model | |
 | Pass rule: change from N@1 % to a paired bootstrap rule | R-WP4 | Blocked: needs user approval | [metric_noise.txt](gates/astral-native-byion/single-scorer/metric_noise.txt) |
@@ -70,7 +71,8 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 | Next direction for the voxel model | Done: user chose heuristic features + semi-supervised rounds | [RESULT_PILOT.md](gates/voxel-scoring-model/RESULT_PILOT.md) |
 | Voxel v2: 4 arms on raws 01/02: no arm passes. Best arm FS 921 / 1040 at 1 % (base 1024 / 1288), entrapment AUC above base | Done (fail) | [RESULT_V2.md](gates/voxel-scoring-model/v2/RESULT_V2.md) |
 | Voxel v3 step 0: brightness check not confirmed, voxel score as LDA feature does not help | Done (fail) | [RESULT_STEP0.md](gates/voxel-scoring-model/v3-step0/RESULT_STEP0.md) |
-| Voxel v3 steps 1–3 (brightness-free input, matched symmetric negatives) | Blocked: needs user decision after step 0 | [RESULT_STEP0.md](gates/voxel-scoring-model/v3-step0/RESULT_STEP0.md) |
+| Voxel v3 phase 1: heuristic-only controls; the BCE objective is the bottleneck | Done | [RESULT_P1.md](gates/voxel-scoring-model/v3-p1/RESULT_P1.md) |
+| Voxel v3 phase 2: one network with a new objective, then the voxel encoder | Blocked: needs user decision | [RESULT_P1.md](gates/voxel-scoring-model/v3-p1/RESULT_P1.md) |
 | C++ `OpenDIAScoringModel` | Blocked: needs pilot | |
 | Full gate of `OpenDIAScoringModel` on raws 01/02 against the base (1029 / 1298) | Blocked: needs the C++ model | |
 
