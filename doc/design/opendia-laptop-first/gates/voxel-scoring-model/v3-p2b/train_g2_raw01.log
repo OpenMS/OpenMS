@@ -1,0 +1,27 @@
+raw01 DV fold 0: r0 4671 6 ep obj 7708.44 | r1 pos 1527 neg 62005 16 ep obj 2066.13 | r2 pos 1306 neg 62005 12 ep obj 3009.69
+raw01 DV fold 1: r0 4626 10 ep obj 10283.01 | r1 pos 1502 neg 61933 11 ep obj 2134.38 | r2 pos 1353 neg 61933 13 ep obj 3097.57
+raw01 DV fold 2: r0 4707 12 ep obj 10496.46 | r1 pos 1480 neg 62056 9 ep obj 2032.27 | r2 pos 1484 neg 62056 9 ep obj 2628.65
+raw01 DV done in 1752 s
+	Command being timed: "/home/singjc/.jcode/scratch/torchenv/.venv/bin/python v3p2b/train_p2b.py raw01 DV"
+	User time (seconds): 10238.17
+	System time (seconds): 430.80
+	Percent of CPU this job got: 607%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 29:16.21
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 4111708
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 163
+	Minor (reclaiming a frame) page faults: 120320022
+	Voluntary context switches: 3518
+	Involuntary context switches: 78080
+	Swaps: 0
+	File system inputs: 18904
+	File system outputs: 9960
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
