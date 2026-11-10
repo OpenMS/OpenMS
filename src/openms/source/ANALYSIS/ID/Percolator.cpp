@@ -2331,7 +2331,7 @@ namespace
     static const std::vector<std::string> blocklist {
       "percolator_score", "percolator_q_value", "percolator_pep",
       "percolator_peptide_q_value", "percolator_peptide_pep",
-      "peptide q-value", // (Constants::UserParam::PEPTIDE_Q_VALUE: FalseDiscoveryRate's, and ProSE's copy of the above)
+      "peptide q-value", // (Constants::UserParam::PEPTIDE_Q_VALUE, of FalseDiscoveryRate and ProSE)
       "q-value", "q-value_score", "score", "RT", "MZ",
       "target_decoy", "isDecoy"
     };

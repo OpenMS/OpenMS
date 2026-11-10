@@ -93,6 +93,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <set>
 #include <sstream>
 #include <string_view>
@@ -760,18 +761,16 @@ namespace OpenMS
                        "Also Percolator's peptide-level q-values (default; 'false' leaves them out), as the percolator executable reports peptides (without -U): "
                        "after the target-decoy competition of the spectra, the best PSM of each peptide (modified sequence) "
                        "and label competes, and q-values and PEPs are estimated on these peptides. Every rescored hit gets "
-                       "the values of its peptide as meta values 'percolator_peptide_q_value' and 'percolator_peptide_pep', "
-                       "the q-value also as 'peptide q-value' (the name FalseDiscoveryRate and EntrapmentEvaluator use); "
-                       "a list of peptides at an FDR is the target peptides with 'peptide q-value' at most that FDR "
-                       "(the distinct peptides of the PSMs at an FDR are not FDR-controlled at the peptide level). These are "
-                       "q-values of one run's peptides: a union of the lists of several runs is not FDR-controlled (true "
-                       "peptides recur across runs, false ones rarely do). The pooled PSMs of a multi-file search (the ProSE "
-                       "tool's -out_merged) get a 'peptide q-value' across all its runs instead: one target-decoy competition "
-                       "of the pooled peptides as above, the PSMs ranked by their Percolator PEP (the runs' PEPs are on one "
-                       "scale, the scores of their models are not), also with rescore_reuse models; not if Percolator rescored "
-                       "only some of the runs. The main score stays the PSM-level q-value. Percolator rescoring only (not with "
-                       "rescore_method 'reset', which reports RESET:peptide_q_value per run; per run not with rescore_reuse "
-                       "models).",
+                       "the values of its peptide as meta values 'percolator_peptide_q_value' and 'percolator_peptide_pep'; "
+                       "a list of peptides at an FDR is the target peptides with percolator_peptide_q_value at most that FDR "
+                       "(the distinct peptides of the PSMs at an FDR are not FDR-controlled at the peptide level). The main "
+                       "score stays the PSM-level q-value. Default Percolator rescoring only (not with rescore_method 'reset', "
+                       "which reports RESET:peptide_q_value, nor with rescore_reuse models). Independent of this parameter, "
+                       "every rescored hit gets ProSE's peptide-level q-value 'peptide q-value' (the name FalseDiscoveryRate "
+                       "writes and EntrapmentEvaluator reads), with one peptide definition for each run and for the pooled "
+                       "runs of a multi-file search (the ProSE tool's -out_merged): FalseDiscoveryRate::applyBasicPeptideLevel() "
+                       "(a peptide is an unmodified sequence, whose best PSM competes with its label) on the PSMs' Percolator PEPs, also with "
+                       "rescore_reuse models; not with rescore_method 'reset'.",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:peptide_level", {"true", "false"});
     defaults_.setSectionDescription("rescoring", "Options of the Percolator training of the rescoring (see 'rescore')");
@@ -6208,15 +6207,12 @@ namespace OpenMS
       }
     };
 
-    // The rank of a PSM: its PEP, then its PSM q-value (lower is better; a PEP that is not a number ranks last)
-    using Rank = std::pair<double, double>;
-    const double worst = std::numeric_limits<double>::infinity();
-    // the peptides: the best rank of each (label, modified sequence), and whether it is a decoy
-    std::unordered_map<std::string, Size> peptide_of_key;
-    std::vector<Rank> best;
-    std::vector<char> is_decoy;
-    constexpr Size NO_PEPTIDE = std::numeric_limits<Size>::max();
-    std::vector<Size> peptide_of_id(peptide_ids.size(), NO_PEPTIDE);
+    // FalseDiscoveryRate::applyBasicPeptideLevel() on a slim copy of the first hits: their sequence, label and PEP as
+    // the score (lower is better; a PEP that is not a number ranks last). A copy, since it replaces the main scores and
+    // removes the other hits; with add_decoy_peptides, the decoys keep their hit (and get the q-value of their peptide).
+    constexpr Size NO_COPY = std::numeric_limits<Size>::max();
+    std::vector<Size> copy_of_id(peptide_ids.size(), NO_COPY);
+    PeptideIdentificationList copies;
     for (Size i = 0; i < peptide_ids.size(); ++i)
     {
       const std::vector<PeptideHit>& hits = peptide_ids[i].getHits();
@@ -6228,61 +6224,46 @@ namespace OpenMS
         return false;
       }
       double pep = static_cast<double>(hit.getMetaValue("percolator_pep"));
-      double q = hit.metaValueExists("percolator_q_value") ? static_cast<double>(hit.getMetaValue("percolator_q_value")) : worst;
-      if (std::isnan(pep)) { pep = worst; }
-      if (std::isnan(q)) { q = worst; }
-      const bool decoy = hit.isDecoy(); // ('target+decoy' is a target)
-      std::string key = (decoy ? "D" : "T") + hit.getSequence().toString();
-      const auto [it, inserted] = peptide_of_key.try_emplace(std::move(key), best.size());
-      if (inserted)
-      {
-        best.emplace_back(pep, q);
-        is_decoy.push_back(decoy);
-      }
-      else if (Rank(pep, q) < best[it->second])
-      {
-        best[it->second] = Rank(pep, q);
-      }
-      peptide_of_id[i] = it->second;
+      if (std::isnan(pep)) { pep = std::numeric_limits<double>::infinity(); }
+      PeptideHit copy_hit(pep, 1, hit.getCharge(), hit.getSequence());
+      copy_hit.setMetaValue("target_decoy", hit.getMetaValue("target_decoy"));
+      PeptideIdentification& copy = copies.emplace_back();
+      copy.setScoreType("Posterior Error Probability");
+      copy.setHigherScoreBetter(false);
+      copy.insertHit(std::move(copy_hit));
+      copy_of_id[i] = copies.size() - 1;
     }
-
-    // The peptides from the best rank down. At the end of each group of equal rank, the FDR of the peptides accepted so
-    // far, (decoys + 1) / targets (at most 1), as Percolator (PosteriorEstimator::getQValues() with pi0 = 1); the q-value
-    // of a peptide is the lowest FDR at its rank or below.
-    std::vector<Size> order(best.size());
-    std::iota(order.begin(), order.end(), Size(0));
-    std::stable_sort(order.begin(), order.end(), [&best](Size a, Size b) { return best[a] < best[b]; });
-    std::vector<double> q_value(best.size(), 1.0);
-    Size targets = 0, decoys = 0, group_start = 0;
-    for (Size k = 0; k < order.size(); ++k)
-    {
-      if (is_decoy[order[k]]) { ++decoys; }
-      else { ++targets; }
-      if (k + 1 == order.size() || best[order[k + 1]] != best[order[k]])
-      {
-        const double fdr = std::min(1.0, static_cast<double>(decoys + 1) / static_cast<double>(std::max<Size>(targets, 1)));
-        for (Size j = group_start; j <= k; ++j) { q_value[order[j]] = fdr; }
-        group_start = k + 1;
-      }
-    }
-    double lowest = 1.0;
-    for (Size k = order.size(); k-- > 0;)
-    {
-      lowest = std::min(lowest, q_value[order[k]]);
-      q_value[order[k]] = lowest;
-      if (target_peptides_1pct != nullptr && !is_decoy[order[k]] && lowest <= 0.01) { ++*target_peptides_1pct; }
-    }
+    if (copies.empty()) { return true; } // (no hit to annotate)
+    FalseDiscoveryRate fdr;
+    Param fdr_param = fdr.getParameters();
+    fdr_param.setValue("conservative", "true"); // (decoys + 1) / (targets + 1), as calculateFDRBasic_() computes it
+    fdr_param.setValue("add_decoy_peptides", "true");
+    fdr_param.setValue("no_qvalues", "false");
+    fdr.setParameters(fdr_param);
+    fdr.applyBasicPeptideLevel(copies);
 
     const UInt index = MetaInfoInterface::metaRegistry().registerName(name);
+    std::unordered_set<std::string> target_peptides; // at q <= 0.01
     for (Size i = 0; i < peptide_ids.size(); ++i)
     {
       std::vector<PeptideHit>& hits = peptide_ids[i].getHits();
       for (Size h = 0; h < hits.size(); ++h)
       {
-        if (h == 0 && peptide_of_id[i] != NO_PEPTIDE) { hits[h].setMetaValue(index, q_value[peptide_of_id[i]]); }
-        else { hits[h].removeMetaValue(index); }
+        const bool scored = h == 0 && copy_of_id[i] != NO_COPY && !copies[copy_of_id[i]].getHits().empty();
+        if (!scored)
+        {
+          hits[h].removeMetaValue(index);
+          continue;
+        }
+        const double q = copies[copy_of_id[i]].getHits().front().getScore();
+        hits[h].setMetaValue(index, q);
+        if (target_peptides_1pct != nullptr && !hits[h].isDecoy() && q <= 0.01)
+        {
+          target_peptides.insert(hits[h].getSequence().toUnmodifiedString());
+        }
       }
     }
+    if (target_peptides_1pct != nullptr) { *target_peptides_1pct = target_peptides.size(); }
     return true;
   }
 
@@ -6933,13 +6914,6 @@ namespace OpenMS
       try { dropped->resize(peptide_ids.size()); }
       catch (...) { dropped = nullptr; }
     }
-    // The kept hit's peptide-level q-value of Percolator (the run's peptides) also as 'peptide q-value', the name that
-    // FalseDiscoveryRate writes and EntrapmentEvaluator reads; none without Percolator's peptide level (rescore_reuse
-    // models, RESET), where a value of an earlier rescoring would be stale. The pooled evaluation of several files
-    // replaces it by one across the files (mergeFileResults()). Name indices: the threads do not look names up.
-    MetaInfoRegistry& registry = MetaInfoInterface::metaRegistry();
-    const UInt percolator_peptide_q = registry.getIndex("percolator_peptide_q_value"); // (UInt(-1): no hit has one)
-    const UInt peptide_q = registry.registerName(Constants::UserParam::PEPTIDE_Q_VALUE);
     std::vector<std::exception_ptr> errors(peptide_ids.size());
 #pragma omp parallel for schedule(dynamic, 256) num_threads(trim_threads)
     for (SignedSize i = 0; i < static_cast<SignedSize>(peptide_ids.size()); ++i)
@@ -6959,19 +6933,6 @@ namespace OpenMS
           }
           hits.resize(1);
         }
-        if (!hits.empty())
-        {
-          PeptideHit& hit = hits.front();
-          if (percolator_peptide_q != UInt(-1) && hit.metaValueExists(percolator_peptide_q))
-          {
-            const DataValue value = hit.getMetaValue(percolator_peptide_q); // (a copy: the insertion may move the values)
-            hit.setMetaValue(peptide_q, value);
-          }
-          else
-          {
-            hit.removeMetaValue(peptide_q);
-          }
-        }
       }
       catch (...)
       {
@@ -6981,6 +6942,18 @@ namespace OpenMS
     for (const std::exception_ptr& error : errors)
     {
       if (error) std::rethrow_exception(error);
+    }
+    // The peptide-level q-values of the run, 'peptide q-value' (the name FalseDiscoveryRate writes and
+    // EntrapmentEvaluator reads): annotatePeptideQValues() on all its PSMs, before FDR:PSM, as on the pooled PSMs of
+    // several runs (mergeFileResults()). Not with RESET, which trained on part of the decoys (its own peptide-level
+    // q-values are 'RESET:peptide_q_value'); none of an earlier rescoring stays.
+    if (perc.getResetOutput() == nullptr) { annotatePeptideQValues(peptide_ids); }
+    else
+    {
+      for (PeptideIdentification& pid : peptide_ids)
+      {
+        for (PeptideHit& hit : pid.getHits()) { hit.removeMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE); }
+      }
     }
     if (reuse != nullptr ? reuse->note->used_default_direction : perc.usedDefaultDirection())
     {
@@ -9891,11 +9864,20 @@ namespace OpenMS
           hit.removeMetaValue(svm_score + "_score"); // (FalseDiscoveryRate's copy of the SVM score)
           hit.setMetaValue("MS:1001491", hit.getScore());
           hit.setMetaValue("percolator_q_value", hit.getScore());
-          // No peptide-level values of this run: those of a rescoring of all files together are an FDR of all files'
-          // peptides, not of this run's (and the run records none, markRescoredByPercolator_() below)
+          // No Percolator peptide-level values of this run: those of a rescoring of all files together are an FDR of
+          // all files' peptides, not of this run's (and the run records none, markRescoredByPercolator_() below)
           hit.removeMetaValue("percolator_peptide_q_value");
           hit.removeMetaValue("percolator_peptide_pep");
-          hit.removeMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE);
+        }
+      }
+      // The run's own peptide-level q-values, as for a file rescored on its own (rescoreWithPercolator_()): on the PEPs
+      // of the model, before FDR:PSM; not with RESET
+      if (!percolator_extra_.exists("algorithm")) { annotatePeptideQValues(ids); }
+      else
+      {
+        for (PeptideIdentification& id : ids)
+        {
+          for (PeptideHit& hit : id.getHits()) { hit.removeMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE); }
         }
       }
       // rescoring:stratum_q_values: as for a file rescored on its own (applyRescoredPsmFDR_()), before FDR:PSM
@@ -10162,6 +10144,7 @@ namespace OpenMS
 
     // If the evaluation fails, the files get the PSMs moved out of them back (as far as it changed them: at most the
     // best hit of each kept, or q-values as below), so that their own outputs can still be written.
+    bool file_values_kept = false; // merged.file_peptide_q_values filled (the files' own 'peptide q-value')
     try
     {
       // One main score type for all PSMs of the pooled run: with rescoring_mixed and FDR:PSM 0, the files that Percolator
@@ -10188,13 +10171,15 @@ namespace OpenMS
         }
       }
 
-      // Peptide-level q-values across the files ('peptide q-value'). Each file's own (Percolator's peptide level of its
-      // run) is no FDR of the pooled peptides: true peptides recur across the files, false ones rarely do, so the union
-      // of the files' peptide lists at an FDR has a higher FDR. One target-decoy competition of the pooled peptides on
-      // the PSMs' PEPs instead (annotatePeptideQValues()), before the protein FDR removes the decoys; the files get their
-      // own values back (returnPooledPsms_()).
-      if (rescore_ && percolator_training_.peptide_level)
+      // Peptide-level q-values across the files ('peptide q-value'). Each file's own (annotatePeptideQValues() on the
+      // file's PSMs, rescoreWithPercolator_()) is no FDR of the pooled peptides: true peptides recur across the files,
+      // false ones rarely do, so the union of the files' peptide lists at an FDR has a higher FDR. The same target-decoy
+      // competition of the pooled peptides instead, before the protein FDR removes the decoys. A file's own value is one
+      // per peptide of the file: kept per file and peptide, the files get them back (splitMergedPsms()).
+      if (rescore_)
       {
+        merged.file_peptide_q_values = filePeptideQValues_(merged_peptides, result.per_file.size());
+        file_values_kept = true;
         std::string not_pooled; // why there are none across the files
         if (percolator_extra_.exists("algorithm"))
         {
@@ -10263,11 +10248,31 @@ namespace OpenMS
     }
     catch (...)
     {
-      if (pooled_from_files) { returnPooledPsms_(merged.peptide_ids, result.per_file); }
+      if (pooled_from_files)
+      {
+        returnPooledPsms_(merged.peptide_ids, result.per_file, file_values_kept ? &merged.file_peptide_q_values : nullptr);
+      }
       throw;
     }
 
     return merged;
+  }
+
+  // static
+  std::vector<std::unordered_map<std::string, double>>
+  ProSEAlgorithm::filePeptideQValues_(const PeptideIdentificationList& pooled, Size files)
+  {
+    std::vector<std::unordered_map<std::string, double>> values(files);
+    for (const PeptideIdentification& id : pooled)
+    {
+      if (id.getHits().empty() || !id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX)) { continue; }
+      const int i = static_cast<int>(id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX));
+      const PeptideHit& hit = id.getHits().front();
+      if (i < 0 || static_cast<Size>(i) >= files || !hit.metaValueExists(Constants::UserParam::PEPTIDE_Q_VALUE)) { continue; }
+      values[i].emplace(hit.getSequence().toUnmodifiedString(),
+                        static_cast<double>(hit.getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE)));
+    }
+    return values;
   }
 
   // static
@@ -10285,24 +10290,30 @@ namespace OpenMS
   }
 
   // static
-  void ProSEAlgorithm::returnPooledPsms_(PeptideIdentificationList& pooled, std::vector<SearchResult>& per_file)
+  void ProSEAlgorithm::returnPooledPsms_(PeptideIdentificationList& pooled, std::vector<SearchResult>& per_file,
+                                         const std::vector<std::unordered_map<std::string, double>>* file_peptide_q_values)
   {
     for (PeptideIdentification& id : pooled)
     {
       const int i = searchedFileOf_(id, per_file);
       if (i < 0) { continue; }
       id.removeMetaValue(Constants::UserParam::ID_MERGE_INDEX);
-      // the file's own peptide-level q-value (rescoreWithPercolator_()), not the one across the files of the pooled result
-      for (PeptideHit& hit : id.getHits())
+      // the file's own peptide-level q-value (of its peptides), not the one across the files of the pooled result
+      if (file_peptide_q_values != nullptr)
       {
-        if (hit.metaValueExists("percolator_peptide_q_value"))
+        const std::unordered_map<std::string, double>* own =
+          static_cast<Size>(i) < file_peptide_q_values->size() ? &(*file_peptide_q_values)[i] : nullptr;
+        std::vector<PeptideHit>& hits = id.getHits();
+        for (Size h = 0; h < hits.size(); ++h)
         {
-          const DataValue value = hit.getMetaValue("percolator_peptide_q_value");
-          hit.setMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE, value);
-        }
-        else
-        {
-          hit.removeMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE);
+          std::optional<double> q; // (only the first hit has one)
+          if (h == 0 && own != nullptr)
+          {
+            const auto it = own->find(hits[h].getSequence().toUnmodifiedString());
+            if (it != own->end()) { q = it->second; }
+          }
+          if (q) { hits[h].setMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE, *q); }
+          else { hits[h].removeMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE); }
         }
       }
       id.setIdentifier(per_file[i].protein_ids[0].getIdentifier());
@@ -10326,7 +10337,8 @@ namespace OpenMS
     {
       if (searched_(pf)) { pf.peptide_ids = PeptideIdentificationList(); }
     }
-    returnPooledPsms_(merged.peptide_ids, result.per_file);
+    returnPooledPsms_(merged.peptide_ids, result.per_file,
+                      merged.file_peptide_q_values.empty() ? nullptr : &merged.file_peptide_q_values);
     if (merged.protein_ids.empty())
     {
       for (SearchResult& pf : result.per_file)

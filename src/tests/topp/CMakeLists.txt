@@ -6496,7 +6496,7 @@ add_test("TOPP_ProSE_11_rescore_info" ${TOPP_BIN_PATH}/FileInfo -test
 set_tests_properties("TOPP_ProSE_11_rescore_info" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore"
   PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
 # The protein inference ranked the proteins by the best PEP of their PSMs (as posterior probability), not by the PSM q-values;
-# the PSMs carry Percolator's peptide-level q-values also as 'peptide q-value' (the name EntrapmentEvaluator reads).
+# the PSMs carry the q-values of their peptides among the run's peptides, 'peptide q-value' (the name EntrapmentEvaluator reads).
 add_test("TOPP_ProSE_11_rescore_structure" ${CMAKE_COMMAND}
   -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_11_rescore_out.tmp.idXML
   "-DEXPECTED=<ProteinIdentification score_type=\"q-value\";name=\"Posterior Probability_score\";name=\"peptide q-value\""

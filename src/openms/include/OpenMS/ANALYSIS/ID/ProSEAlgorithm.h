@@ -322,6 +322,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       PeptideIdentificationList peptide_ids;
       /// picked-protein FDR applied and its filter at FDR:protein (and, with remove_decoys, the decoys removed)
       bool protein_fdr_applied = false;
+      /// With rescoring: per input (index as 'id_merge_index') and peptide (unmodified sequence), the input's own
+      /// 'peptide q-value', which splitMergedPsms() gives the PSMs back (the pooled PSMs have the one across the inputs)
+      std::vector<std::unordered_map<std::string, double>> file_peptide_q_values;
     };
 
     /**
@@ -513,29 +516,30 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     void annotatePsmQValues(PeptideIdentificationList& peptide_ids) const;
 
     /**
-     * @brief Peptide-level q-values of Percolator-rescored PSMs, also of PSMs pooled from several runs: meta value
+     * @brief Peptide-level q-values of Percolator-rescored PSMs, of one run or pooled from several: meta value
      * 'peptide q-value' (Constants::UserParam::PEPTIDE_Q_VALUE) of the first hit of each identification.
      *
-     * One target-decoy competition of peptides over all identifications in @p peptide_ids, as Percolator's peptide level
-     * (meta value 'percolator_peptide_q_value') within one run: the best PSM of each peptide (modified sequence) and
-     * label (target or decoy, meta value 'target_decoy'; 'target+decoy' counts as target) competes, and the q-value of a
-     * peptide is the lowest (decoy peptides + 1) / target peptides among the thresholds that accept it (Percolator's
-     * estimator with target-decoy competition, pi0 = 1; peptides of equal rank are accepted together).
+     * FalseDiscoveryRate::applyBasicPeptideLevel() over all identifications in @p peptide_ids, with their Percolator
+     * PEP (meta value 'percolator_pep') as the score: a peptide is an unmodified sequence, its best PSM (lowest PEP)
+     * competes with its label (meta value 'target_decoy'; 'target+decoy' counts as target), and the q-value of a
+     * peptide is the lowest (decoy peptides + 1) / (target peptides + 1) among the PEP thresholds that accept it
+     * (FalseDiscoveryRate's 'conservative' estimate; PEPs equal within 1e-12 are accepted together). The PEPs only rank
+     * the peptides; the q-values come from the target-decoy competition. The searches use it for each run (its own
+     * peptides) and for the pooled PSMs of several runs (mergeFileResults()), so the two have the same definition.
      *
-     * The PSMs are ranked by their Percolator PEP (meta value 'percolator_pep'), ties by their PSM q-value
-     * ('percolator_q_value'): the PEPs of different runs are on one scale, posterior probabilities of each run's model,
-     * which the SVM scores of the runs' models are not. Each run's PEPs of target and decoy PSMs come from the same
-     * function of its scores, so the decoy peptides above a threshold still estimate the false target peptides above
-     * it. A per-run peptide list at an FDR does not pool: true peptides recur across the runs, false ones rarely do, so
-     * the union of the runs' lists has a higher FDR than each list.
+     * The PSMs are ranked by PEP, not by the SVM score: the PEPs of different runs are on one scale, posterior
+     * probabilities of each run's model, which the SVM scores of the runs' models are not. Each run's PEPs of target and
+     * decoy PSMs come from the same function of its scores, so the decoy peptides above a threshold still estimate the
+     * false target peptides above it. A per-run peptide list at an FDR does not pool: true peptides recur across the
+     * runs, false ones rarely do, so the union of the runs' lists has a higher FDR than each list.
      *
      * Only the first hit of each identification is ranked, as the PSM of its spectrum (ProSE keeps only the best hit
-     * per spectrum after the rescoring); it gets the q-value of its peptide (a decoy hit that of its decoy peptide), the
-     * other hits lose a 'peptide q-value' they had. A PEP that is not a number ranks last.
+     * per spectrum after the rescoring); it gets the q-value of its peptide, the other hits lose a 'peptide q-value' they
+     * had. A PEP that is not a number ranks last. The main scores stay.
      *
      * @param[in,out] peptide_ids The PSMs, targets and decoys (e.g. the pooled PSMs of several runs, before decoys are
      *                            removed).
-     * @param[out] target_peptides_1pct If not null: the number of target peptides at q <= 0.01.
+     * @param[out] target_peptides_1pct If not null: the number of target peptides (unmodified sequences) at q <= 0.01.
      * @return false (and no hit keeps a 'peptide q-value') if a first hit has no 'percolator_pep' or no target/decoy
      *         annotation, e.g. a PSM of a run that Percolator did not rescore.
      */
@@ -550,9 +554,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * target-decoy competition (post_processing_tdc), the PSMs for training up to @p max_train_psms (subset_max_train)
      * and nonparametric PEPs, as the percolator executable. Percolator q-values become the main
      * score (score type "q-value"; the SVM score and PEP are kept as meta values), only the best
-     * hit per spectrum is kept (with Percolator's peptide level, its peptide's q-value 'percolator_peptide_q_value' also
-     * as 'peptide q-value', the name FalseDiscoveryRate and EntrapmentEvaluator use), and the runs are marked as
-     * post-processed by Percolator (search
+     * hit per spectrum is kept (with the q-value of its peptide among the run's peptides, 'peptide q-value', see
+     * annotatePeptideQValues(); not with rescore_method 'reset'), and the runs are marked as post-processed by
+     * Percolator (search
      * engine "Percolator", version "3.08-vendored", meta value 'percolator' and the
      * "Percolator:*" search parameter meta values PercolatorAdapter writes).
      *
@@ -902,11 +906,12 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *    the pooled run have one main score type, the PSMs of a file that was not rescored and has no q-values yet
      *    (FDR:PSM 0) get the target-decoy q-values of ProSE's score of their file (annotatePsmQValues(); unfiltered),
      *    as with FDR:PSM > 0.
-     *  - Peptide-level q-values across the files (rescoring:peptide_level, Percolator rescoring of every file that has
-     *    PSMs, not rescore_method 'reset'): annotatePeptideQValues() on the pooled PSMs (those that passed FDR:PSM in
-     *    their file; all with FDR:PSM 0), before the protein FDR removes decoys, replaces each file's own 'peptide
-     *    q-value'. Otherwise, the pooled PSMs keep no 'peptide q-value' (a per-file value is no FDR of the pooled
-     *    peptides), with a warning if Percolator rescored only some files.
+     *  - Peptide-level q-values across the files (Percolator rescoring of every file that has PSMs, not rescore_method
+     *    'reset'): annotatePeptideQValues() on the pooled PSMs (those that passed FDR:PSM in their file; all with
+     *    FDR:PSM 0), before the protein FDR removes decoys, replaces each file's own 'peptide q-value' (the same
+     *    function on the file's PSMs before FDR:PSM), which the result keeps per file and peptide
+     *    (@c file_peptide_q_values, for splitMergedPsms()). Otherwise, the pooled PSMs keep no 'peptide q-value' (a
+     *    per-file value is no FDR of the pooled peptides), with a warning.
      *  - With FDR:protein > 0 and decoys in the searched database: applyCompleteSetProteinFDR(), whose inference also
      *    uses the PSMs of the files between FDR:PSM and FDR:protein_inference_PSM
      *    (@c per_file[i].inference_only_peptide_ids, which are moved out), with picked-protein FDR (Savitski et al.
@@ -948,8 +953,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * fail the protein FDR and, with its remove_decoys, the decoy PSMs; it also drops the peptide evidences of the
      * proteins that failed. This moves the PSMs of @p merged (merged.peptide_ids, empty afterwards) into the files of
      * @p result by their 'id_merge_index' (the input position of their file, which is removed), in their order, as the
-     * PSMs of the runs of the files (their identifiers). Their 'peptide q-value' becomes the file's own again (its
-     * 'percolator_peptide_q_value'; none without), not the one across the files that the pooled result has. The
+     * PSMs of the runs of the files (their identifiers). Their 'peptide q-value' becomes the file's own again
+     * (merged.file_peptide_q_values; none without), not the one across the files that the pooled result has. The
      * proteins of each file become the proteins of the pooled
      * run (merged.protein_ids) that its PSMs reference, with their pooled scores (e.g. the q-values of the protein FDR,
      * with the pooled run's score type and inference engine) and the pooled indistinguishable groups and protein groups
@@ -2100,8 +2105,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     /// Helper: moves the PSMs of @p pooled (empty afterwards) to their files of @p per_file (searchedFileOf_(); others are
     /// dropped), without 'id_merge_index', in their order, as PSMs of the files' runs (their identifiers), appended to
-    /// the files' PSMs.
-    static void returnPooledPsms_(PeptideIdentificationList& pooled, std::vector<SearchResult>& per_file);
+    /// the files' PSMs. With @p file_peptide_q_values (filePeptideQValues_()), their 'peptide q-value' becomes their
+    /// file's own again (none if their file had none for their peptide); without, it stays.
+    static void returnPooledPsms_(PeptideIdentificationList& pooled, std::vector<SearchResult>& per_file,
+                                  const std::vector<std::unordered_map<std::string, double>>* file_peptide_q_values);
+
+    /// Helper: the 'peptide q-value' of the pooled PSMs @p pooled per file ('id_merge_index', below @p files) and
+    /// peptide (unmodified sequence): each file's own, one per peptide of the file (annotatePeptideQValues())
+    static std::vector<std::unordered_map<std::string, double>> filePeptideQValues_(const PeptideIdentificationList& pooled,
+                                                                                    Size files);
 
     /// Helper: capture statistics that must be read BEFORE FDR filtering, namely
     /// target/decoy PSM counts (via the "target_decoy" meta set by PeptideIndexing;

@@ -6131,19 +6131,19 @@ START_SECTION((static bool annotatePeptideQValues(PeptideIdentificationList& pep
       { return std::any_of(id.getHits().begin(), id.getHits().end(), [&name](const PeptideHit& hit) { return hit.metaValueExists(name); }); });
   };
 
-  // The peptides by rank (PEP, then PSM q-value), the target and decoy peptides accepted at that rank, and (D + 1) / T:
-  //   PEPTIDEMK (the better of its two PSMs, one per run)          1 0  1
-  //   ELVISLIVESK                                                  2 0  1/2
-  //   SAMPLERK                                                     3 0  1/3
-  //   PEPTIDEM(Oxidation)K (a peptide of its own)                  4 0  1/4
-  //   KMEDITPEP, decoy (the better of its two PSMs)                4 1  2/4
-  //   LASTPEPTIDEK                                                 5 1  2/5
-  //   QNTHERPEPK                                                   6 1  2/6
-  //   SHAREDPEPK, target+decoy (a target)                          7 1  2/7
-  //   TIEDPEPTIDEK and KEDITPEPDEIT (decoy), of equal rank         8 2  3/8, for both (accepted together)
-  //   PEPTIDEMK, decoy (a peptide of its own; equal PEP, higher q) 8 3  4/8
-  //   NANPEPTIDEK (a PEP that is not a number ranks last)          9 3  4/9
-  // The q-value of a peptide is the lowest (D + 1) / T at its rank or below, and each PSM gets that of its peptide.
+  // The peptides (unmodified sequences) by PEP, the target and decoy peptides accepted at that PEP, and FalseDiscoveryRate's
+  // (D + 1) / (T + 1) (FalseDiscoveryRate::applyBasicPeptideLevel(), 'conservative'):
+  //   PEPTIDEMK (the best of its PSMs: two runs, and PEPTIDEM(Oxidation)K)  1 0  1/2
+  //   ELVISLIVESK                                                           2 0  1/3
+  //   SAMPLERK                                                              3 0  1/4
+  //   KMEDITPEP, decoy (the better of its two PSMs)                         3 1  2/4
+  //   LASTPEPTIDEK                                                          4 1  2/5
+  //   QNTHERPEPK                                                            5 1  2/6
+  //   SHAREDPEPK, target+decoy (a target)                                   6 1  2/7
+  //   TIEDPEPTIDEK, EDITPEPMK (decoy) and KEDITPEPDEIT (decoy), equal PEP   7 3  4/8, for all three (accepted together)
+  //   NANPEPTIDEK (a PEP that is not a number ranks last)                   8 3  4/9
+  // The q-value of a peptide is the lowest FDR at its PEP or above, and each PSM gets that of its peptide (the PSM
+  // q-values play no part).
   const double nan = std::numeric_limits<double>::quiet_NaN();
   const std::vector<Psm> psms = {
     {"KMEDITPEP", "decoy", 0.5, 0.4, "run_b"},
@@ -6151,8 +6151,8 @@ START_SECTION((static bool annotatePeptideQValues(PeptideIdentificationList& pep
     {"NANPEPTIDEK", "target", nan, 0.1, "run_a"},
     {"ELVISLIVESK", "target", 2e-3, 3e-3, "run_a"},
     {"TIEDPEPTIDEK", "target", 0.05, 0.06, "run_b"},
-    {"PEPTIDEMK", "decoy", 0.05, 0.07, "run_a"},
-    {"KEDITPEPDEIT", "decoy", 0.05, 0.06, "run_a"},
+    {"EDITPEPMK", "decoy", 0.05, 0.07, "run_a"},
+    {"KEDITPEPDEIT", "decoy", 0.05, 0.05, "run_a"},
     {"SAMPLERK", "target", 3e-3, 4e-3, "run_b"},
     {"PEPTIDEM(Oxidation)K", "target", 4e-3, 5e-3, "run_a"},
     {"KMEDITPEP", "decoy", 0.01, 0.02, "run_a"},
@@ -6160,7 +6160,7 @@ START_SECTION((static bool annotatePeptideQValues(PeptideIdentificationList& pep
     {"PEPTIDEMK", "target", 1e-4, 1e-3, "run_b"},
     {"QNTHERPEPK", "target", 0.03, 0.04, "run_a"},
     {"SHAREDPEPK", "target+decoy", 0.04, 0.05, "run_b"}};
-  const std::vector<double> expected = {2.0 / 7, 0.25, 4.0 / 9, 0.25, 0.375, 4.0 / 9, 0.375, 0.25, 0.25, 2.0 / 7, 2.0 / 7, 0.25, 2.0 / 7, 2.0 / 7};
+  const std::vector<double> expected = {2.0 / 7, 0.25, 4.0 / 9, 0.25, 4.0 / 9, 4.0 / 9, 4.0 / 9, 0.25, 0.25, 2.0 / 7, 2.0 / 7, 0.25, 2.0 / 7, 2.0 / 7};
   PeptideIdentificationList ids = make_ids(psms);
   // a lower-ranked hit with a value from before, and a spectrum without hits
   PeptideHit second(0.5, 2, 2, AASequence::fromString("ELVISLIVESR"));
@@ -6180,9 +6180,9 @@ START_SECTION((static bool annotatePeptideQValues(PeptideIdentificationList& pep
   TEST_FALSE(ids[3].getHits()[1].metaValueExists(name)) // only the first hit is ranked
   TEST_TRUE(ids.back().getHits().empty())
 
-  // target_peptides_1pct: by PEP, 150 target peptides, a decoy, 100 targets and 10 decoys. (D + 1) / T is 1/150 after the
-  // first 150, 2/150 at the decoy, 2/250 = 0.008 after the next 100, then 3/250 .. 12/250: all 250 targets (and the decoy
-  // among them, which is not counted) have q <= 0.01, the 10 decoys at the end 0.012 and more.
+  // target_peptides_1pct: by PEP, 150 target peptides, a decoy, 100 targets and 10 decoys. (D + 1) / (T + 1) is 1/151
+  // after the first 150, 2/151 at the decoy, 2/251 after the next 100, then 3/251 .. 12/251: all 250 targets (and the
+  // decoy among them, which is not counted) have q <= 0.01, the 10 decoys at the end 0.012 and more.
   const std::string residues = "ACDEFGHIKLMNPQRSTVWY";
   std::vector<Psm> many;
   for (Size i = 0; i < 261; ++i)
@@ -6194,11 +6194,11 @@ START_SECTION((static bool annotatePeptideQValues(PeptideIdentificationList& pep
   ids = make_ids(many);
   TEST_TRUE(ProSEAlgorithm::annotatePeptideQValues(ids, &target_peptides_1pct))
   TEST_EQUAL(target_peptides_1pct, 250)
-  TEST_REAL_SIMILAR(q_of(ids[0]), 1.0 / 150)
-  TEST_REAL_SIMILAR(q_of(ids[150]), 0.008)
-  TEST_REAL_SIMILAR(q_of(ids[200]), 0.008)
-  TEST_REAL_SIMILAR(q_of(ids[251]), 0.012)
-  TEST_REAL_SIMILAR(q_of(ids[260]), 0.048)
+  TEST_REAL_SIMILAR(q_of(ids[0]), 1.0 / 151)
+  TEST_REAL_SIMILAR(q_of(ids[150]), 2.0 / 251)
+  TEST_REAL_SIMILAR(q_of(ids[200]), 2.0 / 251)
+  TEST_REAL_SIMILAR(q_of(ids[251]), 3.0 / 251)
+  TEST_REAL_SIMILAR(q_of(ids[260]), 12.0 / 251)
 
   // A PSM without a PEP (e.g. of a run that Percolator did not rescore) or without a label: no peptide-level q-values,
   // and none of before is left
@@ -6341,6 +6341,27 @@ START_SECTION((static PercolatorRescoring rescoreWithPercolator(std::vector<Prot
   TEST_TRUE(accepted > 0)
   TEST_TRUE(scores_are_q_values)
   TEST_TRUE(svm_and_pep)
+
+  // the q-value of each PSM's peptide among the run's peptides, annotatePeptideQValues() on all its PSMs: one per
+  // unmodified sequence (the forms of a peptide with and without a modification share it)
+  PeptideIdentificationList recomputed = percolator_rescored_peptides;
+  TEST_TRUE(ProSEAlgorithm::annotatePeptideQValues(recomputed))
+  std::map<std::string, double> q_of_peptide;
+  Size other_q = 0, not_one_per_peptide = 0;
+  for (Size i = 0; i < percolator_rescored_peptides.size(); ++i)
+  {
+    if (percolator_rescored_peptides[i].getHits().empty()) { continue; }
+    const PeptideHit& hit = percolator_rescored_peptides[i].getHits()[0];
+    TEST_TRUE(hit.metaValueExists(Constants::UserParam::PEPTIDE_Q_VALUE))
+    if (!hit.metaValueExists(Constants::UserParam::PEPTIDE_Q_VALUE)) { continue; }
+    const double q = static_cast<double>(hit.getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE));
+    other_q += q != static_cast<double>(recomputed[i].getHits()[0].getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE));
+    const auto [it, inserted] = q_of_peptide.emplace(hit.getSequence().toUnmodifiedString(), q);
+    not_one_per_peptide += !inserted && it->second != q;
+  }
+  TEST_FALSE(q_of_peptide.empty())
+  TEST_EQUAL(other_q, 0)
+  TEST_EQUAL(not_one_per_peptide, 0)
 
   // the run is marked as post-processed by Percolator
   const ProteinIdentification& run = percolator_rescored_proteins[0];
@@ -6891,21 +6912,49 @@ const auto target_psms = [](const PeptideIdentificationList& peptides)
   std::sort(psms.begin(), psms.end());
   return psms;
 };
-// Whether the PSMs carry the peptide-level q-values of their own run: the hits with a 'peptide q-value' and those with
-// a 'percolator_peptide_q_value' are the same, with the same values, and there is at least one
-const auto own_peptide_q_values = [](const PeptideIdentificationList& peptides)
+// The 'peptide q-value' of the PSMs per peptide (unmodified sequence) in @p q_of_peptide; false if a first hit with a
+// Percolator PEP has none, another hit has one, two PSMs of a peptide have different ones, or none has one
+const auto peptide_q_values = [](const PeptideIdentificationList& peptides, std::map<std::string, double>& q_of_peptide)
 {
-  Size with = 0;
+  q_of_peptide.clear();
   for (const PeptideIdentification& id : peptides)
   {
-    for (const PeptideHit& hit : id.getHits())
+    const std::vector<PeptideHit>& hits = id.getHits();
+    for (Size h = 0; h < hits.size(); ++h)
     {
-      const bool own = hit.metaValueExists("percolator_peptide_q_value");
-      if (own != hit.metaValueExists(Constants::UserParam::PEPTIDE_Q_VALUE)) { return false; }
-      if (!own) { continue; }
-      if (static_cast<double>(hit.getMetaValue("percolator_peptide_q_value")) != static_cast<double>(hit.getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE))) { return false; }
-      ++with;
+      const bool has = hits[h].metaValueExists(Constants::UserParam::PEPTIDE_Q_VALUE);
+      if (h > 0 ? has : has != hits[h].metaValueExists("percolator_pep")) { return false; }
+      if (!has) { continue; }
+      const double q = static_cast<double>(hits[h].getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE));
+      const auto [it, inserted] = q_of_peptide.emplace(hits[h].getSequence().toUnmodifiedString(), q);
+      if (!inserted && it->second != q) { return false; }
     }
+  }
+  return !q_of_peptide.empty();
+};
+// Whether the PSMs carry the 'peptide q-value' of their own run as @p own (peptide_q_values() of the run's PSMs before),
+// for every peptide they have
+const auto own_peptide_q_values = [&peptide_q_values](const PeptideIdentificationList& peptides, const std::map<std::string, double>& own)
+{
+  std::map<std::string, double> values;
+  if (!peptide_q_values(peptides, values)) { return false; }
+  return std::all_of(values.begin(), values.end(), [&own](const std::pair<const std::string, double>& v)
+    { const auto it = own.find(v.first); return it != own.end() && it->second == v.second; });
+};
+// Whether the 'peptide q-value' of each PSM is that of annotatePeptideQValues() on the PSMs (of a run, all of them)
+const auto run_peptide_q_values = [](const PeptideIdentificationList& peptides)
+{
+  PeptideIdentificationList recomputed = peptides;
+  if (!ProSEAlgorithm::annotatePeptideQValues(recomputed)) { return false; }
+  Size with = 0;
+  for (Size i = 0; i < peptides.size(); ++i)
+  {
+    if (peptides[i].getHits().empty()) { continue; }
+    const PeptideHit& hit = peptides[i].getHits()[0];
+    if (!hit.metaValueExists(Constants::UserParam::PEPTIDE_Q_VALUE)) { return false; }
+    if (static_cast<double>(hit.getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE))
+        != static_cast<double>(recomputed[i].getHits()[0].getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE))) { return false; }
+    ++with;
   }
   return with > 0;
 };
@@ -6923,12 +6972,14 @@ START_SECTION((MergedResult mergeFileResults(MultiFileSearchResult& result, cons
   configure_merge(algo, "generate");
   merge_search = algo.searchWithModificationAnalysis(merge_files, merge_database_file);
   ABORT_IF(merge_search.per_file.size() != 2)
-  for (const ProSEAlgorithm::SearchResult& file : merge_search.per_file)
+  // each file's own 'peptide q-value' (annotatePeptideQValues() on its PSMs), per peptide
+  std::vector<std::map<std::string, double>> own_q(merge_search.per_file.size());
+  for (Size i = 0; i < merge_search.per_file.size(); ++i)
   {
+    const ProSEAlgorithm::SearchResult& file = merge_search.per_file[i];
     TEST_TRUE(file.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
     TEST_TRUE(file.percolator.applied)
-    // each file's 'peptide q-value': Percolator's peptide level of its run (rescoring:peptide_level, by default)
-    TEST_TRUE(own_peptide_q_values(file.peptide_ids))
+    TEST_TRUE(peptide_q_values(file.peptide_ids, own_q[i]))
   }
   ABORT_IF(merge_search.aggregate.protein_ids.size() != 1) // the search pooled the files
   // the pooled run has decoy proteins and decoy PSMs, which the protein FDR's finalization removes
@@ -7012,8 +7063,15 @@ START_SECTION((MergedResult mergeFileResults(MultiFileSearchResult& result, cons
   }
   TEST_TRUE(with_hits > 0)
   TEST_EQUAL(compared, with_hits)
+  // the files' own values, kept for the split
+  ABORT_IF(merged.file_peptide_q_values.size() != 2)
+  for (Size i = 0; i < 2; ++i)
+  {
+    const std::map<std::string, double> kept(merged.file_peptide_q_values[i].begin(), merged.file_peptide_q_values[i].end());
+    TEST_TRUE(kept == own_q[i])
+  }
   ProSEAlgorithm::splitMergedPsms(merged, result);
-  for (const ProSEAlgorithm::SearchResult& file : result.per_file) { TEST_TRUE(own_peptide_q_values(file.peptide_ids)) }
+  for (Size i = 0; i < result.per_file.size(); ++i) { TEST_TRUE(own_peptide_q_values(result.per_file[i].peptide_ids, own_q[i])) }
 }
 END_SECTION
 
@@ -7087,7 +7145,9 @@ START_SECTION(([EXTRA] a file too small for its own Percolator model gets the sc
     TEST_TRUE(result.per_file[0].percolator.applied)
     TEST_EQUAL(result.per_file[0].percolator.warning, "")
     TEST_TRUE(psms(result.per_file[0].peptide_ids) == psms(large_alone.per_file[0].peptide_ids))
-    TEST_TRUE(own_peptide_q_values(result.per_file[0].peptide_ids))
+    std::map<std::string, double> large_q;
+    TEST_TRUE(peptide_q_values(result.per_file[0].peptide_ids, large_q))
+    if (psm_fdr == 0.0) { TEST_TRUE(run_peptide_q_values(result.per_file[0].peptide_ids)) } // all its PSMs
     // the small file: the transferred model, and a note in its outcome (the run view's rescoring_warning)
     const ProSEAlgorithm::SearchResult& small = result.per_file[1];
     TEST_TRUE(small.percolator.applied)
@@ -7112,15 +7172,21 @@ START_SECTION(([EXTRA] a file too small for its own Percolator model gets the sc
       by_svm.push_back(copy);
     }
     TEST_EQUAL(without_pep, 0)
-    // no peptide-level q-values of its own run: the transferred model scores no peptide level
-    const auto peptide_q_value_of_small = [](const PeptideIdentification& id)
+    // no Percolator peptide level of its own run (the transferred model scores none), but its own 'peptide q-value', on
+    // the PEPs of that model, as a file rescored on its own
+    const auto percolator_peptide_level = [](const PeptideIdentification& id)
     {
       return std::any_of(id.getHits().begin(), id.getHits().end(), [](const PeptideHit& hit)
-        { return hit.metaValueExists(Constants::UserParam::PEPTIDE_Q_VALUE) || hit.metaValueExists("percolator_peptide_q_value"); });
+        { return hit.metaValueExists("percolator_peptide_q_value"); });
     };
-    TEST_TRUE(std::none_of(small_psms.begin(), small_psms.end(), peptide_q_value_of_small))
+    TEST_TRUE(std::none_of(small_psms.begin(), small_psms.end(), percolator_peptide_level))
+    const bool small_has_hits = std::any_of(small_psms.begin(), small_psms.end(),
+                                            [](const PeptideIdentification& id) { return !id.getHits().empty(); });
+    std::map<std::string, double> small_q;
+    TEST_EQUAL(peptide_q_values(small_psms, small_q), small_has_hits)
     if (psm_fdr == 0.0) // all PSMs of the file: its own target-decoy q-values, (D + 1) / T as Percolator's
     {
+      TEST_TRUE(run_peptide_q_values(small_psms))
       ProSEAlgorithm_test::tdcQValues_(by_svm, true);
       Size other_q = 0;
       for (Size i = 0, k = 0; i < small_psms.size(); ++i)
@@ -7230,6 +7296,11 @@ START_SECTION(([EXTRA] files all too small for their own Percolator model are re
     {
       for (const PeptideHit& hit : id.getHits()) { TEST_TRUE(hit.metaValueExists("MS:1001493")) }
     }
+    // each file's own 'peptide q-value', on the PEPs of the joint model (if a PSM passed FDR:PSM)
+    const bool has_hits = std::any_of(file.peptide_ids.begin(), file.peptide_ids.end(),
+                                      [](const PeptideIdentification& id) { return !id.getHits().empty(); });
+    std::map<std::string, double> q_of_peptide;
+    TEST_EQUAL(peptide_q_values(file.peptide_ids, q_of_peptide), has_hits)
   }
   TEST_TRUE(with_psms > 0)
 }
