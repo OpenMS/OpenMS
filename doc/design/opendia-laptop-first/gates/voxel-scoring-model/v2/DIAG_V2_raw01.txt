@@ -1,0 +1,42 @@
+
+===== raw01: base N@1% 1024  (anchors among them 474)
+--- V0: N@1% 422  lost 622  gained 20  (gained entrapment 2)
+    window choice: lost base hits with the SAME winner window 0.82; median |dRT| of moved winners 11.6 s
+    swap: arm score on BASE windows N@1% 375;  base score on ARM windows N@1% 817
+    raw logit range -32.8..30.4; share of windows in top 1 % of range 0.0000; target winners tied at max 1
+    base hits, arm-score percentile among arm decoy winners: anchors median 100.0 (n 474), non-anchors median 100.0, non-anchors below the 99th 0.02
+    medians                   transition_s log_matched_ log_peak_wid abs_library_ boundary_log boundary_log boundary_coe boundary_lib boundary_ape      byion_b      byion_y
+    base hits                         6.000        2.674        3.695       15.476        1.676        2.773        0.848        0.884        1.000        5.000        7.000
+    arm windows of lost               6.000        2.565        3.655       16.900        1.683        2.648        0.727        0.744        1.000        4.000        7.000
+    arm top decoys (11)               5.000        2.197        2.521       58.088        1.669        2.506        0.461        0.517        0.833        2.000        4.000
+    base top decoys (8)               6.000        2.799        3.411        6.143        1.630        2.577        0.666        0.772        0.833        4.000        5.000
+--- F0: N@1% 697  lost 368  gained 41  (gained entrapment 2)
+    window choice: lost base hits with the SAME winner window 0.99; median |dRT| of moved winners 14.8 s
+    swap: arm score on BASE windows N@1% 882;  base score on ARM windows N@1% 1034
+    raw logit range -28.5..18.0; share of windows in top 1 % of range 0.0000; target winners tied at max 1
+    base hits, arm-score percentile among arm decoy winners: anchors median 100.0 (n 474), non-anchors median 100.0, non-anchors below the 99th 0.00
+    medians                   transition_s log_matched_ log_peak_wid abs_library_ boundary_log boundary_log boundary_coe boundary_lib boundary_ape      byion_b      byion_y
+    base hits                         6.000        2.674        3.695       15.476        1.676        2.773        0.848        0.884        1.000        5.000        7.000
+    arm windows of lost               6.000        2.639        3.657       14.669        1.702        2.648        0.686        0.742        1.000        4.000        7.000
+    arm top decoys (7)                6.000        2.197        2.524       11.354        1.699        2.773        0.548        0.520        0.833        3.000        5.000
+    base top decoys (8)               6.000        2.799        3.411        6.143        1.630        2.577        0.666        0.772        0.833        4.000        5.000
+--- S0: N@1% 638  lost 441  gained 55  (gained entrapment 3)
+    window choice: lost base hits with the SAME winner window 0.75; median |dRT| of moved winners 11.6 s
+    swap: arm score on BASE windows N@1% 553;  base score on ARM windows N@1% 620
+    raw logit range -30.4..19.9; share of windows in top 1 % of range 0.0000; target winners tied at max 1
+    base hits, arm-score percentile among arm decoy winners: anchors median 100.0 (n 474), non-anchors median 100.0, non-anchors below the 99th 0.01
+    medians                   transition_s log_matched_ log_peak_wid abs_library_ boundary_log boundary_log boundary_coe boundary_lib boundary_ape      byion_b      byion_y
+    base hits                         6.000        2.674        3.695       15.476        1.676        2.773        0.848        0.884        1.000        5.000        7.000
+    arm windows of lost               6.000        2.565        3.616       15.615        1.689        2.579        0.674        0.677        1.000        4.000        6.000
+    arm top decoys (14)               5.500        3.113        3.542       50.103        1.734        2.292        0.223        0.529        0.833        1.500        4.000
+    base top decoys (8)               6.000        2.799        3.411        6.143        1.630        2.577        0.666        0.772        0.833        4.000        5.000
+--- FS: N@1% 921  lost 185  gained 82  (gained entrapment 2)
+    window choice: lost base hits with the SAME winner window 0.99; median |dRT| of moved winners 15.6 s
+    swap: arm score on BASE windows N@1% 1015;  base score on ARM windows N@1% 1033
+    raw logit range -30.8..27.9; share of windows in top 1 % of range 0.0000; target winners tied at max 1
+    base hits, arm-score percentile among arm decoy winners: anchors median 100.0 (n 474), non-anchors median 100.0, non-anchors below the 99th 0.00
+    medians                   transition_s log_matched_ log_peak_wid abs_library_ boundary_log boundary_log boundary_coe boundary_lib boundary_ape      byion_b      byion_y
+    base hits                         6.000        2.674        3.695       15.476        1.676        2.773        0.848        0.884        1.000        5.000        7.000
+    arm windows of lost               6.000        2.639        3.654       14.684        1.738        2.648        0.642        0.663        1.000        4.000        6.000
+    arm top decoys (5)                6.000        2.944        3.361        9.570        1.669        2.506        0.687        0.796        0.833        3.000        5.000
+    base top decoys (8)               6.000        2.799        3.411        6.143        1.630        2.577        0.666        0.772        0.833        4.000        5.000

@@ -1,0 +1,28 @@
+
+===== raw01
+BASE entrapment in top 500/1000/1500 targets: 0/5/30 | decoy winners above target #1000: 8 | top-1500 entrapment: base rank median 1324
+V0   entrapment in top 500/1000/1500 targets: 4/39/118 | decoy winners above target #1000: 65 | top-1500 entrapment: base rank median 2428
+     medians      transition_s log_matched_ log_peak_wid abs_library_ boundary_log boundary_log boundary_coe boundary_lib boundary_ape      byion_b      byion_y
+     top non-ent         6.000        2.773        3.696       18.621        1.704        2.648        0.781        0.833        1.000        4.000        6.000
+     top entrap          4.000        2.890        3.495       49.087        1.743        2.648        0.181        0.541        0.667        2.000        3.000
+F0   entrapment in top 500/1000/1500 targets: 0/14/67 | decoy winners above target #1000: 26 | top-1500 entrapment: base rank median 1772
+S0   entrapment in top 500/1000/1500 targets: 2/24/82 | decoy winners above target #1000: 35 | top-1500 entrapment: base rank median 2260
+FS   entrapment in top 500/1000/1500 targets: 1/6/35 | decoy winners above target #1000: 7 | top-1500 entrapment: base rank median 1619
+     medians      transition_s log_matched_ log_peak_wid abs_library_ boundary_log boundary_log boundary_coe boundary_lib boundary_ape      byion_b      byion_y
+     top non-ent         6.000        2.708        3.695       15.425        1.671        2.773        0.851        0.901        1.000        5.000        7.000
+     top entrap          5.000        2.708        3.366       27.877        1.702        2.773        0.543        0.709        0.833        3.000        4.000
+library-only target-vs-decoy AUC 0.500; entrapment-vs-decoy 0.499
+
+===== raw02
+BASE entrapment in top 500/1000/1500 targets: 0/1/27 | decoy winners above target #1000: 3 | top-1500 entrapment: base rank median 1376
+V0   entrapment in top 500/1000/1500 targets: 3/24/70 | decoy winners above target #1000: 33 | top-1500 entrapment: base rank median 2316
+     medians      transition_s log_matched_ log_peak_wid abs_library_ boundary_log boundary_log boundary_coe boundary_lib boundary_ape      byion_b      byion_y
+     top non-ent         6.000        2.740        3.698       17.400        1.702        2.648        0.763        0.834        1.000        4.000        6.000
+     top entrap          4.000        2.803        3.420       33.538        1.720        2.614        0.302        0.637        0.833        2.000        3.000
+F0   entrapment in top 500/1000/1500 targets: 0/10/43 | decoy winners above target #1000: 16 | top-1500 entrapment: base rank median 1821
+S0   entrapment in top 500/1000/1500 targets: 2/19/68 | decoy winners above target #1000: 31 | top-1500 entrapment: base rank median 2506
+FS   entrapment in top 500/1000/1500 targets: 0/3/31 | decoy winners above target #1000: 11 | top-1500 entrapment: base rank median 1595
+     medians      transition_s log_matched_ log_peak_wid abs_library_ boundary_log boundary_log boundary_coe boundary_lib boundary_ape      byion_b      byion_y
+     top non-ent         6.000        2.639        3.611       14.534        1.673        2.712        0.842        0.887        1.000        4.000        7.000
+     top entrap          5.000        2.639        3.175       22.859        1.682        2.773        0.500        0.743        0.833        2.000        5.000
+library-only target-vs-decoy AUC 0.500; entrapment-vs-decoy 0.499
