@@ -52,3 +52,14 @@ The gained IDs agree with the baseline less often than the CNN IDs do. That coul
 An entrapment check is required before any native change is accepted.
 The largest weights are support, |RT error| and area. Decoys have a larger median |RT error| than targets: 4.7 s against 3.1 s.
 This is a same-run, teacher-seeded diagnostic, not a result.
+
+## Status, 10 November 2026 (Astral design raws)
+
+| N at entrapment FDP_c 1 % | raw 01 | raw 02 |
+|---|---|---|
+| Native base (CNN + LDA, `search+boundary+byion`) | 1029 | 1298 |
+| OSW + Percolator, same library (reference only) | 1151 | 1287 |
+
+- Raw 02 is at the OSW + Percolator level. Raw 01 is at 89 %.
+- The gap to OSW on raw 01 is score formation on the right peak, not candidates or calibration (`gates/astral-raw01-rethink/gap2/`).
+- The next attempt to close the gap is the single voxel scoring model (R-WP3).

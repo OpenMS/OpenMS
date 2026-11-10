@@ -1,0 +1,17 @@
+== IDs
+raw01 P1 N at FDP_c 0.5/1/1.5/2%: [916, 1024, 1252, 1305] | q<=0.01: 1106 FDP_c 0.013 | q<=0.05: 1642 FDP_c 0.065 | 18.2 min 23.7 GB | internal True | rule fail
+   bootstrap P1 - base: @1% 90% -24..36 | @2% 90% -39..31
+   AUC(entrapment > decoy) base: boundary_log_width=0.511 boundary_coelution=0.509 stage2_score=0.500
+   AUC(entrapment > decoy) P1: boundary_log_width=0.509 boundary_coelution=0.508 stage2_score=0.500
+raw02 P1 N at FDP_c 0.5/1/1.5/2%: [1243, 1323, 1346, 1415] | q<=0.01: 1234 FDP_c 0.005 | q<=0.05: 1820 FDP_c 0.075 | 18.8 min 23.6 GB | internal True | rule fail
+   bootstrap P1 - base: @1% 90% -1..38 | @2% 90% -26..45
+   AUC(entrapment > decoy) base: boundary_log_width=0.512 boundary_coelution=0.511 stage2_score=0.500
+   AUC(entrapment > decoy) P1: boundary_log_width=0.509 boundary_coelution=0.510 stage2_score=0.501
+ID rule: FAIL ([False, False])
+== Quant
+raw01: base 1% non-entrapment IDs 1024, quantified rows 1024 | boundaries changed 0.257 | median width naive 15.00s refined 15.00s | quantitative fragments hist 0:0.00 1:0.01 2:0.03 3:0.06 4:0.20 5:0.30 6:0.39
+raw02: base 1% non-entrapment IDs 1292, quantified rows 1292 | boundaries changed 0.323 | median width naive 14.06s refined 14.06s | quantitative fragments hist 0:0.01 1:0.02 2:0.06 3:0.12 4:0.23 5:0.26 6:0.31
+precursor set (base 1% non-entrapment in both raws) 953; refined quantifies 922 (0.967)
+robust SD log2(01/02): naive 0.1398 refined 0.1475 (ratio 1.055); bootstrap 90% of refined-naive -0.0026..0.0167
+Quant rule: FAIL
+reference: Spearman with DIA-NN Precursor.Quantity (raw 01, n=907): naive 0.892 refined 0.892; DIA-NN 01/02 robust SD 0.335 (72k)

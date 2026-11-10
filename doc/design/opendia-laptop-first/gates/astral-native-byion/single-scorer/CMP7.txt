@@ -1,0 +1,4 @@
+raw01/P1: crossfit cols 1-6,9 IDENTICAL to base
+raw01/P1: features cols 1-9,15-16 IDENTICAL to base
+raw02/P1: crossfit cols 1-6,9 IDENTICAL to base
+raw02/P1: features cols 1-9,15-16 IDENTICAL to base

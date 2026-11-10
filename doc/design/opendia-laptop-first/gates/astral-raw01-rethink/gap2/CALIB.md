@@ -402,3 +402,17 @@ The decision rule is the same as before. The mechanism is checked by the entrapm
 **Mechanism.** The refine counts separate entrapment from decoy winners much less than `transition_support` (AUC 0.507–0.512 against 0.524–0.525). The refined evidence is less target-biased, but it is also weaker. The mask zeroes about 3 of 6 fragments in 90% of windows. With six fragments and short peaks, a median consensus cut at 0.75 removes real signal. EncyclopeDIA uses the cut for quantification after detection, not for detection.
 
 **Planning error.** The planned R1 internal check compared `precursor_best`, which differs by design. A post-hoc check of the CNN columns is IDENTICAL. The verdict does not depend on this check.
+
+## 15. Refined peak picking and refined quantification: FAIL (`astral-native-byion/single-scorer/PLAN7.md`)
+
+Code `dfbe38b470` adds two opt-in options. Defaults do not change, and the HeLa default output is IDENTICAL.
+- `-stage2_refined_picking_min_r`: the boundary group picks the peak again on the fragments with r ≥ the cut. The features are still measured over all fragments.
+- `-quant_out`: for each in-window row, the naive and the refined area, the boundaries, and the area and r of each fragment.
+
+The plan was written before the run. It has one arm, P1, with the cut at 0.75. The internal check (CNN and search columns identical to base) holds on both raws.
+
+**IDs (`RESULT7.md`).** N@1 % is 1024 on raw 01 and 1323 on raw 02, against 1029 and 1298 for base. Rule 1 fails on both raws. The paired bootstrap 90 % interval of P1 − base includes 0 on both raws, at 1 % and at 2 %. So the change is in the noise of the metric, with no clear gain and no clear loss.
+
+**Quantification.** On 953 base 1 % non-entrapment precursors in both raws, the robust SD of log2(01/02) is 0.1398 for naive and 0.1475 for refined (ratio 1.055). The bootstrap interval of the difference is −0.0026..+0.0167. The rule needed a ratio ≤ 0.95 and an interval below 0. FAIL. Spearman with DIA-NN quantities is 0.892 for both methods.
+
+**Reading.** On the precursors that we identify, 57–69 % of windows already have 5 or 6 fragments with r ≥ 0.9. Refinement has little to remove, and removing fragments does not make the replicate ratio more stable. Rounds 6 and 7 together show that transition refinement does not help detection or quantification on these runs. The next step is the single voxel scoring model (`gates/voxel-scoring-model/DESIGN.md`).

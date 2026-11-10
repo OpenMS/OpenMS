@@ -30,6 +30,11 @@ M = np.zeros((n, 4, RT_BINS), np.float32); LIB = np.zeros((n, 6), np.float32); s
 def dec(blob, kind):
     if blob is None or len(blob) == 0: return np.zeros(0)
     raw = zlib.decompress(blob)
+    if kind == 5 and len(raw) == 12:
+        # One-point linear array: 8-byte big-endian fixed point, then the value as int32 little-endian.
+        # pynumpress.decode_linear rejects this case.
+        fp = np.frombuffer(raw[:8], '>f8')[0]
+        return np.array([np.frombuffer(raw[8:12], '<i4')[0] / fp])
     return np.asarray(pynumpress.decode_linear(raw) if kind == 5 else pynumpress.decode_slof(raw), float)
 
 f = pq.ParquetFile(O + '/export01/pilot.xipm')
@@ -44,7 +49,9 @@ for rg in range(f.num_row_groups):
         it = dec(t['INTENSITY_DATA'][k], t['INTENSITY_COMPRESSION'][k])
         if len(mz) == 0: continue
         target = t['TARGET_MZ'][k]
-        ppm = (mz - target) / target * 1e6 - OFF
+        # MS2 targets in the export are already calibrated (library m/z shifted by the calibrated offset), MS1 targets
+        # are library m/z. So the offset is removed only for MS1.
+        ppm = (mz - target) / target * 1e6 - (OFF if t['MS_LEVEL'][k] == 1 else 0.0)
         if t['MS_LEVEL'][k] == 1:
             ann = t['ANNOTATION'][k] or ''  # 'Precursor_iK'
             if '_i' not in ann: continue
@@ -57,8 +64,9 @@ for rg in range(f.num_row_groups):
                 np.add.at(M[j, iso], b, it[m])
             continue
         mzs, li = frag[pid]
-        fi = int(np.argmin(np.abs(mzs - target)))
-        if abs(mzs[fi] - target) > 1e-4: continue
+        lib_target = target / (1 + OFF * 1e-6)
+        fi = int(np.argmin(np.abs(mzs - lib_target)))
+        if abs(mzs[fi] - lib_target) / lib_target * 1e6 > 0.5: continue
         sb = np.floor((ppm + SUB * SUB_PPM / 2) / SUB_PPM).astype(int); keep = (sb >= 0) & (sb < SUB)
         for _, w in by_pid[pid].iterrows():
             j = pos[w.sample_id]; LIB[j] = li; seen[j] = True

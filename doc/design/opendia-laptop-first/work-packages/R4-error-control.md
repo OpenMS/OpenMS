@@ -103,3 +103,9 @@ The frozen teacher-free design with `-pooled_tdc` was evaluated once against a h
     - The isotope features separate targets from decoys above CNN z 6.
     - They are near noise in z 4–6, where the 1% cut is decided.
 - **Context:** OpenSWATH+Percolator on the same library gives 1441 on raw 01, so the remaining gap is about 2×. This has not been entrapment-checked.
+
+## Status, 10 November 2026
+
+- **q ≤ 0.01:** plain pooled paired TDC holds on both design raws with the native base (FDP_c 0.013 on raw 01, 0.007 on raw 02).
+- **q ≤ 0.05:** plain pooled q is anti-conservative (FDP_c 0.065 and 0.074). Offline bulk-null weighting corrects it (CALIB §9). The native port needs a full HGB, so it is not ported (CALIB §10). Commonness-matched decoys do not correct it (CALIB §12).
+- **Metric noise:** the bootstrap 90 % interval of N@1 % is about ±200 on raw 01 (`single-scorer/metric_noise.txt`). The current pass rule cannot detect changes smaller than that. A paired bootstrap rule (N@2 % or the mean over FDP_c 1–5 %) is proposed. It needs user approval.

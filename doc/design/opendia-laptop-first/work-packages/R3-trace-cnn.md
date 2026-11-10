@@ -87,3 +87,23 @@ Code: `07ed9580e4` and `edc775d6bc`. Every option is opt-in, and the HeLa defaul
 - **Architecture: faithful.** A Rust-vs-C++ harness on identical inputs reproduces TOPAZ's co-elution head and MS1/MS2 agreement features to within 1e-6, with identical parameter counts per block.
 - **Training regime: not faithful.** TOPAZ max-normalises each trace block before the dual view (`normalize_max: true`). It also uses cosine LR warm-up, gradient clipping and auxiliary pairwise and in-bag ranking losses. The OpenDIACNN arms had none of these.
 - **Reading:** the failures on raw 01 tested this port's training regime, not TOPAZ as specified. The next TOPAZ variant should adopt these defaults as one declared change, on an unspent design run.
+
+## Status, 10 November 2026: one voxel scoring model replaces CNN + LDA
+
+**Frozen native base.** `OpenDIACNN -stage2` with the feature set `search+boundary+byion` gives 1029 (raw 01) and 1298 (raw 02) at entrapment FDP_c 1 %.
+
+**Work after the base (all opt-in, all FAIL under predeclared rules).** The evidence is in CALIB §13–15 and [`single-scorer/`](../gates/astral-native-byion/single-scorer/).
+- Single TOPAZ scorer, rounds 1–5. Every TOPAZ logit separates entrapment winners from decoy winners (AUC 0.52), so it learns a decoy artefact.
+- Round 6, transition refinement as features and as a trace mask.
+- Round 7, refined peak picking and refined quantification.
+
+**Decision (user, 10 November 2026).** Stop the work on CNN + LDA. Build one voxel scoring model in new files, `OpenDIAScoringModel.{h,cpp}`, with its own tool. `OpenDIACNN` stays unchanged as the comparison base until the new model beats it.
+
+**Plan.** See [`gates/voxel-scoring-model/DESIGN.md`](../gates/voxel-scoring-model/DESIGN.md).
+1. A Python pilot on raw 01 compares 4 input options and 2 training sets (8 cells).
+   - Inputs: a is today's tensor, b adds a ppm channel, c uses m/z sub-bins, d is b with MS1 M+0..M+3.
+   - Training sets: T0 is anchors and decoys. T1 adds decoy-like target negatives and synthetic false targets.
+2. The pilot pass rule is frozen in `PLAN_PILOT.md` (sha256 and time recorded before any training).
+3. A cell that passes goes to C++. The C++ model then must pass `PLAN.md` rules 1–4 on raws 01 and 02 against the base.
+
+**State.** The export and the voxel build are complete. Training of the 8 cells is in progress.

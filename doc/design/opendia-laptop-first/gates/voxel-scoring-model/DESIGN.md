@@ -95,3 +95,8 @@ The design library has exactly 6 transitions per precursor (600,222 precursors, 
 - Voxels (`build_voxels.py`): 32 RT bins over apex ±15 s (as the base tensor), 7 m/z sub-bins of 5 ppm over the calibrated offset ±17.5 ppm. Option a is therefore an approximation of today's tensor (±17.5 ppm instead of ±0.02 Da). All cells share this, so the comparison inside the grid stays fair.
 - Training set (`make_train_set.py`, seed 13): 504 anchors, 498 paired decoys, 6,000 random decoys, 6,000 decoy-like windows (weight 0.5). Synthetic false targets (3,000 per fold) and weak positives (one per training anchor) are built in `train_pilot.py` from training-fold windows only.
 - Evaluation (`evaluate_pilot.py`, the only reader of `eval_labels.tsv`): the base winning window of each sample precursor, scored by the fold model that did not train on its family.
+
+## Pilot bug fixes (2026-11-10, before any pilot result was read)
+
+- `build_voxels.py` first failed on one-point m/z arrays (`pynumpress` rejects them). A manual decode for this case was added.
+- The second build gave fragment arrays that were all zero. The export writes MS2 target m/z already shifted by the calibrated offset, and the builder matched them to library m/z with a 1e-4 Th tolerance. The builder now removes the offset before the match, and does not subtract the offset again from MS2 ppm. The trainer had started on the zero arrays. It was stopped by PID, its score files were deleted, and no score from it was read.
