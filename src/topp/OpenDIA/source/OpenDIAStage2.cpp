@@ -354,10 +354,10 @@ namespace OpenMS::OpenDIA
       double best_reference_r = 0.0;      ///< Mean r of the other fragments with the best reference fragment.
     };
 
-    Refinement refineWindow(const float* tensor, const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence)
+    /// Per-fragment refinement of a picked window over its peak +- REFINE_PAD_BINS (see Stage2RefineFeature).
+    Refinement refinePicked(const PickedWindow& picked)
     {
       Refinement out;
-      const PickedWindow picked = pickWindow(tensor, fragment_mz, evidence);
       if (!picked.peak.found) return out;
       const std::size_t c = picked.channels.size(), n = picked.n;
       const std::size_t lo = picked.peak.left >= REFINE_PAD_BINS ? picked.peak.left - REFINE_PAD_BINS : 0;
@@ -417,6 +417,58 @@ namespace OpenMS::OpenDIA
       out.area = std::move(area);
       out.ok = true;
       return out;
+    }
+
+    Refinement refineWindow(const float* tensor, const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence)
+    {
+      return refinePicked(pickWindow(tensor, fragment_mz, evidence));
+    }
+
+    /**
+      Re-pick a window's peak group on the fragments that agree with the first pick's median shape (r >= min_r). The
+      traces stay complete: only the peak (apex and boundaries) changes. Unchanged if refinement fails, fewer than two
+      fragments pass, or none is excluded.
+    */
+    PickedWindow repickRefined(PickedWindow picked, double min_r)
+    {
+      const Refinement refined = refinePicked(picked);
+      if (!refined.ok) return picked;
+      const std::size_t n = picked.n;
+      std::vector<float> kept;
+      std::size_t excluded = 0;
+      for (std::size_t k = 0; k < picked.channels.size(); ++k)
+      {
+        if (refined.area[k] > 0.0 && refined.r[k] < min_r)
+        {
+          ++excluded;
+          continue;
+        }
+        kept.insert(kept.end(), picked.traces.begin() + k * n, picked.traces.begin() + (k + 1) * n);
+      }
+      const std::size_t kept_count = kept.size() / n;
+      if (excluded == 0 || kept_count < 2) return picked;
+      std::vector<double> scratch;
+      PickedPeak peak = pickPeakGroup(kept.data(), kept_count, n, n, 1, picked.peak.apex, PeakPickerOptions{}, scratch);
+      if (!peak.found) return picked;
+      // Signal and apex agreement stay counted over all library fragments, now at the refined boundaries.
+      peak.fragments_with_signal = peak.agreeing_fragments = 0;
+      for (std::size_t k = 0; k < picked.channels.size(); ++k)
+      {
+        std::size_t best = peak.left;
+        float best_value = 0.0f;
+        for (std::size_t s = peak.left; s <= peak.right; ++s)
+        {
+          if (picked.traces[k * n + s] > best_value) { best_value = picked.traces[k * n + s]; best = s; }
+        }
+        if (best_value > 0.0f)
+        {
+          ++peak.fragments_with_signal;
+          const std::size_t distance = best > peak.apex ? best - peak.apex : peak.apex - best;
+          peak.agreeing_fragments += distance <= PeakPickerOptions{}.fragment_apex_tolerance;
+        }
+      }
+      picked.peak = peak;
+      return picked;
     }
   }
 
@@ -480,6 +532,42 @@ namespace OpenMS::OpenDIA
     f[4] = area_total > 0.0 ? area_quant / area_total : 0.0;
     f[5] = refined.best_reference_r;
     return f;
+  }
+
+  Stage2Quant stage2Quantify(const float* tensor, const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence,
+                             const Stage2ExtractionOptions& options, double pick_min_r, double quant_min_r)
+  {
+    Stage2Quant q;
+    const PickedWindow naive = pickWindow(tensor, fragment_mz, evidence);
+    if (!naive.peak.found) return q;
+    q.found = true;
+    const std::size_t n = naive.n;
+    const double width = 2.0 * options.rt_half_width / RT_BINS;
+    const auto seconds = [&](std::size_t s) { return -options.rt_half_width + (naive.bins[s] + 0.5) * width; };
+    const auto area = [&](const PickedWindow& w, std::size_t k)
+    {
+      return std::accumulate(w.traces.begin() + k * n + w.peak.left, w.traces.begin() + k * n + w.peak.right + 1, 0.0);
+    };
+    q.naive_left = seconds(naive.peak.left);
+    q.naive_right = seconds(naive.peak.right);
+    for (std::size_t k = 0; k < naive.channels.size(); ++k) q.naive_area += area(naive, k);
+    // Refined boundaries, then refinement r over the refined peak, then the quantitative fragments.
+    const PickedWindow refined = repickRefined(naive, pick_min_r);
+    q.refined_left = seconds(refined.peak.left);
+    q.refined_right = seconds(refined.peak.right);
+    const Refinement r = refinePicked(refined);
+    for (std::size_t k = 0; k < refined.channels.size(); ++k)
+    {
+      const std::size_t c = refined.channels[k];
+      q.fragment_area[c] = area(refined, k);
+      q.fragment_r[c] = r.ok ? r.r[k] : 0.0;
+      if (r.ok && r.r[k] >= quant_min_r && q.fragment_area[c] > 0.0)
+      {
+        q.refined_area += q.fragment_area[c];
+        ++q.quantitative;
+      }
+    }
+    return q;
   }
 
   const std::array<std::string, STAGE2_SHAPE_FEATURES>& stage2ShapeFeatureNames()
@@ -653,7 +741,8 @@ namespace OpenMS::OpenDIA
                                                                       const Stage2ExtractionOptions& options)
   {
     std::array<double, STAGE2_BOUNDARY_FEATURES> f{};
-    const PickedWindow picked = pickWindow(tensor, fragment_mz, evidence);
+    PickedWindow picked = pickWindow(tensor, fragment_mz, evidence);
+    if (options.refined_picking_min_r > 0.0) picked = repickRefined(std::move(picked), options.refined_picking_min_r);
     if (!picked.peak.found) return f;
     const std::size_t n = picked.n;
     const auto& channels = picked.channels;

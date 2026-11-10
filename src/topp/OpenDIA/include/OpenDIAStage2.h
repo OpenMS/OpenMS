@@ -42,6 +42,9 @@ namespace OpenMS::OpenDIA
     double ms1_offset_ppm = 0.0;     ///< Run MS1 offset subtracted before taking the absolute error.
     double ms2_offset_ppm = 0.0;     ///< Run fragment offset subtracted before taking the absolute error.
     double ppm_cap = 20.0;           ///< Absolute errors are capped here; missing signal also gets the cap.
+    /// Experimental refined peak picking for the boundary group: 0 = off; otherwise fragments with refinement r below this
+    /// value (against the median unit-area shape of the first pick) are left out when the peak group is picked again.
+    double refined_picking_min_r = 0.0;
   };
 
   /**
@@ -249,6 +252,37 @@ namespace OpenMS::OpenDIA
   */
   std::array<double, STAGE2_REFINE_FEATURES> stage2RefineFeatures(const float* tensor, const std::array<double, 6>& library_intensities,
                                                                   const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence);
+
+  /**
+    @brief Experimental quantification of one window, naive and with automated transition refinement.
+
+    Naive: the peak group picked as for the boundary group, area summed over all fragments. Refined (EncyclopeDIA): the
+    peak group re-picked on the fragments with r >= @p pick_min_r, refinement r recomputed over the refined peak, and the
+    area summed over the fragments with r >= @p quant_min_r. Areas are raw (unsmoothed) IM-summed scan-bin sums.
+  */
+  struct Stage2Quant
+  {
+    bool found = false;                     ///< False if no peak group was picked.
+    double naive_left = 0.0, naive_right = 0.0;     ///< Naive boundaries, seconds relative to the window centre (bin centres).
+    double refined_left = 0.0, refined_right = 0.0; ///< Refined boundaries, same units.
+    double naive_area = 0.0;                ///< All fragments over the naive boundaries.
+    double refined_area = 0.0;              ///< Fragments with r >= quant_min_r over the refined boundaries.
+    std::size_t quantitative = 0;           ///< Number of fragments in refined_area.
+    std::array<double, 6> fragment_area{};  ///< Per channel, over the refined boundaries (0 for padding).
+    std::array<double, 6> fragment_r{};     ///< Per channel refinement r over the refined boundaries (0 without signal).
+  };
+  /**
+    @brief Quantify one window (see Stage2Quant).
+    @param[in] tensor One window of TraceCollector::SAMPLE_SIZE floats.
+    @param[in] fragment_mz Fragment m/z per channel; zero marks padding.
+    @param[in] evidence Window evidence (only ms2_mask is used).
+    @param[in] options Window geometry (only rt_half_width is used).
+    @param[in] pick_min_r Refinement cut for re-picking the peak group.
+    @param[in] quant_min_r Refinement cut for the quantitative fragments.
+    @return The quantities; all zero if no peak group is picked.
+  */
+  Stage2Quant stage2Quantify(const float* tensor, const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence,
+                             const Stage2ExtractionOptions& options, double pick_min_r = 0.75, double quant_min_r = 0.9);
 
   /**
     @brief Peak-group evidence of one search candidate, read from the OpenDIA -features_out table.

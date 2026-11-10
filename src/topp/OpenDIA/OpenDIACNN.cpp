@@ -130,6 +130,14 @@ namespace OpenMS
                             "unit-area consensus shape is below this value (0.75 = the 'usable' cut). Applied identically to targets and decoys. 0 disables", false);
       setMinFloat_("trace_refinement_min_r", 0.0);
       setMaxFloat_("trace_refinement_min_r", 1.0);
+      registerDoubleOption_("stage2_refined_picking_min_r", "<r>", 0.0, "With -stage2, experimental: refined peak picking for the boundary (and refine) "
+                            "features. The window's peak group is picked, fragments whose EncyclopeDIA-style refinement r against the median unit-area shape is "
+                            "below this value are left out, and the peak group is picked again; features are still measured over all fragments. 0 disables", false);
+      setMinFloat_("stage2_refined_picking_min_r", 0.0);
+      setMaxFloat_("stage2_refined_picking_min_r", 1.0);
+      registerOutputFile_("quant_out", "<file>", "", "With -stage2, experimental: per in-window row, naive (all fragments, first pick) and refined "
+                          "(peak re-picked on fragments with r >= 0.75, summed over fragments with r >= 0.9, as EncyclopeDIA) areas, boundaries and per-fragment "
+                          "areas and r", false);
       registerInputFile_("stage2_search_features", "<file>", "", "With -stage2: the OpenDIA -features_out table the windows were drawn from "
                          "(candidate_row = window sample_id): transition support, matched scans, peak width and |library RT error| per window", false);
       setValidFormats_("stage2_search_features", {"tsv"});
@@ -312,6 +320,10 @@ namespace OpenMS
         if (getDoubleOption_("trace_refinement_min_r") > 0.0 && !(stage2 || topaz))
         {
           throw std::invalid_argument("trace_refinement_min_r requires -stage2 or -cnn_arch topaz (it needs the window scan mask).");
+        }
+        if (!stage2 && (getDoubleOption_("stage2_refined_picking_min_r") > 0.0 || !getStringOption_("quant_out").empty()))
+        {
+          throw std::invalid_argument("stage2_refined_picking_min_r and quant_out require -stage2.");
         }
         const bool mil = getStringOption_("cnn_training") == "mil";
         if (mil && (!crossfit || !topaz || !rt_calibration || ss_iterations > 0))
@@ -831,6 +843,7 @@ namespace OpenMS
           extraction.core_half_width = getDoubleOption_("stage2_core_half_width");
           extraction.ms1_offset_ppm = seed_offset(true);
           extraction.ms2_offset_ppm = seed_offset(false);
+          extraction.refined_picking_min_r = getDoubleOption_("stage2_refined_picking_min_r");
           std::vector<OpenDIA::Stage2Row> rows;
           std::vector<std::size_t> row_window;
           for (std::size_t i = 0; i < count; ++i)
@@ -947,6 +960,29 @@ namespace OpenMS
             }
             features.close();
             if (!features) { throw std::runtime_error("Could not write -stage2_features_out."); }
+          }
+          const std::string quant_path = getStringOption_("quant_out");
+          if (!quant_path.empty())
+          {
+            std::ofstream quant(quant_path);
+            quant << "sample_id\tprecursor_id\tis_decoy\tnaive_left\tnaive_right\trefined_left\trefined_right\tnaive_area\trefined_area\tquantitative";
+            for (std::size_t c = 0; c < OpenDIA::TraceCollector::FRAGMENTS; ++c) { quant << "\tarea" << c; }
+            for (std::size_t c = 0; c < OpenDIA::TraceCollector::FRAGMENTS; ++c) { quant << "\tr" << c; }
+            quant << '\n' << std::setprecision(8);
+            for (std::size_t r = 0; r < rows.size(); ++r)
+            {
+              const std::size_t i = row_window[r];
+              const auto q = OpenDIA::stage2Quantify(collector.intensities().data() + i * OpenDIA::TraceCollector::SAMPLE_SIZE,
+                                                     collector.fragmentMZ(i), collector.evidence(i), extraction);
+              const auto& input = crossfit_rows[i];
+              quant << input.sample_id << '\t' << input.precursor_id << '\t' << input.is_decoy << '\t' << q.naive_left << '\t' << q.naive_right
+                    << '\t' << q.refined_left << '\t' << q.refined_right << '\t' << q.naive_area << '\t' << q.refined_area << '\t' << q.quantitative;
+              for (double v : q.fragment_area) { quant << '\t' << v; }
+              for (double v : q.fragment_r) { quant << '\t' << v; }
+              quant << '\n';
+            }
+            quant.close();
+            if (!quant) { throw std::runtime_error("Could not write -quant_out."); }
           }
         }
         std::ofstream scores(output);

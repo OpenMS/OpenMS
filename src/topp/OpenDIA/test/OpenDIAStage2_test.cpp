@@ -442,6 +442,39 @@ int main()
     require(OpenDIA::maskInterferedFragments(unrefinable.data(), mz, e, 0.75) == 0 && unrefinable == t2, "unrefinable window unchanged");
   }
 
+  // 13. Refined picking and quantification: clean peak unchanged; an interferer that widens the peak is excluded.
+  {
+    std::vector<std::vector<double>> p;
+    for (double l : library) p.push_back(gaussian(l, 16.0, 1.5));
+    const auto t = tensor(p);
+    const auto q = OpenDIA::stage2Quantify(t.data(), mz, fullEvidence(), options);
+    require(q.found && q.quantitative == 6 && q.naive_left == q.refined_left && q.naive_right == q.refined_right,
+            "clean peak: refined boundaries equal naive, all six quantitative");
+    require(std::abs(q.refined_area - q.naive_area) < 1e-6 * q.naive_area, "clean peak: refined area equals naive area");
+    // Fragment 0 (the brightest, so it dominates the summed consensus) carries a strong interferer right after the peak.
+    auto widened = p;
+    const auto other = gaussian(3.0 * library[0], 20.0, 2.0);
+    for (std::size_t b = 0; b < RT; ++b) widened[0][b] += other[b];
+    const auto t2 = tensor(widened);
+    const auto w = OpenDIA::stage2Quantify(t2.data(), mz, fullEvidence(), options);
+    require(w.found && w.refined_right < w.naive_right, "interferer: refined right boundary is tighter");
+    require(w.fragment_r[0] < 0.9 && w.quantitative == 5, "interferer: fragment 0 is not quantitative");
+    // The refined quantity of the interfered window matches the clean window without fragment 0.
+    double clean_without_0 = 0.0;
+    for (std::size_t c = 1; c < 6; ++c) clean_without_0 += q.fragment_area[c];
+    require(std::abs(w.refined_area - clean_without_0) < 0.05 * clean_without_0, "interferer: refined area ~ clean area of the other five");
+    require(w.naive_area > 1.5 * q.naive_area, "interferer inflates the naive area");
+    // Boundary features follow the refined pick only when enabled.
+    auto refined_options = options;
+    refined_options.refined_picking_min_r = 0.75;
+    const auto off = OpenDIA::stage2BoundaryFeatures(t2.data(), library, mz, fullEvidence(), options);
+    const auto on = OpenDIA::stage2BoundaryFeatures(t2.data(), library, mz, fullEvidence(), refined_options);
+    require(on[1] < off[1], "refined picking narrows the boundary width");
+    const auto clean_off = OpenDIA::stage2BoundaryFeatures(t.data(), library, mz, fullEvidence(), options);
+    const auto clean_on = OpenDIA::stage2BoundaryFeatures(t.data(), library, mz, fullEvidence(), refined_options);
+    require(clean_off == clean_on, "refined picking leaves a clean window unchanged");
+  }
+
   std::cout << "OpenDIAStage2_test passed\n";
   return 0;
 }
