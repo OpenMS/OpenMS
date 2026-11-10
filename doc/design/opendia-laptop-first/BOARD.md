@@ -2,7 +2,7 @@
 
 [Master plan](README.md)
 
-**Status, 10 November 2026.** This file lists the steps of each work package and the state of each step. Each row links to the record of the step. Use this file as the project board until the GitHub project has the same items.
+**Status, 10 November 2026.** This file lists the steps of each work package and the state of each step. Each row links to the record of the step. The script [`board_sync.py`](board_sync.py) copies the R-WP sections of this file to the GitHub project [OpenMS/38](https://github.com/orgs/OpenMS/projects/38). Edit this file first, then run the script. The "Now" table repeats rows from the R-WP sections, and the script does not copy it.
 
 **States:**
 - **Done (pass)**: the step met its predeclared rule.
@@ -64,7 +64,9 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 | Single voxel model: design, training set, pilot rule (frozen before training) | Done | [DESIGN.md](gates/voxel-scoring-model/DESIGN.md) |
 | Voxel pilot: export (`-out_xipm`, candidate table byte-identical to base) and voxel build | Done | [voxel-scoring-model/](gates/voxel-scoring-model/) |
 | Voxel pilot: 8 cells | **In progress** | |
+| Voxel pilot: read the result under `PLAN_PILOT.md` and write `RESULT_PILOT.md` | Next | [PLAN_PILOT.md.sha256](gates/voxel-scoring-model/PLAN_PILOT.md.sha256) |
 | C++ `OpenDIAScoringModel` | Blocked: needs pilot | |
+| Full gate of `OpenDIAScoringModel` on raws 01/02 against the base (1029 / 1298) | Blocked: needs the C++ model | |
 
 ## R-WP4: Error control
 
