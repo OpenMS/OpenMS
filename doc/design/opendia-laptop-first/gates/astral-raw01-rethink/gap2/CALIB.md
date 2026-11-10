@@ -375,7 +375,7 @@ The decoy separation does not come from the training negatives, since C0 without
 
 The LDA's 0.500 is most likely a cancellation of opposite-signed weights (not tested directly). The deep head keeps a net +0.02. The concrete lever for a single deep scorer is decoy generation matched to targets on these run-level match statistics, which extends §12.
 
-## 14. Interference correction by transition refinement: PENDING (`astral-native-byion/single-scorer/PLAN6.md`)
+## 14. Interference correction by transition refinement: FAIL (`astral-native-byion/single-scorer/PLAN6.md`)
 
 Code `6bca00e7a9` adds two opt-in options. Defaults are unchanged.
 
@@ -391,3 +391,14 @@ The plan was written before any run. It has two arms on the native CNN + LDA:
 - R2: R1 + mask at 0.75.
 
 The decision rule is the same as before. The mechanism is checked by the entrapment-vs-decoy winner AUC of the refine columns against `transition_support`. The evaluator reproduces the base readings (1029 / 1298, AUC 0.526 / 0.525 for `transition_support`).
+
+**Result (`RESULT6.md`).** Both arms fail. HeLa equivalence was IDENTICAL.
+
+| Arm | N@1% raw 01 | N@1% raw 02 | Base |
+|---|---|---|---|
+| R1 (+refine) | 1028 | 1160 | 1029 / 1298 |
+| R2 (+mask 0.75) | 520 | 679 | 1029 / 1298 |
+
+**Mechanism.** The refine counts separate entrapment from decoy winners much less than `transition_support` (AUC 0.507–0.512 against 0.524–0.525). The refined evidence is less target-biased, but it is also weaker. The mask zeroes about 3 of 6 fragments in 90% of windows. With six fragments and short peaks, a median consensus cut at 0.75 removes real signal. EncyclopeDIA uses the cut for quantification after detection, not for detection.
+
+**Planning error.** The planned R1 internal check compared `precursor_best`, which differs by design. A post-hoc check of the CNN columns is IDENTICAL. The verdict does not depend on this check.

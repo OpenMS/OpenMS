@@ -1,0 +1,6 @@
+/dev/fd/63 /dev/fd/62 differ: byte 918, line 19
+raw01/R1: features cols 1-16 IDENTICAL to base
+/dev/fd/63 /dev/fd/62 differ: byte 454, line 9
+raw02/R1: features cols 1-16 IDENTICAL to base
+raw01/R1: crossfit cols 1-6,9 IDENTICAL to base (post-hoc check, col 7 precursor_best is stage2-chosen)
+raw02/R1: crossfit cols 1-6,9 IDENTICAL to base (post-hoc check, col 7 precursor_best is stage2-chosen)
