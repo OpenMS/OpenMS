@@ -83,3 +83,15 @@ This rule is fixed before any pilot training. It is copied, with a hash, into `P
 ## C++ (after the pilot)
 
 `OpenDIAScoringModel` is a new library file and a new tool, built on the libtorch helpers that `OpenDIACNN` already uses. Defaults elsewhere stay byte-identical (HeLa check). The full-run gate on raws 01 and 02 uses the existing `PLAN.md` rules 1–4, against base CNN + LDA 1029 / 1298. Raw 03 needs approval.
+
+## Correction (2026-11-10, before any pilot data or training)
+
+The design library has exactly 6 transitions per precursor (600,222 precursors, all with 6, all detecting). Option d, "up to 12 fragments", therefore needs a library rebuild. That would change the comparison base and needs approval. For this pilot, option d is narrowed to **b + MS1 M−1..M+3 with a validity mask** (more isotopes, same 6 fragments). More fragments stay as a later item that depends on a library with more transitions. `PLAN_PILOT.md` and its hash are unchanged. This note is the only change, and it is recorded before any pilot model is trained.
+
+## Pilot implementation notes (2026-11-10, before any pilot data or training)
+
+- Export: `export01.sh` (one `OpenDIA` search run with `-out_xipm`, ±20 ppm, MS1 M+0..M+3). Its `-features_out` must be byte-identical to the base `search.features.tsv` (checked into `export01/CMP.txt`), so the sample ids match.
+- `-out_xipm` exports only isotopes after the monoisotope, so option d uses MS1 **M+0..M+3** (no M−1).
+- Voxels (`build_voxels.py`): 32 RT bins over apex ±15 s (as the base tensor), 7 m/z sub-bins of 5 ppm over the calibrated offset ±17.5 ppm. Option a is therefore an approximation of today's tensor (±17.5 ppm instead of ±0.02 Da). All cells share this, so the comparison inside the grid stays fair.
+- Training set (`make_train_set.py`, seed 13): 504 anchors, 498 paired decoys, 6,000 random decoys, 6,000 decoy-like windows (weight 0.5). Synthetic false targets (3,000 per fold) and weak positives (one per training anchor) are built in `train_pilot.py` from training-fold windows only.
+- Evaluation (`evaluate_pilot.py`, the only reader of `eval_labels.tsv`): the base winning window of each sample precursor, scored by the fold model that did not train on its family.
