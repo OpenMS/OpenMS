@@ -2645,7 +2645,11 @@ namespace OpenMS
             if (!queue.empty())
               queue.pop_front(); // argument was already used
           }
-          OPENMS_LOG_DEBUG << "Command line: setting parameter value: '" << pos->second->name << "' to '" << value << "'" << std::endl;
+          {
+            std::ostringstream shown; // (a remote location without credentials, as in writeDebug_())
+            shown << value;
+            OPENMS_LOG_DEBUG << "Command line: setting parameter value: '" << pos->second->name << "' to '" << FileHandler::displayText(shown.str()) << "'" << std::endl;
+          }
 
           // Check for duplicate parameters
           // Note: This is intentionally allowed to support nextflow workflows where ${ext.args}
@@ -2748,9 +2752,11 @@ namespace OpenMS
   {
     if (debug_level_ >= (Int)min_level)
     {
-      OPENMS_LOG_DEBUG << text << endl;
+      // the command line and option values can hold remote locations with credentials (tag 'remote')
+      const std::string redacted = FileHandler::displayText(text);
+      OPENMS_LOG_DEBUG << redacted << endl;
       enableLogging_();
-      *log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << text << endl;
+      *log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << redacted << endl;
     }
   }
 
@@ -2758,14 +2764,17 @@ namespace OpenMS
   {
     if (debug_level_ >= (Int)min_level)
     {
+      std::ostringstream values;
+      values << param;
+      const std::string redacted = FileHandler::displayText(values.str()); // see above
       OPENMS_LOG_DEBUG << LOG_SEPARATOR << '\n'
                 << DateTime::now().get() << ' ' << getIniLocation_() << " " << text << '\n'
-                << param
+                << redacted
                 << LOG_SEPARATOR << endl;
       enableLogging_();
       *log_ << LOG_SEPARATOR << '\n'
             << DateTime::now().get() << ' ' << getIniLocation_() << " " << text << '\n'
-            << param
+            << redacted
             << LOG_SEPARATOR << endl;
     }
   }

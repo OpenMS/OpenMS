@@ -210,6 +210,15 @@ START_SECTION((static std::string displayName(const std::string& filename)))
   TEST_STRING_EQUAL(FileHandler::displayName(""), "")
 END_SECTION
 
+START_SECTION((static std::string displayText(const std::string& text)))
+  TEST_STRING_EQUAL(FileHandler::displayText("ProSE -in s3://key:secret@bucket/run.mzML?region=eu-central-1 -out run.idXML"),
+                    "ProSE -in s3://bucket/run.mzML -out run.idXML")
+  TEST_STRING_EQUAL(FileHandler::displayText("Value of string option 'in': https://example.org/run.mzML?X-Amz-Signature=abc"),
+                    "Value of string option 'in': https://example.org/run.mzML")
+  TEST_STRING_EQUAL(FileHandler::displayText("Value of string option 'in': /data/run.mzML"), "Value of string option 'in': /data/run.mzML")
+  TEST_STRING_EQUAL(FileHandler::displayText(""), "")
+END_SECTION
+
 
 
 START_SECTION((static std::string stripExtension(const std::string& file)))

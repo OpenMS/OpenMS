@@ -356,6 +356,11 @@ namespace OpenMS
     return HTTPInputSource::redactURL(filename);
   }
 
+  std::string FileHandler::displayText(const std::string& text)
+  {
+    return HTTPInputSource::redactURLs(text);
+  }
+
   FileTypes::Type FileHandler::getType(const std::string& filename)
   {
     // A remote location is no file to look into: its type is that of its name, without the query (which may contain

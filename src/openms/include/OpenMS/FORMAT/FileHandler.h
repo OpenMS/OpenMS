@@ -90,6 +90,16 @@ public:
     */
     static std::string displayName(const std::string& filename);
 
+    /**
+      @brief @p text with every URL in it shown as by displayName(): without user info, query and fragment
+
+      For messages that can hold remote locations as the user gave them, e.g. an echo of the command line or of
+      parameter values. A URL ends at whitespace, a quote or an angle bracket.
+
+      @param[in] text A message that may contain URLs
+    */
+    static std::string displayText(const std::string& text);
+
 
     /**
       @brief Try to get the file type from the filename

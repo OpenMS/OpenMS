@@ -846,6 +846,26 @@ START_SECTION(([EXTRA] input files with the tag 'remote' may be remote locations
 }
 END_SECTION
 
+START_SECTION(([EXTRA] the debug output names remote inputs without credentials and query))
+{
+	// -debug echoes the command line and the option values (also into the -log file): a remote location (tag 'remote')
+	// is shown without user info and query, which can hold credentials
+	std::string log_file;
+	NEW_TMP_FILE(log_file);
+	const char* cl[10] = {"TOPPBaseTestRemoteInputs", "-in", "s3://key:secret@bucket/data/run1.mzML?region=eu-central-1",
+	                      "-in_single", "https://example.org/run2.mzML?X-Amz-Signature=signature", "-debug", "2", "-log", log_file.c_str(), nullptr};
+	TOPPBaseTestRemoteInputs remote(9, cl);
+	TEST_STRING_EQUAL(remote.getStringList("in")[0], "s3://key:secret@bucket/data/run1.mzML?region=eu-central-1") // the readers get it as given
+	TextFile tf(log_file);
+	std::string content;
+	for (TextFile::ConstIterator it = tf.begin(); it != tf.end(); ++it) { content += *it + "\n"; }
+	TEST_TRUE(content.find("s3://bucket/data/run1.mzML") != std::string::npos)
+	TEST_TRUE(content.find("https://example.org/run2.mzML") != std::string::npos)
+	TEST_EQUAL(content.find("secret"), std::string::npos)
+	TEST_EQUAL(content.find("signature"), std::string::npos)
+}
+END_SECTION
+
 START_SECTION(([EXTRA]void outputFileWritable_(const std::string& filename, const std::string& param_name) const))
 	TEST_EXCEPTION(Exception::UnableToCreateFile,TOPPBaseTest().outputFileWritable("/this/file/cannot/be/written/does_not_exists.txt","someparam"));
 
