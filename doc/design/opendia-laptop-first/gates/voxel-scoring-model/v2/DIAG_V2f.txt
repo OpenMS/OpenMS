@@ -1,0 +1,4 @@
+raw01 anchors 504 neg 6498 | AUC log MS2 sum 0.936 | AUC n frags>5% 0.922 | median MS2 sum anchors 3.14e+05 neg 2.67e+04
+raw01 V0 decoy windows: logit median bright top 1 % -14.50 vs rest -13.16; share of bright among decoy logit top 0.1 % 0.21
+raw02 anchors 593 neg 6579 | AUC log MS2 sum 0.920 | AUC n frags>5% 0.926 | median MS2 sum anchors 2.66e+05 neg 2.66e+04
+raw02 V0 decoy windows: logit median bright top 1 % -16.90 vs rest -15.16; share of bright among decoy logit top 0.1 % 0.17

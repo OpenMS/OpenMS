@@ -1,0 +1,32 @@
+
+===== raw01: 1019 base-accepted human hits used as "real signal"
+--- V0
+    group                      n  H1 neighbour  shared frags   MS1 max   MS2 sum  H3 parent  same-pep
+    E_top                    118          0.21          0.05   2.5e+06   3.6e+05       0.09      0.02
+    D_top                    189          0.23          0.07   2.5e+06   3.5e+05       0.03      0.01
+    H_top(not base hit)      457          0.17          0.03   1.4e+06   1.3e+05       1.00      0.00
+    E_all                   3000          0.15          0.01   1.7e+05   2.2e+04       0.05      0.00
+    D_all                   3000          0.15          0.00   1.7e+05   1.5e+04       0.01      0.00
+--- FS
+    group                      n  H1 neighbour  shared frags   MS1 max   MS2 sum  H3 parent  same-pep
+    E_top                     35          0.17          0.14   4.5e+06   3.1e+05       0.11      0.03
+    D_top                     49          0.20          0.06   2.7e+06     4e+05       0.04      0.00
+    H_top(not base hit)      451          0.15          0.00   9.9e+05   7.6e+04       1.00      0.00
+    E_all                   3000          0.17          0.01   2.1e+05   2.5e+04       0.05      0.00
+    D_all                   3000          0.17          0.01   2.2e+05   2.3e+04       0.01      0.00
+
+===== raw02: 1282 base-accepted human hits used as "real signal"
+--- V0
+    group                      n  H1 neighbour  shared frags   MS1 max   MS2 sum  H3 parent  same-pep
+    E_top                     70          0.26          0.06   2.2e+06   2.6e+05       0.09      0.01
+    D_top                    115          0.25          0.04   2.6e+06   3.8e+05       0.04      0.03
+    H_top(not base hit)      307          0.20          0.00   1.1e+06   1.1e+05       1.00      0.00
+    E_all                   3000          0.19          0.01   1.3e+05     2e+04       0.04      0.00
+    D_all                   3000          0.18          0.00   1.4e+05   1.6e+04       0.01      0.00
+--- FS
+    group                      n  H1 neighbour  shared frags   MS1 max   MS2 sum  H3 parent  same-pep
+    E_top                     31          0.32          0.13   2.3e+06     3e+05       0.06      0.03
+    D_top                     41          0.24          0.02   3.5e+06   3.3e+05       0.05      0.00
+    H_top(not base hit)      261          0.20          0.01   9.8e+05   7.8e+04       1.00      0.01
+    E_all                   3000          0.21          0.01   2.3e+05   2.7e+04       0.05      0.00
+    D_all                   3000          0.20          0.01   2.4e+05   2.2e+04       0.01      0.00

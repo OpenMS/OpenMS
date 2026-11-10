@@ -1,0 +1,22 @@
+
+== raw01
+  base human hits@1%     MS2 sum  1.7e+05  top1 share 0.34  frags>5% 6  frags r>0.8 3  lib cos 0.99
+  V0 entrap top-1500     MS2 sum  3.6e+05  top1 share 0.48  frags>5% 4  frags r>0.8 2  lib cos 0.89
+  V0 decoys above cut    MS2 sum  3.5e+05  top1 share 0.47  frags>5% 4  frags r>0.8 2  lib cos 0.88
+  V0 all decoy winners   MS2 sum  1.5e+04  top1 share 0.58  frags>5% 3  frags r>0.8 1  lib cos 0.72
+  V0 rate above cut: entrapment 2.56/1000, decoys 2.03/1000
+  FS entrap top-1500     MS2 sum  3.1e+05  top1 share 0.42  frags>5% 4  frags r>0.8 3  lib cos 0.92
+  FS decoys above cut    MS2 sum    4e+05  top1 share 0.46  frags>5% 4  frags r>0.8 4  lib cos 0.91
+  FS all decoy winners   MS2 sum  2.2e+04  top1 share 0.60  frags>5% 3  frags r>0.8 1  lib cos 0.72
+  FS rate above cut: entrapment 0.76/1000, decoys 0.53/1000
+
+== raw02
+  base human hits@1%     MS2 sum  1.4e+05  top1 share 0.34  frags>5% 6  frags r>0.8 3  lib cos 0.98
+  V0 entrap top-1500     MS2 sum  2.6e+05  top1 share 0.45  frags>5% 4  frags r>0.8 3  lib cos 0.91
+  V0 decoys above cut    MS2 sum  3.8e+05  top1 share 0.48  frags>5% 4  frags r>0.8 2  lib cos 0.89
+  V0 all decoy winners   MS2 sum  1.6e+04  top1 share 0.58  frags>5% 3  frags r>0.8 1  lib cos 0.74
+  V0 rate above cut: entrapment 1.50/1000, decoys 1.22/1000
+  FS entrap top-1500     MS2 sum    3e+05  top1 share 0.39  frags>5% 4  frags r>0.8 3  lib cos 0.93
+  FS decoys above cut    MS2 sum  3.3e+05  top1 share 0.48  frags>5% 4  frags r>0.8 2  lib cos 0.89
+  FS all decoy winners   MS2 sum  2.2e+04  top1 share 0.59  frags>5% 3  frags r>0.8 1  lib cos 0.72
+  FS rate above cut: entrapment 0.66/1000, decoys 0.43/1000
