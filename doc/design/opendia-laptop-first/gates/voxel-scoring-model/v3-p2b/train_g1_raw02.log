@@ -1,0 +1,8 @@
+raw02 D11 fold 0: r0 4814 30 ep obj 9467.49 | r1 pos 1598 neg 62992 12 ep obj 967.66 | r2 pos 1286 neg 62992 24 ep obj 2175.55
+raw02 D11 fold 1: r0 4760 30 ep obj 10951.59 | r1 pos 1674 neg 62894 17 ep obj 1131.63 | r2 pos 1305 neg 62894 24 ep obj 1736.74
+raw02 D11 fold 2: r0 4770 12 ep obj 6420.96 | r1 pos 1726 neg 62884 12 ep obj 831.55 | r2 pos 1405 neg 62884 11 ep obj 1218.01
+raw02 D11 done in 51 s
+raw02 D11n fold 0: r0 4814 30 ep obj 6399.91 | r1 pos 1540 neg 62992 16 ep obj 879.62 | r2 pos 1347 neg 62992 14 ep obj 1715.07
+raw02 D11n fold 1: r0 4760 20 ep obj 6392.29 | r1 pos 1603 neg 62894 10 ep obj 858.93 | r2 pos 1308 neg 62894 10 ep obj 1456.76
+raw02 D11n fold 2: r0 4770 9 ep obj 5565.68 | r1 pos 1781 neg 62884 15 ep obj 606.43 | r2 pos 1416 neg 62884 11 ep obj 1171.92
+raw02 D11n done in 34 s
