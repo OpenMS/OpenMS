@@ -243,6 +243,7 @@ private:
      * @param[in] cnt Number of the line (for error messages and generated transition names)
      * @param[in] header_dict The map which maps the fields in the header to their position
      * @param[out] tmp_line The fields of the line (buffer)
+     * @param[out] tmp Buffer for a single field (kept by the caller, so its memory is reused for every line)
      * @param[out] mytransition The parsed transition
      * @param[in,out] spectrast_legacy Set if a SpectraST legacy retention time was found
      *
@@ -251,7 +252,7 @@ private:
     */
     bool parseTSVLine_(std::string& line, char delimiter, FileTypes::Type filetype, int cnt,
                        std::map<std::string, int>& header_dict, std::vector<std::string>& tmp_line,
-                       TSVTransition& mytransition, bool& spectrast_legacy);
+                       std::string& tmp, TSVTransition& mytransition, bool& spectrast_legacy);
 
     /** @brief Read tab or comma separated input with columns defined by their column headers only
      *

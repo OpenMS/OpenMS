@@ -222,13 +222,12 @@ namespace OpenMS
 
   bool TransitionTSVFile::parseTSVLine_(std::string& line, char delimiter, FileTypes::Type filetype, int cnt,
                                         std::map<std::string, int>& header_dict, std::vector<std::string>& tmp_line,
-                                        TSVTransition& mytransition, bool& spectrast_legacy)
+                                        std::string& tmp, TSVTransition& mytransition, bool& spectrast_legacy)
   {
     line.push_back(delimiter); // avoid losing last column if it is empty
     std::stringstream lineStream(line);
 
     tmp_line.clear();
-    std::string tmp;
     while (std::getline(lineStream, tmp, delimiter)) // default getline is fine here, we only want to split the line
     {
       tmp_line.push_back(tmp);
@@ -432,6 +431,7 @@ namespace OpenMS
 
     // read header
     std::vector<std::string>   tmp_line;
+    std::string                tmp_field; // buffer, reused for every field
     std::map<std::string, int> header_dict;
     char delimiter = ',';
 
@@ -443,7 +443,7 @@ namespace OpenMS
     while (TextFile::getLine(data, line)) // make sure line endings are handled correctly
     {
       cnt++;
-      const bool skip_transition = parseTSVLine_(line, delimiter, filetype, cnt, header_dict, tmp_line, mytransition, spectrast_legacy);
+      const bool skip_transition = parseTSVLine_(line, delimiter, filetype, cnt, header_dict, tmp_line, tmp_field, mytransition, spectrast_legacy);
 
       if (!skip_transition)
       {
@@ -676,6 +676,7 @@ namespace OpenMS
 
     // Parse header
     std::vector<std::string> tmp_line;
+    std::string tmp_field; // buffer, reused for every field
     std::map<std::string, int> header_dict;
     char delimiter = ',';
 
@@ -701,7 +702,7 @@ namespace OpenMS
     while (TextFile::getLine(data, line))
     {
       cnt++;
-      const bool skip_transition = parseTSVLine_(line, delimiter, filetype, cnt, header_dict, tmp_line, mytransition, spectrast_legacy);
+      const bool skip_transition = parseTSVLine_(line, delimiter, filetype, cnt, header_dict, tmp_line, tmp_field, mytransition, spectrast_legacy);
 
       if (skip_transition)
       {
