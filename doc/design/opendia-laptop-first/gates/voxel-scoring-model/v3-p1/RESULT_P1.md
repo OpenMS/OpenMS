@@ -25,3 +25,20 @@ Plan: `PLAN_V3_P1.md` (sha256 `31f288fc…`, written 2026-11-10T14:39:03Z, befor
 - The network, with the same 11 inputs as the LDA, ranks entrapment above decoys more (AUC 0.554 / 0.555 against 0.531). Possible cause: the round positives (target winners at q ≤ 0.15, then 0.05) contain false targets. A flexible model with a BCE loss fits these labels and learns any difference between target and decoy library entries. Entrapment entries share that difference with targets. A linear LDA has less freedom to do this.
 - F0 (voxel + the same 11 features) is much lower than N11 (697 against 1094). So the voxel branch adds loss on top of the procedure loss.
 - L11 (no CNN) is at or above the CNN + LDA base on this population. This needs its own predeclared test before any claim.
+
+## Phase 1b (PLAN_V3_P1b.md, sha `2dea081f…`, written 14:52:57Z, checked after the run): linear head with BCE (G11)
+
+| Raw | Arm | N@1 % | N@2 % | FDP_c q ≤ 0.01 | Entrapment AUC |
+|---|---|---|---|---|---|
+| 01 | L11 (LDA) | 1267 | 1484 | 0.010 | 0.5310 |
+| 01 | N11 (MLP, BCE) | 1094 | 1280 | 0.013 | 0.5536 |
+| 01 | G11 (linear, BCE) | 1300 | 1345 | 0.004 | **0.5577** |
+| 02 | L11 | 1261 | 1380 | 0.008 | 0.5306 |
+| 02 | N11 | 1100 | 1222 | 0.016 | 0.5552 |
+| 02 | G11 | 1146 | 1242 | 0.002 | **0.5571** |
+
+Reading by the plan: the "flexible head" branch fails. Raw 02 G11 is 9.1 % below L11, and on both raws the G11 entrapment AUC is 0.026 above L11 (limit 0.005). Raw 02 matches the "loss / schedule" branch (gap > 5 %). Raw 01 matches neither branch, because G11 ≥ L11 at 1 %.
+
+The clearest signal: a **linear** model with the same 11 inputs prefers entrapment as much as the MLP does when it is trained with BCE on the round labels (0.557 against 0.531 for the LDA). So the entrapment preference comes from the training objective or the sampled negatives, not from model capacity. Possible cause (not proven): BCE puts its weight on the boundary examples. The round positives near the boundary are where the false targets are, so BCE fits them. LDA uses class means and a pooled covariance and is less driven by the boundary. A sampled-negative effect is not excluded (G11 uses 6000 sampled negatives, L11 uses all).
+
+Next (needs its own frozen plan): keep one network, change only the objective. Candidates: a Fisher-discriminant (LDA) loss on the last layer, or a paired target/decoy ranking loss. Test first on the 11 features (it must match L11, AUC included), then add the voxel encoder.
