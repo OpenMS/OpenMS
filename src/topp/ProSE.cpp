@@ -28,6 +28,7 @@
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/FORMAT/QPXDatasetExport.h>
@@ -1538,12 +1539,15 @@ class ProSE :
       {
         in_list.push_back(FileHandler::displayName(location));
         // Only the mzML reader streams remote data (a file whose name does not end in .mzML, .mzML.gz or .mzML.bz2
-        // cannot be recognized as mzML: the type of a remote location is that of its name).
-        if (FileHandler::isRemote(location) && FileHandler::getTypeByFileName(in_list.back()) != FileTypes::MZML)
+        // cannot be recognized as mzML: the type of a remote location is that of its name). A remote stream is
+        // decompressed from gzip and bzip2 only (S3InputSource, HTTPInputSource), not from a ZIP archive (.mzML.zip,
+        // which a local file may be).
+        if (FileHandler::isRemote(location)
+            && (FileHandler::getTypeByFileName(in_list.back()) != FileTypes::MZML || FileNameUtils::compressionType(in_list.back()) == FileTypes::ZIP))
         {
           OPENMS_LOG_ERROR << "Remote input '" << in_list.back() << "' (-in) is not named as an mzML file (.mzML, .mzML.gz or .mzML.bz2). "
-                           << "Only mzML files can be read from a remote location (s3://, http://, https://, ftp://); "
-                           << "download other files first." << endl;
+                           << "Only mzML files, plain or compressed with gzip or bzip2, can be read from a remote location "
+                           << "(s3://, http://, https://, ftp://); download other files first." << endl;
           return ILLEGAL_PARAMETERS;
         }
       }
