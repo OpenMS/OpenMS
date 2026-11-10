@@ -1,0 +1,18 @@
+== raw01
+  FDP_c 1% R1: base 1029 arm 1028 shared 977 | gained 51 (entrapment 1) | lost 52 (entrapment 1)
+  FDP_c 1% R2: base 1029 arm 520 shared 513 | gained 7 (entrapment 1) | lost 516 (entrapment 4)
+  FDP_c 2% R1: base 1321 arm 1261 shared 1216 | gained 45 (entrapment 1) | lost 105 (entrapment 2)
+  FDP_c 2% R2: base 1321 arm 716 shared 699 | gained 17 (entrapment 5) | lost 622 (entrapment 11)
+  refinement at base winners: accepted non-entrapment IDs at 1% (n=1024) vs decoy winners (n=266566)
+    accepted quantitative(r>=0.9) share by count 0:0.00 1:0.01 2:0.03 3:0.07 4:0.20 5:0.30 6:0.39 | mean usable(r>=0.75) 5.46 | zero refine (unrefinable) 0.00 | mean r 0.912
+    decoy    quantitative(r>=0.9) share by count 0:0.61 1:0.22 2:0.13 3:0.03 4:0.00 5:0.00 6:0.00 | mean usable(r>=0.75) 1.29 | zero refine (unrefinable) 0.13 | mean r 0.286
+    accepted IDs that R2 masks >=3 fragments: 0.02; >=1: 0.40 (upper bound: windows with fewer than 6 library fragments count padding as masked)
+== raw02
+  FDP_c 1% R1: base 1298 arm 1160 shared 1135 | gained 25 (entrapment 2) | lost 163 (entrapment 3)
+  FDP_c 1% R2: base 1298 arm 679 shared 659 | gained 20 (entrapment 3) | lost 639 (entrapment 6)
+  FDP_c 2% R1: base 1372 arm 1317 shared 1265 | gained 52 (entrapment 7) | lost 107 (entrapment 7)
+  FDP_c 2% R2: base 1372 arm 757 shared 731 | gained 26 (entrapment 7) | lost 641 (entrapment 13)
+  refinement at base winners: accepted non-entrapment IDs at 1% (n=1292) vs decoy winners (n=266660)
+    accepted quantitative(r>=0.9) share by count 0:0.00 1:0.03 2:0.05 3:0.12 4:0.23 5:0.25 6:0.31 | mean usable(r>=0.75) 5.24 | zero refine (unrefinable) 0.00 | mean r 0.885
+    decoy    quantitative(r>=0.9) share by count 0:0.60 1:0.22 2:0.13 3:0.04 4:0.00 5:0.00 6:0.00 | mean usable(r>=0.75) 1.31 | zero refine (unrefinable) 0.13 | mean r 0.288
+    accepted IDs that R2 masks >=3 fragments: 0.04; >=1: 0.51 (upper bound: windows with fewer than 6 library fragments count padding as masked)
