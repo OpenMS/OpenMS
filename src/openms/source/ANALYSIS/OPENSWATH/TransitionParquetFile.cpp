@@ -7,6 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
+
+#include "OSWParquetArchiveHelpers.h"
+
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
@@ -223,20 +226,7 @@ namespace OpenMS
     // extracting the entry to a temporary file and reading from disk.
     auto open_table_from_entry = [&](const std::string& entry) -> std::shared_ptr<arrow::Table>
     {
-      auto ra_res = ZipRandomAccessFile::Open(oswpq_dir, entry, temp_dir);
-      if (ra_res.ok())
-      {
-        const auto& raf = ra_res.ValueOrDie();
-        return ParquetFile::readTable(std::static_pointer_cast<arrow::io::RandomAccessFile>(raf));
-      }
-      // Fallback to extract
-      const std::string path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, entry, temp_dir);
-      if (!File::exists(path))
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "Missing required parquet file '" + entry + "' in '" + oswpq_dir + "'");
-      }
-      return ParquetFile::readTable(path);
+      return Internal::OSWParquetArchiveHelpers::openTableFromEntry(oswpq_dir, entry, temp_dir, "Missing required parquet file", OPENMS_PRETTY_FUNCTION);
     };
 
     auto precursors_table = open_table_from_entry("library/precursors.parquet");
