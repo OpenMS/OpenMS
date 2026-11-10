@@ -5,10 +5,10 @@ Source of truth: BOARD.md, sections "## R-WPn: ..." (the "## Now" table repeats 
 - Each R-WP issue (#10848..#10853) is added to the project, and its Status is set from WP_STATUS below.
 - Each step row becomes one draft item titled "R-WPn: <step>". Its body has the BOARD.md state and the record link.
   An existing draft with the same title is updated, not duplicated. Drafts that are no longer in BOARD.md are left
-  untouched and listed in the output.
+  untouched and listed, or archived with --archive-stale (archiving is reversible in the project UI).
 - State mapping to the project Status field:
     Done* -> Done, In progress / Partial -> In progress, Next -> Ready, Blocked / Open -> Backlog, Stopped -> Done.
-Usage: board_sync.py [--dry-run]. Needs `gh` with the `project` scope.
+Usage: board_sync.py [--dry-run] [--archive-stale]. Needs `gh` with the `project` scope.
 """
 import json, re, subprocess, sys, pathlib
 
@@ -20,6 +20,7 @@ WP_ISSUES = {'R-WP1': 10848, 'R-WP2': 10849, 'R-WP3': 10850, 'R-WP4': 10851, 'R-
 WP_STATUS = {'R-WP1': 'In review', 'R-WP2': 'In review', 'R-WP3': 'In progress', 'R-WP4': 'In progress',
              'R-WP5': 'In progress', 'R-WP6': 'Backlog'}
 DRY = '--dry-run' in sys.argv
+ARCHIVE = '--archive-stale' in sys.argv
 
 
 def gh(*args):
@@ -72,6 +73,17 @@ def main():
     items = gh('project', 'item-list', NUMBER, '--owner', OWNER, '--limit', '500', '--format', 'json')['items']
     by_issue = {i['content'].get('number'): i for i in items if i['content'].get('type') == 'Issue'}
     drafts = {i['title']: i for i in items if i['content'].get('type') == 'DraftIssue'}
+    # item-list omits the DraftIssue content id (DI_...), which item-edit needs for title/body.
+    draft_ids, cursor = {}, None
+    while True:
+        after = f', after: "{cursor}"' if cursor else ''
+        q = ('{organization(login: "%s") {projectV2(number: %s) {items(first: 100%s) {pageInfo {hasNextPage endCursor} '
+             'nodes {id content {... on DraftIssue {id}}}}}}}' % (OWNER, NUMBER, after))
+        page = gh('api', 'graphql', '-f', f'query={q}')['data']['organization']['projectV2']['items']
+        draft_ids.update({n['id']: n['content']['id'] for n in page['nodes'] if n.get('content') and n['content'].get('id')})
+        if not page['pageInfo']['hasNextPage']:
+            break
+        cursor = page['pageInfo']['endCursor']
 
     def set_status(item_id, name):
         if DRY:
@@ -100,13 +112,19 @@ def main():
                        '--format', 'json')
             log.append(f'create draft "{r["title"]}" [{r["status"]}]')
         else:
-            if not DRY:
-                gh('project', 'item-edit', '--id', d['content']['id'], '--title', r['title'], '--body', r['body'])
-            log.append(f'update draft "{r["title"]}"')
+            if not DRY and d['content'].get('body') != r['body']:
+                gh('project', 'item-edit', '--id', draft_ids[d['id']], '--title', r['title'], '--body', r['body'])
+                log.append(f'update draft "{r["title"]}"')
         if d is not None and d.get('status') != r['status']:
             set_status(d['id'], r['status'])
             log.append(f'  status -> {r["status"]}')
     stale = [t for t in drafts if t.startswith('R-WP') and t not in seen]
+    if stale and ARCHIVE:
+        for t in stale:
+            if not DRY:
+                gh('project', 'item-archive', NUMBER, '--owner', OWNER, '--id', drafts[t]['id'])
+            log.append(f'archive draft "{t}"')
+        stale = []
     print('\n'.join(log))
     if stale:
         print('drafts not in BOARD.md (left untouched):\n  ' + '\n  '.join(stale))

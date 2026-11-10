@@ -1,0 +1,32 @@
+a_T0 fold 0: 4044 training rows, 21 epochs, val loss 0.0000
+a_T0 fold 1: 3923 training rows, 17 epochs, val loss 0.0001
+a_T0 fold 2: 3965 training rows, 14 epochs, val loss 0.0002
+a_T0 done in 104 s
+b_T0 fold 0: 4044 training rows, 17 epochs, val loss 0.0001
+b_T0 fold 1: 3923 training rows, 24 epochs, val loss 0.0001
+b_T0 fold 2: 3965 training rows, 15 epochs, val loss 0.0002
+b_T0 done in 69 s
+c_T0 fold 0: 4044 training rows, 8 epochs, val loss 0.0034
+c_T0 fold 1: 3923 training rows, 18 epochs, val loss 0.0001
+c_T0 fold 2: 3965 training rows, 21 epochs, val loss 0.0002
+c_T0 done in 60 s
+d_T0 fold 0: 4044 training rows, 9 epochs, val loss 0.0017
+d_T0 fold 1: 3923 training rows, 14 epochs, val loss 0.0002
+d_T0 fold 2: 3965 training rows, 13 epochs, val loss 0.0007
+d_T0 done in 61 s
+a_T1 fold 0: 10767 training rows, 11 epochs, val loss 0.0000
+a_T1 fold 1: 10590 training rows, 19 epochs, val loss 0.0003
+a_T1 fold 2: 10685 training rows, 16 epochs, val loss 0.0005
+a_T1 done in 155 s
+b_T1 fold 0: 10767 training rows, 8 epochs, val loss 0.0037
+b_T1 fold 1: 10590 training rows, 19 epochs, val loss 0.0002
+b_T1 fold 2: 10685 training rows, 10 epochs, val loss 0.0005
+b_T1 done in 115 s
+c_T1 fold 0: 10767 training rows, 6 epochs, val loss 0.0066
+c_T1 fold 1: 10590 training rows, 11 epochs, val loss 0.0022
+c_T1 fold 2: 10685 training rows, 17 epochs, val loss 0.0000
+c_T1 done in 105 s
+d_T1 fold 0: 10767 training rows, 17 epochs, val loss 0.0001
+d_T1 fold 1: 10590 training rows, 11 epochs, val loss 0.0049
+d_T1 fold 2: 10685 training rows, 12 epochs, val loss 0.0009
+d_T1 done in 127 s

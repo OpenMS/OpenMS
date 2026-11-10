@@ -19,8 +19,8 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 
 | Step | WP | State | Record |
 |---|---|---|---|
-| Voxel pilot: train and score 8 cells (inputs a–d × training sets T0/T1, 3 folds each) | R-WP3 | **In progress** | [voxel-scoring-model/](gates/voxel-scoring-model/DESIGN.md) |
-| Voxel pilot: read the result under `PLAN_PILOT.md` and write `RESULT_PILOT.md` | R-WP3 | Next | [PLAN_PILOT.md.sha256](gates/voxel-scoring-model/PLAN_PILOT.md.sha256) |
+| Voxel pilot, 8 cells: no cell passes. Entrapment AUC 0.47–0.50 (base 0.516), no N gain over the voxel control | R-WP3 | Done (fail) | [RESULT_PILOT.md](gates/voxel-scoring-model/RESULT_PILOT.md) |
+| Next direction for the voxel model | R-WP3 | Blocked: needs user decision | [RESULT_PILOT.md](gates/voxel-scoring-model/RESULT_PILOT.md) |
 | C++ `OpenDIAScoringModel.{h,cpp}` and its own tool | R-WP3 | Blocked: needs a pilot cell that passes | [DESIGN.md](gates/voxel-scoring-model/DESIGN.md) |
 | Full gate of `OpenDIAScoringModel` on raws 01/02 against the base (1029 / 1298) | R-WP3, R-WP5 | Blocked: needs the C++ model | |
 | Pass rule: change from N@1 % to a paired bootstrap rule | R-WP4 | Blocked: needs user approval | [metric_noise.txt](gates/astral-native-byion/single-scorer/metric_noise.txt) |
@@ -63,8 +63,8 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 | Further work on CNN + LDA | **Stopped** (user decision, 10 November 2026) | |
 | Single voxel model: design, training set, pilot rule (frozen before training) | Done | [DESIGN.md](gates/voxel-scoring-model/DESIGN.md) |
 | Voxel pilot: export (`-out_xipm`, candidate table byte-identical to base) and voxel build | Done | [voxel-scoring-model/](gates/voxel-scoring-model/) |
-| Voxel pilot: 8 cells | **In progress** | |
-| Voxel pilot: read the result under `PLAN_PILOT.md` and write `RESULT_PILOT.md` | Next | [PLAN_PILOT.md.sha256](gates/voxel-scoring-model/PLAN_PILOT.md.sha256) |
+| Voxel pilot: 8 cells (no cell passes, see RESULT_PILOT.md) | Done (fail) | [RESULT_PILOT.md](gates/voxel-scoring-model/RESULT_PILOT.md) |
+| Next direction for the voxel model | Blocked: needs user decision | [RESULT_PILOT.md](gates/voxel-scoring-model/RESULT_PILOT.md) |
 | C++ `OpenDIAScoringModel` | Blocked: needs pilot | |
 | Full gate of `OpenDIAScoringModel` on raws 01/02 against the base (1029 / 1298) | Blocked: needs the C++ model | |
 
