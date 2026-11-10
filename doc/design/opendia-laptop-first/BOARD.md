@@ -20,7 +20,9 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 | Step | WP | State | Record |
 |---|---|---|---|
 | Voxel pilot, 8 cells: no cell passes. Entrapment AUC 0.47–0.50 (base 0.516), no N gain over the voxel control | R-WP3 | Done (fail) | [RESULT_PILOT.md](gates/voxel-scoring-model/RESULT_PILOT.md) |
-| Next direction for the voxel model | R-WP3 | Blocked: needs user decision | [RESULT_PILOT.md](gates/voxel-scoring-model/RESULT_PILOT.md) |
+| Next direction for the voxel model | R-WP3 | Done: user chose heuristic features + semi-supervised rounds (10 November 2026) | [RESULT_PILOT.md](gates/voxel-scoring-model/RESULT_PILOT.md) |
+| Voxel v2: 4 arms (V0, F0 features, S0 rounds, FS both) on raws 01/02, plan frozen | R-WP3 | **In progress** | [PLAN_V2.md](gates/voxel-scoring-model/v2/PLAN_V2.md) |
+| Voxel v3: lower weight for decoy-like negatives | R-WP3 | Blocked: after v2 | |
 | C++ `OpenDIAScoringModel.{h,cpp}` and its own tool | R-WP3 | Blocked: needs a pilot cell that passes | [DESIGN.md](gates/voxel-scoring-model/DESIGN.md) |
 | Full gate of `OpenDIAScoringModel` on raws 01/02 against the base (1029 / 1298) | R-WP3, R-WP5 | Blocked: needs the C++ model | |
 | Pass rule: change from N@1 % to a paired bootstrap rule | R-WP4 | Blocked: needs user approval | [metric_noise.txt](gates/astral-native-byion/single-scorer/metric_noise.txt) |
@@ -64,7 +66,9 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 | Single voxel model: design, training set, pilot rule (frozen before training) | Done | [DESIGN.md](gates/voxel-scoring-model/DESIGN.md) |
 | Voxel pilot: export (`-out_xipm`, candidate table byte-identical to base) and voxel build | Done | [voxel-scoring-model/](gates/voxel-scoring-model/) |
 | Voxel pilot: 8 cells (no cell passes, see RESULT_PILOT.md) | Done (fail) | [RESULT_PILOT.md](gates/voxel-scoring-model/RESULT_PILOT.md) |
-| Next direction for the voxel model | Blocked: needs user decision | [RESULT_PILOT.md](gates/voxel-scoring-model/RESULT_PILOT.md) |
+| Next direction for the voxel model | Done: user chose heuristic features + semi-supervised rounds | [RESULT_PILOT.md](gates/voxel-scoring-model/RESULT_PILOT.md) |
+| Voxel v2: 4 arms (V0, F0 features, S0 rounds, FS both) on raws 01/02 | **In progress** | [PLAN_V2.md](gates/voxel-scoring-model/v2/PLAN_V2.md) |
+| Voxel v3: lower weight for decoy-like negatives | Blocked: after v2 | |
 | C++ `OpenDIAScoringModel` | Blocked: needs pilot | |
 | Full gate of `OpenDIAScoringModel` on raws 01/02 against the base (1029 / 1298) | Blocked: needs the C++ model | |
 
