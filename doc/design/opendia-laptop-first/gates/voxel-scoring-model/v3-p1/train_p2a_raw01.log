@@ -1,0 +1,8 @@
+raw01 FL11 fold 0: r0 4671 | r1 pos 1649 neg 62005 | r2 pos 1030 neg 62005
+raw01 FL11 fold 1: r0 4626 | r1 pos 1677 neg 61933 | r2 pos 1051 neg 61933
+raw01 FL11 fold 2: r0 4707 | r1 pos 1734 neg 62056 | r2 pos 1144 neg 62056
+raw01 FL11 done in 43 s
+raw01 G11a fold 0: r0 4671 | r1 pos 1556 neg 62005 | r2 pos 1168 neg 62005
+raw01 G11a fold 1: r0 4626 | r1 pos 1697 neg 61933 | r2 pos 1208 neg 61933
+raw01 G11a fold 2: r0 4707 | r1 pos 1774 neg 62056 | r2 pos 1273 neg 62056
+raw01 G11a done in 129 s

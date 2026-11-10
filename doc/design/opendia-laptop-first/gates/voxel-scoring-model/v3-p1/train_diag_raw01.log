@@ -1,0 +1,8 @@
+raw01 L11b fold 0: r0 4671 | r1 pos 1660 neg 62005 | r2 pos 1050 neg 62005
+raw01 L11b fold 1: r0 4626 | r1 pos 1677 neg 61933 | r2 pos 1052 neg 61933
+raw01 L11b fold 2: r0 4707 | r1 pos 1751 neg 62056 | r2 pos 1129 neg 62056
+raw01 L11b done in 4 s
+raw01 L11d fold 0: r0 4671 | r1 pos 1561 neg 62005 | r2 pos 1186 neg 62005
+raw01 L11d fold 1: r0 4626 | r1 pos 1654 neg 61933 | r2 pos 1223 neg 61933
+raw01 L11d fold 2: r0 4707 | r1 pos 1720 neg 62056 | r2 pos 1304 neg 62056
+raw01 L11d done in 5 s
