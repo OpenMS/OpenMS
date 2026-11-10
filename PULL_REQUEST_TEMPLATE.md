@@ -8,6 +8,14 @@
 - [ ] New and existing unit tests pass locally with my changes
 - [ ] Updated or added python bindings for changed or new classes (Tick if no updates were necessary.)
 
+### AI use (see the [OpenMS AI Policy](https://openms.de/ai-policy/))
+<!-- Minor grammar or wording help does not need to be disclosed. -->
+- [ ] I have read the [OpenMS AI Policy](https://openms.de/ai-policy/), and I understand, have reviewed and tested every change in this PR and can explain it in my own words
+- AI use in this PR (tick one):
+  - [ ] None
+  - [ ] Assisted (e.g. completion, suggestions, small edits); commits carry an `Assisted-by:` trailer
+  - [ ] Substantial (e.g. agentic tools wrote significant parts); commits carry a `Co-authored-by:` trailer, and the description above explains the design intent and rationale
+
 No need to edit the CHANGELOG file: entries are generated automatically once per week from merged changes.
 
 ### How can I get additional information on failed tests during CI
