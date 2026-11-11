@@ -1,0 +1,19 @@
+raw01 D11R fold 0: r0 4671 30 ep crit 9.173 | r1 pos 1420 neg 62005 13 ep crit 7.180 | r2 pos 1244 neg 62005 20 ep crit 7.919 (140 s)
+raw01 D11R fold 1: r0 4626 23 ep crit 9.235 | r1 pos 1681 neg 61933 18 ep crit 7.137 | r2 pos 1300 neg 61933 22 ep crit 7.855 (251 s)
+raw01 D11R fold 2: r0 4707 29 ep crit 9.182 | r1 pos 1719 neg 62056 14 ep crit 7.169 | r2 pos 1397 neg 62056 18 ep crit 7.790 (371 s)
+raw01 D11R done in 371 s
+raw01 D11M fold 0: r0 4671 30 ep crit 7997.084 | r1 pos 1503 neg 62005 13 ep crit 1270.453 | r2 pos 1334 neg 62005 14 ep crit 2046.900 (20 s)
+raw01 D11M fold 1: r0 4626 29 ep crit 10161.645 | r1 pos 1628 neg 61933 17 ep crit 1645.168 | r2 pos 1416 neg 61933 17 ep crit 2297.336 (43 s)
+raw01 D11M fold 2: r0 4707 30 ep crit 9861.984 | r1 pos 1840 neg 62056 15 ep crit 1153.261 | r2 pos 1437 neg 62056 11 ep crit 1911.159 (61 s)
+raw01 D11M done in 61 s
+raw01 D11MR fold 0: r0 4671 30 ep crit 8.816 | r1 pos 1518 neg 62005 18 ep crit 7.086 | r2 pos 1326 neg 62005 14 ep crit 7.659 (149 s)
+raw01 D11MR fold 1: r0 4626 30 ep crit 9.217 | r1 pos 1681 neg 61933 24 ep crit 7.347 | r2 pos 1347 neg 61933 16 ep crit 7.703 (275 s)
+raw01 D11MR fold 2: r0 4707 30 ep crit 9.222 | r1 pos 1770 neg 62056 12 ep crit 6.862 | r2 pos 1473 neg 62056 23 ep crit 7.421 (388 s)
+raw01 D11MR done in 388 s
+	Command being timed: "/home/singjc/.jcode/scratch/torchenv/.venv/bin/python v4/train_v4.py raw01 D11R D11M D11MR"
+	User time (seconds): 8008.57
+	System time (seconds): 16.15
+	Percent of CPU this job got: 976%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 13:41.88
+	Maximum resident set size (kbytes): 1858056
+	Exit status: 0

@@ -1,0 +1,37 @@
+instrument defaults: astral.yaml (Astral) over default.yaml
+instrument 'Astral' is predicted as Lumos
+Astral has no ion mobility: CCS and 1/K0 not predicted (-generation:predict_ion_mobility true to predict them)
+MS2 model: /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/tools/dialibgen-0.13.1/share/DIALibGen/models/peptdeep_ms2_dynamic.onnx
+digest: 100000 proteins, 162760 peptides, 469459 precursors, 5628253 transitions
+variable modification 'Oxidation (M)': 117265 precursors
+device: prediction on the CPU (-machine:device cpu)
+[MS2] provider CPU device -1 sessions 8
+[RT] provider CPU device -1 sessions 8
+RT is the model's raw 0..1 scale, not iRT; -generation:irt_rescale true writes iRT for a library another tool reads as iRT
+after fragment selection: 469459 precursors
+decoys: 0 (none), 0 skipped
+wrote pred12.parquet
+DIALibGen took 09:40 m (wall), 01:16:56 h (CPU), 4.08 s (system), 01:16:52 h (user); Peak Memory Usage: 1484 MB.
+	Command being timed: "taskset -c 0-13 ../tools/dialibgen-0.13.1/bin/DIALibGen -in /home/singjc/Documents/datasets/proteobench-astral-entrapment/100K_sampled_fasta/ProteoBenchFASTA_Entrapment_Human_with_contaminants_entrapment_pep_100k_randomly_sampled.fasta -out pred12.parquet -threads 14 -machine:device cpu -generation:instrument Astral -generation:nce 25 -generation:precursor_mz 400 1000 -generation:fragment_mz 100 2000 -generation:precursor_charges 1 2 3 4 5 -generation:variable_modifications Oxidation (M) -generation:max_variable_modifications 1 -generation:missed_cleavages 2 -generation:peptide_length 7 35 -generation:n_terminal_methionine_excision false -generation:fragments 1 12 -generation:max_fragment_charge 2"
+	User time (seconds): 4612.40
+	System time (seconds): 4.24
+	Percent of CPU this job got: 794%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 9:41.13
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1520212
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 507733
+	Voluntary context switches: 35931
+	Involuntary context switches: 48519
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 151936
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
