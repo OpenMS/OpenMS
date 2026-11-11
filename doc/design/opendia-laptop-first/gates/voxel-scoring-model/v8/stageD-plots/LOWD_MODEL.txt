@@ -1,0 +1,8 @@
+D precursors 866 low (kept-window score below decoy q90): 287
+          pT  pF_kept  pL_kept  pF_best
+low                                    
+False  0.999    0.999    0.996    0.999
+True   0.064    0.064    0.939    0.475
+share where the W-kept window is the full-score best window: {False: 0.979, True: 0.056}
+low D with best-window full score above decoy q90 (would be rescued if W picked the full-score argmax): 36
+low D: pF_best quantiles [0.073, 0.212, 0.475, 0.776]

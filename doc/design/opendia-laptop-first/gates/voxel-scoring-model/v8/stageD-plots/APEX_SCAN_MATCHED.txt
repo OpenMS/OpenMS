@@ -1,0 +1,18 @@
+n_frag_0: score-matched AUC D vs DEC 0.655, ENT vs DEC 0.490
+n_frag_best: score-matched AUC D vs DEC 0.683, ENT vs DEC 0.509
+tic_share_0: score-matched AUC D vs DEC 0.436, ENT vs DEC 0.485
+pts_ge3: score-matched AUC D vs DEC 0.567, ENT vs DEC 0.469
+per stratum: n D/DEC/ENT and median n_frag_best
+        n                     s              nfb            pts          
+grp     D     DEC     ENT     D   DEC   ENT    D  DEC  ENT    D  DEC  ENT
+st                                                                       
+0    87.0     NaN     NaN  -1.0   NaN   NaN  4.0  NaN  NaN  2.0  NaN  NaN
+1    87.0     NaN     NaN  -0.9   NaN   NaN  4.0  NaN  NaN  2.0  NaN  NaN
+2    86.0     NaN     NaN  -0.4   NaN   NaN  4.0  NaN  NaN  2.0  NaN  NaN
+3    87.0  8726.0  4413.0   4.0   3.1   3.2  4.0  2.0  2.0  2.0  0.0  0.0
+4    86.0   361.0   234.0   6.1   6.0   6.1  4.0  4.0  4.0  2.0  2.0  2.0
+5    87.0   109.0    67.0   7.8   7.5   7.6  5.0  4.0  4.0  2.0  2.0  2.0
+6    86.0    57.0    42.0   9.5   9.4   9.3  5.0  4.0  4.5  2.0  3.0  3.0
+7    87.0    13.0    13.0  12.3  11.3  11.2  5.0  5.0  5.0  3.0  3.0  3.0
+8    86.0     NaN     NaN  15.8   NaN   NaN  5.0  NaN  NaN  2.5  NaN  NaN
+9    87.0     NaN     NaN  20.1   NaN   NaN  5.0  NaN  NaN  3.0  NaN  NaN

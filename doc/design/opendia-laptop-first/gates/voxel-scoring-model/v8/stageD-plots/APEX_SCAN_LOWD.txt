@@ -1,0 +1,25 @@
+decoy q90 2.26; low D n 287 (score -0.97..2.26); decoys in the same range n 600
+n_frag_0: median low-D 3.0, decoy 2.0; share >= 4: low-D 0.50, decoy 0.06
+n_frag_best: median low-D 4.0, decoy 2.0; share >= 4: low-D 0.67, decoy 0.09
+pts_ge3: share >= 2: low-D 0.63, decoy 0.11
+model-input medians: low D (score < decoy q90) | decoys same score | D above decoy q90
+                               low_D   decoy  high_D
+transition_support             4.000   3.000   5.000
+log_matched_scans              2.944   3.045   2.890
+log_peak_width                 4.094   4.174   3.915
+abs_library_rt_error          21.944  37.230  18.209
+boundary_log_fwhm              1.827   1.812   1.809
+boundary_log_width             2.579   2.426   2.579
+boundary_coelution             0.184   0.133   0.334
+boundary_library_correlation   0.401  -0.055   0.559
+boundary_apex_agreement        0.667   0.500   0.833
+byion_b                        1.000   1.000   2.000
+byion_y                        3.000   2.000   4.000
+f12_support                    1.000   1.000   2.000
+f12_coelution                  0.220   0.149   0.274
+f12_libcos                     0.828   0.573   0.885
+f12_extra_support              0.000   0.000   1.000
+f12_extra_coelution            0.171   0.142   0.219
+f12_extra_share               -0.570  -0.491  -0.582
+library RT of low D vs other D (median): 0.447 0.442
+abs RT error (s) quantiles low D: [21.9, 54.5] high D: [18.2, 50.0]

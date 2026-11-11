@@ -1,0 +1,25 @@
+  df = pd.DataFrame(rows); df['n_frag_best'] = df[['n_frag_-1', 'n_frag_0', 'n_frag_1']].max(1)
+score band (D interquartile range) -0.4..12.3; groups {'D': 866, 'DEC': 9266, 'E': 600, 'ENT': 4769}
+medians:
+          s  n_frag_0  n_frag_best  tic_share_0  pts_ge3
+grp                                                     
+D     6.972       4.0          5.0        0.007      2.0
+DEC   3.221       2.0          2.0        0.002      0.0
+E    42.228       6.0          6.0        0.028      3.0
+ENT   3.327       2.0          2.0        0.003      0.0
+share with >= 4 of 6 library fragments in the apex scan (k = 0):
+grp
+D      0.748
+DEC    0.102
+E      0.998
+ENT    0.133
+share with >= 2 scans (apex +- 3 s) holding >= 3 fragments:
+grp
+D      0.801
+DEC    0.147
+E      0.978
+ENT    0.181
+n_frag_0: AUC D vs DEC 0.895, ENT vs DEC 0.541 (scores within the D interquartile range)
+n_frag_best: AUC D vs DEC 0.916, ENT vs DEC 0.545 (scores within the D interquartile range)
+tic_share_0: AUC D vs DEC 0.764, ENT vs DEC 0.540 (scores within the D interquartile range)
+pts_ge3: AUC D vs DEC 0.877, ENT vs DEC 0.535 (scores within the D interquartile range)

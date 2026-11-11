@@ -1,0 +1,18 @@
+group	precursor_id
+E accepted, high abundance	332033
+E accepted, high abundance	30533
+E accepted, low abundance	442208
+E accepted, low abundance	474987
+D missed, low abundance, DIA-NN q <= 0.001	3959
+D missed, low abundance, DIA-NN q <= 0.001	428357
+D missed, low abundance, DIA-NN q <= 0.001	498100
+D missed, low abundance, DIA-NN q > 0.003	443616
+D missed, low abundance, DIA-NN q > 0.003	575432
+D missed, mid abundance	448605
+D missed, mid abundance	339605
+D missed, high abundance	589693
+Decoy winner, score in D interquartile range	112438
+Decoy winner, score in D interquartile range	274178
+Decoy winner, score in D interquartile range	253307
+Entrapment winner, score in D interquartile range	467647
+Entrapment winner, score in D interquartile range	583537

@@ -1,0 +1,4 @@
+raw01 full (D11FWT): N@1/2 % 1496 / 1716; q<=0.01 N 1614 FDP_c 0.0137; old-D now accepted 0
+raw01 linear part, same window: N@1/2 % 1181 / 1326; q<=0.01 N 1143 FDP_c 0.0071; old-D now accepted 40
+raw02 full (D11FWT): N@1/2 % 1426 / 1736; q<=0.01 N 1536 FDP_c 0.0131; old-D now accepted 0
+raw02 linear part, same window: N@1/2 % 1095 / 1333; q<=0.01 N 1074 FDP_c 0.0094; old-D now accepted 15
