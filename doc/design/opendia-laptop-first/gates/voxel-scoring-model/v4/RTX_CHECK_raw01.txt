@@ -1,0 +1,4 @@
+
+== raw01: DIA-NN reference 2743
+old       windows  2815555 | population windows  1270510, precursors T  93705 D  92997, entrapment share of T 0.4913 | A 185 B 166 has right window 2392
+extended  windows  2548048 | population windows  1130145, precursors T  82934 D  82167, entrapment share of T 0.4908 | A 137 B 90 has right window 2516
