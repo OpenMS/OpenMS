@@ -813,9 +813,9 @@ namespace OpenMS
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
         cerr << target_scores[i] << " " << decoy_scores[j] << " " << i << " " << j << " ";
 #endif
-        double fdr(0);
-
-        fdr = (double)j / (double)(i + 1);
+        // D/T, with T = i + 1 targets and D = j decoys at least as good; an estimate above 1 is set to 1
+        // (the q-values above are at most 1 anyway)
+        const double fdr = std::min(1.0, (double)j / (double)(i + 1));
 
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
         cerr << fdr << endl;

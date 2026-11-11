@@ -552,6 +552,60 @@ START_SECTION([EXTRA] basic FDR: (D+1)/T if conservative; else (D+1)/(T+D); at m
 }
 END_SECTION
 
+START_SECTION([EXTRA] apply() raw FDR: D/T; at most 1)
+{
+  // One PSM per score, higher = better. apply() estimates D/T at each target, with T and D the targets and decoys at
+  // least as good:
+  //   score   0.99 0.98 0.90 0.80 0.70 0.68 0.60 0.50
+  //   label   D    D    T    T    T    D    T    T
+  // raw FDRs of the targets: 2/1 -> 1, 2/2, 2/3, 3/4, 3/5 (without the cap the first was 2)
+  // q-values (cumulative minimum from the worst score): 3/5 for all
+  const vector<pair<double, string>> list = {{0.99, "decoy"}, {0.98, "decoy"}, {0.90, "target"}, {0.80, "target"},
+                                             {0.70, "target"}, {0.68, "decoy"}, {0.60, "target"}, {0.50, "target"}};
+  const vector<string> sequences = {"AAAAAAAK", "CCCCCCCK", "DDDDDDDK", "EEEEEEEK", "FFFFFFFK", "GGGGGGGK", "HHHHHHHK", "IIIIIIIK"};
+  auto run = [&](bool q_values)
+  {
+    PeptideIdentificationList ids;
+    for (Size i = 0; i < list.size(); ++i)
+    {
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString(sequences[i]));
+      hit.setScore(list[i].first);
+      hit.setCharge(2);
+      hit.setMetaValue("target_decoy", list[i].second);
+      PeptideIdentification id;
+      id.setScoreType("score");
+      id.setHigherScoreBetter(true);
+      id.setHits({hit});
+      ids.push_back(id);
+    }
+    FalseDiscoveryRate fdr;
+    Param p = fdr.getParameters();
+    p.setValue("no_qvalues", q_values ? "false" : "true");
+    fdr.setParameters(p);
+    fdr.apply(ids);
+    vector<double> v; // the targets in input order (decoy hits are removed)
+    for (const auto& id : ids)
+    {
+      for (const auto& hit : id.getHits()) v.push_back(hit.getScore());
+    }
+    return v;
+  };
+  auto test_values = [](const vector<double>& actual, const vector<double>& expected)
+  {
+    TEST_EQUAL(actual.size(), expected.size())
+    for (Size i = 0; i < std::min(actual.size(), expected.size()); ++i)
+    {
+      TEST_REAL_SIMILAR(actual[i], expected[i])
+    }
+  };
+  TOLERANCE_ABSOLUTE(1e-9)
+
+  test_values(run(false), {1.0, 1.0, 2.0 / 3, 3.0 / 4, 3.0 / 5});
+  test_values(run(true), {3.0 / 5, 3.0 / 5, 3.0 / 5, 3.0 / 5, 3.0 / 5});
+}
+END_SECTION
+
 
 START_SECTION((void apply(std::vector<ProteinIdentification>& ids)))
 {
