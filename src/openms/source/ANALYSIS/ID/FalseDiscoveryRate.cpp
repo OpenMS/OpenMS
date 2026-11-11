@@ -835,9 +835,9 @@ namespace OpenMS
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
         cerr << target_scores[i] << " " << decoy_scores[j] << " " << i << " " << j << " ";
 #endif
-        double fdr(0);
-
-        fdr = (double)j / (double)(i + 1);
+        // D/T, with T = i + 1 targets and D = j decoys at least as good; an estimate above 1 is set to 1
+        // (the q-values above are at most 1 anyway)
+        const double fdr = std::min(1.0, (double)j / (double)(i + 1));
 
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
         cerr << fdr << endl;
@@ -847,6 +847,12 @@ namespace OpenMS
     }
 
     // assign q-value of decoy_score to closest target_score
+    // The search below needs the targets from the worst to the best score (as sorted for q-values). Without q-values
+    // they are sorted from the best to the worst, so a decoy would get the FDR of the wrong target.
+    if (!q_value)
+    {
+      std::reverse(target_scores.begin(), target_scores.end());
+    }
     for (Size i = 0; i != decoy_scores.size(); ++i)
     {
       const double& ds = decoy_scores[i];
