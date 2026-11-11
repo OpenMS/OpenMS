@@ -44,7 +44,11 @@ using namespace std;
 
 This TOPP tool calculates the false discovery rate (FDR) for results of target-decoy searches. The FDR calculation can be performed for proteins and/or for peptides (more exactly, peptide spectrum matches).
 
-The false discovery rate is defined as the number of false discoveries (decoy hits) divided by the number of false and correct discoveries (both target and decoy hits) with a score better than a given threshold.
+The FDR at a score threshold is estimated from the number of target hits (T) and decoy hits (D) with a score at least as good as the threshold (target-decoy competition: each decoy stands in for one false target):
+- PSMs and peptides: D/T.
+- Proteins and protein groups: (D+1)/T with @p algorithm:conservative 'true' (default), or (D+1)/(T+D) with 'false' (for comparison with tools such as Fido).
+
+Estimates above 1 (also for T = 0) are set to 1. By default (@p algorithm:no_qvalues 'false'), each hit gets the q-value, i.e. the lowest FDR of a threshold that still includes it. See FalseDiscoveryRate for details.
 
 @ref TOPP_PeptideIndexer must be applied to the search results (idXML file) to index the data and to annotate peptide and protein hits with their target/decoy status.
 
