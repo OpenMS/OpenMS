@@ -27,7 +27,6 @@ IDScoreGetterSetter.h
 IDScoreSwitcherAlgorithm.h
 IonIdentityMolecularNetworking.h
 MetaboliteSpectralMatching.h
-ProSEAlgorithm.h
 MorpheusScore.h
 OpenSearchModificationAnalysis.h
 PeptideIndexing.h

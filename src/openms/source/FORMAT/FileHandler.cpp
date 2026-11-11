@@ -9,6 +9,8 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include "Sha1Helpers.h"
 #include <OpenMS/FORMAT/FileNameUtils.h>
+#include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
+#include <OpenMS/FORMAT/DATAACCESS/S3InputSource.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -344,8 +346,30 @@ namespace OpenMS
     return aStrings;
   }
 
+  bool FileHandler::isRemote(const std::string& filename)
+  {
+    return HTTPInputSource::isURL(filename) || S3InputSource::isS3URI(filename);
+  }
+
+  std::string FileHandler::displayName(const std::string& filename)
+  {
+    return HTTPInputSource::redactURL(filename);
+  }
+
+  std::string FileHandler::displayText(const std::string& text)
+  {
+    return HTTPInputSource::redactURLs(text);
+  }
+
   FileTypes::Type FileHandler::getType(const std::string& filename)
   {
+    // A remote location is no file to look into: its type is that of its name, without the query (which may contain
+    // dots and slashes, e.g. ?endpoint_override=localhost:9000)
+    if (isRemote(filename))
+    {
+      return getTypeByFileName(displayName(filename));
+    }
+
     // Strip trailing directory separators (important for directory-based formats
     // like .d where shell tab-completion appends '/')
     std::string normalized = filename;

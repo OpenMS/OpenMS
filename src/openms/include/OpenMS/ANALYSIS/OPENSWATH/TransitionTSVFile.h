@@ -223,6 +223,37 @@ private:
     */
     void getTSVHeader_(const std::string& line, char& delimiter, std::map<std::string, int>& header_dict) const;
 
+    /** @brief Set up the column dictionary of the input: fixed columns for SpectraST MRM files, else read from the header line
+     *
+     * @param[in,out] data The input stream (the header line is consumed for TSV input)
+     * @param[in] filetype The type of file ("mrm" or "tsv")
+     * @param[in,out] delimiter The delimiter which will be determined from the input
+     * @param[out] header_dict The map which maps the fields in the header to their position
+     *
+    */
+    void readTSVHeader_(std::istream& data, FileTypes::Type filetype, char& delimiter, std::map<std::string, int>& header_dict) const;
+
+    /** @brief Parse one line of tab or comma separated input into a transition
+     *
+     * Shared by readUnstructuredTSVInput_() and streamTSVToLightTargetedExperiment_().
+     *
+     * @param[in,out] line The line to parse (the delimiter is appended)
+     * @param[in] delimiter The delimiter of the columns
+     * @param[in] filetype The type of file ("mrm" or "tsv")
+     * @param[in] cnt Number of the line (for error messages and generated transition names)
+     * @param[in] header_dict The map which maps the fields in the header to their position
+     * @param[out] tmp_line The fields of the line (buffer)
+     * @param[out] tmp Buffer for a single field (kept by the caller, so its memory is reused for every line)
+     * @param[out] mytransition The parsed transition
+     * @param[in,out] spectrast_legacy Set if a SpectraST legacy retention time was found
+     *
+     * @return Whether the transition should be skipped (unannotated transition in a SpectraST MRM file)
+     *
+    */
+    bool parseTSVLine_(std::string& line, char delimiter, FileTypes::Type filetype, int cnt,
+                       std::map<std::string, int>& header_dict, std::vector<std::string>& tmp_line,
+                       std::string& tmp, TSVTransition& mytransition, bool& spectrast_legacy);
+
     /** @brief Read tab or comma separated input with columns defined by their column headers only
      *
      * @param[in] filename The input file

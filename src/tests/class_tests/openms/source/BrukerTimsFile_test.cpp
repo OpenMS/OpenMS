@@ -7,7 +7,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/PROSE/ProSEAlgorithm.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/FORMAT/RationalScan2ImConverter.h>

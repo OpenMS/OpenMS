@@ -10,7 +10,11 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
+#include <OpenMS/ANALYSIS/ID/PROSE/ProSEAlgorithm.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/Bzip2InputStream.h>
 #include <OpenMS/FORMAT/GzipInputStream.h>
 
@@ -530,6 +534,87 @@ START_SECTION(([EXTRA] errors while decoding remote binary data do not show cred
   TEST_EQUAL(message.empty(), false)
   TEST_EQUAL(message.find("secret"), std::string::npos)
   TEST_EQUAL(message.find("TOKEN"), std::string::npos)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] ProSEAlgorithm searches a remote mzML location like the local file and names it without credentials and query))
+{
+  // ProSE -in https://... or s3://...: the searches read the location as given (here with user info and the query of a
+  // presigned URL) and store and report its name without them (FileHandler::displayName())
+  const std::string mzml = OPENMS_GET_TEST_DATA_PATH("../../../topp/SimpleSearchEngine_1.mzML");
+  const std::string fasta = OPENMS_GET_TEST_DATA_PATH("../../../topp/SimpleSearchEngine_1.fasta");
+  TestServer remote_server({{"/data/run.mzML", readFile(mzml)}});
+  const std::string location = "http://user:secret@127.0.0.1:" + std::to_string(remote_server.port()) + "/data/run.mzML?X-Amz-Signature=SIGNATURE";
+  const std::string name = remote_server.url("/data/run.mzML");
+
+  // the settings of TOPP_ProSE_11 (ProSE_6_fdr.ini), without rescoring and FDR filters
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("decoys", "generate");
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 10.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("FDR:protein", 0.0);
+  p.setValue("rescore", "false");
+  algo.setParameters(p);
+  algo.setLogType(ProgressLogger::NONE);
+
+  // the PSMs, by spectrum: sequence and score
+  const auto psms = [](const PeptideIdentificationList& peptides)
+  {
+    std::vector<std::string> result;
+    for (const PeptideIdentification& id : peptides)
+    {
+      for (const PeptideHit& hit : id.getHits())
+      {
+        result.push_back(id.getSpectrumReference() + " " + hit.getSequence().toString() + " " + std::to_string(hit.getScore()));
+      }
+    }
+    std::sort(result.begin(), result.end());
+    return result;
+  };
+  const auto run_path = [](const std::vector<ProteinIdentification>& runs)
+  {
+    StringList paths;
+    if (!runs.empty()) { runs[0].getPrimaryMSRunPath(paths); }
+    return ListUtils::concatenate(paths, ",");
+  };
+
+  // one file: search(file, database)
+  std::vector<ProteinIdentification> local_proteins, remote_proteins;
+  PeptideIdentificationList local_peptides, remote_peptides;
+  TEST_TRUE(algo.search(mzml, fasta, local_proteins, local_peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  TEST_TRUE(algo.search(location, fasta, remote_proteins, remote_peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  TEST_FALSE(psms(local_peptides).empty())
+  TEST_TRUE(psms(remote_peptides) == psms(local_peptides))
+  TEST_STRING_EQUAL(run_path(remote_proteins), name)
+
+  // several files, remote and local: one is read in the background while the other is searched
+  const ProSEAlgorithm::MultiFileSearchResult multi =
+    algo.searchWithModificationAnalysis(std::vector<std::string>{location, mzml}, fasta);
+  ABORT_IF(multi.per_file.size() != 2)
+  TEST_TRUE(multi.per_file[0].exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  TEST_TRUE(psms(multi.per_file[0].peptide_ids) == psms(multi.per_file[1].peptide_ids))
+  TEST_TRUE(psms(multi.per_file[0].peptide_ids) == psms(local_peptides))
+  TEST_STRING_EQUAL(run_path(multi.per_file[0].protein_ids), name)
+  TEST_STRING_EQUAL(multi.per_file[0].stats.input_file, "run.mzML")
+
+  // the spectra read again by the location (ProSE -qpx_extended)
+  const auto ms2 = [](const MSSpectrum& spectrum) { return spectrum.getMSLevel() == 2; };
+  const PeakMap local_spectra = ProSEAlgorithm::loadSpectra(mzml, ms2);
+  const PeakMap remote_spectra = ProSEAlgorithm::loadSpectra(location, ms2);
+  TEST_FALSE(local_spectra.empty())
+  ABORT_IF(remote_spectra.size() != local_spectra.size())
+  for (Size i = 0; i < local_spectra.size(); ++i)
+  {
+    TEST_STRING_EQUAL(remote_spectra[i].getNativeID(), local_spectra[i].getNativeID())
+    TEST_EQUAL(remote_spectra[i].size(), local_spectra[i].size())
+  }
 }
 END_SECTION
 
