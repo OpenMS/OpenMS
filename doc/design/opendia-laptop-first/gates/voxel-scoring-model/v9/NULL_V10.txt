@@ -1,0 +1,4 @@
+raw01 D11FWT null windows T 177732 D 166806  AUC 0.4947 | null winners T 87468 D 84897  AUC 0.4933
+raw01 D11FEWT null windows T 177732 D 166806  AUC 0.4948 | null winners T 87468 D 84897  AUC 0.4937
+raw02 D11FWT null windows T 177929 D 167952  AUC 0.4950 | null winners T 88534 D 86078  AUC 0.4936
+raw02 D11FEWT null windows T 177929 D 167952  AUC 0.4951 | null winners T 88534 D 86078  AUC 0.4940

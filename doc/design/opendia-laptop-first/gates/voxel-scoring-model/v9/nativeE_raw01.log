@@ -1,0 +1,34 @@
+raw01 MS2 scans 292883 isolation windows 300 tol ppm 4.991333056 windows without an isolation window 119
+raw01 isolation window 30/300 (108 s)
+raw01 isolation window 60/300 (178 s)
+raw01 isolation window 90/300 (232 s)
+raw01 isolation window 120/300 (271 s)
+raw01 isolation window 150/300 (302 s)
+raw01 isolation window 180/300 (329 s)
+raw01 isolation window 210/300 (355 s)
+raw01 isolation window 240/300 (377 s)
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+raw01 isolation window 270/300 (400 s)
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+raw01 done 420 s medians target [0.5260000228881836, 1.7230000495910645, 0.0, 0.19300000369548798, 0.41100001335144043] decoy [0.5339999794960022, 1.7339999675750732, 0.0, 0.19300000369548798, 0.40299999713897705] mean p_f target/decoy 0.128531813621521 0.1254553645849228

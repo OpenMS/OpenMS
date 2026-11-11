@@ -1,0 +1,29 @@
+raw02 MS2 scans 292914 isolation windows 300 tol ppm 5.01606866 windows without an isolation window 111
+raw02 isolation window 30/300 (65 s)
+raw02 isolation window 60/300 (124 s)
+raw02 isolation window 90/300 (169 s)
+raw02 isolation window 120/300 (204 s)
+raw02 isolation window 150/300 (238 s)
+raw02 isolation window 180/300 (265 s)
+raw02 isolation window 210/300 (290 s)
+Error, intensity or m/z array is missing, skipping this spectrum
+raw02 isolation window 240/300 (311 s)
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+raw02 isolation window 270/300 (331 s)
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+raw02 done 355 s medians target [0.5270000100135803, 1.725000023841858, 0.0, 0.19300000369548798, 0.41200000047683716] decoy [0.5329999923706055, 1.7350000143051147, 0.0, 0.19200000166893005, 0.40299999713897705] mean p_f target/decoy 0.13003773987293243 0.12696924805641174
