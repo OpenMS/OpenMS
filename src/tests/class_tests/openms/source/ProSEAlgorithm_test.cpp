@@ -154,6 +154,7 @@ public:
   using ProSEAlgorithm::precursor_mass_tolerance_unit_;
   using ProSEAlgorithm::computeModMatchTolerance_;
   using ProSEAlgorithm::last_calibration_result_;
+  using ProSEAlgorithm::last_run_stats_;
   using ProSEAlgorithm::scoringMaxCharge_;
   using ProSEAlgorithm::last_mod_match_tolerance_used_;
   using ProSEAlgorithm::CalibrationResult_;
@@ -4154,24 +4155,60 @@ START_SECTION(([EXTRA] calibration:recalibrate 'curve' corrects the measured pea
   TEST_EQUAL(cal.fragment_recalibration.curve(), true)
   TEST_EQUAL(cal.appliedFragmentRecalibration() == nullptr, true) // the annotations report the searched (corrected) m/z
   TEST_EQUAL(std::fabs(cal.fragment_shift) < 1.0, true)
-  Size psms = 0, peaks = 0, corrected_once = 0;
-  for (const auto& pid : pep_ids)
+  // a searched peak is a measured one with the error removed once (not twice: both calibration passes fit the
+  // curve to the peaks as measured); the curve is constant beyond the fitted m/z range, hence not every peak
+  const auto test_corrected_once = [&](const PeakMap& searched, const PeptideIdentificationList& ids)
   {
-    if (pid.getHits().empty()) continue;
-    const Size scan = static_cast<Size>(static_cast<int>(pid.getMetaValue("scan_index")));
-    TEST_EQUAL(spectra[scan].empty(), false)
-    // a searched peak is a measured one with the error removed once (not twice: both calibration passes fit the
-    // curve to the peaks as measured); the curve is constant beyond the fitted m/z range, hence not every peak
-    for (const Peak1D& peak : spectra[scan])
+    Size psms = 0, peaks = 0, corrected_once = 0;
+    for (const auto& pid : ids)
     {
-      const double measured = observed[scan][observed[scan].findNearest(peak.getMZ())].getMZ();
-      ++peaks;
-      if (std::fabs((measured / peak.getMZ() - 1.0) * 1e6 - truth(peak.getMZ())) < 2.0) ++corrected_once;
+      if (pid.getHits().empty()) continue;
+      const Size scan = static_cast<Size>(static_cast<int>(pid.getMetaValue("scan_index")));
+      TEST_EQUAL(searched[scan].empty(), false)
+      for (const Peak1D& peak : searched[scan])
+      {
+        const double measured = observed[scan][observed[scan].findNearest(peak.getMZ())].getMZ();
+        ++peaks;
+        if (std::fabs((measured / peak.getMZ() - 1.0) * 1e6 - truth(peak.getMZ())) < 2.0) ++corrected_once;
+      }
+      ++psms;
     }
-    ++psms;
+    TEST_EQUAL(psms >= 30, true)
+    TEST_EQUAL(corrected_once * 10 >= peaks * 9, true)
+  };
+  test_corrected_once(spectra, pep_ids);
+  // the fragment errors of the run summary are those after the curve: labelled so, with no recommended tolerance
+  // (it would hold only for a search that subtracts the same curve)
+  TEST_EQUAL(algo.last_run_stats_.frag_err_after_curve, true)
+  TEST_EQUAL(algo.last_run_stats_.frag_tol_valid, true)
+  {
+    std::ostringstream summary;
+    ProSEAlgorithm::renderRunSummary(algo.last_run_stats_, ProSEAlgorithm::SharedSearchStats(),
+                                     OpenSearchModificationAnalysis::OpenSearchAnalysisResult(), false, summary);
+    const std::string text = summary.str();
+    const Size line = text.find("[ProSE] Fragment     :");
+    TEST_EQUAL(line != std::string::npos, true)
+    const std::string fragment_line = text.substr(line, text.find('\n', line) - line);
+    TEST_EQUAL(fragment_line.find("after the curve") != std::string::npos, true)
+    TEST_EQUAL(fragment_line.find("recommend") == std::string::npos, true)
   }
-  TEST_EQUAL(psms >= 30, true)
-  TEST_EQUAL(corrected_once * 10 >= peaks * 9, true)
+  // the same through the chunked search (database:chunk_size > 0)
+  {
+    PeakMap chunked = observed;
+    ProSEAlgorithm_test algo3;
+    configure_calibration_params_(algo3, /*lower_ppm*/ 20.0, /*upper_ppm*/ 30.0, /*min_psms*/ 3);
+    Param p = algo3.getParameters();
+    p.setValue("calibration:recalibrate", "curve");
+    p.setValue("calibration:precursor_sigma_factor", 0.0);
+    p.setValue("database:chunk_size", 1);
+    algo3.setParameters(p);
+    vector<ProteinIdentification> prot_ids3;
+    PeptideIdentificationList pep_ids3;
+    TEST_EQUAL(algo3.search(chunked, fasta_db, prot_ids3, pep_ids3) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+    TEST_EQUAL(algo3.last_calibration_result_.fragment_recalibration.curve(), true)
+    test_corrected_once(chunked, pep_ids3);
+    TEST_EQUAL(algo3.last_run_stats_.frag_err_after_curve, true)
+  }
   // without the peaks as measured (fragment:query_spectrum processed): no curve, the line
   PeakMap again = observed;
   ProSEAlgorithm_test algo2;
@@ -4188,6 +4225,7 @@ START_SECTION(([EXTRA] calibration:recalibrate 'curve' corrects the measured pea
   TEST_EQUAL(algo2.search(again, fasta_db, prot_ids2, pep_ids2) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
   TEST_EQUAL(algo2.last_calibration_result_.success, true)
   TEST_EQUAL(algo2.last_calibration_result_.fragment_recalibration.curve(), false)
+  TEST_EQUAL(algo2.last_run_stats_.frag_err_after_curve, false) // the line: the annotations report the m/z as observed
 }
 END_SECTION
 

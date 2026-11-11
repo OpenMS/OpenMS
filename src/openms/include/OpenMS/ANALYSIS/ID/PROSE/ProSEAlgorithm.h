@@ -128,6 +128,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       /// fragment tolerance (unmatched peaks have no error)
       bool frag_tol_valid = false;             ///< true if fragment-error estimate present
       double frag_err_median = 0.0, frag_err_mad = 0.0, frag_err_recommended = 0.0;
+      /// true if the fragment errors are those of peaks corrected by a calibration:recalibrate 'curve' model: they hold
+      /// only for a search that subtracts the same curve, so the reports give no recommended fragment tolerance then
+      bool frag_err_after_curve = false;
       double seconds_search = 0.0;             ///< scoring + post-processing wall time
       double seconds_calibration = 0.0;        ///< calibration pass wall time (0 if disabled)
       double seconds_fdr = 0.0;                ///< FDR filtering wall time (0 if not applied)

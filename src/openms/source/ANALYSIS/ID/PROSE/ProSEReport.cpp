@@ -636,6 +636,15 @@ namespace OpenMS
       stats.prec_err_recommended = recommended_tolerance(med, mad);
       stats.prec_tol_valid = true;
     }
+    // With a 'curve' model the fragment annotations report the m/z as searched (corrected; see
+    // appliedFragmentRecalibration()), so the fragment errors are those after the curve
+    stats.frag_err_after_curve = false;
+    if (!protein_ids.empty())
+    {
+      const ProteinIdentification::SearchParameters& sp = protein_ids[0].getSearchParameters();
+      stats.frag_err_after_curve = sp.getMetaValue("calibration:recalibrate", DataValue("")).toString() == "curve"
+                                   && sp.getMetaValue("calibration:fragment_model", DataValue("")).toString().find("cubic") != std::string::npos;
+    }
     if (fragment_errors_psms >= min_psms_for_estimation)
     {
       const auto [med, mad] = medianAndMADBySelection(fragment_errors);
@@ -1163,9 +1172,17 @@ namespace OpenMS
             corrected.addSpectrum(spectra[subset[i]]);
             corrected_query.addSpectrum((*query_spectra)[subset[i]]);
           }
-          OPENMS_LOG_INFO << "[ProSE] Calibration: second pass over the subset, corrected by " << fragment_curve.toString() << std::endl;
-          applyRecalibration_(first, corrected, &corrected_query, nullptr);
-          continue;
+          // The second pass pairs corrected[i] with spectra[subset[i]]; preprocessSpectra_() sorts spectra that are not in
+          // retention time order (e.g. one without a retention time), which would pair the errors with the wrong scans, so
+          // such a subset keeps the first curve.
+          // ponytail: map the indices through the sort if such runs matter
+          if (inRetentionTimeOrder(corrected))
+          {
+            OPENMS_LOG_INFO << "[ProSE] Calibration: second pass over the subset, corrected by " << fragment_curve.toString() << std::endl;
+            applyRecalibration_(first, corrected, &corrected_query, nullptr);
+            continue;
+          }
+          OPENMS_LOG_WARN << "[ProSE] Calibration: the calibration spectra are not in retention time order; no second pass, the first fragment error curve is kept." << std::endl;
         }
         Size kept = 0;
         for (Size i = 0; i < fragment_errors.size();)
@@ -1871,7 +1888,8 @@ namespace OpenMS
         y << "      valid: " << bol(st.frag_tol_valid) << "\n";
         y << "      median_ppm: " << num(st.frag_err_median) << "\n";
         y << "      mad_ppm: " << num(st.frag_err_mad) << "\n";
-        y << "      recommended_ppm: " << num(st.frag_err_recommended) << "\n";
+        if (st.frag_err_after_curve) { y << "      after_curve: true\n"; } // (only then: the other reports stay as they were)
+        y << "      recommended_ppm: " << (st.frag_err_after_curve ? std::string("null") : num(st.frag_err_recommended)) << "\n";
         y << "    timing_seconds:\n";
         y << "      calibration: " << num(st.seconds_calibration) << "\n";
         y << "      search: " << num(st.seconds_search) << "\n";
@@ -2111,8 +2129,9 @@ namespace OpenMS
       }
       if (s.frag_tol_valid)
       {
-        os << "[ProSE] Fragment     : median " << std::fixed << std::setprecision(2) << s.frag_err_median
-           << " ppm, MAD " << s.frag_err_mad << "  -> recommend " << static_cast<int>(s.frag_err_recommended) << " ppm\n";
+        os << "[ProSE] Fragment     : median " << std::fixed << std::setprecision(2) << s.frag_err_median << " ppm, MAD " << s.frag_err_mad;
+        if (s.frag_err_after_curve) { os << " (after the curve; the errors as measured: calibration:fragment_error_offset/sigma)\n"; }
+        else { os << "  -> recommend " << static_cast<int>(s.frag_err_recommended) << " ppm\n"; }
       }
     }
 
