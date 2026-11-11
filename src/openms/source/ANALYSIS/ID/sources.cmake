@@ -33,6 +33,7 @@ MorpheusScore.cpp
 OpenSearchModificationAnalysis.cpp
 PeptideProteinResolution.cpp
 ProSEAlgorithm.cpp
+ProSEAlgorithmLoading.cpp
 ProSEAlgorithmSpectra.cpp
 PeptideIndexing.cpp
 Percolator.cpp
