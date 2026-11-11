@@ -1,0 +1,16 @@
+
+== raw01 (1) score-matched lib_cos AUC over winners >= decoy q90: human vs decoy 0.580, entrapment vs decoy 0.545
+raw01 (2) decoy lib_cos: all median 0.637, top-1 % median 0.784, top-1 % share >= 0.95 0.048
+raw01 (3) score + 0.0 x z(lib_cos): N@FDP_c 1/2 % 1496 / 1716 | q<=0.01 N 1614 FDP_c 0.0137
+raw01 (3) score + 0.5 x z(lib_cos): N@FDP_c 1/2 % 1498 / 1713 | q<=0.01 N 1622 FDP_c 0.0149
+raw01 (3) score + 1.0 x z(lib_cos): N@FDP_c 1/2 % 1501 / 1705 | q<=0.01 N 1641 FDP_c 0.0160
+raw01 (3) score + 2.0 x z(lib_cos): N@FDP_c 1/2 % 1507 / 1703 | q<=0.01 N 1640 FDP_c 0.0147
+raw01 (3) score + 4.0 x z(lib_cos): N@FDP_c 1/2 % 1510 / 1698 | q<=0.01 N 1643 FDP_c 0.0147
+
+== raw02 (1) score-matched lib_cos AUC over winners >= decoy q90: human vs decoy 0.584, entrapment vs decoy 0.523
+raw02 (2) decoy lib_cos: all median 0.636, top-1 % median 0.807, top-1 % share >= 0.95 0.056
+raw02 (3) score + 0.0 x z(lib_cos): N@FDP_c 1/2 % 1426 / 1736 | q<=0.01 N 1536 FDP_c 0.0131
+raw02 (3) score + 0.5 x z(lib_cos): N@FDP_c 1/2 % 1428 / 1738 | q<=0.01 N 1539 FDP_c 0.0131
+raw02 (3) score + 1.0 x z(lib_cos): N@FDP_c 1/2 % 1433 / 1741 | q<=0.01 N 1551 FDP_c 0.0130
+raw02 (3) score + 2.0 x z(lib_cos): N@FDP_c 1/2 % 1432 / 1743 | q<=0.01 N 1559 FDP_c 0.0129
+raw02 (3) score + 4.0 x z(lib_cos): N@FDP_c 1/2 % 1422 / 1753 | q<=0.01 N 1657 FDP_c 0.0146

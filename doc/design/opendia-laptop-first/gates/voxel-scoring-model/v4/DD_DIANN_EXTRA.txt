@@ -1,0 +1,38 @@
+
+== raw01: n E 1413, D 866
+charge share by group:
+Precursor.Charge      1      2      3      4
+grp                                         
+D                 0.013  0.664  0.294  0.029
+E                 0.006  0.786  0.198  0.010
+DIA-NN q bin share by group:
+Q.Value  (-1.0, 0.001]  (0.001, 0.003]  (0.003, 0.005]  (0.005, 0.01]
+grp                                                                  
+D                0.426           0.227           0.150          0.196
+E                0.852           0.096           0.028          0.023
+median length by group: {'D': 12.0, 'E': 11.0}
+D share by quantity tertile x DIA-NN q<=0.001:
+qb           False         True 
+qt                              
+low   0.88 (n 368)  0.55 (n 392)
+mid   0.63 (n 199)  0.23 (n 560)
+high  0.34 (n 139)  0.04 (n 621)
+
+== raw02: n E 1362, D 929
+charge share by group:
+Precursor.Charge      1      2      3      4
+grp                                         
+D                 0.016  0.690  0.265  0.029
+E                 0.010  0.782  0.198  0.010
+DIA-NN q bin share by group:
+Q.Value  (-1.0, 0.001]  (0.001, 0.003]  (0.003, 0.005]  (0.005, 0.01]
+grp                                                                  
+D                0.460           0.230           0.131          0.179
+E                0.913           0.059           0.017          0.012
+median length by group: {'D': 11.0, 'E': 11.0}
+D share by quantity tertile x DIA-NN q<=0.001:
+qb           False         True 
+qt                              
+low   0.93 (n 333)  0.56 (n 431)
+mid   0.86 (n 178)  0.25 (n 585)
+high  0.36 (n 110)  0.05 (n 654)

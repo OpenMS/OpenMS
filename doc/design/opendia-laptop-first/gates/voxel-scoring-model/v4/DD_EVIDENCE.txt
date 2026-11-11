@@ -1,0 +1,38 @@
+
+== raw01: medians (n per group: E accepted 1413, D below cut 866, T1 top-1 % decoys 929, T01 top-0.1 % decoys 92)
+group       D below cut  E accepted  T01 top-0.1 % decoys  T1 top-1 % decoys
+n_sig             6.000       6.000                 6.000              5.000
+n_missing         0.000       0.000                 0.000              0.000
+n_peak            4.000       6.000                 4.000              3.000
+log_area          4.315       4.906                 5.125              4.691
+frac_core         0.579       0.770                 0.683              0.502
+corr_med          0.120       0.328                 0.163              0.064
+top1_share        0.415       0.344                 0.462              0.541
+lib_cos           0.931       0.988                 0.887              0.784
+rank_agree        0.543       0.771                 0.543              0.257
+ppm_abs           1.627       0.859                 1.111              2.335
+ms1_m0            5.791       6.483                 6.678              5.914
+ms1_corr          0.140       0.571                 0.316              0.047
+iso_ratio         0.625       0.626                 0.429              0.398
+bins_nz           6.000       6.000                 6.000              6.000
+n_sig12          10.000      11.000                 9.000              8.000
+extra_sig         4.000       5.000                 4.000              4.000
+
+== raw02: medians (n per group: E accepted 1362, D below cut 929, T1 top-1 % decoys 943, T01 top-0.1 % decoys 94)
+group       D below cut  E accepted  T01 top-0.1 % decoys  T1 top-1 % decoys
+n_sig             6.000       6.000                 6.000              5.000
+n_missing         0.000       0.000                 0.000              0.000
+n_peak            4.000       6.000                 4.000              3.000
+log_area          4.334       4.947                 4.832              4.617
+frac_core         0.584       0.778                 0.632              0.537
+corr_med          0.133       0.330                 0.137              0.063
+top1_share        0.401       0.342                 0.469              0.531
+lib_cos           0.934       0.988                 0.902              0.807
+rank_agree        0.543       0.829                 0.547              0.314
+ppm_abs           1.504       0.789                 1.401              2.755
+ms1_m0            5.878       6.492                 6.545              5.654
+ms1_corr          0.187       0.572                 0.245              0.022
+iso_ratio         0.586       0.619                 0.400              0.373
+bins_nz           6.000       6.000                 6.000              6.000
+n_sig12          10.000      11.000                 9.000              8.000
+extra_sig         4.000       5.000                 4.000              4.000

@@ -1,0 +1,76 @@
+  nlike = like.sum(1)
+  l2 = pd.DataFrame({m: (HIGH_GOOD[m] * (grp[m] - mid[m]) < 0) for m in M}).sum(1)
+  l2 = pd.DataFrame({m: (HIGH_GOOD[m] * (grp[m] - mid[m]) < 0) for m in M}).sum(1)
+  nlike = like.sum(1)
+  l2 = pd.DataFrame({m: (HIGH_GOOD[m] * (grp[m] - mid[m]) < 0) for m in M}).sum(1)
+  l2 = pd.DataFrame({m: (HIGH_GOOD[m] * (grp[m] - mid[m]) < 0) for m in M}).sum(1)
+
+== raw01 (1) AUC oriented so 1 = target-like (D vs T1, E vs T1, D vs E)
+   measure  D_vs_T1  E_vs_T1  D_vs_E
+     n_sig    0.706    0.833   0.328
+    n_peak    0.704    0.915   0.193
+  log_area    0.338    0.616   0.182
+ frac_core    0.583    0.786   0.240
+  corr_med    0.585    0.803   0.253
+top1_share    0.707    0.841   0.331
+   lib_cos    0.824    0.978   0.150
+rank_agree    0.650    0.829   0.297
+   ppm_abs    0.615    0.783   0.243
+    ms1_m0    0.477    0.671   0.222
+  ms1_corr    0.561    0.772   0.255
+   iso_dev    0.559    0.724   0.305
+   n_sig12    0.684    0.906   0.197
+ extra_sig    0.573    0.809   0.248
+raw01 (2) share of D misses that are decoy-side on each measure:
+log_area      0.864
+ms1_m0        0.731
+corr_med      0.661
+ms1_corr      0.644
+n_peak        0.636
+frac_core     0.609
+extra_sig     0.596
+iso_dev       0.529
+ppm_abs       0.514
+rank_agree    0.473
+n_sig12       0.471
+n_sig         0.433
+top1_share    0.403
+lib_cos       0.275
+raw01 decoy-side measures per D miss (of 14): quantiles [4.0, 6.0, 8.0, 10.0, 11.0]
+raw01 same count for E: median 2.0, q25 1.0, q75 5.0
+raw01 same count for T1: median 10.0, q25 8.0, q75 12.0
+
+== raw02 (1) AUC oriented so 1 = target-like (D vs T1, E vs T1, D vs E)
+   measure  D_vs_T1  E_vs_T1  D_vs_E
+     n_sig    0.706    0.840   0.334
+    n_peak    0.661    0.904   0.183
+  log_area    0.389    0.654   0.187
+ frac_core    0.556    0.791   0.220
+  corr_med    0.600    0.818   0.248
+top1_share    0.709    0.828   0.349
+   lib_cos    0.824    0.981   0.137
+rank_agree    0.660    0.832   0.294
+   ppm_abs    0.666    0.814   0.244
+    ms1_m0    0.543    0.718   0.230
+  ms1_corr    0.589    0.787   0.254
+   iso_dev    0.578    0.738   0.310
+   n_sig12    0.707    0.916   0.197
+ extra_sig    0.616    0.839   0.246
+raw02 (2) share of D misses that are decoy-side on each measure:
+log_area      0.839
+frac_core     0.659
+ms1_m0        0.634
+corr_med      0.629
+n_peak        0.623
+ms1_corr      0.597
+extra_sig     0.578
+rank_agree    0.504
+iso_dev       0.490
+n_sig12       0.432
+n_sig         0.407
+ppm_abs       0.391
+top1_share    0.389
+lib_cos       0.285
+raw02 decoy-side measures per D miss (of 14): quantiles [4.0, 6.0, 7.0, 9.0, 11.0]
+raw02 same count for E: median 2.0, q25 1.0, q75 4.0
+raw02 same count for T1: median 10.0, q25 8.0, q75 12.0
