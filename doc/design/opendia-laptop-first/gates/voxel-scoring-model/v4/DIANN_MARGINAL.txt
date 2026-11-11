@@ -1,0 +1,32 @@
+run _01 DIA-NN 1 % precursors 82360 overall FDP_c 0.0073
+                     n  n_entrap  fdp_c_bin
+bin                                        
+(-0.001, 0.001]  52824        11     0.0004
+(0.001, 0.003]   13416        57     0.0086
+(0.003, 0.005]    6768        64     0.0191
+(0.005, 0.0101]   9352       165     0.0356
+run _02 DIA-NN 1 % precursors 82498 overall FDP_c 0.0073
+                     n  n_entrap  fdp_c_bin
+bin                                        
+(-0.001, 0.001]  56368        23     0.0008
+(0.001, 0.003]   11594        46     0.0080
+(0.003, 0.005]    5749        57     0.0200
+(0.005, 0.0101]   8787       171     0.0392
+
+raw01 (expected true = n minus expected false from DIA-NN local FDP_c)
+                              n  exp_false  exp_true
+stage                                               
+A not in population         185        2.0     183.0
+B no window within 10 s     166        2.0     164.0
+C wrong window won          113        2.0     111.0
+D right window, below cut   866       10.0     856.0
+E accepted                 1413        4.0    1409.0
+
+raw02 (expected true = n minus expected false from DIA-NN local FDP_c)
+                              n  exp_false  exp_true
+stage                                               
+A not in population         151        2.0     149.0
+B no window within 10 s     180        2.0     178.0
+C wrong window won          109        2.0     107.0
+D right window, below cut   929       11.0     918.0
+E accepted                 1362        3.0    1359.0
