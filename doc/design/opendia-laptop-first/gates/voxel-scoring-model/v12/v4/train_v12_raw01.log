@@ -1,0 +1,27 @@
+raw01 D11FI fold 0: r0 4671 16 ep crit 13451.114 | r1 pos 1308 neg 62005 8 ep crit 2852.911 | r2 pos 1207 neg 62005 9 ep crit 3977.089 (775 s)
+raw01 D11FI fold 1: r0 4626 8 ep crit 13357.671 | r1 pos 1488 neg 61933 13 ep crit 3130.337 | r2 pos 1380 neg 61933 11 ep crit 3829.289 (1430 s)
+raw01 D11FI fold 2: r0 4707 7 ep crit 12264.783 | r1 pos 1433 neg 62056 14 ep crit 4343.809 | r2 pos 1460 neg 62056 11 ep crit 4885.207 (2092 s)
+raw01 D11FI done in 2092 s
+	Command being timed: "/home/singjc/.jcode/scratch/torchenv/.venv/bin/python v4/train_v4.py raw01 D11FI"
+	User time (seconds): 20326.40
+	System time (seconds): 454.37
+	Percent of CPU this job got: 991%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 34:55.63
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 5755412
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 1954
+	Minor (reclaiming a frame) page faults: 109141066
+	Voluntary context switches: 21997
+	Involuntary context switches: 153821
+	Swaps: 0
+	File system inputs: 2732000
+	File system outputs: 19888
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
