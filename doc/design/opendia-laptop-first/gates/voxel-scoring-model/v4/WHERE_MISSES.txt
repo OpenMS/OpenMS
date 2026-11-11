@@ -1,0 +1,8 @@
+raw01 D11F @1% N=1525: A=185 B=166 C=362 D=595 E=1435 | @2% N=1688: A=185 B=166 C=362 D=475 E=1555
+   D at 1 %: n 595, score/cut median 0.26; above 0.5x cut 173; accepted at 2 % 120; transition_support median 5, f12_libcos median 0.88 (accepted E median 0.96)
+raw01 D11FW @1% N=1521: A=185 B=166 C=113 D=847 E=1432 | @2% N=1714: A=185 B=166 C=113 D=706 E=1573
+   D at 1 %: n 847, score/cut median 0.10; above 0.5x cut 173; accepted at 2 % 141; transition_support median 4, f12_libcos median 0.87 (accepted E median 0.96)
+raw02 D11F @1% N=1149: A=151 B=180 C=307 D=982 E=1111 | @2% N=1635: A=151 B=180 C=307 D=546 E=1547
+   D at 1 %: n 982, score/cut median 0.43; above 0.5x cut 457; accepted at 2 % 436; transition_support median 5, f12_libcos median 0.90 (accepted E median 0.97)
+raw02 D11FW @1% N=1115: A=151 B=180 C=109 D=1213 E=1078 | @2% N=1620: A=151 B=180 C=109 D=756 E=1535
+   D at 1 %: n 1213, score/cut median 0.28; above 0.5x cut 478; accepted at 2 % 457; transition_support median 5, f12_libcos median 0.89 (accepted E median 0.97)
