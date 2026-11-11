@@ -1,5 +1,5 @@
 """PLAN_V4 rule 2 (reported interval): paired bootstrap of each v4 arm's N@1 % / N@2 % against D11. Same metric and resampling as evaluate_v2.py (1000 resamples, seed 5)."""
-import sqlite3, numpy as np, pandas as pd
+import sys, sqlite3, numpy as np, pandas as pd
 B = '/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107'; O = B + '/astral-voxel-pilot-20261110/v2'
 R = 148983 / 151239
 c = sqlite3.connect('file:' + B + '/astral-entrapment-20261107/lib/library.pqp?mode=ro', uri=True)
@@ -20,7 +20,7 @@ def n_at(s, e, t):
 rng = np.random.default_rng(5)
 for raw in ('raw01', 'raw02'):
     pop = pd.read_csv(f'{O}/{raw}/population.tsv', sep='\t')
-    for arm, ctl in (('D11R', 'D11'), ('D11M', 'D11'), ('D11MR', 'D11')):
+    for arm, ctl in [(a, 'D11') for a in (sys.argv[1:] or ['D11R', 'D11M', 'D11MR'])]:
         try: a = winners(pop, np.load(f'{O}/{raw}/scores_{arm}.npy')); b = winners(pop, np.load(f'{O}/{raw}/scores_{ctl}.npy'))
         except FileNotFoundError: print(raw, arm, 'missing'); continue
         m = a.join(b.s.rename('b'), how='inner'); x, y, e = m.s.values, m.b.values, m.e.values.astype(int); d1, d2 = [], []

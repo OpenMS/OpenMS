@@ -1,0 +1,8 @@
+raw02 ms2 maps 2090950 windows 1275383 windows with all 6 originals among the 12 0.9814 original-fragment XIC check on 50064 : median rel diff 0.0 p99 0.03441094234585762 fragments per window [0, 0, 0, 53, 95, 142, 889, 2727, 6758, 18283, 35966, 49924, 1160546]
+	Command being timed: "/home/singjc/.jcode/scratch/torchenv/.venv/bin/python v4/build12.py raw02"
+	User time (seconds): 590.54
+	System time (seconds): 21.70
+	Percent of CPU this job got: 97%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 10:27.94
+	Maximum resident set size (kbytes): 4635872
+	Exit status: 0

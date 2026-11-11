@@ -1,0 +1,4 @@
+raw02 0 / 1275383
+raw02 500000 / 1275383
+raw02 1000000 / 1275383
+raw02 feature medians {'f12_support': np.float32(0.0), 'f12_coelution': np.float32(0.117), 'f12_libcos': np.float32(0.522), 'f12_extra_support': np.float32(0.0), 'f12_extra_coelution': np.float32(0.104), 'f12_extra_share': np.float32(-0.497)} means {'f12_support': np.float32(0.67), 'f12_coelution': np.float32(0.123), 'f12_libcos': np.float32(0.523), 'f12_extra_support': np.float32(0.318), 'f12_extra_coelution': np.float32(0.118), 'f12_extra_share': np.float32(-0.812)}

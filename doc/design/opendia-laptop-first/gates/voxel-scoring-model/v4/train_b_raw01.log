@@ -1,0 +1,11 @@
+raw01 D11F fold 0: r0 4671 30 ep crit 8991.650 | r1 pos 1420 neg 62005 15 ep crit 1791.741 | r2 pos 1404 neg 62005 20 ep crit 2801.935 (28 s)
+raw01 D11F fold 1: r0 4626 21 ep crit 11918.243 | r1 pos 1637 neg 61933 16 ep crit 1433.766 | r2 pos 1415 neg 61933 23 ep crit 2124.560 (54 s)
+raw01 D11F fold 2: r0 4707 30 ep crit 12692.708 | r1 pos 1801 neg 62056 20 ep crit 1218.944 | r2 pos 1472 neg 62056 11 ep crit 1640.866 (77 s)
+raw01 D11F done in 77 s
+	Command being timed: "/home/singjc/.jcode/scratch/torchenv/.venv/bin/python v4/train_v4.py raw01 D11F"
+	User time (seconds): 695.24
+	System time (seconds): 6.69
+	Percent of CPU this job got: 875%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:20.21
+	Maximum resident set size (kbytes): 2088152
+	Exit status: 0

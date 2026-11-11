@@ -1,7 +1,7 @@
 """Voxel v4 phase 1 (PLAN_V4.md): D11 (PLAN_V3_P2b decoy-whitened single network on 11 features) with a within-precursor
 ranking term (R) and/or 6 MS1 isotope features (M). Usage: train_v4.py <raw01|raw02> <arm> [...]; arms D11R, D11M, D11MR.
 Output: v2/<raw>/scores_<arm>.npy (row order of population.tsv). Never reads entrapment labels."""
-import sys, time, numpy as np, pandas as pd, torch, torch.nn as nn
+import sys, time, inspect, numpy as np, pandas as pd, torch, torch.nn as nn
 sys.path.insert(0, '/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-voxel-pilot-20261110')
 from train_pilot import Branch, Coelution, cross, dual, rowcos, CORE  # v2 voxel body (pilot option b)
 RAW, ARMS = sys.argv[1], sys.argv[2:]
@@ -15,6 +15,7 @@ train_rows = pd.read_csv(f'{O}/{RAW}/train_windows.tsv', sep='\t')
 row_of = pd.Series(np.arange(len(pop)), index=pop.sample_id.values)
 fold = pop.fold.values; is_decoy = pop.is_decoy.values; pair_key = pop.pair_key.values; pid = pop.precursor_id.values
 M1 = np.load(f'{O}/{RAW}/ms1feat.npy').astype(np.float64)
+F12 = np.load(f'{O}/{RAW}/feat12.npy').astype(np.float64) if any('F' in a for a in ARMS) else None
 ALPHA, MAXSIB, SEP = 1.0, 8, 10.0
 # Siblings: the windows of the same precursor with apex > SEP s from the positive's apex.
 rt = pop.rt_apex.values
@@ -144,6 +145,8 @@ def fit(rows, y, Z, voxel, skip, seed, valid, steps, alpha=0.0):
 def run(arm):
     voxel, skip = False, True; steps = 100; alpha = ALPHA if arm.endswith('R') else 0.0
     Hx = np.c_[H, M1] if 'M' in arm[3:] else H
+    if 'F' in arm[3:]: Hx = np.c_[Hx, F12]
+    lin = np.zeros(len(pop), np.float32)
     scores = np.zeros(len(pop), np.float32); t0 = time.time()
     for k in range(3):
         tr_all = np.where(fold != k)[0]
@@ -160,7 +163,11 @@ def run(arm):
             sc, ep, vo = fit(rows, y, Z, voxel, skip, 200 + 10 * k + r, valid, steps, alpha)
             log.append(f'r{r} pos {len(pos)} neg {len(negs)} {ep} ep crit {vo:.3f}')
         te = np.where(fold == k)[0]; scores[te] = sc(te)
+        # Linear part z.w_z of the final readout (PLAN_V4B W rule; the full score is unchanged).
+        cv = inspect.getclosurevars(sc).nonlocals; d = Z.shape[1]
+        lin[te] = (embed(cv['net'], te, Z, voxel)[:, :d] @ cv['w'][:d]).numpy()
         print(f'{RAW} {arm} fold {k}: ' + ' | '.join(log) + f' ({time.time() - t0:.0f} s)', flush=True)
-    np.save(f'{O}/{RAW}/scores_{arm}.npy', scores); print(f'{RAW} {arm} done in {time.time() - t0:.0f} s', flush=True)
+    np.save(f'{O}/{RAW}/scores_{arm}.npy', scores); np.save(f'{O}/{RAW}/lin_{arm}.npy', lin)
+    print(f'{RAW} {arm} done in {time.time() - t0:.0f} s', flush=True)
 
 for a in ARMS: run(a)

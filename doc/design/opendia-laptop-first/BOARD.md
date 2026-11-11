@@ -31,7 +31,8 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 | Next step after v3-seq (promote D11 to C++, per-fold tail calibration, or stop the sequence line) | R-WP3 | Blocked: needs user decision | [RESULT_SEQ.md](gates/voxel-scoring-model/v3-seq/RESULT_SEQ.md) |
 | D11 miss analysis against DIA-NN: wrong window ~400, right window below cut ~700 per raw | R-WP3 | Done | [MISSES_D11.md](gates/voxel-scoring-model/v3-seq/MISSES_D11.md) |
 | Voxel v4 phase 1: ranking term (D11R), MS1 isotope features (D11M), both (D11MR): no arm passes. Best N@2 % D11M 1592 / 1550, D11MR 1573 / 1637 (D11 1572 / 1572), every interval against D11 includes 0; D11M/MR FDP_c 0.016–0.017 on raw 01 | R-WP3 | Done (fail) | [RESULT_V4P1.md](gates/voxel-scoring-model/v4/RESULT_V4P1.md) |
-| Voxel v4 phase 2: 12-fragment features (DIALibGen 0.13.1 library, extracted for existing windows) | R-WP3 | In progress: library built, export running | [PLAN_V4.md](gates/voxel-scoring-model/v4/PLAN_V4.md) |
+| Voxel v4 phase 2: 12-fragment features (D11F) and linear-part window choice (D11W, D11FW): D11F and D11FW PASS, D11W fails. N@2 % 1688 / 1635 and 1714 / 1620 (D11 1572 / 1572); FDP_c at q ≤ 0.01 0.0136 / 0.0149 (at the limit on raw 02); N@1 % unstable on raw 02 (1149 / 1115) | R-WP3 | Done (pass) | [RESULT_V4P2.md](gates/voxel-scoring-model/v4/RESULT_V4P2.md) |
+| Promote D11F/D11FW to C++ `OpenDIAScoringModel` (needs 12-fragment library input and extraction of non-search fragments) | R-WP3 | Blocked: needs user decision | [RESULT_V4P2.md](gates/voxel-scoring-model/v4/RESULT_V4P2.md) |
 | C++ `OpenDIAScoringModel.{h,cpp}` and its own tool | R-WP3 | Blocked: needs a pilot cell that passes | [DESIGN.md](gates/voxel-scoring-model/DESIGN.md) |
 | Full gate of `OpenDIAScoringModel` on raws 01/02 against the base (1029 / 1298) | R-WP3, R-WP5 | Blocked: needs the C++ model | |
 | Pass rule: change from N@1 % to a paired bootstrap rule | R-WP4 | Blocked: needs user approval | [metric_noise.txt](gates/astral-native-byion/single-scorer/metric_noise.txt) |
@@ -85,7 +86,7 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 | Voxel v3-seq: ReDeeM-style sequence encoder (DS11, DVS): FAIL (no gain at 2 %, no sequence tell) | Done (fail) | [RESULT_SEQ.md](gates/voxel-scoring-model/v3-seq/RESULT_SEQ.md) |
 | Next step after v3-seq | Blocked: needs user decision | [RESULT_SEQ.md](gates/voxel-scoring-model/v3-seq/RESULT_SEQ.md) |
 | Voxel v4 phase 1: ranking term and MS1 features: FAIL (no gain over D11 at 2 %) | Done (fail) | [RESULT_V4P1.md](gates/voxel-scoring-model/v4/RESULT_V4P1.md) |
-| Voxel v4 phase 2: 12-fragment features | In progress | [PLAN_V4.md](gates/voxel-scoring-model/v4/PLAN_V4.md) |
+| Voxel v4 phase 2: 12-fragment features: D11F and D11FW PASS (gain at 2 %, 1 % unstable on raw 02) | Done (pass) | [RESULT_V4P2.md](gates/voxel-scoring-model/v4/RESULT_V4P2.md) |
 | C++ `OpenDIAScoringModel` | Blocked: needs pilot | |
 | Full gate of `OpenDIAScoringModel` on raws 01/02 against the base (1029 / 1298) | Blocked: needs the C++ model | |
 
