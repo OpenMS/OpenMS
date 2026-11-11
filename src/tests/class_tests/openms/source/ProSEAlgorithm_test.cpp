@@ -11,7 +11,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/PROSE/ProSEAlgorithm.h>
 #include <mutex>
 #include <thread>
 #include <OpenMS/SYSTEM/SysInfo.h>

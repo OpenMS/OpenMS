@@ -19,7 +19,7 @@
 #include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
-#include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/PROSE/ProSEAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>
