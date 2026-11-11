@@ -37,6 +37,7 @@ ProSEAlgorithmHits.cpp
 ProSEAlgorithmLoading.cpp
 ProSEAlgorithmPooling.cpp
 ProSEAlgorithmProteins.cpp
+ProSEAlgorithmReport.cpp
 ProSEAlgorithmRescoring.cpp
 ProSEAlgorithmScoring.cpp
 ProSEAlgorithmSpectra.cpp
