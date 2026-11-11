@@ -9798,13 +9798,15 @@ START_SECTION(([EXTRA] decoy_method keep_termini: the DecoyDatabase construction
 }
 END_SECTION
 
-START_SECTION(([EXTRA] decoy_method keep_termini: the segments without the regex are those of ProteaseDigestion))
+START_SECTION(([EXTRA] decoy_method keep_termini: every enzyme, the decoys have the cleavage sites of their targets))
 {
-  // Random proteins (with K, R, P, M and runs of them; also X and B) and every enzyme: the generated decoys equal
-  // the construction with ProteaseDigestion::digestUnmodified() (regex). Lys-N's rule is not of the simple form (regex
-  // path); 1000 proteins, so that the decoys are generated in parallel.
+  // Random proteins (with K, R, P, M and runs of them; also the ambiguity codes X, B, J and Z) and every enzyme: the
+  // generated decoys equal the construction with ProteaseDigestion::digestUnmodified() (regex; so the segments without
+  // the regex are the same) in which every residue the cleavage rule names and P stay in place, and they have the
+  // cleavage sites of their target. Lys-N's rule is not of the simple form (regex path); 1000 proteins, so that the
+  // decoys are generated in parallel.
   std::mt19937 rng(11);
-  const std::string letters = "ACDEFGHIKLMNPQRSTVWYKRPKRPXB";
+  const std::string letters = "ACDEFGHIKLMNPQRSTVWYKRPKRPXBJZ";
   vector<FASTAFile::FASTAEntry> fasta_db;
   for (int i = 0; i < 1000; ++i)
   {
@@ -9813,8 +9815,10 @@ START_SECTION(([EXTRA] decoy_method keep_termini: the segments without the regex
     for (int k = 0; k < length; ++k) sequence += letters[rng() % letters.size()];
     fasta_db.push_back({"P" + std::to_string(i), "", sequence});
   }
-  // boundaries: sites at 1 and at size - 1, consecutive sites, a blocked site, a site at the end
-  for (const std::string sequence : {"K", "AK", "KA", "KKA", "KP", "KRP", "MKR", "RPKA", "DEKKRRPPMD", "FWYLMDE"})
+  // boundaries: sites at 1 and at size - 1, consecutive sites, a blocked site, a site at the end; blocked sites of
+  // other enzymes (Chymotrypsin, Glu-C+P) and the paired sites of Formic_acid
+  for (const std::string sequence : {"K", "AK", "KA", "KKA", "KP", "KRP", "MKR", "RPKA", "DEKKRRPPMD", "FWYLMDE",
+                                     "AGFPDEKSTL", "GWPAYPSLTEPKD", "ADGDDSEDAK"})
   {
     fasta_db.push_back({"B" + std::to_string(fasta_db.size()), "", sequence});
   }
@@ -9843,20 +9847,75 @@ START_SECTION(([EXTRA] decoy_method keep_termini: the segments without the regex
     std::map<std::string, std::string> decoy_of;
     for (const auto& e : ctx.db) if (e.identifier.rfind("DECOY_", 0) == 0) decoy_of[e.identifier.substr(6)] = e.sequence;
     TEST_EQUAL(decoy_of.size(), fasta_db.size())
-    Size equal = 0;
+    // the residues that stay in place: the letters of the cleavage rule (no rule here has a range) and P
+    std::string fixed = "P";
+    for (const char c : ProteaseDB::getInstance()->getEnzyme(enzyme)->getRegEx())
+    {
+      if (c >= 'A' && c <= 'Z' && fixed.find(c) == std::string::npos) fixed += c;
+    }
+    Size equal = 0, same_sites = 0;
     for (const auto& target : fasta_db)
     {
-      std::vector<std::pair<Size, Size>> spans;
+      std::vector<std::pair<Size, Size>> spans, decoy_spans;
       digestion.digestUnmodified(target.sequence, spans, 1, 0);
       std::string expected = target.sequence;
       for (const auto& [start, length] : spans)
       {
-        expected.replace(start, length, MRMDecoy::reversePeptideLight(target.sequence.substr(start, length), {}, true, true, "KRP").first);
+        expected.replace(start, length, MRMDecoy::reversePeptideLight(target.sequence.substr(start, length), {}, true, true, fixed).first);
       }
-      equal += decoy_of[target.identifier] == expected ? 1 : 0;
+      const std::string& decoy = decoy_of[target.identifier];
+      equal += decoy == expected ? 1 : 0;
+      digestion.digestUnmodified(decoy, decoy_spans, 1, 0);
+      same_sites += decoy_spans == spans ? 1 : 0;
     }
     TEST_EQUAL(equal, fasta_db.size())
+    TEST_EQUAL(same_sites, fasta_db.size())
+    // Trypsin/P: the decoys of the fixed residues "KRP" (DecoyDatabase -Decoy:non_shuffle_pattern K,P,R) are unchanged
+    if (enzyme == "Trypsin/P")
+    {
+      Size krp = 0;
+      for (const auto& target : fasta_db)
+      {
+        std::vector<std::pair<Size, Size>> spans;
+        digestion.digestUnmodified(target.sequence, spans, 1, 0);
+        std::string expected = target.sequence;
+        for (const auto& [start, length] : spans)
+        {
+          expected.replace(start, length, MRMDecoy::reversePeptideLight(target.sequence.substr(start, length), {}, true, true, "KRP").first);
+        }
+        krp += decoy_of[target.identifier] == expected ? 1 : 0;
+      }
+      TEST_EQUAL(krp, fasta_db.size())
+    }
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] decoy_method keep_termini with Chymotrypsin: F, Y, W, L before P stay in place))
+{
+  // Written by hand. Chymotrypsin cleaves after F, Y, W, L (and J, X) unless P follows. In AGFPDEKSTL the F before P
+  // lies inside the only segment: A, F, P and L stay, the rest is reversed. With the fixed residues K, R, P of Trypsin
+  // the F moved instead (ATSPEDKFGL, a new site after F). GWPAYPSLTEPKD, segments GWPAYPSL | TEPKD: W and Y before P
+  // stay, the decoy has the one site after L (K, R, P: GSPYAPWL, new sites after Y and W).
+  vector<FASTAFile::FASTAEntry> fasta_db = {{"P1", "", "AGFPDEKSTL"}, {"P2", "", "GWPAYPSLTEPKD"}, {"P3", "", "MSTYEAKFGWLDR"}};
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("decoys", "generate");
+  p.setValue("decoy_method", "keep_termini");
+  p.setValue("enzyme", "Chymotrypsin");
+  p.setValue("peptide:min_size", 4);
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("modifications:variable", std::vector<std::string>{});
+  algo.setParameters(p);
+  ProSEAlgorithm::SearchContext ctx = algo.prepareContext(fasta_db);
+  std::map<std::string, std::string> seq;
+  for (const auto& e : ctx.db) seq[e.identifier] = e.sequence;
+  TEST_EQUAL(ctx.db.size(), 6)
+  TEST_STRING_EQUAL(seq["DECOY_P1"], "ATFPSKEDGL")
+  TEST_STRING_EQUAL(seq["DECOY_P2"], "GWPSYPALTKPED")
+  // segments MSTY | EAKF | GW | L | DR: the first and last residue of each stay; K is reversed like the residues other
+  // than F, Y, W, L, J, X and P (K, R, P kept it in place: MTSYEAKFGWLDR)
+  TEST_STRING_EQUAL(seq["DECOY_P3"], "MTSYEKAFGWLDR")
 }
 END_SECTION
 
