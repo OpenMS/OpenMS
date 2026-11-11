@@ -507,7 +507,12 @@ namespace OpenMS
                        "a list of peptides at an FDR is the target peptides with percolator_peptide_q_value at most that FDR "
                        "(the distinct peptides of the PSMs at an FDR are not FDR-controlled at the peptide level). The main "
                        "score stays the PSM-level q-value. Default Percolator rescoring only (not with rescore_method 'reset', "
-                       "which reports RESET:peptide_q_value, nor with rescore_reuse models).",
+                       "which reports RESET:peptide_q_value, nor with rescore_reuse models). Independent of this parameter, "
+                       "every rescored hit gets ProSE's peptide-level q-value 'peptide q-value' (the name FalseDiscoveryRate "
+                       "writes and EntrapmentEvaluator reads), with one peptide definition for each run and for the pooled "
+                       "runs of a multi-file search (the ProSE tool's -out_merged): FalseDiscoveryRate::applyBasicPeptideLevel() "
+                       "(a peptide is an unmodified sequence, whose best PSM competes with its label) on the PSMs' Percolator PEPs, also with "
+                       "rescore_reuse models; not with rescore_method 'reset'.",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:peptide_level", {"true", "false"});
     defaults_.setSectionDescription("rescoring", "Options of the Percolator training of the rescoring (see 'rescore')");

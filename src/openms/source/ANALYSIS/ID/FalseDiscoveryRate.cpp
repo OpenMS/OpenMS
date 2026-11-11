@@ -26,6 +26,28 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    /// The FDR (or q-value) that calculateFDRBasic_() recorded in @p score_to_fdr for the hits with @p score.
+    /// It records one value for the scores within 1e-12 of each other, under the best of them (the first in rank
+    /// order): the highest if @p higher_score_better, else the lowest. So a score that is not a key belongs to the
+    /// nearest key that is better. Looked up the other way round, such a score got the value of the next worse
+    /// group, or none (the end of the map) if its group is the worst one.
+    double fdrOfScore(const std::map<double, double>& score_to_fdr, double score, bool higher_score_better)
+    {
+      if (score_to_fdr.empty()) { return 1.0; }
+      if (higher_score_better)
+      {
+        auto it = score_to_fdr.lower_bound(score); // the lowest key that is not below the score
+        if (it == score_to_fdr.end()) { --it; }
+        return it->second;
+      }
+      auto it = score_to_fdr.upper_bound(score); // the highest key that is not above the score
+      if (it != score_to_fdr.begin()) { --it; }
+      return it->second;
+    }
+  } // namespace
+
   FalseDiscoveryRate::FalseDiscoveryRate() :
     DefaultParamHandler("FalseDiscoveryRate")
   {
@@ -1218,16 +1240,7 @@ namespace OpenMS
     // convert scores in unordered map to FDR/qvalues
     for (auto & seq_to_score_label : seq_to_score_labels)
     {
-      if (higher_better)
-      {
-        auto ub = score_to_fdr.upper_bound(seq_to_score_label.second.first);
-        if (ub != score_to_fdr.begin()) ub--;
-        seq_to_score_label.second.first = ub->second;
-      }
-      else
-      {
-        seq_to_score_label.second.first = score_to_fdr.lower_bound(seq_to_score_label.second.first)->second;
-      }
+      seq_to_score_label.second.first = fdrOfScore(score_to_fdr, seq_to_score_label.second.first, higher_better);
     }
 
     IDScoreGetterSetter::setPeptideScoresFromMap_(seq_to_score_labels, map, score_type, add_decoy_peptides, include_unassigned);
@@ -1259,16 +1272,7 @@ namespace OpenMS
     // convert scores in unordered map to FDR/qvalues
     for (auto & seq_to_score_label : seq_to_score_labels)
     {
-      if (higher_better)
-      {
-        auto ub = score_to_fdr.upper_bound(seq_to_score_label.second.first);
-        if (ub != score_to_fdr.begin()) ub--;
-        seq_to_score_label.second.first = ub->second;
-      }
-      else
-      {
-        seq_to_score_label.second.first = score_to_fdr.lower_bound(seq_to_score_label.second.first)->second;
-      }
+      seq_to_score_label.second.first = fdrOfScore(score_to_fdr, seq_to_score_label.second.first, higher_better);
     }
 
     IDScoreGetterSetter::setPeptideScoresFromMap_(seq_to_score_labels, ids, score_type, add_decoy_peptides);

@@ -223,6 +223,79 @@ namespace OpenMS
   }
 
   // static
+  bool ProSEAlgorithm::annotatePeptideQValues(PeptideIdentificationList& peptide_ids, Size* target_peptides_1pct)
+  {
+    if (target_peptides_1pct != nullptr) { *target_peptides_1pct = 0; }
+    const std::string& name = Constants::UserParam::PEPTIDE_Q_VALUE;
+    const auto remove_all = [&]()
+    {
+      for (PeptideIdentification& id : peptide_ids)
+      {
+        for (PeptideHit& hit : id.getHits()) { hit.removeMetaValue(name); }
+      }
+    };
+
+    // FalseDiscoveryRate::applyBasicPeptideLevel() on a slim copy of the first hits: their sequence, label and PEP as
+    // the score (lower is better; a PEP that is not a number ranks last). A copy, since it replaces the main scores and
+    // removes the other hits; with add_decoy_peptides, the decoys keep their hit (and get the q-value of their peptide).
+    constexpr Size NO_COPY = std::numeric_limits<Size>::max();
+    std::vector<Size> copy_of_id(peptide_ids.size(), NO_COPY);
+    PeptideIdentificationList copies;
+    for (Size i = 0; i < peptide_ids.size(); ++i)
+    {
+      const std::vector<PeptideHit>& hits = peptide_ids[i].getHits();
+      if (hits.empty()) { continue; }
+      const PeptideHit& hit = hits.front();
+      if (!hit.metaValueExists("percolator_pep") || !hit.metaValueExists("target_decoy"))
+      {
+        remove_all();
+        return false;
+      }
+      double pep = static_cast<double>(hit.getMetaValue("percolator_pep"));
+      if (std::isnan(pep)) { pep = std::numeric_limits<double>::infinity(); }
+      PeptideHit copy_hit(pep, 1, hit.getCharge(), hit.getSequence());
+      copy_hit.setMetaValue("target_decoy", hit.getMetaValue("target_decoy"));
+      PeptideIdentification& copy = copies.emplace_back();
+      copy.setScoreType("Posterior Error Probability");
+      copy.setHigherScoreBetter(false);
+      copy.insertHit(std::move(copy_hit));
+      copy_of_id[i] = copies.size() - 1;
+    }
+    if (copies.empty()) { return true; } // (no hit to annotate)
+    FalseDiscoveryRate fdr;
+    Param fdr_param = fdr.getParameters();
+    fdr_param.setValue("conservative", "true"); // (decoys + 1) / targets
+    fdr_param.setValue("add_decoy_peptides", "true");
+    fdr_param.setValue("no_qvalues", "false");
+    fdr.setParameters(fdr_param);
+    fdr.applyBasicPeptideLevel(copies);
+
+    const UInt index = MetaInfoInterface::metaRegistry().registerName(name);
+    std::unordered_set<std::string> target_peptides; // at q <= 0.01
+    for (Size i = 0; i < peptide_ids.size(); ++i)
+    {
+      std::vector<PeptideHit>& hits = peptide_ids[i].getHits();
+      for (Size h = 0; h < hits.size(); ++h)
+      {
+        const bool scored = h == 0 && copy_of_id[i] != NO_COPY && !copies[copy_of_id[i]].getHits().empty();
+        if (!scored)
+        {
+          hits[h].removeMetaValue(index);
+          continue;
+        }
+        const double q = copies[copy_of_id[i]].getHits().front().getScore();
+        hits[h].setMetaValue(index, q);
+        if (target_peptides_1pct != nullptr && !hits[h].isDecoy() && q <= 0.01)
+        {
+          target_peptides.insert(hits[h].getSequence().toUnmodifiedString());
+        }
+      }
+    }
+    if (target_peptides_1pct != nullptr) { *target_peptides_1pct = target_peptides.size(); }
+    return true;
+  }
+
+  // static
   std::string ProSEAlgorithm::pinFeatureEnzyme(const std::string& enzyme, bool fixed_enzyme_termini)
   {
     // a ProteaseDB enzyme without a Percolator name keeps its name: PercolatorInfile then uses its cleavage rule
@@ -903,6 +976,18 @@ namespace OpenMS
     for (const std::exception_ptr& error : errors)
     {
       if (error) std::rethrow_exception(error);
+    }
+    // The peptide-level q-values of the run, 'peptide q-value' (the name FalseDiscoveryRate writes and
+    // EntrapmentEvaluator reads): annotatePeptideQValues() on all its PSMs, before FDR:PSM, as on the pooled PSMs of
+    // several runs (mergeFileResults()). Not with RESET, which trained on part of the decoys (its own peptide-level
+    // q-values are 'RESET:peptide_q_value'); none of an earlier rescoring stays.
+    if (perc.getResetOutput() == nullptr) { annotatePeptideQValues(peptide_ids); }
+    else
+    {
+      for (PeptideIdentification& pid : peptide_ids)
+      {
+        for (PeptideHit& hit : pid.getHits()) { hit.removeMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE); }
+      }
     }
     if (reuse != nullptr ? reuse->note->used_default_direction : perc.usedDefaultDirection())
     {
