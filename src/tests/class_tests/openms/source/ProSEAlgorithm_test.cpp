@@ -6200,6 +6200,23 @@ START_SECTION((static bool annotatePeptideQValues(PeptideIdentificationList& pep
   TEST_REAL_SIMILAR(q_of(ids[251]), 3.0 / 250)
   TEST_REAL_SIMILAR(q_of(ids[260]), 12.0 / 250)
 
+  // PEPs within 1e-12 of each other are accepted together, also if they are different numbers: the PEPs of the most
+  // confident peptides (far below 1e-12) and PEPs next to each other elsewhere, here in the last group. Two targets
+  // ((0 + 1) / 2), then a decoy and a target ((1 + 1) / 3).
+  const std::vector<Psm> near_equal = {
+    {"PEPTIDEMK", "target", 1e-15, 1e-3, "run"},
+    {"ELVISLIVESK", "target", 3e-15, 1e-3, "run"},
+    {"KMEDITPEP", "decoy", 0.5, 0.4, "run"},
+    {"SAMPLERK", "target", 0.5 + 5e-13, 0.4, "run"}};
+  TEST_NOT_EQUAL(near_equal[2].pep, near_equal[3].pep)
+  ids = make_ids(near_equal);
+  TEST_TRUE(ProSEAlgorithm::annotatePeptideQValues(ids))
+  ABORT_IF(ids.size() != near_equal.size())
+  TEST_REAL_SIMILAR(q_of(ids[0]), 0.5)
+  TEST_REAL_SIMILAR(q_of(ids[1]), 0.5)
+  TEST_REAL_SIMILAR(q_of(ids[2]), 2.0 / 3.0)
+  TEST_REAL_SIMILAR(q_of(ids[3]), 2.0 / 3.0)
+
   // A PSM without a PEP (e.g. of a run that Percolator did not rescore) or without a label: no peptide-level q-values,
   // and none of before is left
   for (const std::string missing : {"percolator_pep", "target_decoy"})

@@ -755,6 +755,56 @@ START_SECTION((void applyBasicPeptideLevel(PeptideIdentificationList & ids)))
 }
 END_SECTION
 
+START_SECTION([EXTRA] applyBasicPeptideLevel gives scores within 1e-12 of each other the q-value of their group)
+{
+  // calculateFDRBasic_() takes scores within 1e-12 of each other as one group and records its FDR under the best of
+  // them. The other scores of the group have to find that record: looked up the wrong way round, a score next to the
+  // best one got the q-value of the next worse group, and one of the worst group read past the end of the record.
+  // Two groups, with either orientation: two targets (FDR (0 + 1) / 2), then a decoy and a target ((1 + 1) / 3).
+  auto q_values = [](bool higher_score_better, const std::vector<double>& scores)
+  {
+    PeptideIdentificationList ids;
+    const std::vector<std::pair<std::string, std::string>> peptides = {
+      {"AAAAAAAK", "target"}, {"CCCCCCCK", "target"}, {"DDDDDDDK", "decoy"}, {"EEEEEEEK", "target"}};
+    for (Size i = 0; i < peptides.size(); ++i)
+    {
+      PeptideHit h;
+      h.setSequence(AASequence::fromString(peptides[i].first));
+      h.setScore(scores[i]);
+      h.setCharge(2);
+      h.setMetaValue("target_decoy", peptides[i].second);
+      PeptideIdentification pid;
+      pid.setScoreType("score");
+      pid.setHigherScoreBetter(higher_score_better);
+      pid.setHits({h});
+      ids.push_back(pid);
+    }
+    FalseDiscoveryRate fdr;
+    fdr.applyBasicPeptideLevel(ids);
+    std::map<std::string, double> q; // of the peptides that are left (the decoy is removed by default)
+    for (const PeptideIdentification& id : ids)
+    {
+      if (!id.getHits().empty()) { q[id.getHits()[0].getSequence().toUnmodifiedString()] = id.getHits()[0].getScore(); }
+    }
+    return q;
+  };
+  // (each second score of a group differs from the first by less than 1e-12, and is a different number)
+  const std::vector<double> higher_better = {10.0, 10.0 - 5e-13, 5.0, 5.0 - 2e-13};
+  const std::vector<double> lower_better = {1e-15, 3e-15, 0.5, 0.5 + 5e-13};
+  TEST_NOT_EQUAL(higher_better[0], higher_better[1])
+  TEST_NOT_EQUAL(higher_better[2], higher_better[3])
+  TEST_NOT_EQUAL(lower_better[2], lower_better[3])
+  for (const bool higher_score_better : {true, false})
+  {
+    const std::map<std::string, double> q = q_values(higher_score_better, higher_score_better ? higher_better : lower_better);
+    ABORT_IF(q.count("AAAAAAAK") == 0 || q.count("CCCCCCCK") == 0 || q.count("EEEEEEEK") == 0)
+    TEST_REAL_SIMILAR(q.at("AAAAAAAK"), 0.5)
+    TEST_REAL_SIMILAR(q.at("CCCCCCCK"), 0.5)        // (not the 2/3 of the group after it)
+    TEST_REAL_SIMILAR(q.at("EEEEEEEK"), 2.0 / 3.0)  // (the last group)
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] protein FDR without indistinguishable groups skips the group pass)
 {
   // Inference without group annotation (e.g. for '-protein_quantification strictly_unique_peptides')
