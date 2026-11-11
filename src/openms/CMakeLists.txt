@@ -344,6 +344,27 @@ openms_add_library(TARGET_NAME  OpenMS
                    PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
 
+if(OPENMS_IMPORT_STD)
+  if(ENABLE_UNITYBUILD)
+    message(FATAL_ERROR "OPENMS_IMPORT_STD requires ENABLE_UNITYBUILD=OFF to measure individual translation units.")
+  endif()
+  set_target_properties(OpenMS PROPERTIES CXX_MODULE_STD ON)
+  target_compile_definitions(OpenMS PRIVATE OPENMS_IMPORT_STD)
+  # Before CMake 4.3, the standard library BMI is shared rather than rebuilt
+  # for the importer's flags and definitions. Match /openmp, /utf-8 and STL macros.
+  if(TARGET __cmake_cxx23)
+    target_compile_options(__cmake_cxx23 PRIVATE "$<TARGET_PROPERTY:OpenMS,COMPILE_OPTIONS>")
+    target_compile_definitions(__cmake_cxx23 PRIVATE "$<TARGET_PROPERTY:OpenMS,COMPILE_DEFINITIONS>")
+  endif()
+  # Explicit scanning keeps the experiment independent of the CMP0155 default,
+  # without adding scanning work to the other sources or dependency targets.
+  set_source_files_properties(
+    source/DATASTRUCTURES/StringUtils.cpp
+    source/DATASTRUCTURES/DateTime.cpp
+    source/SYSTEM/File.cpp
+    PROPERTIES CXX_SCAN_FOR_MODULES ON)
+endif()
+
 target_sources(OpenMS PRIVATE FILE_SET private_headers TYPE HEADERS
   BASE_DIRS source include
   FILES ${OpenMS_private_headers})

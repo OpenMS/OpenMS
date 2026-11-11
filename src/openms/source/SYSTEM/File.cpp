@@ -22,13 +22,18 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/FORMAT/FileNameUtils.h>
-#include <algorithm>
-#include <atomic>
 #include <cerrno>
-#include <filesystem>
-#include <fstream>
-#include <set>
-#include <vector>
+
+#ifdef OPENMS_IMPORT_STD
+import std;
+#else
+  #include <algorithm>
+  #include <atomic>
+  #include <filesystem>
+  #include <fstream>
+  #include <set>
+  #include <vector>
+#endif
 
 #include <sys/stat.h>  // for stat()/_wstat64() in getModificationTime()
 #include <sys/types.h>

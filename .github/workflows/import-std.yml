@@ -1,0 +1,97 @@
+name: MSVC import std experiment
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/import-std.yml
+      - cmake/import_std.cmake
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: windows-2025
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: egor-tensin/vs-shell@v2
+        with:
+          arch: x64
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install the pinned CMake and initialize vcpkg
+        shell: pwsh
+        run: |
+          python -m pip install cmake==3.31.10
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git submodule update --init vcpkg
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cmake --version
+          ninja --version
+          cl 2>&1 | Out-String | Write-Host
+          exit 0
+      - name: Cache native dependencies
+        uses: actions/cache@v5
+        with:
+          path: .vcpkg-cache
+          key: import-std-vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+      - name: Compare clean builds on the same runner
+        shell: pwsh
+        env:
+          VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}\.vcpkg-cache,readwrite
+          CCACHE_DISABLE: '1'
+        run: |
+          New-Item -ItemType Directory -Force .vcpkg-cache, results | Out-Null
+          $failed = $false
+          foreach ($mode in @('OFF', 'ON')) {
+            $build = "build/import-std-$mode"
+            cmake --preset windows-x64-release -B $build `
+              -DOPENMS_IMPORT_STD=$mode -DENABLE_DOCS=OFF -DBUILD_TOPP_TOOLS=OFF `
+              -DPYOPENMS=OFF -DWITH_OPENTIMS=OFF -DWITH_THERMO_RAW=OFF `
+              -DVCPKG_INSTALLED_DIR="$env:GITHUB_WORKSPACE/build/import-std-deps" `
+              -DCMAKE_CXX_COMPILER_LAUNCHER= -DCMAKE_C_COMPILER_LAUNCHER= `
+              2>&1 | Tee-Object "results/configure-$mode.log"
+            if ($LASTEXITCODE -ne 0) { $failed = $true; continue }
+
+            # Fresh build directories: dependency installation/configuration is
+            # outside the timed interval, but the std BMI is included in it.
+            $timer = [Diagnostics.Stopwatch]::StartNew()
+            cmake --build $build --target OpenMS --parallel 4 --verbose `
+              2>&1 | Tee-Object "results/build-$mode.log"
+            $built = $LASTEXITCODE -eq 0
+            $timer.Stop()
+            "${mode}: OpenMS clean build $($timer.Elapsed.TotalSeconds.ToString('F3')) s; success=$built" |
+              Tee-Object -FilePath results/timings.txt -Append
+            if (Test-Path "$build/.ninja_log") {
+              Copy-Item "$build/.ninja_log" "results/ninja-$mode.log"
+              # Object rows exclude dependency scans and module-map generation.
+              Get-Content "$build/.ninja_log" | Select-Object -Skip 1 | ForEach-Object {
+                $entry = $_ -split "`t"
+                if ($entry[3] -match '[/\\]OpenMS\.dir[/\\].*[/\\](StringUtils|DateTime|File)\.cpp\.obj$|[/\\]std(\.compat)?\.ixx\.obj$') {
+                  "${mode}: $($entry[3]) $(([long]$entry[1] - [long]$entry[0]) / 1000.0) s" |
+                    Tee-Object -FilePath results/timings.txt -Append
+                }
+              }
+            }
+            if (-not $built) { $failed = $true; continue }
+            cmake --build $build --target StringUtils_test DateTime_test File_test --parallel 4
+            if ($LASTEXITCODE -ne 0) { $failed = $true; continue }
+            ctest --test-dir $build -R '^(StringUtils|DateTime|File)_test$' --output-on-failure --no-tests=error `
+              2>&1 | Tee-Object "results/tests-$mode.log"
+            if ($LASTEXITCODE -ne 0) { $failed = $true }
+          }
+          if (Test-Path results/timings.txt) {
+            '```text' | Add-Content $env:GITHUB_STEP_SUMMARY
+            Get-Content results/timings.txt | Add-Content $env:GITHUB_STEP_SUMMARY
+            '```' | Add-Content $env:GITHUB_STEP_SUMMARY
+          }
+          if ($failed) { exit 1 }
+      - name: Preserve timings and compiler diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: msvc-import-std-results
+          path: results/
