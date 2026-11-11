@@ -1,0 +1,3 @@
+PLAN_V7 deviations (after freezing, before any v7 score existed)
+
+1. 2026-11-11T14:46Z: the first chain run was killed by PID before it wrote any output. Cause: CPU oversubscription. The user's ReDeeM jobs used about 10 cores, load average was 52 on 20 logical cores and swap was nearly full; fold 0 had run 13 min against 28 s for D11F. The restart sets torch threads to 4 (TRAIN_THREADS=4, OMP_NUM_THREADS=4) instead of 10. Training procedure, data, folds and seeds are unchanged. A different thread count can change floating-point reduction order, so the scores can differ from a 10-thread run at the rounding level.

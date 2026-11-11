@@ -1,0 +1,63 @@
+
+== raw01: knots 20 (library RT 0.098..0.752), tolerance 84.21533797, sigma 21.05383449
+library RT range of reference precursors -0.005 0.883 | outside knot range (extrapolated): 483
+                                    n  med_res    mad   nB
+bin                                                       
+(-0.0062900000000000005, 0.0963]  229   -115.8  126.3  101
+(0.0963, 0.174]                   229      3.5   17.7    1
+(0.174, 0.251]                    228     -0.8   17.3    6
+(0.251, 0.326]                    229      3.7   18.3    0
+(0.326, 0.381]                    229      1.1   18.7    3
+(0.381, 0.438]                    228      1.2   19.8    2
+(0.438, 0.499]                    228      4.7   21.8    2
+(0.499, 0.558]                    229      1.4   29.1    6
+(0.558, 0.61]                     228      3.0   31.2    4
+(0.61, 0.679]                     229      5.5   33.3    5
+(0.679, 0.767]                    228     -2.5   29.9    4
+(0.767, 0.883]                    229     64.4   64.5   32
+B 166: |res| median 130 s; after an oracle smooth correction |res - curve| median 59 s, within 84 s: 98; sign of res: + 54 / - 112
+E 1413: |res| median 15 s, q99 66 s
+B |res| quantiles (s):  [17.0, 105.0, 130.0, 265.0, 329.0] | within 120 s: 77 within 180 s: 101
+
+== raw02: knots 20 (library RT 0.098..0.773), tolerance 82.97289714, sigma 20.74322429
+library RT range of reference precursors -0.005 0.883 | outside knot range (extrapolated): 450
+                                    n  med_res    mad   nB
+bin                                                       
+(-0.0062900000000000005, 0.0896]  228   -119.6  115.9  111
+(0.0896, 0.166]                   228      6.3   18.6    0
+(0.166, 0.246]                    227      2.5   16.5    4
+(0.246, 0.317]                    228      5.3   19.5    3
+(0.317, 0.375]                    227     -0.7   19.4    2
+(0.375, 0.433]                    228      1.9   18.9    3
+(0.433, 0.494]                    227      1.2   25.2    3
+(0.494, 0.552]                    228      1.4   26.0    5
+(0.552, 0.605]                    227      2.2   30.4    2
+(0.605, 0.676]                    229      4.1   31.7    4
+(0.676, 0.76]                     226      4.9   31.2    4
+(0.76, 0.883]                     228     62.4   62.6   39
+B 180: |res| median 127 s; after an oracle smooth correction |res - curve| median 57 s, within 84 s: 103; sign of res: + 64 / - 116
+E 1362: |res| median 15 s, q99 69 s
+B |res| quantiles (s):  [26.0, 107.0, 127.0, 266.0, 331.0] | within 120 s: 80 within 180 s: 108
+
+== linear end extrapolation (slope of the end 3-knot segment)
+raw01 all reference  n  2743: within tol 84 s  constant  2475 -> linear  2608;  median |res| 19 -> 18 s
+raw01 outside knots  n   483: within tol 84 s  constant   222 -> linear   355;  median |res| 100 -> 44 s
+raw01 B              n   166: within tol 84 s  constant    31 -> linear    91;  median |res| 130 -> 72 s
+raw02 all reference  n  2731: within tol 83 s  constant  2461 -> linear  2579;  median |res| 18 -> 18 s
+raw02 outside knots  n   450: within tol 83 s  constant   187 -> linear   305;  median |res| 110 -> 54 s
+raw02 B              n   180: within tol 83 s  constant    29 -> linear    93;  median |res| 127 -> 80 s
+library precursors outside knot range (all 600k, raw01 knots): 266799 of 600222
+
+== candidate RT maps (tolerance = 4 sigma of each map; counts within the old tolerance too)
+raw01: anchors used 504, library RT range 0.061..0.847; knots 0.098..0.752
+  M3 points 2118, knot range 0.061..0.847
+  M0 constant              sigma  21.1: all ref within old tol 2475/2743, within 4 sigma 2475; A+B (351) within old tol 91; median |res| A+B 116 s
+  M1 linear ends           sigma  21.1: all ref within old tol 2608/2743, within 4 sigma 2608; A+B (351) within old tol 221; median |res| A+B 60 s
+  M2 anchors + end knots   sigma  19.4: all ref within old tol 2608/2743, within 4 sigma 2594; A+B (351) within old tol 218; median |res| A+B 60 s
+  M3 anchors + own q<=1 %  sigma  19.6: all ref within old tol 2604/2743, within 4 sigma 2589; A+B (351) within old tol 216; median |res| A+B 59 s
+raw02: anchors used 596, library RT range 0.061..0.879; knots 0.098..0.773
+  M3 points 2132, knot range 0.068..0.847
+  M0 constant              sigma  20.7: all ref within old tol 2461/2731, within 4 sigma 2461; A+B (331) within old tol 72; median |res| A+B 122 s
+  M1 linear ends           sigma  20.7: all ref within old tol 2579/2731, within 4 sigma 2579; A+B (331) within old tol 183; median |res| A+B 74 s
+  M2 anchors + end knots   sigma  20.2: all ref within old tol 2587/2731, within 4 sigma 2584; A+B (331) within old tol 190; median |res| A+B 66 s
+  M3 anchors + own q<=1 %  sigma  19.5: all ref within old tol 2583/2731, within 4 sigma 2575; A+B (331) within old tol 188; median |res| A+B 64 s

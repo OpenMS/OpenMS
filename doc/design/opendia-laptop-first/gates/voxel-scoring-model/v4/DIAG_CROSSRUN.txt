@@ -1,0 +1,16 @@
+alignment anchors (q <= 0.01 target winners in both runs): 1329; median rt02 - rt01 -0.32 s
+alignment residual |rt01 - map(rt02)|: median 0.43 s, q95 1.81 s
+
+== raw01 (other run raw02), arm D11FWT
+E accepted             n   1413: has other-run window within 10 s 0.967; other-run score median 24.52
+D below cut            n    866: has other-run window within 10 s 0.778; other-run score median 5.11
+top-1 % decoy winners  n    930: has other-run window within 10 s 0.482; other-run score median -50.00
+all decoy winners      n  92997: has other-run window within 10 s 0.203; other-run score median -50.00
+AUC D vs top-1 % decoys: own score 0.537; other-run score 0.736; own + max(other, 0) 0.653
+
+== raw02 (other run raw01), arm D11FWT
+E accepted             n   1362: has other-run window within 10 s 0.963; other-run score median 30.33
+D below cut            n    929: has other-run window within 10 s 0.795; other-run score median 5.14
+top-1 % decoy winners  n    944: has other-run window within 10 s 0.463; other-run score median -50.00
+all decoy winners      n  94385: has other-run window within 10 s 0.201; other-run score median -50.00
+AUC D vs top-1 % decoys: own score 0.633; other-run score 0.749; own + max(other, 0) 0.707

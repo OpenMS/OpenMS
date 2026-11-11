@@ -1,0 +1,32 @@
+
+== raw01: candidate windows 2815555, pairs 287010; pair max ts distribution {1: 52514, 2: 140387, 3: 73671, 4: 16423, 5: 2685, 6: 1330}
+gate >= 3: pairs 94109, precursors 186702, windows 1270510
+gate >= 2: pairs 234496, precursors 456172, windows 2570240
+  added target precursors 136512: best ts=2 share 0.80, |rt err| <= 20 s share 0.255
+  added decoy  precursors 132958: best ts=2 share 0.72, |rt err| <= 20 s share 0.257
+  A 185: with any candidate 172, with a candidate within 10 s of DIA-NN RT 50; ts of that window {1: 1, 2: 49}
+
+== raw02: candidate windows 2798389, pairs 287091; pair max ts distribution {1: 52070, 2: 139574, 3: 74285, 4: 16953, 5: 2819, 6: 1390}
+gate >= 3: pairs 95447, precursors 189464, windows 1275383
+gate >= 2: pairs 235021, precursors 457351, windows 2557534
+  added target precursors 135704: best ts=2 share 0.80, |rt err| <= 20 s share 0.260
+  added decoy  precursors 132183: best ts=2 share 0.73, |rt err| <= 20 s share 0.260
+  A 151: with any candidate 140, with a candidate within 10 s of DIA-NN RT 38; ts of that window {1: 1, 2: 37}
+
+== A and stages vs RT window (|DIA-NN RT - calibrated library RT| > tolerance) and extrapolation
+raw01
+                              n  outside_window  extrapolated
+stage                                                        
+A not in population         185             125           131
+B no window within 10 s     166             135           134
+C wrong window won          113               0             9
+D right window, below cut   866               8           108
+E accepted                 1413               0           101
+raw02
+                              n  outside_window  extrapolated
+stage                                                        
+A not in population         151             108           112
+B no window within 10 s     180             151           149
+C wrong window won          109               2             4
+D right window, below cut   929               7            92
+E accepted                 1362               2            93

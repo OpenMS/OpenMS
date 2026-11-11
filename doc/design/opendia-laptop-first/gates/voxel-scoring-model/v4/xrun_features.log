@@ -1,0 +1,4 @@
+raw01: shared anchors 441; map raw02 -> raw01 residual median 0.39 s, q95 1.89 s
+raw01: windows 1270510, with other-run window 0.568 (targets 0.570, decoys 0.566); |drt| median of present 1.59 s
+raw02: shared anchors 441; map raw01 -> raw02 residual median 0.38 s, q95 1.83 s
+raw02: windows 1275383, with other-run window 0.567 (targets 0.569, decoys 0.564); |drt| median of present 1.59 s
