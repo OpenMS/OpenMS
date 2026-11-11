@@ -1,0 +1,18 @@
+raw01 fold 0 w_z norm 133.5280216700714 w_t norm 343.3544004766647
+raw01 fold 1 w_z norm 152.33886053496826 w_t norm 329.56795210547665
+raw01 fold 2 w_z norm 145.9739531570513 w_t norm 356.3210189983581
+raw01 reproduces scores_D11: max abs diff 0.0 corr 1.0
+raw01 variance share (all windows): linear 1.2599570751190186 tanh 1.81158447265625 corr(lin, tanh) -0.6855773922011995
+raw01 window choice right (D11): 1971 of 2392
+raw01 window choice right (linear part): 2255 of 2392
+raw01 window choice right (tanh part): 1538 of 2392
+raw01 window choice right (lin + tanh / 10): 2254 of 2392
+raw02 fold 0 w_z norm 147.769749080295 w_t norm 339.6556850663168
+raw02 fold 1 w_z norm 162.64472034860447 w_t norm 393.71518701356473
+raw02 fold 2 w_z norm 126.28707883407161 w_t norm 371.5056611913595
+raw02 reproduces scores_D11: max abs diff 0.0 corr 0.9999999999999998
+raw02 variance share (all windows): linear 1.539649248123169 tanh 1.9517126083374023 corr(lin, tanh) -0.7186012950250535
+raw02 window choice right (D11): 2017 of 2400
+raw02 window choice right (linear part): 2286 of 2400
+raw02 window choice right (tanh part): 1545 of 2400
+raw02 window choice right (lin + tanh / 10): 2286 of 2400
