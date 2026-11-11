@@ -264,7 +264,7 @@ namespace OpenMS
     if (copies.empty()) { return true; } // (no hit to annotate)
     FalseDiscoveryRate fdr;
     Param fdr_param = fdr.getParameters();
-    fdr_param.setValue("conservative", "true"); // (decoys + 1) / (targets + 1), as calculateFDRBasic_() computes it
+    fdr_param.setValue("conservative", "true"); // (decoys + 1) / targets
     fdr_param.setValue("add_decoy_peptides", "true");
     fdr_param.setValue("no_qvalues", "false");
     fdr.setParameters(fdr_param);

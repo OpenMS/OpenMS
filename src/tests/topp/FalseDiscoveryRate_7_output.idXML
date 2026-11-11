@@ -5,51 +5,51 @@
 	</SearchParameters>
 	<IdentificationRun date="2016-08-02T11:16:08" search_engine="SimpleSearchEngine" search_engine_version="2.0.1" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" >
-			<ProteinHit id="PH_0" accession="tr|Q9NWG2|Q9NWG2_HUMAN" score="0.1" sequence="" >
+			<ProteinHit id="PH_0" accession="tr|Q9NWG2|Q9NWG2_HUMAN" score="0.111111111111111" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="_score" value="100.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="tr|Q6IQ15|Q6IQ15_HUMAN" score="0.1" sequence="" >
+			<ProteinHit id="PH_1" accession="tr|Q6IQ15|Q6IQ15_HUMAN" score="0.111111111111111" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="_score" value="95.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="tr|Q68CR9|Q68CR9_HUMAN" score="0.1" sequence="" >
+			<ProteinHit id="PH_2" accession="tr|Q68CR9|Q68CR9_HUMAN" score="0.111111111111111" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="_score" value="90.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="tr|Q5VVC9|Q5VVC9_HUMAN" score="0.1" sequence="" >
+			<ProteinHit id="PH_3" accession="tr|Q5VVC9|Q5VVC9_HUMAN" score="0.111111111111111" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="_score" value="85.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="tr|Q5VU58|Q5VU58_HUMAN" score="0.1" sequence="" >
+			<ProteinHit id="PH_4" accession="tr|Q5VU58|Q5VU58_HUMAN" score="0.111111111111111" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="_score" value="80.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="tr|Q5TIG5|Q5TIG5_HUMAN" score="0.1" sequence="" >
+			<ProteinHit id="PH_5" accession="tr|Q5TIG5|Q5TIG5_HUMAN" score="0.111111111111111" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="_score" value="75.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="tr|Q5JYA3|Q5JYA3_HUMAN" score="0.1" sequence="" >
+			<ProteinHit id="PH_6" accession="tr|Q5JYA3|Q5JYA3_HUMAN" score="0.111111111111111" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="_score" value="70.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_7" accession="tr|Q5JX62|Q5JX62_HUMAN" score="0.1" sequence="" >
+			<ProteinHit id="PH_7" accession="tr|Q5JX62|Q5JX62_HUMAN" score="0.111111111111111" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="_score" value="65.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_8" accession="tr|Q5JP53|Q5JP53_HUMAN" score="0.1" sequence="" >
+			<ProteinHit id="PH_8" accession="tr|Q5JP53|Q5JP53_HUMAN" score="0.111111111111111" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="_score" value="60.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="tr|Q59F66|Q59F66_HUMAN" score="0.181818181818182" sequence="" >
+			<ProteinHit id="PH_9" accession="tr|Q59F66|Q59F66_HUMAN" score="0.2" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="_score" value="50.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_10" accession="tr|Q2TU79|Q2TU79_HUMAN" score="0.230769230769231" sequence="" >
+			<ProteinHit id="PH_10" accession="tr|Q2TU79|Q2TU79_HUMAN" score="0.25" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="_score" value="40.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_11" accession="tr|Q15635|Q15635_HUMAN" score="0.230769230769231" sequence="" >
+			<ProteinHit id="PH_11" accession="tr|Q15635|Q15635_HUMAN" score="0.25" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="_score" value="35.0"/>
 			</ProteinHit>

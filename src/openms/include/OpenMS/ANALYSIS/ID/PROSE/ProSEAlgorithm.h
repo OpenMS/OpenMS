@@ -525,7 +525,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * FalseDiscoveryRate::applyBasicPeptideLevel() over all identifications in @p peptide_ids, with their Percolator
      * PEP (meta value 'percolator_pep') as the score: a peptide is an unmodified sequence, its best PSM (lowest PEP)
      * competes with its label (meta value 'target_decoy'; 'target+decoy' counts as target), and the q-value of a
-     * peptide is the lowest (decoy peptides + 1) / (target peptides + 1) among the PEP thresholds that accept it
+     * peptide is the lowest (decoy peptides + 1) / target peptides among the PEP thresholds that accept it
      * (FalseDiscoveryRate's 'conservative' estimate; PEPs equal within 1e-12 are accepted together). The PEPs only rank
      * the peptides; the q-values come from the target-decoy competition. The searches use it for each run (its own
      * peptides) and for the pooled PSMs of several runs (mergeFileResults()), so the two have the same definition.

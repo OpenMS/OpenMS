@@ -6132,18 +6132,18 @@ START_SECTION((static bool annotatePeptideQValues(PeptideIdentificationList& pep
   };
 
   // The peptides (unmodified sequences) by PEP, the target and decoy peptides accepted at that PEP, and FalseDiscoveryRate's
-  // (D + 1) / (T + 1) (FalseDiscoveryRate::applyBasicPeptideLevel(), 'conservative'):
-  //   PEPTIDEMK (the best of its PSMs: two runs, and PEPTIDEM(Oxidation)K)  1 0  1/2
-  //   ELVISLIVESK                                                           2 0  1/3
-  //   SAMPLERK                                                              3 0  1/4
-  //   KMEDITPEP, decoy (the better of its two PSMs)                         3 1  2/4
-  //   LASTPEPTIDEK                                                          4 1  2/5
-  //   QNTHERPEPK                                                            5 1  2/6
-  //   SHAREDPEPK, target+decoy (a target)                                   6 1  2/7
-  //   TIEDPEPTIDEK, EDITPEPMK (decoy) and KEDITPEPDEIT (decoy), equal PEP   7 3  4/8, for all three (accepted together)
-  //   NANPEPTIDEK (a PEP that is not a number ranks last)                   8 3  4/9
+  // (D + 1) / T (FalseDiscoveryRate::applyBasicPeptideLevel(), 'conservative'):
+  //   PEPTIDEMK (the best of its PSMs: two runs, and PEPTIDEM(Oxidation)K)  1 0  1/1
+  //   ELVISLIVESK                                                           2 0  1/2
+  //   SAMPLERK                                                              3 0  1/3
+  //   KMEDITPEP, decoy (the better of its two PSMs)                         3 1  2/3
+  //   LASTPEPTIDEK                                                          4 1  2/4
+  //   QNTHERPEPK                                                            5 1  2/5
+  //   SHAREDPEPK, target+decoy (a target)                                   6 1  2/6
+  //   TIEDPEPTIDEK, EDITPEPMK (decoy) and KEDITPEPDEIT (decoy), equal PEP   7 3  4/7, for all three (accepted together)
+  //   NANPEPTIDEK (a PEP that is not a number ranks last)                   8 3  4/8
   // The q-value of a peptide is the lowest FDR at its PEP or above, and each PSM gets that of its peptide (the PSM
-  // q-values play no part).
+  // q-values play no part): 2/6 for the peptides down to SHAREDPEPK, 4/8 for the tied three and NANPEPTIDEK.
   const double nan = std::numeric_limits<double>::quiet_NaN();
   const std::vector<Psm> psms = {
     {"KMEDITPEP", "decoy", 0.5, 0.4, "run_b"},
@@ -6160,7 +6160,7 @@ START_SECTION((static bool annotatePeptideQValues(PeptideIdentificationList& pep
     {"PEPTIDEMK", "target", 1e-4, 1e-3, "run_b"},
     {"QNTHERPEPK", "target", 0.03, 0.04, "run_a"},
     {"SHAREDPEPK", "target+decoy", 0.04, 0.05, "run_b"}};
-  const std::vector<double> expected = {2.0 / 7, 0.25, 4.0 / 9, 0.25, 4.0 / 9, 4.0 / 9, 4.0 / 9, 0.25, 0.25, 2.0 / 7, 2.0 / 7, 0.25, 2.0 / 7, 2.0 / 7};
+  const std::vector<double> expected = {1.0 / 3, 1.0 / 3, 0.5, 1.0 / 3, 0.5, 0.5, 0.5, 1.0 / 3, 1.0 / 3, 1.0 / 3, 1.0 / 3, 1.0 / 3, 1.0 / 3, 1.0 / 3};
   PeptideIdentificationList ids = make_ids(psms);
   // a lower-ranked hit with a value from before, and a spectrum without hits
   PeptideHit second(0.5, 2, 2, AASequence::fromString("ELVISLIVESR"));
@@ -6180,8 +6180,8 @@ START_SECTION((static bool annotatePeptideQValues(PeptideIdentificationList& pep
   TEST_FALSE(ids[3].getHits()[1].metaValueExists(name)) // only the first hit is ranked
   TEST_TRUE(ids.back().getHits().empty())
 
-  // target_peptides_1pct: by PEP, 150 target peptides, a decoy, 100 targets and 10 decoys. (D + 1) / (T + 1) is 1/151
-  // after the first 150, 2/151 at the decoy, 2/251 after the next 100, then 3/251 .. 12/251: all 250 targets (and the
+  // target_peptides_1pct: by PEP, 150 target peptides, a decoy, 100 targets and 10 decoys. (D + 1) / T is 1/150
+  // after the first 150, 2/150 at the decoy, 2/250 after the next 100, then 3/250 .. 12/250: all 250 targets (and the
   // decoy among them, which is not counted) have q <= 0.01, the 10 decoys at the end 0.012 and more.
   const std::string residues = "ACDEFGHIKLMNPQRSTVWY";
   std::vector<Psm> many;
@@ -6194,11 +6194,11 @@ START_SECTION((static bool annotatePeptideQValues(PeptideIdentificationList& pep
   ids = make_ids(many);
   TEST_TRUE(ProSEAlgorithm::annotatePeptideQValues(ids, &target_peptides_1pct))
   TEST_EQUAL(target_peptides_1pct, 250)
-  TEST_REAL_SIMILAR(q_of(ids[0]), 1.0 / 151)
-  TEST_REAL_SIMILAR(q_of(ids[150]), 2.0 / 251)
-  TEST_REAL_SIMILAR(q_of(ids[200]), 2.0 / 251)
-  TEST_REAL_SIMILAR(q_of(ids[251]), 3.0 / 251)
-  TEST_REAL_SIMILAR(q_of(ids[260]), 12.0 / 251)
+  TEST_REAL_SIMILAR(q_of(ids[0]), 1.0 / 150)
+  TEST_REAL_SIMILAR(q_of(ids[150]), 2.0 / 250)
+  TEST_REAL_SIMILAR(q_of(ids[200]), 2.0 / 250)
+  TEST_REAL_SIMILAR(q_of(ids[251]), 3.0 / 250)
+  TEST_REAL_SIMILAR(q_of(ids[260]), 12.0 / 250)
 
   // A PSM without a PEP (e.g. of a run that Percolator did not rescore) or without a label: no peptide-level q-values,
   // and none of before is left
@@ -8019,23 +8019,24 @@ START_SECTION(([EXTRA] applyCompleteSetProteinFDR infers the proteins on the rep
     // Only the inference-only PSMs have a decoy: without them, the picked-protein FDR has no decoy protein and is
     // skipped; the reported proteins are those of the reported PSMs.
     InferenceRun run = make_inference_run(pep);
-    TEST_FALSE(ProSEAlgorithm::applyCompleteSetProteinFDR(run.proteins, run.reported, "DECOY_", true, 0.3, true, {}))
+    TEST_FALSE(ProSEAlgorithm::applyCompleteSetProteinFDR(run.proteins, run.reported, "DECOY_", true, 0.4, true, {}))
     TEST_STRING_EQUAL(accessions_of(run.proteins[0]), "T1,T2,T3")
 
     // With them, the decoy (PEP 0.2) ranks above T2 (PEP 0.3, although its q-value is 0). With FalseDiscoveryRate's
-    // conservative estimate (D + 1) / (T + 1), T2 gets the q-value 2/5 and fails the protein FDR of 30 %, T1 and T3 (1/4)
-    // pass. T4 passes too (PEP 0.01), but has no reported PSM: it is not reported, nor are the decoy and T5. Ranked by
-    // the q-values, all targets would rank above the decoy (T2 tied with T1) and pass, with q-value 1/5.
+    // conservative estimate (D + 1) / T (T1 1/1, T4 1/2, T3 1/3, decoy 2/3, T2 2/4), T2 gets the q-value 1/2 and fails
+    // the protein FDR of 40 %, T1 and T3 (1/3) pass. T4 passes too (PEP 0.01), but has no reported PSM: it is not
+    // reported, nor are the decoy and T5. Ranked by the q-values, all targets would rank above the decoy (T2 tied with
+    // T1) and pass, with q-value 1/4.
     run = make_inference_run(pep);
     const PeptideIdentificationList reported = run.reported;
-    TEST_TRUE(ProSEAlgorithm::applyCompleteSetProteinFDR(run.proteins, run.reported, "DECOY_", true, 0.3, true, run.inference_only))
+    TEST_TRUE(ProSEAlgorithm::applyCompleteSetProteinFDR(run.proteins, run.reported, "DECOY_", true, 0.4, true, run.inference_only))
     TEST_STRING_EQUAL(accessions_of(run.proteins[0]), "T1,T3")
     TEST_EQUAL(run.proteins[0].getScoreType(), "q-value")
     for (const ProteinHit& hit : run.proteins[0].getHits())
     {
       // the score of the inference, which the picked-protein FDR keeps as meta value
       TEST_TRUE(hit.metaValueExists(pep ? "Posterior Probability_score" : "ln(hyperscore)_score"))
-      TEST_REAL_SIMILAR(hit.getScore(), 0.25)
+      TEST_REAL_SIMILAR(hit.getScore(), 1.0 / 3.0)
     }
     // the reported PSMs stay, but for T2's, whose only protein failed (it would be reported without a protein); every
     // group holds reported proteins only
@@ -8060,7 +8061,7 @@ START_SECTION(([EXTRA] applyCompleteSetProteinFDR infers the proteins on the rep
 
     // The decoys kept (remove_decoys false): the decoy fails the filter, and the targets are as above.
     run = make_inference_run(pep);
-    TEST_TRUE(ProSEAlgorithm::applyCompleteSetProteinFDR(run.proteins, run.reported, "DECOY_", true, 0.3, false, run.inference_only))
+    TEST_TRUE(ProSEAlgorithm::applyCompleteSetProteinFDR(run.proteins, run.reported, "DECOY_", true, 0.4, false, run.inference_only))
     TEST_STRING_EQUAL(accessions_of(run.proteins[0]), "T1,T3")
   }
 }
@@ -8069,11 +8070,11 @@ END_SECTION
 START_SECTION(([EXTRA] applyCompleteSetProteinFDR filters the protein groups at their own q-values and removes the PSMs of failed proteins))
 {
   // Ten proteins, one PSM each, ranked by PEP; T1 and T1b share their only peptide, an indistinguishable group. The
-  // picked FDR of the proteins counts both, that of the groups the group once, with FalseDiscoveryRate's (D+1)/(T+1):
+  // picked FDR of the proteins counts both, that of the groups the group once, with FalseDiscoveryRate's (D+1)/T:
   //   rank      T1,T1b  T2   T3   T4   T5   D1   T6   T7   D2   T8
-  //   proteins  1/3    1/4  1/5  1/6  1/7  2/7  2/8  2/9  3/9  3/10  -> q 0.143 (T1 .. T5), 0.222 (T6, T7), 0.3 (T8)
-  //   groups    1/2    1/3  1/4  1/5  1/6  2/6  2/7  2/8  3/8  3/9   -> q 0.167 (T1 .. T5), 0.25 (T6, T7), 0.333 (T8)
-  // At 23 %, T6 and T7 pass as proteins but not as groups: neither they nor their groups and PSMs are reported.
+  //   proteins  1/2    1/3  1/4  1/5  1/6  2/6  2/7  2/8  3/8  3/9   -> q 0.167 (T1 .. T5), 0.25 (T6, T7), 0.333 (T8)
+  //   groups    1/1    1/2  1/3  1/4  1/5  2/5  2/6  2/7  3/7  3/8   -> q 0.2 (T1 .. T5), 0.286 (T6, T7), 0.375 (T8)
+  // At 27 %, T6 and T7 pass as proteins but not as groups: neither they nor their groups and PSMs are reported.
   std::vector<ProteinIdentification> proteins(1);
   proteins[0].setIdentifier("run");
   PeptideIdentificationList peptides;
@@ -8105,13 +8106,13 @@ START_SECTION(([EXTRA] applyCompleteSetProteinFDR filters the protein groups at 
     id.setHits({hit});
     peptides.push_back(id);
   }
-  TEST_TRUE(ProSEAlgorithm::applyCompleteSetProteinFDR(proteins, peptides, "DECOY_", true, 0.23, true, {}))
+  TEST_TRUE(ProSEAlgorithm::applyCompleteSetProteinFDR(proteins, peptides, "DECOY_", true, 0.27, true, {}))
   TEST_STRING_EQUAL(accessions_of(proteins[0]), "T1,T1b,T2,T3,T4,T5")
   const auto& groups = proteins[0].getIndistinguishableProteins();
   TEST_EQUAL(groups.size(), 5)
   for (const ProteinIdentification::ProteinGroup& group : groups)
   {
-    TEST_TRUE(group.probability <= 0.23)
+    TEST_TRUE(group.probability <= 0.27)
     TEST_EQUAL(group.accessions.size(), group.accessions[0] == "T1" || group.accessions[0] == "T1b" ? 2 : 1)
   }
   // the PSMs of the reported proteins; every one has a protein
