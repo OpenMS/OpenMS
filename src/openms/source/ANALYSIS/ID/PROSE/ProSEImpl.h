@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/PROSE/ProSEAlgorithm.h>
 
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>

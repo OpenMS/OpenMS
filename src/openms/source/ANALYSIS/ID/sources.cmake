@@ -32,15 +32,6 @@ MetaboliteSpectralMatching.cpp
 MorpheusScore.cpp
 OpenSearchModificationAnalysis.cpp
 PeptideProteinResolution.cpp
-ProSEAlgorithm.cpp
-ProSEAlgorithmHits.cpp
-ProSEAlgorithmLoading.cpp
-ProSEAlgorithmPooling.cpp
-ProSEAlgorithmProteins.cpp
-ProSEAlgorithmReport.cpp
-ProSEAlgorithmRescoring.cpp
-ProSEAlgorithmScoring.cpp
-ProSEAlgorithmSpectra.cpp
 PeptideIndexing.cpp
 Percolator.cpp
 PercolatorReset.cpp

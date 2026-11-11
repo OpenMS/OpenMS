@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
-#include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/PROSE/ProSEAlgorithm.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>

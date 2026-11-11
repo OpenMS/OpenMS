@@ -6,8 +6,8 @@
 // $Authors: Raphael Förster $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
-#include "ProSEAlgorithmImpl.h"
+#include <OpenMS/ANALYSIS/ID/PROSE/ProSEAlgorithm.h>
+#include "ProSEImpl.h"
 
 #ifdef WITH_ONNX
 #include <OpenMS/ANALYSIS/ID/PeptDeepRescoring.h>

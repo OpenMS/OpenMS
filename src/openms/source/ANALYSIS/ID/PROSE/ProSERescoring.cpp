@@ -6,8 +6,8 @@
 // $Authors: Raphael Förster $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
-#include "ProSEAlgorithmImpl.h"
+#include <OpenMS/ANALYSIS/ID/PROSE/ProSEAlgorithm.h>
+#include "ProSEImpl.h"
 
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
