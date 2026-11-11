@@ -1,0 +1,72 @@
+
+== raw01: windows with score >= decoy q90: D 579, DEC 9300, ENT 4797
+D / DEC / ENT per stratum: {0: {'D': 58, 'DEC': 8723, 'ENT': 4410}, 1: {'D': 58, 'DEC': 272, 'ENT': 162}, 2: {'D': 58, 'DEC': 132, 'ENT': 99}, 3: {'D': 58, 'DEC': 66, 'ENT': 41}, 4: {'D': 58, 'DEC': 46, 'ENT': 35}, 5: {'D': 57, 'DEC': 25, 'ENT': 19}, 6: {'D': 58, 'DEC': 8, 'ENT': 11}, 7: {'D': 58, 'DEC': 7, 'ENT': 7}, 8: {'D': 58, 'DEC': 8, 'ENT': 5}, 9: {'D': 58, 'DEC': 13, 'ENT': 8}}
+stratified AUC (1 = target-like):
+            D_vs_DEC  ENT_vs_DEC  usable_gap
+measure                                     
+lib_cos        0.802       0.567       0.235
+n_sig          0.626       0.442       0.184
+n_peak         0.609       0.455       0.155
+top1_share     0.706       0.553       0.152
+n_sig12        0.647       0.517       0.130
+iso_ratio      0.587       0.490       0.097
+corr_med       0.521       0.446       0.075
+n_missing      0.562       0.494       0.069
+excess         0.666       0.607       0.059
+extra_sig      0.588       0.540       0.048
+frac_core      0.507       0.480       0.027
+rank_agree     0.600       0.575       0.026
+bins_nz        0.481       0.469       0.012
+ppm_abs        0.468       0.484      -0.017
+n_interf       0.440       0.486      -0.045
+ms1_corr       0.474       0.521      -0.046
+ms1_m0         0.346       0.416      -0.070
+log_area       0.229       0.408      -0.179
+
+== raw02: windows with score >= decoy q90: D 699, DEC 9439, ENT 4886
+D / DEC / ENT per stratum: {0: {'D': 70, 'DEC': 9009, 'ENT': 4602}, 1: {'D': 70, 'DEC': 209, 'ENT': 150}, 2: {'D': 70, 'DEC': 90, 'ENT': 47}, 3: {'D': 70, 'DEC': 49, 'ENT': 28}, 4: {'D': 70, 'DEC': 39, 'ENT': 32}, 5: {'D': 69, 'DEC': 10, 'ENT': 6}, 6: {'D': 70, 'DEC': 14, 'ENT': 6}, 7: {'D': 70, 'DEC': 3, 'ENT': 3}, 8: {'D': 70, 'DEC': 3, 'ENT': 3}, 9: {'D': 70, 'DEC': 13, 'ENT': 9}}
+stratified AUC (1 = target-like):
+            D_vs_DEC  ENT_vs_DEC  usable_gap
+measure                                     
+lib_cos        0.794       0.535       0.259
+top1_share     0.718       0.561       0.157
+n_sig12        0.657       0.517       0.140
+n_sig          0.605       0.466       0.139
+n_peak         0.590       0.470       0.120
+extra_sig      0.617       0.523       0.094
+n_missing      0.546       0.465       0.081
+excess         0.663       0.593       0.070
+corr_med       0.550       0.514       0.036
+ppm_abs        0.575       0.539       0.036
+iso_ratio      0.613       0.585       0.028
+rank_agree     0.589       0.564       0.026
+ms1_corr       0.509       0.485       0.024
+frac_core      0.497       0.521      -0.024
+bins_nz        0.473       0.502      -0.029
+ms1_m0         0.438       0.499      -0.061
+n_interf       0.439       0.504      -0.065
+log_area       0.300       0.492      -0.192
+uniform null (V9): decoy windows P(apex_logp >= 2) 0.796, >= 3 0.497; target 0.808, 0.508
+empirical null (E): decoy windows P(apex_logp >= 2) 0.033, >= 3 0.005; target 0.038, 0.009
+== D vs DEC / ENT vs DEC, score-matched (E = empirical null, U = uniform null)
+  E_apex_logp      0.839   ENT 0.548
+  U_apex_logp      0.592   ENT 0.482
+  E_sum_logp       0.753   ENT 0.491
+  U_sum_logp       0.397   ENT 0.454
+  E_sig_scans      0.701   ENT 0.487
+  U_sig_scans      0.331   ENT 0.478
+  E_persist_logp   0.717   ENT 0.493
+  U_persist_logp   0.461   ENT 0.443
+  E_cos            0.757   ENT 0.547
+  U_cos            0.757   ENT 0.547
+== all human vs DEC / ENT vs DEC, score-matched (E = empirical null, U = uniform null)
+  E_apex_logp      0.587   ENT 0.515
+  U_apex_logp      0.564   ENT 0.528
+  E_sum_logp       0.580   ENT 0.522
+  U_sum_logp       0.520   ENT 0.525
+  E_sig_scans      0.566   ENT 0.506
+  U_sig_scans      0.467   ENT 0.513
+  E_persist_logp   0.572   ENT 0.514
+  U_persist_logp   0.535   ENT 0.498
+  E_cos            0.585   ENT 0.516
+  U_cos            0.585   ENT 0.516

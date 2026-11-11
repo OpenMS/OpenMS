@@ -1,0 +1,12 @@
+raw01 MS2 scans 292883 isolation windows 300 tol ppm 4.991333056 offset ppm -3.225462794
+raw01 windows without an isolation window 119
+raw01 isolation window 30/300 (20 s)
+raw01 isolation window 60/300 (46 s)
+raw01 isolation window 90/300 (67 s)
+raw01 isolation window 120/300 (85 s)
+raw01 isolation window 150/300 (100 s)
+raw01 isolation window 180/300 (120 s)
+raw01 isolation window 210/300 (133 s)
+raw01 isolation window 240/300 (144 s)
+raw01 isolation window 270/300 (152 s)
+raw01 done 161 s medians target [3.052000045776367, 13.366999626159668, 3.0, 3.188999891281128, 0.41100001335144043] decoy [2.984999895095825, 13.104000091552734, 3.0, 3.0959999561309814, 0.40299999713897705]

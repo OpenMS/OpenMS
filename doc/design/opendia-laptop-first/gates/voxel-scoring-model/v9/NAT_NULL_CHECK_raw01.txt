@@ -1,0 +1,2 @@
+n 3000; away-from-apex decoy scans: P(L>=1) 0.698 (expect ~0.10), P(L>=2) 0.408 (expect ~0.01), median L 1.26
+mean matched fragments: observed 1.377, uniform-density model expects 0.077, mass-shifted fragments match 0.373
