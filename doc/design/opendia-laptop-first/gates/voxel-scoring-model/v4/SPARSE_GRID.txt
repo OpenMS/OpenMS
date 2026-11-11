@@ -1,0 +1,32 @@
+
+== raw01 D11FW below the 1 % cut (185170 winners); k = fragments with r >= 0.8 (5 = 5+), ms1 = M+0 co-elution r >= 0.6
+             T     Dc  dianD  excess   T/D
+k ms1                                     
+0 False  76653  78396    645   -1743  0.98
+  True    1692   1513     60     179  1.12
+1 False   6924   6931     63      -7  1.00
+  True     408    306     12     102  1.33
+2 False   4170   3758     31     412  1.11
+  True     284    248      9      36  1.15
+3 False   1412   1326     10      86  1.06
+  True     181    138      6      43  1.31
+4 False    311    259      2      52  1.20
+  True      58     45      2      13  1.29
+5 False     67     51      3      16  1.31
+  True      24     15      4       9  1.60
+
+== raw02 D11FW below the 1 % cut (188344 winners); k = fragments with r >= 0.8 (5 = 5+), ms1 = M+0 co-elution r >= 0.6
+             T     Dc  dianD  excess   T/D
+k ms1                                     
+0 False  77225  79003    844   -1778  0.98
+  True    1790   1604    110     186  1.12
+1 False   7566   7141    100     425  1.06
+  True     421    342     30      79  1.23
+2 False   4377   4106     47     271  1.07
+  True     300    248     14      52  1.21
+3 False   1584   1388     29     196  1.14
+  True     164    144      9      20  1.14
+4 False    360    288      6      72  1.25
+  True      81     42      9      39  1.93
+5 False     72     55      7      17  1.31
+  True      24     19      8       5  1.26

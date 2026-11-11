@@ -1,0 +1,10 @@
+
+== raw01 D11FW: medians E / D / top-1% decoys | AUC D vs top-1% decoys (higher = D looks more real), D vs below-cut decoys
+ppm_abs_med    0.86 /   1.63 /   2.30 | 0.610  0.754
+n_tight        6.00 /   4.00 /   3.00 | 0.736  0.915
+tight_share    1.00 /   0.87 /   0.83 | 0.553  0.625
+
+== raw02 D11FW: medians E / D / top-1% decoys | AUC D vs top-1% decoys (higher = D looks more real), D vs below-cut decoys
+ppm_abs_med    0.72 /   1.40 /   2.80 | 0.690  0.778
+n_tight        6.00 /   4.00 /   2.00 | 0.806  0.937
+tight_share    1.00 /   0.90 /   0.77 | 0.633  0.653

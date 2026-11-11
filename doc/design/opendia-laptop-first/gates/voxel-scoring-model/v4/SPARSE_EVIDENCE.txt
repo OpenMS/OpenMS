@@ -1,0 +1,20 @@
+
+== raw01 D11FW: cut (normalised) 156.4
+group                                     n n_strong   top3    wtd ms1 pres ms1 corr ms1 iso  S rate S & ts<=4
+E accepted                             1432        0   0.77   0.57     0.98     0.57    0.97   0.052     0.001
+D below cut                             847        0   0.53   0.30     0.91     0.16    0.86   0.004     0.000
+targets not in DIA-NN, below cut      20000        0   0.44   0.13     0.57     0.00    0.70   0.000     0.000
+decoy winners, top 1 %                  929        0   0.69   0.32     0.76     0.11    0.79   0.011     0.006
+decoy winners, all                    20000        0   0.43   0.12     0.58    -0.00    0.69   0.000     0.000
+   D with pattern S: 3 of 847; their score/cut median 0.68. Decoy winners with S: 37 of 92997; target winners with S (all): 121 of 93705 -> S-only target/decoy ratio 3.27 (all winners 1.01)
+   below the cut: S targets 47, S decoys 37 -> excess 10
+
+== raw02 D11FW: cut (normalised) 325.0
+group                                     n n_strong   top3    wtd ms1 pres ms1 corr ms1 iso  S rate S & ts<=4
+E accepted                             1078        0   0.81   0.61     0.99     0.62    0.98   0.067     0.000
+D below cut                            1213        0   0.56   0.33     0.93     0.24    0.88   0.003     0.001
+targets not in DIA-NN, below cut      20000        0   0.45   0.13     0.58     0.00    0.70   0.001     0.000
+decoy winners, top 1 %                  943        0   0.67   0.30     0.70     0.11    0.81   0.007     0.003
+decoy winners, all                    20000        0   0.43   0.12     0.57    -0.00    0.70   0.000     0.000
+   D with pattern S: 4 of 1213; their score/cut median 0.76. Decoy winners with S: 38 of 94385; target winners with S (all): 129 of 95079 -> S-only target/decoy ratio 3.39 (all winners 1.01)
+   below the cut: S targets 56, S decoys 37 -> excess 19
