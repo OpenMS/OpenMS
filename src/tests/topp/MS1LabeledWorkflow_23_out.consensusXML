@@ -35,19 +35,19 @@
 				<UserParam type="int" name="TOPPProteinInference:treat_modification_variants_separately" value="1"/>
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
-			<ProteinHit id="PH_0" accession="PROT_R" score="0.25" coverage="54.1666666666667" sequence="MKTEFNGLDVSAPYKGGSGGSGGR">
+			<ProteinHit id="PH_0" accession="PROT_R" score="0.333333333333333" coverage="54.1666666666667" sequence="MKTEFNGLDVSAPYKGGSGGSGGR">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value=""/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="Posterior Probability_score" value="0.999"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="PROT_I" score="0.25" coverage="52.1739130434783" sequence="MKDGSFVNLTSAYKGGSGGSGGR">
+			<ProteinHit id="PH_1" accession="PROT_I" score="0.333333333333333" coverage="52.1739130434783" sequence="MKDGSFVNLTSAYKGGSGGSGGR">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value=""/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="Posterior Probability_score" value="0.999"/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="PROT_C" score="0.25" coverage="50" sequence="MKEVTGLNAFDSKGGSGGSGGR">
+			<ProteinHit id="PH_2" accession="PROT_C" score="0.333333333333333" coverage="50" sequence="MKEVTGLNAFDSKGGSGGSGGR">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value=""/>
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
@@ -56,7 +56,7 @@
 			<UserParam type="stringList" name="spectra_data" value="[src/tests/topp/MS1LabeledWorkflow_23_input.mzML]"/>
 			<UserParam type="int" name="fraction_group" value="1"/>
 			<UserParam type="int" name="fraction" value="1"/>
-			<UserParam type="string" name="indistinguishable_proteins_0" value="0.25,PH_2"/>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0.333333333333333,PH_2"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_0_file_channel_level_abundance" value="[1.3624768e07, 1.0218576e07, 6.812384e06]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_0_fraction_group_level_abundance" value="[1.3624768e07, 1.0218576e07, 6.812384e06]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_0_fraction_group_level_ratio" value="[1.0, 0.75, 0.5]"/>
@@ -70,7 +70,7 @@
 			<UserParam type="intList" name="indistinguishable_proteins_0_fraction_group_level_ratio_requantified_count" value="[0, 0, 1]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_0_file_channel_level_filename" value="[MS1LabeledWorkflow_23_input,MS1LabeledWorkflow_23_input,MS1LabeledWorkflow_23_input]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_0_quantified_proteins" value="[PROT_C]"/>
-			<UserParam type="string" name="indistinguishable_proteins_1" value="0.25,PH_1"/>
+			<UserParam type="string" name="indistinguishable_proteins_1" value="0.333333333333333,PH_1"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_1_file_channel_level_abundance" value="[1.4154651e07, 7.0773255e06, 3.53866275e06]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_1_fraction_group_level_abundance" value="[1.4154651e07, 7.0773255e06, 3.53866275e06]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_1_fraction_group_level_ratio" value="[1.0, 0.5, 0.25]"/>
@@ -84,7 +84,7 @@
 			<UserParam type="intList" name="indistinguishable_proteins_1_fraction_group_level_ratio_requantified_count" value="[0, 1, 1]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_1_file_channel_level_filename" value="[MS1LabeledWorkflow_23_input,MS1LabeledWorkflow_23_input,MS1LabeledWorkflow_23_input]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_1_quantified_proteins" value="[PROT_I]"/>
-			<UserParam type="string" name="indistinguishable_proteins_2" value="0.25,PH_0"/>
+			<UserParam type="string" name="indistinguishable_proteins_2" value="0.333333333333333,PH_0"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_2_file_channel_level_abundance" value="[1.5981589e07, 1.1986192e07, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_2_fraction_group_level_abundance" value="[1.5981589e07, 1.1986192e07, 0.0]"/>
 			<UserParam type="floatList" name="indistinguishable_proteins_2_fraction_group_level_ratio" value="[1.0, 0.75]"/>
@@ -131,7 +131,7 @@
 				<element map="1" id="0" rt="100.0" mz="722.866459864827107" it="1.1986192e07" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="720.853906" RT="100.5" spectrum_reference="scan=16" >
-				<PeptideHit score="0.25" sequence="TEFNGLDVSAPYK" charge="2" aa_before="K" aa_after="G" start="2" end="14" protein_refs="PH_0">
+				<PeptideHit score="0.333333333333333" sequence="TEFNGLDVSAPYK" charge="2" aa_before="K" aa_after="G" start="2" end="14" protein_refs="PH_0">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="int" name="map_index" value="0"/>
 					<UserParam type="string" name="MS1Label:labeled_sequence" value="TEFNGLDVSAPYK"/>
@@ -164,7 +164,7 @@
 				<element map="2" id="0" rt="125.0" mz="655.329341513691929" it="3.5386628e06" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="651.322242" RT="125.5" spectrum_reference="scan=41" >
-				<PeptideHit score="0.25" sequence="DGSFVNLTSAYK" charge="2" aa_before="K" aa_after="G" start="2" end="13" protein_refs="PH_1">
+				<PeptideHit score="0.333333333333333" sequence="DGSFVNLTSAYK" charge="2" aa_before="K" aa_after="G" start="2" end="13" protein_refs="PH_1">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="int" name="map_index" value="0"/>
 					<UserParam type="string" name="MS1Label:labeled_sequence" value="DGSFVNLTSAYK"/>
@@ -197,7 +197,7 @@
 				<element map="2" id="0" rt="150.0" mz="594.802959589266834" it="6.812384e06" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="590.79586" RT="150.5" spectrum_reference="scan=66" >
-				<PeptideHit score="0.25" sequence="EVTGLNAFDSK" charge="2" aa_before="K" aa_after="G" start="2" end="12" protein_refs="PH_2">
+				<PeptideHit score="0.333333333333333" sequence="EVTGLNAFDSK" charge="2" aa_before="K" aa_after="G" start="2" end="12" protein_refs="PH_2">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="int" name="map_index" value="0"/>
 					<UserParam type="string" name="MS1Label:labeled_sequence" value="EVTGLNAFDSK"/>
