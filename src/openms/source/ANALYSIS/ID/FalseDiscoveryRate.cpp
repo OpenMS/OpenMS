@@ -825,6 +825,12 @@ namespace OpenMS
     }
 
     // assign q-value of decoy_score to closest target_score
+    // The search below needs the targets from the worst to the best score (as sorted for q-values). Without q-values
+    // they are sorted from the best to the worst, so a decoy would get the FDR of the wrong target.
+    if (!q_value)
+    {
+      std::reverse(target_scores.begin(), target_scores.end());
+    }
     for (Size i = 0; i != decoy_scores.size(); ++i)
     {
       const double& ds = decoy_scores[i];

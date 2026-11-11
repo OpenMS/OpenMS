@@ -552,19 +552,25 @@ START_SECTION([EXTRA] basic FDR: (D+1)/T if conservative; else (D+1)/(T+D); at m
 }
 END_SECTION
 
-START_SECTION([EXTRA] apply() raw FDR: D/T; at most 1)
+START_SECTION([EXTRA] apply() raw FDR: D/T; at most 1; decoys get the FDR of the closest target)
 {
-  // One PSM per score, higher = better. apply() estimates D/T at each target, with T and D the targets and decoys at
-  // least as good:
-  //   score   0.99 0.98 0.90 0.80 0.70 0.68 0.60 0.50
-  //   label   D    D    T    T    T    D    T    T
+  // One PSM per score. apply() estimates D/T at each target, with T and D the targets and decoys at least as good, and
+  // gives each decoy the value of the closest target:
+  //   score (higher = better)  0.99 0.98 0.90 0.80 0.70 0.68 0.60 0.50
+  //   score (lower = better)   0.01 0.02 0.10 0.20 0.30 0.32 0.40 0.50
+  //   label                    D    D    T    T    T    D    T    T
   // raw FDRs of the targets: 2/1 -> 1, 2/2, 2/3, 3/4, 3/5 (without the cap the first was 2)
+  // raw FDRs of the decoys: the two above all targets get the best target's 1, the third the 2/3 of the target next to
+  // it. Before the fix the search for the closest target ran over the targets in the wrong order: 3/5, 3/5 and 1.
   // q-values (cumulative minimum from the worst score): 3/5 for all
-  const vector<pair<double, string>> list = {{0.99, "decoy"}, {0.98, "decoy"}, {0.90, "target"}, {0.80, "target"},
-                                             {0.70, "target"}, {0.68, "decoy"}, {0.60, "target"}, {0.50, "target"}};
+  const vector<pair<double, string>> higher_better = {{0.99, "decoy"}, {0.98, "decoy"}, {0.90, "target"}, {0.80, "target"},
+                                                      {0.70, "target"}, {0.68, "decoy"}, {0.60, "target"}, {0.50, "target"}};
+  const vector<pair<double, string>> lower_better = {{0.01, "decoy"}, {0.02, "decoy"}, {0.10, "target"}, {0.20, "target"},
+                                                     {0.30, "target"}, {0.32, "decoy"}, {0.40, "target"}, {0.50, "target"}};
   const vector<string> sequences = {"AAAAAAAK", "CCCCCCCK", "DDDDDDDK", "EEEEEEEK", "FFFFFFFK", "GGGGGGGK", "HHHHHHHK", "IIIIIIIK"};
-  auto run = [&](bool q_values)
+  auto run = [&](bool q_values, bool higher_score_better, bool add_decoys)
   {
+    const vector<pair<double, string>>& list = higher_score_better ? higher_better : lower_better;
     PeptideIdentificationList ids;
     for (Size i = 0; i < list.size(); ++i)
     {
@@ -575,16 +581,17 @@ START_SECTION([EXTRA] apply() raw FDR: D/T; at most 1)
       hit.setMetaValue("target_decoy", list[i].second);
       PeptideIdentification id;
       id.setScoreType("score");
-      id.setHigherScoreBetter(true);
+      id.setHigherScoreBetter(higher_score_better);
       id.setHits({hit});
       ids.push_back(id);
     }
     FalseDiscoveryRate fdr;
     Param p = fdr.getParameters();
     p.setValue("no_qvalues", q_values ? "false" : "true");
+    p.setValue("add_decoy_peptides", add_decoys ? "true" : "false");
     fdr.setParameters(p);
     fdr.apply(ids);
-    vector<double> v; // the targets in input order (decoy hits are removed)
+    vector<double> v; // in input order (without add_decoys, decoy hits are removed)
     for (const auto& id : ids)
     {
       for (const auto& hit : id.getHits()) v.push_back(hit.getScore());
@@ -601,8 +608,13 @@ START_SECTION([EXTRA] apply() raw FDR: D/T; at most 1)
   };
   TOLERANCE_ABSOLUTE(1e-9)
 
-  test_values(run(false), {1.0, 1.0, 2.0 / 3, 3.0 / 4, 3.0 / 5});
-  test_values(run(true), {3.0 / 5, 3.0 / 5, 3.0 / 5, 3.0 / 5, 3.0 / 5});
+  for (bool higher_score_better : {true, false})
+  {
+    test_values(run(false, higher_score_better, false), {1.0, 1.0, 2.0 / 3, 3.0 / 4, 3.0 / 5});
+    test_values(run(false, higher_score_better, true), {1.0, 1.0, 1.0, 1.0, 2.0 / 3, 2.0 / 3, 3.0 / 4, 3.0 / 5});
+    test_values(run(true, higher_score_better, false), vector<double>(5, 3.0 / 5));
+    test_values(run(true, higher_score_better, true), vector<double>(8, 3.0 / 5));
+  }
 }
 END_SECTION
 
