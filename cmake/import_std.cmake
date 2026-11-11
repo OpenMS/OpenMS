@@ -21,7 +21,11 @@ function(openms_validate_import_std)
     if("23" IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD)
       return()
     endif()
-    set(_reason "${CMAKE_CXX23_COMPILER_IMPORT_STD_NOT_FOUND_MESSAGE}")
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL 4.3)
+      set(_reason "${CMAKE_CXX_COMPILER_IMPORT_STD_ERROR_MESSAGE}")
+    else()
+      set(_reason "${CMAKE_CXX23_COMPILER_IMPORT_STD_NOT_FOUND_MESSAGE}")
+    endif()
   endif()
   message(FATAL_ERROR
     "OPENMS_IMPORT_STD: CMake did not detect C++23 standard-library module support.\n"

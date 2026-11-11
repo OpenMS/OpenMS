@@ -15,10 +15,16 @@ are not converted. Unity builds are not supported by the experiment.
 
 Use an x64 Visual Studio developer shell. The `MSVC import std experiment`
 workflow pins CMake 3.31.10 and runs both modes on one `windows-2025` runner.
-It runs for pull requests changing its workflow or `cmake/import_std.cmake`,
-and can also be triggered manually. Its result artifact contains
-configure/build/test logs, the original `.ninja_log` files and timings.
-A failed experiment does not block the ordinary CI jobs.
+It runs for pull requests changing its workflow, import configuration, converted
+sources, discovery tests or timing analysis, and can also be triggered manually.
+Superseded PR runs are cancelled. Dependencies use the same rsync-backed archive
+as Windows CI, including its public HTTP restore for fork PRs; they do not consume
+the repository's GitHub Actions cache quota. Compiler/build/test failures are
+reported as diagnostic warnings and retained in the artifact, without preventing
+the dependency action's success-only cache upload on runs with archive credentials.
+The artifact contains configure/build/test logs, original `.ninja_log` files,
+per-source timings and a whole-build object-duration comparison. Ordinary CI
+remains responsible for required build/test checks.
 
 For a local comparison, configure two **new** build directories with the same
 preset, compiler and options, changing only `-DOPENMS_IMPORT_STD=OFF`/`ON`.
@@ -50,3 +56,45 @@ issue #10876. Failed builds are diagnostic results, not valid speedup
 measurements. Keep all options fixed between modes and repeat successful
 pairs before drawing conclusions from small timing differences. This
 experiment makes no promise of a speedup and does not enable other compilers.
+
+### Interpret the measurements
+
+Compare all object compilations, not only the converted sources:
+
+```sh
+python tools/ci/import_std_timings.py results/ninja-OFF.log results/ninja-ON.log
+```
+
+The report separates matching objects, the three converted sources, other
+matching objects and added module objects. It excludes dependency scans,
+module-map generation and linking; duplicate output entries use the latest
+compilation. These elapsed command-time sums overlap and are not wall-clock or
+CPU-time measurements. Keep the unmodified clean-build logs for reproducibility.
+
+In the original local clean pair, the 864 matching objects summed to 2354.106 s
+OFF and 2719.793 s ON. The three converted sources accounted for just 0.116 s
+of the 365.687 s increase; the other 861 objects accounted for 365.571 s.
+The two new module objects added 3.513 s. Thus the 14.4% wall-clock difference
+does not isolate an import-related regression: machine load, scheduling or
+another build-wide difference needs investigation. These are the original
+pre-rebase measurements described in PR #10881, not a new clean benchmark.
+For another clean experiment, run interleaved OFF, ON, OFF, ON builds with the
+same options and compare the spread as well as the totals. Keep ordinary
+incremental development builds separate so collecting clean timings does not
+discard their reusable objects or dependency installation.
+
+### Choose the next sources
+
+The original three sources remain a baseline for include/import mixing.
+Their OpenMS include chains still name all four replaced C++ headers in
+`StringUtils.cpp`, and four of six in `File.cpp`. In `DateTime.cpp`, they do
+not name `<chrono>` or `<tuple>`, making it the clearest candidate to benefit.
+This source-level check is only a lower bound: standard-library headers may
+include one another too.
+
+For a subsequent measured conversion, `DATASTRUCTURES/Date.cpp` and
+`CONCEPT/UniqueIdGenerator.cpp` are stronger candidates: their OpenMS include
+chains do not directly name `<chrono>`/`<tuple>` and `<chrono>`/`<random>`,
+respectively. Verify the compiler's actual include trace before converting
+them, retain the required C headers, and run `Date_test` and
+`UniqueIdGenerator_test`. Do not expand to public headers or other compilers.

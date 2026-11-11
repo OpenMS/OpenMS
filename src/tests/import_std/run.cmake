@@ -26,6 +26,16 @@ if(DEFINED CASE)
     set(CMAKE_CXX_COMPILER_IMPORT_STD "")
     set(CMAKE_CXX23_COMPILER_IMPORT_STD_NOT_FOUND_MESSAGE
       "Experimental import std support not enabled when detecting toolchain")
+  elseif(CASE STREQUAL "stale_4_3" OR CASE STREQUAL "stale_4_4")
+    if(CASE STREQUAL "stale_4_3")
+      set(CMAKE_VERSION 4.3)
+    else()
+      set(CMAKE_VERSION 4.4)
+    endif()
+    set(CMAKE_CXX_COMPILER_IMPORT_STD "")
+    unset(CMAKE_CXX23_COMPILER_IMPORT_STD_NOT_FOUND_MESSAGE)
+    set(CMAKE_CXX_COMPILER_IMPORT_STD_ERROR_MESSAGE
+      "Experimental import std support not enabled when detecting toolchain")
   elseif(CASE STREQUAL "modern_supported")
     set(CMAKE_VERSION 4.5)
     unset(CMAKE_CXX_COMPILER_IMPORT_STD)
@@ -46,17 +56,17 @@ file(MAKE_DIRECTORY "${BINARY_DIR}")
 file(WRITE "${BINARY_DIR}/modules.json" [=[
 {"version":1,"revision":1,"modules":[{"logical-name":"std","source-path":"std.ixx","is-std-library":true}]}
 ]=])
-foreach(_case IN ITEMS disabled legacy_supported legacy_stale modern_supported modern_missing)
+foreach(_case IN ITEMS disabled legacy_supported legacy_stale stale_4_3 stale_4_4 modern_supported modern_missing)
   execute_process(COMMAND "${CMAKE_COMMAND}" "-DCASE=${_case}" "-DBINARY_DIR=${BINARY_DIR}"
     -P "${CMAKE_CURRENT_LIST_FILE}"
     RESULT_VARIABLE _result OUTPUT_VARIABLE _stdout ERROR_VARIABLE _stderr)
   # CMake wraps fatal diagnostics to the terminal width.
   string(REGEX REPLACE "[ \t\r\n]+" " " _stderr "${_stderr}")
-  if(_case STREQUAL "legacy_stale" OR _case STREQUAL "modern_missing")
+  if(_case MATCHES "stale" OR _case STREQUAL "modern_missing")
     if(_result EQUAL 0 OR NOT _stderr MATCHES "fresh build directory")
       message(FATAL_ERROR "${_case}: expected a failure with fresh-build guidance.\n${_stdout}\n${_stderr}")
     endif()
-    if(_case STREQUAL "legacy_stale")
+    if(_case MATCHES "stale")
       set(_reason "not enabled when detecting toolchain")
     else()
       set(_reason "Could not find modules.json resource")
