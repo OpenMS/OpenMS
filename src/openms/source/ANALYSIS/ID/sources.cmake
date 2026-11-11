@@ -34,6 +34,7 @@ OpenSearchModificationAnalysis.cpp
 PeptideProteinResolution.cpp
 ProSEAlgorithm.cpp
 ProSEAlgorithmLoading.cpp
+ProSEAlgorithmScoring.cpp
 ProSEAlgorithmSpectra.cpp
 PeptideIndexing.cpp
 Percolator.cpp
