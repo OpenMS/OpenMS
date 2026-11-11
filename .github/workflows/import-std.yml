@@ -79,7 +79,7 @@ jobs:
             if (-not $built) { $failed = $true; continue }
             cmake --build $build --target StringUtils_test DateTime_test File_test --parallel 4
             if ($LASTEXITCODE -ne 0) { $failed = $true; continue }
-            ctest --test-dir $build -R '^(StringUtils|DateTime|File)_test$' --output-on-failure --no-tests=error `
+            ctest --test-dir $build -R '^(ImportStdConfiguration|(StringUtils|DateTime|File)_test)$' --output-on-failure --no-tests=error `
               2>&1 | Tee-Object "results/tests-$mode.log"
             if ($LASTEXITCODE -ne 0) { $failed = $true }
           }

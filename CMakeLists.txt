@@ -66,14 +66,7 @@ endif()
 
 project("OpenMS_host" LANGUAGES CXX)
 
-if(OPENMS_IMPORT_STD)
-  if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    message(FATAL_ERROR "OPENMS_IMPORT_STD is an MSVC-only experiment; use cl.exe or disable the option.")
-  endif()
-  if(NOT "23" IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD)
-    message(FATAL_ERROR "OPENMS_IMPORT_STD requires an MSVC installation with C++23 standard library modules (std.ixx).")
-  endif()
-endif()
+openms_validate_import_std()
 
 # A toolchain file given by the user (cross compiling, conda, ...) is not
 # necessarily vcpkg's. vcpkg.cmake sets VCPKG_TOOLCHAIN; a different toolchain

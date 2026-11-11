@@ -3,6 +3,33 @@
 #
 # $Maintainer: Karnajeet Gosavi $
 
+# Called after project() has loaded the compiler's module-discovery result.
+function(openms_validate_import_std)
+  if(NOT OPENMS_IMPORT_STD)
+    return()
+  endif()
+  if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    message(FATAL_ERROR "OPENMS_IMPORT_STD is an MSVC-only experiment; use cl.exe or disable the option.")
+  endif()
+  if(CMAKE_VERSION VERSION_GREATER_EQUAL 4.5)
+    # CMake 4.5 replaced the supported-standard list with module metadata.
+    if(EXISTS "${CMAKE_CXX_STDLIB_MODULES_JSON}")
+      return()
+    endif()
+    set(_reason "${CMAKE_CXX_COMPILER_IMPORT_STD_ERROR_MESSAGE}")
+  else()
+    if("23" IN_LIST CMAKE_CXX_COMPILER_IMPORT_STD)
+      return()
+    endif()
+    set(_reason "${CMAKE_CXX23_COMPILER_IMPORT_STD_NOT_FOUND_MESSAGE}")
+  endif()
+  message(FATAL_ERROR
+    "OPENMS_IMPORT_STD: CMake did not detect C++23 standard-library module support.\n"
+    "Compiler detection: ${_reason}\n"
+    "When enabling OPENMS_IMPORT_STD in an existing build, configure a fresh build directory "
+    "to refresh compiler/module detection.")
+endfunction()
+
 option(OPENMS_IMPORT_STD "Experiment with MSVC C++23 import std in selected OpenMS sources." OFF)
 if(NOT OPENMS_IMPORT_STD)
   return()

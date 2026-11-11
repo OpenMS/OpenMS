@@ -25,6 +25,9 @@ preset, compiler and options, changing only `-DOPENMS_IMPORT_STD=OFF`/`ON`.
 Clear `CMAKE_C_COMPILER_LAUNCHER` and `CMAKE_CXX_COMPILER_LAUNCHER` in both
 configurations and disable ccache. Share a `VCPKG_INSTALLED_DIR` using the same
 triplet so dependency installation can be completed before timing either build.
+Do not switch an existing OFF build directory to ON: older CMake releases cache
+compiler detection without the experimental gate. Use a fresh build directory
+if the diagnostic reports that detection ran without import support enabled.
 Then time `cmake --build <build> --target OpenMS --parallel <jobs>` with the same
 job count in both directories. Do not include configuration or dependency
 installation in the wall-clock measurement; include the standard library BMI
@@ -38,7 +41,7 @@ not the total build wall time. Save the log before building tests, then build
 `StringUtils_test`, `DateTime_test`, and `File_test` and run:
 
 ```sh
-ctest --test-dir <build> -R "^(StringUtils|DateTime|File)_test$" --output-on-failure
+ctest --test-dir <build> -R "^(ImportStdConfiguration|(StringUtils|DateTime|File)_test)$" --output-on-failure
 ```
 
 Report the commit, CMake/compiler versions, configuration, job count, clean
