@@ -35,6 +35,7 @@ PeptideProteinResolution.cpp
 ProSEAlgorithm.cpp
 ProSEAlgorithmHits.cpp
 ProSEAlgorithmLoading.cpp
+ProSEAlgorithmPooling.cpp
 ProSEAlgorithmProteins.cpp
 ProSEAlgorithmRescoring.cpp
 ProSEAlgorithmScoring.cpp
