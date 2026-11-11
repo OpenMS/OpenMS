@@ -1,0 +1,4 @@
+raw01 medians {'p_n_tight': np.float32(1.0), 'p_ppm_abs_med': np.float32(3.38), 'p_tight_share': np.float32(0.828), 'c_med_top3': np.float32(0.562), 'c_med_k': np.float32(0.0)} means {'p_n_tight': np.float32(1.516), 'p_ppm_abs_med': np.float32(4.141), 'p_tight_share': np.float32(0.675), 'c_med_top3': np.float32(0.541), 'c_med_k': np.float32(0.597)}
+53.26 s 5025568 kB
+raw02 medians {'p_n_tight': np.float32(1.0), 'p_ppm_abs_med': np.float32(3.341), 'p_tight_share': np.float32(0.831), 'c_med_top3': np.float32(0.562), 'c_med_k': np.float32(0.0)} means {'p_n_tight': np.float32(1.529), 'p_ppm_abs_med': np.float32(4.118), 'p_tight_share': np.float32(0.677), 'c_med_top3': np.float32(0.542), 'c_med_k': np.float32(0.595)}
+58.35 s 5006512 kB

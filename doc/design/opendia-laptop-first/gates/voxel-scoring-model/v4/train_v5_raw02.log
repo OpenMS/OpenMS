@@ -1,0 +1,15 @@
+raw02 D11FP fold 0: r0 4814 30 ep crit 12195.480 | r1 pos 1531 neg 62992 25 ep crit 1582.681 | r2 pos 1495 neg 62992 23 ep crit 1774.482 (31 s)
+raw02 D11FP fold 1: r0 4760 30 ep crit 10302.476 | r1 pos 1749 neg 62894 22 ep crit 1320.773 | r2 pos 1485 neg 62894 17 ep crit 1807.304 (67 s)
+raw02 D11FP fold 2: r0 4770 16 ep crit 7473.651 | r1 pos 1644 neg 62884 21 ep crit 1185.668 | r2 pos 1423 neg 62884 18 ep crit 1680.692 (88 s)
+raw02 D11FP done in 88 s
+raw02 D11FPC fold 0: r0 4814 30 ep crit 14799.417 | r1 pos 1577 neg 62992 21 ep crit 1461.384 | r2 pos 1443 neg 62992 27 ep crit 1984.072 (37 s)
+raw02 D11FPC fold 1: r0 4760 30 ep crit 11534.058 | r1 pos 1692 neg 62894 16 ep crit 1117.957 | r2 pos 1355 neg 62894 17 ep crit 1882.391 (70 s)
+raw02 D11FPC fold 2: r0 4770 11 ep crit 7875.014 | r1 pos 1643 neg 62884 15 ep crit 1328.206 | r2 pos 1420 neg 62884 29 ep crit 1730.704 (95 s)
+raw02 D11FPC done in 95 s
+	Command being timed: "/home/singjc/.jcode/scratch/torchenv/.venv/bin/python v4/train_v4.py raw02 D11FP D11FPC"
+	User time (seconds): 1679.96
+	System time (seconds): 14.79
+	Percent of CPU this job got: 895%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 3:09.14
+	Maximum resident set size (kbytes): 2351376
+	Exit status: 0

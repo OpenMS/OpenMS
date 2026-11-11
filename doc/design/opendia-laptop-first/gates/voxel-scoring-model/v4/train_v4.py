@@ -16,6 +16,8 @@ row_of = pd.Series(np.arange(len(pop)), index=pop.sample_id.values)
 fold = pop.fold.values; is_decoy = pop.is_decoy.values; pair_key = pop.pair_key.values; pid = pop.precursor_id.values
 M1 = np.load(f'{O}/{RAW}/ms1feat.npy').astype(np.float64)
 F12 = np.load(f'{O}/{RAW}/feat12.npy').astype(np.float64) if any('F' in a for a in ARMS) else None
+FPC = np.load(f'{O}/{RAW}/featPC.npy').astype(np.float64) if any(('P' in a[3:]) or ('C' in a[3:]) for a in ARMS) else None
+PC_COLS = {'P': [0, 1, 2], 'C': [3, 4]}
 ALPHA, MAXSIB, SEP = 1.0, 8, 10.0
 # Siblings: the windows of the same precursor with apex > SEP s from the positive's apex.
 rt = pop.rt_apex.values
@@ -146,6 +148,8 @@ def run(arm):
     voxel, skip = False, True; steps = 100; alpha = ALPHA if arm.endswith('R') else 0.0
     Hx = np.c_[H, M1] if 'M' in arm[3:] else H
     if 'F' in arm[3:]: Hx = np.c_[Hx, F12]
+    for key, cols in PC_COLS.items():
+        if key in arm[3:]: Hx = np.c_[Hx, FPC[:, cols]]
     lin = np.zeros(len(pop), np.float32)
     scores = np.zeros(len(pop), np.float32); t0 = time.time()
     for k in range(3):
