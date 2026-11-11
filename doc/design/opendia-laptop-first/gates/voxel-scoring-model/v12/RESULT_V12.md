@@ -32,6 +32,10 @@ The frozen combined rule therefore fails.
 | 02 | D11FWT | 1,127 | 1,426 | 1,625 | 1,736 | 1,536 | 0.013 | 0.4958 |
 | 02 | D11FIWT | 955 | 1,466 | 1,576 | 1,623 | 1,445 | 0.010 | 0.4888 |
 
+At q ≤ 0.01, the target-winner set on raw01 contained 11 entrapment precursors for D11FWT and 22 for D11FIWT, while total target winners were almost identical (1,614 vs 1,615). That doubling explains the FDP_c rise from 0.0137 to 0.0275. The TDC pair-winner pool contained 15 decoy winners for both arms. On raw02, D11FWT had 10 entrapments and 14 decoy winners among 1,536 target winners; D11FIWT had 7 entrapments and 13 decoy winners among 1,445 target winners. The decoy winners are TDC competitors used in q estimation, not accepted target identifications.
+
+At N@2%, the V12 set also lost many baseline winners: raw01 shared 1,471 precursors with D11FWT, dropped 245, and added 114; raw02 shared 1,507, dropped 229, and added 116. Entrapment counts within those N@2% sets were 17 vs 15 on raw01 and 17 vs 16 on raw02 (D11FWT vs D11FIWT). Thus the N@2% failure is mainly a loss of ranked target winners, not an increase in entrapments inside that particular FDP_c-limited set.
+
 The 90% paired-bootstrap intervals for D11FIWT versus BASE at the 1% point are raw01 [-2, +604] and raw02 [-304, +341]. At 2%, they are raw01 [+196, +446] and raw02 [+135, +315]. Versus D11FWT, the 90% intervals at 1% are raw01 [-396, +449] and raw02 [-355, +153]; at 2% they are raw01 [-189, -9] and raw02 [-199, +47]. These intervals do not change the frozen decision because the arm fails the explicit FDP and N@2% gates.
 
 ## Interpretation
