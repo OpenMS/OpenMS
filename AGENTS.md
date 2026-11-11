@@ -2,6 +2,16 @@
 
 This file provides context and instructions for AI coding agents working on OpenMS. It follows the [AGENTS.md](https://agents.md) standard.
 
+## AI Contribution Policy
+
+**Read the [OpenMS AI Policy](https://openms.de/ai-policy/) before contributing.** It applies to every OpenMS repository, including this one. In short:
+
+- AI is a tool, not a contributor. The human contributor is the author and is fully accountable for the quality, license compliance and usefulness of the change. They must understand, review, test and be able to debug every AI-assisted change before it is submitted. Make changes they can review: small, explained and checked.
+- **Disclose AI use where authorship is recorded.** Substantial AI work (e.g. agentic tools like you) needs a `Co-authored-by:` trailer in the commit message. Lighter use should get an `Assisted-by:` trailer. Minor grammar or wording help needs no disclosure.
+- Tick the AI disclosure box in the pull request template, and for significant changes give the design intent, rationale and expected behavior in the PR description. The human should be able to explain it in their own words.
+- AI-assisted work is held to the same standards (correctness, security, maintainability, tests, documentation) as any other. Maintainers may close contributions that cost more to review than to write, or that the author cannot explain (labels `AI-needs-explanation`, `AI-guidelines-not-met`).
+- Do not use AI as the sole or final judge of a contribution or of a person's standing in the community.
+
 ## Critical Constraints
 
 **NEVER do these things:**

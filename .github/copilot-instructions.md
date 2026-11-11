@@ -1,5 +1,9 @@
 # GitHub Copilot Instructions for OpenMS
 
+## AI Policy
+
+Follow the [OpenMS AI Policy](https://openms.de/ai-policy/) (summary in `AGENTS.md` → "AI Contribution Policy"). The human contributor is accountable and must understand, review and test every change. Commits with substantial AI work carry a `Co-authored-by:` trailer, lighter AI use an `Assisted-by:` trailer, and the PR's AI disclosure section must be filled in.
+
 ## Important Build Instructions
 
 **DO NOT attempt to build OpenMS unless asked to do so** - The build process is extremely resource-intensive and costly. Building OpenMS requires significant computational resources and time.
