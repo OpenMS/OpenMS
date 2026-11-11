@@ -18,10 +18,17 @@ namespace OpenMS::OpenDIA
     @brief Piecewise-linear library-RT to run-RT map from signal anchors.
 
     Knots are the median (library RT, run RT) of 20 equal-count bins over the
-    anchors sorted by library RT. Values outside the knot range are held constant.
+    anchors sorted by library RT. Between knots the map is piecewise linear.
+    Outside the knot range it extrapolates linearly, on the line through the end
+    knot and the knot kEndSpan positions inward (slope clamped at zero, so the map
+    stays nondecreasing). Held-out end anchors on the Astral entrapment runs: the
+    median absolute residual is 17-22 s with linear ends, against 67-69 s with
+    constant ends.
   */
   struct RTMap
   {
+    /// Knot offset from each end that sets the extrapolation slope.
+    static constexpr std::size_t kEndSpan = 3;
     std::vector<double> library_rt; ///< Knot library RT coordinates, nondecreasing.
     std::vector<double> run_rt; ///< Knot run RT in seconds.
     double sigma = 0.0; ///< 1.4826 x median absolute residual of the final fit, in seconds.

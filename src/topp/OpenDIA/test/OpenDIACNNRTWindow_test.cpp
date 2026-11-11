@@ -42,17 +42,33 @@ namespace
 
 int main()
 {
-  // A noiseless line y = 100 + 2x is reproduced exactly between knots and held constant outside.
+  // A noiseless line y = 100 + 2x is reproduced exactly between knots and, by linear end extrapolation, outside them.
   std::vector<std::pair<double, double>> line;
   for (int i = 0; i < 100; ++i)
   {
     line.emplace_back(i, 100.0 + 2.0 * i);
   }
   const auto exact = fitRTMap(line);
-  // Endpoint anchors beyond the outer knots see constant extrapolation, so a few are rejected at 3 s.
-  check(exact.library_rt.size() == 20 && exact.sigma == 0.0 && exact.anchors >= 96, "knot count and zero sigma");
+  // With linear ends no endpoint anchor is rejected on a noiseless line.
+  check(exact.library_rt.size() == 20 && exact.sigma == 0.0 && exact.anchors == 100, "knot count, zero sigma, no rejection");
   check(std::fabs(exact(50.25) - 200.5) < 1e-12, "interpolation");
-  check(exact(-10.0) == exact.run_rt.front() && exact(1000.0) == exact.run_rt.back(), "constant extrapolation");
+  check(std::fabs(exact(-10.0) - 80.0) < 1e-9 && std::fabs(exact(1000.0) - 2100.0) < 1e-9, "linear extrapolation");
+
+  // End slope comes from the end knot and the third knot inward; a decreasing end is clamped flat.
+  RTMap kinked;
+  kinked.library_rt = {0.0, 1.0, 2.0, 3.0, 4.0, 5.0};
+  // High end: knots 2 and 5 give (28 - 30) / 3 < 0, so the slope is clamped to 0.
+  kinked.run_rt = {10.0, 20.0, 30.0, 40.0, 41.0, 28.0};
+  check(std::fabs(kinked(-1.0) - 0.0) < 1e-12, "low end slope from knots 0 and 3");
+  check(kinked(7.0) == 28.0, "decreasing high end held flat");
+  RTMap two;
+  two.library_rt = {0.0, 2.0};
+  two.run_rt = {0.0, 4.0};
+  check(std::fabs(two(3.0) - 6.0) < 1e-12 && std::fabs(two(-1.0) + 2.0) < 1e-12, "two-knot map extrapolates");
+  RTMap one;
+  one.library_rt = {1.0};
+  one.run_rt = {7.0};
+  check(one(-5.0) == 7.0 && one(5.0) == 7.0, "one-knot map is constant");
 
   // Gross outliers are rejected: the map ignores them and they do not inflate sigma.
   auto noisy = line;

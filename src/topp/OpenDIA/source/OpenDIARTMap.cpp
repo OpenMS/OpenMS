@@ -61,13 +61,23 @@ namespace OpenMS::OpenDIA
     {
       throw std::logic_error("Empty RT map");
     }
+    const std::size_t n = library_rt.size();
+    // Outside the knots: linear extrapolation on the line through the end knot and the knot kEndSpan positions inward
+    // (or the farthest knot when there are fewer). The slope is clamped at zero so the map stays nondecreasing. Holding
+    // the end value constant instead puts every precursor beyond the knots at the end knot's run RT; on long-tailed
+    // library RT ranges that is off by minutes at the gradient ends.
+    const auto end_slope = [&](std::size_t end, std::size_t inner) {
+      const double dx = library_rt[end] - library_rt[inner];
+      return dx == 0.0 ? 0.0 : std::max((run_rt[end] - run_rt[inner]) / dx, 0.0);
+    };
+    const std::size_t span = std::min(kEndSpan, n - 1);
     if (x <= library_rt.front())
     {
-      return run_rt.front();
+      return run_rt.front() + (n > 1 ? end_slope(span, 0) : 0.0) * (x - library_rt.front());
     }
     if (x >= library_rt.back())
     {
-      return run_rt.back();
+      return run_rt.back() + (n > 1 ? end_slope(n - 1, n - 1 - span) : 0.0) * (x - library_rt.back());
     }
     // First knot strictly above x; the previous knot is at or below x.
     const std::size_t i = std::upper_bound(library_rt.begin(), library_rt.end(), x) - library_rt.begin();
