@@ -27,6 +27,7 @@
 #include <limits>
 #include <iterator>
 #include <map>
+#include <optional>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -302,6 +303,20 @@ namespace OpenMS
           hit.removeMetaValue(svm_score + "_score"); // (FalseDiscoveryRate's copy of the SVM score)
           hit.setMetaValue("MS:1001491", hit.getScore());
           hit.setMetaValue("percolator_q_value", hit.getScore());
+          // No Percolator peptide-level values of this run: those of a rescoring of all files together are an FDR of
+          // all files' peptides, not of this run's (and the run records none, markRescoredByPercolator_() below)
+          hit.removeMetaValue("percolator_peptide_q_value");
+          hit.removeMetaValue("percolator_peptide_pep");
+        }
+      }
+      // The run's own peptide-level q-values, as for a file rescored on its own (rescoreWithPercolator_()): on the PEPs
+      // of the model, before FDR:PSM; not with RESET
+      if (!percolator_extra_.exists("algorithm")) { annotatePeptideQValues(ids); }
+      else
+      {
+        for (PeptideIdentification& id : ids)
+        {
+          for (PeptideHit& hit : id.getHits()) { hit.removeMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE); }
         }
       }
       // rescoring:stratum_q_values: as for a file rescored on its own (applyRescoredPsmFDR_()), before FDR:PSM
@@ -569,6 +584,7 @@ namespace OpenMS
 
     // If the evaluation fails, the files get the PSMs moved out of them back (as far as it changed them: at most the
     // best hit of each kept, or q-values as below), so that their own outputs can still be written.
+    bool file_values_kept = false; // merged.file_peptide_q_values filled (the files' own 'peptide q-value')
     try
     {
       // One main score type for all PSMs of the pooled run: with rescoring_mixed and FDR:PSM 0, the files that Percolator
@@ -592,6 +608,50 @@ namespace OpenMS
           for (Size k : rows) { ids.push_back(std::move(merged_peptides[k])); }
           annotatePsmQValues(ids);
           for (Size j = 0; j < rows.size(); ++j) { merged_peptides[rows[j]] = std::move(ids[j]); }
+        }
+      }
+
+      // Peptide-level q-values across the files ('peptide q-value'). Each file's own (annotatePeptideQValues() on the
+      // file's PSMs, rescoreWithPercolator_()) is no FDR of the pooled peptides: true peptides recur across the files,
+      // false ones rarely do, so the union of the files' peptide lists at an FDR has a higher FDR. The same target-decoy
+      // competition of the pooled peptides instead, before the protein FDR removes the decoys. A file's own value is one
+      // per peptide of the file: kept per file and peptide, the files get them back (splitMergedPsms()).
+      if (rescore_)
+      {
+        merged.file_peptide_q_values = filePeptideQValues_(merged_peptides, result.per_file.size());
+        file_values_kept = true;
+        std::string not_pooled; // why there are none across the files
+        if (percolator_extra_.exists("algorithm"))
+        {
+          not_pooled = "rescore_method 'reset' (its peptide-level q-values 'RESET:peptide_q_value' stay those of each input)";
+        }
+        else if (n_rescored < n_searched)
+        {
+          not_pooled = "Percolator rescored only " + StringUtils::toStr(n_rescored) + " of the " + StringUtils::toStr(n_searched)
+                       + " inputs with PSMs";
+        }
+        else
+        {
+          Size target_peptides_1pct = 0;
+          if (annotatePeptideQValues(merged_peptides, &target_peptides_1pct))
+          {
+            OPENMS_LOG_INFO << "[ProSE] Peptide-level q-values across the " << n_searched << " inputs (on the PSMs' PEPs): "
+                            << target_peptides_1pct << " target peptides at q <= 0.01." << std::endl;
+          }
+          else
+          {
+            not_pooled = "a pooled PSM has no Percolator PEP or no target/decoy annotation";
+          }
+        }
+        if (!not_pooled.empty())
+        {
+          // (a file's own value is no FDR of the pooled peptides)
+          for (PeptideIdentification& id : merged_peptides)
+          {
+            for (PeptideHit& hit : id.getHits()) { hit.removeMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE); }
+          }
+          OPENMS_LOG_WARN << "[ProSE] No peptide-level q-values across the inputs (meta value '"
+                          << Constants::UserParam::PEPTIDE_Q_VALUE << "' of the pooled PSMs): " << not_pooled << "." << std::endl;
         }
       }
 
@@ -628,11 +688,31 @@ namespace OpenMS
     }
     catch (...)
     {
-      if (pooled_from_files) { returnPooledPsms_(merged.peptide_ids, result.per_file); }
+      if (pooled_from_files)
+      {
+        returnPooledPsms_(merged.peptide_ids, result.per_file, file_values_kept ? &merged.file_peptide_q_values : nullptr);
+      }
       throw;
     }
 
     return merged;
+  }
+
+  // static
+  std::vector<std::unordered_map<std::string, double>>
+  ProSEAlgorithm::filePeptideQValues_(const PeptideIdentificationList& pooled, Size files)
+  {
+    std::vector<std::unordered_map<std::string, double>> values(files);
+    for (const PeptideIdentification& id : pooled)
+    {
+      if (id.getHits().empty() || !id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX)) { continue; }
+      const int i = static_cast<int>(id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX));
+      const PeptideHit& hit = id.getHits().front();
+      if (i < 0 || static_cast<Size>(i) >= files || !hit.metaValueExists(Constants::UserParam::PEPTIDE_Q_VALUE)) { continue; }
+      values[i].emplace(hit.getSequence().toUnmodifiedString(),
+                        static_cast<double>(hit.getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE)));
+    }
+    return values;
   }
 
   // static
@@ -650,13 +730,32 @@ namespace OpenMS
   }
 
   // static
-  void ProSEAlgorithm::returnPooledPsms_(PeptideIdentificationList& pooled, std::vector<SearchResult>& per_file)
+  void ProSEAlgorithm::returnPooledPsms_(PeptideIdentificationList& pooled, std::vector<SearchResult>& per_file,
+                                         const std::vector<std::unordered_map<std::string, double>>* file_peptide_q_values)
   {
     for (PeptideIdentification& id : pooled)
     {
       const int i = searchedFileOf_(id, per_file);
       if (i < 0) { continue; }
       id.removeMetaValue(Constants::UserParam::ID_MERGE_INDEX);
+      // the file's own peptide-level q-value (of its peptides), not the one across the files of the pooled result
+      if (file_peptide_q_values != nullptr)
+      {
+        const std::unordered_map<std::string, double>* own =
+          static_cast<Size>(i) < file_peptide_q_values->size() ? &(*file_peptide_q_values)[i] : nullptr;
+        std::vector<PeptideHit>& hits = id.getHits();
+        for (Size h = 0; h < hits.size(); ++h)
+        {
+          std::optional<double> q; // (only the first hit has one)
+          if (h == 0 && own != nullptr)
+          {
+            const auto it = own->find(hits[h].getSequence().toUnmodifiedString());
+            if (it != own->end()) { q = it->second; }
+          }
+          if (q) { hits[h].setMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE, *q); }
+          else { hits[h].removeMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE); }
+        }
+      }
       id.setIdentifier(per_file[i].protein_ids[0].getIdentifier());
       per_file[i].peptide_ids.push_back(std::move(id));
     }
@@ -678,7 +777,8 @@ namespace OpenMS
     {
       if (searched_(pf)) { pf.peptide_ids = PeptideIdentificationList(); }
     }
-    returnPooledPsms_(merged.peptide_ids, result.per_file);
+    returnPooledPsms_(merged.peptide_ids, result.per_file,
+                      merged.file_peptide_q_values.empty() ? nullptr : &merged.file_peptide_q_values);
     if (merged.protein_ids.empty())
     {
       for (SearchResult& pf : result.per_file)

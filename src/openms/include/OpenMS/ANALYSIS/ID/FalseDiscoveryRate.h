@@ -38,7 +38,8 @@ namespace OpenMS
     formula depending on the "conservative" parameter:
     - true (default): (D+1)/T, the target-decoy competition estimate.
     - false: (D+1)/(T+D), the decoy fraction of all these hits [for comparison with protein level FDR used by other tools like e.g., Fido]
-    An estimate above 1 (also for T = 0) is set to 1. The apply() functions estimate D/T and ignore "conservative".
+    An estimate above 1 (also for T = 0) is set to 1. The apply() functions estimate D/T and ignore "conservative";
+    an estimate above 1 is set to 1 there too.
     For protein groups, a group is considered as a target when it contains at least one target protein.
     Group level FDRs assume the same score type as on protein level.
 

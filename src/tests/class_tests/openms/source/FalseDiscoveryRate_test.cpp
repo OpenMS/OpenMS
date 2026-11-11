@@ -552,6 +552,72 @@ START_SECTION([EXTRA] basic FDR: (D+1)/T if conservative; else (D+1)/(T+D); at m
 }
 END_SECTION
 
+START_SECTION([EXTRA] apply() raw FDR: D/T; at most 1; decoys get the FDR of the closest target)
+{
+  // One PSM per score. apply() estimates D/T at each target, with T and D the targets and decoys at least as good, and
+  // gives each decoy the value of the closest target:
+  //   score (higher = better)  0.99 0.98 0.90 0.80 0.70 0.68 0.60 0.50
+  //   score (lower = better)   0.01 0.02 0.10 0.20 0.30 0.32 0.40 0.50
+  //   label                    D    D    T    T    T    D    T    T
+  // raw FDRs of the targets: 2/1 -> 1, 2/2, 2/3, 3/4, 3/5 (without the cap the first was 2)
+  // raw FDRs of the decoys: the two above all targets get the best target's 1, the third the 2/3 of the target next to
+  // it. Before the fix the search for the closest target ran over the targets in the wrong order: 3/5, 3/5 and 1.
+  // q-values (cumulative minimum from the worst score): 3/5 for all
+  const vector<pair<double, string>> higher_better = {{0.99, "decoy"}, {0.98, "decoy"}, {0.90, "target"}, {0.80, "target"},
+                                                      {0.70, "target"}, {0.68, "decoy"}, {0.60, "target"}, {0.50, "target"}};
+  const vector<pair<double, string>> lower_better = {{0.01, "decoy"}, {0.02, "decoy"}, {0.10, "target"}, {0.20, "target"},
+                                                     {0.30, "target"}, {0.32, "decoy"}, {0.40, "target"}, {0.50, "target"}};
+  const vector<string> sequences = {"AAAAAAAK", "CCCCCCCK", "DDDDDDDK", "EEEEEEEK", "FFFFFFFK", "GGGGGGGK", "HHHHHHHK", "IIIIIIIK"};
+  auto run = [&](bool q_values, bool higher_score_better, bool add_decoys)
+  {
+    const vector<pair<double, string>>& list = higher_score_better ? higher_better : lower_better;
+    PeptideIdentificationList ids;
+    for (Size i = 0; i < list.size(); ++i)
+    {
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString(sequences[i]));
+      hit.setScore(list[i].first);
+      hit.setCharge(2);
+      hit.setMetaValue("target_decoy", list[i].second);
+      PeptideIdentification id;
+      id.setScoreType("score");
+      id.setHigherScoreBetter(higher_score_better);
+      id.setHits({hit});
+      ids.push_back(id);
+    }
+    FalseDiscoveryRate fdr;
+    Param p = fdr.getParameters();
+    p.setValue("no_qvalues", q_values ? "false" : "true");
+    p.setValue("add_decoy_peptides", add_decoys ? "true" : "false");
+    fdr.setParameters(p);
+    fdr.apply(ids);
+    vector<double> v; // in input order (without add_decoys, decoy hits are removed)
+    for (const auto& id : ids)
+    {
+      for (const auto& hit : id.getHits()) v.push_back(hit.getScore());
+    }
+    return v;
+  };
+  auto test_values = [](const vector<double>& actual, const vector<double>& expected)
+  {
+    TEST_EQUAL(actual.size(), expected.size())
+    for (Size i = 0; i < std::min(actual.size(), expected.size()); ++i)
+    {
+      TEST_REAL_SIMILAR(actual[i], expected[i])
+    }
+  };
+  TOLERANCE_ABSOLUTE(1e-9)
+
+  for (bool higher_score_better : {true, false})
+  {
+    test_values(run(false, higher_score_better, false), {1.0, 1.0, 2.0 / 3, 3.0 / 4, 3.0 / 5});
+    test_values(run(false, higher_score_better, true), {1.0, 1.0, 1.0, 1.0, 2.0 / 3, 2.0 / 3, 3.0 / 4, 3.0 / 5});
+    test_values(run(true, higher_score_better, false), vector<double>(5, 3.0 / 5));
+    test_values(run(true, higher_score_better, true), vector<double>(8, 3.0 / 5));
+  }
+}
+END_SECTION
+
 
 START_SECTION((void apply(std::vector<ProteinIdentification>& ids)))
 {
@@ -752,6 +818,56 @@ START_SECTION((void applyBasicPeptideLevel(PeptideIdentificationList & ids)))
   TEST_NOT_EQUAL(q_tie_decoy_first, -1.0)
   TEST_NOT_EQUAL(q_tie_target_first, -1.0)
   TEST_REAL_SIMILAR(q_tie_decoy_first, q_tie_target_first)
+}
+END_SECTION
+
+START_SECTION([EXTRA] applyBasicPeptideLevel gives scores within 1e-12 of each other the q-value of their group)
+{
+  // calculateFDRBasic_() takes scores within 1e-12 of each other as one group and records its FDR under the best of
+  // them. The other scores of the group have to find that record: looked up the wrong way round, a score next to the
+  // best one got the q-value of the next worse group, and one of the worst group read past the end of the record.
+  // Two groups, with either orientation: two targets (FDR (0 + 1) / 2), then a decoy and a target ((1 + 1) / 3).
+  auto q_values = [](bool higher_score_better, const std::vector<double>& scores)
+  {
+    PeptideIdentificationList ids;
+    const std::vector<std::pair<std::string, std::string>> peptides = {
+      {"AAAAAAAK", "target"}, {"CCCCCCCK", "target"}, {"DDDDDDDK", "decoy"}, {"EEEEEEEK", "target"}};
+    for (Size i = 0; i < peptides.size(); ++i)
+    {
+      PeptideHit h;
+      h.setSequence(AASequence::fromString(peptides[i].first));
+      h.setScore(scores[i]);
+      h.setCharge(2);
+      h.setMetaValue("target_decoy", peptides[i].second);
+      PeptideIdentification pid;
+      pid.setScoreType("score");
+      pid.setHigherScoreBetter(higher_score_better);
+      pid.setHits({h});
+      ids.push_back(pid);
+    }
+    FalseDiscoveryRate fdr;
+    fdr.applyBasicPeptideLevel(ids);
+    std::map<std::string, double> q; // of the peptides that are left (the decoy is removed by default)
+    for (const PeptideIdentification& id : ids)
+    {
+      if (!id.getHits().empty()) { q[id.getHits()[0].getSequence().toUnmodifiedString()] = id.getHits()[0].getScore(); }
+    }
+    return q;
+  };
+  // (each second score of a group differs from the first by less than 1e-12, and is a different number)
+  const std::vector<double> higher_better = {10.0, 10.0 - 5e-13, 5.0, 5.0 - 2e-13};
+  const std::vector<double> lower_better = {1e-15, 3e-15, 0.5, 0.5 + 5e-13};
+  TEST_NOT_EQUAL(higher_better[0], higher_better[1])
+  TEST_NOT_EQUAL(higher_better[2], higher_better[3])
+  TEST_NOT_EQUAL(lower_better[2], lower_better[3])
+  for (const bool higher_score_better : {true, false})
+  {
+    const std::map<std::string, double> q = q_values(higher_score_better, higher_score_better ? higher_better : lower_better);
+    ABORT_IF(q.count("AAAAAAAK") == 0 || q.count("CCCCCCCK") == 0 || q.count("EEEEEEEK") == 0)
+    TEST_REAL_SIMILAR(q.at("AAAAAAAK"), 0.5)
+    TEST_REAL_SIMILAR(q.at("CCCCCCCK"), 0.5)        // (not the 2/3 of the group after it)
+    TEST_REAL_SIMILAR(q.at("EEEEEEEK"), 2.0 / 3.0)  // (the last group)
+  }
 }
 END_SECTION
 

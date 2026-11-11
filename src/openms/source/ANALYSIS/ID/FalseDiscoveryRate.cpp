@@ -26,6 +26,28 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    /// The FDR (or q-value) that calculateFDRBasic_() recorded in @p score_to_fdr for the hits with @p score.
+    /// It records one value for the scores within 1e-12 of each other, under the best of them (the first in rank
+    /// order): the highest if @p higher_score_better, else the lowest. So a score that is not a key belongs to the
+    /// nearest key that is better. Looked up the other way round, such a score got the value of the next worse
+    /// group, or none (the end of the map) if its group is the worst one.
+    double fdrOfScore(const std::map<double, double>& score_to_fdr, double score, bool higher_score_better)
+    {
+      if (score_to_fdr.empty()) { return 1.0; }
+      if (higher_score_better)
+      {
+        auto it = score_to_fdr.lower_bound(score); // the lowest key that is not below the score
+        if (it == score_to_fdr.end()) { --it; }
+        return it->second;
+      }
+      auto it = score_to_fdr.upper_bound(score); // the highest key that is not above the score
+      if (it != score_to_fdr.begin()) { --it; }
+      return it->second;
+    }
+  } // namespace
+
   FalseDiscoveryRate::FalseDiscoveryRate() :
     DefaultParamHandler("FalseDiscoveryRate")
   {
@@ -813,9 +835,9 @@ namespace OpenMS
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
         cerr << target_scores[i] << " " << decoy_scores[j] << " " << i << " " << j << " ";
 #endif
-        double fdr(0);
-
-        fdr = (double)j / (double)(i + 1);
+        // D/T, with T = i + 1 targets and D = j decoys at least as good; an estimate above 1 is set to 1
+        // (the q-values above are at most 1 anyway)
+        const double fdr = std::min(1.0, (double)j / (double)(i + 1));
 
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
         cerr << fdr << endl;
@@ -825,6 +847,12 @@ namespace OpenMS
     }
 
     // assign q-value of decoy_score to closest target_score
+    // The search below needs the targets from the worst to the best score (as sorted for q-values). Without q-values
+    // they are sorted from the best to the worst, so a decoy would get the FDR of the wrong target.
+    if (!q_value)
+    {
+      std::reverse(target_scores.begin(), target_scores.end());
+    }
     for (Size i = 0; i != decoy_scores.size(); ++i)
     {
       const double& ds = decoy_scores[i];
@@ -1218,16 +1246,7 @@ namespace OpenMS
     // convert scores in unordered map to FDR/qvalues
     for (auto & seq_to_score_label : seq_to_score_labels)
     {
-      if (higher_better)
-      {
-        auto ub = score_to_fdr.upper_bound(seq_to_score_label.second.first);
-        if (ub != score_to_fdr.begin()) ub--;
-        seq_to_score_label.second.first = ub->second;
-      }
-      else
-      {
-        seq_to_score_label.second.first = score_to_fdr.lower_bound(seq_to_score_label.second.first)->second;
-      }
+      seq_to_score_label.second.first = fdrOfScore(score_to_fdr, seq_to_score_label.second.first, higher_better);
     }
 
     IDScoreGetterSetter::setPeptideScoresFromMap_(seq_to_score_labels, map, score_type, add_decoy_peptides, include_unassigned);
@@ -1259,16 +1278,7 @@ namespace OpenMS
     // convert scores in unordered map to FDR/qvalues
     for (auto & seq_to_score_label : seq_to_score_labels)
     {
-      if (higher_better)
-      {
-        auto ub = score_to_fdr.upper_bound(seq_to_score_label.second.first);
-        if (ub != score_to_fdr.begin()) ub--;
-        seq_to_score_label.second.first = ub->second;
-      }
-      else
-      {
-        seq_to_score_label.second.first = score_to_fdr.lower_bound(seq_to_score_label.second.first)->second;
-      }
+      seq_to_score_label.second.first = fdrOfScore(score_to_fdr, seq_to_score_label.second.first, higher_better);
     }
 
     IDScoreGetterSetter::setPeptideScoresFromMap_(seq_to_score_labels, ids, score_type, add_decoy_peptides);
