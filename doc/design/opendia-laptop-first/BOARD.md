@@ -27,7 +27,8 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 | Voxel v3 phase 2a: objectives for one network (BCE all negatives, Fisher loss): none acceptable. Cause: positive-class covariance; decoy-only-covariance LDA keeps N (1259 / 1244) and AUC 0.527 | R-WP3 | Done (fail, cause found) | [RESULT_P2a.md](gates/voxel-scoring-model/v3-p1/RESULT_P2a.md) |
 | Voxel v3 phase 2b gate 1: one network, decoy-whitened objective, 11 features (D11): PASS. 1348 / 1334 at 1 % (base 1024 / 1288), entrapment AUC 0.511 / 0.514 | R-WP3 | Done (pass) | [RESULT_P2b.md](gates/voxel-scoring-model/v3-p2b/RESULT_P2b.md) |
 | Voxel v3 phase 2b gate 2: voxel encoder + 11 features (DV): FAIL. 1388 / 1291 at 1 %, entrapment AUC 0.500 / 0.498; fails Δ@2 % on raw 02 and FDP_c 0.019 on raw 01. Voxel adds no IDs over D11 | R-WP3 | Done (fail) | [RESULT_P2b.md](gates/voxel-scoring-model/v3-p2b/RESULT_P2b.md) |
-| Next step after phase 2b (D11 as candidate, or a voxel follow-up) | R-WP3 | Blocked: needs user decision | [RESULT_P2b.md](gates/voxel-scoring-model/v3-p2b/RESULT_P2b.md) |
+| Voxel v3-seq: ReDeeM-style atom-graph sequence encoder added (DS11, DVS): no arm passes. DS11 1449 / 1337 at 1 %, 1544 / 1535 at 2 % (D11 1572 / 1572); DVS collapses when folds are pooled. No sequence tell (null-winner AUC within 0.002 of 0.5) | R-WP3 | Done (fail) | [RESULT_SEQ.md](gates/voxel-scoring-model/v3-seq/RESULT_SEQ.md) |
+| Next step after v3-seq (promote D11 to C++, per-fold tail calibration, or stop the sequence line) | R-WP3 | Blocked: needs user decision | [RESULT_SEQ.md](gates/voxel-scoring-model/v3-seq/RESULT_SEQ.md) |
 | C++ `OpenDIAScoringModel.{h,cpp}` and its own tool | R-WP3 | Blocked: needs a pilot cell that passes | [DESIGN.md](gates/voxel-scoring-model/DESIGN.md) |
 | Full gate of `OpenDIAScoringModel` on raws 01/02 against the base (1029 / 1298) | R-WP3, R-WP5 | Blocked: needs the C++ model | |
 | Pass rule: change from N@1 % to a paired bootstrap rule | R-WP4 | Blocked: needs user approval | [metric_noise.txt](gates/astral-native-byion/single-scorer/metric_noise.txt) |
@@ -78,7 +79,8 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 | Voxel v3 phase 2a: objectives for one network: none acceptable, cause found (positive-class covariance) | Done (fail, cause found) | [RESULT_P2a.md](gates/voxel-scoring-model/v3-p1/RESULT_P2a.md) |
 | Voxel v3 phase 2b gate 1: one network, decoy-whitened objective, 11 features: PASS | Done (pass) | [RESULT_P2b.md](gates/voxel-scoring-model/v3-p2b/RESULT_P2b.md) |
 | Voxel v3 phase 2b gate 2: voxel encoder + 11 features: FAIL (voxel adds no IDs over D11) | Done (fail) | [RESULT_P2b.md](gates/voxel-scoring-model/v3-p2b/RESULT_P2b.md) |
-| Next step after phase 2b | Blocked: needs user decision | [RESULT_P2b.md](gates/voxel-scoring-model/v3-p2b/RESULT_P2b.md) |
+| Voxel v3-seq: ReDeeM-style sequence encoder (DS11, DVS): FAIL (no gain at 2 %, no sequence tell) | Done (fail) | [RESULT_SEQ.md](gates/voxel-scoring-model/v3-seq/RESULT_SEQ.md) |
+| Next step after v3-seq | Blocked: needs user decision | [RESULT_SEQ.md](gates/voxel-scoring-model/v3-seq/RESULT_SEQ.md) |
 | C++ `OpenDIAScoringModel` | Blocked: needs pilot | |
 | Full gate of `OpenDIAScoringModel` on raws 01/02 against the base (1029 / 1298) | Blocked: needs the C++ model | |
 

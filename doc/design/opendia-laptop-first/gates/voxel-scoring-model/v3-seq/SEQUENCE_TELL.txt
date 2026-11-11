@@ -1,0 +1,7 @@
+Sequence-only check (library only, no run data), 2026-11-10. Script: sequence_tell.py
+Features: length, AA composition, residue identity at positions 1, 2, -2, -1, 8 dipeptide rates. Logistic regression, 3 folds by target-decoy pair.
+target(all) vs decoy AUC 0.537
+human vs decoy 0.552   entrapment vs decoy 0.521
+C-terminal K/R share is equal in targets and decoys (pseudo-reverse decoys keep the C terminus).
+Reading: a simple sequence model already separates library entries without any spectrum.
+It also separates human from entrapment (0.552 against 0.521), so the entrapment check would NOT detect this leak: it would make FDP_c look better.

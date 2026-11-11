@@ -1,0 +1,36 @@
+  raw01 seed 100: 7 ep, best valid obj 8061.95, 05:11:09
+  raw01 seed 201: 10 ep, best valid obj 2082.11, 05:18:50
+  raw01 seed 202: 13 ep, best valid obj 3085.94, 05:27:53
+raw01 DVS fold 0: r0 4671 7 ep obj 8061.95 | r1 pos 1388 neg 62005 10 ep obj 2082.11 | r2 pos 1425 neg 62005 13 ep obj 3085.94 (1302 s)
+  raw01 seed 101: 15 ep, best valid obj 10564.48, 05:37:23
+  raw01 seed 211: 11 ep, best valid obj 1999.95, 05:45:05
+  raw01 seed 212: 8 ep, best valid obj 2247.63, 05:51:11
+raw01 DVS fold 1: r0 4626 15 ep obj 10564.48 | r1 pos 1638 neg 61933 11 ep obj 1999.95 | r2 pos 1427 neg 61933 8 ep obj 2247.63 (2687 s)
+  raw01 seed 102: 16 ep, best valid obj 10564.06, 06:00:59
+  raw01 seed 221: 8 ep, best valid obj 2856.12, 06:06:42
+  raw01 seed 222: 15 ep, best valid obj 3738.91, 06:16:58
+raw01 DVS fold 2: r0 4707 16 ep obj 10564.06 | r1 pos 1410 neg 62056 8 ep obj 2856.12 | r2 pos 1508 neg 62056 15 ep obj 3738.91 (4237 s)
+raw01 DVS merged
+	Command being timed: "/home/singjc/.jcode/scratch/torchenv/.venv/bin/python v3seq/train_seq.py raw01 DVS"
+	User time (seconds): 40386.68
+	System time (seconds): 1021.72
+	Percent of CPU this job got: 976%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:10:39
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 4765484
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 341241
+	Minor (reclaiming a frame) page faults: 170599707
+	Voluntary context switches: 471812
+	Involuntary context switches: 278317
+	Swaps: 0
+	File system inputs: 3307552
+	File system outputs: 19968
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

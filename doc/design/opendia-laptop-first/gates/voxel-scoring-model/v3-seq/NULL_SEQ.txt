@@ -1,0 +1,8 @@
+raw01 D11   null windows T 177732 D 166806  AUC 0.4977 | null winners T 87468 D 84897  AUC 0.5015
+raw01 DS11  null windows T 177732 D 166806  AUC 0.4996 | null winners T 87468 D 84897  AUC 0.5016
+raw01 DV    null windows T 177732 D 166806  AUC 0.4974 | null winners T 87468 D 84897  AUC 0.4996
+raw01 DVS   null windows T 177732 D 166806  AUC 0.4987 | null winners T 87468 D 84897  AUC 0.5011
+raw02 D11   null windows T 177929 D 167952  AUC 0.4995 | null winners T 88534 D 86078  AUC 0.5022
+raw02 DS11  null windows T 177929 D 167952  AUC 0.4999 | null winners T 88534 D 86078  AUC 0.5006
+raw02 DV    null windows T 177929 D 167952  AUC 0.4980 | null winners T 88534 D 86078  AUC 0.4994
+raw02 DVS   null windows T 177929 D 167952  AUC 0.4975 | null winners T 88534 D 86078  AUC 0.4997
