@@ -50,8 +50,37 @@ namespace OpenMS
   void ProSEAlgorithm::poolSearchedFiles_(std::vector<SearchResult>& per_file, bool move_psms,
                                           const StringList& in_spectra_files,
                                           std::vector<ProteinIdentification>& protein_ids,
-                                          PeptideIdentificationList& peptide_ids)
+                                          PeptideIdentificationList& peptide_ids,
+                                          double configured_precursor_tolerance, double configured_fragment_tolerance)
   {
+    // IDMergerAlgorithm merges only runs with the same mass tolerances (SearchParameters::mergeable()), but the
+    // calibration may have narrowed the tolerances of each file differently (the run of a file reports the ones it
+    // was searched with). If the files that are pooled differ in them, the copies of their runs that are pooled get
+    // the configured tolerances (the widest of the files for one that was not given), and the pooled run lists the
+    // tolerances of each input (INPUT_PRECURSOR_TOLERANCES, INPUT_FRAGMENT_TOLERANCES); the runs of the files stay as
+    // they are. Files with the same tolerances are pooled unchanged.
+    std::vector<double> input_precursor_tolerances(per_file.size(), -1.0); // (-1: not pooled)
+    std::vector<double> input_fragment_tolerances(per_file.size(), -1.0);
+    bool tolerances_differ = false;
+    double pooled_precursor_tolerance = -1.0, pooled_fragment_tolerance = -1.0; // the widest of the files
+    for (Size i = 0; i < per_file.size(); ++i)
+    {
+      const SearchResult& pf = per_file[i];
+      if (pf.exit_code != ExitCodes::EXECUTION_OK || pf.protein_ids.empty()) { continue; }
+      const ProteinIdentification::SearchParameters& sp = pf.protein_ids[0].getSearchParameters();
+      input_precursor_tolerances[i] = sp.precursor_mass_tolerance;
+      input_fragment_tolerances[i] = sp.fragment_mass_tolerance;
+      if (pooled_precursor_tolerance >= 0.0
+          && (sp.precursor_mass_tolerance != pooled_precursor_tolerance || sp.fragment_mass_tolerance != pooled_fragment_tolerance))
+      {
+        tolerances_differ = true;
+      }
+      pooled_precursor_tolerance = std::max(pooled_precursor_tolerance, sp.precursor_mass_tolerance);
+      pooled_fragment_tolerance = std::max(pooled_fragment_tolerance, sp.fragment_mass_tolerance);
+    }
+    if (configured_precursor_tolerance >= 0.0) { pooled_precursor_tolerance = configured_precursor_tolerance; }
+    if (configured_fragment_tolerance >= 0.0) { pooled_fragment_tolerance = configured_fragment_tolerance; }
+
     // IDMergerAlgorithm merges only runs of one search engine (and version). With 'rescore', a run that Percolator did
     // not rescore keeps ProSE as its search engine, while the rescored ones report Percolator. The copies of the runs
     // that are pooled all get the engine of the files with PSMs: Percolator's if it rescored all of them (a file without
@@ -98,6 +127,16 @@ namespace OpenMS
           run.setSearchEngineVersion(engine_version);
         }
       }
+      if (tolerances_differ)
+      {
+        for (ProteinIdentification& run : runs)
+        {
+          ProteinIdentification::SearchParameters sp = run.getSearchParameters();
+          sp.precursor_mass_tolerance = pooled_precursor_tolerance;
+          sp.fragment_mass_tolerance = pooled_fragment_tolerance;
+          run.setSearchParameters(std::move(sp));
+        }
+      }
       PeptideIdentificationList psms = move_psms ? std::move(pf.peptide_ids) : PeptideIdentificationList(pf.peptide_ids);
       if (move_psms) { pf.peptide_ids = PeptideIdentificationList(); }
       // (the merger skips the PSMs of no given run, and all PSMs of a file without runs)
@@ -112,6 +151,13 @@ namespace OpenMS
     protein_ids.clear();
     protein_ids.emplace_back(std::move(merged_proteins));
     protein_ids[0].setPrimaryMSRunPath(in_spectra_files);
+    if (tolerances_differ)
+    {
+      ProteinIdentification::SearchParameters sp = protein_ids[0].getSearchParameters();
+      sp.setMetaValue(INPUT_PRECURSOR_TOLERANCES, input_precursor_tolerances);
+      sp.setMetaValue(INPUT_FRAGMENT_TOLERANCES, input_fragment_tolerances);
+      protein_ids[0].setSearchParameters(std::move(sp));
+    }
     Size k = 0;
     for (const auto& [i, n] : contributed)
     {
@@ -525,7 +571,8 @@ namespace OpenMS
     {
       // The PSMs are moved out of per_file, as documented; its runs are copied and stay, as do the statistics, exit
       // codes, Percolator outcomes and modification analyses.
-      poolSearchedFiles_(result.per_file, /*move_psms=*/true, in_spectra_files, merged.protein_ids, merged.peptide_ids);
+      poolSearchedFiles_(result.per_file, /*move_psms=*/true, in_spectra_files, merged.protein_ids, merged.peptide_ids,
+                         std::max(precursor_mass_tolerance_lower_, precursor_mass_tolerance_upper_), fragment_mass_tolerance_);
     }
 
     std::vector<ProteinIdentification>& merged_protein_ids = merged.protein_ids;

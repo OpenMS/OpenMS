@@ -2702,7 +2702,8 @@ namespace OpenMS
       // Copying is mandatory here: per_file is returned to the caller and must
       // stay intact, so nothing may be moved out of it.
       poolSearchedFiles_(mfres.per_file, /*move=*/false, in_spectra_files,
-                         mfres.aggregate.protein_ids, mfres.aggregate.peptide_ids);
+                         mfres.aggregate.protein_ids, mfres.aggregate.peptide_ids,
+                         std::max(precursor_mass_tolerance_lower_, precursor_mass_tolerance_upper_), fragment_mass_tolerance_);
     }
 
     // Note: protein inference + FDR on the aggregate is left to the caller
