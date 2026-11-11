@@ -1,0 +1,34 @@
+raw01 MS2 scans 292883 isolation windows 300 tol ppm 4.991333056 rt tol s 84.21533797 neighbour fragments 3231925
+raw01 isolation window 30/300 (59 s), shared fraction so far 0.494
+raw01 isolation window 60/300 (104 s), shared fraction so far 0.480
+raw01 isolation window 90/300 (133 s), shared fraction so far 0.455
+raw01 isolation window 120/300 (158 s), shared fraction so far 0.437
+raw01 isolation window 150/300 (184 s), shared fraction so far 0.425
+raw01 isolation window 180/300 (204 s), shared fraction so far 0.417
+raw01 isolation window 210/300 (224 s), shared fraction so far 0.412
+raw01 isolation window 240/300 (241 s), shared fraction so far 0.409
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+raw01 isolation window 270/300 (259 s), shared fraction so far 0.407
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+raw01 done 278 s shared fraction 0.4062 n_unique median target/decoy 7.0 7.0 mean n_unique target/decoy 6.78 7.275 medians target [0.3779999911785126, 0.9769999980926514, 0.0, -0.0, 0.2720000147819519, 7.0] decoy [0.42100000381469727, 1.0700000524520874, 0.0, -0.0, 0.30399999022483826, 7.0]

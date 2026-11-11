@@ -1,0 +1,29 @@
+raw02 MS2 scans 292914 isolation windows 300 tol ppm 5.01606866 rt tol s 82.97289714 neighbour fragments 3231925
+raw02 isolation window 30/300 (52 s), shared fraction so far 0.495
+raw02 isolation window 60/300 (87 s), shared fraction so far 0.480
+raw02 isolation window 90/300 (125 s), shared fraction so far 0.455
+raw02 isolation window 120/300 (157 s), shared fraction so far 0.436
+raw02 isolation window 150/300 (182 s), shared fraction so far 0.424
+raw02 isolation window 180/300 (206 s), shared fraction so far 0.416
+raw02 isolation window 210/300 (228 s), shared fraction so far 0.410
+Error, intensity or m/z array is missing, skipping this spectrum
+raw02 isolation window 240/300 (248 s), shared fraction so far 0.407
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+raw02 isolation window 270/300 (266 s), shared fraction so far 0.406
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+Error, intensity or m/z array is missing, skipping this spectrum
+raw02 done 289 s shared fraction 0.405 n_unique median target/decoy 7.0 7.0 mean n_unique target/decoy 6.794 7.29 medians target [0.3790000081062317, 0.984000027179718, 0.0, -0.0, 0.2759999930858612, 7.0] decoy [0.42100000381469727, 1.0789999961853027, 0.0, -0.0, 0.3070000112056732, 7.0]
