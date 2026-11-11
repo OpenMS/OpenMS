@@ -70,6 +70,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// See MIN_DECOYS_PER_TARGET
     static constexpr double MAX_DECOYS_PER_TARGET = 2.0;
 
+    /// Meta values of the search parameters of a pooled run (the aggregate of a multi-file search, mergeFileResults())
+    /// whose inputs were searched with different tolerances, which a calibration that narrows them per input gives: the
+    /// precursor and the fragment mass tolerance of each input (a list with one entry per input, in the order of the
+    /// inputs and in the tolerance units; -1 for an input that was not pooled, e.g. a failed one). The pooled run
+    /// itself then reports the configured tolerances. Not set if all pooled inputs were searched with the same ones.
+    static constexpr const char* INPUT_PRECURSOR_TOLERANCES = "input_precursor_mass_tolerances";
+    /// See INPUT_PRECURSOR_TOLERANCES
+    static constexpr const char* INPUT_FRAGMENT_TOLERANCES = "input_fragment_mass_tolerances";
+
     /// Exit codes
     enum class ExitCodes
     {
@@ -867,7 +876,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *    were searched (exit code EXECUTION_OK) are merged with IDMergerAlgorithm: the PSMs of the files are moved,
      *    their runs are copied and stay with the files. 'id_merge_index' is the input position of a PSM's file (its
      *    index in @p in_spectra_files, see poolSearchedFiles_()). The pooled run
-     *    lists @p in_spectra_files as its primary MS run paths and gets the current date.
+     *    lists @p in_spectra_files as its primary MS run paths and gets the current date. If the calibration gave the
+     *    files different mass tolerances, the pooled run reports the tolerances of this instance and lists those of
+     *    each input (INPUT_PRECURSOR_TOLERANCES, INPUT_FRAGMENT_TOLERANCES).
      *  - Cross-file protein inference (inferProteins(): a protein scores with the best PEP of its PSMs, or the best
      *    search engine score without PEPs) on the best hit of each pooled PSM.
      *  - Percolator ('rescore') rescored only some files with PSMs (which the multi-file search avoids, unless the model
@@ -2059,8 +2070,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// the input position of its file (its index in @p per_file and @p in_spectra_files, per occurrence: the same file
     /// given twice has two), also when other files failed. Shared by the multi-file search's pooled aggregate and
     /// mergeFileResults().
+    ///
+    /// IDMergerAlgorithm merges only runs with the same mass tolerances, and the calibration may have narrowed them
+    /// differently for each file. If the tolerances of the pooled files differ, the copies of their runs that are
+    /// pooled get @p configured_precursor_tolerance and @p configured_fragment_tolerance (the widest of the files for
+    /// one that is negative), and the pooled run lists the tolerances of each input as INPUT_PRECURSOR_TOLERANCES and
+    /// INPUT_FRAGMENT_TOLERANCES. The runs of the files keep theirs. If they do not differ, nothing is changed.
     static void poolSearchedFiles_(std::vector<SearchResult>& per_file, bool move_psms, const StringList& in_spectra_files,
-                                   std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids);
+                                   std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids,
+                                   double configured_precursor_tolerance = -1.0, double configured_fragment_tolerance = -1.0);
 
     /// Helper: whether the file of @p pf was searched (exit code EXECUTION_OK, with a run)
     static bool searched_(const SearchResult& pf);

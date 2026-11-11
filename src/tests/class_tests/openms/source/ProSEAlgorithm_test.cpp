@@ -7358,6 +7358,94 @@ START_SECTION(([EXTRA] poolSearchedFiles_ gives the runs one search engine also 
 }
 END_SECTION
 
+START_SECTION(([EXTRA] poolSearchedFiles_ pools files that the calibration gave different tolerances))
+{
+  // The run of a file reports the tolerances it was searched with, and the calibration may narrow them for one file
+  // and not for another. IDMergerAlgorithm refuses runs with different tolerances, so the pooled copies get the
+  // configured ones, and the pooled run lists those of each input.
+  ABORT_IF(merge_search.per_file.size() != 2)
+  ABORT_IF(merge_search.per_file[0].protein_ids.empty() || merge_search.per_file[1].protein_ids.empty())
+  const ProteinIdentification::SearchParameters configured = merge_search.per_file[0].protein_ids[0].getSearchParameters();
+  auto with_tolerances = [&](double precursor, double fragment)
+  {
+    ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+    ProteinIdentification::SearchParameters sp = result.per_file[1].protein_ids[0].getSearchParameters();
+    sp.precursor_mass_tolerance = precursor;
+    sp.fragment_mass_tolerance = fragment;
+    result.per_file[1].protein_ids[0].setSearchParameters(sp);
+    return result;
+  };
+  const double narrow_precursor = configured.precursor_mass_tolerance / 2.0;
+  const double narrow_fragment = configured.fragment_mass_tolerance / 4.0;
+  const std::string& precursor_list = ProSEAlgorithm::INPUT_PRECURSOR_TOLERANCES;
+  const std::string& fragment_list = ProSEAlgorithm::INPUT_FRAGMENT_TOLERANCES;
+  std::vector<ProteinIdentification> pooled_proteins;
+  PeptideIdentificationList pooled_peptides;
+
+  // the same tolerances: pooled as before, and nothing is listed
+  ProSEAlgorithm::MultiFileSearchResult same = merge_search;
+  ProSEAlgorithm_test::poolSearchedFiles_(same.per_file, false, merge_files, pooled_proteins, pooled_peptides,
+                                          configured.precursor_mass_tolerance * 3.0, configured.fragment_mass_tolerance * 3.0);
+  ABORT_IF(pooled_proteins.size() != 1)
+  TEST_REAL_SIMILAR(pooled_proteins[0].getSearchParameters().precursor_mass_tolerance, configured.precursor_mass_tolerance)
+  TEST_REAL_SIMILAR(pooled_proteins[0].getSearchParameters().fragment_mass_tolerance, configured.fragment_mass_tolerance)
+  TEST_FALSE(pooled_proteins[0].getSearchParameters().metaValueExists(precursor_list))
+  TEST_FALSE(pooled_proteins[0].getSearchParameters().metaValueExists(fragment_list))
+  const Size pooled_psms = pooled_peptides.size();
+
+  // the second file with narrower tolerances: the pooled run has the configured ones and lists those of the inputs
+  ProSEAlgorithm::MultiFileSearchResult narrowed = with_tolerances(narrow_precursor, narrow_fragment);
+  ProSEAlgorithm_test::poolSearchedFiles_(narrowed.per_file, false, merge_files, pooled_proteins, pooled_peptides,
+                                          configured.precursor_mass_tolerance, configured.fragment_mass_tolerance);
+  ABORT_IF(pooled_proteins.size() != 1)
+  TEST_EQUAL(pooled_peptides.size(), pooled_psms)
+  const ProteinIdentification::SearchParameters pooled = pooled_proteins[0].getSearchParameters();
+  TEST_REAL_SIMILAR(pooled.precursor_mass_tolerance, configured.precursor_mass_tolerance)
+  TEST_REAL_SIMILAR(pooled.fragment_mass_tolerance, configured.fragment_mass_tolerance)
+  ABORT_IF(!pooled.metaValueExists(precursor_list) || !pooled.metaValueExists(fragment_list))
+  const DoubleList precursor_of_input = pooled.getMetaValue(precursor_list);
+  const DoubleList fragment_of_input = pooled.getMetaValue(fragment_list);
+  ABORT_IF(precursor_of_input.size() != 2 || fragment_of_input.size() != 2)
+  TEST_REAL_SIMILAR(precursor_of_input[0], configured.precursor_mass_tolerance)
+  TEST_REAL_SIMILAR(precursor_of_input[1], narrow_precursor)
+  TEST_REAL_SIMILAR(fragment_of_input[0], configured.fragment_mass_tolerance)
+  TEST_REAL_SIMILAR(fragment_of_input[1], narrow_fragment)
+  // the runs of the files stay
+  TEST_REAL_SIMILAR(narrowed.per_file[1].protein_ids[0].getSearchParameters().precursor_mass_tolerance, narrow_precursor)
+  TEST_REAL_SIMILAR(narrowed.per_file[1].protein_ids[0].getSearchParameters().fragment_mass_tolerance, narrow_fragment)
+  TEST_FALSE(narrowed.per_file[1].protein_ids[0].getSearchParameters().metaValueExists(fragment_list))
+
+  // only the fragment tolerance differs, and no configured tolerances are given: the widest of the files
+  ProSEAlgorithm::MultiFileSearchResult fragment_only = with_tolerances(configured.precursor_mass_tolerance, narrow_fragment);
+  ProSEAlgorithm_test::poolSearchedFiles_(fragment_only.per_file, false, merge_files, pooled_proteins, pooled_peptides);
+  ABORT_IF(pooled_proteins.size() != 1)
+  TEST_EQUAL(pooled_peptides.size(), pooled_psms)
+  TEST_REAL_SIMILAR(pooled_proteins[0].getSearchParameters().precursor_mass_tolerance, configured.precursor_mass_tolerance)
+  TEST_REAL_SIMILAR(pooled_proteins[0].getSearchParameters().fragment_mass_tolerance, configured.fragment_mass_tolerance)
+  TEST_TRUE(pooled_proteins[0].getSearchParameters().metaValueExists(fragment_list))
+
+  // a failed file is not pooled and not compared: the file that is pooled keeps its tolerances
+  ProSEAlgorithm::MultiFileSearchResult failed = with_tolerances(narrow_precursor, narrow_fragment);
+  failed.per_file[0].exit_code = ProSEAlgorithm::ExitCodes::UNKNOWN_ERROR;
+  ProSEAlgorithm_test::poolSearchedFiles_(failed.per_file, false, merge_files, pooled_proteins, pooled_peptides,
+                                          configured.precursor_mass_tolerance, configured.fragment_mass_tolerance);
+  ABORT_IF(pooled_proteins.size() != 1)
+  TEST_REAL_SIMILAR(pooled_proteins[0].getSearchParameters().fragment_mass_tolerance, narrow_fragment)
+  TEST_FALSE(pooled_proteins[0].getSearchParameters().metaValueExists(fragment_list))
+
+  // mergeFileResults() (the evaluation of -out_merged) pools such files with the tolerances of the instance
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  ProSEAlgorithm::MultiFileSearchResult to_merge = with_tolerances(narrow_precursor, narrow_fragment);
+  to_merge.aggregate.protein_ids.clear(); // (no pooled aggregate: the files are pooled here)
+  to_merge.aggregate.peptide_ids.clear();
+  const ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(to_merge, merge_files);
+  ABORT_IF(merged.protein_ids.size() != 1)
+  TEST_TRUE(merged.protein_ids[0].getSearchParameters().metaValueExists(precursor_list))
+  TEST_TRUE(merged.protein_ids[0].getSearchParameters().metaValueExists(fragment_list))
+}
+END_SECTION
+
 START_SECTION(([EXTRA] mergeFileResults and the pooled aggregate give each PSM the input position of its file, also after a failed file))
 {
   // IDMergerAlgorithm numbers only the files it pools, while the pooled run lists all input files: with the first file
