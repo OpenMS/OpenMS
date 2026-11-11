@@ -698,7 +698,8 @@ namespace OpenMS
               if (annotation_fragment_annotations && !defer_peak_annotations)
               {
                 PeptideHit::PeakAnnotation pa;
-                // the m/z as observed (calibration:recalibrate corrected the peak in place), as the PSM's precursor m/z
+                // the m/z as observed (calibration:recalibrate corrected the peak in place), as the PSM's precursor m/z;
+                // no model for 'curve' (CalibrationResult_::appliedFragmentRecalibration()): the m/z as searched
                 pa.mz = fragment_recalibration != nullptr ? fragment_recalibration->uncorrect(spec[exp_idx].getMZ(), spec.getRT())
                                                           : spec[exp_idx].getMZ();
                 pa.intensity = spec[exp_idx].getIntensity();

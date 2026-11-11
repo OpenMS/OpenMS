@@ -4054,6 +4054,143 @@ START_SECTION(([EXTRA] MzRecalibration_::fit models the error per RT chunk, the 
 }
 END_SECTION
 
+START_SECTION(([EXTRA] MzRecalibration_::fit with 'curve' follows a fragment error that bends with m/z, among random matches))
+{
+  using Model = ProSEAlgorithm_test::MzRecalibration_;
+  // the fragment error (ppm) of a time-of-flight calibration with too few terms, a cubic in sqrt(m/z): -86 ppm at m/z 175,
+  // -33 at 500, +8 at 1800
+  const auto truth = [](double mz)
+  {
+    const double s = std::sqrt(mz);
+    return ((2.58811297e-03 * s - 3.31940750e-01) * s + 1.51304632e+01) * s - 2.34471092e+02;
+  };
+  std::mt19937 gen(1); // (its raw output: the same numbers on every platform)
+  const auto uniform = [&gen]() { return static_cast<double>(gen()) / 4294967296.0; };
+  vector<double> errors, mzs, rts;
+  for (Size i = 0; i < 6000; ++i)
+  {
+    const double mz = 150.0 + 1850.0 * uniform();
+    const double rt = 100.0 * uniform();
+    double noise = -6.0; // sigma 1: the sum of 12 uniform numbers
+    for (int k = 0; k < 12; ++k) noise += uniform();
+    // the fragment's own peak (sigma 3 ppm) and a random peak within 150 ppm
+    errors.push_back(truth(mz) + 3.0 * noise);
+    errors.push_back(300.0 * uniform() - 150.0);
+    mzs.insert(mzs.end(), 2, mz);
+    rts.insert(rts.end(), 2, rt);
+  }
+  const Model model = Model::fit(errors, mzs, rts, 2, 1000, false, true, nullptr, true);
+  TEST_EQUAL(model.chunks.size(), 2)
+  for (const double mz : {175.0, 300.0, 500.0, 800.0, 1200.0, 1800.0})
+  {
+    TEST_EQUAL(std::fabs(model.error(mz, 50.0) - truth(mz)) < 1.5, true)
+  }
+  TEST_REAL_SIMILAR(model.error(50.0, 50.0), model.error(100.0, 50.0)) // constant beyond the fitted m/z range
+  TEST_REAL_SIMILAR(model.uncorrect(model.correct(300.0, 50.0), 50.0), 300.0)
+  TEST_EQUAL(model.toString().find("cubic in t = sqrt(mz)") != std::string::npos, true)
+  // too few points for a curve: no model (the median of all peaks near the fragments is no calibration)
+  const Model few = Model::fit({1.0, 2.0, 3.0}, {200.0, 500.0, 900.0}, {1.0, 2.0, 3.0}, 1, 1, false, true, nullptr, true);
+  TEST_EQUAL(few.active(), false)
+  TEST_EQUAL(model.curve(), true)
+  // a cluster of random matches that outnumbers the true peaks of its m/z bins (+100 ppm at m/z 1000 to 1090) is left out
+  vector<double> errors2 = errors, mzs2 = mzs, rts2 = rts;
+  for (int i = 0; i < 400; ++i)
+  {
+    errors2.push_back(100.0 + 2.0 * uniform() - 1.0);
+    mzs2.push_back(1000.0 + 90.0 * uniform());
+    rts2.push_back(100.0 * uniform());
+  }
+  const Model contaminated = Model::fit(errors2, mzs2, rts2, 1, 1000, false, true, nullptr, true);
+  for (const double mz : {175.0, 300.0, 500.0, 800.0, 1200.0, 1800.0})
+  {
+    TEST_EQUAL(std::fabs(contaminated.error(mz, 50.0) - truth(mz)) < 1.5, true)
+  }
+  // an error that is not a number: no model
+  errors2[0] = std::numeric_limits<double>::quiet_NaN();
+  TEST_EQUAL(Model::fit(errors2, mzs2, rts2, 1, 1000, false, true, nullptr, true).active(), false)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] calibration:recalibrate 'curve' corrects the measured peaks once and searches the spectra made from them again))
+{
+  // a fragment error (ppm) that bends with m/z, half the curve of the section above: -43 at m/z 175, -17 at 500,
+  // +4 at 1800 (the low fragments are outside the 20 ppm of the first calibration pass)
+  const auto truth = [](double mz)
+  {
+    const double s = std::sqrt(mz);
+    return 0.5 * (((2.58811297e-03 * s - 3.31940750e-01) * s + 1.51304632e+01) * s - 2.34471092e+02);
+  };
+  const vector<double> ppm_shifts = {6.0, 7.0, 7.0, 8.0, 6.5, 7.5, 7.0, 6.8, 7.2, 7.1, 6.9, 7.3};
+  const PeakMap base = build_calibration_spectra_(ppm_shifts);
+  PeakMap spectra; // ten measurements of every spectrum: a curve needs more than a hundred fragment peaks
+  for (Size rep = 0; rep < 10; ++rep)
+  {
+    for (MSSpectrum spec : base)
+    {
+      for (Peak1D& peak : spec) { peak.setMZ(peak.getMZ() * (1.0 + truth(peak.getMZ()) * 1e-6)); }
+      spec.setRT(spec.getRT() + 100.0 * static_cast<double>(rep));
+      spec.setNativeID("spectrum=" + StringUtils::toStr(spectra.size()));
+      spectra.addSpectrum(std::move(spec));
+    }
+  }
+  const PeakMap observed = spectra;
+  auto fasta_db = calibration_fasta_db_();
+  ProSEAlgorithm_test algo;
+  configure_calibration_params_(algo, /*lower_ppm*/ 20.0, /*upper_ppm*/ 30.0, /*min_psms*/ 3);
+  {
+    Param p = algo.getParameters();
+    p.setValue("calibration:recalibrate", "curve");
+    p.setValue("calibration:precursor_sigma_factor", 0.0);
+    algo.setParameters(p);
+  }
+  vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  const auto& cal = algo.last_calibration_result_;
+  TEST_EQUAL(cal.success, true)
+  TEST_EQUAL(cal.fragment_recalibration.active(), true)
+  TEST_EQUAL(cal.fragment_recalibration.toString().find("cubic in t = sqrt(mz)") != std::string::npos, true)
+  TEST_EQUAL(cal.fragment_recalibration.chunks.size(), 1) // one curve per run
+  TEST_EQUAL(cal.fragment_recalibration.curve(), true)
+  TEST_EQUAL(cal.appliedFragmentRecalibration() == nullptr, true) // the annotations report the searched (corrected) m/z
+  TEST_EQUAL(std::fabs(cal.fragment_shift) < 1.0, true)
+  Size psms = 0, peaks = 0, corrected_once = 0;
+  for (const auto& pid : pep_ids)
+  {
+    if (pid.getHits().empty()) continue;
+    const Size scan = static_cast<Size>(static_cast<int>(pid.getMetaValue("scan_index")));
+    TEST_EQUAL(spectra[scan].empty(), false)
+    // a searched peak is a measured one with the error removed once (not twice: both calibration passes fit the
+    // curve to the peaks as measured); the curve is constant beyond the fitted m/z range, hence not every peak
+    for (const Peak1D& peak : spectra[scan])
+    {
+      const double measured = observed[scan][observed[scan].findNearest(peak.getMZ())].getMZ();
+      ++peaks;
+      if (std::fabs((measured / peak.getMZ() - 1.0) * 1e6 - truth(peak.getMZ())) < 2.0) ++corrected_once;
+    }
+    ++psms;
+  }
+  TEST_EQUAL(psms >= 30, true)
+  TEST_EQUAL(corrected_once * 10 >= peaks * 9, true)
+  // without the peaks as measured (fragment:query_spectrum processed): no curve, the line
+  PeakMap again = observed;
+  ProSEAlgorithm_test algo2;
+  configure_calibration_params_(algo2, /*lower_ppm*/ 20.0, /*upper_ppm*/ 30.0, /*min_psms*/ 3);
+  {
+    Param p = algo2.getParameters();
+    p.setValue("calibration:recalibrate", "curve");
+    p.setValue("calibration:precursor_sigma_factor", 0.0);
+    p.setValue("fragment:query_spectrum", "processed");
+    algo2.setParameters(p);
+  }
+  vector<ProteinIdentification> prot_ids2;
+  PeptideIdentificationList pep_ids2;
+  TEST_EQUAL(algo2.search(again, fasta_db, prot_ids2, pep_ids2) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(algo2.last_calibration_result_.success, true)
+  TEST_EQUAL(algo2.last_calibration_result_.fragment_recalibration.curve(), false)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] calibration:recalibrate corrects the precursor m/z and the fragment peaks in place, reports the observed m/z and records the models))
 {
   // Precursor errors around +7 ppm, every fragment peak at +5 ppm

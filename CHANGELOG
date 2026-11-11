@@ -17,6 +17,8 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 Major additions:
+  - ProSE: calibration:recalibrate curve, a fragment m/z correction by a cubic in sqrt(m/z) for runs whose fragment
+    error varies with m/z by more than the tolerance (e.g. timsTOF data converted with a two-point calibration)
   - OpenDIA: DIA analysis in one call, from a spectral library, a transition list or a FASTA database
     (PeptDeep-predicted library), through OpenSWATH extraction, Percolator rescoring and inference (#10373, #10383)
   - EntrapmentEvaluator, with DecoyDatabase -entrapment_ratio: the true false discovery proportion of

@@ -767,17 +767,24 @@ namespace OpenMS
     defaults_.setValue("calibration:recalibrate", "none",
       "Correct the m/z of the spectra by the mass errors the calibration pass measures, before the main search: "
       "'offset' subtracts the median error, 'linear' a line in m/z fitted to the errors (precursor errors against "
-      "the precursor m/z, fragment errors against the fragment m/z), each per retention-time chunk "
-      "(calibration:recalibrate_rt_chunks) and interpolated between the chunks; a chunk of the precursor model whose "
-      "calibration PSMs are mostly false matches (more than a quarter of them decoy hits) takes the model of its "
-      "neighbours. The precursor m/z and the fragment "
+      "the precursor m/z, fragment errors against the fragment m/z), 'curve' a cubic polynomial in the square root of "
+      "the fragment m/z, fitted to all peaks within 150 ppm of the fragments of the calibration PSMs (for data whose "
+      "fragment error varies with m/z by more than the tolerance, e.g. a time-of-flight calibration with too few "
+      "terms; with a ppm fragment tolerance and the peaks as measured only (fragment:query_spectrum raw, which 'auto' "
+      "is for high-resolution fragments), otherwise the line; the precursor m/z is corrected as with 'offset'; the "
+      "curve is measured on and subtracted from the peaks as measured, which are then deisotoped again; the "
+      "calibration spectra are scored a second time as corrected and the curve is fitted again), each "
+      "per retention-time chunk "
+      "(calibration:recalibrate_rt_chunks) and interpolated between the chunks (the fragment curve: one per run); a chunk "
+      "of the precursor model whose calibration PSMs are mostly false matches (more than a quarter of them decoy hits) "
+      "takes the model of its neighbours. The precursor m/z and the fragment "
       "peaks of the searched MS2 spectra are corrected in place (the candidate retrieval, the scoring and the PSMs' "
       "mass errors use the corrected values; a PeakMap passed to the library is corrected too); the PSMs report the "
-      "observed precursor m/z and their fragment annotations the observed peak m/z. The windows are then derived from "
+      "observed precursor m/z and their fragment annotations the observed peak m/z (with 'curve' the corrected one). The windows are then derived from "
       "the residual errors, with a fragment floor of 5 ppm (0.01 Da) unless calibration:min_fragment_tolerance is set. "
       "The co-isolated precursors of a chimeric search, from the same survey scans, are corrected by the precursor "
       "model. 'none' measures only.");
-    defaults_.setValidStrings("calibration:recalibrate", {"none", "offset", "linear"});
+    defaults_.setValidStrings("calibration:recalibrate", {"none", "offset", "linear", "curve"});
     defaults_.setValue("calibration:recalibrate_rt_chunks", 1,
       "Retention-time chunks of the recalibration models (calibration:recalibrate): the calibration PSMs are split in "
       "acquisition order into this many groups of equal size (fewer when a group would hold less than "
@@ -1358,7 +1365,7 @@ namespace OpenMS
 
         fragment_index_.setParameters(fi_params);
         fi_params_modified = true;
-        applyRecalibration_(cal, spectra, query_ptr, evidence_ptr);
+        applyRecalibration_(cal, spectra, query_ptr, evidence_ptr, &ion_evidence);
       }
     }
 
@@ -2166,7 +2173,7 @@ namespace OpenMS
           if (cal.success)
           {
             applyRecalibration_(cal, all_spectra[i], query_raw_spectrum_ ? &all_query_spectra[i] : nullptr,
-                                retain_evidence ? &all_evidence_spectra[i] : nullptr);
+                                retain_evidence ? &all_evidence_spectra[i] : nullptr, &all_ion_evidence[i]);
             per_file_cal[i].effective_fragment_tol = cal.fragment_tolerance;
             if (!cal.extreme_bias)
             {

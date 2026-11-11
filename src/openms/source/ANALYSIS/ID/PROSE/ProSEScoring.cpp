@@ -827,7 +827,7 @@ namespace OpenMS
     // window on each side): the configured window is added. The tolerances are query-time parameters of the index
     // (FragmentIndex::updateMembers_()), so the configured ones are set after the build.
     const bool ppm = precursor_mass_tolerance_unit_ == "ppm";
-    const bool offset = calibration_recalibrate_ == "offset";
+    const bool offset = calibration_recalibrate_ == "offset" || calibration_recalibrate_ == "curve"; // (curve: the precursor model is the offset)
     Param pass = params;
     pass.setValue("precursor:mass_tolerance_lower", calibrationPassWindow_(precursor_mass_tolerance_lower_, ppm)
                                                     + (offset ? precursor_mass_tolerance_lower_ : 0.0));
@@ -1477,7 +1477,7 @@ namespace OpenMS
                                 strategy.is_prefix);
       if (cal.success)
       {
-        applyRecalibration_(cal, spectra, query_ptr, evidence_ptr);
+        applyRecalibration_(cal, spectra, query_ptr, evidence_ptr, &ion_evidence);
         effective_fragment_tol = cal.fragment_tolerance;
         if (!cal.extreme_bias)
         {
