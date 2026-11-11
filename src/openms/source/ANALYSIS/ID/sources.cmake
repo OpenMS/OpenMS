@@ -33,6 +33,7 @@ MorpheusScore.cpp
 OpenSearchModificationAnalysis.cpp
 PeptideProteinResolution.cpp
 ProSEAlgorithm.cpp
+ProSEAlgorithmHits.cpp
 ProSEAlgorithmLoading.cpp
 ProSEAlgorithmScoring.cpp
 ProSEAlgorithmSpectra.cpp
