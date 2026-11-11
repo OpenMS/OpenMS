@@ -1,0 +1,50 @@
+
+== raw01: X presence and other-run score by own-score bin (bins = decoy-winner quantiles)
+                         n  x_present      x_med
+bin          cls                                
+<q90         decoy   83697      0.200   0.629000
+             entrap  41239      0.205   0.613000
+             human   40701      0.206   0.616000
+q90-q99      decoy    8370      0.207   0.761000
+             entrap   4193      0.217   0.718000
+             human    4176      0.215   0.742000
+q99-q99.9    decoy     837      0.460   1.126000
+             entrap    530      0.523   0.947000
+             human     841      0.586   4.583000
+>q99.9 decoy decoy      93      0.677   6.419000
+             entrap     73      0.740   6.178000
+             human    1952      0.929  23.040001
+raw01: shared-signal competitors (other precursors, apex +-2 s, m/z +-1 Th, >= 2 shared fragments within 10 ppm)
+                        n  any_share   mean
+bin          cls                           
+q99-q99.9    decoy    837      0.240  0.553
+             entrap   530      0.270  0.477
+             human    841      0.215  0.446
+>q99.9 decoy decoy     93      0.398  0.978
+             entrap    73      0.397  0.644
+             human   1952      0.117  0.179
+
+== raw02: X presence and other-run score by own-score bin (bins = decoy-winner quantiles)
+                         n  x_present   x_med
+bin          cls                             
+<q90         decoy   84946      0.197   0.592
+             entrap  41898      0.202   0.561
+             human   41239      0.204   0.587
+q90-q99      decoy    8495      0.207   0.710
+             entrap   4269      0.220   0.644
+             human    4183      0.212   0.615
+q99-q99.9    decoy     849      0.433   1.274
+             entrap    553      0.483   1.408
+             human     879      0.531   4.829
+>q99.9 decoy decoy      95      0.726   5.797
+             entrap     65      0.723   6.627
+             human    1993      0.924  26.336
+raw02: shared-signal competitors (other precursors, apex +-2 s, m/z +-1 Th, >= 2 shared fragments within 10 ppm)
+                        n  any_share   mean
+bin          cls                           
+q99-q99.9    decoy    849      0.219  0.465
+             entrap   553      0.255  0.476
+             human    879      0.188  0.379
+>q99.9 decoy decoy     95      0.284  0.842
+             entrap    65      0.400  0.600
+             human   1993      0.117  0.190

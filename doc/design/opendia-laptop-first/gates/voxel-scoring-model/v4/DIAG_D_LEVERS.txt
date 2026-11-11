@@ -1,0 +1,20 @@
+
+== raw01: medians among winners above the decoy q99 score (P0..P2 = featPC mass-accuracy columns)
+                     rt_err   P0     P1     P2  libcos12     n
+bin       cls                                                 
+>q99.9    decoy   22.093000  4.0  1.024  0.973     0.833    93
+          entrap  20.260000  4.0  1.062  0.986     0.840    73
+          human   15.340000  5.0  0.978  1.000     0.950  1952
+q99-q99.9 decoy   35.105000  2.0  2.491  0.813     0.698   837
+          entrap  35.168999  3.0  2.241  0.843     0.721   530
+          human   24.500000  3.0  2.005  0.848     0.778   841
+
+== raw02: medians among winners above the decoy q99 score (P0..P2 = featPC mass-accuracy columns)
+                     rt_err   P0     P1     P2  libcos12     n
+bin       cls                                                 
+>q99.9    decoy   19.718000  4.0  1.404  0.906     0.833    95
+          entrap  16.832001  4.0  1.150  0.958     0.861    65
+          human   15.057000  5.0  0.920  1.000     0.951  1993
+q99-q99.9 decoy   31.297001  2.0  2.893  0.761     0.727   849
+          entrap  30.483000  3.0  2.289  0.860     0.726   553
+          human   24.122000  3.0  2.061  0.810     0.790   879

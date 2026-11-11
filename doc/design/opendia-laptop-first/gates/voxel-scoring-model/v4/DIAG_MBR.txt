@@ -1,0 +1,8 @@
+raw01 selection by raw02 pair q <= None: pairs  94109 | N@FDP_c 1/2 % 1496 / 1716 | q<=0.01 N 1614 FDP_c 0.0137
+raw01 selection by raw02 pair q <= 0.5: pairs   6858 | N@FDP_c 1/2 % 1492 / 1633 | q<=0.01 N 1562 FDP_c 0.0142
+raw01 selection by raw02 pair q <= 0.2: pairs   3414 | N@FDP_c 1/2 % 1476 / 1615 | q<=0.01 N 1557 FDP_c 0.0142
+raw01 selection by raw02 pair q <= 0.05: pairs   2176 | N@FDP_c 1/2 % 1497 / 1616 | q<=0.01 N 1582 FDP_c 0.0166
+raw02 selection by raw01 pair q <= None: pairs  95447 | N@FDP_c 1/2 % 1426 / 1736 | q<=0.01 N 1536 FDP_c 0.0131
+raw02 selection by raw01 pair q <= 0.5: pairs   7022 | N@FDP_c 1/2 % 1370 / 1628 | q<=0.01 N 1587 FDP_c 0.0190
+raw02 selection by raw01 pair q <= 0.2: pairs   3425 | N@FDP_c 1/2 % 1365 / 1618 | q<=0.01 N 1585 FDP_c 0.0191
+raw02 selection by raw01 pair q <= 0.05: pairs   2121 | N@FDP_c 1/2 % 1502 / 1626 | q<=0.01 N 1516 FDP_c 0.0106

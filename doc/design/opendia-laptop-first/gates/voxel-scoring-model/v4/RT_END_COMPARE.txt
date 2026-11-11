@@ -1,0 +1,26 @@
+
+== raw01: anchors 504, fit on middle 354 (library RT 0.179..0.633), test 150 end anchors; tolerance 84 s
+map  | held-out end anchors: median |res| s, q90, within tol | DIA-NN ref outside full-anchor range (n 259): median |res|, within tol (maps fitted on all anchors)
+C    |   66.6  123.7 0.660 |  161.9 0.093
+L3   |   19.3   51.3 1.000 |   74.4 0.517
+LF   |   19.8   62.1 1.000 |   81.9 0.502
+Q    |   29.8  113.8 0.793 |   93.8 0.471
+PCH  |   38.3  110.1 0.793 |   66.9 0.537
+LO   |   19.0   57.3 1.000 |   98.9 0.432
+E    |   25.2  106.2 0.813 |   81.2 0.514
+
+== raw02: anchors 596, fit on middle 418 (library RT 0.192..0.625), test 178 end anchors; tolerance 83 s
+map  | held-out end anchors: median |res| s, q90, within tol | DIA-NN ref outside full-anchor range (n 171): median |res|, within tol (maps fitted on all anchors)
+C    |   69.4  132.1 0.596 |  180.6 0.047
+L3   |   22.0   48.8 1.000 |  111.7 0.433
+LF   |   17.9   42.7 0.994 |  114.8 0.433
+Q    |   23.3   58.9 0.994 |  102.9 0.456
+PCH  |   23.3  105.7 0.798 |   98.2 0.462
+LO   |   16.8   40.9 0.994 |  124.0 0.380
+E    |   20.2   46.3 0.994 |  105.9 0.450
+
+== Part 2: distance-dependent RT tolerance (g fitted on held-out end anchors)
+raw01 fixed 4 sigma                       : DIA-NN ref outside anchors within tol 0.517 (n 259), all ref 0.950; library mean half-window 84 s, max 84 s
+raw01 4 sigma + 0 s/unit x distance       : DIA-NN ref outside anchors within tol 0.517 (n 259), all ref 0.950; library mean half-window 84 s, max 84 s
+raw02 fixed 4 sigma                       : DIA-NN ref outside anchors within tol 0.433 (n 171), all ref 0.945; library mean half-window 83 s, max 83 s
+raw02 4 sigma + 0 s/unit x distance       : DIA-NN ref outside anchors within tol 0.433 (n 171), all ref 0.945; library mean half-window 83 s, max 83 s

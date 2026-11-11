@@ -1,0 +1,39 @@
+== (a) same charge, precursor m/z within 5 ppm of a precursor of another class
+human  n 151103: has same-mass human 0.739, entrap 0.708, decoy 0.848
+entrap n 149120: has same-mass human 0.717, entrap 0.737, decoy 0.851
+decoy  n 299999: has same-mass human 0.692, entrap 0.689, decoy 0.874
+
+== (b) raw01: explained by a higher-scoring winner sharing >= 2 fragments (apex +-2 s, m/z +-1 Th)
+                        n  share
+bin          cls                
+<q99         entrap     1  0.000
+             human    319  0.009
+>q99.9 decoy decoy     93  0.043
+             entrap    73  0.014
+             human   1952  0.002
+q99-q99.9    decoy    837  0.027
+             entrap   530  0.013
+             human    841  0.015
+                              n  share
+stage                                 
+B no window within 10 s       6  0.000
+C wrong window won           18  0.056
+D right window, below cut   866  0.003
+E accepted                 1413  0.000
+
+== (b) raw02: explained by a higher-scoring winner sharing >= 2 fragments (apex +-2 s, m/z +-1 Th)
+                        n  share
+bin          cls                
+<q99         human    260  0.004
+>q99.9 decoy decoy     95  0.021
+             entrap    65  0.015
+             human   1993  0.004
+q99-q99.9    decoy    849  0.015
+             entrap   553  0.016
+             human    879  0.009
+                              n  share
+stage                                 
+B no window within 10 s       8  0.000
+C wrong window won           21  0.000
+D right window, below cut   929  0.001
+E accepted                 1362  0.000

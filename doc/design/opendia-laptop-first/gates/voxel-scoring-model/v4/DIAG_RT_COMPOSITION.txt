@@ -1,0 +1,2 @@
+raw01: anchors 504, reference inside knots and not anchors 1791: robust SD of RT residual 23.7 s -> 20.6 s (median |res| 15.9 -> 13.7)
+raw02: anchors 596, reference inside knots and not anchors 1735: robust SD of RT residual 24.2 s -> 20.1 s (median |res| 16.1 -> 13.4)
