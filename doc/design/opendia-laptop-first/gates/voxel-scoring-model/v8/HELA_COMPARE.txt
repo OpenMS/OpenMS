@@ -1,0 +1,10 @@
+anchors new 5487 old 5479 used new 5189 old 5090 | join {'both': 5479, 'left_only': 8, 'right_only': 0}
+same run_rt for shared anchors: False | used flag changed 147 (now used 119 , now unused 28 )
+changed-flag anchors outside the old knot range: 132 of 147
+rt anchors_used: old 5084.0000 new 5187.0000
+rt sigma_s: old 2.3117 new 2.2749
+rt abs_residual_p50_s: old 1.5606 new 1.5348
+rt abs_residual_p95_s: old 4.8176 new 4.6812
+rt abs_residual_p99_s: old 6.2751 new 5.9892
+rt tolerance_half_width_s: old 9.2469 new 9.0995
+ms2 tolerance ppm old/new 10.9724 10.9809 | im tolerance old/new 0.03372 0.03363

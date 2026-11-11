@@ -1,0 +1,56 @@
+
+=== raw01 D11FWT: accepted at FDP_c 1 % = 1519 (score cut 26.01); DIA-NN reference (human, exact match) = 2743
+stage
+A not in population           133
+B no window within 10 s        97
+C wrong window won            119
+D right window, below cut     954
+E accepted                   1440
+accepted and in DIA-NN: 1440 of 1519 accepted (95%)
+accepted, not DIA-NN-confirmed: 79 (entrapment among them: 7 of all accepted)
+median features (window rows):
+group                                      n transition_ abs_library boundary_co boundary_li boundary_ap     byion_b     byion_y     log_int      n_frag
+E accepted (right window)               1440       6.000      14.995       0.771       0.854       1.000       4.000       7.000       5.081       6.000
+D right window, below cut                954       4.000      20.379       0.295       0.524       0.833       2.000       4.000       4.602       6.000
+C right window (lost to a wrong one)     119       4.000      18.332       0.107       0.094       0.500       1.000       2.000       4.936       6.000
+C wrong winner                           119       4.000      30.397       0.186       0.170       0.667       2.000       3.000       4.800       6.000
+top 1 % decoy winners                    842       3.000      30.345       0.294       0.286       0.667       2.000       4.000       4.990       6.000
+decoy winners above cut                   11       6.000       9.851       0.581       0.711       0.833       3.000       5.000       5.374       6.000
+D normalised score quantiles (cut 26.01): q10 -0.93, q25 0.57, q50 7.42, q75 14.54, q90 21.66
+D within 2x of the cut: 279, within 0.8x: 114
+by charge (stage counts):
+stage   A not in population  B no window within 10 s  C wrong window won  D right window, below cut  E accepted
+charge                                                                                                         
+1                         1                        0                   0                         11           9
+2                        86                       82                  72                        635        1136
+3                        44                       12                  42                        282         280
+4                         2                        3                   5                         26          15
+C wrong winner |RT - DIA-NN RT| s: median 32.7, q90 80.6
+
+=== raw02 D11FWT: accepted at FDP_c 1 % = 1420 (score cut 27.76); DIA-NN reference (human, exact match) = 2731
+stage
+A not in population           120
+B no window within 10 s        83
+C wrong window won            112
+D right window, below cut    1060
+E accepted                   1356
+accepted and in DIA-NN: 1356 of 1420 accepted (95%)
+accepted, not DIA-NN-confirmed: 64 (entrapment among them: 7 of all accepted)
+median features (window rows):
+group                                      n transition_ abs_library boundary_co boundary_li boundary_ap     byion_b     byion_y     log_int      n_frag
+E accepted (right window)               1356       6.000      14.096       0.783       0.856       1.000       4.000       7.000       5.080       6.000
+D right window, below cut               1060       5.000      18.676       0.329       0.566       0.833       2.000       4.000       4.642       6.000
+C right window (lost to a wrong one)     112       4.000      21.062       0.064       0.160       0.500       1.500       2.000       4.934       6.000
+C wrong winner                           112       4.000      31.046       0.177       0.123       0.667       2.000       2.000       4.806       6.000
+top 1 % decoy winners                    800       4.000      32.858       0.280       0.357       0.667       2.000       4.000       5.016       6.000
+decoy winners above cut                    3       6.000       9.142       0.605       0.227       1.000       3.000       5.000       5.300       6.000
+D normalised score quantiles (cut 27.76): q10 -0.92, q25 1.06, q50 7.71, q75 15.97, q90 23.15
+D within 2x of the cut: 325, within 0.8x: 129
+by charge (stage counts):
+stage   A not in population  B no window within 10 s  C wrong window won  D right window, below cut  E accepted
+charge                                                                                                         
+1                         1                        0                   0                         15          15
+2                        79                       68                  74                        741        1067
+3                        38                       14                  33                        276         260
+4                         2                        1                   5                         28          14
+C wrong winner |RT - DIA-NN RT| s: median 33.6, q90 89.9

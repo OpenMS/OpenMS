@@ -1,0 +1,4 @@
+old raw01 (old knots 0.098..0.752): {'ends': {'targets': 124, 'decoys': 1, 'entrapment': 1, 'ent/dec': 1.0}, 'inside': {'targets': 1490, 'decoys': 14, 'entrapment': 10, 'ent/dec': 0.71}}
+old raw02 (old knots 0.098..0.773): {'ends': {'targets': 103, 'decoys': 0, 'entrapment': 0, 'ent/dec': 0.0}, 'inside': {'targets': 1433, 'decoys': 14, 'entrapment': 10, 'ent/dec': 0.71}}
+new raw01 (old knots 0.098..0.752): {'ends': {'targets': 202, 'decoys': 2, 'entrapment': 1, 'ent/dec': 0.5}, 'inside': {'targets': 1526, 'decoys': 14, 'entrapment': 13, 'ent/dec': 0.93}}
+new raw02 (old knots 0.098..0.773): {'ends': {'targets': 207, 'decoys': 1, 'entrapment': 2, 'ent/dec': 2.0}, 'inside': {'targets': 1509, 'decoys': 15, 'entrapment': 14, 'ent/dec': 0.93}}

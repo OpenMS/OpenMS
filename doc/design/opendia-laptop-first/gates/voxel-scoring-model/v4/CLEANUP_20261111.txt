@@ -33,3 +33,8 @@
 180M	/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-voxel-pilot-20261110/v2/export02/search.tsv
 477M	/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-voxel-pilot-20261110/v2/export01/search.features.tsv
 474M	/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/astral-voxel-pilot-20261110/v2/export02/search.features.tsv
+
+# 2026-11-11T16:06:10Z second cleanup (user-approved derived files; arrays already built, rtx superseded by rtlin-20261111)
+1.6G	astral-lib12-20261111/export01/v12.xipm
+1.6G	astral-lib12-20261111/export02/v12.xipm
+1.2G	astral-voxel-pilot-20261110/v2/rtx
