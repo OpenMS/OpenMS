@@ -285,8 +285,10 @@ namespace OpenMS
     {
       const Size max_parts = 8;
       const Size min_part_bytes = 128 * 1024;
-#ifdef OPENMS_WINDOWSPLATFORM
-      // the whole-file read uses a text stream, which ends at a control-Z on Windows
+#if defined(OPENMS_WINDOWSPLATFORM) || defined(__EMSCRIPTEN__)
+      // Windows: the whole-file read uses a text stream, which ends at a control-Z on Windows.
+      // WebAssembly: a thread started on the browser's main thread beyond the module's pool of Web Workers starts only
+      // when the main thread returns to its event loop, which it does not while it waits here (in parts: helper threads).
       (void)file; (void)cross_links_only; (void)all_mods; (void)max_parts; (void)min_part_bytes;
       return false;
 #else

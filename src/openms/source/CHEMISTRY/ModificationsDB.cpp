@@ -629,7 +629,14 @@ namespace OpenMS
     std::vector<std::future<std::vector<std::unique_ptr<ResidueModification>>>> later_mods;
     for (Size i = 1; i < providers.size(); ++i)
     {
-      later_mods.push_back(std::async(std::launch::async | std::launch::deferred, [&provider = *providers[i]]() { return provider.loadModifications(); }));
+#ifdef __EMSCRIPTEN__
+      // WebAssembly: here (deferred), as a helper thread started on the browser's main thread beyond the module's pool of
+      // Web Workers starts only when the main thread returns to its event loop, which it does not while it waits below
+      constexpr auto policy = std::launch::deferred;
+#else
+      constexpr auto policy = std::launch::async | std::launch::deferred;
+#endif
+      later_mods.push_back(std::async(policy, [&provider = *providers[i]]() { return provider.loadModifications(); }));
     }
     for (Size i = 0; i < providers.size(); ++i)
     {
