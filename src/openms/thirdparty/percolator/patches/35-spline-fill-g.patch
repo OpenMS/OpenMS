@@ -1,0 +1,53 @@
+diff --git a/src/openms/thirdparty/percolator/BaseSpline.cpp b/src/openms/thirdparty/percolator/BaseSpline.cpp
+index 78510f44..0fba4e69 100644
+--- a/src/openms/thirdparty/percolator/BaseSpline.cpp
++++ b/src/openms/thirdparty/percolator/BaseSpline.cpp
+@@ -28,6 +28,28 @@ namespace OpenMS { namespace Internal { namespace Percolator {
+ 
+ using namespace std;
+ 
++namespace {
++  // a vector of the sparse matrix code that has every index 0..size-1
++  bool isFilled(const PackedVector& v, int size) {
++    return v.size() == size && v.numberEntries() == size && (size == 0 || v.index(size - 1) == size - 1);
++  }
++
++  // OpenMS: the packed operations leave out the entries that are (almost) zero, but the spline code reads g by
++  // position (splineEval, evaluateSlope, LogisticRegression::calcPZW and limitg): a dropped entry shifts the later
++  // values, and an all-zero g has no entries at all (an out-of-bounds read, which hardened standard libraries trap,
++  // e.g. libc++ with nixpkgs' default hardening on macOS). Puts the dropped entries back as zeros.
++  void fillPacked(PackedVector& v, int size) {
++    if (isFilled(v, size)) {
++      return;
++    }
++    PackedVector filled(size);
++    for (int k = 0; k < v.numberEntries(); ++k) {
++      filled.packedReplace(v.index(k), v[k]);
++    }
++    v = filled;
++  }
++}
++
+ class SplinePredictor {
+     BaseSpline* bs;
+   public:
+@@ -152,6 +174,7 @@ void BaseSpline::iterativeReweightedLeastSquares(double alpha) {
+     gamma = Qt.packedMultiply(z);
+     solveInPlace(M,gamma);
+     gnew = z.packedSubtract(aWiQ.packedMultiply(gamma));
++    fillPacked(gnew, static_cast<int>(n));
+     limitg();
+     PackedVector difference = g.packedSubtract(gnew);
+     step = packedNorm(difference) / n;
+@@ -350,11 +373,6 @@ void BaseSpline::initiateBanded() {
+ #endif
+ 
+ namespace {
+-  // a vector of the sparse matrix code that has every index 0..size-1
+-  bool isFilled(const PackedVector& v, int size) {
+-    return v.size() == size && v.numberEntries() == size && (size == 0 || v.index(size - 1) == size - 1);
+-  }
+-
+   int findInRow(const BaseSpline::BandRow& row, int col) {
+     for (int k = 0; k < row.size; ++k) {
+       if (row.index[k] == col) {

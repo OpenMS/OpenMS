@@ -517,6 +517,13 @@ hand-editing sources and committing them, to keep sync self-healing.
   parallel.
 - `patches/34-comments.patch` — removes references to internal reviews from comments. No change of
   results.
+- `patches/35-spline-fill-g.patch` — `BaseSpline::iterativeReweightedLeastSquares`: after the general (not
+  banded) step, `gnew` gets its dropped entries back as zeros (`fillPacked`, before `limitg`). The packed vector
+  operations leave out entries of (almost) zero, but `evaluateSlope`, `splineEval` and
+  `LogisticRegression::calcPZW` / `limitg` read g by position: a dropped entry shifted the later values, and an
+  all-zero g (no entries) was read out of bounds (`Percolator_test`, nonparametric PEP with fewer than 4 distinct
+  scores; SIGTRAP with libc++ hardening, OpenMS issue #10880). A filled `gnew` is unchanged, so results only
+  change where an entry had been dropped.
 
 ### Regenerating the patch
 
