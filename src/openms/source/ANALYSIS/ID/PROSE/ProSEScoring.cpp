@@ -389,18 +389,37 @@ namespace OpenMS
       spans.emplace_back(start, sequence.size() - start);
     }
 
-    // decoy_method 'keep_termini': OpenMS DecoyDatabase's construction (method reverse, Decoy:keepPeptideNTerm
-    // and keepPeptideCTerm true; Decoy:non_shuffle_pattern "KRP", its default is empty) with @p digestor (the search enzyme, no missed cleavages,
-    // full specificity): every segment is MRMDecoy::reversePeptideLight(segment, keepN, keepC, "KRP"). Residues not in
-    // any segment (none for a digest that tiles the protein) stay in place.
+    // decoy_method 'keep_termini': the residues that stay in place inside a segment besides its first and last one,
+    // derived from the cleavage rule @p regex of the search enzyme: every residue letter it names (the rules of the
+    // ProteaseDB name them in lookarounds and character classes, ambiguity codes included) and P. A rule that tells
+    // residues apart only by the letters it names then finds the target's sites in the decoy: inside a segment every
+    // residue stays or trades places with one the rule treats alike. Trypsin and Trypsin/P: K, R, X and P, so the
+    // decoys of DecoyDatabase's -Decoy:non_shuffle_pattern K,P,R except where an X precedes a P (Trypsin only; an X ends
+    // a segment otherwise). Chymotrypsin: F, Y, W, L, J, X and P (K, R and P for every enzyme, as before, moved an F,
+    // Y, W or L before P, which mostly made a new site).
+    std::string keepTerminiFixedResidues(const std::string& regex)
+    {
+      std::string residues = "P";
+      for (const char c : regex)
+      {
+        if (c >= 'A' && c <= 'Z' && residues.find(c) == std::string::npos) residues += c;
+      }
+      return residues;
+    }
+
+    // decoy_method 'keep_termini': OpenMS DecoyDatabase's construction (method reverse, Decoy:keepPeptideNTerm and
+    // keepPeptideCTerm true; Decoy:non_shuffle_pattern @p fixed_residues of keepTerminiFixedResidues(), its default is
+    // empty) with @p digestor (the search enzyme, no missed cleavages, full specificity): every segment is
+    // MRMDecoy::reversePeptideLight(segment, keepN, keepC, fixed_residues). Residues not in any segment (none for a
+    // digest that tiles the protein) stay in place.
     std::string keepTerminiDecoy(const std::string& protein, const ProteaseDigestion& digestor, const SegmentRule* rule,
-                                 std::vector<std::pair<Size, Size>>& spans)
+                                 const std::string& fixed_residues, std::vector<std::pair<Size, Size>>& spans)
     {
       digestSegments(digestor, rule, protein, spans);
       std::string decoy = protein;
       for (const auto& [start, length] : spans)
       {
-        decoy.replace(start, length, MRMDecoy::reversePeptideLight(protein.substr(start, length), {}, true, true, "KRP").first);
+        decoy.replace(start, length, MRMDecoy::reversePeptideLight(protein.substr(start, length), {}, true, true, fixed_residues).first);
       }
       return decoy;
     }
@@ -572,12 +591,15 @@ namespace OpenMS
       UInt64 checksum = 14695981039346656037ULL;
       SegmentRule segment_rule;
       bool simple_segments = false;
+      std::string fixed_residues;
       if (keep_termini)
       {
         segments.setEnzyme(enzyme_);
         segments.setMissedCleavages(0);
         segments.setSpecificity(EnzymaticDigestion::SPEC_FULL);
-        simple_segments = parseSegmentRule(ProteaseDB::getInstance()->getEnzyme(enzyme_)->getRegEx(), segment_rule);
+        const std::string& regex = ProteaseDB::getInstance()->getEnzyme(enzyme_)->getRegEx();
+        simple_segments = parseSegmentRule(regex, segment_rule);
+        fixed_residues = keepTerminiFixedResidues(regex);
       }
       const SegmentRule* const segment_rule_ptr = simple_segments ? &segment_rule : nullptr;
       // The decoy sequences in parallel (each from its target alone; serially 1.2-1.6 s per run for a human database, as
@@ -615,8 +637,9 @@ namespace OpenMS
             const std::string& sequence = db[i].sequence;
             if (keep_termini)
             {
-              decoy_sequences[i] = keepTerminiDecoy(sequence, segments, segment_rule_ptr, target_spans);
-              // the guarantee holds only if the decoy has the target's cleavage sites (enzymes whose rule reads K, R, P)
+              decoy_sequences[i] = keepTerminiDecoy(sequence, segments, segment_rule_ptr, fixed_residues, target_spans);
+              // the guarantee holds only if the decoy has the target's cleavage sites (every rule that tells residues
+              // apart only by the letters it names, as those of the ProteaseDB; checked)
               digestSegments(segments, segment_rule_ptr, decoy_sequences[i], decoy_spans);
               site_mismatch[i] = decoy_spans != target_spans;
               continue;
