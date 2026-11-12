@@ -25,6 +25,7 @@
 #include <torch/utils.h>
 #include <torch/version.h>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <limits>
@@ -45,6 +46,16 @@ namespace OpenMS::OpenDIA
     // ponytail: serialize calls that change process-global LibTorch settings; use separate processes for concurrent models.
     std::mutex execution_mutex;
     using Indices = std::vector<std::size_t>;
+
+    /// Window i of data in the full [6,32,8] layout (data.im_bins == 1 is expanded into buffer's central mobility bin).
+    const float* windowOf(const CNNData& data, std::size_t i, std::array<float, WINDOW>& buffer)
+    {
+      if (data.im_bins == 8) { return data.intensities + i * WINDOW; }
+      buffer.fill(0.0f);
+      const float* stored = data.intensities + i * (WINDOW / 8);
+      for (std::size_t k = 0; k < WINDOW / 8; ++k) { buffer[k * 8 + 4] = stored[k]; }
+      return buffer.data();
+    }
 
     struct Model : torch::nn::Module
     {
@@ -252,11 +263,12 @@ namespace OpenMS::OpenDIA
       float* aux = b.aux.data_ptr<float>();
       float* y = b.labels.data_ptr<float>();
       float* features = data.feature_dim > 0 ? b.features.data_ptr<float>() : nullptr;
+      std::array<float, WINDOW> window_buffer;
       for (std::size_t k = begin; k < end; ++k)
       {
         const auto index = ids[k], row = k - begin;
         const auto& s = data.samples[index];
-        const float* grid = data.intensities + index * static_cast<std::size_t>(FRAGMENTS * RT_BINS * IM_BINS);
+        const float* grid = windowOf(data, index, window_buffer);
         for (int64_t c = 0; c < FRAGMENTS; ++c)
         {
           for (int64_t rt = 0; rt < RT_BINS; ++rt)
@@ -300,11 +312,14 @@ namespace OpenMS::OpenDIA
       }
       require(!data.samples.empty() && data.samples.size() <= std::numeric_limits<std::size_t>::max() / WINDOW,
               "samples must be nonempty with representable shape");
-      require(data.intensities && data.intensity_count == data.samples.size() * WINDOW, "raw shape must be [N,6,32,8]");
+      require(data.im_bins == 8 || data.im_bins == 1, "im_bins must be 8 or 1");
+      require(data.intensities && data.intensity_count == data.samples.size() * (WINDOW / 8 * data.im_bins), "raw shape must be [N,6,32,8] or [N,6,32,1]");
       std::set<std::string> seen;
+      std::array<float, WINDOW> buffer;
       for (std::size_t i = 0; i < data.samples.size(); ++i)
       {
         const auto& s = data.samples[i];
+        const float* window = windowOf(data, i, buffer);
         require(validID(s.sample_id) && validID(s.group_id) && seen.insert(s.sample_id).second, "invalid or duplicate sample ID/group ID");
         require(s.label >= -1 && s.label <= 1 && !(s.is_decoy && s.label == 1), "invalid label or positive decoy");
         for (std::size_t c = 0; c < 6; ++c)
@@ -315,7 +330,7 @@ namespace OpenMS::OpenDIA
           require(mz != 0 || lib == 0, "padded channels require zero library intensity");
           for (std::size_t j = 0; j < 256; ++j)
           {
-            const float value = data.intensities[i * WINDOW + c * 256 + j];
+            const float value = window[c * 256 + j];
             require(std::isfinite(value) && value >= 0 && (mz != 0 || value == 0), "invalid raw or nonzero padded intensity");
           }
         }
@@ -354,14 +369,16 @@ namespace OpenMS::OpenDIA
       float* x = b.raw.data_ptr<float>();
       float* a = b.aux.data_ptr<float>();
       float* y = b.labels.data_ptr<float>();
+      std::array<float, WINDOW> window_buffer;
       for (std::size_t k = begin; k < end; ++k)
       {
         const auto index = ids[k], row = k - begin;
         const auto& s = data.samples[index];
         float maximum = 1e-12f;
+        const float* window = windowOf(data, index, window_buffer);
         for (std::size_t j = 0; j < WINDOW; ++j)
         {
-          const float value = std::log1p(data.intensities[index * WINDOW + j]);
+          const float value = std::log1p(window[j]);
           x[row * WINDOW + j] = value;
           maximum = std::max(maximum, value);
         }
@@ -476,11 +493,12 @@ namespace OpenMS::OpenDIA
       std::uniform_int_distribution<std::size_t> pick(0, partners.size() - 1);
       const double log_min = std::log(options.augment_scale_min);
       std::vector<float> recomputed(F);
+      std::array<float, WINDOW> source_buffer, partner_buffer;
       for (std::size_t k = 0; k < n; ++k)
       {
         const std::size_t i = order[k];
         const auto& sample = data.samples[i];
-        const float* source = data.intensities + i * WINDOW;
+        const float* source = windowOf(data, i, source_buffer);
         float* raw = out.raw.data() + k * WINDOW;
         float* ms1 = data.ms1 != nullptr ? out.ms1.data() + k * MS1_WINDOW : nullptr;
         float* features = out.features.data() + k * F;
@@ -498,7 +516,7 @@ namespace OpenMS::OpenDIA
           // u in (0,1]: exp(u log s_min) is log-uniform in [s_min, 1].
           const double scale = std::exp(log_min * (1.0 - unit(rng)));
           const std::size_t j = partners[pick(rng)];
-          const float* partner = data.intensities + j * WINDOW;
+          const float* partner = windowOf(data, j, partner_buffer);
           for (std::size_t c = 0; c < FRAGMENTS; ++c)
           {
             // Padded channels stay empty.
@@ -532,6 +550,7 @@ namespace OpenMS::OpenDIA
       }
       out.data.intensities = out.raw.data();
       out.data.intensity_count = out.raw.size();
+      out.data.im_bins = 8;
       out.data.ms1 = data.ms1 != nullptr ? out.ms1.data() : nullptr;
       out.data.ms1_count = out.ms1.size();
       out.data.features = F > 0 ? out.features.data() : nullptr;

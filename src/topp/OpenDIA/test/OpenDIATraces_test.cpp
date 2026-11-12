@@ -202,6 +202,49 @@ int main(int argc, char** argv)
           "Window parser lost explicit grouping.");
   rejects([&] { OpenDIA::readTraceWindows(prefix + ".windows.tsv", 0); });
 
+  // A library without ion mobility stores only the central mobility bin; windowTensor() restores the [6,32,8] layout
+  // that the 8-bin collector builds for the same spectra, and the byte budget counts the compact storage.
+  {
+    auto flat_library = library;
+    flat_library.compounds[0].drift_time = -1.0;
+    for (auto& t : flat_library.transitions) { t.setDecoy(false); }
+    auto full_library = flat_library;
+    full_library.compounds.push_back(compound);
+    full_library.compounds.back().id = "other";
+    for (auto t : flat_library.transitions) { t.peptide_ref = "other"; full_library.transitions.push_back(t); }
+    auto full_windows = windows;
+    full_windows.push_back({"s1", "other", "other_family", -1, 10});
+    OpenDIA::TraceCollector compact(windows, flat_library);
+    OpenDIA::TraceCollector full(full_windows, full_library);
+    require(compact.imBins() == 1 && full.imBins() == 8 && compact.size() == 1, "Compact storage not selected from the library.");
+    require(compact.intensities().size() == 6 * 32, "Compact tensor size wrong.");
+    for (double rt : {8.0, 10.0, 12.0})
+    {
+      auto a = scan(rt, true);
+      auto b = scan(rt, true);
+      compact.consumeSpectrum(a);
+      full.consumeSpectrum(b);
+    }
+    std::array<float, OpenDIA::TraceCollector::SAMPLE_SIZE> va, vb;
+    const float* wa = compact.windowTensor(0, va);
+    const float* wb = full.windowTensor(0, vb);
+    require(std::equal(wa, wa + OpenDIA::TraceCollector::SAMPLE_SIZE, wb) && std::accumulate(wa, wa + OpenDIA::TraceCollector::SAMPLE_SIZE, 0.0f) > 0.0f,
+            "Compact tensor differs from the 8-bin tensor without library mobility.");
+    std::array<float, OpenDIA::TraceCollector::SAMPLE_SIZE> edited;
+    std::copy_n(wa, edited.size(), edited.begin());
+    std::fill_n(edited.begin(), 32 * 8, 0.0f);
+    compact.setWindowTensor(0, edited.data());
+    require(std::equal(edited.begin(), edited.end(), compact.windowTensor(0, va)), "setWindowTensor round trip failed.");
+    edited[0] = 1.0f;
+    rejects([&] { compact.setWindowTensor(0, edited.data()); });
+    compact.store(prefix + ".compact");
+    std::ifstream compact_numpy(prefix + ".compact.traces.npy", std::ios::binary | std::ios::ate);
+    require(static_cast<std::size_t>(compact_numpy.tellg()) >= OpenDIA::TraceCollector::SAMPLE_SIZE * sizeof(float),
+            "Compact store did not write the full layout.");
+    OpenDIA::TraceCollector compact_budget(windows, flat_library, 0.02, 15, 0.03, 16384, 6 * 32 * sizeof(float));
+    rejects([&] { OpenDIA::TraceCollector compact_over(windows, flat_library, 0.02, 15, 0.03, 16384, 6 * 32 * sizeof(float) - 1); });
+  }
+
   // b/y ion counts: PEPTIDEK singly charged b2..b7 / y1..y7 inside 150.06-2000 Th, nearest isolating spectrum in the core only.
   {
     OpenSwath::LightTargetedExperiment by_library;

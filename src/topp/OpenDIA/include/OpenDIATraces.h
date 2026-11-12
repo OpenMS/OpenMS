@@ -95,10 +95,30 @@ namespace OpenMS::OpenDIA
     */
     void store(const std::string& prefix) const;
 
-    /// Raw tensor in sample, fragment, RT, mobility order, also consumed directly by the native CNN.
+    /**
+      @brief Stored raw tensor in sample, fragment, RT, mobility order, also consumed directly by the native CNN.
+
+      Holds imBins() mobility bins per RT bin. When no candidate precursor has a library ion mobility, every point falls
+      into the central of the 8 mobility bins, so only that bin is stored (imBins() == 1, [samples,6,32]). Use
+      windowTensor() for the full [6,32,8] layout of one window.
+    */
     const std::vector<float>& intensities() const { return intensities_; }
-    /// Mutable raw tensor, only for in-place experimental corrections after the read (the size must not change).
-    std::vector<float>& mutableIntensities() { return intensities_; }
+    /// Number of candidate windows.
+    std::size_t size() const { return samples_.size(); }
+    /// Stored mobility bins per RT bin: IM_BINS, or 1 when no candidate precursor has a library mobility (see intensities()).
+    std::size_t imBins() const { return im_bins_; }
+    /**
+      @brief Window i in the full [6,32,8] layout.
+      @param[in] i Window index.
+      @param[out] buffer Scratch space, filled only when imBins() == 1.
+      @return A pointer into the stored tensor, or into @p buffer.
+    */
+    const float* windowTensor(std::size_t i, std::array<float, SAMPLE_SIZE>& buffer) const;
+    /**
+      @brief Replace window i (full [6,32,8] layout), only for in-place experimental corrections after the read.
+      @throws Exception::InvalidParameter if imBins() == 1 and a non-central mobility bin is nonzero.
+    */
+    void setWindowTensor(std::size_t i, const float* window);
     /// Whether sample i contains compatible, library-centred mobility measurements.
     bool hasIM(std::size_t i) const { return samples_.at(i).has_im; }
     /// Candidate identity and explicit seed label, never network inputs.
@@ -161,6 +181,7 @@ namespace OpenMS::OpenDIA
     std::vector<Sample> samples_;
     std::vector<std::size_t> by_rt_;
     std::vector<float> intensities_;
+    std::size_t im_bins_ = IM_BINS;
     double mz_tolerance_;
     double rt_half_width_;
     double im_half_width_;

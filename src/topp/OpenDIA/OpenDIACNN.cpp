@@ -422,14 +422,15 @@ namespace OpenMS
         const double trace_refinement_min_r = getDoubleOption_("trace_refinement_min_r");
         if (trace_refinement_min_r > 0.0)
         {
-          // In place on the collector's tensor (no copy); every later consumer (network, features, augmentation) sees the masked traces.
-          float* tensors = collector.mutableIntensities().data();
-          const std::size_t windows_total = collector.intensities().size() / OpenDIA::TraceCollector::SAMPLE_SIZE;
+          // In place on the collector's tensor; every later consumer (network, features, augmentation) sees the masked traces.
+          const std::size_t windows_total = collector.size();
           std::size_t masked_channels = 0, masked_windows = 0;
+          std::array<float, OpenDIA::TraceCollector::SAMPLE_SIZE> view, window;
           for (std::size_t i = 0; i < windows_total; ++i)
           {
-            const std::size_t m = OpenDIA::maskInterferedFragments(tensors + i * OpenDIA::TraceCollector::SAMPLE_SIZE, collector.fragmentMZ(i),
-                                                                   collector.evidence(i), trace_refinement_min_r);
+            std::copy_n(collector.windowTensor(i, view), window.size(), window.begin());
+            const std::size_t m = OpenDIA::maskInterferedFragments(window.data(), collector.fragmentMZ(i), collector.evidence(i), trace_refinement_min_r);
+            if (m > 0) { collector.setWindowTensor(i, window.data()); }
             masked_channels += m;
             masked_windows += m > 0 ? 1 : 0;
           }
@@ -441,7 +442,10 @@ namespace OpenMS
         OpenDIA::CNNData data;
         data.intensities = collector.intensities().data();
         data.intensity_count = collector.intensities().size();
-        const std::size_t count = data.intensity_count / OpenDIA::TraceCollector::SAMPLE_SIZE;
+        data.im_bins = collector.imBins();
+        const std::size_t count = collector.size();
+        writeLogInfo_("Trace tensor: windows=" + std::to_string(count) + " stored_im_bins=" + std::to_string(data.im_bins) +
+                      " bytes=" + std::to_string(data.intensity_count * sizeof(float)));
         data.samples.reserve(count);
         for (std::size_t i = 0; i < count; ++i)
         {
@@ -539,9 +543,10 @@ namespace OpenMS
           };
           const std::size_t F = heuristic_names.size();
           std::vector<double> raw(count * F);
+          std::array<float, OpenDIA::TraceCollector::SAMPLE_SIZE> view;
           for (std::size_t i = 0; i < count; ++i)
           {
-            const auto row = row_of(collector.intensities().data() + i * OpenDIA::TraceCollector::SAMPLE_SIZE, i, false);
+            const auto row = row_of(collector.windowTensor(i, view), i, false);
             if (row.size() != F) { throw std::logic_error("topaz_features row width mismatch"); }
             std::copy(row.begin(), row.end(), raw.begin() + i * F);
           }
@@ -846,6 +851,7 @@ namespace OpenMS
           extraction.refined_picking_min_r = getDoubleOption_("stage2_refined_picking_min_r");
           std::vector<OpenDIA::Stage2Row> rows;
           std::vector<std::size_t> row_window;
+          std::array<float, OpenDIA::TraceCollector::SAMPLE_SIZE> view;
           for (std::size_t i = 0; i < count; ++i)
           {
             if (!in_rt_window[i]) { continue; }
@@ -861,7 +867,7 @@ namespace OpenMS
             }
             else
             {
-              const auto extracted = OpenDIA::stage2Features(collector.intensities().data() + i * OpenDIA::TraceCollector::SAMPLE_SIZE,
+              const auto extracted = OpenDIA::stage2Features(collector.windowTensor(i, view),
                                                              collector.libraryIntensities(i), collector.fragmentMZ(i), collector.evidence(i), extraction);
               row.features.assign(extracted.begin(), extracted.end());
               row.features[0] = cnn_z;
@@ -886,7 +892,7 @@ namespace OpenMS
             }
             if (stage2_set.boundary)
             {
-              const auto boundary = OpenDIA::stage2BoundaryFeatures(collector.intensities().data() + i * OpenDIA::TraceCollector::SAMPLE_SIZE,
+              const auto boundary = OpenDIA::stage2BoundaryFeatures(collector.windowTensor(i, view),
                                                                     collector.libraryIntensities(i), collector.fragmentMZ(i), collector.evidence(i), extraction);
               row.features.insert(row.features.end(), boundary.begin(), boundary.end());
             }
@@ -897,13 +903,13 @@ namespace OpenMS
             }
             if (stage2_set.shape)
             {
-              const auto shape = OpenDIA::stage2ShapeFeatures(collector.intensities().data() + i * OpenDIA::TraceCollector::SAMPLE_SIZE,
+              const auto shape = OpenDIA::stage2ShapeFeatures(collector.windowTensor(i, view),
                                                               collector.libraryIntensities(i), collector.fragmentMZ(i), collector.evidence(i));
               row.features.insert(row.features.end(), shape.begin(), shape.end());
             }
             if (stage2_set.refine)
             {
-              const auto refine = OpenDIA::stage2RefineFeatures(collector.intensities().data() + i * OpenDIA::TraceCollector::SAMPLE_SIZE,
+              const auto refine = OpenDIA::stage2RefineFeatures(collector.windowTensor(i, view),
                                                                 collector.libraryIntensities(i), collector.fragmentMZ(i), collector.evidence(i));
               row.features.insert(row.features.end(), refine.begin(), refine.end());
             }
@@ -972,7 +978,7 @@ namespace OpenMS
             for (std::size_t r = 0; r < rows.size(); ++r)
             {
               const std::size_t i = row_window[r];
-              const auto q = OpenDIA::stage2Quantify(collector.intensities().data() + i * OpenDIA::TraceCollector::SAMPLE_SIZE,
+              const auto q = OpenDIA::stage2Quantify(collector.windowTensor(i, view),
                                                      collector.fragmentMZ(i), collector.evidence(i), extraction);
               const auto& input = crossfit_rows[i];
               quant << input.sample_id << '\t' << input.precursor_id << '\t' << input.is_decoy << '\t' << q.naive_left << '\t' << q.naive_right

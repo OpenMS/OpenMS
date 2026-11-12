@@ -49,15 +49,18 @@ namespace OpenMS::OpenDIA
   };
 
   /**
-    @brief Non-owning view of contiguous raw float32 [samples,6,32,8] windows.
+    @brief Non-owning view of contiguous raw float32 [samples,6,32,im_bins] windows.
 
     The caller must retain the raw storage for the duration of training or scoring.
     Preprocessing allocates only the requested tensor batch, not the full dataset.
+    With im_bins == 1 (no ion mobility) the stored bin is the central of the 8 mobility bins the network sees.
   */
   struct CNNData
   {
     const float* intensities = nullptr;
     std::size_t intensity_count = 0;
+    /// Stored mobility bins per RT bin: 8, or 1 for the central bin only.
+    std::size_t im_bins = 8;
     std::vector<CNNSample> samples;
     /// TOPAZ only, optional: non-owning float32 [samples,3,32] MS1 traces (M+0, M+1, M+2) over the same RT bins.
     const float* ms1 = nullptr;

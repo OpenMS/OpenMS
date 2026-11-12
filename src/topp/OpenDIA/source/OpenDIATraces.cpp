@@ -88,9 +88,7 @@ namespace OpenMS::OpenDIA
             std::isfinite(im_half_width_) && im_half_width_ > 0.0, "Trace tolerances must be finite and positive.");
     // ponytail: sampled tensors are retained under an explicit byte budget.
     // Disk-backed tiled accumulation is only needed if a run cannot fit in RAM.
-    require(!windows.empty() && windows.size() <= max_samples &&
-            windows.size() <= max_tensor_bytes / (SAMPLE_SIZE * sizeof(float)),
-            "Trace sample count is empty or exceeds max_samples / the raw tensor byte budget.");
+    require(!windows.empty() && windows.size() <= max_samples, "Trace sample count is empty or exceeds max_samples.");
     std::map<std::string, std::vector<const OpenSwath::LightTransition*>> transitions;
     std::map<std::string, double> mobilities;
     std::map<std::string, int> charges;
@@ -147,7 +145,12 @@ namespace OpenMS::OpenDIA
       }
       samples_.push_back(std::move(sample));
     }
-    intensities_.resize(samples_.size() * SAMPLE_SIZE, 0.0f);
+    // Without any library mobility every point lands in the central mobility bin (compatible_im is never true in
+    // consumeSpectrum), so storing only that bin gives the same tensor at 1/8 of the memory.
+    im_bins_ = std::any_of(samples_.begin(), samples_.end(), [](const Sample& s) { return s.precursor_im > 0.0; }) ? IM_BINS : 1;
+    const std::size_t stored = SAMPLE_SIZE / IM_BINS * im_bins_;
+    require(samples_.size() <= max_tensor_bytes / (stored * sizeof(float)), "Trace sample count exceeds the raw tensor byte budget.");
+    intensities_.resize(samples_.size() * stored, 0.0f);
     by_rt_.resize(samples_.size());
     std::iota(by_rt_.begin(), by_rt_.end(), 0);
     std::stable_sort(by_rt_.begin(), by_rt_.end(), [this](std::size_t a, std::size_t b)
@@ -372,7 +375,7 @@ namespace OpenMS::OpenDIA
       const bool compatible_im = sample.precursor_im > 0.0 && (mobilities != nullptr || scalar_valid);
       // Mixed availability cannot be represented by one sample mask. Collapse
       // such a sample to an XIC instead of inventing an IM position for missing data.
-      if (!compatible_im && !sample.saw_missing_im)
+      if (!compatible_im && !sample.saw_missing_im && im_bins_ == IM_BINS)
       {
         for (std::size_t offset = index * SAMPLE_SIZE; offset < (index + 1) * SAMPLE_SIZE; offset += IM_BINS)
         {
@@ -426,7 +429,8 @@ namespace OpenMS::OpenDIA
                 std::max(0.0, (im - sample.precursor_im + im_half_width_) / (2.0 * im_half_width_)) * IM_BINS));
             }
           }
-          float& value = intensities_[((index * FRAGMENTS + fragment) * RT_BINS + rt_bin) * IM_BINS + im_bin];
+          float& value = im_bins_ == IM_BINS ? intensities_[((index * FRAGMENTS + fragment) * RT_BINS + rt_bin) * IM_BINS + im_bin]
+                                             : intensities_[(index * FRAGMENTS + fragment) * RT_BINS + rt_bin];
           require(intensity <= std::numeric_limits<float>::max() - static_cast<double>(value), "Trace intensity overflow.");
           value += static_cast<float>(intensity);
           if (core)
@@ -436,6 +440,34 @@ namespace OpenMS::OpenDIA
           }
         }
       }
+    }
+  }
+
+  const float* TraceCollector::windowTensor(std::size_t i, std::array<float, SAMPLE_SIZE>& buffer) const
+  {
+    require(i < samples_.size(), "Window index out of range.");
+    if (im_bins_ == IM_BINS) { return intensities_.data() + i * SAMPLE_SIZE; }
+    buffer.fill(0.0f);
+    const float* stored = intensities_.data() + i * FRAGMENTS * RT_BINS;
+    for (std::size_t k = 0; k < FRAGMENTS * RT_BINS; ++k) { buffer[k * IM_BINS + IM_BINS / 2] = stored[k]; }
+    return buffer.data();
+  }
+
+  void TraceCollector::setWindowTensor(std::size_t i, const float* window)
+  {
+    require(i < samples_.size(), "Window index out of range.");
+    if (im_bins_ == IM_BINS)
+    {
+      std::copy_n(window, SAMPLE_SIZE, intensities_.begin() + i * SAMPLE_SIZE);
+      return;
+    }
+    for (std::size_t k = 0; k < FRAGMENTS * RT_BINS; ++k)
+    {
+      for (std::size_t m = 0; m < IM_BINS; ++m)
+      {
+        require(m == IM_BINS / 2 || window[k * IM_BINS + m] == 0.0f, "Window without mobility has signal off the central mobility bin.");
+      }
+      intensities_[i * FRAGMENTS * RT_BINS + k] = window[k * IM_BINS + IM_BINS / 2];
     }
   }
 
@@ -463,7 +495,12 @@ namespace OpenMS::OpenDIA
                           static_cast<char>(header.size() & 255), static_cast<char>((header.size() >> 8) & 255)};
     data.write(magic, sizeof(magic));
     data << header;
-    data.write(reinterpret_cast<const char*>(intensities_.data()), static_cast<std::streamsize>(intensities_.size() * sizeof(float)));
+    // Always the full [N,6,32,8] layout, whatever is stored.
+    std::array<float, SAMPLE_SIZE> buffer;
+    for (std::size_t i = 0; i < samples_.size(); ++i)
+    {
+      data.write(reinterpret_cast<const char*>(windowTensor(i, buffer)), static_cast<std::streamsize>(SAMPLE_SIZE * sizeof(float)));
+    }
     metadata << "sample_id\tprecursor_id\tgroup_id\tis_decoy\tlabel\trt_apex\thas_im\tlibrary_intensities\tfragment_mz\n"
              << std::setprecision(17);
     for (const Sample& sample : samples_)
