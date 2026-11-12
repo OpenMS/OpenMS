@@ -1148,6 +1148,20 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     };
 
     /**
+      @brief The charges the deisotoper gave the peaks (calibration:recalibrate curve), per spectrum and peak
+
+      A deisotoped peak of charge z > 1 is moved to the m/z of its singly charged ion, but a 'curve' model gives the error
+      at the m/z it was measured at: with these charges applyRecalibration_() corrects the peaks in place instead of
+      deisotoping the corrected peaks as measured again. @p searched is aligned with the searched peaks, @p deisotoped
+      with the peaks after deisotoping, before the window and top-N filters (the fragment-evidence copies and the ion
+      priors of all peaks). An empty list: every peak as measured (z <= 1).
+    */
+    struct PeakCharges_
+    {
+      std::vector<std::vector<std::uint8_t>> searched, deisotoped;
+    };
+
+    /**
       @brief filter, deisotope, decharge spectra
 
       @p deisotoping sets the envelope rule of the deisotoper (see DeisotopingSettings_).
@@ -1172,7 +1186,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                    FragmentIonLikelihoodModel::PeakLists* ion_evidence = nullptr,
                                    bool ion_evidence_scored_peaks = false,
                                    PeakMap* evidence_spectra = nullptr,
-                                   PeakMap* query_spectra = nullptr);
+                                   PeakMap* query_spectra = nullptr,
+                                   PeakCharges_* charges = nullptr);
 
     /// preprocessSpectra_() with the DeisotopingSettings_ defaults (the behaviour before its parameters existed)
     static void preprocessSpectra_(PeakMap& exp,
@@ -1786,6 +1801,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       bool active() const { return !chunks.empty(); }
       bool curve() const { return !chunks.empty() && chunks.front().s_hi > 0.0; } ///< mode 'curve': a cubic in sqrt(m/z)
       double error(double mz, double rt) const;   ///< the modelled error at (mz, rt)
+      /// 'curve': how far @p b moved from @p a (one chunk each) where the fragments are, the 95th percentile of the
+      /// differences of their errors at the m/z @p mzs (ends of a fitted range with few fragments, where the curves are
+      /// held constant, hardly matter); infinity if one is not a curve or @p mzs is empty
+      static double curveDistance(const MzRecalibration_& a, const MzRecalibration_& b, const std::vector<double>& mzs);
       double correct(double mz, double rt) const; ///< @p mz without the modelled error
       double uncorrect(double corrected, double rt) const; ///< the inverse of correct(): the m/z it maps to @p corrected
       /**
@@ -1857,8 +1876,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       MzRecalibration_ fragment_recalibration;
       bool recalibrated() const { return precursor_recalibration.active() || fragment_recalibration.active(); }
       /// the fragment model whose error the fragment annotations add back to report the peaks' m/z as observed (nullptr:
-      /// they report the m/z as searched). Not a 'curve' model: its peaks were corrected as measured and deisotoped
-      /// again, so a searched peak need not be at the m/z its correction was computed at
+      /// they report the m/z as searched). Not a 'curve' model: it corrected a charge-reduced peak at the m/z it was
+      /// measured at, which uncorrect() of the searched m/z does not know
       const MzRecalibration_* appliedFragmentRecalibration() const
       {
         return success && fragment_recalibration.active() && !fragment_recalibration.curve() ? &fragment_recalibration : nullptr;
@@ -2037,6 +2056,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *            calibration PSMs mark the RT chunks of the precursor model where most of them are false matches
      *            (MzRecalibration_::fit()).
      * @param[in] decoy_is_prefix Whether @p decoy_string is a prefix (else a suffix) of the accessions.
+     * @param[in] charges calibration:recalibrate curve: the charges of the searched peaks (preprocessSpectra_()), with
+     *            which the passes after the first score corrected copies of the spectra of the subset (one per thread;
+     *            the spectra stay as measured); without them, one pass.
      * @return CalibrationResult_ with estimated tolerances, or success=false if insufficient PSMs.
      */
     CalibrationResult_ runCalibrationPass_(PeakMap& spectra,
@@ -2044,7 +2066,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                            const std::vector<FASTAFile::FASTAEntry>& db,
                                            const PeakMap* query_spectra = nullptr,
                                            const std::string& decoy_string = std::string(),
-                                           bool decoy_is_prefix = true) const;
+                                           bool decoy_is_prefix = true,
+                                           const PeakCharges_* charges = nullptr) const;
 
     /**
      * @brief calibration:recalibrate: subtract the error models of @p cal from the MS2 spectra, in place.
@@ -2056,12 +2079,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * OBSERVED_COISOLATED_MZ. The fragment annotations undo the fragment model (MzRecalibration_::uncorrect()).
      * Nothing happens without a successful calibration or without active models.
      *
-     * 'curve' with @p query_spectra (the peaks as measured): these are corrected and @p spectra and the copies,
-     * @p ion_evidence included, are made from them again (preprocessSpectra_()), as the curve holds at the measured
-     * m/z, not at that of a charge-reduced peak.
+     * 'curve' with @p query_spectra (the peaks as measured): the curve holds at the measured m/z, not at that of a
+     * charge-reduced peak. With the @p charges of the peaks (preprocessSpectra_()), each peak of @p spectra and of the
+     * copies is corrected at the m/z it was measured at, in place, and @p ion_evidence is taken again from the corrected
+     * peaks; @p charges is then cleared. Without them, @p spectra and the copies, @p ion_evidence included, are made
+     * again from the corrected peaks as measured (preprocessSpectra_()).
      */
     void applyRecalibration_(const CalibrationResult_& cal, PeakMap& spectra, PeakMap* query_spectra,
-                             PeakMap* evidence_spectra, FragmentIonLikelihoodModel::PeakLists* ion_evidence = nullptr) const;
+                             PeakMap* evidence_spectra, FragmentIonLikelihoodModel::PeakLists* ion_evidence = nullptr,
+                             PeakCharges_* charges = nullptr) const;
 
     /// Record a successful calibration @p cal in the search parameters of @p protein_ids[0] ('calibration:*'): the measured
     /// errors (offset, sigma, |offset| + 4 sigma), and with calibration:recalibrate the mode, the models and the residual errors
@@ -2300,10 +2326,12 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// Helper: preprocessSpectra_() with the settings of the search, after warning about @p spectra (of @p input;
     /// empty: not named) that cannot be searched as intended: no MS2 spectra (e.g. an MS1-only file), MS2 spectra
     /// recorded as profile spectra, MS2 spectra whose precursor charge lies outside of the charge range (not searched).
-    /// @p ion_evidence is filled with annotate:self_trained_ion_priors only.
+    /// @p ion_evidence is filled with annotate:self_trained_ion_priors only, @p charges with calibration:recalibrate
+    /// curve and @p query_spectra only (else cleared).
     void preprocessSearchedSpectra_(PeakMap& spectra, const std::string& input,
                                     FragmentIonLikelihoodModel::PeakLists& ion_evidence,
-                                    PeakMap* evidence_spectra, PeakMap* query_spectra) const;
+                                    PeakMap* evidence_spectra, PeakMap* query_spectra,
+                                    PeakCharges_* charges = nullptr) const;
 
   public:
     /// Recompute result-level statistics (matched count, unique peptide/protein

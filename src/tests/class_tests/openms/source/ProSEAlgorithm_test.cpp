@@ -166,6 +166,7 @@ public:
   using ProSEAlgorithm::preprocessSpectra_;
   using ProSEAlgorithm::mass_accuracy_score_;
   using ProSEAlgorithm::DeisotopingSettings_;
+  using ProSEAlgorithm::PeakCharges_;
   using ProSEAlgorithm::deisotoping_;
   using ProSEAlgorithm::localFragmentEvidence_;
   using ProSEAlgorithm::localPeakDensities_;
@@ -4174,7 +4175,8 @@ START_SECTION(([EXTRA] calibration:recalibrate 'curve' corrects the measured pea
       ++psms;
     }
     TEST_EQUAL(psms >= 30, true)
-    TEST_EQUAL(corrected_once * 10 >= peaks * 9, true)
+    // (97 %: a spectrum of the calibration subset corrected twice, a tenth of the spectra, would fail it)
+    TEST_EQUAL(corrected_once * 100 >= peaks * 97, true)
   };
   test_corrected_once(spectra, pep_ids);
   // the fragment errors of the run summary are those after the curve: labelled so, with no recommended tolerance
@@ -4425,6 +4427,80 @@ START_SECTION(([EXTRA] calibration:recalibrate corrects the co-isolated precurso
   algo.applyRecalibration_(cal, untouched, nullptr, nullptr);
   TEST_EQUAL(untouched[0].getPrecursors()[0].getMZ() == 700.0 && untouched[0][0].getMZ() == 400.0, true)
   TEST_EQUAL(untouched[0].metaValueExists(ProSEAlgorithm_test::OBSERVED_COISOLATED_MZ), false)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] MzRecalibration_::curveDistance, the convergence measure of the 'curve' calibration passes))
+{
+  using Model = ProSEAlgorithm_test::MzRecalibration_;
+  Model a, b, line;
+  a.chunks.push_back({100.0, -20.0, 30.0, 100, 0.0, 0.0, 10.0, std::sqrt(2000.0)});
+  std::vector<double> mzs; // fragments evenly over m/z 200-1800
+  for (int k = 0; k <= 100; ++k) { mzs.push_back(200.0 + 16.0 * k); }
+  b = a;
+  TEST_REAL_SIMILAR(Model::curveDistance(a, b, mzs), 0.0)
+  b.chunks.front().intercept += 1.0; // the whole curve 1 ppm higher
+  TEST_REAL_SIMILAR(Model::curveDistance(a, b, mzs), 1.0)
+  b = a;
+  b.chunks.front().c3 = 2.0; // + 2 t^3: 0.03 ppm at m/z 1000, 1.3 ppm at m/z 150
+  std::vector<double> few_low(99, 1000.0);
+  few_low.push_back(150.0); // one fragment of a hundred at the low end, where the curves differ
+  TEST_EQUAL(Model::curveDistance(a, b, few_low) < 0.1, true)
+  TEST_EQUAL(Model::curveDistance(a, b, {150.0}) > 1.0, true)
+  line.chunks.push_back({100.0, 5.0, 0.0, 10}); // not a curve
+  TEST_EQUAL(std::isinf(Model::curveDistance(a, line, mzs)), true)
+  TEST_EQUAL(std::isinf(Model::curveDistance(a, a, {})), true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] calibration:recalibrate curve corrects a charge-reduced peak in place at the m/z it was measured at))
+{
+  // a doubly charged envelope (400, 400.5), a singly charged one (600, 601) and a lone peak (700); the deisotoper moves
+  // the doubly charged one to its singly charged ion, 2 * 400 - proton
+  MSSpectrum spectrum;
+  spectrum.setMSLevel(2);
+  spectrum.setRT(100.0);
+  Precursor precursor;
+  precursor.setMZ(900.0);
+  precursor.setCharge(3);
+  spectrum.setPrecursors({precursor});
+  const double c13 = Constants::C13C12_MASSDIFF_U;
+  for (const Peak1D& peak : {Peak1D(400.0, 100.0f), Peak1D(400.0 + c13 / 2.0, 50.0f), Peak1D(600.0, 80.0f),
+                             Peak1D(600.0 + c13, 40.0f), Peak1D(700.0, 30.0f)}) { spectrum.push_back(peak); }
+  PeakMap spectra, evidence, query;
+  spectra.addSpectrum(spectrum);
+  ProSEAlgorithm_test::PeakCharges_ charges;
+  ProSEAlgorithm_test::preprocessSpectra_(spectra, 20.0, true, true, 400, 100, "auto", ProSEAlgorithm_test::DeisotopingSettings_{2, false, false},
+                                          nullptr, false, &evidence, &query, &charges);
+  const double proton = Constants::PROTON_MASS_U;
+  const double reduced = 2.0 * 400.0 - proton;
+  TEST_EQUAL(spectra[0].size(), 3)
+  TEST_REAL_SIMILAR(spectra[0][2].getMZ(), reduced)
+  TEST_EQUAL(spectra[0].getIntegerDataArrays().empty(), true) // (the charges are not left in the spectrum)
+  TEST_EQUAL(charges.searched.size() == 1 && charges.searched[0] == std::vector<std::uint8_t>({1, 0, 2}), true)
+  TEST_EQUAL(charges.deisotoped.size() == 1 && charges.deisotoped[0] == std::vector<std::uint8_t>({1, 0, 2}), true)
+
+  // a curve: -20 + 30 t ppm, t the scaled sqrt(m/z) over m/z 100-2000 (-32.7 ppm at m/z 400, -18.4 at m/z 799)
+  ProSEAlgorithm_test::CalibrationResult_ cal;
+  cal.success = true;
+  cal.fragment_recalibration.ppm = true;
+  cal.fragment_recalibration.chunks.push_back({100.0, -20.0, 30.0, 100, 0.0, 0.0, 10.0, std::sqrt(2000.0)});
+  const auto model = cal.fragment_recalibration.at(100.0);
+  const double expected_reduced = 2.0 * model.correct(400.0) - proton;
+  TEST_EQUAL(std::fabs(model.correct(reduced) - expected_reduced) > 0.005, true) // (correcting at 799 would be wrong)
+  ProSEAlgorithm_test algo;
+  algo.applyRecalibration_(cal, spectra, &query, &evidence, nullptr, &charges);
+  const auto close = [](double a, double b) { return std::fabs(a - b) < 1e-7; };
+  for (const PeakMap* corrected : {&spectra, &evidence})
+  {
+    const MSSpectrum& s = (*corrected)[0];
+    TEST_EQUAL(s.size(), 3)
+    TEST_EQUAL(close(s[0].getMZ(), model.correct(600.0)) && close(s[1].getMZ(), model.correct(700.0)), true)
+    TEST_EQUAL(close(s[2].getMZ(), expected_reduced), true)
+  }
+  TEST_EQUAL(query[0].size(), 5) // the peaks as measured, each at its m/z
+  TEST_EQUAL(close(query[0][0].getMZ(), model.correct(400.0)) && close(query[0][4].getMZ(), model.correct(700.0)), true)
+  TEST_EQUAL(charges.searched.empty() && charges.deisotoped.empty(), true) // (only needed for the correction)
 }
 END_SECTION
 

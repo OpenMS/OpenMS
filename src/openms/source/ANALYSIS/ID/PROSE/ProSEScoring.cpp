@@ -1422,7 +1422,8 @@ namespace OpenMS
     PeakMap evidence_spectra, query_spectra;
     PeakMap* query_ptr = query_raw_spectrum_ ? &query_spectra : nullptr;
     PeakMap* evidence_ptr = param_.getValue("annotate:local_fragment_evidence").toBool() ? &evidence_spectra : nullptr;
-    preprocessSearchedSpectra_(spectra, "", ion_evidence, evidence_ptr, query_ptr);
+    PeakCharges_ peak_charges; // calibration:recalibrate curve: the correction in place (applyRecalibration_())
+    preprocessSearchedSpectra_(spectra, "", ion_evidence, evidence_ptr, query_ptr, &peak_charges);
 
     // ions:by_activation: the chunk indices hold c and z+1 ions if electron-activated spectra are searched
     const Size n_electron_activated = countElectronActivated_(spectra);
@@ -1474,10 +1475,10 @@ namespace OpenMS
       cal_fi.build(cal_db);
 
       cal = runCalibrationPass_(spectra, cal_fi, cal_db, query_ptr, strategy.have_decoys ? strategy.decoy_string : std::string(),
-                                strategy.is_prefix);
+                                strategy.is_prefix, &peak_charges);
       if (cal.success)
       {
-        applyRecalibration_(cal, spectra, query_ptr, evidence_ptr, &ion_evidence);
+        applyRecalibration_(cal, spectra, query_ptr, evidence_ptr, &ion_evidence, &peak_charges);
         effective_fragment_tol = cal.fragment_tolerance;
         if (!cal.extreme_bias)
         {

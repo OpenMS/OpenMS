@@ -61,6 +61,25 @@ namespace OpenMS
 {
   using namespace Internal::ProSEAlgorithmHelpers;
 
+  namespace
+  {
+    // The peaks of @p s corrected by @p model (an MzRecalibration_::AtRT), each at the m/z it was measured at: a deisotoped
+    // peak of charge z > 1 (@p charges, aligned with the peaks; empty: every peak as measured) holds the m/z of its singly
+    // charged ion, z mz - (z - 1) proton (Deisotoper::deisotopeAndSingleCharge()), and keeps it
+    template <class Model>
+    void correctAtMeasuredMZ(MSSpectrum& s, const Model& model, const std::vector<std::uint8_t>& charges)
+    {
+      const double proton = Constants::PROTON_MASS_U;
+      for (Size k = 0; k < s.size(); ++k)
+      {
+        const double z = charges.empty() ? 1.0 : static_cast<double>(std::max<std::uint8_t>(1, charges[k]));
+        const double mz = s[k].getMZ();
+        s[k].setMZ(z == 1.0 ? model.correct(mz) : model.correct((mz + (z - 1.0) * proton) / z) * z - (z - 1.0) * proton);
+      }
+      if (!s.isSorted()) { s.sortByPosition(); } // (peaks of different charge may change places)
+    }
+  }
+
   // =====================================================================
   // Helper: decoy-marker membership test (prefix/suffix), pure std::string.
   // =====================================================================
@@ -564,8 +583,15 @@ namespace OpenMS
 
   void ProSEAlgorithm::preprocessSearchedSpectra_(PeakMap& spectra, const std::string& input,
                                                    FragmentIonLikelihoodModel::PeakLists& ion_evidence,
-                                                   PeakMap* evidence_spectra, PeakMap* query_spectra) const
+                                                   PeakMap* evidence_spectra, PeakMap* query_spectra,
+                                                   PeakCharges_* charges) const
   {
+    // the charges only for a 'curve' recalibration, which corrects the peaks with them (applyRecalibration_())
+    if (charges != nullptr) { *charges = PeakCharges_(); }
+    if (!(calibration_enabled_ && calibration_recalibrate_ == "curve" && query_spectra != nullptr && fragment_mass_tolerance_unit_ == "ppm"))
+    {
+      charges = nullptr;
+    }
     const SpectraCounts_ counts = countSpectra_(spectra);
     const std::string of = input.empty() ? std::string() : " of '" + input + "'";
     if (counts.ms2 == 0)
@@ -591,7 +617,7 @@ namespace OpenMS
     preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ == "ppm", deisotope_requested_,
                        peaks_keep_n_, peaks_window_top_, peaks_window_type_, deisotoping_,
                        self_trained_ion_priors_ ? &ion_evidence : nullptr, ion_prior_scored_peaks_, evidence_spectra,
-                       query_spectra);
+                       query_spectra, charges);
   }
 
   void ProSEAlgorithm::collectRunStatistics_(
@@ -855,7 +881,8 @@ namespace OpenMS
       const std::vector<FASTAFile::FASTAEntry>& db,
       const PeakMap* query_spectra,
       const std::string& decoy_string,
-      bool decoy_is_prefix) const
+      bool decoy_is_prefix,
+      const PeakCharges_* charges) const
   {
     CalibrationResult_ result;
 
@@ -913,7 +940,7 @@ namespace OpenMS
         for (Size i = begin; i < begin + take; ++i) { subset.push_back(tic_index[i].second); }
       }
     }
-    // ('curve': in acquisition order, the order of the copy the second pass corrects; otherwise as upstream, which
+    // ('curve': in acquisition order, as the passes of its first version scored it; otherwise as upstream, which
     // only decides between hits of the same score at the cut below)
     if (curve) { std::sort(subset.begin(), subset.end()); }
     const Size subset_size = subset.size();
@@ -945,15 +972,29 @@ namespace OpenMS
     // decoy: the best hit is a peptide of a decoy protein, which marks the RT chunks of the precursor model whose PSMs are
     // mostly false matches)
     struct CalHit { double score; double prec_error; std::vector<float> frag_errors; double rt; double prec_mz; std::vector<float> frag_mzs; bool decoy; };
-    // calibration:recalibrate curve scores the subset twice (below): the second time as corrected by the first curve
+    // calibration:recalibrate curve scores the subset again as corrected by the last curve until the curve is stable (below)
     Size cal_hits_total = 0;
     vector<double> precursor_errors, precursor_mzs, precursor_rts;
     vector<char> precursor_decoys;
     vector<double> fragment_errors, fragment_mzs, fragment_rts;
-    MzRecalibration_ fragment_curve;
-    PeakMap corrected, corrected_query; // the subset as the first curve corrects it (second pass)
+    MzRecalibration_ fragment_curve, previous_curve;
+    // 'curve': the first pass only has to give the curve that the next pass corrects the subset with, so it scores an
+    // evenly spaced sample of about 10000 spectra of the subset; again all of them if that sample fails. Each later pass
+    // scores the whole subset as corrected by the last curve and fits the curve again (to the errors as measured), until
+    // it moves by at most curve_tolerance ppm where the fragments are, or after max_passes.
+    // ponytail: fixed sample size, tolerance and pass limit; parameters if runs need others
+    constexpr Size first_pass_sample = 10000;
+    constexpr double curve_tolerance = 2.0; // ppm (the residual spread of a timsTOF run is about 6 ppm)
+    constexpr int max_passes = 3;
+    Size sample = curve && subset_size > first_pass_sample ? first_pass_sample : 0; // (0: all)
+    // The later passes score each spectrum of the subset as corrected by the last curve (correcting; inactive in the first
+    // pass): the searched peaks at the m/z they were measured at (with the charges of the deisotoper) and the peaks as
+    // measured, in copies of this thread; the spectra stay as measured, and the errors are read from them.
+    const bool later_passes = curve && charges != nullptr && charges->searched.size() == spectra.size();
+    MzRecalibration_ correcting;
     for (int pass = 0; ; ++pass)
     {
+      const Size pass_sample = pass == 0 ? sample : 0;
       // At most one hit per spectrum of the subset, in its slot (written by one iteration only): collected in subset order
       // after the loop
       vector<CalHit> slots(subset_size);
@@ -985,11 +1026,24 @@ namespace OpenMS
       for (SignedSize oi = 0; oi < (SignedSize)subset_size; ++oi)
       {
         if (calibration_failed.load(std::memory_order_relaxed)) continue;
+        if (pass_sample > 0 && order[oi] * pass_sample / subset_size == (order[oi] + 1) * pass_sample / subset_size) continue;
         try
         {
         const Size si = order[oi];
         const Size scan_idx = subset[si];
-        const MSSpectrum& spec = pass == 0 ? spectra[scan_idx] : corrected[si];
+        // (the peaks as measured: the errors of every pass are read from them)
+        const MSSpectrum& measured = query_spectra != nullptr ? (*query_spectra)[scan_idx] : spectra[scan_idx];
+        thread_local MSSpectrum corrected_spectrum, corrected_query; // (a later pass: this thread's copies, reused)
+        if (correcting.active())
+        {
+          const MzRecalibration_::AtRT model = correcting.at(spectra[scan_idx].getRT());
+          corrected_spectrum = spectra[scan_idx];
+          correctAtMeasuredMZ(corrected_spectrum, model, charges->searched[scan_idx]);
+          corrected_query = measured;
+          correctAtMeasuredMZ(corrected_query, model, {});
+        }
+        const MSSpectrum& spec = correcting.active() ? corrected_spectrum : spectra[scan_idx];
+        const MSSpectrum& query = correcting.active() ? corrected_query : measured;
         const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spec);
 
         // The per-thread containers of the main loop (scoreSpectraAgainstIndex_()): the candidates and the theoretical
@@ -997,9 +1051,6 @@ namespace OpenMS
         ScoringScratch_& scratch = scoringScratch_();
         FragmentIndex::SpectrumMatchesTopN& top_sms = scratch.top_sms;
         top_sms.clear();
-        // (the peaks as measured: the errors of both passes are read from them)
-        const MSSpectrum& measured = query_spectra != nullptr ? (*query_spectra)[scan_idx] : spectra[scan_idx];
-        const MSSpectrum& query = pass == 0 ? measured : corrected_query[si];
         fragment_index.querySpectrum(query, db, top_sms, generators.electronIons(spec));
 
         // Find the best-scoring hit for this spectrum
@@ -1134,6 +1185,12 @@ namespace OpenMS
         fragment_rts.insert(fragment_rts.end(), h.frag_errors.size(), h.rt);
       }
 
+      if (precursor_errors.size() < calibration_min_psms_ && pass_sample > 0)
+      {
+        sample = 0; // (the sample was too small: all spectra of the subset)
+        pass = -1;
+        continue;
+      }
       if (precursor_errors.size() < calibration_min_psms_)
       {
         OPENMS_LOG_WARN << "[ProSE] Calibration: insufficient PSMs (" << precursor_errors.size()
@@ -1155,34 +1212,37 @@ namespace OpenMS
           // identifications on the validation run); curves per RT chunk with a shared shape if a run's curve drifts
           fragment_curve = MzRecalibration_::fit(fragment_errors, fragment_mzs, fragment_rts, 1, min_peaks, false, true, nullptr, true);
         }
-        if (pass == 0 && fragment_curve.active())
+        if (pass == 0 && !fragment_curve.active() && pass_sample > 0)
         {
-          // The first pass identified and scored the spectra with the pass window on the errors as measured, which holds
-          // only the fragments of the best-calibrated m/z range: fewer and poorer calibration PSMs, and a curve that
-          // nothing measures again. So the subset is corrected by this curve, scored again, and the curve is fitted
-          // again to the peaks as measured of the PSMs of the second pass (one model, as before).
-          // ponytail: two passes; iterate until the curve stops moving if a run needs more
-          CalibrationResult_ first;
-          first.success = true;
-          first.fragment_recalibration = fragment_curve;
-          corrected.clear(true);
-          corrected_query.clear(true);
-          for (Size i = 0; i < subset_size; ++i)
-          {
-            corrected.addSpectrum(spectra[subset[i]]);
-            corrected_query.addSpectrum((*query_spectra)[subset[i]]);
-          }
-          // The second pass pairs corrected[i] with spectra[subset[i]]; preprocessSpectra_() sorts spectra that are not in
-          // retention time order (e.g. one without a retention time), which would pair the errors with the wrong scans, so
-          // such a subset keeps the first curve.
-          // ponytail: map the indices through the sort if such runs matter
-          if (inRetentionTimeOrder(corrected))
-          {
-            OPENMS_LOG_INFO << "[ProSE] Calibration: second pass over the subset, corrected by " << fragment_curve.toString() << std::endl;
-            applyRecalibration_(first, corrected, &corrected_query, nullptr);
-            continue;
-          }
-          OPENMS_LOG_WARN << "[ProSE] Calibration: the calibration spectra are not in retention time order; no second pass, the first fragment error curve is kept." << std::endl;
+          sample = 0; // (no curve from the sample: from all spectra of the subset)
+          pass = -1;
+          continue;
+        }
+        // (a pass after the first that fits no curve keeps the last one)
+        if (pass > 0 && !fragment_curve.active()) { fragment_curve = previous_curve; }
+        double moved = std::numeric_limits<double>::infinity();
+        if (pass > 0 && fragment_curve.active() && previous_curve.active())
+        {
+          moved = MzRecalibration_::curveDistance(previous_curve, fragment_curve, fragment_mzs);
+          OPENMS_LOG_INFO << "[ProSE] Calibration: pass " << pass + 1 << ", the fragment error curve moved by "
+                          << moved << " ppm (95th percentile at the fragments)" << std::endl;
+        }
+        const bool stable = moved <= curve_tolerance;
+        if (fragment_curve.active() && !stable && pass + 1 < max_passes && later_passes)
+        {
+          // A pass identifies and scores the spectra with the pass window on the errors it sees: the first one on the errors
+          // as measured, which holds only the fragments of the best-calibrated m/z range, so fewer and poorer calibration
+          // PSMs and a curve that nothing measures again. So the subset is corrected by the last curve, scored again, and
+          // the curve is fitted again to the peaks as measured of the PSMs of that pass.
+          previous_curve = fragment_curve;
+          OPENMS_LOG_INFO << "[ProSE] Calibration: pass " << pass + 2 << " over the subset, corrected by " << fragment_curve.toString() << std::endl;
+          correcting = fragment_curve;
+          continue;
+        }
+        else if (pass > 0 && fragment_curve.active())
+        {
+          OPENMS_LOG_INFO << "[ProSE] Calibration: fragment error curve " << (stable ? "stable" : "not stable") << " after " << pass + 1
+                          << " passes" << (stable ? "" : " (the limit)") << std::endl;
         }
         Size kept = 0;
         for (Size i = 0; i < fragment_errors.size();)
@@ -1496,6 +1556,19 @@ namespace OpenMS
     return mz;
   }
 
+  double ProSEAlgorithm::MzRecalibration_::curveDistance(const MzRecalibration_& a, const MzRecalibration_& b,
+                                                         const std::vector<double>& mzs)
+  {
+    if (!a.curve() || !b.curve() || mzs.empty()) return std::numeric_limits<double>::infinity();
+    const Chunk& ca = a.chunks.front();
+    const Chunk& cb = b.chunks.front();
+    std::vector<double> differences(mzs.size());
+    for (Size k = 0; k < mzs.size(); ++k) { differences[k] = std::fabs(ca.error(mzs[k]) - cb.error(mzs[k])); }
+    const auto q95 = differences.begin() + static_cast<std::ptrdiff_t>(0.95 * static_cast<double>(differences.size() - 1));
+    std::nth_element(differences.begin(), q95, differences.end());
+    return *q95;
+  }
+
   std::string ProSEAlgorithm::MzRecalibration_::toString() const
   {
     if (chunks.empty()) return "";
@@ -1626,7 +1699,8 @@ namespace OpenMS
   }
 
   void ProSEAlgorithm::applyRecalibration_(const CalibrationResult_& cal, PeakMap& spectra, PeakMap* query_spectra,
-                                           PeakMap* evidence_spectra, FragmentIonLikelihoodModel::PeakLists* ion_evidence) const
+                                           PeakMap* evidence_spectra, FragmentIonLikelihoodModel::PeakLists* ion_evidence,
+                                           PeakCharges_* charges) const
   {
     if (!cal.success || !cal.recalibrated()) return;
     const MzRecalibration_& precursor_model = cal.precursor_recalibration;
@@ -1644,9 +1718,20 @@ namespace OpenMS
       for (Peak1D& p : s) { p.setMZ(model.correct(p.getMZ())); } // (monotone for any sane model: the order stays)
     };
     // 'curve' gives the error at the m/z a peak was measured at, which a deisotoped peak no longer has (its m/z is that
-    // of the singly charged ion): with the peaks as measured at hand (fragment:query_spectrum raw), these are corrected
-    // and the searched spectra are made from them again (a curve is only fitted with these peaks at hand).
-    const bool rebuild = fragment_model.curve() && query_spectra != nullptr;
+    // of the singly charged ion): each peak is corrected at its measured m/z (in place, below), or, without the charges
+    // of the peaks, the searched spectra are made again from the corrected peaks as measured (fragment:query_spectrum
+    // raw; a curve is only fitted with these peaks at hand).
+    const bool curve = fragment_model.curve() && query_spectra != nullptr;
+    // In place with the charges of the deisotoped peaks: each peak at the m/z it was measured at, (m + (z - 1) proton) / z,
+    // then moved back to its singly charged ion (as Deisotoper::deisotopeAndSingleCharge()). The ion priors of all peaks
+    // are taken from the corrected fragment-evidence copies, which hold the same peaks; without these copies, rebuilt.
+    // (the ion priors' lists exist with annotate:self_trained_ion_priors only, as preprocessSpectra_() fills them)
+    FragmentIonLikelihoodModel::PeakLists* const ion_lists
+      = self_trained_ion_priors_ && ion_evidence != nullptr && ion_evidence->size() == spectra.size() ? ion_evidence : nullptr;
+    const bool in_place = curve && charges != nullptr && charges->searched.size() == spectra.size()
+                          && (evidence_spectra == nullptr || charges->deisotoped.size() == spectra.size())
+                          && (ion_lists == nullptr || ion_prior_scored_peaks_ || evidence_spectra != nullptr);
+    const bool rebuild = curve && !in_place;
     Size precursors = 0, coisolated = 0, peaks = 0;
 #pragma omp parallel for schedule(static) reduction(+: precursors, coisolated, peaks)
     for (SignedSize i = 0; i < static_cast<SignedSize>(spectra.size()); ++i)
@@ -1675,7 +1760,13 @@ namespace OpenMS
       {
         const MzRecalibration_::AtRT model = fragment_model.at(rt);
         if (query_spectra != nullptr) { correct_peaks((*query_spectra)[i], model); }
-        if (rebuild)
+        if (in_place)
+        {
+          correctAtMeasuredMZ(s, model, charges->searched[i]);
+          if (evidence_spectra != nullptr) { correctAtMeasuredMZ((*evidence_spectra)[i], model, charges->deisotoped[i]); }
+          if (ion_lists != nullptr) { ion_lists->assign(i, ion_prior_scored_peaks_ ? s : (*evidence_spectra)[i]); }
+        }
+        else if (rebuild)
         {
           const MSSpectrum& measured = (*query_spectra)[i];
           // ponytail: clear() drops the data arrays too; those preprocessSpectra_() makes are made again, arrays of the
@@ -1698,6 +1789,7 @@ namespace OpenMS
                          self_trained_ion_priors_ ? ion_evidence : nullptr, ion_prior_scored_peaks_, evidence_spectra,
                          query_spectra);
     }
+    if (charges != nullptr) { *charges = PeakCharges_(); } // (only needed here)
     OPENMS_LOG_INFO << "[ProSE] Recalibration (" << calibration_recalibrate_ << "): corrected the precursor m/z of " << precursors
                     << " spectra" << (coisolated > 0 ? " and of " + std::to_string(coisolated) + " co-isolated precursors" : std::string())
                     << " and " << peaks << " fragment peaks in place (the PSMs report the observed m/z)" << std::endl;
