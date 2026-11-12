@@ -709,7 +709,9 @@ namespace OpenMS
       PeakMap& spectra,
       FragmentIndex& fragment_index,
       const std::vector<FASTAFile::FASTAEntry>& db,
-      const PeakMap* query_spectra) const
+      const PeakMap* query_spectra,
+      const std::string& decoy_string,
+      bool decoy_is_prefix) const
   {
     CalibrationResult_ result;
 
@@ -783,8 +785,10 @@ namespace OpenMS
     const SpectrumGenerators_ generators = spectrumGenerators_();
 
     // Collect per-spectrum best hits with scores and errors
-    // (rt, prec_mz [theoretical] and frag_mzs [theoretical, aligned with frag_errors] feed the models of calibration:recalibrate)
-    struct CalHit { double score; double prec_error; std::vector<float> frag_errors; double rt; double prec_mz; std::vector<float> frag_mzs; };
+    // (rt, prec_mz [theoretical] and frag_mzs [theoretical, aligned with frag_errors] feed the models of calibration:recalibrate;
+    // decoy: the best hit is a peptide of a decoy protein, which marks the RT chunks of the precursor model whose PSMs are
+    // mostly false matches)
+    struct CalHit { double score; double prec_error; std::vector<float> frag_errors; double rt; double prec_mz; std::vector<float> frag_mzs; bool decoy; };
     // At most one hit per spectrum of the subset, in its slot (written by one iteration only): collected in subset order
     // after the loop
     vector<CalHit> slots(subset_size);
@@ -836,6 +840,7 @@ namespace OpenMS
       AASequence best_seq;
       int best_isotope_error = 0;
       uint16_t best_charge = 0;
+      UInt32 best_protein = 0; // the protein the fragment index records for the peptide of the best hit
 
       PeakSpectrum& theo = scratch.theo_spectrum;
       std::vector<uint8_t>& theo_ion_series = scratch.theo_ion_series;
@@ -877,6 +882,7 @@ namespace OpenMS
           best_seq = std::move(seq);
           best_isotope_error = sms.isotope_error_;
           best_charge = sms.precursor_charge_;
+          best_protein = peptide.protein_idx;
         }
       }
 
@@ -911,7 +917,10 @@ namespace OpenMS
       }
       matchedFragmentErrors(spec, theo, pass_fragment, fragment_mass_tolerance_unit_ppm, frag_errors, &frag_mzs);
 
-      slots[si] = CalHit{best_score, prec_err, std::move(frag_errors), spec.getRT(), theo_mz, std::move(frag_mzs)};
+      const bool decoy = !decoy_string.empty() && best_protein < db.size()
+        && (decoy_is_prefix ? StringUtils::hasPrefix(db[best_protein].identifier, decoy_string)
+                            : StringUtils::hasSuffix(db[best_protein].identifier, decoy_string));
+      slots[si] = CalHit{best_score, prec_err, std::move(frag_errors), spec.getRT(), theo_mz, std::move(frag_mzs), decoy};
       filled[si] = 1;
       }
       catch (...)
@@ -942,6 +951,7 @@ namespace OpenMS
     // The hits the pass window delivers: the signed error e = observed - theoretical lies in [-upper, +lower] (the
     // mass-space window is [observed - lower, observed + upper]; the bounds flip for asymmetric windows)
     vector<double> precursor_errors, precursor_mzs, precursor_rts;
+    vector<char> precursor_decoys;
     vector<double> fragment_errors, fragment_mzs, fragment_rts;
     for (const auto& h : cal_hits)
     {
@@ -949,6 +959,7 @@ namespace OpenMS
       precursor_errors.push_back(h.prec_error);
       precursor_mzs.push_back(h.prec_mz);
       precursor_rts.push_back(h.rt);
+      precursor_decoys.push_back(h.decoy);
       fragment_errors.insert(fragment_errors.end(), h.frag_errors.begin(), h.frag_errors.end());
       fragment_mzs.insert(fragment_mzs.end(), h.frag_mzs.begin(), h.frag_mzs.end());
       fragment_rts.insert(fragment_rts.end(), h.frag_errors.size(), h.rt);
@@ -980,8 +991,20 @@ namespace OpenMS
         return std::make_pair(med, 1.4826 * mad);
       };
       std::tie(result.precursor_raw_shift, result.precursor_raw_sigma) = robust(precursor_errors);
+      // (the decoy hits mark the chunks whose PSMs are mostly false matches, which take the model of their neighbours)
       result.precursor_recalibration = MzRecalibration_::fit(precursor_errors, precursor_mzs, precursor_rts,
-        calibration_recalibrate_rt_chunks_, calibration_min_psms_, linear, precursor_ppm);
+        calibration_recalibrate_rt_chunks_, calibration_min_psms_, linear, precursor_ppm,
+        decoy_string.empty() ? nullptr : &precursor_decoys);
+      const auto& chunks = result.precursor_recalibration.chunks;
+      const Size from_neighbours = static_cast<Size>(std::count_if(chunks.begin(), chunks.end(),
+                                                                   [](const MzRecalibration_::Chunk& c) { return c.from_neighbours; }));
+      if (from_neighbours > 0)
+      {
+        OPENMS_LOG_INFO << "[ProSE] Calibration: in " << from_neighbours << " of " << chunks.size() << " RT chunks of the "
+                        << "precursor model most calibration PSMs are false matches (more than a quarter are decoy hits): "
+                        << (from_neighbours == chunks.size() ? "one offset for the run, the median of all calibration PSMs."
+                                                             : "they take the offset of their neighbours.") << std::endl;
+      }
       for (Size i = 0; i < precursor_errors.size(); ++i)
       {
         precursor_errors[i] -= result.precursor_recalibration.error(precursor_mzs[i], precursor_rts[i]);
@@ -1239,22 +1262,25 @@ namespace OpenMS
     {
       s << "; rt " << std::fixed << std::setprecision(1) << c.rt << ": " << std::setprecision(4) << c.intercept;
       if (c.slope != 0.0) { s << (c.slope < 0 ? " - " : " + ") << std::scientific << std::setprecision(3) << std::fabs(c.slope) << " mz"; }
-      s << " (" << c.points << ")";
+      s << " (" << c.points;
+      if (c.from_neighbours) { s << ", " << c.decoys << " decoys: mostly false matches"; }
+      s << ")";
     }
     return s.str();
   }
 
   ProSEAlgorithm::MzRecalibration_ ProSEAlgorithm::MzRecalibration_::fit(const std::vector<double>& errors, const std::vector<double>& mzs,
-    const std::vector<double>& rts, Size n_chunks, Size min_points, bool linear, bool ppm)
+    const std::vector<double>& rts, Size n_chunks, Size min_points, bool linear, bool ppm, const std::vector<char>* decoys)
   {
     MzRecalibration_ model;
     model.ppm = ppm;
     const Size n = errors.size();
-    if (n == 0 || mzs.size() != n || rts.size() != n) return model;
+    if (n == 0 || mzs.size() != n || rts.size() != n || (decoys != nullptr && decoys->size() != n)) return model;
     std::vector<Size> order(n);
     std::iota(order.begin(), order.end(), Size(0));
     std::stable_sort(order.begin(), order.end(), [&rts](Size a, Size b) { return rts[a] < rts[b]; });
     n_chunks = std::max<Size>(1, std::min(n_chunks, n / std::max<Size>(1, min_points)));
+    std::vector<char> mostly_false(n_chunks, 0);
     for (Size c = 0; c < n_chunks; ++c)
     {
       const Size begin = n * c / n_chunks, end = n * (c + 1) / n_chunks;
@@ -1265,6 +1291,11 @@ namespace OpenMS
       std::vector<double> sorted = e;
       const auto [med, mad] = medianAndMADBySelection(sorted);
       Chunk chunk{rts[order[(begin + end) / 2]], med, 0.0, e.size()}; // the centre: the median RT of the chunk
+      if (decoys != nullptr)
+      {
+        for (Size i = begin; i < end; ++i) { chunk.decoys += (*decoys)[order[i]] != 0; }
+        mostly_false[c] = 4 * chunk.decoys > end - begin; // estimated false matches (2 * decoys) > half of the points
+      }
       if (linear)
       {
         // the least-squares line through the points within 3 sigma of the median (the false matches among the PSMs)
@@ -1280,6 +1311,45 @@ namespace OpenMS
         }
       }
       model.chunks.push_back(chunk);
+    }
+    // A chunk whose calibration PSMs are mostly false matches takes the model of its neighbours. Its median is that of
+    // the false matches, which need not be near the mass error of the instrument: a contaminant that elutes over
+    // minutes (PEG late in a run) is matched to targets and decoys alike at the same +11 ppm, and the last three of
+    // eight chunks of a PXD019643 class I run (twice their decoys: 78-96 % of their PSMs) got +9 to +11 ppm, whose
+    // correct PSMs are within 0.3 ppm of 0, and lost them from the 5 ppm window of the search (OpenMS/OpenMS#10885).
+    // The decoys tell such a chunk from a drift of the instrument, which shifts the errors of correct PSMs and is
+    // followed (-15 ppm in the last chunk of a PXD011695 EThcD run, 1 decoy among its 88 PSMs).
+    if (std::find(mostly_false.begin(), mostly_false.end(), 1) == mostly_false.end()) return model;
+    if (std::find(mostly_false.begin(), mostly_false.end(), 0) == mostly_false.end())
+    {
+      // no chunk to take the model from: the median of all points, one offset for the run
+      std::vector<double> all = errors;
+      const double median = medianAndMADBySelection(all).first;
+      for (Chunk& chunk : model.chunks) { chunk.intercept = median; chunk.slope = 0.0; chunk.from_neighbours = true; }
+      return model;
+    }
+    const std::vector<Chunk> fitted = model.chunks;
+    for (Size c = 0; c < n_chunks; ++c)
+    {
+      if (!mostly_false[c]) continue;
+      SignedSize before = static_cast<SignedSize>(c) - 1;
+      while (before >= 0 && mostly_false[static_cast<Size>(before)]) { --before; }
+      Size after = c + 1;
+      while (after < n_chunks && mostly_false[after]) { ++after; }
+      Chunk& chunk = model.chunks[c];
+      chunk.from_neighbours = true;
+      if (before < 0 || after == n_chunks || !(fitted[after].rt > fitted[static_cast<Size>(before)].rt))
+      {
+        const Chunk& nearest = before < 0 ? fitted[after] : fitted[static_cast<Size>(before)]; // at an end (or no RT range): the nearest
+        chunk.intercept = nearest.intercept;
+        chunk.slope = nearest.slope;
+        continue;
+      }
+      const Chunk& lo = fitted[static_cast<Size>(before)];
+      const Chunk& hi = fitted[after];
+      const double w = (chunk.rt - lo.rt) / (hi.rt - lo.rt); // as the model interpolates between chunks
+      chunk.intercept = (1.0 - w) * lo.intercept + w * hi.intercept;
+      chunk.slope = (1.0 - w) * lo.slope + w * hi.slope;
     }
     return model;
   }

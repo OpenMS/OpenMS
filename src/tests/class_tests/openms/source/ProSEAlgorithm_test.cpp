@@ -3952,6 +3952,98 @@ START_SECTION(([EXTRA] MzRecalibration_::fit models the error per RT chunk, the 
   TEST_EQUAL(std::fabs(linear.uncorrect(linear.correct(300.0, 0.0), 0.0) - 300.0) < 1e-9, true)
   TEST_EQUAL(std::fabs(da.uncorrect(da.correct(500.0, 1.0), 1.0) - 500.0) < 1e-9, true)
 
+  // Chunks whose calibration PSMs are mostly false matches take the model of their neighbours (OpenMS/OpenMS#10885):
+  // eight chunks of 60 points; in the first five 45 correct points near 0.2 ppm and 15 false ones spread over the
+  // +/- 20 ppm of the calibration pass, 5 of them decoy hits; in the last three 6 correct points and 54 false ones
+  // between +5 and +20 ppm (as PEG late in a run, matched to targets and decoys alike), 20 of them decoy hits
+  {
+    vector<double> e8, mz8, rt8;
+    vector<char> d8;
+    for (Size c = 0; c < 8; ++c)
+    {
+      const Size correct = c < 5 ? 45 : 6, decoys = c < 5 ? 5 : 20;
+      for (Size i = 0; i < 60; ++i)
+      {
+        const double u = std::fmod(0.6180339887 * static_cast<double>(60 * c + i + 1), 1.0); // spread over [0, 1)
+        e8.push_back(i < correct ? 0.2 + 0.5 * std::sin(static_cast<double>(i)) : (c < 5 ? -20.0 + 40.0 * u : 5.0 + 15.0 * u));
+        mz8.push_back(400.0 + 37.0 * static_cast<double>((7 * i) % 11));
+        rt8.push_back(static_cast<double>(60 * c + i));
+        d8.push_back(i >= 60 - decoys ? 1 : 0);
+      }
+    }
+    // without the decoys: the median of a chunk of false matches is theirs
+    const Model plain = Model::fit(e8, mz8, rt8, 8, 50, false, true);
+    for (Size c = 5; c < 8; ++c) { TEST_EQUAL(plain.chunks[c].intercept > 5.0, true) }
+    for (const bool lin : {false, true})
+    {
+      const Model m = Model::fit(e8, mz8, rt8, 8, 50, lin, true, &d8);
+      TEST_EQUAL(m.chunks.size(), 8)
+      for (Size c = 0; c < 8; ++c)
+      {
+        TEST_EQUAL(m.chunks[c].decoys, c < 5 ? 5 : 20)
+        TEST_EQUAL(m.chunks[c].from_neighbours, c >= 5)
+        TEST_EQUAL(std::fabs(m.chunks[c].intercept + m.chunks[c].slope * 550.0 - 0.2) < 1.0, true)
+      }
+      for (Size c = 5; c < 8; ++c) // at the end of the run: the model of the last chunk before them
+      {
+        TEST_REAL_SIMILAR(m.chunks[c].intercept, m.chunks[4].intercept)
+        TEST_REAL_SIMILAR(m.chunks[c].slope, m.chunks[4].slope)
+      }
+      TEST_EQUAL(m.toString().find(", 20 decoys: mostly false matches)") != std::string::npos, true)
+    }
+    // the same flags without such a chunk change nothing
+    const vector<char> few(d8.size(), 0);
+    const Model same = Model::fit(e8, mz8, rt8, 8, 50, false, true, &few);
+    for (Size c = 0; c < 8; ++c) { TEST_EQUAL(same.chunks[c].intercept, plain.chunks[c].intercept) }
+    TEST_EQUAL(same.toString(), plain.toString())
+  }
+
+  // ... while a drift of the instrument, of correct PSMs, is followed: -18 ppm in the last of ten chunks, 1 decoy hit
+  // among its 60 points; and a chunk inside the run takes the model interpolated between its neighbours at its RT
+  {
+    vector<double> ed, mzd, rtd;
+    vector<char> dd;
+    for (Size c = 0; c < 10; ++c)
+    {
+      for (Size i = 0; i < 60; ++i)
+      {
+        const bool false_match = c == 4 && i < 40; // chunk 4: 40 false matches at +12 ppm, 16 of them decoys
+        ed.push_back(c == 9 ? -18.0 + 0.5 * std::sin(static_cast<double>(i))
+                            : (false_match ? 12.0 : 0.1 * static_cast<double>(c)) + 0.3 * std::sin(static_cast<double>(i)));
+        mzd.push_back(500.0);
+        rtd.push_back(static_cast<double>(60 * c + i));
+        dd.push_back((c == 9 && i == 7) || (false_match && i % 5 < 2) ? 1 : 0);
+      }
+    }
+    const Model d = Model::fit(ed, mzd, rtd, 10, 50, false, true, &dd);
+    TEST_EQUAL(d.chunks.size(), 10)
+    TEST_EQUAL(d.chunks[9].from_neighbours, false)
+    TEST_EQUAL(d.chunks[9].decoys, 1)
+    TEST_EQUAL(std::fabs(d.chunks[9].intercept + 18.0) < 1.0, true)
+    TEST_EQUAL(d.chunks[4].from_neighbours, true)
+    TEST_EQUAL(d.chunks[4].decoys, 16)
+    const double w = (d.chunks[4].rt - d.chunks[3].rt) / (d.chunks[5].rt - d.chunks[3].rt);
+    TEST_REAL_SIMILAR(d.chunks[4].intercept, (1.0 - w) * d.chunks[3].intercept + w * d.chunks[5].intercept)
+    TEST_EQUAL(std::fabs(d.chunks[4].intercept - 0.4) < 0.3, true)
+  }
+
+  // every chunk mostly false matches: the median of all points, one offset for the run
+  {
+    const vector<double> e{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0}, x(8, 500.0), t{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
+    const vector<char> all_decoys{1, 0, 1, 0, 1, 0, 1, 0};
+    const Model a = Model::fit(e, x, t, 2, 4, true, true, &all_decoys);
+    TEST_EQUAL(a.chunks.size(), 2)
+    for (const auto& chunk : a.chunks)
+    {
+      TEST_EQUAL(chunk.from_neighbours, true)
+      TEST_REAL_SIMILAR(chunk.intercept, 4.5)
+      TEST_EQUAL(chunk.slope, 0.0)
+    }
+    // flags that do not match the points: inactive
+    const vector<char> short_flags(3, 0);
+    TEST_EQUAL(Model::fit(e, x, t, 2, 4, false, true, &short_flags).active(), false)
+  }
+
   // nothing to fit: inactive
   const Model none = Model::fit({}, {}, {}, 1, 1, true, true);
   TEST_EQUAL(none.active(), false)

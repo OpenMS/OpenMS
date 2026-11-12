@@ -768,7 +768,9 @@ namespace OpenMS
       "Correct the m/z of the spectra by the mass errors the calibration pass measures, before the main search: "
       "'offset' subtracts the median error, 'linear' a line in m/z fitted to the errors (precursor errors against "
       "the precursor m/z, fragment errors against the fragment m/z), each per retention-time chunk "
-      "(calibration:recalibrate_rt_chunks) and interpolated between the chunks. The precursor m/z and the fragment "
+      "(calibration:recalibrate_rt_chunks) and interpolated between the chunks; a chunk of the precursor model whose "
+      "calibration PSMs are mostly false matches (more than a quarter of them decoy hits) takes the offset of its "
+      "neighbours. The precursor m/z and the fragment "
       "peaks of the searched MS2 spectra are corrected in place (the candidate retrieval, the scoring and the PSMs' "
       "mass errors use the corrected values; a PeakMap passed to the library is corrected too); the PSMs report the "
       "observed precursor m/z and their fragment annotations the observed peak m/z. The windows are then derived from "
@@ -1311,7 +1313,8 @@ namespace OpenMS
       StopWatch sw_cal; sw_cal.start();
       {
         OnScopeExit end_progress([this]() { endProgress(); }); // also when the calibration loop rethrows
-        last_calibration_result_ = runCalibrationPass_(spectra, fragment_index_, db, query_ptr);
+        last_calibration_result_ = runCalibrationPass_(spectra, fragment_index_, db, query_ptr,
+          ctx.have_decoys ? ctx.decoy_string : std::string(), ctx.decoy_is_prefix);
       }
       sw_cal.stop();
       last_run_stats_.seconds_calibration = sw_cal.getClockTime();
@@ -2158,7 +2161,8 @@ namespace OpenMS
           OPENMS_LOG_INFO << "[ProSE] Calibration for " << in_spectra_files[i]
                           << " (strided sample, " << cal_db.size() << " proteins)" << std::endl;
           CalibrationResult_& cal = per_file_result[i];
-          cal = runCalibrationPass_(all_spectra[i], cal_fi, cal_db, query_raw_spectrum_ ? &all_query_spectra[i] : nullptr);
+          cal = runCalibrationPass_(all_spectra[i], cal_fi, cal_db, query_raw_spectrum_ ? &all_query_spectra[i] : nullptr,
+            strategy.have_decoys ? strategy.decoy_string : std::string(), strategy.is_prefix);
           if (cal.success)
           {
             applyRecalibration_(cal, all_spectra[i], query_raw_spectrum_ ? &all_query_spectra[i] : nullptr,
