@@ -231,7 +231,7 @@ jobs:
           CIBW_BUILD_VERBOSITY: 1
 
       # The dependencies are linked statically, so auditwheel should have grafted only
-      # OpenMS's own libraries and system ones (libgomp, libgfortran, ...).
+      # OpenMS's own libraries and system ones (libgomp).
       - name: Show the libraries bundled into the wheel
         run: |
           python3 -m venv "$RUNNER_TEMP/auditwheel"
@@ -352,7 +352,7 @@ jobs:
           CIBW_BUILD_VERBOSITY: 1
 
       # The dependencies are linked statically, so auditwheel should have grafted only
-      # OpenMS's own libraries and system ones (libgomp, libgfortran, ...).
+      # OpenMS's own libraries and system ones (libgomp).
       - name: Show the libraries bundled into the wheel
         run: |
           python3 -m venv "$RUNNER_TEMP/auditwheel"
@@ -376,7 +376,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          bash tools/ci/deps-macos.sh --skip-doc-deps --skip-gui-deps
+          bash tools/ci/deps-macos.sh --skip-doc-deps
 
           # These dependencies are need only in this workflow:
           brew install \
@@ -387,15 +387,11 @@ jobs:
           brew install \
             apache-arrow \
             boost \
-            cbc \
-            cgl \
-            clp \
-            coinutils \
             eigen \
             libsvm \
             libzip \
             sqlite \
-            xerces-c \
+            libxml2 \
             zstd
 
       # OpenMSThermoBridge needs the nethost headers/library from the .NET host
@@ -435,12 +431,11 @@ jobs:
             -DOPENMS_USE_VCPKG=OFF \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install \
-            -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix libomp)" \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix libomp);$(brew --prefix libxml2)" \
             -DCMAKE_INSTALL_NAME_DIR=${{ github.workspace }}/install/lib \
             -DOpenMP_ROOT=$(brew --prefix libomp) \
             -DARROW_USE_STATIC=OFF \
             -DPYOPENMS=OFF \
-            -DWITH_GUI=OFF \
             -DBUILD_TOPP_TOOLS=OFF \
             -DINSTALL_OPENMS_EXAMPLES=OFF \
             -DWITH_THERMO_RAW=ON \
@@ -602,7 +597,6 @@ jobs:
             -DUSE_EXTERNAL_SQLITECPP=ON \
             -DCMAKE_REQUIRE_FIND_PACKAGE_OpenMSThermoBridge=ON \
             -DPYOPENMS=OFF \
-            -DWITH_GUI=OFF \
             -DBUILD_TOPP_TOOLS=OFF \
             -DINSTALL_OPENMS_EXAMPLES=OFF \
             -DWITH_THERMO_RAW=ON \

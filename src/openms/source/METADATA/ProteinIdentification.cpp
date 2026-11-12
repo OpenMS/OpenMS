@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/EnumHelpers.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -1006,13 +1007,7 @@ namespace OpenMS
 
   StringList ProteinIdentification::getAllNamesOfPeakMassType()
   {
-    StringList names;
-    names.reserve(static_cast<size_t>(PeakMassType::SIZE_OF_PEAKMASSTYPE));
-    for (size_t i = 0; i < static_cast<size_t>(PeakMassType::SIZE_OF_PEAKMASSTYPE); ++i)
-    {
-      names.push_back(NamesOfPeakMassType[i]);
-    }
-    return names;
+    return Helpers::enumNames(NamesOfPeakMassType, PeakMassType::SIZE_OF_PEAKMASSTYPE);
   }
 
 } // namespace OpenMS

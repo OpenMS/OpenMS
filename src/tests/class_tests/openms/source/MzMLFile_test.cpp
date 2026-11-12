@@ -23,6 +23,11 @@
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+#include <cstdlib>
 #include <fstream>
 
 using namespace OpenMS;
@@ -975,17 +980,28 @@ START_SECTION([EXTRA] load xsd:integer types)
 }
 END_SECTION
 
-// Test loading from HTTP URL (uses raw GitHub URL for a minimal mzML file)
-// Disabled by default: requires network access and Xerces compiled with network support
-// To enable, uncomment the test body.
+// Loading from an HTTP server needs network access: set OPENMS_TEST_HTTP_URL to the URL of a copy of MzMLFile_1.mzML
+// (or of a gzip/bzip2 compressed copy), e.g. https://raw.githubusercontent.com/OpenMS/OpenMS/develop/src/tests/class_tests/openms/data/MzMLFile_1.mzML
 START_SECTION([EXTRA] load from HTTP URL)
 {
-  // Uncomment to test HTTP loading (requires network access):
-  // MzMLFile file;
-  // PeakMap exp;
-  // file.load("https://raw.githubusercontent.com/OpenMS/OpenMS/develop/src/tests/class_tests/openms/data/MzMLFile_2_minimal.mzML", exp);
-  // TEST_EQUAL(exp.size(), 0)  // minimal file has no spectra/chromatograms, just metadata
-  NOT_TESTABLE
+  MzMLFile file;
+  PeakMap exp;
+  // a server that cannot be reached is a load error (port 1 on the local host: no network access needed)
+  TEST_EXCEPTION(Exception::ParseError, file.load("http://127.0.0.1:1/run.mzML", exp))
+  // the error does not name the credentials of the URL
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load("http://user:secret@127.0.0.1:1/run.mzML?token=1", exp),
+                              "IOException: IO error for file 'http://127.0.0.1:1/run.mzML' in: http://127.0.0.1:1/run.mzML")
+  const char* url = std::getenv("OPENMS_TEST_HTTP_URL");
+  if (url != nullptr)
+  {
+    PeakMap local, remote;
+    file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), local);
+    file.load(url, remote);
+    TEST_EQUAL(remote.size(), local.size())
+    TEST_EQUAL(remote.getChromatograms().size(), local.getChromatograms().size())
+    TEST_TRUE(remote.getSpectra() == local.getSpectra())
+    TEST_EQUAL(remote.getLoadedFilePath(), url)
+  }
 }
 END_SECTION
 
@@ -1464,6 +1480,58 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     TEST_TRUE(StringUtils::hasSubstring(out, "</indexedmzML>"))
   }
 
+}
+END_SECTION
+
+START_SECTION(([EXTRA] FAIMS compensation voltages survive a store and load))
+{
+  MzMLFile file;
+  PeakMap exp;
+  // spectra built in code carry no acquisition info: the CV goes into the <scan> written in its place
+  MSSpectrum ms1;
+  ms1.setMSLevel(1);
+  ms1.setRT(10.0);
+  ms1.setNativeID("scan=1");
+  ms1.setDriftTime(-45.0);
+  ms1.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  exp.addSpectrum(ms1);
+  // a CV given for the precursor (MS:1001581 in <selectedIon>, as read from such files) stays a CV
+  MSSpectrum ms2;
+  ms2.setMSLevel(2);
+  ms2.setRT(11.0);
+  ms2.setNativeID("scan=2");
+  ms2.setDriftTime(-55.0);
+  ms2.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  ms2.getAcquisitionInfo().push_back(Acquisition());
+  Precursor precursor;
+  precursor.setMZ(500.0);
+  precursor.setDriftTime(-55.0);
+  precursor.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  ms2.getPrecursors().push_back(precursor);
+  exp.addSpectrum(ms2);
+
+  std::string out;
+  file.storeBuffer(out, exp);
+  TEST_EQUAL(StringUtils::hasSubstring(out, "name=\"ion mobility drift time\""), false)
+  PeakMap reloaded;
+  file.loadBuffer(out, reloaded);
+  ABORT_IF(reloaded.size() != 2)
+  TEST_EQUAL(reloaded[0].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE, true)
+  TEST_REAL_SIMILAR(reloaded[0].getDriftTime(), -45.0)
+  TEST_EQUAL(reloaded[1].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE, true)
+  TEST_REAL_SIMILAR(reloaded[1].getDriftTime(), -55.0)
+  ABORT_IF(reloaded[1].getPrecursors().size() != 1)
+  TEST_EQUAL(reloaded[1].getPrecursors()[0].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE, true)
+  TEST_REAL_SIMILAR(reloaded[1].getPrecursors()[0].getDriftTime(), -55.0)
+
+  // and again: a second round trip changes nothing
+  std::string out2;
+  file.storeBuffer(out2, reloaded);
+  PeakMap reloaded2;
+  file.loadBuffer(out2, reloaded2);
+  ABORT_IF(reloaded2.size() != 2)
+  TEST_EQUAL(reloaded2[1].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE, true)
+  TEST_REAL_SIMILAR(reloaded2[1].getDriftTime(), -55.0)
 }
 END_SECTION
 
@@ -2221,6 +2289,90 @@ START_SECTION((data array names and the fraction identifier are XML-escaped))
   TEST_EQUAL(loaded[0].getIntegerDataArrays()[0].getName(), tricky)
   ABORT_IF(loaded.getChromatograms().empty() || loaded.getChromatograms()[0].getFloatDataArrays().empty())
   TEST_EQUAL(loaded.getChromatograms()[0].getFloatDataArrays()[0].getName(), tricky)
+}
+END_SECTION
+
+// An indexed file of several MB is loaded in parallel parts (one per thread or more, at least 1 MB each), also with the
+// spectrum filters of the options (MS levels, RT and precursor m/z range). Every load gives the experiment that the serial
+// streaming parse (one thread) gives.
+START_SECTION(([EXTRA] load() of an indexed file in parallel, with and without filters, equals the serial load))
+{
+  MSExperiment written;
+  for (int s = 0; s < 240; ++s)
+  {
+    MSSpectrum spectrum;
+    spectrum.setNativeID("scan=" + std::to_string(s + 1));
+    spectrum.setRT(10.0 + 2.5 * s);
+    spectrum.setMSLevel(s % 4 == 0 ? 1 : 2);
+    if (spectrum.getMSLevel() == 2)
+    {
+      Precursor precursor;
+      precursor.setMZ(400.0 + (s * 37) % 600);
+      precursor.setCharge(2);
+      spectrum.getPrecursors().push_back(precursor);
+    }
+    for (int k = 0; k < 1500; ++k)
+    {
+      spectrum.push_back(Peak1D(200.0 + 0.61 * k + 0.001 * s, 100.0 + (k * 7 + s) % 997));
+    }
+    written.addSpectrum(spectrum);
+  }
+  MSChromatogram chromatogram;
+  chromatogram.setNativeID("TIC");
+  for (int k = 0; k < 100; ++k) { chromatogram.push_back(ChromatogramPeak(10.0 + 6.0 * k, 1e5 + k)); }
+  written.addChromatogram(chromatogram);
+  std::string indexed_file;
+  NEW_TMP_FILE(indexed_file);
+  MzMLFile writer;
+  writer.getOptions().setWriteIndex(true);
+  writer.store(indexed_file, written);
+  TEST_EQUAL(MzMLFile().hasIndex(indexed_file), true)
+  TEST_EQUAL(File::fileSize(indexed_file) > 4 * (1 << 20), true) // enough for several parallel parts
+
+  std::vector<std::pair<std::string, PeakFileOptions>> cases(6);
+  cases[0].first = "no filter";
+  cases[1].first = "MS1";
+  cases[1].second.addMSLevel(1);
+  cases[2].first = "MS2";
+  cases[2].second.addMSLevel(2);
+  cases[3].first = "RT range";
+  cases[3].second.setRTRange(DRange<1>(DPosition<1>(150.0), DPosition<1>(450.0)));
+  cases[4].first = "precursor m/z range";
+  cases[4].second.setPrecursorMZRange(DRange<1>(DPosition<1>(500.0), DPosition<1>(700.0)));
+  cases[5].first = "MS2, RT and m/z range";
+  cases[5].second.addMSLevel(2);
+  cases[5].second.setRTRange(DRange<1>(DPosition<1>(150.0), DPosition<1>(450.0)));
+  cases[5].second.setMZRange(DRange<1>(DPosition<1>(300.0), DPosition<1>(600.0)));
+
+  auto load = [&](const PeakFileOptions& options, [[maybe_unused]] int threads)
+  {
+#ifdef _OPENMP
+    const int max_threads = omp_get_max_threads();
+    omp_set_num_threads(threads);
+#endif
+    MzMLFile reader;
+    reader.setOptions(options);
+    MSExperiment loaded;
+    reader.load(indexed_file, loaded);
+#ifdef _OPENMP
+    omp_set_num_threads(max_threads);
+#endif
+    return loaded;
+  };
+  for (const auto& [name, options] : cases)
+  {
+    const MSExperiment serial = load(options, 1);
+    TEST_EQUAL(serial.empty(), false)
+    for (int threads : {2, 4})
+    {
+      const MSExperiment parallel = load(options, threads);
+      TEST_EQUAL(parallel.size(), serial.size())
+      TEST_EQUAL(parallel == serial, true)
+    }
+  }
+  // the filters do filter
+  TEST_EQUAL(load(cases[1].second, 4).size(), 60)
+  TEST_EQUAL(load(cases[2].second, 4).size(), 180)
 }
 END_SECTION
 

@@ -6,6 +6,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ParamJSONFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <fstream>
@@ -17,19 +18,6 @@
 #include <vector>
 
 using json = nlohmann::json;
-
-// replaces the substrings inside a string
-// This method is 'static' so no external linkage occurs
-static std::string replaceAll(std::string str, const std::string& pattern, const std::string& replacement)
-{
-  size_t pos {0};
-  while ((pos = str.find(pattern, pos)) != std::string::npos)
-  {
-    str.replace(pos, pattern.size(), replacement);
-    pos += replacement.size();
-  }
-  return str;
-}
 
 // Reports a JSON value whose shape does not fit a parameter tagged as a file.
 // This method is 'static' so no external linkage occurs
@@ -144,7 +132,7 @@ namespace OpenMS
 
         for (const auto& child : node.items())
         {
-          auto key = currentKey + replaceAll(child.key(), "__", ":"); // This converts __ to ':', but ':' would also be an accepted delimiter
+          auto key = currentKey + StringUtils::substituted(child.key(), "__", ":"); // This converts __ to ':', but ':' would also be an accepted delimiter
 
           auto node = child.value();
           if (node.is_null())

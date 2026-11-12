@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include "ArrowFileIOHelpers.h"
 #include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/QPXValueValidation.h>
@@ -51,18 +52,6 @@ namespace OpenMS
 
 namespace // anonymous
 {
-  /// Resolve a MetaInfo index to its registered name, caching results in @p cache.
-  /// MetaInfoRegistry::getName() takes an `omp critical` lock, so caching by index pays
-  /// that lock at most once per unique key for the whole range instead of once per
-  /// metavalue per feature (as getKeys()/getMetaValue() would). Registered names are
-  /// non-empty, so an empty cache slot reliably means "not yet resolved".
-  inline const std::string& cachedMetaName_(UInt index, std::vector<std::string>& cache)
-  {
-    if (index >= cache.size()) { cache.resize(static_cast<size_t>(index) + 1); }
-    std::string& name = cache[index];
-    if (name.empty()) { name = MetaInfoInterface::metaRegistry().getName(index); }
-    return name;
-  }
 } // anonymous namespace
 
 
@@ -650,7 +639,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
   IDScoreSwitcherAlgorithm idsa;
 
   // Lazily-filled MetaInfo index->name cache shared across all features in this range
-  // (see cachedMetaName_). Per-call (hence per OpenMP partition) → thread-safe.
+  // (see Internal::ArrowFileIO::cachedMetaName). Per-call (hence per OpenMP partition) → thread-safe.
   std::vector<std::string> meta_name_cache;
 
   // Pre-resolve the fixed dedicated-column metavalue names to registry indices ONCE for this range.
@@ -935,7 +924,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
       // iteration order (by index) and same filtering as the previous getKeys() loop.
       for (auto mv_it = best_hit->metaBegin(); mv_it != best_hit->metaEnd(); ++mv_it)
       {
-        const std::string& key = cachedMetaName_(mv_it->first, meta_name_cache);
+        const std::string& key = Internal::ArrowFileIO::cachedMetaName(mv_it->first, meta_name_cache);
         if (excluded_hit_mvs.contains(key)) continue;
         const DataValue& val = mv_it->second;
         const auto vt = val.valueType();

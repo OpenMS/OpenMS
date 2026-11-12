@@ -327,7 +327,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       Size topn = top_hits > annotated_hits[scan_index].size() ? annotated_hits[scan_index].size() : top_hits;
       std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + topn, annotated_hits[scan_index].end(), AnnotatedHit_::hasBetterScore);
       annotated_hits[scan_index].resize(topn);
-      annotated_hits.shrink_to_fit();
+      annotated_hits[scan_index].shrink_to_fit(); // this scan's hits only: the outer vector is shared by all threads
     }
 
     bool annotation_precursor_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM) != annotate_psm_.end();
@@ -375,10 +375,13 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         pi.setRT(spec.getRT());
         pi.setMZ(mz);
 
-        // Annotate ion mobility if spectrum has a single drift time (DDA-PASEF)
+        // Annotate the spectrum's single drift time: a FAIMS compensation voltage as FAIMS_CV (which the
+        // FAIMS-aware tools read), an ion mobility (e.g. DDA-PASEF, 1/K0) as IM
         if (IMTypes::determineIMFormat(spec) == IMFormat::IM_SPECTRUM)
         {
-          pi.setMetaValue(Constants::UserParam::IM, spec.getDriftTime());
+          pi.setMetaValue(spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+                            ? Constants::UserParam::FAIMS_CV : Constants::UserParam::IM,
+                          spec.getDriftTime());
         }
 
         Size charge = spec.getPrecursors()[0].getCharge();
@@ -686,7 +689,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW});
+    f.loadExperiment(in_spectra, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW, FileTypes::MZPEAK});
     spectra.sortSpectra(true);
 
     startProgress(0, 1, "Filtering spectra...");

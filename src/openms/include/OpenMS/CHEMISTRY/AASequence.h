@@ -607,6 +607,14 @@ protected:
     static AASequence fromString(const char* s,
                                  bool permissive = true);
 
+    /**
+      @brief create an unmodified AASequence from its residues (no parsing)
+
+      @param[in] residues Residues of ResidueDB (e.g. ResidueDB::getResidue(char)), N- to C-terminal; the sequence that
+                 fromString() gives for their one-letter codes when each of these letters maps to its residue
+    */
+    static AASequence fromResidues(std::vector<const Residue*>&& residues);
+
     /// @brief constructor from String
     /// @param[in] s A std::string representing the amino acid sequence
     explicit AASequence(const std::string& s);

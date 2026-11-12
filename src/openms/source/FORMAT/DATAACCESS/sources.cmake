@@ -19,6 +19,7 @@ list(APPEND sources_list MSChromatogramParquetConsumer.cpp)
 list(APPEND sources_list MobilogramParquetConsumer.cpp)
 list(APPEND sources_list ParquetReaderHelpers.cpp)
 list(APPEND sources_list XIPMParquetConsumer.cpp)
+list(APPEND sources_list HTTPInputSource.cpp)
 list(APPEND sources_list S3InputSource.cpp)
 
 ### add path to the filenames
@@ -32,3 +33,5 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\FORMAT\\DATACCESS" FILES ${sources})
+
+list(APPEND OpenMS_private_headers ${directory}/ParquetConsumerHelpers.h ${directory}/ParquetReaderHelpers.h)

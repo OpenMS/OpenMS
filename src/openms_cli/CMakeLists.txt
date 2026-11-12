@@ -33,11 +33,9 @@ openms_add_library(TARGET_NAME OpenMS_CLI
                    BASE_DIRS ${PROJECT_SOURCE_DIR}/include
                              ${PROJECT_BINARY_DIR}/include
                    LINK_LIBRARIES OpenMS
+                   PRIVATE_LINK_LIBRARIES ${CMAKE_DL_LIBS} # dlsym() in TOPPBase.cpp
                    DLL_EXPORT_PATH "OpenMS/APPLICATIONS/"
                    EXPORT_SET ${OPENMS_CLI_EXPORT_SET})
-
-# No QObject classes here; finding Qt for the GUI must not enable moc for this library.
-set_target_properties(OpenMS_CLI PROPERTIES AUTOMOC OFF)
 
 if (MSVC)
   ## same strictness as libOpenMS: unused parameters and locals are errors

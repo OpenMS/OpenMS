@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
+#include "ArrowFileIOHelpers.h"
 #include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/FORMAT/QPXValueValidation.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -25,6 +26,7 @@
 #include <OpenMS/FORMAT/QPXIdentity.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -56,19 +58,6 @@ namespace OpenMS
 
 namespace // anonymous
 {
-  /// Resolve a MetaInfo index to its registered name, caching results in @p cache.
-  /// The MetaInfoRegistry::getName() lookup takes an `omp critical` lock, so caching
-  /// by index means the lock is paid at most once per unique key for the whole export
-  /// instead of once per metavalue per PSM (as getKeys()/getMetaValue() would).
-  /// Registered names are non-empty, so an empty cache slot reliably means "not yet resolved".
-  inline const std::string& cachedMetaName_(UInt index, std::vector<std::string>& cache)
-  {
-    if (index >= cache.size()) { cache.resize(static_cast<size_t>(index) + 1); }
-    std::string& name = cache[index];
-    if (name.empty()) { name = MetaInfoInterface::metaRegistry().getName(index); }
-    return name;
-  }
-
   /// Whether a meta value name is a known score type (Scores::isKnownScoreType()), an entry of the QPX
   /// additional_scores, and if so whether a higher value is better (none: unknown)
   struct ScoreTypeOfMeta_
@@ -77,7 +66,7 @@ namespace // anonymous
     std::optional<bool> higher_better;
   };
 
-  /// ScoreTypeOfMeta_ of the meta value @p index (of name @p key), cached in @p cache by index as cachedMetaName_():
+  /// ScoreTypeOfMeta_ of the meta value @p index (of name @p key), cached in @p cache by index as Internal::ArrowFileIO::cachedMetaName():
   /// classified once per name rather than per meta value of every PSM
   inline const ScoreTypeOfMeta_& cachedScoreType_(UInt index, const std::string& key,
                                                   std::vector<std::optional<ScoreTypeOfMeta_>>& cache,
@@ -385,7 +374,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
 
   IDScoreSwitcherAlgorithm idsa;
 
-  // Lazily-filled MetaInfo index->name cache shared across all PSMs (see cachedMetaName_).
+  // Lazily-filled MetaInfo index->name cache shared across all PSMs (see Internal::ArrowFileIO::cachedMetaName).
   std::vector<std::string> meta_name_cache;
   std::vector<std::optional<ScoreTypeOfMeta_>> score_type_cache; // (see cachedScoreType_)
 
@@ -693,7 +682,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
       {
         for (auto mv_it = hit.metaBegin(); mv_it != hit.metaEnd(); ++mv_it)
         {
-          const std::string& key = cachedMetaName_(mv_it->first, meta_name_cache);
+          const std::string& key = Internal::ArrowFileIO::cachedMetaName(mv_it->first, meta_name_cache);
           if (excluded_hit_mvs_psm.contains(key)) continue;
           const DataValue& val = mv_it->second;
           if (key == "target_decoy" && (val == DataValue("target") || val == DataValue("decoy"))) continue;
@@ -733,7 +722,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
       {
         for (auto mv_it = pep_id.metaBegin(); mv_it != pep_id.metaEnd(); ++mv_it)
         {
-          const std::string& key = cachedMetaName_(mv_it->first, meta_name_cache);
+          const std::string& key = Internal::ArrowFileIO::cachedMetaName(mv_it->first, meta_name_cache);
           // Skip keys that have dedicated columns
           if (key == "spectrum_reference" || key == "ion_mobility" || key == "IM") continue;
           const DataValue& val = mv_it->second;
@@ -1057,7 +1046,7 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
   IDScoreSwitcherAlgorithm idsa;
 
   // Lazily-filled MetaInfo index->name cache shared across all PSMs in this range
-  // (see cachedMetaName_). Per-call (hence per OpenMP partition) → thread-safe.
+  // (see Internal::ArrowFileIO::cachedMetaName). Per-call (hence per OpenMP partition) → thread-safe.
   std::vector<std::string> meta_name_cache;
   std::vector<std::optional<ScoreTypeOfMeta_>> score_type_cache; // (see cachedScoreType_)
 
@@ -1291,7 +1280,7 @@ std::shared_ptr<arrow::Table> buildQPXPSMTableRange(
       {
         for (auto mv_it = hit.metaBegin(); mv_it != hit.metaEnd(); ++mv_it)
         {
-          const std::string& key = cachedMetaName_(mv_it->first, meta_name_cache);
+          const std::string& key = Internal::ArrowFileIO::cachedMetaName(mv_it->first, meta_name_cache);
           if (excluded_hit_mvs.contains(key)) continue;
           const DataValue& val = mv_it->second;
           if ((val.valueType() == DataValue::INT_VALUE || val.valueType() == DataValue::DOUBLE_VALUE))
@@ -1589,7 +1578,8 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   // order: the rows are those of one serial pass
   size_t unattributable = 0;
 #ifdef _OPENMP
-  const int threads = omp_in_parallel() ? 1 : std::max(1, omp_get_max_threads());
+  // the threads of this thread: a tool's helper thread sets its share there where the runtime has no number per thread
+  const int threads = omp_in_parallel() ? 1 : SysInfo::ompThreadsOfThisThread();
 #else
   const int threads = 1;
 #endif

@@ -33,9 +33,13 @@ namespace OpenMS
     q-values are basically only adjusted p-values, also ranging from 0 to 1, with lower values being preferable.
     When looking at the list of hits ordered by q-values, then a specific q-value of @em x means that @em x*100 percent of hits with a q-value <= @em x are expected to be false positives.
 
-    Only simple target-decoy FDRs are supported with a formula depending on the "conservative" parameter:
-    - false: (D+1)/T.
-    - true: (D+1)/(T+D) [for comparison with protein level FDR used by other tools like e.g., Fido]
+    Only simple target-decoy FDRs are supported. applyBasic(), applyBasicPeptideLevel() and applyPickedProteinFDR()
+    count the targets (T) and decoys (D) with a score at least as good as a hit's score and estimate its FDR with a
+    formula depending on the "conservative" parameter:
+    - true (default): (D+1)/T, the target-decoy competition estimate.
+    - false: (D+1)/(T+D), the decoy fraction of all these hits [for comparison with protein level FDR used by other tools like e.g., Fido]
+    An estimate above 1 (also for T = 0) is set to 1. The apply() functions estimate D/T and ignore "conservative";
+    an estimate above 1 is set to 1 there too.
     For protein groups, a group is considered as a target when it contains at least one target protein.
     Group level FDRs assume the same score type as on protein level.
 
@@ -245,7 +249,8 @@ private:
     /// Just goes through the sorted scores and counts the number of decoys and targets and annotates the FDR for
     /// this score as it goes. Q-values are optionally annotated by calculating the cumulative minimum in reversed
     /// order afterwards. Since I never understood our other algorithm, I can not explain the difference.
-    /// @note Formula used depends on Param "conservative": false -> (D+1)/T, true (e.g. used in Fido) -> (D+1)/(T+D)
+    /// @note Formula used depends on Param "conservative": true -> (D+1)/T, false (e.g. used in Fido) -> (D+1)/(T+D),
+    /// with T and D the targets and decoys at least as good as the score (estimates above 1 are set to 1)
     void calculateFDRBasic_(std::map<double,double>& scores_to_FDR, ScoreToTgtDecLabelPairs& scores_labels, bool qvalue, bool higher_score_better) const;
 
     /// calculates the error area around the x=x line between two consecutive values of expected and actual

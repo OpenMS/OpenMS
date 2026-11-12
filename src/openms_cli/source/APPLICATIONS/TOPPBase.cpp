@@ -47,6 +47,7 @@
 
 #include <OpenMS/SYSTEM/PathUtils.h>
 
+#include <algorithm>
 #include <cctype>
 #include <filesystem>
 #include <fstream>
@@ -57,6 +58,7 @@
 #include <optional>
 #include <sstream>
 #include <unordered_set>
+#include <vector>
 
 // OpenMP support
 #ifdef _OPENMP
@@ -66,6 +68,8 @@
 #ifdef OPENMS_WINDOWSPLATFORM
 #undef min
 #undef max
+#else
+#include <dlfcn.h> // dlsym(), see limitOpenBLASThreads()
 #endif
 
 #include <cmath>
@@ -77,6 +81,24 @@ namespace OpenMS
 
   namespace
   {
+    /// OpenBLAS (a dependency of the LP solver's libCoinUtils) starts a thread per core when it is loaded, and these
+    /// threads spin for about 0.1 s before they sleep: 7 CPU-s in a process that may use 64 cores, taken from the
+    /// threads of the tool. No TOPP tool needs BLAS with several threads: unless OPENBLAS_NUM_THREADS or
+    /// GOTO_NUM_THREADS says otherwise, set OpenBLAS to one thread and stop the threads it started (should it be
+    /// called with more threads after all, it starts them again). Looked up at run time: nothing happens without
+    /// OpenBLAS or with a BLAS of another kind.
+    void limitOpenBLASThreads()
+    {
+#ifndef OPENMS_WINDOWSPLATFORM
+      if (getenv("OPENBLAS_NUM_THREADS") != nullptr || getenv("GOTO_NUM_THREADS") != nullptr) { return; }
+      if (auto set_threads = reinterpret_cast<void (*)(int)>(dlsym(RTLD_DEFAULT, "openblas_set_num_threads")))
+      {
+        set_threads(1);
+        if (auto shutdown = reinterpret_cast<int (*)()>(dlsym(RTLD_DEFAULT, "blas_thread_shutdown_"))) { shutdown(); }
+      }
+#endif
+    }
+
     /// Does any entry of @p valid_strings denote the same format as @p type?
     /// Compared by type, so a tool declaring 'fasta' accepts 'db.fa' and one declaring 'fa' accepts 'db.fasta'.
     /// Entries that are not known formats keep their exact spelling, so a custom extension only matches itself.
@@ -186,7 +208,19 @@ namespace OpenMS
 #ifdef _OPENMP
     if (num_threads <= 0)
     {
-      num_threads = omp_get_num_procs();
+      // all cores: the physical ones, without their hardware threads (SMT), which seldom make the tools faster but
+      // double the threads that compete for the cores. With OpenMP places (OMP_PLACES, OMP_PROC_BIND), the runtime
+      // may have bound this thread to the first one already: the cores of all places.
+      std::vector<int> cpus;
+#if _OPENMP >= 201511 // OpenMP 4.5: places
+      for (int place = 0; place < omp_get_num_places(); ++place)
+      {
+        std::vector<int> ids(static_cast<Size>(std::max(0, omp_get_place_num_procs(place))));
+        omp_get_place_proc_ids(place, ids.data());
+        cpus.insert(cpus.end(), ids.begin(), ids.end());
+      }
+#endif
+      num_threads = std::clamp(static_cast<int>(SysInfo::getAvailablePhysicalCores(cpus)), 1, std::max(1, omp_get_num_procs()));
     }
     omp_set_num_threads(num_threads);
 #endif
@@ -268,6 +302,7 @@ namespace OpenMS
 
   TOPPBase::ExitCodes TOPPBase::main(int argc, const char** argv)
   {
+    limitOpenBLASThreads(); // as early as possible: its threads spin from the start of the process
     //----------------------------------------------------------
     //parse command line
     //----------------------------------------------------------
@@ -1627,15 +1662,19 @@ namespace OpenMS
     // check if all input files are readable
     if (p.type == ParameterInformation::INPUT_FILE_LIST)
     {
-      for (const std::string& t : param_value)
+      for (const std::string& value : param_value)
       {
-        if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(t, param_name);
+        // A remote location (tag 'remote') is no file to look for; the tool's reader reports if it cannot be read.
+        const bool remote = ListUtils::contains(p.tags, "remote") && FileHandler::isRemote(value);
+        if (!remote && !ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(value, param_name);
 
         // check restrictions
         if (p.valid_strings.empty()) continue;
 
-        // determine file type as string
-        FileTypes::Type f_type = FileHandler::getType(t);
+        // determine file type as string (of a remote location: from its name)
+        FileTypes::Type f_type = FileHandler::getType(value);
+        // the name for the messages and the compression suffix: a URL without credentials and query
+        const std::string t = FileHandler::displayName(value);
         // unknown ending is 'ok'
         if (f_type == FileTypes::UNKNOWN)
         {
@@ -1689,7 +1728,9 @@ namespace OpenMS
           throw ExternalExecutableNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param_value);
         }
       }
-      if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(param_value, param_name);
+      // A remote location (tag 'remote') is no file to look for; the tool's reader reports if it cannot be read.
+      const bool remote = ListUtils::contains(p.tags, "remote") && FileHandler::isRemote(param_value);
+      if (!remote && !ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(param_value, param_name);
     }
     else if (p.type == ParameterInformation::OUTPUT_FILE)
     {
@@ -1720,23 +1761,25 @@ namespace OpenMS
 
       case ParameterInformation::INPUT_FILE:
       {
-        // determine file type as string
+        // determine file type as string (of a remote location: from its name)
         FileTypes::Type f_type = FileHandler::getType(param_value);
+        // the name for the messages and the compression suffix: a URL without credentials and query
+        const std::string name = FileHandler::displayName(param_value);
         // unknown ending is 'ok'
         if (f_type == FileTypes::UNKNOWN)
         {
-          writeLogWarn_("Warning: Could not determine format of input file '" + param_value + "'!");
+          writeLogWarn_("Warning: Could not determine format of input file '" + name + "'!");
         }
-        else if (!compressionSupported(param_value, f_type))
+        else if (!compressionSupported(name, f_type))
         {
           throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                 "Input file '" + param_value + "' is compressed, but the reader for format '" +
+                                 "Input file '" + name + "' is compressed, but the reader for format '" +
                                  FileTypes::typeToName(f_type) + "' cannot decompress it. Please decompress it first.");
         }
         else if (!formatAccepted(p.valid_strings, f_type))
         {
             throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                   "Input file '" + param_value + "' has invalid format '" +
+                                   "Input file '" + name + "' has invalid format '" +
                                    FileTypes::typeToName(f_type) +
                                    "'. Valid formats are: '" + ListUtils::concatenate(p.valid_strings, "','") +
                                    "'.");
@@ -2602,7 +2645,11 @@ namespace OpenMS
             if (!queue.empty())
               queue.pop_front(); // argument was already used
           }
-          OPENMS_LOG_DEBUG << "Command line: setting parameter value: '" << pos->second->name << "' to '" << value << "'" << std::endl;
+          {
+            std::ostringstream shown; // (a remote location without credentials, as in writeDebug_())
+            shown << value;
+            OPENMS_LOG_DEBUG << "Command line: setting parameter value: '" << pos->second->name << "' to '" << FileHandler::displayText(shown.str()) << "'" << std::endl;
+          }
 
           // Check for duplicate parameters
           // Note: This is intentionally allowed to support nextflow workflows where ${ext.args}
@@ -2705,9 +2752,11 @@ namespace OpenMS
   {
     if (debug_level_ >= (Int)min_level)
     {
-      OPENMS_LOG_DEBUG << text << endl;
+      // the command line and option values can hold remote locations with credentials (tag 'remote')
+      const std::string redacted = FileHandler::displayText(text);
+      OPENMS_LOG_DEBUG << redacted << endl;
       enableLogging_();
-      *log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << text << endl;
+      *log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << redacted << endl;
     }
   }
 
@@ -2715,14 +2764,17 @@ namespace OpenMS
   {
     if (debug_level_ >= (Int)min_level)
     {
+      std::ostringstream values;
+      values << param;
+      const std::string redacted = FileHandler::displayText(values.str()); // see above
       OPENMS_LOG_DEBUG << LOG_SEPARATOR << '\n'
                 << DateTime::now().get() << ' ' << getIniLocation_() << " " << text << '\n'
-                << param
+                << redacted
                 << LOG_SEPARATOR << endl;
       enableLogging_();
       *log_ << LOG_SEPARATOR << '\n'
             << DateTime::now().get() << ' ' << getIniLocation_() << " " << text << '\n'
-            << param
+            << redacted
             << LOG_SEPARATOR << endl;
     }
   }

@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/ID/CoIsolationDetector.h>
 
+#include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -180,12 +181,7 @@ namespace OpenMS
       const auto survey = const_exp.getPrecursorSpectrum(const_exp.begin() + (it - exp.begin()));
       if (survey == const_exp.end() || survey->getMSLevel() != 1) continue;
 
-      double center = precursor.getMZ();
-      if (precursor.metaValueExists("isolation window target m/z"))
-      {
-        const double target = precursor.getMetaValue("isolation window target m/z");
-        if (target > 0.0) center = target;
-      }
+      const double center = PrecursorPurity::isolationWindowCenter(precursor);
       const MSSpectrum& ms1 = *survey;
       const double tol_da = tolerance_ppm ? precursor.getMZ() * tolerance * 1e-6 : tolerance;
       const auto coisolated = detect(ms1, center - lower_offset, center + upper_offset, precursor.getMZ(),

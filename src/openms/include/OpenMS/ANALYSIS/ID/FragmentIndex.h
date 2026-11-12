@@ -220,6 +220,18 @@ namespace OpenMS
     bool hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const;
 
     /**
+     * @brief Whether the index was built from @p fasta_entries in peptide mode: every entry of getPeptides() is a span
+     * {protein_idx, sequence_} of these entries with the residues of its peptide (hasProteinOccurrences() without the
+     * condition on protein-terminal modifications).
+     *
+     * @param[in] fasta_entries The FASTA entries the index was built from (checked: their number and lengths only, not
+     *            their residues).
+     * @return false before build(), after clear(), in peptide-mass mode and for FASTA entries of another number or
+     *         other lengths.
+     */
+    bool isBuiltFrom(const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const;
+
+    /**
      * @brief Appends the protein occurrences {protein index, start} of the residues of getPeptides()[@p peptide_idx].
      *
      * These are the spans of the digest of build() with the same residues, including those of the entries that
@@ -237,8 +249,9 @@ namespace OpenMS
                                std::vector<std::pair<UInt32, UInt32>>& occurrences) const;
 
     /// Number of theoretical fragments stored in the index (0 before build()), including the c and
-    /// z+1 ions of ions:electron_ions. In peptide-mass mode: the number of prefix masses (one per unmodified sub-peptide).
-    Size getNumFragments() const noexcept { return fi_fragments_.size() + electron_fragments_.size(); }
+    /// z+1 ions of ions:electron_ions. In peptide-mass mode: the number of prefix masses (one per unmodified sub-peptide),
+    /// whether they are held as Fragment or in the packed form (entry_words_).
+    Size getNumFragments() const noexcept { return fi_fragments_.size() + electron_fragments_.size() + entry_words_.size(); }
 
 #ifdef DEBUG_FRAGMENT_INDEX
     /**
@@ -285,7 +298,10 @@ namespace OpenMS
      * among all of its entries). The others keep their order, so querySpectrum() returns the same candidates for these
      * spectra as with the full index, from an index that is built faster and takes less memory. Search the index only with
      * these spectra and the current parameters.
-     * The full index is built if @p searched_spectra is empty or returns nullptr, and in peptide-mass and open search mode.
+     * In peptide-mass mode the mothers all stay (the index entries refer to them) and the prefix entries that
+     * querySpectrumPeptideMasses_() looks up for none of the spectra (no charge, isotope error and modification shift of any
+     * of them) are not generated instead; the others keep their order.
+     * The full index is built if @p searched_spectra is empty or returns nullptr, and in open search mode.
      *
      * @param[in] fasta_entries The FASTA entries used to build the index.
      * @param[in] searched_spectra Called with the number of peptides; returns the spectra the index will be searched with, or nullptr.
@@ -358,14 +374,18 @@ namespace OpenMS
      * @brief The precursor charges a spectrum is searched with.
      *
      * Those of [@p min_charge, @p max_charge] if @p precursor has no charge (0 or negative), otherwise its charge if it
-     * lies in the range, and none if not: the range bounds the charges of the reported PSMs.
+     * lies in the range, and none if not: the range bounds the charges of the reported PSMs. With
+     * @p search_outside_range (precursor:recorded_charge_outside_range 'search'), a recorded charge outside of the range
+     * is searched as well (as OpenMS 3.5 and ProSE int15 did).
      *
      * @param[in] precursor The precursor of the spectrum
      * @param[in] min_charge precursor:min_charge
      * @param[in] max_charge precursor:max_charge
      * @param[out] charges The charges, ascending (cleared first)
+     * @param[in] search_outside_range Search a recorded charge outside of the range, too
      */
-    static void precursorCharges(const Precursor& precursor, int min_charge, int max_charge, std::vector<uint16_t>& charges);
+    static void precursorCharges(const Precursor& precursor, int min_charge, int max_charge, std::vector<uint16_t>& charges,
+                                 bool search_outside_range = false);
 
     /**
      * @brief Rejects fixed terminal modifications that the index cannot restrict to the peptides they apply to.
@@ -578,6 +598,21 @@ protected:
       float fragment_mz_;
   };
 
+  /**@brief Peptide-mass mode: the two halves of a packed prefix entry, held in the parallel arrays entry_words_ and
+   * entry_lengths_ (5 bytes per entry; see the design note at entry_words_). Both leave their member uninitialised
+   * on purpose, as Fragment does: build() resizes the arrays and writes every element in parallel.
+   */
+  struct EntryWord
+  {
+      EntryWord() {}
+      UInt32 word_; ///< bit for bit the peptide_idx_ of the Fragment the entry replaces: mother index, and the site bound above ENTRY_SITES_SHIFT_
+  };
+  struct EntryLength
+  {
+      EntryLength() {}
+      uint8_t length_; ///< the prefix length in residues (1..255); the entry's mass is that of the mother's first length_ residues
+  };
+
     bool is_build_{false};              ///< true, if the database has been populated with fragments
 
     void updateMembers_() override;
@@ -610,10 +645,12 @@ protected:
      * search results. With libstdc++ and OpenMP, inputs of more than @p min_task_size peptides are sorted by a
      * multi-threaded reproduction of libstdc++'s std::sort; everything else calls std::sort.
      *
-     * @param[in,out] peptides       Peptides to sort
-     * @param[in]     min_task_size  Parts of at most this many peptides are sorted by the thread that created them
+     * @param[in,out] peptides               Peptides to sort
+     * @param[in]     min_task_size          Parts of at most this many peptides are sorted by the thread that created them
+     * @param[in]     min_parallel_partition Parts of more than this many peptides are partitioned by all threads
      */
-    static void sortPeptides_(std::vector<Peptide>& peptides, size_t min_task_size = 8192);
+    static void sortPeptides_(std::vector<Peptide>& peptides, size_t min_task_size = 8192,
+                              size_t min_parallel_partition = size_t(1) << 18);
 
     /// Rendering classes of the configured modifications, for samePeptidoform_() (peptide:deduplicate)
     struct PeptidoformRendering_
@@ -672,6 +709,7 @@ protected:
       double delta_mass;                    ///< mass delta from this modification
       const ResidueModification* mod_ptr;   ///< pointer to the modification (for AASequence reconstruction)
       ResidueModification::TermSpecificity term_spec; ///< where this mod can be applied
+      const Residue* residue{nullptr};      ///< ANYWHERE mods: the modified residue (ResidueDB), nullptr if not resolved
     };
 
     /** @brief A candidate modification slot for a specific peptide.
@@ -684,6 +722,7 @@ protected:
       uint16_t position;                    ///< residue index, or NTERM_SLOT/CTERM_SLOT
       double delta_mass;                    ///< mass delta
       const ResidueModification* mod_ptr;   ///< for AASequence reconstruction
+      const Residue* residue{nullptr};      ///< residue slots: the modified residue (VarModEntry::residue)
 
       static constexpr uint16_t NTERM_SLOT = UINT16_MAX - 1; ///< sentinel for an N-terminal mod slot (pure or residue-specific)
       static constexpr uint16_t CTERM_SLOT = UINT16_MAX;      ///< sentinel for a C-terminal mod slot (pure or residue-specific)
@@ -761,6 +800,9 @@ protected:
     std::array<double, 128> fixed_mod_deltas_{};
     /// Per-AA fixed modification pointer (nullptr if none)
     std::array<const ResidueModification*, 128> fixed_mod_ptrs_{};
+    /// Per-AA residue with its fixed modification, as AASequence::setModification() resolves it in ResidueDB (nullptr if
+    /// none or not resolved). Resolved once here, so that reconstructing a candidate takes no ResidueDB lock.
+    std::array<const Residue*, 128> fixed_mod_residues_{};
     double fixed_nterm_delta_{0.0};   ///< Fixed N-terminal mod delta (0 if none)
     double fixed_cterm_delta_{0.0};   ///< Fixed C-terminal mod delta (0 if none)
     const ResidueModification* fixed_nterm_mod_ptr_{nullptr};
@@ -907,7 +949,41 @@ protected:
 
     std::vector<Peptide> fi_peptides_;   ///< vector of all (digested) peptides
     std::vector<RemovedOccurrence> removed_occurrences_; ///< occurrences removed by peptide:deduplicate (getRemovedOccurrences())
-    std::vector<Fragment> fi_fragments_; ///< vector of all theoretical fragments (b- and y- ions)
+    std::vector<Fragment> fi_fragments_; ///< vector of all theoretical fragments (b- and y- ions); in peptide-mass mode the prefix entries, unless packed_entries_
+    /** Peptide-mass mode, packed prefix entries (design note).
+     *
+     * A non-specific search holds one entry per (mother, prefix length) - hundreds of millions, 54 % of the peak memory as
+     * 8-byte Fragments (UInt32 mother index with the site bound in its top bits + float (M+H)+ of the unmodified prefix).
+     * The mass is a function of the mother and the length, so with packed_entries_ the entries are two parallel arrays of
+     * 5 bytes per entry: entry_words_[e].word_, bit for bit the peptide_idx_ the Fragment would hold, and
+     * entry_lengths_[e].length_, the prefix length. Two arrays of naturally aligned elements instead of a 5-byte record,
+     * so that no read is unaligned. fi_fragments_ stays empty then.
+     *
+     * The mass of an entry is recomputed where it is needed: packedEntryMz_() sums the mother's first length_ residues
+     * with forEachPrefixMass_(), the summation build() used to make the entry, and casts to float as build() did, so
+     * the float is bit-identical to the one a Fragment would have stored. Consumers: the per-bin sort of build()
+     * (sortPackedEntries_(), on a key array of one bin at a time), the bucket_min_mz_ table, and the binary searches of
+     * querySpectrumPeptideMasses_() (about 30 probes per bound, each a mother and a protein-string load plus at most
+     * peptide:max_size additions). realize() takes the length from the entry instead of walking the mother's prefixes
+     * until the float matches; the double prefix mass it needs is still accumulated with forEachPrefixMass_() in the
+     * same order, so the candidate masses do not change.
+     *
+     * The entry order is today's: the two-pass binning of build() partitions the entries into ascending m/z bins, within a
+     * bin in the order of their arrival (ascending mother index, then length), and the sort is a stable counting sort by
+     * the m/z bits below MZ_BIN_SHIFT within each bin - exactly what sortBinnedFragmentsByMz() does with stored masses.
+     * Scratch: per thread, 9 bytes per entry of the bin it sorts (key, word, length) plus a 64 KiB cell table, i.e. at most
+     * threads x largest bin x 9 bytes at a time, never a second copy of all entries.
+     *
+     * The packed form is used when every prefix length fits in a byte (peptide:max_size in [1, 255]; 0 = unlimited is
+     * excluded) and the m/z range of the entries fits in MAX_MZ_BINS true bins (otherwise the last bin would merge several
+     * bins and the counting sort could not order them; build() then sorts the Fragments as a whole). Both are decided per
+     * build before the counting pass; otherwise the entries are 8-byte Fragments in fi_fragments_ as before, and
+     * querySpectrumPeptideMasses_() reads whichever form the build left. The normal fragment-index path never uses the
+     * packed form. clear() releases both arrays like fi_fragments_; getNumFragments() counts them.
+     */
+    std::vector<EntryWord> entry_words_;     ///< packed_entries_: the 32-bit words of the prefix entries, sorted by (recomputed) mass
+    std::vector<EntryLength> entry_lengths_; ///< packed_entries_: the prefix lengths, parallel to entry_words_
+    bool packed_entries_{false};             ///< whether build() stored the prefix entries packed (peptide-mass mode only)
     /// The c and z+1 ions of ions:electron_ions that fi_fragments_ lacks. They are bucketed on their
     /// own (electron_bucket_min_mz_) and matched only when a query asks for them.
     std::vector<Fragment> electron_fragments_;
@@ -957,6 +1033,22 @@ private:
                                      const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                                      SpectrumMatchesTopN& sms,
                                      bool with_electron_ions);
+
+    /// The (M+H)+ of the first @p length residues of @p sequence with fixed modifications, as forEachPrefixMass_() sums it
+    /// (the double a Fragment's mass is cast from, and the base of the peptidoform masses of realize())
+    double prefixMass_(const char* sequence, size_t length) const;
+
+    /// Peptide-mass mode, packed entries: the mass of entry @p e, bit-identical to the float a Fragment would have stored
+    /// (the mother's first entry_lengths_[e] residues summed as build() summed them)
+    float packedEntryMz_(size_t e, const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const;
+
+    /** Peptide-mass mode, packed entries: sorts the entries of every m/z bin by mass, keeping the order of arrival among
+     * equal masses - the order sortBinnedFragmentsByMz() gives Fragments. @p bin_start holds the first entry of each bin
+     * and, last, the number of entries; bin b holds the masses whose bits above MZ_BIN_SHIFT equal @p first_bin + b.
+     * Throws if a recomputed mass lies outside its bin (it cannot: build() placed it by the same mass).
+     */
+    void sortPackedEntries_(const std::vector<FASTAFile::FASTAEntry>& fasta_entries, const std::vector<size_t>& bin_start,
+                            uint32_t first_bin);
 
     /// One (precursor charge, isotope error) block of a queryPeaks() call
     struct CandidateBlock_
@@ -1064,6 +1156,7 @@ private:
     int16_t max_isotope_error_;   ///< Maximal possible isotope error (both only used for closed search)
     uint16_t min_precursor_charge_; ///< minimal possible precursor charge (usually always 1)
     uint16_t max_precursor_charge_; ///< maximal possible precursor charge
+    bool search_outside_charges_ = false; ///< precursor:recorded_charge_outside_range 'search'
     uint16_t max_fragment_charge_;  ///< The maximal possible charge of the fragments
     uint32_t max_processed_hits_;   ///< The amount of PSM that will be used. the rest is filtered out
     bool deduplicate_{false};       ///< peptide:deduplicate
@@ -1085,6 +1178,14 @@ private:
      * only place where positive member magnitudes become signed offsets.
      */
     std::pair<float, float> computeMassWindow_(float precursor_mass) const;
+
+    /// The precursor windows of querySpectrum() for the MS2 spectra of @p spectra: of every searched spectrum, charge and
+    /// isotope error the window [lo, hi] in which a peptide's precursor_mz_ makes it a candidate, in the float arithmetic of
+    /// searchDifferentPrecursorRanges() / querySpectrumPeptideMasses_(), widened by a margin for a different rounding of the
+    /// same expressions if @p with_margin. Appended to @p windows and sorted ascending (with overlaps). Returns false if the
+    /// windows are not known - a NaN bound (the query gets an arbitrary peptide range then) or no spectrum is searched - in
+    /// which case nothing may be left out of the index.
+    bool precursorWindows_(const MSExperiment& spectra, bool with_margin, std::vector<std::pair<float, float>>& windows) const;
 
     /// Removes the peptides (sorted by precursor_mz_) whose precursor mass lies in no precursor window of the MS2 spectra
     /// of @p spectra, keeping the order of the others (see build(fasta_entries, searched_spectra)). Removed occurrences

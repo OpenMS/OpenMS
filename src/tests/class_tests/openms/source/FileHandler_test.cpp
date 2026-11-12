@@ -177,6 +177,46 @@ START_SECTION((static FileTypes::Type getType(const std::string &filename)))
   }
 
   TEST_EXCEPTION(Exception::FileNotFound, tmp.getType("/bli/bla/bluff"))
+
+  // a remote location: by its name (without the query), its content is not looked at
+  TEST_EQUAL(tmp.getType("s3://bucket/data/run.mzML"), FileTypes::MZML)
+  TEST_EQUAL(tmp.getType("s3://key:secret@bucket/run.mzML.gz?endpoint_override=localhost:9000&scheme=http"), FileTypes::MZML)
+  TEST_EQUAL(tmp.getType("https://example.org/data/run.mzXML?file=/data/run.mzML"), FileTypes::MZXML)
+  TEST_EQUAL(tmp.getType("https://example.org/data/run"), FileTypes::UNKNOWN)
+END_SECTION
+
+START_SECTION((static bool isRemote(const std::string& filename)))
+  TEST_TRUE(FileHandler::isRemote("s3://bucket/data/run.mzML"))
+  TEST_TRUE(FileHandler::isRemote("http://example.org/run.mzML"))
+  TEST_TRUE(FileHandler::isRemote("https://example.org/run.mzML?token=1"))
+  TEST_TRUE(FileHandler::isRemote("ftp://example.org/run.mzML"))
+  TEST_FALSE(FileHandler::isRemote("run.mzML"))
+  TEST_FALSE(FileHandler::isRemote("/data/s3://bucket/run.mzML"))
+  TEST_FALSE(FileHandler::isRemote("file:///data/run.mzML")) // a local file
+  TEST_FALSE(FileHandler::isRemote("C:/data/run.mzML"))
+  TEST_FALSE(FileHandler::isRemote(""))
+END_SECTION
+
+START_SECTION((static std::string displayName(const std::string& filename)))
+  // a remote location: without user info, query and fragment
+  TEST_STRING_EQUAL(FileHandler::displayName("s3://key:secret@bucket/data/run.mzML?region=eu-central-1"), "s3://bucket/data/run.mzML")
+  TEST_STRING_EQUAL(FileHandler::displayName("https://example.org/data/run.mzML?X-Amz-Signature=abc#part"), "https://example.org/data/run.mzML")
+  TEST_STRING_EQUAL(FileHandler::displayName("s3://bucket/data/run.mzML"), "s3://bucket/data/run.mzML")
+  // names derived from it are those of the file
+  TEST_STRING_EQUAL(File::basename(FileHandler::displayName("s3://bucket/data/run.mzML?endpoint_override=localhost:9000/x")), "run.mzML")
+  // a local file name is kept
+  TEST_STRING_EQUAL(FileHandler::displayName("/data/run?1#2@3.mzML"), "/data/run?1#2@3.mzML")
+  TEST_STRING_EQUAL(FileHandler::displayName("run.mzML"), "run.mzML")
+  TEST_STRING_EQUAL(FileHandler::displayName(""), "")
+END_SECTION
+
+START_SECTION((static std::string displayText(const std::string& text)))
+  TEST_STRING_EQUAL(FileHandler::displayText("ProSE -in s3://key:secret@bucket/run.mzML?region=eu-central-1 -out run.idXML"),
+                    "ProSE -in s3://bucket/run.mzML -out run.idXML")
+  TEST_STRING_EQUAL(FileHandler::displayText("Value of string option 'in': https://example.org/run.mzML?X-Amz-Signature=abc"),
+                    "Value of string option 'in': https://example.org/run.mzML")
+  TEST_STRING_EQUAL(FileHandler::displayText("Value of string option 'in': /data/run.mzML"), "Value of string option 'in': /data/run.mzML")
+  TEST_STRING_EQUAL(FileHandler::displayText(""), "")
 END_SECTION
 
 
@@ -445,8 +485,8 @@ END_SECTION
 
 START_SECTION(([Bruker .d] getType() looks at the files of a .d directory))
 {
-  // TDF data is what can be read. TSF and BAF data (no ion mobility) are taken as Bruker .d as well, so
-  // that loading them fails with a message that names the format, not with an unknown file type.
+  // TDF and TSF data (timsTOF with and without ion mobility) are what can be read. BAF data is taken as Bruker .d
+  // as well, so that loading it fails with a message that names the format, not with an unknown file type.
   TempDir tmp_dir;
   auto make_d = [&tmp_dir](const std::string& name, const std::string& file)
   {
@@ -465,11 +505,17 @@ START_SECTION(([Bruker .d] getType() looks at the files of a .d directory))
 
   PeakMap exp;
   MSImagingExperiment img;
-  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadExperiment(make_d("tsf", "analysis.tsf"), exp))
+  // BAF data cannot be read: every function says so
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadExperiment(make_d("baf", "analysis.baf"), exp))
   TEST_EXCEPTION(Exception::ParseError, FileHandler().loadExperiment(make_d("baf", "analysis.baf"), exp, {FileTypes::MZML, FileTypes::BRUKER_TDF}))
-  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadImagingExperiment(make_d("tsf", "analysis.tsf"), img))
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadImagingExperiment(make_d("baf", "analysis.baf"), img))
   MSDataStoringConsumer streamed;
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().transformExperiment(make_d("baf", "analysis.baf"), &streamed))
+  // TSF data is read: an analysis.tsf that is no SQLite file is reported as such, and an imaging run is not
+  // recognized in it (as for such an analysis.tdf)
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadExperiment(make_d("tsf", "analysis.tsf"), exp))
   TEST_EXCEPTION(Exception::ParseError, FileHandler().transformExperiment(make_d("tsf", "analysis.tsf"), &streamed))
+  TEST_EXCEPTION(Exception::InvalidValue, FileHandler().loadImagingExperiment(make_d("tsf", "analysis.tsf"), img))
 }
 END_SECTION
 #endif

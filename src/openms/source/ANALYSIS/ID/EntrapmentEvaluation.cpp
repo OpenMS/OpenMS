@@ -11,6 +11,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
@@ -32,11 +33,6 @@ namespace OpenMS
       return static_cast<double>(entrapment) / static_cast<double>(accepted) * (1.0 + te_ratio);
     }
 
-    bool startsWith(const std::string& s, const std::string& prefix)
-    {
-      return s.size() >= prefix.size() && s.compare(0, prefix.size(), prefix) == 0;
-    }
-
     /// whether @p acc carries @p decoy_string as a suffix, possibly followed by "_<n>" (DecoyDatabase with shuffle_decoy_ratio > 1)
     bool hasDecoySuffix(const std::string& acc, const std::string& decoy_string)
     {
@@ -50,7 +46,7 @@ namespace OpenMS
 
     bool isDecoyAccession(const std::string& acc, const std::string& decoy_string, bool decoy_is_prefix)
     {
-      return !decoy_string.empty() && (decoy_is_prefix ? startsWith(acc, decoy_string) : hasDecoySuffix(acc, decoy_string));
+      return !decoy_string.empty() && (decoy_is_prefix ? StringUtils::hasPrefix(acc, decoy_string) : hasDecoySuffix(acc, decoy_string));
     }
 
     /// I and L have the same mass: count them as one residue
@@ -75,7 +71,7 @@ namespace OpenMS
       {
         const std::string& acc = entry.identifier;
         if (isDecoyAccession(acc, decoy_string, decoy_is_prefix)) continue;
-        const bool is_entrapment = !entrapment_prefix.empty() && startsWith(acc, entrapment_prefix);
+        const bool is_entrapment = !entrapment_prefix.empty() && StringUtils::hasPrefix(acc, entrapment_prefix);
         if (is_entrapment && entrapment_peptides == nullptr) continue;
         peptides.clear();
         digestion.digestUnmodified(entry.sequence, peptides, min_length, max_length);
@@ -113,7 +109,7 @@ namespace OpenMS
     for (const auto& acc : hit.extractProteinAccessionsSet())
     {
       if (isDecoyAccession(acc, decoy_string, decoy_is_prefix)) continue; // in no original target protein
-      if (!startsWith(acc, entrapment_prefix)) return Kind::TARGET;
+      if (!StringUtils::hasPrefix(acc, entrapment_prefix)) return Kind::TARGET;
       any_entrapment = true;
     }
     return any_entrapment ? Kind::ENTRAPMENT : Kind::TARGET;
@@ -183,7 +179,7 @@ namespace OpenMS
     std::unordered_map<std::string, const std::string*> target_sequences;
     for (const auto& entry : db)
     {
-      if (!isDecoy(entry.identifier) && !startsWith(entry.identifier, entrapment_prefix)) target_sequences.emplace(entry.identifier, &entry.sequence);
+      if (!isDecoy(entry.identifier) && !StringUtils::hasPrefix(entry.identifier, entrapment_prefix)) target_sequences.emplace(entry.identifier, &entry.sequence);
     }
 
     ProteaseDigestion digestion;
@@ -192,7 +188,7 @@ namespace OpenMS
     std::vector<std::string_view> peptides;
     for (const auto& entry : db)
     {
-      if (isDecoy(entry.identifier) || !startsWith(entry.identifier, entrapment_prefix)) continue;
+      if (isDecoy(entry.identifier) || !StringUtils::hasPrefix(entry.identifier, entrapment_prefix)) continue;
       const auto target_it = target_sequences.find(entry.identifier.substr(entrapment_prefix.size()));
       if (target_it == target_sequences.end()) continue;
       const std::string& target = *target_it->second;

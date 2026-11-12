@@ -10,6 +10,15 @@
 - **CMAKE_PREFIX_PATH**: Use `;` separator with `-D` flag, `:` with env var on Unix
 - **delocate-wheel `-L`**: Destination subdir inside wheel, NOT library search path. Use `delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}`
 
+## AI Policy
+
+Follow the [OpenMS AI Policy](https://openms.de/ai-policy/) (summary in `AGENTS.md` → "AI Contribution Policy"):
+
+- The human contributor is accountable: they must understand, review and test every change you make, so keep changes small, explained and checked.
+- Commits with substantial AI work carry a `Co-authored-by:` trailer; lighter AI use gets an `Assisted-by:` trailer.
+- In PRs, tick the AI disclosure box of the template and state the design intent and rationale for significant changes.
+- Never act as the sole or final judge of a contribution or of a person's standing in the community.
+
 ## Guidelines
 
 - When CI tests fail, always investigate the root cause first before patching reference files or test expectations. Never bulk-replace expected values or regenerate test outputs as a first approach.

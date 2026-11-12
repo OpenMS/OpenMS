@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -25,14 +26,21 @@ namespace OpenMS
 
     Every theoretical ion of a peptide-spectrum match is placed in a context and gets an outcome. Two context sets
     are available (see ContextSet):
-    - BASIC: terminal series (prefix a/b/c or suffix x/y/z), precursor charge (1-2, 3, at least 4), fragment charge
-      (1 or higher) and relative position of the cleavage along the backbone (10 bins of fragment length / peptide
-      length). Outcome: absent, or the intensity rank of the matched peak within the spectrum (7 rank bins: 1-2, 3-5,
-      6-10, 11-20, 21-40, 41-80, above 80).
+    - BASIC: ion series (see SERIES: a/b, x/y, c, or z with z+1 and z+2), precursor charge (1-2, 3, at least 4),
+      fragment charge (1 or higher) and relative position of the cleavage along the backbone (10 bins of fragment
+      length / peptide length). Outcome: absent, or the intensity rank of the matched peak within the spectrum (7 rank
+      bins: 1-2, 3-5, 6-10, 11-20, 21-40, 41-80, above 80).
     - RICH: BASIC plus the residues at the cleavage site (bond X|P, bond D/E|X, any other bond) and whether the
-      complementary singly charged ion was matched. Outcome: absent, or rank bin x mass-error bin (|error| / tolerance
-      below 0.25, below 0.5, up to 1). This is a self-trained surrogate of the model-free part of the rich-ion
-      likelihood of ANDES (ion context, complementary-ion coherence, matched rank and mass error).
+      complementary singly charged ion (b for y, c for z and so on) was matched. Outcome: absent, or rank bin x
+      mass-error bin (|error| / tolerance below 0.25, below 0.5, up to 1). This is a self-trained surrogate of the
+      model-free part of the rich-ion likelihood of ANDES (ion context, complementary-ion coherence, matched rank and
+      mass error).
+
+    The c and z ions of electron-based activation (ETD, ECD, EThcD, ETciD) are series of their own, apart from the
+    b and y ions: their presence and intensity differ from those of b and y ions, also in the same spectrum (EThcD),
+    and depend on the cleavage site in other ways (the N-Calpha bond of proline does not break, so c and z ions at a
+    bond X|P are missing where b and y ions are often enhanced). Spectra with b and y ions only use the a/b and x/y
+    series, whose contexts are the same whether or not other spectra of the run have c and z ions.
 
     Two sets of counts are kept: the ions of confident peptides ("signal") and the ions of their reversed sequences
     matched against the same spectra ("noise"). finalize() turns both into smoothed probabilities with pseudo-count
@@ -62,7 +70,9 @@ namespace OpenMS
       RICH   ///< BASIC plus cleavage-site residues and complementary-ion presence; outcome: intensity rank x mass error
     };
 
-    static constexpr Size SERIES = 2;            ///< prefix (a/b/c) and suffix (x/y/z) ions
+    /// Ion series: a/b (0), x/y (1), c (2), and z, z+1, z+2 (3). Even series are N-terminal (prefix) ions, odd series
+    /// C-terminal (suffix) ions; series s and s ^ 1 are complementary (b and y, c and z).
+    static constexpr Size SERIES = 4;
     static constexpr Size PRECURSOR_BUCKETS = 3; ///< precursor charge 1-2, 3, at least 4
     static constexpr Size FRAGMENT_CHARGES = 2;  ///< fragment charge 1, at least 2
     static constexpr Size POSITION_BINS = 10;    ///< fragment length / peptide length
@@ -175,12 +185,21 @@ namespace OpenMS
     static Size errorBin(double relative_error);
 
     /**
-      @brief Series and ordinal of an ion name as written by TheoreticalSpectrumGenerator, e.g. "b5+", "y3++", "z.4+".
+      @brief Terminus and ordinal of an ion name as written by TheoreticalSpectrumGenerator, e.g. "b5+", "y3++", "z.4+".
 
       Names carrying the ion type after a '$' (cross-link annotations) are supported. Returns false
       for names without a terminal series letter or ordinal.
     */
     static bool parseIonName(const std::string& name, bool& prefix, Size& ordinal);
+
+    /**
+      @brief parseIonName() that returns the ion series (see SERIES) instead of the terminus, e.g. 2 for "c7+" and 3 for
+      "z.4+".
+    */
+    static bool parseIonSeries(const std::string& name, Size& series, Size& ordinal);
+
+    /// Ion series (see SERIES) of an ion type (Residue::AIon ... Residue::Zp2Ion); SERIES for any other type
+    static Size seriesOf(Residue::ResidueType type);
 
     /**
       @brief Match the named ions of a theoretical spectrum against peak list @p index: one Ion per recognised ion.
@@ -201,6 +220,25 @@ namespace OpenMS
     void matchIons(const PeakLists& peaks,
                    Size index,
                    const MSSpectrum& theoretical,
+                   const AASequence& peptide,
+                   int precursor_charge,
+                   double tolerance,
+                   bool ppm,
+                   std::vector<Ion>& ions) const;
+
+    /**
+      @brief matchIons() with the ions given as codes instead of names: per peak of @p theoretical its ion type, ordinal
+      and charge, as TheoreticalSpectrumGenerator::getIonSeriesSpectrum() writes them. The same ions as matchIons() on
+      the spectrum of getSpectrum() with the names.
+      @throws Exception::InvalidValue if the codes do not have one entry per peak
+      @throws Exception::InvalidParameter if the tolerance is not finite and positive
+    */
+    void matchIons(const PeakLists& peaks,
+                   Size index,
+                   const MSSpectrum& theoretical,
+                   const std::vector<Residue::ResidueType>& ion_types,
+                   const std::vector<UInt>& ion_ordinals,
+                   const std::vector<Int>& ion_charges,
                    const AASequence& peptide,
                    int precursor_charge,
                    double tolerance,
@@ -244,6 +282,11 @@ namespace OpenMS
     Features score(const std::vector<Ion>& ions, Size top_k = 6) const;
 
   private:
+    /// matchIons() for ion(i, series, ordinal) (false: not an ion of a series) and charge(i) of the peaks
+    template <typename IonOf, typename ChargeOf>
+    void matchIons_(const PeakLists& peaks, Size index, const MSSpectrum& theoretical, IonOf&& ion_of, ChargeOf&& charge_of,
+                    const AASequence& peptide, int precursor_charge, double tolerance, bool ppm, std::vector<Ion>& ions) const;
+
     /// Contexts of the coarser back-off levels: level 1 is the coarsest above the flat prior
     Size level1Context_(Size context) const;
     Size level2Context_(Size context) const;

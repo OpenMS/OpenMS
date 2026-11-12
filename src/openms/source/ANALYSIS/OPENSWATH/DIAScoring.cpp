@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
@@ -38,11 +39,6 @@ namespace OpenMS
 {
   namespace
   {
-    void hashCombine(std::size_t& seed, std::size_t value)
-    {
-      seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    }
-
     struct DIAScoringPool
     {
       std::vector<double> isotopes_int;
@@ -143,7 +139,7 @@ namespace OpenMS
       std::size_t operator()(const AveragineIsotopeDistributionKey& key) const
       {
         std::size_t seed = std::hash<double>{}(key.neutral_mass);
-        hashCombine(seed, std::hash<int>{}(key.nr_isotopes));
+        hash_combine(seed, std::hash<int>{}(key.nr_isotopes));
         return seed;
       }
     };

@@ -2517,6 +2517,12 @@ Probability ties resolved by taking protein with largest number of peptides
                 "Per-row integer key to keep related rows in the same CV fold. Leave empty for no grouping.")
         .def_rw("feature_names",  &OpenMS::RescoreInput::feature_names,
                 "Names aligned 1:1 with feature columns; used for logging only.")
+        .def_rw("feature_matrix", &OpenMS::RescoreInput::feature_matrix,
+                "Dense row-major features (n_rows x len(feature_names)), used when 'features' is empty; "
+                "'is_decoy' gives the number of rows.")
+        .def_rw("peptide_keys",   &OpenMS::RescoreInput::peptide_keys,
+                "Optional per-row peptide key for peptide-level q-values (Percolator parameter 'peptide_level'). "
+                "Empty, or one entry per row.")
 
         .def("set_features_np",
              [](OpenMS::RescoreInput& self,
@@ -2549,7 +2555,7 @@ Probability ties resolved by taking protein with largest number of peptides
         ;
 
     nb::class_<OpenMS::RescoreOutput>(m, "RescoreOutput",
-        "Output from Percolator.rescore(). Aligned 1:1 with RescoreInput.features.")
+        "Output from Percolator.rescore(). Aligned 1:1 with the rows of the RescoreInput (features or feature_matrix).")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::RescoreOutput &>())
         .def("__copy__",     [](const OpenMS::RescoreOutput& self) { return OpenMS::RescoreOutput(self); })
@@ -2557,6 +2563,10 @@ Probability ties resolved by taking protein with largest number of peptides
         .def_rw("scores",   &OpenMS::RescoreOutput::scores,   "SVM discriminant score per row")
         .def_rw("q_values", &OpenMS::RescoreOutput::q_values, "q-value per row")
         .def_rw("peps",     &OpenMS::RescoreOutput::peps,     "posterior error probability per row")
+        .def_rw("peptide_q_values", &OpenMS::RescoreOutput::peptide_q_values,
+                "With 'peptide_level' and RescoreInput.peptide_keys: the peptide-level q-value per row (empty otherwise)")
+        .def_rw("peptide_peps",     &OpenMS::RescoreOutput::peptide_peps,
+                "With 'peptide_level' and RescoreInput.peptide_keys: the peptide-level PEP per row (empty otherwise)")
 
         .def("scores_np",
              [](nb::object self_obj) -> nb::object {
@@ -2633,6 +2643,27 @@ The stamped features are removed again. Returns the number of rescored hits.
 
 feature_set: e.g. PercolatorInfile.getStandardFeatureSet(min_charge, max_charge) plus extra
 features plus "Peptide" and "Proteins".
+)doc")
+        .def("storeWeights", &OpenMS::Percolator::storeWeights, "filename"_a,
+             R"doc(
+Write the models of the last rescore() as the percolator executable writes them with -w:
+three comment lines, then per cross-validation fold the feature names and "m0" (the bias),
+the weights of the normalized features and those of the raw features (tab-separated).
+Raises an exception if nothing has been trained yet, or after rescorePSMs() with RESET.
+)doc")
+        .def_static("markRescoredRuns",
+             [](std::vector<OpenMS::ProteinIdentification> runs, const std::string& tool,
+                const std::vector<std::pair<std::string, OpenMS::DataValue>>& settings, const std::string& version)
+             {
+               OpenMS::Percolator::markRescoredRuns(runs, tool, settings, version);
+               return runs;
+             },
+             "runs"_a, "tool"_a, "settings"_a, "version"_a = std::string(OpenMS::Percolator::VENDORED_VERSION),
+             R"doc(
+Mark search runs as post-processed by Percolator and return them: search engine "Percolator"
+with the given version, the meta value 'percolator' = tool, and the search parameters' meta
+values 'Percolator:<name>' of settings, a list of (name, value) in this order. A value None
+removes that meta value.
 )doc")
         ;
     def_DefaultParamHandler<OpenMS::Percolator>(percolator_class);

@@ -4,12 +4,10 @@ set -eu
 set -o pipefail
 
 # Parse command line arguments
-SKIP_GUI_DEPS=false
-
 while [[ $# -gt 0 ]]; do
   case $1 in
   --skip-gui-deps)
-    SKIP_GUI_DEPS=true
+    # accepted for existing callers; the GUI (and Qt) is built by OpenMS-TOPP-GUI
     shift
     ;;
   *)
@@ -30,25 +28,12 @@ sudo apt update
 
 # Required dependencies:
 sudo apt-get -qq install -y \
-  autoconf \
-  autoconf-archive \
-  automake \
   build-essential \
   cmake \
   git \
-  libtool \
   ninja-build \
   patch \
   pkg-config
-
-# GUI dependencies (can be skipped for non-GUI builds):
-if [ "$SKIP_GUI_DEPS" = false ]; then
-  sudo apt-get -qq install -y \
-    qt6-base-dev \
-    libqt6svg6-dev \
-    libqt6opengl6-dev \
-    libqt6openglwidgets6
-fi
 
 # Optional dependencies:
 sudo apt-get -qq install -y \

@@ -19,7 +19,7 @@
 #include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
-#include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/PROSE/ProSEAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>
@@ -133,7 +133,6 @@
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFileMascot.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
-#include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
@@ -190,6 +189,7 @@
 #include <nanobind/operators.h>
 #include <nanobind/stl/map.h>
 #include <nanobind/stl/optional.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/set.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/vector.h>
@@ -2181,12 +2181,32 @@ Optional protein inference information can be supplied via proteins.
     // -----------------------------------------------------------------------
     // PosteriorErrorProbabilityModel
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::Math::PosteriorErrorProbabilityModel, OpenMS::DefaultParamHandler>(m, "PosteriorErrorProbabilityModel", 
+    auto pep_model_class = nb::class_<OpenMS::Math::PosteriorErrorProbabilityModel, OpenMS::DefaultParamHandler>(m, "PosteriorErrorProbabilityModel",
         R"doc(
-Implements a mixture model of the inverse gumbel and the gauss
-distribution or a gaussian mixture
+Estimates posterior error probabilities (PEPs) of peptide-spectrum matches from search engine scores:
+with an (unsupervised) mixture model of a Gumbel (or Gauss) and a Gauss distribution, or using
+target/decoy information (non-parametric target-decoy estimate, see fitTargetDecoy)
 )doc")
         .def(nb::init<>())
+        .def("fitTargetDecoy", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, const std::vector<double>& target_scores, const std::vector<double>& decoy_scores, const std::string& outlier_handling) { return self.fitTargetDecoy(target_scores, decoy_scores, outlier_handling); }, "target_scores"_a, "decoy_scores"_a, "outlier_handling"_a,
+            R"doc(
+Estimates the PEP model from scores of target and decoy PSMs (higher scores must be better; one top hit per spectrum,
+search against a concatenated target+decoy database). With at least one decoy, the non-parametric target-decoy
+estimate is used; without decoys (or with decoy_handling 'ignore'), the mixture model.
+computeProbability can be used afterwards.
+
+:param target_scores: Scores of target PSMs
+:param decoy_scores: Scores of decoy PSMs
+:param outlier_handling: Outlier handling strategy (only used for the mixture model)
+:return: True if a model could be estimated
+)doc")
+        .def("getModelType", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getModelType(); }, "Returns the kind of model estimated by the last fit")
+        .def_static("modelTypeToString", [](OpenMS::Math::PosteriorErrorProbabilityModel::ModelType type) { return OpenMS::Math::PosteriorErrorProbabilityModel::modelTypeToString(type); }, "type"_a, "Human-readable name of a ModelType")
+        .def("getTargetDecoyIncorrectFraction", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getTargetDecoyIncorrectFraction(); }, "Returns the target-decoy estimate of the fraction of incorrect targets (#decoys / #targets / decoy_ratio) of the last call to fitTargetDecoy, or -1")
+        .def("hasCalibrationWarning", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.hasCalibrationWarning(); }, "Returns True if the last call to fitTargetDecoy found targets not scoring better than decoys (AUC <= 0.5), or significantly too few decoys among the lowest-scoring PSMs (one-sided binomial test, PEP below 0.8 there), i.e. the target-decoy assumptions are violated at low scores and the PEPs stay well below 1 (only checked with enough decoys and decoy_handling auto)")
+        .def("getTargetDecoyAUC", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getTargetDecoyAUC(); }, "Returns the area under the ROC curve of target vs. decoy PSMs of the last call to fitTargetDecoy (0.5 or below: targets do not score better than decoys), or -1")
+        .def("getIsotonicPEPCurve", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getIsotonicPEPCurve(); }, "Returns the PEP curve of the non-parametric target-decoy estimate as list of (score, PEP) tuples, sorted by score")
+        .def("getIncorrectlyAssignedGumbelFitResult", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { auto r = self.getIncorrectlyAssignedGumbelFitResult(); return nb::make_tuple(r.a, r.b); }, "Returns the location and scale of the Gumbel distribution of incorrectly assigned sequences as tuple (a, b)")
         .def("fit", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double> search_engine_scores, const std::string& outlier_handling) { bool result = self.fit(search_engine_scores, outlier_handling); return nb::make_tuple(result, search_engine_scores); }, "search_engine_scores"_a, "outlier_handling"_a,
             R"doc(
 Fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables.
@@ -2197,9 +2217,10 @@ computeProbability can be used afterwards.
 )doc")
         .def("fit", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double> search_engine_scores, std::vector<double> probabilities, const std::string& outlier_handling) { bool result = self.fit(search_engine_scores, probabilities, outlier_handling); return nb::make_tuple(result, search_engine_scores, probabilities); }, "search_engine_scores"_a, "probabilities"_a, "outlier_handling"_a,
             R"doc(
-Fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables
+Fits the distributions to the data points(search_engine_scores) and computes the probabilities. Estimated parameters for the distributions are saved in member variables
 computeProbability can be used afterwards
-Uses two Gaussians to fit. And Gauss+Gauss or Gumbel+Gauss to plot and calculate final probabilities
+Fits a Gumbel (or Gauss, parameter incorrectly_assigned) and a Gauss distribution with the EM algorithm; the same distributions give the probabilities.
+With fewer than min_mixture_scores scores (default 35), no model is fitted
 
 :param search_engine_scores: A vector which holds the data points
 :param probabilities: Output vector for computed probabilities
@@ -2214,6 +2235,7 @@ Uses two Gaussians to fit. And Gauss+Gauss or Gumbel+Gauss to plot and calculate
         .def("getIncorrectlyAssignedFitResult", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getIncorrectlyAssignedFitResult(); }, "Returns estimated parameters for correctly assigned sequences. Fit should be used before")
         .def("getNegativePrior", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getNegativePrior(); }, "Returns the estimated negative prior probability")
         .def("computeProbability", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self, double score) { return self.computeProbability(score); }, "score"_a, "Returns the computed posterior error probability for a given score")
+        .def("computeDecoyProbability", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self, double score) { return self.computeDecoyProbability(score); }, "score"_a, "Returns the posterior error probability of a decoy PSM with the given score: for the target-decoy estimate, the PEP the decoy would get as a target (label swap), so that decoys and incorrect targets are exchangeable; for the mixture model, the same as computeProbability")
         .def("initPlots", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double> x_scores) { auto text_file = self.initPlots(x_scores); return nb::make_tuple(text_file, x_scores); }, "x_scores"_a, "Initializes the plots. Returns (TextFile, sorted_scores)")
         .def("getGumbelGnuplotFormula", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self, const OpenMS::Math::GaussFitter::GaussFitResult& params) { return self.getGumbelGnuplotFormula(params); }, "params"_a, "Returns the gnuplot formula of the fitted gumbel distribution")
         .def("getGaussGnuplotFormula", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self, const OpenMS::Math::GaussFitter::GaussFitResult& params) { return self.getGaussGnuplotFormula(params); }, "params"_a, "Returns the gnuplot formula of the fitted gauss distribution")
@@ -2221,6 +2243,12 @@ Uses two Gaussians to fit. And Gauss+Gauss or Gumbel+Gauss to plot and calculate
         .def("plotTargetDecoyEstimation", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, std::vector<double> target, std::vector<double> decoy) { self.plotTargetDecoyEstimation(target, decoy); }, "target"_a, "decoy"_a, "Plots the estimated distribution against target and decoy hits")
         .def("getSmallestScore", [](const OpenMS::Math::PosteriorErrorProbabilityModel& self) { return self.getSmallestScore(); }, "Returns the smallest score used in the last fit")
         .def("tryGnuplot", [](OpenMS::Math::PosteriorErrorProbabilityModel& self, const std::string& gp_file) { return self.tryGnuplot(gp_file); }, "gp_file"_a)
+        ;
+    // ModelType enum nested under PosteriorErrorProbabilityModel
+    nb::enum_<OpenMS::Math::PosteriorErrorProbabilityModel::ModelType>(pep_model_class, "ModelType", "Kind of model estimated by the last fit")
+        .value("NONE", OpenMS::Math::PosteriorErrorProbabilityModel::ModelType::NONE)
+        .value("MIXTURE", OpenMS::Math::PosteriorErrorProbabilityModel::ModelType::MIXTURE)
+        .value("TARGET_DECOY_ISOTONIC", OpenMS::Math::PosteriorErrorProbabilityModel::ModelType::TARGET_DECOY_ISOTONIC)
         ;
 
     // -----------------------------------------------------------------------
@@ -5744,101 +5772,6 @@ Stores the data in a ProtXML file (not implemented yet)
   Exception: NotImplemented is always thrown; storing ProtXML is not supported
 )doc")
         ;
-
-    // -----------------------------------------------------------------------
-    // QualityParameter (QcMLFile::QualityParameter)
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::QcMLFile::QualityParameter>(m, "QualityParameter",
-        "Representation of a quality parameter in QcMLFile")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::QcMLFile::QualityParameter &>())
-        .def("__copy__", [](const OpenMS::QcMLFile::QualityParameter& self) { return OpenMS::QcMLFile::QualityParameter(self); })
-        .def("__deepcopy__", [](const OpenMS::QcMLFile::QualityParameter& self, nb::dict) { return OpenMS::QcMLFile::QualityParameter(self); }, "memo"_a)
-        .def_rw("name", &OpenMS::QcMLFile::QualityParameter::name)
-        .def_rw("id", &OpenMS::QcMLFile::QualityParameter::id)
-        .def_rw("value", &OpenMS::QcMLFile::QualityParameter::value)
-        .def_rw("cvRef", &OpenMS::QcMLFile::QualityParameter::cvRef)
-        .def_rw("cvAcc", &OpenMS::QcMLFile::QualityParameter::cvAcc)
-        .def_rw("unitRef", &OpenMS::QcMLFile::QualityParameter::unitRef)
-        .def_rw("unitAcc", &OpenMS::QcMLFile::QualityParameter::unitAcc)
-        .def_rw("flag", &OpenMS::QcMLFile::QualityParameter::flag)
-        .def("toXMLString", [](const OpenMS::QcMLFile::QualityParameter& self, OpenMS::UInt indentation_level) { return self.toXMLString(indentation_level); }, "indentation_level"_a)
-        .def(nb::self == nb::self)
-        .def(nb::self < nb::self)
-        ;
-
-    // -----------------------------------------------------------------------
-    // Attachment (QcMLFile::Attachment)
-    // -----------------------------------------------------------------------
-    nb::class_<OpenMS::QcMLFile::Attachment>(m, "Attachment",
-        "Attachment for QcMLFile quality parameters")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::QcMLFile::Attachment &>())
-        .def("__copy__", [](const OpenMS::QcMLFile::Attachment& self) { return OpenMS::QcMLFile::Attachment(self); })
-        .def("__deepcopy__", [](const OpenMS::QcMLFile::Attachment& self, nb::dict) { return OpenMS::QcMLFile::Attachment(self); }, "memo"_a)
-        .def_rw("name", &OpenMS::QcMLFile::Attachment::name)
-        .def_rw("id", &OpenMS::QcMLFile::Attachment::id)
-        .def_rw("value", &OpenMS::QcMLFile::Attachment::value)
-        .def_rw("cvRef", &OpenMS::QcMLFile::Attachment::cvRef)
-        .def_rw("cvAcc", &OpenMS::QcMLFile::Attachment::cvAcc)
-        .def_rw("unitRef", &OpenMS::QcMLFile::Attachment::unitRef)
-        .def_rw("unitAcc", &OpenMS::QcMLFile::Attachment::unitAcc)
-        .def_rw("binary", &OpenMS::QcMLFile::Attachment::binary)
-        .def_rw("qualityRef", &OpenMS::QcMLFile::Attachment::qualityRef)
-        .def_rw("colTypes", &OpenMS::QcMLFile::Attachment::colTypes)
-        .def_rw("tableRows", &OpenMS::QcMLFile::Attachment::tableRows)
-        .def("toXMLString", [](const OpenMS::QcMLFile::Attachment& self, OpenMS::UInt indentation_level) { return self.toXMLString(indentation_level); }, "indentation_level"_a)
-        .def("toCSVString", [](const OpenMS::QcMLFile::Attachment& self, const std::string& separator) { return self.toCSVString(separator); }, "separator"_a)
-        .def(nb::self == nb::self)
-        .def(nb::self < nb::self)
-        ;
-
-    // -----------------------------------------------------------------------
-    // QcMLFile
-    // -----------------------------------------------------------------------
-    auto qcmlfile_class = nb::class_<OpenMS::QcMLFile, OpenMS::Internal::XMLFile>(m, "QcMLFile",
-        R"doc(
-File adapter for QcML files used to load and store QcML files
-
-This Class is supposed to internally collect the data for the qcML File
-)doc")
-        .def(nb::init<>())
-        .def("map2csv", [](const OpenMS::QcMLFile& self, const std::map<std::string, std::map<std::string, std::string>>& cvs_table, const std::string& separator) { return self.map2csv(cvs_table, separator); }, "cvs_table"_a, "separator"_a, "Converts a map of maps to a CSV string")
-        .def("exportIDstats", [](const OpenMS::QcMLFile& self, const std::string& filename) { return self.exportIDstats(filename); }, "filename"_a)
-        .def("registerRun", [](OpenMS::QcMLFile& self, const std::string& id, const std::string& name) { return self.registerRun(id, name); }, "id"_a, "name"_a, "Registers a run in the qcml file with the respective mappings")
-        .def("registerSet", [](OpenMS::QcMLFile& self, const std::string& id, const std::string& name, const std::set<std::string>& names) { return self.registerSet(id, name, names); }, "id"_a, "name"_a, "names"_a, "Registers a set in the qcml file with the respective mappings")
-        .def("addRunQualityParameter", [](OpenMS::QcMLFile& self, const std::string& r, const OpenMS::QcMLFile::QualityParameter& qp) { return self.addRunQualityParameter(r, qp); }, "r"_a, "qp"_a, "Adds a QualityParameter to run by the name r")
-        .def("addRunAttachment", [](OpenMS::QcMLFile& self, const std::string& r, const OpenMS::QcMLFile::Attachment& at) { return self.addRunAttachment(r, at); }, "r"_a, "at"_a, "Adds a attachment to run by the name r")
-        .def("addSetQualityParameter", [](OpenMS::QcMLFile& self, const std::string& r, const OpenMS::QcMLFile::QualityParameter& qp) { return self.addSetQualityParameter(r, qp); }, "r"_a, "qp"_a, "Adds a QualityParameter to set by the name r")
-        .def("addSetAttachment", [](OpenMS::QcMLFile& self, const std::string& r, const OpenMS::QcMLFile::Attachment& at) { return self.addSetAttachment(r, at); }, "r"_a, "at"_a, "Adds a attachment to set by the name r")
-        .def("removeAttachment", [](OpenMS::QcMLFile& self, const std::string& r, std::vector<std::string> ids, const std::string& at) { return self.removeAttachment(r, ids, at); }, "r"_a, "ids"_a, "at"_a = "", "Removes attachments referencing an id given in ids, from run/set r. All attachments if no attachment name is given with at")
-        .def("removeAttachment", [](OpenMS::QcMLFile& self, const std::string& r, const std::string& at) { return self.removeAttachment(r, at); }, "r"_a, "at"_a, "Removes attachment with cv accession at from run/set r")
-        .def("removeAllAttachments", [](OpenMS::QcMLFile& self, const std::string& at) { return self.removeAllAttachments(at); }, "at"_a, "Removes attachment with cv accession at from  all runs/sets")
-        .def("removeQualityParameter", [](OpenMS::QcMLFile& self, const std::string& r, std::vector<std::string> ids) { return self.removeQualityParameter(r, ids); }, "r"_a, "ids"_a, "Removes QualityParameter going by one of the ID attributes given in ids")
-        .def("merge", [](OpenMS::QcMLFile& self, const OpenMS::QcMLFile& addendum, const std::string& setname) { return self.merge(addendum, setname); }, "addendum"_a, "setname"_a = "", "Merges the given QCFile into this one")
-        .def("collectSetParameter", [](OpenMS::QcMLFile& self, const std::string& setname, const std::string& qp) { std::vector<std::string> ret; self.collectSetParameter(setname, qp, ret); return ret; }, "setname"_a, "qp"_a, "Collects the values of given QPs (as CVid) of the given set")
-        .def("exportAttachment", [](const OpenMS::QcMLFile& self, const std::string& filename, const std::string& qpname) { return self.exportAttachment(filename, qpname); }, "filename"_a, "qpname"_a, "Returns a std::string of a tab separated rows if found empty string else from run/set by the name filename of the qualityparameter by the name qpname")
-        .def("exportQP", [](const OpenMS::QcMLFile& self, const std::string& filename, const std::string& qpname) { return self.exportQP(filename, qpname); }, "filename"_a, "qpname"_a, "Returns a std::string value in quotation of a QualityParameter by the name qpname in run/set by the name filename")
-        .def("exportQPs", [](const OpenMS::QcMLFile& self, const std::string& filename, const std::vector<std::string>& qpnames) { return self.exportQPs(filename, qpnames); }, "filename"_a, "qpnames"_a, "Returns a std::string of a tab separated QualityParameter by the name qpname in run/set by the name filename")
-        .def("getRunIDs", [](const OpenMS::QcMLFile& self) { std::vector<std::string> ids; self.getRunIDs(ids); return ids; }, "Gives the ids of the registered runs in the vector ids")
-        .def("getRunNames", [](const OpenMS::QcMLFile& self) { std::vector<std::string> ids; self.getRunNames(ids); return ids; }, "Gives the names of the registered runs in the vector ids")
-        .def("existsRun", [](const OpenMS::QcMLFile& self, const std::string& filename, bool checkname) { return self.existsRun(filename, checkname); }, "filename"_a, "checkname"_a = false, "Returns true if the given run id is present in this file, if checkname is true it also checks the names")
-        .def("existsSet", [](const OpenMS::QcMLFile& self, const std::string& filename, bool checkname) { return self.existsSet(filename, checkname); }, "filename"_a, "checkname"_a = false, "Returns true if the given set id is present in this file, if checkname is true it also checks the names")
-        .def("existsRunQualityParameter", [](const OpenMS::QcMLFile& self, const std::string& filename, const std::string& qpname) {
-            std::vector<std::string> ids;
-            self.existsRunQualityParameter(filename, qpname, ids);
-            return ids;
-        }, "filename"_a, "qpname"_a, "Returns the ids of the parameter name given if found in given run empty else")
-        .def("existsSetQualityParameter", [](const OpenMS::QcMLFile& self, const std::string& filename, const std::string& qpname) {
-            std::vector<std::string> ids;
-            self.existsSetQualityParameter(filename, qpname, ids);
-            return ids;
-        }, "filename"_a, "qpname"_a, "Returns the ids of the parameter name given if found in given set, empty else")
-        .def("store", [](const OpenMS::QcMLFile& self, const std::string& filename) { return self.store(filename); }, "filename"_a, "Store the qcML file")
-        .def("load", [](OpenMS::QcMLFile& self, const std::string& filename) { return self.load(filename); }, "filename"_a, "Load a QCFile")
-        .def("reset", [](OpenMS::QcMLFile& self) { return self.reset(); })
-        ;
-    def_ProgressLogger<OpenMS::QcMLFile>(qcmlfile_class);
 
     // -----------------------------------------------------------------------
     // TraMLFile

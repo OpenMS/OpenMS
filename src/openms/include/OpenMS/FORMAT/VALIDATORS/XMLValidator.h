@@ -49,11 +49,11 @@ protected:
     //output stream reference (for error messages)
     std::ostream* os_;
 
-    /// Record a validation problem. Called by the internal Xerces ErrorHandler
-    /// bridge (defined in the .cpp); keeps Xerces out of this public header.
+    /// Record a validation problem. Called by the internal libxml2 error
+    /// bridge (defined in the .cpp); keeps parser details out of this public header.
     void logError_(const std::string& kind, const std::string& message, unsigned long line, unsigned long column);
 
-    /// The internal Xerces ErrorHandler bridge needs access to @c logError_.
+    /// The internal libxml2 error bridge needs access to @c logError_.
     friend class XMLValidatorErrorHandler_;
   };
 

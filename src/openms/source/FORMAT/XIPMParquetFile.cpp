@@ -12,13 +12,10 @@
 #include "DATAACCESS/ParquetReaderHelpers.h"
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
-#include <OpenMS/FORMAT/MSNumpressCoder.h>
-#include <OpenMS/FORMAT/ZlibCompression.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <arrow/api.h>
 
-#include <cstring>
 #include <memory>
 #include <string>
 #include <unordered_set>
@@ -75,78 +72,6 @@ namespace OpenMS
       auto table = PRH::readParquetTableColumns(filenames, columns);
       validateXIPMTable_(table);
       return table;
-    }
-
-    void decodeBinary_(const std::string& data, Int64 compression, std::vector<double>& output)
-    {
-      output.clear();
-      if (data.empty())
-      {
-        return;
-      }
-
-      auto decodeNumpress = [&](MSNumpressCoder::NumpressCompression type, const std::string& input)
-      {
-        MSNumpressCoder::NumpressConfig config;
-        config.np_compression = type;
-        MSNumpressCoder().decodeNPRaw(input, output, config);
-      };
-
-      switch (compression)
-      {
-        case 0:
-        {
-          if (data.size() % sizeof(double) != 0)
-          {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Invalid binary data size (not divisible by 8)", StringUtils::toStr(data.size()));
-          }
-          const size_t count = data.size() / sizeof(double);
-          output.resize(count);
-          std::memcpy(output.data(), data.data(), count * sizeof(double));
-          break;
-        }
-        case 1:
-        {
-          std::string decoded;
-          ZlibCompression::uncompressString(data, decoded);
-          if (decoded.size() % sizeof(double) != 0)
-          {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Invalid decompressed binary data size", StringUtils::toStr(decoded.size()));
-          }
-          const size_t count = decoded.size() / sizeof(double);
-          output.resize(count);
-          std::memcpy(output.data(), decoded.data(), count * sizeof(double));
-          break;
-        }
-        case 2:
-          decodeNumpress(MSNumpressCoder::LINEAR, data);
-          break;
-        case 3:
-          decodeNumpress(MSNumpressCoder::SLOF, data);
-          break;
-        case 4:
-          decodeNumpress(MSNumpressCoder::PIC, data);
-          break;
-        case 5:
-        {
-          std::string decoded;
-          ZlibCompression::uncompressString(data, decoded);
-          decodeNumpress(MSNumpressCoder::LINEAR, decoded);
-          break;
-        }
-        case 6:
-        {
-          std::string decoded;
-          ZlibCompression::uncompressString(data, decoded);
-          decodeNumpress(MSNumpressCoder::SLOF, decoded);
-          break;
-        }
-        default:
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Unknown compression code", StringUtils::toStr(compression));
-      }
     }
   } // namespace
 
@@ -288,10 +213,10 @@ namespace OpenMS
       PRH::getOptionalInt(mobility_compression_col, row, mobility_compression);
       PRH::getOptionalInt(intensity_compression_col, row, intensity_compression);
 
-      decodeBinary_(PRH::getBinaryView(mz_data_col, row), mz_compression, peak_map.mz);
-      decodeBinary_(PRH::getBinaryView(rt_data_col, row), rt_compression, peak_map.rt);
-      decodeBinary_(PRH::getBinaryView(mobility_data_col, row), mobility_compression, peak_map.ion_mobility);
-      decodeBinary_(PRH::getBinaryView(intensity_data_col, row), intensity_compression, peak_map.intensity);
+      PRH::decodeBinary(PRH::getBinaryView(mz_data_col, row), mz_compression, peak_map.mz, "binary");
+      PRH::decodeBinary(PRH::getBinaryView(rt_data_col, row), rt_compression, peak_map.rt, "binary");
+      PRH::decodeBinary(PRH::getBinaryView(mobility_data_col, row), mobility_compression, peak_map.ion_mobility, "binary");
+      PRH::decodeBinary(PRH::getBinaryView(intensity_data_col, row), intensity_compression, peak_map.intensity, "binary");
 
       if (peak_map.mz.size() != peak_map.rt.size() ||
           peak_map.mz.size() != peak_map.ion_mobility.size() ||

@@ -307,6 +307,49 @@ class TOPPBaseTestOutputs
     }
 };
 
+// Test class for input files that may be remote locations (tag 'remote'), and one that may not
+class TOPPBaseTestRemoteInputs
+  : public TOPPBase
+{
+  public:
+    TOPPBaseTestRemoteInputs(int argc, const char** argv)
+      : TOPPBase("TOPPBaseTestRemoteInputs", "A test class with input file parameters", {}, false)
+    {
+      char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv(var);
+#else
+      putenv(var);
+#endif
+      main(argc, argv);
+    }
+
+    void registerOptionsAndFlags_() override
+    {
+      registerInputFileList_("in", "<files>", StringList(), "input files or remote locations", false, false, {"remote"});
+      setValidFormats_("in", {"mzML"});
+      registerInputFile_("in_single", "<file>", "", "input file or remote location", false, false, {"remote"});
+      setValidFormats_("in_single", {"mzML"});
+      registerInputFile_("in_local", "<file>", "", "input file", false);
+      setValidFormats_("in_local", {"mzML"});
+    }
+
+    std::string getStringOption(const std::string& name) const
+    {
+      return getStringOption_(name);
+    }
+
+    StringList getStringList(const std::string& name) const
+    {
+      return getStringList_(name);
+    }
+
+    ExitCodes main_(int /*argc*/ , const char** /*argv*/) override
+    {
+      return EXECUTION_OK;
+    }
+};
+
 // Test class for parameters derived from a Param object
 class TOPPBaseTestParam: public TOPPBase
 {
@@ -773,6 +816,54 @@ START_SECTION(([EXTRA]void inputFileReadable_(const std::string& filename, const
 	TEST_EXCEPTION(Exception::FileNotFound, tmp.inputFileReadable("/this/file/does/not/exist.txt", "someparam"));
 	TEST_EXCEPTION(Exception::FileEmpty, tmp.inputFileReadable(OPENMS_GET_TEST_DATA_PATH("TOPPBase_empty.txt"), "someparam"));
 	tmp.inputFileReadable(OPENMS_GET_TEST_DATA_PATH("TOPPBase_common.ini"), "ini");
+END_SECTION
+
+START_SECTION(([EXTRA] input files with the tag 'remote' may be remote locations))
+{
+	// not looked for as files, and returned as given (with credentials and query)
+	const char* remote_cl[6] = {"TOPPBaseTestRemoteInputs", "-in", "s3://key:secret@bucket/data/run1.mzML?region=eu-central-1",
+	                            "https://example.org/data/run2.mzML.gz", "-in_single", "s3://bucket/run3.mzML"};
+	TOPPBaseTestRemoteInputs remote(6, remote_cl);
+	const StringList in = remote.getStringList("in");
+	TEST_EQUAL(in.size(), 2)
+	TEST_STRING_EQUAL(in[0], "s3://key:secret@bucket/data/run1.mzML?region=eu-central-1")
+	TEST_STRING_EQUAL(in[1], "https://example.org/data/run2.mzML.gz")
+	TEST_STRING_EQUAL(remote.getStringOption("in_single"), "s3://bucket/run3.mzML")
+
+	// the format is that of the name, without the query
+	const char* format_cl[5] = {"TOPPBaseTestRemoteInputs", "-in", "s3://bucket/run.mzXML?file=run.mzML", "-in_single", "https://example.org/run.featureXML"};
+	TOPPBaseTestRemoteInputs format(5, format_cl);
+	TEST_EXCEPTION(Exception::InvalidParameter, format.getStringList("in"))
+	TEST_EXCEPTION(Exception::InvalidParameter, format.getStringOption("in_single"))
+
+	// a local file is checked as before, and so is a remote location for a parameter without the tag
+	const char* local_cl[7] = {"TOPPBaseTestRemoteInputs", "-in", "/this/file/does/not/exist.mzML", "-in_single", "/this/file/does/not/exist.mzML",
+	                           "-in_local", "s3://bucket/run.mzML"};
+	TOPPBaseTestRemoteInputs local(7, local_cl);
+	TEST_EXCEPTION(Exception::FileNotFound, local.getStringList("in"))
+	TEST_EXCEPTION(Exception::FileNotFound, local.getStringOption("in_single"))
+	TEST_EXCEPTION(Exception::FileNotFound, local.getStringOption("in_local"))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the debug output names remote inputs without credentials and query))
+{
+	// -debug echoes the command line and the option values (also into the -log file): a remote location (tag 'remote')
+	// is shown without user info and query, which can hold credentials
+	std::string log_file;
+	NEW_TMP_FILE(log_file);
+	const char* cl[10] = {"TOPPBaseTestRemoteInputs", "-in", "s3://key:secret@bucket/data/run1.mzML?region=eu-central-1",
+	                      "-in_single", "https://example.org/run2.mzML?X-Amz-Signature=signature", "-debug", "2", "-log", log_file.c_str(), nullptr};
+	TOPPBaseTestRemoteInputs remote(9, cl);
+	TEST_STRING_EQUAL(remote.getStringList("in")[0], "s3://key:secret@bucket/data/run1.mzML?region=eu-central-1") // the readers get it as given
+	TextFile tf(log_file);
+	std::string content;
+	for (TextFile::ConstIterator it = tf.begin(); it != tf.end(); ++it) { content += *it + "\n"; }
+	TEST_TRUE(content.find("s3://bucket/data/run1.mzML") != std::string::npos)
+	TEST_TRUE(content.find("https://example.org/run2.mzML") != std::string::npos)
+	TEST_EQUAL(content.find("secret"), std::string::npos)
+	TEST_EQUAL(content.find("signature"), std::string::npos)
+}
 END_SECTION
 
 START_SECTION(([EXTRA]void outputFileWritable_(const std::string& filename, const std::string& param_name) const))

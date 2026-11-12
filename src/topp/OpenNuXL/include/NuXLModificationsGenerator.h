@@ -150,6 +150,14 @@ namespace OpenMS
                                          the result.
         @param[in] max_length            Maximum oligomer length to enumerate when
                                          @p sequence_restriction is empty. Default @c 4.
+        @param[in] standalone            Target nucleotides that only form precursor adducts on
+                                         their own (e.g. @c 's' for a cross-linker bound to
+                                         the peptide without nucleotide). They are never
+                                         combined with other nucleotides into oligos and are
+                                         exempt from @p sequence_restriction. They still need
+                                         a @p target_nucleotides entry, @p modifications and,
+                                         to be kept, must be in @p can_xl (to be scored, they
+                                         also need fragment adducts). Default empty.
 
         @return Populated @ref NuXLModificationMassesResult.
 
@@ -164,7 +172,8 @@ namespace OpenMS
                                                                      const StringList& modifications,
                                                                      std::string sequence_restriction = "",
                                                                      bool cysteine_adduct = false,
-                                                                     Int max_length = 4);
+                                                                     Int max_length = 4,
+                                                                     const std::set<char>& standalone = {});
 
       /**
         @brief Register the precursor adduct as a named modification of @p residue.

@@ -137,14 +137,6 @@ static constexpr cstr past_last_slash(cstr str)
 #define OPENMS_BOOST_VERSION_SUBMINOR @CF_OPENMS_BOOST_VERSION_SUBMINOR@
 #define OPENMS_BOOST_VERSION @CF_OPENMS_BOOST_VERSION@
 
-#cmakedefine OPENMS_HAS_COINOR
-#cmakedefine OPENMS_HAS_COIN_INCLUDE_SUBDIR_IS_COIN
-#cmakedefine OPENMS_HAS_HIGHS
-
-#define OPENMS_GLPK_VERSION @CF_OPENMS_GLPK_VERSION@
-#define OPENMS_GLPK_VERSION_MAJOR @CF_OPENMS_GLPK_VERSION_MAJOR@
-#define OPENMS_GLPK_VERSION_MINOR @CF_OPENMS_GLPK_VERSION_MINOR@
-
 // custom compile flags
 #define OPENMS_MORECXX_FLAGS "@CF_MYCXXFLAGS@"
 
@@ -159,10 +151,6 @@ static constexpr cstr past_last_slash(cstr str)
 #cmakedefine MT_ENABLE_NESTED_OPENMP 1
 
 #cmakedefine WITH_CRAWDAD 1
-
-// NOTE: This is a temporary hack. The aim is that OpenMS should not care
-//       but currently we need this information for the ToolHandler.
-#cmakedefine WITH_GUI 1
 
 // Whether WNet alignment support was enabled at build time (WITH_WNETALIGN option).
 // Used by ToolHandler to conditionally register FeatureLinkerWNet.
