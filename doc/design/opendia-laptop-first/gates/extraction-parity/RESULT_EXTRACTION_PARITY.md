@@ -68,15 +68,23 @@ Scripts: `parity.py`, `parity2.py`, `miss_ppm.py`, `signal_ppm.py`, `ppm_vs_inte
 
   The 2-Gaussian model underfits the observed tail at 6 to 8 ppm (FIT_TAIL_CHECK_raw01.txt).
 
-## 6. Not fixed yet: RT window at the gradient ends
-- The anchors come from the windowed second pass. Its windows are centred on the stage-1 map, which at library RT < 0.05 points to 450 to 490 s.
-- So no panel precursor eluting at 190 to 340 s is ever collected. The final map then extrapolates there (CAL_EARLY_raw01.txt, STAGE1_EARLY_raw01.txt).
-- **Search-side option, simulated on DIA-NN q <= 1% apexes** (RT_RULES_raw01.txt): outside the anchor library-RT range, extend the window to the run edge.
+## 6. Fix 2 applied: RT window at the gradient ends (OpenMS commit 8d2771bcec)
+- **Cause.** The anchors come from the windowed second pass. Its windows are centred on the stage-1 map, which at library RT < 0.05 points to 450 to 490 s. So no panel precursor eluting at 190 to 340 s was collected, and the final map extrapolated there (CAL_EARLY_raw01.txt, STAGE1_EARLY_raw01.txt).
+- **Part A, collection.** Panel members whose library RT is outside the stage-1 anchor support are collected and searched to the run edge (89336 targets). On its own (rtedge/) this found 5 correct early anchors, but the 20-bin map rejected them as outliers.
+- **Part B, map.** Stage 4 now fits an L1 isotonic map (one knot per PAVA block), extrapolated with Theil-Sen end slopes over sqrt(n) end anchors. Sigma is the 10-fold cross-validated residual. Outliers are rejected on that held-out residual. The cal.json rt block gains map, low_slope_s, high_slope_s; old files still read.
+  - Rejecting on the in-sample residual instead was tried first (rtmono_insample/). It kept a lone late anchor (library RT 0.869, 1321 s, not in DIA-NN's report) that bent the late end. Held-out rejection drops it (rtmono_reject.py, REJECT_VARIANTS_raw01.txt).
+- **raw01 result** (rtmono/RTEDGE_EVAL_raw01.txt):
 
-  | Rule | DIA-NN apexes outside our window | Entrapments among them | Mean window width |
-  |---|---|---|---|
-  | Current | 61 | 3 | 1.0x |
-  | Extend outside anchor range | 26 | 1 | 1.49x (22% of precursors widened) |
-  | Extend outside knot range | 8 | 1 | 1.96x |
+  | | Before (fitppm) | After (rtmono) |
+  |---|---|---|
+  | Used anchors | 527 | 529 |
+  | Anchor run RT range | 409 to 1182 s | 188 to 1182 s |
+  | RT sigma / window half width | 21.0 / 84.1 s | 21.1 / 84.4 s |
+  | DIA-NN q <= 1% apexes outside our window | 62 (3 entrapments) | 30 (2 entrapments) |
+  | Of those, library RT < 0.06 | 48 | 14 |
+  | Median abs(DIA-NN apex - map), library RT 0.02 to 0.04 | 48.9 s | 7.3 s |
+  | Apex +-10 s inside window, q <= 1% | 96.3% | 97.9% |
+  | Missed DIA-NN points / extra points, q <= 1% | 3.9% / 0 | 4.0% / 0 (over 1.7% more compared points) |
+  | Calibration / search | 3:21, 16.8 GB / 2:42, 4.4 GB | 3:51, 20.3 GB / 3:10, 4.4 GB |
 
-- **Calibration-side option:** let the windowed pass also collect panel members beyond the stage-1 map support up to the run edge, so anchors exist there.
+- **What remains.** 30 apexes outside. Library RT < 0.02 still has a median map error of 55 s (3 anchors there). The late end (library RT > 0.8, 8 misses) has 12 anchors. Calibration memory went up 3.5 GB from the run-edge collection.
