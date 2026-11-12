@@ -298,17 +298,10 @@ public:
     /// @name Helper functions
     //@{
 
-    /// Check whether internal state is consistent, e.g. same number of chromatograms and transitions are present
+    /// Returns false if transitions and chromatograms do not match one-to-one.
     inline bool isInternallyConsistent() const
     {
-      // OPENMS_PRECONDITION compiles away to nothing in a release build, which
-      // would make this always return true regardless of the actual state --
-      // defeating callers such as MRMFeatureFinderScoring's
-      // "if (!group.isInternallyConsistent())" guard. Check explicitly instead.
-      if (transitions_.size() != chromatograms_.size()) return false;
-      if (transition_map_.size() != chromatogram_map_.size()) return false;
-      if (!isMappingConsistent_()) return false;
-      return true;
+      return transitions_.size() == chromatograms_.size() && isMappingConsistent_();
     }
 
     /// Ensure that chromatogram native ids match their keys in the map
