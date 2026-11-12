@@ -31,11 +31,32 @@ var openmsNumThreads = (() => {
 
 /**
  * Workers started with the module. Node.js: none (it starts them on demand). Browsers: one
- * per thread of a team but the calling one, plus three for the helper threads OpenMS starts
- * besides OpenMP (e.g. the writers of OpenSwath).
+ * per thread of a team but the calling one; three for the helper threads OpenMS starts besides
+ * OpenMP (e.g. the writers of OpenSwath); the OpenMP team of such a helper thread: ProSE
+ * reads the spectra on a helper thread with a quarter of the threads (at least 2, at most 16)
+ * while the calling thread's team builds the index; and in a module with ONNX Runtime (onnx.js),
+ * the threads of its pool but the calling one. A thread that finds the pool empty waits for a
+ * new Worker, which cannot start while its creator blocks: the search would hang.
  */
-var openmsThreadPoolSize = (typeof process == "object" && process.versions?.node) || openmsNumThreads == 1
-  ? 0 : openmsNumThreads + 2;
+var openmsThreadPoolSize = (() => {
+  if ((typeof process == "object" && process.versions?.node) || openmsNumThreads == 1) return 0;
+  const helperTeam = Math.min(Math.max(Math.floor(openmsNumThreads / 4), Math.min(openmsNumThreads, 2)), 16);
+  const onnx = typeof openmsOnnxThreads != "undefined" ? openmsNumThreads - 1 : 0;
+  return (openmsNumThreads - 1) + 3 + (helperTeam - 1) + onnx;
+})();
+
+/**
+ * In browsers, the threads' Web Workers are started from a Blob that imports this module, not
+ * from the module's URL: a Worker started from a Blob inherits the cross-origin isolation of its
+ * creator, while one started from a URL needs the Cross-Origin-Embedder-Policy header on that
+ * response. The module usually runs in a Web Worker of the page, and Chrome fetches the script
+ * of a Worker created inside a Worker directly from the server, past a service worker that
+ * would add the header (examples/sw.js): on a server without the header, the threads would
+ * not start. (Node.js workers are started from the module's path as usual.)
+ */
+if (!(typeof process == "object" && process.versions?.node) && Module["mainScriptUrlOrBlob"] === undefined) {
+  Module["mainScriptUrlOrBlob"] = new Blob([`import ${JSON.stringify(import.meta.url)};`], { type: "text/javascript" });
+}
 
 Module["preRun"] = [].concat(Module["preRun"] || [], () => {
   // The OpenMP variables of the Node.js process (Emscripten's environment starts empty).

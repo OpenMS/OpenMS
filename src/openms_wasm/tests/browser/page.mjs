@@ -9,6 +9,8 @@ const job = {
   dataUrl: new URL("/data", location.href).href,
   numThreads: params.has("numThreads") ? Number(params.get("numThreads")) : undefined,
   benchmark: params.get("benchmark") === "1",
+  fileByFile: params.get("fileByFile") === "1",
+  manyFiles: Number(params.get("manyFiles") ?? 0),
 };
 const page = { crossOriginIsolated: globalThis.crossOriginIsolated, sharedArrayBuffer: typeof SharedArrayBuffer != "undefined",
                hardwareConcurrency: navigator.hardwareConcurrency };

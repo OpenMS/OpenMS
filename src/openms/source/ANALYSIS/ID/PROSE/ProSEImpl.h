@@ -456,7 +456,8 @@ inline int parallelLevel()
       {
         if (deferred_read == this) { deferred_read = nullptr; }
         restoreThreads_();
-      } // then ~future waits for the helper
+        join_(); // waits for the helper
+      }
 
       /// Starts to read @p filename, with @p reader_threads (default: readerThreads(true)) of the threads of this thread,
       /// after the read before (if any) has ended and this thread has its threads back. @p awaited: the index build waits
@@ -470,7 +471,7 @@ inline int parallelLevel()
         const int chunk_threads = chunkThreads(awaited);
         const bool borrow = readBorrowsThreads();
         const int threads = !borrow ? chunk_threads : reader_threads > 0 ? reader_threads : readerThreads(true);
-        spectra_ = std::future<PeakMap>(); // waits for the helper of a read before
+        join_(); // waits for the helper of a read before
 #if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
         // WebAssembly without threads has no helper thread: load when the result is collected (get()), without a
         // ChunkHelp, whose help() would wait for a reader that has not started
@@ -481,7 +482,7 @@ inline int parallelLevel()
         help_ = std::make_shared<ChunkHelp>();
         help_->setLent(borrow);
 #endif
-        spectra_ = std::async(policy, [&filename, threads, chunk_threads, survey_scans, help = help_]()
+        auto read = [&filename, threads, chunk_threads, survey_scans, help = help_]()
         {
           const OnScopeExit done([&help]() { if (help) { help->close(); } }); // get() waits no longer for chunks to parse
 #ifdef _OPENMP
@@ -489,7 +490,21 @@ inline int parallelLevel()
           if (!SysInfo::ompThreadCountIsGlobal()) { omp_set_num_threads(threads); }
 #endif
           return loadMS2Spectra(filename, threads, help.get(), chunk_threads, survey_scans);
-        });
+        };
+        if (policy == std::launch::deferred)
+        {
+          spectra_ = std::async(std::launch::deferred, std::move(read));
+        }
+        else
+        {
+          // Not std::async: libc++'s std::async detaches its thread, and in WebAssembly (Emscripten) a detached thread
+          // that ends gives its Web Worker back to the pool only when the event loop of the main thread runs, which it
+          // does not while a search runs: every file read in the background kept a Worker, and with 4 threads the 7th
+          // file of a search waited for one forever. A join (join_()) gives the Worker back at once.
+          std::packaged_task<PeakMap()> task(std::move(read));
+          spectra_ = task.get_future();
+          reader_ = std::thread(std::move(task));
+        }
 #ifdef _OPENMP
         if (!borrow) { return; }
         own_threads_ = omp_get_max_threads();
@@ -509,7 +524,7 @@ inline int parallelLevel()
         if (parallelLevel() != 0 || !readBorrowsThreads()) { start(filename, false, readerThreads(true, false), survey_scans); return; } // see start()
 #endif
         restoreThreads_();
-        spectra_ = std::future<PeakMap>(); // waits for the helper of a read before
+        join_(); // waits for the helper of a read before
         help_ = nullptr;
         deferred_ = &filename;
         deferred_survey_scans_ = survey_scans;
@@ -542,10 +557,18 @@ inline int parallelLevel()
           const OnScopeExit restore([this]() { restoreThreads_(); }); // also if help() throws
           if (help_) { help_->help(); }
         }
+        const OnScopeExit join([this]() { join_(); });
         return spectra_.get();
       }
 
     private:
+      /// Drops the spectra of a read before (if any), after its helper has ended
+      void join_() noexcept
+      {
+        if (reader_.joinable()) { reader_.join(); }
+        spectra_ = std::future<PeakMap>();
+      }
+
       void restoreThreads_() noexcept
       {
 #ifdef _OPENMP
@@ -557,6 +580,7 @@ inline int parallelLevel()
 
       std::shared_ptr<ChunkHelp> help_;
       std::future<PeakMap> spectra_;
+      std::thread reader_; // the helper that reads (none for a deferred read)
       int own_threads_ = 0; // of this thread, while the helper reads; 0: not reduced
       const std::string* deferred_ = nullptr; // the file of a deferred read
       bool deferred_survey_scans_ = false;    // ... read with its MS1 spectra

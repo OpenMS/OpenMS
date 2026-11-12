@@ -1988,7 +1988,14 @@ namespace OpenMS
     std::future<bool> first_file_names_electron_activation;
     if (next_spectra.valid() && ions_by_activation_)
     {
-      first_file_names_electron_activation = std::async(std::launch::async | std::launch::deferred,
+#ifdef __EMSCRIPTEN__
+      // (WebAssembly: when asked. libc++'s std::async detaches its thread, whose Web Worker goes back to the pool only
+      // when the event loop of the main thread runs, which it does not during a search; see BackgroundSpectra.)
+      constexpr std::launch policy = std::launch::deferred;
+#else
+      constexpr std::launch policy = std::launch::async | std::launch::deferred;
+#endif
+      first_file_names_electron_activation = std::async(policy,
         [&in_spectra_files]() { return mzMLHeadNamesElectronActivation(in_spectra_files[0]); });
     }
     // A database read here is read while the first file is: neither registers meta value names (see above).

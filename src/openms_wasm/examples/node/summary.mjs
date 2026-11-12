@@ -17,9 +17,7 @@ const OpenMS = await createOpenMS();
 OpenMS.setLogEnabled("info", false);
 
 // Make the file's directory visible to OpenMS (Node.js: no copy into memory needed).
-const directory = path.dirname(path.resolve(file));
-OpenMS.FS.mkdir("/input");
-OpenMS.FS.mount(OpenMS.FS.filesystems.NODEFS, { root: directory }, "/input");
+OpenMS.mountHostDirectory("/input", path.dirname(path.resolve(file)));
 
 // Objects created from JavaScript live in WebAssembly memory: delete() them when done.
 const handler = new OpenMS.FileHandler();
