@@ -351,7 +351,8 @@ namespace
   /// pyrrolidone carboxylic acid, N-myristoyl glycine) needs the residue before it, one made at the C-terminus
   /// (e.g. an amidated residue, a GPI anchor) the residue after it, since the cleavage that makes the terminus
   /// depends on both (see cleavageSiteKept()). If a splice variant replaces that residue, the modified residue
-  /// sits inside the isoform's chain instead. For a cross-link (between two residues), this holds for each of them.
+  /// sits inside the isoform's chain instead. A cross-link between two residues (a head-to-tail cyclopeptide) needs
+  /// the residue before its first residue and the one after its last.
   bool terminalModificationKept(const UniProtFeature& f, const PtmMap& ptms, const std::vector<SpliceEdit>& edits,
                                 int canonical_length)
   {
@@ -362,11 +363,10 @@ namespace
     }
     const PtmEntry* ptm = findPtm(ptms, cleanPtmDescription(f.description));
     if (ptm == nullptr || (!ptm->n_terminal && !ptm->c_terminal)) return true;
-    for (int r : linkedResidues(f))
-    {
-      if (ptm->n_terminal && r > 1 && !cleavageSiteKept(r - 1, edits, canonical_length)) return false;
-      if (ptm->c_terminal && r < canonical_length && !cleavageSiteKept(r, edits, canonical_length)) return false;
-    }
+    // a single residue is both; a head-to-tail cyclopeptide links the first (N-terminal) and last (C-terminal) residue
+    const auto [first, last] = residueSpan(f);
+    if (ptm->n_terminal && first > 1 && !cleavageSiteKept(first - 1, edits, canonical_length)) return false;
+    if (ptm->c_terminal && last < canonical_length && !cleavageSiteKept(last, edits, canonical_length)) return false;
     return true;
   }
 
