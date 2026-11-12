@@ -1,0 +1,15 @@
+Spearman native FWHM vs DIA-NN FWHM (DN+BOTH): 0.562 | old width vs DIA-NN FWHM 0.021
+medians
+      nsup  npts  nfwhm  support  scans  width  diann_fwhm_s
+g                                                           
+BOTH   5.0   2.0   3.04      6.0   14.0  45.81          3.56
+DEC    1.0   1.0   2.46      2.0   19.0  65.53           NaN
+DN     3.0   2.0   3.20      4.0   16.0  54.05          3.22
+ENT    1.0   1.0   2.63      3.0   20.0  62.21          3.66
+AUC vs DEC (all winners, ties half):
+nsup     {'DN': np.float64(0.841), 'BOTH': np.float64(0.98), 'ENT': np.float64(0.538)}
+npts     {'DN': np.float64(0.61), 'BOTH': np.float64(0.569), 'ENT': np.float64(0.519)}
+nfwhm    {'DN': np.float64(0.66), 'BOTH': np.float64(0.635), 'ENT': np.float64(0.532)}
+support  {'DN': np.float64(0.909), 'BOTH': np.float64(0.992), 'ENT': np.float64(0.55)}
+scans    {'DN': np.float64(0.439), 'BOTH': np.float64(0.383), 'ENT': np.float64(0.523)}
+width    {'DN': np.float64(0.408), 'BOTH': np.float64(0.354), 'ENT': np.float64(0.481)}

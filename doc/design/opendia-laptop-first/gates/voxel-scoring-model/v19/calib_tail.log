@@ -1,0 +1,8 @@
+raw01 D11FGWT fold 0: decoys 30992, t -291.87, beta 154.58, -logS(t) 4.60
+raw01 D11FGWT fold 1: decoys 31064, t -161.94, beta 159.31, -logS(t) 4.60
+raw01 D11FGWT fold 2: decoys 30941, t -496.81, beta 176.02, -logS(t) 4.60
+raw01 D11FGWT window choice unchanged: True
+raw02 D11FGWT fold 0: decoys 31393, t 60.31, beta 128.42, -logS(t) 4.60
+raw02 D11FGWT fold 1: decoys 31491, t -280.96, beta 142.77, -logS(t) 4.60
+raw02 D11FGWT fold 2: decoys 31501, t -474.17, beta 163.96, -logS(t) 4.60
+raw02 D11FGWT window choice unchanged: True

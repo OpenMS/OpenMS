@@ -1,0 +1,25 @@
+medians
+          width  scans  support  diann_fwhm_s  diann_span_s
+g                                                          
+BOTH  45.810001   14.0      6.0          3.56          9.82
+DEC   65.529999   19.0      2.0           NaN           NaN
+DN    54.049999   16.0      4.0          3.22          8.21
+ENT   62.209999   20.0      3.0          3.66          8.19
+q10
+      width  scans
+g                 
+BOTH    8.2    6.0
+DEC    19.6    6.0
+DN      9.8    5.0
+ENT    18.0    7.0
+q90
+      width  scans
+g                 
+BOTH   98.2   30.0
+DEC   150.7   46.0
+DN    123.2   40.0
+ENT   147.5   48.0
+Spearman our width vs DIA-NN span (DN+BOTH): 0.013
+DN our width / DIA-NN span median 5.18 | frac our width < 0.5x span 0.02
+BOTH our width / DIA-NN span median 4.67 | frac our width < 0.5x span 0.018
+scans per second of width, median: {'BOTH': 0.38999998569488525, 'DEC': 0.3409999907016754, 'DN': 0.40400001406669617, 'ENT': 0.3970000147819519}

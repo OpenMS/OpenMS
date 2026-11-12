@@ -1,0 +1,9 @@
+test_apex_search_limited (__main__.T.test_apex_search_limited) ... ok
+test_edge_and_zero (__main__.T.test_edge_and_zero) ... ok
+test_gaussian_fwhm (__main__.T.test_gaussian_fwhm) ... ok
+test_support (__main__.T.test_support) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+OK

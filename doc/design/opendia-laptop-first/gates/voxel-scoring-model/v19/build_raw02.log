@@ -1,0 +1,30 @@
+raw02 MS2 scans 292914 isolation windows 300 windows without isolation window 111
+raw02 isolation window 50/300 (20 s)
+raw02 isolation window 100/300 (46 s)
+raw02 isolation window 150/300 (68 s)
+raw02 isolation window 200/300 (85 s)
+raw02 isolation window 250/300 (101 s)
+raw02 done 147 s medians target [1.0, 0.6930000185966492, 1.2910000085830688] decoy [1.0, 0.6930000185966492, 1.2599999904632568]
+	Command being timed: "/home/singjc/.jcode/scratch/torchenv/.venv/bin/python -u build_peak.py raw02"
+	User time (seconds): 228.78
+	System time (seconds): 9.95
+	Percent of CPU this job got: 98%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 4:02.74
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2700264
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 752121
+	Voluntary context switches: 21966
+	Involuntary context switches: 42021
+	Swaps: 0
+	File system inputs: 15405496
+	File system outputs: 29936
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

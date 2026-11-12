@@ -1,0 +1,14 @@
+PLAN_V19.md: OK
+peak_core.py: OK
+test_peak_core.py: OK
+build_peak.py: OK
+run_v19.py: OK
+gains.py: OK
+chain_v19.sh: OK
+../train_v4.py: OK
+../make_w.py: OK
+../calib_tail.py: OK
+../../evaluate_v2.py: OK
+../vs_base.py: OK
+../../v3seq/null_auc.py: OK
+../../raw01/peak.npy: OK

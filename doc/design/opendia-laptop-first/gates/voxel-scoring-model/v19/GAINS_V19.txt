@@ -1,0 +1,8 @@
+raw01 q<=0.01 D11FWT: targets 1614 human 1603 entrap 11 paired decoys 15 human peptides 1503
+raw01 q<=0.01 D11FGWT: targets 1456 human 1447 entrap 9 paired decoys 13 human peptides 1370
+raw01 gained: 50 (human 47, entrap 3) | lost: 208 (human 203, entrap 5) | new human peptides 46, lost human peptides 179
+raw01 gained by V16 stage: {'D right window, below cut': 32, 'not_reference': 17, 'C wrong window won': 1} | lost by V16 stage: {'E accepted': 109, 'D right window, below cut': 50, 'not_reference': 43, 'C wrong window won': 5, 'B no window within 10 s': 1}
+raw02 q<=0.01 D11FWT: targets 1536 human 1526 entrap 10 paired decoys 14 human peptides 1431
+raw02 q<=0.01 D11FGWT: targets 1370 human 1364 entrap 6 paired decoys 12 human peptides 1288
+raw02 gained: 51 (human 50, entrap 1) | lost: 217 (human 212, entrap 5) | new human peptides 46, lost human peptides 189
+raw02 gained by V16 stage: {'D right window, below cut': 38, 'not_reference': 12, 'B no window within 10 s': 1} | lost by V16 stage: {'E accepted': 118, 'D right window, below cut': 73, 'not_reference': 24, 'C wrong window won': 2}
