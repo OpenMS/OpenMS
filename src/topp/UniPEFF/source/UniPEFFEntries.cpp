@@ -185,23 +185,37 @@ namespace
            || type == "signal peptide" || type == "transit peptide";
   }
 
+  /// True if the isoform built by @p edits keeps the canonical cleavage site between residues @p p and
+  /// @p p + 1: both lie outside every splice variant. Since a splice variant replaces at least one residue,
+  /// the two are then also adjacent in the isoform, and the cleavage, which depends on them, is the same.
+  bool cleavageSiteKept(int p, const std::vector<SpliceEdit>& edits, int canonical_length)
+  {
+    return mapPosition(p, edits, canonical_length) != 0 && mapPosition(p + 1, edits, canonical_length) != 0;
+  }
+
   /// Map the coordinates of the canonical feature @p f onto an isoform built by @p edits; returns
   /// false (and leaves @p mapped unspecified) if the isoform does not contain it:
   ///  - a single position, and each of the two linked residues of a disulfide bond or cross-link,
   ///    must lie outside every splice variant;
-  ///  - a processed region (chain, propeptide, signal/transit peptide) is clipped to the canonical
-  ///    residues it keeps; one that starts at the canonical N-terminus or ends at the canonical
-  ///    C-terminus still does so in the isoform. It is dropped if it keeps no residue;
+  ///  - a processed region (chain, propeptide, signal/transit peptide, initiator methionine) may span
+  ///    a splice variant, but its ends are cleavage sites (see cleavageSiteKept()), except the canonical
+  ///    N- and C-terminus, which become the isoform's. A region whose cleavage site the isoform does not
+  ///    keep is dropped, since it would end at a site the isoform does not have; except that one starting
+  ///    right after the removed initiator methionine (@p met_removed) then starts at the isoform's
+  ///    N-terminus (e.g. the chain 2-N of an isoform with an N-terminal extension, M1 -> MPRLLSG). It is
+  ///    also dropped if it keeps no canonical residue;
   ///  - any other region (e.g. a sequence variant range) must not overlap a splice variant.
   /// Features with unknown (0) coordinates are dropped, since they cannot be placed.
   bool mapFeature(const UniProtFeature& f, const std::vector<SpliceEdit>& edits, int canonical_length,
-                  int isoform_length, UniProtFeature& mapped)
+                  int isoform_length, bool met_removed, UniProtFeature& mapped)
   {
     mapped = f;
     if (f.has_position)
     {
       mapped.position = mapPosition(f.position, edits, canonical_length);
-      return mapped.position != 0;
+      if (mapped.position == 0) return false;
+      // its removal depends on the residue after it
+      return f.type != "initiator methionine" || cleavageSiteKept(f.position, edits, canonical_length);
     }
     if (!f.has_range || f.begin < 1 || f.begin > f.end || f.end > canonical_length) return false;
 
@@ -215,20 +229,22 @@ namespace
 
     if (isProcessingFeature(f.type))
     {
-      // first and last canonical residue of the region that no splice variant removes or replaces
+      // the region must keep a canonical residue (one that no splice variant removes or replaces)
       int first = f.begin;
       for (const SpliceEdit& e : edits)
       {
         if (first >= e.begin && first <= e.end) first = e.end + 1;
       }
-      int last = f.end;
-      for (auto it = edits.rbegin(); it != edits.rend(); ++it)
-      {
-        if (last >= it->begin && last <= it->end) last = it->begin - 1;
-      }
-      if (first > last) return false;
-      mapped.begin = (f.begin == 1) ? 1 : mapPosition(first, edits, canonical_length);
-      mapped.end = (f.end == canonical_length) ? isoform_length : mapPosition(last, edits, canonical_length);
+      if (first > f.end) return false;
+
+      if (f.begin == 1) mapped.begin = 1;
+      else if (cleavageSiteKept(f.begin - 1, edits, canonical_length)) mapped.begin = mapPosition(f.begin, edits, canonical_length);
+      else if (f.begin == 2 && met_removed) mapped.begin = 1;  // whether the isoform's own Met is removed is unknown
+      else return false;
+
+      if (f.end == canonical_length) mapped.end = isoform_length;
+      else if (cleavageSiteKept(f.end, edits, canonical_length)) mapped.end = mapPosition(f.end, edits, canonical_length);
+      else return false;
       return true;
     }
 
@@ -328,6 +344,30 @@ namespace
   {
     auto it = ptms.find(description);
     return (it == ptms.end()) ? nullptr : &it->second;
+  }
+
+  /// True if the canonical modification @p f, mapped onto an isoform built by @p edits, is still where the
+  /// ptmlist places it (@p ptms, its "PP" line): one made at the N-terminus of a chain (e.g. N-acetylalanine,
+  /// pyrrolidone carboxylic acid, N-myristoyl glycine) needs the residue before it, one made at the C-terminus
+  /// (e.g. an amidated residue, a GPI anchor) the residue after it, since the cleavage that makes the terminus
+  /// depends on both (see cleavageSiteKept()). If a splice variant replaces that residue, the modified residue
+  /// sits inside the isoform's chain instead. For a cross-link (between two residues), this holds for each of them.
+  bool terminalModificationKept(const UniProtFeature& f, const PtmMap& ptms, const std::vector<SpliceEdit>& edits,
+                                int canonical_length)
+  {
+    if (f.type != "modified residue" && f.type != "cross-link" && f.type != "glycosylation site"
+        && f.type != "lipid moiety-binding region")
+    {
+      return true;
+    }
+    const PtmEntry* ptm = findPtm(ptms, cleanPtmDescription(f.description));
+    if (ptm == nullptr || (!ptm->n_terminal && !ptm->c_terminal)) return true;
+    for (int r : linkedResidues(f))
+    {
+      if (ptm->n_terminal && r > 1 && !cleavageSiteKept(r - 1, edits, canonical_length)) return false;
+      if (ptm->c_terminal && r < canonical_length && !cleavageSiteKept(r, edits, canonical_length)) return false;
+    }
+    return true;
   }
 
   /// Classify a single <feature> and append into the right annotation list(s).
@@ -788,18 +828,22 @@ namespace
     if (map_canonical_features)
     {
       const int canonical_length = static_cast<int>(pe.source.sequence.size());
+      const bool met_removed = std::any_of(canonical_annotated.begin(), canonical_annotated.end(), [](const UniProtFeature* f)
+                                           { return f->type == "initiator methionine" && f->has_position && f->position == 1; });
       for (size_t i = 0; i < pe.isoforms.size(); ++i)
       {
         IsoformEntry& iso = pe.isoforms[i];
         for (const UniProtFeature* f : canonical_annotated)
         {
           UniProtFeature mapped;
-          if (!mapFeature(*f, isoform_edits[i], canonical_length, static_cast<int>(iso.sequence.size()), mapped))
+          if (!mapFeature(*f, isoform_edits[i], canonical_length, static_cast<int>(iso.sequence.size()), met_removed, mapped)
+              || !terminalModificationKept(*f, ptms, isoform_edits[i], canonical_length))
           {
             ++pe.canonical_unmapped;
             OPENMS_LOG_DEBUG << "UniPEFF: " << pe.source.accession << " " << f->type << " '" << f->description
                              << "' cannot be placed on isoform " << iso.accession
-                             << " (in or across a splice variant, or unknown position); not mapped.\n";
+                             << " (in or across a splice variant, a cleavage site or chain terminus it changes, or unknown"
+                                " position); not mapped.\n";
             continue;
           }
           const auto& scoped = isoform_scoped[i];

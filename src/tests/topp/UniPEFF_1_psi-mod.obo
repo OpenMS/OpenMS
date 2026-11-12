@@ -19,3 +19,7 @@ name: half cystine
 [Term]
 id: MOD:00999
 name: S-palmitoyl-L-cysteine
+
+[Term]
+id: MOD:00050
+name: N-acetyl-L-alanine

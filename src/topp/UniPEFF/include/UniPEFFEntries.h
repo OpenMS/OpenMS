@@ -36,6 +36,11 @@ namespace OpenMS::UniPEFFEntries
     std::string accession;        ///< UniProt internal accession, e.g. "PTM-0253"
     std::string psi_mod;          ///< "MOD:xxxxx" or empty
     std::string unimod;           ///< "N" (numeric Unimod id) or empty (NOT prefixed with "UNIMOD:")
+    /// ptmlist "PP   N-terminal." / "PP   C-terminal." (position of the modification in the polypeptide): the
+    /// modification is made at a terminus of the chain, e.g. N-acetylalanine or an amidated C-terminal residue.
+    /// Not set from the per-residue values of a cross-link (e.g. "Anywhere-C-terminal.")
+    bool n_terminal{false};
+    bool c_terminal{false};
   };
 
   using PtmMap = std::unordered_map<std::string, PtmEntry>;
@@ -127,7 +132,8 @@ namespace OpenMS::UniPEFFEntries
     /// canonical mapping: canonical annotations written to an isoform entry (counted once per isoform)
     size_t canonical_mapped{0};
     /// canonical mapping: canonical annotations not written to an isoform entry because they lie in or
-    /// cross one of its splice variants, have an unknown position, or contradict an annotation UniProt makes
+    /// cross one of its splice variants (or one changes the cleavage site or chain terminus they depend on),
+    /// have an unknown position, or contradict an annotation UniProt makes
     /// on that isoform itself (counted once per isoform)
     size_t canonical_unmapped{0};
     std::string prefix;       ///< sp/tr or user override
@@ -167,8 +173,11 @@ namespace OpenMS::UniPEFFEntries
   /// that isoform's entry. With @p map_canonical_features (the tool's default, unset by
   /// -omit_canonical_features), the canonical entry's annotations
   /// are also mapped onto each isoform through its splice variants: features in a deleted or
-  /// replaced region, or regions overlapping one, are not mapped (processed regions are clipped
-  /// to the residues they keep), and a copy of a feature UniProt annotates on that isoform itself
+  /// replaced region, or regions overlapping one, are not mapped (processed regions may span one,
+  /// but not a cleavage site at their ends: one whose flanking residues a splice variant changes;
+  /// a region starting right after a removed initiator methionine then starts at the isoform's
+  /// N-terminus), nor are modifications the ptmlist places at a chain terminus (@ref PtmEntry::n_terminal,
+  /// @ref PtmEntry::c_terminal) next to a splice variant, and a copy of a feature UniProt annotates on that isoform itself
   /// (for a glycosylation: any on that residue) is not added again. UniProt's own isoform annotation
   /// also wins over a mapped one it contradicts (same-type processed regions that overlap, disulfide bonds
   /// sharing a cysteine, a cross-link sharing a residue with a disulfide bond or cross-link if one of the
