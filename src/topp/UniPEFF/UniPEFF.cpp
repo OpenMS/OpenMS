@@ -223,11 +223,15 @@ namespace
       else if (key == "PP")
       {
         // position in the polypeptide: "Anywhere.", "N-terminal.", "C-terminal." or "Protein core.". A cross-link has
-        // one per residue, joined by '-' (e.g. "Anywhere-C-terminal." for a lysine linked to the C-terminal glycine of
-        // ubiquitin, which lies in another protein); these are not used, since a value may not refer to this protein
+        // one per residue, joined by '-'. "N-terminal-C-terminal." is a head-to-tail cyclopeptide (e.g. kalata B1,
+        // "Cyclopeptide (Gly-Asn)"): it links the first and last residue of a peptide, so both termini count. Other
+        // compound values are not used: the terminus may lie in another protein ("Anywhere-C-terminal.": a lysine
+        // linked to the C-terminal glycine of ubiquitin) or name backbone groups of internal residues
+        // ("C-terminal-N-terminal.": the 5-imidazolinone chromophore of GFP-like proteins)
         const std::string where = line.size() > 5 ? line.substr(5) : std::string();
-        current.n_terminal = where == "N-terminal.";
-        current.c_terminal = where == "C-terminal.";
+        const bool cyclopeptide = where == "N-terminal-C-terminal.";
+        current.n_terminal = where == "N-terminal." || cyclopeptide;
+        current.c_terminal = where == "C-terminal." || cyclopeptide;
       }
       else if (key == "//")
       {
@@ -1148,7 +1152,8 @@ protected:
     if (canonical_mapped_tracker.skipped > 0)
     {
       OPENMS_LOG_INFO << "UniPEFF: " << canonical_mapped_tracker.skipped << " canonical annotation(s) lie in or "
-                         "cross a splice variant of an isoform, have an unknown position, or contradict an annotation "
+                         "cross a splice variant of an isoform (or one changes a cleavage site or chain terminus they "
+                         "depend on), have an unknown position, or contradict an annotation "
                          "UniProt makes on the isoform, and were not mapped onto it ("
                       << canonical_mapped_tracker.skipped_entries << " entries affected).\n";
     }

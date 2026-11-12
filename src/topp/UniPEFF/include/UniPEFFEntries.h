@@ -38,7 +38,8 @@ namespace OpenMS::UniPEFFEntries
     std::string unimod;           ///< "N" (numeric Unimod id) or empty (NOT prefixed with "UNIMOD:")
     /// ptmlist "PP   N-terminal." / "PP   C-terminal." (position of the modification in the polypeptide): the
     /// modification is made at a terminus of the chain, e.g. N-acetylalanine or an amidated C-terminal residue.
-    /// Not set from the per-residue values of a cross-link (e.g. "Anywhere-C-terminal.")
+    /// Both are set for a head-to-tail cyclopeptide cross-link ("PP   N-terminal-C-terminal."), whose two residues are
+    /// the termini of a peptide; not from the other per-residue values of a cross-link (e.g. "Anywhere-C-terminal.")
     bool n_terminal{false};
     bool c_terminal{false};
   };

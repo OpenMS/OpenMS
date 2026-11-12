@@ -62,6 +62,8 @@ namespace
     map.emplace("N-acetylalanine", PtmEntry{"N-acetylalanine", "PTM-0199", "MOD:00050", "1", true, false});
     map.emplace("N,N-dimethylproline", PtmEntry{"N,N-dimethylproline", "PTM-0179", "MOD:00075", "529", true, false});
     map.emplace("Alanine amide", PtmEntry{"Alanine amide", "PTM-0057", "MOD:00090", "2", false, true});
+    // both termini: a head-to-tail cyclopeptide ("PP   N-terminal-C-terminal.")
+    map.emplace("Test cyclopeptide", PtmEntry{"Test cyclopeptide", "PTM-9004", "", "", true, true});
     return map;
   }
 
@@ -506,6 +508,22 @@ START_SECTION(([EXTRA] map_canonical_features: cleavage sites and chain-terminal
   TEST_EQUAL(in.processed[1].end, 22)
   TEST_EQUAL(in.processed[2].begin, 23)
   TEST_EQUAL(in.processed[2].end, 28)
+
+  // a head-to-tail cyclopeptide links the first and last residue of the chain: like the chain, it is mapped only where
+  // both cleavage sites are kept (-4), although its two residues lie outside every splice variant in each isoform
+  UniProtEntry cyclic = cleavageSiteFeatures();
+  cyclic.features = {range("chain", "Test protein", 11, 24), range("cross-link", "Test cyclopeptide", 11, 24),
+                     splice("VSP_N", 10, 10, "A", "AV"), splice("VSP_C", 25, 26, "CY", "W"), splice("VSP_IN", 18, 19, "VQ")};
+  pe = prepare(cyclic, true, skipped, true);
+  ABORT_IF(pe.isoforms.size() != 3)
+  TEST_EQUAL(pe.canonical_mapped, 2)
+  TEST_EQUAL(pe.canonical_unmapped, 4)
+  TEST_EQUAL(pe.isoforms[0].annotations.mods.size(), 0)
+  TEST_EQUAL(pe.isoforms[1].annotations.mods.size(), 0)
+  TEST_TRUE(modPositions(pe.isoforms[2].annotations) == std::vector<int>({11, 22}))
+  ABORT_IF(pe.isoforms[2].annotations.processed.size() != 1)
+  TEST_EQUAL(pe.isoforms[2].annotations.processed[0].begin, 11)
+  TEST_EQUAL(pe.isoforms[2].annotations.processed[0].end, 22)
 }
 END_SECTION
 
