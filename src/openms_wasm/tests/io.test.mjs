@@ -201,6 +201,30 @@ test("writeFileChunk, readFileChunk and allocateFile: files in parts, byte for b
   }
 });
 
+test("readFileChunk: a read of 4 GiB or more from a mounted host file is rejected in wasm32, not cut short", () => {
+  // The host file is sparse: no 4 GiB on disk. In wasm32 a size_t holds less than 4 GiB, and such a read returned the
+  // length modulo 4 GiB (nothing for 2^32 bytes), which a caller could take for the end of the file.
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openms-wasm-io-"));
+  const file = path.join(dir, "sparse.bin");
+  fs.closeSync(fs.openSync(file, "w"));
+  fs.truncateSync(file, 2 ** 32 + 8192);
+  OpenMS.mountHostDirectory("/sparse", dir);
+  try {
+    // beyond 4 GiB, a small read is fine
+    assert.deepEqual(OpenMS.readFileChunk("/sparse/sparse.bin", 2 ** 32, 16), new Uint8Array(16));
+    if (OpenMS.getMemoryInfo().heapMax <= 2 ** 32) { // wasm32 (a wasm64 module would read the 4 GiB)
+      for (const length of [2 ** 32, 2 ** 32 + 4096]) {
+        assert.throws(() => OpenMS.readFileChunk("/sparse/sparse.bin", 0, length), /InvalidValue: .*readFileChunk\(\) reads at most 4294967295 bytes/);
+      }
+      // what is there: the rest of the file from 4096 is 2^32 + 4096 bytes, too
+      assert.throws(() => OpenMS.readFileChunk("/sparse/sparse.bin", 4096, 2 ** 40), /reads at most/);
+    }
+  } finally {
+    OpenMS.unmount("/sparse");
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("allocateFile and writeFileChunk: a file has to be smaller than getMemoryInfo().maxFileSize", () => {
   // WasmFS' memory backend keeps a file in one std::vector: less than 2 GiB in wasm32, and a block close to that cannot
   // be allocated (at most 2 GiB - 64 MiB). In wasm64 a file may take what the memory can hold, 16 GiB, but 64 MiB. Sizes

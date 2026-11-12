@@ -25,12 +25,14 @@
 #include <algorithm>
 #include <cerrno>
 #include <cmath>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <limits>
 #include <memory>
 #include <new>
+#include <string>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -300,7 +302,16 @@ namespace OpenMS::WASM
       {
         throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
       }
-      const size_t n = at >= st.st_size ? 0 : static_cast<size_t>(std::min<off_t>(wanted, st.st_size - at));
+      const off_t available = at >= st.st_size ? 0 : std::min<off_t>(wanted, st.st_size - at);
+      // A mounted host file can be larger than a size_t of wasm32 holds (4 GiB): a longer read would wrap around and
+      // return fewer bytes, which a caller could take for the end of the file
+      if (static_cast<std::uintmax_t>(available) > std::numeric_limits<size_t>::max())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "readFileChunk() reads at most " + std::to_string(std::numeric_limits<size_t>::max()) + " bytes at once (" + path + ")",
+          std::to_string(available));
+      }
+      const size_t n = static_cast<size_t>(available);
       val result = val::global("Uint8Array").new_(static_cast<double>(n)); // a number, not the BigInt of a wasm64 size_t
       const std::unique_ptr<uint8_t[]> buffer = copyBuffer(n);
       size_t read = 0;
