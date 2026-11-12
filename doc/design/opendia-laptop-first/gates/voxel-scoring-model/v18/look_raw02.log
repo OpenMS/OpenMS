@@ -1,0 +1,15 @@
+group     n  with_sibling  sib_best_within3s  sib_any_window_within3s  sib_z_near_median
+    D   929           394           0.281726                 0.527919          -3.579543
+    E  1362           709           0.366714                 0.581100          -0.837450
+    H 46004         19324           0.041865                 0.291192         -50.000000
+  ENT 46784         19369           0.038309                 0.288089         -50.000000
+  DEC 94385         39264           0.037286                 0.280639         -50.000000
+D vs DEC AUC sib_z_near 0.6558
+E vs DEC AUC sib_z_near 0.6895
+H vs DEC AUC sib_z_near 0.5056
+ENT vs DEC AUC sib_z_near 0.5036
+[0.0, 0.5) | DEC n=19579 | D n=91 AUC=0.627 | H n=9832 AUC=0.502 | ENT n=9709 AUC=0.502
+[0.5, 0.9) | DEC n=15690 | H n=7403 AUC=0.508 | ENT n=7649 AUC=0.507
+[0.9, 0.99) | DEC n=3647 | H n=1766 AUC=0.505 | ENT n=1811 AUC=0.500
+[0.99, 0.999) | DEC n=311 | D n=97 AUC=0.619 | H n=247 AUC=0.531 | ENT n=177 AUC=0.506
+[0.999, 1.0) | DEC n=37 | D n=177 AUC=0.604 | H n=76 AUC=0.519 | ENT n=23 AUC=0.507
