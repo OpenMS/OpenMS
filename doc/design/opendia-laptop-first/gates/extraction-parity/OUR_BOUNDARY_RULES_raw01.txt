@@ -1,0 +1,9 @@
+n=2298 (q<=1%, DIA-NN apex inside our matched peak)
+  cur         start exact 0.516 within1 0.777 median +0 | stop exact 0.130 within1 0.315 median +3 p90 +7 | width median 9 (DIA-NN 6) | scan IoU median 0.67
+  valley      start exact 0.553 within1 0.825 median +0 | stop exact 0.191 within1 0.441 median +1 p90 +4 | width median 7 (DIA-NN 6) | scan IoU median 0.71
+  valley_cap  start exact 0.554 within1 0.828 median +0 | stop exact 0.210 within1 0.484 median +1 p90 +3 | width median 7 (DIA-NN 6) | scan IoU median 0.75
+  f10_cap     start exact 0.640 within1 0.875 median +0 | stop exact 0.319 within1 0.668 median +0 p90 +2 | width median 6 (DIA-NN 6) | scan IoU median 0.83
+  our end > DIA-NN stop + 1 with an internal valley in between (merged shoulder): 0.191
+
+q<=1% with DIA-NN apex NOT inside any of our (<=5) peaks: 59; DIA-NN apex outside our RT window: 29 (entrapments 2); inside window: 30 (entrapments 2)
+  inside window: our peaks_in_window {'min': 7.0, '50%': 11.0, 'max': 16.0} | nearest-peak apex offset scans {'min': 3.0, '50%': 14.5, 'max': 24.0}

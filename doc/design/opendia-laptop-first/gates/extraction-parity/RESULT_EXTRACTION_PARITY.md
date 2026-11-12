@@ -88,3 +88,32 @@ Scripts: `parity.py`, `parity2.py`, `miss_ppm.py`, `signal_ppm.py`, `ppm_vs_inte
   | Calibration / search | 3:21, 16.8 GB / 2:42, 4.4 GB | 3:51, 20.3 GB / 3:10, 4.4 GB |
 
 - **What remains.** 30 apexes outside. Library RT < 0.02 still has a median map error of 55 s (3 anchors there). The late end (library RT > 0.8, 8 misses) has 12 anchors. Calibration memory went up 3.5 GB from the run-edge collection.
+
+## 7. Peak parity: apex, boundaries and peak choice (raw01, rtmono run)
+Scripts: peak_parity.py, boundary_rule.py, diann_peak_rule.py, our_boundary_rules.py, peak_choice.py, picker_port.py. Outputs in rtmono/ (PEAK_PARITY, BOUNDARY_RULE, DIANN_PEAK_RULE, OUR_BOUNDARY_RULES, PEAK_CHOICE, PICKER_VARIANTS _raw01.txt). Scan cycle 1.646 s. DIA-NN's RT, RT.Start and RT.Stop sit on our scan RTs (|d| <= 0.0001 s), so all comparisons are in whole scans.
+
+**Apex and peak choice, DIA-NN q <= 1% (2357):**
+
+| | Count |
+|---|---|
+| DIA-NN apex outside our RT window | 29 (2 entrapments) |
+| Inside the window, but in none of our 5 reported peaks | 30 (2 entrapments) |
+| Contained in one of our 5 peaks | 2298 (97.5%) |
+| ... and that peak is our rank-0 | 2133 (92.8% of contained) |
+| Apex of the matched peak: same scan / 1 scan / 2 / 3-6 / >6 | 1655 / 542 / 55 / 49 / 56 |
+
+- The apex agrees: median offset 0, 10-90% range -1 to +1 scan. DIA-NN's own apex is the raw max of its fragment sum in 72% of cases and the [1 2 1]-smoothed max in 76% (diann_peak_rule.py), so a 1-scan spread is inherent to its rule, not to our data.
+- The FWHM agrees: ours / DIA-NN median 0.88.
+
+**Boundaries (peaks containing DIA-NN's apex, n = 2298):**
+- Start: exact 52%, median offset 0.
+- Stop: exact 13%, median +3 scans, p90 +7. Our width median is 9 scans, DIA-NN's 6 (max 12; it never goes beyond 6 scans per side, matching "Scan window radius set to 6" in its log). Our peak contains DIA-NN's [start, stop] in 63% of cases.
+- Cause: our right boundary walks down the elution tail to 5% of the apex. DIA-NN's stop sits on average at 6-8% of the apex, and the trace keeps falling after it (median next scan / stop scan 0.72), so DIA-NN cuts the tail early. 19% of our long ends also run through a merged shoulder (valley above 0.5 of the lower maximum).
+- Rules on our traces (our_boundary_rules.py and a FWHM cap check): capping each side at 1.25x our own FWHM gives stop exact 38%, within 1 scan 78%, median 0, IoU 0.83 (now 0.67). Stopping at the first smoothed minimum gives stop exact 21%. A 10% floor plus a 6-scan cap gives stop exact 32%, IoU 0.83.
+
+**Peak choice: a degenerate co-elution score.** 20% of rank-0 peaks (targets and decoys alike) have co-elution exactly 2.000, all with transition_support 2 and median matched_scans 1. Two fragments that are nonzero on the same single scan correlate with r = 1 over any window, so a one-scan coincidence ties a 2-fragment perfect elution. Of the 165 q <= 1% precursors where DIA-NN's peak is one of our 5 but not rank-0, 51 have an integer rank-0 co-elution. Only 1 of the 2135 correct rank-0 picks does.
+- The Python port of pickXicPeaks reproduces our reported peaks for 2314 of 2357 precursors. 43 of the 45 differences are ties at 2.000 ordered differently, so the port is faithful.
+- Requiring a fragment to have signal on >= 2 scans of the correlation window before it enters co-elution (profile2): rank-0 = DIA-NN's peak goes 2133 -> 2189 (+56), contained 2298 -> 2304, entrapments among the rank-0 matches 15 -> 15. Boundaries unchanged.
+- Cutting boundaries at the first smoothed minimum loses 37 contained peaks (the cut peak no longer contains DIA-NN's apex). It is worse than a FWHM-scaled cap.
+
+**Not changed in code yet.** Both candidate fixes (profile2 co-elution; a FWHM-scaled boundary cap) change the candidate population that the scorer sees, so they need a decision and a frozen plan before a run.

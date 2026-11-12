@@ -1,0 +1,12 @@
+q<=1% with DIA-NN apex inside our window: 2328; not contained in any of our 5 peaks: 30 (entrapments 2)
+  DIA-NN peak co-elution (our 6 fragments) below the 5th reported peak (cut by ranking): 16
+  co-elution DIA-NN peak, all ours / kept only: [0.21, 2.49, 3.79, 1.61, 0.4, 0.13, 0.0, 1.7, 1.33, 0.12, 3.28, 2.89, 2.66, 0.51, 0.6, 0.41, 0.21, 2.09, 3.74, 3.47, 0.98, 0.0, 1.92, 0.12, 0.0, 1.27, 0.44, 0.0, 0.55, 0.28] / [1.95, 1.05, 2.25, 1.61, 0.4, 0.0, 0.49, 1.95, 1.52, 2.93, 2.15, 2.89, 2.1, 2.8, 1.91, 2.01, 2.68, 2.53, 3.83, 2.46, 2.38, 1.85, 1.92, 0.15, 2.65, 1.27, 3.71, 2.73, 1.76, 1.57]
+  co-elution of our rank-0 peak: [2.81, 1.82, 1.21, 3.0, 2.0, 2.0, 2.08, 3.82, 3.0, 1.84, 3.06, 2.42, 2.0, 1.36, 2.0, 1.9, 2.87, 1.39, 2.74, 1.82, 2.38, 2.0, 2.0, 2.43, 1.72, 2.0, 1.55, 2.0, 2.67, 2.0]
+  our rank-0 apex height / DIA-NN apex height (our consensus): [9.43, 0.57, 4.22, 0.54, 0.79, 13.92, 1.08, 3.72, 1.13, 2.17, 134.28, 23.73, 0.04, 0.51, 4.38, 0.95, 0.31, 0.42, 0.1, 1.48, 4.32, 0.15, 0.22, 0.39, 1.8, 0.15, 0.31, 0.08, 4.9, 0.12]
+
+contained but not our rank-0: 165 (entrapments 3)
+  co-elution per fragment of DIA-NN peak (all) quantiles {0.1: 0.073, 0.5: 0.243, 0.9: 0.492}
+  co-elution per fragment of DIA-NN peak (kept) quantiles {0.1: 0.099, 0.5: 0.352, 0.9: 0.763}
+  rank-0 co-elution per fragment {0.1: 0.252, 0.5: 0.333, 0.9: 0.515}
+  rank-0 apex distance from DIA-NN apex, scans {0.1: 7.9, 0.5: 25.9, 0.9: 56.7}
+  re-ranking our 5 peaks by co-elution on DIA-NN's kept fragments only picks DIA-NN's peak: 71 of 165

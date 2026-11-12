@@ -1,0 +1,42 @@
+q<=1% precursors with DIA-NN apex/start/stop on export scans: 2354; DIA-NN width max 12 scans, side max L 6 R 6
+apex rule: share exactly at DIA-NN apex | within 1 scan
+  sum_raw    0.7222 | 0.9584
+  sum_s121   0.7570 | 0.9656
+  best_raw   0.6546 | 0.9252
+  best_s121  0.6882 | 0.9384
+  wsum_corr  0.7082 | 0.9444
+  libtop3    0.7196 | 0.9562
+boundary rule (from DIA-NN apex, cap 6 scans): share of sides exactly equal (left, right) and mean signed error (scans)
+  sum_raw    f=0.0   L 0.386 R 0.276 | bias L -0.87 R -0.56 | within 1: L 0.777 R 0.626
+  sum_raw    f=0.01  L 0.390 R 0.276 | bias L -0.94 R -0.57 | within 1: L 0.783 R 0.628
+  sum_raw    f=0.02  L 0.375 R 0.283 | bias L -1.00 R -0.59 | within 1: L 0.786 R 0.633
+  sum_raw    f=0.05  L 0.332 R 0.306 | bias L -1.12 R -0.76 | within 1: L 0.789 R 0.684
+  sum_raw    f=0.1   L 0.245 R 0.331 | bias L -1.25 R -1.13 | within 1: L 0.784 R 0.729
+  sum_raw    f=0.15  L 0.185 R 0.250 | bias L -1.35 R -1.36 | within 1: L 0.776 R 0.699
+  sum_raw    f=0.2   L 0.135 R 0.191 | bias L -1.42 R -1.53 | within 1: L 0.761 R 0.650
+  sum_raw    f=0.3   L 0.084 R 0.104 | bias L -1.54 R -1.81 | within 1: L 0.704 R 0.544
+  sum_s121   f=0.0   L 0.290 R 0.203 | bias L +0.37 R +0.73 | within 1: L 0.648 R 0.436
+  sum_s121   f=0.01  L 0.370 R 0.203 | bias L +0.17 R +0.72 | within 1: L 0.725 R 0.440
+  sum_s121   f=0.02  L 0.432 R 0.210 | bias L +0.04 R +0.68 | within 1: L 0.763 R 0.451
+  sum_s121   f=0.05  L 0.566 R 0.241 | bias L -0.19 R +0.45 | within 1: L 0.812 R 0.514
+  sum_s121   f=0.1   L 0.641 R 0.365 | bias L -0.40 R -0.13 | within 1: L 0.839 R 0.717
+  sum_s121   f=0.15  L 0.622 R 0.451 | bias L -0.57 R -0.53 | within 1: L 0.851 R 0.776
+  sum_s121   f=0.2   L 0.585 R 0.450 | bias L -0.69 R -0.81 | within 1: L 0.848 R 0.758
+  sum_s121   f=0.3   L 0.473 R 0.361 | bias L -0.87 R -1.16 | within 1: L 0.843 R 0.703
+  best_raw   f=0.0   L 0.292 R 0.194 | bias L -1.22 R -1.16 | within 1: L 0.738 R 0.571
+  best_raw   f=0.01  L 0.288 R 0.194 | bias L -1.24 R -1.16 | within 1: L 0.738 R 0.572
+  best_raw   f=0.02  L 0.275 R 0.194 | bias L -1.26 R -1.17 | within 1: L 0.738 R 0.577
+  best_raw   f=0.05  L 0.246 R 0.205 | bias L -1.32 R -1.27 | within 1: L 0.737 R 0.604
+  best_raw   f=0.1   L 0.192 R 0.226 | bias L -1.39 R -1.48 | within 1: L 0.732 R 0.627
+  best_raw   f=0.15  L 0.149 R 0.169 | bias L -1.45 R -1.63 | within 1: L 0.726 R 0.613
+  best_raw   f=0.2   L 0.116 R 0.129 | bias L -1.52 R -1.77 | within 1: L 0.701 R 0.562
+  best_raw   f=0.3   L 0.076 R 0.085 | bias L -1.62 R -1.98 | within 1: L 0.650 R 0.471
+  wsum_corr  f=0.0   L 0.373 R 0.249 | bias L -0.92 R -0.64 | within 1: L 0.768 R 0.602
+  wsum_corr  f=0.01  L 0.374 R 0.250 | bias L -1.00 R -0.66 | within 1: L 0.774 R 0.605
+  wsum_corr  f=0.02  L 0.358 R 0.257 | bias L -1.07 R -0.69 | within 1: L 0.778 R 0.610
+  wsum_corr  f=0.05  L 0.308 R 0.268 | bias L -1.19 R -0.88 | within 1: L 0.779 R 0.661
+  wsum_corr  f=0.1   L 0.210 R 0.290 | bias L -1.33 R -1.24 | within 1: L 0.771 R 0.701
+  wsum_corr  f=0.15  L 0.147 R 0.205 | bias L -1.42 R -1.47 | within 1: L 0.760 R 0.669
+  wsum_corr  f=0.2   L 0.102 R 0.145 | bias L -1.49 R -1.63 | within 1: L 0.742 R 0.619
+  wsum_corr  f=0.3   L 0.063 R 0.075 | bias L -1.59 R -1.88 | within 1: L 0.683 R 0.514
+best rule by exact agreement: (np.float64(1.0730671197960917), 'sum_s121', 0.15)
