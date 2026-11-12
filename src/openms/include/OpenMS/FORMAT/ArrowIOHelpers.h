@@ -16,8 +16,10 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
+#include <variant>
 #include <unordered_set>
 #include <vector>
 
@@ -32,6 +34,7 @@ namespace arrow
 namespace OpenMS
 {
 class ConsensusMap;
+class DataValue;
 class MetaInfoInterface;
 namespace MS1LabelState { struct Keys; }
 
@@ -83,6 +86,97 @@ namespace ArrowIOHelpers
     const ParquetWriteConfig& config = ParquetWriteConfig{});
 
   /**
+    @brief One column for withColumns(), built without Arrow types
+
+    Only the vector of the column's @c type is used; it holds one entry per row. Any column can have null rows.
+  */
+  struct OPENMS_DLLAPI ParquetColumn
+  {
+    /// An entry of a SCORE_LIST row: the struct of the QPX @c additional_scores (QPXPSMSchema::additionalScoresType())
+    struct Score
+    {
+      std::string name;
+      double value = 0.0;
+      std::optional<bool> higher_better; ///< none: unknown (null)
+    };
+    /// int16, int32, int64, bool, float32, float64, utf8, list<float32>, list<int32>, list<utf8>, the list of QPX
+    /// @c additional_scores structs, or a list of structs of the fields @c struct_fields
+    enum class Type { INT16, INT64, UTF8, FLOAT_LIST, UTF8_LIST, SCORE_LIST, INT32, BOOL, DOUBLE, STRUCT_LIST, FLOAT, INT32_LIST };
+    /// A field of the struct of a STRUCT_LIST column: of type UTF8, INT32, BOOL, FLOAT (float32, from a double
+    /// value), DOUBLE, or STRUCT_LIST (a list of structs of its own @c fields)
+    struct StructField
+    {
+      StructField() = default;
+      StructField(std::string field_name, Type field_type, bool field_nullable = true, std::vector<StructField> struct_fields = {}) :
+        name(std::move(field_name)), type(field_type), nullable(field_nullable), fields(std::move(struct_fields)) {}
+      std::string name;
+      Type type = Type::UTF8;
+      bool nullable = true;
+      std::vector<StructField> fields; ///< STRUCT_LIST: the fields of its struct
+    };
+    struct StructValue;
+    /// An entry of a STRUCT_LIST: one value per field
+    using StructEntry = std::vector<StructValue>;
+    /// The value of a field of a STRUCT_LIST entry, of the field's type: none (null), a string (UTF8), an integer
+    /// (INT32), a bool (BOOL), a double (DOUBLE, FLOAT), or the entries of a nested list (STRUCT_LIST)
+    struct OPENMS_DLLAPI StructValue
+    {
+      std::variant<std::monostate, std::string, Int32, bool, double, std::vector<StructEntry>> value;
+      StructValue() = default; ///< null
+      StructValue(std::string v) : value(std::move(v)) {}
+      StructValue(const char* v) : value(std::string(v)) {} ///< (not a bool)
+      StructValue(Int32 v) : value(v) {}
+      StructValue(bool v) : value(v) {}
+      StructValue(double v) : value(v) {}
+      StructValue(std::vector<StructEntry> v) : value(std::move(v)) {}
+      template <typename T> StructValue(const std::optional<T>& v) { if (v) { *this = StructValue(*v); } }
+    };
+    std::string name;
+    Type type = Type::INT64;
+    /// false: the field is non-null (a null row is then an error)
+    bool nullable = true;
+    std::vector<Int64> int64_values;                              ///< INT16 and INT32 (narrowed, range-checked), INT64, BOOL (0: false)
+    std::vector<double> double_values;                            ///< DOUBLE, FLOAT (narrowed)
+    std::vector<std::string> utf8_values;                         ///< UTF8
+    std::vector<std::vector<float>> float_lists;                  ///< FLOAT_LIST
+    std::vector<std::vector<Int32>> int32_lists;                  ///< INT32_LIST
+    std::vector<std::vector<std::string>> utf8_lists;             ///< UTF8_LIST
+    std::vector<std::vector<Score>> score_lists;                  ///< SCORE_LIST
+    std::vector<StructField> struct_fields;                       ///< STRUCT_LIST: the fields of its struct
+    std::vector<std::vector<StructEntry>> struct_lists;           ///< STRUCT_LIST: per row its entries
+    std::vector<bool> null_rows;                                  ///< true marks a null row (empty: no null row)
+  };
+
+  /**
+    @brief The table with @p columns added: a column of the name of an existing one replaces it (in its place), any
+    other is appended. The schema metadata of @p table is kept.
+
+    For callers outside libOpenMS that cannot use Arrow themselves (TOPP tools), e.g. to add optional columns to a QPX
+    view before writing it.
+
+    @param[in] table The table (must not be null)
+    @param[in] columns The columns, each with one entry per row of @p table
+    @return the new table, or null on an Arrow error (logged)
+    @throws Exception::IllegalArgument if a column has another number of rows than @p table
+  */
+  OPENMS_DLLAPI std::shared_ptr<arrow::Table> withColumns(
+    const std::shared_ptr<arrow::Table>& table,
+    const std::vector<ParquetColumn>& columns);
+
+  /**
+    @brief A table of @p columns (in their order, without schema metadata), for callers outside libOpenMS that cannot
+    use Arrow themselves (TOPP tools), e.g. a QPX metadata view (run, provenance)
+
+    @param[in] columns The columns, each with @p rows entries
+    @param[in] rows The number of rows
+    @return the table, or null on an Arrow error (logged)
+    @throws Exception::IllegalArgument if a column has another number of rows
+  */
+  OPENMS_DLLAPI std::shared_ptr<arrow::Table> tableOfColumns(
+    const std::vector<ParquetColumn>& columns,
+    Size rows);
+
+  /**
     @brief Concatenate a vector of Arrow tables and write the result to a Parquet file
 
     All tables must share the same schema. An empty input vector is a no-op
@@ -102,6 +196,75 @@ namespace ArrowIOHelpers
     const std::string& filename,
     const ParquetWriteConfig& config = ParquetWriteConfig{},
     const std::shared_ptr<const arrow::KeyValueMetadata>& metadata = nullptr);
+
+  /**
+    @brief The QPX value validation of writeTableToParquet() alone (QPXValueValidation of the view the table's
+    @c file_type metadata names; a table without QPX metadata passes)
+
+    For a table that is written more than once (a run's own file and the merged file of a single run): validated
+    here once, with @c config.threads, then written with @c config.validated set. A refused table is logged as by
+    the write.
+
+    @param[in] table The table (must not be null)
+    @param[in] filename The file it is for (in the log)
+    @param[in] config @c qpx_extra_columns and @c threads
+    @param[in] metadata The footer the table is written with (concatenateAndWriteToParquet()): it names the view
+               (@c file_type); a table built by an exporter carries none itself, so without it nothing is checked
+    @return true if the table may be written
+  */
+  OPENMS_DLLAPI bool validateQPXTable(
+    const std::shared_ptr<arrow::Table>& table,
+    const std::string& filename,
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    const std::shared_ptr<const arrow::KeyValueMetadata>& metadata = nullptr);
+
+  /**
+    @brief A Parquet file written table by table: the merged QPX psm file of a multi-file search, appended run by run
+    while the next run is searched
+
+    append() opens the file at the first table, with that table's schema and @p metadata as its footer (built once,
+    e.g. by qpxFileMetadata()), and writes the rows of every table into the row groups writeTableToParquet() would cut
+    for the concatenation of the tables (@c row_group_size rows per group, a group continued across tables), the
+    columns of a group encoded in parallel (as writeTableToParquet() with threads > 1, on a pool of the stream whose
+    size follows the threads of each append()). The later tables must have the schema of the first (metadata aside).
+    A QPX table (the @p metadata names the view) is validated per table by one QPXValueValidation, which keeps the
+    primary keys of the tables before: a key twice across tables is refused as it is in the concatenated table.
+    close() adds @p keys to the footer (keys known only after the last table, e.g. @c scan_format) and ends the
+    file. A failed append() or close() removes the file, logged; the stream is then done (failed()). Without an
+    append(), close() writes nothing. The destructor removes an unfinished file. One thread at a time.
+  */
+  class OPENMS_DLLAPI ParquetTableStream
+  {
+  public:
+    /// The file, the writer configuration (@c threads: of the validation and encoding until an append() says otherwise)
+    /// and the footer (the schema metadata of the first table is replaced by it; null: the first table's own)
+    ParquetTableStream(std::string filename, const ParquetWriteConfig& config,
+                       std::shared_ptr<const arrow::KeyValueMetadata> metadata);
+    ~ParquetTableStream();
+    ParquetTableStream(const ParquetTableStream&) = delete;
+    ParquetTableStream& operator=(const ParquetTableStream&) = delete;
+
+    /// Appends the rows of @p table (validated, encoded with @p threads; 0: the threads of the configuration).
+    /// False (logged) if refused, null, or the write failed (also by an exception, caught here): the file is removed,
+    /// the stream has failed.
+    bool append(const std::shared_ptr<arrow::Table>& table, int threads = 0);
+    /// Ends the file with @p keys added to its footer. False (logged) if that failed (file removed, stream failed).
+    bool close(const std::map<std::string, std::string>& keys = {});
+    /// Ends an unfinished stream as failed and removes its file (nothing after close())
+    void abandon();
+    /// The rows appended so far
+    Size rows() const;
+    /// A write was refused or failed (the file is gone)
+    bool failed() const;
+    /// The file is written (close() succeeded)
+    bool closed() const;
+    /// The file
+    const std::string& filename() const;
+
+  private:
+    struct Impl;
+    std::unique_ptr<Impl> impl_;
+  };
 
   // ---------------------------------------------------------------------------
   // QPX file metadata
@@ -153,6 +316,10 @@ namespace ArrowIOHelpers
     guessed at, so an ambiguous export omits @c scan_format instead of mislabeling it.
   */
   OPENMS_DLLAPI std::string qpxScanFormat(const std::vector<std::string>& native_ids);
+
+  /// qpxScanFormat(native_ids) checking the IDs in @p threads ranges in parallel (OpenMP; 1: serial): the same result
+  /// and the same warning (the first pair of conventions in ID order)
+  OPENMS_DLLAPI std::string qpxScanFormat(const std::vector<std::string>& native_ids, int threads);
 
   /**
     @brief Reduce an MS run path to the QPX @c run_file_name form
@@ -327,8 +494,16 @@ namespace ArrowIOHelpers
     @brief Fetch a named column from a table, combining chunks if needed
 
     Returns nullptr if the column is missing or contains no chunks. When
-    @p required is true, missing columns are logged as errors.
+    @p required is true, missing columns are logged as errors. @p context (e.g. the calling
+    class) prefixes the log messages.
   */
+  OPENMS_DLLAPI std::shared_ptr<arrow::Array> getColumn(
+    const std::shared_ptr<arrow::Table>& table,
+    const std::string& name,
+    bool required,
+    const char* context);
+
+  /// getColumn() with "ArrowIOHelpers" as the log context
   OPENMS_DLLAPI std::shared_ptr<arrow::Array> getColumn(
     const std::shared_ptr<arrow::Table>& table,
     const std::string& name,
@@ -373,6 +548,15 @@ namespace ArrowIOHelpers
   OPENMS_DLLAPI bool isNull(
     const std::shared_ptr<arrow::Array>& array,
     int64_t row);
+
+  /**
+    @brief The text a metavalue is written as in a list<struct{name,value,value_type}> column
+
+    The same as DataValue::toString(), except for doubles (also in lists): they are written in their shortest
+    form that reads back as the same double, so that readMetaValues() restores them exactly. DataValue::toString()
+    rounds values between 0.01 and 10000 to 15 decimals, which loses the last digits of e.g. 1.2345678901234567.
+  */
+  OPENMS_DLLAPI std::string metaValueString(const DataValue& value);
 
   /**
     @brief Read metavalues from a list<struct{name,value,value_type}> column

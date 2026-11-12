@@ -11,6 +11,9 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+
+#include <sstream>
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
@@ -205,4 +208,62 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION([EXTRA] store escapes XML special characters in CV term values)
+{
+  // A CV value with '&', '<' and '"' must be written escaped, or the stored file cannot be read.
+  TargetedExperiment exp_original;
+  TargetedExperiment::Contact contact;
+  contact.id = "contact_1";
+  CVTerm name_term("MS:1000586", "contact name", "MS", "A & B <lab> \"C\"", CVTerm::Unit());
+  contact.addCVTerm(name_term);
+  exp_original.addContact(contact);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  TraMLFile file;
+  file.store(tmp_filename, exp_original);
+
+  TargetedExperiment exp;
+  file.load(tmp_filename, exp);
+  ABORT_IF(exp.getContacts().size() != 1)
+  const auto& terms = exp.getContacts()[0].getCVTerms();
+  ABORT_IF(terms.count("MS:1000586") != 1)
+  TEST_EQUAL(terms.at("MS:1000586")[0].getValue().toString(), "A & B <lab> \"C\"")
+}
+END_SECTION
+
+START_SECTION([EXTRA] void load(const std::string& filename, TargetedExperiment& id) - CV term value checks)
+{
+  // The value checks run for every CV term and only warn: terms with an invalid value are kept,
+  // obsolete or not. Values that OpenMS writes itself must not warn.
+  std::ostringstream log; // XMLHandler::warning() logs to the warning stream (Debug) or the debug stream (Release)
+  getGlobalLogWarn().insert(log);
+  getGlobalLogDebug().insert(log);
+  TargetedExperiment exp;
+  TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("TraMLFile_test_cv_values.TraML"), exp);
+  getThreadLocalLogWarn().flush();
+  getThreadLocalLogDebug().flush();
+  getGlobalLogWarn().remove(log);
+  getGlobalLogDebug().remove(log);
+  const std::string msg = log.str();
+
+  TEST_EQUAL(exp.getTransitions().size(), 1)
+  ABORT_IF(exp.getTransitions().size() != 1)
+  const ReactionMonitoringTransition& tr = exp.getTransitions()[0];
+  TEST_REAL_SIMILAR(tr.getLibraryIntensity(), 100.0)
+  TEST_EQUAL(tr.getCVTerms().count("MS:1000045"), 1) // current term, invalid value
+  TEST_EQUAL(tr.getCVTerms().count("MS:1000023"), 1) // obsolete term, invalid value: kept
+  TEST_EQUAL(exp.getPeptides().size(), 1)
+  ABORT_IF(exp.getPeptides().size() != 1)
+  TEST_REAL_SIMILAR(exp.getPeptides()[0].getRetentionTime(), 44.5)
+
+  TEST_TRUE(msg.find("'MS:1000045 - collision energy' used in tag 'Transition' must have a floating-point value") != std::string::npos)
+  TEST_TRUE(msg.find("'MS:1000023 - isolation width' used in tag 'Transition' must have a floating-point value") != std::string::npos)
+  TEST_TRUE(msg.find("Obsolete CV term 'MS:1000023 - isolation width' used in tag 'Transition'") != std::string::npos)
+  TEST_EQUAL(msg.find("must not have a value"), std::string::npos) // product ion intensity, iRT
+  TEST_EQUAL(msg.find("MS:1002217"), std::string::npos) // boolean '1'
+  TEST_EQUAL(msg.find("MS:1002031"), std::string::npos) // URI
+}
+END_SECTION
+
 END_TEST

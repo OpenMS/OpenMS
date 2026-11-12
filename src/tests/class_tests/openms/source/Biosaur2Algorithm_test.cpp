@@ -14,16 +14,200 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 
+#include <OpenMS/IONMOBILITY/IMDataArrayUtils.h>
+
 #include <cmath>
+#include <random>
+#include <tuple>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
+
+namespace
+{
+  // Synthetic MS1 run for the parallel paths: 600 scans (crosses the 256-scan block of the hill detection), enough
+  // hills for several parallel chunks, isotope envelopes of charge 1-10, gaps, equal-intensity twins within htol,
+  // empty scans and noise. With `im`, every peak carries an ion mobility (1/K0) in a float data array; with `faims`, the
+  // scans alternate between two FAIMS CVs (two groups, processed in parallel).
+  MSExperiment syntheticRun(bool im, bool faims = false)
+  {
+    std::mt19937 rng(42);
+    auto uni = [&](double lo, double hi) { return lo + (hi - lo) * (rng() / 4294967296.0); };
+    struct Env { double mz; int z; int start; int len; double height; double im; bool twin; };
+    vector<Env> envs;
+    for (int e = 0; e < 1200; ++e)
+    {
+      const int z = 1 + static_cast<int>(rng() % 10);
+      envs.push_back({uni(400.0, 1400.0), z, static_cast<int>(rng() % 560), 8 + static_cast<int>(rng() % 50),
+                      uni(1e4, 1e6), uni(0.7, 1.3), rng() % 10 == 0});
+    }
+    const double ratio[] = {1.0, 0.8, 0.5, 0.25, 0.1};
+    MSExperiment exp;
+    for (int s = 0; s < 600; ++s)
+    {
+      MSSpectrum spec;
+      spec.setRT(s * 1.0);
+      spec.setMSLevel(1);
+      if (faims)
+      {
+        spec.setDriftTime(s % 2 ? -60.0 : -45.0);
+        spec.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+      }
+      vector<float> ims;
+      auto add = [&](double mz, double it, double mob) { spec.push_back(Peak1D(mz, static_cast<float>(it))); ims.push_back(static_cast<float>(mob)); };
+      if (s % 97 != 50)   // a few empty scans, some of them next to the block boundaries
+      {
+        for (const Env& e : envs)
+        {
+          if (s < e.start || s >= e.start + e.len || rng() % 20 == 0) continue;   // outside the elution, or a gap
+          const double x = (s - e.start - 0.5 * e.len) / (0.25 * e.len);
+          const double h = e.height * std::exp(-0.5 * x * x);
+          for (int k = 0; k < 5; ++k)
+          {
+            add(e.mz + k * 1.003355 / e.z, h * ratio[k], e.im + uni(-0.005, 0.005));
+            if (e.twin && k == 0) add(e.mz * (1.0 + 2e-6), h, e.im);   // same intensity, 2 ppm away
+          }
+        }
+        for (int n = 0; n < 150; ++n)
+        {
+          const double mz = uni(350.0, 1500.0), h = uni(50.0, 5000.0), im_n = uni(0.6, 1.4);   // drawn in a fixed order
+          add(mz, h, im_n);
+        }
+      }
+      if (im)
+      {
+        spec.getFloatDataArrays().resize(1);
+        auto& fda = spec.getFloatDataArrays()[0];
+        fda.assign(ims.begin(), ims.end());
+        IMDataArrayUtils::setIMUnit(fda, DriftTimeUnit::VSSC);
+        spec.setIMFormat(IMFormat::IM_PEAK);
+      }
+      spec.sortByPosition();
+      exp.addSpectrum(spec);
+    }
+    return exp;
+  }
+
+  /// run() on @p exp with @p threads threads; the unique ids are drawn from a fixed seed, so the feature maps of two
+  /// runs compare equal when the ids are drawn in the same order. htol 0.5 makes linking use the sparse-bin fallback
+  /// omp_get_max_threads() right after the last runAt()'s run(): run() must not change the caller's number (on MSVC's
+  /// vcomp an omp_set_num_threads() on any thread sets it for the whole process)
+  int threads_after_run = 0;
+
+  FeatureMap runAt(int threads, const MSExperiment& exp, vector<Biosaur2Algorithm::Hill>& hills,
+                   vector<Biosaur2Algorithm::PeptideFeature>& features, double htol = 8.0)
+  {
+#ifdef _OPENMP
+    const int before = omp_get_max_threads();
+    omp_set_num_threads(threads);
+#endif
+    Biosaur2Algorithm algo;
+    algo.setMSData(exp);
+    Param p = algo.getParameters();
+    p.setValue("minmz", 350.0);
+    p.setValue("maxmz", 1500.0);
+    p.setValue("mini", 100.0);
+    p.setValue("cmax", 10);
+    p.setValue("htol", htol);
+    algo.setParameters(p);
+    FeatureMap fmap;
+    UniqueIdGenerator::setSeed(42);
+    algo.run(fmap, hills, features);
+#ifdef _OPENMP
+    threads_after_run = omp_get_max_threads();
+    omp_set_num_threads(before);
+#else
+    threads_after_run = threads;
+#endif
+    return fmap;
+  }
+
+  /// FeatureMap equality on what run() sets: unique id, position, intensity, charge, quality, hulls and meta values
+  bool sameFeatureMaps(const FeatureMap& a, const FeatureMap& b)
+  {
+    return std::equal(a.begin(), a.end(), b.begin(), b.end(), [](const Feature& x, const Feature& y)
+    {
+      vector<string> kx, ky;
+      x.getKeys(kx);
+      y.getKeys(ky);
+      if (x.getUniqueId() != y.getUniqueId() || x.getRT() != y.getRT() || x.getMZ() != y.getMZ() ||
+          x.getIntensity() != y.getIntensity() || x.getCharge() != y.getCharge() ||
+          x.getOverallQuality() != y.getOverallQuality() || x.getConvexHulls().size() != y.getConvexHulls().size() || kx != ky)
+      {
+        return false;
+      }
+      for (Size i = 0; i < x.getConvexHulls().size(); ++i)
+      {
+        if (x.getConvexHulls()[i].getHullPoints() != y.getConvexHulls()[i].getHullPoints()) return false;
+      }
+      for (const auto& k : kx)
+      {
+        if (x.getMetaValue(k) != y.getMetaValue(k)) return false;
+      }
+      return true;
+    });
+  }
+
+  /// counts and sums over the hills and features: a fingerprint of the result, compared within 0.5 % (see below)
+  struct Fingerprint { Size n_hills, n_features, n_fmap, charge_sum, isotope_sum, scan_sum; double hill_mz, hill_int, feat_mz, feat_rt, feat_int; };
+
+  Fingerprint fingerprint(const vector<Biosaur2Algorithm::Hill>& hills, const vector<Biosaur2Algorithm::PeptideFeature>& features,
+                          const FeatureMap& fmap)
+  {
+    Fingerprint fp{hills.size(), features.size(), fmap.size(), 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    for (const auto& h : hills) { fp.hill_mz += h.mz_weighted_mean; fp.hill_int += h.intensity_sum; }
+    for (const auto& f : features)
+    {
+      fp.charge_sum += static_cast<Size>(f.charge);
+      fp.isotope_sum += f.n_isotopes;
+      fp.scan_sum += f.n_scans;
+      fp.feat_mz += f.mz;
+      fp.feat_rt += f.rt_apex;
+      fp.feat_int += f.intensity_apex;
+    }
+    return fp;
+  }
+
+  auto hillKey(const Biosaur2Algorithm::Hill& h)
+  {
+    return std::tie(h.scan_indices, h.peak_indices, h.mz_values, h.intensities, h.rt_values, h.drift_times, h.ion_mobilities,
+                    h.mz_weighted_mean, h.rt_start, h.rt_end, h.rt_apex, h.intensity_apex, h.intensity_sum,
+                    h.drift_time_median, h.ion_mobility_median, h.length, h.hill_idx);
+  }
+
+  auto featureKey(const Biosaur2Algorithm::PeptideFeature& f)
+  {
+    return std::tie(f.mz, f.rt_start, f.rt_end, f.rt_apex, f.intensity_apex, f.intensity_sum, f.charge, f.n_isotopes,
+                    f.n_scans, f.mass_calib, f.drift_time, f.ion_mobility, f.mono_hill_idx);
+  }
+
+  bool sameHills(const vector<Biosaur2Algorithm::Hill>& a, const vector<Biosaur2Algorithm::Hill>& b)
+  {
+    return std::equal(a.begin(), a.end(), b.begin(), b.end(), [](const auto& x, const auto& y) { return hillKey(x) == hillKey(y); });
+  }
+
+  bool sameFeatures(const vector<Biosaur2Algorithm::PeptideFeature>& a, const vector<Biosaur2Algorithm::PeptideFeature>& b)
+  {
+    auto isoKey = [](const Biosaur2Algorithm::IsotopeCandidate& i) { return std::tie(i.hill_idx, i.isotope_number, i.mass_diff_ppm, i.cos_corr); };
+    return std::equal(a.begin(), a.end(), b.begin(), b.end(), [&](const auto& x, const auto& y)
+    {
+      return featureKey(x) == featureKey(y) &&
+             std::equal(x.isotopes.begin(), x.isotopes.end(), y.isotopes.begin(), y.isotopes.end(),
+                        [&](const auto& u, const auto& v) { return isoKey(u) == isoKey(v); });
+    });
+  }
+}
 
 START_TEST(Biosaur2Algorithm, "$Id$")
 
@@ -439,6 +623,69 @@ START_SECTION([EXTRA] run() preserves the stored MS data on the non-FAIMS path)
   // ranges describe the returned spectra here too, not just on the FAIMS path
   TEST_REAL_SIMILAR(algo.getMSData().getMinRT(), 0.0)
   TEST_REAL_SIMILAR(algo.getMSData().getMaxRT(), 9.0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] run() on a synthetic run gives the same hills and features and feature maps at 1 and 4 threads and the result of develop)
+{
+  // pins the parallel hill detection, processing, splitting, isotope search and feature build to the serial result,
+  // and the result to a fingerprint of develop's (36d6d89) output. cmax 10 covers charges above 8, which once
+  // aborted the candidate search; htol 0.5 ppm makes the m/z-bin range too large for the dense table, so linking
+  // uses the sparse-bin fallback; with two FAIMS CVs, the feature maps (unique ids included) must not depend on the
+  // thread count, also with 2 threads, where the CVs run in parallel
+  // expected: develop's fingerprint (hills, features, feature map; sums of charges, isotopes, scans; hill m/z and
+  // intensity sums; feature m/z, RT apex and apex intensity sums), printed to 12 significant digits on Linux g++.
+  // Compared within 0.5 %, not exactly: last-bit differences between compilers and math libraries (std::exp, FMA
+  // contraction) flip a few threshold decisions on this synthetic data (clang/libomp, macOS and MSVC differ from g++ by
+  // a hill or a feature and up to 0.05 % in the sums). The thread-count checks above stay exact.
+  struct Case { bool im; bool faims; double htol; Fingerprint expected; };
+  const Case cases[] = {
+    {false, false, 8.0, {16031, 2954, 2954, 13012, 13167, 35119, 14481098.2502, 31007533846.4, 2593736.63912, 882500, 1118687329.53}},
+    {true, false, 8.0, {15574, 2949, 2949, 12859, 13026, 34956, 14036412.8069, 31005358787.7, 2585892.68909, 878670, 1192318035.24}},
+    {false, true, 8.0, {20591, 3809, 2492, 16763, 16986, 34946, 18595446.0589, 30952140736.5, 3344730.67876, 1136313, 1598426273.42}},
+    {false, false, 0.5, {15896, 2955, 2955, 13064, 10943, 35102, 14341047.8062, 31005601877.7, 2591628.49627, 881661, 1081510981.14}},
+  };
+  TOLERANCE_ABSOLUTE(1e-6)
+  TOLERANCE_RELATIVE(1.005)
+  for (const Case& c : cases)
+  {
+    const MSExperiment run = syntheticRun(c.im, c.faims);
+    vector<Biosaur2Algorithm::Hill> h1, h4;
+    vector<Biosaur2Algorithm::PeptideFeature> f1, f4;
+    const FeatureMap m1 = runAt(1, run, h1, f1, c.htol);
+    const FeatureMap m4 = runAt(4, run, h4, f4, c.htol);
+    TEST_EQUAL(threads_after_run, 4)
+    TEST_EQUAL(h1.size() > 5000, true)   // several parallel chunks
+    TEST_EQUAL(f1.size() > 100, true)
+    bool high_charge = false;
+    for (const auto& f : f1) high_charge |= f.charge >= 9;
+    TEST_EQUAL(high_charge, true)
+    TEST_EQUAL(sameHills(h1, h4), true)
+    TEST_EQUAL(sameFeatures(f1, f4), true)
+    TEST_EQUAL(sameFeatureMaps(m1, m4), true)
+    if (c.faims)
+    {
+      vector<Biosaur2Algorithm::Hill> h2;
+      vector<Biosaur2Algorithm::PeptideFeature> f2;
+      const FeatureMap m2 = runAt(2, run, h2, f2, c.htol);
+      TEST_EQUAL(threads_after_run, 2)   // the CVs run in parallel here
+      TEST_EQUAL(sameHills(h1, h2), true)
+      TEST_EQUAL(sameFeatures(f1, f2), true)
+      TEST_EQUAL(sameFeatureMaps(m1, m2), true)
+    }
+    const Fingerprint fp = fingerprint(h1, f1, m1);
+    TEST_REAL_SIMILAR(static_cast<double>(fp.n_hills), static_cast<double>(c.expected.n_hills))
+    TEST_REAL_SIMILAR(static_cast<double>(fp.n_features), static_cast<double>(c.expected.n_features))
+    TEST_REAL_SIMILAR(static_cast<double>(fp.n_fmap), static_cast<double>(c.expected.n_fmap))
+    TEST_REAL_SIMILAR(static_cast<double>(fp.charge_sum), static_cast<double>(c.expected.charge_sum))
+    TEST_REAL_SIMILAR(static_cast<double>(fp.isotope_sum), static_cast<double>(c.expected.isotope_sum))
+    TEST_REAL_SIMILAR(static_cast<double>(fp.scan_sum), static_cast<double>(c.expected.scan_sum))
+    TEST_REAL_SIMILAR(fp.hill_mz, c.expected.hill_mz)
+    TEST_REAL_SIMILAR(fp.hill_int, c.expected.hill_int)
+    TEST_REAL_SIMILAR(fp.feat_mz, c.expected.feat_mz)
+    TEST_REAL_SIMILAR(fp.feat_rt, c.expected.feat_rt)
+    TEST_REAL_SIMILAR(fp.feat_int, c.expected.feat_int)
+  }
 }
 END_SECTION
 

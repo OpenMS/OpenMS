@@ -590,7 +590,10 @@ namespace OpenMS{
       StringUtils::ensureLastChar(loc, '/');
       loc = loc + filename_new;
 
-      if (exists(loc))
+      // A candidate directory that cannot be checked does not hold the file (callers pass paths compiled in on the
+      // build machine first, e.g. OPENMS_BINARY_PATH for the PeptDeep models; see isOpenMSDataPath_()).
+      std::error_code ec;
+      if (fs::exists(to_path(loc), ec) && !ec)
       {
         return to_path(loc).lexically_normal().generic_string();
       }
@@ -635,6 +638,8 @@ namespace OpenMS{
     // source path is host/openms so doc is ../doc
     search_dirs.push_back(std::string(OPENMS_SOURCE_PATH) + "/../../doc/");
     search_dirs.push_back(getOpenMSDataPath() + "/../../doc/");
+    // <prefix>/share/doc of an installation (next to its share/OpenMS)
+    search_dirs.push_back(getOpenMSDataPath() + "/../doc/");
     search_dirs.push_back(OPENMS_DOC_PATH);
     search_dirs.push_back(installPath_(OPENMS_INSTALL_DOC_PATH));
 
@@ -770,20 +775,28 @@ namespace OpenMS{
 
       if (!path_checked) // - now we're in big trouble as './share' is not were its supposed to be...
       { // - do NOT use OPENMS_LOG_ERROR or similar for the messages below! (it might not even usable at this point)
-        std::cerr << "OpenMS FATAL ERROR!\n  Cannot find shared data! OpenMS cannot function without it!\n";
+        std::string message = "Cannot find the OpenMS shared data directory. OpenMS cannot function without it!";
         if (from_env)
         {
           std::string p = getenv("OPENMS_DATA_PATH");
-          std::cerr << "  The environment variable 'OPENMS_DATA_PATH' currently points to '" << p << "', which is incorrect!\n";
+          message += " The environment variable 'OPENMS_DATA_PATH' currently points to '" + p + "', which is incorrect!";
         }
   #ifdef OPENMS_WINDOWSPLATFORM
         std::string share_dir = R"(c:\Program Files\OpenMS\share\OpenMS)";
   #else
         std::string share_dir = "/usr/share/OpenMS";
   #endif
-        std::cerr << "  To resolve this, set the environment variable 'OPENMS_DATA_PATH' to the OpenMS share directory (e.g., '" + share_dir + "').\n";
-        std::cerr << "Exiting now.\n";
-        exit(1);
+        message += " To resolve this, set the environment variable 'OPENMS_DATA_PATH' to the OpenMS share directory (e.g., '" + share_dir + "').";
+        // Also print it (once): callers that take a FileNotFound from File::find() for a missing optional
+        // file (e.g. the enzyme database) would otherwise swallow it without a trace.
+        static std::atomic<bool> reported{false};
+        if (!reported.exchange(true))
+        {
+          std::cerr << "OpenMS FATAL ERROR! " << message << '\n';
+        }
+        // A library must not end the host process (a Python interpreter, a GUI, ...): report it to the caller.
+        // A throwing initializer leaves the static uninitialized, so the next call probes again.
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "share/OpenMS", message);
       }
       return OpenMSDataPath_{path, found_path_from};
     }();
@@ -803,8 +816,13 @@ namespace OpenMS{
 
   bool File::isOpenMSDataPath_(const std::string& path)
   {
-    bool found = exists(path + "/CHEMISTRY/unimod.xml");
-    return found;
+    // Not File::exists(), which throws for any error but "not found". The candidates include paths compiled in on the
+    // build machine (OPENMS_DATA_PATH, the source tree: D:/a/... on a GitHub Windows runner). On a user's machine that
+    // path's drive may be one Windows cannot read (an empty DVD drive: ERROR_NOT_READY, "The device is not ready"), or
+    // a folder on the way one the user may not enter (EACCES); the exception would end every tool in TOPPBase's
+    // constructor, before the next candidate (the tool's own ../share/OpenMS) is tried. Such a candidate is not it.
+    std::error_code ec;
+    return fs::exists(to_path(path + "/CHEMISTRY/unimod.xml"), ec) && !ec;
   }
 
   bool File::isDirectory(const std::string& path)
@@ -846,7 +864,8 @@ namespace OpenMS{
 #else
     StringUtils::split(path, ':', paths);
 #endif
-    // ensure it ends with '/'
+    // skip empty entries (they do not name a directory), ensure the others end with '/'
+    paths.erase(std::remove(paths.begin(), paths.end(), std::string()), paths.end());
     for (std::string& p : paths) { StringUtils::substitute(p, '\\', '/'); StringUtils::ensureLastChar(p, '/'); }
     return paths;
   }
@@ -916,10 +935,28 @@ namespace OpenMS{
     if (!install_data_path.empty())
     {
       exec = install_data_path + "/../../bin/" + toolName;
-      if (File::exists(exec) && !File::isDirectory(exec)) return exec;
+      // (a compiled-in path: one that cannot be checked does not hold it, see isOpenMSDataPath_())
+      std::error_code ec;
+      const fs::file_status st = fs::status(to_path(exec), ec);
+      if (!ec && fs::exists(st) && !fs::is_directory(st)) return exec;
     }
 #endif
-    // TODO(aiche): probe in PATH
+    // finally the PATH, e.g. for an executable of another layer of a split installation
+    // that lives in a prefix of its own. Only absolute entries: a relative one would
+    // resolve against the current working directory.
+    StringList names = {toolName};
+#if OPENMS_WINDOWSPLATFORM
+    if (!StringUtils::hasSuffix(toolName, ".exe")) names.insert(names.begin(), toolName + ".exe");
+#endif
+    for (const std::string& dir : getPathLocations())
+    {
+      if (!to_path(dir).is_absolute()) continue;
+      for (const std::string& name : names)
+      {
+        exec = dir + name;
+        if (File::executable(exec) && !File::isDirectory(exec)) return exec;
+      }
+    }
 
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, toolName);
   }

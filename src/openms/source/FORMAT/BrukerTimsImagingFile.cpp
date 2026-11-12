@@ -21,6 +21,7 @@
 #include <sqlite3.h>
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <iterator>
 #include <limits>
@@ -51,15 +52,37 @@ namespace OpenMS
       }
     }
 
-    // The analysis.tdf entry of the .d directory that BrukerTimsFile reads from the '.d.zip' archive @p archive:
-    // the shallowest directory '*.d' with analysis.tdf or analysis.tdf_bin (the first by name among equally deep
-    // ones), none below '__MACOSX'. Empty if there is no such directory or it has no analysis.tdf.
-    // BrukerTimsFile chooses among the extracted directories, where an entry './a.d/analysis.tdf' has become
-    // 'a.d/analysis.tdf', so entries are compared by their normalized paths, and the name is kept for extraction.
+    // The SQLite file of the data that BrukerTimsFile::detectFormat() finds in @p path: analysis.tsf for TSF data,
+    // analysis.tdf otherwise. TSF data (timsTOF without ion mobility) has the same GlobalMetadata and MaldiFrameInfo
+    // tables as TDF data. (As analysisDatabaseName() in BrukerTimsFile.cpp.)
+    std::string sqliteFileName(const std::string& path)
+    {
+      using DataFormat = BrukerTimsFile::DataFormat;
+      switch (BrukerTimsFile::detectFormat(path)) // every format listed (no default): -Wswitch flags a new one here
+      {
+        case DataFormat::TSF:
+          return "analysis.tsf";
+        case DataFormat::TDF:
+        case DataFormat::BAF:                // not read yet (checkDataFormat() rejects it): its file goes here then
+        case DataFormat::NONE:               // the callers report the missing analysis.tdf
+        case DataFormat::UNREADABLE_ARCHIVE:
+          return "analysis.tdf";
+      }
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION); // a format not listed above
+    }
+
+    // The analysis.tdf (or for TSF data analysis.tsf, see sqliteFileName()) entry of the .d directory that
+    // BrukerTimsFile reads from the '.d.zip' archive @p archive: the shallowest directory '*.d' with the SQLite or the
+    // binary file of that format (the first by name among equally deep ones), none below '__MACOSX'. Empty if there is
+    // no such directory or it has no SQLite file. BrukerTimsFile chooses among the extracted directories, where an entry
+    // './a.d/analysis.tdf' has become 'a.d/analysis.tdf', so entries are compared by their normalized paths, and the
+    // name is kept for extraction.
     std::string tdfEntryOfArchive(const std::string& archive)
     {
       std::vector<std::string> entries;
       if (!ZipArchiveFile::listEntries(archive, entries)) { return ""; }
+      const std::string db_name = sqliteFileName(archive);
+      const std::string bin_name = db_name + "_bin";
       std::filesystem::path found_dir;
       std::ptrdiff_t found_depth = std::numeric_limits<std::ptrdiff_t>::max();
       std::string found_tdf;
@@ -68,7 +91,7 @@ namespace OpenMS
         const std::filesystem::path entry_path = to_path(entry).lexically_normal();
         const std::filesystem::path dir = entry_path.parent_path();
         const std::string file_name = entry_path.filename().string();
-        if (dir.extension() != ".d" || (file_name != "analysis.tdf" && file_name != "analysis.tdf_bin")) { continue; }
+        if (dir.extension() != ".d" || (file_name != db_name && file_name != bin_name)) { continue; }
         if (std::find(entry_path.begin(), entry_path.end(), std::filesystem::path("__MACOSX")) != entry_path.end()) { continue; }
         const std::ptrdiff_t depth = std::distance(dir.begin(), dir.end());
         if (depth < found_depth || (depth == found_depth && dir < found_dir))
@@ -77,7 +100,7 @@ namespace OpenMS
           found_depth = depth;
           found_tdf.clear();
         }
-        if (dir == found_dir && file_name == "analysis.tdf") { found_tdf = entry; }
+        if (dir == found_dir && file_name == db_name) { found_tdf = entry; }
       }
       return found_tdf;
     }
@@ -151,16 +174,17 @@ namespace OpenMS
   {
     if (File::exists(path) && !File::isDirectory(path) && StringUtils::hasSuffix(StringUtils::toLowered(path), ".zip"))
     {
-      // Only analysis.tdf is extracted: the frame data in analysis.tdf_bin is not needed for the metadata
+      // Only analysis.tdf (analysis.tsf) is extracted: the frame data in analysis.tdf_bin (analysis.tsf_bin) is not
+      // needed for the metadata
       const std::string entry = tdfEntryOfArchive(path);
       if (entry.empty())
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
-                                    "ZIP archive does not contain a .d directory with analysis.tdf");
+                                    "ZIP archive does not contain a .d directory with analysis.tdf or analysis.tsf");
       }
       return ZipArchiveFile::extractEntryToTempFile(path, entry, temp_dir);
     }
-    const std::string tdf = path + "/analysis.tdf";
+    const std::string tdf = path + "/" + sqliteFileName(path);
     if (!File::exists(tdf))
     {
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tdf);
@@ -223,7 +247,7 @@ namespace OpenMS
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
     }
 
-    // TSF and BAF data are reported as such, not as a missing analysis.tdf
+    // BAF data is reported as such, not as a missing analysis.tdf
     BrukerTimsFile::checkDataFormat(path);
 
     // Resolve analysis.tdf eagerly so an I/O error surfaces as FileNotReadable
@@ -272,6 +296,18 @@ namespace OpenMS
     inner.setLogType(this->getLogType());
     inner.load(path, ms_exp, inner_config);
 
+    // Imaging convention (see MSImagingExperiment): a pixel's acquisition time is not a
+    // retention time; keep it as the MetaValue imzml:scan_start_time and leave RT at -1.
+    for (MSSpectrum& spec : ms_exp)
+    {
+      if (spec.getRT() >= 0.0)
+      {
+        spec.setMetaValue("imzml:scan_start_time", spec.getRT());
+      }
+      spec.setRT(-1.0);
+    }
+    ms_exp.updateRanges(); // BrukerTimsFile computed the RT range from the frame times
+
     std::unordered_map<Int, Size> frame_to_index;
     frame_to_index.reserve(ms_exp.size());
     for (Size i = 0; i < ms_exp.size(); ++i)
@@ -290,13 +326,22 @@ namespace OpenMS
 
     std::string spot_size_str = globalMetadataValue(tdf, "MaldiSpotSize_um");
     if (spot_size_str.empty()) { spot_size_str = globalMetadataValue(tdf, "ImagingAreaSpotSize_um"); }
-    double spot_size = 1.0;
+    double spot_size = -1.0;
+    std::string spot_unit = "unknown";
     if (!spot_size_str.empty())
     {
-      try { spot_size = StringUtils::toDouble(spot_size_str); }
-      catch (...) { spot_size = 1.0; }
+      try
+      {
+        const double parsed = StringUtils::toDouble(spot_size_str);
+        if (std::isfinite(parsed) && parsed > 0)
+        {
+          spot_size = parsed;
+          spot_unit = "micrometer";
+        }
+      }
+      catch (...) {}
     }
-    geometry.setPixelSize(spot_size, spot_size, "micrometer");
+    geometry.setPixelSize(spot_size, spot_size, spot_unit);
 
     Size dropped = 0;
     for (const MaldiPixel& row : rows)

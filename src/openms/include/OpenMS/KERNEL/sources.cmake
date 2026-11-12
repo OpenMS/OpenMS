@@ -31,6 +31,7 @@ OnDiscMSExperiment.h
 OnDiscImzMLExperiment.h
 Peak1D.h
 Peak2D.h
+PeakContainerSort.h
 PeakIndex.h
 PeakTypeEstimator.h
 RangeManager.h

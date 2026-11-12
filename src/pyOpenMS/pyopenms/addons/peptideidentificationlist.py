@@ -6,6 +6,32 @@ import warnings
 from . import addon, register_element_views, string_dtype
 
 
+def _meta_value_columns(fixed_columns, meta_columns):
+    """Names the meta value columns of to_df() so that none repeats the name of another column.
+
+    A meta value can be named like a fixed column (MS-GF+ writes 'start' and 'end', for example)
+    or, once decoded, like another meta value. A numpy structured array refuses duplicate field
+    names, so such a column is prefixed with 'meta_' (and numbered if that is taken, too).
+    """
+    # names that collide with nothing are kept, and are reserved before any renamed column is named;
+    # numpy names a field without a name (the score of an empty score type) 'f<position>'
+    fixed = {name or f"f{i}" for i, name in enumerate(fixed_columns)}
+    kept = [name not in fixed and name not in meta_columns[:i] for i, name in enumerate(meta_columns)]
+    taken = fixed | {name for name, keep in zip(meta_columns, kept) if keep}
+    names = []
+    for name, keep in zip(meta_columns, kept):
+        unique = name
+        if not keep:
+            unique = "meta_" + name
+            number = 2
+            while unique in taken:
+                unique = f"meta_{name}_{number}"
+                number += 1
+            taken.add(unique)
+        names.append(unique)
+    return names
+
+
 @addon("PeptideIdentificationList")
 def to_df(self, decode_ontology=True, default_missing_values=None, export_unidentified=True, columns=None):
     """Converts peptide identifications to a pandas DataFrame.
@@ -14,7 +40,8 @@ def to_df(self, decode_ontology=True, default_missing_values=None, export_uniden
     :param default_missing_values: Default values for missing data by type.
     :param export_unidentified: Export PeptideIdentifications without PeptideHit.
     :param columns: List of column names to include. If None, includes all.
-    :return: DataFrame with peptide identification information.
+    :return: DataFrame with peptide identification information. A meta value named like another
+             column (e.g. the 'start' and 'end' of MS-GF+) is exported as 'meta_<name>'.
     """
     import pandas as pd
     import pyopenms
@@ -43,7 +70,7 @@ def to_df(self, decode_ontology=True, default_missing_values=None, export_uniden
             metavals += mvs
             mainscorename = pep.getScoreType()
 
-    metavals = list(set(metavals))
+    metavals = sorted(set(metavals))
 
     # get type of all metavalues
     for k in metavals:
@@ -80,7 +107,8 @@ def to_df(self, decode_ontology=True, default_missing_values=None, export_uniden
     else:
         clearMVs = metavals
 
-    clearcols = ["id", "rt", "mz", mainscorename, "charge", "protein_accession", "start", "end", "P_ID", "PSM_ID"] + clearMVs
+    fixedcols = ["id", "rt", "mz", mainscorename, "charge", "protein_accession", "start", "end", "P_ID", "PSM_ID"]
+    clearcols = fixedcols + _meta_value_columns(fixedcols, clearMVs)
     coltypes = [str_dtype, 'f', 'f', 'f', 'i', str_dtype, str_dtype, str_dtype, 'i', 'i'] + types
     # the fixed-width fields used to coerce every value to str; keep that for string columns
     # so a meta value whose type differs between hits cannot produce a mixed-type column
@@ -157,7 +185,7 @@ def df_columns(self, decode_ontology=True):
             metavals += mvs
             mainscorename = pep.getScoreType()
 
-    metavals = list(set(metavals))
+    metavals = sorted(set(metavals))
 
     # Decode metavalue names if requested
     if decode_ontology:
@@ -170,7 +198,8 @@ def df_columns(self, decode_ontology=True):
     else:
         clearMVs = metavals
 
-    cols = ["id", "rt", "mz", mainscorename, "charge", "protein_accession", "start", "end", "P_ID", "PSM_ID"] + clearMVs
+    fixedcols = ["id", "rt", "mz", mainscorename, "charge", "protein_accession", "start", "end", "P_ID", "PSM_ID"]
+    cols = fixedcols + _meta_value_columns(fixedcols, clearMVs)
     # to_df() builds a numpy structured array, which names a field without a name, such as
     # the score of an empty score type, 'f<position>'
     return [c or f"f{i}" for i, c in enumerate(cols)]

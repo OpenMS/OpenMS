@@ -11,7 +11,9 @@
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/RegularExpression.h>
+#include <array>
 #include <functional>          // for std::function
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -55,6 +57,33 @@ namespace OpenMS
 
     /// Name for unspecific cleavage
     static const std::string UnspecificCleavage;
+
+    /**
+      @brief A cleavage rule of the form "(?<=[KRX])" or "(?<=[KRX])(?!P)", as most enzymes of Enzymes.xml spell theirs
+
+      Cleaves after a residue of @p after unless the next residue is in @p not_before. tokenize_() (and the digest of
+      FragmentIndex) apply such a rule by hand instead of running the regular expression: faster, and a regex search
+      takes a block from boost's process-wide memory cache, which the threads of a parallel caller contend for.
+    */
+    struct OPENMS_DLLAPI SimpleCleavageRule
+    {
+      std::array<bool, 256> after{};      ///< residues N-terminal of a cleavage site
+      std::array<bool, 256> not_before{}; ///< residues C-terminal of a site that prevent the cleavage
+
+      /// Whether the rule cleaves between @p nterm and @p cterm, the residues before and after the site
+      bool cleavesBetween(char nterm, char cterm) const
+      {
+        return after[static_cast<unsigned char>(nterm)] && !not_before[static_cast<unsigned char>(cterm)];
+      }
+
+      /**
+        @brief The rule of @p regex if it is exactly "(?<=[" + A-Z letters + "])", optionally followed by "(?!" + one A-Z letter + ")"
+
+        Every other pattern (e.g. "()", "(?<=[A-Z])", the lookahead rules of Asp-N, "(?<=[HKRX][PX])(?!P)") yields
+        std::nullopt and is left to the regular expression.
+      */
+      static std::optional<SimpleCleavageRule> parse(const std::string& regex);
+    };
 
     /// Default constructor
     EnzymaticDigestion();
@@ -225,6 +254,8 @@ namespace OpenMS
     const DigestionEnzyme* enzyme_;
     /// Regex for tokenizing (huge speedup by making this a member instead of stack object in tokenize_())
     RegularExpression re_; ///< cleavage pattern of enzyme_ (RegularExpression is itself a pimpl)
+    /// The pattern of re_ as a SimpleCleavageRule where it is one (tokenize_() then does without the regex); set with re_ in setEnzyme()
+    std::optional<SimpleCleavageRule> simple_rule_;
 
     /// specificity of enzyme
     Specificity specificity_;

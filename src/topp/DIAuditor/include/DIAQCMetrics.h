@@ -122,7 +122,8 @@ namespace OpenMS
     {
       std::string source_file;            ///< file name without directory and extension
       std::string input_path;             ///< path of the input file or directory (for mzQC)
-      FileTypes::Type input_type = FileTypes::MZML; ///< format of the input (for mzQC): mzML, Thermo RAW or Bruker TDF
+      FileTypes::Type input_type = FileTypes::MZML; ///< format of the input (for mzQC): mzML, Thermo RAW or Bruker .d
+                                                    ///< (TDF or TSF, told apart by input_path)
       std::string file_sha1;              ///< SHA-1 of the input file (for mzQC); may be empty
       std::string instrument;             ///< instrument model name
       std::string serial_number;          ///< instrument serial number

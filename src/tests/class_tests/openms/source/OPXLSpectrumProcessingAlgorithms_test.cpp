@@ -16,6 +16,8 @@
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
 #include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
 
 using namespace OpenMS;
 
@@ -104,6 +106,50 @@ START_SECTION(static void getSpectrumAlignmentFastCharge(
     TEST_REAL_SIMILAR((theo_spec_2[alignment2[i].first].getMZ() - exp_spec_3[alignment2[i].second].getMZ()) / theo_spec_2[alignment2[i].first].getMZ() / 1e-6, ppm_error_array[i])
   }
 
+END_SECTION
+
+START_SECTION(([EXTRA] static void getSpectrumAlignmentSimple(std::vector<std::pair<Size, Size>>& alignment, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::vector<SimpleTSGXLMS::SimplePeak>& theo_spectrum, const PeakSpectrum& exp_spectrum, const DataArrays::IntegerDataArray& exp_charges)))
+{
+  // getSpectrumAlignmentSimple() must give the same alignment as getSpectrumAlignmentFastCharge() without intensity filter
+  TheoreticalSpectrumGenerator tsg;
+  Param param = tsg.getParameters();
+  param.setValue("add_metainfo", "true");
+  tsg.setParameters(param);
+  PeakSpectrum theo_spectrum, exp_spectrum;
+  tsg.getSpectrum(theo_spectrum, AASequence::fromString("PEPTIDEKPEPTIDER"), 1, 3);
+  tsg.getSpectrum(exp_spectrum, AASequence::fromString("PEPTIDEKPEPTIDER"), 1, 3);
+  // shift the experimental peaks by -0.03 / 0 / +0.03 Th, give every 5th one charge 0 (unknown) and every 7th a wrong charge
+  for (Size i = 0; i < exp_spectrum.size(); ++i)
+  {
+    exp_spectrum[i].setMZ(exp_spectrum[i].getMZ() + 0.03 * (int(i % 3) - 1));
+    if (i % 5 == 0) exp_spectrum.getIntegerDataArrays()[0][i] = 0;
+    else if (i % 7 == 0) exp_spectrum.getIntegerDataArrays()[0][i] += 1;
+  }
+  exp_spectrum.sortByPosition();
+  const DataArrays::IntegerDataArray& theo_charges = theo_spectrum.getIntegerDataArrays()[0];
+  const DataArrays::IntegerDataArray& exp_charges = exp_spectrum.getIntegerDataArrays()[0];
+  std::vector<SimpleTSGXLMS::SimplePeak> simple_theo;
+  for (Size i = 0; i < theo_spectrum.size(); ++i) simple_theo.push_back({theo_spectrum[i].getMZ(), theo_charges[i]});
+
+  for (const auto& [tolerance, ppm] : std::vector<std::pair<double, bool>>{{0.02, false}, {0.05, false}, {0.5, false}, {20.0, true}, {100.0, true}})
+  {
+    std::vector<std::pair<Size, Size>> fast, simple;
+    DataArrays::FloatDataArray ppm_error;
+    OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(fast, tolerance, ppm, theo_spectrum, exp_spectrum, theo_charges, exp_charges, ppm_error, 0.0);
+    OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentSimple(simple, tolerance, ppm, simple_theo, exp_spectrum, exp_charges);
+    TEST_EQUAL(fast.size(), ppm_error.size())
+    TEST_EQUAL(simple == fast, true)
+
+    // without charges on the experimental side, both ignore the charges
+    std::vector<std::pair<Size, Size>> fast_nz, simple_nz;
+    DataArrays::FloatDataArray ppm_error_nz;
+    DataArrays::IntegerDataArray no_charges;
+    OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(fast_nz, tolerance, ppm, theo_spectrum, exp_spectrum, theo_charges, no_charges, ppm_error_nz, 0.0);
+    OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentSimple(simple_nz, tolerance, ppm, simple_theo, exp_spectrum, no_charges);
+    TEST_EQUAL(simple_nz == fast_nz, true)
+    TEST_EQUAL(fast_nz.size() >= fast.size(), true)
+  }
+}
 END_SECTION
 
 END_TEST

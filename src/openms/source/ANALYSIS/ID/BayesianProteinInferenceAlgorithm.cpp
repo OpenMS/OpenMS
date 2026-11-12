@@ -655,7 +655,7 @@ namespace OpenMS
 
     defaults_.setValue("param_optimize:conservative_fdr",
                           "true",
-                          "Use (D+1)/(T) instead of (D+1)/(T+D) for parameter estimation.");
+                          "Use D/T instead of D/(T+D) as the target-decoy FDR for parameter estimation.");
     defaults_.setValidStrings("param_optimize:conservative_fdr", {"true","false"});
 
     defaults_.setValue("param_optimize:regularized_fdr",

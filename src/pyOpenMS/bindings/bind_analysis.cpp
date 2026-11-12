@@ -6,6 +6,7 @@
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
+#include <OpenMS/ANALYSIS/ID/EntrapmentEvaluation.h>
 #include <OpenMS/ANALYSIS/ID/FIAMSScheduler.h>
 #include <OpenMS/ANALYSIS/ID/HyperScore.h>
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
@@ -99,8 +100,11 @@
 #include <nanobind/operators.h>
 #include <nanobind/stl/map.h>
 #include <nanobind/stl/optional.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/set.h>
 #include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/unordered_map.h>
+#include <nanobind/stl/unordered_set.h>
 #include <nanobind/stl/vector.h>
 #include <sstream>
 #include "binding_utils.h"
@@ -507,6 +511,95 @@ Convert DeconvolvedSpectrum to MSSpectrum.
         ;
 
     // -----------------------------------------------------------------------
+    // EntrapmentEvaluation
+    // -----------------------------------------------------------------------
+    using EE = OpenMS::EntrapmentEvaluation;
+    auto entrapmentevaluation_class = nb::class_<EE>(m, "EntrapmentEvaluation",
+        "Measures the false discovery proportion (FDP) of identifications with an entrapment database: lower-bound, "
+        "combined and paired estimators (Wen et al., Nat. Methods 2025)")
+        .def(nb::init<>())
+        ;
+    nb::enum_<EE::Kind>(entrapmentevaluation_class, "Kind", nb::is_arithmetic(), "How a PSM is counted")
+        .value("TARGET", EE::Kind::TARGET, "Matches at least one target (non-entrapment) protein")
+        .value("ENTRAPMENT", EE::Kind::ENTRAPMENT, "Matches only entrapment proteins")
+        .value("DECOY", EE::Kind::DECOY, "Decoy PSM (ignored)")
+        ;
+    nb::enum_<EE::Level>(entrapmentevaluation_class, "Level", nb::is_arithmetic(), "What is counted as one discovery")
+        .value("PSM", EE::Level::PSM, "The top hit of each spectrum")
+        .value("PEPTIDE", EE::Level::PEPTIDE, "Distinct unmodified peptide sequences (I = L)")
+        ;
+    nb::class_<EE::Result>(entrapmentevaluation_class, "Result", "Result for one class at one q-value threshold and level")
+        .def(nb::init<>())
+        .def(nb::init<const EE::Result &>())
+        .def("__copy__", [](const EE::Result& self) { return EE::Result(self); })
+        .def("__deepcopy__", [](const EE::Result& self, nb::dict) { return EE::Result(self); }, "memo"_a)
+        .def_rw("accepted", &EE::Result::accepted, "N: accepted non-decoy discoveries (targets + entrapment)")
+        .def_rw("entrapment", &EE::Result::entrapment, "N_E: accepted entrapment-only discoveries")
+        .def_rw("entrapment_target_not_accepted", &EE::Result::entrapment_target_not_accepted,
+                "N_{E>=s>T}: accepted entrapment peptides whose paired target is not accepted")
+        .def_rw("entrapment_above_target", &EE::Result::entrapment_above_target,
+                "N_{E>T>=s}: accepted entrapment peptides whose paired target is accepted but does not rank above them")
+        .def_rw("paired", &EE::Result::paired, "Whether the paired counts are available (peptide level, with peptide pairs)")
+        .def_rw("te_ratio", &EE::Result::te_ratio, "T/E used in the combined estimate")
+        .def("lowerBoundFDP", [](const EE::Result& self) { return self.lowerBoundFDP(); }, "Lower bound N_E / N (0 if nothing accepted)")
+        .def("combinedFDP", [](const EE::Result& self) { return self.combinedFDP(); }, "Combined estimate N_E * (1 + T/E) / N (0 if nothing accepted)")
+        .def("pairedFDP", [](const EE::Result& self) { return self.pairedFDP(); },
+             "Paired estimate (N_E + N_{E>=s>T} + 2 * N_{E>T>=s}) / N (0 if nothing accepted, NaN if not available)")
+        .def("__repr__", [](const EE::Result& self) {
+            return "EntrapmentEvaluation.Result(accepted=" + std::to_string(self.accepted) + ", entrapment=" +
+                   std::to_string(self.entrapment) + ", te_ratio=" + std::to_string(self.te_ratio) + ")";
+          })
+        ;
+    entrapmentevaluation_class
+        .def_static("classify", [](const OpenMS::PeptideHit& hit, const std::string& entrapment_prefix,
+                                   const std::string& decoy_string, bool decoy_is_prefix) {
+            return EE::classify(hit, entrapment_prefix, decoy_string, decoy_is_prefix);
+          }, "hit"_a, "entrapment_prefix"_a, "decoy_string"_a = "", "decoy_is_prefix"_a = true,
+          "Classify a peptide hit by its protein accessions; decoy accessions are ignored")
+        .def_static("estimateTERatio", [](const std::vector<OpenMS::FASTAFile::FASTAEntry>& db, const std::string& entrapment_prefix,
+                                          const std::string& decoy_string, bool decoy_is_prefix, const std::string& enzyme,
+                                          OpenMS::Size missed_cleavages, OpenMS::Size min_length, OpenMS::Size max_length) {
+            return EE::estimateTERatio(db, entrapment_prefix, decoy_string, decoy_is_prefix, enzyme, missed_cleavages, min_length, max_length);
+          }, "db"_a, "entrapment_prefix"_a, "decoy_string"_a, "decoy_is_prefix"_a, "enzyme"_a = "Trypsin",
+          "missed_cleavages"_a = 2, "min_length"_a = 7, "max_length"_a = 40,
+          "T/E, the ratio of distinct searchable target to entrapment-only peptides of a database (I = L; 1 without entrapment)")
+        .def_static("targetPeptides", [](const std::vector<OpenMS::FASTAFile::FASTAEntry>& db, const std::string& entrapment_prefix,
+                                         const std::string& decoy_string, bool decoy_is_prefix, const std::string& enzyme,
+                                         OpenMS::Size missed_cleavages, OpenMS::Size min_length, OpenMS::Size max_length) {
+            return EE::targetPeptides(db, entrapment_prefix, decoy_string, decoy_is_prefix, enzyme, missed_cleavages, min_length, max_length);
+          }, "db"_a, "entrapment_prefix"_a, "decoy_string"_a, "decoy_is_prefix"_a, "enzyme"_a = "Trypsin",
+          "missed_cleavages"_a = 2, "min_length"_a = 7, "max_length"_a = 40,
+          "The distinct searchable peptides of the target proteins of a database, with every I replaced by L (a set)")
+        .def_static("qValue", [](const OpenMS::PeptideIdentification& pep_id, const OpenMS::PeptideHit& hit) {
+            return EE::qValue(pep_id, hit);
+          }, "pep_id"_a, "hit"_a, "The q-value of a hit (its score or a q-value meta value); raises if there is none")
+        .def_static("pairPeptides", [](const std::vector<OpenMS::FASTAFile::FASTAEntry>& db, const std::string& entrapment_prefix,
+                                       const std::string& decoy_string, bool decoy_is_prefix, const std::string& enzyme,
+                                       OpenMS::Size missed_cleavages, OpenMS::Size min_length, OpenMS::Size max_length) {
+            OpenMS::Size mismatched = 0;
+            EE::PeptidePairs pairs = EE::pairPeptides(db, entrapment_prefix, decoy_string, decoy_is_prefix, enzyme,
+                                                      missed_cleavages, min_length, max_length, &mismatched);
+            return std::make_pair(std::move(pairs), mismatched);
+          }, "db"_a, "entrapment_prefix"_a, "decoy_string"_a, "decoy_is_prefix"_a, "enzyme"_a = "Trypsin",
+          "missed_cleavages"_a = 2, "min_length"_a = 7, "max_length"_a = 40,
+          "Pair every entrapment peptide with the target peptide it was made from. Returns (pairs, mismatched): a dict "
+          "entrapment peptide -> target peptide and the number of skipped pairs whose composition differs")
+        .def_static("evaluate", [](const OpenMS::PeptideIdentificationList& pep_ids, double q_threshold, const std::string& entrapment_prefix,
+                                   double te_ratio, EE::Level level, const std::string& class_meta_value,
+                                   const std::optional<std::unordered_set<std::string>>& target_peptides,
+                                   const std::optional<EE::PeptidePairs>& pairs, const std::string& score_meta_value,
+                                   const std::string& decoy_string, bool decoy_is_prefix) {
+            return EE::evaluate(pep_ids, q_threshold, entrapment_prefix, te_ratio, level, class_meta_value,
+                                target_peptides ? &*target_peptides : nullptr, pairs ? &*pairs : nullptr,
+                                score_meta_value, decoy_string, decoy_is_prefix);
+          }, "pep_ids"_a, "q_threshold"_a, "entrapment_prefix"_a, "te_ratio"_a, "level"_a = EE::Level::PSM,
+          "class_meta_value"_a = "", "target_peptides"_a = nb::none(), "pairs"_a = nb::none(), "score_meta_value"_a = "",
+          "decoy_string"_a = "", "decoy_is_prefix"_a = true,
+          "Evaluate the identifications at a q-value threshold. target_peptides (see targetPeptides()) and pairs (see "
+          "pairPeptides()) are optional. Returns a dict class -> Result; 'all' holds the overall result")
+        ;
+
+    // -----------------------------------------------------------------------
     // FIAMSScheduler
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::FIAMSScheduler>(m, "FIAMSScheduler", "Scheduler for FIA-MS data processing")
@@ -660,6 +753,16 @@ The the filtered identifications are added to the vector of unassigned peptides
 and also reduced to a single best hit
 
 :param keep_matching: Keeps all IDs that match the modified sequence of the best hit in the feature (e.g. keeps all IDs in a ConsensusMap if id'd same across multiple runs)
+)doc")
+        .def_static("annotateTransfers", [](OpenMS::ConsensusMap& features) { OpenMS::IDConflictResolverAlgorithm::annotateTransfers(features); }, "features"_a,
+            R"doc(
+Annotates the runs a consensus feature's identification was transferred to (match-between-runs).
+
+For each consensus feature with an identification, lists the map indices of its features that are not
+identified as that peptide in their own run in the meta value "mbr_transfer_map_indices". Call after
+resolve(features, True). Consensus features that already carry the meta value are left unchanged.
+
+:param features: consensus map to annotate (modified in-place)
 )doc")
         .def_static("reduceToOnePerSpectrum", [](OpenMS::PeptideIdentificationList& ids) { return OpenMS::IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids); }, "ids"_a,
             R"doc(
@@ -2414,6 +2517,12 @@ Probability ties resolved by taking protein with largest number of peptides
                 "Per-row integer key to keep related rows in the same CV fold. Leave empty for no grouping.")
         .def_rw("feature_names",  &OpenMS::RescoreInput::feature_names,
                 "Names aligned 1:1 with feature columns; used for logging only.")
+        .def_rw("feature_matrix", &OpenMS::RescoreInput::feature_matrix,
+                "Dense row-major features (n_rows x len(feature_names)), used when 'features' is empty; "
+                "'is_decoy' gives the number of rows.")
+        .def_rw("peptide_keys",   &OpenMS::RescoreInput::peptide_keys,
+                "Optional per-row peptide key for peptide-level q-values (Percolator parameter 'peptide_level'). "
+                "Empty, or one entry per row.")
 
         .def("set_features_np",
              [](OpenMS::RescoreInput& self,
@@ -2446,7 +2555,7 @@ Probability ties resolved by taking protein with largest number of peptides
         ;
 
     nb::class_<OpenMS::RescoreOutput>(m, "RescoreOutput",
-        "Output from Percolator.rescore(). Aligned 1:1 with RescoreInput.features.")
+        "Output from Percolator.rescore(). Aligned 1:1 with the rows of the RescoreInput (features or feature_matrix).")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::RescoreOutput &>())
         .def("__copy__",     [](const OpenMS::RescoreOutput& self) { return OpenMS::RescoreOutput(self); })
@@ -2454,6 +2563,10 @@ Probability ties resolved by taking protein with largest number of peptides
         .def_rw("scores",   &OpenMS::RescoreOutput::scores,   "SVM discriminant score per row")
         .def_rw("q_values", &OpenMS::RescoreOutput::q_values, "q-value per row")
         .def_rw("peps",     &OpenMS::RescoreOutput::peps,     "posterior error probability per row")
+        .def_rw("peptide_q_values", &OpenMS::RescoreOutput::peptide_q_values,
+                "With 'peptide_level' and RescoreInput.peptide_keys: the peptide-level q-value per row (empty otherwise)")
+        .def_rw("peptide_peps",     &OpenMS::RescoreOutput::peptide_peps,
+                "With 'peptide_level' and RescoreInput.peptide_keys: the peptide-level PEP per row (empty otherwise)")
 
         .def("scores_np",
              [](nb::object self_obj) -> nb::object {
@@ -2530,6 +2643,27 @@ The stamped features are removed again. Returns the number of rescored hits.
 
 feature_set: e.g. PercolatorInfile.getStandardFeatureSet(min_charge, max_charge) plus extra
 features plus "Peptide" and "Proteins".
+)doc")
+        .def("storeWeights", &OpenMS::Percolator::storeWeights, "filename"_a,
+             R"doc(
+Write the models of the last rescore() as the percolator executable writes them with -w:
+three comment lines, then per cross-validation fold the feature names and "m0" (the bias),
+the weights of the normalized features and those of the raw features (tab-separated).
+Raises an exception if nothing has been trained yet, or after rescorePSMs() with RESET.
+)doc")
+        .def_static("markRescoredRuns",
+             [](std::vector<OpenMS::ProteinIdentification> runs, const std::string& tool,
+                const std::vector<std::pair<std::string, OpenMS::DataValue>>& settings, const std::string& version)
+             {
+               OpenMS::Percolator::markRescoredRuns(runs, tool, settings, version);
+               return runs;
+             },
+             "runs"_a, "tool"_a, "settings"_a, "version"_a = std::string(OpenMS::Percolator::VENDORED_VERSION),
+             R"doc(
+Mark search runs as post-processed by Percolator and return them: search engine "Percolator"
+with the given version, the meta value 'percolator' = tool, and the search parameters' meta
+values 'Percolator:<name>' of settings, a list of (name, value) in this order. A value None
+removes that meta value.
 )doc")
         ;
     def_DefaultParamHandler<OpenMS::Percolator>(percolator_class);

@@ -1188,6 +1188,7 @@ namespace OpenMS
       //parameter restrictions
       ParamEntry pe = *default_value;
       pe.value = it->value;
+      pe.name = it.getName(); // the full name (relative to prefix), for the message
       std::string s;
       if (!pe.isValid(s))
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name + ": " + s);
@@ -1343,6 +1344,9 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           // check entry for consistency (in case restrictions have changed)
           ParamValue default_value = new_entry.value;
           new_entry.value = it->value;
+          // the message names the parameter by its full name in this Param (e.g. 'section:name', as a tool's user
+          // sets it), not by its leaf name alone, which several sections may share
+          new_entry.name = target_name;
           std::string validation_result;
           if (new_entry.isValid(validation_result))
           {

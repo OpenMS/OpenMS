@@ -123,10 +123,15 @@ namespace Internal
     /**
       @brief Open @p path.
 
-      @param[in] path Thermo RAW file (symbolic links are resolved for the vendor library)
+      @param[in] path Thermo RAW file (symbolic links are resolved for the vendor library), or a ZIP archive that
+                 holds one .raw file ('.zip' suffix), which is extracted into a temporary directory that lives as
+                 long as the reader and its accessors
       @param[in] options Conversion options; ms_levels / rt / scan ranges are not applied here
 
       @throws Exception::FileNotFound if @p path does not exist
+      @throws Exception::ParseError if @p path is gzip- or bzip2-compressed ('.gz', '.bz2' suffix), or a ZIP archive
+              that holds no .raw file or more than one
+      @throws Exception::InvalidValue if the .raw file cannot be extracted (e.g. not enough free space)
       @throws std::exception if the bridge cannot open the file
     */
     ThermoRawScanReader(const std::string& path, const Options& options);

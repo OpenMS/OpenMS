@@ -19,16 +19,17 @@
 #   core   OpenMSTargets    library        cmake         OpenMS::OpenMS, OpenMS::OpenSwathAlgo
 #                                                        and the bundled third-party libraries
 #   CLI    OpenMSCLITargets library_cli    cmake_cli     OpenMS::OpenMS_CLI (links the core layer)
-#   GUI    OpenMSGUITargets library_gui    cmake_gui     OpenMS::OpenMS_GUI (links the CLI layer)
+#
+# The GUI layer (OpenMS::OpenMS_GUI) is built by OpenMS-TOPP-GUI and installs a CMake
+# package of its own, OpenMSGUI, which OpenMSConfig.cmake finds for COMPONENTS GUI.
 #
 # Headers keep their own components (OpenMS_headers, OpenMS_CLI_headers,
-# OpenMS_GUI_headers, OpenSwathAlgo_headers, thirdparty_headers). A core-only
+# OpenSwathAlgo_headers, thirdparty_headers). A core-only
 # installation (e.g. the one the pyOpenMS wheels are built against) is
 # library + the core header components + share + cmake.
 set(OPENMS_EXPORT_SET "OpenMSTargets")
 set(OPENMS_CLI_EXPORT_SET "OpenMSCLITargets")
-set(OPENMS_GUI_EXPORT_SET "OpenMSGUITargets")
-set(OPENMS_EXPORT_SETS ${OPENMS_EXPORT_SET} ${OPENMS_CLI_EXPORT_SET} ${OPENMS_GUI_EXPORT_SET})
+set(OPENMS_EXPORT_SETS ${OPENMS_EXPORT_SET} ${OPENMS_CLI_EXPORT_SET})
 
 # the install components of each export set: <set>_LIBRARY_COMPONENT holds the
 # libraries, <set>_CMAKE_COMPONENT the exported target files
@@ -36,8 +37,6 @@ set(${OPENMS_EXPORT_SET}_LIBRARY_COMPONENT library)
 set(${OPENMS_EXPORT_SET}_CMAKE_COMPONENT cmake)
 set(${OPENMS_CLI_EXPORT_SET}_LIBRARY_COMPONENT library_cli)
 set(${OPENMS_CLI_EXPORT_SET}_CMAKE_COMPONENT cmake_cli)
-set(${OPENMS_GUI_EXPORT_SET}_LIBRARY_COMPONENT library_gui)
-set(${OPENMS_GUI_EXPORT_SET}_CMAKE_COMPONENT cmake_gui)
 
 #------------------------------------------------------------------------------
 # Installs the library lib_target_name into the library component of its export
@@ -74,12 +73,21 @@ function(install_library lib_target_name)
       RUNTIME DESTINATION ${INSTALL_LIB_DIR} COMPONENT ${_component}
       ${_header_install_args}
       )
+    # MSVC writes the debug information of a DLL to a .pdb file next to it (in a Debug
+    # or RelWithDebInfo build; a Release build has none, hence OPTIONAL). It ships with
+    # the DLL, so a consumer of the Windows Debug SDK can step into OpenMS code.
+    # TARGET_PDB_FILE is only defined for shared libraries and executables.
+    get_target_property(_type ${lib_target_name} TYPE)
+    if(MSVC AND _type STREQUAL "SHARED_LIBRARY")
+      install(FILES $<TARGET_PDB_FILE:${lib_target_name}>
+        DESTINATION ${INSTALL_LIB_DIR} COMPONENT ${_component} OPTIONAL)
+    endif()
 endfunction()
 
 #------------------------------------------------------------------------------
 # What every installed header may include, as regular expressions matched against the
 # whole include name. A library adds the headers of its own PUBLIC dependencies with
-# openms_add_library(... ALLOWED_PUBLIC_INCLUDES ...), e.g. Qt for the GUI layer.
+# openms_add_library(... ALLOWED_PUBLIC_INCLUDES ...).
 set(OPENMS_PUBLIC_INCLUDE_ALLOWLIST
   "OpenMS/.*"                             # OpenMS' own headers
   "[a-z_]+"                               # the C++ standard library: <vector>, <string_view>, ...
@@ -138,8 +146,7 @@ endfunction()
 #
 # @param tool_target_name The target name of the tool that should be installed
 # @param COMPONENT        The install component; 'Applications' (the TOPP tools) when
-#                         omitted. The GUI applications use
-#                         ${OPENMS_GUI_APPLICATIONS_COMPONENT} (see the top-level CMakeLists.txt).
+#                         omitted.
 function(install_tool tool_target_name)
     cmake_parse_arguments(_install_tool "" "COMPONENT" "" ${ARGN})
     if(_install_tool_UNPARSED_ARGUMENTS)
@@ -150,7 +157,6 @@ function(install_tool tool_target_name)
     endif()
     install(TARGETS ${tool_target_name} RUNTIME_DEPENDENCY_SET OPENMS_DEPS
       RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT ${_install_tool_COMPONENT}
-      BUNDLE DESTINATION ${INSTALL_BIN_DIR} COMPONENT ${_install_tool_COMPONENT}
       )
 endfunction()
 
@@ -197,7 +203,7 @@ endmacro()
 #------------------------------------------------------------------------------
 # Installs the exported target information of every export set that has
 # targets: one <set>.cmake file per layer in the cmake component of that layer
-# (cmake, cmake_cli, cmake_gui), so an installation without a layer has no file
+# (cmake, cmake_cli), so an installation without a layer has no file
 # claiming its libraries. Consumers see every target as OpenMS::<target>
 # (OpenMS::OpenMS, OpenMS::OpenSwathAlgo, OpenMS::OpenMS_CLI, ...); a target of
 # one layer refers to the targets of the layer below by these names, and
@@ -340,82 +346,4 @@ macro(install_thirdparty_folder foldername)
             )
     list(APPEND THIRDPARTY_COMPONENT_GROUP ${foldername})
   endif()
-endmacro()
-
-#------------------------------------------------------------------------------
-# Installs Qt plugins. Prefix can be the usual CMAKE_INSTALL_PREFIX or
-# if you install to a bundle, the app folder
-# Fills _qt_plugins_var with paths to be used e.g. with fixup_bundle at INSTALL time.
-macro(install_qt6_plugin_installdir _qt_plugin_name _qt_plugins_var _targetpath _component)
-  get_target_property(_qt_plugin_path "${_qt_plugin_name}" LOCATION)
-  if(EXISTS "${_qt_plugin_path}")
-    get_filename_component(_qt_plugin_file "${_qt_plugin_path}" NAME)
-    get_filename_component(_qt_plugin_type "${_qt_plugin_path}" PATH)
-    get_filename_component(_qt_plugin_type "${_qt_plugin_type}" NAME)
-    set(_qt_plugin_dest "${_targetpath}/${_qt_plugin_type}")
-    install(FILES "${_qt_plugin_path}"
-      DESTINATION "${_qt_plugin_dest}"
-      COMPONENT ${_component})
-    set(${_qt_plugins_var}
-      "${${_qt_plugins_var}};\${CMAKE_INSTALL_PREFIX}/${_qt_plugin_dest}/${_qt_plugin_file}")
-  else()
-    message(FATAL_ERROR "Qt plugin ${_qt_plugin_name} not found")
-  endif()
-endmacro()
-
-#------------------------------------------------------------------------------
-# Installs Qt plugins. Prefix can be the usual CMAKE_INSTALL_PREFIX or
-# if you install to a bundle, the app folder
-# Fills _qt_plugins_var with paths to be used e.g. with fixup_bundle at BUILD time.
-macro(install_qt6_plugin_builddir _qt_plugin_name _qt_plugins_var _targetpath _component)
-  get_target_property(_qt_plugin_path "${_qt_plugin_name}" LOCATION)
-  if(EXISTS "${_qt_plugin_path}")
-    # Resolve symlinks to get the actual file
-    get_filename_component(_qt_plugin_path "${_qt_plugin_path}" REALPATH)
-    get_filename_component(_qt_plugin_file "${_qt_plugin_path}" NAME)
-    get_filename_component(_qt_plugin_type "${_qt_plugin_path}" PATH)
-    get_filename_component(_qt_plugin_type "${_qt_plugin_type}" NAME)
-    set(_qt_plugin_dest "${_targetpath}/${_qt_plugin_type}")
-    install(FILES "${_qt_plugin_path}"
-            DESTINATION "${_qt_plugin_dest}"
-            COMPONENT ${_component})
-    set(${_qt_plugins_var}
-        "${${_qt_plugins_var}};${_qt_plugin_dest}/${_qt_plugin_file}")
-  else()
-    message(FATAL_ERROR "Qt plugin ${_qt_plugin_name} not found")
-  endif()
-endmacro()
-
-#------------------------------------------------------------------------------
-# Installs QT6 libraries to CMAKE_INSTALL_PREFIX based on given components
-macro(install_qt6_libs _qt_components _targetpath _install_component)
-  foreach (_qt_component ${_qt_components})
-    get_target_property(_qt_lib_path "Qt6::${_qt_component}" LOCATION)
-    if(_qt_lib_path MATCHES "^.*\\/.*${_qt_component}\\.framework\\/.*$")
-    ## we could use if Mac but this is more general
-      get_filename_component(_qt_lib_path "${_qt_lib_path}" PATH)
-      if(EXISTS "${_qt_lib_path}")
-      install(DIRECTORY "${_qt_lib_path}"
-        DESTINATION "${_targetpath}"
-        COMPONENT ${_install_component})
-      else()
-        message(FATAL_ERROR "Qt lib ${_qt_component} not found at imported location ${_qt_lib_path} for install/package")
-      endif()
-    else()
-      if(EXISTS "${_qt_lib_path}")
-        if (UNIX AND "${_qt_lib_path}" MATCHES ".*\\.[0-9]+\\.[0-9]+\\.[0-9]+$")
-          string(REGEX REPLACE "\\.[0-9]+\\.[0-9]+$" "" _qt_lib_path_tgt ${_qt_lib_path})
-        else()
-          set(_qt_lib_path_tgt ${_qt_lib_path})
-        endif()
-        get_filename_component(_qt_lib_path_tgt "${_qt_lib_path_tgt}" NAME)
-        install(FILES "${_qt_lib_path}"
-          DESTINATION "${_targetpath}"
-          RENAME "${_qt_lib_path_tgt}"
-          COMPONENT ${_install_component})
-      else()
-        message(FATAL_ERROR "Qt lib ${_qt_component} not found at imported location ${_qt_lib_path} for install/package")
-      endif()
-    endif()
-  endforeach(_qt_component)
 endmacro()

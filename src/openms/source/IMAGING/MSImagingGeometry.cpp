@@ -142,9 +142,9 @@ void MSImagingGeometry::clear()
 {
   width_ = 0;
   height_ = 0;
-  pixel_size_x_ = 1.0;
-  pixel_size_y_ = 1.0;
-  pixel_size_unit_ = "micrometer";
+  pixel_size_x_ = -1.0;
+  pixel_size_y_ = -1.0;
+  pixel_size_unit_ = "unknown";
   pixels_.clear();
   lookup_.clear();
   clearRegions();

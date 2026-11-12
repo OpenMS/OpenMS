@@ -48,7 +48,6 @@ SetCompressor /SOLID lzma
 !define OPENMSBINDIR "@CPACK_TEMPORARY_DIRECTORY@/@CPACK_OPENMS_INSTALL_BIN_DIR@"
 !define OPENMSLIBDIR "@CPACK_TEMPORARY_DIRECTORY@/@CPACK_OPENMS_INSTALL_LIB_DIR@"
 !define OPENMSSHAREDIR "@CPACK_TEMPORARY_DIRECTORY@/@CPACK_OPENMS_INSTALL_SHARE_DIR@"
-!define OPENMSPLUGINDIR "@CPACK_TEMPORARY_DIRECTORY@/@CPACK_OPENMS_INSTALL_PLUGIN_DIR@"
 !define OPENMSDOCDIR "@CPACK_TEMPORARY_DIRECTORY@/@CPACK_OPENMS_INSTALL_DOC_DIR@"
 !define THIRDPARTYDIR "@CPACK_TEMPORARY_DIRECTORY@/@CPACK_OPENMS_INSTALL_SHARE_DIR@/THIRDPARTY"
 
@@ -66,26 +65,20 @@ SetCompressor /SOLID lzma
 ###   SCRIPT   ###
 ##################
 
-# which extensions to connect to TOPPView and TOPPAS
-!macro OpenMSGUIExtensions _action
-  !insertmacro ${_action} ".mzData" "TOPPView"
-  !insertmacro ${_action} ".mzXML" "TOPPView"
-  !insertmacro ${_action} ".mzML" "TOPPView"
-  !insertmacro ${_action} ".sqMass" "TOPPView"
-  !insertmacro ${_action} ".dta" "TOPPView"
-  !insertmacro ${_action} ".dta2D" "TOPPView"
-  !insertmacro ${_action} ".cdf" "TOPPView"
-  !insertmacro ${_action} ".idXML" "TOPPView"
-  !insertmacro ${_action} ".featureXML" "TOPPView"
-  !insertmacro ${_action} ".consensusXML" "TOPPView"
-  !insertmacro ${_action} ".toppas" "TOPPAS"
-!macroend
+## The GUI applications (TOPPView, TOPPAS, INIFileEditor) come with the separate installer of
+## OpenMS-TOPP-GUI. It installs into the folder of this installation, which it reads, with the
+## version, from the values InstallLocation and DisplayVersion that NsisMultiUser writes to
+## the uninstall key below (PRODUCT_UNINST_KEY; DisplayVersion of a current-user installation
+## in "<key> (current user)"), so keep APPNAME and that key stable. It has its own uninstaller,
+## uninstall-gui.exe, which the uninstall section below runs first.
 
 # Defines
 !define APPNAME "OpenMS"
 !define PRODUCT_NAME "${APPNAME}"
-# For the icon used by MultiUser plugin, relative to INSTDIR
-!define PROGEXE "bin\TOPPView.exe"
+# For the icon used by MultiUser plugin, relative to INSTDIR (installed by SEC_License)
+!define PROGEXE "OpenMS.ico"
+# The uninstaller of the GUI add-on installer, relative to INSTDIR
+!define GUI_UNINSTALL_FILENAME "uninstall-gui.exe"
 # For our own additional regkeys
 !define REGKEY "SOFTWARE\$(^Name)"
 # For AdvUninstallLog (matches default of MultiUser)
@@ -122,7 +115,6 @@ SetCompressor /SOLID lzma
 !define FOLDERLIST_EXE ${NSISRESOURCES}\FolderList.exe
 
 # Private includes from repo
-!include IncludeScript_Misc.nsh
 !include IncludeScript_FileLogging.nsh
 !include EnvVarUpdate.nsh
 !include AdvUninstLog2.nsh
@@ -149,10 +141,6 @@ ReserveFile "${NSISDIR}\Plugins\x86-unicode\advsplash.dll"
 !define MUI_WELCOMEFINISHPAGE_BITMAP "${NSISRESOURCES}\images\wizard.bmp" ; optional
 !define MUI_UNWELCOMEFINISHPAGE_BITMAP "${NSISRESOURCES}\images\wizard-uninstall.bmp" ; optional
 
-!insertmacro RefreshShellIcons
-!insertmacro un.RefreshShellIcons
-!insertmacro DirState
-!insertmacro GetFileName
 
 # (global) Variables to be set and used during our script
 Var StartMenuGroup
@@ -286,13 +274,6 @@ Section "OpenMS Library" SEC_Lib
 
     !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
 
-    SetOutPath $INSTDIR\bin\plugins
-    SetOverwrite on
-
-    !insertmacro UNINSTALL.LOG_OPEN_INSTALL
-    File /r "${OPENMSPLUGINDIR}\*.*"
-    !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
-
     # share dir
     SetOutPath $INSTDIR\share\OpenMS
     SetOverwrite on
@@ -302,10 +283,6 @@ Section "OpenMS Library" SEC_Lib
     !if ${DEBUG_BUILD} == 0
         File /r /x "THIRDPARTY" /x "doc" "${OPENMSSHAREDIR}\*.*"
     !endif
-
-    # icon for *files* associated with TOPPView
-    File "${NSISRESOURCES}\OpenMS_TOPPView.ico"
-    File "${NSISRESOURCES}\OpenMS_TOPPAS.ico"
 
     !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
 SectionEnd
@@ -318,10 +295,6 @@ Section "TOPP tools" SEC_TOPP
 
     #open uninstall log file
     !insertmacro UNINSTALL.LOG_OPEN_INSTALL
-
-    # Since Qt 5.14 we do not need qt.conf if the plugins are in the standard location "plugins"
-    # Qt is built "-relocatable" since then.
-    #File "${OPENMSBINDIR}\qt.conf"
 
     # install every tool exe except for Tutorials (if present)
     # skip in installer debug mode
@@ -374,43 +347,19 @@ Section "-License" SEC_License
     !insertmacro UNINSTALL.LOG_OPEN_INSTALL
 
     File  "${NSISRESOURCES}\ReleaseNotes.txt"
+    # the icon of the entry in the list of installed programs (PROGEXE)
+    File  "${NSISRESOURCES}\OpenMS.ico"
 
     !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
 SectionEnd
 
-Function CreateShortcuts
-    !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
-
-    ## warning: create shortcuts only AFTER installing files, OR renew SetOutPath
-    ## otherwise all files will be installed to the default install directory
-    !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Documentation (html)" $INSTDIR\share\doc\html\index.html
-
-    !insertmacro CREATE_SMGROUP_SHORTCUT TOPPView $INSTDIR\bin\TOPPView.exe
-    !insertmacro CREATE_SMGROUP_SHORTCUT TOPPAS $INSTDIR\bin\TOPPAS.exe
-    !insertmacro CREATE_SMGROUP_SHORTCUT INIFileEditor $INSTDIR\bin\INIFileEditor.exe
-    !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Homepage" "${URL}"
-    !insertmacro CREATE_SMGROUP_SHORTCUT "TOPP command line" "$INSTDIR\bin\command.bat"
-
-    SetOutPath $SMPROGRAMS\${APPNAME}
-    CreateShortcut "$SMPROGRAMS\${APPNAME}\$(^UninstallLink).lnk" $INSTDIR\uninstall.exe
-    !insertmacro MUI_STARTMENU_WRITE_END
-
-FunctionEnd
-
-
 Section "-Create_StartMenu" SEC_StartMenuCreate
-    #GetFunctionAddress $0 CreateShortcuts
-    #UAC::ExecCodeSegment $0
     !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
 
     ## warning: create shortcuts only AFTER installing files, OR renew SetOutPath
     ## otherwise all files will be installed to the default install directory
     !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Documentation (html)" $INSTDIR\share\doc\html\index.html
-
-    !insertmacro CREATE_SMGROUP_SHORTCUT TOPPView $INSTDIR\bin\TOPPView.exe
-    !insertmacro CREATE_SMGROUP_SHORTCUT TOPPAS $INSTDIR\bin\TOPPAS.exe
-    !insertmacro CREATE_SMGROUP_SHORTCUT INIFileEditor $INSTDIR\bin\INIFileEditor.exe
-    !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Homepage" http://www.OpenMS.de/
+    !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Homepage" "${URL}"
     !insertmacro CREATE_SMGROUP_SHORTCUT "TOPP command line" "$INSTDIR\bin\command.bat"
 
     SetOutPath $SMPROGRAMS\${APPNAME}
@@ -481,19 +430,6 @@ Section "-PathInst" SEC_PathRegister
     SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
 
 SectionEnd
-
-SectionGroup "Register File Extensions" SEC_RegisterExt
-    # no logging required, as we do not install files in this section
-
-    # windows registry info: http://support.microsoft.com/kb/256986
-    !insertmacro OpenMSGUIExtensions RegisterExtensionSection
-
-    Section "-RegFileRefreshInternal" SEC_RegFileRefreshInternal
-        SectionIn 1 2 3
-        ${RefreshShellIcons}
-    SectionEnd
-
-SectionGroupEnd
 
 ## This is done by NsisMultiUser plugin now
 Section -post SEC0008
@@ -604,54 +540,8 @@ Function .onInit
     ${EndIf}
     !endif
 
-    # check for previous versions
-    # on install we did:     WriteRegStr SHCTX "${REGKEY}" "Path" "$INSTDIR"
-    ReadRegStr $R0 SHCTX "${REGKEY}" "Path"
-    StrCmp $R0 "" virgin_install
-
-    ## store, if the old-installer is present ($R8 should be empty then)
-    ReadRegStr $R8 SHCTX "${REGKEY}" "UninstallString"
-
-    MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
-    "OpenMS has already been installed. $\nThe old version will be removed automatically. \
-     Please close all OpenMS applications before continuing!" \
-    IDCANCEL  quit_installer
-
-    ;Run the uninstaller
-    ClearErrors
-    ExecWait '$R0\uninstall.exe _?=$R0' ;; Do not execute the copy of uninstaller (ExecWait won´t work)
-    Delete "$R0\uninstall.exe"          # delete installer manually
-
-    push $R9
-    ${DirState} "$R0" $R9
-    StrCmp $R9 1 0 virgin_install
-    pop $R9
-
-    # look for the very first (and buggy) version of the installer
-    StrCmp $R8 "" 0 new_installer
-      # we found the old installer:
-      ## delete the licenses, share other stuff
-      RmDir /REBOOTOK "$R0\GUI"
-      RmDir /REBOOTOK /r "$R0\share"
-      Delete /REBOOTOK "$R0\*.txt"
-      ## correct Path settings (they were not properly reset)
-      ${EnvVarUpdate} $0 "PATH" "R" "HKLM" "$R0\lib"
-      ${EnvVarUpdate} $0 "PATH" "R" "HKLM" "$R0\TOPP"
-      ; delete variable
-      DeleteRegValue ${env_hklm} "OPENMS_DATA_PATH"
-      ; make sure windows knows about the change
-      SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
-
-    new_installer:
-    ## check that all *.dll´s and *.exe files are gone (userfiles are ok)! otherwise force reboot
-    !insertmacro REBOOT_ON_INCOMPLETE_DELETION $R0
-
-    virgin_install:
+    # an earlier installation is handled by NsisMultiUser (MULTIUSER_INIT above)
     !insertmacro MUI_LANGDLL_DISPLAY
-    return
-
-    quit_installer:
-    quit
 
 FunctionEnd
 
@@ -667,9 +557,8 @@ FunctionEnd
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_Lib} "The core libraries of OpenMS"
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_TOPP} "TOPP (The OpenMS PiPeline) - chainable tools for data analysis"
-!insertmacro MUI_DESCRIPTION_TEXT ${SEC_Doc} "Documentation/Tutorials for TOPP, TOPPView and the OpenMS library itself."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_Doc} "Documentation/Tutorials for TOPP and the OpenMS library itself."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_ThirdParty} "Install third party tools (search engines and ThermoRawFileParser)."
-!insertmacro MUI_DESCRIPTION_TEXT ${SEC_RegisterExt} "Register certain file types (e.g., '.mzML') with TOPPView.exe."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ################
@@ -681,6 +570,29 @@ FunctionEnd
 Section "-Uninstall"
     !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuGroup
     !insertmacro MUI_UNGETLANGUAGE
+
+    ## The GUI add-on (OpenMS-TOPP-GUI) installed into this folder: remove it first, with its
+    ## own uninstaller, silently and in the mode of this installation. _?= keeps the
+    ## uninstaller in place (so ExecWait waits for it), so it is deleted afterwards.
+    ## An interactive uninstall asks first (a silent one goes ahead), and nothing is
+    ## removed here if the add-on could not be removed.
+    ${If} ${FileExists} "$INSTDIR\${GUI_UNINSTALL_FILENAME}"
+        MessageBox MB_OKCANCEL|MB_ICONINFORMATION "The OpenMS GUI add-on (TOPPView, TOPPAS, ...) installed in $INSTDIR is removed as well." /SD IDOK IDOK gui_uninstall
+            Abort "Uninstallation cancelled."
+        gui_uninstall:
+        ClearErrors
+        ${If} $MultiUser.InstallMode == "AllUsers"
+            ExecWait '"$INSTDIR\${GUI_UNINSTALL_FILENAME}" /S /allusers _?=$INSTDIR' $0
+        ${Else}
+            ExecWait '"$INSTDIR\${GUI_UNINSTALL_FILENAME}" /S /currentuser _?=$INSTDIR' $0
+        ${EndIf}
+        ${If} ${Errors}
+        ${OrIf} $0 != 0
+            MessageBox MB_OK|MB_ICONSTOP "The OpenMS GUI add-on in $INSTDIR could not be removed (${GUI_UNINSTALL_FILENAME}, exit code $0). OpenMS was not uninstalled; remove the add-on first, then uninstall OpenMS again." /SD IDOK
+            Abort "Uninstalling the OpenMS GUI add-on failed."
+        ${EndIf}
+        Delete "$INSTDIR\${GUI_UNINSTALL_FILENAME}"
+    ${EndIf}
 
     ## undo changes to PATH
     ${If} $MultiUser.InstallMode == "AllUsers"
@@ -715,10 +627,6 @@ Section "-Uninstall"
     ${Else}
         DeleteRegValue ${env_hkcu} "OPENMS_DATA_PATH"
     ${EndIf}
-
-    # remove extension-links to TOPPView
-    !insertmacro OpenMSGUIExtensions UnRegisterExtensionSection
-    ${un.RefreshShellIcons}
 
     ## delete all installed files
     !insertmacro UNINSTALL.NEW_UNINSTALL

@@ -124,6 +124,13 @@ public:
      */
     ChannelQCSet& getStats();
 
+    /**
+      @brief Whether the scan window(s) of @p spec reach every reporter ion of @p method (within @p tolerance)
+
+      Spectra without scan window annotation are assumed to cover them.
+    */
+    static bool scanWindowCoversChannels(const MSSpectrum& spec, const IsobaricQuantitationMethod& method, double tolerance = 0.0);
+
 private:
     /**
       @brief Small struct to capture the current state of the purity computation.
@@ -232,7 +239,8 @@ private:
 
       @param[in] ms2_spec Iterator pointing to the MS2 spectrum.
       @param[in] precursor_spec Precursor spectrum of ms2_spec.
-      @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
+      @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor,
+              or -1 if the window holds no signal.
     */
     double computeSingleScanPrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PeakMap::SpectrumType& precursor_spec) const;
 

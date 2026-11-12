@@ -123,6 +123,14 @@ public:
   static std::string filterKey(const std::string& filter);
 
   /**
+    @brief Whether a filter string describes a selected reaction monitoring (SRM) scan.
+
+    The scan mode is one of the words before the mass ranges ("Full", "SIM", "SRM", "CRM", "Z", "Q1MS", "Q3MS"),
+    e.g. "+ c NSI SRM ms2 549.272 [246.107-246.109, 529.776-529.778]" is an SRM scan.
+  */
+  static bool isSRM(const std::string& filter);
+
+  /**
     @brief Selected ion m/z of a precursor (ThermoRawFileParser rule).
     @param target isolation window target m/z of the reaction
     @param mono "Monoisotopic M/Z:" trailer value as returned by number()
