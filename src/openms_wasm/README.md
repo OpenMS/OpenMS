@@ -117,7 +117,9 @@ Emscripten 6.0.12 took the error of a failed open, e.g. of a file deleted on the
 module had looked it up, for a file descriptor of the Node.js process, then read and closed it.
 Errors are now reported as such. `FS.writeFile()` traps where its open of a host file fails (a
 read-only file; it used to write to the process' stderr) and where its close fails (it used to go
-on).
+on). A host file of 4 GiB or more cannot be opened (`EOVERFLOW`; `readFileChunk()` says so): WasmFS'
+Node.js backend keeps the size and the offsets of a host file in 32 bits (in wasm64 as well), and read
+such a file as one of its size modulo 4 GiB.
 
 `FS.writeFile()` of WasmFS (Emscripten 6.0.12) appends to a file that exists, instead of replacing its
 contents: `FS.unlink()` the file first, or use `allocateFile(path, size, capacity)`, which creates it
@@ -348,9 +350,11 @@ type ProSEFileSummary = {
 - If no file has a PSM, the result is empty (no error): no PSMs, peptides or proteins (`targetPSMs` and
   `decoyPSMs` are 0 and the tables have count 0; `ms2Spectra` still counts the file's spectra), no
   protein FDR, an empty idXML.
-- Percolator needs decoys and 100 PSMs per file. If it rescored only some of the files, their
-  scores cannot be pooled with the others', and `searchFiles()` throws (`InvalidParameter`, naming the
-  files that were not rescored): search with `{ rescore: false }`, or leave those files out.
+- Percolator needs decoys and 100 PSMs per file. A file it cannot rescore on its own gets the scores of a
+  model trained on the files it could rescore (`summary().files[i].percolator`). File by file
+  (`provideFile`), each file is rescored on its own: if Percolator rescored only some of them, the pooled
+  protein inference scores the proteins of all files by ProSE's score, and each PSM keeps the q-value of
+  its file (as `ProSEAlgorithm::mergeFileResults()`, with a warning in the log).
 
 - `provideFile` and `releaseFile`: search the files one at a time, each while it is there (below).
 - `summary().search` holds the statistics `search()` has under `search`, for the whole search: the database,

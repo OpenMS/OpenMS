@@ -856,7 +856,6 @@ namespace OpenMS::WASM
         throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ProSE returned no result for some input files.");
       }
 
-      std::string not_rescored; // the files Percolator did not rescore, with the reasons
       bool have_psms = false;   // whether a file has a PSM
       for (Size i = 0; i < files.size(); ++i)
       {
@@ -899,10 +898,6 @@ namespace OpenMS::WASM
           }
           have_psms = have_psms || std::any_of(run.peptide_ids.begin(), run.peptide_ids.end(),
                                                [](const PeptideIdentification& id) { return !id.getHits().empty(); });
-          if (set->rescore && !run.percolator.applied)
-          {
-            not_rescored += (not_rescored.empty() ? "" : "; ") + files[i] + " (" + run.percolator.skipped_reason + ")";
-          }
         }
         f.stats = run.stats;
         set->files.push_back(std::move(f));
@@ -934,22 +929,9 @@ namespace OpenMS::WASM
         set->search.seconds_total = watch.getClockTime();
         return set;
       }
-      bool partly_rescored = false;
-      try
-      {
-        set->merged = algo.mergeFileResults(result, files, remove_decoys);
-      }
-      catch (const Exception::InvalidValue&) // Percolator rescored only some of the files
-      {
-        partly_rescored = true;
-      }
-      if (partly_rescored)
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Percolator rescored only some of the input files, and their PSMs cannot be pooled with the search engine "
-          "scores of the others (not rescored: " + not_rescored + "). Search the files with { rescore: false }, or leave "
-          "out those that could not be rescored.");
-      }
+      // (Files that Percolator could not rescore on their own: mergeFileResults() pools them with the others, see the
+      // README, "Several files".)
+      set->merged = algo.mergeFileResults(result, files, remove_decoys);
       // the peaks of the identified spectra (spectra()): read now, while the input files are there, or, file by file,
       // read while each file was there
       if (file_by_file)

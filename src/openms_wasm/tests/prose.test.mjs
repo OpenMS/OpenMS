@@ -227,6 +227,13 @@ test("ProSEAlgorithm: PeptDeep features for Percolator (ONNX Runtime)", (t) => {
 /// The progress step of searchFiles() that reads the spectra of the PSMs (keepSpectra), after the steps of the files
 const readingSpectra = "Reading the spectra of the PSMs...";
 
+/// The progress step of searchFiles() that pools the PSMs of the files for the protein inference
+/// (ProSEAlgorithm::mergeFileResults()), after the steps of the files: with the protein FDR where @p summary (of the
+/// ProSEResultSet) has FDR:protein and the search had decoys (decoyMode not "none (target-only)")
+const pooledStep = (summary) =>
+  summary.proteinFdr > 0 && !summary.search.decoyMode.startsWith("none")
+    ? "Pooled protein inference and protein FDR" : "Pooled protein inference";
+
 /// Checks progress @p reports of a search of the files with the steps @p fileSteps (their labels, in input order),
 /// followed by the outermost steps @p laterSteps outside the files:
 /// - the outermost steps (depth 0) are those of the files, each with the file's position (file), then @p laterSteps,
@@ -631,8 +638,10 @@ test("searchFiles: the summary has the search statistics of search()", () => {
 
 test("searchFiles reports one progress step per file", () => {
   const { reports, summary } = pooled();
-  // then the step that reads the spectra of the PSMs (keepSpectra), over the MS2 spectra of the files
-  assertProgressSteps(reports, ["Searching a.mzML (1 of 2)...", "Searching b.mzML (2 of 2)..."], [readingSpectra]);
+  // then the pooled protein inference, and the step that reads the spectra of the PSMs (keepSpectra), over the MS2
+  // spectra of the files
+  assertProgressSteps(reports, ["Searching a.mzML (1 of 2)...", "Searching b.mzML (2 of 2)..."],
+                      [pooledStep(summary), readingSpectra]);
   const reading = reports.filter((r) => r.label === readingSpectra);
   assert.deepEqual([reading[0].event, reading.at(-1).event], ["start", "end"]);
   for (const r of reading) {
@@ -656,7 +665,8 @@ test("searchFiles keeps files with the same name apart", () => {
       }
       // the progress tells them apart by position
       assert.deepEqual(reports.filter((r) => r.event === "start" && r.depth === 0).map((r) => [r.label, r.file]),
-        [["Searching run.mzML (1 of 2)...", 0], ["Searching run.mzML (2 of 2)...", 1], [readingSpectra, -1]]);
+        [["Searching run.mzML (1 of 2)...", 0], ["Searching run.mzML (2 of 2)...", 1], [pooledStep(summary), -1],
+         [readingSpectra, -1]]);
       // PSMs of both files; the decoys are kept by default
       const { proteins, peptides } = storedIdentifications(set, "/searchfiles/merged.idXML");
       const ids = peptides.filter((id) => id.hits.length > 0);
@@ -771,13 +781,21 @@ test("searchFiles: files without PSMs give empty results", () => {
   }
 });
 
-test("searchFiles: files that Percolator could not all rescore are not pooled", () => {
+test("searchFiles: files that Percolator could not all rescore on their own are pooled", () => {
   withSpectraCopies(OpenMS, ["a.mzML"], ([a]) => {
     using([new OpenMS.ProSEAlgorithm()], (prose) => {
       prose.setParameterValues({ ...prose6, "rescore": false });
-      // too few PSMs in SimpleSearchEngine_1.mzML to rescore (TOPP_ProSE_11_rescore_mixed)
-      assert.throws(() => prose.searchFiles([a, "/topp/SimpleSearchEngine_1.mzML"], suitabilityDatabase, { rescore: true }),
-        /rescored only some.*SimpleSearchEngine_1\.mzML.*rescore: false/s);
+      // too few PSMs in SimpleSearchEngine_1.mzML to rescore it on its own (TOPP_ProSE_11_rescore_mixed): the search
+      // pools it with the other file (ProSEAlgorithm::mergeFileResults()) instead of failing
+      const set = prose.searchFiles([a, "/topp/SimpleSearchEngine_1.mzML"], suitabilityDatabase, { rescore: true });
+      try {
+        const summary = set.summary();
+        assert.deepEqual(summary.files.map((f) => f.status), ["EXECUTION_OK", "EXECUTION_OK"]);
+        assert.equal(summary.files[0].percolator.applied, true, summary.files[0].percolator.skipped ?? "");
+        assert.notEqual(summary.files[1].percolator, null, "rescoring was asked for");
+      } finally {
+        set.delete();
+      }
       assert.equal(prose.getParameterValues()["rescore"], false, "the parameter is restored");
     });
   });
@@ -947,7 +965,8 @@ test("searchFiles file by file (provideFile): the results of the search with all
         }
         // the steps of the files as in the search with all files there, and the spectra of the PSMs of each file are
         // read in its step (the search of a file alone does not report its step "(1 of 1)")
-        assertProgressSteps(reports, ["Searching a.mzML (1 of 2)...", "Searching b.mzML (2 of 2)..."]);
+        assertProgressSteps(reports, ["Searching a.mzML (1 of 2)...", "Searching b.mzML (2 of 2)..."],
+                            [pooledStep(actual.summary)]);
         assert.ok(!reports.some((r) => r.label.includes("(1 of 1)")));
         assert.deepEqual(reports.filter((r) => r.event === "start" && r.label === readingSpectra).map((r) => [r.depth, r.file]),
           [[1, 0], [1, 1]]);
@@ -979,16 +998,16 @@ test("searchFiles file by file: the errors of provideFile and releaseFile", () =
       // a value that is not an Error
       assert.throws(() => prose.searchFiles(files, suitabilityDatabase, { provideFile: () => { throw "full"; } }),
         /provideFile\(0, '\/fbf\/a\.mzML'\) threw: full/);
-      // a fatal error of the module (here a made-up one: the module is fine): thrown unchanged, and the module is not
-      // called again (no releaseFile)
+      // a fatal error of the module (here a made-up abort: the module is fine): thrown unchanged, and the module is not
+      // called again (no releaseFile). (A raw WebAssembly.Exception is fatal as well: one of the module carries the tag
+      // of its C++ exceptions, which Embind rethrows as it is; one with a tag of another module cannot be rethrown so.)
       released.length = 0;
-      for (const fatal of [new WebAssembly.RuntimeError("unreachable"), new WebAssembly.Exception(new WebAssembly.Tag({ parameters: [] }), [])]) {
-        assert.throws(() => prose.searchFiles(files, suitabilityDatabase, {
-          provideFile: () => { throw fatal; },
-          releaseFile: release,
-        }), (e) => e === fatal);
-        assert.deepEqual(released, []);
-      }
+      const fatal = new WebAssembly.RuntimeError("unreachable");
+      assert.throws(() => prose.searchFiles(files, suitabilityDatabase, {
+        provideFile: () => { throw fatal; },
+        releaseFile: release,
+      }), (e) => e === fatal);
+      assert.deepEqual(released, []);
       // ... also from releaseFile after an ordinary error of provideFile
       const trap = new WebAssembly.RuntimeError("memory access out of bounds");
       assert.throws(() => prose.searchFiles(files, suitabilityDatabase, {
@@ -1671,8 +1690,8 @@ test("spectra() without keepSpectra: no peaks", () => {
     const reports = [];
     const set = searchSpectraToKeep({ keepSpectra: false }, (r) => reports.push(r));
     try {
-      // no step that reads the spectra
-      assertProgressSteps(reports, ["Searching keep.mzML (1 of 1)..."]);
+      // no step that reads the spectra (only the pooled protein inference after the file)
+      assertProgressSteps(reports, ["Searching keep.mzML (1 of 1)..."], [pooledStep(set.summary())]);
       const s = set.spectra();
       assert.equal(assertSpectraShapes(s, 3), 0);
       assert.deepEqual(Array.from(s.psmSpectrum), [-1, -1, -1]);

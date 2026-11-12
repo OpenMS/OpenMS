@@ -201,24 +201,31 @@ test("writeFileChunk, readFileChunk and allocateFile: files in parts, byte for b
   }
 });
 
-test("readFileChunk: a read of 4 GiB or more from a mounted host file is rejected in wasm32, not cut short", () => {
-  // The host file is sparse: no 4 GiB on disk. In wasm32 a size_t holds less than 4 GiB, and such a read returned the
-  // length modulo 4 GiB (nothing for 2^32 bytes), which a caller could take for the end of the file.
+test("host files of 2 to 4 GiB are read beyond 2 GiB; one of 4 GiB or more is refused, not read as a smaller one", () => {
+  // WasmFS' Node.js backend keeps the size and the offsets of a host file in 32 bits (Emscripten 6.0.12, in wasm64 as
+  // well): it took a file of 4 GiB + 8 KiB for one of 8 KiB, and read nothing at an offset of 2 GiB or more (the offset
+  // arrived as a negative number). wasmfs_node.js refuses to open the first (EOVERFLOW) and reads the second.
+  // The host files are sparse: nothing of their size on disk.
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openms-wasm-io-"));
-  const file = path.join(dir, "sparse.bin");
-  fs.closeSync(fs.openSync(file, "w"));
-  fs.truncateSync(file, 2 ** 32 + 8192);
+  for (const [name, size] of [["large.bin", 2 ** 32 + 8192], ["below.bin", 2 ** 32 - 8192]]) {
+    const file = path.join(dir, name);
+    fs.closeSync(fs.openSync(file, "w"));
+    fs.truncateSync(file, size);
+  }
   OpenMS.mountHostDirectory("/sparse", dir);
   try {
-    // beyond 4 GiB, a small read is fine
-    assert.deepEqual(OpenMS.readFileChunk("/sparse/sparse.bin", 2 ** 32, 16), new Uint8Array(16));
-    if (OpenMS.getMemoryInfo().heapMax <= 2 ** 32) { // wasm32 (a wasm64 module would read the 4 GiB)
-      for (const length of [2 ** 32, 2 ** 32 + 4096]) {
-        assert.throws(() => OpenMS.readFileChunk("/sparse/sparse.bin", 0, length), /InvalidValue: .*readFileChunk\(\) reads at most 4294967295 bytes/);
-      }
-      // what is there: the rest of the file from 4096 is 2^32 + 4096 bytes, too
-      assert.throws(() => OpenMS.readFileChunk("/sparse/sparse.bin", 4096, 2 ** 40), /reads at most/);
+    for (const [offset, length] of [[0, 16], [2 ** 32, 16], [0, 2 ** 32]]) {
+      assert.throws(() => OpenMS.readFileChunk("/sparse/large.bin", offset, length),
+        /FileNotReadable: .*large\.bin: a host file of 4 GiB or more/, `${offset}, ${length}`);
     }
+    // just below 4 GiB: read as it is, beyond 2 GiB too
+    const marker = new TextEncoder().encode("OpenMS at 3 GiB!");
+    const fd = fs.openSync(path.join(dir, "below.bin"), "r+");
+    fs.writeSync(fd, marker, 0, marker.length, 3 * 2 ** 30);
+    fs.closeSync(fd);
+    assert.deepEqual(OpenMS.readFileChunk("/sparse/below.bin", 3 * 2 ** 30, 16), marker);
+    assert.deepEqual(OpenMS.readFileChunk("/sparse/below.bin", 2 ** 31, 16), new Uint8Array(16));
+    assert.deepEqual(OpenMS.readFileChunk("/sparse/below.bin", 2 ** 32 - 8192 - 16, 32), new Uint8Array(16));
   } finally {
     OpenMS.unmount("/sparse");
     fs.rmSync(dir, { recursive: true, force: true });
