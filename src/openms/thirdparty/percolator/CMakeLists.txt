@@ -52,6 +52,16 @@ if (OPENMP_FOUND)
   target_link_libraries(OpenMS_Percolator PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
+# The AVX2 kernels of the TRON function object (tron_kernels.h) are compiled for
+# AVX2 without FMA and without contraction, so that they round every product like
+# the SSE2 reference; ssl.cpp uses them only on CPUs with AVX2. Not with MSVC,
+# whose contraction under /arch:AVX2 is not verified (the file is then empty and
+# the SSE2 kernels are used), and not in multi-architecture macOS builds.
+if (NOT MSVC AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64|amd64)$" AND NOT CMAKE_OSX_ARCHITECTURES MATCHES "arm64")
+  set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/tron_kernels_avx2.cpp PROPERTIES COMPILE_OPTIONS
+    "-mavx2;-mno-fma;-ffp-contract=off")
+endif()
+
 # Linked into the shared libOpenMS, so the objects must be position-independent.
 set_target_properties(OpenMS_Percolator PROPERTIES POSITION_INDEPENDENT_CODE ON)
 

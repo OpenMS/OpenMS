@@ -509,6 +509,15 @@ void decodeLinear(
 		std::vector<double> &result
 ) {
 	size_t dataSize = data.size();
+	if (dataSize == 0) // (OpenMS: as the decoder above; before the resize, which dataSize - 8 would wrap around)
+	{
+		result.clear();
+		return;
+	}
+	if (dataSize < 8)
+	{
+		throw "[MSNumpress::decodeLinear] Corrupt input data: not enough bytes to read fixed point! ";
+	}
 	result.resize((dataSize - 8) * 2);
 	size_t decodedLength = decodeLinear(&data[0], dataSize, &result[0]);
 	result.resize(decodedLength);
@@ -824,7 +833,7 @@ size_t decodeSlof(
 	ri = 0;
 	fixedPoint = decodeFixedPoint(data);
 
-	for (i=8; i<dataSize; i+=2) {
+	for (i=8; i+1<dataSize; i+=2) { // (OpenMS: a trailing odd byte is not read past)
 		x = static_cast<unsigned short>(data[i] | (data[i+1] << 8));
 		result[ri++] = exp(x / fixedPoint) - 1;
 	}
@@ -851,6 +860,10 @@ void decodeSlof(
 		std::vector<double> &result
 ) {
 	size_t dataSize = data.size();
+	if (dataSize < 8) // (OpenMS: before the resize, which dataSize - 8 would wrap around)
+	{
+		throw "[MSNumpress::decodeSlof] Corrupt input data: not enough bytes to read fixed point! ";
+	}
 	result.resize((dataSize - 8) / 2);
 	size_t decodedLength = decodeSlof(&data[0], dataSize, &result[0]);
 	result.resize(decodedLength);

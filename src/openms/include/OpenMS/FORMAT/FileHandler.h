@@ -57,6 +57,9 @@ public:
       First tries to determine the type from the file name.
       If this fails, the type is determined from the file content.
 
+      The type of a remote location (see isRemote()) is determined from its name (see displayName()) only:
+      its content is not read.
+
       @param[in] filename the name of the file to check
 
       @return A FileTypes::Type corresponding to the extension, or FileTypes::UNKNOWN if not determinable
@@ -64,6 +67,38 @@ public:
       @exception Exception::FileNotFound is thrown if the file is not present
     */
     static FileTypes::Type getType(const std::string& filename);
+
+    /**
+      @brief Whether @p filename is a remote location (starts with "http://", "https://", "ftp://" or "s3://") and not a local file
+
+      The readers that stream remote data (e.g. MzMLFile::load()) take such a location in place of a file name.
+      The functions of File (e.g. File::exists()) do not know it.
+
+      @param[in] filename A file name or URL
+    */
+    static bool isRemote(const std::string& filename);
+
+    /**
+      @brief The name to show and to store for @p filename: a URL without its user info, query and fragment
+
+      These parts of a remote location can hold credentials (e.g. s3://key:secret\@bucket/run.mzML or the signature
+      of a presigned URL) and are not part of the name of the file (e.g. s3://bucket/run.mzML?region=eu-central-1),
+      so log messages, output files and names derived from the input (File::basename()) should use this name.
+      A local file name is returned unchanged.
+
+      @param[in] filename A file name or URL
+    */
+    static std::string displayName(const std::string& filename);
+
+    /**
+      @brief @p text with every URL in it shown as by displayName(): without user info, query and fragment
+
+      For messages that can hold remote locations as the user gave them, e.g. an echo of the command line or of
+      parameter values. A URL ends at whitespace, a quote or an angle bracket.
+
+      @param[in] text A message that may contain URLs
+    */
+    static std::string displayText(const std::string& text);
 
 
     /**
@@ -177,6 +212,7 @@ public:
       @param[out] compute_hash If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile.
 
       @note Thermo .raw files (OpenMS built with WITH_THERMO_RAW) are read with Thermo's peak picking, like FileConverter does by default, so profile scans are returned centroided. Use ThermoRawFile directly to keep the scans as they were acquired.
+      As for mzML, SRM scans (triple quadrupoles) are converted to chromatograms.
       The MS level, RT range, precursor m/z range, metadata-only, fill-data and skip-chromatograms options are passed to the reader, so skipped scans are not decoded
       (fill-data off loads spectra without peaks, like metadata-only). The SourceFile carries no SHA-1 checksum unless @p rewrite_source_file and @p compute_hash are set.
       Bruker .d directories and .d.zip archives (OpenMS built with WITH_OPENTIMS): the MS levels and the RT and ion mobility ranges are passed to the reader,
@@ -201,8 +237,8 @@ public:
       The PeakFileOptions are applied as by loadExperiment(); .raw files are read centroided and with the
       scan-level options passed to the reader, as by loadExperiment(). For .d data the reader skips the frames
       the options exclude, as for loadExperiment(), and every spectrum is then filtered on its way to the
-      consumer. Bruker MALDI imaging data is rejected, as by loadExperiment(). Unlike loadExperiment(), mzML spectra
-      that hold chromatogram data (SRM) are not converted to chromatograms. For mzML and mzXML the sizes passed
+      consumer. Bruker MALDI imaging data is rejected, as by loadExperiment(). Unlike loadExperiment(), mzML and .raw
+      spectra that hold chromatogram data (SRM) are not converted to chromatograms. For mzML and mzXML the sizes passed
       to IMSDataConsumer::setExpectedSize() come from the file and ignore the selection; for .raw they are the
       numbers of selected spectra and chromatograms. For .d data the number of spectra is an upper bound: it is
       counted before any peak is read (see BrukerTimsFile::transform()), and the spectra the options exclude
@@ -448,12 +484,10 @@ public:
       @param[in] feature_map FeatureMap from feature file (featureXML)
       @param[in] prot_ids protein identifications from ID file (idXML)
       @param[in] pep_ids protein identifications from ID file (idXML)
-      @param[out] consensus_map an optional consensus map to store.
       @param[in] contact_name name of the person creating the mzQC file
       @param[in] contact_address contact address (mail/e-mail or phone) of the person creating the mzQC file
       @param[in] description description and comments about the mzQC file contents
       @param[in] label unique and informative label for the run
-      @param[in] remove_duplicate_features whether to remove duplicate features only for QCML for now
       @param[in] allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
@@ -464,12 +498,10 @@ public:
                const FeatureMap& feature_map,
                std::vector<ProteinIdentification>& prot_ids,
                PeptideIdentificationList& pep_ids,
-               const ConsensusMap& consensus_map,
                const std::string& contact_name = "",
                const std::string& contact_address = "",
                const std::string& description = "",
                const std::string& label = "label",
-               const bool remove_duplicate_features = false,
                const std::vector<FileTypes::Type> allowed_types = {});
 
     /**

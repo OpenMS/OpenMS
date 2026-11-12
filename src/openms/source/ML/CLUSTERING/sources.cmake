@@ -26,4 +26,4 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\ML\\CLUSTERING" FILES ${sources})
-
+list(APPEND OpenMS_private_headers ${directory}/LinkageHelpers.h)

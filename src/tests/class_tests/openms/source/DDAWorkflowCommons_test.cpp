@@ -12,9 +12,16 @@
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/QUANTITATION/DDAWorkflowCommons.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <cmath>
 #include <map>
+#include <set>
 #include <string>
 
 ///////////////////////////
@@ -67,6 +74,68 @@ START_SECTION((static std::map<std::string, std::string> mapMzML2Ids(StringList&
   StringList in_ord{"a.mzML", "b.mzML"};
   StringList ids_ord{"b.idXML", "a.idXML"};
   TEST_EXCEPTION(Exception::IllegalArgument, DDAWorkflowCommons::mapMzML2Ids(in_ord, ids_ord))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] FAIMS: calculateSeeds and estimateMedianChromatographicFWHM per compensation voltage))
+{
+  // Two peptides, each eluting at one of two interleaved FAIMS compensation voltages: MS1 spectra alternate between
+  // -45 V and -60 V, one per second. Each peptide's isotope pattern (2+) has a Gaussian elution profile (sigma 6 s) in
+  // the spectra of its CV only.
+  struct Analyte { double cv; double mz; IsotopeDistribution pattern; };
+  const int charge = 2;
+  std::vector<Analyte> analytes;
+  for (const auto& [cv, seq] : std::vector<std::pair<double, std::string>>{{-45.0, "LVNELTEFAK"}, {-60.0, "YLYEIARR"}})
+  {
+    const AASequence peptide = AASequence::fromString(seq);
+    analytes.push_back({cv, peptide.getMZ(charge), CoarseIsotopePatternGenerator(4).estimateFromPeptideWeight(peptide.getMonoWeight())});
+  }
+  const double apex = 60.0, sigma = 6.0;
+  MSExperiment exp;
+  for (int t = 0; t < 120; ++t)
+  {
+    MSSpectrum spec;
+    spec.setMSLevel(1);
+    spec.setRT(static_cast<double>(t));
+    const double cv = (t % 2 == 0) ? -45.0 : -60.0;
+    spec.setDriftTime(cv);
+    spec.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+    spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+    const double elution = 1e7 * std::exp(-0.5 * std::pow((t - apex) / sigma, 2));
+    for (const Analyte& a : analytes)
+    {
+      if (a.cv != cv) continue;
+      for (Size i = 0; i < a.pattern.size(); ++i)
+      {
+        spec.emplace_back(a.mz + i * Constants::C13C12_MASSDIFF_U / charge, elution * a.pattern[i].getIntensity());
+      }
+    }
+    spec.sortByPosition();
+    spec.setNativeID("scan=" + std::to_string(t + 1));
+    exp.addSpectrum(std::move(spec));
+  }
+  exp.updateRanges();
+
+  // The peak width is measured per CV: a trace of one CV is not broken up by the spectra of the other
+  const double fwhm = DDAWorkflowCommons::estimateMedianChromatographicFWHM(exp);
+  TEST_TRUE(fwhm > 0.0)
+
+  FeatureMap seeds;
+  DDAWorkflowCommons::calculateSeeds(exp, 0.0, seeds, 2.355 * sigma, "2:2", 3.0);
+  TEST_TRUE(!seeds.empty())
+  // every seed carries the CV it was found at, the one its peptide elutes at, and both CV groups produced seeds
+  std::set<double> seed_cvs;
+  for (const Feature& seed : seeds)
+  {
+    TEST_TRUE(seed.metaValueExists(Constants::UserParam::FAIMS_CV))
+    const double cv = seed.getMetaValue(Constants::UserParam::FAIMS_CV, 0.0);
+    seed_cvs.insert(cv);
+    for (const Analyte& a : analytes)
+    {
+      if (std::fabs(seed.getMZ() - a.mz) < 0.05) { TEST_EQUAL(cv, a.cv) }
+    }
+  }
+  TEST_TRUE(seed_cvs == (std::set<double>{-60.0, -45.0}))
 }
 END_SECTION
 

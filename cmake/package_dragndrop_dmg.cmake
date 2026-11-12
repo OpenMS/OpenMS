@@ -40,15 +40,11 @@ else()
   set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-macOS-${ARCH_SUFFIX}")
 endif()
 
-## Note: That the mac app bundles (TOPPView) take care of themselves
-##       when installed as dmg (see src/openms_gui/add_mac_bundle.cmake)
-
 ## Fix OpenMS dependencies for all executables in the install directory under bin.
-## That affects everything but the bundles (which have their own structure and are fixed up in add_mac_bundle.cmake)
 ########################################################### Fix Dependencies
 install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/)"
   COMPONENT zzz-fixing-dependencies
-) # not applicable as long as we dont use Qt plugins in the TOPP tools: -p \${CMAKE_INSTALL_PREFIX}/${INSTALL_PLUGIN_DIR}) 
+)
 
 if(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
   install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/sign_bins_and_libs.rb -d \${CMAKE_INSTALL_PREFIX}/ -s ${CPACK_BUNDLE_APPLE_CERT_APP})"
@@ -81,21 +77,6 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README.md
                     GROUP_READ
                     WORLD_READ
         COMPONENT   TOPPShell)
-
-## ----------
-## No need to for this at the moment: no Qt plugins for the general CLI tools required anymore. Left here for reference.
-## ----------
-## Install the qt.conf file so we can find the libraries
-## add qt.conf to the bin directory for DMGs
-#file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-#"[Paths]\nPlugins = ../${INSTALL_PLUGIN_DIR}/\n")
-#install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/qt.conf
-#        DESTINATION ${INSTALL_BIN_DIR}
-#        PERMISSIONS OWNER_WRITE OWNER_READ
-#                    GROUP_READ
-#                    WORLD_READ
-#        COMPONENT   Dependencies)
-
 
 ## Create own target because you cannot "depend" on the internal target 'package'
 add_custom_target(dist

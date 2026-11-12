@@ -8,7 +8,10 @@ AhoCorasickAmbiguous.cpp
 AScore.cpp
 BasicProteinInferenceAlgorithm.cpp
 BayesianProteinInferenceAlgorithm.cpp
+CoIsolationDetector.cpp
 ConsensusMapMergerAlgorithm.cpp
+ClassFDR.cpp
+EntrapmentEvaluation.cpp
 FalseDiscoveryRate.cpp
 FIAMSDataProcessor.cpp
 FIAMSScheduler.cpp
@@ -29,9 +32,9 @@ MetaboliteSpectralMatching.cpp
 MorpheusScore.cpp
 OpenSearchModificationAnalysis.cpp
 PeptideProteinResolution.cpp
-ProSEAlgorithm.cpp
 PeptideIndexing.cpp
 Percolator.cpp
+PercolatorReset.cpp
 PercolatorFeatureSetHelper.cpp
 PrecursorPurity.cpp
 PScore.cpp

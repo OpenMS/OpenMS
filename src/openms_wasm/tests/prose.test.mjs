@@ -1807,12 +1807,12 @@ test("ProSEResultSet.delete() releases the results", async () => {
   });
 });
 
-// WebAssembly: ProSE's PeptDeep batches are smaller than natively (500): ONNX Runtime has no memory arena there, and the
+// ProSE's PeptDeep batches are small (64, as natively): ONNX Runtime has no memory arena in WebAssembly, and the
 // memory of large tensors is not reused.
-test("ProSEAlgorithm: peptdeep:batch_size is 128 by default", () => {
+test("ProSEAlgorithm: peptdeep:batch_size is 64 by default", () => {
   using([new OpenMS.ProSEAlgorithm()], (prose) => {
-    using([prose.getDefaults()], (defaults) => assert.equal(defaults.toObject()["peptdeep:batch_size"], 128));
-    assert.equal(prose.getParameterValues()["peptdeep:batch_size"], 128);
+    using([prose.getDefaults()], (defaults) => assert.equal(defaults.toObject()["peptdeep:batch_size"], 64));
+    assert.equal(prose.getParameterValues()["peptdeep:batch_size"], 64);
   });
 });
 

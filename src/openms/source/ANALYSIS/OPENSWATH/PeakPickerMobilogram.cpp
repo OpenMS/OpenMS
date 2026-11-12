@@ -7,6 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMobilogram.h>
+
+#include "PeakPickerHelpers.h"
+
 #include <iostream>
 #include <iomanip>    // For std::setw
 #include <vector>
@@ -203,40 +206,13 @@ namespace OpenMS
 
     void PeakPickerMobilogram::integratePeaks_(const Mobilogram& mobilogram)
     {
-      for (Size i = 0; i < left_width_.size(); i++)
-      {
-        const int current_left_idx = left_width_[i];
-        const int current_right_idx = right_width_[i];
-
-        // Also integrate the intensities
-        integrated_intensities_[i] = 0;
-        for (int k = current_left_idx; k <= current_right_idx; k++)
-        {
-          integrated_intensities_[i] += mobilogram[k].getIntensity();
-        }
-      }
+      Internal::PeakPickerHelpers::integratePeaks(mobilogram, left_width_, right_width_, integrated_intensities_);
     }
 
     Size PeakPickerMobilogram::findClosestPeak_(const Mobilogram& mobilogram, double target_im, Size current_peak)
     {
-      while (current_peak < mobilogram.size())
-      {
-        // check if we have walked past the IM of the peak
-        if (target_im < mobilogram[current_peak].getMobility())
-        {
-          // see which one is closer, the current one or the one before
-          if (current_peak > 0 &&
-              std::fabs(target_im - mobilogram[current_peak - 1].getMobility()) <
-                std::fabs(target_im - mobilogram[current_peak].getMobility()))
-          {
-            current_peak--;
-          }
-
-          return current_peak;
-        }
-        current_peak++;
-      }
-      return current_peak;
+      return Internal::PeakPickerHelpers::findClosestPeak(mobilogram, target_im, current_peak,
+                                                          [](const MobilityPeak1D& peak) { return peak.getMobility(); });
     }
 
     PeakPickerMobilogram::PeakPositions PeakPickerMobilogram::findHighestPeak_(const std::vector<double> intensities,
@@ -437,64 +413,13 @@ namespace OpenMS
 
     void PeakPickerMobilogram::removeOverlappingPeaks_(const Mobilogram& mobilogram, Mobilogram& picked_mobilogram)
     {
-      if (picked_mobilogram.empty()) {return; }
-      OPENMS_LOG_DEBUG << "Remove overlapping peaks now (size " << picked_mobilogram.size() << ")" << std::endl;
-      Size current_peak = 0;
-      // Find overlapping peaks
-      for (Size i = 0; i < picked_mobilogram.size() - 1; i++)
-      {
-        // Check whether the current right overlaps with the next left
-        // See whether we can correct this and find some border between the two
-        // features ...
-        if (right_width_[i] > left_width_[i + 1])
+      Internal::PeakPickerHelpers::removeOverlappingPeaks(mobilogram, picked_mobilogram, left_width_, right_width_, integrated_intensities_,
+        [](const MobilityPeak1D& peak) { return peak.getMobility(); },
+        [](Size new_left_border, Size new_right_border)
         {
-          const int current_left_idx = left_width_[i];
-          const int current_right_idx = right_width_[i];
-          const int next_left_idx = left_width_[i + 1];
-          const int next_right_idx = right_width_[i + 1];
-          OPENMS_LOG_DEBUG << " Found overlapping " << i << " : " << current_left_idx << " " << current_right_idx << std::endl;
-          OPENMS_LOG_DEBUG << "                   -- with  " << i + 1 << " : " << next_left_idx << " " << next_right_idx << std::endl;
-
-          // Find the peak width and best IM
-          double central_peak_mz = picked_mobilogram[i].getMobility();
-          double next_peak_mz = picked_mobilogram[i + 1].getMobility();
-          current_peak = findClosestPeak_(mobilogram, central_peak_mz, current_peak);
-          Size next_peak = findClosestPeak_(mobilogram, next_peak_mz, current_peak);
-
-          // adjust the right border of the current and left border of next
-          Size k = 1;
-          while ((current_peak + k) < mobilogram.size()
-                 && (mobilogram[current_peak + k].getIntensity() < mobilogram[current_peak + k - 1].getIntensity()))
-          {
-            ++k;
-          }
-          Size new_right_border = current_peak + k - 1;
-          k = 1;
-          while ((next_peak - k + 1) > 0
-                 && (mobilogram[next_peak - k].getIntensity() < mobilogram[next_peak - k + 1].getIntensity()))
-          {
-            ++k;
-          }
-          Size new_left_border = next_peak - k + 1;
-
-          // assert that the peaks are now not overlapping any more ...
-          if (new_left_border < new_right_border)
-          {
-            std::cerr << "Something went wrong, peaks are still overlapping!" << " - new left border " << new_left_border << " vs " << new_right_border << " -- will take the mean" << std::endl;
-            new_left_border = (new_left_border + new_right_border) / 2;
-            new_right_border = (new_left_border + new_right_border) / 2;
-
-          }
-
-          OPENMS_LOG_DEBUG << "New peak l: " << mobilogram[current_left_idx].getMobility() << " " << mobilogram[new_right_border].getMobility() << " int " << integrated_intensities_[i] << std::endl;
-          OPENMS_LOG_DEBUG << "New peak r: " << mobilogram[new_left_border].getMobility() << " " << mobilogram[next_right_idx].getMobility() << " int " << integrated_intensities_[i + 1] << std::endl;
-
-
-          right_width_[i] = new_right_border;
-          left_width_[i + 1] = new_left_border;
-
-        }
-      }
+          std::cerr << "Something went wrong, peaks are still overlapping!" << " - new left border " << new_left_border << " vs " << new_right_border << " -- will take the mean" << std::endl;
+        },
+        static_cast<std::ostream& (*)(std::ostream&)>(std::endl));
     }
 
     void PeakPickerMobilogram::updateMembers_()

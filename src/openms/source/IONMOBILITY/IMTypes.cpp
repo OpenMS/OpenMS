@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/CONCEPT/EnumHelpers.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
@@ -26,56 +27,29 @@ namespace OpenMS
 
  DriftTimeUnit toDriftTimeUnit(const std::string& dtu_string)
   {
-    auto first = &NamesOfDriftTimeUnit[0];
-    auto last = &NamesOfDriftTimeUnit[(size_t) DriftTimeUnit::SIZE_OF_DRIFTTIMEUNIT];
-    const auto it = std::find(first, last, dtu_string);
-    if (it == last)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", dtu_string);
-    }
-    return DriftTimeUnit(it - first);
+    return Helpers::enumFromName(NamesOfDriftTimeUnit, DriftTimeUnit::SIZE_OF_DRIFTTIMEUNIT, dtu_string, "Value unknown", OPENMS_PRETTY_FUNCTION);
   }
 
   const std::string& driftTimeUnitToString(const DriftTimeUnit value)
   {
-    if (value == DriftTimeUnit::SIZE_OF_DRIFTTIMEUNIT)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_DRIFTTIMEUNIT");
-    }
-    return NamesOfDriftTimeUnit[(size_t) value];
+    return Helpers::enumToName(NamesOfDriftTimeUnit, value, DriftTimeUnit::SIZE_OF_DRIFTTIMEUNIT, "SIZE_OF_DRIFTTIMEUNIT", OPENMS_PRETTY_FUNCTION);
   }
 
   IMFormat toIMFormat(const std::string& IM_format)
   {
-    auto first = &NamesOfIMFormat[0];
-    auto last = &NamesOfIMFormat[(size_t) IMFormat::SIZE_OF_IMFORMAT];
-    const auto it = std::find(first, last, IM_format);
-    if (it == last)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", IM_format);
-    }
-    return IMFormat(it - first);
+    return Helpers::enumFromName(NamesOfIMFormat, IMFormat::SIZE_OF_IMFORMAT, IM_format, "Value unknown", OPENMS_PRETTY_FUNCTION);
   }
 
   const std::string& imFormatToString(const IMFormat value)
   {
-    if (value == IMFormat::SIZE_OF_IMFORMAT)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_IMFORMAT");
-    }
-    return NamesOfIMFormat[(size_t)value];
+    return Helpers::enumToName(NamesOfIMFormat, value, IMFormat::SIZE_OF_IMFORMAT, "SIZE_OF_IMFORMAT", OPENMS_PRETTY_FUNCTION);
   }
 
   const std::string NamesOfIMPeakType[] = {"im_profile", "im_centroided", "unknown"};
 
   IMPeakType toIMPeakType(const std::string& im_peak_type)
   {
-    auto idx = std::find(NamesOfIMPeakType, NamesOfIMPeakType + (int)IMPeakType::SIZE_OF_IMPEAKTYPE, im_peak_type);
-    if (idx == NamesOfIMPeakType + (int)IMPeakType::SIZE_OF_IMPEAKTYPE)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid IMPeakType", im_peak_type);
-    }
-    return (IMPeakType)std::distance(NamesOfIMPeakType, idx);
+    return Helpers::enumFromName(NamesOfIMPeakType, IMPeakType::SIZE_OF_IMPEAKTYPE, im_peak_type, "Invalid IMPeakType", OPENMS_PRETTY_FUNCTION);
   }
 
   const std::string& imPeakTypeToString(IMPeakType im_peak_type)

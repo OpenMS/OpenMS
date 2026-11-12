@@ -593,7 +593,9 @@ namespace OpenMS
       int gl_progress = 0;
       startProgress(0, seeds.size(),"Extending seeds for charge " + StringUtils::toStr(c));
 
-#pragma omp parallel for
+      // write_debug: the seed extension writes to log_ (one std::ofstream) from many places without a lock,
+      // so it runs single-threaded; concurrent writes corrupt the stream buffer and the heap.
+#pragma omp parallel for if (!debug_)
       for (SignedSize i = 0; i < (SignedSize)seeds.size(); ++i)
       {
         //------------------------------------------------------------------
@@ -2145,7 +2147,7 @@ namespace OpenMS
                                                             const std::string& path)
   {
 
-    double pseudo_rt_shift = param_.getValue("debug:pseudo_rt_shift");
+    double pseudo_rt_shift = param_.getValue("advanced:pseudo_rt_shift");
     std::string script;
     {
       TextFile tf;

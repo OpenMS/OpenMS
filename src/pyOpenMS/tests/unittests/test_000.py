@@ -1975,6 +1975,9 @@ def testPosteriorErrorProbabilityModel():
     assert pyopenms.PosteriorErrorProbabilityModel().fit is not None
     assert pyopenms.PosteriorErrorProbabilityModel().computeProbability is not None
 
+    params = model.getParameters()
+    params.setValue("min_mixture_scores", 3)  # toy data (default: at least 35 scores)
+    model.setParameters(params)
     scores = [float(i) for i in range(10)]
     model.fit(scores, "none")
     model.fit(scores, scores, "none")
@@ -1994,9 +1997,54 @@ def testPosteriorErrorProbabilityModel():
     target = [float(i) for i in range(10)]
     model.getGumbelGnuplotFormula(GaussFitResult) 
     model.getGaussGnuplotFormula(GaussFitResult) 
-    model.getBothGnuplotFormula(GaussFitResult, GaussFitResult) 
+    model.getBothGnuplotFormula(GaussFitResult, GaussFitResult)
     model.plotTargetDecoyEstimation(target, target)
     model.getSmallestScore()
+
+
+@report
+def testPosteriorErrorProbabilityModelTargetDecoy():
+    """
+    @tests: PosteriorErrorProbabilityModel
+     PosteriorErrorProbabilityModel.fitTargetDecoy
+     PosteriorErrorProbabilityModel.getModelType
+     PosteriorErrorProbabilityModel.computeDecoyProbability
+     PosteriorErrorProbabilityModel.getTargetDecoyAUC
+    """
+    # target-decoy competition: incorrect targets and decoys ~ Gumbel(2, 0.6), correct targets ~ N(5, 1)
+    rng = np.random.default_rng(1)
+    targets = list(rng.gumbel(2.0, 0.6, 2000)) + list(rng.normal(5.0, 1.0, 1000))
+    decoys = list(rng.gumbel(2.0, 0.6, 2000))
+
+    model = pyopenms.PosteriorErrorProbabilityModel()
+    ModelType = pyopenms.PosteriorErrorProbabilityModel.ModelType
+    assert model.getModelType() == ModelType.NONE
+    assert model.fitTargetDecoy(targets, decoys, "none")
+    assert model.getModelType() == ModelType.TARGET_DECOY_ISOTONIC
+    assert "isotonic" in pyopenms.PosteriorErrorProbabilityModel.modelTypeToString(model.getModelType())
+    assert abs(model.getTargetDecoyIncorrectFraction() - 2000.0 / 3000.0) < 1e-9
+    assert not model.hasCalibrationWarning()
+
+    curve = model.getIsotonicPEPCurve()
+    assert len(curve) > 2
+    peps = [model.computeProbability(s) for s in np.linspace(-2.0, 10.0, 200)]
+    assert all(0.0 <= p <= 1.0 for p in peps)
+    assert all(b <= a + 1e-12 for a, b in zip(peps, peps[1:]))  # non-increasing
+    # the PEPs of the targets sum up to (about) the number of incorrect targets
+    assert abs(sum(model.computeProbability(t) for t in targets) / 2000.0 - 1.0) < 0.1
+    # targets score better than decoys
+    assert model.getTargetDecoyAUC() > 0.5
+    # decoys get the (label-swapped) PEPs they would get as targets: never above the PEP of a target with the same score
+    assert all(0.0 <= model.computeDecoyProbability(d) <= model.computeProbability(d) + 1e-12 for d in decoys)
+
+    # without decoys: mixture model of the targets
+    assert model.fitTargetDecoy(targets, [], "none")
+    assert model.getModelType() == ModelType.MIXTURE
+    assert model.getTargetDecoyAUC() == -1.0
+    assert model.computeDecoyProbability(3.0) == model.computeProbability(3.0)
+    assert abs(model.getNegativePrior() - 2000.0 / 3000.0) < 0.05
+    location, scale = model.getIncorrectlyAssignedGumbelFitResult()
+    assert abs(scale - 0.6) < 0.1
 
 @report
 def testSeedListGenerator():
@@ -4344,6 +4392,40 @@ def testMRMDecoy():
     assert pyopenms.MRMDecoy().generateDecoys is not None
 
 @report
+def testMRMDecoyShuffleSeed():
+    """Library shuffling uses the selected seed and a reproducible default."""
+    targets = pyopenms.TargetedExperiment()
+    fixture = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test.TraML")
+    pyopenms.TraMLFile().load(fixture, targets)
+    peptides = targets.getPeptides()
+    # Use valid, varied residues so different seeds produce different decoys.
+    for peptide, sequence in zip(peptides, ("ACDEFGHILMNVWYK", "ACDEFGHILMNVWYR")):
+        peptide.sequence = sequence
+        peptide.setChargeState(2)
+    targets.setPeptides(peptides)
+    generator = pyopenms.MRMDecoy()
+    arguments = dict(
+        exp=targets, method="shuffle", aim_decoy_fraction=1.0,
+        switchKR=False, decoy_tag="DECOY_", max_attempts=30,
+        identity_threshold=0.7, precursor_mz_shift=0.0,
+        product_mz_shift=20.0, product_mz_threshold=500.0,
+        fragment_types=["b", "y"], fragment_charges=[1, 2],
+        enable_specific_losses=False, enable_unspecific_losses=False,
+    )
+    default_decoys = generator.generateDecoys(**arguments)
+    seeded_decoys = generator.generateDecoys(**arguments, shuffle_seed=1)
+    other_decoys = generator.generateDecoys(**arguments, shuffle_seed=42)
+    # Explicit -1 remains accepted for callers requesting time-based shuffling.
+    time_seeded_decoys = generator.generateDecoys(**arguments, shuffle_seed=-1)
+    assert time_seeded_decoys.getPeptides()
+    assert default_decoys.getPeptides()
+    assert default_decoys == seeded_decoys
+    assert [p.sequence for p in seeded_decoys.getPeptides()] != [
+        p.sequence for p in other_decoys.getPeptides()
+    ]
+
+
+@report
 def testMRMTransitionGroup():
     """
     @tests: MRMTransitionGroup
@@ -6327,41 +6409,6 @@ def testInspectInfile():
     assert len(mods) == 0
 
 @report
-def testAttachment():
-    """
-    @tests: Attachment
-     Attachment.__init__
-    """
-    inst = pyopenms.Attachment()
-
-    assert inst.name is not None
-    assert inst.value is not None
-    assert inst.cvRef is not None
-    assert inst.cvAcc is not None
-    assert inst.unitRef is not None
-    assert inst.unitAcc is not None
-    assert inst.binary is not None
-    assert inst.qualityRef is not None
-    assert inst.colTypes is not None
-    assert inst.tableRows  is not None
-
-    assert inst.toXMLString is not None
-    assert inst.toCSVString is not None
-
-    inst.name = "test"
-    inst.value = "test"
-    inst.cvRef = "test"
-    inst.cvAcc = "test"
-    inst.unitRef = "test"
-    inst.unitAcc = "test"
-    inst.binary = "test"
-    inst.qualityRef = "test"
-    inst.colTypes = [ "test", "test2"]
-    inst.tableRows = [ ["test", "test2"], ["otherTest"] ]
-
-    assert inst.tableRows[1][0] == "otherTest"
-
-@report
 def testKernelMassTrace():
     trace = pyopenms.MassTrace()
 
@@ -6499,6 +6546,8 @@ def testDigestionEnzymeProtein():
 def testMRMAssay():
     e = pyopenms.MRMAssay()
     assert e
+    assert "default 1 for reproducible results" in e.uisTransitions.__doc__
+    assert "-1 selects a time-based seed" in e.uisTransitions.__doc__
 
 @report
 def testMRMIonSeries():
@@ -6771,6 +6820,18 @@ def testNASequence():
     charge = 2
     oligo_mod.getMonoWeight(pyopenms.NASequence.NASFragmentType.WIon, charge)
     oligo_mod.getFormula(pyopenms.NASequence.NASFragmentType.WIon, charge)
+
+    # Regression for #6718: retain the modified terminal sugar after base loss;
+    # only phosphorothioate bonds inside the fragment contribute sulfur.
+    for sequence, expected in (
+        ("[dA][dA*]", "C15H18N5O7P1"),
+        ("[dA][Am]", "C16H20N5O8P1"),
+        ("[dA*][Am]", "C16H20N5O7P1S1"),
+    ):
+        fragment = pyopenms.NASequence.fromString(sequence)
+        formula = fragment.getFormula(pyopenms.NASequence.NASFragmentType.AminusB, 0)
+        assert formula.toString() == expected
+        assert fragment.getMonoWeight(pyopenms.NASequence.NASFragmentType.AminusB, 0) == formula.getMonoWeight()
 
     # Test __repr__ and __str__ methods
     # Test __repr__ method

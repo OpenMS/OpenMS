@@ -655,7 +655,7 @@ namespace OpenMS
 
       Use N_DIM template parameter to determine the number of axis dimensions (1-3 is currently supported). Usually 2 or 3 make sense.
 
-      @ingroup Visual
+      @ingroup Kernel
   */
   template<int N_DIM>
   class DimMapper

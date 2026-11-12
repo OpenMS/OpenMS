@@ -99,6 +99,9 @@ public:
     /// Returns if the date is valid
     bool isValid() const;
 
+    /// Whether @p year, @p month (1-12) and @p day form a valid Gregorian calendar date (year >= 1).
+    static bool isValidDate(int year, int month, int day);
+
     /// Returns if the date is null
     bool isNull() const;
 

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <unordered_set>
+
 #include "FeatureTypes.h"
 #include "GridWithStorage.h"
 #include "MzDiff.h"
@@ -104,6 +106,10 @@ public:
   /// Fill in the final ConsensusMap.
   void generate_consensus_map(RunMap&, ConsensusMap&);
 
+  /// With 'donor_max_q' < 1: record the precursors (sequence and charge) whose best identification over all runs
+  /// has a q-value <= donor_max_q; link_donors_and_acceptors() transfers only those.
+  void set_transferable_precursors(const RunMap&);
+
 public:
   /// Max allowed m/z difference between donor and acceptor.
   MzDiff mz_max_diff;
@@ -122,10 +128,12 @@ public:
   /// features are kept (the FDR-estimability floor; see TransferFDRModel::run).
   std::size_t min_decoys;
 
-  /// Upper bound on the SVM training-set size per cross-validation fold
-  /// (0 = unlimited). Only the model fit is subsampled; prediction and the
-  /// FDR/q-values still use every transfer (see TransferFDRModel::round).
+  /// Upper bound on the SVM training-set size (0 = unlimited). Only the model
+  /// fit is subsampled; scoring and the FDR/q-values still use every transfer.
   std::size_t max_training_points;
+
+  /// Transfer only precursors whose best identification has q <= this (1 = all).
+  double donor_max_q = 1.0;
 
 private:
   std::string path_from_feature_map(const FeatureMap&);
@@ -141,6 +149,8 @@ private:
   /// must not be advanced concurrently -- give each thread its own generator
   /// before parallelizing the donor loop.  Mutable because the (logically
   /// const) decoy search advances its state.
+  /// [donor_max_q] precursors that may be transferred (only consulted with donor_max_q < 1)
+  std::unordered_set<std::string> transferable_;
   std::mt19937::result_type rng_seed_ = 0;  ///< decoy RNG seed (for per-pass reseed)
   mutable std::mt19937 rng_;
 

@@ -35,6 +35,8 @@
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
 
 #ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
@@ -86,6 +88,8 @@ provided in the THIRDPARTY folder. On windows, a recent .NET framework needs to 
 mac, the mono runtime, which the OpenMS packages there do not include, needs to be present and accessible via
 the -RawToMzML:NET_executable parameter. The path to the ThermoRawFileParser can be set via the
 -RawToMzML:ThermoRaw_executable option.
+Both readers also read a ZIP archive that holds one .raw file (e.g. run.raw.zip): the .raw file is extracted
+into the temporary directory first. gzip- or bzip2-compressed raw files (.raw.gz, .raw.bz2) cannot be read.
 The other tools that accept raw files, except OpenNuXL, which uses ThermoRawFileParser, read them with the
 built-in reader, but without vendor peak picking; see
 <a href="https://openms.readthedocs.io/en/latest/getting-started/vendor-formats.html">Vendor formats</a>.
@@ -94,7 +98,9 @@ Bruker timsTOF .d directories, and zipped ones (.d.zip), are read with the built
 built with WITH_OPENTIMS (the default). DDA-PASEF data gives one MS1 spectrum per frame, with the ion
 mobility of every peak, and one MS2 spectrum per precursor; DIA-PASEF data gives MS2 spectra per frame and
 isolation window. The advanced bruker:* options select the export mode and control m/z recalibration,
-frame aggregation and centroiding along the ion mobility axis.
+frame aggregation and centroiding along the ion mobility axis. TSF data (timsTOF without ion mobility: MALDI
+spot runs, LC-MS with TIMS off) gives one centroided spectrum per frame, MS2 spectra with their precursor; the
+bruker:* options for ion mobility, aggregation and recalibration do not apply to it.
 
 For MaxQuant-flavoured mzXML the use of the advanced option '-force_MaxQuant_compatibility' is recommended.
 
@@ -227,6 +233,9 @@ protected:
 #ifdef WITH_OPENTIMS
     "d",
 #endif
+#ifdef WITH_MZPEAK
+    "mzpeak",
+#endif
     "tsv", "peplist", "kroenik", "edta", "oms", "sqMass"};
     setValidFormats_("in", input_formats);
     setValidStrings_("in_type", input_formats);
@@ -235,7 +244,11 @@ protected:
     std::string method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<std::string>(method));
 
-    vector<std::string> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "featureparquet", "consensusparquet", "edta", "mzData", "dta2d", "csv", "sqMass", "xic", "oms"};
+    vector<std::string> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "featureparquet", "consensusparquet", "edta", "mzData", "dta2d", "csv", "sqMass", "xic", "oms",
+#ifdef WITH_MZPEAK
+    "mzpeak",
+#endif
+    };
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", output_formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, false); // optional and not advanced (for workflow engines to show this param)
@@ -630,6 +643,14 @@ protected:
     }
     else if (in_type == FileTypes::RAW)
     {
+      // A ZIP archive must hold one .raw file (ThermoRawFile extracts it itself, ThermoRawFileParser gets it extracted
+      // below; TOPPBase has rejected other compression). Checked here for both readers, so that a bad archive is not
+      // reported as a failure of the in-process reader (whose error message points to the .NET runtime).
+      std::string raw_entry; // the .raw file in a ZIP archive
+      if (FileNameUtils::compressionType(in) == FileTypes::ZIP)
+      {
+        raw_entry = ZipArchiveFile::findSingleEntry(in, ".raw");
+      }
       std::string raw_reader = getStringOption_("RawToMzML:reader");
 #ifdef WITH_THERMO_RAW
       if (raw_reader == "inprocess")
@@ -742,7 +763,10 @@ protected:
       net_executable = net_executable.empty() ? "mono" : net_executable;
       arguments.push_back(getStringOption_("RawToMzML:ThermoRaw_executable"));
 #endif
-      arguments.push_back("--input=" + in);
+      // ThermoRawFileParser reads plain RAW files only; the extracted file is removed after the conversion
+      std::unique_ptr<TempDir> unpacked;
+      const std::string raw_in = raw_entry.empty() ? in : ZipArchiveFile::extractEntryToTempFile(in, raw_entry, unpacked);
+      arguments.push_back("--input=" + raw_in);
       arguments.push_back("--output=" + out);
       arguments.push_back("-f=2"); // indexedMzML
       arguments.push_back("-e"); // ignore instrument errors
@@ -1274,6 +1298,11 @@ protected:
     else if (out_type == FileTypes::SQMASS)
     {
       FileHandler().storeExperiment(out, exp, {FileTypes::SQMASS}, log_type_);
+    }
+    else if (out_type == FileTypes::MZPEAK)
+    {
+      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
+      FileHandler().storeExperiment(out, exp, {FileTypes::MZPEAK}, log_type_);
     }
     else if (out_type == FileTypes::OMS)
     {

@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -210,10 +211,9 @@ private:
     {
       std::size_t operator()(const std::pair<std::string, UInt>& p) const noexcept
       {
-        const std::size_t h1 = std::hash<std::string>{}(p.first);
-        const std::size_t h2 = std::hash<UInt>{}(p.second);
-        // boost-style hash_combine
-        return h1 ^ (h2 + 0x9e3779b97f4a7c15ULL + (h1 << 6) + (h1 >> 2));
+        std::size_t seed = std::hash<std::string>{}(p.first);
+        OpenMS::hash_combine(seed, std::hash<UInt>{}(p.second));
+        return seed;
       }
     };
 

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+	</SearchParameters>
+	<IdentificationRun date="0000-00-00T00:00:00" search_engine="Comet" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
+			<ProteinHit id="PH_0" accession="PROT1" score="0.0" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="500.0" RT="100.0" spectrum_reference="scan=1" >
+			<PeptideHit score="1.000000e-06" sequence="ACDPEPK" charge="2" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="501.0" RT="110.0" spectrum_reference="scan=2" >
+			<PeptideHit score="1.000000e-04" sequence="CFLPEPK" charge="2" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="502.0" RT="120.0" spectrum_reference="scan=3" >
+			<PeptideHit score="1.000000e-03" sequence="DITPEPK" charge="2" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="503.0" RT="130.0" spectrum_reference="scan=4" >
+			<PeptideHit score="5.000000e-03" sequence="EMEPEPK" charge="2" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="504.0" RT="140.0" spectrum_reference="scan=5" >
+			<PeptideHit score="1.000000e-02" sequence="FQMPEPK" charge="2" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="505.0" RT="150.0" spectrum_reference="scan=6" >
+			<PeptideHit score="1.000000e-01" sequence="GTVPEPK" charge="2" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="506.0" RT="160.0" spectrum_reference="scan=7" >
+			<PeptideHit score="1.000000e-08" sequence="HYFPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="507.0" RT="170.0" spectrum_reference="scan=8" >
+			<PeptideHit score="2.069138e-08" sequence="IDNPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="508.0" RT="180.0" spectrum_reference="scan=9" >
+			<PeptideHit score="4.281332e-08" sequence="KGWPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="509.0" RT="190.0" spectrum_reference="scan=10" >
+			<PeptideHit score="8.858668e-08" sequence="LKGPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="510.0" RT="200.0" spectrum_reference="scan=11" >
+			<PeptideHit score="1.832981e-07" sequence="MNPPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="511.0" RT="210.0" spectrum_reference="scan=12" >
+			<PeptideHit score="3.792690e-07" sequence="NRYPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="512.0" RT="220.0" spectrum_reference="scan=13" >
+			<PeptideHit score="7.847600e-07" sequence="PVHPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="513.0" RT="230.0" spectrum_reference="scan=14" >
+			<PeptideHit score="1.623777e-06" sequence="QAQPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="514.0" RT="240.0" spectrum_reference="scan=15" >
+			<PeptideHit score="3.359818e-06" sequence="REAPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="515.0" RT="250.0" spectrum_reference="scan=16" >
+			<PeptideHit score="6.951928e-06" sequence="SHIPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="516.0" RT="260.0" spectrum_reference="scan=17" >
+			<PeptideHit score="1.438450e-05" sequence="TLRPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="517.0" RT="270.0" spectrum_reference="scan=18" >
+			<PeptideHit score="2.976351e-05" sequence="VPCPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="518.0" RT="280.0" spectrum_reference="scan=19" >
+			<PeptideHit score="6.158482e-05" sequence="WSKPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="519.0" RT="290.0" spectrum_reference="scan=20" >
+			<PeptideHit score="1.274275e-04" sequence="YWSPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="520.0" RT="300.0" spectrum_reference="scan=21" >
+			<PeptideHit score="2.636651e-04" sequence="ACDPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="521.0" RT="310.0" spectrum_reference="scan=22" >
+			<PeptideHit score="5.455595e-04" sequence="CFLPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="522.0" RT="320.0" spectrum_reference="scan=23" >
+			<PeptideHit score="1.128838e-03" sequence="DITPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="523.0" RT="330.0" spectrum_reference="scan=24" >
+			<PeptideHit score="2.335721e-03" sequence="EMEPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="524.0" RT="340.0" spectrum_reference="scan=25" >
+			<PeptideHit score="4.832930e-03" sequence="FQMPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="525.0" RT="350.0" spectrum_reference="scan=26" >
+			<PeptideHit score="1.000000e-02" sequence="GTVPEPK" charge="3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

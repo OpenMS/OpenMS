@@ -65,7 +65,7 @@ The %OpenMS software framework consists of three main layers:
 <br>
 - <b>TOPP tools:</b> The @ref TOPP_documentation["The %OpenMS PiPeline (TOPP)"] is a set of executables covering most core tasks in computational mass spectrometry and has grown beyond proteomics applications and now includes Metabolomics and others. These tools are created using algorithms from the %OpenMS library. These tools form the building blocks of complex workflows. 
 <br>
-- <b>Workflow:</b> a set of over 185 different tools for common mass spectrometric tasks can be accessed by routine users through workflow systems, such as Nextflow or Galaxy, the OpenMS-specific @ref TOPPAS_tutorial["TOPPAS"], or even custom bash scripts. 
+- <b>Workflow:</b> a set of over 185 different tools for common mass spectrometric tasks can be accessed by routine users through workflow systems, such as Nextflow or Galaxy, the OpenMS-specific <a href="https://openms.readthedocs.io/en/latest/getting-started/toppas-get-started.html">TOPPAS</a> (part of <a href="https://github.com/OpenMS/OpenMS-TOPP-GUI">OpenMS-TOPP-GUI</a>), or even custom bash scripts.
 <br>
 
 Each level of increasing abstraction provides better usability, but limits the extensibility as the Python and workflow levels only have access to the exposed Python API or the available set of TOPP tools respectively. Increasing abstraction, however, makes it easier to design and execute complex analyses, even across multiple omics types. By following a layered design the different needs of bioinformaticians and life scientists are addressed. <br>
@@ -218,7 +218,6 @@ The extensible %OpenMS library implements common mass spectrometric data process
  <tr><th>Folder        <th>Description
  <tr><td>openms</td><td>Source code of core library</td></tr>
  <tr><td>openms_cli</td><td>Source code of the TOPP tool framework (TOPPBase, ToolHandler, ...), library OpenMS_CLI</td></tr>
- <tr><td>openms_gui</td><td>Source code of GUI applications (e.g.: TOPPView)</td></tr>
  <tr><td>topp</td><td>Source code of (stable) %OpenMS Tools</td></tr>
  <tr><td>pyOpenMS</td><td>Source files providing the python bindings</td></tr>
  <tr><td>tests</td><td>Source code of class and tool tests</td></tr>

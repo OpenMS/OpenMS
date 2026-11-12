@@ -93,6 +93,16 @@ namespace OpenMS
     /**
       @brief Score an OpenSWATH OSW / OSWPQ file in place or into a copy.
 
+      Input order is canonicalized by run filename, peptide or compound identity, charge and decoy label,
+      then retention time and retained feature values. Generated IDs are used only to preserve the
+      one-run/one-precursor grouping and to write results. Transition rows remain separate CV groups.
+      Retained rows require run filenames and modified peptide sequences or compound identity.
+      Native SQL compounds use name, formula, SMILES and adducts. Native Parquet molecules use the
+      source library traml_id and precursor m/z when modified_sequence is empty. Source library
+      identities must remain stable between runs. Incomplete active-score rows are discarded first.
+      Distinct assay aliases with identical scientific sort keys keep their original partitions,
+      but alias-specific CV assignments are not guaranteed invariant.
+
       @param[in] input_path   Input `.osw` SQLite file or `.oswpq` directory/archive
       @param[in] level        OpenSWATH scoring level to rescore
       @param[in] output_path  Optional output path. If empty, score in place.
@@ -103,7 +113,8 @@ namespace OpenMS
 
       @throws Exception::FileNotFound if the input file does not exist
       @throws Exception::Precondition if required prerequisite scores are missing
-      @throws Exception::InvalidValue if no usable feature columns are available
+      @throws Exception::MissingInformation if a retained row has no run filename, scientific precursor identity, or valid transition decoy label
+      @throws Exception::InvalidValue if no usable feature columns are available or a retention time is not finite
     */
     ScoreSummary score(const std::string& input_path,
                        Level level,
