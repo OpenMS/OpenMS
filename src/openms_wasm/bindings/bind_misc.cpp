@@ -285,6 +285,11 @@ namespace OpenMS::WASM
       FileDescriptor file;
       struct stat st;
       file.fd = ::open(path.c_str(), O_RDONLY);
+      if (file.fd < 0 && errno == EOVERFLOW)
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          path + ": a host file of 4 GiB or more, which the module's file system cannot read (wasmfs_node.js)");
+      }
       if (file.fd < 0 || ::fstat(file.fd, &st) != 0)
       {
         throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
