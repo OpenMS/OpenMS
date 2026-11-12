@@ -176,7 +176,8 @@ namespace OpenMS::OpenDIA
 
   void StreamSearch::consumeSpectrum_(const MSSpectrum& spectrum)
   {
-    if (spectrum.getMSLevel() != 2 || spectrum.getPrecursors().empty() || spectrum.empty())
+    // An empty scan carries no match, but in the xic mode it is still a native trace point (a zero).
+    if (spectrum.getMSLevel() != 2 || spectrum.getPrecursors().empty() || (spectrum.empty() && !options_.xic_peaks))
     {
       return;
     }
@@ -449,6 +450,7 @@ namespace OpenMS::OpenDIA
           }
 
           double intensity = 0.0;
+          double matched_mz = 0.0;
           double mobility_error = 0.0;
           bool has_mobility_evidence = false;
           bool matched = false;
@@ -463,6 +465,7 @@ namespace OpenMS::OpenDIA
             if (!matched || point->intensity > intensity)
             {
               intensity = point->intensity;
+              matched_mz = point->mz;
               const Candidate& candidate = candidates_[query.candidate];
               has_mobility_evidence = candidate.has_precursor_im && has_peak_im && std::isfinite(peak_im);
               mobility_error = has_mobility_evidence ? std::abs(peak_im - candidate.precursor_im) : 0.0;
@@ -479,6 +482,10 @@ namespace OpenMS::OpenDIA
           {
             // Candidates are owned by one block, so this append is race free.
             xic_entries_[candidate_index].push_back({cell.id, query.slot, static_cast<float>(intensity)});
+            if (xic_traces_ != nullptr && xic_dump_selected_[candidate_index])
+            {
+              xic_dump_mz_[candidate_index].push_back(matched_mz);
+            }
             continue;
           }
           if (candidate_generation_[candidate_index] != cell_generation)
@@ -588,14 +595,22 @@ namespace OpenMS::OpenDIA
       {
         const std::size_t candidate_index = xic_close_order_[begin + static_cast<std::size_t>(i)];
         rows[static_cast<std::size_t>(i)] = pickXicCandidate_(candidate_index, matrix, scratch);
-        std::vector<XicEntry>().swap(xic_entries_[candidate_index]);
+        if (xic_traces_ == nullptr || !xic_dump_selected_[candidate_index])
+        {
+          std::vector<XicEntry>().swap(xic_entries_[candidate_index]);
+        }
       }
     }
     for (std::size_t i = 0; i < rows.size(); ++i)
     {
+      const std::size_t candidate_index = xic_close_order_[begin + i];
       for (const XicRow& row : rows[i])
       {
-        writeXicRow_(xic_close_order_[begin + i], row);
+        writeXicRow_(candidate_index, row);
+      }
+      if (xic_traces_ != nullptr && xic_dump_selected_[candidate_index])
+      {
+        dumpXicTraces_(candidate_index);
       }
     }
     xic_close_cursor_ = end;
@@ -610,25 +625,8 @@ namespace OpenMS::OpenDIA
     {
       return rows;
     }
-    const Candidate& candidate = candidates_[candidate_index];
     // Every scan that isolated the precursor inside its RT window, zero filled where nothing matched.
-    std::vector<std::pair<std::uint32_t, double>> cells;
-    for (const std::uint32_t lane_index : candidate_lanes_[candidate_index])
-    {
-      const GridLane& lane = grid_lanes_[lane_index];
-      auto first = lane.cell_rts.begin();
-      auto last = lane.cell_rts.end();
-      if (candidate.has_library_rt)
-      {
-        first = std::lower_bound(lane.cell_rts.begin(), lane.cell_rts.end(), candidate.library_rt - options_.rt_window_seconds);
-        last = std::upper_bound(first, lane.cell_rts.end(), candidate.library_rt + options_.rt_window_seconds);
-      }
-      for (auto it = first; it != last; ++it)
-      {
-        cells.emplace_back(lane.cell_ids[static_cast<std::size_t>(it - lane.cell_rts.begin())], *it);
-      }
-    }
-    std::sort(cells.begin(), cells.end());
+    const std::vector<std::pair<std::uint32_t, double>> cells = xicCells_(candidate_index);
     const std::size_t fragments = candidate_query_offsets_[candidate_index + 1] - candidate_query_offsets_[candidate_index];
     if (cells.empty() || fragments == 0)
     {
@@ -663,6 +661,100 @@ namespace OpenMS::OpenDIA
       rows.push_back({rts[peak.left], rts[peak.apex], rts[peak.right], peak, rank, peaks_found});
     }
     return rows;
+  }
+
+  std::vector<std::pair<std::uint32_t, double>> StreamSearch::xicCells_(std::size_t candidate_index) const
+  {
+    const Candidate& candidate = candidates_[candidate_index];
+    std::vector<std::pair<std::uint32_t, double>> cells;
+    for (const std::uint32_t lane_index : candidate_lanes_[candidate_index])
+    {
+      const GridLane& lane = grid_lanes_[lane_index];
+      auto first = lane.cell_rts.begin();
+      auto last = lane.cell_rts.end();
+      if (candidate.has_library_rt)
+      {
+        first = std::lower_bound(lane.cell_rts.begin(), lane.cell_rts.end(), candidate.library_rt - options_.rt_window_seconds);
+        last = std::upper_bound(first, lane.cell_rts.end(), candidate.library_rt + options_.rt_window_seconds);
+      }
+      for (auto it = first; it != last; ++it)
+      {
+        cells.emplace_back(lane.cell_ids[static_cast<std::size_t>(it - lane.cell_rts.begin())], *it);
+      }
+    }
+    std::sort(cells.begin(), cells.end());
+    return cells;
+  }
+
+  void StreamSearch::setXicTraceDump(std::ostream& output, const std::vector<std::string>& precursor_ids)
+  {
+    if (!options_.xic_peaks)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "The trace dump needs the xic_peaks mode.");
+    }
+    std::map<std::string_view, bool> wanted;
+    for (const std::string& id : precursor_ids)
+    {
+      wanted.emplace(id, true);
+    }
+    xic_dump_selected_.assign(candidates_.size(), false);
+    for (std::size_t c = 0; c < candidates_.size(); ++c)
+    {
+      xic_dump_selected_[c] = wanted.contains(std::string_view(candidates_[c].id));
+    }
+    xic_dump_mz_.assign(candidates_.size(), {});
+    xic_traces_ = &output;
+    output << "precursor_id\tscan\trt\tslot\tfragment_mz\tintensity\tobserved_mz\n";
+  }
+
+  void StreamSearch::dumpXicTraces_(std::size_t candidate_index)
+  {
+    const std::vector<XicEntry>& entries = xic_entries_[candidate_index];
+    const std::vector<double>& observed = xic_dump_mz_[candidate_index];
+    const std::vector<std::pair<std::uint32_t, double>> cells = xicCells_(candidate_index);
+    const std::size_t offset = candidate_query_offsets_[candidate_index];
+    const std::size_t fragments = candidate_query_offsets_[candidate_index + 1] - offset;
+    // Same reduction as pickXicCandidate_: the most intense match of a (scan, fragment) wins.
+    std::vector<float> intensity(cells.size() * fragments, 0.0f);
+    std::vector<double> mz(cells.size() * fragments, std::numeric_limits<double>::quiet_NaN());
+    for (std::size_t e = 0; e < entries.size(); ++e)
+    {
+      const auto row = std::lower_bound(cells.begin(), cells.end(), entries[e].cell,
+                                        [](const auto& cell, std::uint32_t id) { return cell.first < id; });
+      if (row == cells.end() || row->first != entries[e].cell)
+      {
+        continue;
+      }
+      const std::size_t at = static_cast<std::size_t>(row - cells.begin()) * fragments + entries[e].slot;
+      if (std::isnan(mz[at]) || entries[e].intensity > intensity[at])
+      {
+        intensity[at] = entries[e].intensity;
+        mz[at] = e < observed.size() ? observed[e] : std::numeric_limits<double>::quiet_NaN();
+      }
+    }
+    std::ostream& out = *xic_traces_;
+    const std::string& id = candidates_[candidate_index].id;
+    for (std::size_t s = 0; s < cells.size(); ++s)
+    {
+      for (std::size_t f = 0; f < fragments; ++f)
+      {
+        const std::size_t at = s * fragments + f;
+        out << id << '\t' << cells[s].first << '\t' << std::setprecision(10) << cells[s].second << '\t' << f << '\t'
+            << queries_[candidate_query_indices_[offset + f]].fragment_mz << '\t' << intensity[at] << '\t';
+        if (std::isnan(mz[at]))
+        {
+          out << "nan";
+        }
+        else
+        {
+          out << mz[at];
+        }
+        out << '\n';
+      }
+    }
+    std::vector<XicEntry>().swap(xic_entries_[candidate_index]);
+    std::vector<double>().swap(xic_dump_mz_[candidate_index]);
   }
 
   void StreamSearch::writeXicRow_(std::size_t candidate_index, const XicRow& row)
@@ -939,6 +1031,10 @@ namespace OpenMS::OpenDIA
         for (const XicRow& row : pickXicCandidate_(xic_close_order_[i], matrix, scratch))
         {
           writeXicRow_(xic_close_order_[i], row);
+        }
+        if (xic_traces_ != nullptr && xic_dump_selected_[xic_close_order_[i]])
+        {
+          dumpXicTraces_(xic_close_order_[i]);
         }
       }
       xic_close_cursor_ = xic_close_order_.size();

@@ -93,6 +93,21 @@ namespace OpenMS::OpenDIA
     /// Whether compatible raw and library mobility metadata activated filtering.
     bool ionMobilityFilteringUsed() const;
 
+    /**
+      @brief Inspection side channel of the xic_peaks mode: write the native-scan traces of selected precursors.
+
+      One row per (precursor, scan of the candidate's RT window, fragment): precursor_id, scan (global MS2 cell id),
+      rt, fragment slot, query fragment m/z, matched intensity (0 where nothing matched) and the observed m/z of the
+      matched point (NaN where nothing matched). The rows are exactly the matrix that the peak picker sees.
+      Call before the first spectrum. Does not change the search output.
+
+      @param[in] output  Stream that receives a header and the rows
+      @param[in] precursor_ids  Precursor ids to dump; ids not in the library are ignored
+
+      @throws Exception::InvalidParameter if the search is not in the xic_peaks mode
+    */
+    void setXicTraceDump(std::ostream& output, const std::vector<std::string>& precursor_ids);
+
   private:
     struct Candidate
     {
@@ -226,6 +241,9 @@ namespace OpenMS::OpenDIA
     std::vector<XicRow> pickXicCandidate_(std::size_t candidate_index, std::vector<float>& matrix,
                                           std::vector<double>& scratch) const;
     void writeXicRow_(std::size_t candidate_index, const XicRow& row);
+    /// Scans (global cell id, RT) of every lane isolating the candidate inside its RT window, by cell id.
+    std::vector<std::pair<std::uint32_t, double>> xicCells_(std::size_t candidate_index) const;
+    void dumpXicTraces_(std::size_t candidate_index);
     bool queryMatches_(const Query& query, double rt, double peak_im, bool has_peak_im,
                        const std::vector<std::pair<double, double>>& isolation_windows) const;
 
@@ -255,6 +273,10 @@ namespace OpenMS::OpenDIA
     std::vector<std::size_t> xic_close_order_;
     std::size_t xic_close_cursor_ = 0;
     std::uint32_t next_cell_id_ = 0;
+    // Optional trace dump: selected candidates and the observed m/z of each of their matched entries.
+    std::ostream* xic_traces_ = nullptr;
+    std::vector<bool> xic_dump_selected_;
+    std::vector<std::vector<double>> xic_dump_mz_;
     bool finished_ = false;
     bool has_library_im_candidates_ = false;
     bool ion_mobility_filtering_used_ = false;

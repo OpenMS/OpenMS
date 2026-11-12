@@ -15,6 +15,8 @@
 #include <OpenMS/METADATA/Precursor.h>
 
 #include <algorithm>
+#include <cmath>
+#include <cstdio>
 #include <initializer_list>
 #include <sstream>
 #include <stdexcept>
@@ -51,6 +53,7 @@ namespace
   {
     if (!condition)
     {
+      std::fprintf(stderr, "FAILED: %s\n", message);
       throw std::runtime_error(message);
     }
   }
@@ -588,6 +591,61 @@ int main()
     for (std::string field; std::getline(first_feature, field, '\t');) { columns.push_back(field); }
     require(columns.size() == 21, "xic feature row should carry the 17 base and 4 xic columns");
     require(std::stod(columns[17]) > 3.0 && std::stod(columns[17]) < 8.0, "xic FWHM of a sigma-2 s peak should be about 4.7 s");
+
+    // The trace dump writes the picker's matrix of the selected precursor only and leaves the peak output unchanged.
+    {
+      std::ostringstream dump_output;
+      std::ostringstream dump_traces;
+      OpenDIA::StreamSearch dump_search(xic_queries, xic_options, dump_output);
+      dump_search.setXicTraceDump(dump_traces, {"late"});
+      for (int i = 0; i < 300; ++i)
+      {
+        const double rt = 100.0 + 1.5 * i;
+        const double b = 2.0 * bell(rt, 400.0);
+        MSSpectrum scan;
+        scan.setMSLevel(2);
+        scan.setRT(rt);
+        Precursor precursor;
+        precursor.setMZ(510.0);
+        precursor.setIsolationWindowLowerOffset(20.0);
+        precursor.setIsolationWindowUpperOffset(20.0);
+        scan.setPrecursors({precursor});
+        if (b > 1.0) { scan.push_back(Peak1D(300.001, b)); scan.push_back(Peak1D(310.0, 0.7 * b)); }
+        dump_search.consumeSpectrum(scan);
+      }
+      dump_search.finish();
+      const std::string dump = dump_traces.str();
+      std::istringstream dump_lines(dump);
+      std::string header;
+      std::getline(dump_lines, header);
+      require(header == "precursor_id\tscan\trt\tslot\tfragment_mz\tintensity\tobserved_mz", "trace dump header changed");
+      std::size_t rows = 0, matched = 0;
+      double apex_intensity = 0.0, apex_observed = 0.0;
+      for (std::string line; std::getline(dump_lines, line);)
+      {
+        std::istringstream fields(line);
+        std::string id, observed;
+        double scan_id = 0.0, rt = 0.0, slot = 0.0, fragment = 0.0, intensity = 0.0;
+        fields >> id >> scan_id >> rt >> slot >> fragment >> intensity >> observed;
+        require(id == "late", "trace dump wrote an unselected precursor");
+        require(rt >= 280.0 && rt <= 520.0, "trace dump row outside the RT window");
+        ++rows;
+        if (intensity > 0.0)
+        {
+          ++matched;
+          require(observed != "nan", "matched trace point without an observed m/z");
+        }
+        if (slot == 0.0 && intensity > apex_intensity) { apex_intensity = intensity; apex_observed = std::stod(observed); }
+      }
+      // 161 scans in [280, 520] times 2 fragments, every scan written including the zero filled ones.
+      require(rows == 2 * 161, "trace dump should hold every scan of the RT window for every fragment");
+      require(matched > 10 && matched < rows, "trace dump should mix matched and zero filled points");
+      require(std::abs(apex_intensity - 2000.0) < 1.0 && std::abs(apex_observed - 300.001) < 1e-9, "trace dump apex value or m/z is off");
+      // Only 'late' elutes in this run: one peak row, the same apex as without the dump.
+      const std::string dump_rows = dump_output.str();
+      require(std::count(dump_rows.begin(), dump_rows.end(), '\n') == 1 && dump_rows.rfind("late\t", 0) == 0,
+              "trace dump changed the peak output");
+    }
 
     bool needs_window = false;
     try

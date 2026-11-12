@@ -94,6 +94,10 @@ protected:
     setMaxFloat_("xic_valley_fraction", 1.0);
     registerIntOption_("xic_max_peaks", "<n>", 5, "xic: peaks reported per precursor, best fragment co-elution first", false);
     setMinInt_("xic_max_peaks", 1);
+    registerOutputFile_("xic_traces_out", "<file>", "", "xic inspection: native-scan fragment traces (the peak picker's input matrix) of the "
+                        "-xic_traces_precursors precursors as TSV. Does not change -out.", false);
+    setValidFormats_("xic_traces_out", {"tsv"});
+    registerInputFile_("xic_traces_precursors", "<file>", "", "Text file of PQP precursor IDs (one per line, '#' comments) for -xic_traces_out", false);
 
     // Inspection side channel: raw targeted peak maps in the OpenSWATH .xipm Parquet schema. Off by default;
     // the search output does not depend on it.
@@ -340,6 +344,38 @@ protected:
     }
 
     OpenDIA::StreamSearch consumer(std::move(queries), options, output, feature_stream);
+    const std::string traces_path = getStringOption_("xic_traces_out");
+    std::ofstream traces;
+    if (!traces_path.empty())
+    {
+      const std::string traces_selection = getStringOption_("xic_traces_precursors");
+      if (!options.xic_peaks || traces_selection.empty())
+      {
+        writeLogError_("-xic_traces_out needs -peak_picking xic and -xic_traces_precursors.");
+        return ILLEGAL_PARAMETERS;
+      }
+      std::ifstream selection(traces_selection);
+      if (!selection)
+      {
+        writeLogError_("Could not read -xic_traces_precursors: " + traces_selection);
+        return INPUT_FILE_NOT_READABLE;
+      }
+      std::vector<std::string> ids;
+      for (std::string line; std::getline(selection, line);)
+      {
+        const auto first = line.find_first_not_of(" \t\r");
+        if (first == std::string::npos || line[first] == '#') continue;
+        const auto last = line.find_last_not_of(" \t\r");
+        ids.push_back(line.substr(first, last - first + 1));
+      }
+      traces.open(traces_path);
+      if (!traces)
+      {
+        writeLogError_("Could not open -xic_traces_out: " + traces_path);
+        return CANNOT_WRITE_OUTPUT_FILE;
+      }
+      consumer.setXicTraceDump(traces, ids);
+    }
     FileHandler reader;
     PeakFileOptions read_options;
     // MS1 is read only for the peak-map export; StreamSearch ignores MS1 spectra.
