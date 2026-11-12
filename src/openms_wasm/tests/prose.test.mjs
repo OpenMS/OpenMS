@@ -923,9 +923,11 @@ function resultsOf(set, files) {
 test("searchFiles file by file (provideFile): the results of the search with all files there", () => {
   // TOPP_ProSE_13_merged (the search of pooled(): Percolator, the decoys removed, so that the pooling drops PSMs whose
   // spectra were read), and the open search of the two halves of the file, inputs that differ (with the modification
-  // analysis of their pooled PSMs)
+  // analysis of their pooled PSMs). FDR:PSM 0.01, not the 0.0005 of TOPP_ProSE_12_open: each half has half the PSMs of
+  // the file, and at 0.0005 one of them kept none (the q-values per file), so the search could not show that it keeps
+  // the files apart.
   const open = { ...prose6, "rescore": false, "precursor:mass_tolerance_lower": 100, "precursor:mass_tolerance_upper": 300,
-                 "precursor:mass_tolerance_unit": "Da", "FDR:PSM": 0.0005, "FDR:protein": 0 };
+                 "precursor:mass_tolerance_unit": "Da", "FDR:PSM": 0.01, "FDR:protein": 0 };
   const { full, even, odd } = suitabilitySources();
   OpenMS.FS.mkdir("/fbf");
   OpenMS.FS.mkdir("/all");
