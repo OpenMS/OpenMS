@@ -1,0 +1,17 @@
+R7 rows: xic 2681626 legacy 2604722 | precursors with a row: xic 579149 legacy 514930
+R7 rows per precursor xic {'count': 579149.0, 'mean': 4.63, 'std': 0.95, 'min': 1.0, '25%': 5.0, '50%': 5.0, '75%': 5.0, 'max': 5.0}
+R7 peaks_in_window (rank 0) quantiles {0.1: 3.0, 0.5: 10.0, 0.9: 15.0}
+R7 xic peak width (rt_end-rt_start) s quantiles {0.1: 6.54, 0.5: 8.18, 0.9: 17.99} | FWHM s {0.1: 1.63, 0.5: 1.65, 0.9: 3.68}
+DIA-NN human q<=0.01: 2335 | also D11FWT-accepted: 1692
+R3 any-candidate within 3/10 s: legacy {3: 0.9054, 10: 0.9636} | xic {3: 0.9255, 10: 0.967} | xic rank0 {3: 0.8728, 10: 0.8985}
+R3 DN legacy: within 3 s 0.697, within 10 s 0.871
+R3 DN xic: within 3 s 0.771, within 10 s 0.885
+R3 BOTH legacy: within 3 s 0.985, within 10 s 0.999
+R3 BOTH xic: within 3 s 0.984, within 10 s 0.998
+R4 Spearman xic FWHM vs DIA-NN FWHM (n=2161): 0.557 | medians xic 3.06 s, DIA-NN 3.50 s
+R4 nearest candidate rank among xic peaks (share rank 0/1/2+): {0: 0.943, 1: 0.037, 2: 0.013, 3: 0.004, 4: 0.003}
+R4 reference legacy width vs DIA-NN FWHM (n=2114): 0.025
+R5 DN (n=643) AUC vs DEC: xic rank0 coelution 0.869, xic rank0 support 0.896 | legacy best support 0.919
+R5 BOTH (n=1692) AUC vs DEC: xic rank0 coelution 0.992, xic rank0 support 0.996 | legacy best support 0.996
+R5 ENT (n=144409) AUC vs DEC: xic rank0 coelution 0.522, xic rank0 support 0.524 | legacy best support 0.473
+R6 untrained rank-0 co-elution TDC q<=0.01: N 258, entrapment 0, FDP_c 0.0000

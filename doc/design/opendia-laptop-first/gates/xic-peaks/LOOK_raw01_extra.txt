@@ -1,0 +1,3 @@
+DN rank-0 within 3 s 0.617 | within 10 s 0.684
+BOTH rank-0 within 3 s 0.97 | within 10 s 0.98
+rank-0 FWHM median by decoy flag {0: 1.65, 1: 1.65} | share of rank-0 peaks with 1 signal scan above half (FWHM < 2 s): {0: 0.64, 1: 0.679}
