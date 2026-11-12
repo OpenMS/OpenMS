@@ -1,0 +1,9 @@
+test_clip_and_max (__main__.T.test_clip_and_max) ... ok
+test_fold_z (__main__.T.test_fold_z) ... ok
+test_label_symmetry (__main__.T.test_label_symmetry) ... ok
+test_siblings (__main__.T.test_siblings) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.029s
+
+OK

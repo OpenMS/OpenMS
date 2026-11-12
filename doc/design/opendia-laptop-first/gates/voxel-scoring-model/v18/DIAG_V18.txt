@@ -1,0 +1,32 @@
+<stdin>:11: Pandas4Warning: The 'lsuffix' and 'rsuffix' keywords in DataFrame.join are deprecated and will be removed in a future version. Use the 'suffixes' keyword instead.
+<stdin>:11: Pandas4Warning: The 'lsuffix' and 'rsuffix' keywords in DataFrame.join are deprecated and will be removed in a future version. Use the 'suffixes' keyword instead.
+raw01 E accepted n 1413 window moved >10s 6 | has sibling 734 | no sibling 679
+raw01 D right window, below cut n 866 window moved >10s 31 | has sibling 405 | no sibling 461
+raw01 H window moved >10s frac 0.163 new window has near sibling frac 0.048 old 0.13
+raw01 ENT window moved >10s frac 0.165 new window has near sibling frac 0.029 old 0.117
+raw01 DEC window moved >10s frac 0.161 new window has near sibling frac 0.027 old 0.112
+raw02 E accepted n 1362 window moved >10s 1 | has sibling 709 | no sibling 653
+raw02 D right window, below cut n 929 window moved >10s 21 | has sibling 394 | no sibling 535
+raw02 H window moved >10s frac 0.132 new window has near sibling frac 0.064 old 0.129
+raw02 ENT window moved >10s frac 0.137 new window has near sibling frac 0.046 old 0.119
+raw02 DEC window moved >10s frac 0.134 new window has near sibling frac 0.046 old 0.117
+raw01 E accepted no sibling           n  679 median decoy pct D11FWT 1.00000 -> D11FSWT 0.99994 | frac >= p99.9: 1.000 -> 1.000
+raw01 E accepted sibling, none near   n  292 median decoy pct D11FWT 1.00000 -> D11FSWT 0.99997 | frac >= p99.9: 1.000 -> 1.000
+raw01 E accepted sibling near         n  442 median decoy pct D11FWT 1.00000 -> D11FSWT 1.00000 | frac >= p99.9: 1.000 -> 0.989
+raw01 D right wi no sibling           n  461 median decoy pct D11FWT 0.99719 -> D11FSWT 0.99752 | frac >= p99.9: 0.362 -> 0.341
+raw01 D right wi sibling, none near   n  211 median decoy pct D11FWT 0.99848 -> D11FSWT 0.99598 | frac >= p99.9: 0.417 -> 0.313
+raw01 D right wi sibling near         n  194 median decoy pct D11FWT 0.99777 -> D11FSWT 0.99942 | frac >= p99.9: 0.387 -> 0.562
+raw01 ENT no sibling     n 27481 frac >= p99: 0.0142 -> 0.0124
+raw01 ENT sibling near   n 5370 frac >= p99: 0.0112 -> 0.0300
+raw01 DEC no sibling     n 54803 frac >= p99: 0.0107 -> 0.0078
+raw01 DEC sibling near   n 10432 frac >= p99: 0.0092 -> 0.0266
+raw02 E accepted no sibling           n  653 median decoy pct D11FWT 1.00000 -> D11FSWT 1.00000 | frac >= p99.9: 1.000 -> 1.000
+raw02 E accepted sibling, none near   n  297 median decoy pct D11FWT 1.00000 -> D11FSWT 1.00000 | frac >= p99.9: 1.000 -> 1.000
+raw02 E accepted sibling near         n  412 median decoy pct D11FWT 1.00000 -> D11FSWT 1.00000 | frac >= p99.9: 1.000 -> 0.998
+raw02 D right wi no sibling           n  535 median decoy pct D11FWT 0.99895 -> D11FSWT 0.99765 | frac >= p99.9: 0.495 -> 0.327
+raw02 D right wi sibling, none near   n  186 median decoy pct D11FWT 0.99814 -> D11FSWT 0.99599 | frac >= p99.9: 0.387 -> 0.285
+raw02 D right wi sibling near         n  208 median decoy pct D11FWT 0.99903 -> D11FSWT 0.99949 | frac >= p99.9: 0.505 -> 0.562
+raw02 ENT no sibling     n 27415 frac >= p99: 0.0152 -> 0.0124
+raw02 ENT sibling near   n 5581 frac >= p99: 0.0131 -> 0.0337
+raw02 DEC no sibling     n 55121 frac >= p99: 0.0108 -> 0.0087
+raw02 DEC sibling near   n 11019 frac >= p99: 0.0111 -> 0.0268

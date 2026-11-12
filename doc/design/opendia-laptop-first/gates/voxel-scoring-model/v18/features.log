@@ -1,0 +1,4 @@
+raw01 target windows 653047 has_sib 0.4255 has_near 0.1223 sib_z_near mean (near) 0.1957
+raw01 decoy windows 617463 has_sib 0.4226 has_near 0.115 sib_z_near mean (near) 0.0411
+raw02 target windows 655352 has_sib 0.4302 has_near 0.1241 sib_z_near mean (near) 0.1769
+raw02 decoy windows 620031 has_sib 0.4274 has_near 0.1178 sib_z_near mean (near) 0.0357
