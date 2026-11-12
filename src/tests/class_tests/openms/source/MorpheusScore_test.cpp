@@ -104,5 +104,37 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] static MorpheusScore::Result compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const DataArrays::IntegerDataArray& exp_charges, const PeakSpectrum& theo_spectrum, const DataArrays::IntegerDataArray& theo_charges)))
+{
+  TheoreticalSpectrumGenerator tsg;
+  Param param = tsg.getParameters();
+  param.setValue("add_metainfo", "true");
+  tsg.setParameters(param);
+  PeakSpectrum exp_spectrum, theo_spectrum;
+  tsg.getSpectrum(exp_spectrum, AASequence::fromString("PEPTIDE"), 1, 2);
+  tsg.getSpectrum(theo_spectrum, AASequence::fromString("PEPTIDE"), 1, 2);
+  const DataArrays::IntegerDataArray& theo_charges = theo_spectrum.getIntegerDataArrays()[0]; // "Charges"
+  DataArrays::IntegerDataArray exp_charges = exp_spectrum.getIntegerDataArrays()[0];
+
+  // all charges agree: same result as the overload without charges
+  const MorpheusScore::Result plain = MorpheusScore::compute(0.1, false, exp_spectrum, theo_spectrum);
+  MorpheusScore::Result charged = MorpheusScore::compute(0.1, false, exp_spectrum, exp_charges, theo_spectrum, theo_charges);
+  TEST_EQUAL(plain.matches, 22)
+  TEST_EQUAL(charged.matches, plain.matches)
+  TEST_REAL_SIMILAR(charged.score, plain.score)
+  TEST_REAL_SIMILAR(charged.MIC, plain.MIC)
+  TEST_REAL_SIMILAR(charged.TIC, plain.TIC)
+
+  // one experimental peak with another charge: not counted as a match and not in MIC, but still in TIC
+  exp_charges[0] += 1;
+  charged = MorpheusScore::compute(0.1, false, exp_spectrum, exp_charges, theo_spectrum, theo_charges);
+  TEST_EQUAL(charged.matches, plain.matches - 1)
+  TEST_REAL_SIMILAR(charged.MIC, plain.MIC - exp_spectrum[0].getIntensity())
+  TEST_REAL_SIMILAR(charged.TIC, plain.TIC)
+  TEST_REAL_SIMILAR(charged.score, 21.0 + 21.0 / 22.0)
+}
+END_SECTION
+
 END_TEST
 

@@ -12,6 +12,7 @@
 ///////////////////////////
 
 #include <iostream>
+#include <cmath>
 
 #include <OpenMS/COMPARISON/ZhangSimilarityScore.h>
 #include <OpenMS/FORMAT/DTAFile.h>
@@ -91,6 +92,36 @@ START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum&
 
   normalizer.filterSpectrum(s2);
   TEST_REAL_SIMILAR(score, 0.328749)
+END_SECTION
+
+START_SECTION([EXTRA] Gaussian factor uses the tolerance of each call)
+{
+  // The Gaussian weight depends on the tolerance; it must not stick to the tolerance of the first
+  // call in the process (it was a function-local static).
+  PeakSpectrum s1, s2;
+  Peak1D p;
+  p.setIntensity(1.0);
+  p.setMZ(500.0);
+  s1.push_back(p);
+  p.setMZ(500.1);
+  s2.push_back(p);
+
+  // one peak pair with intensities 1: score = sqrt(erfc(diff / (tol * 3 * sqrt(2))))
+  const auto expected = [](double tol) { return std::sqrt(std::erfc(0.1 / (tol * 3.0 * std::sqrt(2.0)))); };
+
+  ZhangSimilarityScore narrow, wide;
+  Param param(narrow.getParameters());
+  param.setValue("use_gaussian_factor", "true");
+  param.setValue("tolerance", 0.2);
+  narrow.setParameters(param);
+  param.setValue("tolerance", 1.0);
+  wide.setParameters(param);
+
+  TOLERANCE_ABSOLUTE(1e-6)
+  TEST_REAL_SIMILAR(narrow(s1, s2), expected(0.2))
+  TEST_REAL_SIMILAR(wide(s1, s2), expected(1.0))
+  TEST_REAL_SIMILAR(narrow(s1, s2), expected(0.2))
+}
 END_SECTION
 
 delete ptr;

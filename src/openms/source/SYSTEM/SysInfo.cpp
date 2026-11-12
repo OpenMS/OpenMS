@@ -8,13 +8,23 @@
 
 #include <OpenMS/SYSTEM/SysInfo.h>
 
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
+
+#include <algorithm>
 #include <array>
+#include <cerrno>
 #include <cstdlib>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <limits>
+#include <memory>
+#include <set>
 #include <sstream>
+#include <thread>
+#include <vector>
 
 #ifdef OPENMS_WINDOWSPLATFORM
   #include "windows.h"
@@ -24,6 +34,7 @@
   #include <mach/mach.h>
   #include <mach/mach_host.h>
   #include <mach/mach_init.h>
+  #include <sys/sysctl.h> // sysctlbyname()
   #include <unistd.h>   // for getpid()
 #else
   #define OMS_USELINUXMEMORYPLATFORM
@@ -31,6 +42,9 @@
   #include <unistd.h>
   #ifdef OPENMS_HAS_SYS_RESOURCE_H
     #include <sys/resource.h> // for rusage
+  #endif
+  #ifdef __linux__
+    #include <sched.h> // sched_getaffinity()
   #endif
 #endif
 
@@ -268,6 +282,149 @@ namespace OpenMS
 #endif
   }
 
+  namespace
+  {
+    thread_local int omp_threads_of_this_thread = 0; // see SysInfo::setOmpThreadsOfThisThread()
+  }
+
+  int SysInfo::ompThreadsOfThisThread()
+  {
+    if (omp_threads_of_this_thread > 0) { return omp_threads_of_this_thread; }
+#ifdef _OPENMP
+    return std::max(1, omp_get_max_threads());
+#else
+    return 1;
+#endif
+  }
+
+  void SysInfo::setOmpThreadsOfThisThread(const int threads)
+  {
+    omp_threads_of_this_thread = std::max(0, threads);
+  }
+
+  bool SysInfo::ompThreadCountIsGlobal()
+  {
+#ifdef _OPENMP
+    static const bool global = []()
+    {
+      const int own = omp_get_max_threads();
+      std::thread([own]() { omp_set_num_threads(own + 1); }).join();
+      const bool changed = omp_get_max_threads() != own;
+      omp_set_num_threads(own); // back (where the other thread's call reached this thread, for every thread)
+      return changed;
+    }();
+    return global;
+#else
+    return false;
+#endif
+  }
+
+  UInt SysInfo::getAvailablePhysicalCores([[maybe_unused]] const std::vector<int>& cpus)
+  {
+    const UInt hardware_threads = std::max(1u, std::thread::hardware_concurrency());
+#ifdef OPENMS_WINDOWSPLATFORM
+    // processor cores (of the processor group of this thread) with a logical processor in the affinity mask
+    DWORD_PTR process_mask = 0, system_mask = 0;
+    DWORD length = 0;
+    GetLogicalProcessorInformation(nullptr, &length);
+    std::vector<SYSTEM_LOGICAL_PROCESSOR_INFORMATION> info(length / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION));
+    if (!GetProcessAffinityMask(GetCurrentProcess(), &process_mask, &system_mask) || info.empty()
+        || !GetLogicalProcessorInformation(info.data(), &length))
+    {
+      return hardware_threads;
+    }
+    UInt cores = 0;
+    for (const auto& i : info)
+    {
+      if (i.Relationship == RelationProcessorCore && (i.ProcessorMask & process_mask) != 0) { ++cores; }
+    }
+    return cores > 0 ? cores : hardware_threads;
+#elif __APPLE__
+    int cores = 0;
+    size_t size = sizeof(cores);
+    return sysctlbyname("hw.physicalcpu", &cores, &size, nullptr, 0) == 0 && cores > 0 ? UInt(cores) : hardware_threads;
+#elif defined(__linux__)
+    // @p cpus, or the CPUs of the affinity mask (which can be larger than CPU_SETSIZE)
+    std::vector<int> counted = cpus;
+    for (int n = CPU_SETSIZE; counted.empty() && n <= (1 << 20); n *= 2)
+    {
+      const std::unique_ptr<cpu_set_t, void (*)(cpu_set_t*)> set(CPU_ALLOC(n), [](cpu_set_t* s) { CPU_FREE(s); });
+      if (set == nullptr) { break; }
+      const size_t set_size = CPU_ALLOC_SIZE(n);
+      if (sched_getaffinity(0, set_size, set.get()) == 0)
+      {
+        for (int cpu = 0; cpu < n; ++cpu)
+        {
+          if (CPU_ISSET_S(cpu, set_size, set.get())) { counted.push_back(cpu); }
+        }
+        break;
+      }
+      if (errno != EINVAL) { break; } // EINVAL: the mask is larger
+    }
+    // one per core: the hardware threads of a core share their list of siblings
+    std::set<std::string> cores;
+    for (const int cpu : counted)
+    {
+      std::ifstream topology("/sys/devices/system/cpu/cpu" + std::to_string(cpu) + "/topology/thread_siblings_list");
+      std::string siblings;
+      cores.insert(std::getline(topology, siblings) && !siblings.empty() ? siblings : "cpu" + std::to_string(cpu));
+    }
+    UInt available = cores.empty() ? hardware_threads : UInt(cores.size());
+    // cgroup v2: the CPU quota (cpu.max: "<quota> <period>" or "max <period>") of the cgroup of the process and of
+    // the cgroups above it, as far as a cgroup2 mount shows them (/proc/self/mountinfo: its root within the hierarchy
+    // and its mount point, with octal escapes of blanks and backslashes)
+    std::string path; // of the cgroup within the hierarchy
+    std::ifstream cgroups("/proc/self/cgroup");
+    for (std::string line; path.empty() && std::getline(cgroups, line);)
+    {
+      if (line.rfind("0::", 0) == 0) { path = line.substr(3); }
+    }
+    const auto unescape = [](const std::string& field)
+    {
+      std::string text;
+      for (Size i = 0; i < field.size(); ++i)
+      {
+        const auto octal = [&field](Size at) { return at < field.size() && field[at] >= '0' && field[at] <= '7'; };
+        if (field[i] == '\\' && octal(i + 1) && octal(i + 2) && octal(i + 3))
+        {
+          text += static_cast<char>((field[i + 1] - '0') * 64 + (field[i + 2] - '0') * 8 + (field[i + 3] - '0'));
+          i += 3;
+        }
+        else { text += field[i]; }
+      }
+      return text;
+    };
+    std::ifstream mounts("/proc/self/mountinfo");
+    for (std::string line; !path.empty() && std::getline(mounts, line);)
+    {
+      const size_t separator = line.find(" - ");
+      if (separator == std::string::npos || line.compare(separator + 3, 8, "cgroup2 ") != 0) { continue; }
+      std::istringstream fields(line.substr(0, separator));
+      std::string id, parent, device, root, point;
+      if (!(fields >> id >> parent >> device >> root >> point)) { continue; }
+      root = unescape(root);
+      point = unescape(point);
+      if (root == "/") { root.clear(); }
+      if (path.compare(0, root.size(), root) != 0 || (path.size() > root.size() && path[root.size()] != '/')) { continue; }
+      for (std::string below = path.substr(root.size());; below.erase(below.rfind('/')))
+      {
+        std::ifstream max(point + below + "/cpu.max");
+        std::string quota;
+        long long period = 0;
+        if (max >> quota >> period && quota != "max" && period > 0)
+        {
+          const long long q = std::atoll(quota.c_str());
+          if (q > 0) { available = std::min<UInt>(available, UInt(std::max(1ll, (q + period - 1) / period))); }
+        }
+        if (below.find('/') == std::string::npos) { break; } // the root of the mount
+      }
+    }
+    return available;
+#else
+    return hardware_threads;
+#endif
+  }
+
   SysInfo::MemUsage::MemUsage()
     : mem_before(0), mem_before_peak(0), mem_after(0), mem_after_peak(0)
   {
@@ -328,7 +485,7 @@ namespace OpenMS
     {
       s +=std::string("-");
     }
-    s =StringUtils::toStr(std::abs(((long long)mem_after - (long long)mem_before) / 1024)) + " MB";
+    s += StringUtils::toStr(std::abs(((long long)mem_after - (long long)mem_before) / 1024)) + " MB";
     return s;
   }
 

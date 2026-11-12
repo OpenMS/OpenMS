@@ -12,30 +12,43 @@
 ### Configured by the OpenMS build system from <OpenMS>/cmake/OpenMSConfig.cmake.in.
 ###
 ### The installed package is layered: an installation contains the core layer and
-### optionally the CLI layer on top of it and the GUI layer on top of that (see
-### cmake/install_macros.cmake for the install components of each layer).
+### optionally the CLI layer on top of it (see cmake/install_macros.cmake for the
+### install components of each layer). The GUI layer is built by the repository
+### OpenMS-TOPP-GUI and installed into the same prefix with a CMake package of its
+### own, OpenMSGUI (lib/cmake/OpenMSGUI, or CMake/ on Windows).
 ### find_package(OpenMS CONFIG) provides the imported targets of the layers present:
 ###   OpenMS::OpenMS         the OpenMS library                   (component Core, always)
 ###   OpenMS::OpenSwathAlgo  the OpenSWATH algorithm library      (component OpenSwathAlgo, always)
 ###   OpenMS::OpenMS_CLI     the TOPP tool framework (TOPPBase, ToolHandler, ...); a
 ###                          TOPP-style tool links this            (component CLI; install
 ###                          components library_cli and cmake_cli)
-###   OpenMS::OpenMS_GUI     the GUI library of a WITH_GUI build  (component GUI, on request;
-###                          install components library_gui and cmake_gui)
+###   OpenMS::OpenMS_GUI     the GUI library of OpenMS-TOPP-GUI    (component GUI; when its
+###                          OpenMSGUI package of this version is installed next to this
+###                          file, also without requesting the component)
 ### and, for projects written against earlier releases, the un-namespaced aliases
 ### OpenMS and OpenSwathAlgo, plus OpenMS_CLI and OpenMS_GUI when those layers are
-### installed. A core-only installation (install
+### present. A core-only installation (install
 ### components library, OpenMS_headers, OpenSwathAlgo_headers, thirdparty_headers,
 ### share and cmake, e.g. what the pyOpenMS wheels are built against) provides the
 ### first two targets; requesting COMPONENTS CLI fails on it. Requesting COMPONENTS GUI
-### (or OPTIONAL_COMPONENTS GUI) also finds the Qt6 modules the GUI library was built
-### against; without it, a consumer that links OpenMS::OpenMS_GUI finds Qt6 itself.
+### (or OPTIONAL_COMPONENTS GUI) loads the OpenMSGUI package, which also finds the Qt6
+### modules the GUI library links. Without it, the GUI layer's targets are included
+### without a Qt lookup, and a consumer that links OpenMS::OpenMS_GUI finds Qt6 itself
+### (set OpenMS_IGNORE_GUI_LAYER to TRUE before find_package to leave them out, e.g. in
+### OpenMS-TOPP-GUI itself, which builds that target).
 ###
 ### Variables:
-###   OpenMS_VERSION                        version of this installation
+###   OpenMS_VERSION                        version of this installation (X.Y.Z)
+###   OpenMS_VERSION_FULLSTRING             full version string of this installation, as
+###                                         used in package names: X.Y.Z for a release,
+###                                         X.Y.Z-pre-<prerelease> otherwise
+###   OpenMS_VERSION_PRERELEASE             prerelease identifier (<branch>-<date>; empty
+###                                         for a release)
 ###   OpenMS_CLI_FOUND                      the CLI layer is part of this installation
-###   OpenMS_GUI_FOUND                      the GUI component was requested and satisfied
-###   OpenMS_WITH_GUI                       the GUI library is part of this installation
+###   OpenMS_GUI_FOUND                      the GUI component was requested and the
+###                                         OpenMSGUI package was found
+###   OpenMS_WITH_GUI                       the GUI layer is part of this installation
+###                                         (OpenMS::OpenMS_GUI exists)
 ###   OpenMS_WITH_HDF5, OpenMS_WITH_OPENTIMS, OpenMS_WITH_THERMO_RAW, OpenMS_WITH_ONNX,
 ###   OpenMS_WITH_OPENMP, OpenMS_WITH_WNETALIGN, OpenMS_BUILD_TOPP_TOOLS
 ###                                         build options of this installation
@@ -65,10 +78,11 @@ set(OPENMS_LIB_DIR "@PACKAGE_INSTALL_LIB_DIR@")
 # only for the OpenMP lookup below
 set(_openms_include_dir "@PACKAGE_INSTALL_INCLUDE_DIR@")
 
+set(OpenMS_VERSION_FULLSTRING "@OPENMS_PACKAGE_VERSION_FULLSTRING@")
+set(OpenMS_VERSION_PRERELEASE "@OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER@")
+
 #------------------------------------------------------------------------------
-# Build options of this installation (OpenMS_WITH_GUI is set with the imported
-# targets below: it is true only when the GUI library is installed, not merely built)
-set(_openms_built_with_gui "@WITH_GUI@")
+# Build options of this installation
 set(OpenMS_WITH_HDF5 "@WITH_HDF5@")
 set(OpenMS_WITH_OPENTIMS "@WITH_OPENTIMS@")
 set(OpenMS_WITH_THERMO_RAW "@WITH_THERMO_RAW@")
@@ -81,7 +95,7 @@ set(OpenMS_BUILD_TOPP_TOOLS "@BUILD_TOPP_TOOLS@")
 # Dependencies that are part of the public link interface of the imported targets.
 # Everything else OpenMS links is PRIVATE: the installed shared library resolves it
 # through its own RPATH/soname, and consumers need neither the CMake packages nor
-# the development files of those libraries (CURL, Xerces-C, libsvm, SQLite,
+# the development files of those libraries (CURL, libxml2, libsvm, SQLite,
 # HDF5, Arrow, ...).
 
 include(CMakeFindDependencyMacro)
@@ -97,6 +111,19 @@ if(NOT "@BUILD_SHARED_LIBS@")
     set(_openms_boost_version 1.81.0)
   endif()
   find_dependency(Boost ${_openms_boost_version})
+  # libxml2's own package config first, as OpenMS itself found it: only it carries
+  # the link dependencies of a static libxml2 (and LIBXML_STATIC on Windows).
+  # A config package that is found but fails (e.g. a missing dependency of its own)
+  # is an error, not a reason to fall back to the module.
+  find_package(LibXml2 2.13 CONFIG QUIET NAMES LibXml2 libxml2)
+  if(NOT LibXml2_FOUND AND LibXml2_NOT_FOUND_MESSAGE)
+    set(OpenMS_FOUND FALSE)
+    set(OpenMS_NOT_FOUND_MESSAGE
+        "The libxml2 package configuration failed: ${LibXml2_NOT_FOUND_MESSAGE}")
+    return()
+  elseif(NOT LibXml2_FOUND)
+    find_dependency(LibXml2 2.13 MODULE)
+  endif()
   unset(_openms_boost_version)
 endif()
 
@@ -174,32 +201,23 @@ endif()
 
 #------------------------------------------------------------------------------
 # The imported targets: one file per layer. The core file is always present. The
-# CLI and GUI files are installed by the components cmake_cli and cmake_gui (with
-# the libraries in library_cli and library_gui), so they exist only when the
-# installation includes those layers. Each file refers to the targets of the layer
-# below and is therefore included after it; a GUI file without the CLI layer is
-# an incomplete installation and is left out. The GUI file is also ignored when
-# this configuration was made without the GUI library: a file of an earlier
-# WITH_GUI configuration surviving in the same build or install directory does
-# not make the layer available.
+# CLI file is installed by the component cmake_cli (with the library in
+# library_cli), so it exists only when the installation includes that layer. It
+# refers to the targets of the core layer and is therefore included after it.
 include("${CMAKE_CURRENT_LIST_DIR}/@_OPENMS_EXPORT_FILE@")
 set(OpenMS_CLI_FOUND FALSE)
 if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/@_OPENMS_CLI_EXPORT_FILE@")
   include("${CMAKE_CURRENT_LIST_DIR}/@_OPENMS_CLI_EXPORT_FILE@")
   set(OpenMS_CLI_FOUND TRUE)
 endif()
-set(OpenMS_WITH_GUI FALSE)
-if(OpenMS_CLI_FOUND AND _openms_built_with_gui
-   AND EXISTS "${CMAKE_CURRENT_LIST_DIR}/@_OPENMS_GUI_EXPORT_FILE@")
-  include("${CMAKE_CURRENT_LIST_DIR}/@_OPENMS_GUI_EXPORT_FILE@")
-  set(OpenMS_WITH_GUI TRUE)
-endif()
 
 #------------------------------------------------------------------------------
 # Components. Core and OpenSwathAlgo are always present, CLI when the installation
-# includes the CLI layer. GUI is satisfied when the installation includes the GUI
-# library and the Qt6 modules it links are found; the lookup runs only when the
-# component is requested, so consumers of the core library never need Qt6.
+# includes the CLI layer. GUI is delegated to the OpenMSGUI package of
+# OpenMS-TOPP-GUI, searched only next to this file (the same installation prefix
+# or build tree), so consumers of the core library never need Qt6. The core and
+# CLI targets exist at this point, so OpenMSGUIConfig.cmake does not search OpenMS
+# again.
 set(_openms_known_components Core OpenSwathAlgo CLI GUI)
 set(OpenMS_Core_FOUND TRUE)
 set(OpenMS_OpenSwathAlgo_FOUND TRUE)
@@ -208,38 +226,68 @@ if("CLI" IN_LIST OpenMS_FIND_COMPONENTS AND NOT OpenMS_CLI_FOUND AND OpenMS_FIND
       "This OpenMS installation does not include the TOPP tool framework library OpenMS::OpenMS_CLI (install components library_cli and cmake_cli).")
 endif()
 set(OpenMS_GUI_FOUND FALSE)
-if("GUI" IN_LIST OpenMS_FIND_COMPONENTS)
-  if(OpenMS_WITH_GUI)
-    if(OpenMS_FIND_REQUIRED_GUI AND NOT OpenMS_FIND_QUIETLY)
-      set(_openms_qt_quiet)
-    else()
-      set(_openms_qt_quiet QUIET)
-    endif()
-    # the Qt6 modules the GUI library was built against (Core plus the module lists
-    # of cmake/cmake_findExternalLibs.cmake); a newer Qt6 is binary compatible
-    set(_openms_gui_qt_modules Core @OpenMS_GUI_QT_COMPONENTS@ @OpenMS_GUI_QT_FOUND_COMPONENTS_OPT@)
-    find_package(Qt6 @Qt6_VERSION@ ${_openms_qt_quiet} COMPONENTS ${_openms_gui_qt_modules})
-    unset(_openms_qt_quiet)
-    if(Qt6_FOUND)
-      set(OpenMS_GUI_FOUND TRUE)
-    elseif(OpenMS_FIND_REQUIRED_GUI)
-      string(REPLACE ";" " " _openms_gui_qt_modules "${_openms_gui_qt_modules}")
-      string(CONCAT OpenMS_NOT_FOUND_MESSAGE
-          "The OpenMS GUI component needs Qt6 @Qt6_VERSION@ or newer with the modules "
-          "${_openms_gui_qt_modules}, which were not found. Add the Qt installation to CMAKE_PREFIX_PATH.")
-    endif()
-    unset(_openms_gui_qt_modules)
-  elseif(OpenMS_FIND_REQUIRED_GUI)
-    if(_openms_built_with_gui)
-      set(OpenMS_NOT_FOUND_MESSAGE
-          "This OpenMS installation does not include the GUI library OpenMS::OpenMS_GUI (install components library_gui and cmake_gui, which need library_cli and cmake_cli).")
-    else()
-      set(OpenMS_NOT_FOUND_MESSAGE
-          "This OpenMS installation was built without the GUI library (WITH_GUI=OFF).")
-    endif()
+if("GUI" IN_LIST OpenMS_FIND_COMPONENTS AND OpenMS_CLI_FOUND)
+  find_package(OpenMSGUI ${OpenMS_VERSION} EXACT CONFIG QUIET NO_DEFAULT_PATH
+               PATHS "${CMAKE_CURRENT_LIST_DIR}/../OpenMSGUI" "${CMAKE_CURRENT_LIST_DIR}")
+  if(OpenMSGUI_FOUND AND TARGET OpenMS::OpenMS_GUI)
+    set(OpenMS_GUI_FOUND TRUE)
   endif()
 endif()
-unset(_openms_built_with_gui)
+set(OpenMS_WITH_GUI ${OpenMS_GUI_FOUND})
+## Not requested: as before the GUI moved to OpenMS-TOPP-GUI, the targets of an
+## installed GUI layer are provided anyway, without a Qt lookup. Only a GUI layer of
+## exactly this version is included (read from its package version file).
+if(NOT "GUI" IN_LIST OpenMS_FIND_COMPONENTS AND OpenMS_CLI_FOUND AND NOT OpenMS_IGNORE_GUI_LAYER)
+  function(_openms_gui_layer_version _dir _result)
+    set(PACKAGE_FIND_VERSION "${OpenMS_VERSION}")
+    set(PACKAGE_FIND_VERSION_MAJOR "${OpenMS_VERSION_MAJOR}")
+    set(PACKAGE_FIND_VERSION_MINOR "${OpenMS_VERSION_MINOR}")
+    set(PACKAGE_FIND_VERSION_PATCH "${OpenMS_VERSION_PATCH}")
+    set(PACKAGE_FIND_VERSION_COUNT 3)
+    include("${_dir}/OpenMSGUIConfigVersion.cmake")
+    if(PACKAGE_VERSION_UNSUITABLE)
+      set(PACKAGE_VERSION "")
+    endif()
+    set(${_result} "${PACKAGE_VERSION}" PARENT_SCOPE)
+  endfunction()
+  foreach(_openms_gui_dir IN ITEMS "${CMAKE_CURRENT_LIST_DIR}/../OpenMSGUI" "${CMAKE_CURRENT_LIST_DIR}")
+    if(EXISTS "${_openms_gui_dir}/OpenMSGUITargets.cmake"
+       AND EXISTS "${_openms_gui_dir}/OpenMSGUIConfigVersion.cmake")
+      _openms_gui_layer_version("${_openms_gui_dir}" _openms_gui_version)
+      if(_openms_gui_version VERSION_EQUAL OpenMS_VERSION)
+        if(NOT TARGET OpenMS::OpenMS_GUI)
+          include("${_openms_gui_dir}/OpenMSGUITargets.cmake")
+        endif()
+        set(OpenMS_WITH_GUI TRUE)
+        break()
+      endif()
+    endif()
+  endforeach()
+  unset(_openms_gui_dir)
+  unset(_openms_gui_version)
+endif()
+if("GUI" IN_LIST OpenMS_FIND_COMPONENTS AND NOT OpenMS_GUI_FOUND AND OpenMS_FIND_REQUIRED_GUI)
+  if(NOT OpenMS_CLI_FOUND)
+    set(OpenMS_NOT_FOUND_MESSAGE
+        "The OpenMS GUI component needs the CLI layer, which this OpenMS installation does not include (install components library_cli and cmake_cli).")
+  elseif(OpenMSGUI_NOT_FOUND_MESSAGE)
+    ## the package exists but failed, e.g. Qt6 was not found
+    string(CONCAT OpenMS_NOT_FOUND_MESSAGE
+        "The OpenMS GUI component (${OpenMSGUI_CONSIDERED_CONFIGS}) was found but cannot be "
+        "used: ${OpenMSGUI_NOT_FOUND_MESSAGE}")
+  elseif(OpenMSGUI_CONSIDERED_VERSIONS)
+    string(CONCAT OpenMS_NOT_FOUND_MESSAGE
+        "The OpenMS GUI component needs the OpenMSGUI package of exactly this OpenMS version "
+        "(${OpenMS_VERSION}), but found ${OpenMSGUI_CONSIDERED_VERSIONS} "
+        "(${OpenMSGUI_CONSIDERED_CONFIGS}).")
+  else()
+    string(CONCAT OpenMS_NOT_FOUND_MESSAGE
+        "The OpenMS GUI library OpenMS::OpenMS_GUI is built by the separate repository "
+        "OpenMS-TOPP-GUI (https://github.com/OpenMS/OpenMS-TOPP-GUI). No OpenMSGUI package was "
+        "found next to this OpenMS installation (${CMAKE_CURRENT_LIST_DIR}): install the GUI "
+        "layer of version ${OpenMS_VERSION} into the same prefix.")
+  endif()
+endif()
 foreach(_openms_component IN LISTS OpenMS_FIND_COMPONENTS)
   if(NOT _openms_component IN_LIST _openms_known_components
      AND OpenMS_FIND_REQUIRED_${_openms_component})

@@ -15,14 +15,12 @@ if(DEFINED BUILD_TOPP_TOOLS)
 endif()
 option(ENABLE_TOPP_TESTING "Enables tests for TOPP. Should be disabled only on time constraints (e.g. chunking during continuous integration)." ${_openms_topp_testing_default})
 option(ENABLE_CLASS_TESTING "Enables tests for library classes. Should be disabled only on time constraints (e.g. chunking during continuous integration)." ON)
-option(ENABLE_PIPELINE_TESTING "Enables the additional testing of various TOPPAS pipelines when 'make test' is called." ${_openms_topp_testing_default})
 unset(_openms_topp_testing_default)
 
 if(DEFINED BUILD_TOPP_TOOLS
    AND NOT BUILD_TOPP_TOOLS
-   AND (ENABLE_TOPP_TESTING OR ENABLE_PIPELINE_TESTING))
-  message(FATAL_ERROR
-    "ENABLE_TOPP_TESTING and ENABLE_PIPELINE_TESTING require BUILD_TOPP_TOOLS to be ON.")
+   AND ENABLE_TOPP_TESTING)
+  message(FATAL_ERROR "ENABLE_TOPP_TESTING requires BUILD_TOPP_TOOLS to be ON.")
 endif()
 
 #------------------------------------------------------------------------------
@@ -40,11 +38,7 @@ if("${PACKAGE_TYPE}" STREQUAL "none")
   if(ENABLE_TOPP_TESTING)
     add_subdirectory(topp)
   endif()
-  # and if requested also TOPPAS pipeline tests
-  if(ENABLE_PIPELINE_TESTING)
-    add_subdirectory(toppas)
-  endif()
-elseif( ENABLE_CLASS_TESTING OR ENABLE_TOPP_TESTING OR ENABLE_PIPELINE_TESTING)
+elseif( ENABLE_CLASS_TESTING OR ENABLE_TOPP_TESTING)
   message(WARNING "PACKAGE_TYPE specified along with enabled testing. Tests are only enabled when PACKAGE_TYPE is none. Ignoring tests.")
 endif("${PACKAGE_TYPE}" STREQUAL "none")
 
@@ -58,12 +52,14 @@ endif("${PACKAGE_TYPE}" STREQUAL "none")
 #
 # The package is layered (cmake/install_macros.cmake), so two installations are
 # tested:
-#  * the full development installation (core and CLI layer; the GUI layer too in
-#    a WITH_GUI build) with src/tests/external, the example consumer project;
+#  * the full development installation (core and CLI layer) with
+#    src/tests/external, the example consumer project;
 #  * a core-only installation, the components the pyOpenMS wheels are built
 #    against, with src/tests/external/core_only: the package has to work without
-#    the CLI and GUI layers, report them absent and refuse a required CLI
+#    the CLI layer, report it (and the GUI layer) absent and refuse a required CLI
 #    component.
+# The GUI layer (OpenMS-TOPP-GUI) is never part of these installations, so the
+# component GUI is never found in them.
 option(OPENMS_TEST_INSTALLED_CONSUMER
   "Install into scratch prefixes and build/run the external CMake consumers against them" OFF)
 
@@ -197,13 +193,9 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
 
   # 1. The full development installation (no applications, documentation or
   #    packaging extras): what a library consumer that also builds TOPP-style
-  #    tools has. The GUI layer comes without its headers, as TestExternalCodeGUI
-  #    only links the library.
+  #    tools has.
   set(_full_components
     library library_cli OpenMS_headers OpenMS_CLI_headers OpenSwathAlgo_headers cmake cmake_cli share)
-  if(WITH_GUI)
-    list(APPEND _full_components library_gui cmake_gui)
-  endif()
   set(_full_prefix "${CMAKE_BINARY_DIR}/installed-consumer/prefix")
   _openms_add_installed_consumer_tests(TestExternalCode
     "${CMAKE_SOURCE_DIR}/src/tests/external"
@@ -312,44 +304,98 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
     CONFIGURE_ARGS "-DOPENMS_RELOCATED_FROM=${_relocate_prefix}"
                    "-DOPENMS_RELOCATED_TO=${_relocate_moved}")
 
-  # 4. The package of a build tree across reconfigurations: the GUI target file
-  #    of a WITH_GUI=ON configuration must not survive a WITH_GUI=OFF
-  #    reconfiguration of the same build directory, since OpenMSConfig.cmake
-  #    reports a layer from the presence of its file. Reconfiguring OpenMS
-  #    itself twice is far too slow for a test, so src/tests/package_layers, a
-  #    stub project using the real macros and package template, stands in.
+  # 4. The package of a build tree across reconfigurations: the CLI target file
+  #    of a configuration with the CLI layer must not survive a reconfiguration
+  #    without it, since OpenMSConfig.cmake reports a layer from the presence of
+  #    its file; and the component GUI is delegated to an OpenMSGUI package next
+  #    to OpenMSConfig.cmake (installed there by OpenMS-TOPP-GUI), found only when
+  #    it is there. Reconfiguring OpenMS itself is far too slow for a test, so
+  #    src/tests/package_layers, a stub project using the real macros and package
+  #    template, stands in; it also writes the stub GUI package on request.
   set(_layers_source "${CMAKE_SOURCE_DIR}/src/tests/package_layers")
   set(_layers_build  "${CMAKE_BINARY_DIR}/package-layers/build")
-  add_test(NAME PackageLayers_configure_with_gui
+  set(_layers_probe ${CMAKE_COMMAND} -S "${_layers_source}/probe" -G "${CMAKE_GENERATOR}"
+                    "-DOpenMS_DIR=${_layers_build}" ${_configure_args})
+  # (a) core and CLI layer, no GUI package
+  add_test(NAME PackageLayers_configure
     COMMAND ${CMAKE_COMMAND} -S "${_layers_source}" -B "${_layers_build}"
-            -G "${CMAKE_GENERATOR}" -DWITH_GUI=ON ${_configure_args})
-  set_tests_properties(PackageLayers_configure_with_gui PROPERTIES
-    FIXTURES_SETUP package_layers_with_gui)
-  add_test(NAME PackageLayers_probe_with_gui
-    COMMAND ${CMAKE_COMMAND} -S "${_layers_source}/probe" -B "${_layers_build}-probe-with-gui"
-            -G "${CMAKE_GENERATOR}" "-DOpenMS_DIR=${_layers_build}" -DEXPECT_GUI=ON ${_configure_args})
-  set_tests_properties(PackageLayers_probe_with_gui PROPERTIES
-    FIXTURES_REQUIRED package_layers_with_gui
-    FIXTURES_SETUP package_layers_probed_with_gui)
-  add_test(NAME PackageLayers_reconfigure_without_gui
-    COMMAND ${CMAKE_COMMAND} -S "${_layers_source}" -B "${_layers_build}" -DWITH_GUI=OFF)
-  set_tests_properties(PackageLayers_reconfigure_without_gui PROPERTIES
-    FIXTURES_REQUIRED package_layers_probed_with_gui
-    FIXTURES_SETUP package_layers_without_gui)
-  add_test(NAME PackageLayers_probe_without_gui
-    COMMAND ${CMAKE_COMMAND} -S "${_layers_source}/probe" -B "${_layers_build}-probe-without-gui"
-            -G "${CMAKE_GENERATOR}" "-DOpenMS_DIR=${_layers_build}" -DEXPECT_GUI=OFF ${_configure_args})
-  set_tests_properties(PackageLayers_probe_without_gui PROPERTIES
-    FIXTURES_REQUIRED package_layers_without_gui)
-  add_test(NAME PackageLayers_reject_gui_without_gui
-    COMMAND ${CMAKE_COMMAND} -S "${_layers_source}/probe" -B "${_layers_build}-probe-reject-gui"
-            -G "${CMAKE_GENERATOR}" "-DOpenMS_DIR=${_layers_build}" -DREQUIRE_GUI=ON ${_configure_args})
-  set_tests_properties(PackageLayers_reject_gui_without_gui PROPERTIES
-    FIXTURES_REQUIRED package_layers_without_gui
-    PASS_REGULAR_EXPRESSION "built without the GUI library")
-  set_tests_properties(PackageLayers_configure_with_gui PackageLayers_probe_with_gui
-    PackageLayers_reconfigure_without_gui PackageLayers_probe_without_gui
-    PackageLayers_reject_gui_without_gui PROPERTIES LABELS "installed_consumer;package_layers")
+            -G "${CMAKE_GENERATOR}" -DWITH_CLI=ON -DWITH_GUI_PACKAGE=OFF -DGUI_PACKAGE_VERSION= ${_configure_args})
+  set_tests_properties(PackageLayers_configure PROPERTIES
+    FIXTURES_SETUP package_layers_cli)
+  add_test(NAME PackageLayers_probe_cli
+    COMMAND ${_layers_probe} -B "${_layers_build}-probe-cli" -DEXPECT_CLI=ON -DEXPECT_GUI=OFF)
+  add_test(NAME PackageLayers_probe_cli_no_components
+    COMMAND ${_layers_probe} -B "${_layers_build}-probe-cli-nocomp" -DNO_COMPONENTS=ON
+            -DEXPECT_CLI=ON -DEXPECT_GUI=OFF)
+  add_test(NAME PackageLayers_reject_gui
+    COMMAND ${_layers_probe} -B "${_layers_build}-probe-reject-gui" -DREQUIRE_GUI=ON)
+  set_tests_properties(PackageLayers_probe_cli PackageLayers_probe_cli_no_components
+    PackageLayers_reject_gui PROPERTIES
+    FIXTURES_REQUIRED package_layers_cli
+    FIXTURES_SETUP package_layers_probed_cli)
+  set_tests_properties(PackageLayers_reject_gui PROPERTIES
+    PASS_REGULAR_EXPRESSION "No[ \n]+OpenMSGUI[ \n]+package[ \n]+was[ \n]+found[ \n]+next[ \n]+to[ \n]+this[ \n]+OpenMS[ \n]+installation")
+  # (b) the same with the GUI package next to it
+  add_test(NAME PackageLayers_reconfigure_with_gui
+    COMMAND ${CMAKE_COMMAND} -S "${_layers_source}" -B "${_layers_build}" -DWITH_GUI_PACKAGE=ON)
+  set_tests_properties(PackageLayers_reconfigure_with_gui PROPERTIES
+    FIXTURES_REQUIRED package_layers_probed_cli
+    FIXTURES_SETUP package_layers_gui)
+  add_test(NAME PackageLayers_probe_gui
+    COMMAND ${_layers_probe} -B "${_layers_build}-probe-gui" -DEXPECT_CLI=ON -DEXPECT_GUI=ON)
+  #     without requesting the component the GUI layer's targets are there anyway (as
+  #     before the GUI moved out), without loading its package configuration, unless
+  #     the consumer opts out
+  add_test(NAME PackageLayers_probe_gui_no_components
+    COMMAND ${_layers_probe} -B "${_layers_build}-probe-gui-nocomp" -DNO_COMPONENTS=ON
+            -DEXPECT_CLI=ON -DEXPECT_GUI=ON)
+  add_test(NAME PackageLayers_probe_gui_ignored
+    COMMAND ${_layers_probe} -B "${_layers_build}-probe-gui-ignored" -DNO_COMPONENTS=ON
+            -DOpenMS_IGNORE_GUI_LAYER=TRUE -DEXPECT_CLI=ON -DEXPECT_GUI=OFF)
+  set_tests_properties(PackageLayers_probe_gui PackageLayers_probe_gui_no_components
+    PackageLayers_probe_gui_ignored PROPERTIES
+    FIXTURES_REQUIRED package_layers_gui
+    FIXTURES_SETUP package_layers_probed_gui)
+  # (b2) a GUI package of another version: neither included nor found as the component
+  add_test(NAME PackageLayers_reconfigure_gui_other_version
+    COMMAND ${CMAKE_COMMAND} -S "${_layers_source}" -B "${_layers_build}" -DGUI_PACKAGE_VERSION=3.5.0)
+  set_tests_properties(PackageLayers_reconfigure_gui_other_version PROPERTIES
+    FIXTURES_REQUIRED package_layers_probed_gui
+    FIXTURES_SETUP package_layers_gui_other_version)
+  add_test(NAME PackageLayers_probe_gui_other_version
+    COMMAND ${_layers_probe} -B "${_layers_build}-probe-gui-other" -DNO_COMPONENTS=ON
+            -DEXPECT_CLI=ON -DEXPECT_GUI=OFF)
+  add_test(NAME PackageLayers_reject_gui_other_version
+    COMMAND ${_layers_probe} -B "${_layers_build}-probe-reject-gui-other" -DREQUIRE_GUI=ON)
+  set_tests_properties(PackageLayers_probe_gui_other_version PackageLayers_reject_gui_other_version
+    PROPERTIES
+    FIXTURES_REQUIRED package_layers_gui_other_version
+    FIXTURES_SETUP package_layers_probed_gui_other_version)
+  set_tests_properties(PackageLayers_reject_gui_other_version PROPERTIES
+    PASS_REGULAR_EXPRESSION "needs[ \n]+the[ \n]+OpenMSGUI[ \n]+package[ \n]+of[ \n]+exactly[ \n]+this[ \n]+OpenMS[ \n]+version")
+  # (c) reconfigured without the CLI layer and without the GUI package
+  add_test(NAME PackageLayers_reconfigure_core_only
+    COMMAND ${CMAKE_COMMAND} -S "${_layers_source}" -B "${_layers_build}" -DWITH_CLI=OFF
+            -DWITH_GUI_PACKAGE=OFF -DGUI_PACKAGE_VERSION=)
+  set_tests_properties(PackageLayers_reconfigure_core_only PROPERTIES
+    FIXTURES_REQUIRED package_layers_probed_gui_other_version
+    FIXTURES_SETUP package_layers_core_only)
+  add_test(NAME PackageLayers_probe_core_only
+    COMMAND ${_layers_probe} -B "${_layers_build}-probe-core-only" -DEXPECT_CLI=OFF -DEXPECT_GUI=OFF)
+  add_test(NAME PackageLayers_reject_cli
+    COMMAND ${_layers_probe} -B "${_layers_build}-probe-reject-cli" -DREQUIRE_CLI=ON)
+  set_tests_properties(PackageLayers_probe_core_only PackageLayers_reject_cli PROPERTIES
+    FIXTURES_REQUIRED package_layers_core_only)
+  set_tests_properties(PackageLayers_reject_cli PROPERTIES
+    PASS_REGULAR_EXPRESSION "does not include the TOPP tool framework library")
+  set_tests_properties(PackageLayers_configure PackageLayers_probe_cli
+    PackageLayers_probe_cli_no_components PackageLayers_reject_gui
+    PackageLayers_reconfigure_with_gui PackageLayers_probe_gui
+    PackageLayers_probe_gui_no_components PackageLayers_probe_gui_ignored
+    PackageLayers_reconfigure_gui_other_version PackageLayers_probe_gui_other_version
+    PackageLayers_reject_gui_other_version
+    PackageLayers_reconfigure_core_only PackageLayers_probe_core_only PackageLayers_reject_cli
+    PROPERTIES LABELS "installed_consumer;package_layers")
 
   # 5. The TOPP tools built as a layer of their own against the installation of
   #    test 1 (OPENMS_USE_INSTALLED_LIBRARY), the way packages that split OpenMS
@@ -370,7 +416,7 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
   add_test(NAME ApplicationLayer_configure
     COMMAND ${CMAKE_COMMAND} -S "${CMAKE_SOURCE_DIR}" -B "${_app_layer_build}"
             -G "${CMAKE_GENERATOR}" "-DCMAKE_BUILD_TYPE=$<CONFIG>"
-            -DOPENMS_USE_INSTALLED_LIBRARY=ON -DBUILD_TOPP_TOOLS=ON -DWITH_GUI=OFF
+            -DOPENMS_USE_INSTALLED_LIBRARY=ON -DBUILD_TOPP_TOOLS=ON
             -DGIT_TRACKING=OFF
             "-DOpenMS_DIR=${_full_prefix}/${INSTALL_CMAKE_DIR}"
             ${_app_layer_args} ${_configure_args})
@@ -404,6 +450,7 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
   unset(_app_layer_args)
   unset(_layers_source)
   unset(_layers_build)
+  unset(_layers_probe)
   unset(_full_components)
   unset(_full_prefix)
   unset(_core_prefix)

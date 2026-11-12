@@ -12,7 +12,7 @@ project("OpenMS_src")
 #------------------------------------------------------------------------------
 # The libraries. A build against an installed OpenMS (OPENMS_USE_INSTALLED_LIBRARY)
 # takes OpenSwathAlgo, OpenMS and OpenMS_CLI from that installation instead
-# (cmake/find_installed_openms.cmake) and builds only the applications on top.
+# (cmake/find_installed_openms.cmake) and builds only the TOPP tools on top.
 #------------------------------------------------------------------------------
 if(NOT OPENMS_USE_INSTALLED_LIBRARY)
   #------------------------------------------------------------------------------
@@ -90,8 +90,7 @@ if(EMSCRIPTEN AND OPENMS_WASM_BINDINGS AND NOT OPENMS_USE_INSTALLED_LIBRARY)
 endif()
 
 #------------------------------------------------------------------------------
-# TOPP tools (must come before openms_gui so TOPP_TOOLS cache is initialized
-# before the GUI appends its tools to it)
+# TOPP tools
 #------------------------------------------------------------------------------
 # Declarations accumulate in the cache, so drop what an earlier configure of this build
 # directory left behind before any tool is declared.
@@ -99,28 +98,12 @@ openms_reset_topp_tools()
 if(BUILD_TOPP_TOOLS)
   add_subdirectory(topp)
 endif()
-## the tools declared by src/topp, for the per-layer registry below
-set(_openms_topp_layer_tools ${TOPP_TOOLS})
-
-if(WITH_GUI)
-  #------------------------------------------------------------------------------
-  # OpenMS gui lib
-  #------------------------------------------------------------------------------
-  add_subdirectory(openms_gui)
-else()
-  # doc/doxygen/public references the GUI tools' documentation pages (the TOPP tool list, the
-  # TOPPAS tutorial) whether or not the GUI is built, and what those pages describe does not
-  # depend on building it. The part that does -- the command line help and INI documentation
-  # TOPPDocumenter captures by running each tool -- is marked @if WITH_GUI in them (see
-  # doc/CMakeLists.txt).
-  openms_doc_path("${PROJECT_SOURCE_DIR}/openms_gui/source/VISUAL/APPLICATIONS/GUITOOLS")
-endif()
 
 #------------------------------------------------------------------------------
-# The tool registry, generated from the openms_topp_tool() declarations of the two
-# subdirectories above. It therefore describes exactly the tools this build produces: a
-# build option that does not build a tool does not declare it either, so nothing has to
-# filter the registry afterwards, at run time or at install time.
+# The tool registry, generated from the openms_topp_tool() declarations of src/topp. It
+# therefore describes exactly the tools this build produces: a build option that does not
+# build a tool does not declare it either, so nothing has to filter the registry afterwards,
+# at run time or at install time.
 #------------------------------------------------------------------------------
 #
 # It is installed into TOOLS/ rather than beside the other share data so that the directory
@@ -128,11 +111,11 @@ endif()
 #
 # A build of the whole of OpenMS writes one registry, OpenMS.tsv, which belongs to the shared
 # data. A build against an installed OpenMS library (OPENMS_USE_INSTALLED_LIBRARY) is one
-# layer of a split installation: it writes one registry per group of tools it builds, installed
-# with those tools, so each layer contributes its own file to a TOOLS directory they share
-# (see OPENMS_INSTALL_DATA_PATH in src/openms/configh.cmake):
-#   OpenMS-TOPP.tsv  the tools of src/topp          (install component Applications)
-#   OpenMS-GUI.tsv   the TOPP tools of src/openms_gui (install component GUIApplications)
+# layer of a split installation: it writes the registry of the tools it builds,
+# OpenMS-TOPP.tsv, installed with those tools (install component Applications), so each
+# layer contributes its own file to a TOOLS directory they share (see
+# OPENMS_INSTALL_DATA_PATH in src/openms/configh.cmake). The GUI layer (OpenMS-TOPP-GUI)
+# adds OpenMS-GUI.tsv for its TOPP tools ExecutePipeline and ImageCreator.
 #------------------------------------------------------------------------------
 function(_openms_install_tool_registry file component)
   if(EXISTS "${file}")
@@ -147,24 +130,18 @@ endfunction()
 if(NOT OPENMS_USE_INSTALLED_LIBRARY)
   openms_write_tool_registry("${OPENMS_TOOL_REGISTRY_BUILD_FILE}")
   _openms_install_tool_registry("${OPENMS_TOOL_REGISTRY_BUILD_FILE}" share)
-  ## the registry files of a layered build of an earlier configure of this build directory
-  file(REMOVE "${OPENMS_TOOL_REGISTRY_BUILD_DIR}/OpenMS-TOPP.tsv" "${OPENMS_TOOL_REGISTRY_BUILD_DIR}/OpenMS-GUI.tsv")
+  ## the registry file of a layered build of an earlier configure of this build directory
+  file(REMOVE "${OPENMS_TOOL_REGISTRY_BUILD_DIR}/OpenMS-TOPP.tsv")
 else()
-  set(_openms_gui_layer_tools ${TOPP_TOOLS})
-  list(REMOVE_ITEM _openms_gui_layer_tools ${_openms_topp_layer_tools})
-  foreach(_layer IN ITEMS TOPP GUI)
-    string(TOLOWER "${_layer}" _layer_lower)
-    set(_registry_file "${OPENMS_TOOL_REGISTRY_BUILD_DIR}/OpenMS-${_layer}.tsv")
-    openms_write_tool_registry("${_registry_file}" TOOLS ${_openms_${_layer_lower}_layer_tools})
-    if(_layer STREQUAL "TOPP")
-      _openms_install_tool_registry("${_registry_file}" Applications)
-    else()
-      _openms_install_tool_registry("${_registry_file}" ${OPENMS_GUI_APPLICATIONS_COMPONENT})
-    endif()
-  endforeach()
+  set(_registry_file "${OPENMS_TOOL_REGISTRY_BUILD_DIR}/OpenMS-TOPP.tsv")
+  openms_write_tool_registry("${_registry_file}")
+  _openms_install_tool_registry("${_registry_file}" Applications)
   ## the registry file of a full build of an earlier configure of this build directory
   file(REMOVE "${OPENMS_TOOL_REGISTRY_BUILD_FILE}")
 endif()
+## the GUI tools' registry that a layered build of this build directory wrote before the
+## GUI moved to OpenMS-TOPP-GUI: it would list tools this build no longer has
+file(REMOVE "${OPENMS_TOOL_REGISTRY_BUILD_DIR}/OpenMS-GUI.tsv")
 
 #------------------------------------------------------------------------------
 # Tests (they need the library targets of this build)

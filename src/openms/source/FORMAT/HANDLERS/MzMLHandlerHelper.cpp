@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h>
 
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/Base64.h>
@@ -663,11 +664,22 @@ namespace OpenMS::Internal
       {
         data.back().unit_multiplier = 60.0;
       }
+      else if (accession == "MS:1000515" && unit_accession == "UO:0000269") // intensity in absorbance units
+      {
+        data.back().meta.setMetaValue("mzml intensity array", "absorption");
+      }
     }
     else
     {
-      // CV term not identified
-      return false;
+      // other array types (MS:1000513 ! binary data array), e.g. ion mobility arrays, are named after their term.
+      // Terms missing from the bundled CV (e.g. newer ones) stay unidentified.
+      const ControlledVocabulary& cv = ControlledVocabulary::getPSIMSCV();
+      if (!cv.exists(accession) || !cv.isChildOf(accession, "MS:1000513"))
+      {
+        // CV term not identified
+        return false;
+      }
+      data.back().meta.setName(cv.getTerm(accession).name);
     }
 
     // CV term found

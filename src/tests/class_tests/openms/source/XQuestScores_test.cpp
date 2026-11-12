@@ -14,6 +14,8 @@
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
 
 using namespace OpenMS;
 
@@ -150,6 +152,28 @@ END_SECTION
 START_SECTION(static double XQuestScores::xCorrelationPrescore(const PeakSpectrum & spec1, const PeakSpectrum & spec2, double tolerance))
     double xcorr_fast = XQuestScores::xCorrelationPrescore(theo_spec_1, theo_spec_2, 0.2);
     TEST_REAL_SIMILAR(xcorr_fast, 0.7)
+END_SECTION
+
+START_SECTION(([EXTRA] static double matchOddsScoreSimpleSpec(const std::vector<SimpleTSGXLMS::SimplePeak>& theoretical_spec, const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum = false, Size n_charges = 1)))
+{
+  // same theoretical peaks as SimplePeaks and as a PeakSpectrum: both functions give the same score
+  TheoreticalSpectrumGenerator tsg;
+  PeakSpectrum theo_spectrum;
+  tsg.getSpectrum(theo_spectrum, AASequence::fromString("PEPTIDEKPEPTIDER"), 1, 2);
+  std::vector<SimpleTSGXLMS::SimplePeak> simple_theo;
+  for (const auto& p : theo_spectrum) simple_theo.push_back({p.getMZ(), 1});
+  for (Size matched : {Size(0), Size(3), theo_spectrum.size() / 2})
+  {
+    for (bool is_xlink : {false, true})
+    {
+      for (const auto& [tolerance, ppm] : std::vector<std::pair<double, bool>>{{0.2, false}, {10.0, true}})
+      {
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScoreSimpleSpec(simple_theo, matched, tolerance, ppm, is_xlink, 2),
+                          XQuestScores::matchOddsScore(theo_spectrum, matched, tolerance, ppm, is_xlink, 2))
+      }
+    }
+  }
+}
 END_SECTION
 
 END_TEST

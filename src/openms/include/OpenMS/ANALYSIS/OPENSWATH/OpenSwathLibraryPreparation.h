@@ -83,7 +83,7 @@ namespace OpenMS
       bool enable_identification_unspecific_losses = false;
       bool enable_swath_specifity = false;
       bool disable_decoy_transitions = false;
-      int ipf_decoy_seed = -1;
+      int ipf_decoy_seed = 1;
       bool test_mode = false;
       std::string unimod_file;
       bool reuse_existing_modifications_db = false;
@@ -127,6 +127,8 @@ namespace OpenMS
       bool enable_detection_unspecific_losses = false;
       bool switch_kr = true;
       bool separate = false;
+      /// Shuffle RNG seed: 1 gives reproducible decoys, -1 uses the current time.
+      Int shuffle_seed = 1;
     };
 
     OpenSwathLibraryPreparation();

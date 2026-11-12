@@ -213,4 +213,67 @@ START_SECTION(XIPMParquetConsumer_mixed_target_and_decoy_identifying_transitions
 }
 END_SECTION
 
+START_SECTION(XIPMParquetConsumer_negative_ids_replaced_without_taking_explicit_ids)
+{
+  // The negative transition "-1" (listed first) gets a fresh, non-negative ID that is not 1, which
+  // the transition "1" listed after it carries explicitly.
+  OpenSwath::LightTargetedExperiment light_exp;
+
+  OpenSwath::LightCompound compound;
+  compound.id = "7";
+  compound.sequence = "PEPTIDE";
+  compound.charge = 2;
+  compound.rt = 100.0;
+  compound.drift_time = 1.1;
+  light_exp.compounds.push_back(compound);
+
+  OpenSwath::LightTransition negative;
+  negative.transition_name = "-1";
+  negative.peptide_ref = "7";
+  negative.precursor_mz = 600.2;
+  negative.product_mz = 500.2;
+  negative.fragment_charge = 1;
+  negative.fragment_nr = 7;
+  negative.setFragmentType("y");
+  negative.setDetectingTransition(true);
+  light_exp.transitions.push_back(negative);
+
+  OpenSwath::LightTransition explicit_one = negative;
+  explicit_one.transition_name = "1";
+  explicit_one.product_mz = 501.2;
+  explicit_one.fragment_nr = 3;
+  light_exp.transitions.push_back(explicit_one);
+
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  const std::string out = tmp + ".xipm";
+  {
+    XIPMParquetConsumer consumer(out, light_exp);
+    consumer.consumePeakMap(makeTransitionPeakMap_("-1", 500.2, {500.19, 500.20}), 7, "run1.mzML", 2);
+    consumer.consumePeakMap(makeTransitionPeakMap_("1", 501.2, {501.19, 501.20}), 7, "run1.mzML", 2);
+  }
+
+  XIPMParquetFile xipm(out);
+  std::vector<XIPMParquetFile::XIPMPeakMap> peak_maps;
+  xipm.load(peak_maps);
+  TEST_EQUAL(peak_maps.size(), 2)
+  ABORT_IF(peak_maps.size() != 2)
+  for (const auto& peak_map : peak_maps)
+  {
+    TEST_EQUAL(peak_map.has_transition_id, true)
+    TEST_EQUAL(peak_map.has_precursor_id, true)
+    TEST_EQUAL(peak_map.precursor_id, 7)
+    if (peak_map.transition_ordinal == 3) // the explicit "1" (y3)
+    {
+      TEST_EQUAL(peak_map.transition_id, 1)
+    }
+    else // the replaced "-1"
+    {
+      TEST_TRUE(peak_map.transition_id >= 0)
+      TEST_NOT_EQUAL(peak_map.transition_id, 1)
+    }
+  }
+}
+END_SECTION
+
 END_TEST

@@ -70,6 +70,83 @@ def test_reproducible_with_same_seed():
         assert abs(a - b) < 1e-9
 
 
+def test_dense_feature_matrix_and_peptide_level():
+    """The dense row-major feature_matrix gives the scores of the same rows as features; with peptide_level and
+    peptide_keys the peptide-level q-values and PEPs are filled, one per row."""
+    rows, labels, keys = [], [], []
+    for i in range(400):
+        is_decoy = (i % 2 == 1)
+        rows.append([(-1.0 if is_decoy else +1.0) + 0.01 * i, float(i % 5)])
+        labels.append(is_decoy)
+        keys.append(("DECOY_" if is_decoy else "") + "PEP" + str(i // 4))  # two PSMs per peptide and label
+
+    def make_percolator(peptide_level):
+        p = oms.Percolator()
+        par = p.getDefaults()
+        par.setValue("seed", 23)
+        par.setValue("peptide_level", "true" if peptide_level else "false")
+        p.setParameters(par)
+        return p
+
+    nested = oms.RescoreInput()
+    nested.feature_names = ["f", "g"]
+    nested.features = rows
+    nested.is_decoy = labels
+    dense = oms.RescoreInput()
+    dense.feature_names = ["f", "g"]
+    dense.feature_matrix = [v for row in rows for v in row]
+    dense.is_decoy = labels
+    assert len(dense.feature_matrix) == 2 * len(rows)
+
+    o_nested = make_percolator(False).rescore(nested)
+    o_dense = make_percolator(False).rescore(dense)
+    assert list(o_dense.scores) == list(o_nested.scores)
+    assert len(o_dense.peptide_q_values) == 0
+
+    dense.peptide_keys = keys
+    assert list(dense.peptide_keys) == keys
+    o_peptide = make_percolator(True).rescore(dense)
+    assert len(o_peptide.peptide_q_values) == len(rows)
+    assert len(o_peptide.peptide_peps) == len(rows)
+    assert all(0.0 <= q <= 1.0 for q in o_peptide.peptide_q_values)
+
+
+def test_store_weights():
+    """storeWeights writes the models in the format of the percolator executable's -w."""
+    import os
+    import tempfile
+
+    ri = oms.RescoreInput()
+    ri.feature_names = ["separator", "noise"]
+    ri.features = [[+1.0 + 0.01 * i, float(i % 7)] for i in range(200)] + \
+                  [[-1.0 + 0.01 * i, float(i % 11)] for i in range(200)]
+    ri.is_decoy = [False] * 200 + [True] * 200
+
+    p = oms.Percolator()
+    par = p.getDefaults()
+    par.setValue("seed", 42)
+    p.setParameters(par)
+    path = os.path.join(tempfile.mkdtemp(), "model.weights")
+    try:
+        p.storeWeights(path)
+        raised = False
+    except Exception:
+        raised = True
+    assert raised  # nothing trained yet
+
+    p.rescore(ri)
+    p.storeWeights(path)
+    with open(path) as f:
+        lines = f.read().splitlines()
+    assert len(lines) == 3 + 3 * 3
+    assert all(line.startswith("#") for line in lines[:3])
+    for fold in range(3):
+        assert lines[3 + 3 * fold] == "separator\tnoise\tm0"
+        assert len(lines[4 + 3 * fold].split("\t")) == 3  # normalized weights
+        assert len(lines[5 + 3 * fold].split("\t")) == 3  # raw weights
+        assert float(lines[5 + 3 * fold].split("\t")[0]) > 0.0  # the separator scores targets higher
+
+
 def _synthetic_psms(n=600):
     import random
     rng = random.Random(7)
@@ -112,6 +189,31 @@ def test_rescore_psms():
     assert hit.metaValueExists("hyperscore")
 
 
+def test_feature_set_and_mark_rescored_runs():
+    sp = oms.SearchParameters()
+    sp.setMetaValue("extra_features", "hyperscore,delta_score")
+    standard = list(oms.PercolatorInfile.getStandardFeatureSet(2, 3))
+    assert list(oms.PercolatorInfile.getFeatureSet(sp, 2, 3)) == standard + ["hyperscore", "delta_score", "Peptide", "Proteins"]
+    # without extra_features: the main score
+    assert list(oms.PercolatorInfile.getFeatureSet(oms.SearchParameters(), 2, 3)) == standard + ["score", "Peptide", "Proteins"]
+
+    run = oms.ProteinIdentification()
+    sp = run.getSearchParameters()
+    sp.setMetaValue("Percolator:solver", "lda")
+    run.setSearchParameters(sp)
+    runs = oms.Percolator.markRescoredRuns([run], "MyTool", [("testFDR", 0.05), ("unitnorm", "true"), ("solver", None)])
+    assert len(runs) == 1
+    marked = runs[0]
+    assert marked.getSearchEngine() == "Percolator"
+    assert marked.getSearchEngineVersion() == "3.08-vendored"
+    assert marked.getMetaValue("percolator") == "MyTool"
+    sp = marked.getSearchParameters()
+    assert sp.getMetaValue("Percolator:testFDR") == 0.05
+    assert sp.getMetaValue("Percolator:unitnorm") == "true"
+    assert not sp.metaValueExists("Percolator:solver")
+    assert oms.Percolator.markRescoredRuns([run], "MyTool", [], "3.07")[0].getSearchEngineVersion() == "3.07"
+
+
 if __name__ == "__main__":
     test_import_percolator()
     print("test_import_percolator: passed")
@@ -119,6 +221,12 @@ if __name__ == "__main__":
     print("test_low_level_rescore_on_separable_data: passed")
     test_reproducible_with_same_seed()
     print("test_reproducible_with_same_seed: passed")
+    test_dense_feature_matrix_and_peptide_level()
+    print("test_dense_feature_matrix_and_peptide_level: passed")
+    test_store_weights()
+    print("test_store_weights: passed")
     test_rescore_psms()
     print("test_rescore_psms: passed")
+    test_feature_set_and_mark_rescored_runs()
+    print("test_feature_set_and_mark_rescored_runs: passed")
     print("\nAll Percolator pyOpenMS tests passed.")

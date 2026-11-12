@@ -24,6 +24,7 @@
 
 #include <limits>
 #include <set>
+#include <unordered_set>
 
 
 using namespace OpenMS;
@@ -404,6 +405,21 @@ protected:
     // filter features with zero intensity (this can happen if the FWHM is zero (bc of overly skewed shape) and no peaks end up being summed up)
     auto intensity_zero = [&](Feature& f) { return f.getIntensity() == 0; };
     feat_map.erase(remove_if(feat_map.begin(),feat_map.end(),intensity_zero),feat_map.end());
+
+    // keep the chromatograms of the remaining features (the FAIMS merge and the filter removed some). Each
+    // chromatogram carries the unique id of its feature in its native ID ("<id>_<trace>", see
+    // FeatureHypothesis::getChromatograms); the order does not pair them, FeatureFindingMetabo sorts features by m/z
+    if (!out_chrom.empty())
+    {
+      std::unordered_set<UInt64> kept_ids;
+      for (const Feature& f : feat_map) kept_ids.insert(f.getUniqueId());
+      std::erase_if(feat_chromatograms, [&kept_ids](const std::vector<MSChromatogram>& chroms)
+      {
+        if (chroms.empty()) return true;
+        const std::string& id = chroms.front().getNativeID();
+        return !kept_ids.contains(std::stoull(id.substr(0, id.find('_'))));
+      });
+    }
 
     // store chromatograms
     if (!out_chrom.empty())

@@ -211,4 +211,69 @@ START_SECTION(MobilogramParquetConsumer_mixed_target_and_decoy_identifying_trans
 }
 END_SECTION
 
+START_SECTION(MobilogramParquetConsumer_negative_ids_replaced_without_taking_explicit_ids)
+{
+  // The negative transition "-1" (listed first) gets a fresh, non-negative ID that is not 1, which
+  // the transition "1" listed after it carries explicitly.
+  OpenSwath::LightTargetedExperiment light_exp;
+
+  OpenSwath::LightCompound compound;
+  compound.id = "7";
+  compound.sequence = "PEPTIDEK";
+  compound.charge = 2;
+  light_exp.compounds.push_back(compound);
+
+  OpenSwath::LightTransition negative;
+  negative.transition_name = "-1";
+  negative.peptide_ref = "7";
+  negative.precursor_mz = 500.0;
+  negative.product_mz = 600.0;
+  negative.fragment_charge = 1;
+  negative.fragment_nr = 3;
+  negative.setFragmentType("y");
+  negative.setDetectingTransition(true);
+  light_exp.transitions.push_back(negative);
+
+  OpenSwath::LightTransition explicit_one = negative;
+  explicit_one.transition_name = "1";
+  explicit_one.product_mz = 700.0;
+  explicit_one.fragment_nr = 4;
+  light_exp.transitions.push_back(explicit_one);
+
+  Mobilogram mobilogram;
+  mobilogram.setRT(100.0);
+  mobilogram.push_back(MobilityPeak1D(1.0, 1000.0));
+
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  std::string out = tmp + ".xim";
+  {
+    MobilogramParquetConsumer consumer(out, 1, "test_source", light_exp);
+    consumer.consumeMobilogram(mobilogram, "transition", 2, -1, "-1", 100.0, 7);
+    consumer.consumeMobilogram(mobilogram, "transition", 2, -1, "1", 100.0, 7);
+  }
+
+  XIMParquetFile xim(out);
+  std::vector<XIMMobilogram> mobilograms;
+  xim.load(mobilograms);
+  TEST_EQUAL(mobilograms.size(), 2)
+  ABORT_IF(mobilograms.size() != 2)
+  for (const auto& m : mobilograms)
+  {
+    TEST_EQUAL(m.has_transition_id, true)
+    TEST_EQUAL(m.has_precursor_id, true)
+    TEST_EQUAL(m.precursor_id, 7)
+    if (m.transition_ordinal == 4) // the explicit "1" (y4)
+    {
+      TEST_EQUAL(m.transition_id, 1)
+    }
+    else // the replaced "-1"
+    {
+      TEST_TRUE(m.transition_id >= 0)
+      TEST_NOT_EQUAL(m.transition_id, 1)
+    }
+  }
+}
+END_SECTION
+
 END_TEST

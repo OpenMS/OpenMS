@@ -6,32 +6,18 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ParamJSONFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <fstream>
 #include <iostream>
 #include <limits>
 #include <nlohmann/json.hpp>
-#if defined(ENABLE_TDL)
-#include <tdl/tdl.h>
-#else
-#include <stdexcept>
-#endif
+#include <set>
+#include <string>
+#include <vector>
 
 using json = nlohmann::json;
-
-// replaces the substrings inside a string
-// This method is 'static' so no external linkage occurs
-static std::string replaceAll(std::string str, const std::string& pattern, const std::string& replacement)
-{
-  size_t pos {0};
-  while ((pos = str.find(pattern, pos)) != std::string::npos)
-  {
-    str.replace(pos, pattern.size(), replacement);
-    pos += replacement.size();
-  }
-  return str;
-}
 
 // Reports a JSON value whose shape does not fit a parameter tagged as a file.
 // This method is 'static' so no external linkage occurs
@@ -146,7 +132,7 @@ namespace OpenMS
 
         for (const auto& child : node.items())
         {
-          auto key = currentKey + replaceAll(child.key(), "__", ":"); // This converts __ to ':', but ':' would also be an accepted delimiter
+          auto key = currentKey + StringUtils::substituted(child.key(), "__", ":"); // This converts __ to ':', but ':' would also be an accepted delimiter
 
           auto node = child.value();
           if (node.is_null())
@@ -268,16 +254,10 @@ namespace OpenMS
 
   void ParamJSONFile::writeToStream(std::ostream* os_ptr, const Param& param) const
   {
-#if defined(ENABLE_TDL)
     std::ostream& os = *os_ptr;
 
-    // discover the name of the first nesting Level
-    // this is expected to result in something like "ToolName:1:"
-    auto traces = param.begin().getTrace();
-    std::string toolNamespace = traces.front().name + ":1:";
-
-    std::vector<tdl::Node> stack;
-    stack.push_back(tdl::Node {});
+    // names of the currently open sections, below an unnamed root (e.g. "", "ToolName", "1", "algorithm")
+    std::vector<std::string> stack{""};
 
     json jsonDoc{};
 
@@ -289,18 +269,15 @@ namespace OpenMS
       {
         if (trace.opened)
         {
-          stack.push_back(tdl::Node {trace.name, trace.description, {}, tdl::Node::Children {}});
+          stack.push_back(trace.name);
         }
         else // these nodes must be closed
         {
-          auto top = stack.back();
           stack.pop_back();
-          auto& children = std::get<tdl::Node::Children>(stack.back().value);
-          children.push_back(top);
         }
       }
 
-      // converting trags to tdl compatible tags
+      // converting OpenMS tags to CWL compatible tags
       std::set<std::string> tags;
       for (auto const& t : param_it->tags)
       {
@@ -324,7 +301,7 @@ namespace OpenMS
         }
       }
 
-      // Sets a single value into the tdl library
+      // Sets a single value into the json document
       auto name = param_it->name;
       if (stack.size() > 2) {
         json node{};
@@ -373,34 +350,19 @@ namespace OpenMS
           // Traverse to the correct node
           auto* parent = &jsonDoc;
           for (size_t i{3}; i < stack.size(); ++i) {
-              parent = &(*parent)[stack[i].name];
+              parent = &(*parent)[stack[i]];
           }
           (*parent)[name] = node;
         } else {
           // Expand name to include all namespaces
           for (size_t i{0}; i < stack.size()-3; ++i) {
-            auto const& e = stack[stack.size()-1-i];
-            name = e.name + "__" + name;
+            name = stack[stack.size()-1-i] + "__" + name;
           }
           jsonDoc[name] = node;
         }
       }
     }
 
-    while (stack.size() > 1)
-    {
-      auto top = stack.back();
-      stack.pop_back();
-      auto& children = std::get<tdl::Node::Children>(stack.back().value);
-      children.push_back(top);
-    }
-    assert(stack.size() == 1);
-
     os << jsonDoc.dump(2);
-#else
-    (void)os_ptr;
-    (void)param;
-    throw std::runtime_error{"TDL support is not available. Rebuild with -DENABLE_TDL=ON to enable this feature."};
-#endif
   }
 } // namespace OpenMS

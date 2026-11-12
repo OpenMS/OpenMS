@@ -563,10 +563,11 @@ namespace OpenMS::WASM
       bool protein_fdr_applied = false;
       if (ok && protein_fdr > 0.0 && result.have_decoys && !run.protein_ids.empty() && !run.peptide_ids.empty())
       {
-        ProSEAlgorithm::applyCompleteSetProteinFDR(run.protein_ids, run.peptide_ids, result.decoy_string,
-                                                   result.decoy_is_prefix, protein_fdr);
-        protein_fdr_applied = true;
+        protein_fdr_applied = ProSEAlgorithm::applyCompleteSetProteinFDR(run.protein_ids, run.peptide_ids, result.decoy_string,
+                                                                         result.decoy_is_prefix, protein_fdr, true,
+                                                                         run.inference_only_peptide_ids);
       }
+      run.inference_only_peptide_ids = PeptideIdentificationList(); // used by the protein FDR only
       // The protein FDR changed the PSMs after the search collected its statistics: recount them
       // from the final PSMs, as the ProSE tool does.
       if (ok)
@@ -1305,8 +1306,7 @@ namespace OpenMS::WASM
       const auto it = sessions.find(model_path);
       if (it != sessions.end()) return *it->second;
       // The threads as ProSEAlgorithm gives them to PeptDeepRescoring (the threads OpenMP computes with), and the
-      // default batch size of the inference classes, ML::PEPTDEEP_DEFAULT_BATCH_SIZE (which the 'batch_size' parameters of
-      // PeptDeepRescoring and ProSEAlgorithm default to, too): 128 in WebAssembly, 500 elsewhere.
+      // default batch size of the inference classes.
 #ifdef _OPENMP
       const int threads = std::max(1, omp_get_max_threads());
 #else

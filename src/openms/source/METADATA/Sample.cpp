@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/Sample.h>
+#include <OpenMS/CONCEPT/EnumHelpers.h>
 
 #include <algorithm>
 
@@ -178,34 +179,17 @@ namespace OpenMS
 
   StringList Sample::getAllNamesOfSampleState()
   {
-    StringList names;
-    names.reserve(static_cast<size_t>(SampleState::SIZE_OF_SAMPLESTATE));
-    for (size_t i = 0; i < static_cast<size_t>(SampleState::SIZE_OF_SAMPLESTATE); ++i)
-    {
-      names.push_back(NamesOfSampleState[i]);
-    }
-    return names;
+    return Helpers::enumNames(NamesOfSampleState, SampleState::SIZE_OF_SAMPLESTATE);
   }
 
   const std::string& Sample::sampleStateToString(SampleState state)
   {
-    if (state == SampleState::SIZE_OF_SAMPLESTATE)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_SAMPLESTATE");
-    }
-    return NamesOfSampleState[static_cast<size_t>(state)];
+    return Helpers::enumToName(NamesOfSampleState, state, SampleState::SIZE_OF_SAMPLESTATE, "SIZE_OF_SAMPLESTATE", OPENMS_PRETTY_FUNCTION);
   }
 
   Sample::SampleState Sample::toSampleState(const std::string& name)
   {
-    auto first = &NamesOfSampleState[0];
-    auto last = &NamesOfSampleState[static_cast<size_t>(SampleState::SIZE_OF_SAMPLESTATE)];
-    const auto it = std::find(first, last, name);
-    if (it == last)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
-    }
-    return static_cast<SampleState>(it - first);
+    return Helpers::enumFromName(NamesOfSampleState, SampleState::SIZE_OF_SAMPLESTATE, name, "Value unknown", OPENMS_PRETTY_FUNCTION);
   }
 
 }

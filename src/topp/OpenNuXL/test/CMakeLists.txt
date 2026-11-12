@@ -19,13 +19,18 @@ endif()
 # Each entry lists the tool-local sources its test has to link: the class it covers plus the
 # NuXL classes that class calls into.
 set(_nuxl_NuXLDeisotoper_sources NuXLDeisotoper.cpp)
+set(_nuxl_NuXLFDR_sources NuXLFDR.cpp NuXLReport.cpp NuXLMarkerIonExtractor.cpp NuXLModificationsGenerator.cpp)
 set(_nuxl_NuXLFragmentAdductDefinition_sources NuXLFragmentAdductDefinition.cpp)
+set(_nuxl_NuXLIonLikelihood_sources NuXLIonLikelihood.cpp)
 set(_nuxl_NuXLModificationsGenerator_sources NuXLModificationsGenerator.cpp)
 set(_nuxl_NuXLParameterParsing_sources NuXLParameterParsing.cpp NuXLFragmentAdductDefinition.cpp
                                        NuXLModificationsGenerator.cpp NuXLPresets.cpp)
 set(_nuxl_NuXLReport_sources NuXLReport.cpp NuXLMarkerIonExtractor.cpp NuXLModificationsGenerator.cpp)
+set(_nuxl_NuXLRescoring_sources NuXLRescoring.cpp)
+set(_nuxl_NuXLSearchIndex_sources NuXLFragmentAdductDefinition.cpp)
+set(_nuxl_NuXLSiteLocalization_sources NuXLSiteLocalization.cpp)
 
-foreach(_nuxl_test NuXLDeisotoper NuXLFragmentAdductDefinition NuXLModificationsGenerator NuXLParameterParsing NuXLReport)
+foreach(_nuxl_test NuXLDeisotoper NuXLFDR NuXLFragmentAdductDefinition NuXLIonLikelihood NuXLModificationsGenerator NuXLParameterParsing NuXLReport NuXLRescoring NuXLSearchIndex NuXLSiteLocalization)
   set(_nuxl_test_sources)
   foreach(_nuxl_source ${_nuxl_${_nuxl_test}_sources})
     list(APPEND _nuxl_test_sources ${CMAKE_CURRENT_SOURCE_DIR}/../source/${_nuxl_source})
@@ -42,9 +47,10 @@ if(NOT TARGET nlohmann_json::nlohmann_json)
 endif()
 target_link_libraries(NuXLParameterParsing_test nlohmann_json::nlohmann_json)
 
-# NuXLReport.cpp uses Boost.Math, and openms_add_tool_class_test() links ${OpenMS_LIBRARIES},
-# which no longer carries Boost now that it is private to libOpenMS.
+# NuXLReport.cpp (also linked by NuXLFDR_test) uses Boost.Math, and openms_add_tool_class_test() links
+# ${OpenMS_LIBRARIES}, which no longer carries Boost now that it is private to libOpenMS.
 if(NOT TARGET Boost::boost)
   find_package(Boost 1.81 REQUIRED)
 endif()
 target_link_libraries(NuXLReport_test Boost::boost)
+target_link_libraries(NuXLFDR_test Boost::boost)

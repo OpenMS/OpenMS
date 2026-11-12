@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <atomic>
 #include <string>
 
 namespace OpenMS
@@ -102,7 +103,9 @@ public:
 protected:
     mutable LogType type_;
     mutable time_t last_invoke_;
-    static int recursion_depth_;
+    /// nesting depth of the running progress displays, shared by all loggers; atomic: loggers of different threads
+    /// (e.g. ProSE's background idXML writer during the next search) start and end displays at the same time
+    static std::atomic<int> recursion_depth_;
 
     mutable ProgressLoggerImpl* current_logger_;
 

@@ -1983,9 +1983,10 @@ This is an alias for getChromatogramByNativeId().
     nb::class_<OpenMS::OnDiscImzMLExperiment>(m, "OnDiscImzMLExperiment",
         "Random-access on-disc reader for imzML (.imzML + .ibd), analogous to OnDiscMSExperiment for indexed mzML.")
         .def(nb::init<>())
-        .def("open", [](OpenMS::OnDiscImzMLExperiment& self, const std::string& imzml_path, const std::string& ibd_path) {
-            self.open(imzml_path, ibd_path);
-        }, "imzml_path"_a, "ibd_path"_a = "", "Open imzML index and companion .ibd file")
+        .def("open", [](OpenMS::OnDiscImzMLExperiment& self, const std::string& imzml_path, const std::string& ibd_path, bool skip_metadata) {
+            self.open(imzml_path, ibd_path, skip_metadata);
+        }, "imzml_path"_a, "ibd_path"_a = "", "skip_metadata"_a = false,
+        "Open imzML index and companion .ibd file; skip_metadata keeps no spectrum metadata (getSpectrum returns peaks, arrays and imzml:x/y/z only)")
         .def("close", [](OpenMS::OnDiscImzMLExperiment& self) { self.close(); },
             "Close the companion .ibd file and release on-disc resources")
         .def("isOpen", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.isOpen(); })
@@ -2003,6 +2004,9 @@ This is an alias for getChromatogramByNativeId().
         .def("getImzMLMeta", [](const OpenMS::OnDiscImzMLExperiment& self) {
             return self.getImzMLMeta();
         }, "Return dataset-level ImzMLMeta parsed during open()")
+        .def("getExperimentalSettings", [](const OpenMS::OnDiscImzMLExperiment& self) {
+            return OpenMS::ExperimentalSettings(self.getExperimentalSettings());
+        }, "Return a copy of the dataset-level ExperimentalSettings parsed during open() (instrument, sample, imzml:* MetaValues)")
         .def("getGeometry",
             [](const OpenMS::OnDiscImzMLExperiment& self) -> OpenMS::MSImagingGeometry { return self.getGeometry(); },
             "Return the shared 2D MSImagingGeometry (0-based pixel grid + (x,y)->spectrum index), built lazily from the index")

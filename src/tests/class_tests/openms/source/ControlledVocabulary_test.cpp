@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <fstream>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/test_config.h>
 
@@ -58,6 +59,48 @@ START_SECTION(bool exists(const std::string& id) const)
 	TEST_EQUAL(cv.exists("OpenMS:5"),true)
 	TEST_EQUAL(cv.exists("OpenMS:6"),true)
 	TEST_EQUAL(cv.exists("OpenMS:7"),false)
+END_SECTION
+
+START_SECTION(([EXTRA] loadFromOBO warns about a wrong parent name of a term defined earlier in the file))
+{
+  std::string obo;
+  NEW_TMP_FILE(obo)
+  {
+    std::ofstream out(obo);
+    out << "[Term]\nid: T:1\nname: Parent\n\n[Term]\nid: T:2\nname: Child\nis_a: T:1 ! NotTheParent\n";
+  }
+  std::stringstream captured;
+  std::streambuf* original = std::cerr.rdbuf(captured.rdbuf());
+  ControlledVocabulary loaded;
+  loaded.loadFromOBO("test", obo);
+  std::cerr.rdbuf(original);
+  TEST_TRUE(captured.str().find("parent term name 'NotTheParent' and id 'T:1' differ") != std::string::npos)
+  TEST_EQUAL(loaded.isChildOf("T:2", "T:1"), true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] copies and moves keep lookups by id working))
+{
+  ControlledVocabulary copied;
+  {
+    ControlledVocabulary original;
+    original.loadFromOBO("bla", OPENMS_GET_TEST_DATA_PATH("ControlledVocabulary.obo"));
+    copied = original;
+    ControlledVocabulary constructed(original);
+    TEST_EQUAL(constructed.getTerm("OpenMS:2").name, "Ford")
+  } // the original is gone: the copy must not refer to its terms
+  TEST_EQUAL(copied.getTerm("OpenMS:2").name, "Ford")
+  TEST_EQUAL(copied.exists("OpenMS:6"), true)
+  TEST_EQUAL(copied.isChildOf("OpenMS:6", "OpenMS:1"), true)
+  ControlledVocabulary moved(std::move(copied));
+  TEST_EQUAL(moved.getTerm("OpenMS:6").name, "Ka")
+  ControlledVocabulary assigned;
+  assigned = std::move(moved);
+  TEST_EQUAL(assigned.getTerm("OpenMS:4").name, "A-Klasse")
+  TEST_EQUAL(assigned.isChildOf("OpenMS:4", "OpenMS:2"), false)
+  TEST_EQUAL(assigned.exists("OpenMS:7"), false)
+  TEST_EXCEPTION(Exception::InvalidValue, assigned.getTerm("OpenMS:7"))
+}
 END_SECTION
 
 START_SECTION(const CVTerm& getTerm(const std::string& id) const)
@@ -255,6 +298,26 @@ START_SECTION(([ControlledVocabulary::CVTerm] std::string ControlledVocabulary::
   std::string ref = R"(<cvParam accession="MS:1001331" cvRef="PSI-MS" name="X\!Tandem:hyperscore" value="12.5"/>)";
   OpenMS::DataValue val = 12.5;
   TEST_STRING_EQUAL(cv.getTerm("MS:1001331").toXMLString("PSI-MS",val),ref)
+}
+END_SECTION
+
+START_SECTION(([ControlledVocabulary::CVTerm] toXMLString(const std::string& ref, const OpenMS::DataValue& value) writes the unit of the given value, not just any unit the term allows))
+{
+  // A term that allows several different units (e.g. both minute and second
+  // for a retention time); unitAccession must reflect which one the value
+  // being written actually carries, not just the first one in CVTerm::units.
+  ControlledVocabulary::CVTerm term;
+  term.id = "MS:1000894";
+  term.name = "retention time";
+  term.units = {"UO:0000031"}; // minute -- deliberately NOT what val below is
+
+  OpenMS::DataValue val("123.4");
+  val.setUnit(10); // UO:0000010 ("second")
+  val.setUnitType(OpenMS::DataValue::UnitType::UNIT_ONTOLOGY);
+
+  std::string xml = term.toXMLString("MS", val);
+  TEST_EQUAL(xml.find("unitAccession=\"UO:0000010\"") != std::string::npos, true)
+  TEST_EQUAL(xml.find("unitAccession=\"UO:0000031\"") != std::string::npos, false)
 }
 END_SECTION
 

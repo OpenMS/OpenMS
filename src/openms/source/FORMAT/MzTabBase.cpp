@@ -13,6 +13,54 @@
 
 namespace OpenMS
 {
+  namespace // file-local helpers for the list cell types
+  {
+    /// Join the cell strings of @p entries with @p sep (the caller handles the "null" case).
+    template <class Entry>
+    std::string joinListCells_(const std::vector<Entry>& entries, char sep)
+    {
+      std::string ret;
+      for (typename std::vector<Entry>::const_iterator it = entries.begin(); it != entries.end(); ++it)
+      {
+        if (it != entries.begin())
+        {
+          ret += sep;
+        }
+        ret += it->toCellString();
+      }
+      return ret;
+    }
+
+    /// Is the (trimmed, case-insensitive) cell @p s "null"?
+    inline bool isNullCell_(const std::string& s)
+    {
+      std::string lower = s;
+      StringUtils::trim(StringUtils::toLower(lower));
+      return lower == "null";
+    }
+
+    /// Split the cell @p s at @p sep, parse each field as an Entry and append it to @p entries.
+    /// If @p reject_null_entries, a "null" field throws Exception::ConversionError, reported from @p function.
+    template <class Entry, bool reject_null_entries = false>
+    void appendListCells_(const std::string& s, char sep, std::vector<Entry>& entries, const char* function = nullptr)
+    {
+      std::vector<std::string> fields;
+      StringUtils::split(s, sep, fields);
+      for (Size i = 0; i != fields.size(); ++i)
+      {
+        Entry e;
+        if constexpr (reject_null_entries)
+        {
+          if (isNullCell_(fields[i]))
+          {
+            throw Exception::ConversionError(__FILE__, __LINE__, function, std::string("MzTabParameter in MzTabParameterList must not be null '") + s);
+          }
+        }
+        e.fromCellString(fields[i]);
+        entries.push_back(e);
+      }
+    }
+  }
 
   bool MzTabParameterList::isNull() const
   {
@@ -30,46 +78,18 @@ namespace OpenMS
     {
       return "null";
     }
-    else
-    {
-      std::string ret;
-      for (std::vector<MzTabParameter>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
-      {
-        if (it != parameters_.begin())
-        {
-          ret += "|";
-        }
-        ret += it->toCellString();
-      }
-      return ret;
-    }
+    return joinListCells_(parameters_, '|');
   }
 
   void MzTabParameterList::fromCellString(const std::string& s)
   {
-    std::string lower = s;
-    StringUtils::trim(StringUtils::toLower(lower));
-
-    if (lower == "null")
+    if (isNullCell_(s))
     {
       setNull(true);
     }
     else
     {
-      std::vector<std::string> fields;
-      StringUtils::split(s, "|", fields);
-      for (Size i = 0; i != fields.size(); ++i)
-      {
-        MzTabParameter p;
-        lower = fields[i];
-        StringUtils::trim(StringUtils::toLower(lower));
-        if (lower == "null")
-        {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("MzTabParameter in MzTabParameterList must not be null '") + s);
-        }
-        p.fromCellString(fields[i]);
-        parameters_.push_back(p);
-      }
+      appendListCells_<MzTabParameter, true>(s, '|', parameters_, OPENMS_PRETTY_FUNCTION);
     }
   }
 
@@ -112,40 +132,18 @@ namespace OpenMS
     {
       return "null";
     }
-    else
-    {
-      std::string ret;
-      for (std::vector<MzTabString>::const_iterator it = entries_.begin(); it != entries_.end(); ++it)
-      {
-        if (it != entries_.begin())
-        {
-          ret += sep_;
-        }
-        ret += it->toCellString();
-      }
-      return ret;
-    }
+    return joinListCells_(entries_, sep_);
   }
 
   void MzTabStringList::fromCellString(const std::string& s)
   {
-    std::string lower = s;
-    StringUtils::trim(StringUtils::toLower(lower));
-
-    if (lower == "null")
+    if (isNullCell_(s))
     {
       setNull(true);
     }
     else
     {
-      std::vector<std::string> fields;
-      StringUtils::split(s, sep_, fields);
-      for (Size i = 0; i != fields.size(); ++i)
-      {
-        MzTabString ts;
-        ts.fromCellString(fields[i]);
-        entries_.push_back(ts);
-      }
+      appendListCells_(s, sep_, entries_);
     }
   }
 
@@ -334,7 +332,10 @@ namespace OpenMS
       ret += CV_label_ + ", ";
       ret += accession_ + ", ";
 
-      if (StringUtils::hasSubstring(name_, ", "))
+      // fromCellString splits on every unquoted comma, not just one followed
+      // by a space, so any comma -- not only ", " -- needs quoting here, or
+      // a name like "N,N-dimethyl" is written unquoted and gains a field.
+      if (StringUtils::hasSubstring(name_, ','))
       {
         ret +="\"" + name_ + "\""; // quote name if it contains a ","
       }
@@ -345,7 +346,7 @@ namespace OpenMS
 
       ret +=std::string(", ");
 
-      if (StringUtils::hasSubstring(value_, ", "))
+      if (StringUtils::hasSubstring(value_, ','))
       {
         ret +="\"" + value_ + "\""; // quote value if it contains a ","
       }
@@ -568,39 +569,18 @@ namespace OpenMS
     {
       return "null";
     }
-    else
-    {
-      std::string ret;
-      for (std::vector<MzTabInteger>::const_iterator it = entries_.begin(); it != entries_.end(); ++it)
-      {
-        if (it != entries_.begin())
-        {
-          ret += ",";
-        }
-        ret += it->toCellString();
-      }
-      return ret;
-    }
+    return joinListCells_(entries_, ',');
   }
 
   void MzTabIntegerList::fromCellString(const std::string& s)
   {
-    std::string lower = s;
-    StringUtils::trim(StringUtils::toLower(lower));
-    if (lower == "null")
+    if (isNullCell_(s))
     {
       setNull(true);
     }
     else
     {
-      std::vector<std::string> fields;
-      StringUtils::split(s, ",", fields);
-      for (Size i = 0; i != fields.size(); ++i)
-      {
-        MzTabInteger ds;
-        ds.fromCellString(fields[i]);
-        entries_.push_back(ds);
-      }
+      appendListCells_(s, ',', entries_);
     }
   }
 
@@ -836,39 +816,18 @@ namespace OpenMS
     {
       return "null";
     }
-    else
-    {
-      std::string ret;
-      for (std::vector<MzTabDouble>::const_iterator it = entries_.begin(); it != entries_.end(); ++it)
-      {
-        if (it != entries_.begin())
-        {
-          ret += "|";
-        }
-        ret += it->toCellString();
-      }
-      return ret;
-    }
+    return joinListCells_(entries_, '|');
   }
 
   void MzTabDoubleList::fromCellString(const std::string& s)
   {
-    std::string lower = s;
-    StringUtils::trim(StringUtils::toLower(lower));
-    if (lower == "null")
+    if (isNullCell_(s))
     {
       setNull(true);
     }
     else
     {
-      std::vector<std::string> fields;
-      StringUtils::split(s, "|", fields);
-      for (Size i = 0; i != fields.size(); ++i)
-      {
-        MzTabDouble ds;
-        ds.fromCellString(fields[i]);
-        entries_.push_back(ds);
-      }
+      appendListCells_(s, '|', entries_);
     }
   }
 

@@ -35,9 +35,8 @@ set(ENABLE_DOCS OFF CACHE BOOL "Indicates whether documentation should be built.
 set(HAS_XSERVER OFF CACHE BOOL "Indicates if an X server is available. If set to Off it will disable certain tests and the doc target.")
 set(INSTALL_OPENMS_EXAMPLES OFF CACHE BOOL "Install the OpenMS example data.")
 
-## The LP solver: COIN-OR needs a (Fortran) LAPACK, which is not built for WebAssembly;
-## the vcpkg manifest provides HiGHS there instead.
-set(LP_SOLVER "HIGHS" CACHE STRING "LP solver to use: AUTO, COIN, GLPK, or HIGHS")
+## The linker is emcc's wasm-ld: cmake/linker.cmake must not probe for -fuse-ld=lld/mold.
+set(OPENMS_LINKER "default" CACHE STRING "Linker to use: auto, lld, mold, gold, bfd or default (see cmake/linker.cmake)")
 
 ## The bundled SQLite (src/openms/extern/SQLiteCpp) loads extensions with dlopen(),
 ## which a WebAssembly module without dynamic linking does not have.

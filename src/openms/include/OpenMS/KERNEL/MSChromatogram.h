@@ -12,6 +12,7 @@
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
+#include <OpenMS/KERNEL/PeakContainerSort.h>
 #include <OpenMS/METADATA/DataArrays.h>
 
 #include <algorithm>
@@ -243,12 +244,9 @@ public:
       // Validate up front, before running the (possibly data-array-indexing) predicate, so a
       // mis-sized array throws instead of being read out of bounds during the sort.
       checkDataArraySizes_();
-      std::vector<Size> indices(this->size());
-      std::iota(indices.begin(), indices.end(), 0);
-      std::stable_sort(indices.begin(), indices.end(), lambda);
-      // 'indices' is a permutation of [0, size): in range and duplicate-free by construction,
-      // so the unchecked path is safe and skips the redundant bounds re-scan.
-      selectUnchecked(indices);
+      // The sorted indices are a permutation of [0, size): in range and duplicate-free by
+      // construction, so the unchecked path is safe and skips the redundant bounds re-scan.
+      selectUnchecked(Internal::stableSortedIndices(this->size(), lambda));
     }
 
     ///@}

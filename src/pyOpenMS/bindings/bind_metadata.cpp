@@ -805,7 +805,12 @@ The optional interpretation part uses ProForma proteoform-ion notation.
         .def("fromString", [](OpenMS::USI& self, const std::string& usi_string) { return self.fromString(usi_string); }, "usi_string"_a, "Parse a USI string into this object")
         .def_static("indexTypeToString", [](OpenMS::USI::IndexType index_type) { return OpenMS::USI::indexTypeToString(index_type); }, "index_type"_a, "Convert index type enum to string")
         .def_static("indexTypeFromString", [](const std::string& type_string) { return OpenMS::USI::indexTypeFromString(type_string); }, "type_string"_a, "Parse index type from string")
-        .def_static("extractBasename", [](const std::string& filepath) { return OpenMS::USI::extractBasename(filepath); }, "filepath"_a, "Extract basename from file path/URI for use as ms_run")
+        .def_static("extractBasename", [](const std::string& filepath) { return OpenMS::USI::extractBasename(filepath); }, "filepath"_a, "Extract root name from file path/URI (no directory, no extension) for use as ms_run")
+        .def_static("nativeIdToUSIIndex", [](const std::string& native_id) -> nb::object {
+            auto result = OpenMS::USI::nativeIdToUSIIndex(native_id);
+            if (!result.has_value()) return nb::none();
+            return nb::make_tuple(result->first, result->second);
+        }, "native_id"_a, "Convert native ID to USI (IndexType, index_string) tuple, or None")
         .def_static("getCVAccession", []() { return OpenMS::USI::getCVAccession(); }, "Get PSI-MS CV accession for USI (MS:1003063)")
         .def_static("getCVName", []() { return OpenMS::USI::getCVName(); }, "Get PSI-MS CV name for USI")
         ;

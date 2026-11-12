@@ -14,22 +14,23 @@
 # For info about this CPack generator and its capabilities, see the CMake documentation
 # For info about productbuild and the flat package format see https://matthew-brett.github.io/docosx/flat_packages.html
 
-# Set the install prefix before generating the plist (needed for RootRelativeBundlePath)
+# The GUI installer of OpenMS-TOPP-GUI installs into the same prefix, so keep it stable.
 set(CPACK_PACKAGING_INSTALL_PREFIX "/Applications/${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}")
-
-# Generate ApplicationsComponent.plist for CPack component
-# Variable APPLICATIONS_COMPONENT_PLIST is set by the included script and visible
-# to package_components.cmake since both are include()'d from the top-level CMakeLists.txt.
-include(${PROJECT_SOURCE_DIR}/cmake/generate_applications_component_plist.cmake)
 set(CPACK_PRODUCTBUILD_IDENTIFIER "de.openms")
 set(CPACK_PRODUCTBUILD_RESOURCES_DIR ${PROJECT_SOURCE_DIR}/cmake/MacOSX)
 set(CPACK_PRODUCTBUILD_BACKGROUND ${OPENMS_LOGOSMALL_NAME})
 set(CPACK_PRODUCTBUILD_BACKGROUND_ALIGNMENT "bottomleft")
 set(CPACK_PRODUCTBUILD_BACKGROUND_SCALING "none")
 
-# Allow installing to every Domain (https://gitlab.kitware.com/cmake/cmake/-/merge_requests/6825).
-set(CPACK_PRODUCTBUILD_DOMAINS TRUE) # system-wide
-set(CPACK_PRODUCTBUILD_DOMAINS_USER TRUE) # user folder
+# Installation domains (https://gitlab.kitware.com/cmake/cmake/-/merge_requests/6825):
+# system-wide or on another volume, not in the user's home folder. The installer of the
+# OpenMS GUI (OpenMS-TOPP-GUI) installs into this installation's folder and allows the same
+# domains, so the two packages always meet; a per-user OpenMS in ~/Applications could not
+# get the GUI.
+set(CPACK_PRODUCTBUILD_DOMAINS TRUE)
+set(CPACK_PRODUCTBUILD_DOMAINS_ANYWHERE TRUE)
+set(CPACK_PRODUCTBUILD_DOMAINS_ROOT TRUE)
+set(CPACK_PRODUCTBUILD_DOMAINS_USER FALSE)
 
 # The installer refuses a macOS older than the deployment target, which package builds set
 # through MACOSX_DEPLOYMENT_TARGET (.github/actions/build/action.yml). The Distribution file
@@ -101,14 +102,10 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README.md
                     WORLD_READ
         COMPONENT   TOPPShell)
 
-## bin/qt.conf, which ExecutePipeline needs to find the Qt platform plugin, is installed in
-## src/openms_gui/CMakeLists.txt.
-
 ## Fix OpenMS dependencies for all executables in the install directory under bin.
-## That affects everything but the bundles (whose Framework folders are symlinked to lib anyway).
 ########################################################### Fix Dependencies
 # Use --no-copy and assume CMake correctly collected all necessary libs already (therefore only fix links to dylibs)
-install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/../../../Applications${CPACK_PACKAGING_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -p \${CMAKE_INSTALL_PREFIX}/${INSTALL_PLUGIN_DIR} -e @rpath/ -n -c)"
+install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/../../../Applications${CPACK_PACKAGING_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -e @rpath/ -n -c)"
         COMPONENT Dependencies
         )
 # We have to do signing after fixing, otherwise signature will be invalidated.
@@ -124,13 +121,9 @@ install(CODE "
         COMPONENT Dependencies
         )
 ## The libraries come in layered components (cmake/install_macros.cmake):
-## library, library_cli and library_gui. productbuild stages each component in
-## its own prefix, so each one fixes and signs the libraries it holds.
-set(_openms_library_components library library_cli)
-if(WITH_GUI)
-  list(APPEND _openms_library_components library_gui)
-endif()
-foreach(_library_component IN LISTS _openms_library_components)
+## library and library_cli. productbuild stages each component in its own
+## prefix, so each one fixes and signs the libraries it holds.
+foreach(_library_component IN ITEMS library library_cli)
   install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -e @rpath/ -n -c)"
           COMPONENT ${_library_component}
           )
@@ -140,7 +133,6 @@ foreach(_library_component IN LISTS _openms_library_components)
           COMPONENT ${_library_component}
           )
 endforeach()
-unset(_openms_library_components)
 
 ## Sign thirdparty components
 foreach(component IN LISTS THIRDPARTY_COMPONENT_GROUP)

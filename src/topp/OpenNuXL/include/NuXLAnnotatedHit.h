@@ -11,6 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/PeptideHit.h> // for PeakAnnotation
 #include <string_view>
+#include <tuple>
 
 namespace OpenMS
 {
@@ -203,6 +204,9 @@ class NuXLAnnotatedHit
   std::string localization_scores = "0";
   std::string best_localization;
   int best_localization_position = -1; // UNKNOWN
+  std::string localization_method; ///< how the site was chosen with NHS localization (see NuXLSiteLocalization::Site); empty otherwise
+  int localization_range_begin = -1; ///< first residue supported by the fragment ions with NHS localization; -1 if none
+  int localization_range_end = -1; ///< last residue supported by the fragment ions with NHS localization (inclusive); -1 if none
   std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
 
   size_t tag_unshifted = 0;
@@ -217,7 +221,10 @@ class NuXLAnnotatedHit
 
   static bool hasBetterScore(const NuXLAnnotatedHit& a, const NuXLAnnotatedHit& b)
   {
-    return a.score > b.score;
+    if (a.score != b.score) return a.score > b.score;
+    // deterministic tie-breaker: copies of a hit that differ only in the precursor adduct or cross-linked nucleotide often score equally
+    return std::tie(a.sequence, a.peptide_mod_index, a.NA_mod_index, a.NA_adduct_amb_index, a.cross_linked_nucleotide, a.isotope_error)
+         < std::tie(b.sequence, b.peptide_mod_index, b.NA_mod_index, b.NA_adduct_amb_index, b.cross_linked_nucleotide, b.isotope_error);
   }
 };
 }

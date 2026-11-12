@@ -22,7 +22,7 @@ There are two main ways to build pyOpenMS:
 If OpenMS is not installed system-wide, you may need to specify:
 
 - `-DOpenMS_DIR="/path/to/OpenMS-build"` - Path to OpenMS build/install directory with CMake config files
-- `-DCMAKE_PREFIX_PATH="/path/to/qt6;/path/to/other/deps"` - Semicolon-separated paths to dependencies (Qt6, etc.)
+- `-DCMAKE_PREFIX_PATH="/path/to/libxml2;/path/to/other/deps"` - Semicolon-separated paths to dependencies
 
 Depending on how OpenMS was built, you may also need:
 

@@ -198,4 +198,21 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION((static bool isValidDate(int year, int month, int day)))
+{
+  TEST_TRUE(Date::isValidDate(2024, 2, 29))  // leap year
+  TEST_FALSE(Date::isValidDate(2023, 2, 29)) // not a leap year
+  TEST_FALSE(Date::isValidDate(1900, 2, 29)) // divisible by 100, not by 400
+  TEST_TRUE(Date::isValidDate(2000, 2, 29))  // divisible by 400
+  TEST_TRUE(Date::isValidDate(2023, 2, 28))
+  TEST_TRUE(Date::isValidDate(2023, 12, 31))
+  TEST_FALSE(Date::isValidDate(2023, 4, 31))
+  TEST_FALSE(Date::isValidDate(2023, 0, 1))  // month 0
+  TEST_FALSE(Date::isValidDate(2023, 13, 1)) // month 13
+  TEST_FALSE(Date::isValidDate(2023, 1, 0))  // day 0
+  TEST_FALSE(Date::isValidDate(0, 1, 1))     // year 0
+  TEST_TRUE(Date::isValidDate(1, 1, 1))
+}
+END_SECTION
+
 END_TEST

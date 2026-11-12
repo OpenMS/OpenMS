@@ -95,7 +95,7 @@
 				<element map="8" id="0" rt="1742.783019904019966" mz="130.141144999999995" it="1.1245e04"/>
 				<element map="9" id="0" rt="1742.783019904019966" mz="131.138180000000006" it="3.90403e04"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.98786105465147"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3250"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3248"/>
 			<UserParam type="float" name="precursor_intensity" value="2.0394580078125e04"/>
@@ -114,7 +114,7 @@
 				<element map="8" id="2" rt="1743.51680611200004" mz="130.141144999999995" it="3.766234e04"/>
 				<element map="9" id="2" rt="1743.51680611200004" mz="131.138180000000006" it="0.0"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.672529574413003"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3254"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3251"/>
 			<UserParam type="float" name="precursor_intensity" value="688.47332763671875"/>
@@ -133,7 +133,7 @@
 				<element map="8" id="3" rt="1743.866057296020017" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="3" rt="1743.866057296020017" mz="131.138180000000006" it="1650.213745"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.88307121957806"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3256"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3253"/>
 			<UserParam type="float" name="precursor_intensity" value="1663.202880859375"/>
@@ -152,7 +152,7 @@
 				<element map="8" id="4" rt="1744.218051088020047" mz="130.141144999999995" it="7206.324219"/>
 				<element map="9" id="4" rt="1744.218051088020047" mz="131.138180000000006" it="2.597336e04"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.913652745342281"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3258"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3255"/>
 			<UserParam type="float" name="precursor_intensity" value="6422.115234375"/>
@@ -171,7 +171,7 @@
 				<element map="8" id="5" rt="1744.567793184000038" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="5" rt="1744.567793184000038" mz="131.138180000000006" it="1410.255737"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.987587006092072"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3260"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3257"/>
 			<UserParam type="float" name="precursor_intensity" value="2302.14306640625"/>
@@ -190,7 +190,7 @@
 				<element map="8" id="6" rt="1744.768806304020018" mz="130.141144999999995" it="346.196167"/>
 				<element map="9" id="6" rt="1744.768806304020018" mz="131.138180000000006" it="3472.339844"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.890648602606221"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3261"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3259"/>
 			<UserParam type="float" name="precursor_intensity" value="1717.0133056640625"/>
@@ -209,7 +209,7 @@
 				<element map="8" id="7" rt="1744.969057360020088" mz="130.141144999999995" it="5294.603516"/>
 				<element map="9" id="7" rt="1744.969057360020088" mz="131.138180000000006" it="1.243039e04"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.938563359161499"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3262"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3247"/>
 			<UserParam type="float" name="precursor_intensity" value="1.32240595703125e04"/>
@@ -228,7 +228,7 @@
 				<element map="8" id="8" rt="1745.622064576019966" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="8" rt="1745.622064576019966" mz="131.138180000000006" it="6955.669434"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.871377109501279"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3267"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3265"/>
 			<UserParam type="float" name="precursor_intensity" value="3107.503662109375"/>
@@ -247,7 +247,7 @@
 				<element map="8" id="9" rt="1745.998533055980033" mz="130.141144999999995" it="1.33409e04"/>
 				<element map="9" id="9" rt="1745.998533055980033" mz="131.138180000000006" it="2.897243e04"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.976173507671127"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3269"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3266"/>
 			<UserParam type="float" name="precursor_intensity" value="1.21468015625e05"/>
@@ -266,7 +266,7 @@
 				<element map="8" id="10" rt="1746.351754207980093" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="10" rt="1746.351754207980093" mz="131.138180000000006" it="2570.347656"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.999521475904884"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3271"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3268"/>
 			<UserParam type="float" name="precursor_intensity" value="4147.79443359375"/>
@@ -285,7 +285,7 @@
 				<element map="8" id="11" rt="1746.700889839979936" mz="130.141144999999995" it="3996.955322"/>
 				<element map="9" id="11" rt="1746.700889839979936" mz="131.138180000000006" it="4704.16748"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.987785782016402"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3273"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3270"/>
 			<UserParam type="float" name="precursor_intensity" value="2980.733154296875"/>
@@ -304,7 +304,7 @@
 				<element map="8" id="12" rt="1747.050020704019971" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="12" rt="1747.050020704019971" mz="131.138180000000006" it="1471.340698"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.813286849511621"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3275"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3272"/>
 			<UserParam type="float" name="precursor_intensity" value="475.63946533203125"/>
@@ -323,7 +323,7 @@
 				<element map="8" id="14" rt="1747.597911424019912" mz="130.141144999999995" it="1302.613647"/>
 				<element map="9" id="14" rt="1747.597911424019912" mz="131.138180000000006" it="2646.557129"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.862531475011613"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3278"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3276"/>
 			<UserParam type="float" name="precursor_intensity" value="231.818145751953125"/>
@@ -342,7 +342,7 @@
 				<element map="8" id="15" rt="1747.799210736000077" mz="130.141144999999995" it="2.409868e04"/>
 				<element map="9" id="15" rt="1747.799210736000077" mz="131.138180000000006" it="1.276115e04"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.981548148755652"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3279"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3264"/>
 			<UserParam type="float" name="precursor_intensity" value="6874.3466796875"/>
@@ -361,7 +361,7 @@
 				<element map="8" id="16" rt="1748.412916048019952" mz="130.141144999999995" it="6626.402344"/>
 				<element map="9" id="16" rt="1748.412916048019952" mz="131.138180000000006" it="2.43944e04"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.799320873640167"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3284"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3282"/>
 			<UserParam type="float" name="precursor_intensity" value="5805.478515625"/>
@@ -380,7 +380,7 @@
 				<element map="8" id="17" rt="1748.793026304000023" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="17" rt="1748.793026304000023" mz="131.138180000000006" it="0.0"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.913760758140264"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3286"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3283"/>
 			<UserParam type="float" name="precursor_intensity" value="2668.87939453125"/>
@@ -399,7 +399,7 @@
 				<element map="8" id="18" rt="1749.347614272000101" mz="130.141144999999995" it="3291.654053"/>
 				<element map="9" id="18" rt="1749.347614272000101" mz="131.138180000000006" it="1.619126e04"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.876730207552954"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3288"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3285"/>
 			<UserParam type="float" name="precursor_intensity" value="1526.4462890625"/>
@@ -418,7 +418,7 @@
 				<element map="8" id="19" rt="1749.697349152020024" mz="130.141144999999995" it="1212.03894"/>
 				<element map="9" id="19" rt="1749.697349152020024" mz="131.138180000000006" it="5521.717285"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.873907025960663"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3290"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3287"/>
 			<UserParam type="float" name="precursor_intensity" value="446.383819580078125"/>
@@ -437,7 +437,7 @@
 				<element map="8" id="20" rt="1750.045111679999991" mz="130.141144999999995" it="4949.558594"/>
 				<element map="9" id="20" rt="1750.045111679999991" mz="131.138180000000006" it="7822.071289"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.892667116251921"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3292"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3289"/>
 			<UserParam type="float" name="precursor_intensity" value="2456.42138671875"/>
@@ -456,7 +456,7 @@
 				<element map="8" id="21" rt="1750.24887379200004" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="21" rt="1750.24887379200004" mz="131.138180000000006" it="694.218445"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.853484478399086"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3293"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3291"/>
 			<UserParam type="float" name="precursor_intensity" value="1119.497802734375"/>
@@ -475,7 +475,7 @@
 				<element map="8" id="22" rt="1750.556580960000019" mz="130.141144999999995" it="1.434522e04"/>
 				<element map="9" id="22" rt="1750.556580960000019" mz="131.138180000000006" it="6.495886e04"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.991314186105533"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3295"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3281"/>
 			<UserParam type="float" name="precursor_intensity" value="7.37794375e04"/>
@@ -494,7 +494,7 @@
 				<element map="8" id="23" rt="1750.757877151979983" mz="130.141144999999995" it="7805.259766"/>
 				<element map="9" id="23" rt="1750.757877151979983" mz="131.138180000000006" it="1.59926e04"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.630530613437253"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3296"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3294"/>
 			<UserParam type="float" name="precursor_intensity" value="7760.8623046875"/>
@@ -513,7 +513,7 @@
 				<element map="8" id="24" rt="1751.419240896000019" mz="130.141144999999995" it="7.958478e04"/>
 				<element map="9" id="24" rt="1751.419240896000019" mz="131.138180000000006" it="0.0"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.870250976427612"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3301"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3299"/>
 			<UserParam type="float" name="precursor_intensity" value="705.9500732421875"/>
@@ -532,7 +532,7 @@
 				<element map="8" id="25" rt="1751.794069663980054" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="25" rt="1751.794069663980054" mz="131.138180000000006" it="1037.405396"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.656708618651597"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3303"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3300"/>
 			<UserParam type="float" name="precursor_intensity" value="265.4268798828125"/>
@@ -551,7 +551,7 @@
 				<element map="8" id="26" rt="1752.145556303999911" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="26" rt="1752.145556303999911" mz="131.138180000000006" it="458.903442"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.512671941834656"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3305"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3302"/>
 			<UserParam type="float" name="precursor_intensity" value="573.2122802734375"/>
@@ -570,7 +570,7 @@
 				<element map="8" id="27" rt="1752.494935535999957" mz="130.141144999999995" it="2605.579834"/>
 				<element map="9" id="27" rt="1752.494935535999957" mz="131.138180000000006" it="1234.455933"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.619240400374852"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3307"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3304"/>
 			<UserParam type="float" name="precursor_intensity" value="725.303466796875"/>
@@ -589,7 +589,7 @@
 				<element map="8" id="28" rt="1752.84356515200011" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="28" rt="1752.84356515200011" mz="131.138180000000006" it="1888.206055"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.804589218551128"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3309"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3306"/>
 			<UserParam type="float" name="precursor_intensity" value="2725.87060546875"/>
@@ -608,7 +608,7 @@
 				<element map="8" id="29" rt="1753.193800207980075" mz="130.141144999999995" it="4451.830566"/>
 				<element map="9" id="29" rt="1753.193800207980075" mz="131.138180000000006" it="4.420824e04"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.972760297954446"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3311"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3308"/>
 			<UserParam type="float" name="precursor_intensity" value="2044.9808349609375"/>
@@ -627,7 +627,7 @@
 				<element map="8" id="30" rt="1753.394436943980054" mz="130.141144999999995" it="1612.155151"/>
 				<element map="9" id="30" rt="1753.394436943980054" mz="131.138180000000006" it="2.217267e04"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.358937417895401"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3312"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3310"/>
 			<UserParam type="float" name="precursor_intensity" value="3010.94482421875"/>
@@ -646,7 +646,7 @@
 				<element map="8" id="31" rt="1753.595705087999932" mz="130.141144999999995" it="1561.941772"/>
 				<element map="9" id="31" rt="1753.595705087999932" mz="131.138180000000006" it="4560.078613"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.921808412670215"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3313"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3298"/>
 			<UserParam type="float" name="precursor_intensity" value="3482.52197265625"/>
@@ -665,7 +665,7 @@
 				<element map="8" id="32" rt="1754.244702784020092" mz="130.141144999999995" it="7500.189453"/>
 				<element map="9" id="32" rt="1754.244702784020092" mz="131.138180000000006" it="7929.740723"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.958929528762269"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3318"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3316"/>
 			<UserParam type="float" name="precursor_intensity" value="844.985107421875"/>
@@ -684,7 +684,7 @@
 				<element map="8" id="33" rt="1754.619654287999993" mz="130.141144999999995" it="1.272217e04"/>
 				<element map="9" id="33" rt="1754.619654287999993" mz="131.138180000000006" it="3667.935791"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.738879373908361"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3320"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3317"/>
 			<UserParam type="float" name="precursor_intensity" value="2647.34423828125"/>
@@ -703,7 +703,7 @@
 				<element map="8" id="34" rt="1754.969150224020041" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="34" rt="1754.969150224020041" mz="131.138180000000006" it="2873.478272"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.842193842165113"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3322"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3319"/>
 			<UserParam type="float" name="precursor_intensity" value="2705.44287109375"/>
@@ -722,7 +722,7 @@
 				<element map="8" id="35" rt="1755.319759375980084" mz="130.141144999999995" it="1534.100342"/>
 				<element map="9" id="35" rt="1755.319759375980084" mz="131.138180000000006" it="1878.919434"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.765316966612013"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3324"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3321"/>
 			<UserParam type="float" name="precursor_intensity" value="541.87567138671875"/>
@@ -741,7 +741,7 @@
 				<element map="8" id="36" rt="1755.668389711979899" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="36" rt="1755.668389711979899" mz="131.138180000000006" it="600.378845"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.343167585959243"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3326"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3323"/>
 			<UserParam type="float" name="precursor_intensity" value="229.676727294921875"/>
@@ -760,7 +760,7 @@
 				<element map="8" id="37" rt="1756.017520927980058" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="37" rt="1756.017520927980058" mz="131.138180000000006" it="0.0"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.487289604712636"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3328"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3325"/>
 			<UserParam type="float" name="precursor_intensity" value="535.63494873046875"/>
@@ -779,7 +779,7 @@
 				<element map="8" id="38" rt="1756.220416288020033" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="38" rt="1756.220416288020033" mz="131.138180000000006" it="0.0"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.734992706313228"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3329"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3327"/>
 			<UserParam type="float" name="precursor_intensity" value="525.657470703125"/>
@@ -798,7 +798,7 @@
 				<element map="8" id="39" rt="1756.42192950402" mz="130.141144999999995" it="387.531708"/>
 				<element map="9" id="39" rt="1756.42192950402" mz="131.138180000000006" it="1001.234497"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.564428319776256"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3330"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3315"/>
 			<UserParam type="float" name="precursor_intensity" value="2828.73046875"/>
@@ -817,7 +817,7 @@
 				<element map="8" id="40" rt="1757.038833600000089" mz="130.141144999999995" it="1367.459229"/>
 				<element map="9" id="40" rt="1757.038833600000089" mz="131.138180000000006" it="1.652005e04"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.944996142609576"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3335"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3333"/>
 			<UserParam type="float" name="precursor_intensity" value="2144.359130859375"/>
@@ -836,7 +836,7 @@
 				<element map="8" id="41" rt="1757.41565033597999" mz="130.141144999999995" it="6078.931152"/>
 				<element map="9" id="41" rt="1757.41565033597999" mz="131.138180000000006" it="1.064923e04"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.817926271538281"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3337"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3334"/>
 			<UserParam type="float" name="precursor_intensity" value="1432.886962890625"/>
@@ -855,7 +855,7 @@
 				<element map="8" id="42" rt="1757.765108335979903" mz="130.141144999999995" it="2581.921875"/>
 				<element map="9" id="42" rt="1757.765108335979903" mz="131.138180000000006" it="2.103262e04"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.862982092324439"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3339"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3336"/>
 			<UserParam type="float" name="precursor_intensity" value="825.64471435546875"/>
@@ -874,7 +874,7 @@
 				<element map="8" id="43" rt="1758.116362591980078" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="43" rt="1758.116362591980078" mz="131.138180000000006" it="1717.634277"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.949904829460714"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3341"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3338"/>
 			<UserParam type="float" name="precursor_intensity" value="2299.224365234375"/>
@@ -893,7 +893,7 @@
 				<element map="8" id="44" rt="1758.464981935979949" mz="130.141144999999995" it="333.718903"/>
 				<element map="9" id="44" rt="1758.464981935979949" mz="131.138180000000006" it="1768.632446"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.856573100511221"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3343"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3340"/>
 			<UserParam type="float" name="precursor_intensity" value="466.862701416015625"/>
@@ -912,7 +912,7 @@
 				<element map="8" id="45" rt="1758.813486064020026" mz="130.141144999999995" it="1156.190063"/>
 				<element map="9" id="45" rt="1758.813486064020026" mz="131.138180000000006" it="3971.793213"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.796614698062909"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3345"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3342"/>
 			<UserParam type="float" name="precursor_intensity" value="765.46368408203125"/>
@@ -931,7 +931,7 @@
 				<element map="8" id="46" rt="1759.014470287979975" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="46" rt="1759.014470287979975" mz="131.138180000000006" it="3660.922363"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.665954058466608"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3346"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3344"/>
 			<UserParam type="float" name="precursor_intensity" value="427.599334716796875"/>
@@ -950,7 +950,7 @@
 				<element map="8" id="47" rt="1759.211998063979991" mz="130.141144999999995" it="5.246362e04"/>
 				<element map="9" id="47" rt="1759.211998063979991" mz="131.138180000000006" it="1.798714e05"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.958650526361283"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3347"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3332"/>
 			<UserParam type="float" name="precursor_intensity" value="1.7091021484375e04"/>
@@ -969,7 +969,7 @@
 				<element map="8" id="48" rt="1759.860744352019992" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="48" rt="1759.860744352019992" mz="131.138180000000006" it="1924.862793"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.949720638051589"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3352"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3350"/>
 			<UserParam type="float" name="precursor_intensity" value="1998.5228271484375"/>
@@ -988,7 +988,7 @@
 				<element map="8" id="49" rt="1760.23372068797994" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="49" rt="1760.23372068797994" mz="131.138180000000006" it="2620.394775"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.866123727622246"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3354"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3351"/>
 			<UserParam type="float" name="precursor_intensity" value="938.8157958984375"/>
@@ -1007,7 +1007,7 @@
 				<element map="8" id="51" rt="1760.931346207979914" mz="130.141144999999995" it="886.457642"/>
 				<element map="9" id="51" rt="1760.931346207979914" mz="131.138180000000006" it="1.188569e04"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.483911565804567"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3358"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3355"/>
 			<UserParam type="float" name="precursor_intensity" value="602.0220947265625"/>
@@ -1026,7 +1026,7 @@
 				<element map="8" id="52" rt="1761.280311136019918" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="52" rt="1761.280311136019918" mz="131.138180000000006" it="0.0"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.564555147358482"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3360"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3357"/>
 			<UserParam type="float" name="precursor_intensity" value="1817.78564453125"/>
@@ -1045,7 +1045,7 @@
 				<element map="8" id="53" rt="1761.628942528019934" mz="130.141144999999995" it="809.903259"/>
 				<element map="9" id="53" rt="1761.628942528019934" mz="131.138180000000006" it="1003.115601"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.564964389453836"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3362"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3359"/>
 			<UserParam type="float" name="precursor_intensity" value="1191.42138671875"/>
@@ -1064,7 +1064,7 @@
 				<element map="8" id="55" rt="1762.031577391979908" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="55" rt="1762.031577391979908" mz="131.138180000000006" it="461.64859"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.923316610112697"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3364"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3349"/>
 			<UserParam type="float" name="precursor_intensity" value="2113.271484375"/>
@@ -1083,7 +1083,7 @@
 				<element map="8" id="56" rt="1762.660693135979955" mz="130.141144999999995" it="2676.712402"/>
 				<element map="9" id="56" rt="1762.660693135979955" mz="131.138180000000006" it="5951.893555"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.756797523374989"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3369"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3367"/>
 			<UserParam type="float" name="precursor_intensity" value="1986.4034423828125"/>
@@ -1102,7 +1102,7 @@
 				<element map="8" id="57" rt="1763.028534192000052" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="57" rt="1763.028534192000052" mz="131.138180000000006" it="694.0224"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.838189476659723"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3371"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3368"/>
 			<UserParam type="float" name="precursor_intensity" value="993.15277099609375"/>
@@ -1121,7 +1121,7 @@
 				<element map="8" id="58" rt="1763.376291904020036" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="58" rt="1763.376291904020036" mz="131.138180000000006" it="938.153625"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.474303761546385"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3373"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3370"/>
 			<UserParam type="float" name="precursor_intensity" value="2810.0908203125"/>
@@ -1140,7 +1140,7 @@
 				<element map="8" id="59" rt="1763.725542191999921" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="59" rt="1763.725542191999921" mz="131.138180000000006" it="0.0"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.699798115213427"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3375"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3372"/>
 			<UserParam type="float" name="precursor_intensity" value="467.714813232421875"/>
@@ -1159,7 +1159,7 @@
 				<element map="8" id="60" rt="1764.077041823999934" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="60" rt="1764.077041823999934" mz="131.138180000000006" it="0.0"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.766649276952137"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3377"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3374"/>
 			<UserParam type="float" name="precursor_intensity" value="1231.610107421875"/>
@@ -1178,7 +1178,7 @@
 				<element map="8" id="61" rt="1764.42616483200004" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="61" rt="1764.42616483200004" mz="131.138180000000006" it="1392.293091"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.935057876123773"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3379"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3376"/>
 			<UserParam type="float" name="precursor_intensity" value="2080.5673828125"/>
@@ -1197,7 +1197,7 @@
 				<element map="8" id="63" rt="1764.828929344020025" mz="130.141144999999995" it="1393.01001"/>
 				<element map="9" id="63" rt="1764.828929344020025" mz="131.138180000000006" it="1942.494019"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.788671622939144"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3381"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3366"/>
 			<UserParam type="float" name="precursor_intensity" value="1968.0782470703125"/>
@@ -1216,7 +1216,7 @@
 				<element map="8" id="64" rt="1765.465679615999989" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="64" rt="1765.465679615999989" mz="131.138180000000006" it="0.0"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.906802625322198"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3386"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3384"/>
 			<UserParam type="float" name="precursor_intensity" value="2332.575439453125"/>
@@ -1235,7 +1235,7 @@
 				<element map="8" id="65" rt="1765.83764694401998" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="65" rt="1765.83764694401998" mz="131.138180000000006" it="0.0"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.998985793034764"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3388"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3385"/>
 			<UserParam type="float" name="precursor_intensity" value="2819.861328125"/>
@@ -1254,7 +1254,7 @@
 				<element map="8" id="66" rt="1766.189503519980008" mz="130.141144999999995" it="7578.345215"/>
 				<element map="9" id="66" rt="1766.189503519980008" mz="131.138180000000006" it="1561.076294"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.261989422461981"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3390"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3387"/>
 			<UserParam type="float" name="precursor_intensity" value="1632.830322265625"/>
@@ -1273,7 +1273,7 @@
 				<element map="8" id="67" rt="1766.538117216000046" mz="130.141144999999995" it="1299.306641"/>
 				<element map="9" id="67" rt="1766.538117216000046" mz="131.138180000000006" it="912.191528"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.568363401441748"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3392"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3389"/>
 			<UserParam type="float" name="precursor_intensity" value="1142.7840576171875"/>
@@ -1292,7 +1292,7 @@
 				<element map="8" id="68" rt="1766.886745519979968" mz="130.141144999999995" it="1033.81665"/>
 				<element map="9" id="68" rt="1766.886745519979968" mz="131.138180000000006" it="2695.041504"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.922672045022913"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3394"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3391"/>
 			<UserParam type="float" name="precursor_intensity" value="4380.9599609375"/>
@@ -1311,7 +1311,7 @@
 				<element map="8" id="69" rt="1767.237360767999917" mz="130.141144999999995" it="1656.197021"/>
 				<element map="9" id="69" rt="1767.237360767999917" mz="131.138180000000006" it="4745.106934"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.857864947438825"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3396"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3393"/>
 			<UserParam type="float" name="precursor_intensity" value="3671.0810546875"/>
@@ -1330,7 +1330,7 @@
 				<element map="8" id="70" rt="1767.437770320000027" mz="130.141144999999995" it="826.554932"/>
 				<element map="9" id="70" rt="1767.437770320000027" mz="131.138180000000006" it="1075.050659"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.760479602573267"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3397"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3395"/>
 			<UserParam type="float" name="precursor_intensity" value="679.1156005859375"/>
@@ -1349,7 +1349,7 @@
 				<element map="8" id="71" rt="1767.638909008019937" mz="130.141144999999995" it="4321.055664"/>
 				<element map="9" id="71" rt="1767.638909008019937" mz="131.138180000000006" it="7225.379395"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.902537022631335"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3398"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3383"/>
 			<UserParam type="float" name="precursor_intensity" value="2808.90576171875"/>
@@ -1368,7 +1368,7 @@
 				<element map="8" id="72" rt="1768.294807807980078" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="72" rt="1768.294807807980078" mz="131.138180000000006" it="509.394653"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.584313819809285"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3403"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3401"/>
 			<UserParam type="float" name="precursor_intensity" value="386.500274658203125"/>
@@ -1387,7 +1387,7 @@
 				<element map="8" id="73" rt="1768.691597519999959" mz="130.141144999999995" it="2094.695557"/>
 				<element map="9" id="73" rt="1768.691597519999959" mz="131.138180000000006" it="4565.646973"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.680498566378667"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3405"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3402"/>
 			<UserParam type="float" name="precursor_intensity" value="1936.651123046875"/>
@@ -1406,7 +1406,7 @@
 				<element map="8" id="76" rt="1769.739936431999922" mz="130.141144999999995" it="9976.670898"/>
 				<element map="9" id="76" rt="1769.739936431999922" mz="131.138180000000006" it="1135.829224"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.236625589664153"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3411"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3408"/>
 			<UserParam type="float" name="precursor_intensity" value="1307.8193359375"/>
@@ -1425,7 +1425,7 @@
 				<element map="8" id="77" rt="1770.091691472000093" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="77" rt="1770.091691472000093" mz="131.138180000000006" it="0.0"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.832930092707534"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3413"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3410"/>
 			<UserParam type="float" name="precursor_intensity" value="425.754119873046875"/>
@@ -1444,7 +1444,7 @@
 				<element map="8" id="79" rt="1770.4933287199799" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="79" rt="1770.4933287199799" mz="131.138180000000006" it="0.0"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.93832296840094"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3415"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3400"/>
 			<UserParam type="float" name="precursor_intensity" value="2.72712890625e04"/>
@@ -1463,7 +1463,7 @@
 				<element map="8" id="81" rt="1771.52382353598" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="81" rt="1771.52382353598" mz="131.138180000000006" it="0.0"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.980365476971952"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3422"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3419"/>
 			<UserParam type="float" name="precursor_intensity" value="161.010345458984375"/>
@@ -1482,7 +1482,7 @@
 				<element map="8" id="82" rt="1771.873667615999921" mz="130.141144999999995" it="858.318115"/>
 				<element map="9" id="82" rt="1771.873667615999921" mz="131.138180000000006" it="1656.571045"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.544684922157297"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3424"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3421"/>
 			<UserParam type="float" name="precursor_intensity" value="724.20562744140625"/>
@@ -1501,7 +1501,7 @@
 				<element map="8" id="83" rt="1772.224923871980081" mz="130.141144999999995" it="3.548124e04"/>
 				<element map="9" id="83" rt="1772.224923871980081" mz="131.138180000000006" it="0.0"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.865072638158663"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3426"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3423"/>
 			<UserParam type="float" name="precursor_intensity" value="1324.65869140625"/>
@@ -1520,7 +1520,7 @@
 				<element map="8" id="84" rt="1772.573774447999995" mz="130.141144999999995" it="1152.169434"/>
 				<element map="9" id="84" rt="1772.573774447999995" mz="131.138180000000006" it="5208.066406"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.950197544795831"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3428"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3425"/>
 			<UserParam type="float" name="precursor_intensity" value="1534.86376953125"/>
@@ -1539,7 +1539,7 @@
 				<element map="8" id="85" rt="1772.921410111980094" mz="130.141144999999995" it="955.587036"/>
 				<element map="9" id="85" rt="1772.921410111980094" mz="131.138180000000006" it="3755.124023"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.629210935392424"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3430"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3427"/>
 			<UserParam type="float" name="precursor_intensity" value="1.0813203125e04"/>
@@ -1558,7 +1558,7 @@
 				<element map="8" id="87" rt="1773.319349056019973" mz="130.141144999999995" it="1.217935e05"/>
 				<element map="9" id="87" rt="1773.319349056019973" mz="131.138180000000006" it="3.35244e05"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.992548454112852"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3432"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3417"/>
 			<UserParam type="float" name="precursor_intensity" value="4093.343505859375"/>
@@ -1577,7 +1577,7 @@
 				<element map="8" id="88" rt="1773.979792303980048" mz="130.141144999999995" it="1596.083374"/>
 				<element map="9" id="88" rt="1773.979792303980048" mz="131.138180000000006" it="7466.27002"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.687673676974978"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3437"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3435"/>
 			<UserParam type="float" name="precursor_intensity" value="808.18023681640625"/>
@@ -1596,7 +1596,7 @@
 				<element map="8" id="89" rt="1774.363405135979974" mz="130.141144999999995" it="2516.972168"/>
 				<element map="9" id="89" rt="1774.363405135979974" mz="131.138180000000006" it="1022.479736"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.847600434023093"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3439"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3436"/>
 			<UserParam type="float" name="precursor_intensity" value="4959.62109375"/>
@@ -1615,7 +1615,7 @@
 				<element map="8" id="90" rt="1774.713635056019939" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="90" rt="1774.713635056019939" mz="131.138180000000006" it="1562.058838"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.736295003897377"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3441"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3438"/>
 			<UserParam type="float" name="precursor_intensity" value="993.91802978515625"/>
@@ -1634,7 +1634,7 @@
 				<element map="8" id="91" rt="1775.063012752020086" mz="130.141144999999995" it="2.653605e04"/>
 				<element map="9" id="91" rt="1775.063012752020086" mz="131.138180000000006" it="0.0"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.691217453495848"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3443"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3440"/>
 			<UserParam type="float" name="precursor_intensity" value="1587.71826171875"/>
@@ -1653,7 +1653,7 @@
 				<element map="8" id="92" rt="1775.411505775980004" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="92" rt="1775.411505775980004" mz="131.138180000000006" it="3258.112305"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.515941320858601"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3445"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3442"/>
 			<UserParam type="float" name="precursor_intensity" value="1536.871826171875"/>
@@ -1672,7 +1672,7 @@
 				<element map="8" id="93" rt="1775.758728960000099" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="93" rt="1775.758728960000099" mz="131.138180000000006" it="833.652344"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.635527827684788"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3447"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3444"/>
 			<UserParam type="float" name="precursor_intensity" value="227.353057861328125"/>
@@ -1691,7 +1691,7 @@
 				<element map="8" id="94" rt="1775.960187919979944" mz="130.141144999999995" it="1883.602539"/>
 				<element map="9" id="94" rt="1775.960187919979944" mz="131.138180000000006" it="5820.137695"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.852930343534903"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3448"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3446"/>
 			<UserParam type="float" name="precursor_intensity" value="1012.636474609375"/>
@@ -1710,7 +1710,7 @@
 				<element map="8" id="95" rt="1776.162656848020106" mz="130.141144999999995" it="1424.967041"/>
 				<element map="9" id="95" rt="1776.162656848020106" mz="131.138180000000006" it="4154.729981"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.789711202972479"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3449"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3434"/>
 			<UserParam type="float" name="precursor_intensity" value="775.54150390625"/>
@@ -1729,7 +1729,7 @@
 				<element map="8" id="96" rt="1776.779259167999953" mz="130.141144999999995" it="3315.724121"/>
 				<element map="9" id="96" rt="1776.779259167999953" mz="131.138180000000006" it="1.624707e04"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.885269768028697"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3454"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3452"/>
 			<UserParam type="float" name="precursor_intensity" value="3388.57080078125"/>
@@ -1748,7 +1748,7 @@
 				<element map="8" id="97" rt="1777.150975087979987" mz="130.141144999999995" it="2405.638428"/>
 				<element map="9" id="97" rt="1777.150975087979987" mz="131.138180000000006" it="4005.520508"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.608145568248851"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3456"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3453"/>
 			<UserParam type="float" name="precursor_intensity" value="6904.43017578125"/>
@@ -1767,7 +1767,7 @@
 				<element map="8" id="98" rt="1777.499844223980062" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="98" rt="1777.499844223980062" mz="131.138180000000006" it="2358.898438"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.973941378275121"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3458"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3455"/>
 			<UserParam type="float" name="precursor_intensity" value="1177.83984375"/>
@@ -1786,7 +1786,7 @@
 				<element map="8" id="99" rt="1777.849350623999953" mz="130.141144999999995" it="3.611553e04"/>
 				<element map="9" id="99" rt="1777.849350623999953" mz="131.138180000000006" it="0.0"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.910033520369248"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3460"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3457"/>
 			<UserParam type="float" name="precursor_intensity" value="2825.875732421875"/>
@@ -1805,7 +1805,7 @@
 				<element map="8" id="100" rt="1778.200469231999932" mz="130.141144999999995" it="348.323578"/>
 				<element map="9" id="100" rt="1778.200469231999932" mz="131.138180000000006" it="2314.927002"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.628713798787137"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3462"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3459"/>
 			<UserParam type="float" name="precursor_intensity" value="726.5743408203125"/>
@@ -1824,7 +1824,7 @@
 				<element map="8" id="101" rt="1778.549196544020106" mz="130.141144999999995" it="899.349365"/>
 				<element map="9" id="101" rt="1778.549196544020106" mz="131.138180000000006" it="8269.316406"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.899581787276555"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3464"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3461"/>
 			<UserParam type="float" name="precursor_intensity" value="2146.493408203125"/>
@@ -1843,7 +1843,7 @@
 				<element map="8" id="103" rt="1778.950610512019921" mz="130.141144999999995" it="511.813599"/>
 				<element map="9" id="103" rt="1778.950610512019921" mz="131.138180000000006" it="4331.0625"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.89542108054795"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3466"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3451"/>
 			<UserParam type="float" name="precursor_intensity" value="9265.9423828125"/>
@@ -1862,7 +1862,7 @@
 				<element map="8" id="104" rt="1779.565720351979962" mz="130.141144999999995" it="0.0"/>
 				<element map="9" id="104" rt="1779.565720351979962" mz="131.138180000000006" it="2671.044434"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.773161649703979"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3471"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3469"/>
 			<UserParam type="float" name="precursor_intensity" value="1451.0751953125"/>
@@ -1881,7 +1881,7 @@
 				<element map="8" id="105" rt="1779.939807568019887" mz="130.141144999999995" it="1537.661255"/>
 				<element map="9" id="105" rt="1779.939807568019887" mz="131.138180000000006" it="3094.490234"/>
 			</groupedElementList>
-			<UserParam type="float" name="precursor_purity" value="1.0"/>
+			<UserParam type="float" name="precursor_purity" value="0.916101574897766"/>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=3473"/>
 			<UserParam type="string" name="id_scan_id" value="controllerType=0 controllerNumber=1 scan=3470"/>
 			<UserParam type="float" name="precursor_intensity" value="1256.671142578125"/>

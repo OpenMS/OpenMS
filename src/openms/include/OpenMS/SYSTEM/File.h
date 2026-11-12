@@ -184,9 +184,11 @@ public:
     /**
       @brief Resolves a partial file name to a documentation file in the doc-folder.
 
-      Using find() to locate the documentation file under OPENMS_DATA_PATH,
-      OPENMS_SOURCE_PATH, OPENMS_BINARY_PATH + "/../../doc" (or a variation for
-      MacOS packages)
+      Using find() to locate the documentation file, searching in this order:
+      OPENMS_BINARY_PATH + "/../../doc", OPENMS_SOURCE_PATH + "/../../doc",
+      getOpenMSDataPath() + "/../../doc", getOpenMSDataPath() + "/../doc" (the share/doc
+      of an installation), the compiled-in documentation path of the build tree and of
+      the installation (and, for MacOS packages, their Documentation folders)
 
       Will return the filename with the full path to the local documentation. If
       this call fails, try the web documentation
@@ -207,8 +209,8 @@ public:
     */
     static std::string getUniqueName(bool include_hostname = true);
 
-    /// Returns the OpenMS data path (resolved from the compiled-in path and executable location;
-    /// the OPENMS_DATA_PATH environment variable is only used as a last-resort fallback)
+    /// Returns the OpenMS data path (resolved from the compiled-in path and executable location; the OPENMS_DATA_PATH
+    /// environment variable is only used as a last-resort fallback). @exception Exception::FileNotFound if none is found
     static std::string getOpenMSDataPath();
 
     /**
@@ -222,7 +224,7 @@ public:
       @brief Extract list of directories from a concatenated string (usually $PATH).
 
       Depending on platform, the components are split based on ":" (Linux/Mac) or ";" (Windows).
-      All paths use the '/' as separator and end in '/'.
+      Empty components are skipped. All paths use the '/' as separator and end in '/'.
       E.g. for 'PATH=/usr/bin:/home/unicorn' the result is {"/usr/bin/", "/home/unicorn/"}
             or 'PATH=c:\\temp;c:\\Windows' the result is {"c:/temp/", "c:/Windows/"}
 
@@ -234,7 +236,7 @@ public:
       @brief Extract list of directories from an explicit concatenated path string.
 
       Depending on platform, the components are split based on ":" (Linux/Mac) or ";" (Windows).
-      All paths use the '/' as separator and end in '/'.
+      Empty components are skipped. All paths use the '/' as separator and end in '/'.
       Note: the path string is passed as input to enable proper testing (env vars are usually read-only).
     */
     static StringList getPathLocations(const std::string& path);
@@ -257,9 +259,16 @@ public:
     /**
       @brief Searches for an executable with the given name.
 
-      Looks next to the current executable (and, on macOS, next to the app bundle it is in) and finally,
-      for layered installs, in the bin/ directory of the prefix whose share/OpenMS is the compiled-in
-      install data path (see CMake option OPENMS_INSTALL_DATA_PATH).
+      Looks, in this order:
+        - next to the current executable (and, on macOS, next to the app bundle it is in),
+        - for layered installs (not on Windows), in the bin/ directory of the prefix whose
+          share/OpenMS is the compiled-in install data path (see CMake option OPENMS_INSTALL_DATA_PATH),
+        - in the directories of the PATH environment variable (see getPathLocations()), in their
+          order; relative entries are skipped. On Windows, @p toolName with ".exe" appended is
+          tried first. Only an executable file (see executable()) is returned from there.
+
+      The first existing file (not a directory) is returned. Executable permission is checked
+      only for the PATH entries.
 
       @param[in] toolName The executable to search for.
       @exception FileNotFound is thrown, if the tool executable was not found.

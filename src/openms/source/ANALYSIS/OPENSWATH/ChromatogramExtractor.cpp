@@ -199,23 +199,6 @@ namespace OpenMS
     return false;
   }
 
-  int ChromatogramExtractor::getFilterNr_(const std::string& filter)
-  {
-    if (filter == "tophat")
-    {
-      return 1;
-    }
-    else if (filter == "bartlett")
-    {
-      return 2;
-    }
-    else
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "Filter either needs to be tophat or bartlett");
-    }
-  }
-
   void ChromatogramExtractor::populatePeptideRTMap_(OpenMS::TargetedExperiment& transition_exp, double rt_extraction_window)
   {
       // Store the peptide retention times in an intermediate map
