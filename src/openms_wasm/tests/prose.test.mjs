@@ -1068,7 +1068,9 @@ test("searchFiles: a file that cannot be read ends the search inside its step, w
   const settings = (reports) => ({ parameters: { ...prose6, "rescore": false }, onProgress: (r) => reports.push(r) });
   const checkReports = (reports, how) => {
     const last = reports.at(-1);
-    assert.ok(reports.some((r) => r.event === "end" && r.label === fileSteps[0]), `${how}: the step of a.mzML ended`);
+    // (the reports without those of setProgress, for the messages)
+    const steps = JSON.stringify(reports.filter((r) => r.event !== "progress").map((r) => [r.event, r.label, r.depth, r.file]));
+    assert.ok(reports.some((r) => r.event === "end" && r.label === fileSteps[0]), `${how}: the step of a.mzML ended: ${steps}`);
     assert.ok(!reports.some((r) => r.event === "end" && r.label === fileSteps[1]), `${how}: the step of b.mzML is not reported as ended`);
     assert.ok(!(last.event === "end" && fileSteps.includes(last.label)), `${how}: the last report is not the end of a file's step: ${JSON.stringify(last)}`);
     assert.equal(last.file, 1, `${how}: the last report is one of b.mzML: ${JSON.stringify(last)}`);
