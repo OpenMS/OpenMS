@@ -24,5 +24,11 @@ export interface ThreadSupport {
 /** Whether threads are available here, and if not, why. */
 export function threadSupport(): ThreadSupport;
 
+/**
+ * Whether the 64-bit build (package @openms/openms-wasm64-mt: memory up to 16 GB instead of 4 GB) can start here
+ * (Memory64, shared), and if not, why. The 64-bit build is a package of its own: this loader starts the 32-bit builds.
+ */
+export function memory64Support(): ThreadSupport;
+
 /** Starts OpenMS: the threaded build where threads are available, else the single-threaded one. */
 export default function createOpenMS(options?: OpenMSOptions): Promise<MainModule>;

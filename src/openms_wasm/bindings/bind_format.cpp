@@ -157,7 +157,7 @@ namespace OpenMS::WASM
     void fastaStore(const FASTAFile& f, const std::string& path, const JS::FASTAEntries& entries)
     {
       std::vector<FASTAFile::FASTAEntry> result;
-      const unsigned n = entries["length"].as<unsigned>();
+      const unsigned n = static_cast<unsigned>(lengthOf(entries));
       for (unsigned i = 0; i < n; ++i)
       {
         const val e = entries[i];

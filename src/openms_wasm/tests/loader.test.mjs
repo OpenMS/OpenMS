@@ -34,6 +34,18 @@ test("Node.js gets the threaded build", { skip }, async () => {
   assert.deepEqual(m.getThreadingInfo(), { threaded: true, available: true, numThreads: 2 });
 });
 
+test("memory64Support: the 64-bit build where the engine has shared 64-bit memory", { skip }, async () => {
+  const { memory64Support } = await loader();
+  const support = memory64Support();
+  assert.equal(typeof support.supported, "boolean");
+  assert.equal(typeof support.reason, "string");
+  // Node.js 24 and newer create 64-bit memories from JavaScript; Node.js 22 validates such a module, but its
+  // WebAssembly.Memory does not take the BigInt sizes the module's glue passes
+  const major = Number(process.versions.node.split(".")[0]);
+  if (major >= 24) assert.ok(support.supported, support.reason);
+  if (major <= 22) assert.ok(!support.supported && /no 64-bit WebAssembly memory/.test(support.reason), support.reason);
+});
+
 test("threads: false gives the single-threaded build", { skip }, async () => {
   const { default: createOpenMS } = await loader();
   const m = await createOpenMS({ ...quiet, threads: false, numThreads: 4 });

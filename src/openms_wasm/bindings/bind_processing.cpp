@@ -23,6 +23,8 @@
 #include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
 
+#include <limits>
+
 using namespace emscripten;
 
 namespace OpenMS::WASM
@@ -140,6 +142,18 @@ namespace OpenMS::WASM
     void pickerPickExperiment(const PeakPickerHiRes& p, const PeakMap& in, PeakMap& out) { p.pickExperiment(in, out); }
     void pickerPickExperimentChecked(const PeakPickerHiRes& p, const PeakMap& in, PeakMap& out, bool check_spectrum_type) { p.pickExperiment(in, out, check_spectrum_type); }
 
+    /// new NLargest(n): its parameter n is an int, which NLargest(UInt) wraps for n beyond 2^31 - 1 (bound with OMS_FN,
+    /// which checks that n is an integer from 0 to 2^32 - 1)
+    NLargest* nlargestWithCount(UInt n)
+    {
+      if (n > static_cast<UInt>(std::numeric_limits<int>::max()))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "the number of peaks n has to be at most 2147483647",
+                                      std::to_string(n));
+      }
+      return new NLargest(n);
+    }
+
     template <typename Filter> void filterSpectrum(Filter& f, MSSpectrum& s) { f.filter(s); }
     template <typename Filter> void filterChromatogram(Filter& f, MSChromatogram& c) { f.filter(c); }
     template <typename Filter> void filterExperiment(Filter& f, PeakMap& e) { f.filterExperiment(e); }
@@ -243,7 +257,7 @@ EMSCRIPTEN_BINDINGS(openms_processing)
 
   class_<NLargest, base<DefaultParamHandler>>("NLargest")
     .constructor<>()
-    .constructor<UInt>()
+    .constructor(OMS_FN(&nlargestWithCount)) // (constructor<UInt>() would truncate silently)
     .function("filterPeakSpectrum", OMS_FN(&filterPeakSpectrum<NLargest>))
     .function("filterPeakMap", OMS_FN(&filterPeakMap<NLargest>))
     ;

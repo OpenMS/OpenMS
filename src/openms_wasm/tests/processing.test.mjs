@@ -116,6 +116,18 @@ for (const sn of [1, 4]) {
   });
 }
 
+test("NLargest: the number of peaks is an integer within range", () => {
+  // constructor<UInt>() let -1 and 2^31 through (wasm32: a fatal WebAssembly.Exception for some, wasm64: 4294967295);
+  // now a guarded factory (bind_processing.cpp)
+  using([new OpenMS.NLargest(3)], (nlargest) => assert.equal(nlargest.getParameterValues().n, 3));
+  for (const bad of [-1, 2.5, 2 ** 32, NaN]) {
+    assert.throws(() => new OpenMS.NLargest(bad), /InvalidValue: the value '.*' was used but is not valid; an integer argument has to be an integer from 0 to 4294967295/,
+                  `NLargest(${bad})`);
+  }
+  // NLargest(UInt) keeps n in an int parameter, which wrapped larger ones
+  assert.throws(() => new OpenMS.NLargest(2 ** 31), /InvalidValue: the value '2147483648' was used but is not valid; the number of peaks n has to be at most 2147483647/);
+});
+
 test("smoothing and filtering", () => {
   using([new OpenMS.MSSpectrum(), new OpenMS.GaussFilter(), new OpenMS.NLargest(2), new OpenMS.Normalizer()],
     (spectrum, gauss, nlargest, normalizer) => {
