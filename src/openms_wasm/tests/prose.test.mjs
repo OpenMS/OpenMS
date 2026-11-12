@@ -1099,8 +1099,11 @@ test("searchFiles: a file that cannot be read ends the search inside its step, w
     assert.deepEqual(OpenMS.FS.readdir("/unreadable").filter((f) => !f.startsWith(".")), []);
     // the next search reports its steps from the outermost level again
     reports = [];
-    withSpectraCopies(OpenMS, ["a.mzML"], (present) => using([searchFiles(OpenMS, present, {}, settings(reports))], () => {}));
-    assertProgressSteps(reports, ["Searching a.mzML (1 of 1)..."], [readingSpectra]);
+    let summary;
+    withSpectraCopies(OpenMS, ["a.mzML"], (present) => using([searchFiles(OpenMS, present, {}, settings(reports))], (set) => {
+      summary = set.summary();
+    }));
+    assertProgressSteps(reports, ["Searching a.mzML (1 of 1)..."], [pooledStep(summary), readingSpectra]);
   } finally {
     for (const f of OpenMS.FS.readdir("/unreadable").filter((f) => !f.startsWith("."))) OpenMS.FS.unlink(`/unreadable/${f}`);
     OpenMS.FS.rmdir("/unreadable");
