@@ -13,7 +13,7 @@
 
 #include "js_types.h"
 
-#include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/PROSE/ProSEAlgorithm.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 
 #include <cstddef>
