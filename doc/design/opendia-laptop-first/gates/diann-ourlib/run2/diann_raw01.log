@@ -1,0 +1,72 @@
+
+DIA-NN 2.2.0 Academia  (Data-Independent Acquisition by Neural Networks)
+Compiled on May 29 2025 15:05:00
+Current date and time: Thu Nov 12 11:09:31 2026
+Logical CPU cores: 20
+Thread number set to 14
+Output will be filtered at 0.5 FDR
+WARNING: unrecognised option [--gen-decoys]
+Cysteine carbamidomethylation enabled as a fixed modification
+Min precursor charge set to 1
+Max precursor charge set to 5
+DIA-NN will automatically optimise the mass accuracy for the first run of the experiment, use this mode for preliminary analyses only
+WARNING: protein inference is enabled but no FASTA provided - is this intended?
+WARNING: protein inference will only be performed for precursors identified with global q-value <= 0.05 or q-value <= 0.05.
+WARNING: it is recommended to set the q-value threshold to 5% or lower.
+
+1 files will be processed
+[0:00] Loading spectral library /speclib/lib_targets.tsv
+WARNING: no neutral loss information found in the library - assuming fragments without losses
+[0:03] Finding proteotypic peptides (assuming that the list of UniProt ids provided for each peptide is complete)
+[0:03] Spectral library loaded: 0 protein isoforms, 0 protein groups and 300223 precursors in 132724 elution groups.
+[0:04] Initialising library
+[0:06] Saving the library to /speclib/lib_targets.tsv.skyline.speclib
+Could not save /speclib/lib_targets.tsv.skyline.speclib
+
+[0:06] File #1/1
+[0:06] Loading run /in/raw01.mzML
+[3:35] Pre-processing...
+[3:37] 2928 MS1 and 292883 MS2 scans in 976 (inferred) and 976 (encoded) cycles, 294785 precursors in range
+[3:38] Calibrating with mass accuracies 21 (MS1), 25 (MS2)
+[5:31] RT window set to 1.56011
+[5:31] Peak width: 2.768
+[5:31] Scan window radius set to 6
+[5:31] Recommended MS1 mass accuracy setting: 2.3 ppm
+[8:26] Optimised mass accuracy: 8 ppm
+[9:20] Main search
+[9:44] Removing low confidence identifications
+[9:45] Removing interfering precursors
+[9:45] Training neural networks on 8692 target and 5285 decoy PSMs
+[10:08] Number of IDs at 0.01 FDR: 2357
+[10:08] No protein annotation, skipping protein q-value calculation
+[10:08] Quantification
+[10:10] Quantification information saved to /w/tmp/_in_raw01_mzML.quant
+
+[10:10] Cross-run analysis
+[10:10] Reading quantification information: 1 files
+[10:12] Quantifying peptides
+[10:12] Quantifying proteins
+[10:12] No protein annotation, skipping protein q-value calculation
+[10:12] No protein annotation, skipping global protein q-value calculation
+[10:12] Compressed report saved to /w/report_raw01.parquet. Use R 'arrow' or Python 'PyArrow' package to process
+[10:12] Stats report saved to /w/report_raw01.stats.tsv
+
+The following warnings or errors (in alphabetic order) were detected at least the indicated number of times:
+WARNING: it is recommended to set the q-value threshold to 5% or lower. : 1
+WARNING: no neutral loss information found in the library - assuming fragments without losses : 1
+WARNING: protein inference is enabled but no FASTA provided - is this intended? : 1
+WARNING: protein inference will only be performed for precursors identified with global q-value <= 0.05 or q-value <= 0.05. : 1
+WARNING: unrecognised option [--gen-decoys] : 1
+Finished
+
+
+How to cite:
+using DIA-NN: Demichev et al, Nature Methods, 2020, https://www.nature.com/articles/s41592-019-0638-x
+analysing Scanning SWATH: Messner et al, Nature Biotechnology, 2021, https://www.nature.com/articles/s41587-021-00860-4
+analysing PTMs: Steger et al, Nature Communications, 2021, https://www.nature.com/articles/s41467-021-25454-1
+analysing dia-PASEF: Demichev et al, Nature Communications, 2022, https://www.nature.com/articles/s41467-022-31492-0
+analysing Slice-PASEF: Szyrwiel et al, biorxiv, 2022, https://doi.org/10.1101/2022.10.31.514544
+plexDIA / multiplexed DIA: Derks et al, Nature Biotechnology, 2023, https://www.nature.com/articles/s41587-022-01389-w
+CysQuant: Huang et al, Redox Biology, 2023, https://doi.org/10.1016/j.redox.2023.102908
+using QuantUMS: Kistner at al, biorxiv, 2023, https://doi.org/10.1101/2023.06.20.545604
+[10:12] Log saved to /w/report_raw01.log.txt

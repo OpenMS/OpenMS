@@ -1,0 +1,54 @@
+
+DIA-NN 2.2.0 Academia  (Data-Independent Acquisition by Neural Networks)
+Compiled on May 29 2025 15:05:00
+Current date and time: Thu Nov 12 10:54:27 2026
+Logical CPU cores: 20
+/usr/diann-2.2.0/diann-linux --f /in/raw01.mzML --lib /w/lib_targets.tsv --threads 14 --verbose 1 --out /w/report_raw01.parquet --qvalue 1 --gen-decoys --unimod4 --min-pr-charge 1 --max-pr-charge 5 --temp /w/tmp 
+
+Thread number set to 14
+Output will be filtered at 0.5 FDR
+WARNING: unrecognised option [--gen-decoys]
+Cysteine carbamidomethylation enabled as a fixed modification
+Min precursor charge set to 1
+Max precursor charge set to 5
+DIA-NN will automatically optimise the mass accuracy for the first run of the experiment, use this mode for preliminary analyses only
+WARNING: protein inference is enabled but no FASTA provided - is this intended?
+WARNING: protein inference will only be performed for precursors identified with global q-value <= 0.05 or q-value <= 0.05.
+WARNING: it is recommended to set the q-value threshold to 5% or lower.
+
+1 files will be processed
+[0:00] Loading spectral library /w/lib_targets.tsv
+WARNING: no neutral loss information found in the library - assuming fragments without losses
+[0:04] Finding proteotypic peptides (assuming that the list of UniProt ids provided for each peptide is complete)
+[0:04] Spectral library loaded: 0 protein isoforms, 0 protein groups and 300223 precursors in 132724 elution groups.
+[0:05] Initialising library
+[0:07] Saving the library to /w/lib_targets.tsv.skyline.speclib
+
+[0:07] File #1/1
+[0:07] Loading run /in/raw01.mzML
+[3:48] Pre-processing...
+[3:50] 2928 MS1 and 292883 MS2 scans in 976 (inferred) and 976 (encoded) cycles, 294785 precursors in range
+[3:50] Calibrating with mass accuracies 21 (MS1), 25 (MS2)
+[6:02] RT window set to 1.56011
+[6:02] Peak width: 2.768
+[6:02] Scan window radius set to 6
+[6:02] Recommended MS1 mass accuracy setting: 2.3 ppm
+[9:11] Optimised mass accuracy: 8 ppm
+[9:58] Main search
+[10:24] Removing low confidence identifications
+[10:24] Removing interfering precursors
+[10:25] Training neural networks on 8692 target and 5285 decoy PSMs
+[10:47] Number of IDs at 0.01 FDR: 2357
+[10:47] No protein annotation, skipping protein q-value calculation
+[10:47] Quantification
+[10:49] Quantification information saved to /w/tmp/_in_raw01_mzML.quant
+
+[10:49] Cross-run analysis
+[10:49] Reading quantification information: 1 files
+[10:50] Quantifying peptides
+[10:50] Quantifying proteins
+[10:50] No protein annotation, skipping protein q-value calculation
+[10:50] No protein annotation, skipping global protein q-value calculation
+[10:50] Compressed report saved to /w/report_raw01.parquet. Use R 'arrow' or Python 'PyArrow' package to process
+[10:50] Stats report saved to /w/report_raw01.stats.tsv
+

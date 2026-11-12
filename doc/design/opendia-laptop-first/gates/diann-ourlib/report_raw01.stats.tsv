@@ -1,0 +1,2 @@
+File.Name	Precursors.Identified	Proteins.Identified	Total.Quantity	MS1.Signal	MS2.Signal	FWHM.Scans	FWHM.RT	Median.Mass.Acc.MS1	Median.Mass.Acc.MS1.Corrected	Median.Mass.Acc.MS2	Median.Mass.Acc.MS2.Corrected	Normalisation.Instability	Median.RT.Prediction.Acc	Average.Peptide.Length	Average.Peptide.Charge	Average.Missed.Tryptic.Cleavages
+/in/raw01.mzML	2357	0	3.15567e+08	1689665581138	169064041909	2.309	0.063	1.43528	0.267451	3.49225	0.903089	0	0.256119	11.919	2.228	0.079

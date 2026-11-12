@@ -1,0 +1,13 @@
+(7553, 71) ['Run.Index', 'Run', 'Channel', 'Precursor.Id', 'Modified.Sequence', 'Stripped.Sequence', 'Precursor.Charge', 'Precursor.Lib.Index', 'Decoy', 'Proteotypic', 'Precursor.Mz', 'Protein.Ids', 'Protein.Group', 'Protein.Names', 'Genes', 'RT', 'iRT', 'Predicted.RT', 'Predicted.iRT', 'IM', 'iIM', 'Predicted.IM', 'Predicted.iIM', 'Precursor.Quantity', 'Precursor.Normalised', 'Ms1.Area', 'Ms1.Normalised', 'Ms1.Apex.Area', 'Ms1.Apex.Mz.Delta', 'Normalisation.Factor', 'Quantity.Quality', 'Empirical.Quality', 'Normalisation.Noise', 'Ms1.Profile.Corr', 'Evidence', 'Mass.Evidence', 'Channel.Evidence', 'Ms1.Total.Signal.Before', 'Ms1.Total.Signal.After', 'RT.Start', 'RT.Stop', 'FWHM', 'PG.TopN', 'PG.MaxLFQ', 'Genes.TopN', 'Genes.MaxLFQ', 'Genes.MaxLFQ.Unique', 'PG.MaxLFQ.Quality', 'Genes.MaxLFQ.Quality', 'Genes.MaxLFQ.Unique.Quality', 'Q.Value', 'PEP', 'Global.Q.Value', 'Lib.Q.Value', 'Peptidoform.Q.Value', 'Global.Peptidoform.Q.Value', 'Lib.Peptidoform.Q.Value', 'PTM.Site.Confidence', 'Site.Occupancy.Probabilities', 'Protein.Sites']
+unmatched 0
+DIA-NN ourlib q<=0.01: 2357, entrapment 22, FDP_c 0.0188
+DIA-NN ourlib N@FDP_c 1% 2161
+DIA-NN ourlib N@FDP_c 2% 2425
+ProteoBench ref (2743 human) found by DIA-NN ourlib at 1%: 2121
+   A not in population        185 found 75
+   B no window within 10 s    166 found 87
+   C wrong window won         113 found 64
+   D right window, below cut  866 found 548
+   E accepted                 1413 found 1347
+D11FWT q<=0.01 human 1603 | DIA-NN ourlib human 2335 | both 1487 | ours only 116 | DIA-NN only 848
+DIA-NN-only in our population: 744 not in population: 104

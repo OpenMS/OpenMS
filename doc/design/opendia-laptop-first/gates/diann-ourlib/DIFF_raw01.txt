@@ -1,0 +1,16 @@
+DIA-NN q<=0.01 targets 2357 entrapment 22
+in our population 2250
+our winner within 10 s of DIA-NN RT: 0.91 | any candidate within 10 s: 0.953
+E/accepted by us (pct>=0.999) 1699 entrap 7
+not 551 entrap 12
+DIA-NN-accepted, our pct<0.999: our winner at DIA-NN RT (<=10s) 359 of 551 | median our pct 0.5305 | median linear pct 0.9494
+                    DIA-NN only (ours <p99.9)  both (ours >=p99.9)
+Evidence                               2.5898         3.747200e+00
+Ms1.Profile.Corr                       0.5694         7.983000e-01
+Quantity.Quality                       0.6404         8.283000e-01
+Empirical.Quality                      0.0000         0.000000e+00
+FWHM                                   0.0553         5.930000e-02
+PEP                                    0.0115         2.000000e-04
+Ms1.Area                          907335.4000         3.477433e+06
+Precursor.Quantity                350934.5300         2.137723e+06
+DIA-NN RT - Predicted.RT (min) robust sd, ours-missed vs both: 0.251 0.275
