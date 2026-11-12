@@ -39,6 +39,28 @@ export function threadSupport() {
 }
 
 /**
+ * Whether the 64-bit build (package @openms/openms-wasm64-mt: Memory64, memory up to 16 GB instead of 4 GB)
+ * can start here, and if not, why. It needs the engine's 64-bit memory with the JavaScript API that creates it
+ * (BigInt sizes, address "i64": Chrome and Firefox, Node.js 24 and newer; not Safari, nor Node.js 22, whose
+ * engine validates such a module but whose WebAssembly.Memory does not take these sizes), and that memory
+ * shared between threads, as the module creates it. Probed by creating such a memory of 0 pages.
+ */
+export function memory64Support() {
+  const memory = (shared) => new WebAssembly.Memory({ initial: 0n, maximum: 1n, shared, address: "i64" });
+  try {
+    memory(false);
+  } catch (e) {
+    return { supported: false, reason: `no 64-bit WebAssembly memory (Memory64) here (${e?.message ?? e})` };
+  }
+  try {
+    memory(true);
+  } catch (e) {
+    return { supported: false, reason: `64-bit WebAssembly memory cannot be shared here (${e?.message ?? e})` };
+  }
+  return { supported: true, reason: "64-bit WebAssembly memory (Memory64), shared" };
+}
+
+/**
  * Starts OpenMS.
  * @param options.threads    "auto" (default): the threaded build where threadSupport() allows it,
  *                           else the single-threaded one; true / false: that build. (The threaded

@@ -721,6 +721,10 @@ OpenMS.getThreadingInfo();   // { threaded: false, available: false, numThreads:
 - `getThreadingInfo()`: `threaded`, the build that runs; `available`, whether it can start
   threads; `numThreads`, the threads OpenMS computes with.
 - `threadSupport()` gives the same decision before loading, with the reason.
+- `memory64Support()` tells, the same way, whether the 64-bit build `@openms/openms-wasm64-mt` (a package
+  of its own, see "Building") can start here: it needs shared 64-bit memory with its JavaScript API (Chrome,
+  Firefox, Node.js 24 and newer; not Safari). An app can import that package where it is supported and a
+  search needs more than 4 GB, and this one elsewhere.
 - Asking for more than one thread (`numThreads`) where there are none logs one console
   warning with the reason.
 - `createOpenMS({ threads: false })` (or `true`) forces a build; `@openms/openms-wasm/st` and
