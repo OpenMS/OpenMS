@@ -392,6 +392,11 @@ compare them, also for open searches). What differs:
   the function, the file and its message (`SearchFilesError: searchFiles(): provideFile(1, '/input/1/run.mzML')
   threw: ...`). `releaseFile` is also called for the file whose writing or search failed (what it throws
   then is ignored), so a `releaseFile` that removes the file if it is there cleans up in every case.
+- A fatal error of the module that `provideFile` or `releaseFile` raises, a `WebAssembly.RuntimeError`
+  (an abort, e.g. of a write into the file system that the memory cannot hold) or a raw
+  `WebAssembly.Exception` (see "What is not guarded"), is different: the search ends without calling
+  into the module again (no `releaseFile`), and `searchFiles()` throws that error itself, unchanged, so
+  that the caller can tell it apart from an ordinary error and start a new module.
 - `ProSEResultSet._debugSetNativeId()` reads the input files again, which are gone.
 
 Without `provideFile`, all files have to be there for the whole call: in Node.js, mount their directory
