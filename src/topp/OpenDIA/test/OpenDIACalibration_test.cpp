@@ -147,6 +147,11 @@ int main()
   require(result.rt_map.sigma > 0.5 && result.rt_map.sigma < 5.0, "RT sigma " + std::to_string(result.rt_map.sigma));
   require(std::fabs(result.ms2_offset_ppm - PPM_SHIFT) < 0.5, "ppm offset " + std::to_string(result.ms2_offset_ppm));
   require(result.ms2_sigma_ppm > 0.3 && result.ms2_sigma_ppm < 3.0, "ppm sigma " + std::to_string(result.ms2_sigma_ppm));
+  // Fragments scatter N(0, 1 ppm) over an almost empty background: the fitted half width keeps the whole signal
+  // (beyond 3 sigma) and stays inside the search window about the offset.
+  require(result.ms2_tolerance_ppm > 3.0 && result.ms2_tolerance_ppm <= options.search_ppm - std::fabs(result.ms2_offset_ppm) + 1e-9,
+          "fitted ppm tolerance " + std::to_string(result.ms2_tolerance_ppm));
+  require(result.ms2_fit.background_share < 0.2, "fitted background share " + std::to_string(result.ms2_fit.background_share));
   require(result.has_im, "IM model");
   require(std::fabs(result.runIM(1.0) - (1.0 + IM_SHIFT)) < 0.005, "IM offset " + std::to_string(result.runIM(1.0)));
   require(result.im_sigma < 0.01, "IM sigma " + std::to_string(result.im_sigma));

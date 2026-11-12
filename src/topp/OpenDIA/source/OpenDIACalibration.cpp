@@ -74,6 +74,81 @@ namespace OpenMS::OpenDIA
       return 1.4826 * median_(std::move(deviations));
     }
 
+    /**
+      Fragment mass tolerance from the data. The errors (ppm) of the strongest centroid inside the uncalibrated
+      +-search_ppm window are modelled as signal, a two-component Gaussian scale mixture about a common centre
+      (centroid scatter grows as intensity falls, so one Gaussian underfits the tail), plus background uniform
+      over the window. The half width is the distance from the centre at which the signal density falls to the
+      background density, i.e. where a centroid becomes more likely background than signal. Fitted by EM.
+      Returns the window edge (search_ppm - |centre|) if the background share vanishes.
+    */
+    MassToleranceFit fitMassTolerance_(const std::vector<double>& ppm, double search_ppm, double centre, double sigma)
+    {
+      MassToleranceFit fit;
+      fit.centre = centre;
+      const double window = 2.0 * search_ppm;
+      double w0 = 0.6, w1 = 0.3;
+      double s0 = std::max(0.7 * sigma, 0.05), s1 = std::max(2.0 * sigma, 0.1);
+      const double norm = 1.0 / std::sqrt(2.0 * PI);
+      std::vector<double> r0(ppm.size()), r1(ppm.size());
+      for (int iteration = 0; iteration < 500; ++iteration)
+      {
+        const double background = std::max(1.0 - w0 - w1, 0.0) / window;
+        double sum0 = 0.0, sum1 = 0.0, var0 = 0.0, var1 = 0.0, centre_num = 0.0;
+        for (std::size_t i = 0; i < ppm.size(); ++i)
+        {
+          const double d = ppm[i] - fit.centre;
+          const double g0 = w0 * norm / s0 * std::exp(-0.5 * d * d / (s0 * s0));
+          const double g1 = w1 * norm / s1 * std::exp(-0.5 * d * d / (s1 * s1));
+          const double total = g0 + g1 + background;
+          r0[i] = total > 0.0 ? g0 / total : 0.0;
+          r1[i] = total > 0.0 ? g1 / total : 0.0;
+          sum0 += r0[i];
+          sum1 += r1[i];
+          var0 += r0[i] * d * d;
+          var1 += r1[i] * d * d;
+          centre_num += (r0[i] + r1[i]) * ppm[i];
+        }
+        const double n = static_cast<double>(ppm.size());
+        const double new_centre = sum0 + sum1 > 0.0 ? centre_num / (sum0 + sum1) : fit.centre;
+        const double new_s0 = sum0 > 0.0 ? std::max(std::sqrt(var0 / sum0), 0.01) : s0;
+        const double new_s1 = sum1 > 0.0 ? std::max(std::sqrt(var1 / sum1), 0.01) : s1;
+        const double change = std::fabs(new_centre - fit.centre) + std::fabs(new_s0 - s0) + std::fabs(new_s1 - s1) +
+                              std::fabs(sum0 / n - w0) + std::fabs(sum1 / n - w1);
+        fit.centre = new_centre;
+        s0 = new_s0;
+        s1 = new_s1;
+        w0 = sum0 / n;
+        w1 = sum1 / n;
+        if (change < 1e-7)
+        {
+          break;
+        }
+      }
+      fit.weights = {w0, w1};
+      fit.sigmas = {s0, s1};
+      fit.background_share = std::max(1.0 - w0 - w1, 0.0);
+      const double edge = std::max(search_ppm - std::fabs(fit.centre), 0.1);
+      const double background = fit.background_share / window;
+      fit.half_width = edge;
+      // Signal density decreases monotonically in |d|: bisect for the crossing inside the window.
+      const auto signal = [&](double d)
+      {
+        return w0 * norm / s0 * std::exp(-0.5 * d * d / (s0 * s0)) + w1 * norm / s1 * std::exp(-0.5 * d * d / (s1 * s1));
+      };
+      if (background > 0.0 && signal(edge) < background && signal(0.0) > background)
+      {
+        double lo = 0.0, hi = edge;
+        for (int step = 0; step < 60; ++step)
+        {
+          const double mid = 0.5 * (lo + hi);
+          (signal(mid) > background ? lo : hi) = mid;
+        }
+        fit.half_width = 0.5 * (lo + hi);
+      }
+      return fit;
+    }
+
     double pearson_(const std::vector<double>& x, const std::vector<double>& y)
     {
       const double n = static_cast<double>(x.size());
@@ -363,9 +438,10 @@ namespace OpenMS::OpenDIA
           const double target = member.fragment_mz[f];
           const double tolerance = target * options_.search_ppm * 1e-6;
           // Trace intensity is the sum over all points inside the m/z and 1/K0 tolerance (diaPASEF spreads one
-          // fragment over many mobility scans). The mass error and 1/K0 are intensity-weighted means over the
-          // same points, which collapses the per-scan centroid scatter of one ion.
-          double total = 0.0, weighted_ppm = 0.0, weighted_im = 0.0;
+          // fragment over many mobility scans). The 1/K0 is the intensity-weighted mean over the same points. The
+          // mass error is that of the strongest point, the centroid the search later matches, so the fitted
+          // tolerance describes single centroids.
+          double total = 0.0, strongest = 0.0, strongest_ppm = 0.0, weighted_im = 0.0;
           for (auto point = spectrum.MZBegin(target - tolerance); point != spectrum.end() && point->getMZ() <= target + tolerance; ++point)
           {
             const double value = point->getIntensity();
@@ -383,13 +459,17 @@ namespace OpenMS::OpenDIA
               }
             }
             total += value;
-            weighted_ppm += value * (point->getMZ() - target) / target * 1e6;
+            if (value > strongest)
+            {
+              strongest = value;
+              strongest_ppm = (point->getMZ() - target) / target * 1e6;
+            }
             weighted_im += value * point_im;
           }
           intensity[f] = static_cast<float>(total);
           if (total > 0.0)
           {
-            ppm[f] = static_cast<float>(weighted_ppm / total);
+            ppm[f] = static_cast<float>(strongest_ppm);
             im[f] = static_cast<float>(weighted_im / total);
           }
         }
@@ -1155,11 +1235,17 @@ namespace OpenMS::OpenDIA
       rt_residuals.push_back(std::fabs(residual));
       const auto& member = panel_[member_of.at(anchor.precursor_id)];
       const auto& candidate = best[member_of.at(anchor.precursor_id)];
-      for (std::size_t f = 0; f < member.fragment_count; ++f)
+      // Mass errors at the apex spectrum and its two neighbours: the peak core, where most points are signal.
+      const std::size_t first_scan = candidate.apex > 0 ? candidate.apex - 1 : 0;
+      const std::size_t last_scan = std::min(member.rt.size() - 1, candidate.apex + 1);
+      for (std::size_t scan = first_scan; scan <= last_scan; ++scan)
       {
-        if (member.intensity[candidate.apex][f] > 0.0f)
+        for (std::size_t f = 0; f < member.fragment_count; ++f)
         {
-          ppm_values.push_back(member.ppm[candidate.apex][f]);
+          if (member.intensity[scan][f] > 0.0f)
+          {
+            ppm_values.push_back(member.ppm[scan][f]);
+          }
         }
       }
       if (anchor.observed_im > 0.0 && anchor.library_im > 0.0)
@@ -1176,7 +1262,10 @@ namespace OpenMS::OpenDIA
     {
       result.ms2_offset_ppm = median_(ppm_values);
       result.ms2_sigma_ppm = robustSigma_(ppm_values, result.ms2_offset_ppm);
-      result.ms2_tolerance_ppm = std::max(options_.ms2_sigma_multiple * result.ms2_sigma_ppm, 0.1);
+      // Half width where a centroid becomes more likely background than signal (fitted, no sigma multiple).
+      result.ms2_fit = fitMassTolerance_(ppm_values, options_.search_ppm, result.ms2_offset_ppm, result.ms2_sigma_ppm);
+      result.ms2_offset_ppm = result.ms2_fit.centre;
+      result.ms2_tolerance_ppm = std::max(result.ms2_fit.half_width, 0.1);
     }
     result.im_points = im_pairs.size();
     if (saw_im_ && im_pairs.size() >= 30)
@@ -1271,7 +1360,10 @@ namespace OpenMS::OpenDIA
         << ", \"abs_residual_p95_s\": " << r.rt_p95_s << ", \"abs_residual_p99_s\": " << r.rt_p99_s
         << ", \"tolerance_half_width_s\": " << r.rt_tolerance_s << "},\n"
         << "  \"ms2_mz\": {\"offset_ppm\": " << r.ms2_offset_ppm << ", \"sigma_ppm\": " << r.ms2_sigma_ppm
-        << ", \"tolerance_half_width_ppm\": " << r.ms2_tolerance_ppm << ", \"points\": " << r.ms2_points << "},\n"
+        << ", \"tolerance_half_width_ppm\": " << r.ms2_tolerance_ppm << ", \"points\": " << r.ms2_points
+        << ", \"tolerance_model\": \"signal_background_crossing\", \"signal_weights\": [" << r.ms2_fit.weights[0] << ", "
+        << r.ms2_fit.weights[1] << "], \"signal_sigmas_ppm\": [" << r.ms2_fit.sigmas[0] << ", " << r.ms2_fit.sigmas[1]
+        << "], \"background_share\": " << r.ms2_fit.background_share << "},\n"
         << "  \"im\": {\"available\": " << (r.has_im ? "true" : "false") << ", \"intercept_vssc\": " << r.im_intercept
         << ", \"slope\": " << r.im_slope << ", \"sigma_vssc\": " << r.im_sigma << ", \"tolerance_half_width_vssc\": " << r.im_tolerance
         << ", \"points\": " << r.im_points << "}\n}\n";

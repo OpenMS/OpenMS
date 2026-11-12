@@ -67,7 +67,7 @@ namespace OpenMS::OpenDIA
     double anchor_fdr = 0.01;
     // Tolerance multiples of the robust error widths.
     double rt_sigma_multiple = 4.0;
-    double ms2_sigma_multiple = 5.0;
+    double ms2_sigma_multiple = 5.0; ///< Unused since the mass tolerance is fitted (MassToleranceFit); kept for the JSON options record.
     double im_sigma_multiple = 4.0;
   };
 
@@ -89,6 +89,16 @@ namespace OpenMS::OpenDIA
     std::size_t anchor_scan = 0; ///< Index of the calibration apex in trace_rt.
     std::vector<double> trace_rt; ///< Spectrum RTs of the stored trace slice (at most +-64 spectra around the apex).
     std::vector<std::array<float, 6>> trace; ///< Fragment intensities per stored spectrum (unused fragments are 0).
+  };
+
+  /** @brief Data-driven fragment mass tolerance: signal (two-Gaussian scale mixture) plus uniform background, in ppm. */
+  struct MassToleranceFit
+  {
+    double centre = 0.0;                  ///< Common centre of the signal components (the mass offset).
+    std::array<double, 2> weights{};      ///< Shares of the narrow and the wide signal component.
+    std::array<double, 2> sigmas{};       ///< Widths of the narrow and the wide signal component.
+    double background_share = 0.0;        ///< Share of errors that are uniform background over the search window.
+    double half_width = 0.0;              ///< Distance from the centre where signal density equals background density.
   };
 
   /** @brief Calibrated library-to-run coordinates and extraction tolerances. */
@@ -113,6 +123,7 @@ namespace OpenMS::OpenDIA
     double rt_p50_s = 0.0, rt_p95_s = 0.0, rt_p99_s = 0.0;
     double rt_tolerance_s = 0.0; ///< Half width, rt_sigma_multiple x rt_map.sigma.
     double ms2_offset_ppm = 0.0, ms2_sigma_ppm = 0.0, ms2_tolerance_ppm = 0.0;
+    MassToleranceFit ms2_fit; ///< Model behind ms2_tolerance_ppm.
     std::size_t ms2_points = 0;
     bool has_im = false;
     double im_intercept = 0.0, im_slope = 1.0; ///< observed 1/K0 = intercept + slope x library 1/K0.
@@ -239,7 +250,7 @@ namespace OpenMS::OpenDIA
       std::array<double, FRAGMENTS> library_intensity{};
       // One entry per isolating spectrum, in RT order.
       std::vector<double> rt;
-      std::vector<std::array<float, FRAGMENTS>> intensity, ppm, im;
+      std::vector<std::array<float, FRAGMENTS>> intensity, ppm, im; ///< ppm: error of the strongest centroid.
     };
 
     struct Candidate
