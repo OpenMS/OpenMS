@@ -1003,7 +1003,7 @@ namespace OpenMS
         OPENMS_LOG_INFO << "[ProSE] Calibration: in " << from_neighbours << " of " << chunks.size() << " RT chunks of the "
                         << "precursor model most calibration PSMs are false matches (more than a quarter are decoy hits): "
                         << (from_neighbours == chunks.size() ? "one offset for the run, the median of all calibration PSMs."
-                                                             : "they take the offset of their neighbours.") << std::endl;
+                                                             : "they take the model of their neighbours.") << std::endl;
       }
       for (Size i = 0; i < precursor_errors.size(); ++i)
       {

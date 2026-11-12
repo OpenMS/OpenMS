@@ -769,7 +769,7 @@ namespace OpenMS
       "'offset' subtracts the median error, 'linear' a line in m/z fitted to the errors (precursor errors against "
       "the precursor m/z, fragment errors against the fragment m/z), each per retention-time chunk "
       "(calibration:recalibrate_rt_chunks) and interpolated between the chunks; a chunk of the precursor model whose "
-      "calibration PSMs are mostly false matches (more than a quarter of them decoy hits) takes the offset of its "
+      "calibration PSMs are mostly false matches (more than a quarter of them decoy hits) takes the model of its "
       "neighbours. The precursor m/z and the fragment "
       "peaks of the searched MS2 spectra are corrected in place (the candidate retrieval, the scoring and the PSMs' "
       "mass errors use the corrected values; a PeakMap passed to the library is corrected too); the PSMs report the "
