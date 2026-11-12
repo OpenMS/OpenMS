@@ -253,6 +253,78 @@ int main()
     require(json.str().find("windowed_second_pass") == std::string::npos, "default JSON has no windowed marker");
   }
 
+  // Windowed pass whose stage-1 map is supported only for library RT >= 40 and is 150 s late below it (like an
+  // extrapolation past the stage-1 anchors). Members below the support are collected and searched to the run start,
+  // so anchors and the final map recover the true early RT.
+  {
+    OpenDIA::CalibrationWindow window;
+    for (double library_rt = 0.0; library_rt <= 100.0; library_rt += 2.0)
+    {
+      window.map.library_rt.push_back(library_rt);
+      window.map.run_rt.push_back(trueRT(library_rt) + (library_rt < 40.0 ? 150.0 * (40.0 - library_rt) / 40.0 : 0.0));
+    }
+    window.half_window_s = 60.0;
+    window.half_window_spectra = result.half_window_spectra;
+    window.stage1_kept = result.stage1_kept;
+    window.stage1_sigma_s = result.stage1_sigma_s;
+    window.peak_fwhm_s = result.peak_fwhm_s;
+    const auto run_windowed = [&](const OpenDIA::CalibrationWindow& w)
+    {
+      OpenDIA::CalibrationCollector windowed(library, traml_ids, options, w);
+      std::mt19937 rng3(13);
+      for (double rt = run_start; rt <= run_end; rt += 1.0)
+      {
+        MSSpectrum spectrum;
+        spectrum.setMSLevel(2);
+        spectrum.setRT(rt);
+        Precursor precursor;
+        precursor.setMZ(500.0);
+        precursor.setIsolationWindowLowerOffset(60.0);
+        precursor.setIsolationWindowUpperOffset(60.0);
+        spectrum.setPrecursors({precursor});
+        for (const auto& t : truth)
+        {
+          const double shape = std::exp(-0.5 * std::pow((rt - t.run_rt) / 4.0, 2));
+          if (!t.present || shape < 1e-3)
+          {
+            continue;
+          }
+          for (std::size_t f = 0; f < 6; ++f)
+          {
+            spectrum.emplace_back(t.fragments[f] * (1.0 + PPM_SHIFT * 1e-6), static_cast<float>(t.intensities[f] * shape));
+          }
+        }
+        for (int k = 0; k < 400; ++k)
+        {
+          spectrum.emplace_back(200.0 + 710.0 * uniform(rng3), static_cast<float>(50.0 * uniform(rng3)));
+        }
+        spectrum.sortByPosition();
+        windowed.consumeSpectrum(spectrum);
+      }
+      return windowed.calibrate();
+    };
+    // Without a support range the late early-gradient centres hide those precursors (the old behaviour).
+    const auto unsupported = run_windowed(window);
+    std::size_t early_unsupported = 0;
+    for (const auto& anchor : unsupported.anchors)
+    {
+      early_unsupported += anchor.used && anchor.library_rt < 20.0;
+    }
+    window.support_low = 40.0;
+    const auto supported = run_windowed(window);
+    std::size_t early_supported = 0;
+    for (const auto& anchor : supported.anchors)
+    {
+      early_supported += anchor.used && anchor.library_rt < 20.0;
+    }
+    require(supported.stage3_extended_targets > 0, "no target extended beyond the support");
+    require(early_supported >= 30 && early_supported > early_unsupported + 20,
+            "early anchors with support " + std::to_string(early_supported) + " vs without " + std::to_string(early_unsupported));
+    require(supported.anchor_decoys <= 3, "decoy anchors with extended windows " + std::to_string(supported.anchor_decoys));
+    require(std::fabs(supported.runRT(5.0) - trueRT(5.0)) < 5.0,
+            "early RT map with support " + std::to_string(supported.runRT(5.0)) + " vs " + std::to_string(trueRT(5.0)));
+  }
+
   // Out-of-order spectra are rejected rather than silently mis-ordered.
   OpenDIA::CalibrationCollector unordered(library, traml_ids, options);
   bool threw = false;

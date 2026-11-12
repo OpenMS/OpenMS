@@ -85,6 +85,37 @@ int main()
   throws([] { fitRTMap(std::vector<std::pair<double, double>>(19, {1.0, 1.0})); }, "too few anchors");
   throws([] { fitRTMap(std::vector<std::pair<double, double>>(30, {NAN, 1.0})); }, "non-finite anchors");
 
+  // Monotone map. On a noiseless line every anchor is its own knot, the CV error is 0, and the Theil-Sen end
+  // slopes extrapolate the line exactly.
+  const auto monotone_line = fitMonotoneRTMap(line);
+  check(monotone_line.sigma < 1e-9 && monotone_line.anchors == 100, "monotone: zero CV sigma, no rejection");
+  check(std::fabs(monotone_line(50.25) - 200.5) < 1e-9, "monotone: interpolation");
+  check(std::fabs(monotone_line(-10.0) - 80.0) < 1e-9 && std::fabs(monotone_line(1000.0) - 2100.0) < 1e-9, "monotone: end extrapolation");
+  // A steep start (slope 10 below x = 10, 2 above) sampled by 20 anchors: the end bin of the binned fit spans
+  // the kink and averages it away, the monotone fit follows it.
+  std::vector<std::pair<double, double>> steep;
+  for (int i = 0; i < 20; ++i)
+  {
+    steep.emplace_back(0.5 * i, 10.0 * (0.5 * i) + ((i % 3) - 1.0));
+  }
+  for (int i = 0; i < 200; ++i)
+  {
+    const double x = 10.0 + 0.5 * i;
+    steep.emplace_back(x, 100.0 + 2.0 * (x - 10.0) + ((i % 3) - 1.0));
+  }
+  const auto monotone_steep = fitMonotoneRTMap(steep);
+  const auto binned_steep = fitRTMap(steep, 20);
+  check(std::fabs(monotone_steep(2.0) - 20.0) < 3.0 && monotone_steep(-1.0) < 0.0, "monotone: steep start is followed");
+  check(std::fabs(binned_steep(2.0) - 20.0) > 3.0 * std::fabs(monotone_steep(2.0) - 20.0), "monotone beats binned at the sparse start");
+  // Nondecreasing everywhere, and gross outliers do not move it.
+  auto monotone_noisy = fitMonotoneRTMap(noisy);
+  for (double x = -5.0; x < 105.0; x += 0.37)
+  {
+    check(monotone_noisy(x + 0.37) >= monotone_noisy(x), "monotone: nondecreasing");
+  }
+  check(std::fabs(monotone_noisy(50.25) - 200.5) < 1.0 && monotone_noisy.anchors < noisy.size(), "monotone: outliers rejected");
+  throws([] { fitMonotoneRTMap(std::vector<std::pair<double, double>>(19, {1.0, 1.0})); }, "monotone: too few anchors");
+
   // Two folds of 30 targets on y = 100 + 2x, plus one far-off window per fold and one decoy.
   std::vector<CNNQValueInput> rows;
   std::vector<double> apex, library;

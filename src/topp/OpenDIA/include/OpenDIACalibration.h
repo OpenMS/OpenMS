@@ -40,6 +40,10 @@ namespace OpenMS::OpenDIA
     std::size_t stage1_kept = 0;
     double stage1_sigma_s = 0.0;
     double peak_fwhm_s = 0.0;
+    /// Library RT range of the stage-1 anchors behind @p map. Outside it the map only extrapolates, so the windowed
+    /// pass collects and searches those members from their window to the run edge instead of around the map.
+    double support_low = -std::numeric_limits<double>::infinity();
+    double support_high = std::numeric_limits<double>::infinity();
   };
 
   /** @brief Fixed settings of the identification-free run calibration. */
@@ -114,6 +118,7 @@ namespace OpenMS::OpenDIA
     double em_presence = 0.0; ///< Mean peak responsibility per hypothesis at convergence (diagnostic).
     std::vector<double> em_knots_library, em_knots_run;
     double stage3_half_window_s = 0.0;
+    std::size_t stage3_extended_targets = 0; ///< Windowed pass: targets searched to the run edge (outside the stage-1 support).
     bool windowed = false; ///< Experimental windowed second pass: stages 1 and 2 were skipped, stage 3 centred on the stage-1 map.
     std::size_t half_window_spectra = 0;
     double peak_fwhm_s = 0.0;
@@ -267,9 +272,12 @@ namespace OpenMS::OpenDIA
     std::vector<Candidate> candidates_(std::size_t member, std::size_t half_window, double rt_low, double rt_high,
                                        std::size_t max_candidates, std::size_t min_fragments) const;
 
-    /// Stages 3 and 4 around @p centre (library RT to run RT); throws if too few anchors.
+    /// Stages 3 and 4 around @p centre (library RT to run RT); throws if too few anchors. Targets whose library RT
+    /// is below @p support_low (above @p support_high) and their decoys are searched from the run start (to the run end).
     void finish_(CalibrationResult& result, const std::function<double(double)>& centre, std::size_t half_window,
-                 CalibrationDiagnostics* diagnostics) const;
+                 CalibrationDiagnostics* diagnostics,
+                 double support_low = -std::numeric_limits<double>::infinity(),
+                 double support_high = std::numeric_limits<double>::infinity()) const;
 
     CalibrationOptions options_;
     std::optional<CalibrationWindow> window_;

@@ -370,9 +370,20 @@ namespace OpenMS::OpenDIA
       const double margin = 30.0 + 2.0 * window_->peak_fwhm_s;
       for (auto& member : panel_)
       {
-        const double centre = window_->map(member.is_decoy ? panel_[member.partner].library_rt : member.library_rt);
+        const double target_library_rt = member.is_decoy ? panel_[member.partner].library_rt : member.library_rt;
+        const double centre = window_->map(target_library_rt);
         member.window_low = centre - window_->half_window_s - margin;
         member.window_high = centre + window_->half_window_s + margin;
+        // Beyond the stage-1 anchors the map is an extrapolation with no evidence behind it: collect to the run
+        // edge on that side so stage 3 can find these precursors wherever they elute.
+        if (target_library_rt < window_->support_low)
+        {
+          member.window_low = -std::numeric_limits<double>::infinity();
+        }
+        if (target_library_rt > window_->support_high)
+        {
+          member.window_high = std::numeric_limits<double>::infinity();
+        }
       }
     }
   }
@@ -660,7 +671,8 @@ namespace OpenMS::OpenDIA
           diagnostics->rows[m].stage1_map_rt = map(target_library_rt(m));
         }
       }
-      finish_(result, [&map](double library_rt) { return map(library_rt); }, window_->half_window_spectra, diagnostics);
+      finish_(result, [&map](double library_rt) { return map(library_rt); }, window_->half_window_spectra, diagnostics,
+              window_->support_low, window_->support_high);
       return result;
     }
     CalibrationResult result;
@@ -1072,6 +1084,8 @@ namespace OpenMS::OpenDIA
         window.stage1_kept = result.stage1_kept;
         window.stage1_sigma_s = result.stage1_sigma_s;
         window.peak_fwhm_s = result.peak_fwhm_s;
+        window.support_low = stage1.front().first;
+        window.support_high = stage1.back().first;
         diagnostics->window = window;
       }
       throw;
@@ -1080,7 +1094,8 @@ namespace OpenMS::OpenDIA
   }
 
   void CalibrationCollector::finish_(CalibrationResult& result, const std::function<double(double)>& centre_of,
-                                     std::size_t half_window, CalibrationDiagnostics* diagnostics) const
+                                     std::size_t half_window, CalibrationDiagnostics* diagnostics,
+                                     double support_low, double support_high) const
   {
     const auto target_library_rt = [this](std::size_t m)
     {
@@ -1096,12 +1111,16 @@ namespace OpenMS::OpenDIA
       partner[m] = panel_[m].partner;
       // A decoy is searched around its target's predicted RT, like the target.
       const double centre = centre_of(target_library_rt(m));
+      // Outside the support of the map that sets the centre, search to the run edge on that side (the decoy too).
+      const double library_rt = target_library_rt(m);
+      const double low = library_rt < support_low ? -std::numeric_limits<double>::infinity() : centre - result.stage3_half_window_s;
+      const double high = library_rt > support_high ? std::numeric_limits<double>::infinity() : centre + result.stage3_half_window_s;
+      result.stage3_extended_targets += !is_decoy[m] && (library_rt < support_low || library_rt > support_high);
       if (diagnostics != nullptr)
       {
         diagnostics->rows[m].stage3_centre_rt = centre;
       }
-      const auto candidates = candidates_(m, half_window, centre - result.stage3_half_window_s, centre + result.stage3_half_window_s,
-                                          options_.candidates, options_.min_fragments);
+      const auto candidates = candidates_(m, half_window, low, high, options_.candidates, options_.min_fragments);
       for (const auto& candidate : candidates)
       {
         if (!present[m] || candidate.score > score[m])
@@ -1214,7 +1233,9 @@ namespace OpenMS::OpenDIA
     }
 
     // ---- Stage 4: final RT map and tolerances, fragment mass and mobility models on the anchors.
-    result.rt_map = fitRTMap(anchor_points, mapBins_(anchor_points.size()));
+    // Monotone (isotonic) map: knots follow the anchors, so sparse anchors at the gradient ends set their own
+    // knots; sigma is the cross-validated prediction error, the error of a precursor that is not an anchor.
+    result.rt_map = fitMonotoneRTMap(anchor_points);
     const double cut = std::max(3.0 * result.rt_map.sigma, 3.0);
     std::vector<double> rt_residuals;
     std::unordered_map<std::string, std::size_t> member_of;
@@ -1349,13 +1370,28 @@ namespace OpenMS::OpenDIA
     if (r.windowed)
     {
       // Only written for the experimental windowed pass, so the default file is unchanged.
-      out << ", \"windowed_second_pass\": true, \"centre\": \"stage1_map\"";
+      out << ", \"windowed_second_pass\": true, \"centre\": \"stage1_map\", \"extended_to_run_edge_targets\": " << r.stage3_extended_targets;
     }
     out << "},\n"
         << "  \"rt\": {\"knots_library_rt\": ";
     list(r.rt_map.library_rt);
     out << ", \"knots_run_rt_s\": ";
     list(r.rt_map.run_rt);
+    const auto slope = [&](double value)
+    {
+      if (std::isfinite(value))
+      {
+        out << value;
+      }
+      else
+      {
+        out << "null";
+      }
+    };
+    out << ", \"map\": \"isotonic_l1\", \"low_slope_s\": ";
+    slope(r.rt_map.low_slope);
+    out << ", \"high_slope_s\": ";
+    slope(r.rt_map.high_slope);
     out << ", \"anchors_used\": " << r.rt_map.anchors << ", \"sigma_s\": " << r.rt_map.sigma << ", \"abs_residual_p50_s\": " << r.rt_p50_s
         << ", \"abs_residual_p95_s\": " << r.rt_p95_s << ", \"abs_residual_p99_s\": " << r.rt_p99_s
         << ", \"tolerance_half_width_s\": " << r.rt_tolerance_s << "},\n"
@@ -1457,6 +1493,15 @@ namespace OpenMS::OpenDIA
     result.map.run_rt = rt.at("knots_run_rt_s").get<std::vector<double>>();
     result.map.sigma = rt.at("sigma_s").get<double>();
     result.map.anchors = rt.at("anchors_used").get<std::size_t>();
+    // Explicit end slopes (isotonic maps); older files use the kEndSpan rule.
+    if (rt.contains("low_slope_s") && rt.at("low_slope_s").is_number())
+    {
+      result.map.low_slope = rt.at("low_slope_s").get<double>();
+    }
+    if (rt.contains("high_slope_s") && rt.at("high_slope_s").is_number())
+    {
+      result.map.high_slope = rt.at("high_slope_s").get<double>();
+    }
     result.tolerance_s = rt.at("tolerance_half_width_s").get<double>();
     const auto& x = result.map.library_rt;
     const auto& y = result.map.run_rt;
