@@ -117,3 +117,14 @@ Scripts: peak_parity.py, boundary_rule.py, diann_peak_rule.py, our_boundary_rule
 - Cutting boundaries at the first smoothed minimum loses 37 contained peaks (the cut peak no longer contains DIA-NN's apex). It is worse than a FWHM-scaled cap.
 
 **Not changed in code yet.** Both candidate fixes (profile2 co-elution; a FWHM-scaled boundary cap) change the candidate population that the scorer sees, so they need a decision and a frozen plan before a run.
+
+### 7a. Does a width-scaled boundary cap generalise? (cap_generalisation.py, rtmono/CAP_GENERALISATION_raw01.txt)
+- raw01 covers only a narrow range of widths: our FWHM tertile medians are 1.4 / 1.9 / 2.6 scans. Wider peaks (longer gradients, slower cycles) are tested only by simulation.
+- **Matching DIA-NN, by width tertile:** the k that matches best changes with width (sym: 1.5 / 1.25 / 1.0-1.25 for narrow / mid / wide). DIA-NN's width / our FWHM is 3.7 / 2.9 / 2.5. So DIA-NN is not scale-free itself: it has a minimum width at the sampling limit plus a fixed 6-scan radius set from its run-level peak width. Any single k matches DIA-NN less well at the extremes of this run.
+- **By tailing tertile (hr/hl 0.56 / 1.15 / 2.4):** the symmetric cap fits tailing peaks at k 1.5, but it cuts the tail through the left width. The per-side cap (left k x hl, right k x hr) is the shape-aware form. Its best k is 2.0-3.0 across all strata.
+- **Simulation** (Gaussian and EMG, FWHM 1.5 to 20 scans, counting noise, cap from the noisy FWHM estimate). Share of the true area inside the cap:
+  - Gaussian: 99.6-100% at every width.
+  - Tailing tau/sigma 1: 97.7-99.3% (sym1.25), 98.0-99.3% (side2.5).
+  - Tailing tau/sigma 2: 92.5-96.2% (sym1.25), 94.6-97.2% (side2.5).
+  - The width dependence is small (a slight loss at wide tailing peaks). The tailing dependence dominates.
+- **Conclusion:** a cap in units of the peak's own half widths is scale-free in width. It loses only the far tail of strongly tailing peaks, and less so per side. The k value itself (1.25 FWHM, 2.5 half widths) was chosen on raw01 against DIA-NN. It is a dimensionless shape constant like the existing 5% floor, but it is not derived from the data.
