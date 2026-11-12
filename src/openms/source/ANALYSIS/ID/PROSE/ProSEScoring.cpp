@@ -1473,7 +1473,8 @@ namespace OpenMS
       cal_fi.setParameters(fragmentIndexParameters_(electron_ions));
       cal_fi.build(cal_db);
 
-      cal = runCalibrationPass_(spectra, cal_fi, cal_db, query_ptr);
+      cal = runCalibrationPass_(spectra, cal_fi, cal_db, query_ptr, strategy.have_decoys ? strategy.decoy_string : std::string(),
+                                strategy.is_prefix);
       if (cal.success)
       {
         applyRecalibration_(cal, spectra, query_ptr, evidence_ptr);
