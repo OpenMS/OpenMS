@@ -655,14 +655,22 @@ namespace OpenMS::WASM
   {
     /// Calls the JavaScript function @p f with (@p index, @p path). Returns undefined if it returned (nothing, or a
     /// value that is not a thenable), {thrown} with what it threw, or {promise: true} if it returned a thenable (a
-    /// Promise: an async function). A JavaScript exception must not unwind the C++ frames of a search.
+    /// Promise: an async function). A JavaScript exception must not unwind the C++ frames of a search. A fatal error
+    /// of the module (isFatalJSError(), e.g. an abort of a write into the file system that the memory cannot hold) is
+    /// thrown as JSFatalError instead: the search ends without calling into the module again (no releaseFile), and
+    /// the error reaches the caller of searchFiles() unchanged.
     val callCatching(const val& f, Size index, const std::string& path)
     {
       // (not static: a JavaScript value belongs to the thread that made it)
       const val call = val::global("Function").new_(std::string("f"), std::string("i"), std::string("p"),
         std::string("try { const r = f(i, p); return r != null && typeof r.then === 'function' ? { promise: true } : undefined; }"
                     " catch (e) { return { thrown: e }; }"));
-      return call(f, static_cast<double>(index), path);
+      val outcome = call(f, static_cast<double>(index), path);
+      if (!outcome.isUndefined() && outcome.hasOwnProperty("thrown") && isFatalJSError(outcome["thrown"]))
+      {
+        throw JSFatalError{outcome["thrown"]};
+      }
+      return outcome;
     }
 
     /// The message of a JavaScript value that was thrown
@@ -739,10 +747,14 @@ namespace OpenMS::WASM
           }
           combined.per_file.push_back(std::move(run));
         }
+        catch (const JSFatalError&)
+        {
+          throw; // the module is broken: no further call (releaseFile)
+        }
         catch (...)
         {
           if (!isNullish(release)) callCatching(release, i, files[i]); // what it throws is lost: the first error counts
-          throw;
+          throw;                                                       // (but not a fatal error, JSFatalError)
         }
         if (!isNullish(release)) callFileFunction(release, "releaseFile", i, files[i]);
       }

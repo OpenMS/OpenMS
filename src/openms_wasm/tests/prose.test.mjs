@@ -979,6 +979,22 @@ test("searchFiles file by file: the errors of provideFile and releaseFile", () =
       // a value that is not an Error
       assert.throws(() => prose.searchFiles(files, suitabilityDatabase, { provideFile: () => { throw "full"; } }),
         /provideFile\(0, '\/fbf\/a\.mzML'\) threw: full/);
+      // a fatal error of the module (here a made-up one: the module is fine): thrown unchanged, and the module is not
+      // called again (no releaseFile)
+      released.length = 0;
+      for (const fatal of [new WebAssembly.RuntimeError("unreachable"), new WebAssembly.Exception(new WebAssembly.Tag({ parameters: [] }), [])]) {
+        assert.throws(() => prose.searchFiles(files, suitabilityDatabase, {
+          provideFile: () => { throw fatal; },
+          releaseFile: release,
+        }), (e) => e === fatal);
+        assert.deepEqual(released, []);
+      }
+      // ... also from releaseFile after an ordinary error of provideFile
+      const trap = new WebAssembly.RuntimeError("memory access out of bounds");
+      assert.throws(() => prose.searchFiles(files, suitabilityDatabase, {
+        provideFile: () => { throw new Error("no room"); },
+        releaseFile: () => { throw trap; },
+      }), (e) => e === trap);
       // a function that returns a Promise (an async function): the search needs the file when it returns; the file is
       // released
       released.length = 0;

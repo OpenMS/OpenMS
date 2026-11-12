@@ -83,6 +83,27 @@ namespace OpenMS::WASM
     }
   }
 
+  /// A fatal error of the module that a JavaScript callback raised (a WebAssembly.RuntimeError of an abort, or a raw
+  /// WebAssembly.Exception), carried through the C++ frames of the call that ran the callback so that they unwind as
+  /// for any C++ exception. Guard<> rethrows @c error to JavaScript unchanged: a caller has to see that the module is
+  /// broken (terminate its Worker, start a new module) instead of an ordinary Error.
+  struct JSFatalError
+  {
+    val error;
+  };
+
+  /// Whether @p e, what a JavaScript callback threw, is a fatal error of the module (JSFatalError)
+  inline bool isFatalJSError(const val& e)
+  {
+    const val wasm = val::global("WebAssembly");
+    for (const char* type : {"RuntimeError", "Exception"})
+    {
+      const val constructor = wasm[type];
+      if (constructor.typeOf().as<std::string>() == "function" && e.instanceof(constructor)) return true;
+    }
+    return false;
+  }
+
   /// Throws a JavaScript Error with @p message. Never call it inside a C++ catch block:
   /// the C++ exception object would never be released.
   [[noreturn]] inline void throwJSError(const std::string& message)
@@ -211,14 +232,22 @@ namespace OpenMS::WASM
 
 #define OPENMS_WASM_GUARD_CALL(...)                     \
   std::string message;                                  \
+  val fatal = val::undefined();                         \
+  bool is_fatal = false;                                \
   try                                                   \
   {                                                     \
     return __VA_ARGS__;                                 \
+  }                                                     \
+  catch (const JSFatalError& e)                         \
+  {                                                     \
+    fatal = e.error;                                    \
+    is_fatal = true;                                    \
   }                                                     \
   catch (...)                                           \
   {                                                     \
     message = currentExceptionMessage();                \
   }                                                     \
+  if (is_fatal) fatal.throw_();                         \
   throwJSError(message);
 
 /// The call of a guarded function: @p CALL (a lambda) with the arguments args... of the types JSArgument<A>...
