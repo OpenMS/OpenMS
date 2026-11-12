@@ -1,0 +1,6 @@
+Gaussian+uniform: mu -3.294 sigma 1.311 signal share 0.938; posterior-0.5 boundary |x-mu| = 4.11 ppm
+2-Gaussian scale mixture + uniform: weights [0.671 0.305] sigmas [0.915 2.494] background 0.025; posterior-0.5 boundary 7.13 ppm
+share of signal (mixture) inside boundary: 0.9987
+  bootstrap 100 anchors: boundary q05/q50/q95 [6.34 7.12 8.14]
+  bootstrap 200 anchors: boundary q05/q50/q95 [6.6  7.13 8.04]
+  bootstrap 527 anchors: boundary q05/q50/q95 [6.52 7.2  7.58]

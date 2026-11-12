@@ -46,3 +46,37 @@ Scripts: `parity.py`, `parity2.py`, `miss_ppm.py`, `signal_ppm.py`, `ppm_vs_inte
 ## 4. Not compared yet
 - MS1 traces (DIA-NN exports MS1; we do not extract MS1 in the search).
 - Peak boundaries after the fix.
+
+## 5. Fix 1 applied: fitted fragment tolerance (OpenMS commit 92cc9a2469)
+- **Calibration change.** It now models the error of the strongest centroid at the apex spectrum and its two neighbours (8937 errors from 527 anchors).
+  - The model is a two-Gaussian scale mixture plus uniform background over the +-15 ppm search window.
+  - The half width is where signal density falls to background density. There is no sigma multiple.
+- **raw01 result.** Offset -3.27 ppm. Half width 7.13 ppm, previously 5.02. Anchors and RT map are byte-identical. Calibration 3:21 / 16.8 GB, search 2:42 / 4.42 GB (fitppm/).
+- **Parity against DIA-NN, q <= 1% IDs** (fitppm/TRACE_PARITY_raw01.txt):
+  - Missed DIA-NN points: 16.4% before, 3.9% now. Within 5 s of the apex: 12.9% before, 2.7% now.
+  - Extra points: 0.
+  - Per-trace r > 0.99: 44% of traces before, 76% now.
+- **What remains is the 7.13 to 8 ppm band.** DIA-NN uses 8 ppm, and the crossing depends on the model (TAIL_MODELS_raw01.txt, GRENANDER_raw01.txt):
+
+  | Model | Crossing (ppm) | Note |
+  |---|---|---|
+  | 1 Gaussian | 4.1 | |
+  | 2 Gaussians | 7.13 | lowest BIC |
+  | 3 Gaussians | 8.12 | BIC +2, a tie |
+  | Student-t | 9.05 | |
+  | shape-free monotone density | 7.48 | bootstrap 7.2 to 7.5 |
+
+  The 2-Gaussian model underfits the observed tail at 6 to 8 ppm (FIT_TAIL_CHECK_raw01.txt).
+
+## 6. Not fixed yet: RT window at the gradient ends
+- The anchors come from the windowed second pass. Its windows are centred on the stage-1 map, which at library RT < 0.05 points to 450 to 490 s.
+- So no panel precursor eluting at 190 to 340 s is ever collected. The final map then extrapolates there (CAL_EARLY_raw01.txt, STAGE1_EARLY_raw01.txt).
+- **Search-side option, simulated on DIA-NN q <= 1% apexes** (RT_RULES_raw01.txt): outside the anchor library-RT range, extend the window to the run edge.
+
+  | Rule | DIA-NN apexes outside our window | Entrapments among them | Mean window width |
+  |---|---|---|---|
+  | Current | 61 | 3 | 1.0x |
+  | Extend outside anchor range | 26 | 1 | 1.49x (22% of precursors widened) |
+  | Extend outside knot range | 8 | 1 | 1.96x |
+
+- **Calibration-side option:** let the windowed pass also collect panel members beyond the stage-1 map support up to the run edge, so anchors exist there.

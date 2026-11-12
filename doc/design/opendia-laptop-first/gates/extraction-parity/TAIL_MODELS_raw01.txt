@@ -1,0 +1,5 @@
+K=1: crossing 4.12 ppm, background 0.062, logL -17341.4, BIC 34710.1, weights [0.938], sigmas [1.31]
+K=2: crossing 7.13 ppm, background 0.025, logL -17002.0, BIC 34049.4, weights [0.671 0.305], sigmas [0.92 2.49]
+K=3: crossing 8.12 ppm, background 0.021, logL -16993.9, BIC 34051.5, weights [0.501 0.335 0.143], sigmas [0.81 1.61 3.18]
+K=4: crossing 8.21 ppm, background 0.020, logL -16992.8, BIC 34067.5, weights [0.166 0.458 0.245 0.112], sigmas [0.62 1.   1.9  3.36]
+Student-t: crossing 9.05 ppm, background 0.018, nu 2.84, scale 1.04

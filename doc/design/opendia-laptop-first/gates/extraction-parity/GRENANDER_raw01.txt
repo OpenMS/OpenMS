@@ -1,0 +1,4 @@
+Grenander crossing (signal density = background density), max-centroid errors: (np.float64(7.48322483712324), np.float64(1.6271051393257252e-11))
+bootstrap over anchors q05/q50/q95 [7.2  7.47 7.53]
+100 anchors [6.29 7.42 7.87]
+200 anchors [7.   7.46 7.53]

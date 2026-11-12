@@ -1,0 +1,38 @@
+apex points 8940, background points 15838 (scans 40-60 s away)
+ppm bin: apex count | background count per apex-scan equivalent
+  [-15,-14)      5 |      218
+  [-14,-13)      3 |      224
+  [-13,-12)      3 |      235
+  [-12,-11)      5 |      214
+  [-11,-10)      2 |      237
+  [-10,-9)      8 |      223
+  [-9,-8)      5 |      239
+  [-8,-7)     10 |      247
+  [-7,-6)     18 |      310
+  [-6,-5)     39 |      389
+  [-5,-4)     82 |      572
+  [-4,-3)    170 |      784
+  [-3,-2)    437 |     1059
+  [-2,-1)   1149 |     1323
+  [-1,+0)   2587 |     1683
+  [+0,+1)   2668 |     1589
+  [+1,+2)    996 |     1240
+  [+2,+3)    315 |      883
+  [+3,+4)    169 |      722
+  [+4,+5)     91 |      543
+  [+5,+6)     46 |      424
+  [+6,+7)     38 |      360
+  [+7,+8)     22 |      332
+  [+8,+9)     11 |      308
+  [+9,+10)     13 |      251
+  [+10,+11)     16 |      243
+  [+11,+12)      5 |      272
+  [+12,+13)     12 |      230
+  [+13,+14)      9 |      255
+  [+14,+15)      6 |      229
+flat background level in apex scans per 0.5 ppm |bin| (from |ppm| 10-15): 6.6
+  |ppm| holding 90% of the excess (signal) apex points: 3.0
+  |ppm| holding 95% of the excess (signal) apex points: 4.0
+  |ppm| holding 98% of the excess (signal) apex points: 5.0
+  |ppm| holding 99% of the excess (signal) apex points: 6.0
+  first |ppm| bin where signal excess < background level: 8.0
