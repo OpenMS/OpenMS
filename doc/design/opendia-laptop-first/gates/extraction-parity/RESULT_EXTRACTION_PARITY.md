@@ -128,3 +128,25 @@ Scripts: peak_parity.py, boundary_rule.py, diann_peak_rule.py, our_boundary_rule
   - Tailing tau/sigma 2: 92.5-96.2% (sym1.25), 94.6-97.2% (side2.5).
   - The width dependence is small (a slight loss at wide tailing peaks). The tailing dependence dominates.
 - **Conclusion:** a cap in units of the peak's own half widths is scale-free in width. It loses only the far tail of strongly tailing peaks, and less so per side. The k value itself (1.25 FWHM, 2.5 half widths) was chosen on raw01 against DIA-NN. It is a dimensionless shape constant like the existing 5% floor, but it is not derived from the data.
+
+## 8. Picker fixes implemented (OpenMS commit 24dad4f842), raw01
+- **Co-elution:** a fragment enters the score only with signal on >= 2 scans of the window (-xic_min_profile_scans, default 2; 1 restores the old score). Rank-0 peaks with co-elution exactly 2.000: 19.7% of targets / 20.4% of decoys before, 0 / 0 now.
+- **Boundary cap per side,** in that side's own half widths (-xic_boundary_half_widths; -1 = use the calibration estimate, 0 = off). The cap sets boundaries, area and FWHM only. Co-elution, and so the ranking, uses the uncapped region. A first version also capped the co-elution window, and it lost 33 rank-0 matches (picker2_capcoel/).
+- **k is estimated from the data,** in OpenDIACalibrate (estimateBoundaryHalfWidths, cal.json peak_boundary). For each used anchor, every scan gets the cosine of its fragment vector to the apex fragment vector. Scans within one half width of the apex give the signal reference distribution; scans more than 2 scans outside the picked peak give the background reference. At each distance u (in half widths) the cosine histogram is fitted as pi(u) x signal + (1 - pi(u)) x background, and k is where pi(u) falls to 0.5. This is the same "more likely background than signal" rule as the fitted fragment tolerance. No labels, no DIA-NN.
+  - Other estimators tried (k_estimate.py, k_mixture_prototype.py): the intensity profile vs background gives no usable crossing, because the mean consensus tail stays above the out-of-peak level up to 11 half widths (bootstrap 7-11). The SNR-optimal window is degenerate: it always picks the apex scan alone. The pattern mixture is stable: bootstrap 5-95% 1.65-1.73 with 521 anchors, 1.57-1.88 with 50.
+  - Synthetic unit test: a planted pattern extent of 2.0 / 3.5 half widths is estimated as 1.88 / 3.13 (slightly low).
+- **raw01 result** (picker2/, k = 1.69 from 529 anchors; rank0_apex.py, peak_parity.py):
+
+  | | Before (rtmono) | Co-elution fix only (picker2_k0) | Both, k = 1.69 estimated (picker2) | Fixed k = 2.5 (picker2_k25, built before the co-elution-window fix) |
+  |---|---|---|---|---|
+  | Rank-0 apex within 1 scan of DIA-NN apex (q <= 1%, 2357) | 2081 (14 entrapments) | 2120 (14) | 2120 (14) | 2097 (14) |
+  | DIA-NN apex inside one of our 5 peaks | 2298 | n/a | 2249 | 2262 |
+  | DIA-NN stop within 1 scan | 22.5% | n/a | 51.9% (median -1) | 58.9% (median 0) |
+  | DIA-NN start within 1 scan | 64.6% | n/a | 64.7% | 78.5% |
+  | Boundary IoU median | 0.63 | n/a | 0.71 | 0.83 |
+  | Median width, scans (DIA-NN 6) | 9 | 9 | 4 | 5 |
+  | Search time / RSS | 3:10 / 4.4 GB | 3:46 / 4.4 GB | 2:59 / 4.4 GB | 3:43 / 4.4 GB |
+
+- **Reading:** the estimated k (1.69) is narrower than DIA-NN's integration window. Our peaks now end where the apex fragment pattern stops dominating, about 1 scan inside DIA-NN's stop. DIA-NN keeps 1-2 more tail scans per side, so k = 2.5 matches DIA-NN more closely, but that value was chosen against DIA-NN.
+  - "Contained" drops 2298 -> 2249: narrower peaks no longer cover DIA-NN's apex when our apex is 1-4 scans away. Peak choice (rank-0 apex within 1 scan) is unchanged by the cap, at 2120.
+  - The candidate population changes: the same 2.75 M rows, but different widths, areas and co-elution. Any scoring comparison needs a frozen plan.

@@ -1,0 +1,5 @@
+rtmono: rank-0 apex at DIA-NN apex 0 scans 1588 | <=1 2081 (entrapments 14) | <=2 2117 | any of 5 peaks <=1 2197 | width median s 14.74
+picker2_k0: rank-0 apex at DIA-NN apex 0 scans 1607 | <=1 2120 (entrapments 14) | <=2 2166 | any of 5 peaks <=1 2199 | width median s 14.75
+picker2: rank-0 apex at DIA-NN apex 0 scans 1592 | <=1 2094 (entrapments 14) | <=2 2134 | any of 5 peaks <=1 2199 | width median s 6.56
+picker2_k25: rank-0 apex at DIA-NN apex 0 scans 1588 | <=1 2097 (entrapments 14) | <=2 2139 | any of 5 peaks <=1 2198 | width median s 8.21
+picker2: rank-0 apex at DIA-NN apex 0 scans 1607 | <=1 2120 (entrapments 14) | <=2 2166 | any of 5 peaks <=1 2199 | width median s 6.56
