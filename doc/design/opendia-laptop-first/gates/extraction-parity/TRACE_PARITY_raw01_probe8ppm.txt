@@ -1,0 +1,24 @@
+slot map: library annotation found for 1.0000 of our rows; calibrated-minus-library m/z ppm {'min': -3.238, '50%': -3.238, 'max': -3.237}
+
+window: DIA-NN precursors 7553; we wrote traces for 7553
+  our RT window contains DIA-NN apex +-10 s: 0.8885; contains DIA-NN full +-60 s export: 0.5260
+  by group, apex +-10 s inside our window: {'q<=1%': 0.9627, '1-5%': 0.9424, '>5%': 0.8437}
+
+fragments: DIA-NN exported 34979, ours (library) 45318, paired 34979 (1.0000 of DIA-NN traces)
+
+points: DIA-NN points on paired traces 2550918; with an our-scan within 0.5 s 0.8695
+  |RT difference| s quantiles {0.5: 0.0, 0.9: 0.0, 0.99: 0.0001, 1.0: 0.0001}
+  nonzero: DIA-NN 0.1312, ours 0.1316
+  DIA-NN>0 & ours=0 0.0002 | DIA-NN=0 & ours>0 0.0007 | both>0 0.1309
+  ours/DIA-NN intensity ratio where both > 0, quantiles {0.01: 1.0, 0.1: 1.0, 0.5: 1.0, 0.9: 1.0, 0.99: 1.0}
+  exactly equal (rel diff < 1e-4): 1.0000
+  by group: share DIA-NN>0 & ours=0, share ours>0 & DIA-NN=0, median ratio
+    q<=1%: n=738668 miss=0.0013 extra=0.0044 ratio=1.0000
+    1-5%: n=172747 miss=0.0020 extra=0.0048 ratio=1.0000
+    >5%: n=1306484 miss=0.0023 extra=0.0054 ratio=1.0000
+
+missed DIA-NN points: |RT - DIA-NN apex| s quantiles {0.1: 3.3, 0.5: 27.8, 0.9: 52.5}
+  missed point / trace max quantiles {0.5: 0.2263, 0.9: 1.0, 0.99: 1.0}
+  within 5 s of DIA-NN apex: DIA-NN>0 & ours=0 share of DIA-NN>0 0.0010; ours>0 & DIA-NN=0 share of ours>0 0.0022
+
+per-trace Pearson r (ours vs DIA-NN, same scans): {0.05: 0.9997, 0.1: 1.0, 0.25: 1.0, 0.5: 1.0} | r>0.99 0.9149 | r<0.9 0.0112

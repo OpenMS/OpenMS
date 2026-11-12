@@ -1,0 +1,31 @@
+kept     3     4     6
+low                   
+0        0     0  2903
+1        0  3611     0
+2     1039     0     0
+non-low ions kept 0.883
+k     3     4     6
+n                  
+4  1039     0     0
+5     0  3611     0
+6     0     0  2903
+precursors with a dropped non-low ion 4650 | dropped share by charge {1: 0.79, 2: 0.79, 3: 0.79, 4: 0.79, 5: 0.79}
+                 Precursor.Id      a        mz        li   kept
+0   AAAAKGAELM(UniMod:35)LLR3  y12^2  630.3607  0.328679   True
+2   AAAAKGAELM(UniMod:35)LLR3  y11^2  594.8421  1.000000   True
+3   AAAAKGAELM(UniMod:35)LLR3  y10^2  559.3235  0.183073   True
+4   AAAAKGAELM(UniMod:35)LLR3   y4^1  548.3225  0.172761  False
+5   AAAAKGAELM(UniMod:35)LLR3   y3^1  401.2871  0.187803   True
+12             AAAARLEGGADLR3  y12^2  600.3282  0.290961   True
+14             AAAARLEGGADLR3  y11^2  564.8096  1.000000   True
+15             AAAARLEGGADLR3  y10^2  529.2911  0.149047   True
+16             AAAARLEGGADLR3   y6^1  588.3100  0.040679  False
+19                AAAEAAEAAK2   y8^1  760.3836  1.000000   True
+20                AAAEAAEAAK2   y8^2  380.6954  0.245416  False
+21                AAAEAAEAAK2   y7^1  689.3464  0.509758   True
+22                AAAEAAEAAK2   y6^1  560.3039  0.728652   True
+23                AAAEAAEAAK2   y5^1  489.2667  0.248701   True
+25               AAAEGLMSLLR2   y9^1  989.5448  0.368154   True
+26               AAAEGLMSLLR2   y8^1  918.5077  0.434978   True
+27               AAAEGLMSLLR2   y7^1  789.4651  1.000000   True
+28               AAAEGLMSLLR2   y5^1  619.3596  0.649978   True

@@ -1,0 +1,6 @@
+anchors 532 in DIA-NN report (any q) 525 | q<=1% 515
+|anchor run RT - DIA-NN RT| s quantiles {0.5: 0.0, 0.9: 1.6, 0.95: 1.6, 0.99: 1.7, 1.0: 8.2}
+anchors >10 s from DIA-NN RT: 0
+Empty DataFrame
+Columns: [precursor_id, library_rt, run_rt, dn_s, Q.Value, correlation, q_value, used]
+Index: []

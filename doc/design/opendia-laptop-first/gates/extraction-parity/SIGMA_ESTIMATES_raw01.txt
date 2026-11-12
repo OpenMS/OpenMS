@@ -1,0 +1,6 @@
+anchors with traces 520
+anchor points within 0.5 s of apex: n=3086 robust sigma 1.00 ppm; weighted-by-intensity sigma 1.09
+anchor points within 2 s of apex: n=8727 robust sigma 1.19 ppm; weighted-by-intensity sigma 1.08
+anchor points within 4 s of apex: n=12334 robust sigma 1.33 ppm; weighted-by-intensity sigma 1.10
+Gaussian+uniform mixture, anchor points within 4 s: mu -0.08 sigma 1.28 signal share 0.870; 5 sigma = 6.42 ppm
+robust sigma by intensity quintile {0: 2.9, 1: 1.89, 2: 1.42, 3: 0.94, 4: 0.7}
