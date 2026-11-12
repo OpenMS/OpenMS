@@ -47,7 +47,8 @@ namespace OpenMS::OpenDIA
          (!(options_.rt_window_seconds > 0.0) || !std::isfinite(options_.xic.valley_fraction) ||
           !(options_.xic.valley_fraction > 0.0) || options_.xic.valley_fraction > 1.0 ||
           !std::isfinite(options_.xic.boundary_fraction) || options_.xic.boundary_fraction < 0.0 ||
-          !(options_.xic.boundary_fraction < 1.0) || options_.xic.max_peaks == 0)))
+          !(options_.xic.boundary_fraction < 1.0) || options_.xic.max_peaks == 0 ||
+          !std::isfinite(options_.xic.boundary_half_widths) || options_.xic.boundary_half_widths < 0.0)))
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "Search tolerances and minimum transition count must be positive "

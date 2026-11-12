@@ -130,6 +130,7 @@ namespace OpenMS::OpenDIA
     double ms2_offset_ppm = 0.0, ms2_sigma_ppm = 0.0, ms2_tolerance_ppm = 0.0;
     MassToleranceFit ms2_fit; ///< Model behind ms2_tolerance_ppm.
     std::size_t ms2_points = 0;
+    BoundaryHalfWidthFit boundary_fit; ///< Peak boundary cap in half widths, estimated on the used anchors.
     bool has_im = false;
     double im_intercept = 0.0, im_slope = 1.0; ///< observed 1/K0 = intercept + slope x library 1/K0.
     double im_sigma = 0.0, im_tolerance = 0.0;
@@ -317,6 +318,7 @@ namespace OpenMS::OpenDIA
     bool has_im = false; ///< False without mobility data or too few anchors.
     double im_intercept = 0.0, im_slope = 1.0; ///< Run 1/K0 = intercept + slope x library 1/K0.
     double im_tolerance = 0.0; ///< Half width around the calibrated 1/K0.
+    double boundary_half_widths = 0.0; ///< Peak boundary cap per side in half widths; 0 when absent (older files).
   };
 
   /**

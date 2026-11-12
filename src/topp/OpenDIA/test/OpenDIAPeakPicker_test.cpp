@@ -174,6 +174,144 @@ int main()
       require(none.empty() && found == 0, "pickXicPeaks: an empty trace has no peak");
     }
 
+    // min_profile_scans: two fragments nonzero on one common scan correlate with r = 1 over any window. With the
+    // default (2 scans) that coincidence scores 0 and a real but imperfect 2-fragment elution ranks first.
+    {
+      const std::size_t n = 60;
+      std::vector<double> rts(n);
+      for (std::size_t s = 0; s < n; ++s)
+      {
+        rts[s] = 1.6 * static_cast<double>(s);
+      }
+      std::vector<float> data(n * F, 0.0f);
+      data[10 * F + 0] = 900.0f;
+      data[10 * F + 1] = 700.0f; // coincidence: two fragments, one scan
+      // A real but noisy two-fragment elution: each fragment correlates with the other at r < 1, so its
+      // co-elution is just below the coincidence's 2.
+      for (std::size_t s = 35; s <= 45; ++s)
+      {
+        const double z = (static_cast<double>(s) - 40.0) / 1.5;
+        for (std::size_t f = 0; f < 2; ++f)
+        {
+          data[s * F + f] = static_cast<float>(300.0 * (1.0 - 0.2 * f) * std::exp(-0.5 * z * z) + ((s + f) % 2 ? 40.0 : 0.0));
+        }
+      }
+      std::vector<double> scratch;
+      std::size_t found = 0;
+      XicPickerOptions old_rule;
+      old_rule.min_profile_scans = 1;
+      const auto before = pickXicPeaks(data.data(), n, F, rts.data(), old_rule, found, scratch);
+      require(!before.empty() && before[0].apex == 10 && std::abs(before[0].coelution - 2.0) < 1e-9,
+              "min_profile_scans=1: the one-scan coincidence should score exactly 2 and rank first");
+      const auto after = pickXicPeaks(data.data(), n, F, rts.data(), XicPickerOptions{}, found, scratch);
+      require(!after.empty() && after[0].apex == 40, "min_profile_scans=2: the real elution should rank first");
+      for (const auto& p : after)
+      {
+        require(p.apex != 10 || p.coelution == 0.0, "min_profile_scans=2: the coincidence should have no co-elution");
+      }
+    }
+
+    // boundary_half_widths: per-side cap in that side's own half widths. On an exponentially tailing peak the right
+    // side keeps more scans than the left, and the cap scales with the peak's width (same k, 2x wider peak).
+    {
+      const auto tailing = [](std::size_t n, double centre, double sigma, double tau)
+      {
+        std::vector<float> data(n * F, 0.0f);
+        const std::array<double, F> ratio{1.0, 0.8, 0.6, 0.5, 0.3, 0.2};
+        for (std::size_t s = 0; s < n; ++s)
+        {
+          const double x = static_cast<double>(s) - centre;
+          // Gaussian rise, exponential decay after the centre (a simple tailing shape).
+          const double y = x < 0.0 ? std::exp(-0.5 * x * x / (sigma * sigma)) : std::exp(-x / tau);
+          for (std::size_t f = 0; f < F; ++f)
+          {
+            data[s * F + f] = static_cast<float>(1000.0 * ratio[f] * y);
+          }
+        }
+        return data;
+      };
+      const std::size_t n = 200;
+      std::vector<double> rts(n);
+      for (std::size_t s = 0; s < n; ++s)
+      {
+        rts[s] = 1.6 * static_cast<double>(s);
+      }
+      std::vector<double> scratch;
+      std::size_t found = 0;
+      XicPickerOptions capped;
+      capped.boundary_half_widths = 2.5;
+      for (double scale : {1.0, 2.0})
+      {
+        const auto data = tailing(n, 60.0, 1.5 * scale, 4.0 * scale);
+        const auto free_peaks = pickXicPeaks(data.data(), n, F, rts.data(), XicPickerOptions{}, found, scratch);
+        const auto cap_peaks = pickXicPeaks(data.data(), n, F, rts.data(), capped, found, scratch);
+        require(free_peaks.size() == 1 && cap_peaks.size() == 1, "boundary cap: one peak expected");
+        const XicPeak& f = free_peaks[0];
+        const XicPeak& c = cap_peaks[0];
+        require(c.apex == 60 && c.left >= f.left && c.right <= f.right, "boundary cap: the cap only narrows the peak");
+        const double hl = c.half_width_left, hr = c.half_width_right;
+        require(std::abs(hl - 1.1774 * 1.5 * scale) < 0.35 && std::abs(hr - std::log(2.0) * 4.0 * scale) < 0.35,
+                "boundary cap: half widths at half maximum are off");
+        // Each side ends at ceil(k x its own half width), or earlier where the uncapped boundary already stopped.
+        const auto reach = [](double h) { return static_cast<std::size_t>(std::ceil(2.5 * std::max(h, 0.5))); };
+        require(c.right == std::min(f.right, c.apex + reach(hr)) && c.left == std::max(f.left, c.apex - reach(hl)),
+                "boundary cap: each side should end at ceil(k x its own half width)");
+        require(c.right < f.right, "boundary cap: the tail side should be cut");
+        require(c.right - c.apex > c.apex - c.left, "boundary cap: a tailing peak keeps a longer right side");
+        require(c.area < f.area && c.area > 0.9 * f.area, "boundary cap: the cap cuts only the far tail");
+        require(c.coelution == f.coelution, "boundary cap: co-elution (peak choice) must not depend on the cap");
+      }
+    }
+
+    // estimateBoundaryHalfWidths: peaks whose fragment pattern holds out to a known distance and becomes random
+    // beyond it. The estimate should land near that distance and follow it when the distance changes.
+    {
+      const auto make = [](double signal_extent, unsigned seed)
+      {
+        std::mt19937 rng(seed);
+        std::uniform_real_distribution<float> uni(0.0f, 1.0f);
+        std::vector<BoundaryTrace> traces;
+        const std::array<double, F> ratio{1.0, 0.8, 0.6, 0.5, 0.3, 0.2};
+        for (int t = 0; t < 200; ++t)
+        {
+          BoundaryTrace trace;
+          trace.fragments = F;
+          const std::size_t n = 120;
+          const double sigma = 1.0 + 0.5 * (t % 4); // widths 1 to 2.5 scans (FWHM 2.4 to 5.9)
+          const double hw = 1.1774 * sigma;
+          for (std::size_t s = 0; s < n; ++s)
+          {
+            trace.rts.push_back(1.6 * static_cast<double>(s));
+          }
+          trace.hint = 60;
+          trace.data.assign(n * F, 0.0f);
+          for (std::size_t s = 0; s < n; ++s)
+          {
+            const double x = static_cast<double>(s) - 60.0;
+            const double u = std::abs(x) / hw;
+            const double y = 1000.0 * std::exp(-0.5 * x * x / (sigma * sigma));
+            for (std::size_t f = 0; f < F; ++f)
+            {
+              // Within signal_extent half widths: library pattern; beyond: a random pattern of the same height
+              // (an interfering signal), plus low random background everywhere.
+              const double pattern = u <= signal_extent ? ratio[f] : uni(rng);
+              trace.data[s * F + f] = static_cast<float>(y * pattern + 2.0 * uni(rng));
+            }
+          }
+          traces.push_back(std::move(trace));
+        }
+        return traces;
+      };
+      const auto narrow = estimateBoundaryHalfWidths(make(2.0, 3), XicPickerOptions{});
+      const auto wide = estimateBoundaryHalfWidths(make(3.5, 4), XicPickerOptions{});
+      require(narrow.peaks == 200 && wide.peaks == 200, "estimateBoundaryHalfWidths: every trace should be profiled");
+      require(narrow.half_widths > 1.5 && narrow.half_widths < 2.75, "estimateBoundaryHalfWidths: estimate off for extent 2");
+      require(wide.half_widths > 3.0 && wide.half_widths < 4.25, "estimateBoundaryHalfWidths: estimate off for extent 3.5");
+      require(wide.half_widths > narrow.half_widths + 0.75, "estimateBoundaryHalfWidths: the estimate should follow the extent");
+      require(estimateBoundaryHalfWidths({}, XicPickerOptions{}).half_widths == 0.0, "estimateBoundaryHalfWidths: no traces, no estimate");
+      std::printf("estimateBoundaryHalfWidths: extent 2.0 -> %.3f, extent 3.5 -> %.3f\n", narrow.half_widths, wide.half_widths);
+    }
+
     // Speed on noisy 32-point windows (informational; the check is only that it is far below the CNN cost).
     {
       std::mt19937 rng(7);

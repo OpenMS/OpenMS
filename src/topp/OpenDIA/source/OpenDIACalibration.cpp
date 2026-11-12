@@ -1288,6 +1288,29 @@ namespace OpenMS::OpenDIA
       result.ms2_offset_ppm = result.ms2_fit.centre;
       result.ms2_tolerance_ppm = std::max(result.ms2_fit.half_width, 0.1);
     }
+    {
+      // Peak boundary cap: on the used anchors' native-scan traces, how many half widths a peak side extends
+      // before its scans look more like background than like the apex fragment pattern.
+      std::vector<BoundaryTrace> traces;
+      for (const auto& anchor : result.anchors)
+      {
+        if (!anchor.used || anchor.trace.empty())
+        {
+          continue;
+        }
+        BoundaryTrace trace;
+        trace.fragments = panel_[member_of.at(anchor.precursor_id)].fragment_count;
+        trace.rts = anchor.trace_rt;
+        trace.hint = anchor.anchor_scan;
+        trace.data.reserve(anchor.trace.size() * trace.fragments);
+        for (const auto& row : anchor.trace)
+        {
+          trace.data.insert(trace.data.end(), row.begin(), row.begin() + static_cast<std::ptrdiff_t>(trace.fragments));
+        }
+        traces.push_back(std::move(trace));
+      }
+      result.boundary_fit = estimateBoundaryHalfWidths(traces, XicPickerOptions{});
+    }
     result.im_points = im_pairs.size();
     if (saw_im_ && im_pairs.size() >= 30)
     {
@@ -1400,6 +1423,24 @@ namespace OpenMS::OpenDIA
         << ", \"tolerance_model\": \"signal_background_crossing\", \"signal_weights\": [" << r.ms2_fit.weights[0] << ", "
         << r.ms2_fit.weights[1] << "], \"signal_sigmas_ppm\": [" << r.ms2_fit.sigmas[0] << ", " << r.ms2_fit.sigmas[1]
         << "], \"background_share\": " << r.ms2_fit.background_share << "},\n"
+        << "  \"peak_boundary\": {\"half_widths\": " << r.boundary_fit.half_widths << ", \"model\": \"apex_pattern_signal_share\", \"peaks\": "
+        << r.boundary_fit.peaks << ", \"signal_scans\": " << r.boundary_fit.signal_scans << ", \"background_scans\": "
+        << r.boundary_fit.background_scans << ", \"distance\": ";
+    list(r.boundary_fit.distance);
+    out << ", \"signal_share\": [";
+    for (std::size_t i = 0; i < r.boundary_fit.signal_share.size(); ++i)
+    {
+      out << (i ? "," : "");
+      if (std::isfinite(r.boundary_fit.signal_share[i]))
+      {
+        out << r.boundary_fit.signal_share[i];
+      }
+      else
+      {
+        out << "null";
+      }
+    }
+    out << "]},\n"
         << "  \"im\": {\"available\": " << (r.has_im ? "true" : "false") << ", \"intercept_vssc\": " << r.im_intercept
         << ", \"slope\": " << r.im_slope << ", \"sigma_vssc\": " << r.im_sigma << ", \"tolerance_half_width_vssc\": " << r.im_tolerance
         << ", \"points\": " << r.im_points << "}\n}\n";
@@ -1523,6 +1564,13 @@ namespace OpenMS::OpenDIA
     result.im_intercept = im.at("intercept_vssc").get<double>();
     result.im_slope = im.at("slope").get<double>();
     result.im_tolerance = im.at("tolerance_half_width_vssc").get<double>();
+    // Peak boundary cap (newer files); 0 keeps the uncapped picker.
+    if (json.contains("peak_boundary") && json.at("peak_boundary").contains("half_widths") &&
+        json.at("peak_boundary").at("half_widths").is_number())
+    {
+      const double k = json.at("peak_boundary").at("half_widths").get<double>();
+      result.boundary_half_widths = std::isfinite(k) && k > 0.0 ? k : 0.0;
+    }
     if (result.has_im && !(std::isfinite(result.im_intercept) && std::isfinite(result.im_slope) && result.im_slope > 0.0 &&
                            std::isfinite(result.im_tolerance) && result.im_tolerance > 0.0))
     {

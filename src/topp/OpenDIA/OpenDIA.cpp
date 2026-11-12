@@ -94,6 +94,13 @@ protected:
     setMaxFloat_("xic_valley_fraction", 1.0);
     registerIntOption_("xic_max_peaks", "<n>", 5, "xic: peaks reported per precursor, best fragment co-elution first", false);
     setMinInt_("xic_max_peaks", 1);
+    registerDoubleOption_("xic_boundary_half_widths", "<k>", -1.0, "xic: cap each peak boundary at k of that side's own half widths at half "
+                          "maximum. -1 uses the value estimated by OpenDIACalibrate (peak_boundary.half_widths in -calibration; no cap if "
+                          "absent); 0 disables the cap", false);
+    setMinFloat_("xic_boundary_half_widths", -1.0);
+    registerIntOption_("xic_min_profile_scans", "<n>", 2, "xic: a fragment enters the co-elution score only with signal on at least n "
+                       "scans of the correlation window (1 restores the old score, where two fragments sharing one nonzero scan correlate perfectly)", false);
+    setMinInt_("xic_min_profile_scans", 1);
     registerOutputFile_("xic_traces_out", "<file>", "", "xic inspection: native-scan fragment traces (the peak picker's input matrix) of the "
                         "-xic_traces_precursors precursors as TSV. Does not change -out.", false);
     setValidFormats_("xic_traces_out", {"tsv"});
@@ -137,6 +144,9 @@ protected:
     options.xic_peaks = getStringOption_("peak_picking") == "xic";
     options.xic.valley_fraction = getDoubleOption_("xic_valley_fraction");
     options.xic.max_peaks = static_cast<std::size_t>(std::max(1, getIntOption_("xic_max_peaks")));
+    options.xic.min_profile_scans = static_cast<std::size_t>(std::max(1, getIntOption_("xic_min_profile_scans")));
+    const double boundary_half_widths = getDoubleOption_("xic_boundary_half_widths");
+    options.xic.boundary_half_widths = std::max(0.0, boundary_half_widths);
     const Int min_peak_scans = getIntOption_("min_peak_scans");
     const Int min_transitions = getIntOption_("min_transitions");
     if (min_transitions < 1 || !std::isfinite(options.fragment_tolerance_da) || options.fragment_tolerance_da <= 0.0 ||
@@ -172,6 +182,10 @@ protected:
       }
       options.rt_window_seconds = calibration->tolerance_s;
       options.fragment_tolerance_ppm = calibration->ms2_tolerance_ppm;
+      if (boundary_half_widths < 0.0)
+      {
+        options.xic.boundary_half_widths = calibration->boundary_half_widths;
+      }
       if (calibration->has_im)
       {
         options.ion_mobility_tolerance_vssc = calibration->im_tolerance;
@@ -202,6 +216,7 @@ protected:
       writeLogInfo_("Experimental calibrated extraction: rt_window_s=" + std::to_string(options.rt_window_seconds) +
                     " ms2_offset_ppm=" + std::to_string(calibration->ms2_offset_ppm) +
                     " ms2_tolerance_ppm=" + std::to_string(options.fragment_tolerance_ppm) +
+                    " xic_boundary_half_widths=" + std::to_string(options.xic.boundary_half_widths) +
                     (calibration->has_im ? " im=" + std::to_string(calibration->im_intercept) + "+" + std::to_string(calibration->im_slope) +
                                              "x im_tolerance=" + std::to_string(options.ion_mobility_tolerance_vssc)
                                          : std::string(" im=unavailable (library 1/K0 and -im_tolerance kept)")));
