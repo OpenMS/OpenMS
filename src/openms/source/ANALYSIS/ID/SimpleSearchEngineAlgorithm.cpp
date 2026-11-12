@@ -497,7 +497,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
               if (annotation_matched_ion_current)
               {
-                // See ProSEAlgorithm.cpp for the 1-to-1 alignment assumption.
+                // See the MIC dedup guard in ProSEAlgorithm::postProcessHits_() (PROSE/ProSEHits.cpp) for the 1-to-1 alignment assumption.
                 matched_ion_current += spec[exp_idx].getIntensity();
               }
 

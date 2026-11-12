@@ -4746,7 +4746,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setValidStrings("decoys", {"true","false"} );
     defaults_.setValue("annotate:PSM",  std::vector<std::string>{"ALL"}, "Annotations added to each PSM.");
     // Kept in sync with ProSEAlgorithm's own "annotate:PSM" valid-strings list
-    // (ProSEAlgorithm.cpp) — both declare this parameter since the merged Search:
+    // (PROSE/ProSEAlgorithm.cpp) — both declare this parameter since the merged Search:
     // subtree is passed down to FragmentIndex as well.
     defaults_.setValidStrings("annotate:PSM",
                               std::vector<std::string>{
