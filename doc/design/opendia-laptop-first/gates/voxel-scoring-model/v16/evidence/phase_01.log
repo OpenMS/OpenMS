@@ -1,0 +1,23 @@
+PASS: all point intensities preserved for both origins, both raws
+  raw group     n  finite  median    q90  share_gt_0_1
+raw01     D   866     866  0.0931 0.2952        0.4792
+raw01     E  1413    1413  0.1451 0.4542        0.6016
+raw01 HUMAN 47670   47508  0.0369 0.2211        0.2669
+raw01   ENT 46035   45889  0.0344 0.2058        0.2510
+raw01   DEC 92997   92410  0.0305 0.2042        0.2407
+raw02     D   929     929  0.1035 0.3416        0.5167
+raw02     E  1362    1362  0.1621 0.4692        0.6373
+raw02 HUMAN 48294   48124  0.0373 0.2237        0.2720
+raw02   ENT 46785   46632  0.0341 0.2042        0.2520
+raw02   DEC 94385   93837  0.0302 0.2011        0.2374
+  raw  left right  auc_high  matched_left
+raw01     D   DEC    0.5697           541
+raw01 HUMAN   DEC    0.5171         45634
+raw01   ENT   DEC    0.5156         45833
+raw01     D   ENT    0.5783           517
+raw01     E   DEC       NaN             0
+raw02     D   DEC    0.6281           450
+raw02 HUMAN   DEC    0.5197         46177
+raw02   ENT   DEC    0.5170         46567
+raw02     D   ENT    0.6187           443
+raw02     E   DEC       NaN             0

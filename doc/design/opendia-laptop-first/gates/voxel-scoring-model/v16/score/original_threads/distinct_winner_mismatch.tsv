@@ -1,0 +1,11 @@
+raw	group	n	ever_precursor_never_exact	ever_far_positive	r2_far_positive	median_features_outside
+raw01	D	866	3	5	2	0.0
+raw01	E	1413	0	2	0	0.0
+raw01	allH	47670	30	51	26	3.0
+raw01	ENT	46035	24	32	2	3.0
+raw01	DEC	92997	0	0	0	4.0
+raw02	D	929	5	6	1	0.0
+raw02	E	1362	0	1	0	0.0
+raw02	allH	48294	35	51	13	3.0
+raw02	ENT	46785	25	31	12	3.0
+raw02	DEC	94385	0	0	0	3.0

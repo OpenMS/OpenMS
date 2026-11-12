@@ -1,0 +1,11 @@
+test_fdp_all_human (test_threshold_audit.AuditTests.test_fdp_all_human) ... ok
+test_fdp_no_valid_prefix (test_threshold_audit.AuditTests.test_fdp_no_valid_prefix) ... ok
+test_original_evaluator_equivalence (test_threshold_audit.AuditTests.test_original_evaluator_equivalence) ... ok
+test_reject_degenerate_normalization (test_threshold_audit.AuditTests.test_reject_degenerate_normalization) ... ok
+test_sample_id_breaks_window_ties (test_threshold_audit.AuditTests.test_sample_id_breaks_window_ties) ... ok
+test_tied_null_percentile (test_threshold_audit.AuditTests.test_tied_null_percentile) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.044s
+
+OK

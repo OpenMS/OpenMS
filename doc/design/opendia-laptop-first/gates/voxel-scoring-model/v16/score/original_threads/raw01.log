@@ -1,0 +1,10 @@
+raw01 {'fold': 0, 'round': 0, 'seed': 100, 'epochs': 30, 'objective': 8991.649895228922, 'train_positive': 297, 'validation_positive': 50, 'negative': 4324}
+raw01 {'fold': 0, 'round': 1, 'seed': 201, 'epochs': 15, 'objective': 1791.7412666925736, 'train_positive': 1230, 'validation_positive': 190, 'negative': 62005}
+raw01 {'fold': 0, 'round': 2, 'seed': 202, 'epochs': 20, 'objective': 2801.935321026989, 'train_positive': 1225, 'validation_positive': 179, 'negative': 62005}
+raw01 {'fold': 1, 'round': 0, 'seed': 101, 'epochs': 21, 'objective': 11918.243088303836, 'train_positive': 285, 'validation_positive': 49, 'negative': 4292}
+raw01 {'fold': 1, 'round': 1, 'seed': 211, 'epochs': 16, 'objective': 1433.7656383107849, 'train_positive': 1396, 'validation_positive': 241, 'negative': 61933}
+raw01 {'fold': 1, 'round': 2, 'seed': 212, 'epochs': 23, 'objective': 2124.560300999402, 'train_positive': 1218, 'validation_positive': 197, 'negative': 61933}
+raw01 {'fold': 2, 'round': 0, 'seed': 102, 'epochs': 30, 'objective': 12692.707930183162, 'train_positive': 284, 'validation_positive': 43, 'negative': 4380}
+raw01 {'fold': 2, 'round': 1, 'seed': 221, 'epochs': 20, 'objective': 1218.9440925447045, 'train_positive': 1549, 'validation_positive': 252, 'negative': 62056}
+raw01 {'fold': 2, 'round': 2, 'seed': 222, 'epochs': 11, 'objective': 1640.8657446298887, 'train_positive': 1268, 'validation_positive': 204, 'negative': 62056}
+raw01 {'spearman': 1.0, 'max_abs_score_error': 0.0, 'max_abs_linear_error': 0.0, 'W_row_agreement': 1.0, 'threads': 10, 'rows': 1270510, 'pass': True}

@@ -1,0 +1,9 @@
+{
+  "spearman": 1.0,
+  "max_abs_score_error": 0.0,
+  "max_abs_linear_error": 0.0,
+  "W_row_agreement": 1.0,
+  "threads": 10,
+  "rows": 1270510,
+  "pass": true
+}

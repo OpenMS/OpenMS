@@ -1,0 +1,16 @@
+0be91b9a82e03cad51606984b4d7810ff28a33c0bd822e666c4dd13c6a9b42cd  ../../../../raw01/scores_D11F.npy
+7a91d63dac3d0dac0c282c0dbe42c75583284ce2378506cc07642e8003364cb3  ../../../../raw01/lin_D11F.npy
+1c8cfa284be88174baec3f094b7b7a7d3f481fc8ac577c28e41d94b3f3aca3ca  ../../../../raw01/scores_D11FW.npy
+bca920182ca0c82c2314d5ee20e10a08b00267fae9c32cc45a0a62e39e948d0f  ../../../../raw01/scores_D11FWT.npy
+eac007c070fef95de263978c7a376d69bb872284f4bc948c535d61bfe367edd2  ../../../../raw01/population.tsv
+4fd22b0d87e1dba8a708176bbbd275bba4d110af0621f8ede7710646569d3648  ../../../../raw01/heuristics.npy
+ddab6f00efa1ba69e03834226cf98f4c61a5bbee6c0c5c304af4a00f9f8aeec1  ../../../../raw01/feat12.npy
+77f88ac96c7e6bae634d0b5c1f734506e2f6dc61c80a4a64fcccf60f354b9a9a  ../../../../raw01/train_windows.tsv
+d8d91eb134bd6dabacc4618d2d158d81970173643a42a7fe51e338ea18972cd8  ../../../../raw02/scores_D11F.npy
+c5cdd5e8b884558c8acbf587df9aaa7adb7cc1863d1bf1dc22e5ea2beac4f79f  ../../../../raw02/lin_D11F.npy
+73b31b3e2404889380d86643a5d882a80ececb3a833d5319bdfb0a5ce308cd5f  ../../../../raw02/scores_D11FW.npy
+7ecaa30aab8be725327484d916ad6c4aad0fb15ac158b7f41539c7ff10c97149  ../../../../raw02/scores_D11FWT.npy
+7417bbe94875600dc658455687e3735aae9458efe0b6640288ea99784fc5de53  ../../../../raw02/population.tsv
+c35e5ffbb844c405fc3b9bcd704a89374886b38b49564a39ff2d87d71d8af484  ../../../../raw02/heuristics.npy
+a64074008bc2c0a55e8eb0e1b875864fd2665c2fc7ab347c443e3bdd7d443269  ../../../../raw02/feat12.npy
+0adb1f5470cfbf0f09f47b1875c4c86900b162204c098f53f69bda56193890c5  ../../../../raw02/train_windows.tsv

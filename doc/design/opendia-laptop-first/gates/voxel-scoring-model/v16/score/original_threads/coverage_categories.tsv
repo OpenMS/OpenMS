@@ -1,0 +1,181 @@
+raw	scope	role	group	category	n	group_total	heldout_below_decoy50	heldout_below_decoy90	heldout_above_decoy99	full_pct_median	linear_pct_median
+raw01	exact	all_positive	D	never_admitted	397	866	216	268	103	0.3337965805888627	0.952292042235385
+raw01	exact	all_positive	D	admitted_then_lost	60	866	17	18	38	0.9957569695405266	0.9907350792495145
+raw01	exact	all_positive	D	retained_r2	409	866	1	1	405	0.9996458923512748	0.9984226113829513
+raw01	exact	all_positive	E	never_admitted	0	1413	0	0	0		
+raw01	exact	all_positive	E	admitted_then_lost	0	1413	0	0	0		
+raw01	exact	all_positive	E	retained_r2	1413	1413	0	0	1413	1.0	1.0
+raw01	exact	all_positive	allH	never_admitted	45180	47670	23255	40545	501	0.4843689734225316	0.5476816502498674
+raw01	exact	all_positive	allH	admitted_then_lost	393	47670	127	154	199	0.9905303642416211	0.9906322431109966
+raw01	exact	all_positive	allH	retained_r2	2097	47670	2	2	2092	1.0	0.9999353608480657
+raw01	exact	all_positive	ENT	never_admitted	45626	46035	23552	41118	340	0.4843088458679422	0.5474464462790833
+raw01	exact	all_positive	ENT	admitted_then_lost	290	46035	102	120	144	0.9894683898358121	0.9912426392540286
+raw01	exact	all_positive	ENT	retained_r2	119	46035	0	0	119	0.9990664434715426	0.9989376770538244
+raw01	exact	all_positive	DEC	never_admitted	92997	92997	46499	83698	930	0.4999839041977852	0.5
+raw01	exact	all_positive	DEC	admitted_then_lost	0	92997	0	0	0		
+raw01	exact	all_positive	DEC	retained_r2	0	92997	0	0	0		
+raw01	exact	training_positive	D	never_admitted	462	866	216	268	168	0.6649550066015418	0.9628308290069679
+raw01	exact	training_positive	D	admitted_then_lost	52	866	17	18	30	0.9953819437845609	0.9874483737738771
+raw01	exact	training_positive	D	retained_r2	352	866	1	1	348	0.9996297965490599	0.9984046459083058
+raw01	exact	training_positive	E	never_admitted	137	1413	0	0	137	1.0	0.9999677336086732
+raw01	exact	training_positive	E	admitted_then_lost	62	1413	0	0	62	1.0	1.0
+raw01	exact	training_positive	E	retained_r2	1214	1413	0	0	1214	1.0	1.0
+raw01	exact	training_positive	allH	never_admitted	45464	47670	23268	40560	766	0.4873501370295389	0.5502832861189801
+raw01	exact	training_positive	allH	admitted_then_lost	401	47670	114	139	226	0.9938835951583826	0.9932240578213732
+raw01	exact	training_positive	allH	retained_r2	1805	47670	2	2	1800	1.0	0.9999354672173464
+raw01	exact	training_positive	ENT	never_admitted	45695	46035	23570	41140	380	0.4847733711048159	0.5478689157867628
+raw01	exact	training_positive	ENT	admitted_then_lost	235	46035	84	98	118	0.9902781354622714	0.9916615494004719
+raw01	exact	training_positive	ENT	retained_r2	105	46035	0	0	105	0.9991273714488866	0.9990965410428497
+raw01	exact	training_positive	DEC	never_admitted	92997	92997	46499	83698	930	0.4999839041977852	0.5
+raw01	exact	training_positive	DEC	admitted_then_lost	0	92997	0	0	0		
+raw01	exact	training_positive	DEC	retained_r2	0	92997	0	0	0		
+raw01	exact	validation_positive	D	never_admitted	800	866	234	287	480	0.9968056272586474	0.9855613341636784
+raw01	exact	validation_positive	D	admitted_then_lost	9	866	0	0	9	0.9965554983260365	0.996832681555218
+raw01	exact	validation_positive	D	retained_r2	57	866	0	0	57	0.9996768042403283	0.9984486603535762
+raw01	exact	validation_positive	E	never_admitted	1148	1413	0	0	1148	1.0	1.0
+raw01	exact	validation_positive	E	admitted_then_lost	66	1413	0	0	66	1.0	1.0
+raw01	exact	validation_positive	E	retained_r2	199	1413	0	0	199	1.0	1.0
+raw01	exact	validation_positive	allH	never_admitted	47257	47670	23371	40686	2398	0.5065447141333506	0.5699535363964894
+raw01	exact	validation_positive	allH	admitted_then_lost	121	47670	13	15	102	1.0	0.9998707216961313
+raw01	exact	validation_positive	allH	retained_r2	292	47670	0	0	292	1.0	0.9999353608480657
+raw01	exact	validation_positive	ENT	never_admitted	45965	46035	23636	41216	562	0.4861254184908576	0.5505086273499872
+raw01	exact	validation_positive	ENT	admitted_then_lost	56	46035	18	22	27	0.9888938964718001	0.9896985116242936
+raw01	exact	validation_positive	ENT	retained_r2	14	46035	0	0	14	0.9985980198955748	0.9985157459989675
+raw01	exact	validation_positive	DEC	never_admitted	92997	92997	46499	83698	930	0.4999839041977852	0.5
+raw01	exact	validation_positive	DEC	admitted_then_lost	0	92997	0	0	0		
+raw01	exact	validation_positive	DEC	retained_r2	0	92997	0	0	0		
+raw01	precursor	all_positive	D	never_admitted	394	866	216	268	100	0.3221776930286675	0.9516643902229479
+raw01	precursor	all_positive	D	admitted_then_lost	61	866	17	18	39	0.9955795043882292	0.9899562194179758
+raw01	precursor	all_positive	D	retained_r2	411	866	1	1	407	0.9996458923512748	0.9984226113829513
+raw01	precursor	all_positive	E	never_admitted	0	1413	0	0	0		
+raw01	precursor	all_positive	E	admitted_then_lost	0	1413	0	0	0		
+raw01	precursor	all_positive	E	retained_r2	1413	1413	0	0	1413	1.0	1.0
+raw01	precursor	all_positive	allH	never_admitted	45150	47670	23246	40535	485	0.4842158950309724	0.5474881167086774
+raw01	precursor	all_positive	allH	admitted_then_lost	402	47670	133	161	198	0.9891625056079625	0.9904168817759422
+raw01	precursor	all_positive	allH	retained_r2	2118	47670	5	5	2109	1.0	0.9999353608480657
+raw01	precursor	all_positive	ENT	never_admitted	45602	46035	23539	41099	335	0.48434595623288695	0.5472623275772888
+raw01	precursor	all_positive	ENT	admitted_then_lost	313	46035	114	138	149	0.9840987686241557	0.9907718120805369
+raw01	precursor	all_positive	ENT	retained_r2	120	46035	1	1	119	0.9990645878842475	0.998935565523454
+raw01	precursor	all_positive	DEC	never_admitted	92997	92997	46499	83698	930	0.4999839041977852	0.5
+raw01	precursor	all_positive	DEC	admitted_then_lost	0	92997	0	0	0		
+raw01	precursor	all_positive	DEC	retained_r2	0	92997	0	0	0		
+raw01	precursor	training_positive	D	never_admitted	459	866	216	268	165	0.6448622199330415	0.9626899304661344
+raw01	precursor	training_positive	D	admitted_then_lost	53	866	17	18	31	0.9951843831808926	0.9878678368611254
+raw01	precursor	training_positive	D	retained_r2	354	866	1	1	350	0.9996137007468452	0.9984046459083058
+raw01	precursor	training_positive	E	never_admitted	137	1413	0	0	137	1.0	0.9999677336086732
+raw01	precursor	training_positive	E	admitted_then_lost	62	1413	0	0	62	1.0	1.0
+raw01	precursor	training_positive	E	retained_r2	1214	1413	0	0	1214	1.0	1.0
+raw01	precursor	training_positive	allH	never_admitted	45436	47670	23260	40551	750	0.48724538343807267	0.5500468633851524
+raw01	precursor	training_positive	allH	admitted_then_lost	410	47670	119	145	227	0.99365085002455	0.993046613443214
+raw01	precursor	training_positive	allH	retained_r2	1824	47670	5	5	1815	1.0	0.9999353608480657
+raw01	precursor	training_positive	ENT	never_admitted	45672	46035	23558	41122	375	0.4847733711048159	0.5477209233439224
+raw01	precursor	training_positive	ENT	admitted_then_lost	257	46035	95	115	123	0.982616533608035	0.9912413949128988
+raw01	precursor	training_positive	ENT	retained_r2	106	46035	1	1	105	0.9990969074602146	0.9990634768819174
+raw01	precursor	training_positive	DEC	never_admitted	92997	92997	46499	83698	930	0.4999839041977852	0.5
+raw01	precursor	training_positive	DEC	admitted_then_lost	0	92997	0	0	0		
+raw01	precursor	training_positive	DEC	retained_r2	0	92997	0	0	0		
+raw01	precursor	validation_positive	D	never_admitted	800	866	234	287	480	0.9968056272586474	0.9855613341636784
+raw01	precursor	validation_positive	D	admitted_then_lost	9	866	0	0	9	0.9965554983260365	0.996832681555218
+raw01	precursor	validation_positive	D	retained_r2	57	866	0	0	57	0.9996768042403283	0.9984486603535762
+raw01	precursor	validation_positive	E	never_admitted	1148	1413	0	0	1148	1.0	1.0
+raw01	precursor	validation_positive	E	admitted_then_lost	66	1413	0	0	66	1.0	1.0
+raw01	precursor	validation_positive	E	retained_r2	199	1413	0	0	199	1.0	1.0
+raw01	precursor	validation_positive	allH	never_admitted	47254	47670	23370	40685	2397	0.5065312625906815	0.5699045468239767
+raw01	precursor	validation_positive	allH	admitted_then_lost	122	47670	14	16	101	1.0	0.9999030944567389
+raw01	precursor	validation_positive	allH	retained_r2	294	47670	0	0	294	0.9999839041977852	0.9999353608480657
+raw01	precursor	validation_positive	ENT	never_admitted	45964	46035	23635	41215	562	0.48613824009446405	0.5504925315477724
+raw01	precursor	validation_positive	ENT	admitted_then_lost	57	46035	19	23	27	0.9882178727787793	0.9896577356905077
+raw01	precursor	validation_positive	ENT	retained_r2	14	46035	0	0	14	0.9985980198955748	0.9985157459989675
+raw01	precursor	validation_positive	DEC	never_admitted	92997	92997	46499	83698	930	0.4999839041977852	0.5
+raw01	precursor	validation_positive	DEC	admitted_then_lost	0	92997	0	0	0		
+raw01	precursor	validation_positive	DEC	retained_r2	0	92997	0	0	0		
+raw02	exact	all_positive	D	never_admitted	371	929	196	222	122	0.3896668889523991	0.949588901939621
+raw02	exact	all_positive	D	admitted_then_lost	51	929	7	7	41	0.9970375561430892	0.9942224056379163
+raw02	exact	all_positive	D	retained_r2	507	929	1	1	506	0.9997142947842925	0.9977771426756851
+raw02	exact	all_positive	E	never_admitted	0	1362	0	0	0		
+raw02	exact	all_positive	E	admitted_then_lost	0	1362	0	0	0		
+raw02	exact	all_positive	E	retained_r2	1362	1362	0	0	1362	1.0	1.0
+raw02	exact	all_positive	allH	never_admitted	45852	48294	23470	41137	554	0.48863167254136103	0.5436289551519785
+raw02	exact	all_positive	allH	admitted_then_lost	332	48294	86	101	208	0.995022494824314	0.9948714681616921
+raw02	exact	all_positive	allH	retained_r2	2110	48294	1	1	2109	1.0	0.9999047649280975
+raw02	exact	all_positive	ENT	never_admitted	46429	46785	23704	41807	373	0.489476524554776	0.5489032094219232
+raw02	exact	all_positive	ENT	admitted_then_lost	265	46785	79	91	153	0.9925081743436717	0.994538122003112
+raw02	exact	all_positive	ENT	retained_r2	91	46785	0	0	91	0.9993333544966826	0.9991717898894658
+raw02	exact	all_positive	DEC	never_admitted	94385	94385	47191	84947	944	0.5	0.5
+raw02	exact	all_positive	DEC	admitted_then_lost	0	94385	0	0	0		
+raw02	exact	all_positive	DEC	retained_r2	0	94385	0	0	0		
+raw02	exact	training_positive	D	never_admitted	450	929	197	223	200	0.9144358705661935	0.9631440271737405
+raw02	exact	training_positive	D	admitted_then_lost	45	929	6	6	36	0.9970375561430892	0.993406173350747
+raw02	exact	training_positive	D	retained_r2	434	929	1	1	433	0.9997142947842925	0.9976941366549595
+raw02	exact	training_positive	E	never_admitted	121	1362	0	0	121	1.0	0.9999681457649795
+raw02	exact	training_positive	E	admitted_then_lost	71	1362	0	0	71	1.0	1.0
+raw02	exact	training_positive	E	retained_r2	1170	1362	0	0	1170	1.0	1.0
+raw02	exact	training_positive	allH	never_admitted	46133	48294	23481	41150	819	0.4910330328417163	0.5461567865447712
+raw02	exact	training_positive	allH	admitted_then_lost	352	48294	75	88	244	0.9964004714426783	0.9963748422376818
+raw02	exact	training_positive	allH	retained_r2	1809	48294	1	1	1808	1.0	0.9999362915299589
+raw02	exact	training_positive	ENT	never_admitted	46490	46785	23720	41827	411	0.48982248896510117	0.5497264030134392
+raw02	exact	training_positive	ENT	admitted_then_lost	217	46785	63	71	128	0.9926986444874766	0.9950625935718154
+raw02	exact	training_positive	ENT	retained_r2	78	46785	0	0	78	0.9993013876980724	0.9991732096331555
+raw02	exact	training_positive	DEC	never_admitted	94385	94385	47191	84947	944	0.5	0.5
+raw02	exact	training_positive	DEC	admitted_then_lost	0	94385	0	0	0		
+raw02	exact	training_positive	DEC	retained_r2	0	94385	0	0	0		
+raw02	exact	validation_positive	D	never_admitted	848	929	203	229	589	0.9986984540173328	0.9905540130614381
+raw02	exact	validation_positive	D	admitted_then_lost	8	929	1	1	7	0.9975715056664868	0.9960794895400147
+raw02	exact	validation_positive	D	retained_r2	73	929	0	0	73	0.9997459591629354	0.9982540236817878
+raw02	exact	validation_positive	E	never_admitted	1099	1362	0	0	1099	1.0	1.0
+raw02	exact	validation_positive	E	admitted_then_lost	71	1362	0	0	71	1.0	1.0
+raw02	exact	validation_positive	E	retained_r2	192	1362	0	0	192	1.0	1.0
+raw02	exact	validation_positive	allH	never_admitted	47867	48294	23546	41226	2460	0.508637388460195	0.56346257660919
+raw02	exact	validation_positive	allH	admitted_then_lost	126	48294	11	13	110	1.0	0.9999682499356997
+raw02	exact	validation_positive	allH	retained_r2	301	48294	0	0	301	1.0	0.9998412244768347
+raw02	exact	validation_positive	ENT	never_admitted	46723	46785	23767	41878	579	0.4910011786066958	0.5518872416748675
+raw02	exact	validation_positive	ENT	admitted_then_lost	49	46785	16	20	25	0.9901907875940447	0.9921247340509987
+raw02	exact	validation_positive	ENT	retained_r2	13	46785	0	0	13	0.9994903322396713	0.9989841592330402
+raw02	exact	validation_positive	DEC	never_admitted	94385	94385	47191	84947	944	0.5	0.5
+raw02	exact	validation_positive	DEC	admitted_then_lost	0	94385	0	0	0		
+raw02	exact	validation_positive	DEC	retained_r2	0	94385	0	0	0		
+raw02	precursor	all_positive	D	never_admitted	366	929	195	221	118	0.37268584674986505	0.9485554104418182
+raw02	precursor	all_positive	D	admitted_then_lost	54	929	8	8	43	0.9969419934380276	0.9943080301371501
+raw02	precursor	all_positive	D	retained_r2	509	929	1	1	508	0.9997142947842925	0.9977778483222755
+raw02	precursor	all_positive	E	never_admitted	0	1362	0	0	0		
+raw02	precursor	all_positive	E	admitted_then_lost	0	1362	0	0	0		
+raw02	precursor	all_positive	E	retained_r2	1362	1362	0	0	1362	1.0	1.0
+raw02	precursor	all_positive	allH	never_admitted	45817	48294	23452	41116	543	0.48864755009367755	0.5432421240403912
+raw02	precursor	all_positive	allH	admitted_then_lost	356	48294	102	120	210	0.9944819145676458	0.9945454743421056
+raw02	precursor	all_positive	allH	retained_r2	2121	48294	3	3	2118	1.0	0.9999047346861007
+raw02	precursor	all_positive	ENT	never_admitted	46404	46785	23694	41796	360	0.4894505138695039	0.5486011876409133
+raw02	precursor	all_positive	ENT	admitted_then_lost	279	46785	87	100	158	0.9924824005351511	0.9945063668984789
+raw02	precursor	all_positive	ENT	retained_r2	102	46785	2	2	99	0.9992697485210935	0.9989522478780908
+raw02	precursor	all_positive	DEC	never_admitted	94385	94385	47191	84947	944	0.5	0.5
+raw02	precursor	all_positive	DEC	admitted_then_lost	0	94385	0	0	0		
+raw02	precursor	all_positive	DEC	retained_r2	0	94385	0	0	0		
+raw02	precursor	training_positive	D	never_admitted	445	929	196	222	196	0.903527992124734	0.9625712738508585
+raw02	precursor	training_positive	D	admitted_then_lost	48	929	7	7	38	0.9969419934380276	0.9938999139935655
+raw02	precursor	training_positive	D	retained_r2	436	929	1	1	435	0.9997142947842925	0.9977139953703797
+raw02	precursor	training_positive	E	never_admitted	121	1362	0	0	121	1.0	0.9999681457649795
+raw02	precursor	training_positive	E	admitted_then_lost	71	1362	0	0	71	1.0	1.0
+raw02	precursor	training_positive	E	retained_r2	1170	1362	0	0	1170	1.0	1.0
+raw02	precursor	training_positive	allH	never_admitted	46101	48294	23464	41130	810	0.4910330328417163	0.5458702486424692
+raw02	precursor	training_positive	allH	admitted_then_lost	376	48294	90	106	247	0.9960721976241798	0.9959512241592836
+raw02	precursor	training_positive	allH	retained_r2	1817	48294	3	3	1814	1.0	0.9999362915299589
+raw02	precursor	training_positive	ENT	never_admitted	46466	46785	23710	41816	399	0.48979397479445097	0.5492841497095331
+raw02	precursor	training_positive	ENT	admitted_then_lost	232	46785	71	80	133	0.9925081743436717	0.9947054435975355
+raw02	precursor	training_positive	ENT	retained_r2	87	46785	2	2	85	0.9992061223841733	0.9989520815471087
+raw02	precursor	training_positive	DEC	never_admitted	94385	94385	47191	84947	944	0.5	0.5
+raw02	precursor	training_positive	DEC	admitted_then_lost	0	94385	0	0	0		
+raw02	precursor	training_positive	DEC	retained_r2	0	94385	0	0	0		
+raw02	precursor	validation_positive	D	never_admitted	848	929	203	229	589	0.9986984540173328	0.9905540130614381
+raw02	precursor	validation_positive	D	admitted_then_lost	8	929	1	1	7	0.9975715056664868	0.9960794895400147
+raw02	precursor	validation_positive	D	retained_r2	73	929	0	0	73	0.9997459591629354	0.9982540236817878
+raw02	precursor	validation_positive	E	never_admitted	1099	1362	0	0	1099	1.0	1.0
+raw02	precursor	validation_positive	E	admitted_then_lost	71	1362	0	0	71	1.0	1.0
+raw02	precursor	validation_positive	E	retained_r2	192	1362	0	0	192	1.0	1.0
+raw02	precursor	validation_positive	allH	never_admitted	47863	48294	23545	41225	2457	0.5086187740071744	0.5633990663999238
+raw02	precursor	validation_positive	allH	admitted_then_lost	127	48294	12	14	110	1.0	0.9999682549760325
+raw02	precursor	validation_positive	allH	retained_r2	304	48294	0	0	304	1.0	0.9998412244768347
+raw02	precursor	validation_positive	ENT	never_admitted	46722	46785	23767	41878	578	0.4909374701366547	0.5518872416748675
+raw02	precursor	validation_positive	ENT	admitted_then_lost	48	46785	16	20	25	0.9909224890093309	0.9925534279635451
+raw02	precursor	validation_positive	ENT	retained_r2	15	46785	0	0	14	0.9994903322396713	0.9989524142090728
+raw02	precursor	validation_positive	DEC	never_admitted	94385	94385	47191	84947	944	0.5	0.5
+raw02	precursor	validation_positive	DEC	admitted_then_lost	0	94385	0	0	0		
+raw02	precursor	validation_positive	DEC	retained_r2	0	94385	0	0	0		

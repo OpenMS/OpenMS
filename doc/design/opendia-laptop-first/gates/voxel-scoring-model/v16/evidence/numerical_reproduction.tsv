@@ -1,0 +1,7 @@
+raw	feature	old_feature	n	finite	max_abs_error
+raw01	xic_core_supported	n_sig	3208	3208	0.0
+raw01	xic_corr_zerofill	corr_med	3208	3208	1.1102230246251565e-15
+raw01	xic_core_fraction	frac_core	3208	3208	0.0
+raw02	xic_core_supported	n_sig	3234	3234	0.0
+raw02	xic_corr_zerofill	corr_med	3234	3233	1.2212453270876722e-15
+raw02	xic_core_fraction	frac_core	3234	3234	0.0

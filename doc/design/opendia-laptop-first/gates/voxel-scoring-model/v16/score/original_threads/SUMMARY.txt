@@ -1,0 +1,154 @@
+COVERAGE ALL POSITIVE, DISTINCT WINNERS
+  raw     scope group           category     n  heldout_below_decoy90  full_pct_median
+raw01     exact     D     never_admitted   397                    268         0.333797
+raw01     exact     D admitted_then_lost    60                     18         0.995757
+raw01     exact     D        retained_r2   409                      1         0.999646
+raw01     exact     E     never_admitted     0                      0              NaN
+raw01     exact     E admitted_then_lost     0                      0              NaN
+raw01     exact     E        retained_r2  1413                      0         1.000000
+raw01     exact  allH     never_admitted 45180                  40545         0.484369
+raw01     exact  allH admitted_then_lost   393                    154         0.990530
+raw01     exact  allH        retained_r2  2097                      2         1.000000
+raw01     exact   ENT     never_admitted 45626                  41118         0.484309
+raw01     exact   ENT admitted_then_lost   290                    120         0.989468
+raw01     exact   ENT        retained_r2   119                      0         0.999066
+raw01     exact   DEC     never_admitted 92997                  83698         0.499984
+raw01     exact   DEC admitted_then_lost     0                      0              NaN
+raw01     exact   DEC        retained_r2     0                      0              NaN
+raw01 precursor     D     never_admitted   394                    268         0.322178
+raw01 precursor     D admitted_then_lost    61                     18         0.995580
+raw01 precursor     D        retained_r2   411                      1         0.999646
+raw01 precursor     E     never_admitted     0                      0              NaN
+raw01 precursor     E admitted_then_lost     0                      0              NaN
+raw01 precursor     E        retained_r2  1413                      0         1.000000
+raw01 precursor  allH     never_admitted 45150                  40535         0.484216
+raw01 precursor  allH admitted_then_lost   402                    161         0.989163
+raw01 precursor  allH        retained_r2  2118                      5         1.000000
+raw01 precursor   ENT     never_admitted 45602                  41099         0.484346
+raw01 precursor   ENT admitted_then_lost   313                    138         0.984099
+raw01 precursor   ENT        retained_r2   120                      1         0.999065
+raw01 precursor   DEC     never_admitted 92997                  83698         0.499984
+raw01 precursor   DEC admitted_then_lost     0                      0              NaN
+raw01 precursor   DEC        retained_r2     0                      0              NaN
+raw02     exact     D     never_admitted   371                    222         0.389667
+raw02     exact     D admitted_then_lost    51                      7         0.997038
+raw02     exact     D        retained_r2   507                      1         0.999714
+raw02     exact     E     never_admitted     0                      0              NaN
+raw02     exact     E admitted_then_lost     0                      0              NaN
+raw02     exact     E        retained_r2  1362                      0         1.000000
+raw02     exact  allH     never_admitted 45852                  41137         0.488632
+raw02     exact  allH admitted_then_lost   332                    101         0.995022
+raw02     exact  allH        retained_r2  2110                      1         1.000000
+raw02     exact   ENT     never_admitted 46429                  41807         0.489477
+raw02     exact   ENT admitted_then_lost   265                     91         0.992508
+raw02     exact   ENT        retained_r2    91                      0         0.999333
+raw02     exact   DEC     never_admitted 94385                  84947         0.500000
+raw02     exact   DEC admitted_then_lost     0                      0              NaN
+raw02     exact   DEC        retained_r2     0                      0              NaN
+raw02 precursor     D     never_admitted   366                    221         0.372686
+raw02 precursor     D admitted_then_lost    54                      8         0.996942
+raw02 precursor     D        retained_r2   509                      1         0.999714
+raw02 precursor     E     never_admitted     0                      0              NaN
+raw02 precursor     E admitted_then_lost     0                      0              NaN
+raw02 precursor     E        retained_r2  1362                      0         1.000000
+raw02 precursor  allH     never_admitted 45817                  41116         0.488648
+raw02 precursor  allH admitted_then_lost   356                    120         0.994482
+raw02 precursor  allH        retained_r2  2121                      3         1.000000
+raw02 precursor   ENT     never_admitted 46404                  41796         0.489451
+raw02 precursor   ENT admitted_then_lost   279                    100         0.992482
+raw02 precursor   ENT        retained_r2   102                      2         0.999270
+raw02 precursor   DEC     never_admitted 94385                  84947         0.500000
+raw02 precursor   DEC admitted_then_lost     0                      0              NaN
+raw02 precursor   DEC        retained_r2     0                      0              NaN
+
+TRAINING ONLY DISTINCT WINNERS D/E
+  raw     scope group           category    n  heldout_below_decoy90
+raw01     exact     D     never_admitted  462                    268
+raw01     exact     D admitted_then_lost   52                     18
+raw01     exact     D        retained_r2  352                      1
+raw01     exact     E     never_admitted  137                      0
+raw01     exact     E admitted_then_lost   62                      0
+raw01     exact     E        retained_r2 1214                      0
+raw01 precursor     D     never_admitted  459                    268
+raw01 precursor     D admitted_then_lost   53                     18
+raw01 precursor     D        retained_r2  354                      1
+raw01 precursor     E     never_admitted  137                      0
+raw01 precursor     E admitted_then_lost   62                      0
+raw01 precursor     E        retained_r2 1214                      0
+raw02     exact     D     never_admitted  450                    223
+raw02     exact     D admitted_then_lost   45                      6
+raw02     exact     D        retained_r2  434                      1
+raw02     exact     E     never_admitted  121                      0
+raw02     exact     E admitted_then_lost   71                      0
+raw02     exact     E        retained_r2 1170                      0
+raw02 precursor     D     never_admitted  445                    222
+raw02 precursor     D admitted_then_lost   48                      7
+raw02 precursor     D        retained_r2  436                      1
+raw02 precursor     E     never_admitted  121                      0
+raw02 precursor     E admitted_then_lost   71                      0
+raw02 precursor     E        retained_r2 1170                      0
+
+R2 SAME MODEL FULL->LINEAR AND TRAINING FULL->HELDOUT LINEAR
+  raw  round group            subset      n  same_model_different  same_model_far_gt10  heldout_different  heldout_far_gt10
+raw01      2     D      all_eligible   1732                   428                  425                434               431
+raw01      2     D selected_positive    745                     3                    3                  3                 3
+raw01      2   DEC      all_eligible 185994                143940               143026             144040            143144
+raw01      2   DEC selected_positive      0                     0                    0                  0                 0
+raw01      2     E      all_eligible   2826                     1                    1                  0                 0
+raw01      2     E selected_positive   2826                     1                    1                  0                 0
+raw01      2   ENT      all_eligible  92070                 71952                71405              72067             71513
+raw01      2   ENT selected_positive    200                     3                    3                  3                 3
+raw01      2  allH      all_eligible  95340                 71196                70674              71311             70795
+raw01      2  allH selected_positive   4091                    34                   32                 43                39
+raw02      2     D      all_eligible   1858                   403                  399                407               399
+raw02      2     D selected_positive    931                     3                    1                  5                 1
+raw02      2   DEC      all_eligible 188770                148735               147752             148885            147889
+raw02      2   DEC selected_positive      0                     0                    0                  0                 0
+raw02      2     E      all_eligible   2724                     0                    0                  0                 0
+raw02      2     E selected_positive   2724                     0                    0                  0                 0
+raw02      2   ENT      all_eligible  93570                 74740                74162              74843             74260
+raw02      2   ENT selected_positive    175                    13                   13                 17                17
+raw02      2  allH      all_eligible  96588                 73131                72605              73294             72765
+raw02      2  allH selected_positive   4097                    19                   17                 22                18
+
+FINAL HELDOUT FULL->LINEAR
+  raw group     n  different  far_gt10  median_distance
+raw01     D   866        283       281         0.000000
+raw01     E  1413          1         1         0.000000
+raw01  allH 47670      36296     36032        36.029907
+raw01   ENT 46035      36759     36487        39.289280
+raw01   DEC 92997      73254     72763        37.686524
+raw02     D   929        231       224         0.000000
+raw02     E  1362          0         0         0.000000
+raw02  allH 48294      36535     36257        36.095533
+raw02   ENT 46785      37079     36797        39.302837
+raw02   DEC 94385      73788     73289        37.804772
+
+ raw01 D HELDOUT SCORE <decoy90 BY EXACT COVERAGE
+full_pct                     False  True 
+exact_all_positive_category              
+admitted_then_lost              42     18
+never_admitted                 129    268
+retained_r2                    408      1
+raw01 D R2 retained model counts {0: 457, 2: 333, 1: 76}
+
+ raw02 D HELDOUT SCORE <decoy90 BY EXACT COVERAGE
+full_pct                     False  True 
+exact_all_positive_category              
+admitted_then_lost              44      7
+never_admitted                 149    222
+retained_r2                    506      1
+raw02 D R2 retained model counts {0: 422, 2: 419, 1: 88}
+
+DISTINCT WINNER OTHER-APEX ADMISSION
+  raw group     n  ever_precursor_never_exact  ever_far_positive  r2_far_positive  median_features_outside
+raw01     D   866                           3                  5                2                      0.0
+raw01     E  1413                           0                  2                0                      0.0
+raw01  allH 47670                          30                 51               26                      3.0
+raw01   ENT 46035                          24                 32                2                      3.0
+raw01   DEC 92997                           0                  0                0                      4.0
+raw02     D   929                           5                  6                1                      0.0
+raw02     E  1362                           0                  1                0                      0.0
+raw02  allH 48294                          35                 51               13                      3.0
+raw02   ENT 46785                          25                 31               12                      3.0
+raw02   DEC 94385                           0                  0                0                      3.0

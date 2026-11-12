@@ -1,0 +1,9 @@
+raw	group	category	n	full_linear_far	deep	deep_and_far	support_outside_median
+raw01	D	admitted_then_lost	60	19	18	17	1.0
+raw01	D	never_admitted	397	261	268	251	1.0
+raw01	D	retained_r2	409	1	1	1	0.0
+raw01	E	retained_r2	1413	1	0	0	0.0
+raw02	D	admitted_then_lost	51	7	7	7	1.0
+raw02	D	never_admitted	371	216	222	212	1.0
+raw02	D	retained_r2	507	1	1	1	0.0
+raw02	E	retained_r2	1362	0	0	0	0.0

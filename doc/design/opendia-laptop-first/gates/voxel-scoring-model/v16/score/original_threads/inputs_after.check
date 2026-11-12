@@ -1,0 +1,16 @@
+../../../../raw01/scores_D11F.npy: OK
+../../../../raw01/lin_D11F.npy: OK
+../../../../raw01/scores_D11FW.npy: OK
+../../../../raw01/scores_D11FWT.npy: OK
+../../../../raw01/population.tsv: OK
+../../../../raw01/heuristics.npy: OK
+../../../../raw01/feat12.npy: OK
+../../../../raw01/train_windows.tsv: OK
+../../../../raw02/scores_D11F.npy: OK
+../../../../raw02/lin_D11F.npy: OK
+../../../../raw02/scores_D11FW.npy: OK
+../../../../raw02/scores_D11FWT.npy: OK
+../../../../raw02/population.tsv: OK
+../../../../raw02/heuristics.npy: OK
+../../../../raw02/feat12.npy: OK
+../../../../raw02/train_windows.tsv: OK

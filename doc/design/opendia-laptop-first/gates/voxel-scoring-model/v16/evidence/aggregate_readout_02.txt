@@ -1,0 +1,288 @@
+RT/FWHM CONFIDENCE SUBSETS
+  raw group    subset    n  valid  median_fwhm_s  rt_abs_q50  rt_abs_q90  rt_fwhm_q50  rt_fwhm_q90  over_half_fwhm  over_one_fwhm  over_two_fwhm  over_10s  outside_diann_boundaries  median_qty_log10  median_native_coherence  median_binned_coherence  median_core_dropout  best_fragment_not_in_six
+raw01     D       all  866    866         3.2300         0.0      3.2814          0.0       0.9051          0.2102         0.0935         0.0450       0.0                    0.0704            5.3042                   0.2855                   0.1198               0.5200                    0.1143
+raw01     D high_conf  369    369         3.2760         0.0      3.2708          0.0       0.7133          0.1897         0.0732         0.0325       0.0                    0.0569            5.4563                   0.3188                   0.1397               0.5000                    0.1518
+raw01     D  marginal  497    497         3.1370         0.0      3.2958          0.0       1.2648          0.2254         0.1087         0.0543       0.0                    0.0805            5.2062                   0.2571                   0.1097               0.5278                    0.0865
+raw01     E       all 1413   1413         3.5165         0.0      1.6395          0.0       0.4259          0.0234         0.0000         0.0000       0.0                    0.0000            6.3691                   0.7665                   0.3277               0.3611                    0.1706
+raw01     E high_conf 1204   1204         3.5145         0.0      1.6395          0.0       0.4240          0.0183         0.0000         0.0000       0.0                    0.0000            6.3777                   0.7807                   0.3411               0.3333                    0.1827
+raw01     E  marginal  209    209         3.5420         0.0      1.6397          0.0       0.4442          0.0526         0.0000         0.0000       0.0                    0.0000            6.2979                   0.6554                   0.2471               0.3889                    0.1005
+raw02     D       all  929    929         3.2899         0.0      3.2696          0.0       0.6681          0.1690         0.0786         0.0301       0.0                    0.0452            5.4066                   0.3126                   0.1325               0.5000                    0.0915
+raw02     D high_conf  427    427         3.2912         0.0      3.2714          0.0       0.6679          0.1756         0.0796         0.0328       0.0                    0.0468            5.4748                   0.3543                   0.1585               0.5000                    0.1054
+raw02     D  marginal  502    502         3.2695         0.0      3.1107          0.0       0.6680          0.1633         0.0777         0.0279       0.0                    0.0438            5.2872                   0.2780                   0.1073               0.5000                    0.0797
+raw02     E       all 1362   1362         3.4863         0.0      1.6379          0.0       0.3975          0.0176         0.0000         0.0000       0.0                    0.0000            6.4082                   0.7729                   0.3299               0.3333                    0.1711
+raw02     E high_conf 1243   1243         3.4731         0.0      1.6375          0.0       0.3951          0.0169         0.0000         0.0000       0.0                    0.0000            6.3982                   0.7761                   0.3320               0.3333                    0.1738
+raw02     E  marginal  119    119         3.5936         0.0      1.6394          0.0       0.4055          0.0252         0.0000         0.0000       0.0                    0.0000            6.5657                   0.7344                   0.2979               0.3333                    0.1429
+
+GROUP MEDIANS
+group                                        D     DEC       E     ENT   HUMAN
+raw   feature                                                                 
+raw01 boundary_coelution                0.2855  0.1245  0.7665  0.1280  0.1416
+      boundary_log_fwhm                 1.8197  1.8102  1.6895  1.8221  1.8161
+      boundary_log_width                2.5793  2.3394  2.6479  2.4259  2.4259
+      f12_libcos                        0.8714  0.5786  0.9641  0.5951  0.6060
+      f12_support                       2.0000  1.0000  6.0000  1.0000  1.0000
+      natE_apex_logp                    4.2409  0.8631  8.6545  0.8879  0.9465
+      natE_libcos                       0.8362  0.4540  0.9612  0.4704  0.4825
+      native_binned_coherence_gap       0.1336  0.1084  0.3375  0.1075  0.1144
+      native_binned_libcos_gap         -0.0251 -0.0930 -0.0002 -0.0915 -0.0853
+      p_n_tight                         4.0000  2.0000  6.0000  2.0000  2.0000
+      p_ppm_abs_med                     1.6266  3.5061  0.8590  3.3611  3.1645
+      transition_support                4.0000  2.0000  6.0000  3.0000  3.0000
+      xic_conditional_fragment_dropout  0.5200  0.5000  0.3611  0.5000  0.5000
+      xic_core_empty_time_fraction      0.2500  0.3750  0.2500  0.3750  0.3750
+      xic_core_supported                6.0000  3.0000  6.0000  4.0000  4.0000
+      xic_corr_occupied_time           -0.0206 -0.1215  0.2170 -0.1107 -0.1084
+      xic_corr_zerofill                 0.1198 -0.0323  0.3277 -0.0239 -0.0186
+      xic_global_peak_outside_core      0.0000  0.0000  0.0000  0.0000  0.0000
+      xic_halfheight_occupied_width_s   2.8125  2.8125  1.8750  2.8125  2.8125
+      xic_rebin_corr_change             0.0506 -0.0491  0.1761 -0.0493 -0.0475
+      xic_rebin_phase_sensitivity       0.1048  0.0397  0.1571  0.0434  0.0458
+      xic_shared_zero_corr_inflation    0.1171  0.1176  0.0902  0.1095  0.1101
+      xic_single_bin_fragments          1.0000  1.0000  0.0000  1.0000  1.0000
+raw02 boundary_coelution                0.3126  0.1178  0.7729  0.1246  0.1365
+      boundary_log_fwhm                 1.8060  1.8158  1.6861  1.8253  1.8181
+      boundary_log_width                2.5793  2.4259  2.6479  2.4259  2.4259
+      f12_libcos                        0.8659  0.5776  0.9675  0.5918  0.6055
+      f12_support                       2.0000  1.0000  6.0000  1.0000  1.0000
+      natE_apex_logp                    4.4355  0.8679  8.8941  0.8871  0.9433
+      natE_libcos                       0.8403  0.4551  0.9651  0.4690  0.4812
+      native_binned_coherence_gap       0.1597  0.1033  0.3532  0.1033  0.1097
+      native_binned_libcos_gap         -0.0156 -0.0912 -0.0002 -0.0900 -0.0848
+      p_n_tight                         4.0000  2.0000  6.0000  2.0000  2.0000
+      p_ppm_abs_med                     1.5036  3.4693  0.7890  3.2927  3.1248
+      transition_support                4.0000  2.0000  6.0000  3.0000  3.0000
+      xic_conditional_fragment_dropout  0.5000  0.5000  0.3333  0.5000  0.5000
+      xic_core_empty_time_fraction      0.2500  0.3750  0.2500  0.3750  0.3750
+      xic_core_supported                6.0000  3.0000  6.0000  4.0000  4.0000
+      xic_corr_occupied_time           -0.0152 -0.1208  0.2155 -0.1103 -0.1084
+      xic_corr_zerofill                 0.1325 -0.0323  0.3299 -0.0235 -0.0170
+      xic_global_peak_outside_core      0.0000  0.0000  0.0000  0.0000  0.0000
+      xic_halfheight_occupied_width_s   2.8125  2.8125  1.8750  2.8125  2.8125
+      xic_rebin_corr_change             0.0633 -0.0493  0.1814 -0.0497 -0.0475
+      xic_rebin_phase_sensitivity       0.1150  0.0391  0.1677  0.0436  0.0461
+      xic_shared_zero_corr_inflation    0.1187  0.1172  0.0885  0.1093  0.1106
+      xic_single_bin_fragments          1.0000  1.0000  0.0000  1.0000  1.0000
+
+SHAPE MEANS AND UPPER TAILS
+  raw group                        feature  finite   mean    q90
+raw01     D   xic_core_empty_time_fraction     866 0.3178 0.5000
+raw01     D xic_shared_zero_corr_inflation     866 0.1256 0.2081
+raw01     D    xic_rebin_phase_sensitivity     866 0.1402 0.3112
+raw01     D   xic_global_peak_outside_core     866 0.2055 1.0000
+raw01     E   xic_core_empty_time_fraction    1413 0.2896 0.3750
+raw01     E xic_shared_zero_corr_inflation    1413 0.0950 0.1675
+raw01     E    xic_rebin_phase_sensitivity    1413 0.2015 0.4668
+raw01     E   xic_global_peak_outside_core    1413 0.0573 0.0000
+raw01 HUMAN   xic_core_empty_time_fraction   47670 0.4015 0.6250
+raw01 HUMAN xic_shared_zero_corr_inflation   47508 0.1300 0.2189
+raw01 HUMAN    xic_rebin_phase_sensitivity   47454 0.0943 0.2485
+raw01 HUMAN   xic_global_peak_outside_core   47670 0.4386 1.0000
+raw01   ENT   xic_core_empty_time_fraction   46035 0.4046 0.6250
+raw01   ENT xic_shared_zero_corr_inflation   45886 0.1300 0.2182
+raw01   ENT    xic_rebin_phase_sensitivity   45854 0.0892 0.2329
+raw01   ENT   xic_global_peak_outside_core   46035 0.4554 1.0000
+raw01   DEC   xic_core_empty_time_fraction   92997 0.4303 0.6250
+raw01   DEC xic_shared_zero_corr_inflation   92398 0.1452 0.2516
+raw01   DEC    xic_rebin_phase_sensitivity   92260 0.0880 0.2332
+raw01   DEC   xic_global_peak_outside_core   92997 0.4590 1.0000
+raw02     D   xic_core_empty_time_fraction     929 0.3181 0.3750
+raw02     D xic_shared_zero_corr_inflation     929 0.1281 0.2084
+raw02     D    xic_rebin_phase_sensitivity     929 0.1597 0.3548
+raw02     D   xic_global_peak_outside_core     929 0.2088 1.0000
+raw02     E   xic_core_empty_time_fraction    1362 0.2914 0.3750
+raw02     E xic_shared_zero_corr_inflation    1362 0.0957 0.1690
+raw02     E    xic_rebin_phase_sensitivity    1362 0.2148 0.4823
+raw02     E   xic_global_peak_outside_core    1362 0.0507 0.0000
+raw02 HUMAN   xic_core_empty_time_fraction   48294 0.4021 0.6250
+raw02 HUMAN xic_shared_zero_corr_inflation   48122 0.1303 0.2185
+raw02 HUMAN    xic_rebin_phase_sensitivity   48089 0.0953 0.2537
+raw02 HUMAN   xic_global_peak_outside_core   48294 0.4375 1.0000
+raw02   ENT   xic_core_empty_time_fraction   46785 0.4043 0.6250
+raw02   ENT xic_shared_zero_corr_inflation   46629 0.1297 0.2183
+raw02   ENT    xic_rebin_phase_sensitivity   46590 0.0892 0.2338
+raw02   ENT   xic_global_peak_outside_core   46785 0.4554 1.0000
+raw02   DEC   xic_core_empty_time_fraction   94385 0.4289 0.6250
+raw02   DEC xic_shared_zero_corr_inflation   93827 0.1450 0.2496
+raw02   DEC    xic_rebin_phase_sensitivity   93683 0.0872 0.2307
+raw02   DEC   xic_global_peak_outside_core   94385 0.4568 1.0000
+
+CONTROLLED AUC, HIGH-VALUE ORIENTATION
+left                                         D   E     ENT   HUMAN
+raw   feature                                                     
+raw01 boundary_coelution                0.4979 NaN  0.5032  0.5052
+      boundary_log_fwhm                 0.5406 NaN  0.5109  0.5124
+      boundary_log_width                0.5807 NaN  0.5123  0.5129
+      f12_libcos                        0.8332 NaN  0.5278  0.5360
+      f12_support                       0.4089 NaN  0.5139  0.5046
+      natE_apex_logp                    0.8695 NaN  0.5080  0.5171
+      natE_libcos                       0.8686 NaN  0.5286  0.5382
+      native_binned_coherence_gap       0.4438 NaN  0.4965  0.4980
+      native_binned_libcos_gap          0.6699 NaN  0.5014  0.5058
+      p_n_tight                         0.7733 NaN  0.5291  0.5325
+      p_ppm_abs_med                     0.3609 NaN  0.4880  0.4853
+      transition_support                0.7289 NaN  0.5472  0.5493
+      xic_conditional_fragment_dropout  0.6341 NaN  0.5048  0.5086
+      xic_core_empty_time_fraction      0.4185 NaN  0.4595  0.4639
+      xic_core_supported                0.7593 NaN  0.5305  0.5303
+      xic_corr_occupied_time            0.5718 NaN  0.5425  0.5383
+      xic_corr_zerofill                 0.6057 NaN  0.5213  0.5199
+      xic_global_peak_outside_core      0.4211 NaN  0.4987  0.4980
+      xic_halfheight_occupied_width_s   0.5764 NaN  0.5096  0.5109
+      xic_rebin_corr_change             0.6456 NaN  0.4976  0.5011
+      xic_rebin_phase_sensitivity       0.5726 NaN  0.5105  0.5116
+      xic_shared_zero_corr_inflation    0.5589 NaN  0.4617  0.4679
+      xic_single_bin_fragments          0.5404 NaN  0.4975  0.5003
+raw02 boundary_coelution                0.5110 NaN  0.5066  0.5067
+      boundary_log_fwhm                 0.5576 NaN  0.5122  0.5117
+      boundary_log_width                0.5654 NaN  0.5135  0.5126
+      f12_libcos                        0.7922 NaN  0.5255  0.5348
+      f12_support                       0.3834 NaN  0.5176  0.5076
+      natE_apex_logp                    0.8504 NaN  0.5053  0.5131
+      natE_libcos                       0.8552 NaN  0.5260  0.5347
+      native_binned_coherence_gap       0.4626 NaN  0.4990  0.4987
+      native_binned_libcos_gap          0.7128 NaN  0.5013  0.5042
+      p_n_tight                         0.7933 NaN  0.5305  0.5315
+      p_ppm_abs_med                     0.3384 NaN  0.4866  0.4856
+      transition_support                0.7473 NaN  0.5443  0.5477
+      xic_conditional_fragment_dropout  0.5991 NaN  0.5055  0.5064
+      xic_core_empty_time_fraction      0.4245 NaN  0.4608  0.4661
+      xic_core_supported                0.7436 NaN  0.5269  0.5276
+      xic_corr_occupied_time            0.5650 NaN  0.5426  0.5378
+      xic_corr_zerofill                 0.5991 NaN  0.5210  0.5214
+      xic_global_peak_outside_core      0.4529 NaN  0.4996  0.4988
+      xic_halfheight_occupied_width_s   0.5826 NaN  0.5073  0.5085
+      xic_rebin_corr_change             0.6231 NaN  0.4973  0.5041
+      xic_rebin_phase_sensitivity       0.6151 NaN  0.5146  0.5155
+      xic_shared_zero_corr_inflation    0.5405 NaN  0.4608  0.4692
+      xic_single_bin_fragments          0.4870 NaN  0.4972  0.4958
+
+COVERAGE AND SCORE GAPS
+  raw  left right           feature  auc_high  n_left  n_right  finite_left  finite_right  matched_left  matched_right  coverage_left  coverage_right  strata  weighted_mean_score_gap
+raw01     D   DEC xic_corr_zerofill   0.60566     866    92997          866         92410           541          73241        0.62471         0.78756      31                  0.09042
+raw01 HUMAN   DEC xic_corr_zerofill   0.51988   47670    92997        47508         92410         45634          92354        0.95729         0.99309      47                  0.00771
+raw01   ENT   DEC xic_corr_zerofill   0.52130   46035    92997        45889         92410         45833          92328        0.99561         0.99281      44                  0.00595
+raw01     D   ENT xic_corr_zerofill   0.62227     866    46035          866         45889           517          36625        0.59700         0.79559      28                  0.08716
+raw01     E   DEC xic_corr_zerofill       NaN    1413    92997         1413         92410             0              0        0.00000         0.00000       0                      NaN
+raw02     D   DEC xic_corr_zerofill   0.59910     929    94385          929         93837           450          60267        0.48439         0.63852      21                  0.08810
+raw02 HUMAN   DEC xic_corr_zerofill   0.52138   48294    94385        48124         93837         46177          93765        0.95616         0.99343      45                  0.00534
+raw02   ENT   DEC xic_corr_zerofill   0.52097   46785    94385        46632         93837         46567          93741        0.99534         0.99318      41                  0.00460
+raw02     D   ENT xic_corr_zerofill   0.59991     929    46785          929         46632           443          30169        0.47686         0.64484      22                  0.09063
+raw02     E   DEC xic_corr_zerofill       NaN    1362    94385         1362         93837             0              0        0.00000         0.00000       0                      NaN
+
+SAMPLING CADENCE
+	0
+raw	raw01
+n_intervals	292583
+median_revisit_s	1.6463489999999865
+q10_s	1.6317810000000463
+q90_s	1.6750620000000254
+bin_width_s	0.9375
+
+
+COMMON D-REFERENCE STRATUM WEIGHTS
+group                                        D     ENT   HUMAN
+raw   feature                                                 
+raw01 f12_libcos                        0.8346  0.5384  0.5910
+      natE_apex_logp                    0.8737  0.5139  0.5829
+      natU_apex_logp                    0.8689  0.4927  0.5592
+      native_binned_coherence_gap       0.4401  0.5035  0.4729
+      native_binned_libcos_gap          0.6725  0.5141  0.5435
+      p_ppm_abs_med                     0.3530  0.4924  0.4814
+      xic_conditional_fragment_dropout  0.6339  0.5112  0.5415
+      xic_core_empty_time_fraction      0.4148  0.4807  0.4839
+      xic_corr_occupied_time            0.5787  0.5017  0.5146
+      xic_corr_zerofill                 0.6134  0.4931  0.5186
+      xic_rebin_corr_change             0.6411  0.4969  0.5243
+      xic_rebin_phase_sensitivity       0.5781  0.5028  0.5093
+      xic_shared_zero_corr_inflation    0.5561  0.4807  0.5143
+raw02 f12_libcos                        0.7968  0.5341  0.5830
+      natE_apex_logp                    0.8508  0.5240  0.5824
+      natU_apex_logp                    0.8376  0.4790  0.5598
+      native_binned_coherence_gap       0.4544  0.5014  0.4914
+      native_binned_libcos_gap          0.7055  0.5250  0.5497
+      p_ppm_abs_med                     0.3429  0.4864  0.4702
+      xic_conditional_fragment_dropout  0.5976  0.5050  0.5370
+      xic_core_empty_time_fraction      0.4245  0.4961  0.4992
+      xic_corr_occupied_time            0.5707  0.5110  0.4983
+      xic_corr_zerofill                 0.6072  0.4919  0.5032
+      xic_rebin_corr_change             0.6233  0.4830  0.5143
+      xic_rebin_phase_sensitivity       0.6149  0.5108  0.5102
+      xic_shared_zero_corr_inflation    0.5442  0.4710  0.5082
+
+COMMON STRATUM COVERAGE
+  raw  reference      group           feature  auc_high  n_strata  reference_covered  reference_total  group_covered  dec_covered
+raw01          D          D xic_corr_zerofill    0.6134        28                517              866            517        73215
+raw01          D      HUMAN xic_corr_zerofill    0.5186        28                517              866          36513        73215
+raw01          D        ENT xic_corr_zerofill    0.4931        28                517              866          36625        73215
+raw01     D_high     D_high xic_corr_zerofill    0.6237        15                143              369            143        37206
+raw01     D_high      HUMAN xic_corr_zerofill    0.5261        15                143              369          19458        37206
+raw01     D_high        ENT xic_corr_zerofill    0.4854        15                143              369          19427        37206
+raw01 D_marginal D_marginal xic_corr_zerofill    0.5986        19                311              497            311        53543
+raw01 D_marginal      HUMAN xic_corr_zerofill    0.5124        19                311              497          27130        53543
+raw01 D_marginal        ENT xic_corr_zerofill    0.4973        19                311              497          27211        53543
+raw02          D          D xic_corr_zerofill    0.6072        20                432              929            432        60260
+raw02          D      HUMAN xic_corr_zerofill    0.5032        20                432              929          30233        60260
+raw02          D        ENT xic_corr_zerofill    0.4919        20                432              929          30159        60260
+raw02     D_high     D_high xic_corr_zerofill    0.6644        11                124              427            124        45004
+raw02     D_high      HUMAN xic_corr_zerofill    0.5104        11                124              427          22667        45004
+raw02     D_high        ENT xic_corr_zerofill    0.5050        11                124              427          22675        45004
+raw02 D_marginal D_marginal xic_corr_zerofill    0.5874        18                284              502            284        52776
+raw02 D_marginal      HUMAN xic_corr_zerofill    0.5031        18                284              502          26638        52776
+raw02 D_marginal        ENT xic_corr_zerofill    0.4887        18                284              502          26562        52776
+
+HIGH CONFIDENCE AND MARGINAL, SAME STRATA CONTROLS
+  raw  reference      group                     feature  auc_high  n_strata  reference_covered  reference_total  group_covered  dec_covered
+raw01          D          D              natE_apex_logp    0.8737        28                517              866            517        73696
+raw01          D      HUMAN              natE_apex_logp    0.5829        28                517              866          36647        73696
+raw01          D        ENT              natE_apex_logp    0.5139        28                517              866          36752        73696
+raw01     D_high     D_high              natE_apex_logp    0.9242        15                143              369            143        37430
+raw01     D_high      HUMAN              natE_apex_logp    0.5992        15                143              369          19514        37430
+raw01     D_high        ENT              natE_apex_logp    0.5185        15                143              369          19486        37430
+raw01 D_marginal D_marginal              natE_apex_logp    0.8512        19                311              497            311        53879
+raw01 D_marginal      HUMAN              natE_apex_logp    0.5723        19                311              497          27222        53879
+raw01 D_marginal        ENT              natE_apex_logp    0.5138        19                311              497          27301        53879
+raw01          D          D      xic_corr_occupied_time    0.5787        28                517              866            517        73205
+raw01          D      HUMAN      xic_corr_occupied_time    0.5146        28                517              866          36513        73205
+raw01          D        ENT      xic_corr_occupied_time    0.5017        28                517              866          36622        73205
+raw01     D_high     D_high      xic_corr_occupied_time    0.6051        15                143              369            143        37201
+raw01     D_high      HUMAN      xic_corr_occupied_time    0.5182        15                143              369          19458        37201
+raw01     D_high        ENT      xic_corr_occupied_time    0.4925        15                143              369          19425        37201
+raw01 D_marginal D_marginal      xic_corr_occupied_time    0.5589        19                311              497            311        53537
+raw01 D_marginal      HUMAN      xic_corr_occupied_time    0.5121        19                311              497          27130        53537
+raw01 D_marginal        ENT      xic_corr_occupied_time    0.5056        19                311              497          27209        53537
+raw01          D          D xic_rebin_phase_sensitivity    0.5781        28                517              866            517        73095
+raw01          D      HUMAN xic_rebin_phase_sensitivity    0.5093        28                517              866          36465        73095
+raw01          D        ENT xic_rebin_phase_sensitivity    0.5028        28                517              866          36595        73095
+raw01     D_high     D_high xic_rebin_phase_sensitivity    0.5594        15                143              369            143        37151
+raw01     D_high      HUMAN xic_rebin_phase_sensitivity    0.5078        15                143              369          19438        37151
+raw01     D_high        ENT xic_rebin_phase_sensitivity    0.5044        15                143              369          19413        37151
+raw01 D_marginal D_marginal xic_rebin_phase_sensitivity    0.5720        19                311              497            311        53457
+raw01 D_marginal      HUMAN xic_rebin_phase_sensitivity    0.5037        19                311              497          27094        53457
+raw01 D_marginal        ENT xic_rebin_phase_sensitivity    0.4960        19                311              497          27191        53457
+raw02          D          D              natE_apex_logp    0.8508        20                432              929            432        60613
+raw02          D      HUMAN              natE_apex_logp    0.5824        20                432              929          30351        60613
+raw02          D        ENT              natE_apex_logp    0.5240        20                432              929          30263        60613
+raw02     D_high     D_high              natE_apex_logp    0.8739        11                124              427            124        45271
+raw02     D_high      HUMAN              natE_apex_logp    0.5781        11                124              427          22748        45271
+raw02     D_high        ENT              natE_apex_logp    0.5336        11                124              427          22746        45271
+raw02 D_marginal D_marginal              natE_apex_logp    0.8309        18                284              502            284        53079
+raw02 D_marginal      HUMAN              natE_apex_logp    0.5798        18                284              502          26742        53079
+raw02 D_marginal        ENT              natE_apex_logp    0.5178        18                284              502          26653        53079
+raw02          D          D      xic_corr_occupied_time    0.5707        20                432              929            432        60253
+raw02          D      HUMAN      xic_corr_occupied_time    0.4983        20                432              929          30231        60253
+raw02          D        ENT      xic_corr_occupied_time    0.5110        20                432              929          30157        60253
+raw02     D_high     D_high      xic_corr_occupied_time    0.6271        11                124              427            124        44999
+raw02     D_high      HUMAN      xic_corr_occupied_time    0.5067        11                124              427          22665        44999
+raw02     D_high        ENT      xic_corr_occupied_time    0.5186        11                124              427          22673        44999
+raw02 D_marginal D_marginal      xic_corr_occupied_time    0.5494        18                284              502            284        52770
+raw02 D_marginal      HUMAN      xic_corr_occupied_time    0.4979        18                284              502          26636        52770
+raw02 D_marginal        ENT      xic_corr_occupied_time    0.5085        18                284              502          26560        52770
+raw02          D          D xic_rebin_phase_sensitivity    0.6149        20                432              929            432        60167
+raw02          D      HUMAN xic_rebin_phase_sensitivity    0.5102        20                432              929          30207        60167
+raw02          D        ENT xic_rebin_phase_sensitivity    0.5108        20                432              929          30128        60167
+raw02     D_high     D_high xic_rebin_phase_sensitivity    0.6008        11                124              427            124        44936
+raw02     D_high      HUMAN xic_rebin_phase_sensitivity    0.5161        11                124              427          22647        44936
+raw02     D_high        ENT xic_rebin_phase_sensitivity    0.5142        11                124              427          22649        44936
+raw02 D_marginal D_marginal xic_rebin_phase_sensitivity    0.6263        18                284              502            284        52690
+raw02 D_marginal      HUMAN xic_rebin_phase_sensitivity    0.5062        18                284              502          26613        52690
+raw02 D_marginal        ENT xic_rebin_phase_sensitivity    0.5082        18                284              502          26535        52690

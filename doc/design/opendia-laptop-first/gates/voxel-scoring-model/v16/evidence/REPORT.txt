@@ -1,0 +1,96 @@
+V16 EVIDENCE-MECHANISM DIAGNOSIS
+Completed 2026-11-12, raws01/02, diagnostic only
+
+BOTTOM LINE
+The data support two distinct observations, not a recovery claim:
+(1) Stage D contains a real RT-disagreement minority despite median RT error zero and every row being within 10 seconds.
+(2) The fixed zero-filled time grid changes apparent chromatographic coherence, and an intensity-preserving change of bin origin changes it substantially. However accepted E is MORE phase-sensitive than D, and the apparent D/null feature advantages largely disappear in all-human controls. Thus this establishes a representation sensitivity, not a D-specific failure or a usable rescue subgroup.
+
+SCOPE AND SEMANTICS
+All outputs and scripts are under this evidence directory. Existing inputs were read only. No fitting, scoring intervention, parameter sweep, threshold tuning, new extraction, publication or spawned worker occurred. Frozen ../PLAN_V16.md was read first. D means the existing DIA-NN-reference/right-window/below-empirical-FDP_c-1%-cut annotation, NOT necessarily failure of operational q<=0.01. E is the existing accepted reference annotation, not every accepted human target. This lane does not recompute operational q overlap; that is the coordinator's separate threshold-semantic analysis. DIA-NN agreement is not ground truth. Raw02 is descriptive replication after prior experiments, not a pristine holdout.
+
+POPULATION AND VALIDATION
+Raw01: 186,702 precursor winners, D=866, E=1,413, HUMAN=47,670, ENT=46,035, DEC=92,997.
+Raw02: 189,464 precursor winners, D=929, E=1,362, HUMAN=48,294, ENT=46,785, DEC=94,385.
+HUMAN includes D and E and also unvalidated human-library targets. It is not a true-positive set. DEC are precursor-level decoy winners used as controls, not accepted target IDs. All D/E rows have valid RT/FWHM.
+Winner construction uses D11FWT scores and sample_id tie ordering. All input array lengths, sample-id uniqueness, precursor joins, and expected D/E totals were asserted. The existing dd_feats tables were numerically reproduced: support and core fraction exactly, correlations to 1.3e-15 over 3,208/3,234 rows. One original raw02 correlation is undefined, retained as missing. dd_band row identities were checked on all 14,676/15,024 rows. No silent imputation of undefined correlations.
+Tests passed for midrank AUC ties (0.5), perfect and reversed ordering, missing values, synthetic support/dropout/width, and exclusion of cross-fold matches. The mass-preserving phase test asserts both representations retain every input intensity for every winner on both raws.
+
+1. RT ERROR RELATIVE TO PEAK WIDTH
+                         raw01 D    raw02 D    raw01 E    raw02 E
+Median DIA-NN FWHM, s       3.230      3.290      3.517      3.486
+90th pct absolute error,s   3.281      3.270      1.640      1.638
+90th pct error / FWHM       0.905      0.668      0.426      0.398
+Error > 0.5 FWHM           21.02%     16.90%      2.34%      1.76%
+Error > 1 FWHM              9.35%      7.86%      0%         0%
+Error > 2 FWHM              4.50%      3.01%      0%         0%
+Outside DIA-NN boundaries   7.04%      4.52%      0%         0%
+
+10 seconds is about three median D FWHMs, so the original right-window criterion is broad. Median error is zero in every subgroup, which does NOT imply every D row has the right apex. Conversely about 79-83% of D are within half a DIA-NN FWHM, so RT disagreement cannot explain all D.
+
+High confidence was frozen descriptively as Q.Value<=0.001 AND PEP<=0.01. Marginal is the complement, not a claim of false identification.
+Raw01 D: high 369, marginal 497. Error>1 FWHM: 7.32% high versus 10.87% marginal. Error>0.5 FWHM: 18.97% versus 22.54%.
+Raw02 D: high 427, marginal 502. Error>1 FWHM: 7.96% versus 7.77%. Error>0.5 FWHM: 17.56% versus 16.33%.
+Thus the extra RT disagreement in the raw01 marginal subset does not replicate on raw02. High-confidence D still contains misaligned rows. Full confidence-subset results are in rt_fwhm_summary.tsv.
+
+2. SHAPE, SPARSITY AND REPRESENTATION
+The existing geometry is 32 bins over +/-15s, hence 0.9375s/bin. Raw01 existing scan metadata gives median same-isolation-window revisit 1.64635s (10th/90th percentiles 1.63178/1.67506s). A median D FWHM spans about two native revisits, although about 3.45 grid bins. Native revisit metadata was available only for raw01; no raw02 cadence was invented.
+
+D has median six fragments with ANY positive core signal on both raws, but only two of twelve pass the existing F12 coherent-support definition, versus six for E. This distinguishes presence from a well-measured profile. Median conditional fragment dropout, among core-present fragments and time bins containing any signal, is 52%/50% for D versus 36.1%/33.3% for E. One fragment typically occurs in only a single core bin for D, versus zero for E. D has a median 25% empty core time bins, with mean 31.8% on both raws; E also has median 25% and mean about 29%. Empty bins therefore cannot simply be interpreted as missing molecules or an exclusively D defect.
+
+Median six-fragment Pearson coherence:
+                           raw01 D   raw02 D   raw01 E   raw02 E
+Stored native boundary      0.2855    0.3126    0.7665    0.7729
+32-bin zero-filled          0.1198    0.1325    0.3277    0.3299
+Only occupied time bins    -0.0206   -0.0152    0.2170    0.2155
+
+The occupied-time comparison holds the actual fragment intensities fixed and excludes columns with no fragment signal. Shared zeros inflate correlation: median paired inflation is 0.1171/0.1187 for D and 0.0902/0.0885 for E. Removing empty bins is NOT an automatically better representation: empty-signal bins may be acquired scans with no matches, and D-vs-decoy AUC falls after removal. Native boundary coherence uses different boundaries/statistics, so the native-minus-binned difference alone is NOT a causal representation ablation.
+
+A stronger intensity-preserving control pairs adjacent bins into 17 bins with identical total intensity and output dimension, changing only grouping origin (padding [0,2] versus [1,1]). Median absolute Pearson change is 0.0931/0.1035 for D, with 90th percentiles 0.2952/0.3416. Changes exceed 0.1 for 47.9%/51.7% of D. E is MORE sensitive: medians 0.1451/0.1621, and >0.1 for 60.2%/63.7%. This directly demonstrates time-aggregation dependence without new counts, amplitude scaling, reference correction or deconvolution. It does not establish a D-specific defect.
+The primary plot's simpler phase comparison trims outer bins in one origin and is explicitly phase-plus-endpoint sensitivity. The mass_preserving_phase_* outputs are the stronger follow-up that removes that confounding. No outcome-based parameter optimization was done.
+
+Shape-width proxies also differ: the total-profile half-height OCCUPIED-bin width is median 2.8125s for D versus 1.875s for E on both raws. This is quantized, can be discontiguous, and is NOT a native interpolated FWHM. Stored boundary_log_fwhm is 1.820/1.806 for D versus 1.689/1.686 for E. These stored logs are deliberately not converted to physical widths without re-verifying their producer transform. A global summed-profile maximum outside the +/-3.75s core occurs in 20.55%/20.88% of D, versus 5.73%/5.07% of E. It can reflect competing signal, not necessarily incorrect candidate RT.
+
+Native-versus-binned library cosine is not a pure representation comparison: natE uses nearest native scans and a calibrated narrower mass tolerance, while F12 uses +/-17.5ppm and a wider core. D median natE cosine is 0.836/0.840 versus F12 0.871/0.866. E is about 0.96 in both. The discrepancy is measurable but cannot be attributed solely to binning. Existing nat/natE/natU arrays contain summary evidence, not recoverable native profile timestamps; this audit does not pretend otherwise.
+
+3. SCORE-CONTROLLED COMPARISONS AND COVERAGE
+Frozen strata: same fold, raw D11FWT score intervals of width 0.5 anchored at zero; require >=5 finite rows per arm. AUC is midrank P(left>right)+0.5P(tie), always oriented to HIGH measured values, not flipped after looking at results. No intensity or support matching. These are conditional descriptive comparisons with residual within-bin score variation, not validation of a classifier.
+
+Primary D/DEC comparison covers 541/866 (62.47%) and 450/929 (48.44%). Weighted mean absolute stratum-mean score gaps are 0.0904/0.0881, not zero. HUMAN coverage is about 95.7%/95.6%; ENT about 99.6%/99.5%. E has ZERO qualifying same-score decoy strata, so its matched AUC is correctly missing, not extrapolated. Full feature-specific finite counts and coverage are in score_stratified_auc.tsv.
+
+To avoid different score distributions masquerading as group differences, common_score_weight_auc.tsv uses the exact same D-count weights and intersection of eligible D/HUMAN/ENT/DEC strata:
+Measure                         D/DEC          HUMAN/DEC       ENT/DEC
+Native empirical apex evidence  .874/.851       .583/.582       .514/.524
+Zero-filled profile coherence   .613/.607       .519/.503       .493/.492
+Occupied-time coherence         .579/.571       .515/.498       .502/.511
+Rebin correlation change        .641/.623       .524/.514       .497/.483
+Conditional fragment dropout    .634/.598       .542/.537       .511/.505
+Native-minus-binned lib cosine  .673/.705       .544/.550       .514/.525
+
+Numbers are raw01/raw02. Common coherence-stratum D coverage is only 517/866 (59.70%) and 432/929 (46.50%). These rows cover 36,513/30,233 human controls, 36,625/30,159 entrapments and 73,215/60,260 decoys, not independent matched pairs. Do not generalize to the unmatched high-score D tail. Equal score weighting materially changes some contrasts relative to each group's own score weights.
+
+High-confidence D occupied-time AUC is .605/.627 versus marginal .559/.549, but corresponding high-confidence coverage is only 143/369 and 124/427; marginal coverage is 311/497 and 284/502. This does not define a deployable high-confidence rescue rule: the confidence annotation is evaluation-only.
+
+The intensity-preserving phase sensitivity has primary D/DEC AUC .570/.628, HUMAN/DEC .517/.520 and ENT/DEC .516/.517. It is not a robust general-human discriminant. The large native evidence AUC for reference-selected D, but only .58 for all human on identical score strata, reproduces the central selection-bias warning from V9-11. Positive D-vs-null separation is not enough to justify intervention.
+
+4. WHAT IS DISTINCT FROM PREVIOUS FAILURES
+V5 already tested mass/coelution evidence. Here D has tight-ppm support median four and |ppm| median 1.63/1.50, but those measures are not proposed again.
+V9-11 already failed native fragment count/chance/uniqueness variants. Recomputing their summary contrasts is a negative-control warning, not a fourth native-count proposal.
+V12 corrected profiles with a reference-trace cap and a dual-view model. This audit neither caps nor removes interference.
+V13b NNLS/deconvolution had high residuals and failed its discrimination criterion. No component ownership fit is repeated.
+V14/V15 amplitude-only arguments do not address a change in time aggregation with exactly fixed summed intensity. Our paired-origin check changes neither signal amplitude nor fragment identities.
+The new measured issue is sensitivity to time discretization and treatment of unobserved/zero bins. It is distinct experimentally, but not yet established as the cause of D loss. The fact E is more phase-sensitive argues against a simplistic 'binning selectively destroys weak D' story.
+
+5. SINGLE FIRST DISCRIMINATING TEST, NOT A RECOVERY PLAN
+Freeze a no-training, same-raw-points representation equivalence test. Recover original native scan timestamps from existing exports plus acquisition metadata for a fixed diagnostic panel, retaining the identical six/twelve fragment lists, calibrated ppm cut, candidate apex, time support and EVERY measured intensity. Explicitly distinguish an unacquired time location from an acquired scan with no matching centroid. First reproduce the stored 32-bin array within floating-point tolerance and verify intensity conservation, then compare its coherence with a scan-aware representation of the SAME points and deterministic bin-origin changes. Do not use DIA-NN RT to center extraction, and do not select a grid or mask by D labels. Join D/E/HUMAN/ENT/DEC and confidence only after measurements.
+Primary question: does scan-aware handling reduce origin dependence while preserving physical peak alignment, and does any advantage remain for all human targets versus both decoy and entrapment controls in the identical same-fold score strata? If the apparent advantage is confined to reference-selected D, or changes reflect a different mass tolerance/fragment set, stop. This is a measurement check, not another native-count feature or a learned rescue rule. A later model intervention would require its own freeze and the unchanged global pass rule, including newly gained human/entrapment counts and decoy competitor counts reported separately. No recovered IDs are claimed here.
+
+ARTIFACTS AND REPRODUCIBILITY
+Python: /home/singjc/.jcode/scratch/torchenv/.venv/bin/python
+Main frozen SHA256: fe47b832a251f6bd7f430fc0ae093a4120b128902ac96ef1e7e967a467694984
+Main run freeze: 2026-11-12T08:59:24Z; main run completed successfully in 178.5s.
+Scripts: diagnose.py, supplement.py, phase_check.py, summarize.py. Every execution has a preceding timestamp/hash freeze file. The only main-script revision after initial helper tests cached matching groups for efficiency before the quantitative run; the main run repeats all tests. The phase follow-up is explicitly post-primary and resolves endpoint confounding, not a hidden tuned replacement.
+Logs: run_01.log, test_01.log, supplement_01.log, phase_01.log.
+Aggregates: rt_fwhm_summary.tsv, group_summary.tsv, score_stratified_auc.tsv, score_strata_coverage.tsv, common_score_weight_auc.tsv, mass_preserving_phase_summary.tsv, mass_preserving_phase_auc.tsv, sampling_cadence.tsv, width_phase_checks.tsv.
+Integrity: numerical_reproduction.tsv, alignment_checks.tsv, array_inventory.tsv, freeze_*.txt. Input arrays were memory-mapped read-only; inventory records path, shape, size and timestamp, not full hashes of multi-gigabyte arrays.
+Figure: mechanisms.pdf and mechanisms.png, four aggregate panels, no selected precursor examples. Row-level window_measurements_raw01.tsv/raw02.tsv preserve all winner diagnostics and explicit missingness. No source repository was available in this output tree, so no commit was made outside the authorized directory.

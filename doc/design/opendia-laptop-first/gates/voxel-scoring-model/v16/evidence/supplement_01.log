@@ -1,0 +1,2 @@
+PASS: existing dd_feats reproduced within 1e-6 on both raws
+Common-stratum AUC and width diagnostics written

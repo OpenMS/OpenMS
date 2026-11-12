@@ -1,0 +1,5 @@
+TESTS PASS: ties, direction, missingness, support, width, fold isolation
+BEGIN raw01
+DONE raw01 winners 186702 D/E 866 1413
+BEGIN raw02
+DONE raw02 winners 189464 D/E 929 1362
