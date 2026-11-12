@@ -74,6 +74,52 @@ namespace OpenMS::OpenDIA
                            std::size_t point_stride, std::size_t hint, const PeakPickerOptions& options,
                            std::vector<double>& scratch);
 
+  /** @brief Settings of the multi-peak native-scan picker (pickXicPeaks). No RT constants: peaks come from the trace shape. */
+  struct XicPickerOptions
+  {
+    std::size_t smoothing_passes = 1; ///< [1 2 1]/4 passes over the consensus before finding maxima and valleys.
+    double valley_fraction = 0.5;     ///< Two maxima stay separate peaks only if the valley between them is at most this fraction of the lower one.
+    double boundary_fraction = 0.05;  ///< A boundary also stops where the smoothed consensus falls to this fraction of the apex.
+    std::size_t correlation_half_window = 2; ///< The co-elution window covers at least this many scans on each side of the apex.
+    std::size_t max_peaks = 5;        ///< Peaks reported per trace, best co-elution first.
+  };
+
+  /** @brief One peak of a native-scan fragment trace set. Indices are scans of the trace. */
+  struct XicPeak
+  {
+    std::size_t apex = 0;            ///< Raw consensus maximum of the peak.
+    std::size_t left = 0;            ///< First scan inside the peak.
+    std::size_t right = 0;           ///< Last scan inside the peak.
+    double apex_height = 0.0;        ///< Raw consensus (sum of fragments) at the apex.
+    double area = 0.0;               ///< Trapezoid area of the raw consensus over RT between the boundaries.
+    double fwhm = 0.0;               ///< Full width at half maximum of the raw consensus, in RT units (interpolated).
+    double coelution = 0.0;          ///< Sum over fragments of max(0, Pearson r) with the summed other fragments; 0..fragments.
+    std::size_t support = 0;         ///< Fragments with signal at the apex scan or an adjacent scan.
+    std::size_t signal_scans = 0;    ///< Scans in [left, right] with any signal.
+  };
+
+  /**
+    @brief Find every elution peak of a set of fragment traces sampled at native scans and rank them by co-elution.
+
+    The consensus (sum of the fragments) is smoothed, every local maximum starts a peak, and adjacent peaks are
+    merged while the valley between them is above valley_fraction of the lower maximum (noise bumps on one peak).
+    Boundaries are the remaining valleys, or where the smoothed consensus falls to boundary_fraction of the apex.
+    Apex, area and FWHM use the raw consensus. Co-elution correlates each fragment with the sum of the others over
+    the peak (at least correlation_half_window scans each side). Peaks are returned by co-elution, then apex height.
+    Uses no library intensities, labels or decoy status.
+
+    @param[in] data Intensities, element (scan s, fragment k) at data[s * fragments + k]; negative values count as 0.
+    @param[in] scans Number of scans (trace points).
+    @param[in] fragments Number of fragment traces.
+    @param[in] rts Retention time of each scan, ascending (scans values).
+    @param[in] options Picker settings.
+    @param[out] peaks_found Number of peaks after merging, before the max_peaks cut.
+    @param[in,out] scratch Reused work buffer.
+    @return Up to max_peaks peaks, best first.
+  */
+  std::vector<XicPeak> pickXicPeaks(const float* data, std::size_t scans, std::size_t fragments, const double* rts,
+                                    const XicPickerOptions& options, std::size_t& peaks_found, std::vector<double>& scratch);
+
   /// Linear interpolation of @p values (e.g. spectrum RTs) at a fractional index, clamped to the ends.
   double interpolateAt(const std::vector<double>& values, double index);
 

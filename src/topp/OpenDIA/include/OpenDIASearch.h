@@ -12,7 +12,10 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
+#include "OpenDIAPeakPicker.h"
+
 #include <cstddef>
+#include <cstdint>
 #include <iosfwd>
 #include <map>
 #include <string>
@@ -54,6 +57,12 @@ namespace OpenMS::OpenDIA
     /// Treat a spectrum ion-mobility array with a non-CCS unit as 1/K0 (VSSC).
     /// For mzML files whose unitless "Ion Mobility" array actually stores 1/K0.
     bool ion_mobility_array_as_vssc = false;
+    /// Native-scan peak picking: keep every fragment's intensity at every scan of the candidate's isolation window
+    /// inside its RT window, then pick peaks from the traces (pickXicPeaks). Ignores peak_gap_seconds,
+    /// split_local_peaks and the apex options. Needs rt_window_seconds > 0 (e.g. from a calibration).
+    bool xic_peaks = false;
+    /// Picker settings of the xic_peaks mode.
+    XicPickerOptions xic;
   };
 
   /**
@@ -62,6 +71,10 @@ namespace OpenMS::OpenDIA
     MS2 spectra are packed into bounded m/z-sorted grid batches by isolation
     window lane. Candidate blocks scan each batch in order, updating their
     owned candidate state without retaining the run.
+
+    In the xic_peaks mode the same grid matching stores each fragment's matched intensity per scan for the
+    candidates whose RT window is open; a candidate is closed once the stream has passed its RT window, its
+    native-scan traces (zeros where nothing matched) are peak-picked, and its buffer is released.
   */
   class StreamSearch final : public Interfaces::IMSDataConsumer
   {
@@ -113,6 +126,26 @@ namespace OpenMS::OpenDIA
     {
       double fragment_mz = 0.0;
       std::size_t candidate = 0;
+      std::uint32_t slot = 0; ///< Fragment position within its candidate (m/z order), the xic trace column.
+    };
+
+    /// One matched fragment intensity of the xic_peaks mode.
+    struct XicEntry
+    {
+      std::uint32_t cell = 0;
+      std::uint32_t slot = 0;
+      float intensity = 0.0f;
+    };
+
+    /// One picked peak of the xic_peaks mode, in RT units.
+    struct XicRow
+    {
+      double start_rt = 0.0;
+      double apex_rt = 0.0;
+      double end_rt = 0.0;
+      XicPeak peak;
+      std::size_t rank = 0;
+      std::size_t peaks_found = 0;
     };
 
     struct LaneQuery
@@ -133,6 +166,7 @@ namespace OpenMS::OpenDIA
       double rt = 0.0;
       double scalar_im = 0.0;
       std::size_t lane = 0;
+      std::uint32_t id = 0;
       std::size_t point_begin = 0;
       std::size_t point_end = 0;
       bool has_per_peak_im = false;
@@ -143,6 +177,8 @@ namespace OpenMS::OpenDIA
     {
       std::vector<std::pair<double, double>> isolation_windows;
       std::vector<std::vector<LaneQuery>> candidate_blocks;
+      std::vector<double> cell_rts;          ///< xic_peaks: RT of every cell of the lane, acquisition order.
+      std::vector<std::uint32_t> cell_ids;   ///< xic_peaks: global id of every cell of the lane.
     };
 
     struct CompletedCandidate
@@ -186,6 +222,10 @@ namespace OpenMS::OpenDIA
                                 double area, double apex_intensity, std::size_t points,
                                 std::size_t transition_support, double mobility_error_sum,
                                 std::size_t mobility_match_count);
+    void closeXicCandidates_(double before_rt);
+    std::vector<XicRow> pickXicCandidate_(std::size_t candidate_index, std::vector<float>& matrix,
+                                          std::vector<double>& scratch) const;
+    void writeXicRow_(std::size_t candidate_index, const XicRow& row);
     bool queryMatches_(const Query& query, double rt, double peak_im, bool has_peak_im,
                        const std::vector<std::pair<double, double>>& isolation_windows) const;
 
@@ -209,6 +249,12 @@ namespace OpenMS::OpenDIA
     std::vector<std::size_t> candidate_generation_;
     std::vector<std::size_t> candidate_first_match_order_;
     std::size_t generation_ = 0;
+    // xic_peaks state: matched entries per candidate, lanes containing each candidate, close schedule.
+    std::vector<std::vector<XicEntry>> xic_entries_;
+    std::vector<std::vector<std::uint32_t>> candidate_lanes_;
+    std::vector<std::size_t> xic_close_order_;
+    std::size_t xic_close_cursor_ = 0;
+    std::uint32_t next_cell_id_ = 0;
     bool finished_ = false;
     bool has_library_im_candidates_ = false;
     bool ion_mobility_filtering_used_ = false;

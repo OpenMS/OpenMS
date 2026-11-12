@@ -152,6 +152,187 @@ namespace OpenMS::OpenDIA
     return peak;
   }
 
+  std::vector<XicPeak> pickXicPeaks(const float* data, std::size_t scans, std::size_t fragments, const double* rts,
+                                    const XicPickerOptions& options, std::size_t& peaks_found, std::vector<double>& scratch)
+  {
+    peaks_found = 0;
+    std::vector<XicPeak> peaks;
+    if (data == nullptr || rts == nullptr || scans == 0 || fragments == 0)
+    {
+      return peaks;
+    }
+    const auto value = [data, fragments](std::size_t s, std::size_t k) { return std::max(0.0f, data[s * fragments + k]); };
+
+    // Raw consensus (sum of fragments) and its smoothed copy, which only drives maxima, valleys and boundaries.
+    scratch.assign(3 * scans, 0.0);
+    double* raw = scratch.data();
+    double* y = raw + scans;
+    double* tmp = y + scans;
+    for (std::size_t s = 0; s < scans; ++s)
+    {
+      for (std::size_t k = 0; k < fragments; ++k)
+      {
+        raw[s] += value(s, k);
+      }
+    }
+    std::copy(raw, raw + scans, y);
+    for (std::size_t pass = 0; pass < options.smoothing_passes && scans > 2; ++pass)
+    {
+      tmp[0] = y[0];
+      tmp[scans - 1] = y[scans - 1];
+      for (std::size_t s = 1; s + 1 < scans; ++s)
+      {
+        tmp[s] = 0.25 * y[s - 1] + 0.5 * y[s] + 0.25 * y[s + 1];
+      }
+      std::copy(tmp, tmp + scans, y);
+    }
+
+    // Local maxima, then a left-to-right merge: a maximum joins its left neighbour while the valley between
+    // them stays above valley_fraction of the lower one, so noise bumps on one elution profile do not split it.
+    struct Region
+    {
+      std::size_t apex;
+      std::size_t left;
+    };
+    std::vector<Region> regions;
+    for (std::size_t s = 0; s < scans; ++s)
+    {
+      const bool rises = s == 0 || y[s] > y[s - 1];
+      const bool falls = s + 1 == scans || y[s] >= y[s + 1];
+      if (!(y[s] > 0.0) || !rises || !falls)
+      {
+        continue;
+      }
+      Region current{s, 0};
+      while (!regions.empty())
+      {
+        const Region& top = regions.back();
+        std::size_t valley = top.apex;
+        for (std::size_t v = top.apex; v <= current.apex; ++v)
+        {
+          if (y[v] < y[valley])
+          {
+            valley = v;
+          }
+        }
+        if (y[valley] > options.valley_fraction * std::min(y[top.apex], y[current.apex]))
+        {
+          current.apex = y[top.apex] >= y[current.apex] ? top.apex : current.apex;
+          current.left = top.left;
+          regions.pop_back();
+          continue;
+        }
+        current.left = valley;
+        break;
+      }
+      regions.push_back(current);
+    }
+    peaks_found = regions.size();
+
+    peaks.reserve(regions.size());
+    for (std::size_t r = 0; r < regions.size(); ++r)
+    {
+      const std::size_t valley_left = regions[r].left;
+      const std::size_t valley_right = r + 1 < regions.size() ? regions[r + 1].left : scans - 1;
+      const std::size_t top = regions[r].apex;
+      const double floor_level = options.boundary_fraction * y[top];
+      std::size_t left = top;
+      while (left > valley_left && y[left] > floor_level)
+      {
+        --left;
+      }
+      std::size_t right = top;
+      while (right < valley_right && y[right] > floor_level)
+      {
+        ++right;
+      }
+
+      XicPeak peak;
+      peak.left = left;
+      peak.right = right;
+      peak.apex = static_cast<std::size_t>(std::max_element(raw + left, raw + right + 1) - raw);
+      peak.apex_height = raw[peak.apex];
+      if (!(peak.apex_height > 0.0))
+      {
+        continue;
+      }
+      for (std::size_t s = left; s < right; ++s)
+      {
+        peak.area += 0.5 * (raw[s] + raw[s + 1]) * (rts[s + 1] - rts[s]);
+      }
+      for (std::size_t s = left; s <= right; ++s)
+      {
+        peak.signal_scans += raw[s] > 0.0;
+      }
+
+      // FWHM of the raw consensus; a side that stays above half maximum ends at the peak boundary.
+      const double half = 0.5 * peak.apex_height;
+      std::size_t i = peak.apex;
+      while (i > left && raw[i - 1] > half)
+      {
+        --i;
+      }
+      const double half_left = i > left ? rts[i - 1] + (half - raw[i - 1]) * (rts[i] - rts[i - 1]) / (raw[i] - raw[i - 1]) : rts[left];
+      i = peak.apex;
+      while (i < right && raw[i + 1] > half)
+      {
+        ++i;
+      }
+      const double half_right = i < right ? rts[i] + (raw[i] - half) * (rts[i + 1] - rts[i]) / (raw[i] - raw[i + 1]) : rts[right];
+      peak.fwhm = half_right - half_left;
+
+      // Co-elution over the peak, widened to at least correlation_half_window scans on each side of the apex.
+      const std::size_t h = options.correlation_half_window;
+      const std::size_t lo = std::min(left, peak.apex > h ? peak.apex - h : 0);
+      const std::size_t hi = std::max(right, std::min(scans - 1, peak.apex + h));
+      const double length = static_cast<double>(hi - lo + 1);
+      for (std::size_t k = 0; k < fragments && hi - lo >= 2; ++k)
+      {
+        double sx = 0.0, so = 0.0, sxx = 0.0, soo = 0.0, sxo = 0.0;
+        for (std::size_t s = lo; s <= hi; ++s)
+        {
+          const double x = value(s, k);
+          const double o = raw[s] - x;
+          sx += x;
+          so += o;
+          sxx += x * x;
+          soo += o * o;
+          sxo += x * o;
+        }
+        const double vx = sxx - sx * sx / length;
+        const double vo = soo - so * so / length;
+        if (vx > 0.0 && vo > 0.0)
+        {
+          peak.coelution += std::max(0.0, (sxo - sx * so / length) / std::sqrt(vx * vo));
+        }
+      }
+      const std::size_t s_lo = peak.apex > 0 ? peak.apex - 1 : 0;
+      const std::size_t s_hi = std::min(scans - 1, peak.apex + 1);
+      for (std::size_t k = 0; k < fragments; ++k)
+      {
+        bool seen = false;
+        for (std::size_t s = s_lo; s <= s_hi && !seen; ++s)
+        {
+          seen = value(s, k) > 0.0f;
+        }
+        peak.support += seen;
+      }
+      peaks.push_back(peak);
+    }
+
+    std::sort(peaks.begin(), peaks.end(), [](const XicPeak& lhs, const XicPeak& rhs)
+    {
+      if (lhs.coelution != rhs.coelution) return lhs.coelution > rhs.coelution;
+      if (lhs.apex_height != rhs.apex_height) return lhs.apex_height > rhs.apex_height;
+      return lhs.apex < rhs.apex;
+    });
+    if (peaks.size() > options.max_peaks)
+    {
+      peaks.resize(options.max_peaks);
+    }
+    return peaks;
+  }
+
   double interpolateAt(const std::vector<double>& values, double index)
   {
     if (values.empty())

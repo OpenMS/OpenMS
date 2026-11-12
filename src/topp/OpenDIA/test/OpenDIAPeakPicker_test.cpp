@@ -132,6 +132,48 @@ int main()
       require(interpolateAt(rt, 0.5) == 10.5 && interpolateAt(rt, 1.5) == 12.0 && interpolateAt(rt, -1.0) == 10.0 && interpolateAt(rt, 9.0) == 13.0,
               "interpolateAt is wrong");
     }
+    // pickXicPeaks: two co-eluting peaks plus a single-fragment interference spike, on a non-uniform RT grid.
+    {
+      const std::size_t n = 120;
+      std::vector<double> rts(n);
+      for (std::size_t s = 0; s < n; ++s)
+      {
+        rts[s] = 100.0 + 1.6 * static_cast<double>(s) + (s % 3 == 0 ? 0.1 : 0.0);
+      }
+      auto data = gaussianGroup(n, 30.0, 1.5, 1000.0); // strong co-eluting peak, FWHM ~ 2.355 * 1.5 * 1.6 s
+      const auto second = gaussianGroup(n, 80.0, 2.0, 300.0);
+      for (std::size_t i = 0; i < data.size(); ++i)
+      {
+        data[i] += second[i];
+      }
+      data[55 * F + 0] += 5000.0f; // one fragment, one scan: not co-eluting
+      // Small noise bump on the first peak's tail must not split it.
+      data[33 * F + 1] += 60.0f;
+      XicPickerOptions options;
+      std::size_t found = 0;
+      std::vector<double> scratch;
+      const auto peaks = pickXicPeaks(data.data(), n, F, rts.data(), options, found, scratch);
+      require(found == 3, "pickXicPeaks: expected exactly three separated peaks");
+      require(peaks.size() == 3, "pickXicPeaks: all peaks should be reported below max_peaks");
+      require(peaks[0].apex == 30 || peaks[1].apex == 30, "pickXicPeaks: the strong co-eluting peak is not in the top two");
+      require(peaks[2].apex == 55, "pickXicPeaks: the single-fragment spike should rank last by co-elution");
+      const XicPeak& strong = peaks[0].apex == 30 ? peaks[0] : peaks[1];
+      const double expected_fwhm = 2.0 * std::sqrt(2.0 * std::log(2.0)) * 1.5 * 1.6;
+      require(std::abs(strong.fwhm - expected_fwhm) < 0.6, "pickXicPeaks: FWHM of the strong peak is off");
+      require(strong.support == F, "pickXicPeaks: every fragment supports the strong peak");
+      require(strong.coelution > 5.5, "pickXicPeaks: co-eluting fragments should correlate");
+      require(strong.left > 20 && strong.right < 40, "pickXicPeaks: boundaries should follow the trace, not a constant");
+      require(peaks[2].coelution < 0.5, "pickXicPeaks: an isolated spike has no co-elution");
+
+      options.max_peaks = 1;
+      const auto best = pickXicPeaks(data.data(), n, F, rts.data(), options, found, scratch);
+      require(best.size() == 1 && found == 3, "pickXicPeaks: max_peaks must cut after ranking");
+
+      const std::vector<float> zeros(10 * F, 0.0f);
+      const auto none = pickXicPeaks(zeros.data(), 10, F, rts.data(), options, found, scratch);
+      require(none.empty() && found == 0, "pickXicPeaks: an empty trace has no peak");
+    }
+
     // Speed on noisy 32-point windows (informational; the check is only that it is far below the CNN cost).
     {
       std::mt19937 rng(7);

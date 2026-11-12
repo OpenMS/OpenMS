@@ -84,6 +84,16 @@ protected:
     setMinInt_("max_apexes_per_group", 1);
     registerDoubleOption_("min_apex_separation", "<seconds>", 10.0, "Minimum RT distance between reported apexes of one peak group", false);
     setMinFloat_("min_apex_separation", 0.0);
+    registerStringOption_("peak_picking", "<mode>", "run", "Candidate construction. 'run': streamed signal runs closed after -peak_gap. "
+                          "'xic': keep every fragment's intensity at every native scan of the RT window and pick elution peaks from the "
+                          "traces (no gap or width constant; needs an RT window, e.g. -calibration). Adds fwhm_seconds, coelution, "
+                          "peak_rank and peaks_in_window to -features_out", false);
+    setValidStrings_("peak_picking", {"run", "xic"});
+    registerDoubleOption_("xic_valley_fraction", "<fraction>", 0.5, "xic: two maxima stay separate peaks only if the valley between them is at most this fraction of the lower one", false);
+    setMinFloat_("xic_valley_fraction", 0.001);
+    setMaxFloat_("xic_valley_fraction", 1.0);
+    registerIntOption_("xic_max_peaks", "<n>", 5, "xic: peaks reported per precursor, best fragment co-elution first", false);
+    setMinInt_("xic_max_peaks", 1);
 
     // Inspection side channel: raw targeted peak maps in the OpenSWATH .xipm Parquet schema. Off by default;
     // the search output does not depend on it.
@@ -120,6 +130,9 @@ protected:
     options.peak_valley_fraction = getDoubleOption_("peak_valley_fraction");
     options.max_apexes_per_group = static_cast<std::size_t>(std::max(1, getIntOption_("max_apexes_per_group")));
     options.min_apex_separation_seconds = getDoubleOption_("min_apex_separation");
+    options.xic_peaks = getStringOption_("peak_picking") == "xic";
+    options.xic.valley_fraction = getDoubleOption_("xic_valley_fraction");
+    options.xic.max_peaks = static_cast<std::size_t>(std::max(1, getIntOption_("xic_max_peaks")));
     const Int min_peak_scans = getIntOption_("min_peak_scans");
     const Int min_transitions = getIntOption_("min_transitions");
     if (min_transitions < 1 || !std::isfinite(options.fragment_tolerance_da) || options.fragment_tolerance_da <= 0.0 ||
@@ -195,6 +208,11 @@ protected:
       writeLogError_("The PQP library contains no usable precursor-fragment transitions.");
       return ILLEGAL_PARAMETERS;
     }
+    if (options.xic_peaks && !(options.rt_window_seconds > 0.0))
+    {
+      writeLogError_("-peak_picking xic needs an RT window (-rt_window or -calibration).");
+      return ILLEGAL_PARAMETERS;
+    }
 
     if (!features_path.empty() && features_path == output_path)
     {
@@ -223,7 +241,7 @@ protected:
       features << "candidate_row\tprecursor_id\tprecursor_mz\tis_decoy\trt_start\trt_apex\trt_end\t"
                   "peak_width_seconds\tarea\tapex_intensity\ttransition_support\tmatched_scans\t"
                   "has_library_rt\tapex_rt_error_seconds\thas_library_im\t"
-                  "has_im_match_evidence\tmean_abs_im_error_vssc\n";
+                  "has_im_match_evidence\tmean_abs_im_error_vssc" << (options.xic_peaks ? "\tfwhm_seconds\tcoelution\tpeak_rank\tpeaks_in_window" : "") << "\n";
       feature_stream = &features;
     }
 

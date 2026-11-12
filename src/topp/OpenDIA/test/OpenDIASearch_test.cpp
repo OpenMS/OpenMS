@@ -525,5 +525,83 @@ int main()
     rejected = true;
   }
   require(rejected, "non-positive ion-mobility tolerance was accepted");
+
+  // xic_peaks: a precursor whose two fragments elute twice with a 60 s silent gap in between (the run mode would
+  // need peak_gap to separate them), plus a second precursor elsewhere. Every scan is a native trace point.
+  {
+    const std::vector<OpenDIA::TransitionQuery> xic_queries = {
+      {"twice", 500.0, 100.0, 200.0, true},
+      {"twice", 500.0, 200.0, 200.0, true},
+      {"late", 520.0, 300.0, 400.0, true},
+      {"late", 520.0, 310.0, 400.0, true}
+    };
+    OpenDIA::SearchOptions xic_options;
+    xic_options.fragment_tolerance_da = 0.01;
+    xic_options.rt_window_seconds = 120.0;
+    xic_options.xic_peaks = true;
+    xic_options.min_transitions = 2;
+    std::ostringstream xic_output;
+    std::ostringstream xic_features;
+    OpenDIA::StreamSearch xic_search(xic_queries, xic_options, xic_output, &xic_features);
+    const auto bell = [](double rt, double centre) { return 1000.0 * std::exp(-0.5 * (rt - centre) * (rt - centre) / 4.0); };
+    for (int i = 0; i < 300; ++i)
+    {
+      const double rt = 100.0 + 1.5 * i;
+      const double a = (rt < 210.0 ? bell(rt, 170.0) : 0.4 * bell(rt, 250.0));
+      const double b = 2.0 * bell(rt, 400.0);
+      std::vector<Peak1D> peaks;
+      if (a > 1.0) { peaks.emplace_back(100.0, a); peaks.emplace_back(200.0, 0.5 * a); }
+      if (b > 1.0) { peaks.emplace_back(300.0, b); peaks.emplace_back(310.0, 0.7 * b); }
+      MSSpectrum scan;
+      scan.setMSLevel(2);
+      scan.setRT(rt);
+      Precursor precursor;
+      precursor.setMZ(510.0);
+      precursor.setIsolationWindowLowerOffset(20.0);
+      precursor.setIsolationWindowUpperOffset(20.0);
+      scan.setPrecursors({precursor});
+      for (const auto& peak : peaks) { scan.push_back(peak); }
+      xic_search.consumeSpectrum(scan);
+    }
+    xic_search.finish();
+    const std::string xic_rows = xic_output.str();
+    require(std::count(xic_rows.begin(), xic_rows.end(), '\n') == 3, "xic mode should report two peaks of 'twice' and one of 'late'");
+    std::istringstream lines(xic_rows);
+    std::vector<double> twice_apexes;
+    for (std::string line; std::getline(lines, line);)
+    {
+      std::istringstream fields(line);
+      std::string id;
+      double mz = 0.0, start = 0.0, apex = 0.0, end = 0.0;
+      fields >> id >> mz >> start >> apex >> end;
+      require(end - start < 30.0, "xic boundaries should follow the elution profile, not the RT window");
+      if (id == "twice") { twice_apexes.push_back(apex); }
+      else { require(std::abs(apex - 400.0) < 1.6, "xic apex of 'late' is off"); }
+    }
+    std::sort(twice_apexes.begin(), twice_apexes.end());
+    require(twice_apexes.size() == 2 && std::abs(twice_apexes[0] - 170.0) < 1.6 && std::abs(twice_apexes[1] - 250.0) < 1.6,
+            "xic mode should separate the two elutions of 'twice'");
+    const std::string feature_rows = xic_features.str();
+    require(std::count(feature_rows.begin(), feature_rows.end(), '\n') == 3, "xic feature rows do not match the peak rows");
+    std::istringstream first_feature(feature_rows.substr(0, feature_rows.find('\n')));
+    std::vector<std::string> columns;
+    for (std::string field; std::getline(first_feature, field, '\t');) { columns.push_back(field); }
+    require(columns.size() == 21, "xic feature row should carry the 17 base and 4 xic columns");
+    require(std::stod(columns[17]) > 3.0 && std::stod(columns[17]) < 8.0, "xic FWHM of a sigma-2 s peak should be about 4.7 s");
+
+    bool needs_window = false;
+    try
+    {
+      OpenDIA::SearchOptions no_window = xic_options;
+      no_window.rt_window_seconds = 0.0;
+      std::ostringstream sink;
+      OpenDIA::StreamSearch invalid_search(xic_queries, no_window, sink);
+    }
+    catch (const Exception::InvalidParameter&)
+    {
+      needs_window = true;
+    }
+    require(needs_window, "xic mode without an RT window was accepted");
+  }
   return 0;
 }

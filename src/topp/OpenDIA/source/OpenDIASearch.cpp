@@ -42,10 +42,16 @@ namespace OpenMS::OpenDIA
          (!std::isfinite(options_.peak_valley_fraction) || !(options_.peak_valley_fraction > 0.0) ||
           !(options_.peak_valley_fraction < 1.0) || options_.min_peak_scans < 2)) ||
         options_.max_apexes_per_group == 0 || !std::isfinite(options_.min_apex_separation_seconds) ||
-        options_.min_apex_separation_seconds < 0.0)
+        options_.min_apex_separation_seconds < 0.0 ||
+        (options_.xic_peaks &&
+         (!(options_.rt_window_seconds > 0.0) || !std::isfinite(options_.xic.valley_fraction) ||
+          !(options_.xic.valley_fraction > 0.0) || options_.xic.valley_fraction > 1.0 ||
+          !std::isfinite(options_.xic.boundary_fraction) || options_.xic.boundary_fraction < 0.0 ||
+          !(options_.xic.boundary_fraction < 1.0) || options_.xic.max_peaks == 0)))
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Search tolerances and minimum transition count must be positive.");
+                                        "Search tolerances and minimum transition count must be positive "
+                                        "(native-scan peak picking also needs a positive RT window).");
     }
 
     std::map<std::pair<std::string_view, double>, std::size_t> candidate_indices;
@@ -108,7 +114,9 @@ namespace OpenMS::OpenDIA
     std::vector<std::size_t> next_query(candidate_query_offsets_.begin(), candidate_query_offsets_.end() - 1);
     for (std::size_t query_index = 0; query_index < queries_.size(); ++query_index)
     {
-      candidate_query_indices_[next_query[queries_[query_index].candidate]++] = query_index;
+      const std::size_t candidate_index = queries_[query_index].candidate;
+      queries_[query_index].slot = static_cast<std::uint32_t>(next_query[candidate_index] - candidate_query_offsets_[candidate_index]);
+      candidate_query_indices_[next_query[candidate_index]++] = query_index;
     }
 
     candidates_by_mz_.resize(candidates_.size());
@@ -126,6 +134,24 @@ namespace OpenMS::OpenDIA
     candidate_scan_mobility_match_count_.resize(candidates_.size());
     candidate_generation_.resize(candidates_.size());
     candidate_first_match_order_.resize(candidates_.size());
+
+    if (options_.xic_peaks)
+    {
+      xic_entries_.resize(candidates_.size());
+      candidate_lanes_.resize(candidates_.size());
+      // Close schedule: a candidate is complete once the stream passes the end of its RT window.
+      xic_close_order_.resize(candidates_.size());
+      std::iota(xic_close_order_.begin(), xic_close_order_.end(), 0);
+      std::stable_sort(xic_close_order_.begin(), xic_close_order_.end(), [this](std::size_t lhs, std::size_t rhs)
+      {
+        const auto end = [this](std::size_t c)
+        {
+          return candidates_[c].has_library_rt ? candidates_[c].library_rt + options_.rt_window_seconds
+                                               : std::numeric_limits<double>::infinity();
+        };
+        return end(lhs) < end(rhs);
+      });
+    }
   }
 
   void StreamSearch::consumeSpectrum(MSSpectrum& spectrum)
@@ -246,7 +272,7 @@ namespace OpenMS::OpenDIA
     const std::size_t lane_index = lane_it->second;
     if (inserted)
     {
-      grid_lanes_.push_back({isolation_windows, {}});
+      grid_lanes_.push_back({isolation_windows, {}, {}, {}});
       prepareLaneQueries_(grid_lanes_.back());
     }
 
@@ -256,6 +282,12 @@ namespace OpenMS::OpenDIA
     cell.lane = lane_index;
     cell.has_per_peak_im = im_values != nullptr && !uniform_per_peak_im;
     cell.has_scalar_im = has_scalar_im;
+    if (options_.xic_peaks)
+    {
+      cell.id = next_cell_id_++;
+      grid_lanes_[lane_index].cell_rts.push_back(rt);
+      grid_lanes_[lane_index].cell_ids.push_back(cell.id);
+    }
 
     // Pack sorted cells into a bounded batch so candidate blocks can reuse one
     // worker team across several scans without retaining the run.
@@ -292,6 +324,7 @@ namespace OpenMS::OpenDIA
 
   void StreamSearch::prepareLaneQueries_(GridLane& lane)
   {
+    const auto lane_index = static_cast<std::uint32_t>(grid_lanes_.size() - 1);
     std::vector<std::size_t> lane_query_indices;
     for (const auto& [low_mz, high_mz] : lane.isolation_windows)
     {
@@ -301,6 +334,10 @@ namespace OpenMS::OpenDIA
       for (; candidate != candidates_by_mz_.end() && candidates_[*candidate].precursor_mz <= high_mz; ++candidate)
       {
         const std::size_t candidate_index = *candidate;
+        if (options_.xic_peaks)
+        {
+          candidate_lanes_[candidate_index].push_back(lane_index);
+        }
         lane_query_indices.insert(lane_query_indices.end(),
                                   candidate_query_indices_.begin() + static_cast<std::ptrdiff_t>(candidate_query_offsets_[candidate_index]),
                                   candidate_query_indices_.begin() + static_cast<std::ptrdiff_t>(candidate_query_offsets_[candidate_index + 1]));
@@ -438,6 +475,12 @@ namespace OpenMS::OpenDIA
           }
 
           const std::size_t candidate_index = query.candidate;
+          if (options_.xic_peaks)
+          {
+            // Candidates are owned by one block, so this append is race free.
+            xic_entries_[candidate_index].push_back({cell.id, query.slot, static_cast<float>(intensity)});
+            continue;
+          }
           if (candidate_generation_[candidate_index] != cell_generation)
           {
             candidate_generation_[candidate_index] = cell_generation;
@@ -504,8 +547,144 @@ namespace OpenMS::OpenDIA
       writeCandidate_(candidate);
     }
 
+    // Spectra arrive in RT order: no later cell can match a candidate whose RT window ended before this one.
+    const double last_rt = batch_cells_.back().rt;
     batch_cells_.clear();
     grid_points_.clear();
+    if (options_.xic_peaks)
+    {
+      closeXicCandidates_(last_rt);
+    }
+  }
+
+  void StreamSearch::closeXicCandidates_(double before_rt)
+  {
+    std::size_t end = xic_close_cursor_;
+    while (end < xic_close_order_.size())
+    {
+      const Candidate& candidate = candidates_[xic_close_order_[end]];
+      if (!(candidate.has_library_rt && candidate.library_rt + options_.rt_window_seconds < before_rt))
+      {
+        break;
+      }
+      ++end;
+    }
+    const std::size_t begin = xic_close_cursor_;
+    if (end == begin)
+    {
+      return;
+    }
+    std::vector<std::vector<XicRow>> rows(end - begin);
+#ifdef _OPENMP
+#pragma omp parallel if(end - begin >= 64)
+#endif
+    {
+      std::vector<float> matrix;
+      std::vector<double> scratch;
+#ifdef _OPENMP
+#pragma omp for schedule(dynamic, 32)
+#endif
+      for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(end - begin); ++i)
+      {
+        const std::size_t candidate_index = xic_close_order_[begin + static_cast<std::size_t>(i)];
+        rows[static_cast<std::size_t>(i)] = pickXicCandidate_(candidate_index, matrix, scratch);
+        std::vector<XicEntry>().swap(xic_entries_[candidate_index]);
+      }
+    }
+    for (std::size_t i = 0; i < rows.size(); ++i)
+    {
+      for (const XicRow& row : rows[i])
+      {
+        writeXicRow_(xic_close_order_[begin + i], row);
+      }
+    }
+    xic_close_cursor_ = end;
+  }
+
+  std::vector<StreamSearch::XicRow> StreamSearch::pickXicCandidate_(std::size_t candidate_index, std::vector<float>& matrix,
+                                                                   std::vector<double>& scratch) const
+  {
+    std::vector<XicRow> rows;
+    const std::vector<XicEntry>& entries = xic_entries_[candidate_index];
+    if (entries.empty())
+    {
+      return rows;
+    }
+    const Candidate& candidate = candidates_[candidate_index];
+    // Every scan that isolated the precursor inside its RT window, zero filled where nothing matched.
+    std::vector<std::pair<std::uint32_t, double>> cells;
+    for (const std::uint32_t lane_index : candidate_lanes_[candidate_index])
+    {
+      const GridLane& lane = grid_lanes_[lane_index];
+      auto first = lane.cell_rts.begin();
+      auto last = lane.cell_rts.end();
+      if (candidate.has_library_rt)
+      {
+        first = std::lower_bound(lane.cell_rts.begin(), lane.cell_rts.end(), candidate.library_rt - options_.rt_window_seconds);
+        last = std::upper_bound(first, lane.cell_rts.end(), candidate.library_rt + options_.rt_window_seconds);
+      }
+      for (auto it = first; it != last; ++it)
+      {
+        cells.emplace_back(lane.cell_ids[static_cast<std::size_t>(it - lane.cell_rts.begin())], *it);
+      }
+    }
+    std::sort(cells.begin(), cells.end());
+    const std::size_t fragments = candidate_query_offsets_[candidate_index + 1] - candidate_query_offsets_[candidate_index];
+    if (cells.empty() || fragments == 0)
+    {
+      return rows;
+    }
+    matrix.assign(cells.size() * fragments, 0.0f);
+    std::vector<double> rts(cells.size());
+    for (std::size_t s = 0; s < cells.size(); ++s)
+    {
+      rts[s] = cells[s].second;
+    }
+    for (const XicEntry& entry : entries)
+    {
+      const auto row = std::lower_bound(cells.begin(), cells.end(), entry.cell,
+                                        [](const auto& cell, std::uint32_t id) { return cell.first < id; });
+      if (row != cells.end() && row->first == entry.cell)
+      {
+        float& value = matrix[static_cast<std::size_t>(row - cells.begin()) * fragments + entry.slot];
+        value = std::max(value, entry.intensity);
+      }
+    }
+    std::size_t peaks_found = 0;
+    const std::vector<XicPeak> peaks = pickXicPeaks(matrix.data(), cells.size(), fragments, rts.data(), options_.xic,
+                                                    peaks_found, scratch);
+    for (std::size_t rank = 0; rank < peaks.size(); ++rank)
+    {
+      const XicPeak& peak = peaks[rank];
+      if (peak.support < options_.min_transitions)
+      {
+        continue;
+      }
+      rows.push_back({rts[peak.left], rts[peak.apex], rts[peak.right], peak, rank, peaks_found});
+    }
+    return rows;
+  }
+
+  void StreamSearch::writeXicRow_(std::size_t candidate_index, const XicRow& row)
+  {
+    const Candidate& candidate = candidates_[candidate_index];
+    const XicPeak& peak = row.peak;
+    const double score = peak.area > 0.0 ? peak.area : peak.apex_height;
+    output_ << candidate.id << '\t' << std::setprecision(10) << candidate.precursor_mz << '\t' << row.start_rt << '\t'
+            << row.apex_rt << '\t' << row.end_rt << '\t' << score << '\t' << peak.support << '\t' << peak.signal_scans << '\n';
+    if (candidate_features_ == nullptr)
+    {
+      return;
+    }
+    const double apex_rt_error = candidate.has_library_rt ? row.apex_rt - candidate.library_rt : 0.0;
+    *candidate_features_ << std::setprecision(17) << candidate_feature_row_++ << '\t' << candidate.id << '\t'
+                         << candidate.precursor_mz << '\t' << (candidate.is_decoy ? 1 : 0) << '\t'
+                         << row.start_rt << '\t' << row.apex_rt << '\t' << row.end_rt << '\t'
+                         << row.end_rt - row.start_rt << '\t' << peak.area << '\t' << peak.apex_height << '\t'
+                         << peak.support << '\t' << peak.signal_scans << '\t'
+                         << (candidate.has_library_rt ? 1 : 0) << '\t' << apex_rt_error << '\t'
+                         << (candidate.has_precursor_im ? 1 : 0) << '\t' << 0 << '\t' << 0.0 << '\t'
+                         << peak.fwhm << '\t' << peak.coelution << '\t' << row.rank << '\t' << row.peaks_found << '\n';
   }
 
   bool StreamSearch::queryMatches_(const Query& query, double rt, double peak_im, bool has_peak_im,
@@ -749,6 +928,23 @@ namespace OpenMS::OpenDIA
       return;
     }
     flushBatch_();
+    if (options_.xic_peaks)
+    {
+      closeXicCandidates_(std::numeric_limits<double>::infinity());
+      // Candidates without a library RT were open for the whole run.
+      for (std::size_t i = xic_close_cursor_; i < xic_close_order_.size(); ++i)
+      {
+        std::vector<float> matrix;
+        std::vector<double> scratch;
+        for (const XicRow& row : pickXicCandidate_(xic_close_order_[i], matrix, scratch))
+        {
+          writeXicRow_(xic_close_order_[i], row);
+        }
+      }
+      xic_close_cursor_ = xic_close_order_.size();
+      finished_ = true;
+      return;
+    }
     for (std::size_t candidate_index = 0; candidate_index < candidates_.size(); ++candidate_index)
     {
       Candidate& candidate = candidates_[candidate_index];
