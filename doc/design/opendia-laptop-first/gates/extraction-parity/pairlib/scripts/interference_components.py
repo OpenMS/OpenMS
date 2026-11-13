@@ -80,6 +80,10 @@ for iso_k, g in cand.groupby('iso'):
         ea.append(idx[a[m]]); eb.append(idx[b[m]]); ew.append(wv[m])
 ea, eb, ew = np.concatenate(ea), np.concatenate(eb), np.concatenate(ew)
 print(f'edges (>= 1 shared fragment) {len(ew)}; weight counts', dict(zip(*np.unique(ew, return_counts=True))))
+EDGES_OUT = next((a.split('=', 1)[1] for a in sys.argv if a.startswith('--edges-out=')), None)
+if EDGES_OUT:  # candidate_row pairs and weights, for later diagnostics
+    np.savez_compressed(EDGES_OUT, a=cand.candidate_row.values[ea], b=cand.candidate_row.values[eb], w=ew.astype(np.int8),
+                        pa=cand.precursor_id.values[ea], pb=cand.precursor_id.values[eb])
 
 
 def components(n, a, b):

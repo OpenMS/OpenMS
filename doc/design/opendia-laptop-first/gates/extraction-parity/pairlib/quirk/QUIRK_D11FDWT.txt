@@ -1,0 +1,64 @@
+
+==== raw01 D11FDWT: cuts q0.01 21.38 q0.05 8.96 q0.20 5.85; winners above the q<=0.20 cut: {'H': 2975, 'D': 727, 'E': 490}
+1. per feature AUC(decoy > entrapment): band | score-matched (10 bins) | for reference AUC(human > entrapment) band
+   boundary_library_correlation   0.430 | 0.437 | 0.645
+   f12_libcos                     0.441 | 0.450 | 0.806
+   byion_y                        0.526 | 0.531 | 0.721
+   abs_library_rt_error           0.526 | 0.523 | 0.380
+   f12_extra_support              0.530 | 0.521 | 0.528
+   transition_support             0.470 | 0.481 | 0.796
+   boundary_log_width             0.480 | 0.482 | 0.580
+   f12_extra_share                0.520 | 0.516 | 0.435
+   f12_support                    0.517 | 0.514 | 0.578
+   d6_max                         0.515 | 0.514 | 0.285
+   f12_coelution                  0.511 | 0.511 | 0.620
+   boundary_apex_agreement        0.502 | 0.510 | 0.709
+   f12_extra_coelution            0.514 | 0.508 | 0.568
+   boundary_log_fwhm              0.505 | 0.506 | 0.449
+   d_lib                          0.509 | 0.505 | 0.421
+   log_matched_scans              0.502 | 0.504 | 0.551
+   log_peak_width                 0.496 | 0.497 | 0.545
+   byion_b                        0.503 | 0.501 | 0.632
+   boundary_coelution             0.494 | 0.501 | 0.696
+   d_max                          0.504 | 0.499 | 0.290
+2. classifier CV AUC decoy vs entrapment winners (n D 727, E 490): features 0.516 | + score 0.514 | score-matched 0.505;  human vs entrapment (reference) 0.870
+   decoys of human targets: n 349, CV AUC vs entrapment winners 0.499
+   decoys of entrapments: n 378, CV AUC vs entrapment winners 0.515
+3. null windows (|RT err| > 3 sigma, n 60000): classifier CV AUC decoy vs target 0.554
+   log_matched_scans              AUC(decoy > target) 0.471
+   f12_libcos                     AUC(decoy > target) 0.472
+   boundary_library_correlation   AUC(decoy > target) 0.472
+   transition_support             AUC(decoy > target) 0.474
+   log_peak_width                 AUC(decoy > target) 0.476
+
+==== raw02 D11FDWT: cuts q0.01 25.94 q0.05 9.18 q0.20 5.76; winners above the q<=0.20 cut: {'H': 2910, 'D': 700, 'E': 422}
+1. per feature AUC(decoy > entrapment): band | score-matched (10 bins) | for reference AUC(human > entrapment) band
+   boundary_library_correlation   0.447 | 0.448 | 0.671
+   f12_libcos                     0.458 | 0.461 | 0.821
+   log_matched_scans              0.468 | 0.465 | 0.525
+   f12_support                    0.470 | 0.475 | 0.543
+   log_peak_width                 0.480 | 0.478 | 0.529
+   f12_extra_share                0.521 | 0.521 | 0.408
+   boundary_coelution             0.514 | 0.518 | 0.725
+   f12_extra_support              0.517 | 0.518 | 0.512
+   f12_coelution                  0.478 | 0.483 | 0.584
+   transition_support             0.479 | 0.483 | 0.794
+   abs_library_rt_error           0.487 | 0.486 | 0.355
+   f12_extra_coelution            0.513 | 0.511 | 0.538
+   byion_b                        0.509 | 0.511 | 0.639
+   d6_max                         0.484 | 0.491 | 0.257
+   d_lib                          0.489 | 0.491 | 0.403
+   boundary_log_width             0.487 | 0.491 | 0.568
+   d_max                          0.488 | 0.492 | 0.269
+   boundary_apex_agreement        0.496 | 0.502 | 0.722
+   byion_y                        0.494 | 0.499 | 0.730
+   boundary_log_fwhm              0.504 | 0.499 | 0.443
+2. classifier CV AUC decoy vs entrapment winners (n D 700, E 422): features 0.513 | + score 0.489 | score-matched 0.504;  human vs entrapment (reference) 0.880
+   decoys of human targets: n 334, CV AUC vs entrapment winners 0.490
+   decoys of entrapments: n 366, CV AUC vs entrapment winners 0.494
+3. null windows (|RT err| > 3 sigma, n 60000): classifier CV AUC decoy vs target 0.547
+   boundary_library_correlation   AUC(decoy > target) 0.472
+   f12_libcos                     AUC(decoy > target) 0.475
+   log_matched_scans              AUC(decoy > target) 0.477
+   transition_support             AUC(decoy > target) 0.479
+   log_peak_width                 AUC(decoy > target) 0.483

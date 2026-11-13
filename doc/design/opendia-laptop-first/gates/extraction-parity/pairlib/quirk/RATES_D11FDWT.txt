@@ -1,0 +1,18 @@
+==== raw01: precursors in population {'H': 77391, 'D(H)': 77214, 'E': 76873, 'D(E)': 76705}
+  winners with s >= 5.8: H 3007 (38.85/1000), E 509 (6.62/1000), D(H) 371 (4.80/1000), D(E) 402 (5.24/1000) | E/D(E) 1.26  E/D(H) 1.38  E/mean(D) 1.32
+  winners with s >= 7.2: H 2585 (33.40/1000), E 217 (2.82/1000), D(H) 141 (1.83/1000), D(E) 168 (2.19/1000) | E/D(E) 1.29  E/D(H) 1.55  E/mean(D) 1.41
+  winners with s >= 9.0: H 2367 (30.58/1000), E 117 (1.52/1000), D(H) 60 (0.78/1000), D(E) 69 (0.90/1000) | E/D(E) 1.69  E/D(H) 1.96  E/mean(D) 1.82
+  null windows (|RT err| > 3 sigma): mean transition_support / share support>=4 / mean f12_libcos / share libcos>0.8
+    H     n   99473  2.010  0.0588  0.530  0.0227
+    E     n   99465  2.010  0.0564  0.529  0.0206
+    D(H)  n   99187  1.925  0.0489  0.517  0.0173
+    D(E)  n   98795  1.936  0.0495  0.518  0.0175
+==== raw02: precursors in population {'H': 71517, 'D(H)': 71320, 'E': 70927, 'D(E)': 70791}
+  winners with s >= 5.8: H 2883 (40.31/1000), E 405 (5.71/1000), D(H) 320 (4.49/1000), D(E) 351 (4.96/1000) | E/D(E) 1.15  E/D(H) 1.27  E/mean(D) 1.21
+  winners with s >= 7.2: H 2484 (34.73/1000), E 174 (2.45/1000), D(H) 122 (1.71/1000), D(E) 142 (2.01/1000) | E/D(E) 1.22  E/D(H) 1.43  E/mean(D) 1.32
+  winners with s >= 9.0: H 2297 (32.12/1000), E 82 (1.16/1000), D(H) 58 (0.81/1000), D(E) 74 (1.05/1000) | E/D(E) 1.11  E/D(H) 1.42  E/mean(D) 1.24
+  null windows (|RT err| > 3 sigma): mean transition_support / share support>=4 / mean f12_libcos / share libcos>0.8
+    H     n   91686  1.972  0.0541  0.528  0.0229
+    E     n   91590  1.975  0.0538  0.527  0.0211
+    D(H)  n   91480  1.885  0.0439  0.515  0.0175
+    D(E)  n   90865  1.899  0.0455  0.516  0.0164
