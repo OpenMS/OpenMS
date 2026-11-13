@@ -791,6 +791,25 @@ START_SECTION(([EXTRA] store - fixed and variable modifications of the search pa
     TEST_REAL_SIMILAR(seq_new.getMonoWeight(), seq.getMonoWeight())
   }
 
+  // A lower-ranked hit with another modification on C: only the modifications of the best hits are declared
+  // in the header, so a reader cannot be relied on to restore 'Methylthio (C)' and would put a fixed
+  // 'Carbamidomethyl (C)' on that C instead. 'Carbamidomethyl (C)' is thus written as variable; the fixed
+  // terminal modifications, which both hits carry, stay fixed.
+  PeptideIdentificationList peptides_lower_rank = peptides;
+  PeptideHit lower_rank_hit = peptides[0].getHits()[0];
+  lower_rank_hit.setScore(20.0);
+  lower_rank_hit.setRank(1);
+  lower_rank_hit.setSequence(AASequence::fromString(".(TMT6plex)AC(Methylthio)DM(Oxidation)K.(Amidated)"));
+  peptides_lower_rank[0].insertHit(lower_rank_hit);
+  NEW_TMP_FILE(file_out);
+  PepXMLFile().store(file_out, proteins, peptides_lower_rank);
+  std::ifstream written_lower_rank(file_out);
+  const std::string content_lower_rank((std::istreambuf_iterator<char>(written_lower_rank)), std::istreambuf_iterator<char>());
+  TEST_EQUAL(StringUtils::hasSubstring(content_lower_rank, "variable=\"Y\" binary=\"N\" description=\"Carbamidomethyl (C)\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(content_lower_rank, "description=\"Methylthio (C)\""), false)
+  TEST_EQUAL(StringUtils::hasSubstring(content_lower_rank, "variable=\"N\" description=\"TMT6plex (N-term)\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(content_lower_rank, "variable=\"N\" description=\"Amidated (C-term)\""), true)
+
   // A second search run without fixed modifications adds a peptide that carries none of them. The one
   // "search_summary" describes the hits of all runs, and a reader puts a fixed modification on every site
   // that a hit leaves unmodified. So none of the three may be written as fixed any more, and the new

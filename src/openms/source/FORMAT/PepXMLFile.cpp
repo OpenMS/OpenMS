@@ -533,8 +533,10 @@ namespace OpenMS
       }
     }
 
-    // Sites that the hits to be written (all of them, not only the best ones) leave unmodified:
-    // one-letter codes of unmodified residues, and whether a hit has an unmodified N- or C-terminus.
+    // Sites that a reader may find unmodified in the hits to be written (all of them, not only the best
+    // ones): one-letter codes of such residues, and whether a hit has such an N- or C-terminus. A site
+    // counts if it is unmodified, or if its modification is not declared above (it occurs in lower-ranked
+    // hits only): a reader may not restore an undeclared modification.
     std::string unmodified_residues;
     bool unmodified_n_term = false;
     bool unmodified_c_term = false;
@@ -543,12 +545,16 @@ namespace OpenMS
       for (const PeptideHit& hit : pep.getHits())
       {
         const AASequence& seq = hit.getSequence();
-        unmodified_n_term = unmodified_n_term || !seq.hasNTerminalModification();
-        unmodified_c_term = unmodified_c_term || !seq.hasCTerminalModification();
+        unmodified_n_term = unmodified_n_term || !seq.hasNTerminalModification() || !n_term_mods.contains(seq.getNTerminalModification()->getFullId());
+        unmodified_c_term = unmodified_c_term || !seq.hasCTerminalModification() || !c_term_mods.contains(seq.getCTerminalModification()->getFullId());
         for (Size i = 0; i != seq.size(); ++i)
         {
           const std::string& code = seq[i].getOneLetterCode();
-          if (!seq[i].isModified() && !code.empty() && unmodified_residues.find(code[0]) == std::string::npos)
+          if (code.empty() || unmodified_residues.find(code[0]) != std::string::npos)
+          {
+            continue;
+          }
+          if (!seq[i].isModified() || !aa_mods.contains(seq[i].getModification()->getFullId()))
           {
             unmodified_residues += code[0];
           }
@@ -561,10 +567,10 @@ namespace OpenMS
     // The "variable" attribute tells fixed (static, "N") from variable ("Y") modifications (issue #2096).
     // "N" states that only the modified form of a site occurs in the file, and readers (PepXMLFile::load,
     // LuciPHOr2) put such a modification on every site that a hit leaves unmodified. A modification is
-    // therefore written as fixed only if the search parameters list it as fixed AND no hit leaves one of
-    // its sites unmodified ('on_all_sites'). The latter fails e.g. for hits of a further search run that did
-    // not use the modification (only the first run's search parameters are written). All other
-    // modifications are variable, also those that the search parameters do not list at all.
+    // therefore written as fixed only if the search parameters list it as fixed AND a reader finds none of
+    // its sites unmodified in any hit ('on_all_sites', see above). The latter fails e.g. for hits of a further
+    // search run that did not use the modification (only the first run's search parameters are written).
+    // All other modifications are variable, also those that the search parameters do not list at all.
     auto variableFlag = [this, &search_params](const std::string& mod_full_id, bool on_all_sites)
     {
       if (!ListUtils::contains(search_params.fixed_modifications, mod_full_id))
@@ -573,7 +579,7 @@ namespace OpenMS
       }
       if (!on_all_sites)
       {
-        warning(STORE, "Fixed modification '" + mod_full_id + "' is missing at some of its sites in the peptide hits; it is written as a variable modification.");
+        warning(STORE, "Fixed modification '" + mod_full_id + "' is missing at some of its sites in the peptide hits, or a site carries a modification of lower-ranked hits only; it is written as a variable modification.");
         return "Y";
       }
       return "N";
