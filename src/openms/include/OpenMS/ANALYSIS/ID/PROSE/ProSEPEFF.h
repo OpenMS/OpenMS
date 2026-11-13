@@ -58,8 +58,9 @@ namespace OpenMS
    * - A window does not start with M, unless it starts the protein: a generated decoy keeps an initial M in place when
    *   peptide:clip_nterm_methionine is set, which would shift it against the protein's decoy.
    *
-   * Stop codons (\\VariantSimple to '*', e.g. "Q13*"): the window is the protein up to the residue before the stop, and
-   * ends at a protein C-terminus there (its region: the last residue, i.e. the peptides that end at the new C-terminus).
+   * Stop codons (\\VariantSimple to a stop codon, `*`, e.g. `Q13*`): the window is the protein up to the residue before
+   * the stop, and ends at a protein C-terminus there (its region: the last residue, i.e. the peptides that end at the new
+   * C-terminus).
    *
    * Not searched: a variant to the residue it replaces, to a letter without a residue of known mass (X, B, Z, ...), a stop
    * codon at the first residue, a position outside the protein, \\VariantComplex (insertions, deletions) and
@@ -97,7 +98,7 @@ namespace OpenMS
     enum class VariantKind
     {
       SIMPLE,    ///< \\VariantSimple to a residue
-      STOP_GAIN, ///< \\VariantSimple to a stop codon ('*')
+      STOP_GAIN, ///< \\VariantSimple to a stop codon (`*`)
       COMPLEX    ///< \\VariantComplex (insertion, deletion, multi-residue substitution)
     };
 
@@ -107,7 +108,7 @@ namespace OpenMS
       std::string protein;        ///< identifier of the protein
       Size position = 0;          ///< 1-based protein position (a complex variant: its first residue)
       char reference = '\0';      ///< the residue of the protein at the position ('\0': complex, or out of range)
-      std::string variant;        ///< e.g. "R175H", "Q13*", "120-122|AG" (complex: start-end|replacement)
+      std::string variant;        ///< e.g. `R175H`, `Q13*`, `120-122|AG` (complex: start-end|replacement)
       VariantKind kind = VariantKind::SIMPLE;
       bool searched = false;      ///< whether a window holds it
       /// why it is not searched (empty if searched): out_of_range, unknown_residue, same_as_reference,
