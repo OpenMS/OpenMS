@@ -30,8 +30,9 @@ Reading Thermo Fisher ``.raw`` files also needs the .NET 8 runtime; see
 Optional dependencies
 ---------------------
 
-pyOpenMS itself only needs NumPy. Some convenience functions use further packages,
-which ``pip`` installs when you name the matching extra:
+pyOpenMS itself only needs NumPy and ``nanobind-backend``, which ``pip`` installs
+with it. Some convenience functions use further packages, which ``pip`` installs
+when you name the matching extra:
 
 .. list-table::
    :header-rows: 1
@@ -44,7 +45,8 @@ which ``pip`` installs when you name the matching extra:
      - ``to_df()`` / ``get_df()`` and the other DataFrame functions
    * - ``arrow``
      - pyarrow
-     - Arrow tables and Parquet files (see :doc:`arrow_parquet`)
+     - ``to_arrow()`` and the other Arrow table functions (see :doc:`arrow_parquet`);
+       reading and writing Parquet bundles with ``FileHandler`` works without it
    * - ``plotting``
      - matplotlib
      - the functions in ``pyopenms.plotting``, e.g. ``plot_spectrum()``
