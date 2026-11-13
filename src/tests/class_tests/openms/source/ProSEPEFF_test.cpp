@@ -235,6 +235,22 @@ START_SECTION((void mapToParents(std::vector<ProteinIdentification>& protein_ids
   TEST_STRING_EQUAL(protein_ids[0].getHits()[0].getAccession(), "sp:P01")
   TEST_STRING_EQUAL(protein_ids[0].getHits()[0].getSequence(), "")
   TEST_STRING_EQUAL(protein_ids[0].getHits()[0].getMetaValue("target_decoy").toString(), "target")
+
+  // a decoy hit of the decoy window: moved to the decoy protein and labelled as well
+  db.push_back({"DECOY_sp:P01_VAR_W48C", "", ""});
+  peff.addDecoys(db, "DECOY_");
+  const ProSEPEFF::Window d = *peff.find("DECOY_sp:P01_VAR_W48C");
+  PeptideIdentificationList decoy_ids(1);
+  PeptideHit decoy_hit;
+  decoy_hit.setSequence(AASequence::fromString("KYMCRETC"));
+  decoy_hit.setPeptideEvidences({PeptideEvidence("DECOY_sp:P01_VAR_W48C", static_cast<Int>(d.region.first), static_cast<Int>(d.region.first) + 7, 'K', 'H')});
+  decoy_ids[0].setHits({decoy_hit});
+  std::vector<ProteinIdentification> no_proteins;
+  peff.mapToParents(no_proteins, decoy_ids);
+  const PeptideHit& mapped_decoy = decoy_ids[0].getHits()[0];
+  TEST_STRING_EQUAL(mapped_decoy.getPeptideEvidences()[0].getProteinAccession(), "DECOY_sp:P01")
+  TEST_EQUAL(mapped_decoy.getPeptideEvidences()[0].getStart(), static_cast<Int>(d.region.first + d.shift))
+  TEST_STRING_EQUAL(mapped_decoy.getMetaValue(ProSEPEFF::variantMetaValue()).toString(), "DECOY_sp:P01:W48C")
 }
 END_SECTION
 

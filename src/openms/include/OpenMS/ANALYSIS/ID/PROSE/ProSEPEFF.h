@@ -41,7 +41,9 @@ namespace OpenMS
    * After the hits are mapped to the entries of the database (PeptideIndexing or the fragment index), mapToParents()
    * maps the hits of the windows back to the proteins they come from: the evidences of a window become evidences of its
    * protein (decoy protein), at the protein positions, and the windows leave the protein hits. A hit whose sequence occurs
-   * in a window but in no other entry gets the meta value variantMetaValue() with the variants (e.g. "sp:P04637:R175H").
+   * in a window but in no other entry gets the meta value variantMetaValue() with the variants (e.g. "sp:P04637:R175H";
+   * for a decoy, those of the decoy windows, e.g. "DECOY_sp:P04637:R175H"), so that the variant hits can be told apart
+   * from the others among the decoys as well (e.g. for a target-decoy competition of their own).
    *
    * How the windows are cut (see addVariantWindows()):
    * - The window reaches at least peptide:max_size + 1 residues beyond the residues the variant can change (in the

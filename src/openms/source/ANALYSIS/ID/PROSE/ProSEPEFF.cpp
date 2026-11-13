@@ -305,7 +305,7 @@ namespace OpenMS
             moved.setEnd(static_cast<Int>(end + window->shift));
           }
           mapped.push_back(std::move(moved));
-          if (!window->decoy) { variants.insert(window->parent + ":" + window->variant); }
+          variants.insert(window->parent + ":" + window->variant); // (a decoy: its decoy protein, e.g. "DECOY_sp:P01:G10A")
         }
         if (mapped.empty()) { continue; } // (not expected: the hit came from a peptide in a region; keep it as it is)
         std::sort(mapped.begin(), mapped.end());
