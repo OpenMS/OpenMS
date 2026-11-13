@@ -30,21 +30,33 @@ namespace OpenMS::UniPEFFEntries
   // ptmlist.txt — UniProt PTM controlled vocabulary
   // ──────────────────────────────────────────────────────────────────
 
+  /// Where the ptmlist places a residue of a modification in the polypeptide (one part of its "PP" line)
+  enum class ChainPosition
+  {
+    Anywhere,   ///< "Anywhere" or "Protein core"
+    NTerminal,  ///< "N-terminal": the residue is at the N-terminus of a chain, e.g. N-acetylalanine
+    CTerminal   ///< "C-terminal": the residue is at the C-terminus of a chain, e.g. an amidated residue
+  };
+
   struct PtmEntry
   {
     std::string id;               ///< UniProt PTM name (the lookup key from feature/\@description)
     std::string accession;        ///< UniProt internal accession, e.g. "PTM-0253"
     std::string psi_mod;          ///< "MOD:xxxxx" or empty
     std::string unimod;           ///< "N" (numeric Unimod id) or empty (NOT prefixed with "UNIMOD:")
-    /// ptmlist "PP   N-terminal." / "PP   C-terminal." (position of the modification in the polypeptide): the
-    /// modification is made at a terminus of the chain, e.g. N-acetylalanine or an amidated C-terminal residue.
-    /// Both are set for a head-to-tail cyclopeptide cross-link ("PP   N-terminal-C-terminal."), whose two residues are
-    /// the termini of a peptide; not from the other per-residue values of a cross-link (e.g. "Anywhere-C-terminal.")
-    bool n_terminal{false};
-    bool c_terminal{false};
+    /// ptmlist "PP" line (position of the modification in the polypeptide, see parseChainPositions()): one value per
+    /// residue, in the order the ID names them, e.g. {NTerminal} for N-acetylalanine ("PP   N-terminal.") or
+    /// {Anywhere, CTerminal} for the cross-link S-(2-aminovinyl)-D-cysteine (Cys-Cys) of lantibiotics
+    /// ("PP   Anywhere-C-terminal."). Empty if the line is missing or not understood.
+    std::vector<ChainPosition> chain_positions{};
   };
 
   using PtmMap = std::unordered_map<std::string, PtmEntry>;
+
+  /// Parse the value of a ptmlist "PP" line, e.g. "N-terminal." or "N-terminal-C-terminal." (a head-to-tail
+  /// cyclopeptide), into one ChainPosition per residue. Returns an empty vector if a part is not "Anywhere",
+  /// "Protein core", "N-terminal" or "C-terminal".
+  std::vector<ChainPosition> parseChainPositions(const std::string& pp);
 
   /// Isoforms without a reconstructable sequence ("external": stored as its own
   /// UniProt entry; "not described": sequence unknown), counted per sequence type
@@ -177,8 +189,8 @@ namespace OpenMS::UniPEFFEntries
   /// replaced region, or regions overlapping one, are not mapped (processed regions may span one,
   /// but not a cleavage site at their ends: one whose flanking residues a splice variant changes;
   /// a region starting right after a removed initiator methionine then starts at the isoform's
-  /// N-terminus), nor are modifications the ptmlist places at a chain terminus (@ref PtmEntry::n_terminal,
-  /// @ref PtmEntry::c_terminal) next to a splice variant, and a copy of a feature UniProt annotates on that isoform itself
+  /// N-terminus), nor are modifications the ptmlist places at a chain terminus (@ref PtmEntry::chain_positions)
+  /// next to a splice variant, and a copy of a feature UniProt annotates on that isoform itself
   /// (for a glycosylation: any on that residue) is not added again. UniProt's own isoform annotation
   /// also wins over a mapped one it contradicts (same-type processed regions that overlap, disulfide bonds
   /// sharing a cysteine, a cross-link sharing a residue with a disulfide bond or cross-link if one of the

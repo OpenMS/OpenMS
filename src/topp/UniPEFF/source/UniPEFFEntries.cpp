@@ -31,6 +31,28 @@ namespace OpenMS::UniPEFFEntries
     return p == 0 ? std::string("?") : std::to_string(p);
   }
 
+  std::vector<ChainPosition> parseChainPositions(const std::string& pp)
+  {
+    // the parts are joined by '-', which "N-terminal" and "C-terminal" contain themselves
+    static const std::vector<std::pair<std::string, ChainPosition>> kParts = {
+      {"N-terminal", ChainPosition::NTerminal}, {"C-terminal", ChainPosition::CTerminal},
+      {"Anywhere", ChainPosition::Anywhere}, {"Protein core", ChainPosition::Anywhere}};
+    const std::string value = (!pp.empty() && pp.back() == '.') ? pp.substr(0, pp.size() - 1) : pp;
+    std::vector<ChainPosition> out;
+    size_t i = 0;
+    while (i < value.size())
+    {
+      auto part = std::find_if(kParts.begin(), kParts.end(),
+                               [&](const auto& p) { return value.compare(i, p.first.size(), p.first) == 0; });
+      if (part == kParts.end()) return {};
+      out.push_back(part->second);
+      i += part->first.size();
+      if (i == value.size()) break;
+      if (value[i] != '-' || ++i == value.size()) return {};
+    }
+    return out;
+  }
+
 
 namespace
 {
@@ -346,28 +368,45 @@ namespace
     return (it == ptms.end()) ? nullptr : &it->second;
   }
 
-  /// True if the canonical modification @p f, mapped onto an isoform built by @p edits, is still where the
-  /// ptmlist places it (@p ptms, its "PP" line): one made at the N-terminus of a chain (e.g. N-acetylalanine,
-  /// pyrrolidone carboxylic acid, N-myristoyl glycine) needs the residue before it, one made at the C-terminus
-  /// (e.g. an amidated residue, a GPI anchor) the residue after it, since the cleavage that makes the terminus
-  /// depends on both (see cleavageSiteKept()). If a splice variant replaces that residue, the modified residue
-  /// sits inside the isoform's chain instead. A cross-link between two residues (a head-to-tail cyclopeptide) needs
-  /// the residue before its first residue and the one after its last.
-  bool terminalModificationKept(const UniProtFeature& f, const PtmMap& ptms, const std::vector<SpliceEdit>& edits,
-                                int canonical_length)
+  /// The canonical cleavage sites (see cleavageSiteKept(); 0: none) that the canonical modification @p f needs an
+  /// isoform to keep, so that it is still where the ptmlist places it (@p ptms, its "PP" line): one made at the
+  /// N-terminus of a chain (e.g. N-acetylalanine, pyrrolidone carboxylic acid, N-myristoyl glycine) needs the site
+  /// before it, one made at the C-terminus (e.g. an amidated residue, a GPI anchor) the site after it, since the
+  /// cleavage that makes the terminus depends on the residues on both sides. If a splice variant replaces the residue
+  /// on the other side, the modified residue sits inside the isoform's chain instead.
+  ///
+  /// The PP line names one position per residue, in the order the ptmlist ID names the residues. A modification at one
+  /// residue of this protein (also an interchain cross-link, whose partner is named second) uses the first. A
+  /// cross-link between two residues of this protein needs the site before its first residue if the first is
+  /// N-terminal (a head-to-tail cyclopeptide, a lasso peptide) and the one after its last if the last is C-terminal
+  /// (a head-to-tail cyclopeptide, the aminovinyl-cysteine of a lantibiotic). Other terminal parts of a cross-link
+  /// do not make a chain terminus: "C-terminal-N-terminal." and "Protein core-N-terminal." name backbone groups of
+  /// the internal residues of the imidazolinone chromophore of GFP-like proteins.
+  std::pair<int, int> terminalCleavageSites(const UniProtFeature& f, const PtmMap& ptms, int canonical_length)
   {
     if (f.type != "modified residue" && f.type != "cross-link" && f.type != "glycosylation site"
         && f.type != "lipid moiety-binding region")
     {
-      return true;
+      return {0, 0};
     }
     const PtmEntry* ptm = findPtm(ptms, cleanPtmDescription(f.description));
-    if (ptm == nullptr || (!ptm->n_terminal && !ptm->c_terminal)) return true;
-    // a single residue is both; a head-to-tail cyclopeptide links the first (N-terminal) and last (C-terminal) residue
-    const auto [first, last] = residueSpan(f);
-    if (ptm->n_terminal && first > 1 && !cleavageSiteKept(first - 1, edits, canonical_length)) return false;
-    if (ptm->c_terminal && last < canonical_length && !cleavageSiteKept(last, edits, canonical_length)) return false;
-    return true;
+    if (ptm == nullptr || ptm->chain_positions.empty()) return {0, 0};
+    const std::vector<ChainPosition>& pp = ptm->chain_positions;
+
+    int n_terminal = 0;  // the residue made N-terminal, or 0
+    int c_terminal = 0;  // the residue made C-terminal, or 0
+    if (f.has_position)
+    {
+      if (pp.front() == ChainPosition::NTerminal) n_terminal = f.position;
+      if (pp.front() == ChainPosition::CTerminal) c_terminal = f.position;
+    }
+    else if (f.has_range)
+    {
+      if (pp.front() == ChainPosition::NTerminal) n_terminal = f.begin;
+      if (pp.back() == ChainPosition::CTerminal) c_terminal = f.end;
+    }
+    // the canonical termini become the isoform's (see mapFeature())
+    return {n_terminal > 1 ? n_terminal - 1 : 0, (c_terminal > 0 && c_terminal < canonical_length) ? c_terminal : 0};
   }
 
   /// Classify a single <feature> and append into the right annotation list(s).
@@ -830,14 +869,24 @@ namespace
       const int canonical_length = static_cast<int>(pe.source.sequence.size());
       const bool met_removed = std::any_of(canonical_annotated.begin(), canonical_annotated.end(), [](const UniProtFeature* f)
                                            { return f->type == "initiator methionine" && f->has_position && f->position == 1; });
+      // the same for every isoform
+      std::vector<std::pair<int, int>> terminal_sites;
+      terminal_sites.reserve(canonical_annotated.size());
+      for (const UniProtFeature* f : canonical_annotated)
+      {
+        terminal_sites.push_back(terminalCleavageSites(*f, ptms, canonical_length));
+      }
       for (size_t i = 0; i < pe.isoforms.size(); ++i)
       {
         IsoformEntry& iso = pe.isoforms[i];
-        for (const UniProtFeature* f : canonical_annotated)
+        const std::vector<SpliceEdit>& edits = isoform_edits[i];
+        auto siteKept = [&](int site) { return site == 0 || cleavageSiteKept(site, edits, canonical_length); };
+        for (size_t j = 0; j < canonical_annotated.size(); ++j)
         {
+          const UniProtFeature* f = canonical_annotated[j];
           UniProtFeature mapped;
-          if (!mapFeature(*f, isoform_edits[i], canonical_length, static_cast<int>(iso.sequence.size()), met_removed, mapped)
-              || !terminalModificationKept(*f, ptms, isoform_edits[i], canonical_length))
+          if (!mapFeature(*f, edits, canonical_length, static_cast<int>(iso.sequence.size()), met_removed, mapped)
+              || !siteKept(terminal_sites[j].first) || !siteKept(terminal_sites[j].second))
           {
             ++pe.canonical_unmapped;
             OPENMS_LOG_DEBUG << "UniPEFF: " << pe.source.accession << " " << f->type << " '" << f->description

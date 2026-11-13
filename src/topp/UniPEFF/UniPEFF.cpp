@@ -114,7 +114,10 @@ isoform with an N-terminal extension). One reaching the canonical N- or C-termin
 reaches the isoform's. Likewise, a modification that the ptmlist places at the N- or
 C-terminus of a chain (its @c PP line, e.g. N-acetylalanine, pyrrolidone carboxylic
 acid or an amidated residue) is not mapped if the residue before or after it lies in a
-splice variant: there it would sit inside the isoform's chain. A mapped annotation
+splice variant: there it would sit inside the isoform's chain. The same holds for a
+cross-link whose first residue the @c PP line places at the N-terminus or whose last
+residue it places at the C-terminus (e.g. a head-to-tail cyclopeptide, a lasso peptide
+or the aminovinyl-cysteine of a lantibiotic). A mapped annotation
 that UniProt also annotates on the isoform itself is written once (a glycosylation:
 if the isoform has one on that residue). Other annotations UniProt makes on the
 isoform on the same residues are written side by side with the mapped ones, as in
@@ -222,16 +225,10 @@ namespace
       }
       else if (key == "PP")
       {
-        // position in the polypeptide: "Anywhere.", "N-terminal.", "C-terminal." or "Protein core.". A cross-link has
-        // one per residue, joined by '-'. "N-terminal-C-terminal." is a head-to-tail cyclopeptide (e.g. kalata B1,
-        // "Cyclopeptide (Gly-Asn)"): it links the first and last residue of a peptide, so both termini count. Other
-        // compound values are not used: the terminus may lie in another protein ("Anywhere-C-terminal.": a lysine
-        // linked to the C-terminal glycine of ubiquitin) or name backbone groups of internal residues
-        // ("C-terminal-N-terminal.": the 5-imidazolinone chromophore of GFP-like proteins)
-        const std::string where = line.size() > 5 ? line.substr(5) : std::string();
-        const bool cyclopeptide = where == "N-terminal-C-terminal.";
-        current.n_terminal = where == "N-terminal." || cyclopeptide;
-        current.c_terminal = where == "C-terminal." || cyclopeptide;
+        // position in the polypeptide: "Anywhere.", "N-terminal.", "C-terminal." or "Protein core.", for a cross-link
+        // one per residue joined by '-' (e.g. "N-terminal-C-terminal." for a head-to-tail cyclopeptide); which of them
+        // make a chain terminus is decided where they are used
+        current.chain_positions = parseChainPositions(line.size() > 5 ? line.substr(5) : std::string());
       }
       else if (key == "//")
       {
@@ -866,7 +863,7 @@ protected:
     registerFlag_("omit_amino_acid_modifications", "Skip \\ModResPsi / \\ModResUnimod / \\ModRes and \\DisulfideBond; ptmlist is not read.");
     registerFlag_("omit_sequence_variations", "Skip \\VariantSimple and \\VariantComplex annotations.");
     registerFlag_("omit_isoforms", "Skip the additional PEFF entries for UniProt isoforms (alternative products whose sequences are reconstructed from splice-variant features).");
-    registerFlag_("omit_canonical_features", "Do not annotate the isoform entries with the canonical entry's annotations. By default they are mapped to isoform coordinates through the isoform's splice variants (UniProt does not assert them for the isoform): annotations in a deleted or replaced region are not mapped, nor are regions overlapping one, except processed regions (e.g. chains), which are mapped if their cleavage sites are kept, nor N- or C-terminal modifications next to one, and UniProt's own annotations of the isoform win over mapped ones they contradict. The annotations UniProt makes on an isoform itself are written either way.");
+    registerFlag_("omit_canonical_features", "Do not annotate the isoform entries with the canonical entry's annotations. By default they are mapped to isoform coordinates through the isoform's splice variants (UniProt does not assert them for the isoform): annotations in a deleted or replaced region are not mapped, nor are regions overlapping one, except processed regions (e.g. chains), which are mapped if their cleavage sites are kept, nor N- or C-terminal modifications next to one, and UniProt's own annotations of the isoform win over mapped ones they contradict. The annotations UniProt makes on an isoform itself are written either way. No effect with -omit_isoforms.");
   }
 
   ExitCodes main_(int, const char**) override

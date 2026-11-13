@@ -58,12 +58,22 @@ namespace
     map.emplace("Half cystine", PtmEntry{"Half cystine", "", "MOD:00798", "374"});
     map.emplace("N-acetylmethionine", PtmEntry{"N-acetylmethionine", "PTM-0207", "MOD:00069", "1"});
     map.emplace("N6-acetyllysine", PtmEntry{"N6-acetyllysine", "PTM-0190", "MOD:00064", "1"});
+    const ChainPosition N = ChainPosition::NTerminal, C = ChainPosition::CTerminal, A = ChainPosition::Anywhere;
     // made at a terminus of the chain (ptmlist "PP   N-terminal." / "PP   C-terminal.")
-    map.emplace("N-acetylalanine", PtmEntry{"N-acetylalanine", "PTM-0199", "MOD:00050", "1", true, false});
-    map.emplace("N,N-dimethylproline", PtmEntry{"N,N-dimethylproline", "PTM-0179", "MOD:00075", "529", true, false});
-    map.emplace("Alanine amide", PtmEntry{"Alanine amide", "PTM-0057", "MOD:00090", "2", false, true});
-    // both termini: a head-to-tail cyclopeptide ("PP   N-terminal-C-terminal.")
-    map.emplace("Test cyclopeptide", PtmEntry{"Test cyclopeptide", "PTM-9004", "", "", true, true});
+    map.emplace("N-acetylalanine", PtmEntry{"N-acetylalanine", "PTM-0199", "MOD:00050", "1", {N}});
+    map.emplace("N,N-dimethylproline", PtmEntry{"N,N-dimethylproline", "PTM-0179", "MOD:00075", "529", {N}});
+    map.emplace("Alanine amide", PtmEntry{"Alanine amide", "PTM-0057", "MOD:00090", "2", {C}});
+    // cross-links, one position per residue: a head-to-tail cyclopeptide ("PP   N-terminal-C-terminal."), a lasso
+    // peptide ("N-terminal-Anywhere."), the aminovinyl-cysteine of a lantibiotic ("Anywhere-C-terminal.") and the
+    // chromophores of GFP-like proteins, which name backbone groups of internal residues ("C-terminal-N-terminal.",
+    // "Protein core-N-terminal."); interchain: the partner is the second residue
+    map.emplace("Test cyclopeptide", PtmEntry{"Test cyclopeptide", "PTM-9004", "", "", {N, C}});
+    map.emplace("Test lasso peptide", PtmEntry{"Test lasso peptide", "PTM-9005", "", "", {N, A}});
+    map.emplace("Test aminovinyl-cysteine", PtmEntry{"Test aminovinyl-cysteine", "PTM-9006", "", "", {A, C}});
+    map.emplace("Test GFP chromophore", PtmEntry{"Test GFP chromophore", "PTM-9007", "", "", {C, N}});
+    map.emplace("Test DsRed chromophore", PtmEntry{"Test DsRed chromophore", "PTM-9008", "", "", {A, N}});
+    map.emplace("Test interchain cyclopeptide", PtmEntry{"Test interchain cyclopeptide", "PTM-9009", "", "", {N, C}});
+    map.emplace("Test interchain C-terminal link", PtmEntry{"Test interchain C-terminal link", "PTM-9010", "", "", {C, A}});
     return map;
   }
 
@@ -526,6 +536,61 @@ START_SECTION(([EXTRA] map_canonical_features: cleavage sites and chain-terminal
   ABORT_IF(pe.isoforms[2].annotations.processed.size() != 1)
   TEST_EQUAL(pe.isoforms[2].annotations.processed[0].begin, 11)
   TEST_EQUAL(pe.isoforms[2].annotations.processed[0].end, 26)
+
+  // other cross-links with a terminal residue: a lasso peptide needs the cleavage site before its first residue (lost
+  // in -2), the aminovinyl-cysteine of a lantibiotic the one after its last (lost in -3)
+  UniProtEntry lasso = cleavageSiteFeatures();
+  lasso.features = {range("chain", "Test protein", 11, 24), range("cross-link", "Test lasso peptide", 11, 16),
+                    range("cross-link", "Test aminovinyl-cysteine", 20, 24),
+                    splice("VSP_N", 10, 10, "A", "AV"), splice("VSP_C", 25, 26, "CY", "W"), splice("VSP_IN", 18, 19, "VQ")};
+  pe = prepare(lasso, true, skipped, true);
+  ABORT_IF(pe.isoforms.size() != 3)
+  TEST_EQUAL(pe.canonical_mapped, 5)
+  TEST_EQUAL(pe.canonical_unmapped, 4)
+  TEST_TRUE(modPositions(pe.isoforms[0].annotations) == std::vector<int>({21, 25}))
+  TEST_TRUE(modPositions(pe.isoforms[1].annotations) == std::vector<int>({11, 16}))
+  TEST_TRUE(modPositions(pe.isoforms[2].annotations) == std::vector<int>({11, 16, 18, 22}))
+
+  // the terminal parts of a chromophore name backbone groups of internal residues, so it is mapped next to a changed
+  // cleavage site (DsRed 13-15 after G12 in -4, GFP 20-24 before 25 in -3). An interchain link has one residue in this
+  // protein, the first the ptmlist names: an interchain cyclopeptide needs only the site before it (lost in -2, not in
+  // -4, which changes the one after it), a link made at the C-terminus only the site after it (lost in -3)
+  UniProtEntry internal = cleavageSiteFeatures();
+  internal.features = {position("cross-link", "Test interchain cyclopeptide", 11),
+                       range("cross-link", "Test DsRed chromophore", 13, 15),
+                       range("cross-link", "Test GFP chromophore", 20, 24),
+                       position("cross-link", "Test interchain C-terminal link", 24),
+                       splice("VSP_N", 10, 10, "A", "AV"), splice("VSP_C", 25, 26, "CY", "W"), splice("VSP_IN", 12, 12, "G", "GSA")};
+  pe = prepare(internal, true, skipped, true);
+  ABORT_IF(pe.isoforms.size() != 3)
+  TEST_EQUAL(pe.canonical_mapped, 10)
+  TEST_EQUAL(pe.canonical_unmapped, 2)
+  TEST_TRUE(modPositions(pe.isoforms[0].annotations) == std::vector<int>({14, 16, 21, 25, 25}))
+  TEST_TRUE(modPositions(pe.isoforms[1].annotations) == std::vector<int>({11, 13, 15, 20, 24}))
+  TEST_TRUE(modPositions(pe.isoforms[2].annotations) == std::vector<int>({11, 15, 17, 22, 26, 26}))
+}
+END_SECTION
+
+START_SECTION(std::vector<ChainPosition> parseChainPositions(const std::string& pp))
+{
+  using V = std::vector<ChainPosition>;
+  const ChainPosition N = ChainPosition::NTerminal, C = ChainPosition::CTerminal, A = ChainPosition::Anywhere;
+  TEST_TRUE(parseChainPositions("N-terminal.") == V({N}))
+  TEST_TRUE(parseChainPositions("C-terminal.") == V({C}))
+  TEST_TRUE(parseChainPositions("Anywhere.") == V({A}))
+  TEST_TRUE(parseChainPositions("Protein core.") == V({A}))
+  TEST_TRUE(parseChainPositions("N-terminal-C-terminal.") == V({N, C}))
+  TEST_TRUE(parseChainPositions("C-terminal-N-terminal.") == V({C, N}))
+  TEST_TRUE(parseChainPositions("Anywhere-C-terminal.") == V({A, C}))
+  TEST_TRUE(parseChainPositions("Protein core-N-terminal.") == V({A, N}))
+  TEST_TRUE(parseChainPositions("Anywhere-Anywhere-Anywhere.") == V({A, A, A}))
+  TEST_TRUE(parseChainPositions("N-terminal") == V({N}))
+  // not understood
+  TEST_TRUE(parseChainPositions("").empty())
+  TEST_TRUE(parseChainPositions(".").empty())
+  TEST_TRUE(parseChainPositions("Somewhere.").empty())
+  TEST_TRUE(parseChainPositions("N-terminal-.").empty())
+  TEST_TRUE(parseChainPositions("N-terminalC-terminal.").empty())
 }
 END_SECTION
 
