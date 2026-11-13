@@ -571,7 +571,6 @@ namespace OpenMS
     {
       ProSEPEFF::Settings peff_settings;
       peff_settings.enzyme = enzyme_;
-      peff_settings.specificity = peptide_enzyme_specificity_;
       peff_settings.peptide_max_length = peptide_max_size_;
       // per cleavage segment (keep_termini, or reversePeptides() with a specific digestion) or the whole entry reversed
       peff_settings.segment_decoys = peptide_enzyme_specificity_ != EnzymaticDigestion::SPEC_NONE;

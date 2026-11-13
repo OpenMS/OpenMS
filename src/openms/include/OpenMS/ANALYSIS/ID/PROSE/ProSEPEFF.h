@@ -73,11 +73,10 @@ namespace OpenMS
     struct Settings
     {
       std::string enzyme = "Trypsin";                                                     ///< the enzyme of the search
-      EnzymaticDigestion::Specificity specificity = EnzymaticDigestion::SPEC_FULL;        ///< its specificity
       Size peptide_max_length = 40;                                                       ///< peptide:max_size (0 = no maximum)
-      /// Whether the decoys keep the residues of every cleavage segment in place (DecoyGenerator::reversePeptides(), or
-      /// keep_termini); false: the decoy of an entry is the whole entry reversed (non-specific searches, 'unspecific
-      /// cleavage')
+      /// Whether the decoys keep the residues of every cleavage segment in place (DecoyGenerator::reversePeptides() with a
+      /// specific digestion, or keep_termini); false: the decoy of an entry is the whole entry reversed (non-specific
+      /// searches). With 'unspecific cleavage' or 'no cleavage' the decoys are whole entries reversed anyway.
       bool segment_decoys = true;
       /// peptide:clip_nterm_methionine: a generated decoy keeps an initial M in place
       bool clip_nterm_methionine = true;
@@ -107,6 +106,7 @@ namespace OpenMS
     {
       std::string protein;        ///< identifier of the protein
       Size position = 0;          ///< 1-based protein position (a complex variant: its first residue)
+      char reference = '\0';      ///< the residue of the protein at the position ('\0': complex, or out of range)
       std::string variant;        ///< e.g. "R175H", "Q13*", "120-122|AG" (complex: start-end|replacement)
       VariantKind kind = VariantKind::SIMPLE;
       bool searched = false;      ///< whether a window holds it
@@ -124,7 +124,8 @@ namespace OpenMS
       Size passing_runs = 0;           ///< runs with at least one of them
       double best_q = -1.0;            ///< the best q-value of its PSMs (-1: no PSM, or no q-values)
       Size reference_passing_psms = 0; ///< target PSMs without a variant, at q <= the threshold, whose evidence on the
-                                       ///< protein covers the variant position (the reference sequence is observed)
+                                       ///< protein covers the variant position with the reference residue there (the
+                                       ///< reference sequence is observed)
     };
 
     /// Name of the meta value of the hits of variant peptides
@@ -186,7 +187,8 @@ namespace OpenMS
      *
      * The best hit of every spectrum counts (target hits only), after mapToParents(): a hit with variantMetaValue() for
      * the variants it names, a hit without it for the variants whose position one of its evidences covers (on the
-     * protein). The main score is the q-value if the identification's score type is a q-value (rescoring, FDR); otherwise
+     * protein) with the reference residue there (a variant peptide that another entry holds as well carries the variant
+     * residue: no reference). The main score is the q-value if the identification's score type is a q-value (rescoring, FDR); otherwise
      * every PSM passes the threshold and best_q stays -1.
      *
      * @param[in] runs The identifications of each run

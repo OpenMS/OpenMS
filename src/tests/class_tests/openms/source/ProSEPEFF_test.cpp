@@ -38,7 +38,6 @@ namespace
   {
     ProSEPEFF::Settings s;
     s.enzyme = "Trypsin";
-    s.specificity = EnzymaticDigestion::SPEC_FULL;
     s.peptide_max_length = max_length;
     s.segment_decoys = segment_decoys;
     s.clip_nterm_methionine = true;
@@ -166,6 +165,30 @@ START_SECTION((Size addVariantWindows(std::vector<FASTAFile::FASTAEntry>& db, co
   ABORT_IF(d60 == nullptr)
   TEST_EQUAL(d60->region.first + d60->shift, 51)
   TEST_EQUAL(d60->region.second + d60->shift, 59)
+
+  // peptide:max_size 0 (whole proteins): the truncated protein; decoys per segment: the last segment, in place
+  std::vector<FASTAFile::FASTAEntry> db_whole_stop = {{"sp:P01", "\\VariantSimple=(60|*)", P01}, {"DECOY_sp:P01_VAR_P60*", "", ""}};
+  ProSEPEFF peff_whole_stop;
+  peff_whole_stop.addVariantWindows(db_whole_stop, settings(0));
+  peff_whole_stop.addDecoys(db_whole_stop, "DECOY_");
+  const ProSEPEFF::Window* ws = peff_whole_stop.find("sp:P01_VAR_P60*");
+  const ProSEPEFF::Window* ds = peff_whole_stop.find("DECOY_sp:P01_VAR_P60*");
+  ABORT_IF(ws == nullptr || ds == nullptr)
+  TEST_EQUAL(ws->shift, 0)
+  TEST_EQUAL(ws->length, 59)
+  TEST_EQUAL(ds->shift, 0)
+  TEST_EQUAL(ds->region.first, 51)
+  TEST_EQUAL(ds->region.second, 59)
+  // ... decoys reversed whole: the decoy of the truncated protein is the end of the protein's decoy (which keeps its M)
+  std::vector<FASTAFile::FASTAEntry> db_whole_mirror = {{"sp:P01", "\\VariantSimple=(60|*)", P01}, {"DECOY_sp:P01_VAR_P60*", "", ""}};
+  ProSEPEFF peff_whole_mirror;
+  peff_whole_mirror.addVariantWindows(db_whole_mirror, settings(0, false));
+  peff_whole_mirror.addDecoys(db_whole_mirror, "DECOY_");
+  const ProSEPEFF::Window* dm = peff_whole_mirror.find("DECOY_sp:P01_VAR_P60*");
+  ABORT_IF(dm == nullptr)
+  TEST_EQUAL(dm->shift, P01.size() - 59)
+  TEST_EQUAL(dm->region.first, 0)
+  TEST_EQUAL(dm->region.second, 1)
 
   // the regions for the fragment index
   const auto regions = peff.peptideRegions();
@@ -352,6 +375,7 @@ START_SECTION((std::vector<VariantCounts> countPSMs(const std::vector<const Pept
   run1.push_back(psm("VLAFHQR", 0.2, "sp:P01:G10A", "sp:P01", 7));             // above the threshold
   run1.push_back(psm("VLAFHQR", 0.0005, "DECOY_sp:P01:G10A", "DECOY_sp:P01", 7, true)); // a decoy: not counted
   run1.push_back(psm("CMYKWTER", 0.004, "", "sp:P01", 43));                   // the reference of W48C (covers position 48)
+  run1.push_back(psm("VLAFHQR", 0.002, "", "sp:P01", 7));  // the G10A peptide, also in another entry (no tag): no reference
   run2.push_back(psm("VLAFHQR", 0.003, "sp:P01:G10A", "sp:P01", 7));
   run2.push_back(psm("CMYKWTER", 0.5, "", "sp:P01", 43));                     // above the threshold
   const std::vector<ProSEPEFF::VariantCounts> counts = peff.countPSMs({&run1, &run2}, 0.01);
@@ -359,6 +383,7 @@ START_SECTION((std::vector<VariantCounts> countPSMs(const std::vector<const Pept
   ABORT_IF(counts.size() != 4 || status.size() != 4)
   TEST_STRING_EQUAL(status[1].variant, "G10A")
   TEST_EQUAL(counts[1].psms, 3)
+  TEST_EQUAL(status[1].reference, 'G')
   TEST_EQUAL(counts[1].passing_psms, 2)
   TEST_EQUAL(counts[1].passing_runs, 2)
   TEST_REAL_SIMILAR(counts[1].best_q, 0.001)

@@ -100,14 +100,15 @@ namespace OpenMS
   Size ProSEPEFF::addVariantWindows(std::vector<FASTAFile::FASTAEntry>& db, const Settings& settings)
   {
     const bool whole_proteins = settings.peptide_max_length == 0 || settings.enzyme == EnzymaticDigestion::NoCleavage;
-    // decoys per cleavage segment ('unspecific cleavage' has none: DecoyGenerator reverses the whole entry)
-    const bool segment_aligned = settings.segment_decoys && settings.enzyme != EnzymaticDigestion::UnspecificCleavage
-                                 && !whole_proteins;
+    // decoys per cleavage segment, in place (DecoyGenerator::reversePeptides(), keep_termini); 'unspecific cleavage' has
+    // no segments and 'no cleavage' a single one: the decoy of an entry is then the entry reversed
+    const bool segment_decoys = settings.segment_decoys && settings.enzyme != EnzymaticDigestion::UnspecificCleavage
+                                && settings.enzyme != EnzymaticDigestion::NoCleavage;
     // residues beyond the changed ones: a peptide (at most peptide_max_length residues) that overlaps them ends inside
     const Size margin = settings.peptide_max_length + 1;
 
     ProteaseDigestion segments; // cleavage segments (no missed cleavage)
-    if (segment_aligned)
+    if (segment_decoys)
     {
       segments.setEnzyme(settings.enzyme);
       segments.setMissedCleavages(0);
@@ -122,13 +123,14 @@ namespace OpenMS
     static const std::string complex_key = "\\VariantComplex=";
     std::vector<FASTAFile::FASTAEntry> windows;
     Size skipped = 0, complex_skipped = 0;
-    std::vector<Size> sites, local_sites, variant_sites;
-    const auto record = [this](const std::string& protein, Size position, const std::string& variant, VariantKind kind,
-                               const std::string& reason, const std::string& window)
+    std::vector<Size> sites, local_sites;
+    const auto record = [this](const std::string& protein, Size position, char reference, const std::string& variant,
+                               VariantKind kind, const std::string& reason, const std::string& window)
     {
       VariantStatus status;
       status.protein = protein;
       status.position = position;
+      status.reference = reference;
       status.variant = variant;
       status.kind = kind;
       status.searched = reason.empty();
@@ -151,12 +153,12 @@ namespace OpenMS
       for (const PEFFVariantComplex& complex : peff.complex_variants)
       {
         // e.g. "120-122|AG", "120-122|" (a deletion)
-        record(identifier, complex.start_position, StringUtils::toStr(complex.start_position) + "-"
+        record(identifier, complex.start_position, '\0', StringUtils::toStr(complex.start_position) + "-"
                + StringUtils::toStr(complex.end_position) + "|" + complex.replacement, VariantKind::COMPLEX, "complex_not_supported", "");
         ++complex_skipped;
       }
       if (peff.simple_variants.empty()) { continue; }
-      if (segment_aligned) { cleavageSites(segments, protein, sites); }
+      if (segment_decoys) { cleavageSites(segments, protein, sites); }
 
       std::set<std::pair<Size, char>> seen;
       for (const PEFFVariantSimple& simple : peff.simple_variants)
@@ -176,7 +178,8 @@ namespace OpenMS
         else if (stop && simple.position == 1) { reason = "stop_at_first_residue"; }
         if (!reason.empty())
         {
-          record(identifier, simple.position, variant, stop ? VariantKind::STOP_GAIN : VariantKind::SIMPLE, reason, "");
+          record(identifier, simple.position, in_range ? ref : '\0', variant, stop ? VariantKind::STOP_GAIN : VariantKind::SIMPLE,
+                 reason, "");
           ++skipped;
           continue;
         }
@@ -192,60 +195,59 @@ namespace OpenMS
         const Size r0 = v > 0 ? v - 1 : 0;
         const Size r1 = stop ? v : std::min(L, v + 3);
 
-        Size a = 0, b = variant_length;              // the window [a, b) of the protein
-        std::pair<Size, Size> decoy_changed{r0, r1}; // protein positions the decoy of the window may change
-        if (!whole_proteins)
+        // The protein positions the decoy of the window may change. Decoys per segment keep the residues of each segment
+        // in place, reordered within it: the segments that hold the changed residues, with and without the variant (a stop
+        // codon: the last segment, which reversePeptides() reverses as a whole). Otherwise the decoy is the window
+        // reversed, and the changed residues mirrored (below).
+        std::pair<Size, Size> decoy_changed{r0, r1};
+        if (segment_decoys && stop)
         {
-          if (segment_aligned && stop)
+          decoy_changed = {siteAtOrBefore(sites, r0), v}; // (the sites before the stop are those of the protein)
+        }
+        else if (segment_decoys)
+        {
+          // The cleavage sites with the variant: those of the protein, except next to the variant, where they are taken
+          // from a digest of the stretch around it (sites v..v+2 can change; with a margin of two on each side)
+          const Size lo = v >= 6 ? v - 6 : 0;
+          const Size hi = std::min(L, v + 8);
+          std::string stretch = protein.substr(lo, hi - lo);
+          stretch[v - lo] = alt;
+          cleavageSites(segments, stretch, local_sites);
+          const Size changed_first = v >= 2 ? v - 2 : 0, changed_last = v + 4;
+          // with the variant: the last site <= r0 and the first site > r1 - 1 (r0, r1 - 1 lie in [changed_first, changed_last])
+          Size before = changed_first > 0 ? siteAtOrBefore(sites, changed_first - 1) : 0;
+          Size after = siteAfter(sites, changed_last, L);
+          for (Size site : local_sites)
           {
-            // The cleavage sites before the stop are those of the protein. The decoy keeps the residues of each segment
-            // in place, reordered within it: the last segment may change in the decoy (reversePeptides() reverses the
-            // last segment of a sequence as a whole). The window ends at the new C-terminus.
-            decoy_changed = {siteAtOrBefore(sites, r0), v};
-            a = decoy_changed.first > margin ? siteAtOrBefore(sites, decoy_changed.first - margin) : 0;
-            b = v;
-            while (a > 0 && protein[a] == 'M') { a = siteAtOrBefore(sites, a - 1); }
+            const Size p = site + lo;
+            if (p < changed_first || p > changed_last || (p == lo && lo > 0) || p >= hi) { continue; }
+            if (p <= r0) { before = std::max(before, p); }
+            if (p >= r1) { after = std::min(after, p); }
           }
-          else if (segment_aligned)
+          decoy_changed.first = std::min(siteAtOrBefore(sites, r0), before);
+          decoy_changed.second = std::max(siteAfter(sites, r1 - 1, L), after);
+        }
+
+        Size a = 0, b = variant_length; // the window [a, b) of the protein
+        if (!whole_proteins && segment_decoys)
+        {
+          // the margin beyond the changed residues, at cleavage sites, and one more segment at the end (a stop codon:
+          // the window ends at the new C-terminus)
+          const Size changed_begin = std::min(r0, decoy_changed.first);
+          const Size changed_end = std::max(r1, decoy_changed.second);
+          a = changed_begin > margin ? siteAtOrBefore(sites, changed_begin - margin) : 0;
+          if (!stop)
           {
-            // The cleavage sites with the variant: those of the protein, except next to the variant, where they are
-            // taken from a digest of the stretch around it (sites v..v+2 can change; with a margin of two on each side)
-            const Size lo = v >= 6 ? v - 6 : 0;
-            const Size hi = std::min(L, v + 8);
-            std::string stretch = protein.substr(lo, hi - lo);
-            stretch[v - lo] = alt;
-            cleavageSites(segments, stretch, local_sites);
-            const Size changed_first = v >= 2 ? v - 2 : 0, changed_last = v + 4;
-            variant_sites.clear();
-            for (Size site : sites)
-            {
-              if (site < changed_first || site > changed_last) { variant_sites.push_back(site); }
-            }
-            for (Size site : local_sites)
-            {
-              const Size p = site + lo;
-              if (p >= changed_first && p <= changed_last && (p > lo || lo == 0) && p < hi) { variant_sites.push_back(p); }
-            }
-            std::sort(variant_sites.begin(), variant_sites.end());
-            variant_sites.erase(std::unique(variant_sites.begin(), variant_sites.end()), variant_sites.end());
-            // The decoy keeps the residues of each segment in place, reordered within it: the segments that hold the
-            // changed residues (with and without the variant) may change in the decoy
-            decoy_changed.first = std::min(siteAtOrBefore(sites, r0), siteAtOrBefore(variant_sites, r0));
-            decoy_changed.second = std::max(siteAfter(sites, r1 - 1, L), siteAfter(variant_sites, r1 - 1, L));
-            // window: the margin beyond them, at cleavage sites, and one more segment at the end
-            const Size changed_begin = std::min(r0, decoy_changed.first);
-            const Size changed_end = std::max(r1, decoy_changed.second);
-            a = changed_begin > margin ? siteAtOrBefore(sites, changed_begin - margin) : 0;
             b = siteAtOrAfter(sites, changed_end + margin, L);
             if (b < L) { b = siteAfter(sites, b, L); }
-            while (a > 0 && protein[a] == 'M') { a = siteAtOrBefore(sites, a - 1); }
           }
-          else
-          {
-            a = r0 > margin ? r0 - margin : 0;
-            b = stop ? v : std::min(L, r1 + margin);
-            while (a > 0 && protein[a] == 'M') { --a; }
-          }
+          while (a > 0 && protein[a] == 'M') { a = siteAtOrBefore(sites, a - 1); }
+        }
+        else if (!whole_proteins)
+        {
+          a = r0 > margin ? r0 - margin : 0;
+          if (!stop) { b = std::min(L, r1 + margin); }
+          while (a > 0 && protein[a] == 'M') { --a; }
         }
 
         FASTAFile::FASTAEntry window;
@@ -270,13 +272,7 @@ namespace OpenMS
         // the decoy's region, kept until addDecoys() (by the target's identifier)
         Window decoy = info;
         decoy.decoy = true;
-        if (whole_proteins)
-        {
-          // the decoy of the window is that of the protein with the variant: every peptide (those the variant does not
-          // change are the protein decoy's, indexed once)
-          decoy.region = {0, info.length};
-        }
-        else if (segment_aligned)
+        if (segment_decoys)
         {
           // in place: the residues at the protein decoy's positions
           decoy.region = {decoy_changed.first - a, decoy_changed.second - a};
@@ -290,7 +286,7 @@ namespace OpenMS
           decoy.shift = L - b + ((protein_keeps_met && a > 0) ? 1 : 0);
           decoy.region = {info.length - info.region.second, info.length - info.region.first};
         }
-        record(identifier, simple.position, variant, stop ? VariantKind::STOP_GAIN : VariantKind::SIMPLE, "", window.identifier);
+        record(identifier, simple.position, ref, variant, stop ? VariantKind::STOP_GAIN : VariantKind::SIMPLE, "", window.identifier);
         pending_decoys_.emplace(window.identifier, std::move(decoy));
         windows_.emplace(window.identifier, std::move(info));
         windows.push_back(std::move(window));
@@ -494,13 +490,19 @@ namespace OpenMS
         }
         if (!passing) { continue; }
         covered.clear();
+        const std::string residues = hit.getSequence().toUnmodifiedString();
         for (const PeptideEvidence& evidence : hit.getPeptideEvidences())
         {
           const auto it = by_protein.find(evidence.getProteinAccession());
           if (it == by_protein.end() || evidence.getStart() < 0 || evidence.getEnd() < evidence.getStart()) { continue; }
+          const Size start = static_cast<Size>(evidence.getStart());
           for (const auto& [position, k] : it->second)
           {
-            if (static_cast<Size>(evidence.getStart()) <= position && position <= static_cast<Size>(evidence.getEnd())) { covered.insert(k); }
+            if (position < start || position > static_cast<Size>(evidence.getEnd())) { continue; }
+            // the reference residue at the position (not a variant peptide that another entry holds as well)
+            const char reference = status_[k].reference;
+            if (reference != '\0' && (position - start >= residues.size() || residues[position - start] != reference)) { continue; }
+            covered.insert(k);
           }
         }
         for (Size k : covered) { ++counts[k].reference_passing_psms; }
@@ -530,7 +532,8 @@ namespace OpenMS
       if (c.best_q >= 0.0) { out << c.best_q; } // (stream formatting: 0.001, not 1.0e-03)
       out << '\t' << c.reference_passing_psms << '\n';
     }
-    if (!out)
+    out.close(); // (a failed write of the last block shows here)
+    if (out.fail())
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }

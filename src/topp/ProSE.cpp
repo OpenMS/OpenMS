@@ -2225,8 +2225,10 @@ class ProSE :
                                          /*fdr_applied=*/ result.stats.fdr_applied);
       }
 
-      // -- the status of the PEFF sequence variants (on the final identifications of all inputs) --
+      // -- the status of the PEFF sequence variants (on the final identifications of all inputs); a failed write is
+      // reported at the end, after the other outputs --
       const std::string out_variant_status = getStringOption_("out_variant_status");
+      bool variant_status_failed = false;
       if (!out_variant_status.empty())
       {
         const std::shared_ptr<const ProSEPEFF> peff = sse.getVariantWindows();
@@ -2240,14 +2242,15 @@ class ProSE :
         {
           if (result.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK) { runs.push_back(&result.peptide_ids); }
         }
+        static const ProSEPEFF no_variants; // (a table without rows)
         try
         {
-          (peff ? *peff : ProSEPEFF()).storeVariantStatus(out_variant_status, runs, 0.01);
+          (peff ? *peff : no_variants).storeVariantStatus(out_variant_status, runs, 0.01);
         }
         catch (const Exception::BaseException& e)
         {
           OPENMS_LOG_ERROR << "Failed to write -out_variant_status " << out_variant_status << ": " << e.what() << endl;
-          return CANNOT_WRITE_OUTPUT_FILE;
+          variant_status_failed = true;
         }
       }
 
@@ -3167,6 +3170,7 @@ class ProSE :
                          << (out_merged.empty() ? std::string() : " (-out_merged " + out_merged + ")") << "." << endl;
         return pooled_error;
       }
+      if (variant_status_failed) { return CANNOT_WRITE_OUTPUT_FILE; } // (reported above)
       return EXECUTION_OK;
     }
 };
