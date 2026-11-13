@@ -50,11 +50,13 @@ struct OPENMS_DLLAPI ThermoScan
 /**
   @brief Per-file trailer label lookup.
 
-  Thermo stores the trailer-extra layout once per controller, so every scan of a file lists the
-  same labels in the same order. Labels are registered once (add()) and their position is learned
-  from the first scan that has them; later scans only verify the label at that position (one string
-  comparison) instead of searching all entries. A scan with a different layout falls back to a
-  linear search and updates the cached position, so arbitrary trailers are still handled correctly.
+  Thermo stores the trailer-extra layout once per controller, so the scans of a file usually list
+  the same labels in the same order (some instruments, e.g. the Orbitrap Ascend, leave out the
+  fields that do not apply to a scan, so MS1 and MS2 scans list different subsets). Labels are
+  registered once (add()) and their position is learned from the first scan that has them; later
+  scans only verify the label at that position (one string comparison) instead of searching all
+  entries. A scan with a different layout falls back to a linear search and updates the cached
+  position, so arbitrary trailers are still handled correctly.
 */
 class OPENMS_DLLAPI ThermoTrailerIndex
 {
