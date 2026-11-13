@@ -155,10 +155,11 @@ namespace OpenMS
                                const std::vector<Size>& spec_offsets,
                                const std::vector<bool>& peak_visited) const;
 
-        /// Process a single peak during trace extension
+        /// Process a single peak during trace extension; the peak is appended to @p trace_peaks
+        /// (the peaks collected so far in the direction of the extension)
         void processPeak_(const PeakCandidate& candidate,
                          const MSSpectrum& spectrum,
-                         std::list<PeakType>& current_trace,
+                         std::vector<PeakType>& trace_peaks,
                          std::vector<std::pair<Size, Size>>& gathered_idx,
                          std::vector<double>& fwhms_mz,
                          std::vector<double>& fwhms_im,
@@ -170,12 +171,12 @@ namespace OpenMS
                          double& prev_denom_im,
                          double& ftl_sd,
                          double& intensity_so_far,
-                         Size spectrum_idx,
-                         bool is_upward_extension);
+                         Size spectrum_idx);
 
 
-        /// Check if a mass trace meets quality criteria
-        bool isTraceValid_(const std::list<PeakType>& trace,
+        /// Check if a mass trace of @p peak_count peaks spanning @p rt_range meets quality criteria
+        bool isTraceValid_(double rt_range,
+                          Size peak_count,
                           Size total_scans_visited,
                           Size consecutive_missed_down,
                           Size consecutive_missed_up) const;

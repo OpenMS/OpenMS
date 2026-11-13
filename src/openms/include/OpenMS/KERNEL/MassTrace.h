@@ -15,6 +15,7 @@
 
 #include <cmath>
 #include <string>
+#include <utility>
 #include <vector>
 #include <list>
 #include <map>
@@ -64,14 +65,23 @@ public:
     /// Detailed constructor for vector
     MassTrace(const std::vector<PeakType>& trace_peaks);
 
+    /// Detailed constructor for vector, taking over the peaks without copying them
+    MassTrace(std::vector<PeakType>&& trace_peaks);
+
     /// Destructor
     ~MassTrace() = default;
 
     /// Copy constructor
     MassTrace(const MassTrace &) = default;
 
+    /// Move constructor
+    MassTrace(MassTrace &&) = default;
+
     /// Assignment operator
     MassTrace & operator=(const MassTrace &) = default;
+
+    /// Move assignment operator
+    MassTrace & operator=(MassTrace &&) = default;
 
     /// Random access operator
     PeakType& operator[](const Size & mt_idx);
@@ -236,6 +246,18 @@ public:
       }
 
       smoothed_intensities_ = db_vec;
+    }
+
+    /// Set smoothed intensities, taking over the vector without copying it.
+    void setSmoothedIntensities(std::vector<double>&& db_vec)
+    {
+      if (trace_peaks_.size() != db_vec.size())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Number of smoothed intensities deviates from mass trace size! Aborting...",StringUtils::toStr(db_vec.size()));
+      }
+
+      smoothed_intensities_ = std::move(db_vec);
     }
 
     /// Get average scan time of mass trace
