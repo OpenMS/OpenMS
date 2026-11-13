@@ -159,7 +159,7 @@ namespace OpenMS
         /// (the peaks collected so far in the direction of the extension)
         void processPeak_(const PeakCandidate& candidate,
                          const MSSpectrum& spectrum,
-                         std::vector<PeakType>& trace_peaks,
+                         std::vector<MassTrace::PeakType>& trace_peaks,
                          std::vector<std::pair<Size, Size>>& gathered_idx,
                          std::vector<double>& fwhms_mz,
                          std::vector<double>& fwhms_im,

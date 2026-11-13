@@ -56,12 +56,12 @@ namespace OpenMS
     {
     }
 
-    PeakType& MassTrace::operator[](const Size& mt_idx)
+    MassTrace::PeakType& MassTrace::operator[](const Size& mt_idx)
     {
       return trace_peaks_[mt_idx];
     }
 
-    const PeakType& MassTrace::operator[](const Size& mt_idx) const
+    const MassTrace::PeakType& MassTrace::operator[](const Size& mt_idx) const
     {
       return trace_peaks_[mt_idx];
     }
@@ -164,7 +164,12 @@ namespace OpenMS
 
     double MassTrace::getIntensity(bool smoothed) const
     {
-      switch (quant_method_)
+      return getIntensity(smoothed, quant_method_);
+    }
+
+    double MassTrace::getIntensity(bool smoothed, MT_QUANTMETHOD method) const
+    {
+      switch (method)
       {
         case MT_QUANT_AREA:
           return smoothed ? computeFwhmAreaSmooth() : computeFwhmArea();
@@ -174,7 +179,7 @@ namespace OpenMS
         case MT_QUANT_HEIGHT:
           return getMaxIntensity(smoothed);
         default:
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Member 'quant_method_' has unsupported value.",StringUtils::toStr(quant_method_));
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Quantitation method has unsupported value.", StringUtils::toStr(method));
       }
     }
 

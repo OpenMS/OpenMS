@@ -22,7 +22,8 @@
 
 namespace OpenMS
 {
-  typedef Peak2D PeakType;
+  /// @deprecated Use MassTrace::PeakType (or Peak2D) instead; this typedef will be removed from namespace OpenMS.
+  using PeakType [[deprecated("Use MassTrace::PeakType or Peak2D instead")]] = Peak2D;
 
   /** @brief A container type that gathers peaks similar in m/z and moving along retention time.
 
@@ -38,6 +39,9 @@ namespace OpenMS
   class OPENMS_DLLAPI MassTrace
   {
 public:
+
+    /// The type of the peaks of a mass trace
+    typedef Peak2D PeakType;
 
     // must match to names_of_quantmethod[]
     enum MT_QUANTMETHOD {
@@ -260,6 +264,13 @@ public:
       smoothed_intensities_ = std::move(db_vec);
     }
 
+    /// Removes the smoothed intensities and releases their memory, e.g. when only raw intensities are used from now on.
+    /// A FWHM estimated on the smoothed intensities (see estimateFWHM()) is kept.
+    void clearSmoothedIntensities()
+    {
+      std::vector<double>().swap(smoothed_intensities_);
+    }
+
     /// Get average scan time of mass trace
     double getAverageMS1CycleTime() const
     {
@@ -315,6 +326,19 @@ public:
       @param smoothed If true, smoothed intensities are used where applicable (ignored for MT_QUANT_MEDIAN).
     */
     double getIntensity(bool smoothed) const;
+
+    /**
+      @brief Returns the quantitated value of the mass trace according to the given quantitation @p method.
+
+      As getIntensity(bool), but independent of the method configured with setQuantMethod().
+
+      @param smoothed If true, smoothed intensities are used where applicable (ignored for MT_QUANT_MEDIAN).
+      @param method The quantitation method to use.
+
+      @throw Exception::InvalidValue if @p method is SIZE_OF_MT_QUANTMETHOD
+    */
+    double getIntensity(bool smoothed, MT_QUANTMETHOD method) const;
+
     double getMaxIntensity(bool smoothed) const;
 
     /// Return the mass trace's convex hull.
@@ -352,13 +376,34 @@ public:
     void updateWeightedMZsd();
     ///@}
 
-    /// Average FWHM of m/z peaks
-    /// 0 denotes no fwhm meta data computed
-    double fwhm_mz_avg = 0;
+    /** @name Average width of the peaks (in m/z and ion mobility) the mass trace was built from
+    */
+    ///@{
 
-    /// Average FWHM of ion mobility peaks
-    /// 0 denotes no fwhm meta data computed
-    double fwhm_im_avg = 0;
+    /// Returns the average FWHM of the m/z peaks (0 denotes: no FWHM meta data available).
+    double getFWHMMZAvg() const
+    {
+      return fwhm_mz_avg_;
+    }
+
+    /// Sets the average FWHM of the m/z peaks.
+    void setFWHMMZAvg(double fwhm)
+    {
+      fwhm_mz_avg_ = fwhm;
+    }
+
+    /// Returns the average FWHM of the ion mobility peaks (0 denotes: no FWHM meta data available).
+    double getFWHMIMAvg() const
+    {
+      return fwhm_im_avg_;
+    }
+
+    /// Sets the average FWHM of the ion mobility peaks.
+    void setFWHMIMAvg(double fwhm)
+    {
+      fwhm_im_avg_ = fwhm;
+    }
+    ///@}
 
 private:
 
@@ -392,6 +437,12 @@ private:
 
     /// use area under mass trace or the median of intensities
     MT_QUANTMETHOD quant_method_ = MT_QUANT_AREA;
+
+    /// Average FWHM of m/z peaks (0 denotes no fwhm meta data computed)
+    double fwhm_mz_avg_ = 0.0;
+
+    /// Average FWHM of ion mobility peaks (0 denotes no fwhm meta data computed)
+    double fwhm_im_avg_ = 0.0;
     
   };
 

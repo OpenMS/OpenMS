@@ -177,7 +177,7 @@ namespace OpenMS
       run(map, found_masstraces);
     }
 
-    void updateWeightedSDEstimateRobust(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
+    void updateWeightedSDEstimateRobust(const MassTrace::PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
     {
       double denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
       double denom2 = std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1));
@@ -388,7 +388,7 @@ namespace OpenMS
     void MassTraceDetection::processPeak_(
         const PeakCandidate& candidate,
         const MSSpectrum& spectrum,
-        std::vector<PeakType>& trace_peaks,
+        std::vector<MassTrace::PeakType>& trace_peaks,
         std::vector<std::pair<Size, Size>>& gathered_idx,
         std::vector<double>& fwhms_mz,
         std::vector<double>& fwhms_im,
@@ -484,8 +484,8 @@ namespace OpenMS
 
       // Buffers for the trace under construction. They are reused for all apex candidates (most of which
       // do not yield a valid trace), so that collecting peaks does not allocate memory per candidate or peak.
-      std::vector<PeakType> up_peaks;   // the apex, followed by the peaks found at later RTs (in RT order)
-      std::vector<PeakType> down_peaks; // the peaks found at earlier RTs (in reverse RT order)
+      std::vector<MassTrace::PeakType> up_peaks;   // the apex, followed by the peaks found at later RTs (in RT order)
+      std::vector<MassTrace::PeakType> down_peaks; // the peaks found at earlier RTs (in reverse RT order)
       std::vector<std::pair<Size, Size>> gathered_idx; // (scan index, peak index) of the collected peaks
       std::vector<double> fwhms_mz; // peak-FWHM meta values of collected peaks
       std::vector<double> fwhms_im; // peak-FWHM ion mobility peak FWHM of collected peaks
@@ -666,15 +666,15 @@ namespace OpenMS
           }
 
           // create new MassTrace object and store collected peaks (in RT order)
-          std::vector<PeakType> trace_peaks;
+          std::vector<MassTrace::PeakType> trace_peaks;
           trace_peaks.reserve(down_peaks.size() + up_peaks.size());
           trace_peaks.assign(down_peaks.rbegin(), down_peaks.rend());
           trace_peaks.insert(trace_peaks.end(), up_peaks.begin(), up_peaks.end());
           MassTrace new_trace(std::move(trace_peaks));
           new_trace.updateWeightedMeanRT();
           new_trace.updateWeightedMeanMZ();
-          if (!fwhms_mz.empty()) { new_trace.fwhm_mz_avg = Math::median(fwhms_mz.begin(), fwhms_mz.end()); }
-          if (!fwhms_im.empty()) { new_trace.fwhm_im_avg = Math::median(fwhms_im.begin(), fwhms_im.end()); }
+          if (!fwhms_mz.empty()) { new_trace.setFWHMMZAvg(Math::median(fwhms_mz.begin(), fwhms_mz.end())); }
+          if (!fwhms_im.empty()) { new_trace.setFWHMIMAvg(Math::median(fwhms_im.begin(), fwhms_im.end())); }
           if (has_centroid_im_) { new_trace.setCentroidIM(centroid_im); }
 
           new_trace.setQuantMethod(quant_method_);
