@@ -1,0 +1,9 @@
+target transitions 1814880 target precursors 302480
+precursors without a decoy peptide in this arm 113
+precursors whose decoy is missing from the 6-fragment prediction 619
+decoy precursors with fewer than 6 predicted fragments (dropped) 731
+decoy precursors outside 400-1000 m/z (dropped) 0
+decoys missing from the 12-fragment prediction 0
+decoy precursors 301017 decoy transitions 1806102 targets with a decoy 0.9952
+decoy - target precursor m/z: |d| < 0.01 share 1.000, median |d| 0.000
+decoy - target normalised RT: median |d| 0.0244, RT range targets -0.038..0.940 decoys -0.048..0.938

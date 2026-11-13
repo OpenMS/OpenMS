@@ -1,0 +1,8 @@
+target modified peptides 133700 unmodified 100632
+arm A: decoys 133610, dropped (equals a target) 56, dropped (duplicate decoy) 34, shared b/y ions with own target (first 20000): mean 0.00, share 0 1.000, >=3 0.000
+arm B: decoys 133655, dropped (equals a target) 8, dropped (duplicate decoy) 37, shared b/y ions with own target (first 20000): mean 1.27, share 0 0.002, >=3 0.021
+arm C: decoys 133631, dropped (equals a target) 69, dropped (duplicate decoy) 0, shared b/y ions with own target (first 20000): mean 0.39, share 0 0.913, >=3 0.086
+arm D: decoys 133696, dropped (equals a target) 4, dropped (duplicate decoy) 0, shared b/y ions with own target (first 20000): mean 0.21, share 0 0.906, >=3 0.012
+arm D vs current library decoys: compared 133445 identical 131790
+prediction FASTA entries 406115
+reference, entrapment vs parent (first 20000 pairs, unmodified): shared b/y mean 1.06, share 0 0.638, >=3 0.120
