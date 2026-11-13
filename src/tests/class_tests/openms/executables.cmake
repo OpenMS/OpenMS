@@ -166,6 +166,7 @@ set(kernel_executables_list
   FeatureUniqueIds_test
   Feature_test
   MassTrace_test
+  MassTraceStatistics_test
   Mobilogram_test
   MobilityPeak1D_test
   MobilityPeak2D_test

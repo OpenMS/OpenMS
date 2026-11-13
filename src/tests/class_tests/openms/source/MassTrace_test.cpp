@@ -291,6 +291,16 @@ END_SECTION
 
 /////
 
+START_SECTION((const std::vector<PeakType>& getPeaks() const))
+{
+  TEST_EQUAL(test_mt.getPeaks().size(), 7);
+  TEST_EQUAL(test_mt.getPeaks() == peak_vec, true);
+  TEST_EQUAL(MassTrace().getPeaks().empty(), true);
+}
+END_SECTION
+
+/////
+
 START_SECTION((std::string getLabel() const ))
 {
   const std::string test_mt_label = test_mt.getLabel();

@@ -8,10 +8,12 @@
 
 #include <OpenMS/KERNEL/MassTrace.h>
 
-#include <boost/dynamic_bitset.hpp>
+#include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/KERNEL/MassTraceStatistics.h>
 
 #include <algorithm>
-#include <numeric>
+#include <iterator>
+#include <span>
 
 namespace OpenMS
 {
@@ -80,189 +82,35 @@ namespace OpenMS
 
     double MassTrace::computePeakArea() const
     {
-      double peak_area(0.0);
-
-      if (trace_peaks_.empty())
-      {
-        return peak_area;
-      }
-      double int_before = trace_peaks_.begin()->getIntensity();
-      double rt_before = trace_peaks_.begin()->getRT();
-      for (const Peak2D& l_it : trace_peaks_)
-      {
-        double rt_diff = l_it.getRT() - rt_before;
-        peak_area += (int_before + l_it.getIntensity())/2 * rt_diff;
-        int_before = l_it.getIntensity();
-        rt_before = l_it.getRT();
-      }
-
-      return peak_area;
+      return MassTraceStatistics::peakArea(trace_peaks_);
     }
-
 
     double MassTrace::computeIntensitySum() const
     {
-      return std::accumulate(trace_peaks_.begin(), trace_peaks_.end(), 0.0, 
-        [](double sum, const Peak2D& peak) { return sum + peak.getIntensity(); });
-    }    
+      return MassTraceStatistics::intensitySum(trace_peaks_);
+    }
 
     Size MassTrace::findMaxByIntPeak(bool use_smoothed_ints) const
     {
-      if (use_smoothed_ints && smoothed_intensities_.empty())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace was not smoothed before! Aborting...",StringUtils::toStr(smoothed_intensities_.size()));
-      }
-
-      if (trace_peaks_.empty())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace appears to be empty! Aborting...",StringUtils::toStr(trace_peaks_.size()));
-      }
-
-      double max_int;
-      Size max_idx(0);
-
-      if (use_smoothed_ints)
-      {
-        max_int = smoothed_intensities_[0];
-      }
-      else
-      {
-        max_int = trace_peaks_.begin()->getIntensity();
-      }
-
-      for (Size i = 0; i < trace_peaks_.size(); ++i)
-      {
-        double act_int = use_smoothed_ints ? smoothed_intensities_[i] : trace_peaks_[i].getIntensity();
-
-        if (act_int > max_int)
-        {
-          max_int = act_int;
-          max_idx = i;
-        }
-
-      }
-
-      return max_idx;
+      return use_smoothed_ints ? MassTraceStatistics::apexIndex(trace_peaks_, smoothed_intensities_)
+                               : MassTraceStatistics::apexIndex(trace_peaks_);
     }
 
     double MassTrace::estimateFWHM(bool use_smoothed_ints)
     {
-      // The flank search below walks peak indices outward from the apex, so the trace
-      // has to be sorted along its x axis. This used to be caught only indirectly, by
-      // the postcondition of linearInterpolationAtY_ firing when a shuffled axis
-      // happened to hand it a descending bracketing pair (see #10051, where a
-      // non-stable sort on equal RT permutes the ion-mobility axis PeakPickerIM builds
-      // its traces from). That postcondition is not a sortedness check -- it is correct
-      // for either x order -- so the invariant is stated here instead, where it holds
-      // for every shuffle rather than only the ones that invert a bracket.
-      OPENMS_PRECONDITION(std::is_sorted(trace_peaks_.begin(), trace_peaks_.end(),
-                                         [](const PeakType& a, const PeakType& b) { return a.getRT() < b.getRT(); }),
-                          "mass trace is not sorted along its x (RT) axis")
+      const MassTraceStatistics::FWHM estimate = use_smoothed_ints ? MassTraceStatistics::estimateFWHM(trace_peaks_, smoothed_intensities_)
+                                                                   : MassTraceStatistics::estimateFWHM(trace_peaks_);
+      fwhm_start_idx_ = estimate.start_idx;
+      fwhm_end_idx_ = estimate.end_idx;
 
-      Size max_idx(this->findMaxByIntPeak(use_smoothed_ints));
-
-      std::vector<double> tmp_ints;
-
-      if (use_smoothed_ints)
+      // no points left or right of the apex: no FWHM. As before, a FWHM stored by an earlier call is kept.
+      if (estimate.start_idx == 0 && estimate.end_idx == 0)
       {
-        tmp_ints = smoothed_intensities_;
-      }
-      else
-      {
-        for (Size vec_idx = 0; vec_idx < trace_peaks_.size(); ++vec_idx)
-        {
-          tmp_ints.push_back(trace_peaks_[vec_idx].getIntensity());
-        }
-      }
-
-      double half_max_int(tmp_ints[max_idx] / 2.0);
-
-      // mass trace is empty OR no points left of apex in mass trace OR no points right of apex in mass trace
-      if (tmp_ints.empty() || max_idx == 0 || max_idx == tmp_ints.size() - 1)
-      {
-        fwhm_start_idx_ = 0;
-        fwhm_end_idx_ = 0;
         return 0;
       }
 
-      Size left_border(max_idx), right_border(max_idx);
-
-      while (left_border > 0 && tmp_ints[left_border] >= half_max_int)
-      {
-        --left_border;
-      }
-
-      while (right_border + 1 < tmp_ints.size() && tmp_ints[right_border] >= half_max_int)
-      {
-        ++right_border;
-      }
-
-      fwhm_start_idx_ = left_border;
-      fwhm_end_idx_ = right_border;
-
-      // calculate RT of left side
-      // the pair below half max is (left_rt_bottom, tmp_ints[left_border]),
-      // the pair above half max is (left_rt_top, tmp_ints[fwhm_left_top_idx])
-      Size fwhm_left_top_idx = left_border + 1;
-      double left_rt_bottom = trace_peaks_[left_border].getRT();
-      double left_rt_top = trace_peaks_[fwhm_left_top_idx].getRT();
-      double fwhm_begin_rt;
-      // no points below half max -> don't extrapolate, use leftmost RT
-      if (tmp_ints[left_border] > half_max_int)
-      {
-        fwhm_begin_rt = trace_peaks_[left_border].getRT();
-      }
-      else
-      {
-        fwhm_begin_rt = linearInterpolationAtY_(left_rt_bottom, left_rt_top,
-                                                (tmp_ints[left_border]),
-                                                (tmp_ints[fwhm_left_top_idx]),
-                                                (half_max_int));
-      }
-
-      // calculate RT of right side
-      // as on the left side, the point below half max comes first: it is
-      // (right_rt_bottom, tmp_ints[right_border]), the one above half max is
-      // (right_rt_top, tmp_ints[fwhm_right_top_idx]). Each x must travel with
-      // its own y, so the x arguments are in descending order here for a trace
-      // with ascending RT.
-      Size fwhm_right_top_idx = right_border - 1;
-      double right_rt_bottom = trace_peaks_[right_border].getRT();
-      double right_rt_top = trace_peaks_[fwhm_right_top_idx].getRT();
-
-      double fwhm_end_rt;
-      // no points below half max -> don't extrapolate, use rightmost RT
-      if (tmp_ints[right_border] > half_max_int)
-      {
-        fwhm_end_rt = trace_peaks_[right_border].getRT();
-      }
-      else
-      {
-        fwhm_end_rt = linearInterpolationAtY_(right_rt_bottom, right_rt_top,
-                                              (tmp_ints[right_border]),
-                                              (tmp_ints[fwhm_right_top_idx]),
-                                              (half_max_int));
-      }
-
-      fwhm_ = std::fabs(fwhm_end_rt - fwhm_begin_rt);
-
-      OPENMS_POSTCONDITION(fwhm_ <= std::fabs(trace_peaks_[right_border].getRT() - trace_peaks_[left_border].getRT()), "Interpolated fwhm is not smaller than extrapolated fwhm!")
-
+      fwhm_ = estimate.fwhm;
       return fwhm_;
-    }
-
-    double MassTrace::linearInterpolationAtY_(double xA, double xB, double yA, double yB, double y_eval) const
-    {
-      OPENMS_PRECONDITION(yA <= y_eval && y_eval <= yB, "y_eval is not between yA and yB")
-      // no solution -> return an estimate
-      if (std::fabs(xA - xB) == 0 || std::fabs(yA - yB) == 0)  { return xA; }
-
-      double xC = (xA + ((y_eval - yA) * (xB - xA) / (yB - yA)));
-      // the interpolation parameter is in [0, 1] because of the precondition, so xC lies
-      // between xA and xB -- in either x order, since x need not ascend with y
-      OPENMS_POSTCONDITION(std::min(xA, xB) <= xC && xC <= std::max(xA, xB), "xC is not between xA and xB");
-
-      return xC;
     }
 
     /// determine if area or median is used for quantification
@@ -288,19 +136,12 @@ namespace OpenMS
       {
         return 0;
       }
+      OPENMS_PRECONDITION(fwhm_end_idx_ < smoothed_intensities_.size(), "MassTrace was not smoothed before")
 
-      double t_area(0.0);
-      double int_before = smoothed_intensities_[fwhm_start_idx_];
-      double rt_before = trace_peaks_[fwhm_start_idx_].getRT();
-      // note '<=' operator, since fwhm_end_idx_ is inclusive!
-      for (Size i = fwhm_start_idx_ + 1; i <= fwhm_end_idx_; ++i)
-      {
-        t_area += (int_before + smoothed_intensities_[i])/2 * (trace_peaks_[i].getRT() - rt_before);
-        int_before = smoothed_intensities_[i];
-        rt_before = trace_peaks_[i].getRT();
-      }
-
-      return t_area;
+      // note that fwhm_end_idx_ is inclusive
+      const Size count = fwhm_end_idx_ - fwhm_start_idx_ + 1;
+      return MassTraceStatistics::peakArea(std::span<const PeakType>(trace_peaks_).subspan(fwhm_start_idx_, count),
+                                           std::span<const double>(smoothed_intensities_).subspan(fwhm_start_idx_, count));
     }
 
     double MassTrace::computeFwhmArea() const
@@ -310,97 +151,31 @@ namespace OpenMS
         return 0;
       }
 
-      double t_area(0);
-      double int_before = trace_peaks_[fwhm_start_idx_].getIntensity();
-      double rt_before = trace_peaks_[fwhm_start_idx_].getRT();
-      // note '<=' operator, since fwhm_end_idx_ is inclusive!
-      for (Size i = fwhm_start_idx_ + 1; i <= fwhm_end_idx_; ++i)
-      {
-        t_area += (int_before + trace_peaks_[i].getIntensity())/2 * (trace_peaks_[i].getRT() - rt_before);
-        int_before = trace_peaks_[i].getIntensity();
-        rt_before = trace_peaks_[i].getRT();
-      }
-
-      return t_area;
-    }
-
-    double MassTrace::computeMedianIntensity_() const
-    {
-      // determine median of intensities
-      double t_area(0);
-      std::vector<double> ints;
-      ints.reserve(trace_peaks_.size());
-      for (Size i=0; i<trace_peaks_.size(); ++i)
-      {
-        ints.push_back(trace_peaks_[i].getIntensity());
-      }
-      sort(ints.begin(), ints.end());
-      t_area = (ints.size() % 2 == 0 ? 0.5*(ints[ints.size()/2-1]+ints[ints.size()/2])
-                                     : ints[ints.size()/2]);
-      return t_area;
+      // note that fwhm_end_idx_ is inclusive
+      const Size count = fwhm_end_idx_ - fwhm_start_idx_ + 1;
+      return MassTraceStatistics::peakArea(std::span<const PeakType>(trace_peaks_).subspan(fwhm_start_idx_, count));
     }
 
     double MassTrace::getIntensity(bool smoothed) const
     {
-      if (smoothed)
-      { // will be removed soon
-        switch (quant_method_)
-        {
-          case MT_QUANT_AREA:
-            return computeFwhmAreaSmooth();
-          case MT_QUANT_MEDIAN:
-            // median quantification (e.g. for direct infusion data) should work indepentently from smoothing
-            return computeMedianIntensity_();
-          case MT_QUANT_HEIGHT:
-            return getMaxIntensity(true);
-          default:
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Member 'quant_method_' has unsupported value.",StringUtils::toStr(quant_method_));
-        }
-
-      }
-      else
+      switch (quant_method_)
       {
-        switch (quant_method_)
-        {
-          case MT_QUANT_AREA:
-            return computeFwhmArea();
-          case MT_QUANT_MEDIAN:
-            return computeMedianIntensity_();
-          case MT_QUANT_HEIGHT:
-            return getMaxIntensity(false);
-          default:
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Member 'quant_method_' has unsupported value.",StringUtils::toStr(quant_method_));
-
-        }
+        case MT_QUANT_AREA:
+          return smoothed ? computeFwhmAreaSmooth() : computeFwhmArea();
+        case MT_QUANT_MEDIAN:
+          // median quantification (e.g. for direct infusion data) should work independently from smoothing
+          return MassTraceStatistics::medianIntensity(trace_peaks_);
+        case MT_QUANT_HEIGHT:
+          return getMaxIntensity(smoothed);
+        default:
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Member 'quant_method_' has unsupported value.",StringUtils::toStr(quant_method_));
       }
     }
 
     double MassTrace::getMaxIntensity(bool smoothed) const
     {
-      double max_int(0.0);
-
-      if (smoothed)
-      {
-        for (Size i = 0; i < smoothed_intensities_.size(); ++i)
-        {
-          if (smoothed_intensities_[i] > max_int)
-          {
-            max_int = smoothed_intensities_[i];
-          }
-        }
-      }
-      else
-      {
-        for (Size i = 0; i < trace_peaks_.size(); ++i)
-        {
-          if (trace_peaks_[i].getIntensity() > max_int)
-          {
-            max_int = trace_peaks_[i].getIntensity();
-          }
-        }
-      }
-
-      return max_int;
+      return smoothed ? MassTraceStatistics::maxIntensity(smoothed_intensities_)
+                      : MassTraceStatistics::maxIntensity(trace_peaks_);
     }
 
     ConvexHull2D MassTrace::getConvexhull() const
@@ -423,277 +198,42 @@ namespace OpenMS
 
     void MassTrace::updateWeightedMeanRT()
     {
-      if (trace_peaks_.empty())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace is empty... centroid RT undefined!",StringUtils::toStr(trace_peaks_.size()));
-      }
-
-      // support single peak traces
-      if (trace_peaks_.size() == 1)
-      {
-        centroid_rt_ = (*(trace_peaks_.begin())).getRT();
-        return;
-      }
-
-      // Intensity-weighted mean RT, integrated with the trapezoidal rule: each peak is
-      // weighted by its intensity times the RT span it stands for, which is half the
-      // distance to each of its neighbours (the outermost peaks only have the half towards
-      // their single neighbour).
-      //
-      // The previous formulation weighted every peak by the distance to its *predecessor*
-      // and started the sum at the second peak, so peak 0 contributed to neither the
-      // numerator nor the denominator. That biased the centroid towards later RT and, for a
-      // two-point trace, degenerated to the RT of the second peak whatever the intensities
-      // (see issue #2777).
-      double wmean_rt(0.0);
-      double trace_area(0.0);
-
-      for (Size i = 0; i < trace_peaks_.size(); ++i)
-      {
-        const double rt_lower = (i > 0) ? trace_peaks_[i - 1].getRT() : trace_peaks_[i].getRT();
-        const double rt_upper = (i + 1 < trace_peaks_.size()) ? trace_peaks_[i + 1].getRT() : trace_peaks_[i].getRT();
-        const double weight = trace_peaks_[i].getIntensity() * (rt_upper - rt_lower) / 2.0;
-        wmean_rt += weight * trace_peaks_[i].getRT();
-        trace_area += weight;
-      }
-
-      if (trace_area < std::numeric_limits<double>::epsilon())
-      { // no intensity at all, or all peaks share one RT -> weights carry no information
-        double rt_sum(0.0);
-        for (const Peak2D& peak : trace_peaks_)
-        {
-          rt_sum += peak.getRT();
-        }
-        centroid_rt_ = rt_sum / trace_peaks_.size();
-        return;
-      }
-
-      centroid_rt_ = wmean_rt / trace_area;
+      centroid_rt_ = MassTraceStatistics::weightedMeanRT(trace_peaks_);
     }
 
     void MassTrace::updateSmoothedWeightedMeanRT()
     {
-      if (smoothed_intensities_.empty())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace was not smoothed before! Aborting...",StringUtils::toStr(smoothed_intensities_.size()));
-      }
-
-      // support single peak traces
-      if (trace_peaks_.size() == 1)
-      {
-        centroid_rt_ = (*(trace_peaks_.begin())).getRT();
-        return;
-      }
-
-      double trace_area(0.0), wmean_rt(0.0);
-
-      for (Size i = 0; i < smoothed_intensities_.size(); ++i)
-      {
-        if (smoothed_intensities_[i] > 0.0)
-        {
-          wmean_rt += smoothed_intensities_[i] * trace_peaks_[i].getRT();
-          trace_area += smoothed_intensities_[i];
-        }
-      }
-
-      if (trace_area < std::numeric_limits<double>::epsilon())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peak area equals to zero... impossible to compute weights!",StringUtils::toStr(trace_peaks_.size()));
-      }
-
-      centroid_rt_ = wmean_rt / trace_area;
+      centroid_rt_ = MassTraceStatistics::smoothedWeightedMeanRT(trace_peaks_, smoothed_intensities_);
     }
 
     void MassTrace::updateSmoothedMaxRT()
     {
-      if (smoothed_intensities_.empty())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace was not smoothed before! Aborting...",StringUtils::toStr(smoothed_intensities_.size()));
-      }
-      // Handle single-peak traces: set centroid RT directly from the only peak
-      if (trace_peaks_.size() == 1)
-      {
-        centroid_rt_ = (*(trace_peaks_.begin())).getRT();
-        return;
-      }
-
-      double tmp_max(-1.0);
-      Size max_idx(0);
-
-      for (Size i = 0; i < smoothed_intensities_.size(); ++i)
-      {
-        if (smoothed_intensities_[i] > tmp_max)
-        {
-          tmp_max = smoothed_intensities_[i];
-          max_idx = i;
-        }
-      }
-
-      if (tmp_max <= 0.0)
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Negative max intensity encountered!",StringUtils::toStr(tmp_max));
-      }
-
-      centroid_rt_ = trace_peaks_[max_idx].getRT();
+      centroid_rt_ = MassTraceStatistics::smoothedMaxRT(trace_peaks_, smoothed_intensities_);
     }
 
     void MassTrace::updateMedianRT()
     {
-      if (trace_peaks_.empty())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace is empty... centroid RT undefined!",StringUtils::toStr(trace_peaks_.size()));
-      }
-
-      if (trace_peaks_.size() == 1)
-      {
-        centroid_rt_ = (*(trace_peaks_.begin())).getRT();
-        return;
-      }
-
-      // copy mz values to temp vec
-      std::vector<double> temp_rt;
-
-      for (const Peak2D& l_it : trace_peaks_)
-      {
-        temp_rt.push_back((l_it).getRT());
-      }
-
-      std::sort(temp_rt.begin(), temp_rt.end());
-
-      Size temp_mz_size = temp_rt.size();
-      Size mid = static_cast<Size>(temp_mz_size / 2.0);
-      if ((temp_mz_size % 2) == 0)
-      {
-        centroid_rt_ = (temp_rt[mid - 1] +  temp_rt[mid]) / 2;
-      }
-      else
-      {
-        centroid_rt_ = temp_rt[mid];
-      }
-
-
-      return;
+      centroid_rt_ = MassTraceStatistics::medianRT(trace_peaks_);
     }
 
     void MassTrace::updateMedianMZ()
     {
-      if (trace_peaks_.empty())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace is empty... centroid MZ undefined!",StringUtils::toStr(trace_peaks_.size()));
-      }
-
-      if (trace_peaks_.size() == 1)
-      {
-        centroid_mz_ = (*(trace_peaks_.begin())).getMZ();
-        return;
-      }
-
-      // copy mz values to temp vec
-      std::vector<double> temp_mz;
-
-      for (const Peak2D& l_it : trace_peaks_)
-      {
-        temp_mz.push_back((l_it).getMZ());
-      }
-
-      std::sort(temp_mz.begin(), temp_mz.end());
-
-      Size temp_mz_size = temp_mz.size();
-      Size mid = static_cast<Size>(temp_mz_size / 2.0);
-      if ((temp_mz_size % 2) == 0)
-      {
-        centroid_mz_ = (temp_mz[mid - 1] +  temp_mz[mid]) / 2;
-      }
-      else
-      {
-        centroid_mz_ = temp_mz[mid];
-      }
-
-      return;
+      centroid_mz_ = MassTraceStatistics::medianMZ(trace_peaks_);
     }
 
     void MassTrace::updateMeanMZ()
     {
-      if (trace_peaks_.empty())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace is empty... centroid MZ undefined!",StringUtils::toStr(trace_peaks_.size()));
-      }
-
-      if (trace_peaks_.size() == 1)
-      {
-        centroid_mz_ = (*(trace_peaks_.begin())).getMZ();
-        return;
-      }
-
-      Size trace_size = trace_peaks_.size();
-
-      double sum_mz(0.0);
-
-      for (const Peak2D& l_it : trace_peaks_)
-      {
-        sum_mz += (l_it).getMZ();
-      }
-
-      centroid_mz_ = sum_mz / trace_size;
-
-      return;
+      centroid_mz_ = MassTraceStatistics::meanMZ(trace_peaks_);
     }
 
     void MassTrace::updateWeightedMeanMZ()
     {
-      if (trace_peaks_.empty())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace is empty... centroid MZ undefined!",StringUtils::toStr(trace_peaks_.size()));
-      }
-
-      if (trace_peaks_.size() == 1)
-      {
-        centroid_mz_ = (*(trace_peaks_.begin())).getMZ();
-        return;
-      }
-
-      double weighted_sum(0.0);
-      double total_weight(0.0);
-
-      for (const Peak2D& l_it : trace_peaks_)
-      {
-        double w_i = (l_it).getIntensity();
-        total_weight += w_i;
-        weighted_sum += w_i * (l_it).getMZ();
-      }
-
-      if (total_weight < std::numeric_limits<double>::epsilon())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "All weights were equal to zero! Empty trace? Aborting...",StringUtils::toStr(total_weight));
-      }
-
-      centroid_mz_ = weighted_sum / total_weight;
+      centroid_mz_ = MassTraceStatistics::weightedMeanMZ(trace_peaks_);
     }
 
     void MassTrace::updateWeightedMZsd()
     {
-      if (trace_peaks_.empty())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace is empty... std of MZ undefined!",StringUtils::toStr(trace_peaks_.size()));
-      }
-
-      double weighted_sum(0.0);
-      double total_weight(0.0);
-
-      for (const Peak2D& l_it : trace_peaks_)
-      {
-        double w_i = l_it.getIntensity();
-        total_weight += w_i;
-        weighted_sum += w_i * std::exp(2 * std::log(std::abs(l_it.getMZ() - centroid_mz_)));
-      }
-
-      if (total_weight < std::numeric_limits<double>::epsilon())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "All weights were equal to zero! Empty trace? Aborting...",StringUtils::toStr(total_weight));
-      }
-
-      centroid_sd_ = std::sqrt(weighted_sum) / std::sqrt(total_weight);
-
+      centroid_sd_ = MassTraceStatistics::weightedMZsd(trace_peaks_, centroid_mz_);
     }
 
 } // end of MassTrace.cpp

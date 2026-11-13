@@ -8,10 +8,13 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/Peak2D.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/KERNEL/Peak2D.h>
 
-
+#include <cmath>
+#include <string>
 #include <vector>
 #include <list>
 #include <map>
@@ -134,6 +137,12 @@ public:
     Size getSize() const
     {
       return trace_peaks_.size();
+    }
+
+    /// Returns the peaks of the mass trace, e.g. to compute MassTraceStatistics on a part of the trace.
+    const std::vector<PeakType>& getPeaks() const
+    {
+      return trace_peaks_;
     }
 
     /// Gets label of mass trace.
@@ -330,18 +339,6 @@ public:
     double fwhm_im_avg = 0;
 
 private:
-
-    /// median of trace intensities
-    double computeMedianIntensity_() const;
-
-    /// calculate x coordinate of start/end indexes at half_max
-    /// calculation is based on (yB - yA) / (xB - xA) = (y_eval - yA) / (xC - xA)
-    /// solve for xC: xC = xA + ((y_eval - yA) * (xB - xA) / (yB - yA))
-    /// (xA, yA) and (xB, yB) must be corresponding points of the same line, i.e.
-    /// each x has to be passed together with its own y. y must ascend from yA to
-    /// yB (see the precondition), x may ascend or descend; xC is returned between
-    /// xA and xB either way.
-    double linearInterpolationAtY_(double xA, double xB, double yA, double yB, double y_eval) const;
 
     /// Actual MassTrace container for doing centroid calculation, peak width estimation etc.
     std::vector<PeakType> trace_peaks_;
