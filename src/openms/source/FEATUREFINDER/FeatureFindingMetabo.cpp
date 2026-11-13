@@ -271,7 +271,7 @@ namespace OpenMS
     defaults_.setValue("enable_RT_filtering", "true", "Require sufficient overlap in RT while assembling mass traces. Disable for direct injection data..");
     defaults_.setValidStrings("enable_RT_filtering", {"false","true"});
 
-    defaults_.setValue("isotope_rt_overlap_reference", "longer", "Reference trace the RT overlap is measured against when scoring two co-eluting mass traces (only used if 'enable_RT_filtering' is enabled): 'longer' measures the overlap against the longer trace (default, historic behavior); 'shorter' measures it against the shorter trace and additionally requires the apex of the longer trace to fall within the RT range of the shorter trace. Since low-intensity isotope traces are usually much shorter than the monoisotopic trace, 'shorter' better groups them (see issue #4483).", {"advanced"});
+    defaults_.setValue("isotope_rt_overlap_reference", "shorter", "Reference trace the RT overlap is measured against when scoring two co-eluting mass traces (only used if 'enable_RT_filtering' is enabled): 'shorter' (default) measures the overlap against the shorter trace and additionally requires the apex of the longer trace to fall within the RT range of the shorter trace. Low-intensity isotope traces are usually much shorter than the monoisotopic trace, so this groups them more reliably (see issues #1942 and #4483). 'longer' measures the overlap against the longer trace (historic behavior, as described in Kenar et al.).", {"advanced"});
     defaults_.setValidStrings("isotope_rt_overlap_reference", {"longer", "shorter"});
     defaults_.setValue("min_isotope_rt_overlap", 0.7, "Minimum fraction of the reference trace (see 'isotope_rt_overlap_reference') in RT (within FWHM) that must overlap the other trace so the two are scored as isotopes. Only used if 'enable_RT_filtering' is enabled.", {"advanced"});
     defaults_.setMinFloat("min_isotope_rt_overlap", 0.0);
@@ -279,6 +279,9 @@ namespace OpenMS
 
     defaults_.setValue("isotope_filtering_model", "metabolites (5% RMS)", "Remove/score candidate assemblies based on isotope intensities. SVM isotope models for metabolites were trained with either 2% or 5% RMS error. For peptides, an averagine cosine scoring is used. Select the appropriate noise model according to the quality of measurement or MS device.");
     defaults_.setValidStrings("isotope_filtering_model", {"metabolites (2% RMS)","metabolites (5% RMS)","peptides","none"});
+
+    defaults_.setValue("isotope_filtering_missing_traces", "unknown", "How isotope traces that were not detected enter the metabolite isotope filtering models (the models expect the monoisotopic and the first three isotopic traces; ignored for 'peptides' and 'none'): 'unknown' (default) regards the intensity of a missing trace as unknown but not higher than the weakest detected trace of the candidate assembly, and accepts the assembly if the model accepts any such intensity. 'zero' sets the intensity of a missing trace to zero (historic behavior). This rejects correct assemblies of larger molecules whose higher isotopic traces fall below the detection limit (see issue #1942).", {"advanced"});
+    defaults_.setValidStrings("isotope_filtering_missing_traces", {"unknown", "zero"});
 
     defaults_.setValue("mz_scoring_13C", "false", "Use the 13C isotope peak position (~1.003355 Da) as the expected shift in m/z for isotope mass traces (highly recommended for lipidomics!). Disable for general metabolites (as described in Kenar et al. 2014, MCP.).");
     defaults_.setValidStrings("mz_scoring_13C", {"false","true"});
@@ -327,6 +330,7 @@ namespace OpenMS
     isotope_rt_overlap_use_shorter_ = (param_.getValue("isotope_rt_overlap_reference") == "shorter");
     
     isotope_filtering_model_ = param_.getValue("isotope_filtering_model").toString();
+    isotope_filter_missing_unknown_ = (param_.getValue("isotope_filtering_missing_traces") == "unknown");
     use_smoothed_intensities_ = param_.getValue("use_smoothed_intensities").toBool();
     bool use_smoothed = param_.getValue("use_smoothed_intensities").toBool();
     bool report_smoothed = param_.getValue("report_smoothed_intensities").toBool();
@@ -408,11 +412,9 @@ namespace OpenMS
 
     double mono_int(all_ints[0]); // monoisotopic intensity
 
-    // Dense, scaled feature vector for the SVM: index 0 is the mass, indexes 1..3
-    // are the (scaled) intensity ratios of the first three isotopic traces to the
-    // monoisotopic trace. Absent traces contribute a scaled ratio of 0.
+    // The SVM works on four features: the mass and the intensity ratios of the
+    // first three isotopic traces to the monoisotopic trace.
     const Size FEAT_NUM(4);
-    std::vector<double> features(FEAT_NUM);
 
     double act_mass(feat_hypo.getCentroidMZ() * feat_hypo.getCharge());
 
@@ -422,38 +424,86 @@ namespace OpenMS
       act_mass = 1000.0;
     }
 
+    // number of isotopic traces (without the monoisotopic one) the model looks at
+    const Size iso_num(std::min(feat_hypo.getSize(), FEAT_NUM) - 1);
+
+    // ratios of the isotopic traces to the monoisotopic trace; missing traces are zero
+    std::vector<double> ratios(FEAT_NUM - 1, 0.0);
+    for (Size i = 0; i < iso_num; ++i)
+    {
+      ratios[i] = all_ints[i + 1] / mono_int;
+    }
+
+    // Scale the mass and the given ratios and let the SVM model predict the
+    // category in which the trace group belongs.
+    std::vector<double> features(FEAT_NUM);
     features[0] = (act_mass - svm_feat_centers_[0]) / svm_feat_scales_[0];
-
-    // Iterate, start with first isotopic trace (skip monoisotopic)
-    Size i = 2;
-
-    Size feat_size(feat_hypo.getSize());
-
-    if (feat_size > FEAT_NUM)
+    auto is_legal = [&](const std::vector<double>& iso_ratios)
     {
-      feat_size = FEAT_NUM;
+      for (Size i = 1; i < FEAT_NUM; ++i)
+      {
+        features[i] = (iso_ratios[i - 1] - svm_feat_centers_[i]) / svm_feat_scales_[i];
+      }
+      return isotope_filt_svm_->predict(features) == 2.0;
+    };
+
+    if (is_legal(ratios))
+    {
+      return 1;
     }
 
-    for (; i - 1 < feat_size; ++i)
+    if (!isotope_filter_missing_unknown_ || iso_num == FEAT_NUM - 1)
     {
-      // compute ratio of trace to monoisotopic intensity
-      double ratio((all_ints[i - 1] / mono_int));
-
-      features[i - 1] = (ratio - svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1];
+      return 0;
     }
 
-    for (; i < FEAT_NUM + 1; ++i)
+    // The model was trained on complete patterns, so a zero for a trace that was
+    // merely not detected looks like an impossible pattern for larger molecules,
+    // whose second and third isotopic traces are not negligible. A missing trace
+    // has an unknown intensity that cannot exceed the one of the weakest trace
+    // that was detected (otherwise it would have been detected as well): accept
+    // the pattern if the model accepts any such intensity.
+    double max_missing_ratio(1.0); // ratio of the monoisotopic trace to itself
+    for (Size i = 0; i < iso_num; ++i)
     {
-      features[i - 1] = (-svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1];
+      max_missing_ratio = std::min(max_missing_ratio, ratios[i]);
+    }
+    if (max_missing_ratio <= 0.0) // a detected trace without intensity: nothing to try
+    {
+      return 0;
     }
 
-    // Use SVM model to predict the category in which the current trace group
-    // belongs ...
-    double predict = isotope_filt_svm_->predict(features);
+    const Size GRID_STEPS(8);
+    const double step(max_missing_ratio / GRID_STEPS);
+    if (iso_num == FEAT_NUM - 2) // only the third isotopic trace is missing
+    {
+      for (Size k = 1; k <= GRID_STEPS; ++k)
+      {
+        ratios[2] = k * step;
+        if (is_legal(ratios))
+        {
+          return 1;
+        }
+      }
+    }
+    else // the second and the third isotopic trace are missing
+    {
+      for (Size k = 1; k <= GRID_STEPS; ++k)
+      {
+        ratios[1] = k * step;
+        // the third isotopic trace: from absent up to as intense as the second one
+        for (Size l = 0; l <= k; ++l)
+        {
+          ratios[2] = l * step;
+          if (is_legal(ratios))
+          {
+            return 1;
+          }
+        }
+      }
+    }
 
-    // std::cout << "predict: " << predict << '\n';
-
-    return (predict == 2.0) ? 1 : 0;
+    return 0;
   }
 
   void FeatureFindingMetabo::loadIsotopeModel_(const std::string& model_name)
