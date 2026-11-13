@@ -58,6 +58,22 @@ namespace
     map.emplace("Half cystine", PtmEntry{"Half cystine", "", "MOD:00798", "374"});
     map.emplace("N-acetylmethionine", PtmEntry{"N-acetylmethionine", "PTM-0207", "MOD:00069", "1"});
     map.emplace("N6-acetyllysine", PtmEntry{"N6-acetyllysine", "PTM-0190", "MOD:00064", "1"});
+    const ChainPosition N = ChainPosition::NTerminal, C = ChainPosition::CTerminal, A = ChainPosition::Anywhere;
+    // made at a terminus of the chain (ptmlist "PP   N-terminal." / "PP   C-terminal.")
+    map.emplace("N-acetylalanine", PtmEntry{"N-acetylalanine", "PTM-0199", "MOD:00050", "1", {N}});
+    map.emplace("N,N-dimethylproline", PtmEntry{"N,N-dimethylproline", "PTM-0179", "MOD:00075", "529", {N}});
+    map.emplace("Alanine amide", PtmEntry{"Alanine amide", "PTM-0057", "MOD:00090", "2", {C}});
+    // cross-links, one position per residue: a head-to-tail cyclopeptide ("PP   N-terminal-C-terminal."), a lasso
+    // peptide ("N-terminal-Anywhere."), the aminovinyl-cysteine of a lantibiotic ("Anywhere-C-terminal.") and the
+    // chromophores of GFP-like proteins, which name backbone groups of internal residues ("C-terminal-N-terminal.",
+    // "Protein core-N-terminal."); interchain: the partner is the second residue
+    map.emplace("Test cyclopeptide", PtmEntry{"Test cyclopeptide", "PTM-9004", "", "", {N, C}});
+    map.emplace("Test lasso peptide", PtmEntry{"Test lasso peptide", "PTM-9005", "", "", {N, A}});
+    map.emplace("Test aminovinyl-cysteine", PtmEntry{"Test aminovinyl-cysteine", "PTM-9006", "", "", {A, C}});
+    map.emplace("Test GFP chromophore", PtmEntry{"Test GFP chromophore", "PTM-9007", "", "", {C, N}});
+    map.emplace("Test DsRed chromophore", PtmEntry{"Test DsRed chromophore", "PTM-9008", "", "", {A, N}});
+    map.emplace("Test interchain cyclopeptide", PtmEntry{"Test interchain cyclopeptide", "PTM-9009", "", "", {N, C}});
+    map.emplace("Test interchain C-terminal link", PtmEntry{"Test interchain C-terminal link", "PTM-9010", "", "", {C, A}});
     return map;
   }
 
@@ -81,7 +97,7 @@ namespace
     e.isoforms = {isoform("P66666-1", "displayed"), isoform("P66666-2", "described", "VSP_A VSP_B")};
     e.features = {position("initiator methionine", "Removed", 1),
                   range("chain", "Test protein", 2, 30),
-                  range("propeptide", "", 2, 8),                                  // clipped to 2-4
+                  range("propeptide", "", 2, 8),                                  // spans VSP_A -> 2-4
                   range("signal peptide", "", 3, 6),                              // deleted
                   position("modified residue", "Phosphoserine", 2),
                   position("modified residue", "Phosphoserine", 14),
@@ -199,6 +215,50 @@ namespace
     return e;
   }
 
+  /// P88888 (30 aa, MAEQCKTLDAPGRSTWEVQLKDNACYLRGE) as in many Swiss-Prot entries: the initiator methionine is removed
+  /// and the mature chain 2-30 is N-acetylated at A2. Isoform -2 has an N-terminal extension (M1 -> MPRLLSG, 36 aa),
+  /// -3 an alternative first exon (1-5 MAEQC -> MKL, 28 aa), -4 a deletion inside the chain (25-27 CYL, 27 aa).
+  UniProtEntry nTerminalFeatures()
+  {
+    UniProtEntry e;
+    e.dataset = "Swiss-Prot";
+    e.accession = "P88888";
+    e.sequence = "MAEQCKTLDAPGRSTWEVQLKDNACYLRGE";
+    e.isoforms = {isoform("P88888-1", "displayed"), isoform("P88888-2", "described", "VSP_EXT"),
+                  isoform("P88888-3", "described", "VSP_EXON"), isoform("P88888-4", "described", "VSP_DEL")};
+    e.features = {position("initiator methionine", "Removed", 1),
+                  range("chain", "Test protein", 2, 30),
+                  position("modified residue", "N-acetylalanine", 2),
+                  position("modified residue", "Phosphoserine", 14),
+                  splice("VSP_EXT", 1, 1, "M", "MPRLLSG"),
+                  splice("VSP_EXON", 1, 5, "MAEQC", "MKL"),
+                  splice("VSP_DEL", 25, 27, "CYL")};
+    return e;
+  }
+
+  /// P99999 (30 aa, MAEQCKTLDAPGRSTWEVQLKDNACYLRGE) with signal peptide 1-10, chain 11-24 (N,N-dimethylated at P11,
+  /// amidated at A24) and propeptide 25-30. Isoform -2 replaces A10 (A -> AV, 31 aa), so the cleavage site 10|11
+  /// differs; -3 replaces 25-26 (CY -> W, 29 aa), so 24|25 differs; -4 deletes 18-19 (VQ, 28 aa), inside the chain.
+  UniProtEntry cleavageSiteFeatures()
+  {
+    UniProtEntry e;
+    e.dataset = "Swiss-Prot";
+    e.accession = "P99999";
+    e.sequence = "MAEQCKTLDAPGRSTWEVQLKDNACYLRGE";
+    e.isoforms = {isoform("P99999-1", "displayed"), isoform("P99999-2", "described", "VSP_N"),
+                  isoform("P99999-3", "described", "VSP_C"), isoform("P99999-4", "described", "VSP_IN")};
+    e.features = {range("signal peptide", "", 1, 10),
+                  range("chain", "Test protein", 11, 24),
+                  range("propeptide", "", 25, 30),
+                  position("modified residue", "N,N-dimethylproline", 11),
+                  position("modified residue", "Alanine amide", 24),
+                  position("modified residue", "Phosphoserine", 14),
+                  splice("VSP_N", 10, 10, "A", "AV"),
+                  splice("VSP_C", 25, 26, "CY", "W"),
+                  splice("VSP_IN", 18, 19, "VQ")};
+    return e;
+  }
+
   PreparedEntry prepare(UniProtEntry e, bool record_isoforms, SkippedIsoformCounts& skipped,
                         bool map_canonical_features = false)
   {
@@ -264,7 +324,7 @@ START_SECTION(([EXTRA] map_canonical_features: canonical annotations in isoform 
 {
   SkippedIsoformCounts skipped;
 
-  // off (the default): the isoform carries only the variant UniProt annotates on it
+  // off (-omit_canonical_features): the isoform carries only the variant UniProt annotates on it
   PreparedEntry pe = prepare(canonicalFeatures(), true, skipped);
   ABORT_IF(pe.isoforms.size() != 1)
   TEST_EQUAL(pe.isoforms[0].sequence, "MSTLDAPGRSTWEVQLIVKDNACYLRGE")
@@ -289,7 +349,7 @@ START_SECTION(([EXTRA] map_canonical_features: canonical annotations in isoform 
   // phosphoserine 2, phosphoserine 14 -> 10, phosphothreonine 15 -> 11; no half-cystines
   TEST_TRUE(modPositions(iso) == std::vector<int>({2, 10, 11}))
   TEST_EQUAL(iso.disulfides.size(), 0)
-  // initiator methionine 1, chain 2-30 -> 2-28 (still to the C-terminus), propeptide 2-8 clipped to 2-4
+  // initiator methionine 1, chain 2-30 -> 2-28 (still to the C-terminus), propeptide 2-8 (spanning the deletion) -> 2-4
   ABORT_IF(iso.processed.size() != 3)
   TEST_EQUAL(iso.processed[0].begin, 1)
   TEST_EQUAL(iso.processed[0].end, 1)
@@ -384,6 +444,153 @@ START_SECTION(([EXTRA] map_canonical_features: annotations UniProt makes on the 
   pe = prepare(plain, true, skipped, true);
   TEST_EQUAL(pe.canonical_mapped, 10)
   TEST_EQUAL(pe.canonical_unmapped, 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] map_canonical_features: cleavage sites and chain-terminal modifications))
+{
+  SkippedIsoformCounts skipped;
+
+  // initiator methionine removed, N-acetylalanine 2, chain 2-30, phosphoserine 14
+  PreparedEntry pe = prepare(nTerminalFeatures(), true, skipped, true);
+  ABORT_IF(pe.isoforms.size() != 3)
+  TEST_EQUAL(pe.isoforms[0].sequence, "MPRLLSGAEQCKTLDAPGRSTWEVQLKDNACYLRGE")
+  TEST_EQUAL(pe.isoforms[1].sequence, "MKLKTLDAPGRSTWEVQLKDNACYLRGE")
+  TEST_EQUAL(pe.isoforms[2].sequence, "MAEQCKTLDAPGRSTWEVQLKDNARGE")
+  // -2 and -3: the initiator methionine and the N-acetylation are not mapped, the rest is; -4: all four
+  TEST_EQUAL(pe.canonical_mapped, 8)
+  TEST_EQUAL(pe.canonical_unmapped, 4)
+  // N-terminal extension: A2 -> 8 is inside the isoform's chain, so it is not N-acetylated there, and the chain
+  // starts at the isoform's N-terminus (not at 8, which would declare 1-7 cleaved)
+  const EntryAnnotations& ext = pe.isoforms[0].annotations;
+  TEST_TRUE(modPositions(ext) == std::vector<int>({20}))
+  ABORT_IF(ext.processed.size() != 1)
+  TEST_EQUAL(ext.processed[0].type_name, "mature protein")
+  TEST_EQUAL(ext.processed[0].begin, 1)
+  TEST_EQUAL(ext.processed[0].end, 36)
+  // alternative first exon: the chain starts at the isoform's N-terminus (not at 4, which would declare MKL cleaved)
+  const EntryAnnotations& exon = pe.isoforms[1].annotations;
+  TEST_TRUE(modPositions(exon) == std::vector<int>({12}))
+  ABORT_IF(exon.processed.size() != 1)
+  TEST_EQUAL(exon.processed[0].begin, 1)
+  TEST_EQUAL(exon.processed[0].end, 28)
+  // a splice variant away from the N-terminus changes neither
+  const EntryAnnotations& del = pe.isoforms[2].annotations;
+  TEST_TRUE(modPositions(del) == std::vector<int>({2, 14}))
+  ABORT_IF(del.processed.size() != 2)
+  TEST_EQUAL(del.processed[0].type_name, "initiator methionine")
+  TEST_EQUAL(del.processed[0].begin, 1)
+  TEST_EQUAL(del.processed[0].end, 1)
+  TEST_EQUAL(del.processed[1].begin, 2)
+  TEST_EQUAL(del.processed[1].end, 27)
+
+  // signal peptide 1-10, chain 11-24 (N,N-dimethylproline 11, alanine amide 24), propeptide 25-30, phosphoserine 14
+  pe = prepare(cleavageSiteFeatures(), true, skipped, true);
+  ABORT_IF(pe.isoforms.size() != 3)
+  TEST_EQUAL(pe.isoforms[0].sequence, "MAEQCKTLDAVPGRSTWEVQLKDNACYLRGE")
+  TEST_EQUAL(pe.isoforms[1].sequence, "MAEQCKTLDAPGRSTWEVQLKDNAWLRGE")
+  TEST_EQUAL(pe.isoforms[2].sequence, "MAEQCKTLDAPGRSTWELKDNACYLRGE")
+  TEST_EQUAL(pe.canonical_mapped, 12)
+  TEST_EQUAL(pe.canonical_unmapped, 6)
+  // A10 -> AV changes the cleavage site 10|11: neither the signal peptide nor the chain is mapped (they would end and
+  // start at a site the isoform does not have), nor the N-terminal N,N-dimethylproline; the propeptide 25-30 -> 26-31
+  // and the amidated A24 -> 25 at its cleavage site are
+  const EntryAnnotations& n = pe.isoforms[0].annotations;
+  TEST_TRUE(modPositions(n) == std::vector<int>({15, 25}))
+  ABORT_IF(n.processed.size() != 1)
+  TEST_EQUAL(n.processed[0].type_name, "propeptide")
+  TEST_EQUAL(n.processed[0].begin, 26)
+  TEST_EQUAL(n.processed[0].end, 31)
+  // CY25-26 -> W changes the cleavage site 24|25: the chain, the propeptide and the C-terminal amidation are not mapped
+  const EntryAnnotations& c = pe.isoforms[1].annotations;
+  TEST_TRUE(modPositions(c) == std::vector<int>({11, 14}))
+  ABORT_IF(c.processed.size() != 1)
+  TEST_EQUAL(c.processed[0].type_name, "signal peptide")
+  TEST_EQUAL(c.processed[0].begin, 1)
+  TEST_EQUAL(c.processed[0].end, 10)
+  // a deletion inside the chain keeps both cleavage sites: everything is mapped
+  const EntryAnnotations& in = pe.isoforms[2].annotations;
+  TEST_TRUE(modPositions(in) == std::vector<int>({11, 14, 22}))
+  ABORT_IF(in.processed.size() != 3)
+  TEST_EQUAL(in.processed[0].begin, 1)
+  TEST_EQUAL(in.processed[0].end, 10)
+  TEST_EQUAL(in.processed[1].begin, 11)
+  TEST_EQUAL(in.processed[1].end, 22)
+  TEST_EQUAL(in.processed[2].begin, 23)
+  TEST_EQUAL(in.processed[2].end, 28)
+
+  // a head-to-tail cyclopeptide links the first and last residue of the chain: like the chain, it is mapped only where
+  // both cleavage sites are kept, although its two residues lie outside every splice variant in each isoform. -4 here
+  // replaces G12 (G -> GSA, 32 aa) next to the first residue but inside the chain: both are mapped
+  UniProtEntry cyclic = cleavageSiteFeatures();
+  cyclic.features = {range("chain", "Test protein", 11, 24), range("cross-link", "Test cyclopeptide", 11, 24),
+                     splice("VSP_N", 10, 10, "A", "AV"), splice("VSP_C", 25, 26, "CY", "W"), splice("VSP_IN", 12, 12, "G", "GSA")};
+  pe = prepare(cyclic, true, skipped, true);
+  ABORT_IF(pe.isoforms.size() != 3)
+  TEST_EQUAL(pe.isoforms[2].sequence, "MAEQCKTLDAPGSARSTWEVQLKDNACYLRGE")
+  TEST_EQUAL(pe.canonical_mapped, 2)
+  TEST_EQUAL(pe.canonical_unmapped, 4)
+  TEST_EQUAL(pe.isoforms[0].annotations.mods.size(), 0)
+  TEST_EQUAL(pe.isoforms[1].annotations.mods.size(), 0)
+  TEST_TRUE(modPositions(pe.isoforms[2].annotations) == std::vector<int>({11, 26}))
+  ABORT_IF(pe.isoforms[2].annotations.processed.size() != 1)
+  TEST_EQUAL(pe.isoforms[2].annotations.processed[0].begin, 11)
+  TEST_EQUAL(pe.isoforms[2].annotations.processed[0].end, 26)
+
+  // other cross-links with a terminal residue: a lasso peptide needs the cleavage site before its first residue (lost
+  // in -2), the aminovinyl-cysteine of a lantibiotic the one after its last (lost in -3)
+  UniProtEntry lasso = cleavageSiteFeatures();
+  lasso.features = {range("chain", "Test protein", 11, 24), range("cross-link", "Test lasso peptide", 11, 16),
+                    range("cross-link", "Test aminovinyl-cysteine", 20, 24),
+                    splice("VSP_N", 10, 10, "A", "AV"), splice("VSP_C", 25, 26, "CY", "W"), splice("VSP_IN", 18, 19, "VQ")};
+  pe = prepare(lasso, true, skipped, true);
+  ABORT_IF(pe.isoforms.size() != 3)
+  TEST_EQUAL(pe.canonical_mapped, 5)
+  TEST_EQUAL(pe.canonical_unmapped, 4)
+  TEST_TRUE(modPositions(pe.isoforms[0].annotations) == std::vector<int>({21, 25}))
+  TEST_TRUE(modPositions(pe.isoforms[1].annotations) == std::vector<int>({11, 16}))
+  TEST_TRUE(modPositions(pe.isoforms[2].annotations) == std::vector<int>({11, 16, 18, 22}))
+
+  // the terminal parts of a chromophore name backbone groups of internal residues, so it is mapped next to a changed
+  // cleavage site (DsRed 13-15 after G12 in -4, GFP 20-24 before 25 in -3). An interchain link has one residue in this
+  // protein, the first the ptmlist names: an interchain cyclopeptide needs only the site before it (lost in -2, not in
+  // -4, which changes the one after it), a link made at the C-terminus only the site after it (lost in -3)
+  UniProtEntry internal = cleavageSiteFeatures();
+  internal.features = {position("cross-link", "Test interchain cyclopeptide", 11),
+                       range("cross-link", "Test DsRed chromophore", 13, 15),
+                       range("cross-link", "Test GFP chromophore", 20, 24),
+                       position("cross-link", "Test interchain C-terminal link", 24),
+                       splice("VSP_N", 10, 10, "A", "AV"), splice("VSP_C", 25, 26, "CY", "W"), splice("VSP_IN", 12, 12, "G", "GSA")};
+  pe = prepare(internal, true, skipped, true);
+  ABORT_IF(pe.isoforms.size() != 3)
+  TEST_EQUAL(pe.canonical_mapped, 10)
+  TEST_EQUAL(pe.canonical_unmapped, 2)
+  TEST_TRUE(modPositions(pe.isoforms[0].annotations) == std::vector<int>({14, 16, 21, 25, 25}))
+  TEST_TRUE(modPositions(pe.isoforms[1].annotations) == std::vector<int>({11, 13, 15, 20, 24}))
+  TEST_TRUE(modPositions(pe.isoforms[2].annotations) == std::vector<int>({11, 15, 17, 22, 26, 26}))
+}
+END_SECTION
+
+START_SECTION(std::vector<ChainPosition> parseChainPositions(const std::string& pp))
+{
+  using V = std::vector<ChainPosition>;
+  const ChainPosition N = ChainPosition::NTerminal, C = ChainPosition::CTerminal, A = ChainPosition::Anywhere;
+  TEST_TRUE(parseChainPositions("N-terminal.") == V({N}))
+  TEST_TRUE(parseChainPositions("C-terminal.") == V({C}))
+  TEST_TRUE(parseChainPositions("Anywhere.") == V({A}))
+  TEST_TRUE(parseChainPositions("Protein core.") == V({A}))
+  TEST_TRUE(parseChainPositions("N-terminal-C-terminal.") == V({N, C}))
+  TEST_TRUE(parseChainPositions("C-terminal-N-terminal.") == V({C, N}))
+  TEST_TRUE(parseChainPositions("Anywhere-C-terminal.") == V({A, C}))
+  TEST_TRUE(parseChainPositions("Protein core-N-terminal.") == V({A, N}))
+  TEST_TRUE(parseChainPositions("Anywhere-Anywhere-Anywhere.") == V({A, A, A}))
+  TEST_TRUE(parseChainPositions("N-terminal") == V({N}))
+  // not understood
+  TEST_TRUE(parseChainPositions("").empty())
+  TEST_TRUE(parseChainPositions(".").empty())
+  TEST_TRUE(parseChainPositions("Somewhere.").empty())
+  TEST_TRUE(parseChainPositions("N-terminal-.").empty())
+  TEST_TRUE(parseChainPositions("N-terminalC-terminal.").empty())
 }
 END_SECTION
 

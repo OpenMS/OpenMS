@@ -4532,12 +4532,22 @@ add_test("TOPP_UniPEFF_19_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_19_output.
 set_tests_properties("TOPP_UniPEFF_19" PROPERTIES DEPENDS "TOPP_UniPEFF_18_prepare")
 set_tests_properties("TOPP_UniPEFF_19_out" PROPERTIES DEPENDS "TOPP_UniPEFF_19")
 
-# -map_canonical_features: the canonical annotations are also written to the isoform entry, in its
-# coordinates. Those on deleted or replaced residues and regions overlapping a splice variant are not
-# mapped, processed regions are clipped, and a feature UniProt also annotates on the isoform is written once.
-add_test("TOPP_UniPEFF_20" ${TOPP_BIN_PATH}/UniPEFF -test -map_canonical_features -in ${DATA_DIR_TOPP}/UniPEFF_6_input_canonical_features.xml -out ${TESTS_TEMP_DIR}/UniPEFF_20_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
+# By default the canonical annotations are also written to the isoform entry, in its coordinates.
+# Those on deleted or replaced residues and regions overlapping a splice variant are not mapped,
+# processed regions may span one if their cleavage sites are kept, and a feature UniProt also annotates on the isoform is
+# written once.
+# -omit_canonical_features leaves them out: the isoform entry keeps only what UniProt annotates on it.
+add_test("TOPP_UniPEFF_20" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_6_input_canonical_features.xml -out ${TESTS_TEMP_DIR}/UniPEFF_20_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
 add_test("TOPP_UniPEFF_20_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_20_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_6_output_mapped.peff)
 set_tests_properties("TOPP_UniPEFF_20_out" PROPERTIES DEPENDS "TOPP_UniPEFF_20")
+add_test("TOPP_UniPEFF_21" ${TOPP_BIN_PATH}/UniPEFF -test -omit_canonical_features -in ${DATA_DIR_TOPP}/UniPEFF_6_input_canonical_features.xml -out ${TESTS_TEMP_DIR}/UniPEFF_21_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
+add_test("TOPP_UniPEFF_21_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_21_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_6_output_omitcanon.peff)
+set_tests_properties("TOPP_UniPEFF_21_out" PROPERTIES DEPENDS "TOPP_UniPEFF_21")
+# A splice variant at the N-terminus changes the cleavage of a removed initiator methionine: the mapped chain starts at
+# the isoform's N-terminus, and the N-acetylation of A2 (ptmlist "PP   N-terminal.") is not mapped onto an internal residue.
+add_test("TOPP_UniPEFF_22" ${TOPP_BIN_PATH}/UniPEFF -test -in ${DATA_DIR_TOPP}/UniPEFF_7_input_terminal_features.xml -out ${TESTS_TEMP_DIR}/UniPEFF_22_output.tmp.peff -ptmlist ${DATA_DIR_TOPP}/UniPEFF_1_ptmlist.txt -psimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_psi-mod.obo -unimod_obo ${DATA_DIR_TOPP}/UniPEFF_1_unimod.obo)
+add_test("TOPP_UniPEFF_22_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/UniPEFF_22_output.tmp.peff -in2 ${DATA_DIR_TOPP}/UniPEFF_7_output_mapped.peff)
+set_tests_properties("TOPP_UniPEFF_22_out" PROPERTIES DEPENDS "TOPP_UniPEFF_22")
 
 #------------------------------------------------------------------------------
 # XFDR tests
