@@ -19,6 +19,7 @@ FeatureMap.h
 FeatureUniqueIds.h
 IMSExperimentRandomAccess.h
 MassTrace.h
+MassTraceStatistics.h
 MobilityPeak1D.h
 MobilityPeak2D.h
 Mobilogram.h
