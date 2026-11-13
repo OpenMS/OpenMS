@@ -82,3 +82,16 @@ D11FWT is reported against the same rules but not ruled on.
   entrapment can still win on its parent's apex if it scores higher. That is a recorded limitation, and the target of
   the next work item (interference graph).
 - One run. No retuning after a failure.
+
+## Amendment 1 (2026-11-13T15:10Z, result-neutral, before any score exists)
+The first scoring job failed at import: `train_v4.py` imports `astral-voxel-pilot-20261110/train_pilot.py`, which reads
+`voxels01.npz`, `train_windows.tsv` and `eval_windows.tsv` from its own directory at import time. The image carried only
+`train_pilot.py`. These 4 pilot files (hashes in `pilot.sha256`, unchanged) are copied to codon and bind-mounted at
+their local path for the scoring job. No script, input or option changes. Only the scoring job is rerun; the data
+jobs finished (`data-done` for both raws).
+
+## Amendment 2 (2026-11-13T16:40Z, result-neutral, after EVALUATION/NULL/DIAG_D11FWT exist)
+The scoring job stopped at the recorded-only `parent.py` step: its root was the relative path `../pairlib-20261113`,
+which does not resolve from `scripts/`. The ruled outputs (EVALUATION.txt, NULL.txt) and DIAG_D11FWT were complete.
+The root is made absolute; `diagnose.py` and `parent.py` for D11FWT and D11FDWT are then run locally on the copied
+population, scores, search features and calibration (same frozen scripts, same library). No score or rule changes.

@@ -1,0 +1,15 @@
+raw01: 300 isolation windows, fragment tolerance 7.30 ppm
+2808839 candidate windows of 587587 precursors
+edges (>= 1 shared fragment) 5430050; weight counts {np.int64(1): np.int64(5120510), np.int64(2): np.int64(217057), np.int64(3): np.int64(31237), np.int64(4): np.int64(21714), np.int64(5): np.int64(22787), np.int64(6): np.int64(16745)}
+components (weight >= 1): windows in non-singletons 0.625; precursors per component p50/p90/p99/max [1.0, 2.0, 8.0] 3106
+components (weight >= 2): windows in non-singletons 0.138; precursors per component p50/p90/p99/max [1.0, 1.0, 3.0] 259
+
+raw01 D11FDWT q <= 0.01: 1996 winners (1978 target, 18 decoy)
+  decoy   n    18 | claim>=1 0.944 | claim>=2 0.500 | claim>=3 0.222 | claimant-winner>=2 0.222 (stronger 0.000)
+  entrap  n    32 | claim>=1 0.844 | claim>=2 0.375 | claim>=3 0.094 | claimant-winner>=2 0.125 (stronger 0.031) | claimant with same composition 0.219
+  human   n  1946 | claim>=1 0.810 | claim>=2 0.163 | claim>=3 0.035 | claimant-winner>=2 0.079 (stronger 0.001)
+
+raw01 D11FDWT q <= 0.05: 2613 winners (2490 target, 123 decoy)
+  decoy   n   123 | claim>=1 0.902 | claim>=2 0.358 | claim>=3 0.122 | claimant-winner>=2 0.203 (stronger 0.041)
+  entrap  n   119 | claim>=1 0.882 | claim>=2 0.412 | claim>=3 0.168 | claimant-winner>=2 0.235 (stronger 0.059) | claimant with same composition 0.227
+  human   n  2371 | claim>=1 0.810 | claim>=2 0.172 | claim>=3 0.040 | claimant-winner>=2 0.084 (stronger 0.001)

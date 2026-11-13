@@ -1,0 +1,31 @@
+raw02 D11F fold 0: r0 4862 12 ep crit 6420.171 | r1 pos 1597 neg 94608 23 ep crit 1455.021 | r2 pos 1416 neg 94608 28 ep crit 2087.887 (8 s)
+raw02 D11F fold 1: r0 4888 30 ep crit 12260.273 | r1 pos 1773 neg 94945 23 ep crit 1105.110 | r2 pos 1565 neg 94945 26 ep crit 1500.213 (17 s)
+raw02 D11F fold 2: r0 4830 9 ep crit 3702.495 | r1 pos 1462 neg 94669 28 ep crit 1653.898 | r2 pos 1424 neg 94669 25 ep crit 1937.879 (24 s)
+raw02 D11F done in 24 s
+raw02 D11FD fold 0: r0 4862 12 ep crit 6480.033 | r1 pos 1623 neg 94608 22 ep crit 1560.331 | r2 pos 1543 neg 94608 18 ep crit 1724.417 (6 s)
+raw02 D11FD fold 1: r0 4888 30 ep crit 13164.458 | r1 pos 1642 neg 94945 19 ep crit 1686.297 | r2 pos 1629 neg 94945 24 ep crit 2104.788 (15 s)
+raw02 D11FD fold 2: r0 4830 10 ep crit 3272.764 | r1 pos 1615 neg 94669 30 ep crit 1798.248 | r2 pos 1549 neg 94669 18 ep crit 2286.857 (22 s)
+raw02 D11FD done in 22 s
+	Command being timed: "/home/singjc/.jcode/scratch/torchenv/.venv/bin/python scripts/train_v4.py raw02 D11F D11FD"
+	User time (seconds): 407.54
+	System time (seconds): 2.04
+	Percent of CPU this job got: 849%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:48.21
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2411984
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 8
+	Minor (reclaiming a frame) page faults: 579526
+	Voluntary context switches: 1406
+	Involuntary context switches: 694
+	Swaps: 0
+	File system inputs: 1094
+	File system outputs: 8
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

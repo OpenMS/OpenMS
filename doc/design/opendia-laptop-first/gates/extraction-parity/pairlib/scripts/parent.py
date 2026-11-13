@@ -6,7 +6,7 @@ often identified by the reference, but are mostly absent from our 100K library. 
 the same test asks whether its own target's composition elutes at the decoy's apex with the decoy's m/z (should be rare).
 Also: rho among winners with and without such a parent, and the background rate in the whole population."""
 import sys, numpy as np, pandas as pd
-sys.argv = [sys.argv[0], sys.argv[1] if len(sys.argv) > 1 else 'D11FWT', '../pairlib-20261113', 'xic']  # PLAN_PAIRLIB
+sys.argv = [sys.argv[0], sys.argv[1] if len(sys.argv) > 1 else 'D11FWT', '/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/pairlib-20261113', 'xic']  # PLAN_PAIRLIB (amendment 2: absolute root)
 exec(open('diagnose.py').read().split("for raw in ('raw01', 'raw02'):")[0])
 ref = pd.read_parquet('/home/singjc/Documents/datasets/proteobench-astral-entrapment/proteobench_diann_v231_res_20260717_123332/input_file.parquet',
                       columns=['Run', 'Stripped.Sequence', 'Precursor.Charge', 'Precursor.Mz', 'RT', 'Q.Value', 'Decoy', 'Protein.Ids'])
