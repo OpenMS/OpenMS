@@ -535,6 +535,15 @@ namespace OpenMS
 
     // write modifications definitions
     // <aminoacid_modification aminoacid="C" massdiff="+58.01" mass="161.014664" variable="Y" binary="N" description="Carboxymethyl (C)"/>
+    // The "variable" attribute tells fixed (static, "N") from variable ("Y") modifications (issue #2096):
+    // a modification is fixed if the search parameters list it as such, and variable otherwise
+    // (also if the search parameters do not list it at all).
+    const set<std::string> fixed_mods(search_params.fixed_modifications.begin(), search_params.fixed_modifications.end());
+    auto variableFlag = [&fixed_mods](const std::string& mod_full_id)
+    {
+      return fixed_mods.contains(mod_full_id) ? "N" : "Y";
+    };
+
     for (set<std::string>::const_iterator it = aa_mods.begin();
          it != aa_mods.end(); ++it)
     {
@@ -548,7 +557,7 @@ namespace OpenMS
         << "<aminoacid_modification aminoacid=\"" << mod->getOrigin()
         << "\" massdiff=\"" << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\""
         << precisionWrapper(ef.getMonoWeight())
-        << R"(" variable="Y" binary="N" description=")" << *it << "\"/>"
+        << "\" variable=\"" << variableFlag(*it) << R"(" binary="N" description=")" << *it << "\"/>"
         << "\n";
     }
 
@@ -558,7 +567,7 @@ namespace OpenMS
       f << "\t\t"
         << R"(<terminal_modification terminus="n" massdiff=")"
         << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod->getMonoMass())
-        << R"(" variable="Y" description=")" << *it
+        << "\" variable=\"" << variableFlag(*it) << R"(" description=")" << *it
         << R"(" protein_terminus=""/>)" << "\n";
     }
 
@@ -568,7 +577,7 @@ namespace OpenMS
       f << "\t\t"
         << R"(<terminal_modification terminus="c" massdiff=")"
         << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod->getMonoMass())
-        << R"(" variable="Y" description=")" << *it
+        << "\" variable=\"" << variableFlag(*it) << R"(" description=")" << *it
         << R"(" protein_terminus=""/>)" << "\n";
     }
 

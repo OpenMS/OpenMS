@@ -84,6 +84,10 @@ public:
     /**
         @brief Stores idXML as PepXML file
 
+        The modifications found in the peptide hits are declared in the "search_summary". Those that the
+        search parameters (of the first protein identification run) list as fixed modifications are
+        written as static ones ('variable="N"'), all others as variable ones ('variable="Y"').
+
         @exception Exception::UnableToCreateFile is thrown if the file could not be opened for writing
     */
     void store(const std::string& filename, std::vector<ProteinIdentification>& protein_ids,

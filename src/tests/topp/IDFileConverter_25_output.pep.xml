@@ -5,7 +5,7 @@
 	</sample_enzyme>
 	<search_summary base_name="IDFileConverter_25_output_tmp" search_engine="Comet" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
 		<search_database local_path="/home/rostlab/annieha/Feb_9_target_decoys/target_decoy.fasta" type="AA"/>
-		<aminoacid_modification aminoacid="C" massdiff="57.021464000000002" mass="160.030648985200003" variable="Y" binary="N" description="Carbamidomethyl (C)"/>
+		<aminoacid_modification aminoacid="C" massdiff="57.021464000000002" mass="160.030648985200003" variable="N" binary="N" description="Carbamidomethyl (C)"/>
 		<aminoacid_modification aminoacid="M" massdiff="15.994915000000001" mass="147.035400017099988" variable="Y" binary="N" description="Oxidation (M)"/>
 	</search_summary>
 	<spectrum_query spectrum="IDFileConverter_25_output_tmp.1.1.6" start_scan="1" end_scan="1" precursor_neutral_mass="2123.982731085500745" assumed_charge="6" index="0" retention_time_sec="75" >

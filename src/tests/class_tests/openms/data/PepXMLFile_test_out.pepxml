@@ -6,7 +6,7 @@
 	</sample_enzyme>
 	<search_summary base_name="test" search_engine="X! Tandem (k-score)" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
 		<search_database local_path="./current.fasta" type="AA"/>
-		<aminoacid_modification aminoacid="C" massdiff="57.021464000000002" mass="160.030648985200003" variable="Y" binary="N" description="Carbamidomethyl (C)"/>
+		<aminoacid_modification aminoacid="C" massdiff="57.021464000000002" mass="160.030648985200003" variable="N" binary="N" description="Carbamidomethyl (C)"/>
 		<terminal_modification terminus="n" massdiff="-17.026548999999999" mass="0.0" variable="Y" description="Gln->pyro-Glu (N-term Q)" protein_terminus=""/>
 		<terminal_modification terminus="n" massdiff="-18.010565" mass="0.0" variable="Y" description="Glu->pyro-Glu (N-term E)" protein_terminus=""/>
 	</search_summary>

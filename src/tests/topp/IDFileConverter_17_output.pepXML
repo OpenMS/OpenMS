@@ -5,7 +5,7 @@
 	</sample_enzyme>
 	<search_summary base_name="IDFileConverter_17_output_tmp" search_engine="X! Tandem" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
 		<search_database local_path="/share/usr/bertsch/sequences/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta.pro" type="AA"/>
-		<aminoacid_modification aminoacid="C" massdiff="57.021464000000002" mass="160.030648985200003" variable="Y" binary="N" description="Carbamidomethyl (C)"/>
+		<aminoacid_modification aminoacid="C" massdiff="57.021464000000002" mass="160.030648985200003" variable="N" binary="N" description="Carbamidomethyl (C)"/>
 		<aminoacid_modification aminoacid="M" massdiff="15.994915000000001" mass="147.035400017099988" variable="Y" binary="N" description="Oxidation (M)"/>
 		<terminal_modification terminus="n" massdiff="-17.026548999999999" mass="0.0" variable="Y" description="Ammonia-loss (N-term C)" protein_terminus=""/>
 	</search_summary>
