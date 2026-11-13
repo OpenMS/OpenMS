@@ -7692,6 +7692,14 @@ set_tests_properties("TOPP_FeatureFinderMetaboIdent_4" PROPERTIES PASS_REGULAR_E
 # ... and an RT extraction window that is narrower than the expected peaks
 add_test("TOPP_FeatureFinderMetaboIdent_5" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_5_output.tmp.featureXML -extract:mz_window 5 -extract:rt_window 20)
 set_tests_properties("TOPP_FeatureFinderMetaboIdent_5" PROPERTIES PASS_REGULAR_EXPRESSION "'extract:rt_window' \\(20 s\\) is smaller than 'detect:peak_width' \\(60 s\\)")
+# Two targets that share a mass trace (the second one is at the m/z of the first one's 13C isotopologue): one feature is
+# kept, and lists the removed one in 'overlap_removed' although the two features differ
+add_test("TOPP_FeatureFinderMetaboIdent_6" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_6_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_6_output.tmp.featureXML -extract:mz_window 5 -extract:rt_window 20 -detect:peak_width 3)
+add_test("TOPP_FeatureFinderMetaboIdent_6_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_6_output.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"1\">;name=\"overlap_removed\";-O-methylcytidine_13C_m258.104523_z1_rt207.600006 (RT "
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_6_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_6")
 
 # MzMLSplitter test:
 # specify number of parts directly:
