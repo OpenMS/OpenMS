@@ -249,6 +249,10 @@ protected:
 
   void selectFeaturesFromCandidates_(FeatureMap& features);
 
+  /// Warn if 'detect:peak_width' is much larger than the elution peaks of @p features (median width of their valid
+  /// elution models, so nothing is checked without model fitting): the chromatograms are then smoothed too much
+  void warnIfPeakWidthTooLarge_(const FeatureMap& features) const;
+
   /// Core processing logic for a single (non-FAIMS or single FAIMS group) dataset
   /// Called by run() either directly or for each FAIMS CV group
   void runSingleGroup_(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable,

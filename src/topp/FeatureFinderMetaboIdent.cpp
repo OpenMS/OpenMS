@@ -89,6 +89,27 @@ In the simplest case, only @p CompoundName, @p SumFormula, @p Charge and @p Rete
 Every combination of compound (mass), RT and charge defines one target for feature detection.
 For ion mobility data, an optional @p IonMobility column can be added to filter extraction by ion mobility.
 
+<B>Choosing the extraction and detection parameters</B>
+
+The defaults do not fit every LC-MS setup, and unsuitable values are the most common reason for features that are missing, cut off or
+quantified differently than by an untargeted feature finder (e.g. @ref TOPP_FeatureFinderMetabo):
+
+- @p extract:mz_window is the @em full width of the m/z window: a value of 10 extracts the signal within +/- 5 ppm of the target m/z.
+(The @p mass_error_ppm of @ref TOPP_FeatureFinderMetabo is a +/- tolerance instead.)
+The target m/z is calculated from the formula or mass, or - when re-quantifying features - comes from another run or a consensus feature, so the window has to cover the mass error of the run.
+A window that is too narrow leaves gaps in the extracted chromatograms; the features are then missed, or only part of the elution peak is found.
+- @p detect:peak_width is the expected width (FWHM) of the elution peaks.
+The chromatograms are smoothed with a Gaussian of this width before peaks are picked.
+The default (60 seconds) is far too wide for the elution peaks of a few seconds that are typical for (U)HPLC metabolomics data:
+neighboring peaks at the m/z of a target (e.g. isomers) are then merged into one feature, so that targets go missing or get the intensity of a neighbor, and the features extend beyond the signal.
+A warning is given if the value is much larger than the elution peaks that were found (based on the elution models, see @p model:type), together with their median width.
+- @p extract:rt_window is the width of the RT window around the target RT in which a feature is searched (four times @p detect:peak_width by default).
+It should be wider than the elution peaks, and cover the expected RT deviation of the targets.
+- Features of different targets that claim the same signal (overlapping mass traces) are resolved: only the one closest to its target RT is kept.
+The number of removed features is reported on the command line, and the remaining feature lists them in its @p overlap_removed meta value.
+
+To find out why a target has no (or an unexpected) feature, look at the extracted chromatograms (@p chrom_out) and at the feature candidates before filtering (@p candidates_out).
+
 <B>Ion Mobility Support (experimental)</B>
 
 This tool supports two types of ion mobility data:
