@@ -1,0 +1,4 @@
+100K human entries 50317 without a pair in the full FASTA 0 []
+selected accessions 100634 found in library 100632
+full library rows 102475392 kept 3626880
+kept target precursors 302480 decoy precursors 302000
