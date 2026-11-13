@@ -84,9 +84,11 @@ public:
     /**
         @brief Stores idXML as PepXML file
 
-        The modifications found in the peptide hits are declared in the "search_summary". Those that the
-        search parameters (of the first protein identification run) list as fixed modifications are
-        written as static ones ('variable="N"'), all others as variable ones ('variable="Y"').
+        The modifications found in the best hit of each peptide identification are declared in the
+        "search_summary". A modification is written as a static one ('variable="N"') if the search
+        parameters (of the first protein identification run) list it as a fixed modification and no
+        peptide hit leaves one of its sites unmodified; readers put a static modification on every
+        unmodified site. All other modifications are written as variable ones ('variable="Y"').
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be opened for writing
     */

@@ -609,7 +609,7 @@ END_SECTION
 
 START_SECTION(([EXTRA] store and load X! Tandem results read from pepXML - expect scores, issue #10570))
 {
-  // X! Tandem results as written by IDFileConverter (from idXML; header of IDFileConverter_17_output.pepXML), three PSMs:
+  // X! Tandem results as written by IDFileConverter (from idXML; header of IDFileConverter_17_output.pepXML before fixed modifications were written as variable="N"), three PSMs:
   std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_xtandem.pepxml");
   vector<ProteinIdentification> proteins;
   PeptideIdentificationList peptides;
@@ -790,6 +790,41 @@ START_SECTION(([EXTRA] store - fixed and variable modifications of the search pa
     TEST_EQUAL(seq_new.toUnmodifiedString(), seq.toUnmodifiedString())
     TEST_REAL_SIMILAR(seq_new.getMonoWeight(), seq.getMonoWeight())
   }
+
+  // A second search run without fixed modifications adds a peptide that carries none of them. The one
+  // "search_summary" describes the hits of all runs, and a reader puts a fixed modification on every site
+  // that a hit leaves unmodified. So none of the three may be written as fixed any more, and the new
+  // peptide has to come back unchanged.
+  proteins.push_back(proteins[0]);
+  proteins[1].setIdentifier("Mascot_run_2");
+  proteins[1].setSearchParameters(ProteinIdentification::SearchParameters());
+  PeptideIdentification unmodified = peptides[0];
+  unmodified.setIdentifier("Mascot_run_2");
+  unmodified.setRT(200.0);
+  unmodified.getHits()[0].setSequence(AASequence::fromString("ACDEK"));
+  peptides.push_back(unmodified);
+
+  NEW_TMP_FILE(file_out);
+  PepXMLFile().store(file_out, proteins, peptides);
+  std::ifstream written_runs(file_out);
+  const std::string content_runs((std::istreambuf_iterator<char>(written_runs)), std::istreambuf_iterator<char>());
+  TEST_EQUAL(StringUtils::hasSubstring(content_runs, "variable=\"Y\" binary=\"N\" description=\"Carbamidomethyl (C)\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(content_runs, "variable=\"Y\" description=\"TMT6plex (N-term)\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(content_runs, "variable=\"Y\" description=\"Amidated (C-term)\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(content_runs, "variable=\"N\""), false)
+
+  PepXMLFile().load(file_out, proteins_new, peptides_new);
+  ABORT_IF(peptides_new.size() != 3)
+  Size unchanged = 0; // hits that are exactly the unmodified peptide (the order of the peptides is not checked)
+  for (const PeptideIdentification& pep : peptides_new)
+  {
+    ABORT_IF(pep.getHits().size() != 1)
+    if (pep.getHits()[0].getSequence().toString() == "ACDEK")
+    {
+      ++unchanged;
+    }
+  }
+  TEST_EQUAL(unchanged, 1)
 }
 END_SECTION
 
