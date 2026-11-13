@@ -45,3 +45,13 @@ raw02: 36 / 71 / 83 / 1055 / 1486.
 ## Cost (raw01 / raw02)
 OpenDIA search 3:04 / 2:50, 4.4 GB. BASE (OpenDIACNN crossfit) 14:53 / 12:33, 9.95 GB (was 23.1 GB before the
 compact tensor). export6 20:56 / 20:43, 8.7 GB. Whole chain per raw about 1.5 h; DIA-NN raw01 11:03.
+
+## Cleanup after the run (OpenMS a8be5bed3c, not part of the frozen plan)
+The run-mode extraction is removed; native-scan XIC picking is the only mode. Option renames for scripts written
+against the plan binary: `-peak_picking xic` is gone, `-xic_max_peaks` -> `-max_peaks`, `-xic_valley_fraction` ->
+`-valley_fraction`, `-xic_boundary_half_widths` -> `-boundary_half_widths`, `-xic_min_profile_scans` ->
+`-min_profile_scans`, `-xic_traces_out/_precursors` -> `-traces_out/_precursors`. The feature table drops the two
+always-zero columns `has_im_match_evidence`, `mean_abs_im_error_vssc` (19 columns). raw01 check: peak table
+byte-identical to `raw01/pipeline/search.tsv`, feature table identical after cutting those two columns, identical at
+1 and 10 threads. Search wall time on raw01: 2:07 -> 0:51 at `-threads 10` (1:10 at 1 thread); 32 s of that is
+streaming the RAW file. Peak RSS 4.4 GB (unchanged).
