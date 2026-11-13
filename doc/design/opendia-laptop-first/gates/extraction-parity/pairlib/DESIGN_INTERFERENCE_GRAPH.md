@@ -53,3 +53,34 @@ The likelihood of a shared signal is the explaining-away part.
    Then, with labels and descriptively, the share of entrapment winners whose component contains their parent.
 2. A Python prototype on those components, with a frozen plan and the same rules, as a new arm.
 3. Only if it passes: a C++ port into OpenDIA, next to the picker, using Evergreen.
+
+## Step 1 result on the old 100K library (xicids raw01, D11FDWT; `interf_pre/COMPONENTS_xicids_raw01.txt`)
+Script: `scripts/interference_components.py`. Edges join candidate windows of different precursors in the same
+isolation window whose peak ranges overlap, weighted by shared library fragments within the fitted 7.1 ppm tolerance.
+Run time is 2:49 and peak memory 2.2 GB.
+
+- **Graph size.** 2.75 M windows give 4.3 M edges.
+  - 95 % of the edges share a single fragment. Mostly common low-mass ions, and only weakly informative.
+  - At ≥ 2 shared fragments, 11 % of windows sit in non-singleton components. Components stay small (p99 2
+    precursors, max 110), so exact or loopy inference is cheap.
+- **Winners that share ≥ 2 fragments with another precursor's overlapping window** (labels used descriptively):
+
+  | class | q ≤ 0.01 | q ≤ 0.05 |
+  |---|---|---|
+  | human | 12 % (of 1984) | 13 % (of 2359) |
+  | entrapment | 39 % (of 23) | 32 % (of 109) |
+  | decoy | 58 % (of 19) | 40 % (of 122) |
+
+- **What this means for the design:**
+  1. Shared signal is strong label-free evidence of a false winner, for both entrapments and decoys. Decoys use it
+     even more, so penalising it should not by itself skew TDC calibration against targets.
+  2. In under 5 % of cases is the claimant a stronger winner of its own. A DIA-NN-style greedy rule (drop the weaker
+     of two precursors that explain the same signal) would therefore remove almost none of these false winners: they
+     beat the claimants.
+     - The model must explain away by **fit**: does the shared fragment's intensity, together with the window's other
+       fragments, fit p's library pattern better than the claimant's? It cannot use score order alone.
+     - This is the intensity-aware noisy-OR above. featD captures the single-precursor half of it.
+  3. On this library, 5 of 23 entrapment winners at q ≤ 0.01 have a same-composition claimant, which is their
+     parent. The rest share signal with unrelated precursors.
+     - The PAIRLIB rerun will show how much this changes when every parent is present.
+
