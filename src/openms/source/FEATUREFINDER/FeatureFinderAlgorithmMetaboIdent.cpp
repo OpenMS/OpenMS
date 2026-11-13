@@ -492,39 +492,41 @@ namespace OpenMS
         size_t best_intensity = cluster_representative.getIntensity();
         size_t overlap_intensity = overlap.getIntensity();
 
-        if (overlap_intensity != best_intensity) return true; // early out: features are different
-
-        // this part will nearly never be called (e.g., only completely identicial features)
-        // so it is ok to perform some slow operations like querying meta values 
-        double best_rt_delta = std::abs(double(cluster_representative.getMetaValue("rt_deviation")));
-        double overlap_rt_delta = std::abs(double(overlap.getMetaValue("rt_deviation")));
-
-        if (overlap_rt_delta == best_rt_delta)
+        // only features with the same intensity can be the same feature
+        if (overlap_intensity == best_intensity)
         {
-          double best_RT = cluster_representative.getRT();
-          double overlap_RT = overlap.getRT();
-          double best_MZ = cluster_representative.getMZ();
-          double overlap_MZ = overlap.getMZ();
+          // this part will nearly never be called (e.g., only completely identicial features)
+          // so it is ok to perform some slow operations like querying meta values 
+          double best_rt_delta = std::abs(double(cluster_representative.getMetaValue("rt_deviation")));
+          double overlap_rt_delta = std::abs(double(overlap.getMetaValue("rt_deviation")));
 
-          // are the features the same? (@TODO: use "Math::approximatelyEqual"?)
-          if ((overlap_MZ == best_MZ) && (overlap_RT == best_RT))
+          if (overlap_rt_delta == best_rt_delta)
           {
-            // update annotations:
-            // @TODO: also adjust "formula" and "expected_rt"?
-            std::string label = StringUtils::toStr(cluster_representative.getMetaValue("label"));            
-            label += "/" + StringUtils::toStr(overlap.getMetaValue("label"));
-            cluster_representative.setMetaValue("label", label);
-            StringList alt_refs;
-            if (cluster_representative.metaValueExists("alt_PeptideRef"))
+            double best_RT = cluster_representative.getRT();
+            double overlap_RT = overlap.getRT();
+            double best_MZ = cluster_representative.getMZ();
+            double overlap_MZ = overlap.getMZ();
+
+            // are the features the same? (@TODO: use "Math::approximatelyEqual"?)
+            if ((overlap_MZ == best_MZ) && (overlap_RT == best_RT))
             {
-              alt_refs = cluster_representative.getMetaValue("alt_PeptideRef").toStringList();
+              // update annotations:
+              // @TODO: also adjust "formula" and "expected_rt"?
+              std::string label = StringUtils::toStr(cluster_representative.getMetaValue("label"));            
+              label += "/" + StringUtils::toStr(overlap.getMetaValue("label"));
+              cluster_representative.setMetaValue("label", label);
+              StringList alt_refs;
+              if (cluster_representative.metaValueExists("alt_PeptideRef"))
+              {
+                alt_refs = cluster_representative.getMetaValue("alt_PeptideRef").toStringList();
+              }
+              alt_refs.push_back(overlap.getMetaValue("PeptideRef"));
+              cluster_representative.setMetaValue("alt_PeptideRef", alt_refs);
             }
-            alt_refs.push_back(overlap.getMetaValue("PeptideRef"));
-            cluster_representative.setMetaValue("alt_PeptideRef", alt_refs);
           }
         }
 
-        // annotate which features were removed because of overlap with the representative feature
+        // annotate which features were removed because of overlap with the representative feature (all of them)
         std::string ref =StringUtils::toStr(overlap.getMetaValue("PeptideRef")) + " (RT " +
           StringUtils::toStr(float(overlap.getRT())) + ")";
 

@@ -102,7 +102,8 @@ A window that is too narrow leaves gaps in the extracted chromatograms; the feat
 The chromatograms are smoothed with a Gaussian of this width before peaks are picked.
 The default (60 seconds) is far too wide for the elution peaks of a few seconds that are typical for (U)HPLC metabolomics data:
 neighboring peaks at the m/z of a target (e.g. isomers) are then merged into one feature, so that targets go missing or get the intensity of a neighbor, and the features extend beyond the signal.
-A warning is given if the value is much larger than the elution peaks that were found (based on the elution models, see @p model:type), together with their median width.
+A warning is given if the value is much larger than the elution peaks that were found, together with their median width.
+This check uses the widths of the elution models, so there is no such warning without them (@p model:type @c none, or no valid model).
 - @p extract:rt_window is the width of the RT window around the target RT in which a feature is searched (four times @p detect:peak_width by default).
 It should be wider than the elution peaks, and cover the expected RT deviation of the targets.
 - Features of different targets that claim the same signal (overlapping mass traces) are resolved: only the one closest to its target RT is kept.
