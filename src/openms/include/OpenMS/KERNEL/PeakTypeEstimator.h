@@ -10,6 +10,7 @@
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 
+#include <algorithm>
 #include <limits>
 #include <cmath>
 #include <numeric>
@@ -26,11 +27,21 @@ namespace OpenMS
   {
 public:
     /**
-        @brief Estimates the peak type of the peaks in the iterator range based on intensity characteristics of up to five maxima
+        @brief Estimates the peak type of the peaks in the iterator range based on the sampling points around up to five maxima
 
         We estimate profile vs. centroided by looking at highest five peaks in the spectrum.
-        If at least two neighbouring sampling points to either side of a local maximum are found within 1 Th,
-        the peak is considered a profile peak. The intensities need to decline on both shoulders.
+        A local maximum is considered a profile peak if at least two neighbouring sampling points to either side are found
+        within 1 Th, and either
+        - the intensities decline on both shoulders (by at most 90% from one sampling point to the next), or
+        - the maximum and these four sampling points are consecutive points of a sampling grid: they are equally spaced
+          (one sampling point may be missing between two of them, since points without intensity are often not stored),
+          and at most 0.02 Th apart, which is closer than the isotopic peaks of an ion in centroided data.
+          The intensities do not matter here. Peaks of very few sampling points have no smooth shoulders, e.g. in an
+          ion mobility frame (timsTOF) whose mobility scans were added up or are stored in one spectrum: an ion covers
+          about three bins of the time-of-flight digitizer there, and the intensity drops steeply to the bins next to them.
+
+        Peaks at the same position are one sampling point that was recorded several times (e.g. in the mobility scans of an
+        ion mobility frame which are stored in one spectrum): their intensities are added up.
 
         All sampling points successfully assigned as shoulder points are not considered for searching the next highest peak
         (except local minima at the end of a shoulder, which can be used for shoulders from left and right).
@@ -38,6 +49,8 @@ public:
         If 5 peaks or 50% of total spectral intensity has been looked at, we compare the number of peaks hithero classified
         as centroided (C) vs profile (P).
         If P / (C+P) > 0.75, the spectrum is considered profile; centroided otherwise.
+
+        The peaks need to be sorted by position.
 
         @note if there are less than 5 peaks in the iterator range SpectrumSettings::SpectrumType::UNKNOWN is returned
        */
@@ -55,8 +68,57 @@ public:
       int profile_evidence = 0; // number of peaks found to be profile
       int centroid_evidence = 0; // number of peaks found to be centroided
 
-      // copy data, since we need to modify
-      std::vector<PeakT> data(begin, end);
+      // copy data, since we need to modify.
+      // Peaks at the same position are one sampling point (see above): add up their intensities
+      std::vector<PeakT> data;
+      data.reserve(end - begin);
+      for (PeakConstIterator it = begin; it != end; ++it)
+      {
+        if (!data.empty() && data.back().getMZ() == it->getMZ())
+        {
+          data.back().setIntensity(data.back().getIntensity() + it->getIntensity());
+        }
+        else
+        {
+          data.push_back(*it);
+        }
+      }
+
+      // The isotopic peaks of an ion are equally spaced as well (1/charge Th), also in centroided data.
+      // Sampling points are much closer: 0.02 Th is the distance of the isotopic peaks of a 50-fold charged ion.
+      const double max_spacing = 0.02;
+      // The distance between consecutive sampling points of an instrument changes by far less than 1% from one point
+      // to the next. We allow for 20%, since positions are often stored with single precision.
+      const double max_spacing_deviation = 0.2;
+      // true if the peak at @p idx and its two neighbours to either side are consecutive points of a sampling grid.
+      // Sampling points without intensity are often not stored: one point may be missing between two neighbours.
+      auto onSamplingGrid = [&data, max_spacing, max_spacing_deviation](const Size idx)
+      {
+        if (idx < 2 || idx + 2 >= data.size())
+        {
+          return false;
+        }
+        double spacings[4];
+        for (Size i = 0; i < 4; ++i)
+        {
+          spacings[i] = data[idx - 1 + i].getMZ() - data[idx - 2 + i].getMZ();
+        }
+        const double spacing = *std::min_element(spacings, spacings + 4); // of the sampling grid
+        if (spacing <= 0 || spacing > max_spacing)
+        {
+          return false;
+        }
+        for (const double s : spacings)
+        {
+          const double steps = s / spacing; // 1, or 2 if a sampling point is missing
+          if (steps > 2 + max_spacing_deviation || std::fabs(steps - std::round(steps)) > max_spacing_deviation)
+          {
+            return false;
+          }
+        }
+        return true;
+      };
+
       // total intensity of spectrum
       double total_int = std::accumulate(begin, end, 0.0, [](double int_, const PeakT& p) { return int_ + p.getIntensity(); } );
       double explained_int = 0;
@@ -80,6 +142,9 @@ public:
         }
         // no more peaks
         if (idx == std::numeric_limits<Size>::max()) break;
+
+        // look at the spacing of the sampling points
+        const bool on_sampling_grid = onSamplingGrid(idx);
 
         // check left and right peak shoulders and count number of sample points
         typedef typename std::vector<PeakT>::iterator PeakIterator; // non-const version, since we need to modify the peaks
@@ -131,7 +196,16 @@ public:
         // (note: the sequence is not identical to the one of the left shoulder)
         if (it != data.end() && it->getIntensity() > int_last) (it-1)->setIntensity(int_last);
 
-        if (break_left || it - it_max < 2+1)  // 'it' does not fulfill the conditions, i.e. does not count
+        if (on_sampling_grid)
+        { // the two points to either side are sampling points of this peak, whatever their intensity:
+          // remove them from future consideration
+          for (Size j = idx - 2; j <= idx + 2; ++j)
+          {
+            explained_int += data[j].getIntensity();
+            data[j].setIntensity(0);
+          }
+        }
+        else if (break_left || it - it_max < 2+1)  // 'it' does not fulfill the conditions, i.e. does not count
         { // fewer than two sampling points on right shoulder
           //std::cerr << " break right " << it - it_max << " points\n";
           ++centroid_evidence;
