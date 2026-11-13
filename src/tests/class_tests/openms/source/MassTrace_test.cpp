@@ -21,9 +21,9 @@
 using namespace OpenMS;
 using namespace std;
 
-PeakType fillPeak(double rt, double mz, double it)
+MassTrace::PeakType fillPeak(double rt, double mz, double it)
 {
-  PeakType p;
+  MassTrace::PeakType p;
   p.setIntensity((OpenMS::Peak2D::IntensityType)it);
   p.setMZ(mz);
   p.setRT((rt));
@@ -51,34 +51,34 @@ START_SECTION((~MassTrace()))
 END_SECTION
 
 
-std::vector<PeakType> peak_vec;
-std::list<PeakType> peak_lst;
+std::vector<MassTrace::PeakType> peak_vec;
+std::list<MassTrace::PeakType> peak_lst;
 
-PeakType tmp_peak0 = fillPeak(152.22, 230.10223, 542.0);
+MassTrace::PeakType tmp_peak0 = fillPeak(152.22, 230.10223, 542.0);
 peak_vec.push_back(tmp_peak0);
 peak_lst.push_back(tmp_peak0);
 
-PeakType tmp_peak1 = fillPeak(153.23, 230.10235, 542293.0);
+MassTrace::PeakType tmp_peak1 = fillPeak(153.23, 230.10235, 542293.0);
 peak_vec.push_back(tmp_peak1);
 peak_lst.push_back(tmp_peak1);
 
-PeakType tmp_peak2 = fillPeak(154.21, 230.10181, 18282393.0);
+MassTrace::PeakType tmp_peak2 = fillPeak(154.21, 230.10181, 18282393.0);
 peak_vec.push_back(tmp_peak2);
 peak_lst.push_back(tmp_peak2);
 
-PeakType tmp_peak3 = fillPeak(155.24, 230.10229, 33329535.0);
+MassTrace::PeakType tmp_peak3 = fillPeak(155.24, 230.10229, 33329535.0);
 peak_vec.push_back(tmp_peak3);
 peak_lst.push_back(tmp_peak3);
 
-PeakType tmp_peak4 = fillPeak(156.233, 230.10116, 17342933.0);
+MassTrace::PeakType tmp_peak4 = fillPeak(156.233, 230.10116, 17342933.0);
 peak_vec.push_back(tmp_peak4);
 peak_lst.push_back(tmp_peak4);
 
-PeakType tmp_peak5 = fillPeak(157.24, 230.10198, 333291.0);
+MassTrace::PeakType tmp_peak5 = fillPeak(157.24, 230.10198, 333291.0);
 peak_vec.push_back(tmp_peak5);
 peak_lst.push_back(tmp_peak5);
 
-PeakType tmp_peak6 = fillPeak(158.238, 230.10254, 339.0);
+MassTrace::PeakType tmp_peak6 = fillPeak(158.238, 230.10254, 339.0);
 peak_vec.push_back(tmp_peak6);
 peak_lst.push_back(tmp_peak6);
 
@@ -96,11 +96,11 @@ std::cout << sr << "\n" << sm << "\n" << si << "\n\n";
 // detailed constructors test
 /////////////////////////////////////////////////////////////
 
-START_SECTION((MassTrace(const std::list<PeakType>& trace_peaks)))
+START_SECTION((MassTrace(const std::list<MassTrace::PeakType>& trace_peaks)))
 {
   MassTrace tmp_mt(peak_lst);
 
-  std::list<PeakType>::const_iterator l_it = peak_lst.begin();
+  std::list<MassTrace::PeakType>::const_iterator l_it = peak_lst.begin();
 
   for (MassTrace::const_iterator m_it = tmp_mt.begin(); m_it != tmp_mt.end(); ++m_it)
   {
@@ -114,11 +114,11 @@ END_SECTION
 
 /////
 
-START_SECTION((MassTrace(const std::vector<PeakType>& trace_peaks)))
+START_SECTION((MassTrace(const std::vector<MassTrace::PeakType>& trace_peaks)))
 {
   MassTrace tmp_mt(peak_vec);
 
-  std::vector<PeakType>::const_iterator v_it = peak_vec.begin();
+  std::vector<MassTrace::PeakType>::const_iterator v_it = peak_vec.begin();
 
   for (MassTrace::const_iterator m_it = tmp_mt.begin(); m_it != tmp_mt.end(); ++m_it)
   {
@@ -134,15 +134,15 @@ END_SECTION
 
 
 
-START_SECTION((MassTrace(std::vector<PeakType>&& trace_peaks)))
+START_SECTION((MassTrace(std::vector<MassTrace::PeakType>&& trace_peaks)))
 {
-  std::vector<PeakType> peaks_to_move(peak_vec);
+  std::vector<MassTrace::PeakType> peaks_to_move(peak_vec);
   MassTrace tmp_mt(std::move(peaks_to_move));
   TEST_EQUAL(tmp_mt.getPeaks() == peak_vec, true);
   TEST_REAL_SIMILAR(tmp_mt.getAverageMS1CycleTime(), (tmp_peak6.getRT() - tmp_peak0.getRT()) / (7-1));
 
   // a temporary
-  MassTrace tmp_mt2(std::vector<PeakType>(peak_vec.begin(), peak_vec.begin() + 3));
+  MassTrace tmp_mt2(std::vector<MassTrace::PeakType>(peak_vec.begin(), peak_vec.begin() + 3));
   TEST_EQUAL(tmp_mt2.getSize(), 3);
   TEST_EQUAL(tmp_mt2[2], peak_vec[2]);
 }
@@ -159,7 +159,7 @@ test_mt.updateWeightedMeanMZ();
 // operator tests
 /////////////////////////////////////////////////////////////
 
-START_SECTION((PeakType& operator[](const Size &mt_idx)))
+START_SECTION((MassTrace::PeakType& operator[](const Size &mt_idx)))
 {
   TEST_REAL_SIMILAR(test_mt[1].getRT(), 153.23);
   TEST_REAL_SIMILAR(test_mt[1].getMZ(), 230.10235);
@@ -173,7 +173,7 @@ END_SECTION
 
 /////
 
-START_SECTION((const PeakType& operator[](const Size &mt_idx) const ))
+START_SECTION((const MassTrace::PeakType& operator[](const Size &mt_idx) const ))
 {
   const MassTrace test_mt_const(test_mt);
 
@@ -199,15 +199,15 @@ END_SECTION
 // iterator tests
 /////////////////////////////////////////////////////////////
 
-std::vector<PeakType>::iterator start_it = peak_vec.begin();
-std::vector<PeakType>::iterator end_it = peak_vec.end();
-std::vector<PeakType>::reverse_iterator rstart_it = peak_vec.rbegin();
-std::vector<PeakType>::reverse_iterator rend_it = peak_vec.rend();
+std::vector<MassTrace::PeakType>::iterator start_it = peak_vec.begin();
+std::vector<MassTrace::PeakType>::iterator end_it = peak_vec.end();
+std::vector<MassTrace::PeakType>::reverse_iterator rstart_it = peak_vec.rbegin();
+std::vector<MassTrace::PeakType>::reverse_iterator rend_it = peak_vec.rend();
 
-std::vector<PeakType>::const_iterator const_start_it = peak_vec.begin();
-std::vector<PeakType>::const_iterator const_end_it = peak_vec.end();
-std::vector<PeakType>::const_reverse_iterator const_rstart_it = peak_vec.rbegin();
-std::vector<PeakType>::const_reverse_iterator const_rend_it = peak_vec.rend();
+std::vector<MassTrace::PeakType>::const_iterator const_start_it = peak_vec.begin();
+std::vector<MassTrace::PeakType>::const_iterator const_end_it = peak_vec.end();
+std::vector<MassTrace::PeakType>::const_reverse_iterator const_rstart_it = peak_vec.rbegin();
+std::vector<MassTrace::PeakType>::const_reverse_iterator const_rend_it = peak_vec.rend();
 
 
 START_SECTION((iterator begin()))
@@ -310,7 +310,7 @@ END_SECTION
 
 /////
 
-START_SECTION((const std::vector<PeakType>& getPeaks() const))
+START_SECTION((const std::vector<MassTrace::PeakType>& getPeaks() const))
 {
   TEST_EQUAL(test_mt.getPeaks().size(), 7);
   TEST_EQUAL(test_mt.getPeaks() == peak_vec, true);
@@ -374,8 +374,8 @@ START_SECTION((void updateWeightedMZsd()))
 {
   MassTrace empty_trace;
   TEST_EXCEPTION(Exception::InvalidValue, empty_trace.updateWeightedMZsd());
-  std::vector<PeakType> peaks;
-  PeakType p1, p2;
+  std::vector<MassTrace::PeakType> peaks;
+  MassTrace::PeakType p1, p2;
   p1.setMZ(123.123);
   p1.setIntensity(0.0);
   p2.setMZ(123.321);
@@ -481,6 +481,68 @@ END_SECTION
 
 /////
 
+START_SECTION((double getIntensity(bool smoothed, MT_QUANTMETHOD method) const))
+{
+  MassTrace raw_mt(peak_vec);
+  raw_mt.estimateFWHM(false);
+
+  // independent of the configured method (area, by default)
+  TEST_REAL_SIMILAR(raw_mt.getIntensity(false, MassTrace::MT_QUANT_AREA), 69863097.2125001);
+  TEST_REAL_SIMILAR(raw_mt.getIntensity(false, MassTrace::MT_QUANT_MEDIAN), 542293.0);
+  TEST_REAL_SIMILAR(raw_mt.getIntensity(false, MassTrace::MT_QUANT_HEIGHT), 33329535.0);
+  TEST_EQUAL(raw_mt.getQuantMethod(), MassTrace::MT_QUANT_AREA);
+
+  raw_mt.setQuantMethod(MassTrace::MT_QUANT_MEDIAN);
+  TEST_REAL_SIMILAR(raw_mt.getIntensity(false, MassTrace::MT_QUANT_HEIGHT), 33329535.0);
+  TEST_REAL_SIMILAR(raw_mt.getIntensity(false), raw_mt.getIntensity(false, MassTrace::MT_QUANT_MEDIAN));
+
+  // smoothed intensities
+  raw_mt.setSmoothedIntensities(smoothed_ints);
+  raw_mt.estimateFWHM(true);
+  TEST_REAL_SIMILAR(raw_mt.getIntensity(true, MassTrace::MT_QUANT_AREA), 69505990.0000001);
+  TEST_REAL_SIMILAR(raw_mt.getIntensity(true, MassTrace::MT_QUANT_MEDIAN), 542293.0);
+  TEST_REAL_SIMILAR(raw_mt.getIntensity(true, MassTrace::MT_QUANT_HEIGHT), 33000000.0);
+
+  TEST_EXCEPTION(Exception::InvalidValue, raw_mt.getIntensity(false, MassTrace::SIZE_OF_MT_QUANTMETHOD));
+}
+END_SECTION
+
+/////
+
+START_SECTION((void clearSmoothedIntensities()))
+{
+  MassTrace tmp_mt(peak_vec);
+  tmp_mt.setSmoothedIntensities(smoothed_ints);
+  tmp_mt.estimateFWHM(true);
+  const double fwhm = tmp_mt.getFWHM();
+  const std::pair<Size, Size> fwhm_borders = tmp_mt.getFWHMborders();
+  const double raw_area = tmp_mt.getIntensity(false);
+
+  tmp_mt.clearSmoothedIntensities();
+  TEST_EQUAL(tmp_mt.getSmoothedIntensities().empty(), true);
+  TEST_EQUAL(tmp_mt.getSmoothedIntensities().capacity(), 0);
+
+  // the peaks, the FWHM estimate and what is computed from the raw intensities are kept
+  TEST_EQUAL(tmp_mt.getPeaks() == peak_vec, true);
+  TEST_REAL_SIMILAR(tmp_mt.getFWHM(), fwhm);
+  TEST_EQUAL(tmp_mt.getFWHMborders().first, fwhm_borders.first);
+  TEST_EQUAL(tmp_mt.getFWHMborders().second, fwhm_borders.second);
+  TEST_REAL_SIMILAR(tmp_mt.getIntensity(false), raw_area);
+  TEST_EXCEPTION(Exception::InvalidValue, tmp_mt.findMaxByIntPeak(true));
+
+  // smoothed intensities can be set again
+  tmp_mt.setSmoothedIntensities(smoothed_ints);
+  TEST_EQUAL(tmp_mt.getSmoothedIntensities() == smoothed_ints, true);
+
+  // no-op without smoothed intensities
+  MassTrace raw_mt(peak_vec);
+  raw_mt.clearSmoothedIntensities();
+  TEST_EQUAL(raw_mt.getSmoothedIntensities().empty(), true);
+}
+END_SECTION
+
+/////
+
 START_SECTION((double getMaxIntensity(bool smoothed) const))
 {
   double smoothed_maxint = test_mt.getMaxIntensity(true);
@@ -542,14 +604,14 @@ END_SECTION
 /////
 
 // create Masstraces which can be used to test missing RT scans
-std::vector<PeakType> peak_vec_red;
+std::vector<MassTrace::PeakType> peak_vec_red;
 double rt[] = {152.0,  153.0,       154.0,         155.0,        156.0,        157.0,        158.0,  159.0, 160.0};
 double it[] = {  542, 542293, 1.82824e+007, 3.33295e+007, 3.33295e+007, 3.33295e+007, 1.73429e+007, 333291,   339};
 for (Size i=0; i<9; ++i)
 {
   peak_vec_red.push_back(fillPeak(rt[i], 100.0, it[i]));
 }
-std::vector<PeakType> peak_vec_red2 = peak_vec_red;
+std::vector<MassTrace::PeakType> peak_vec_red2 = peak_vec_red;
 peak_vec_red2.erase(peak_vec_red2.begin() + 4);
 MassTrace tmp_mt(peak_vec_red);
 MassTrace tmp_mt2(peak_vec_red2);
@@ -620,7 +682,7 @@ START_SECTION((double estimateFWHM(bool use_smoothed_ints = false)))
   // a symmetric trace must have symmetric half-maximum crossings around its apex
   // (regression test: the right flank used to pair each RT with the other point's
   // intensity, mirroring the right crossing about the midpoint of its bracket)
-  std::vector<PeakType> sym_peaks;
+  std::vector<MassTrace::PeakType> sym_peaks;
   double sym_ints[5] = {10.0, 60.0, 100.0, 60.0, 10.0};
   for (Size i = 0; i < 5; ++i)
   {
@@ -632,7 +694,7 @@ START_SECTION((double estimateFWHM(bool use_smoothed_ints = false)))
 
   // an asymmetric trace: the right flank crosses 50 between x=3 (80) and x=4 (40),
   // i.e. at 3.75, so the FWHM is 3.75 - 0.8
-  std::vector<PeakType> asym_peaks;
+  std::vector<MassTrace::PeakType> asym_peaks;
   double asym_ints[5] = {10.0, 60.0, 100.0, 80.0, 40.0};
   for (Size i = 0; i < 5; ++i)
   {
@@ -643,7 +705,7 @@ START_SECTION((double estimateFWHM(bool use_smoothed_ints = false)))
 
   // trace that never drops below half max on the right -> no interpolation there,
   // the last RT is used instead
-  std::vector<PeakType> open_peaks;
+  std::vector<MassTrace::PeakType> open_peaks;
   double open_ints[5] = {10.0, 60.0, 100.0, 100.0, 100.0};
   for (Size i = 0; i < 5; ++i)
   {
@@ -713,7 +775,7 @@ END_SECTION
 
 /////
 
-std::vector<PeakType> double_peak(peak_vec);
+std::vector<MassTrace::PeakType> double_peak(peak_vec);
 double_peak.insert(double_peak.end(), peak_vec.begin(), peak_vec.end());
 
 std::vector<double> double_smooth_ints(smoothed_ints);
@@ -852,7 +914,7 @@ START_SECTION((void updateWeightedMeanRT()))
   // all of its intensity on the first peak must have its centroid next to that peak. The
   // weights used to be the RT distance to the predecessor, starting at the second peak, which
   // dropped peak 0 and always returned the RT of the second peak here (see issue #2777)
-  std::vector<PeakType> two_peak_vec;
+  std::vector<MassTrace::PeakType> two_peak_vec;
   two_peak_vec.push_back(fillPeak(100.0, 230.1, 1000.0));
   two_peak_vec.push_back(fillPeak(105.0, 230.1, 10.0));
   MassTrace two_peak_mt(two_peak_vec);
@@ -860,7 +922,7 @@ START_SECTION((void updateWeightedMeanRT()))
   TEST_REAL_SIMILAR(two_peak_mt.getCentroidRT(), 100.04950495049505); // (1000*100 + 10*105) / 1010
 
   // a trace without any intensity has no weights to go by and falls back to the mean RT
-  std::vector<PeakType> flat_vec;
+  std::vector<MassTrace::PeakType> flat_vec;
   flat_vec.push_back(fillPeak(100.0, 230.1, 0.0));
   flat_vec.push_back(fillPeak(104.0, 230.1, 0.0));
   MassTrace flat_mt(flat_vec);
@@ -936,6 +998,47 @@ START_SECTION((void updateSmoothedWeightedMeanRT()))
     test_mt.updateSmoothedWeightedMeanRT();
     double smooth_max_rt = test_mt.getCentroidRT();
     TEST_REAL_SIMILAR(smooth_max_rt, 155.2468039);
+}
+END_SECTION
+
+/////
+
+START_SECTION((double getFWHMMZAvg() const))
+{
+  MassTrace tmp_mt(peak_vec);
+  TEST_REAL_SIMILAR(tmp_mt.getFWHMMZAvg(), 0.0); // no FWHM meta data
+  tmp_mt.setFWHMMZAvg(0.0123);
+  TEST_REAL_SIMILAR(tmp_mt.getFWHMMZAvg(), 0.0123);
+  TEST_REAL_SIMILAR(tmp_mt.getFWHMIMAvg(), 0.0);
+
+  const MassTrace copy_mt(tmp_mt);
+  TEST_REAL_SIMILAR(copy_mt.getFWHMMZAvg(), 0.0123);
+}
+END_SECTION
+
+START_SECTION((void setFWHMMZAvg(double fwhm)))
+{
+  NOT_TESTABLE // tested above
+}
+END_SECTION
+
+START_SECTION((double getFWHMIMAvg() const))
+{
+  MassTrace tmp_mt(peak_vec);
+  TEST_REAL_SIMILAR(tmp_mt.getFWHMIMAvg(), 0.0); // no FWHM meta data
+  tmp_mt.setFWHMIMAvg(0.0456);
+  TEST_REAL_SIMILAR(tmp_mt.getFWHMIMAvg(), 0.0456);
+  TEST_REAL_SIMILAR(tmp_mt.getFWHMMZAvg(), 0.0);
+
+  MassTrace assigned_mt;
+  assigned_mt = tmp_mt;
+  TEST_REAL_SIMILAR(assigned_mt.getFWHMIMAvg(), 0.0456);
+}
+END_SECTION
+
+START_SECTION((void setFWHMIMAvg(double fwhm)))
+{
+  NOT_TESTABLE // tested above
 }
 END_SECTION
 

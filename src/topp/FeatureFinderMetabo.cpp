@@ -155,6 +155,15 @@ protected:
       {
         m_traces_final = std::move(splitted_mtraces);
       }
+
+      if (!ffm_param.getValue("use_smoothed_intensities").toBool())
+      {
+        // feature finding only uses the raw intensities from here on
+        for (MassTrace& mt : m_traces_final)
+        {
+          mt.clearSmoothedIntensities();
+        }
+      }
     }
     else
     {

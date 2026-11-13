@@ -477,7 +477,7 @@ namespace OpenMS
     }
     else // split mt to sub-traces
     {
-      const std::span<const PeakType> peaks(mt.getPeaks());
+      const std::span<const MassTrace::PeakType> peaks(mt.getPeaks());
       const std::span<const double> smoothed(mt.getSmoothedIntensities());
       Size last_idx(0);
 
@@ -495,7 +495,7 @@ namespace OpenMS
         {
           last_idx = mins[min_idx] + 1;
         }
-        const std::span<const PeakType> sub_peaks = peaks.subspan(first_idx, last_idx - first_idx);
+        const std::span<const MassTrace::PeakType> sub_peaks = peaks.subspan(first_idx, last_idx - first_idx);
         const std::span<const double> sub_smoothed = smoothed.subspan(first_idx, last_idx - first_idx);
 
         // check filter criteria (on the peaks of the sub-trace, so that no mass trace is created for a rejected one)
@@ -528,12 +528,12 @@ namespace OpenMS
         if (pw_ok && snr_ok)
         {
           // Create new mass trace, copy smoothed intensities
-          MassTrace new_mt(std::vector<PeakType>(sub_peaks.begin(), sub_peaks.end()));
+          MassTrace new_mt(std::vector<MassTrace::PeakType>(sub_peaks.begin(), sub_peaks.end()));
           new_mt.setSmoothedIntensities(std::vector<double>(sub_smoothed.begin(), sub_smoothed.end()));
           // copy ion mobility centroid and peak fwhm to split traces
           if (mt.containsIMData()) new_mt.setCentroidIM(mt.getCentroidIM());
-          new_mt.fwhm_mz_avg = mt.fwhm_mz_avg;
-          new_mt.fwhm_im_avg = mt.fwhm_im_avg;
+          new_mt.setFWHMMZAvg(mt.getFWHMMZAvg());
+          new_mt.setFWHMIMAvg(mt.getFWHMIMAvg());
 
           // set label of sub-trace
           new_mt.setLabel(mt.getLabel() + "." + StringUtils::toStr(min_idx + 1));
