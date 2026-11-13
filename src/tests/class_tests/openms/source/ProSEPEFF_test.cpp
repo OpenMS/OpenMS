@@ -431,6 +431,104 @@ START_SECTION((std::vector<VariantCounts> countPSMs(const std::vector<const Pept
 }
 END_SECTION
 
+START_SECTION(([EXTRA] modifications that turn the variant residue into the reference: modificationExclusions(), not searched with a fixed one))
+{
+  // E28Q (EGFVR...): Q + deamidation = E. G10A: no such modification
+  ProSEPEFF::Settings s = settings(30);
+  s.variable_modifications = {"Oxidation (M)", "Deamidated (Q)"};
+  std::vector<FASTAFile::FASTAEntry> db = {{"sp:P01", "\\VariantSimple=(28|Q)(10|A)", P01}};
+  ProSEPEFF peff;
+  TEST_EQUAL(peff.addVariantWindows(db, s), 2)
+  const ProSEPEFF::Window* w = peff.find("sp:P01_VAR_E28Q");
+  ABORT_IF(w == nullptr)
+  const auto exclusions = peff.modificationExclusions();
+  TEST_EQUAL(exclusions->size(), 1)
+  ABORT_IF(exclusions->count("sp:P01_VAR_E28Q") != 1)
+  const auto& excluded = exclusions->at("sp:P01_VAR_E28Q");
+  TEST_EQUAL(excluded.size(), 1)
+  TEST_EQUAL(excluded[0].first, 27 - w->shift) // the variant residue, in window positions
+  TEST_STRING_EQUAL(excluded[0].second, "Deamidated (Q)")
+  TEST_EQUAL(db[1].sequence[excluded[0].first], 'Q')
+
+  // mapToParents(): the variant residue with the excluded modification is the reference peptide (e.g. found in the
+  // window by PeptideIndexing): no evidence on the window, no variant; unmodified, it is the variant
+  const Int start = static_cast<Int>(27 - w->shift);
+  PeptideIdentificationList ids(2);
+  PeptideHit modified, unmodified;
+  modified.setSequence(AASequence::fromString("Q(Deamidated)GFVRTHQPSANLDIK"));
+  modified.setPeptideEvidences({PeptideEvidence("sp:P01", 27, 42, 'K', 'C'), PeptideEvidence("sp:P01_VAR_E28Q", start, start + 15, 'K', 'C')});
+  unmodified.setSequence(AASequence::fromString("QGFVRTHQPSANLDIK"));
+  unmodified.setPeptideEvidences({PeptideEvidence("sp:P01_VAR_E28Q", start, start + 15, 'K', 'C')});
+  ids[0].setHits({modified});
+  ids[1].setHits({unmodified});
+  std::vector<ProteinIdentification> no_proteins;
+  peff.mapToParents(no_proteins, ids);
+  TEST_EQUAL(ids[0].getHits()[0].getPeptideEvidences().size(), 1)
+  TEST_EQUAL(ids[0].getHits()[0].metaValueExists(ProSEPEFF::variantMetaValue()), false)
+  TEST_STRING_EQUAL(ids[1].getHits()[0].getMetaValue(ProSEPEFF::variantMetaValue()).toString(), "sp:P01:E28Q")
+
+  // a fixed modification: every peptide with the variant residue is the reference's: not searched
+  ProSEPEFF::Settings f = settings(30);
+  f.fixed_modifications = {"Deamidated (Q)"};
+  std::vector<FASTAFile::FASTAEntry> db_fixed = {{"sp:P01", "\\VariantSimple=(28|Q)", P01}};
+  ProSEPEFF peff_fixed;
+  TEST_EQUAL(peff_fixed.addVariantWindows(db_fixed, f), 0)
+  ABORT_IF(peff_fixed.getVariantStatus().size() != 1)
+  TEST_EQUAL(peff_fixed.getVariantStatus()[0].searched, false)
+  TEST_STRING_EQUAL(peff_fixed.getVariantStatus()[0].reason, "equivalent_to_reference")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] ProSEAlgorithm with Deamidated (Q): the variant E28Q, deamidated at Q28, is not a candidate))
+{
+  // a spectrum of the reference peptide EGFVRTHQPSANLDIK; QGFVRTHQPSANLDIK with Q1 deamidated has its composition
+  const vector<FASTAFile::FASTAEntry> fasta_db = {{"sp:P01", "\\VariantSimple=(28|Q)", P01}};
+  TheoreticalSpectrumGenerator tsg;
+  Param tsg_param = tsg.getParameters();
+  tsg_param.setValue("add_first_prefix_ion", "true");
+  tsg.setParameters(tsg_param);
+  PeakMap spectra;
+  const AASequence reference = AASequence::fromString("EGFVRTHQPSANLDIK");
+  MSSpectrum spectrum;
+  tsg.getSpectrum(spectrum, reference, 1, 1);
+  spectrum.sortByPosition();
+  spectrum.setMSLevel(2);
+  spectrum.setRT(100.0);
+  Precursor precursor;
+  precursor.setMZ(reference.getMZ(2));
+  precursor.setCharge(2);
+  spectrum.setPrecursors({precursor});
+  spectrum.setNativeID("spectrum=0");
+  spectra.addSpectrum(std::move(spectrum));
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 10.0);
+  p.setValue("precursor:mass_tolerance_upper", 10.0);
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("modifications:fixed", vector<string>{});
+  p.setValue("modifications:variable", vector<string>{"Deamidated (Q)"});
+  p.setValue("decoys", "generate");
+  p.setValue("rescore", "false");
+  p.setValue("report:top_hits", 10);
+  p.setValue("peptide:min_size", 7);
+  p.setValue("peptide:max_size", 30);
+  p.setValue("peptide:missed_cleavages", 1);
+  p.setValue("database:peff_variants", "simple");
+  algo.setParameters(p);
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  TEST_EQUAL(algo.search(spectra, fasta_db, protein_ids, peptide_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  ABORT_IF(peptide_ids.size() != 1 || peptide_ids[0].getHits().empty())
+  // the reference is the best hit; no hit is the variant with the deamidated variant residue
+  TEST_STRING_EQUAL(peptide_ids[0].getHits()[0].getSequence().toString(), "EGFVRTHQPSANLDIK")
+  for (const PeptideHit& hit : peptide_ids[0].getHits())
+  {
+    TEST_EQUAL(hit.getSequence().toString().rfind("Q(Deamidated)GFVR", 0) == 0, false)
+  }
+}
+END_SECTION
+
 START_SECTION(([EXTRA] ProSEAlgorithm database:peff_variants identifies a variant peptide))
 {
   // G10A turns VLGFHQR into VLAFHQR, P60* ends the protein with HASGDFLK (KP: not cleaved in the protein); the spectra:

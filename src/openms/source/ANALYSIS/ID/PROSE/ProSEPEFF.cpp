@@ -150,6 +150,9 @@ namespace OpenMS
     identifiers.reserve(db.size());
     for (const FASTAFile::FASTAEntry& entry : db) { identifiers.insert(entry.identifier); }
 
+    // the substitutions that a searched modification of the variant residue turns into the reference
+    const std::vector<EquivalentSubstitution> fixed_equivalent = referenceEquivalentSubstitutions(settings.fixed_modifications);
+    const std::vector<EquivalentSubstitution> variable_equivalent = referenceEquivalentSubstitutions(settings.variable_modifications);
     static const std::string simple_key = "\\VariantSimple=";
     static const std::string complex_key = "\\VariantComplex=";
     std::vector<FASTAFile::FASTAEntry> windows;
@@ -207,6 +210,11 @@ namespace OpenMS
         else if (!stop && !isIndexableResidue(alt)) { reason = "unknown_residue"; }
         else if (alt == ref) { reason = "same_as_reference"; }
         else if (stop && simple.position == 1) { reason = "stop_at_first_residue"; }
+        else if (std::any_of(fixed_equivalent.begin(), fixed_equivalent.end(),
+                             [&](const EquivalentSubstitution& e) { return e.variant == alt && e.reference == ref; }))
+        {
+          reason = "equivalent_to_reference"; // (every peptide with the variant residue has the reference's composition)
+        }
         if (!reason.empty())
         {
           record(identifier, simple.position, in_range ? ref : '\0', variant, stop ? VariantKind::STOP_GAIN : VariantKind::SIMPLE,
@@ -300,6 +308,13 @@ namespace OpenMS
         info.region = {r0 - a, r1 - a};
         info.variant = variant;
         (*regions_)[window.identifier] = info.region;
+        if (!stop)
+        {
+          for (const EquivalentSubstitution& e : variable_equivalent)
+          {
+            if (e.variant == alt && e.reference == ref) { (*exclusions_)[window.identifier].emplace_back(v - a, e.modification); }
+          }
+        }
         // the decoy's region, kept until addDecoys() (by the target's identifier)
         Window decoy = info;
         decoy.decoy = true;
@@ -362,6 +377,19 @@ namespace OpenMS
 
   void ProSEPEFF::mapToParents(std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) const
   {
+    // whether @p sequence, at window position @p start of @p window, has an excluded modification at an excluded position
+    const auto carriesExcludedModification = [this](const std::string& window, const Size start, const AASequence& sequence)
+    {
+      const auto it = exclusions_->find(window);
+      if (it == exclusions_->end()) { return false; }
+      for (const auto& [position, name] : it->second)
+      {
+        if (position < start || position - start >= sequence.size()) { continue; }
+        const ResidueModification* mod = sequence[position - start].getModification();
+        if (mod != nullptr && mod->getFullId() == name) { return true; }
+      }
+      return false;
+    };
     if (windows_.empty()) { return; }
     std::vector<PeptideEvidence> mapped, moved_evidences;
     std::set<std::string> variants;
@@ -393,6 +421,10 @@ namespace OpenMS
           if (positions && (static_cast<Size>(start) >= window->region.second || static_cast<Size>(end) < window->region.first))
           {
             continue; // a peptide of the protein (or of its decoy) outside the residues the variant changes
+          }
+          if (positions && carriesExcludedModification(evidence.getProteinAccession(), static_cast<Size>(start), hit.getSequence()))
+          {
+            continue; // the reference peptide (the variant residue with a modification that makes it the reference)
           }
           PeptideEvidence moved = evidence;
           moved.setProteinAccession(window->parent);

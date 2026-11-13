@@ -575,6 +575,8 @@ namespace OpenMS
       // per cleavage segment (keep_termini, or reversePeptides() with a specific digestion) or the whole entry reversed
       peff_settings.segment_decoys = peptide_enzyme_specificity_ != EnzymaticDigestion::SPEC_NONE;
       peff_settings.clip_nterm_methionine = param_.getValue("peptide:clip_nterm_methionine").toBool();
+      peff_settings.fixed_modifications = modifications_fixed_;
+      peff_settings.variable_modifications = modifications_variable_;
       peff = std::make_shared<ProSEPEFF>();
       const Size n_windows = peff->addVariantWindows(db, peff_settings);
       if (n_windows > 0 && reuses_decoys)
@@ -585,42 +587,25 @@ namespace OpenMS
       }
       OPENMS_LOG_INFO << "[ProSE] database:peff_variants: " << n_windows << " sequence variants (\\VariantSimple) added "
                       << "to the database." << std::endl;
-      // Variants that a searched modification of the variant residue turns into the reference (e.g. E->Q with
-      // Deamidated (Q)): modified there, the variant peptide is the reference peptide, matches its spectra as well and
-      // can be reported as a variant in its place (see OpenMS issue #10888, item 4)
-      StringList searched_modifications = modifications_fixed_;
-      searched_modifications.insert(searched_modifications.end(), modifications_variable_.begin(), modifications_variable_.end());
-      const std::vector<ProSEPEFF::EquivalentSubstitution> equivalent = ProSEPEFF::referenceEquivalentSubstitutions(searched_modifications);
-      if (!equivalent.empty())
+      // Variants that a searched variable modification of the variant residue turns into the reference (e.g. E->Q with
+      // Deamidated (Q)): modified there, the variant peptide would be the reference peptide (OpenMS issue #10888, item
+      // 4), so the modification is not applied at the variant residue (ProSEPEFF::modificationExclusions()). With a fixed
+      // one, the variant is not searched (status 'equivalent_to_reference').
+      Size excluded = 0;
+      for (const auto& window : *peff->modificationExclusions()) { excluded += !window.second.empty(); }
+      Size equivalent_fixed = 0;
+      for (const ProSEPEFF::VariantStatus& status : peff->getVariantStatus()) { equivalent_fixed += status.reason == "equivalent_to_reference"; }
+      if (excluded > 0)
       {
-        Size affected = 0;
-        std::string example;
-        for (const ProSEPEFF::VariantStatus& status : peff->getVariantStatus())
-        {
-          if (!status.searched || status.kind != ProSEPEFF::VariantKind::SIMPLE || status.variant.empty()) { continue; }
-          const char alt = status.variant.back();
-          for (const ProSEPEFF::EquivalentSubstitution& e : equivalent)
-          {
-            if (e.variant == alt && e.reference == status.reference)
-            {
-              if (affected++ == 0) { example = status.protein + ":" + status.variant + " with " + e.modification; }
-              break;
-            }
-          }
-        }
-        if (affected > 0)
-        {
-          std::string pairs;
-          for (const ProSEPEFF::EquivalentSubstitution& e : equivalent)
-          {
-            pairs += (pairs.empty() ? "" : ", ") + std::string(1, e.reference) + "->" + std::string(1, e.variant) + " with " + e.modification;
-          }
-          OPENMS_LOG_WARN << "[ProSE] database:peff_variants: " << affected << " searched variants (e.g. " << example << ") "
-                          << "equal the reference residue when the variant residue carries a searched modification (" << pairs
-                          << "): modified there, the variant peptide is the reference peptide and can be reported as a "
-                          << "variant for spectra of the reference. Consider searching without that modification, or "
-                          << "check such variant PSMs." << std::endl;
-        }
+        OPENMS_LOG_INFO << "[ProSE] database:peff_variants: " << excluded << " variants are searched without the variable "
+                        << "modification of their variant residue that turns it into the reference residue (e.g. E->Q "
+                        << "with Deamidated (Q)): modified there, the variant peptide is the reference peptide." << std::endl;
+      }
+      if (equivalent_fixed > 0)
+      {
+        OPENMS_LOG_WARN << "[ProSE] database:peff_variants: " << equivalent_fixed << " variants are not searched: a fixed "
+                        << "modification turns their variant residue into the reference residue (status "
+                        << "'equivalent_to_reference', -out_variant_status)." << std::endl;
       }
       // (kept without windows if it has annotated variants: their status, getVariantWindows())
       if (n_windows == 0 && peff->getVariantStatus().empty()) { peff.reset(); }
@@ -775,6 +760,7 @@ namespace OpenMS
   void ProSEAlgorithm::setPeptideRegions_(FragmentIndex& index, const std::shared_ptr<const ProSEPEFF>& peff)
   {
     index.setPeptideRegions(peff ? peff->peptideRegions() : nullptr);
+    index.setModificationExclusions(peff ? peff->modificationExclusions() : nullptr);
   }
 
   // =====================================================================

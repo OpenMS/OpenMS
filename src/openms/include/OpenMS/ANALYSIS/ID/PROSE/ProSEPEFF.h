@@ -82,6 +82,12 @@ namespace OpenMS
       bool segment_decoys = true;
       /// peptide:clip_nterm_methionine: a generated decoy keeps an initial M in place
       bool clip_nterm_methionine = true;
+      /// The fixed modifications of the search: a variant whose residue one of them turns into the reference residue
+      /// is the reference (not searched, reason "equivalent_to_reference", see referenceEquivalentSubstitutions())
+      StringList fixed_modifications;
+      /// The variable modifications of the search: one that turns the variant residue into the reference residue is
+      /// not applied at the variant residue of the window (modificationExclusions()), the others are
+      StringList variable_modifications;
     };
 
     /// A window (target or decoy) of the database
@@ -113,7 +119,8 @@ namespace OpenMS
       VariantKind kind = VariantKind::SIMPLE;
       bool searched = false;      ///< whether a window holds it
       /// why it is not searched (empty if searched): out_of_range, unknown_residue, same_as_reference,
-      /// stop_at_first_residue, complex_not_supported
+      /// stop_at_first_residue, complex_not_supported, equivalent_to_reference (a fixed modification turns the variant
+      /// residue into the reference residue)
       std::string reason;
       std::string window;         ///< identifier of its window (if searched)
     };
@@ -194,10 +201,19 @@ namespace OpenMS
     std::shared_ptr<const FragmentIndex::PeptideRegions> peptideRegions() const { return regions_; }
 
     /**
+     * @brief The variable modifications not to apply at the variant residue of a window, for
+     * FragmentIndex::setModificationExclusions(): those that turn it into the reference residue
+     * (referenceEquivalentSubstitutions() of Settings::variable_modifications). The decoy windows keep them (more decoy
+     * candidates than target ones there, not fewer).
+     */
+    std::shared_ptr<const FragmentIndex::ModificationExclusions> modificationExclusions() const { return exclusions_; }
+
+    /**
      * @brief Maps the hits of windows to their proteins (see class description).
      *
      * For every evidence of a window: dropped if the peptide does not overlap the window's region (a peptide of the
-     * protein, which has its own evidence), otherwise moved to the protein (decoy protein) at the protein position (with
+     * protein, which has its own evidence) or carries an excluded modification (modificationExclusions()) at the variant
+     * residue (the reference peptide then, e.g. found there by PeptideIndexing), otherwise moved to the protein (decoy protein) at the protein position (with
      * the residues before and after it in the window). Repeated evidences are merged. 'protein_references' is updated as
      * PeptideIndexing sets it. The protein hits of windows are replaced by hits of their proteins (if not present).
      */
@@ -238,5 +254,7 @@ namespace OpenMS
     std::unordered_map<std::string, Window> pending_decoys_;
     /// getVariantStatus()
     std::vector<VariantStatus> status_;
+    /// modificationExclusions()
+    std::shared_ptr<FragmentIndex::ModificationExclusions> exclusions_ = std::make_shared<FragmentIndex::ModificationExclusions>();
   };
 } // namespace OpenMS

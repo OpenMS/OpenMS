@@ -595,8 +595,11 @@ namespace OpenMS
   }
 
   size_t FragmentIndex::buildModSlots_(const char* sequence, size_t seq_len, ModSlot* out_slots,
-                                       bool is_protein_nterm, bool is_protein_cterm) const
+                                       bool is_protein_nterm, bool is_protein_cterm,
+                                       const UInt32 protein_idx, const size_t start) const
   {
+    // setModificationExclusions(): none of the entry's excluded modifications at its positions
+    const bool exclusions = !excluded_offsets_.empty() && spanHasExclusion_(protein_idx, start, seq_len);
     size_t n_slots = 0;
 
     // 1. Pure N-terminal variable mods (not residue-specific, origin='X')
@@ -626,6 +629,7 @@ namespace OpenMS
       for (const auto& entry : var_mods)
       {
         if (n_slots >= MAX_MOD_SLOTS) break;
+        if (exclusions && isExcludedModification_(protein_idx, start + i, entry.mod_ptr)) continue;
         // ANYWHERE: any position
         // N_TERM: peptide N-term (position 0)
         // PROTEIN_N_TERM: only position 0 AND peptide is at protein start
@@ -934,6 +938,8 @@ namespace OpenMS
     std::vector<UInt32>().swap(bucket_skip_);
     std::vector<UInt32>().swap(electron_bucket_skip_);
     std::vector<uint32_t>().swap(protein_lengths_);
+    std::vector<uint32_t>().swap(excluded_offsets_);
+    std::vector<std::pair<uint32_t, const ResidueModification*>>().swap(excluded_);
     is_build_ = false;
     entry_sites_ = false;
     packed_entries_ = false;
@@ -943,6 +949,64 @@ namespace OpenMS
   void FragmentIndex::setPeptideRegions(std::shared_ptr<const PeptideRegions> regions)
   {
     peptide_regions_ = std::move(regions);
+  }
+
+  void FragmentIndex::setModificationExclusions(std::shared_ptr<const ModificationExclusions> exclusions)
+  {
+    modification_exclusions_ = std::move(exclusions);
+  }
+
+  void FragmentIndex::resolveModificationExclusions_(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
+  {
+    excluded_offsets_.clear();
+    excluded_.clear();
+    if (modification_exclusions_ == nullptr || modification_exclusions_->empty()) { return; }
+    const ModificationsDB* mdb = ModificationsDB::getInstance();
+    std::vector<std::pair<uint32_t, const ResidueModification*>> entry;
+    excluded_offsets_.reserve(fasta_entries.size() + 1);
+    excluded_offsets_.push_back(0);
+    for (const FASTAFile::FASTAEntry& fasta : fasta_entries)
+    {
+      const auto it = modification_exclusions_->find(fasta.identifier);
+      if (it != modification_exclusions_->end())
+      {
+        entry.clear();
+        for (const auto& [position, name] : it->second)
+        {
+          if (position >= fasta.sequence.size()) { continue; }
+          entry.emplace_back(static_cast<uint32_t>(position), mdb->getModification(name)); // (throws for an unknown name)
+        }
+        std::sort(entry.begin(), entry.end());
+        excluded_.insert(excluded_.end(), entry.begin(), entry.end());
+      }
+      excluded_offsets_.push_back(static_cast<uint32_t>(excluded_.size()));
+    }
+    if (excluded_.empty())
+    {
+      excluded_offsets_.clear(); // (no entry has any: the checks stay free)
+    }
+  }
+
+  bool FragmentIndex::isExcludedModification_(const UInt32 protein_idx, const size_t position, const ResidueModification* mod) const
+  {
+    if (excluded_offsets_.empty() || protein_idx == NO_PROTEIN || protein_idx + 1 >= excluded_offsets_.size()) { return false; }
+    const auto begin = excluded_.begin() + excluded_offsets_[protein_idx];
+    const auto end = excluded_.begin() + excluded_offsets_[protein_idx + 1];
+    for (auto it = std::lower_bound(begin, end, std::make_pair(static_cast<uint32_t>(position), static_cast<const ResidueModification*>(nullptr)));
+         it != end && it->first == position; ++it)
+    {
+      if (it->second == mod) { return true; }
+    }
+    return false;
+  }
+
+  bool FragmentIndex::spanHasExclusion_(const UInt32 protein_idx, const size_t start, const size_t length) const
+  {
+    if (excluded_offsets_.empty() || protein_idx + 1 >= excluded_offsets_.size()) { return false; }
+    const auto begin = excluded_.begin() + excluded_offsets_[protein_idx];
+    const auto end = excluded_.begin() + excluded_offsets_[protein_idx + 1];
+    const auto it = std::lower_bound(begin, end, std::make_pair(static_cast<uint32_t>(start), static_cast<const ResidueModification*>(nullptr)));
+    return it != end && it->first < start + length;
   }
 
   const std::pair<Size, Size>* FragmentIndex::peptideRegion_(const FASTAFile::FASTAEntry& entry) const
@@ -1025,7 +1089,7 @@ namespace OpenMS
       bool is_prot_nterm = isProteinNTerminal_(protein_seq, peptide.sequence_.first);
       bool is_prot_cterm = (peptide.sequence_.first + seq_len == protein_seq.size());
       ModSlot slots[MAX_MOD_SLOTS];
-      size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots, is_prot_nterm, is_prot_cterm);
+      size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots, is_prot_nterm, is_prot_cterm, peptide.protein_idx, peptide.sequence_.first);
 
       for (size_t s = 0; s < n_slots; ++s)
       {
@@ -1129,7 +1193,7 @@ namespace OpenMS
       const bool is_prot_nterm = isProteinNTerminal_(protein_seq, realized_start);
       const bool is_prot_cterm = (realized_start + realized_length == protein_seq.size());
       ModSlot slots[MAX_MOD_SLOTS];
-      size_t n_slots = buildModSlots_(seq_ptr, realized_length, slots, is_prot_nterm, is_prot_cterm);
+      size_t n_slots = buildModSlots_(seq_ptr, realized_length, slots, is_prot_nterm, is_prot_cterm, mother.protein_idx, realized_start);
 
       for (size_t s = 0; s < n_slots; ++s)
       {
@@ -1870,7 +1934,7 @@ namespace OpenMS
             bool is_prot_nterm = isProteinNTerminal_(protein.sequence, digested_peptide.first);
             bool is_prot_cterm = (digested_peptide.first + seq_len == protein.sequence.size());
             ModSlot slots[MAX_MOD_SLOTS];
-            size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots, is_prot_nterm, is_prot_cterm);
+            size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots, is_prot_nterm, is_prot_cterm, static_cast<UInt32>(protein_idx), digested_peptide.first);
             if (n_slots > MAX_ENUMERATED_SLOTS)
             {
               // buildModSlots_() stops at MAX_MOD_SLOTS; the first 31 slots keep their bits
@@ -2090,7 +2154,7 @@ namespace OpenMS
     const uint32_t slot_bits = peptide.mod_bitmask_;
     if (slot_bits == 0) return;
     ModSlot slots[MAX_MOD_SLOTS];
-    const size_t n_slots = buildModSlots_(seq, len, slots, isProteinNTerminal_(protein, start), start + len == protein.size());
+    const size_t n_slots = buildModSlots_(seq, len, slots, isProteinNTerminal_(protein, start), start + len == protein.size(), peptide.protein_idx, start);
     for (size_t s = 0; s < n_slots; ++s)
     {
       if (!(slot_bits & (1u << s))) continue;
@@ -2120,9 +2184,11 @@ namespace OpenMS
     // The same slots (buildModSlots_() sees the same residues and protein-terminal context): the same active slots
     // set the same modifications; different ones set differently rendered ones, unless two variable modifications
     // render alike.
-    if (!rendering.slots_depend_on_context
-        || (isProteinNTerminal_(protein_a, start_a) == isProteinNTerminal_(protein_b, start_b)
-            && (start_a + len == protein_a.size()) == (start_b + len == protein_b.size())))
+    // (an excluded modification of setModificationExclusions() in either span: the slots may differ)
+    if ((!rendering.slots_depend_on_context
+         || (isProteinNTerminal_(protein_a, start_a) == isProteinNTerminal_(protein_b, start_b)
+             && (start_a + len == protein_a.size()) == (start_b + len == protein_b.size())))
+        && !spanHasExclusion_(a.protein_idx, start_a, len) && !spanHasExclusion_(b.protein_idx, start_b, len))
     {
       if (a.mod_bitmask_ == b.mod_bitmask_) return true;
       if (rendering.unique_variable_renderings) return false;
@@ -2392,6 +2458,7 @@ namespace OpenMS
         protein_lengths_.push_back(static_cast<uint32_t>(e.sequence.size()));
       }
 
+      resolveModificationExclusions_(fasta_entries); // (setModificationExclusions())
       /// generate all Peptides (also initializes residue mass table and mod tables)
       generatePeptides(fasta_entries);
       // Peptide-mass mode: the entries carry the modification sites of their prefix in the bits the mother indices leave free
@@ -2651,7 +2718,7 @@ namespace OpenMS
           bool is_prot_nterm = isProteinNTerminal_(prot_seq, pep.sequence_.first);
           bool is_prot_cterm = (pep.sequence_.first + seq_len == prot_seq.size());
           ModSlot slots[MAX_MOD_SLOTS];
-          size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots, is_prot_nterm, is_prot_cterm);
+          size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots, is_prot_nterm, is_prot_cterm, pep.protein_idx, pep.sequence_.first);
           generatePeptidoformFragments_(fragment_sink, electron_sink, seq_ptr, seq_len, static_cast<UInt32>(peptide_idx),
                                         pep.mod_bitmask_, slots, n_slots, mod_masses);
         }
@@ -2675,7 +2742,8 @@ namespace OpenMS
       // same slots, and no two variable modifications render alike). Equal peptidoforms agree in them, the peptides
       // of a run mostly differ in them (distinct ones of one composition, or the sites of a modification). 32 bits,
       // so that the comparison with all keys of a run vectorises; equal keys are only candidates.
-      const bool key_has_slots = !rendering.slots_depend_on_context && rendering.unique_variable_renderings;
+      // (not with modification exclusions, setModificationExclusions(): the same residues may give other slots there)
+      const bool key_has_slots = !rendering.slots_depend_on_context && rendering.unique_variable_renderings && excluded_.empty();
       const auto runKey = [&fasta_entries, key_has_slots](const Peptide& peptide)
       {
         uint64_t residues = 0;
@@ -4320,7 +4388,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           if (!has_variable_mods || (shift.sigma == 0.0 && !zero_sigma_subsets_)) return;
 
           // The modified peptidoforms, enumerated as generatePeptides() does
-          n_slots = std::min(buildModSlots_(sequence, length, slots, is_prot_nterm, is_prot_cterm), MAX_ENUMERATED_SLOTS);
+          n_slots = std::min(buildModSlots_(sequence, length, slots, is_prot_nterm, is_prot_cterm, mother.protein_idx, start), MAX_ENUMERATED_SLOTS);
           if (n_slots < shift.min_mods) return;
           uint32_t conflict_mask[MAX_MOD_SLOTS] = {};
           for (size_t a = 0; a < n_slots; ++a)
@@ -4442,7 +4510,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         {
           const size_t n_slots = buildModSlots_(protein.data() + start, hit.realized_length_, slots,
                                                 isProteinNTerminal_(protein, start),
-                                                start + hit.realized_length_ == protein.size());
+                                                start + hit.realized_length_ == protein.size(), mother.protein_idx, start);
           for (size_t s = 0; s < n_slots; ++s)
           {
             if (!(hit.subset_bitmask_ & (1u << s))) continue;
@@ -4933,6 +5001,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
   bool FragmentIndex::hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const
   {
     if (!isBuiltFrom(fasta_entries)) return false;
+    // setModificationExclusions(): equal residues and bitmasks need not name the same peptidoform
+    if (!excluded_.empty()) return false;
     // The configured modifications themselves (not the tables built from them): a protein-terminal one, fixed or
     // variable, may make the entries of a span depend on its position in the protein.
     for (const StringList* mods : {&modifications_fixed_, &modifications_variable_})
