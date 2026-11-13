@@ -181,6 +181,7 @@ public:
   using ProSEAlgorithm::residualSpectrum_;
   using ProSEAlgorithm::transferSample_;
   using ProSEAlgorithm::tdcQValues_;
+  using ProSEAlgorithm::CandidatePoolStats_;
   using ProSEAlgorithm::collectRunStatistics_;
   using ProSEAlgorithm::measuredCoverage_;
 };
@@ -4887,6 +4888,95 @@ START_SECTION(([EXTRA] peptidoform deduplication preserves protein evidence and 
       TEST_TRUE(file.peptide_ids[0].getHits() == reference)
     }
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] every hit gets its own delta score and z-score, not those of the best hit of its spectrum))
+{
+  // The z-score of any score against the pool; zScore() is that of the best one. Pool 9, 6, 3: mean 6, population
+  // SD sqrt(6).
+  ProSEAlgorithm_test::CandidatePoolStats_ stats;
+  for (double score : {6.0, 9.0, 3.0}) stats.add(score);
+  TEST_REAL_SIMILAR(stats.zScore(), 3.0 / std::sqrt(6.0))
+  TEST_EQUAL(stats.zScore(), stats.zScore(stats.best))
+  TEST_EQUAL(stats.zScore(6.0), 0.0)
+  TEST_REAL_SIMILAR(stats.zScore(3.0), -3.0 / std::sqrt(6.0))
+  // fewer than two candidates, or all of them scored the same: 0 for every score
+  ProSEAlgorithm_test::CandidatePoolStats_ single;
+  single.add(5.0);
+  TEST_EQUAL(single.zScore(5.0), 0.0)
+  ProSEAlgorithm_test::CandidatePoolStats_ flat;
+  flat.add(5.0);
+  flat.add(5.0);
+  TEST_EQUAL(flat.zScore(5.0), 0.0)
+
+  // Three peptides of the same mass compete for one spectrum of the first; all three are reported (report:top_hits).
+  // The pool holds exactly these three candidates (decoys 'ignore'), so its statistics follow from their scores.
+  const AASequence peptide = AASequence::fromString("THQPSANLDIK");
+  const vector<FASTAFile::FASTAEntry> db = {{"P1", "", peptide.toString()}, {"P2", "", "THQPSALNDIK"},
+                                            {"P3", "", "THQPSADNLIK"}};
+  MSSpectrum spectrum;
+  TheoreticalSpectrumGenerator().getSpectrum(spectrum, peptide, 1, 1);
+  spectrum.setMSLevel(2);
+  spectrum.setNativeID("scan=1");
+  Precursor precursor;
+  precursor.setMZ(peptide.getMZ(2));
+  precursor.setCharge(2);
+  spectrum.setPrecursors({precursor});
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:min_mz", 0);
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("fragment:min_matched_ions", 3);
+  p.setValue("peptide:missed_cleavages", 0);
+  p.setValue("report:top_hits", 10);
+  p.setValue("rescore", "false");
+  p.setValue("decoys", "ignore");
+  p.setValue("calibration:enabled", "false");
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("FDR:protein", 0.0);
+  p.setValue("modifications:fixed", vector<string> {});
+  p.setValue("modifications:variable", vector<string> {});
+  p.setValue("annotate:PSM", vector<string> {"ALL"});
+  algo.setParameters(p);
+  PeakMap spectra;
+  spectra.addSpectrum(spectrum);
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList ids;
+  algo.search(spectra, db, proteins, ids);
+  ABORT_IF(ids.size() != 1)
+  const vector<PeptideHit>& hits = ids[0].getHits();
+  ABORT_IF(hits.size() != 3)
+  TEST_EQUAL(hits[0].getSequence(), peptide)
+  TEST_TRUE(hits[0].getScore() > hits[1].getScore())
+  auto feature = [](const PeptideHit& hit, const std::string& name) { return static_cast<double>(hit.getMetaValue(name)); };
+  double sum = 0.0, sumsq = 0.0;
+  for (const PeptideHit& hit : hits)
+  {
+    sum += hit.getScore();
+    sumsq += hit.getScore() * hit.getScore();
+    // the size of the scored search space is one value per spectrum
+    TEST_REAL_SIMILAR(feature(hit, Constants::UserParam::LN_NUM_CANDIDATES), std::log1p(3.0))
+  }
+  const double mean = sum / 3.0;
+  const double sd = std::sqrt(sumsq / 3.0 - mean * mean);
+  // the best hit: best minus runner-up
+  TEST_REAL_SIMILAR(feature(hits[0], Constants::UserParam::DELTA_SCORE), hits[0].getScore() - hits[1].getScore())
+  for (Size rank = 0; rank < hits.size(); ++rank)
+  {
+    // a hit below the best: its own score minus the best (<= 0), as Sage's delta_best
+    if (rank > 0)
+    {
+      TEST_TRUE(feature(hits[rank], Constants::UserParam::DELTA_SCORE) <= 0.0)
+      TEST_REAL_SIMILAR(feature(hits[rank], Constants::UserParam::DELTA_SCORE), hits[rank].getScore() - hits[0].getScore())
+    }
+    // every hit: the z-score of its own score against the pool
+    TEST_REAL_SIMILAR(feature(hits[rank], Constants::UserParam::HYPERSCORE_ZSCORE), (hits[rank].getScore() - mean) / sd)
+  }
+  TEST_TRUE(feature(hits[1], Constants::UserParam::HYPERSCORE_ZSCORE) < feature(hits[0], Constants::UserParam::HYPERSCORE_ZSCORE))
 }
 END_SECTION
 
