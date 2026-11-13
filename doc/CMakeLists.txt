@@ -33,7 +33,7 @@ if(ENABLE_DOCS)
     set(_DOC_ALL "")
     set(_DOC_MINIMAL_ALL "ALL")
     set(_DOC_MINIMAL_EXTRA_MESSAGE
-        COMMAND ${CMAKE_COMMAND} -E echo "We build only a minimal doc since OpenMS was configured without HAS_XSERVER=Off."
+        COMMAND ${CMAKE_COMMAND} -E echo "We build only a minimal doc since OpenMS was configured with HAS_XSERVER=Off."
         COMMAND ${CMAKE_COMMAND} -E echo "If you want the full doc, either execute cmake --build . --target doc manually"
         COMMAND ${CMAKE_COMMAND} -E echo "or rerun cmake with -DHAS_XSERVER=On."
     )
