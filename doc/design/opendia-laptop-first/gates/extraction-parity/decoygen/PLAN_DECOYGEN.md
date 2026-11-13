@@ -101,3 +101,22 @@ have a decoy). Library hashes: `arm*/home/lib/lib.sha256`.
   its signal; A is built to share none, and C shares ≥ 3 in 8.6 % of the first 20,000. The C-term y1 and b(n−1) ions are
   always shared, as in FDRBench entrapments (which share 1.06 b/y on average, ≥ 3 in 12 %, first 20,000 pairs).
 - One run per arm. No retuning after a failure.
+
+## Amendment 1 (2026-11-13T20:50Z, before any search output exists; no score, population or label seen)
+- **What happened:** the first submission (jobs 27897373–27897392) re-ran OpenDIACalibrate per arm. All of it was
+  cancelled at the search step.
+  - Calibration failed outright for B raw01, C raw01 and C raw02 (exit 8, "0 anchors at the anchor FDR").
+  - The others only passed on the 300k-panel retry. Their stage-3 anchors were 225/205 (A), 122 (B raw02) and 515/371
+    (D), against 607/661 in PAIRLIB.
+- **Why this changes nothing the test measures:** the calibration panel scores targets against the library's own decoys,
+  so it varies with the arm. But the calibration is a property of the run and the target library (RT map, m/z and
+  peak-boundary models), and those are unchanged. Re-running it per arm would add a confound (different RT maps per arm)
+  rather than test the decoys.
+- **Change:** every arm uses the PAIRLIB calibration of each raw.
+  - `scripts/reuse_cal.py` copies `cal.json` unchanged. It holds no precursor IDs.
+  - It remaps the target-only `anchors.tsv` to the arm's precursor IDs by TRAML_ID, and every anchor must map.
+  - `chain_raw.sh` skips OpenDIACalibrate. Its only other change is this, so it is the PAIRLIB chain minus the cal step.
+  - This is the k11 practice (`astral-commatched-decoys-20261109`, remap_anchors.py).
+- **Pass rule, hypothesis, arms and libraries:** unchanged.
+- **Recorded as a finding (not ruled on):** with the current calibration code, decoy construction affects calibration
+  robustness. The calibrator should not depend on the decoy set this much; noted for the C++ work.
