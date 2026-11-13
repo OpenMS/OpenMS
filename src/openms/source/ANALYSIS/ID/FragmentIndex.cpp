@@ -1708,6 +1708,47 @@ namespace OpenMS
       while (x < end && static_cast<size_t>(std::popcount(x)) > max_set_bits) x += x & (~x + 1);
       return x;
     }
+
+    // Orders every run of peptides with equal (precursor_mz_, protein_idx) in @p peptides (sorted by that key) by
+    // (start, length, mod_bitmask_), which no two peptides of one protein share. The runs are independent: the
+    // @p num_chunks chunks, each moved to the start of a run, are ordered in parallel, and a thread that is done with
+    // a chunk takes the next one (schedule(dynamic)), so that the threads share the work when chunks differ in cost.
+    void orderRunsByPosition(std::vector<FragmentIndex::Peptide>& peptides, size_t num_chunks)
+    {
+      using Peptide = FragmentIndex::Peptide;
+      const auto same_run = [](const Peptide& a, const Peptide& b)
+      {
+        return a.precursor_mz_ == b.precursor_mz_ && a.protein_idx == b.protein_idx;
+      };
+      const auto by_position = [](const Peptide& a, const Peptide& b)
+      {
+        return std::tie(a.sequence_.first, a.sequence_.second, a.mod_bitmask_)
+               < std::tie(b.sequence_.first, b.sequence_.second, b.mod_bitmask_);
+      };
+      const size_t n = peptides.size();
+      num_chunks = std::max<size_t>(1, std::min(num_chunks, n));
+      // Chunk c starts at the first run that starts at or after n * c / num_chunks (a run longer than a chunk leaves
+      // the chunks it covers empty), so that no run is split between two chunks
+      std::vector<size_t> chunk_start(num_chunks + 1, n);
+      for (size_t c = 0; c < num_chunks; ++c)
+      {
+        size_t s = n * c / num_chunks;
+        while (s > 0 && s < n && same_run(peptides[s - 1], peptides[s])) ++s;
+        chunk_start[c] = s;
+      }
+      #pragma omp parallel for schedule(dynamic)
+      for (SignedSize c = 0; c < static_cast<SignedSize>(num_chunks); ++c)
+      {
+        const size_t end = chunk_start[c + 1];
+        for (size_t b = chunk_start[c]; b < end;)
+        {
+          size_t e = b + 1;
+          while (e < end && same_run(peptides[b], peptides[e])) ++e;
+          if (e - b > 1) std::sort(peptides.begin() + b, peptides.begin() + e, by_position);
+          b = e;
+        }
+      }
+    }
   } // namespace
 
   void FragmentIndex::generatePeptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
@@ -1962,11 +2003,9 @@ namespace OpenMS
                         << " sites are considered for them (see modifications:variable)." << std::endl;
       }
 
-      // Merge per-thread peptide vectors, in thread order: the sort below keys only on
-      // (precursor_mz_, protein_idx) — which does NOT cover mod_bitmask_ / sequence_ — so
-      // equal-key peptides are distinguishable and their relative order (hence every downstream
-      // peptide index) depends on this concatenation. Peptide() writes nothing, so the resize only
-      // allocates, and each thread copies (and first touches) the part that it generated.
+      // Merge per-thread peptide vectors, in thread order (the sort below orders equal-key peptides
+      // afterwards, so their order does not depend on this concatenation). Peptide() writes nothing,
+      // so the resize only allocates, and each thread copies (and first touches) the part that it generated.
       std::vector<size_t> merge_offsets(num_threads + 1, fi_peptides_.size());
       for (int t = 0; t < num_threads; ++t) merge_offsets[t + 1] = merge_offsets[t] + thread_peptides[t].size();
       fi_peptides_.resize(merge_offsets[num_threads]);
@@ -1980,6 +2019,18 @@ namespace OpenMS
 
       OPENMS_LOG_INFO << "Sorting peptides..." << std::endl;
       sortPeptides_(fi_peptides_);
+      // sortPeptides_() orders by (precursor_mz_, protein_idx) only and leaves the peptides of one protein with equal
+      // precursor_mz_ (site isomers of a variable modification, windows of equal composition) in the order its unstable
+      // sort happens to produce. That order is the order of their peptide indices, by which trimHits() breaks ties at the
+      // scoring:max_candidates_per_spectrum cut, while the peptide-mass mode (low_memory) breaks them by (precursor m/z,
+      // protein, start, length, modification subset) (querySpectrumPeptideMasses_()). Ordered by start, length and
+      // mod_bitmask_ (buildModSlots_() gives the peptide-mass mode the same slots), both modes keep the same candidates
+      // at the cut, and the deduplication in build(), which keeps the first entry of a peptidoform, keeps the one with
+      // the smallest (protein, start), as the peptide-mass mode does. Not covered: the configurations that build()
+      // deduplicates by rendered strings (deduplicateByString_()), and two variable modifications that render alike
+      // (see the deduplication in querySpectrumPeptideMasses_()). The mothers of generateMothers_() keep the order
+      // of sortPeptides_(): the peptide-mass query does not break ties by the index of a mother.
+      orderRunsByPosition(fi_peptides_, 16 * static_cast<size_t>(num_threads));
       OPENMS_LOG_INFO << "done." << std::endl;
   }
 
@@ -4373,10 +4424,13 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     {
       // The key of a hit: its residues, charge, isotope error and active modification slots by position and
       // modification (the same slot index can name a different site when the occurrences differ in their protein
-      // termini). Hits with equal keys are occurrences of one peptidoform. Instead of hashing a string per hit (an
-      // allocation per hit), the hits are sorted by key in thread-local buffers, which puts equal keys side by side;
-      // the group of a key is written to the position of its first hit and represented, as before, by the first of
-      // its hits with the smallest (protein, start). The residues are compared in the FASTA entries, not copied.
+      // termini). Hits with equal keys are occurrences of one peptidoform. The key compares the modification objects,
+      // not their rendering: two variable modifications that render alike (Acetyl (N-term) and Acetyl (Protein N-term)
+      // both render ".(Acetyl)") stay two candidates here, while build() keeps one entry of the two in the fragment
+      // index (samePeptidoform_()). Instead of hashing a string per hit (an allocation per hit), the hits are sorted
+      // by key in thread-local buffers, which puts equal keys side by side; the group of a key is written to the
+      // position of its first hit and represented, as before, by the first of its hits with the smallest (protein,
+      // start). The residues are compared in the FASTA entries, not copied.
       // The hit offsets and slot offsets are size_t: a spectrum can admit more than 2^32 hits or active slots (a
       // database of many copies of one protein with several variable modifications), which 32-bit offsets would wrap.
       struct DedupKey_
@@ -4491,10 +4545,9 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
     // Cap the candidate set at `max_processed_hits_`, ranked by the number of matched fragments (same policy as
     // the fragment-index path via queryPeaks→trimHits). trimHits() breaks ties by the index of the peptide, which in peptide-mass mode
-    // hits is that of the mother. Order them by precursor m/z and protein instead, as sortPeptides_() orders the
-    // peptides of the fragment index, then by start, length and modification subset. sortPeptides_() leaves the
-    // order within a protein to the sort algorithm, so a cut through equally ranked candidates of one protein (e.g.
-    // site isomers) can keep other candidates than the fragment index.
+    // hits is that of the mother. Order them by precursor m/z, protein, start, length and modification subset instead:
+    // the order of the peptides of the fragment index (generatePeptides()), so that a cut through equally ranked
+    // candidates (e.g. site isomers of one protein) keeps the same candidates as the fragment index.
     if (first_hit > 0)
     {
       trimHits(sms); // hits of earlier queries: no keys for them
