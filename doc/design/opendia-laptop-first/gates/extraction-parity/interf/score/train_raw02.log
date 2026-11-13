@@ -1,0 +1,8 @@
+raw02 D11FD fold 0: r0 4852 30 ep crit 12222.784 | r1 pos 1677 neg 96130 27 ep crit 1455.801 | r2 pos 1548 neg 96130 24 ep crit 2067.786 (34 s)
+raw02 D11FD fold 1: r0 4723 20 ep crit 12965.821 | r1 pos 1904 neg 96025 19 ep crit 1524.552 | r2 pos 1560 neg 96025 17 ep crit 2603.835 (59 s)
+raw02 D11FD fold 2: r0 4793 30 ep crit 11216.211 | r1 pos 1755 neg 96433 16 ep crit 1555.083 | r2 pos 1596 neg 96433 14 ep crit 2118.782 (87 s)
+raw02 D11FD done in 87 s
+raw02 D11F fold 0: r0 4852 21 ep crit 10787.261 | r1 pos 1571 neg 96130 30 ep crit 1614.565 | r2 pos 1489 neg 96130 22 ep crit 2062.547 (27 s)
+raw02 D11F fold 1: r0 4723 27 ep crit 12516.618 | r1 pos 1868 neg 96025 22 ep crit 1153.915 | r2 pos 1571 neg 96025 29 ep crit 1957.094 (57 s)
+raw02 D11F fold 2: r0 4793 30 ep crit 10831.749 | r1 pos 1702 neg 96433 20 ep crit 1347.445 | r2 pos 1476 neg 96433 18 ep crit 1950.600 (90 s)
+raw02 D11F done in 90 s
