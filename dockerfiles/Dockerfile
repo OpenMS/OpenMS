@@ -139,7 +139,7 @@ ENV DOTNET_ROOT=/usr/share/dotnet
 ENV PATH="${DOTNET_ROOT}:${PATH}"
 RUN <<-EOF
     set -eux
-    wget https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh
+    wget --tries=5 --timeout=60 --waitretry=10 https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh
     chmod +x /tmp/dotnet-install.sh
     /tmp/dotnet-install.sh --channel 8.0 --install-dir "${DOTNET_ROOT}"
     ln -s "${DOTNET_ROOT}/dotnet" /usr/local/bin/dotnet
@@ -286,7 +286,7 @@ RUN apt-get update \
   # on every Linux target we build (amd64 and aarch64), so both need the runtime.
   # A runtime (not SDK) install is sufficient here; dotnet-install.sh auto-detects
   # the host architecture.
-  && wget https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh \
+  && wget --tries=5 --timeout=60 --waitretry=10 https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh \
   && chmod +x /tmp/dotnet-install.sh \
   && /tmp/dotnet-install.sh --channel 8.0 --runtime dotnet --install-dir /usr/share/dotnet \
   && ln -s /usr/share/dotnet/dotnet /usr/local/bin/dotnet \
