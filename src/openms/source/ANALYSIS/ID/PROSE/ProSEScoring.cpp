@@ -586,7 +586,8 @@ namespace OpenMS
       }
       OPENMS_LOG_INFO << "[ProSE] database:peff_variants: " << n_windows << " sequence variants (\\VariantSimple) added "
                       << "to the database." << std::endl;
-      if (n_windows == 0) { peff.reset(); }
+      // (kept without windows if it has annotated variants: their status, getVariantWindows())
+      if (n_windows == 0 && peff->getVariantStatus().empty()) { peff.reset(); }
     }
 
     // 2. Generate decoys by reversing the (remaining) target proteins.

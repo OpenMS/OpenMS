@@ -58,8 +58,13 @@ namespace OpenMS
    * - A window does not start with M, unless it starts the protein: a generated decoy keeps an initial M in place when
    *   peptide:clip_nterm_methionine is set, which would shift it against the protein's decoy.
    *
-   * Simple variants only: a variant to the residue it replaces, to a stop codon or to a letter without a residue of known
-   * mass (X, B, Z, ...) is skipped, and so are \\VariantComplex (insertions, deletions) and combinations of variants.
+   * Stop codons (\\VariantSimple to '*', e.g. "Q13*"): the window is the protein up to the residue before the stop, and
+   * ends at a protein C-terminus there (its region: the last residue, i.e. the peptides that end at the new C-terminus).
+   *
+   * Not searched: a variant to the residue it replaces, to a letter without a residue of known mass (X, B, Z, ...), a stop
+   * codon at the first residue, a position outside the protein, \\VariantComplex (insertions, deletions) and
+   * combinations of variants. getVariantStatus() records every annotated variant with whether it is searched and why
+   * not; storeVariantStatus() writes it with the PSMs of each variant.
    */
   class OPENMS_DLLAPI ProSEPEFF
   {
@@ -89,8 +94,44 @@ namespace OpenMS
       bool decoy = false;            ///< whether the window is the decoy of a window
     };
 
+    /// The kind of an annotated variant
+    enum class VariantKind
+    {
+      SIMPLE,    ///< \\VariantSimple to a residue
+      STOP_GAIN, ///< \\VariantSimple to a stop codon ('*')
+      COMPLEX    ///< \\VariantComplex (insertion, deletion, multi-residue substitution)
+    };
+
+    /// An annotated variant of the database: whether it is searched, and why not
+    struct VariantStatus
+    {
+      std::string protein;        ///< identifier of the protein
+      Size position = 0;          ///< 1-based protein position (a complex variant: its first residue)
+      std::string variant;        ///< e.g. "R175H", "Q13*", "120-122|AG" (complex: start-end|replacement)
+      VariantKind kind = VariantKind::SIMPLE;
+      bool searched = false;      ///< whether a window holds it
+      /// why it is not searched (empty if searched): out_of_range, unknown_residue, same_as_reference,
+      /// stop_at_first_residue, complex_not_supported
+      std::string reason;
+      std::string window;         ///< identifier of its window (if searched)
+    };
+
+    /// The PSMs of an annotated variant in the hits of one or more runs (see countPSMs())
+    struct VariantCounts
+    {
+      Size psms = 0;                   ///< target PSMs (best hit of a spectrum) with the variant
+      Size passing_psms = 0;           ///< ... of them at a q-value <= the threshold (all, without q-values)
+      Size passing_runs = 0;           ///< runs with at least one of them
+      double best_q = -1.0;            ///< the best q-value of its PSMs (-1: no PSM, or no q-values)
+      Size reference_passing_psms = 0; ///< target PSMs without a variant, at q <= the threshold, whose evidence on the
+                                       ///< protein covers the variant position (the reference sequence is observed)
+    };
+
     /// Name of the meta value of the hits of variant peptides
     static const std::string& variantMetaValue();
+
+    /// Name of a VariantKind as storeVariantStatus() writes it (simple, stop_gain, complex)
+    static std::string kindName(VariantKind kind);
 
     /// Separator between the identifier of a protein and the variant in the identifier of its windows
     static const std::string& windowSeparator();
@@ -137,10 +178,39 @@ namespace OpenMS
      */
     void mapToParents(std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) const;
 
+    /// Every annotated variant that addVariantWindows() read, in database order, with whether it is searched
+    const std::vector<VariantStatus>& getVariantStatus() const { return status_; }
+
+    /**
+     * @brief Counts the PSMs of every annotated variant (getVariantStatus(), same order) in the hits of @p runs.
+     *
+     * The best hit of every spectrum counts (target hits only), after mapToParents(): a hit with variantMetaValue() for
+     * the variants it names, a hit without it for the variants whose position one of its evidences covers (on the
+     * protein). The main score is the q-value if the identification's score type is a q-value (rescoring, FDR); otherwise
+     * every PSM passes the threshold and best_q stays -1.
+     *
+     * @param[in] runs The identifications of each run
+     * @param[in] q_threshold The q-value threshold of the passing PSMs
+     */
+    std::vector<VariantCounts> countPSMs(const std::vector<const PeptideIdentificationList*>& runs, double q_threshold) const;
+
+    /**
+     * @brief Writes getVariantStatus() with countPSMs() as a tab-separated table.
+     *
+     * Columns: protein, position, variant, kind, status (searched / not_searched), reason, window, psms,
+     * psms_q (passing @p q_threshold), runs_q, best_q (empty without), reference_psms_q.
+     *
+     * @exception Exception::UnableToCreateFile if @p filename cannot be written
+     */
+    void storeVariantStatus(const std::string& filename, const std::vector<const PeptideIdentificationList*>& runs,
+                            double q_threshold) const;
+
   private:
     std::unordered_map<std::string, Window> windows_; ///< by identifier
     std::shared_ptr<FragmentIndex::PeptideRegions> regions_ = std::make_shared<FragmentIndex::PeptideRegions>();
     /// The decoy windows to be (addDecoys()), by the identifier of their target window
     std::unordered_map<std::string, Window> pending_decoys_;
+    /// getVariantStatus()
+    std::vector<VariantStatus> status_;
   };
 } // namespace OpenMS

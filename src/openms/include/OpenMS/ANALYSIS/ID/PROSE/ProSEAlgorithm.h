@@ -382,6 +382,13 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     };
 
     /**
+     * @brief The PEFF sequence variants of the database of the last search (database:peff_variants 'simple'): their
+     * windows and the status of every annotated variant (ProSEPEFF::getVariantStatus()). nullptr if the database had no
+     * variant annotations, or with database:peff_variants 'none'.
+     */
+    std::shared_ptr<const ProSEPEFF> getVariantWindows() const { return peff_; }
+
+    /**
      * @brief Search spectra in a spectrum file (mzML or Bruker .d) against a protein database using an FI-backed workflow.
      *
      * Populates protein and peptide identifications, including search meta data, PSM hits,
