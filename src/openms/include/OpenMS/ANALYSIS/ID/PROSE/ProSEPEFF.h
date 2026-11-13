@@ -10,6 +10,7 @@
 
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -134,6 +135,28 @@ namespace OpenMS
 
     /// Name of a VariantKind as storeVariantStatus() writes it (simple, stop_gain, complex)
     static std::string kindName(VariantKind kind);
+
+    /// A substitution that one of the searched modifications makes identical to the reference (see
+    /// referenceEquivalentSubstitutions())
+    struct EquivalentSubstitution
+    {
+      char variant = '\0';      ///< the variant residue, which the modification modifies
+      char reference = '\0';    ///< the residue it then equals (same elemental composition)
+      std::string modification; ///< the modification, as named in @p modifications
+    };
+
+    /**
+     * @brief The substitutions reference -> variant that a modification of the variant residue turns back into the
+     * reference: the variant residue with the modification has the elemental composition of the reference residue (e.g.
+     * E -> Q with Deamidated (Q), D -> N with Deamidated (N)).
+     *
+     * Such a variant peptide, modified there, is the reference peptide: it matches every spectrum of the reference
+     * peptide as well and cannot be told apart from it. Residue modifications only (not terminal ones without residue).
+     *
+     * @param[in] modifications Modification names as ModifiedPeptideGenerator::getModifications() takes them (e.g. the
+     *            fixed and the variable modifications of the search)
+     */
+    static std::vector<EquivalentSubstitution> referenceEquivalentSubstitutions(const StringList& modifications);
 
     /// Separator between the identifier of a protein and the variant in the identifier of its windows
     static const std::string& windowSeparator();

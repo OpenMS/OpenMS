@@ -8,7 +8,9 @@
 
 #include <OpenMS/ANALYSIS/ID/PROSE/ProSEPEFF.h>
 
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -22,6 +24,7 @@
 #include <fstream>
 #include <map>
 #include <set>
+#include <tuple>
 #include <unordered_set>
 
 namespace OpenMS
@@ -41,6 +44,34 @@ namespace OpenMS
       case VariantKind::COMPLEX: return "complex";
     }
     return "simple";
+  }
+
+  std::vector<ProSEPEFF::EquivalentSubstitution> ProSEPEFF::referenceEquivalentSubstitutions(const StringList& modifications)
+  {
+    std::vector<EquivalentSubstitution> out;
+    if (modifications.empty()) { return out; }
+    static const std::string residues = "ACDEFGHIKLMNPQRSTVWY";
+    const ResidueDB* rdb = ResidueDB::getInstance();
+    const ModifiedPeptideGenerator::MapToResidueType mods = ModifiedPeptideGenerator::getModifications(modifications);
+    for (const auto& [mod, modified] : mods.val)
+    {
+      const char origin = mod->getOrigin();
+      const Residue* variant = origin == '\0' ? nullptr : rdb->getResidue(static_cast<unsigned char>(origin));
+      if (variant == nullptr) { continue; } // (terminal modifications without a residue)
+      const EmpiricalFormula formula = variant->getFormula(Residue::Internal) + mod->getDiffFormula();
+      for (const char r : residues)
+      {
+        if (r == origin) { continue; }
+        const Residue* reference = rdb->getResidue(static_cast<unsigned char>(r));
+        if (reference != nullptr && reference->getFormula(Residue::Internal) == formula)
+        {
+          out.push_back({origin, r, mod->getFullId()});
+        }
+      }
+    }
+    std::sort(out.begin(), out.end(), [](const EquivalentSubstitution& a, const EquivalentSubstitution& b)
+              { return std::tie(a.variant, a.reference, a.modification) < std::tie(b.variant, b.reference, b.modification); });
+    return out;
   }
 
   const std::string& ProSEPEFF::windowSeparator()

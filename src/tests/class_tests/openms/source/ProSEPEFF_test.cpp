@@ -70,6 +70,27 @@ START_SECTION((static const std::string& variantMetaValue()))
 }
 END_SECTION
 
+START_SECTION((static std::vector<EquivalentSubstitution> referenceEquivalentSubstitutions(const StringList& modifications)))
+{
+  // Q + deamidation = E, N + deamidation = D, D + methyl = E; oxidized M and carbamidomethylated C equal no residue
+  const std::vector<ProSEPEFF::EquivalentSubstitution> e = ProSEPEFF::referenceEquivalentSubstitutions(
+    {"Deamidated (Q)", "Oxidation (M)", "Deamidated (N)", "Carbamidomethyl (C)", "Methyl (D)", "Acetyl (Protein N-term)"});
+  TEST_EQUAL(e.size(), 3)
+  ABORT_IF(e.size() != 3)
+  TEST_EQUAL(e[0].variant, 'D')
+  TEST_EQUAL(e[0].reference, 'E')
+  TEST_STRING_EQUAL(e[0].modification, "Methyl (D)")
+  TEST_EQUAL(e[1].variant, 'N')
+  TEST_EQUAL(e[1].reference, 'D')
+  TEST_STRING_EQUAL(e[1].modification, "Deamidated (N)")
+  TEST_EQUAL(e[2].variant, 'Q')
+  TEST_EQUAL(e[2].reference, 'E')
+  TEST_STRING_EQUAL(e[2].modification, "Deamidated (Q)")
+  TEST_EQUAL(ProSEPEFF::referenceEquivalentSubstitutions({"Oxidation (M)", "Acetyl (Protein N-term)"}).empty(), true) // the defaults
+  TEST_EQUAL(ProSEPEFF::referenceEquivalentSubstitutions({}).empty(), true)
+}
+END_SECTION
+
 START_SECTION((Size addVariantWindows(std::vector<FASTAFile::FASTAEntry>& db, const Settings& settings)))
 {
   // G10A (in VLGFHQR), W48C (in WTER), Q13* (stop codon), and annotations that are not searched: S2S (the residue
