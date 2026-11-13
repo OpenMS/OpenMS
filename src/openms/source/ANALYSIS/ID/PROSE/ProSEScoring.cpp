@@ -78,6 +78,7 @@ namespace OpenMS
     p.remove("annotate:self_trained_ion_priors");
     p.removeAll("annotate:ion_prior_");
     p.remove("peptide:protein_mapping"); // ProSE's own (FragmentIndex::getProteinOccurrences() serves it)
+    p.remove("database:peff_variants"); // ProSE's own (FragmentIndex::setPeptideRegions() serves it)
     return p;
   }
 
@@ -563,6 +564,31 @@ namespace OpenMS
       nterm_options_disabled_ = true;
     }
 
+    // 1b. The windows of the PEFF sequence variants (database:peff_variants), as further targets: the decoys below are
+    //     generated for them as for the proteins
+    std::shared_ptr<ProSEPEFF> peff;
+    if (peff_variants_)
+    {
+      ProSEPEFF::Settings peff_settings;
+      peff_settings.enzyme = enzyme_;
+      peff_settings.specificity = peptide_enzyme_specificity_;
+      peff_settings.peptide_max_length = peptide_max_size_;
+      // per cleavage segment (keep_termini, or reversePeptides() with a specific digestion) or the whole entry reversed
+      peff_settings.segment_decoys = peptide_enzyme_specificity_ != EnzymaticDigestion::SPEC_NONE;
+      peff_settings.clip_nterm_methionine = param_.getValue("peptide:clip_nterm_methionine").toBool();
+      peff = std::make_shared<ProSEPEFF>();
+      const Size n_windows = peff->addVariantWindows(db, peff_settings);
+      if (n_windows > 0 && reuses_decoys)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          paramName_("database:peff_variants") + " needs generated decoys: the decoys of the database have none for the "
+          "sequence variants. Use '" + paramName_("decoys") + " generate'.");
+      }
+      OPENMS_LOG_INFO << "[ProSE] database:peff_variants: " << n_windows << " sequence variants (\\VariantSimple) added "
+                      << "to the database." << std::endl;
+      if (n_windows == 0) { peff.reset(); }
+    }
+
     // 2. Generate decoys by reversing the (remaining) target proteins.
     if (strategy.generate)
     {
@@ -703,8 +729,15 @@ namespace OpenMS
                         << "none) for downstream target-decoy FDR. Use '-Search:decoys ignore' for a "
                         << "target-only search if you do not need FDR." << std::endl;
       }
+      if (peff) { peff->addDecoys(db, strategy.decoy_string); }
     }
+    peff_ = std::move(peff);
     return db;
+  }
+
+  void ProSEAlgorithm::setPeptideRegions_(FragmentIndex& index, const std::shared_ptr<const ProSEPEFF>& peff)
+  {
+    index.setPeptideRegions(peff ? peff->peptideRegions() : nullptr);
   }
 
   // =====================================================================
@@ -786,6 +819,7 @@ namespace OpenMS
     ctx.decoy_string = strategy.decoy_string;
     ctx.decoy_is_prefix = strategy.is_prefix;
     ctx.have_decoys = strategy.have_decoys;
+    ctx.peff = peff_;
     endProgress();
 
     // build fragment index
@@ -815,6 +849,7 @@ namespace OpenMS
   void ProSEAlgorithm::buildFragmentIndex_(SearchContext& ctx, const Param& params,
                                            const std::function<const PeakMap*(Size)>& searched_spectra) const
   {
+    setPeptideRegions_(ctx.fragment_index, ctx.peff);
     if (!searched_spectra || !calibration_enabled_)
     {
       ctx.fragment_index.setParameters(params);
@@ -1471,6 +1506,7 @@ namespace OpenMS
       std::vector<FASTAFile::FASTAEntry> cal_db = buildCalibrationSample_(full_db);
       FragmentIndex cal_fi;
       cal_fi.setParameters(fragmentIndexParameters_(electron_ions));
+      setPeptideRegions_(cal_fi, peff_);
       cal_fi.build(cal_db);
 
       cal = runCalibrationPass_(spectra, cal_fi, cal_db, query_ptr, strategy.have_decoys ? strategy.decoy_string : std::string(),
@@ -1533,6 +1569,7 @@ namespace OpenMS
         fi_params.setValue("precursor:mass_tolerance_upper", effective_precursor_tol_upper);
         chunk_fi.setParameters(fi_params);
       }
+      setPeptideRegions_(chunk_fi, peff_);
       chunk_fi.build(chunk_db);
 
       // Score all spectra against this chunk's index.
@@ -1619,6 +1656,7 @@ namespace OpenMS
     indexer.setParameters(param_pi);
 
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(full_db, protein_ids, peptide_ids);
+    if (peff_ && indexer_exit == PeptideIndexing::ExitCodes::EXECUTION_OK) { peff_->mapToParents(protein_ids, peptide_ids); }
 
     if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
         (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))

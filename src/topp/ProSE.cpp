@@ -597,8 +597,9 @@ class ProSE :
 #endif
       });
 
-      registerInputFile_("database", "<file>", "", "Input protein sequence database in FASTA format.");
-      setValidFormats_("database", ListUtils::create<std::string>("fasta"));
+      registerInputFile_("database", "<file>", "", "Input protein sequence database in FASTA format, or PEFF (read as FASTA; "
+                         "its sequence variants are searched with -Search:database:peff_variants simple).");
+      setValidFormats_("database", ListUtils::create<std::string>("fasta,peff"));
 
       registerOutputFileList_("out", "<files>", StringList(), "Output identification file(s), one per -in: idXML or an idparquet directory bundle (format by extension). Must have the same number of entries as -in.", false);
       setValidFormats_("out", ListUtils::create<std::string>("idXML,idparquet"));
