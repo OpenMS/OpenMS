@@ -194,6 +194,23 @@ import itertools
 import logging
 
 
+def _import_matplotlib():
+    """Return ``(matplotlib.pyplot, matplotlib.ticker)``.
+
+    matplotlib is an optional dependency of pyOpenMS (the ``plotting`` extra), so it
+    is imported when a plot function is called and not when this module is imported.
+    """
+    try:
+        import matplotlib.pyplot as plt
+        import matplotlib.ticker as mticker
+    except ImportError as e:
+        raise ImportError(
+            "pyopenms.plotting needs matplotlib, which is an optional dependency of "
+            'pyOpenMS. Install it with: pip install "pyopenms[plotting]"'
+        ) from e
+    return plt, mticker
+
+
 def plot_chromatogram(c: MSChromatogram):
     """Plot chromatogram peaks.
 
@@ -201,7 +218,7 @@ def plot_chromatogram(c: MSChromatogram):
     :type c: MSChromatogram
     """
 
-    import matplotlib.pyplot as plt
+    plt, _ = _import_matplotlib()
     x, y = c.get_peaks()
     plt.plot(x, y)
     plt.xlabel("Retention time")
@@ -328,8 +345,7 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
     :rtype: matplotlib.axes.Axes
     """
 
-    import matplotlib.pyplot as plt
-    import matplotlib.ticker as mticker
+    plt, mticker = _import_matplotlib()
 
     if ax is None:
         ax = plt.gca()
@@ -421,8 +437,7 @@ def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", spec
     :rtype: matplotlib.axes.Axes
     """
 
-    import matplotlib.pyplot as plt
-    import matplotlib.ticker as mticker
+    plt, mticker = _import_matplotlib()
     if ax is None:
         ax = plt.gca()
 
