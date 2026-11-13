@@ -809,7 +809,7 @@ jobs:
           # Naming the wheel by path is what pins the test to the artifact just
           # built -- pip installs the file it is given and never substitutes a
           # package-index release of pyopenms for it. The index still has to stay
-          # reachable for the dependencies (numpy, matplotlib, nanobind-backend),
+          # reachable for the dependencies (numpy, nanobind-backend),
           # which are not in wheelhouse; --no-index here would fail the install
           # with "No matching distribution found for numpy>=2.0".
           python -m pip install --only-binary=:all: --find-links wheelhouse "${wheels[0]}"
@@ -841,7 +841,7 @@ jobs:
 
       - name: Install test dependencies
         shell: bash
-        run: python -m pip install pytest pytest-cov "pandas>=3" pyarrow
+        run: python -m pip install pytest pytest-cov "pandas>=3" pyarrow "matplotlib>=3.5"
 
       - name: Run the pyOpenMS test suite against the installed wheel
         shell: bash
