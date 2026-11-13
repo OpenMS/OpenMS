@@ -7678,6 +7678,20 @@ add_test("TOPP_FeatureFinderMetaboIdent_2_out2" ${CMAKE_COMMAND}
   "-DEXPECTED=_i0_CV-45.0\";_i0_CV-55.0\";_i0_CV-65.0\""
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_FeatureFinderMetaboIdent_2_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_2")
+# No signal for any target: the tool writes an empty feature map that reports the target as not found (it used to fail)
+add_test("TOPP_FeatureFinderMetaboIdent_3" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_3_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_3_output.tmp.featureXML -extract:mz_window 5 -extract:rt_window 20 -detect:peak_width 3)
+add_test("TOPP_FeatureFinderMetaboIdent_3_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_3_output.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"0\">;name=\"label\" value=\"caffeine\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_3_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_3")
+# The elution peaks of this data are about 4 s wide: the default 'detect:peak_width' (60 s) smooths them away, which
+# the tool has to point out (issue #6058). PASS_REGULAR_EXPRESSION ignores the exit code.
+add_test("TOPP_FeatureFinderMetaboIdent_4" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_4_output.tmp.featureXML -extract:mz_window 5)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_4" PROPERTIES PASS_REGULAR_EXPRESSION "'detect:peak_width' \\(60 s\\) is much larger than the elution peaks")
+# ... and an RT extraction window that is narrower than the expected peaks
+add_test("TOPP_FeatureFinderMetaboIdent_5" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_5_output.tmp.featureXML -extract:mz_window 5 -extract:rt_window 20)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_5" PROPERTIES PASS_REGULAR_EXPRESSION "'extract:rt_window' \\(20 s\\) is smaller than 'detect:peak_width' \\(60 s\\)")
 
 # MzMLSplitter test:
 # specify number of parts directly:

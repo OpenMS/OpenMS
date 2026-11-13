@@ -26,6 +26,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -56,7 +57,7 @@ namespace OpenMS
   {
     defaults_.setValue("candidates_out", "", "Optional output file: Feature candidates (before filtering and model fitting).", {"output file"});
 
-    defaults_.setValue("extract:mz_window", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)");
+    defaults_.setValue("extract:mz_window", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th). This is the full width of the window: the signal within +/- half of it around the target m/z is extracted.");
     defaults_.setMinFloat("extract:mz_window", 0.0);
 
     defaults_.setValue(
@@ -85,7 +86,7 @@ namespace OpenMS
 
     defaults_.setSectionDescription("extract", "Parameters for ion chromatogram extraction");
 
-    defaults_.setValue("detect:peak_width", 60.0, "Expected elution peak width in seconds, for smoothing (Gauss filter). Also determines the RT extraction window, unless set explicitly via 'extract:rt_window'.");
+    defaults_.setValue("detect:peak_width", 60.0, "Expected elution peak width (FWHM) in seconds, for smoothing (Gauss filter). Also determines the RT extraction window, unless set explicitly via 'extract:rt_window'. Should be close to the width of the elution peaks in the data: if it is much larger, neighboring peaks are merged and targets can be missed.");
     defaults_.setMinFloat("detect:peak_width", 0.0);
     defaults_.setValue(
       "detect:min_peak_width", 
@@ -171,6 +172,13 @@ namespace OpenMS
     FeatureMap& features,
     const std::string& spectra_file)
   {
+    if (rt_window_ < peak_width_)
+    {
+      OPENMS_LOG_WARN << "Warning: 'extract:rt_window' (" << rt_window_ << " s) is smaller than 'detect:peak_width' ("
+                      << peak_width_ << " s). The extracted chromatograms are shorter than the expected elution peaks "
+                      << "(and than the width they are smoothed with), so features may be missed or cut off." << endl;
+    }
+
     // Check for FAIMS data
     auto faims_groups = IMDataConverter::splitByFAIMSCV(std::move(ms_data_));
     const bool has_faims = faims_groups.size() > 1 || !std::isnan(faims_groups[0].first);
@@ -180,6 +188,7 @@ namespace OpenMS
       // Non-FAIMS data: restore ms_data_ and run directly
       ms_data_ = std::move(faims_groups[0].second);
       runSingleGroup_(metaboIdentTable, features, spectra_file);
+      warnIfPeakWidthTooLarge_(features);
       return;
     }
 
@@ -279,6 +288,7 @@ namespace OpenMS
     OPENMS_LOG_WARN << "Warning: Library output is not available for multi-FAIMS data. "
                     << "Each FAIMS CV group has its own assay library." << endl;
     OPENMS_LOG_INFO << "Combined " << features.size() << " features from all FAIMS CV groups." << endl;
+    warnIfPeakWidthTooLarge_(features);
 
     // Optionally merge features from different FAIMS CV groups that represent the same analyte
     if (param_.getValue("faims:merge_features").toBool())
@@ -525,16 +535,25 @@ namespace OpenMS
         return true;
       };
 
+    const Size n_before_overlap_filter = features.size();
     FeatureOverlapFilter::filter(features, FeatureComparator, FeatureOverlapCallback, CHECK_TRACES_FOR_OVERLAP);
     std::stable_sort(features.begin(), features.end(), feature_compare_); // sort by ref and rt
+    if (features.size() < n_before_overlap_filter)
+    {
+      OPENMS_LOG_INFO << features.size() << " features left after resolving overlaps ("
+                      << (n_before_overlap_filter - features.size())
+                      << " removed or merged with an identical feature; see meta values 'overlap_removed' and 'alt_PeptideRef')."
+                      << endl;
+    }
+
+    // also reports the targets without a feature (all of them, if no feature is left)
+    n_shared_ = addTargetAnnotations_(features);
 
     if (features.empty())
     {
       OPENMS_LOG_INFO << "No features left after filtering." << endl;
       return;
-    }    
-
-    n_shared_ = addTargetAnnotations_(features);
+    }
 
     if (elution_model_ != "none")
     {
@@ -922,6 +941,42 @@ namespace OpenMS
     }
     features.erase(remove_if(features.begin(), features.end(),
                              feature_filter_), features.end());
+  }
+
+  void FeatureFinderAlgorithmMetaboIdent::warnIfPeakWidthTooLarge_(const FeatureMap& features) const
+  {
+    // The elution models are fitted to the unsmoothed mass traces, so their widths are those of the elution peaks in
+    // the data, whatever 'detect:peak_width' is
+    vector<double> fwhms;
+    for (const Feature& feat : features)
+    {
+      if (feat.metaValueExists("model_FWHM") && (feat.getMetaValue("model_status") == "0 (valid)"))
+      {
+        fwhms.push_back(feat.getMetaValue("model_FWHM"));
+      }
+    }
+    if (fwhms.empty()) return; // no elution models ('model:type' is 'none'), or no valid one
+
+    const double median_fwhm = Math::median(fwhms.begin(), fwhms.end());
+    // The chromatograms are smoothed with a Gaussian of standard deviation 'detect:peak_width' / 8 (see
+    // GaussFilterAlgorithm) before the peaks are picked. A kernel that is wider than the elution peaks themselves
+    // (i.e. 'detect:peak_width' above about 3.4 times their FWHM) dominates the shape of the smoothed peaks.
+    const double kernel_sigma = peak_width_ / 8.0;
+    const double peak_sigma = median_fwhm / (2.0 * std::sqrt(2.0 * std::log(2.0)));
+    if (kernel_sigma <= peak_sigma) return;
+
+    OPENMS_LOG_WARN << "Warning: 'detect:peak_width' (" << peak_width_ << " s) is much larger than the elution peaks of the "
+                    << "detected features (median width (FWHM): " << Math::roundDecimal(median_fwhm, -1) << " s, from "
+                    << fwhms.size() << " elution model(s)). The chromatograms are smoothed with this width before peaks "
+                    << "are picked, so neighboring peaks at the m/z of a target may have been merged into one feature "
+                    << "(targets can go missing or get the intensity of a neighbor), and features may extend beyond the "
+                    << "signal. Consider setting 'detect:peak_width' close to the width of the elution peaks.";
+    if (double(param_.getValue("extract:rt_window")) == 0.0)
+    {
+      OPENMS_LOG_WARN << " Note that 'extract:rt_window' (" << rt_window_ << " s) is four times 'detect:peak_width' "
+                      << "unless it is set explicitly.";
+    }
+    OPENMS_LOG_WARN << endl;
   }
 
   /// Create a string of identifying information for a compound
