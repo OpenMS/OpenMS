@@ -30,29 +30,27 @@ using namespace OpenMS;
 
 /**
   @page TOPP_OpenDIA OpenDIA
-  @brief Stream DIA spectra and report targeted fragment-group peak candidates.
+  @brief Stream DIA spectra and report the elution peaks of every library precursor.
 
-  This implementation reads a prepared PQP transition library and streams
-  MS2 spectra through OpenMS file handlers. By default, it reports gap-segmented
-  groups of co-observed library fragments to a TSV file. An opt-in experimental
-  mode can split a group after a deep valley and recovery. When both the library
-  and raw spectra provide inverse reduced ion mobility, it automatically uses
-  per-peak mobility to reject out-of-mobility fragment matches. If either side lacks
-  compatible mobility metadata, matching falls back to m/z and isolation windows.
+  Reads a prepared PQP transition library and streams MS2 spectra through OpenMS file handlers. For each precursor,
+  every scan that isolated it inside its RT window around the (calibrated) library RT forms native-scan fragment
+  traces (the most intense match of each fragment, zero where nothing matched). The traces are peak-picked
+  (consensus maxima split at deep valleys, ranked by fragment co-elution) and up to -max_peaks peaks are reported.
+  When both the library and raw spectra provide inverse reduced ion mobility, per-peak mobility rejects
+  out-of-mobility fragment matches.
 
-  This is a minimal extraction and candidate-generation path, not a complete
-  identification workflow. It does not perform library generation, machine
-  learning scoring, FDR estimation, or protein inference. An optional feature
-  table can preserve candidate-level target/decoy labels and numeric evidence,
-  including measured mobility fit when both sides provide it, for the separate
-  experimental OpenDIARerank tool. Input spectra are expected
-  to contain precursor isolation metadata.
+  An RT window is required: -calibration (OpenDIACalibrate, recommended) sets it together with the fragment ppm
+  tolerance, the mobility tolerance and the boundary cap; without a calibration use -rt_window.
+
+  This is the extraction and candidate-generation stage, not a complete identification workflow. The optional
+  feature table keeps candidate-level target/decoy labels and numeric evidence for rescoring. Input spectra are
+  expected to contain precursor isolation metadata.
 */
 /// @cond TOPPCLASSES
 class TOPPOpenDIA final : public TOPPBase
 {
 public:
-  TOPPOpenDIA() : TOPPBase("OpenDIA", "Stream DIA data and detect targeted fragment-group peaks.")
+  TOPPOpenDIA() : TOPPBase("OpenDIA", "Stream DIA data and pick targeted fragment elution peaks.")
   {
   }
 
@@ -62,49 +60,33 @@ protected:
     registerInputFile_("in", "<file>", "", "DIA raw data or mzML/mzXML file");
     registerInputFile_("lib", "<file>", "", "Prepared PQP transition library");
     setValidFormats_("lib", {"pqp"});
-    registerOutputFile_("out", "<file>", "", "Streamed fragment-group peak table");
+    registerOutputFile_("out", "<file>", "", "Peak table");
     setValidFormats_("out", {"tsv"});
     registerOutputFile_("features_out", "<file>", "", "Optional candidate-level numeric feature table for rescoring", false);
     setValidFormats_("features_out", {"tsv"});
     registerDoubleOption_("mz_tolerance", "<Da>", 0.02, "Absolute fragment m/z matching tolerance in Da", false);
     registerDoubleOption_("im_tolerance", "<1/K0>", 0.03, "Automatic inverse reduced ion-mobility matching tolerance", false);
-    registerDoubleOption_("rt_window", "<seconds>", 0.0, "Optional window around library RT; zero disables RT filtering", false);
-    registerInputFile_("calibration", "<file>", "", "Experimental: OpenDIACalibrate JSON. Before extraction, library RT, fragment m/z and precursor 1/K0 are mapped to run coordinates, and the RT window, fragment ppm and 1/K0 tolerances are set from the calibration (replacing -rt_window, -mz_tolerance and -im_tolerance)", false);
+    registerDoubleOption_("rt_window", "<seconds>", 0.0, "Half width of the RT window around library RT; required without -calibration", false);
+    registerInputFile_("calibration", "<file>", "", "OpenDIACalibrate JSON. Before extraction, library RT, fragment m/z and precursor 1/K0 are mapped to run coordinates, and the RT window, fragment ppm and 1/K0 tolerances and the boundary cap are set from the calibration (replacing -rt_window, -mz_tolerance and -im_tolerance)", false);
     setValidFormats_("calibration", {"json"});
-    registerDoubleOption_("peak_gap", "<seconds>", 30.0, "Maximum gap between matched scans in one peak group", false);
-    registerIntOption_("min_transitions", "<n>", 1, "Minimum co-observed fragments required in a peak group", false);
-    registerFlag_("local_peak_split", "Split a group after two low scans and a signal recovery; experimental candidate generation");
+    registerIntOption_("min_transitions", "<n>", 1, "Minimum fragments with signal at or next to a peak apex", false);
     registerFlag_("im_array_as_vssc", "Interpret a spectrum ion-mobility array whose unit is not CCS as 1/K0, e.g. unitless mzML 'Ion Mobility' arrays");
-    registerDoubleOption_("peak_valley_fraction", "<fraction>", 0.1, "Local-peak valley/recovery threshold as a fraction of the previous apex", false);
-    setMinFloat_("peak_valley_fraction", 0.001);
-    setMaxFloat_("peak_valley_fraction", 0.999);
-    registerIntOption_("min_peak_scans", "<n>", 3, "Minimum matched scans in an experimental local-peak candidate", false);
-    setMinInt_("min_peak_scans", 2);
-    registerIntOption_("max_apexes_per_group", "<n>", 1, "Report up to n separated local apexes per peak group as separate rows sharing the group's boundaries; 1 keeps one global apex", false);
-    setMinInt_("max_apexes_per_group", 1);
-    registerDoubleOption_("min_apex_separation", "<seconds>", 10.0, "Minimum RT distance between reported apexes of one peak group", false);
-    setMinFloat_("min_apex_separation", 0.0);
-    registerStringOption_("peak_picking", "<mode>", "run", "Candidate construction. 'run': streamed signal runs closed after -peak_gap. "
-                          "'xic': keep every fragment's intensity at every native scan of the RT window and pick elution peaks from the "
-                          "traces (no gap or width constant; needs an RT window, e.g. -calibration). Adds fwhm_seconds, coelution, "
-                          "peak_rank and peaks_in_window to -features_out", false);
-    setValidStrings_("peak_picking", {"run", "xic"});
-    registerDoubleOption_("xic_valley_fraction", "<fraction>", 0.5, "xic: two maxima stay separate peaks only if the valley between them is at most this fraction of the lower one", false);
-    setMinFloat_("xic_valley_fraction", 0.001);
-    setMaxFloat_("xic_valley_fraction", 1.0);
-    registerIntOption_("xic_max_peaks", "<n>", 5, "xic: peaks reported per precursor, best fragment co-elution first", false);
-    setMinInt_("xic_max_peaks", 1);
-    registerDoubleOption_("xic_boundary_half_widths", "<k>", -1.0, "xic: cap each peak boundary at k of that side's own half widths at half "
+    registerDoubleOption_("valley_fraction", "<fraction>", 0.5, "Two maxima stay separate peaks only if the valley between them is at most this fraction of the lower one", false);
+    setMinFloat_("valley_fraction", 0.001);
+    setMaxFloat_("valley_fraction", 1.0);
+    registerIntOption_("max_peaks", "<n>", 5, "Peaks reported per precursor, best fragment co-elution first", false);
+    setMinInt_("max_peaks", 1);
+    registerDoubleOption_("boundary_half_widths", "<k>", -1.0, "Cap each peak boundary at k of that side's own half widths at half "
                           "maximum. -1 uses the value estimated by OpenDIACalibrate (peak_boundary.half_widths in -calibration; no cap if "
                           "absent); 0 disables the cap", false);
-    setMinFloat_("xic_boundary_half_widths", -1.0);
-    registerIntOption_("xic_min_profile_scans", "<n>", 2, "xic: a fragment enters the co-elution score only with signal on at least n "
-                       "scans of the correlation window (1 restores the old score, where two fragments sharing one nonzero scan correlate perfectly)", false);
-    setMinInt_("xic_min_profile_scans", 1);
-    registerOutputFile_("xic_traces_out", "<file>", "", "xic inspection: native-scan fragment traces (the peak picker's input matrix) of the "
-                        "-xic_traces_precursors precursors as TSV. Does not change -out.", false);
-    setValidFormats_("xic_traces_out", {"tsv"});
-    registerInputFile_("xic_traces_precursors", "<file>", "", "Text file of PQP precursor IDs (one per line, '#' comments) for -xic_traces_out", false);
+    setMinFloat_("boundary_half_widths", -1.0);
+    registerIntOption_("min_profile_scans", "<n>", 2, "A fragment enters the co-elution score only with signal on at least n "
+                       "scans of the correlation window (1: two fragments sharing one nonzero scan correlate perfectly)", false);
+    setMinInt_("min_profile_scans", 1);
+    registerOutputFile_("traces_out", "<file>", "", "Inspection: native-scan fragment traces (the peak picker's input matrix) of the "
+                        "-traces_precursors precursors as TSV. Does not change -out.", false);
+    setValidFormats_("traces_out", {"tsv"});
+    registerInputFile_("traces_precursors", "<file>", "", "Text file of PQP precursor IDs (one per line, '#' comments) for -traces_out", false);
 
     // Inspection side channel: raw targeted peak maps in the OpenSWATH .xipm Parquet schema. Off by default;
     // the search output does not depend on it.
@@ -135,31 +117,21 @@ protected:
     options.fragment_tolerance_da = getDoubleOption_("mz_tolerance");
     options.ion_mobility_tolerance_vssc = getDoubleOption_("im_tolerance");
     options.rt_window_seconds = getDoubleOption_("rt_window");
-    options.peak_gap_seconds = getDoubleOption_("peak_gap");
-    options.split_local_peaks = getFlag_("local_peak_split");
     options.ion_mobility_array_as_vssc = getFlag_("im_array_as_vssc");
-    options.peak_valley_fraction = getDoubleOption_("peak_valley_fraction");
-    options.max_apexes_per_group = static_cast<std::size_t>(std::max(1, getIntOption_("max_apexes_per_group")));
-    options.min_apex_separation_seconds = getDoubleOption_("min_apex_separation");
-    options.xic_peaks = getStringOption_("peak_picking") == "xic";
-    options.xic.valley_fraction = getDoubleOption_("xic_valley_fraction");
-    options.xic.max_peaks = static_cast<std::size_t>(std::max(1, getIntOption_("xic_max_peaks")));
-    options.xic.min_profile_scans = static_cast<std::size_t>(std::max(1, getIntOption_("xic_min_profile_scans")));
-    const double boundary_half_widths = getDoubleOption_("xic_boundary_half_widths");
-    options.xic.boundary_half_widths = std::max(0.0, boundary_half_widths);
-    const Int min_peak_scans = getIntOption_("min_peak_scans");
+    options.picker.valley_fraction = getDoubleOption_("valley_fraction");
+    options.picker.max_peaks = static_cast<std::size_t>(std::max(1, getIntOption_("max_peaks")));
+    options.picker.min_profile_scans = static_cast<std::size_t>(std::max(1, getIntOption_("min_profile_scans")));
+    const double boundary_half_widths = getDoubleOption_("boundary_half_widths");
+    options.picker.boundary_half_widths = std::max(0.0, boundary_half_widths);
     const Int min_transitions = getIntOption_("min_transitions");
     if (min_transitions < 1 || !std::isfinite(options.fragment_tolerance_da) || options.fragment_tolerance_da <= 0.0 ||
         !std::isfinite(options.ion_mobility_tolerance_vssc) || options.ion_mobility_tolerance_vssc <= 0.0 ||
-        options.rt_window_seconds < 0.0 || options.peak_gap_seconds <= 0.0 || min_peak_scans < 2 ||
-        !std::isfinite(options.peak_valley_fraction) || options.peak_valley_fraction <= 0.0 ||
-        options.peak_valley_fraction >= 1.0)
+        options.rt_window_seconds < 0.0)
     {
-      writeLogError_("m/z and ion-mobility tolerances and peak gap must be positive; RT window must be non-negative; min_transitions must be at least 1.");
+      writeLogError_("m/z and ion-mobility tolerances must be positive; RT window must be non-negative; min_transitions must be at least 1.");
       return ILLEGAL_PARAMETERS;
     }
     options.min_transitions = static_cast<std::size_t>(min_transitions);
-    options.min_peak_scans = static_cast<std::size_t>(min_peak_scans);
 
     // Optional identification-free calibration (OpenSwath order: calibrate, then extract the whole library).
     const std::string calibration_path = getStringOption_("calibration");
@@ -184,7 +156,7 @@ protected:
       options.fragment_tolerance_ppm = calibration->ms2_tolerance_ppm;
       if (boundary_half_widths < 0.0)
       {
-        options.xic.boundary_half_widths = calibration->boundary_half_widths;
+        options.picker.boundary_half_widths = calibration->boundary_half_widths;
       }
       if (calibration->has_im)
       {
@@ -213,10 +185,10 @@ protected:
       {
         transition.product_mz *= 1.0 + calibration->ms2_offset_ppm * 1e-6;
       }
-      writeLogInfo_("Experimental calibrated extraction: rt_window_s=" + std::to_string(options.rt_window_seconds) +
+      writeLogInfo_("Calibrated extraction: rt_window_s=" + std::to_string(options.rt_window_seconds) +
                     " ms2_offset_ppm=" + std::to_string(calibration->ms2_offset_ppm) +
                     " ms2_tolerance_ppm=" + std::to_string(options.fragment_tolerance_ppm) +
-                    " xic_boundary_half_widths=" + std::to_string(options.xic.boundary_half_widths) +
+                    " boundary_half_widths=" + std::to_string(options.picker.boundary_half_widths) +
                     (calibration->has_im ? " im=" + std::to_string(calibration->im_intercept) + "+" + std::to_string(calibration->im_slope) +
                                              "x im_tolerance=" + std::to_string(options.ion_mobility_tolerance_vssc)
                                          : std::string(" im=unavailable (library 1/K0 and -im_tolerance kept)")));
@@ -227,9 +199,9 @@ protected:
       writeLogError_("The PQP library contains no usable precursor-fragment transitions.");
       return ILLEGAL_PARAMETERS;
     }
-    if (options.xic_peaks && !(options.rt_window_seconds > 0.0))
+    if (!(options.rt_window_seconds > 0.0))
     {
-      writeLogError_("-peak_picking xic needs an RT window (-rt_window or -calibration).");
+      writeLogError_("An RT window is required (-calibration or -rt_window).");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -257,10 +229,7 @@ protected:
         writeLogError_("Could not open candidate feature output file: " + features_path);
         return CANNOT_WRITE_OUTPUT_FILE;
       }
-      features << "candidate_row\tprecursor_id\tprecursor_mz\tis_decoy\trt_start\trt_apex\trt_end\t"
-                  "peak_width_seconds\tarea\tapex_intensity\ttransition_support\tmatched_scans\t"
-                  "has_library_rt\tapex_rt_error_seconds\thas_library_im\t"
-                  "has_im_match_evidence\tmean_abs_im_error_vssc" << (options.xic_peaks ? "\tfwhm_seconds\tcoelution\tpeak_rank\tpeaks_in_window" : "") << "\n";
+      features << OpenDIA::StreamSearch::featureHeader() << '\n';
       feature_stream = &features;
     }
 
@@ -359,20 +328,20 @@ protected:
     }
 
     OpenDIA::StreamSearch consumer(std::move(queries), options, output, feature_stream);
-    const std::string traces_path = getStringOption_("xic_traces_out");
+    const std::string traces_path = getStringOption_("traces_out");
     std::ofstream traces;
     if (!traces_path.empty())
     {
-      const std::string traces_selection = getStringOption_("xic_traces_precursors");
-      if (!options.xic_peaks || traces_selection.empty())
+      const std::string traces_selection = getStringOption_("traces_precursors");
+      if (traces_selection.empty())
       {
-        writeLogError_("-xic_traces_out needs -peak_picking xic and -xic_traces_precursors.");
+        writeLogError_("-traces_out needs -traces_precursors.");
         return ILLEGAL_PARAMETERS;
       }
       std::ifstream selection(traces_selection);
       if (!selection)
       {
-        writeLogError_("Could not read -xic_traces_precursors: " + traces_selection);
+        writeLogError_("Could not read -traces_precursors: " + traces_selection);
         return INPUT_FILE_NOT_READABLE;
       }
       std::vector<std::string> ids;
@@ -386,10 +355,10 @@ protected:
       traces.open(traces_path);
       if (!traces)
       {
-        writeLogError_("Could not open -xic_traces_out: " + traces_path);
+        writeLogError_("Could not open -traces_out: " + traces_path);
         return CANNOT_WRITE_OUTPUT_FILE;
       }
-      consumer.setXicTraceDump(traces, ids);
+      consumer.setTraceDump(traces, ids);
     }
     FileHandler reader;
     PeakFileOptions read_options;
@@ -448,24 +417,42 @@ private:
       coordinates.emplace(compound.id, value);
     }
 
-    // The lightweight reader skips its global SQL sort for large libraries.
-    // Restore the heavy reader's transition order before assigning candidate indices.
-    std::stable_sort(targeted.transitions.begin(), targeted.transitions.end(), [&coordinates](const auto& lhs, const auto& rhs)
+    // The lightweight reader skips its global SQL sort for large libraries. Restore the heavy reader's transition
+    // order before assigning candidate indices: sort compact keys, then move each transition once.
+    struct SortKey
+    {
+      double precursor_mz = 0.0;
+      double product_mz = 0.0;
+      double seconds = 0.0;
+      bool has_rt = false;
+      std::size_t index = 0;
+    };
+    auto& transitions = targeted.transitions;
+    std::vector<SortKey> keys(transitions.size());
+    for (std::size_t i = 0; i < transitions.size(); ++i)
+    {
+      const auto coordinate_it = coordinates.find(transitions[i].peptide_ref);
+      const bool has_rt = coordinate_it != coordinates.end() && coordinate_it->second.has_rt;
+      keys[i] = {transitions[i].precursor_mz, transitions[i].product_mz, has_rt ? coordinate_it->second.seconds : 0.0, has_rt, i};
+    }
+    std::stable_sort(keys.begin(), keys.end(), [&transitions](const SortKey& lhs, const SortKey& rhs)
     {
       if (lhs.precursor_mz != rhs.precursor_mz) return lhs.precursor_mz < rhs.precursor_mz;
       if (lhs.product_mz != rhs.product_mz) return lhs.product_mz < rhs.product_mz;
-      const auto lhs_coordinates = coordinates.find(lhs.peptide_ref);
-      const auto rhs_coordinates = coordinates.find(rhs.peptide_ref);
-      const bool lhs_has_rt = lhs_coordinates != coordinates.end() && lhs_coordinates->second.has_rt;
-      const bool rhs_has_rt = rhs_coordinates != coordinates.end() && rhs_coordinates->second.has_rt;
-      if (lhs_has_rt != rhs_has_rt) return !lhs_has_rt;
-      if (lhs_has_rt && lhs_coordinates->second.seconds != rhs_coordinates->second.seconds)
-      {
-        return lhs_coordinates->second.seconds < rhs_coordinates->second.seconds;
-      }
-      if (lhs.transition_name != rhs.transition_name) return lhs.transition_name < rhs.transition_name;
-      return lhs.peptide_ref < rhs.peptide_ref;
+      if (lhs.has_rt != rhs.has_rt) return !lhs.has_rt;
+      if (lhs.has_rt && lhs.seconds != rhs.seconds) return lhs.seconds < rhs.seconds;
+      const auto& left = transitions[lhs.index];
+      const auto& right = transitions[rhs.index];
+      if (left.transition_name != right.transition_name) return left.transition_name < right.transition_name;
+      return left.peptide_ref < right.peptide_ref;
     });
+    std::vector<OpenSwath::LightTransition> sorted;
+    sorted.reserve(transitions.size());
+    for (const SortKey& key : keys)
+    {
+      sorted.push_back(std::move(transitions[key.index]));
+    }
+    transitions = std::move(sorted);
 
     std::vector<OpenDIA::TransitionQuery> queries;
     queries.reserve(targeted.getTransitions().size());

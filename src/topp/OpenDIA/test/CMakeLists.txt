@@ -121,14 +121,14 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML" A
       -in ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML
       -lib ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
       -out ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_streaming_smoke.tsv
-      -min_transitions 1)
+      -rt_window 100000 -min_transitions 1)
   add_test(NAME OpenDIA_feature_table_smoke
     COMMAND $<TARGET_FILE:OpenDIA>
       -in ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML
       -lib ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
       -out ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_feature_table_smoke.tsv
       -features_out ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_feature_table_smoke.features.tsv
-      -min_transitions 1)
+      -rt_window 100000 -min_transitions 1)
   # -out_xipm writes the OpenSWATH peak-map Parquet file and refuses to share a path with -out.
   add_test(NAME OpenDIA_xipm_smoke
     COMMAND $<TARGET_FILE:OpenDIA>
@@ -136,13 +136,13 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML" A
       -lib ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
       -out ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_xipm_smoke.tsv
       -out_xipm ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_xipm_smoke.xipm
-      -min_transitions 1)
+      -rt_window 100000 -min_transitions 1)
   add_test(NAME OpenDIA_xipm_rejects_shared_path
     COMMAND $<TARGET_FILE:OpenDIA>
       -in ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML
       -lib ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
       -out ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_xipm_shared.xipm
       -out_xipm ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_xipm_shared.xipm
-      -min_transitions 1)
+      -rt_window 100000 -min_transitions 1)
   set_tests_properties(OpenDIA_xipm_rejects_shared_path PROPERTIES WILL_FAIL TRUE)
 endif()

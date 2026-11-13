@@ -247,6 +247,11 @@ command itself ran directly in C++ without Python.
 
 ### Multi-apex candidate proposals
 
+> Historical. The run-mode extraction described here (`-peak_gap`, `-local_peak_split`, `-max_apexes_per_group`,
+> `-min_apex_separation`) has been removed. OpenDIA now always builds native-scan fragment traces inside the
+> calibrated RT window and peak-picks them (`-max_peaks`, `-valley_fraction`, `-boundary_half_widths`,
+> `-min_profile_scans`; formerly `-peak_picking xic -xic_*`). The results below are kept as recorded.
+
 Diagnosis of the `-local_peak_split` HeLa candidates showed the coverage loss was
 not missing signal. Candidate groups are long (median span 125.6 s, against a
 mean baseline peak width of 7.8 s), and 11269 of 19132 SVM IDs had a candidate

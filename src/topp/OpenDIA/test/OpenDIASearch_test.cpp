@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <functional>
 #include <initializer_list>
 #include <sstream>
 #include <stdexcept>
@@ -32,23 +33,6 @@ using namespace OpenMS;
 
 namespace
 {
-  MSSpectrum spectrum(double rt, double isolation_mz, std::initializer_list<Peak1D> peaks)
-  {
-    MSSpectrum result;
-    result.setMSLevel(2);
-    result.setRT(rt);
-    Precursor precursor;
-    precursor.setMZ(isolation_mz);
-    precursor.setIsolationWindowLowerOffset(50.0);
-    precursor.setIsolationWindowUpperOffset(50.0);
-    result.setPrecursors({precursor});
-    for (const auto& peak : peaks)
-    {
-      result.push_back(peak);
-    }
-    return result;
-  }
-
   void require(bool condition, const char* message)
   {
     if (!condition)
@@ -58,608 +42,409 @@ namespace
     }
   }
 
-  MSSpectrum spectrumWithIM(double rt, double isolation_mz, std::initializer_list<Peak1D> peaks,
-                            std::initializer_list<float> mobilities)
+  MSSpectrum spectrum(double rt, double isolation_mz, std::vector<Peak1D> peaks, double half_width = 50.0)
   {
-    MSSpectrum result = spectrum(rt, isolation_mz, peaks);
-    require(peaks.size() == mobilities.size(), "test spectrum peak and IM array lengths differ");
+    MSSpectrum result;
+    result.setMSLevel(2);
+    result.setRT(rt);
+    Precursor precursor;
+    precursor.setMZ(isolation_mz);
+    precursor.setIsolationWindowLowerOffset(half_width);
+    precursor.setIsolationWindowUpperOffset(half_width);
+    result.setPrecursors({precursor});
+    for (const auto& peak : peaks)
+    {
+      result.push_back(peak);
+    }
+    return result;
+  }
+
+  MSSpectrum spectrumWithIM(double rt, double isolation_mz, std::vector<Peak1D> peaks, std::initializer_list<float> mobilities)
+  {
+    MSSpectrum result = spectrum(rt, isolation_mz, std::move(peaks));
+    require(result.size() == mobilities.size(), "test spectrum peak and IM array lengths differ");
     DataArrays::FloatDataArray im_array;
     IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
     im_array.assign(mobilities.begin(), mobilities.end());
     result.getFloatDataArrays().push_back(std::move(im_array));
     return result;
   }
+
+  struct Row
+  {
+    std::string id;
+    double mz = 0.0, start = 0.0, apex = 0.0, end = 0.0, score = 0.0;
+    std::size_t support = 0, scans = 0;
+  };
+
+  std::vector<Row> parse(const std::string& text)
+  {
+    std::vector<Row> rows;
+    std::istringstream lines(text);
+    for (std::string line; std::getline(lines, line);)
+    {
+      std::istringstream fields(line);
+      Row row;
+      fields >> row.id >> row.mz >> row.start >> row.apex >> row.end >> row.score >> row.support >> row.scans;
+      rows.push_back(row);
+    }
+    return rows;
+  }
+
+  std::size_t count(const std::vector<Row>& rows, const std::string& id)
+  {
+    return static_cast<std::size_t>(std::count_if(rows.begin(), rows.end(), [&id](const Row& row) { return row.id == id; }));
+  }
+
+  OpenDIA::SearchOptions defaults()
+  {
+    OpenDIA::SearchOptions options;
+    options.fragment_tolerance_da = 0.01;
+    options.rt_window_seconds = 1000.0;
+    return options;
+  }
+
+  /// Runs a search over @p spectra and returns the peak table (and the feature table in @p features, if given).
+  std::string run(const std::vector<OpenDIA::TransitionQuery>& queries, const OpenDIA::SearchOptions& options,
+                  std::vector<MSSpectrum> spectra, std::string* features = nullptr, bool* im_used = nullptr)
+  {
+    std::ostringstream output, feature_output;
+    OpenDIA::StreamSearch search(queries, options, output, features != nullptr ? &feature_output : nullptr);
+    for (auto& s : spectra)
+    {
+      search.consumeSpectrum(s);
+    }
+    search.finish();
+    if (features != nullptr)
+    {
+      *features = feature_output.str();
+    }
+    if (im_used != nullptr)
+    {
+      *im_used = search.ionMobilityFilteringUsed();
+    }
+    return output.str();
+  }
+
+  template <typename Action> bool throws(Action action)
+  {
+    try
+    {
+      action();
+    }
+    catch (const Exception::BaseException&)
+    {
+      return true;
+    }
+    return false;
+  }
+
+  double bell(double rt, double centre, double height = 1000.0)
+  {
+    return height * std::exp(-0.5 * (rt - centre) * (rt - centre) / 4.0);
+  }
 }
 
 int main()
 {
-  std::vector<OpenDIA::TransitionQuery> queries = {
-    {"analyte", 500.0, 100.0, 0.0, false},
-    {"analyte", 500.0, 200.0, 0.0, false},
-    {"other", 700.0, 300.0, 0.0, false}
-  };
-  OpenDIA::SearchOptions options;
-  options.fragment_tolerance_da = 0.01;
-  options.peak_gap_seconds = 15.0;
-  options.min_transitions = 2;
-  std::ostringstream output;
-  OpenDIA::StreamSearch search(std::move(queries), options, output);
-
-  MSSpectrum first = spectrum(10.0, 500.0,
-                              {Peak1D(100.0, 10.0), Peak1D(100.0, 12.0), Peak1D(200.0, 20.0), Peak1D(300.0, 999.0)});
-  MSSpectrum second = spectrum(20.0, 500.0, {Peak1D(100.0, 20.0), Peak1D(200.0, 30.0)});
-  MSSpectrum separated = spectrum(100.0, 500.0, {Peak1D(100.0, 5.0), Peak1D(200.0, 5.0)});
-  search.consumeSpectrum(first);
-  search.consumeSpectrum(second);
-  search.consumeSpectrum(separated);
-  search.finish();
-
-  const std::string rows = output.str();
-  require(std::count(rows.begin(), rows.end(), '\n') == 2, "expected two separated peak groups");
-  require(rows.find("analyte\t500\t10\t20\t20\t410\t2\t2") != std::string::npos,
-          "peak-group area, apex, or unique transition support changed");
-  require(rows.find("other") == std::string::npos, "precursor outside isolation window was reported");
-
-  const std::vector<OpenDIA::TransitionQuery> local_peak_queries = {
-    {"double_peak", 500.0, 100.0, 0.0, false}
-  };
-  OpenDIA::SearchOptions local_peak_options;
-  local_peak_options.split_local_peaks = true;
-  local_peak_options.min_peak_scans = 3;
-  std::ostringstream local_peak_output;
-  OpenDIA::StreamSearch local_peak_search(local_peak_queries, local_peak_options, local_peak_output);
-  for (const auto& [rt, intensity] : std::vector<std::pair<double, double>>{
-         {1.0, 10.0}, {2.0, 100.0}, {3.0, 5.0}, {4.0, 5.0},
-         {5.0, 50.0}, {6.0, 100.0}, {7.0, 20.0}, {8.0, 5.0}, {9.0, 5.0}})
+  // One eluting precursor inside the isolation window and one outside it.
   {
-    MSSpectrum point = spectrum(rt, 500.0, {Peak1D(100.0, intensity)});
-    local_peak_search.consumeSpectrum(point);
-  }
-  local_peak_search.finish();
-  const std::string local_peak_rows = local_peak_output.str();
-  require(std::count(local_peak_rows.begin(), local_peak_rows.end(), '\n') == 2,
-          "opt-in local peak splitter did not emit two supported peak candidates");
-
-  OpenDIA::SearchOptions singleton_options;
-  singleton_options.split_local_peaks = true;
-  singleton_options.min_peak_scans = 3;
-  std::ostringstream singleton_output;
-  OpenDIA::StreamSearch singleton_search(local_peak_queries, singleton_options, singleton_output);
-  MSSpectrum singleton = spectrum(1.0, 500.0, {Peak1D(100.0, 100.0)});
-  singleton_search.consumeSpectrum(singleton);
-  singleton_search.finish();
-  require(singleton_output.str().empty(), "local peak mode retained a one-scan noise candidate");
-
-  std::ostringstream weak_recovery_output;
-  OpenDIA::StreamSearch weak_recovery_search(local_peak_queries, local_peak_options, weak_recovery_output);
-  for (const auto& [rt, intensity] : std::vector<std::pair<double, double>>{
-         {1.0, 10.0}, {2.0, 100.0}, {3.0, 5.0}, {4.0, 5.0},
-         {5.0, 8.0}, {6.0, 9.0}, {7.0, 7.0}, {8.0, 5.0}})
-  {
-    MSSpectrum point = spectrum(rt, 500.0, {Peak1D(100.0, intensity)});
-    weak_recovery_search.consumeSpectrum(point);
-  }
-  weak_recovery_search.finish();
-  const std::string weak_recovery_rows = weak_recovery_output.str();
-  require(std::count(weak_recovery_rows.begin(), weak_recovery_rows.end(), '\n') == 1,
-          "weak sub-threshold recovery was split into an extra candidate");
-
-  // One gap-merged group with three bumps at 3s (60), 13s (100) and 22s (40) plus
-  // a shoulder at 15s (90) that lies within the separation of the 13s apex.
-  const std::vector<std::pair<double, double>> bumps = {
-    {1.0, 10.0}, {2.0, 30.0}, {3.0, 60.0}, {4.0, 30.0}, {5.0, 20.0}, {11.0, 40.0}, {13.0, 100.0},
-    {14.0, 50.0}, {15.0, 90.0}, {16.0, 30.0}, {20.0, 20.0}, {22.0, 40.0}, {23.0, 10.0}};
-  const auto runBumps = [&](std::size_t max_apexes, double separation)
-  {
-    OpenDIA::SearchOptions bump_options;
-    bump_options.max_apexes_per_group = max_apexes;
-    bump_options.min_apex_separation_seconds = separation;
-    std::ostringstream bump_output;
-    OpenDIA::StreamSearch bump_search(local_peak_queries, bump_options, bump_output);
-    for (const auto& [rt, intensity] : bumps)
+    const std::vector<OpenDIA::TransitionQuery> queries = {
+      {"analyte", 500.0, 100.0, 20.0, true}, {"analyte", 500.0, 200.0, 20.0, true}, {"other", 700.0, 300.0, 20.0, true}};
+    OpenDIA::SearchOptions options = defaults();
+    options.min_transitions = 2;
+    std::vector<MSSpectrum> spectra;
+    for (int i = 0; i < 20; ++i)
     {
-      MSSpectrum point = spectrum(rt, 500.0, {Peak1D(100.0, intensity)});
-      bump_search.consumeSpectrum(point);
+      const double rt = 10.0 + i;
+      spectra.push_back(spectrum(rt, 500.0, {Peak1D(100.0, bell(rt, 20.0)), Peak1D(200.0, 0.5 * bell(rt, 20.0)), Peak1D(300.0, 999.0)}));
     }
-    bump_search.finish();
-    return bump_output.str();
-  };
-  const std::string single_apex = runBumps(1, 5.0);
-  require(single_apex == "double_peak\t500\t1\t13\t23\t845\t1\t13\n",
-          "default single-apex output changed");
-  const std::string three_apexes = runBumps(3, 5.0);
-  require(three_apexes == "double_peak\t500\t1\t13\t23\t845\t1\t13\n"
-                          "double_peak\t500\t1\t3\t23\t845\t1\t13\n"
-                          "double_peak\t500\t1\t22\t23\t845\t1\t13\n",
-          "multi-apex mode did not report the three separated apexes strongest first");
-  const std::string two_apexes = runBumps(2, 5.0);
-  require(two_apexes == "double_peak\t500\t1\t13\t23\t845\t1\t13\n"
-                        "double_peak\t500\t1\t3\t23\t845\t1\t13\n",
-          "multi-apex cap did not keep the strongest apexes");
-  const std::string unsuppressed = runBumps(4, 1.0);
-  require(unsuppressed.find("\t15\t23\t") != std::string::npos,
-          "shoulder apex beyond the separation was suppressed");
-  require(three_apexes.find("\t15\t23\t") == std::string::npos,
-          "shoulder apex within the separation was not suppressed");
-  bool rejected_zero_apexes = false;
-  try
-  {
-    OpenDIA::SearchOptions invalid_options;
-    invalid_options.max_apexes_per_group = 0;
-    std::ostringstream invalid_output;
-    OpenDIA::StreamSearch invalid_search(local_peak_queries, invalid_options, invalid_output);
-  }
-  catch (const Exception::InvalidParameter&)
-  {
-    rejected_zero_apexes = true;
-  }
-  require(rejected_zero_apexes, "zero apexes per group was accepted");
-
-  const std::vector<OpenDIA::TransitionQuery> labeled_queries = {
-    {"target", 500.0, 100.0, 9.0, true, 0.0, false, false},
-    {"decoy", 500.0, 100.0, 0.0, false, 0.0, false, true}
-  };
-  std::ostringstream labeled_output;
-  std::ostringstream feature_output;
-  OpenDIA::StreamSearch labeled_search(labeled_queries, OpenDIA::SearchOptions{}, labeled_output, &feature_output);
-  MSSpectrum labeled_first = spectrum(10.0, 500.0, {Peak1D(100.0, 7.0)});
-  MSSpectrum labeled_second = spectrum(50.0, 500.0, {Peak1D(100.0, 5.0)});
-  labeled_search.consumeSpectrum(labeled_first);
-  labeled_search.consumeSpectrum(labeled_second);
-  labeled_search.finish();
-  const std::string labeled_rows = labeled_output.str();
-  require(std::count(labeled_rows.begin(), labeled_rows.end(), '\n') == 4,
-          "optional feature output changed the legacy candidate rows");
-  const std::string feature_rows = feature_output.str();
-  require(std::count(feature_rows.begin(), feature_rows.end(), '\n') == 4,
-          "expected one optional feature row for each completed and active candidate");
-  require(feature_rows.find("target\t500\t0\t10\t10\t10\t0\t0\t7\t1\t1\t1\t1\t0") != std::string::npos,
-          "target feature row did not preserve decoy label and numeric peak features");
-  require(feature_rows.find("target\t500\t0\t10\t10\t10\t0\t0\t7\t1\t1\t1\t1\t0\t0\t0") != std::string::npos,
-          "candidate without raw mobility reported mobility evidence");
-  require(feature_rows.find("decoy\t500\t1\t10\t10\t10\t0\t0\t7\t1\t1\t0\t0\t0\t0\t0") != std::string::npos,
-          "decoy feature row did not preserve its label and explicit missing-RT indicator");
-
-  const std::vector<OpenDIA::TransitionQuery> mobility_query = {
-    {"mobility", 500.0, 100.0, 0.0, false, 0.8, true, false}
-  };
-  std::ostringstream mobility_output;
-  std::ostringstream mobility_features;
-  OpenDIA::StreamSearch mobility_search(mobility_query, OpenDIA::SearchOptions{}, mobility_output,
-                                         &mobility_features);
-  MSSpectrum mobility_first = spectrumWithIM(1.0, 500.0, {Peak1D(100.0, 10.0)}, {0.79f});
-  MSSpectrum mobility_second = spectrumWithIM(2.0, 500.0, {Peak1D(100.0, 20.0)}, {0.82f});
-  mobility_search.consumeSpectrum(mobility_first);
-  mobility_search.consumeSpectrum(mobility_second);
-  mobility_search.finish();
-  const std::string mobility_row = mobility_features.str();
-  const std::size_t mobility_last_tab = mobility_row.rfind('\t');
-  const std::size_t mobility_flag_tab = mobility_row.rfind('\t', mobility_last_tab - 1);
-  require(mobility_flag_tab != std::string::npos &&
-          mobility_row.substr(mobility_flag_tab + 1, mobility_last_tab - mobility_flag_tab - 1) == "1" &&
-          std::abs(std::stod(mobility_row.substr(mobility_last_tab + 1)) - 0.015) < 1e-6,
-          "mean absolute mobility residual did not summarize accepted fragment matches");
-
-  bool mixed_decoy_labels_rejected = false;
-  try
-  {
-    const std::vector<OpenDIA::TransitionQuery> inconsistent_queries = {
-      {"mixed", 500.0, 100.0, 0.0, false, 0.0, false, false},
-      {"mixed", 500.0, 101.0, 0.0, false, 0.0, false, true}
-    };
-    std::ostringstream inconsistent_output;
-    OpenDIA::StreamSearch inconsistent_search(inconsistent_queries, OpenDIA::SearchOptions{}, inconsistent_output);
-    static_cast<void>(inconsistent_search);
-  }
-  catch (const Exception::InvalidValue&)
-  {
-    mixed_decoy_labels_rejected = true;
-  }
-  require(mixed_decoy_labels_rejected, "transitions with inconsistent target/decoy labels were accepted");
-
-  std::vector<OpenDIA::TransitionQuery> window_queries = { {"analyte", 500.0, 100.0, 0.0, false} };
-  std::ostringstream window_output;
-  OpenDIA::StreamSearch window_search(std::move(window_queries), OpenDIA::SearchOptions{}, window_output);
-  MSSpectrum missing_window = spectrum(10.0, 500.0, {Peak1D(100.0, 10.0)});
-  missing_window.getPrecursors().front().setIsolationWindowLowerOffset(0.0);
-  missing_window.getPrecursors().front().setIsolationWindowUpperOffset(0.0);
-  window_search.consumeSpectrum(missing_window);
-  window_search.finish();
-  require(window_output.str().empty(), "spectrum with no isolation-width metadata was matched");
-
-  std::vector<OpenDIA::TransitionQuery> multi_window_queries = { {"other", 700.0, 300.0, 0.0, false} };
-  std::ostringstream multi_window_output;
-  OpenDIA::StreamSearch multi_window_search(std::move(multi_window_queries), OpenDIA::SearchOptions{}, multi_window_output);
-  MSSpectrum multi_window = spectrum(10.0, 500.0, {Peak1D(300.0, 9.0)});
-  Precursor second_window;
-  second_window.setMZ(700.0);
-  second_window.setIsolationWindowLowerOffset(50.0);
-  second_window.setIsolationWindowUpperOffset(50.0);
-  Precursor overlapping_window;
-  overlapping_window.setMZ(710.0);
-  overlapping_window.setIsolationWindowLowerOffset(50.0);
-  overlapping_window.setIsolationWindowUpperOffset(50.0);
-  multi_window.getPrecursors().push_back(second_window);
-  multi_window.getPrecursors().push_back(overlapping_window);
-  multi_window_search.consumeSpectrum(multi_window);
-  multi_window_search.finish();
-  require(multi_window_output.str().find("other\t700\t10\t10\t10\t9\t1\t1") != std::string::npos,
-          "multiple or overlapping isolation windows were not handled as one scan");
-
-  // Lane prefiltering is inclusive at both isolation-window boundaries.
-  const std::vector<OpenDIA::TransitionQuery> boundary_queries = {
-    {"lower_edge", 450.0, 100.0, 0.0, false},
-    {"upper_edge", 550.0, 101.0, 0.0, false},
-    {"below_edge", 449.999, 102.0, 0.0, false},
-    {"above_edge", 550.001, 103.0, 0.0, false}
-  };
-  std::ostringstream boundary_output;
-  OpenDIA::StreamSearch boundary_search(boundary_queries, OpenDIA::SearchOptions{}, boundary_output);
-  MSSpectrum boundary_spectrum = spectrum(10.0, 500.0,
-                                          {Peak1D(100.0, 10.0), Peak1D(101.0, 10.0),
-                                           Peak1D(102.0, 10.0), Peak1D(103.0, 10.0)});
-  boundary_search.consumeSpectrum(boundary_spectrum);
-  boundary_search.finish();
-  require(boundary_output.str().find("lower_edge\t450\t") != std::string::npos &&
-          boundary_output.str().find("upper_edge\t550\t") != std::string::npos,
-          "inclusive isolation-window boundary candidates were lost");
-  require(boundary_output.str().find("below_edge") == std::string::npos &&
-          boundary_output.str().find("above_edge") == std::string::npos,
-          "candidate outside isolation-window boundaries was reported");
-
-  // Interleaved lanes and skipped lanes preserve each candidate's ordered trace.
-  std::vector<OpenDIA::TransitionQuery> cycle_queries = {
-    {"lane_a", 500.0, 100.0, 0.0, false},
-    {"lane_b", 700.0, 100.0, 0.0, false}
-  };
-  OpenDIA::SearchOptions cycle_options;
-  cycle_options.fragment_tolerance_da = 0.01;
-  cycle_options.peak_gap_seconds = 30.0;
-  std::ostringstream cycle_output;
-  OpenDIA::StreamSearch cycle_search(cycle_queries, cycle_options, cycle_output);
-  MSSpectrum lane_a_first = spectrum(10.0, 500.0, {Peak1D(100.0, 2.0)});
-  MSSpectrum lane_b_first = spectrum(20.0, 700.0, {Peak1D(100.0, 5.0)});
-  MSSpectrum lane_a_second = spectrum(30.0, 500.0, {Peak1D(100.0, 4.0)});
-  cycle_search.consumeSpectrum(lane_a_first);
-  cycle_search.consumeSpectrum(lane_b_first);
-  cycle_search.consumeSpectrum(lane_a_second);
-  cycle_search.finish();
-  require(cycle_output.str().find("lane_a\t500\t10\t30\t30\t60\t1\t2") != std::string::npos,
-          "grid cycle boundary or sparse missing-lane trace changed");
-  require(cycle_output.str().find("lane_b\t700\t20\t20\t20\t5\t1\t1") != std::string::npos,
-          "window-lane query was assigned to the wrong grid row");
-
-  const std::vector<OpenDIA::TransitionQuery> im_queries = {
-    {"target", 500.0, 100.0, 0.0, false, 0.80, true},
-    {"mobility_interferer", 500.0, 100.0, 0.0, false, 0.95, true}
-  };
-  OpenDIA::SearchOptions im_options;
-  im_options.fragment_tolerance_da = 0.01;
-  im_options.ion_mobility_tolerance_vssc = 0.02;
-  im_options.peak_gap_seconds = 15.0;
-  std::ostringstream im_output;
-  OpenDIA::StreamSearch im_search(im_queries, im_options, im_output);
-  MSSpectrum im_first = spectrumWithIM(10.0, 500.0, {Peak1D(100.0, 10.0)}, {0.801f});
-  MSSpectrum im_second = spectrumWithIM(20.0, 500.0, {Peak1D(100.0, 20.0)}, {0.799f});
-  im_search.consumeSpectrum(im_first);
-  im_search.consumeSpectrum(im_second);
-  im_search.finish();
-  require(im_search.ionMobilityFilteringUsed(), "compatible library and raw mobility did not activate filtering");
-  require(im_output.str().find("target\t500\t") != std::string::npos,
-          "mobility-matched candidate was lost");
-  require(im_output.str().find("mobility_interferer") == std::string::npos,
-          "mobility-separated interferer was not rejected");
-
-  // Sorting the cell by m/z must keep nonuniform mobility values paired with
-  // their original centroids in the compact IM sidecar.
-  std::ostringstream sorted_im_output;
-  OpenDIA::StreamSearch sorted_im_search(im_queries, im_options, sorted_im_output);
-  MSSpectrum unsorted_im = spectrumWithIM(10.0, 500.0,
-                                          {Peak1D(100.005, 50.0), Peak1D(100.0, 10.0)},
-                                          {0.95f, 0.80f});
-  sorted_im_search.consumeSpectrum(unsorted_im);
-  sorted_im_search.finish();
-  require(sorted_im_output.str().find("target\t500\t10\t10\t10\t10\t1\t1") != std::string::npos,
-          "m/z sorting detached the target mobility from its centroid");
-  require(sorted_im_output.str().find("mobility_interferer\t500\t10\t10\t10\t50\t1\t1") != std::string::npos,
-          "m/z sorting detached the interferer mobility from its centroid");
-
-  // Missing raw mobility automatically falls back to the m/z-only path.
-  // A unitless mzML "Ion Mobility" array parses as milliseconds: ignored by
-  // default, used as 1/K0 only with the explicit opt-in.
-  const auto unitlessIM = [](double rt, float mobility)
-  {
-    MSSpectrum result = spectrum(rt, 500.0, {Peak1D(100.0, 10.0)});
-    DataArrays::FloatDataArray im_array;
-    im_array.setName("Ion Mobility");
-    im_array.push_back(mobility);
-    result.getFloatDataArrays().push_back(std::move(im_array));
-    return result;
-  };
-  for (const bool opt_in : {false, true})
-  {
-    OpenDIA::SearchOptions unitless_options = im_options;
-    unitless_options.ion_mobility_array_as_vssc = opt_in;
-    std::ostringstream unitless_output;
-    OpenDIA::StreamSearch unitless_search(im_queries, unitless_options, unitless_output);
-    MSSpectrum unitless = unitlessIM(10.0, 0.80f);
-    require(unitless.getIMData().second == DriftTimeUnit::MILLISECOND, "unitless Ion Mobility array no longer parses as ms");
-    unitless_search.consumeSpectrum(unitless);
-    unitless_search.finish();
-    require(unitless_search.ionMobilityFilteringUsed() == opt_in, "unitless IM opt-in changed filtering activation");
-    require((unitless_output.str().find("mobility_interferer") == std::string::npos) == opt_in,
-            "unitless IM opt-in did not control interferer rejection");
+    const auto rows = parse(run(queries, options, spectra));
+    require(rows.size() == 1 && rows[0].id == "analyte", "expected one peak of the isolated precursor only");
+    require(rows[0].apex == 20.0 && rows[0].support == 2 && rows[0].start < 20.0 && rows[0].end > 20.0, "apex, support or boundaries off");
   }
 
-  std::ostringstream no_im_output;
-  OpenDIA::StreamSearch no_im_search(im_queries, im_options, no_im_output);
-  MSSpectrum no_im_spectrum = spectrum(10.0, 500.0, {Peak1D(100.0, 10.0)});
-  no_im_search.consumeSpectrum(no_im_spectrum);
-  no_im_search.finish();
-  require(!no_im_search.ionMobilityFilteringUsed(), "mobility filtering reported active without raw mobility");
-  require(no_im_output.str().find("target\t500\t") != std::string::npos &&
-          no_im_output.str().find("mobility_interferer\t500\t") != std::string::npos,
-          "m/z-only fallback changed when raw mobility was absent");
+  // Transitions of one precursor must agree on the decoy label.
+  require(throws([] {
+            std::ostringstream sink;
+            OpenDIA::StreamSearch search({{"mixed", 500.0, 100.0, 0.0, true, 0.0, false, false}, {"mixed", 500.0, 101.0, 0.0, true, 0.0, false, true}},
+                                         defaults(), sink);
+          }),
+          "transitions with inconsistent target/decoy labels were accepted");
 
-  // Raw mobility without library coordinates also keeps m/z-only matching.
-  std::vector<OpenDIA::TransitionQuery> no_library_im_queries = {
-    {"unannotated", 500.0, 100.0, 0.0, false}
-  };
-  std::ostringstream no_library_im_output;
-  OpenDIA::StreamSearch no_library_im_search(no_library_im_queries, im_options, no_library_im_output);
-  MSSpectrum unannotated_spectrum = spectrumWithIM(10.0, 500.0, {Peak1D(100.0, 10.0)}, {0.95f});
-  no_library_im_search.consumeSpectrum(unannotated_spectrum);
-  no_library_im_search.finish();
-  require(!no_library_im_search.ionMobilityFilteringUsed(), "filtering reported active without library mobility");
-  require(no_library_im_output.str().find("unannotated\t500\t") != std::string::npos,
-          "m/z-only fallback changed when library mobility was absent");
-
-  // A scalar VSSC drift time is also detected without a CLI mode switch.
-  MSSpectrum scalar_im = spectrum(10.0, 500.0, {Peak1D(100.0, 10.0)});
-  scalar_im.setDriftTime(0.95);
-  scalar_im.setDriftTimeUnit(DriftTimeUnit::VSSC);
-  std::ostringstream scalar_im_output;
-  OpenDIA::StreamSearch scalar_im_search(im_queries, im_options, scalar_im_output);
-  scalar_im_search.consumeSpectrum(scalar_im);
-  scalar_im_search.finish();
-  require(scalar_im_search.ionMobilityFilteringUsed(), "scalar VSSC mobility was not detected");
-  require(scalar_im_output.str().find("mobility_interferer\t500\t") != std::string::npos &&
-          scalar_im_output.str().find("target\t500\t") == std::string::npos,
-          "scalar VSSC mobility did not select the matching candidate");
-
-#ifdef _OPENMP
-  // More than one candidate block and more than one scan batch must produce
-  // byte-identical output when the worker count changes.
-  std::vector<std::string> parallel_ids;
-  parallel_ids.reserve(300);
-  for (std::size_t candidate = 0; candidate < 300; ++candidate)
+  // Invalid settings.
   {
-    parallel_ids.push_back("parallel_" + std::to_string(candidate));
-  }
-  const auto run_candidate_blocks = [&parallel_ids](int thread_count)
-  {
-    omp_set_num_threads(thread_count);
-    std::vector<OpenDIA::TransitionQuery> candidate_queries;
-    candidate_queries.reserve(parallel_ids.size() * 2);
-    for (std::size_t candidate = 0; candidate < parallel_ids.size(); ++candidate)
+    const std::vector<OpenDIA::TransitionQuery> queries = {{"analyte", 500.0, 100.0, 0.0, true}};
+    for (const auto& change : std::vector<std::function<void(OpenDIA::SearchOptions&)>>{
+           [](auto& o) { o.fragment_tolerance_da = 0.0; }, [](auto& o) { o.ion_mobility_tolerance_vssc = 0.0; },
+           [](auto& o) { o.rt_window_seconds = 0.0; }, [](auto& o) { o.min_transitions = 0; }, [](auto& o) { o.picker.max_peaks = 0; }})
     {
-      const double precursor_mz = 450.0 + static_cast<double>(candidate) * 0.3;
-      for (std::size_t transition = 0; transition < 2; ++transition)
+      OpenDIA::SearchOptions options = defaults();
+      change(options);
+      require(throws([&] { std::ostringstream sink; OpenDIA::StreamSearch search(queries, options, sink); }), "invalid search option accepted");
+    }
+  }
+
+  // Isolation metadata: no width is ignored, several and overlapping windows count once, edges are inclusive.
+  {
+    const std::vector<OpenDIA::TransitionQuery> queries = {{"analyte", 500.0, 100.0, 0.0, false}};
+    MSSpectrum no_width = spectrum(10.0, 500.0, {Peak1D(100.0, 10.0)});
+    no_width.getPrecursors().front().setIsolationWindowLowerOffset(0.0);
+    no_width.getPrecursors().front().setIsolationWindowUpperOffset(0.0);
+    require(run(queries, defaults(), {no_width}).empty(), "spectrum with no isolation-width metadata was matched");
+
+    MSSpectrum multi = spectrum(10.0, 500.0, {Peak1D(300.0, 9.0)});
+    for (const double centre : {700.0, 710.0})
+    {
+      Precursor window;
+      window.setMZ(centre);
+      window.setIsolationWindowLowerOffset(50.0);
+      window.setIsolationWindowUpperOffset(50.0);
+      multi.getPrecursors().push_back(window);
+    }
+    const auto multi_rows = parse(run({{"other", 700.0, 300.0, 0.0, false}}, defaults(), {multi}));
+    require(multi_rows.size() == 1 && multi_rows[0].apex == 10.0 && multi_rows[0].scans == 1, "multiple or overlapping isolation windows were not one scan");
+
+    const std::vector<OpenDIA::TransitionQuery> edges = {
+      {"lower_edge", 450.0, 100.0, 0.0, false}, {"upper_edge", 550.0, 101.0, 0.0, false},
+      {"below_edge", 449.999, 102.0, 0.0, false}, {"above_edge", 550.001, 103.0, 0.0, false}};
+    const auto edge_rows = parse(run(edges, defaults(), {spectrum(10.0, 500.0, {Peak1D(100.0, 10.0), Peak1D(101.0, 10.0), Peak1D(102.0, 10.0), Peak1D(103.0, 10.0)})}));
+    require(count(edge_rows, "lower_edge") == 1 && count(edge_rows, "upper_edge") == 1, "inclusive isolation-window edge candidates were lost");
+    require(count(edge_rows, "below_edge") == 0 && count(edge_rows, "above_edge") == 0, "candidate outside the isolation window was reported");
+  }
+
+  // Interleaved lanes: each precursor's trace holds only the scans that isolated it.
+  {
+    const std::vector<OpenDIA::TransitionQuery> queries = {{"lane_a", 500.0, 100.0, 0.0, false}, {"lane_b", 700.0, 100.0, 0.0, false}};
+    const auto rows = parse(run(queries, defaults(), {spectrum(10.0, 500.0, {Peak1D(100.0, 2.0)}), spectrum(20.0, 700.0, {Peak1D(100.0, 5.0)}),
+                                                      spectrum(30.0, 500.0, {Peak1D(100.0, 4.0)})}));
+    require(rows.size() == 2, "expected one peak per lane");
+    for (const Row& row : rows)
+    {
+      if (row.id == "lane_a")
       {
-        const double fragment_mz = 100.0 + static_cast<double>(candidate % 256) * 0.02 +
-                                   static_cast<double>(transition) * 0.005;
-        candidate_queries.push_back({parallel_ids[candidate], precursor_mz, fragment_mz, 0.0, false});
+        require(row.apex == 30.0 && row.scans == 2 && row.start == 10.0 && row.end == 30.0, "lane_a trace mixed lanes");
+      }
+      else
+      {
+        require(row.apex == 20.0 && row.scans == 1, "lane_b trace mixed lanes");
       }
     }
+  }
 
-    OpenDIA::SearchOptions candidate_options;
-    candidate_options.fragment_tolerance_da = 0.001;
-    candidate_options.peak_gap_seconds = 15.0;
-    candidate_options.min_transitions = 2;
-    std::ostringstream candidate_output;
-    OpenDIA::StreamSearch candidate_search(std::move(candidate_queries), candidate_options, candidate_output);
-    for (std::size_t scan = 0; scan < 40; ++scan)
+  // RT window: a scan outside a precursor's window never enters its trace; precursors without a library RT are
+  // searched over the whole run and written at the end.
+  {
+    OpenDIA::SearchOptions options = defaults();
+    options.rt_window_seconds = 10.0;
+    const std::vector<OpenDIA::TransitionQuery> queries = {{"early", 500.0, 100.0, 20.0, true}, {"untimed", 500.0, 100.0, 0.0, false}};
+    std::vector<MSSpectrum> spectra;
+    for (int i = 0; i < 100; ++i)
     {
-      const double rt = scan < 20 ? 10.0 + static_cast<double>(scan) : 110.0 + static_cast<double>(scan);
-      MSSpectrum scan_spectrum = spectrum(rt, 500.0, {});
-      for (std::size_t candidate = 0; candidate < parallel_ids.size(); ++candidate)
-      {
-        const double fragment_mz = 100.0 + static_cast<double>(candidate % 256) * 0.02;
-        scan_spectrum.push_back(Peak1D(fragment_mz, 1.0));
-        scan_spectrum.push_back(Peak1D(fragment_mz + 0.005, 2.0));
-      }
-      candidate_search.consumeSpectrum(scan_spectrum);
+      const double rt = 1.0 + i;
+      spectra.push_back(spectrum(rt, 500.0, {Peak1D(100.0, bell(rt, 20.0) + bell(rt, 80.0, 3000.0))}));
     }
-    candidate_search.finish();
-    return candidate_output.str();
-  };
-
-  const int original_threads = omp_get_max_threads();
-  const std::string serial_output = run_candidate_blocks(1);
-  const std::string parallel_output = run_candidate_blocks(4);
-  omp_set_num_threads(original_threads);
-  require(serial_output == parallel_output, "candidate-block extraction changed exact TSV output");
-  require(std::count(serial_output.begin(), serial_output.end(), '\n') == 600,
-          "candidate-block extraction lost completed groups across scan batches");
-  require(serial_output.find("parallel_0\t450\t10\t10\t29\t57\t2\t20") != std::string::npos &&
-          serial_output.find("parallel_0\t450\t130\t130\t149\t57\t2\t20") != std::string::npos,
-          "candidate-block extraction changed completed or active peak-group values");
-#endif
-
-  std::vector<OpenDIA::TransitionQuery> invalid_queries = {{"analyte", 500.0, 100.0, 0.0, false}};
-  OpenDIA::SearchOptions invalid_options;
-  invalid_options.fragment_tolerance_da = 0.0;
-  std::ostringstream unused_output;
-  bool rejected = false;
-  try
-  {
-    OpenDIA::StreamSearch invalid_search(std::move(invalid_queries), invalid_options, unused_output);
+    const std::string text = run(queries, options, spectra);
+    const auto rows = parse(text);
+    require(count(rows, "early") == 1 && count(rows, "untimed") == 2, "RT window gating or untimed search changed");
+    for (const Row& row : rows)
+    {
+      if (row.id == "early")
+      {
+        require(row.apex == 20.0 && row.start >= 10.0 && row.end <= 30.0, "scan outside the RT window entered a trace");
+      }
+    }
+    require(text.rfind("early", 0) == 0, "rows must be written in order of RT-window end, untimed precursors last");
   }
-  catch (const Exception::InvalidParameter&)
+
+  // Ion mobility: applied only when both the library and the spectrum provide 1/K0.
   {
-    rejected = true;
+    const std::vector<OpenDIA::TransitionQuery> queries = {{"target", 500.0, 100.0, 0.0, false, 0.80, true}, {"interferer", 500.0, 100.0, 0.0, false, 0.95, true}};
+    OpenDIA::SearchOptions options = defaults();
+    options.ion_mobility_tolerance_vssc = 0.02;
+    bool used = false;
+    auto rows = parse(run(queries, options, {spectrumWithIM(10.0, 500.0, {Peak1D(100.0, 10.0)}, {0.801f}), spectrumWithIM(20.0, 500.0, {Peak1D(100.0, 20.0)}, {0.799f})},
+                          nullptr, &used));
+    require(used && count(rows, "target") == 1 && count(rows, "interferer") == 0, "mobility did not separate target and interferer");
+
+    // Sorting a cell by m/z keeps each mobility with its centroid.
+    rows = parse(run(queries, options, {spectrumWithIM(10.0, 500.0, {Peak1D(100.005, 50.0), Peak1D(100.0, 10.0)}, {0.95f, 0.80f})}));
+    require(rows.size() == 2, "both mobility-separated candidates should match one centroid each");
+    for (const Row& row : rows)
+    {
+      require(row.score == (row.id == "target" ? 10.0 : 50.0), "m/z sorting detached a mobility from its centroid");
+    }
+
+    // A unitless "Ion Mobility" array parses as milliseconds: ignored by default, 1/K0 only with the opt-in.
+    for (const bool opt_in : {false, true})
+    {
+      MSSpectrum unitless = spectrum(10.0, 500.0, {Peak1D(100.0, 10.0)});
+      DataArrays::FloatDataArray im_array;
+      im_array.setName("Ion Mobility");
+      im_array.push_back(0.80f);
+      unitless.getFloatDataArrays().push_back(std::move(im_array));
+      require(unitless.getIMData().second == DriftTimeUnit::MILLISECOND, "unitless Ion Mobility array no longer parses as ms");
+      OpenDIA::SearchOptions unitless_options = options;
+      unitless_options.ion_mobility_array_as_vssc = opt_in;
+      rows = parse(run(queries, unitless_options, {unitless}, nullptr, &used));
+      require(used == opt_in && (count(rows, "interferer") == 0) == opt_in, "unitless IM opt-in did not control filtering");
+    }
+
+    rows = parse(run(queries, options, {spectrum(10.0, 500.0, {Peak1D(100.0, 10.0)})}, nullptr, &used));
+    require(!used && rows.size() == 2, "m/z-only fallback changed without raw mobility");
+    rows = parse(run({{"unannotated", 500.0, 100.0, 0.0, false}}, options, {spectrumWithIM(10.0, 500.0, {Peak1D(100.0, 10.0)}, {0.95f})}, nullptr, &used));
+    require(!used && rows.size() == 1, "m/z-only fallback changed without library mobility");
+
+    MSSpectrum scalar = spectrum(10.0, 500.0, {Peak1D(100.0, 10.0)});
+    scalar.setDriftTime(0.95);
+    scalar.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    rows = parse(run(queries, options, {scalar}, nullptr, &used));
+    require(used && count(rows, "interferer") == 1 && count(rows, "target") == 0, "scalar VSSC mobility did not select the matching candidate");
   }
-  require(rejected, "non-positive m/z tolerance was accepted");
 
   // A ppm fragment tolerance scales with m/z: 10 ppm keeps a 0.008 Da error at 1000 but rejects it at 100.
-  const std::vector<OpenDIA::TransitionQuery> ppm_queries = {
-    {"low_mz", 500.0, 100.0, 0.0, false},
-    {"high_mz", 500.0, 1000.0, 0.0, false}
-  };
-  OpenDIA::SearchOptions ppm_options;
-  ppm_options.fragment_tolerance_ppm = 10.0;
-  std::ostringstream ppm_output;
-  OpenDIA::StreamSearch ppm_search(ppm_queries, ppm_options, ppm_output);
-  MSSpectrum ppm_spectrum = spectrum(10.0, 500.0, {Peak1D(100.008, 10.0), Peak1D(1000.008, 10.0)});
-  ppm_search.consumeSpectrum(ppm_spectrum);
-  ppm_search.finish();
-  require(ppm_output.str().find("high_mz") != std::string::npos, "ppm tolerance rejected an in-tolerance high-m/z fragment");
-  require(ppm_output.str().find("low_mz") == std::string::npos, "ppm tolerance accepted an out-of-tolerance low-m/z fragment");
-
-  invalid_options = OpenDIA::SearchOptions{};
-  invalid_options.ion_mobility_tolerance_vssc = 0.0;
-  rejected = false;
-  try
   {
-    OpenDIA::StreamSearch invalid_search(std::move(invalid_queries), invalid_options, unused_output);
+    OpenDIA::SearchOptions options = defaults();
+    options.fragment_tolerance_ppm = 10.0;
+    const auto rows = parse(run({{"low_mz", 500.0, 100.0, 0.0, false}, {"high_mz", 500.0, 1000.0, 0.0, false}}, options,
+                                {spectrum(10.0, 500.0, {Peak1D(100.008, 10.0), Peak1D(1000.008, 10.0)})}));
+    require(count(rows, "high_mz") == 1 && count(rows, "low_mz") == 0, "ppm tolerance wrong");
   }
-  catch (const Exception::InvalidParameter&)
-  {
-    rejected = true;
-  }
-  require(rejected, "non-positive ion-mobility tolerance was accepted");
 
-  // xic_peaks: a precursor whose two fragments elute twice with a 60 s silent gap in between (the run mode would
-  // need peak_gap to separate them), plus a second precursor elsewhere. Every scan is a native trace point.
+  // Two elutions of one precursor separated by a silent gap, plus a second precursor; feature table and trace dump.
   {
-    const std::vector<OpenDIA::TransitionQuery> xic_queries = {
-      {"twice", 500.0, 100.0, 200.0, true},
-      {"twice", 500.0, 200.0, 200.0, true},
-      {"late", 520.0, 300.0, 400.0, true},
-      {"late", 520.0, 310.0, 400.0, true}
-    };
-    OpenDIA::SearchOptions xic_options;
-    xic_options.fragment_tolerance_da = 0.01;
-    xic_options.rt_window_seconds = 120.0;
-    xic_options.xic_peaks = true;
-    xic_options.min_transitions = 2;
-    std::ostringstream xic_output;
-    std::ostringstream xic_features;
-    OpenDIA::StreamSearch xic_search(xic_queries, xic_options, xic_output, &xic_features);
-    const auto bell = [](double rt, double centre) { return 1000.0 * std::exp(-0.5 * (rt - centre) * (rt - centre) / 4.0); };
-    for (int i = 0; i < 300; ++i)
+    const std::vector<OpenDIA::TransitionQuery> queries = {
+      {"twice", 500.0, 100.0, 200.0, true}, {"twice", 500.0, 200.0, 200.0, true},
+      {"late", 520.0, 300.0, 400.0, true, 0.0, false, true}, {"late", 520.0, 310.0, 400.0, true, 0.0, false, true}};
+    OpenDIA::SearchOptions options = defaults();
+    options.rt_window_seconds = 120.0;
+    options.min_transitions = 2;
+    const auto scans = [](bool with_twice)
     {
-      const double rt = 100.0 + 1.5 * i;
-      const double a = (rt < 210.0 ? bell(rt, 170.0) : 0.4 * bell(rt, 250.0));
-      const double b = 2.0 * bell(rt, 400.0);
-      std::vector<Peak1D> peaks;
-      if (a > 1.0) { peaks.emplace_back(100.0, a); peaks.emplace_back(200.0, 0.5 * a); }
-      if (b > 1.0) { peaks.emplace_back(300.0, b); peaks.emplace_back(310.0, 0.7 * b); }
-      MSSpectrum scan;
-      scan.setMSLevel(2);
-      scan.setRT(rt);
-      Precursor precursor;
-      precursor.setMZ(510.0);
-      precursor.setIsolationWindowLowerOffset(20.0);
-      precursor.setIsolationWindowUpperOffset(20.0);
-      scan.setPrecursors({precursor});
-      for (const auto& peak : peaks) { scan.push_back(peak); }
-      xic_search.consumeSpectrum(scan);
-    }
-    xic_search.finish();
-    const std::string xic_rows = xic_output.str();
-    require(std::count(xic_rows.begin(), xic_rows.end(), '\n') == 3, "xic mode should report two peaks of 'twice' and one of 'late'");
-    std::istringstream lines(xic_rows);
-    std::vector<double> twice_apexes;
-    for (std::string line; std::getline(lines, line);)
-    {
-      std::istringstream fields(line);
-      std::string id;
-      double mz = 0.0, start = 0.0, apex = 0.0, end = 0.0;
-      fields >> id >> mz >> start >> apex >> end;
-      require(end - start < 30.0, "xic boundaries should follow the elution profile, not the RT window");
-      if (id == "twice") { twice_apexes.push_back(apex); }
-      else { require(std::abs(apex - 400.0) < 1.6, "xic apex of 'late' is off"); }
-    }
-    std::sort(twice_apexes.begin(), twice_apexes.end());
-    require(twice_apexes.size() == 2 && std::abs(twice_apexes[0] - 170.0) < 1.6 && std::abs(twice_apexes[1] - 250.0) < 1.6,
-            "xic mode should separate the two elutions of 'twice'");
-    const std::string feature_rows = xic_features.str();
-    require(std::count(feature_rows.begin(), feature_rows.end(), '\n') == 3, "xic feature rows do not match the peak rows");
-    std::istringstream first_feature(feature_rows.substr(0, feature_rows.find('\n')));
-    std::vector<std::string> columns;
-    for (std::string field; std::getline(first_feature, field, '\t');) { columns.push_back(field); }
-    require(columns.size() == 21, "xic feature row should carry the 17 base and 4 xic columns");
-    require(std::stod(columns[17]) > 3.0 && std::stod(columns[17]) < 8.0, "xic FWHM of a sigma-2 s peak should be about 4.7 s");
-
-    // The trace dump writes the picker's matrix of the selected precursor only and leaves the peak output unchanged.
-    {
-      std::ostringstream dump_output;
-      std::ostringstream dump_traces;
-      OpenDIA::StreamSearch dump_search(xic_queries, xic_options, dump_output);
-      dump_search.setXicTraceDump(dump_traces, {"late"});
+      std::vector<MSSpectrum> spectra;
       for (int i = 0; i < 300; ++i)
       {
         const double rt = 100.0 + 1.5 * i;
+        const double a = with_twice ? (rt < 210.0 ? bell(rt, 170.0) : 0.4 * bell(rt, 250.0)) : 0.0;
         const double b = 2.0 * bell(rt, 400.0);
-        MSSpectrum scan;
-        scan.setMSLevel(2);
-        scan.setRT(rt);
-        Precursor precursor;
-        precursor.setMZ(510.0);
-        precursor.setIsolationWindowLowerOffset(20.0);
-        precursor.setIsolationWindowUpperOffset(20.0);
-        scan.setPrecursors({precursor});
-        if (b > 1.0) { scan.push_back(Peak1D(300.001, b)); scan.push_back(Peak1D(310.0, 0.7 * b)); }
-        dump_search.consumeSpectrum(scan);
+        std::vector<Peak1D> peaks;
+        if (a > 1.0) { peaks.emplace_back(100.0, a); peaks.emplace_back(200.0, 0.5 * a); }
+        if (b > 1.0) { peaks.emplace_back(with_twice ? 300.0 : 300.001, b); peaks.emplace_back(310.0, 0.7 * b); }
+        spectra.push_back(spectrum(rt, 510.0, peaks, 20.0));
       }
-      dump_search.finish();
-      const std::string dump = dump_traces.str();
-      std::istringstream dump_lines(dump);
-      std::string header;
-      std::getline(dump_lines, header);
-      require(header == "precursor_id\tscan\trt\tslot\tfragment_mz\tintensity\tobserved_mz", "trace dump header changed");
-      std::size_t rows = 0, matched = 0;
-      double apex_intensity = 0.0, apex_observed = 0.0;
-      for (std::string line; std::getline(dump_lines, line);)
-      {
-        std::istringstream fields(line);
-        std::string id, observed;
-        double scan_id = 0.0, rt = 0.0, slot = 0.0, fragment = 0.0, intensity = 0.0;
-        fields >> id >> scan_id >> rt >> slot >> fragment >> intensity >> observed;
-        require(id == "late", "trace dump wrote an unselected precursor");
-        require(rt >= 280.0 && rt <= 520.0, "trace dump row outside the RT window");
-        ++rows;
-        if (intensity > 0.0)
-        {
-          ++matched;
-          require(observed != "nan", "matched trace point without an observed m/z");
-        }
-        if (slot == 0.0 && intensity > apex_intensity) { apex_intensity = intensity; apex_observed = std::stod(observed); }
-      }
-      // 161 scans in [280, 520] times 2 fragments, every scan written including the zero filled ones.
-      require(rows == 2 * 161, "trace dump should hold every scan of the RT window for every fragment");
-      require(matched > 10 && matched < rows, "trace dump should mix matched and zero filled points");
-      require(std::abs(apex_intensity - 2000.0) < 1.0 && std::abs(apex_observed - 300.001) < 1e-9, "trace dump apex value or m/z is off");
-      // Only 'late' elutes in this run: one peak row, the same apex as without the dump.
-      const std::string dump_rows = dump_output.str();
-      require(std::count(dump_rows.begin(), dump_rows.end(), '\n') == 1 && dump_rows.rfind("late\t", 0) == 0,
-              "trace dump changed the peak output");
+      return spectra;
+    };
+    std::string features;
+    const auto rows = parse(run(queries, options, scans(true), &features));
+    require(rows.size() == 3, "expected two peaks of 'twice' and one of 'late'");
+    std::vector<double> twice_apexes;
+    for (const Row& row : rows)
+    {
+      require(row.end - row.start < 30.0, "boundaries should follow the elution profile, not the RT window");
+      if (row.id == "twice") { twice_apexes.push_back(row.apex); }
+      else { require(std::abs(row.apex - 400.0) < 1.6, "apex of 'late' is off"); }
+    }
+    std::sort(twice_apexes.begin(), twice_apexes.end());
+    require(twice_apexes.size() == 2 && std::abs(twice_apexes[0] - 170.0) < 1.6 && std::abs(twice_apexes[1] - 250.0) < 1.6,
+            "the two elutions of 'twice' were not separated");
+
+    std::istringstream feature_lines(features);
+    std::vector<std::vector<std::string>> table;
+    for (std::string line; std::getline(feature_lines, line);)
+    {
+      std::istringstream fields(line);
+      table.emplace_back();
+      for (std::string field; std::getline(fields, field, '\t');) { table.back().push_back(field); }
+    }
+    std::size_t header_columns = 0;
+    {
+      std::istringstream header(OpenDIA::StreamSearch::featureHeader());
+      for (std::string field; std::getline(header, field, '\t');) { ++header_columns; }
+    }
+    require(table.size() == 3 && header_columns == 19, "one feature row per peak, 19 columns");
+    for (std::size_t r = 0; r < table.size(); ++r)
+    {
+      const auto& t = table[r];
+      require(t.size() == header_columns && t[0] == std::to_string(r), "feature row width or running row number wrong");
+      require(t[3] == (t[1] == "late" ? "1" : "0") && t[12] == "1", "decoy label or library-RT flag wrong");
+      require(std::stod(t[15]) > 3.0 && std::stod(t[15]) < 8.0, "FWHM of a sigma-2 s peak should be about 4.7 s");
+      require(std::abs(std::stod(t[13]) - (std::stod(t[5]) - (t[1] == "late" ? 400.0 : 200.0))) < 1e-9, "apex RT error wrong");
     }
 
-    bool needs_window = false;
-    try
+    // The trace dump writes the picker's matrix of the selected precursor only and leaves the peak output unchanged.
+    std::ostringstream dump_output, dump_traces;
+    OpenDIA::StreamSearch dump_search(queries, options, dump_output);
+    dump_search.setTraceDump(dump_traces, {"late"});
+    for (auto& s : scans(false)) { dump_search.consumeSpectrum(s); }
+    dump_search.finish();
+    std::istringstream dump_lines(dump_traces.str());
+    std::string header;
+    std::getline(dump_lines, header);
+    require(header == "precursor_id\tscan\trt\tslot\tfragment_mz\tintensity\tobserved_mz", "trace dump header changed");
+    std::size_t dumped = 0, matched = 0;
+    double apex_intensity = 0.0, apex_observed = 0.0;
+    for (std::string line; std::getline(dump_lines, line);)
     {
-      OpenDIA::SearchOptions no_window = xic_options;
-      no_window.rt_window_seconds = 0.0;
-      std::ostringstream sink;
-      OpenDIA::StreamSearch invalid_search(xic_queries, no_window, sink);
+      std::istringstream fields(line);
+      std::string id, observed;
+      double scan_id = 0.0, rt = 0.0, slot = 0.0, fragment = 0.0, intensity = 0.0;
+      fields >> id >> scan_id >> rt >> slot >> fragment >> intensity >> observed;
+      require(id == "late" && rt >= 280.0 && rt <= 520.0, "trace dump row of another precursor or outside the RT window");
+      ++dumped;
+      if (intensity > 0.0)
+      {
+        ++matched;
+        require(observed != "nan", "matched trace point without an observed m/z");
+      }
+      if (slot == 0.0 && intensity > apex_intensity) { apex_intensity = intensity; apex_observed = std::stod(observed); }
     }
-    catch (const Exception::InvalidParameter&)
-    {
-      needs_window = true;
-    }
-    require(needs_window, "xic mode without an RT window was accepted");
+    // 161 scans in [280, 520] times 2 fragments, the zero filled ones included.
+    require(dumped == 2 * 161 && matched > 10 && matched < dumped, "trace dump should hold every scan of the RT window");
+    require(std::abs(apex_intensity - 2000.0) < 1.0 && std::abs(apex_observed - 300.001) < 1e-9, "trace dump apex value or m/z is off");
+    const auto dump_rows = parse(dump_output.str());
+    require(dump_rows.size() == 1 && dump_rows[0].id == "late", "trace dump changed the peak output");
   }
+
+#ifdef _OPENMP
+  // More than one chunk per lane, several lanes and several batches: output must not depend on the thread count.
+  {
+    std::vector<std::string> ids;
+    for (std::size_t c = 0; c < 900; ++c) { ids.push_back("p" + std::to_string(c)); }
+    std::vector<OpenDIA::TransitionQuery> queries;
+    for (std::size_t c = 0; c < ids.size(); ++c)
+    {
+      const double precursor_mz = (c % 3 == 0 ? 450.0 : 650.0) + static_cast<double>(c) * 0.01;
+      const double library_rt = 20.0 + static_cast<double>(c % 97);
+      for (std::size_t t = 0; t < 3; ++t)
+      {
+        queries.push_back({ids[c], precursor_mz, 100.0 + static_cast<double>(c % 256) * 0.02 + static_cast<double>(t) * 0.005, library_rt, c % 7 != 0});
+      }
+    }
+    std::vector<MSSpectrum> spectra;
+    for (std::size_t scan = 0; scan < 240; ++scan)
+    {
+      const double rt = 1.0 + 0.5 * static_cast<double>(scan);
+      std::vector<Peak1D> peaks;
+      for (std::size_t c = 0; c < 256; ++c)
+      {
+        const double fragment_mz = 100.0 + static_cast<double>(c) * 0.02;
+        const double height = 100.0 + static_cast<double>(c);
+        for (std::size_t t = 0; t < 3; ++t) { peaks.emplace_back(fragment_mz + static_cast<double>(t) * 0.005, bell(rt, 20.0 + static_cast<double>(c % 97), height) + 1.0); }
+      }
+      spectra.push_back(spectrum(rt, scan % 2 == 0 ? 500.0 : 700.0, peaks));
+    }
+    OpenDIA::SearchOptions options = defaults();
+    options.rt_window_seconds = 15.0;
+    const int original = omp_get_max_threads();
+    std::string serial_features, parallel_features;
+    omp_set_num_threads(1);
+    const std::string serial = run(queries, options, spectra, &serial_features);
+    omp_set_num_threads(4);
+    const std::string parallel = run(queries, options, spectra, &parallel_features);
+    omp_set_num_threads(original);
+    require(serial == parallel && serial_features == parallel_features, "output changed with the thread count");
+    require(parse(serial).size() >= ids.size(), "expected at least one peak per precursor");
+  }
+#endif
   return 0;
 }
