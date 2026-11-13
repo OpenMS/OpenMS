@@ -559,6 +559,63 @@ START_SECTION(void setPeptideRegions(std::shared_ptr<const PeptideRegions> regio
 }
 END_SECTION
 
+START_SECTION(void setModificationExclusions(std::shared_ptr<const ModificationExclusions> exclusions))
+{
+  // two entries with the same residues; in "w", Deamidated (Q) is excluded at Q2 (0-based), not at Q9
+  const std::vector<FASTAFile::FASTAEntry> entries{
+    {"p", "", "AGQLLDNWQSFEK"},
+    {"w", "", "AGQLLDNWQSFEK"}};
+  const auto peptidoforms = [&entries](FragmentIndex& fi, const std::string& identifier)
+  {
+    std::set<std::string> forms;
+    for (const auto& peptide : fi.getPeptides())
+    {
+      if (entries[peptide.protein_idx].identifier == identifier) { forms.insert(fi.reconstructModifiedSequence(peptide, entries).toString()); }
+    }
+    return forms;
+  };
+  for (const std::string dedup : {"false", "true"})
+  {
+    FragmentIndex fi;
+    auto p = fi.getParameters();
+    p.setValue("enzyme", "Trypsin");
+    p.setValue("peptide:missed_cleavages", 0);
+    p.setValue("peptide:min_size", 6);
+    p.setValue("peptide:max_size", 30);
+    p.setValue("peptide:min_mass", 0);
+    p.setValue("peptide:max_mass", 50000);
+    p.setValue("peptide:deduplicate", dedup);
+    p.setValue("modifications:variable", std::vector<std::string>{"Deamidated (Q)"});
+    p.setValue("modifications:fixed", std::vector<std::string>{});
+    fi.setParameters(p);
+    TEST_EQUAL(fi.getModificationExclusions() == nullptr, true)
+    auto exclusions = std::make_shared<FragmentIndex::ModificationExclusions>();
+    (*exclusions)["w"] = {{2, "Deamidated (Q)"}};
+    fi.setModificationExclusions(exclusions);
+    fi.build(entries);
+    const std::set<std::string> in_p = peptidoforms(fi, "p");
+    const std::set<std::string> in_w = peptidoforms(fi, "w");
+    // without deduplication every entry holds its own; with it, "w" holds only what "p" does not (nothing)
+    if (dedup == "false")
+    {
+      TEST_EQUAL(in_p.size(), 4) // AGQLLDNWQSFEK with and without each deamidation
+      TEST_EQUAL(in_w.size(), 2) // ... none at Q2
+      for (const std::string& form : in_w) { TEST_EQUAL(form.rfind("AGQ(Deamidated)", 0) == 0, false) }
+      TEST_EQUAL(in_w.count("AGQLLDNWQ(Deamidated)SFEK"), 1)
+    }
+    else
+    {
+      TEST_EQUAL(in_p.size() + in_w.size(), 4) // each peptidoform once
+    }
+    // equal residues and bitmasks need not name the same peptidoform: no protein occurrences from the index
+    TEST_EQUAL(fi.hasProteinOccurrences(entries), false)
+    fi.setModificationExclusions(nullptr);
+    fi.build(entries);
+    TEST_EQUAL(fi.hasProteinOccurrences(entries), true)
+  }
+}
+END_SECTION
+
 // A FASTA entry longer than 65535 residues would overflow the 16-bit peptide start offset in
 // Peptide::sequence_ and silently index fragments from the wrong subsequence. build() must reject it.
 START_SECTION([EXTRA] build() rejects FASTA entries longer than 65535 residues)

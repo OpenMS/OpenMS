@@ -1739,7 +1739,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     bool peff_variants_{false};    ///< database:peff_variants 'simple'
     /// The variant windows of the database that buildDecoyAugmentedDB_() built last (nullptr if none)
     mutable std::shared_ptr<const ProSEPEFF> peff_;
-    /// Restricts the peptides of the variant windows of @p peff (nullptr: none) in @p index (ProSEPEFF)
+    /// Restricts the peptides of the variant windows of @p peff (nullptr: none) in @p index, and excludes the modifications
+    /// that make a variant residue the reference residue there (ProSEPEFF)
     static void setPeptideRegions_(FragmentIndex& index, const std::shared_ptr<const ProSEPEFF>& peff);
 
     bool calibration_enabled_{false};

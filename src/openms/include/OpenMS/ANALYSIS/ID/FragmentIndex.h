@@ -19,6 +19,7 @@
 
 
 #include <array>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
@@ -306,6 +307,31 @@ namespace OpenMS
 
     /// The regions of setPeptideRegions() (nullptr if none were set)
     const std::shared_ptr<const PeptideRegions>& getPeptideRegions() const noexcept { return peptide_regions_; }
+
+    /// Per FASTA identifier: residue positions (0-based) with a variable modification (full name, e.g. "Deamidated (Q)")
+    /// that is not applied there (see setModificationExclusions())
+    using ModificationExclusions = std::unordered_map<std::string, std::vector<std::pair<Size, std::string>>>;
+
+    /** @brief Excludes variable modifications at single residues of some entries.
+     *
+     * For an entry whose identifier is a key of @p exclusions, the listed variable modifications are not applied at the
+     * listed residue positions of the entry (they are at its other residues, and in the other entries). Meant for a
+     * sequence variant whose residue a modification turns back into the reference residue (e.g. E -> Q with
+     * Deamidated (Q)): modified there, the variant peptide would be the reference peptide.
+     * Peptides of such an entry are told apart from those of other entries with the same residues by their rendered
+     * modifications (peptide:deduplicate), and getProteinOccurrences() does not list their occurrences
+     * (hasProteinOccurrences() is false). Positions past the end of an entry, and modifications that are not
+     * configured as variable, exclude nothing. Kept by clear(); applies to every later build(); nullptr (the default)
+     * or an empty map excludes nothing.
+     *
+     * @param[in] exclusions The exclusions by identifier (shared, not copied; must not change while the index is built)
+     *
+     * @exception Exception::InvalidValue at build() if a modification name is not known to ModificationsDB
+     */
+    void setModificationExclusions(std::shared_ptr<const ModificationExclusions> exclusions);
+
+    /// The exclusions of setModificationExclusions() (nullptr if none were set)
+    const std::shared_ptr<const ModificationExclusions>& getModificationExclusions() const noexcept { return modification_exclusions_; }
 
     /** @brief Given a set of Fasta files, builds the Fragment Index datastructure (FID). First all fragments are sorted
      * by their own mass. Next they are placed in buckets. The min-fragment mass is stored for each bucket, whereupon
@@ -774,8 +800,26 @@ protected:
     /// @param out_slots output array for modification slots (must have space for MAX_MOD_SLOTS entries)
     /// @param is_protein_nterm true if this peptide starts at protein position 0
     /// @param is_protein_cterm true if this peptide ends at the last protein residue
+    /// @param protein_idx the entry of the peptide (its modification exclusions, setModificationExclusions()); NO_PROTEIN:
+    ///        none (every caller that reconstructs a peptidoform of the index passes its entry, so that its bitmask means
+    ///        the same slots everywhere)
+    /// @param start position of the peptide in the entry
     size_t buildModSlots_(const char* sequence, size_t seq_len, ModSlot* out_slots,
-                          bool is_protein_nterm = false, bool is_protein_cterm = false) const;
+                          bool is_protein_nterm = false, bool is_protein_cterm = false,
+                          UInt32 protein_idx = NO_PROTEIN, size_t start = 0) const;
+
+    /// buildModSlots_(): no entry (no modification exclusions)
+    static constexpr UInt32 NO_PROTEIN = std::numeric_limits<UInt32>::max();
+
+    /// Whether variable modification @p mod is excluded at position @p position of entry @p protein_idx
+    /// (setModificationExclusions(), as resolved by build())
+    bool isExcludedModification_(UInt32 protein_idx, size_t position, const ResidueModification* mod) const;
+
+    /// Whether entry @p protein_idx has a modification exclusion in [start, start + length)
+    bool spanHasExclusion_(UInt32 protein_idx, size_t start, size_t length) const;
+
+    /// Resolves the exclusions of setModificationExclusions() for @p fasta_entries (build())
+    void resolveModificationExclusions_(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
 
     /// Enumerate distinct Σ values achievable by any subset of configured
     /// variable mods with popcount ≤ max_variable_mods_per_peptide_.
@@ -1021,6 +1065,13 @@ protected:
 
     /// setPeptideRegions(): the regions that restrict the peptides of some entries (nullptr: none)
     std::shared_ptr<const PeptideRegions> peptide_regions_;
+
+    /// setModificationExclusions(): the variable modifications excluded at residues of some entries (nullptr: none)
+    std::shared_ptr<const ModificationExclusions> modification_exclusions_;
+    /// resolved at build(): the exclusions of entry i are excluded_[excluded_offsets_[i], excluded_offsets_[i + 1]),
+    /// sorted by position (both empty if no entry has any)
+    std::vector<uint32_t> excluded_offsets_;
+    std::vector<std::pair<uint32_t, const ResidueModification*>> excluded_;
 
     /// The region of @p entry (peptide_regions_), or nullptr if its peptides are not restricted
     const std::pair<Size, Size>* peptideRegion_(const FASTAFile::FASTAEntry& entry) const;
