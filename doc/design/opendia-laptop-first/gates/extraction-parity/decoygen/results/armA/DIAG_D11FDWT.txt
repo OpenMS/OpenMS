@@ -1,0 +1,120 @@
+==== xic raw01 D11FDWT: population 1641009 windows, 330579 precursors; RT window half width 90.8 s, run 264-1307 s
+1. windows per precursor (mean, p50, p90, share with 5+), edge-window share, max support >= 3 share
+   human     n  82949  windows 4.96 5 5 0.981  edge 0.000  support>=3 0.697
+   entrap    n  82448  windows 4.96 5 5 0.980  edge 0.000  support>=3 0.688
+   dec(hum)  n  82799  windows 4.96 5 5 0.981  edge 0.000  support>=3 0.688
+   dec(ent)  n  82292  windows 4.96 5 5 0.981  edge 0.000  support>=3 0.695
+2. overall: E = entrapment target winners, D = decoy pair winners, both at the target cut
+   q <= 0.01 cut   34.05: N   837 E    1 D    7 rho  0.29 [0.01,  1.78]
+   q <= 0.02 cut   23.16: N  1711 E    9 D   33 rho  0.54 [0.26,  1.05]
+   q <= 0.05 cut    9.74: N  2240 E   54 D  111 rho  0.97 [0.73,  1.29]
+   q <= 0.10 cut    7.04: N  2573 E  153 D  256 rho  1.19 [1.00,  1.42]
+   q <= 0.20 cut    5.82: N  3031 E  303 D  605 rho  1.00 [0.89,  1.13]
+3. by edge window (q <= 0.10 cut | q <= 0.01 cut)
+                0 N  2573 E  153 D  256 rho  1.19 [1.00,  1.42] | E    1 D    7 rho  0.29 [0.01,  1.78]
+3. by windows of the precursor (q <= 0.10 cut | q <= 0.01 cut)
+           (1, 2] N     2 E    0 D    0 rho   nan [ nan,   nan] | E    0 D    0 rho   nan [ nan,   nan]
+           (2, 4] N    12 E    2 D    3 rho  1.33 [0.17,  8.56] | E    0 D    0 rho   nan [ nan,   nan]
+           (4, 8] N  2559 E  151 D  253 rho  1.19 [1.00,  1.42] | E    1 D    7 rho  0.29 [0.01,  1.78]
+3. by picker peak rank of the winner (q <= 0.10 cut | q <= 0.01 cut)
+                0 N  2385 E  104 D  183 rho  1.14 [0.92,  1.40] | E    1 D    7 rho  0.29 [0.01,  1.78]
+                1 N   114 E   26 D   36 rho  1.44 [0.91,  2.27] | E    0 D    0 rho   nan [ nan,   nan]
+                2 N    41 E    9 D   23 rho  0.78 [0.37,  1.57] | E    0 D    0 rho   nan [ nan,   nan]
+                3 N    33 E   14 D   14 rho  2.00 [1.00,  4.00] | E    0 D    0 rho   nan [ nan,   nan]
+3. by transition support (q <= 0.10 cut | q <= 0.01 cut)
+                2 N     1 E    0 D    3 rho  0.00 [0.00,  3.43] | E    0 D    0 rho   nan [ nan,   nan]
+                3 N    38 E   13 D   19 rho  1.37 [0.70,  2.61] | E    0 D    0 rho   nan [ nan,   nan]
+                4 N   156 E   44 D   61 rho  1.44 [1.02,  2.03] | E    0 D    0 rho   nan [ nan,   nan]
+                5 N   664 E   70 D  107 rho  1.31 [1.00,  1.70] | E    0 D    0 rho   nan [ nan,   nan]
+                6 N  1714 E   26 D   66 rho  0.79 [0.52,  1.17] | E    1 D    7 rho  0.29 [0.01,  1.78]
+3. by |apex RT error| / half window (q <= 0.10 cut | q <= 0.01 cut)
+      (-1.0, 0.1] N   852 E   45 D   63 rho  1.43 [1.01,  2.00] | E    0 D    3 rho  0.00 [0.00,  3.43]
+      (0.1, 0.25] N   851 E   37 D   70 rho  1.06 [0.74,  1.50] | E    0 D    2 rho  0.00 [0.00,  6.94]
+      (0.25, 0.5] N   626 E   37 D   57 rho  1.30 [0.89,  1.87] | E    1 D    2 rho  1.00 [0.03, 12.76]
+      (0.5, 0.75] N   179 E   28 D   44 rho  1.27 [0.83,  1.94] | E    0 D    0 rho   nan [ nan,   nan]
+      (0.75, 2.0] N    65 E    6 D   22 rho  0.54 [0.22,  1.22] | E    0 D    0 rho   nan [ nan,   nan]
+3. by charge (q <= 0.10 cut | q <= 0.01 cut)
+                1 N    46 E    7 D   13 rho  1.08 [0.43,  2.52] | E    0 D    1 rho  0.00 [0.00, 37.97]
+                2 N  1970 E  111 D  180 rho  1.23 [1.00,  1.51] | E    1 D    5 rho  0.40 [0.02,  2.78]
+                3 N   485 E   14 D   35 rho  0.80 [0.44,  1.39] | E    0 D    0 rho   nan [ nan,   nan]
+                4 N    72 E   21 D   28 rho  1.50 [0.89,  2.50] | E    0 D    1 rho  0.00 [0.00, 37.97]
+3. by precursor m/z (q <= 0.10 cut | q <= 0.01 cut)
+         (0, 500] N   731 E   72 D  130 rho  1.11 [0.86,  1.42] | E    1 D    3 rho  0.67 [0.03,  6.04]
+       (500, 650] N  1000 E   45 D   83 rho  1.08 [0.78,  1.49] | E    0 D    3 rho  0.00 [0.00,  3.43]
+       (650, 800] N   553 E   28 D   33 rho  1.70 [1.07,  2.67] | E    0 D    0 rho   nan [ nan,   nan]
+      (800, 3000] N   289 E    8 D   10 rho  1.60 [0.64,  3.87] | E    0 D    1 rho  0.00 [0.00, 37.97]
+3. by mapped RT tertile (q <= 0.10 cut | q <= 0.01 cut)
+            early N   368 E   26 D   41 rho  1.27 [0.81,  1.96] | E    1 D    1 rho  2.00 [0.05, 76.92]
+             late N   533 E   24 D   36 rho  1.33 [0.83,  2.12] | E    0 D    0 rho   nan [ nan,   nan]
+              mid N  1672 E  103 D  179 rho  1.15 [0.93,  1.42] | E    0 D    6 rho  0.00 [0.00,  1.29]
+3. by fold (q <= 0.10 cut | q <= 0.01 cut)
+                0 N   906 E   65 D   99 rho  1.31 [0.99,  1.72] | E    0 D    2 rho  0.00 [0.00,  6.94]
+                1 N   821 E   36 D   76 rho  0.95 [0.66,  1.34] | E    0 D    0 rho   nan [ nan,   nan]
+                2 N   846 E   52 D   81 rho  1.28 [0.94,  1.74] | E    1 D    5 rho  0.40 [0.02,  2.78]
+3. by decoy partner class (targets: own class) (q <= 0.10 cut | q <= 0.01 cut)
+              0.0 N  2420 E    0 D    0 rho   nan [ nan,   nan] | E    0 D    0 rho   nan [ nan,   nan]
+              1.0 N   153 E  153 D    0 rho   inf [101.06,   inf] | E    1 D    0 rho   inf [0.11,   inf]
+              2.0 N     0 E    0 D  100 rho  0.00 [0.00,  0.06] | E    0 D    3 rho  0.00 [0.00,  3.43]
+              3.0 N     0 E    0 D  156 rho  0.00 [0.00,  0.04] | E    0 D    4 rho  0.00 [0.00,  2.23]
+
+==== xic raw02 D11FDWT: population 1517585 windows, 306944 precursors; RT window half width 79.4 s, run 320-1292 s
+1. windows per precursor (mean, p50, p90, share with 5+), edge-window share, max support >= 3 share
+   human     n  77033  windows 4.94 5 5 0.970  edge 0.000  support>=3 0.684
+   entrap    n  76540  windows 4.94 5 5 0.969  edge 0.000  support>=3 0.676
+   dec(hum)  n  76869  windows 4.94 5 5 0.971  edge 0.000  support>=3 0.674
+   dec(ent)  n  76362  windows 4.95 5 5 0.972  edge 0.000  support>=3 0.681
+2. overall: E = entrapment target winners, D = decoy pair winners, both at the target cut
+   q <= 0.01 cut   28.02: N  1545 E    8 D   14 rho  1.14 [0.49,  2.55]
+   q <= 0.02 cut   15.64: N  1818 E   15 D   35 rho  0.86 [0.48,  1.47]
+   q <= 0.05 cut    9.31: N  2124 E   43 D  105 rho  0.82 [0.59,  1.11]
+   q <= 0.10 cut    7.25: N  2421 E  132 D  241 rho  1.09 [0.91,  1.31]
+   q <= 0.20 cut    5.94: N  2917 E  294 D  582 rho  1.01 [0.89,  1.14]
+3. by edge window (q <= 0.10 cut | q <= 0.01 cut)
+                0 N  2421 E  132 D  241 rho  1.09 [0.91,  1.31] | E    8 D   14 rho  1.14 [0.49,  2.55]
+3. by windows of the precursor (q <= 0.10 cut | q <= 0.01 cut)
+           (0, 1] N     1 E    0 D    0 rho   nan [ nan,   nan] | E    0 D    0 rho   nan [ nan,   nan]
+           (1, 2] N     6 E    1 D    0 rho   inf [0.11,   inf] | E    0 D    0 rho   nan [ nan,   nan]
+           (2, 4] N    15 E    1 D    2 rho  1.00 [0.03, 12.76] | E    0 D    1 rho  0.00 [0.00, 37.97]
+           (4, 8] N  2399 E  130 D  239 rho  1.09 [0.90,  1.31] | E    8 D   13 rho  1.23 [0.52,  2.79]
+3. by picker peak rank of the winner (q <= 0.10 cut | q <= 0.01 cut)
+                0 N  2276 E   93 D  166 rho  1.12 [0.90,  1.39] | E    8 D   12 rho  1.33 [0.55,  3.08]
+                1 N    95 E   21 D   45 rho  0.93 [0.58,  1.48] | E    0 D    2 rho  0.00 [0.00,  6.94]
+                2 N    31 E   15 D   14 rho  2.14 [1.09,  4.24] | E    0 D    0 rho   nan [ nan,   nan]
+                3 N    19 E    3 D   16 rho  0.37 [0.09,  1.12] | E    0 D    0 rho   nan [ nan,   nan]
+3. by transition support (q <= 0.10 cut | q <= 0.01 cut)
+                1 N     0 E    0 D    1 rho  0.00 [0.00, 37.97] | E    0 D    0 rho   nan [ nan,   nan]
+                2 N    12 E    9 D    3 rho  5.99 [1.79, 25.80] | E    0 D    0 rho   nan [ nan,   nan]
+                3 N    34 E   11 D   29 rho  0.76 [0.39,  1.41] | E    0 D    0 rho   nan [ nan,   nan]
+                4 N   147 E   36 D   61 rho  1.18 [0.81,  1.70] | E    0 D    1 rho  0.00 [0.00, 37.97]
+                5 N   570 E   50 D   87 rho  1.15 [0.84,  1.56] | E    4 D    2 rho  4.00 [0.74, 29.79]
+                6 N  1658 E   26 D   60 rho  0.87 [0.57,  1.30] | E    4 D   11 rho  0.73 [0.21,  2.09]
+3. by |apex RT error| / half window (q <= 0.10 cut | q <= 0.01 cut)
+      (-1.0, 0.1] N   751 E   26 D   46 rho  1.13 [0.73,  1.73] | E    2 D    4 rho  1.00 [0.13,  5.37]
+      (0.1, 0.25] N   718 E   35 D   53 rho  1.32 [0.90,  1.93] | E    0 D    4 rho  0.00 [0.00,  2.23]
+      (0.25, 0.5] N   641 E   24 D   58 rho  0.83 [0.53,  1.26] | E    5 D    2 rho  5.00 [1.04, 35.44]
+      (0.5, 0.75] N   212 E   23 D   43 rho  1.07 [0.67,  1.68] | E    0 D    4 rho  0.00 [0.00,  2.23]
+      (0.75, 2.0] N    99 E   24 D   41 rho  1.17 [0.74,  1.83] | E    1 D    0 rho   inf [0.11,   inf]
+3. by charge (q <= 0.10 cut | q <= 0.01 cut)
+                1 N    40 E    3 D   11 rho  0.54 [0.13,  1.74] | E    1 D    1 rho  2.00 [0.05, 76.92]
+                2 N  1884 E  101 D  165 rho  1.22 [0.98,  1.52] | E    7 D   12 rho  1.17 [0.46,  2.78]
+                3 N   437 E    8 D   28 rho  0.57 [0.26,  1.15] | E    0 D    1 rho  0.00 [0.00, 37.97]
+                4 N    60 E   20 D   37 rho  1.08 [0.65,  1.76] | E    0 D    0 rho   nan [ nan,   nan]
+3. by precursor m/z (q <= 0.10 cut | q <= 0.01 cut)
+         (0, 500] N   673 E   67 D  107 rho  1.25 [0.95,  1.63] | E    5 D    8 rho  1.25 [0.40,  3.63]
+       (500, 650] N   938 E   35 D   91 rho  0.77 [0.54,  1.08] | E    2 D    4 rho  1.00 [0.13,  5.37]
+       (650, 800] N   529 E   24 D   31 rho  1.55 [0.95,  2.50] | E    0 D    1 rho  0.00 [0.00, 37.97]
+      (800, 3000] N   281 E    6 D   12 rho  1.00 [0.37,  2.48] | E    1 D    1 rho  2.00 [0.05, 76.92]
+3. by mapped RT tertile (q <= 0.10 cut | q <= 0.01 cut)
+            early N   453 E   27 D   46 rho  1.17 [0.76,  1.79] | E    1 D    4 rho  0.50 [0.02,  3.83]
+             late N   427 E   18 D   24 rho  1.50 [0.85,  2.61] | E    1 D    0 rho   inf [0.11,   inf]
+              mid N  1541 E   87 D  171 rho  1.02 [0.81,  1.27] | E    6 D   10 rho  1.20 [0.43,  3.11]
+3. by fold (q <= 0.10 cut | q <= 0.01 cut)
+                0 N   854 E   44 D   82 rho  1.07 [0.77,  1.48] | E    1 D    4 rho  0.50 [0.02,  3.83]
+                1 N   777 E   37 D   80 rho  0.92 [0.65,  1.30] | E    4 D    6 rho  1.33 [0.35,  4.58]
+                2 N   790 E   51 D   79 rho  1.29 [0.94,  1.76] | E    3 D    4 rho  1.50 [0.30,  6.87]
+3. by decoy partner class (targets: own class) (q <= 0.10 cut | q <= 0.01 cut)
+              0.0 N  2289 E    0 D    0 rho   nan [ nan,   nan] | E    0 D    0 rho   nan [ nan,   nan]
+              1.0 N   132 E  132 D    0 rho   inf [87.05,   inf] | E    8 D    0 rho   inf [4.40,   inf]
+              2.0 N     0 E    0 D  100 rho  0.00 [0.00,  0.06] | E    0 D    3 rho  0.00 [0.00,  3.43]
+              3.0 N     0 E    0 D  141 rho  0.00 [0.00,  0.04] | E    0 D   11 rho  0.00 [0.00,  0.63]
+

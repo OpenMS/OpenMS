@@ -1,0 +1,78 @@
+==== raw01
+  q <= 0.01: winners with a DIFFERENT reference peptide of the same composition+charge eluting within 10 s:
+    human     n  1680     2 (0.001)
+    entrap    n     9     0 (0.000)
+    dec(hum)  n     7     4 (0.571)
+    dec(ent)  n     8     2 (0.250)
+    other_parent=0: N  1687 E    9 D    9 rho  2.00 [0.82,  4.86]
+    other_parent=1: N     2 E    0 D    6 rho  0.00 [0.00,  1.29]
+  q <= 0.05: winners with a DIFFERENT reference peptide of the same composition+charge eluting within 10 s:
+    human     n  2093     8 (0.004)
+    entrap    n    42     5 (0.119)
+    dec(hum)  n    47     8 (0.170)
+    dec(ent)  n    58    11 (0.190)
+    other_parent=0: N  2122 E   37 D   86 rho  0.86 [0.61,  1.20]
+    other_parent=1: N    13 E    5 D   19 rho  0.53 [0.19,  1.27]
+  q <= 0.10: winners with a DIFFERENT reference peptide of the same composition+charge eluting within 10 s:
+    human     n  2266    11 (0.005)
+    entrap    n   105    11 (0.105)
+    dec(hum)  n   105     9 (0.086)
+    dec(ent)  n   131    16 (0.122)
+    other_parent=0: N  2349 E   94 D  211 rho  0.89 [0.72,  1.10]
+    other_parent=1: N    22 E   11 D   25 rho  0.88 [0.44,  1.67]
+  q <= 0.20: winners with a DIFFERENT reference peptide of the same composition+charge eluting within 10 s:
+    human     n  2548    13 (0.005)
+    entrap    n   274    17 (0.062)
+    dec(hum)  n   267    15 (0.056)
+    dec(ent)  n   296    22 (0.074)
+    other_parent=0: N  2792 E  257 D  526 rho  0.98 [0.86,  1.11]
+    other_parent=1: N    30 E   17 D   37 rho  0.92 [0.54,  1.53]
+  background: population precursors with a different same-composition reference peptide anywhere in the run: {-7.0: 0.0101, 'human': 0.0059, 'entrap': 0.0336, 'dec(hum)': 0.0387, 'dec(ent)': 0.0336}
+  q <= 0.01 entrapment winners:
+    QTELELR/2 apex 751 parent ['TQELLER'] dRT [-70.5]
+    LASALGVQSR/2 apex 743 parent - dRT []
+    VLNLLQK/1 apex 835 parent - dRT []
+    LVLSTAGQLSK/2 apex 837 parent - dRT []
+    LQLADPR/2 apex 737 parent - dRT []
+    TDQELER/2 apex 420 parent - dRT []
+    VLESEGNK/2 apex 410 parent ['VELSNGEK'] dRT [59.2]
+    LEATDAVR/2 apex 589 parent ['AALETVDR', 'AVLETADR'] dRT [29.6, -14.8]
+    LGGLGSAFGR/2 apex 856 parent - dRT []
+==== raw02
+  q <= 0.01: winners with a DIFFERENT reference peptide of the same composition+charge eluting within 10 s:
+    human     n  1610     2 (0.001)
+    entrap    n     7     1 (0.143)
+    dec(hum)  n     8     3 (0.375)
+    dec(ent)  n     7     4 (0.571)
+    other_parent=0: N  1614 E    6 D    8 rho  1.50 [0.52,  4.15]
+    other_parent=1: N     3 E    1 D    7 rho  0.29 [0.01,  1.78]
+  q <= 0.05: winners with a DIFFERENT reference peptide of the same composition+charge eluting within 10 s:
+    human     n  2112     5 (0.002)
+    entrap    n    46     4 (0.087)
+    dec(hum)  n    52    11 (0.212)
+    dec(ent)  n    54    11 (0.204)
+    other_parent=0: N  2149 E   42 D   84 rho  1.00 [0.72,  1.38]
+    other_parent=1: N     9 E    4 D   22 rho  0.36 [0.11,  0.93]
+  q <= 0.10: winners with a DIFFERENT reference peptide of the same composition+charge eluting within 10 s:
+    human     n  2292    10 (0.004)
+    entrap    n   124    13 (0.105)
+    dec(hum)  n   125    16 (0.128)
+    dec(ent)  n   115    21 (0.183)
+    other_parent=0: N  2393 E  111 D  203 rho  1.09 [0.89,  1.33]
+    other_parent=1: N    23 E   13 D   37 rho  0.70 [0.38,  1.23]
+  q <= 0.20: winners with a DIFFERENT reference peptide of the same composition+charge eluting within 10 s:
+    human     n  2601    12 (0.005)
+    entrap    n   276    25 (0.091)
+    dec(hum)  n   285    21 (0.074)
+    dec(ent)  n   288    26 (0.090)
+    other_parent=0: N  2840 E  251 D  527 rho  0.95 [0.84,  1.08]
+    other_parent=1: N    37 E   25 D   47 rho  1.06 [0.68,  1.63]
+  background: population precursors with a different same-composition reference peptide anywhere in the run: {-7.0: 0.0085, 'human': 0.0069, 'entrap': 0.0352, 'dec(hum)': 0.0419, 'dec(ent)': 0.0353}
+  q <= 0.01 entrapment winners:
+    QTELELR/2 apex 752 parent ['QTELELR'] dRT [0.0]
+    AALEEAALPESR/2 apex 837 parent ['EALAEAALESPR'] dRT [0.0]
+    LNLGLFR/2 apex 1019 parent ['GLFLLNR'] dRT [13.1]
+    TDQELER/2 apex 421 parent - dRT []
+    LAHVSSDKTLMSLFR/4 apex 981 parent - dRT []
+    LANGLYR/2 apex 707 parent ['NLGALYR'] dRT [72.0]
+    LEATDAVR/2 apex 607 parent ['AALETVDR', 'AVLETADR'] dRT [11.5, -32.9]

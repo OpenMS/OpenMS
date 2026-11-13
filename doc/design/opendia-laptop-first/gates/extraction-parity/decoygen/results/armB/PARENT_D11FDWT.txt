@@ -1,0 +1,67 @@
+==== raw01
+  q <= 0.01: winners with a DIFFERENT reference peptide of the same composition+charge eluting within 10 s:
+    human     n  1422     1 (0.001)
+    entrap    n     3     0 (0.000)
+    dec(hum)  n     9     2 (0.222)
+    dec(ent)  n     4     1 (0.250)
+    other_parent=0: N  1424 E    3 D   10 rho  0.60 [0.14,  1.96]
+    other_parent=1: N     1 E    0 D    3 rho  0.00 [0.00,  3.43]
+  q <= 0.05: winners with a DIFFERENT reference peptide of the same composition+charge eluting within 10 s:
+    human     n  1842     4 (0.002)
+    entrap    n    19     3 (0.158)
+    dec(hum)  n    56     6 (0.107)
+    dec(ent)  n    36     6 (0.167)
+    other_parent=0: N  1854 E   16 D   80 rho  0.40 [0.24,  0.64]
+    other_parent=1: N     7 E    3 D   12 rho  0.50 [0.12,  1.57]
+  q <= 0.10: winners with a DIFFERENT reference peptide of the same composition+charge eluting within 10 s:
+    human     n  2010     6 (0.003)
+    entrap    n    63     5 (0.079)
+    dec(hum)  n   113    13 (0.115)
+    dec(ent)  n    93    11 (0.118)
+    other_parent=0: N  2062 E   58 D  182 rho  0.64 [0.49,  0.82]
+    other_parent=1: N    11 E    5 D   24 rho  0.42 [0.15,  0.98]
+  q <= 0.20: winners with a DIFFERENT reference peptide of the same composition+charge eluting within 10 s:
+    human     n  2241     8 (0.004)
+    entrap    n   154    11 (0.071)
+    dec(hum)  n   253    17 (0.067)
+    dec(ent)  n   225    25 (0.111)
+    other_parent=0: N  2376 E  143 D  436 rho  0.66 [0.56,  0.77]
+    other_parent=1: N    19 E   11 D   42 rho  0.52 [0.28,  0.94]
+  background: population precursors with a different same-composition reference peptide anywhere in the run: {-7.0: 0.0, 'human': 0.0059, 'entrap': 0.0332, 'dec(hum)': 0.0122, 'dec(ent)': 0.0121}
+  q <= 0.01 entrapment winners:
+    LASALGVQSR/2 apex 743 parent - dRT []
+    VLNLLQK/1 apex 835 parent - dRT []
+    QTELELR/2 apex 751 parent ['TQELLER'] dRT [-70.5]
+==== raw02
+  q <= 0.01: winners with a DIFFERENT reference peptide of the same composition+charge eluting within 10 s:
+    human     n  1180     1 (0.001)
+    entrap    n     2     0 (0.000)
+    dec(hum)  n     5     1 (0.200)
+    dec(ent)  n     5     1 (0.200)
+    other_parent=0: N  1181 E    2 D    8 rho  0.50 [0.08,  2.05]
+    other_parent=1: N     1 E    0 D    2 rho  0.00 [0.00,  6.94]
+  q <= 0.05: winners with a DIFFERENT reference peptide of the same composition+charge eluting within 10 s:
+    human     n  1814     3 (0.002)
+    entrap    n    16     1 (0.062)
+    dec(hum)  n    54    10 (0.185)
+    dec(ent)  n    36     8 (0.222)
+    other_parent=0: N  1826 E   15 D   72 rho  0.42 [0.25,  0.68]
+    other_parent=1: N     4 E    1 D   18 rho  0.11 [0.01,  0.58]
+  q <= 0.10: winners with a DIFFERENT reference peptide of the same composition+charge eluting within 10 s:
+    human     n  2038     5 (0.002)
+    entrap    n    59     7 (0.119)
+    dec(hum)  n   110    13 (0.118)
+    dec(ent)  n    98    17 (0.173)
+    other_parent=0: N  2085 E   52 D  178 rho  0.58 [0.44,  0.76]
+    other_parent=1: N    12 E    7 D   30 rho  0.47 [0.20,  0.97]
+  q <= 0.20: winners with a DIFFERENT reference peptide of the same composition+charge eluting within 10 s:
+    human     n  2273     9 (0.004)
+    entrap    n   140    13 (0.093)
+    dec(hum)  n   238    14 (0.059)
+    dec(ent)  n   243    21 (0.086)
+    other_parent=0: N  2391 E  127 D  446 rho  0.57 [0.48,  0.67]
+    other_parent=1: N    22 E   13 D   35 rho  0.74 [0.40,  1.31]
+  background: population precursors with a different same-composition reference peptide anywhere in the run: {-7.0: 0.0121, 'human': 0.007, 'entrap': 0.0354, 'dec(hum)': 0.0136, 'dec(ent)': 0.0128}
+  q <= 0.01 entrapment winners:
+    QTELELR/2 apex 752 parent ['QTELELR'] dRT [0.0]
+    LNLGLFR/2 apex 1019 parent ['GLFLLNR'] dRT [13.1]

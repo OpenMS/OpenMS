@@ -1,0 +1,12 @@
+==== raw01: null windows 427017 (|RT err| > 3 sigma = 68.1 s)
+  class        n   mean support  support>=4  mean libcos  libcos>0.8
+  D(E)     106734        1.978      0.0558        0.526      0.0196
+  D(H)     107321        1.971      0.0543        0.526      0.0196
+  E        106519        1.959      0.0527        0.526      0.0196
+  H        106443        1.960      0.0550        0.525      0.0216
+==== raw02: null windows 393548 (|RT err| > 3 sigma = 59.5 s)
+  class        n   mean support  support>=4  mean libcos  libcos>0.8
+  D(E)      98238        1.933      0.0508        0.524      0.0197
+  D(H)      98763        1.927      0.0503        0.523      0.0194
+  E         98340        1.923      0.0501        0.524      0.0201
+  H         98207        1.923      0.0505        0.525      0.0217

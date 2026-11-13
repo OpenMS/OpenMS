@@ -1,0 +1,6 @@
+raw01 BASE  null windows T 211999 D 210119  AUC 0.4974 | null winners T 136224 D 134701  AUC 0.4966
+raw01 D11FWT null windows T 211999 D 210119  AUC 0.4978 | null winners T 136224 D 134701  AUC 0.4962
+raw01 D11FDWT null windows T 211999 D 210119  AUC 0.4984 | null winners T 136224 D 134701  AUC 0.4972
+raw02 BASE  null windows T 195264 D 193316  AUC 0.5005 | null winners T 127044 D 125644  AUC 0.5010
+raw02 D11FWT null windows T 195264 D 193316  AUC 0.4989 | null winners T 127044 D 125644  AUC 0.4982
+raw02 D11FDWT null windows T 195264 D 193316  AUC 0.4986 | null winners T 127044 D 125644  AUC 0.4977
