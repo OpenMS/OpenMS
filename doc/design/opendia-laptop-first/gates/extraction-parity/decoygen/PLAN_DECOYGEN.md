@@ -120,3 +120,19 @@ have a decoy). Library hashes: `arm*/home/lib/lib.sha256`.
 - **Pass rule, hypothesis, arms and libraries:** unchanged.
 - **Recorded as a finding (not ruled on):** with the current calibration code, decoy construction affects calibration
   robustness. The calibrator should not depend on the decoy set this much; noted for the C++ work.
+
+## Addendum: arm E, the C++ implementation of the chosen arm (written 2026-11-13T22:55Z, after the A–D results)
+- **Library:** `OpenSwathDecoyGenerator -method pseudo-reverse -switchKR true -predict_decoys true` (OpenMS 78e6bbee71)
+  on the PAIRLIB targets (`cpp/targets.pqp`, targets byte-identical).
+  - NCE and instrument are estimated from the library: ThermoTOF, NCE 25.
+  - 300,942 decoys. 98.7 % of them have the same sequence as arm D, 73.7 % the same 6 fragments, and their intensity
+    cosine to arm D is 0.9986 (`cpp/compare_armD.txt`).
+  - 12-fragment export: each decoy's own prediction from `decoys_p12.parquet` (`scripts/make_armE.py`).
+  - Calibration: PAIRLIB's, with anchors remapped by sequence and charge (`scripts/reuse_cal_E.py`).
+  - Everything else as arms A–D.
+- **Question:** does the C++ tool reproduce arm D's calibration?
+- **Rule (written now, ruled once):** arm E passes if, for D11FDWT:
+  - pooled rho at q ≤ 0.05 and q ≤ 0.10 each lie inside arm D's 90 % interval: [0.77, 1.18] and [0.94, 1.23];
+  - FDP_c at q ≤ 0.01 is ≤ 0.015 on both raws;
+  - its null-window ratios (support ≥ 4, libcos > 0.8) lie within 0.92–1.08 on both raws.
+- Arm D's formal pass-rule result is not re-ruled here.

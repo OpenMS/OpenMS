@@ -1,0 +1,37 @@
+Progress of 'reading PQP file (SQL warmup)':
+-- done [took 0.49 s (CPU), 0.49 s (Wall)] -- 
+Progress of 'streaming PQP to LightTargetedExperiment':
+  26.58 %                 56.22 %                 85.70 %               -- done [took 3.48 s (CPU), 3.42 s (Wall)] -- 
+Progress of 'Generating decoy peptides (Light)':
+  21.68 %               -- done [took 0.57 s (CPU), 0.57 s (Wall)] -- 
+Progress of 'Generating decoy transitions (Light)':
+  0.80 %                 5.83 %                 10.87 %                 16.04 %                 21.33 %                 26.22 %                 31.16 %                 36.75 %                 42.05 %                 47.19 %                 52.40 %                 57.49 %                 62.41 %                 67.52 %                 72.94 %                 78.32 %                 83.27 %                 88.38 %                 93.36 %                 98.47 %               -- done [took 19.44 s (CPU), 19.44 s (Wall)] -- 
+Decoy prediction: instrument ThermoTOF, NCE 25 (median cosine 1 to the library intensities of 400 targets).
+Decoy prediction: library RT = -1.95133e-10 + 1 x predicted RT.
+Progress of 'Predicting decoy assays':
+  1.65 %                 3.31 %                 4.96 %                 6.62 %                 8.27 %                 9.92 %                 11.58 %                 13.23 %                 14.89 %                 16.54 %                 18.19 %                 19.85 %                 21.50 %                 23.16 %                 24.81 %                 26.46 %                 28.12 %                 29.77 %                 31.43 %                 33.08 %                 34.73 %                 36.39 %                 38.04 %                 39.70 %                 41.35 %                 43.00 %                 44.66 %                 46.31 %                 47.97 %                 49.62 %                 51.27 %                 52.93 %                 54.58 %                 56.24 %                 57.89 %                 59.54 %                 61.20 %                 62.85 %                 64.51 %                 66.16 %                 67.81 %                 69.47 %                 71.12 %                 72.78 %                 74.43 %                 76.08 %                 77.74 %                 79.39 %                 81.05 %                 82.70 %                 84.35 %                 86.01 %                 87.66 %                 89.32 %                 90.97 %                 92.62 %                 94.28 %                 95.93 %                 97.59 %                 99.24 %               -- done [took 01:32:01 h (CPU), 06:43 m (Wall)] -- 
+Decoy prediction: 300942 decoys predicted; 1353 dropped with fewer fragments than their target inside 100.076-1798.97 m/z; 0 rejected by the models.
+OpenSwathDecoyGenerator took 07:58 m (wall), 01:39:00 h (CPU), 8.69 s (system), 01:38:51 h (user); Peak Memory Usage: 3233 MB.
+	Command being timed: "/home/singjc/Documents/github/OpenMS-r1-full-ninja-build/bin/OpenSwathDecoyGenerator -in targets.pqp -out cppD.pqp -method pseudo-reverse -switchKR true -predict_decoys true -threads 16"
+	User time (seconds): 5931.50
+	System time (seconds): 8.75
+	Percent of CPU this job got: 1228%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 8:03.58
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 3311560
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 2130582
+	Voluntary context switches: 89079
+	Involuntary context switches: 104238
+	Swaps: 0
+	File system inputs: 37288
+	File system outputs: 936912
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

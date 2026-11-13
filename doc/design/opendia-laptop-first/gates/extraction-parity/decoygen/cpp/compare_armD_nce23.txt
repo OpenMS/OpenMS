@@ -1,0 +1,5 @@
+decoys: C++ 300964, arm D 295799, shared targets 295619
+identical decoy sequence 0.9873, precursor m/z within 1e-3 0.9874
+normalised RT |difference|: median 4.48e-08, p99 4.21e-03, max 4.55e-01
+shared fragments (of 6), share of decoys: {0: np.float64(0.0), 1: np.float64(0.0003), 2: np.float64(0.0004), 3: np.float64(0.0003), 4: np.float64(0.0012), 5: np.float64(0.0052), 6: np.float64(0.9927)}
+intensity cosine over the union: median 1.0000, q01 0.9978
