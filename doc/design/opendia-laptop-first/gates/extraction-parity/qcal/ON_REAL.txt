@@ -1,0 +1,46 @@
+==== raw01: reference IDs 82360
+  q <= 0.01: share of winners  [same m/z+RT as a reference ID | same m/z any RT | composition = a reference peptide | sequence in reference]
+    human     n  1753  0.952 | 0.995 | 0.965 | 0.958
+    entrap    n    14  0.643 | 1.000 | 0.500 | 0.071
+    dec(hum)  n     6  0.833 | 1.000 | 0.667 | 0.167
+    dec(ent)  n    10  0.900 | 1.000 | 0.600 | 0.100
+    on_real=0: N    90 E    5 D    2 rho  5.04 [1.04, 35.74]
+    on_real=1: N  1677 E    9 D   14 rho  1.30 [0.57,  2.82]
+  q <= 0.05: share of winners  [same m/z+RT as a reference ID | same m/z any RT | composition = a reference peptide | sequence in reference]
+    human     n  2257  0.901 | 0.989 | 0.916 | 0.901
+    entrap    n   108  0.463 | 0.898 | 0.407 | 0.019
+    dec(hum)  n    54  0.481 | 0.926 | 0.241 | 0.019
+    dec(ent)  n    63  0.508 | 0.968 | 0.317 | 0.016
+    on_real=0: N   281 E   58 D   59 rho  1.98 [1.44,  2.73]
+    on_real=1: N  2084 E   50 D   58 rho  1.74 [1.24,  2.43]
+  q <= 0.10: share of winners  [same m/z+RT as a reference ID | same m/z any RT | composition = a reference peptide | sequence in reference]
+    human     n  2482  0.863 | 0.984 | 0.878 | 0.858
+    entrap    n   194  0.376 | 0.856 | 0.314 | 0.010
+    dec(hum)  n   123  0.374 | 0.935 | 0.179 | 0.008
+    dec(ent)  n   143  0.483 | 0.951 | 0.182 | 0.007
+    on_real=0: N   461 E  121 D  151 rho  1.61 [1.31,  1.99]
+    on_real=1: N  2215 E   73 D  115 rho  1.28 [0.99,  1.65]
+  background, all population precursors, same m/z (10 ppm) as a reference ID: {-7.0: 0.545, 0.0: 0.743, 1.0: 0.738, 2.0: 0.742, 3.0: 0.742}
+==== raw02: reference IDs 82498
+  q <= 0.01: share of winners  [same m/z+RT as a reference ID | same m/z any RT | composition = a reference peptide | sequence in reference]
+    human     n  1639  0.966 | 0.997 | 0.982 | 0.977
+    entrap    n    14  0.643 | 1.000 | 0.571 | 0.071
+    dec(hum)  n     7  0.857 | 1.000 | 0.571 | 0.143
+    dec(ent)  n     8  0.750 | 1.000 | 0.500 | 0.000
+    on_real=0: N    61 E    5 D    3 rho  3.36 [0.82, 16.12]
+    on_real=1: N  1592 E    9 D   12 rho  1.51 [0.65,  3.40]
+  q <= 0.05: share of winners  [same m/z+RT as a reference ID | same m/z any RT | composition = a reference peptide | sequence in reference]
+    human     n  2159  0.925 | 0.994 | 0.940 | 0.925
+    entrap    n    91  0.451 | 0.945 | 0.429 | 0.044
+    dec(hum)  n    44  0.545 | 0.932 | 0.341 | 0.023
+    dec(ent)  n    67  0.507 | 0.940 | 0.224 | 0.000
+    on_real=0: N   211 E   50 D   53 rho  1.90 [1.35,  2.68]
+    on_real=1: N  2039 E   41 D   58 rho  1.42 [0.99,  2.03]
+  q <= 0.10: share of winners  [same m/z+RT as a reference ID | same m/z any RT | composition = a reference peptide | sequence in reference]
+    human     n  2423  0.886 | 0.988 | 0.896 | 0.875
+    entrap    n   211  0.422 | 0.919 | 0.303 | 0.024
+    dec(hum)  n   114  0.412 | 0.904 | 0.202 | 0.009
+    dec(ent)  n   148  0.439 | 0.932 | 0.182 | 0.000
+    on_real=0: N   399 E  122 D  150 rho  1.64 [1.33,  2.02]
+    on_real=1: N  2235 E   89 D  112 rho  1.60 [1.25,  2.04]
+  background, all population precursors, same m/z (10 ppm) as a reference ID: {-7.0: 0.549, 0.0: 0.74, 1.0: 0.737, 2.0: 0.738, 3.0: 0.738}
