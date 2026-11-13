@@ -703,8 +703,10 @@ namespace OpenMS
 
     /**
       Collision energy and instrument for decoy prediction: the explicit settings, or the ones whose predictions best
-      reproduce the target library's own intensities (median cosine over an evenly strided sample of up to 400 targets
+      reproduce the target library's own intensities (mean cosine over an evenly strided sample of up to 400 targets
       whose transitions are all annotated b/y ions, at the same annotations; every PeptDeep instrument, NCE 20 to 40).
+      The mean, not the median: for a library predicted by the same models, the median saturates at 1 over a range of
+      settings while the mean still separates them.
     */
     std::pair<double, std::string> decoyPredictionSetting_(
       const OpenSwath::LightTargetedExperiment& targets,
@@ -793,18 +795,19 @@ namespace OpenMS
             if (nl > 0.0 && np > 0.0) cosines.push_back(dot / std::sqrt(nl * np));
           }
           if (cosines.empty()) continue;
-          std::nth_element(cosines.begin(), cosines.begin() + cosines.size() / 2, cosines.end());
-          const double median = cosines[cosines.size() / 2];
-          if (median > best_cosine)
+          double mean = 0.0;
+          for (const double cosine : cosines) mean += cosine;
+          mean /= cosines.size();
+          if (mean > best_cosine)
           {
-            best_cosine = median;
+            best_cosine = mean;
             best = {nce, instrument};
           }
         }
       }
       if (log_type != ProgressLogger::NONE)
       {
-        OPENMS_LOG_INFO << "Decoy prediction: instrument " << best.second << ", NCE " << best.first << " (median cosine "
+        OPENMS_LOG_INFO << "Decoy prediction: instrument " << best.second << ", NCE " << best.first << " (mean cosine "
                         << best_cosine << " to the library intensities of " << sample_size << " targets)." << std::endl;
       }
       return best;
