@@ -1078,7 +1078,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * before add(). The per-chunk candidate cap still determines which distinct
      * hypotheses enter the pool; chunked and unchunked pools can therefore differ.
      */
-    struct CandidatePoolStats_
+    struct OPENMS_DLLAPI CandidatePoolStats_ // exported: the class test calls zScore() (MSVC links nothing of a nested struct without it)
     {
       double sum = 0.0;         ///< sum of all candidate scores
       double sumsq = 0.0;       ///< sum of squared candidate scores
