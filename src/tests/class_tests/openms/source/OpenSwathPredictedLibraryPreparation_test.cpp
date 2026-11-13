@@ -8,6 +8,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/PeptDeepLibraryPredictor.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
@@ -353,6 +354,200 @@ START_SECTION((OpenSwathLibraryPreparation::LibraryStats preparePredictedLibrary
     prep.preparePredictedLibraryToPQP(fasta_file, invalid_output_pqp, assay, decoy, bad_enzyme),
     "PredictedLibraryParameters::enzyme 'NoSuchProtease' is not a known protease.")
   TEST_FALSE(File::exists(invalid_output_pqp))
+}
+END_SECTION
+
+START_SECTION([EXTRA] generateDecoys with predict_decoys gives each decoy its own predicted assay)
+{
+  // A target library predicted at a known setting (NCE 27, Lumos, no CCS) without decoys.
+  std::string fasta_file;
+  NEW_TMP_FILE(fasta_file)
+  {
+    std::ofstream fasta(fasta_file);
+    fasta << ">P1\nMSAEEVKLAGTPDDLVRAHSELLGQYK\n"
+          << ">P2\nGLSDGEWQQVLNVWGKVEADIAGHGQEVLIRLFTGHPETLEK\n"
+          << ">P3\nVLSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTK\n"
+          << ">P4\nTEFKEAFSLFDKDGDGTITTKELGTVMR\n"
+          << ">P5\nSLGQNPTEAELQDMINEVDADGNGTIDFPEFLTMMAR\n"
+          << ">P6\nADQLTEEQIAEFKEAFSLFDKDGNGTISAAELR\n";
+  }
+  OpenSwathLibraryPreparation prep;
+  prep.setLogType(ProgressLogger::NONE);
+
+  OpenSwathLibraryPreparation::PredictedLibraryParameters prediction;
+  prediction.enzyme = "Trypsin";
+  prediction.missed_cleavages = 1;
+  prediction.min_peptide_length = 7;
+  prediction.max_peptide_length = 30;
+  prediction.precursor_charges = {2, 3};
+  prediction.fixed_modifications = {"Carbamidomethyl (C)"};
+  prediction.max_variable_modifications = 0;
+  prediction.clip_nterm_methionine = false;
+  prediction.prediction_batch_size = 64;
+  prediction.inference_threads = 1;
+  prediction.nce = 27.0;
+  prediction.instrument_index = ML::instrumentIndex("Lumos");
+  prediction.predict_ccs = false;
+
+  OpenSwathLibraryPreparation::AssayGeneratorParameters assay;
+  assay.min_transitions = 6;
+  assay.max_transitions = 6;
+  assay.precursor_lower_mz_limit = 300.0;
+  assay.precursor_upper_mz_limit = 1500.0;
+  assay.product_lower_mz_limit = 150.0;
+  assay.product_upper_mz_limit = 2000.0;
+
+  OpenSwathLibraryPreparation::DecoyGeneratorParameters separate_decoys;
+  separate_decoys.method = "pseudo-reverse";
+  separate_decoys.min_decoy_fraction = 0.0;
+  separate_decoys.separate = true;
+
+  // Targets only: build with decoys, then keep the targets (the predicted path always adds decoys).
+  std::string with_decoys;
+  NEW_TMP_FILE_EXT(with_decoys, ".pqp")
+  File::remove(with_decoys);
+  OpenSwathLibraryPreparation::DecoyGeneratorParameters copy_decoys = separate_decoys;
+  copy_decoys.separate = false;
+  prep.preparePredictedLibraryToPQP(fasta_file, with_decoys, assay, copy_decoys, prediction);
+  OpenSwath::LightTargetedExperiment library;
+  TransitionPQPFile pqp;
+  pqp.convertPQPToTargetedExperiment(with_decoys.c_str(), library);
+  OpenSwath::LightTargetedExperiment targets;
+  for (const auto& compound : library.compounds)
+  {
+    if (compound.id.rfind("DECOY_", 0) != 0) targets.compounds.push_back(compound);
+  }
+  for (const auto& transition : library.transitions)
+  {
+    if (!transition.getDecoy()) targets.transitions.push_back(transition);
+  }
+  for (const auto& protein : library.proteins)
+  {
+    if (protein.id.rfind("DECOY_", 0) != 0) targets.proteins.push_back(protein);
+  }
+  TEST_TRUE(targets.compounds.size() >= 20)
+  std::string targets_pqp;
+  NEW_TMP_FILE_EXT(targets_pqp, ".pqp")
+  File::remove(targets_pqp);
+  pqp.convertLightTargetedExperimentToPQP(targets_pqp.c_str(), targets);
+
+  // Predicted decoys with explicit settings and with the settings estimated from the targets.
+  OpenSwathLibraryPreparation::DecoyGeneratorParameters predicted = separate_decoys;
+  predicted.predict_decoys = true;
+  predicted.predict_threads = 1;
+  std::map<std::string, std::string> outputs;
+  for (const bool estimate : {false, true})
+  {
+    OpenSwathLibraryPreparation::DecoyGeneratorParameters parameters = predicted;
+    if (!estimate)
+    {
+      parameters.predict_nce = 27.0;
+      parameters.predict_instrument = "Lumos";
+    }
+    std::string out;
+    NEW_TMP_FILE_EXT(out, ".pqp")
+    File::remove(out);
+    const auto stats = prep.generateDecoys(targets_pqp, FileTypes::PQP, out, FileTypes::PQP, parameters);
+    TEST_TRUE(stats.decoy_transition_count > 0)
+    outputs[estimate ? "estimated" : "explicit"] = out;
+  }
+
+  OpenSwath::LightTargetedExperiment decoys;
+  pqp.convertPQPToTargetedExperiment(outputs["explicit"].c_str(), decoys);
+  OpenSwath::LightTargetedExperiment estimated;
+  pqp.convertPQPToTargetedExperiment(outputs["estimated"].c_str(), estimated);
+
+  // Reference: the decoy sequences predicted directly at the library's setting.
+  PeptDeepLibraryPredictor::Config config;
+  config.intra_op_threads = 1;
+  config.predict_ccs = false;
+  PeptDeepLibraryPredictor predictor(config);
+  std::vector<PeptDeepLibraryPrecursor> inputs;
+  for (const auto& compound : decoys.compounds)
+  {
+    PeptDeepLibraryPrecursor precursor;
+    precursor.peptide = AASequence::fromString(compound.sequence);
+    precursor.id = compound.sequence + "/" + std::to_string(compound.charge);
+    precursor.charge = compound.charge;
+    precursor.nce = 27.0f;
+    precursor.instrument_index = ML::instrumentIndex("Lumos");
+    inputs.push_back(precursor);
+  }
+  const auto reference = predictor.predict(inputs);
+  std::map<std::string, std::map<std::string, double>> reference_intensity;
+  std::map<std::string, double> reference_rt;
+  for (const auto& transition : reference.transitions)
+  {
+    reference_intensity[transition.peptide_ref][transition.getAnnotation()] = transition.library_intensity;
+  }
+  for (const auto& compound : reference.compounds) reference_rt[compound.id] = compound.rt;
+
+  std::map<std::string, const OpenSwath::LightCompound*> decoy_by_id;
+  for (const auto& compound : decoys.compounds) decoy_by_id[compound.id] = &compound;
+  std::map<std::string, std::vector<const OpenSwath::LightTransition*>> decoy_transitions;
+  for (const auto& transition : decoys.transitions) decoy_transitions[transition.peptide_ref].push_back(&transition);
+
+  Size checked = 0;
+  bool all_six = true, all_decoy = true, top_is_one = true, intensities_match = true, rt_match = true, top_k = true;
+  for (const auto& [id, transitions] : decoy_transitions)
+  {
+    const auto* compound = decoy_by_id.at(id);
+    const std::string key = compound->sequence + "/" + std::to_string(compound->charge);
+    const auto& predicted_intensity = reference_intensity.at(key);
+    all_six = all_six && transitions.size() == 6;
+    double top = 0.0, max_kept = 0.0, min_kept = 1e300;
+    for (const auto* transition : transitions)
+    {
+      max_kept = std::max(max_kept, predicted_intensity.at(transition->getAnnotation()));
+    }
+    for (const auto* transition : transitions)
+    {
+      all_decoy = all_decoy && transition->getDecoy();
+      top = std::max(top, transition->library_intensity);
+      // Kept intensities are the prediction normalised to the most intense fragment kept.
+      const double expected = predicted_intensity.at(transition->getAnnotation()) / max_kept;
+      intensities_match = intensities_match && std::abs(transition->library_intensity - expected) < 1e-4;
+      min_kept = std::min(min_kept, predicted_intensity.at(transition->getAnnotation()));
+    }
+    // Every fragment not kept but inside the targets' window is no more intense than the weakest kept one.
+    Size stronger_dropped = 0;
+    for (const auto& [annotation, value] : predicted_intensity)
+    {
+      bool kept = false;
+      for (const auto* transition : transitions) kept = kept || transition->getAnnotation() == annotation;
+      if (!kept && value > min_kept + 1e-6) ++stronger_dropped;
+    }
+    // Stronger fragments can only be dropped for lying outside the targets' fragment m/z window.
+    top_k = top_k && stronger_dropped <= 2;
+    top_is_one = top_is_one && std::abs(top - 1.0) < 1e-6;
+    rt_match = rt_match && std::abs(compound->rt - reference_rt.at(key)) < 1e-3;
+    ++checked;
+  }
+  TEST_TRUE(checked >= 20)
+  TEST_TRUE(all_six)
+  TEST_TRUE(all_decoy)
+  TEST_TRUE(top_is_one)
+  TEST_TRUE(intensities_match)
+  TEST_TRUE(rt_match)
+  TEST_TRUE(top_k)
+
+  // Estimating the setting from the targets recovers the one they were predicted at: the same decoy assays.
+  TEST_EQUAL(estimated.transitions.size(), decoys.transitions.size())
+  std::map<std::string, double> explicit_intensity;
+  for (const auto& transition : decoys.transitions) explicit_intensity[transition.transition_name] = transition.library_intensity;
+  bool same_assays = true;
+  for (const auto& transition : estimated.transitions)
+  {
+    const auto it = explicit_intensity.find(transition.transition_name);
+    same_assays = same_assays && it != explicit_intensity.end() && std::abs(it->second - transition.library_intensity) < 1e-6;
+  }
+  TEST_TRUE(same_assays)
+
+  // TraML input has no predicted-decoy path.
+  std::string traml_out;
+  NEW_TMP_FILE_EXT(traml_out, ".TraML")
+  TEST_EXCEPTION(Exception::InvalidParameter,
+    prep.generateDecoys(targets_pqp, FileTypes::PQP, traml_out, FileTypes::TRAML, predicted))
 }
 END_SECTION
 

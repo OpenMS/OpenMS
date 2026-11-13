@@ -69,6 +69,19 @@ or modified) is "mutated" to a random other amino acid.
 The shuffle seed defaults to 1 for reproducible decoys. Set @p shuffle_seed to
 -1 to select a time-based seed instead.
 
+By default a decoy keeps its target's assay: the target's fragment
+annotations and library intensities (only the m/z values move to the decoy
+sequence), RT and ion mobility. With @p predict_decoys, each decoy sequence is
+predicted with the PeptDeep models like a target: its RT and ion mobility
+(mapped onto the library's scale by lines fitted on the targets) and its own
+most intense b/y fragments, as many as its target has, inside the targets'
+fragment m/z range. The collision energy and instrument are estimated from the
+target library's intensities unless @p predict_nce and @p predict_instrument
+are given. On a predicted Astral entrapment library, decoys built this way
+matched background signal at the targets' rate and calibrated the entrapment
+false discovery proportion, where copied assays under-counted false targets
+about 1.5-fold.
+
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_OpenSwathDecoyGenerator.cli
 <B>INI file documentation of this tool:</B>
@@ -132,6 +145,19 @@ protected:
     setValidStrings_("switchKR", ListUtils::create<std::string>(std::string("true,false")));
 
     registerFlag_("separate", "set this flag if decoys should not be appended to targets.", true);
+
+    registerStringOption_("predict_decoys", "<true/false>", "false",
+                          "Predict each decoy's own RT, ion mobility and fragment intensities with the PeptDeep models (decoys then keep "
+                          "their own most intense b/y fragments, as many as their target has), instead of copying the target's "
+                          "assay. Needs a WITH_ONNX build and a TSV/PQP/OSWPQ library; not used by the 'shift' method.", false);
+    setValidStrings_("predict_decoys", {"true", "false"});
+    registerDoubleOption_("predict_nce", "<double>", -1.0,
+                          "predict_decoys: collision energy; -1 estimates it from the target library's intensities", false, true);
+    registerStringOption_("predict_instrument", "<name>", "",
+                          "predict_decoys: PeptDeep instrument (QE, Lumos, timsTOF, SciexTOF, ThermoTOF); empty estimates it from the "
+                          "target library's intensities", false, true);
+    registerStringOption_("predict_model_directory", "<dir>", "",
+                          "predict_decoys: directory with peptdeep_{rt,ms2,ccs}_dynamic.onnx; empty uses the installed models", false, true);
   }
 
   ExitCodes main_(int, const char **) override
@@ -219,6 +245,11 @@ protected:
     decoy_parameters.enable_detection_unspecific_losses = enable_detection_unspecific_losses;
     decoy_parameters.switch_kr = switchKR;
     decoy_parameters.separate = separate;
+    decoy_parameters.predict_decoys = getStringOption_("predict_decoys") == "true";
+    decoy_parameters.predict_nce = getDoubleOption_("predict_nce");
+    decoy_parameters.predict_instrument = getStringOption_("predict_instrument");
+    decoy_parameters.predict_model_directory = getStringOption_("predict_model_directory");
+    decoy_parameters.predict_threads = getIntOption_("threads");
 
     OpenSwathLibraryPreparation preparation;
     preparation.setLogType(log_type_);

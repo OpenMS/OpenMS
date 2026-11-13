@@ -129,6 +129,28 @@ namespace OpenMS
       bool separate = false;
       /// Shuffle RNG seed: 1 gives reproducible decoys, -1 uses the current time.
       Int shuffle_seed = 1;
+
+      /**
+        @brief Give each decoy its own PeptDeep prediction instead of its target's assay.
+
+        Without it, a decoy keeps its target's fragment annotations and library intensities
+        (only the m/z values move to the decoy sequence) and its target's RT and ion mobility.
+        With it, the decoy sequence is predicted like a target: RT, ion mobility (when the
+        targets carry one) and MS2, and its own most intense b/y fragments are kept, as many
+        as its target has, inside the targets' fragment m/z range. Decoys then match
+        background signal at the targets' rate (entrapment-calibrated in RESULT_DECOYGEN).
+
+        Requires an OpenMS build with WITH_ONNX; ignored by the "shift" method.
+      */
+      bool predict_decoys = false;
+      /// Collision energy for decoy prediction; < 0 estimates it from the target library.
+      double predict_nce = -1.0;
+      /// PeptDeep instrument name for decoy prediction; empty estimates it from the target library.
+      std::string predict_instrument;
+      /// Directory holding peptdeep_{rt,ms2,ccs}_dynamic.onnx; empty uses the installed models.
+      std::string predict_model_directory;
+      /// Threads of the decoy predictor.
+      Int predict_threads = 4;
     };
 
     OpenSwathLibraryPreparation();
