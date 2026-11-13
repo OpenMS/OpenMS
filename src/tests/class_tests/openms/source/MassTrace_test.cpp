@@ -13,6 +13,9 @@
 
 #include <OpenMS/KERNEL/MassTrace.h>
 
+#include <type_traits>
+#include <utility>
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -130,6 +133,22 @@ END_SECTION
 /////
 
 
+
+START_SECTION((MassTrace(std::vector<PeakType>&& trace_peaks)))
+{
+  std::vector<PeakType> peaks_to_move(peak_vec);
+  MassTrace tmp_mt(std::move(peaks_to_move));
+  TEST_EQUAL(tmp_mt.getPeaks() == peak_vec, true);
+  TEST_REAL_SIMILAR(tmp_mt.getAverageMS1CycleTime(), (tmp_peak6.getRT() - tmp_peak0.getRT()) / (7-1));
+
+  // a temporary
+  MassTrace tmp_mt2(std::vector<PeakType>(peak_vec.begin(), peak_vec.begin() + 3));
+  TEST_EQUAL(tmp_mt2.getSize(), 3);
+  TEST_EQUAL(tmp_mt2[2], peak_vec[2]);
+}
+END_SECTION
+
+/////
 
 MassTrace test_mt(peak_lst);
 test_mt.updateWeightedMeanRT();
@@ -416,6 +435,20 @@ START_SECTION((void setSmoothedIntensities(const std::vector<double>& db_vec)))
 
   test_mt.setSmoothedIntensities(smoothed_ints);
   TEST_EQUAL(test_mt.getSmoothedIntensities().size(), smoothed_ints.size())
+}
+END_SECTION
+
+/////
+
+START_SECTION((void setSmoothedIntensities(std::vector<double>&& db_vec)))
+{
+  MassTrace tmp_mt(peak_vec);
+  TEST_EXCEPTION(Exception::InvalidValue, tmp_mt.setSmoothedIntensities(std::vector<double>(3, 1.0)));
+  TEST_EQUAL(tmp_mt.getSmoothedIntensities().empty(), true)
+
+  std::vector<double> ints_to_move(smoothed_ints);
+  tmp_mt.setSmoothedIntensities(std::move(ints_to_move));
+  TEST_EQUAL(tmp_mt.getSmoothedIntensities() == smoothed_ints, true)
 }
 END_SECTION
 
@@ -744,6 +777,48 @@ START_SECTION((MassTrace& operator=(const MassTrace &)))
     TEST_EQUAL(*sm1_it, *sm2_it);
     ++sm1_it;
   }
+}
+END_SECTION
+
+/////
+
+START_SECTION((MassTrace(MassTrace &&)))
+{
+  MassTrace orig_mt(test_mt);
+  orig_mt.setLabel("moved");
+  MassTrace moved_mt(std::move(orig_mt));
+
+  TEST_EQUAL(moved_mt.getPeaks() == test_mt.getPeaks(), true);
+  TEST_EQUAL(moved_mt.getSmoothedIntensities() == test_mt.getSmoothedIntensities(), true);
+  TEST_EQUAL(moved_mt.getLabel(), "moved");
+  TEST_REAL_SIMILAR(moved_mt.getCentroidMZ(), test_mt.getCentroidMZ());
+  TEST_REAL_SIMILAR(moved_mt.getCentroidRT(), test_mt.getCentroidRT());
+  TEST_REAL_SIMILAR(moved_mt.getFWHM(), test_mt.getFWHM());
+  TEST_EQUAL(moved_mt.getFWHMborders() == test_mt.getFWHMborders(), true);
+  TEST_EQUAL(moved_mt.getQuantMethod(), test_mt.getQuantMethod());
+
+  // mass traces are moved, not copied, when a vector of them grows or is sorted
+  TEST_EQUAL(std::is_nothrow_move_constructible<MassTrace>::value, true);
+}
+END_SECTION
+
+/////
+
+START_SECTION((MassTrace& operator=(MassTrace &&)))
+{
+  MassTrace orig_mt(test_mt);
+  orig_mt.setLabel("moved");
+  MassTrace moved_mt(peak_vec);
+  moved_mt = std::move(orig_mt);
+
+  TEST_EQUAL(moved_mt.getPeaks() == test_mt.getPeaks(), true);
+  TEST_EQUAL(moved_mt.getSmoothedIntensities() == test_mt.getSmoothedIntensities(), true);
+  TEST_EQUAL(moved_mt.getLabel(), "moved");
+  TEST_REAL_SIMILAR(moved_mt.getCentroidMZ(), test_mt.getCentroidMZ());
+  TEST_REAL_SIMILAR(moved_mt.getCentroidRT(), test_mt.getCentroidRT());
+  TEST_REAL_SIMILAR(moved_mt.getFWHM(), test_mt.getFWHM());
+
+  TEST_EQUAL(std::is_nothrow_move_assignable<MassTrace>::value, true);
 }
 END_SECTION
 

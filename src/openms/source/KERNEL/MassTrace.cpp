@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <iterator>
 #include <span>
+#include <utility>
 
 namespace OpenMS
 {
@@ -47,6 +48,11 @@ namespace OpenMS
             label_(),
             smoothed_intensities_()
             
+    {
+    }
+
+    MassTrace::MassTrace(std::vector<PeakType>&& trace_peaks) :
+            trace_peaks_(std::move(trace_peaks))
     {
     }
 
