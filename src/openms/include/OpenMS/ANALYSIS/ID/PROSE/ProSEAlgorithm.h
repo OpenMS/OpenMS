@@ -1101,7 +1101,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         ++count;
       }
 
-      /// Best minus runner-up over the full pool.
+      /// Best minus runner-up over the full pool: the delta score of the best hit (a hit below it gets its own
+      /// score minus `best`, see postProcessHits_()).
       double deltaScore() const { return best - second_best; }
 
       /**
@@ -1125,7 +1126,16 @@ class OPENMS_DLLAPI ProSEAlgorithm :
        * candidate scored the same -- in both cases the best candidate does not
        * stand out from the pool.
        */
-      double zScore() const;
+      double zScore() const { return zScore(best); }
+
+      /**
+       * @brief The standard score of @p score (a candidate of this pool) against the same pool statistics as zScore().
+       *
+       * zScore(best) is zScore(). A hit below the best one gets the z-score of its own score (postProcessHits_()),
+       * which is bounded in the same way (Samuelson's inequality holds for every pool member). 0 in the same cases
+       * as zScore().
+       */
+      double zScore(double score) const;
     };
 
     /**
