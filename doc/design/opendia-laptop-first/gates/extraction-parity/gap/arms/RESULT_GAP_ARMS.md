@@ -123,3 +123,13 @@ The diagnostic ceiling in `RESULT_GAP.md` estimated about 100–140 of the 626 r
 - Across seeds, FDP_c at q ≤ 0.01 for D11FDI is 0.0060–0.0071 (raw01) and 0.0012–0.0083 (raw02). The control's range is 0.0073–0.0096 and 0.0042–0.0082, so D11FDI never exceeds the rule-1c limit.
 - **The gain is positive at every seed on both raws, and on raw02 it is larger than the control's own seed spread** (control N@1 % 1609–1665).
 - The frozen run sits at the top of the raw01 range. On raw01 the typical gain is about +125 at 1 % rather than +185, and +40 to +135 at 2 %. Several raw01 seeds have 2 % intervals that touch 0 (−17..+150, −19..+149), so the raw01 2 % pass in the frozen run is not robust to the seed.
+
+**5. Target/decoy symmetry where block I acts** (`ASYM_featI.txt`, `scripts/asym_featI.py`; evaluation only).
+- **Risk checked:** the design doc's risk was that decoys share signal less often than targets, so a shared-signal term would bias TDC.
+- **Claimant contribution rates match.** The share of precursor winners with any claimant contribution is the same for targets and decoys: 0.846 / 0.839 (raw01 control), 0.832 / 0.825 (raw01 I), 0.834 / 0.827 and 0.819 / 0.812 (raw02).
+- **rho stratified by tertiles of i_explained and i_nclaim** (edges from decoy winners):
+  - At q ≤ 0.10, all 24 stratum intervals for D11FDI include 1 except two raw02 strata.
+  - Those two have rho below 1, which means conservative: i_explained middle tertile 0.70 [0.52, 0.95], and at q ≤ 0.05 i_nclaim top tertile 0.54 [0.32, 0.90].
+  - No stratum has an interval entirely above 1.
+  - The highest point estimate is raw01 i_explained top tertile, 1.34 [0.91, 1.97]. The control's 1.20 [0.85, 1.69] in the same stratum is similar.
+- **Reading:** decoys still sample false targets where the block acts. Where it deviates, the bias is conservative rather than anti-conservative.
