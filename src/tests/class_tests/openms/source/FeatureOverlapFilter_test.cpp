@@ -148,16 +148,16 @@ START_SECTION((Filter empty FeatureMap))
   // (e.g. FeatureFinderMetaboIdent on a run without signal for any of its targets)
   FeatureMap fmap;
   FeatureOverlapFilter::filter(fmap); // trace level
-  TEST_EQUAL(fmap.empty(), true)
+  TEST_TRUE(fmap.empty())
 
   FeatureOverlapFilter::filter(fmap,
     [](const Feature& left, const Feature& right){ return left.getOverallQuality() > right.getOverallQuality(); },
     [](const Feature&, const Feature&) { return true; },
     false); // convex hulls
-  TEST_EQUAL(fmap.empty(), true)
+  TEST_TRUE(fmap.empty())
 
   FeatureOverlapFilter::mergeOverlappingFeatures(fmap, 5.0, 0.05); // centroids
-  TEST_EQUAL(fmap.empty(), true)
+  TEST_TRUE(fmap.empty())
 }
 END_SECTION
 

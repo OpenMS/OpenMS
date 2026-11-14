@@ -172,11 +172,31 @@ namespace OpenMS
     FeatureMap& features,
     const std::string& spectra_file)
   {
-    if (rt_window_ < peak_width_)
+    // RT windows that are narrower than the expected elution peaks: 'extract:rt_window' (if a target uses it), and the
+    // 'RetentionTimeRange' of targets that have their own
+    Size n_default_window = 0, n_own_narrow_window = 0;
+    for (const auto& c : metaboIdentTable)
+    {
+      const vector<double>& ranges = c.getRTRanges();
+      for (Size i = 0; i < c.getRTs().size(); ++i)
+      {
+        // as in addTargetToLibrary_(): no value or 0 stands for 'extract:rt_window', a single value is used for all RTs
+        const double range = (ranges.size() == 1) ? ranges[0] : ((i < ranges.size()) ? ranges[i] : 0.0);
+        if (range == 0.0) ++n_default_window;
+        else if (range < peak_width_) ++n_own_narrow_window;
+      }
+    }
+    const char* narrow_window_effect = " s). The extracted chromatograms are shorter than the expected elution peaks "
+                                       "(and than the width they are smoothed with), so features may be missed or cut off.";
+    if ((n_default_window > 0) && (rt_window_ < peak_width_))
     {
       OPENMS_LOG_WARN << "Warning: 'extract:rt_window' (" << rt_window_ << " s) is smaller than 'detect:peak_width' ("
-                      << peak_width_ << " s). The extracted chromatograms are shorter than the expected elution peaks "
-                      << "(and than the width they are smoothed with), so features may be missed or cut off." << endl;
+                      << peak_width_ << narrow_window_effect << endl;
+    }
+    if (n_own_narrow_window > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: the 'RetentionTimeRange' of " << n_own_narrow_window
+                      << " target(s) is smaller than 'detect:peak_width' (" << peak_width_ << narrow_window_effect << endl;
     }
 
     // Check for FAIMS data
@@ -553,7 +573,8 @@ namespace OpenMS
 
     if (features.empty())
     {
-      OPENMS_LOG_INFO << "No features left after filtering." << endl;
+      OPENMS_LOG_INFO << "No features left after filtering. If features were expected, look at the extracted chromatograms "
+                      << "and check 'extract:mz_window', 'extract:rt_window' and 'detect:peak_width'." << endl;
       return;
     }
 
@@ -565,7 +586,21 @@ namespace OpenMS
       emf_params.setValue("asymmetric",
                           (elution_model_ == "asymmetric") ? "true" : "false");
       emf.setParameters(emf_params);
+      StringList ms_run_paths;
+      features.getPrimaryMSRunPath(ms_run_paths);
+      const Size n_before_model_fit = features.size();
       emf.fitElutionModels(features);
+      if (features.empty())
+      {
+        // without any valid elution model the fitter clears the map, including its meta data: restore it,
+        // and report all targets as not found
+        OPENMS_LOG_WARN << "Warning: no valid elution model could be fitted, so all " << n_before_model_fit
+                        << " feature(s) were removed. Features without elution models are reported with 'model:type' 'none'."
+                        << endl;
+        features.setPrimaryMSRunPath(ms_run_paths);
+        n_shared_ = addTargetAnnotations_(features);
+        return;
+      }
     }
     else if (!candidates_out_.empty()) // hulls not needed, remove them
     {
@@ -967,10 +1002,12 @@ namespace OpenMS
     const double peak_sigma = median_fwhm / (2.0 * std::sqrt(2.0 * std::log(2.0)));
     if (kernel_sigma <= peak_sigma) return;
 
-    // suggest about twice the FWHM: that kernel is narrower than the peaks (about 0.6 of their sigma), but still smooths
-    const double suggested_width = 2.0 * median_fwhm;
+    // suggest about twice the FWHM (as it is printed): that kernel is narrower than the peaks (about 0.6 of their
+    // sigma), but still smooths
+    const double shown_fwhm = Math::roundDecimal(median_fwhm, -1);
+    const double suggested_width = 2.0 * shown_fwhm;
     OPENMS_LOG_WARN << "Warning: 'detect:peak_width' (" << peak_width_ << " s) is much larger than the elution peaks of the "
-                    << "detected features (median width (FWHM): " << Math::roundDecimal(median_fwhm, -1) << " s, from "
+                    << "detected features (median width (FWHM): " << shown_fwhm << " s, from "
                     << fwhms.size() << " elution model(s)). The chromatograms are smoothed with this width before peaks "
                     << "are picked, so neighboring peaks at the m/z of a target may have been merged into one feature "
                     << "(targets can go missing or get the intensity of a neighbor), and features may extend beyond the "

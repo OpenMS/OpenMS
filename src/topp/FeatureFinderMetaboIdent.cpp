@@ -104,7 +104,7 @@ The default (60 seconds) is much wider than the elution peaks of a few seconds t
 neighboring peaks at the m/z of a target (e.g. isomers) can then be merged into one feature, so that targets go missing or get the intensity of a neighbor, and the features extend beyond the signal.
 A warning is given if the value is much larger than the elution peaks that were found, together with their median width and a suggested value.
 This check uses the widths of the elution models, so there is no such warning without them (@p model:type @c none, or no valid model).
-- @p extract:rt_window is the width of the RT window around the target RT in which a feature is searched.
+- @p extract:rt_window (or the @p RetentionTimeRange of a target) is the width of the RT window around the target RT in which a feature is searched.
 It has to cover the elution peak and the expected RT deviation of the target.
 By default it is four times @p detect:peak_width, so set it explicitly when you lower @p detect:peak_width: otherwise the window shrinks as well, and targets that elute a few seconds off their expected RT are missed.
 - Features of different targets that claim the same signal (overlapping mass traces) are resolved: only the one closest to its target RT is kept.
