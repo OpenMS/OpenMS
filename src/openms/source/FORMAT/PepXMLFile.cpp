@@ -533,8 +533,58 @@ namespace OpenMS
       }
     }
 
+    // Sites that a reader may find unmodified in the hits to be written (all of them, not only the best
+    // ones): one-letter codes of such residues, and whether a hit has such an N- or C-terminus. A site
+    // counts if it is unmodified, or if its modification is not declared above (it occurs in lower-ranked
+    // hits only): a reader may not restore an undeclared modification.
+    std::string unmodified_residues;
+    bool unmodified_n_term = false;
+    bool unmodified_c_term = false;
+    for (const PeptideIdentification& pep : peptide_ids)
+    {
+      for (const PeptideHit& hit : pep.getHits())
+      {
+        const AASequence& seq = hit.getSequence();
+        unmodified_n_term = unmodified_n_term || !seq.hasNTerminalModification() || !n_term_mods.contains(seq.getNTerminalModification()->getFullId());
+        unmodified_c_term = unmodified_c_term || !seq.hasCTerminalModification() || !c_term_mods.contains(seq.getCTerminalModification()->getFullId());
+        for (Size i = 0; i != seq.size(); ++i)
+        {
+          const std::string& code = seq[i].getOneLetterCode();
+          if (code.empty() || unmodified_residues.find(code[0]) != std::string::npos)
+          {
+            continue;
+          }
+          if (!seq[i].isModified() || !aa_mods.contains(seq[i].getModification()->getFullId()))
+          {
+            unmodified_residues += code[0];
+          }
+        }
+      }
+    }
+
     // write modifications definitions
     // <aminoacid_modification aminoacid="C" massdiff="+58.01" mass="161.014664" variable="Y" binary="N" description="Carboxymethyl (C)"/>
+    // The "variable" attribute tells fixed (static, "N") from variable ("Y") modifications (issue #2096).
+    // "N" states that only the modified form of a site occurs in the file, and readers (PepXMLFile::load,
+    // LuciPHOr2) put such a modification on every site that a hit leaves unmodified. A modification is
+    // therefore written as fixed only if the search parameters list it as fixed AND a reader finds none of
+    // its sites unmodified in any hit ('on_all_sites', see above). The latter fails e.g. for hits of a further
+    // search run that did not use the modification (only the first run's search parameters are written).
+    // All other modifications are variable, also those that the search parameters do not list at all.
+    auto variableFlag = [this, &search_params](const std::string& mod_full_id, bool on_all_sites)
+    {
+      if (!ListUtils::contains(search_params.fixed_modifications, mod_full_id))
+      {
+        return "Y";
+      }
+      if (!on_all_sites)
+      {
+        warning(STORE, "Fixed modification '" + mod_full_id + "' is missing at some of its sites in the peptide hits, or a site carries a modification of lower-ranked hits only; it is written as a variable modification.");
+        return "Y";
+      }
+      return "N";
+    };
+
     for (set<std::string>::const_iterator it = aa_mods.begin();
          it != aa_mods.end(); ++it)
     {
@@ -548,7 +598,8 @@ namespace OpenMS
         << "<aminoacid_modification aminoacid=\"" << mod->getOrigin()
         << "\" massdiff=\"" << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\""
         << precisionWrapper(ef.getMonoWeight())
-        << R"(" variable="Y" binary="N" description=")" << *it << "\"/>"
+        << "\" variable=\"" << variableFlag(*it, unmodified_residues.find(mod->getOrigin()) == std::string::npos)
+        << R"(" binary="N" description=")" << *it << "\"/>"
         << "\n";
     }
 
@@ -558,7 +609,7 @@ namespace OpenMS
       f << "\t\t"
         << R"(<terminal_modification terminus="n" massdiff=")"
         << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod->getMonoMass())
-        << R"(" variable="Y" description=")" << *it
+        << "\" variable=\"" << variableFlag(*it, !unmodified_n_term) << R"(" description=")" << *it
         << R"(" protein_terminus=""/>)" << "\n";
     }
 
@@ -568,7 +619,7 @@ namespace OpenMS
       f << "\t\t"
         << R"(<terminal_modification terminus="c" massdiff=")"
         << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod->getMonoMass())
-        << R"(" variable="Y" description=")" << *it
+        << "\" variable=\"" << variableFlag(*it, !unmodified_c_term) << R"(" description=")" << *it
         << R"(" protein_terminus=""/>)" << "\n";
     }
 
