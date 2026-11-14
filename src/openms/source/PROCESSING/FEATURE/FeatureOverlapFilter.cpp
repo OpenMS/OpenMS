@@ -150,6 +150,9 @@ namespace OpenMS
     FeatureOverlapMode mode,
     const CentroidTolerances& tolerances)
   {
+    // nothing to filter (and an empty map has no m/z and RT range to build the search tree from)
+    if (fmap.empty()) return;
+
     fmap.updateRanges();
     // Sort all features according to the comparator. After the sort, the "smallest" == best feature will be the first entry we will start processing with...
     std::stable_sort(fmap.begin(), fmap.end(), FeatureComparator);

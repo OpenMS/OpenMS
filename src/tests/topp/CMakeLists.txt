@@ -7678,6 +7678,65 @@ add_test("TOPP_FeatureFinderMetaboIdent_2_out2" ${CMAKE_COMMAND}
   "-DEXPECTED=_i0_CV-45.0\";_i0_CV-55.0\";_i0_CV-65.0\""
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_FeatureFinderMetaboIdent_2_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_2")
+# No signal for any target: the tool writes an empty feature map that reports the target as not found (it used to fail)
+add_test("TOPP_FeatureFinderMetaboIdent_3" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_3_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_3_output.tmp.featureXML -extract:mz_window 5 -extract:rt_window 20 -detect:peak_width 3)
+add_test("TOPP_FeatureFinderMetaboIdent_3_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_3_output.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"0\">;name=\"label\" value=\"caffeine\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_3_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_3")
+# The elution peaks of this data are about 4 s wide: the default 'detect:peak_width' (60 s) smooths them away, which
+# the tool has to point out (issue #6058), with the advice to keep the RT window when lowering it.
+# (check_exit_code.cmake: the tool also has to succeed, which PASS_REGULAR_EXPRESSION would not check.)
+add_test(NAME "TOPP_FeatureFinderMetaboIdent_4" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/FeatureFinderMetaboIdent;-test;-in;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML;-id;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv;-out;${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_4_output.tmp.featureXML;-extract:mz_window;5"
+  -DEXPECTED_CODE=0
+  "-DEXPECTED_OUTPUT_REGEX='detect:peak_width' \\(60 s\\) is much larger than the elution peaks.*also set 'extract:rt_window' \\(e\\.g\\. to the current 240 s\\)"
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+add_test("TOPP_FeatureFinderMetaboIdent_4_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_4_output.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"5\">"
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_4_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_4")
+# ... and an RT extraction window that is narrower than the expected peaks
+add_test(NAME "TOPP_FeatureFinderMetaboIdent_5" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/FeatureFinderMetaboIdent;-test;-in;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML;-id;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv;-out;${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_5_output.tmp.featureXML;-extract:mz_window;5;-extract:rt_window;20"
+  -DEXPECTED_CODE=0
+  "-DEXPECTED_OUTPUT_REGEX='extract:rt_window' \\(20 s\\) is smaller than 'detect:peak_width' \\(60 s\\)"
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+add_test("TOPP_FeatureFinderMetaboIdent_5_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_5_output.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"5\">"
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_5_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_5")
+# Two targets that share a mass trace (the second one is at the m/z of the first one's 13C isotopologue): one feature is
+# kept, and lists the removed one in 'overlap_removed' although the two features differ
+add_test("TOPP_FeatureFinderMetaboIdent_6" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_6_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_6_output.tmp.featureXML -extract:mz_window 5 -extract:rt_window 20 -detect:peak_width 3)
+add_test("TOPP_FeatureFinderMetaboIdent_6_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_6_output.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"1\">;name=\"overlap_removed\";-O-methylcytidine_13C_m258.104523_z1_rt207.600006 (RT "
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_6_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_6")
+# No valid elution model (forced by an unreachable minimum area): the fitter removes all features, and the targets are
+# still reported as not found
+add_test("TOPP_FeatureFinderMetaboIdent_7" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_7_output.tmp.featureXML -extract:mz_window 5 -extract:rt_window 20 -detect:peak_width 3 -model:check:min_area 1e20)
+add_test("TOPP_FeatureFinderMetaboIdent_7_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_7_output.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"0\">;name=\"label\" value=\"adenosine\";name=\"label\" value=\"inosine\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_7_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_7")
+# A target with its own RetentionTimeRange (10 s) below 'detect:peak_width': 'extract:rt_window' (120 s) is wide enough,
+# so the warning has to come from the target's range.
+add_test(NAME "TOPP_FeatureFinderMetaboIdent_8" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/FeatureFinderMetaboIdent;-test;-in;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML;-id;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_8_input.tsv;-out;${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_8_output.tmp.featureXML;-extract:mz_window;5;-detect:peak_width;30"
+  -DEXPECTED_CODE=0
+  "-DEXPECTED_OUTPUT_REGEX=the 'RetentionTimeRange' of 1 target\\(s\\) is smaller than 'detect:peak_width' \\(30 s\\)"
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+add_test("TOPP_FeatureFinderMetaboIdent_8_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_8_output.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"2\">"
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_8_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_8")
 
 # MzMLSplitter test:
 # specify number of parts directly:
