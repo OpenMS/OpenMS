@@ -10,7 +10,10 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <algorithm>
 #include <boost/pending/disjoint_sets.hpp>
+#include <deque>
 #include <exception>
+#include <limits>
+#include <unordered_map>
 #include <vector>
 
 #ifdef _OPENMP
@@ -39,6 +42,12 @@ namespace OpenMS
         "Hard m/z deviation in ppm from the fixed seed/apex, independent of centroid and variance updates. Set a positive value to enable; 0 (default) retains unbounded legacy behavior.",
         {"advanced"});
       defaults_.setMinFloat("max_apex_deviation_ppm", 0.0);
+      defaults_.setValue("max_apex_rt_span", 0.0,
+                         "Full width in seconds of a hard RT window centered on the seed/apex. Growth stops at both boundaries; "
+                         "unconsumed peaks remain available to later seeds. Set to 0 (default) to disable, e.g. for cropped inputs. "
+                         "Unlike max_trace_length, this limits extension rather than rejecting an already extracted trace.",
+                         {"advanced"});
+      defaults_.setMinFloat("max_apex_rt_span", 0.0);
       defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are removed as noise.");
       defaults_.setValue("chrom_peak_snr", 3.0, "Minimum intensity above noise_threshold_int (signal-to-noise) a peak should have to be considered an apex.");
       defaults_.setValue("ion_mobility_tolerance", 0.01, "Allowed ion mobility deviation (in 1/K0 units, e.g., 0.01-0.05). For CCS data, use larger values (e.g., 2-10 square angstroms).");
@@ -497,11 +506,16 @@ namespace OpenMS
                                                                                             const std::vector<Size>& spec_offsets,
                                                                                             Size peak_count) const
     {
-      const double gate = 2.0 * max_apex_deviation_ppm_ * 1e-6 + 16.0 * std::numeric_limits<double>::epsilon();
-      if (gate >= 1.0) { return {chrom_apices}; }
+      const double relative_gate = 2.0 * max_apex_deviation_ppm_ * 1e-6 + 16.0 * std::numeric_limits<double>::epsilon();
+      if (relative_gate >= 1.0) { return {chrom_apices}; }
 
       for (const auto& spectrum : work_exp)
       {
+        if (! std::isfinite(spectrum.getRT()))
+        {
+          OPENMS_LOG_WARN << "Mass-trace component parallelism requires finite RT values; using serial extraction.\n";
+          return {chrom_apices};
+        }
         for (const auto& peak : spectrum)
         {
           if (! std::isfinite(peak.getMZ()) || peak.getMZ() <= 0.0)
@@ -512,63 +526,160 @@ namespace OpenMS
         }
       }
 
-      boost::disjoint_sets_with_storage<> connected(peak_count);
-      std::vector<Size> nonempty_scans;
-      nonempty_scans.reserve(work_exp.size());
-
-      for (Size scan = 0; scan < work_exp.size(); ++scan)
+      // Log mass gives a symmetric conservative gate; padding protects cap endpoints.
+      const double mass_gate = -std::log1p(-relative_gate) + 32.0 * std::numeric_limits<double>::epsilon();
+      struct Seed
       {
-        const auto& spectrum = work_exp[scan];
-        if (spectrum.empty()) { continue; }
-
-        for (Size peak = 1; peak < spectrum.size(); ++peak)
+        double mz, rt;
+        Size index;
+      };
+      std::vector<Seed> seeds;
+      seeds.reserve(chrom_apices.size());
+      if (max_apex_rt_span_ == 0.0)
+      {
+        for (Size i = 0; i < chrom_apices.size(); ++i)
         {
-          const double lower = std::nextafter(spectrum[peak].getMZ() * (1.0 - gate), -std::numeric_limits<double>::infinity());
-          if (spectrum[peak - 1].getMZ() >= lower) { connected.union_set(spec_offsets[scan] + peak - 1, spec_offsets[scan] + peak); }
+          const auto& apex = chrom_apices[i];
+          seeds.push_back({std::log(work_exp[apex.scan_idx][apex.peak_idx].getMZ()), work_exp[apex.scan_idx].getRT(), i});
         }
-
-        // Empty scans do not count as misses. A hit can follow outliers + 1 nonempty scans.
-        const Size first = nonempty_scans.size() > trace_termination_outliers_ ? nonempty_scans.size() - trace_termination_outliers_ - 1 : 0;
-        for (Size previous = first; previous < nonempty_scans.size(); ++previous)
+      }
+      else
+      {
+        std::vector<Size> seed_indices(peak_count, chrom_apices.size());
+        for (Size i = 0; i < chrom_apices.size(); ++i)
         {
-          const Size other_scan = nonempty_scans[previous];
-          const auto& other = work_exp[other_scan];
-          Size left = 0, right = 0;
-          for (Size peak = 0; peak < spectrum.size(); ++peak)
+          const auto& apex = chrom_apices[i];
+          seed_indices[spec_offsets[apex.scan_idx] + apex.peak_idx] = i;
+        }
+        for (Size scan = 0; scan < work_exp.size(); ++scan)
+        {
+          for (Size peak = 0; peak < work_exp[scan].size(); ++peak)
           {
-            const double mz = spectrum[peak].getMZ();
-            // Symmetric 2H gate relative to max(m/z); outward rounding includes cap endpoints.
-            const double lower = std::nextafter(mz * (1.0 - gate), -std::numeric_limits<double>::infinity());
-            const double upper = std::nextafter(mz / (1.0 - gate), std::numeric_limits<double>::infinity());
-            while (left < other.size() && other[left].getMZ() < lower)
+            const Size index = seed_indices[spec_offsets[scan] + peak];
+            if (index < chrom_apices.size()) { seeds.push_back({std::log(work_exp[scan][peak].getMZ()), work_exp[scan].getRT(), index}); }
+          }
+        }
+      }
+      std::vector<Size> groups(chrom_apices.size());
+      Size group_count = 0;
+      if (max_apex_rt_span_ == 0.0)
+      {
+        std::sort(seeds.begin(), seeds.end(), [](const Seed& a, const Seed& b) { return a.mz < b.mz; });
+        for (Size i = 0; i < seeds.size(); ++i)
+        {
+          if (i == 0 || seeds[i].mz - seeds[i - 1].mz > mass_gate) { ++group_count; }
+          groups[seeds[i].index] = group_count - 1;
+        }
+      }
+      else
+      {
+        using Key = std::pair<Int64, Int64>;
+        struct Hash
+        {
+          Size operator()(const Key& key) const
+          {
+            const Size first = std::hash<Int64> {}(key.first), second = std::hash<Int64> {}(key.second);
+            return first ^ (second + 0x9e3779b97f4a7c15ULL + (first << 6) + (first >> 2));
+          }
+        };
+        const double rt_rounding = 8.0 * std::numeric_limits<double>::epsilon() * std::max(std::abs(seeds.front().rt), std::abs(seeds.back().rt));
+        const double rt_gate = std::nextafter(max_apex_rt_span_ + rt_rounding, std::numeric_limits<double>::infinity());
+        if (! std::isfinite(rt_gate))
+        {
+          OPENMS_LOG_WARN << "RT span exceeds mass-trace spatial-index range; using serial extraction.\n";
+          return {chrom_apices};
+        }
+        const double rt_origin = seeds.front().rt;
+        std::unordered_map<Key, Size, Hash> cells;
+        std::vector<Key> keys;
+        std::vector<std::vector<Seed>> contents;
+        for (const auto& seed : seeds)
+        {
+          const double rt_cell = std::floor((seed.rt - rt_origin) / rt_gate);
+          const double mass_cell = std::floor(seed.mz / mass_gate);
+          if (! std::isfinite(rt_cell) || rt_cell >= 0x1p48 || std::abs(mass_cell) >= 0x1p48)
+          {
+            OPENMS_LOG_WARN << "Mass/RT coordinates exceed precise mass-trace spatial-index range; using serial extraction.\n";
+            return {chrom_apices};
+          }
+          const Key key {static_cast<Int64>(mass_cell), static_cast<Int64>(rt_cell)};
+          auto [it, inserted] = cells.emplace(key, contents.size());
+          if (inserted)
+          {
+            keys.push_back(key);
+            contents.emplace_back();
+          }
+          contents[it->second].push_back(seed);
+        }
+        boost::disjoint_sets_with_storage<> connected(contents.size());
+        auto overlap = [&](Size first, Size second) {
+          if (keys[first].first > keys[second].first) { std::swap(first, second); }
+          const auto& a = contents[first];
+          const auto& b = contents[second];
+          Size left = 0, right = 0;
+          std::deque<Size> minimum;
+          for (const auto& seed : a)
+          {
+            while (right < b.size() && b[right].rt <= seed.rt + rt_gate)
+            {
+              while (! minimum.empty() && b[minimum.back()].mz >= b[right].mz)
+              {
+                minimum.pop_back();
+              }
+              minimum.push_back(right++);
+            }
+            while (left < right && b[left].rt < seed.rt - rt_gate)
             {
               ++left;
             }
-            right = std::max(right, left);
-            while (right < other.size() && other[right].getMZ() <= upper)
+            while (! minimum.empty() && minimum.front() < left)
             {
-              ++right;
+              minimum.pop_front();
             }
-            for (Size candidate = left; candidate < right; ++candidate)
+            // In the same or next mass cell, only the smallest RT-admissible mass matters.
+            if (! minimum.empty() && b[minimum.front()].mz <= seed.mz + mass_gate) { return true; }
+          }
+          return false;
+        };
+        for (Size cell = 0; cell < keys.size(); ++cell)
+        {
+          for (Int64 dx = -1; dx <= 1; ++dx)
+          {
+            for (Int64 dt = -1; dt <= 1; ++dt)
             {
-              connected.union_set(spec_offsets[scan] + peak, spec_offsets[other_scan] + candidate);
+              const auto other = cells.find({keys[cell].first + dx, keys[cell].second + dt});
+              if (other != cells.end() && other->second > cell && connected.find_set(cell) != connected.find_set(other->second)
+                  && overlap(cell, other->second))
+              {
+                connected.union_set(cell, other->second);
+              }
             }
           }
         }
-        nonempty_scans.push_back(scan);
-      }
-
-      std::vector<std::vector<Apex>> components;
-      std::vector<Size> component_index(peak_count, peak_count);
-      for (const auto& apex : chrom_apices)
-      {
-        const Size root = connected.find_set(spec_offsets[apex.scan_idx] + apex.peak_idx);
-        if (component_index[root] == peak_count)
+        std::vector<Size> root_groups(contents.size(), contents.size());
+        for (Size cell = 0; cell < contents.size(); ++cell)
         {
-          component_index[root] = components.size();
-          components.emplace_back();
+          const Size root = connected.find_set(cell);
+          if (root_groups[root] == contents.size()) { root_groups[root] = group_count++; }
+          for (const auto& seed : contents[cell])
+          {
+            groups[seed.index] = root_groups[root];
+          }
         }
-        components[component_index[root]].push_back(apex);
+      }
+      std::vector<std::vector<Apex>> components(group_count);
+      std::vector<Size> group_sizes(group_count, 0);
+      for (Size group : groups)
+      {
+        ++group_sizes[group];
+      }
+      for (Size group = 0; group < group_count; ++group)
+      {
+        components[group].reserve(group_sizes[group]);
+      }
+      for (Size i = 0; i < chrom_apices.size(); ++i)
+      {
+        components[groups[i]].push_back(chrom_apices[i]);
       }
       std::stable_sort(components.begin(), components.end(), [](const auto& a, const auto& b) { return a.size() > b.size(); });
       return components;
@@ -601,6 +712,8 @@ namespace OpenMS
       if (parallel && ! chrom_apices.empty())
       {
         const auto components = partitionApices_(chrom_apices, work_exp, spec_offsets, total_peak_count);
+        OPENMS_LOG_DEBUG << "Mass-trace seed-window components=" << components.size() << " largest_component_seeds=" << components.front().size()
+                         << " total_seeds=" << chrom_apices.size() << '\n';
         std::vector<std::vector<MassTrace>> results(components.size());
         std::vector<std::vector<Apex>> accepted_apices(components.size());
         std::vector<std::exception_ptr> errors(components.size());
@@ -738,6 +851,16 @@ namespace OpenMS
           // *********************************************************** //
           // Step 2.1 MOVE DOWN in RT dim
           // *********************************************************** //
+          if (trace_down_idx > 0 && down_state.active && max_apex_rt_span_ > 0.0
+              && work_exp[trace_down_idx - 1].getRT() < apex_peak.getRT() - max_apex_rt_span_ / 2.0)
+          {
+            down_state.active = false;
+          }
+          if (trace_up_idx < work_exp.size() - 1 && up_state.active && max_apex_rt_span_ > 0.0
+              && work_exp[trace_up_idx + 1].getRT() > apex_peak.getRT() + max_apex_rt_span_ / 2.0)
+          {
+            up_state.active = false;
+          }
           if (trace_down_idx > 0 && down_state.active)
           {
             const MSSpectrum& spec_trace_down = work_exp[trace_down_idx - 1];
@@ -881,6 +1004,11 @@ namespace OpenMS
     {
       mass_error_ppm_ = (double)param_.getValue("mass_error_ppm");
       max_apex_deviation_ppm_ = (double)param_.getValue("max_apex_deviation_ppm");
+      max_apex_rt_span_ = (double)param_.getValue("max_apex_rt_span");
+      if (! std::isfinite(max_apex_rt_span_))
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "max_apex_rt_span must be finite");
+      }
       if (! std::isfinite(max_apex_deviation_ppm_))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "max_apex_deviation_ppm must be finite");

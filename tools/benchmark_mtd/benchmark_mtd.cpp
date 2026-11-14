@@ -46,9 +46,9 @@ double median(std::vector<double> values)
 
 int main(int argc, char** argv)
 {
-  if (argc < 2 || argc > 5)
+  if (argc < 2 || argc > 6)
   {
-    OPENMS_LOG_ERROR << "Usage: benchmark_mtd input.mzML [threads=2] [repeats=9] [apex_cap_ppm=20]\n";
+    OPENMS_LOG_ERROR << "Usage: benchmark_mtd input.mzML [threads=2] [repeats=9] [apex_cap_ppm=20] [apex_rt_span_s=0]\n";
     return 1;
   }
   try
@@ -56,6 +56,7 @@ int main(int argc, char** argv)
     const int threads = argc > 2 ? StringUtils::toInt32(argv[2]) : 2;
     const int repeats = argc > 3 ? StringUtils::toInt32(argv[3]) : 9;
     const double cap = argc > 4 ? StringUtils::toDouble(argv[4]) : 20.0;
+    const double rt_span = argc > 5 ? StringUtils::toDouble(argv[5]) : 0.0;
     if (threads < 2 || repeats < 1) { throw std::invalid_argument("threads must be >= 2 and repeats >= 1"); }
     omp_set_dynamic(0);
     PeakMap input;
@@ -68,6 +69,7 @@ int main(int argc, char** argv)
     detector.setLogType(ProgressLogger::NONE);
     Param parameters = detector.getParameters();
     parameters.setValue("max_apex_deviation_ppm", cap);
+    parameters.setValue("max_apex_rt_span", rt_span);
     detector.setParameters(parameters);
     auto detect = [&](int count, std::vector<MassTrace>& traces) {
       omp_set_num_threads(count);
@@ -78,7 +80,9 @@ int main(int argc, char** argv)
 
     std::vector<MassTrace> reference, parallel, serial;
     const double cold_serial = detect(1, reference);
+    setConsoleDebugLogging(true);
     const double cold_parallel = detect(threads, parallel);
+    setConsoleDebugLogging(false);
     if (! equalTraces(reference, parallel)) { throw std::runtime_error("Serial/parallel output mismatch"); }
     std::vector<double> serial_times, parallel_times;
     for (int repeat = 0; repeat < repeats; ++repeat)
@@ -98,8 +102,13 @@ int main(int argc, char** argv)
     double max_span = 0.0;
     const MassTrace* widest = nullptr;
     double widest_min = 0.0, widest_max = 0.0;
+    Size assigned_peaks = 0;
+    double longest_rt = 0.0;
     for (const auto& trace : reference)
     {
+      assigned_peaks += trace.getSize();
+      longest_rt = std::max(longest_rt, trace.getTraceLength());
+      if (rt_span > 0.0 && trace.getTraceLength() > rt_span + 1e-9) { throw std::runtime_error("Apex RT window exceeded"); }
       const auto [low, high] = std::minmax_element(trace.begin(), trace.end(), [](const auto& a, const auto& b) { return a.getMZ() < b.getMZ(); });
       const double span = (high->getMZ() - low->getMZ()) / trace.getCentroidMZ() * 1e6;
       if (span > max_span)
@@ -112,8 +121,9 @@ int main(int argc, char** argv)
     }
     const double serial_seconds = median(serial_times), parallel_seconds = median(parallel_times);
     OPENMS_LOG_INFO << std::setprecision(12) << "input=" << argv[1] << " scans=" << input.size() << " traces=" << reference.size()
-                    << " cap_ppm=" << cap << " threads=" << threads << " repeats=" << repeats << " cold_serial_s=" << cold_serial
-                    << " cold_parallel_s=" << cold_parallel << " serial_median_s=" << serial_seconds << " parallel_median_s=" << parallel_seconds
+                    << " cap_ppm=" << cap << " apex_rt_span_s=" << rt_span << " assigned_peaks=" << assigned_peaks << " longest_rt_s=" << longest_rt
+                    << " threads=" << threads << " repeats=" << repeats << " cold_serial_s=" << cold_serial << " cold_parallel_s=" << cold_parallel
+                    << " serial_median_s=" << serial_seconds << " parallel_median_s=" << parallel_seconds
                     << " speedup=" << serial_seconds / parallel_seconds << " exact_equal=true\n";
     if (widest != nullptr)
     {

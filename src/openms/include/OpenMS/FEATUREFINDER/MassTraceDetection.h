@@ -38,6 +38,11 @@ namespace OpenMS
       signals. The cap is disabled by default (zero), preserving existing
       behavior until an appropriate bound has been validated for the data.
 
+      A positive max_apex_rt_span confines extension to an inclusive interval
+      centered on the seed RT, with this full width in seconds. Zero disables
+      the RT guard. Peaks beyond the interval remain available to later seeds;
+      max_trace_length remains a separate post-extraction rejection criterion.
+
       The extension phase ends when either the frequency of gathered peaks drops
       below a threshold (min_sample_rate, see @ref MassTraceDetection parameters)
       or when the number of missed scans exceeds a threshold
@@ -48,8 +53,9 @@ namespace OpenMS
       added to the result.
 
       With OpenMP and more than one thread, capped outlier-mode extraction
-      processes independent peak components concurrently. All above-noise peaks
-      participate in connectivity, including non-seeds. Within each component,
+      processes independent seed-window components concurrently. With no RT
+      guard these are m/z bands; otherwise transitive m/z/RT window overlaps
+      are grouped using spatial hashing. Within each component,
       the original greedy seed priority is preserved; output labels and order
       are identical to capped serial extraction. Unbounded extraction,
       sample-rate termination and calls with max_traces use the serial path.
@@ -217,6 +223,7 @@ namespace OpenMS
         // parameter stuff
         double mass_error_ppm_;
         double max_apex_deviation_ppm_;
+        double max_apex_rt_span_;
         double mass_error_da_;
         double noise_threshold_int_;
         double chrom_peak_snr_;

@@ -10,6 +10,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/test_config.h>
+#include <set>
+#include <random>
 
 #ifdef _OPENMP
   #include <omp.h>
@@ -378,14 +380,15 @@ START_SECTION((component extraction preserves serial peak ownership, order and m
 #endif
   for (const string& criterion : {string("outlier"), string("sample_rate")})
   {
-    for (double cap : {0.0, 20.0})
+    for (const auto& bounds : {std::pair<double, double>{0.0, 0.0}, {0.0, 8.0}, {20.0, 0.0}, {20.0, 8.0}, {20.0, 16.0}})
     {
       for (int outliers : {0, 1, 5})
       {
         MassTraceDetection detector;
         detector.setLogType(ProgressLogger::NONE);
         Param parameters = detector.getParameters();
-        parameters.setValue("max_apex_deviation_ppm", cap);
+        parameters.setValue("max_apex_deviation_ppm", bounds.first);
+        parameters.setValue("max_apex_rt_span", bounds.second);
         parameters.setValue("trace_termination_criterion", criterion);
         parameters.setValue("trace_termination_outliers", outliers);
         parameters.setValue("min_trace_length", 3.0);
@@ -431,4 +434,128 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION((RT growth guard preserves endpoints and reseeds unconsumed peaks))
+{
+  PeakMap experiment;
+  for (Size scan = 0; scan <= 20; ++scan)
+  {
+    MSSpectrum spectrum;
+    spectrum.setRT(scan);
+    spectrum.emplace_back(500.0, 1000.0 - std::abs(static_cast<int>(scan) - 10));
+    experiment.addSpectrum(spectrum);
+  }
+  MassTraceDetection detector;
+  detector.setLogType(ProgressLogger::NONE);
+  Param parameters = detector.getParameters();
+  parameters.setValue("max_apex_deviation_ppm", 60.0);
+  parameters.setValue("min_trace_length", 1.0);
+  detector.setParameters(parameters);
+  vector<MassTrace> unbounded, bounded, parallel;
+#ifdef _OPENMP
+  const int previous_threads = omp_get_max_threads();
+  omp_set_num_threads(1);
+#endif
+  detector.run(experiment, unbounded);
+  TEST_EQUAL(unbounded.size(), 1)
+  TEST_EQUAL(unbounded.front().getSize(), 21)
+  parameters.setValue("max_apex_rt_span", 4.0);
+  detector.setParameters(parameters);
+  detector.run(experiment, bounded);
+  TEST_TRUE(bounded.size() > 1)
+  TEST_EQUAL(bounded.front().getSize(), 5)
+  TEST_EQUAL(bounded.front()[0].getRT(), 8.0)
+  TEST_EQUAL(bounded.front()[4].getRT(), 12.0)
+  Size count = 0;
+  std::set<double> observed;
+  for (const auto& trace : bounded)
+  {
+    TEST_TRUE(trace.getTraceLength() <= 4.0)
+    count += trace.getSize();
+    for (const auto& peak : trace) { observed.insert(peak.getRT()); }
+  }
+  TEST_EQUAL(count, 21)
+  TEST_EQUAL(observed.size(), 21)
+#ifdef _OPENMP
+  omp_set_num_threads(2);
+#endif
+  detector.run(experiment, parallel);
+  TEST_EQUAL(bounded.size(), parallel.size())
+  for (Size i = 0; i < std::min(bounded.size(), parallel.size()); ++i)
+  {
+    TEST_EQUAL(bounded[i].getLabel(), parallel[i].getLabel())
+    TEST_EQUAL(bounded[i].getSize(), parallel[i].getSize())
+    TEST_TRUE(std::equal(bounded[i].begin(), bounded[i].end(), parallel[i].begin()))
+  }
+  parameters.setValue("max_apex_rt_span", 0.0);
+  detector.setParameters(parameters);
+  detector.run(experiment, parallel);
+  TEST_EQUAL(parallel.size(), 1)
+  TEST_TRUE(std::equal(unbounded.front().begin(), unbounded.front().end(), parallel.front().begin()))
+  parameters.setValue("max_apex_rt_span", std::numeric_limits<double>::infinity());
+  TEST_EXCEPTION(Exception::InvalidParameter, detector.setParameters(parameters))
+#ifdef _OPENMP
+  omp_set_num_threads(previous_threads);
+#endif
+}
+END_SECTION
+
+START_SECTION((RT and mass cell overlaps preserve greedy serial extraction))
+{
+  std::mt19937 random(407);
+  std::uniform_real_distribution<double> offset(0.0, 1.0);
+#ifdef _OPENMP
+  const int previous_threads = omp_get_max_threads();
+#endif
+  for (Size repeat = 0; repeat < 8; ++repeat)
+  {
+    PeakMap experiment;
+    for (Size scan = 0; scan < 30; ++scan)
+    {
+      MSSpectrum spectrum;
+      spectrum.setRT(100000.0 + scan * 0.5);
+      for (Size peak = 0; peak < 20; ++peak)
+      {
+        spectrum.emplace_back(500.0 * std::exp((peak + offset(random)) * 120e-6),
+                              50.0 + 1000.0 * offset(random));
+      }
+      spectrum.sortByPosition();
+      experiment.addSpectrum(spectrum);
+    }
+    for (double span : {1.0, 4.0, 10.0})
+    {
+      MassTraceDetection detector;
+      detector.setLogType(ProgressLogger::NONE);
+      Param parameters = detector.getParameters();
+      parameters.setValue("max_apex_deviation_ppm", 60.0);
+      parameters.setValue("max_apex_rt_span", span);
+      parameters.setValue("min_trace_length", 0.5);
+      detector.setParameters(parameters);
+      vector<MassTrace> serial, parallel;
+#ifdef _OPENMP
+      omp_set_num_threads(1);
+#endif
+      detector.run(experiment, serial);
+#ifdef _OPENMP
+      omp_set_num_threads(2);
+#endif
+      detector.run(experiment, parallel);
+      TEST_EQUAL(serial.size(), parallel.size())
+      for (Size trace = 0; trace < std::min(serial.size(), parallel.size()); ++trace)
+      {
+        TEST_EQUAL(serial[trace].getLabel(), parallel[trace].getLabel())
+        TEST_EQUAL(serial[trace].getSize(), parallel[trace].getSize())
+        TEST_EQUAL(serial[trace].getCentroidMZ(), parallel[trace].getCentroidMZ())
+        TEST_EQUAL(serial[trace].getCentroidSD(), parallel[trace].getCentroidSD())
+        TEST_EQUAL(serial[trace].computePeakArea(), parallel[trace].computePeakArea())
+        TEST_TRUE(std::equal(serial[trace].begin(), serial[trace].end(), parallel[trace].begin()))
+        TEST_TRUE(serial[trace].getTraceLength() <= span)
+      }
+    }
+  }
+#ifdef _OPENMP
+  omp_set_num_threads(previous_threads);
+#endif
+}
+END_SECTION
+
 END_TEST

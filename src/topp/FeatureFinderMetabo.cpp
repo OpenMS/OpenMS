@@ -73,7 +73,7 @@ Generally, for lipidomics, use 13C, since lipids contain a lot of 13C.
 For general metabolites, the linear model is usually more appropriate.
 To decide what is better, the total number of features can be used as indirect measure
 - the lower(!) the better (since more mass traces are assembled into single features).
-Detailed information is stored in the featureXML output: it contains meta-values for each feature about the 
+Detailed information is stored in the featureXML output: it contains meta-values for each feature about the
 mass trace differences (inspectable via TOPPView). If you want this in a tabular format, use TextExporter, i.e.,
 @code
    TextExporter.exe -feature:add_metavalues 1 -in <ff_metabo.featureXML> -out <ff_metabo.csv>
@@ -105,22 +105,35 @@ This is an example of pathological assembly, not evidence that these observation
 belong to one analyte. The fixed-apex cap prevents such unbounded drift without
 changing the variance estimator.
 
-With a positive cap and @c -threads @c 2 (or more), outlier-mode extraction first builds
-conservative independent components. All above-noise peaks participate, including
-weak peaks that cannot seed a trace. If a trace is confined to seed m/z +/- H,
-two admissible observations differ by at most 2H in the seed's mass coordinate.
-A symmetric, outward-rounded twice-cap gate conservatively connects such pairs.
-Edges cover the same scan and up to @p trace_termination_outliers + 1 nonempty
-working scans: empty scans do not increment the existing miss counter. There
-is no additional RT cutoff or change to sample-rate accounting.
+The optional @p algorithm:mtd:max_apex_rt_span is a full apex-centered RT window
+width in seconds: a value of 150 permits extension within +/-75 seconds of each
+seed. Zero (default) disables this guard, including for cropped tutorial inputs.
+Unlike @p algorithm:mtd:max_trace_length, it stops growth rather than rejecting
+an already extracted long trace. Unconsumed peaks can seed subsequent traces.
+The guard deliberately changes trace assembly and may split background ions or
+multiple elution peaks; validate boundary effects on quantification. Specify
+seconds from a known LC method rather than inferring a gradient from file extent,
+which can include washing/re-equilibration or only a cropped acquisition.
+
+With a positive mass cap and @c -threads @c 2 (or more), outlier-mode extraction
+groups overlapping seed windows. Without the RT guard, it sorts seed m/z values
+and splits at conservative twice-cap gaps. With both guards, spatial hashing
+groups transitive m/z/RT overlaps. Occupied cells are visited in acquisition RT
+order, avoiding per-cell sorting; neighboring-cell overlap is tested with a
+linear monotonic-deque sweep. No pairwise edge list or peak-level graph is built.
+If two capped traces could use the same peak, their seed windows must overlap,
+so their seeds belong to the same component. Weak non-seeds cannot connect
+disjoint immutable seed windows. Empty-scan and sample-rate accounting are unchanged.
 
 Each component retains the original greedy seed priority, including intensity
 ties, and writes distinct byte-addressed peak-ownership entries. No peak locks
 or overlapping-region reconciliation are needed. Results are merged in original
 seed order before assigning labels, giving exactly the capped serial result.
-The largest component remains a limit on parallel speedup. Additional component
-storage is linear in the number of above-noise peaks; spectra are shared rather
-than copied per worker.
+Components are sorted largest-first by seed count and scheduled with OpenMP
+@c schedule(dynamic,1); one worker processes an entire component serially before
+taking another. The largest component remains a limit on parallel speedup.
+Additional storage is linear in peaks/seeds and occupied cells; spectra are
+shared rather than copied per worker.
 
 @c -threads @c 1 remains the default. Extraction stays serial with a disabled
 cap, sample-rate termination, a @c max_traces limit in the library API, or inside
@@ -137,30 +150,51 @@ cmake -S tools/benchmark_mtd -B benchmark-mtd-build -DCMAKE_BUILD_TYPE=Release -
 cmake --build benchmark-mtd-build -j2
 benchmark-mtd-build/benchmark_mtd doc/pyopenms/src/data/Metabolomics_1.mzML 2 9 20
 benchmark-mtd-build/benchmark_mtd doc/pyopenms/src/data/Metabolomics_2.mzML 2 9 20
+# Full acquisition with an explicit 60 ppm mass cap and 150-second RT window:
+# Source: https://raw.githubusercontent.com/ElucidataInc/ElMaven/143d1541164e46edbbb73f83fa58728a2b96a151/bin/methods/testsample_2.mzxml
+# Convert without cropping or filtering:
+FileConverter -in testsample_2.mzxml -out full-run.mzML
+benchmark-mtd-build/benchmark_mtd full-run.mzML 2 9 60 150
 # Reproduce the unbounded trace example:
 benchmark-mtd-build/benchmark_mtd doc/pyopenms/src/data/Metabolomics_2.mzML 2 9 0
 @endcode
 
-A native Release (-O2, GCC 13.3) run on a shared Linux environment with two
-available CPUs gave the following medians over nine interleaved repetitions,
-using the 20 ppm cap. These are mass-trace extraction timings, not full-pipeline
-speedups:
+On a complete public ElMaven acquisition (centroided negative-ESI FTMS,
+@c testsample_2.mzxml, 5610 scans, 5.49 million peaks, RT 0.253457-1500.28 s),
+a native Release (-O2, GCC 13.3) benchmark gave the following medians of three
+interleaved repetitions on a shared Linux machine with two available CPUs:
 
 <table>
-<tr><th>Public excerpt</th><th>Traces</th><th>1 thread</th><th>2 threads</th><th>Speedup</th></tr>
-<tr><td>Metabolomics_1.mzML</td><td>6806</td><td>0.3805 s</td><td>0.2066 s</td><td>1.84x</td></tr>
-<tr><td>Metabolomics_2.mzML</td><td>5423</td><td>0.4289 s</td><td>0.2391 s</td><td>1.79x</td></tr>
+<tr><th>Mass cap</th><th>RT window</th><th>Traces</th><th>1 thread</th><th>2 threads</th></tr>
+<tr><td>Disabled (default)</td><td>Disabled</td><td>31707</td><td>12.58 s</td><td>Serial fallback</td></tr>
+<tr><td>60 ppm</td><td>Disabled</td><td>31709</td><td>11.49 s</td><td>4.74 s</td></tr>
+<tr><td>60 ppm</td><td>150 s</td><td>37375</td><td>13.04 s</td><td>5.18 s</td></tr>
+<tr><td>60 ppm</td><td>75 s</td><td>46832</td><td>11.89 s</td><td>5.43 s</td></tr>
 </table>
 
-All ordered trace values matched exactly on every repetition. First-call
-serial/parallel times were 0.3992/0.2293 s and 0.4449/0.2383 s, respectively;
-timings are illustrative, not a scaling guarantee on other machines.
-Maximum observed trace spans were 39.90 and 39.91 ppm, rather than the
-unbounded example's 1784.19 ppm. Whole benchmark-process peak RSS was about
-107 and 114 MiB, including input, reference/comparison outputs and libraries;
-this is not incremental partitioning memory or a per-worker allocation.
-The complete FeatureFinderMetabo output on the second excerpt also matched
-between one and two threads with zero numeric tolerance (ignoring feature IDs).
+The m/z-only partition had 736 groups, largest 274095 seeds (4.99%).
+With a 150-second RT window it had 15577 groups, largest 56428 (1.03%);
+75 seconds gave 37048 groups, largest 56028 (1.02%). Finite trace windows
+do not prevent long transitive overlap chains. Finer partitioning did not
+beat m/z-only grouping on these two CPUs; more-than-two-core scaling remains
+unmeasured. The earlier peak graph took 4.70 seconds with two threads at
+60 ppm on this file, so no improvement over that implementation is established
+by this shared-machine comparison.
+
+Ordered traces matched exactly between serial and parallel at every setting,
+not between different caps. The longest accepted trace was 1500.03, 149.811
+or 74.934 seconds with RT guard disabled, 150 s or 75 s, respectively.
+Whole benchmark-process peak RSS was approximately 835, 982 and 1012 MiB
+for the uncapped default, 60 ppm/no RT guard and 60 ppm/150 s, including
+input, reference/comparison outputs and libraries. These are not incremental
+partitioning or per-worker memory figures.
+
+Timings fluctuate on shared hardware and are not full-pipeline or many-core
+scaling guarantees. On noisy data, caps can increase serial extraction time
+substantially because rejected traces leave their seeds unconsumed; benchmark
+against both the uncapped default and serial extraction at the same caps.
+Neither 60 ppm nor a window of 10% of acquisition time is a validated default.
+The source acquisition's gradient protocol is not established here.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_FeatureFinderMetabo.cli

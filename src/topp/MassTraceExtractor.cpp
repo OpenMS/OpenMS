@@ -61,6 +61,9 @@ The @p algorithm:mtd:max_apex_deviation_ppm parameter bounds mass drift relative
 to the fixed seed m/z (disabled by default). With a positive cap and outlier-mode
 termination, @c -threads @c 2 or more enables deterministic independent-component
 extraction. See @ref ffmetabo_bounded_traces for the rationale and limitations.
+The optional @p algorithm:mtd:max_apex_rt_span limits the full apex-centered
+RT interval in seconds; zero disables this growth guard. It is distinct from
+the post-extraction @p algorithm:mtd:max_trace_length rejection criterion.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_MassTraceExtractor.cli
