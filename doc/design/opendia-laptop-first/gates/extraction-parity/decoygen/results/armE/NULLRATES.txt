@@ -1,0 +1,10 @@
+==== raw01: null windows 422976 (|RT err| > 3 sigma = 68.1 s)
+  class        n   mean support  support>=4  mean libcos  libcos>0.8
+  D        211761        1.965      0.0535        0.527      0.0211
+  T        211215        1.965      0.0543        0.526      0.0207
+  decoy / target: support>=4 0.986  libcos>0.8 1.019  mean support 1.000
+==== raw02: null windows 389831 (|RT err| > 3 sigma = 59.5 s)
+  class        n   mean support  support>=4  mean libcos  libcos>0.8
+  D        195161        1.919      0.0488        0.525      0.0211
+  T        194670        1.929      0.0508        0.524      0.0211
+  decoy / target: support>=4 0.961  libcos>0.8 1.001  mean support 0.995

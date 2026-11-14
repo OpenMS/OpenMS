@@ -86,3 +86,36 @@
 - The DIALibGen prediction path already does this when given the decoy sequence as a peptide, which is how this run
   built the libraries. A predicted-decoy mode is mostly plumbing.
 - The label-free null-rate check (`null_rates.py`) is the deployable acceptance test for any decoy generator.
+
+## Arm E: the C++ implementation reproduces arm D (PASS under the addendum rule)
+- **Run:**
+  - Library: `OpenSwathDecoyGenerator -method pseudo-reverse -switchKR true -predict_decoys true`, OpenMS 78e6bbee71.
+    It took 7.5 min on 16 threads (CPU), with a 3.3 GB peak.
+  - Codon jobs 27945829–31, finished 23:59Z. Outputs: `results/armE/`.
+- **Decoys against arm D** (`cpp/compare_armD.txt`):
+  - Sequence: 98.7 % identical, with the same precursor m/z.
+  - Normalised RT: median |Δ| 4e-8.
+  - Fragments: 73.7 % have the identical 6, 24.6 % share 5.
+  - Intensity cosine: median 0.9986.
+  - The tool estimated ThermoTOF / NCE 25 from the library, where DIALibGen's best 6-fragment match was NCE 23. With
+    `-predict_nce 23 -predict_instrument Lumos` the agreement is 99.3 % identical 6 fragments and cosine 1.0000
+    (`cpp/compare_armD_nce23.txt`).
+  - Targets are unchanged.
+
+| addendum rule | arm E | limit | |
+|---|---|---|---|
+| pooled rho at q ≤ 0.05 | 0.85 [0.68, 1.05] | inside [0.77, 1.18] | pass |
+| pooled rho at q ≤ 0.10 | 1.02 [0.89, 1.16] | inside [0.94, 1.23] | pass |
+| FDP_c at q ≤ 0.01, raw01 / raw02 | 0.010 / 0.007 | ≤ 0.015 | pass |
+| null ratio support ≥ 4, raw01 / raw02 | 0.986 / 0.961 | 0.92–1.08 | pass |
+| null ratio libcos > 0.8, raw01 / raw02 | 1.019 / 1.001 | 0.92–1.08 | pass |
+
+- **Recorded, not ruled:**
+  - D11FDWT N@FDP_c 0.5/1/1.5/2 %:
+    - raw01: 1251 / 1694 / 1805 / 1908;
+    - raw02: 1367 / 1628 / 1745 / 1903.
+    - Arm D was 982 / 1733 / 1809 / 1864 and 1400 / 1618 / 1697 / 1801.
+  - At the tool's q ≤ 0.01: 1667 / 1457 IDs.
+  - raw02 BASE is low in this arm (267 at 1 %, against 801–1040 in A–D). The BASE crossfit is retrained per library, and
+    this was not investigated.
+  - Null-winner AUC for D11FDWT: 0.4964 / 0.4984.
