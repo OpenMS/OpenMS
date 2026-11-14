@@ -6,7 +6,9 @@ Tests for newly bound CHEMISTRY methods in the nanobind build:
 - Residue.getHydrophobicity(HydrophobicityScaleMethod) + the enum
 - TheoreticalSpectrumGenerator.getPrefixAndSuffixIonsMZ(peptide, charge)
 - NucleicAcidSpectrumGenerator a1-B masses with a 5-prime modification
+- NASequence reversal and DecoyGenerator RNA permutations
 """
+import gc
 import math
 import numpy as np
 import pyopenms as poms
@@ -71,6 +73,61 @@ def test_nasg_five_prime_a1_base_loss(charge):
               if label == "a1-B"]
     expected = sequence.getPrefix(1).getMonoWeight(poms.NASequence.NASFragmentType.AminusB, charge)
     assert masses == pytest.approx([expected])
+
+
+def test_rna_decoy_reversal_and_identity():
+    """RNA reversal retains terminal chemistry and validates sequence lengths."""
+    sequence = poms.NASequence.fromString("pAUGCp")
+    assert sequence.getReversed().toString() == "pCGUAp"
+    assert sequence.getReversed(True, True).toString() == "pAGUCp"
+    assert sequence.getSequenceIdentity(sequence) == 1
+    assert poms.NASequence().getReversed().empty()
+    with pytest.raises(ValueError):
+        sequence.getSequenceIdentity(poms.NASequence.fromString("A"))
+
+
+def test_rna_decoy_shuffle_is_seeded_and_bounded():
+    """Portable RNA decoy shuffling preserves composition and terminal residues."""
+    sequence = poms.NASequence.fromString("pAUGCAUGCAUGCAUGCp")
+    generator = poms.DecoyGenerator()
+    generator.setSeed(42)
+    first = generator.shufflePeptides(sequence, "no cleavage", 30, 0.5, True, True)
+    second = generator.shufflePeptides(sequence, "no cleavage", 30, 0.5, True, True)
+    assert first.toString() == second.toString()
+    assert first.size() == sequence.size()
+    assert first.getSequenceIdentity(sequence) <= 0.5
+    assert first.getFivePrimeMod().getCode() == sequence.getFivePrimeMod().getCode()
+    assert first.getThreePrimeMod().getCode() == sequence.getThreePrimeMod().getCode()
+    assert first[0].getCode() == sequence[0].getCode()
+    assert first[first.size() - 1].getCode() == sequence[sequence.size() - 1].getCode()
+    assert generator.shufflePeptides(poms.NASequence.fromString("AU"), "no cleavage", 0).toString() == "AU"
+    modified = poms.NASequence.fromString("p[Um][Um][Um]p")
+    assert generator.shufflePeptides(modified, "no cleavage", 1, 0.0).toString() == modified.toString()
+    assert first.getFormula() == sequence.getFormula()
+    rna = poms.NASequence.fromString("pACGU[Um]ACGp")
+    digestion = poms.RNaseDigestion()
+    digestion.setEnzyme("RNase_T1")
+    reversed_rna = generator.reversePeptides(rna, "RNase_T1")
+    assert reversed_rna.toString() == "pCAGCA[Um]UGp"
+    assert digestion.getFragmentPositions(reversed_rna) == digestion.getFragmentPositions(rna)
+
+    # Input setters canonicalize owned copies to stable DB entries. Outputs must
+    # survive both input mutation and collection of the wrappers/containers.
+    copied_residues = rna.getSequence()
+    reconstructed = poms.NASequence()
+    reconstructed.setSequence(copied_residues)
+    reconstructed.setFivePrimeMod(rna.getFivePrimeMod())
+    reconstructed.setThreePrimeMod(rna.getThreePrimeMod())
+    output = generator.reversePeptides(reconstructed, "RNase_T1")
+    output_copy = poms.NASequence(output)
+    expected = output.toString()
+    copied_residues[0].setCode("caller_changed")
+    copied_residues.clear()
+    reconstructed.setSequence([])
+    del rna, reconstructed, copied_residues, output, generator
+    gc.collect()
+    assert output_copy.toString() == expected
+    assert output_copy.getFormula() == reversed_rna.getFormula()
 
 
 def test_proteomics_pka_scale_enum():
