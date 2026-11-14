@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<msms_pipeline_analysis date="2026-11-06T00:00:00" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd" summary_xml=".xml">
+<msms_run_summary base_name="protein_terminal_mods" raw_data_type="raw" raw_data=".mzML" search_engine="Comet">
+	<sample_enzyme name="trypsin">
+		<specificity cut="KR" no_cut="P" sense="C"/>
+	</sample_enzyme>
+	<search_summary base_name="protein_terminal_mods" search_engine="Comet" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
+		<search_database local_path="db.fasta" type="AA"/>
+		<aminoacid_modification aminoacid="M" massdiff="15.994915" mass="147.035400" variable="Y" binary="N" description="Oxidation (M)"/>
+	</search_summary>
+	<!-- mod_nterm_mass = H (1.007825) + 44.017274: Acetyl:13C(2), which ModificationsDB has as a Protein N-term modification only; not declared above -->
+	<spectrum_query spectrum="protein_terminal_mods.1.1.2" start_scan="1" end_scan="1" precursor_neutral_mass="971.47" assumed_charge="2" index="0" retention_time_sec="100.0">
+	<search_result>
+		<search_hit hit_rank="1" peptide="PEPTIDEK" peptide_prev_aa="-" peptide_next_aa="A" protein="PROT1" num_tot_proteins="1" calc_neutral_pep_mass="971.47" massdiff="0.0" num_tol_term="2" num_missed_cleavages="0" is_rejected="0">
+			<modification_info modified_peptide="n[45]PEPTIDEK" mod_nterm_mass="45.025099"/>
+			<search_score name="expect" value="0.001"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<!-- mod_cterm_mass = OH (17.002740) + 129.042593: Glu, which ModificationsDB has as a Protein C-term modification only; not declared above -->
+	<spectrum_query spectrum="protein_terminal_mods.2.2.2" start_scan="2" end_scan="2" precursor_neutral_mass="1056.48" assumed_charge="2" index="1" retention_time_sec="200.0">
+	<search_result>
+		<search_hit hit_rank="1" peptide="PEPTIDER" peptide_prev_aa="K" peptide_next_aa="-" protein="PROT1" num_tot_proteins="1" calc_neutral_pep_mass="1056.48" massdiff="0.0" num_tol_term="2" num_missed_cleavages="0" is_rejected="0">
+			<modification_info modified_peptide="PEPTIDERc[146]" mod_cterm_mass="146.045333"/>
+			<search_score name="expect" value="0.001"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<!-- mod_nterm_mass = H (1.007825) + 43.989829: Carboxy, which ModificationsDB has only as "Carboxy (Protein N-term M)" -- residue-specific.
+	     This peptide starts with P, not M, so the residue-aware search must not apply it. -->
+	<spectrum_query spectrum="protein_terminal_mods.3.3.2" start_scan="3" end_scan="3" precursor_neutral_mass="971.47" assumed_charge="2" index="2" retention_time_sec="300.0">
+	<search_result>
+		<search_hit hit_rank="1" peptide="PEPTIDEK" peptide_prev_aa="-" peptide_next_aa="A" protein="PROT1" num_tot_proteins="1" calc_neutral_pep_mass="971.47" massdiff="0.0" num_tol_term="2" num_missed_cleavages="0" is_rejected="0">
+			<modification_info modified_peptide="n[44]PEPTIDEK" mod_nterm_mass="44.997654"/>
+			<search_score name="expect" value="0.001"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+</msms_run_summary>
+</msms_pipeline_analysis>

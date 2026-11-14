@@ -735,6 +735,40 @@ START_SECTION([EXTRA] void load(const std::string& filename, std::vector<Protein
 }
 END_SECTION
 
+START_SECTION([EXTRA] void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const std::string& experiment_name = "") - undeclared protein-terminal modifications)
+{
+  // mod_nterm_mass/mod_cterm_mass that the search_summary does not declare and that
+  // ModificationsDB has only as Protein N-term/C-term modifications
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  PepXMLFile().load(OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_protein_terminal_mods.pepxml"), proteins, peptides);
+  TEST_EQUAL(peptides.size(), 3)
+  ABORT_IF(peptides.size() != 3)
+
+  const AASequence& n_seq = peptides[0].getHits()[0].getSequence();
+  TEST_EQUAL(n_seq.hasNTerminalModification(), true)
+  TEST_EQUAL(n_seq.getNTerminalModificationName(), "Acetyl:13C(2)")
+  TEST_EQUAL(n_seq.getNTerminalModification() != nullptr &&
+             n_seq.getNTerminalModification()->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM, true)
+
+  const AASequence& c_seq = peptides[1].getHits()[0].getSequence();
+  TEST_EQUAL(c_seq.hasCTerminalModification(), true)
+  TEST_EQUAL(c_seq.getCTerminalModificationName(), "Glu")
+  TEST_EQUAL(c_seq.getCTerminalModification() != nullptr &&
+             c_seq.getCTerminalModification()->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM, true)
+
+  // the sequences survive a round trip through their string form (as in idXML)
+  TEST_EQUAL(AASequence::fromString(n_seq.toString()), n_seq)
+  TEST_EQUAL(AASequence::fromString(c_seq.toString()), c_seq)
+
+  // third hit: mod_nterm_mass matches "Carboxy (Protein N-term M)" only, but this peptide
+  // starts with P, not M -- the residue-aware search must not misapply it
+  const AASequence& non_matching_seq = peptides[2].getHits()[0].getSequence();
+  TEST_EQUAL(non_matching_seq.hasNTerminalModification(), false)
+  TEST_EQUAL(AASequence::fromString(non_matching_seq.toString()), non_matching_seq)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 /// check the temporary files written above against their XML schema (types without a validator are skipped)

@@ -1660,10 +1660,14 @@ namespace OpenMS
           // empty when nothing matches), so a try/catch around it to fall back from
           // N_TERM to PROTEIN_N_TERM never actually falls back; check emptiness instead.
           std::vector<const ResidueModification*> mods;
-          ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass - Residue::getInternalToNTerm().getMonoWeight(), mod_tol_, "", ResidueModification::N_TERM);
+          // residue-specific protein-terminal modifications (e.g. "Myristoleyl (Protein N-term G)")
+          // only match the actual first residue of this peptide, or AASequence::fromString()
+          // rejects the round-tripped sequence later (e.g. when writing/reading idXML)
+          const std::string first_aa = current_sequence_.substr(0, 1);
+          ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass - Residue::getInternalToNTerm().getMonoWeight(), mod_tol_, first_aa, ResidueModification::N_TERM);
           if (mods.empty())
           {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass - Residue::getInternalToNTerm().getMonoWeight(), mod_tol_, "", ResidueModification::PROTEIN_N_TERM);
+            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass - Residue::getInternalToNTerm().getMonoWeight(), mod_tol_, first_aa, ResidueModification::PROTEIN_N_TERM);
           }
 
           if (!mods.empty())
@@ -1713,10 +1717,12 @@ namespace OpenMS
           // empty when nothing matches), so a try/catch around it to fall back from
           // C_TERM to PROTEIN_C_TERM never actually falls back; check emptiness instead.
           std::vector<const ResidueModification*> mods;
-          ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_cterm_mass - Residue::getInternalToCTerm().getMonoWeight(), mod_tol_, "", ResidueModification::C_TERM);
+          // same reasoning as the N-terminal search above: match against the actual last residue
+          const std::string last_aa = current_sequence_.empty() ? std::string() : current_sequence_.substr(current_sequence_.size() - 1);
+          ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_cterm_mass - Residue::getInternalToCTerm().getMonoWeight(), mod_tol_, last_aa, ResidueModification::C_TERM);
           if (mods.empty())
           {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_cterm_mass - Residue::getInternalToCTerm().getMonoWeight(), mod_tol_, "", ResidueModification::PROTEIN_C_TERM);
+            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_cterm_mass - Residue::getInternalToCTerm().getMonoWeight(), mod_tol_, last_aa, ResidueModification::PROTEIN_C_TERM);
           }
 
           if (!mods.empty())
