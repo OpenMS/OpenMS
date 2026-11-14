@@ -33,6 +33,13 @@ add_executable(OpenDIAInterference_test OpenDIAInterference_test.cpp)
 target_link_libraries(OpenDIAInterference_test PRIVATE OpenDIA_impl)
 add_test(NAME OpenDIAInterference_test COMMAND OpenDIAInterference_test)
 
+add_executable(OpenDIAScorer_test OpenDIAScorer_test.cpp)
+target_link_libraries(OpenDIAScorer_test PRIVATE OpenDIA_impl)
+add_test(NAME OpenDIAScorer_test COMMAND OpenDIAScorer_test)
+# Validation driver on the PLAN_GAP scoring arrays (not a ctest).
+add_executable(OpenDIAScorer_arrays OpenDIAScorer_arrays.cpp)
+target_link_libraries(OpenDIAScorer_arrays PRIVATE OpenDIA_impl)
+
 if(TARGET OpenDIA_cnn)
   add_executable(OpenDIACNN_test OpenDIACNN_test.cpp)
   target_link_libraries(OpenDIACNN_test PRIVATE OpenDIA_cnn)
