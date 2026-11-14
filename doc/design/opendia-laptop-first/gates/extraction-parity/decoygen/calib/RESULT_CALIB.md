@@ -33,3 +33,27 @@ the panel; there are no new parameters.
   4σ covers 90–96 % of DIA-NN IDs, against 95 %. The σ estimate is biased low by the selection. A fix (for example a σ
   estimated from the score-only anchors of the same window, or a truncated-Gaussian correction) is not done.
 - The arm results in RESULT_DECOYGEN used the old PAIRLIB calibration (amendment 1) and are unaffected.
+
+## Follow-up: selection-free RT spread (OpenMS commit after 0e4a234762, see git log)
+- **Problem:** selecting anchors with an RT preference biases their spread low.
+  - DIA-NN's robust spread around the same maps is 24.4–27.1 s.
+  - The written σ was 13.5–18.9 s.
+  - So 4σ covered only 90–96 % of DIA-NN IDs.
+- **Fix:** stage 4 fits all stage-3 target winners' residuals to the final map as a Gaussian (true peaks) plus
+  background, the background shape taken from the decoy winners' residuals over the same window. The tolerance is
+  4 × that width (`rt.spread_s`). It needs no labels and no threshold, and falls back to the map σ without enough
+  signal.
+  - Offline check (`mixture_sigma.py`): the fit recovered DIA-NN's spread on every run, including the old library.
+
+| run | map σ (anchors) | spread_s | tolerance | DIA-NN 1 % IDs within tolerance |
+|---|---|---|---|---|
+| old code, old library raw01 / raw02 | 22.71 / 19.84 | – | 90.8 / 79.4 s | 0.957 / 0.946 |
+| old library raw01 / raw02 | 18.89 / 17.98 | 27.43 / 27.97 | 109.7 / 111.9 s | 0.961 / 0.961 |
+| A raw01 / raw02 | 16.35 / 14.64 | 23.43 / 24.20 | 93.7 / 96.8 s | 0.957 / 0.957 |
+| B raw02 | 14.25 | 23.69 | 94.8 s | 0.981 |
+| C raw01 / raw02 | 13.49 / 15.06 | 23.06 / 25.68 | 92.3 / 102.7 s | 0.976 / 0.981 |
+| D raw01 / raw02 | 18.03 / 18.36 | 25.50 / 26.72 | 102.0 / 106.9 s | 0.983 / 0.976 |
+
+- **Coverage:** at or above the old code's on every run.
+- **Cost:** windows are wider, so more candidates per precursor in search; the effect on IDs is not measured.
+- **Still open:** arm B raw01 still fails in stage 1, which has no RT information and is a different failure.

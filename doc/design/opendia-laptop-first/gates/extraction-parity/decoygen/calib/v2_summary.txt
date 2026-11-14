@@ -1,0 +1,11 @@
+OLD raw01/cal          sigma 22.71 spread   nan tol   90.8 s | DIA-NN |err| p50  16.9 | within tol 0.957
+OLD raw02/cal          sigma 19.84 spread   nan tol   79.4 s | DIA-NN |err| p50  16.9 | within tol 0.946
+v2_armA_raw01          sigma 16.35 spread 23.43 tol   93.7 s | DIA-NN |err| p50  17.5 | within tol 0.957
+v2_armA_raw02          sigma 14.64 spread 24.20 tol   96.8 s | DIA-NN |err| p50  17.3 | within tol 0.957
+v2_armB_raw02          sigma 14.25 spread 23.69 tol   94.8 s | DIA-NN |err| p50  18.3 | within tol 0.981
+v2_armC_raw01          sigma 13.49 spread 23.06 tol   92.3 s | DIA-NN |err| p50  17.6 | within tol 0.976
+v2_armC_raw02          sigma 15.06 spread 25.68 tol  102.7 s | DIA-NN |err| p50  17.2 | within tol 0.981
+v2_armD_raw01          sigma 18.03 spread 25.50 tol  102.0 s | DIA-NN |err| p50  16.4 | within tol 0.983
+v2_armD_raw02          sigma 18.36 spread 26.72 tol  106.9 s | DIA-NN |err| p50  16.9 | within tol 0.976
+v2_pairlib_raw01       sigma 18.89 spread 27.43 tol  109.7 s | DIA-NN |err| p50  17.4 | within tol 0.961
+v2_pairlib_raw02       sigma 17.98 spread 27.97 tol  111.9 s | DIA-NN |err| p50  17.2 | within tol 0.961
