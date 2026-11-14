@@ -374,11 +374,21 @@ START_SECTION((void smoothData(MassTrace& mt, int win_size) const))
   TEST_REAL_SIMILAR(spike_mt.getSmoothedIntensities()[1], (100.0 + 1000.0 + 300.0) / 3.0);
   TEST_EQUAL(spike_mt.findMaxByIntPeak(true), 5);
 
-  // As before, smoothed intensities are never negative (here: a baseline-subtracted trace).
+  // As before, smoothed intensities are never negative (here: a baseline-subtracted trace), the first and the
+  // last point included, and also with a frame of three points ...
   std::vector<double> negative = {-50.0, -40.0, -30.0, 200.0, 600.0, 200.0, -30.0, -40.0, -50.0};
-  MassTrace negative_mt(make_trace(negative, 1.0));
-  test_epd.smoothData(negative_mt, 5);
-  for (Size i = 1; i + 1 < negative.size(); ++i) { TEST_TRUE(negative_mt.getSmoothedIntensities()[i] >= 0.0); }
+  for (int win_size : {3, 5, 9})
+  {
+    MassTrace negative_mt(make_trace(negative, 1.0));
+    test_epd.smoothData(negative_mt, win_size);
+    for (Size i = 0; i < negative.size(); ++i) { TEST_TRUE(negative_mt.getSmoothedIntensities()[i] >= 0.0); }
+    TEST_REAL_SIMILAR(negative_mt.getSmoothedIntensities()[0], 0.0);
+    TEST_REAL_SIMILAR(negative_mt.getSmoothedIntensities()[8], 0.0);
+  }
+  // ... but a trace that is shorter than the frame is left as it is (as with SavitzkyGolayFilter).
+  MassTrace short_negative_mt(make_trace(negative, 1.0));
+  test_epd.smoothData(short_negative_mt, 11);
+  for (Size i = 0; i < negative.size(); ++i) { TEST_REAL_SIMILAR(short_negative_mt.getSmoothedIntensities()[i], negative[i]); }
 
   // The smoothed intensity stays within the raw intensities of its frame. At the foot of a steep flank the
   // fit is negative (here (-3 * 100 + 12 * 100 + 17 * 100 + 12 * 110 - 3 * 100000) / 35 < 0) and used to be

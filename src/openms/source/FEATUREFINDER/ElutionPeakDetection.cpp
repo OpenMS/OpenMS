@@ -620,7 +620,17 @@ namespace OpenMS
           frame_max = std::max(frame_max, intensity);
         }
 
-        smoothed[i] = std::max(0.0, std::clamp(value, frame_min, frame_max));
+        smoothed[i] = std::clamp(value, frame_min, frame_max);
+      }
+    }
+
+    // As with SavitzkyGolayFilter, every point of a trace that the frame fits into is >= 0 -- also the first and
+    // the last point, and also with a frame of three points.
+    if (frame_length <= size)
+    {
+      for (double& intensity : smoothed)
+      {
+        intensity = std::max(0.0, intensity);
       }
     }
 

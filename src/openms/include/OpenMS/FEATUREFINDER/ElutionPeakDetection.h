@@ -131,8 +131,10 @@ public:
      * mean of three points (a three point frame is fitted exactly by a
      * second order polynomial), the first and the last point keep their
      * intensity. Each smoothed intensity is limited to the range of the raw
-     * intensities within its frame and to >= 0, so that the fit cannot ring
-     * below the lowest (in particular: to zero) or above the highest of them.
+     * intensities within its frame, so that the fit cannot ring below the
+     * lowest (in particular: to zero) or above the highest of them. As with
+     * SavitzkyGolayFilter, all smoothed intensities of a trace that the frame
+     * fits into are >= 0, the first and the last point included.
      *
      * @param[in,out] mt Mass trace to smooth
      * @param[in] win_size Frame length in data points, the number of points
