@@ -437,14 +437,16 @@ namespace OpenMS
   {
     StringList ms_path;
     e.getPrimaryMSRunPath(ms_path);
-    if (ms_path.size() == 1 && StringUtils::hasSuffix(ms_path[0], "mzML") && File::exists(ms_path[0]))
+    if (ms_path.size() == 1 && StringUtils::hasSuffix(ms_path[0], "mzML"))
     {
-      setPrimaryMSRunPath(ms_path);
+      const std::string local_path = File::localPath(ms_path[0]);
+      if (File::exists(local_path))
+      {
+        setPrimaryMSRunPath(StringList{local_path});
+        return;
+      }
     }
-    else
-    {
-      setPrimaryMSRunPath(s);
-    }
+    setPrimaryMSRunPath(s);
   }
 
 
