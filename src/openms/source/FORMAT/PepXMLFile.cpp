@@ -989,8 +989,9 @@ namespace OpenMS
     // assume only one scan, i.e. ignore "end_scan":
     // "start and end_scan" are 1-based. "index" is 0-based
     scannr_ = attributeAsInt_(attributes, "start_scan");
-    Size endscan = attributeAsInt_(attributes, "end_scan");
-    if (scannr_ != endscan)
+    Int endscan = Int(scannr_); // "end_scan" is required by the schema, but only needed for this check
+    optionalAttributeAsInt_(endscan, attributes, "end_scan");
+    if (scannr_ != Size(endscan))
     {
       error(LOAD, "endscan not equal to startscan. Merged spectrum queries not supported. Parsing start scan nr. only.");
     }
