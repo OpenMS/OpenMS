@@ -18,6 +18,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -732,6 +733,39 @@ START_SECTION([EXTRA] void load(const std::string& filename, std::vector<Protein
   TEST_EQUAL(peptides.size(), 1)
   ABORT_IF(proteins.size() != 1)
   TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "glutamyl endopeptidase")
+}
+END_SECTION
+
+START_SECTION([EXTRA] void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const std::string& experiment_name = "") - merged spectrum queries (end_scan != start_scan))
+{
+  // the second spectrum_query merges scans 5 to 7: it is read with its start scan and reported as unsupported
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  std::ostringstream errors;
+  getGlobalLogError().insert(errors);
+  PepXMLFile().load(OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_merged_scans.pepxml"), proteins, peptides);
+  getGlobalLogError().remove(errors);
+  TEST_EQUAL(peptides.size(), 2)
+  ABORT_IF(peptides.size() != 2)
+  TEST_EQUAL(peptides[0].getSpectrumReference(), "scan=1")
+  TEST_EQUAL(peptides[1].getSpectrumReference(), "scan=5")
+  const std::string msg = "Merged spectrum queries not supported";
+  const Size first = errors.str().find(msg);
+  TEST_EQUAL(first != std::string::npos, true)
+  TEST_EQUAL(first != std::string::npos && errors.str().find(msg, first + 1) == std::string::npos, true) // not for the single-scan query
+}
+END_SECTION
+
+START_SECTION([EXTRA] void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const std::string& experiment_name = "") - spectrum queries without end_scan)
+{
+  // end_scan is only needed for the merged-query warning, so a file without it still loads
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  PepXMLFile().load(OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_no_end_scan.pepxml"), proteins, peptides);
+  TEST_EQUAL(peptides.size(), 2)
+  ABORT_IF(peptides.size() != 2)
+  TEST_EQUAL(peptides[0].getSpectrumReference(), "scan=1")
+  TEST_EQUAL(peptides[1].getSpectrumReference(), "scan=5")
 }
 END_SECTION
 
