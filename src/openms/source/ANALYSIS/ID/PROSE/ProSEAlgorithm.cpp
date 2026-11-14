@@ -799,6 +799,17 @@ namespace OpenMS
       "MS2 spectra in memory for the whole search, so budget for their sum as well, or split "
       "very large cohorts across separate ProSE invocations.");
     defaults_.setMinInt("database:chunk_size", 0);
+    defaults_.setValue("database:peff_variants", "none",
+      "Sequence variants of a PEFF database (PEFF 1.0, e.g. from UniPEFF), read from the \\VariantSimple annotations "
+      "of its entries. 'none': the database is searched as it is (as FASTA; the annotations are not used). 'simple': "
+      "every single-residue substitution is searched as well. For each variant, a stretch of its protein around it with "
+      "the variant residue is added to the database: its peptides that the variant changes are digested and searched "
+      "like those of the proteins, with decoys generated alike (needs decoys 'generate' or 'auto' with a database "
+      "without decoys, or 'ignore'). Their hits are reported on their protein, at its positions; a hit whose sequence "
+      "the database holds only with a variant gets the meta value 'PEFF_variants' with them (e.g. 'sp:P04637:R175H'). "
+      "One variant per peptide; insertions, deletions (\\VariantComplex) and the annotated modifications are not "
+      "searched. The variant peptides compete with the others in the target-decoy FDR (no separate FDR).");
+    defaults_.setValidStrings("database:peff_variants", {"none", "simple"});
 
     defaults_.setValue("chimeric:enabled", "false",
       "Also identify precursors co-isolated with the selected one (after the andes chimeric cascade). The survey scan of "
@@ -1097,6 +1108,7 @@ namespace OpenMS
     protein_mapping_from_index_ = param_.getValue("peptide:protein_mapping").toString() == "index";
 
     database_chunk_size_ = param_.getValue("database:chunk_size");
+    peff_variants_ = param_.getValue("database:peff_variants").toString() == "simple";
     chimeric_enabled_ = param_.getValue("chimeric:enabled").toBool();
 
     calibration_enabled_ = param_.getValue("calibration:enabled") == "true";
@@ -1165,9 +1177,11 @@ namespace OpenMS
       ctx.decoy_string = strategy.decoy_string;
       ctx.decoy_is_prefix = strategy.is_prefix;
       ctx.have_decoys = strategy.have_decoys;
+      ctx.peff = peff_;
       ctx.release_fragment_index_after_scoring = true; // single-use ctx (M1)
       startProgress(0, 1, "Building fragment index...");
       ctx.fragment_index.setParameters(fragmentIndexParameters_(electron_ions));
+      setPeptideRegions_(ctx.fragment_index, ctx.peff);
       ctx.fragment_index.build(ctx.db);
       ctx.electron_ions = electron_ions;
       endProgress();
@@ -1258,6 +1272,7 @@ namespace OpenMS
                         << " search. prepareContext(fasta_db, true) prepares a context that has them." << std::endl;
         startProgress(0, 1, "Building fragment index with c and z+1 ions...");
         electron_index.setParameters(fragmentIndexParameters_(true));
+        setPeptideRegions_(electron_index, ctx.peff);
         electron_index.build(ctx.db);
         endProgress();
         index = &electron_index;
@@ -1557,6 +1572,8 @@ namespace OpenMS
       indexer_exit = indexer.run(db, protein_ids, peptide_ids);
     }
     protein_mapping = ProteinMapping_(); // released before the FDR
+    // the hits of PEFF variant windows to their proteins (database:peff_variants)
+    if (ctx.peff && indexer_exit == PeptideIndexing::ExitCodes::EXECUTION_OK) { ctx.peff->mapToParents(protein_ids, peptide_ids); }
 
     if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
         (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
@@ -2151,6 +2168,7 @@ namespace OpenMS
         std::vector<FASTAFile::FASTAEntry> cal_db = buildCalibrationSample_(full_db);
         FragmentIndex cal_fi;
         cal_fi.setParameters(fragmentIndexParameters_(electron_ions));
+        setPeptideRegions_(cal_fi, peff_);
         StopWatch sw_cal_idx; sw_cal_idx.start();
         cal_fi.build(cal_db);
         sw_cal_idx.stop();
@@ -2239,6 +2257,7 @@ namespace OpenMS
         std::vector<FASTAFile::FASTAEntry> chunk_db(full_db.begin() + start, full_db.begin() + end);
         FragmentIndex chunk_fi;
         chunk_fi.setParameters(fragmentIndexParameters_(electron_ions));
+        setPeptideRegions_(chunk_fi, peff_);
         StopWatch sw_chunk; sw_chunk.start();
         chunk_fi.build(chunk_db);
         sw_chunk.stop();
@@ -2346,6 +2365,7 @@ namespace OpenMS
         indexer.setParameters(param_pi);
         PeptideIndexing::ExitCodes indexer_exit =
             indexer.run(full_db, result.protein_ids, result.peptide_ids);
+        if (peff_ && indexer_exit == PeptideIndexing::ExitCodes::EXECUTION_OK) { peff_->mapToParents(result.protein_ids, result.peptide_ids); }
         if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
             (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
         {
@@ -2450,6 +2470,7 @@ namespace OpenMS
           ctx.decoy_string = strategy.decoy_string;
           ctx.decoy_is_prefix = strategy.is_prefix;
           ctx.have_decoys = strategy.have_decoys;
+          ctx.peff = peff_;
           startProgress(0, 1, "Building fragment index...");
           buildFragmentIndex_(ctx, fragmentIndexParameters_(electron_ions), searched_spectra);
           ctx.electron_ions = electron_ions;

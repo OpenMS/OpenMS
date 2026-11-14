@@ -586,6 +586,20 @@ namespace OpenMS
     */
     static std::string toProForma(const PEFFEntry& entry);
 
+    /**
+      @brief Parses the PEFF annotations of an entry read as FASTA (e.g. a PEFF file read with FASTAFile).
+
+      The identifier, prefix and sequence are taken from @p fasta, the annotations (\\VariantSimple, \\ModResPsi, ...)
+      from its description, as readNext() parses an entry of a PEFF file. Without the file's header: custom keys are not
+      validated against a CustomKeyDef, and the sequence type is not known (a nucleotide database is not recognized).
+
+      @param fasta The entry; its description holds the annotations (as FASTAFile reads a PEFF description line)
+      @return The entry with its annotations parsed
+
+      Annotations that cannot be parsed are reported and handled as by readNext().
+    */
+    static PEFFEntry parseFASTAEntry(const FASTAFile::FASTAEntry& fasta);
+
   protected:
     /// Parse a header line (# Key=Value or # //)
     void parseHeaderLine_(const std::string& line, PEFFDatabaseMetadata& header, bool& new_db);

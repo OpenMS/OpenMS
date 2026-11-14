@@ -480,6 +480,85 @@ START_SECTION([EXTRA] build() skips peptides containing stop codons or other sym
 }
 END_SECTION
 
+START_SECTION(void setPeptideRegions(std::shared_ptr<const PeptideRegions> regions))
+{
+  // Tryptic segments of "w": ACDEFGR | HILMNPQK | STVWYGHIK | LMNPQR (0-6, 7-14, 15-23, 24-29)
+  const std::vector<FASTAFile::FASTAEntry> entries{
+    {"p", "", "ACDEFGRHILMNPQKSTVWYGHIKLMNPQR"},
+    {"w", "", "ACDEFGRHILMNPQKSTVWYGHIKLMNPQR"}};
+  const auto indexed = [&entries](FragmentIndex& fi, const std::string& identifier)
+  {
+    std::set<std::string> peptides;
+    for (const auto& peptide : fi.getPeptides())
+    {
+      const FASTAFile::FASTAEntry& entry = entries[peptide.protein_idx];
+      if (entry.identifier == identifier) { peptides.insert(entry.sequence.substr(peptide.sequence_.first, peptide.sequence_.second)); }
+    }
+    return ListUtils::concatenate(std::vector<std::string>(peptides.begin(), peptides.end()), ",");
+  };
+  const auto configure = [](FragmentIndex& fi, const std::string& specificity, bool low_memory)
+  {
+    auto p = fi.getParameters();
+    p.setValue("enzyme", "Trypsin");
+    p.setValue("peptide:enzyme_specificity", specificity);
+    p.setValue("peptide:missed_cleavages", 1);
+    p.setValue("peptide:min_size", 6);
+    p.setValue("peptide:max_size", 17);
+    p.setValue("peptide:min_mass", 0);
+    p.setValue("peptide:max_mass", 50000);
+    p.setValue("peptide:deduplicate", "false"); // the entries of both proteins
+    p.setValue("low_memory", low_memory ? "true" : "false");
+    p.setValue("modifications:variable", std::vector<std::string>{});
+    p.setValue("modifications:fixed", std::vector<std::string>{});
+    fi.setParameters(p);
+  };
+
+  FragmentIndex fi;
+  TEST_EQUAL(fi.getPeptideRegions() == nullptr, true)
+  configure(fi, "full", false);
+  auto regions = std::make_shared<FragmentIndex::PeptideRegions>();
+  (*regions)["w"] = {16, 17}; // the T of STVWYGHIK
+  fi.setPeptideRegions(regions);
+  TEST_EQUAL(fi.getPeptideRegions() == regions, true)
+  fi.build(entries);
+  // "p" unrestricted; "w": only the peptides that contain position 16
+  TEST_STRING_EQUAL(indexed(fi, "p"), "ACDEFGR,ACDEFGRHILMNPQK,HILMNPQK,HILMNPQKSTVWYGHIK,LMNPQR,STVWYGHIK,STVWYGHIKLMNPQR")
+  TEST_STRING_EQUAL(indexed(fi, "w"), "HILMNPQKSTVWYGHIK,STVWYGHIK,STVWYGHIKLMNPQR")
+
+  // the region is [first, second): ending at 15 keeps the peptides that contain position 14 (the K of HILMNPQK)
+  (*regions)["w"] = {14, 15};
+  fi.clear(); // keeps the regions
+  fi.build(entries);
+  TEST_STRING_EQUAL(indexed(fi, "w"), "ACDEFGRHILMNPQK,HILMNPQK,HILMNPQKSTVWYGHIK")
+
+  // a region past the end of the entry: no peptide
+  (*regions)["w"] = {40, 50};
+  fi.build(entries);
+  TEST_STRING_EQUAL(indexed(fi, "w"), "")
+
+  // no regions: as before
+  fi.setPeptideRegions(nullptr);
+  fi.build(entries);
+  TEST_EQUAL(indexed(fi, "w"), indexed(fi, "p"))
+
+  // non-specific digestion in peptide-mass mode: the mother peptides that overlap the region
+  FragmentIndex fi_mothers;
+  configure(fi_mothers, "none", true);
+  (*regions)["w"] = {16, 17};
+  fi_mothers.setPeptideRegions(regions);
+  fi_mothers.build(entries);
+  Size mothers_p = 0, mothers_w = 0;
+  for (const auto& peptide : fi_mothers.getPeptides())
+  {
+    if (entries[peptide.protein_idx].identifier == "p") { ++mothers_p; continue; }
+    ++mothers_w;
+    TEST_TRUE(peptide.sequence_.first <= 16 && peptide.sequence_.first + peptide.sequence_.second > 16)
+  }
+  TEST_TRUE(mothers_w > 0)
+  TEST_TRUE(mothers_w < mothers_p)
+}
+END_SECTION
+
 // A FASTA entry longer than 65535 residues would overflow the 16-bit peptide start offset in
 // Peptide::sequence_ and silently index fragments from the wrong subsequence. build() must reject it.
 START_SECTION([EXTRA] build() rejects FASTA entries longer than 65535 residues)

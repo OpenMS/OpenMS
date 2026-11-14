@@ -37,6 +37,7 @@ namespace OpenMS
 {
 
 class Percolator;
+class ProSEPEFF;
 class TheoreticalSpectrumGenerator;
 
 /**
@@ -375,7 +376,17 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       /// prepareContext(). search() does not add them to a context: for such spectra and
       /// a context without these ions, it builds a temporary index for the call.
       bool electron_ions = false;
+      /// The windows of the sequence variants that `db` holds (database:peff_variants), nullptr if none: the regions of
+      /// the fragment indices built from `db`, and the mapping of the hits to the proteins
+      std::shared_ptr<const ProSEPEFF> peff;
     };
+
+    /**
+     * @brief The PEFF sequence variants of the database of the last search (database:peff_variants 'simple'): their
+     * windows and the status of every annotated variant (ProSEPEFF::getVariantStatus()). nullptr if the database had no
+     * variant annotations, or with database:peff_variants 'none'.
+     */
+    std::shared_ptr<const ProSEPEFF> getVariantWindows() const { return peff_; }
 
     /**
      * @brief Search spectra in a spectrum file (mzML or Bruker .d) against a protein database using an FI-backed workflow.
@@ -1725,6 +1736,11 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     bool protein_mapping_from_index_{true}; ///< peptide:protein_mapping = index
 
     Size database_chunk_size_{0};  ///< 0 = disabled; >0 = chunk DB into groups of this many proteins
+    bool peff_variants_{false};    ///< database:peff_variants 'simple'
+    /// The variant windows of the database that buildDecoyAugmentedDB_() built last (nullptr if none)
+    mutable std::shared_ptr<const ProSEPEFF> peff_;
+    /// Restricts the peptides of the variant windows of @p peff (nullptr: none) in @p index (ProSEPEFF)
+    static void setPeptideRegions_(FragmentIndex& index, const std::shared_ptr<const ProSEPEFF>& peff);
 
     bool calibration_enabled_{false};
     double calibration_subset_ratio_{0.1};

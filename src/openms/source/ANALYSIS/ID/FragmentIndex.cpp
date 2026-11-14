@@ -940,6 +940,18 @@ namespace OpenMS
     mod_tables_initialized_ = false;
   }
 
+  void FragmentIndex::setPeptideRegions(std::shared_ptr<const PeptideRegions> regions)
+  {
+    peptide_regions_ = std::move(regions);
+  }
+
+  const std::pair<Size, Size>* FragmentIndex::peptideRegion_(const FASTAFile::FASTAEntry& entry) const
+  {
+    if (peptide_regions_ == nullptr || peptide_regions_->empty()) { return nullptr; }
+    const auto it = peptide_regions_->find(entry.identifier);
+    return it == peptide_regions_->end() ? nullptr : &it->second;
+  }
+
   bool FragmentIndex::isProteinNTerminal_(const std::string& protein, Size start) const
   {
     return start == 0 || (clip_nterm_methionine_ && start == 1 && ! protein.empty() && protein[0] == 'M');
@@ -1533,6 +1545,7 @@ namespace OpenMS
         const std::string& seq = protein.sequence;
         const size_t L = seq.size();
         if (L < peptide_min_length_) continue;
+        const std::pair<Size, Size>* const region = peptideRegion_(protein); // setPeptideRegions()
 
         // Position of the first residue at or after `from` that cannot be indexed
         // (X/B/Z, a stop codon or any other symbol), or npos.
@@ -1557,6 +1570,7 @@ namespace OpenMS
         auto emitMother = [&](size_t start, size_t length)
         {
           if (length == 0 || length < peptide_min_length_) return;
+          if (region != nullptr && (start >= region->second || start + length <= region->first)) { return; } // outside the region
           const char* seq_ptr = seq.c_str() + start;
 
           double mass = base_sum_constants;
@@ -1815,9 +1829,16 @@ namespace OpenMS
 
         // getProteinOccurrences() relies on this loop treating spans with equal residues alike: whether a span is
         // skipped and which entries it gets depend on its residues only (and, for protein-terminal modifications,
-        // which hasProteinOccurrences() excludes, on its position in the protein).
+        // which hasProteinOccurrences() excludes, on its position in the protein). A span outside the region of its entry
+        // (setPeptideRegions()) is no occurrence at all: the entry holds the residues of a protein, but not as a protein.
+        const std::pair<Size, Size>* const region = peptideRegion_(protein);
         for (const pair<size_t, size_t>& digested_peptide : digested_peptides)
         {
+          if (region != nullptr
+              && (digested_peptide.first >= region->second || digested_peptide.first + digested_peptide.second <= region->first))
+          {
+            continue;
+          }
           // skip peptides containing unknown or ambiguous AA codes (X, B, Z), stop codons ('*')
           // or other symbols
           {

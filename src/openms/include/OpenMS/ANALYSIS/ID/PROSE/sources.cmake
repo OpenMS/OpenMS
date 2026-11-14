@@ -4,6 +4,7 @@ set(directory include/OpenMS/ANALYSIS/ID/PROSE)
 ### list all header files of the directory here
 set(sources_list_h
 ProSEAlgorithm.h
+ProSEPEFF.h
 )
 
 ### add path to the filenames

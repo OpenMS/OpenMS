@@ -2540,6 +2540,36 @@ START_SECTION([EXTRA] proteoform enumeration -- per-proteoform PTM cap (generate
 }
 END_SECTION
 
+START_SECTION((static PEFFEntry parseFASTAEntry(const FASTAFile::FASTAEntry& fasta)))
+{
+  // a PEFF entry as FASTAFile reads it: identifier up to the first space, the rest is the description
+  const FASTAFile::FASTAEntry fasta("sp:P04637",
+    "\\DbUniqueId=P04637 \\PName=Cellular tumor antigen p53 \\GName=TP53 \\VariantSimple=(5|H|rs28934578)(20|W)",
+    "MEEPQSDPSVEPPLSQETFSDLWKLLPENNVLSPLPSQAMDDLMLSPDDIEQWFTEDPGP");
+  const PEFFEntry entry = PEFFFile::parseFASTAEntry(fasta);
+  TEST_STRING_EQUAL(entry.identifier, "sp:P04637")
+  TEST_STRING_EQUAL(entry.prefix, "sp")
+  TEST_STRING_EQUAL(entry.sequence, fasta.sequence)
+  TEST_EQUAL(entry.sequence_length, fasta.sequence.size())
+  TEST_STRING_EQUAL(entry.db_unique_id, "P04637")
+  TEST_STRING_EQUAL(entry.gene_name, "TP53")
+  TEST_EQUAL(entry.simple_variants.size(), 2)
+  ABORT_IF(entry.simple_variants.size() != 2)
+  TEST_EQUAL(entry.simple_variants[0].position, 5)
+  TEST_EQUAL(entry.simple_variants[0].variant_aa, 'H')
+  TEST_STRING_EQUAL(entry.simple_variants[0].optional_tag, "rs28934578")
+  TEST_EQUAL(entry.simple_variants[1].position, 20)
+  TEST_EQUAL(entry.simple_variants[1].variant_aa, 'W')
+
+  // a plain FASTA entry: no annotations
+  const PEFFEntry plain = PEFFFile::parseFASTAEntry(FASTAFile::FASTAEntry("P1", "some protein", "PEPTIDEK"));
+  TEST_STRING_EQUAL(plain.identifier, "P1")
+  TEST_STRING_EQUAL(plain.prefix, "")
+  TEST_EQUAL(plain.simple_variants.empty(), true)
+  TEST_EQUAL(plain.modifications.empty(), true)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

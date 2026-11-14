@@ -6186,6 +6186,15 @@ ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_1_
 add_test("TOPP_ProSE_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
 set_tests_properties("TOPP_ProSE_1_out" PROPERTIES DEPENDS
 "TOPP_ProSE_1")
+# PEFF sequence variants (database:peff_variants): the status of every annotated variant (-out_variant_status), with a
+# substitution in an identified peptide (its reference observed), a stop codon, and variants that are not searched
+add_test("TOPP_ProSE_peff_variants" ${TOPP_BIN_PATH}/ProSE -test ${_prose_library_defaults} -Search:rescore false
+  -ini ${DATA_DIR_TOPP}/ProSE_1.ini -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+  -database ${DATA_DIR_TOPP}/ProSE_peff_variants.peff -Search:database:peff_variants simple
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_peff_variants.tmp.idXML -out_variant_status ${TESTS_TEMP_DIR}/ProSE_peff_variants_status.tmp.tsv)
+add_test("TOPP_ProSE_peff_variants_status" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_peff_variants_status.tmp.tsv
+  -in2 ${DATA_DIR_TOPP}/ProSE_peff_variants_status.tsv)
+set_tests_properties("TOPP_ProSE_peff_variants_status" PROPERTIES DEPENDS "TOPP_ProSE_peff_variants")
 # Unspecific cleavage with generated decoys: each decoy is its reversed target (it used to be the concatenated
 # reversal of every subsequence of the target, far over the 65535 residues the fragment index takes)
 add_test("TOPP_ProSE_unspecific_decoys" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false

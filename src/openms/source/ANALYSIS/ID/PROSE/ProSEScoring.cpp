@@ -78,6 +78,7 @@ namespace OpenMS
     p.remove("annotate:self_trained_ion_priors");
     p.removeAll("annotate:ion_prior_");
     p.remove("peptide:protein_mapping"); // ProSE's own (FragmentIndex::getProteinOccurrences() serves it)
+    p.remove("database:peff_variants"); // ProSE's own (FragmentIndex::setPeptideRegions() serves it)
     return p;
   }
 
@@ -563,6 +564,68 @@ namespace OpenMS
       nterm_options_disabled_ = true;
     }
 
+    // 1b. The windows of the PEFF sequence variants (database:peff_variants), as further targets: the decoys below are
+    //     generated for them as for the proteins
+    std::shared_ptr<ProSEPEFF> peff;
+    if (peff_variants_)
+    {
+      ProSEPEFF::Settings peff_settings;
+      peff_settings.enzyme = enzyme_;
+      peff_settings.peptide_max_length = peptide_max_size_;
+      // per cleavage segment (keep_termini, or reversePeptides() with a specific digestion) or the whole entry reversed
+      peff_settings.segment_decoys = peptide_enzyme_specificity_ != EnzymaticDigestion::SPEC_NONE;
+      peff_settings.clip_nterm_methionine = param_.getValue("peptide:clip_nterm_methionine").toBool();
+      peff = std::make_shared<ProSEPEFF>();
+      const Size n_windows = peff->addVariantWindows(db, peff_settings);
+      if (n_windows > 0 && reuses_decoys)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          paramName_("database:peff_variants") + " needs generated decoys: the decoys of the database have none for the "
+          "sequence variants. Use '" + paramName_("decoys") + " generate'.");
+      }
+      OPENMS_LOG_INFO << "[ProSE] database:peff_variants: " << n_windows << " sequence variants (\\VariantSimple) added "
+                      << "to the database." << std::endl;
+      // Variants that a searched modification of the variant residue turns into the reference (e.g. E->Q with
+      // Deamidated (Q)): modified there, the variant peptide is the reference peptide, matches its spectra as well and
+      // can be reported as a variant in its place (see OpenMS issue #10888, item 4)
+      StringList searched_modifications = modifications_fixed_;
+      searched_modifications.insert(searched_modifications.end(), modifications_variable_.begin(), modifications_variable_.end());
+      const std::vector<ProSEPEFF::EquivalentSubstitution> equivalent = ProSEPEFF::referenceEquivalentSubstitutions(searched_modifications);
+      if (!equivalent.empty())
+      {
+        Size affected = 0;
+        std::string example;
+        for (const ProSEPEFF::VariantStatus& status : peff->getVariantStatus())
+        {
+          if (!status.searched || status.kind != ProSEPEFF::VariantKind::SIMPLE || status.variant.empty()) { continue; }
+          const char alt = status.variant.back();
+          for (const ProSEPEFF::EquivalentSubstitution& e : equivalent)
+          {
+            if (e.variant == alt && e.reference == status.reference)
+            {
+              if (affected++ == 0) { example = status.protein + ":" + status.variant + " with " + e.modification; }
+              break;
+            }
+          }
+        }
+        if (affected > 0)
+        {
+          std::string pairs;
+          for (const ProSEPEFF::EquivalentSubstitution& e : equivalent)
+          {
+            pairs += (pairs.empty() ? "" : ", ") + std::string(1, e.reference) + "->" + std::string(1, e.variant) + " with " + e.modification;
+          }
+          OPENMS_LOG_WARN << "[ProSE] database:peff_variants: " << affected << " searched variants (e.g. " << example << ") "
+                          << "equal the reference residue when the variant residue carries a searched modification (" << pairs
+                          << "): modified there, the variant peptide is the reference peptide and can be reported as a "
+                          << "variant for spectra of the reference. Consider searching without that modification, or "
+                          << "check such variant PSMs." << std::endl;
+        }
+      }
+      // (kept without windows if it has annotated variants: their status, getVariantWindows())
+      if (n_windows == 0 && peff->getVariantStatus().empty()) { peff.reset(); }
+    }
+
     // 2. Generate decoys by reversing the (remaining) target proteins.
     if (strategy.generate)
     {
@@ -703,8 +766,15 @@ namespace OpenMS
                         << "none) for downstream target-decoy FDR. Use '-Search:decoys ignore' for a "
                         << "target-only search if you do not need FDR." << std::endl;
       }
+      if (peff) { peff->addDecoys(db, strategy.decoy_string); }
     }
+    peff_ = std::move(peff);
     return db;
+  }
+
+  void ProSEAlgorithm::setPeptideRegions_(FragmentIndex& index, const std::shared_ptr<const ProSEPEFF>& peff)
+  {
+    index.setPeptideRegions(peff ? peff->peptideRegions() : nullptr);
   }
 
   // =====================================================================
@@ -786,6 +856,7 @@ namespace OpenMS
     ctx.decoy_string = strategy.decoy_string;
     ctx.decoy_is_prefix = strategy.is_prefix;
     ctx.have_decoys = strategy.have_decoys;
+    ctx.peff = peff_;
     endProgress();
 
     // build fragment index
@@ -815,6 +886,7 @@ namespace OpenMS
   void ProSEAlgorithm::buildFragmentIndex_(SearchContext& ctx, const Param& params,
                                            const std::function<const PeakMap*(Size)>& searched_spectra) const
   {
+    setPeptideRegions_(ctx.fragment_index, ctx.peff);
     if (!searched_spectra || !calibration_enabled_)
     {
       ctx.fragment_index.setParameters(params);
@@ -1471,6 +1543,7 @@ namespace OpenMS
       std::vector<FASTAFile::FASTAEntry> cal_db = buildCalibrationSample_(full_db);
       FragmentIndex cal_fi;
       cal_fi.setParameters(fragmentIndexParameters_(electron_ions));
+      setPeptideRegions_(cal_fi, peff_);
       cal_fi.build(cal_db);
 
       cal = runCalibrationPass_(spectra, cal_fi, cal_db, query_ptr, strategy.have_decoys ? strategy.decoy_string : std::string(),
@@ -1533,6 +1606,7 @@ namespace OpenMS
         fi_params.setValue("precursor:mass_tolerance_upper", effective_precursor_tol_upper);
         chunk_fi.setParameters(fi_params);
       }
+      setPeptideRegions_(chunk_fi, peff_);
       chunk_fi.build(chunk_db);
 
       // Score all spectra against this chunk's index.
@@ -1619,6 +1693,7 @@ namespace OpenMS
     indexer.setParameters(param_pi);
 
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(full_db, protein_ids, peptide_ids);
+    if (peff_ && indexer_exit == PeptideIndexing::ExitCodes::EXECUTION_OK) { peff_->mapToParents(protein_ids, peptide_ids); }
 
     if ((indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK) &&
         (indexer_exit != PeptideIndexing::ExitCodes::PEPTIDE_IDS_EMPTY))
