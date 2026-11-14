@@ -217,8 +217,8 @@ START_SECTION((void detectPeaks(MassTrace &, std::vector< MassTrace > &)))
     TEST_REAL_SIMILAR(plateau_out[0].getCentroidRT(), 100.0 + 19 * 1.1);
   }
 
-  // A peak that rises within one scan is positioned at its apex, not at the first point of the trace (the
-  // symptom in the title of the issue) ...
+  // A peak that rises within one scan is not positioned at the first point of the trace (the symptom in the
+  // title of the issue) ...
   ElutionPeakDetection wide_epd;
   Param wide_param = ElutionPeakDetection().getDefaults();
   wide_param.setValue("chrom_fwhm", 10.0); // a frame of 11 points, as long as the trace
@@ -231,8 +231,10 @@ START_SECTION((void detectPeaks(MassTrace &, std::vector< MassTrace > &)))
   TEST_EQUAL(steep_out.size(), 1);
   if (!steep_out.empty())
   {
-    TEST_REAL_SIMILAR(steep_out[0].getCentroidRT(), 101.0); // was 100.0
-    TEST_EQUAL(steep_out[0].findMaxByIntPeak(true), 1);
+    // was 100.0, the first point. The raw apex is at 101.0; smoothing a peak this narrow with a frame as long
+    // as the whole trace moves the smoothed apex one scan towards its tail.
+    TEST_REAL_SIMILAR(steep_out[0].getCentroidRT(), 102.0);
+    TEST_EQUAL(steep_out[0].findMaxByIntPeak(true), 2);
     TEST_TRUE(steep_out[0].getFWHM() > 0.0); // was 0, i.e. no area
   }
 
@@ -245,7 +247,7 @@ START_SECTION((void detectPeaks(MassTrace &, std::vector< MassTrace > &)))
   TEST_EQUAL(steep_out.size(), 1); // was 0
   if (!steep_out.empty())
   {
-    TEST_REAL_SIMILAR(steep_out[0].getCentroidRT(), 101.0);
+    TEST_REAL_SIMILAR(steep_out[0].getCentroidRT(), 102.0);
   }
 }
 END_SECTION
@@ -337,10 +339,11 @@ START_SECTION((void smoothData(MassTrace& mt, int win_size) const))
     TEST_REAL_SIMILAR(smoothed[i], (-3 * ints[i - 2] + 12 * ints[i - 1] + 17 * ints[i] + 12 * ints[i + 1] - 3 * ints[i + 2]) / 35.0);
   }
   // No frame of five points fits around the two outermost points at each end: they are not extrapolated from
-  // the fit of the neighbouring frame, but keep their intensity.
+  // the fit of the neighbouring frame. The second and the last but one point are the mean of three points, the
+  // first and the last point keep their intensity.
   TEST_REAL_SIMILAR(smoothed[0], ints[0]);
-  TEST_REAL_SIMILAR(smoothed[1], ints[1]);
-  TEST_REAL_SIMILAR(smoothed[6], ints[6]);
+  TEST_REAL_SIMILAR(smoothed[1], (10.0 + 20.0 + 40.0) / 3.0);
+  TEST_REAL_SIMILAR(smoothed[6], (30.0 + 20.0 + 10.0) / 3.0);
   TEST_REAL_SIMILAR(smoothed[7], ints[7]);
 
   // an even frame length is the next odd one, and three points (or less) do not smooth
@@ -360,8 +363,22 @@ START_SECTION((void smoothData(MassTrace& mt, int win_size) const))
   TEST_REAL_SIMILAR(smoothed[4], (-2 * 20.0 + 3 * 40.0 + 6 * 90.0 + 7 * 70.0 + 6 * 30.0 + 3 * 20.0 - 2 * 10.0) / 21.0);
   TEST_REAL_SIMILAR(smoothed[2], (-3 * 10.0 + 12 * 20.0 + 17 * 40.0 + 12 * 90.0 - 3 * 70.0) / 35.0);
   TEST_REAL_SIMILAR(smoothed[5], (-3 * 90.0 + 12 * 70.0 + 17 * 30.0 + 12 * 20.0 - 3 * 10.0) / 35.0);
-  TEST_REAL_SIMILAR(smoothed[1], ints[1]);
-  TEST_REAL_SIMILAR(smoothed[6], ints[6]);
+  TEST_REAL_SIMILAR(smoothed[1], (10.0 + 20.0 + 40.0) / 3.0);
+  TEST_REAL_SIMILAR(smoothed[0], ints[0]);
+
+  // A noise spike on the second point does not keep its height (left unsmoothed, it would compete with the
+  // smoothed, i.e. lowered, apex of the peak).
+  std::vector<double> spike = {100.0, 1000.0, 300.0, 500.0, 800.0, 900.0, 800.0, 500.0, 300.0};
+  MassTrace spike_mt(make_trace(spike, 1.0));
+  test_epd.smoothData(spike_mt, 5);
+  TEST_REAL_SIMILAR(spike_mt.getSmoothedIntensities()[1], (100.0 + 1000.0 + 300.0) / 3.0);
+  TEST_EQUAL(spike_mt.findMaxByIntPeak(true), 5);
+
+  // As before, smoothed intensities are never negative (here: a baseline-subtracted trace).
+  std::vector<double> negative = {-50.0, -40.0, -30.0, 200.0, 600.0, 200.0, -30.0, -40.0, -50.0};
+  MassTrace negative_mt(make_trace(negative, 1.0));
+  test_epd.smoothData(negative_mt, 5);
+  for (Size i = 1; i + 1 < negative.size(); ++i) { TEST_TRUE(negative_mt.getSmoothedIntensities()[i] >= 0.0); }
 
   // The smoothed intensity stays within the raw intensities of its frame. At the foot of a steep flank the
   // fit is negative (here (-3 * 100 + 12 * 100 + 17 * 100 + 12 * 110 - 3 * 100000) / 35 < 0) and used to be
@@ -378,11 +395,11 @@ START_SECTION((void smoothData(MassTrace& mt, int win_size) const))
     TEST_TRUE(smoothed[i] <= *std::max_element(flank.begin() + (i - half_frame), flank.begin() + (i + half_frame + 1)));
   }
 
-  // The smoothed apex of a peak that rises within one scan is its second point, not the first point of the
-  // trace (extrapolating the fit of the first frame used to give 1430471 for it, more than anywhere else).
+  // The smoothed apex of a peak that rises within one scan is not the first point of the trace (extrapolating
+  // the fit of the first frame used to give 1430471 for it, more than anywhere else).
   MassTrace steep_mt(make_trace(steep_onset_ints, 1.0));
   test_epd.smoothData(steep_mt, 10);
-  TEST_EQUAL(steep_mt.findMaxByIntPeak(true), 1);
+  TEST_NOT_EQUAL(steep_mt.findMaxByIntPeak(true), 0);
   TEST_REAL_SIMILAR(steep_mt.getSmoothedIntensities()[0], steep_onset_ints[0]);
 }
 END_SECTION

@@ -123,22 +123,23 @@ public:
      *
      * Savitzky-Golay smoothing with a second order polynomial. The frame is
      * centred on each data point. Towards the ends of the trace, where a
-     * full frame does not fit, it narrows to the largest one that does (the
-     * two outermost points at each end keep their intensity) instead of the
-     * fit of the outermost full frame being extrapolated: a mass trace
-     * often starts or ends on a steep flank, and an extrapolated fit can put
-     * the smoothed maximum on the first or last point of the trace. Each
-     * smoothed intensity is limited to the range of the raw intensities
-     * within its frame, so that the fit cannot ring below the lowest (in
-     * particular: to zero) or above the highest of them.
+     * full frame does not fit, it narrows to the largest one that does,
+     * instead of the fit of the outermost full frame being extrapolated: a
+     * mass trace often starts or ends on a steep flank, and an extrapolated
+     * fit can put the smoothed maximum on the first or last point of the
+     * trace. The second and the last but one point are smoothed with the
+     * mean of three points (a three point frame is fitted exactly by a
+     * second order polynomial), the first and the last point keep their
+     * intensity. Each smoothed intensity is limited to the range of the raw
+     * intensities within its frame and to >= 0, so that the fit cannot ring
+     * below the lowest (in particular: to zero) or above the highest of them.
      *
      * @param[in,out] mt Mass trace to smooth
      * @param[in] win_size Frame length in data points, the number of points
      *                     one expected peak width spans. Even values are
-     *                     incremented by one, and at least three points are
-     *                     used (which a second order polynomial fits
-     *                     exactly, i.e. no smoothing). A trace that is
-     *                     shorter than the frame is not smoothed.
+     *                     incremented by one. A frame of three points (or
+     *                     less) does not smooth, and neither does a frame
+     *                     that is longer than the trace.
     */
     void smoothData(MassTrace& mt, int win_size) const;
 

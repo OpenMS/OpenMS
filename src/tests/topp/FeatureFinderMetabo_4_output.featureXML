@@ -13,7 +13,7 @@
 			<intensity>3.0041342e07</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>8.478919e-03</overallquality>
+			<overallquality>8.483528e-03</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="299.836320000000001" y="109.022347547470218" />
@@ -1031,7 +1031,7 @@
 			<UserParam type="float" name="FWHM" value="7.598650932312012"/>
 			<UserParam type="float" name="max_height" value="4.935439904761905e06"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
-			<UserParam type="floatList" name="masstrace_intensity" value="[3.00413416890016e07, 2.2401961506677703e06]"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[3.00413416890016e07, 2.25903991257902e06]"/>
 			<UserParam type="floatList" name="masstrace_centroid_rt" value="[694.54061999999999, 694.54061999999999]"/>
 			<UserParam type="floatList" name="masstrace_centroid_mz" value="[109.022453534611529, 109.523967053909331]"/>
 			<UserParam type="floatList" name="isotope_distances" value="[0.501513519297802]"/>
@@ -1044,7 +1044,7 @@
 			<intensity>1.702827e08</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.048265</overallquality>
+			<overallquality>0.048272</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="701.353020000000015" y="109.022450209360045" />
@@ -1320,7 +1320,7 @@
 			<UserParam type="float" name="FWHM" value="11.301145553588867"/>
 			<UserParam type="float" name="max_height" value="1.8354160714285716e07"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
-			<UserParam type="floatList" name="masstrace_intensity" value="[1.7028270908444858e08, 1.2846199696990108e07]"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.7028270908444858e08, 1.2871511786778232e07]"/>
 			<UserParam type="floatList" name="masstrace_centroid_rt" value="[708.238619999999969, 708.238619999999969]"/>
 			<UserParam type="floatList" name="masstrace_centroid_mz" value="[109.022523946300112, 109.524160222000162]"/>
 			<UserParam type="floatList" name="isotope_distances" value="[0.501636275700051]"/>
@@ -1332,7 +1332,7 @@
 			<intensity>4.702617e08</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.133805</overallquality>
+			<overallquality>0.133804</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="245.72290799999999" y="110.020094358104942" />
@@ -3510,7 +3510,7 @@
 			<intensity>2.7681492e09</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.785953</overallquality>
+			<overallquality>0.785947</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="701.353020000000015" y="110.020098109003271" />

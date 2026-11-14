@@ -568,14 +568,16 @@ namespace OpenMS
     //    can exceed the apex: the smoothed maximum then sits on the first or last point of the trace although the
     //    elution apex is a few points further in. Such a trace gets the RT of its first/last point and a FWHM of
     //    zero, so that it is reported at the edge of its own RT range or discarded by the width filter.
-    //    Here the frame stays centred on the point and narrows towards the ends of the trace to what fits. This
-    //    assumes nothing about the signal beyond the trace; the price is that the two outermost points at each
-    //    end keep their intensity (a frame of three points is fitted exactly, i.e. it does not smooth).
+    //    Here the frame stays centred on the point and narrows towards the ends of the trace to what fits, which
+    //    assumes nothing about the signal beyond the trace. A centred frame of three points is fitted exactly by a
+    //    second order polynomial, so the second and the last but one point are smoothed with a first order fit
+    //    (the mean of the three) instead; left unsmoothed, a noise spike there would compete with the smoothed
+    //    (lowered) apex. The first and the last point keep their intensity.
     //
     // 2. Ringing. Next to a flank that spans orders of magnitude the polynomial under- and overshoots.
     //    SavitzkyGolayFilter clamps negative values to zero, which leaves a 'valley' of zero intensity at the foot
     //    of a steep peak, and findLocalExtrema() splits the trace there whatever the raw data look like. Here the
-    //    smoothed value is limited to the range of the raw intensities inside its frame.
+    //    smoothed value is limited to the range of the raw intensities inside its frame (and, as before, to >= 0).
     const Size size = mt.getSize();
 
     std::vector<double> smoothed(size);
@@ -591,46 +593,34 @@ namespace OpenMS
       ++frame_length;
     }
 
-    // a trace that is shorter than the frame is not smoothed (as with SavitzkyGolayFilter)
-    if (frame_length <= size)
+    // A frame of three points is fitted exactly by a second order polynomial, i.e. it does not smooth. A trace that
+    // is shorter than the frame is not smoothed either (as with SavitzkyGolayFilter).
+    if (frame_length >= 5 && frame_length <= size)
     {
       const Size max_half_frame = frame_length / 2;
-
-      // coefficients of the centre point for a frame of 2m + 1 equidistant points and a polynomial of order 2
-      // (or 3): c_j = 3 * (3m^2 + 3m - 1 - 5j^2) / ((2m + 3)(2m + 1)(2m - 1)), j = -m..m
-      std::vector<std::vector<double>> coefficients(max_half_frame + 1);
-      for (Size half_frame = 2; half_frame <= max_half_frame; ++half_frame)
-      {
-        const double m = static_cast<double>(half_frame);
-        const double denominator = (2.0 * m + 3.0) * (2.0 * m + 1.0) * (2.0 * m - 1.0);
-        coefficients[half_frame].resize(2 * half_frame + 1);
-        for (Size k = 0; k <= 2 * half_frame; ++k)
-        {
-          const double j = static_cast<double>(k) - m;
-          coefficients[half_frame][k] = 3.0 * (3.0 * m * m + 3.0 * m - 1.0 - 5.0 * j * j) / denominator;
-        }
-      }
-
-      for (Size i = 0; i < size; ++i)
+      for (Size i = 1; i + 1 < size; ++i)
       {
         const Size half_frame = std::min({max_half_frame, i, size - 1 - i});
-        if (half_frame < 2)
-        { // no frame, or one of three points
-          continue;
-        }
+
+        // Savitzky-Golay coefficients of the centre point for 2m + 1 equidistant points and a polynomial of order 2:
+        // c_j = 3 * (3m^2 + 3m - 1 - 5j^2) / ((2m + 3)(2m + 1)(2m - 1)), j = -m..m. For m = 1, a first order fit.
+        const double m = static_cast<double>(half_frame);
+        const double denominator = (2.0 * m + 3.0) * (2.0 * m + 1.0) * (2.0 * m - 1.0);
 
         double value = 0.0;
         double frame_min = mt[i].getIntensity();
         double frame_max = frame_min;
-        for (Size k = 0; k <= 2 * half_frame; ++k)
+        for (Size k = i - half_frame; k <= i + half_frame; ++k)
         {
-          const double intensity = mt[i - half_frame + k].getIntensity();
-          value += coefficients[half_frame][k] * intensity;
+          const double intensity = mt[k].getIntensity();
+          const double j = static_cast<double>(k) - static_cast<double>(i);
+          const double coefficient = (half_frame == 1) ? 1.0 / 3.0 : 3.0 * (3.0 * m * m + 3.0 * m - 1.0 - 5.0 * j * j) / denominator;
+          value += coefficient * intensity;
           frame_min = std::min(frame_min, intensity);
           frame_max = std::max(frame_max, intensity);
         }
 
-        smoothed[i] = std::clamp(value, frame_min, frame_max);
+        smoothed[i] = std::max(0.0, std::clamp(value, frame_min, frame_max));
       }
     }
 
