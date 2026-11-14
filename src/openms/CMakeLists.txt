@@ -331,7 +331,7 @@ set_source_files_properties(
   source/FORMAT/MzPeakFile.cpp
   PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
-openms_add_library(TARGET_NAME  OpenMS
+openms_add_library(PACKAGE_VERSION TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}
                    HEADER_FILES  ${OpenMS_sources_h}
                                  ${OpenMS_configured_headers}

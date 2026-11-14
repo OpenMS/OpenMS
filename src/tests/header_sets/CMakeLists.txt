@@ -44,11 +44,16 @@ elseif(BAD_HEADER STREQUAL "unlisted")
   list(APPEND _headers "${CMAKE_CURRENT_BINARY_DIR}/include/OpenMS/bad.h")
 endif()
 
+set(OPENMS_PACKAGE_VERSION 3.7.0)
 openms_add_library(TARGET_NAME OpenMSHeaderProbe
   SOURCE_FILES probe.cpp
   HEADER_FILES ${_headers}
   BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}/include"
   DLL_EXPORT_PATH "OpenMS/")
+get_target_property(_probe_soversion OpenMSHeaderProbe SOVERSION)
+if(_probe_soversion)
+  message(FATAL_ERROR "The test-only header probe must not carry the package SONAME")
+endif()
 target_sources(OpenMSHeaderProbe PRIVATE FILE_SET private_headers TYPE HEADERS
   BASE_DIRS source include
   FILES source/private.h include/OpenMS/private.h)

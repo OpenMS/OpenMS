@@ -10,6 +10,7 @@
 include(CMakeParseArguments)
 include(GenerateExportHeader)
 include(CheckLibArchitecture)
+include("${CMAKE_CURRENT_LIST_DIR}/library_version.cmake")
 
 #------------------------------------------------------------------------------
 ## export a single option indicating if libraries should be build as unity
@@ -88,6 +89,7 @@ endmacro()
 #                                             top of OPENMS_PUBLIC_INCLUDE_ALLOWLIST
 #                                             (see openms_validate_public_headers())>
 #                    DLL_EXPORT_PATH <path to the dll export header>
+#                    PACKAGE_VERSION <opt in to the production package library version>
 #                    EXPORT_SET <export set of the library (see cmake/install_macros.cmake);
 #                                the core set OpenMSTargets, install component 'library',
 #                                when omitted>)
@@ -100,7 +102,7 @@ endmacro()
 function(openms_add_library)
   #------------------------------------------------------------------------------
   # parse arguments to function
-  set(options )
+  set(options PACKAGE_VERSION)
   set(oneValueArgs TARGET_NAME DLL_EXPORT_PATH EXPORT_SET)
   set(multiValueArgs BASE_DIRS PRIVATE_INCLUDES EXTERNAL_INCLUDES SOURCE_FILES HEADER_FILES LINK_LIBRARIES PRIVATE_LINK_LIBRARIES
                      ALLOWED_PUBLIC_INCLUDES)
@@ -155,6 +157,9 @@ function(openms_add_library)
   
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
+  if(openms_add_library_PACKAGE_VERSION)
+    openms_set_library_soversion(${openms_add_library_TARGET_NAME})
+  endif()
 
   #------------------------------------------------------------------------------
   # Generate export header if requested
