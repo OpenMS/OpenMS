@@ -695,6 +695,172 @@ def test_imaging_experiment_per_pixel_write_back():
         mie.setSpectrum(1, 1, got)                    # pixel not in the geometry
 
 
+def _imaging_experiment(rts: tuple[float, ...] = (1.0, 2.0)) -> "pyopenms.MSImagingExperiment":
+    from pyopenms import (MSExperiment, MSSpectrum, MSImagingExperiment,
+                          MSImagingGeometry)
+
+    exp = MSExperiment()
+    geom = MSImagingGeometry()
+    geom.setDimensions(len(rts), 1)
+    for i, rt in enumerate(rts):
+        spec = MSSpectrum()
+        spec.setRT(rt)
+        exp.addSpectrum(spec)
+        geom.addPixel(i, 0, i)
+    mie = MSImagingExperiment(exp)
+    mie.setGeometry(geom)
+    return mie
+
+
+def test_imaging_experiment_getitem_returns_copy():
+    mie = _imaging_experiment()
+    mie[0].setRT(99.0)  # edits a detached copy
+    assert mie[0].getRT() == pytest.approx(1.0), (
+        "__getitem__ aliased the container instead of returning a copy"
+    )
+
+
+def test_imaging_experiment_iteration_returns_copies():
+    mie = _imaging_experiment()
+    for spec in mie:
+        spec.setRT(99.0)
+    assert [mie[i].getRT() for i in range(2)] == pytest.approx([1.0, 2.0]), (
+        "iteration aliased the container instead of yielding copies"
+    )
+    assert [spec.getRT() for spec in mie] == pytest.approx([1.0, 2.0])
+
+
+def test_imaging_experiment_write_back_via_setitem():
+    mie = _imaging_experiment()
+    spec = mie[0]
+    spec.setRT(42.0)
+    mie[0] = spec
+    assert mie[0].getRT() == pytest.approx(42.0)
+    assert mie.getSpectrum(0, 0).getRT() == pytest.approx(42.0)
+    with pytest.raises(IndexError):
+        mie[2] = spec
+
+
+def test_imaging_experiment_getspectrum_needs_coordinates():
+    # mie[i] indexes pixels, so there is no getSpectrum(i): on MSExperiment and
+    # OnDiscImzMLExperiment that name takes a spectrum index.
+    mie = _imaging_experiment()
+    assert mie.getSpectrum(1, 0).getRT() == pytest.approx(2.0)
+    with pytest.raises(TypeError):
+        mie.getSpectrum(1)
+    with pytest.raises(IndexError):
+        mie[2]
+
+
+def test_imaging_experiment_len():
+    from pyopenms import MSImagingExperiment
+
+    assert len(MSImagingExperiment()) == 0
+    assert len(_imaging_experiment()) == 2
+    assert len(_imaging_experiment(rts=(1.0, 2.0, 3.0))) == 3
+
+
+def test_imaging_experiment_is_a_container_of_pixels():
+    """len, [i] and iteration follow the geometry's pixels, not the spectra."""
+    from pyopenms import MSImagingGeometry
+
+    mie = _imaging_experiment(rts=(1.0, 2.0, 3.0))
+    geom = MSImagingGeometry()
+    geom.setDimensions(2, 1)
+    geom.addPixel(0, 0, 2)                            # pixel 0 -> spectrum 2
+    geom.addPixel(1, 0, 0)                            # pixel 1 -> spectrum 0; spectrum 1 has no pixel
+    mie.setGeometry(geom)
+
+    assert len(mie) == 2
+    assert mie.getNumberOfSpectra() == 3
+    assert [spec.getRT() for spec in mie] == pytest.approx([3.0, 1.0])
+    assert mie[0].getRT() == pytest.approx(3.0)
+    assert mie[1].getRT() == pytest.approx(1.0)
+    assert mie.experiment_view()[1].getRT() == pytest.approx(2.0)   # spectrum index 1
+    assert mie[-1].getRT() == pytest.approx(1.0)
+    assert mie[-2].getRT() == pytest.approx(3.0)
+    with pytest.raises(IndexError):
+        mie[-3]
+
+    spec = mie[-1]
+    spec.setRT(42.0)
+    mie[-1] = spec
+    assert mie.getMSExperiment().getSpectrum(0).getRT() == pytest.approx(42.0)
+    with pytest.raises(IndexError):
+        mie[-3] = spec
+
+
+def test_imaging_experiment_stale_pixel_raises():
+    from pyopenms import MSImagingGeometry
+
+    mie = _imaging_experiment()
+    geom = MSImagingGeometry()
+    geom.setDimensions(1, 1)
+    geom.addPixel(0, 0, 99)                           # spectrum 99 does not exist
+    mie.setGeometry(geom)
+    with pytest.raises(Exception):
+        mie[0]
+    with pytest.raises(Exception):
+        list(mie)
+
+
+def test_ondisc_imzml_getitem_and_iteration(imzml_continuous_path: str):
+    from pyopenms import OnDiscImzMLExperiment
+
+    od = OnDiscImzMLExperiment()
+    od.open(imzml_continuous_path)
+
+    # len / [i] / iteration follow the geometry's pixels (as on MSImagingExperiment)
+    n = len(od)
+    assert n > 0
+    assert n == od.getGeometry().getNumberOfPixels()
+    spectrum_of_pixel = [int(k) for k in od.getGeometry().pixels_struct()["spectrum_index"]]
+    assert [spec.size() for spec in od] == [od.getSpectrum(k).size() for k in spectrum_of_pixel]
+    assert od[0].size() == od.getSpectrum(spectrum_of_pixel[0]).size()
+    with pytest.raises(IndexError):
+        od[n]
+    assert od[-1].size() == od[n - 1].size()
+    assert od[-n].size() == od[0].size()
+    with pytest.raises(IndexError):
+        od[-n - 1]
+
+    od[0].setRT(99.0)  # read from disk: never aliases
+    assert od[0].getRT() != 99.0
+
+
+def test_ondisc_imzml_pixel_index_differs_from_spectrum_index(tmp_path):
+    """od[i] takes a pixel index, getSpectrum(i) a spectrum index: they differ once the geometry skips a spectrum."""
+    from pyopenms import ImzMLFile, MSExperiment, MSSpectrum, OnDiscImzMLExperiment, Peak1D
+
+    exp = MSExperiment()
+    for x, y, mz in [(1, 1, 100.0), (1, 1, 101.0), (2, 1, 200.0)]:  # spectrum 1 repeats pixel (1,1)
+        spec = MSSpectrum()
+        peak = Peak1D()
+        peak.setMZ(mz)
+        peak.setIntensity(1000.0)
+        spec.push_back(peak)
+        spec.setMetaValue("imzml:x", x)
+        spec.setMetaValue("imzml:y", y)
+        spec.setMetaValue("imzml:z", 1)
+        exp.addSpectrum(spec)
+    path = str(tmp_path / "duplicate.imzML")
+    ImzMLFile().store(path, exp)
+
+    od = OnDiscImzMLExperiment()
+    od.open(path)
+    try:
+        assert od.getNrSpectra() == 3
+        assert len(od) == 2                                     # the duplicate has no pixel
+        assert od[1][0].getMZ() == pytest.approx(200.0)         # pixel 1 -> spectrum 2
+        assert od.getSpectrum(1)[0].getMZ() == pytest.approx(101.0)  # spectrum 1, the duplicate
+        assert [spec[0].getMZ() for spec in od] == pytest.approx([100.0, 200.0])
+        spectrum_of_pixel = od.getGeometry().pixels_struct()["spectrum_index"]
+        for i in range(len(od)):
+            assert od[i][0].getMZ() == od.getSpectrum(int(spectrum_of_pixel[i]))[0].getMZ()
+    finally:
+        od.close()
+
+
 # ---------------------------------------------------------------------------
 # SimpleOpenMSSpectraFactory: probes the cached_data marker C++-side (no
 # per-spectrum copies) and both branches resolve their class names. The
