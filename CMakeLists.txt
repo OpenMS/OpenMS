@@ -11,6 +11,8 @@ cmake_minimum_required(VERSION 3.24 FATAL_ERROR) ## Subdirectories pulled
 ## in via add_subdirectory() deliberately do NOT declare their own: doing so resets the policy scope
 ## for that directory to the older version
 
+include(cmake/import_std.cmake)
+
 # The vcpkg toolchain must be selected before project() initializes compilers.
 # The CMake presets set OPENMS_USE_VCPKG=ON and build the dependencies with vcpkg.
 # A configure without a preset takes them from system packages and CMAKE_PREFIX_PATH.
@@ -63,6 +65,8 @@ if(WIN32 AND DEFINED ENV{VCToolsVersion} AND "$ENV{VCToolsVersion}" VERSION_LESS
 endif()
 
 project("OpenMS_host" LANGUAGES CXX)
+
+openms_validate_import_std()
 
 # A toolchain file given by the user (cross compiling, conda, ...) is not
 # necessarily vcpkg's. vcpkg.cmake sets VCPKG_TOOLCHAIN; a different toolchain

@@ -33,6 +33,9 @@ if("${PACKAGE_TYPE}" STREQUAL "none")
     add_test(NAME GitArchivalInfo
       COMMAND ${CMAKE_COMMAND} "-DBINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}/git_archival"
         -P "${CMAKE_CURRENT_SOURCE_DIR}/git_archival/run.cmake")
+    add_test(NAME ImportStdConfiguration
+      COMMAND ${CMAKE_COMMAND} "-DBINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}/import_std"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/import_std/run.cmake")
   endif()
   # TOPP Test project ..
   if(ENABLE_TOPP_TESTING)

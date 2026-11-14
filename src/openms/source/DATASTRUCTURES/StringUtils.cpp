@@ -9,13 +9,16 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <cerrno>
-#include <charconv>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
-#include <iterator>
-#include <memory>
-#include <type_traits>
+
+#ifndef OPENMS_IMPORT_STD
+  #include <charconv>
+  #include <iterator>
+  #include <memory>
+  #include <type_traits>
+#endif
 
 // Locale headers for the locale-independent strtod_l/strtof_l fallback used with libc++
 // (see OPENMS_NO_FLOAT_FROM_CHARS below).
@@ -32,6 +35,11 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/ParamValue.h>
 #include <OpenMS/SYSTEM/SIMDe.h>
+
+#ifdef OPENMS_IMPORT_STD
+// Keep transitive STL includes before the import to avoid MSVC redefinitions.
+import std;
+#endif
 
 namespace OpenMS
 {

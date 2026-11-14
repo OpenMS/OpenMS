@@ -13,11 +13,16 @@
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <cctype>
-#include <chrono>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
-#include <tuple>
+
+#ifdef OPENMS_IMPORT_STD
+import std;
+#else
+  #include <chrono>
+  #include <tuple>
+#endif
 
 using namespace std;
 

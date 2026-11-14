@@ -1,0 +1,128 @@
+name: MSVC import std experiment
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/import-std.yml
+      - CMakeLists.txt
+      - cmake/import_std.cmake
+      - src/openms/CMakeLists.txt
+      - src/openms/source/DATASTRUCTURES/StringUtils.cpp
+      - src/openms/source/DATASTRUCTURES/DateTime.cpp
+      - src/openms/source/SYSTEM/File.cpp
+      - src/tests/import_std/**
+      - tools/ci/import_std_timings.py
+      - tools/ci/test_import_std_timings.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  benchmark:
+    runs-on: windows-2025
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: egor-tensin/vs-shell@v2
+        with:
+          arch: x64
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      # Reuse CI's rsync archive and cache key, not the repository's Actions
+      # cache quota. Fork PRs restore through the action's public HTTP fallback.
+      - uses: ./.github/actions/dependencies
+        with:
+          compiler: cl.exe
+          ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          ssh_user: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+      - name: Install the pinned CMake
+        shell: pwsh
+        run: |
+          python -m pip install cmake==3.31.10
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cmake --version
+          ninja --version
+          cl 2>&1 | Out-String | Write-Host
+          exit 0
+      - name: Test timing-log analysis
+        run: python -m unittest discover -s tools/ci -p test_import_std_timings.py
+      - name: Compare clean builds on the same runner
+        id: compare
+        # Compiler failures are diagnostic results for this opt-in experiment.
+        # Keep the job successful so dependency-cache post steps can still save.
+        continue-on-error: true
+        shell: pwsh
+        env:
+          CCACHE_DISABLE: '1'
+        run: |
+          New-Item -ItemType Directory -Force results | Out-Null
+          $failed = $false
+          foreach ($mode in @('OFF', 'ON')) {
+            $build = "build/import-std-$mode"
+            cmake --preset windows-x64-release -B $build `
+              -DOPENMS_IMPORT_STD=$mode -DENABLE_DOCS=OFF -DBUILD_TOPP_TOOLS=OFF `
+              -DPYOPENMS=OFF -DWITH_OPENTIMS=OFF -DWITH_THERMO_RAW=OFF `
+              -DVCPKG_INSTALLED_DIR="$env:GITHUB_WORKSPACE/build/import-std-deps" `
+              -DCMAKE_CXX_COMPILER_LAUNCHER= -DCMAKE_C_COMPILER_LAUNCHER= `
+              2>&1 | Tee-Object "results/configure-$mode.log"
+            if ($LASTEXITCODE -ne 0) { $failed = $true; continue }
+
+            # Fresh build directories: dependency installation/configuration is
+            # outside the timed interval, but the std BMI is included in it.
+            $timer = [Diagnostics.Stopwatch]::StartNew()
+            cmake --build $build --target OpenMS --parallel 4 --verbose `
+              2>&1 | Tee-Object "results/build-$mode.log"
+            $built = $LASTEXITCODE -eq 0
+            $timer.Stop()
+            "${mode}: OpenMS clean build $($timer.Elapsed.TotalSeconds.ToString('F3')) s; success=$built" |
+              Tee-Object -FilePath results/timings.txt -Append
+            if (Test-Path "$build/.ninja_log") {
+              Copy-Item "$build/.ninja_log" "results/ninja-$mode.log"
+              # Object rows exclude dependency scans and module-map generation.
+              Get-Content "$build/.ninja_log" | Select-Object -Skip 1 | ForEach-Object {
+                $entry = $_ -split "`t"
+                if ($entry[3] -match '[/\\]OpenMS\.dir[/\\].*[/\\](StringUtils|DateTime|File)\.cpp\.obj$|[/\\]std(\.compat)?\.ixx\.obj$') {
+                  "${mode}: $($entry[3]) $(([long]$entry[1] - [long]$entry[0]) / 1000.0) s" |
+                    Tee-Object -FilePath results/timings.txt -Append
+                }
+              }
+            }
+            if (-not $built) { $failed = $true; continue }
+            cmake --build $build --target StringUtils_test DateTime_test File_test --parallel 4
+            if ($LASTEXITCODE -ne 0) { $failed = $true; continue }
+            ctest --test-dir $build -R '^(ImportStdConfiguration|(StringUtils|DateTime|File)_test)$' --output-on-failure --no-tests=error `
+              2>&1 | Tee-Object "results/tests-$mode.log"
+            if ($LASTEXITCODE -ne 0) { $failed = $true }
+          }
+          if (Test-Path results/timings.txt) {
+            '```text' | Add-Content $env:GITHUB_STEP_SUMMARY
+            Get-Content results/timings.txt | Add-Content $env:GITHUB_STEP_SUMMARY
+            '```' | Add-Content $env:GITHUB_STEP_SUMMARY
+          }
+          if ((Test-Path results/ninja-OFF.log) -and (Test-Path results/ninja-ON.log)) {
+            python tools/ci/import_std_timings.py results/ninja-OFF.log results/ninja-ON.log |
+              Tee-Object results/object-timings.md | Add-Content $env:GITHUB_STEP_SUMMARY
+            if ($LASTEXITCODE -ne 0) { $failed = $true }
+          }
+          if ($failed) { exit 1 }
+      - name: Report experiment failure
+        if: ${{ !cancelled() && steps.compare.outcome == 'failure' }}
+        shell: pwsh
+        run: |
+          $message = 'The import std comparison did not complete successfully. Check the OFF/ON configure, build and test logs in the artifact; partial timings do not establish a performance result.'
+          Write-Output "::warning::$message"
+          $message | Add-Content $env:GITHUB_STEP_SUMMARY
+      - name: Preserve timings and compiler diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: msvc-import-std-results
+          path: results/
