@@ -19,7 +19,7 @@
 namespace OpenMS
 {
 
-    /*
+    /**
       @brief A mass trace extraction method that gathers peaks similar in m/z and moving along retention time.
 
       Peaks of a @ref MSExperiment are sorted by their intensity and stored in a
@@ -32,6 +32,11 @@ namespace OpenMS
       retention time. During this extension phase, the centroid m/z is computed
       on-line as an intensity-weighted mean of peaks.
 
+      Candidate searches intersect the adaptive centroid window with a fixed
+      window around the seed m/z (max_apex_deviation_ppm, 20 ppm by default).
+      This prevents variance re-estimation from gradually joining unrelated
+      signals. Setting the cap to zero restores the unbounded legacy behavior.
+
       The extension phase ends when either the frequency of gathered peaks drops
       below a threshold (min_sample_rate, see @ref MassTraceDetection parameters)
       or when the number of missed scans exceeds a threshold
@@ -40,6 +45,13 @@ namespace OpenMS
       Finally, only mass traces that pass a filter (a certain minimal and maximal
       length as well as having the minimal sample rate criterion fulfilled) get
       added to the result.
+
+      With OpenMP and more than one thread, capped outlier-mode extraction
+      processes independent peak components concurrently. All above-noise peaks
+      participate in connectivity, including non-seeds. Within each component,
+      the original greedy seed priority is preserved; output labels and order
+      are identical to capped serial extraction. Unbounded extraction,
+      sample-rate termination and calls with max_traces use the serial path.
 
       @htmlinclude OpenMS_MassTraceDetection.parameters
 
@@ -72,6 +84,7 @@ namespace OpenMS
         /// Main method of MassTraceDetection. Extracts mass traces of a @ref MSExperiment and gathers them into a vector container.
         /// @note The input MSExperiment's spectra must already be sorted by retention time (see MSExperiment::sortSpectra()).
         ///       Unsorted input is not checked for tie-order within equal-RT spectra (e.g. ion-mobility data); see run_() precondition.
+        /// @note Peaks within each spectrum must be sorted by m/z, as required by MSSpectrum::findNearest().
         void run(const PeakMap &, std::vector<MassTrace> &, const Size max_traces = 0);
 
         /// Invokes the run method (see above) on merely a subregion of a @ref MSExperiment map.
@@ -134,6 +147,20 @@ namespace OpenMS
                   std::vector<MassTrace> & found_masstraces,
                   const Size max_traces = 0);
 
+        std::vector<std::vector<Apex>> partitionApices_(const std::vector<Apex>& chrom_apices,
+                                                       const PeakMap& work_exp,
+                                                       const std::vector<Size>& spec_offsets,
+                                                       Size peak_count) const;
+
+        void runComponent_(const std::vector<Apex>& chrom_apices,
+                           const PeakMap& work_exp,
+                           const std::vector<Size>& spec_offsets,
+                           std::vector<unsigned char>& peak_visited,
+                           std::vector<MassTrace>& found_masstraces,
+                           std::vector<Apex>* accepted_apices,
+                           Size max_traces,
+                           bool report_progress);
+
         /// Internal helper to extract and validate metadata float array indices
         void getIMIndices_(const PeakMap& spectra,
                            int& fwhm_meta_idx, bool& has_fwhm_mz,
@@ -144,6 +171,7 @@ namespace OpenMS
         PeakCandidate findBestPeak_(const MSSpectrum& spectrum,
                                     double centroid_mz,
                                     double ftl_sd,
+                                    double apex_mz,
                                     double centroid_im = -1.0) const;
 
         /// Check if peak candidate meets acceptance criteria
@@ -153,7 +181,7 @@ namespace OpenMS
                                double centroid_im,
                                Size spectrum_idx,
                                const std::vector<Size>& spec_offsets,
-                               const std::vector<bool>& peak_visited) const;
+                               const std::vector<unsigned char>& peak_visited) const;
 
         /// Process a single peak during trace extension
         void processPeak_(const PeakCandidate& candidate,
@@ -187,6 +215,7 @@ namespace OpenMS
 
         // parameter stuff
         double mass_error_ppm_;
+        double max_apex_deviation_ppm_;
         double mass_error_da_;
         double noise_threshold_int_;
         double chrom_peak_snr_;

@@ -54,6 +54,10 @@ std::vector<MassTrace> output_mt, splitted_mt, filtered_mt;
 std::vector<std::vector< OpenMS::MSChromatogram > > chromatograms;
 
 MassTraceDetection test_mtd;
+// Keep the isotope-assembly golden input independent of the capped extraction default.
+Param legacy_mtd = test_mtd.getParameters();
+legacy_mtd.setValue("max_apex_deviation_ppm", 0.0);
+test_mtd.setParameters(legacy_mtd);
 test_mtd.run(input, output_mt);
 
 ElutionPeakDetection test_epd;
