@@ -16,8 +16,49 @@
 #include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
 ///////////////////////////
 
+#include <algorithm>
+#include <vector>
+
 using namespace OpenMS;
 using namespace std;
+
+// helper: build a mass trace (first RT 100 s) from an intensity profile with the given scan spacing
+static MassTrace make_trace(const std::vector<double>& ints, double spacing)
+{
+  std::vector<Peak2D> pts;
+  for (Size i = 0; i < ints.size(); ++i)
+  {
+    Peak2D p;
+    p.setRT(100.0 + i * spacing);
+    p.setMZ(230.1);
+    p.setIntensity((Peak2D::IntensityType)ints[i]);
+    pts.push_back(p);
+  }
+  MassTrace mt(pts);
+  mt.setLabel("T1");
+  return mt;
+}
+
+// Mass traces of an untargeted metabolomics run (Orbitrap, MS1 every 1.2 s), found by MassTraceDetection.
+// Each one shows one way in which the smoothing used to misrepresent a mass trace (issue #2777).
+
+// A peak with a long tail. Savitzky-Golay undershoots in the tail and was clamped to zero on the last but
+// one point, which then counted as a valley and cut the last point off as a trace of its own.
+static const std::vector<double> tail_ints = {3880189.0, 35452464.0, 278961792.0, 299236192.0, 98084320.0, 61078160.0,
+                                              15377399.0, 5181145.5, 1230206.0, 352417.9, 170774.1, 82065.6, 97492.0};
+
+// A peak that rises within one scan: the apex is the second point. The fit of the first frame, extrapolated
+// to the first point, exceeded every other smoothed intensity.
+static const std::vector<double> steep_onset_ints = {558573.1, 2166397.5, 1540729.8, 947377.1, 638997.1, 505671.9,
+                                                     276991.7, 112347.6, 231729.8, 58555.4, 35435.2};
+
+// A low plateau followed by a peak two orders of magnitude higher. The valley between them is 0.6 of the
+// plateau, i.e. not a split point, but the fit undershot to zero at the foot of the peak.
+static const std::vector<double> plateau_ints = {13315.2, 16256.3, 15380.5, 18509.5, 15250.1, 16484.5, 13546.0, 11016.4, 11527.2,
+                                                 40689.8, 714812.6, 1197706.9, 1474887.0, 1806559.9, 1810322.6, 1240083.0,
+                                                 1326237.9, 1018520.6, 1565404.0, 2018843.5, 1614379.2, 609284.1, 1460009.0,
+                                                 633715.2, 680450.1, 1003226.9, 861034.8, 435865.6, 785215.8, 468304.4, 470155.0,
+                                                 464454.9, 300043.4, 266869.3, 153281.4, 151645.1};
 
 START_TEST(ElutionPeakDetection, "$Id$")
 
@@ -86,7 +127,11 @@ START_SECTION((void detectPeaks(std::vector< MassTrace > &, std::vector< MassTra
 
         // mass traces split to local peaks
         //TEST_EQUAL(splitted_mt.size(), 2); // lowess and GSL
-        TEST_EQUAL(splitted_mt.size(), 3); // SavitzkyGolay
+        // SavitzkyGolay: the two elution peaks (apex 8.6e3 at 963.9 s, apex 3.6e4 at 986.3 s). This used to be 3:
+        // the first four points of the trace, baseline of intensity 40-60, were cut off as a sub-trace of their
+        // own, because the Savitzky-Golay fit extrapolated to the first point gave 469 and the five points after
+        // it were negative and clamped to zero -- a 'maximum' and a 'valley' that are not in the data (#2777).
+        TEST_EQUAL(splitted_mt.size(), 2);
         //TEST_EQUAL(splitted_mt.size(), 6); // lowess with regression
 
         // correct labeling if subtraces?
@@ -108,22 +153,6 @@ START_SECTION((void detectPeaks(MassTrace &, std::vector< MassTrace > &)))
   // Rejecting fragments by where their apex sits was tried and does not work -- the split loop
   // keeps the minimum as the last point of the left fragment, so the right fragment starts one
   // sample past it and its first sample is normally a genuine peak.
-
-  // helper: build a mass trace from an intensity profile with the given scan spacing
-  auto make_trace = [](const std::vector<double>& ints, double spacing) {
-    std::vector<Peak2D> pts;
-    for (Size i = 0; i < ints.size(); ++i)
-    {
-      Peak2D p;
-      p.setRT(100.0 + i * spacing);
-      p.setMZ(230.1);
-      p.setIntensity((Peak2D::IntensityType)ints[i]);
-      pts.push_back(p);
-    }
-    MassTrace mt(pts);
-    mt.setLabel("T1");
-    return mt;
-  };
 
   // Two equally tall peaks separated by a minimum. The second fragment begins one sample past
   // the minimum, so its apex is its own first point -- yet it is higher than both neighbours in
@@ -162,6 +191,61 @@ START_SECTION((void detectPeaks(MassTrace &, std::vector< MassTrace > &)))
   if (!sparse_out.empty())
   {
     TEST_EQUAL(sparse_out[0].findMaxByIntPeak(true), 0); // apex on the first point, and kept
+  }
+
+  // The remaining cases are real mass traces (see the top of this file) that the smoothing used to distort.
+
+  // A tail does not end in a trace of its own. test_epd uses chrom_fwhm 5, i.e. a frame of 5 points here.
+  MassTrace tail_mt(make_trace(tail_ints, 1.1));
+  std::vector<MassTrace> tail_out;
+  test_epd.detectPeaks(tail_mt, tail_out);
+  TEST_EQUAL(tail_out.size(), 1); // was 2: T1.1 and the last point as T1.2
+  if (!tail_out.empty())
+  {
+    TEST_EQUAL(tail_out[0].getSize(), tail_ints.size());
+    TEST_REAL_SIMILAR(tail_out[0].getCentroidRT(), 100.0 + 3 * 1.1);
+  }
+
+  // A low plateau in front of a peak is not cut off at the foot of the peak.
+  MassTrace plateau_mt(make_trace(plateau_ints, 1.1));
+  std::vector<MassTrace> plateau_out;
+  test_epd.detectPeaks(plateau_mt, plateau_out);
+  TEST_EQUAL(plateau_out.size(), 1); // was 2: the plateau as T1.1, the peak as T1.2
+  if (!plateau_out.empty())
+  {
+    TEST_EQUAL(plateau_out[0].getSize(), plateau_ints.size());
+    TEST_REAL_SIMILAR(plateau_out[0].getCentroidRT(), 100.0 + 19 * 1.1);
+  }
+
+  // A peak that rises within one scan is positioned at its apex, not at the first point of the trace (the
+  // symptom in the title of the issue) ...
+  ElutionPeakDetection wide_epd;
+  Param wide_param = ElutionPeakDetection().getDefaults();
+  wide_param.setValue("chrom_fwhm", 10.0); // a frame of 11 points, as long as the trace
+  wide_param.setValue("width_filtering", "off");
+  wide_epd.setParameters(wide_param);
+
+  MassTrace steep_mt(make_trace(steep_onset_ints, 1.0));
+  std::vector<MassTrace> steep_out;
+  wide_epd.detectPeaks(steep_mt, steep_out);
+  TEST_EQUAL(steep_out.size(), 1);
+  if (!steep_out.empty())
+  {
+    TEST_REAL_SIMILAR(steep_out[0].getCentroidRT(), 101.0); // was 100.0
+    TEST_EQUAL(steep_out[0].findMaxByIntPeak(true), 1);
+    TEST_TRUE(steep_out[0].getFWHM() > 0.0); // was 0, i.e. no area
+  }
+
+  // ... and, having a width now, is no longer removed by the default width filter.
+  wide_param.setValue("width_filtering", "fixed");
+  wide_epd.setParameters(wide_param);
+  steep_mt = make_trace(steep_onset_ints, 1.0);
+  steep_out.clear();
+  wide_epd.detectPeaks(steep_mt, steep_out);
+  TEST_EQUAL(steep_out.size(), 1); // was 0
+  if (!steep_out.empty())
+  {
+    TEST_REAL_SIMILAR(steep_out[0].getCentroidRT(), 101.0);
   }
 }
 END_SECTION
@@ -207,7 +291,7 @@ START_SECTION((void findLocalExtrema(const MassTrace &, const Size &, std::vecto
     //TEST_EQUAL(mins.size(), 1);
     // SavitzkyGolay
     TEST_EQUAL(maxes.size(), 4);
-    TEST_EQUAL(mins.size(), 2);
+    TEST_EQUAL(mins.size(), 1); // was 2: the baseline in front of the first peak was split off (see detectPeaks)
 
     // test window overlap
     mt = output_mt[0];
@@ -224,6 +308,82 @@ START_SECTION((void findLocalExtrema(const MassTrace &, const Size &, std::vecto
     //TEST_EQUAL(mins.size(), 6);
   }
   // std::cerr << maxes.size() << " " << mins.size() << std::endl;
+}
+END_SECTION
+
+START_SECTION((void smoothData(MassTrace& mt, int win_size) const))
+{
+  // A trace that is shorter than the frame is not smoothed.
+  for (Size length = 0; length < 9; ++length)
+  {
+    std::vector<double> ints;
+    for (Size i = 0; i < length; ++i) { ints.push_back(100.0 * (i + 1) * (i % 2 + 1)); }
+    MassTrace short_mt(make_trace(ints, 1.0));
+    test_epd.smoothData(short_mt, 9);
+    TEST_EQUAL(short_mt.getSmoothedIntensities().size(), length);
+    for (Size i = 0; i < short_mt.getSmoothedIntensities().size(); ++i) { TEST_REAL_SIMILAR(short_mt.getSmoothedIntensities()[i], ints[i]); }
+  }
+
+  // Where a frame fits, this is Savitzky-Golay smoothing with a polynomial of order 2. A frame of five points
+  // has the coefficients (-3, 12, 17, 12, -3) / 35.
+  std::vector<double> ints = {10.0, 20.0, 40.0, 90.0, 70.0, 30.0, 20.0, 10.0};
+  MassTrace mt(make_trace(ints, 1.0));
+  test_epd.smoothData(mt, 5);
+  std::vector<double> smoothed = mt.getSmoothedIntensities();
+  TEST_EQUAL(smoothed.size(), ints.size());
+  ABORT_IF(smoothed.size() != ints.size());
+  for (Size i = 2; i + 2 < ints.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(smoothed[i], (-3 * ints[i - 2] + 12 * ints[i - 1] + 17 * ints[i] + 12 * ints[i + 1] - 3 * ints[i + 2]) / 35.0);
+  }
+  // No frame of five points fits around the two outermost points at each end: they are not extrapolated from
+  // the fit of the neighbouring frame, but keep their intensity.
+  TEST_REAL_SIMILAR(smoothed[0], ints[0]);
+  TEST_REAL_SIMILAR(smoothed[1], ints[1]);
+  TEST_REAL_SIMILAR(smoothed[6], ints[6]);
+  TEST_REAL_SIMILAR(smoothed[7], ints[7]);
+
+  // an even frame length is the next odd one, and three points (or less) do not smooth
+  test_epd.smoothData(mt, 4);
+  for (Size i = 0; i < ints.size(); ++i) { TEST_REAL_SIMILAR(mt.getSmoothedIntensities()[i], smoothed[i]); }
+  for (int win_size : {-1, 0, 1, 2, 3})
+  {
+    test_epd.smoothData(mt, win_size);
+    for (Size i = 0; i < ints.size(); ++i) { TEST_REAL_SIMILAR(mt.getSmoothedIntensities()[i], ints[i]); }
+  }
+
+  // Towards the ends the frame narrows to what fits around the point: with a frame of seven points,
+  // (-2, 3, 6, 7, 6, 3, -2) / 21, the third point from either end is smoothed with five.
+  test_epd.smoothData(mt, 7);
+  smoothed = mt.getSmoothedIntensities();
+  TEST_REAL_SIMILAR(smoothed[3], (-2 * 10.0 + 3 * 20.0 + 6 * 40.0 + 7 * 90.0 + 6 * 70.0 + 3 * 30.0 - 2 * 20.0) / 21.0);
+  TEST_REAL_SIMILAR(smoothed[4], (-2 * 20.0 + 3 * 40.0 + 6 * 90.0 + 7 * 70.0 + 6 * 30.0 + 3 * 20.0 - 2 * 10.0) / 21.0);
+  TEST_REAL_SIMILAR(smoothed[2], (-3 * 10.0 + 12 * 20.0 + 17 * 40.0 + 12 * 90.0 - 3 * 70.0) / 35.0);
+  TEST_REAL_SIMILAR(smoothed[5], (-3 * 90.0 + 12 * 70.0 + 17 * 30.0 + 12 * 20.0 - 3 * 10.0) / 35.0);
+  TEST_REAL_SIMILAR(smoothed[1], ints[1]);
+  TEST_REAL_SIMILAR(smoothed[6], ints[6]);
+
+  // The smoothed intensity stays within the raw intensities of its frame. At the foot of a steep flank the
+  // fit is negative (here (-3 * 100 + 12 * 100 + 17 * 100 + 12 * 110 - 3 * 100000) / 35 < 0) and used to be
+  // clamped to zero, which made the foot a valley to split the trace at.
+  std::vector<double> flank = {100.0, 100.0, 100.0, 100.0, 100.0, 110.0, 100000.0, 250000.0, 180000.0, 60000.0, 20000.0};
+  MassTrace flank_mt(make_trace(flank, 1.0));
+  test_epd.smoothData(flank_mt, 5);
+  smoothed = flank_mt.getSmoothedIntensities();
+  TEST_REAL_SIMILAR(smoothed[4], 100.0);
+  for (Size i = 0; i < flank.size(); ++i)
+  {
+    const Size half_frame = std::min({Size(2), i, flank.size() - 1 - i});
+    TEST_TRUE(smoothed[i] >= *std::min_element(flank.begin() + (i - half_frame), flank.begin() + (i + half_frame + 1)));
+    TEST_TRUE(smoothed[i] <= *std::max_element(flank.begin() + (i - half_frame), flank.begin() + (i + half_frame + 1)));
+  }
+
+  // The smoothed apex of a peak that rises within one scan is its second point, not the first point of the
+  // trace (extrapolating the fit of the first frame used to give 1430471 for it, more than anywhere else).
+  MassTrace steep_mt(make_trace(steep_onset_ints, 1.0));
+  test_epd.smoothData(steep_mt, 10);
+  TEST_EQUAL(steep_mt.findMaxByIntPeak(true), 1);
+  TEST_REAL_SIMILAR(steep_mt.getSmoothedIntensities()[0], steep_onset_ints[0]);
 }
 END_SECTION
 
@@ -245,19 +405,18 @@ END_SECTION
 
 START_SECTION((double computeMassTraceSNR(const MassTrace &)))
 {
-    ABORT_IF(splitted_mt.size() != 3);
+    ABORT_IF(splitted_mt.size() != 2);
 
     double snr1(test_epd.computeMassTraceSNR(splitted_mt[0]));
     double snr2(test_epd.computeMassTraceSNR(splitted_mt[1]));
-    double snr3(test_epd.computeMassTraceSNR(splitted_mt[2]));
 
     // using lowess and GSL
     //TEST_REAL_SIMILAR(snr1, 8.6058);
     //TEST_REAL_SIMILAR(snr2, 8.946);
     // using SavitzkyGolay
-    TEST_REAL_SIMILAR(snr1, 0.1907);
-    TEST_REAL_SIMILAR(snr2, 9.8855);
-    TEST_REAL_SIMILAR(snr3, 7.6432);
+    // (the two elution peaks had 9.8855 and 7.6432 before the baseline in front of the first one stayed with it)
+    TEST_REAL_SIMILAR(snr1, 9.8288);
+    TEST_REAL_SIMILAR(snr2, 7.6175);
     // using lowess with regression
     //TEST_REAL_SIMILAR(snr1, 0.0497);
     //TEST_REAL_SIMILAR(snr2, 0.1450);
@@ -266,19 +425,18 @@ END_SECTION
 
 START_SECTION((double computeApexSNR(const MassTrace &)))
 {
-    ABORT_IF(splitted_mt.size() != 3);
+    ABORT_IF(splitted_mt.size() != 2);
 
     double snr1(test_epd.computeApexSNR(splitted_mt[0]));
     double snr2(test_epd.computeApexSNR(splitted_mt[1]));
-    double snr3(test_epd.computeApexSNR(splitted_mt[2]));
 
     // using lowess and GSL
     //TEST_REAL_SIMILAR(snr1, 40.0159);
     //TEST_REAL_SIMILAR(snr2, 58.5950);
     // using SavitzkyGolay
-    TEST_REAL_SIMILAR(snr1,  2.0427);
-    TEST_REAL_SIMILAR(snr2, 37.7893);
-    TEST_REAL_SIMILAR(snr3, 52.9933);
+    // (37.7893 and 52.9933 before, see computeMassTraceSNR)
+    TEST_REAL_SIMILAR(snr1, 38.5923);
+    TEST_REAL_SIMILAR(snr2, 53.2332);
     // using lowess with regression
     //TEST_REAL_SIMILAR(snr1, 6.5177);
     //TEST_REAL_SIMILAR(snr2, 7.3813);
