@@ -8,17 +8,22 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/Peak2D.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/KERNEL/Peak2D.h>
 
-
+#include <cmath>
+#include <string>
+#include <utility>
 #include <vector>
 #include <list>
 #include <map>
 
 namespace OpenMS
 {
-  typedef Peak2D PeakType;
+  /// @deprecated Use MassTrace::PeakType (or Peak2D) instead; this typedef will be removed from namespace OpenMS.
+  using PeakType [[deprecated("Use MassTrace::PeakType or Peak2D instead")]] = Peak2D;
 
   /** @brief A container type that gathers peaks similar in m/z and moving along retention time.
 
@@ -34,6 +39,9 @@ namespace OpenMS
   class OPENMS_DLLAPI MassTrace
   {
 public:
+
+    /// The type of the peaks of a mass trace
+    typedef Peak2D PeakType;
 
     // must match to names_of_quantmethod[]
     enum MT_QUANTMETHOD {
@@ -61,14 +69,23 @@ public:
     /// Detailed constructor for vector
     MassTrace(const std::vector<PeakType>& trace_peaks);
 
+    /// Detailed constructor for vector, taking over the peaks without copying them
+    MassTrace(std::vector<PeakType>&& trace_peaks);
+
     /// Destructor
     ~MassTrace() = default;
 
     /// Copy constructor
     MassTrace(const MassTrace &) = default;
 
+    /// Move constructor
+    MassTrace(MassTrace &&) = default;
+
     /// Assignment operator
     MassTrace & operator=(const MassTrace &) = default;
+
+    /// Move assignment operator
+    MassTrace & operator=(MassTrace &&) = default;
 
     /// Random access operator
     PeakType& operator[](const Size & mt_idx);
@@ -134,6 +151,12 @@ public:
     Size getSize() const
     {
       return trace_peaks_.size();
+    }
+
+    /// Returns the peaks of the mass trace, e.g. to compute MassTraceStatistics on a part of the trace.
+    const std::vector<PeakType>& getPeaks() const
+    {
+      return trace_peaks_;
     }
 
     /// Gets label of mass trace.
@@ -229,6 +252,25 @@ public:
       smoothed_intensities_ = db_vec;
     }
 
+    /// Set smoothed intensities, taking over the vector without copying it.
+    void setSmoothedIntensities(std::vector<double>&& db_vec)
+    {
+      if (trace_peaks_.size() != db_vec.size())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Number of smoothed intensities deviates from mass trace size! Aborting...",StringUtils::toStr(db_vec.size()));
+      }
+
+      smoothed_intensities_ = std::move(db_vec);
+    }
+
+    /// Removes the smoothed intensities and releases their memory, e.g. when only raw intensities are used from now on.
+    /// A FWHM estimated on the smoothed intensities (see estimateFWHM()) is kept.
+    void clearSmoothedIntensities()
+    {
+      std::vector<double>().swap(smoothed_intensities_);
+    }
+
     /// Get average scan time of mass trace
     double getAverageMS1CycleTime() const
     {
@@ -284,6 +326,19 @@ public:
       @param smoothed If true, smoothed intensities are used where applicable (ignored for MT_QUANT_MEDIAN).
     */
     double getIntensity(bool smoothed) const;
+
+    /**
+      @brief Returns the quantitated value of the mass trace according to the given quantitation @p method.
+
+      As getIntensity(bool), but independent of the method configured with setQuantMethod().
+
+      @param smoothed If true, smoothed intensities are used where applicable (ignored for MT_QUANT_MEDIAN).
+      @param method The quantitation method to use.
+
+      @throw Exception::InvalidValue if @p method is SIZE_OF_MT_QUANTMETHOD
+    */
+    double getIntensity(bool smoothed, MT_QUANTMETHOD method) const;
+
     double getMaxIntensity(bool smoothed) const;
 
     /// Return the mass trace's convex hull.
@@ -321,27 +376,36 @@ public:
     void updateWeightedMZsd();
     ///@}
 
-    /// Average FWHM of m/z peaks
-    /// 0 denotes no fwhm meta data computed
-    double fwhm_mz_avg = 0;
+    /** @name Average width of the peaks (in m/z and ion mobility) the mass trace was built from
+    */
+    ///@{
 
-    /// Average FWHM of ion mobility peaks
-    /// 0 denotes no fwhm meta data computed
-    double fwhm_im_avg = 0;
+    /// Returns the average FWHM of the m/z peaks (0 denotes: no FWHM meta data available).
+    double getFWHMMZAvg() const
+    {
+      return fwhm_mz_avg_;
+    }
+
+    /// Sets the average FWHM of the m/z peaks.
+    void setFWHMMZAvg(double fwhm)
+    {
+      fwhm_mz_avg_ = fwhm;
+    }
+
+    /// Returns the average FWHM of the ion mobility peaks (0 denotes: no FWHM meta data available).
+    double getFWHMIMAvg() const
+    {
+      return fwhm_im_avg_;
+    }
+
+    /// Sets the average FWHM of the ion mobility peaks.
+    void setFWHMIMAvg(double fwhm)
+    {
+      fwhm_im_avg_ = fwhm;
+    }
+    ///@}
 
 private:
-
-    /// median of trace intensities
-    double computeMedianIntensity_() const;
-
-    /// calculate x coordinate of start/end indexes at half_max
-    /// calculation is based on (yB - yA) / (xB - xA) = (y_eval - yA) / (xC - xA)
-    /// solve for xC: xC = xA + ((y_eval - yA) * (xB - xA) / (yB - yA))
-    /// (xA, yA) and (xB, yB) must be corresponding points of the same line, i.e.
-    /// each x has to be passed together with its own y. y must ascend from yA to
-    /// yB (see the precondition), x may ascend or descend; xC is returned between
-    /// xA and xB either way.
-    double linearInterpolationAtY_(double xA, double xB, double yA, double yB, double y_eval) const;
 
     /// Actual MassTrace container for doing centroid calculation, peak width estimation etc.
     std::vector<PeakType> trace_peaks_;
@@ -373,6 +437,12 @@ private:
 
     /// use area under mass trace or the median of intensities
     MT_QUANTMETHOD quant_method_ = MT_QUANT_AREA;
+
+    /// Average FWHM of m/z peaks (0 denotes no fwhm meta data computed)
+    double fwhm_mz_avg_ = 0.0;
+
+    /// Average FWHM of ion mobility peaks (0 denotes no fwhm meta data computed)
+    double fwhm_im_avg_ = 0.0;
     
   };
 

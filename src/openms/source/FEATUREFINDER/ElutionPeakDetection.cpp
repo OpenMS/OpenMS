@@ -9,10 +9,15 @@
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
+#include <OpenMS/KERNEL/MassTraceStatistics.h>
 #include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <boost/dynamic_bitset.hpp>
+
+#include <span>
+#include <utility>
+#include <vector>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -102,7 +107,7 @@ namespace OpenMS
   void ElutionPeakDetection::findLocalExtrema(const MassTrace& tr, const Size& num_neighboring_peaks,
                                               std::vector<Size>& chrom_maxes, std::vector<Size>& chrom_mins) const
   {
-    std::vector<double> smoothed_ints_vec(tr.getSmoothedIntensities());
+    const std::vector<double>& smoothed_ints_vec(tr.getSmoothedIntensities());
 
     Size mt_length(smoothed_ints_vec.size());
 
@@ -472,7 +477,8 @@ namespace OpenMS
     }
     else // split mt to sub-traces
     {
-      MassTrace::const_iterator cp_it = mt.begin();
+      const std::span<const MassTrace::PeakType> peaks(mt.getPeaks());
+      const std::span<const double> smoothed(mt.getSmoothedIntensities());
       Size last_idx(0);
 
       // add last data point as last minimum (to grep the last chunk of the MT)
@@ -482,27 +488,17 @@ namespace OpenMS
       {
 
         // *********************************************************************
-        // Step 3.1: Create new mass trace (sub-trace between cp_it and split point)
+        // Step 3.1: Determine the sub-trace (the peaks from the previous split point up to this one)
         // *********************************************************************
-        std::vector<PeakType> tmp_mt;
-        std::vector<double> smoothed_tmp;
-        while (last_idx <= mins[min_idx])
+        const Size first_idx = last_idx;
+        if (last_idx <= mins[min_idx])
         {
-          tmp_mt.push_back(*cp_it);
-          smoothed_tmp.push_back(mt.getSmoothedIntensities()[last_idx]);
-          ++cp_it;
-          ++last_idx;
+          last_idx = mins[min_idx] + 1;
         }
+        const std::span<const MassTrace::PeakType> sub_peaks = peaks.subspan(first_idx, last_idx - first_idx);
+        const std::span<const double> sub_smoothed = smoothed.subspan(first_idx, last_idx - first_idx);
 
-        // Create new mass trace, copy smoothed intensities
-        MassTrace new_mt(tmp_mt);
-        new_mt.setSmoothedIntensities(smoothed_tmp);
-        // copy ion mobility centroid and peak fwhm to split traces
-        if (mt.containsIMData()) new_mt.setCentroidIM(mt.getCentroidIM());
-        new_mt.fwhm_mz_avg = mt.fwhm_mz_avg;
-        new_mt.fwhm_im_avg = mt.fwhm_im_avg;
-
-        // check filter criteria
+        // check filter criteria (on the peaks of the sub-trace, so that no mass trace is created for a rejected one)
         bool pw_ok = true;
         bool snr_ok = true;
 
@@ -511,7 +507,7 @@ namespace OpenMS
         // *********************************************************************
         if (pw_filtering_ == "fixed")
         {
-          double act_fwhm(new_mt.estimateFWHM(true));
+          double act_fwhm(MassTraceStatistics::estimateFWHM(sub_peaks, sub_smoothed).fwhm);
           if (act_fwhm < min_fwhm_ || act_fwhm > max_fwhm_)
           {
             pw_ok = false;
@@ -531,22 +527,27 @@ namespace OpenMS
 
         if (pw_ok && snr_ok)
         {
+          // Create new mass trace, copy smoothed intensities
+          MassTrace new_mt(std::vector<MassTrace::PeakType>(sub_peaks.begin(), sub_peaks.end()));
+          new_mt.setSmoothedIntensities(std::vector<double>(sub_smoothed.begin(), sub_smoothed.end()));
+          // copy ion mobility centroid and peak fwhm to split traces
+          if (mt.containsIMData()) new_mt.setCentroidIM(mt.getCentroidIM());
+          new_mt.setFWHMMZAvg(mt.getFWHMMZAvg());
+          new_mt.setFWHMIMAvg(mt.getFWHMIMAvg());
+
           // set label of sub-trace
           new_mt.setLabel(mt.getLabel() + "." + StringUtils::toStr(min_idx + 1));
           new_mt.updateSmoothedMaxRT();
           new_mt.updateWeightedMeanMZ();
           new_mt.updateWeightedMZsd();
           new_mt.setQuantMethod(mt.getQuantMethod());
-          if (pw_filtering_ != "fixed")
-          {
-            new_mt.estimateFWHM(true);
-          }
+          new_mt.estimateFWHM(true);
 
 #ifdef _OPENMP
 #pragma omp critical (OPENMS_ElutionPeakDetection_mtraces)
 #endif
           {
-            single_mtraces.push_back(new_mt);
+            single_mtraces.push_back(std::move(new_mt));
           }
         }
       }

@@ -264,7 +264,7 @@ protected:
         // attach mz peak FWHM as meta array is available
         if (mt_ext.hasFwhmMz())
         {
-          fcons.setMetaValue(Constants::UserParam::FWHM_MZ_AVG, m_traces_final[i].fwhm_mz_avg);
+          fcons.setMetaValue(Constants::UserParam::FWHM_MZ_AVG, m_traces_final[i].getFWHMMZAvg());
         }
         // Similarly, check for ion mobility centroid presence. Annotate output with ion mobility
         if (mt_ext.hasCentroidIm())
@@ -275,7 +275,7 @@ protected:
         // if ion mobility peak FWHM is presnt, add to meta data
         if (mt_ext.hasFwhmIm())
         {
-          fcons.setMetaValue(Constants::UserParam::FWHM_IM_AVG, m_traces_final[i].fwhm_im_avg);
+          fcons.setMetaValue(Constants::UserParam::FWHM_IM_AVG, m_traces_final[i].getFWHMIMAvg());
         }
 
         consensus_map.push_back(fcons);
@@ -329,7 +329,7 @@ protected:
         f.setMetaValue(Constants::UserParam::SD_ppm, sd / f.getMZ() * 1e6);
         if (mt_ext.hasFwhmMz())
         {
-          f.setMetaValue(Constants::UserParam::FWHM_MZ_AVG, m_traces_final[i].fwhm_mz_avg);
+          f.setMetaValue(Constants::UserParam::FWHM_MZ_AVG, m_traces_final[i].getFWHMMZAvg());
         }
         // Similarly, check for ion mobility centroid presence. Annotate output with ion mobility
         if (mt_ext.hasCentroidIm())
@@ -338,7 +338,7 @@ protected:
         }
         if (mt_ext.hasFwhmIm())
         {
-          f.setMetaValue(Constants::UserParam::FWHM_IM_AVG, m_traces_final[i].fwhm_im_avg);
+          f.setMetaValue(Constants::UserParam::FWHM_IM_AVG, m_traces_final[i].getFWHMIMAvg());
         }
         stats_sd.push_back(m_traces_final[i].getCentroidSD());
         ms_feat_map.push_back(f);

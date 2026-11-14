@@ -19,6 +19,7 @@ FeatureMap.cpp
 FeatureUniqueIds.cpp
 IMSExperimentRandomAccess.cpp
 MassTrace.cpp
+MassTraceStatistics.cpp
 MobilityPeak1D.cpp
 MobilityPeak2D.cpp
 Mobilogram.cpp
