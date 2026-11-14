@@ -69,12 +69,14 @@ for _, g in pop[pop.iso >= 0].groupby('iso'):
         m_ab = np.where(M.any(2), M.argmax(2), -1).astype(np.int8)  # a slot -> b slot
         m_ba = np.where(M.any(1), M.argmax(1), -1).astype(np.int8)  # b slot -> a slot
         ra += [a, b]; rb += [b, a]; ma += [m_ab, m_ba]; mb += [m_ba, m_ab]
+if not ra:  # no window shares any fragment signal (post-run fix; never reached on the real runs)
+    ra, rb = [np.zeros(0, int)], [np.zeros(0, int)]; ma, mb = [np.zeros((0, K), np.int8)], [np.zeros((0, K), np.int8)]
 ra, rb = np.concatenate(ra), np.concatenate(rb); ma, mb = np.concatenate(ma), np.concatenate(mb)
 print(f'directed links {len(ra)} ({time.time() - t0:.0f} s)', flush=True)
 # One claimant window per (a, claimant precursor): nearest apex.
 d = np.abs(apex[ra] - apex[rb])
 o = np.lexsort((d, pid[rb], ra)); ra, rb, ma, mb, d = ra[o], rb[o], ma[o], mb[o], d[o]
-first = np.r_[True, (ra[1:] != ra[:-1]) | (pid[rb][1:] != pid[rb][:-1])]
+first = np.r_[True, (ra[1:] != ra[:-1]) | (pid[rb][1:] != pid[rb][:-1])][:len(ra)]
 ra, rb, ma, mb = ra[first], rb[first], ma[first], mb[first]
 print(f'links after one window per claimant precursor {len(ra)}; windows with a claimant {len(np.unique(ra))} of {n}', flush=True)
 

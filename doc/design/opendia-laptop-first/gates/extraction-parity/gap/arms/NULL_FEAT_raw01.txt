@@ -1,0 +1,13 @@
+null windows 422976, null winners 271410
+  featA col 0: null-window AUC(T>D) 0.5021  null-winner 0.5021
+  featA col 1: null-window AUC(T>D) 0.4986  null-winner 0.4992
+  featA col 2: null-window AUC(T>D) 0.5015  null-winner 0.5024
+  featA col 3: null-window AUC(T>D) 0.4989  null-winner 0.4992
+  featG col 0: null-window AUC(T>D) 0.4977  null-winner 0.4973
+  featG col 1: null-window AUC(T>D) 0.5013  null-winner 0.5012
+  featG col 2: null-window AUC(T>D) 0.5008  null-winner 0.5019
+  featG col 3: null-window AUC(T>D) 0.5007  null-winner 0.5007
+  featI col 0: null-window AUC(T>D) 0.5058  null-winner 0.5057
+  featI col 1: null-window AUC(T>D) 0.4967  null-winner 0.4968
+  featI col 2: null-window AUC(T>D) 0.4969  null-winner 0.4973
+  featI col 3: null-window AUC(T>D) 0.5028  null-winner 0.5031

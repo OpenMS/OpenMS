@@ -88,3 +88,38 @@ The diagnostic ceiling in `RESULT_GAP.md` estimated about 100–140 of the 626 r
    - residual evidence.
    Wall time in Python was 2:02 / 11 GB on raw01, so it will be cheap in C++.
 2. **Full joint fit** (the iterative noisy-OR / EM of the design doc) as a new arm against D11FDI.
+
+## Post-hoc validation (2026-11-14, after the ruling; descriptive, does not change the verdict)
+
+**1. Chain wiring.**
+- All 28 frozen hashes and the 3 amendment hashes were checked OK.
+- make_w and calib_tail ran for all 10 arm × raw combinations, and calib_tail reports "window choice unchanged: True" for each.
+- The control reproduces arm E's D11FDWT exactly (max abs diff 0.0).
+
+**2. Synthetic test of features_I** (`scripts/test_features_I.py`):
+- A planted claimant on one shared fragment gives the analytic explained share (0.5952, matched to 1e-4).
+- The residual library cosine rises (+0.063).
+- A precursor in another isolation window, and a pair without RT overlap, get 0 links.
+- **Bug found:** the script crashed when no link exists at all, which happens with 0 links in a run. It was fixed by guarding the empty concatenation and the de-duplication mask.
+  - The real runs never hit that path.
+  - The fixed script reproduces the codon raw01 featI.npy byte for byte (sha256 382896e7…).
+
+**3. Null-window tell check** (`NULL_FEAT_raw01.txt`, label-free; windows with |library RT error| > 3σ, where no peptide is expected):
+- AUC(target > decoy) per featA/G/I column lies between 0.497 and 0.506 over windows and over null winners.
+- The largest is i_explained at 0.5058. So targets are slightly more often explained by claimants in null windows, but the effect is small.
+- No column carries a library or sequence tell of practical size.
+
+**4. Seed sensitivity** (`SEED_COMPARE_<1..4>.txt`, `seed_check.py`):
+- D11FD and D11FDI were retrained with every training seed shifted by 1–4, with the same W/T and evaluation.
+- ΔN@FDP_c 1 % / 2 % of D11FDI over its own-seed control:
+
+| Raw | seed 0 (frozen run) | 1 | 2 | 3 | 4 | range |
+|---|---|---|---|---|---|---|
+| 01 @1 % | +185 | +126 | +124 | +136 | +118 | +118..+185 |
+| 01 @2 % | +76 | +39 | +81 | +135 | +56 | +39..+135 |
+| 02 @1 % | +293 | +342 | +273 | +199 | +351 | +199..+351 |
+| 02 @2 % | +224 | +256 | +271 | +189 | +291 | +189..+291 |
+
+- Across seeds, FDP_c at q ≤ 0.01 for D11FDI is 0.0060–0.0071 (raw01) and 0.0012–0.0083 (raw02). The control's range is 0.0073–0.0096 and 0.0042–0.0082, so D11FDI never exceeds the rule-1c limit.
+- **The gain is positive at every seed on both raws, and on raw02 it is larger than the control's own seed spread** (control N@1 % 1609–1665).
+- The frozen run sits at the top of the raw01 range. On raw01 the typical gain is about +125 at 1 % rather than +185, and +40 to +135 at 2 %. Several raw01 seeds have 2 % intervals that touch 0 (−17..+150, −19..+149), so the raw01 2 % pass in the frozen run is not robust to the seed.
