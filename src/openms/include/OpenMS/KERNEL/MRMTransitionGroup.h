@@ -298,13 +298,10 @@ public:
     /// @name Helper functions
     //@{
 
-    /// Check whether internal state is consistent, e.g. same number of chromatograms and transitions are present (no runtime overhead in release mode)
+    /// Returns false if transitions and chromatograms do not match one-to-one.
     inline bool isInternallyConsistent() const
     {
-      OPENMS_PRECONDITION(transitions_.size() == chromatograms_.size(), "Same number of transitions as chromatograms are required")
-      OPENMS_PRECONDITION(transition_map_.size() == chromatogram_map_.size(), "Same number of transitions as chromatograms mappings are required")
-      OPENMS_PRECONDITION(isMappingConsistent_(), "Mapping needs to be consistent")
-      return true;
+      return transitions_.size() == chromatograms_.size() && isMappingConsistent_();
     }
 
     /// Ensure that chromatogram native ids match their keys in the map

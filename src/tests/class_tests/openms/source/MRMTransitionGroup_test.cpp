@@ -292,6 +292,36 @@ START_SECTION ( inline bool isInternallyConsistent() const)
 {
   MRMTransitionGroupType mrmtrgroup;
   TEST_EQUAL(mrmtrgroup.isInternallyConsistent(), true)
+
+  // a transition with no matching chromatogram is a genuine inconsistency;
+  // isInternallyConsistent() must be able to report it as such (it must not
+  // be an OPENMS_PRECONDITION-only check that is a silent no-op in release
+  // builds and can therefore only ever return true)
+  TransitionType inconsistent_trans;
+  inconsistent_trans.setNativeID("inconsistent_trans");
+  mrmtrgroup.addTransition(inconsistent_trans, "inconsistent_trans");
+  TEST_EQUAL(mrmtrgroup.isInternallyConsistent(), false)
+
+  // same count on both sides, but the keys differ: isMappingConsistent_()
+  // must catch this, not just the size comparison above
+  MRMTransitionGroupType mrmtrgroup_mismatched_keys;
+  TransitionType trans_a;
+  trans_a.setNativeID("a");
+  mrmtrgroup_mismatched_keys.addTransition(trans_a, "a");
+  MSChromatogram chrom_b;
+  chrom_b.setNativeID("b");
+  mrmtrgroup_mismatched_keys.addChromatogram(chrom_b, "b");
+  TEST_EQUAL(mrmtrgroup_mismatched_keys.isInternallyConsistent(), false)
+
+  // one transition with its matching chromatogram must report consistent
+  MRMTransitionGroupType mrmtrgroup_matched;
+  TransitionType trans_match;
+  trans_match.setNativeID("match");
+  mrmtrgroup_matched.addTransition(trans_match, "match");
+  MSChromatogram chrom_match;
+  chrom_match.setNativeID("match");
+  mrmtrgroup_matched.addChromatogram(chrom_match, "match");
+  TEST_EQUAL(mrmtrgroup_matched.isInternallyConsistent(), true)
 }
 END_SECTION
 
