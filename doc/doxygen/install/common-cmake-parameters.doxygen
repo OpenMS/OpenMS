@@ -131,6 +131,30 @@ The most important CMake variables are:
     same for the C++ compiler.</td>
   </tr>
   <tr>
+    <th valign="top">OPENMS_LINKER</td>
+    <td>[ELF platforms (e.g. Linux) with GCC or Clang] Linker used for libOpenMS, the TOPP tools and the tests.
+    A full build links ~900 executables, and every change to libOpenMS relinks all of them; lld or mold
+    link several times faster than the GNU BFD linker.
+    <code>auto</code> uses lld, or mold for GCC with <code>ENABLE_IPO</code> (lld cannot read GCC LTO objects),
+    if the compiler can link with it, and falls back to the toolchain default otherwise.
+    <code>lld</code>, <code>mold</code>, <code>gold</code> or <code>bfd</code> force that linker (configuring fails
+    if it does not work); <code>default</code> keeps the toolchain default. Nothing is changed if
+    <code>CMAKE_LINKER_TYPE</code> or a <code>-fuse-ld=</code> in the <code>CMAKE_*_LINKER_FLAGS</code> already
+    selects a linker. Ignored on macOS and with MSVC. (Default: auto)</td>
+  </tr>
+  <tr>
+    <th valign="top">ENABLE_UNITYBUILD=Off/On</td>
+    <td>Build the libraries as batched unity builds (CMake <code>UNITY_BUILD</code>): every
+    <code>OPENMS_UNITY_BUILD_BATCH_SIZE</code> neighbouring source files are compiled as one translation unit,
+    so their common headers are parsed once per batch. Not tested in CI. (Default: Off)</td>
+  </tr>
+  <tr>
+    <th valign="top">OPENMS_UNITY_BUILD_BATCH_SIZE</td>
+    <td>With <code>ENABLE_UNITYBUILD</code>: number of source files combined into one translation unit;
+    <code>0</code> combines all files of a library. Smaller batches keep incremental rebuilds and parallelism.
+    (Default: 8)</td>
+  </tr>
+  <tr>
     <th valign="top">SEARCH_ENGINES_DIRECTORY (optional)</td>
     <td>The location where thirdparty search engines (such as Comet and MSGF+)
     are located. This directory should have the same structure as the example
