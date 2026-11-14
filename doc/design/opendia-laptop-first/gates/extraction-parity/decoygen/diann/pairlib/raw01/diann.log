@@ -1,0 +1,69 @@
+
+DIA-NN 2.2.0 Academia  (Data-Independent Acquisition by Neural Networks)
+Compiled on May 29 2025 15:05:00
+Current date and time: Sat Nov 14 02:09:47 2026
+Logical CPU cores: 20
+Thread number set to 9
+Output will be filtered at 0.5 FDR
+Cysteine carbamidomethylation enabled as a fixed modification
+Min precursor charge set to 1
+Max precursor charge set to 5
+DIA-NN will automatically optimise the mass accuracy for the first run of the experiment, use this mode for preliminary analyses only
+WARNING: protein inference is enabled but no FASTA provided - is this intended?
+WARNING: protein inference will only be performed for precursors identified with global q-value <= 0.05 or q-value <= 0.05.
+WARNING: it is recommended to set the q-value threshold to 5% or lower.
+
+1 files will be processed
+[0:00] Loading spectral library /w/pairlibdec/lib.tsv
+WARNING: no neutral loss information found in the library - assuming fragments without losses
+[0:03] Finding proteotypic peptides (assuming that the list of UniProt ids provided for each peptide is complete)
+[0:04] Spectral library loaded: 0 protein isoforms, 0 protein groups and 604480 precursors in 267145 elution groups.
+[0:04] Initialising library
+[0:06] Saving the library to /w/pairlibdec/lib.tsv.skyline.speclib
+
+[0:07] File #1/1
+[0:07] Loading run /in/raw01.mzML
+[4:31] Pre-processing...
+[4:33] 2928 MS1 and 292883 MS2 scans in 976 (inferred) and 976 (encoded) cycles, 296908 precursors in range
+[4:33] Calibrating with mass accuracies 21 (MS1), 25 (MS2)
+[9:57] RT window set to 1.39221
+[9:57] Peak width: 2.76
+[9:57] Scan window radius set to 6
+[9:57] Recommended MS1 mass accuracy setting: 2.2 ppm
+[17:41] Optimised mass accuracy: 6 ppm
+[19:35] Main search
+[20:27] Removing low confidence identifications
+[20:28] Removing interfering precursors
+[20:29] Training neural networks on 7726 target and 2590 decoy PSMs
+[20:56] Number of IDs at 0.01 FDR: 2064
+[20:57] No protein annotation, skipping protein q-value calculation
+[20:57] Quantification
+[20:58] Quantification information saved to /w/pairlib/raw01/tmp/_in_raw01_mzML.quant
+
+[20:58] Cross-run analysis
+[20:58] Reading quantification information: 1 files
+[20:59] Quantifying peptides
+[20:59] Quantifying proteins
+[20:59] No protein annotation, skipping protein q-value calculation
+[20:59] No protein annotation, skipping global protein q-value calculation
+[21:00] Compressed report saved to /w/pairlib/raw01/report.parquet. Use R 'arrow' or Python 'PyArrow' package to process
+[21:00] Stats report saved to /w/pairlib/raw01/report.stats.tsv
+
+The following warnings or errors (in alphabetic order) were detected at least the indicated number of times:
+WARNING: it is recommended to set the q-value threshold to 5% or lower. : 1
+WARNING: no neutral loss information found in the library - assuming fragments without losses : 1
+WARNING: protein inference is enabled but no FASTA provided - is this intended? : 1
+WARNING: protein inference will only be performed for precursors identified with global q-value <= 0.05 or q-value <= 0.05. : 1
+Finished
+
+
+How to cite:
+using DIA-NN: Demichev et al, Nature Methods, 2020, https://www.nature.com/articles/s41592-019-0638-x
+analysing Scanning SWATH: Messner et al, Nature Biotechnology, 2021, https://www.nature.com/articles/s41587-021-00860-4
+analysing PTMs: Steger et al, Nature Communications, 2021, https://www.nature.com/articles/s41467-021-25454-1
+analysing dia-PASEF: Demichev et al, Nature Communications, 2022, https://www.nature.com/articles/s41467-022-31492-0
+analysing Slice-PASEF: Szyrwiel et al, biorxiv, 2022, https://doi.org/10.1101/2022.10.31.514544
+plexDIA / multiplexed DIA: Derks et al, Nature Biotechnology, 2023, https://www.nature.com/articles/s41587-022-01389-w
+CysQuant: Huang et al, Redox Biology, 2023, https://doi.org/10.1016/j.redox.2023.102908
+using QuantUMS: Kistner at al, biorxiv, 2023, https://doi.org/10.1101/2023.06.20.545604
+[21:00] Log saved to /w/pairlib/raw01/report.log.txt

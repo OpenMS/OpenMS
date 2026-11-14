@@ -1,0 +1,23 @@
+	Command being timed: "docker run --rm --cpus 9 -u 1000:1000 -v /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/dd-plots-20261111:/in:ro -v /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/diann-decoys-20261114:/w -v /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107:/b:ro --entrypoint /usr/diann-2.2.0/diann-linux diann:2.2.0 --f /in/raw01.mzML --lib /w/pairlibdec/lib.tsv --threads 9 --verbose 1 --out /w/pairlib/raw01/report.parquet --qvalue 1 --unimod4 --min-pr-charge 1 --max-pr-charge 5 --temp /w/pairlib/raw01/tmp"
+	User time (seconds): 0.09
+	System time (seconds): 0.04
+	Percent of CPU this job got: 0%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 21:00.86
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 31408
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 3483
+	Voluntary context switches: 1530
+	Involuntary context switches: 374
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 64
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

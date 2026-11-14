@@ -1,0 +1,6 @@
+library targets 302480, entrapment 151240, r 1.0000
+own/raw02          | q<=0.01: N 2322 E 12 FDP_c 0.0103 | q<=0.05: N 2992 E 90 FDP_c 0.0602 | N@FDP_c 1%/2%: 2301/2543 | decoy rows 0, unmapped targets 0
+pairlib/raw01      | q<=0.01: N 2064 E 9 FDP_c 0.0087 | q<=0.05: N 2578 E 42 FDP_c 0.0326 | N@FDP_c 1%/2%: 2154/2354 | decoy rows 0, unmapped targets 0
+pairlib/raw02      | q<=0.01: N 2027 E 8 FDP_c 0.0079 | q<=0.05: N 2571 E 55 FDP_c 0.0428 | N@FDP_c 1%/2%: 2108/2310 | decoy rows 0, unmapped targets 0
+armD/raw01         | q<=0.01: N 1909 E 7 FDP_c 0.0073 | q<=0.05: N 2425 E 45 FDP_c 0.0371 | N@FDP_c 1%/2%: 2090/2203 | decoy rows 0, unmapped targets 0
+armD/raw02         | q<=0.01: N 1656 E 4 FDP_c 0.0048 | q<=0.05: N 2387 E 38 FDP_c 0.0318 | N@FDP_c 1%/2%: 1970/2184 | decoy rows 0, unmapped targets 0
