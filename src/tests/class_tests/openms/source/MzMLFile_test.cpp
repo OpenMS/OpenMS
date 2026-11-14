@@ -20,8 +20,14 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+#include <cstdlib>
 #include <fstream>
 
 using namespace OpenMS;
@@ -974,6 +980,30 @@ START_SECTION([EXTRA] load xsd:integer types)
 }
 END_SECTION
 
+// Loading from an HTTP server needs network access: set OPENMS_TEST_HTTP_URL to the URL of a copy of MzMLFile_1.mzML
+// (or of a gzip/bzip2 compressed copy), e.g. https://raw.githubusercontent.com/OpenMS/OpenMS/develop/src/tests/class_tests/openms/data/MzMLFile_1.mzML
+START_SECTION([EXTRA] load from HTTP URL)
+{
+  MzMLFile file;
+  PeakMap exp;
+  // a server that cannot be reached is a load error (port 1 on the local host: no network access needed)
+  TEST_EXCEPTION(Exception::ParseError, file.load("http://127.0.0.1:1/run.mzML", exp))
+  // the error does not name the credentials of the URL
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load("http://user:secret@127.0.0.1:1/run.mzML?token=1", exp),
+                              "IOException: IO error for file 'http://127.0.0.1:1/run.mzML' in: http://127.0.0.1:1/run.mzML")
+  const char* url = std::getenv("OPENMS_TEST_HTTP_URL");
+  if (url != nullptr)
+  {
+    PeakMap local, remote;
+    file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), local);
+    file.load(url, remote);
+    TEST_EQUAL(remote.size(), local.size())
+    TEST_EQUAL(remote.getChromatograms().size(), local.getChromatograms().size())
+    TEST_TRUE(remote.getSpectra() == local.getSpectra())
+    TEST_EQUAL(remote.getLoadedFilePath(), url)
+  }
+}
+END_SECTION
 
 START_SECTION((template <typename MapType> void store(const std::string& filename, const MapType& map) const))
 {
@@ -1290,6 +1320,126 @@ START_SECTION([EXTRA] the streaming mzML writer refuses compressed file names)
 }
 END_SECTION
 
+START_SECTION([EXTRA] the streaming mzML writer corrects the count of spectra it announced)
+{
+  // The writer gets the number of spectra before the first one (setExpectedSize()) and writes it into the
+  // spectrumList tag then. A source that leaves spectra out afterwards (BrukerTimsFile::transform() for
+  // precursors without peaks, any filter) writes fewer: the tag is corrected when the file is closed, in
+  // place, so that the offsets of the index stay valid.
+  const auto write = [](Size expected, Size written, bool index)
+  {
+    std::string file;
+    NEW_TMP_FILE(file);
+    file += ".mzML";
+    {
+      PlainMSDataWritingConsumer consumer(file);
+      consumer.getOptions().setWriteIndex(index);
+      consumer.setExpectedSize(expected, 0);
+      for (Size i = 0; i < written; ++i)
+      {
+        MSSpectrum spec;
+        spec.setRT(static_cast<double>(i));
+        spec.setNativeID("scan=" + std::to_string(i + 1));
+        spec.push_back(Peak1D(100.0 + i, 1.0f));
+        consumer.consumeSpectrum(spec);
+      }
+    }
+    return file;
+  };
+  // the spectrumList tag of a file, and the spectra read through the index of the file
+  const auto list_tag = [](const std::string& file) -> std::string
+  {
+    std::ifstream is(file.c_str());
+    for (std::string line; std::getline(is, line);)
+    {
+      if (line.find("<spectrumList") != std::string::npos) return line;
+    }
+    return "";
+  };
+
+  // as announced: the tag is the one that was written first
+  std::string file = write(3, 3, true);
+  TEST_STRING_EQUAL(list_tag(file), "\t\t<spectrumList count=\"3\" defaultDataProcessingRef=\"dp_sp_0\">")
+  // fewer spectra than announced, same number of digits
+  file = write(5, 3, true);
+  TEST_STRING_EQUAL(list_tag(file), "\t\t<spectrumList count=\"3\" defaultDataProcessingRef=\"dp_sp_0\">")
+  // fewer digits: blanks keep the length of the tag
+  file = write(1200, 12, true);
+  TEST_STRING_EQUAL(list_tag(file), "\t\t<spectrumList count=\"12\" defaultDataProcessingRef=\"dp_sp_0\"  >")
+  PeakMap exp;
+  MzMLFile().load(file, exp);
+  TEST_EQUAL(exp.size(), 12)
+  // ... so the index still leads to the spectra
+  OnDiscMSExperiment on_disc;
+  TEST_EQUAL(on_disc.openFile(file), true)
+  TEST_EQUAL(on_disc.getNrSpectra(), 12)
+  TEST_STRING_EQUAL(on_disc.getSpectrum(11).getNativeID(), "scan=12")
+  TEST_REAL_SIMILAR(on_disc.getSpectrum(7)[0].getMZ(), 107.0)
+  // more spectra than announced: corrected if the number has no more digits
+  file = write(2, 7, false);
+  TEST_STRING_EQUAL(list_tag(file), "\t\t<spectrumList count=\"7\" defaultDataProcessingRef=\"dp_sp_0\">")
+  // a number with more digits does not fit: the tag keeps what was announced
+  file = write(2, 11, false);
+  TEST_STRING_EQUAL(list_tag(file), "\t\t<spectrumList count=\"2\" defaultDataProcessingRef=\"dp_sp_0\">")
+  MzMLFile().load(file, exp);
+  TEST_EQUAL(exp.size(), 11)
+
+  // setExpectedSize() after the first spectrum: the count in the tag (0) is corrected, and the correction
+  // goes by the digits of that count, not of the number expected at the end
+  NEW_TMP_FILE(file);
+  file += ".mzML";
+  {
+    PlainMSDataWritingConsumer consumer(file);
+    for (Size i = 0; i < 3; ++i)
+    {
+      if (i == 1) consumer.setExpectedSize(10, 0);
+      MSSpectrum spec;
+      spec.setRT(static_cast<double>(i));
+      spec.setNativeID("scan=" + std::to_string(i + 1));
+      spec.push_back(Peak1D(100.0 + i, 1.0f));
+      consumer.consumeSpectrum(spec);
+    }
+  }
+  TEST_STRING_EQUAL(list_tag(file), "\t\t<spectrumList count=\"3\" defaultDataProcessingRef=\"dp_sp_0\">")
+  OnDiscMSExperiment on_disc_late;
+  TEST_EQUAL(on_disc_late.openFile(file), true)
+  TEST_EQUAL(on_disc_late.getNrSpectra(), 3)
+  TEST_STRING_EQUAL(on_disc_late.getSpectrum(0).getNativeID(), "scan=1")
+  TEST_REAL_SIMILAR(on_disc_late.getSpectrum(2)[0].getMZ(), 102.0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] the streaming mzML writer writes a run without spectra)
+{
+  // A reader that gives the settings of its input and then no spectrum (all of them filtered out) leaves
+  // the mzML document of a run without spectra, as MzMLFile::store() writes it, not an empty file
+  PeakMap empty_run;
+  empty_run.setLoadedFilePath(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
+  empty_run.getSample().setName("a sample");
+  std::string streamed, stored, no_settings;
+  NEW_TMP_FILE(streamed);
+  NEW_TMP_FILE(stored);
+  NEW_TMP_FILE(no_settings);
+  {
+    PlainMSDataWritingConsumer consumer(streamed);
+    consumer.setExpectedSize(5, 0);
+    consumer.setExperimentalSettings(empty_run);
+  }
+  MzMLFile().store(stored, empty_run);
+  TEST_FILE_EQUAL(streamed.c_str(), stored.c_str())
+  PeakMap exp;
+  MzMLFile().load(streamed, exp);
+  TEST_EQUAL(exp.size(), 0)
+  TEST_STRING_EQUAL(exp.getSample().getName(), "a sample")
+
+  // without settings there is nothing to write
+  {
+    PlainMSDataWritingConsumer consumer(no_settings);
+  }
+  TEST_EQUAL(File::empty(no_settings), true)
+}
+END_SECTION
+
 START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const))
 {
   MzMLFile file;
@@ -1330,6 +1480,58 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     TEST_TRUE(StringUtils::hasSubstring(out, "</indexedmzML>"))
   }
 
+}
+END_SECTION
+
+START_SECTION(([EXTRA] FAIMS compensation voltages survive a store and load))
+{
+  MzMLFile file;
+  PeakMap exp;
+  // spectra built in code carry no acquisition info: the CV goes into the <scan> written in its place
+  MSSpectrum ms1;
+  ms1.setMSLevel(1);
+  ms1.setRT(10.0);
+  ms1.setNativeID("scan=1");
+  ms1.setDriftTime(-45.0);
+  ms1.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  exp.addSpectrum(ms1);
+  // a CV given for the precursor (MS:1001581 in <selectedIon>, as read from such files) stays a CV
+  MSSpectrum ms2;
+  ms2.setMSLevel(2);
+  ms2.setRT(11.0);
+  ms2.setNativeID("scan=2");
+  ms2.setDriftTime(-55.0);
+  ms2.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  ms2.getAcquisitionInfo().push_back(Acquisition());
+  Precursor precursor;
+  precursor.setMZ(500.0);
+  precursor.setDriftTime(-55.0);
+  precursor.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  ms2.getPrecursors().push_back(precursor);
+  exp.addSpectrum(ms2);
+
+  std::string out;
+  file.storeBuffer(out, exp);
+  TEST_EQUAL(StringUtils::hasSubstring(out, "name=\"ion mobility drift time\""), false)
+  PeakMap reloaded;
+  file.loadBuffer(out, reloaded);
+  ABORT_IF(reloaded.size() != 2)
+  TEST_EQUAL(reloaded[0].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE, true)
+  TEST_REAL_SIMILAR(reloaded[0].getDriftTime(), -45.0)
+  TEST_EQUAL(reloaded[1].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE, true)
+  TEST_REAL_SIMILAR(reloaded[1].getDriftTime(), -55.0)
+  ABORT_IF(reloaded[1].getPrecursors().size() != 1)
+  TEST_EQUAL(reloaded[1].getPrecursors()[0].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE, true)
+  TEST_REAL_SIMILAR(reloaded[1].getPrecursors()[0].getDriftTime(), -55.0)
+
+  // and again: a second round trip changes nothing
+  std::string out2;
+  file.storeBuffer(out2, reloaded);
+  PeakMap reloaded2;
+  file.loadBuffer(out2, reloaded2);
+  ABORT_IF(reloaded2.size() != 2)
+  TEST_EQUAL(reloaded2[1].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE, true)
+  TEST_REAL_SIMILAR(reloaded2[1].getDriftTime(), -55.0)
 }
 END_SECTION
 
@@ -1789,17 +1991,41 @@ END_SECTION
 START_SECTION((void testSkipChromatograms()))
 {
   MzMLFile file;
+  const std::string filename = OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML");
+  PeakMap expected;
+  file.load(filename, expected);
+
   PeakFileOptions opts;
   opts.setSkipChromatograms(true);
   file.setOptions(opts);
 
   PeakMap pm;
-  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), pm);
+  file.load(filename, pm);
   TEST_EQUAL(pm.getChromatograms().size(), 0)
+  TEST_EQUAL(pm.size(), expected.size())
+  for (Size i = 0; i < expected.size(); ++i)
+  {
+    TEST_EQUAL(pm[i] == expected[i], true)
+  }
+  TEST_EQUAL(pm.getSourceFiles() == expected.getSourceFiles(), true)
+  TEST_EQUAL(pm.getInstrument() == expected.getInstrument(), true)
+
+  std::vector<Size> transformed_spectrum_sizes;
+  Size transformed_chromatogram_count = 0;
+  MSDataTransformingConsumer consumer;
+  consumer.setSpectraProcessingFunc([&](MSSpectrum& spectrum) { transformed_spectrum_sizes.push_back(spectrum.size()); });
+  consumer.setChromatogramProcessingFunc([&](MSChromatogram&) { ++transformed_chromatogram_count; });
+  file.transform(filename, &consumer);
+  TEST_EQUAL(transformed_chromatogram_count, 0)
+  TEST_EQUAL(transformed_spectrum_sizes.size(), expected.size())
+  for (Size i = 0; i < expected.size(); ++i)
+  {
+    TEST_EQUAL(transformed_spectrum_sizes[i], expected[i].size())
+  }
 
   opts.setSkipChromatograms(false);
   file.setOptions(opts);
-  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), pm);
+  file.load(filename, pm);
   TEST_NOT_EQUAL(pm.getChromatograms().size(), 0)
 }
 END_SECTION
@@ -2063,6 +2289,90 @@ START_SECTION((data array names and the fraction identifier are XML-escaped))
   TEST_EQUAL(loaded[0].getIntegerDataArrays()[0].getName(), tricky)
   ABORT_IF(loaded.getChromatograms().empty() || loaded.getChromatograms()[0].getFloatDataArrays().empty())
   TEST_EQUAL(loaded.getChromatograms()[0].getFloatDataArrays()[0].getName(), tricky)
+}
+END_SECTION
+
+// An indexed file of several MB is loaded in parallel parts (one per thread or more, at least 1 MB each), also with the
+// spectrum filters of the options (MS levels, RT and precursor m/z range). Every load gives the experiment that the serial
+// streaming parse (one thread) gives.
+START_SECTION(([EXTRA] load() of an indexed file in parallel, with and without filters, equals the serial load))
+{
+  MSExperiment written;
+  for (int s = 0; s < 240; ++s)
+  {
+    MSSpectrum spectrum;
+    spectrum.setNativeID("scan=" + std::to_string(s + 1));
+    spectrum.setRT(10.0 + 2.5 * s);
+    spectrum.setMSLevel(s % 4 == 0 ? 1 : 2);
+    if (spectrum.getMSLevel() == 2)
+    {
+      Precursor precursor;
+      precursor.setMZ(400.0 + (s * 37) % 600);
+      precursor.setCharge(2);
+      spectrum.getPrecursors().push_back(precursor);
+    }
+    for (int k = 0; k < 1500; ++k)
+    {
+      spectrum.push_back(Peak1D(200.0 + 0.61 * k + 0.001 * s, 100.0 + (k * 7 + s) % 997));
+    }
+    written.addSpectrum(spectrum);
+  }
+  MSChromatogram chromatogram;
+  chromatogram.setNativeID("TIC");
+  for (int k = 0; k < 100; ++k) { chromatogram.push_back(ChromatogramPeak(10.0 + 6.0 * k, 1e5 + k)); }
+  written.addChromatogram(chromatogram);
+  std::string indexed_file;
+  NEW_TMP_FILE(indexed_file);
+  MzMLFile writer;
+  writer.getOptions().setWriteIndex(true);
+  writer.store(indexed_file, written);
+  TEST_EQUAL(MzMLFile().hasIndex(indexed_file), true)
+  TEST_EQUAL(File::fileSize(indexed_file) > 4 * (1 << 20), true) // enough for several parallel parts
+
+  std::vector<std::pair<std::string, PeakFileOptions>> cases(6);
+  cases[0].first = "no filter";
+  cases[1].first = "MS1";
+  cases[1].second.addMSLevel(1);
+  cases[2].first = "MS2";
+  cases[2].second.addMSLevel(2);
+  cases[3].first = "RT range";
+  cases[3].second.setRTRange(DRange<1>(DPosition<1>(150.0), DPosition<1>(450.0)));
+  cases[4].first = "precursor m/z range";
+  cases[4].second.setPrecursorMZRange(DRange<1>(DPosition<1>(500.0), DPosition<1>(700.0)));
+  cases[5].first = "MS2, RT and m/z range";
+  cases[5].second.addMSLevel(2);
+  cases[5].second.setRTRange(DRange<1>(DPosition<1>(150.0), DPosition<1>(450.0)));
+  cases[5].second.setMZRange(DRange<1>(DPosition<1>(300.0), DPosition<1>(600.0)));
+
+  auto load = [&](const PeakFileOptions& options, [[maybe_unused]] int threads)
+  {
+#ifdef _OPENMP
+    const int max_threads = omp_get_max_threads();
+    omp_set_num_threads(threads);
+#endif
+    MzMLFile reader;
+    reader.setOptions(options);
+    MSExperiment loaded;
+    reader.load(indexed_file, loaded);
+#ifdef _OPENMP
+    omp_set_num_threads(max_threads);
+#endif
+    return loaded;
+  };
+  for (const auto& [name, options] : cases)
+  {
+    const MSExperiment serial = load(options, 1);
+    TEST_EQUAL(serial.empty(), false)
+    for (int threads : {2, 4})
+    {
+      const MSExperiment parallel = load(options, threads);
+      TEST_EQUAL(parallel.size(), serial.size())
+      TEST_EQUAL(parallel == serial, true)
+    }
+  }
+  // the filters do filter
+  TEST_EQUAL(load(cases[1].second, 4).size(), 60)
+  TEST_EQUAL(load(cases[2].second, 4).size(), 180)
 }
 END_SECTION
 

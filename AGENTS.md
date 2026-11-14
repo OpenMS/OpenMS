@@ -2,6 +2,16 @@
 
 This file provides context and instructions for AI coding agents working on OpenMS. It follows the [AGENTS.md](https://agents.md) standard.
 
+## AI Contribution Policy
+
+**Read the [OpenMS AI Policy](https://openms.de/ai-policy/) before contributing.** It applies to every OpenMS repository, including this one. In short:
+
+- AI is a tool, not a contributor. The human contributor is the author and is fully accountable for the quality, license compliance and usefulness of the change. They must understand, review, test and be able to debug every AI-assisted change before it is submitted. Make changes they can review: small, explained and checked.
+- **Disclose AI use where authorship is recorded.** Substantial AI work (e.g. agentic tools like you) needs a `Co-authored-by:` trailer in the commit message. Lighter use should get an `Assisted-by:` trailer. Minor grammar or wording help needs no disclosure.
+- Tick the AI disclosure box in the pull request template, and for significant changes give the design intent, rationale and expected behavior in the PR description. The human should be able to explain it in their own words.
+- AI-assisted work is held to the same standards (correctness, security, maintainability, tests, documentation) as any other. Maintainers may close contributions that cost more to review than to write, or that the author cannot explain (labels `AI-needs-explanation`, `AI-guidelines-not-met`).
+- Do not use AI as the sole or final judge of a contribution or of a person's standing in the community.
+
 ## Critical Constraints
 
 **NEVER do these things:**
@@ -50,7 +60,6 @@ OpenMS/
 │   │   ├── include/OpenMS/  # Headers (.h)
 │   │   └── source/          # Implementation (.cpp)
 │   ├── openms_cli/          # TOPP tool framework (TOPPBase, ToolHandler, ...)
-│   ├── openms_gui/          # Qt-based GUI components
 │   ├── openswathalgo/       # OpenSWATH algorithms
 │   ├── topp/                # Command-line tools (TOPP)
 │   ├── pyOpenMS/            # Python bindings (nanobind)
@@ -74,15 +83,15 @@ OpenMS/
 - Public headers are declared in `FILE_SET HEADERS`; generated export headers are added by `openms_add_library()`. Private headers under `source/` and `include/` belong to the private file set. File sets supply the build and installed include directories.
 - Linux x64 CI builds `all_verify_interface_header_sets`; developers can opt in with `OPENMS_VERIFY_INTERFACE_HEADER_SETS=ON`. Keep the configure-time include allowlist (`openms_validate_public_headers()` in `cmake/install_macros.cmake`) because shared include roots can hide private dependencies; a new PUBLIC dependency is allowed per library with `openms_add_library(... ALLOWED_PUBLIC_INCLUDES ...)`, never by widening the allowlist for a PRIVATE one.
 - Use `CMAKE_BUILD_TYPE=Debug` for development to keep assertions/pre/post-conditions.
-- Dependencies via vcpkg: configure with a preset from `CMakePresets.json` (`cmake --preset <preset>`, `cmake --list-presets`). The presets set `OPENMS_USE_VCPKG=ON` and use the toolchain of the `vcpkg` submodule; vcpkg then builds the dependencies declared in the manifest `vcpkg.json` (optional ones as manifest features, enabled with `VCPKG_MANIFEST_FEATURES` next to the matching `WITH_*` option), using the overlay ports and triplets in `vcpkg-overlays/`. Qt is not in the manifest: pass its prefix with `CMAKE_PREFIX_PATH` if CMake does not find it.
+- Dependencies via vcpkg: configure with a preset from `CMakePresets.json` (`cmake --preset <preset>`, `cmake --list-presets`). The presets set `OPENMS_USE_VCPKG=ON` and use the toolchain of the `vcpkg` submodule; vcpkg then builds the dependencies declared in the manifest `vcpkg.json` (optional ones as manifest features, enabled with `VCPKG_MANIFEST_FEATURES` next to the matching `WITH_*` option), using the overlay ports and triplets in `vcpkg-overlays/`.
 - **vcpkg is a git submodule**: run `git submodule update --init vcpkg` (or clone with `--recurse-submodules`) before configuring with a preset.
 - Builds without vcpkg use distro or Homebrew packages; set `CMAKE_PREFIX_PATH` as needed.
 - pyOpenMS build deps: install via `uv sync --only-group build` or `pip install -e .[dev]` (see `src/pyOpenMS/pyproject.toml`); enable with `-DPYOPENMS=ON`.
 - Style checks: formatting is `.clang-format`. Static analysis runs in CI (the `cppcheck-test` workflow), not from the build system.
 
 **Required dependencies:**
-- XercesC, Boost 1.81+ (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), COIN-OR, GLPK, or HiGHS (LP solver; use `-DLP_SOLVER=AUTO/COIN/GLPK/HIGHS`), ZLIB, BZip2, zstd, libcurl
-- Qt6 (6.1.0+) — required for GUI (`openms_gui`); optional for TOPP tools, core library (`libOpenMS`), and pyOpenMS builds
+- libxml2 2.13+, Boost 1.81+ (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), HiGHS (LP solver; fetched automatically if not found), ZLIB, BZip2, zstd, libcurl
+- No Qt: the Qt-based GUI library and the GUI tools (TOPPView, TOPPAS, INIFileEditor, ExecutePipeline, ImageCreator) live in the separate repository [OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI), built against an installed OpenMS of the same version. GUI and Qt questions (build, tests, `QT_QPA_PLATFORM`, WebEngine) belong there.
 
 **Optional:** HDF5 (`-DWITH_HDF5=ON`); Bruker TimsTOF `.d` directory support via opentims (`-DWITH_OPENTIMS=ON`, default on; set `-DENABLE_OPENTIMS_TESTS=ON` to also fetch and run integration tests); Thermo RAW file reading via openms-thermo-bridge (`-DWITH_THERMO_RAW=ON`, default on except on Linux/aarch64; requires .NET 8+ runtime at run time; set `-DENABLE_THERMO_RAW_TESTS=ON` to download test data and run integration tests)
 
@@ -107,24 +116,14 @@ OpenMS/
 - **Apple Clang (Xcode) required**; Homebrew for dependencies
 - **Xcode 16+ (AppleClang 16+) required** for C++23
 - **AppleClang >= 15.0.0**: Requires `-ld_classic` linker flag (set automatically)
-- Remove older Qt versions if they interfere with Qt6
-- Qt6 requires `PrintSupport` component for platform plugin
-- `QT_QPA_PLATFORM=minimal` helps for headless/remote GUI runs
 - Code signing and notarization required for distribution (see `cmake/MacOSX/README.md`)
 - `fix_dependencies.rb` script fixes RPATH for relocatable binaries
 
 ### Linux
 - Dependencies via the vcpkg presets (`linux-x64-*`, `linux-arm64-*`) or distro packages
 - `-fPIC` flag applied automatically for shared library compatibility
-- `QT_QPA_PLATFORM=minimal` for headless GUI test runs
 - STL debug mode (`_GLIBCXX_DEBUG`) only supported with GCC in Debug builds
 - System libraries (libc, libstdc++, libpthread, etc.) excluded from packaging
-
-### Qt6 Issues
-- **Minimum version**: 6.1.0
-- If Qt6 not found: `-DCMAKE_PREFIX_PATH='<path_to_Qt6_lib_parent>'`
-- WebEngineWidgets optional; if missing, JavaScript views disabled in TOPPView (warning only)
-- Required components: Core; GUI components need Gui, Widgets, Svg, OpenGLWidgets
 
 ### Boost
 - OpenMS links only Boost's headers (`Boost::boost`), so static and shared Boost installs (distro, Homebrew, vcpkg) work alike
@@ -138,7 +137,6 @@ OpenMS/
 
 - Unit/class tests: `src/tests/class_tests/<lib>/source/`, add to `executables.cmake`; data in `src/tests/class_tests/libs/data/` (prefix files with class name).
 - TOPP tests: add to `src/tests/topp/CMakeLists.txt`, data in `src/tests/topp/`.
-- GUI tests: `src/tests/class_tests/openms_gui/source/` (Qt TestLib).
 - Build `all`/`ALL_BUILD` to include tests and `FuzzyDiff` (TOPP tests depend on it).
 - Use `NEW_TMP_FILE` for each output file in tests; avoid side effects in comparison macros.
 - Run with `ctest`, use `-R` for subset, `-V/-VV` for verbosity, `-C` for multi-config generators.
@@ -291,7 +289,6 @@ bool fragment_tolerance_ppm_;
 │   │   ├── include/OpenMS/  # Headers (.h)
 │   │   └── source/          # Implementation (.cpp)
 │   ├── openms_cli/       # TOPP tool framework (TOPPBase, ToolHandler, ...)
-│   ├── openms_gui/       # Qt-based GUI components
 │   ├── openswathalgo/    # OpenSWATH algorithms
 │   ├── topp/             # Command-line tools (TOPP)
 │   ├── pyOpenMS/         # Python bindings (nanobind)
@@ -413,7 +410,7 @@ void MyClass::process(const MSSpectrum& spectrum)
 - New C++ class: add `.h`/`.cpp`, Doxygen docs, class test, `OPENMS_DLLAPI`, register in CMake lists.
 - C++ API change: update nanobind bindings/addons, pyOpenMS tests, and relevant docs; tag commits with `API` as needed.
 - New/changed TOPP tool: declare in `src/topp/executables.cmake` with its category, add docs, add TOPP tests and data.
-- Parameter or I/O change: update tool docs/CTD, tests, and `CHANGELOG`; use `PARAM`/`IO` commit tags.
+- Parameter or I/O change: update tool docs/CTD and tests; use `PARAM`/`IO` commit tags (the `CHANGELOG` entry is generated automatically, see below).
 - File format change: update `FileHandler::NamesOfTypes[]`, schemas/validators, and tests.
 
 ## Contribution Workflow and Commit Messages
@@ -422,7 +419,8 @@ void MyClass::process(const MSSpectrum& spectrum)
 - Build locally and run the relevant tests before opening a PR (see Critical Constraints).
 - Commit format: `[TAG1,TAG2] short summary` (<=120 chars, <=80 preferred), blank line, longer description, and `Fixes #N`/`Closes #N` when applicable.
 - Commit tags: NOP, DOC, COMMENT, API, INTERNAL, FEATURE, FIX, TEST, FORMAT, PARAM, IO, LOG, GUI, RESOURCE, BUILD.
-- PR checklist: update `AUTHORS` and `CHANGELOG`, run/extend tests, update pyOpenMS bindings when needed.
+- PR checklist: update `AUTHORS`, run/extend tests, update pyOpenMS bindings when needed.
+- Do not add `CHANGELOG` entries in PRs: they are generated automatically once per week by a GitHub Action (`.github/workflows/changelog-sync.md`), which opens a `[changelog-sync]` PR from the merged changes. Clear commit messages and tags (`API`, `PARAM`, `IO`, `FEATURE`, `FIX`) are what it works from.
 - Minimize pushes on open PRs (CI is heavy).
 - Run clang-format for local style checks.
 
@@ -498,7 +496,7 @@ When you change | Also update
 C++ class (new) | Add `.h`/`.cpp`, Doxygen docs, class test, `OPENMS_DLLAPI`, CMake registration
 C++ API | nanobind bindings (`bind_<domain>.cpp`), pyOpenMS addons, tests, docs
 TOPP tool (new) | `src/topp/executables.cmake` (name + category), docs, TOPP tests
-Parameters | Tool docs, CTD, tests, `CHANGELOG`
+Parameters | Tool docs, CTD, tests (not `CHANGELOG`; it is generated weekly)
 File format | `FileHandler::NamesOfTypes[]`, schemas, tests
 
 ## pyOpenMS Wrapping
@@ -558,10 +556,9 @@ cd OpenMS-build && ctest -R pyopenms -V
 ## Common Gotchas
 
 1. **Template methods with 2+ args in tests**: Wrap in parentheses for `START_SECTION`
-2. **GUI tests need display**: Set `QT_QPA_PLATFORM=minimal` for headless runs
-3. **pyOpenMS tests shadow imports**: Run from outside source tree with `PYTHONPATH` set
-4. **Windows paths**: Keep build paths short; use 64-bit only
-5. **FuzzyDiff for numeric tests**: Build `all`/`ALL_BUILD` to include it
+2. **pyOpenMS tests shadow imports**: Run from outside source tree with `PYTHONPATH` set
+3. **Windows paths**: Keep build paths short; use 64-bit only
+4. **FuzzyDiff for numeric tests**: Build `all`/`ALL_BUILD` to include it
 
 ## Debugging Tips
 
@@ -585,18 +582,22 @@ perf report
 - Use the same compiler/generator as OpenMS; set `OpenMS_DIR` when configuring. For an OpenMS built with vcpkg, also pass its `CMAKE_TOOLCHAIN_FILE`, `VCPKG_INSTALLED_DIR` and `VCPKG_TARGET_TRIPLET` (as the installed-consumer tests in `src/tests/CMakeLists.txt` do).
 - `find_package(OpenMS CONFIG)` provides the imported targets `OpenMS::OpenMS`, `OpenMS::OpenSwathAlgo` and
   `OpenMS::OpenMS_CLI` (the TOPP tool framework: TOPPBase, ToolHandler, ...; TOPP-style tools link this one
-  and request `COMPONENTS CLI`) (`OpenMS::OpenMS_GUI` via `COMPONENTS GUI`); every installed target also has
-  its un-namespaced alias (`OpenMS`, `OpenSwathAlgo`; `OpenMS_CLI`/`OpenMS_GUI` when those layers are installed).
+  and request `COMPONENTS CLI`); every installed target also has its un-namespaced alias (`OpenMS`,
+  `OpenSwathAlgo`; `OpenMS_CLI` when that layer is installed).
 - The installed package is layered (`cmake/install_macros.cmake`): core (export set `OpenMSTargets`, install
-  components `library`/`cmake`), CLI (`OpenMSCLITargets`, `library_cli`/`cmake_cli`) and GUI
-  (`OpenMSGUITargets`, `library_gui`/`cmake_gui`); headers have their own `<target>_headers` components.
-  `openms_add_library(... EXPORT_SET <set>)` selects the layer. An installation may stop at any layer
-  (the pyOpenMS wheels install the core layer only); `OpenMSConfig.cmake` includes the target files that
-  exist and sets `OpenMS_CLI_FOUND`/`OpenMS_WITH_GUI`. When adding a library or an install component,
+  components `library`/`cmake`) and CLI (`OpenMSCLITargets`, `library_cli`/`cmake_cli`); headers have their own
+  `<target>_headers` components. `openms_add_library(... EXPORT_SET <set>)` selects the layer. An installation
+  may stop at any layer (the pyOpenMS wheels install the core layer only); `OpenMSConfig.cmake` includes the
+  target files that exist and sets `OpenMS_CLI_FOUND`. The GUI layer (`OpenMS::OpenMS_GUI`) comes from
+  OpenMS-TOPP-GUI with a CMake package of its own (`OpenMSGUI`, export set `OpenMSGUITargets`); installed into
+  the same prefix, `COMPONENTS GUI` delegates to it and sets `OpenMS_GUI_FOUND`/`OpenMS_WITH_GUI`; without
+  that component, the GUI layer's `OpenMSGUITargets.cmake` (of the same version) is included directly, without
+  a Qt lookup, and sets `OpenMS_WITH_GUI` (as before the split; `OpenMS_IGNORE_GUI_LAYER` opts out). Keep the
+  version and install directories of both repositories in step. When adding a library or an install component,
   keep the layer's library and cmake components together, and update `CPACK_COMPONENTS_ALL` in
   `cmake/package_deb.cmake`/`package_rpm.cmake` and the consumer fixture in `src/tests/CMakeLists.txt`.
   `src/tests/package_layers` exercises the macros and the package template with stub libraries
-  (including a `WITH_GUI` ON to OFF reconfiguration of one build directory) in seconds.
+  (including a stub OpenMSGUI package, with and without `COMPONENTS GUI`) in seconds.
 
 ## CI, Packaging, and Containers
 
@@ -657,8 +658,6 @@ perf report
 - http://cmake.org/
 - https://visualstudio.microsoft.com/de/downloads/?q=build+tools
 - http://www.7-zip.org/
-- https://www.qt.io/download
-- https://wiki.qt.io/Building_Qt_6_from_Git
 - https://developer.apple.com/xcode/
 - https://brew.sh/
 - http://www.OpenMS.de/download/

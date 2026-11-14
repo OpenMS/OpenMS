@@ -27,6 +27,7 @@
     "boost-interprocess",
     "boost-iostreams",
     "boost-iterator",
+    "boost-json",
     "boost-lexical-cast",
     "boost-math",
     "boost-multi-index",
@@ -39,21 +40,17 @@
     "boost-smart-ptr",
     "boost-sort",
     "boost-spirit",
+    "boost-type-index",
     "boost-type-traits",
     "boost-unordered",
     "boost-variant",
     "bzip2",
-    "coin-or-cbc",
-    "coin-or-cgl",
-    "coin-or-clp",
-    "coin-or-osi",
-    "coinutils",
     "curl",
     "eigen3",
+    "highs",
     "libsvm",
-    "libxml2",
+    { "name": "libxml2", "version>=": "2.13.5" },
     "libzip",
-    "xerces-c",
     "zlib",
     "zstd"
   ],
@@ -146,18 +143,8 @@
         }
       ]
     },
-    "lp-glpk": {
-      "description": "Select glpk as linear programming solver backend via -DLP_SOLVER=GLPK.",
-      "dependencies": [
-        {
-          "name": "glpk",
-          "default-features": false
-        }
-      ]
-    },
     "lp-highs": {
-      "description": "Select highs as linear programming solver backend via -DLP_SOLVER=HIGHS.",
-      "dependencies": ["highs"]
+      "description": "Deprecated no-op: HiGHS is the only linear programming solver backend and a regular dependency."
     }
   }
 }

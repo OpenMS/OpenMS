@@ -56,9 +56,18 @@ START_SECTION(void generateKnockoutDeltaMasses())
   list.generateKnockoutDeltaMasses();
   std::vector<MultiplexDeltaMasses> masses_knockout = list.getDeltaMassesList();
   TEST_EQUAL(masses_knockout.size(), 21);
-  TEST_REAL_SIMILAR(masses_knockout[6].getDeltaMasses()[1].delta_mass, 8.0141988132);
+  // medium and heavy of a Lys triplet without its light peptide: relative to the medium one (Lys8 - Lys4),
+  // so that the filtering does not need a peak at the absent light position
+  TEST_REAL_SIMILAR(masses_knockout[6].getDeltaMasses()[0].delta_mass, 0.0);
+  TEST_REAL_SIMILAR(masses_knockout[6].getDeltaMasses()[1].delta_mass, 8.0141988132 - 4.0251069836);
+  TEST_EQUAL(*masses_knockout[6].getDeltaMasses()[0].label_set.begin(), "Lys4");
+  TEST_EQUAL(*masses_knockout[6].getDeltaMasses()[1].label_set.begin(), "Lys8");
   TEST_REAL_SIMILAR(masses_knockout[19].getDeltaMasses()[1].delta_mass, 20.0165372);
   TEST_EQUAL(masses_knockout[20].getDeltaMasses().size(), 1);
+  for (const MultiplexDeltaMasses& pattern : masses_knockout)
+  {
+    TEST_REAL_SIMILAR(pattern.getDeltaMasses()[0].delta_mass, 0.0);
+  }
 END_SECTION
 
 START_SECTION(std::string MultiplexDeltaMassesGenerator::getLabelShort(std::string label))
@@ -69,6 +78,35 @@ END_SECTION
 START_SECTION(std::string MultiplexDeltaMassesGenerator::getLabelLong(std::string label))
   TEST_EQUAL(list.getLabelLong("Lys8"), "Label:13C(6)15N(2)");
   TEST_EQUAL(list.getLabelLong("Dimethyl8"), "Dimethyl:2H(6)13C(2)");
+END_SECTION
+
+START_SECTION(unsigned getDeuteriumCount(const std::string& label) const)
+  // from the elemental composition of the labels' UniMod modifications
+  TEST_EQUAL(list.getDeuteriumCount("Lys4"), 4);
+  TEST_EQUAL(list.getDeuteriumCount("Leu3"), 3);
+  TEST_EQUAL(list.getDeuteriumCount("Dimethyl4"), 4);
+  TEST_EQUAL(list.getDeuteriumCount("Dimethyl6"), 4);
+  TEST_EQUAL(list.getDeuteriumCount("Dimethyl8"), 6);
+  TEST_EQUAL(list.getDeuteriumCount("ICPL4"), 4);
+  TEST_EQUAL(list.getDeuteriumCount("ICPL10"), 4);
+  // 13C/15N labels, the light channel, the knock-out singlet and unknown names have no 2H
+  TEST_EQUAL(list.getDeuteriumCount("Lys8"), 0);
+  TEST_EQUAL(list.getDeuteriumCount("Arg6"), 0);
+  TEST_EQUAL(list.getDeuteriumCount("Dimethyl0"), 0);
+  TEST_EQUAL(list.getDeuteriumCount("no_label"), 0);
+  TEST_EQUAL(list.getDeuteriumCount("any_label_set"), 0);
+  TEST_EQUAL(list.getDeuteriumCount("Lys42"), 0);
+  // also with the default constructor
+  TEST_EQUAL(MultiplexDeltaMassesGenerator().getDeuteriumCount("Lys4"), 4);
+END_SECTION
+
+START_SECTION(static bool isChemicalLabel(const std::string& label))
+  TEST_EQUAL(MultiplexDeltaMassesGenerator::isChemicalLabel("Dimethyl0"), true);
+  TEST_EQUAL(MultiplexDeltaMassesGenerator::isChemicalLabel("Dimethyl8"), true);
+  TEST_EQUAL(MultiplexDeltaMassesGenerator::isChemicalLabel("ICPL10"), true);
+  TEST_EQUAL(MultiplexDeltaMassesGenerator::isChemicalLabel("Lys4"), false);
+  TEST_EQUAL(MultiplexDeltaMassesGenerator::isChemicalLabel("Leu3"), false);
+  TEST_EQUAL(MultiplexDeltaMassesGenerator::isChemicalLabel("no_label"), false);
 END_SECTION
 
 START_SECTION(MultiplexDeltaMasses::LabelSet MultiplexDeltaMassesGenerator::extractLabelSet(AASequence sequence))

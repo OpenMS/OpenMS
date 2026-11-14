@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/InstrumentSettings.h>
+#include <OpenMS/CONCEPT/EnumHelpers.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
 
@@ -91,34 +92,17 @@ namespace OpenMS
 
   StringList InstrumentSettings::getAllNamesOfScanMode()
   {
-    StringList names;
-    names.reserve(static_cast<size_t>(ScanMode::SIZE_OF_SCANMODE));
-    for (size_t i = 0; i < static_cast<size_t>(ScanMode::SIZE_OF_SCANMODE); ++i)
-    {
-      names.push_back(NamesOfScanMode[i]);
-    }
-    return names;
+    return Helpers::enumNames(NamesOfScanMode, ScanMode::SIZE_OF_SCANMODE);
   }
 
   const std::string& InstrumentSettings::scanModeToString(ScanMode mode)
   {
-    if (mode == ScanMode::SIZE_OF_SCANMODE)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_SCANMODE");
-    }
-    return NamesOfScanMode[static_cast<size_t>(mode)];
+    return Helpers::enumToName(NamesOfScanMode, mode, ScanMode::SIZE_OF_SCANMODE, "SIZE_OF_SCANMODE", OPENMS_PRETTY_FUNCTION);
   }
 
   InstrumentSettings::ScanMode InstrumentSettings::toScanMode(const std::string& name)
   {
-    auto first = &NamesOfScanMode[0];
-    auto last = &NamesOfScanMode[static_cast<size_t>(ScanMode::SIZE_OF_SCANMODE)];
-    const auto it = std::find(first, last, name);
-    if (it == last)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
-    }
-    return static_cast<ScanMode>(it - first);
+    return Helpers::enumFromName(NamesOfScanMode, ScanMode::SIZE_OF_SCANMODE, name, "Value unknown", OPENMS_PRETTY_FUNCTION);
   }
 
 }

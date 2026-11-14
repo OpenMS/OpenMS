@@ -93,12 +93,22 @@ public:
   */
   void run(MSExperiment& exp, bool progress);
 
-  /// Return the FeatureMap populated by the most recent @ref run call (empty before @ref run).
+  /// Return the FeatureMap populated by the most recent @ref run call (empty before @ref run): one feature per
+  /// channel of every multiplet, with one convex hull per mass trace (the monoisotopic trace first).
   FeatureMap& getFeatureMap();
   /// Return the ConsensusMap of detected multiplets populated by the most recent @ref run call (empty before @ref run).
+  /// Every FeatureHandle carries the unique id of its feature in @ref getFeatureMap, so that the elution region of each
+  /// channel can be looked up there.
   ConsensusMap& getConsensusMap();
-  /// Return the per-pattern blacklist MSExperiment produced during @ref run (peak regions consumed by detected multiplets).
+  /// Return the blacklist produced by the most recent @ref run call: one spectrum per centroided MS1 spectrum with the peaks the detected patterns
+  /// reserved (of all patterns). Each spectrum records, aligned with its peaks, the unique id of the feature in
+  /// @ref getFeatureMap that reserved each peak (0 if its multiplet was not reported, e.g. dropped by @c algorithm:rt_min; of a
+  /// peak reserved by several patterns, the first one if its multiplet was reported, else the last one, the only two that
+  /// MultiplexFiltering::getBlacklistOwners() records); see MultiplexResolverAlgorithm::blacklistOwner().
   MSExperiment& getBlacklist();
+  /// Return the centroided MS1 spectra the detection worked on (peaks above @c algorithm:intensity_cutoff only; for profile
+  /// input the picked peaks), as left by the most recent @ref run call. Spectra carry their RT, but no further meta data.
+  MSExperiment& getCentroidedExperiment();
 
 protected:
 
@@ -181,8 +191,10 @@ protected:
    * @param[in] patterns    patterns of isotopic peaks we have been searching for
    * @param[in] filter_results    filter results for each of the patterns
    * @param[in,out] cluster_results    clusters of filter results
+   * @param[out] multiplet_ids    if not null, for every reported multiplet ([pattern][cluster id]) the provisional unique id of the feature of each channel (0 if the channel has none)
    */
-  void generateMapsCentroided_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, std::vector<std::map<int, GridBasedCluster> >& cluster_results);
+  void generateMapsCentroided_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, std::vector<std::map<int, GridBasedCluster> >& cluster_results,
+                               std::vector<std::map<int, std::vector<UInt64>>>* multiplet_ids = nullptr);
 
   /**
    * @brief generates consensus and feature maps containing all peptide multiplets
@@ -190,8 +202,10 @@ protected:
    * @param[in] patterns    patterns of isotopic peaks we have been searching for
    * @param[in] filter_results    filter results for each of the patterns
    * @param[in] cluster_results    clusters of filter results
+   * @param[out] multiplet_ids    if not null, for every reported multiplet ([pattern][cluster id]) the provisional unique id of the feature of each channel (0 if the channel has none)
    */
-  void generateMapsProfile_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, const std::vector<std::map<int, GridBasedCluster> >& cluster_results);
+  void generateMapsProfile_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, const std::vector<std::map<int, GridBasedCluster> >& cluster_results,
+                            std::vector<std::map<int, std::vector<UInt64>>>* multiplet_ids = nullptr);
 
 };
 

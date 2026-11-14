@@ -30,6 +30,10 @@ namespace OpenMS
   class TargetedExperiment;
   class ProteinIdentification;
   class PeptideIdentificationList;
+  namespace Interfaces
+  {
+    class IMSDataConsumer;
+  }
 
   /**
     @brief Facilitates file handling by file type recognition.
@@ -53,6 +57,9 @@ public:
       First tries to determine the type from the file name.
       If this fails, the type is determined from the file content.
 
+      The type of a remote location (see isRemote()) is determined from its name (see displayName()) only:
+      its content is not read.
+
       @param[in] filename the name of the file to check
 
       @return A FileTypes::Type corresponding to the extension, or FileTypes::UNKNOWN if not determinable
@@ -60,6 +67,38 @@ public:
       @exception Exception::FileNotFound is thrown if the file is not present
     */
     static FileTypes::Type getType(const std::string& filename);
+
+    /**
+      @brief Whether @p filename is a remote location (starts with "http://", "https://", "ftp://" or "s3://") and not a local file
+
+      The readers that stream remote data (e.g. MzMLFile::load()) take such a location in place of a file name.
+      The functions of File (e.g. File::exists()) do not know it.
+
+      @param[in] filename A file name or URL
+    */
+    static bool isRemote(const std::string& filename);
+
+    /**
+      @brief The name to show and to store for @p filename: a URL without its user info, query and fragment
+
+      These parts of a remote location can hold credentials (e.g. s3://key:secret\@bucket/run.mzML or the signature
+      of a presigned URL) and are not part of the name of the file (e.g. s3://bucket/run.mzML?region=eu-central-1),
+      so log messages, output files and names derived from the input (File::basename()) should use this name.
+      A local file name is returned unchanged.
+
+      @param[in] filename A file name or URL
+    */
+    static std::string displayName(const std::string& filename);
+
+    /**
+      @brief @p text with every URL in it shown as by displayName(): without user info, query and fragment
+
+      For messages that can hold remote locations as the user gave them, e.g. an echo of the command line or of
+      parameter values. A URL ends at whitespace, a quote or an angle bracket.
+
+      @param[in] text A message that may contain URLs
+    */
+    static std::string displayText(const std::string& text);
 
 
     /**
@@ -173,8 +212,13 @@ public:
       @param[out] compute_hash If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile.
 
       @note Thermo .raw files (OpenMS built with WITH_THERMO_RAW) are read with Thermo's peak picking, like FileConverter does by default, so profile scans are returned centroided. Use ThermoRawFile directly to keep the scans as they were acquired.
+      As for mzML, SRM scans (triple quadrupoles) are converted to chromatograms.
       The MS level, RT range, precursor m/z range, metadata-only, fill-data and skip-chromatograms options are passed to the reader, so skipped scans are not decoded
       (fill-data off loads spectra without peaks, like metadata-only). The SourceFile carries no SHA-1 checksum unless @p rewrite_source_file and @p compute_hash are set.
+      Bruker .d directories and .d.zip archives (OpenMS built with WITH_OPENTIMS): the MS levels and the RT and ion mobility ranges are passed to the reader,
+      which selects the spectra by their RT (a DDA MS2 spectrum is built from all of its frames) and skips the DDA precursors isolated outside the ion
+      mobility range, so the frames they exclude are not decoded; all options are then applied to the loaded spectra.
+      The ion mobility range (PeakFileOptions::setIMRange()) is applied to the data of every format here; the format readers themselves ignore it.
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -184,11 +228,46 @@ public:
                         const bool compute_hash = false);
 
     /**
+      @brief Streams a file into a consumer, spectrum by spectrum, without holding the whole experiment in memory
+
+      The consumer receives IMSDataConsumer::setExpectedSize() and IMSDataConsumer::setExperimentalSettings()
+      first, then the spectra and chromatograms. Supported are mzML (MzMLFile::transform), mzXML
+      (MzXMLFile::transform), Thermo .raw (ThermoRawFile::transform, OpenMS built with WITH_THERMO_RAW) and
+      Bruker timsTOF .d directories and .d.zip archives (BrukerTimsFile::transform, OpenMS built with WITH_OPENTIMS).
+      The PeakFileOptions are applied as by loadExperiment(); .raw files are read centroided and with the
+      scan-level options passed to the reader, as by loadExperiment(). For .d data the reader skips the frames
+      the options exclude, as for loadExperiment(), and every spectrum is then filtered on its way to the
+      consumer. Bruker MALDI imaging data is rejected, as by loadExperiment(). Unlike loadExperiment(), mzML and .raw
+      spectra that hold chromatogram data (SRM) are not converted to chromatograms. For mzML and mzXML the sizes passed
+      to IMSDataConsumer::setExpectedSize() come from the file and ignore the selection; for .raw they are the
+      numbers of selected spectra and chromatograms. For .d data the number of spectra is an upper bound: it is
+      counted before any peak is read (see BrukerTimsFile::transform()), and the spectra the options exclude
+      are not subtracted. Some Bruker configurations are loaded completely before the first spectrum is passed
+      on (see BrukerTimsFile::transform()); the default configuration used here is not one of them.
+
+      @param[in] filename The file to read
+      @param[in] consumer Receives the data (not owned)
+      @param[in] allowed_types Supported file types; if empty, any streamable type
+      @param[in] log Progress logging mode
+      @param[in] rewrite_source_file Set the SourceFile name and path to @p filename (as loadExperiment())
+      @param[in] compute_hash If source files are rewritten, store the SHA-1 of @p filename in the SourceFile
+
+      @exception Exception::NullPointer is thrown if @p consumer is null
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing or the type is not in @p allowed_types
+      @exception Exception::InvalidFileType is thrown if the file type cannot be streamed
+    */
+    void transformExperiment(const std::string& filename, Interfaces::IMSDataConsumer* consumer,
+                             const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),
+                             ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = false,
+                             const bool compute_hash = false);
+
+    /**
       @brief Loads a mass spectrometry imaging file into an MSImagingExperiment
 
       Imaging data is always loaded into an MSImagingExperiment.
       Supported here are imzML (via ImzMLFile) and Bruker
-      timsTOF MALDI imaging .d folders (via BrukerTimsImagingFile, OpenMS built with WITH_OPENTIMS).
+      timsTOF MALDI imaging .d folders and .d.zip archives (via BrukerTimsImagingFile, OpenMS built with WITH_OPENTIMS).
 
       @param[in] filename The file name of the file to load.
       @param[out] exp The imaging experiment to load the data into; replaced (not appended).
@@ -405,12 +484,10 @@ public:
       @param[in] feature_map FeatureMap from feature file (featureXML)
       @param[in] prot_ids protein identifications from ID file (idXML)
       @param[in] pep_ids protein identifications from ID file (idXML)
-      @param[out] consensus_map an optional consensus map to store.
       @param[in] contact_name name of the person creating the mzQC file
       @param[in] contact_address contact address (mail/e-mail or phone) of the person creating the mzQC file
       @param[in] description description and comments about the mzQC file contents
       @param[in] label unique and informative label for the run
-      @param[in] remove_duplicate_features whether to remove duplicate features only for QCML for now
       @param[in] allowed_types A vector of supported filetypes. If empty we try to guess based on the filename. If that fails we throw UnableToCreateFile. If there is only one allowed type, check whether it agrees with the filename, and throw UnableToCreateFile if they disagree.
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
@@ -421,12 +498,10 @@ public:
                const FeatureMap& feature_map,
                std::vector<ProteinIdentification>& prot_ids,
                PeptideIdentificationList& pep_ids,
-               const ConsensusMap& consensus_map,
                const std::string& contact_name = "",
                const std::string& contact_address = "",
                const std::string& description = "",
                const std::string& label = "label",
-               const bool remove_duplicate_features = false,
                const std::vector<FileTypes::Type> allowed_types = {});
 
     /**
@@ -440,11 +515,14 @@ private:
     /**
       @brief Applies the current PeakFileOptions filters to an already-loaded experiment.
 
-      Used by vendor-format paths whose loaders read all scans/peaks regardless of
-      PeakFileOptions (Bruker .d), and for the per-peak filters on Thermo .raw (the
-      scan-level filters are passed to ThermoRawFile). Filters MS level, RT range, precursor
-      m/z range, per-peak m/z and intensity ranges, and strips peak data when
-      metadata-only is requested. Calls updateRanges() at the end.
+      Used by the vendor-format paths. Bruker .d: loadExperiment() has the reader skip the
+      MS levels, retention times and DDA precursors the options exclude, so that this data
+      is not decoded; the filters here make the result exact (the reader's ranges are
+      inclusive). Thermo .raw: the scan-level filters are passed to ThermoRawFile, only the
+      per-peak filters are applied here. Filters MS level, RT range, precursor m/z range,
+      ion mobility range, per-peak m/z and intensity ranges, and strips peak data when
+      metadata-only is requested or fill-data is off. transformExperiment() applies the same
+      filters to each spectrum. Calls updateRanges() at the end.
     */
     void applyPostLoadOptions_(MSExperiment& exp) const;
 

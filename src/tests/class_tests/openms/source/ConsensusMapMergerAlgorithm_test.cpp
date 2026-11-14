@@ -27,6 +27,20 @@ START_TEST(ConsensusMapMergerAlgorithm, "$Id$")
       }
     END_SECTION
 
+    START_SECTION(mergeAllIDRuns (no IdentificationRuns))
+      {
+        // a PSM whose run was dropped upstream (as by FAIMS feature merging before #10001);
+        // built by hand rather than loaded, since loading draws unique ids and would change
+        // the run identifiers, and with them the merge order, in the sections below
+        ConsensusMap cmap;
+        PeptideIdentification pid;
+        pid.setIdentifier("dropped_run");
+        cmap.getUnassignedPeptideIdentifications().push_back(pid);
+        ConsensusMapMergerAlgorithm cmerge;
+        TEST_EXCEPTION(Exception::MissingInformation, cmerge.mergeAllIDRuns(cmap))
+      }
+    END_SECTION
+
     START_SECTION(mergeProteinsAcrossFractionsAndReplicates (no Design))
       {
         ConsensusXMLFile cf;

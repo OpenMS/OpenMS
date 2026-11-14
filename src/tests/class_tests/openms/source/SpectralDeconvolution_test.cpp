@@ -145,5 +145,6 @@ START_SECTION((static float getCosine(const std::vector<float>& a, int a_start, 
 }
 END_SECTION
 
+
 END_TEST
 

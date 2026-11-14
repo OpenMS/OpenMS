@@ -139,12 +139,9 @@ namespace OpenMS
             }
             else
             {
-              std::string value = param_it->value.toString();
-              if (value.contains('\t'))
-              {
-                replace(value, '\t', "&#x9;");
-              }
-              os << escapeXML(value) << R"(" type="string")";
+              std::string value = escapeXML(param_it->value.toString());
+              replace(value, '\t', "&#x9;"); // after escapeXML, which would escape the '&'
+              os << value << R"(" type="string")";
             }
             break;
           case ParamValue::STRING_LIST:
@@ -293,13 +290,11 @@ namespace OpenMS
         switch (value_type)
         {
           case ParamValue::STRING_LIST:
-            for (auto item : static_cast<const std::vector<std::string>&>(param_it->value))
+            for (const std::string& list_item : static_cast<const std::vector<std::string>&>(param_it->value))
             {
-              if (item.contains('\t'))
-              {
-                replace(item, '\t', "&#x9;");
-              }
-              os << std::string(indentations + 2, ' ') << "<LISTITEM value=\"" << escapeXML(item) << "\"/>\n";
+              std::string item = escapeXML(list_item);
+              replace(item, '\t', "&#x9;"); // after escapeXML, which would escape the '&'
+              os << std::string(indentations + 2, ' ') << "<LISTITEM value=\"" << item << "\"/>\n";
             }
             break;
           case ParamValue::INT_LIST:
@@ -357,13 +352,13 @@ namespace OpenMS
 
   void ParamCTDFile::replace(std::string& replace_in, char to_replace, const std::string& replace_with)
   {
-    for (size_t i = 0; i < replace_in.size(); ++i)
+    // continue right after the inserted text: every occurrence is replaced, also directly adjacent
+    // ones (the previous loop skipped the character following each replacement)
+    size_t pos = 0;
+    while ((pos = replace_in.find(to_replace, pos)) != std::string::npos)
     {
-      if (replace_in[i] == to_replace)
-      {
-        replace_in = StringUtils::substr(replace_in, 0, i) + replace_with + StringUtils::substr(replace_in, i + 1);
-        i += replace_with.size();
-      }
+      replace_in.replace(pos, 1, replace_with);
+      pos += replace_with.size();
     }
   }
 } // namespace OpenMS

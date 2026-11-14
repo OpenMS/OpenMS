@@ -47,6 +47,7 @@ NB_MODULE(_pyopenms_experiment, m)
   auto msexperiment_class = nb::class_<OpenMS::MSExperiment, OpenMS::ExperimentalSettings>(m, "MSExperiment",
         R"doc(
 In-Memory representation of a mass spectrometry experiment.
+
 Contains the data and metadata of an experiment performed with an MS (or
 HPLC and MS). This representation of an MS experiment is organized as list
 of spectra and chromatograms and provides an in-memory representation of
@@ -56,16 +57,20 @@ ExperimentalSettings (by inheritance) while the raw data (as well as
 spectra and chromatogram level meta data) is stored in objects of type
 MSSpectrum and MSChromatogram, which are accessible through the getSpectrum
 and getChromatogram functions.
+
 Spectra can be accessed by direct iteration or by getSpectrum(),
 while chromatograms are accessed through getChromatogram().
 See help(ExperimentalSettings) for information about meta-data.
+
 Usage:
+
 .. code-block:: python
-exp = MSExperiment()
-MzMLFile().load(path_to_file, exp)
-for spectrum in exp:
-print(spectrum.size()) # prints number of peaks
-mz, intensities = spectrum.get_peaks()
+
+  exp = MSExperiment()
+  MzMLFile().load(path_to_file, exp)
+  for spectrum in exp:
+    print(spectrum.size()) # prints number of peaks
+    mz, intensities = spectrum.get_peaks()
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MSExperiment &>())
@@ -77,8 +82,6 @@ mz, intensities = spectrum.get_peaks()
         .def("resize", [](OpenMS::MSExperiment& self, size_t n) { return self.resize(n); }, "n"_a, "Resizes the spectrum container to the specified number of spectra")
         .def("empty", [](const OpenMS::MSExperiment& self) { return self.empty(); }, "Returns True if the experiment contains no spectra")
         .def("reserve", [](OpenMS::MSExperiment& self, size_t n) { return self.reserve(n); }, "n"_a, "Reserves space for the specified number of spectra")
-        .def("begin", [](const OpenMS::MSExperiment& self) { return self.begin(); })
-        .def("end", [](const OpenMS::MSExperiment& self) { return self.end(); })
         .def("reserveSpaceSpectra", [](OpenMS::MSExperiment& self, size_t s) { return self.reserveSpaceSpectra(s); }, "s"_a, "Reserves space for the specified number of spectra")
         .def("reserveSpaceChromatograms", [](OpenMS::MSExperiment& self, size_t s) { return self.reserveSpaceChromatograms(s); }, "s"_a, "Reserves space for the specified number of chromatograms")
         .def("aggregateFromMatrix", [](const OpenMS::MSExperiment& self, const OpenMS::Matrix<double>& ranges, unsigned int ms_level, const std::string& mz_agg) { return self.aggregateFromMatrix(ranges, ms_level, mz_agg); }, "ranges"_a, "ms_level"_a, "mz_agg"_a, "Aggregates intensity values for multiple m/z and RT ranges specified in a matrix")
@@ -97,7 +100,7 @@ mz, intensities = spectrum.get_peaks()
         .def("sortSpectra", [](OpenMS::MSExperiment& self, bool sort_mz) { nb::gil_scoped_release release; return self.sortSpectra(sort_mz); }, "sort_mz"_a = true, "Sorts spectra by RT. If sort_mz=True also sort each peak in a spectrum by m/z")
         .def("sortChromatograms", [](OpenMS::MSExperiment& self, bool sort_rt) { nb::gil_scoped_release release; return self.sortChromatograms(sort_rt); }, "sort_rt"_a = true, "Sorts chromatograms by m/z. If sort_rt=True also sort each chromatogram RT")
         .def("isSorted", [](const OpenMS::MSExperiment& self, bool check_mz) { return self.isSorted(check_mz); }, "check_mz"_a = true, "Checks if all spectra are sorted with respect to ascending RT")
-        .def("reset", [](OpenMS::MSExperiment& self) { return self.reset(); }, "Clears all data and meta data")
+        .def("reset", [](OpenMS::MSExperiment& self) { return self.reset(); }, "Clears all internal data (spectra, chromatograms, ranges and meta data)")
         .def("clearMetaDataArrays", [](OpenMS::MSExperiment& self) { return self.clearMetaDataArrays(); }, "Clears the meta data arrays of all contained spectra")
         .def("getExperimentalSettings", [](OpenMS::MSExperiment& self) -> OpenMS::ExperimentalSettings { return self.getExperimentalSettings(); }, "Returns the meta information of this experiment")
         .def("getPrimaryMSRunPath", [](const OpenMS::MSExperiment& self) { std::vector<std::string> toFill; self.getPrimaryMSRunPath(toFill); return toFill; }, "References to the first MS file(s) after conversions. Used to trace results back to original data.")
@@ -610,7 +613,7 @@ structured numpy view of all pixels at once.
         .def("getWidth", &OpenMS::MSImagingGeometry::getWidth)
         .def("getHeight", &OpenMS::MSImagingGeometry::getHeight)
         .def("setPixelSize", &OpenMS::MSImagingGeometry::setPixelSize,
-             "x"_a, "y"_a, "unit"_a = std::string("micrometer"))
+             "x"_a, "y"_a, "unit"_a)
         .def("getPixelSizeX", &OpenMS::MSImagingGeometry::getPixelSizeX)
         .def("getPixelSizeY", &OpenMS::MSImagingGeometry::getPixelSizeY)
         .def("getPixelSizeUnit", &OpenMS::MSImagingGeometry::getPixelSizeUnit)

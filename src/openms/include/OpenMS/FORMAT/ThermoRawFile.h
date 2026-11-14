@@ -20,6 +20,11 @@
 
 namespace OpenMS
 {
+  namespace Interfaces
+  {
+    class IMSDataConsumer;
+  }
+
   /**
     @brief Reader for Thermo RAW files via the openms-thermo-bridge.
 
@@ -30,6 +35,11 @@ namespace OpenMS
     By default, scans are returned as they were acquired (profile or centroided);
     Options::centroid applies Thermo's peak picking. FileHandler::loadExperiment(),
     through which most TOPP tools read .raw input, sets it.
+
+    A ZIP archive that holds one .raw file (e.g. 'run.raw.zip', compressed or stored) is read
+    like the RAW file itself: the .raw file is extracted into a temporary directory first, which
+    needs as much free space as the RAW file takes. The source file metadata names the archive.
+    gzip- and bzip2-compressed RAW files ('.raw.gz', '.raw.bz2') are rejected.
 
     RawFileReader reading tool. Copyright &copy; 2016 by Thermo Fisher Scientific, Inc.
     All rights reserved.
@@ -100,13 +110,46 @@ namespace OpenMS
       spectra, retention times, MS levels, precursor information (for MSn),
       and source file metadata.
 
-      @param[in] path Path to the .raw file
+      @param[in] path Path to the .raw file, or to a ZIP archive that holds one
       @param[out] exp The experiment to populate
 
       @throws Exception::FileNotFound if the file does not exist
-      @throws Exception::ParseError if the file cannot be read by the thermo bridge
+      @throws Exception::ParseError if the file cannot be read by the thermo bridge, is gzip- or bzip2-compressed, or
+              is a ZIP archive that holds no .raw file or more than one
+      @throws Exception::InvalidValue if the .raw file cannot be extracted from the archive
     */
     void load(const std::string& path, MSExperiment& exp);
+
+    /**
+      @brief Stream a Thermo RAW file into a consumer, scan by scan, with constant memory.
+
+      Gives the same spectra and chromatograms as load() with the same Options, without holding
+      the run in memory. A first pass reads only the scan headers (no peaks) to count the
+      selected spectra and to collect the instrument configurations, so that @p consumer gets,
+      in this order:
+        1. setExpectedSize() with the exact number of spectra and chromatograms,
+        2. setExperimentalSettings() with the run-level settings, including all instrument configurations,
+        3. consumeSpectrum() for every selected MS scan in acquisition (RT) order,
+        4. consumeSpectrum() for the PDA spectra (Options::all_detectors, MS level 0),
+        5. consumeChromatogram() for the TIC and then the detector chromatograms.
+
+      Differences to load(): PDA spectra follow the MS scans instead of being sorted into them
+      by RT, and the detector data (Options::all_detectors) is read into memory at once. The
+      header pass also resolves the precursors only if a precursor m/z range is set.
+
+      The precursor intensity of an MSn scan is estimated from its parent scan as in load(): the
+      most recent converted parent candidates are kept, and a parent that was not converted or
+      is no longer kept is decoded again.
+
+      @param[in] path Path to the .raw file, or to a ZIP archive that holds one
+      @param[in] consumer Receives the run; must not be null
+
+      @throws Exception::FileNotFound if the file does not exist
+      @throws Exception::ParseError if the file cannot be read by the thermo bridge, is gzip- or bzip2-compressed, or
+              is a ZIP archive that holds no .raw file or more than one
+      @throws Exception::InvalidValue if the .raw file cannot be extracted from the archive
+    */
+    void transform(const std::string& path, Interfaces::IMSDataConsumer* consumer);
 
   private:
     Options options_;

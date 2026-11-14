@@ -68,6 +68,10 @@ namespace OpenMS
     /**
      * @brief generate all mass shifts that can occur due to the absence of one or multiple peptides
      * (e.g. for a triplet experiment generate the doublets and singlets that might be present)
+     *
+     * Every knock-out pattern starts at mass shift zero, i.e. its shifts are relative to its lightest
+     * present peptide (medium and heavy of a triplet without light: 0 and heavy - medium). The label
+     * sets keep naming the channels. The singlet carries the label set "any_label_set".
      */
     void generateKnockoutDeltaMasses();
 
@@ -136,7 +140,27 @@ namespace OpenMS
      * @param[in] label    short label, as it appears in the "labels" parameter, e.g. "Arg10"
      */
     std::string getLabelLong(const std::string& label);
-    
+
+    /**
+     * @brief returns the number of deuterium (2H) atoms of a label, from the elemental composition of its UniMod modification
+     *
+     * For example 4 for Lys4 (Label:2H(4)), 6 for Dimethyl8 (Dimethyl:2H(6)13C(2)) and 0 for Lys8 (Label:13C(6)15N(2)).
+     * Labels without a modification (no_label, any_label_set, plain mass shifts, unknown names) have none.
+     *
+     * @param[in] label    short label, as it appears in the "labels" parameter, e.g. "Lys4"
+     */
+    unsigned getDeuteriumCount(const std::string& label) const;
+
+    /**
+     * @brief whether a label is a chemical tag (Dimethyl..., ICPL...) rather than a metabolic (SILAC) label
+     *
+     * The two kinds differ in how their deuterium is enriched: SILAC amino acids (Lys4, Leu3) and the reagents of chemical
+     * tags (formaldehyde, cyanoborodeuteride, ICPL reagents) are made and sold with different 2H atom fractions.
+     *
+     * @param[in] label    short label, as it appears in the "labels" parameter, e.g. "Dimethyl4"
+     */
+    static bool isChemicalLabel(const std::string& label);
+
     /**
      * @brief extract the label set from the sequence
      *

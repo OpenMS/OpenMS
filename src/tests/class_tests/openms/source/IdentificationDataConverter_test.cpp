@@ -427,6 +427,42 @@ START_SECTION(([[EXTRA]] MzTab exportMzTab(const IdentificationData& id_data)))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] caller-selected observation and match metadata use generic optional columns))
+{
+  IdentificationData data;
+  const auto file = data.registerInputFile(IdentificationData::InputFile("test.mzML"));
+  IdentificationData::Observation observation("scan=1", file, 20, 500);
+  observation.setMetaValue("precursor_percentage", 25.0);
+  observation.setMetaValue("shared_value", "observation");
+  observation.setMetaValue("unselected", "not exported");
+  const auto obs_ref = data.registerObservation(observation);
+  const auto oligo = data.registerIdentifiedOligo(IdentificationData::IdentifiedOligo(NASequence::fromString("ACGU")));
+  const auto score = data.registerScoreType(IdentificationData::ScoreType("hyperscore", true));
+  const auto adduct = data.registerAdduct(AdductInfo("Na:+", EmpiricalFormula("Na"), 1));
+  IdentificationData::ObservationMatch match(oligo, obs_ref, -2);
+  match.addScore(score, 10);
+  match.setMetaValue("isotope_offset", 1);
+  match.setMetaValue("shared_value", "match");
+  match.adduct_opt = adduct;
+  data.registerObservationMatch(match);
+  const auto table = IdentificationDataConverter::exportMzTab(data,
+    {"precursor_percentage", "shared_value", "missing_key"}, {"isotope_offset", "shared_value"});
+  const auto rows = table.getOSMSectionRows();
+  TEST_EQUAL(rows.size(), 1)
+  ABORT_IF(rows.empty())
+  std::map<std::string, MzTabString> columns;
+  for (const auto& column : rows[0].opt_) columns.emplace(column.first, column.second);
+  TEST_EQUAL(columns.size(), 5)
+  TEST_REAL_SIMILAR(StringUtils::toDouble(columns.at("opt_global_precursor_percentage").get()), 25.0)
+  TEST_EQUAL(columns.at("opt_global_isotope_offset").get(), "1")
+  TEST_EQUAL(columns.at("opt_global_adduct").get(), "Na:+")
+  TEST_EQUAL(columns.at("opt_global_shared_value").get(), "match")
+  TEST_TRUE(columns.at("opt_global_missing_key").isNull())
+  TEST_FALSE(columns.contains("opt_global_unselected"))
+  TEST_FALSE(match.metaValueExists("precursor_percentage"))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

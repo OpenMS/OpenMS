@@ -22,7 +22,8 @@ else
   ## setting of the OpenMS data path to the share directory
   export OPENMS_DATA_PATH=${OPENMS_TOPP_PATH}/share/OpenMS
 
-  ## add TOPPView, TOPPAS, and INIFileEditor to PATH
+  ## add TOPPView, TOPPAS, and INIFileEditor to PATH (their bundles come with the separate
+  ## OpenMS-GUI installer of OpenMS-TOPP-GUI, which installs them into this folder)
   export PATH=${OPENMS_TOPP_PATH}/TOPPView.app/Contents/MacOS/:${PATH}
   export PATH=${OPENMS_TOPP_PATH}/INIFileEditor.app/Contents/MacOS/:${PATH}
   export PATH=${OPENMS_TOPP_PATH}/TOPPAS.app/Contents/MacOS/:${PATH}

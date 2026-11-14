@@ -1,0 +1,1061 @@
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
+index 381333e1f5..1b2a576f6b 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.cpp
++++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
+@@ -137,6 +137,7 @@ int CrossValidation::preIterationSetup(Scores& fullset,
+                                        const Normalizer* pNorm,
+                                        FeatureMemoryPool& featurePool) {
+   assert(nestedXvalBins_ >= 1u);
++  trainScoresOfWeights_ = false;
+   // One input set per (nested) cross validation bin, to be reused multiple
+   // times
+   for (unsigned int set = 0; set < numFolds_ * nestedXvalBins_; ++set) {
+@@ -351,15 +352,24 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+   // for determining an appropriate positive training set, the decoys+1 in the
+   // FDR estimates is too restrictive for small datasets
+   bool skipDecoysPlusOne = true;
+-  // OpenMS: the folds in parallel; each scores and sorts only its own training set
++  // OpenMS: the folds in parallel; each scores and sorts only its own training set. The scores
++  // of the training sets are those of their weights already if mergeCpCnPairs of the previous
++  // step set them (neither has changed since): then they are only sorted again (as calcScores
++  // would after scoring them again, to the same values) and get their q-values.
++  const bool scored = trainScoresOfWeights_;
++  trainScoresOfWeights_ = false;
+   vector<std::exception_ptr> trainErrors(numFolds_);
+ #pragma omp parallel num_threads(numTeamThreads(numThreads_))
+ #pragma omp single
+ #pragma omp taskloop grainsize(1)
+   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+     try {
+-      trainScores_[set].calcScoresAndQvals(weights_[set], selectionFdr,
+-                                           skipDecoysPlusOne);
++      if (scored) {
++        trainScores_[set].sortScoresAndCalcQvals(selectionFdr, skipDecoysPlusOne);
++      } else {
++        trainScores_[set].calcScoresAndQvals(weights_[set], selectionFdr,
++                                             skipDecoysPlusOne);
++      }
+     } catch (...) {
+       trainErrors[set] = std::current_exception();
+     }
+@@ -383,12 +393,30 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+ 
+   // Create SVM input data for parallelization
+   // OpenMS: the folds in parallel (each fills its own SVM inputs from its own training set),
+-  // unless nested cross-validation draws the nested sets at random
++  // unless nested cross-validation draws the nested sets at random. Without nested
++  // cross-validation, the SVMs of a fold are trained and validated on copies of its training
++  // set; where Scores::generateTrainingSetsOfSortedSet can, it generates the SVM inputs from the
++  // set itself, and the pairs are validated on the set itself (it does not change until the
++  // next step), without the copies.
+   std::vector<AlgIn*> svmInputsVec(numFolds_ * nestedXvalBins_);
+   std::vector<std::vector<Scores> > nestedTestScoresVec(numFolds_);
++  std::vector<const Scores*> pairTestScores(numFolds_ * nestedXvalBins_);
+   vector<std::exception_ptr> setupErrors(numFolds_);
+   const auto setupFold = [&](int set) {
+     try {
++      if (VERB > 2) {
++        const AlgIn* svmInput = svmInputs_[set * nestedXvalBins_];
++        cerr << "Split " << set + 1 << ": Training with " << svmInput->positives
++             << " positives and " << svmInput->negatives << " negatives"
++             << std::endl;
++      }
++      if (nestedXvalBins_ == 1 &&
++          trainScores_[set].generateTrainingSetsOfSortedSet(*svmInputs_[set], selectionFdr,
++                                                            trainBestPositive_)) {
++        svmInputsVec[set] = svmInputs_[set];
++        pairTestScores[set] = &trainScores_[set];
++        return;
++      }
+       std::vector<Scores> nestedTrainScores(nestedXvalBins_, usePi0_),
+           nestedTestScores(nestedXvalBins_, usePi0_);
+       if (nestedXvalBins_ > 1) {
+@@ -405,11 +433,6 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+       for (std::size_t nestedFold = 0; nestedFold < nestedXvalBins_;
+            ++nestedFold) {
+         AlgIn* svmInput = svmInputs_[set * nestedXvalBins_ + nestedFold];
+-        if ((VERB > 2) && (nestedFold == 0)) {
+-          cerr << "Split " << set + 1 << ": Training with " << svmInput->positives
+-               << " positives and " << svmInput->negatives << " negatives"
+-               << std::endl;
+-        }
+         nestedTrainScores[nestedFold].generateNegativeTrainingSet(*svmInput, 1.0);
+         nestedTrainScores[nestedFold].generatePositiveTrainingSet(
+             *svmInput, selectionFdr, 1.0, trainBestPositive_);
+@@ -419,6 +442,8 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+                << svmInput->negatives << " negatives" << std::endl;
+         }
+         svmInputsVec[set * nestedXvalBins_ + nestedFold] = svmInput;
++        pairTestScores[set * nestedXvalBins_ + nestedFold] =
++            &nestedTestScoresVec[set][nestedFold];
+       }
+     } catch (...) {
+       setupErrors[set] = std::current_exception();
+@@ -448,7 +473,7 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+ #pragma omp parallel num_threads(numTeamThreads(numThreads_))
+ #pragma omp single
+   for (int pairIdx = 0; pairIdx < static_cast<int>(classWeightsPerFold_.size()); pairIdx++) {
+-#pragma omp task firstprivate(pairIdx) shared(pairErrors, pairTruePoses, svmInputsVec, nestedTestScoresVec, pOptions)
++#pragma omp task firstprivate(pairIdx) shared(pairErrors, pairTruePoses, svmInputsVec, pairTestScores, pOptions)
+     {
+       try {
+         CandidateCposCfrac* cpCnFold = &classWeightsPerFold_[pairIdx];
+@@ -457,8 +482,9 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+                          static_cast<unsigned int>(cpCnFold->nestedSet)];
+         trainCpCnPair(*cpCnFold, pOptions, svmInput);
+         pairTruePoses[pairIdx] =
+-            nestedTestScoresVec[cpCnFold->set][static_cast<std::size_t>(cpCnFold->nestedSet)]
+-                .countPositives(cpCnFold->ww, testFdr_, skipDecoysPlusOneValidation);
++            pairTestScores[cpCnFold->set * nestedXvalBins_ +
++                           static_cast<unsigned int>(cpCnFold->nestedSet)]
++                ->countPositives(cpCnFold->ww, testFdr_, skipDecoysPlusOneValidation);
+       } catch (...) {
+         pairErrors[pairIdx] = std::current_exception();
+       }
+@@ -526,6 +552,7 @@ int CrossValidation::mergeCpCnPairs(
+     const vector<int>& pairTruePoses,
+     const vector<double>& cposCandidates,
+     const vector<double>& cfracCandidates) {
++  trainScoresOfWeights_ = false;
+   vector<int> bestTruePoses(numFolds_, 0);
+   vector<double> bestCposes(numFolds_, 1);
+   vector<double> bestCfracs(numFolds_, 1);
+@@ -639,6 +666,7 @@ int CrossValidation::mergeCpCnPairs(
+     }
+   }
+   rethrowFirstError(foldErrors);
++  trainScoresOfWeights_ = true;
+   double bestTruePos = 0;
+   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+     bestTruePos += truePoses[set];
+@@ -648,6 +676,7 @@ int CrossValidation::mergeCpCnPairs(
+ 
+ void CrossValidation::postIterationProcessing(Scores& fullset,
+                                               SanityCheck* pCheck) {
++  trainScoresOfWeights_ = false;  // OpenMS: Scores::merge changes weights_
+   if (decoyFractionTraining_ < 1.0) {
+     // with RESET 1 decoy: decoysPerTarget = 1 and decoyFractionTraining = 0.5,
+     // then factor = 1.5 and testNullTargetWinProb = 2/3 (and decoyFactor = 2)
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.h b/src/openms/thirdparty/percolator/CrossValidation.h
+index 7c01f3cbc5..3fcefdd056 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.h
++++ b/src/openms/thirdparty/percolator/CrossValidation.h
+@@ -123,6 +123,9 @@ class CrossValidation {
+ 
+   unsigned int numFolds_;  // number of folds for cross validation
+   std::vector<Scores> trainScores_, testScores_;
++  // OpenMS: whether the scores of trainScores_ are those of weights_ (calcScores, at the end
++  // of mergeCpCnPairs) and have not changed since; see doStep
++  bool trainScoresOfWeights_ = false;
+   std::vector<double> candidatesCpos_, candidatesCfrac_;
+ 
+   void initializeGridSearch(double targetDecoySizeRatio);
+diff --git a/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp b/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
+index 9dd1464107..761e768ca5 100644
+--- a/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
++++ b/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
+@@ -17,6 +17,16 @@
+ 
+ #include "FeatureMemoryPool.h"
+ 
++#include <algorithm>
++#include <cstdint>
++#include <limits>
++#include <memory>
++#include <utility>
++
++#ifdef _OPENMP
++#include <omp.h>
++#endif
++
+ namespace OpenMS { namespace Internal { namespace Percolator {
+ 
+ void FeatureMemoryPool::createPool(size_t numFeatures) {
+@@ -61,4 +71,70 @@ void FeatureMemoryPool::deallocate(double* p) {
+   freeRows_.push_back(p);
+ }
+ 
++// OpenMS: the smallest block of rows a task of moveRowsInOrder copies
++[[maybe_unused]] constexpr std::ptrdiff_t kMinRowsPerTask = 1024;
++
++// OpenMS: whether moveRowsInOrder runs in an OpenMP parallel region (its copies as tasks)
++static bool inParallel() {
++#ifdef _OPENMP
++  return omp_in_parallel() != 0;
++#else
++  return false;
++#endif
++}
++
++/**
++ * OpenMS: if *rows[0], *rows[1], ... are the rows of the pool (its initialized rows, none of
++ * them free), each once, and rows have numFeatures elements (as in the pool): moves the row
++ * *rows[k] to row k (addressFromIdx(k)), sets *rows[k] to it and returns true. Otherwise
++ * returns false and changes nothing. (Moving the rows one
++ * after the other by swaps, as Scores::createXvalSetsBySpectrum does otherwise, leaves the
++ * same rows and pointers.)
++ */
++bool FeatureMemoryPool::moveRowsInOrder(const std::vector<double**>& rows,
++                                        std::size_t numFeatures) {
++  const std::size_t n = rows.size();
++  if (!freeRows_.empty() || n != initializedRows_ || numFeatures_ == 0 ||
++      numFeatures != numFeatures_) {
++    return false;
++  }
++  // the blocks by address, to find the index of a row
++  std::vector<std::pair<std::uintptr_t, std::size_t> > blocks;
++  for (std::size_t b = 0; b < memStarts_.size(); ++b) {
++    blocks.emplace_back(reinterpret_cast<std::uintptr_t>(memStarts_[b]), b);
++  }
++  std::sort(blocks.begin(), blocks.end());
++  const std::uintptr_t rowBytes = static_cast<std::uintptr_t>(numFeatures_) * sizeof(double);
++  std::vector<char> seen(n, 0);
++  for (std::size_t k = 0; k < n; ++k) {
++    const std::uintptr_t a = reinterpret_cast<std::uintptr_t>(*rows[k]);
++    auto it = std::upper_bound(blocks.begin(), blocks.end(),
++                               std::make_pair(a, std::numeric_limits<std::size_t>::max()));
++    if (it == blocks.begin()) return false;
++    --it;
++    const std::uintptr_t offset = a - it->first;
++    if (offset % rowBytes != 0 || offset / rowBytes >= numRowsPerBlock_) return false;
++    const std::size_t idx = it->second * numRowsPerBlock_ + static_cast<std::size_t>(offset / rowBytes);
++    if (idx >= n || seen[idx]) return false;
++    seen[idx] = 1;
++  }
++  // copied out and back in blocks of rows, by the tasks of an enclosing OpenMP parallel region
++  // if there is one (the blocks are disjoint)
++  const std::unique_ptr<double[]> moved(new double[n * numFeatures_]);
++  const std::ptrdiff_t numRows = static_cast<std::ptrdiff_t>(n);
++  const bool inTasks = n >= 2 * kMinRowsPerTask && inParallel();
++  (void)inTasks;
++#pragma omp taskloop grainsize(kMinRowsPerTask) shared(rows, moved) if(inTasks)
++  for (std::ptrdiff_t k = 0; k < numRows; ++k) {
++    std::copy(*rows[k], *rows[k] + numFeatures_, moved.get() + k * numFeatures_);
++  }
++#pragma omp taskloop grainsize(kMinRowsPerTask) shared(rows, moved) if(inTasks)
++  for (std::ptrdiff_t k = 0; k < numRows; ++k) {
++    double* row = addressFromIdx(static_cast<unsigned int>(k));
++    std::copy(moved.get() + k * numFeatures_, moved.get() + (k + 1) * numFeatures_, row);
++    *rows[k] = row;
++  }
++  return true;
++}
++
+ }}}  // namespace OpenMS::Internal::Percolator
+diff --git a/src/openms/thirdparty/percolator/FeatureMemoryPool.h b/src/openms/thirdparty/percolator/FeatureMemoryPool.h
+index a5312c5f14..db79899acb 100644
+--- a/src/openms/thirdparty/percolator/FeatureMemoryPool.h
++++ b/src/openms/thirdparty/percolator/FeatureMemoryPool.h
+@@ -20,6 +20,7 @@
+ 
+ /* Adapted from https://www.thinkmind.org/download.php?articleid=computation_tools_2012_1_10_80006 */
+ 
++#include <cstddef>
+ #include <vector>
+ #include <iostream>
+ 
+@@ -48,6 +49,9 @@ class FeatureMemoryPool {
+ 
+   double* allocate();
+   void deallocate(double* p);
++
++  // OpenMS: see FeatureMemoryPool.cpp
++  bool moveRowsInOrder(const std::vector<double**>& rows, std::size_t numFeatures);
+ };
+ 
+ }}}  // namespace OpenMS::Internal::Percolator
+diff --git a/src/openms/thirdparty/percolator/PosteriorEstimator.cpp b/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
+index fca38a0c54..87806f0d40 100644
+--- a/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
++++ b/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
+@@ -35,6 +35,11 @@
+ #include "Transform.h"
+ #include "Globals.h"
+ #include "Version.h"
++#include <exception>
++#include <stdint.h>
++#ifdef _OPENMP
++#include <omp.h>
++#endif
+ 
+ namespace OpenMS { namespace Internal { namespace Percolator {
+ 
+@@ -78,6 +83,20 @@ template<class T> void bootstrap(const vector<T>& in, vector<T>& out,
+   sort(out.begin(), out.end());
+ }
+ 
++// OpenMS: bootstrap with the numbers drawn from the caller's state of the generator
++template<class T> void bootstrapFrom(const vector<T>& in, vector<T>& out, uint64_t& state,
++                                     size_t max_size = 1000) {
++  out.clear();
++  double n = static_cast<double>(in.size());
++  size_t num_draw = min(in.size(), max_size);
++  for (size_t ix = 0; ix < num_draw; ++ix) {
++    size_t draw = (size_t)(PseudoRandom::lcg_uniform_rand(state) * n);
++    out.push_back(in[draw]);
++  }
++  // sort in desending order
++  sort(out.begin(), out.end());
++}
++
+ double mymin(double a, double b) {
+   return a > b ? b : a;
+ }
+@@ -399,6 +418,122 @@ void PosteriorEstimator::getQValues(double pi0,
+   partial_sum(q.rbegin(), q.rend(), q.rbegin(), mymin);
+ }
+ 
++// OpenMS: the smallest block of PSMs a task of getQValuesInTasks handles
++[[maybe_unused]] static const size_t kMinQValueBlock = 4096;
++
++/**
++ * OpenMS: getQValues(pi0, combined, q, skipDecoysPlusOne, nullTargetWinProb) with the tasks of
++ * an enclosing OpenMP parallel region, for pi0 = 1 (then getQValues makes no mix-max correction,
++ * and every FDR is a number in [0, +inf]), a finite decoy factor >= 0 and an empty q; otherwise
++ * returns false and does nothing.
++ * The PSMs are split into blocks of whole groups of equal scores (at fixed positions, not
++ * depending on the number of threads). The targets and decoys of the blocks are counted first,
++ * so each block computes the FDRs of its groups from the same counts as the loop of getQValues,
++ * by the same expression. The q-values (the minimum FDR from a position to the end: the q-values
++ * are numbers in [0, 1], so the order of the minimisation does not matter) are the minima
++ * within each block, and then the minimum of these and the q-value at the start of the next
++ * block.
++ */
++bool PosteriorEstimator::getQValuesInTasks(double pi0,
++    const vector<pair<double, bool> >& combined, vector<double>& q,
++    bool skipDecoysPlusOne, double nullTargetWinProb) {
++#ifdef _OPENMP
++  const size_t n = combined.size();
++  const double decoyFactor = nullTargetWinProb / (1.0 - nullTargetWinProb);
++  if (pi0 != 1.0 || !(decoyFactor >= 0.0) || !std::isfinite(decoyFactor) || !q.empty() ||
++      n < 2 * kMinQValueBlock || n > static_cast<size_t>(INT_MAX) || !omp_in_parallel()) {
++    return false;
++  }
++  const bool withNegatives = includeNegativesInResult;
++  // the blocks [starts[b], starts[b + 1]): from multiples of kMinQValueBlock to the next group
++  // (each position is compared at most once)
++  vector<size_t> starts(1, 0);
++  size_t scanned = 1;
++  for (size_t at = kMinQValueBlock; at < n; at += kMinQValueBlock) {
++    size_t start = (std::max)(at, scanned);
++    while (start < n && combined[start - 1].first == combined[start].first) ++start;
++    scanned = start + 1;
++    if (start >= n) break;
++    if (start > starts.back()) starts.push_back(start);
++  }
++  starts.push_back(n);
++  const int numBlocks = static_cast<int>(starts.size() - 1);
++  vector<int> targets(static_cast<size_t>(numBlocks)), decoys(static_cast<size_t>(numBlocks));
++#pragma omp taskloop grainsize(1) shared(combined, starts, targets, decoys)
++  for (int b = 0; b < numBlocks; ++b) {
++    int t = 0, d = 0;
++    for (size_t i = starts[static_cast<size_t>(b)]; i < starts[static_cast<size_t>(b) + 1]; ++i) {
++      if (combined[i].second) ++t; else ++d;
++    }
++    targets[static_cast<size_t>(b)] = t;
++    decoys[static_cast<size_t>(b)] = d;
++  }
++  // the counts before each block, and the position of its first q-value
++  vector<int> zBefore(static_cast<size_t>(numBlocks)), wBefore(static_cast<size_t>(numBlocks));
++  vector<size_t> qBefore(static_cast<size_t>(numBlocks) + 1);
++  int n_z = skipDecoysPlusOne ? 0 : 1, n_w = 0;
++  qBefore[0] = 0;
++  for (size_t b = 0; b < static_cast<size_t>(numBlocks); ++b) {
++    zBefore[b] = n_z;
++    wBefore[b] = n_w;
++    n_z += decoys[b];
++    n_w += targets[b];
++    qBefore[b + 1] = qBefore[b] + static_cast<size_t>(targets[b]) +
++                     (withNegatives ? static_cast<size_t>(decoys[b]) : 0u);
++  }
++  q.resize(qBefore[static_cast<size_t>(numBlocks)]);
++#pragma omp taskloop grainsize(1) shared(combined, starts, zBefore, wBefore, qBefore, q)
++  for (int b = 0; b < numBlocks; ++b) {
++    // the loop of getQValues on the block, without the mix-max correction (pi0 >= 1)
++    const double E_f1_mod_run_tot = 0.0;
++    int n_z_ge_w = zBefore[static_cast<size_t>(b)], n_w_ge_w = wBefore[static_cast<size_t>(b)];
++    int decoyQueue = 0, targetQueue = 0;
++    size_t out = qBefore[static_cast<size_t>(b)];
++    const size_t end = starts[static_cast<size_t>(b) + 1];
++    for (size_t i = starts[static_cast<size_t>(b)]; i < end; ++i) {
++      if (combined[i].second) {
++        ++n_w_ge_w;
++        ++targetQueue;
++      } else {
++        ++n_z_ge_w;
++        ++decoyQueue;
++      }
++      if (i + 1 == end || combined[i].first != combined[i + 1].first) {
++        if (withNegatives) {
++          targetQueue += decoyQueue;
++        }
++        double fdr = (n_z_ge_w * pi0 + E_f1_mod_run_tot) / (double)((std::max)(1, n_w_ge_w)) * decoyFactor;
++        for (int k = 0; k < targetQueue; ++k) {
++          q[out++] = (std::min)(fdr, 1.0);
++        }
++        decoyQueue = 0;
++        targetQueue = 0;
++      }
++    }
++    // the minima within the block
++    for (size_t k = qBefore[static_cast<size_t>(b) + 1]; k-- > qBefore[static_cast<size_t>(b)] + 1;) {
++      q[k - 1] = mymin(q[k], q[k - 1]);
++    }
++  }
++  // the minimum of the q-values after each block
++  vector<double> after(static_cast<size_t>(numBlocks), 2.0);  // above every FDR (none after the last block)
++  for (size_t b = static_cast<size_t>(numBlocks) - 1; b-- > 0;) {
++    const bool empty = qBefore[b + 1] == qBefore[b + 2];
++    after[b] = empty ? after[b + 1] : mymin(after[b + 1], q[qBefore[b + 1]]);
++  }
++#pragma omp taskloop grainsize(1) shared(after, qBefore, q)
++  for (int b = 0; b < numBlocks - 1; ++b) {
++    for (size_t k = qBefore[static_cast<size_t>(b)]; k < qBefore[static_cast<size_t>(b) + 1]; ++k) {
++      q[k] = mymin(after[static_cast<size_t>(b)], q[k]);
++    }
++  }
++  return true;
++#else
++  (void)pi0; (void)combined; (void)q; (void)skipDecoysPlusOne; (void)nullTargetWinProb;
++  return false;
++#endif
++}
++
+ void PosteriorEstimator::getQValuesFromP(double pi0,
+                                          const vector<double>& p, vector<double> & q) {
+ 	double m = (double)p.size();
+@@ -503,8 +638,55 @@ double PosteriorEstimator::estimatePi0(vector<double>& p,
+   vector<double> pBoot, mse;
+   // Initialize the vector mse with zeroes.
+   fill_n(back_inserter(mse), pi0s.size(), 0.0);
++  // OpenMS: inside an OpenMP parallel region (CrossValidation, Scores::merge), the bootstraps
++  // are tasks: each draws its numbers from the generator's state at its first draw (the
++  // bootstraps draw min(n, 1000) numbers each, see bootstrap; PseudoRandom::advance), the
++  // errors are added up in the order of the bootstraps as below, and the generator ends in
++  // the state the loop below leaves.
++  bool booted = false;
++#ifdef _OPENMP
++  if (numBoot > 1 && numBoot <= static_cast<unsigned int>(INT_MAX) && !p.empty() &&
++      omp_in_parallel()) {
++    const uint64_t numDraw = min(p.size(), static_cast<size_t>(1000));
++    const uint64_t seed = PseudoRandom::getSeed();
++    const size_t numLambdas = lambdas.size();
++    vector<double> pi0Boots(static_cast<size_t>(numBoot) * numLambdas);
++    vector<std::exception_ptr> errors(numBoot);
++#pragma omp taskloop grainsize(4) shared(p, lambdas, pi0Boots, errors)
++    for (int boot = 0; boot < static_cast<int>(numBoot); ++boot) {
++      try {
++        uint64_t state = PseudoRandom::advance(seed, static_cast<uint64_t>(boot) * numDraw);
++        vector<double> pBootOfTask;
++        bootstrapFrom<double>(p, pBootOfTask, state);
++        const size_t nBoot = pBootOfTask.size();
++        for (size_t ix = 0; ix < numLambdas; ++ix) {
++          vector<double>::const_iterator startOfTask =
++              lower_bound(pBootOfTask.begin(), pBootOfTask.end(), lambdas[ix]);
++          double Wl = (double)distance(startOfTask, pBootOfTask.cend());
++          pi0Boots[static_cast<size_t>(boot) * numLambdas + ix] =
++              Wl / static_cast<double>(nBoot) / (1. - lambdas[ix]);
++        }
++      } catch (...) {
++        errors[static_cast<size_t>(boot)] = std::current_exception();
++      }
++    }
++    for (const std::exception_ptr& error : errors) {
++      if (error) std::rethrow_exception(error);
++    }
++    for (unsigned int boot = 0; boot < numBoot; ++boot) {
++      for (unsigned int ix = 0; ix < lambdas.size(); ++ix) {
++        double pi0Boot = pi0Boots[static_cast<size_t>(boot) * numLambdas + ix];
++        // Estimated mean-squared error.
++        mse[ix] += (pi0Boot - minPi0) * (pi0Boot - minPi0);
++      }
++    }
++    PseudoRandom::setSeed(static_cast<unsigned long>(
++        PseudoRandom::advance(seed, static_cast<uint64_t>(numBoot) * numDraw)));
++    booted = true;
++  }
++#endif
+   // Examine which lambda level that is most stable under bootstrap
+-  for (unsigned int boot = 0; boot < numBoot; ++boot) {
++  for (unsigned int boot = 0; !booted && boot < numBoot; ++boot) {
+     // Create an array of bootstrapped p-values, and sort in ascending order.
+     bootstrap<double> (p, pBoot);
+     n = pBoot.size();
+diff --git a/src/openms/thirdparty/percolator/PosteriorEstimator.h b/src/openms/thirdparty/percolator/PosteriorEstimator.h
+index c98805118b..945945d0af 100644
+--- a/src/openms/thirdparty/percolator/PosteriorEstimator.h
++++ b/src/openms/thirdparty/percolator/PosteriorEstimator.h
+@@ -44,6 +44,11 @@ class PosteriorEstimator {
+                          const std::vector<std::pair<double, bool> >& combined,
+                          std::vector<double>& q, bool skipDecoysPlusOne = false,
+                          double nullTargetWinProb = 0.5);
++  // OpenMS: see PosteriorEstimator.cpp
++  static bool getQValuesInTasks(double pi0,
++                                const std::vector<std::pair<double, bool> >& combined,
++                                std::vector<double>& q, bool skipDecoysPlusOne = false,
++                                double nullTargetWinProb = 0.5);
+   static void getQValuesFromP(double pi0, const std::vector<double>& p,
+                               std::vector<double>& q);
+   static void getQValuesFromPEP(const std::vector<double>& pep,
+diff --git a/src/openms/thirdparty/percolator/PseudoRandom.cpp b/src/openms/thirdparty/percolator/PseudoRandom.cpp
+index 15df68426d..a4f82c2d42 100644
+--- a/src/openms/thirdparty/percolator/PseudoRandom.cpp
++++ b/src/openms/thirdparty/percolator/PseudoRandom.cpp
+@@ -33,4 +33,19 @@ double PseudoRandom::lcg_uniform_rand() {
+   return (double)PseudoRandom::lcg_rand() / ((double)PseudoRandom::kRandMax + (double)1);
+ }
+ 
++// OpenMS: the state after `draws` calls of lcg_rand(state). The first draw is made as lcg_rand
++// makes it (a state set by setSeed may exceed the modulus); from then on the state is below the
++// modulus, and each draw multiplies it by 279470273 modulo 4294967291 (no product of two numbers
++// below 2^32 overflows 64 bits), so the remaining draws multiply it by 279470273^(draws - 1).
++uint64_t PseudoRandom::advance(uint64_t state, uint64_t draws) {
++  if (draws == 0) return state;
++  PseudoRandom::lcg_rand(state);
++  uint64_t factor = 1u, power = 279470273u;
++  for (uint64_t k = draws - 1; k != 0; k >>= 1) {
++    if (k & 1u) factor = (factor * power) % 4294967291u;
++    power = (power * power) % 4294967291u;
++  }
++  return (state * factor) % 4294967291u;
++}
++
+ }}}  // namespace OpenMS::Internal::Percolator
+diff --git a/src/openms/thirdparty/percolator/PseudoRandom.h b/src/openms/thirdparty/percolator/PseudoRandom.h
+index 83811fcc19..f1409df9b1 100644
+--- a/src/openms/thirdparty/percolator/PseudoRandom.h
++++ b/src/openms/thirdparty/percolator/PseudoRandom.h
+@@ -36,6 +36,18 @@ class PseudoRandom {
+   static unsigned long lcg_rand();
+   static double lcg_uniform_rand();
+   const static uint64_t kRandMax = 4294967291u;
++  // OpenMS: the numbers of lcg_rand and lcg_uniform_rand from a state of the caller's (to draw
++  // parts of the sequence in parallel), the generator's state, and the state after a number of
++  // draws (jumps ahead without drawing)
++  inline static unsigned long lcg_rand(uint64_t& state) {
++    state = (state * 279470273u) % 4294967291u;
++    return state;
++  }
++  inline static double lcg_uniform_rand(uint64_t& state) {
++    return (double)PseudoRandom::lcg_rand(state) / ((double)PseudoRandom::kRandMax + (double)1);
++  }
++  inline static uint64_t getSeed() { return seed_; }
++  static uint64_t advance(uint64_t state, uint64_t draws);
+  protected:
+   static uint64_t seed_;
+ };
+diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
+index 0602df3d99..bc70ed84cf 100644
+--- a/src/openms/thirdparty/percolator/Scores.cpp
++++ b/src/openms/thirdparty/percolator/Scores.cpp
+@@ -21,6 +21,7 @@
+ #include <cmath>
+ #include <fstream>
+ #include <iostream>
++#include <limits>
+ #include <map>
+ #include <memory>
+ #include <set>
+@@ -46,6 +47,9 @@
+ 
+ namespace OpenMS { namespace Internal { namespace Percolator {
+ 
++// OpenMS: the smallest block of PSMs a task scores (Scores::calcScores)
++[[maybe_unused]] constexpr std::ptrdiff_t kMinScoreTaskSize = 2048;
++
+ // OpenMS: whether ScoreHolder's operator< and operator> (score, scan, expMass, label) are a
+ // strict weak ordering on [first, last): no score or mass is NaN.
+ static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
+@@ -55,6 +59,32 @@ static bool comparableScores(std::vector<ScoreHolder>::const_iterator first,
+   });
+ }
+ 
++// OpenMS: some sorts of ScoreHolders sort keys instead: what the comparison compares, and the
++// position of the ScoreHolder. If the comparisons of the keys have the outcomes of the
++// comparisons of their ScoreHolders, a sort of the keys (the same algorithm) makes the same
++// moves as a sort of the ScoreHolders: it leaves the same permutation, also of ScoreHolders that
++// compare equal. permuteScores then puts scores[keys[k].index] at position k.
++template <typename Key>
++static void permuteScores(std::vector<ScoreHolder>& scores, const std::vector<Key>& keys) {
++  std::vector<ScoreHolder> permuted;
++  permuted.reserve(scores.size());
++  for (const Key& key : keys) permuted.push_back(scores[key.index]);
++  scores.swap(permuted);
++}
++
++// OpenMS: operator> of ScoreHolder (ScoreHolder.cpp), as a comparison that the sorts below can
++// inline (same outcomes, so the sorts make the same moves)
++struct ScoreHolderGreater {
++  bool operator()(const ScoreHolder& one, const ScoreHolder& other) const {
++    return (one.score > other.score) ||
++           (one.score == other.score && one.pPSM->scan > other.pPSM->scan) ||
++           (one.score == other.score && one.pPSM->scan == other.pPSM->scan &&
++            one.pPSM->expMass > other.pPSM->expMass) ||
++           (one.score == other.score && one.pPSM->scan == other.pPSM->scan &&
++            one.pPSM->expMass == other.pPSM->expMass && one.label > other.label);
++  }
++};
++
+ // OpenMS: sorts the scores like std::sort, with the tasks of an enclosing OpenMP parallel
+ // region (see SortLikeStd.h). Scores that are no strict weak ordering get std::sort itself.
+ template <typename Less>
+@@ -74,7 +104,7 @@ void Scores::merge(std::vector<Scores>& sv,
+   std::vector<Scores>::iterator cvBinScores = sv.begin();
+   std::vector<std::vector<double> >::iterator weights = all_w.begin();
+   for (; cvBinScores != sv.end(); cvBinScores++, weights++) {
+-    sortScoresLikeStdSort(cvBinScores->scores_, greater<ScoreHolder>());
++    sortScoresLikeStdSort(cvBinScores->scores_, ScoreHolderGreater());
+     cvBinScores->checkSeparationAndSetPi0();
+     cvBinScores->calcQvals(fdr);
+     if (!skipNormalizeScores) {
+@@ -86,7 +116,7 @@ void Scores::merge(std::vector<Scores>& sv,
+ }
+ 
+ void Scores::postMergeStep() {
+-  sortScoresLikeStdSort(scores_, greater<ScoreHolder>());
++  sortScoresLikeStdSort(scores_, ScoreHolderGreater());
+   totalNumberOfDecoys_ = static_cast<unsigned int>(
+       count_if(scores_.begin(), scores_.end(), mem_fn(&ScoreHolder::isDecoy)));
+   totalNumberOfTargets_ = static_cast<unsigned int>(
+@@ -254,7 +284,25 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+     ix -= remain[static_cast<std::size_t>(fold)];
+   }
+ 
+-  sortLikeStdSort(scores_, OrderScanHash());  // OpenMS: see SortLikeStd.h
++  // OpenMS: sorted like std::sort(scores_.begin(), scores_.end(), OrderScanHash()) (see
++  // SortLikeStd.h), on (hash, position) keys: the hashes are those OrderScanHash compares, so the
++  // comparisons have the same outcomes and the sort makes the same moves (see permuteScores),
++  // without hashing two PSMs for every comparison
++  {
++    struct HashKey {
++      size_t hash;
++      std::size_t index;
++    };
++    std::vector<HashKey> keys;
++    keys.reserve(scores_.size());
++    for (std::size_t i = 0; i < scores_.size(); ++i) {
++      const PSMDescription* psm = scores_[i].pPSM;
++      const size_t hash = fast_uint_hash(psm->specFileNr) ^ (fast_uint_hash(psm->scan) << 1);
++      keys.push_back({hash, i});
++    }
++    sortLikeStdSort(keys, [](const HashKey& x, const HashKey& y) { return x.hash < y.hash; });
++    permuteScores(scores_, keys);
++  }
+ 
+   if (scores_.size() == 0) {
+     ostringstream oss;
+@@ -270,6 +318,20 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+ 
+   // put scores into the folds; choose a fold (at random) and change it only
+   // when scores from a new spectra are encountered
++  // OpenMS: the folds and labels are drawn here, in the order of the PSMs as before; inside an
++  // OpenMP parallel region, the folds are filled afterwards, each by a task of its own, in the
++  // same order (see below)
++  std::vector<unsigned int> foldOfPSM;
++  std::vector<LabelType> labelOfPSM;
++#ifdef _OPENMP
++  const bool fillInTasks = xval_fold > 1u && omp_in_parallel();
++#else
++  const bool fillInTasks = false;
++#endif
++  if (fillInTasks) {
++    foldOfPSM.reserve(scores_.size());
++    labelOfPSM.reserve(scores_.size());
++  }
+   unsigned int previousSpectrum = scores_.begin()->pPSM->scan;
+   size_t randIndex = PseudoRandom::lcg_rand() % xval_fold;
+   for (std::vector<ScoreHolder>::iterator it = scores_.begin();
+@@ -299,12 +361,17 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+     }
+ 
+     // insert
+-    for (unsigned int i = 0; i < xval_fold; ++i) {
+-      if (i == randIndex) {
+-        test[i].addScoreHolder(sh);
+-      }
+-      if (i != randIndex || xval_fold == 1) {
+-        train[i].addScoreHolder(sh);
++    if (fillInTasks) {
++      foldOfPSM.push_back(static_cast<unsigned int>(randIndex));
++      labelOfPSM.push_back(sh.label);
++    } else {
++      for (unsigned int i = 0; i < xval_fold; ++i) {
++        if (i == randIndex) {
++          test[i].addScoreHolder(sh);
++        }
++        if (i != randIndex || xval_fold == 1) {
++          train[i].addScoreHolder(sh);
++        }
+       }
+     }
+     // update number of free position for used fold
+@@ -312,6 +379,30 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+     // set previous spectrum to current one for next iteration
+     previousSpectrum = curScan;
+   }
++  if (fillInTasks) {
++    // OpenMS: fold i gets the PSMs drawn for it (test) and the others (train), in the order of
++    // the PSMs, as the loop above would insert them
++    std::vector<std::exception_ptr> fillErrors(xval_fold);
++#pragma omp taskloop grainsize(1) shared(train, test, foldOfPSM, labelOfPSM, fillErrors)
++    for (int i = 0; i < static_cast<int>(xval_fold); ++i) {
++      try {
++        for (std::size_t k = 0; k < scores_.size(); ++k) {
++          ScoreHolder sh = scores_[k];
++          sh.label = labelOfPSM[k];
++          if (foldOfPSM[k] == static_cast<unsigned int>(i)) {
++            test[static_cast<std::size_t>(i)].addScoreHolder(sh);
++          } else {
++            train[static_cast<std::size_t>(i)].addScoreHolder(sh);
++          }
++        }
++      } catch (...) {
++        fillErrors[static_cast<std::size_t>(i)] = std::current_exception();
++      }
++    }
++    for (const std::exception_ptr& error : fillErrors) {
++      if (error) std::rethrow_exception(error);
++    }
++  }
+ 
+   // without RESET: decoysPerTarget = 1 and decoyFractionTraining = 1, then
+   // factor = 1 and trainNullTargetWinProb = 1/2 (and decoyFactor = 1)
+@@ -335,6 +426,19 @@ void Scores::createXvalSetsBySpectrum(std::vector<Scores>& train,
+   }
+ 
+   if (featurePool.isInitialized()) {
++    // OpenMS: the rows of the test sets' PSMs in the order the loop below moves them to (the
++    // first row, the second, ...); FeatureMemoryPool::moveRowsInOrder moves them there directly
++    // if they are the pool's rows, each once (then the loop leaves the same rows and pointers)
++    std::vector<double**> rowsInOrder;
++    rowsInOrder.reserve(scores_.size());
++    for (unsigned int i = 0; i < xval_fold; ++i) {
++      for (const bool isTarget : {true, false}) {
++        for (ScoreHolder& sh : test[i]) {
++          if (sh.isTarget() == isTarget) rowsInOrder.push_back(&sh.pPSM->features);
++        }
++      }
++    }
++    if (featurePool.moveRowsInOrder(rowsInOrder, FeatureNames::getNumFeatures())) return;
+     boost::unordered_map<double*, double*> movedAddresses;
+     size_t idx = 0;
+     for (unsigned int i = 0; i < xval_fold; ++i) {
+@@ -494,12 +598,40 @@ int Scores::countPositives(const std::vector<double>& w, double fdr,
+  * @return 0 on successfull execution
+  */
+ int Scores::calcScores(std::vector<double>& w) {
+-  std::size_t ix;
+-  std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
+-  for (; scoreIt != scores_.end(); ++scoreIt) {
+-    scoreIt->score = calcScore(scoreIt->pPSM->features, w);
++  // OpenMS: inside an OpenMP parallel region (CrossValidation), the PSMs are scored by the tasks
++  // of the region, in blocks; each score is computed as before, by calcScore.
++  const std::ptrdiff_t numScores = static_cast<std::ptrdiff_t>(scores_.size());
++#ifdef _OPENMP
++  if (numScores >= 2 * kMinScoreTaskSize && omp_in_parallel()) {
++#pragma omp taskloop grainsize(kMinScoreTaskSize) shared(w)
++    for (std::ptrdiff_t i = 0; i < numScores; ++i) {
++      ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
++      sh.score = calcScore(sh.pPSM->features, w);
++    }
++  } else
++#endif
++  {
++    std::vector<ScoreHolder>::iterator scoreIt = scores_.begin();
++    for (; scoreIt != scores_.end(); ++scoreIt) {
++      scoreIt->score = calcScore(scoreIt->pPSM->features, w);
++    }
+   }
+-  sortScoresLikeStdSort(scores_, greater<ScoreHolder>());
++  return sortScores();
++}
++
++/**
++ * OpenMS: calcScoresAndQvals(w, fdr, skipDecoysPlusOne) for scores that calcScores(w) set
++ * already and that have not changed since (in any order): the PSMs are not scored again.
++ */
++int Scores::sortScoresAndCalcQvals(double fdr, bool skipDecoysPlusOne) {
++  sortScores();
++  return calcQvals(fdr, skipDecoysPlusOne);
++}
++
++// the sort of calcScores
++int Scores::sortScores() {
++  std::size_t ix;
++  sortScoresLikeStdSort(scores_, ScoreHolderGreater());
+   if (VERB > 3) {
+     if (scores_.size() >= 10) {
+       cerr << "10 best scores and labels" << endl;
+@@ -543,8 +675,12 @@ int Scores::calcQvals(double fdr, bool skipDecoysPlusOne,
+ 
+   std::vector<double> qvals;
+   PosteriorEstimator::setNegative(true);  // also get q-values for decoys
+-  PosteriorEstimator::getQValues(pi0_, combined, qvals, skipDecoysPlusOne,
+-                                 nullTargetWinProb_);
++  // OpenMS: with the tasks of an enclosing OpenMP parallel region where it can (see there)
++  if (!PosteriorEstimator::getQValuesInTasks(pi0_, combined, qvals, skipDecoysPlusOne,
++                                             nullTargetWinProb_)) {
++    PosteriorEstimator::getQValues(pi0_, combined, qvals, skipDecoysPlusOne,
++                                   nullTargetWinProb_);
++  }
+ 
+   // set q-values and count number of positives
+   std::vector<double>::const_iterator qIt = qvals.begin();
+@@ -612,6 +748,82 @@ void Scores::generatePositiveTrainingSet(AlgIn& data,
+   data.m = static_cast<int>(ix2);
+ }
+ 
++/**
++ * OpenMS: what generateNegativeTrainingSet(data, 1.0) and then
++ * generatePositiveTrainingSet(data, fdr, 1.0, trainBestPositive) give on a copy of this set,
++ * without the copy and without sorting the PSMs; returns false (and changes nothing) where that
++ * is not certain. The negatives are the decoys in their order. With trainBestPositive, the copy
++ * is sorted by spectrum and label (OrderScanLabel), keeps the first PSM of each group
++ * (std::unique) and sorts the kept PSMs by score again; the positives are the kept targets with
++ * q <= fdr, in that order:
++ *  - which PSM of a group comes first depends on how the sort orders the PSMs of the group, so
++ *    the (spectrum, label) keys are sorted from the order of the PSMs here, like std::sort
++ *    (sortLikeStdSort, the sort generatePositiveTrainingSet uses): the comparisons of the keys
++ *    have the outcomes of OrderScanLabel's, so the sort makes the same moves;
++ *  - if each positive scores strictly higher (operator>) than the next positive here, no two
++ *    positives are equivalent, so every sort by score leaves them in this order. Otherwise, and
++ *    with a NaN score or mass, false.
++ */
++bool Scores::generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
++                                             const bool trainBestPositive) const {
++  // kept[i]: whether the PSM scores_[i] is kept (the first of its group)
++  std::vector<char> kept(scores_.size(), 1);
++  if (trainBestPositive && !scores_.empty()) {
++    if (!comparableScores(scores_.begin(), scores_.end())) return false;
++    struct ScanLabelKey {
++      unsigned int specFileNr, scan;
++      LabelType label;
++      std::size_t index;
++    };
++    std::vector<ScanLabelKey> keys;
++    keys.reserve(scores_.size());
++    for (std::size_t i = 0; i < scores_.size(); ++i) {
++      keys.push_back({scores_[i].pPSM->specFileNr, scores_[i].pPSM->scan, scores_[i].label, i});
++    }
++    // the comparison of OrderScanLabel, on the keys
++    sortLikeStdSort(keys, [](const ScanLabelKey& x, const ScanLabelKey& y) {
++      if (x.specFileNr != y.specFileNr) return x.specFileNr < y.specFileNr;
++      if (x.scan != y.scan) return x.scan < y.scan;
++      return x.label > y.label;
++    });
++    // std::unique with UniqueScanLabel: keeps the first of each run of equal keys
++    for (std::size_t k = 1; k < keys.size(); ++k) {
++      if (keys[k].specFileNr == keys[k - 1].specFileNr && keys[k].scan == keys[k - 1].scan &&
++          keys[k].label == keys[k - 1].label) {
++        kept[keys[k].index] = 0;
++      }
++    }
++  }
++  std::vector<std::size_t> positives;
++  for (std::size_t i = 0; i < scores_.size(); ++i) {
++    const ScoreHolder& sh = scores_[i];
++    if (kept[i] && sh.isTarget() && sh.q <= fdr) {
++      if (trainBestPositive && !positives.empty() && !(scores_[positives.back()] > sh)) {
++        return false;
++      }
++      positives.push_back(i);
++    }
++  }
++
++  std::size_t ix2 = 0;
++  for (const ScoreHolder& sh : scores_) {
++    if (sh.isDecoy()) {
++      data.vals[ix2] = sh.pPSM->features;
++      data.Y[ix2] = -1;
++      ix2++;
++    }
++  }
++  data.negatives = static_cast<int>(ix2);
++  for (std::size_t i : positives) {
++    data.vals[ix2] = scores_[i].pPSM->features;
++    data.Y[ix2] = 1;
++    ix2++;
++  }
++  data.positives = static_cast<int>(positives.size());
++  data.m = static_cast<int>(ix2);
++  return true;
++}
++
+ void Scores::weedOutRedundant() {
+   std::map<std::string, unsigned int> peptideSpecCounts;
+   double specCountQvalThreshold = -1.0;
+@@ -735,16 +947,18 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+   // positives[2 * featNo + i]: in forward (i = 0) and backward (i = 1) direction
+   std::vector<int> positives(2 * numFeatures);
+ 
+-  // OpenMS: inside an OpenMP parallel region (CrossValidation), the positives of the features
+-  // are counted by tasks, each on its own (score, label) pairs of the feature, sorted by score
+-  // only: the q-values, and so the count, depend on the order of the scores and on the labels
+-  // of each group of equal scores, not on the order within a group (calcQvals treats ties as
+-  // one group). Meanwhile, the scores are sorted by every feature in turn as below (sorting
+-  // starts from the order the previous feature left, which decides the order of PSMs that
+-  // compare equal, and the order after the last feature is where the training starts from),
+-  // with the tasks of the region (see SortLikeStd.h). The q-values are set for the last
+-  // feature, as by the loop below. A NaN feature value or mass (no strict weak ordering) uses
+-  // the loop below.
++  // OpenMS: inside an OpenMP parallel region (CrossValidation), the scores are sorted by every
++  // feature in turn as below (sorting starts from the order the previous feature left, which
++  // decides the order of PSMs that compare equal, and the order after the last feature is where
++  // the training starts from), with the tasks of the region (see SortLikeStd.h), on keys (see
++  // permuteScores): the feature value, the rank of the PSM's (scan, expMass, label) among the
++  // PSMs (what operator< compares after the score), and the position. The PSMs are put into the
++  // final order (and get the scores of the last feature) once, at the end. After each sort, a task counts the
++  // positives of the feature on the (score, label) pairs in that order: the q-values, and so
++  // the count, depend on the order of the scores and on the labels of each group of equal
++  // scores, not on the order within a group (calcQvals treats ties as one group). The q-values
++  // are set for the last feature, as by the loop below. A NaN feature value or mass (no strict
++  // weak ordering) uses the loop below.
+   bool counted = false;
+ #ifdef _OPENMP
+   const bool anyNaN = std::any_of(scores_.begin(), scores_.end(), [numFeatures](const ScoreHolder& sh) {
+@@ -752,37 +966,89 @@ int Scores::getInitDirection(const double initialSelectionFdr,
+            std::any_of(sh.pPSM->features, sh.pPSM->features + numFeatures,
+                        [](double x) { return std::isnan(x); });
+   });
+-  if (numFeatures > 0 && !anyNaN && omp_in_parallel()) {
+-    std::vector<std::pair<const double*, bool> > rows;
+-    rows.reserve(scores_.size());
+-    for (const ScoreHolder& sh : scores_) rows.emplace_back(sh.pPSM->features, sh.isTarget());
++  const std::size_t n = scores_.size();
++  if (numFeatures > 0 && !anyNaN && n > 0 && n <= std::numeric_limits<unsigned int>::max() &&
++      omp_in_parallel()) {
+     std::exception_ptr chainError;
+     std::vector<std::exception_ptr> errors(numFeatures);
++    struct ChainKey {
++      double score;
++      unsigned int tieRank;
++      unsigned int index;
++    };
++    // the keys after the sort of each feature (until its count), and the labels
++    std::vector<std::vector<ChainKey> > keysOfFeature(numFeatures);
++    std::vector<char> isTarget(n);
+ #pragma omp taskgroup
+     {
+-      for (unsigned int featNo = 0; featNo < numFeatures; featNo++) {
+-#pragma omp task firstprivate(featNo) shared(rows, positives, errors, initialSelectionFdr)
+-        try {
+-          std::vector<pair<double, bool> > combined;
+-          combined.reserve(rows.size());
+-          for (const auto& row : rows) combined.emplace_back(row.first[featNo], row.second);
+-          std::sort(combined.begin(), combined.end(),
+-                    [](const pair<double, bool>& a, const pair<double, bool>& b) {
+-                      return a.first < b.first;
+-                    });
+-          positives[2 * featNo] = countPositivesOfPairs(combined, initialSelectionFdr, skipDecoysPlusOne);
+-          reverse(combined.begin(), combined.end());
+-          positives[2 * featNo + 1] = countPositivesOfPairs(combined, initialSelectionFdr, skipDecoysPlusOne);
+-        } catch (...) {
+-          errors[featNo] = std::current_exception();
+-        }
+-      }
+       try {
++        // the rank of (scan, expMass, label) in the lexicographic order of operator<
++        struct TieKey {
++          unsigned int scan;
++          double expMass;
++          LabelType label;
++          unsigned int index;
++        };
++        const auto tieLess = [](const TieKey& x, const TieKey& y) {
++          if (x.scan != y.scan) return x.scan < y.scan;
++          if (x.expMass != y.expMass) return x.expMass < y.expMass;
++          return x.label < y.label;
++        };
++        std::vector<TieKey> ties;
++        ties.reserve(n);
++        for (std::size_t i = 0; i < n; ++i) {
++          ties.push_back({scores_[i].pPSM->scan, scores_[i].pPSM->expMass, scores_[i].label,
++                          static_cast<unsigned int>(i)});
++        }
++        sortLikeStdSort(ties, tieLess);  // (any sort: only the ranks are used)
++        std::vector<unsigned int> tieRank(n);
++        unsigned int rank = 0;
++        for (std::size_t k = 0; k < n; ++k) {
++          if (k > 0 && tieLess(ties[k - 1], ties[k])) ++rank;
++          tieRank[ties[k].index] = rank;
++        }
++        // the feature values by feature, and the labels (blocks of PSMs as tasks)
++        std::vector<double> columns(static_cast<std::size_t>(numFeatures) * n);
++        const std::ptrdiff_t numScores = static_cast<std::ptrdiff_t>(n);
++#pragma omp taskloop grainsize(kMinScoreTaskSize) shared(columns, isTarget)
++        for (std::ptrdiff_t i = 0; i < numScores; ++i) {
++          const ScoreHolder& sh = scores_[static_cast<std::size_t>(i)];
++          for (unsigned int featNo = 0; featNo < numFeatures; ++featNo) {
++            columns[featNo * n + static_cast<std::size_t>(i)] = sh.pPSM->features[featNo];
++          }
++          isTarget[static_cast<std::size_t>(i)] = sh.isTarget();
++        }
++        std::vector<ChainKey> keys;
++        keys.reserve(n);
++        for (std::size_t i = 0; i < n; ++i) {
++          keys.push_back({0.0, tieRank[i], static_cast<unsigned int>(i)});
++        }
+         for (unsigned int featNo = 0; featNo < numFeatures; featNo++) {
+-          for (ScoreHolder& sh : scores_) sh.score = sh.pPSM->features[featNo];
+-          sortLikeStdSort(scores_, [](const ScoreHolder& a, const ScoreHolder& b) { return a < b; });
+-          reverse(scores_.begin(), scores_.end());
++          const double* column = &columns[featNo * n];
++          for (ChainKey& key : keys) key.score = column[key.index];
++          // operator< of ScoreHolder
++          sortLikeStdSort(keys, [](const ChainKey& x, const ChainKey& y) {
++            return x.score < y.score || (x.score == y.score && x.tieRank < y.tieRank);
++          });
++          keysOfFeature[featNo] = keys;
++#pragma omp task firstprivate(featNo) shared(keysOfFeature, isTarget, positives, errors, initialSelectionFdr, skipDecoysPlusOne)
++          try {
++            std::vector<pair<double, bool> > pairs;
++            pairs.reserve(keysOfFeature[featNo].size());
++            for (const ChainKey& key : keysOfFeature[featNo]) {
++              pairs.emplace_back(key.score, isTarget[key.index] != 0);
++            }
++            std::vector<ChainKey>().swap(keysOfFeature[featNo]);
++            positives[2 * featNo] = countPositivesOfPairs(pairs, initialSelectionFdr, skipDecoysPlusOne);
++            reverse(pairs.begin(), pairs.end());
++            positives[2 * featNo + 1] = countPositivesOfPairs(pairs, initialSelectionFdr, skipDecoysPlusOne);
++          } catch (...) {
++            errors[featNo] = std::current_exception();
++          }
++          reverse(keys.begin(), keys.end());
+         }
++        permuteScores(scores_, keys);
++        for (std::size_t i = 0; i < n; ++i) scores_[i].score = keys[i].score;
+         std::vector<pair<double, bool> > combined;
+         calcQvals(initialSelectionFdr, skipDecoysPlusOne, combined);
+       } catch (...) {
+diff --git a/src/openms/thirdparty/percolator/Scores.h b/src/openms/thirdparty/percolator/Scores.h
+index 8990c95952..74038b88cf 100644
+--- a/src/openms/thirdparty/percolator/Scores.h
++++ b/src/openms/thirdparty/percolator/Scores.h
+@@ -86,6 +86,8 @@ class Scores {
+                          bool skipDecoysPlusOne = false);
+   int calcScores(vector<double>& w);
+   // OpenMS: see Scores.cpp
++  int sortScoresAndCalcQvals(double fdr, bool skipDecoysPlusOne = false);
++  // OpenMS: see Scores.cpp
+   int countPositives(const std::vector<double>& w, double fdr,
+                      bool skipDecoysPlusOne = false) const;
+   int calcQvals(double fdr, bool skipDecoysPlusOne = false);
+@@ -108,6 +110,9 @@ class Scores {
+                                    const double cpos,
+                                    const bool trainBestPositive);
+   void generateNegativeTrainingSet(AlgIn& data, const double cneg);
++  // OpenMS: see Scores.cpp
++  bool generateTrainingSetsOfSortedSet(AlgIn& data, const double fdr,
++                                       const bool trainBestPositive) const;
+ 
+   void recalculateSizes();
+   void normalizeScores(double fdr, std::vector<double>& weights);
+@@ -176,6 +181,8 @@ class Scores {
+   int calcQvals(double fdr, bool skipDecoysPlusOne,
+                 std::vector<std::pair<double, bool> >& combined);
+   void checkSeparationAndSetPi0();
++  // OpenMS: see Scores.cpp
++  int sortScores();
+   bool is_output_rt_ = false;
+ };
+ 

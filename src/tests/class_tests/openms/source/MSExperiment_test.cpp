@@ -1217,6 +1217,31 @@ START_SECTION((ConstIterator getPrecursorSpectrum(ConstIterator iterator) const)
 }
 END_SECTION
 
+START_SECTION(([EXTRA] ConstIterator getPrecursorSpectrum(ConstIterator iterator) const with FAIMS))
+{
+  // without a spectrum reference: the closest preceding MS1 of the same compensation voltage
+  auto faims = [](MSSpectrum& s, double cv) { s.setDriftTime(cv); s.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE); };
+  PeakMap exp;
+  exp.resize(5);
+  exp[0].setMSLevel(1); faims(exp[0], -40.0);
+  exp[1].setMSLevel(1); faims(exp[1], -60.0);
+  exp[2].setMSLevel(2); faims(exp[2], -40.0);
+  exp[3].setMSLevel(2); faims(exp[3], -59.995); // within the tolerance of -60
+  exp[4].setMSLevel(2); faims(exp[4], -80.0);  // no MS1 at this CV
+  TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin() + 2) == exp.begin(), true)
+  TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin() + 3) == exp.begin() + 1, true)
+  TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin() + 4) == exp.end(), true)
+
+  // CV annotated on the MS2 spectra only: the preceding MS1 without a CV is taken
+  PeakMap ms2_cv_only;
+  ms2_cv_only.resize(3);
+  ms2_cv_only[0].setMSLevel(1);
+  ms2_cv_only[1].setMSLevel(1);
+  ms2_cv_only[2].setMSLevel(2); faims(ms2_cv_only[2], -40.0);
+  TEST_EQUAL(ms2_cv_only.getPrecursorSpectrum(ms2_cv_only.begin() + 2) == ms2_cv_only.begin() + 1, true)
+}
+END_SECTION
+
 START_SECTION((int getPrecursorSpectrum(int zero_based_index) const))
 {
   PeakMap exp;

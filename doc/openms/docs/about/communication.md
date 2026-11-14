@@ -42,7 +42,9 @@ OpenMS
 - [Bug reports](https://github.com/OpenMS/OpenMS/labels/bug) (e.g. "Filter doesn't work for 1D data")
 - [Feature requests](https://github.com/OpenMS/OpenMS/labels/enhancement)
 - [Tools](https://github.com/OpenMS/OpenMS/issues?q=is%3Aopen+is%3Aissue+label%3ATOPP) (**T**he **O**penMS **P**i**p**eline - TOPP)
-- [TOPPView](https://github.com/OpenMS/OpenMS/labels/TOPPView)
+
+Graphical tools (TOPPView, TOPPAS, INIFileEditor)
+- [OpenMS-TOPP-GUI issue tracker](https://github.com/OpenMS/OpenMS-TOPP-GUI/issues)
 
 Documentation
 - [Bug reports](https://github.com/OpenMS/OpenMS/labels/bug)

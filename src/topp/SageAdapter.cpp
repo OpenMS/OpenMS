@@ -190,8 +190,8 @@ protected:
 }
 )";
 
-  // formats a single mod entry as sage json entry
-  std::string getModDetails(const ResidueModification* mod, const Residue* res)
+  // sage json key of the residue or terminus a mod applies to
+  std::string getModOrigin(const ResidueModification* mod, const Residue* res)
   {
     std::string origin;
     if (mod->getTermSpecificity() == ResidueModification::N_TERM)
@@ -214,8 +214,13 @@ protected:
    {
      origin += res->getOneLetterCode();
    }
+    return origin;
+  }
 
-    return std::string("\"") + origin + "\": " + StringUtils::toStr(mod->getDiffMonoMass());
+  // formats a single mod entry as sage json entry
+  std::string getModDetails(const ResidueModification* mod, const Residue* res)
+  {
+    return std::string("\"") + getModOrigin(mod, res) + "\": " + StringUtils::toStr(mod->getDiffMonoMass());
   }
 
   // formats all mod entries into a single multi-line json string
@@ -231,6 +236,33 @@ protected:
       {
         mod_details += ",\n";
       }
+    }
+    return mod_details;
+  }
+
+  // formats variable mods as sage json entries: one per residue or terminus, listing the masses of all its mods
+  // (a repeated key, e.g. for SILAC Lys4 and Lys8, would keep only the last mod)
+  std::string getVariableModDetailsString(const OpenMS::ModifiedPeptideGenerator::MapToResidueType& mod_map)
+  {
+    std::map<std::string, std::vector<double>> origin_to_masses;
+    for (const auto& [mod, res] : mod_map.val)
+    {
+      origin_to_masses[getModOrigin(mod, res)].push_back(mod->getDiffMonoMass());
+    }
+    std::string mod_details;
+    for (auto& [origin, masses] : origin_to_masses)
+    {
+      std::sort(masses.begin(), masses.end());
+      if (!mod_details.empty())
+      {
+        mod_details += ",\n";
+      }
+      mod_details += "\"" + origin + "\": [";
+      for (size_t i = 0; i < masses.size(); ++i)
+      {
+        mod_details += (i == 0 ? "" : ", ") + StringUtils::toStr(masses[i]);
+      }
+      mod_details += "]";
     }
     return mod_details;
   }
@@ -374,36 +406,10 @@ protected:
     set<std::string> variable_unique(variable_mods.begin(), variable_mods.end());
     variable_mods.assign(variable_unique.begin(), variable_unique.end());
     ModifiedPeptideGenerator::MapToResidueType variable_mod_map = ModifiedPeptideGenerator::getModifications(variable_mods);
-    std::string variable_mods_details = getModDetailsString(variable_mod_map);
+    std::string variable_mods_details = getVariableModDetailsString(variable_mod_map);
 
-    //Treat variables as list for sage v0.15 and beyond 
-    StringList static_mods_details_list; 
-    StringList variable_mods_details_list; 
-
-    std::string static_mods_details_split = static_mods_details; 
-    std::string variable_mods_details_split = variable_mods_details; 
-    StringUtils::split(static_mods_details_split, ",", static_mods_details_list); 
-    StringUtils::split(variable_mods_details_split, ",", variable_mods_details_list); 
-
-    std::string temp_String_var; 
-    for (auto& x : variable_mods_details_list)
-    {
-      StringList temp_split; 
-      StringUtils::split(x, ":", temp_split); 
-      
-      temp_split.insert(temp_split.begin()+1, ":["); 
-      temp_split.insert(temp_split.end(), "]"); 
-      std::string temp_split_Str; 
-
-      for (auto& y : temp_split)
-      {
-        temp_split_Str = temp_split_Str + y; 
-      } 
-      temp_String_var = temp_String_var + "," + temp_split_Str ; 
-    } 
-    std::string temp_String_var_Fin = StringUtils::substr(temp_String_var, 1, temp_String_var.size()-1); 
     StringUtils::substitute(config_file, "##static_mods##", static_mods_details);
-    StringUtils::substitute(config_file, "##variable_mods##", temp_String_var_Fin);
+    StringUtils::substitute(config_file, "##variable_mods##", variable_mods_details);
 
     return config_file;
   }
@@ -588,11 +594,12 @@ protected:
       if (FileHandler::getType(f) == FileTypes::RAW)
       {
         OPENMS_LOG_INFO << "Converting Thermo .raw to temp mzML for Sage: " << f << std::endl;
-        MSExperiment exp_raw;
-        FileHandler fh_raw;
-        fh_raw.loadExperiment(f, exp_raw, {FileTypes::RAW}, log_type_);
         auto tmp_mzml = TempFiles::getTemporaryFile() + ".mzML";
-        MzMLFile().store(tmp_mzml, exp_raw);
+        {
+          // Stream scan by scan, so the run is never held in memory
+          PlainMSDataWritingConsumer writer(tmp_mzml);
+          FileHandler().transformExperiment(f, &writer, {FileTypes::RAW}, log_type_);
+        }
         sage_tmp_basename_to_original[File::basename(tmp_mzml)] = f;
         f = tmp_mzml;
       }
@@ -788,7 +795,7 @@ protected:
 
     // Check if any input is a Bruker .d folder (not mzML) — skip mzML-specific post-processing
     bool has_non_mzml_input = std::any_of(input_files.begin(), input_files.end(),
-      [](const std::string& f) { return !StringUtils::hasSuffix(f, ".mzML"); });
+      [](const std::string& f) { return FileHandler::getType(f) != FileTypes::MZML; }); // any case of the extension
 
     // Build native ID lookup from mzML files (not applicable for .d input)
     map<std::string,unordered_map<int, std::string>> file2specnr2nativeid;

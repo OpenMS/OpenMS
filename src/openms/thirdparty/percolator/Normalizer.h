@@ -38,6 +38,9 @@ class Normalizer {
                     vector<double*>& rtFeaturesV);
   void normalizeSet(vector<double*>& featuresV,
                     size_t offset, size_t numFeatures);
+  // OpenMS: see Normalizer.cpp
+  void normalizeRowsByFeature(vector<double*>& featuresV,
+                              vector<double*>& rtFeaturesV);
   void normalize(const double* in, double* out, size_t offset,
                  size_t numFeatures);
   inline double normalize(const double in, size_t index) {

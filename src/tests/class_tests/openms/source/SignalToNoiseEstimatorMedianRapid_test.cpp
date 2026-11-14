@@ -9,6 +9,10 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
+
+#include <limits>
+
 ///////////////////////////
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>
 ///////////////////////////
@@ -165,6 +169,52 @@ START_SECTION( (NoiseEstimator estimateNoise(std::vector<double>& mz_array, std:
     TEST_REAL_SIMILAR(e.get_noise_value(250), 1.0)
   }
 
+  // Invalid input arrays throw instead of reading out of bounds
+  {
+    SignalToNoiseEstimatorMedianRapid sne(100);
+    std::vector<double> empty;
+    TEST_EXCEPTION(Exception::InvalidParameter, sne.estimateNoise(empty, empty))
+    std::vector<double> shorter(intensity.begin(), intensity.end() - 1);
+    TEST_EXCEPTION(Exception::InvalidParameter, sne.estimateNoise(mz, shorter))
+  }
+
+}
+END_SECTION
+
+START_SECTION([EXTRA] NoiseEstimator::get_noise_even/get_noise_odd bounds checks)
+{
+  // m/z 200..590 with window length 100: 4 even windows starting at 200,
+  // 5 odd windows starting at 150
+  std::vector<double> mz, intensity;
+  for (size_t i = 0; i < 40; ++i)
+  {
+    mz.push_back(200.0 + 10.0 * i);
+    intensity.push_back(1.0 + i);
+  }
+  SignalToNoiseEstimatorMedianRapid sne(100);
+  SignalToNoiseEstimatorMedianRapid::NoiseEstimator e = sne.estimateNoise(mz, intensity);
+  TEST_EQUAL(e.result_windows_even.size(), 4)
+  TEST_EQUAL(e.result_windows_odd.size(), 5)
+
+  // the whole input range is valid
+  TEST_REAL_SIMILAR(e.get_noise_even(200), e.result_windows_even[0])
+  TEST_REAL_SIMILAR(e.get_noise_even(590), e.result_windows_even[3])
+  TEST_REAL_SIMILAR(e.get_noise_odd(200), e.result_windows_odd[0])
+  TEST_REAL_SIMILAR(e.get_noise_odd(590), e.result_windows_odd[4])
+  // positions up to one window before the start truncate to window 0, as before
+  TEST_REAL_SIMILAR(e.get_noise_even(150), e.result_windows_even[0])
+
+  // outside the windows
+  TEST_EXCEPTION(Exception::IndexUnderflow, e.get_noise_even(100))
+  TEST_EXCEPTION(Exception::IndexUnderflow, e.get_noise_odd(50))
+  TEST_EXCEPTION(Exception::IndexOverflow, e.get_noise_even(600))
+  TEST_EXCEPTION(Exception::IndexOverflow, e.get_noise_odd(650))
+  TEST_EXCEPTION(Exception::IndexOverflow, e.get_noise_value(1e300))
+  TEST_EXCEPTION(Exception::IndexUnderflow, e.get_noise_value(std::numeric_limits<double>::quiet_NaN()))
+
+  // an estimator without windows
+  SignalToNoiseEstimatorMedianRapid::NoiseEstimator empty_estimator(0, 200, 100);
+  TEST_EXCEPTION(Exception::IndexOverflow, empty_estimator.get_noise_even(200))
 }
 END_SECTION
 

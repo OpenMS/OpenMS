@@ -565,6 +565,7 @@ namespace OpenMS
           tmp.setMetaValue("intensity_score", meta[1][peak]);
           tmp.setMetaValue("pattern_score", meta[meta_index_isotope][peak]);
           tmp.setMetaValue("trace_score", meta[0][peak]);
+          tmp.setUniqueId();
           seed_map.push_back(tmp);
         }
         FileHandler().storeFeatures("debug/seeds_" + StringUtils::toStr(c) + ".featureXML", seed_map);
@@ -592,7 +593,9 @@ namespace OpenMS
       int gl_progress = 0;
       startProgress(0, seeds.size(),"Extending seeds for charge " + StringUtils::toStr(c));
 
-#pragma omp parallel for
+      // write_debug: the seed extension writes to log_ (one std::ofstream) from many places without a lock,
+      // so it runs single-threaded; concurrent writes corrupt the stream buffer and the heap.
+#pragma omp parallel for if (!debug_)
       for (SignedSize i = 0; i < (SignedSize)seeds.size(); ++i)
       {
         //------------------------------------------------------------------
@@ -841,6 +844,9 @@ namespace OpenMS
           //re-set label
           f.second.setMetaValue(3, feature_nr_global);
           ++feature_nr_global;
+          // assign the id on insertion: the overlap resolution below sorts and filters the whole map and copies
+          // features into subordinates, and callers may depend on the ids (e.g. the FAIMS merge)
+          f.second.setUniqueId();
           (*features_).push_back(f.second);
 
           std::vector<Size> curr_seed = seeds_in_features[seed_nr];
@@ -1030,15 +1036,14 @@ namespace OpenMS
       //store map of abort reasons for failed seeds
       FeatureMap abort_map;
       abort_map.reserve(abort_reasons_.size());
-      Size counter = 0;
-      for (std::map<Seed, std::string>::iterator it2 = abort_reasons_.begin(); it2 != abort_reasons_.end(); ++it2, ++counter)
+      for (std::map<Seed, std::string>::iterator it2 = abort_reasons_.begin(); it2 != abort_reasons_.end(); ++it2)
       {
         Feature f;
         f.setRT(map_[it2->first.spectrum].getRT());
         f.setMZ(map_[it2->first.spectrum][it2->first.peak].getMZ());
         f.setIntensity(map_[it2->first.spectrum][it2->first.peak].getIntensity());
         f.setMetaValue("label", it2->second);
-        f.setUniqueId(counter); // ID = index
+        f.setUniqueId();
         abort_map.push_back(f);
       }
       abort_map.setUniqueId();
@@ -2142,7 +2147,7 @@ namespace OpenMS
                                                             const std::string& path)
   {
 
-    double pseudo_rt_shift = param_.getValue("debug:pseudo_rt_shift");
+    double pseudo_rt_shift = param_.getValue("advanced:pseudo_rt_shift");
     std::string script;
     {
       TextFile tf;

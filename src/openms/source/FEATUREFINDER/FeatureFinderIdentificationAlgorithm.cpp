@@ -37,6 +37,7 @@
 #include <fstream>
 #include <algorithm>
 #include <random>
+#include <map>
 #include <optional>
 
 #ifdef _OPENMP
@@ -562,6 +563,7 @@ namespace OpenMS
     features.clear(true);
     chrom_data_.clear(true);
     output_library_.clear(true);
+    FeatureMap candidates; // of all groups, for candidates_out
     bool first_group = true;
 
     for (auto& [group_cv, faims_group] : faims_groups)
@@ -585,9 +587,28 @@ namespace OpenMS
       ffid_group.setParameters(this->getParameters());
       ffid_group.setMSData(std::move(faims_group));
 
-      // Run feature detection
-      FeatureMap features_cv;
-      ffid_group.runSingleGroup_(peptides_cv, proteins, features_cv, seeds, spectra_file);
+      // Seeds found at this CV (DDAWorkflowCommons::calculateSeeds and Biosaur2 label them with FAIMS_CV); seeds
+      // without a CV are tried at every CV, like identifications without one
+      const FeatureMap seeds_cv = FAIMSHelper::filterFeaturesByFAIMSCV(seeds, group_cv);
+
+      // Run feature detection (the candidates of all groups are written together below)
+      FeatureMap features_cv, candidates_cv;
+      if (!candidates_out_.empty()) ffid_group.candidates_sink_ = &candidates_cv;
+      ffid_group.runSingleGroup_(peptides_cv, proteins, features_cv, seeds_cv, spectra_file);
+      if (!candidates_out_.empty())
+      {
+        for (auto& feat : candidates_cv)
+        {
+          feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+          candidates.push_back(std::move(feat));
+        }
+        for (auto& pep_id : candidates_cv.getUnassignedPeptideIdentifications())
+        {
+          pep_id.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+          candidates.getUnassignedPeptideIdentifications().push_back(std::move(pep_id));
+        }
+        if (first_group) candidates.setProteinIdentifications(candidates_cv.getProteinIdentifications());
+      }
 
       // Annotate features with FAIMS CV and add to results
       for (auto& feat : features_cv)
@@ -618,6 +639,13 @@ namespace OpenMS
       }
 
       first_group = false;
+    }
+
+    if (!candidates_out_.empty())
+    {
+      candidates.ensureUniqueId();
+      candidates.setPrimaryMSRunPath({spectra_file});
+      storeCandidates_(candidates);
     }
 
     // Warn about library output for FAIMS data
@@ -888,18 +916,19 @@ namespace OpenMS
     features.ensureUniqueId();
   }
 
-  void FeatureFinderIdentificationAlgorithm::postProcess_(FeatureMap & features)
+  void FeatureFinderIdentificationAlgorithm::postProcess_(FeatureMap & features, bool store_candidates)
   {
     // make sure proper unique ids get assigned to all features
     features.ensureUniqueId();
 
     // store feature candidates before filtering
-    if (!candidates_out_.empty())
+    if (candidates_sink_ != nullptr)
     {
-      FileTypes::Type candidates_out_type = FileHandler::getType(candidates_out_);
-      if (candidates_out_type != FileTypes::FEATUREPARQUET)
-        candidates_out_type = FileTypes::FEATUREXML;
-      FileHandler().storeFeatures(candidates_out_, features, {candidates_out_type});
+      *candidates_sink_ = features; // FAIMS CV group: run() writes the candidates of all groups
+    }
+    else if (store_candidates && !candidates_out_.empty())
+    {
+      storeCandidates_(features);
     }
 
     filterFeatures_(features);
@@ -934,6 +963,14 @@ namespace OpenMS
 
   }
 
+  void FeatureFinderIdentificationAlgorithm::storeCandidates_(const FeatureMap& candidates) const
+  {
+    FileTypes::Type candidates_out_type = FileHandler::getType(candidates_out_);
+    if (candidates_out_type != FileTypes::FEATUREPARQUET)
+      candidates_out_type = FileTypes::FEATUREXML;
+    FileHandler().storeFeatures(candidates_out_, candidates, {candidates_out_type});
+  }
+
   void FeatureFinderIdentificationAlgorithm::runOnCandidates(FeatureMap & features)
   {
     // extract ID information for statistics:
@@ -958,12 +995,44 @@ namespace OpenMS
          peptide_compare_);
     sort(features.begin(), features.end(), feature_compare_);
 
-    postProcess_(features);
+    const bool faims = std::any_of(features.begin(), features.end(),
+      [](const Feature& feat) { return feat.metaValueExists(Constants::UserParam::FAIMS_CV); });
+    if (!faims)
+    {
+      postProcess_(features);
+    }
+    else
+    {
+      // candidates of FAIMS data (annotated with their CV by run()): post-process the features of each CV separately,
+      // as run() does - ElutionModelFitter takes its outlier limits and the imputation of failed fits from all
+      // features it gets
+      features.ensureUniqueId();
+      if (!candidates_out_.empty()) storeCandidates_(features); // all CVs at once
+      std::map<std::optional<double>, FeatureMap> cv_groups;
+      for (Feature& feat : features)
+      {
+        std::optional<double> cv;
+        if (feat.metaValueExists(Constants::UserParam::FAIMS_CV)) cv = double(feat.getMetaValue(Constants::UserParam::FAIMS_CV));
+        cv_groups[cv].push_back(std::move(feat));
+      }
+      features.clear(false);
+      for (auto& [cv, group] : cv_groups)
+      {
+        postProcess_(group, false);
+        for (Feature& feat : group) features.push_back(std::move(feat));
+      }
+    }
 
     statistics_(features);
 
     // remove all hits with pseudo ids (seeds and offset peptides), which the candidates keep
     removeSeedPseudoIDs_(features);
+
+    // candidates of FAIMS data (annotated with their CV by run()): merge across CVs as run() does
+    if (param_.getValue("faims:merge_features").toBool())
+    {
+      FeatureOverlapFilter::mergeFAIMSFeatures(features, 5.0, 0.05);
+    }
   }
 
   void FeatureFinderIdentificationAlgorithm::statistics_(FeatureMap const & features) const
@@ -1204,8 +1273,10 @@ namespace OpenMS
             double rt = rt_pep.second->getRT();
             std::string uid = StringUtils::toStr(rt_pep.second->getMetaValue("SeedFeatureID"));
 
-            // UID should be enough, but let's add the seed count to be sure.
-            std::string peptide_id = peptide.sequence + "[" + uid + "][" + StringUtils::toStr(seedcount) + "]/" + StringUtils::toStr(charge);
+            // The seed count makes it unique. It comes first because the features are sorted by this reference,
+            // and the UID is drawn at random (from a time-dependent seed, unless in test mode): a reference that
+            // started with it would put the seed features in a different order in every process.
+            std::string peptide_id = peptide.sequence + "[" + StringUtils::toStr(seedcount) + "][" + uid + "]/" + StringUtils::toStr(charge);
             peptide.setChargeState(charge);
             peptide.id = peptide_id;
             peptide.protein_refs = {"not_available"};

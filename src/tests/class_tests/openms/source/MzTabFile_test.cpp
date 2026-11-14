@@ -18,6 +18,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <algorithm>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -27,6 +28,18 @@ class MzTabFile2 : public MzTabFile
 {
   public:
     std::string generateMzTabPSMSectionRow2_(const MzTabPSMSectionRow& row, const vector<std::string>& optional_columns, const MzTabMetaData& meta) const
+    {
+      size_t n_columns = 0;
+      return generateMzTabSectionRow_(row, optional_columns, meta, n_columns);
+    }
+
+    std::string generateMzTabProteinHeader2_(const MzTabProteinSectionRow& reference_row, Size n_best_search_engine_scores, const vector<std::string>& optional_columns, const MzTabMetaData& meta) const
+    {
+      size_t n_columns = 0;
+      return generateMzTabProteinHeader_(reference_row, n_best_search_engine_scores, optional_columns, meta, n_columns);
+    }
+
+    std::string generateMzTabProteinSectionRow2_(const MzTabProteinSectionRow& row, const vector<std::string>& optional_columns, const MzTabMetaData& meta) const
     {
       size_t n_columns = 0;
       return generateMzTabSectionRow_(row, optional_columns, meta, n_columns);
@@ -186,6 +199,179 @@ START_SECTION([EXTRA] store - every peptide identification needs its protein ide
 }
 END_SECTION
 
+START_SECTION([EXTRA] colunit metadata is written and read as specified by mzTab 1.0)
+{
+  MzTab mz_tab;
+  MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC.mzTab"), mz_tab);
+
+  MzTabMetaData md = mz_tab.getMetaData();
+  md.colunit_protein.push_back("best_search_engine_score[1]=[MS, MS:1001171, Mascot:score, ]");
+  md.colunit_psm.push_back("retention_time=[UO, UO:0000031, minute, ]");
+  md.colunit_psm.push_back("exp_mass_to_charge=[UO, UO:0000221, dalton, ]");
+  mz_tab.setMetaData(md);
+
+  std::string stored;
+  NEW_TMP_FILE(stored)
+  MzTabFile().store(stored, mz_tab);
+
+  // key and value are separate cells, and the PSM key is lower case
+  TextFile stored_lines;
+  stored_lines.load(stored, true);
+  bool found_psm_line = false;
+  for (const std::string& line : stored_lines)
+  {
+    if (line == "MTD\tcolunit-psm\tretention_time=[UO, UO:0000031, minute, ]") found_psm_line = true;
+  }
+  TEST_EQUAL(found_psm_line, true)
+
+  // reading back does not fail on the unindexed keys and keeps every entry in order
+  MzTab reloaded;
+  MzTabFile().load(stored, reloaded);
+  const MzTabMetaData& reloaded_md = reloaded.getMetaData();
+  TEST_EQUAL(reloaded_md.colunit_protein.size(), 1)
+  TEST_EQUAL(reloaded_md.colunit_psm.size(), 2)
+  TEST_STRING_EQUAL(reloaded_md.colunit_psm[0], "retention_time=[UO, UO:0000031, minute, ]")
+  TEST_STRING_EQUAL(reloaded_md.colunit_psm[1], "exp_mass_to_charge=[UO, UO:0000221, dalton, ]")
+  TEST_EQUAL(reloaded_md.colunit_peptide.empty(), true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] optional PSM columns are read back)
+{
+  MzTab mz_tab;
+  MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC2.mzTab"), mz_tab);
+  MzTabPSMSectionRows psms = mz_tab.getPSMSectionRows();
+  TEST_EQUAL(psms.empty(), false)
+  for (Size i = 0; i < psms.size(); ++i)
+  {
+    MzTabString q;
+    q.set(StringUtils::toStr(0.001 * (i + 1)));
+    psms[i].opt_.emplace_back("opt_global_q-value", q);
+  }
+  mz_tab.setPSMSectionRows(psms);
+
+  std::string stored;
+  NEW_TMP_FILE(stored)
+  MzTabFile().store(stored, mz_tab);
+
+  MzTab reloaded;
+  MzTabFile().load(stored, reloaded);
+  const MzTabPSMSectionRows& reloaded_psms = reloaded.getPSMSectionRows();
+  TEST_EQUAL(reloaded_psms.size(), psms.size())
+  ABORT_IF(reloaded_psms.size() != psms.size())
+  for (Size i = 0; i < reloaded_psms.size(); ++i)
+  {
+    TEST_EQUAL(reloaded_psms[i].opt_.size(), 1)
+    ABORT_IF(reloaded_psms[i].opt_.size() != 1)
+    TEST_STRING_EQUAL(reloaded_psms[i].opt_[0].first, "opt_global_q-value")
+    TEST_STRING_EQUAL(reloaded_psms[i].opt_[0].second.toCellString(), StringUtils::toStr(0.001 * (i + 1)))
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] protein section run-level search engine score columns line up with their header labels)
+{
+  // Two ms_runs and two search engine scores: search_engine_score_ms_run is
+  // keyed [score_index][run_index]. Each value is distinct so a column/value
+  // swap is easy to spot.
+  MzTabProteinSectionRow row;
+  row.search_engine_score_ms_run[1][1] = MzTabDouble(11.0); // score 1, run 1
+  row.search_engine_score_ms_run[1][2] = MzTabDouble(12.0); // score 1, run 2
+  row.search_engine_score_ms_run[2][1] = MzTabDouble(21.0); // score 2, run 1
+  row.search_engine_score_ms_run[2][2] = MzTabDouble(22.0); // score 2, run 2
+
+  MzTabFile2 f;
+  MzTabMetaData meta;
+  vector<std::string> optional_columns;
+
+  std::string header_line = f.generateMzTabProteinHeader2_(row, 0, optional_columns, meta);
+  std::string row_line = f.generateMzTabProteinSectionRow2_(row, optional_columns, meta);
+
+  std::vector<std::string> header_cells;
+  std::vector<std::string> row_cells;
+  StringUtils::split(header_line, "\t", header_cells);
+  StringUtils::split(row_line, "\t", row_cells);
+  TEST_EQUAL(header_cells.size(), row_cells.size())
+  ABORT_IF(header_cells.size() != row_cells.size())
+
+  // every "search_engine_score[s]_ms_run[r]" column must carry exactly the
+  // value that was stored under search_engine_score_ms_run[s][r]
+  for (Size score = 1; score <= 2; ++score)
+  {
+    for (Size run = 1; run <= 2; ++run)
+    {
+      std::string label = "search_engine_score[" + StringUtils::toStr(score) + "]_ms_run[" + StringUtils::toStr(run) + "]";
+      std::vector<std::string>::iterator pos = std::find(header_cells.begin(), header_cells.end(), label);
+      ABORT_IF(pos == header_cells.end())
+      Size idx = static_cast<Size>(std::distance(header_cells.begin(), pos));
+      TEST_STRING_EQUAL(row_cells[idx], row.search_engine_score_ms_run[score][run].toCellString())
+    }
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION([EXTRA] load - metadata keys with fewer fields than expected)
+{
+  // "assay[1]" without a "-..." suffix: the parser used to read meta_key_fields[1] past the end.
+  TextFile original;
+  original.load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC.mzTab"));
+  std::vector<std::string> lines(original.begin(), original.end());
+  lines.insert(lines.begin() + 1, "MTD\tassay[1]\tsomething");
+  lines.insert(lines.begin() + 1, "MTD\tsample[1]\tsomething");
+  std::string tmp;
+  NEW_TMP_FILE(tmp);
+  TextFile modified;
+  for (const auto& line : lines) modified.addLine(line);
+  modified.store(tmp);
+
+  MzTab mz_tab;
+  MzTabFile().load(tmp, mz_tab);
+  TEST_EQUAL(mz_tab.getProteinSectionRows().size() > 0 || mz_tab.getPeptideSectionRows().size() > 0, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] store - first_run_inference_only with PSMs that refer to the first run)
+{
+  // A single run that carries both the search and the inference result (e.g. ProteinInference or
+  // Epifany output). With first_run_inference_only, its PSMs still need the run's MS file and search engine.
+  ProteinIdentification run;
+  run.setIdentifier("run");
+  run.setSearchEngine("Comet");
+  run.setInferenceEngine("Epifany");
+  run.setScoreType("Posterior Probability");
+  run.setPrimaryMSRunPath(StringList{"file.mzML"});
+  ProteinHit protein;
+  protein.setAccession("P1");
+  protein.setScore(0.9);
+  run.setHits({protein});
+  std::vector<ProteinIdentification> runs{run};
+
+  PeptideIdentificationList peptides(1);
+  peptides[0].setIdentifier("run");
+  peptides[0].setScoreType("q-value");
+  peptides[0].setRT(100.0);
+  peptides[0].setMZ(400.69);
+  peptides[0].setSpectrumReference("scan=1");
+  PeptideHit hit(0.01, 1, 2, AASequence::fromString("PEPTIDE"));
+  PeptideEvidence evidence;
+  evidence.setProteinAccession("P1");
+  hit.addPeptideEvidence(evidence);
+  peptides[0].insertHit(hit);
+
+  std::string file;
+  NEW_TMP_FILE_EXT(file, ".mzTab")
+  MzTabFile().store(file, runs, peptides, true);
+
+  MzTab reloaded;
+  MzTabFile().load(file, reloaded);
+  ABORT_IF(reloaded.getPSMSectionRows().size() != 1)
+  const MzTabPSMSectionRow& psm = reloaded.getPSMSectionRows()[0];
+  TEST_STRING_EQUAL(psm.spectra_ref.toCellString(), "ms_run[1]:scan=1")
+  TEST_STRING_EQUAL(psm.search_engine.toCellString(), "[, , Comet, ]")
+  TEST_EQUAL(reloaded.getMetaData().ms_run.size(), 1)
+}
+END_SECTION
+
 END_TEST

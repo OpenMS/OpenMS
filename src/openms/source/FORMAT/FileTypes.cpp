@@ -66,7 +66,6 @@ namespace OpenMS
     TypeNameBinding(FileTypes::PEPXML, "pepXML", "pepXML file", {PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE}, {"pep.xml"}), //Supported for loading and storing identifications but TODO integrate this into fileHandler
     TypeNameBinding(FileTypes::PROTXML, "protXML", "protXML file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::COMPRESSED_READABLE}, {"prot.xml"}),
     TypeNameBinding(FileTypes::MZIDENTML, "mzid", "mzIdentML file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE, PROP::COMPRESSED_WRITEABLE}),
-    TypeNameBinding(FileTypes::QCML, "qcml", "quality control file", {PROP::PROVIDES_QC, PROP::WRITEABLE, PROP::COMPRESSED_READABLE}), //TODO add load functions for QC
     TypeNameBinding(FileTypes::MZQC, "mzqc", "quality control file in json format", {PROP::PROVIDES_QC, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::GELML, "gelML", "gelML file", {}),
     TypeNameBinding(FileTypes::TRAML, "traML", "transition file", {PROP::PROVIDES_TRANSITIONS, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE, PROP::COMPRESSED_WRITEABLE}),
@@ -80,6 +79,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::PEPLIST, "peplist", "SpecArray file", {PROP::PROVIDES_FEATURES, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::HARDKLOER, "hardkloer", "hardkloer file", {}),
     TypeNameBinding(FileTypes::KROENIK, "kroenik", "kroenik file", {PROP::PROVIDES_FEATURES, PROP::READABLE, PROP::WRITEABLE}),
+    TypeNameBinding(FileTypes::BEDRMOD, "bedrmod", "bedRMod file", {}, {"bedmethyl"}),
     TypeNameBinding(FileTypes::FASTA, "fasta", "FASTA file", {PROP::READABLE, PROP::WRITEABLE}, {"fa", "faa"}),
     TypeNameBinding(FileTypes::PEFF, "peff", "PEFF protein file", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::EDTA, "edta", "enhanced dta file", {PROP::PROVIDES_FEATURES, PROP::PROVIDES_CONSENSUSFEATURES, PROP::READABLE, PROP::WRITEABLE}),
@@ -107,7 +107,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::XQUESTXML, "xquest.xml", "xquest.xml file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE, PROP::COMPRESSED_WRITEABLE}),
     TypeNameBinding(FileTypes::SPECXML, "spec.xml", "spec.xml file", {}),
     TypeNameBinding(FileTypes::JSON, "json", "JavaScript Object Notation file", {PROP::READABLE, PROP::WRITEABLE}),
-    TypeNameBinding(FileTypes::RAW, "raw", "(Thermo) Raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE}),
+    TypeNameBinding(FileTypes::RAW, "raw", "(Thermo) Raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::COMPRESSED_READABLE}), // .raw.zip via ZipArchiveFile
     TypeNameBinding(FileTypes::OMS, "oms", "OpenMS SQLite file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::PROVIDES_FEATURES, PROP::PROVIDES_CONSENSUSFEATURES}),
     TypeNameBinding(FileTypes::EXE, "exe", "Windows executable", {}),
     TypeNameBinding(FileTypes::BZ2, "bz2", "bzip2 compressed file", {PROP::READABLE}),
@@ -120,6 +120,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::BRUKER_TDF, "d", "Bruker TDF", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::COMPRESSED_READABLE}), // .d.zip via ZipArchiveFile
     TypeNameBinding(FileTypes::IMZML, "imzML", "imzML mass spectrometry imaging file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE, PROP::COMPRESSED_READABLE}),
     TypeNameBinding(FileTypes::YAML, "yaml", "YAML file", {PROP::WRITEABLE}),
+    TypeNameBinding(FileTypes::MZPEAK, "mzpeak", "mzPeak raw data file (HUPO-PSI, Parquet in a ZIP archive or a directory)", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::XML, "xml", "any XML file", {PROP::READABLE, PROP::COMPRESSED_READABLE}),  // make sure this comes last, since the name is a suffix of other formats and should only be matched last
   };
 
@@ -290,8 +291,9 @@ namespace OpenMS
     {
       return false;
     }
-    // Bruker's '.d.zip' is unpacked by BrukerTimsFile, not by XMLFile, and only for ZIP
-    if (type == FileTypes::BRUKER_TDF)
+    // Bruker's '.d.zip' and Thermo's '.raw.zip' are unpacked by their readers (BrukerTimsFile, ThermoRawFile), not by
+    // XMLFile, and only for ZIP
+    if (type == FileTypes::BRUKER_TDF || type == FileTypes::RAW)
     {
       return compression == FileTypes::ZIP;
     }
@@ -366,6 +368,7 @@ namespace OpenMS
       case FileTypes::XMASS: return "Bruker FID file";
       case FileTypes::BRUKER_TDF: return "Bruker TDF format";
       case FileTypes::RAW: return "Thermo RAW format";
+      case FileTypes::MZPEAK: return "mzPeak format";
       default: return "";
     }
   }

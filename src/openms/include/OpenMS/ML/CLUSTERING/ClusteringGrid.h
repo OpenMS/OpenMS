@@ -14,9 +14,9 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
-#include <map>
-#include <vector>
 #include <list>
+#include <unordered_map>
+#include <vector>
 
 namespace OpenMS
 {
@@ -84,9 +84,10 @@ class OPENMS_DLLAPI ClusteringGrid
     * @brief returns clusters in this grid cell
     * 
     * @param[in] cell_index    cell index (i,j) on the grid
-    * @return list of cluster indices (from the list of clusters) which are centred in this cell
+    * @return list of cluster indices (from the list of clusters) which are centred in this cell (empty for a cell
+    * without clusters); valid until the grid is changed
     */
-    std::list<int> getClusters(const CellIndex &cell_index) const;
+    const std::list<int>& getClusters(const CellIndex &cell_index) const;
 
     /**
     * @brief returns grid cell index (i,j) for the positions (x,y)
@@ -128,9 +129,17 @@ class OPENMS_DLLAPI ClusteringGrid
     std::pair <double,double> range_y_;  
 
     /**
-    * @brief grid cell index mapped to a list of clusters in it
+    * @brief hash of a cell index
     */
-    std::map<CellIndex, std::list<int> > cells_;
+    struct CellIndexHash
+    {
+      size_t operator()(const CellIndex& cell_index) const noexcept;
+    };
+
+    /**
+    * @brief grid cell index mapped to a list of clusters in it (only cells with clusters)
+    */
+    std::unordered_map<CellIndex, std::list<int>, CellIndexHash> cells_;
 
 };
 

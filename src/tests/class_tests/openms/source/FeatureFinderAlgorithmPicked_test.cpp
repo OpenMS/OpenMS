@@ -17,8 +17,31 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/KERNEL/FeatureUniqueIds.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
+
+#include <filesystem>
 
 #include <utility>
+
+namespace
+{
+  // FeatureUniqueIds::check() as a boolean, so a violation is reported by a TEST_* macro instead of aborting the test
+  template <typename MapType>
+  bool hasValidUniqueIds(const MapType& map)
+  {
+    try
+    {
+      OpenMS::FeatureUniqueIds::check(map);
+      return true;
+    }
+    catch (const OpenMS::Exception::InvalidValue&)
+    {
+      return false;
+    }
+  }
+}
 
 START_TEST(FeatureFinderAlgorithmPicked, "$Id$")
 
@@ -62,6 +85,8 @@ START_SECTION((virtual void run()))
   ffpp.run(std::move(input), output, param, FeatureMap());
 
   TEST_EQUAL(output.size(), 8);
+  // every feature has a valid, map-unique id (#10520)
+  TEST_TRUE(hasValidUniqueIds(output));
 
   // test some of the metavalue number_of_datapoints
   TEST_EQUAL(output[0].getMetaValue(Constants::UserParam::NUM_OF_DATAPOINTS), 88);
@@ -202,6 +227,35 @@ START_SECTION(([EXTRA] feature:min_isotope_fit 0 aborts seeds without an isotope
     TEST_REAL_SIMILAR(out_zero[i].getRT(), out_tiny[i].getRT())
     TEST_REAL_SIMILAR(out_zero[i].getMZ(), out_tiny[i].getMZ())
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] write_debug writes the debug files and finds the same features))
+{
+  // writeFeatureDebugInfo_ must read the declared parameter advanced:pseudo_rt_shift (it read debug:pseudo_rt_shift,
+  // which is not declared, and threw out of the OpenMP region). Debug output must not change the result (8 features, see run()).
+  PeakMap input;
+  MzMLFile mzml_file;
+  mzml_file.getOptions().addMSLevel(1);
+  mzml_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.mzML"), input);
+  input.updateRanges();
+  Param param;
+  ParamXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.ini"), param);
+  param = param.copy("FeatureFinder:1:algorithm:", true);
+  param.setValue("write_debug", "true");
+  FeatureMap output;
+  // write_debug writes to "debug/" relative to the working directory: run in a temporary directory the test owns,
+  // so an existing "debug" folder is never touched and a stale log.txt cannot satisfy the check below.
+  TempDir tmp_dir;
+  const std::filesystem::path old_cwd = std::filesystem::current_path();
+  std::filesystem::current_path(tmp_dir.getPath());
+  {
+    FFPP ffpp; // inner scope: the destructor closes debug/log.txt before the directory is removed (Windows)
+    ffpp.run(std::move(input), output, param, FeatureMap());
+  }
+  TEST_EQUAL(output.size(), 8)
+  TEST_EQUAL(File::exists("debug/log.txt"), true)
+  std::filesystem::current_path(old_cwd);
 }
 END_SECTION
 

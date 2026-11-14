@@ -10,8 +10,11 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -222,21 +225,25 @@ START_SECTION((void applyPicked(std::vector<ProteinIdentification>& ids)))
 
   ptr->applyPickedProteinFDR(prot_ids[0],"decoy_");
 
+  // Lower score = better. Picked winners: 1 T (P01903), 3 T (P20848), 4 T (P01009), 5 D (Q5TYW2),
+  // 7 T (Q5VUR7), 8 D (Q4UJ75), 9 T ("decoy_P01009", annotated as target). FDR (D+1)/T: 1, 1/2, 1/3,
+  // 2/3, 2/4, 3/4, 3/5; q: 1/3, 1/3, 1/3, 1/2, 1/2, 3/5, 3/5. The decoys are removed; Q5TYW2 (6) gets
+  // the q-value of the closest better score 5.
   TOLERANCE_ABSOLUTE(0.001)
   const auto& hits = prot_ids[0].getHits();
-  TEST_REAL_SIMILAR(hits[0].getScore(),0.25)
-  TEST_REAL_SIMILAR(hits[1].getScore(),0.25)
-  TEST_REAL_SIMILAR(hits[2].getScore(),0.25)
-  TEST_REAL_SIMILAR(hits[3].getScore(),0.4)
-  TEST_REAL_SIMILAR(hits[4].getScore(),0.4)
-  TEST_REAL_SIMILAR(hits[5].getScore(),0.5)
+  TEST_REAL_SIMILAR(hits[0].getScore(),1.0 / 3.0)
+  TEST_REAL_SIMILAR(hits[1].getScore(),1.0 / 3.0)
+  TEST_REAL_SIMILAR(hits[2].getScore(),1.0 / 3.0)
+  TEST_REAL_SIMILAR(hits[3].getScore(),0.5)
+  TEST_REAL_SIMILAR(hits[4].getScore(),0.5)
+  TEST_REAL_SIMILAR(hits[5].getScore(),0.6)
 }
 END_SECTION
 
 START_SECTION((void applyPickedProteinFDR(ProteinIdentification& id, std::string decoy_string, bool prefix, bool groups_too)))
 {
   // Hand-computed oracles for picked protein-GROUP q-values (defaults: q-values, conservative FDR
-  // (D+1)/(T+1) over the voting groups at least as good as a score, then a cumulative minimum).
+  // (D+1)/T over the voting groups at least as good as a score, at most 1, then a cumulative minimum).
   // A group votes target if a member's target won its target/decoy pair, else decoy if a member's
   // decoy won it; groups whose members all lost do not vote. Decoys carry the prefix DECOY_.
   auto picked_run = [](bool higher_better, const vector<pair<string, double>>& hits,
@@ -271,8 +278,8 @@ START_SECTION((void applyPickedProteinFDR(ProteinIdentification& id, std::string
 
   // (1) lower score = better. Pairs: A wins (0.01 < 0.02), DECOY_B wins (0.04 < 0.05), C has no decoy.
   // Votes: {A} 0.01 T, {C} 0.02 T, {DECOY_B} 0.04 D; {DECOY_A} and {B} lost and do not vote.
-  // FDR: 0.01 -> 1/2, 0.02 -> 1/3, 0.04 -> 2/3; q: 0.01 -> 1/3, 0.02 -> 1/3, 0.04 -> 2/3.
-  // {B} (0.05) is worse than every calibrated score: q = 2/3 (all calibrated groups accepted).
+  // FDR: 0.01 -> 1/1, 0.02 -> 1/2, 0.04 -> 2/2; q: 0.01 -> 1/2, 0.02 -> 1/2, 0.04 -> 1.
+  // {B} (0.05) is worse than every calibrated score: q = 1 (all calibrated groups accepted).
   // Before the fix, its lookup dereferenced the end of the score map (ASan stack-buffer-overflow).
   {
     ProteinIdentification run = picked_run(false,
@@ -280,24 +287,27 @@ START_SECTION((void applyPickedProteinFDR(ProteinIdentification& id, std::string
       {{0.01, {"A"}}, {0.02, {"DECOY_A"}}, {0.05, {"B"}}, {0.04, {"DECOY_B"}}, {0.02, {"C"}}});
     fdr.applyPickedProteinFDR(run, "DECOY_", true);
     vector<double> qs = group_qvalues(run);
-    TEST_REAL_SIMILAR(qs[0], 1.0 / 3.0)
-    TEST_REAL_SIMILAR(qs[1], 1.0 / 3.0)
-    TEST_REAL_SIMILAR(qs[2], 2.0 / 3.0)
-    TEST_REAL_SIMILAR(qs[3], 2.0 / 3.0)
-    TEST_REAL_SIMILAR(qs[4], 1.0 / 3.0)
+    TEST_REAL_SIMILAR(qs[0], 0.5)
+    TEST_REAL_SIMILAR(qs[1], 0.5)
+    TEST_REAL_SIMILAR(qs[2], 1.0)
+    TEST_REAL_SIMILAR(qs[3], 1.0)
+    TEST_REAL_SIMILAR(qs[4], 0.5)
   }
 
-  // (2) higher score = better. DECOY_A (0.95, in no group) beats A (0.9). Only {C} votes: 0.5 T -> q 1/2.
-  // {A} (0.9) is better than every calibrated score: q = 1/2, the best calibrated q-value.
+  // (2) higher score = better. DECOY_A (0.95, in no group) beats A (0.9). {C} 0.5 T, {E} 0.4 T and
+  // {G} 0.3 T vote: FDR 1/1, 1/2, 1/3; q 1/3 for all three.
+  // {A} (0.9) is better than every calibrated score: q = 1/3, the best calibrated q-value.
   // Before the fix, its lookup dereferenced the end of the score map.
   {
     ProteinIdentification run = picked_run(true,
-      {{"A", 0.9}, {"DECOY_A", 0.95}, {"C", 0.5}},
-      {{0.9, {"A"}}, {0.5, {"C"}}});
+      {{"A", 0.9}, {"DECOY_A", 0.95}, {"C", 0.5}, {"E", 0.4}, {"G", 0.3}},
+      {{0.9, {"A"}}, {0.5, {"C"}}, {0.4, {"E"}}, {0.3, {"G"}}});
     fdr.applyPickedProteinFDR(run, "DECOY_", true);
     vector<double> qs = group_qvalues(run);
-    TEST_REAL_SIMILAR(qs[0], 0.5)
-    TEST_REAL_SIMILAR(qs[1], 0.5)
+    TEST_REAL_SIMILAR(qs[0], 1.0 / 3.0)
+    TEST_REAL_SIMILAR(qs[1], 1.0 / 3.0)
+    TEST_REAL_SIMILAR(qs[2], 1.0 / 3.0)
+    TEST_REAL_SIMILAR(qs[3], 1.0 / 3.0)
   }
 
   // (3) No group votes (the only group lost its pair): nothing to calibrate group q-values on.
@@ -308,9 +318,9 @@ START_SECTION((void applyPickedProteinFDR(ProteinIdentification& id, std::string
 
   // (4) Score direction. Lower score = better. Pairs: P1, P4 have no decoy; P2 wins (0.02 < 0.025);
   // DECOY_P3 wins (0.03 < 0.06). Votes: 0.01 T, 0.02 T, 0.03 D, 0.05 T.
-  // FDR: 0.01 -> 1/2, 0.02 -> 1/3, 0.03 -> 2/3, 0.05 -> 1/2; q: 1/3, 1/3, 1/2, 1/2.
+  // FDR: 0.01 -> 1/1, 0.02 -> 1/2, 0.03 -> 2/2, 0.05 -> 2/3; q: 1/2, 1/2, 2/3, 2/3.
   // {DECOY_P2} (0.025) lies between 0.02 and 0.03: its closest equal-or-better calibrated score is
-  // 0.02, so q = 1/3 (as for a higher-better score). Before the fix it got the WORSE neighbour's 1/2.
+  // 0.02, so q = 1/2 (as for a higher-better score). Before the fix it got the WORSE neighbour's 2/3.
   // The same fixture with negated scores and higher = better must give the same q-values.
   {
     for (bool higher_better : {false, true})
@@ -321,21 +331,21 @@ START_SECTION((void applyPickedProteinFDR(ProteinIdentification& id, std::string
         {{s * 0.01, {"P1"}}, {s * 0.02, {"P2"}}, {s * 0.025, {"DECOY_P2"}}, {s * 0.03, {"DECOY_P3"}}, {s * 0.06, {"P3"}}, {s * 0.05, {"P4"}}});
       fdr.applyPickedProteinFDR(run, "DECOY_", true);
       vector<double> qs = group_qvalues(run);
-      TEST_REAL_SIMILAR(qs[0], 1.0 / 3.0)
-      TEST_REAL_SIMILAR(qs[1], 1.0 / 3.0)
-      TEST_REAL_SIMILAR(qs[2], 1.0 / 3.0)
-      TEST_REAL_SIMILAR(qs[3], 0.5)
-      TEST_REAL_SIMILAR(qs[4], 0.5)
-      TEST_REAL_SIMILAR(qs[5], 0.5)
+      TEST_REAL_SIMILAR(qs[0], 0.5)
+      TEST_REAL_SIMILAR(qs[1], 0.5)
+      TEST_REAL_SIMILAR(qs[2], 0.5)
+      TEST_REAL_SIMILAR(qs[3], 2.0 / 3.0)
+      TEST_REAL_SIMILAR(qs[4], 2.0 / 3.0)
+      TEST_REAL_SIMILAR(qs[5], 2.0 / 3.0)
     }
   }
 
   // (5) Mixed target/decoy group, one vote, independent of accession order. Higher score = better.
   // Pairs: Z, W have no decoy; Y ties with DECOY_Y (0.8) -> the target wins; DECOY_X (0.8) beats X (0.5).
   // {DECOY_X, Y} holds a winning decoy AND a winning target: it votes once, as target.
-  // Votes: 0.9 T, 0.8 T, 0.7 T. FDR: 1/2, 1/3, 1/4; q: 1/4 for all. {DECOY_Y} (0.8) and {X} (0.5)
-  // do not vote and get q = 1/4. Before the fix, the decoy-first order added a second (decoy) vote
-  // at 0.8, giving q = 1/2 for every group, while the target-first order gave 1/4.
+  // Votes: 0.9 T, 0.8 T, 0.7 T. FDR: 1/1, 1/2, 1/3; q: 1/3 for all. {DECOY_Y} (0.8) and {X} (0.5)
+  // do not vote and get q = 1/3. Before the fix, the decoy-first order added a second (decoy) vote
+  // at 0.8 (FDR 1, 2/2, 2/3: q = 2/3 for every group), while the target-first order gave 1/3.
   {
     for (const vector<string>& mixed : {vector<string>{"DECOY_X", "Y"}, vector<string>{"Y", "DECOY_X"}})
     {
@@ -345,15 +355,16 @@ START_SECTION((void applyPickedProteinFDR(ProteinIdentification& id, std::string
       fdr.applyPickedProteinFDR(run, "DECOY_", true);
       for (double q : group_qvalues(run))
       {
-        TEST_REAL_SIMILAR(q, 0.25)
+        TEST_REAL_SIMILAR(q, 1.0 / 3.0)
       }
     }
   }
 
   // (6) Raw FDR (no_qvalues). Fixture (2): {A} (0.9) is better than every calibrated score, so no
-  // voting group is accepted at its score: FDR (0+1)/(0+1) = 1 (a q-value takes the minimum, 1/2).
-  // {C}: 1/2. Fixture (1), lower = better: conservative FDR 0.01 -> 1/2, 0.02 -> 1/3, 0.04 -> 2/3;
-  // with conservative = false (D+1)/(D+T+1), 0.04 -> 2/4. {B} (0.05) gets the value of 0.04.
+  // voting group is accepted at its score: FDR 1 (a q-value takes the minimum, 1/3).
+  // {C}, {E}, {G}: 1/1, 1/2, 1/3. Fixture (1), lower = better: conservative FDR (D+1)/T 0.01 -> 1/1,
+  // 0.02 -> 1/2, 0.04 -> 2/2; with conservative = false (D+1)/(T+D), 0.04 -> 2/3. {B} (0.05) gets the
+  // value of 0.04.
   {
     FalseDiscoveryRate raw;
     Param p = raw.getParameters();
@@ -363,12 +374,14 @@ START_SECTION((void applyPickedProteinFDR(ProteinIdentification& id, std::string
     {
       const double s = higher_better ? 1.0 : -1.0;
       ProteinIdentification run = picked_run(higher_better,
-        {{"A", s * 0.9}, {"DECOY_A", s * 0.95}, {"C", s * 0.5}},
-        {{s * 0.9, {"A"}}, {s * 0.5, {"C"}}});
+        {{"A", s * 0.9}, {"DECOY_A", s * 0.95}, {"C", s * 0.5}, {"E", s * 0.4}, {"G", s * 0.3}},
+        {{s * 0.9, {"A"}}, {s * 0.5, {"C"}}, {s * 0.4, {"E"}}, {s * 0.3, {"G"}}});
       raw.applyPickedProteinFDR(run, "DECOY_", true);
       vector<double> fdrs = group_qvalues(run);
       TEST_REAL_SIMILAR(fdrs[0], 1.0)
-      TEST_REAL_SIMILAR(fdrs[1], 0.5)
+      TEST_REAL_SIMILAR(fdrs[1], 1.0)
+      TEST_REAL_SIMILAR(fdrs[2], 0.5)
+      TEST_REAL_SIMILAR(fdrs[3], 1.0 / 3.0)
     }
     for (bool conservative : {true, false})
     {
@@ -379,17 +392,17 @@ START_SECTION((void applyPickedProteinFDR(ProteinIdentification& id, std::string
         {{0.01, {"A"}}, {0.02, {"DECOY_A"}}, {0.05, {"B"}}, {0.04, {"DECOY_B"}}, {0.02, {"C"}}});
       raw.applyPickedProteinFDR(run, "DECOY_", true);
       vector<double> fdrs = group_qvalues(run);
-      const double last = conservative ? 2.0 / 3.0 : 0.5;
-      TEST_REAL_SIMILAR(fdrs[0], 0.5)
-      TEST_REAL_SIMILAR(fdrs[1], 1.0 / 3.0)
+      const double last = conservative ? 1.0 : 2.0 / 3.0;
+      TEST_REAL_SIMILAR(fdrs[0], 1.0)
+      TEST_REAL_SIMILAR(fdrs[1], 0.5)
       TEST_REAL_SIMILAR(fdrs[2], last)
       TEST_REAL_SIMILAR(fdrs[3], last)
-      TEST_REAL_SIMILAR(fdrs[4], 1.0 / 3.0)
+      TEST_REAL_SIMILAR(fdrs[4], 0.5)
     }
   }
 
   // (7) A group without a score (NaN) that takes no part in the competition gets the worst
-  // calibrated q-value, in both score directions. Fixture (1) with {B}'s group score NaN: 2/3.
+  // calibrated q-value, in both score directions. Fixture (1) with {B}'s group score NaN: 1.
   {
     for (bool higher_better : {false, true})
     {
@@ -398,36 +411,43 @@ START_SECTION((void applyPickedProteinFDR(ProteinIdentification& id, std::string
         {{"A", s * 0.01}, {"DECOY_A", s * 0.02}, {"B", s * 0.05}, {"DECOY_B", s * 0.04}, {"C", s * 0.02}},
         {{s * 0.01, {"A"}}, {std::numeric_limits<double>::quiet_NaN(), {"B"}}, {s * 0.02, {"C"}}, {s * 0.04, {"DECOY_B"}}});
       fdr.applyPickedProteinFDR(run, "DECOY_", true);
-      TEST_REAL_SIMILAR(group_qvalues(run)[1], 2.0 / 3.0)
+      TEST_REAL_SIMILAR(group_qvalues(run)[1], 1.0)
     }
   }
 
   // (8) Prefix mode: a target accession that ends with the decoy string is still a target.
-  // {XDECOY_} 0.9 T, {C} 0.5 T: q = 1/3 for both. Before the fix the decoy string was also removed
-  // as a suffix, and the lookup of "X" threw std::out_of_range.
+  // {XDECOY_} 0.9 T, {C} 0.5 T: FDR 1/1, 1/2; q = 1/2 for both. Before the fix the decoy string was
+  // also removed as a suffix, and the lookup of "X" threw std::out_of_range.
   {
     ProteinIdentification run = picked_run(true, {{"XDECOY_", 0.9}, {"C", 0.5}}, {{0.9, {"XDECOY_"}}, {0.5, {"C"}}});
     fdr.applyPickedProteinFDR(run, "DECOY_", true);
     vector<double> qs = group_qvalues(run);
-    TEST_REAL_SIMILAR(qs[0], 1.0 / 3.0)
-    TEST_REAL_SIMILAR(qs[1], 1.0 / 3.0)
+    TEST_REAL_SIMILAR(qs[0], 0.5)
+    TEST_REAL_SIMILAR(qs[1], 0.5)
   }
 
-  // (9) Two equal-scoring hits of the same decoy (no target) stay a decoy: {DECOY_A} 0.9 D, {C} 0.5 T.
-  // FDR 0.9 -> (1+1)/(0+1) = 2, 0.5 -> (1+1)/(1+1) = 1; q = 1 for both. Before the fix the tie made
-  // the pair's winner a target, {DECOY_A} did not vote and both groups got 1/2.
+  // (9) Two equal-scoring hits of the same decoy (no target) stay a decoy: {DECOY_A} 0.9 D, then
+  // {C} 0.5 T, {E} 0.4 T, {G} 0.3 T. FDR 0.9 -> 1 (no target), 0.5 -> (1+1)/1 -> 1, 0.4 -> 2/2,
+  // 0.3 -> 2/3; q = 2/3 for all. Before the fix the tie made the pair's winner a target, {DECOY_A} did
+  // not vote and every group got 1/3 (FDR 1/1, 1/2, 1/3).
   {
-    ProteinIdentification run = picked_run(true, {{"DECOY_A", 0.9}, {"DECOY_A", 0.9}, {"C", 0.5}},
-                                           {{0.9, {"DECOY_A"}}, {0.5, {"C"}}});
+    ProteinIdentification run = picked_run(true,
+      {{"DECOY_A", 0.9}, {"DECOY_A", 0.9}, {"C", 0.5}, {"E", 0.4}, {"G", 0.3}},
+      {{0.9, {"DECOY_A"}}, {0.5, {"C"}}, {0.4, {"E"}}, {0.3, {"G"}}});
     fdr.applyPickedProteinFDR(run, "DECOY_", true);
-    vector<double> qs = group_qvalues(run);
-    TEST_REAL_SIMILAR(qs[0], 1.0)
-    TEST_REAL_SIMILAR(qs[1], 1.0)
+    for (double q : group_qvalues(run))
+    {
+      TEST_REAL_SIMILAR(q, 2.0 / 3.0)
+    }
     // The tie also decides the protein hits' FDR (same picked scores, decoys removed by default):
-    // C gets q = 1. Before the fix A counted as a target winner at 0.9 and C got 1/3.
-    ABORT_IF(run.getHits().size() != 1)
+    // C, E and G get q = 2/3. Before the fix A counted as a target winner at 0.9: FDR 1/1, 1/2, 1/3,
+    // 1/4 and q = 1/4.
+    ABORT_IF(run.getHits().size() != 3)
     TEST_STRING_EQUAL(run.getHits()[0].getAccession(), "C")
-    TEST_REAL_SIMILAR(run.getHits()[0].getScore(), 1.0)
+    for (const auto& hit : run.getHits())
+    {
+      TEST_REAL_SIMILAR(hit.getScore(), 2.0 / 3.0)
+    }
   }
 }
 END_SECTION
@@ -436,8 +456,8 @@ START_SECTION((void applyBasic(ProteinIdentification & id, bool groups_too = tru
 {
   // Protein-group q-values for lower-is-better scores. Scores within 1e-12 count as one score; its
   // key is the best one. Groups: {T1} 0.01 T, {T2} 0.01 + 5e-13 T, {DECOY_D} 0.02 D, {T3} 0.03 T.
-  // FDR (D+1)/(T+1): 0.01 -> 1/3, 0.02 -> 2/3, 0.03 -> 2/4; q: 1/3, 1/2, 1/2. {T2} gets the q-value of
-  // its own score 0.01, 1/3; before the fix it got the one of the next worse score 0.02 (1/2).
+  // FDR (D+1)/T: 0.01 -> 1/2, 0.02 -> 2/2, 0.03 -> 2/3; q: 1/2, 2/3, 2/3. {T2} gets the q-value of
+  // its own score 0.01, 1/2; before the fix it got the one of the next worse score 0.02 (2/3).
   ProteinIdentification run;
   run.setScoreType("score");
   run.setHigherScoreBetter(false);
@@ -455,10 +475,146 @@ START_SECTION((void applyBasic(ProteinIdentification & id, bool groups_too = tru
   fdr.applyBasic(run, true);
   TOLERANCE_ABSOLUTE(1e-6)
   const auto& grps = run.getIndistinguishableProteins();
-  TEST_REAL_SIMILAR(grps[0].probability, 1.0 / 3.0)
-  TEST_REAL_SIMILAR(grps[1].probability, 1.0 / 3.0)
-  TEST_REAL_SIMILAR(grps[2].probability, 0.5)
-  TEST_REAL_SIMILAR(grps[3].probability, 0.5)
+  TEST_REAL_SIMILAR(grps[0].probability, 0.5)
+  TEST_REAL_SIMILAR(grps[1].probability, 0.5)
+  TEST_REAL_SIMILAR(grps[2].probability, 2.0 / 3.0)
+  TEST_REAL_SIMILAR(grps[3].probability, 2.0 / 3.0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] basic FDR: (D+1)/T if conservative; else (D+1)/(T+D); at most 1)
+{
+  // One peptide per score, higher = better; T and D count the targets and decoys at least as good:
+  //   score   0.99 0.98 0.97 0.96 0.95 0.90 0.85 0.80
+  //   label   T    T    T    T    D    T    D    T
+  //   T, D    1,0  2,0  3,0  4,0  4,1  5,1  5,2  6,2
+  // conservative (D+1)/T:          1, 1/2, 1/3, 1/4, 2/4, 2/5, 3/5, 3/6
+  // not conservative (D+1)/(T+D):  1, 1/2, 1/3, 1/4, 2/5, 2/6, 3/7, 3/8
+  // conservative q-values (cumulative minimum from the worst score): 1/4 (x4), 2/5, 2/5, 1/2, 1/2
+  // Starting with a decoy: D 0.99, T 0.9, T 0.8, T 0.7. conservative: T = 0 -> 1, 2/1 -> 1, 2/2, 2/3;
+  // not conservative: 2/1 -> 1, 2/2, 2/3, 2/4.
+  auto make_ids = [](const vector<pair<double, string>>& scores_labels)
+  {
+    PeptideIdentificationList ids;
+    const vector<string> sequences = {"AAAAAAAK", "CCCCCCCK", "DDDDDDDK", "EEEEEEEK", "FFFFFFFK", "GGGGGGGK", "HHHHHHHK", "IIIIIIIK"};
+    for (Size i = 0; i < scores_labels.size(); ++i)
+    {
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString(sequences[i]));
+      hit.setScore(scores_labels[i].first);
+      hit.setCharge(2);
+      hit.setMetaValue("target_decoy", scores_labels[i].second);
+      PeptideIdentification id;
+      id.setScoreType("score");
+      id.setHigherScoreBetter(true);
+      id.setHits({hit});
+      ids.push_back(id);
+    }
+    return ids;
+  };
+  auto values = [](const PeptideIdentificationList& ids)
+  {
+    vector<double> v;
+    for (const auto& id : ids) v.push_back(id.getHits()[0].getScore());
+    return v;
+  };
+  auto run = [&](const vector<pair<double, string>>& scores_labels, bool conservative, bool q_values)
+  {
+    FalseDiscoveryRate fdr;
+    Param p = fdr.getParameters();
+    p.setValue("conservative", conservative ? "true" : "false");
+    p.setValue("no_qvalues", q_values ? "false" : "true");
+    p.setValue("add_decoy_peptides", "true");
+    fdr.setParameters(p);
+    PeptideIdentificationList ids = make_ids(scores_labels);
+    fdr.applyBasicPeptideLevel(ids);
+    return values(ids);
+  };
+  auto test_values = [](const vector<double>& actual, const vector<double>& expected)
+  {
+    TEST_EQUAL(actual.size(), expected.size())
+    for (Size i = 0; i < std::min(actual.size(), expected.size()); ++i)
+    {
+      TEST_REAL_SIMILAR(actual[i], expected[i])
+    }
+  };
+  TOLERANCE_ABSOLUTE(1e-9)
+
+  const vector<pair<double, string>> list = {{0.99, "target"}, {0.98, "target"}, {0.97, "target"}, {0.96, "target"},
+                                             {0.95, "decoy"}, {0.90, "target"}, {0.85, "decoy"}, {0.80, "target"}};
+  test_values(run(list, true, false), {1.0, 1.0 / 2, 1.0 / 3, 1.0 / 4, 2.0 / 4, 2.0 / 5, 3.0 / 5, 3.0 / 6});
+  test_values(run(list, false, false), {1.0, 1.0 / 2, 1.0 / 3, 1.0 / 4, 2.0 / 5, 2.0 / 6, 3.0 / 7, 3.0 / 8});
+  test_values(run(list, true, true), {1.0 / 4, 1.0 / 4, 1.0 / 4, 1.0 / 4, 2.0 / 5, 2.0 / 5, 1.0 / 2, 1.0 / 2});
+
+  const vector<pair<double, string>> decoy_first = {{0.99, "decoy"}, {0.9, "target"}, {0.8, "target"}, {0.7, "target"}};
+  test_values(run(decoy_first, true, false), {1.0, 1.0, 1.0, 2.0 / 3});
+  test_values(run(decoy_first, false, false), {1.0, 1.0, 2.0 / 3, 2.0 / 4});
+}
+END_SECTION
+
+START_SECTION([EXTRA] apply() raw FDR: D/T; at most 1; decoys get the FDR of the closest target)
+{
+  // One PSM per score. apply() estimates D/T at each target, with T and D the targets and decoys at least as good, and
+  // gives each decoy the value of the closest target:
+  //   score (higher = better)  0.99 0.98 0.90 0.80 0.70 0.68 0.60 0.50
+  //   score (lower = better)   0.01 0.02 0.10 0.20 0.30 0.32 0.40 0.50
+  //   label                    D    D    T    T    T    D    T    T
+  // raw FDRs of the targets: 2/1 -> 1, 2/2, 2/3, 3/4, 3/5 (without the cap the first was 2)
+  // raw FDRs of the decoys: the two above all targets get the best target's 1, the third the 2/3 of the target next to
+  // it. Before the fix the search for the closest target ran over the targets in the wrong order: 3/5, 3/5 and 1.
+  // q-values (cumulative minimum from the worst score): 3/5 for all
+  const vector<pair<double, string>> higher_better = {{0.99, "decoy"}, {0.98, "decoy"}, {0.90, "target"}, {0.80, "target"},
+                                                      {0.70, "target"}, {0.68, "decoy"}, {0.60, "target"}, {0.50, "target"}};
+  const vector<pair<double, string>> lower_better = {{0.01, "decoy"}, {0.02, "decoy"}, {0.10, "target"}, {0.20, "target"},
+                                                     {0.30, "target"}, {0.32, "decoy"}, {0.40, "target"}, {0.50, "target"}};
+  const vector<string> sequences = {"AAAAAAAK", "CCCCCCCK", "DDDDDDDK", "EEEEEEEK", "FFFFFFFK", "GGGGGGGK", "HHHHHHHK", "IIIIIIIK"};
+  auto run = [&](bool q_values, bool higher_score_better, bool add_decoys)
+  {
+    const vector<pair<double, string>>& list = higher_score_better ? higher_better : lower_better;
+    PeptideIdentificationList ids;
+    for (Size i = 0; i < list.size(); ++i)
+    {
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString(sequences[i]));
+      hit.setScore(list[i].first);
+      hit.setCharge(2);
+      hit.setMetaValue("target_decoy", list[i].second);
+      PeptideIdentification id;
+      id.setScoreType("score");
+      id.setHigherScoreBetter(higher_score_better);
+      id.setHits({hit});
+      ids.push_back(id);
+    }
+    FalseDiscoveryRate fdr;
+    Param p = fdr.getParameters();
+    p.setValue("no_qvalues", q_values ? "false" : "true");
+    p.setValue("add_decoy_peptides", add_decoys ? "true" : "false");
+    fdr.setParameters(p);
+    fdr.apply(ids);
+    vector<double> v; // in input order (without add_decoys, decoy hits are removed)
+    for (const auto& id : ids)
+    {
+      for (const auto& hit : id.getHits()) v.push_back(hit.getScore());
+    }
+    return v;
+  };
+  auto test_values = [](const vector<double>& actual, const vector<double>& expected)
+  {
+    TEST_EQUAL(actual.size(), expected.size())
+    for (Size i = 0; i < std::min(actual.size(), expected.size()); ++i)
+    {
+      TEST_REAL_SIMILAR(actual[i], expected[i])
+    }
+  };
+  TOLERANCE_ABSOLUTE(1e-9)
+
+  for (bool higher_score_better : {true, false})
+  {
+    test_values(run(false, higher_score_better, false), {1.0, 1.0, 2.0 / 3, 3.0 / 4, 3.0 / 5});
+    test_values(run(false, higher_score_better, true), {1.0, 1.0, 1.0, 1.0, 2.0 / 3, 2.0 / 3, 3.0 / 4, 3.0 / 5});
+    test_values(run(true, higher_score_better, false), vector<double>(5, 3.0 / 5));
+    test_values(run(true, higher_score_better, true), vector<double>(8, 3.0 / 5));
+  }
 }
 END_SECTION
 
@@ -665,6 +821,56 @@ START_SECTION((void applyBasicPeptideLevel(PeptideIdentificationList & ids)))
 }
 END_SECTION
 
+START_SECTION([EXTRA] applyBasicPeptideLevel gives scores within 1e-12 of each other the q-value of their group)
+{
+  // calculateFDRBasic_() takes scores within 1e-12 of each other as one group and records its FDR under the best of
+  // them. The other scores of the group have to find that record: looked up the wrong way round, a score next to the
+  // best one got the q-value of the next worse group, and one of the worst group read past the end of the record.
+  // Two groups, with either orientation: two targets (FDR (0 + 1) / 2), then a decoy and a target ((1 + 1) / 3).
+  auto q_values = [](bool higher_score_better, const std::vector<double>& scores)
+  {
+    PeptideIdentificationList ids;
+    const std::vector<std::pair<std::string, std::string>> peptides = {
+      {"AAAAAAAK", "target"}, {"CCCCCCCK", "target"}, {"DDDDDDDK", "decoy"}, {"EEEEEEEK", "target"}};
+    for (Size i = 0; i < peptides.size(); ++i)
+    {
+      PeptideHit h;
+      h.setSequence(AASequence::fromString(peptides[i].first));
+      h.setScore(scores[i]);
+      h.setCharge(2);
+      h.setMetaValue("target_decoy", peptides[i].second);
+      PeptideIdentification pid;
+      pid.setScoreType("score");
+      pid.setHigherScoreBetter(higher_score_better);
+      pid.setHits({h});
+      ids.push_back(pid);
+    }
+    FalseDiscoveryRate fdr;
+    fdr.applyBasicPeptideLevel(ids);
+    std::map<std::string, double> q; // of the peptides that are left (the decoy is removed by default)
+    for (const PeptideIdentification& id : ids)
+    {
+      if (!id.getHits().empty()) { q[id.getHits()[0].getSequence().toUnmodifiedString()] = id.getHits()[0].getScore(); }
+    }
+    return q;
+  };
+  // (each second score of a group differs from the first by less than 1e-12, and is a different number)
+  const std::vector<double> higher_better = {10.0, 10.0 - 5e-13, 5.0, 5.0 - 2e-13};
+  const std::vector<double> lower_better = {1e-15, 3e-15, 0.5, 0.5 + 5e-13};
+  TEST_NOT_EQUAL(higher_better[0], higher_better[1])
+  TEST_NOT_EQUAL(higher_better[2], higher_better[3])
+  TEST_NOT_EQUAL(lower_better[2], lower_better[3])
+  for (const bool higher_score_better : {true, false})
+  {
+    const std::map<std::string, double> q = q_values(higher_score_better, higher_score_better ? higher_better : lower_better);
+    ABORT_IF(q.count("AAAAAAAK") == 0 || q.count("CCCCCCCK") == 0 || q.count("EEEEEEEK") == 0)
+    TEST_REAL_SIMILAR(q.at("AAAAAAAK"), 0.5)
+    TEST_REAL_SIMILAR(q.at("CCCCCCCK"), 0.5)        // (not the 2/3 of the group after it)
+    TEST_REAL_SIMILAR(q.at("EEEEEEEK"), 2.0 / 3.0)  // (the last group)
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] protein FDR without indistinguishable groups skips the group pass)
 {
   // Inference without group annotation (e.g. for '-protein_quantification strictly_unique_peptides')
@@ -716,6 +922,177 @@ START_SECTION([EXTRA] protein FDR without indistinguishable groups skips the gro
     TEST_TRUE(run.getIndistinguishableProteins().empty())
     TEST_EQUAL(run.getScoreType(), "q-value")
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA] FDRs and q-values on a ConsensusMap are lower-is-better whatever the search score)
+{
+  // The q-values are lower-is-better even after a higher-is-better search score (a hyperscore), so
+  // filtering by them keeps the best hits.
+  auto make_map = []()
+  {
+    ConsensusMap cmap;
+    ProteinIdentification run;
+    run.setIdentifier("run");
+    cmap.getProteinIdentifications().push_back(run);
+    const std::vector<std::tuple<std::string, double, std::string>> psms = {
+      {"AAAAAAAK", 90.0, "target"}, {"CCCCCCCK", 80.0, "target"}, {"DDDDDDDK", 70.0, "target"},
+      {"FFFFFFFK", 50.0, "decoy"}, {"EEEEEEEK", 40.0, "target"}, {"HHHHHHHK", 30.0, "decoy"}};
+    for (const auto& [sequence, score, target_decoy] : psms)
+    {
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString(sequence));
+      hit.setScore(score);
+      hit.setCharge(2);
+      hit.setMetaValue("target_decoy", target_decoy);
+      PeptideIdentification id;
+      id.setIdentifier("run");
+      id.setScoreType("hyperscore");
+      id.setHigherScoreBetter(true);
+      id.setHits({hit});
+      ConsensusFeature feature;
+      feature.setPeptideIdentifications({id});
+      cmap.push_back(feature);
+    }
+    return cmap;
+  };
+
+  // q-value of the hit with this sequence (-1 if it is gone)
+  auto qvalue = [](const ConsensusMap& cmap, const std::string& sequence)
+  {
+    for (const auto& feature : cmap)
+    {
+      for (const auto& id : feature.getPeptideIdentifications())
+      {
+        if (!id.getHits().empty() && id.getHits()[0].getSequence().toUnmodifiedString() == sequence)
+        {
+          return id.getHits()[0].getScore();
+        }
+      }
+    }
+    return -1.0;
+  };
+
+  for (bool peptide_level : {false, true})
+  {
+    ConsensusMap cmap = make_map();
+    FalseDiscoveryRate fdr;
+    if (peptide_level) { fdr.applyBasicPeptideLevel(cmap, true); }
+    else { fdr.applyBasic(cmap, true); }
+
+    for (const auto& feature : cmap)
+    {
+      for (const auto& id : feature.getPeptideIdentifications())
+      {
+        if (id.getHits().empty()) { continue; } // a decoy, removed
+        TEST_EQUAL(id.isHigherScoreBetter(), false)
+      }
+    }
+
+    // the best target has a lower q-value than the target ranked below a decoy ...
+    const double q_best = qvalue(cmap, "AAAAAAAK");
+    const double q_worse = qvalue(cmap, "EEEEEEEK");
+    TEST_EQUAL(q_best < q_worse, true)
+
+    // ... so filtering at the best target's q-value keeps it and removes the other one
+    for (auto& feature : cmap)
+    {
+      IDFilter::filterHitsByScore(feature.getPeptideIdentifications(), q_best);
+    }
+    TEST_REAL_SIMILAR(qvalue(cmap, "AAAAAAAK"), q_best)
+    TEST_REAL_SIMILAR(qvalue(cmap, "EEEEEEEK"), -1.0)
+  }
+
+  // the same for the PeptideIdentificationList overload of the peptide-level FDR
+  PeptideIdentificationList ids;
+  for (const auto& feature : make_map())
+  {
+    ids.push_back(feature.getPeptideIdentifications()[0]);
+  }
+  FalseDiscoveryRate fdr;
+  fdr.applyBasicPeptideLevel(ids);
+  for (const auto& id : ids)
+  {
+    if (id.getHits().empty()) { continue; }
+    TEST_EQUAL(id.isHigherScoreBetter(), false)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] peptide-level FDR scores the best hit of an identification and the hits tied with it)
+{
+  // Only the best hit of each identification, and a hit tied with it whose peptide has a q-value,
+  // get a peptide q-value. Any other hit would keep its search score (0.1) under the q-value score
+  // type and pass a q-value filter at 0.25. The best hit is kept even when it is not stored first.
+  auto make_map = []()
+  {
+    ConsensusMap cmap;
+    ProteinIdentification run;
+    run.setIdentifier("run");
+    cmap.getProteinIdentifications().push_back(run);
+    const std::vector<std::tuple<std::string, double, std::string>> psms = {
+      {"AAAAAAAK", 90.0, "target"}, {"CCCCCCCK", 80.0, "target"}, {"FFFFFFFK", 50.0, "decoy"}};
+    for (const auto& [sequence, score, target_decoy] : psms)
+    {
+      std::vector<PeptideHit> hits(1);
+      hits[0].setSequence(AASequence::fromString(sequence));
+      hits[0].setScore(score);
+      hits[0].setCharge(2);
+      hits[0].setMetaValue("target_decoy", target_decoy);
+      if (sequence == "AAAAAAAK")
+      {
+        hits.push_back(hits[0]); // a much worse candidate for the same spectrum
+        hits[1].setSequence(AASequence::fromString("KKKKKKKK"));
+        hits[1].setScore(0.1);
+        hits.push_back(hits[0]); // tied, and the best hit of another identification: kept
+        hits[2].setSequence(AASequence::fromString("CCCCCCCK"));
+        hits.push_back(hits[0]); // tied, but its peptide has no q-value: removed
+        hits[3].setSequence(AASequence::fromString("EEEEEEEK"));
+      }
+      if (sequence == "CCCCCCCK") // the same, but stored before the best hit
+      {
+        hits.insert(hits.begin(), hits[0]);
+        hits[0].setSequence(AASequence::fromString("KKKKKKKK"));
+        hits[0].setScore(0.1);
+      }
+      PeptideIdentification id;
+      id.setIdentifier("run");
+      id.setScoreType("hyperscore");
+      id.setHigherScoreBetter(true);
+      id.setHits(hits);
+      ConsensusFeature feature;
+      feature.setPeptideIdentifications({id});
+      cmap.push_back(feature);
+    }
+    return cmap;
+  };
+
+  auto check = [](const PeptideIdentificationList& ids)
+  {
+    for (const auto& id : ids)
+    {
+      if (id.getHits().empty()) { continue; } // a decoy, removed
+      std::vector<std::string> sequences;
+      for (const auto& hit : id.getHits())
+      {
+        sequences.push_back(hit.getSequence().toUnmodifiedString());
+        TEST_EQUAL(hit.getScore() <= 1.0, true) // a q-value, not the search score
+      }
+      if (sequences[0] == "AAAAAAAK") { TEST_EQUAL(ListUtils::concatenate(sequences, ","), "AAAAAAAK,CCCCCCCK") }
+      else { TEST_EQUAL(sequences.size(), 1) }
+      TEST_NOT_EQUAL(sequences[0], "KKKKKKKK")
+    }
+  };
+
+  FalseDiscoveryRate fdr;
+  ConsensusMap cmap = make_map();
+  fdr.applyBasicPeptideLevel(cmap, true);
+  for (const auto& feature : cmap) { check(feature.getPeptideIdentifications()); }
+
+  PeptideIdentificationList ids;
+  for (const auto& feature : make_map()) { ids.push_back(feature.getPeptideIdentifications()[0]); }
+  fdr.applyBasicPeptideLevel(ids);
+  check(ids);
 }
 END_SECTION
 

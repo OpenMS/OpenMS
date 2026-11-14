@@ -50,7 +50,7 @@ Command line calls will depend on the TOPP tools used, as each TOPP tool has its
   Create an INI file using the `-write_ini` file argument.
   Create an INI file with this call:
   `<insert TOPP tool> -write_ini <insert output INI File>`
-  If you want a visual tool to assist setting parameters, use the [INIFileEditor](/manual/additional/ini-file-editor.md), an application provided when you download OpenMS.  Otherwise, you can set the parameters from the command line.
+  If you want a visual tool to assist setting parameters, use the [INIFileEditor](/manual/additional/ini-file-editor.md), one of the graphical tools of OpenMS (installed with the OpenMS-TOPP-GUI installer, see [Installation](/about/installation.rst)).  Otherwise, you can set the parameters from the command line.
 - `-help`
 
   Get information about basic options related to the tool using the -help parameter. For more advanced options (algorithmic parameters), use `--help`.

@@ -630,8 +630,8 @@ namespace OpenMS
   }
 
 
-  MzTab IdentificationDataConverter::exportMzTab(const IdentificationData&
-                                                 id_data)
+  MzTab IdentificationDataConverter::exportMzTab(const IdentificationData& id_data,
+    const set<std::string>& observation_meta_keys, const set<std::string>& match_meta_keys)
   {
     MzTabMetaData meta;
     Size counter = 1;
@@ -723,7 +723,7 @@ namespace OpenMS
         const AASequence& seq = molecule_var.getIdentifiedPeptideRef()->sequence;
         double calc_mass = seq.getMonoWeight(Residue::Full, obs_match.charge);
         exportObservationMatchToMzTab_(seq.toString(), obs_match, calc_mass,
-                                       psms, psm_scores, file_map);
+                                       psms, psm_scores, file_map, observation_meta_keys, match_meta_keys);
         // "PSM_ID" field is set at the end, after sorting
       }
       else if (molecule_type == ID::MoleculeType::RNA)
@@ -736,7 +736,7 @@ namespace OpenMS
           calc_mass += (*obs_match.adduct_opt)->getMassShift();
         }
         exportObservationMatchToMzTab_(seq.toString(), obs_match, calc_mass,
-                                       osms, osm_scores, file_map);
+                                       osms, osm_scores, file_map, observation_meta_keys, match_meta_keys);
       }
     }
 

@@ -13,6 +13,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -1629,6 +1630,13 @@ START_SECTION([EXTRA] store - a file renamed into the place of the output while 
       peps[l].insertHit(hit);
     }
 
+    // on one thread: the swap is done at allocations of the calling thread, and store() formats the protein hits in
+    // parallel blocks, so with several threads whether the calling thread allocates once the first block is written
+    // depends on which thread formats which block
+#ifdef _OPENMP
+    const int max_threads = omp_get_max_threads();
+    omp_set_num_threads(1);
+#endif
     long swapped = 0, sentinel_lost = 0, first_lost = 0, other_outcome = 0, aside_lost = 0;
     for (long n = 1; n < 10000000; ++n)
     {
@@ -1662,6 +1670,9 @@ START_SECTION([EXTRA] store - a file renamed into the place of the output while 
       }
       if (!fs::exists(swap_test_aside)) ++aside_lost;
     }
+#ifdef _OPENMP
+    omp_set_num_threads(max_threads);
+#endif
     STATUS(swapped << " stores had another file renamed into the place of their output; it was removed or changed in "
            << sentinel_lost << " (first at allocation " << first_lost << "); stores that did not fail as expected: "
            << other_outcome << "; the output moved aside was removed in " << aside_lost)
@@ -1962,6 +1973,24 @@ START_SECTION([EXTRA] load - an empty file list ('spectra_data') is not stored)
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("comet.topperc_check.idXML"), proteins, peptides);
   TEST_EQUAL(proteins.size(), 1)
   TEST_EQUAL(proteins[0].metaValueExists("spectra_data"), false)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store() with the threads of this thread set by SysInfo::setOmpThreadsOfThisThread()))
+{
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  std::string document_id;
+  IdXMLFile f;
+  f.load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids, document_id);
+  std::string by_runtime, by_two;
+  NEW_TMP_FILE(by_runtime)
+  NEW_TMP_FILE(by_two)
+  f.store(by_runtime, protein_ids, peptide_ids, document_id);
+  SysInfo::setOmpThreadsOfThisThread(2);
+  f.store(by_two, protein_ids, peptide_ids, document_id);
+  SysInfo::setOmpThreadsOfThisThread(0);
+  TEST_FILE_EQUAL(by_two.c_str(), by_runtime.c_str())
 }
 END_SECTION
 

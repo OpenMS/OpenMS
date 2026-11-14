@@ -45,11 +45,9 @@ esac
 git config --global --add safe.directory "${src}"
 git config --global --add safe.directory "${src}/vcpkg"
 
-# Tools the vcpkg ports need on top of what the manylinux image has (gcc-toolset
-# with gfortran for lapack-reference, CMake, git, curl, unzip, tar, pkg-config,
-# bison and recent autotools in /usr/local/bin):
+# Tools the vcpkg ports need on top of what the manylinux image has (gcc-toolset,
+# CMake, git, curl, unzip, tar, pkg-config and bison):
 #   ninja-build, zip           vcpkg itself
-#   autoconf-archive           the coin-or ports (autoreconf needs its AX_ macros)
 #   flex                       thrift (for Arrow's Parquet support)
 #   perl modules               OpenSSL's Configure
 #   libicu                     the .NET SDK installed below
@@ -59,7 +57,6 @@ git config --global --add safe.directory "${src}/vcpkg"
 dnf install -y --disablerepo='epel*' \
   ninja-build \
   zip \
-  autoconf-archive \
   flex \
   perl-IPC-Cmd \
   perl-FindBin \
@@ -109,7 +106,6 @@ cmake -S . -B build \
   -DCMAKE_INSTALL_PREFIX="${src}/install" \
   -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
   -DPYOPENMS=OFF \
-  -DWITH_GUI=OFF \
   -DBUILD_TOPP_TOOLS=OFF \
   -DINSTALL_OPENMS_EXAMPLES=OFF \
   -DWITH_THERMO_RAW=ON \
@@ -132,9 +128,9 @@ for lib in "${src}"/install/lib/libOpenMS.so "${src}"/install/lib/libOpenSwathAl
   python3 -c 'import ctypes, os, sys; ctypes.CDLL(sys.argv[1], os.RTLD_NOW); print("loads:", sys.argv[1])' "${lib}"
 done
 
-# The licenses of the system libraries auditwheel copies into the wheel (GCC's libgomp,
-# libgfortran and libquadmath), from the packages of this image. The vcpkg ports are
-# skipped: the install of the component share put their texts into LICENSES/vcpkg.
+# The licenses of the system libraries auditwheel copies into the wheel (GCC's OpenMP
+# runtime libgomp), from the packages of this image. The vcpkg ports are skipped: the
+# install of the component share put their texts into LICENSES/vcpkg.
 python3 tools/ci/collect_wheel_licenses.py --prefix "${src}/install" --skip-prefix "${src}/vcpkg_installed"
 # THIRD-PARTY-NOTICES.txt again, now with the licenses collected above.
 cmake -DSHARE_DIR="${src}/install/share/OpenMS" -P cmake/third_party_notices.cmake

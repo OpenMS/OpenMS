@@ -11,16 +11,6 @@
 
 ///////////////////////////
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
-#ifdef OPENMS_HAS_COINOR
-  #ifdef OPENMS_HAS_COIN_INCLUDE_SUBDIR_IS_COIN
-    #include "coin/CoinModel.hpp"
-  #else
-    #include "coin-or/CoinModel.hpp"
-  #endif
-#endif
-#ifdef OPENMS_HAS_HIGHS
-  #include <Highs.h>
-#endif
 ///////////////////////////
 
 using namespace OpenMS;
@@ -153,14 +143,63 @@ START_SECTION((void setColumnType(Int index, VariableType type)))
 {
   lp.setColumnType(0,LPWrapper::INTEGER);
   TEST_EQUAL(lp.getColumnType(0),LPWrapper::INTEGER);
+
+  // types set before further columns/rows are added must be kept; later columns stay continuous
+  LPWrapper lp_types;
+  Int x = lp_types.addColumn();
+  lp_types.setColumnBounds(x, 0.0, 10.0, LPWrapper::DOUBLE_BOUNDED);
+  lp_types.setColumnType(x, LPWrapper::INTEGER);
+  lp_types.setObjective(x, 1.0);
+  Int y = lp_types.addColumn();
+  lp_types.setColumnBounds(y, 0.0, 10.0, LPWrapper::DOUBLE_BOUNDED);
+  lp_types.setObjective(y, 1.0);
+  lp_types.setObjectiveSense(LPWrapper::MAX);
+  lp_types.addRow(std::vector<Int>(1, x), std::vector<double>(1, 2.0), std::string("x"), 0.0, 3.0, LPWrapper::UPPER_BOUND_ONLY); // 2x <= 3
+  lp_types.addRow(std::vector<Int>(1, y), std::vector<double>(1, 2.0), std::string("y"), 0.0, 3.0, LPWrapper::UPPER_BOUND_ONLY); // 2y <= 3
+  TEST_EQUAL(lp_types.getColumnType(x), LPWrapper::INTEGER)
+  TEST_EQUAL(lp_types.getColumnType(y), LPWrapper::CONTINUOUS)
+  LPWrapper::SolverParam param_types;
+  lp_types.solve(param_types);
+  TEST_REAL_SIMILAR(lp_types.getColumnValue(x), 1.0)
+  TEST_REAL_SIMILAR(lp_types.getColumnValue(y), 1.5)
+  TEST_EQUAL(lp_types.getColumnType(x), LPWrapper::INTEGER)
+
+  // types set right before writing must end up in the file (no getColumnType() in between)
+  LPWrapper lp_write;
+  lp_write.addColumn();
+  lp_write.addColumn();
+  lp_write.setColumnBounds(0, 0.0, 5.0, LPWrapper::DOUBLE_BOUNDED);
+  lp_write.setColumnBounds(1, 0.0, 5.0, LPWrapper::DOUBLE_BOUNDED);
+  lp_write.addRow(std::vector<Int>{0, 1}, std::vector<double>{1.0, 1.0}, std::string("r"), 0.0, 3.0, LPWrapper::UPPER_BOUND_ONLY);
+  lp_write.setColumnType(0, LPWrapper::INTEGER);
+  std::string write_filename;
+  NEW_TMP_FILE(write_filename);
+  write_filename += ".mps"; // HiGHS uses the extension to determine the format
+  lp_write.writeProblem(write_filename, LPWrapper::FORMAT_MPS);
+  LPWrapper lp_read;
+  lp_read.readProblem(write_filename, "MPS");
+  TEST_EQUAL(lp_read.getNumberOfColumns(), 2)
+  TEST_EQUAL(lp_read.getColumnType(0), LPWrapper::INTEGER)
+  TEST_EQUAL(lp_read.getColumnType(1), LPWrapper::CONTINUOUS)
+
+  // types staged before readProblem() must not be applied to the newly read model
+  LPWrapper lp_reread;
+  lp_reread.addColumn();
+  lp_reread.addColumn();
+  lp_reread.setColumnType(0, LPWrapper::CONTINUOUS);
+  lp_reread.setColumnType(1, LPWrapper::CONTINUOUS);
+  lp_reread.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.mps"), "MPS");
+  TEST_EQUAL(lp_reread.getColumnType(0), LPWrapper::INTEGER)
+  TEST_EQUAL(lp_reread.getColumnType(1), LPWrapper::INTEGER)
+
+  TEST_EXCEPTION(Exception::IndexOverflow, lp_reread.setColumnType(2, LPWrapper::INTEGER))
 }
 END_SECTION
 
 START_SECTION((VariableType getColumnType(Int index)))
 {
   lp.setColumnType(1,LPWrapper::BINARY);
-  if (lp.getSolver()==LPWrapper::SOLVER_GLPK) TEST_EQUAL(lp.getColumnType(1),LPWrapper::BINARY)
-  else TEST_EQUAL(lp.getColumnType(1),LPWrapper::INTEGER)
+  TEST_EQUAL(lp.getColumnType(1),LPWrapper::INTEGER) // binary = integer with bounds [0, 1]
 }
 END_SECTION
 
@@ -213,26 +252,7 @@ END_SECTION
 START_SECTION((void deleteRow(Int index)))
 {
   lp.deleteRow(2);
-  if(lp.getSolver() == LPWrapper::SOLVER_GLPK)
-    {
-      TEST_EQUAL(lp.getNumberOfRows(),2)
-    }
-#ifdef OPENMS_HAS_COINOR
-  else if (lp.getSolver() == LPWrapper::SOLVER_COINOR)
-    {
-      // CoinOr doesn't delete the column, but sets all entries to zero and deletes the bounds, names, objective coeff etc.
-      TEST_REAL_SIMILAR(lp.getObjective(2),0.)
-      TEST_REAL_SIMILAR(lp.getColumnLowerBound(2),-COIN_DBL_MAX)
-      TEST_REAL_SIMILAR(lp.getColumnUpperBound(2),COIN_DBL_MAX)  
-    }
-#endif
-#ifdef OPENMS_HAS_HIGHS
-  else if (lp.getSolver() == LPWrapper::SOLVER_HIGHS)
-    {
-      // HiGHS actually deletes the row
-      TEST_EQUAL(lp.getNumberOfRows(),2)
-    }
-#endif
+  TEST_EQUAL(lp.getNumberOfRows(),2)
 }
 END_SECTION
 
@@ -273,94 +293,27 @@ END_SECTION
 
 START_SECTION((void readProblem(std::string filename, std::string format)))
 {
-  if(lp.getSolver() == LPWrapper::SOLVER_GLPK)
-    {
-      lp.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.lp"),"LP");
-      TEST_EQUAL(lp.getNumberOfColumns(),2)
-      TEST_EQUAL(lp.getNumberOfRows(),3)
-      TEST_EQUAL(lp.getColumnType(0),LPWrapper::INTEGER)
-      TEST_EQUAL(lp.getColumnType(1),LPWrapper::INTEGER)
-      TEST_EQUAL(lp.getObjective(0),1)
-      TEST_EQUAL(lp.getObjective(1),0)
-      TEST_EQUAL(lp.getRowUpperBound(0),0)
-      TEST_EQUAL(lp.getRowUpperBound(1),12)
-      TEST_EQUAL(lp.getRowUpperBound(2),12)
-      TEST_EQUAL(lp.getElement(0,0),1)
-      TEST_EQUAL(lp.getElement(0,1),-1)
-      TEST_EQUAL(lp.getElement(1,0),2)
-      TEST_EQUAL(lp.getElement(1,1),3)
-      TEST_EQUAL(lp.getElement(2,0),3)
-      TEST_EQUAL(lp.getElement(2,1),2) 
-    }
-#ifdef OPENMS_HAS_COINOR
-  else  if (lp.getSolver()==LPWrapper::SOLVER_COINOR)
-    {
-      lp.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.mps"),"MPS");
-      TEST_EQUAL(lp.getNumberOfColumns(),2)
-      TEST_EQUAL(lp.getNumberOfRows(),3)
-      TEST_EQUAL(lp.getColumnType(0),LPWrapper::INTEGER)
-      TEST_EQUAL(lp.getColumnType(1),LPWrapper::INTEGER)
-      TEST_EQUAL(lp.getObjective(0),1)
-      TEST_EQUAL(lp.getObjective(1),0)
-      TEST_EQUAL(lp.getRowUpperBound(0),0)
-      TEST_EQUAL(lp.getRowUpperBound(1),12)
-      TEST_EQUAL(lp.getRowUpperBound(2),12)
-      TEST_EQUAL(lp.getElement(0,0),1)
-      TEST_EQUAL(lp.getElement(0,1),-1)
-      TEST_EQUAL(lp.getElement(1,0),2)
-      TEST_EQUAL(lp.getElement(1,1),3)
-      TEST_EQUAL(lp.getElement(2,0),3)
-      TEST_EQUAL(lp.getElement(2,1),2)
-    }
-#endif
-#ifdef OPENMS_HAS_HIGHS
-  else if (lp.getSolver()==LPWrapper::SOLVER_HIGHS)
-    {
-      lp.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.mps"),"MPS");
-      TEST_EQUAL(lp.getNumberOfColumns(),2)
-      TEST_EQUAL(lp.getNumberOfRows(),3)
-      TEST_EQUAL(lp.getColumnType(0),LPWrapper::INTEGER)
-      TEST_EQUAL(lp.getColumnType(1),LPWrapper::INTEGER)
-      TEST_EQUAL(lp.getObjective(0),1)
-      TEST_EQUAL(lp.getObjective(1),0)
-      TEST_EQUAL(lp.getRowUpperBound(0),0)
-      TEST_EQUAL(lp.getRowUpperBound(1),12)
-      TEST_EQUAL(lp.getRowUpperBound(2),12)
-      TEST_EQUAL(lp.getElement(0,0),1)
-      TEST_EQUAL(lp.getElement(0,1),-1)
-      TEST_EQUAL(lp.getElement(1,0),2)
-      TEST_EQUAL(lp.getElement(1,1),3)
-      TEST_EQUAL(lp.getElement(2,0),3)
-      TEST_EQUAL(lp.getElement(2,1),2)
-    }
-#endif
+  lp.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.mps"),"MPS");
+  TEST_EQUAL(lp.getNumberOfColumns(),2)
+  TEST_EQUAL(lp.getNumberOfRows(),3)
+  TEST_EQUAL(lp.getColumnType(0),LPWrapper::INTEGER)
+  TEST_EQUAL(lp.getColumnType(1),LPWrapper::INTEGER)
+  TEST_EQUAL(lp.getObjective(0),1)
+  TEST_EQUAL(lp.getObjective(1),0)
+  TEST_EQUAL(lp.getRowUpperBound(0),0)
+  TEST_EQUAL(lp.getRowUpperBound(1),12)
+  TEST_EQUAL(lp.getRowUpperBound(2),12)
+  TEST_EQUAL(lp.getElement(0,0),1)
+  TEST_EQUAL(lp.getElement(0,1),-1)
+  TEST_EQUAL(lp.getElement(1,0),2)
+  TEST_EQUAL(lp.getElement(1,1),3)
+  TEST_EQUAL(lp.getElement(2,0),3)
+  TEST_EQUAL(lp.getElement(2,1),2)
 }
 END_SECTION
 
 START_SECTION((void writeProblem(const std::string &filename, const WriteFormat format) const ))
 {
-#ifdef OPENMS_HAS_COINOR
-    std::string tmp_filename;
-    NEW_TMP_FILE(tmp_filename);
-    lp.writeProblem(tmp_filename,LPWrapper::FORMAT_MPS);
-    LPWrapper lp2;
-    lp2.readProblem(tmp_filename,"MPS");
-    TEST_EQUAL(lp2.getNumberOfColumns(),2)
-    TEST_EQUAL(lp2.getNumberOfRows(),3)
-    TEST_EQUAL(lp2.getColumnType(0),LPWrapper::INTEGER)
-    TEST_EQUAL(lp2.getColumnType(1),LPWrapper::INTEGER)
-    TEST_EQUAL(lp2.getObjective(0),1)
-    TEST_EQUAL(lp2.getObjective(1),0)
-    TEST_EQUAL(lp2.getRowUpperBound(0),0)
-    TEST_EQUAL(lp2.getRowUpperBound(1),12)
-    TEST_EQUAL(lp2.getRowUpperBound(2),12)
-    TEST_EQUAL(lp2.getElement(0,0),1)
-    TEST_EQUAL(lp2.getElement(0,1),-1)
-    TEST_EQUAL(lp2.getElement(1,0),2)
-    TEST_EQUAL(lp2.getElement(1,1),3)
-    TEST_EQUAL(lp2.getElement(2,0),3)
-    TEST_EQUAL(lp2.getElement(2,1),2)
-#elif defined(OPENMS_HAS_HIGHS)
     std::string tmp_filename;
     NEW_TMP_FILE(tmp_filename);
     tmp_filename += ".mps"; // HiGHS uses extension to determine format
@@ -382,28 +335,6 @@ START_SECTION((void writeProblem(const std::string &filename, const WriteFormat 
     TEST_EQUAL(lp2.getElement(1,1),3)
     TEST_EQUAL(lp2.getElement(2,0),3)
     TEST_EQUAL(lp2.getElement(2,1),2)
-#else
-    std::string tmp_filename;
-    NEW_TMP_FILE(tmp_filename);
-    lp.writeProblem(tmp_filename, LPWrapper::FORMAT_LP);
-    LPWrapper lp2;
-    lp2.readProblem(tmp_filename, "LP");
-    TEST_EQUAL(lp2.getNumberOfColumns(), 2)
-    TEST_EQUAL(lp2.getNumberOfRows(), 3)
-    TEST_EQUAL(lp2.getColumnType(0), LPWrapper::INTEGER)
-    TEST_EQUAL(lp2.getColumnType(1), LPWrapper::INTEGER)
-    TEST_EQUAL(lp2.getObjective(0), 1)
-    TEST_EQUAL(lp2.getObjective(1), 0)
-    TEST_EQUAL(lp2.getRowUpperBound(0), 0)
-    TEST_EQUAL(lp2.getRowUpperBound(1), 12)
-    TEST_EQUAL(lp2.getRowUpperBound(2), 12)
-    TEST_EQUAL(lp2.getElement(0, 0), 1)
-    TEST_EQUAL(lp2.getElement(0, 1), -1)
-    TEST_EQUAL(lp2.getElement(1, 0), 2)
-    TEST_EQUAL(lp2.getElement(1, 1), 3)
-    TEST_EQUAL(lp2.getElement(2, 0), 3)
-    TEST_EQUAL(lp2.getElement(2, 1), 2)
-#endif
 }
 END_SECTION
 
@@ -494,14 +425,7 @@ END_SECTION
 
 START_SECTION((SOLVER getSolver() const ))
 {
-
-#ifdef OPENMS_HAS_COINOR
-  TEST_EQUAL(lp4.getSolver(),LPWrapper::SOLVER_COINOR)
-#elif defined(OPENMS_HAS_HIGHS)
   TEST_EQUAL(lp4.getSolver(),LPWrapper::SOLVER_HIGHS)
-#else
-  TEST_EQUAL(lp4.getSolver(), LPWrapper::SOLVER_GLPK)
-#endif
 }
 END_SECTION
 
@@ -510,20 +434,9 @@ START_SECTION(([LPWrapper::SolverParam] SolverParam()))
   LPWrapper::SolverParam* sptr = new LPWrapper::SolverParam();
   LPWrapper::SolverParam* snull_ptr = nullptr;
   TEST_NOT_EQUAL(sptr, snull_ptr)
-  TEST_EQUAL(sptr->message_level,3)
-  TEST_EQUAL(sptr->branching_tech,4)
-  TEST_EQUAL(sptr->backtrack_tech,3)
-  TEST_EQUAL(sptr->preprocessing_tech,2)
-  TEST_EQUAL(sptr->enable_feas_pump_heuristic,true)
-  TEST_EQUAL(sptr->enable_gmi_cuts,true)
-  TEST_EQUAL(sptr->enable_mir_cuts,true)
-  TEST_EQUAL(sptr->enable_cov_cuts,true)
-  TEST_EQUAL(sptr->enable_clq_cuts,true)
-  TEST_EQUAL(sptr->mip_gap,0.0)                        
-  TEST_EQUAL(sptr->output_freq,5000)
-  TEST_EQUAL(sptr->output_delay,10000)
+  TEST_EQUAL(sptr->mip_gap,0.0)
+  TEST_EQUAL(sptr->time_limit,(std::numeric_limits<Int>::max)())
   TEST_EQUAL(sptr->enable_presolve,true)
-  TEST_EQUAL(sptr->enable_binarization,true)
   delete sptr;
 }
 END_SECTION

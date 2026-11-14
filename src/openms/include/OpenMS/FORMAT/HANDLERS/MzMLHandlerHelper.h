@@ -205,11 +205,18 @@ namespace OpenMS
         data_, this will properly handle all terms describing precision,
         compression, name of the data and units.
 
+        An array typed by a child term of MS:1000513 (binary data array) is
+        named after the term, e.g. "raw inverse reduced ion mobility array"
+        for MS:1003008; MS:1000786 (non-standard data array) names it after
+        its value. If several such parameters are given, the last one wins.
+        Accessions missing from the PSI-MS CV are not identified.
+
         @param[in,out] data_ The list of data arrays, whose last entry will be changed
         @param[in] accession The CV accession
         @param[in] value The CV value
         @param[in] name The CV name
         @param[in] unit_accession The CV unit accession (if a unit tag is present)
+        @return Whether the CV parameter was identified
       */
       static bool handleBinaryDataArrayCVParam(std::vector<BinaryData>& data_,
                                                const std::string& accession,

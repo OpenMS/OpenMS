@@ -26,6 +26,28 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    /// The FDR (or q-value) that calculateFDRBasic_() recorded in @p score_to_fdr for the hits with @p score.
+    /// It records one value for the scores within 1e-12 of each other, under the best of them (the first in rank
+    /// order): the highest if @p higher_score_better, else the lowest. So a score that is not a key belongs to the
+    /// nearest key that is better. Looked up the other way round, such a score got the value of the next worse
+    /// group, or none (the end of the map) if its group is the worst one.
+    double fdrOfScore(const std::map<double, double>& score_to_fdr, double score, bool higher_score_better)
+    {
+      if (score_to_fdr.empty()) { return 1.0; }
+      if (higher_score_better)
+      {
+        auto it = score_to_fdr.lower_bound(score); // the lowest key that is not below the score
+        if (it == score_to_fdr.end()) { --it; }
+        return it->second;
+      }
+      auto it = score_to_fdr.upper_bound(score); // the highest key that is not above the score
+      if (it != score_to_fdr.begin()) { --it; }
+      return it->second;
+    }
+  } // namespace
+
   FalseDiscoveryRate::FalseDiscoveryRate() :
     DefaultParamHandler("FalseDiscoveryRate")
   {
@@ -813,9 +835,9 @@ namespace OpenMS
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
         cerr << target_scores[i] << " " << decoy_scores[j] << " " << i << " " << j << " ";
 #endif
-        double fdr(0);
-
-        fdr = (double)j / (double)(i + 1);
+        // D/T, with T = i + 1 targets and D = j decoys at least as good; an estimate above 1 is set to 1
+        // (the q-values above are at most 1 anyway)
+        const double fdr = std::min(1.0, (double)j / (double)(i + 1));
 
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
         cerr << fdr << endl;
@@ -825,6 +847,12 @@ namespace OpenMS
     }
 
     // assign q-value of decoy_score to closest target_score
+    // The search below needs the targets from the worst to the best score (as sorted for q-values). Without q-values
+    // they are sorted from the best to the worst, so a decoy would get the FDR of the wrong target.
+    if (!q_value)
+    {
+      std::reverse(target_scores.begin(), target_scores.end());
+    }
     for (Size i = 0; i != decoy_scores.size(); ++i)
     {
       const double& ds = decoy_scores[i];
@@ -1053,6 +1081,14 @@ namespace OpenMS
       calculateFDRBasic_(scores_to_fdr, scores_labels, q_value, higher_score_better);
       IDScoreGetterSetter::setPeptideScoresForMap_(scores_to_fdr, cmap, include_unassigned_peptides, score_type, higher_score_better, add_decoy_peptides);
     }
+
+    // FDRs and q-values are lower-is-better, whatever the search score was. Set this only after all
+    // scores are converted: the setters above need the search score's orientation (the charge-split
+    // path looks the scores up with it, once per charge).
+    cmap.applyFunctionOnPeptideIDs([&score_type](PeptideIdentification& id)
+    {
+      if (id.getScoreType() == score_type) { id.setHigherScoreBetter(false); }
+    }, include_unassigned_peptides);
   }
 
   //TODO Add another overload that iterates over a vector. to be consistent with old interface
@@ -1195,6 +1231,8 @@ namespace OpenMS
       }
     }
 
+    // The best hit of each identification is the one that is scored (and kept).
+    map.applyFunctionOnPeptideIDs([](PeptideIdentification& id) { id.sort(); }, include_unassigned);
     unordered_map<std::string, ScoreToTgtDecLabelPair> seq_to_score_labels;
     IDScoreGetterSetter::fillPeptideScoreMap_(seq_to_score_labels, map, include_unassigned);
 
@@ -1208,16 +1246,7 @@ namespace OpenMS
     // convert scores in unordered map to FDR/qvalues
     for (auto & seq_to_score_label : seq_to_score_labels)
     {
-      if (higher_better)
-      {
-        auto ub = score_to_fdr.upper_bound(seq_to_score_label.second.first);
-        if (ub != score_to_fdr.begin()) ub--;
-        seq_to_score_label.second.first = ub->second;
-      }
-      else
-      {
-        seq_to_score_label.second.first = score_to_fdr.lower_bound(seq_to_score_label.second.first)->second;
-      }
+      seq_to_score_label.second.first = fdrOfScore(score_to_fdr, seq_to_score_label.second.first, higher_better);
     }
 
     IDScoreGetterSetter::setPeptideScoresFromMap_(seq_to_score_labels, map, score_type, add_decoy_peptides, include_unassigned);
@@ -1234,6 +1263,8 @@ namespace OpenMS
     // since we do not support multiple runs here yet, we take the orientation of the first ID
     bool higher_better = ids[0].isHigherScoreBetter();
 
+    // The best hit of each identification is the one that is scored (and kept).
+    for (auto& id : ids) { id.sort(); }
     unordered_map<std::string, ScoreToTgtDecLabelPair> seq_to_score_labels;
     IDScoreGetterSetter::fillPeptideScoreMap_(seq_to_score_labels, ids);
 
@@ -1247,16 +1278,7 @@ namespace OpenMS
     // convert scores in unordered map to FDR/qvalues
     for (auto & seq_to_score_label : seq_to_score_labels)
     {
-      if (higher_better)
-      {
-        auto ub = score_to_fdr.upper_bound(seq_to_score_label.second.first);
-        if (ub != score_to_fdr.begin()) ub--;
-        seq_to_score_label.second.first = ub->second;
-      }
-      else
-      {
-        seq_to_score_label.second.first = score_to_fdr.lower_bound(seq_to_score_label.second.first)->second;
-      }
+      seq_to_score_label.second.first = fdrOfScore(score_to_fdr, seq_to_score_label.second.first, higher_better);
     }
 
     IDScoreGetterSetter::setPeptideScoresFromMap_(seq_to_score_labels, ids, score_type, add_decoy_peptides);
@@ -1695,25 +1717,26 @@ namespace OpenMS
     double decoys = 0.; // double to account for "partial" decoys
     double last_score = scores_labels[0].first;
 
+    // The FDR of accepting the 'accepted' hits with a score at least as good as 'score', of which 'decoys' are
+    // decoys (partial decoy labels count as fractions) and the rest targets T: (D+1)/T if conservative (the
+    // target-decoy competition estimate), else (D+1)/(T+D), the decoy fraction of all accepted hits. An estimate
+    // above 1, also for T = 0, is set to 1.
+    auto record = [&](double score, double accepted)
+    {
+      const double denominator = conservative ? accepted - decoys : accepted;
+      scores_to_FDR[score] = denominator > 0.0 ? std::min(1.0, (decoys + 1.0) / denominator) : 1.0;
+      #ifdef FALSE_DISCOVERY_RATE_DEBUG
+      OPENMS_LOG_DEBUG << "Recording score: " << score << " with " << decoys << " decoys among " << accepted << " hits -> fdr: " << scores_to_FDR[score] << '\n';
+      #endif
+    };
+
     size_t j = 0;
     for (; j < scores_labels.size(); ++j)
     {
       //Although we do not really care about equality we compare with tolerance to make it (more?) compiler independent.
       if (std::abs(scores_labels[j].first - last_score) > 1e-12)
       {
-        #ifdef FALSE_DISCOVERY_RATE_DEBUG
-        OPENMS_LOG_DEBUG << "Recording score: " << last_score << " with " << decoys << " decoys at index+1 = " << (j+1) << " -> fdr: " << decoys/(j+1.0) << '\n';
-        #endif
-        //we are using the conservative formula (Decoy + 1) / (Tgts)
-        if (conservative)
-        {
-          scores_to_FDR[last_score] = (decoys+1.0)/(double(j)+1.0-decoys);
-        }
-        else
-        {
-          scores_to_FDR[last_score] = (decoys+1.0)/(double(j)+1.0);
-        }
-
+        record(last_score, double(j)); // the j hits before this one are those at least as good as last_score
         last_score = scores_labels[j].first;
       }
 
@@ -1727,15 +1750,8 @@ namespace OpenMS
       */
     }
 
-    // in case there is only one score and generally to include the last score, I guess we need to do this
-    if (conservative)
-    {
-      scores_to_FDR[last_score] = (decoys+1.0)/(double(j)+1.0-decoys);
-    }
-    else
-    {
-      scores_to_FDR[last_score] = (decoys+1.0)/(double(j)+1.0);
-    }
+    // the last (worst) score: all hits are at least as good as it
+    record(last_score, double(scores_labels.size()));
 
     if (qvalue) //apply a cumulative minimum on the map (from low to high fdrs)
     {

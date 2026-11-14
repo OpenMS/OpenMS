@@ -137,9 +137,7 @@ endif()
 # <prefix>/lib (ARCHIVE), so a list that names only lib/ can never find a DLL of
 # a shared dependency; OpenMS.dll then fails to load with the loader's
 # unhelpful "The specified module could not be found". Hence every dependency
-# prefix contributes both directories. QT_INSTALL_BINS is not used: it is never
-# defined here (cmake/knime_package_support.cmake sets it, and the root project
-# includes that after add_subdirectory(src), only for KNIME packaging).
+# prefix contributes both directories.
 function(_pyopenms_windows_dll_dirs out_var)
   # Caller-supplied directories come first: the environment is the only way an
   # enclosing build or a CI job can point at something CMake cannot know about.
@@ -167,8 +165,7 @@ function(_pyopenms_windows_dll_dirs out_var)
   # name it. CMAKE_PREFIX_PATH is read as both a CMake variable and an
   # environment variable: find_package() consults both, but only the variable
   # is visible to ordinary script code, and the wheel workflow supplies the
-  # environment one. (No Qt entry: the core library does not link Qt, and a Qt
-  # prefix that is on CMAKE_PREFIX_PATH is already covered here.)
+  # environment one.
   set(_prefixes ${CMAKE_PREFIX_PATH})
   if(NOT "$ENV{CMAKE_PREFIX_PATH}" STREQUAL "")
     list(APPEND _prefixes "$ENV{CMAKE_PREFIX_PATH}")
@@ -575,12 +572,12 @@ else()
   # Find Arrow ourselves so we can link the C++ bridge functions (ExportSchema, etc.).
   if(NOT OPENMS_ARROW_TARGET)
     # Don't pin the version in find_package — Arrow's ConfigVersion uses
-    # SameMajorVersion compatibility, so requesting 23 rejects 24.x. Check the
+    # SameMajorVersion compatibility, so requesting 24 rejects 25.x. Check the
     # version manually after the call. Mirrors the main cmake path in
     # cmake/cmake_findExternalLibs.cmake.
     find_package(Arrow CONFIG REQUIRED)
-    if(Arrow_VERSION VERSION_LESS 23)
-      message(FATAL_ERROR "Apache Arrow >= 23 required (found ${Arrow_VERSION}).")
+    if(Arrow_VERSION VERSION_LESS 24)
+      message(FATAL_ERROR "Apache Arrow >= 24 required (found ${Arrow_VERSION}).")
     endif()
     if(ARROW_USE_STATIC AND TARGET Arrow::arrow_static)
       set(OPENMS_ARROW_TARGET Arrow::arrow_static)
@@ -872,7 +869,6 @@ else()
     if(APPLE)
       add_custom_target(pyopenms_fix_deps ALL
         COMMAND ${PROJECT_SOURCE_DIR}/mac_fix_dependencies.rb -l "${PYOPENMS_BUILD_DIR}/pyopenms" -e "@rpath/" -r "@loader_path/" -f -v
-        COMMAND codesign --force --sign - ${PYOPENMS_BUILD_DIR}/pyopenms/Qt* || true
         COMMAND codesign --force --sign - ${PYOPENMS_BUILD_DIR}/pyopenms/*.dylib || true
         COMMENT "Fixing deps and codesigning pyopenms binaries in build dir"
       )
@@ -938,7 +934,6 @@ else()
     PATTERN "*.py"
     PATTERN "*.pyi"
     PATTERN "py.typed"
-    PATTERN "Qt*"
     PATTERN "__pycache__" EXCLUDE
   )
 endif() # PYOPENMS_USE_PREBUILT
@@ -958,7 +953,6 @@ if(PYOPENMS_USE_PREBUILT)
     PATTERN "*.so.*"
     PATTERN "*.dylib"
     PATTERN "*.pyd"
-    PATTERN "Qt*"
     PATTERN "__pycache__" EXCLUDE
   )
 endif()

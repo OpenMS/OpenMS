@@ -8,11 +8,18 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
 
+#include <algorithm>
+
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -355,8 +362,8 @@ START_SECTION(void extract_value_tophat(const std::vector< double >::const_itera
   // print(sum([0 + i*100.0 for i in range(10)] + 8) )
   TEST_REAL_SIMILAR( integrated_intensity, 4508.0);
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.05,  integrated_intensity, extract_window, false);
-  //print(sum([0 + i*100.0 for i in range(10)]) + sum([900 - i*100.0 for i in range(6)])  )
-  TEST_REAL_SIMILAR( integrated_intensity, 8400.0);
+  //print(sum([0 + i*100.0 for i in range(10)]) + sum([900 - i*100.0 for i in range(6)]) + 8 )
+  TEST_REAL_SIMILAR( integrated_intensity, 8408.0);
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.1, integrated_intensity, extract_window, false);
   //print(sum([0 + i*100.0 for i in range(10)]) + sum([900 - i*100.0 for i in range(10)])  )
   TEST_REAL_SIMILAR( integrated_intensity, 9000.0);
@@ -390,9 +397,9 @@ START_SECTION(void extract_value_tophat(const std::vector< double >::const_itera
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.0, integrated_intensity, extract_window, true);
   TEST_REAL_SIMILAR( integrated_intensity,4508.0);
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.05, integrated_intensity, extract_window, true);
-  TEST_REAL_SIMILAR( integrated_intensity,8400.0);
+  TEST_REAL_SIMILAR( integrated_intensity,8408.0);
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.1, integrated_intensity, extract_window, true);
-  TEST_REAL_SIMILAR( integrated_intensity,9000.0);
+  TEST_REAL_SIMILAR( integrated_intensity,9008.0); // 500 ppm is slightly more than 0.1 Da: includes the very first value
 
 }
 END_SECTION
@@ -437,8 +444,8 @@ START_SECTION([EXTRA IM]void extract_value_tophat(const std::vector< double >::c
   // sum([i for m,i,im in zip_a if im < 100.15 and m < 400.1]) + 8
   TEST_REAL_SIMILAR( integrated_intensity, 2008.0);
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, im_it, 400.05,  100, integrated_intensity, extract_window, im_extract_window, false);
-  // sum([i for m,i,im in zip_a if im < 100.15 and m < 400.15])
-  TEST_REAL_SIMILAR( integrated_intensity, 4100.0);
+  // sum([i for m,i,im in zip_a if im < 100.15 and m < 400.15]) + 8
+  TEST_REAL_SIMILAR( integrated_intensity, 4108.0);
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, im_it, 400.1, 100, integrated_intensity, extract_window, im_extract_window, false);
   // sum([i for m,i,im in zip_a if im < 100.15 and m < 400.2])
   TEST_REAL_SIMILAR( integrated_intensity, 4100.0);
@@ -515,6 +522,97 @@ START_SECTION([EXTRA]void extract_value_tophat(const std::vector< double >::cons
 }
 END_SECTION
 
+START_SECTION([EXTRA]void extract_value_tophat(const std::vector< double >::const_iterator &mz_start, std::vector< double >::const_iterator &mz_it, const std::vector< double >::const_iterator &mz_end, std::vector< double >::const_iterator &int_it, const double &mz, double &integrated_intensity, const double &mz_extraction_window, bool ppm))
+{
+  // Targets far ahead of the current position (e.g. the precursors of one isolation window in a
+  // full MS1 spectrum): the iterators have to end up where a peak-by-peak walk would leave them.
+  std::vector<double> mz, intensities, ion_mobility;
+  for (Size i = 0; i < 10000; ++i)
+  {
+    mz.push_back(300.0 + 0.1 * static_cast<double>(i));
+    intensities.push_back(static_cast<double>(i % 7 + 1));
+    ion_mobility.push_back(100.0);
+  }
+  // some duplicated m/z values around a target
+  mz[5001] = mz[5000];
+  mz[5002] = mz[5000];
+
+  // (the last target lies beyond the spectrum, with the last peak outside of its window)
+  const double targets[] = {300.0, 300.35, 420.04, 800.0, 800.0, 800.05, 1299.9, 1500.0};
+  ChromatogramExtractorAlgorithm extractor;
+
+  std::vector<double>::const_iterator mz_it = mz.begin();
+  std::vector<double>::const_iterator int_it = intensities.begin();
+  std::vector<double>::const_iterator mz_it_im = mz.begin();
+  std::vector<double>::const_iterator int_it_im = intensities.begin();
+  std::vector<double>::const_iterator im_it = ion_mobility.begin();
+  for (const double target : targets)
+  {
+    // reference: first peak that is not below the target, and the summed peaks inside the window
+    const std::ptrdiff_t expected_pos = std::lower_bound(mz.begin(), mz.end(), target) - mz.begin();
+    double expected_intensity = 0;
+    for (Size i = 0; i < mz.size(); ++i)
+    {
+      if (mz[i] > target - 0.1 && mz[i] < target + 0.1) expected_intensity += intensities[i];
+    }
+
+    double integrated_intensity = 0;
+    extractor.extract_value_tophat(mz.begin(), mz_it, mz.end(), int_it, target, integrated_intensity, 0.2, false);
+    TEST_EQUAL(mz_it - mz.begin(), expected_pos)
+    TEST_EQUAL(int_it - intensities.begin(), expected_pos)
+    TEST_REAL_SIMILAR(integrated_intensity, expected_intensity)
+
+    extractor.extract_value_tophat(mz.begin(), mz_it_im, mz.end(), int_it_im, im_it, target, 100, integrated_intensity, 0.2, 0.3, false);
+    TEST_EQUAL(mz_it_im - mz.begin(), expected_pos)
+    TEST_EQUAL(int_it_im - intensities.begin(), expected_pos)
+    TEST_EQUAL(im_it - ion_mobility.begin(), expected_pos)
+    TEST_REAL_SIMILAR(integrated_intensity, expected_intensity)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA]void extract_value_tophat(const std::vector< double >::const_iterator &mz_start, std::vector< double >::const_iterator &mz_it, const std::vector< double >::const_iterator &mz_end, std::vector< double >::const_iterator &int_it, const double &mz, double &integrated_intensity, const double &mz_extraction_window, bool ppm))
+{
+  // The first and the last peak of a spectrum count once if they are inside the window: the first
+  // one also when the walk to the left reaches it after several steps, the last one also when the
+  // target lies beyond the end of the spectrum. Both overloads, window of 1 Th (+/- 0.5).
+  ChromatogramExtractorAlgorithm extractor;
+  auto extract = [&extractor](const std::vector<double>& mz, const std::vector<double>& intensities, const double target)
+  {
+    const std::vector<double> ion_mobility(mz.size(), 100.0);
+    std::vector<double>::const_iterator mz_it = mz.begin();
+    std::vector<double>::const_iterator int_it = intensities.begin();
+    double intensity = 0;
+    extractor.extract_value_tophat(mz.begin(), mz_it, mz.end(), int_it, target, intensity, 1.0, false);
+
+    std::vector<double>::const_iterator mz_it_im = mz.begin();
+    std::vector<double>::const_iterator int_it_im = intensities.begin();
+    std::vector<double>::const_iterator im_it = ion_mobility.begin();
+    double intensity_im = 0;
+    extractor.extract_value_tophat(mz.begin(), mz_it_im, mz.end(), int_it_im, im_it, target, 100.0, intensity_im, 1.0, 0.3, false);
+    return std::make_pair(intensity, intensity_im);
+  };
+
+  // the walk to the left passes three peaks, the last of them is the first peak of the spectrum
+  std::pair<double, double> result = extract({100.0, 100.1, 100.2, 100.3}, {1.0, 10.0, 100.0, 1000.0}, 100.25);
+  TEST_REAL_SIMILAR(result.first, 1111.0)
+  TEST_REAL_SIMILAR(result.second, 1111.0)
+
+  // target beyond the last peak
+  result = extract({100.0, 100.1, 100.2}, {1.0, 10.0, 100.0}, 100.3);
+  TEST_REAL_SIMILAR(result.first, 111.0)
+  TEST_REAL_SIMILAR(result.second, 111.0)
+
+  // a single peak, target beyond and before it
+  result = extract({100.0}, {5.0}, 100.1);
+  TEST_REAL_SIMILAR(result.first, 5.0)
+  TEST_REAL_SIMILAR(result.second, 5.0)
+  result = extract({100.0}, {5.0}, 99.9);
+  TEST_REAL_SIMILAR(result.first, 5.0)
+  TEST_REAL_SIMILAR(result.second, 5.0)
+}
+END_SECTION
+
 START_SECTION( [ChromatogramExtractorAlgorithm::ExtractionCoordinates] static bool SortExtractionCoordinatesByMZ(const ChromatogramExtractorAlgorithm::ExtractionCoordinates &left, const ChromatogramExtractorAlgorithm::ExtractionCoordinates &right))    
 {
   NOT_TESTABLE
@@ -524,6 +622,73 @@ END_SECTION
 START_SECTION([ChromatogramExtractorAlgorithm::ExtractionCoordinates] static bool SortExtractionCoordinatesReverseByMZ(const ChromatogramExtractorAlgorithm::ExtractionCoordinates &left, const ChromatogramExtractorAlgorithm::ExtractionCoordinates &right))    
 {
   NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION([EXTRA] extractChromatograms of many coordinates with and without ion mobility (in parallel ranges))
+{
+  // peak i has m/z 100 + i, intensity i + 1 and ion mobility i; every second coordinate has no ion mobility
+  const int nr_peaks = 600;
+  std::shared_ptr<PeakMap> exp(new PeakMap);
+  for (int scan = 0; scan < 3; ++scan)
+  {
+    MSSpectrum s;
+    s.setRT(scan);
+    DataArrays::FloatDataArray fda;
+    for (int i = 0; i < nr_peaks; ++i)
+    {
+      s.push_back(Peak1D(100.0 + i, i + 1.0));
+      fda.push_back(i);
+    }
+    fda.setName(Constants::UserParam::ION_MOBILITY);
+    s.getFloatDataArrays().push_back(fda);
+    exp->addSpectrum(s);
+  }
+  // spectra in memory: extracted in ranges of the coordinates by several threads
+  OpenSwath::SpectrumAccessPtr in_memory(new SpectrumAccessOpenMSInMemory(*SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp)));
+
+  std::vector<ChromatogramExtractorAlgorithm::ExtractionCoordinates> coordinates(nr_peaks);
+  for (int i = 0; i < nr_peaks; ++i)
+  {
+    coordinates[i].mz = 100.0 + i;
+    coordinates[i].rt_start = 0;
+    coordinates[i].rt_end = -1;
+    coordinates[i].ion_mobility = (i % 2 == 0) ? i : -1;
+    coordinates[i].id = std::to_string(i);
+  }
+
+  auto extract = [&]([[maybe_unused]] int threads)
+  {
+    std::vector<OpenSwath::ChromatogramPtr> output;
+    for (int i = 0; i < nr_peaks; ++i)
+    {
+      output.emplace_back(new OpenSwath::Chromatogram);
+    }
+#ifdef _OPENMP
+    const int max_threads = omp_get_max_threads();
+    omp_set_num_threads(threads);
+#endif
+    ChromatogramExtractorAlgorithm().extractChromatograms(in_memory, output, coordinates, 0.5, false, 0.5, "tophat");
+#ifdef _OPENMP
+    omp_set_num_threads(max_threads);
+#endif
+    return output;
+  };
+
+  for (int threads : {1, 4})
+  {
+    std::vector<OpenSwath::ChromatogramPtr> output = extract(threads);
+    Size wrong_chromatograms = 0;
+    for (int i = 0; i < nr_peaks; ++i)
+    {
+      const std::vector<double>& intensities = output[i]->getIntensityArray()->data;
+      if (intensities != std::vector<double>(3, i + 1.0))
+      {
+        ++wrong_chromatograms;
+      }
+    }
+    TEST_EQUAL(wrong_chromatograms, 0)
+  }
 }
 END_SECTION
 

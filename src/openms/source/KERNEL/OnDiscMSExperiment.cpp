@@ -44,6 +44,22 @@ namespace OpenMS
       container.select(kept);
       container.updateRanges();
     }
+
+    /// Throws unless spectrum @p id exists and its meta data was loaded. Without meta data (openFile() with
+    /// skipMetaData), reading a spectrum only decodes its peaks and native id, so RT, MS level and precursors
+    /// would silently come back as defaults (RT -1, MS level 1).
+    void checkSpectrumMetaData(Size id, Size nr_spectra, const PeakMap* meta_data)
+    {
+      if (id >= nr_spectra || (meta_data != nullptr && id >= meta_data->size()))
+      {
+        throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, static_cast<SignedSize>(id), nr_spectra);
+      }
+      if (meta_data == nullptr)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Spectrum meta data (RT, MS level, precursors) is not available: the file was opened with skipMetaData.");
+      }
+    }
   } // namespace
 
   bool OnDiscMSExperiment::openFile(const std::string& filename, bool skipMetaData)
@@ -216,6 +232,34 @@ namespace OpenMS
     }
 
     return spectrum;
+  }
+
+  MSSpectrum OnDiscMSExperiment::getSpectrumMetadata(Size id)
+  {
+    checkSpectrumMetaData(id, getNrSpectra(), meta_ms_experiment_.get());
+    MSSpectrum spectrum = meta_ms_experiment_->operator[](id);
+    spectrum.clear(false);
+    spectrum.getFloatDataArrays().clear();
+    spectrum.getStringDataArrays().clear();
+    spectrum.getIntegerDataArrays().clear();
+    return spectrum;
+  }
+
+  double OnDiscMSExperiment::getSpectrumRT(Size id) const
+  {
+    checkSpectrumMetaData(id, getNrSpectra(), meta_ms_experiment_.get());
+    return meta_ms_experiment_->operator[](id).getRT();
+  }
+
+  UInt OnDiscMSExperiment::getSpectrumMSLevel(Size id) const
+  {
+    checkSpectrumMetaData(id, getNrSpectra(), meta_ms_experiment_.get());
+    return meta_ms_experiment_->operator[](id).getMSLevel();
+  }
+
+  std::unique_ptr<IMSExperimentRandomAccess> OnDiscMSExperiment::clone() const
+  {
+    return std::make_unique<OnDiscMSExperiment>(*this);
   }
 
   MSChromatogram OnDiscMSExperiment::getChromatogram(Size id)

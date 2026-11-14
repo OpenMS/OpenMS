@@ -213,3 +213,123 @@ def test_instrument_configurations():
         experiment.setInstrumentConfigurations({"invalid": None})
     experiment.setInstrumentConfigurations({})
     assert experiment.getInstrumentConfigurations() == {}
+
+
+def _same_spectrum(got, want):
+    assert got.getNativeID() == want.getNativeID()
+    assert got.getRT() == want.getRT()
+    assert got.getMSLevel() == want.getMSLevel()
+    assert got.size() == want.size()
+    assert got == want
+
+
+def _centroid_options():
+    options = pyopenms.ThermoRawFileOptions()
+    options.centroid = True
+    options.checksum = False
+    return options
+
+
+def _load(options):
+    reader = pyopenms.ThermoRawFile()
+    reader.setOptions(options)
+    experiment = pyopenms.MSExperiment()
+    reader.load(RAW_FILE, experiment)
+    return experiment
+
+
+@needs_raw_file
+def test_raw_transform_matches_load():
+    """ThermoRawFile.transform streams the same spectra and chromatograms as load()."""
+
+    class Collector:
+        def __init__(self):
+            self.expected = None
+            self.settings = None
+            self.spectra = []
+            self.chromatograms = []
+
+        def setExpectedSize(self, nr_spectra, nr_chromatograms):
+            self.expected = (nr_spectra, nr_chromatograms)
+
+        def setExperimentalSettings(self, settings):
+            self.settings = settings
+
+        def consumeSpectrum(self, spectrum):
+            self.spectra.append(pyopenms.MSSpectrum(spectrum))
+
+        def consumeChromatogram(self, chromatogram):
+            self.chromatograms.append(pyopenms.MSChromatogram(chromatogram))
+
+    options = _centroid_options()
+    full = _load(options)
+    reader = pyopenms.ThermoRawFile()
+    reader.setOptions(options)
+    collector = Collector()
+    reader.transform(RAW_FILE, collector)
+    assert collector.settings is not None
+    assert len(collector.spectra) == full.getNrSpectra() > 0
+    assert len(collector.chromatograms) == full.getNrChromatograms()
+    for got, want in zip(collector.spectra, full):
+        _same_spectrum(got, want)
+
+
+@needs_raw_file
+def test_raw_random_access_matches_load():
+    """OnDiscThermoRawExperiment.getSpectrum(i) is the i-th spectrum of load(),
+    also for an MS2-only selection and in reverse order."""
+    for ms_levels in ([], [2]):
+        options = _centroid_options()
+        options.ms_levels = ms_levels
+        full = _load(options)
+        experiment = pyopenms.OnDiscThermoRawExperiment()
+        assert not experiment.isOpen()
+        experiment.openFile(RAW_FILE, options)
+        assert experiment.isOpen()
+        assert experiment.getFilename() == RAW_FILE
+        assert experiment.getOptions().ms_levels == ms_levels
+        assert len(experiment) == experiment.size() == experiment.getNrSpectra() == full.getNrSpectra() > 0
+        assert experiment.getNrChromatograms() == full.getNrChromatograms()
+        assert experiment.isSortedByRT()
+        for i in reversed(range(len(experiment))):
+            want = full[i]
+            _same_spectrum(experiment.getSpectrum(i), want)
+            assert experiment.getSpectrumRT(i) == want.getRT()
+            assert experiment.getSpectrumMSLevel(i) == want.getMSLevel()
+            assert experiment.getSpectrumNativeID(i) == want.getNativeID()
+            scan = experiment.getScanNumber(i)
+            assert want.getNativeID().endswith("scan=%d" % scan)
+            assert experiment.getSpectrumIndexByScanNumber(scan) == i
+            meta = experiment.getSpectrumMetadata(i)
+            assert meta.size() == 0
+            assert meta.getNativeID() == want.getNativeID()
+            assert meta.getRT() == want.getRT()
+        _same_spectrum(experiment[-1], full[full.getNrSpectra() - 1])
+        with pytest.raises(IndexError):
+            experiment[len(experiment)]
+        for got, want in zip(experiment, full):
+            _same_spectrum(got, want)
+        native_id = full[0].getNativeID()
+        _same_spectrum(experiment.getSpectrumByNativeId(native_id), full[0])
+        for c in range(experiment.getNrChromatograms()):
+            assert experiment.getChromatogram(c) == full.getChromatogram(c)
+        settings = experiment.getExperimentalSettings()
+        assert settings.getInstrument().getName() == full.getInstrument().getName()
+
+
+@needs_raw_file
+def test_raw_random_access_rt_lookup():
+    options = _centroid_options()
+    experiment = pyopenms.OnDiscThermoRawExperiment()
+    experiment.openFile(RAW_FILE, options)
+    n = len(experiment)
+    rts = [experiment.getSpectrumRT(i) for i in range(n)]
+    assert experiment.findFirstRT(float("-inf")) == 0
+    assert experiment.findFirstRT(rts[-1] + 1.0) == n
+    middle = rts[n // 2]
+    first = experiment.findFirstRT(middle)
+    assert rts[first] >= middle
+    assert first == 0 or rts[first - 1] < middle
+    # a copy shares the index and reads through its own handle
+    copy = pyopenms.OnDiscThermoRawExperiment(experiment)
+    _same_spectrum(copy.getSpectrum(first), experiment.getSpectrum(first))

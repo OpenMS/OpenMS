@@ -26,7 +26,9 @@ namespace OpenMS
       return a.getPrecursors()[0].getMZ() < b.getPrecursors()[0].getMZ();
     }
 
-  } PrecursorMZLess;
+  };
+  /// Instance of PrecursorMassComparator (inline: one object however many translation units include this header)
+  inline PrecursorMassComparator PrecursorMZLess;
 
   /**
     @brief One library-search match record: the observed spectrum, the matching DB spectrum, the score, and the metabolite metadata copied from the hit.
@@ -175,7 +177,9 @@ namespace OpenMS
       return a.getMatchingScore() > b.getMatchingScore();
     }
 
-  } SpectralMatchScoreGreater;
+  };
+  /// Instance of SpectralMatchScoreComparator (inline: one object however many translation units include this header)
+  inline SpectralMatchScoreComparator SpectralMatchScoreGreater;
 
   /**
     @brief Metabolomics spectral-library search by hyperscore.

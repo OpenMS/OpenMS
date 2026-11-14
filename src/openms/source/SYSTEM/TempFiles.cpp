@@ -35,6 +35,12 @@ namespace OpenMS
 {
 namespace
 {
+  // Callers nest files, and a tool's own temporary directories, inside a TempDir, so every
+  // character of its name is path budget they lose -- and on Windows that budget is MAX_PATH
+  // (259 characters): OpenDIA's intermediates failed with "unable to open database file"
+  // once a TempDir named with hostname and full UUID put their SQLite journal past it. Hence
+  // the TempDir constructors leave the hostname out of @p prefix, and the random suffix is
+  // short; a collision is retried (POSIX mkdtemp uses 6 characters, Windows 8 hex digits).
   std::string createUniqueDir_(const std::string& prefix)
   {
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -68,9 +74,9 @@ namespace
       }
       std::wstring wsuffix(reinterpret_cast<wchar_t*>(wstr));
       RpcStringFreeW(&wstr);
+      // The first group of a random (version 4) UUID: 8 hex digits, 32 random bits
       std::string suffix;
-      suffix.reserve(wsuffix.size());
-      for (wchar_t wc : wsuffix)
+      for (wchar_t wc : wsuffix.substr(0, 8))
       {
         suffix.push_back(static_cast<char>(wc));
       }
@@ -87,7 +93,7 @@ namespace
       {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, candidate, "GetLastError() = " + std::to_string(err));
       }
-      // else: collision, loop and try again with a new UUID
+      // else: collision, loop and try again with a new random suffix
     }
     throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prefix, "exceeded 100 attempts");
 #else
@@ -118,7 +124,7 @@ namespace
   TempDir::TempDir(bool keep_dir)
     : keep_dir_(keep_dir)
   {
-    std::string prefix = SystemSettings::getTempDirectory() + "/" +File::getUniqueName();
+    std::string prefix = SystemSettings::getTempDirectory() + "/" + File::getUniqueName(false);
     temp_dir_ = createUniqueDir_(prefix);
     OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'\n";
   };
@@ -131,7 +137,7 @@ namespace
     {
       prefix += "/";
     }
-    prefix += "OpenMSTempDir_" + File::getUniqueName();
+    prefix += "OpenMSTempDir_" + File::getUniqueName(false);
     temp_dir_ = createUniqueDir_(prefix);
     OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'\n";
   };

@@ -47,6 +47,17 @@ START_SECTION(TempDir::TempDir(const std::string& base_dir, bool keep_dir = fals
     child_path = child.getPath();
     TEST_TRUE(File::isDirectory(child_path))
     TEST_EQUAL(child_path.find(parent.getPath()), 0)
+
+    // The name stays short: OpenDIA nests its intermediate files, and their SQLite journals,
+    // two levels below such a directory, and on Windows the whole path must fit MAX_PATH.
+    // OpenMSTempDir_<date>_<time>_<pid>_<counter>_<suffix> is about 45 characters; with
+    // hostname and full UUID it was about 90, and OpenDIA failed on Windows once
+    // -workflow:intermediate_dir was longer than about 120 characters.
+    std::string leaf = child_path;
+    while (!leaf.empty() && leaf.back() == '/') leaf.pop_back();
+    leaf = File::basename(leaf);
+    TEST_EQUAL(leaf.rfind("OpenMSTempDir_", 0), 0)
+    TEST_EQUAL(leaf.size() <= 56, true)
   }
   TEST_FALSE(File::exists(child_path))
   TEST_TRUE(File::exists(parent.getPath()))

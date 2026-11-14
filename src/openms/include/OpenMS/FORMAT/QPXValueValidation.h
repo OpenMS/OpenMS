@@ -129,6 +129,23 @@ namespace OpenMS
     /// Forget primary keys accumulated from earlier validate() calls.
     void reset();
 
+    /**
+      @brief Allow optional columns after the view's own (QPX readers ignore columns they do not know)
+
+      Off by default: validate() then requires the view's columns exactly. On, each view column is still checked in
+      place (name, type, nullability), and the further columns must have names distinct from each other and from the
+      view's columns.
+    */
+    void setExtraColumnsAllowed(bool allowed);
+
+    /**
+      @brief Check the rows of a psm table in @p threads ranges in parallel (OpenMP; default 1: serial)
+
+      The result is that of the serial check: the same errors in the same order, the same rows reported as
+      duplicates. Inside a parallel region, or without OpenMP, the check is serial.
+    */
+    void setThreads(int threads);
+
   private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

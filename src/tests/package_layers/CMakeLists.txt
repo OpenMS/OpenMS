@@ -4,16 +4,26 @@ cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 ### src/tests/CMakeLists.txt (OPENMS_TEST_INSTALLED_CONSUMER). It uses the real
 ### export and install macros and the real package template with stub libraries,
 ### so the CMake package of its build tree can be checked in seconds, including
-### after reconfiguring the same build directory with another WITH_GUI setting.
+### after reconfiguring the same build directory with another WITH_CLI setting.
 ### Nothing is compiled: the build-tree target files are written at generation.
+###
+### With WITH_GUI_PACKAGE it also writes a stub of the OpenMSGUI package of
+### OpenMS-TOPP-GUI next to OpenMSConfig.cmake (where the GUI layer puts it on
+### Windows), to which OpenMSConfig.cmake delegates its component GUI and whose
+### target file it includes when the component is not requested. GUI_PACKAGE_VERSION
+### gives the stub another version than this OpenMS, which has to be ignored.
 project("OpenMS_PackageLayersStub" CXX)
 
-option(WITH_GUI "Build the stub GUI library (the GUI layer of the package)" OFF)
+option(WITH_CLI "Build the stub CLI library (the CLI layer of the package)" ON)
+option(WITH_GUI_PACKAGE "Write a stub OpenMSGUI package next to the package of this build tree" OFF)
+set(GUI_PACKAGE_VERSION "" CACHE STRING "Version of the stub OpenMSGUI package (empty: the version of this stub OpenMS)")
 
 # what the macros and cmake/OpenMSConfig.cmake.in expect from the OpenMS build
 get_filename_component(OPENMS_HOST_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../.." ABSOLUTE)
 set(OPENMS_HOST_BINARY_DIRECTORY "${PROJECT_BINARY_DIR}")
 set(OPENMS_PACKAGE_VERSION 3.7.0)
+set(OPENMS_PACKAGE_VERSION_FULLSTRING ${OPENMS_PACKAGE_VERSION})
+set(OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER "")
 set(INSTALL_LIB_DIR lib)
 set(INSTALL_BIN_DIR bin)
 set(INSTALL_INCLUDE_DIR include)
@@ -25,30 +35,62 @@ include(${OPENMS_HOST_DIRECTORY}/cmake/install_macros.cmake)
 include(${OPENMS_HOST_DIRECTORY}/cmake/library_version.cmake)
 include(${OPENMS_HOST_DIRECTORY}/cmake/export_macros.cmake)
 
-# the libraries of the three layers, registered the way openms_add_library() does it
+# the libraries of the two layers, registered the way openms_add_library() does it
 add_library(OpenSwathAlgo SHARED stub.cpp)
 add_library(OpenMS SHARED stub.cpp)
 target_link_libraries(OpenMS PUBLIC OpenSwathAlgo)
-add_library(OpenMS_CLI SHARED stub.cpp)
-target_link_libraries(OpenMS_CLI PUBLIC OpenMS)
-foreach(_target IN ITEMS OpenSwathAlgo OpenMS OpenMS_CLI)
-  openms_set_library_soversion(${_target})
-endforeach()
 foreach(_core IN ITEMS OpenSwathAlgo OpenMS)
+  openms_set_library_soversion(${_core})
   install_library(${_core})
   openms_register_export_target(${_core})
 endforeach()
-install_library(OpenMS_CLI EXPORT_SET ${OPENMS_CLI_EXPORT_SET})
-openms_register_export_target(OpenMS_CLI ${OPENMS_CLI_EXPORT_SET})
-if(WITH_GUI)
-  add_library(OpenMS_GUI SHARED stub.cpp)
-  target_link_libraries(OpenMS_GUI PUBLIC OpenMS_CLI)
-  openms_set_library_soversion(OpenMS_GUI)
-  install_library(OpenMS_GUI EXPORT_SET ${OPENMS_GUI_EXPORT_SET})
-  openms_register_export_target(OpenMS_GUI ${OPENMS_GUI_EXPORT_SET})
+if(WITH_CLI)
+  add_library(OpenMS_CLI SHARED stub.cpp)
+  target_link_libraries(OpenMS_CLI PUBLIC OpenMS)
+  openms_set_library_soversion(OpenMS_CLI)
+  install_library(OpenMS_CLI EXPORT_SET ${OPENMS_CLI_EXPORT_SET})
+  openms_register_export_target(OpenMS_CLI ${OPENMS_CLI_EXPORT_SET})
 endif()
 # install_library() names this set; it is never installed here
 install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS DESTINATION ${INSTALL_LIB_DIR})
 
 openms_export_targets()
 install_export_targets()
+
+# The stub GUI package: an interface target on top of the CLI layer. Unlike the real
+# OpenMSGUIConfig.cmake it refuses to search OpenMS itself, so the probe also checks
+# that OpenMSConfig.cmake loads the core and CLI targets before it delegates. It sets
+# OpenMSGUI_STUB_CONFIG_LOADED where the real one finds Qt6, so the probe can check
+# that the target file alone is included when the component is not requested.
+set(_gui_config "${PROJECT_BINARY_DIR}/OpenMSGUIConfig.cmake")
+set(_gui_targets "${PROJECT_BINARY_DIR}/OpenMSGUITargets.cmake")
+set(_gui_version "${PROJECT_BINARY_DIR}/OpenMSGUIConfigVersion.cmake")
+if(WITH_GUI_PACKAGE)
+  file(WRITE "${_gui_config}" [=[
+if(NOT TARGET OpenMS::OpenMS_CLI)
+  set(OpenMSGUI_FOUND FALSE)
+  set(OpenMSGUI_NOT_FOUND_MESSAGE "the stub GUI package was loaded before the CLI layer")
+  return()
+endif()
+set(OpenMSGUI_STUB_CONFIG_LOADED TRUE)
+if(NOT TARGET OpenMS::OpenMS_GUI)
+  include("${CMAKE_CURRENT_LIST_DIR}/OpenMSGUITargets.cmake")
+endif()
+if(NOT TARGET OpenMS_GUI)
+  add_library(OpenMS_GUI ALIAS OpenMS::OpenMS_GUI)
+endif()
+]=])
+  file(WRITE "${_gui_targets}" [=[
+add_library(OpenMS::OpenMS_GUI INTERFACE IMPORTED)
+set_target_properties(OpenMS::OpenMS_GUI PROPERTIES INTERFACE_LINK_LIBRARIES OpenMS::OpenMS_CLI)
+]=])
+  set(_gui_package_version ${OPENMS_PACKAGE_VERSION})
+  if(GUI_PACKAGE_VERSION)
+    set(_gui_package_version ${GUI_PACKAGE_VERSION})
+  endif()
+  include(CMakePackageConfigHelpers)
+  write_basic_package_version_file("${_gui_version}"
+    VERSION ${_gui_package_version} COMPATIBILITY SameMinorVersion ARCH_INDEPENDENT)
+else()
+  file(REMOVE "${_gui_config}" "${_gui_targets}" "${_gui_version}")
+endif()
