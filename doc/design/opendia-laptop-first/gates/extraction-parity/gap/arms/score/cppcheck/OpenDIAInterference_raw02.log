@@ -1,0 +1,39 @@
+Interference: windows=1503845 precursors=303995 fragment_tolerance_ppm=6.927184 ms2_offset_ppm=-2.504538
+Progress of 'loading mzML':
+  Progress of 'loading spectra list':
+    6.80 %                   13.58 %                   18.91 %                   24.33 %                   29.68 %                   34.99 %                   40.07 %                   45.03 %                   50.01 %                   55.29 %                   60.76 %                   66.89 %                   72.06 %                   77.35 %                   82.71 %                   88.25 %                   93.80 %                   99.28 %                 -- done [took 18.09 s (CPU), 18.11 s (Wall)] -- 
+  Progress of 'loading chromatogram list':
+  -- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+-- done [took 18.09 s (CPU), 18.11 s (Wall)] -- 
+Progress of 'loading mzML':
+  Progress of 'loading spectra list':
+    2.77 %                   6.99 %                   11.22 %                   15.29 %                   19.46 %                   22.74 %                   25.64 %                   28.19 %                   30.90 %                   33.89 %                   36.39 %                   38.44 %                   40.29 %                   41.97 %                   43.49 %                   44.93 %                   46.24 %                   47.49 %                   48.68 %                   49.84 %                   50.97 %                   52.10 %                   53.22 %                   54.35 %                   55.48 %                   56.60 %                   57.77 %                   58.96 %                   60.15 %                   61.41 %                   62.75 %                   64.22 %                   65.72 %                   67.32 %                   68.86 %                   70.42 %                   72.21 %                   74.36 %                   77.09 %                   80.88 %                   85.02 %                   89.34 %                   93.61 %                   97.91 %                 -- done [took 46.61 s (CPU), 44.35 s (Wall)] -- 
+  Progress of 'loading chromatogram list':
+  -- done [took 0.00 s (CPU), 0.03 s (Wall)] -- 
+-- done [took 46.62 s (CPU), 44.38 s (Wall) @ 124.8 MiB/s] -- 
+Interference extraction: spectra_used=159962 isolation_windows=300 precursors_isolated=303995 out_of_order_spectra=0 seconds=84.226316
+Interference graph: pairs=214531412 links=51139970 used_links=48170009 windows_with_claimant=1348312 seconds=7.714682
+OpenDIAInterference took 01:32 m (wall), 02:24 m (CPU), 3.80 s (system), 02:20 m (user); Peak Memory Usage: 2913 MB.
+	Command being timed: "/home/singjc/Documents/github/OpenMS-r1-full-ninja-build/bin/OpenDIAInterference -in ../dd-plots-20261111/raw02.mzML -lib armE_raw01/library12_pop.pqp -calibration armE_raw02/cal/cal.json -candidates armE_raw02/search.features.tsv -windows cpp/windows_raw02.tsv -out cpp/featI_raw02.tsv -out_npy cpp/featI_raw02.npy -threads 8"
+	User time (seconds): 140.52
+	System time (seconds): 3.84
+	Percent of CPU this job got: 155%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:32.86
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2983656
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 1044223
+	Voluntary context switches: 41190
+	Involuntary context switches: 1725
+	Swaps: 0
+	File system inputs: 11342416
+	File system outputs: 1121088
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

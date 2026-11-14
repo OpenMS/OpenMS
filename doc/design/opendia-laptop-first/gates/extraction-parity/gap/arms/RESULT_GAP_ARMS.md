@@ -196,3 +196,44 @@ The diagnostic ceiling in `RESULT_GAP.md` estimated about 100–140 of the 626 r
   - 92–94 % at the same peak, within 6 s of DIA-NN's apex.
 - **Support is somewhat below the control's own marginal accepts** (0.94–0.96 at q ≤ 0.05). The added IDs are weaker peptides, which is expected because they were the rejected-but-real class this work targeted.
 - **The entrapment count among the gains (4 / 6) is close to the count among the losses (3 / 5).** The net FDP_c change at the cut is therefore small, consistent with rule 1.
+
+## C++ port (OpenMS 6560d83cb2, `OpenDIAInterference`) and cleanup (86d82dfdd4)
+
+**Port.**
+- Block I is now `OpenDIA::InterferenceResolver` / `InterferenceCollector` and the `OpenDIAInterference` tool.
+- It extracts the 12-fragment traces directly from the mzML, so there is no xipm export and no build12 step.
+
+**Parity with the Python prototype.**
+- **Algorithm:** `features_I.py` run on the C++ inputs, compared with the C++ features, differs in 6 of 1,628,266 windows by more than 1e-5.
+- **Inputs:** the central fragment areas equal the xic12 arrays for all but 165 windows.
+- **Profiles:** the profiles differ in the two central bins only. The apex scan lies on the edge between them; the prototype's float binning put it on either side, and C++ snaps it to the upper bin. This changes the full-pipeline features in about 5 % of windows.
+
+**Scorer retrained with the C++ features** (D11FDC, same trainer and seeds; `score/cppcheck/`). ΔN@FDP_c over the own-seed control:
+
+| Raw | seed 0 | 1 | 2 | 3 | 4 |
+|---|---|---|---|---|---|
+| 01 @1 % (Python / C++) | +185 / +143 | +126 / +143 | +124 / +155 | +136 / +185 | +118 / +140 |
+| 01 @2 % | +76 / +20 | +39 / +14 | +81 / +105 | +135 / +131 | +56 / +46 |
+| 02 @1 % | +293 / +284 | +342 / +341 | +273 / +266 | +199 / +260 | +351 / +367 |
+| 02 @2 % | +224 / +205 | +256 / +267 | +271 / +302 | +189 / +261 | +291 / +318 |
+
+- **Specificity:**
+  - FDP_c at q ≤ 0.01 for C++ is 0.0058–0.0071 (raw01) and 0.0012–0.0071 (raw02).
+  - Pooled rho is 0.79 [0.64, 0.98] at q ≤ 0.05 and 0.97 [0.85, 1.11] at q ≤ 0.10.
+  - The null-winner AUC is 0.4961 / 0.4981, against 0.4964 / 0.4984 for the control.
+  - The q ≤ 0.05 interval lies just below 1, which is the conservative direction.
+- **Reading:**
+  - On raw02 the C++ block matches Python at 1 % and is slightly better at 2 %.
+  - On raw01 it is as good or better at 1 %. At 2 % it is weaker at seeds 0 and 1 (+20, +14), as Python already was at seed 1.
+  - The raw01 2 % gain remains seed-dependent.
+
+**Speed and resources** (raw01): 1:40 min and 3.0 GB peak, of which 87 s is extraction. The graph takes 9 s on 8 threads and 62 s on 1. The output is byte-identical across thread counts.
+
+**Cleanup (86d82dfdd4).** Removed:
+- TOPAZ/MIL/augmentation/negatives/linear head;
+- the stage-2 isotope, shape and refine groups, refined picking and quant output;
+- the CNN-anchor RT window;
+- OpenDIARerank, OpenDIATraces and the Python CNN pilot;
+- the calibration anchor-peak outputs.
+
+Equivalence on raw01: OpenDIA search and the production OpenDIACNN crossfit/stage-2 outputs are byte-identical to the binaries before the cleanup.

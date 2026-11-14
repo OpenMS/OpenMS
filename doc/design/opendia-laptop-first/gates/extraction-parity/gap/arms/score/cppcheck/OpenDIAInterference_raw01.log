@@ -1,0 +1,16 @@
+Interference: windows=1628266 precursors=327994 fragment_tolerance_ppm=7.302880 ms2_offset_ppm=-3.267384
+Progress of 'loading mzML':
+  Progress of 'loading spectra list':
+    2.99 %                   8.55 %                   14.02 %                   19.37 %                   24.78 %                   30.19 %                   35.59 %                   40.81 %                   45.95 %                   50.98 %                   55.99 %                   61.01 %                   66.11 %                   71.32 %                   76.75 %                   82.28 %                   87.90 %                   93.57 %                   99.23 %                 -- done [took 18.67 s (CPU), 18.67 s (Wall)] -- 
+  Progress of 'loading chromatogram list':
+  -- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+-- done [took 18.67 s (CPU), 18.67 s (Wall)] -- 
+Progress of 'loading mzML':
+  Progress of 'loading spectra list':
+    2.65 %                   6.90 %                   11.11 %                   15.19 %                   19.38 %                   22.80 %                   25.75 %                   28.30 %                   30.99 %                   33.45 %                   35.71 %                   37.76 %                   39.61 %                   41.25 %                   42.75 %                   44.16 %                   45.47 %                   46.67 %                   47.80 %                   48.91 %                   50.02 %                   51.15 %                   52.20 %                   53.30 %                   54.36 %                   55.41 %                   56.51 %                   57.63 %                   58.76 %                   59.86 %                   61.01 %                   62.24 %                   63.51 %                   64.77 %                   66.10 %                   67.50 %                   68.80 %                   70.20 %                   71.83 %                   73.79 %                   76.32 %                   79.60 %                   83.79 %                   88.12 %                   92.41 %                   96.66 %                 -- done [took 48.88 s (CPU), 46.62 s (Wall)] -- 
+  Progress of 'loading chromatogram list':
+  -- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+-- done [took 48.89 s (CPU), 46.63 s (Wall) @ 118.5 MiB/s] -- 
+Interference extraction: spectra_used=164011 isolation_windows=300 precursors_isolated=327994 out_of_order_spectra=0 seconds=87.213984
+Interference graph: pairs=245876644 links=56516254 used_links=53557925 windows_with_claimant=1470901 seconds=16.912694
+OpenDIAInterference took 01:45 m (wall), 03:38 m (CPU), 3.79 s (system), 03:34 m (user); Peak Memory Usage: 3010 MB.
