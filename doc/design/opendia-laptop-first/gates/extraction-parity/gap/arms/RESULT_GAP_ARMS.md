@@ -160,3 +160,20 @@ The diagnostic ceiling in `RESULT_GAP.md` estimated about 100–140 of the 626 r
   - Explaining away an entrapment's fragments through its co-eluting parent is a correct inference, and decoys get the mirrored treatment, so TDC stays calibrated (rho ≈ 1 for both I and J).
   - But such pairs are far rarer in real samples. **The part of the gain to expect outside this benchmark is closer to J's:** +56 / +196 at 1 % and +33 / +119 at 2 %. Only raw02 is clearly above 0, and this is one seed.
   - Block I remains label-free and passes its frozen rule. The benchmark-specific share should be stated whenever its ID gain is quoted.
+
+**7. Seed sensitivity of variant J** (`jcheck/JSEED_COMPARE_<1..4>.txt`, `seed_check_J.py`). This corrects the single-seed reading in item 6.
+- The gain of I and of J over their own-seed control was measured at seeds 0–4.
+
+| Raw | Arm | ΔN@1 %, seeds 0..4 | median | ΔN@2 %, seeds 0..4 | median |
+|---|---|---|---|---|---|
+| 01 | I | +185 +126 +124 +136 +118 | +126 | +76 +39 +81 +135 +56 | +76 |
+| 01 | J | +56 +132 +71 +181 +105 | +105 | +33 +76 +75 +91 +50 | +75 |
+| 02 | I | +293 +342 +273 +199 +351 | +293 | +224 +256 +271 +189 +291 | +256 |
+| 02 | J | +196 +162 +202 +173 +200 | +196 | +119 +162 +195 +182 +214 | +182 |
+
+- Across seeds, FDP_c at q ≤ 0.01 for J is 0.0059–0.0081 (raw01) and 0.0025–0.0049 (raw02).
+- **Corrected reading:**
+  - **On raw01, J's gain matches I's** (medians +105 vs +126 at 1 % and +75 vs +76 at 2 %). Seed 0 was J's lowest seed, and that seed alone made the same-composition share look like 55–70 %.
+  - **On raw02, the same-composition claimants account for about a third of I's gain** (medians +196 vs +293 at 1 % and +182 vs +256 at 2 %).
+  - Without any same-composition claimant, J is positive at every seed on both raws. **The gain outside this benchmark is better estimated at about +100 / +190 at 1 % and +75 / +180 at 2 %**, not the +56 / +196 from the single seed.
+  - Item 6's "roughly half" is therefore an overestimate. The benchmark-specific share is about 0–20 % on raw01 and about 30 % on raw02.
