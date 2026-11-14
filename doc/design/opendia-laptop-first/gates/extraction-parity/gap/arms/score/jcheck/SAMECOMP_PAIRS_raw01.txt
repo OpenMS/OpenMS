@@ -1,0 +1,8 @@
+precursors in population 327994 | in a same-composition group 269122
+decoy-decoy      122557
+entrap-human      89661
+entrap-entrap     17071
+human-human       16881
+decoy-entrap       1433
+decoy-human        1430
+share of each class with a same-composition partner: {'decoy': 0.818, 'entrap': 0.826, 'human': 0.82}

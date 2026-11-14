@@ -133,3 +133,30 @@ The diagnostic ceiling in `RESULT_GAP.md` estimated about 100–140 of the 626 r
   - No stratum has an interval entirely above 1.
   - The highest point estimate is raw01 i_explained top tertile, 1.34 [0.91, 1.97]. The control's 1.20 [0.85, 1.69] in the same stratum is similar.
 - **Reading:** decoys still sample false targets where the block acts. Where it deviates, the bias is conservative rather than anti-conservative.
+
+**6. Is block I's gain an artefact of the entrapment construction?** (`jcheck/`; `features_J.py`, `j_train.py`; single seed; descriptive.)
+- **The concern:** FDRBench entrapments are same-composition shuffles of human peptides. So an entrapment is co-isolated with its human parent and shares fragments with it, at least y1 and b(n−1). In this library, same-composition pairs within the scored population are:
+  - 89,661 entrapment–human;
+  - 122,557 decoy–decoy (the decoys of an entrapment and of its parent are also same-composition);
+  - 17,071 entrapment–entrapment;
+  - 16,881 human–human;
+  - about 1,400 each for decoy–human and decoy–entrapment (`SAMECOMP_PAIRS_raw01.txt`).
+  
+  82 % of every class has such a partner, so the structure is symmetric between targets and decoys. In a real sample without entrapment, only the human–human pairs would exist.
+- **Variant J:** block I with every same-composition claimant ignored (label-free rule, applied to all classes). It changes 5.6–5.9 % of windows in each class.
+
+| Raw | Arm | N@FDP_c 0.5 / 1 / 2 % | ΔN@1 % vs control (90 %) | ΔN@2 % vs control (90 %) | q ≤ 0.01 FDP_c |
+|---|---|---|---|---|---|
+| 01 | control | 1251 / 1694 / 1908 | | | 0.0096 |
+| 01 | I | 1505 / 1879 / 1984 | +185 (+22..+475) | +76 (+6..+177) | 0.0070 |
+| 01 | J (no same-composition claimants) | 1659 / 1750 / 1941 | +56 (−38..+418) | +33 (−43..+147) | 0.0081 |
+| 02 | control | 1367 / 1628 / 1903 | | | 0.0069 |
+| 02 | I | 1303 / 1921 / 2127 | +293 (−110..+479) | +224 (+150..+392) | 0.0083 |
+| 02 | J | 1668 / 1824 / 2022 | +196 (+54..+372) | +119 (+38..+274) | 0.0049 |
+
+- J pooled rho is 0.86 [0.69, 1.06] at q ≤ 0.05 and 0.99 [0.87, 1.13] at q ≤ 0.10. Its null-winner AUC equals the control's (0.4964 / 0.4983).
+- **Reading:**
+  - Roughly half of block I's gain (about 55–70 % on raw01, about 45 % on raw02 at 2 %) comes from same-composition claimants. In this benchmark those are mostly entrapment–parent pairs and their decoy mirrors.
+  - Explaining away an entrapment's fragments through its co-eluting parent is a correct inference, and decoys get the mirrored treatment, so TDC stays calibrated (rho ≈ 1 for both I and J).
+  - But such pairs are far rarer in real samples. **The part of the gain to expect outside this benchmark is closer to J's:** +56 / +196 at 1 % and +33 / +119 at 2 %. Only raw02 is clearly above 0, and this is one seed.
+  - Block I remains label-free and passes its frozen rule. The benchmark-specific share should be stated whenever its ID gain is quoted.
