@@ -29,6 +29,10 @@ add_executable(OpenDIAPeakPicker_test OpenDIAPeakPicker_test.cpp)
 target_link_libraries(OpenDIAPeakPicker_test PRIVATE OpenDIA_impl)
 add_test(NAME OpenDIAPeakPicker_test COMMAND OpenDIAPeakPicker_test)
 
+add_executable(OpenDIAInterference_test OpenDIAInterference_test.cpp)
+target_link_libraries(OpenDIAInterference_test PRIVATE OpenDIA_impl)
+add_test(NAME OpenDIAInterference_test COMMAND OpenDIAInterference_test)
+
 if(TARGET OpenDIA_cnn)
   add_executable(OpenDIACNN_test OpenDIACNN_test.cpp)
   target_link_libraries(OpenDIACNN_test PRIVATE OpenDIA_cnn)

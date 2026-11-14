@@ -22,13 +22,15 @@ add_library(OpenDIA_impl STATIC
   source/OpenDIAPeakMaps.cpp
   source/OpenDIAStage2.cpp
   source/OpenDIAPeakPicker.cpp
+  source/OpenDIAInterference.cpp
   include/OpenDIASearch.h
   include/OpenDIATraces.h
   include/OpenDIARTMap.h
   include/OpenDIACalibration.h
   include/OpenDIAPeakMaps.h
   include/OpenDIAStage2.h
-  include/OpenDIAPeakPicker.h)
+  include/OpenDIAPeakPicker.h
+  include/OpenDIAInterference.h)
 target_include_directories(OpenDIA_impl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(OpenDIA_impl PUBLIC OpenMS::OpenMS_CLI)
 # OpenDIACalibration reads its JSON with nlohmann::json, a PRIVATE dependency of libOpenMS.
@@ -50,6 +52,12 @@ add_executable(OpenDIACalibrate OpenDIACalibrate.cpp)
 target_link_libraries(OpenDIACalibrate PRIVATE OpenDIA_impl)
 if(COMMAND openms_add_executable_compiler_flags)
   openms_add_executable_compiler_flags(OpenDIACalibrate)
+endif()
+
+add_executable(OpenDIAInterference OpenDIAInterference.cpp)
+target_link_libraries(OpenDIAInterference PRIVATE OpenDIA_impl)
+if(COMMAND openms_add_executable_compiler_flags)
+  openms_add_executable_compiler_flags(OpenDIAInterference)
 endif()
 
 option(OPENDIA_WITH_TORCH "Build experimental native OpenDIACNN training and scoring (requires CPU LibTorch)" OFF)
