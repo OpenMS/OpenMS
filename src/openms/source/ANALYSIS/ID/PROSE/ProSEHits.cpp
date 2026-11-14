@@ -511,8 +511,10 @@ namespace OpenMS
       peptide_ids.resize(used_slots);
     }
 
-    // The work per spectrum varies with its number of hits: hand out small blocks
-#pragma omp parallel
+    // The body of the parallel region below. A lambda, so that the region captures one variable instead of
+    // dozens: LLVM's OpenMP runtime passes at most 32 to a region on WebAssembly. Its loop is an orphaned
+    // worksharing construct, bound to the region that calls the lambda.
+    const auto annotate_scans = [&]()
     {
     // scratch of the theoretical spectra, alignments and local evidence, reused by all hits of all spectra of a thread
     // (as before by all hits of a spectrum: each use overwrites what it reads)
@@ -885,6 +887,12 @@ namespace OpenMS
         }
       }
     }
+    };
+
+    // The work per spectrum varies with its number of hits: hand out small blocks
+#pragma omp parallel
+    {
+      annotate_scans();
     } // omp parallel
 
 #ifdef _OPENMP

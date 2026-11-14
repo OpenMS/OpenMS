@@ -304,7 +304,11 @@ namespace OpenMS
 
   bool SysInfo::ompThreadCountIsGlobal()
   {
-#ifdef _OPENMP
+#if defined(_OPENMP) && defined(__EMSCRIPTEN__)
+    // WebAssembly: LLVM's libomp, which keeps a number per thread; not probed, as a thread started on the browser's main
+    // thread beyond the module's pool of Web Workers starts only when the main thread returns to its event loop
+    return false;
+#elif defined(_OPENMP)
     static const bool global = []()
     {
       const int own = omp_get_max_threads();

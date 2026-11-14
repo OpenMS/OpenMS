@@ -83,6 +83,13 @@ if(PYOPENMS)
 endif()
 
 #------------------------------------------------------------------------------
+# JavaScript bindings of the WebAssembly build (cmake/emscripten.cmake)
+#------------------------------------------------------------------------------
+if(EMSCRIPTEN AND OPENMS_WASM_BINDINGS AND NOT OPENMS_USE_INSTALLED_LIBRARY)
+  add_subdirectory(openms_wasm)
+endif()
+
+#------------------------------------------------------------------------------
 # TOPP tools
 #------------------------------------------------------------------------------
 # Declarations accumulate in the cache, so drop what an earlier configure of this build

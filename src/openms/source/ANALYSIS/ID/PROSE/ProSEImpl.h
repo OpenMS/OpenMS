@@ -471,11 +471,19 @@ inline int parallelLevel()
         const bool borrow = readBorrowsThreads();
         const int threads = !borrow ? chunk_threads : reader_threads > 0 ? reader_threads : readerThreads(true);
         spectra_ = std::future<PeakMap>(); // waits for the helper of a read before
+#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
+        // WebAssembly without threads has no helper thread: load when the result is collected (get()), without a
+        // ChunkHelp, whose help() would wait for a reader that has not started
+        constexpr std::launch policy = std::launch::deferred;
+        help_ = nullptr;
+#else
+        constexpr std::launch policy = std::launch::async;
         help_ = std::make_shared<ChunkHelp>();
         help_->setLent(borrow);
-        spectra_ = std::async(std::launch::async, [&filename, threads, chunk_threads, survey_scans, help = help_]()
+#endif
+        spectra_ = std::async(policy, [&filename, threads, chunk_threads, survey_scans, help = help_]()
         {
-          const OnScopeExit done([&help]() { help->close(); }); // get() waits no longer for chunks to parse
+          const OnScopeExit done([&help]() { if (help) { help->close(); } }); // get() waits no longer for chunks to parse
 #ifdef _OPENMP
           // the regions of the read take their threads from their clauses; a global number stays the process's
           if (!SysInfo::ompThreadCountIsGlobal()) { omp_set_num_threads(threads); }

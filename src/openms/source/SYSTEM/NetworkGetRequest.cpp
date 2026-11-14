@@ -9,12 +9,15 @@
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
 #include <OpenMS/SYSTEM/CurlInit.h>
 
+#ifdef WITH_CURL
 #include <curl/curl.h>
+#endif
 
 using namespace std;
 
 namespace OpenMS
 {
+#ifdef WITH_CURL
   namespace
   {
     size_t writeCallback(char* ptr, size_t size, size_t nmemb, void* userdata)
@@ -25,6 +28,7 @@ namespace OpenMS
       return total;
     }
   }
+#endif
 
   NetworkGetRequest::NetworkGetRequest() = default;
   NetworkGetRequest::~NetworkGetRequest() = default;
@@ -47,6 +51,10 @@ namespace OpenMS
     error_string_.clear();
     response_bytes_.clear();
 
+#ifndef WITH_CURL
+    has_error_ = true;
+    error_string_ = "OpenMS was built without network support (WITH_CURL=OFF)";
+#else
     CURL* curl = curl_easy_init();
     if (!curl)
     {
@@ -83,6 +91,7 @@ namespace OpenMS
     }
 
     curl_easy_cleanup(curl);
+#endif
   }
 
   string NetworkGetRequest::getResponse() const

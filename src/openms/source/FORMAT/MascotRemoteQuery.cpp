@@ -10,7 +10,9 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/CurlInit.h>
 
+#ifdef WITH_CURL
 #include <curl/curl.h>
+#endif
 
 #include <regex>
 
@@ -21,6 +23,7 @@ using namespace std;
 
 namespace OpenMS
 {
+#ifdef WITH_CURL
   namespace
   {
     size_t writeCallback(char* ptr, size_t size, size_t nmemb, void* userdata)
@@ -30,6 +33,7 @@ namespace OpenMS
       return size * nmemb;
     }
   }
+#endif
 
   MascotRemoteQuery::MascotRemoteQuery() :
     DefaultParamHandler("MascotRemoteQuery")
@@ -83,6 +87,9 @@ namespace OpenMS
     updateMembers_();
     CurlInit::ensure();
 
+#ifndef WITH_CURL
+    error_message_ = "OpenMS was built without network support (WITH_CURL=OFF)";
+#else
     CURL* curl = curl_easy_init();
     if (!curl)
     {
@@ -148,6 +155,7 @@ namespace OpenMS
     }
 
     curl_easy_cleanup(curl);
+#endif
   }
 
   string MascotRemoteQuery::buildUrl(const string& path) const
@@ -157,6 +165,8 @@ namespace OpenMS
     return protocol + "://" + string(host_name_.c_str()) + ":" + to_string(port) + path;
   }
 
+  // The HTTP exchange with the server; run() reaches it only with libcurl.
+#ifdef WITH_CURL
   string MascotRemoteQuery::httpGet(CURL* curl, const string& path)
   {
     string url = buildUrl(path);
@@ -439,6 +449,8 @@ namespace OpenMS
 
     return response;
   }
+
+#endif
 
   string MascotRemoteQuery::removeHostName(const string& url) const
   {
