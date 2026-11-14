@@ -81,7 +81,11 @@ START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms 
   // one feature less than before the MassTrace::estimateFWHM right-flank fix (#10052): the RT
   // co-elution score divides the FWHM-border overlap by the trace FWHM, so a corrected FWHM moves
   // hypotheses across 'min_isotope_rt_overlap' and one more trace pair is assembled as isotopes
-  TEST_EQUAL(test_fm.size(), 83);
+  // ... and one feature more since ElutionPeakDetection no longer extrapolates its smoothing to the ends of a
+  // mass trace (#2777): the trace at m/z 213.1534 starts just before its apex (third point), the extrapolated
+  // fit put the smoothed maximum on its first point, and a trace with the apex on its first point has no FWHM
+  // and is removed by the width filter.
+  TEST_EQUAL(test_fm.size(), 84);
 
   // run with default settings (from paper using charge+isotope# dependent distances)
   p.setValue("report_convex_hulls", "true");

@@ -31,7 +31,8 @@ namespace OpenMS
     intensities and uses a fixed peak width (given as parameter chrom_fwhm)
     within which only a single maximum is expected. Currently smoothing is
     done using SavitzkyGolay smoothing with a second order polynomial and a
-    frame length of the fixed peak width.
+    frame length of the fixed peak width (see smoothData() for how the ends
+    of a mass trace are treated).
 
     Depending on the "width_filtering" parameters, mass traces are filtered by
     length in seconds ("fixed" filter) or by quantile.
@@ -118,7 +119,30 @@ public:
     void findLocalExtrema(const MassTrace& tr, const Size& num_neighboring_peaks,
                           std::vector<Size>& chrom_maxes, std::vector<Size>& chrom_mins) const;
 
-    /// adds smoothed_intensities to internal data of @p mt
+    /** @brief Adds smoothed intensities to the internal data of @p mt
+     *
+     * Savitzky-Golay smoothing with a second order polynomial. The frame is
+     * centred on each data point. Towards the ends of the trace, where a
+     * full frame does not fit, it narrows to the largest one that does,
+     * instead of the fit of the outermost full frame being extrapolated: a
+     * mass trace often starts or ends on a steep flank, and an extrapolated
+     * fit can put the smoothed maximum on the first or last point of the
+     * trace. The second and the last but one point are smoothed with the
+     * mean of three points (a three point frame is fitted exactly by a
+     * second order polynomial), the first and the last point keep their
+     * intensity. Each smoothed intensity is limited to the range of the raw
+     * intensities within its frame, so that the fit cannot ring below the
+     * lowest (in particular: to zero) or above the highest of them. As with
+     * SavitzkyGolayFilter, all smoothed intensities of a trace that the frame
+     * fits into are >= 0, the first and the last point included.
+     *
+     * @param[in,out] mt Mass trace to smooth
+     * @param[in] win_size Frame length in data points, the number of points
+     *                     one expected peak width spans. Even values are
+     *                     incremented by one. A frame of three points (or
+     *                     less) does not smooth, and neither does a frame
+     *                     that is longer than the trace.
+    */
     void smoothData(MassTrace& mt, int win_size) const;
 
 protected:
