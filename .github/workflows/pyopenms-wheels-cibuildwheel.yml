@@ -514,6 +514,8 @@ jobs:
       # The submodule's vcpkg, never the one the runner image carries in C:\vcpkg.
       VCPKG_ROOT: ${{ github.workspace }}/vcpkg
       VCPKG_DISABLE_METRICS: 1
+      # Match Windows CI's dependency tools instead of newer runner CMake versions.
+      VCPKG_FORCE_DOWNLOADED_BINARIES: 1
       VCPKG_BINARY_SOURCES: "clear;files,${{ github.workspace }}/.vcpkg-cache,readwrite"
     steps:
       - uses: actions/checkout@v6
