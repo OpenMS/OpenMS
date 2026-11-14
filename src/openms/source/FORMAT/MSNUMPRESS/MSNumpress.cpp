@@ -241,7 +241,15 @@ double optimalLinearFixedPointMass(
 ) {
 	if (dataSize < 3)
 	{
-		return 0; // we just encode the first two points as floats
+		// Too few points to assess the extrapolation error the mass-accuracy
+		// estimate is based on. Returning 0 here used to be treated by the
+		// caller as a perfectly valid fixed point (only a negative return
+		// signals "could not estimate"), so every encoded value was
+		// multiplied by 0 and the decoded result divided by 0 again,
+		// silently turning the array into NaN. Reuse the overflow-safe
+		// fixed point the sibling function already computes correctly for
+		// 0/1/2-point arrays instead.
+		return optimalLinearFixedPoint(data, dataSize);
 	}
     // We calculate the maximal fixedPoint we need to achieve a specific mass
     // accuracy. Note that the maximal error we will make by encoding as int is
