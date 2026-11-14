@@ -177,3 +177,22 @@ The diagnostic ceiling in `RESULT_GAP.md` estimated about 100–140 of the 626 r
   - **On raw02, the same-composition claimants account for about a third of I's gain** (medians +196 vs +293 at 1 % and +182 vs +256 at 2 %).
   - Without any same-composition claimant, J is positive at every seed on both raws. **The gain outside this benchmark is better estimated at about +100 / +190 at 1 % and +75 / +180 at 2 %**, not the +56 / +196 from the single seed.
   - Item 6's "roughly half" is therefore an overestimate. The benchmark-specific share is about 0–20 % on raw01 and about 30 % on raw02.
+
+**8. Do the IDs that block I gains have independent support?** (`DIANN_SUPPORT.txt`, `scripts/diann_support.py`; frozen seed; DIA-NN 2.2 on the same targets with its own decoys, used as a reference only.)
+
+| Raw | Set | n (human) | in DIA-NN report | DIA-NN q ≤ 0.01 | DIA-NN q ≤ 0.05 | same peak (≤ 6 s) |
+|---|---|---|---|---|---|---|
+| 01 | gained by I | 213 (+4 entrapment) | 0.93 | 0.71 | 0.88 | 0.92 |
+| 01 | lost by I | 29 (+3 entrapment) | 0.93 | 0.59 | 0.93 | 0.93 |
+| 01 | control's last 200 above its cut | 198 | 0.96 | 0.83 | 0.94 | 0.96 |
+| 01 | control, all accepted | 1686 | 0.98 | 0.94 | 0.97 | 0.98 |
+| 02 | gained by I | 316 (+6 entrapment) | 0.95 | 0.75 | 0.90 | 0.94 |
+| 02 | lost by I | 24 (+5 entrapment) | 1.00 | 0.88 | 0.96 | 1.00 |
+| 02 | control's last 200 above its cut | 197 | 0.98 | 0.86 | 0.96 | 0.97 |
+| 02 | control, all accepted | 1620 | 0.99 | 0.95 | 0.98 | 0.99 |
+
+- **DIA-NN independently supports the IDs block I adds:**
+  - 88–90 % are DIA-NN IDs at q ≤ 0.05;
+  - 92–94 % at the same peak, within 6 s of DIA-NN's apex.
+- **Support is somewhat below the control's own marginal accepts** (0.94–0.96 at q ≤ 0.05). The added IDs are weaker peptides, which is expected because they were the rejected-but-real class this work targeted.
+- **The entrapment count among the gains (4 / 6) is close to the count among the losses (3 / 5).** The net FDP_c change at the cut is therefore small, consistent with rule 1.
