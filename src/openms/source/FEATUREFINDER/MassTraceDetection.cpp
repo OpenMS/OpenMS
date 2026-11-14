@@ -7,10 +7,15 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
-
 #include <OpenMS/MATH/StatisticFunctions.h>
-
+#include <algorithm>
+#include <boost/pending/disjoint_sets.hpp>
+#include <exception>
 #include <vector>
+
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 
@@ -26,7 +31,14 @@ namespace OpenMS
     MassTraceDetection::MassTraceDetection() :
             DefaultParamHandler("MassTraceDetection"), ProgressLogger()
     {
-      defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass deviation (in ppm).");
+      defaults_.setValue(
+        "mass_error_ppm", 20.0,
+        "Initial m/z standard deviation in ppm. Adaptive searches use three standard deviations and, if enabled, max_apex_deviation_ppm.");
+      defaults_.setValue(
+        "max_apex_deviation_ppm", 0.0,
+        "Hard m/z deviation in ppm from the fixed seed/apex, independent of centroid and variance updates. Set a positive value to enable; 0 (default) retains unbounded legacy behavior.",
+        {"advanced"});
+      defaults_.setMinFloat("max_apex_deviation_ppm", 0.0);
       defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are removed as noise.");
       defaults_.setValue("chrom_peak_snr", 3.0, "Minimum intensity above noise_threshold_int (signal-to-noise) a peak should have to be considered an apex.");
       defaults_.setValue("ion_mobility_tolerance", 0.01, "Allowed ion mobility deviation (in 1/K0 units, e.g., 0.01-0.05). For CCS data, use larger values (e.g., 2-10 square angstroms).");
@@ -40,7 +52,10 @@ namespace OpenMS
       // advanced parameters
       defaults_.setValue("trace_termination_criterion", "outlier", "Termination criterion for the extension of mass traces. In 'outlier' mode, trace extension cancels if a predefined number of consecutive outliers are found (see trace_termination_outliers parameter). In 'sample_rate' mode, trace extension in both directions stops if ratio of found peaks versus visited spectra falls below the 'min_sample_rate' threshold.", {"advanced"});
       defaults_.setValidStrings("trace_termination_criterion", {"outlier","sample_rate"});
-      defaults_.setValue("trace_termination_outliers", 5, "Mass trace extension in one direction cancels if this number of consecutive spectra with no detectable peaks is reached.", {"advanced"});
+      defaults_.setValue("trace_termination_outliers", 5,
+                         "Maximum consecutive nonempty working spectra without an acceptable peak; extension stops on the next miss. Empty working "
+                         "spectra do not count as misses.",
+                         {"advanced"});
 
       defaults_.setValue("min_sample_rate", 0.5, "Minimum fraction of scans along the mass trace that must contain a peak.", {"advanced"});
       defaults_.setValue("min_trace_length", 5.0, "Minimum expected length of a mass trace (in seconds).", {"advanced"});
@@ -288,11 +303,8 @@ namespace OpenMS
       return;
     } // end of MassTraceDetection::run
 
-    MassTraceDetection::PeakCandidate MassTraceDetection::findBestPeak_(
-        const MSSpectrum& spectrum,
-        double centroid_mz,
-        double ftl_sd,
-        double centroid_im) const
+    MassTraceDetection::PeakCandidate
+    MassTraceDetection::findBestPeak_(const MSSpectrum& spectrum, double centroid_mz, double ftl_sd, double apex_mz, double centroid_im) const
     {
       PeakCandidate candidate;
       
@@ -303,14 +315,24 @@ namespace OpenMS
 
       double right_bound = centroid_mz + 3 * ftl_sd;
       double left_bound = centroid_mz - 3 * ftl_sd;
+      if (max_apex_deviation_ppm_ > 0.0)
+      {
+        const double apex_tolerance = apex_mz * max_apex_deviation_ppm_ * 1e-6;
+        left_bound = std::max(left_bound, apex_mz - apex_tolerance);
+        right_bound = std::min(right_bound, apex_mz + apex_tolerance);
+      }
+      if (left_bound > right_bound) { return candidate; }
 
       if (!has_centroid_im_)
       {
         // Standard LC-MS data: find peak closest to target m/z
-        candidate.idx = spectrum.findNearest(centroid_mz);
+        const double target = std::clamp(centroid_mz, left_bound, right_bound);
+        const Int index = spectrum.findNearest(target, target - left_bound, right_bound - target);
+        if (index < 0) { return candidate; }
+        candidate.idx = static_cast<Size>(index);
         candidate.mz = spectrum[candidate.idx].getMZ();
         candidate.intensity = spectrum[candidate.idx].getIntensity();
-        candidate.found = true;
+        candidate.found = candidate.mz >= left_bound && candidate.mz <= right_bound;
       }
       else
       {
@@ -351,7 +373,7 @@ namespace OpenMS
                                                double centroid_im,
                                                Size spectrum_idx,
                                                const std::vector<Size>& spec_offsets,
-                                               const std::vector<bool>& peak_visited) const
+                                               const std::vector<unsigned char>& peak_visited) const
     {
       if (!candidate.found)
       {
@@ -470,6 +492,88 @@ namespace OpenMS
       return mt_quality >= min_sample_rate_;
     }
 
+    std::vector<std::vector<MassTraceDetection::Apex>> MassTraceDetection::partitionApices_(const std::vector<Apex>& chrom_apices,
+                                                                                            const PeakMap& work_exp,
+                                                                                            const std::vector<Size>& spec_offsets,
+                                                                                            Size peak_count) const
+    {
+      const double gate = 2.0 * max_apex_deviation_ppm_ * 1e-6 + 16.0 * std::numeric_limits<double>::epsilon();
+      if (gate >= 1.0) { return {chrom_apices}; }
+
+      for (const auto& spectrum : work_exp)
+      {
+        for (const auto& peak : spectrum)
+        {
+          if (! std::isfinite(peak.getMZ()) || peak.getMZ() <= 0.0)
+          {
+            OPENMS_LOG_WARN << "Mass-trace component parallelism requires finite, positive m/z values; using serial extraction.\n";
+            return {chrom_apices};
+          }
+        }
+      }
+
+      boost::disjoint_sets_with_storage<> connected(peak_count);
+      std::vector<Size> nonempty_scans;
+      nonempty_scans.reserve(work_exp.size());
+
+      for (Size scan = 0; scan < work_exp.size(); ++scan)
+      {
+        const auto& spectrum = work_exp[scan];
+        if (spectrum.empty()) { continue; }
+
+        for (Size peak = 1; peak < spectrum.size(); ++peak)
+        {
+          const double lower = std::nextafter(spectrum[peak].getMZ() * (1.0 - gate), -std::numeric_limits<double>::infinity());
+          if (spectrum[peak - 1].getMZ() >= lower) { connected.union_set(spec_offsets[scan] + peak - 1, spec_offsets[scan] + peak); }
+        }
+
+        // Empty scans do not count as misses. A hit can follow outliers + 1 nonempty scans.
+        const Size first = nonempty_scans.size() > trace_termination_outliers_ ? nonempty_scans.size() - trace_termination_outliers_ - 1 : 0;
+        for (Size previous = first; previous < nonempty_scans.size(); ++previous)
+        {
+          const Size other_scan = nonempty_scans[previous];
+          const auto& other = work_exp[other_scan];
+          Size left = 0, right = 0;
+          for (Size peak = 0; peak < spectrum.size(); ++peak)
+          {
+            const double mz = spectrum[peak].getMZ();
+            // Symmetric 2H gate relative to max(m/z); outward rounding includes cap endpoints.
+            const double lower = std::nextafter(mz * (1.0 - gate), -std::numeric_limits<double>::infinity());
+            const double upper = std::nextafter(mz / (1.0 - gate), std::numeric_limits<double>::infinity());
+            while (left < other.size() && other[left].getMZ() < lower)
+            {
+              ++left;
+            }
+            right = std::max(right, left);
+            while (right < other.size() && other[right].getMZ() <= upper)
+            {
+              ++right;
+            }
+            for (Size candidate = left; candidate < right; ++candidate)
+            {
+              connected.union_set(spec_offsets[scan] + peak, spec_offsets[other_scan] + candidate);
+            }
+          }
+        }
+        nonempty_scans.push_back(scan);
+      }
+
+      std::vector<std::vector<Apex>> components;
+      std::vector<Size> component_index(peak_count, peak_count);
+      for (const auto& apex : chrom_apices)
+      {
+        const Size root = connected.find_set(spec_offsets[apex.scan_idx] + apex.peak_idx);
+        if (component_index[root] == peak_count)
+        {
+          component_index[root] = components.size();
+          components.emplace_back();
+        }
+        components[component_index[root]].push_back(apex);
+      }
+      std::stable_sort(components.begin(), components.end(), [](const auto& a, const auto& b) { return a.size() > b.size(); });
+      return components;
+    }
+
     void MassTraceDetection::run_(const std::vector<Apex>& chrom_apices,
                                   const Size total_peak_count,
                                   const PeakMap& work_exp,
@@ -477,16 +581,106 @@ namespace OpenMS
                                   std::vector<MassTrace>& found_masstraces,
                                   const Size max_traces)
     {
-      std::vector<bool> peak_visited(total_peak_count);
-      Size trace_number(1);
+      // Unlike vector<bool>, distinct bytes can be written by independent components.
+      std::vector<unsigned char> peak_visited(total_peak_count, 0);
 
       // Detect ion mobility and FWHM metadata arrays in the dataset
+      fwhm_meta_idx_ = ion_mobility_idx_ = im_fwhm_idx_ = -1;
+      has_fwhm_mz_ = has_centroid_im_ = has_fwhm_im_ = false;
       getIMIndices_(work_exp,
                     fwhm_meta_idx_, has_fwhm_mz_,
                     ion_mobility_idx_, has_centroid_im_,
                     im_fwhm_idx_, has_fwhm_im_);
 
       this->startProgress(0, total_peak_count, "mass trace detection");
+      bool parallel = false;
+#ifdef _OPENMP
+      parallel = omp_get_max_threads() > 1 && omp_in_parallel() == 0 && max_apex_deviation_ppm_ > 0.0 && trace_termination_criterion_ == OUTLIER
+                 && max_traces == 0;
+#endif
+      if (parallel && ! chrom_apices.empty())
+      {
+        const auto components = partitionApices_(chrom_apices, work_exp, spec_offsets, total_peak_count);
+        std::vector<std::vector<MassTrace>> results(components.size());
+        std::vector<std::vector<Apex>> accepted_apices(components.size());
+        std::vector<std::exception_ptr> errors(components.size());
+        Size peaks_detected = 0;
+#pragma omp parallel for schedule(dynamic, 1)
+        for (SignedSize component = 0; component < static_cast<SignedSize>(components.size()); ++component)
+        {
+          try
+          {
+            runComponent_(components[component], work_exp, spec_offsets, peak_visited, results[component], &accepted_apices[component], 0, false);
+          }
+          catch (...)
+          {
+            errors[component] = std::current_exception();
+          }
+          Size collected = 0;
+          for (const auto& trace : results[component])
+          {
+            collected += trace.getSize();
+          }
+#pragma omp critical(MassTraceDetection_progress)
+          {
+            peaks_detected += collected;
+            this->setProgress(peaks_detected);
+          }
+        }
+        for (const auto& error : errors)
+        {
+          if (error)
+          {
+            this->endProgress();
+            std::rethrow_exception(error);
+          }
+        }
+        Size trace_count = 0;
+        for (const auto& result : results)
+        {
+          trace_count += result.size();
+        }
+        // MassTrace has no move operations; sort handles rather than copying all trace peaks.
+        std::vector<std::pair<Apex, const MassTrace*>> traces;
+        traces.reserve(trace_count);
+        for (Size component = 0; component < results.size(); ++component)
+        {
+          for (Size trace = 0; trace < results[component].size(); ++trace)
+          {
+            traces.emplace_back(accepted_apices[component][trace], &results[component][trace]);
+          }
+        }
+        std::sort(traces.begin(), traces.end(), [](const auto& a, const auto& b) {
+          if (a.first.intensity != b.first.intensity) { return a.first.intensity > b.first.intensity; }
+          if (a.first.scan_idx != b.first.scan_idx) { return a.first.scan_idx > b.first.scan_idx; }
+          return a.first.peak_idx > b.first.peak_idx;
+        });
+        found_masstraces.reserve(traces.size());
+        for (const auto& trace : traces)
+        {
+          found_masstraces.push_back(*trace.second);
+        }
+      }
+      else
+      {
+        runComponent_(chrom_apices, work_exp, spec_offsets, peak_visited, found_masstraces, nullptr, max_traces, true);
+      }
+      for (Size trace = 0; trace < found_masstraces.size(); ++trace)
+      {
+        found_masstraces[trace].setLabel("T" + StringUtils::toStr(trace + 1));
+      }
+      this->endProgress();
+    }
+
+    void MassTraceDetection::runComponent_(const std::vector<Apex>& chrom_apices,
+                                           const PeakMap& work_exp,
+                                           const std::vector<Size>& spec_offsets,
+                                           std::vector<unsigned char>& peak_visited,
+                                           std::vector<MassTrace>& found_masstraces,
+                                           std::vector<Apex>* accepted_apices,
+                                           Size max_traces,
+                                           bool report_progress)
+    {
       Size peaks_detected(0);
 
       for (auto m_it = chrom_apices.crbegin(); m_it != chrom_apices.crend(); ++m_it)
@@ -551,8 +745,8 @@ namespace OpenMS
             // Only process spectra that contain peaks
             if (!spec_trace_down.empty())
             {
-              PeakCandidate candidate = findBestPeak_(spec_trace_down, centroid_mz, ftl_sd, centroid_im);
-              
+              PeakCandidate candidate = findBestPeak_(spec_trace_down, centroid_mz, ftl_sd, apex_peak.getMZ(), centroid_im);
+
               if (isPeakAcceptable_(candidate, centroid_mz, ftl_sd, centroid_im, trace_down_idx - 1, spec_offsets, peak_visited))
               {
                 processPeak_(candidate, spec_trace_down, current_trace, gathered_idx,
@@ -604,8 +798,8 @@ namespace OpenMS
             // Only process spectra that contain peaks
             if (!spec_trace_up.empty())
             {
-              PeakCandidate candidate = findBestPeak_(spec_trace_up, centroid_mz, ftl_sd, centroid_im);
-              
+              PeakCandidate candidate = findBestPeak_(spec_trace_up, centroid_mz, ftl_sd, apex_peak.getMZ(), centroid_im);
+
               if (isPeakAcceptable_(candidate, centroid_mz, ftl_sd, centroid_im, trace_up_idx + 1, spec_offsets, peak_visited))
               {
                 processPeak_(candidate, spec_trace_up, current_trace, gathered_idx,
@@ -671,25 +865,26 @@ namespace OpenMS
 
           new_trace.setQuantMethod(quant_method_);
           new_trace.updateWeightedMZsd();
-          new_trace.setLabel("T" + StringUtils::toStr(trace_number));
-          ++trace_number;
-
-          found_masstraces.push_back(new_trace);
-
           peaks_detected += new_trace.getSize();
-          this->setProgress(peaks_detected);
+          found_masstraces.push_back(new_trace);
+          if (accepted_apices != nullptr) { accepted_apices->push_back(*m_it); }
+          if (report_progress) { this->setProgress(peaks_detected); }
 
           // check if we already reached the (optional) maximum number of traces
           if (max_traces > 0 && found_masstraces.size() == max_traces) { break; }
         }
       }
-      this->endProgress();
     }
 
 
     void MassTraceDetection::updateMembers_()
     {
       mass_error_ppm_ = (double)param_.getValue("mass_error_ppm");
+      max_apex_deviation_ppm_ = (double)param_.getValue("max_apex_deviation_ppm");
+      if (! std::isfinite(max_apex_deviation_ppm_))
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "max_apex_deviation_ppm must be finite");
+      }
       noise_threshold_int_ = (double)param_.getValue("noise_threshold_int");
       chrom_peak_snr_ = (double)param_.getValue("chrom_peak_snr");
       ion_mobility_tolerance_ = (double)param_.getValue("ion_mobility_tolerance");

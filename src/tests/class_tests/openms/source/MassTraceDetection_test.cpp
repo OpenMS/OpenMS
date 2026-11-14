@@ -7,8 +7,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/test_config.h>
+
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 
 ///////////////////////////
 #include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
@@ -217,6 +222,210 @@ START_SECTION((void run(PeakMap::ConstAreaIterator &begin, PeakMap::ConstAreaIte
 //    TEST_REAL_SIMILAR(found_mtraces[0].computePeakArea(), exp_mt_ints[2]);
 
 //    found_mtraces.clear();
+}
+END_SECTION
+
+START_SECTION((fixed apex cap prevents adaptive mass drift))
+{
+  PeakMap drifting;
+  for (Size scan = 0; scan < 16; ++scan)
+  {
+    MSSpectrum spectrum;
+    spectrum.setRT(scan);
+    spectrum.emplace_back(500.0 + 0.008 * scan, 1000.0 - 10.0 * scan);
+    drifting.addSpectrum(spectrum);
+  }
+  MassTraceDetection detector;
+  detector.setLogType(ProgressLogger::NONE);
+  Param parameters = detector.getParameters();
+  parameters.setValue("max_apex_deviation_ppm", 20.0);
+  parameters.setValue("min_trace_length", 1.0);
+  detector.setParameters(parameters);
+  vector<MassTrace> capped, legacy;
+  detector.run(drifting, capped);
+  TEST_FALSE(capped.empty())
+  if (! capped.empty())
+  {
+    TEST_EQUAL(capped.front().getSize(), 2)
+    for (const auto& peak : capped.front())
+    {
+      TEST_TRUE(peak.getMZ() >= 499.99 && peak.getMZ() <= 500.01)
+    }
+  }
+  parameters.setValue("max_apex_deviation_ppm", 0.0);
+  detector.setParameters(parameters);
+  detector.run(drifting, legacy);
+  TEST_FALSE(legacy.empty())
+  if (! legacy.empty())
+  {
+    TEST_TRUE(legacy.front().getSize() > 2)
+    TEST_TRUE(any_of(legacy.front().begin(), legacy.front().end(), [](const auto& peak) { return peak.getMZ() > 500.01; }))
+  }
+}
+END_SECTION
+
+START_SECTION((enabled apex cap excludes measured fixture observations outside the bound))
+{
+  MassTraceDetection capped;
+  capped.setLogType(ProgressLogger::NONE);
+  Param parameters = capped.getParameters();
+  parameters.setValue("min_trace_length", 3.0);
+  parameters.setValue("max_apex_deviation_ppm", 20.0);
+  capped.setParameters(parameters);
+  vector<MassTrace> traces;
+  capped.run(input, traces);
+  TEST_EQUAL(traces.size(), 3)
+  if (traces.size() == 3)
+  {
+    // The enabled cap excludes observations at +20.84 and +26.68 ppm from the seed.
+    TEST_EQUAL(traces[2].getSize(), 14)
+    TEST_REAL_SIMILAR(traces[2].getCentroidRT(), 346.81273203124903)
+    TEST_REAL_SIMILAR(traces[2].computePeakArea(), 111.3670622598158)
+  }
+}
+END_SECTION
+
+START_SECTION((candidate search excludes peaks outside cap before nearest selection))
+{
+  PeakMap experiment;
+  for (Size scan = 0; scan < 5; ++scan)
+  {
+    MSSpectrum spectrum;
+    spectrum.setRT(scan);
+    if (scan == 2) { spectrum.emplace_back(499.9899, 20.0); }
+    spectrum.emplace_back(scan == 0 ? 500.0 : scan == 1 ? 499.99 : 500.004, 1000.0 - 100.0 * scan);
+    experiment.addSpectrum(spectrum);
+  }
+  MassTraceDetection detector;
+  detector.setLogType(ProgressLogger::NONE);
+  Param parameters = detector.getParameters();
+  parameters.setValue("max_apex_deviation_ppm", 20.0);
+  parameters.setValue("min_trace_length", 3.0);
+  detector.setParameters(parameters);
+  vector<MassTrace> traces;
+  detector.run(experiment, traces);
+  TEST_FALSE(traces.empty())
+  if (! traces.empty())
+  {
+    TEST_EQUAL(traces.front().getSize(), 5)
+    if (traces.front().getSize() == 5) { TEST_EQUAL(traces.front()[2].getMZ(), 500.004) }
+  }
+
+  PeakMap endpoints;
+  for (Size scan = 0; scan < 5; ++scan)
+  {
+    MSSpectrum spectrum;
+    spectrum.setRT(scan);
+    spectrum.emplace_back(scan == 2 ? 500.0 : scan % 2 == 0 ? 499.99 : 500.01, scan == 2 ? 1000.0 : 900.0);
+    endpoints.addSpectrum(spectrum);
+  }
+  detector.run(endpoints, traces);
+  TEST_EQUAL(traces.size(), 1)
+  if (! traces.empty()) { TEST_EQUAL(traces.front().getSize(), 5) }
+}
+END_SECTION
+
+START_SECTION((component extraction preserves serial peak ownership, order and metadata))
+{
+  PeakMap experiment;
+  for (Size scan = 0; scan <= 16; ++scan)
+  {
+    MSSpectrum spectrum;
+    spectrum.setRT(scan);
+    MSSpectrum::FloatDataArray mz_width, im, im_width;
+    mz_width.setName(Constants::UserParam::FWHM_MZ_ppm);
+    im.setName(Constants::UserParam::ION_MOBILITY);
+    im_width.setName(Constants::UserParam::FWHM_IM);
+    if (scan % 4 == 0)
+    {
+      for (Size component = 0; component < 32; ++component)
+      {
+        spectrum.emplace_back(100.0 + 5.0 * component, 1000.0);
+        mz_width.push_back(2.0 + component);
+        im.push_back(1.0);
+        im_width.push_back(0.005);
+      }
+      spectrum.emplace_back(scan < 8 ? 500.0 : scan == 8 ? 500.009 : 500.018, scan == 8 ? 20.0 : scan % 12 == 0 ? 1000.0 : 950.0);
+      mz_width.push_back(3.0);
+      im.push_back(1.0);
+      im_width.push_back(0.006);
+    }
+    spectrum.getFloatDataArrays() = {mz_width, im, im_width};
+    experiment.addSpectrum(spectrum);
+  }
+
+  auto compare = [&](const vector<MassTrace>& serial, const vector<MassTrace>& parallel) {
+    TEST_EQUAL(serial.size(), parallel.size())
+    for (Size trace = 0; trace < min(serial.size(), parallel.size()); ++trace)
+    {
+      TEST_EQUAL(serial[trace].getLabel(), parallel[trace].getLabel())
+      TEST_EQUAL(serial[trace].getSize(), parallel[trace].getSize())
+      TEST_EQUAL(serial[trace].getCentroidMZ(), parallel[trace].getCentroidMZ())
+      TEST_EQUAL(serial[trace].getCentroidRT(), parallel[trace].getCentroidRT())
+      TEST_EQUAL(serial[trace].getCentroidIM(), parallel[trace].getCentroidIM())
+      TEST_EQUAL(serial[trace].getCentroidSD(), parallel[trace].getCentroidSD())
+      TEST_EQUAL(serial[trace].computePeakArea(), parallel[trace].computePeakArea())
+      TEST_EQUAL(serial[trace].fwhm_mz_avg, parallel[trace].fwhm_mz_avg)
+      TEST_EQUAL(serial[trace].fwhm_im_avg, parallel[trace].fwhm_im_avg)
+      for (Size peak = 0; peak < min(serial[trace].getSize(), parallel[trace].getSize()); ++peak)
+      {
+        TEST_TRUE(serial[trace][peak] == parallel[trace][peak])
+      }
+    }
+  };
+#ifdef _OPENMP
+  const int previous_threads = omp_get_max_threads();
+#endif
+  for (const string& criterion : {string("outlier"), string("sample_rate")})
+  {
+    for (double cap : {0.0, 20.0})
+    {
+      for (int outliers : {0, 1, 5})
+      {
+        MassTraceDetection detector;
+        detector.setLogType(ProgressLogger::NONE);
+        Param parameters = detector.getParameters();
+        parameters.setValue("max_apex_deviation_ppm", cap);
+        parameters.setValue("trace_termination_criterion", criterion);
+        parameters.setValue("trace_termination_outliers", outliers);
+        parameters.setValue("min_trace_length", 3.0);
+        parameters.setValue("min_sample_rate", 0.1);
+        detector.setParameters(parameters);
+        for (Size maximum : {Size(0), Size(1), Size(2)})
+        {
+          vector<MassTrace> serial, parallel;
+#ifdef _OPENMP
+          omp_set_num_threads(1);
+#endif
+          detector.run(experiment, serial, maximum);
+#ifdef _OPENMP
+          omp_set_num_threads(2);
+#endif
+          detector.run(experiment, parallel, maximum);
+          compare(serial, parallel);
+          TEST_TRUE(detector.hasCentroidIm())
+          TEST_TRUE(detector.hasFwhmMz())
+          TEST_TRUE(detector.hasFwhmIm())
+        }
+      }
+    }
+  }
+#ifdef _OPENMP
+  omp_set_num_threads(previous_threads);
+#endif
+
+  MassTraceDetection reused;
+  reused.setLogType(ProgressLogger::NONE);
+  vector<MassTrace> traces;
+  reused.run(experiment, traces);
+  for (auto& spectrum : experiment)
+  {
+    spectrum.getFloatDataArrays().clear();
+  }
+  reused.run(experiment, traces);
+  TEST_FALSE(reused.hasCentroidIm())
+  TEST_FALSE(reused.hasFwhmMz())
+  TEST_FALSE(reused.hasFwhmIm())
 }
 END_SECTION
 

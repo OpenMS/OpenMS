@@ -80,6 +80,88 @@ mass trace differences (inspectable via TOPPView). If you want this in a tabular
 @endcode
 By default, the linear model is used.
 
+@section ffmetabo_bounded_traces Bounded mass traces and parallel extraction
+
+The adaptive m/z window is a statistical estimate, not a physical mass-error
+limit: @p algorithm:mtd:mass_error_ppm initializes the standard deviation, and
+extension searches within three current standard deviations. Interference can
+inflate that estimate, admitting still more interference and moving the centroid.
+The new @p algorithm:mtd:max_apex_deviation_ppm parameter therefore additionally
+bounds every collected peak relative to the immutable seed/apex m/z when enabled.
+The cap is disabled by default (zero), preserving existing extraction behavior
+in all callers. Candidate searches intersect both windows before choosing the
+nearest peak, so an excluded peak cannot hide an admissible alternative.
+Enabling the cap can change trace and feature counts, particularly on weak
+chromatographic flanks. Validate an instrument-appropriate bound using tail
+recovery, false joins and quantification bias before changing a workflow's
+defaults; the 20 ppm benchmark setting below is not a validated recommendation.
+
+For example, unbounded extraction of the public, centroided repository excerpt
+@c doc/pyopenms/src/data/Metabolomics_2.mzML produced trace T1930 with 119 points
+over 211.0623 seconds, spanning m/z 694.2455444 to 695.4852295 around centroid
+694.8168204: a 1784.19 ppm span. Dynamic variance re-estimation had allowed
+unrelated signals to join; a tolerance initialized to 20 ppm did not prevent it.
+This is an example of pathological assembly, not evidence that these observations
+belong to one analyte. The fixed-apex cap prevents such unbounded drift without
+changing the variance estimator.
+
+With a positive cap and @c -threads @c 2 (or more), outlier-mode extraction first builds
+conservative independent components. All above-noise peaks participate, including
+weak peaks that cannot seed a trace. If a trace is confined to seed m/z +/- H,
+two admissible observations differ by at most 2H in the seed's mass coordinate.
+A symmetric, outward-rounded twice-cap gate conservatively connects such pairs.
+Edges cover the same scan and up to @p trace_termination_outliers + 1 nonempty
+working scans: empty scans do not increment the existing miss counter. There
+is no additional RT cutoff or change to sample-rate accounting.
+
+Each component retains the original greedy seed priority, including intensity
+ties, and writes distinct byte-addressed peak-ownership entries. No peak locks
+or overlapping-region reconciliation are needed. Results are merged in original
+seed order before assigning labels, giving exactly the capped serial result.
+The largest component remains a limit on parallel speedup. Additional component
+storage is linear in the number of above-noise peaks; spectra are shared rather
+than copied per worker.
+
+@c -threads @c 1 remains the default. Extraction stays serial with a disabled
+cap, sample-rate termination, a @c max_traces limit in the library API, or inside
+an existing OpenMP parallel region. The later elution-peak detection and isotope
+assembly stages retain their own threading behavior.
+
+The standalone @c tools/benchmark_mtd utility compares complete ordered traces,
+peak coordinates/intensities, centroids, dispersion, areas and available metadata
+on every repetition. Timings include filtering, seed sorting, component discovery,
+extraction and merging, but exclude file I/O and equality checks. It reports both
+first-call and interleaved repeated-run timings. Against an installed OpenMS:
+@code
+cmake -S tools/benchmark_mtd -B benchmark-mtd-build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=<installation>
+cmake --build benchmark-mtd-build -j2
+benchmark-mtd-build/benchmark_mtd doc/pyopenms/src/data/Metabolomics_1.mzML 2 9 20
+benchmark-mtd-build/benchmark_mtd doc/pyopenms/src/data/Metabolomics_2.mzML 2 9 20
+# Reproduce the unbounded trace example:
+benchmark-mtd-build/benchmark_mtd doc/pyopenms/src/data/Metabolomics_2.mzML 2 9 0
+@endcode
+
+A native Release (-O2, GCC 13.3) run on a shared Linux environment with two
+available CPUs gave the following medians over nine interleaved repetitions,
+using the 20 ppm cap. These are mass-trace extraction timings, not full-pipeline
+speedups:
+
+<table>
+<tr><th>Public excerpt</th><th>Traces</th><th>1 thread</th><th>2 threads</th><th>Speedup</th></tr>
+<tr><td>Metabolomics_1.mzML</td><td>6806</td><td>0.3805 s</td><td>0.2066 s</td><td>1.84x</td></tr>
+<tr><td>Metabolomics_2.mzML</td><td>5423</td><td>0.4289 s</td><td>0.2391 s</td><td>1.79x</td></tr>
+</table>
+
+All ordered trace values matched exactly on every repetition. First-call
+serial/parallel times were 0.3992/0.2293 s and 0.4449/0.2383 s, respectively;
+timings are illustrative, not a scaling guarantee on other machines.
+Maximum observed trace spans were 39.90 and 39.91 ppm, rather than the
+unbounded example's 1784.19 ppm. Whole benchmark-process peak RSS was about
+107 and 114 MiB, including input, reference/comparison outputs and libraries;
+this is not incremental partitioning memory or a per-worker allocation.
+The complete FeatureFinderMetabo output on the second excerpt also matched
+between one and two threads with zero numeric tolerance (ignoring feature IDs).
+
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_FeatureFinderMetabo.cli
 <B>INI file documentation of this tool:</B>

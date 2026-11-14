@@ -427,6 +427,33 @@ add_test("TOPP_MassTraceExtractor_6" ${TOPP_BIN_PATH}/MassTraceExtractor -test -
 add_test("TOPP_MassTraceExtractor_6_out" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/MassTraceExtractor_6.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_6_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_6_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_6")
 
+foreach(_mtd_case 1 4)
+  if(_mtd_case EQUAL 1)
+    set(_mtd_ini MassTraceExtractor.ini)
+    set(_mtd_count 375)
+  else()
+    set(_mtd_ini MassTraceExtractor_4.ini)
+    set(_mtd_count 225)
+  endif()
+  foreach(_mtd_threads 1 2)
+    add_test("TOPP_MassTraceExtractor_capped_${_mtd_case}_threads${_mtd_threads}"
+      ${TOPP_BIN_PATH}/MassTraceExtractor -test -threads ${_mtd_threads}
+      -algorithm:mtd:max_apex_deviation_ppm 20
+      -ini ${DATA_DIR_TOPP}/${_mtd_ini} -in ${DATA_DIR_TOPP}/MassTraceExtractor_${_mtd_case}_input.mzML
+      -out ${TESTS_TEMP_DIR}/MassTraceExtractor_capped_${_mtd_case}_threads${_mtd_threads}.featureXML)
+  endforeach()
+  add_test("TOPP_MassTraceExtractor_capped_${_mtd_case}_out" ${TOPP_BIN_PATH}/FuzzyDiff -test -ratio 1 -absdiff 0
+    -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/MassTraceExtractor_capped_${_mtd_case}_threads1.featureXML
+    -in2 ${TESTS_TEMP_DIR}/MassTraceExtractor_capped_${_mtd_case}_threads2.featureXML)
+  set_tests_properties("TOPP_MassTraceExtractor_capped_${_mtd_case}_out" PROPERTIES
+    DEPENDS "TOPP_MassTraceExtractor_capped_${_mtd_case}_threads1;TOPP_MassTraceExtractor_capped_${_mtd_case}_threads2")
+  add_test("TOPP_MassTraceExtractor_capped_${_mtd_case}_count" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/MassTraceExtractor_capped_${_mtd_case}_threads1.featureXML
+    "-DEXPECTED=<featureList count=\"${_mtd_count}\">" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_MassTraceExtractor_capped_${_mtd_case}_count" PROPERTIES
+    DEPENDS "TOPP_MassTraceExtractor_capped_${_mtd_case}_threads1")
+endforeach()
+
 #------------------------------------------------------------------------------
 # FeatureFinderMetabo test
 add_test("TOPP_FeatureFinderMetabo_1" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_1_input.mzML -out ${TESTS_TEMP_DIR}/FeatureFinderMetabo_1.tmp.featureXML)
@@ -450,6 +477,22 @@ set_tests_properties("TOPP_FeatureFinderMetabo_5_out" PROPERTIES DEPENDS "TOPP_F
 add_test("TOPP_FeatureFinderMetabo_6" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo_6.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_6_input.mzML -out ${TESTS_TEMP_DIR}/FeatureFinderMetabo_6.tmp.featureXML)
 add_test("TOPP_FeatureFinderMetabo_6_out" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/FeatureFinderMetabo_6.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_6_output.featureXML)
 set_tests_properties("TOPP_FeatureFinderMetabo_6_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_6")
+foreach(_ffm_threads 1 2)
+  add_test("TOPP_FeatureFinderMetabo_capped_threads${_ffm_threads}"
+    ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -threads ${_ffm_threads}
+    -algorithm:mtd:max_apex_deviation_ppm 20
+    -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_1_input.mzML
+    -out ${TESTS_TEMP_DIR}/FeatureFinderMetabo_capped_threads${_ffm_threads}.featureXML)
+endforeach()
+add_test("TOPP_FeatureFinderMetabo_capped_out" ${TOPP_BIN_PATH}/FuzzyDiff -test -ratio 1 -absdiff 0
+  -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/FeatureFinderMetabo_capped_threads1.featureXML
+  -in2 ${TESTS_TEMP_DIR}/FeatureFinderMetabo_capped_threads2.featureXML)
+set_tests_properties("TOPP_FeatureFinderMetabo_capped_out" PROPERTIES
+  DEPENDS "TOPP_FeatureFinderMetabo_capped_threads1;TOPP_FeatureFinderMetabo_capped_threads2")
+add_test("TOPP_FeatureFinderMetabo_capped_count" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetabo_capped_threads1.featureXML
+  "-DEXPECTED=<featureList count=\"121\">" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetabo_capped_count" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_capped_threads1")
 # FAIMS (synthetic): the features of the three CVs are merged into one, and -out_chrom holds the chromatograms of
 # exactly the remaining features (a chromatogram's native ID starts with the unique id of its feature)
 add_test("TOPP_FeatureFinderMetabo_7" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -in ${DATA_DIR_TOPP}/FAIMS_3CV_synthetic.mzML -out ${TESTS_TEMP_DIR}/FeatureFinderMetabo_7.tmp.featureXML -out_chrom ${TESTS_TEMP_DIR}/FeatureFinderMetabo_7_chrom.tmp.mzML)
