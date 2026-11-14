@@ -31,6 +31,12 @@ def read_objects(path):
 
 
 def summarize(off, on):
+    """Return a Markdown comparison of object durations (in seconds).
+
+    Separate matching outputs from added module objects and converted sources
+    from the rest of OpenMS. Raise ValueError if there are no matching outputs.
+    Command durations overlap, so their sums do not represent build wall time.
+    """
     common = off.keys() & on.keys()
     if not common:
         raise ValueError("The logs have no matching object outputs to compare")
@@ -61,6 +67,7 @@ def summarize(off, on):
 
 
 def main():
+    """Read the OFF/ON logs and print a report, or an argparse error on bad input."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("off_log", type=Path)
     parser.add_argument("on_log", type=Path)
