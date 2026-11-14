@@ -1,0 +1,6 @@
+== decoys, NCE 23, 100-1800 m/z, top 6 (decoys_p6): n 24010 (strata 62), charges [np.uint8(1), np.uint8(2), np.uint8(3), np.uint8(4), np.uint8(5)], length 7-35, oxidised 0.33
+   RT |diff| max 7.90e-07 | intensity |diff| at DIALibGen fragments: median 5.84e-07, max 1.22e-05
+   top-6 set identical 1.0000; differing 0, of which near-ties (gap < 1e-3) 0; examples []
+== targets, NCE 25, 100-2000 m/z, top 12 (pred12): n 18613 (strata 54), charges [np.uint8(1), np.uint8(2), np.uint8(3), np.uint8(4), np.uint8(5)], length 7-35, oxidised 0.32
+   RT |diff| max 5.00e-07 | intensity |diff| at DIALibGen fragments: median 5.53e-07, max 3.54e-06
+   top-12 set identical 0.9999; differing 1, of which near-ties (gap < 1e-3) 1; examples [('C(Carbamidomethyl)GGFVAWNSLGQPHVNGR', 2, np.float64(0.0))]
