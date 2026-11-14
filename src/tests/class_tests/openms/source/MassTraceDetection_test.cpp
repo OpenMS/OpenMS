@@ -90,13 +90,12 @@ END_SECTION
 PeakMap input;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_input1.mzML"),input);
 
-// The seed cap excludes weak-isotope observations at +20.84 and +26.68 ppm.
-Size exp_mt_lengths[3] = {86, 31, 14};
-double exp_mt_rts[3] = {348.618754, 347.086557, 346.812732}; // centroid RTs should be reasonably similar (isotopic traces)
+Size exp_mt_lengths[3] = {86, 31, 16};
+double exp_mt_rts[3] = {348.618754, 347.086557, 346.818032}; // centroid RTs should be reasonably similar (isotopic traces)
 // note: these shifted slightly earlier when updateWeightedMeanRT() started to weight the first
 // peak of a trace as well (it used to be skipped, biasing the centroid late -- see issue #2777)
-double exp_mt_mzs[3] = {437.26675, 438.27241, 439.275271947714};
-double exp_mt_ints[3] = {3381.72226139326, 664.763828332733, 111.367062259816};
+double exp_mt_mzs[3] = {437.26675, 438.27241, 439.27594};
+double exp_mt_ints[3] = {3381.72226139326, 664.763828332733, 109.490108620676};
 
 std::vector<MassTrace> output_mt;
 
@@ -239,6 +238,7 @@ START_SECTION((fixed apex cap prevents adaptive mass drift))
   MassTraceDetection detector;
   detector.setLogType(ProgressLogger::NONE);
   Param parameters = detector.getParameters();
+  parameters.setValue("max_apex_deviation_ppm", 20.0);
   parameters.setValue("min_trace_length", 1.0);
   detector.setParameters(parameters);
   vector<MassTrace> capped, legacy;
@@ -264,22 +264,23 @@ START_SECTION((fixed apex cap prevents adaptive mass drift))
 }
 END_SECTION
 
-START_SECTION((disabled apex cap reproduces legacy fixture))
+START_SECTION((enabled apex cap excludes measured fixture observations outside the bound))
 {
-  MassTraceDetection legacy;
-  legacy.setLogType(ProgressLogger::NONE);
-  Param parameters = legacy.getParameters();
+  MassTraceDetection capped;
+  capped.setLogType(ProgressLogger::NONE);
+  Param parameters = capped.getParameters();
   parameters.setValue("min_trace_length", 3.0);
-  parameters.setValue("max_apex_deviation_ppm", 0.0);
-  legacy.setParameters(parameters);
+  parameters.setValue("max_apex_deviation_ppm", 20.0);
+  capped.setParameters(parameters);
   vector<MassTrace> traces;
-  legacy.run(input, traces);
+  capped.run(input, traces);
   TEST_EQUAL(traces.size(), 3)
   if (traces.size() == 3)
   {
-    TEST_EQUAL(traces[2].getSize(), 16)
-    TEST_REAL_SIMILAR(traces[2].getCentroidRT(), 346.81803158056221)
-    TEST_REAL_SIMILAR(traces[2].computePeakArea(), 109.49010862067628)
+    // The enabled cap excludes observations at +20.84 and +26.68 ppm from the seed.
+    TEST_EQUAL(traces[2].getSize(), 14)
+    TEST_REAL_SIMILAR(traces[2].getCentroidRT(), 346.81273203124903)
+    TEST_REAL_SIMILAR(traces[2].computePeakArea(), 111.3670622598158)
   }
 }
 END_SECTION
@@ -298,6 +299,7 @@ START_SECTION((candidate search excludes peaks outside cap before nearest select
   MassTraceDetection detector;
   detector.setLogType(ProgressLogger::NONE);
   Param parameters = detector.getParameters();
+  parameters.setValue("max_apex_deviation_ppm", 20.0);
   parameters.setValue("min_trace_length", 3.0);
   detector.setParameters(parameters);
   vector<MassTrace> traces;

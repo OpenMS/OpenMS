@@ -60,6 +60,14 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Use CMake 4.4.4 for Windows dependency compatibility
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          # Boost.Locale 1.91's source_group fails with CMake 4.5 on uncached builds.
+          python -m pip install --target "$RUNNER_TEMP/cmake444" cmake==4.4.4
+          echo "$RUNNER_TEMP/cmake444/cmake/data/bin" >> "$GITHUB_PATH"
+
       - name: Build OpenMS
         uses: ./.github/actions/build
         with:

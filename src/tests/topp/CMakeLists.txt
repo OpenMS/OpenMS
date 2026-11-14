@@ -407,24 +407,23 @@ set_tests_properties("TOPP_DTAExtractor_3_out1" PROPERTIES DEPENDS "TOPP_DTAExtr
 
 #------------------------------------------------------------------------------
 # MassTraceExtractor test
-# Keep the existing scientific goldens as explicit legacy-compatibility tests; capped extraction is checked below.
-add_test("TOPP_MassTraceExtractor_1" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor.ini -algorithm:mtd:max_apex_deviation_ppm 0 -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out ${TESTS_TEMP_DIR}/MassTraceExtractor_1.tmp.featureXML)
+add_test("TOPP_MassTraceExtractor_1" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor.ini -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out ${TESTS_TEMP_DIR}/MassTraceExtractor_1.tmp.featureXML)
 add_test("TOPP_MassTraceExtractor_1_out" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/MassTraceExtractor_1.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_1_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_1_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_1")
-add_test("TOPP_MassTraceExtractor_2" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_2.ini -algorithm:mtd:max_apex_deviation_ppm 0 -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out ${TESTS_TEMP_DIR}/MassTraceExtractor_2.tmp.featureXML)
+add_test("TOPP_MassTraceExtractor_2" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_2.ini -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out ${TESTS_TEMP_DIR}/MassTraceExtractor_2.tmp.featureXML)
 add_test("TOPP_MassTraceExtractor_2_out" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/MassTraceExtractor_2.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_2_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_2_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_2")
 # test ion mobility functionality
 # a smaller ion mobility test (+2 isotopic envelope)
-add_test("TOPP_MassTraceExtractor_4" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_4.ini -algorithm:mtd:max_apex_deviation_ppm 0 -in ${DATA_DIR_TOPP}/MassTraceExtractor_4_input.mzML -out ${TESTS_TEMP_DIR}/MassTraceExtractor_4.tmp.featureXML)
+add_test("TOPP_MassTraceExtractor_4" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_4.ini -in ${DATA_DIR_TOPP}/MassTraceExtractor_4_input.mzML -out ${TESTS_TEMP_DIR}/MassTraceExtractor_4.tmp.featureXML)
 add_test("TOPP_MassTraceExtractor_4_out" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/MassTraceExtractor_4.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_4_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_4_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_4")
 # a larger LC-MS map with ion mobility data
-add_test("TOPP_MassTraceExtractor_5" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_4.ini -algorithm:mtd:max_apex_deviation_ppm 0 -in ${DATA_DIR_TOPP}/MassTraceExtractor_5_input.mzML -out ${TESTS_TEMP_DIR}/MassTraceExtractor_5.tmp.featureXML)
+add_test("TOPP_MassTraceExtractor_5" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_4.ini -in ${DATA_DIR_TOPP}/MassTraceExtractor_5_input.mzML -out ${TESTS_TEMP_DIR}/MassTraceExtractor_5.tmp.featureXML)
 add_test("TOPP_MassTraceExtractor_5_out" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/MassTraceExtractor_5.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_5_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_5_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_5")
 # temporary test. Isolate one trace that causes test to fail on MacOS 13-14 and Ubuntu.
-add_test("TOPP_MassTraceExtractor_6" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_4.ini -algorithm:mtd:max_apex_deviation_ppm 0 -in ${DATA_DIR_TOPP}/MassTraceExtractor_6_input.mzML -out ${TESTS_TEMP_DIR}/MassTraceExtractor_6.tmp.featureXML)
+add_test("TOPP_MassTraceExtractor_6" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_4.ini -in ${DATA_DIR_TOPP}/MassTraceExtractor_6_input.mzML -out ${TESTS_TEMP_DIR}/MassTraceExtractor_6.tmp.featureXML)
 add_test("TOPP_MassTraceExtractor_6_out" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/MassTraceExtractor_6.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_6_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_6_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_6")
 
@@ -439,6 +438,7 @@ foreach(_mtd_case 1 4)
   foreach(_mtd_threads 1 2)
     add_test("TOPP_MassTraceExtractor_capped_${_mtd_case}_threads${_mtd_threads}"
       ${TOPP_BIN_PATH}/MassTraceExtractor -test -threads ${_mtd_threads}
+      -algorithm:mtd:max_apex_deviation_ppm 20
       -ini ${DATA_DIR_TOPP}/${_mtd_ini} -in ${DATA_DIR_TOPP}/MassTraceExtractor_${_mtd_case}_input.mzML
       -out ${TESTS_TEMP_DIR}/MassTraceExtractor_capped_${_mtd_case}_threads${_mtd_threads}.featureXML)
   endforeach()
@@ -456,7 +456,7 @@ endforeach()
 
 #------------------------------------------------------------------------------
 # FeatureFinderMetabo test
-add_test("TOPP_FeatureFinderMetabo_1" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo.ini -algorithm:mtd:max_apex_deviation_ppm 0 -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_1_input.mzML -out ${TESTS_TEMP_DIR}/FeatureFinderMetabo_1.tmp.featureXML)
+add_test("TOPP_FeatureFinderMetabo_1" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_1_input.mzML -out ${TESTS_TEMP_DIR}/FeatureFinderMetabo_1.tmp.featureXML)
 add_test("TOPP_FeatureFinderMetabo_1_out" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/FeatureFinderMetabo_1.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_1_output.featureXML)
 set_tests_properties("TOPP_FeatureFinderMetabo_1_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_1")
 add_test("TOPP_FeatureFinderMetabo_2" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo_2_noEPD.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_2_input.mzML -out ${TESTS_TEMP_DIR}/FeatureFinderMetabo_2.tmp.featureXML)
@@ -470,16 +470,17 @@ add_test("TOPP_FeatureFinderMetabo_4_out" ${DIFF} -whitelist "id=" -in1 ${TESTS_
 set_tests_properties("TOPP_FeatureFinderMetabo_4_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_4")
 add_test("TOPP_FeatureFinderMetabo_4_chrom_out" ${DIFF} -whitelist "<chromatogram id=" "<offset" "<userParam name=" -in1 ${TESTS_TEMP_DIR}/FeatureFinderMetabo_4_chrom.tmp.mzML -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_4_chrom_output.mzML)
 set_tests_properties("TOPP_FeatureFinderMetabo_4_chrom_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_4")
-add_test("TOPP_FeatureFinderMetabo_5" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo.ini -algorithm:mtd:max_apex_deviation_ppm 0 -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_1_input.mzML -out ${TESTS_TEMP_DIR}/FeatureFinderMetabo_5.tmp.featureXML -algorithm:mtd:quant_method max_height)
+add_test("TOPP_FeatureFinderMetabo_5" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_1_input.mzML -out ${TESTS_TEMP_DIR}/FeatureFinderMetabo_5.tmp.featureXML -algorithm:mtd:quant_method max_height)
 add_test("TOPP_FeatureFinderMetabo_5_out" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/FeatureFinderMetabo_5.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_5_output.featureXML)
 set_tests_properties("TOPP_FeatureFinderMetabo_5_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_5")
 # test ion mobility data
-add_test("TOPP_FeatureFinderMetabo_6" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo_6.ini -algorithm:mtd:max_apex_deviation_ppm 0 -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_6_input.mzML -out ${TESTS_TEMP_DIR}/FeatureFinderMetabo_6.tmp.featureXML)
+add_test("TOPP_FeatureFinderMetabo_6" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo_6.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_6_input.mzML -out ${TESTS_TEMP_DIR}/FeatureFinderMetabo_6.tmp.featureXML)
 add_test("TOPP_FeatureFinderMetabo_6_out" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/FeatureFinderMetabo_6.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_6_output.featureXML)
 set_tests_properties("TOPP_FeatureFinderMetabo_6_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_6")
 foreach(_ffm_threads 1 2)
   add_test("TOPP_FeatureFinderMetabo_capped_threads${_ffm_threads}"
     ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -threads ${_ffm_threads}
+    -algorithm:mtd:max_apex_deviation_ppm 20
     -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_1_input.mzML
     -out ${TESTS_TEMP_DIR}/FeatureFinderMetabo_capped_threads${_ffm_threads}.featureXML)
 endforeach()
@@ -9286,10 +9287,10 @@ set_tests_properties("TOPP_PSMFeatureExtractor_2_out" PROPERTIES DEPENDS "TOPP_P
 # TOPP tests reading nested json input
 #------------------------------------------------------------------------------
 # MassTraceExtractor test
-add_test("TOPP_MassTraceExtractor_1_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor.ini.json -algorithm:mtd:max_apex_deviation_ppm 0 -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out ${TESTS_TEMP_DIR}/MassTraceExtractor_1_json.tmp.featureXML)
+add_test("TOPP_MassTraceExtractor_1_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor.ini.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out ${TESTS_TEMP_DIR}/MassTraceExtractor_1_json.tmp.featureXML)
 add_test("TOPP_MassTraceExtractor_1_out_json" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/MassTraceExtractor_1_json.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_1_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_1_out_json" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_1_json")
-add_test("TOPP_MassTraceExtractor_2_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_2.ini.json -algorithm:mtd:max_apex_deviation_ppm 0 -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out ${TESTS_TEMP_DIR}/MassTraceExtractor_2_json.tmp.featureXML)
+add_test("TOPP_MassTraceExtractor_2_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_2.ini.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out ${TESTS_TEMP_DIR}/MassTraceExtractor_2_json.tmp.featureXML)
 add_test("TOPP_MassTraceExtractor_2_out_json" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/MassTraceExtractor_2_json.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_2_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_2_out_json" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_2_json")
 
@@ -9297,10 +9298,10 @@ set_tests_properties("TOPP_MassTraceExtractor_2_out_json" PROPERTIES DEPENDS "TO
 # TOPP tests reading flat json input
 #------------------------------------------------------------------------------
 # MassTraceExtractor test
-add_test("TOPP_MassTraceExtractor_1_flat_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor.ini.flat.json -algorithm:mtd:max_apex_deviation_ppm 0 -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out ${TESTS_TEMP_DIR}/MassTraceExtractor_1_json.tmp)
+add_test("TOPP_MassTraceExtractor_1_flat_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor.ini.flat.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out ${TESTS_TEMP_DIR}/MassTraceExtractor_1_json.tmp)
 add_test("TOPP_MassTraceExtractor_1_out_flat_json" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/MassTraceExtractor_1_json.tmp -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_1_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_1_out_flat_json" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_1_flat_json")
-add_test("TOPP_MassTraceExtractor_2_flat_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_2.ini.flat.json -algorithm:mtd:max_apex_deviation_ppm 0 -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out ${TESTS_TEMP_DIR}/MassTraceExtractor_2_json.tmp)
+add_test("TOPP_MassTraceExtractor_2_flat_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_2.ini.flat.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out ${TESTS_TEMP_DIR}/MassTraceExtractor_2_json.tmp)
 add_test("TOPP_MassTraceExtractor_2_out_flat_json" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/MassTraceExtractor_2_json.tmp -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_2_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_2_out_flat_json" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_2_flat_json")
 

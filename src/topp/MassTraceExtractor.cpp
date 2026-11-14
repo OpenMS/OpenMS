@@ -58,7 +58,7 @@ the @ref TOPP_FeatureFinderMetabo tool offers both mass trace extraction and iso
 For proteomics data, please refer to the @ref TOPP_FeatureFinderCentroided tool.
 
 The @p algorithm:mtd:max_apex_deviation_ppm parameter bounds mass drift relative
-to the fixed seed m/z (default: 20 ppm). With a positive cap and outlier-mode
+to the fixed seed m/z (disabled by default). With a positive cap and outlier-mode
 termination, @c -threads @c 2 or more enables deterministic independent-component
 extraction. See @ref ffmetabo_bounded_traces for the rationale and limitations.
 

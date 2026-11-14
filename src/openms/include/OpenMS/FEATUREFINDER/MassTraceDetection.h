@@ -32,10 +32,11 @@ namespace OpenMS
       retention time. During this extension phase, the centroid m/z is computed
       on-line as an intensity-weighted mean of peaks.
 
-      Candidate searches intersect the adaptive centroid window with a fixed
-      window around the seed m/z (max_apex_deviation_ppm, 20 ppm by default).
+      With a positive max_apex_deviation_ppm, candidate searches intersect the
+      adaptive centroid window with a fixed window around the seed m/z.
       This prevents variance re-estimation from gradually joining unrelated
-      signals. Setting the cap to zero restores the unbounded legacy behavior.
+      signals. The cap is disabled by default (zero), preserving existing
+      behavior until an appropriate bound has been validated for the data.
 
       The extension phase ends when either the frequency of gathered peaks drops
       below a threshold (min_sample_rate, see @ref MassTraceDetection parameters)

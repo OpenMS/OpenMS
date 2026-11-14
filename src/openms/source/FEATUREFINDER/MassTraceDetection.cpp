@@ -33,10 +33,10 @@ namespace OpenMS
     {
       defaults_.setValue(
         "mass_error_ppm", 20.0,
-        "Initial m/z standard deviation in ppm. Adaptive searches use three standard deviations, additionally bounded by max_apex_deviation_ppm.");
+        "Initial m/z standard deviation in ppm. Adaptive searches use three standard deviations and, if enabled, max_apex_deviation_ppm.");
       defaults_.setValue(
-        "max_apex_deviation_ppm", 20.0,
-        "Hard m/z deviation in ppm from the fixed seed/apex, independent of centroid and variance updates. Set to 0 for unbounded legacy behavior.",
+        "max_apex_deviation_ppm", 0.0,
+        "Hard m/z deviation in ppm from the fixed seed/apex, independent of centroid and variance updates. Set a positive value to enable; 0 (default) retains unbounded legacy behavior.",
         {"advanced"});
       defaults_.setMinFloat("max_apex_deviation_ppm", 0.0);
       defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are removed as noise.");

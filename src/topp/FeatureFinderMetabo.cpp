@@ -87,12 +87,14 @@ limit: @p algorithm:mtd:mass_error_ppm initializes the standard deviation, and
 extension searches within three current standard deviations. Interference can
 inflate that estimate, admitting still more interference and moving the centroid.
 The new @p algorithm:mtd:max_apex_deviation_ppm parameter therefore additionally
-bounds every collected peak relative to the immutable seed/apex m/z (default:
-20 ppm). Candidate searches intersect both windows before choosing the nearest
-peak, so an excluded peak cannot hide an admissible alternative. This intentional
-correction can change trace and feature counts; use an instrument-appropriate
-cap if real calibration drift exceeds 20 ppm. Setting the cap to zero reproduces
-the unbounded legacy behavior.
+bounds every collected peak relative to the immutable seed/apex m/z when enabled.
+The cap is disabled by default (zero), preserving existing extraction behavior
+in all callers. Candidate searches intersect both windows before choosing the
+nearest peak, so an excluded peak cannot hide an admissible alternative.
+Enabling the cap can change trace and feature counts, particularly on weak
+chromatographic flanks. Validate an instrument-appropriate bound using tail
+recovery, false joins and quantification bias before changing a workflow's
+defaults; the 20 ppm benchmark setting below is not a validated recommendation.
 
 For example, unbounded extraction of the public, centroided repository excerpt
 @c doc/pyopenms/src/data/Metabolomics_2.mzML produced trace T1930 with 119 points
@@ -103,7 +105,7 @@ This is an example of pathological assembly, not evidence that these observation
 belong to one analyte. The fixed-apex cap prevents such unbounded drift without
 changing the variance estimator.
 
-With @c -threads @c 2 (or more), capped, outlier-mode extraction first builds
+With a positive cap and @c -threads @c 2 (or more), outlier-mode extraction first builds
 conservative independent components. All above-noise peaks participate, including
 weak peaks that cannot seed a trace. If a trace is confined to seed m/z +/- H,
 two admissible observations differ by at most 2H in the seed's mass coordinate.
