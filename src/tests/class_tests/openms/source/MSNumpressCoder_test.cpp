@@ -226,31 +226,34 @@ START_SECTION([EXTRA] decodeNP_LINEAR)
 }
 END_SECTION
 
-START_SECTION([EXTRA] encodeNP_LINEAR_mass_acc_small_array)
+START_SECTION([EXTRA] encodeNPRaw LINEAR with a target accuracy on 1- and 2-point arrays)
 {
-  // A 1- or 2-point array estimating its fixed point from a target mass
-  // accuracy (linear_fp_mass_acc > 0, as MzMLSqliteHandler's lossy sqMass
-  // writer sets unconditionally) must round-trip its real values, not NaN.
-  std::vector< double > in;
-  in.push_back(1234.5678);
-  in.push_back(1234.6789);
-  std::string out;
-
+  // The settings of the lossy writers (FileConverter -lossy_compression -lossy_mass_accuracy, lossy sqMass,
+  // OpenSwathWorkflow's chromatogram output): fixed point from a target accuracy, no accuracy check.
+  // The fixed point must not be 0, which turned every value into NaN on decoding.
   MSNumpressCoder::NumpressConfig config;
   config.np_compression = MSNumpressCoder::LINEAR;
-  config.estimate_fixed_point = true; // critical
+  config.estimate_fixed_point = true;
   config.linear_fp_mass_acc = 0.05;
+  config.numpressErrorTolerance = -1.0;
+  TOLERANCE_ABSOLUTE(0.05)
 
-  bool zlib_compression = false;
-  MSNumpressCoder().encodeNP(in, out, zlib_compression, config);
+  std::string raw1;
+  std::vector<double> out1;
+  MSNumpressCoder().encodeNPRaw({1234.5678}, raw1, config);
+  MSNumpressCoder().decodeNPRaw(raw1, out1, config);
+  TEST_EQUAL(out1.size(), 1)
+  ABORT_IF(out1.size() != 1)
+  TEST_REAL_SIMILAR(out1[0], 1234.5678)
 
-  std::vector<double> result;
-  MSNumpressCoder().decodeNP(out, result, zlib_compression, config);
-
-  TEST_EQUAL(result.size(), 2)
-  TOLERANCE_ABSOLUTE(0.001)
-  TEST_REAL_SIMILAR(result[0], 1234.5678)
-  TEST_REAL_SIMILAR(result[1], 1234.6789)
+  std::string raw2;
+  std::vector<double> out2;
+  MSNumpressCoder().encodeNPRaw({1234.5678, 1234.6789}, raw2, config);
+  MSNumpressCoder().decodeNPRaw(raw2, out2, config);
+  TEST_EQUAL(out2.size(), 2)
+  ABORT_IF(out2.size() != 2)
+  TEST_REAL_SIMILAR(out2[0], 1234.5678)
+  TEST_REAL_SIMILAR(out2[1], 1234.6789)
 }
 END_SECTION
 
