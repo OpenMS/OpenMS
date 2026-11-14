@@ -1,0 +1,40 @@
+OpenDIA arm E raw01: target winners 164097, N@FDP_c 1 % 1694 (score cut 25.78)
+DIA-NN q<=0.01 in library: 2361 (17 entrapment); human 2344
+
+Funnel (human DIA-NN IDs):
+  1. in OpenDIA scored population             2320 / 2344   lost: 24
+  2. a candidate peak within 6 s of DIA-NN RT  2245           lost: 75
+  3. that peak is the winner                   2200           lost: 45
+  4. winner accepted at FDP_c 1 %              1574           lost: 626
+  (accepted with a different peak than DIA-NN: 6)
+  OpenDIA accepted not in DIA-NN q<=0.01: 114
+
+Stage-1 losses (24): with any search candidate 24, candidate within 6 s 3, max transition_support of those near: {2: 3}
+  their |DIA-NN RT - map| p50 152.8 s, outside the 90.8 s window: 0.792
+
+Scoring loss: 626 right-peak winners rejected. Their score: median 7.22, within 1 of the cut 0.02; decoy winners within 1 of the cut 21
+  feature                         rejected  accepted decoys@cut
+  transition_support                 5.000     6.000      6.000
+  log_matched_scans                  1.792     1.792      1.792
+  log_peak_width                     2.023     2.023      2.023
+  abs_library_rt_error              16.631    14.478     20.036
+  boundary_log_fwhm                  1.826     1.694      1.679
+  boundary_log_width                 2.506     2.648      2.648
+  boundary_coelution                 0.296     0.742      0.630
+  boundary_library_correlation       0.596     0.849      0.744
+  boundary_apex_agreement            0.833     1.000      0.833
+  byion_b                            2.000     4.000      2.000
+  byion_y                            4.000     7.000      5.000
+  f12_support                        1.000     6.000      4.000
+  f12_coelution                      0.236     0.482      0.355
+  f12_libcos                         0.874     0.963      0.889
+  f12_extra_support                  0.000     2.000      1.000
+  f12_extra_coelution                0.178     0.392      0.277
+  f12_extra_share                   -0.554    -0.662     -0.527
+  d_max                              0.368     0.309      0.515
+  d6_max                             0.272     0.173      0.296
+  d_lib                              0.000     0.000      0.000
+  rejected by transition_support: {1.0: 1, 2.0: 1, 3.0: 18, 4.0: 105, 5.0: 299, 6.0: 202}
+  accepted by transition_support: {4.0: 7, 5.0: 204, 6.0: 1363}
+
+Wrong-peak: 45; winner |RT - DIA-NN| p50 29.4 s; winner accepted 5

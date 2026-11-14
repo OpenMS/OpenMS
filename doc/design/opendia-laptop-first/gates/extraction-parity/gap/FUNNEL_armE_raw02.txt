@@ -1,0 +1,10 @@
+OpenDIA arm E raw02: target winners 152107, N@FDP_c 1 % 1628 (score cut 25.27)
+DIA-NN q<=0.01 in library: 2322 (13 entrapment); human 2309
+
+Funnel (human DIA-NN IDs):
+  1. in OpenDIA scored population             2283 / 2309   lost: 26
+  2. a candidate peak within 6 s of DIA-NN RT  2208           lost: 75
+  3. that peak is the winner                   2172           lost: 36
+  4. winner accepted at FDP_c 1 %              1528           lost: 644
+  (accepted with a different peak than DIA-NN: 4)
+  OpenDIA accepted not in DIA-NN q<=0.01: 95

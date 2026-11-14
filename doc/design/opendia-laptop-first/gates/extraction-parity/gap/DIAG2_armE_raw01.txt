@@ -1,0 +1,7 @@
+DIA-NN q<=0.01 in library: 2361 (17 entrapment); human 2344
+accepted: DIA-NN sum PEP 7.7 (expected false), PEP>0.05 5, FWHM p50 3.56 s, width p50 9.8 s
+rejected: DIA-NN sum PEP 11.0 (expected false), PEP>0.05 7, FWHM p50 3.36 s, width p50 8.2 s
+DIA-NN library columns ['PrecursorMz', 'ProductMz', 'PrecursorCharge', 'ProductCharge', 'LibraryIntensity', 'NormalizedRetentionTime', 'PeptideSequence', 'ModifiedPeptideSequence', 'PeptideGroupLabel', 'LabelType', 'CompoundName', 'SumFormula']
+fragments per precursor in DIA-NN library (first 200k rows): n/a
+accepted: central 12 bins nonzero share per fragment p50 0.33; fragments with >=3 nonzero bins p50 6; summed-profile nonzero bins p50 8/12; apex/median-of-others ratio p50 162.9
+rejected: central 12 bins nonzero share per fragment p50 0.25; fragments with >=3 nonzero bins p50 3; summed-profile nonzero bins p50 7/12; apex/median-of-others ratio p50 90.2

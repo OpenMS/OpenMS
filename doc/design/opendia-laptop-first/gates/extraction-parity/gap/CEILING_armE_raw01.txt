@@ -1,0 +1,6 @@
+DIA-NN q<=0.01 in library: 2361 (17 entrapment); human 2344
+decoy winners 163897, above cut 19, FPR at cut 1.16e-04
+  D11FDWT TPR all 0.718  rejected 0.008  (at 4x FPR: all 0.804 rejected 0.312)
+  S      TPR all 0.584  rejected 0.165  (at 4x FPR: all 0.819 rejected 0.431)
+  SX     TPR all 0.597  rejected 0.184  (at 4x FPR: all 0.840 rejected 0.476)
+  X      TPR all 0.340  rejected 0.010  (at 4x FPR: all 0.581 rejected 0.126)

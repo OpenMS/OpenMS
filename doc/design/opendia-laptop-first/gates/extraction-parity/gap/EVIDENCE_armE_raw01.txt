@@ -1,0 +1,24 @@
+OpenDIA arm E raw01: target winners 164097, N@FDP_c 1 % 1694 (score cut 25.78)
+DIA-NN q<=0.01 in library: 2361 (17 entrapment); human 2344
+R 626 (score p50 7.2), entrapment winners below cut 81883 (score p50 -0.0); 3 score-matched decoys each
+feature         AUC R>dec  AUC E>dec    R p50  Rdec p50
+ms1_corr            0.598      0.500    0.246     0.000
+ms1_iso_corr        0.559      0.501    0.386     0.000
+ms1_logint          0.534      0.501    5.952     5.957
+ppm_mean_abs        0.339      0.497    0.782     1.446
+ppm_frag_sd         0.279      0.499    2.582     4.641
+frag_logint         0.450      0.502    4.386     4.469
+frag_nz3            0.559      0.501    3.000     3.000
+top_share           0.315      0.501    0.397     0.496
+others_corr         0.461      0.499    0.360     0.395
+
+E restricted to R score range (>= R p10 -0.9): n 80369
+  ms1_corr       AUC E>dec 0.499
+  ms1_iso_corr   AUC E>dec 0.500
+  ms1_logint     AUC E>dec 0.501
+  ppm_mean_abs   AUC E>dec 0.497
+  ppm_frag_sd    AUC E>dec 0.499
+  frag_logint    AUC E>dec 0.502
+  frag_nz3       AUC E>dec 0.501
+  top_share      AUC E>dec 0.501
+  others_corr    AUC E>dec 0.499

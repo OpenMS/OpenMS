@@ -1,0 +1,6 @@
+  D11FDWT  1x FPR: all 0.718 rejected 0.008 | 4x FPR: all 0.804 rejected 0.312
+  S        1x FPR: all 0.584 rejected 0.165 | 4x FPR: all 0.819 rejected 0.431
+  SE       1x FPR: all 0.607 rejected 0.217 | 4x FPR: all 0.846 rejected 0.505
+  E        1x FPR: all 0.304 rejected 0.037 | 4x FPR: all 0.516 rejected 0.133
+  S+D11    1x FPR: all 0.455 rejected 0.086 | 4x FPR: all 0.821 rejected 0.377
+  SE+D11   1x FPR: all 0.611 rejected 0.147 | 4x FPR: all 0.832 rejected 0.414

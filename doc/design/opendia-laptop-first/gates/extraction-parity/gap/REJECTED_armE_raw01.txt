@@ -1,0 +1,7 @@
+OpenDIA arm E raw01: target winners 164097, N@FDP_c 1 % 1694 (score cut 25.78)
+DIA-NN q<=0.01 in library: 2361 (17 entrapment); human 2344
+accepted  n 1574 | OpenDIA score p50  43.62 | apex int p50     32825 area p50     114293 peaks_in_window p50 13 | DIA-NN Evidence 3.85 Ms1.Area 3.83e+06 Ms1.Profile.Corr 0.816 Precursor.Quantity 2.49e+06 Q.Value 0.000229 PEP 0.000229
+rejected  n  626 | OpenDIA score p50   7.22 | apex int p50      8278 area p50      30825 peaks_in_window p50 13 | DIA-NN Evidence 2.62 Ms1.Area 8.05e+05 Ms1.Profile.Corr 0.571 Precursor.Quantity 3.52e+05 Q.Value 0.00339 PEP 0.0165
+acceptance of right-peak winners by DIA-NN quantity quintile (low->high): [np.float64(0.395), np.float64(0.584), np.float64(0.761), np.float64(0.893), np.float64(0.943)]
+rejected score quantiles (cut 25.78): [-0.95  0.18  7.22 14.58 21.3 ]
+rejected rank among target winners p50 / p90: 2439 160881 of 164097
