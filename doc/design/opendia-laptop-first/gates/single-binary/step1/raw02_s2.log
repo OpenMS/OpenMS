@@ -1,0 +1,5 @@
+rows 1503845 dimension 24 seeds 7289 precursors 303995 pairs 152357
+fold 0: r0 4874 11 ep crit 3508.017869 | r1 pos 1571 neg 101130 18 ep crit 2511.083894 | r2 pos 1490 neg 101130 14 ep crit 2357.498537
+fold 1: r0 4846 11 ep crit 3252.872272 | r1 pos 1589 neg 101627 24 ep crit 3145.767579 | r2 pos 1569 neg 101627 30 ep crit 3543.248299
+fold 2: r0 4858 20 ep crit 7311.226182 | r1 pos 1545 neg 101019 14 ep crit 2224.594460 | r2 pos 1486 neg 101019 20 ep crit 3023.763597
+targets at q <= 0.01: 1597, seconds 56.1669
