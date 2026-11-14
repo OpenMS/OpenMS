@@ -86,7 +86,7 @@ namespace OpenMS
 
     defaults_.setSectionDescription("extract", "Parameters for ion chromatogram extraction");
 
-    defaults_.setValue("detect:peak_width", 60.0, "Expected elution peak width (FWHM) in seconds, for smoothing (Gauss filter). Also determines the RT extraction window, unless set explicitly via 'extract:rt_window'. Should be close to the width of the elution peaks in the data: if it is much larger, neighboring peaks are merged and targets can be missed.");
+    defaults_.setValue("detect:peak_width", 60.0, "Expected elution peak width in seconds, for smoothing (Gauss filter). Also determines the RT extraction window, unless set explicitly via 'extract:rt_window'. About twice the width (FWHM) of the elution peaks in the data is a suitable value: if it is much larger, neighboring peaks can be merged and targets can be missed.");
     defaults_.setMinFloat("detect:peak_width", 0.0);
     defaults_.setValue(
       "detect:min_peak_width", 
@@ -967,16 +967,22 @@ namespace OpenMS
     const double peak_sigma = median_fwhm / (2.0 * std::sqrt(2.0 * std::log(2.0)));
     if (kernel_sigma <= peak_sigma) return;
 
+    // suggest about twice the FWHM: that kernel is narrower than the peaks (about 0.6 of their sigma), but still smooths
+    const double suggested_width = 2.0 * median_fwhm;
     OPENMS_LOG_WARN << "Warning: 'detect:peak_width' (" << peak_width_ << " s) is much larger than the elution peaks of the "
                     << "detected features (median width (FWHM): " << Math::roundDecimal(median_fwhm, -1) << " s, from "
                     << fwhms.size() << " elution model(s)). The chromatograms are smoothed with this width before peaks "
                     << "are picked, so neighboring peaks at the m/z of a target may have been merged into one feature "
                     << "(targets can go missing or get the intensity of a neighbor), and features may extend beyond the "
-                    << "signal. Consider setting 'detect:peak_width' close to the width of the elution peaks.";
+                    << "signal. Consider a 'detect:peak_width' of about "
+                    << Math::roundDecimal(suggested_width, (suggested_width >= 10.0) ? 0 : -1)
+                    << " s (twice the median width).";
     if (double(param_.getValue("extract:rt_window")) == 0.0)
     {
-      OPENMS_LOG_WARN << " Note that 'extract:rt_window' (" << rt_window_ << " s) is four times 'detect:peak_width' "
-                      << "unless it is set explicitly.";
+      // the RT window follows 'detect:peak_width', and would no longer cover the RT deviations of the targets
+      OPENMS_LOG_WARN << " In that case, also set 'extract:rt_window' (e.g. to the current " << rt_window_
+                      << " s): otherwise it becomes four times 'detect:peak_width', which may be too narrow for the "
+                      << "RT deviations of the targets.";
     }
     OPENMS_LOG_WARN << endl;
   }

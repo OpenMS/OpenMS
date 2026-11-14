@@ -7686,9 +7686,10 @@ add_test("TOPP_FeatureFinderMetaboIdent_3_out1" ${CMAKE_COMMAND}
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_FeatureFinderMetaboIdent_3_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_3")
 # The elution peaks of this data are about 4 s wide: the default 'detect:peak_width' (60 s) smooths them away, which
-# the tool has to point out (issue #6058). PASS_REGULAR_EXPRESSION ignores the exit code.
+# the tool has to point out (issue #6058), with the advice to keep the RT window when lowering it.
+# PASS_REGULAR_EXPRESSION ignores the exit code.
 add_test("TOPP_FeatureFinderMetaboIdent_4" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_4_output.tmp.featureXML -extract:mz_window 5)
-set_tests_properties("TOPP_FeatureFinderMetaboIdent_4" PROPERTIES PASS_REGULAR_EXPRESSION "'detect:peak_width' \\(60 s\\) is much larger than the elution peaks")
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_4" PROPERTIES PASS_REGULAR_EXPRESSION "'detect:peak_width' \\(60 s\\) is much larger than the elution peaks.*also set 'extract:rt_window' \\(e\\.g\\. to the current 240 s\\)")
 # ... and an RT extraction window that is narrower than the expected peaks
 add_test("TOPP_FeatureFinderMetaboIdent_5" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_5_output.tmp.featureXML -extract:mz_window 5 -extract:rt_window 20)
 set_tests_properties("TOPP_FeatureFinderMetaboIdent_5" PROPERTIES PASS_REGULAR_EXPRESSION "'extract:rt_window' \\(20 s\\) is smaller than 'detect:peak_width' \\(60 s\\)")
