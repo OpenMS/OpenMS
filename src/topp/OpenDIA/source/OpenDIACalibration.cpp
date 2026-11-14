@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <numbers>
 #include <fstream>
 #include <iomanip>
 #include <limits>
@@ -1105,6 +1106,8 @@ namespace OpenMS::OpenDIA
     std::vector<bool> present(panel_.size(), false), is_decoy(panel_.size(), false);
     std::vector<std::size_t> partner(panel_.size());
     std::vector<Candidate> best(panel_.size());
+    std::vector<double> residual(panel_.size(), 0.0);
+    std::vector<bool> rt_informative(panel_.size(), false);
     for (std::size_t m = 0; m < panel_.size(); ++m)
     {
       is_decoy[m] = panel_[m].is_decoy;
@@ -1116,6 +1119,7 @@ namespace OpenMS::OpenDIA
       const double low = library_rt < support_low ? -std::numeric_limits<double>::infinity() : centre - result.stage3_half_window_s;
       const double high = library_rt > support_high ? std::numeric_limits<double>::infinity() : centre + result.stage3_half_window_s;
       result.stage3_extended_targets += !is_decoy[m] && (library_rt < support_low || library_rt > support_high);
+      rt_informative[m] = library_rt >= support_low && library_rt <= support_high;
       if (diagnostics != nullptr)
       {
         diagnostics->rows[m].stage3_centre_rt = centre;
@@ -1130,8 +1134,35 @@ namespace OpenMS::OpenDIA
           best[m] = candidate;
         }
       }
+      if (present[m]) residual[m] = best[m].rt - centre;
     }
-    const auto q = pairedQValues_(score, is_decoy, partner, present);
+    // Pair competition on the evidence of the co-elution score and the apex RT together. The score alone does not
+    // separate a decoy's chance co-elution from a target peak when the decoy set matches background like the targets
+    // do; the RT of a chance peak is uniform over the window, a target's is close to the map. Score evidence is
+    // -log of its upper-tail p-value among the decoy scores; RT evidence is the log-likelihood ratio of the residual
+    // under a Gaussian of the stage-1 map spread against a uniform over the window (0 outside the map's support,
+    // where the window runs to the run edge). Both are measured on this panel; nothing is tuned.
+    std::vector<double> decoy_scores;
+    for (std::size_t m = 0; m < panel_.size(); ++m)
+    {
+      if (is_decoy[m] && present[m]) decoy_scores.push_back(score[m]);
+    }
+    std::sort(decoy_scores.begin(), decoy_scores.end());
+    const double sigma = result.stage1_sigma_s;
+    const bool use_rt = sigma > 0.0 && result.stage3_half_window_s > 0.0;
+    std::vector<double> evidence(panel_.size(), -1.0);
+    for (std::size_t m = 0; m < panel_.size(); ++m)
+    {
+      if (!present[m]) continue;
+      const auto at_or_above = static_cast<double>(decoy_scores.end() - std::lower_bound(decoy_scores.begin(), decoy_scores.end(), score[m]));
+      evidence[m] = -std::log((at_or_above + 1.0) / (static_cast<double>(decoy_scores.size()) + 1.0));
+      if (use_rt && rt_informative[m])
+      {
+        const double z = residual[m] / sigma;
+        evidence[m] += -0.5 * z * z - std::log(sigma * std::sqrt(2.0 * std::numbers::pi)) + std::log(2.0 * result.stage3_half_window_s);
+      }
+    }
+    const auto q = pairedQValues_(evidence, is_decoy, partner, present);
     if (diagnostics != nullptr)
     {
       for (std::size_t m = 0; m < panel_.size(); ++m)
@@ -1194,19 +1225,19 @@ namespace OpenMS::OpenDIA
       anchor_points.emplace_back(anchor.library_rt, anchor.run_rt);
     }
     result.anchor_targets = result.anchors.size();
-    // Decoys that won their pair at or above the weakest accepted anchor score.
+    // Decoys that won their pair at or above the weakest accepted anchor evidence.
     double weakest = std::numeric_limits<double>::infinity();
     for (std::size_t m = 0; m < panel_.size(); ++m)
     {
       if (!is_decoy[m] && present[m] && q[m] <= options_.anchor_fdr)
       {
-        weakest = std::min(weakest, score[m]);
+        weakest = std::min(weakest, evidence[m]);
       }
     }
     for (std::size_t m = 0; m < panel_.size(); ++m)
     {
       const std::size_t t = partner[m];
-      result.anchor_decoys += is_decoy[m] && present[m] && (!present[t] || score[m] >= score[t]) && score[m] >= weakest;
+      result.anchor_decoys += is_decoy[m] && present[m] && (!present[t] || evidence[m] >= evidence[t]) && evidence[m] >= weakest;
     }
     if (anchor_points.size() < 20)
     {
@@ -1215,7 +1246,7 @@ namespace OpenMS::OpenDIA
       {
         if (present[m])
         {
-          ranked.emplace_back(score[m], is_decoy[m]);
+          ranked.emplace_back(evidence[m], is_decoy[m]);
         }
       }
       std::sort(ranked.rbegin(), ranked.rend());

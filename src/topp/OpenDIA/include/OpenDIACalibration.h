@@ -195,7 +195,13 @@ namespace OpenMS::OpenDIA
     weighted by within-precursor score contrast and a Gaussian RT term around the
     current monotone map, refines the map and estimates its RT spread. Stage 3:
     targets and their paired decoys are rescored inside max(4 sigma, min_window)
-    of that map; paired target-decoy competition selects anchors at anchor_fdr.
+    of that map; paired target-decoy competition selects anchors at anchor_fdr,
+    ranking each member by the evidence of its co-elution score (-log of its
+    upper-tail p-value among the panel's decoy scores) plus the log-likelihood
+    ratio of its apex RT residual under a Gaussian of the stage-1 spread against a
+    uniform over the window. The score alone stops separating targets from decoys
+    when decoys match background as often as targets do (predicted decoys); a
+    chance peak's RT is uniform over the window, a target's is near the map.
     Stage 4: the final RT map, fragment mass offset and 1/K0 model are fitted on
     the anchors, with tolerances as fixed multiples of their robust widths.
 
