@@ -1,0 +1,26 @@
+raw02: anchor match tolerance 1.78 s; anchors used 646 (of 646), fragments 7621, N 1110; ridge lambda 10; CV MSE 0.3686 vs no-model 0.3872 (gain 0.048)
+  coefficients {'ion b1': np.float64(0.12), 'ion b2': np.float64(-0.004), 'ion y1': np.float64(-0.08), 'ion y2': np.float64(0.005), 'mz0': np.float64(-0.256), 'mz1': np.float64(0.022), 'mz2': np.float64(0.017), 'mz3': np.float64(-0.029), 'mz4': np.float64(-0.005), 'mz5': np.float64(0.071), 'mz6': np.float64(0.087), 'mz7': np.float64(0.064), 'mz8': np.float64(0.035), 'mz9': np.float64(0.035), 'ord0': np.float64(0.077), 'ord1': np.float64(0.188), 'ord2': np.float64(0.07), 'ord3': np.float64(0.002), 'ord4': np.float64(-0.034), 'ord5': np.float64(-0.087), 'ord6': np.float64(-0.062), 'ord7': np.float64(-0.034), 'ord8': np.float64(-0.021), 'ord9': np.float64(-0.057), 'li0': np.float64(0.198), 'li1': np.float64(0.04), 'li2': np.float64(0.033), 'li3': np.float64(-0.049), 'li4': np.float64(-0.023), 'li5': np.float64(-0.064), 'li6': np.float64(-0.02), 'li7': np.float64(-0.026), 'li8': np.float64(-0.025), 'li9': np.float64(-0.022)}
+raw02 featG (1503845, 4) finite True p5/p50/p95 [[0.294, 0.523, 0.757], [0.0, 0.0, 2.0], [-0.031, 0.097, 0.296], [0.215, 0.644, 1.548]]
+	Command being timed: "/home/singjc/.jcode/scratch/torchenv/.venv/bin/python /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/pairlib-20261113/scripts_gap/features_G.py raw02 /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/pairlib-20261113 /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/pairlib-20261113/lib12/library12_pop.pqp /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/pairlib-20261113/raw02/pipeline/search.features.tsv"
+	User time (seconds): 36.86
+	System time (seconds): 4.23
+	Percent of CPU this job got: 159%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:25.79
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 5269952
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 1792641
+	Voluntary context switches: 11622
+	Involuntary context switches: 184
+	Swaps: 0
+	File system inputs: 358
+	File system outputs: 227776
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

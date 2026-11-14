@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/pairlib-20261113/scripts_gap/compare_gap.py", line 15, in <module>
+    w, best = tdc(pop, read(raw, arm, pop))
+                       ^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 37, in read
+  File "/home/singjc/.jcode/scratch/torchenv/.venv/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py", line 454, in load
+    fid = stack.enter_context(open(os.fspath(file), "rb"))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/pairlib-20261113/raw01/scores_V0.npy'

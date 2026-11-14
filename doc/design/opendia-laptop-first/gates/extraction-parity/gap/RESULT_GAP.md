@@ -75,4 +75,8 @@ A labelled HistGradientBoosting model was trained on the 2200 right-peak positiv
    - The scoring chain has not been rerun with commits 0e4a234762 / 20f9f12335.
    - Free to try, but it changes only RT/ppm windows, and the RT/search losses total about 100.
 
+**Follow-up:** steps 1–3 were run as PLAN_GAP (`arms/RESULT_GAP_ARMS.md`).
+- The explaining-away block (I) passes. It recovers 149 / 234 of the rejected IDs, and N@FDP_c 1 % rises to 1879 / 1921.
+- A and G fail.
+
 Not worth pursuing: the RT window (about 4 % of losses), peak choice (2 %), and nudging the threshold (the rejected IDs sit 18 score units below the cut).

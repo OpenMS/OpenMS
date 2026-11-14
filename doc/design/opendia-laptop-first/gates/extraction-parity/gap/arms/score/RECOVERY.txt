@@ -1,0 +1,12 @@
+raw01: control right-peak winners 2200, accepted 1574, rejected 626
+  D11FDWT     N@FDP_c1%  1694 | DIA-NN-peak accepted  1574 | recovered from control-rejected    0 | lost of control-accepted    0 | right-peak winners 2200 | accepted not DIA-NN 114
+  D11FDAWT    N@FDP_c1%  1811 | DIA-NN-peak accepted  1654 | recovered from control-rejected  113 | lost of control-accepted   33 | right-peak winners 2209 | accepted not DIA-NN 149
+  D11FDGWT    N@FDP_c1%  1727 | DIA-NN-peak accepted  1593 | recovered from control-rejected   49 | lost of control-accepted   30 | right-peak winners 2195 | accepted not DIA-NN 127
+  D11FDIWT    N@FDP_c1%  1879 | DIA-NN-peak accepted  1706 | recovered from control-rejected  149 | lost of control-accepted   17 | right-peak winners 2207 | accepted not DIA-NN 164
+  D11FDAGIWT  N@FDP_c1%  1846 | DIA-NN-peak accepted  1691 | recovered from control-rejected  148 | lost of control-accepted   31 | right-peak winners 2209 | accepted not DIA-NN 146
+raw02: control right-peak winners 2172, accepted 1528, rejected 644
+  D11FDWT     N@FDP_c1%  1628 | DIA-NN-peak accepted  1528 | recovered from control-rejected    0 | lost of control-accepted    0 | right-peak winners 2172 | accepted not DIA-NN 95
+  D11FDAWT    N@FDP_c1%  1641 | DIA-NN-peak accepted  1535 | recovered from control-rejected   48 | lost of control-accepted   41 | right-peak winners 2172 | accepted not DIA-NN 100
+  D11FDGWT    N@FDP_c1%  1700 | DIA-NN-peak accepted  1585 | recovered from control-rejected   73 | lost of control-accepted   16 | right-peak winners 2162 | accepted not DIA-NN 108
+  D11FDIWT    N@FDP_c1%  1921 | DIA-NN-peak accepted  1742 | recovered from control-rejected  234 | lost of control-accepted   21 | right-peak winners 2175 | accepted not DIA-NN 171
+  D11FDAGIWT  N@FDP_c1%  1982 | DIA-NN-peak accepted  1781 | recovered from control-rejected  269 | lost of control-accepted   16 | right-peak winners 2175 | accepted not DIA-NN 191

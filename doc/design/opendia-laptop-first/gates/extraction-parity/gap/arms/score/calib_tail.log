@@ -1,0 +1,40 @@
+raw01 D11FDWT fold 0: decoys 54914, t -319.70, beta 168.50, -logS(t) 4.60
+raw01 D11FDWT fold 1: decoys 54214, t -232.64, beta 137.07, -logS(t) 4.60
+raw01 D11FDWT fold 2: decoys 54769, t -558.65, beta 109.85, -logS(t) 4.60
+raw01 D11FDWT window choice unchanged: True
+raw01 D11FDAWT fold 0: decoys 54914, t -216.46, beta 164.79, -logS(t) 4.60
+raw01 D11FDAWT fold 1: decoys 54214, t -541.20, beta 123.18, -logS(t) 4.60
+raw01 D11FDAWT fold 2: decoys 54769, t -475.39, beta 111.97, -logS(t) 4.60
+raw01 D11FDAWT window choice unchanged: True
+raw01 D11FDGWT fold 0: decoys 54914, t -334.36, beta 155.64, -logS(t) 4.60
+raw01 D11FDGWT fold 1: decoys 54214, t -184.77, beta 126.52, -logS(t) 4.60
+raw01 D11FDGWT fold 2: decoys 54769, t 99.13, beta 117.84, -logS(t) 4.60
+raw01 D11FDGWT window choice unchanged: True
+raw01 D11FDIWT fold 0: decoys 54914, t -522.64, beta 164.79, -logS(t) 4.60
+raw01 D11FDIWT fold 1: decoys 54214, t -228.90, beta 151.89, -logS(t) 4.60
+raw01 D11FDIWT fold 2: decoys 54769, t -306.49, beta 103.95, -logS(t) 4.60
+raw01 D11FDIWT window choice unchanged: True
+raw01 D11FDAGIWT fold 0: decoys 54914, t -270.06, beta 178.33, -logS(t) 4.60
+raw01 D11FDAGIWT fold 1: decoys 54214, t -280.09, beta 159.77, -logS(t) 4.60
+raw01 D11FDAGIWT fold 2: decoys 54769, t -303.37, beta 134.55, -logS(t) 4.60
+raw01 D11FDAGIWT window choice unchanged: True
+raw02 D11FDWT fold 0: decoys 50758, t -121.93, beta 133.79, -logS(t) 4.60
+raw02 D11FDWT fold 1: decoys 50261, t -197.29, beta 129.88, -logS(t) 4.60
+raw02 D11FDWT fold 2: decoys 50869, t -567.61, beta 129.35, -logS(t) 4.60
+raw02 D11FDWT window choice unchanged: True
+raw02 D11FDAWT fold 0: decoys 50758, t -75.94, beta 114.95, -logS(t) 4.60
+raw02 D11FDAWT fold 1: decoys 50261, t -366.61, beta 130.09, -logS(t) 4.60
+raw02 D11FDAWT fold 2: decoys 50869, t -256.24, beta 126.37, -logS(t) 4.60
+raw02 D11FDAWT window choice unchanged: True
+raw02 D11FDGWT fold 0: decoys 50758, t -245.58, beta 134.65, -logS(t) 4.60
+raw02 D11FDGWT fold 1: decoys 50261, t -73.72, beta 122.06, -logS(t) 4.60
+raw02 D11FDGWT fold 2: decoys 50869, t 160.73, beta 126.36, -logS(t) 4.60
+raw02 D11FDGWT window choice unchanged: True
+raw02 D11FDIWT fold 0: decoys 50758, t -433.44, beta 135.30, -logS(t) 4.60
+raw02 D11FDIWT fold 1: decoys 50261, t -234.22, beta 146.08, -logS(t) 4.60
+raw02 D11FDIWT fold 2: decoys 50869, t -135.06, beta 126.42, -logS(t) 4.60
+raw02 D11FDIWT window choice unchanged: True
+raw02 D11FDAGIWT fold 0: decoys 50758, t -193.33, beta 138.80, -logS(t) 4.60
+raw02 D11FDAGIWT fold 1: decoys 50261, t -236.08, beta 150.03, -logS(t) 4.60
+raw02 D11FDAGIWT fold 2: decoys 50869, t -278.63, beta 154.05, -logS(t) 4.60
+raw02 D11FDAGIWT window choice unchanged: True

@@ -1,0 +1,43 @@
+raw01 D11FD fold 0: r0 4830 8 ep crit 2538.581 | r1 pos 1377 neg 108983 30 ep crit 4990.741 | r2 pos 1326 neg 108983 26 ep crit 4944.186 (8 s)
+raw01 D11FD fold 1: r0 4784 10 ep crit 2848.976 | r1 pos 1347 neg 109683 29 ep crit 4601.119 | r2 pos 1342 neg 109683 20 ep crit 3945.912 (14 s)
+raw01 D11FD fold 2: r0 4788 30 ep crit 7633.427 | r1 pos 1415 neg 109128 30 ep crit 3955.370 | r2 pos 1400 neg 109128 30 ep crit 4472.475 (23 s)
+raw01 D11FD done in 23 s
+raw01 D11FDA fold 0: r0 4830 26 ep crit 7593.088 | r1 pos 1565 neg 108983 30 ep crit 4813.194 | r2 pos 1477 neg 108983 30 ep crit 5737.439 (9 s)
+raw01 D11FDA fold 1: r0 4784 14 ep crit 6587.875 | r1 pos 1503 neg 109683 16 ep crit 3454.133 | r2 pos 1448 neg 109683 16 ep crit 3993.116 (15 s)
+raw01 D11FDA fold 2: r0 4788 30 ep crit 7544.727 | r1 pos 1437 neg 109128 25 ep crit 3816.542 | r2 pos 1410 neg 109128 29 ep crit 4802.781 (23 s)
+raw01 D11FDA done in 23 s
+raw01 D11FDG fold 0: r0 4830 17 ep crit 3035.233 | r1 pos 1518 neg 108983 30 ep crit 3754.730 | r2 pos 1412 neg 108983 24 ep crit 4529.065 (8 s)
+raw01 D11FDG fold 1: r0 4784 10 ep crit 2266.430 | r1 pos 1354 neg 109683 27 ep crit 4308.302 | r2 pos 1335 neg 109683 23 ep crit 4798.639 (14 s)
+raw01 D11FDG fold 2: r0 4788 29 ep crit 6868.096 | r1 pos 1372 neg 109128 30 ep crit 4055.777 | r2 pos 1411 neg 109128 24 ep crit 4636.789 (23 s)
+raw01 D11FDG done in 23 s
+raw01 D11FDI fold 0: r0 4830 16 ep crit 2893.147 | r1 pos 1496 neg 108983 30 ep crit 4078.625 | r2 pos 1416 neg 108983 27 ep crit 4893.932 (8 s)
+raw01 D11FDI fold 1: r0 4784 10 ep crit 2441.648 | r1 pos 1458 neg 109683 26 ep crit 3937.353 | r2 pos 1409 neg 109683 25 ep crit 6216.063 (15 s)
+raw01 D11FDI fold 2: r0 4788 26 ep crit 7212.336 | r1 pos 1417 neg 109128 30 ep crit 4550.387 | r2 pos 1453 neg 109128 30 ep crit 4939.769 (24 s)
+raw01 D11FDI done in 24 s
+raw01 D11FDAGI fold 0: r0 4830 17 ep crit 5964.658 | r1 pos 1601 neg 108983 30 ep crit 4499.417 | r2 pos 1514 neg 108983 30 ep crit 5354.954 (9 s)
+raw01 D11FDAGI fold 1: r0 4784 14 ep crit 4479.502 | r1 pos 1487 neg 109683 30 ep crit 5241.230 | r2 pos 1496 neg 109683 30 ep crit 5707.655 (17 s)
+raw01 D11FDAGI fold 2: r0 4788 30 ep crit 7120.046 | r1 pos 1501 neg 109128 30 ep crit 5003.644 | r2 pos 1525 neg 109128 30 ep crit 5297.667 (27 s)
+raw01 D11FDAGI done in 27 s
+	Command being timed: "/home/singjc/.jcode/scratch/torchenv/.venv/bin/python /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/pairlib-20261113/scripts_gap/train_gap.py raw01 D11FD D11FDA D11FDG D11FDI D11FDAGI"
+	User time (seconds): 1103.25
+	System time (seconds): 7.09
+	Percent of CPU this job got: 901%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:03.22
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 3313428
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 904
+	Minor (reclaiming a frame) page faults: 1258154
+	Voluntary context switches: 7761
+	Involuntary context switches: 1933
+	Swaps: 0
+	File system inputs: 157534
+	File system outputs: 8
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

@@ -1,0 +1,27 @@
+raw02: 1503845 windows, 300 isolation windows, tolerance 6.93 ppm, arrays read (8 s)
+directed links 51139970 (58 s)
+links after one window per claimant precursor 48170009; windows with a claimant 1348312 of 1503845
+raw02 featI (1503845, 4) finite True share explained > 0 0.807 p50/p90/p99 [[0.303, 0.892, 1.0], [0.482, 0.683, 0.82], [-0.013, 0.049, 0.233], [2.485, 4.564, 5.1]] (107 s)
+	Command being timed: "/home/singjc/.jcode/scratch/torchenv/.venv/bin/python /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/pairlib-20261113/scripts_gap/features_I.py raw02 /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/pairlib-20261113 /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/pairlib-20261113/lib12/library12_pop.pqp /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/pairlib-20261113/iso_windows.tsv /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/pairlib-20261113/raw02/pipeline/search.features.tsv"
+	User time (seconds): 92.90
+	System time (seconds): 14.95
+	Percent of CPU this job got: 100%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:47.68
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 9835132
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 2050496
+	Voluntary context switches: 138
+	Involuntary context switches: 189
+	Swaps: 0
+	File system inputs: 340
+	File system outputs: 181176
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
