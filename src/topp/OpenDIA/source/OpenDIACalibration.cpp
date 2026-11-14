@@ -1308,7 +1308,80 @@ namespace OpenMS::OpenDIA
     result.rt_p50_s = quantile_(rt_residuals, 0.50);
     result.rt_p95_s = quantile_(rt_residuals, 0.95);
     result.rt_p99_s = quantile_(rt_residuals, 0.99);
-    result.rt_tolerance_s = options_.rt_sigma_multiple * result.rt_map.sigma;
+    // The anchors were chosen partly for a small RT residual (stage-3 evidence), so their spread understates the
+    // error of an arbitrary precursor. The RT spread is instead fitted on every stage-3 target winner inside the map's
+    // support, selection-free: their residuals to the final map are a Gaussian (true peaks) plus background, the
+    // background shape taken from the decoy winners' residuals over the same window (same window edges and chance
+    // structure). EM fits the Gaussian's share, offset and width; the tolerance uses that width. Falls back to the
+    // map's cross-validated sigma when the fit has too few points or no signal.
+    {
+      const double hw = result.stage3_half_window_s;
+      std::vector<double> target_residual, decoy_residual;
+      for (std::size_t m = 0; m < panel_.size(); ++m)
+      {
+        if (!present[m] || !rt_informative[m]) continue;
+        if (is_decoy[m])
+        {
+          decoy_residual.push_back(residual[m]);
+          continue;
+        }
+        const double r = best[m].rt - result.rt_map(panel_[m].library_rt);
+        if (std::fabs(r) <= hw) target_residual.push_back(r);
+      }
+      result.rt_spread_s = result.rt_map.sigma;
+      if (hw > 0.0 && target_residual.size() >= 200 && decoy_residual.size() >= 200)
+      {
+        constexpr std::size_t BINS = 40;
+        std::array<double, BINS> background{};
+        for (const double r : decoy_residual)
+        {
+          const auto b = static_cast<std::size_t>(std::clamp((r + hw) / (2.0 * hw) * BINS, 0.0, BINS - 1.0));
+          background[b] += 1.0;
+        }
+        const double bin_width = 2.0 * hw / BINS;
+        for (auto& b : background) b = (b + 1.0) / ((static_cast<double>(decoy_residual.size()) + BINS) * bin_width);
+        double share = 0.3, offset = 0.0, width = hw / 4.0;
+        for (int iteration = 0; iteration < 200; ++iteration)
+        {
+          double sum_r = 0.0, sum_rx = 0.0, sum_rxx = 0.0;
+          for (const double x : target_residual)
+          {
+            const auto b = static_cast<std::size_t>(std::clamp((x + hw) / (2.0 * hw) * BINS, 0.0, BINS - 1.0));
+            const double z = (x - offset) / width;
+            const double g = share * std::exp(-0.5 * z * z) / (width * std::sqrt(2.0 * std::numbers::pi));
+            const double r = g / (g + (1.0 - share) * background[b]);
+            sum_r += r;
+            sum_rx += r * x;
+          }
+          if (sum_r <= 0.0) break;
+          const double next_offset = sum_rx / sum_r;
+          for (const double x : target_residual)
+          {
+            const auto b = static_cast<std::size_t>(std::clamp((x + hw) / (2.0 * hw) * BINS, 0.0, BINS - 1.0));
+            const double z = (x - offset) / width;
+            const double g = share * std::exp(-0.5 * z * z) / (width * std::sqrt(2.0 * std::numbers::pi));
+            const double r = g / (g + (1.0 - share) * background[b]);
+            sum_rxx += r * (x - next_offset) * (x - next_offset);
+          }
+          const double next_width = std::sqrt(sum_rxx / sum_r);
+          const double next_share = sum_r / static_cast<double>(target_residual.size());
+          const bool done = std::fabs(next_width - width) < 1e-4 && std::fabs(next_offset - offset) < 1e-4;
+          share = next_share;
+          offset = next_offset;
+          width = next_width;
+          if (done || !(width > 0.0)) break;
+        }
+        // Accept a fit with signal (at least 20 peaks' worth) and a width inside the window.
+        if (width > 0.0 && width < hw && share * static_cast<double>(target_residual.size()) >= 20.0)
+        {
+          result.rt_spread_s = width;
+          result.rt_spread_offset_s = offset;
+          result.rt_spread_share = share;
+          result.rt_spread_points = target_residual.size();
+        }
+      }
+    }
+    result.rt_tolerance_s = options_.rt_sigma_multiple * result.rt_spread_s;
     result.ms2_points = ppm_values.size();
     if (ppm_values.size() >= 50)
     {
@@ -1448,6 +1521,8 @@ namespace OpenMS::OpenDIA
     slope(r.rt_map.high_slope);
     out << ", \"anchors_used\": " << r.rt_map.anchors << ", \"sigma_s\": " << r.rt_map.sigma << ", \"abs_residual_p50_s\": " << r.rt_p50_s
         << ", \"abs_residual_p95_s\": " << r.rt_p95_s << ", \"abs_residual_p99_s\": " << r.rt_p99_s
+        << ", \"spread_s\": " << r.rt_spread_s << ", \"spread_offset_s\": " << r.rt_spread_offset_s
+        << ", \"spread_signal_share\": " << r.rt_spread_share << ", \"spread_points\": " << r.rt_spread_points
         << ", \"tolerance_half_width_s\": " << r.rt_tolerance_s << "},\n"
         << "  \"ms2_mz\": {\"offset_ppm\": " << r.ms2_offset_ppm << ", \"sigma_ppm\": " << r.ms2_sigma_ppm
         << ", \"tolerance_half_width_ppm\": " << r.ms2_tolerance_ppm << ", \"points\": " << r.ms2_points

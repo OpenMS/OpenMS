@@ -126,7 +126,14 @@ namespace OpenMS::OpenDIA
     // Final models.
     RTMap rt_map;
     double rt_p50_s = 0.0, rt_p95_s = 0.0, rt_p99_s = 0.0;
-    double rt_tolerance_s = 0.0; ///< Half width, rt_sigma_multiple x rt_map.sigma.
+    /// RT error of an arbitrary precursor: the Gaussian width of a signal-plus-background fit to all stage-3 target
+    /// winners' residuals to rt_map (background shape from the decoy winners). Not selected for small residuals, unlike
+    /// the anchors behind rt_map.sigma. Equals rt_map.sigma when the fit is not possible.
+    double rt_spread_s = 0.0;
+    double rt_spread_offset_s = 0.0; ///< Offset of that Gaussian from rt_map (0 when not fitted).
+    double rt_spread_share = 0.0; ///< Share of the target winners in the Gaussian (0 when not fitted).
+    std::size_t rt_spread_points = 0; ///< Target winners in the fit (0 when not fitted).
+    double rt_tolerance_s = 0.0; ///< Half width, rt_sigma_multiple x rt_spread_s.
     double ms2_offset_ppm = 0.0, ms2_sigma_ppm = 0.0, ms2_tolerance_ppm = 0.0;
     MassToleranceFit ms2_fit; ///< Model behind ms2_tolerance_ppm.
     std::size_t ms2_points = 0;

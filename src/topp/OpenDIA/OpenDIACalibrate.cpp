@@ -204,7 +204,8 @@ namespace OpenMS
                     " stage1_anchors=" + std::to_string(result.stage1_targets) + " (decoys above cut " + std::to_string(result.stage1_decoys) + ")" +
                     " em_iterations=" + std::to_string(result.em_iterations) + (result.em_converged ? " converged" : " NOT converged") +
                     " em_peak_responsibility=" + std::to_string(result.em_presence) + " anchors=" + std::to_string(result.anchor_targets) +
-                    " rt_sigma_s=" + std::to_string(result.rt_map.sigma) + " rt_tolerance_s=" + std::to_string(result.rt_tolerance_s) +
+                    " rt_sigma_s=" + std::to_string(result.rt_map.sigma) + " rt_spread_s=" + std::to_string(result.rt_spread_s) +
+                    " rt_tolerance_s=" + std::to_string(result.rt_tolerance_s) +
                     " ms2_offset_ppm=" + std::to_string(result.ms2_offset_ppm) + " ms2_tolerance_ppm=" + std::to_string(result.ms2_tolerance_ppm) +
                     (result.has_im ? " im_offset_at_1=" + std::to_string(result.runIM(1.0) - 1.0) + " im_tolerance=" + std::to_string(result.im_tolerance)
                                    : std::string(" im=unavailable")) +
