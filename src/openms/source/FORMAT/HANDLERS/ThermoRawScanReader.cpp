@@ -229,21 +229,35 @@ namespace
 
   /**
     Typed view of one scan header for the precursor parser. Trailer values are the
-    vendor-formatted strings (ReadOptions::trailer_text) paired with the labels of the
-    file's trailer layout; reaction values that are not finite stay unset.
+    vendor-formatted strings (ReadOptions::trailer_text); reaction values that are not finite stay unset.
+
+    The values come from RawFileReader's GetTrailerExtraInformation(), which lists only the trailer
+    fields that apply to the scan. Usually these are all fields of the file's trailer layout, in
+    layout order, and the values are paired with the layout labels. Some instruments leave fields
+    out (Orbitrap Ascend: a control-character label, 'Source CID Compensation Factor:', 'SPS Masses:'
+    and others in MS2 scans, also 'Charge State:' and 'Monoisotopic M/Z:' in MS1 scans). Then there
+    are fewer values than layout labels, and pairing them by position would give every label after
+    the first missing field the value of another field. The labels of such a scan are taken from the
+    same vendor call instead (RawFile::trailer_extra_labels()), as ThermoRawFileParser and msconvert do.
   */
-  void toThermoScan(const tb::ScanHeader& header, const tb::TrailerLayout& layout, ThermoScan& scan)
+  void toThermoScan(const tb::ScanHeader& header, const tb::RawFile& raw, ThermoScan& scan)
   {
     scan.scan_number = header.scan_number;
     scan.ms_level = header.ms_level();
     scan.filter = header.filter;
     scan.native_id = header.native_id();
-    const Size entries = std::min(layout.labels.size(), header.trailer_text.size());
-    scan.trailer.resize(entries);
-    for (Size i = 0; i < entries; ++i)
+    const std::vector<std::string>& values = header.trailer_text;
+    const tb::TrailerLayout& layout = raw.trailer_layout();
+    const bool layout_order = values.size() == layout.labels.size();
+    std::vector<std::string> labels; // labels of the values, only needed if they are not the layout labels
+    if (! layout_order && ! values.empty()) { labels = raw.trailer_extra_labels(header.scan_number); }
+    // Labels and values come from the same vendor call, so their numbers agree; never mislabel values if not.
+    const bool paired = layout_order || labels.size() == values.size();
+    scan.trailer.resize(paired ? values.size() : 0);
+    for (Size i = 0; i < scan.trailer.size(); ++i)
     {
-      scan.trailer[i].label = layout.labels[i].label;
-      scan.trailer[i].value = header.trailer_text[i];
+      scan.trailer[i].label = layout_order ? layout.labels[i].label : labels[i];
+      scan.trailer[i].value = values[i];
     }
     scan.reactions.clear();
     for (const auto& reaction : header.reactions)
@@ -911,7 +925,7 @@ const ThermoRawScanReader::ScanInfo& ThermoRawScanReader::header(int scan, bool 
     d.header_has_peaks = with_peaks;
   }
   const tb::ScanHeader& h = d.header_read.header;
-  toThermoScan(h, d.raw->trailer_layout(), d.scan);
+  toThermoScan(h, *d.raw, d.scan);
   d.order = tb::ms_order_name(h.ms_order);
   d.neutral = h.ms_order == tb::MsOrder::Nl || h.ms_order == tb::MsOrder::Ng;
   // The precursor parser has to see every scan in acquisition order, also those that are not converted.
@@ -954,7 +968,7 @@ void ThermoRawScanReader::scanHeaders(int first, int last, bool precursors, cons
       info.precursor_mz = std::numeric_limits<double>::quiet_NaN();
       if (precursors && h.ms_order != tb::MsOrder::Nl && h.ms_order != tb::MsOrder::Ng)
       {
-        toThermoScan(h, d.raw->trailer_layout(), parsed);
+        toThermoScan(h, *d.raw, parsed);
         const auto resolved = parser.precursors(parsed);
         if (! resolved.empty()) { info.precursor_mz = resolved.front().selected_mz; }
       }
@@ -1069,7 +1083,7 @@ void ThermoRawScanReader::Accessor::convert(const ScanRecord& record, MSSpectrum
   read.noise = peaks && read.noise;
   read.trailer_text = true;
   d.raw.read_scan(record.info.scan, d.read, read);
-  toThermoScan(d.read.header, d.raw.trailer_layout(), d.parsed);
+  toThermoScan(d.read.header, d.raw, d.parsed);
   convertScan(d.converter, record.info.scan, d.read.header, d.parsed, record.precursors, record.configuration_id, d.first_seen,
               [&d](int parent_scan) -> const MSSpectrum& { return d.parent(parent_scan); }, peaks ? &d.read : nullptr, spectrum);
 }
