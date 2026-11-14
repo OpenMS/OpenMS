@@ -767,17 +767,27 @@ namespace OpenMS
     defaults_.setValue("calibration:recalibrate", "none",
       "Correct the m/z of the spectra by the mass errors the calibration pass measures, before the main search: "
       "'offset' subtracts the median error, 'linear' a line in m/z fitted to the errors (precursor errors against "
-      "the precursor m/z, fragment errors against the fragment m/z), each per retention-time chunk "
-      "(calibration:recalibrate_rt_chunks) and interpolated between the chunks; a chunk of the precursor model whose "
-      "calibration PSMs are mostly false matches (more than a quarter of them decoy hits) takes the model of its "
-      "neighbours. The precursor m/z and the fragment "
+      "the precursor m/z, fragment errors against the fragment m/z), 'curve' a cubic polynomial in the square root of "
+      "the fragment m/z, fitted to all peaks within 150 ppm of the fragments of the calibration PSMs (for data whose "
+      "fragment error varies with m/z by more than the tolerance, e.g. a time-of-flight calibration with too few "
+      "terms; with a ppm fragment tolerance and the peaks as measured only (fragment:query_spectrum raw, which 'auto' "
+      "is for high-resolution fragments), otherwise the line; the precursor m/z is corrected as with 'offset'; the "
+      "curve is measured on the peaks as measured and subtracted from each peak at the m/z it was measured at, a "
+      "charge-reduced one before its charge reduction; a sample of about 10000 calibration spectra gives a first curve, "
+      "then all of them are scored again as corrected by the last curve and the curve is fitted again, until it moves "
+      "by at most 2 ppm where the fragments are (95th percentile), at most three passes; the curve is applied to the "
+      "searched spectra once, at the end), each "
+      "per retention-time chunk "
+      "(calibration:recalibrate_rt_chunks) and interpolated between the chunks (the fragment curve: one per run); a chunk "
+      "of the precursor model whose calibration PSMs are mostly false matches (more than a quarter of them decoy hits) "
+      "takes the model of its neighbours. The precursor m/z and the fragment "
       "peaks of the searched MS2 spectra are corrected in place (the candidate retrieval, the scoring and the PSMs' "
       "mass errors use the corrected values; a PeakMap passed to the library is corrected too); the PSMs report the "
-      "observed precursor m/z and their fragment annotations the observed peak m/z. The windows are then derived from "
+      "observed precursor m/z and their fragment annotations the observed peak m/z (with 'curve' the corrected one). The windows are then derived from "
       "the residual errors, with a fragment floor of 5 ppm (0.01 Da) unless calibration:min_fragment_tolerance is set. "
       "The co-isolated precursors of a chimeric search, from the same survey scans, are corrected by the precursor "
       "model. 'none' measures only.");
-    defaults_.setValidStrings("calibration:recalibrate", {"none", "offset", "linear"});
+    defaults_.setValidStrings("calibration:recalibrate", {"none", "offset", "linear", "curve"});
     defaults_.setValue("calibration:recalibrate_rt_chunks", 1,
       "Retention-time chunks of the recalibration models (calibration:recalibrate): the calibration PSMs are split in "
       "acquisition order into this many groups of equal size (fewer when a group would hold less than "
@@ -1238,7 +1248,8 @@ namespace OpenMS
     PeakMap evidence_spectra, query_spectra;
     PeakMap* query_ptr = query_raw_spectrum_ ? &query_spectra : nullptr;
     PeakMap* evidence_ptr = param_.getValue("annotate:local_fragment_evidence").toBool() ? &evidence_spectra : nullptr;
-    preprocessSearchedSpectra_(spectra, "", ion_evidence, evidence_ptr, query_ptr);
+    PeakCharges_ peak_charges; // calibration:recalibrate curve: the correction in place (applyRecalibration_())
+    preprocessSearchedSpectra_(spectra, "", ion_evidence, evidence_ptr, query_ptr, &peak_charges);
     endProgress();
 
     // ions:by_activation: electron-activated spectra are also scored with c and z+1 ions, so the
@@ -1314,7 +1325,7 @@ namespace OpenMS
       {
         OnScopeExit end_progress([this]() { endProgress(); }); // also when the calibration loop rethrows
         last_calibration_result_ = runCalibrationPass_(spectra, fragment_index_, db, query_ptr,
-          ctx.have_decoys ? ctx.decoy_string : std::string(), ctx.decoy_is_prefix);
+          ctx.have_decoys ? ctx.decoy_string : std::string(), ctx.decoy_is_prefix, &peak_charges);
       }
       sw_cal.stop();
       last_run_stats_.seconds_calibration = sw_cal.getClockTime();
@@ -1358,7 +1369,7 @@ namespace OpenMS
 
         fragment_index_.setParameters(fi_params);
         fi_params_modified = true;
-        applyRecalibration_(cal, spectra, query_ptr, evidence_ptr);
+        applyRecalibration_(cal, spectra, query_ptr, evidence_ptr, &ion_evidence, &peak_charges);
       }
     }
 
@@ -2098,13 +2109,14 @@ namespace OpenMS
       const bool retain_evidence = param_.getValue("annotate:local_fragment_evidence").toBool();
       std::vector<PeakMap> all_evidence_spectra(retain_evidence ? in_spectra_files.size() : 0);
       std::vector<PeakMap> all_query_spectra(query_raw_spectrum_ ? in_spectra_files.size() : 0);
+      std::vector<PeakCharges_> all_peak_charges(in_spectra_files.size()); // calibration:recalibrate curve
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         OPENMS_LOG_INFO << "[ProSE] Loading " << in_spectra_files[i] << std::endl;
         all_spectra[i] = next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra_locations[i], readerThreads(false), nullptr, 0, chimericSearch_());
         preprocessSearchedSpectra_(all_spectra[i], in_spectra_files[i], all_ion_evidence[i],
                                    retain_evidence ? &all_evidence_spectra[i] : nullptr,
-                                   query_raw_spectrum_ ? &all_query_spectra[i] : nullptr);
+                                   query_raw_spectrum_ ? &all_query_spectra[i] : nullptr, &all_peak_charges[i]);
       }
 
       // ions:by_activation: the chunk indices, shared by all files, hold c and z+1 ions if any file has
@@ -2162,11 +2174,11 @@ namespace OpenMS
                           << " (strided sample, " << cal_db.size() << " proteins)" << std::endl;
           CalibrationResult_& cal = per_file_result[i];
           cal = runCalibrationPass_(all_spectra[i], cal_fi, cal_db, query_raw_spectrum_ ? &all_query_spectra[i] : nullptr,
-            strategy.have_decoys ? strategy.decoy_string : std::string(), strategy.is_prefix);
+            strategy.have_decoys ? strategy.decoy_string : std::string(), strategy.is_prefix, &all_peak_charges[i]);
           if (cal.success)
           {
             applyRecalibration_(cal, all_spectra[i], query_raw_spectrum_ ? &all_query_spectra[i] : nullptr,
-                                retain_evidence ? &all_evidence_spectra[i] : nullptr);
+                                retain_evidence ? &all_evidence_spectra[i] : nullptr, &all_ion_evidence[i], &all_peak_charges[i]);
             per_file_cal[i].effective_fragment_tol = cal.fragment_tolerance;
             if (!cal.extreme_bias)
             {
