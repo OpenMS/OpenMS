@@ -24,7 +24,7 @@ include(source/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
 
 #------------------------------------------------------------------------------
 # add the library
-openms_add_library(TARGET_NAME OpenSwathAlgo
+openms_add_library(PACKAGE_VERSION TARGET_NAME OpenSwathAlgo
                    SOURCE_FILES ${OpenSwathAlgoFiles}
                    HEADER_FILES ${OpenSwathAlgoHeaders}
                    BASE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include

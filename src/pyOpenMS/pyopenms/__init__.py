@@ -21,7 +21,6 @@ Please cite:
 """
 from __future__ import annotations
 
-import glob as _glob
 import os
 import sys
 import warnings
@@ -189,23 +188,18 @@ if sys.platform.startswith("linux"):
     # load local shared libraries before we import pyopenms*.so, else
     # those are not found. setting LD_LIBRARY_PATH does not work,
     # see: http://stackoverflow.com/questions/1178094
-    _openms_libs = sorted(_glob.glob(os.path.join(here, "libOpenMS.so.*")))
-    if len(_openms_libs) > 1:
-        raise ImportError(
-            "Multiple libOpenMS.so.* found (stale build tree?): "
-            + ", ".join(os.path.basename(p) for p in _openms_libs)
-        )
-    _openms_lib = _openms_libs[0] if _openms_libs else os.path.join(here, "libOpenMS.so")
+    from ._library_names import OPENMS_LIBRARY, OPENSWATH_LIBRARY
+    _openms_lib = os.path.join(here, OPENMS_LIBRARY)
     if os.path.exists(_openms_lib):
-        _suffix = _openms_lib[len(os.path.join(here, "libOpenMS.so")):]
-        _openswath_lib = os.path.join(here, "libOpenSwathAlgo.so" + _suffix)
+        _openswath_lib = os.path.join(here, OPENSWATH_LIBRARY)
         if not os.path.exists(_openswath_lib):
-            _openswath_lib = os.path.join(here, "libOpenSwathAlgo.so")
+            raise ImportError("Missing matching OpenSwathAlgo library: " + _openswath_lib)
         import ctypes
         ctypes.cdll.LoadLibrary(_openswath_lib)
         ctypes.cdll.LoadLibrary(_openms_lib)
-        del _suffix, _openswath_lib
-    del _openms_libs, _openms_lib
+        del _openswath_lib
+    del OPENMS_LIBRARY, OPENSWATH_LIBRARY, _openms_lib
+
 
 
 # On Windows, Python >= 3.8 no longer uses PATH to resolve an extension module's

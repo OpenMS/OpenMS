@@ -638,6 +638,9 @@ else()
   # was never actually built (#10141).
   _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.py" "${PYOPENMS_BUILD_DIR}/pyopenms/")
 
+  file(GENERATE OUTPUT "${PYOPENMS_BUILD_DIR}/pyopenms/_library_names.py"
+    CONTENT "OPENMS_LIBRARY = '$<TARGET_FILE_NAME:${OPENMS_TARGET}>'\nOPENSWATH_LIBRARY = '$<TARGET_FILE_NAME:${OPENSWATHALGO_TARGET}>'\n")
+
   # Addon files
   _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/addons/" "*.py" "${PYOPENMS_BUILD_DIR}/pyopenms/addons/")
 
@@ -853,10 +856,12 @@ else()
     set(PYOPENMS_DEPENDENCIES ${OPENMS_TARGET} ${OPENSWATHALGO_TARGET})
 
     # Step 1: Copy main OpenMS libraries (all platforms)
-    # On Linux, remove old versioned .so files first to prevent stale libraries
-    # from coexisting after a version bump in a reused build tree.
+    # Remove stale libraries while preserving current copies for incremental builds.
     add_custom_target(pyopenms_copy_deps ALL
-      COMMAND ${CMAKE_COMMAND} -DDIR="${PYOPENMS_BUILD_DIR}/pyopenms" -P "${PROJECT_SOURCE_DIR}/pyopenms_clean_old_libs.cmake"
+      COMMAND ${CMAKE_COMMAND} "-DDIR=${PYOPENMS_BUILD_DIR}/pyopenms"
+        "-DCURRENT_OPENMS=$<TARGET_FILE_NAME:${OPENMS_TARGET}>"
+        "-DCURRENT_SWATH=$<TARGET_FILE_NAME:${OPENSWATHALGO_TARGET}>"
+        -P "${PROJECT_SOURCE_DIR}/pyopenms_clean_old_libs.cmake"
       COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${OPENMS_TARGET}> "${PYOPENMS_BUILD_DIR}/pyopenms/"
       COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${OPENSWATHALGO_TARGET}> "${PYOPENMS_BUILD_DIR}/pyopenms/"
       COMMENT "Copying OpenMS dependencies to build dir"

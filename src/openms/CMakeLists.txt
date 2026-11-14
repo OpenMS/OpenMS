@@ -306,7 +306,7 @@ if (WITH_CRAWDAD) ## TODO check if still necessary
   list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
 endif()
 
-openms_add_library(TARGET_NAME  OpenMS
+openms_add_library(PACKAGE_VERSION TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}
                    HEADER_FILES  ${OpenMS_sources_h}
                                  ${OpenMS_configured_headers}

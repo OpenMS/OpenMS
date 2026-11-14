@@ -44,6 +44,7 @@ elseif(BAD_HEADER STREQUAL "unlisted")
   list(APPEND _headers "${CMAKE_CURRENT_BINARY_DIR}/include/OpenMS/bad.h")
 endif()
 
+set(OPENMS_PACKAGE_VERSION 3.7.0)
 openms_add_library(TARGET_NAME OpenMSHeaderProbe
   SOURCE_FILES probe.cpp
   HEADER_FILES ${_headers}

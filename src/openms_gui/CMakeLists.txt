@@ -25,7 +25,7 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 # add the library: the GUI layer of the installed package (export set
 # OpenMSGUITargets, install components library_gui and cmake_gui, headers in
 # OpenMS_GUI_headers); it links the CLI layer, which links the core layer.
-openms_add_library(TARGET_NAME OpenMS_GUI
+openms_add_library(PACKAGE_VERSION TARGET_NAME OpenMS_GUI
                    SOURCE_FILES ${OpenMSVisual_sources}
                    HEADER_FILES ${OpenMSVisual_sources_h}
                    BASE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include

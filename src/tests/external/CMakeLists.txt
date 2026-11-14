@@ -127,14 +127,15 @@ if(UNIX)
   foreach(_target IN LISTS _versioned_targets)
     get_target_property(_target_configs ${_target} IMPORTED_CONFIGURATIONS)
     foreach(_config IN LISTS _target_configs)
-      get_target_property(_location ${_target} IMPORTED_LOCATION_${_config})
+      get_target_property(_soname ${_target} IMPORTED_SONAME_${_config})
+      string(REPLACE "OpenMS::" "" _name "${_target}")
       if(APPLE)
-        set(_versioned_library_pattern "[.]${OpenMS_VERSION}[.]dylib$")
+        set(_expected "@rpath/lib${_name}.${OpenMS_VERSION}.dylib")
       else()
-        set(_versioned_library_pattern "[.]so[.]${OpenMS_VERSION}$")
+        set(_expected "lib${_name}.so.${OpenMS_VERSION}")
       endif()
-      if(NOT _location MATCHES "${_versioned_library_pattern}")
-        message(FATAL_ERROR "${_target} is not installed under its versioned library name: ${_location}")
+      if(NOT _soname STREQUAL _expected)
+        message(FATAL_ERROR "${_target} SONAME '${_soname}' differs from '${_expected}'")
       endif()
     endforeach()
   endforeach()
@@ -222,11 +223,14 @@ if(UNIX AND BUILD_TESTING)
     set(_library_path_variable DYLD_LIBRARY_PATH)
   else()
     set(_library_path_variable LD_LIBRARY_PATH)
+    target_link_options(TestExternalCode PRIVATE "LINKER:--enable-new-dtags")
   endif()
+  file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/soname-fallback")
   add_test(NAME TestExternalCode_versioned_soname_fallback
-    COMMAND ${CMAKE_COMMAND} -E env
-      "${_library_path_variable}=$<TARGET_FILE_DIR:ConflictingOpenMS>"
-      "$<TARGET_FILE:TestExternalCode>")
+    COMMAND "$<TARGET_FILE:TestExternalCode>")
+  set_tests_properties(TestExternalCode_versioned_soname_fallback PROPERTIES
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/soname-fallback"
+    ENVIRONMENT_MODIFICATION "${_library_path_variable}=path_list_prepend:$<TARGET_FILE_DIR:ConflictingOpenMS>")
 endif()
 
 ## A WITH_ONNX installation ships the PeptDeep inference classes and their ONNX
