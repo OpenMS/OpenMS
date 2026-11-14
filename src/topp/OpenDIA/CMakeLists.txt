@@ -16,7 +16,6 @@ endif()
 
 add_library(OpenDIA_impl STATIC
   source/OpenDIASearch.cpp
-  source/OpenDIARerank.cpp
   source/OpenDIATraces.cpp
   source/OpenDIARTMap.cpp
   source/OpenDIACalibration.cpp
@@ -24,7 +23,6 @@ add_library(OpenDIA_impl STATIC
   source/OpenDIAStage2.cpp
   source/OpenDIAPeakPicker.cpp
   include/OpenDIASearch.h
-  include/OpenDIARerank.h
   include/OpenDIATraces.h
   include/OpenDIARTMap.h
   include/OpenDIACalibration.h
@@ -48,18 +46,6 @@ if(COMMAND openms_add_executable_compiler_flags)
   openms_add_executable_compiler_flags(OpenDIA)
 endif()
 
-add_executable(OpenDIARerank OpenDIARerank.cpp)
-target_link_libraries(OpenDIARerank PRIVATE OpenDIA_impl)
-if(COMMAND openms_add_executable_compiler_flags)
-  openms_add_executable_compiler_flags(OpenDIARerank)
-endif()
-
-add_executable(OpenDIATraces OpenDIATraces.cpp)
-target_link_libraries(OpenDIATraces PRIVATE OpenDIA_impl)
-if(COMMAND openms_add_executable_compiler_flags)
-  openms_add_executable_compiler_flags(OpenDIATraces)
-endif()
-
 add_executable(OpenDIACalibrate OpenDIACalibrate.cpp)
 target_link_libraries(OpenDIACalibrate PRIVATE OpenDIA_impl)
 if(COMMAND openms_add_executable_compiler_flags)
@@ -75,8 +61,7 @@ if(OPENDIA_WITH_TORCH)
   endif()
   separate_arguments(_opendia_torch_flags NATIVE_COMMAND "${TORCH_CXX_FLAGS}")
   add_library(OpenDIA_cnn STATIC source/OpenDIACNN.cpp include/OpenDIACNN.h
-    source/OpenDIACNNQValues.cpp include/OpenDIACNNQValues.h
-    source/OpenDIACNNRTWindow.cpp include/OpenDIACNNRTWindow.h)
+    source/OpenDIACNNQValues.cpp include/OpenDIACNNQValues.h)
   target_compile_features(OpenDIA_cnn PUBLIC cxx_std_17)
   target_include_directories(OpenDIA_cnn PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
   target_compile_options(OpenDIA_cnn PRIVATE ${_opendia_torch_flags})

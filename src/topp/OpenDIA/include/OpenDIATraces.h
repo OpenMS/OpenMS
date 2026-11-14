@@ -44,10 +44,6 @@ namespace OpenMS::OpenDIA
     double ms1_weight = 0.0;           ///< Sum of MS1 monoisotope intensity, core window.
     double ms2_ppm_sum = 0.0;          ///< Sum of intensity x signed ppm over fragments, core window.
     double ms2_weight = 0.0;           ///< Sum of fragment intensity, core window.
-    /// MS1 intensity summed over the core window at M-1/z (index 0, overlap probe) and M+0..M+3 (indices 1..4).
-    std::array<float, 5> ms1_isotope_core{};
-    /// MS1 trace per RT bin of the first and second isotope (M+1, M+2).
-    std::array<std::array<float, RT_BINS>, 2> ms1_isotope_traces{};
     /// With TraceCollector::enableByIonCounts(): |RT - apex| of the isolating MS2 spectrum the counts below come from.
     float byion_apex_dt = std::numeric_limits<float>::infinity();
     std::uint16_t byion_b = 0;         ///< Matched singly charged b ions in the isolating MS2 spectrum nearest the apex.
@@ -90,11 +86,6 @@ namespace OpenMS::OpenDIA
     void setExpectedSize(std::size_t, std::size_t) override;
     void setExperimentalSettings(const ExperimentalSettings&) override;
 
-    /** @brief Write little-endian float32 NumPy tensors and matching sample metadata.
-      @param[in] prefix Output prefix for .traces.npy, .samples.tsv and .geometry.json.
-    */
-    void store(const std::string& prefix) const;
-
     /**
       @brief Stored raw tensor in sample, fragment, RT, mobility order, also consumed directly by the native CNN.
 
@@ -114,11 +105,6 @@ namespace OpenMS::OpenDIA
       @return A pointer into the stored tensor, or into @p buffer.
     */
     const float* windowTensor(std::size_t i, std::array<float, SAMPLE_SIZE>& buffer) const;
-    /**
-      @brief Replace window i (full [6,32,8] layout), only for in-place experimental corrections after the read.
-      @throws Exception::InvalidParameter if imBins() == 1 and a non-central mobility bin is nonzero.
-    */
-    void setWindowTensor(std::size_t i, const float* window);
     /// Whether sample i contains compatible, library-centred mobility measurements.
     bool hasIM(std::size_t i) const { return samples_.at(i).has_im; }
     /// Candidate identity and explicit seed label, never network inputs.

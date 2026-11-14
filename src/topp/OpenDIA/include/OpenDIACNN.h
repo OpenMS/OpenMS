@@ -10,7 +10,6 @@
 
 #include <array>
 #include <cstddef>
-#include <functional>
 #include <string>
 #include <vector>
 
@@ -42,10 +41,6 @@ namespace OpenMS::OpenDIA
     bool has_im = false;
     std::array<double, 6> library_intensities{};
     std::array<double, 6> fragment_mz{};
-    /// TOPAZ only: whether the MS1 traces of this sample were observed (any MS1 spectrum in its RT window).
-    bool has_ms1 = false;
-    /// TOPAZ multiple-instance training only: candidates sharing a bag ID (precursor) form one bag with one label.
-    std::string bag_id;
   };
 
   /**
@@ -62,29 +57,7 @@ namespace OpenMS::OpenDIA
     /// Stored mobility bins per RT bin: 8, or 1 for the central bin only.
     std::size_t im_bins = 8;
     std::vector<CNNSample> samples;
-    /// TOPAZ only, optional: non-owning float32 [samples,3,32] MS1 traces (M+0, M+1, M+2) over the same RT bins.
-    const float* ms1 = nullptr;
-    std::size_t ms1_count = 0;
-    /// TOPAZ only, optional: non-owning float32 [samples, feature_dim] heuristic features, standardised by the caller.
-    /// They enter the TOPAZ head next to the trace embeddings (as in redeem's CandidateScorer).
-    const float* features = nullptr;
-    std::size_t feature_dim = 0;
-    /// TOPAZ augmentation only, optional: writes all feature_dim standardised columns for an augmented [6,32,8] window
-    /// built from sample `sample`. Only the columns marked in `recomputable` are kept; the others are set to 0.
-    std::function<void(const float* window, std::size_t sample, float* features)> recompute_features;
-    std::vector<bool> recomputable; ///< Size feature_dim when recompute_features is set.
   };
-
-  /**
-    @brief Network architecture.
-
-    GRID2D is the original 6141-parameter 2D CNN over the [6,32,8] RT x IM grid.
-    TOPAZ follows redeem's TOPAZ scorer: 1D convolutional branches over the fragment XIC
-    (IM summed), the MS1 isotope traces and the fragment mobilogram (core RT bins summed),
-    each with an explicit co-elution head, fused by an MLP. The MS1 and mobilogram branch
-    outputs are multiplied by has_ms1 and has_im, so a run without them adds exactly zero.
-  */
-  enum class CNNArchitecture { GRID2D, TOPAZ };
 
   /**
     @brief Deterministic CPU training options for the fixed 6141-parameter CNN.
@@ -98,38 +71,6 @@ namespace OpenMS::OpenDIA
     int batch_size = 32;
     int outer_folds = 0; ///< Zero for the original split, otherwise 2..10 outer family folds.
     int heldout_fold = -1; ///< Outer fold excluded from both fitting and early stopping.
-    CNNArchitecture architecture = CNNArchitecture::GRID2D;
-    /// TOPAZ only: masked-max multiple-instance training over bag_id bags instead of per-window labels.
-    bool mil = false;
-    int mil_bags_per_epoch = 40000; ///< MIL: training bags drawn per epoch; also the fixed validation subsample size.
-    int topaz_width = 32; ///< TOPAZ only: base width w (conv w-2w-2w, embeddings 2w, MLP 4w-2w); 32 is the TOPAZ layout.
-    double weight_decay = 0.0; ///< TOPAZ only: decoupled (AdamW) weight decay; 0 is plain Adam.
-    /// TOPAZ only: redeem-topaz training defaults. Per-sample block max normalisation of each trace block
-    /// (normalize_max), cosine warm-up LR (5%, floor 0.05), gradient clipping at norm 5, and auxiliary losses
-    /// 0.1 x pairwise positive-negative softplus and, with MIL, 0.1 x in-bag ranking (margin 1). Saved in the checkpoint.
-    bool topaz_faithful = false;
-    /// TOPAZ seed training only (not MIL): each epoch, every training window is replaced with this probability by an
-    /// augmented copy s x window + partner, where the partner is a random decoy window of a training family (real
-    /// background and interference) and s is log-uniform in [augment_scale_min, 1]. MS1 traces are mixed alike. Heuristic
-    /// features are recomputed where recomputable and set to 0 otherwise; with the same probability, unaugmented windows
-    /// get the same feature dropout, so missing features do not mark augmented windows. Both classes are treated alike,
-    /// so the augmentation carries no label; it simulates weaker, interfered signal. 0 disables (the default).
-    double augment_probability = 0.0;
-    double augment_scale_min = 0.1;
-    /// TOPAZ seed training only, experimental: each epoch also trains on this many random unlabeled decoy windows of
-    /// training families as negatives, and validation adds up to as many fixed validation-family decoy windows. The
-    /// positive class is up-weighted (BCE pos_weight = negatives / positives) so the logit scale stays balanced. Decoys
-    /// carry no target evidence, so this uses no extra label information; it exposes the scorer to the decoy tail that
-    /// q depends on. 0 disables (the default).
-    int decoy_negatives = 0;
-    /// With decoy_negatives > 0, experimental: where the extra unlabeled negatives come from. 0 = decoy windows (the
-    /// default), 1 = target windows (absent peptides and non-winning candidates; about 0.1% are true peaks), 2 = both.
-    /// Target-window negatives keep decoy-specific features from separating negatives and positives, so the scorer
-    /// cannot learn decoy-ness that would make decoy-based q anti-conservative.
-    int negative_source = 0;
-    /// TOPAZ only, experimental: replace the 2-hidden-layer scoring MLP by Dropout(0.1) + one linear layer over the
-    /// embeddings, co-elution statistics and heuristic features (LDA-like head capacity). Recorded in the checkpoint.
-    bool topaz_linear_head = false;
   };
 
   /**
@@ -156,8 +97,6 @@ namespace OpenMS::OpenDIA
     int epochs_run = 0;
     double validation_loss = 0;
     double heldout_auc = -1;
-    std::size_t augmented_first_epoch = 0; ///< TOPAZ augmentation: windows augmented in the first epoch.
-    std::size_t decoy_negatives_first_epoch = 0; ///< TOPAZ decoy negatives: extra decoy windows in the first epoch.
   };
 
   /**
@@ -170,9 +109,6 @@ namespace OpenMS::OpenDIA
     With outer_folds enabled, the heldout family fold is excluded from fitting
     and early stopping. Remaining families use the original 60/40 train/validation
     partition. The checkpoint preserves this outer partition contract.
-    With the TOPAZ architecture and outer folds, only held-out rows are scored and
-    the other logits are NaN. MIL training (options.mil) ignores labels and fits
-    one bag per nonempty bag_id (target 1, decoy 0), scored by its best candidate.
 
     @param[in] data Raw windows and metadata, retained by the caller.
     @param[in] geometry Positive finite acquisition sampling geometry.

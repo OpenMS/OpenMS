@@ -291,26 +291,16 @@ namespace OpenMS::OpenDIA
       double ppm_sum = 0.0, weight = 0.0;
       const double mono = sum_window(sample.precursor_mz, ppm_sum, weight);
       evidence.ms1[bin] += static_cast<float>(mono);
-      // Isotope envelope at the precursor charge: M+1 and M+2 traces over the window, M-1 and M+0..M+3 in the core.
-      std::array<double, 5> envelope{};
-      if (sample.precursor_charge > 0)
-      {
-        const double spacing = 1.0033548 / sample.precursor_charge;
-        for (int k = -1; k <= 3; ++k)
-        {
-          if (k == 0) { envelope[1] = mono; continue; }
-          double unused_sum = 0.0, unused_weight = 0.0;
-          envelope[k + 1] = sum_window(sample.precursor_mz + k * spacing, unused_sum, unused_weight);
-        }
-        evidence.ms1_isotope_traces[0][bin] += static_cast<float>(envelope[2]);
-        evidence.ms1_isotope_traces[1][bin] += static_cast<float>(envelope[3]);
-      }
       if (core)
       {
         evidence.ms1_ppm_sum += ppm_sum;
         evidence.ms1_weight += weight;
-        evidence.ms1_isotope += static_cast<float>(envelope[2]);
-        for (std::size_t k = 0; k < envelope.size(); ++k) { evidence.ms1_isotope_core[k] += static_cast<float>(envelope[k]); }
+        // First isotope (M+1) at the precursor charge, summed over the core window.
+        if (sample.precursor_charge > 0)
+        {
+          double unused_sum = 0.0, unused_weight = 0.0;
+          evidence.ms1_isotope += static_cast<float>(sum_window(sample.precursor_mz + 1.0033548 / sample.precursor_charge, unused_sum, unused_weight));
+        }
       }
     }
   }
@@ -453,74 +443,7 @@ namespace OpenMS::OpenDIA
     return buffer.data();
   }
 
-  void TraceCollector::setWindowTensor(std::size_t i, const float* window)
-  {
-    require(i < samples_.size(), "Window index out of range.");
-    if (im_bins_ == IM_BINS)
-    {
-      std::copy_n(window, SAMPLE_SIZE, intensities_.begin() + i * SAMPLE_SIZE);
-      return;
-    }
-    for (std::size_t k = 0; k < FRAGMENTS * RT_BINS; ++k)
-    {
-      for (std::size_t m = 0; m < IM_BINS; ++m)
-      {
-        require(m == IM_BINS / 2 || window[k * IM_BINS + m] == 0.0f, "Window without mobility has signal off the central mobility bin.");
-      }
-      intensities_[i * FRAGMENTS * RT_BINS + k] = window[k * IM_BINS + IM_BINS / 2];
-    }
-  }
-
   void TraceCollector::consumeChromatogram(MSChromatogram&) {}
   void TraceCollector::setExpectedSize(std::size_t, std::size_t) {}
   void TraceCollector::setExperimentalSettings(const ExperimentalSettings&) {}
-
-  void TraceCollector::store(const std::string& prefix) const
-  {
-    require(std::endian::native == std::endian::little && sizeof(float) == 4 && std::numeric_limits<float>::is_iec559,
-            "Raw tensor export requires an IEEE754 little-endian float32 platform.");
-    std::ofstream data(prefix + ".traces.npy", std::ios::binary);
-    std::ofstream metadata(prefix + ".samples.tsv");
-    std::ofstream geometry(prefix + ".geometry.json");
-    require(data.good() && metadata.good() && geometry.good(), "Could not open tensor output prefix: " + prefix);
-    geometry << std::setprecision(17) << "{\"version\":1,\"fragments\":6,\"rt_bins\":32,\"im_bins\":8,"
-             << "\"rt_half_width_seconds\":" << rt_half_width_ << ",\"im_half_width_vssc\":" << im_half_width_
-             << ",\"mz_tolerance_da\":" << mz_tolerance_ << "}\n";
-    // NumPy v1.0: explicit dtype/shape, 16-byte-aligned ASCII header, C-order data.
-    std::string header = "{'descr': '<f4', 'fortran_order': False, 'shape': (" + std::to_string(samples_.size()) +
-                         ", 6, 32, 8), }";
-    header.append((16 - (10 + header.size() + 1) % 16) % 16, ' ');
-    header += '\n';
-    const char magic[] = {'\x93', 'N', 'U', 'M', 'P', 'Y', 1, 0,
-                          static_cast<char>(header.size() & 255), static_cast<char>((header.size() >> 8) & 255)};
-    data.write(magic, sizeof(magic));
-    data << header;
-    // Always the full [N,6,32,8] layout, whatever is stored.
-    std::array<float, SAMPLE_SIZE> buffer;
-    for (std::size_t i = 0; i < samples_.size(); ++i)
-    {
-      data.write(reinterpret_cast<const char*>(windowTensor(i, buffer)), static_cast<std::streamsize>(SAMPLE_SIZE * sizeof(float)));
-    }
-    metadata << "sample_id\tprecursor_id\tgroup_id\tis_decoy\tlabel\trt_apex\thas_im\tlibrary_intensities\tfragment_mz\n"
-             << std::setprecision(17);
-    for (const Sample& sample : samples_)
-    {
-      metadata << sample.window.sample_id << '\t' << sample.window.precursor_id << '\t' << sample.window.group_id << '\t'
-               << sample.is_decoy << '\t' << sample.window.label << '\t' << sample.window.apex_rt << '\t' << sample.has_im << '\t';
-      for (std::size_t i = 0; i < FRAGMENTS; ++i)
-      {
-        metadata << (i ? "," : "") << sample.library_intensity[i];
-      }
-      metadata << '\t';
-      for (std::size_t i = 0; i < FRAGMENTS; ++i)
-      {
-        metadata << (i ? "," : "") << sample.fragment_mz[i];
-      }
-      metadata << '\n';
-    }
-    data.flush();
-    metadata.flush();
-    geometry.flush();
-    require(data.good() && metadata.good() && geometry.good(), "Failed to write raw tensor dataset: " + prefix);
-  }
 }

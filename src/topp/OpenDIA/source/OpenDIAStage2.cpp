@@ -9,8 +9,6 @@
 #include "OpenDIAStage2.h"
 #include "OpenDIAPeakPicker.h"
 
-#include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
 #include <algorithm>
 #include <cmath>
@@ -280,15 +278,15 @@ namespace OpenMS::OpenDIA
 
   Stage2FeatureSet parseStage2FeatureSet(const std::string& name)
   {
-    Stage2FeatureSet set{false, false, false};
+    Stage2FeatureSet set{false, false, false, false};
     const std::string spec = name == "extraction_search" ? std::string("extraction+search") : name;
     std::size_t start = 0;
     while (true)
     {
       const std::size_t plus = spec.find('+', start);
       const std::string group = spec.substr(start, plus == std::string::npos ? std::string::npos : plus - start);
-      bool* flag = group == "extraction" ? &set.extraction : group == "search" ? &set.search : group == "isotope" ? &set.isotope
-                   : group == "boundary" ? &set.boundary : group == "byion" ? &set.byion : group == "shape" ? &set.shape : group == "refine" ? &set.refine : nullptr;
+      bool* flag = group == "extraction" ? &set.extraction : group == "search" ? &set.search
+                   : group == "boundary" ? &set.boundary : group == "byion" ? &set.byion : nullptr;
       if (flag == nullptr || *flag) throw std::invalid_argument("Unknown or repeated second-stage feature group '" + group + "' in " + name);
       *flag = true;
       if (plus == std::string::npos) break;
@@ -319,10 +317,6 @@ namespace OpenMS::OpenDIA
     {
       names.insert(names.end(), stage2SearchFeatureNames().begin(), stage2SearchFeatureNames().end());
     }
-    if (set.isotope)
-    {
-      names.insert(names.end(), stage2IsotopeFeatureNames().begin(), stage2IsotopeFeatureNames().end());
-    }
     if (set.boundary)
     {
       names.insert(names.end(), stage2BoundaryFeatureNames().begin(), stage2BoundaryFeatureNames().end());
@@ -331,391 +325,7 @@ namespace OpenMS::OpenDIA
     {
       names.insert(names.end(), stage2ByIonFeatureNames().begin(), stage2ByIonFeatureNames().end());
     }
-    if (set.shape)
-    {
-      names.insert(names.end(), stage2ShapeFeatureNames().begin(), stage2ShapeFeatureNames().end());
-    }
-    if (set.refine)
-    {
-      names.insert(names.end(), stage2RefineFeatureNames().begin(), stage2RefineFeatureNames().end());
-    }
     return names;
-  }
-
-  namespace
-  {
-    /// Automated transition refinement of one window (see Stage2RefineFeature).
-    struct Refinement
-    {
-      bool ok = false;
-      std::vector<std::size_t> channels;  ///< Non-padding fragment channels.
-      std::vector<double> r;              ///< Pearson r with the median consensus; 0 without signal.
-      std::vector<double> area;           ///< Smoothed area over the refinement range.
-      double best_reference_r = 0.0;      ///< Mean r of the other fragments with the best reference fragment.
-    };
-
-    /// Per-fragment refinement of a picked window over its peak +- REFINE_PAD_BINS (see Stage2RefineFeature).
-    Refinement refinePicked(const PickedWindow& picked)
-    {
-      Refinement out;
-      if (!picked.peak.found) return out;
-      const std::size_t c = picked.channels.size(), n = picked.n;
-      const std::size_t lo = picked.peak.left >= REFINE_PAD_BINS ? picked.peak.left - REFINE_PAD_BINS : 0;
-      const std::size_t hi = std::min(n - 1, picked.peak.right + REFINE_PAD_BINS);
-      const std::size_t span = hi - lo + 1;
-      if (span < 5) return out;
-      // One [1 2 1]/4 smoothing pass over the full scan-bin trace (edges replicated), then unit area over [lo, hi].
-      std::vector<std::vector<double>> norm(c, std::vector<double>(span, 0.0));
-      std::vector<double> area(c, 0.0);
-      std::vector<std::size_t> signal;
-      for (std::size_t k = 0; k < c; ++k)
-      {
-        const float* t = picked.traces.data() + k * n;
-        for (std::size_t s = lo; s <= hi; ++s)
-        {
-          const double prev = t[s > 0 ? s - 1 : s], next = t[s + 1 < n ? s + 1 : s];
-          norm[k][s - lo] = 0.25 * prev + 0.5 * t[s] + 0.25 * next;
-          area[k] += norm[k][s - lo];
-        }
-        if (area[k] > 0.0)
-        {
-          for (auto& v : norm[k]) v /= area[k];
-          signal.push_back(k);
-        }
-      }
-      if (signal.size() < 3) return out;
-      // Consensus shape: the median normalised intensity at every scan bin, robust to a minority of interfered fragments.
-      std::vector<double> consensus(span), column(signal.size());
-      for (std::size_t s = 0; s < span; ++s)
-      {
-        for (std::size_t j = 0; j < signal.size(); ++j) column[j] = norm[signal[j]][s];
-        std::sort(column.begin(), column.end());
-        const std::size_t m = column.size() / 2;
-        consensus[s] = column.size() % 2 ? column[m] : 0.5 * (column[m - 1] + column[m]);
-      }
-      out.r.assign(c, 0.0);
-      for (std::size_t k : signal) out.r[k] = pearson(norm[k], consensus);
-      // Best reference fragment: highest summed correlation with the other fragments with signal (DIA-NN style).
-      std::vector<double> pair(c * c, 0.0);
-      for (std::size_t a = 0; a < signal.size(); ++a)
-      {
-        for (std::size_t b = a + 1; b < signal.size(); ++b)
-        {
-          const double v = pearson(norm[signal[a]], norm[signal[b]]);
-          pair[signal[a] * c + signal[b]] = pair[signal[b] * c + signal[a]] = v;
-        }
-      }
-      double best_sum = -std::numeric_limits<double>::infinity();
-      for (std::size_t k : signal)
-      {
-        double sum = 0.0;
-        for (std::size_t j = 0; j < c; ++j) sum += pair[k * c + j];
-        best_sum = std::max(best_sum, sum);
-      }
-      out.best_reference_r = c > 1 ? best_sum / static_cast<double>(c - 1) : 0.0;
-      out.channels = picked.channels;
-      out.area = std::move(area);
-      out.ok = true;
-      return out;
-    }
-
-    Refinement refineWindow(const float* tensor, const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence)
-    {
-      return refinePicked(pickWindow(tensor, fragment_mz, evidence));
-    }
-
-    /**
-      Re-pick a window's peak group on the fragments that agree with the first pick's median shape (r >= min_r). The
-      traces stay complete: only the peak (apex and boundaries) changes. Unchanged if refinement fails, fewer than two
-      fragments pass, or none is excluded.
-    */
-    PickedWindow repickRefined(PickedWindow picked, double min_r)
-    {
-      const Refinement refined = refinePicked(picked);
-      if (!refined.ok) return picked;
-      const std::size_t n = picked.n;
-      std::vector<float> kept;
-      std::size_t excluded = 0;
-      for (std::size_t k = 0; k < picked.channels.size(); ++k)
-      {
-        if (refined.area[k] > 0.0 && refined.r[k] < min_r)
-        {
-          ++excluded;
-          continue;
-        }
-        kept.insert(kept.end(), picked.traces.begin() + k * n, picked.traces.begin() + (k + 1) * n);
-      }
-      const std::size_t kept_count = kept.size() / n;
-      if (excluded == 0 || kept_count < 2) return picked;
-      std::vector<double> scratch;
-      PickedPeak peak = pickPeakGroup(kept.data(), kept_count, n, n, 1, picked.peak.apex, PeakPickerOptions{}, scratch);
-      if (!peak.found) return picked;
-      // Signal and apex agreement stay counted over all library fragments, now at the refined boundaries.
-      peak.fragments_with_signal = peak.agreeing_fragments = 0;
-      for (std::size_t k = 0; k < picked.channels.size(); ++k)
-      {
-        std::size_t best = peak.left;
-        float best_value = 0.0f;
-        for (std::size_t s = peak.left; s <= peak.right; ++s)
-        {
-          if (picked.traces[k * n + s] > best_value) { best_value = picked.traces[k * n + s]; best = s; }
-        }
-        if (best_value > 0.0f)
-        {
-          ++peak.fragments_with_signal;
-          const std::size_t distance = best > peak.apex ? best - peak.apex : peak.apex - best;
-          peak.agreeing_fragments += distance <= PeakPickerOptions{}.fragment_apex_tolerance;
-        }
-      }
-      picked.peak = peak;
-      return picked;
-    }
-  }
-
-  const std::array<std::string, STAGE2_REFINE_FEATURES>& stage2RefineFeatureNames()
-  {
-    static const std::array<std::string, STAGE2_REFINE_FEATURES> names = {
-      "refine_quantitative", "refine_usable", "refine_mean_r", "refine_library_weight", "refine_quant_area_share", "refine_best_reference_r"};
-    return names;
-  }
-
-  std::array<double, 6> refineFragmentCorrelations(const float* tensor, const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence)
-  {
-    std::array<double, 6> r{};
-    const Refinement refined = refineWindow(tensor, fragment_mz, evidence);
-    if (!refined.ok) return r;
-    for (std::size_t k = 0; k < refined.channels.size(); ++k) r[refined.channels[k]] = refined.r[k];
-    return r;
-  }
-
-  std::size_t maskInterferedFragments(float* tensor, const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence, double min_r)
-  {
-    const Refinement refined = refineWindow(tensor, fragment_mz, evidence);
-    if (!refined.ok) return 0;
-    std::size_t masked = 0;
-    for (std::size_t k = 0; k < refined.channels.size(); ++k)
-    {
-      // Only channels with signal: a channel without signal (r = 0, area 0) is already empty.
-      if (refined.area[k] > 0.0 && refined.r[k] < min_r)
-      {
-        std::fill_n(tensor + refined.channels[k] * RT_BINS * IM_BINS, RT_BINS * IM_BINS, 0.0f);
-        ++masked;
-      }
-    }
-    return masked;
-  }
-
-  std::array<double, STAGE2_REFINE_FEATURES> stage2RefineFeatures(const float* tensor, const std::array<double, 6>& library_intensities,
-                                                                  const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence)
-  {
-    std::array<double, STAGE2_REFINE_FEATURES> f{};
-    const Refinement refined = refineWindow(tensor, fragment_mz, evidence);
-    if (!refined.ok) return f;
-    const std::size_t c = refined.channels.size();
-    double lib_total = 0.0, lib_quant = 0.0, area_total = 0.0, area_quant = 0.0, r_sum = 0.0;
-    for (std::size_t k = 0; k < c; ++k)
-    {
-      const double lib = std::sqrt(std::max(0.0, library_intensities[refined.channels[k]]));
-      lib_total += lib;
-      area_total += refined.area[k];
-      r_sum += refined.r[k];
-      if (refined.r[k] >= 0.9)
-      {
-        f[0] += 1.0;
-        lib_quant += lib;
-        area_quant += refined.area[k];
-      }
-      if (refined.r[k] >= 0.75) f[1] += 1.0;
-    }
-    f[2] = r_sum / static_cast<double>(c);
-    f[3] = lib_total > 0.0 ? lib_quant / lib_total : 0.0;
-    f[4] = area_total > 0.0 ? area_quant / area_total : 0.0;
-    f[5] = refined.best_reference_r;
-    return f;
-  }
-
-  Stage2Quant stage2Quantify(const float* tensor, const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence,
-                             const Stage2ExtractionOptions& options, double pick_min_r, double quant_min_r)
-  {
-    Stage2Quant q;
-    const PickedWindow naive = pickWindow(tensor, fragment_mz, evidence);
-    if (!naive.peak.found) return q;
-    q.found = true;
-    const std::size_t n = naive.n;
-    const double width = 2.0 * options.rt_half_width / RT_BINS;
-    const auto seconds = [&](std::size_t s) { return -options.rt_half_width + (naive.bins[s] + 0.5) * width; };
-    const auto area = [&](const PickedWindow& w, std::size_t k)
-    {
-      return std::accumulate(w.traces.begin() + k * n + w.peak.left, w.traces.begin() + k * n + w.peak.right + 1, 0.0);
-    };
-    q.naive_left = seconds(naive.peak.left);
-    q.naive_right = seconds(naive.peak.right);
-    for (std::size_t k = 0; k < naive.channels.size(); ++k) q.naive_area += area(naive, k);
-    // Refined boundaries, then refinement r over the refined peak, then the quantitative fragments.
-    const PickedWindow refined = repickRefined(naive, pick_min_r);
-    q.refined_left = seconds(refined.peak.left);
-    q.refined_right = seconds(refined.peak.right);
-    const Refinement r = refinePicked(refined);
-    for (std::size_t k = 0; k < refined.channels.size(); ++k)
-    {
-      const std::size_t c = refined.channels[k];
-      q.fragment_area[c] = area(refined, k);
-      q.fragment_r[c] = r.ok ? r.r[k] : 0.0;
-      if (r.ok && r.r[k] >= quant_min_r && q.fragment_area[c] > 0.0)
-      {
-        q.refined_area += q.fragment_area[c];
-        ++q.quantitative;
-      }
-    }
-    return q;
-  }
-
-  const std::array<std::string, STAGE2_SHAPE_FEATURES>& stage2ShapeFeatureNames()
-  {
-    static const std::array<std::string, STAGE2_SHAPE_FEATURES> names = {
-      "shape_xcorr_coelution", "shape_xcorr_shape", "shape_xcorr_coelution_w", "shape_xcorr_shape_w", "shape_xcorr_shape_min",
-      "shape_library_dotproduct", "shape_library_manhattan", "shape_library_rmsd", "shape_library_spectral_angle",
-      "shape_log_sn", "shape_intensity_share", "shape_signal_fragments", "shape_min_fragment_share"};
-    return names;
-  }
-
-  std::array<double, STAGE2_SHAPE_FEATURES> stage2ShapeFeatures(const float* tensor, const std::array<double, 6>& library_intensities,
-                                                                const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence)
-  {
-    std::array<double, STAGE2_SHAPE_FEATURES> f{};
-    const PickedWindow picked = pickWindow(tensor, fragment_mz, evidence);
-    const std::size_t c = picked.channels.size();
-    if (!picked.peak.found || c < 2) return f;
-    const std::size_t n = picked.n, left = picked.peak.left, right = picked.peak.right, span = right - left + 1;
-    const auto at = [&](std::size_t k, std::size_t s) { return static_cast<double>(picked.traces[k * n + s]); };
-    // Library weights and per-fragment window statistics.
-    std::vector<double> lib(c), libw(c), area(c, 0.0), median(c), peak_max(c, 0.0);
-    double lib_sum = 0.0, window_total = 0.0;
-    for (std::size_t k = 0; k < c; ++k)
-    {
-      lib[k] = std::sqrt(std::max(0.0, library_intensities[picked.channels[k]]));
-      lib_sum += lib[k];
-      std::vector<double> all(n);
-      for (std::size_t s = 0; s < n; ++s)
-      {
-        all[s] = at(k, s);
-        window_total += all[s];
-      }
-      for (std::size_t s = left; s <= right; ++s)
-      {
-        area[k] += all[s];
-        peak_max[k] = std::max(peak_max[k], all[s]);
-      }
-      std::nth_element(all.begin(), all.begin() + n / 2, all.end());
-      median[k] = all[n / 2];
-    }
-    for (std::size_t k = 0; k < c; ++k) libw[k] = lib_sum > 0.0 ? lib[k] / lib_sum : 1.0 / c;
-    // Lagged cross-correlation over all fragment pairs inside the peak.
-    if (span >= 3)
-    {
-      std::vector<std::vector<double>> centred(c, std::vector<double>(span));
-      std::vector<double> norm(c, 0.0);
-      for (std::size_t k = 0; k < c; ++k)
-      {
-        const double mean = area[k] / span;
-        for (std::size_t s = 0; s < span; ++s)
-        {
-          centred[k][s] = at(k, left + s) - mean;
-          norm[k] += centred[k][s] * centred[k][s];
-        }
-        norm[k] = std::sqrt(norm[k]);
-      }
-      const int max_lag = 3;
-      double lag_sum = 0.0, shape_sum = 0.0, lag_w = 0.0, shape_w = 0.0, weight = 0.0, shape_min = 2.0;
-      std::size_t pairs = 0;
-      for (std::size_t i = 0; i < c; ++i)
-      {
-        for (std::size_t j = i + 1; j < c; ++j)
-        {
-          double best = 0.0, best_lag = max_lag;
-          if (norm[i] > 0.0 && norm[j] > 0.0)
-          {
-            best = -2.0;
-            for (int lag = -max_lag; lag <= max_lag; ++lag)
-            {
-              double t = 0.0;
-              for (std::size_t s = 0; s < span; ++s)
-              {
-                const long u = static_cast<long>(s) + lag;
-                if (u >= 0 && u < static_cast<long>(span)) t += centred[i][s] * centred[j][u];
-              }
-              const double v = t / (norm[i] * norm[j]);
-              if (v > best)
-              {
-                best = v;
-                best_lag = std::abs(lag);
-              }
-            }
-          }
-          const double w = libw[i] * libw[j];
-          lag_sum += best_lag;
-          shape_sum += best;
-          lag_w += w * best_lag;
-          shape_w += w * best;
-          weight += w;
-          shape_min = std::min(shape_min, best);
-          ++pairs;
-        }
-      }
-      f[0] = lag_sum / pairs;
-      f[1] = shape_sum / pairs;
-      f[2] = weight > 0.0 ? lag_w / weight : f[0];
-      f[3] = weight > 0.0 ? shape_w / weight : f[1];
-      f[4] = shape_min;
-    }
-    // Library agreement of sqrt areas.
-    std::vector<double> root(c);
-    double root_sum = 0.0, root_norm = 0.0, lib_norm = 0.0, dot = 0.0, total_area = 0.0;
-    for (std::size_t k = 0; k < c; ++k)
-    {
-      root[k] = std::sqrt(std::max(0.0, area[k]));
-      root_sum += root[k];
-      root_norm += root[k] * root[k];
-      lib_norm += lib[k] * lib[k];
-      dot += root[k] * lib[k];
-      total_area += std::max(0.0, area[k]);
-    }
-    if (root_norm > 0.0 && lib_norm > 0.0)
-    {
-      f[5] = dot / std::sqrt(root_norm * lib_norm);
-      double manhattan = 0.0, squares = 0.0;
-      for (std::size_t k = 0; k < c; ++k)
-      {
-        const double d = root[k] / root_sum - libw[k];
-        manhattan += std::abs(d);
-        squares += d * d;
-      }
-      f[6] = manhattan;
-      f[7] = std::sqrt(squares / c);
-      f[8] = 1.0 - 2.0 * std::acos(std::clamp(f[5], -1.0, 1.0)) / 3.14159265358979323846;
-    }
-    else
-    {
-      f[6] = 2.0;
-      f[7] = std::sqrt(1.0 / c);
-    }
-    // Signal: apex S/N against the window median, peak share of the window signal, fragments with signal, weakest fragment.
-    const std::size_t apex = picked.peak.apex;
-    double log_sn = 0.0;
-    std::size_t signal = 0;
-    double min_area = std::numeric_limits<double>::infinity();
-    for (std::size_t k = 0; k < c; ++k)
-    {
-      const double noise = std::max(median[k], 1e-3 * std::max(peak_max[k], 1.0));
-      log_sn += std::log1p(at(k, apex) / noise);
-      if (peak_max[k] > 3.0 * noise) ++signal;
-      min_area = std::min(min_area, std::max(0.0, area[k]));
-    }
-    f[9] = log_sn / c;
-    f[10] = window_total > 0.0 ? total_area / window_total : 0.0;
-    f[11] = static_cast<double>(signal);
-    f[12] = total_area > 0.0 ? min_area / total_area : 0.0;
-    return f;
   }
 
   const std::array<std::string, STAGE2_BYION_FEATURES>& stage2ByIonFeatureNames()
@@ -741,8 +351,7 @@ namespace OpenMS::OpenDIA
                                                                       const Stage2ExtractionOptions& options)
   {
     std::array<double, STAGE2_BOUNDARY_FEATURES> f{};
-    PickedWindow picked = pickWindow(tensor, fragment_mz, evidence);
-    if (options.refined_picking_min_r > 0.0) picked = repickRefined(std::move(picked), options.refined_picking_min_r);
+    const PickedWindow picked = pickWindow(tensor, fragment_mz, evidence);
     if (!picked.peak.found) return f;
     const std::size_t n = picked.n;
     const auto& channels = picked.channels;
@@ -781,43 +390,6 @@ namespace OpenMS::OpenDIA
     }
     if (channels.size() >= 3 && inside.size() >= 2) f[3] = pearson(areas, library);
     f[4] = static_cast<double>(peak.agreeing_fragments) / static_cast<double>(channels.size());
-    return f;
-  }
-
-  const std::array<std::string, STAGE2_ISOTOPE_FEATURES>& stage2IsotopeFeatureNames()
-  {
-    static const std::array<std::string, STAGE2_ISOTOPE_FEATURES> names = {"ms1_isotope_correlation", "ms1_isotope_overlap", "ms1_isotope_coelution"};
-    return names;
-  }
-
-  std::array<double, STAGE2_ISOTOPE_FEATURES> stage2IsotopeFeatures(const TraceEvidence& evidence, double precursor_mz, int charge,
-                                                                    const Stage2ExtractionOptions& options)
-  {
-    std::array<double, STAGE2_ISOTOPE_FEATURES> f{};
-    if (charge <= 0 || !(precursor_mz > 0.0)) return f;
-    // Averagine pattern at the precursor mass (OpenSWATH uses the same model for its MS1 isotope scores).
-    const auto& averagine = DIAHelpers::averagineIsotopeDistribution(precursor_mz * charge, 4);
-    std::vector<double> observed, expected;
-    for (std::size_t k = 0; k < 4; ++k)
-    {
-      observed.push_back(evidence.ms1_isotope_core[k + 1]);
-      expected.push_back(k < averagine.size() ? averagine[k].getIntensity() : 0.0);
-    }
-    f[0] = observed[0] > 0.0 ? pearson(observed, expected) : 0.0;
-    const double mono = evidence.ms1_isotope_core[1];
-    f[1] = mono > 0.0 ? std::min(10.0, evidence.ms1_isotope_core[0] / mono) : (evidence.ms1_isotope_core[0] > 0.0 ? 10.0 : 0.0);
-    // M+1 and M+2 traces against M+0 over the core bins that had an MS1 scan.
-    const double width = 2.0 * options.rt_half_width / RT_BINS;
-    std::vector<double> m0, m1, m2;
-    for (std::size_t b = 0; b < RT_BINS; ++b)
-    {
-      const double centre = -options.rt_half_width + (b + 0.5) * width;
-      if (std::abs(centre) > options.core_half_width || !(evidence.ms1_mask >> b & 1u)) continue;
-      m0.push_back(evidence.ms1[b]);
-      m1.push_back(evidence.ms1_isotope_traces[0][b]);
-      m2.push_back(evidence.ms1_isotope_traces[1][b]);
-    }
-    if (m0.size() >= 3) f[2] = 0.5 * (pearson(m0, m1) + pearson(m0, m2));
     return f;
   }
 

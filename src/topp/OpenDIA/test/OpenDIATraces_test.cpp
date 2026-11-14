@@ -116,16 +116,6 @@ int main(int argc, char** argv)
   wrong_isolation.getPrecursors()[0].setMZ(700);
   collector.consumeSpectrum(wrong_isolation);
   require(std::accumulate(data.begin(), data.end(), 0.0f) == 35.0f, "Wrong isolation contaminated tensor.");
-  collector.store(prefix);
-  std::ifstream numpy(prefix + ".traces.npy", std::ios::binary);
-  char header[10];
-  numpy.read(header, 10);
-  require(std::string(header, 6) == std::string("\x93NUMPY", 6), "NumPy magic incorrect.");
-  const unsigned length = static_cast<unsigned char>(header[8]) + 256 * static_cast<unsigned char>(header[9]);
-  numpy.seekg(10 + length);
-  std::vector<float> roundtrip(data.size());
-  numpy.read(reinterpret_cast<char*>(roundtrip.data()), roundtrip.size() * sizeof(float));
-  require(numpy.good() && roundtrip == data, "Binary tensor round trip changed raw intensities.");
 
   OpenDIA::TraceCollector no_im(windows, library);
   auto without_im = scan(10, false);
@@ -230,17 +220,6 @@ int main(int argc, char** argv)
     const float* wb = full.windowTensor(0, vb);
     require(std::equal(wa, wa + OpenDIA::TraceCollector::SAMPLE_SIZE, wb) && std::accumulate(wa, wa + OpenDIA::TraceCollector::SAMPLE_SIZE, 0.0f) > 0.0f,
             "Compact tensor differs from the 8-bin tensor without library mobility.");
-    std::array<float, OpenDIA::TraceCollector::SAMPLE_SIZE> edited;
-    std::copy_n(wa, edited.size(), edited.begin());
-    std::fill_n(edited.begin(), 32 * 8, 0.0f);
-    compact.setWindowTensor(0, edited.data());
-    require(std::equal(edited.begin(), edited.end(), compact.windowTensor(0, va)), "setWindowTensor round trip failed.");
-    edited[0] = 1.0f;
-    rejects([&] { compact.setWindowTensor(0, edited.data()); });
-    compact.store(prefix + ".compact");
-    std::ifstream compact_numpy(prefix + ".compact.traces.npy", std::ios::binary | std::ios::ate);
-    require(static_cast<std::size_t>(compact_numpy.tellg()) >= OpenDIA::TraceCollector::SAMPLE_SIZE * sizeof(float),
-            "Compact store did not write the full layout.");
     OpenDIA::TraceCollector compact_budget(windows, flat_library, 0.02, 15, 0.03, 16384, 6 * 32 * sizeof(float));
     rejects([&] { OpenDIA::TraceCollector compact_over(windows, flat_library, 0.02, 15, 0.03, 16384, 6 * 32 * sizeof(float) - 1); });
   }
