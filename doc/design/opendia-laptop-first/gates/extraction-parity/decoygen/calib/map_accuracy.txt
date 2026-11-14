@@ -1,0 +1,11 @@
+OLD pairlib raw01/cal/cal.json     n 2750 |err| p50  16.93 p95  80.84 p99  209.81 s | within own 4 sigma ( 90.8 s) 0.9571
+OLD pairlib raw02/cal/cal.json     n 2743 |err| p50  16.93 p95  85.21 p99  204.80 s | within own 4 sigma ( 79.4 s) 0.9457
+new_armA_raw01/cal.json                       n 2750 |err| p50  17.53 p95  83.92 p99  212.30 s | within own 4 sigma ( 65.4 s) 0.9320
+new_armA_raw02/cal.json                       n 2743 |err| p50  17.32 p95  85.08 p99  208.35 s | within own 4 sigma ( 58.6 s) 0.9030
+new_armB_raw02/cal.json                       n 2743 |err| p50  18.34 p95  69.08 p99  124.66 s | within own 4 sigma ( 57.0 s) 0.9154
+new_armC_raw01/cal.json                       n 2750 |err| p50  17.58 p95  69.94 p99  129.85 s | within own 4 sigma ( 54.0 s) 0.9040
+new_armC_raw02/cal.json                       n 2743 |err| p50  17.16 p95  69.22 p99  133.41 s | within own 4 sigma ( 60.2 s) 0.9293
+new_armD_raw01/cal.json                       n 2750 |err| p50  16.40 p95  63.57 p99  124.72 s | within own 4 sigma ( 72.1 s) 0.9625
+new_armD_raw02/cal.json                       n 2743 |err| p50  16.87 p95  69.56 p99  146.37 s | within own 4 sigma ( 73.4 s) 0.9541
+new_pairlib_raw01/cal.json                    n 2750 |err| p50  17.37 p95  85.38 p99  218.65 s | within own 4 sigma ( 75.5 s) 0.9429
+new_pairlib_raw02/cal.json                    n 2743 |err| p50  17.20 p95  85.86 p99  204.47 s | within own 4 sigma ( 71.9 s) 0.9380
