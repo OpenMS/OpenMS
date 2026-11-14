@@ -38,6 +38,24 @@ namespace OpenMS::OpenDIA
     bool is_decoy = false;
   };
 
+  /// One reported candidate peak, as the feature table row with the same candidate_row (= index in candidates()).
+  struct SearchCandidate
+  {
+    std::uint32_t precursor = 0;    ///< Index of the precursor in the StreamSearch library order (first appearance).
+    double rt_start = 0.0;
+    double rt_apex = 0.0;
+    double rt_end = 0.0;
+    double area = 0.0;
+    double apex_intensity = 0.0;
+    std::uint32_t transition_support = 0;
+    std::uint32_t matched_scans = 0;
+    double apex_rt_error_seconds = 0.0; ///< apex - (calibrated) library RT; 0 without a library RT.
+    double fwhm_seconds = 0.0;
+    double coelution = 0.0;
+    std::uint16_t peak_rank = 0;
+    std::uint16_t peaks_in_window = 0;
+  };
+
   struct SearchOptions
   {
     double fragment_tolerance_da = 0.02;
@@ -89,6 +107,16 @@ namespace OpenMS::OpenDIA
 
     /// Pick and write every precursor still open at end of input.
     void finish();
+
+    /// Also keep every reported candidate in memory (candidates()). Call before the first spectrum.
+    void keepCandidates() { keep_candidates_ = true; }
+    /// Reported candidates in feature-table order (candidate_row = index); empty unless keepCandidates() was called.
+    const std::vector<SearchCandidate>& candidates() const { return kept_; }
+    /// Precursor ids and decoy flags, indexed by SearchCandidate::precursor.
+    std::size_t precursorCount() const { return candidates_.size(); }
+    const std::string& precursorId(std::size_t p) const { return candidates_[p].id; }
+    bool precursorIsDecoy(std::size_t p) const { return candidates_[p].is_decoy; }
+    bool precursorHasLibraryRT(std::size_t p) const { return candidates_[p].has_library_rt; }
 
     /// Whether compatible raw and library mobility metadata activated filtering.
     bool ionMobilityFilteringUsed() const;
@@ -203,7 +231,7 @@ namespace OpenMS::OpenDIA
     void closeCandidates_(std::size_t end);
     /// Picks one candidate and formats its peak and feature rows (feature rows without the leading row number).
     void pickCandidate_(std::size_t candidate_index, std::vector<float>& matrix, std::vector<double>& scratch,
-                        std::string& peak_rows, std::string& feature_rows) const;
+                        std::string& peak_rows, std::string& feature_rows, std::vector<SearchCandidate>* kept) const;
     /// Scans (global cell id, RT) of every lane isolating the candidate inside its RT window, by cell id.
     std::vector<std::pair<std::uint32_t, double>> candidateCells_(std::size_t candidate_index) const;
     void dumpTraces_(std::size_t candidate_index);
@@ -234,6 +262,8 @@ namespace OpenMS::OpenDIA
     std::vector<bool> dump_selected_;
     std::vector<std::vector<double>> dump_mz_;
     bool finished_ = false;
+    bool keep_candidates_ = false;
+    std::vector<SearchCandidate> kept_;
     bool has_library_im_candidates_ = false;
     bool ion_mobility_filtering_used_ = false;
   };

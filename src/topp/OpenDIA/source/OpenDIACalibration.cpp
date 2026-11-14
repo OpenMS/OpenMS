@@ -1581,6 +1581,11 @@ namespace OpenMS::OpenDIA
     {
       throw std::invalid_argument("Cannot read calibration file " + path);
     }
+    return readCalibrationRT(in, path);
+  }
+
+  CalibrationRT readCalibrationRT(std::istream& in, const std::string& path)
+  {
     const nlohmann::json json = nlohmann::json::parse(in);
     if (json.at("version").get<int>() != 1)
     {

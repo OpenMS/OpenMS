@@ -531,6 +531,7 @@ namespace OpenMS::OpenDIA
     }
     const std::size_t count = end - begin;
     std::vector<std::string> peak_rows(count), feature_rows(count);
+    std::vector<std::vector<SearchCandidate>> kept(keep_candidates_ ? count : 0);
 #ifdef _OPENMP
 #pragma omp parallel if(count >= 64)
 #endif
@@ -543,7 +544,8 @@ namespace OpenMS::OpenDIA
       for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(count); ++i)
       {
         const std::size_t candidate_index = close_order_[begin + static_cast<std::size_t>(i)];
-        pickCandidate_(candidate_index, matrix, scratch, peak_rows[static_cast<std::size_t>(i)], feature_rows[static_cast<std::size_t>(i)]);
+        pickCandidate_(candidate_index, matrix, scratch, peak_rows[static_cast<std::size_t>(i)], feature_rows[static_cast<std::size_t>(i)],
+                       keep_candidates_ ? &kept[static_cast<std::size_t>(i)] : nullptr);
         if (traces_ == nullptr || !dump_selected_[candidate_index])
         {
           std::vector<Entry>().swap(entries_[candidate_index]);
@@ -554,6 +556,10 @@ namespace OpenMS::OpenDIA
     for (std::size_t i = 0; i < count; ++i)
     {
       output_ << peak_rows[i];
+      if (keep_candidates_)
+      {
+        kept_.insert(kept_.end(), kept[i].begin(), kept[i].end());
+      }
       if (candidate_features_ != nullptr)
       {
         // Feature rows are formatted without their running row number.
@@ -578,7 +584,7 @@ namespace OpenMS::OpenDIA
   }
 
   void StreamSearch::pickCandidate_(std::size_t candidate_index, std::vector<float>& matrix, std::vector<double>& scratch,
-                                    std::string& peak_rows, std::string& feature_rows) const
+                                    std::string& peak_rows, std::string& feature_rows, std::vector<SearchCandidate>* kept) const
   {
     const std::vector<Entry>& entries = entries_[candidate_index];
     if (entries.empty())
@@ -630,6 +636,24 @@ namespace OpenMS::OpenDIA
       peak_rows += '\t';
       appendSize(peak_rows, peak.signal_scans);
       peak_rows += '\n';
+      if (kept != nullptr)
+      {
+        SearchCandidate c;
+        c.precursor = static_cast<std::uint32_t>(candidate_index);
+        c.rt_start = start_rt;
+        c.rt_apex = apex_rt;
+        c.rt_end = end_rt;
+        c.area = peak.area;
+        c.apex_intensity = peak.apex_height;
+        c.transition_support = static_cast<std::uint32_t>(peak.support);
+        c.matched_scans = static_cast<std::uint32_t>(peak.signal_scans);
+        c.apex_rt_error_seconds = candidate.has_library_rt ? apex_rt - candidate.library_rt : 0.0;
+        c.fwhm_seconds = peak.fwhm;
+        c.coelution = peak.coelution;
+        c.peak_rank = static_cast<std::uint16_t>(rank);
+        c.peaks_in_window = static_cast<std::uint16_t>(peaks_found);
+        kept->push_back(c);
+      }
       if (candidate_features_ == nullptr)
       {
         continue;

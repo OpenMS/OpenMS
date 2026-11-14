@@ -327,4 +327,6 @@ namespace OpenMS::OpenDIA
     @throws std::invalid_argument If the file is missing, not version 1, or the map or tolerance is invalid.
   */
   CalibrationRT readCalibrationRT(const std::string& path);
+  /// As above, from a stream (@p name is used in error messages).
+  CalibrationRT readCalibrationRT(std::istream& in, const std::string& name);
 }
