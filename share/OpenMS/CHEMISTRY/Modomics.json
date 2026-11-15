@@ -225,19 +225,19 @@
     },
     "16": {
         "abbrev": "E",
-        "formula": "C15H20N6O8",
+        "formula": "C16H22N6O8",
         "lc_elution_comment": "between A and m6A (Kellner 2014)",
         "lc_elution_time": "1,93 (Kellner 2014)",
-        "mass_avg": 412.355,
-        "mass_monoiso": 412.1343,
-        "mass_prot": 413.1416,
+        "mass_avg": 426.3822,
+        "mass_monoiso": 426.1499,
+        "mass_prot": 427.1572,
         "name": "N6-methyl-N6-threonylcarbamoyladenosine",
         "product_ions": "295",
         "reference_moiety": [
             "A"
         ],
         "short_name": "m6t6A",
-        "smile": "C[C@H]([C@@H](C(=O)O)NC(Nc1c2c([n]([C@H]3[C@H](O)[C@H](O)[C@@H](CO)O3)cn2)ncn1)=O)O"
+        "smile": "C[C@H]([C@@H](C(=O)O)NC(=O)N(C)C1=NC=NC2=C1N=CN2[C@H]3[C@@H]([C@@H]([C@H](O3)CO)O)O)O"
     },
     "17": {
         "abbrev": "\u03c1",
