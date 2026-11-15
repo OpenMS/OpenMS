@@ -1,0 +1,90 @@
+diff --git a/src/topp/OpenDIA/include/OpenDIACalibration.h b/src/topp/OpenDIA/include/OpenDIACalibration.h
+index 11390449f9..9d057db0e3 100644
+--- a/src/topp/OpenDIA/include/OpenDIACalibration.h
++++ b/src/topp/OpenDIA/include/OpenDIACalibration.h
+@@ -119,6 +119,7 @@ namespace OpenMS::OpenDIA
+     double stage3_half_window_s = 0.0;
+     std::size_t stage3_extended_targets = 0; ///< Windowed pass: targets searched to the run edge (outside the stage-1 support).
+     bool windowed = false; ///< Experimental windowed second pass: stages 1 and 2 were skipped, stage 3 centred on the stage-1 map.
++    bool refined_on_final_map = false; ///< Stages 3-4 were repeated with the window centred on the first pass's final map.
+     std::size_t half_window_spectra = 0;
+     double peak_fwhm_s = 0.0;
+     std::size_t anchor_targets = 0, anchor_decoys = 0;
+@@ -291,6 +292,11 @@ namespace OpenMS::OpenDIA
+                  CalibrationDiagnostics* diagnostics,
+                  double support_low = -std::numeric_limits<double>::infinity(),
+                  double support_high = std::numeric_limits<double>::infinity()) const;
++    /// finish_ around @p centre, then once more around the resulting map (kept if it succeeds).
++    void finishRefined_(CalibrationResult& result, const std::function<double(double)>& centre, std::size_t half_window,
++                        CalibrationDiagnostics* diagnostics,
++                        double support_low = -std::numeric_limits<double>::infinity(),
++                        double support_high = std::numeric_limits<double>::infinity()) const;
+ 
+     CalibrationOptions options_;
+     std::optional<CalibrationWindow> window_;
+diff --git a/src/topp/OpenDIA/source/OpenDIACalibration.cpp b/src/topp/OpenDIA/source/OpenDIACalibration.cpp
+index 12813f13a9..b6d0bb3609 100644
+--- a/src/topp/OpenDIA/source/OpenDIACalibration.cpp
++++ b/src/topp/OpenDIA/source/OpenDIACalibration.cpp
+@@ -672,8 +672,8 @@ namespace OpenMS::OpenDIA
+           diagnostics->rows[m].stage1_map_rt = map(target_library_rt(m));
+         }
+       }
+-      finish_(result, [&map](double library_rt) { return map(library_rt); }, window_->half_window_spectra, diagnostics,
+-              window_->support_low, window_->support_high);
++      finishRefined_(result, [&map](double library_rt) { return map(library_rt); }, window_->half_window_spectra, diagnostics,
++                     window_->support_low, window_->support_high);
+       return result;
+     }
+     CalibrationResult result;
+@@ -1071,7 +1071,7 @@ namespace OpenMS::OpenDIA
+     result.stage3_half_window_s = std::max(options_.rt_sigma_multiple * result.stage1_sigma_s, options_.min_window_s);
+     try
+     {
+-      finish_(result, em_map, half_window, diagnostics);
++      finishRefined_(result, em_map, half_window, diagnostics);
+     }
+     catch (const std::runtime_error&)
+     {
+@@ -1094,6 +1094,30 @@ namespace OpenMS::OpenDIA
+     return result;
+   }
+ 
++  void CalibrationCollector::finishRefined_(CalibrationResult& result, const std::function<double(double)>& centre_of,
++                                            std::size_t half_window, CalibrationDiagnostics* diagnostics,
++                                            double support_low, double support_high) const
++  {
++    // Stages 3-4 around the given centre; throws like finish_ if too few anchors.
++    const CalibrationResult before = result;
++    finish_(result, centre_of, half_window, diagnostics, support_low, support_high);
++    // Once more around the final map (PLAN_CALREFINE): the stage-4 RT spread fit takes target residuals to the final
++    // map and its background in window coordinates, which agree only when the window is centred on that map. Same
++    // traces, half window, support and rules. If the second pass finds too few anchors, the first result stands.
++    const RTMap first_map = result.rt_map;
++    CalibrationResult refined = before;
++    try
++    {
++      finish_(refined, [&first_map](double library_rt) { return first_map(library_rt); }, half_window, diagnostics, support_low, support_high);
++    }
++    catch (const std::runtime_error&)
++    {
++      return;
++    }
++    refined.refined_on_final_map = true;
++    result = std::move(refined);
++  }
++
+   void CalibrationCollector::finish_(CalibrationResult& result, const std::function<double(double)>& centre_of,
+                                      std::size_t half_window, CalibrationDiagnostics* diagnostics,
+                                      double support_low, double support_high) const
+@@ -1496,6 +1520,10 @@ namespace OpenMS::OpenDIA
+       // Only written for the experimental windowed pass, so the default file is unchanged.
+       out << ", \"windowed_second_pass\": true, \"centre\": \"stage1_map\", \"extended_to_run_edge_targets\": " << r.stage3_extended_targets;
+     }
++    if (r.refined_on_final_map)
++    {
++      out << ", \"refined_on_final_map\": true";
++    }
+     out << "},\n"
+         << "  \"rt\": {\"knots_library_rt\": ";
+     list(r.rt_map.library_rt);

@@ -1,0 +1,12 @@
+armE_raw01     baseline spread  37.73 DIA-NN 27.16 ratio 1.389 tol  150.9 cover 0.9662 |err| p50  18.3 anchors 425 refined False
+armE_raw01     refined  spread  24.79 DIA-NN 25.74 ratio 0.963 tol   99.2 cover 0.9607 |err| p50  17.5 anchors 499 refined True
+armE_raw01     criterion 1 pass | criterion 2 pass
+armE_raw02     baseline spread  30.91 DIA-NN 25.37 ratio 1.218 tol  123.6 cover 0.9665 |err| p50  16.9 anchors 545 refined False
+armE_raw02     refined  spread  24.89 DIA-NN 24.77 ratio 1.005 tol   99.6 cover 0.9592 |err| p50  16.7 anchors 571 refined True
+armE_raw02     criterion 1 pass | criterion 2 pass
+pairlib_raw01  baseline spread  27.43 DIA-NN 25.87 ratio 1.060 tol  109.7 cover 0.9611 |err| p50  17.4 anchors 748 refined False
+pairlib_raw01  refined  spread  22.60 DIA-NN 25.02 ratio 0.903 tol   90.4 cover 0.9571 |err| p50  16.9 anchors 810 refined True
+pairlib_raw01  criterion 1 pass | criterion 2 pass
+pairlib_raw02  baseline spread  27.97 DIA-NN 24.77 ratio 1.129 tol  111.9 cover 0.9606 |err| p50  17.2 anchors 795 refined False
+pairlib_raw02  refined  spread  25.23 DIA-NN 24.33 ratio 1.037 tol  100.9 cover 0.9566 |err| p50  16.5 anchors 891 refined True
+pairlib_raw02  criterion 1 pass | criterion 2 pass

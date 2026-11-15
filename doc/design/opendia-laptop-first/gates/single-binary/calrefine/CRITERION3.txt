@@ -1,0 +1,2 @@
+LFQ_Astral_DIA_15min_50ng_Human_01.precursors.tsv N@FDP_c 0.5/1/2%: [1673, 1817, 1994] | q<=0.01 1724 FDP_c 0.0081 | tool q<=0.01 1724 FDP_c 0.0081
+LFQ_Astral_DIA_15min_50ng_Human_02.precursors.tsv N@FDP_c 0.5/1/2%: [1730, 1826, 1976] | q<=0.01 1702 FDP_c 0.0047 | tool q<=0.01 1702 FDP_c 0.0047
