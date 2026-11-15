@@ -982,8 +982,9 @@ namespace OpenMS
 
   void FeatureFinderAlgorithmMetaboIdent::warnIfPeakWidthTooLarge_(const FeatureMap& features) const
   {
-    // The elution models are fitted to the unsmoothed mass traces, so their widths are those of the elution peaks in
-    // the data, whatever 'detect:peak_width' is
+    // The elution models are fitted to the unsmoothed mass traces between the feature borders, so their widths are
+    // close to those of the elution peaks in the data, largely independent of 'detect:peak_width'. (With few data
+    // points per peak they shrink somewhat with it, as the borders move in.)
     vector<double> fwhms;
     for (const Feature& feat : features)
     {
@@ -994,24 +995,21 @@ namespace OpenMS
     }
     if (fwhms.empty()) return; // no elution models ('model:type' is 'none'), or no valid one
 
-    const double median_fwhm = Math::median(fwhms.begin(), fwhms.end());
     // The chromatograms are smoothed with a Gaussian of standard deviation 'detect:peak_width' / 8 (see
-    // GaussFilterAlgorithm) before the peaks are picked. A kernel that is wider than the elution peaks themselves
-    // (i.e. 'detect:peak_width' above about 3.4 times their FWHM) dominates the shape of the smoothed peaks.
-    const double kernel_sigma = peak_width_ / 8.0;
-    const double peak_sigma = median_fwhm / (2.0 * std::sqrt(2.0 * std::log(2.0)));
-    if (kernel_sigma <= peak_sigma) return;
+    // GaussFilterAlgorithm) before the peaks are picked: at four times the FWHM of the peaks that kernel is about
+    // 1.2 times as wide as the peaks themselves. The suggested value (twice the FWHM) stays below this limit when
+    // the model widths shrink at the smaller peak width, so the warning does not come back after it is followed.
+    const double median_fwhm = Math::median(fwhms.begin(), fwhms.end());
+    if (peak_width_ <= 4.0 * median_fwhm) return;
 
-    // suggest about twice the FWHM (as it is printed): that kernel is narrower than the peaks (about 0.6 of their
-    // sigma), but still smooths
     const double shown_fwhm = Math::roundDecimal(median_fwhm, -1);
     const double suggested_width = 2.0 * shown_fwhm;
     OPENMS_LOG_WARN << "Warning: 'detect:peak_width' (" << peak_width_ << " s) is much larger than the elution peaks of the "
                     << "detected features (median width (FWHM): " << shown_fwhm << " s, from "
                     << fwhms.size() << " elution model(s)). The chromatograms are smoothed with this width before peaks "
-                    << "are picked, so neighboring peaks at the m/z of a target may have been merged into one feature "
-                    << "(targets can go missing or get the intensity of a neighbor), and features may extend beyond the "
-                    << "signal. Consider a 'detect:peak_width' of about "
+                    << "are picked: neighboring peaks at the m/z of a target can be merged into one feature, and the "
+                    << "wider features of targets that are close to each other are more often removed as overlapping "
+                    << "(targets go missing or get the intensity of a neighbor). Consider a 'detect:peak_width' of about "
                     << Math::roundDecimal(suggested_width, (suggested_width >= 10.0) ? 0 : -1)
                     << " s (twice the median width).";
     if (double(param_.getValue("extract:rt_window")) == 0.0)

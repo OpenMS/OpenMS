@@ -102,7 +102,9 @@ A window that is too narrow leaves gaps in the extracted chromatograms; the feat
 About twice the width (FWHM) of the elution peaks in the data is a suitable value.
 The default (60 seconds) is much wider than the elution peaks of a few seconds that are typical for (U)HPLC metabolomics data:
 neighboring peaks at the m/z of a target (e.g. isomers) can then be merged into one feature, so that targets go missing or get the intensity of a neighbor, and the features extend beyond the signal.
-A warning is given if the value is much larger than the elution peaks that were found, together with their median width and a suggested value.
+With many targets close to each other (e.g. when the features of an untargeted feature finder are re-quantified), the wider features are also more often removed as overlapping (see below).
+A much smaller value than the width of the peaks picks up noise and gives less reproducible intensities.
+A warning is given if the value is more than four times the width (FWHM) of the elution peaks that were found, together with their median width and a suggested value.
 This check uses the widths of the elution models, so there is no such warning without them (@p model:type @c none, or no valid model).
 - @p extract:rt_window (or the @p RetentionTimeRange of a target) is the width of the RT window around the target RT in which a feature is searched.
 It has to cover the elution peak and the expected RT deviation of the target.
