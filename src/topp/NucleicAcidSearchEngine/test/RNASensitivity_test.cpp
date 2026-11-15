@@ -606,6 +606,40 @@ START_SECTION((graph routes retain multiple modifications and all six physical t
 }
 END_SECTION
 
+START_SECTION((terminal-state masks restrict assignments per database entry and linkage modifications are rejected))
+{
+  const auto base = NASequence::fromString("ACGUAGCUAG");
+  auto target = base;
+  target.setThreePrimeMod(db->getRibonucleotide("3'-p"));
+  auto isobar = base;
+  isobar.setFivePrimeMod(db->getRibonucleotide("5'-p"));
+  const auto spectrum = theory(target);
+  const auto sequences = [](const auto& result) {
+    std::set<std::string> labels;
+    for (const auto& candidate : result.candidates)
+    {
+      labels.insert(candidate.sequence.toString());
+    }
+    return labels;
+  };
+  // Without a mask, both isobaric phosphate assignments are generated.
+  const auto all = RNARouteCandidateGenerator({base}, {}, {}).generate(spectrum, {target.getMonoWeight()}, {}, true, 1);
+  TEST_TRUE(all.complete)
+  TEST_TRUE(sequences(all) == (std::set<std::string> {target.toString(), isobar.toString()}))
+  // Bit 3*five+three: only OH/P (an interior RNase T1-like product).
+  const auto masked = RNARouteCandidateGenerator({base}, {}, {}, {Byte(1 << 1)}).generate(spectrum, {target.getMonoWeight()}, {}, true, 1);
+  TEST_TRUE(masked.complete)
+  TEST_TRUE(sequences(masked) == (std::set<std::string> {target.toString()}))
+  const auto excluded = RNARouteCandidateGenerator({base}, {}, {}, {Byte(1 << 0)}).generate(spectrum, {target.getMonoWeight()}, {}, true, 1);
+  TEST_TRUE(excluded.complete)
+  TEST_TRUE(excluded.candidates.empty())
+  TEST_EXCEPTION(Exception::IllegalArgument, RNARouteCandidateGenerator({base}, {}, {}, {Byte(1), Byte(1)}))
+  // Phosphorothioate linkages have neighbor-dependent masses outside the graph alphabet.
+  TEST_EXCEPTION(Exception::IllegalArgument, RNARouteCandidateGenerator({base}, {db->getRibonucleotide("A*")}, {}))
+  TEST_EXCEPTION(Exception::IllegalArgument, RNARouteCandidateGenerator({NASequence::fromString("AC[G*]UAG")}, {}, {}))
+}
+END_SECTION
+
 START_SECTION((diagnostic permissions constrain graph labels and preserve isobaric identities))
 {
   const auto base = NASequence::fromString("ACACGU");

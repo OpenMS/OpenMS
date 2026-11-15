@@ -14,7 +14,10 @@
 #include <cmath>
 #include <functional>
 #include <limits>
+#include <map>
 #include <numeric>
+#include <set>
+#include <string_view>
 #include <tuple>
 #include <unordered_set>
 
@@ -31,9 +34,11 @@ namespace
 
 RNARouteCandidateGenerator::RNARouteCandidateGenerator(const std::vector<NASequence>& database,
                                                        const std::set<const Ribonucleotide*>& modifications,
-                                                       const Options& options):
+                                                       const Options& options,
+                                                       const std::vector<Byte>& terminal_states):
     database_(database),
     modifications_(modifications),
+    terminal_states_(terminal_states),
     options_(options)
 {
   if (! std::isfinite(options.tolerance) || options.tolerance <= 0 || ! std::isfinite(options.precursor_tolerance) || options.precursor_tolerance <= 0
@@ -42,16 +47,35 @@ RNARouteCandidateGenerator::RNARouteCandidateGenerator(const std::vector<NASeque
   {
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid RNA route candidate options");
   }
+  if (! terminal_states.empty() && terminal_states.size() != database.size())
+  {
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Route terminal-state masks must match the database size");
+  }
   const double backbone = EmpiricalFormula("H-1PO2").getMonoWeight();
+  // The mass graph uses constant residue increments. It omits linkage
+  // modifications, whose mass depends on the neighbor: reject them here
+  // instead of failing on the first spectrum.
+  const auto rejectLinkage = [](const Ribonucleotide& residue) {
+    if (residue.getCode().empty() || residue.getCode().back() == '*')
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "graph_routes does not support linkage modifications (codes ending in '*'): '" + residue.getCode() + "'");
+    }
+  };
   for (const auto* residue : modifications)
   {
     if (! residue || residue->getTermSpecificity() != Ribonucleotide::ANYWHERE)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "graph_routes requires internal variable modifications");
     }
+    rejectLinkage(*residue);
   }
   for (const auto& sequence : database)
   {
+    for (const auto& residue : sequence)
+    {
+      rejectLinkage(residue);
+    }
     if ((sequence.hasFivePrimeMod() && sequence.getFivePrimeMod()->getCode() != "5'-p")
         || (sequence.hasThreePrimeMod() && sequence.getThreePrimeMod()->getCode() != "3'-p" && sequence.getThreePrimeMod()->getCode() != "3'-c"))
     {
@@ -474,6 +498,7 @@ RNARouteCandidateGenerator::Result RNARouteCandidateGenerator::generate(const MS
       for (Size state = 0; state < terminal_states.size(); ++state)
       {
         const auto [five, three] = terminal_states[state];
+        if (! terminal_states_.empty() && ! ((terminal_states_[id] >> state) & 1)) { continue; }
         if (prefix_id != Size(-1) && routes[prefix_id].terminal != five) { continue; }
         if (! indexed)
         {

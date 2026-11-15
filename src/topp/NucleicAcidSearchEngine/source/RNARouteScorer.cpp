@@ -13,6 +13,7 @@
 #include <cmath>
 #include <limits>
 #include <map>
+#include <set>
 #include <tuple>
 
 namespace OpenMS

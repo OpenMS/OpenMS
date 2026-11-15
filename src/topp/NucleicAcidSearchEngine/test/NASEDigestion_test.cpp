@@ -2035,7 +2035,9 @@ START_SECTION(([EXTRA] route placement, diagnostics, terminal states, native FDR
   experiment.setSpectra({parent, fragments});
   MzMLFile().store(mzml, experiment);
   using Key = std::tuple<std::string, double, double>;
-  const auto search = [&](bool cached, const std::string& cleavage_model) {
+  // The target carries phosphates at both ends of a complete parent. RNase T1
+  // cannot produce it, so it is reachable only with all terminal assignments.
+  const auto search = [&](bool cached, const std::string& cleavage_model, const std::string& terminal_states = "all") {
     std::string output;
     NEW_TMP_FILE(output)
     output += ".idXML";
@@ -2055,6 +2057,8 @@ START_SECTION(([EXTRA] route placement, diagnostics, terminal states, native FDR
                                         "5",
                                         "-oligo:cleavage_model",
                                         cleavage_model,
+                                        "-routes:terminal_states",
+                                        terminal_states,
                                         "-precursor:max_charge",
                                         "-5",
                                         "-precursor:correct_with_flash",
@@ -2103,7 +2107,7 @@ START_SECTION(([EXTRA] route placement, diagnostics, terminal states, native FDR
         hits.emplace(text, hit.getScore(), double(hit.getMetaValue("PSM-level q-value")));
       }
     }
-    TEST_TRUE(found)
+    TEST_EQUAL(found, terminal_states == "all")
     return hits;
   };
   const auto fresh = search(false, "canonical");
@@ -2118,6 +2122,15 @@ START_SECTION(([EXTRA] route placement, diagnostics, terminal states, native FDR
   TEST_EQUAL(reject_enumeration_cache(), TOPPBase::ILLEGAL_PARAMETERS)
   TEST_TRUE(search(false, "modification_aware") == fresh)
   TEST_EQUAL(reject_enumeration_cache(), TOPPBase::ILLEGAL_PARAMETERS)
+  // Enzyme-consistent termini (the default) exclude the phosphorylated parent ends.
+  for (const auto& model : {"canonical", "modification_aware"})
+  {
+    for (const auto& [text, score, qvalue] : search(false, model, "enzyme"))
+    {
+      const auto hit = NASequence::fromString(text);
+      TEST_TRUE(! hit.hasFivePrimeMod() && ! hit.hasThreePrimeMod())
+    }
+  }
 }
 END_SECTION
 
@@ -2192,6 +2205,9 @@ START_SECTION(([EXTRA] diagnostic - labile completion keeps its scored route sca
                                         "2",
                                         "-candidates:method",
                                         "graph_routes",
+                                        // The scaffold keeps a 3' phosphate at the parent end, which RNase T1 does not produce.
+                                        "-routes:terminal_states",
+                                        "all",
                                         "-scoring:method",
                                         "route",
                                         "-diagnostic:fixed_ions",

@@ -88,8 +88,13 @@ each completed product against its parent and missed-cleavage budget.
 `oligo:cleavage_model=canonical` is an explicit alternative for `graph_routes`.
 Cached digests must match the database and digestion model. Enumeration/tag modes
 reject route digests because cleavage-sensitive placements have not been pre-expanded. Route generation
-requires monoisotopic masses and supports six physical terminal assignments:
-OH/OH, OH/P, OH/cyclic-P, P/OH, P/P and P/cyclic-P. Explicit input/fixed termini
+requires monoisotopic masses. By default (`routes:terminal_states=enzyme`) each
+product receives the terminal groups of the configured RNase at its parent
+position, as in enumeration; a parent match is retained only if the candidate's
+termini agree with it. `routes:terminal_states=all` additionally tries all six
+physical assignments for every oligonucleotide: OH/OH, OH/P, OH/cyclic-P, P/OH,
+P/P and P/cyclic-P. Linkage modifications (codes ending in `*`) have
+neighbor-dependent masses and are rejected. Explicit input/fixed termini
 remain constrained; variable terminal/linkage modifications use enumeration/tag
 modes.
 

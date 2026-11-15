@@ -124,6 +124,7 @@
     "routes:min_nodes": "2",
     "routes:precursor_index": "true",
     "routes:allow_full_length": "true",
+    "routes:terminal_states": "all",
     "report:require_coverage": "0.0",
     "fdr:cutoff": "1",
     "fdr:remove_decoys": "false",

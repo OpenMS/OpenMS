@@ -148,6 +148,11 @@ Diagnostic permission alone does not establish localization.
 The default modification-aware cleavage model validates completed products with
 RNaseDigestion. @p oligo:cleavage_model=canonical explicitly selects canonical
 cleavage in route mode. Digestion caches must match the selected model.
+By default (@p routes:terminal_states=enzyme) products carry the terminal groups
+of the configured RNase at their parent position, as in enumeration;
+@p routes:terminal_states=all also tries every 5' OH/phosphate and 3'
+OH/phosphate/cyclic-phosphate assignment. Linkage modifications (codes ending
+in '*') are rejected.
 Route generation requires monoisotopic masses. Its state, completion, candidate
 and support limits abort the entire run on exhaustion. Unlike tag/filter modes,
 it does not silently replace incomplete route generation with enumeration.

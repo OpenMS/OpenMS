@@ -379,6 +379,11 @@ protected:
                           "Permit a full-length mass route to constrain terminal placements; precursor nodes remain excluded from scoring", false,
                           true);
     setValidStrings_("routes:allow_full_length", {"true", "false"});
+    registerStringOption_("routes:terminal_states", "<choice>", "enzyme",
+                          "enzyme permits the terminal groups produced by the configured RNase at each parent position, as in enumeration; all "
+                          "also tries every 5' OH/phosphate and 3' OH/phosphate/cyclic-phosphate assignment of each oligonucleotide",
+                          false, true);
+    setValidStrings_("routes:terminal_states", {"enzyme", "all"});
     registerFlag_("routes:verify_candidates",
                   "Compare every generated candidate multiset with exhaustive route pairing; fail if either search is incomplete or differs", true);
     registerIntOption_("routes:max_length", "<num>", 25, "Maximum route length in residues", false, true);
@@ -2042,6 +2047,11 @@ protected:
           // Store nucleotide sequences once. Modification-dependent products
           // are validated against their full parent after focused placement.
           const auto* rnase = dynamic_cast<const DigestionEnzymeRNA*>(search_param.digestion_enzyme);
+          if (! rnase)
+          {
+            OPENMS_LOG_ERROR << "graph_routes requires an RNase for digestion.\n";
+            return ILLEGAL_PARAMETERS;
+          }
           StringList after, before;
           StringUtils::split(rnase->getCutsAfterRegEx(), ',', after);
           StringUtils::split(rnase->getCutsBeforeRegEx(), ',', before);
@@ -2531,6 +2541,7 @@ protected:
     }
 
     std::atomic<bool> route_score_limit_exceeded {false};
+    std::string route_score_failure; // first failing pair; guarded by an OpenMP critical section
     if (route_generation)
     {
       vector<NASequence> route_database;
@@ -2559,14 +2570,99 @@ protected:
       }
       options.index_precursor_mass = getStringOption_("routes:precursor_index") == "true";
       options.allow_full_length_routes = getStringOption_("routes:allow_full_length") == "true";
-      const RNARouteCandidateGenerator generator(route_database, variable_modifications, options);
+      // Terminal groups follow the RNase and the parent position of each
+      // product, as in enumeration. One sequence can occur at several
+      // positions: the generator receives their union, and each parent match
+      // is checked again once a candidate carries concrete termini.
+      const bool enzyme_termini = getStringOption_("routes:terminal_states") == "enzyme";
+      const auto* route_rnase = dynamic_cast<const DigestionEnzymeRNA*>(search_param.digestion_enzyme);
+      if ((enzyme_termini || ! canonical_cleavage) && ! route_rnase)
+      {
+        OPENMS_LOG_ERROR << "graph_routes requires an RNase, unless 'routes:terminal_states' is 'all' and 'oligo:cleavage_model' is 'canonical'.\n";
+        return ILLEGAL_PARAMETERS;
+      }
+      Size five_gain = 0, three_gain = 0;
+      if (enzyme_termini)
+      {
+        const std::string five_code = route_rnase->getFivePrimeGain(), three_code = route_rnase->getThreePrimeGain();
+        if ((! five_code.empty() && five_code != "p") || (! three_code.empty() && three_code != "p" && three_code != "c"))
+        {
+          OPENMS_LOG_ERROR << "graph_routes supports OH, phosphate and 3' cyclic phosphate termini; the terminal gains of '"
+                           << route_rnase->getName() << "' require enumeration.\n";
+          return ILLEGAL_PARAMETERS;
+        }
+        five_gain = five_code.empty() ? 0 : 1;
+        three_gain = three_code.empty() ? 0 : (three_code == "p" ? 1 : 2);
+      }
+      // Index 3*five+three, in the order used by RNARouteCandidateGenerator.
+      const auto ownTerminalState = [](const NASequence& sequence) {
+        const Size three = ! sequence.hasThreePrimeMod() ? 0 : (sequence.getThreePrimeMod()->getCode() == "3'-p" ? 1 : 2);
+        return 3 * Size(sequence.hasFivePrimeMod()) + three;
+      };
+      // Products at a parent end keep the terminal group stored with the digest.
+      const auto enzymeTerminalState = [&](const NASequence& stored, const IdentificationData::ParentMatch& match, Size parent_size) {
+        const Size own = ownTerminalState(stored);
+        return 3 * (match.start_pos == 0 ? own / 3 : five_gain) + (match.end_pos + 1 >= parent_size ? own % 3 : three_gain);
+      };
+      // Parse each parent once; products are validated against it below.
+      std::map<IdentificationData::ParentSequenceRef, NASequence> route_parents;
+      vector<Byte> terminal_masks;
+      if (enzyme_termini || ! canonical_cleavage)
+      {
+        if (enzyme_termini) { terminal_masks.assign(digest.size(), 0); }
+        for (Size index = 0; index < digest.size(); ++index)
+        {
+          for (const auto& [parent_ref, matches] : digest[index]->parent_matches)
+          {
+            auto found = route_parents.find(parent_ref);
+            if (found == route_parents.end())
+            {
+              NASequence parent = NASequence::fromString(parent_ref->sequence);
+              ModifiedNASequenceGenerator::applyFixedModifications(fixed_modifications, parent);
+              found = route_parents.emplace(parent_ref, std::move(parent)).first;
+            }
+            if (! enzyme_termini) { continue; }
+            for (const auto& match : matches)
+            {
+              terminal_masks[index] |= Byte(1) << enzymeTerminalState(digest[index]->sequence, match, found->second.size());
+            }
+          }
+        }
+      }
+      // A cleavage site depends only on the residues matched by the enzyme
+      // patterns around it. Digest the product with that much parent context
+      // (at least one residue, so a window edge is never mistaken for a cut).
+      Size context_before = 1, context_after = 1;
+      if (route_rnase)
+      {
+        StringList after, before;
+        StringUtils::split(route_rnase->getCutsAfterRegEx(), ',', after);
+        StringUtils::split(route_rnase->getCutsBeforeRegEx(), ',', before);
+        context_before = std::max<Size>(1, after.size());
+        context_after = std::max<Size>(1, before.size());
+      }
+      const auto cleavageCompatible = [&](const RNaseDigestion& validator, const NASequence& parent, Size start, const NASequence& candidate) {
+        const Size end = start + candidate.size();
+        if (end > parent.size()) { return false; }
+        const Size first = start - std::min(start, context_before), last = end + std::min(parent.size() - end, context_after);
+        std::vector<const Ribonucleotide*> residues;
+        residues.reserve(last - first);
+        for (Size pos = first; pos < last; ++pos)
+        {
+          residues.push_back(pos >= start && pos < end ? candidate[pos - start] : parent[pos]);
+        }
+        const NASequence window(std::move(residues), nullptr, nullptr);
+        const auto positions = validator.getFragmentPositions(window, candidate.size(), candidate.size());
+        return std::find(positions.begin(), positions.end(), std::pair<Size, Size> {start - first, candidate.size()}) != positions.end();
+      };
+      const RNARouteCandidateGenerator generator(route_database, variable_modifications, options, terminal_masks);
       std::unique_ptr<RNARouteCandidateGenerator> route_reference;
       if (getFlag_("routes:verify_candidates"))
       {
         auto reference_options = options;
         reference_options.index_precursor_mass = false;
         reference_options.compress_route_states = false;
-        route_reference = std::make_unique<RNARouteCandidateGenerator>(route_database, variable_modifications, reference_options);
+        route_reference = std::make_unique<RNARouteCandidateGenerator>(route_database, variable_modifications, reference_options, terminal_masks);
       }
       using PrecursorEntry = std::pair<const double, PrecursorInfo>;
       vector<vector<const PrecursorEntry*>> by_scan(spectra.size());
@@ -2640,6 +2736,12 @@ protected:
               std::vector<PeptideHit::PeakAnnotation> annotations;
             };
             std::map<std::pair<const RNARouteCandidateGenerator::Scaffold*, Size>, NativeModel> native_support_models;
+            RNaseDigestion validator;
+            if (! canonical_cleavage)
+            {
+              validator.setEnzyme(search_param.digestion_enzyme);
+              validator.setMissedCleavages(search_param.missed_cleavages);
+            }
             const auto score_native = [&](const MSSpectrum& model) {
               NativeModel result;
               result.score
@@ -2658,25 +2760,21 @@ protected:
               const auto* precursor = by_scan[scan][placed.precursor_index];
               const auto& candidate = placed.sequence;
               std::optional<IdentificationData::IdentifiedOligo> parent_override;
-              if (! canonical_cleavage)
+              if (enzyme_termini || ! canonical_cleavage)
               {
                 parent_override = *digest[placed.database_index];
                 parent_override->parent_matches.clear();
-                RNaseDigestion validator;
-                validator.setEnzyme(search_param.digestion_enzyme);
-                validator.setMissedCleavages(search_param.missed_cleavages);
+                const Size terminal_state = ownTerminalState(candidate);
                 for (const auto& [parent_ref, matches] : digest[placed.database_index]->parent_matches)
                 {
+                  const NASequence& parent = route_parents.at(parent_ref);
                   for (const auto& match : matches)
                   {
-                    NASequence parent = NASequence::fromString(parent_ref->sequence);
-                    ModifiedNASequenceGenerator::applyFixedModifications(fixed_modifications, parent);
-                    for (Size pos = 0; pos < candidate.size(); ++pos)
+                    if (enzyme_termini && enzymeTerminalState(digest[placed.database_index]->sequence, match, parent.size()) != terminal_state)
                     {
-                      parent.set(match.start_pos + pos, candidate[pos]);
+                      continue;
                     }
-                    const auto positions = validator.getFragmentPositions(parent, candidate.size(), candidate.size());
-                    if (std::find(positions.begin(), positions.end(), std::pair<Size, Size> {match.start_pos, candidate.size()}) != positions.end())
+                    if (canonical_cleavage || cleavageCompatible(validator, parent, match.start_pos, candidate))
                     {
                       parent_override->parent_matches[parent_ref].insert(match);
                     }
@@ -3051,8 +3149,17 @@ protected:
                 route_evidence = RNARouteScorer::score(graph_queries.at(charge * base_charge), route_scoring_spectra[scan_index],
                                                        route_scoring_contexts[scan_index], negative_mode, route_score_options);
               }
-              catch (const Exception::InvalidValue&)
+              catch (const Exception::BaseException& error)
               {
+                // Name the pair that failed: the limit is per model query, and
+                // any other scoring error must not be reported as exhaustion.
+#pragma omp critical (route_score_failure)
+                {
+                  if (route_score_failure.empty())
+                  {
+                    route_score_failure = "spectrum '" + exp_spectrum.getNativeID() + "', candidate '" + candidate.toString() + "': " + error.what();
+                  }
+                }
                 route_score_limit_exceeded.store(true, std::memory_order_relaxed);
                 continue;
               }
@@ -3128,7 +3235,7 @@ protected:
 
     if (route_score_limit_exceeded.load(std::memory_order_relaxed))
     {
-      OPENMS_LOG_ERROR << "RNA route scoring exceeded routes:max_states. No search results were exported.\n";
+      OPENMS_LOG_ERROR << "RNA route scoring failed for " << route_score_failure << ". No search results were exported.\n";
       return UNEXPECTED_RESULT;
     }
 
